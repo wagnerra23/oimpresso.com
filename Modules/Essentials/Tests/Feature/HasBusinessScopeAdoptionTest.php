@@ -8,7 +8,7 @@ use Modules\Essentials\Entities\EssentialsLeave;
 use Modules\Essentials\Entities\KnowledgeBase;
 use Modules\Essentials\Entities\Reminder;
 use Modules\Essentials\Entities\ToDo;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 uses(Tests\TestCase::class);

@@ -15,7 +15,7 @@ use App\User;
 use App\Util\OtelHelper;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 
 /**
  * Service canônico de execução de transição FSM (ADR 0129 §Service).

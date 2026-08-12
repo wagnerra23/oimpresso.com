@@ -4,7 +4,7 @@ namespace Modules\Jana\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Modules\Jana\Entities\Meta;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 
 /**
  * STUB spec-ready: visão superadmin — metas da plataforma (business_id NULL)

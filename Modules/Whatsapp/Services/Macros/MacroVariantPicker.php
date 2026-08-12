@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Whatsapp\Services\Macros;
 
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Macro;
 use Modules\Whatsapp\Entities\MacroVariant;
 

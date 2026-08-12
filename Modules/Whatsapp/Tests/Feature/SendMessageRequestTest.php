@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
 use Modules\Whatsapp\Entities\WhatsappConversation;
 use Modules\Whatsapp\Http\Requests\SendMessageRequest;

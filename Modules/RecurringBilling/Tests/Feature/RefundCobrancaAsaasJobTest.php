@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\RecurringBilling\Jobs\RefundCobrancaAsaasJob;
 use Modules\RecurringBilling\Models\BoletoCredential;
 use Modules\RecurringBilling\Services\Boleto\BoletoService;

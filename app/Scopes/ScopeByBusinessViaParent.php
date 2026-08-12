@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Jana\Scopes;
+namespace App\Scopes;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -31,7 +31,7 @@ use Illuminate\Database\Eloquent\Scope;
  *   Sugestao::withoutGlobalScope(ScopeByBusinessViaParent::class)->get();
  *   // SUPERADMIN: <razão> — skill commit-discipline (Tier A) flag se faltar comentário
  *
- * @see Modules\Jana\Scopes\ScopeByBusiness        scope direto (para parents)
+ * @see App\Scopes\ScopeByBusiness        scope direto (para parents)
  * @see App\Concerns\BelongsToBusinessViaParent    trait que aplica este scope
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */

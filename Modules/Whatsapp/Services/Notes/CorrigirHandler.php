@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\Whatsapp\Services\Notes;
 
 use Illuminate\Support\Facades\Log;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\JanaCorrecao;
 use Modules\Whatsapp\Entities\Message;
 

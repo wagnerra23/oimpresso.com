@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\Whatsapp\Services\Csat;
 
 use Illuminate\Support\Facades\Log;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\CsatResponse;
 
 /**

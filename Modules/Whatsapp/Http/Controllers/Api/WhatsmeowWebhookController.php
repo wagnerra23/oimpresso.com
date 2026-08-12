@@ -73,7 +73,7 @@ class WhatsmeowWebhookController extends Controller
         // criado em POST /admin/users, que é nosso whatsmeowUserName()).
         if ($channel === null && $instanceName !== '') {
             $channel = Channel::query()
-                ->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
+                ->withoutGlobalScope(\App\Scopes\ScopeByBusiness::class)
                 ->where('business_id', $businessId)
                 ->where('type', Channel::TYPE_WHATSAPP_WHATSMEOW)
                 ->get()

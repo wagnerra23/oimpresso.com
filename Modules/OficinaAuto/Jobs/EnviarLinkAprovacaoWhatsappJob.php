@@ -13,7 +13,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\OficinaAuto\Entities\ServiceOrder;
 use Modules\OficinaAuto\Services\AprovacaoOsService;
 use Modules\Whatsapp\Entities\WhatsappBusinessPhone;

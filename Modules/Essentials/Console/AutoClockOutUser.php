@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Modules\Essentials\Entities\EssentialsAttendance;
 use Modules\Essentials\Entities\Shift;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 
 /**
  * Auto clock-out de funcionários que esqueceram de bater a saída.
