@@ -727,6 +727,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** ao **citar** uma lápide/ADR/charter como fundamento de um achado, verificar que a **premissa técnica** dela vale no caminho que você está julgando — não basta que a lápide exista e nomeie o mesmo símbolo. Rótulo de risco (Tier-0, valor, estoque, PII) é propriedade do **caminho medido**, nunca do **nome do componente**: componente compartilhado por N consumidores tem N contratos, e o risco de cada um se mede **no consumidor**, abrindo o `onSelect`/callback dele. Corolário de redação, que é o que gerou este caso: abreviação cômoda dentro de um escopo (*"o componente reaplica"*, escrita quando a pergunta era *migrar o componente*) vira **afirmação falsa** quando citada fora dele — então descrição de mecanismo em doc canon nomeia **quem faz o quê** (`entrega` × `reaplica`, componente × parent), mesmo custando meia linha a mais. Mesma família de 2026-08-10 (um comentário lido como import virou *"não pode ser apagado"* em 7 docs) e de 2026-07-15 (achado derivado de leitura, sem varredura contada).
 
+### 2026-08-12 — Script de reescrita em massa passou POR BAIXO do guard que protege exatamente aquela classe de arquivo
+
+- **O limite (variante também proibida):** antes de reescrever em massa **qualquer** classe de arquivo, perguntar **quem mais escreve nesses arquivos, e se esse produtor tem guarda** — e então rodar a guarda, ou reproduzir o predicado dela. Vale pra `memory/modulos/` (`guardaPerdaDeBranch`), baseline de catraca, `SUPERFICIE.md`, `catalog.json` e qualquer saída de gerador. Corolário afiado: **guarda acoplada ao COMANDO não protege o ARQUIVO** — `sed`, `Edit`, codemod e `git checkout` passam por baixo dela sem erro nenhum. E o teste de identidade prova que você não comeu o vizinho; **não prova que você tinha direito de comer o alvo**.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
