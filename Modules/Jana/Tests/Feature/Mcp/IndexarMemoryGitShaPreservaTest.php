@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Jana\Tests\Feature\Mcp;
 
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
 use Modules\Jana\Services\Mcp\IndexarMemoryGitParaDb;
 
@@ -26,79 +24,32 @@ uses(\Tests\TestCase::class);
  * Com os dois ambientes se desfazendo mutuamente, o sync nunca convergia:
  * 2485 de 2488 docs marcados como "atualizados" em toda passada, 99% com
  * git_sha vazio, e cada passada reenviando o índice inteiro ao Meilisearch —
- * que ficou com 100% de CPU de forma contínua e derrubou a latência do MCP
- * server (5,2s por request, estourando o handshake do cliente).
+ * que ficou com 100% de CPU contínuo e derrubou a latência do MCP server.
  *
  * A regra que estes testes travam: leitura indisponível não é mudança, e não
  * se apaga um valor bom porque não foi possível lê-lo.
  *
+ * ── Por que roda na lane MySQL, e não em sqlite ──────────────────────────────
+ * Testes irmãos deste diretório criam o schema mcp_* à mão e pulam quando o
+ * driver não é sqlite, declarando que "a cobertura real é na lane sqlite
+ * (per-PR)". Medido em 2026-08-12: essa lane NÃO EXISTE — o CI tem 15 lanes de
+ * Pest, todas MySQL (mais a Unit). Um teste com esse skip nunca executa e passa
+ * por não-execução. Este aqui usa o schema real provisionado pela lane e roda.
+ *
+ * O `onlyType` no construtor não é detalhe: em sync COMPLETO o serviço
+ * soft-deleta todo doc ausente do filesystem varrido, o que apagaria o resto da
+ * tabela ao rodar contra um repo temporário de um arquivo só.
+ *
  * @see Modules/Jana/Services/Mcp/IndexarMemoryGitParaDb.php@indexarArquivo
  */
 
-beforeEach(function () {
-    // era-sqlite: cria schema mcp_* manual (sqlite-friendly). No MySQL persistente
-    // do nightly isso corrompe os testes irmãos — mesma convenção do
-    // IndexarMemoryGitSoftDeleteRestoreTest, que criou este schema primeiro.
-    if (config('database.default') !== 'sqlite') {
-        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only.');
-    }
-
-    Schema::create('mcp_memory_documents', function (Blueprint $t) {
-        $t->bigIncrements('id');
-        $t->unsignedInteger('business_id')->nullable();
-        $t->string('slug', 200)->unique();
-        $t->string('type', 30);
-        $t->string('module', 50)->nullable();
-        $t->string('title', 250);
-        $t->mediumText('content_md');
-        $t->mediumText('contextual_context')->nullable();
-        $t->boolean('contextual_indexed')->default(false);
-        $t->timestamp('contextualized_at')->nullable();
-        $t->string('scope_required', 100)->nullable();
-        $t->boolean('admin_only')->default(false);
-        $t->json('metadata')->nullable();
-        $t->string('git_sha', 40)->nullable();
-        $t->string('git_path', 300)->nullable();
-        $t->unsignedSmallInteger('pii_redactions_count')->default(0);
-        $t->binary('embedding')->nullable();
-        $t->timestamp('indexed_at')->nullable();
-        $t->string('status', 50)->nullable();
-        $t->string('authority', 50)->nullable();
-        $t->string('lifecycle', 50)->nullable();
-        $t->string('quarter', 10)->nullable();
-        $t->date('decided_at')->nullable();
-        $t->json('decided_by')->nullable();
-        $t->json('tags')->nullable();
-        $t->json('supersedes')->nullable();
-        $t->json('superseded_by')->nullable();
-        $t->json('related')->nullable();
-        $t->boolean('has_pii')->default(false);
-        $t->timestamps();
-        $t->softDeletes();
-    });
-
-    Schema::create('mcp_memory_documents_history', function (Blueprint $t) {
-        $t->bigIncrements('id');
-        $t->unsignedBigInteger('document_id');
-        $t->string('slug', 200);
-        $t->string('git_sha', 40)->nullable();
-        $t->string('title', 250);
-        $t->mediumText('content_md');
-        $t->json('metadata')->nullable();
-        $t->timestamp('changed_at');
-        $t->unsignedInteger('changed_by_user_id')->nullable();
-        $t->string('change_reason', 50);
-        $t->timestamps();
-    });
-});
+/** Tenant fictício canônico de teste (ADR 0358). Nunca biz=4 (cliente real). */
+const BIZ_TESTE = 98;
 
 afterEach(function () {
-    if (config('database.default') !== 'sqlite') {
-        return;
-    }
-
-    Schema::dropIfExists('mcp_memory_documents_history');
-    Schema::dropIfExists('mcp_memory_documents');
+    McpMemoryDocument::withTrashed()
+        ->whereIn('slug', ['session-git-sha-preserva', 'session-git-sha-sem-churn'])
+        ->forceDelete();
 });
 
 /**
@@ -134,7 +85,7 @@ it('preserva git_sha existente quando a leitura do git falha', function () {
 
     McpMemoryDocument::create([
         'slug'                 => 'session-git-sha-preserva',
-        'business_id'          => 98,
+        'business_id'          => BIZ_TESTE,
         'type'                 => 'session',
         'title'                => 'Doc de teste',
         'content_md'           => $conteudo,
@@ -149,13 +100,16 @@ it('preserva git_sha existente quando a leitura do git falha', function () {
     $repo = montarRepoTmpSemGit('git-sha-preserva', $conteudo);
 
     try {
-        (new IndexarMemoryGitParaDb($repo['base'], 'webhook', null, 98))->run();
+        (new IndexarMemoryGitParaDb($repo['base'], 'webhook', null, BIZ_TESTE, 'session'))->run();
 
-        $doc = McpMemoryDocument::where('slug', 'session-git-sha-preserva')->first();
+        $doc = McpMemoryDocument::withoutGlobalScopes()
+            ->where('slug', 'session-git-sha-preserva')
+            ->first();
 
         // O coração do incidente: sem git alcançável o campo era zerado, e o
         // próximo run no CT 100 via "null != SHA" e reescrevia tudo de novo.
-        expect($doc->git_sha)->toBe($shaBom);
+        expect($doc)->not->toBeNull()
+            ->and($doc->git_sha)->toBe($shaBom);
     } finally {
         $repo['cleanup']();
     }
@@ -166,7 +120,7 @@ it('não marca documento como atualizado quando só o git_sha ficou ilegível', 
 
     McpMemoryDocument::create([
         'slug'                 => 'session-git-sha-sem-churn',
-        'business_id'          => 98,
+        'business_id'          => BIZ_TESTE,
         'type'                 => 'session',
         'title'                => 'Doc de teste',
         'content_md'           => $conteudo,
@@ -181,11 +135,12 @@ it('não marca documento como atualizado quando só o git_sha ficou ilegível', 
     $repo = montarRepoTmpSemGit('git-sha-sem-churn', $conteudo);
 
     try {
-        $stats = (new IndexarMemoryGitParaDb($repo['base'], 'webhook', null, 98))->run();
+        $stats = (new IndexarMemoryGitParaDb($repo['base'], 'webhook', null, BIZ_TESTE, 'session'))->run();
 
         // Era daqui que saía o "2485 atualizados" com zero mudança real — o
         // churn que reenviava o índice inteiro ao Meilisearch a cada passada.
-        expect($stats['atualizados'])->toBe(0)
+        expect($stats['indexados'])->toBe(1)
+            ->and($stats['atualizados'])->toBe(0)
             ->and($stats['novos'])->toBe(0);
     } finally {
         $repo['cleanup']();
