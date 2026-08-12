@@ -57,8 +57,13 @@ class McpAuthMiddleware
         // statement do handle() de cada tool mutadora. Tools de leitura só
         // exigem este gate básico (e filtram resultado por scope quando aplicável,
         // ex: CcSearchTool com jana.cc.read.all).
+        // Chave do memo vem de `$token->user_id` (Model tipado), não de
+        // `$user->id`: `$user` sai de `$userClass::find()` com $userClass
+        // resolvido da config, então seu tipo é `class-string|object` e ler
+        // propriedade dele é erro de análise estática. É o mesmo id — foi ele
+        // que carregou o $user duas linhas acima.
         if (method_exists($user, 'can') && ! $this->podeUsarMcp(
-            (int) $user->id,
+            (int) $token->user_id,
             static fn (): bool => (bool) $user->can('jana.mcp.use')
         )) {
             return $this->denied(
