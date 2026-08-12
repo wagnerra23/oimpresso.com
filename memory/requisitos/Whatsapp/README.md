@@ -245,7 +245,7 @@ Spans canon (zero-cost se `otel.enabled=false`):
 - `whatsapp.metrics.snapshot_por_driver` (Wave 18)
 - `whatsapp.test.span` (smoke teste)
 
-Atributos sempre `business_id` + `module=Whatsapp`. PII redacted via `Modules\Jana\Services\Privacy\PiiRedactor` antes de log.
+Atributos sempre `business_id` + `module=Whatsapp`. PII redacted via `App\Support\Privacy\PiiRedactor` antes de log.
 
 ## LGPD
 

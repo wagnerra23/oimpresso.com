@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Notification;
 use Modules\Crm\Entities\Campaign;
 use Modules\Crm\Entities\CrmContact;
 use Modules\Crm\Notifications\SendCampaignNotification;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 /**
  * CampaignService — orquestrador thin de campanhas SMS/Email (crm_campaigns).

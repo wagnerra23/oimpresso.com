@@ -6,7 +6,7 @@ use App\Transaction;
 use App\Util\OtelHelper;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 /**
  * ProductionService — orquestração thin de queries de produção (Manufacturing).

@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Modules\OficinaAuto\Entities\OaInspectionItem;
 use Modules\OficinaAuto\Entities\ServiceOrder;
 use Modules\OficinaAuto\Entities\Vehicle;

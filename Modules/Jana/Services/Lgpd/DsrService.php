@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Modules\Jana\Services\JanaAuditService;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Throwable;
 
 /**
@@ -39,7 +39,7 @@ use Throwable;
  * pedidos do titular que exigem remoção total (raro — geralmente disputa judicial).
  *
  * @see Modules\Jana\Services\Lgpd\DsrEsquecimentoResult
- * @see Modules\Jana\Services\Privacy\PiiRedactor
+ * @see App\Support\Privacy\PiiRedactor
  * @see Modules\Jana\Services\JanaAuditService
  * @see https://gdpr.eu/gdpr-vs-lgpd/
  */
@@ -120,7 +120,7 @@ class DsrService
         $startMs = (int) (microtime(true) * 1000);
         $auditTrailId = (string) Str::uuid();
 
-        // Normaliza: aceita 123.456.789-00, 12345678900, 12.345.678/0001-90, etc.
+        // Normaliza: aceita 123.456.789-00, 12345678900, 12.345.678/0001-90, etc. # pii-allowlist
         $docDigits = preg_replace('/\D+/', '', $cpfOuCnpj) ?? '';
 
         if (! in_array(strlen($docDigits), [11, 14], true)) {
@@ -297,7 +297,7 @@ class DsrService
         $patterns = [$docDigits];
 
         if (strlen($docDigits) === 11) {
-            // CPF formatado: 123.456.789-00
+            // CPF formatado: 123.456.789-00 # pii-allowlist
             $patterns[] = sprintf(
                 '%s.%s.%s-%s',
                 substr($docDigits, 0, 3),
@@ -306,7 +306,7 @@ class DsrService
                 substr($docDigits, 9, 2),
             );
         } elseif (strlen($docDigits) === 14) {
-            // CNPJ formatado: 12.345.678/0001-90
+            // CNPJ formatado: 12.345.678/0001-90 # pii-allowlist
             $patterns[] = sprintf(
                 '%s.%s.%s/%s-%s',
                 substr($docDigits, 0, 2),

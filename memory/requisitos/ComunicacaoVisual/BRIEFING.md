@@ -26,7 +26,7 @@ ERP vertical para gráfica rápida / comunicação visual BR (CNAE 1813-0/01: lo
 - Telas próprias de PCP/materiais/apontamento (US-COMVIS-005): TODO.
 - **Integração NfeBrasil, dual-doc NFe55+NFSe56, IA Jana**: narrativa de roadmap, **sem código** fiscal/IA neste módulo.
 
-**Dependências reais:** UltimatePOS core (auth, `business_id`, permissões `comvis.*`, install 1-click, sidebar); `Modules\Jana\Services\Privacy\PiiRedactor`; `App\Util\OtelHelper`. FSM canon (`app/Domain/Fsm/`) referenciado no schema mas **não consumido** em runtime.
+**Dependências reais:** UltimatePOS core (auth, `business_id`, permissões `comvis.*`, install 1-click, sidebar); `App\Support\Privacy\PiiRedactor`; `App\Util\OtelHelper`. FSM canon (`app/Domain/Fsm/`) referenciado no schema mas **não consumido** em runtime.
 
 **SPEC:** [SPEC.md](SPEC.md)
 

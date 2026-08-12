@@ -10,7 +10,7 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Modules\Crm\Entities\CrmContact;
 use Modules\Crm\Entities\ProposalTemplate;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 class ProposalTemplateController extends Controller
 {

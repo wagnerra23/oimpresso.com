@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\File;
 use Laravel\Ai\Ai;
 use Laravel\Ai\AnonymousAgent;
 use Modules\Jana\Services\Memoria\DistillerModuloVerdade;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 uses(Tests\TestCase::class);
 

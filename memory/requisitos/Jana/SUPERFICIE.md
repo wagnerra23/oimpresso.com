@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 570 arquivos em 19 papéis.
+**Total mapeado:** 569 arquivos em 19 papéis.
 
 ## Controllers — 10
 
@@ -43,7 +43,7 @@ module: Jana
 
 - [McpAuthMiddleware.php](../../../Modules/Jana/Http/Middleware/McpAuthMiddleware.php)
 
-## Services — 91
+## Services — 90
 
 - [ProximaPerguntaService.php](../../../Modules/Jana/Services/Advisor/ProximaPerguntaService.php)
 - [ClarifyCascadeService.php](../../../Modules/Jana/Services/Ai/Clarify/ClarifyCascadeService.php)
@@ -100,7 +100,6 @@ module: Jana
 - [MetricasApurador.php](../../../Modules/Jana/Services/Metricas/MetricasApurador.php)
 - [PesoRealService.php](../../../Modules/Jana/Services/Peso/PesoRealService.php)
 - [RelevanciaMetaInferer.php](../../../Modules/Jana/Services/Peso/RelevanciaMetaInferer.php)
-- [PiiRedactor.php](../../../Modules/Jana/Services/Privacy/PiiRedactor.php)
 - [RetentionPurgeService.php](../../../Modules/Jana/Services/Privacy/RetentionPurgeService.php)
 - [JudgeUnavailableException.php](../../../Modules/Jana/Services/Ragas/JudgeUnavailableException.php)
 - [OllamaRagasJudge.php](../../../Modules/Jana/Services/Ragas/OllamaRagasJudge.php)

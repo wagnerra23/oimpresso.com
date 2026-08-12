@@ -34,7 +34,7 @@ declare(strict_types=1);
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0070-jira-style-task-management-current-md-removed.md
  * @see Modules\Crm\Config\retention.php (pattern Wave 9)
- * @see Modules\Jana\Services\Privacy\PiiRedactor
+ * @see App\Support\Privacy\PiiRedactor
  */
 
 return [

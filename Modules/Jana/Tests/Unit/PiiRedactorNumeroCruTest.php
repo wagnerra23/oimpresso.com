@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 /**
  * Colisão entre PII e NÚMERO COMPRIDO QUALQUER — achado em produção 2026-08-02.

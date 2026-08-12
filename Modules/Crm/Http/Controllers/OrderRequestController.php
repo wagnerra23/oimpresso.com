@@ -16,7 +16,7 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Modules\Crm\Utils\CrmUtil;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Yajra\DataTables\Facades\DataTables;
 
 class OrderRequestController extends Controller

@@ -7,7 +7,7 @@ namespace Modules\Essentials\Services;
 use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Log;
 use Modules\Essentials\Entities\EssentialsLeave;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 /**
  * LeaveAuditService — wrap append-only de auditoria pra mudanças de status em
@@ -31,7 +31,7 @@ use Modules\Jana\Services\Privacy\PiiRedactor;
  * leave_id + from_status/to_status. Zero-cost se OTel desligado.
  *
  * @see Modules\Essentials\Entities\EssentialsLeave (LogsActivity Spatie)
- * @see Modules\Jana\Services\Privacy\PiiRedactor
+ * @see App\Support\Privacy\PiiRedactor
  * @see Modules\Crm\Services\CampaignService (pattern referência D7 Wave 9)
  * @see Modules\Essentials\Config\retention.php
  */

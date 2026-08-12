@@ -12,7 +12,7 @@ declare(strict_types=1);
  * @see Modules/Jana/Services/Scorecard/AiScorecardJudge.php
  */
 
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Modules\Jana\Services\Scorecard\AiScorecardJudge;
 use Tests\TestCase;
 
@@ -215,15 +215,15 @@ it('redacta PII (CPF) caso aparece em rubrica/breakdown', function () {
             'core' => [],
             'bucket_dimensions' => [],
             'paired_violations' => [
-                ['rule' => 'lgpd_violation', 'reason' => 'CPF 123.456.789-09 em log'],
+                ['rule' => 'lgpd_violation', 'reason' => 'CPF 123.456.789-09 em log'], # pii-allowlist
             ],
         ],
     );
     // O prompt cru ainda contém — redaction acontece dentro de suggestScoreAdjustment
-    expect($prompt)->toContain('123.456.789-09');
+    expect($prompt)->toContain('123.456.789-09'); # pii-allowlist
 
     $redacted = $this->redactor->redact($prompt);
-    expect($redacted)->not->toContain('123.456.789-09');
+    expect($redacted)->not->toContain('123.456.789-09'); # pii-allowlist
     expect($redacted)->toContain('[REDACTED:CPF]');
 });
 
