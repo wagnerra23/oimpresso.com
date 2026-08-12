@@ -158,47 +158,9 @@ describe('Cowork Bundle Integral — JSX files reference (_cowork-bundle/)', fun
     });
 });
 
-describe('Cowork Bundle — discovery Inertia NÃO pega .jsx (underscore prefix)', function () {
-    it('Inertia app.tsx usa glob ./Pages/**/*.tsx (não .jsx)', function () {
-        $src = file_get_contents(__DIR__ . '/../../../../resources/js/app.tsx');
-        expect($src)->toContain("import.meta.glob('./Pages/**/*.tsx')");
-        // NÃO deve haver glob de .jsx (que importaria o bundle por engano)
-        expect($src)->not->toContain('./Pages/**/*.jsx');
-    });
-
-    // UC-2 — O SEGUNDO GLOB. `app.tsx` (client) e `ssr.tsx` (SSR) declaram o MESMO
-    // glob e são sincronizados À MÃO. O it() acima cobria só o client: trocar o glob
-    // apenas no ssr.tsx passava verde. Onde o local das Pages é convenção do projeto
-    // (e não imposição do Inertia — .claude/rules/pages.md), as DUAS pontas contam.
-    it('UC-2 · Inertia ssr.tsx usa o mesmo glob ./Pages/**/*.tsx (não .jsx)', function () {
-        $src = file_get_contents(__DIR__ . '/../../../../resources/js/ssr.tsx');
-        expect($src)->toContain("import.meta.glob('./Pages/**/*.tsx')");
-        expect($src)->not->toContain('./Pages/**/*.jsx');
-    });
-
-    // UC-3 — O GATILHO. Os dois asserts acima só valem se a lane RODAR quando o glob
-    // muda. Até 2026-08-12 ela não rodava: `resources/js/**` não estava nem no
-    // `push.paths` nem no filtro `fin:` do dorny, então PR que trocasse o glob caía em
-    // skip-as-pass — VERDE sem ter executado o teste que crava a string (LC-11/LC-13).
-    // Medido naquele dia, com picomatch sobre o filtro real: ANTES false/false,
-    // DEPOIS true/true; controles negativos (Pages/Sells/Create.tsx, README.md) não
-    // disparam. Bite-test no CT100: glob íntegro → 1 passed (2 assertions); glob
-    // mutado p/ .jsx → 1 failed na linha 164. Sem este UC-3, remover os paths do
-    // trigger devolveria o gate mudo em silêncio — que é o defeito, não o sintoma.
-    //
-    // LIMITE HONESTO: compara o path LITERAL. Se alguém substituir por um glob
-    // equivalente (ex. 'resources/js/*.tsx'), este teste avermelha sem haver
-    // regressão — falha ruidosa e de conserto óbvio (atualize a lista abaixo).
-    // Preferido a um matcher de glob em PHP, que não tem `**` nativo.
-    it('UC-3 · a lane financeiro-pest dispara quando os entrypoints do glob mudam', function () {
-        $yml = file_get_contents(__DIR__ . '/../../../../.github/workflows/financeiro-pest.yml');
-
-        // As DUAS listas decidem — push.paths (main) e o filtro `fin:` (skip-as-pass no PR).
-        // 2 ocorrências de cada = presente nas duas.
-        foreach (['resources/js/app.tsx', 'resources/js/ssr.tsx'] as $entrypoint) {
-            expect(substr_count($yml, "'{$entrypoint}'"))
-                ->toBe(2, "{$entrypoint} deve estar em push.paths E no filtro fin: do dorny — "
-                    . 'senão trocar o glob dá skip-as-pass (verde sem rodar este arquivo).');
-        }
-    });
-});
+// O describe 'discovery Inertia NÃO pega .jsx' MUDOU-SE DAQUI em 2026-08-12, para
+// `InertiaPagesGlobContratoTest.php`. Motivo: este arquivo está na quarentena da
+// lane por causa dos 4 describes acima (bundle CSS, quebrados desde o #2127), e a
+// quarentena exclui o arquivo INTEIRO — então o contrato do glob, que não tem
+// relação nenhuma com o bundle CSS, nunca rodava no CI apesar de verde localmente.
+// Não mova nada de volta pra cá sem antes tirar este arquivo da quarentena.
