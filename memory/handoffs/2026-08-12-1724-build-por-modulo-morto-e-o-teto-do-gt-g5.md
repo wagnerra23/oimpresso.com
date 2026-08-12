@@ -63,3 +63,13 @@ Dívida aberta: `php artisan module:specs` numa máquina com `vendor/`. Os 15 `m
 - Session log: [`2026-08-12-build-por-modulo-morto-e-o-guard-que-o-sed-contornou.md`](../sessions/2026-08-12-build-por-modulo-morto-e-o-guard-que-o-sed-contornou.md)
 - Guard contornado: `app/Console/Commands/GenerateModuleSpecsCommand.php:98-112`
 - Protocolo emendado: [`PROTOCOLO-REFUTADOR-BACKFILL.md §4.2`](../requisitos/Governance/PROTOCOLO-REFUTADOR-BACKFILL.md)
+
+---
+
+## Errata (append — o `next_steps` acima fica como foi escrito)
+
+[W] apontou que **pendência não mora em prosa de handoff**: o backlog canônico são as `US-*` dos `memory/requisitos/<Mod>/SPEC.md` (ADR 0070), de onde `tasks-index-generate.mjs` deriva o `_BACKLOG-GENERATED.md`. Handoff é fóssil datado; US é estado vivo. Os dois `next_steps` do frontmatter foram tratados assim:
+
+**1. `module:specs` → virou [US-GOV-061](../requisitos/Governance/SPEC.md)** no SPEC do Governance — dono pelo próprio purpose dele (*"drift de escopo/deploy/**índice**"*, e `memory/modulos/` é índice derivado). A US carrega as duas armadilhas medidas: parte do diff é dívida anterior ao #5680 (`Ponto.md` já estava drifado), e o `guardaPerdaDeBranch()` pode abortar o comando **com razão** — o `--aceito-perda-de-branch` é decisão [W], não conveniência de quem roda.
+
+**2. A branch `claude/gt-g5-teto-politica` NÃO existe** — `gh api .../branches/...` → **404**. O GitHub a apagou no merge. Eu declarei a pendência a partir do erro do `--delete-branch` **local** (que falhou por outro motivo: `main` ocupado por outro worktree) sem medir o servidor. É LC-08 na forma mais simples: **estado de branch remota é do servidor, não do seu clone** — a mesma regra que o próprio ledger já registra para estado de PR.
