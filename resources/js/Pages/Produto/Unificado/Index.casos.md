@@ -66,6 +66,8 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   custo por dedução.
 - **Não é `[V0]`:** gateia **exibição**, não altera cálculo. A REGRA MESTRE não se aplica — marcar
   `[V0]` aqui inflaria o ritual sem proteger nada (mesma leitura de `UC-PIDX-03`).
+- **Teste:** [`ProdutoUnificadoContratoTest`](../../../../tests/Feature/Produto/ProdutoUnificadoContratoTest.php) — `UC-PUNI-01`.
+- **Status: ⬜** — failing-first; **vermelho esperado** (o controller não consulta permissão nenhuma).
 
 ## UC-PUNI-02 · Preço de venda não chega sem `access_default_selling_price` · `must`
 
@@ -76,6 +78,8 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   `unit_price_inc_tax`) entregam preço de venda.
 - **Por que o Histórico entra aqui:** é a porta lateral. Gatear a lista e deixar o histórico aberto
   entrega o mesmo dado por outro caminho, produto a produto.
+- **Teste:** [`ProdutoUnificadoContratoTest`](../../../../tests/Feature/Produto/ProdutoUnificadoContratoTest.php) — `UC-PUNI-02` e `UC-PUNI-02b`.
+- **Status: ⬜** — failing-first; **vermelho esperado**.
 
 ## UC-PUNI-03 · Tabelas de preço seguem o mesmo gate do preço de venda · `must`
 
@@ -94,6 +98,9 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 > **Onde esta decisão falha:** se algum business quiser *"o balconista vê o preço de balcão mas não
 > vê que agência paga 22% menos"*, este gate não entrega. Aí a permissão nova nasce — com caso de uso
 > real. **Não reabrir sem sinal de cliente.**
+
+- **Teste:** [`ProdutoUnificadoContratoTest`](../../../../tests/Feature/Produto/ProdutoUnificadoContratoTest.php) — `UC-PUNI-03`.
+- **Status: ⬜** — failing-first; **vermelho esperado**.
 
 ## UC-PUNI-04 · Composição (BOM) só aparece com módulo e permissão · `must`
 
@@ -114,7 +121,12 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   `materia.?prima|uso e consumo|raw_material` em `database/migrations/`, `app/` e
   `Modules/Manufacturing/` devolveu **0**. O `products.type` nasce `enum('single','variable')`
   (`database/migrations/2017_08_08_115903_create_products_table.php:21`). Quem classifica insumo hoje
-  é a flag `not_for_selling` (`ProdutoUnificadoController:196`), com TODO de confirmação.
+  é a flag `not_for_selling` (`ProdutoUnificadoController:196`), com TODO de confirmação. A decisão
+  sobre migrar (ou não) a "natureza do item" do Delphi está em
+  [proposta 2026-08-11](../../../../memory/decisions/proposals/2026-08-11-natureza-do-item-tipo-de-produto.md).
+- **Teste:** [`ProdutoUnificadoContratoTest`](../../../../tests/Feature/Produto/ProdutoUnificadoContratoTest.php) — `UC-PUNI-04`.
+- **Status: ⬜** — preventivo; o BOM ainda **não é servido**. O caso existe pra a composição **nascer**
+  gated, não pra alguém ligá-la e descobrir depois.
 
 ## UC-PUNI-05 · Nenhuma prop enxerga outro business · `must` `[T0]`
 
@@ -124,10 +136,15 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   aparece em prop nenhuma.
 - **Residual declarado no próprio código:** `categorias()` não escopa o lado `products` do `leftJoin`
   por `business_id` (`:151-154`, herdado do helper de produção). A contagem pode inflar; o caso mede.
+- **Teste:** [`ProdutoUnificadoContratoTest`](../../../../tests/Feature/Produto/ProdutoUnificadoContratoTest.php) — `UC-PUNI-05`.
+- **Status: ⬜** — guard; **verde esperado**. Se ficar vermelho, é Tier 0 e vira incidente, não dívida.
 
-## UC-PUNI-06 · A tela exige `product.view` · `should`
+## UC-PUNI-06 · A tela exige `product.view` ou `product.create` · `should`
 
 - **Aceite:** Dado um usuário autenticado **sem** `product.view` **nem** `product.create` · Quando pede `/products/unificado` ·
   Então recebe 403 — não a página.
-- **Estado hoje:** a rota não tem middleware (`routes/web.php:449` traz o TODO declarado). Vermelho
-  esperado.
+- **Estado hoje:** nada gateia a tela. O TODO em `routes/web.php:449` pede middleware, mas o padrão
+  canônico do módulo **não é middleware**: a lista irmã aborta dentro do controller
+  (`ProductController@index:66`). Vermelho esperado.
+- **Teste:** [`ProdutoUnificadoContratoTest`](../../../../tests/Feature/Produto/ProdutoUnificadoContratoTest.php) — `UC-PUNI-06`.
+- **Status: ⬜** — failing-first; **vermelho esperado**.
