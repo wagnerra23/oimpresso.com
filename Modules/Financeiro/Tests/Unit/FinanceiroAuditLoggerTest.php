@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Log;
 use Modules\Financeiro\Services\FinanceiroAuditLogger;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 /**
  * Wave 14 D7.a — sanity tests pro wrapper que redaciona PII antes de Log::*.

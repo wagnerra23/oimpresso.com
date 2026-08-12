@@ -13,7 +13,7 @@ use Modules\Crm\Entities\ProposalTemplate;
 use Modules\Crm\Entities\Schedule;
 use Modules\Crm\Entities\ScheduleLog;
 use Modules\Crm\Entities\ScheduleUser;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 uses(Tests\TestCase::class);

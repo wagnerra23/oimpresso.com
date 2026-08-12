@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Modules\Ponto\Entities\Colaborador;
 use Modules\Ponto\Entities\Escala;
 use Modules\Ponto\Entities\Intercorrencia;

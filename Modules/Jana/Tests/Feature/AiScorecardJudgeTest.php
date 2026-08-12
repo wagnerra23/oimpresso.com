@@ -12,7 +12,7 @@ declare(strict_types=1);
  * @see Modules/Jana/Services/Scorecard/AiScorecardJudge.php
  */
 
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Modules\Jana\Services\Scorecard\AiScorecardJudge;
 use Tests\TestCase;
 

@@ -72,7 +72,7 @@ return [
     |
     | Sempre TRUE em prod. CPF/CNPJ/email/phone redacted em logs ActionGate
     | violations + audit log entries que carregam payload. Reusa
-    | Modules\Jana\Services\Privacy\PiiRedactor (canônico do projeto).
+    | App\Support\Privacy\PiiRedactor (canônico do projeto).
     */
     'pii_redaction_enabled' => env('GOVERNANCE_PII_REDACTION', true),
 ];

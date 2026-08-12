@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Modules\OficinaAuto\Entities\ServiceOrder;
 use Modules\OficinaAuto\Entities\Vehicle;
 use Spatie\Activitylog\Traits\LogsActivity;

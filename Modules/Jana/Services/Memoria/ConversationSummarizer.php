@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Laravel\Ai\AnonymousAgent;
 use Modules\Jana\Entities\Conversa;
 use Modules\Jana\Entities\Mensagem;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 /**
  * MEM-S8-2 (ADR 0037 Sprint 8) — Comprime histórico de conversas longas.

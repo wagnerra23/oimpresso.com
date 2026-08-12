@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Modules\RecurringBilling\Models\BoletoCredential;
 use Modules\RecurringBilling\Models\ChargeAttempt;
 use Modules\RecurringBilling\Models\Invoice;

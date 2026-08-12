@@ -6,7 +6,7 @@ use Modules\AssetManagement\Entities\Asset;
 use Modules\AssetManagement\Entities\AssetMaintenance;
 use Modules\AssetManagement\Entities\AssetTransaction;
 use Modules\AssetManagement\Entities\AssetWarranty;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 uses(Tests\TestCase::class);

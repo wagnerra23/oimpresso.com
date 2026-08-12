@@ -22,13 +22,13 @@ uses(Tests\TestCase::class);
  * memory/requisitos/Whatsapp/COMPLIANCE.md §6 (PII em logs storage/logs/*.log):
  * cliente manda mensagem WhatsApp contendo CPF/CNPJ/email/phone/CEP, listener
  * grava `inbound_preview` em laravel.log. Pre-fix esse log gravava raw.
- * Pós-fix (Wave 9 governance push) usa `Modules\Jana\Services\Privacy\PiiRedactor`
+ * Pós-fix (Wave 9 governance push) usa `App\Support\Privacy\PiiRedactor`
  * pra substituir por placeholder `[REDACTED:TIPO]`.
  *
  * Multi-tenant Tier 0 ADR 0093: testa biz=1 (ADR 0101, NUNCA biz cliente real).
  *
  * @see Modules/Whatsapp/Listeners/DispatchToJanaBot.php
- * @see Modules/Jana/Services/Privacy/PiiRedactor.php
+ * @see app/Support/Privacy/PiiRedactor.php
  */
 
 beforeEach(function () {

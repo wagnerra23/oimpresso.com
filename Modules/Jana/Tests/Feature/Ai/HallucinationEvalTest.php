@@ -209,7 +209,7 @@ function hallucinationGoldenSet_lgpd(): array
         ],
         [
             'question' => 'Onde fica o PiiRedactor canon?',
-            'answer' => 'Modules/Jana/Services/Privacy/PiiRedactor.php. Sanitização Tier 0 ANTES de mandar texto pro LLM externo. Logga PII como [REDACTED]. Audit periódico D7.a do health-check.',
+            'answer' => 'app/Support/Privacy/PiiRedactor.php. Sanitização Tier 0 ANTES de mandar texto pro LLM externo. Logga PII como [REDACTED]. Audit periódico D7.a do health-check.',
             'must_contain' => ['Modules/Jana/Services/Privacy', 'ANTES', '[REDACTED]'],
             'must_not_contain' => ['DEPOIS do LLM', 'opcional', 'só em prod'],
             'category' => 'lgpd_compliance',

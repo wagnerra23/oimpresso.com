@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Auditoria\Services\AuditEntryService;
 use Modules\Auditoria\Services\RevertService;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Spatie\Activitylog\Models\Activity;
 
 uses(Tests\TestCase::class);
@@ -239,7 +239,7 @@ it('W27 PiiRedactor remove telefone formatado BR (xx) xxxxx-xxxx', function () {
     // Teste verifica: NÃO QUEBRA + texto preserva contexto (Cliente, hoje)
     expect($output)->toContain('Cliente');
     expect($output)->toContain('hoje');
-})->skip(! class_exists(\Modules\Jana\Services\Privacy\PiiRedactor::class), 'PiiRedactor Jana ausente');
+})->skip(! class_exists(\App\Support\Privacy\PiiRedactor::class), 'PiiRedactor Jana ausente');
 
 it('W27 PiiRedactor redact preserva texto curto sem PII (idempotente parcial)', function () {
     $redactor = app(PiiRedactor::class);

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Modules\Jana\Services\JanaAuditService;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Throwable;
 
 /**
@@ -39,7 +39,7 @@ use Throwable;
  * pedidos do titular que exigem remoção total (raro — geralmente disputa judicial).
  *
  * @see Modules\Jana\Services\Lgpd\DsrEsquecimentoResult
- * @see Modules\Jana\Services\Privacy\PiiRedactor
+ * @see App\Support\Privacy\PiiRedactor
  * @see Modules\Jana\Services\JanaAuditService
  * @see https://gdpr.eu/gdpr-vs-lgpd/
  */

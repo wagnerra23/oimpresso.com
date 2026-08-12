@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Superadmin\Tests\Feature\Lgpd;
 
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Modules\Superadmin\Entities\Package;
 use Modules\Superadmin\Entities\Subscription;
 use Modules\Superadmin\Entities\SuperadminCommunicatorLog;

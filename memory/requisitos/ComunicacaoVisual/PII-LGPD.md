@@ -15,7 +15,7 @@ Modules/ComunicacaoVisual é **vertical especializado fino** sobre núcleo Ultim
 Portanto:
 - **PII direto no módulo:** ZERO colunas `email`, `cpf`, `cnpj`, `telefone` em entities ComVis
 - **PII free-text potencial:** apenas `observacoes` (texto livre vendedor) — anonimizável via `right_to_be_forgotten` (retention.php §`anonymize_fields`)
-- **Redactor canônico:** delega `Modules\Jana\Services\Privacy\PiiRedactor` (canon ADR 0094 §Princípio 6 — Jana é módulo IA mas exporta utilitário de privacidade pra todo o monolito)
+- **Redactor canônico:** delega `App\Support\Privacy\PiiRedactor` (canon ADR 0094 §Princípio 6 — Jana é módulo IA mas exporta utilitário de privacidade pra todo o monolito)
 
 ## 2. Onde PiiRedactor é usado
 
@@ -23,7 +23,7 @@ PII Redactor é referenciado em código ComVis sempre que log/audit pode captura
 
 ```php
 // Modules/ComunicacaoVisual/Services/OrcamentoCalculator.php (boilerplate pattern Wave 26)
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 \Log::info('comvis.orcamento.calculated', [
     'orcamento_id' => $orcamento->id,
@@ -58,9 +58,9 @@ Detalhes: [`Modules/ComunicacaoVisual/Config/retention.php`](../../../Modules/Co
 
 ## 5. PiiRedactor canon (referência)
 
-Implementação canônica em `Modules/Jana/Services/Privacy/PiiRedactor.php` — exporta utilitário PT-BR pra todo o monolito (CPF/CNPJ/email/telefone/CEP BR → `[REDACTED:TIPO]`).
+Implementação canônica em `app/Support/Privacy/PiiRedactor.php` — exporta utilitário PT-BR pra todo o monolito (CPF/CNPJ/email/telefone/CEP BR → `[REDACTED:TIPO]`).
 
-ComVis NÃO reimplementa — sempre `use Modules\Jana\Services\Privacy\PiiRedactor;` no código que loga free-text.
+ComVis NÃO reimplementa — sempre `use App\Support\Privacy\PiiRedactor;` no código que loga free-text.
 
 ## 6. Compliance checklist
 

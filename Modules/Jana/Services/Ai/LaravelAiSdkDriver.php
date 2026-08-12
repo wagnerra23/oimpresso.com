@@ -747,7 +747,7 @@ class LaravelAiSdkDriver implements AiAdapter
             return $texto;
         }
 
-        return app(\Modules\Jana\Services\Privacy\PiiRedactor::class)->redact($texto);
+        return app(\App\Support\Privacy\PiiRedactor::class)->redact($texto);
     }
 
     /**
@@ -767,7 +767,7 @@ class LaravelAiSdkDriver implements AiAdapter
     {
         $raw = mb_substr($e->getMessage(), 0, 500);
         try {
-            return app(\Modules\Jana\Services\Privacy\PiiRedactor::class)->redact($raw);
+            return app(\App\Support\Privacy\PiiRedactor::class)->redact($raw);
         } catch (\Throwable $redactErr) {
             // Logger nunca quebra por causa de PII redaction — fallback seguro.
             return $raw;

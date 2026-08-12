@@ -8,7 +8,7 @@ use Modules\Jana\Entities\HealthNarrative;
 use Modules\Jana\Entities\MemoriaFato;
 use Modules\Jana\Entities\Meta;
 use Modules\Jana\Entities\Sugestao;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 uses(Tests\TestCase::class);

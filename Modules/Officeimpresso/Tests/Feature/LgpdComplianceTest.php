@@ -7,7 +7,7 @@ declare(strict_types=1);
  * quarantine-reason: LGPD compliance D7 Officeimpresso — asserts estáticos (wiring/source-grep) de canon móvel (PiiRedactor/LogsActivity/module.json) — cluster C5/Q-B da triage. NÃO é bug de produto; re-triar pós harness L0. Ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-B.
  */
 
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Modules\Officeimpresso\Entities\Licenca_Computador;
 use Modules\Officeimpresso\Entities\LicencaLog;
 
@@ -29,7 +29,7 @@ uses(Tests\TestCase::class);
  * Esses testes NÃO dependem de DB MySQL — usam fixtures fake fakes pra
  * validar wiring de classes + arquivos canônicos. Roda local sem prod schema.
  *
- * @see Modules/Jana/Services/Privacy/PiiRedactor
+ * @see app/Support/Privacy/PiiRedactor
  * @see memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md
  */
 

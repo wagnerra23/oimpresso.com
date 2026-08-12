@@ -10,7 +10,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Modules\Jana\Services\Ragas\JudgeUnavailableException;
 use Modules\Jana\Services\Ragas\OllamaRagasJudge;
 use Modules\Jana\Services\Ragas\RagasJudgeService;
@@ -48,7 +48,7 @@ use Modules\Jana\Services\Telemetry\LangfuseClient;
  * sinal online honesto. Relevancy precisaria isolar a pergunta do prompt (follow-up).
  *
  * @see Modules/Jana/Listeners/Telemetry/LangfuseAgentTelemetryListener.php
- * @see Modules/Jana/Services/Privacy/PiiRedactor.php
+ * @see app/Support/Privacy/PiiRedactor.php
  * @see Modules/Jana/Services/Ragas/OllamaRagasJudge.php
  * @see memory/requisitos/Jana/SPEC.md#US-COPI-137
  */

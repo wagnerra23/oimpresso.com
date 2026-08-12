@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Modules\Arquivos\Entities\Arquivo;
 use Modules\Arquivos\Services\Curador\CuradorEngine;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 /**
  * ArquivosService — API canônica do DMS backbone (ADR 0123 §API).

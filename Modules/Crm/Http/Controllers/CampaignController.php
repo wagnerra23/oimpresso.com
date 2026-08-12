@@ -16,7 +16,7 @@ use Modules\Crm\Entities\CrmContact;
 use Modules\Crm\Http\Requests\StoreCampaignRequest;
 use Modules\Crm\Notifications\SendCampaignNotification;
 use Modules\Crm\Services\CampaignService;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Notification;
 use Yajra\DataTables\Facades\DataTables;
 

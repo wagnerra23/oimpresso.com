@@ -7,7 +7,7 @@ namespace Modules\Governance\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Modules\Forja\Services\ActorResolver;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -103,7 +103,7 @@ class ActionGate
         // ActionGate violations vão pra log filesystem (storage/logs/laravel.log)
         // que é persistido + rotacionado — PII em claro = vazamento LGPD.
         //
-        // Reusa Modules\Jana\Services\Privacy\PiiRedactor (canônico do projeto).
+        // Reusa App\Support\Privacy\PiiRedactor (canônico do projeto).
         // Sem-op se config('governance.pii_redaction_enabled')=false (debug local).
         $piiRedactionEnabled = (bool) config('governance.pii_redaction_enabled', true);
 

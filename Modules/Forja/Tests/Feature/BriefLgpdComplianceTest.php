@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Modules\Forja\Services\BriefGeneratorService;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 uses(Tests\TestCase::class);
 

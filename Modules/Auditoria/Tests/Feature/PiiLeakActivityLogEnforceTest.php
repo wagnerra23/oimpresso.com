@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 uses(Tests\TestCase::class);
 
@@ -24,7 +24,7 @@ uses(Tests\TestCase::class);
  * (ActionGate::logViolation idem) mas a Auditoria É obrigatória — PiiRedactor
  * é dependência hard.
  *
- * @see Modules/Jana/Services/Privacy/PiiRedactor.php
+ * @see app/Support/Privacy/PiiRedactor.php
  * @see Modules/Auditoria/Services/RevertService.php
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md §"PII reais NUNCA em log"
