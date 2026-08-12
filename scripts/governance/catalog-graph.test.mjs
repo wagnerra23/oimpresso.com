@@ -620,7 +620,9 @@ test('parseQueriesCruas: tabela alheia vira ref; própria e core NÃO', () => {
     QRY('Alpha', "DB::table('alpha_notas')->get();"),  // própria → não
     QRY('Alpha', "DB::table('contacts')->get();"),     // core → não
   ], { donoDe: dono, modulosVivos: VIVOS });
-  assert.deepEqual(refs, [{ src: 'Alpha', dono: 'Beta', tabela: 'beta_itens' }]);
+  // `via`/`emMigration` entraram em 2026-08-12 com o eixo ALTER. O deepEqual estrito é de
+  // propósito: se um campo novo nascer sem teste, este assert quebra e cobra o teste.
+  assert.deepEqual(refs, [{ src: 'Alpha', dono: 'Beta', tabela: 'beta_itens', via: 'query', emMigration: false }]);
 });
 
 test('DB::table($var) dinâmico é NÃO RESOLVIDO — nunca some como zero (§5 2026-07-29)', () => {
@@ -768,4 +770,46 @@ test('CN eixo tabela: par congelado não reprova, e curado só encolhe a baselin
 test('paresDeTabelaComoPares: entrada vazia/ausente não explode (medição pode falhar antes)', () => {
   assert.deepEqual(paresDeTabelaComoPares(undefined), []);
   assert.deepEqual(paresDeTabelaComoPares([]), []);
+});
+
+// ── ALTER cross-module (`Schema::table`) — o toque que os 2 eixos não viam ────
+// Adicionar COLUNA na tabela do outro é ownership, não uso — sinal mais forte que escrever
+// linha, e era invisível por construção: o dono só sai de `Schema::create` e o consumo só
+// saía de `DB::table`. Escondia `NfeBrasil>NFSe`, que nenhuma baseline conhecia.
+/** ALTER numa migration do módulo `mod` sobre a tabela `tabela`. */
+const ALT = (mod, tabela) => `Modules/${mod}/Database/Migrations/2026_01_01_y.php:        Schema::table('${tabela}', function (Blueprint $t) {`;
+const donoDeTeste = () => derivarDonoDeTabela(
+  [MIG('Alpha', 'alpha_notas'), MIG('Beta', 'beta_itens')],
+  ["database/migrations/x.php:Schema::create('contacts', function (Blueprint $t) {"],
+).dono;
+
+test('MORDE: `Schema::table` em tabela alheia vira ref com via=alter', () => {
+  const { refs } = parseQueriesCruas([ALT('Alpha', 'beta_itens')],
+    { donoDe: donoDeTeste(), modulosVivos: VIVOS });
+  assert.equal(refs.length, 1, 'MORDE: o ALTER cross-module é capturado');
+  assert.equal(refs[0].via, 'alter');
+  assert.equal(refs[0].dono, 'Beta');
+  assert.equal(refs[0].emMigration, true, 'path sob Database/Migrations é marcado');
+});
+
+test('CN: `Schema::table` na PRÓPRIA tabela e em tabela CORE NÃO viram ref', () => {
+  const { refs } = parseQueriesCruas(
+    [ALT('Alpha', 'alpha_notas'), ALT('Alpha', 'contacts')],
+    { donoDe: donoDeTeste(), modulosVivos: VIVOS },
+  );
+  assert.deepEqual(refs, [], 'casa própria e core saem pela MESMA regra que já valia pro DB::table');
+});
+
+test('agrupa: `alter` e `mig/runtime` contados por par, sem mudar a CHAVE do par', () => {
+  const { refs } = parseQueriesCruas([
+    ALT('Alpha', 'beta_itens'),
+    QRY('Alpha', "DB::table('beta_itens')->get();"),
+  ], { donoDe: donoDeTeste(), modulosVivos: VIVOS });
+  const r = agruparFronteiraDeTabela(refs, { limiar: 3 });
+  assert.equal(r.pares.length, 1, 'os dois toques colapsam num par só — a chave não muda');
+  const [p] = r.pares;
+  assert.equal(p.n, 2);
+  assert.equal(p.alter, 1, 'o ALTER é contado à parte pra o leitor ver ownership');
+  assert.equal(p.mig, 1);
+  assert.equal(p.runtime, 1, 'mig=1 runtime=1 separa "fez uma vez" de "faz todo dia"');
 });

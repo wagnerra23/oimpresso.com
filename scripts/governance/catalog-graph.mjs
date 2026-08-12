@@ -1008,8 +1008,23 @@ function derivarDonoDeTabela(linhasModulo, linhasCore = []) {
 }
 
 /**
- * Extrai leituras cruas cross-module. Só literal — `DB::table($var)` é contado à parte
- * como NÃO RESOLVÍVEL (não vira zero silencioso: "não medi" ≠ "não há", §5 2026-07-29).
+ * Extrai toques crus cross-module em tabela alheia. Dois padrões, mesma pergunta:
+ *
+ *   `DB::table('x')`     — LÊ ou ESCREVE linha na tabela do outro          (via: 'query')
+ *   `Schema::table('x')` — ALTERA a ESTRUTURA da tabela do outro           (via: 'alter')
+ *
+ * O ALTER entrou depois (2026-08-12) e é o sinal MAIS forte dos dois: adicionar coluna na
+ * casa alheia é ownership, não uso. Ele era invisível aos dois eixos por construção — o dono
+ * só sai de `Schema::create` e o consumo só saía de `DB::table` — e escondia um par que
+ * NENHUMA baseline conhecia (`NfeBrasil>NFSe`, coluna nova em `nfse_emissoes`).
+ *
+ * Medido antes de instalar (§5: há 4 lápides de guard que reprovava o legítimo por não medir):
+ * 237 ALTER na PRÓPRIA tabela · 61 em tabela CORE (excluídos pela regra que já existia) ·
+ * 3 cross-module · 1 novo. Não é eixo novo nem baseline nova: mesmo dono, mesmo par, mesma
+ * catraca.
+ *
+ * `DB::table($var)` continua contado à parte como NÃO RESOLVÍVEL — "não medi" ≠ "não há"
+ * (§5 2026-07-29).
  */
 function parseQueriesCruas(linhas, { donoDe, modulosVivos }) {
   const refs = [];
@@ -1021,13 +1036,18 @@ function parseQueriesCruas(linhas, { donoDe, modulosVivos }) {
     if (/\/Tests?\//i.test(path)) continue;
     const src = (path.match(/^Modules\/([A-Za-z]+)\//) || [])[1];
     if (!src || !modulosVivos.has(src)) continue;
-    const m = code.match(/DB::table\('([a-z0-9_]+)'/);
-    if (!m) { if (/DB::table\(\s*\$/.test(code)) dinamico++; continue; }
-    const tabela = m[1];
+    const mQuery = code.match(/DB::table\('([a-z0-9_]+)'/);
+    const mAlter = code.match(/Schema::table\('([a-z0-9_]+)'/);
+    if (!mQuery && !mAlter) { if (/DB::table\(\s*\$/.test(code)) dinamico++; continue; }
+    const via = mQuery ? 'query' : 'alter';
+    const tabela = (mQuery || mAlter)[1];
     const dono = donoDe.get(tabela);
     if (!dono) { semDono++; continue; }
     if (dono === src || dono === CORE) continue; // própria tabela ou core UltimatePOS
-    refs.push({ src, dono, tabela });
+    // Migration é append-only por construção: escrita que entra por lá NUNCA sai. Não é
+    // motivo pra ignorar (medido: só 10% dos pares são só-migration), mas o leitor precisa
+    // distinguir "o módulo faz isso todo dia" de "fez uma vez, em 2026-05".
+    refs.push({ src, dono, tabela, via, emMigration: /\/Database\/Migrations\//i.test(path) });
   }
   return { refs, dinamico, semDono };
 }
@@ -1049,9 +1069,11 @@ function agruparFronteiraDeTabela(refs, { limiar = LIMIAR_TABELA_COMPARTILHADA }
   for (const r of refs) {
     if (infra.has(r.tabela)) continue;
     const k = `${r.src}>${r.dono}`;
-    if (!pares.has(k)) pares.set(k, { src: r.src, dono: r.dono, n: 0, tabelas: new Set() });
+    if (!pares.has(k)) pares.set(k, { src: r.src, dono: r.dono, n: 0, tabelas: new Set(), alter: 0, mig: 0, runtime: 0 });
     const o = pares.get(k);
     o.n++; o.tabelas.add(r.tabela);
+    if (r.via === 'alter') o.alter++;
+    if (r.emMigration) o.mig++; else o.runtime++;
   }
   return {
     pares: [...pares.values()]
@@ -1067,7 +1089,7 @@ function reportFronteiraDeTabela(modulosVivos) {
     grepArvore(["Schema::create\\('"], 'database/migrations/*.php').map((l) => l.slice(l.indexOf(':') + 1)),
   );
   const { refs, dinamico, semDono } = parseQueriesCruas(
-    grepArvore(['DB::table\\('], 'Modules/*.php'),
+    grepArvore(['DB::table\\(', "Schema::table\\('"], 'Modules/*.php'),
     { donoDe, modulosVivos },
   );
   const r = agruparFronteiraDeTabela(refs);
@@ -1083,7 +1105,14 @@ function reportFronteiraDeTabela(modulosVivos) {
     console.log(`⚠️  ownership DISPUTADO: \`${c.tabela}\` criada por migration de ${c.modulos.join(' E ')} — dono atribuído: ${c.modulos[0]}`);
   }
   for (const p of r.pares) {
-    console.log(`  ${p.src} → ${p.dono}  (${p.n} queries) ${p.tabelas.slice(0, 4).join(', ')}`);
+    // `mig=N runtime=M` separa "faz isso todo dia" de "fez uma vez em 2026-05"; `alter=N`
+    // marca o toque na ESTRUTURA, que é ownership e não uso. Nenhum dos dois muda veredito
+    // — mudam o que o leitor entende antes de decidir.
+    const selo = [
+      p.alter ? `alter=${p.alter}` : null,
+      `mig=${p.mig} runtime=${p.runtime}`,
+    ].filter(Boolean).join(' · ');
+    console.log(`  ${p.src} → ${p.dono}  (${p.n} toques · ${selo}) ${p.tabelas.slice(0, 4).join(', ')}`);
   }
   console.log(
     `ℹ️  não resolvido (NÃO é zero): ${dinamico} \`DB::table($var)\` dinâmico · ` +
@@ -1274,9 +1303,9 @@ function main() {
 
       const paresTabela = paresDeTabelaComoPares(r.tabela && r.tabela.pares);
       const conteudoTabela = JSON.stringify({
-        _doc: 'Baseline FORWARD-ONLY da catraca de acoplamento por TABELA (`DB::table` cru em tabela de outro módulo). Mesmo desenho da module-coupling-baseline: par NOVO reprova; a lista só DESCE.',
-        _regra: 'Este eixo é o que o `use` NÃO enxerga. Dono da tabela é DERIVADO de quem faz `Schema::create` na migration, nunca do `db_tables_owned` escrito à mão. Tabela lida por ≥3 módulos é infra compartilhada e não conta como fronteira.',
-        _medicao: 'node scripts/governance/catalog-graph.mjs --acoplamento (seção "fronteira por TABELA")',
+        _doc: 'Baseline FORWARD-ONLY da catraca de acoplamento por TABELA (`DB::table` cru + `Schema::table` ALTER em tabela de outro módulo). Mesmo desenho da module-coupling-baseline: par NOVO reprova; a lista só DESCE.',
+        _regra: 'Este eixo é o que o `use` NÃO enxerga. Dono da tabela é DERIVADO de quem faz `Schema::create` na migration, nunca do `db_tables_owned` escrito à mão. Tabela lida por ≥3 módulos é infra compartilhada e não conta como fronteira — limiar NÃO se baixa pra 3→2: medido em 2026-08-12, isso cegaria o detector em `fin_contas_bancarias` e `subscriptions` pra calar 1 falso-positivo.',
+        _medicao: 'node scripts/governance/catalog-graph.mjs --acoplamento (seção "fronteira por TABELA"). O selo `alter=N` marca toque na ESTRUTURA (ownership, mais forte que uso); `mig=N runtime=M` separa "faz todo dia" de "fez uma vez".',
         _regenerar: 'node scripts/governance/catalog-graph.mjs --acoplamento --write-baseline (grava os DOIS eixos). Ao CURAR um par, remova a linha no MESMO PR — a catraca avisa (não reprova) quando há entrada já curada.',
         _piso: 'PISO, não teto: só `DB::table(\'literal\')`. `DB::table($var)`, Eloquent via Model alheio e SQL cru em string ficam invisíveis — o report diz quantos não resolveu.',
         grandfathered: paresTabela.map(chaveDoPar).sort(),
