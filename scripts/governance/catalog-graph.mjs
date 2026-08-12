@@ -1131,6 +1131,44 @@ function reportAcoplamento(graph) {
   return { ...r, tabela: t };
 }
 
+// ── CATRACA de acoplamento módulo→módulo (forward-only) ─────────────────────
+// Espelha a `DependencyDirectionTest` (app/ ↛ Modules/), um nível abaixo: lá o eixo é
+// núcleo→módulo, aqui é módulo→módulo. Mesma doutrina — a dívida de hoje é CONGELADA e
+// a catraca morde só quem PIORA (ADR 0275 forward-only; backfill em massa de legado é
+// anti-padrão registrado, §5 2026-07-12).
+//
+// POR QUE CATRACA E NÃO `depends_on` PREENCHIDO: o campo existe no SCOPE.md e é lido,
+// mas só 1 de 32 módulos o declara. Preenchê-lo a partir do dado DERIVADO seria escrever
+// à mão o fato que a máquina calcula — a doença que esta medição diagnosticou (28,1% de
+// cobertura). Declaração serve pra NORMA (o que PODE), não pra FATO (o que É). A norma
+// por par é decisão [W], e esta catraca não a antecipa: ela só impede dívida NOVA entrar
+// calada enquanto a decisão não vem.
+const COUPLING_BASELINE_REL = 'governance/module-coupling-baseline.json';
+
+/** Chave estável de um par. */
+function chaveDoPar(p) {
+  return `${p.src}>${p.dst}`;
+}
+
+/**
+ * Confronta os pares não-declarados com a baseline congelada.
+ * @returns {{novos: string[], curados: string[], baseline: string[]}}
+ */
+function catracaAcoplamento(naoDeclaradas, baselineJson) {
+  const isentos = new Set([...(baselineJson.grandfathered || []), ...(baselineJson.allowlist || [])]);
+  const atuais = naoDeclaradas.map(chaveDoPar);
+  const novos = atuais.filter((k) => !isentos.has(k)).sort();
+  const vivos = new Set(atuais);
+  const curados = (baselineJson.grandfathered || []).filter((k) => !vivos.has(k)).sort();
+  return { novos, curados, baseline: baselineJson.grandfathered || [] };
+}
+
+function lerBaselineAcoplamento() {
+  const abs = join(ROOT, COUPLING_BASELINE_REL);
+  if (!existsSync(abs)) return null;
+  return JSON.parse(readFileSync(abs, 'utf8'));
+}
+
 function main() {
   const mods = listScopeModules();
   if (!mods.length) {
@@ -1172,10 +1210,56 @@ function main() {
   // Roda DENTRO de um job required, então não pode avermelhá-lo — mas também não pode
   // fingir verde quando não conseguiu medir: "não medi" ≠ "não há acoplamento" (§5 2026-07-29).
   if (args.includes('--acoplamento')) {
+    let r = null;
     try {
-      reportAcoplamento(graph);
+      r = reportAcoplamento(graph);
     } catch (err) {
       console.log(`⚠️  [catalog-graph] acoplamento NÃO MEDIDO (${err && err.message}) — nenhum veredito sobre fronteira.`);
+      // Não medi ≠ não há. Se pediram a catraca, ela FALHA em vez de passar calada
+      // (§5 2026-07-29: instrumento não afirma verde quando não conseguiu medir).
+      if (args.includes('--catraca')) {
+        console.error('[catalog-graph] catraca: SEM VEREDITO — a medição falhou, não trate como verde.');
+        process.exit(2);
+      }
+      return;
+    }
+
+    if (args.includes('--write-baseline')) {
+      const conteudo = JSON.stringify({
+        _doc: 'Baseline FORWARD-ONLY da catraca de acoplamento módulo→módulo (catalog-graph --acoplamento --catraca). CONGELA a dívida: par NOVO reprova; a lista só DESCE.',
+        _regra: 'Declaração serve pra NORMA (o que PODE), não pra FATO (o que É) — por isso a catraca, e não `depends_on` preenchido a partir do derivado. A norma por par é decisão [W].',
+        _medicao: 'node scripts/governance/catalog-graph.mjs --acoplamento (seção de import, pares NÃO declarados)',
+        _regenerar: 'node scripts/governance/catalog-graph.mjs --acoplamento --write-baseline. Ao CURAR um par, remova a linha no MESMO PR — a catraca avisa (não reprova) quando há entrada já curada.',
+        grandfathered: r.naoDeclaradas.map(chaveDoPar).sort(),
+        allowlist: [],
+        allowlist_razoes: {},
+      }, null, 2) + '\n';
+      writeFileSync(join(ROOT, COUPLING_BASELINE_REL), conteudo, 'utf8');
+      console.log(`[catalog-graph] baseline de acoplamento gravada → ${COUPLING_BASELINE_REL} (${r.naoDeclaradas.length} pares)`);
+      return;
+    }
+
+    if (args.includes('--catraca')) {
+      const base = lerBaselineAcoplamento();
+      if (!base) {
+        console.error(`[catalog-graph] catraca: ${COUPLING_BASELINE_REL} não existe — rode --write-baseline.`);
+        process.exit(2);
+      }
+      const { novos, curados } = catracaAcoplamento(r.naoDeclaradas, base);
+      if (curados.length) {
+        console.log(`ℹ️  catraca: ${curados.length} par(es) da baseline JÁ FORAM CURADOS — remova do JSON: ${curados.join(', ')}`);
+      }
+      if (novos.length) {
+        console.error(
+          `[catalog-graph] catraca REPROVA: ${novos.length} par(es) NOVOS de acoplamento módulo→módulo:\n  - ` +
+          novos.join('\n  - ') +
+          '\n  Opções: (a) declarar a delegação no `not_contains` do SCOPE.md do módulo de ORIGEM;' +
+          '\n          (b) inverter via contrato/evento; (c) se for dívida consciente, entrar em' +
+          `\n              ${COUPLING_BASELINE_REL} > allowlist COM razão declarada.`,
+        );
+        process.exit(1);
+      }
+      console.log(`[catalog-graph] catraca: OK — nenhum par novo (baseline: ${base.grandfathered.length}).`);
     }
     return;
   }
@@ -1229,6 +1313,8 @@ export {
   parseImportsCruzados,
   simbolosCrossCutting,
   compararFronteira,
+  catracaAcoplamento,
+  chaveDoPar,
   pesoDaCamada,
   derivarDonoDeTabela,
   parseQueriesCruas,

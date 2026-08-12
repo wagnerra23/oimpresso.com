@@ -155,6 +155,14 @@ jobs:
       # Advisory por desenho (ADR 0314/0275: required = só Tier-0).
       - name: Catalog graph (arestas tipadas do SCOPE · aresta pendurada morde · determinismo)
         run: node scripts/governance/catalog-graph.test.mjs
+      # CATRACA de acoplamento módulo→módulo (forward-only). Roda contra a ÁRVORE VIVA,
+      # não fixture: reprova par NOVO que não esteja congelado em
+      # governance/module-coupling-baseline.json. Fica AQUI, e não no catalog-graph.yml,
+      # de propósito: aquele job é REQUIRED e a catraca nasce advisory (ADR 0275/0336 —
+      # promoção é flip [W] com mordida provada). Espelha a DependencyDirectionTest
+      # (app/ ↛ Modules/) um nível abaixo.
+      - name: Catraca de acoplamento módulo→módulo (advisory · forward-only)
+        run: node scripts/governance/catalog-graph.mjs --acoplamento --catraca
       # Scorecard de sinais-vivos por serviço (grade Catálogo/IDP 7,5 · "scorecard de sinais-vivos"
       # + UI consultável, 2026-07-21). AGREGADOR advisory que junta grade+telas+grafo+briefing por
       # serviço — testa a LÓGICA PURA (buildDoc/graphSignals) com fixtures sintéticas: join grade
