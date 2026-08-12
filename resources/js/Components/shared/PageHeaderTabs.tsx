@@ -25,9 +25,8 @@ import { cn } from '@/Lib/utils';
  *   - `ghosts` → tabs ARIA tablist (role=tab/tabpanel, keyboard nav)
  *   - overflow `⋯ Mais` se ghosts.length > maxVisible (default 5)
  *
- * Casa com PageHeader shared via slot `action`. NÃO substitui PageHeaderActions
- * (que é pra ações iguais de mesmo peso) — uso diferente: primary action +
- * tab navigation.
+ * Casa com PageHeader shared via slot `action`. Uso: primary action + tab
+ * navigation — pra ações iguais de mesmo peso, o slot aceita botões soltos.
  *
  * Espelha contrato PHP da Fase 1 (App\Sidebar\SidebarMenuItem.primary/ghosts).
  *

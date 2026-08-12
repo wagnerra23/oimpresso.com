@@ -56,6 +56,15 @@ jobs:
     timeout-minutes: 20
     outputs:
       frontend_changed: ${{ steps.diff.outputs.frontend_changed }}
+      # runtime_changed=false → o push NÃO tocou nada que roda em produção.
+      # Nesse caso o site NÃO entra em maintenance (job sync-light). Ver o passo
+      # "Classifica o push" abaixo pra a lista de paths e o porquê do fail-safe.
+      runtime_changed: ${{ steps.diff.outputs.runtime_changed }}
+      # Hash do composer.lock DESTE commit, calculado no runner (que já tem o
+      # checkout). O deploy compara com o hash do servidor ANTES do pull pra
+      # decidir se precisa de `composer install` — sem gastar um round-trip SSH
+      # dentro da janela de maintenance.
+      composer_lock_hash: ${{ steps.lock.outputs.hash }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -79,6 +88,64 @@ jobs:
             echo "frontend_changed=unknown" >> "$GITHUB_OUTPUT"
           fi
           echo "frontend_changed = $(grep frontend_changed "$GITHUB_OUTPUT" | cut -d= -f2)"
+
+          # ── runtime_changed: o push mexeu em algo que RODA em produção? ────────
+          # Medido 2026-08-12 nos 27 últimos deploys bem-sucedidos: 14 (52%) puseram
+          # o site em 503 por ~1min sem tocar UMA linha servida em produção — eram
+          # .github/, .claude/, scripts/ e governance/*.json. Esses agora vão pelo
+          # job `sync-light` (git reset, sem maintenance).
+          #
+          # FAIL-SAFE: qualquer dúvida (outro evento, git diff falhou, grep com erro
+          # real) resolve pra TRUE = deploy completo. Só o caso PROVADO "todo arquivo
+          # do push casa a lista abaixo" vira caminho leve. Errar pra TRUE custa 30s
+          # de 503; errar pra FALSE serviria código sem cache clear/OPcache reset.
+          #
+          # Por que cada path NÃO é runtime (e mesmo assim CHEGA ao servidor, via o
+          # `git reset --hard` do sync-light — só não exige maintenance/composer/cache):
+          #   .github/     → roda no runner do GitHub, nunca no Hostinger
+          #   .claude/     → config de agente (lida sob demanda por artisan)
+          #   scripts/     → invocado por Process/CLI a cada uso, sem restart
+          #   governance/  → JSON de baseline lido por request pelo Modules/Governance
+          #   tests/ docs/ memory/ prototipo-ui/ *.md + dotfiles de raiz
+          NAO_RUNTIME='^(\.github/|\.claude/|scripts/|governance/|tests/|docs/|memory/|prototipo-ui/|\.gitattributes$|\.gitignore$|\.editorconfig$|CODEOWNERS$)|\.md$'
+          RUNTIME_CHANGED=true
+          if [ "${{ github.event_name }}" = "push" ] && \
+             [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+            if MUDADOS=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}"); then
+              # UM grep só (não dois em pipeline): com dois, um erro real do primeiro
+              # (rc=2) daria entrada vazia pro segundo → rc=1 → "nada sobrou" → caminho
+              # leve por FALHA. Com um só, o rc é inequívoco. (§5 2026-08-11: vazio de
+              # comando que pode falhar não é evidência de ausência.)
+              set +e
+              SOBRA=$(printf '%s\n' "$MUDADOS" | grep -vE "$NAO_RUNTIME")
+              GREP_RC=$?
+              set -e
+              if [ "$GREP_RC" -gt 1 ]; then
+                echo "::warning::grep falhou (rc=$GREP_RC) — assumindo runtime_changed=true"
+              elif [ -z "$SOBRA" ]; then
+                RUNTIME_CHANGED=false
+              fi
+            else
+              echo "::warning::git diff falhou — assumindo runtime_changed=true"
+            fi
+          fi
+          echo "runtime_changed=$RUNTIME_CHANGED" >> "$GITHUB_OUTPUT"
+          if [ "$RUNTIME_CHANGED" = "false" ]; then
+            echo "→ nada de runtime neste push: SYNC LEVE (site NÃO sai do ar)"
+          else
+            echo "→ runtime mudou: DEPLOY COMPLETO (maintenance). Arquivos que decidiram:"
+            printf '%s\n' "${SOBRA:-<evento sem diff>}" | head -20
+          fi
+
+      - name: Hash do composer.lock alvo (decide se o deploy precisa de composer install)
+        id: lock
+        # Calculado AQUI (o runner já tem o checkout) pra não gastar round-trip SSH
+        # dentro da janela de maintenance. md5sum é GNU coreutils nos dois lados
+        # (runner ubuntu e Hostinger) e o arquivo é LF nos dois → hash comparável.
+        run: |
+          H=$(md5sum composer.lock | cut -d' ' -f1)
+          echo "hash=$H" >> "$GITHUB_OUTPUT"
+          echo "composer.lock alvo: $H"
 
       - name: Setup Node 24
         uses: actions/setup-node@v4
@@ -112,10 +179,118 @@ jobs:
           retention-days: 2
           if-no-files-found: error
 
+  # ── JOB 2-LEVE: SYNC SEM TIRAR O SITE DO AR ──────────────────────────────
+  # Roda quando runtime_changed=false (nada servido em produção mudou). Faz só o
+  # `git reset --hard` — os arquivos CHEGAM ao servidor igual, mas sem `artisan
+  # down`, sem backup, sem composer, sem cache clear, sem swap de bundle. O site
+  # nunca pisca.
+  #
+  # Por que é um JOB separado e não um punhado de `if:` nos passos do deploy:
+  # esquecer o `if:` em UM passo quebra diferente conforme o passo — e esquecer
+  # justo no "Maintenance mode OFF" deixaria o site em 503 indefinidamente. Job
+  # separado torna essa classe de erro impossível: aqui não existe `artisan down`.
+  sync-light:
+    name: Sync leve (sem maintenance) — nada de runtime mudou
+    needs: build
+    if: needs.build.outputs.runtime_changed == 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      RDIR: /home/u906587222/domains/oimpresso.com/public_html
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: SSH helper
+        # Mesmos flags canônicos do job deploy (memory/reference/hostinger.md §SSH):
+        # -4 obrigatório, ConnectTimeout em minutos, sem ControlMaster.
+        run: |
+          cat > /tmp/ssh_exec.sh <<'EOF'
+          #!/bin/bash
+          ssh -4 \
+              -o BatchMode=yes \
+              -o StrictHostKeyChecking=accept-new \
+              -o ConnectTimeout=180 \
+              -o ConnectionAttempts=3 \
+              -o ServerAliveInterval=3 \
+              -o ServerAliveCountMax=200 \
+              -i ~/.ssh/id_ed25519 -p ${{ secrets.SSH_PORT }} \
+              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+              "$@"
+          EOF
+          chmod +x /tmp/ssh_exec.sh
+
+      - name: Warm-up do caminho SSH (Hostinger flaky — ver hostinger.md)
+        run: |
+          for i in 1 2 3 4 5; do
+            curl -s -o /dev/null --max-time 15 https://oimpresso.com/login || true
+          done
+          /tmp/ssh_exec.sh "true" && echo "warm-up SSH OK" \
+            || echo "::warning::warm-up SSH falhou — seguindo (o pull tem seu próprio retry)"
+
+      - name: Limpa lock de git órfão (shared host derruba comando no meio)
+        # Só os locks do git. NÃO faz `artisan up` (o job deploy faz): se o site
+        # está em maintenance porque o failsafe de um deploy anterior o segurou
+        # lá, levantá-lo aqui trocaria um 503 gracioso por 500 de verdade. Se for
+        # o caso, o smoke no fim deste job acusa — que é o comportamento certo.
+        run: /tmp/ssh_exec.sh "cd $RDIR && rm -f .git/index.lock .git/refs/heads/main.lock 2>&1; echo OK"
+
+      - name: Git reset no SHA DESTE run — sem maintenance
+        # ⚠️ `reset --hard origin/main` seria ERRADO aqui. Os runs são serializados
+        # pela concurrency `deploy-production`, então enquanto este roda a main pode
+        # já ter recebido um push COM código de runtime. Resetar pro tip publicaria
+        # esse código sem dump-autoload, sem cache clear e sem OPcache reset — a
+        # receita exata dos 500 de boot de 2026-06-18 e 2026-06-23.
+        #
+        # A classificação runtime_changed vale pro SHA deste run e só pra ele. Se a
+        # main andou, este sync não tem mais o que garantir: sai limpo e deixa o run
+        # do commit mais novo publicar tudo (ele faz a própria classificação).
+        run: |
+          /tmp/ssh_exec.sh "
+            cd $RDIR &&
+            git fetch origin &&
+            TIP=\$(git rev-parse origin/main) &&
+            if [ \"\$TIP\" != \"${{ github.sha }}\" ]; then
+              echo \"main avancou (tip=\$TIP != sha deste run) — PULANDO o sync leve.\" &&
+              echo 'O run do commit mais novo publica tudo, com a classificacao dele.' &&
+              exit 0
+            fi &&
+            git checkout main &&
+            git reset --hard ${{ github.sha }} &&
+            git log --oneline -3
+          "
+
+      - name: Prova de que o site NÃO caiu (espera 200, não 503)
+        # O ponto do job inteiro. 503 aqui significaria que a classificação de
+        # runtime_changed deixou passar algo que exigia maintenance — ou que o
+        # site já estava fora antes. Falhar é o comportamento certo: queremos saber.
+        run: |
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 https://oimpresso.com/login)
+          echo "GET /login → HTTP $CODE"
+          # 200 = página de login; 302 = já autenticado (mesmo critério do smoke do
+          # job deploy, que aceita os dois).
+          if [ "$CODE" = "200" ] || [ "$CODE" = "302" ]; then
+            echo "✅ Sync leve concluído — arquivos no servidor, site nunca saiu do ar."
+            exit 0
+          fi
+          if [ "$CODE" = "503" ]; then
+            echo "::error::/login em 503: o site JÁ ESTAVA em maintenance quando este sync rodou — este job não usa 'artisan down'. Provável failsafe de um deploy anterior segurando o site (503 gracioso em vez de 500). Investigar o run anterior de deploy antes de levantar."
+            exit 1
+          fi
+          echo "::error::Sync leve terminou com /login em HTTP $CODE (esperado 200 ou 302)."
+          exit 1
+
   # ── JOB 2: DEPLOY ────────────────────────────────────────────────────────
   deploy:
     name: Deploy L13 to Hostinger oimpresso.com
     needs: build
+    # Só quando algo servido em produção mudou. Fail-safe: o build resolve pra
+    # 'true' em qualquer dúvida, então o default continua sendo o deploy completo.
+    if: needs.build.outputs.runtime_changed != 'false'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -202,6 +377,20 @@ jobs:
           echo "=== Disco livre ==="
           /tmp/ssh_exec.sh "df -h /home/u906587222 | tail -1"
 
+      - name: Hash do composer.lock INSTALADO no servidor (antes do pull)
+        id: lock_servidor
+        # Roda FORA da janela de maintenance (de graça). Comparado com o hash alvo
+        # que o job build calculou → decide se `composer install` precisa rodar.
+        #
+        # Se `vendor/autoload.php` não existir, emite SEM-VENDOR: nunca casa um md5,
+        # então força o install. Falha de SSH deixa o hash vazio → também não casa →
+        # também força o install. Os dois fail-safes vão pro lado caro, não pro errado.
+        run: |
+          H=$(/tmp/ssh_exec.sh "cd $RDIR && if [ -f vendor/autoload.php ]; then md5sum composer.lock 2>/dev/null | cut -d' ' -f1; else echo SEM-VENDOR; fi" | tr -d '\r\n')
+          echo "hash=$H" >> "$GITHUB_OUTPUT"
+          echo "composer.lock instalado: ${H:-<falha ao ler>}"
+          echo "composer.lock alvo:      ${{ needs.build.outputs.composer_lock_hash }}"
+
       - name: Cleanup stale locks (git + maintenance órfãos)
         run: |
           /tmp/ssh_exec.sh "cd $RDIR && rm -f .git/index.lock .git/refs/heads/main.lock 2>&1; echo OK"
@@ -252,12 +441,31 @@ jobs:
         #   OTel pacotes vivem em require-dev (ADR 0166) + OtelHelper fail-safe. Hostinger nunca emite spans.
         # set -o pipefail: sem ele o exit do pipeline `composer | tail` mascara falha do composer (deploy verde com
         #   classmap stale → 500 no boot, incidente 2026-05-26).
+        #
+        # CONDICIONAL desde 2026-08-12: só roda quando o composer.lock do commit
+        # difere do que está instalado no servidor. Medido nos 27 últimos deploys
+        # bem-sucedidos: composer.lock mudou em ZERO deles — ou seja, esses ~27s
+        # rodavam DENTRO da janela de maintenance sem ter o que instalar, em 100%
+        # dos deploys. É a maior fatia dos ~60s em que o site fica em 503.
+        #
+        # O dump-autoload NÃO é condicional (passo seguinte): ele depende do CÓDIGO
+        # FONTE, não do lock — classe nova em app/ ou Modules/ precisa entrar no
+        # classmap-authoritative ou vira 500 no boot (incidentes 2026-06-18 e 06-23).
+        if: steps.lock_servidor.outputs.hash != needs.build.outputs.composer_lock_hash
         run: |
           /tmp/ssh_exec.sh "
             set -o pipefail &&
             cd $RDIR &&
-            composer install --optimize-autoloader --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium 2>&1 | tail -20 &&
-            echo '=== dump-autoload force ===' &&
+            composer install --optimize-autoloader --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium 2>&1 | tail -20
+          "
+
+      - name: Dump-autoload autoritativo (SEMPRE — depende do fonte, não do lock)
+        # Nunca condicional: é o que põe classe nova de app/ e Modules/ no classmap.
+        # Pular isto é exatamente o modo de falha dos incidentes de 500 no boot.
+        run: |
+          /tmp/ssh_exec.sh "
+            set -o pipefail &&
+            cd $RDIR &&
             composer dump-autoload -o --classmap-authoritative --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium 2>&1 | tail -10
           "
 
@@ -319,10 +527,18 @@ jobs:
         # Substitui o build-no-Hostinger (causa raiz dos hashes stale). Os artefatos
         # chegam prontos do JOB build: build-inertia/ (dir Inertia com manifest) +
         # css/ (só tailwind.css do build legado). tar-pipe usa só tar+ssh (sem
-        # dependência de rsync no servidor). build-inertia faz swap de DIRETÓRIO
-        # (mantém .old pra rollback); css é COPIADO por cima (public/css é gitignored
-        # e só recebe build, então não há arquivo estático pra preservar). Roda sob
-        # maintenance ON — janela de microssegundos do swap é invisível.
+        # dependência de rsync no servidor). css é COPIADO por cima (public/css é
+        # gitignored e só recebe build, então não há arquivo estático pra preservar).
+        #
+        # ⚠️ build-inertia MESCLA, não troca (mudado 2026-08-12). O swap de diretório
+        # (`mv build-inertia build-inertia.old`) tirava do ar TODOS os assets antigos
+        # de uma vez. As páginas são chunks lazy (`import.meta.glob('./Pages/**')` no
+        # app.tsx), então quem estava com o sistema aberto tinha o manifest ANTIGO na
+        # memória: a próxima navegação pedia um chunk cujo hash mudou → 404 →
+        # "Failed to fetch dynamically imported module" → tela morta até dar F5.
+        # Isso quebrava a sessão de quem trabalha DEPOIS da janela de maintenance —
+        # por isso não adiantava só encurtar o 503. Mesclando, o chunk antigo continua
+        # servido e a sessão aberta sobrevive ao deploy.
         run: |
           set -euo pipefail
           test -d artifact/build-inertia
@@ -332,10 +548,12 @@ jobs:
           /tmp/ssh_exec.sh "
             cd $RDIR/public &&
             if [ -d .deploy_incoming/build-inertia ]; then
-              rm -rf build-inertia.old
-              [ -d build-inertia ] && mv build-inertia build-inertia.old
-              mv .deploy_incoming/build-inertia build-inertia
-              echo 'swapped build-inertia'
+              mkdir -p build-inertia &&
+              { [ -f build-inertia/manifest.json ] && cp -a build-inertia/manifest.json build-inertia/manifest.anterior.json || true; } &&
+              cp -af .deploy_incoming/build-inertia/. build-inertia/ &&
+              PODADOS=\$(find build-inertia/assets -type f -mtime +3 -print -delete 2>/dev/null | wc -l) &&
+              rm -rf build-inertia.old &&
+              echo \"merged build-inertia (chunks mortos ha +3d podados: \$PODADOS)\"
             fi &&
             if [ -d .deploy_incoming/css ]; then
               mkdir -p css

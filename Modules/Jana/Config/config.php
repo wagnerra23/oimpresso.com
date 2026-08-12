@@ -201,6 +201,12 @@ return [
         // isso curto. `0` desliga o memo; `esquecerPermissao($userId)` invalida na hora.
         'auth_cache_ttl' => env('MCP_AUTH_CACHE_TTL', 60),
 
+        // === Throttle do carimbo de uso do token (mesmo incidente) ===
+        // Segundos entre gravações de `last_used_at`/`last_used_ip`. Era um
+        // UPDATE por requisição (~360ms cada, MySQL remoto) para carimbar o
+        // mesmo minuto 4× durante um handshake. `0` desliga o throttle.
+        'uso_throttle_segundos' => env('MCP_USO_THROTTLE_SEGUNDOS', 60),
+
         // === Audit log governança ===
         // Quanto tempo manter audit log antes de purgar (LGPD: mínimo 1 ano)
         'audit_retention_days' => env('COPILOTO_MCP_AUDIT_RETENTION_DAYS', 365),

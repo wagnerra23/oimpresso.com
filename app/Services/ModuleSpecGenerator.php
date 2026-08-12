@@ -59,7 +59,7 @@ class ModuleSpecGenerator
             'assets'      => $existsInCurrentBranch ? $this->scanAssets($path) : [
                 'js' => 0, 'ts' => 0, 'vue' => 0, 'css' => 0, 'img' => 0,
                 'js_files' => [], 'css_files' => [], 'frameworks' => [],
-                'has_mix' => false, 'has_vite' => false, 'has_package' => false,
+                'has_package' => false,
                 'package_deps' => [],
             ],
             'tests'       => $existsInCurrentBranch ? $this->scanTests($path) : [],
@@ -422,7 +422,7 @@ class ModuleSpecGenerator
 
         // Assets (JS, CSS, frameworks)
         $assets = $spec['assets'] ?? [];
-        if (!empty($assets['js_files']) || !empty($assets['css_files']) || !empty($assets['frameworks']) || $assets['has_mix'] || $assets['has_vite']) {
+        if (!empty($assets['js_files']) || !empty($assets['css_files']) || !empty($assets['frameworks']) || ($assets['has_package'] ?? false)) {
             $md .= "## Assets (JS / CSS)\n\n";
             $md .= "| Tipo | Qtde |\n|---|---:|\n";
             $md .= "| JavaScript (.js/.mjs) | " . ($assets['js'] ?? 0) . " |\n";
@@ -431,9 +431,10 @@ class ModuleSpecGenerator
             $md .= "| CSS/SCSS | " . ($assets['css'] ?? 0) . " |\n";
             $md .= "| Imagens | " . ($assets['img'] ?? 0) . " |\n\n";
 
-            if ($assets['has_mix']) $md .= "- Build: **Laravel Mix** (webpack.mix.js presente)\n";
-            if ($assets['has_vite']) $md .= "- Build: **Vite** (vite.config.js/ts presente)\n";
-            if ($assets['has_package']) $md .= "- `package.json` presente\n";
+            // Build por módulo não existe: o bundle do app é da RAIZ (vite.config.js +
+            // vite.inertia.config.mjs) e Laravel Mix saiu do projeto. Reportar
+            // "Build: Laravel Mix" aqui era fóssil — afirmava um pipeline que ninguém roda.
+            if ($assets['has_package'] ?? false) $md .= "- `package.json` presente\n";
             if (!empty($assets['package_deps'])) {
                 $md .= "- **Deps JS:** `" . implode('`, `', array_slice($assets['package_deps'], 0, 15)) . "`";
                 if (count($assets['package_deps']) > 15) $md .= " +" . (count($assets['package_deps']) - 15);
@@ -762,8 +763,6 @@ class ModuleSpecGenerator
             'js_files'     => [],  // nome + tamanho dos primeiros 20
             'css_files'    => [],
             'frameworks'   => [],  // frameworks/libs detectados no código
-            'has_mix'      => File::exists($path . '/webpack.mix.js'),
-            'has_vite'     => File::exists($path . '/vite.config.js') || File::exists($path . '/vite.config.ts'),
             'has_package'  => File::exists($path . '/package.json'),
             'package_deps' => [],
         ];
