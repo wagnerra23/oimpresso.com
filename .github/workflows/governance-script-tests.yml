@@ -45,6 +45,16 @@ jobs:
         run: node scripts/governance/ancora-codigo-sync.mjs --selftest
       - name: Maquinas-inventario bite-test (--check morde missing+ghost, libera fiel · fixture temp)
         run: node scripts/governance/maquinas-inventario.test.mjs
+      # §5 derivado: a FONTE e memory/licoes-rejeitadas.md (corpos integros, append-only);
+      # o §5 de proibicoes.md carrega SO os limites e e GERADO. Duas pernas independentes:
+      # (1) NAO-PERDA -- todo bullet "- **O limite" da fonte chegou ao derivado (o que
+      #     importa; sem isso o check seria tautologico -- §5 2026-06-05);
+      # (2) SINCRONIA -- o §5 no disco e byte-identico ao que o gerador produz (anti-drift
+      #     de quem editar o derivado a mao em vez da fonte).
+      - name: §5 derivado == fonte (nao-perda de limite + anti-drift)
+        run: node scripts/governance/sec5-derive.mjs --check
+      - name: §5 derive bite-test (corta arqueologia, NUNCA come limite · lapide de 2 eixos)
+        run: node scripts/governance/sec5-derive.mjs --selftest
       # O contrato de completude da ADR 0277 ("migrado = route Blade morto") foi decidido em
       # 2026-06-13 e NUNCA ganhou maquina — medido: 0 scripts, 0 workflows contavam route Blade
       # vivo, e o censo A-L do roadmap era digitado a mao. Este selftest defende o MEDIDOR;

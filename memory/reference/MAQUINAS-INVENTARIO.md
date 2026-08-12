@@ -18,7 +18,7 @@ lifecycle: ativo
 > - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`
 > - Gates/Workflows → `scripts/governance/gates-registry.json` · Required → `governance/required-checks-baseline.json`
 
-## 1. Workflows / Gates de CI — 123 (42 contexts required)
+## 1. Workflows / Gates de CI — 123 (43 contexts required)
 
 | Workflow | Descrição |
 |---|---|
@@ -327,7 +327,7 @@ lifecycle: ativo
 > design**. O que é dívida é **medidor** órfão — a máquina existe, o teste prova que ela morde,
 > e nada a executa. A matriz reporta o fato; a triagem é humana.
 
-### 5.1 `scripts/governance/` — 108
+### 5.1 `scripts/governance/` — 109
 
 | Script | Invocador | Descrição (cabeçalho) |
 |---|---|---|
@@ -344,7 +344,7 @@ lifecycle: ativo
 | `baseline-tamper-guard.mjs` | ci, script | anti-grandfather (Gap 2 do blueprint SDD · ADR 0256/0258). |
 | `blade-migration-census.mjs` | ci, script | o CONTRATO DE COMPLETUDE da ADR 0277, derivado da árvore. |
 | `briefing-code-staleness.mjs` | agente, ci, npm, script | sentinela: a PORTA (BRIEFING.md) ficou atrás do CÓDIGO? |
-| `brl-scan-diff.mjs` | ci | varre as LINHAS ADICIONADAS de um PR procurando valor BRL não-redigido. |
+| `brl-scan-diff.mjs` | ci, script | varre as LINHAS ADICIONADAS de um PR procurando valor BRL não-redigido. |
 | `catalog-graph.mjs` | ci, script | GERADOR determinístico do GRAFO TIPADO de módulos. |
 | `charter-blueprint-pointers.mjs` | ci, script | auditoria de PONTEIROS DE PROTÓTIPO dos Page Charters. |
 | `charter-live-signal.mjs` | ci, script | gate de SINAL pra charter `status: live` (proposta SDD 2026-06-24). |
@@ -392,7 +392,7 @@ lifecycle: ativo
 | `hue-canon-check.mjs` | agente, ci | verificador da fonte única do hue primário (US-GOV-052 P32). |
 | `junit-lanes.mjs` | ci | fonte ÚNICA e DERIVADA das lanes de CI que alimentam o manifesto por-UC |
 | `knowledge-drift.mjs` | agente, ci, script | primeira batida do "batimento" (ADR 0270 / sessão 2026-06-11). |
-| `lapide-recheck.mjs` | agente, ci | re-verificação de FRESCOR das lápides §5 (memory/proibicoes.md, |
+| `lapide-recheck.mjs` | agente, ci, script | re-verificação de FRESCOR das lápides §5 (memory/proibicoes.md, |
 | `ledger-check.mjs` | agente, ci, script | enforcement do PROTOCOLO-REFUTADOR-BACKFILL (frente GT-G5, |
 | `ledger-hash-chain.mjs` | ci | transparency-log (Rekor/Sigstore-style) sobre o |
 | `maquinas-inventario.mjs` | agente, ci | DERIVA um índice único e legível de TODAS as "máquinas" |
@@ -425,6 +425,7 @@ lifecycle: ativo
 | `sdd-flow.mjs` | npm | recibo estrutural da cadeia: |
 | `sdd-output-lint.mjs` | ci, npm | mede a QUALIDADE do artefato que o agent `sdd-from-source` (ADR 0351) produz. |
 | `sdd-scorecard.mjs` | agente, ci, script | agregador do scorecard SDD (GT-G2, Semana 0 do plano |
+| `sec5-derive.mjs` | ci | o §5 do `memory/proibicoes.md` passa a ser DERIVADO. |
 | `seed-tela.mjs` | script | EMPACOTADOR DE SEED (G1 do padrão "1 clique → sessão limpa por tela"). |
 | `selftest-registry-check.mjs` | agente, ci, script | P15 entrega 3: teste .mjs órfão de workflow (advisory). |
 | `service-scorecard.mjs` | ci | SCORECARD de SINAIS-VIVOS por serviço/módulo (estilo Cortex). |
@@ -438,7 +439,7 @@ lifecycle: ativo
 | `uc-sem-lane.mjs` | ci | UC com o id no TÍTULO de um teste que LANE NENHUMA executa. |
 | `ui-impact.mjs` | ci | Fonte única do skip-as-pass do visual-regression. |
 | `visual-comparison-staleness.mjs` | ci, script | sentinela: o `<tela>-visual-comparison.md` ficou atrás da TELA? |
-| `worktree-janitor.mjs` | npm | Faxineiro de worktrees — classifica worktree MORTO vs VIVO por ORÁCULO, nunca por heurística. |
+| `worktree-janitor.mjs` | ci, npm | Faxineiro de worktrees — classifica worktree MORTO vs VIVO por ORÁCULO, nunca por heurística. |
 
 ### 5.2 `scripts/tests/` — 8
 
