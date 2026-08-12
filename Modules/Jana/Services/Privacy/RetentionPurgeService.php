@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Jana\Services\Privacy;
 
+use App\Support\Privacy\PiiRedactor;
 use App\Util\OtelHelper;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
