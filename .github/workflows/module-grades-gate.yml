@@ -399,14 +399,36 @@ jobs:
               intro = '> Nenhum módulo regrediu vs baseline, nenhum ganho ≥3pts destravado e nenhum módulo novo sem aprovação. (ADR 0155 v3)';
             }
 
-            const body = `## ${title}\n\n${intro}\n${unlockedBlock}\n\n${report}\n\n---\n_Ver [ADR 0155 — rubrica module-grade v3](/memory/decisions/0155-rubrica-module-grade-v3.md)._`;
+            // UPSERT por marcador — 1 comentário vivo por PR, nunca empilha a cada push.
+            // Padrão canônico: scripts/pr-critic/comentar.mjs (o docblock de lá é o dono da
+            // regra). Medido no PR #5686: este gate sozinho postou 15 comentários (12 verdes
+            // IDÊNTICOS), cada um disparando notificação para um gate que estava passando.
+            const MARCADOR = '<!-- module-grades-gate -->';
+            const body = `${MARCADOR}\n## ${title}\n\n${intro}\n${unlockedBlock}\n\n${report}\n\n---\n_Ver [ADR 0155 — rubrica module-grade v3](/memory/decisions/0155-rubrica-module-grade-v3.md)._`;
 
-            await github.rest.issues.createComment({
+            const existentes = await github.paginate(github.rest.issues.listComments, {
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body,
+              per_page: 100,
             });
+            const vivo = existentes.find((c) => (c.body || '').includes(MARCADOR));
+
+            if (vivo) {
+              await github.rest.issues.updateComment({
+                comment_id: vivo.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body,
+              });
+            }
 
       - name: Falhar build se regressão sem override
         if: steps.compare.outputs.fail == '1' && steps.override.outputs.active != 'true'
@@ -538,14 +560,33 @@ jobs:
                   `3. Override de emergência → comentar \`/bypass-bucket-gate <razão>\` no PR (gera ADR per-PR \`lifecycle: historical\`).`,
                 ].join('\n');
 
-            const body = `## ${title}\n\n${intro}\n\n${table}\n\n---\n_Ver [ADR 0160 — Scoped Scorecards + anti-gaming](/memory/decisions/0160-scoped-scorecards.md) e [RUNBOOK Governance Gate CI §Bucket Change Detection](/memory/requisitos/Infra/RUNBOOK-governance-gate-ci.md)._`;
+            // UPSERT por marcador próprio (este é o comentário de BUCKET, não o de notas —
+            // marcadores distintos para os dois coexistirem sem se sobrescrever).
+            const MARCADOR = '<!-- module-grades-bucket -->';
+            const body = `${MARCADOR}\n## ${title}\n\n${intro}\n\n${table}\n\n---\n_Ver [ADR 0160 — Scoped Scorecards + anti-gaming](/memory/decisions/0160-scoped-scorecards.md) e [RUNBOOK Governance Gate CI §Bucket Change Detection](/memory/requisitos/Infra/RUNBOOK-governance-gate-ci.md)._`;
 
-            await github.rest.issues.createComment({
+            const existentesBucket = await github.paginate(github.rest.issues.listComments, {
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body,
+              per_page: 100,
             });
+            const vivoBucket = existentesBucket.find((c) => (c.body || '').includes(MARCADOR));
+            if (vivoBucket) {
+              await github.rest.issues.updateComment({
+                comment_id: vivoBucket.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body,
+              });
+            }
 
       - name: Falhar build se bucket mudou sem label de aprovação
         if: steps.diff.outputs.changed == 'true' && steps.label.outputs.approved != 'true'
