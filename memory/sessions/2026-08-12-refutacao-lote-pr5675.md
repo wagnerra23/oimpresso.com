@@ -5,7 +5,7 @@ type: session
 status: closed
 module: governance
 pr: 5675
-verdict: reprovado
+verdict: aprovado
 ---
 
 # PR #5675 — refutação adversarial do lote (protocolo GT-G5)
@@ -215,3 +215,71 @@ Prova de que o lote toca: `git diff origin/main...claude/piiredactor-para-app-su
 3. Consertar os alvos dos links em `Forja/Config/brief-retention.php:25` e `Woocommerce/Config/retention.php:20` (`../../../app/Support/Privacy/PiiRedactor.php` a partir de `Modules/<X>/Config/`).
 4. Reescrever a linha 129 deste artefato citando a fixture por referência (ou marcador).
 5. Processo: claim de refutação só com recibo REPRODUZÍVEL colado (comando + saída + coordenadas). O recibo do commit `9cba1023fb3` não reproduz — e foi ele que manteve dois registros Tier 0 falsificados no lote.
+
+---
+
+## Rodada 3 — re-verificação do lote INTEIRO (§2.6) · 2026-08-12
+
+### Coordenadas desta rodada
+
+- Base: `origin/main` @ `e95da27ece3` (fetch fresco) · Head: `743e2965f17` (`claude/piiredactor-para-app-support`) · merge-base `124ca527233`. O head contém merge de `origin/main` (`0b848cbb76d`) — toda comparação em forma três-pontos.
+- Diff em `memory/requisitos/`: **15 arquivos, 43 linhas** por `--numstat` (16→15 vs rodada 2: `Jana/AUDIT-SENIOR-2026-05-25.md` saiu do diff — revertido pelo commit `743e2965f17`).
+- Refutador: `fable-5` (tier máximo), sessão fresca. Amostra **100%** das 43 linhas (categoria `anchors`, sem seed — não houve amostragem).
+- Nota de honestidade (contaminação parcial): um grep de varredura do path antigo devolveu 3 linhas DESTE artefato antes da leitura autorizada. Nenhum veredito foi herdado — cada item foi re-verificado de forma independente contra git/filesystem/oráculos, com comando colado.
+
+### Resultado
+
+```
+itens_verificados: 22
+erros_confirmados: 0
+error_rate_pct: 0
+pii_scan: true
+pii_hits: 0
+veredito: aprovado
+```
+
+### As 5 correções esperadas pela rodada 2 — todas verificadas no head
+
+1. **R2-E1/R2-E3 (registros datados) REVERTIDOS de verdade:** `git diff --numstat origin/main...<branch> -- memory/licoes-rejeitadas.md memory/requisitos/Jana/AUDIT-SENIOR-2026-05-25.md memory/requisitos/Governance/CHANGELOG.md` → **vazio, rc 0** nos três. No head, os três mantêm o path/FQCN histórico original (grep colado abaixo). A lápide append-only Tier 0 volta a contar a história verdadeira do #5169.
+2. **FICHA (R2-E2) resolvida na classificação recomendada (snapshot datado):** linha 81 agora cita o path histórico como TEXTO (não link) + nota datada — e as duas claims da nota são verdadeiras: "saiu do módulo em 2026-08-12" (todos os 8 commits do lote são de 2026-08-12) e "hoje vive em `app/Support/Privacy/`" (`git cat-file -e <branch>:app/Support/Privacy/PiiRedactor.php` = existe). Coerência interna restaurada: a linha 10 (`fonte:`) e a linha 81 citam ambas a forma histórica — sumiu a dupla identidade.
+3. **R2-E5 (links meio-atualizados) consertado nas DUAS pernas:** `Modules/Forja/Config/brief-retention.php:25` e `Modules/Woocommerce/Config/retention.php:20` — rótulo `[App\Support\Privacy\PiiRedactor]` E alvo `(../../../app/Support/Privacy/PiiRedactor.php)`, que resolve a partir de `Modules/<X>/Config/` (3 níveis até a raiz); `@see` idem. Re-varredura com a forma SOLTA `Jana.Services.Privacy.PiiRedactor` (pega `\`, `/` e alvo relativo — a assinatura que a rodada 1 perdeu): sobram no head **só** fósseis datados intocados (licoes-rejeitadas:482 · CHANGELOG:73 · AUDIT-SENIOR:555), o texto histórico deliberado da FICHA:81 e a fixture sintética do selftest (`test-lane-coverage.mjs:486`, path que nunca existiu). Zero link meio-atualizado, zero referência viva órfã.
+4. **Linha 129 desta sessão reescrita sem o literal** — scan re-rodado sobre o hunk do artefato no diff: zero e-mail. O `pii_hits: 1` da rodada 2 morreu.
+5. **Recibos reproduzíveis:** todos os comandos desta rodada rodados nas coordenadas acima, saída colada.
+
+### Itens (22 = 43 linhas nos 15 arquivos) — TODOS CONFIRMADOS
+
+| # | Doc | Itens | Veredito |
+|---|---|---|---|
+| 1-2 | `Cms/PII-REDACTION.md` (FQCN + path) | 2 | CONFIRMADO |
+| 3 | `ComunicacaoVisual/BRIEFING.md` | 1 | CONFIRMADO |
+| 4 | `ComunicacaoVisual/PII-LGPD.md` §1 (FQCN + parêntese reescrito) | 1 | CONFIRMADO — o E1 da rodada 1 morreu: sem claim de posse pela Jana; "23 módulos" MEDIDO: `git grep -lF 'use Modules\Jana\Services\Privacy\PiiRedactor;' origin/main -- 'Modules/'` → 90 arquivos em 24 módulos incl. Jana = **23 ≠ Jana**, exato |
+| 5-7 | `ComunicacaoVisual/PII-LGPD.md` (§2 use · §5 path · §5 use) | 3 | CONFIRMADO (§2 bate com `OrcamentoCalculator.php` real no head) |
+| 8 | `ConsultaOs/BRIEFING.md` | 1 | CONFIRMADO |
+| 9 | `Crm/DEPRECATION-PLAN-pipeline.md` | 1 | CONFIRMADO — `status: planejado` (nada executado): a coluna de mitigação é PRESCRIÇÃO futura pro executor de E3, não registro de evento; manter executável é o correto (deixar o FQCN morto mandaria o executor a uma referência inexistente) |
+| 10-11 | `Crm/PII-REDACTION.md` (FQCN + path) | 2 | CONFIRMADO |
+| 12 | `Forja/README.md` §D7 | 1 | CONFIRMADO (presente-tense vivo; `ForjaAuditService.php:8` usa o novo no head) |
+| 13 | `Jana/IA-MATURITY-FICHA.md:81` (texto histórico + nota datada) | 1 | CONFIRMADO (item 2 acima) |
+| 14 | `Jana/PII-REDACTION.md` | 1 | CONFIRMADO |
+| 15 | `Jana/SPEC.md` (US-COPI-137 Refs) | 1 | CONFIRMADO (SPEC vivo; `LangfuseClient.php` existe; âncoras `verificado@` intocadas) |
+| 16-18 | `Jana/SUPERFICIE.md` (total 569→568 · Services 91→90 · linha removida) | 3 | CONFIRMADO por oráculo: `node scripts/governance/module-surface.mjs Jana --check` → `OK (568 arquivos, sem drift)`, rc 0. (568 ≠ 567 da rodada 1 porque o merge de main trouxe 1 arquivo novo à raiz — o oráculo valida contra a árvore do head, não contra a memória da rodada anterior) |
+| 19 | `OficinaAuto/README.md` | 1 | CONFIRMADO |
+| 20 | `Whatsapp/COMPLIANCE.md` | 1 | CONFIRMADO |
+| 21 | `Whatsapp/PII-REDACTION.md` | 1 | CONFIRMADO |
+| 22 | `Whatsapp/README.md` | 1 | CONFIRMADO |
+
+### O que ataquei e NÃO derrubei
+
+1. **Referência viva órfã** — três formas de grep (FQCN fixed-string, path com slash, forma SOLTA com separador-coringa que pega alvo relativo), cada uma com controle positivo (94 arquivos com o `use` novo casam): nada vivo aponta pro morto. Não derrubei.
+2. **Gold-sets JSON** — swap dentro de string; `python json.load` parseia os dois no head; nenhum marcador `# pii-allowlist` vazou pra JSON (que não tem comentário). Não derrubei.
+3. **Marcador quebrando sintaxe** — `# pii-allowlist` só em linha PHP (comentário `#` válido), docblock e YAML (escapado, string válida no scorecard). Não derrubei.
+4. **Gate mudo por lane** (§5 2026-08-02) — `jana-logica-pura-pest.yml` `paths:` atualizado pro path novo (tocar o arquivo movido segue disparando a lane); selftest `test-lane-coverage.mjs --selftest` → **35/35**. Não derrubei.
+5. **Deadlink** — baseline regenerado na direção permitida da catraca (1084→1082, `generated_at: 2026-08-12`); `deadlink-gate.mjs` rc 0. Não derrubei.
+6. **PII no diff INTEIRO** (2.981 linhas) — zero linha ADICIONADA com CPF/CNPJ/telefone/e-mail sem marcador (rc 1 no grep `^+` sem allowlist; controle positivo: as ~50 linhas COM marcador casam os mesmos padrões). Fixtures sintéticas sem marcador aparecem apenas como LINHAS DE CONTEXTO (pré-existentes no main; não são adições do lote). Não derrubei.
+
+### Observações (registradas, NÃO contam como erro)
+
+- **Citação herdada "ADR 0094 §Princípio 6"** no PII-LGPD §1: o Princípio 6 da 0094 é *multi-tenant Tier 0*, e a glosa fala de utilitário de privacidade. A imprecisão é PRÉ-EXISTENTE (a linha do main já citava §P6) — o lote reescreveu a glosa, não a citação. Follow-up editorial fora deste gate.
+- **"só pra cumprir LGPD"** — medido em origin/main: **19 dos 23** módulos tinham o PiiRedactor como ÚNICO import da Jana (`^use Modules\Jana\` além do redactor: só Forja 116 · KB 19 · Governance 9 · Whatsapp 3). O "só" é literal pra 19 e motivacional pros 4; o número 23 é exato.
+- **"até 2026-08-12" / "saiu em 2026-08-12"** — verdadeiro se o merge sair hoje (mesma ressalva da rodada 2; commits do lote todos de 2026-08-12).
+- **PENDÊNCIA §2.7:** `governance/sdd-verification-ledger.json` **não tem entry pro PR #5675 no diff** (grep "5675" → zero). A entry com o veredito desta rodada precisa entrar no MESMO PR antes do merge — fica com o gerador/parent (refutador não commita).
+- Frontmatter `verdict:` deste artefato atualizado `reprovado`→`aprovado` por esta rodada — o campo carrega o veredito CORRENTE; os corpos das rodadas 1 e 2 permanecem intocados (append-only).
