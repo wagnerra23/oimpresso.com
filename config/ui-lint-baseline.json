@@ -153,36 +153,36 @@
     "resources/js/Pages/Admin/_components/WidgetVaultwarden.tsx": {
       "R1": 10
     },
-    "resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx": {
+    "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx": {
       "R1": 1
     },
-    "resources/js/Pages/Atendimento/CaixaUnificada/_components/ComposerV4.tsx": {
+    "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/ComposerV4.tsx": {
       "R1": 6
     },
-    "resources/js/Pages/Atendimento/CaixaUnificada/_components/ConversationThreadV4.tsx": {
+    "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/ConversationThreadV4.tsx": {
       "R1": 5,
       "R3": 2
     },
-    "resources/js/Pages/Atendimento/Channels/Index.tsx": {
+    "Modules/Whatsapp/Resources/js/Pages/Atendimento/Channels/Index.tsx": {
       "R1": 21,
       "R3": 1
     },
-    "resources/js/Pages/Atendimento/Channels/Show.tsx": {
+    "Modules/Whatsapp/Resources/js/Pages/Atendimento/Channels/Show.tsx": {
       "R1": 8
     },
-    "resources/js/Pages/Atendimento/Csat/Index.tsx": {
+    "Modules/Whatsapp/Resources/js/Pages/Atendimento/Csat/Index.tsx": {
       "R1": 5
     },
-    "resources/js/Pages/Atendimento/Inbox/_components/ChannelSelector.tsx": {
+    "Modules/Whatsapp/Resources/js/Pages/Atendimento/Inbox/_components/ChannelSelector.tsx": {
       "R1": 8
     },
-    "resources/js/Pages/Atendimento/Macros/Index.tsx": {
+    "Modules/Whatsapp/Resources/js/Pages/Atendimento/Macros/Index.tsx": {
       "R1": 3
     },
-    "resources/js/Pages/Atendimento/Macros/Variants.tsx": {
+    "Modules/Whatsapp/Resources/js/Pages/Atendimento/Macros/Variants.tsx": {
       "R1": 5
     },
-    "resources/js/Pages/Atendimento/Metricas/Index.tsx": {
+    "Modules/Whatsapp/Resources/js/Pages/Atendimento/Metricas/Index.tsx": {
       "R1": 4
     },
     "resources/js/Pages/Auditoria/Detail.tsx": {
@@ -849,7 +849,7 @@
     "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/atoms-settings.tsx": {
       "R1": 16
     },
-    "resources/js/Pages/Site/Pricing.tsx": {
+    "Modules/Superadmin/Resources/js/Pages/Site/Pricing.tsx": {
       "R1": 2,
       "R3": 3
     },
@@ -928,7 +928,7 @@
     "resources/js/Pages/ads/Admin/Decisoes.tsx": {
       "R1": 10
     },
-    "resources/js/Pages/ads/Admin/Graph.tsx": {
+    "Modules/KB/Resources/js/Pages/ads/Admin/Graph.tsx": {
       "R1": 28,
       "R3": 6
     },
@@ -947,11 +947,11 @@
     "resources/js/Pages/ads/Admin/Policy.tsx": {
       "R1": 9
     },
-    "resources/js/Pages/ads/Admin/ProjectShow.tsx": {
+    "Modules/Forja/Resources/js/Pages/ads/Admin/ProjectShow.tsx": {
       "R1": 28,
       "R3": 1
     },
-    "resources/js/Pages/ads/Admin/Projects.tsx": {
+    "Modules/Forja/Resources/js/Pages/ads/Admin/Projects.tsx": {
       "R1": 11
     },
     "resources/js/Pages/ads/Admin/Skills/Edit.tsx": {
@@ -969,10 +969,10 @@
     "resources/js/Pages/ads/Admin/Skills/Test.tsx": {
       "R1": 5
     },
-    "resources/js/Pages/ads/Admin/TeamScopes.tsx": {
+    "Modules/Forja/Resources/js/Pages/ads/Admin/TeamScopes.tsx": {
       "R1": 4
     },
-    "resources/js/Pages/ads/Admin/Tools.tsx": {
+    "Modules/Forja/Resources/js/Pages/ads/Admin/Tools.tsx": {
       "R1": 13
     },
     "resources/js/Pages/governance/Audit.tsx": {

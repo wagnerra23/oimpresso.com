@@ -14,7 +14,7 @@
         "linhas": "531-562"
       },
       "vivo": {
-        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx",
+        "arquivo": "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx",
         "linhas": "331-442",
         "ancora": false
       },
@@ -30,7 +30,7 @@
         "linhas": "8-20"
       },
       "vivo": {
-        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/_components/ConversationListV4.tsx",
+        "arquivo": "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/ConversationListV4.tsx",
         "linhas": "305-351",
         "ancora": false
       },
@@ -46,7 +46,7 @@
         "linhas": "576-836"
       },
       "vivo": {
-        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/_components/ConversationListV4.tsx",
+        "arquivo": "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/ConversationListV4.tsx",
         "linhas": "87-613",
         "ancora": false
       },
@@ -62,7 +62,7 @@
         "linhas": "9-126"
       },
       "vivo": {
-        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/_components/ConversationThreadV4.tsx",
+        "arquivo": "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/ConversationThreadV4.tsx",
         "linhas": "48-477",
         "ancora": false
       },
@@ -78,7 +78,7 @@
         "linhas": "988-1072"
       },
       "vivo": {
-        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/_components/ComposerV4.tsx",
+        "arquivo": "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/ComposerV4.tsx",
         "linhas": "101-896",
         "ancora": false
       },
@@ -94,7 +94,7 @@
         "linhas": "1073-1242"
       },
       "vivo": {
-        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/_components/ContextSidebarV4.tsx",
+        "arquivo": "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/ContextSidebarV4.tsx",
         "linhas": "62-662",
         "ancora": false
       },
@@ -110,7 +110,7 @@
         "linhas": "1288-1389"
       },
       "vivo": {
-        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/_components/ChannelsDrawer.tsx",
+        "arquivo": "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/ChannelsDrawer.tsx",
         "linhas": "42-158",
         "ancora": false
       },
@@ -126,7 +126,7 @@
         "linhas": "1390-1439"
       },
       "vivo": {
-        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/_components/QueuesSheet.tsx",
+        "arquivo": "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/QueuesSheet.tsx",
         "linhas": "63-350",
         "ancora": false
       },
@@ -142,7 +142,7 @@
         "linhas": "1440-1475"
       },
       "vivo": {
-        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/_components/BroadcastSheet.tsx",
+        "arquivo": "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/BroadcastSheet.tsx",
         "linhas": "58-256",
         "ancora": false
       },
@@ -158,7 +158,7 @@
         "linhas": "558-560"
       },
       "vivo": {
-        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/_components/NewConversationDialog.tsx",
+        "arquivo": "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/NewConversationDialog.tsx",
         "linhas": "41-207",
         "ancora": false
       },
@@ -174,7 +174,7 @@
         "linhas": "57-342"
       },
       "vivo": {
-        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/_components/InboxAiDialog.tsx",
+        "arquivo": "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/InboxAiDialog.tsx",
         "linhas": "33-118",
         "ancora": false
       },
@@ -190,7 +190,7 @@
         "linhas": "1-343"
       },
       "vivo": {
-        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx",
+        "arquivo": "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx",
         "linhas": "257-314",
         "ancora": false
       },
@@ -206,7 +206,7 @@
         "linhas": "164-224"
       },
       "vivo": {
-        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx",
+        "arquivo": "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx",
         "linhas": "140-204",
         "ancora": false
       },

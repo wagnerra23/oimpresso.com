@@ -460,7 +460,7 @@ function selfTest() {
   const consumers = createConsumerResolver(new Map([
     ['resources/js/Components/Site/Hero.tsx', 'export default function Hero() {}'],
     ['resources/js/Layouts/SiteLayout.tsx', "import Hero from '@/Components/Site/Hero';"],
-    ['resources/js/Pages/Site/Home.tsx', "import SiteLayout from '../../Layouts/SiteLayout';"],
+    ['Modules/Cms/Resources/js/Pages/Site/Home.tsx', "import SiteLayout from '../../Layouts/SiteLayout';"],
     ['resources/js/Lib/money.ts', 'export const money = 1;'],
     ['resources/js/Pages/Sells/Create.tsx', "export { money } from '@/Lib/money';"],
   ]));

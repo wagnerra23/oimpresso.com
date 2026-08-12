@@ -283,7 +283,7 @@ Prioridade: P0 fix paths quebrados, P1 cobertura gaps, P2 polimento UX.
 | T5 | `it('whatsmeow inbound documentMessage → preserva filename UTF-8 acentos + media_size_bytes')` | idem ↑ | P1 |
 | T6 | `it('SendMediaJob whatsmeow → POST {daemon_url}/chat/send/image body Image=url + Caption + Phone E.164')` | `Modules/Whatsapp/Tests/Feature/SendMediaJobWhatsmeowTest.php` | **P0** |
 | T7 | `it('Downloader chama daemon CT 100 com mediaKey extraído de payload.message.imageMessage.mediaKey')` | `GuardiaoMidiaTest.php` (já tem skeleton — adicionar caso whatsmeow) | P1 |
-| T8 | `it('ComposerV4 onDrop file → queueMediaFiles + sendMedia auto')` (Vitest Playwright) | `resources/js/Pages/Atendimento/CaixaUnificada/__tests__/ComposerV4.spec.tsx` | P1 |
+| T8 | `it('ComposerV4 onDrop file → queueMediaFiles + sendMedia auto')` (Vitest Playwright) | `Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/__tests__/ComposerV4.spec.tsx` | P1 |
 | T9 | `it('ComposerV4 onPaste clipboard image → pendingFile set + preview render')` | idem ↑ | P1 |
 | T10 | `it('frontend cap 16MB = backend MEDIA_MAX_SIZE_BYTES (single source of truth via Inertia share)')` | idem ↑ | P1 |
 | T11 | `it('media_url disk public → Storage::url() retorna URL com UUID v4 não-enumerável')` | `MediaMessageTest.php` adicionar | P2 |

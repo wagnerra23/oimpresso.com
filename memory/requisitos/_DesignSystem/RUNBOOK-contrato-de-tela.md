@@ -85,7 +85,7 @@ O contrato pode declarar `acordos_estado`: um VOCABULÁRIO de `state` compartilh
   { "id": "sessao-ativa", "verdict": "aprovado", "escopo": "global",
     "valores": ["paired", "connected"],
     "backend":  "Modules/Whatsapp/Http/Controllers/Admin/ChannelsController.php",
-    "frontend": ["resources/js/Pages/Atendimento/CaixaUnificada/_components/reconnectState.ts"] }
+    "frontend": ["Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/reconnectState.ts"] }
 ]
 ```
 
@@ -156,7 +156,7 @@ Os adversários derrubaram, com evidência do repo:
 4. **Promover a required** sob `enforce_admins` quando estável; estender o escopo do `infra-contract-required` pros arquivos de design-port (omissão).
 5. **Screenshot do prod → [W] aprova** (ADR 0114) — o juízo visual subjetivo que o gate não cobre.
 
-Piloto: **Caixa Unificada** (`resources/js/Pages/Atendimento/CaixaUnificada/`) — não tem `casos.md` (gap) e é a tela que originou esta sessão.
+Piloto: **Caixa Unificada** (`Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/`) — não tem `casos.md` (gap) e é a tela que originou esta sessão.
 
 ### Estado da adoção (2026-07-13) — promovido a enforcing-ready (ADR 0261 Alavanca 2)
 

@@ -13,8 +13,8 @@
   "resources/js/Pages/Ponto/Espelho/Index.tsx": 1,
   "resources/js/Pages/Ponto/Importacoes/Index.tsx": 1,
   "resources/js/Pages/Ponto/Intercorrencias/Index.tsx": 1,
-  "resources/js/Pages/Site/BlogPost.tsx": 1,
-  "resources/js/Pages/Site/Page.tsx": 1,
+  "Modules/Cms/Resources/js/Pages/Site/BlogPost.tsx": 1,
+  "Modules/Cms/Resources/js/Pages/Site/Page.tsx": 1,
   "resources/js/Pages/TransactionPayment/Index.tsx": 1,
   "resources/js/Pages/kb/Index.tsx": 1,
   "resources/js/Pages/team-mcp/CcSessions/Index.tsx": 1

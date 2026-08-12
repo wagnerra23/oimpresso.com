@@ -6,7 +6,7 @@ id: requisitos-whatsapp-capterra-inventario
 
 > **Última atualização 2026-05-15 14:00 BRT** (refresh via D-11 governance backfill — sincroniza com [COMPARATIVO-MERCADO-2026-05-12-v2.md](COMPARATIVO-MERCADO-2026-05-12-v2.md) pós-16-PRs CYCLE-07).
 > Versão anterior: 2026-05-10 16:30 BRT (sobrescrita).
-> Fontes: [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) + [SPEC.md](SPEC.md) + `Modules/Whatsapp/` + `resources/js/Pages/Whatsapp/` + `resources/js/Pages/Atendimento/`.
+> Fontes: [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) + [SPEC.md](SPEC.md) + `Modules/Whatsapp/` + `resources/js/Pages/Whatsapp/` + `Modules/Whatsapp/Resources/js/Pages/Atendimento/`.
 > ADR mãe: [0089](../../decisions/0089-capterra-driven-module-evolution.md) · Estende [ADR 0096](../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md) + [ADR 0117](../../decisions/0117-multiplos-numeros-whatsapp-por-business.md) + [ADR 0135](../../decisions/0135-omnichannel-inbox-arquitetura.md).
 > Trigger: 16 PRs CYCLE-07 deployed 2026-05-12 + 11 PRs saga daemon 2026-05-13 + 8 PRs maratona 2026-05-14/15 (incident anti-cross-contact + Baileys 7.x).
 

@@ -28,8 +28,8 @@ C1 P0 Onda 4 fecha o loop:
 | # | Charter | Status | Module |
 |---|---|---|---|
 | 1 | `resources/js/Pages/Admin/Index.charter.md` | draft | Admin |
-| 2 | `resources/js/Pages/Atendimento/Inbox/Index.charter.md` | live | Atendimento |
-| 3 | `resources/js/Pages/Atendimento/JanaTemplates.charter.md` | live | Atendimento |
+| 2 | `Modules/Whatsapp/Resources/js/Pages/Atendimento/Inbox/Index.charter.md` | live | Atendimento |
+| 3 | `Modules/Whatsapp/Resources/js/Pages/Atendimento/JanaTemplates.charter.md` | live | Atendimento |
 | 4 | `resources/js/Pages/Cliente/Index.charter.md` | draft | Cliente |
 | 5 | `resources/js/Pages/Financeiro/ContasBancarias/Index.charter.md` | live | Financeiro |
 | 6 | `resources/js/Pages/Financeiro/Extrato/Index.charter.md` | live | Financeiro |

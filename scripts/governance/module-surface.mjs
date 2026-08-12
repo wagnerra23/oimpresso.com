@@ -289,10 +289,14 @@ const PAPEIS = [
   // módulo dono (migração iniciada 2026-08-12). Sem isso, tela migrada cairia em "Demais
   // arquivos": presente no total, invisível como tela. Quem decide se é tela segue sendo o
   // `isPageScreenPath` (`scripts/qa/page-path.mjs`), que descasca as duas raízes.
-  { rot: 'Telas (Inertia/React)', re: /^(?:Modules\/[^/]+\/)?resources\/js\/Pages\/[^/]+\/.*\.tsx$/, aceita: isPageScreenPath, listar: true },
-  { rot: 'Componentes / apoio de tela', re: /^(?:Modules\/[^/]+\/)?resources\/js\/Pages\/[^/]+\/.*\.tsx$/, aceita: (f) => !isPageScreenPath(f), listar: true },
-  { rot: 'Charters (lei da tela)', re: /^(?:Modules\/[^/]+\/)?resources\/js\/Pages\/[^/]+\/.*\.charter\.md$/, listar: true },
-  { rot: 'Casos (contrato UC)', re: /^(?:Modules\/[^/]+\/)?resources\/js\/Pages\/[^/]+\/.*\.casos\.md$/, listar: true },
+  // `[Rr]esources`: o núcleo usa `resources/` minúsculo e a convenção nWidart dos módulos é
+  // `Resources/` MAIÚSCULO. Escrever só minúsculo aqui fazia a tela migrada cair em "Demais
+  // arquivos" — presente no total, invisível como tela — e o `--all --check` NÃO acusava,
+  // porque gerado e commitado compartilhavam o mesmo defeito. Quem pegou foi o BITE real.
+  { rot: 'Telas (Inertia/React)', re: /^(?:Modules\/[^/]+\/)?[Rr]esources\/js\/Pages\/[^/]+\/.*\.tsx$/, aceita: isPageScreenPath, listar: true },
+  { rot: 'Componentes / apoio de tela', re: /^(?:Modules\/[^/]+\/)?[Rr]esources\/js\/Pages\/[^/]+\/.*\.tsx$/, aceita: (f) => !isPageScreenPath(f), listar: true },
+  { rot: 'Charters (lei da tela)', re: /^(?:Modules\/[^/]+\/)?[Rr]esources\/js\/Pages\/[^/]+\/.*\.charter\.md$/, listar: true },
+  { rot: 'Casos (contrato UC)', re: /^(?:Modules\/[^/]+\/)?[Rr]esources\/js\/Pages\/[^/]+\/.*\.casos\.md$/, listar: true },
   { rot: 'Testes (Pest)', re: /^Modules\/[^/]+\/Tests\/.*\.php$/, listar: false },
 ];
 

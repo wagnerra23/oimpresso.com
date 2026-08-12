@@ -284,7 +284,7 @@ test('BITE real: módulo multi-namespace enxerga as telas dos DOIS namespaces', 
   const { grupos } = coletar('Whatsapp');
   const telas = grupos.filter((g) => /Telas \(Inertia/.test(g.rot)).flatMap((g) => g.files);
   assert.ok(
-    telas.some((f) => f.startsWith('resources/js/Pages/Atendimento/')),
+    telas.some((f) => f.startsWith('Modules/Whatsapp/Resources/js/Pages/Atendimento/')),
     'nenhuma tela de Pages/Atendimento entrou na superfície do Whatsapp',
   );
   assert.ok(

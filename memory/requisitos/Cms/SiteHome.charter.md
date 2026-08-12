@@ -3,7 +3,7 @@ id: requisitos-cms-site-home-charter
 page_id: cms.site.home
 route: GET /c
 controller: Modules\Cms\Http\Controllers\CmsController@index
-component: resources/js/Pages/Site/Home.tsx
+component: Modules/Cms/Resources/js/Pages/Site/Home.tsx
 status: draft
 owner: "[W]"
 created: 2026-05-16
@@ -63,6 +63,6 @@ Home pública do tenant `oimpresso.com` (e mirrors por business) — landing pag
 - SPEC: `memory/requisitos/Cms/SPEC.md`
 - BRIEFING: `memory/requisitos/Cms/BRIEFING.md`
 - Service: `Modules/Cms/Services/SiteContentService.php`
-- Component (PR1): `resources/js/Pages/Site/Home.tsx` (a criar — PR1 ainda tem só Blade legacy `cms::frontend.pages.home` em `/c/old`)
+- Component (PR1): `Modules/Cms/Resources/js/Pages/Site/Home.tsx` (a criar — PR1 ainda tem só Blade legacy `cms::frontend.pages.home` em `/c/old`)
 - Tests: `Modules/Cms/Tests/Feature/SiteHome*Test.php`
 - ADRs: 0093 (multi-tenant), 0094 (Constituição §5 SoC), 0104 (MWART processo), 0114 (prototipo-ui loop)

@@ -109,13 +109,33 @@ e depois; um detector que para de ver não avisa que parou.
 4. **Um comprimento de `../` corrigido não é a família toda.**
 5. **Reescrita sem âncora come o vizinho.**
 
+## Namespace COMPARTILHADO é permitido — a chave é por arquivo
+
+A unidade de posse é a **tela**, não a pasta. `Site` e `ads` têm mais de um dono e mesmo assim
+migraram, cada tela para o seu módulo, **sem renomear nada** (o nome `ads` está congelado por
+[ADR 0363](../../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md) — `route('ads.admin.*')`
+e permissions Spatie; renomear as revoga *em silêncio*).
+
+```
+Modules/Cms/Resources/js/Pages/Site/{Home,Blogs,BlogPost,Page}.tsx
+Modules/Superadmin/Resources/js/Pages/Site/Pricing.tsx
+resources/js/Pages/Site/{Login,Register}.tsx        ← auth: fica no núcleo, de propósito
+
+Modules/Forja/Resources/js/Pages/ads/Admin/{Projects,ProjectShow,Tools,TeamScopes}.tsx
+Modules/KB/Resources/js/Pages/ads/Admin/Graph.tsx
+```
+
+Colisão só existe quando **o mesmo arquivo** é declarado duas vezes — é o que `pages-colisao` mede.
+
 ## Estado da migração
 
-| Módulo | Namespace | Estado |
+| Namespace | Dono(s) | Estado |
 |---|---|---|
-| PaymentGateway | `Settings` | ✅ migrado (piloto, 12 arquivos) |
-| Whatsapp | `Atendimento` | ⏳ 38 arquivos — a maior dívida |
-| Forja | `team-mcp` | ⏳ 23 arquivos |
-| — | `Site`, `ads` | ⛔ **multi-dono**: a quem pertencem é decisão [W], não do script |
+| `Settings` | PaymentGateway | ✅ 12 arquivos (piloto) |
+| `Atendimento` | Whatsapp | ✅ 38 arquivos |
+| `ads` | Forja (4 telas) + KB (1) | ✅ dividido por dono |
+| `Site` | Cms (4) + Superadmin (1) | ✅ dividido; **auth fica no núcleo** |
+| `team-mcp` | Forja | ⏳ 23 arquivos |
+| demais | homônimos | ⏳ o namespace já bate com o módulo |
 
-Ordem sugerida: um módulo por PR, sempre com o total do `pages-colisao` conferido antes e depois.
+Um módulo por PR, sempre com o total do `pages-colisao` conferido antes e depois.

@@ -3,7 +3,7 @@
 # A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
 # Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
 screen: ads/Admin/ProjectShow
-path: resources/js/Pages/ads/Admin/ProjectShow.tsx
+path: Modules/Forja/Resources/js/Pages/ads/Admin/ProjectShow.tsx
 archetype: detail
 persona: wagner
 nota: 73
