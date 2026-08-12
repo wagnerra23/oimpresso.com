@@ -87,7 +87,9 @@ Regra: **se o namespace A importa de B e ambos são do mesmo módulo, migre A e 
 ### 3. Re-keyar os baselines path-keyed
 
 Substituição **ancorada no path completo** — substring solta come informação vizinha
-(§5 2026-08-02). No piloto isso gerou `Modules/PG/Modules/PG/...` num docblock; o controle é
+(§5 2026-08-02). No piloto isso gerou um path duplicado (`Modules/<Mod>/Modules/<Mod>/…`) num
+docblock — repare que o exemplo usa placeholder de propósito: escrever a sigla real de um módulo
+que não existe faz o `knowledge-drift` acusar ghost, porque ele casa o **token literal**. O controle é
 procurar `Modules/[A-Za-z]+/Modules/` depois de rodar.
 
 Baselines afetados no piloto (68 referências): `config/eslint-baseline.json`,
