@@ -40,7 +40,7 @@ it('RevertService importa PiiRedactor (use statement obrigatório)', function ()
     expect(file_exists($path))->toBeTrue();
 
     $content = file_get_contents($path);
-    expect($content)->toContain('use Modules\\Jana\\Services\\Privacy\\PiiRedactor;');
+    expect($content)->toContain('use App\\Support\\Privacy\\PiiRedactor;');
 });
 
 it('RevertService::revert invoca PiiRedactor sobre revert_reason (ANTES de save)', function () {
@@ -81,7 +81,7 @@ it('ActionGate Governance também invoca PiiRedactor em logViolation (cintura+su
     // PiiRedactor pode estar via FQCN ou import — aceitar ambos
     expect(
         str_contains($content, 'PiiRedactor')
-        || str_contains($content, 'Modules\\Jana\\Services\\Privacy\\PiiRedactor')
+        || str_contains($content, 'App\\Support\\Privacy\\PiiRedactor')
     )->toBeTrue('Governance ActionGate precisa importar PiiRedactor');
 });
 

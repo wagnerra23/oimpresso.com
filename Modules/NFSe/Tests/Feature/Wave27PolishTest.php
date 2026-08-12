@@ -277,7 +277,7 @@ describe('Wave 27 NFSe POLISH FINAL', function () {
     it('D9 spans: NfseEmissaoService PiiRedactor aplicado em erro (LGPD lock-in)', function () {
         $src = file_get_contents((new ReflectionClass(NfseEmissaoService::class))->getFileName());
 
-        expect($src)->toContain('use Modules\\Jana\\Services\\Privacy\\PiiRedactor;')
+        expect($src)->toContain('use App\\Support\\Privacy\\PiiRedactor;')
             ->and($src)->toContain('app(PiiRedactor::class)->redact($e->getMessage())');
     });
 

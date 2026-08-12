@@ -110,7 +110,7 @@ it('arquivo %s importa PiiRedactor (D7.a aplicação em webhooks de gateway)', f
     $contents = file_get_contents($absolutePath);
 
     expect($contents)
-        ->toContain('use Modules\\Jana\\Services\\Privacy\\PiiRedactor;')
+        ->toContain('use App\\Support\\Privacy\\PiiRedactor;')
         ->and($contents)
         ->toContain('PiiRedactor::class');
 })->with('rb_files_with_pii_redactor');

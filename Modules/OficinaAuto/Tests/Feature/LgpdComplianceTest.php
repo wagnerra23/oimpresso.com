@@ -108,7 +108,7 @@ it('arquivo %s importa PiiRedactor (D7.a aplicação em logs)', function (string
     $contents = file_get_contents($absolutePath);
 
     expect($contents)
-        ->toContain('use Modules\\Jana\\Services\\Privacy\\PiiRedactor;')
+        ->toContain('use App\\Support\\Privacy\\PiiRedactor;')
         ->and($contents)
         ->toContain('PiiRedactor::class');
 })->with('oficinaauto_files_with_pii_redactor');

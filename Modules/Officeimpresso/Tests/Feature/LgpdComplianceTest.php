@@ -63,7 +63,7 @@ it('D7.a — LogDelphiAccess middleware importa PiiRedactor', function () {
     $content = file_get_contents(
         base_path('Modules/Officeimpresso/Http/Middleware/LogDelphiAccess.php')
     );
-    expect($content)->toContain('use Modules\\Jana\\Services\\Privacy\\PiiRedactor;');
+    expect($content)->toContain('use App\\Support\\Privacy\\PiiRedactor;');
     expect($content)->toContain('PiiRedactor::class');
 });
 
@@ -71,7 +71,7 @@ it('D7.a — ParseLicencaLogCommand sanitiza error_message antes de gravar', fun
     $content = file_get_contents(
         base_path('Modules/Officeimpresso/Console/ParseLicencaLogCommand.php')
     );
-    expect($content)->toContain('use Modules\\Jana\\Services\\Privacy\\PiiRedactor;');
+    expect($content)->toContain('use App\\Support\\Privacy\\PiiRedactor;');
     expect($content)->toContain('PiiRedactor::class');
 });
 
@@ -79,7 +79,7 @@ it('D7.a — AuditController redaciona metadata vindo do Delphi', function () {
     $content = file_get_contents(
         base_path('Modules/Officeimpresso/Http/Controllers/AuditController.php')
     );
-    expect($content)->toContain('use Modules\\Jana\\Services\\Privacy\\PiiRedactor;');
+    expect($content)->toContain('use App\\Support\\Privacy\\PiiRedactor;');
     expect($content)->toContain('redactArray');
 });
 
