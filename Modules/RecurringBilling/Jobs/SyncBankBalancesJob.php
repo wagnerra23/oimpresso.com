@@ -10,6 +10,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Modules\Financeiro\Models\Concerns\BusinessScopeImpl;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\RecurringBilling\Models\BoletoCredential;
 use Modules\RecurringBilling\Services\Banking\InterBankingClient;
@@ -31,7 +32,23 @@ class SyncBankBalancesJob implements ShouldQueue
 
     public function handle(): void
     {
-        $query = ContaBancaria::whereNotNull('rb_gateway_credential_id')
+        // SUPERADMIN: varredura de plataforma DELIBERADA (US-RB-045) — sincroniza
+        // o saldo de TODA conta com credencial de gateway, de todos os tenants,
+        // num processo só. Cada iteração usa a credencial da PRÓPRIA conta e
+        // escreve `saldo_cached` nela mesma: não há mistura de dado entre tenants.
+        //
+        // O bypass é declarado AQUI de propósito, em vez de herdado do
+        // early-return de `BusinessScopeImpl` (que só não aplica o scope porque
+        // não existe sessão em fila). Sem esta linha, "cross-tenant deliberado" é
+        // indistinguível de "esqueceram de filtrar". ADR 0093 +
+        // memory/proibicoes.md §"Multi-tenant Tier 0". Escopo travado por
+        // `SyncBankBalancesJobTest` ("multi-tenant: ...").
+        //
+        // ⚠️ Este job NÃO é agendado — só roda on-demand via
+        // `Modules/RecurringBilling/Console/Commands/SyncBankBalancesCommand.php`.
+        $query = ContaBancaria::query()
+            ->withoutGlobalScope(BusinessScopeImpl::class)
+            ->whereNotNull('rb_gateway_credential_id')
             ->with('gatewayCredential');
 
         if ($this->contaBancariaId) {

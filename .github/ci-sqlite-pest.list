@@ -307,7 +307,8 @@ Modules/VozDoCliente/Tests/Feature/SinalCrossTenantTest.php
 # JUnit colhido jamais conteria o `name`. Titulo sem lane e chokepoint fantasma:
 # o mecanismo existe e nada no caminho real o invoca.
 #
-# SQLITE-SAFE POR DESENHO, NAO POR SORTE: os 12 arquivos tem RefreshDatabase=0 e
+# SQLITE-SAFE POR DESENHO, NAO POR SORTE: os arquivos deste bloco tem
+# RefreshDatabase=0 e
 # o beforeEach de cada um EXIGE sqlite+:memory: (`config('database.default') !==
 # 'sqlite' || ! str_contains(...':memory:')` -> markTestSkipped). Ou seja, esta
 # lane e o unico lugar onde eles de fato EXECUTAM; na lane MySQL viram skip.
@@ -357,6 +358,22 @@ Modules/RecurringBilling/Tests/Feature/RefundCobrancaAsaasJobTest.php
 Modules/RecurringBilling/Tests/Feature/Wave4PresenterIndexTest.php
 Modules/RecurringBilling/Tests/Feature/Wave7FaturasIndexTest.php
 Modules/RecurringBilling/Tests/Feature/Wave8ConfiguracoesIndexTest.php
+
+# ── SyncBank{Statements,Balances}JobTest — MESMO padrao do bloco acima, e pelo
+# mesmo motivo: os dois tem o guard `getDriverName() !== 'sqlite' ->
+# markTestSkipped`, entao na lane MySQL viram skip. So que NUNCA foram listados
+# aqui — logo nao rodavam em lane nenhuma. Medido 2026-08-12: `git grep -ln
+# RecurringBilling -- .github/workflows/` = 0 (nenhuma lane cita o modulo);
+# `modules-pest.yml` roda sqlite mas a matrix nao inclui RecurringBilling;
+# `financeiro-pest.yml` roda `find Modules/Financeiro/Tests` + 2 extras nomeados.
+# Registro no <testsuite> do phpunit.xml (linha 27) nao supre: nenhuma lane deste
+# repo usa --testsuite (dito no jana-logica-pura-pest.yml:156) — todas passam alvo.
+#
+# CONSEQUENCIA: os asserts `multi-tenant: ...` desses 2 arquivos — que sao a
+# unica coisa que documenta a varredura cross-tenant do sync bancario como
+# DELIBERADA — nunca foram executados. Verde por nao-execucao (LC-13).
+Modules/RecurringBilling/Tests/Feature/SyncBankStatementsJobTest.php
+Modules/RecurringBilling/Tests/Feature/SyncBankBalancesJobTest.php
 
 # ─── IndexarMemoryGitParaDb — regressao da classe que o #5193 alterou
 # (redactor apagava run id). O #5193 poe so o teste NOVO dele numa lane; os de

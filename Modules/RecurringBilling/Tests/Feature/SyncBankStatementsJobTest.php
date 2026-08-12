@@ -190,6 +190,35 @@ it('multi-tenant: lançamento de business 1 não vaza pra business 2', function 
     expect($vazou)->toBe(0);
 });
 
+it('multi-tenant: o bypass do scope é EXPLÍCITO — varre todos os tenants mesmo COM sessão ativa', function () {
+    $contaA = fakeInterCredential(businessId: 1);
+    $contaB = fakeInterCredential(businessId: 2);
+
+    fakeInterExtrato([
+        ['idTransacao' => 'tx-001', 'dataInclusao' => '2026-05-07', 'tipoOperacao' => 'C', 'valor' => '100', 'titulo' => 'PIX', 'descricao' => 'a'],
+    ]);
+
+    // Em produção este job roda em fila, SEM sessão — e aí o `BusinessScopeImpl`
+    // sai cedo e nenhum filtro é aplicado. Isso torna "cross-tenant deliberado"
+    // indistinguível de "esqueceram de filtrar".
+    //
+    // Com sessão ativa de biz=1, o scope PASSA a aplicar `where business_id = 1`.
+    // Sem o `withoutGlobalScope(BusinessScopeImpl::class)` explícito no job, a
+    // conta B ficaria sem sincronizar EM SILÊNCIO. Este assert é o que distingue
+    // as duas coisas — e é o que morde se alguém remover o bypass explícito.
+    session(['user.business_id' => 1]);
+
+    (new SyncBankStatementsJob())->handle();
+
+    expect(DB::table('fin_extrato_lancamentos')->where('conta_bancaria_id', $contaA)->count())->toBe(1)
+        ->and(DB::table('fin_extrato_lancamentos')->where('conta_bancaria_id', $contaB)->count())->toBe(1);
+
+    // E o isolamento do RESULTADO continua: a linha da conta B grava o
+    // business_id dela (2), não o da sessão (1) — o auto-fill do trait não
+    // sequestra o payload explícito de `syncConta`.
+    expect(DB::table('fin_extrato_lancamentos')->where('conta_bancaria_id', $contaB)->value('business_id'))->toBe(2);
+});
+
 it('skip conta sem credencial Inter (e.g. asaas, c6)', function () {
     DB::table('business')->insert(['id' => 4, 'name' => 'Biz']);
 
