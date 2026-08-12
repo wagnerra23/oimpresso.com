@@ -57,7 +57,10 @@ class McpAuthMiddleware
         // statement do handle() de cada tool mutadora. Tools de leitura só
         // exigem este gate básico (e filtram resultado por scope quando aplicável,
         // ex: CcSearchTool com jana.cc.read.all).
-        if (method_exists($user, 'can') && ! $this->podeUsarMcp($user)) {
+        if (method_exists($user, 'can') && ! $this->podeUsarMcp(
+            (int) $user->id,
+            static fn (): bool => (bool) $user->can('jana.mcp.use')
+        )) {
             return $this->denied(
                 $request,
                 $startedAt,
@@ -162,21 +165,28 @@ class McpAuthMiddleware
      * valendo é o custo desta otimização, e 60s a mantém desprezível sem perder o
      * ganho (as 4 chamadas do handshake acontecem em ~15s, todas em cache hit).
      * Quem precisar de revogação imediata chama `esquecerPermissao($userId)`.
+     *
+     * Recebe id + closure em vez do objeto user porque o model de user é
+     * resolvido em runtime (`config('auth.providers.users.model')`) e não tem
+     * tipo garantido — passar o gate como `Closure` mantém a assinatura estrita
+     * e deixa o teste exercitar a memoização sem precisar de um User real.
+     *
+     * @param \Closure():bool $consultarGate consulta cara (3 queries do Spatie)
      */
-    protected function podeUsarMcp($user): bool
+    protected function podeUsarMcp(int $userId, \Closure $consultarGate): bool
     {
         $ttl = (int) config('copiloto.mcp.auth_cache_ttl', 60);
 
         // TTL <= 0 desliga o cache (escape para depuração e para ambientes que
         // exijam revogação instantânea) — sem isso, "desligar" exigiria deploy.
         if ($ttl <= 0) {
-            return (bool) $user->can('jana.mcp.use');
+            return (bool) $consultarGate();
         }
 
         return (bool) \Illuminate\Support\Facades\Cache::remember(
-            self::chavePermissao((int) $user->id),
+            self::chavePermissao($userId),
             $ttl,
-            fn () => (bool) $user->can('jana.mcp.use')
+            static fn (): bool => (bool) $consultarGate()
         );
     }
 

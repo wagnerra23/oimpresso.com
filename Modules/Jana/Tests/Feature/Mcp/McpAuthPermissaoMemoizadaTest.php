@@ -18,97 +18,94 @@ uses(\Tests\TestCase::class);
  * maior item isolado de um total de ~3,65s, gastos relendo uma permissão que
  * quase nunca muda. O handshake do cliente faz 4 chamadas, então eram ~4,4s.
  *
- * Estes testes travam as três propriedades do memo — que ele MEMOIZA, que dá
- * para DESLIGAR sem deploy, e que dá para INVALIDAR sem esperar o TTL. A
- * terceira é de segurança: sem ela, revogar acesso dependeria do relógio.
+ * Estes testes travam as quatro propriedades do memo — que ele MEMOIZA, que dá
+ * para DESLIGAR sem deploy, que dá para INVALIDAR sem esperar o TTL, e que não
+ * VAZA entre usuários. A terceira é de segurança: sem ela, revogar acesso
+ * dependeria do relógio. A quarta também: chave errada daria acesso alheio.
  *
- * Sem banco de propósito: o dublê conta quantas vezes `can()` foi chamado, que
- * é exatamente o que se quer provar. Um teste com User real mediria o Eloquent
- * junto e não distinguiria memo de cache do Spatie.
+ * Sem banco de propósito: o contador mede quantas vezes o gate caro foi de fato
+ * consultado, que é exatamente o que se quer provar. Um teste com User real
+ * mediria o Eloquent junto e não distinguiria este memo do cache do Spatie.
  *
  * @see Modules/Jana/Http/Middleware/McpAuthMiddleware.php@podeUsarMcp
  */
 
-/** Dublê que registra quantas vezes o gate foi de fato consultado. */
-function usuarioQueConta(int $id, bool $permitido = true): object
-{
-    return new class($id, $permitido)
-    {
-        public int $chamadas = 0;
-
-        public function __construct(public int $id, private bool $permitido) {}
-
-        public function can(string $ability): bool
-        {
-            $this->chamadas++;
-
-            return $this->permitido;
-        }
-    };
-}
-
 /** Invoca o método protegido sem depender de um request HTTP completo. */
-function invocarPodeUsarMcp(object $user): bool
+function invocarPodeUsarMcp(int $userId, \Closure $gate): bool
 {
     $mw = new McpAuthMiddleware();
     $m  = new \ReflectionMethod($mw, 'podeUsarMcp');
     $m->setAccessible(true);
 
-    return (bool) $m->invoke($mw, $user);
+    return (bool) $m->invoke($mw, $userId, $gate);
 }
 
 beforeEach(function () {
     config(['copiloto.mcp.auth_cache_ttl' => 60]);
-    Cache::forget(McpAuthMiddleware::chavePermissao(9801));
-    Cache::forget(McpAuthMiddleware::chavePermissao(9802));
-    Cache::forget(McpAuthMiddleware::chavePermissao(9803));
+    foreach ([9801, 9802, 9803] as $id) {
+        Cache::forget(McpAuthMiddleware::chavePermissao($id));
+    }
 });
 
 it('consulta o gate uma vez só e memoiza as chamadas seguintes', function () {
-    $user = usuarioQueConta(9801);
+    $chamadas = 0;
+    $gate = function () use (&$chamadas): bool {
+        $chamadas++;
 
-    expect(invocarPodeUsarMcp($user))->toBeTrue()
-        ->and(invocarPodeUsarMcp($user))->toBeTrue()
-        ->and(invocarPodeUsarMcp($user))->toBeTrue();
+        return true;
+    };
+
+    expect(invocarPodeUsarMcp(9801, $gate))->toBeTrue()
+        ->and(invocarPodeUsarMcp(9801, $gate))->toBeTrue()
+        ->and(invocarPodeUsarMcp(9801, $gate))->toBeTrue();
 
     // O ponto do incidente: 3 requisições pagavam 3× as 3 queries do Spatie.
-    expect($user->chamadas)->toBe(1);
+    expect($chamadas)->toBe(1);
 });
 
 it('não memoiza quando o TTL está zerado', function () {
     config(['copiloto.mcp.auth_cache_ttl' => 0]);
-    $user = usuarioQueConta(9802);
 
-    invocarPodeUsarMcp($user);
-    invocarPodeUsarMcp($user);
+    $chamadas = 0;
+    $gate = function () use (&$chamadas): bool {
+        $chamadas++;
+
+        return true;
+    };
+
+    invocarPodeUsarMcp(9802, $gate);
+    invocarPodeUsarMcp(9802, $gate);
 
     // Escape sem deploy: TTL <= 0 volta ao comportamento original.
-    expect($user->chamadas)->toBe(2);
+    expect($chamadas)->toBe(2);
 });
 
 it('volta a consultar o gate depois de invalidar o user', function () {
-    $user = usuarioQueConta(9803);
+    $chamadas = 0;
+    $gate = function () use (&$chamadas): bool {
+        $chamadas++;
 
-    invocarPodeUsarMcp($user);
-    expect($user->chamadas)->toBe(1);
+        return true;
+    };
+
+    invocarPodeUsarMcp(9803, $gate);
+    expect($chamadas)->toBe(1);
 
     McpAuthMiddleware::esquecerPermissao(9803);
 
     // Sem isto, revogar acesso dependeria de esperar o TTL expirar.
-    invocarPodeUsarMcp($user);
-    expect($user->chamadas)->toBe(2);
+    invocarPodeUsarMcp(9803, $gate);
+    expect($chamadas)->toBe(2);
 });
 
 it('mantém o memo separado por user', function () {
-    $a = usuarioQueConta(9801);
-    $b = usuarioQueConta(9802, permitido: false);
+    $permitido = fn (): bool => true;
+    $negado    = fn (): bool => false;
 
-    expect(invocarPodeUsarMcp($a))->toBeTrue()
-        ->and(invocarPodeUsarMcp($b))->toBeFalse();
+    expect(invocarPodeUsarMcp(9801, $permitido))->toBeTrue()
+        ->and(invocarPodeUsarMcp(9802, $negado))->toBeFalse();
 
     // Chave por id: um user não pode herdar o veredito do outro.
-    expect(invocarPodeUsarMcp($a))->toBeTrue()
-        ->and(invocarPodeUsarMcp($b))->toBeFalse()
-        ->and($a->chamadas)->toBe(1)
-        ->and($b->chamadas)->toBe(1);
+    expect(invocarPodeUsarMcp(9801, $negado))->toBeTrue()
+        ->and(invocarPodeUsarMcp(9802, $permitido))->toBeFalse();
 });
