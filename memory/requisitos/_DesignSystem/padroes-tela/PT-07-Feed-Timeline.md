@@ -36,7 +36,7 @@ Não aplicar pra:
 
 ## Golden eleito · `team-mcp/CcSessions/Index.tsx`
 
-[`resources/js/Pages/team-mcp/CcSessions/Index.tsx`](../../../../resources/js/Pages/team-mcp/CcSessions/Index.tsx) · "Feed cronológico de sessões Claude Code do time".
+[`Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/Index.tsx`](../../../../Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/Index.tsx) · "Feed cronológico de sessões Claude Code do time".
 
 **Por que esta:**
 - **Único candidato que monta o feed 100% com shared canônicos**: `PageHeader` (`:159`) + `KpiGrid`/`KpiCard` (`:165-170`) + `EmptyState` (`:231,246`) — os outros hand-rolam o header ou o vazio.

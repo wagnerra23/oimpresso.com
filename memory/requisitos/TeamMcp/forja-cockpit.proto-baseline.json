@@ -2,7 +2,7 @@
  "_doc": "PROTO-BASELINE — fingerprint do PROTÓTIPO renderizado (a INTENÇÃO de design), matriz viewport×tema. Gerado LOCALMENTE por prototipo-ui/render-proto-baseline.mjs --gerar (render em CI = REJEITADO, ADR 0290); o CI só verifica este JSON commitado (--check hermético). prototipo_sha invalida quando o protótipo re-exportar (padrão do map.json). Compare prod×este via --extract + style-fingerprint --compare --tela (trava de âncora ADR 0326). Direção NÃO é uniforme: o compare reporta, humano decide (PROD_A_FRENTE nunca regride).",
  "version": 1,
  "tela": "team-mcp/Forja/Cockpit",
- "charter": "resources/js/Pages/team-mcp/Forja/Cockpit.charter.md",
+ "charter": "Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.charter.md",
  "ancora": "prototipo-ui/cowork/forja-page.jsx",
  "prototipo_sha": "9da73296d3",
  "shell": "oimpresso-erp-conunica-o-visual/project",

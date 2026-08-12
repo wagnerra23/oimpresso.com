@@ -36,7 +36,7 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
 
 // ─── Settings UI (Onda 4d.3 F3 Tela 2) ───────────────────────────────────
 // Persona Wagner / superadmin / owner. Stack canon UPOS auth.
-// Charter: resources/js/Pages/Settings/PaymentGateways/Index.charter.md
+// Charter: Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.charter.md
 Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
     ->prefix('settings')
     ->name('settings.')

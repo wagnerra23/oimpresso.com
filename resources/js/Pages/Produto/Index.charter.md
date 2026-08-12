@@ -27,13 +27,13 @@ mwart_pattern_reuse:
 >
 > Versão v1 (2026-05-09) referenciava `prod-page.jsx` (6.5 KB grid-first). v2 promove para blueprint cockpit completo. Wagner aprova **Non-Goals + Automation Anti-hooks** ANTES de virar `status: live`.
 >
-> ⚠️ **Relação com `/produto/unificado`:** essa Page é a versão SIMPLES (catálogo grid only). `/produto/unificado` é a versão DENSA (5 sub-views). Wagner decide na aprovação se mantém ambas ou unifica em uma só. Backend canon: `app/Http/Controllers/ProductController.php` (UPOS herdado). Produto = `App\Product` direto em `app/`, **NÃO** em `Modules\Produto\`.
+> ⚠️ **Relação com `/products/unificado`:** essa Page é a versão SIMPLES (catálogo grid only). `/products/unificado` é a versão DENSA (5 sub-views). Wagner decide na aprovação se mantém ambas ou unifica em uma só. Backend canon: `app/Http/Controllers/ProductController.php` (UPOS herdado). Produto = `App\Product` direto em `app/`, **NÃO** em `Modules\Produto\`.
 
 ---
 
 ## Mission
 
-Catálogo simples de produtos em grid view com tabs de categoria, busca e cards visuais — variante "lite" do `/produto/unificado` pra usuários que querem visão rápida sem complexidade de BOM/tabelas/histórico.
+Catálogo simples de produtos em grid view com tabs de categoria, busca e cards visuais — variante "lite" do `/products/unificado` pra usuários que querem visão rápida sem complexidade de BOM/tabelas/histórico.
 
 ---
 
@@ -45,10 +45,10 @@ Catálogo simples de produtos em grid view com tabs de categoria, busca e cards 
 - Tabs de categoria com counter (Todos / impressos / comvis / embalagens / brindes / adesivos)
 - Toggle "Mostrar inativos" (default: oculto)
 - Search bar (busca em nome + SKU)
-- Grid view de cards (NÃO tabela — diferença chave vs `/produto/unificado`):
+- Grid view de cards (NÃO tabela — diferença chave vs `/products/unificado`):
   - Card: categoria badge + nome + SKU mono + preço/unidade + lead time + barra de popularidade
   - Card inativo: classe `inactive` + badge "inativo"
-- Click card abre drawer (mesma DetailSheet do `/produto/unificado`)
+- Click card abre drawer (mesma DetailSheet do `/products/unificado`)
 - Multi-tenant: `App\Product` filtrado por `business_id` — ⚠️ por `where` **explícito** em cada builder, **não** por global scope (medido 2026-07-26: `addGlobalScope` = 0 em `app/Product.php`)
 - Permission gate: `product.view` **ou** `product.create` (`ProductController@index:66-68`)
   _(a linha anterior citava `product.view_own`; varredura contada em `app/`+`Modules/`+`routes/`+`resources/` (excl. charters): **0** ocorrências — a permissão não existe no projeto.)_
@@ -59,8 +59,8 @@ Catálogo simples de produtos em grid view com tabs de categoria, busca e cards 
 
 > ⚠️ Anti-alucinação. Wagner aprova.
 
-- ❌ Sub-views (Insumos/BOM/Tabelas/Histórico) — vai pra `/produto/unificado`
-- ❌ View toggle table/grid (sempre grid; tabela vai em `/produto/unificado`)
+- ❌ Sub-views (Insumos/BOM/Tabelas/Histórico) — vai pra `/products/unificado`
+- ❌ View toggle table/grid (sempre grid; tabela vai em `/products/unificado`)
 - ❌ Densidade compact/comfortable/spacious — sempre comfortable
 - ❌ CRUD inline (criar/editar via rotas Blade dedicadas)
 - ❌ Bulk actions
@@ -179,7 +179,7 @@ it('uses localStorage prefix oimpresso.produto.* if any state persisted')
   _(a linha anterior apontava `ui_kits/cowork-2026-05-09/prod-page.jsx`; caminho **inexistente** — `ls` → No such file. Corrigido 2026-07-26.)_
 - Contrato de casos: [`Index.casos.md`](Index.casos.md) — `UC-PIDX-01..06` (`CU-PROD-15` do SDD)
 - Canon visual: [ADR ui/0012](../../../../memory/requisitos/_DesignSystem/adr/ui/0012-zip-cowork-2026-05-09-canon-visual.md)
-- Charter relacionado: [`/produto/unificado`](Unificado/Index.charter.md) — versão densa
+- Charter relacionado: [`/products/unificado`](Unificado/Index.charter.md) — versão densa
 - [ADR 0110 — Cockpit Pattern V2](../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
 - [ADR 0093 — Multi-tenant Tier 0](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
 - [LICOES_F3_FINANCEIRO_REJEITADO.md](../../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — pré-flight obrigatório

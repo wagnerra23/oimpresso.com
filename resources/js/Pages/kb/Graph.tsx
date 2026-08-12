@@ -11,7 +11,7 @@
  *
  * Justificativa:
  *   1. JÁ INSTALADA no package.json (`reactflow@^11.11.4`) — zero npm install.
- *   2. JÁ USADA em `resources/js/Pages/ads/Admin/Graph.tsx` como precedent arquitetural
+ *   2. JÁ USADA em `Modules/KB/Resources/js/Pages/ads/Admin/Graph.tsx` como precedent arquitetural
  *      (formato nodes/edges idêntico ao endpoint /kb/graph/data — SCHEMA-DB-V1 §11).
  *   3. Ergonomia React (componentes, hooks, TS types) imbatível pra time MCP.
  *   4. Manutenção ativa (xyflow lançou v12 em 2025; v11 estável produção).

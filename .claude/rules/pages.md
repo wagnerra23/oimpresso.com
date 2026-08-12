@@ -12,8 +12,32 @@ paths:
 
 O `resolve` do `createInertiaApp` é **callback arbitrário**: o Inertia entrega o nome da página e
 aceita qualquer componente de volta. Quem restringe a `resources/js/Pages/**/*.tsx` somos nós, em
-**dois** globs mantidos em sincronia **à mão** — [`app.tsx:104`](../../resources/js/app.tsx) (client)
-e [`ssr.tsx:17`](../../resources/js/ssr.tsx) (SSR). Mexeu num, mexa no outro.
+**dois** globs mantidos em sincronia **à mão** — [`app.tsx`](../../resources/js/app.tsx) (client)
+e [`ssr.tsx`](../../resources/js/ssr.tsx) (SSR). Mexeu num, mexa no outro.
+
+## Duas raízes: uma tela pode morar no módulo dono (desde 2026-08-12)
+
+Cada ponta declara **dois** globs, e o segundo é `../../Modules/*/Resources/js/Pages/**/*.tsx`.
+Uma tela pode viver no núcleo **ou** dentro do módulo que a serve — decisão [W]: *"eles têm que
+ficar nos seus respectivos módulos e o Inertia tem que achar e o Vite tem que compilar"*.
+
+**O namespace não muda com o local do arquivo.** A chave do glob de módulo é normalizada para o
+mesmo `./Pages/<Namespace>/…`, então `Inertia::render('Settings/PaymentGateways/Index')` resolve
+igual esteja a tela onde estiver — **nenhum call-site muda ao migrar** (a afirmação não depende
+da contagem; o número que estava aqui não era reproduzível).
+
+Três coisas que só apareceram testando o ciclo completo, e que te economizam a mesma hora:
+
+| Armadilha | O que acontece | Regra |
+|---|---|---|
+| **Casing** | a convenção nWidart aqui é `Resources/` **maiúsculo** (711 arquivos, medível com `git ls-tree -r origin/main | grep -cE "^Modules/[^/]+/Resources/"`) e o glob do Vite é case-**sensitive**. Com `resources/` o mapa sai **vazio em silêncio** — e no Windows o `mkdir` funde os dois, então só o CI Linux acusa | o git é a autoridade de casing: confira com `git ls-files`, não com `ls` |
+| **Colisão** | duas fontes na mesma chave: o build sai **exit 0**, uma vence e a outra **some sem erro** | [`pages-colisao.mjs`](../../scripts/governance/pages-colisao.mjs) `--check` barra no CI |
+| **Build verde não prova nada** | sem o glob de módulos o build **também** sai exit 0 — a tela apenas não entra no bundle (medido: 0 chunks contra 1) | a prova é o **manifest**, não o exit code |
+
+Ao migrar uma pasta: `git mv` → reescreva imports relativos que saem da área (o critério é
+**existência do alvo**, não prefixo de string) → re-keye os baselines path-keyed → regenere
+`module-surface --write` → rode `pages-colisao --check`. Receita completa no
+[RUNBOOK](../../memory/requisitos/_DesignSystem/RUNBOOK-migrar-pages-para-modulo.md).
 
 A restrição é **extensão + path, ambas escolhidas**: `.jsx` dentro de `Pages/` também não é
 resolvido — é assim que `Pages/Financeiro/_cowork-bundle/` (10 `.jsx`) fica inerte de propósito.

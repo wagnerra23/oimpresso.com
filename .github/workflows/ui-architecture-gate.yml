@@ -38,6 +38,13 @@ on:
       # não dispararia a lane no push e o gate nasceria mudo no eixo que ele vigia.
       - 'app/**'
       - 'governance/dependency-direction-baseline.json'
+      # (G) alvos do ModuleBuildLayerAbsentTest. Mesmo motivo do (F): sem o arquivo
+      # SOB TESTE no trigger, mexer nele não dispara a lane e o gate nasce mudo no
+      # eixo que ele vigia (§5 2026-08-02). `app/**` já cobre o ModuleSpecGenerator;
+      # estes dois cobrem o scaffold e a reintrodução de build por módulo.
+      - 'config/modules.php'
+      - 'Modules/*/webpack.mix.js'
+      - 'Modules/*/vite.config.js'
   # ⚠️ pull_request SEM paths: de propósito (2026-06-11, ADR 0271) — este check é
   # required (ADR 0263); required + path-scoped = deadlock "Expected" em PR que não
   # toca UI (mesmo incidente 2026-06-08 que destravou adr-lint/ui-lint/conformance).
@@ -102,4 +109,5 @@ jobs:
             tests/Feature/Architecture/OrphanRenderGateTest.php \
             tests/Feature/Architecture/InertiaDeferredFrontendGuardTest.php \
             tests/Feature/Architecture/DependencyDirectionTest.php \
+            tests/Feature/Architecture/ModuleBuildLayerAbsentTest.php \
             --no-coverage

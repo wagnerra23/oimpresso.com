@@ -98,4 +98,34 @@ describe('Contrato — discovery das Pages do Inertia', function () {
 
         expect($entradas)->not->toContain('Modules/Financeiro/Tests/Feature/InertiaPagesGlobContratoTest.php');
     });
+
+    // UC-5 — O SEGUNDO GLOB DE CADA PONTA. Desde 2026-08-12 uma tela pode morar dentro do módulo
+    // dono (`Modules/<X>/Resources/js/Pages/**`) e o resolver mescla esse glob com o do núcleo,
+    // normalizando a chave — é o que faz `Inertia::render('Settings/PaymentGateways/Index')`
+    // resolver sem que NENHUM call-site mude (a afirmação independe da contagem).
+    //
+    // POR QUE PRECISA DE ASSERT: medido no dia com controle negativo — removendo o glob de
+    // módulos, o build sai exit 0 IGUAL e a tela apenas não entra no bundle (0 chunks contra 1).
+    // Build verde não prova descoberta, então o contrato tem de estar aqui.
+    //
+    // `Resources` MAIÚSCULO não é capricho: é a convenção nWidart deste repo (711 arquivos contra
+    // 12) e o glob do Vite é case-SENSITIVE — com o casing errado o mapa sai vazio em silêncio.
+    // O `[Rr]` do regex de normalização é o que transforma esse silêncio em erro visível.
+    // ⚠️ `toContain` do Pest recebe N NEEDLES, não (needle, mensagem) — passar a explicação como
+    // 2º argumento faz o assert procurar a FRASE dentro do arquivo e falhar sempre. Foi o que
+    // aconteceu na 1ª versão deste UC, e é a mesma classe do §5 2026-07-28 (38 casos corrigidos
+    // no #4918). O porquê de cada asserção mora em comentário; a mensagem vai por `->toBeTrue()`
+    // quando precisar de texto.
+    it('UC-5 · as duas pontas descobrem telas dentro de Modules/<X>/Resources/js/Pages', function () {
+        foreach (['app.tsx', 'ssr.tsx'] as $ponta) {
+            $src = (string) file_get_contents(__DIR__ . '/../../../../resources/js/' . $ponta);
+
+            // Sem o glob de módulos a tela migrada some do bundle SEM ERRO (build segue exit 0):
+            // medido com controle negativo em 2026-08-12 — 0 chunks contra 1.
+            expect($src)->toContain("import.meta.glob('../../Modules/*/Resources/js/Pages/**/*.tsx')");
+
+            // Sem a normalização o glob acha os arquivos e nenhum `Inertia::render` os resolve.
+            expect($src)->toContain('[Rr]esources');
+        }
+    });
 });

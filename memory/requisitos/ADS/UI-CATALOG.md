@@ -2,7 +2,9 @@
 
 > **Ultima atualizacao:** 2026-05-17 (W31-10)
 > **Auto-regeneravel.** Manter versao; reescrever via gerador (nao editar manual em campos de auto-status).
-> Pages dir: `resources/js/Pages/ads/`
+> Pages dir: `Modules/Forja/Resources/js/Pages/ads/` (4 telas) + `Modules/KB/Resources/js/Pages/ads/` (Graph)
+> — o namespace `ads` sobreviveu à remoção do `Modules/ADS` (ADR 0363: URLs e permissions Spatie
+> CONGELADAS) e migrou para os módulos que de fato o renderizam. `resources/js/Pages/ads/` não existe mais.
 
 ## Resumo
 

@@ -12,6 +12,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
+use Modules\Financeiro\Models\Concerns\BusinessScopeImpl;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Models\ExtratoLancamento;
 use Modules\RecurringBilling\Dto\StatementLineDto;
@@ -42,7 +43,21 @@ class SyncBankStatementsJob implements ShouldQueue
 
     public function handle(): void
     {
+        // SUPERADMIN: varredura de plataforma DELIBERADA (US-RB-046) — o cron das
+        // 07:00 BRT sincroniza o extrato de TODA conta Inter ativa, de todos os
+        // tenants, num processo só. Cada iteração usa a credencial da PRÓPRIA
+        // conta e grava com o `business_id` dela (ver `syncConta`): não há
+        // mistura de dado entre tenants.
+        //
+        // O bypass é declarado AQUI de propósito, em vez de herdado do
+        // early-return de `BusinessScopeImpl` (que só não aplica o scope porque
+        // não existe sessão em fila). Sem esta linha, "cross-tenant deliberado" é
+        // indistinguível de "esqueceram de filtrar" — e a próxima mudança neste
+        // job nasceria cross-tenant em silêncio. ADR 0093 + memory/proibicoes.md
+        // §"Multi-tenant Tier 0". Escopo travado por
+        // `SyncBankStatementsJobTest` ("multi-tenant: ...").
         $query = ContaBancaria::query()
+            ->withoutGlobalScope(BusinessScopeImpl::class)
             ->whereNotNull('rb_gateway_credential_id')
             ->whereHas('gatewayCredential', fn ($q) => $q
                 ->where('banco', 'inter')
@@ -79,22 +94,30 @@ class SyncBankStatementsJob implements ShouldQueue
         $linhas = $driver->fetchStatement($from, $to);
 
         $linhas->each(function (StatementLineDto $linha) use ($conta) {
-            ExtratoLancamento::query()->updateOrCreate(
-                [
-                    'conta_bancaria_id' => $conta->id,
-                    'idempotency_key'   => $linha->idempotencyKey,
-                ],
-                [
-                    'business_id'           => $conta->business_id,
-                    'data'                  => $linha->data->toDateString(),
-                    'valor'                 => $linha->valor,
-                    'tipo'                  => $linha->tipo,
-                    'descricao'             => $linha->descricao,
-                    'contraparte_documento' => $linha->contraparteDocumento,
-                    'contraparte_nome'      => $linha->contraparteNome,
-                    'raw_payload'           => $linha->raw,
-                ]
-            );
+            // SUPERADMIN: o upsert precisa enxergar a linha já existente da conta
+            // que está sendo sincronizada — de qualquer tenant — pra respeitar o
+            // UNIQUE (conta_bancaria_id, idempotency_key) e continuar idempotente.
+            // Com o scope ativo (se algum dia houver sessão neste caminho) o SELECT
+            // não acharia a linha de outro business e o INSERT violaria o UNIQUE.
+            // O `business_id` gravado é sempre o da PRÓPRIA conta — ver payload.
+            ExtratoLancamento::query()
+                ->withoutGlobalScope(BusinessScopeImpl::class)
+                ->updateOrCreate(
+                    [
+                        'conta_bancaria_id' => $conta->id,
+                        'idempotency_key'   => $linha->idempotencyKey,
+                    ],
+                    [
+                        'business_id'           => $conta->business_id,
+                        'data'                  => $linha->data->toDateString(),
+                        'valor'                 => $linha->valor,
+                        'tipo'                  => $linha->tipo,
+                        'descricao'             => $linha->descricao,
+                        'contraparte_documento' => $linha->contraparteDocumento,
+                        'contraparte_nome'      => $linha->contraparteNome,
+                        'raw_payload'           => $linha->raw,
+                    ]
+                );
         });
     }
 

@@ -327,7 +327,7 @@ lifecycle: ativo
 > design**. O que é dívida é **medidor** órfão — a máquina existe, o teste prova que ela morde,
 > e nada a executa. A matriz reporta o fato; a triagem é humana.
 
-### 5.1 `scripts/governance/` — 109
+### 5.1 `scripts/governance/` — 110
 
 | Script | Invocador | Descrição (cabeçalho) |
 |---|---|---|
@@ -405,6 +405,7 @@ lifecycle: ativo
 | `normalize-adr-frontmatter.mjs` | npm | normaliza status/lifecycle de ADR pro enum canônico. |
 | `onboarding-paths-check.mjs` | agente, script | a CAMADA DETERMINÍSTICA do canário de onboarding. |
 | `outcome-metrics.mjs` | agente, ci, script | MEDIDOR DE ACEITAÇÃO do transporte Cowork→code (Onda O1). |
+| `pages-colisao.mjs` | agente, ci | barra DUAS fontes declarando a mesma página Inertia. |
 | `palette-generate.mjs` | ci | GERADOR determinístico da página de paleta de cor. |
 | `permissao-renomeada-lint.mjs` | ci | barra o nome VELHO de permissão renomeada em linha NOVA. |
 | `permission-drift.mjs` | ci | mede o drift entre permissão DECLARADA e permissão APLICADA. |

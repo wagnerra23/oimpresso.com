@@ -41,7 +41,7 @@
 | `[x]` | [`Financeiro/Unificado`](../resources/js/Pages/Financeiro/Unificado/Index.tsx) | em prod com fixes #355/#358. **Visual: A+ · 9,75/10** (KB-9.75 v2 · PR #1064). Impl Inertia/React pendente em ondas técnicas. |
 | `[x]` | [`Financeiro/ContasBancarias`](../resources/js/Pages/Financeiro/ContasBancarias/Index.tsx) | charter stub F1 live, last_validated 2026-05-07 |
 | `[x]` | [`Financeiro/Extrato`](../resources/js/Pages/Financeiro/Extrato/Index.tsx) | charter live, last_validated 2026-05-07, US-RB-046 |
-| `[x]` | [`Forja/Board`](../resources/js/Pages/Forja/Board/Index.tsx) | charter live, last_validated 2026-05-08, ADR 0070 PMG |
+| `[x]` | [`Forja/Board`](../Modules/Forja/Resources/js/Pages/Forja/Board/Index.tsx) | charter live, last_validated 2026-05-08, ADR 0070 PMG |
 | `[x]` | [`governance/Dashboard`](../resources/js/Pages/governance/Dashboard.charter.md) | charter live |
 | `[~]` | `Financeiro/Fluxo` (não criada) | F1 pino [aqui](prototipos/financeiro-fluxo/) — sem backend service ainda |
 | `[!]` | `Financeiro/PlanoContas` (não criada) | F1 pino [aqui](prototipos/financeiro-plano-contas/) — bloqueada por ADR `arq/0008` + migration `chart_of_accounts` |

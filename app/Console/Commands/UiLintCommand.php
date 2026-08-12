@@ -456,7 +456,7 @@ class UiLintCommand extends Command
         $skipPaths = [
             'resources/js/Pages/Home/Index.tsx',
             'resources/js/Pages/Jana/Index.tsx',
-            'resources/js/Pages/Settings/Index.tsx',
+            'Modules/PaymentGateway/Resources/js/Pages/Settings/Index.tsx',
             'resources/js/Pages/Modules/Index.tsx',
         ];
         if (in_array($normalized, $skipPaths, true)) {

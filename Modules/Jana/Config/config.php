@@ -207,6 +207,19 @@ return [
         // mesmo minuto 4× durante um handshake. `0` desliga o throttle.
         'uso_throttle_segundos' => env('MCP_USO_THROTTLE_SEGUNDOS', 60),
 
+        // === Fast-path do QuotaEnforcer (mesmo incidente) ===
+        // Segundos que a EXISTÊNCIA de quota do user fica memoizada. Só a
+        // configuração — o cálculo de consumo segue sempre ao vivo. `0` desliga;
+        // `QuotaEnforcer::esquecerQuotas($userId)` invalida ao criar a 1ª quota.
+        'quota_cache_ttl' => env('MCP_QUOTA_CACHE_TTL', 60),
+
+        // === Memo da resolução do token (mesmo incidente) ===
+        // Segundos que os atributos do token ficam em cache. Revogar/apagar pelo
+        // Model invalida na hora, e `expires_at` é reavaliado a cada hit — mas
+        // com o valor CACHEADO: mexer no token por SQL direto só vale após o TTL
+        // (limite documentado em McpToken::encontrarPorRaw). `0` desliga.
+        'token_cache_ttl' => env('MCP_TOKEN_CACHE_TTL', 60),
+
         // === Audit log governança ===
         // Quanto tempo manter audit log antes de purgar (LGPD: mínimo 1 ano)
         'audit_retention_days' => env('COPILOTO_MCP_AUDIT_RETENTION_DAYS', 365),

@@ -28,8 +28,8 @@ C1 P0 Onda 4 fecha o loop:
 | # | Charter | Status | Module |
 |---|---|---|---|
 | 1 | `resources/js/Pages/Admin/Index.charter.md` | draft | Admin |
-| 2 | `resources/js/Pages/Atendimento/Inbox/Index.charter.md` | live | Atendimento |
-| 3 | `resources/js/Pages/Atendimento/JanaTemplates.charter.md` | live | Atendimento |
+| 2 | `Modules/Whatsapp/Resources/js/Pages/Atendimento/Inbox/Index.charter.md` | live | Atendimento |
+| 3 | `Modules/Whatsapp/Resources/js/Pages/Atendimento/JanaTemplates.charter.md` | live | Atendimento |
 | 4 | `resources/js/Pages/Cliente/Index.charter.md` | draft | Cliente |
 | 5 | `resources/js/Pages/Financeiro/ContasBancarias/Index.charter.md` | live | Financeiro |
 | 6 | `resources/js/Pages/Financeiro/Extrato/Index.charter.md` | live | Financeiro |
@@ -42,7 +42,7 @@ C1 P0 Onda 4 fecha o loop:
 | 13 | `resources/js/Pages/Orcamento/Index.charter.md` | draft | Orcamento |
 | 14 | `resources/js/Pages/Produto/Index.charter.md` | draft | Produto |
 | 15 | `resources/js/Pages/Produto/Unificado/Index.charter.md` | draft | Produto |
-| 16 | `resources/js/Pages/Forja/Board/Index.charter.md` | live | Forja |
+| 16 | `Modules/Forja/Resources/js/Pages/Forja/Board/Index.charter.md` | live | Forja |
 | 17 | `resources/js/Pages/Repair/Dashboard/Index.charter.md` | live | Repair |
 | 18 | `resources/js/Pages/Repair/JobSheet/Index.charter.md` | live | Repair |
 | 19 | `resources/js/Pages/Repair/ProducaoOficina/Index.charter.md` | rascunho | Repair |

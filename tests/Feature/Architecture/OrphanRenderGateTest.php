@@ -81,13 +81,28 @@ function orphanRenderTargets(): array
 
 /**
  * Um render target é órfão quando NÃO existe page (.tsx nem .jsx) correspondente.
- * Inertia::render('X') exige resources/js/Pages/X.{tsx,jsx} — sem ela, 500 em runtime.
+ * Inertia::render('X') exige a page em ALGUMA das raízes — sem ela, 500 em runtime.
+ *
+ * DUAS raízes desde 2026-08-12: além do núcleo (`resources/js/Pages/`), a tela pode morar
+ * dentro do módulo dono (`Modules/<X>/Resources/js/Pages/`). O resolver do Inertia mescla os
+ * dois globs (app.tsx/ssr.tsx), então procurar só no núcleo declara órfã uma tela que resolve
+ * perfeitamente em runtime — falso positivo que reprova o refactor, não o defeito.
  */
 function orphanRenderViolation(string $target, string $repoRoot): bool
 {
-    $base = $repoRoot.'/resources/js/Pages/'.$target;
+    $raizes = [$repoRoot.'/resources/js/Pages'];
+    foreach ((glob($repoRoot.'/Modules/*/Resources/js/Pages') ?: []) as $raizDeModulo) {
+        $raizes[] = $raizDeModulo;
+    }
 
-    return ! is_file($base.'.tsx') && ! is_file($base.'.jsx');
+    foreach ($raizes as $raiz) {
+        $base = $raiz.'/'.$target;
+        if (is_file($base.'.tsx') || is_file($base.'.jsx')) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 it('todo Inertia::render aponta pra uma page viva (sem tela órfã/morta, exceto allowlist)', function () {

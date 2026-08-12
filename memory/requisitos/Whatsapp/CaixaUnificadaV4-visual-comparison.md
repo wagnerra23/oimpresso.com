@@ -9,7 +9,7 @@ lifecycle: ativo
 module: Whatsapp
 tela: caixa-unificada
 visual_source: prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx
-target_component: resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx
+target_component: Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx
 related_adrs: [0093, 0104, 0107, 0110, 0114, 0135]
 session_date: '2026-05-15'
 quarter: 2026-Q2

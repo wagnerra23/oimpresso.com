@@ -597,7 +597,7 @@ Implementar em `resources/js/Pages/Jana/Cockpit.tsx` (substitui in-place 138 lin
 - [`_cowork-export-2026-05-15/CRITIQUE-chat-jana-vs-amendment.md`](_cowork-export-2026-05-15/CRITIQUE-chat-jana-vs-amendment.md) — score F1.5 78/100 + 19 divergências detalhadas
 - [`_cowork-export-2026-05-15/_SNAPSHOT.md`](_cowork-export-2026-05-15/_SNAPSHOT.md) — contexto do export
 - [`COWORK_NOTES.amendment-jana-chat-block-renderer.md`](COWORK_NOTES.amendment-jana-chat-block-renderer.md) — amendment original 2026-05-14 (válido pra `/jana/` Chat.tsx em workstream separado)
-- [`/atendimento/caixa-unificada/Index.charter.md`](../resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md) — referência paradigma humano (zero overlap)
+- [`/atendimento/caixa-unificada/Index.charter.md`](../Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md) — referência paradigma humano (zero overlap)
 - [`/jana/Chat.charter.md`](../resources/js/Pages/Jana/Chat.charter.md) — chat conversacional 2-col (continua live)
 - [`memory/requisitos/Jana/RUNBOOK-cockpit.md`](../memory/requisitos/Jana/RUNBOOK-cockpit.md) — runbook MVP atual (status: active-superseded-by-v2 desde 2026-05-15)
 - [PROTOCOL.md §3 §5](PROTOCOL.md) — fases + overrides

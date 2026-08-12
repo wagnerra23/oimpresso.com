@@ -41,7 +41,7 @@ uses(Tests\TestCase::class);
  *   em US-WA-074 (charter Pest suite) com mock daemon HTTP.
  *
  * @see memory/decisions/0135-omnichannel-inbox-arquitetura.md
- * @see resources/js/Pages/Atendimento/Inbox/Index.charter.md §Métricas vivas
+ * @see Modules/Whatsapp/Resources/js/Pages/Atendimento/Inbox/Index.charter.md §Métricas vivas
  */
 beforeEach(function () {
     if (DB::connection()->getDriverName() !== 'sqlite') {

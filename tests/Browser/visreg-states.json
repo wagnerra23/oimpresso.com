@@ -35,7 +35,7 @@
     "caixa-unificada": {
       "route": "/atendimento/caixa-unificada",
       "anchor": "Atendimento",
-      "charter": "resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md",
+      "charter": "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md",
       "states": ["default", "dark"]
     }
   }
