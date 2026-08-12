@@ -27,8 +27,12 @@ para o namespace do núcleo.
 **Consequência que define o desenho:** o namespace **não** muda com o local do arquivo, logo
 **nenhum `Inertia::render(...)` muda ao migrar** — são **218** em Controllers hoje, e o número não
 sustenta a afirmação: ela vale para qualquer quantidade, porque o namespace independe da raiz.
-Reproduza: `git grep -c "Inertia::render" -- ':(glob)Modules/*/Http/Controllers/**' ':(glob)app/Http/Controllers/**'`
-(o `:(glob)` importa — `*` no pathspec do git **não** atravessa `/`, §5 2026-07-28).
+Reproduza: `git grep -c "Inertia::render" -- 'Modules/*/Http/Controllers/**' 'app/Http/Controllers/**'`
+O que faz este número ser o certo **não é o `:(glob)`** (com ou sem ele dá 218, medido) — é a
+**ancoragem das raízes**: começar em `Modules/` e `app/` exclui `prototipo-ui/` (cópias de staging)
+e `tests/governance-fixtures/`, que um pathspec largo contaria. ⚠️ E cuidado com a regra: no
+pathspec **padrão** o `*` **atravessa** `/` (`git ls-files 'Modules/*.php'` → 3.921); é **sob
+`:(glob)`** que ele deixa de atravessar (→ 0, precisa de `**`). §5 2026-07-28.
 Mover é operação de arquivo + baseline,
 não de call-site.
 
@@ -57,7 +61,7 @@ Reproduza: `git grep -c "from '@/" -- ':(glob)resources/js/Pages/**' ':(glob)Mod
 git mv resources/js/Pages/$NS Modules/$MOD/Resources/js/Pages/$NS
 ```
 
-⚠️ **`Resources` MAIÚSCULO.** É a convenção nWidart deste repo (**711** arquivos contra 12) e o
+⚠️ **`Resources` MAIÚSCULO.** É a convenção nWidart deste repo (**711** arquivos — `git ls-tree -r origin/main | grep -cE "^Modules/[^/]+/Resources/"`) e o
 glob do Vite é case-**sensitive**. No Windows o `mkdir .../resources/...` **funde** com o
 `Resources/` existente e o git registra o casing errado: funciona local, quebra no CI Linux.
 A autoridade é o git, não o filesystem:

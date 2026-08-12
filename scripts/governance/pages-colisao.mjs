@@ -6,7 +6,7 @@
  * POR QUE EXISTE: desde 2026-08-12 uma tela pode morar no núcleo (`resources/js/Pages/**`) OU
  * dentro do módulo dono (`Modules/<X>/Resources/js/Pages/**`). O resolver mescla os dois globs
  * e normaliza a chave pro mesmo namespace — é isso que faz `Inertia::render('Settings/…')`
- * funcionar sem que nenhum dos 232 call-sites mude.
+ * funcionar sem que NENHUM call-site mude (a afirmação independe da contagem).
  *
  * O preço dessa mescla é que a colisão é SILENCIOSA por construção — medido em POC no mesmo dia:
  * com `Whatsapp` e `Crm` declarando `Atendimento/CaixaUnificada/Index`, o build sai exit 0, um

@@ -23,13 +23,14 @@ ficar nos seus respectivos módulos e o Inertia tem que achar e o Vite tem que c
 
 **O namespace não muda com o local do arquivo.** A chave do glob de módulo é normalizada para o
 mesmo `./Pages/<Namespace>/…`, então `Inertia::render('Settings/PaymentGateways/Index')` resolve
-igual esteja a tela onde estiver — **nenhum dos 232 call-sites muda ao migrar**.
+igual esteja a tela onde estiver — **nenhum call-site muda ao migrar** (a afirmação não depende
+da contagem; o número que estava aqui não era reproduzível).
 
 Três coisas que só apareceram testando o ciclo completo, e que te economizam a mesma hora:
 
 | Armadilha | O que acontece | Regra |
 |---|---|---|
-| **Casing** | a convenção nWidart aqui é `Resources/` **maiúsculo** (711 arquivos contra 12) e o glob do Vite é case-**sensitive**. Com `resources/` o mapa sai **vazio em silêncio** — e no Windows o `mkdir` funde os dois, então só o CI Linux acusa | o git é a autoridade de casing: confira com `git ls-files`, não com `ls` |
+| **Casing** | a convenção nWidart aqui é `Resources/` **maiúsculo** (711 arquivos, medível com `git ls-tree -r origin/main | grep -cE "^Modules/[^/]+/Resources/"`) e o glob do Vite é case-**sensitive**. Com `resources/` o mapa sai **vazio em silêncio** — e no Windows o `mkdir` funde os dois, então só o CI Linux acusa | o git é a autoridade de casing: confira com `git ls-files`, não com `ls` |
 | **Colisão** | duas fontes na mesma chave: o build sai **exit 0**, uma vence e a outra **some sem erro** | [`pages-colisao.mjs`](../../scripts/governance/pages-colisao.mjs) `--check` barra no CI |
 | **Build verde não prova nada** | sem o glob de módulos o build **também** sai exit 0 — a tela apenas não entra no bundle (medido: 0 chunks contra 1) | a prova é o **manifest**, não o exit code |
 

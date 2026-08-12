@@ -102,7 +102,7 @@ describe('Contrato — discovery das Pages do Inertia', function () {
     // UC-5 — O SEGUNDO GLOB DE CADA PONTA. Desde 2026-08-12 uma tela pode morar dentro do módulo
     // dono (`Modules/<X>/Resources/js/Pages/**`) e o resolver mescla esse glob com o do núcleo,
     // normalizando a chave — é o que faz `Inertia::render('Settings/PaymentGateways/Index')`
-    // resolver sem que nenhum dos 232 call-sites mude.
+    // resolver sem que NENHUM call-site mude (a afirmação independe da contagem).
     //
     // POR QUE PRECISA DE ASSERT: medido no dia com controle negativo — removendo o glob de
     // módulos, o build sai exit 0 IGUAL e a tela apenas não entra no bundle (0 chunks contra 1).

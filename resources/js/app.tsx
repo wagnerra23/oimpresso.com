@@ -103,7 +103,10 @@ function makeQueryClient(): QueryClient {
 //
 // O namespace NÃO muda com o local do arquivo. A chave do glob de módulo é normalizada para
 // o mesmo `./Pages/<Namespace>/...` do núcleo, então `Inertia::render('Settings/PaymentGateways/Index')`
-// resolve igual esteja a tela no núcleo ou dentro do módulo — nenhum dos 232 call-sites muda.
+// resolve igual esteja a tela no núcleo ou dentro do módulo — NENHUM call-site muda. (Sem número:
+// a afirmação não depende da contagem, e a que estava aqui — "232" — não era reproduzível por
+// comando nenhum. Se quiser o número do dia: `git grep -c "Inertia::render" --
+// 'Modules/*/Http/Controllers/**' 'app/Http/Controllers/**'`.)
 //
 // ⚠️ Este bloco é ESPELHADO em `ssr.tsx` e os dois são sincronizados À MÃO. Mexeu num, mexa no
 // outro — `CoworkBundleIntegralTest` (UC-2/UC-4) crava as duas pontas, e o `.jsx` segue fora de
@@ -115,8 +118,10 @@ const paginasDeModulos = import.meta.glob('../../Modules/*/Resources/js/Pages/**
 function montarPaginas(): Record<string, () => Promise<unknown>> {
   const mapa: Record<string, () => Promise<unknown>> = { ...paginasDoNucleo };
   for (const [caminho, carregar] of Object.entries(paginasDeModulos)) {
-    // `[Rr]esources` de propósito: a convenção nWidart deste repo é `Resources/` (711 arquivos
-    // contra 12), e o glob acima é case-SENSITIVE. Aceitar as duas grafias aqui evita que uma
+    // `[Rr]esources` de propósito: a convenção nWidart deste repo é `Resources/` MAIÚSCULO
+    // (`git ls-tree -r origin/main | grep -cE "^Modules/[^/]+/Resources/"` → 711; a grafia
+    // minúscula é rara e some quando o casing é normalizado), e o glob acima é case-SENSITIVE.
+    // Aceitar as duas grafias aqui evita que uma
     // pasta criada com o casing errado produza mapa vazio em silêncio — o gate `pages-colisao`
     // é quem acusa a divergência de casing, com mensagem, em vez de a tela sumir sem aviso.
     const m = caminho.match(/^\.\.\/\.\.\/Modules\/[^/]+\/[Rr]esources\/js\/(Pages\/.+)$/);
