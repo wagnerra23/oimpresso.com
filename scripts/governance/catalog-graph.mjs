@@ -1161,9 +1161,28 @@ function reportAcoplamento(graph) {
 // calada enquanto a decisão não vem.
 const COUPLING_BASELINE_REL = 'governance/module-coupling-baseline.json';
 
+// EIXO 2 da mesma catraca: `DB::table('tabela_alheia')`. Ficou 1 dia sem catraca depois que
+// o eixo `use` ganhou a dele, e é por aqui que passa o acoplamento mais caro medido —
+// `Officeimpresso → Financeiro` faz INSERT direto em `fin_titulos` sem passar pelo `Titulo`
+// (o business_id é setado à mão, então NÃO é vazamento de tenant; o que se perde são
+// observers/LogsActivity/invariantes do dono). Baseline SEPARADA de propósito: são dívidas
+// de natureza diferente e curar uma não pode mexer no congelamento da outra.
+const TABLE_COUPLING_BASELINE_REL = 'governance/module-table-coupling-baseline.json';
+
 /** Chave estável de um par. */
 function chaveDoPar(p) {
   return `${p.src}>${p.dst}`;
+}
+
+/**
+ * Normaliza par de TABELA (`{src, dono}`) na forma de par de IMPORT (`{src, dst}`).
+ *
+ * Existe pra os dois eixos compartilharem UMA comparação (`catracaAcoplamento`) em vez de
+ * duas cópias que divergem no primeiro conserto — a régua da casa é estender o dono, não
+ * abrir paralelo. Os testes da catraca cobrem os dois eixos por construção.
+ */
+function paresDeTabelaComoPares(paresTabela) {
+  return (paresTabela || []).map((p) => ({ src: p.src, dst: p.dono, tabelas: p.tabelas, n: p.n }));
 }
 
 /**
@@ -1179,8 +1198,8 @@ function catracaAcoplamento(naoDeclaradas, baselineJson) {
   return { novos, curados, baseline: baselineJson.grandfathered || [] };
 }
 
-function lerBaselineAcoplamento() {
-  const abs = join(ROOT, COUPLING_BASELINE_REL);
+function lerBaselineAcoplamento(rel = COUPLING_BASELINE_REL) {
+  const abs = join(ROOT, rel);
   if (!existsSync(abs)) return null;
   return JSON.parse(readFileSync(abs, 'utf8'));
 }
@@ -1252,30 +1271,58 @@ function main() {
       }, null, 2) + '\n';
       writeFileSync(join(ROOT, COUPLING_BASELINE_REL), conteudo, 'utf8');
       console.log(`[catalog-graph] baseline de acoplamento gravada → ${COUPLING_BASELINE_REL} (${r.naoDeclaradas.length} pares)`);
+
+      const paresTabela = paresDeTabelaComoPares(r.tabela && r.tabela.pares);
+      const conteudoTabela = JSON.stringify({
+        _doc: 'Baseline FORWARD-ONLY da catraca de acoplamento por TABELA (`DB::table` cru em tabela de outro módulo). Mesmo desenho da module-coupling-baseline: par NOVO reprova; a lista só DESCE.',
+        _regra: 'Este eixo é o que o `use` NÃO enxerga. Dono da tabela é DERIVADO de quem faz `Schema::create` na migration, nunca do `db_tables_owned` escrito à mão. Tabela lida por ≥3 módulos é infra compartilhada e não conta como fronteira.',
+        _medicao: 'node scripts/governance/catalog-graph.mjs --acoplamento (seção "fronteira por TABELA")',
+        _regenerar: 'node scripts/governance/catalog-graph.mjs --acoplamento --write-baseline (grava os DOIS eixos). Ao CURAR um par, remova a linha no MESMO PR — a catraca avisa (não reprova) quando há entrada já curada.',
+        _piso: 'PISO, não teto: só `DB::table(\'literal\')`. `DB::table($var)`, Eloquent via Model alheio e SQL cru em string ficam invisíveis — o report diz quantos não resolveu.',
+        grandfathered: paresTabela.map(chaveDoPar).sort(),
+        allowlist: [],
+        allowlist_razoes: {},
+      }, null, 2) + '\n';
+      writeFileSync(join(ROOT, TABLE_COUPLING_BASELINE_REL), conteudoTabela, 'utf8');
+      console.log(`[catalog-graph] baseline de tabela gravada → ${TABLE_COUPLING_BASELINE_REL} (${paresTabela.length} pares)`);
       return;
     }
 
     if (args.includes('--catraca')) {
-      const base = lerBaselineAcoplamento();
-      if (!base) {
-        console.error(`[catalog-graph] catraca: ${COUPLING_BASELINE_REL} não existe — rode --write-baseline.`);
-        process.exit(2);
+      // Os DOIS eixos são avaliados sempre, e o veredito é a UNIÃO: sair no primeiro que
+      // reprova esconderia o outro até alguém consertar este. Cada mensagem NOMEIA o eixo —
+      // catraca que só diz "reprovou" manda o autor caçar em qual das duas dívidas ele entrou.
+      const eixos = [
+        { nome: 'import (`use`)', rel: COUPLING_BASELINE_REL, pares: r.naoDeclaradas },
+        { nome: 'tabela (`DB::table`)', rel: TABLE_COUPLING_BASELINE_REL, pares: paresDeTabelaComoPares(r.tabela && r.tabela.pares) },
+      ];
+      let reprovou = 0;
+      for (const eixo of eixos) {
+        const base = lerBaselineAcoplamento(eixo.rel);
+        if (!base) {
+          console.error(`[catalog-graph] catraca ${eixo.nome}: ${eixo.rel} não existe — rode --write-baseline.`);
+          process.exit(2);
+        }
+        const { novos, curados } = catracaAcoplamento(eixo.pares, base);
+        if (curados.length) {
+          console.log(`ℹ️  catraca ${eixo.nome}: ${curados.length} par(es) da baseline JÁ FORAM CURADOS — remova do JSON: ${curados.join(', ')}`);
+        }
+        if (novos.length) {
+          reprovou++;
+          console.error(
+            `[catalog-graph] catraca REPROVA no eixo ${eixo.nome}: ${novos.length} par(es) NOVOS módulo→módulo:\n  - ` +
+            novos.join('\n  - ') +
+            '\n  Opções: (a) declarar a delegação no `not_contains` do SCOPE.md do módulo de ORIGEM;' +
+            '\n          (b) inverter via contrato/evento — no eixo tabela, usar o Model do DONO' +
+            '\n              em vez de `DB::table` preserva observers/scope/invariantes dele;' +
+            '\n          (c) se for dívida consciente, entrar em' +
+            `\n              ${eixo.rel} > allowlist COM razão declarada.`,
+          );
+        } else {
+          console.log(`[catalog-graph] catraca ${eixo.nome}: OK — nenhum par novo (baseline: ${(base.grandfathered || []).length}).`);
+        }
       }
-      const { novos, curados } = catracaAcoplamento(r.naoDeclaradas, base);
-      if (curados.length) {
-        console.log(`ℹ️  catraca: ${curados.length} par(es) da baseline JÁ FORAM CURADOS — remova do JSON: ${curados.join(', ')}`);
-      }
-      if (novos.length) {
-        console.error(
-          `[catalog-graph] catraca REPROVA: ${novos.length} par(es) NOVOS de acoplamento módulo→módulo:\n  - ` +
-          novos.join('\n  - ') +
-          '\n  Opções: (a) declarar a delegação no `not_contains` do SCOPE.md do módulo de ORIGEM;' +
-          '\n          (b) inverter via contrato/evento; (c) se for dívida consciente, entrar em' +
-          `\n              ${COUPLING_BASELINE_REL} > allowlist COM razão declarada.`,
-        );
-        process.exit(1);
-      }
-      console.log(`[catalog-graph] catraca: OK — nenhum par novo (baseline: ${base.grandfathered.length}).`);
+      if (reprovou) process.exit(1);
     }
     return;
   }
@@ -1331,6 +1378,7 @@ export {
   compararFronteira,
   catracaAcoplamento,
   chaveDoPar,
+  paresDeTabelaComoPares,
   pesoDaCamada,
   derivarDonoDeTabela,
   parseQueriesCruas,

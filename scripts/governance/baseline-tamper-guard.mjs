@@ -162,6 +162,24 @@ function detectDonenessBaseline(base, head) {
   return out;
 }
 
+// Baselines de FRONTEIRA (3 eixos, schema { grandfathered:[string], allowlist:[string] }):
+//   app/ ↛ Modules/  · módulo→módulo por `use` · módulo→módulo por `DB::table`.
+// Detector próprio, e não o `detectAnchorEntryBaseline`, por causa da SEGUNDA lista: estes
+// ratchets têm `allowlist` (dívida consciente) além do `grandfathered`, e as duas isentam
+// igual — a catraca lê `[...grandfathered, ...allowlist]`. Guardar só uma deixaria a porta
+// aberta na outra, que é justamente a que a mensagem de erro da catraca ensina a usar.
+// Crescer QUALQUER das duas = grandfatherar fronteira nova, que é o vetor do Gap 2.
+function detectFronteiraBaseline(base, head) {
+  const out = [];
+  for (const campo of ['grandfathered', 'allowlist']) {
+    const b = new Set((base && base[campo]) || []);
+    for (const k of ((head && head[campo]) || [])) {
+      if (!b.has(k)) out.push(`grandfatherou fronteira nova em \`${campo}\`: ${k}`);
+    }
+  }
+  return out;
+}
+
 // Mapa path→detector. Estender = adicionar o baseline + seu detector aqui
 // (e o path no trigger do workflow). Só guarda o que tem detector de schema:
 // afrouxamento genérico em formato heterogêneo daria falso-positivo.
@@ -188,6 +206,12 @@ const GUARDED = {
   'governance/anchor-entry-baseline.json': detectAnchorEntryBaseline,
   // grandfather do conflito status×âncora do doneness-lint (arming · ADR 0302/0275)
   'governance/doneness-baseline.json': detectDonenessBaseline,
+  // fronteira de módulo — os 3 eixos. Nasceram (2026-08-12) FORA daqui, e um ratchet cujo
+  // baseline pode ser afrouxado no mesmo PR que mete o acoplamento não é ratchet: é o Gap 2
+  // literal. O da direção de dependência entra junto por ser a mesma classe e o mesmo furo.
+  'governance/dependency-direction-baseline.json': detectFronteiraBaseline,
+  'governance/module-coupling-baseline.json': detectFronteiraBaseline,
+  'governance/module-table-coupling-baseline.json': detectFronteiraBaseline,
 };
 
 // Baselines que NÃO podem CRESCER sem um trailer auditável `BASELINE-GROW: <motivo>`
