@@ -18,8 +18,8 @@ import { cn } from '@/Lib/utils';
  *          Descricao opcional abaixo
  *
  * Wagner 2026-05-17: navegação intra-módulo vive dentro do `action` slot
- * (preferiu botões action sobre chips numerados). Use `PageHeaderActions`
- * pra agrupar items com overflow popup automático quando faltar espaço.
+ * (preferiu botões action sobre chips numerados). O slot aceita qualquer
+ * ReactNode — pra primary + tabs com overflow, ver `PageHeaderTabs`.
  *
  * Após `hideTopbar=true` virar default no AppShellV2 (mesma data), `moduleNav`
  * prop renderiza um dropdown compacto ⌄ ao lado do título — pega items via
@@ -32,10 +32,7 @@ import { cn } from '@/Lib/utils';
  *     title="Aprovações pendentes"
  *     moduleNav
  *     description="12 solicitações aguardando revisão"
- *     action={<PageHeaderActions items={[
- *       { label: 'Dashboard', href: '/x/dashboard', icon: 'layout-dashboard' },
- *       { label: 'Reload', onClick: () => router.reload(), variant: 'ghost' },
- *     ]} />}
+ *     action={<Button variant="ghost" size="sm" onClick={() => router.reload()}>Recarregar</Button>}
  *   />
  *
  * Regras Design System: R-DS-001 (primitivas), R-DS-002 (tokens), R-DS-003 (lucide).
