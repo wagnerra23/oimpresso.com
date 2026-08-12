@@ -207,6 +207,12 @@ return [
         // mesmo minuto 4× durante um handshake. `0` desliga o throttle.
         'uso_throttle_segundos' => env('MCP_USO_THROTTLE_SEGUNDOS', 60),
 
+        // === Fast-path do QuotaEnforcer (mesmo incidente) ===
+        // Segundos que a EXISTÊNCIA de quota do user fica memoizada. Só a
+        // configuração — o cálculo de consumo segue sempre ao vivo. `0` desliga;
+        // `QuotaEnforcer::esquecerQuotas($userId)` invalida ao criar a 1ª quota.
+        'quota_cache_ttl' => env('MCP_QUOTA_CACHE_TTL', 60),
+
         // === Audit log governança ===
         // Quanto tempo manter audit log antes de purgar (LGPD: mínimo 1 ano)
         'audit_retention_days' => env('COPILOTO_MCP_AUDIT_RETENTION_DAYS', 365),
