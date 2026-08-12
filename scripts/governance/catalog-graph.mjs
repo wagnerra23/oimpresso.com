@@ -943,19 +943,135 @@ function compararFronteira(refs, graph, { limiar = LIMIAR_CROSS_CUTTING, modulos
   };
 }
 
-/** Lê os imports da árvore viva. Distingue "sem match" (rc=1) de falha real (§5 2026-07-31). */
-function lerImportsDaArvore() {
+// ── FRONTEIRA POR TABELA (advisory) ─────────────────────────────────────────
+// Eixo que o import NÃO enxerga: `DB::table('x')` cru numa tabela de outro módulo.
+// O dono é DERIVADO de quem faz `Schema::create('x')` na migration — não do
+// `db_tables_owned` escrito à mão (que 1 módulo declara). Medição 2026-08-12: 340
+// tabelas com dono derivado; 27 pares cross-module por query crua.
+//
+// AMBIGUIDADE ASSUMIDA: "quem criou a migration" ≠ "de quem é o conceito". O caso real
+// é `failed_jobs` — tabela de INFRA do Laravel criada por uma migration do Whatsapp, o
+// que faria Jana/Governance parecerem acoplados a Whatsapp. Resolvido pelo MESMO truque
+// derivado dos símbolos (nunca lista à mão, §5 2026-06-30): tabela consultada por
+// ≥ LIMIAR módulos distintos é INFRA COMPARTILHADA, não fronteira.
+const LIMIAR_TABELA_COMPARTILHADA = 3;
+const CORE = '(core)';
+
+/** Dono derivado da tabela: quem a cria na migration. Core (database/migrations) marcado. */
+function derivarDonoDeTabela(linhasModulo, linhasCore = []) {
+  const dono = new Map();
+  for (const l of linhasModulo) {
+    const i = l.indexOf(':');
+    const mod = (l.slice(0, i).match(/^Modules\/([A-Za-z]+)\//) || [])[1];
+    const t = (l.slice(i + 1).match(/Schema::create\('([a-z0-9_]+)'/) || [])[1];
+    if (mod && t && !dono.has(t)) dono.set(t, mod);
+  }
+  for (const l of linhasCore) {
+    const t = (l.match(/Schema::create\('([a-z0-9_]+)'/) || [])[1];
+    if (t && !dono.has(t)) dono.set(t, CORE);
+  }
+  return dono;
+}
+
+/**
+ * Extrai leituras cruas cross-module. Só literal — `DB::table($var)` é contado à parte
+ * como NÃO RESOLVÍVEL (não vira zero silencioso: "não medi" ≠ "não há", §5 2026-07-29).
+ */
+function parseQueriesCruas(linhas, { donoDe, modulosVivos }) {
+  const refs = [];
+  let dinamico = 0, semDono = 0;
+  for (const l of linhas) {
+    const i = l.indexOf(':');
+    if (i < 0) continue;
+    const path = l.slice(0, i), code = l.slice(i + 1);
+    if (/\/Tests?\//i.test(path)) continue;
+    const src = (path.match(/^Modules\/([A-Za-z]+)\//) || [])[1];
+    if (!src || !modulosVivos.has(src)) continue;
+    const m = code.match(/DB::table\('([a-z0-9_]+)'/);
+    if (!m) { if (/DB::table\(\s*\$/.test(code)) dinamico++; continue; }
+    const tabela = m[1];
+    const dono = donoDe.get(tabela);
+    if (!dono) { semDono++; continue; }
+    if (dono === src || dono === CORE) continue; // própria tabela ou core UltimatePOS
+    refs.push({ src, dono, tabela });
+  }
+  return { refs, dinamico, semDono };
+}
+
+/** Tabelas lidas por ≥ limiar módulos distintos = infra compartilhada (derivado). */
+function tabelasCompartilhadas(refs, limiar = LIMIAR_TABELA_COMPARTILHADA) {
+  const porTabela = new Map();
+  for (const r of refs) {
+    if (!porTabela.has(r.tabela)) porTabela.set(r.tabela, new Set());
+    porTabela.get(r.tabela).add(r.src);
+  }
+  return new Set([...porTabela].filter(([, s]) => s.size >= limiar).map(([t]) => t));
+}
+
+/** Agrega em pares src→dono, separando o que é infra compartilhada. */
+function agruparFronteiraDeTabela(refs, { limiar = LIMIAR_TABELA_COMPARTILHADA } = {}) {
+  const infra = tabelasCompartilhadas(refs, limiar);
+  const pares = new Map();
+  for (const r of refs) {
+    if (infra.has(r.tabela)) continue;
+    const k = `${r.src}>${r.dono}`;
+    if (!pares.has(k)) pares.set(k, { src: r.src, dono: r.dono, n: 0, tabelas: new Set() });
+    const o = pares.get(k);
+    o.n++; o.tabelas.add(r.tabela);
+  }
+  return {
+    pares: [...pares.values()]
+      .map((o) => ({ ...o, tabelas: [...o.tabelas].sort() }))
+      .sort((a, b) => b.n - a.n || a.src.localeCompare(b.src)),
+    infra: [...infra].sort(),
+  };
+}
+
+function reportFronteiraDeTabela(modulosVivos) {
+  const donoDe = derivarDonoDeTabela(
+    grepArvore(["Schema::create\\('"], 'Modules/*/Database/Migrations/*.php'),
+    grepArvore(["Schema::create\\('"], 'database/migrations/*.php').map((l) => l.slice(l.indexOf(':') + 1)),
+  );
+  const { refs, dinamico, semDono } = parseQueriesCruas(
+    grepArvore(['DB::table\\('], 'Modules/*.php'),
+    { donoDe, modulosVivos },
+  );
+  const r = agruparFronteiraDeTabela(refs);
+  console.log('');
+  console.log(
+    `[catalog-graph] fronteira por TABELA (query crua): ${donoDe.size} tabelas com dono derivado · ` +
+    `${r.pares.length} pares cross-module`,
+  );
+  if (r.infra.length) {
+    console.log(`ℹ️  infra compartilhada (≥${LIMIAR_TABELA_COMPARTILHADA} módulos leem — não é fronteira): ${r.infra.join(', ')}`);
+  }
+  for (const p of r.pares) {
+    console.log(`  ${p.src} → ${p.dono}  (${p.n} queries) ${p.tabelas.slice(0, 4).join(', ')}`);
+  }
+  console.log(
+    `ℹ️  não resolvido (NÃO é zero): ${dinamico} \`DB::table($var)\` dinâmico · ` +
+    `${semDono} em tabela sem migration localizada.`,
+  );
+  return r;
+}
+
+/**
+ * Lê a árvore viva. Distingue "sem match" (rc=1, legítimo) de FALHA REAL (rc≠0/1) —
+ * saída vazia de comando que quebrou não é evidência de ausência (§5 2026-07-31/08-01).
+ */
+function grepArvore(padroes, pathspec) {
+  const args = ['grep', '-I', '-E', ...padroes, '--', pathspec];
   try {
-    const out = execFileSync(
-      'git',
-      ['grep', '-I', '-E', '^\\s*use\\s+Modules.[A-Z][A-Za-z]+', '--', 'Modules/*.php'],
-      { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
-    );
-    return out.split('\n').filter(Boolean);
+    return execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+      .split('\n').filter(Boolean);
   } catch (err) {
     if (err && err.status === 1) return []; // sem ocorrência: legítimo
     throw new Error(`git grep falhou (status=${err && err.status}): ${err && err.message}`);
   }
+}
+
+function lerImportsDaArvore() {
+  return grepArvore(['^\\s*use\\s+Modules.[A-Z][A-Za-z]+'], 'Modules/*.php');
 }
 
 function reportAcoplamento(graph) {
@@ -983,11 +1099,13 @@ function reportAcoplamento(graph) {
     const selo = p.peso === 'dado' ? '⚠️ ' : '  ';
     console.log(`${selo}${p.src} → ${p.dst}  (${p.imports} imports · ${p.peso}) ${p.simbolos.slice(0, 3).join(', ')}`);
   }
+  const t = reportFronteiraDeTabela(modulosVivos);
+  console.log('');
   console.log(
-    `[catalog-graph] advisory — PISO, não teto: mede só \`use Modules\\X\` em Modules/**.php ` +
-    `(container/facade/query crua/resources/js ficam de fora).`,
+    `[catalog-graph] advisory — PISO, não teto: import (\`use\`) + query crua (\`DB::table\`) em ` +
+    `Modules/**.php. Container/facade/Eloquent via Model alheio/resources/js ficam de fora.`,
   );
-  return r;
+  return { ...r, tabela: t };
 }
 
 function main() {
@@ -1089,6 +1207,10 @@ export {
   simbolosCrossCutting,
   compararFronteira,
   pesoDaCamada,
+  derivarDonoDeTabela,
+  parseQueriesCruas,
+  tabelasCompartilhadas,
+  agruparFronteiraDeTabela,
   NODE_TYPES,
   EDGE_TYPES,
 };
