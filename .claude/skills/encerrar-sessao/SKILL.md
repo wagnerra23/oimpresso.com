@@ -98,14 +98,18 @@ avisado — *"cuidado para não conflitar o handoff, outra sessão salvando tamb
 3. **Commit + push na sequência**, sem etapa cara no meio. Cada minuto entre o fetch e o push é janela de colisão.
 
 **Se colidir mesmo assim** (vai acontecer — é append concorrente, não erro de ninguém):
-- **Resolva APPEND-ONLY: ninguém perde linha.** As duas entradas ficam, ordenadas por data (mais
-  recente no topo). Descartar a linha alheia apaga o handoff de outra sessão do índice — o arquivo
-  continua no disco, mas fica **inacessível pela porta que o time usa pra achar handoff**.
-  ⚠️ **Ordene pela DATA das linhas, não por "a minha é a nova".** Errei exatamente isso em
-  2026-08-12: o script punha a minha entrada sempre no topo, e o [#5649](https://github.com/wagnerra23/oimpresso.com/pull/5649)
-  era das 10:43 contra as 07:49 da minha — ficou invertido. A sua sessão pode ter começado antes
-  e terminado depois; quem chega por último no índice não é necessariamente o mais recente.
-  Confira o `HH:MM` das duas linhas antes de commitar.
+- **Resolva APPEND-ONLY: ninguém perde linha.** É a ÚNICA coisa que importa aqui. As duas entradas
+  ficam. Descartar a linha alheia apaga o handoff de outra sessão do índice — o arquivo continua no
+  disco, mas fica **inacessível pela porta que o time usa pra achar handoff**.
+  ⚠️ **NÃO reordene por data — e não "conserte" a ordem de ninguém.** A convenção canônica é
+  *"adicionar 1 linha **no topo** da lista"* ([`how-trabalhar.md`](../../../memory/how-trabalhar.md)),
+  ou seja **ordem de CHEGADA**, não cronológica. Medido no main em 2026-08-12: as 12 primeiras
+  entradas vão `07:40 · 10:43 · 07:49 · 22:00 · 17:51 · 18:11 · 19:00 · 18:58 · 16:15 …` — o índice
+  **nunca foi cronológico**. Errata honesta: a 1ª versão deste passo mandava "ordenar por data" e eu
+  cheguei a trocar duas linhas de lugar por causa disso — conserto DESNECESSÁRIO, baseado num
+  requisito que nenhuma fonte pede. Pior que inútil: reordenar linha alheia gera churn no arquivo
+  mais conflitado do repo e **fabrica o próximo conflito**. Colidiu? junte os dois lados, na ordem
+  em que estiverem, e siga.
 - **Use `git merge`, NUNCA `git rebase`.** Rebase exige `--force-with-lease`, que o hook
   `block-destructive` barra com razão (sobrescreve histórico remoto). Merge resolve igual e aceita
   push normal. Descoberto na marra em 2026-08-12: o hook bloqueou o comando composto INTEIRO,
@@ -160,7 +164,8 @@ Hook `force-r12-closing-signal.mjs` (Node.js **cross-platform** — Windows/macO
 | Aceitar ADR sozinho sem Wagner confirmar | Espera "aceito" textual + sed batch |
 | Webhook sync não-confirmado | Aguarda 2min + valida via `tasks-list` |
 | Editar o índice cedo e só depois escrever o handoff | Índice **por último**, com `fetch` imediatamente antes (passo 3.1) |
-| Resolver conflito do índice ficando com "a minha linha" | **Append-only**: as duas ficam, ordenadas por data — descartar apaga o handoff alheio do índice |
+| Resolver conflito do índice ficando com "a minha linha" | **Append-only**: as duas ficam — descartar apaga o handoff alheio do índice |
+| Reordenar o índice por data ao resolver o conflito | Ordem é de **chegada** (convenção "1 linha no topo"); reordenar gera churn e fabrica o próximo conflito |
 | `git rebase` + `--force-with-lease` pra resolver o índice | `git merge` — rebase exige force-push, que o `block-destructive` barra |
 
 ## Origem (rastreabilidade canon)
