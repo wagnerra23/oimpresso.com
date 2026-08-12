@@ -30,11 +30,16 @@ uses(\Tests\TestCase::class);
  * se apaga um valor bom porque não foi possível lê-lo.
  *
  * ── Por que roda na lane MySQL, e não em sqlite ──────────────────────────────
- * Testes irmãos deste diretório criam o schema mcp_* à mão e pulam quando o
- * driver não é sqlite, declarando que "a cobertura real é na lane sqlite
- * (per-PR)". Medido em 2026-08-12: essa lane NÃO EXISTE — o CI tem 15 lanes de
- * Pest, todas MySQL (mais a Unit). Um teste com esse skip nunca executa e passa
- * por não-execução. Este aqui usa o schema real provisionado pela lane e roda.
+ * As lanes de Pest são CATRACAS de allowlist: um teste só executa se o caminho
+ * dele estiver listado. A lane sqlite é o job "PHP / Pest (Unit)" e lê
+ * `.github/ci-sqlite-pest.list` (o nome do check não diz "sqlite" — foi o que me
+ * fez concluir, errado, que ela não existia). A lane MySQL do módulo lista os
+ * arquivos direto no `.github/workflows/jana-pest.yml`.
+ *
+ * Este teste mora na lane MySQL porque monta os documentos no schema REAL, em
+ * vez de forjar as tabelas mcp_* à mão — em sqlite `:memory:` sem migrate elas
+ * não existiriam. Está registrado na allowlist do jana-pest.yml; sem essa
+ * entrada ele não roda em lugar nenhum e passa por não-execução.
  *
  * O `onlyType` no construtor não é detalhe: em sync COMPLETO o serviço
  * soft-deleta todo doc ausente do filesystem varrido, o que apagaria o resto da
