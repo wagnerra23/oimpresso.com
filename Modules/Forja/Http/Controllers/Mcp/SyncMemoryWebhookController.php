@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
 use Modules\Jana\Services\Mcp\IndexarMemoryGitParaDb;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Modules\Jana\Services\TaskRegistry\GitTaskLinkerService;
 use Modules\Jana\Services\TaskRegistry\TaskParserService;
 

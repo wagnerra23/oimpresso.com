@@ -76,7 +76,7 @@ Atributos sempre `business_id` Tier 0 + `module=OficinaAuto`. Sem PII em attribu
 ## LGPD ([ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) §4)
 
 - `pii_fields_tracked`: plate, secondary_plate, chassis, renavam, contact_id
-- `pii_redactor_enabled`: true (defense in depth — `Modules\Jana\Services\Privacy\PiiRedactor`)
+- `pii_redactor_enabled`: true (defense in depth — `App\Support\Privacy\PiiRedactor`)
 - `activity_log_enabled`: true (audit trail via Spatie ActivityLog)
 - Retenção: 1825 dias (5 anos) por `Config/retention.php`
 

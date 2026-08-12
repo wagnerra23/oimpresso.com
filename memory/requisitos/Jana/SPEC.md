@@ -1672,7 +1672,7 @@ Ou seja: liberar `gpt-4o` no projeto OpenAI sobe o **chat** por `.env` (zero có
 
 **Testado em:** `Modules/Jana/Tests/Feature/Telemetry/JudgeTraceOnlineJobTest.php` — shouldSample (0/1/determinismo/~5% sobre 10k) · **wiring** (config resolve em `copiloto.*`, o `jana.*` é vazio = a mordida do bug) · **judge=local** pontua via Ollama com PII redigida ANTES do juiz (CPF/email não vão no request) · judge=local com Ollama down NÃO grava score (sem 0.0 fabricado) · judge=openai PII-redigido · juiz-em-mock não pontua. `Modules/Jana/Tests/Feature/Ragas/OllamaRagasJudgeTest.php` — transporte Ollama (parse score 0..1, url+model, sanitize, `JudgeUnavailableException` em HTTP 500/JSON-sem-score/transporte, mock curto-circuita).
 
-**Refs:** ADR 0318 · ADR 0093 · `Modules/Jana/Services/Telemetry/LangfuseClient.php` · `Modules/Jana/Services/Privacy/PiiRedactor.php`
+**Refs:** ADR 0318 · ADR 0093 · `Modules/Jana/Services/Telemetry/LangfuseClient.php` · `app/Support/Privacy/PiiRedactor.php`
 
 ### US-COPI-138 · Heartbeat langfuse_trace_uptime_24h no HealthCheckCommand
 **Implementado em:** `Modules/Jana/Console/Commands/HealthCheckCommand.php` · `Modules/Jana/Tests/Feature/Smoke/LangfuseTraceUptimeCheckTest.php` · verificado@e7f6090 (2026-07-17) — check DURO registrado em handle(), lendo meta.totalItems da API pública do Langfuse (fonte real, não flag); 9 testes verdes no CT 100 incl. 2 de fiação (200-e-mudo → vermelho)

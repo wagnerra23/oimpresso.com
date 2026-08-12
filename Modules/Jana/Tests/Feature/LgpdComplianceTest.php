@@ -8,7 +8,7 @@ use Modules\Jana\Entities\HealthNarrative;
 use Modules\Jana\Entities\MemoriaFato;
 use Modules\Jana\Entities\Meta;
 use Modules\Jana\Entities\Sugestao;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 uses(Tests\TestCase::class);
@@ -97,8 +97,8 @@ it('PiiRedactor canônico cobre 5 tipos PII BR (CPF/CNPJ/EMAIL/CEP/PHONE)', func
     $redactor = new PiiRedactor();
 
     $samples = [
-        'cliente CPF 123.456.789-00 entrou'                  => '[REDACTED:CPF]',
-        'empresa CNPJ 12.345.678/0001-90'                    => '[REDACTED:CNPJ]',
+        'cliente CPF 123.456.789-00 entrou'                  => '[REDACTED:CPF]', # pii-allowlist
+        'empresa CNPJ 12.345.678/0001-90'                    => '[REDACTED:CNPJ]', # pii-allowlist
         'email cliente@empresa.com.br confirmou'             => '[REDACTED:EMAIL]',
         'CEP 01310-100 endereço'                             => '[REDACTED:CEP]',
         'telefone +55 11 98765-4321 contato'                 => '[REDACTED:PHONE]',

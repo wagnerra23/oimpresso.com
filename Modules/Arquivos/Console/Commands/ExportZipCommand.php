@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Modules\Arquivos\Services\VaultEncryptionService;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 /**
  * arquivos:export-zip — Sprint 2 ADR 0123 (LGPD Art. 18 portabilidade de dados).

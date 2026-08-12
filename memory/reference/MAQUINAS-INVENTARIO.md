@@ -516,6 +516,7 @@ lifecycle: ativo
 | `governance/jana-ragas-baseline.json` | Baseline RAGAS canary Jana — recriado via workflow_dispatch jana-ragas-canary.yml (US-COPI-116). Não editar à mão; usar update_baseline=true no dispat… |
 | `governance/jana-ragas-real-baseline.json` | (baseline/estado) |
 | `governance/ledger-checkpoints.json` | (baseline/estado) |
+| `governance/module-coupling-baseline.json` | (baseline/estado) |
 | `governance/module-grades-baseline.json` | (baseline/estado) |
 | `governance/module-group.json` | (baseline/estado) |
 | `governance/multi-tenant-scope-baseline.json` | (baseline/estado) |
@@ -543,4 +544,4 @@ lifecycle: ativo
 | `scripts/perf-static-baseline.json` | perf-static-guard (Onda 4 lente 5b — AUDITORIA-PERFORMANCE-2026-07, ratchet advisory) |
 | `scripts/reuse-duplicates-baseline.json` | (baseline/estado) |
 
-> Total baselines JSON em governance/+config/+scripts: 43 · (mais ~5 dot-baselines na raiz + fixtures em tests/).
+> Total baselines JSON em governance/+config/+scripts: 44 · (mais ~5 dot-baselines na raiz + fixtures em tests/).

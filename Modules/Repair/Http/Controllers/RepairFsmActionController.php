@@ -18,7 +18,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Scopes\ScopeByBusiness;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Modules\Repair\Entities\JobSheet;
 use Modules\Repair\Entities\RepairStatus;
 use Symfony\Component\HttpFoundation\Response;

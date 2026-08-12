@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\Forja\Services;
 
 use App\Util\OtelHelper;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Spatie\Activitylog\Facades\LogBatch;
 use Spatie\Activitylog\Models\Activity;
 
@@ -25,7 +25,7 @@ use Spatie\Activitylog\Models\Activity;
  * Service exige `businessId` no constructor; toda entry no activity_log
  * carrega `properties.business_id` pra audit cross-tenant.
  *
- * PII protection ([Modules\Jana\Services\Privacy\PiiRedactor]):
+ * PII protection ([App\Support\Privacy\PiiRedactor]):
  * Toda string livre logada (description, comment body, note) passa por
  * PiiRedactor::redact() antes de persistir — CPF/CNPJ/email/telefone
  * brasileiro substituídos por [REDACTED:TYPE] (LGPD Art. 7º).
@@ -33,7 +33,7 @@ use Spatie\Activitylog\Models\Activity;
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0070-jira-style-task-management-current-md-removed.md
  * @see Modules\Crm\Entities\Campaign (pattern LogsActivity Wave 9)
- * @see Modules\Jana\Services\Privacy\PiiRedactor
+ * @see App\Support\Privacy\PiiRedactor
  */
 class ForjaAuditService
 {

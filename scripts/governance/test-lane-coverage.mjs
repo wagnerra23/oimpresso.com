@@ -479,7 +479,7 @@ function selftest() {
     'Modules/Jana/Tests/Unit/PiiRedactorNumeroCruTest.php',
   ];
   const alvosLane = ['Modules/Jana/Tests/Unit/PiiRedactorNumeroCruTest.php'];
-  const risco = testesDeRisco(['Modules/Jana/Services/Privacy/PiiRedactor.php'], testesRepo, alvosLane);
+  const risco = testesDeRisco(['app/Support/Privacy/PiiRedactor.php'], testesRepo, alvosLane);
   ok('BITE forward-only: fonte tocada + teste fora da lane = risco',
     risco.length === 1 && risco[0].teste.endsWith('PiiRedactorTest.php'));
   ok('CONTROLE NEGATIVO: teste JÁ na lane não vira risco',

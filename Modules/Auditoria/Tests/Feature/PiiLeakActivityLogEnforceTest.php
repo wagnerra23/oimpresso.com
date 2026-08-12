@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 uses(Tests\TestCase::class);
 
@@ -24,7 +24,7 @@ uses(Tests\TestCase::class);
  * (ActionGate::logViolation idem) mas a Auditoria É obrigatória — PiiRedactor
  * é dependência hard.
  *
- * @see Modules/Jana/Services/Privacy/PiiRedactor.php
+ * @see app/Support/Privacy/PiiRedactor.php
  * @see Modules/Auditoria/Services/RevertService.php
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md §"PII reais NUNCA em log"
@@ -40,7 +40,7 @@ it('RevertService importa PiiRedactor (use statement obrigatório)', function ()
     expect(file_exists($path))->toBeTrue();
 
     $content = file_get_contents($path);
-    expect($content)->toContain('use Modules\\Jana\\Services\\Privacy\\PiiRedactor;');
+    expect($content)->toContain('use App\\Support\\Privacy\\PiiRedactor;');
 });
 
 it('RevertService::revert invoca PiiRedactor sobre revert_reason (ANTES de save)', function () {
@@ -81,7 +81,7 @@ it('ActionGate Governance também invoca PiiRedactor em logViolation (cintura+su
     // PiiRedactor pode estar via FQCN ou import — aceitar ambos
     expect(
         str_contains($content, 'PiiRedactor')
-        || str_contains($content, 'Modules\\Jana\\Services\\Privacy\\PiiRedactor')
+        || str_contains($content, 'App\\Support\\Privacy\\PiiRedactor')
     )->toBeTrue('Governance ActionGate precisa importar PiiRedactor');
 });
 
@@ -103,7 +103,7 @@ it('config governance.pii_redaction_enabled tem default true (ADR 0094 §PII)', 
 
 it('PiiRedactor placeholder mode preserva legibilidade — substitui mas NÃO mascara tudo', function () {
     $redactor = app(PiiRedactor::class);
-    $input = 'Cliente CPF 123.456.789-09 ligou às 10h.';
+    $input = 'Cliente CPF 123.456.789-09 ligou às 10h.'; # pii-allowlist
 
     $output = $redactor->redact($input, 'placeholder');
 
@@ -111,22 +111,22 @@ it('PiiRedactor placeholder mode preserva legibilidade — substitui mas NÃO ma
     expect($output)->toContain('Cliente');
     expect($output)->toContain('ligou');
     // Mas CPF formatado deve sumir
-    expect($output)->not->toContain('123.456.789-09');
+    expect($output)->not->toContain('123.456.789-09'); # pii-allowlist
 });
 
 it('PiiRedactor lida com CNPJ formatado BR (xx.xxx.xxx/yyyy-zz)', function () {
     $redactor = app(PiiRedactor::class);
-    $input = 'Empresa CNPJ 12.345.678/0001-99 enviou nota.';
+    $input = 'Empresa CNPJ 12.345.678/0001-99 enviou nota.'; # pii-allowlist
 
     $output = $redactor->redact($input, 'placeholder');
 
-    expect($output)->not->toContain('12.345.678/0001-99');
+    expect($output)->not->toContain('12.345.678/0001-99'); # pii-allowlist
     expect($output)->toContain('Empresa');
 });
 
 it('PiiRedactor é idempotente — redact(redact(x)) == redact(x)', function () {
     $redactor = app(PiiRedactor::class);
-    $input = 'CPF 111.222.333-44 e email teste@gmail.com';
+    $input = 'CPF 111.222.333-44 e email teste@gmail.com'; # pii-allowlist
 
     $pass1 = $redactor->redact($input, 'placeholder');
     $pass2 = $redactor->redact($pass1, 'placeholder');

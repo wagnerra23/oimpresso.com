@@ -13,7 +13,7 @@ use Modules\Crm\Entities\Proposal;
 use Modules\Crm\Entities\ProposalTemplate;
 use Modules\Crm\Http\Requests\StoreProposalRequest;
 use Modules\Crm\Notifications\SendProposalNotification;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Yajra\DataTables\Facades\DataTables;
 
 class ProposalController extends Controller

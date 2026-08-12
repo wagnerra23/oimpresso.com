@@ -6,7 +6,7 @@ namespace Modules\Jana\Services\Memoria;
 
 use Illuminate\Support\Facades\Log;
 use Laravel\Ai\AnonymousAgent;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 /**
  * PR-3 da estação de ingestão de design ([plano] vectorized-badger · OPCIONAL).

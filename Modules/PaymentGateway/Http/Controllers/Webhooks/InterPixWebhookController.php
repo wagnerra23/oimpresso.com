@@ -8,7 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Modules\PaymentGateway\Jobs\ProcessarWebhookPixInterJob;
 use Modules\PaymentGateway\Models\InterWebhookLog;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;

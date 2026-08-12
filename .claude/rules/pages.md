@@ -65,12 +65,13 @@ o framework impõe. Ele roda na lane `financeiro-pest` (MySQL real).
 
 **RUNBOOK obrigatório:** Edit em `.tsx` SEM `memory/requisitos/<Modulo>/RUNBOOK-<tela-kebab>.md` existir é BLOQUEADO pelo hook [`block-mwart-violation.mjs`](../hooks/block-mwart-violation.mjs) (enforcement runtime — Node cross-plataforma; o `.ps1` que esta linha citava não existe mais). A cobertura de tela no CI é do `casos-gate` (required, ADR 0264) — o antigo `mwart-gate.yml` foi deletado na ADR 0271 onda 2 (era soft/teatro).
 
-> ⚠️ **Não há override.** Esta linha anunciava `/mwart-override <razão>` como escape. **Ele não existe
-> no código** — medido em 2026-08-08 (§5 [`proibicoes.md`](../../memory/proibicoes.md)): 194 linhas, zero
-> `process.env`, zero bypass, zero leitura de marcador; a única saída do veto é `process.exit(2)`. A
-> mensagem do próprio hook ainda o oferece (e o teste dele `:150` **asserta** que ela o cite), então
-> você vai ler a promessa ao ser bloqueado — ignore-a. Bloqueou? **Crie o RUNBOOK** (`/cockpit-runbook`),
-> ou leve a exceção ao [W]. Decidir com base num escape inexistente já custou uma decisão errada.
+> ⚠️ **Não há escape mecânico.** Esta linha já anunciou `/mwart-override <razão>` como se fosse bypass
+> do hook. Não é — medido em 2026-08-08 (§5 [`proibicoes.md`](../../memory/proibicoes.md)): zero
+> `process.env`, zero leitura de marcador, e a única saída do veto é `process.exit(2)`. **Bloqueou?
+> Crie o RUNBOOK** (`/cockpit-runbook`), ou leve a exceção ao [W]: o `/mwart-override` existe como
+> **registro humano no PR** (vira ADR per-tela `lifecycle: historical`) — é exceção de *processo*,
+> nunca comando que o hook honre. A mensagem do próprio hook é o dono desse texto; **leia o que ela
+> disser**, não o que esta rule lembra dela.
 
 ## Loop Cowork ↔ Claude Code formalizado ([ADR 0114](../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md))
 

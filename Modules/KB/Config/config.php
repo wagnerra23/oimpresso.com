@@ -47,7 +47,7 @@ return [
     |--------------------------------------------------------------------------
     | LGPD — PII redaction enforcement (Wave 11)
     |--------------------------------------------------------------------------
-    | Habilita defense-in-depth via Modules/Jana/Services/Privacy/PiiRedactor
+    | Habilita defense-in-depth via app/Support/Privacy/PiiRedactor
     | em todos os pontos onde KB persiste/loga query ou body do user.
     |
     | Pontos cobertos atualmente:

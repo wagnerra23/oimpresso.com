@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Modules\Forja\Entities\McpActor;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -114,7 +114,7 @@ it('arquivo %s importa PiiRedactor (D7.a aplicação em logs)', function (string
     $contents = file_get_contents($absolutePath);
 
     expect($contents)
-        ->toContain('use Modules\\Jana\\Services\\Privacy\\PiiRedactor;')
+        ->toContain('use App\\Support\\Privacy\\PiiRedactor;')
         ->and($contents)
         ->toContain('PiiRedactor::class');
 })->with('teammcp_files_with_pii_redactor');

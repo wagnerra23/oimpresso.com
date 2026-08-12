@@ -506,7 +506,7 @@ class LangfuseClient
 
     protected function piiRedactor(): ?object
     {
-        $class = '\\Modules\\Jana\\Services\\Privacy\\PiiRedactor';
+        $class = '\\App\\Support\\Privacy\\PiiRedactor';
         if (! class_exists($class)) {
             return null;
         }
