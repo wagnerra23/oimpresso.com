@@ -60,7 +60,7 @@ O campo `canal` (default `whatsapp`) era o plug-point: `web_form` entra ao lado.
 
 A rota **não tem auth**, então `session('user.business_id')` é null e o global scope
 `ScopeByBusiness` é **NO-OP** aqui (ele retorna cedo em `!auth()->check()` —
-[`Modules/Jana/Scopes/ScopeByBusiness.php:26`](../../../Modules/Jana/Scopes/ScopeByBusiness.php)).
+[`app/Scopes/ScopeByBusiness.php:26`](../../../app/Scopes/ScopeByBusiness.php)).
 
 Portanto:
 

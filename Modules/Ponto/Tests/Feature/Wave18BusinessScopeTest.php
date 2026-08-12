@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\Ponto\Entities\BancoHorasMovimento;
 use Modules\Ponto\Entities\BancoHorasSaldo;
 use Modules\Ponto\Entities\Importacao;

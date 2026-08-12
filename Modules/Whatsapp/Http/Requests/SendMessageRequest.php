@@ -77,7 +77,7 @@ class SendMessageRequest extends FormRequest
 
                 $config = $conversation->business->whatsappBusinessConfig
                     ?? \Modules\Whatsapp\Entities\WhatsappBusinessConfig::query()
-                        ->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
+                        ->withoutGlobalScope(\App\Scopes\ScopeByBusiness::class)
                         ->where('business_id', $conversation->business_id)
                         ->first();
 

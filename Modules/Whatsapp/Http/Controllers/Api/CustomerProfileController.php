@@ -9,7 +9,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\CustomerMemory;
 use Modules\Whatsapp\Jobs\RebuildCustomerMemoryJob;
 use Modules\Whatsapp\Services\CustomerMemory\CustomerMemoryRebuilder;

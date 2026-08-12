@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use InvalidArgumentException;
 use Modules\OficinaAuto\Entities\Vehicle;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 
 /**
  * Wave 5-A — Side-effect "Enviar caçamba pra manutenção" (process `cacamba_locacao`).
