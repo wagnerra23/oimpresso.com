@@ -8,6 +8,28 @@ paths:
 > Carrega quando Claude lê/edita página Inertia React. Complementa skills Tier A `mwart-process`, `mwart-comparative`, `charter-first`.
 > **Fonte de design (ler 1º):** [INDEX-DESIGN-MEMORIAS.md §0](../../memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md) — protótipo Cowork + Design System + charter são fonte; **Figma/Notion/screenshot NÃO são** (salvo Wagner dizer "figma" explícito; bloqueado por `block-figma-without-optin`). [ADR 0299](../../memory/decisions/0299-figma-nao-e-fonte-de-design.md).
 
+## Onde as Pages vivem é CONVENÇÃO DO PROJETO — não imposição do Inertia
+
+O `resolve` do `createInertiaApp` é **callback arbitrário**: o Inertia entrega o nome da página e
+aceita qualquer componente de volta. Quem restringe a `resources/js/Pages/**/*.tsx` somos nós, em
+**dois** globs mantidos em sincronia **à mão** — [`app.tsx:104`](../../resources/js/app.tsx) (client)
+e [`ssr.tsx:17`](../../resources/js/ssr.tsx) (SSR). Mexeu num, mexa no outro.
+
+A restrição é **extensão + path, ambas escolhidas**: `.jsx` dentro de `Pages/` também não é
+resolvido — é assim que `Pages/Financeiro/_cowork-bundle/` (10 `.jsx`) fica inerte de propósito.
+O `describe('Cowork Bundle — discovery Inertia NÃO pega .jsx…')` em
+[`CoworkBundleIntegralTest.php:161`](../../Modules/Financeiro/Tests/Feature/CoworkBundleIntegralTest.php)
+crava a string exata e asserta `not->toContain('./Pages/**/*.jsx')` — ninguém fixa por teste o que
+o framework impõe. Ele roda na lane `financeiro-pest` (MySQL real).
+
+> ⚠️ **Errata datada (2026-08-12).** O session log
+> [`2026-05-15-wave3-b6-repair.md:26`](../../memory/sessions/2026-05-15-wave3-b6-repair.md) afirma que
+> *"Inertia resolve global resources path"*, como se o local fosse imposição do framework. **É falso**,
+> e em 2026-08-12 um agente repetiu isso ao [W] como fato de arquitetura por ter lido canon sem medir.
+> O session log é append-only e **fica como está** — a correção mora aqui, onde se lê antes de editar
+> `.tsx`. Se você quer mover Pages pra dentro de `Modules/<X>/`, o obstáculo é decisão de projeto
+> (dois globs + o assert acima), não o Inertia.
+
 ## MWART canônico — único caminho ([ADR 0104](../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md))
 
 5 fases obrigatórias antes de qualquer Edit/Write em `<Tela>.tsx`:

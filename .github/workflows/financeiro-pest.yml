@@ -33,6 +33,10 @@ on:
       - 'app/Http/Controllers/AccountController.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/financeiro-pest.yml'
+      # CoworkBundleIntegralTest crava a string do glob DESTES arquivos; sem eles no
+      # trigger, trocar o glob nao dispara o teste que o protege (LC-11/LC-13).
+      - 'resources/js/app.tsx'
+      - 'resources/js/ssr.tsx'
       # A quarentena DECIDE o run-set — mexer nela sem rodar a lane é falso verde.
       - '.github/financeiro-pest-quarantine.list'
       - '.github/actions/pest-mysql-setup/**'
@@ -76,6 +80,10 @@ jobs:
               - 'app/Http/Controllers/AccountController.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/financeiro-pest.yml'
+              # sem estas 2, PR que troca o glob do Inertia da skip-as-pass: verde
+              # sem rodar o teste que crava a string (medido 2026-08-12).
+              - 'resources/js/app.tsx'
+              - 'resources/js/ssr.tsx'
               # sem esta linha, PR que só mexe na quarentena dá skip-as-pass:
               # verde sem ter rodado nada (incidente 2026-07-28, PR #4965)
               - '.github/financeiro-pest-quarantine.list'
