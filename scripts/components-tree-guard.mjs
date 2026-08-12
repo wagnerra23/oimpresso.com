@@ -69,7 +69,9 @@ const ALLOWED_FILES = new Set([
   'CommandPalette.tsx', // ⌘K global (Shell)
   'Icon.tsx', // wrapper lucide canon (UI-0003)
   'MentionInput.tsx', // cross-módulo (chat/comentários)
-  'ThemeToggle.tsx', // dark mode por usuário (UI-0004)
+  // 'ThemeToggle.tsx' saiu em 2026-08-12: 0 consumidores no repo. O toggle vivo é o
+  // ThemeSubpanel do cockpit/Sidebar.tsx (UI-0011, subpainel Aparência) — a UI-0004
+  // (dark mode por usuário via classe html) segue valendo, só não mora mais aqui.
 ]);
 
 // ── CHECK 2 · pastas `components` sem underscore pré-existentes (grandfathered) ──
