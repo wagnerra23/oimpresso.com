@@ -12,6 +12,7 @@ import { execFileSync } from 'node:child_process';
 import { join, posix, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
+import { raizesDePages } from '../qa/page-path.mjs';
 
 const ROOT = process.cwd();
 const SCREEN_MANIFEST = 'tests/Browser/visreg-screens.json';
@@ -24,7 +25,9 @@ const CONTENT_AWARE_BACKEND = /(?:Http\/Controllers\/.+\.php$|^routes\/.+\.php$|
 export const normalizePath = (path) => String(path || '').replace(/\\/g, '/').replace(/^\.\//, '');
 
 function pageScreen(path) {
-  const rel = path.replace(/^resources\/js\/Pages\//, '').replace(new RegExp(`\\.${SOURCE_EXT}$`, 'i'), '');
+  // Descasca a raiz (núcleo OU módulo dono) — o nome da tela é o namespace, não o local.
+  const rel = path.replace(/^(?:Modules\/[^/]+\/[Rr]esources|resources)\/js\/Pages\//, '')
+    .replace(new RegExp(`\\.${SOURCE_EXT}$`, 'i'), '');
   const parts = rel.split('/');
   const auxiliaryPart = parts.findIndex((part, index) => index < parts.length - 1 && PAGE_AUX_DIR.test(part));
   const visible = auxiliaryPart > 0 ? parts.slice(0, auxiliaryPart) : parts;
@@ -32,12 +35,18 @@ function pageScreen(path) {
   return visible.join('/');
 }
 
+// DUAS raízes desde 2026-08-12: a tela pode morar no núcleo OU dentro do módulo dono
+// (`Modules/<X>/Resources/js/Pages/**`). O nome da tela é o NAMESPACE, que independe da raiz —
+// sem isto, tela migrada some do impacto e o gate visual deixa de exercitá-la em silêncio.
+const RAIZ_PAGES_RE = '(?:Modules/[^/]+/[Rr]esources|resources)/js/Pages';
+const RAIZ_PAGES_STRIP = /^(?:Modules\/[^/]+\/[Rr]esources|resources)\/js\/Pages\//;
+
 function isPageSource(path) {
-  return new RegExp(`^resources/js/Pages/.+\\.${SOURCE_EXT}$`, 'i').test(path);
+  return new RegExp(`^${RAIZ_PAGES_RE}/.+\\.${SOURCE_EXT}$`, 'i').test(path);
 }
 
 function isPageAuxiliary(path) {
-  const rel = path.replace(/^resources\/js\/Pages\//, '').split('/');
+  const rel = path.replace(RAIZ_PAGES_STRIP, '').split('/');
   return rel.slice(0, -1).some((part) => PAGE_AUX_DIR.test(part));
 }
 
@@ -108,6 +117,12 @@ export function createRepositoryConsumerResolver() {
     }
   };
   visit(join(ROOT, 'resources/js'));
+  // As telas do módulo dono também são consumidoras — sem varrê-las, mexer num componente
+  // compartilhado não acusaria as telas migradas, e o gate visual as pularia em silêncio.
+  for (const raiz of raizesDePages(ROOT)) {
+    if (!raiz.replace(/\\/g, '/').includes('/Modules/')) continue; // o núcleo já entrou acima
+    if (existsSync(raiz)) visit(raiz);
+  }
   return createConsumerResolver(entries);
 }
 
@@ -364,10 +379,11 @@ function run(argv) {
   const manifest = JSON.parse(readFileSync(join(ROOT, SCREEN_MANIFEST), 'utf8'));
   const manifestErrors = validateScreenManifest(manifest, {
     baselineExists: (baseline) => existsSync(join(ROOT, 'tests/.pest/snapshots/Browser/CoreScreens/PixelBaselineTest', baseline)),
+    // O manifesto declara a tela pelo NAMESPACE; o arquivo pode estar em qualquer uma das raízes.
     sourceExists: (source) => ['.tsx', '/Index.tsx', '.jsx', '/Index.jsx', '.ts', '/Index.ts', '.js', '/Index.js', '.vue', '/Index.vue']
-      .some((suffix) => existsSync(join(ROOT, 'resources/js/Pages', `${source}${suffix}`))),
+      .some((suffix) => raizesDePages(ROOT).some((raiz) => existsSync(join(raiz, `${source}${suffix}`)))),
     componentExists: (component) => ['.tsx', '.jsx', '.ts', '.js', '.vue']
-      .some((suffix) => existsSync(join(ROOT, 'resources/js/Pages', `${component}${suffix}`))),
+      .some((suffix) => raizesDePages(ROOT).some((raiz) => existsSync(join(raiz, `${component}${suffix}`)))),
   });
   if (manifestErrors.length) throw new Error(`contrato ${SCREEN_MANIFEST} invalido: ${manifestErrors.join('; ')}`);
   const needsConsumerGraph = changes.some((change) => /^resources\/js\//i.test(normalizePath(change.path)));
@@ -460,7 +476,10 @@ function selfTest() {
   const consumers = createConsumerResolver(new Map([
     ['resources/js/Components/Site/Hero.tsx', 'export default function Hero() {}'],
     ['resources/js/Layouts/SiteLayout.tsx', "import Hero from '@/Components/Site/Hero';"],
-    ['Modules/Cms/Resources/js/Pages/Site/Home.tsx', "import SiteLayout from '../../Layouts/SiteLayout';"],
+    // Tela no MÓDULO dono (2026-08-12): o relativo `../../Layouts` resolveria DENTRO do módulo,
+    // então quem mora fora do núcleo alcança o compartilhado pelo alias `@/` — que é o que o
+    // código real faz (1.785 imports contra 83 relativos, medido no dia da migração).
+    ['Modules/Cms/Resources/js/Pages/Site/Home.tsx', "import SiteLayout from '@/Layouts/SiteLayout';"],
     ['resources/js/Lib/money.ts', 'export const money = 1;'],
     ['resources/js/Pages/Sells/Create.tsx', "export { money } from '@/Lib/money';"],
   ]));
