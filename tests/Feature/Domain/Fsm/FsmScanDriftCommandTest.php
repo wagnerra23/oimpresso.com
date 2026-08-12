@@ -8,7 +8,7 @@ use App\Domain\Fsm\Models\SaleStageHistory;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 
 /**
  * US-SELL-032 v2 — Comando `fsm:scan-drift` (ADR 0129).

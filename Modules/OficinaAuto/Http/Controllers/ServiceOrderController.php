@@ -102,7 +102,7 @@ class ServiceOrderController extends Controller
         // Stages do processo real do carro, ordenados (multi-tenant via business_id).
         $stages = \App\Domain\Fsm\Models\SaleProcessStage::query()
             ->whereHas('process', function ($p) use ($businessId) {
-                $p->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
+                $p->withoutGlobalScope(\App\Scopes\ScopeByBusiness::class)
                     ->where('business_id', $businessId)
                     ->where('key', 'oficina_mecanica_os');
             })
@@ -227,7 +227,7 @@ class ServiceOrderController extends Controller
         // de transaction_id com pipelines de venda.
         $mecanicaStageIds = \App\Domain\Fsm\Models\SaleProcessStage::query()
             ->whereHas('process', function ($p) use ($businessId) {
-                $p->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
+                $p->withoutGlobalScope(\App\Scopes\ScopeByBusiness::class)
                     ->where('business_id', $businessId)
                     ->where('key', 'oficina_mecanica_os');
             })
@@ -239,7 +239,7 @@ class ServiceOrderController extends Controller
 
         // Histórico das OS do quadro, mais recente primeiro. Pega o 1º (latest) por OS.
         $rows = \App\Domain\Fsm\Models\SaleStageHistory::query()
-            ->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
+            ->withoutGlobalScope(\App\Scopes\ScopeByBusiness::class)
             ->where('business_id', $businessId)
             ->whereIn('transaction_id', $osIds)
             ->whereIn('to_stage_id', $mecanicaStageIds)
@@ -588,7 +588,7 @@ class ServiceOrderController extends Controller
             if (Schema::hasColumn('service_orders', 'current_stage_id')) {
                 $stageBaseQuery = \App\Domain\Fsm\Models\SaleProcessStage::query()
                     ->whereHas('process', function ($p) use ($order) {
-                        $p->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
+                        $p->withoutGlobalScope(\App\Scopes\ScopeByBusiness::class)
                             ->where('business_id', $order->business_id)
                             ->where('key', 'oficina_mecanica_os');
                     });

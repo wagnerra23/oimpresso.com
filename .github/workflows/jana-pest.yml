@@ -36,6 +36,13 @@ on:
       # aqui, o código foi pra lá). Sem esta linha, mexer no Controller NÃO roda o
       # MemoriaEdicaoMotivoTest — gate mudo com cara de cobertura (lápide §5 2026-08-02).
       - 'Modules/KB/Http/Controllers/MemoriaController.php'
+      # Os dois global scopes multi-tenant saíram de Modules/Jana/Scopes pra app/Scopes
+      # em 2026-08-12 (a seta apontava núcleo→módulo). Os testes de isolamento seguem
+      # aqui e asseguram a CHAVE do scope — sem esta linha, mexer no scope não roda o
+      # guard dele: mesmo gate mudo da lápide §5 2026-08-02 citada logo acima.
+      - 'app/Scopes/**'
+      - 'app/Concerns/HasBusinessScope.php'
+      - 'app/Concerns/BelongsToBusinessViaParent.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/jana-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -126,13 +133,16 @@ jobs:
             Modules/Jana/Tests/Feature/Memoria/MemoriaEdicaoMotivoTest.php \
             Modules/Jana/Tests/Feature/RetentionPurgeCommandTest.php \
             Modules/Jana/Tests/Feature/EntitiesFilhasMultiTenantViaParentTest.php \
+            Modules/Jana/Tests/Feature/MultiTenantIsolationTest.php \
+            Modules/Jana/Tests/Feature/MultiTenantIsolationComprehensiveTest.php \
             Modules/Jana/Tests/Feature/PeriodosControllerCrossTenantTest.php \
             Modules/Jana/Tests/Feature/FontesControllerCrossTenantTest.php \
             Modules/Jana/Tests/Feature/JanaAccessGateTest.php \
             Modules/Jana/Tests/Feature/Console/JanaRagasFailuresNoSilentCapTest.php \
             Modules/Jana/Tests/Feature/Wave14GovernanceV3Test.php \
             Modules/Jana/Tests/Feature/CockpitMockRemovidoTest.php \
-            Modules/Jana/Tests/Feature/FarolServerSideTest.php
+            Modules/Jana/Tests/Feature/FarolServerSideTest.php \
+            Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitShaPreservaTest.php
           # BriefDiarioAgentTest saiu daqui em 2026-08-10: guard sqlite-only fazia
           # ele pular 100% das vezes nesta lane MySQL (skip = exit 0 = verde que não
           # provava nada), e ele monta schema sintético com dropIfExists — o que a

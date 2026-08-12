@@ -9,7 +9,7 @@ use App\Product;
 use App\Variation;
 use Illuminate\Support\Facades\Log;
 use LogicException;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 
 /**
  * BomResolver — resolve Bill of Materials de um produto em lista plana de

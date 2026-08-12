@@ -17,7 +17,7 @@ use App\Domain\Fsm\Support\FsmAuthorizationFlag;
 use App\Transaction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Symfony\Component\HttpFoundation\Response;
 
 /**

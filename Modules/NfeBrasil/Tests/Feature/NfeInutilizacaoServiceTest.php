@@ -6,7 +6,7 @@ use App\Domain\Fsm\Exceptions\UnauthorizedActionException;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Models\NfeInutilizacao;
 use Modules\NfeBrasil\Services\CertificadoService;

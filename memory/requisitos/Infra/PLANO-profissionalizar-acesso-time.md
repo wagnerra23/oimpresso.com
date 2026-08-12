@@ -160,7 +160,7 @@ Ou seja: *"esconder e liberar só o necessário"* no código = escolher **quais 
 **Resposta:** **1 repositório agora** (só torná-lo privado). **+1 em 6–12 meses** — o dos **daemons/infra do CT 100** (Baileys, crons, Proxmox/Docker), justificado por **fronteira de runtime real** ([ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md)), **não** por segredo. **Zero repos "só-Wagner".**
 
 **Por que a Jana não sai (prova por grep):**
-- `Modules\Jana\Scopes\ScopeByBusiness` — o **global scope multi-tenant Tier 0** ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) — é importado por **~207 arquivos em 30 módulos**; `PiiRedactor` (LGPD) por **~90**; o core (`app/`) importa Jana em **~23** arquivos.
+- `App\Scopes\ScopeByBusiness` — o **global scope multi-tenant Tier 0** ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) — é importado por **~207 arquivos em 30 módulos**; `PiiRedactor` (LGPD) por **~90**; o core (`app/`) importa Jana em **~23** arquivos.
 - A "joia" que se quer esconder **é a fundação multi-tenant do ERP inteiro**, não um pedaço isolável. Extrair pra repo separado (Nível 2) → **o build quebra pra todo o time**, ou pior, o isolamento entre empresas **some silenciosamente** (o pior bug possível).
 - Nível 3 (serviço) também não resolve: `ScopeByBusiness`/`PiiRedactor` rodam **in-process no Eloquent/pipeline**, não são endpoint; e pôr lógica fiscal atrás de HTTP num CT 100 que **já é P0 de DR** ([AUDITORIA-OPS-DR-2026-07](AUDITORIA-OPS-DR-2026-07.md)) vira **SPOF de faturamento** (CT 100 cai → ROTA LIVRE, 99% do volume, para de vender/emitir NFe).
 - O que **seria** extraível (verticais folha `OficinaAuto`/`ComunicacaoVisual`) **não é IP secreto** — logo, não há o que esconder ali.

@@ -7,7 +7,7 @@ namespace Modules\Jana\Services\Memoria;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Modules\Jana\Entities\MemoriaFato;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 
 /**
  * HistoricoMemoriaService — TIME-TRAVEL na memoria Jana (ADR 0295, T4 slice 2).
