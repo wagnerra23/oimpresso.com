@@ -8,7 +8,7 @@ id: requisitos-whatsapp-pii-redaction
 
 ## Implementação canônica
 
-PII em mensagens WhatsApp / payloads webhook é redactada via `Modules\Jana\Services\Privacy\PiiRedactor` (serviço compartilhado entre Jana e Whatsapp — único canon).
+PII em mensagens WhatsApp / payloads webhook é redactada via `App\Support\Privacy\PiiRedactor` (serviço compartilhado entre Jana e Whatsapp — único canon).
 
 ## Pontos de uso atuais
 

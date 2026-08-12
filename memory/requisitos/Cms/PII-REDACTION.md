@@ -8,7 +8,7 @@ id: requisitos-cms-pii-redaction
 
 ## Implementação canônica
 
-PII de leads/contatos/conteúdo público Cms é redactada via `Modules\Jana\Services\Privacy\PiiRedactor` (serviço compartilhado canon entre módulos).
+PII de leads/contatos/conteúdo público Cms é redactada via `App\Support\Privacy\PiiRedactor` (serviço compartilhado canon entre módulos).
 
 ## Pontos de uso
 
@@ -61,7 +61,7 @@ Override via `.env` (`CMS_RETENTION_LEADS_DAYS` etc).
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) (multi-tenant Tier 0) — PII NUNCA cruza tenant; purge sempre scopado por `business_id`
 - [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) §4 — custo IA tracking (purge não toca LLM)
 - skill `commit-discipline` (Tier A) — bloqueia PII real em commit
-- `Modules/Jana/Services/Privacy/PiiRedactor.php` — implementação canônica
+- `app/Support/Privacy/PiiRedactor.php` — implementação canônica
 - `memory/requisitos/Crm/PII-REDACTION.md` — pattern espelho (Onda 9)
 
 ---

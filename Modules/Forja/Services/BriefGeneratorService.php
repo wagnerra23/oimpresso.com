@@ -5,7 +5,7 @@ namespace Modules\Forja\Services;
 use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use RuntimeException;
 
 /**
@@ -238,7 +238,7 @@ PROMPT;
         // (provedor externo BR). Mesmo brief sendo interno, payload pode
         // conter emails/telefones do time. Defesa em profundidade — config
         // em Modules/Forja/Config/retention.php#redact_pii_before_llm.
-        // Ver: Modules\Jana\Services\Privacy\PiiRedactor + ADR Constituição §4.
+        // Ver: App\Support\Privacy\PiiRedactor + ADR Constituição §4.
         if (config('brief.redact_pii_before_llm', true)) {
             $payload = app(PiiRedactor::class)->redactArray($payload);
         }

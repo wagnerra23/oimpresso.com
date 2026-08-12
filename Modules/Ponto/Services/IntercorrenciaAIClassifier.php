@@ -3,7 +3,7 @@
 namespace Modules\Ponto\Services;
 
 use Illuminate\Support\Facades\Cache;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Throwable;
 
 /**

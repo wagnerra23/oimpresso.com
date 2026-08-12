@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Ai\Agents\ClarificadorAgent;
 use Modules\Jana\Entities\Conversa;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Modules\Jana\Support\ClarifyResult;
 use Modules\Jana\Support\ContextoNegocio;
 use Throwable;

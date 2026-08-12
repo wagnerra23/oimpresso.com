@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 /**
  * D7.a — PiiRedactor integrado em RevertService.
@@ -21,11 +21,11 @@ uses(Tests\TestCase::class);
 
 it('redacta CPF em string de razao livre antes de persistir', function () {
     $redactor = new PiiRedactor();
-    $reasonComPii = 'Cliente Larissa CPF 123.456.789-00 pediu reverter por email larissa@rotalivre.com.br';
+    $reasonComPii = 'Cliente Larissa CPF 123.456.789-00 pediu reverter por email larissa@rotalivre.com.br'; # pii-allowlist
 
     $redacted = $redactor->redact($reasonComPii, 'placeholder');
 
-    expect($redacted)->not->toContain('123.456.789-00');
+    expect($redacted)->not->toContain('123.456.789-00'); # pii-allowlist
     expect($redacted)->not->toContain('larissa@rotalivre.com.br');
     expect($redacted)->toContain('[REDACTED:CPF]');
     expect($redacted)->toContain('[REDACTED:EMAIL]');
@@ -33,11 +33,11 @@ it('redacta CPF em string de razao livre antes de persistir', function () {
 
 it('redacta CNPJ + telefone BR mantendo contexto legivel', function () {
     $redactor = new PiiRedactor();
-    $reason = 'CNPJ 12.345.678/0001-90 ligou no telefone (48) 99999-1234 pedindo cancelamento';
+    $reason = 'CNPJ 12.345.678/0001-90 ligou no telefone (48) 99999-1234 pedindo cancelamento'; # pii-allowlist
 
     $redacted = $redactor->redact($reason, 'placeholder');
 
-    expect($redacted)->not->toContain('12.345.678/0001-90');
+    expect($redacted)->not->toContain('12.345.678/0001-90'); # pii-allowlist
     expect($redacted)->toContain('[REDACTED:CNPJ]');
     expect($redacted)->toContain('[REDACTED:PHONE]');
     expect($redacted)->toContain('ligou no telefone'); // contexto preservado

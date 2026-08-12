@@ -36,7 +36,7 @@ declare(strict_types=1);
  *
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md
- * @see Modules\Jana\Services\Privacy\PiiRedactor
+ * @see App\Support\Privacy\PiiRedactor
  */
 
 return [

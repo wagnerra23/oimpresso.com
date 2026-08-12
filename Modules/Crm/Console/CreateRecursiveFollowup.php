@@ -8,7 +8,7 @@ use DB;
 use Illuminate\Console\Command;
 use Modules\Crm\Entities\Schedule;
 use Modules\Crm\Utils\CrmUtil;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 class CreateRecursiveFollowup extends Command
 {

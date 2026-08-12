@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Jana\Services\Privacy;
+namespace App\Support\Privacy;
 
 use App\Util\OtelHelper;
 

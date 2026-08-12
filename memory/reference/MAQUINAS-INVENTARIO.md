@@ -464,7 +464,7 @@ lifecycle: ativo
 | `bundle-lint.mjs` | ci, npm | esteira ≠ armazém (régua 6 da memória de proveniência). |
 | `casos-coverage-guard.mjs` | agente, ci, npm, script | scripts/casos-coverage-guard.mjs — Gate G-1 (trio-de-tela) + G-2 (rastreabilidade caso↔teste) |
 | `casos-results-collect.mjs` | ci, npm, script | scripts/casos-results-collect.mjs — Coletor de test-results → manifesto por-UC (Salto #2, |
-| `components-tree-guard.mjs` | ci, npm, script | scripts/components-tree-guard.mjs — árvore canônica de Components/ (allowlist + convenção _components) |
+| `components-tree-guard.mjs` | agente, ci, npm, script | scripts/components-tree-guard.mjs — árvore canônica de Components/ (allowlist + convenção _components) |
 | `conformance-gate.mjs` | ci, npm, script | Determinístico, sem browser, sem dependência. Roda em CI (exit≠0 = bloqueia merge) E local. |
 | `contrato-de-tela.mjs` | ci, npm, script | Gate "Contrato de Tela" (a perna de fidelidade visual do trio-de-tela). |
 | `css-size-baseline.mjs` | ci, npm, script | scripts/css-size-baseline.mjs — ratchet de TAMANHO do CSS (anti-regrowth). |
@@ -515,6 +515,7 @@ lifecycle: ativo
 | `governance/jana-ragas-baseline.json` | Baseline RAGAS canary Jana — recriado via workflow_dispatch jana-ragas-canary.yml (US-COPI-116). Não editar à mão; usar update_baseline=true no dispat… |
 | `governance/jana-ragas-real-baseline.json` | (baseline/estado) |
 | `governance/ledger-checkpoints.json` | (baseline/estado) |
+| `governance/module-coupling-baseline.json` | (baseline/estado) |
 | `governance/module-grades-baseline.json` | (baseline/estado) |
 | `governance/module-group.json` | (baseline/estado) |
 | `governance/multi-tenant-scope-baseline.json` | (baseline/estado) |
@@ -542,4 +543,4 @@ lifecycle: ativo
 | `scripts/perf-static-baseline.json` | perf-static-guard (Onda 4 lente 5b — AUDITORIA-PERFORMANCE-2026-07, ratchet advisory) |
 | `scripts/reuse-duplicates-baseline.json` | (baseline/estado) |
 
-> Total baselines JSON em governance/+config/+scripts: 43 · (mais ~5 dot-baselines na raiz + fixtures em tests/).
+> Total baselines JSON em governance/+config/+scripts: 44 · (mais ~5 dot-baselines na raiz + fixtures em tests/).

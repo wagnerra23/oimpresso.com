@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\DB;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Modules\KB\Entities\KbComment;
 use Modules\KB\Entities\KbNode;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -16,7 +16,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  *   1. PiiRedactor wired — Services que tocam query/body do user redactam
  *      PII (CPF, CNPJ, email, CEP, telefone BR) antes de cache/log/LLM.
  *      Defense-in-depth: KbRagService::ask + ::summarize + ::suggestMeta
- *      passam tudo por Modules/Jana/Services/Privacy/PiiRedactor.
+ *      passam tudo por app/Support/Privacy/PiiRedactor.
  *
  *   2. LogsActivity em Models editáveis — KbNode + KbComment usam o trait
  *      Spatie ActivityLog (logFillable + logOnlyDirty) pra registrar QUEM
@@ -31,7 +31,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * Tier 0 (ADR 0093): tests usam biz=1 + biz=99 — NUNCA biz=4 (ROTA LIVRE prod).
  *
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
- * @see Modules/Jana/Services/Privacy/PiiRedactor.php
+ * @see app/Support/Privacy/PiiRedactor.php
  * @see Modules/KB/Services/KbRagService.php (redactPii method)
  */
 
