@@ -67,3 +67,17 @@ títulos acima de 365 dias
 contacts com LTV >
 régua HITL preparada
 DRE conferido
+
+# ── §5 · lápide 2026-07-16 (importar solução externa sem checar a premissa) ──
+# O `G: +R$5` é um exemplo de UI: ilustra o "ajuste por eixo" que foi copiado do
+# Odoo e depois REJEITADO. Não é valor de cliente, faturamento ou meta — é o
+# número que a lápide usa pra mostrar a forma do anti-padrão que ela bane.
+#
+# POR QUE APARECE AGORA, sendo texto de julho: o §5 migrou pra
+# `memory/licoes-rejeitadas.md` (ADR 0376) e o gate é diff-only — num arquivo NOVO
+# toda linha é "nova", então a dívida sai do grandfather de uma vez. É a lápide §5
+# 2026-07-12 ("tocar legado acorda gate diff-aware") na variante criar-arquivo.
+#
+# Substring com o contexto junto (não `R$5` solto), pelo mesmo motivo das entradas
+# acima: isentar o valor sozinho abriria a porta pra qualquer linha em qualquer arquivo.
+virou "ajuste por eixo" (`G: +R$5`)
