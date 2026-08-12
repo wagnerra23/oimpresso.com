@@ -14,8 +14,9 @@
  * aparecem SÓ no cartão "Tabela de preço" — nunca em `linhaTotal`, `subtotal` ou `total`.
  * O preço unitário mora em `itens`, que a seleção não toca. Então escolher outro cliente
  * muda o que a tela DIZ (tabela do cadastro, grupo, prazo) e não muda nenhum número.
- * Isso é deliberado: a lápide de 2026-07-15 (`CustomerSearchAutocomplete` reaplicando
- * `selling_price_group_id` no `onSelect`) é exatamente o caminho que esta onda não anda.
+ * Isso é deliberado: a lápide de 2026-07-15 (o `CustomerSearchAutocomplete` **entrega**
+ * `selling_price_group_id` no `onSelect`, e o parent `Sells/Create.tsx:500` reaplica via
+ * `handlePriceGroupChange`) é exatamente o caminho que esta onda não anda.
  * `ClienteConsulta` nem carrega campo de preço — a ausência é a defesa.
  */
 
