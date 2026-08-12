@@ -4,7 +4,14 @@ title: "RUNBOOK — /settings/payment-gateways (Tela 2 PaymentGateway UI F3)"
 type: runbook
 authority: canonical
 lifecycle: ativo
-related_adrs: [0093, 0094, 0104, 0144, 0170]
+owner: W
+last_validated: "2026-08-12"
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0144-tasks-db-canonico-spec-template
+  - 0170-bancos-nativos-top5-drivers-separados
 related_us: [US-PG-F3-SETTINGS]
 parent_module: PaymentGateway
 persona: Wagner (superadmin / dono)
