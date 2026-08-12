@@ -69,11 +69,20 @@ return [
 
         'ensure_pages_exist' => false,
 
-        'paths' => [
-
-            resource_path('js/Pages'),
-
-        ],
+        /*
+         * DUAS raízes desde 2026-08-12: a tela pode morar no núcleo OU dentro do módulo dono
+         * (`Modules/<X>/Resources/js/Pages/**`), e o resolver do Inertia mescla os dois globs
+         * em `resources/js/app.tsx` + `ssr.tsx`. Esta lista é o que o `inertia.view-finder`
+         * consulta — sem as raízes dos módulos, o `AssertableInertia::component()` reprova tela
+         * que resolve PERFEITAMENTE em runtime ("Inertia page component file [...] does not
+         * exist"), que foi o que derrubou 6 asserts do `ForjaRoutesSmokeTest`.
+         *
+         * O glob é avaliado no boot da config; módulo novo entra sem editar este arquivo.
+         */
+        'paths' => array_merge(
+            [resource_path('js/Pages')],
+            glob(base_path('Modules/*/Resources/js/Pages')) ?: [],
+        ),
 
         'extensions' => [
 
@@ -104,23 +113,10 @@ return [
 
     'testing' => [
 
+        // ⚠️ `page_paths` NÃO é chave deste bloco. Eu a inventei aqui num commit anterior
+        // (contrato lembrado, não lido) e o efeito foi NULO — a lista que o `inertia.view-finder`
+        // consulta é `inertia.pages.paths`, logo acima, e é lá que as raízes dos módulos entram.
         'ensure_pages_exist' => true,
-
-        /*
-         * DUAS raízes desde 2026-08-12: a tela pode morar no núcleo OU dentro do módulo dono
-         * (`Modules/<X>/Resources/js/Pages/**`), e o resolver do Inertia mescla os dois globs
-         * em `resources/js/app.tsx` + `ssr.tsx`.
-         *
-         * Sem declarar aqui, o `page_paths` cai no default do pacote (só `resource_path('js/Pages')`)
-         * e o `AssertableInertia::component()` reprova tela que resolve PERFEITAMENTE em runtime —
-         * foi o que derrubou 3 asserts do `ForjaRoutesSmokeTest` no PR da migração.
-         *
-         * O glob é avaliado uma vez no boot da config; módulo novo entra sem editar este arquivo.
-         */
-        'page_paths' => array_merge(
-            [resource_path('js/Pages')],
-            glob(base_path('Modules/*/Resources/js/Pages')) ?: [],
-        ),
 
     ],
 
