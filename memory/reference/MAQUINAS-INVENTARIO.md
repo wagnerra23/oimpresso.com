@@ -18,7 +18,7 @@ lifecycle: ativo
 > - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`
 > - Gates/Workflows → `scripts/governance/gates-registry.json` · Required → `governance/required-checks-baseline.json`
 
-## 1. Workflows / Gates de CI — 123 (43 contexts required)
+## 1. Workflows / Gates de CI — 123 (44 contexts required)
 
 | Workflow | Descrição |
 |---|---|
@@ -345,7 +345,7 @@ lifecycle: ativo
 | `blade-migration-census.mjs` | ci, script | o CONTRATO DE COMPLETUDE da ADR 0277, derivado da árvore. |
 | `briefing-code-staleness.mjs` | agente, ci, npm, script | sentinela: a PORTA (BRIEFING.md) ficou atrás do CÓDIGO? |
 | `brl-scan-diff.mjs` | ci, script | varre as LINHAS ADICIONADAS de um PR procurando valor BRL não-redigido. |
-| `catalog-graph.mjs` | ci, script | GERADOR determinístico do GRAFO TIPADO de módulos. |
+| `catalog-graph.mjs` | agente, ci, script | GERADOR determinístico do GRAFO TIPADO de módulos. |
 | `charter-blueprint-pointers.mjs` | ci, script | auditoria de PONTEIROS DE PROTÓTIPO dos Page Charters. |
 | `charter-live-signal.mjs` | ci, script | gate de SINAL pra charter `status: live` (proposta SDD 2026-06-24). |
 | `charter-promote-signal.mjs` | script | passe REPETÍVEL de promoção draft→live guiado por SINAL de prod. |
@@ -404,7 +404,7 @@ lifecycle: ativo
 | `next-id.mjs` | agente, script | aloca o próximo número de ADR/US **ciente de trabalho em voo** (ADR 0304). |
 | `normalize-adr-frontmatter.mjs` | npm | normaliza status/lifecycle de ADR pro enum canônico. |
 | `onboarding-paths-check.mjs` | agente, script | a CAMADA DETERMINÍSTICA do canário de onboarding. |
-| `outcome-metrics.mjs` | ci, script | MEDIDOR DE ACEITAÇÃO do transporte Cowork→code (Onda O1). |
+| `outcome-metrics.mjs` | agente, ci, script | MEDIDOR DE ACEITAÇÃO do transporte Cowork→code (Onda O1). |
 | `palette-generate.mjs` | ci | GERADOR determinístico da página de paleta de cor. |
 | `permissao-renomeada-lint.mjs` | ci | barra o nome VELHO de permissão renomeada em linha NOVA. |
 | `permission-drift.mjs` | ci | mede o drift entre permissão DECLARADA e permissão APLICADA. |
@@ -505,6 +505,7 @@ lifecycle: ativo
 | `governance/blade-migration-baseline.json` | Censo de migração Blade→React — catraca só-desce por escopo (ADR 0277 contrato de completude) |
 | `governance/charter-refs-baseline.json` | (baseline/estado) |
 | `governance/deadlink-baseline.json` | (baseline/estado) |
+| `governance/dependency-direction-baseline.json` | (baseline/estado) |
 | `governance/doc-id-index.json` | (baseline/estado) |
 | `governance/doneness-baseline.json` | doneness GRANDFATHER — conflitos status×âncora legados isentos (ratchet só-desce · ADR 0302/0275 advisory→required por calendário) |
 | `governance/ds-ledger.json` | (baseline/estado) |
@@ -541,4 +542,4 @@ lifecycle: ativo
 | `scripts/perf-static-baseline.json` | perf-static-guard (Onda 4 lente 5b — AUDITORIA-PERFORMANCE-2026-07, ratchet advisory) |
 | `scripts/reuse-duplicates-baseline.json` | (baseline/estado) |
 
-> Total baselines JSON em governance/+config/+scripts: 42 · (mais ~5 dot-baselines na raiz + fixtures em tests/).
+> Total baselines JSON em governance/+config/+scripts: 43 · (mais ~5 dot-baselines na raiz + fixtures em tests/).
