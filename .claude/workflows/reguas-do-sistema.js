@@ -131,10 +131,43 @@ const RESEARCH_SCHEMA = {
 }
 const VERDICT = { type: 'object', additionalProperties: false, required: ['veredito', 'razao'], properties: {
   veredito: { type: 'string', enum: ['ACIMA_CONFIRMADO', 'EMPATADO', 'REFUTADO'] }, razao: { type: 'string' }, quem_ja_faz: { type: 'string' } } }
+// ── RUBRICA DA NOTA ──────────────────────────────────────────────────────────
+// POR QUE EXISTE (defeito MEDIDO, passe adversarial 2026-08-11): `nota_sugerida` era
+// `{ type: 'number' }` — sem bounds, sem rubrica, e o prompt pedia só "a nota 0-10".
+// O determinismo estava na MÉDIA, nunca nas NOTAS. Prova: 4 fraquezas cujo verificador
+// declarou a premissa FALSA receberam 9,0 · 7,5 · 6,0 · 6,0 — spread de 3,5 na MESMA
+// classe de veredito ⇒ ruído inter-verificador ≈ ±0,5, que engole qualquer Δ entre
+// rodadas (o 7,7→7,1 de 08-08→08-11 estava inteiramente dentro dele).
+//
+// A escada NÃO é inventada: é a que o projeto já aplica em prosa espalhada — "LIGUE A
+// MÁQUINA" item 2 (máquina sem invocador é bug), ADR 0275 (nasce advisory), ADR 0336
+// DR-2 (promoção exige mordida provada), LC-11 (presença ≠ comportamento) e LC-13
+// (verde por não-execução). Aqui ela vira ESCALA, que é o que faltava.
+// NÃO exportar: este arquivo é script de workflow, não módulo ESM comum — só o
+// `export const meta` do topo é tratado pelo runtime. Um `export` no meio quebra o
+// carregamento (medido: `SyntaxError: Unexpected token 'export'` no selftest).
+const RUBRICA_NOTA = [
+  '0-2  AUSENTE    — não há mecanismo; a fraqueza É a ausência.',
+  '3-4  ÓRFÃO/MUDO — existe e NINGUÉM invoca (máquina sem invocador é bug), OU roda e não entrega ("roda ≠ entrega"), OU a suíte não executa o que afirma provar (LC-13).',
+  '5-6  REPORTA    — roda e reporta de verdade, mas advisory sem consumidor, OU cobertura de 1 caso, OU oráculo derivado do próprio código (tautológico).',
+  '7-8  MORDE      — morde num chokepoint provado, com bite-test; falta cobertura declarada OU falso-positivo medido antes de armar.',
+  '9-10 CONSUMIDO  — bite-test + controle negativo, FP medido ANTES, cobertura declarada, e o resultado entra numa DECISÃO (não só num relatório).',
+  'DURO: presença NUNCA passa de 4 sozinha (LC-11). Verde que não pode ficar vermelho NUNCA passa de 4 (carimbo).',
+  'DURO: sem evidência file:line verificável ⇒ `nota_sugerida: null` (não pontuável). NUNCA um número de conforto — a célula vazia É o achado.',
+  'DURO: a nota é do MECANISMO naquela fraqueza. Agregar dimensões num índice é proibido (lápide §5 2026-07-17, chip C9).',
+].join('\n')
+
 const EXISTE = { type: 'object', additionalProperties: false, required: ['veredito', 'evidencia', 'nota_sugerida'], properties: {
   veredito: { type: 'string', enum: ['JA_EXISTE_TOTAL', 'PARCIAL', 'NAO_EXISTE'] },
   evidencia: { type: 'string', description: 'arquivo:linha / workflow / required-vs-advisory — ou prova de ausência' },
-  nota_sugerida: { type: 'number' }, onde_indexar: { type: 'string' } } }
+  // `null` é LEGÍTIMO e OBRIGATÓRIO quando a evidência não é verificável — a composição
+  // já filtra por `typeof === 'number'` (:396), então a célula não-pontuável some da média
+  // em vez de virar número inventado, e o caveat de denominador declara a mudança de
+  // conjunto. Precedente que motivou: na rodada de 08-11, 2 de 8 células tiveram a
+  // evidência truncada em ~200 chars e o adversário se RECUSOU a pontuá-las — a recusa
+  // era o achado, e o schema não tinha como registrá-la.
+  nota_sugerida: { type: ['number', 'null'], minimum: 0, maximum: 10, description: RUBRICA_NOTA },
+  onde_indexar: { type: 'string' } } }
 // Teste de integração: o peer refutado monta o TODO integrado, ou só a peça isolada? (anti-falácia-de-composição — Wagner 2026-07-10, proibições §5)
 // EMENDA 2026-07-19 (proibições §5): braço discriminativo real. O campo `incremento` é OBRIGATÓRIO — força
 // nomear o que a integração acrescenta ALÉM da soma das peças; "nenhum além da identidade" é resposta válida e
@@ -272,6 +305,41 @@ const montarCobertura = ({ modo, etapas = [], notas = {}, dimsAlvo = [], eixoDe 
 }
 /* COBERTURA-FIM */
 
+/* DENOMINADOR-INI */
+// Caveat de DENOMINADOR — DERIVADO da comparação de conjuntos, NUNCA escrito à mão.
+// POR QUE (defeito medido 2026-08-11): a nota é MÉDIA sobre um conjunto de fraquezas. Mudou o
+// conjunto, o Δ não mede capacidade. `memoria-conhecimento` saiu de 7,7 (2026-08-08, 2 fraquezas
+// com data daquela rodada) para 7,1 (2026-08-11, 8 fraquezas) com interseção de ids **VAZIA** —
+// e a dimensão tem 13 fraquezas no ledger (média das 13 = 7,4). Sem o caveat, a próxima sessão lê
+// 7,7 → 7,1 como REGRESSÃO DE CAPACIDADE quando é amostragem: é a lápide §5 2026-07-27
+// ("denominador inventado") reincidindo dentro da máquina que a registrou. O retrato de 08-08 TINHA
+// o caveat em 4 dimensões, mas escrito à mão pelo agente — por isso o de 08-11 não teve nenhum.
+// Os dois modos precisam de tratamentos DIFERENTES porque a origem do conjunto difere:
+//  · FULL  — as fraquezas vêm de `p.oimpresso_atras`, ou seja, da PESQUISA DO DIA: o conjunto é
+//            re-sorteado por construção e não tem id do ledger, então NÃO é comparável item-a-item.
+//            (O JS do Workflow não tem filesystem — não pode ler retratos.json pra comparar.)
+//  · DELTA — as fraquezas vêm do LEDGER (com id) e o scan traz a nota anterior, então dá pra
+//            derivar de verdade quem ENTROU (era nota:null) e quem SAIU (tinha nota, não re-medida).
+// Função PURA (zero globals). Os marcadores DENOMINADOR-INI/FIM seguem a convenção visual do
+// arquivo, mas — medido: `grep` por CAP-ESTRAT-INI/COBERTURA-INI no repo dá ZERO consumidores — não
+// existe harness que extraia por marcador. Quem testa o código REAL é reguas-workflow.test.mjs, que
+// carrega o ARQUIVO INTEIRO num dublê e exercita esta função pelo pipeline (mais forte que extrair).
+const caveatDenominador =({ medidos = [], referencia = null, dataRef = null, reSorteado = false }) => {
+  const ref = dataRef || 'o retrato anterior'
+  if (reSorteado) {
+    return `[ATENÇÃO] DENOMINADOR NÃO COMPARÁVEL: no modo full as fraquezas são RE-LEVANTADAS pela pesquisa do dia (${medidos.length}) e não vêm do ledger — o Δ de nota vs ${ref} NÃO é mudança de capacidade, é amostragem (regra 12)`
+  }
+  if (!Array.isArray(referencia)) return null
+  const entraram = medidos.filter((x) => !referencia.includes(x))
+  const sairam = referencia.filter((x) => !medidos.includes(x))
+  if (!entraram.length && !sairam.length) return null
+  const p = []
+  if (entraram.length) p.push(`entraram ${entraram.join('+')}`)
+  if (sairam.length) p.push(`saíram (tinham nota e NÃO foram re-medidas) ${sairam.join('+')}`)
+  return `[ATENÇÃO] DENOMINADOR MUDOU: ${p.join('; ')} — o Δ vs ${ref} NÃO é mudança de capacidade, é amostragem (regra 12)`
+}
+/* DENOMINADOR-FIM */
+
 // `fit` vive AQUI (e não mais só na fase Grade) porque a persistência incremental também precisa
 // dele — e um `const` declarado depois estaria em TDZ pro checkpoint que roda antes. Corta com
 // LOG (nunca em silêncio): "No silent caps — log() what was dropped" (regra do tool Workflow).
@@ -282,11 +350,34 @@ const fit = (nome, obj, cap) => {
   return s.slice(0, cap)
 }
 
+// ── EVIDÊNCIA ÍNTEGRA no ledger (defeito MEDIDO 2026-08-11, não hipótese) ────────────────────
+// `evidencia` é REQUIRED no schema EXISTE (é o que torna a nota AUDITÁVEL) e era descartada na
+// persistência por três `.slice()` mudos — 200 no full, 250 nos dois sites do delta. Medido nas 8
+// entradas gravadas em 2026-08-11 (rodada `full-parcial`, logo o cap de 200 é que cortou):
+// comprimentos 202, 203, 203, 203, 203, 205, 210, 249, TODAS cortadas no meio da palavra
+// ("…migration 2026_06_20_000002_add_eve", "…(valid_from/val", "…advisory em .github/").
+// Consequência: nenhuma das 8 notas é auditável a partir do ledger, e o corolário da regra 12
+// ("nota precisa de artefato versionado") nunca fecha — mesma família dos `residuos_irrecuperaveis`
+// do config.json, cuja fonte de recuperação seria o journal.jsonl não-versionado.
+// O teto aqui NÃO é o cap velho com outro número: (a) é ~6× o MAIOR valor observado no corpus
+// (max=335, p50=139, p90=235 em n=63) — na prática não morde; (b) LOGA quando morder ("No silent
+// caps — log() what was dropped"); (c) existe só pra uma evidência patológica não estourar o `fit`
+// global (120k), que corta a STRING JSON no meio e entregaria JSON inválido ao persistidor.
+const EVID_CAP = 2000
+const evid = (s, quem) => {
+  const t = String(s || '')
+  if (t.length <= EVID_CAP) return t
+  log(`⚠️ EVIDÊNCIA CORTADA (${quem}): ${t.length} → ${EVID_CAP} chars — o ledger perde o final desta prova`)
+  return t.slice(0, EVID_CAP)
+}
+
 // Prompts de persistência COMPARTILHADOS entre full e delta (uma fonte só pras regras duras do
 // ledger: append-only no retrato · upsert por id · PRESERVAR `indexado` · validar com JSON.parse).
 const promptClaims = (rows, comId) =>
   `PERSISTIR (checkpoint incremental) as CLAIMS desta rodada em ${BASE}/${LEDGER_DIR}/claims.json (crie o arquivo se não existir — schema no README.md de lá). Dados JÁ FECHADOS (transcreva, não reinterprete): ${rows}\n` +
-  `Passos EXATOS: (1) upsert POR ID — ${comId ? 'o id vem nos dados; NUNCA crie entrada nova pra id existente' : 'derive o id de dimensao+slug do título e REUSE o id já existente quando a claim já estiver no arquivo (não duplique a mesma claim com id novo)'}; grave refutador, peer, integracao (veredito do teste de integração) e data_veredito = hoje (ISO); ttl_dias = 30 se o veredito do refutador for ACIMA_CONFIRMADO, senão 90. (2) PRESERVE os campos existentes que não vieram nos dados — em especial \`correcao_obrigatoria\` e \`journal\` (a correção viaja COM a claim). (3) valide o arquivo com node (JSON.parse) e só então retorne ok:true. NÃO toque em retratos.json nem em fraquezas.json — outro checkpoint cuida deles.`
+  `Passos EXATOS: (1) upsert POR ID — ${comId ? 'o id vem nos dados; NUNCA crie entrada nova pra id existente' : 'derive o id de dimensao+slug do título e REUSE o id já existente quando a claim já estiver no arquivo (não duplique a mesma claim com id novo)'}; grave refutador, peer, integracao (veredito do teste de integração), **incremento** e data_veredito = hoje (ISO); ttl_dias = 30 se o veredito do refutador for ACIMA_CONFIRMADO, senão 90.\n` +
+  `    ⚠️ \`incremento\` é OBRIGATÓRIO quando vier nos dados (só o full o produz — o delta não roda Integração e ali ele NÃO vem; nesse caso preserve o que já existe, regra (2)). É a JUSTIFICATIVA do veredito de integração: sem ele um DIFERENCIAL_SISTEMA fica no ledger como carimbo sem razão, e um REFUTADO_TB perde o motivo. Grave a frase LITERAL, não resuma.\n` +
+  ` (2) PRESERVE os campos existentes que não vieram nos dados — em especial \`correcao_obrigatoria\` e \`journal\` (a correção viaja COM a claim). (3) valide o arquivo com node (JSON.parse) e só então retorne ok:true. NÃO toque em retratos.json nem em fraquezas.json — outro checkpoint cuida deles.`
 
 const promptRetrato = ({ modoRetrato, notas, proveniencia, cobertura, placar, integHistInstrucao, fraquezasRows, extraRetrato }) =>
   `PERSISTIR (checkpoint incremental) FRAQUEZAS + RETRATO no ledger ${BASE}/${LEDGER_DIR}/ (crie os arquivos se não existirem — schema no README.md de lá). NÚMEROS JÁ FECHADOS EM JS (transcreva LITERAL; PROIBIDO recalcular, arredondar, fundir ou re-atribuir):\n` +
@@ -366,7 +457,7 @@ if (MODO === 'delta') {
   phase('Verificar')
   const alvo = (scan.fraquezas || []).filter((f) => ativas.includes(f.dimensao))
   const verificadas = alvo.length ? (await parallel(capEstratificado('Verificar', alvo, CAP_AGENTES_POR_FASE, log).map((f) => () => agent(
-    `RE-VERIFICAÇÃO delta. Fraqueza CONHECIDA do ledger: "${f.titulo}" (dimensão ${f.dimensao}; nota anterior ${f.nota == null ? 's/nota' : f.nota}; veredito anterior ${f.veredito}; evidência anterior: ${(f.evidencia || '').slice(0, 250)}). A dimensão teve commits novos desde o último retrato — re-meça no repo VIVO (paths ABSOLUTOS a partir de ${BASE}): fechou? avançou? regrediu? Dê o veredito e a nota 0-10 SÓ com evidência NOVA (file:line ou PR — recibo, não memória) e diga onde indexar se existia-mas-invisível.`,
+    `RE-VERIFICAÇÃO delta. Fraqueza CONHECIDA do ledger: "${f.titulo}" (dimensão ${f.dimensao}; nota anterior ${f.nota == null ? 's/nota' : f.nota}; veredito anterior ${f.veredito}; evidência anterior: ${(f.evidencia || '').slice(0, 250)}). A dimensão teve commits novos desde o último retrato — re-meça no repo VIVO (paths ABSOLUTOS a partir de ${BASE}): fechou? avançou? regrediu? Dê o veredito e a nota SÓ com evidência NOVA (file:line ou PR — recibo, não memória) e diga onde indexar se existia-mas-invisível.\n\nRUBRICA DA NOTA (obrigatória — a escala tem degraus definidos, não é impressão):\n${RUBRICA_NOTA}`,
     { label: `v:${f.titulo}`.slice(0, 48), phase: 'Verificar', schema: EXISTE, effort: 'high' },
   ).then((v) => (v ? { ...f, check: v } : null))))).filter(Boolean) : []
   log(`delta-verificação: ${verificadas.length}/${alvo.length} fraquezas re-medidas`)
@@ -392,10 +483,20 @@ if (MODO === 'delta') {
   const notasAntigas = notasAncora // já provado não-vazio pelo guard de âncora acima
   const notasNovas = {}
   const proveniencia = {}
+  const denominadorDelta = {}
   for (const k of Object.keys(notasAntigas)) {
     const rows = verificadas.filter((v) => v.dimensao === k && typeof v.check.nota_sugerida === 'number')
-    if (rows.length) { notasNovas[k] = media1(rows.map((r) => r.check.nota_sugerida)); proveniencia[k] = `re-medida (${rows.length} fraquezas, média determinística)` }
-    else { notasNovas[k] = notasAntigas[k]; proveniencia[k] = ativas.includes(k) ? 'herdada (dim ativa mas 0 fraquezas com nota)' : 'herdada (sem Δ material)' }
+    if (rows.length) {
+      notasNovas[k] = media1(rows.map((r) => r.check.nota_sugerida))
+      // Referência = os ids que COMPUNHAM a nota anterior desta dimensão (tinham nota no ledger).
+      // Derivado do próprio scan — nada escrito à mão, nada herdado de memória.
+      const medidos = rows.map((r) => r.id)
+      const referencia = (scan.fraquezas || []).filter((f) => f.dimensao === k && typeof f.nota === 'number').map((f) => f.id)
+      const cav = caveatDenominador({ medidos, referencia, dataRef: scan.ultimo_retrato && scan.ultimo_retrato.data })
+      denominadorDelta[k] = medidos
+      proveniencia[k] = `re-medida (${rows.length} fraquezas, média determinística)${cav ? ' ' + cav : ''}`
+      if (cav) log(`⚠️ ${k}: ${cav}`)
+    } else { notasNovas[k] = notasAntigas[k]; proveniencia[k] = ativas.includes(k) ? 'herdada (dim ativa mas 0 fraquezas com nota)' : 'herdada (sem Δ material)' }
   }
   const integHist = (scan.ultimo_retrato && scan.ultimo_retrato.integ_hist) || {}
 
@@ -414,6 +515,10 @@ if (MODO === 'delta') {
       dimensoes_re_medidas: reMedidas,
       dimensoes_herdadas: dimsAlvoDelta.filter((k) => !reMedidas.includes(k)),
       dims_ativas: ativas,
+      // FORWARD-ONLY: grava QUAIS ids compuseram cada nota. O retrato antigo não tem este campo
+      // (append-only — não se reescreve), então a comparação por id só fica plena da próxima
+      // rodada em diante; hoje a referência do delta vem do `nota` do ledger, que já basta.
+      denominador: denominadorDelta,
       integracao_nao_rodada: true, // delta não roda Integração — integ_hist é HERDADO, não medido
     },
   })
@@ -421,7 +526,7 @@ if (MODO === 'delta') {
     modoRetrato: coberturaDelta.completo ? 'delta' : 'delta-parcial',
     notas: notasNovas, proveniencia, cobertura: coberturaDelta, placar: null,
     integHistInstrucao: 'copie EXATAMENTE do retrato anterior — o delta NÃO roda a fase Integração, então este acumulado é HERDADO, nunca recalculado.',
-    fraquezasRows: JSON.stringify(verificadas.map((v) => ({ id: v.id, nota: v.check.nota_sugerida, veredito: v.check.veredito, evidencia: (v.check.evidencia || '').slice(0, 250), onde_indexar: v.check.onde_indexar || null }))),
+    fraquezasRows: JSON.stringify(verificadas.map((v) => ({ id: v.id, nota: v.check.nota_sugerida, veredito: v.check.veredito, evidencia: evid(v.check.evidencia, v.id), onde_indexar: v.check.onde_indexar || null }))),
   }))
   log(`checkpoint retrato+fraquezas (delta${coberturaDelta.completo ? '' : '-PARCIAL: ' + coberturaDelta.motivo_parcial}): ${okPersist(cpRetrato) ? 'gravado' : '⚠️ NÃO confirmado (retentativa no fim)'}`)
 
@@ -443,7 +548,7 @@ if (MODO === 'delta') {
       modoRetrato: coberturaDelta.completo ? 'delta' : 'delta-parcial',
       notas: notasNovas, proveniencia, cobertura: coberturaDelta, placar: null,
       integHistInstrucao: 'copie EXATAMENTE do retrato anterior — o delta NÃO roda a fase Integração, então este acumulado é HERDADO, nunca recalculado.',
-      fraquezasRows: JSON.stringify(verificadas.map((v) => ({ id: v.id, nota: v.check.nota_sugerida, veredito: v.check.veredito, evidencia: (v.check.evidencia || '').slice(0, 250), onde_indexar: v.check.onde_indexar || null }))),
+      fraquezasRows: JSON.stringify(verificadas.map((v) => ({ id: v.id, nota: v.check.nota_sugerida, veredito: v.check.veredito, evidencia: evid(v.check.evidencia, v.id), onde_indexar: v.check.onde_indexar || null }))),
     })))
   }
   if (pendentesDelta.includes('claims')) {
@@ -555,7 +660,7 @@ log(`checkpoint claims (${refutados.length}): ${okPersist(cpClaims) ? 'gravado n
 phase('Verificar')
 const fraquezas = pesquisas.flatMap((p) => p.oimpresso_atras.map((f) => ({ fraqueza: f, dimensao: p.dimensao })))
 const verificadas = (await parallel(capEstratificado('Verificar', fraquezas, CAP_AGENTES_POR_FASE, log).map((f) => () => agent(
-  `A pesquisa marcou o oimpresso como FRACO em: "${f.fraqueza}" (dimensão ${f.dimensao}). ANTES de aceitar: cace no repo VIVO (paths ABSOLUTOS a partir de ${BASE}) mecanismos que JÁ cobrem isso total/parcialmente — .github/workflows (nomes dos checks!), scripts/governance, .claude/{skills,hooks}, prototipo-ui/*.mjs, gates-registry/required-checks-baseline. Precedente: numa rodada anterior 7 de 9 "fraquezas" JÁ existiam, invisíveis por desorganização. Dê a nota 0-10 SÓ com evidência (file:line ou prova de ausência) e diga onde indexar o achado (mapa 0330-corrente) se existia-mas-invisível.`,
+  `A pesquisa marcou o oimpresso como FRACO em: "${f.fraqueza}" (dimensão ${f.dimensao}). ANTES de aceitar: cace no repo VIVO (paths ABSOLUTOS a partir de ${BASE}) mecanismos que JÁ cobrem isso total/parcialmente — .github/workflows (nomes dos checks!), scripts/governance, .claude/{skills,hooks}, prototipo-ui/*.mjs, gates-registry/required-checks-baseline. Precedente: numa rodada anterior 7 de 9 "fraquezas" JÁ existiam, invisíveis por desorganização. Dê a nota SÓ com evidência (file:line ou prova de ausência) e diga onde indexar o achado (mapa 0330-corrente) se existia-mas-invisível.\n\nRUBRICA DA NOTA (obrigatória — a escala tem degraus definidos, não é impressão):\n${RUBRICA_NOTA}`,
   { label: `v:${f.fraqueza}`.slice(0, 48), phase: 'Verificar', schema: EXISTE, effort: 'high' },
 ).then((v) => (v ? { ...f, check: v } : null))))).filter(Boolean)
 // Counter por veredito (achado #24) — denominador honesto pra grade: distingue
@@ -580,7 +685,7 @@ for (const d of DIMS) {
   const rows = verificadas.filter((v) => v.dimensao === d.key)
   const comNota = rows.filter((r) => typeof r.check.nota_sugerida === 'number')
   notasPorDim[d.key] = comNota.length ? media1(comNota.map((r) => r.check.nota_sugerida)) : null
-  rowsPorDim[d.key] = rows.map((r) => ({ titulo: (r.fraqueza || '').slice(0, 120), veredito: r.check.veredito, nota: r.check.nota_sugerida, evidencia: (r.check.evidencia || '').slice(0, 200) }))
+  rowsPorDim[d.key] = rows.map((r) => ({ titulo: (r.fraqueza || '').slice(0, 120), veredito: r.check.veredito, nota: r.check.nota_sugerida, evidencia: evid(r.check.evidencia, `${d.key}/${(r.fraqueza || '').slice(0, 40)}`) }))
 }
 const placarJS = {
   claims: refutados.length,
@@ -610,16 +715,28 @@ const cobertura = montarCobertura({
     fraquezas_levantadas: fraquezas.length,
     claims_levantadas: claims.length,
     canario_refuter: canarioRefuter,
+    // FORWARD-ONLY (ver caveatDenominador): grava QUAIS fraquezas compuseram cada nota. No full
+    // elas não têm id do ledger (vêm da pesquisa do dia), então o registro é por TÍTULO — é o que
+    // permite a uma rodada futura comparar conjuntos em vez de comparar médias no escuro.
+    denominador: Object.fromEntries(dimsAlvo.map((k) => [k, rowsPorDim[k].filter((r) => typeof r.nota === 'number').map((r) => r.titulo)])),
   },
 })
+// Proveniência do full — UMA fonte só (o checkpoint e a retentativa liam blocos duplicados que
+// podiam divergir numa edição futura). Todo full carrega o caveat de denominador porque o conjunto
+// de fraquezas é RE-LEVANTADO pela pesquisa a cada rodada: é fato estrutural do modo, não alarme
+// decorativo — e é exatamente o que faltou no retrato de 2026-08-11 (7,7→7,1 com interseção vazia).
+const provenienciaFull = Object.fromEntries(dimsAlvo.map((k) => {
+  if (notasPorDim[k] == null) return [k, 'sem nota nesta rodada (0 fraquezas verificadas com nota) — NÃO herde nem invente']
+  const n = rowsPorDim[k].filter((r) => typeof r.nota === 'number').length
+  const cav = caveatDenominador({ medidos: rowsPorDim[k].filter((r) => typeof r.nota === 'number').map((r) => r.titulo), reSorteado: true })
+  return [k, `medida por fraqueza (${n} verificações, média determinística 1 decimal) ${cav}`]
+}))
 if (!cobertura.completo) log(`⚠️ rodada PARCIAL — o retrato vai declarar isso: ${cobertura.motivo_parcial}`)
 if (SELECAO !== 'completa') log(`⚠️ seleção ${SELECAO} (${dimsAlvo.length} de ${DIMS_DEFAULT.length} dimensões) — retrato declara eixos_nao_medidos: [${cobertura.eixos_nao_medidos.join(', ') || 'nenhum'}]`)
 const cpRetrato = await persistir('cp-retrato', promptRetrato({
   modoRetrato: cobertura.completo && SELECAO === 'completa' ? 'full' : 'full-parcial',
   notas: notasPorDim,
-  proveniencia: Object.fromEntries(dimsAlvo.map((k) => [k, notasPorDim[k] == null
-    ? 'sem nota nesta rodada (0 fraquezas verificadas com nota) — NÃO herde nem invente'
-    : `medida por fraqueza (${rowsPorDim[k].filter((r) => typeof r.nota === 'number').length} verificações, média determinística 1 decimal)`])),
+  proveniencia: provenienciaFull,
   cobertura, placar: placarJS,
   integHistInstrucao: `some os DESTA rodada ao acumulado do retrato anterior — vereditos_acumulados += ${placarJS.diferencial_sistema + placarJS.refutado_tb}, refutado_tb_acumulado += ${placarJS.refutado_tb}, runs += 1. Se não houver retrato anterior, use exatamente esses valores com runs: 1. (É o disclosure da regra 17 — o placar tem que poder crescer.)`,
   fraquezasRows: fit('rows', rowsPorDim, 120_000),
@@ -667,9 +784,7 @@ if (pendentes.includes('retrato+fraquezas')) {
   retentativa.retrato = await persistir('re-retrato', RETENTAR(promptRetrato({
     modoRetrato: cobertura.completo && SELECAO === 'completa' ? 'full' : 'full-parcial',
     notas: notasPorDim,
-    proveniencia: Object.fromEntries(dimsAlvo.map((k) => [k, notasPorDim[k] == null
-      ? 'sem nota nesta rodada (0 fraquezas verificadas com nota) — NÃO herde nem invente'
-      : `medida por fraqueza (${rowsPorDim[k].filter((r) => typeof r.nota === 'number').length} verificações, média determinística 1 decimal)`])),
+    proveniencia: provenienciaFull,
     cobertura, placar: placarJS,
     integHistInstrucao: `some os DESTA rodada ao acumulado do retrato anterior — vereditos_acumulados += ${placarJS.diferencial_sistema + placarJS.refutado_tb}, refutado_tb_acumulado += ${placarJS.refutado_tb}, runs += 1. Se não houver retrato anterior, use exatamente esses valores com runs: 1.`,
     fraquezasRows: fit('rows', rowsPorDim, 120_000),
