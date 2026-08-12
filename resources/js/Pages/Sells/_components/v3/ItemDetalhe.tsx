@@ -101,7 +101,7 @@ function Texto({
   return (
     <Campo label={label} erro={erro}>
       <Input
-        className={'h-8 text-[12.5px] ' + (erro ? 'border-destructive' : '')}
+        className={erro ? 'border-destructive' : undefined}
         value={value}
         placeholder={placeholder}
         readOnly={!onChange}
@@ -126,7 +126,7 @@ function Escolha({
   return (
     <Campo label={label}>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="h-8 w-full text-[12.5px]">
+        <SelectTrigger className="w-full">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -348,7 +348,11 @@ export default function ItemDetalhe({
                 value={observacao}
                 onChange={(e) => setObservacao(e.target.value)}
                 placeholder="Instrução de produção, cuidado de manuseio, referência do cliente…"
-                className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-[12.5px] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/40"
+                /* `<textarea>` CRU (não o `<Textarea>` do DS), então não passa por
+                   `.cw-input` nem pela regra escopada — aqui as classes VALEM e
+                   precisam trazer a caixa na mão. Valores do Textarea do DS vivo
+                   (`controlStyle()` + `{ lineHeight: 1.5 }`): 13px/1.5, padding 7/10. */
+                className="w-full rounded-md border border-input bg-background px-[10px] py-[7px] text-[13px] leading-[1.5] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/40"
               />
             </Campo>
           )}

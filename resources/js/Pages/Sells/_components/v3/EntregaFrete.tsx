@@ -86,7 +86,6 @@ function Texto({
     <Campo label={label}>
       <Input
         type="text"
-        className="h-8 text-[12.5px]"
         value={value ?? ''}
         placeholder={placeholder}
         readOnly={readOnly || !onChange}
@@ -112,7 +111,7 @@ function Escolha({
   return (
     <Campo label={label}>
       <Select value={value ?? options[0]} onValueChange={onChange} disabled={!onChange}>
-        <SelectTrigger className="h-8 w-full text-[12.5px]">
+        <SelectTrigger className="w-full">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -375,7 +374,6 @@ export default function EntregaFrete({
 
           <Input
             autoFocus
-            className="h-8 text-[12.5px]"
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             placeholder="Buscar por razão social, CNPJ, cidade ou código…"
