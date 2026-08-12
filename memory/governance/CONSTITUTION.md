@@ -4,12 +4,18 @@ title: "Constituição do Oimpresso ERP"
 type: constitution
 authority: supreme
 lifecycle: ativo
-version: 1.2.0
+version: 1.3.0
 ratified_by: [W]
 ratified_at: 2026-05-05
 charter_adr: 0094
-last_amendment: 2026-08-08
+last_amendment: 2026-08-11
 amendments:
+  - version: 1.3.0
+    at: 2026-08-11
+    by: [W]
+    type: minor
+    description: "Artigo 3 passa a registrar a exceção ao append-only de ADR canon: PR com label `adr-body-edit-W` libera edição do CORPO, por autorização [W] por-PR (ADR 0377). É a terceira exceção, ao lado da 0257 (frontmatter) e da 0297 (migração legacy). Junto, correção de fato: a Verificação citava um pre-commit hook com flag `--amend-charter` que NÃO existe no repo (medido: 1 ocorrência, e é esta linha) — substituída pelo mecanismo real (hook PreToolUse + gate de CI por label)."
+    adr: 0377
   - version: 1.2.0
     at: 2026-08-08
     by: [W]
@@ -25,6 +31,7 @@ amendments:
 related:
   - 0094-constituicao-v2-7-camadas-8-principios
   - 0372-audit-card-decisao-automatizada-titular-emenda-0094
+  - 0377-append-only-adr-excecao-por-label-emenda-0094
   - 0079-constituicao-oimpresso-7-camadas-governanca
   - 0061-conhecimento-canonico-git-mcp-zero-automem
   - 0070-jira-style-task-management-current-md-removed
@@ -112,14 +119,15 @@ Não há cláusula pétrea explícita — qualquer artigo pode evoluir. Mas a so
 **Implementação obrigatória.**
 - **Imutáveis por trigger MySQL:** `ponto_marcacoes`, `mcp_audit_log`, `memory/governance/srs/*`.
 - **Imutáveis por convenção (ADR/PR review):** `memory/decisions/*`, `memory/sessions/*`, `mcp_skill_versions`.
+  - **Exceções ao append-only de ADR canon** — todas por label, todas por-PR, todas fail-closed (label ausente ⇒ bloqueio normal): `adr-metadata-normalization` libera só frontmatter ([ADR 0257](../decisions/0257-adr-status-lifecycle-kind-modelo-canonico.md)) · migração legacy→canônico com corpo intacto (ADR 0297) · **`adr-body-edit-W` libera o CORPO, por autorização [W]** ([ADR 0377](../decisions/0377-append-only-adr-excecao-por-label-emenda-0094.md)). A exceção autoriza **mexer**, nunca **falsificar**: ponteiro que apodreceu se atualiza, afirmação sobre o que era verdade numa data se preserva.
 - Correção em row imutável = nova row `version+1` com `supersedes: <old_id>` e `superseded_by` na antiga (ponteiro lógico, não DELETE).
 
 **Verificação.**
 - Trigger MySQL `BEFORE UPDATE/DELETE` em tabelas append-only com `SIGNAL SQLSTATE`.
-- ADR template enforça imutabilidade — nova ADR supersedes ao invés de editar.
-- Pre-commit hook detecta edição em ADR existente e exige flag `--amend-charter` + ADR justificando.
+- ADR template enforça imutabilidade — nova ADR supersedes ao invés de editar, **salvo** as exceções por label acima.
+- Duas camadas, e as duas mordem: hook PreToolUse [`block-memory-drift.mjs`](../../.claude/hooks/block-memory-drift.mjs) bloqueia a escrita local (escape `OIMPRESSO_MEMORY_OVERRIDE=1`, que ele mesmo documenta), e o job *Append-only canon* do [`governance-gate.yml`](../../.github/workflows/governance-gate.yml) bloqueia o merge (escape = os labels acima). O hook **não** lê label — roda antes de existir PR.
 
-**Quem viola = como.** UPDATE em `ponto_marcacoes`. DELETE em `mcp_audit_log`. Edição inline em ADR existente sem supersede.
+**Quem viola = como.** UPDATE em `ponto_marcacoes`. DELETE em `mcp_audit_log`. Edição inline em ADR existente sem supersede **e sem o label que autoriza**.
 
 ---
 
