@@ -51,6 +51,29 @@
 //    CI) **importa `scanBrlLeak` do próprio hook** — "FONTE ÚNICA DO PREDICADO: hook e gate
 //    NUNCA divergem" (cabeçalho dele). O oráculo seria literalmente a mesma função.
 //
+//  ✗ block-bom-encoding — O CRITÉRIO **É** O GROUND TRUTH (avaliado 2026-08-11).
+//    População farta (4.081 gatilhos em 376 sessões, todos com conteúdo no transcript), mas
+//    o critério é `contents[0].charCodeAt(0) === 0xFEFF`: "este conteúdo começa com BOM?" é
+//    o FATO, não um proxy dele. Não existe segundo sinal — BOM só se observa olhando os
+//    bytes iniciais. Um oráculo faria a mesma pergunta com outro nome.
+//    O oráculo de CONSEQUÊNCIA ("entrou BOM no repo?") existe e é útil, mas é GLOBAL, não
+//    por-caso: os writes do corpus são de outros worktrees/temp, sem pareamento possível.
+//
+//  ✗ block-routes-string-legacy — MESMA RAZÃO (avaliado 2026-08-11).
+//    59 gatilhos em 23 arquivos de rota. O critério é `findLegacyMatches(content)` — "este
+//    conteúdo contém `'Controller@method'`?" é o fato que o contrato proíbe, não um proxy.
+//    O oráculo de runtime (`route:list`/`route:cache` no CT 100) responde a CONSEQUÊNCIA do
+//    mesmo padrão, e não roda contra conteúdo histórico de transcript.
+//
+//  ── O PADRÃO, pra não re-testar candidato por candidato ─────────────────────
+//  Contrato de replay só existe quando o hook (a) RE-IMPLEMENTA regra com dono canônico
+//  noutro lugar — o oráculo é o dono (foi o `mwart` × porta viva); ou (b) decide por PROXY
+//  (texto, nome, sintaxe) de algo com ground truth — o oráculo é o ground truth (foi o
+//  `preflight`: texto cru × evento estruturado). Quando o critério JÁ É a medição do fato,
+//  não há nada acima dele e o contrato seria tautológico. Pra esses, os instrumentos certos
+//  já existem e já rodam: `hook-bites` (disparou?) e o `--selftest` do próprio hook (morde
+//  em fixture?). Somar contrato ali não mede nada novo.
+//
 // Uso: node scripts/governance/hook-replay.mjs [--hook <nome>] [--json] [--selftest]
 
 import { readdirSync, readFileSync, existsSync } from 'node:fs';

@@ -3,7 +3,7 @@
 // Por que dois, e não um: o hub tinha dois boards que pareciam concorrentes e
 // respondiam perguntas diferentes.
 //
-//   PIPELINE (F0→F3.5) — "em que ponto do protocolo de TELA isto está?"
+//   PIPELINE (F0→F4) — "em que ponto do protocolo de TELA isto está?"
 //     Só faz sentido pra trabalho de tela. Task de infra/gate/ADR não tem fase, e
 //     isso é correto — não é dado faltando. Por isso o eixo FILTRA em vez de
 //     inventar uma coluna "sem fase": card sem fase não pertence a este board.
@@ -12,9 +12,16 @@
 //     Vocabulário de `mcp_tasks` (backlog/todo/doing/review/done/blocked). Vale
 //     pra TODA task, inclusive as que não são de tela. É onde infra/gate/ADR vive.
 //
-// F4/`done` NÃO é coluna do pipeline: quando a tela conclui, ela sai do board e
-// vira changelog. No eixo Execução, `done`/`cancelled` também ficam fora — board
-// de trabalho mostra o que está em curso, não o arquivo.
+// ⚠️ CORREÇÃO (decisão [W] 2026-08-11). A versão anterior deste comentário
+// afirmava "F4/`done` NÃO é coluna do pipeline: quando a tela conclui, ela sai do
+// board e vira changelog". Eu inventei isso derivando do CÓDIGO em vez de abrir a
+// fonte de design — `prototipo-ui/cowork/forja-data.jsx` sempre teve `F4 Merge`
+// com `owner: "W2"`, e os charters de Trabalho/Aprovações já diziam "F0→F4 é
+// constituição". Ver proibicoes §5 2026-08-10.
+//
+// F4 Merge É coluna: merge é ESTADO DE TRABALHO com dono humano, não arquivo.
+// O eixo Execução é outra pergunta — lá `done`/`cancelled` seguem fora, porque
+// board de trabalho mostra o que está em curso.
 //
 // ⚠️ SEM DRAG NESTA ONDA. O pedido descreve arrastar pra mudar `status` (e propor
 // mudança de fase). Mover card é MUTAÇÃO, e mutação sem o caminho governado
@@ -61,6 +68,7 @@ const FASES: { key: string; label: string }[] = [
   { key: 'F2',   label: 'F2 Screenshot' },
   { key: 'F3',   label: 'F3 Code' },
   { key: 'F3.5', label: 'F3.5 A11y' },
+  { key: 'F4',   label: 'F4 Merge' },
 ];
 
 /** Colunas do eixo Execução — as ATIVAS. `done`/`cancelled` saem do board. */

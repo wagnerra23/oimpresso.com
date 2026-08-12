@@ -254,7 +254,7 @@ Ordem sugerida (mais valor visível por hora):
 - [memory/requisitos/ProjectMgmt/CHARTER-board.md](../requisitos/ProjectMgmt/CHARTER-board.md)
 - [memory/requisitos/ProjectMgmt/INVENTARIO.md](../requisitos/ProjectMgmt/INVENTARIO.md)
 - [memory/requisitos/TaskRegistry/SPEC.md](../requisitos/TaskRegistry/SPEC.md) — SPEC funcional histórico (US-TR-NNN)
-- [Modules/ProjectMgmt/SCOPE.md](../../Modules/ProjectMgmt/SCOPE.md)
+- [memory/requisitos/Forja/SCOPE.md](../requisitos/Forja/SCOPE.md) (ex-`Modules/ProjectMgmt`, rename classe A)
 - [PR #197](https://github.com/wagnerra23/oimpresso.com/pull/197) — Discovery legacy `Modules/Project` (pivot)
 - [PR #202](https://github.com/wagnerra23/oimpresso.com/pull/202) — Fase 3.8 delete legacy
 - Skill `mwart-quality` — pré-flight checks pra `.tsx`
