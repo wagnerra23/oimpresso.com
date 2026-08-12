@@ -4,7 +4,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Jana\Drivers\Sql\SqlDriver;
 use Modules\Jana\Entities\Meta;
 use Modules\Jana\Entities\MetaFonte;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\Jana\Services\Ai\OpenAiDirectDriver;
 
 /**

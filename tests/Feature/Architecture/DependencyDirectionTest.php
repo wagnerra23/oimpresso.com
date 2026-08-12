@@ -15,9 +15,10 @@ declare(strict_types=1);
  *
  * O DEFEITO MEDIDO (2026-08-12): **60 imports em 31 arquivos** de `app/` dependem de
  * `Modules/`. Alvos: Jana 24 arquivos · OficinaAuto 9 · NfeBrasil 2 · demais 1.
- * O caso emblemático é `app/Concerns/HasBusinessScope.php` — o trait multi-tenant
- * **Tier 0 do núcleo** — importando `Modules\Jana\Scopes\ScopeByBusiness`.
- * Dois alvos nem existem mais: `Modules\Ecommerce` e `Modules\CustomDashboard`.
+ * O caso emblemático era `app/Concerns/HasBusinessScope.php` — o trait multi-tenant
+ * **Tier 0 do núcleo** — importando o scope de dentro de um módulo; **curado no mesmo
+ * dia** movendo os dois scopes pra `App\Scopes\`. Dois alvos nem existem mais como
+ * módulo: `Modules\Ecommerce` e `Modules\CustomDashboard`.
  *
  * FORWARD-ONLY (ADR 0275): a dívida atual está congelada em
  * `governance/dependency-direction-baseline.json`. Este teste morde quem **PIORA** —
@@ -115,7 +116,11 @@ test('o scanner ENXERGA a árvore (controle positivo — sem isto, lista vazia �
 });
 
 test('BITE: import de módulo em código é detectado; em comentário NÃO', function () {
-    expect(ddModulosImportados('<?php' . PHP_EOL . 'use Modules\Jana\Scopes\ScopeByBusiness;'))
+    // ⚠️ FIXTURE — este literal REPRESENTA uma violação; não é um import real deste arquivo.
+    // Um codemod de rename de namespace já o reescreveu uma vez (2026-08-12), o que zerou a
+    // asserção sem quebrar sintaxe. Se um rename futuro tocar aqui, é a fixture que está
+    // sendo comida — reverta a linha, não o teste.
+    expect(ddModulosImportados('<?php' . PHP_EOL . 'use Modules\Jana\Services\Exemplo;'))
         ->toBe(['Jana'], 'MORDE: import real tem que ser visto');
 
     expect(ddModulosImportados('<?php' . PHP_EOL . 'use Modules\Jana\X; use Modules\Repair\Y;'))

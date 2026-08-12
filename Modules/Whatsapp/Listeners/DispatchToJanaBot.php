@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Whatsapp\Listeners;
 
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 use Modules\Whatsapp\Entities\WhatsappContactBotOverride;

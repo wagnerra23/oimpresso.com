@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Macro;
 use Modules\Whatsapp\Entities\MacroVariant;
 use Modules\Whatsapp\Http\Controllers\Admin\MacroVariantsController;

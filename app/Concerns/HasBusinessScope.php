@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Concerns;
 
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 
 /**
  * Trait HasBusinessScope — multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093).
@@ -49,7 +49,7 @@ use Modules\Jana\Scopes\ScopeByBusiness;
  *       use HasBusinessScope;
  *   }
  *
- * @see Modules\Jana\Scopes\ScopeByBusiness
+ * @see App\Scopes\ScopeByBusiness
  * @see ADR 0093 (Multi-tenant Tier 0 IRREVOGÁVEL)
  * @see ADR 0094 (Constituição v2 — princípio duro #6)
  */

@@ -7,7 +7,7 @@ use Illuminate\Support\Carbon;
 use Modules\Jana\Entities\Meta;
 use Modules\Jana\Entities\MetaPeriodo;
 use Modules\Jana\Entities\MetaFonte;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 
 /**
  * Seeder inicial — materializa a meta R$ [redacted Tier 0]mi/ano da plataforma

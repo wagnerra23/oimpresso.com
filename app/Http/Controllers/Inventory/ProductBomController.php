@@ -10,7 +10,7 @@ use App\Product;
 use App\Variation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 
 /**
  * ProductBomController — endpoints admin pra cadastro de Bill of Materials (US-INV-001).

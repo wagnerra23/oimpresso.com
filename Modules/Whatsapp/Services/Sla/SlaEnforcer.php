@@ -9,7 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\SlaPolicy;
 use Modules\Whatsapp\Services\Centrifugo\CentrifugoPublisher;

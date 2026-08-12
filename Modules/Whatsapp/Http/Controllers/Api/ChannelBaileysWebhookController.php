@@ -16,7 +16,7 @@ use Modules\Whatsapp\Services\Contacts\ConversationContactLinker;
 use Modules\Whatsapp\Services\Contacts\LidPhoneResolver;
 use Modules\Whatsapp\Services\Csat\CsatResponseParser;
 use Modules\Whatsapp\Services\Macros\MacroVariantResponseTracker;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 
 /**
  * Webhook receiver pro schema omnichannel novo (ADR 0135).

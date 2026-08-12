@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Services\Drivers\WhatsmeowState;
 use Modules\Whatsapp\Services\WhatsmeowReconciler;

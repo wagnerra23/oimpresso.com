@@ -28,7 +28,7 @@ use Illuminate\Database\Eloquent\Builder;
  *
  * **Tier 0 IRREVOGÁVEL** ([ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
  *
- * Por que módulo-local em vez de app/Traits ou Modules/Jana/Scopes:
+ * Por que módulo-local em vez de app/Traits ou app/Scopes:
  *   - Repo-wide não tinha trait canônico (Grep negativo em 2026-05-15)
  *   - Modules/ComunicacaoVisual e Modules/OficinaAuto inline o boilerplate
  *     na booted() de cada Model — funciona mas duplica código
