@@ -68,22 +68,14 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 341,
+      "value": 335,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "09b2e3835f10a779",
+        "floor_files_hash": "17bc5445bef9ae1f",
         "runs": [
-          {
-            "sha": "579fc2cc",
-            "ts": "20260808-020001",
-            "failed": 653,
-            "errors": 372,
-            "skipped": 2343,
-            "all_shards_measured": true
-          },
           {
             "sha": "2c9fbc8a",
             "ts": "20260809-020001",
@@ -93,15 +85,23 @@
             "all_shards_measured": true
           },
           {
-            "sha": null,
+            "sha": "26daa88c",
             "ts": "20260810-020001",
             "failed": 672,
             "errors": 443,
             "skipped": 2248,
             "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260812-020001",
+            "failed": 658,
+            "errors": 394,
+            "skipped": 2329,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260810-020001",
+        "computed_at": "20260812-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -120,22 +120,15 @@
     },
     "coverage_pct": {
       "status": "measured",
-      "value": 20.1,
+      "value": 19.6,
       "unit": "%",
       "direction": "up",
       "target": "só sobe (catraca C2)",
       "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
       "detail": {
-        "covered": 47274,
-        "total": 235341,
+        "covered": 46114,
+        "total": 235515,
         "runs": [
-          {
-            "sha": "579fc2cc",
-            "ts": "20260808-020001",
-            "coverage_pct": 19.7,
-            "covered": 46266,
-            "total": 234924
-          },
           {
             "sha": "2c9fbc8a",
             "ts": "20260809-020001",
@@ -144,14 +137,21 @@
             "total": 235316
           },
           {
-            "sha": null,
+            "sha": "26daa88c",
             "ts": "20260810-020001",
             "coverage_pct": 20.1,
             "covered": 47274,
             "total": 235341
+          },
+          {
+            "sha": null,
+            "ts": "20260812-020001",
+            "coverage_pct": 19.6,
+            "covered": 46114,
+            "total": 235515
           }
         ],
-        "computed_at": "20260810-020001",
+        "computed_at": "20260812-020001",
         "measured_of": 3
       },
       "stream": "FV"
@@ -262,15 +262,17 @@
     },
     "drift_alarms": {
       "status": "measured",
-      "value": 0,
+      "value": 1,
       "unit": "alarmes duros (reds do protection-drift · GT-G4)",
       "direction": "down",
       "target": "advisory perene (0 alarmes duros)",
       "source": "scripts/governance/protection-drift.mjs --json .reds.length (drift de branch protection + watchdog staleness · GT-G4 · P08)",
       "detail": {
-        "reds": [],
-        "warns": 1,
-        "verdict": "yellow"
+        "reds": [
+          "required SUMIU do vivo: \"PHP / Pest (KB · MySQL)\" — demoção exige PR editando governance/required-checks-baseline.json + ADR (ADR 0275 §5)"
+        ],
+        "warns": 0,
+        "verdict": "red"
       },
       "stream": "GT"
     },
@@ -282,10 +284,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 52,
+        "entries_aprovadas": 54,
         "max_error_rate_pct": 1.82,
-        "last_pr": 5568,
-        "last_lote": "MEM-scope-licoes-move-33-5568-r4"
+        "last_pr": 5675,
+        "last_lote": "ARQ-piiredactor-app-support-5675-r3"
       },
       "stream": "GT"
     }

@@ -97,7 +97,7 @@
             "id": "CI-02",
             "category": "code_internals",
             "question": "Onde fica o PiiRedactor?",
-            "ground_truth": "Modules\\Jana\\Services\\Privacy\\PiiRedactor — defense in depth pré-LLM. Cobre CPF, CNPJ, email, CEP, phone BR. Reusado no KbRagService::redactPii antes de toda chamada ao gpt-4o-mini.",
+            "ground_truth": "App\\Support\\Privacy\\PiiRedactor — defense in depth pré-LLM. Cobre CPF, CNPJ, email, CEP, phone BR. Reusado no KbRagService::redactPii antes de toda chamada ao gpt-4o-mini.",
             "tags": ["kb", "code", "lgpd"]
         },
         {
@@ -307,7 +307,7 @@
             "id": "LG-02",
             "category": "lgpd_compliance",
             "question": "Quando o PiiRedactor é invocado pré-LLM?",
-            "ground_truth": "SEMPRE antes de cada chamada gpt-4o-mini. KbRagService::redactPii reusa Modules\\Jana\\Services\\Privacy\\PiiRedactor. Defense in depth — toda string que vai pra LLM/cache/log passa pelo redactor. Falha do redactor = abort com log ALERT.",
+            "ground_truth": "SEMPRE antes de cada chamada gpt-4o-mini. KbRagService::redactPii reusa App\\Support\\Privacy\\PiiRedactor. Defense in depth — toda string que vai pra LLM/cache/log passa pelo redactor. Falha do redactor = abort com log ALERT.",
             "tags": ["kb", "lgpd", "code"]
         },
         {

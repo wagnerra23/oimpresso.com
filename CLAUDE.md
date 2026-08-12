@@ -87,7 +87,7 @@ Regra-mestre: pedido vago = agente **pergunta** antes de implementar (skill `wag
 | Skill Tier A | PR + ADR específica + Wagner aprova |
 | Skill Tier B/C | PR + SKILL.md description "Use ao/quando..." |
 | Charter (S4+) | PR + `*.charter.md` ao lado do `.tsx` |
-| Mudança ADR canon existente | ❌ NÃO. Append-only. Criar nova com `supersedes: [N]` |
+| Mudança ADR canon existente | ❌ NÃO por padrão. Append-only — criar nova com `supersedes: [N]`. **Exceção:** PR com label `adr-body-edit-W` libera o corpo, por autorização [W] por-PR ([ADR 0377](memory/decisions/0377-append-only-adr-excecao-por-label-emenda-0094.md)). Localmente o hook `block-memory-drift` também barra: escape `OIMPRESSO_MEMORY_OVERRIDE=1`. Libera **mexer**, não **falsificar** — ponteiro podre atualiza, fato datado preserva |
 | Ratificação ADR (`proposto→aceito`) | PR flip SÓ da linha `status:` + índice regenerado + **label `adr-metadata-normalization`** (exceção ADR 0257 — sem ela o gate Append-only falha). Merge [W] = ato. Receita: [memory/decisions/README.md](memory/decisions/README.md) |
 
 ## Onde NÃO inventar (Tier 0)

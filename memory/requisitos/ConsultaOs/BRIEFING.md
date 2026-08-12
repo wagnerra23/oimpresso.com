@@ -24,7 +24,7 @@ Portal público (sem auth) onde o cliente final de uma gráfica/oficina consulta
 - **US-CONSULTA-002:** canary 7d em ROTA LIVRE. Captcha (citado, não implementado).
 
 ## Dependências
-- **Reais:** `Modules\Jana\Services\Privacy\PiiRedactor`; `App\Util\OtelHelper`; install nWidart/UltimatePOS. Tier 0: rota pública **NÃO** scopa por `business_id` (sem sessão) — escape comentado no código.
+- **Reais:** `App\Support\Privacy\PiiRedactor`; `App\Util\OtelHelper`; install nWidart/UltimatePOS. Tier 0: rota pública **NÃO** scopa por `business_id` (sem sessão) — escape comentado no código.
 - **Planejada:** leitura de `transactions` do `Modules/Repair`.
 
 **SPEC:** [SPEC.md](SPEC.md)

@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Http;
 use Modules\Financeiro\Services\FinanceiroAuditLogger;
 use Modules\Financeiro\Services\Integrations\AsaasPixAutomaticoService;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Tests\TestCase;
 
 uses(TestCase::class);

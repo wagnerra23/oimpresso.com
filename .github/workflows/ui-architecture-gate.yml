@@ -12,6 +12,13 @@ name: UI architecture gate
 #   - CharterVisualSourceGateTest (C) visual_source de charter aponta pra arquivo vivo (frescor de design · Catraca Viva Fase 0)
 #   - OrphanRenderGateTest        (D) Inertia::render aponta pra page viva (anti tela órfã/morta · Catraca Viva Fase 1)
 #   - InertiaDeferredFrontendGuardTest (E) Page alvo de Inertia::defer importa <Deferred> ou está na allowlist guard-only (anti tela-branca · defer BACKEND↔FRONTEND)
+#   - DependencyDirectionTest      (F) app/ ↛ Modules/ — catraca forward-only sobre a
+#     dívida de 31 arquivos do núcleo que importam módulo (medição 2026-08-12).
+#     ⚠️ NÃO é gate de UI — está aqui porque esta lane é o dono dos testes de
+#     arquitetura filesystem-puros que de outra forma não rodariam, e porque NÃO é
+#     required: assim o gate nasce advisory (ADR 0275/0336), e a promoção é flip [W]
+#     com mordida provada. Pôr no `multi-tenant-gate` (required) o faria bloquear no
+#     dia 1 — foi a única divergência em relação ao parecer de 2026-08-12.
 #
 # NOTA: NoHardcodeBusinessIdInModulesTest (guard Tier 0 business_id) NÃO está aqui
 # de propósito — hoje ele false-positiva no padrão legítimo `=== 0` (no-tenant guard).
@@ -27,6 +34,10 @@ on:
       - 'resources/css/cockpit.css'
       - 'tests/Feature/Architecture/**'
       - '.github/workflows/ui-architecture-gate.yml'
+      # (F) o alvo do DependencyDirectionTest é o NÚCLEO — sem estes, mexer em app/
+      # não dispararia a lane no push e o gate nasceria mudo no eixo que ele vigia.
+      - 'app/**'
+      - 'governance/dependency-direction-baseline.json'
   # ⚠️ pull_request SEM paths: de propósito (2026-06-11, ADR 0271) — este check é
   # required (ADR 0263); required + path-scoped = deadlock "Expected" em PR que não
   # toca UI (mesmo incidente 2026-06-08 que destravou adr-lint/ui-lint/conformance).
@@ -90,4 +101,5 @@ jobs:
             tests/Feature/Architecture/CharterVisualSourceGateTest.php \
             tests/Feature/Architecture/OrphanRenderGateTest.php \
             tests/Feature/Architecture/InertiaDeferredFrontendGuardTest.php \
+            tests/Feature/Architecture/DependencyDirectionTest.php \
             --no-coverage

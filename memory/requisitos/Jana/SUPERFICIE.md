@@ -43,7 +43,7 @@ module: Jana
 
 - [McpAuthMiddleware.php](../../../Modules/Jana/Http/Middleware/McpAuthMiddleware.php)
 
-## Services — 91
+## Services — 90
 
 - [ProximaPerguntaService.php](../../../Modules/Jana/Services/Advisor/ProximaPerguntaService.php)
 - [ClarifyCascadeService.php](../../../Modules/Jana/Services/Ai/Clarify/ClarifyCascadeService.php)
@@ -100,7 +100,6 @@ module: Jana
 - [MetricasApurador.php](../../../Modules/Jana/Services/Metricas/MetricasApurador.php)
 - [PesoRealService.php](../../../Modules/Jana/Services/Peso/PesoRealService.php)
 - [RelevanciaMetaInferer.php](../../../Modules/Jana/Services/Peso/RelevanciaMetaInferer.php)
-- [PiiRedactor.php](../../../Modules/Jana/Services/Privacy/PiiRedactor.php)
 - [RetentionPurgeService.php](../../../Modules/Jana/Services/Privacy/RetentionPurgeService.php)
 - [JudgeUnavailableException.php](../../../Modules/Jana/Services/Ragas/JudgeUnavailableException.php)
 - [OllamaRagasJudge.php](../../../Modules/Jana/Services/Ragas/OllamaRagasJudge.php)
@@ -389,7 +388,7 @@ module: Jana
 - [Memoria.casos.md](../../../resources/js/Pages/Jana/Memoria.casos.md)
 - [Pro.casos.md](../../../resources/js/Pages/Jana/Pro.casos.md)
 
-## Testes (Pest) — 158
+## Testes (Pest) — 161
 
 - 30 em [Modules/Jana/Tests/Feature/](../../../Modules/Jana/Tests/Feature)
 - 12 em [Modules/Jana/Tests/Feature/Ai/](../../../Modules/Jana/Tests/Feature/Ai)
@@ -399,7 +398,7 @@ module: Jana
 - 1 em [Modules/Jana/Tests/Feature/Chat/](../../../Modules/Jana/Tests/Feature/Chat)
 - 3 em [Modules/Jana/Tests/Feature/Console/](../../../Modules/Jana/Tests/Feature/Console)
 - 2 em [Modules/Jana/Tests/Feature/Kb/](../../../Modules/Jana/Tests/Feature/Kb)
-- 33 em [Modules/Jana/Tests/Feature/Mcp/](../../../Modules/Jana/Tests/Feature/Mcp)
+- 36 em [Modules/Jana/Tests/Feature/Mcp/](../../../Modules/Jana/Tests/Feature/Mcp)
 - 14 em [Modules/Jana/Tests/Feature/Memoria/](../../../Modules/Jana/Tests/Feature/Memoria)
 - 1 em [Modules/Jana/Tests/Feature/Memoria/Freshness/](../../../Modules/Jana/Tests/Feature/Memoria/Freshness)
 - 1 em [Modules/Jana/Tests/Feature/Memoria/Telemetry/](../../../Modules/Jana/Tests/Feature/Memoria/Telemetry)
@@ -415,7 +414,7 @@ module: Jana
 - 13 em [Modules/Jana/Tests/Unit/](../../../Modules/Jana/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 89
+## Demais arquivos (manifestos, docs, assets e misc) — 87
 
 - [BriefDiarioAgent.php](../../../Modules/Jana/Ai/Agents/BriefDiarioAgent.php)
 - [BriefingAgent.php](../../../Modules/Jana/Ai/Agents/BriefingAgent.php)
@@ -495,8 +494,6 @@ module: Jana
 - [copiloto.php](../../../Modules/Jana/Resources/lang/pt/copiloto.php)
 - [topnav.php](../../../Modules/Jana/Resources/menus/topnav.php)
 - [permissions.php](../../../Modules/Jana/Resources/permissions.php)
-- [ScopeByBusiness.php](../../../Modules/Jana/Scopes/ScopeByBusiness.php)
-- [ScopeByBusinessViaParent.php](../../../Modules/Jana/Scopes/ScopeByBusinessViaParent.php)
 - [ClarifyResult.php](../../../Modules/Jana/Support/ClarifyResult.php)
 - [ContextoNegocio.php](../../../Modules/Jana/Support/ContextoNegocio.php)
 - [RetrievalStatus.php](../../../Modules/Jana/Support/RetrievalStatus.php)

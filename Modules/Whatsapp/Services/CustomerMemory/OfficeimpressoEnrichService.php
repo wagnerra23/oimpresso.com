@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\Whatsapp\Services\CustomerMemory;
 
 use Illuminate\Support\Facades\Log;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\CustomerMemory;
 use Modules\Whatsapp\Services\CustomerMemory\Sources\FirebirdLookupSourceContract;
 use Throwable;

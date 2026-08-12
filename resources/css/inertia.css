@@ -55,6 +55,13 @@
  * globais já definidos em cockpit.css). */
 @import "./cowork-fields.css";
 
+/* Venda V3 (`/sells/create-v3`) — caixa de campo do protótipo, escopada em
+ * `.venda-v3`. TEM de vir depois do `cowork-fields.css`: os dois são unlayered
+ * e o desempate é por especificidade (0-2-0 × 0-1-0) e, no textarea, por ordem.
+ * Medição, fork de decisão [W] e ressalva de camada estão no cabeçalho do
+ * próprio arquivo. Verificado que nenhum outro CSS do repo toca `.cw-input`. */
+@import "./venda-v3.css";
+
 /* ============================================================================
  * FINANCEIRO — Design System Cowork — REATIVADO 2026-05-19 (Plano B canon)
  *

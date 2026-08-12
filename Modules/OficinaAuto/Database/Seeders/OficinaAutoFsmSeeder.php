@@ -10,7 +10,7 @@ use App\Domain\Fsm\Models\SaleStageAction;
 use App\Domain\Fsm\Models\SaleStageActionRole;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Schema;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Spatie\Permission\Models\Role;
 
 /**

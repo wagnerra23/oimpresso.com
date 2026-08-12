@@ -31,7 +31,7 @@ beforeEach(function () {
     }
 
     // O global scope ScopeByBusiness só filtra com usuário AUTENTICADO — faz early-return
-    // em `! auth()->check()` (Modules/Jana/Scopes/ScopeByBusiness.php:26) e lê a business
+    // em `! auth()->check()` (app/Scopes/ScopeByBusiness.php:26) e lê a business
     // ativa de session('user.business_id'). Sem actingAs o scope no-opa e este guard de
     // isolamento contava biz=1 + biz=99 (2 em vez de 1) — falha de TESTE, não vazamento de
     // produto: a rota /fiscal roda atrás do middleware `auth`, onde auth()->check() é sempre

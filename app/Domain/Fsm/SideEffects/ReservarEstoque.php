@@ -9,7 +9,7 @@ use App\Domain\Fsm\Models\StockReservation;
 use App\Domain\Inventory\Services\BomResolver;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 
 /**
  * Cria stock_reservations active SEM mexer em variation_location_details.qty_available.

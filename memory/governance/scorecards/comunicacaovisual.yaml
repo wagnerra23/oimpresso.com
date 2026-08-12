@@ -110,7 +110,7 @@ lifecycle: "construcao"  # planejado piloto Q3/2026; Gold confirmou preferência
 pii_handling:
   modulo_proprio: false
   herda_de_core: true
-  redactor_path: "Modules\\Jana\\Services\\Privacy\\PiiRedactor"
+  redactor_path: "App\\Support\\Privacy\\PiiRedactor"
   justificativa: "ComVis vertical-thin: PII real (CPF/CNPJ/email/telefone cliente) mora em App\\Contact núcleo UltimatePOS. Módulo apenas referencia via contato_id FK. Free-text observacoes anonimizável via right_to_be_forgotten. PiiRedactor core referenciado em OrcamentoCalculator + Controllers."
 
 # Wave 26 saturação evidence

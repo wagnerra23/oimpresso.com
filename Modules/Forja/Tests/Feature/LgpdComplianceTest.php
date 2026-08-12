@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Modules\Forja\Services\ForjaAuditService;
 
 uses(Tests\TestCase::class);
@@ -145,20 +145,20 @@ it('ForjaAuditService rejeita event não-canônico (defense)', function () {
 it('PiiRedactor existe e redaciona CPF brasileiro (smoke)', function () {
     $redactor = app(PiiRedactor::class);
 
-    $input = 'task XPTO-1 com CPF 123.456.789-09 do solicitante';
+    $input = 'task XPTO-1 com CPF 123.456.789-09 do solicitante'; # pii-allowlist
     $output = $redactor->redact($input);
 
     expect($output)
         ->toContain('[REDACTED:CPF]')
         ->and($output)
-        ->not->toContain('123.456.789-09');
+        ->not->toContain('123.456.789-09'); # pii-allowlist
 });
 
 it('ForjaAuditService importa PiiRedactor (D7.a contrato)', function () {
     $contents = file_get_contents(base_path('Modules/Forja/Services/ForjaAuditService.php'));
 
     expect($contents)
-        ->toContain('use Modules\\Jana\\Services\\Privacy\\PiiRedactor;')
+        ->toContain('use App\\Support\\Privacy\\PiiRedactor;')
         ->and($contents)
         ->toContain('PiiRedactor');
 });
@@ -194,16 +194,16 @@ it('ForjaAuditService.log() retorna Activity model (smoke, mockado em memória)'
     // CPF dentro de description e properties — DEVE virar [REDACTED:CPF]
     $activity = $service->log(
         event: ForjaAuditService::EVENT_TASK_STATUS_CHANGED,
-        description: 'Task COPI-999 status mudou (CPF 123.456.789-09 mencionado)',
+        description: 'Task COPI-999 status mudou (CPF 123.456.789-09 mencionado)', # pii-allowlist
         properties: [
             'task_id' => 'COPI-999',
-            'note'    => 'cliente cpf 987.654.321-00 reportou',
+            'note'    => 'cliente cpf 987.654.321-00 reportou', # pii-allowlist
         ],
     );
 
     expect($activity->log_name)->toBe('project-mgmt');
     expect($activity->description)->toContain('[REDACTED:CPF]');
-    expect($activity->description)->not->toContain('123.456.789-09');
+    expect($activity->description)->not->toContain('123.456.789-09'); # pii-allowlist
     expect($activity->properties['business_id'])->toBe(PMG_LGPD_BIZ_WAGNER);
     expect($activity->properties['note'])->toContain('[REDACTED:CPF]');
 

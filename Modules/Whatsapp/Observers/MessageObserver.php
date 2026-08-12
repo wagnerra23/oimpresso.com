@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\Whatsapp\Observers;
 
 use Illuminate\Support\Facades\Log;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Events\OmnichannelMessageReceived;

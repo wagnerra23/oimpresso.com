@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\Jana\Entities\Mcp\McpCcBlob;
 use Modules\Jana\Entities\Mcp\McpCcMessage;
 use Modules\Jana\Entities\Mcp\McpCcSession;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Modules\Forja\Entities\McpIngestHeartbeat;
 
 /**

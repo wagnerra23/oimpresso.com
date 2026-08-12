@@ -8,7 +8,7 @@ use App\Domain\Fsm\Models\SaleProcess;
 use App\Domain\Fsm\Models\SaleProcessStage;
 use App\Domain\Fsm\Models\SaleStageHistory;
 use App\Domain\Fsm\Support\FsmAuthorizationFlag;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\OficinaAuto\Entities\ServiceOrder;
 
 /**

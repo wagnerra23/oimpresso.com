@@ -39,7 +39,7 @@ let falhas = 0
 const ok = (cond, msg) => { console.log(`${cond ? '  ok  ' : '  FALHOU  '}${msg}`); if (!cond) falhas++ }
 
 // Dublê: responde por PREFIXO de label (o contrato que o workflow usa pra rotular cada agente).
-const rodar = async (args, { verificarNulo = 0, persistOk = () => true, scan } = {}) => {
+const rodar = async (args, { verificarNulo = 0, persistOk = () => true, scan, outcomeNulo = false, evidencia = 'arq.mjs:12' } = {}) => {
   const chamadas = []; const logs = []
   let nVerif = 0
   const agent = async (prompt, opts = {}) => {
@@ -54,7 +54,11 @@ const rodar = async (args, { verificarNulo = 0, persistOk = () => true, scan } =
     }
     if (l.startsWith('canary:') || l.startsWith('r:')) return { veredito: 'REFUTADO', razao: 'peer existe', quem_ja_faz: 'PeerCorp' }
     if (l.startsWith('i:')) return { veredito: 'DIFERENCIAL_SISTEMA', incremento: 'a cola', razao: 'r' }
-    if (l.startsWith('v:')) { nVerif++; return nVerif <= verificarNulo ? null : { veredito: 'PARCIAL', evidencia: 'arq.mjs:12', nota_sugerida: 6 } }
+    if (l.startsWith('v:')) { nVerif++; return nVerif <= verificarNulo ? null : { veredito: 'PARCIAL', evidencia, nota_sugerida: 6 } }
+    if (l === 'outcome') return outcomeNulo ? null : { medidos: [
+      { dimensao: 'qualidade-drift-ia-producao', valor: 0.42, ancora: 0.85, lido_de: 'governance/jana-ragas-real-baseline.json:context_recall_avg' },
+      { dimensao: 'evals-outcome', valor: null, ancora: null, lido_de: 'agent-pr-outcomes.mjs --json', observacao: 'gh indisponivel' },
+    ] }
     if (l.startsWith('cp-') || l.startsWith('re-')) return { ok: persistOk(l), resumo: 'gravou' }
     return 'prosa qualquer'
   }
@@ -189,6 +193,172 @@ console.log('\n[8] delta sem ANCORA aborta antes de gastar — e nao grava retra
   const src = fs.readFileSync(ALVO, 'utf8')
   ok(/required: \['dims_delta', 'claims_vencidas', 'fraquezas', 'ultimo_retrato'\]/.test(src), 'schema SCAN exige ultimo_retrato')
   ok(/required: \['data', 'notas'\]/.test(src), 'schema SCAN exige ultimo_retrato.notas')
+}
+
+// Defeito MEDIDO (rodada 2026-08-11, dimensao memoria-conhecimento): o proprio relatorio
+// registrou que 5 das 8 fraquezas levantadas JA tinham maquina viva que a pesquisa nao achou.
+// Nao foi azar — o dossie so lia decisions/ (mapa-dos-niveis curado a mao) + doutrina + §5, e
+// 373 das 466 maquinas do inventario derivado NAO aparecem em nenhuma dessas fontes (80%,
+// medido em 2026-08-11). Exemplo canonico: `hook-replay`/`hook-bites` estao no inventario
+// (linhas ~389-390) e em NENHUMA fonte do dossie — logo os pesquisadores concluiam "o
+// oimpresso nao mede isso" sobre coisa que ele mede. Mesmo padrao do 7/9 de 2026-07-09
+// (SKILL.md regra 4). Sem estes asserts, uma edicao futura remove a fonte e nada avisa.
+console.log('\n[9] o dossie carrega o inventario derivado (lista anti-falso-negativo)')
+{
+  const p = (await rodar({ base: '/base' })).prompt('dossie')
+  ok(p.includes('/base/memory/reference/MAQUINAS-INVENTARIO.md'), 'inventario e FONTE OBRIGATORIA do dossie (com args.base resolvido)')
+  ok(/ANTI-FALSO-NEGATIVO/i.test(p), 'o prompt nomeia PRA QUE serve (procurar antes de declarar ausencia)')
+  ok(/N.O enumere o inventário inteiro/.test(p), "nao manda listar o inventario inteiro (estouraria o teto de 500 palavras)")
+  ok(/ANTES de afirmar que o oimpresso n.o faz X/.test(p), 'o dossie repassa a instrucao aos pesquisadores (o dossie e embutido em COMUM)')
+  // As 3 fontes antigas seguem no prompt — a fonte nova SOMA, nao substitui.
+  ok(p.includes('mapa-dos-niveis') && p.includes('/base/memory/proibicoes.md') && p.includes('doutrina-documentacao'),
+    'as 3 fontes originais continuam obrigatorias (fonte nova soma, nao troca)')
+  // CONTROLE NEGATIVO — a mudanca e do PROMPT, nao da arquitetura: contagem de agentes intacta.
+  // O esperado e DERIVADO do DIMS_DEFAULT vivo (nunca hardcoded — numero escrito a mao apodrece
+  // no dia em que alguem adiciona uma dimensao, e o assert passaria a medir o passado).
+  const nDims = [...fs.readFileSync(ALVO, 'utf8').matchAll(/^ {2}\{ key: '/gm)].length
+  const r = await rodar({ base: '/base' })
+  ok(nDims > 0 && r.chamadas.filter((c) => c.label.startsWith('p:')).length === nDims, `nenhuma fase nova: ${nDims} pesquisadores (1 por dimensao de DIMS_DEFAULT)`)
+  ok(r.chamadas.filter((c) => c.label === 'dossie').length === 1, 'segue UM unico agente de dossie')
+}
+
+// Defeito MEDIDO (rodada 2026-08-11, modo full-parcial): a `evidencia` — REQUIRED no schema
+// EXISTE, e o que torna a nota AUDITAVEL — era descartada na persistencia por 3 `.slice()` mudos
+// (200 no full, 250 nos 2 sites do delta). As 8 entradas gravadas naquele dia saíram com 202-249
+// chars, TODAS cortadas no meio da palavra. Nenhuma das 8 notas e auditavel pelo ledger.
+console.log('\n[10] evidencia chega INTEGRA ao ledger (nao mais truncada em 200/250)')
+{
+  // 700 chars: acima dos 2 caps antigos (200/250) e abaixo do teto novo (2000) => tem que passar INTEIRA.
+  const longa = 'INICIO-' + 'x'.repeat(680) + '-FIM-DA-PROVA'
+  const r = await rodar({ base: '/base' }, { evidencia: longa })
+  const p = r.prompt('cp-retrato')
+  ok(p.includes(longa), `evidencia de ${longa.length} chars viaja INTEIRA ao persistidor (bite: com o slice(0,200) antigo, cai)`)
+  ok(p.includes('-FIM-DA-PROVA'), 'o FINAL da evidencia sobrevive — era exatamente o que o corte comia')
+  ok(!r.logs.some((l) => l.includes('EVIDÊNCIA CORTADA')), 'evidencia normal NAO dispara log de corte (o teto nao morde no corpus real)')
+  // Delta: os outros 2 sites (250) — mesma prova.
+  const scanD = {
+    ultimo_retrato: { data: '2026-07-26', notas: { 'spec-governanca': 6.5 }, integ_hist: {} },
+    dims_delta: { 'spec-governanca': { commits: 9 } }, claims_vencidas: [],
+    fraquezas: [{ id: 'f1', dimensao: 'spec-governanca', titulo: 'buraco', veredito: 'PARCIAL', nota: 4 }],
+    delta_min_commits: 3,
+  }
+  const d = await rodar({ base: '/base', modo: 'delta' }, { scan: scanD, evidencia: longa })
+  ok(d.prompt('cp-retrato-delta').includes(longa), 'delta tambem persiste a evidencia inteira (site 2/3)')
+  // CONTROLE NEGATIVO: patologica (>2000) e cortada, mas NUNCA em silencio.
+  const gigante = 'y'.repeat(3000)
+  const g = await rodar({ base: '/base' }, { evidencia: gigante })
+  ok(g.logs.some((l) => l.includes('EVIDÊNCIA CORTADA')), 'evidencia patologica (3000) corta COM log (No silent caps)')
+  ok(!g.prompt('cp-retrato').includes(gigante), 'e de fato corta — o teto de seguranca existe pra nao estourar o fit global')
+}
+
+console.log('\n[11] incremento: a justificativa do veredito de integracao chega ao ledger')
+{
+  const r = await rodar({ base: '/base' })
+  const p = r.prompt('cp-claims')
+  ok(/incremento/.test(p), 'o prompt de claims MANDA gravar incremento (medido: 0 de 51 claims tinham o campo)')
+  ok(p.includes('a cola'), 'o valor produzido pela fase Integracao viaja no payload')
+  ok(/OBRIGAT[ÓO]RIO quando vier nos dados/.test(p), 'a instrucao diz que e obrigatorio, nao opcional')
+  ok(/delta n[ãa]o roda Integra/.test(p), 'e ressalva o delta (la o campo nao vem — preservar, nao apagar)')
+}
+
+// A nota e MEDIA sobre um conjunto: mudou o conjunto, o Δ nao mede capacidade (regra 12).
+// Medido: memoria-conhecimento 7,7 (08-08, 2 fraquezas) -> 7,1 (08-11, 8), intersecao de ids VAZIA,
+// e 13 fraquezas no ledger (media das 13 = 7,4). O retrato de 08-08 tinha o caveat em 4 dimensoes,
+// mas escrito A MAO pelo agente; por isso o de 08-11 nao teve nenhum.
+console.log('\n[12] caveat de denominador e DERIVADO (nao escrito a mao)')
+{
+  const r = await rodar({ base: '/base' })
+  const p = r.prompt('cp-retrato')
+  ok(/DENOMINADOR N[ÃA]O COMPAR[ÁA]VEL/.test(p), 'full: declara que o conjunto e re-levantado pela pesquisa do dia')
+  ok(/regra 12/.test(p), 'o caveat cita a regra 12 (o corolario que ele protege)')
+  ok(/"denominador"/.test(p), 'grava QUAIS fraquezas compuseram a nota (forward-only, pra comparacao futura)')
+
+  // DELTA — bite: uma fraqueza que era nota:null ENTRA no denominador => caveat nomeando quem entrou.
+  const base = { ultimo_retrato: { data: '2026-07-26', notas: { 'spec-governanca': 6.5 }, integ_hist: {} },
+    dims_delta: { 'spec-governanca': { commits: 9 } }, claims_vencidas: [], delta_min_commits: 3 }
+  const mudou = await rodar({ base: '/base', modo: 'delta' }, { scan: { ...base, fraquezas: [
+    { id: 'f-antiga', dimensao: 'spec-governanca', titulo: 'ja tinha nota', veredito: 'PARCIAL', nota: 4 },
+    { id: 'f-nova', dimensao: 'spec-governanca', titulo: 'era null', veredito: 'PARCIAL', nota: null },
+  ] } })
+  const pm = mudou.prompt('cp-retrato-delta')
+  ok(/DENOMINADOR MUDOU/.test(pm), 'delta: conjunto diferente => caveat DERIVADO da comparacao de ids')
+  ok(/entraram f-nova/.test(pm), 'o caveat NOMEIA quem entrou (formato do retrato 08-08, agora mecanico)')
+  ok(mudou.logs.some((l) => l.includes('DENOMINADOR MUDOU')), 'e avisa no log da rodada, nao so no ledger')
+
+  // CONTROLE NEGATIVO — conjunto IDENTICO nao pode disparar (senao vira carimbo, o anti-padrao do §5).
+  const igual = await rodar({ base: '/base', modo: 'delta' }, { scan: { ...base, fraquezas: [
+    { id: 'f-antiga', dimensao: 'spec-governanca', titulo: 'ja tinha nota', veredito: 'PARCIAL', nota: 4 },
+  ] } })
+  ok(!/DENOMINADOR MUDOU/.test(igual.prompt('cp-retrato-delta')), 'CONTROLE: mesmo conjunto => SEM caveat (o alarme discrimina, nao carimba)')
+  ok(/re-medida \(1 fraquezas/.test(igual.prompt('cp-retrato-delta')), 'CONTROLE: a proveniencia normal segue intacta')
+}
+
+// Defeito MEDIDO (passe adversarial 2026-08-11): `nota_sugerida` era `{ type: 'number' }`
+// — sem bounds e sem rubrica — e o prompt pedia so "a nota 0-10". Consequencia medida:
+// 4 fraquezas cujo verificador declarou a premissa FALSA receberam 9,0/7,5/6,0/6,0
+// (spread 3,5 na MESMA classe de veredito) => ruido inter-verificador ~±0,5, que engole
+// qualquer delta entre rodadas. Sem estes asserts, uma edicao futura tira a rubrica do
+// prompt e a escala volta a ser impressao — sem nada avisar.
+console.log('\n[13] a nota tem RUBRICA (a escala tem degraus, nao e impressao)')
+{
+  const src = fs.readFileSync(ALVO, 'utf8')
+  // schema: bounds + `null` legitimo (a celula nao-pontuavel some da media em vez de virar numero de conforto)
+  ok(/minimum: 0, maximum: 10/.test(src), 'o schema da nota tem BOUNDS (0-10), nao numero livre')
+  ok(/type: \['number', 'null'\]/.test(src), "o schema aceita `null` — 'nao pontuavel' e resposta valida, nao um 6 de conforto")
+  ok(/description: RUBRICA_NOTA/.test(src), 'a rubrica esta no description do campo (chega ao modelo pelo schema)')
+
+  const r = await rodar({ base: '/base' })
+  const verificadores = r.chamadas.filter((c) => c.label.startsWith('v:'))
+  ok(verificadores.length > 0, 'ha agente verificador na corrida (senao o assert abaixo mede o vazio)')
+  const todosComRubrica = verificadores.every((c) => /RUBRICA DA NOTA/.test(c.prompt))
+  ok(todosComRubrica, `os ${verificadores.length} verificadores recebem a rubrica no prompt`)
+  // os 3 DUROs que impedem a escala de virar carimbo — cada um ancorado numa licao ja paga
+  const pv = verificadores[0].prompt
+  ok(/presen.a NUNCA passa de 4/i.test(pv), 'DURO: presenca nao vira nota alta sozinha (LC-11)')
+  ok(/n.o pode ficar vermelho NUNCA passa de 4/i.test(pv), 'DURO: verde-que-nao-avermelha e carimbo, nao mordida')
+  ok(/nota_sugerida: null/.test(pv), 'DURO: sem evidencia verificavel => null, nunca numero de conforto')
+  ok(/Agregar dimens.es num .ndice . proibido/i.test(pv), 'DURO: a rubrica reafirma o C9 (nada de indice agregado)')
+  // CONTROLE NEGATIVO: a rubrica e do PROMPT/schema — nao inventou fase nem agente novo.
+  const nDims2 = [...src.matchAll(/^ {2}\{ key: '/gm)].length
+  ok(r.chamadas.filter((c) => c.label.startsWith('p:')).length === nDims2, `nenhuma fase nova: ${nDims2} pesquisadores intactos`)
+}
+
+// Defeito MEDIDO (passe adversarial 2026-08-11): TODAS as celulas da grade perguntavam
+// "existe mecanismo?" e NENHUMA perguntava "o resultado melhorou?". A dimensao da memoria
+// TINHA um numero de desfecho (context_recall_avg = 0,42 contra ancora 0,85 escrita no
+// proprio Jana/SPEC.md) e ele ficava FORA do denominador — entao a nota podia subir
+// enquanto a coisa medida nao mudava. Os asserts abaixo travam as DUAS metades: o outcome
+// entra, e ele NUNCA se funde com a nota (grandezas incomensuraveis — lapide C9).
+console.log('\n[14] OUTCOME entra como coluna PROPRIA (a regua "funciona?" ao lado da "existe?")')
+{
+  const src = fs.readFileSync(ALVO, 'utf8')
+  // campo CONFERIDO no repo, nao inferido do nome: o baseline tem `context_recall_avg`.
+  ok(/context_recall_avg/.test(src), 'a fonte declara o campo REAL (context_recall_avg), nao o nome plausivel')
+  ok(/ancora: 0\.85/.test(src), 'a ancora de mercado viaja junto com a fonte (0.85, do Jana/SPEC.md)')
+
+  const r = await rodar({ base: '/base' })
+  ok(r.labels.includes('outcome'), 'a fase Outcome roda')
+  const ag = r.chamadas.find((c) => c.label === 'outcome')
+  ok(ag.effort === 'low', 'o leitor de outcome e MECANICO (effort low) — le e transcreve, nao julga')
+  ok(/NUNCA estime, NUNCA use mem.ria/.test(ag.prompt), 'o prompt proibe estimar quando a fonte nao abre (LC-08)')
+  ok(/lido_de/.test(ag.prompt), 'exige recibo (caminho:campo ou comando rodado)')
+
+  const pr = r.prompt('cp-retrato')
+  ok(/OUTCOME medido/.test(pr), 'o outcome chega ao retrato')
+  ok(/context_recall_avg/.test(pr), 'com o valor lido, nao um resumo')
+  // O assert que impede o pecado C9: a regra viaja no prompt de persistencia.
+  ok(/NUNCA some, NUNCA fa.a m.dia com/.test(pr), 'REGRA DURA: outcome nao entra na media nem vira nota (C9)')
+  ok(/incomensur.veis/.test(pr), 'e o prompt diz POR QUE (existe-mecanismo x resultado-melhorou)')
+
+  // CONTROLE NEGATIVO 1: outcome nulo NAO derruba a rodada — e coluna a mais, nao pre-requisito.
+  const semOut = await rodar({ base: '/base' }, { outcomeNulo: true })
+  ok(semOut.labels.includes('cp-retrato'), 'outcome nulo => o retrato AINDA grava (nao perde a rodada)')
+  ok(!/OUTCOME medido/.test(semOut.prompt('cp-retrato')), 'e o prompt sai SEM a secao (ausencia declarada, nao inventada)')
+
+  // CONTROLE NEGATIVO 2 — o mais importante: o outcome NAO contamina as notas.
+  const notasCom = JSON.stringify(r.out.notas)
+  const notasSem = JSON.stringify(semOut.out.notas)
+  ok(notasCom === notasSem, `as notas sao IDENTICAS com e sem outcome (${notasCom === notasSem ? 'nao vazou' : 'VAZOU'})`)
 }
 
 fs.rmSync(TMP, { recursive: true, force: true })

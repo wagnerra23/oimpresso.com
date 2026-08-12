@@ -13,7 +13,7 @@ use Modules\Cms\Entities\CmsPage;
 use Modules\Cms\Entities\CmsPageMeta;
 use Modules\Cms\Http\Requests\StoreCmsPageRequest;
 use Modules\Cms\Http\Requests\UpdateCmsPageRequest;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 class CmsPageController extends Controller
 {

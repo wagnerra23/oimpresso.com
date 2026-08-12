@@ -52,7 +52,7 @@ export default function ColunasModal({
 
   return (
     <Dialog open={aberto} onOpenChange={(v) => !v && onFechar()}>
-      <DialogContent className="max-h-[88vh] sm:max-w-[900px]">
+      <DialogContent className="venda-v3 max-h-[88vh] sm:max-w-[900px]">
         <DialogHeader>
           <DialogTitle>Colunas do grid ({ativas.length} de {COLUNAS.length})</DialogTitle>
         </DialogHeader>

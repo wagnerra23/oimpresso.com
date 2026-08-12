@@ -22,43 +22,64 @@ use Illuminate\Support\Facades\Schema;
  */
 return new class extends Migration
 {
+    /**
+     * Guards de idempotência acrescentados em 2026-08-11, junto com o
+     * `loadMigrationsFrom` que o `ForjaServiceProvider` não tinha.
+     *
+     * Por que agora: de 2026-07-31 (move TeamMcp→Forja) até hoje, NENHUMA migration
+     * deste diretório era registrada — o provider antigo tinha a linha, o novo não.
+     * Em prod isso não teve efeito (as 5 já constavam na tabela `migrations`, e o
+     * Laravel pula por basename), mas ao religar o registro estas passam a rodar em
+     * ambiente novo. Sem os guards, um ambiente que já tenha `mcp_actors` mas não a
+     * linha de controle derrubaria o `migrate` com "table already exists".
+     *
+     * Essa combinação não existe hoje (medido: prod tem as duas; o baseline
+     * `database/schema/mysql-schema.sql` também). O guard fecha a classe, não um
+     * incidente — segue o pattern obrigatório de `.claude/rules/migrations.md`.
+     */
     public function up(): void
     {
-        Schema::create('mcp_actors', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->string('slug', 60)->unique();
-            $table->enum('type', ['human', 'ai_agent', 'service']);
-            $table->enum('trust_level', ['L0', 'L1', 'L2', 'L3', 'L4']);
-            $table->unsignedBigInteger('parent_actor_id')->nullable()->index();
+        // Guard POR OPERAÇÃO, não `return` cedo: as três são independentes, e um
+        // estado parcial (tabela criada, ALTERs não) precisa poder completar.
+        if (! Schema::hasTable('mcp_actors')) {
+            Schema::create('mcp_actors', function (Blueprint $table) {
+                $table->bigIncrements('id');
+                $table->string('slug', 60)->unique();
+                $table->enum('type', ['human', 'ai_agent', 'service']);
+                $table->enum('trust_level', ['L0', 'L1', 'L2', 'L3', 'L4']);
+                $table->unsignedBigInteger('parent_actor_id')->nullable()->index();
 
-            // Capabilities como JSON arrays
-            $table->json('modules_write')->comment('["Jana","KB"] ou ["*"]');
-            $table->json('modules_read')->comment('["*"]');
-            $table->json('modules_blocked')->comment('["Connector","Superadmin"]');
-            $table->json('skills_required')->comment('["oimpresso-stack","multi-tenant-patterns"]');
-            $table->json('actions_blocked')->comment('["drop_table","schema_destructive"]');
+                // Capabilities como JSON arrays
+                $table->json('modules_write')->comment('["Jana","KB"] ou ["*"]');
+                $table->json('modules_read')->comment('["*"]');
+                $table->json('modules_blocked')->comment('["Connector","Superadmin"]');
+                $table->json('skills_required')->comment('["oimpresso-stack","multi-tenant-patterns"]');
+                $table->json('actions_blocked')->comment('["drop_table","schema_destructive"]');
 
-            $table->boolean('audit_required')->default(true);
+                $table->boolean('audit_required')->default(true);
 
-            // Linking ao sistema legacy
-            $table->unsignedInteger('user_id')->nullable()->index();
-            $table->string('display_name', 120);
+                // Linking ao sistema legacy
+                $table->unsignedInteger('user_id')->nullable()->index();
+                $table->string('display_name', 120);
 
-            // Audit trail
-            $table->unsignedBigInteger('created_by_actor_id')->nullable();
-            $table->timestamp('revoked_at')->nullable()->index();
-            $table->unsignedBigInteger('revoked_by_actor_id')->nullable();
+                // Audit trail
+                $table->unsignedBigInteger('created_by_actor_id')->nullable();
+                $table->timestamp('revoked_at')->nullable()->index();
+                $table->unsignedBigInteger('revoked_by_actor_id')->nullable();
 
-            $table->text('notes')->nullable();
-            $table->timestamps();
+                $table->text('notes')->nullable();
+                $table->timestamps();
 
-            $table->index('type');
-            $table->index('trust_level');
-        });
+                $table->index('type');
+                $table->index('trust_level');
+            });
+        }
 
-        Schema::table('mcp_tokens', function (Blueprint $table) {
-            $table->unsignedBigInteger('actor_id')->nullable()->after('user_id')->index();
-        });
+        if (! Schema::hasColumn('mcp_tokens', 'actor_id')) {
+            Schema::table('mcp_tokens', function (Blueprint $table) {
+                $table->unsignedBigInteger('actor_id')->nullable()->after('user_id')->index();
+            });
+        }
 
         Schema::table('users', function (Blueprint $table) {
             if (!Schema::hasColumn('users', 'mcp_actor_id')) {
@@ -75,10 +96,12 @@ return new class extends Migration
             }
         });
 
-        Schema::table('mcp_tokens', function (Blueprint $table) {
-            $table->dropIndex(['actor_id']);
-            $table->dropColumn('actor_id');
-        });
+        if (Schema::hasColumn('mcp_tokens', 'actor_id')) {
+            Schema::table('mcp_tokens', function (Blueprint $table) {
+                $table->dropIndex(['actor_id']);
+                $table->dropColumn('actor_id');
+            });
+        }
 
         Schema::dropIfExists('mcp_actors');
     }

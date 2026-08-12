@@ -71,7 +71,7 @@ function Escolha<T extends string>({
   return (
     <Campo label={label}>
       <Select value={value} onValueChange={(v) => onChange(v as T)}>
-        <SelectTrigger className="h-8 w-full text-[12.5px]">
+        <SelectTrigger className="w-full">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -137,7 +137,7 @@ export default function ComissaoDrawer({
 
   return (
     <Dialog open={aberto} onOpenChange={(v) => !v && onFechar()}>
-      <DialogContent className="max-h-[88vh] sm:max-w-[1000px]">
+      <DialogContent className="venda-v3 max-h-[88vh] sm:max-w-[1000px]">
         <DialogHeader>
           <DialogTitle>Modelo de comissão da venda</DialogTitle>
         </DialogHeader>
@@ -205,20 +205,25 @@ export default function ComissaoDrawer({
                       <Escolha label="Regra" value={b.regra} onChange={(v) => alterar(b.k, { regra: v as Beneficiario['regra'] })} options={REGRAS} />
                       {b.regra === 'fixo' ? (
                         <Campo label="Valor (R$)">
-                          <Input className="h-8 text-right text-[12.5px]" value={b.valor} onChange={(e) => alterar(b.k, { valor: e.target.value })} inputMode="decimal" />
+                          <Input className="text-right" value={b.valor} onChange={(e) => alterar(b.k, { valor: e.target.value })} inputMode="decimal" />
                         </Campo>
                       ) : b.regra === 'faixa' ? (
                         <Campo label="Faixa aplicada">
                           {/* a faixa sai da BASE do beneficiário, não do valor já calculado —
                               reconstruir a base a partir do resultado seria dar a volta pra
                               chegar no número que já se tem. */}
-                          <span className="block h-8 text-[12.5px] leading-8">
+                          {/* Este span é um dos 3 ramos do MESMO `<Campo>` — alterna com
+                              dois `<Input>`, que agora medem 34,19px. `h-8` (32px) o
+                              deixava 2,19px mais baixo que os irmãos. Replica a caixa
+                              deles (13px/1.4 + 7px + borda transparente = 34,19px) em vez
+                              de fixar altura, que descolaria de novo no próximo ajuste. */}
+                          <span className="block border border-transparent py-[7px] text-[13px] leading-[1.4]">
                             {num(percentualDaFaixa(baseDoBeneficiario(b, totais)), 0)}% por volume
                           </span>
                         </Campo>
                       ) : (
                         <Campo label="Percentual (%)">
-                          <Input className="h-8 text-right text-[12.5px]" value={b.pct} onChange={(e) => alterar(b.k, { pct: e.target.value })} inputMode="decimal" />
+                          <Input className="text-right" value={b.pct} onChange={(e) => alterar(b.k, { pct: e.target.value })} inputMode="decimal" />
                         </Campo>
                       )}
                     </Grid>

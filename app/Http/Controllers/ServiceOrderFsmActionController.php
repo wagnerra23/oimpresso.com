@@ -13,7 +13,7 @@ use App\Domain\Fsm\Policies\StageActionPolicy;
 use App\Domain\Fsm\Services\ExecuteStageActionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\OficinaAuto\Entities\ServiceOrder;
 use Modules\OficinaAuto\Services\ServiceOrderPipelineStarter;
 use Modules\OficinaAuto\Services\StageGateEvaluator;
