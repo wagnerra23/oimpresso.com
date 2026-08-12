@@ -58,8 +58,8 @@ it('PiiRedactor redacta CPF CNPJ email phone do payload do brief', function () {
     $payload = [
         'cycle_codename' => 'jolly-hypatia',
         'mission_focus' => 'Wagner contato wagnerra@gmail.com sobre meta',
-        'team_member' => 'Felipe CPF 123.456.789-00 reportou OS aberta',
-        'business_cnpj' => 'Cliente 12.345.678/0001-90 atrasou pagamento',
+        'team_member' => 'Felipe CPF 123.456.789-00 reportou OS aberta', # pii-allowlist
+        'business_cnpj' => 'Cliente 12.345.678/0001-90 atrasou pagamento', # pii-allowlist
         'phone_note' => 'Larissa ligou de (48) 99876-5432',
     ];
 
@@ -73,8 +73,8 @@ it('PiiRedactor redacta CPF CNPJ email phone do payload do brief', function () {
     // PII NÃO deve aparecer em nenhum campo
     $allText = implode(' ', array_map(fn ($v) => (string) $v, $redacted));
     expect($allText)->not->toContain('wagnerra@gmail.com');
-    expect($allText)->not->toContain('123.456.789-00');
-    expect($allText)->not->toContain('12.345.678/0001-90');
+    expect($allText)->not->toContain('123.456.789-00'); # pii-allowlist
+    expect($allText)->not->toContain('12.345.678/0001-90'); # pii-allowlist
 });
 
 it('BriefGeneratorService instanciavel via container sem chamar OpenAI', function () {

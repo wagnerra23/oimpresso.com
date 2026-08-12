@@ -64,13 +64,13 @@ it('Model PII tem getActivitylogOptions configurado (D7.b nominal)', function (s
 it('PiiRedactor existe e redaciona CPF brasileiro', function () {
     $redactor = app(PiiRedactor::class);
 
-    $input = 'erro processando contato CPF 123.456.789-09 inválido';
+    $input = 'erro processando contato CPF 123.456.789-09 inválido'; # pii-allowlist
     $output = $redactor->redact($input);
 
     expect($output)
         ->toContain('[REDACTED:CPF]')
         ->and($output)
-        ->not->toContain('123.456.789-09');
+        ->not->toContain('123.456.789-09'); # pii-allowlist
 });
 
 it('PiiRedactor redaciona email + telefone BR juntos', function () {
