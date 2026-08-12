@@ -43,7 +43,7 @@ criada fora daqui; esta tela só a seleciona e precifica. Um produto tem **N tab
 
 ## Fluxo canônico (Wagner 2026-07-15 — vale sobre qualquer inferência)
 
-1. **A tabela é criada fora do produto** — `/produto/unificado?tela=tabelas` (`App\SellingPriceGroup`).
+1. **A tabela é criada fora do produto** — `/products/unificado?tela=tabelas` (`App\SellingPriceGroup`).
 2. **No cadastro do produto** (esta tela), o operador **seleciona** a tabela e define o preço que
    aquele produto assume **quando a tabela for aplicada**.
 3. **Depois**, a tabela é vinculada **ao cadastro do cliente** ou **a um tipo de venda** — fora daqui.
@@ -325,7 +325,7 @@ Sendo `[V0]` sobre preço, a US carrega a **REGRA MESTRE** (dupla-confirmação 
 
 ## Non-Goals
 
-- ❌ **Criar tabela de preço nova inline** — nasce em `/produto/unificado?tela=tabelas` (passo 1 do fluxo)
+- ❌ **Criar tabela de preço nova inline** — nasce em `/products/unificado?tela=tabelas` (passo 1 do fluxo)
 - ❌ **Vincular tabela ao cliente ou ao tipo de venda** — acontece fora do cadastro do produto (passo 3)
 - ❌ **Preço especial por (produto × cliente) direto** — `AR-PROD-111..116` do legado (`% Acréscimo` /
   `% Desconto` sobre o `Valor Original`, gravado por produto×cliente). **Non-Goal declarado**
