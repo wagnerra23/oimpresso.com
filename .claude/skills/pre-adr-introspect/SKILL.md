@@ -1,6 +1,6 @@
 ---
 name: pre-adr-introspect
-description: ATIVAR ANTES de qualquer Write em `memory/decisions/NNNN-*.md` (ADR nova) OU antes de propor schema novo (`database/migrations/*.php` que adiciona col em tabela existente) OU antes de propor pattern arquitetural (endpoint, middleware, service genérico). Força introspecção do projeto pra detectar patterns canon já estabelecidos (git grep ADRs/migrations/Controllers + diagnóstico prod se ADR depende de estado DB). Previne 80% dos erros de retrabalho mesmo-dia documentados em sessão 2026-05-27 (3 ADRs erratas + 1 RUNBOOK histórico + 2 CI fails Append-only canon). Lição arquitetural ADR 0200 §Lição operacionalizada.
+description: ATIVAR ANTES de qualquer Write em `memory/decisions/NNNN-*.md` (ADR nova) OU antes de propor schema novo (`database/migrations/*.php` que adiciona col em tabela existente) OU antes de propor pattern arquitetural (endpoint, middleware, service genérico) OU antes de AUTORAR MECANISMO não-trivial (medidor, gerador, analisador, catraca, orquestrador, script de governança novo). Força introspecção em DOIS eixos — INTERNO (git grep ADRs/migrations/Controllers + diagnóstico prod) e EXTERNO (item 6: essa técnica tem nome na literatura? existe ferramenta madura nesta stack?). Previne 80% dos erros de retrabalho mesmo-dia da sessão 2026-05-27 (3 ADRs erratas + 1 RUNBOOK histórico + 2 CI fails Append-only) e a classe LC-21, medida em 2026-08-12 (~4h autorando um medidor que era Software Reflexion Models de 1995, com Deptrac já cobrindo o eixo por AST). Lição arquitetural ADR 0200 §Lição operacionalizada.
 tier: B
 trigger: description-matching
 parent_adr: 0095
@@ -95,9 +95,51 @@ ls memory/requisitos/_DesignSystem/ 2>&1 | grep -i "<tema>"
 # Leitura prévia evita reinventar wire/pattern já contratado
 ```
 
+### 6. PRIOR ART **externa** — essa técnica já tem nome? já tem ferramenta? (LC-21)
+
+> **Os itens 1-5 olham pra DENTRO do repo. Este olha pra fora — e é o buraco que custou caro em 2026-08-12.**
+> Naquela sessão o pré-flight interno passou **limpo**: procurei o dono (`catalog-graph.mjs`), li, e
+> estendi em vez de abrir paralelo (o LC-19 **não** foi cometido). Daí tirei a conclusão errada —
+> *"não há dono no repo, logo o problema é novo"*. Não era: eu estava reimplementando **Software
+> Reflexion Models** (Murphy & Notkin, FSE'95), cujas 3 categorias (*convergence / divergence /
+> absence*) mapeiam 1:1 no que eu tinha "inventado"; e em PHP o **Deptrac** já faz o eixo de import
+> por AST, pegando chamada estática, type hint, `extends` e docblock — tudo que regex não vê.
+> Custo: ~4h de autoria antes de 3 buscas revelarem isso, e só porque [W] pediu.
+>
+> **Ausência de dono interno não é evidência de problema novo** — é evidência de que ninguém *aqui*
+> resolveu ainda.
+
+**Quando rodar:** antes de autorar mecanismo não-trivial — medidor, gerador, analisador, catraca,
+orquestrador. Não é pra ADR de errata nem pra script de 20 linhas.
+
+Duas perguntas, e a resposta vai **no corpo do PR**:
+
+- **(a) Essa técnica tem NOME?** (termo de arte / literatura). Buscar o *problema*, não a *solução
+  que já imaginei*: "detect architecture drift source vs model", não "meu script de grep de imports".
+- **(b) Existe ferramenta madura no ecossistema desta stack?** PHP/Laravel: Deptrac, PHPat, PHPStan
+  rules. JS: dependency-cruiser. Genérico/histórico: temporal coupling (CodeScene).
+
+```
+# O caminho de resposta JÁ EXISTE — o que faltava era o gatilho, não a capacidade:
+#   agente `estado-da-arte`  → pesquisa como os melhores resolvem em 2026
+#   WebSearch direto         → 2-3 buscas resolvem o essencial
+```
+
+**Decidir construir mesmo assim é legítimo** e vira defensável quando registrado. Em 08-12 havia
+razão real: o eixo de tabela (`DB::table('x')` — string, não tipo) está **fora** do alcance do
+Deptrac, e ler o `SCOPE.md` que já é canon evita autorar um `deptrac.yaml` — uma **segunda**
+declaração à mão, que era a doença diagnosticada. O erro não foi construir: foi construir **sem
+saber contra o quê**. E se (a) tiver resposta, **adote o vocabulário dela** — "convergence/
+divergence/absence" comunica melhor que qualquer tradução caseira.
+
+⚠️ **Isto não vira gate.** O predicado *"isto reimplementa técnica publicada?"* é semântico por
+construção; a forma sintática está morta 5× no §5 (allowlist-de-pasta · `@scope` · vocabulário
+130 FP · `toHaveKey` · `toContain`). Por [ADR 0224](../../../memory/decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md),
+semântico = advisory. A defesa é este passo + a lápide.
+
 ## Output esperado
 
-Após rodar os 5 itens, gerar bullet list curta:
+Após rodar os 6 itens, gerar bullet list curta:
 
 ```
 ## pre-adr-introspect — relatório (gerar antes do Write)
@@ -109,10 +151,14 @@ Após rodar os 5 itens, gerar bullet list curta:
   - <schema/endpoint canon> em <path>
 - Diagnóstico prod (se aplicável):
   - Tabela X biz=Y tem N rows · esperado pelo plano: M (drift: ±%)
+- Prior art EXTERNA (item 6 — só pra mecanismo não-trivial):
+  - Técnica tem nome? <nome + ref> / não achei (2-3 buscas feitas: <termos>)
+  - Ferramenta madura na stack? <nome> — cobre <eixo> / não cobre <eixo>
 - Decisão pós-introspecção:
   - [ ] REUSAR pattern canon X (preferido)
   - [ ] EXTEND pattern canon X com Y campos novos
-  - [ ] CRIAR pattern novo (justificar: por que NÃO reusar?)
+  - [ ] ADOTAR ferramenta externa <nome> (dependência nova ⇒ exige ADR)
+  - [ ] CRIAR pattern novo (justificar: por que NÃO reusar **e** por que não a ferramenta externa?)
 ```
 
 Esse relatório vai no corpo da ADR (seção "Contexto" ou "Análise prévia") ou pelo menos no commit body.
