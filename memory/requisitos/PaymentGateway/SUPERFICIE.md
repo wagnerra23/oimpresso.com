@@ -12,9 +12,9 @@ module: PaymentGateway
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs PaymentGateway --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/PaymentGateway/**` + `resources/js/Pages/PaymentGateway/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/PaymentGateway/**` + `resources/js/Pages/PaymentGateway/**` + `resources/js/Pages/Settings/**` (namespaces Inertia `PaymentGateway`, `Settings`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `PaymentGateway` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 138 arquivos em 12 papéis.
+**Total mapeado:** 150 arquivos em 16 papéis.
 
 ## Controllers — 12
 
@@ -117,6 +117,29 @@ module: PaymentGateway
 
 - [config.php](../../../Modules/PaymentGateway/Config/config.php)
 
+## Telas (Inertia/React) — 2
+
+- [CnabRetorno.tsx](../../../resources/js/Pages/Settings/PaymentGateways/CnabRetorno.tsx)
+- [Index.tsx](../../../resources/js/Pages/Settings/PaymentGateways/Index.tsx)
+
+## Componentes / apoio de tela — 5
+
+- [CheatSheetSettings.tsx](../../../resources/js/Pages/Settings/PaymentGateways/_components/CheatSheetSettings.tsx)
+- [ConfirmToggleModal.tsx](../../../resources/js/Pages/Settings/PaymentGateways/_components/ConfirmToggleModal.tsx)
+- [DrawerGateway.tsx](../../../resources/js/Pages/Settings/PaymentGateways/_components/DrawerGateway.tsx)
+- [SheetNovoGateway.tsx](../../../resources/js/Pages/Settings/PaymentGateways/_components/SheetNovoGateway.tsx)
+- [atoms-settings.tsx](../../../resources/js/Pages/Settings/PaymentGateways/_components/atoms-settings.tsx)
+
+## Charters (lei da tela) — 2
+
+- [CnabRetorno.charter.md](../../../resources/js/Pages/Settings/PaymentGateways/CnabRetorno.charter.md)
+- [Index.charter.md](../../../resources/js/Pages/Settings/PaymentGateways/Index.charter.md)
+
+## Casos (contrato UC) — 2
+
+- [CnabRetorno.casos.md](../../../resources/js/Pages/Settings/PaymentGateways/CnabRetorno.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Settings/PaymentGateways/Index.casos.md)
+
 ## Testes (Pest) — 47
 
 - 41 em [Modules/PaymentGateway/Tests/Feature/](../../../Modules/PaymentGateway/Tests/Feature)
@@ -124,7 +147,7 @@ module: PaymentGateway
 - 5 em [Modules/PaymentGateway/Tests/Feature/Settings/](../../../Modules/PaymentGateway/Tests/Feature/Settings)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 20
+## Demais arquivos (manifestos, docs, assets e misc) — 21
 
 - [PaymentDriverContract.php](../../../Modules/PaymentGateway/Contracts/PaymentDriverContract.php)
 - [PaymentGatewayContract.php](../../../Modules/PaymentGateway/Contracts/PaymentGatewayContract.php)
@@ -146,3 +169,4 @@ module: PaymentGateway
 - [composer.json](../../../Modules/PaymentGateway/composer.json)
 - [module.json](../../../Modules/PaymentGateway/module.json)
 - [SCOPE.md](../../../memory/requisitos/PaymentGateway/SCOPE.md)
+- [gateway-shared.ts](../../../resources/js/Pages/Settings/PaymentGateways/_lib/gateway-shared.ts)

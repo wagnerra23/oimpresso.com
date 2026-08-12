@@ -88,6 +88,36 @@ jobs:
           echo "  node scripts/governance/system-map.mjs"
           echo "e commite somente as projeções que mudarem."
 
+  # O mapa módulo↔namespace de Pages não se confere por leitura. O `--all --check` acima é cego
+  # a ele por construção: se `PAGES_NS` não declara o namespace, gerado e commitado erram JUNTOS
+  # e o drift sai verde. Foi o que aconteceu com `Whatsapp → Atendimento` (medido 2026-08-12):
+  # 26 telas fora do inventário do próprio módulo, `--all --check` exit 0 o tempo todo.
+  # Este job DERIVA o mapa dos `Inertia::render(...)`/`inertia(...)` reais e acusa namespace de
+  # dono único que o mapa não cobre. Namespace com mais de um renderizador vira aviso, não falha:
+  # a quem ele pertence é decisão [W], e decidir no olho é o guard sintático que o §5 já matou 4×.
+  #
+  # Sem `continue-on-error` — advisory significa que vermelho não bloqueia o merge, nunca que o
+  # job não pode ficar vermelho (§5 2026-07-09). Quais contexts são required está no dono do tema,
+  # `governance/required-checks-baseline.json`; este comentário não afirma enforcement.
+  namespaces:
+    name: Mapa módulo↔Pages == renders reais
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: node scripts/governance/module-surface.mjs --namespaces --check
+        run: node scripts/governance/module-surface.mjs --namespaces --check
+      - name: Diagnóstico
+        if: failure()
+        run: |
+          echo "::error::Um módulo rende telas sob um namespace que o PAGES_NS não declara —"
+          echo "         logo elas não entram no SUPERFICIE.md dele. A saída acima já traz a"
+          echo "         linha pronta. Declare em scripts/governance/module-surface.mjs::PAGES_NS"
+          echo "         e regenere: node scripts/governance/module-surface.mjs <Mod> --write"
+
   # Transação de módulo novo: o diff em module.json só fica ativável quando
   # runtime, contrato, teste, catálogo, superfície e painel fecham juntos.
   activation:

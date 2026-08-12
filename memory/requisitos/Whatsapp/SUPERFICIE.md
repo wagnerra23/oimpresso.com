@@ -12,9 +12,9 @@ module: Whatsapp
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Whatsapp --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/Whatsapp/**` + `resources/js/Pages/Whatsapp/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/Whatsapp/**` + `resources/js/Pages/Whatsapp/**` + `resources/js/Pages/Atendimento/**` (namespaces Inertia `Whatsapp`, `Atendimento`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `Whatsapp` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 383 arquivos em 20 papéis.
+**Total mapeado:** 421 arquivos em 20 papéis.
 
 ## Controllers — 23
 
@@ -287,14 +287,40 @@ module: Whatsapp
 
 - [placeholder.blade.php](../../../Modules/Whatsapp/Resources/views/placeholder.blade.php)
 
-## Telas (Inertia/React) — 3
+## Telas (Inertia/React) — 11
 
+- [Index.tsx](../../../resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx)
+- [Index.tsx](../../../resources/js/Pages/Atendimento/Channels/Index.tsx)
+- [Show.tsx](../../../resources/js/Pages/Atendimento/Channels/Show.tsx)
+- [Index.tsx](../../../resources/js/Pages/Atendimento/Csat/Index.tsx)
+- [JanaTemplates.tsx](../../../resources/js/Pages/Atendimento/JanaTemplates.tsx)
+- [Index.tsx](../../../resources/js/Pages/Atendimento/Macros/Index.tsx)
+- [Variants.tsx](../../../resources/js/Pages/Atendimento/Macros/Variants.tsx)
+- [Index.tsx](../../../resources/js/Pages/Atendimento/Metricas/Index.tsx)
 - [FeedbackPublico.tsx](../../../resources/js/Pages/Whatsapp/FeedbackPublico.tsx)
 - [Settings.tsx](../../../resources/js/Pages/Whatsapp/Settings.tsx)
 - [Index.tsx](../../../resources/js/Pages/Whatsapp/Templates/Index.tsx)
 
-## Componentes / apoio de tela — 12
+## Componentes / apoio de tela — 30
 
+- [BroadcastSheet.tsx](../../../resources/js/Pages/Atendimento/CaixaUnificada/_components/BroadcastSheet.tsx)
+- [ChannelHealthBanner.tsx](../../../resources/js/Pages/Atendimento/CaixaUnificada/_components/ChannelHealthBanner.tsx)
+- [ChannelsDrawer.tsx](../../../resources/js/Pages/Atendimento/CaixaUnificada/_components/ChannelsDrawer.tsx)
+- [ComposerV4.tsx](../../../resources/js/Pages/Atendimento/CaixaUnificada/_components/ComposerV4.tsx)
+- [ContextSidebarV4.tsx](../../../resources/js/Pages/Atendimento/CaixaUnificada/_components/ContextSidebarV4.tsx)
+- [ConversationListV4.tsx](../../../resources/js/Pages/Atendimento/CaixaUnificada/_components/ConversationListV4.tsx)
+- [ConversationThreadV4.tsx](../../../resources/js/Pages/Atendimento/CaixaUnificada/_components/ConversationThreadV4.tsx)
+- [InboxAiDialog.tsx](../../../resources/js/Pages/Atendimento/CaixaUnificada/_components/InboxAiDialog.tsx)
+- [InboxCheatSheet.tsx](../../../resources/js/Pages/Atendimento/CaixaUnificada/_components/InboxCheatSheet.tsx)
+- [InboxGuiaDialog.tsx](../../../resources/js/Pages/Atendimento/CaixaUnificada/_components/InboxGuiaDialog.tsx)
+- [InboxMobileTabs.tsx](../../../resources/js/Pages/Atendimento/CaixaUnificada/_components/InboxMobileTabs.tsx)
+- [InboxPresenterMode.tsx](../../../resources/js/Pages/Atendimento/CaixaUnificada/_components/InboxPresenterMode.tsx)
+- [InboxTranscriptDialog.tsx](../../../resources/js/Pages/Atendimento/CaixaUnificada/_components/InboxTranscriptDialog.tsx)
+- [MsgComments.tsx](../../../resources/js/Pages/Atendimento/CaixaUnificada/_components/MsgComments.tsx)
+- [NewConversationDialog.tsx](../../../resources/js/Pages/Atendimento/CaixaUnificada/_components/NewConversationDialog.tsx)
+- [QueuesSheet.tsx](../../../resources/js/Pages/Atendimento/CaixaUnificada/_components/QueuesSheet.tsx)
+- [ReconnectModal.tsx](../../../resources/js/Pages/Atendimento/CaixaUnificada/_components/ReconnectModal.tsx)
+- [ChannelUsersTab.tsx](../../../resources/js/Pages/Atendimento/Channels/_components/ChannelUsersTab.tsx)
 - [Avatar.tsx](../../../resources/js/Pages/Whatsapp/_components/Avatar.tsx)
 - [CaptureFeedbackSheet.tsx](../../../resources/js/Pages/Whatsapp/_components/CaptureFeedbackSheet.tsx)
 - [ContactPickerModal.tsx](../../../resources/js/Pages/Whatsapp/_components/ContactPickerModal.tsx)
@@ -308,8 +334,16 @@ module: Whatsapp
 - [MicRecorder.tsx](../../../resources/js/Pages/Whatsapp/_components/MicRecorder.tsx)
 - [TemplatePicker.tsx](../../../resources/js/Pages/Whatsapp/_components/TemplatePicker.tsx)
 
-## Charters (lei da tela) — 3
+## Charters (lei da tela) — 11
 
+- [Index.charter.md](../../../resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md)
+- [Index.charter.md](../../../resources/js/Pages/Atendimento/Channels/Index.charter.md)
+- [Show.charter.md](../../../resources/js/Pages/Atendimento/Channels/Show.charter.md)
+- [Index.charter.md](../../../resources/js/Pages/Atendimento/Csat/Index.charter.md)
+- [JanaTemplates.charter.md](../../../resources/js/Pages/Atendimento/JanaTemplates.charter.md)
+- [Index.charter.md](../../../resources/js/Pages/Atendimento/Macros/Index.charter.md)
+- [Variants.charter.md](../../../resources/js/Pages/Atendimento/Macros/Variants.charter.md)
+- [Index.charter.md](../../../resources/js/Pages/Atendimento/Metricas/Index.charter.md)
 - [FeedbackPublico.charter.md](../../../resources/js/Pages/Whatsapp/FeedbackPublico.charter.md)
 - [Settings.charter.md](../../../resources/js/Pages/Whatsapp/Settings.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Whatsapp/Templates/Index.charter.md)
@@ -323,7 +357,7 @@ module: Whatsapp
 - 121 em [Modules/Whatsapp/Tests/Feature/](../../../Modules/Whatsapp/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 14
+## Demais arquivos (manifestos, docs, assets e misc) — 18
 
 - [.env.canary.example](../../../Modules/Whatsapp/.env.canary.example)
 - [InboxAssistAgent.php](../../../Modules/Whatsapp/Ai/Agents/InboxAssistAgent.php)
@@ -338,4 +372,8 @@ module: Whatsapp
 - [docker-compose.yml](../../../Modules/Whatsapp/daemon-go/docker-compose.yml)
 - [module.json](../../../Modules/Whatsapp/module.json)
 - [SCOPE.md](../../../memory/requisitos/Whatsapp/SCOPE.md)
+- [helpers.ts](../../../resources/js/Pages/Atendimento/CaixaUnificada/_components/helpers.ts)
+- [reconnectState.ts](../../../resources/js/Pages/Atendimento/CaixaUnificada/_components/reconnectState.ts)
+- [useInboxFavs.ts](../../../resources/js/Pages/Atendimento/CaixaUnificada/_components/useInboxFavs.ts)
+- [useMsgComments.ts](../../../resources/js/Pages/Atendimento/CaixaUnificada/_components/useMsgComments.ts)
 - [helpers.ts](../../../resources/js/Pages/Whatsapp/_components/helpers.ts)
