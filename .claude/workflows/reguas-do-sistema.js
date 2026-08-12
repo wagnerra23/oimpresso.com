@@ -168,6 +168,39 @@ const EXISTE = { type: 'object', additionalProperties: false, required: ['veredi
   // era o achado, e o schema não tinha como registrá-la.
   nota_sugerida: { type: ['number', 'null'], minimum: 0, maximum: 10, description: RUBRICA_NOTA },
   onde_indexar: { type: 'string' } } }
+
+// ── OUTCOME: a régua que pergunta "FUNCIONA?", ao lado da que pergunta "EXISTE?" ──
+// POR QUE EXISTE (passe adversarial 2026-08-11): TODAS as células da grade perguntam
+// "existe mecanismo?". Nenhuma pergunta "o resultado melhorou?". A dimensão da memória
+// TINHA um número de desfecho — `context_recall_avg` do pipeline real da Jana — e ele
+// ficou FORA do denominador, então a nota podia subir enquanto a coisa medida não mudava.
+//
+// REGRA DURA: outcome NUNCA entra na média nem vira nota. Vai numa coluna PRÓPRIA do
+// retrato. Fundir os dois é o pecado que a lápide §5 2026-07-17 (chip C9) proíbe —
+// "existe mecanismo" e "o resultado melhorou" são grandezas incomensuráveis.
+//
+// UM DONO POR MÉTRICA (regra 13 do método — evidência conta UMA vez): `context_recall`
+// pertence a `qualidade-drift-ia-producao`, cujo escopo já o nomeia. Dimensão sem fonte
+// própria fica `null` EXPLÍCITO — e esse `null` É o achado, não uma lacuna a preencher
+// com empréstimo da métrica do vizinho.
+//
+// Campos CONFERIDOS no repo em 2026-08-11 (não inferidos do nome):
+//   governance/jana-ragas-real-baseline.json → `context_recall_avg` (existe; o campo NÃO
+//   se chama `context_recall`). Âncora de mercado 0.85 vem do próprio Jana/SPEC.md.
+const OUTCOME_FONTES = [
+  { dimensao: 'qualidade-drift-ia-producao', fonte: 'governance/jana-ragas-real-baseline.json', campo: 'context_recall_avg', ancora: 0.85, direcao: 'maior-melhor', nota: 'âncora RAG 2026 declarada em memory/requisitos/Jana/SPEC.md' },
+  { dimensao: 'evals-outcome', fonte: 'scripts/governance/agent-pr-outcomes.mjs', campo: '(rodar --json)', ancora: null, direcao: 'maior-melhor', nota: 'DORA dos PRs do agente — change-failure/accept/time-to-merge' },
+  { dimensao: 'design-to-code', fonte: 'scripts/governance/outcome-metrics.mjs', campo: '(rodar --json)', ancora: null, direcao: 'menor-melhor', nota: 'retrabalho do loop de design (tela re-mexida após entregue)' },
+]
+
+const OUTCOME = { type: 'object', additionalProperties: false, required: ['medidos'], properties: {
+  medidos: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['dimensao', 'valor', 'lido_de'], properties: {
+    dimensao: { type: 'string' },
+    valor: { type: ['number', 'string', 'null'], description: 'o número LIDO da fonte. `null` = fonte existe mas não deu pra ler — NUNCA invente' },
+    ancora: { type: ['number', 'null'] },
+    lido_de: { type: 'string', description: 'caminho + campo, ou o comando rodado — recibo, não memória' },
+    observacao: { type: 'string' },
+  } } } } }
 // Teste de integração: o peer refutado monta o TODO integrado, ou só a peça isolada? (anti-falácia-de-composição — Wagner 2026-07-10, proibições §5)
 // EMENDA 2026-07-19 (proibições §5): braço discriminativo real. O campo `incremento` é OBRIGATÓRIO — força
 // nomear o que a integração acrescenta ALÉM da soma das peças; "nenhum além da identidade" é resposta válida e
@@ -379,12 +412,22 @@ const promptClaims = (rows, comId) =>
   `    ⚠️ \`incremento\` é OBRIGATÓRIO quando vier nos dados (só o full o produz — o delta não roda Integração e ali ele NÃO vem; nesse caso preserve o que já existe, regra (2)). É a JUSTIFICATIVA do veredito de integração: sem ele um DIFERENCIAL_SISTEMA fica no ledger como carimbo sem razão, e um REFUTADO_TB perde o motivo. Grave a frase LITERAL, não resuma.\n` +
   ` (2) PRESERVE os campos existentes que não vieram nos dados — em especial \`correcao_obrigatoria\` e \`journal\` (a correção viaja COM a claim). (3) valide o arquivo com node (JSON.parse) e só então retorne ok:true. NÃO toque em retratos.json nem em fraquezas.json — outro checkpoint cuida deles.`
 
-const promptRetrato = ({ modoRetrato, notas, proveniencia, cobertura, placar, integHistInstrucao, fraquezasRows, extraRetrato }) =>
+// Lê as fontes de OUTCOME declaradas. Agente MECÂNICO (effort low): só abre arquivo/roda
+// comando e transcreve — não julga, não pontua, não interpreta. Se a fonte não abrir,
+// devolve `valor: null` com a observação; inventar número aqui seria o LC-08 em pessoa.
+const promptOutcome = () =>
+  `LEITURA MECÂNICA de OUTCOME (zero julgamento, zero nota). Para CADA fonte declarada abaixo, abra o arquivo (ou rode o comando) a partir de ${BASE} e transcreva o valor do campo. NÃO interprete, NÃO pontue, NÃO compare com a âncora — só leia e devolva.\n` +
+  `FONTES: ${JSON.stringify(OUTCOME_FONTES)}\n` +
+  `REGRAS: (a) "valor" é o número LIDO; se a fonte não existir ou o campo não estiver lá, devolva valor:null e diga em "observacao" o que aconteceu — NUNCA estime, NUNCA use memória. (b) "lido_de" carrega o recibo: caminho:campo, ou o comando exato que você rodou. (c) devolva UMA entrada por fonte declarada, mesmo as que falharam.`
+
+const promptRetrato = ({ modoRetrato, notas, proveniencia, cobertura, placar, integHistInstrucao, fraquezasRows, extraRetrato, outcome }) =>
   `PERSISTIR (checkpoint incremental) FRAQUEZAS + RETRATO no ledger ${BASE}/${LEDGER_DIR}/ (crie os arquivos se não existirem — schema no README.md de lá). NÚMEROS JÁ FECHADOS EM JS (transcreva LITERAL; PROIBIDO recalcular, arredondar, fundir ou re-atribuir):\n` +
   `- notas por dimensão: ${JSON.stringify(notas)}\n- proveniência das notas: ${JSON.stringify(proveniencia)}\n` +
   (placar ? `- placar: ${JSON.stringify(placar)}\n` : '') +
   `- COBERTURA REAL desta rodada (transcreva LITERAL — é o campo que impede um retrato PARCIAL de se passar por completo): ${JSON.stringify(cobertura)}\n` +
   `- fraquezas re-medidas: ${fraquezasRows}\n` +
+  (outcome ? `- OUTCOME medido (régua "FUNCIONA?", ao lado da régua "EXISTE?"): ${JSON.stringify(outcome)}\n`
+    + `  ⚠️ grave num campo PRÓPRIO \`outcome\` do retrato. NUNCA some, NUNCA faça média com \`notas\`, NUNCA derive nota daqui: "existe mecanismo" e "o resultado melhorou" são grandezas incomensuráveis (lápide §5 2026-07-17, chip C9). Dimensão sem fonte declarada fica FORA do objeto — a ausência é informação, não lacuna a preencher.\n` : '') +
   `Passos EXATOS:\n` +
   `(1) retratos.json — insira NO TOPO do array {data: hoje (ISO), modo: "${modoRetrato}", regra_nota: "media-deterministica-v1", notas, proveniencia_notas, ${placar ? 'placar, ' : ''}cobertura, integ_hist, links: []${extraRetrato ? ', ' + extraRetrato : ''}}. NUNCA edite retrato antigo (append-only). ⚠️ Se o TOPO já for um retrato desta MESMA rodada (mesma \`cobertura.assinatura\`), NÃO insira outro — apenas retorne ok:true dizendo isso no resumo.\n` +
   `    integ_hist: ${integHistInstrucao}\n` +
@@ -733,10 +776,18 @@ const provenienciaFull = Object.fromEntries(dimsAlvo.map((k) => {
 }))
 if (!cobertura.completo) log(`⚠️ rodada PARCIAL — o retrato vai declarar isso: ${cobertura.motivo_parcial}`)
 if (SELECAO !== 'completa') log(`⚠️ seleção ${SELECAO} (${dimsAlvo.length} de ${DIMS_DEFAULT.length} dimensões) — retrato declara eixos_nao_medidos: [${cobertura.eixos_nao_medidos.join(', ') || 'nenhum'}]`)
+// OUTCOME — 1 agente mecânico (effort low, como os checkpoints). Roda ANTES do retrato
+// pra viajar junto no mesmo checkpoint; se falhar, o retrato grava sem ele em vez de
+// perder a rodada (o outcome é coluna a mais, nunca pré-requisito da nota).
+phase('Outcome')
+const outcomeMedido = await agent(promptOutcome(), { label: 'outcome', phase: 'Outcome', schema: OUTCOME, effort: 'low' })
+log(outcomeMedido ? `outcome lido de ${(outcomeMedido.medidos || []).length} fonte(s) declarada(s)` : 'outcome não medido nesta rodada (o retrato grava sem a coluna)')
+
 const cpRetrato = await persistir('cp-retrato', promptRetrato({
   modoRetrato: cobertura.completo && SELECAO === 'completa' ? 'full' : 'full-parcial',
   notas: notasPorDim,
   proveniencia: provenienciaFull,
+  outcome: outcomeMedido,
   cobertura, placar: placarJS,
   integHistInstrucao: `some os DESTA rodada ao acumulado do retrato anterior — vereditos_acumulados += ${placarJS.diferencial_sistema + placarJS.refutado_tb}, refutado_tb_acumulado += ${placarJS.refutado_tb}, runs += 1. Se não houver retrato anterior, use exatamente esses valores com runs: 1. (É o disclosure da regra 17 — o placar tem que poder crescer.)`,
   fraquezasRows: fit('rows', rowsPorDim, 120_000),

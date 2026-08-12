@@ -39,7 +39,7 @@ let falhas = 0
 const ok = (cond, msg) => { console.log(`${cond ? '  ok  ' : '  FALHOU  '}${msg}`); if (!cond) falhas++ }
 
 // Dublê: responde por PREFIXO de label (o contrato que o workflow usa pra rotular cada agente).
-const rodar = async (args, { verificarNulo = 0, persistOk = () => true, scan, evidencia = 'arq.mjs:12' } = {}) => {
+const rodar = async (args, { verificarNulo = 0, persistOk = () => true, scan, outcomeNulo = false, evidencia = 'arq.mjs:12' } = {}) => {
   const chamadas = []; const logs = []
   let nVerif = 0
   const agent = async (prompt, opts = {}) => {
@@ -55,6 +55,10 @@ const rodar = async (args, { verificarNulo = 0, persistOk = () => true, scan, ev
     if (l.startsWith('canary:') || l.startsWith('r:')) return { veredito: 'REFUTADO', razao: 'peer existe', quem_ja_faz: 'PeerCorp' }
     if (l.startsWith('i:')) return { veredito: 'DIFERENCIAL_SISTEMA', incremento: 'a cola', razao: 'r' }
     if (l.startsWith('v:')) { nVerif++; return nVerif <= verificarNulo ? null : { veredito: 'PARCIAL', evidencia, nota_sugerida: 6 } }
+    if (l === 'outcome') return outcomeNulo ? null : { medidos: [
+      { dimensao: 'qualidade-drift-ia-producao', valor: 0.42, ancora: 0.85, lido_de: 'governance/jana-ragas-real-baseline.json:context_recall_avg' },
+      { dimensao: 'evals-outcome', valor: null, ancora: null, lido_de: 'agent-pr-outcomes.mjs --json', observacao: 'gh indisponivel' },
+    ] }
     if (l.startsWith('cp-') || l.startsWith('re-')) return { ok: persistOk(l), resumo: 'gravou' }
     return 'prosa qualquer'
   }
@@ -317,6 +321,44 @@ console.log('\n[13] a nota tem RUBRICA (a escala tem degraus, nao e impressao)')
   // CONTROLE NEGATIVO: a rubrica e do PROMPT/schema — nao inventou fase nem agente novo.
   const nDims2 = [...src.matchAll(/^ {2}\{ key: '/gm)].length
   ok(r.chamadas.filter((c) => c.label.startsWith('p:')).length === nDims2, `nenhuma fase nova: ${nDims2} pesquisadores intactos`)
+}
+
+// Defeito MEDIDO (passe adversarial 2026-08-11): TODAS as celulas da grade perguntavam
+// "existe mecanismo?" e NENHUMA perguntava "o resultado melhorou?". A dimensao da memoria
+// TINHA um numero de desfecho (context_recall_avg = 0,42 contra ancora 0,85 escrita no
+// proprio Jana/SPEC.md) e ele ficava FORA do denominador — entao a nota podia subir
+// enquanto a coisa medida nao mudava. Os asserts abaixo travam as DUAS metades: o outcome
+// entra, e ele NUNCA se funde com a nota (grandezas incomensuraveis — lapide C9).
+console.log('\n[14] OUTCOME entra como coluna PROPRIA (a regua "funciona?" ao lado da "existe?")')
+{
+  const src = fs.readFileSync(ALVO, 'utf8')
+  // campo CONFERIDO no repo, nao inferido do nome: o baseline tem `context_recall_avg`.
+  ok(/context_recall_avg/.test(src), 'a fonte declara o campo REAL (context_recall_avg), nao o nome plausivel')
+  ok(/ancora: 0\.85/.test(src), 'a ancora de mercado viaja junto com a fonte (0.85, do Jana/SPEC.md)')
+
+  const r = await rodar({ base: '/base' })
+  ok(r.labels.includes('outcome'), 'a fase Outcome roda')
+  const ag = r.chamadas.find((c) => c.label === 'outcome')
+  ok(ag.effort === 'low', 'o leitor de outcome e MECANICO (effort low) — le e transcreve, nao julga')
+  ok(/NUNCA estime, NUNCA use mem.ria/.test(ag.prompt), 'o prompt proibe estimar quando a fonte nao abre (LC-08)')
+  ok(/lido_de/.test(ag.prompt), 'exige recibo (caminho:campo ou comando rodado)')
+
+  const pr = r.prompt('cp-retrato')
+  ok(/OUTCOME medido/.test(pr), 'o outcome chega ao retrato')
+  ok(/context_recall_avg/.test(pr), 'com o valor lido, nao um resumo')
+  // O assert que impede o pecado C9: a regra viaja no prompt de persistencia.
+  ok(/NUNCA some, NUNCA fa.a m.dia com/.test(pr), 'REGRA DURA: outcome nao entra na media nem vira nota (C9)')
+  ok(/incomensur.veis/.test(pr), 'e o prompt diz POR QUE (existe-mecanismo x resultado-melhorou)')
+
+  // CONTROLE NEGATIVO 1: outcome nulo NAO derruba a rodada — e coluna a mais, nao pre-requisito.
+  const semOut = await rodar({ base: '/base' }, { outcomeNulo: true })
+  ok(semOut.labels.includes('cp-retrato'), 'outcome nulo => o retrato AINDA grava (nao perde a rodada)')
+  ok(!/OUTCOME medido/.test(semOut.prompt('cp-retrato')), 'e o prompt sai SEM a secao (ausencia declarada, nao inventada)')
+
+  // CONTROLE NEGATIVO 2 — o mais importante: o outcome NAO contamina as notas.
+  const notasCom = JSON.stringify(r.out.notas)
+  const notasSem = JSON.stringify(semOut.out.notas)
+  ok(notasCom === notasSem, `as notas sao IDENTICAS com e sem outcome (${notasCom === notasSem ? 'nao vazou' : 'VAZOU'})`)
 }
 
 fs.rmSync(TMP, { recursive: true, force: true })
