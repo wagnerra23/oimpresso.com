@@ -5,7 +5,7 @@ slug: mcp-orcamento-do-request-353ms-por-query
 tldr: "Complemento do handoff das 10:26 (append-only, por isso arquivo novo). A metade que faltava: CACHE_DRIVER=array no CT 100 era no-op total, e o orçamento do request MCP foi medido linha a linha — ~10 queries × ~360ms de latência ao MySQL do Hostinger. initialize caiu de 5,2s para 3,8s só com o cache. 2 PRs novos (#5682 verde, #5687 aberto) atacam os 2 maiores itens restantes: memo do gate Spatie (1102ms) e throttle do carimbo de uso (720ms)."
 prs: [5682, 5687]
 decided_by: [W]
-related_adrs: [0053-mcp-server-governanca-como-produto, 0062-separacao-runtime-hostinger-ct100, 0294-hash-chain-tamper-evident-mcp-audit-log]
+related_adrs: [0053-mcp-server-governanca-como-produto, 0062-separacao-runtime-hostinger-ct100, 0294-mcp-audit-log-hash-chain-tamper-evident]
 next_steps:
   - "[W] mergear #5682 (108 checks verdes) e depois #5687 (branch parte dele)"
   - "Medir o initialize DEPOIS dos 2 merges — previsão ~1,83s/request; se não bater, o orçamento abaixo diz onde procurar"
@@ -60,7 +60,7 @@ Trocado para `file`: **5,2s → 3,8s** medido (5 amostras; a 1ª veio a 5,8s com
 - **#5682** — memoiza o gate `jana.mcp.use` (TTL 60s, `0` desliga, `esquecerPermissao()` invalida na hora). O TTL **é** o trade-off: janela em que permissão revogada segue valendo.
 - **#5687** — throttle no `registrarUso` (janela 60s). Custo declarado: troca de IP atrasa até o fim da janela. É telemetria, não autorização — nenhuma decisão de acesso lê esses campos; **se um dia ler, reavaliar**.
 
-Previsão: **~3,65s → ~1,83s** por request. Aí o audit ([ADR 0294](../decisions/0294-hash-chain-tamper-evident-mcp-audit-log.md)) vira ~40% do custo e **continua intocável** — é escrita com lock, tamper-evident.
+Previsão: **~3,65s → ~1,83s** por request. Aí o audit ([ADR 0294](../decisions/0294-mcp-audit-log-hash-chain-tamper-evident.md)) vira ~40% do custo e **continua intocável** — é escrita com lock, tamper-evident.
 
 ## Armadilhas que custaram rodada (para a próxima sessão)
 
