@@ -540,7 +540,7 @@ const MIG = (mod, tabela) => `Modules/${mod}/Database/Migrations/2026_01_01_x.ph
 const QRY = (mod, code) => `Modules/${mod}/Services/S.php:        ${code}`;
 
 test('derivarDonoDeTabela: dono é quem CRIA na migration; core não sobrescreve módulo', () => {
-  const dono = derivarDonoDeTabela(
+  const { dono } = derivarDonoDeTabela(
     [MIG('Alpha', 'alpha_notas'), MIG('Beta', 'beta_itens')],
     ["database/migrations/x.php:        Schema::create('contacts', function (Blueprint $t) {"],
   );
@@ -549,8 +549,30 @@ test('derivarDonoDeTabela: dono é quem CRIA na migration; core não sobrescreve
   assert.equal(dono.get('contacts'), '(core)');
 });
 
+test('REVISÃO: 2 módulos criando a MESMA tabela é conflito REPORTADO, não first-wins calado', () => {
+  // Caso real medido: nfe_certificados e nfse_emissoes (NFSe vs NfeBrasil). A diagnóstica
+  // do grafo DECLARADO diz "0 conflito de ownership" — ela olha db_tables_owned, não a árvore.
+  const { dono, conflitos } = derivarDonoDeTabela([MIG('Beta', 'disputada'), MIG('Alpha', 'disputada')]);
+  assert.deepEqual(conflitos, [{ tabela: 'disputada', modulos: ['Alpha', 'Beta'] }]);
+  assert.equal(dono.get('disputada'), 'Alpha', 'atribuição determinística (ordem alfabética), não ordem de leitura');
+});
+
+test('CN: tabela criada por 1 módulo só NÃO entra em conflitos', () => {
+  const { conflitos } = derivarDonoDeTabela([MIG('Alpha', 'so_dela'), MIG('Alpha', 'so_dela')]);
+  assert.deepEqual(conflitos, [], 'mesmo módulo 2x não é disputa');
+});
+
+test('REVISÃO: `use X as Alias` não polui o símbolo (senão o limiar cross-cutting conta errado)', () => {
+  const refs = parseImportsCruzados([
+    L('Modules/Alpha/S.php', 'use Modules\\Beta\\Http\\Controllers\\DataController as BetaData;'),
+    L('Modules/Gama/S.php', 'use Modules\\Beta\\Http\\Controllers\\DataController;'),
+  ], { modulosVivos: VIVOS });
+  assert.deepEqual(refs.map((r) => r.simbolo), ['DataController', 'DataController'],
+    'o mesmo símbolo com 2 apelidos tem que contar como 1');
+});
+
 test('parseQueriesCruas: tabela alheia vira ref; própria e core NÃO', () => {
-  const dono = derivarDonoDeTabela([MIG('Alpha', 'alpha_notas'), MIG('Beta', 'beta_itens')],
+  const { dono } = derivarDonoDeTabela([MIG('Alpha', 'alpha_notas'), MIG('Beta', 'beta_itens')],
     ["database/migrations/x.php:Schema::create('contacts', function (Blueprint $t) {"]);
   const { refs } = parseQueriesCruas([
     QRY('Alpha', "DB::table('beta_itens')->get();"),   // alheia → conta
@@ -594,7 +616,7 @@ test('CN: abaixo do limiar a tabela NÃO é rebaixada a infra (limiar não é li
 });
 
 test('Tests/ não conta como acoplamento de produção também no eixo tabela', () => {
-  const dono = derivarDonoDeTabela([MIG('Beta', 'beta_itens')]);
+  const { dono } = derivarDonoDeTabela([MIG('Beta', 'beta_itens')]);
   const { refs } = parseQueriesCruas(
     ["Modules/Alpha/Tests/Feature/T.php:        DB::table('beta_itens')->get();"],
     { donoDe: dono, modulosVivos: VIVOS },

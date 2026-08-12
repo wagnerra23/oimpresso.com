@@ -880,7 +880,10 @@ function parseImportsCruzados(linhas, { modulosVivos, incluirTestes = false }) {
     const dst = m[1];
     if (dst === src || !modulosVivos.has(dst) || !modulosVivos.has(src)) continue;
     const partes = m[2].split(/[\\/]/);
-    out.push({ src, dst, camada: partes[0] || '?', simbolo: partes[partes.length - 1] });
+    // `use Modules\X\Y\Sym as Alias;` — sem tirar o alias, o MESMO símbolo importado com
+    // 2 apelidos vira 2 símbolos e o limiar cross-cutting conta errado (5 casos no corpus).
+    const simbolo = partes[partes.length - 1].replace(/\s+as\s+\w+$/i, '').trim();
+    out.push({ src, dst, camada: partes[0] || '?', simbolo });
   }
   return out;
 }
@@ -957,20 +960,35 @@ function compararFronteira(refs, graph, { limiar = LIMIAR_CROSS_CUTTING, modulos
 const LIMIAR_TABELA_COMPARTILHADA = 3;
 const CORE = '(core)';
 
-/** Dono derivado da tabela: quem a cria na migration. Core (database/migrations) marcado. */
+/**
+ * Dono derivado da tabela: quem a cria na migration. Core (database/migrations) marcado.
+ * DISPUTA é reportada, não resolvida em silêncio: quando 2+ módulos criam a MESMA tabela,
+ * "first-wins" calado esconderia um conflito de ownership real (medido: 2 no corpus —
+ * nfe_certificados e nfse_emissoes, NFSe vs NfeBrasil). A diagnóstica do grafo DECLARADO
+ * diz "0 conflito"; ela olha o `db_tables_owned`, não a árvore.
+ */
 function derivarDonoDeTabela(linhasModulo, linhasCore = []) {
-  const dono = new Map();
+  const criadores = new Map();
   for (const l of linhasModulo) {
     const i = l.indexOf(':');
     const mod = (l.slice(0, i).match(/^Modules\/([A-Za-z]+)\//) || [])[1];
     const t = (l.slice(i + 1).match(/Schema::create\('([a-z0-9_]+)'/) || [])[1];
-    if (mod && t && !dono.has(t)) dono.set(t, mod);
+    if (!mod || !t) continue;
+    if (!criadores.has(t)) criadores.set(t, new Set());
+    criadores.get(t).add(mod);
+  }
+  const dono = new Map();
+  const conflitos = [];
+  for (const [t, mods] of criadores) {
+    const lista = [...mods].sort();
+    dono.set(t, lista[0]);
+    if (lista.length > 1) conflitos.push({ tabela: t, modulos: lista });
   }
   for (const l of linhasCore) {
     const t = (l.match(/Schema::create\('([a-z0-9_]+)'/) || [])[1];
     if (t && !dono.has(t)) dono.set(t, CORE);
   }
-  return dono;
+  return { dono, conflitos: conflitos.sort((a, b) => a.tabela.localeCompare(b.tabela)) };
 }
 
 /**
@@ -1028,7 +1046,7 @@ function agruparFronteiraDeTabela(refs, { limiar = LIMIAR_TABELA_COMPARTILHADA }
 }
 
 function reportFronteiraDeTabela(modulosVivos) {
-  const donoDe = derivarDonoDeTabela(
+  const { dono: donoDe, conflitos } = derivarDonoDeTabela(
     grepArvore(["Schema::create\\('"], 'Modules/*/Database/Migrations/*.php'),
     grepArvore(["Schema::create\\('"], 'database/migrations/*.php').map((l) => l.slice(l.indexOf(':') + 1)),
   );
@@ -1045,6 +1063,9 @@ function reportFronteiraDeTabela(modulosVivos) {
   if (r.infra.length) {
     console.log(`ℹ️  infra compartilhada (≥${LIMIAR_TABELA_COMPARTILHADA} módulos leem — não é fronteira): ${r.infra.join(', ')}`);
   }
+  for (const c of conflitos) {
+    console.log(`⚠️  ownership DISPUTADO: \`${c.tabela}\` criada por migration de ${c.modulos.join(' E ')} — dono atribuído: ${c.modulos[0]}`);
+  }
   for (const p of r.pares) {
     console.log(`  ${p.src} → ${p.dono}  (${p.n} queries) ${p.tabelas.slice(0, 4).join(', ')}`);
   }
@@ -1060,7 +1081,9 @@ function reportFronteiraDeTabela(modulosVivos) {
  * saída vazia de comando que quebrou não é evidência de ausência (§5 2026-07-31/08-01).
  */
 function grepArvore(padroes, pathspec) {
-  const args = ['grep', '-I', '-E', ...padroes, '--', pathspec];
+  // `-e` explícito: padrão que comece com `-` seria lido como switch e o git sai rc=129
+  // (visto na revisão com `->table\('`). Sem isso, o erro viraria exceção fora de hora.
+  const args = ['grep', '-I', '-E', ...padroes.flatMap((p) => ['-e', p]), '--', pathspec];
   try {
     return execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
       .split('\n').filter(Boolean);
