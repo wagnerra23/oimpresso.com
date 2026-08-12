@@ -439,3 +439,4 @@ Modules/Governance/Tests/Feature/GovernanceModuleSubscriptionGateTest.php
 # RefreshDatabase nem toca DB — cria fixtures .md em storage/framework/testing e roda
 # Artisan::call; o unico acesso e filesystem.
 Modules/Jana/Tests/Feature/MemorySchema/JanaValidateMemoryCommandTest.php
+Modules/Jana/Tests/Feature/Mcp/McpAuthPermissaoMemoizadaTest.php
