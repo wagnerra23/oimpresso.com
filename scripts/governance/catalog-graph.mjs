@@ -37,6 +37,7 @@
  *   node scripts/governance/catalog-graph.mjs --json      (imprime o catalog.json no stdout, não grava)
  *   node scripts/governance/catalog-graph.mjs --mermaid   (VISTA: diagrama de fluxo entre módulos, stdout)
  *   node scripts/governance/catalog-graph.mjs --mermaid --focus=Financeiro   (vizinhança de 1 salto)
+ *   node scripts/governance/catalog-graph.mjs --acoplamento  (ADVISORY: fronteira REAL (import) vs DECLARADA; exit 0 sempre)
  *
  * Refs: ADR 0256 (survival, fonte única gerada) · ADR 0314/0275 (advisory-primeiro) ·
  *       grade 2026-07-21 (chip #2 "arestas tipadas no catálogo") · irmão `module-surface.mjs`.
@@ -44,6 +45,7 @@
 import { readdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { execFileSync } from 'node:child_process';
 
 const ROOT = process.cwd();
 const args = process.argv.slice(2);
@@ -830,6 +832,164 @@ export function toMermaid(graph, { focus = null } = {}) {
   return { mermaid: linhas.join('\n'), modulos: usados.size, arestas: vistas.size, ilhas };
 }
 
+// ── ACOPLAMENTO DERIVADO (advisory) ─────────────────────────────────────────
+// O grafo acima mede a fronteira DECLARADA (frontmatter escrito à mão). Este bloco
+// mede a REAL (import no código) e reporta o delta. Medição 2026-08-12: dos 57 pares
+// vivos em produção, só 16 estavam declarados (28%) — logo `depends_on` sozinho NÃO
+// serve de inventário de fronteira, e um mutirão de backfill à mão só reinicia o
+// relógio do apodrecimento (§5 2026-07-12). Aqui o fato é DERIVADO; o SCOPE segue
+// dono da NORMA (`not_contains` = delegação declarada), que é decisão humana.
+//
+// CRITÉRIO e seu FP (medido antes de instalar, §5): só `use Modules\X\…` em linha de
+// código. Docblock/comentário/string NÃO entram — 0 linhas de comentário casaram o
+// padrão no corpus (o grep solto contava 116 pares; por import real são 41). O preço
+// é ser PISO, não teto: container/facade/string, query crua em tabela alheia e
+// `resources/js` ficam invisíveis. Advisory por desenho — exit 0 SEMPRE, nunca
+// bloqueia merge (promoção a required é flip [W] com mordida provada, ADR 0336/0275).
+const CAMADA_DADO = new Set(['Entities', 'Models']);
+const CAMADA_COMPORTAMENTO = new Set(['Concerns', 'Scopes', 'Traits', 'Utils']);
+const CAMADA_CONTRATO = new Set(['Contracts', 'Contract', 'Dto', 'DTO', 'Events', 'Exceptions', 'Repositories']);
+/** Quantos módulos-origem distintos tornam um símbolo "cross-cutting" (derivado, não lista à mão). */
+const LIMIAR_CROSS_CUTTING = 5;
+
+/** Classifica o peso do acoplamento pela camada importada (pior camada vence). */
+function pesoDaCamada(camada) {
+  if (CAMADA_DADO.has(camada)) return 'dado';
+  if (CAMADA_COMPORTAMENTO.has(camada)) return 'comportamento';
+  if (CAMADA_CONTRATO.has(camada)) return 'contrato';
+  return 'servico';
+}
+const ORDEM_PESO = { dado: 3, comportamento: 2, servico: 1, contrato: 0 };
+
+/**
+ * Extrai arestas REAIS de linhas `path:código` do git grep.
+ * @param {string[]} linhas
+ * @param {{modulosVivos:Set<string>, incluirTestes?:boolean}} opts
+ */
+function parseImportsCruzados(linhas, { modulosVivos, incluirTestes = false }) {
+  const out = [];
+  for (const linha of linhas) {
+    const corte = linha.indexOf(':');
+    if (corte < 0) continue;
+    const path = linha.slice(0, corte);
+    const code = linha.slice(corte + 1);
+    if (!incluirTestes && /\/Tests?\//i.test(path)) continue;
+    const src = (path.match(/^Modules\/([A-Za-z]+)\//) || [])[1];
+    const m = code.match(/^\s*use\s+Modules[\\/]([A-Z][A-Za-z]+)[\\/](.+?);/);
+    if (!src || !m) continue;
+    const dst = m[1];
+    if (dst === src || !modulosVivos.has(dst) || !modulosVivos.has(src)) continue;
+    const partes = m[2].split(/[\\/]/);
+    out.push({ src, dst, camada: partes[0] || '?', simbolo: partes[partes.length - 1] });
+  }
+  return out;
+}
+
+/** Símbolos importados por ≥ limiar módulos distintos = primitiva cross-cutting (derivado). */
+function simbolosCrossCutting(refs, limiar = LIMIAR_CROSS_CUTTING) {
+  const porSimbolo = new Map();
+  for (const r of refs) {
+    if (!porSimbolo.has(r.simbolo)) porSimbolo.set(r.simbolo, new Set());
+    porSimbolo.get(r.simbolo).add(r.src);
+  }
+  return new Set([...porSimbolo].filter(([, srcs]) => srcs.size >= limiar).map(([s]) => s));
+}
+
+/** Agrega refs em pares e confronta com as arestas declaradas do grafo. */
+function compararFronteira(refs, graph, { limiar = LIMIAR_CROSS_CUTTING, modulosVivos = null } = {}) {
+  const cross = simbolosCrossCutting(refs, limiar);
+  const declaradas = new Map();
+  for (const e of graph.edges) {
+    if (e.type !== 'dependsOn' && e.type !== 'delegatesTo') continue;
+    const f = e.from.replace(/^module:/, '');
+    const t = e.to.replace(/^module:/, '');
+    // Alvo REMOVIDO não é "fronteira sem import" — é tombstone, e já tem diagnóstica
+    // curada própria (referenced-only). Contar aqui inflaria o número com ruído.
+    if (modulosVivos && !modulosVivos.has(t)) continue;
+    if (!declaradas.has(f)) declaradas.set(f, new Set());
+    declaradas.get(f).add(t);
+  }
+  const pares = new Map();
+  for (const r of refs) {
+    const k = `${r.src}>${r.dst}`;
+    let p = pares.get(k);
+    if (!p) {
+      p = { src: r.src, dst: r.dst, imports: 0, peso: 'contrato', simbolos: new Set(), soPrimitiva: true };
+      pares.set(k, p);
+    }
+    p.imports++;
+    p.simbolos.add(r.simbolo);
+    if (!cross.has(r.simbolo)) p.soPrimitiva = false;
+    const w = pesoDaCamada(r.camada);
+    if (ORDEM_PESO[w] > ORDEM_PESO[p.peso]) p.peso = w;
+  }
+  const lista = [...pares.values()].map((p) => ({
+    ...p,
+    simbolos: [...p.simbolos].sort(),
+    declarado: Boolean(declaradas.get(p.src)?.has(p.dst)),
+  }));
+  const naoDeclaradas = lista.filter((p) => !p.declarado);
+  const reais = new Set(lista.map((p) => `${p.src}>${p.dst}`));
+  const soDeclaradas = [];
+  for (const [f, alvos] of declaradas) {
+    for (const t of alvos) if (!reais.has(`${f}>${t}`)) soDeclaradas.push({ src: f, dst: t });
+  }
+  return {
+    pares: lista.sort((a, b) => b.imports - a.imports || a.src.localeCompare(b.src)),
+    confirmadas: lista.length - naoDeclaradas.length,
+    naoDeclaradas,
+    soDeclaradas,
+    crossCutting: [...cross].sort(),
+  };
+}
+
+/** Lê os imports da árvore viva. Distingue "sem match" (rc=1) de falha real (§5 2026-07-31). */
+function lerImportsDaArvore() {
+  try {
+    const out = execFileSync(
+      'git',
+      ['grep', '-I', '-E', '^\\s*use\\s+Modules.[A-Z][A-Za-z]+', '--', 'Modules/*.php'],
+      { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
+    );
+    return out.split('\n').filter(Boolean);
+  } catch (err) {
+    if (err && err.status === 1) return []; // sem ocorrência: legítimo
+    throw new Error(`git grep falhou (status=${err && err.status}): ${err && err.message}`);
+  }
+}
+
+function reportAcoplamento(graph) {
+  const modulosVivos = new Set(readdirSync(join(ROOT, 'Modules')));
+  const refs = parseImportsCruzados(lerImportsDaArvore(), { modulosVivos });
+  const r = compararFronteira(refs, graph, { modulosVivos });
+  const cobertura = r.pares.length ? ((r.confirmadas / r.pares.length) * 100).toFixed(1) : '—';
+  console.log(
+    `[catalog-graph] acoplamento REAL: ${r.pares.length} pares em produção · ` +
+    `${r.confirmadas} declarados (${cobertura}%) · ${r.naoDeclaradas.length} NÃO declarados · ` +
+    `${r.soDeclaradas.length} declarados sem import`,
+  );
+  if (r.crossCutting.length) {
+    console.log(
+      `ℹ️  primitiva cross-cutting (≥${LIMIAR_CROSS_CUTTING} módulos importam — não é fronteira, é alojamento): ` +
+      r.crossCutting.join(', '),
+    );
+  }
+  const negocio = r.naoDeclaradas.filter((p) => !p.soPrimitiva);
+  const primitiva = r.naoDeclaradas.filter((p) => p.soPrimitiva);
+  if (primitiva.length) {
+    console.log(`ℹ️  ${primitiva.length} par(es) não-declarados são SÓ primitiva cross-cutting — 1 decisão, não ${primitiva.length}.`);
+  }
+  for (const p of negocio) {
+    const selo = p.peso === 'dado' ? '⚠️ ' : '  ';
+    console.log(`${selo}${p.src} → ${p.dst}  (${p.imports} imports · ${p.peso}) ${p.simbolos.slice(0, 3).join(', ')}`);
+  }
+  console.log(
+    `[catalog-graph] advisory — PISO, não teto: mede só \`use Modules\\X\` em Modules/**.php ` +
+    `(container/facade/query crua/resources/js ficam de fora).`,
+  );
+  return r;
+}
+
 function main() {
   const mods = listScopeModules();
   if (!mods.length) {
@@ -864,6 +1024,18 @@ function main() {
     const result = queryGraph(graph, args[qi + 1]);
     if (!result) { console.error(`[catalog-graph] nó não encontrado: ${args[qi + 1] || '(vazio)'}`); process.exit(1); }
     console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+
+  // Advisory: NÃO altera --check (required). Sai sempre 0, mesmo com fronteira não declarada.
+  // Roda DENTRO de um job required, então não pode avermelhá-lo — mas também não pode
+  // fingir verde quando não conseguiu medir: "não medi" ≠ "não há acoplamento" (§5 2026-07-29).
+  if (args.includes('--acoplamento')) {
+    try {
+      reportAcoplamento(graph);
+    } catch (err) {
+      console.log(`⚠️  [catalog-graph] acoplamento NÃO MEDIDO (${err && err.message}) — nenhum veredito sobre fronteira.`);
+    }
     return;
   }
 
@@ -913,6 +1085,10 @@ export {
   sortGraph,
   queryGraph,
   listCoreClassBRecords,
+  parseImportsCruzados,
+  simbolosCrossCutting,
+  compararFronteira,
+  pesoDaCamada,
   NODE_TYPES,
   EDGE_TYPES,
 };

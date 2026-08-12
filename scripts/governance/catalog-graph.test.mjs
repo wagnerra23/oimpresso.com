@@ -24,6 +24,10 @@ import {
   serialize,
   queryGraph,
   classifyReferencedOnly,
+  parseImportsCruzados,
+  simbolosCrossCutting,
+  compararFronteira,
+  pesoDaCamada,
   EDGE_TYPES,
 } from './catalog-graph.mjs';
 
@@ -438,6 +442,93 @@ test('BITE: SCOPE que cita ADR tombada NÃO carimba o slug morto no nó do núme
   const g = buildGraph(recs, { adrRelations, tombstonedAdrSlugs: ADR_IDX.tombstonedSlugs });
   assert.equal(g.nodes.find((n) => n.id === 'adr:0101').slug, '', 'slug morto não pode rotular ADR viva');
   assert.equal(g.nodes.find((n) => n.id === 'adr:0093').slug, '0093-multi-tenant', 'slug legítimo continua carimbado');
+});
+
+// ── acoplamento derivado (advisory) ─────────────────────────────────────────
+const VIVOS = new Set(['Alpha', 'Beta', 'Gama']);
+const L = (path, code) => `${path}:${code}`;
+
+test('parseImportsCruzados: extrai src/dst/camada/símbolo e ignora self-ref', () => {
+  const refs = parseImportsCruzados([
+    L('Modules/Alpha/Services/X.php', 'use Modules\\Beta\\Entities\\Nota;'),
+    L('Modules/Alpha/Services/X.php', 'use Modules\\Alpha\\Services\\Proprio;'),
+  ], { modulosVivos: VIVOS });
+  assert.equal(refs.length, 1, 'self-ref não é fronteira');
+  assert.deepEqual(refs[0], { src: 'Alpha', dst: 'Beta', camada: 'Entities', simbolo: 'Nota' });
+});
+
+test('FP: comentário/docblock que MENCIONA o import NÃO conta (o erro que inflou 41→116)', () => {
+  const refs = parseImportsCruzados([
+    L('Modules/Alpha/S.php', ' * use Modules\\Beta\\Entities\\Nota; (morava aqui até 2026-07)'),
+    L('Modules/Alpha/S.php', '// use Modules\\Beta\\Services\\Velho;'),
+    L('Modules/Alpha/S.php', '# use Modules\\Beta\\Models\\Y;'),
+  ], { modulosVivos: VIVOS });
+  assert.deepEqual(refs, [], 'prosa não é acoplamento');
+});
+
+test('módulo REMOVIDO citado em import não vira fronteira (tombstone ≠ aresta)', () => {
+  const refs = parseImportsCruzados([
+    L('Modules/Alpha/S.php', 'use Modules\\Fantasma\\Entities\\Z;'),
+  ], { modulosVivos: VIVOS });
+  assert.deepEqual(refs, []);
+});
+
+test('Tests/ fica fora por padrão e entra com incluirTestes', () => {
+  const linhas = [L('Modules/Alpha/Tests/Feature/AT.php', 'use Modules\\Beta\\Services\\S;')];
+  assert.equal(parseImportsCruzados(linhas, { modulosVivos: VIVOS }).length, 0);
+  assert.equal(parseImportsCruzados(linhas, { modulosVivos: VIVOS, incluirTestes: true }).length, 1);
+});
+
+test('simbolosCrossCutting: primitiva é DERIVADA do nº de módulos, não de lista à mão', () => {
+  const refs = ['Alpha', 'Beta', 'Gama'].map((src) =>
+    ({ src, dst: 'Jana', camada: 'Scopes', simbolo: 'ScopeByBusiness' }));
+  refs.push({ src: 'Alpha', dst: 'Beta', camada: 'Entities', simbolo: 'Nota' });
+  assert.deepEqual([...simbolosCrossCutting(refs, 3)], ['ScopeByBusiness']);
+  assert.deepEqual([...simbolosCrossCutting(refs, 4)], [], 'limiar acima do uso real não elege ninguém');
+});
+
+test('pesoDaCamada: model/entity é o pior; contrato é o mais fraco', () => {
+  assert.equal(pesoDaCamada('Entities'), 'dado');
+  assert.equal(pesoDaCamada('Models'), 'dado');
+  assert.equal(pesoDaCamada('Scopes'), 'comportamento');
+  assert.equal(pesoDaCamada('Events'), 'contrato');
+  assert.equal(pesoDaCamada('Services'), 'servico');
+});
+
+test('BITE: fronteira REAL não declarada no SCOPE é detectada (e a declarada não vira ruído)', () => {
+  // Alpha declara depender de Beta (SCOPE_ALPHA: not_contains → Modules/Beta).
+  const g = buildGraph(recordsFromSynthetic());
+  const refs = parseImportsCruzados([
+    L('Modules/Alpha/S.php', 'use Modules\\Beta\\Services\\Legit;'),  // declarada
+    L('Modules/Alpha/S.php', 'use Modules\\Gama\\Entities\\Escondida;'), // NÃO declarada
+  ], { modulosVivos: VIVOS });
+  const r = compararFronteira(refs, g);
+  const nd = r.naoDeclaradas.map((p) => `${p.src}>${p.dst}`);
+  assert.ok(nd.includes('Alpha>Gama'), 'MORDE: import sem declaração tem que aparecer');
+  assert.ok(!nd.includes('Alpha>Beta'), 'CONTROLE NEGATIVO: declarada não pode virar achado');
+  assert.equal(r.naoDeclaradas.find((p) => p.dst === 'Gama').peso, 'dado');
+});
+
+test('par cujo acoplamento é SÓ primitiva é marcado soPrimitiva (1 decisão, não N)', () => {
+  const g = buildGraph(recordsFromSynthetic());
+  const refs = ['Alpha', 'Beta', 'Gama'].map((src) =>
+    ({ src, dst: 'Jana', camada: 'Services', simbolo: 'PiiRedactor' }));
+  const r = compararFronteira(refs, g, { limiar: 3 });
+  assert.ok(r.naoDeclaradas.every((p) => p.soPrimitiva));
+});
+
+test('soDeclaradas: aresta no SCOPE sem NENHUM import é reportada (boilerplate)', () => {
+  const g = buildGraph(recordsFromSynthetic());
+  const r = compararFronteira([], g);
+  assert.ok(r.soDeclaradas.some((p) => p.src === 'Alpha' && p.dst === 'Beta'));
+});
+
+test('soDeclaradas NÃO conta alvo REMOVIDO (tombstone já tem diagnóstica própria)', () => {
+  const g = buildGraph(recordsFromSynthetic());
+  const semFiltro = compararFronteira([], g);
+  const comFiltro = compararFronteira([], g, { modulosVivos: VIVOS });
+  assert.ok(semFiltro.soDeclaradas.some((p) => !VIVOS.has(p.dst)), 'fixture tem alvo fora dos vivos');
+  assert.ok(comFiltro.soDeclaradas.every((p) => VIVOS.has(p.dst)), 'com modulosVivos, só vivo entra');
 });
 
 test('serialize: os 3 tipos novos entram no by_edge_type e o JSON segue determinístico', () => {

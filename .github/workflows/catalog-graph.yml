@@ -32,3 +32,8 @@ jobs:
       - run: node --test scripts/governance/catalog-graph.test.mjs
       - run: node scripts/governance/catalog-graph.mjs --check
       - run: node scripts/governance/catalog-graph.mjs --query module:Compras
+      # Fronteira REAL (import) vs DECLARADA (SCOPE). ADVISORY dentro de job required:
+      # sai 0 SEMPRE — inclusive quando não consegue medir, e aí DIZ que não mediu em vez
+      # de afirmar verde (§5 2026-07-29). Está aqui pra ser LIDO no log do PR, não pra
+      # bloquear: promoção a required é flip [W] com mordida provada (ADR 0336/0275).
+      - run: node scripts/governance/catalog-graph.mjs --acoplamento
