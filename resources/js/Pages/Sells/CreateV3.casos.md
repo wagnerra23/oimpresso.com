@@ -505,7 +505,11 @@ uma implementação que simplesmente **não faz nada**.
 > com mutação confirmando que os guards mordem: cliente novo nasce com `tabela: null`,
 > e `ClienteConsulta` não carrega campo de preço nenhum (a ausência é a defesa).
 > É deliberadamente o caminho oposto ao da lápide de 2026-07-15, em que o
-> `CustomerSearchAutocomplete` reaplica `selling_price_group_id` no `onSelect`.
+> `CustomerSearchAutocomplete` **entrega** `selling_price_group_id` no `onSelect` e o parent
+> `Sells/Create.tsx:500` reaplica via `handlePriceGroupChange`. A distinção importa: quem
+> reprecifica é o **consumidor**, não o componente — medido em 2026-08-12, quando a leitura
+> abreviada ("o componente reaplica") fabricou um Tier-0 fantasma no import do `Repair`,
+> que consome o mesmo componente e **ignora** esse campo.
 
 - **[BACKLOG]** A consulta abre em modal de **880px** e lista os cadastros do business atual com código, nome/razão social, CNPJ/CPF, situação de ICMS, cidade/UF e grupo de preço.
 - **[BACKLOG]** Clicar na linha **traz o cadastro inteiro** (documento, IE, regime, endereço, grupo, prazo) e abre os **detalhes do destinatário** — quem troca de cliente precisa conferir o que veio junto, não descobrir na NF-e.
