@@ -38,7 +38,7 @@
  */
 import { readFileSync, existsSync } from 'node:fs';
 import { execSync } from 'node:child_process';
-import { resolve, dirname, join } from 'node:path';
+import { resolve, dirname, join, basename } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const REPO_ROOT = (() => {
@@ -46,7 +46,15 @@ const REPO_ROOT = (() => {
   if (process.env.OIMPRESSO_REPO_ROOT) return process.env.OIMPRESSO_REPO_ROOT;
   return dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 })();
-const PROIBICOES_DEFAULT = join(REPO_ROOT, 'memory', 'proibicoes.md');
+// FONTE das lápides = memory/licoes-rejeitadas.md (corpos ÍNTEGROS, append-only).
+// O §5 de proibicoes.md virou DERIVADO (só os limites) — as ÂNCORAS que este script
+// resolve vivem nos corpos, então ler o derivado devolveria "sem âncora" em massa
+// (medido no split de 2026-08-11: 76 intactas → 27, e 16 "sem âncora" → 77).
+// Fallback pro proibicoes.md preserva o comportamento em checkout anterior ao split.
+const FONTE_LAPIDES = join(REPO_ROOT, 'memory', 'licoes-rejeitadas.md');
+const PROIBICOES_DEFAULT = existsSync(FONTE_LAPIDES)
+  ? FONTE_LAPIDES
+  : join(REPO_ROOT, 'memory', 'proibicoes.md');
 
 // ── parsing do §5 (mantém o CORPO — diferente do parseTombstones do hook, que descarta) ──
 /** região §5 = de "## Ideias avaliadas e DESCARTADAS" até o próximo "## " (não-###). */
@@ -294,14 +302,16 @@ if (isMain && !process.argv.includes('--selftest')) {
   const r = recheck(text, { root: REPO_ROOT, linkBase: dirname(path), sample, seed });
 
   if (json) { console.log(JSON.stringify(r, null, 2)); process.exit(0); }
-  console.log('\n  LÁPIDE-RECHECK — frescor do registro de rejeição §5 (proibicoes.md)\n');
+  console.log(`\n  LÁPIDE-RECHECK — frescor do registro de rejeição §5 (${basename(PROIBICOES_DEFAULT)})\n`);
   console.log(`  §5 tem ${r.total_lapides_secao5} lápide(s)${sample ? ` · amostra determinística de ${r.avaliadas} (seed ${seed})` : ` · avaliadas todas`}`);
   console.log(`  âncoras intactas: ${r.intactas} · sem âncora de arquivo: ${r.sem_ancora} · citação não resolvida: ${r.citacao_nao_resolvida} · REVISAR (drift de âncora): ${r.revisar.length}\n`);
   {
     const m = r.metricas;
     const c = m.conformidade_partes;
     console.log('  CUSTO DO CORPUS (medida, não veredito — nenhuma nota agregada, nada bloqueia)');
-    console.log(`    tamanho  : ${m.tamanho.chars_corpos.toLocaleString('pt-BR')} chars nos corpos = ${m.tamanho.pct_do_arquivo}% do proibicoes.md · teto declarado: ${m.tamanho.teto_declarado ?? 'NENHUM'}`);
+    // ⚠️ o % é do arquivo LIDO (a fonte), não do proibicoes.md — desde o split de
+    // 2026-08-11 os corpos NÃO entram mais em toda sessão; só os limites do §5 derivado.
+    console.log(`    tamanho  : ${m.tamanho.chars_corpos.toLocaleString('pt-BR')} chars nos corpos = ${m.tamanho.pct_do_arquivo}% de ${basename(PROIBICOES_DEFAULT)} · teto declarado: ${m.tamanho.teto_declarado ?? 'NENHUM'}`);
     console.log(`    por lápide: média ${m.palavras.media} palavras · mediana ${m.palavras.mediana} · maior ${m.palavras.maior?.palavras} (${m.palavras.maior?.date})`);
     if (m.ritmo) console.log(`    ritmo    : ${m.lapides} lápides em ${m.ritmo.dias} dias = ${m.ritmo.por_dia}/dia (${m.ritmo.primeira} → ${m.ritmo.ultima})`);
     console.log(`    estrutura: ${m.normais} normais + ${m.emendas_meta} emenda/meta (emenda não repete as 3 partes — fora do denominador, medido)`);
