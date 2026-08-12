@@ -5,14 +5,11 @@
     "derived_from": "scripts/governance/adr-index-generate.mjs — seção 'Colisões de número (auto-detectadas)' do _INDEX-GENERATED.md",
     "verify": "node scripts/governance/adr-index-generate.mjs | sed -n '/Colisões de número/,/^$/p' — números e slugs devem bater 1:1 com 'collisions'",
     "source_commit": "afecf98f6",
-    "generated_at": "2026-06-12",
+    "generated_at": "2026-08-12",
+    "recura": "2026-08-12: 0101 saiu do mapa — deixou de colidir quando 0101-tests-business-id-1-nunca-cliente foi removida (superseded pela ADR 0358, doutrina de teste tenant 98). Conferido pelo oraculo que o proprio _meta.verify declara: adr-index-generate reporta 13 colisoes vivas e 0101 nao esta entre elas. Caso (b) do cron-watchdog: artefato CURADO A MAO cuja revisao envelheceu — varredura de escritores do path deu ZERO, logo nao era cron parado.",
     "policy": "Append-only (ADR 0094 Art. 3 + precedente 0180-drift-numero-adr-0178-conflito-paralelo): NUNCA renumerar/renomear ADR colidida. Colisão nova (se o pior acontecer) ENTRA aqui no mesmo PR; entrada existente nunca sai. 'hint' é o desambiguador curado pra resolver referências legadas por contexto."
   },
   "collisions": {
-    "0101": [
-      { "slug": "0101-sistema-charter-capterra-governanca-escopo", "hint": "governança de escopo Charter-Capterra (2 níveis × 3 eixos)" },
-      { "slug": "0101-tests-business-id-1-nunca-cliente", "hint": "tests SEMPRE business_id=1, nunca cliente real, guard CI" }
-    ],
     "0102": [
       { "slug": "0102-nfce-status-polling-vs-broadcast", "hint": "NFC-e: UI de status via polling JSON (broadcast adiado)" },
       { "slug": "0102-s6-charter-capterra-postmortem-s7-backlog", "hint": "sprint S6 postmortem + backlog S7" }
