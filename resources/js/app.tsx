@@ -134,6 +134,81 @@ createInertiaApp({
   },
 });
 
+// ── Rede de segurança pós-deploy: chunk que sumiu não pode matar a tela ──────
+// Cada página é um chunk lazy (o `import.meta.glob('./Pages/**/*.tsx')` acima).
+// Quem está com o sistema aberto quando sai um deploy continua com o manifest
+// ANTIGO em memória — a próxima navegação pede um arquivo cujo hash mudou. Antes,
+// o deploy trocava o diretório de bundles inteiro, então esse arquivo simplesmente
+// não existia mais: 404 → "Failed to fetch dynamically imported module" → tela
+// morta até o usuário descobrir sozinho que precisa dar F5.
+//
+// A defesa PRINCIPAL é no servidor: o deploy agora MESCLA os assets em vez de
+// trocar o diretório, e só poda chunk morto há +3 dias (ver deploy.yml, passo
+// "Publicar bundles"). Isto aqui é a SEGUNDA linha — cobre o chunk podado por
+// idade, o cache/CDN que erra, e a aba esquecida aberta por dias.
+//
+// Regra de ouro: nunca recarregar por cima de dado não salvo. Só navegamos
+// sozinhos quando a visita que falhou era um GET — aí o usuário já estava saindo
+// da tela, e a carga completa o leva justamente aonde ele queria ir, com o
+// manifest novo. Em POST/PUT a mutação já foi processada pelo servidor e um
+// reload não repete o request: nesse caso só avisamos e deixamos a decisão com
+// ele, pra não descartar um formulário preenchido.
+if (typeof window !== 'undefined') {
+    const CHAVE_RECARGA = 'oi:recarga-pos-deploy';
+    let ultimoDestino: { url: string; ehGet: boolean } | null = null;
+
+    router.on('before', (evento) => {
+        const visita = evento.detail.visit;
+        ultimoDestino = {
+            url: String(visita.url),
+            ehGet: String(visita.method).toLowerCase() === 'get',
+        };
+    });
+
+    const recuperar = (motivo: string): void => {
+        // Anti-loop: se já tentamos há menos de 20s, o problema não é chunk
+        // stale (recarregar de novo só faria o usuário girar em falso).
+        try {
+            const ultima = Number(window.sessionStorage.getItem(CHAVE_RECARGA) ?? '0');
+            if (Date.now() - ultima < 20_000) return;
+            window.sessionStorage.setItem(CHAVE_RECARGA, String(Date.now()));
+        } catch {
+            return; // sessionStorage bloqueado → sem guarda, não arrisca loop
+        }
+
+        console.warn(`[deploy] chunk indisponível (${motivo}) — recuperando`);
+
+        if (ultimoDestino?.ehGet) {
+            window.location.assign(ultimoDestino.url);
+            return;
+        }
+        toast.error(
+            'Uma nova versão do sistema foi publicada. Atualize a página (F5) para continuar.',
+            { duration: Infinity },
+        );
+    };
+
+    // Vite avisa quando o preload de um chunk falha. Sem o preventDefault, ele
+    // deixa o erro estourar e recarrega a página por conta própria.
+    window.addEventListener('vite:preloadError', (evento) => {
+        evento.preventDefault();
+        recuperar('vite:preloadError');
+    });
+
+    // Import dinâmico que falha chega como promise rejeitada não tratada. A
+    // mensagem varia por navegador — Chrome/Firefox falam em "dynamically
+    // imported module", Safari em "Importing a module script failed", e o helper
+    // de preload do Vite em "Unable to preload". O último normalmente já é pego
+    // pelo listener acima; fica aqui também porque cobrir duas vezes é barato e
+    // o custo de NÃO cobrir é a tela morta que este bloco existe pra evitar.
+    window.addEventListener('unhandledrejection', (evento) => {
+        const msg = String((evento.reason as Error | undefined)?.message ?? evento.reason ?? '');
+        if (/dynamically imported module|Importing a module script failed|Unable to preload|Loading chunk \S+ failed/i.test(msg)) {
+            recuperar('import dinâmico');
+        }
+    });
+}
+
 // ── PWA Service Worker registration (US-FIN-036, Onda 30) ─────────────────
 // Registra sw-financeiro.js APENAS quando o usuário está em /financeiro/*.
 // Lazy load no DOMContentLoaded pra não bloquear hydration. Falha silenciosa
