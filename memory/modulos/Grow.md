@@ -306,9 +306,6 @@ _Referências a outros módulos encontradas no código PHP._
 | CSS/SCSS | 2 |
 | Imagens | 0 |
 
-- Build: **Vite** (vite.config.js/ts presente)
-- `package.json` presente
-- **Deps JS:** `axios`, `dotenv`, `dotenv-expand`, `laravel-vite-plugin`, `lodash`, `postcss`, `vite`
 
 **Frameworks/libs detectados no JS:** Laravel Echo
 

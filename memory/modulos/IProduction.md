@@ -99,9 +99,6 @@
 | CSS/SCSS | 1 |
 | Imagens | 0 |
 
-- Build: **Laravel Mix** (webpack.mix.js presente)
-- `package.json` presente
-- **Deps JS:** `cross-env`, `laravel-mix`, `laravel-mix-merge-manifest`
 
 **Arquivos JS** (primeiros 1):
 
