@@ -146,9 +146,9 @@ export const LEDGER_REL = 'scripts/governance/.cowork-freshness-ledger.json';
 export const SLA_DAYS = 14;
 
 /** Entrada de ledger (pura, testável) a partir das rows do --compare. */
-export function ledgerEntry(rows, dateIso) {
+export function ledgerEntry(rows, dateIso, meta = {}) {
   const n = (v) => rows.filter((r) => r.veredito === v).length;
-  return {
+  const e = {
     date: dateIso,
     files: rows.length,
     sync: n('SYNC'),
@@ -157,6 +157,13 @@ export function ledgerEntry(rows, dateIso) {
     unchecked: n('UNCHECKED'),
     staleList: rows.filter((r) => r.veredito === 'STALE').map((r) => r.cowork),
   };
+  // `stale` conta o que DIVERGE AGORA. Numa rodada cujo snapshot veio de `--export-from`,
+  // isso é sempre 0 por construção — o export consertou antes de medir. `stalePreExport`
+  // é o número que responde "o espelho drifta com que frequência?", que é o que a ADR 0324
+  // precisa do ledger. Sem ele a série histórica só sabe dizer 0 e vira carimbo.
+  if (meta.origin) e.origin = meta.origin;
+  if (typeof meta.stalePreExport === 'number') e.stalePreExport = meta.stalePreExport;
+  return e;
 }
 
 /** Veredito de SLA (puro): a rotina rodou há ≤ days? E a última rodada estava limpa?
@@ -248,6 +255,12 @@ export function buildManifest(root = ROOT, { all = false, shellHtml = null } = {
   const add = (relPath, telas) => {
     const abs = join(COWORK, relPath);
     if (!existsSync(abs)) return; // âncora sumida é território do anchor-content (MISSING)
+    // `_ds/` é BUILD DE PREVIEW (o --preview-ds cria, o .gitignore exclui). Deixá-lo entrar
+    // fazia o denominador do --sla variar por MÁQUINA: 124 aqui, 122 num clone limpo — e o
+    // "mediu 2/124" publicado não era propriedade do repo (§5 2026-07-27, denominador que
+    // nenhuma decisão estabeleceu). Achado do adversário 2026-08-13, reproduzido: escondi os
+    // 2 arquivos e o manifesto caiu 124→122. O universo é o que o GIT versiona.
+    if (relPath.startsWith('_ds/')) return;
     if (!seen.has(relPath)) {
       seen.set(relPath, {
         cowork: relPath,
@@ -293,6 +306,16 @@ export function buildManifest(root = ROOT, { all = false, shellHtml = null } = {
  *  eram invisíveis POR CONSTRUÇÃO — o manifesto não podia acusar o que não sabia existir.
  *  Versionar o shell põe a fiação sob a mesma catraca dos arquivos que ela carrega: o shell
  *  entra no manifesto, e mudança dele no vivo vira STALE como qualquer outro arquivo. */
+/** CONTEÚDO do shell default (null se não houver). Existe porque `buildManifest`/`absentLocal`
+ *  querem o HTML e `defaultShellPath` devolve o CAMINHO — passar um pelo outro não dá erro:
+ *  o regex de `parseShellDeps` simplesmente não casa nada e o manifesto sai sem deps, calado.
+ *  Mordeu em 2026-08-13 (bite-test do nasce-sem-medição acusou um arquivo que ESTAVA no shell)
+ *  e estava latente no `--manifest`, onde o `all:true` mascarava o efeito. */
+export function lerShellHtml(root = ROOT) {
+  const p = defaultShellPath(root);
+  return p && existsSync(p) ? readFileSync(p, 'utf8') : null;
+}
+
 export function defaultShellPath(root = ROOT) {
   const noRepo = join(root, 'prototipo-ui', 'cowork', 'oimpresso.com.html');
   if (existsSync(noRepo)) return noRepo;
@@ -327,6 +350,55 @@ function walkRel(base, dir = base, acc = []) {
     else if (/\.(jsx|html|css|js)$/i.test(e)) acc.push(f.slice(base.length + 1).split('\\').join('/'));
   }
   return acc;
+}
+
+// ── NASCE-SEM-MEDIÇÃO: o arquivo entra no espelho e ninguém o mede (2026-08-13) ──
+// [W]: "garanta todos os novos sempre checados". O universo da rodada normal deriva do
+// que o SHELL carrega — então arquivo que desce e o shell não referencia nasce FORA de
+// qualquer `--compare`. Aconteceu nesta própria sessão: `forja-tarefas.jsx` foi exportado
+// do vivo e ficou invisível pro frescor.
+//
+// FP MEDIDO ANTES (60 dias de histórico real, 251 arquivos adicionados):
+//   todos os novos ............ 129/251 fora = 51%  ← quase tudo relatório .html: RUÍDO
+//   só jsx/css/js ............. 72/192 fora = 38%  ← subdir com shell próprio: RUÍDO
+//   + só na RAIZ .............. 20/137 fora = 15%
+//   + AINDA EXISTE NO VIVO ....  2/137 fora ≈ 1%   ← SINAL
+// Os 3 filtros são por DADO, nunca denylist de nome (§5 tem 5 lápides de guard sintático).
+// ⚠️ As razões abaixo foram REESCRITAS em 2026-08-13: as duas primeiras que eu tinha
+// escrito eram plausíveis e FALSAS — inventei o motivo em vez de medir (§5 2026-07-15).
+//   · RAIZ       — porque o PRODUTOR escreve na raiz. Medido no histórico (clone completo):
+//                  os 2 commits de `--export-from` puseram 17 arquivos, **17 na raiz, 0 em
+//                  subdir**; todo subdir veio de IMPORT DE BUNDLE (#3259 SSOT 224 arq ·
+//                  #5560 preview v3 21 arq), que é outro fluxo, com outro dono e outro
+//                  momento. Um arquivo que nasce em subdir não nasceu deste produtor.
+//                  ✗ A razão anterior — "subdir tem shell próprio por desenho" — é FALSA:
+//                  medido, 19 dos 23 subdirs não têm nenhum .html.
+//   · jsx/css/js — porque o FP mandou (129/251 = 51% de ruído). NÃO porque ".html é
+//                  relatório": medido, **5 dos 11 .html do espelho RENDERIZAM**
+//                  (`createRoot|ReactDOM|text/babel`), incluindo o `Financeiro - Prova Viva
+//                  (primitivos).html`. RESIDUAL DECLARADO, não propriedade: protótipo
+//                  publicado como .html nasce fora deste detector e ninguém acusa.
+//   · NO VIVO    — 18 dos 20 eram resíduo do protótipo `norte-*`, arquivado upstream;
+//                  quem sumiu do vivo não é "novo sem medição", é sobra a limpar.
+// Diff-aware e forward-only (ADR 0275): cobre o que NASCE, deixa o legado grandfathered.
+/** Arquivos que ENTRARAM no espelho e ficaram fora do manifesto (puro, testável).
+ *  `adicionados`: paths relativos ao espelho, vindos do diff.
+ *  `manifest`: saída de buildManifest. `vivos`: paths do DesignSync.list_files (opcional —
+ *  sem ele o filtro mais forte não roda e o resultado sai marcado como `semVivo`). */
+export function nasceSemMedicao(adicionados, manifest, vivos = null) {
+  const medidos = new Set(manifest.map((f) => f.cowork));
+  const noVivo = vivos ? new Set(vivos) : null;
+  const base = (adicionados || [])
+    .map((p) => p.replace(/^prototipo-ui\/cowork\//, ''))
+    .filter((p) => !p.includes('/'))                   // raiz: subdir tem shell próprio
+    .filter((p) => /\.(jsx|css|js)$/i.test(p))         // .html no espelho é relatório
+    .filter((p) => !medidos.has(p));
+  if (!noVivo) return { semVivo: true, acusados: base, residuo: [] };
+  return {
+    semVivo: false,
+    acusados: base.filter((p) => noVivo.has(p)),       // existe no vivo → é protótipo real sem medição
+    residuo: base.filter((p) => !noVivo.has(p)),       // sumiu do vivo → sobra, não é este alarme
+  };
 }
 
 // ── PREVIEW-DS: o espelho é versionado, mas NÃO RENDERIZA sozinho (2026-08-13) ────
@@ -365,9 +437,11 @@ export function previewDsPlan(shellHtml, root = ROOT) {
   };
 }
 
-/** Imprime o ABSENT-LOCAL. ADVISORY por desenho (ADR 0275 "nasce advisory" · 0336
- *  "promoção só por mordida provada"): o `--check` segue mordendo SÓ em STALE, que é o
- *  sinal hash-provado. Promover isto a bloqueio é decisão [W], não do script.
+/** Imprime o ABSENT-LOCAL. Não afeta o exit code: `shouldFail()` morde SÓ em STALE, que é o
+ *  sinal hash-provado — isso é comportamento DESTE script, provado no self-test, não promessa.
+ *  Se esta lane bloqueia merge ou não, quem sabe é `governance/required-checks-baseline.json`
+ *  (dono único, vigiado por `protection-drift.mjs`): script não afirma o próprio enforcement
+ *  em presente (LC-10). Desenho de nascimento em ADR 0275; promoção por mordida em ADR 0336.
  *
  *  `stream`: no --manifest o STDOUT é o JSON do manifesto — relatório humano ali dentro
  *  quebra `--manifest | jq` / `require()` (peguei isso na 1ª vez que consumi por pipe).
@@ -385,7 +459,7 @@ function reportAbsentLocal(shellHtml, stream = process.stdout) {
   w(
     `\n  ⛔ ausentes: ${faltando.length} · ⬜ ignorados por design: ${ignorados.length}\n` +
     (faltando.length
-      ? `  Pra versionar: DesignSync.get_file de cada → salve os JSON num dir → --export-from <dir>.\n  (advisory — o --check morde só em STALE; promover é decisão [W])\n`
+      ? `  Pra versionar: DesignSync.get_file de cada → salve os JSON num dir → --export-from <dir>.\n  (não muda o exit code: o --check morde só em STALE)\n`
       : `  ✓ toda dep do shell existe no espelho.\n`),
   );
 }
@@ -415,7 +489,7 @@ function main() {
     }
     const raw = JSON.parse(readFileSync(lp, 'utf8'));
     const paths = Array.isArray(raw) ? raw : (raw.paths || []);
-    const manifest = buildManifest(ROOT, { all: true, shellHtml: defaultShellPath() });
+    const manifest = buildManifest(ROOT, { all: true, shellHtml: lerShellHtml() });
     const faltando = liveOnly(paths, manifest);
     // Classifica pra o humano decidir sem ler 25 linhas iguais. NÃO é filtro — tudo é
     // listado; filtro escondido aqui recriaria o ponto cego que este modo existe pra abrir.
@@ -428,7 +502,49 @@ function main() {
     console.log(`\n  ── outros (${outros.length}) — shell, uploads, bundle de DS, docs:`);
     for (const p of outros) console.log(`     · ${p}`);
     console.log('\n  Para versionar: DesignSync.get_file de cada → salve os JSON num dir → --export-from <dir>.');
-    console.log('  ⚠️ advisory por desenho: o que merece descer é decisão [W], não da máquina.\n');
+    console.log('  ⚠️ lista, não veredito: o que merece descer é decisão [W], não da máquina.\n');
+    return;
+  }
+
+  // --check-novos <base> [--vivos <list.json>]: arquivo que ENTROU no espelho e nasceu
+  // fora de qualquer rodada de frescor. Diff-aware/forward-only (ADR 0275).
+  const novIdx = argv.indexOf('--check-novos');
+  if (novIdx !== -1) {
+    const base = argv[novIdx + 1] || 'origin/main';
+    let adicionados = [];
+    try {
+      const out = execFileSync('git', ['diff', '--diff-filter=A', '--name-only', `${base}...HEAD`, '--', 'prototipo-ui/cowork'], { cwd: ROOT, encoding: 'utf8' });
+      adicionados = out.split('\n').map((s) => s.trim()).filter(Boolean);
+    } catch (e) {
+      // ⚠️ vazio de comando que FALHOU não é "nenhum arquivo novo" (§5 2026-07-31/08-01)
+      console.error(`✗ git diff falhou contra "${base}" — sem base não dá pra saber o que é novo. ${e.message.split('\n')[0]}`);
+      process.exit(2);
+    }
+    const vIdx = argv.indexOf('--vivos');
+    let vivos = null;
+    if (vIdx !== -1 && existsSync(argv[vIdx + 1])) {
+      const raw = JSON.parse(readFileSync(argv[vIdx + 1], 'utf8'));
+      vivos = Array.isArray(raw) ? raw : (raw.paths || []);
+    }
+    const shellIdx1 = argv.indexOf('--shell');
+    const sp1 = shellIdx1 !== -1 ? argv[shellIdx1 + 1] : defaultShellPath();
+    const man = buildManifest(ROOT, { shellHtml: sp1 && existsSync(sp1) ? readFileSync(sp1, 'utf8') : null });
+    const r = nasceSemMedicao(adicionados, man, vivos);
+    console.log(`\n  NASCE-SEM-MEDIÇÃO — entrou no espelho e ficou fora do frescor (base: ${base})\n`);
+    console.log(`  arquivos novos no diff: ${adicionados.length}`);
+    if (r.semVivo) {
+      console.log(`  ⚠ sem --vivos: o filtro mais forte (existe no vivo?) NÃO rodou — FP medido sobe de ~1% pra ~15%.`);
+    } else if (r.residuo.length) {
+      console.log(`  (${r.residuo.length} sumiram do vivo — resíduo a limpar, não é este alarme)`);
+    }
+    if (!r.acusados.length) { console.log(`\n  ✓ todo arquivo novo do espelho está sob medição.\n`); return; }
+    console.log('');
+    for (const f of r.acusados) console.log(`  ⛔ SEM MEDIÇÃO  ${f}  (o shell não carrega → nenhum --compare olha)`);
+    console.log(
+      `\n  ${r.acusados.length} arquivo(s) nasceram fora do frescor.\n` +
+      `  Pra medir: o shell precisa carregá-lo, OU rode a rodada com --manifest --all.\n` +
+      `  (não muda o exit code: o --check morde só em STALE)\n`,
+    );
     return;
   }
 
@@ -486,6 +602,7 @@ function main() {
     const snapOut = snapIdx2 !== -1 ? argv[snapIdx2 + 1] : null;
     const snapshotEmitido = {};
     const tally = { NOVO: 0, ATUALIZADO: 0, inalterado: 0 };
+    const nascidos = []; // os NOVO desta rodada, pra alimentar o nasce-sem-medição no fim
     for (const { relPath, content, bytes } of plano) {
       const abs = join(ROOT, relPath);
       const antes = existsSync(abs) ? contentHash(readFileSync(abs, 'utf8')) : null;
@@ -494,17 +611,52 @@ function main() {
       const nota = antes === null ? 'NOVO' : antes === depois ? 'inalterado' : 'ATUALIZADO';
       tally[nota]++;
       // chave = path RELATIVO ao espelho (o mesmo que o manifesto usa)
-      snapshotEmitido[relPath.replace(/^prototipo-ui\/cowork\//, '')] = depois;
+      const rel = relPath.replace(/^prototipo-ui\/cowork\//, '');
+      if (nota === 'NOVO') nascidos.push(rel);
+      snapshotEmitido[rel] = depois;
       console.log(`  ${nota.padEnd(11)} ${relPath}  (${bytes} bytes · ${depois.slice(0, 12)})`);
     }
     console.log(`\n✓ ${plano.length} arquivo(s) escritos do JSON — fiel por construção, sem transcrição.`);
     console.log(`  ${tally.ATUALIZADO} atualizado(s) · ${tally.NOVO} novo(s) · ${tally.inalterado} inalterado(s)`);
     if (snapOut) {
-      writeFileSync(snapOut, JSON.stringify(snapshotEmitido, null, 2) + '\n');
+      // ⚠️ TAUTOLOGIA (achado do adversário 2026-08-13, provado em sandbox): este snapshot sai
+      // do conteúdo que ACABOU de ser escrito, então o `--compare` seguinte SEMPRE dá SYNC —
+      // inclusive quando o arquivo estava STALE e o export foi justamente o conserto. O ledger
+      // gravava `stale: 0` numa rodada que consertou N arquivos: é o drift-sentinel tautológico
+      // do §5 2026-07-17 ("se todos os pontos são idênticos, o MEDIDOR é o problema"), e a ADR
+      // 0324 trata o ledger como EVIDÊNCIA de aceite.
+      // O número que faltava já existia aqui (`tally.ATUALIZADO`). Agora ele viaja no snapshot,
+      // o --compare o repassa e o ledger o grava como `stale_pre_export` — a rodada passa a
+      // distinguir "estava em dia" de "acabei de arrumar".
+      writeFileSync(snapOut, JSON.stringify({ _origin: 'export', _stalePreExport: tally.ATUALIZADO, ...snapshotEmitido }, null, 2) + '\n');
       console.log(`  snapshot emitido em ${snapOut} (${Object.keys(snapshotEmitido).length} entrada(s)) — sem re-baixar.`);
+      if (tally.ATUALIZADO) {
+        console.log(`  ⚠ ${tally.ATUALIZADO} arquivo(s) ESTAVAM stale e foram consertados por este export.`);
+        console.log(`    O --compare a seguir vai dar SYNC — não porque estava em dia, mas porque acabou de ser arrumado.`);
+        console.log(`    O snapshot carrega isso (_stalePreExport) e o ledger registra.`);
+      }
       console.log(`  Feche o ciclo: --compare ${snapOut} --check --ledger`);
     } else {
       console.log('  Dica: --emit-snapshot <arq> emite o snapshot AQUI e evita re-baixar tudo pro --compare.');
+    }
+
+    // ── NASCE-SEM-MEDIÇÃO, LIGADO NO CHOKEPOINT ([W]: "ligue as máquinas") ────────
+    // O `--check-novos` nasceu ÓRFÃO: media certo e ninguém o invocava — que é bug, não
+    // neutralidade (proibicoes §"Sempre fazer" 2). Ligá-lo no CI não serve: ele precisa da
+    // lista do VIVO, e a auth do DesignSync é interativa (ADR 0324). Mas AQUI o fluxo real
+    // já tem as duas pontas na mão — os arquivos que acabaram de nascer e os paths do vivo,
+    // que vieram no mesmo JSON. Chokepoint provado, não inventado (§5 2026-07-09: guard em
+    // comando fantasma). O aviso é advisory: quem decide se o arquivo deve entrar no shell
+    // é [W], e o export não é lugar de reprovar.
+    if (nascidos.length) {
+      const r = nasceSemMedicao(nascidos, buildManifest(ROOT, { shellHtml: lerShellHtml() }), vivos.map((v) => v.path));
+      if (r.acusados.length) {
+        console.log(`\n⚠ ${r.acusados.length} arquivo(s) NASCERAM sem entrar no manifesto — o frescor não vai medi-los:`);
+        for (const a of r.acusados) console.log(`    ${a}`);
+        console.log(`  Pra medir: referencie no shell do espelho ou aponte um charter pra ele.`);
+      } else {
+        console.log(`\n✓ nasce-sem-medição: os ${nascidos.length} arquivo(s) novos entram no manifesto.`);
+      }
     }
     return;
   }
@@ -579,7 +731,17 @@ function main() {
   for (const r of stale) console.log(`  ⛔ STALE       ${r.cowork}  (espelho ficou atrás do vivo — re-exportar)`);
   for (const r of absent) console.log(`  🟡 LIVE-ABSENT ${r.cowork}  (não achado no vivo — rename/delete upstream ou mapa errado)`);
   for (const r of unchecked) console.log(`  ⬜ UNCHECKED   ${r.cowork}  (agente não buscou — snapshot incompleto)`);
-  console.log(`\n  ⛔ stale: ${stale.length} · 🟡 live-absent: ${absent.length} · ⬜ unchecked: ${unchecked.length} · ✓ sync: ${sync.length}\n`);
+  console.log(`\n  ⛔ stale: ${stale.length} · 🟡 live-absent: ${absent.length} · ⬜ unchecked: ${unchecked.length} · ✓ sync: ${sync.length}`);
+  // Snapshot vindo de export: o SYNC acima é consequência do export, não prova de que estava
+  // em dia. Dizer isso na cara do resultado — senão o número engana quem lê (§5 2026-07-17).
+  if (snapshot._origin === 'export') {
+    const pre = snapshot._stalePreExport || 0;
+    console.log(
+      `  ⚠ snapshot de EXPORT: o SYNC acima não prova frescor — o export escreveu o conteúdo do vivo antes de medir.\n` +
+      `    Divergência REAL desta rodada (antes do export): ${pre} arquivo(s).`,
+    );
+  }
+  console.log('');
   reportAbsentLocal(shellHtml);
 
   // --ledger: registra a rodada (datada, append-only) — é o que o --sla audita depois.
@@ -587,7 +749,9 @@ function main() {
     const lp = join(ROOT, LEDGER_REL);
     let entries = [];
     try { entries = existsSync(lp) ? JSON.parse(readFileSync(lp, 'utf8')) : []; } catch { entries = []; }
-    entries.push(ledgerEntry(rows, new Date().toISOString()));
+    entries.push(ledgerEntry(rows, new Date().toISOString(), {
+      origin: snapshot._origin, stalePreExport: snapshot._stalePreExport,
+    }));
     writeFileSync(lp, JSON.stringify(entries, null, 2) + '\n');
     console.log(`  ledger: rodada registrada em ${LEDGER_REL} (${entries.length} entrada(s)). Commite o ledger.`);
   }

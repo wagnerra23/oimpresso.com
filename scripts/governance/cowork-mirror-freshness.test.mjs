@@ -21,11 +21,13 @@ import {
   parseShellDeps,
   defaultShellPath,
   ledgerEntry,
+  lerShellHtml,
   slaVerdict,
   liveOnly,
   exportPlan,
   absentLocal,
   previewDsPlan,
+  nasceSemMedicao,
   SLA_DAYS,
 } from './cowork-mirror-freshness.mjs';
 
@@ -161,6 +163,17 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
     check('styles.css entra como dep', byPath['styles.css']?.kind === 'dep');
     check('dep referenciada no shell mas AUSENTE do espelho fica fora (universo = espelho)', !byPath['ds-v6/tokens.css']);
     check('âncora que TAMBÉM é dep permanece ancora (telas ganham)', byPath['financeiro-page.jsx'].telas.includes('Fin/Tela'));
+    // ── DENOMINADOR LIMPO: `_ds/` NÃO é do espelho (adversário 2026-08-13) ──────
+    // `_ds/<id>/` é o Design System REPOSTO pelo `--preview-ds` a partir do snapshot já
+    // versionado — é build local, gitignored, e NÃO tem contrapartida no projeto Cowork.
+    // Entrando no manifesto ele inflava o total (124 em vez de 122) e nunca poderia sair
+    // de UNCHECKED, porque o vivo não tem esses arquivos pra comparar: cobertura que jamais
+    // fecha por construção. §5 2026-07-27 (denominador inventado).
+    mkdirSync(join(cowork, '_ds', '019dd02f-d2d0-7ba6-a57f-24b3ddd073ac'), { recursive: true });
+    writeFileSync(join(cowork, '_ds', '019dd02f-d2d0-7ba6-a57f-24b3ddd073ac', 'tokens.css'), ':root{}');
+    const comDs = buildManifest(dir, { shellHtml: SHELL, all: true });
+    check('_ds/ (build local do DS) fica FORA do manifesto — não infla o denominador',
+      comDs.every((m) => !m.cowork.startsWith('_ds/')));
     // sem shell → só âncoras (comportamento antigo preservado; o WARN é do CLI)
     const semShell = buildManifest(dir, {});
     check('sem shellHtml → só âncoras (back-compat)', semShell.length === 1 && semShell[0].kind === 'ancora');
@@ -193,10 +206,28 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
     { cowork: 'b.jsx', veredito: 'STALE' },
     { cowork: 'c.jsx', veredito: 'UNCHECKED' },
   ];
+  const NOW_TAUT = '2026-07-06T12:00:00.000Z';
   const e = ledgerEntry(rows, '2026-07-06T12:00:00.000Z');
   check('ledgerEntry conta por veredito', e.files === 3 && e.sync === 1 && e.stale === 1 && e.unchecked === 1 && e.liveAbsent === 0);
   check('ledgerEntry lista os STALE por path', e.staleList.length === 1 && e.staleList[0] === 'b.jsx');
   check('ledgerEntry carrega a data da rodada', e.date === '2026-07-06T12:00:00.000Z');
+
+  // ── ANTI-TAUTOLOGIA (adversário 2026-08-13) ─────────────────────────────────
+  // O `--export-from … --emit-snapshot` ESCREVE o conteúdo do vivo e SÓ ENTÃO emite o
+  // snapshot que o `--compare` vai usar. Logo o SYNC seguinte é garantido por construção:
+  // o instrumento media a si mesmo. O ledger gravava `stale: 0` numa rodada que tinha
+  // ACABADO de consertar N arquivos — e eu li isso como "espelho estava em dia" (era
+  // falso: 2 arquivos reais, styles.css e inbox-page.jsx, estavam stale). O `stale` segue
+  // 0 e está CERTO (nada diverge agora); o que faltava era registrar a divergência REAL
+  // de antes do export. É a mesma família do §5 2026-07-17 (drift-sentinel tautológico).
+  // rows PÓS-export: nada diverge, porque o export acabou de escrever o conteúdo do vivo.
+  const rowsPosExport = [{ cowork: 'a.jsx', veredito: 'SYNC' }, { cowork: 'b.jsx', veredito: 'SYNC' }];
+  const eExp = ledgerEntry(rowsPosExport, NOW_TAUT, { origin: 'export', stalePreExport: 2 });
+  check('ledger registra a divergência REAL de antes do export (não só o 0 pós-conserto)',
+    eExp.stale === 0 && eExp.stalePreExport === 2 && eExp.origin === 'export');
+  const eNorm = ledgerEntry(rowsPosExport, NOW_TAUT, {});
+  check('CONTROLE: rodada que NÃO veio de export não ganha campo fantasma',
+    eNorm.stalePreExport === undefined && eNorm.origin === undefined);
 
   const NOW = '2026-07-06T12:00:00.000Z';
   const clean = { date: '2026-07-01T12:00:00.000Z', stale: 0, sync: 3, unchecked: 0 };
@@ -332,6 +363,44 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
     man.some((f) => f.cowork === 'oimpresso.com.html'));
 }
 
+// ── NASCE-SEM-MEDIÇÃO (2026-08-13) ──────────────────────────────────────────────
+// [W]: "garanta todos os novos sempre checados". Os 3 filtros são por DADO — cada um
+// foi medido em 60d de histórico real (251 arquivos adicionados) antes de virar código:
+//   todos ......... 51% fora (ruído: relatório .html)
+//   só jsx/css/js . 38% fora (ruído: subdir com shell próprio)
+//   + raiz ........ 15% fora
+//   + no vivo ..... ~1% fora  ← o sinal
+{
+  const man = [{ cowork: 'app.jsx' }, { cowork: 'styles.css' }];
+  const vivos = ['app.jsx', 'styles.css', 'forja-tarefas.jsx']; // norte-app.jsx NÃO está: sumiu do vivo
+
+  const r = nasceSemMedicao(['prototipo-ui/cowork/forja-tarefas.jsx'], man, vivos);
+  check('BITE: arquivo novo na raiz, no vivo e fora do manifesto → ACUSA',
+    JSON.stringify(r.acusados) === '["forja-tarefas.jsx"]');
+
+  check('CONTROLE: arquivo novo que JÁ está no manifesto não acusa',
+    nasceSemMedicao(['prototipo-ui/cowork/app.jsx'], man, vivos).acusados.length === 0);
+  // filtro 1 — subdir tem shell próprio (venda-v3/, prototipo-ui-patch/): 38%→15% do FP saiu daqui
+  check('CONTROLE: subdir não acusa (tem shell próprio por desenho)',
+    nasceSemMedicao(['prototipo-ui/cowork/venda-v3/sells-ui.jsx'], man, vivos).acusados.length === 0);
+  // filtro 2 — .html no espelho é relatório/auditoria, não protótipo: 51%→38% saiu daqui
+  check('CONTROLE: .html não acusa (é relatório, não protótipo de tela)',
+    nasceSemMedicao(['prototipo-ui/cowork/Auditoria Financeiro.html'], man, vivos).acusados.length === 0);
+  // filtro 3 — o que sumiu do vivo é resíduo a limpar, não "novo sem medição": 15%→1%
+  {
+    const res = nasceSemMedicao(['prototipo-ui/cowork/norte-app.jsx'], man, vivos);
+    check('CONTROLE: sumiu do vivo → vai pra `residuo`, não pra `acusados`',
+      res.acusados.length === 0 && JSON.stringify(res.residuo) === '["norte-app.jsx"]');
+  }
+  // honestidade: sem a lista do vivo o filtro forte não roda — e isso é DECLARADO, não escondido
+  {
+    const sv = nasceSemMedicao(['prototipo-ui/cowork/norte-app.jsx'], man, null);
+    check('sem --vivos: marca semVivo e NÃO finge que filtrou',
+      sv.semVivo === true && sv.acusados.length === 1);
+  }
+  check('CONTROLE: lista vazia não inventa acusação', nasceSemMedicao([], man, vivos).acusados.length === 0);
+}
+
 // ── FLUXO END-TO-END (2026-08-13) ────────────────────────────────────────────────
 // Os asserts acima provam PEÇAS. Este prova a TRAVESSIA: get_file(JSON) →
 // --export-from --emit-snapshot → --compare. É onde os contratos se encontram, e
@@ -372,6 +441,24 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
   const cmpBad = run(['--compare', snap, '--check']);
   check('BITE do fluxo: espelho divergindo do snapshot → --check MORDE (exit 1)',
     cmpBad.code === 1 && /STALE/.test(cmpBad.out));
+
+  // ── NASCE-SEM-MEDIÇÃO ligado no export (o `--check-novos` era órfão) ─────────
+  // Discriminação real: dois arquivos nascem, só um está no shell. Se acusar os dois
+  // (ou nenhum), o aviso é decorativo. Foi assim que o wire nasceu quebrado: o call site
+  // passava o CAMINHO do shell onde `parseShellDeps` quer o CONTEÚDO — sem erro, sem dep,
+  // e o arquivo que ESTAVA no shell aparecia como não-medido.
+  writeFileSync(join(dirJson, 'novo-visto.json'), JSON.stringify({ path: 'novo-visto.jsx', content: 'V' }));
+  writeFileSync(join(dirJson, 'novo-cego.json'), JSON.stringify({ path: 'novo-cego.jsx', content: 'C' }));
+  writeFileSync(join(mirror, 'oimpresso.com.html'), '<script src="x.jsx?v=1"></script><script src="novo-visto.jsx"></script>');
+  const nasc = run(['--export-from', dirJson]);
+  check('nasce-sem-medição roda NO export e acusa o que o shell não carrega',
+    /NASCERAM sem entrar no manifesto/.test(nasc.out) && /novo-cego\.jsx/.test(nasc.out));
+  check('CONTROLE: arquivo novo que o shell CARREGA não é acusado',
+    !/ {4}novo-visto\.jsx/.test(nasc.out));
+  check('CONTROLE: re-export sem nascimento não emite o aviso',
+    !/NASCERAM sem entrar/.test(run(['--export-from', dirJson]).out));
+  check('lerShellHtml devolve CONTEÚDO (não o caminho) — a confusão que quebrou o wire',
+    typeof lerShellHtml === 'function' && (lerShellHtml(tmp) || '').includes('<script'));
 
   rmSync(tmp, { recursive: true, force: true });
 }
