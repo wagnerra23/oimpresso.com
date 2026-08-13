@@ -14,12 +14,12 @@ const JM_METAS_BASE = [
   { id: "m2", nome: "Recuperação de vencidos", alvo: 400, fmt: "brlk", acumula: true,
     serie: [180, 205, 240, 260, 231, 198, 226, 254, 241, 219, 233, 212],
     nota: "Régua HITL ainda não disparada nos 8 clientes >90d." },
-  { id: "m3", nome: "Utilização de frota", alvo: 70, fmt: "pct",
+  { id: "m3", nome: "Conversão de orçamentos", alvo: 70, fmt: "pct",
     serie: [58, 61, 57, 54, 52, 49, 47, 44, 41, 38, 35, 33],
-    nota: "8 caçambas paradas >7d puxam a curva — 3 overdue hoje." },
+    nota: "8 orçamentos parados >7d puxam a curva — 3 vencendo hoje." },
   { id: "m4", nome: "Ticket médio", alvo: 2400, fmt: "brl",
     serie: [2430, 2411, 2385, 2320, 2298, 2244, 2190, 2101, 2044, 1988, 1932, 1890],
-    nota: "Margem estável — mix migrando pra caçamba pequena." },
+    nota: "Margem estável — mix migrando pra item de menor valor." },
   { id: "m5", nome: "Novos clientes", alvo: 30, fmt: "int", acumula: true,
     serie: [22, 26, 31, 28, 33, 29, 35, 30, 38, 31, 36, 34],
     nota: "Origem: balcão + indicação — zero investimento em mídia." }];
@@ -64,7 +64,7 @@ function jmMeta(base, per) {
 
 const JM_FATOS = [
   { id: "f1", fato: "Martinho prefere ser chamado de \"Seu Martinho\" no WhatsApp.", cat: "preferência", origem: "chat", desde: "12/03/2026", rel: 3 },
-  { id: "f2", fato: "Caçamba de 5m³ é o produto de maior giro — 61% dos pedidos avulsos.", cat: "operação", origem: "brief auto", desde: "02/04/2026", rel: 5 },
+  { id: "f2", fato: "O item de menor valor é o de maior giro — 61% dos pedidos avulsos.", cat: "operação", origem: "brief auto", desde: "02/04/2026", rel: 5 },
   { id: "f3", fato: "Cheque só é depositado na terça e na quinta (rotina da Larissa).", cat: "financeiro", origem: "chat", desde: "18/04/2026", rel: 4 },
   { id: "f4", fato: "VARGAS LEANDRO negocia parcela toda sexta — histórico de 246 parcelas.", cat: "cliente", origem: "brief auto", desde: "22/04/2026", rel: 5 },
   { id: "f5", fato: "Obra da Rodovia BR-459 é a origem do pico de out–fev.", cat: "sazonalidade", origem: "inserção manual", desde: "05/05/2026", rel: 4 },
@@ -78,7 +78,7 @@ const JM_THREADS = [
   { id: "t1", title: "Por que a receita caiu 68%?", preview: "Decomposição da queda — mix, evasão e sazonalidade", quando: "09:38", n: 12, escopo: "minhas" },
   { id: "t2", title: "Top devedores ativos", preview: "4.255 títulos · top 20 concentram 47%", quando: "ontem", n: 7, escopo: "minhas" },
   { id: "t3", title: "Reativação dos clientes ouro", preview: "8 contas LTV >R$ 50k · régua HITL preparada", quando: "ter", n: 21, escopo: "compartilhadas", com: "Eliana" },
-  { id: "t4", title: "Caçambas paradas há mais de 7 dias", preview: "8 paradas · 3 overdue · sugestão de outbound", quando: "seg", n: 9, escopo: "compartilhadas", com: "Larissa" },
+  { id: "t4", title: "Orçamentos parados há mais de 7 dias", preview: "8 parados · 3 vencendo · sugestão de outbound", quando: "seg", n: 9, escopo: "compartilhadas", com: "Larissa" },
   { id: "t5", title: "Fechamento de abril", preview: "DRE conferido · divergência de R$ 1.240 explicada", quando: "05/mai", n: 34, escopo: "arquivadas" },
   { id: "t6", title: "Cheques a depositar na semana", preview: "Rotina terça/quinta · lembrete criado", quando: "02/mai", n: 5, escopo: "arquivadas" }];
 
@@ -86,7 +86,10 @@ const JM_FILTROS = ["todas", "minhas", "compartilhadas", "arquivadas"];
 
 // KPI → análise que EXPLICA aquele número. Só mapeia quando o card existe e fala do mesmo dado:
 // ticket médio (trendDown) não tem análise própria, então fica não-clicável em vez de abrir faturamento.
-const JM_KPI_DRILL = { coins: "fat", alert: "inad", truck: "frota" };
+// `truck` (frota) saiu em 2026-08-13: a análise Frota é Non-Goal declarado do Index.charter.md
+// (decisão [W] 2026-08-07, "não construir" — OficinaAuto-only + forbidden_ui_terms). Sem entrada
+// aqui o KPI fica não-clicável, que é a regra desta tabela.
+const JM_KPI_DRILL = { coins: "fat", alert: "inad" };
 
 // Cada conversa tem thread própria — trocar no histórico troca o conteúdo (P0).
 function jmSeed(id, data, threads) {
@@ -121,15 +124,15 @@ function jmSeed(id, data, threads) {
       sub: "LTV combinado R$ 612k · cada mensagem passa pela sua aprovação antes de sair." }],
 
     t4: [
-    { from: "user", kind: "text", text: "Quais caçambas estão paradas há mais de 7 dias?" },
+    { from: "user", kind: "text", text: "Quais orçamentos estão parados há mais de 7 dias?" },
     { from: "jana", kind: "data_table",
-      title: "Ativos parados · mai/2026",
-      cols: [{ k: "ativo", label: "Caçamba" }, { k: "dias", label: "Dias parada", num: true }, { k: "ult", label: "Último cliente" }],
+      title: "Orçamentos parados · mai/2026",
+      cols: [{ k: "ativo", label: "Orçamento" }, { k: "dias", label: "Dias parado", num: true }, { k: "ult", label: "Cliente" }],
       rows: [
-      { ativo: "CC-014", dias: "19", ult: "CONSTRUFERRO IND." },
-      { ativo: "CC-027", dias: "14", ult: "EXTREMA SOLDAS" },
-      { ativo: "CC-031", dias: "11", ult: "CAPITAL CARGAS" },
-      { ativo: "CC-044", dias: "9", ult: "MARTINS OBRAS" }] }],
+      { ativo: "ORC-014", dias: "19", ult: "CONSTRUFERRO IND." },
+      { ativo: "ORC-027", dias: "14", ult: "EXTREMA SOLDAS" },
+      { ativo: "ORC-031", dias: "11", ult: "CAPITAL CARGAS" },
+      { ativo: "ORC-044", dias: "9", ult: "MARTINS OBRAS" }] }],
 
 
     t5: [
@@ -557,7 +560,7 @@ function JmConfigDrawer({ open, onClose, onGoTab, cfg, setCfg }) {
         <Toggle k="fat" label="Faturamento" sub="Curva 24 meses + sazonalidade" />
         <Toggle k="conc" label="Concentração" sub="Pareto de clientes" />
         <Toggle k="churn" label="Churn ouro" sub="LTV alto inativo >90d" />
-        <Toggle k="frota" label="Frota" sub="Ativos parados >7d" />
+        {/* sem toggle "Frota": análise Non-Goal do Index.charter.md (decisão [W] 2026-08-07). */}
         <Toggle k="cheq" label="Cheques" sub="Previsão de depósito" />
       </DrawerSection>
       <DrawerSection title="Até onde ela age">
@@ -595,8 +598,8 @@ function JmAcaoModal({ acao, onClose, onAviso }) {
   if (!Modal || !acao) return null;
   const previa = {
     a1: "Seu Martinho, aqui é da ROTA LIVRE. Temos R$ 12.480 em aberto desde março. Consigo dividir em 3× sem juros se fecharmos hoje — posso gerar?",
-    a2: "Seu Martinho, faz tempo que a gente não atende sua obra. Separei uma condição de retorno na caçamba de 5m³ — quer que eu reserve pra esta semana?",
-    a3: "Lista dos 8 ativos parados com o último cliente de cada um, pra ligação hoje — começando pelos 3 overdue.",
+    a2: "Seu Martinho, faz tempo que a gente não atende você. Separei uma condição de retorno no item que você mais leva — quer que eu reserve pra esta semana?",
+    a3: "Lista dos 8 orçamentos parados com o cliente de cada um, pra ligação hoje — começando pelos 3 que vencem.",
     a4: "2.470 títulos acima de 365 dias, R$ 770k, marcados como candidatos a baixa. Nada é apagado — só sai do painel ativo depois da sua revisão." }[
   acao.id];
   const enviar = () => {
@@ -641,13 +644,18 @@ function JmDrillDrawer({ analise, onClose, onPerguntar }) {
   const DS = window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
   const { Drawer, DrawerSection, Button } = DS;
   if (!Drawer || !analise) return null;
+  // O 3º item é o MÉTODO REAL que calcula — lido de app/Services/Sells/SellsCockpitAggregator.php
+  // e alinhado ao JANA_DRILL_FONTES do código (resources/js/Pages/Jana/_components/JanaDrillDrawer.tsx).
+  // ⛔ NUNCA inventar nome de serviço aqui: este drawer se chama "de onde vem esse número", e nome
+  // fictício em <code> é mentira com selo de autoridade (anti-hook do Index.charter.md). Até
+  // 2026-08-13 esta tabela citava 6 Analise*Service — os SEIS inexistentes no repo (git grep → rc=1).
+  // Análise sem método no back declara isso em texto, e o render NÃO a veste de <code>.
   const FONTE = {
-    inad: ["transactions + transaction_payments", "exclui saldo virtual e parcela agrupada", "AnaliseInadimplenciaService"],
-    fat: ["transactions (venda final)", "24 janelas mês a mês", "AnaliseFaturamentoService"],
-    conc: ["contacts × transactions", "Pareto por LTV acumulado", "AnaliseConcentracaoService"],
-    churn: ["contacts com LTV > R$ 50k", "sem compra há mais de 90 dias", "AnaliseChurnService"],
-    frota: ["assets + locações abertas", "parada = sem movimento há 7 dias", "AnaliseFrotaService"],
-    cheq: ["cheques recebidos", "quitado vs em circulação", "AnaliseChequesService"] }[
+    inad: ["transactions + contacts", "vencida = a receber com prazo definido e vencimento anterior a hoje; venda sem prazo não entra", "SellsCockpitAggregator::buildInsightsAggregates"],
+    fat: ["transactions", "soma do total de cada venda, dia a dia, nos últimos 30 dias; dia sem venda entra como zero", "SellsCockpitAggregator::buildCoworkAggregates"],
+    conc: ["transactions + contacts", "soma do total por cliente, os 5 maiores; venda sem cliente vira \"Cliente padrão\"", "SellsCockpitAggregator::buildInsightsAggregates"],
+    churn: ["contacts × transactions", "LTV alto sem compra há mais de 90 dias", "sem método no back ainda — número só do protótipo"],
+    cheq: ["transaction_payments + transactions", "soma dos pagamentos por forma; venda paga em 2 formas aparece nas duas", "SellsCockpitAggregator::buildInsightsAggregates"] }[
   analise.id] || [];
   return (
     <Drawer open={!!analise} onClose={onClose} width={480}
@@ -666,7 +674,8 @@ function JmDrillDrawer({ analise, onClose, onPerguntar }) {
 
       <DrawerSection title="Fonte">
         <ul className="jm-dr-src">
-          {FONTE.map((f, i) => <li key={i}>{i === 2 ? <code>{f}</code> : f}</li>)}
+          {/* só veste de <code> o que É símbolo real (tem "::"); o resto é prosa honesta. */}
+          {FONTE.map((f, i) => <li key={i}>{i === 2 && String(f).includes("::") ? <code>{f}</code> : f}</li>)}
           <li>Apurado hoje às 09:42 · escopo <code>business_id</code> da sessão</li>
         </ul>
       </DrawerSection>
@@ -732,9 +741,12 @@ function JanaPage({ company, tab = "painel", metasMode = "secao", estado = "dado
   const [acao, setAcao] = useStateJM(null);
   const [cfg, setCfg] = useStateJM(() => {
     const base = { brief: true, briefHora: "06:00", audio: false, pro: true,
-      inad: true, fat: true, conc: true, churn: true, frota: true, cheq: true,
+      inad: true, fat: true, conc: true, churn: true, cheq: true,
       hitl: true, retencao: "12 meses" };
-    try {return { ...base, ...JSON.parse(localStorage.getItem("oimpresso.jana.cfg") || "{}") };} catch (e) {return base;}
+    // `frota: false` vem DEPOIS do localStorage de propósito: é Non-Goal decidido ([W] 2026-08-07),
+    // não preferência do usuário. Sem isso, quem já visitou o protótipo tem `frota:true` salvo e o
+    // card da Frota (que nasce no data de chat-jana.jsx) voltaria a passar pelo filtro lá embaixo.
+    try {return { ...base, ...JSON.parse(localStorage.getItem("oimpresso.jana.cfg") || "{}"), frota: false };} catch (e) {return { ...base, frota: false };}
   });
   React.useEffect(() => {
     try {localStorage.setItem("oimpresso.jana.cfg", JSON.stringify(cfg));} catch (e) {}
@@ -903,8 +915,8 @@ function JanaPage({ company, tab = "painel", metasMode = "secao", estado = "dado
             {pro && <span className="jm-h2-sub">clique num card pra ver de onde vem o número</span>}
           </h2>
           {!pro ?
-        upsell({ t: "As 6 análises são do plano Pro", icon: "chart",
-          d: "Inadimplência, faturamento, concentração, churn ouro, frota e cheques — recalculadas todo dia, com drill-down até a origem do número." }) :
+        upsell({ t: "As 5 análises são do plano Pro", icon: "chart",
+          d: "Inadimplência, faturamento, concentração, churn ouro e cheques — recalculadas todo dia, com drill-down até a origem do número." }) :
         analises.length === 0 ?
         <div className="jm-mem-empty"><b>Todas as análises estão desligadas.</b><small>Ligue de volta em Configurar → Análises que ela roda.</small></div> :
 
