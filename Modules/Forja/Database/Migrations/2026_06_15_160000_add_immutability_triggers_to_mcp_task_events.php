@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
  * tente modificar o log.
  *
  * Espelho 1:1 do enforcement já aplicado em mcp_audit_log (Constituição Artigo 9):
- * Modules/Jana/Database/Migrations/2026_05_05_230001_add_immutability_triggers_to_mcp_audit_log.php
+ * Modules/Forja/Database/Migrations/2026_05_05_230001_add_immutability_triggers_to_mcp_audit_log.php
  *
  * Pattern idêntico ao usado em ponto_marcacoes (Portaria 671/2021) — ver
  * Modules/PontoWr2/Database/Migrations/2026_04_18_000004_create_ponto_marcacoes_table.php

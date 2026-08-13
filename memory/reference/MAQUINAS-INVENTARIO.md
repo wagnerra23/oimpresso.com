@@ -327,7 +327,7 @@ lifecycle: ativo
 > design**. O que é dívida é **medidor** órfão — a máquina existe, o teste prova que ela morde,
 > e nada a executa. A matriz reporta o fato; a triagem é humana.
 
-### 5.1 `scripts/governance/` — 110
+### 5.1 `scripts/governance/` — 111
 
 | Script | Invocador | Descrição (cabeçalho) |
 |---|---|---|
@@ -378,6 +378,7 @@ lifecycle: ativo
 | `dup-detector.mjs` | ci | L3 (keystone) da trava anti-duplicação de trabalho entre sessões |
 | `fact-anchor.mjs` | script | lógica PURA do Check T de memory-health.mjs (fact-anchor). |
 | `feature-lint.mjs` | ci, npm, script | valida o TRIO de feature (requirements.md + plan.md + tasks.md) em |
+| `flip-required.mjs` | — | promove UM check advisory a required na branch protection de `main`. |
 | `fluxo-morde.mjs` | ci, script | EXERCÍCIO DE FOGO DO FLUXO: o método detém um defeito, ou só o comenta? |
 | `funcao-scorecard-calibracao.mjs` | script | calibração NÃO-CIRCULAR do juiz funcao-scorecard. |
 | `funcao-scorecard-humano.mjs` | npm | template                 imprime o JSON cego que [W] preenche |
@@ -478,7 +479,7 @@ lifecycle: ativo
 | `dsih-gate.mjs` | ci, script | porque NENHUM gate mordia CONTEUDO em .tsx (so canal: lint/build/conformance). |
 | `eslint-baseline.mjs` | ci, npm, script | scripts/eslint-baseline.mjs — Onda 1.2 (ADR 0209) |
 | `foundation-guard.mjs` | ci, npm, script | Determinístico, sem browser, sem dependência. Roda em CI (exit≠0 = bloqueia merge) E local. |
-| `generate-dxt.js` | php | Gera arquivo .dxt (Claude Desktop Extension) para membros do time oimpresso. |
+| `generate-dxt.js` | script | Gera arquivo .dxt (Claude Desktop Extension) para membros do time oimpresso. |
 | `handoff-integrity-guard.mjs` | ci, npm | scripts/handoff-integrity-guard.mjs — catraca de Integridade do Handoff (PROCESSO_MEMORIA_CC.md §16 · IT8). |
 | `layout-primitives-guard.mjs` | ci, npm, script | scripts/layout-primitives-guard.mjs — enforcement da ADR 0253 (primitivos de layout) |
 | `no-mock-in-prod.mjs` | ci, npm, script | scripts/no-mock-in-prod.mjs — Frente 6 (plano anti-duplicacao 2026-06-06) |
@@ -505,6 +506,7 @@ lifecycle: ativo
 | `governance/anchor-entry-baseline.json` | anchor entry/covers GRANDFATHER — US legadas isentas (ratchet só-desce · ADR 0275 advisory→required por calendário) |
 | `governance/blade-migration-baseline.json` | Censo de migração Blade→React — catraca só-desce por escopo (ADR 0277 contrato de completude) |
 | `governance/charter-refs-baseline.json` | (baseline/estado) |
+| `governance/cron-vermelho-esperado.json` | (baseline/estado) |
 | `governance/deadlink-baseline.json` | (baseline/estado) |
 | `governance/dependency-direction-baseline.json` | (baseline/estado) |
 | `governance/doc-id-index.json` | (baseline/estado) |
@@ -545,4 +547,4 @@ lifecycle: ativo
 | `scripts/perf-static-baseline.json` | perf-static-guard (Onda 4 lente 5b — AUDITORIA-PERFORMANCE-2026-07, ratchet advisory) |
 | `scripts/reuse-duplicates-baseline.json` | (baseline/estado) |
 
-> Total baselines JSON em governance/+config/+scripts: 45 · (mais ~5 dot-baselines na raiz + fixtures em tests/).
+> Total baselines JSON em governance/+config/+scripts: 46 · (mais ~5 dot-baselines na raiz + fixtures em tests/).

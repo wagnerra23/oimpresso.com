@@ -1,6 +1,6 @@
 ---
 page: /settings/payment-gateways
-component: resources/js/Pages/Settings/PaymentGateways/Index.tsx
+component: Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.tsx
 owner: wagner
 status: draft
 last_validated: '2026-05-27'

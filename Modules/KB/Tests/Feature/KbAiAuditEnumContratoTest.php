@@ -28,7 +28,7 @@ use Modules\KB\Http\Controllers\KbAiController;
  * CÓDIGO ao schema, nunca o contrário.
  *
  * @see Modules/KB/Http/Controllers/KbAiController.php
- * @see Modules/Jana/Database/Migrations/2026_04_29_100005_create_mcp_audit_log_table.php
+ * @see Modules/Forja/Database/Migrations/2026_04_29_100005_create_mcp_audit_log_table.php
  */
 
 /**

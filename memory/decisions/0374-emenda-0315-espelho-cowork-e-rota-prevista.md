@@ -3,7 +3,7 @@ slug: 0374-emenda-0315-espelho-cowork-e-rota-prevista
 number: 374
 title: "Emenda à 0315 — espelhar o projeto Cowork para `prototipo-ui/cowork/` é a rota PREVISTA (o 'nunca o inverso' vale só para o Design System)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision

@@ -58,9 +58,10 @@
  *   node scripts/governance/cowork-mirror-freshness.mjs --sla               # headless: rotina rodou ≤14d? última limpa?
  */
 
-import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { join } from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { join, dirname } from 'node:path';
 import { homedir } from 'node:os';
 import { anchorRelPath } from './anchor-content-check.mjs'; // fonte única: como extrair o path do related_prototype
 
@@ -145,9 +146,9 @@ export const LEDGER_REL = 'scripts/governance/.cowork-freshness-ledger.json';
 export const SLA_DAYS = 14;
 
 /** Entrada de ledger (pura, testável) a partir das rows do --compare. */
-export function ledgerEntry(rows, dateIso) {
+export function ledgerEntry(rows, dateIso, meta = {}) {
   const n = (v) => rows.filter((r) => r.veredito === v).length;
-  return {
+  const e = {
     date: dateIso,
     files: rows.length,
     sync: n('SYNC'),
@@ -156,18 +157,43 @@ export function ledgerEntry(rows, dateIso) {
     unchecked: n('UNCHECKED'),
     staleList: rows.filter((r) => r.veredito === 'STALE').map((r) => r.cowork),
   };
+  // `stale` conta o que DIVERGE AGORA. Numa rodada cujo snapshot veio de `--export-from`,
+  // isso é sempre 0 por construção — o export consertou antes de medir. `stalePreExport`
+  // é o número que responde "o espelho drifta com que frequência?", que é o que a ADR 0324
+  // precisa do ledger. Sem ele a série histórica só sabe dizer 0 e vira carimbo.
+  if (meta.origin) e.origin = meta.origin;
+  if (typeof meta.stalePreExport === 'number') e.stalePreExport = meta.stalePreExport;
+  return e;
 }
 
 /** Veredito de SLA (puro): a rotina rodou há ≤ days? E a última rodada estava limpa?
  *  NEVER-RAN e OVERDUE = vermelho de CADÊNCIA; LAST-STALE = vermelho de RESULTADO
- *  (a última rodada achou divergência e nenhuma rodada posterior limpou). */
+ *  (a última rodada achou divergência e nenhuma rodada posterior limpou);
+ *  LAST-PARTIAL = vermelho de COBERTURA (a rodada aconteceu, mas mediu pouco).
+ *
+ *  ── por que LAST-PARTIAL existe (2026-08-13) ──────────────────────────────────
+ *  O veredito olhava só `stale > 0`. Consequência medida no ledger REAL: a rodada
+ *  de 2026-07-07 registrou `5 sync · 0 stale · 98 unchecked` — mediu 5 de 103, 95%
+ *  cega — e o instrumento a classificava como limpa (só reclamou da IDADE). Ou seja:
+ *  o detector de frescor tinha, dentro dele, o "verde por não-execução" que o LC-13
+ *  descreve — `0 stale` numa rodada que não rodou não é saúde, é ausência de medição
+ *  (mesmo formato de `0 failed` em suíte que não executou).
+ *
+ *  Rodada PARCIAL é legítima por desenho (o --manifest recomenda "âncoras + deps
+ *  globais + css do módulo tocado"). O defeito nunca foi ser parcial — era REPORTAR
+ *  parcial como se fosse completa. Por isso o critério é binário e derivado
+ *  (`unchecked === 0`), não um limiar inventado: o §5 tem 5 lápides de guard com
+ *  corte arbitrário. E a cobertura passa a sair SEMPRE na mensagem. */
 export function slaVerdict(entries, nowIso, days = SLA_DAYS) {
   if (!Array.isArray(entries) || entries.length === 0) return { veredito: 'NEVER-RAN', last: null, ageDays: null };
   const last = entries[entries.length - 1];
   const ageDays = Math.floor((Date.parse(nowIso) - Date.parse(last.date)) / 86400000);
-  if (ageDays > days) return { veredito: 'OVERDUE', last, ageDays };
-  if (last.stale > 0) return { veredito: 'LAST-STALE', last, ageDays };
-  return { veredito: 'FRESH', last, ageDays };
+  const medidos = (last.files || 0) - (last.unchecked || 0);
+  const cobertura = { medidos, total: last.files || 0 };
+  if (ageDays > days) return { veredito: 'OVERDUE', last, ageDays, cobertura };
+  if (last.stale > 0) return { veredito: 'LAST-STALE', last, ageDays, cobertura };
+  if ((last.unchecked || 0) > 0) return { veredito: 'LAST-PARTIAL', last, ageDays, cobertura };
+  return { veredito: 'FRESH', last, ageDays, cobertura };
 }
 
 /** Extrai as DEPS DE RENDER dos src/href de um shell HTML (pura, testável — LC-07).
@@ -187,6 +213,37 @@ export function parseShellDeps(html) {
   return out;
 }
 
+// ── ABSENT-LOCAL: a 3ª doença — o espelho INCOERENTE (2026-08-13) ────────────────
+// STALE mede "o espelho ficou atrás"; LIVE-ABSENT mede "sumiu do vivo"; liveOnly mede
+// "existe no vivo e nunca desceu". Faltava a que quebra o RENDER: dep que o SHELL
+// carrega e que não existe no espelho — o app monta e a tela vem vazia/quebrada, sem
+// nenhum veredito vermelho. Foi assim que o `app.jsx` de 07-07 (montando o JanaCockpit
+// antigo) conviveu por dias com um `jana-merge.jsx` já versionado: chegou o arquivo,
+// não chegou a fiação.
+//
+// Por que NÃO era detectável: `buildManifest.add()` faz `existsSync → return`, então dep
+// ausente é DESCARTADA em silêncio. O comentário de lá dizia "ausência upstream é outro
+// sinal" — mas esse outro sinal não existia em lugar nenhum.
+//
+// FP MEDIDO ANTES de escrever (§5 — 5 lápides de guard sintático mataram o contrário):
+//   corpus real 2026-08-13, shell vivo: 16 deps ausentes brutas → 3 são `_ds/**`, que o
+//   .gitignore do espelho exclui POR DESIGN (bundle do design-system, não é fonte).
+//   Excluindo o que o git ignora: 13 sinal real, 0 falso-positivo.
+// Por isso o filtro é `git check-ignore` — a REGRA JÁ ESCRITA do repo, não uma denylist
+// de nome inventada aqui (que é a família banida: allowlist-de-pasta · guard `@scope`).
+/** Deps que o shell CARREGA e que não existem no espelho (puro exceto o check-ignore).
+ *  Devolve { faltando, ignorados } — `ignorados` é reportado, nunca escondido. */
+export function absentLocal(shellHtml, root = ROOT) {
+  if (!shellHtml) return { faltando: [], ignorados: [] };
+  const rel = (d) => `prototipo-ui/cowork/${d}`;
+  const ausentes = parseShellDeps(shellHtml).filter((d) => !existsSync(join(root, rel(d))));
+  const ignorados = ausentes.filter((d) => {
+    try { execFileSync('git', ['check-ignore', '-q', rel(d)], { cwd: root, stdio: 'ignore' }); return true; }
+    catch { return false; } // exit≠0 = NÃO ignorado (git check-ignore -q usa o código, não a saída)
+  });
+  return { faltando: ausentes.filter((d) => !ignorados.includes(d)), ignorados };
+}
+
 /** Enumera os arquivos-âncora do espelho, keyed por PATH RELATIVO COMPLETO (nunca basename)
  *  + as DEPS DE RENDER do shell (LC-07). `kind`: 'ancora' (tem tela de charter) | 'dep'.
  *  Mesmo conjunto de âncoras que o anchor-content-check enxerga (reusa anchorRelPath). */
@@ -198,6 +255,12 @@ export function buildManifest(root = ROOT, { all = false, shellHtml = null } = {
   const add = (relPath, telas) => {
     const abs = join(COWORK, relPath);
     if (!existsSync(abs)) return; // âncora sumida é território do anchor-content (MISSING)
+    // `_ds/` é BUILD DE PREVIEW (o --preview-ds cria, o .gitignore exclui). Deixá-lo entrar
+    // fazia o denominador do --sla variar por MÁQUINA: 124 aqui, 122 num clone limpo — e o
+    // "mediu 2/124" publicado não era propriedade do repo (§5 2026-07-27, denominador que
+    // nenhuma decisão estabeleceu). Achado do adversário 2026-08-13, reproduzido: escondi os
+    // 2 arquivos e o manifesto caiu 124→122. O universo é o que o GIT versiona.
+    if (relPath.startsWith('_ds/')) return;
     if (!seen.has(relPath)) {
       seen.set(relPath, {
         cowork: relPath,
@@ -222,16 +285,40 @@ export function buildManifest(root = ROOT, { all = false, shellHtml = null } = {
     add(rel.split('\\').join('/'), [tela]);
   }
   // DEPS DE RENDER (LC-07): derivadas do shell, nunca curadas na mão. Dep que não existe
-  // no espelho fica FORA (o espelho é o universo medível; ausência upstream é outro sinal).
+  // no espelho fica FORA daqui — mas NÃO some mais em silêncio: `absentLocal()` a reporta
+  // (era o buraco que deixou a fiação nova conviver com componente ausente, 2026-08-13).
   if (shellHtml) for (const dep of parseShellDeps(shellHtml)) add(dep, []);
+  // O SHELL entra no próprio manifesto quando versionado: ele é a fiação, e fiação que não
+  // é medida é a doença nº1. Assim, [W] mexer no shell do Cowork vira STALE na próxima rodada.
+  add('oimpresso.com.html', []);
   return [...seen.values()]
     .map((e) => ({ ...e, kind: e.telas.length ? 'ancora' : 'dep' }))
     .sort((a, b) => a.cowork.localeCompare(b.cowork));
 }
 
-/** Shell default: o oimpresso.com.html do staging fixo de handoff (RUNBOOK §−1).
- *  Null se não houver — o CLI avisa em vez de omitir em silêncio. */
-export function defaultShellPath() {
+/** Shell default. Ordem: (1) o VERSIONADO no espelho; (2) o staging fixo de handoff.
+ *  Null se não houver — o CLI avisa em vez de omitir em silêncio.
+ *
+ *  Por que o repo vem PRIMEIRO (2026-08-13): o universo de deps de render era derivado de
+ *  um arquivo em `~/Downloads` — fora do git, na máquina de UMA pessoa, e congelado na data
+ *  do último ZIP extraído. Medido: o staging estava em 01/jul e conhecia 103 deps; o shell
+ *  vivo já tinha 120. As 17 deps novas (incl. `jana-merge.*` e as 6 telas de cliente)
+ *  eram invisíveis POR CONSTRUÇÃO — o manifesto não podia acusar o que não sabia existir.
+ *  Versionar o shell põe a fiação sob a mesma catraca dos arquivos que ela carrega: o shell
+ *  entra no manifesto, e mudança dele no vivo vira STALE como qualquer outro arquivo. */
+/** CONTEÚDO do shell default (null se não houver). Existe porque `buildManifest`/`absentLocal`
+ *  querem o HTML e `defaultShellPath` devolve o CAMINHO — passar um pelo outro não dá erro:
+ *  o regex de `parseShellDeps` simplesmente não casa nada e o manifesto sai sem deps, calado.
+ *  Mordeu em 2026-08-13 (bite-test do nasce-sem-medição acusou um arquivo que ESTAVA no shell)
+ *  e estava latente no `--manifest`, onde o `all:true` mascarava o efeito. */
+export function lerShellHtml(root = ROOT) {
+  const p = defaultShellPath(root);
+  return p && existsSync(p) ? readFileSync(p, 'utf8') : null;
+}
+
+export function defaultShellPath(root = ROOT) {
+  const noRepo = join(root, 'prototipo-ui', 'cowork', 'oimpresso.com.html');
+  if (existsSync(noRepo)) return noRepo;
   const base = join(homedir(), 'Downloads', '_cowork-handoff-staging');
   if (!existsSync(base)) return null;
   for (const e of readdirSync(base)) {
@@ -265,6 +352,118 @@ function walkRel(base, dir = base, acc = []) {
   return acc;
 }
 
+// ── NASCE-SEM-MEDIÇÃO: o arquivo entra no espelho e ninguém o mede (2026-08-13) ──
+// [W]: "garanta todos os novos sempre checados". O universo da rodada normal deriva do
+// que o SHELL carrega — então arquivo que desce e o shell não referencia nasce FORA de
+// qualquer `--compare`. Aconteceu nesta própria sessão: `forja-tarefas.jsx` foi exportado
+// do vivo e ficou invisível pro frescor.
+//
+// FP MEDIDO ANTES (60 dias de histórico real, 251 arquivos adicionados):
+//   todos os novos ............ 129/251 fora = 51%  ← quase tudo relatório .html: RUÍDO
+//   só jsx/css/js ............. 72/192 fora = 38%  ← subdir com shell próprio: RUÍDO
+//   + só na RAIZ .............. 20/137 fora = 15%
+//   + AINDA EXISTE NO VIVO ....  2/137 fora ≈ 1%   ← SINAL
+// Os 3 filtros são por DADO, nunca denylist de nome (§5 tem 5 lápides de guard sintático).
+// ⚠️ As razões abaixo foram REESCRITAS em 2026-08-13: as duas primeiras que eu tinha
+// escrito eram plausíveis e FALSAS — inventei o motivo em vez de medir (§5 2026-07-15).
+//   · RAIZ       — porque o PRODUTOR escreve na raiz. Medido no histórico (clone completo):
+//                  os 2 commits de `--export-from` puseram 17 arquivos, **17 na raiz, 0 em
+//                  subdir**; todo subdir veio de IMPORT DE BUNDLE (#3259 SSOT 224 arq ·
+//                  #5560 preview v3 21 arq), que é outro fluxo, com outro dono e outro
+//                  momento. Um arquivo que nasce em subdir não nasceu deste produtor.
+//                  ✗ A razão anterior — "subdir tem shell próprio por desenho" — é FALSA:
+//                  medido, 19 dos 23 subdirs não têm nenhum .html.
+//   · jsx/css/js — porque o FP mandou (129/251 = 51% de ruído). NÃO porque ".html é
+//                  relatório": medido, **5 dos 11 .html do espelho RENDERIZAM**
+//                  (`createRoot|ReactDOM|text/babel`), incluindo o `Financeiro - Prova Viva
+//                  (primitivos).html`. RESIDUAL DECLARADO, não propriedade: protótipo
+//                  publicado como .html nasce fora deste detector e ninguém acusa.
+//   · NO VIVO    — 18 dos 20 eram resíduo do protótipo `norte-*`, arquivado upstream;
+//                  quem sumiu do vivo não é "novo sem medição", é sobra a limpar.
+// Diff-aware e forward-only (ADR 0275): cobre o que NASCE, deixa o legado grandfathered.
+/** Arquivos que ENTRARAM no espelho e ficaram fora do manifesto (puro, testável).
+ *  `adicionados`: paths relativos ao espelho, vindos do diff.
+ *  `manifest`: saída de buildManifest. `vivos`: paths do DesignSync.list_files (opcional —
+ *  sem ele o filtro mais forte não roda e o resultado sai marcado como `semVivo`). */
+export function nasceSemMedicao(adicionados, manifest, vivos = null) {
+  const medidos = new Set(manifest.map((f) => f.cowork));
+  const noVivo = vivos ? new Set(vivos) : null;
+  const base = (adicionados || [])
+    .map((p) => p.replace(/^prototipo-ui\/cowork\//, ''))
+    .filter((p) => !p.includes('/'))                   // raiz: subdir tem shell próprio
+    .filter((p) => /\.(jsx|css|js)$/i.test(p))         // .html no espelho é relatório
+    .filter((p) => !medidos.has(p));
+  if (!noVivo) return { semVivo: true, acusados: base, residuo: [] };
+  return {
+    semVivo: false,
+    acusados: base.filter((p) => noVivo.has(p)),       // existe no vivo → é protótipo real sem medição
+    residuo: base.filter((p) => !noVivo.has(p)),       // sumiu do vivo → sobra, não é este alarme
+  };
+}
+
+// ── PREVIEW-DS: o espelho é versionado, mas NÃO RENDERIZA sozinho (2026-08-13) ────
+// O shell do Cowork faz <link> de `_ds/<id>/colors_and_type.css` + `cockpit_domains.css`
+// e <script> do `_ds_bundle.js`. O `.gitignore` do espelho exclui `_ds/` — correto, porque
+// o Design System tem dono próprio em git (ADR 0239) e duplicá-lo criaria 2º armazém.
+// CONSEQUÊNCIA MEDIDA: quem clona o repo e abre o protótipo vê `--pos`/`--neg`/`--warn`
+// VAZIOS — a tela renderiza sem as cores de status. Isso contradiz o motivo da ADR 0374
+// ("vai ter computadores que não vão ter acesso ao design dessa máquina e vão trabalhar
+// só com o git"): o time recebe o protótipo, mas não o vê como ele é.
+//
+// O conteúdo JÁ ESTÁ versionado em `scripts/design-sync/mirror-snapshot/` (dono:
+// ds-mirror-build.mjs + gate ds-mirror-drift) — só não no path que o shell procura.
+// Este modo REPÕE, derivando o id do DS do PRÓPRIO SHELL (nunca hardcode: o shell é
+// versionado, então o id acompanha quando [W] trocar de design system).
+// O `_ds/` continua gitignored: isto é build de preview, não versionamento.
+//
+// Não é detector — é ação determinística (copiar), então não tem FP a medir.
+export function previewDsPlan(shellHtml, root = ROOT) {
+  if (!shellHtml) return { erro: 'sem shell — não dá pra derivar o id do design system', arquivos: [] };
+  // o id sai dos próprios <link>/<script> do shell
+  const ids = [...new Set([...String(shellHtml).matchAll(/_ds\/([^/"]+)\//g)].map((m) => m[1]))];
+  if (ids.length !== 1) return { erro: `esperava 1 design system no shell, achei ${ids.length}`, arquivos: [] };
+  const id = ids[0];
+  const querUsar = [...new Set([...String(shellHtml).matchAll(/_ds\/[^/"]+\/([^"?]+)/g)].map((m) => m[1]))];
+  const origem = join(root, 'scripts', 'design-sync', 'mirror-snapshot');
+  return {
+    id,
+    destino: `prototipo-ui/cowork/_ds/${id}`,
+    arquivos: querUsar.map((f) => ({
+      nome: f,
+      de: join(origem, f),
+      para: join(root, 'prototipo-ui', 'cowork', '_ds', id, f),
+      temNoRepo: existsSync(join(origem, f)),
+    })),
+  };
+}
+
+/** Imprime o ABSENT-LOCAL. Não afeta o exit code: `shouldFail()` morde SÓ em STALE, que é o
+ *  sinal hash-provado — isso é comportamento DESTE script, provado no self-test, não promessa.
+ *  Se esta lane bloqueia merge ou não, quem sabe é `governance/required-checks-baseline.json`
+ *  (dono único, vigiado por `protection-drift.mjs`): script não afirma o próprio enforcement
+ *  em presente (LC-10). Desenho de nascimento em ADR 0275; promoção por mordida em ADR 0336.
+ *
+ *  `stream`: no --manifest o STDOUT é o JSON do manifesto — relatório humano ali dentro
+ *  quebra `--manifest | jq` / `require()` (peguei isso na 1ª vez que consumi por pipe).
+ *  Regra: modo que emite dado → relatório vai pro stderr; modo que emite relatório → stdout. */
+function reportAbsentLocal(shellHtml, stream = process.stdout) {
+  if (!shellHtml) return;
+  const { faltando, ignorados } = absentLocal(shellHtml);
+  if (!faltando.length && !ignorados.length) return;
+  const w = (s) => stream.write(s + '\n');
+  w(`  ── ABSENT-LOCAL — o shell CARREGA e o espelho NÃO TEM (render quebra sem veredito)\n`);
+  for (const d of faltando) w(`  ⛔ FALTA        ${d}`);
+  if (ignorados.length) {
+    w(`\n  (${ignorados.length} fora por .gitignore do espelho — esperado, não é achado: ${ignorados.map((d) => d.split('/')[0]).filter((v, i, a) => a.indexOf(v) === i).join(', ')})`);
+  }
+  w(
+    `\n  ⛔ ausentes: ${faltando.length} · ⬜ ignorados por design: ${ignorados.length}\n` +
+    (faltando.length
+      ? `  Pra versionar: DesignSync.get_file de cada → salve os JSON num dir → --export-from <dir>.\n  (não muda o exit code: o --check morde só em STALE)\n`
+      : `  ✓ toda dep do shell existe no espelho.\n`),
+  );
+}
+
 // ── CLI ───────────────────────────────────────────────────────────────────────
 function main() {
   const argv = process.argv.slice(2);
@@ -290,7 +489,7 @@ function main() {
     }
     const raw = JSON.parse(readFileSync(lp, 'utf8'));
     const paths = Array.isArray(raw) ? raw : (raw.paths || []);
-    const manifest = buildManifest(ROOT, { all: true, shellHtml: defaultShellPath() });
+    const manifest = buildManifest(ROOT, { all: true, shellHtml: lerShellHtml() });
     const faltando = liveOnly(paths, manifest);
     // Classifica pra o humano decidir sem ler 25 linhas iguais. NÃO é filtro — tudo é
     // listado; filtro escondido aqui recriaria o ponto cego que este modo existe pra abrir.
@@ -303,7 +502,74 @@ function main() {
     console.log(`\n  ── outros (${outros.length}) — shell, uploads, bundle de DS, docs:`);
     for (const p of outros) console.log(`     · ${p}`);
     console.log('\n  Para versionar: DesignSync.get_file de cada → salve os JSON num dir → --export-from <dir>.');
-    console.log('  ⚠️ advisory por desenho: o que merece descer é decisão [W], não da máquina.\n');
+    console.log('  ⚠️ lista, não veredito: o que merece descer é decisão [W], não da máquina.\n');
+    return;
+  }
+
+  // --check-novos <base> [--vivos <list.json>]: arquivo que ENTROU no espelho e nasceu
+  // fora de qualquer rodada de frescor. Diff-aware/forward-only (ADR 0275).
+  const novIdx = argv.indexOf('--check-novos');
+  if (novIdx !== -1) {
+    const base = argv[novIdx + 1] || 'origin/main';
+    let adicionados = [];
+    try {
+      const out = execFileSync('git', ['diff', '--diff-filter=A', '--name-only', `${base}...HEAD`, '--', 'prototipo-ui/cowork'], { cwd: ROOT, encoding: 'utf8' });
+      adicionados = out.split('\n').map((s) => s.trim()).filter(Boolean);
+    } catch (e) {
+      // ⚠️ vazio de comando que FALHOU não é "nenhum arquivo novo" (§5 2026-07-31/08-01)
+      console.error(`✗ git diff falhou contra "${base}" — sem base não dá pra saber o que é novo. ${e.message.split('\n')[0]}`);
+      process.exit(2);
+    }
+    const vIdx = argv.indexOf('--vivos');
+    let vivos = null;
+    if (vIdx !== -1 && existsSync(argv[vIdx + 1])) {
+      const raw = JSON.parse(readFileSync(argv[vIdx + 1], 'utf8'));
+      vivos = Array.isArray(raw) ? raw : (raw.paths || []);
+    }
+    const shellIdx1 = argv.indexOf('--shell');
+    const sp1 = shellIdx1 !== -1 ? argv[shellIdx1 + 1] : defaultShellPath();
+    const man = buildManifest(ROOT, { shellHtml: sp1 && existsSync(sp1) ? readFileSync(sp1, 'utf8') : null });
+    const r = nasceSemMedicao(adicionados, man, vivos);
+    console.log(`\n  NASCE-SEM-MEDIÇÃO — entrou no espelho e ficou fora do frescor (base: ${base})\n`);
+    console.log(`  arquivos novos no diff: ${adicionados.length}`);
+    if (r.semVivo) {
+      console.log(`  ⚠ sem --vivos: o filtro mais forte (existe no vivo?) NÃO rodou — FP medido sobe de ~1% pra ~15%.`);
+    } else if (r.residuo.length) {
+      console.log(`  (${r.residuo.length} sumiram do vivo — resíduo a limpar, não é este alarme)`);
+    }
+    if (!r.acusados.length) { console.log(`\n  ✓ todo arquivo novo do espelho está sob medição.\n`); return; }
+    console.log('');
+    for (const f of r.acusados) console.log(`  ⛔ SEM MEDIÇÃO  ${f}  (o shell não carrega → nenhum --compare olha)`);
+    console.log(
+      `\n  ${r.acusados.length} arquivo(s) nasceram fora do frescor.\n` +
+      `  Pra medir: o shell precisa carregá-lo, OU rode a rodada com --manifest --all.\n` +
+      `  (não muda o exit code: o --check morde só em STALE)\n`,
+    );
+    return;
+  }
+
+  // --preview-ds: repõe o `_ds/` do espelho a partir do mirror-snapshot versionado.
+  // Sem isso o protótipo abre COM os tokens de status vazios (medido 2026-08-13).
+  if (argv.includes('--preview-ds')) {
+    const shellIdx0 = argv.indexOf('--shell');
+    const sp = shellIdx0 !== -1 ? argv[shellIdx0 + 1] : defaultShellPath();
+    const html = sp && existsSync(sp) ? readFileSync(sp, 'utf8') : null;
+    const plano = previewDsPlan(html);
+    if (plano.erro) { console.error(`✗ ${plano.erro}`); process.exit(2); }
+    console.log(`\n  PREVIEW-DS — repondo o _ds/ do espelho (id derivado do shell, não hardcode)\n`);
+    console.log(`  design system: ${plano.id}`);
+    let ok = 0, faltando = [];
+    for (const a of plano.arquivos) {
+      if (!a.temNoRepo) { faltando.push(a.nome); console.log(`  ⚠ SEM FONTE   ${a.nome}  (não existe em scripts/design-sync/mirror-snapshot/)`); continue; }
+      mkdirSync(dirname(a.para), { recursive: true });
+      writeFileSync(a.para, readFileSync(a.de));
+      ok++;
+      console.log(`  ✓ reposto     ${a.nome}`);
+    }
+    console.log(`\n  ${ok} reposto(s) · ${faltando.length} sem fonte no repo${faltando.length ? ` (${faltando.join(', ')})` : ''}`);
+    console.log(`  destino: ${plano.destino}/ — segue gitignored (build de preview, não versionamento).`);
+    if (faltando.length) console.log(`  ⚠ o que falta o repo NÃO TEM: são componentes compilados do DS, e o código do protótipo tem fallback pra eles.`);
+    console.log('');
     return;
   }
 
@@ -327,16 +593,71 @@ function main() {
       vivos.push({ path: raw.path, content: raw.content });
     }
     const plano = exportPlan(vivos);
+    // O SNAPSHOT sai daqui de graça (2026-08-13). Antes o ciclo pedia DOIS downloads
+    // por arquivo: um pro --export-from, outro pro snapshot do --compare — e o agente
+    // é o único que fala MCP, então esse 2º download custava contexto dele. Mas o
+    // conteúdo do vivo já está na mão AQUI: emitir o snapshot no mesmo passo corta o
+    // ciclo pela metade. ([W] 2026-08-13: "arrumar as máquinas sempre melhor que fazer mão".)
+    const snapIdx2 = argv.indexOf('--emit-snapshot');
+    const snapOut = snapIdx2 !== -1 ? argv[snapIdx2 + 1] : null;
+    const snapshotEmitido = {};
+    const tally = { NOVO: 0, ATUALIZADO: 0, inalterado: 0 };
+    const nascidos = []; // os NOVO desta rodada, pra alimentar o nasce-sem-medição no fim
     for (const { relPath, content, bytes } of plano) {
       const abs = join(ROOT, relPath);
       const antes = existsSync(abs) ? contentHash(readFileSync(abs, 'utf8')) : null;
       writeFileSync(abs, content, 'utf8');
       const depois = contentHash(content);
       const nota = antes === null ? 'NOVO' : antes === depois ? 'inalterado' : 'ATUALIZADO';
+      tally[nota]++;
+      // chave = path RELATIVO ao espelho (o mesmo que o manifesto usa)
+      const rel = relPath.replace(/^prototipo-ui\/cowork\//, '');
+      if (nota === 'NOVO') nascidos.push(rel);
+      snapshotEmitido[rel] = depois;
       console.log(`  ${nota.padEnd(11)} ${relPath}  (${bytes} bytes · ${depois.slice(0, 12)})`);
     }
     console.log(`\n✓ ${plano.length} arquivo(s) escritos do JSON — fiel por construção, sem transcrição.`);
-    console.log('  Confira com: --manifest --all → get_file → --compare snap.json --check');
+    console.log(`  ${tally.ATUALIZADO} atualizado(s) · ${tally.NOVO} novo(s) · ${tally.inalterado} inalterado(s)`);
+    if (snapOut) {
+      // ⚠️ TAUTOLOGIA (achado do adversário 2026-08-13, provado em sandbox): este snapshot sai
+      // do conteúdo que ACABOU de ser escrito, então o `--compare` seguinte SEMPRE dá SYNC —
+      // inclusive quando o arquivo estava STALE e o export foi justamente o conserto. O ledger
+      // gravava `stale: 0` numa rodada que consertou N arquivos: é o drift-sentinel tautológico
+      // do §5 2026-07-17 ("se todos os pontos são idênticos, o MEDIDOR é o problema"), e a ADR
+      // 0324 trata o ledger como EVIDÊNCIA de aceite.
+      // O número que faltava já existia aqui (`tally.ATUALIZADO`). Agora ele viaja no snapshot,
+      // o --compare o repassa e o ledger o grava como `stale_pre_export` — a rodada passa a
+      // distinguir "estava em dia" de "acabei de arrumar".
+      writeFileSync(snapOut, JSON.stringify({ _origin: 'export', _stalePreExport: tally.ATUALIZADO, ...snapshotEmitido }, null, 2) + '\n');
+      console.log(`  snapshot emitido em ${snapOut} (${Object.keys(snapshotEmitido).length} entrada(s)) — sem re-baixar.`);
+      if (tally.ATUALIZADO) {
+        console.log(`  ⚠ ${tally.ATUALIZADO} arquivo(s) ESTAVAM stale e foram consertados por este export.`);
+        console.log(`    O --compare a seguir vai dar SYNC — não porque estava em dia, mas porque acabou de ser arrumado.`);
+        console.log(`    O snapshot carrega isso (_stalePreExport) e o ledger registra.`);
+      }
+      console.log(`  Feche o ciclo: --compare ${snapOut} --check --ledger`);
+    } else {
+      console.log('  Dica: --emit-snapshot <arq> emite o snapshot AQUI e evita re-baixar tudo pro --compare.');
+    }
+
+    // ── NASCE-SEM-MEDIÇÃO, LIGADO NO CHOKEPOINT ([W]: "ligue as máquinas") ────────
+    // O `--check-novos` nasceu ÓRFÃO: media certo e ninguém o invocava — que é bug, não
+    // neutralidade (proibicoes §"Sempre fazer" 2). Ligá-lo no CI não serve: ele precisa da
+    // lista do VIVO, e a auth do DesignSync é interativa (ADR 0324). Mas AQUI o fluxo real
+    // já tem as duas pontas na mão — os arquivos que acabaram de nascer e os paths do vivo,
+    // que vieram no mesmo JSON. Chokepoint provado, não inventado (§5 2026-07-09: guard em
+    // comando fantasma). O aviso é advisory: quem decide se o arquivo deve entrar no shell
+    // é [W], e o export não é lugar de reprovar.
+    if (nascidos.length) {
+      const r = nasceSemMedicao(nascidos, buildManifest(ROOT, { shellHtml: lerShellHtml() }), vivos.map((v) => v.path));
+      if (r.acusados.length) {
+        console.log(`\n⚠ ${r.acusados.length} arquivo(s) NASCERAM sem entrar no manifesto — o frescor não vai medi-los:`);
+        for (const a of r.acusados) console.log(`    ${a}`);
+        console.log(`  Pra medir: referencie no shell do espelho ou aponte um charter pra ele.`);
+      } else {
+        console.log(`\n✓ nasce-sem-medição: os ${nascidos.length} arquivo(s) novos entram no manifesto.`);
+      }
+    }
     return;
   }
 
@@ -347,15 +668,18 @@ function main() {
     let entries = [];
     try { entries = existsSync(lp) ? JSON.parse(readFileSync(lp, 'utf8')) : []; } catch { entries = []; }
     const r = slaVerdict(entries, new Date().toISOString());
-    const detail = r.last ? `última rodada ${r.last.date} (há ${r.ageDays}d): ${r.last.sync} sync · ${r.last.stale} stale · ${r.last.unchecked} unchecked` : 'nenhuma rodada registrada';
+    // COBERTURA sai sempre: "0 stale" só significa alguma coisa junto de quantos foram medidos.
+    const cob = r.cobertura ? ` · mediu ${r.cobertura.medidos}/${r.cobertura.total}` : '';
+    const detail = r.last ? `última rodada ${r.last.date} (há ${r.ageDays}d): ${r.last.sync} sync · ${r.last.stale} stale · ${r.last.unchecked} unchecked${cob}` : 'nenhuma rodada registrada';
     if (r.veredito === 'FRESH') {
-      console.log(`✓ rotina de frescor dentro do SLA (${SLA_DAYS}d) — ${detail}.`);
+      console.log(`✓ rotina de frescor dentro do SLA (${SLA_DAYS}d) e COMPLETA — ${detail}.`);
       return;
     }
     const msg = {
-      'NEVER-RAN': () => `rotina de frescor NUNCA rodou (ledger vazio) — rode o dispatch logado (--manifest → DesignSync.get_file → --compare snap.json --check --ledger).`,
+      'NEVER-RAN': () => `rotina de frescor NUNCA rodou (ledger vazio) — rode o dispatch logado (--manifest → DesignSync.get_file → --export-from <dir> --emit-snapshot snap.json → --compare snap.json --check --ledger).`,
       'OVERDUE': () => `rotina de frescor FORA do SLA (${SLA_DAYS}d) — ${detail}. Rode o dispatch logado.`,
       'LAST-STALE': () => `última rodada achou STALE não-resolvido — ${detail} (${(r.last.staleList || []).join(', ')}). Re-exporte do Cowork e rode de novo.`,
+      'LAST-PARTIAL': () => `última rodada foi PARCIAL — ${detail}. Rodada parcial é legítima, mas "${r.last.stale} stale" só cobre o que foi medido: ${r.last.unchecked} arquivo(s) seguem sem veredito. Pra fechar, exporte o resto (--export-from <dir> --emit-snapshot) e rode --compare --ledger.`,
     }[r.veredito]();
     console.error(`✗ ${msg}`);
     process.exit(1);
@@ -379,6 +703,7 @@ function main() {
       `  Próximo passo (agente logado): DesignSync.get_file por path → snapshot {relPath: contentHash} → --compare snap.json.\n` +
       `  ATENÇÃO: o snapshot DEVE usar a MESMA normalização (importe contentHash/normalize deste módulo).\n\n`,
     );
+    reportAbsentLocal(shellHtml, process.stderr); // stdout aqui é o JSON do manifesto
     return;
   }
 
@@ -406,14 +731,27 @@ function main() {
   for (const r of stale) console.log(`  ⛔ STALE       ${r.cowork}  (espelho ficou atrás do vivo — re-exportar)`);
   for (const r of absent) console.log(`  🟡 LIVE-ABSENT ${r.cowork}  (não achado no vivo — rename/delete upstream ou mapa errado)`);
   for (const r of unchecked) console.log(`  ⬜ UNCHECKED   ${r.cowork}  (agente não buscou — snapshot incompleto)`);
-  console.log(`\n  ⛔ stale: ${stale.length} · 🟡 live-absent: ${absent.length} · ⬜ unchecked: ${unchecked.length} · ✓ sync: ${sync.length}\n`);
+  console.log(`\n  ⛔ stale: ${stale.length} · 🟡 live-absent: ${absent.length} · ⬜ unchecked: ${unchecked.length} · ✓ sync: ${sync.length}`);
+  // Snapshot vindo de export: o SYNC acima é consequência do export, não prova de que estava
+  // em dia. Dizer isso na cara do resultado — senão o número engana quem lê (§5 2026-07-17).
+  if (snapshot._origin === 'export') {
+    const pre = snapshot._stalePreExport || 0;
+    console.log(
+      `  ⚠ snapshot de EXPORT: o SYNC acima não prova frescor — o export escreveu o conteúdo do vivo antes de medir.\n` +
+      `    Divergência REAL desta rodada (antes do export): ${pre} arquivo(s).`,
+    );
+  }
+  console.log('');
+  reportAbsentLocal(shellHtml);
 
   // --ledger: registra a rodada (datada, append-only) — é o que o --sla audita depois.
   if (argv.includes('--ledger')) {
     const lp = join(ROOT, LEDGER_REL);
     let entries = [];
     try { entries = existsSync(lp) ? JSON.parse(readFileSync(lp, 'utf8')) : []; } catch { entries = []; }
-    entries.push(ledgerEntry(rows, new Date().toISOString()));
+    entries.push(ledgerEntry(rows, new Date().toISOString(), {
+      origin: snapshot._origin, stalePreExport: snapshot._stalePreExport,
+    }));
     writeFileSync(lp, JSON.stringify(entries, null, 2) + '\n');
     console.log(`  ledger: rodada registrada em ${LEDGER_REL} (${entries.length} entrada(s)). Commite o ledger.`);
   }

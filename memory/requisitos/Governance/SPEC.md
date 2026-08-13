@@ -1386,8 +1386,32 @@ Refs: [#5396](https://github.com/wagnerra23/oimpresso.com/pull/5396) · [handoff
 ⚠️ **Duas armadilhas, ambas medidas:**
 
 1. **Nem todo o diff é deste PR.** `memory/modulos/Ponto.md` já não tinha seção `## Assets` embora o módulo tivesse `package.json` — drift anterior, independente. Não trate o diff inteiro como regressão a reverter.
-2. **O comando tem um guard que pode abortar, e ele está certo.** `GenerateModuleSpecsCommand::guardaPerdaDeBranch()` bloqueia quando uma branch histórica sumiu e existe arquivo que a registra — hoje 6 fósseis (`Accounting`, `AiAssistance`, `Grow`, `IProduction`, `Officeimpresso1`, `Writebot`), cujo único registro é `memory/modulos/` porque `main-wip-2026-04-22` não existe mais no repo nem no remoto. Regenerar trocaria o `✅` deles por `n/d` e **o fato datado se perde sem volta**. O `--aceito-perda-de-branch` existe, mas usá-lo é decisão [W], não conveniência de quem roda.
+2. **O comando aborta por um guard, e o guard está certo** — mas pelo motivo que a §Execução medida abaixo corrige. `GenerateModuleSpecsCommand::guardaPerdaDeBranch()` bloqueia quando uma branch histórica sumiu e existe arquivo que a registra: hoje 6 fósseis (`Accounting`, `AiAssistance`, `Grow`, `IProduction`, `Officeimpresso1`, `Writebot`), cujo único registro é `memory/modulos/` porque `main-wip-2026-04-22` não existe mais no repo nem no remoto. O `--aceito-perda-de-branch` existe, mas usá-lo é decisão [W], não conveniência de quem roda.
+
+### Execução medida no CT 100 (2026-08-13) — o dano NÃO está onde o guard aponta
+
+Rodado a pedido de [W] num **worktree descartável** (`git worktree add /tmp/… 4b25575e0` + `vendor` copiado), sem tocar o checkout de trabalho do container — que tem 15 arquivos não-commitados de outra sessão e ficou intacto (só `git fetch`, que mexe em refs, nunca no working tree).
+
+**O guard morde de verdade:** `php artisan module:specs` → `ABORTADO`, nomeando os 6. E bloqueia **global** — nem `module:spec Cms` isolado passa (diff vazio, nada escrito).
+
+**Com `--aceito-perda-de-branch`, o impacto real é 32 arquivos, +642/−439** — e a distribuição do dano contraria a redação original desta US:
+
+| | medido |
+|---|---|
+| os **6 arquivos fósseis** | **INTACTOS** — `git diff --stat` vazio nos seis. O comando não os alcança: `discoverAllModules()` = `array_column($mgr->list(), 'name')`, e módulo sem `module.json` no checkout nem entra em `$targets` |
+| `memory/modulos/INDEX.md` | **é aqui que se perde o fato datado** — 46+/79− |
+
+O que o `INDEX.md` perde, item a item (medido `antes` vs `depois`):
+
+- o banner `⚠️ **FÓSSIL DATADO — não é o estado atual.** Congelado em 2026-05-29` **some**
+- o ponteiro para o [`PAINEL-SISTEMA.md`](../../reference/PAINEL-SISTEMA.md) (o retrato vivo) **some**
+- `**Total:** 44 módulos únicos encontrados em todas as branches conhecidas` vira **32** — só os vivos; o registro de que existiram 44 se perde
+- as **3** linhas `~~tachadas~~` à mão viram **0**
+
+Ou seja: a frase original *"regenerar trocaria o ✅ deles por n/d"* **não se confirma** nos arquivos por-módulo. A perda é da **curadoria manual do índice** — mesma classe de dano (fato datado irrecuperável), lugar diferente.
+
+**Recomendação de quem mediu, decisão de [W]:** não rodar a flag enquanto o `INDEX.md` for curado à mão. Trocaria frescor em 32 docs vivos pela memória das branches sumidas. Se [W] quiser o frescor, o caminho honesto é rodar a flag **e restaurar o cabeçalho curado do `INDEX.md` no mesmo commit** — mas isso é uma US diferente desta, porque muda o contrato do índice.
 
 **Impacto se não fizer:** baixo e silencioso — nenhum gate cobre `memory/modulos/`. O custo aparece na próxima pessoa que rodar `module:specs` "pra conferir" e receber um diff grande sem saber o que é drift real e o que é este PR.
 
-Refs: [#5680](https://github.com/wagnerra23/oimpresso.com/pull/5680) · [handoff 2026-08-12 17:24](../../handoffs/2026-08-12-1724-build-por-modulo-morto-e-o-teto-do-gt-g5.md) · guard em `app/Console/Commands/GenerateModuleSpecsCommand.php:98-112`
+Refs: [#5680](https://github.com/wagnerra23/oimpresso.com/pull/5680) · [handoff 2026-08-12 17:24](../../handoffs/2026-08-12-1724-build-por-modulo-morto-e-o-teto-do-gt-g5.md) · [handoff 2026-08-12 19:15](../../handoffs/2026-08-12-1915-ciclo-das-maquinas-e-o-teste-que-faltava.md) · guard em `app/Console/Commands/GenerateModuleSpecsCommand.php:98-112`

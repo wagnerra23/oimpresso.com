@@ -14,7 +14,7 @@ module: Forja
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Forja/**` + `resources/js/Pages/Forja/**` + `resources/js/Pages/team-mcp/**` (namespaces Inertia `Forja`, `team-mcp`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `Forja` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 243 arquivos em 15 papéis.
+**Total mapeado:** 304 arquivos em 15 papéis.
 
 ## Controllers — 26
 
@@ -123,13 +123,74 @@ module: Forja
 
 - [ForjaServiceProvider.php](../../../Modules/Forja/Providers/ForjaServiceProvider.php)
 
-## Migrations (schema) — 5
+## Migrations (schema) — 66
 
+- [2026_04_29_100001_create_mcp_scopes_table.php](../../../Modules/Forja/Database/Migrations/2026_04_29_100001_create_mcp_scopes_table.php)
+- [2026_04_29_100002_create_mcp_user_scopes_table.php](../../../Modules/Forja/Database/Migrations/2026_04_29_100002_create_mcp_user_scopes_table.php)
+- [2026_04_29_100003_create_mcp_tokens_table.php](../../../Modules/Forja/Database/Migrations/2026_04_29_100003_create_mcp_tokens_table.php)
+- [2026_04_29_100004_create_mcp_quotas_table.php](../../../Modules/Forja/Database/Migrations/2026_04_29_100004_create_mcp_quotas_table.php)
+- [2026_04_29_100005_create_mcp_audit_log_table.php](../../../Modules/Forja/Database/Migrations/2026_04_29_100005_create_mcp_audit_log_table.php)
+- [2026_04_29_100006_create_mcp_usage_diaria_table.php](../../../Modules/Forja/Database/Migrations/2026_04_29_100006_create_mcp_usage_diaria_table.php)
+- [2026_04_29_100007_create_mcp_alertas_table.php](../../../Modules/Forja/Database/Migrations/2026_04_29_100007_create_mcp_alertas_table.php)
+- [2026_04_29_100008_create_mcp_memory_documents_table.php](../../../Modules/Forja/Database/Migrations/2026_04_29_100008_create_mcp_memory_documents_table.php)
+- [2026_04_29_100009_create_mcp_memory_documents_history_table.php](../../../Modules/Forja/Database/Migrations/2026_04_29_100009_create_mcp_memory_documents_history_table.php)
+- [2026_04_29_300001_create_mcp_cc_sessions_table.php](../../../Modules/Forja/Database/Migrations/2026_04_29_300001_create_mcp_cc_sessions_table.php)
+- [2026_04_29_300002_create_mcp_cc_messages_table.php](../../../Modules/Forja/Database/Migrations/2026_04_29_300002_create_mcp_cc_messages_table.php)
+- [2026_04_29_300003_create_mcp_cc_blobs_table.php](../../../Modules/Forja/Database/Migrations/2026_04_29_300003_create_mcp_cc_blobs_table.php)
+- [2026_04_29_600001_create_mcp_alertas_eventos_table.php](../../../Modules/Forja/Database/Migrations/2026_04_29_600001_create_mcp_alertas_eventos_table.php)
+- [2026_04_30_120001_expand_mcp_memory_documents_type_enum.php](../../../Modules/Forja/Database/Migrations/2026_04_30_120001_expand_mcp_memory_documents_type_enum.php)
+- [2026_04_30_180001_create_mcp_tasks_table.php](../../../Modules/Forja/Database/Migrations/2026_04_30_180001_create_mcp_tasks_table.php)
+- [2026_04_30_200001_add_business_id_to_mcp_memory_documents.php](../../../Modules/Forja/Database/Migrations/2026_04_30_200001_add_business_id_to_mcp_memory_documents.php)
+- [2026_05_01_100001_add_typed_cols_to_mcp_memory_documents.php](../../../Modules/Forja/Database/Migrations/2026_05_01_100001_add_typed_cols_to_mcp_memory_documents.php)
+- [2026_05_01_120001_create_mcp_task_comments_table.php](../../../Modules/Forja/Database/Migrations/2026_05_01_120001_create_mcp_task_comments_table.php)
+- [2026_05_01_120002_create_mcp_task_events_table.php](../../../Modules/Forja/Database/Migrations/2026_05_01_120002_create_mcp_task_events_table.php)
+- [2026_05_04_180001_create_mcp_jira_projects_table.php](../../../Modules/Forja/Database/Migrations/2026_05_04_180001_create_mcp_jira_projects_table.php)
+- [2026_05_04_180002_create_mcp_epics_table.php](../../../Modules/Forja/Database/Migrations/2026_05_04_180002_create_mcp_epics_table.php)
+- [2026_05_04_180003_create_mcp_cycles_table.php](../../../Modules/Forja/Database/Migrations/2026_05_04_180003_create_mcp_cycles_table.php)
+- [2026_05_04_180004_create_mcp_cycle_goals_table.php](../../../Modules/Forja/Database/Migrations/2026_05_04_180004_create_mcp_cycle_goals_table.php)
+- [2026_05_04_180005_create_mcp_components_table.php](../../../Modules/Forja/Database/Migrations/2026_05_04_180005_create_mcp_components_table.php)
+- [2026_05_04_180006_create_mcp_workflows_table.php](../../../Modules/Forja/Database/Migrations/2026_05_04_180006_create_mcp_workflows_table.php)
+- [2026_05_04_180007_create_mcp_issue_templates_table.php](../../../Modules/Forja/Database/Migrations/2026_05_04_180007_create_mcp_issue_templates_table.php)
+- [2026_05_04_180008_create_mcp_views_table.php](../../../Modules/Forja/Database/Migrations/2026_05_04_180008_create_mcp_views_table.php)
+- [2026_05_04_180009_create_mcp_inbox_notifications_table.php](../../../Modules/Forja/Database/Migrations/2026_05_04_180009_create_mcp_inbox_notifications_table.php)
+- [2026_05_04_180010_create_mcp_task_dependencies_table.php](../../../Modules/Forja/Database/Migrations/2026_05_04_180010_create_mcp_task_dependencies_table.php)
+- [2026_05_04_180011_create_mcp_task_watchers_table.php](../../../Modules/Forja/Database/Migrations/2026_05_04_180011_create_mcp_task_watchers_table.php)
+- [2026_05_04_180012_create_mcp_task_attachments_table.php](../../../Modules/Forja/Database/Migrations/2026_05_04_180012_create_mcp_task_attachments_table.php)
+- [2026_05_04_180013_create_mcp_task_memory_links_table.php](../../../Modules/Forja/Database/Migrations/2026_05_04_180013_create_mcp_task_memory_links_table.php)
+- [2026_05_04_180014_create_mcp_git_links_table.php](../../../Modules/Forja/Database/Migrations/2026_05_04_180014_create_mcp_git_links_table.php)
+- [2026_05_04_180015_extend_mcp_tasks_for_jira_style.php](../../../Modules/Forja/Database/Migrations/2026_05_04_180015_extend_mcp_tasks_for_jira_style.php)
+- [2026_05_05_220001_create_mcp_skills_table.php](../../../Modules/Forja/Database/Migrations/2026_05_05_220001_create_mcp_skills_table.php)
+- [2026_05_05_220002_create_mcp_skill_versions_table.php](../../../Modules/Forja/Database/Migrations/2026_05_05_220002_create_mcp_skill_versions_table.php)
+- [2026_05_05_220003_create_mcp_skill_labels_table.php](../../../Modules/Forja/Database/Migrations/2026_05_05_220003_create_mcp_skill_labels_table.php)
+- [2026_05_05_220004_create_mcp_skill_test_runs_table.php](../../../Modules/Forja/Database/Migrations/2026_05_05_220004_create_mcp_skill_test_runs_table.php)
+- [2026_05_05_220005_create_mcp_skill_approvals_table.php](../../../Modules/Forja/Database/Migrations/2026_05_05_220005_create_mcp_skill_approvals_table.php)
+- [2026_05_05_230001_add_immutability_triggers_to_mcp_audit_log.php](../../../Modules/Forja/Database/Migrations/2026_05_05_230001_add_immutability_triggers_to_mcp_audit_log.php)
 - [2026_05_05_240001_create_mcp_actors_and_link_tokens.php](../../../Modules/Forja/Database/Migrations/2026_05_05_240001_create_mcp_actors_and_link_tokens.php)
 - [2026_05_05_240002_seed_initial_actors.php](../../../Modules/Forja/Database/Migrations/2026_05_05_240002_seed_initial_actors.php)
 - [2026_05_07_140000_update_actor_display_name_maiara.php](../../../Modules/Forja/Database/Migrations/2026_05_07_140000_update_actor_display_name_maiara.php)
+- [2026_05_10_120000_seed_modulos_verticais_mcp_jira_projects.php](../../../Modules/Forja/Database/Migrations/2026_05_10_120000_seed_modulos_verticais_mcp_jira_projects.php)
+- [2026_05_10_150000_seed_auditoria_mcp_jira_project.php](../../../Modules/Forja/Database/Migrations/2026_05_10_150000_seed_auditoria_mcp_jira_project.php)
+- [2026_05_13_120000_create_mcp_handoff_summaries_table.php](../../../Modules/Forja/Database/Migrations/2026_05_13_120000_create_mcp_handoff_summaries_table.php)
+- [2026_05_13_130000_create_mcp_handoff_diffs_table.php](../../../Modules/Forja/Database/Migrations/2026_05_13_130000_create_mcp_handoff_diffs_table.php)
+- [2026_05_13_140000_create_mcp_weekly_digests_table.php](../../../Modules/Forja/Database/Migrations/2026_05_13_140000_create_mcp_weekly_digests_table.php)
+- [2026_05_13_150000_create_mcp_doc_summaries_table.php](../../../Modules/Forja/Database/Migrations/2026_05_13_150000_create_mcp_doc_summaries_table.php)
+- [2026_05_15_120000_add_contextual_context_to_mcp_memory_documents.php](../../../Modules/Forja/Database/Migrations/2026_05_15_120000_add_contextual_context_to_mcp_memory_documents.php)
+- [2026_05_16_220001_create_mcp_scorecard_ai_suggestions_table.php](../../../Modules/Forja/Database/Migrations/2026_05_16_220001_create_mcp_scorecard_ai_suggestions_table.php)
+- [2026_05_29_100001_create_mcp_automations_table.php](../../../Modules/Forja/Database/Migrations/2026_05_29_100001_create_mcp_automations_table.php)
+- [2026_05_29_100002_create_mcp_automation_runs_table.php](../../../Modules/Forja/Database/Migrations/2026_05_29_100002_create_mcp_automation_runs_table.php)
+- [2026_06_14_120000_add_soft_deletes_to_mcp_tokens_table.php](../../../Modules/Forja/Database/Migrations/2026_06_14_120000_add_soft_deletes_to_mcp_tokens_table.php)
 - [2026_06_15_100000_create_mcp_ingest_heartbeat_table.php](../../../Modules/Forja/Database/Migrations/2026_06_15_100000_create_mcp_ingest_heartbeat_table.php)
+- [2026_06_15_140000_create_mcp_work_leases_table.php](../../../Modules/Forja/Database/Migrations/2026_06_15_140000_create_mcp_work_leases_table.php)
+- [2026_06_15_150000_add_acceptance_ref_to_mcp_tasks.php](../../../Modules/Forja/Database/Migrations/2026_06_15_150000_add_acceptance_ref_to_mcp_tasks.php)
+- [2026_06_15_160000_add_immutability_triggers_to_mcp_task_events.php](../../../Modules/Forja/Database/Migrations/2026_06_15_160000_add_immutability_triggers_to_mcp_task_events.php)
 - [2026_06_17_120000_create_cowork_handoffs_table.php](../../../Modules/Forja/Database/Migrations/2026_06_17_120000_create_cowork_handoffs_table.php)
+- [2026_06_20_000001_add_hash_chain_to_mcp_audit_log.php](../../../Modules/Forja/Database/Migrations/2026_06_20_000001_add_hash_chain_to_mcp_audit_log.php)
+- [2026_07_18_120000_add_model_to_mcp_cc_messages.php](../../../Modules/Forja/Database/Migrations/2026_07_18_120000_add_model_to_mcp_cc_messages.php)
+- [2026_07_22_100000_add_briefing_surface_to_mcp_type_enum.php](../../../Modules/Forja/Database/Migrations/2026_07_22_100000_add_briefing_surface_to_mcp_type_enum.php)
+- [2026_07_28_120000_create_mcp_handoff_drafts_table.php](../../../Modules/Forja/Database/Migrations/2026_07_28_120000_create_mcp_handoff_drafts_table.php)
+- [2026_08_02_100000_add_charter_casos_to_mcp_type_enum.php](../../../Modules/Forja/Database/Migrations/2026_08_02_100000_add_charter_casos_to_mcp_type_enum.php)
+- [2026_08_04_100000_add_feature_to_mcp_memory_documents_type_enum.php](../../../Modules/Forja/Database/Migrations/2026_08_04_100000_add_feature_to_mcp_memory_documents_type_enum.php)
+- [2026_08_04_190000_add_pending_approval_status_to_mcp_tasks.php](../../../Modules/Forja/Database/Migrations/2026_08_04_190000_add_pending_approval_status_to_mcp_tasks.php)
 
 ## Seeders — 2
 

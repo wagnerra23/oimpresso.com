@@ -1,7 +1,7 @@
 ---
 id: resources-js-pages-team-mcp-scorecard-index-charter
 page: /team-mcp/scorecard
-component: resources/js/Pages/team-mcp/Scorecard/Index.tsx
+component: Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.tsx
 related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)
 owner: wagner
 status: draft

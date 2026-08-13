@@ -246,7 +246,7 @@ Se algum falhar → ADR follow-up + ajuste.
 - ADR 0055 — Self-host Team plan equivalente Anthropic
 - ADR 0056 — MCP fonte única memória Jana Claude Code
 - `Modules/Jana/Http/Controllers/Mcp/CcIngestController.php` — endpoint ingest existente
-- `Modules/Jana/Database/Migrations/2026_04_29_300001..3_*` — schema 3 tabelas
+- `Modules/Forja/Database/Migrations/2026_04_29_300001..3_*` — schema 3 tabelas
 - `MEMORY_TEAM_ONBOARDING.md` — Sprint B watcher mencionado
 
 ---

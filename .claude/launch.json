@@ -4,14 +4,38 @@
     {
       "name": "cowork-recurring",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "5550", "--directory", "D:\\oimpresso.com\\prototipo-ui\\cowork-snapshot"],
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5550",
+        "--directory",
+        "D:\\oimpresso.com\\prototipo-ui\\cowork-snapshot"
+      ],
       "port": 5550
     },
     {
       "name": "kb-preview",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "5560", "--directory", "D:\\oimpresso.com\\public\\prototipos\\kb"],
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5560",
+        "--directory",
+        "D:\\oimpresso.com\\public\\prototipos\\kb"
+      ],
       "port": 5560
+    },
+    {
+      "name": "cowork-espelho",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5575",
+        "--directory",
+        "D:/oimpresso.com/.claude/worktrees/nice-lamarr-fdc982/prototipo-ui/cowork"
+      ],
+      "port": 5575
     }
   ]
 }

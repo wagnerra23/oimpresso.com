@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\DB;
  * ## O NOME deste arquivo é load-bearing
  *
  * `DocumentacaoRouteTest` resolve o enum vigente varrendo
- * `Modules/Jana/Database/Migrations/*mcp_memory_documents*.php`. As duas migrations
+ * `Modules/Forja/Database/Migrations/*mcp_memory_documents*.php`. As duas migrations
  * anteriores de enum (`*_to_mcp_type_enum.php`) ficam FORA desse glob — o teste seguia
  * verde só porque nenhum tipo delas tinha entrado em `TIPOS_DOC`. `feature` entra,
  * então o nome aqui inclui `mcp_memory_documents` de propósito.
@@ -33,7 +33,7 @@ use Illuminate\Support\Facades\DB;
  *
  * @see Modules\Jana\Services\Mcp\IndexarMemoryGitParaDb::coletarArquivos() (glob aditivo)
  * @see App\Http\Controllers\DocumentacaoController::TIPOS_DOC (o outro lado do par)
- * @see Modules/Jana/Database/Migrations/2026_08_02_100000_add_charter_casos_to_mcp_type_enum.php
+ * @see Modules/Forja/Database/Migrations/2026_08_02_100000_add_charter_casos_to_mcp_type_enum.php
  */
 return new class extends Migration
 {

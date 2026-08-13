@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela reúne, numa rota só, tudo que as outras telas do Produto gateiam separadamente — custo, preço de venda, tabelas de preço e composição. Sem casos, ela vira o caminho por onde tudo isso sai sem permissão.
 owner: wagner
-last_run: "2026-08-11"
-last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane Estoque · MySQL"
+last_run: "2026-08-13"
+last_run_ci: "6/6 UC verdes na lane Estoque · MySQL (run 31706439580, PR #5733): 7 testes · 0 skipped · 23 assertions. Veredito lido do JUnit da run, não declarado à mão — scripts/casos-test-results.json."
 ---
 
 # Casos de Uso & Aceite — Catálogo Unificado (`/products/unificado`)
@@ -26,7 +26,13 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 > regressão dessa configuração."* Esta tela era a **única** da família Produto sem `.casos.md` — o
 > trio (`.tsx` + `.charter` + `.casos`) estava incompleto justamente onde tudo converge.
 
-## O que foi MEDIDO no controller (`app/Http/Controllers/ProdutoUnificadoController.php`)
+## O que foi MEDIDO no controller em 2026-08-11 — o estado ANTES do gate
+
+> 🕐 **Retrato datado, não o estado de hoje.** A tabela abaixo é o que o
+> `ProdutoUnificadoController` fazia **antes** do [PR #5733](https://github.com/wagnerra23/oimpresso.com/pull/5733)
+> (mergeado em 2026-08-13, commit `45d6795`). Ela fica preservada porque é a **razão de existir**
+> destes casos — apagá-la esconderia por que o contrato foi escrito. O estado atual é o que os
+> `Status: ✅` abaixo declaram, com o run id de recibo.
 
 | Fato | Onde |
 |---|---|
@@ -38,20 +44,24 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | Composição (BOM) ainda **não é servida** — `bomCount` é literal `0` com TODO | `:130` |
 | Insumo = produto com `not_for_selling = 1` (convenção com TODO "confirmar com Wagner") | `:193-196` |
 
-> ⚠️ **Failing-first:** os asserts saem do contrato, não do código. Se nascerem vermelhos, o vermelho
-> **é** o achado — não se ajusta o teste ao código. Por isso o teste entra na quarentena da lane
-> (`.github/estoque-pest-quarantine.list`, bloco A), como os 6 irmãos já fazem.
+> ⚠️ **Failing-first (como nasceu, 2026-08-11):** os asserts saem do contrato, não do código. Se
+> nascerem vermelhos, o vermelho **é** o achado — não se ajusta o teste ao código. Por isso o teste
+> nasceu na quarentena da lane (`.github/estoque-pest-quarantine.list`, bloco A).
+>
+> ✅ **Saiu da quarentena em 2026-08-13** ([PR #5733](https://github.com/wagnerra23/oimpresso.com/pull/5733)):
+> o gate foi implementado e os 6 UCs viraram verdes rodando na lane — nunca por não-execução. A
+> partir daqui o arquivo é **defesa contra regressão**, não inventário de dívida.
 
 ## Rastreabilidade
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-PUNI-01 | Custo não chega ao navegador sem `view_purchase_price` | must | `AR-PROD-015` + `UC-PIDX-03` | `ProdutoUnificadoContratoTest` | ⬜ failing-first — vermelho esperado |
-| UC-PUNI-02 | Preço de venda não chega sem `access_default_selling_price` — inclusive no Histórico | must | Blade `index.blade.php:294` + `UC-PIDX-03` | `ProdutoUnificadoContratoTest` | ⬜ failing-first — vermelho esperado |
-| UC-PUNI-03 | Tabelas de preço seguem o **mesmo** gate do preço de venda | must | decisão 2026-08-11 (abaixo) | `ProdutoUnificadoContratoTest` | ⬜ failing-first — vermelho esperado |
-| UC-PUNI-04 | Composição (BOM) só aparece com módulo Manufacturing **e** `manufacturing.access_recipe` | must | permissões `Modules/Manufacturing` + camada 1/3 ([feedback-habilitar-modulo-por-business](../../../../../memory/reference/feedback-habilitar-modulo-por-business.md)) | `ProdutoUnificadoContratoTest` | ⬜ preventivo — BOM ainda não servido |
-| UC-PUNI-05 | Nenhuma prop enxerga outro business | must `[T0]` | `CU-PROD-10.2` + [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ProdutoUnificadoContratoTest` | ⬜ guard — verde esperado |
-| UC-PUNI-06 | A tela exige `product.view` **ou** `product.create` | should | `ProductController@index:66` (a lista irmã) + `routes/web.php:449` (TODO) | `ProdutoUnificadoContratoTest` | ⬜ failing-first — nada gateia |
+| UC-PUNI-01 | Custo não chega ao navegador sem `view_purchase_price` | must | `AR-PROD-015` + `UC-PIDX-03` | `ProdutoUnificadoContratoTest` | ✅ verde — o custo e a margem não são emitidos sem `view_purchase_price` |
+| UC-PUNI-02 | Preço de venda não chega sem `access_default_selling_price` — inclusive no Histórico | must | Blade `index.blade.php:294` + `UC-PIDX-03` | `ProdutoUnificadoContratoTest` | ✅ verde — `price` e o `value` do Histórico não são emitidos |
+| UC-PUNI-03 | Tabelas de preço seguem o **mesmo** gate do preço de venda | must | decisão 2026-08-11 (abaixo) | `ProdutoUnificadoContratoTest` | ✅ verde — a prop `tabelas` nasce `[]` sem o direito |
+| UC-PUNI-04 | Composição (BOM) só aparece com módulo Manufacturing **e** `manufacturing.access_recipe` | must | permissões `Modules/Manufacturing` + camada 1/3 ([feedback-habilitar-modulo-por-business](../../../../../memory/reference/feedback-habilitar-modulo-por-business.md)) | `ProdutoUnificadoContratoTest` | ✅ verde — `insumos` vazio e `bomCount` ausente sem as camadas 1+3 |
+| UC-PUNI-05 | Nenhuma prop enxerga outro business | must `[T0]` | `CU-PROD-10.2` + [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ProdutoUnificadoContratoTest` | ✅ verde — guard cross-tenant confirmado |
+| UC-PUNI-06 | A tela exige `product.view` **ou** `product.create` | should | `ProductController@index:66` (a lista irmã) + `routes/web.php:449` (TODO) | `ProdutoUnificadoContratoTest` | ✅ verde — 403 sem `product.view` nem `product.create` |
 
 ---
 
@@ -67,7 +77,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Não é `[V0]`:** gateia **exibição**, não altera cálculo. A REGRA MESTRE não se aplica — marcar
   `[V0]` aqui inflaria o ritual sem proteger nada (mesma leitura de `UC-PIDX-03`).
 - **Teste:** [`ProdutoUnificadoContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoContratoTest.php) — `UC-PUNI-01`.
-- **Status: ⬜** — failing-first; **vermelho esperado** (o controller não consulta permissão nenhuma).
+- **Status: ✅** — verde na run `31706439580`. O `produtos()` só emite `cost` com `view_purchase_price`, e `margin` exige as DUAS permissões (deriva de custo e preço).
 
 ## UC-PUNI-02 · Preço de venda não chega sem `access_default_selling_price` · `must`
 
@@ -79,7 +89,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Por que o Histórico entra aqui:** é a porta lateral. Gatear a lista e deixar o histórico aberto
   entrega o mesmo dado por outro caminho, produto a produto.
 - **Teste:** [`ProdutoUnificadoContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoContratoTest.php) — `UC-PUNI-02` e `UC-PUNI-02b`.
-- **Status: ⬜** — failing-first; **vermelho esperado**.
+- **Status: ✅** — verde na run `31706439580`, nas duas pernas: a linha do catálogo e a porta lateral do Histórico.
 
 ## UC-PUNI-03 · Tabelas de preço seguem o mesmo gate do preço de venda · `must`
 
@@ -100,7 +110,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 > real. **Não reabrir sem sinal de cliente.**
 
 - **Teste:** [`ProdutoUnificadoContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoContratoTest.php) — `UC-PUNI-03`.
-- **Status: ⬜** — failing-first; **vermelho esperado**.
+- **Status: ✅** — verde na run `31706439580`.
 
 ## UC-PUNI-04 · Composição (BOM) só aparece com módulo e permissão · `must`
 
@@ -125,7 +135,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   sobre migrar (ou não) a "natureza do item" do Delphi está em
   [proposta 2026-08-11](../../../../../memory/decisions/proposals/2026-08-11-natureza-do-item-tipo-de-produto.md).
 - **Teste:** [`ProdutoUnificadoContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoContratoTest.php) — `UC-PUNI-04`.
-- **Status: ⬜** — preventivo; o BOM ainda **não é servido**. O caso existe pra a composição **nascer**
+- **Status: ✅** — verde na run `31706439580`. Segue **preventivo**: o BOM ainda **não é servido**, e o caso existe pra a composição **nascer**
   gated, não pra alguém ligá-la e descobrir depois.
 
 ## UC-PUNI-05 · Nenhuma prop enxerga outro business · `must` `[T0]`
@@ -137,7 +147,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Residual declarado no próprio código:** `categorias()` não escopa o lado `products` do `leftJoin`
   por `business_id` (`:151-154`, herdado do helper de produção). A contagem pode inflar; o caso mede.
 - **Teste:** [`ProdutoUnificadoContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoContratoTest.php) — `UC-PUNI-05`.
-- **Status: ⬜** — guard; **verde esperado**. Se ficar vermelho, é Tier 0 e vira incidente, não dívida.
+- **Status: ✅** — guard verde na run `31706439580`. Se algum dia ficar vermelho, é Tier 0 e vira incidente, não dívida.
 
 ## UC-PUNI-06 · A tela exige `product.view` ou `product.create` · `should`
 
@@ -147,4 +157,4 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   canônico do módulo **não é middleware**: a lista irmã aborta dentro do controller
   (`ProductController@index:66`). Vermelho esperado.
 - **Teste:** [`ProdutoUnificadoContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoContratoTest.php) — `UC-PUNI-06`.
-- **Status: ⬜** — failing-first; **vermelho esperado**.
+- **Status: ✅** — verde na run `31706439580`.

@@ -1,6 +1,6 @@
 ---
 page: /project-mgmt/board
-component: resources/js/Pages/Forja/Board/Index.tsx
+component: Modules/Forja/Resources/js/Pages/Forja/Board/Index.tsx
 related_us: [US-TR-201]
 owner: wagner
 status: live

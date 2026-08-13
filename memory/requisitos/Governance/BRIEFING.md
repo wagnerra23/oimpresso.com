@@ -1,10 +1,10 @@
 ---
 id: requisitos-governance-briefing
-distilled_at: "2026-08-05"
-distilled_by: "delta [C] 2026-08-05 — refresh so pelos 4 RUNBOOKs novos (audit/policies/drift-alerts/ds-rollout) + a strip de sub-navegacao; a releitura de fundo continua sendo a anterior. Nota anterior: delta [C] — NÃO é redistilação completa: a releitura de fundo é a de 2026-07-17 (abaixo, intacta). Este refresh só re-mede os números que mudaram e acrescenta as 3 US do canal HITL. Dizer 'redistilado' aqui seria teatro"
+distilled_at: "2026-08-13"
+distilled_by: "delta [C] 2026-08-13 — SÓ a US-GOV-061 + o achado medido no CT 100 (guard aborta; os 6 fósseis ficam intactos; o fato datado se perde no INDEX.md). NÃO é redistilação: zero releitura de rotas/controllers/config, e os números do delta anterior não foram re-rodados. Nota anterior: delta [C] 2026-08-05 — refresh so pelos 4 RUNBOOKs novos (audit/policies/drift-alerts/ds-rollout) + a strip de sub-navegacao; a releitura de fundo continua sendo a anterior. Nota anterior: delta [C] — NÃO é redistilação completa: a releitura de fundo é a de 2026-07-17 (abaixo, intacta). Este refresh só re-mede os números que mudaram e acrescenta as 3 US do canal HITL. Dizer 'redistilado' aqui seria teatro"
 module: Governance
 status: producao
-updated_at: "2026-08-05"
+updated_at: "2026-08-13"
 ---
 
 # BRIEFING — Governance (verdade destilada)
@@ -80,3 +80,19 @@ Releitura direta em 2026-07-17 — não de sessions/handoffs (o destilado anteri
 **Contexto que originou:** varredura dos scripts órfãos de `scripts/governance/` (13 → 2, [PR #4834](https://github.com/wagnerra23/oimpresso.com/pull/4834)) + a medição de que **12 de 12 sentinelas agendados criam ZERO task** — detectam e nunca fecham. O elo detectar→decidir saiu em PR próprio (`HitlEscalationService`).
 
 **O que este delta NÃO fez:** releitura de rotas/controllers/comandos/config. A leitura de fundo continua sendo a de 2026-07-17 acima; se ela apodrecer, o conserto é redistilar de verdade, não empilhar deltas.
+
+## Delta 2026-08-13 (não-redistilação — só o que mudou)
+
+**O que entrou:** `US-GOV-061` (`memory/modulos/` drifado — 15 specs editadas à mão assinam data de geração antiga), `status: todo` · `p2`. Nasceu de dívida do [#5680](https://github.com/wagnerra23/oimpresso.com/pull/5680), não de pedido — o backlog canônico são as `US-*` do SPEC (ADR 0070), e ela substitui a pendência que estava, errada, em prosa de handoff.
+
+**Achado MEDIDO no CT 100, que corrige o que a própria US afirmava** (worktree descartável em `4b25575e0`, `vendor` copiado; o checkout de trabalho do container tem 15 arquivos não-commitados de outra sessão e ficou intacto — só `git fetch`):
+
+- `php artisan module:specs` **ABORTA** pelo `guardaPerdaDeBranch()`, nomeando os 6 fósseis, e bloqueia **global** — nem `module:spec Cms` isolado passa.
+- Com `--aceito-perda-de-branch`: **32 arquivos, +642/−439**. Os **6 arquivos fósseis ficam INTACTOS** — `discoverAllModules()` = `array_column($mgr->list(), 'name')`, e módulo sem `module.json` no checkout nem entra em `$targets`.
+- **O fato datado se perde no `memory/modulos/INDEX.md`**, não nos por-módulo: some o banner `FÓSSIL DATADO`, some o ponteiro pro `PAINEL-SISTEMA.md`, o `Total: 44 módulos em todas as branches conhecidas` vira **32**, e as **3** linhas `~~tachadas~~` à mão viram **0**.
+
+Ou seja: a frase *"regenerar trocaria o ✅ deles por n/d"* **não se confirma**. Mesma classe de dano (fato datado irrecuperável), lugar diferente. Rodar a flag segue sendo decisão [W].
+
+**Contexto que originou:** [W] pediu o ciclo completo de cada máquina tocada; a medição achou **zero** testes cobrindo `scanAssets`/seção Assets do `ModuleSpecGenerator`, e o `ModuleBuildLayerAbsentTest` fechou a lacuna ([#5706](https://github.com/wagnerra23/oimpresso.com/pull/5706), 5 casos · 2 de controle negativo · bite-test no CT 100).
+
+**O que este delta NÃO fez:** releitura de rotas/controllers/comandos/config, nem re-rodou os números de SPEC/anchor-lint do delta anterior. A leitura de fundo continua sendo a de 2026-07-17; se apodrecer, o conserto é redistilar de verdade, não empilhar deltas.

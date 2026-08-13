@@ -1,6 +1,6 @@
 ---
 page: /atendimento/channels
-component: resources/js/Pages/Atendimento/Channels/Index.tsx
+component: Modules/Whatsapp/Resources/js/Pages/Atendimento/Channels/Index.tsx
 owner: wagner
 status: draft
 last_validated: "2026-05-16"
