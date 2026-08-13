@@ -201,10 +201,19 @@ class ProdutoUnificadoController extends Controller
             'populares' => $q->whereIn('id', $vendas->filter(fn ($qt) => (float) $qt >= 30)->keys()->all() ?: [0]),
             // ativo e nenhuma saída em 30d — o oposto de popular, sobre o mesmo dado
             'semgiro'   => $q->active()->whereNotIn('id', $vendas->keys()->all() ?: [0]),
-            // alguma variação com margem < 30% (sell > 0 pra não dividir por zero)
-            'margem'    => $q->whereHas('variations', fn ($v) => $v
-                ->where('sell_price_inc_tax', '>', 0)
-                ->whereRaw('((sell_price_inc_tax - default_purchase_price) / sell_price_inc_tax) < 0.30')),
+            // Alguma variação com margem < 30% (sell > 0 pra não dividir por zero).
+            //
+            // `whereExists` na TABELA e não `whereHas('variations')` de propósito: o Larastan
+            // não enxerga a relação `variations` em App\Product (falso-positivo já fixado no
+            // phpstan-baseline com contagem 1). Usar a relação aqui viraria a 2ª ocorrência e
+            // exigiria inflar o baseline — dívida nova em código que nasce agora. A subquery
+            // faz o mesmo e não depende do mapeamento da relação.
+            'margem'    => $q->whereExists(fn ($sub) => $sub
+                ->selectRaw('1')
+                ->from('variations as v')
+                ->whereColumn('v.product_id', 'products.id')
+                ->where('v.sell_price_inc_tax', '>', 0)
+                ->whereRaw('((v.sell_price_inc_tax - v.default_purchase_price) / v.sell_price_inc_tax) < 0.30')),
             // não controla estoque próprio
             'demanda'   => $q->where('enable_stock', 0),
             default     => null,
