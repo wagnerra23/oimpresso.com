@@ -121,7 +121,7 @@ export function graphSignals(moduleId, edges, nodeIds) {
  * PURA: não lê fs nem git; recebe tudo. `deps.hasPagesDir(ns)` e `deps.briefingInfo(mod)` são
  * injetados (o main passa as versões reais; o teste passa stubs).
  * @param {{catalog:any, gradesDoc:any, vitalDoc:any}} src
- * @param {{pagesNs:Record<string,string>, hasPagesDir:(ns:string)=>boolean, scopeExists:(rel:string)=>boolean, briefingInfo:(mod:string)=>{present:boolean,last_commit:string|null}}} deps
+ * @param {{pagesNs:Record<string,string|string[]>, hasPagesDir:(ns:string)=>boolean, scopeExists:(rel:string)=>boolean, briefingInfo:(mod:string)=>{present:boolean,last_commit:string|null}}} deps
  */
 export function buildDoc(src, deps) {
   const { catalog, gradesDoc, vitalDoc } = src;
@@ -139,20 +139,31 @@ export function buildDoc(src, deps) {
 
   function buildService(node) {
     const mod = node.module;
-    const ns = pagesNs[mod] || mod;
+    // `PAGES_NS` passou a aceitar ARRAY em 2026-08-12 — módulo servindo DOIS
+    // namespaces Inertia (Forja, PaymentGateway, Whatsapp). O dono do mapa
+    // (`module-surface.mjs`) já tratava array; este consumidor não, e o `join()`
+    // de `hasPagesDir` estourava `ERR_INVALID_ARG_TYPE`, derrubando o cron
+    // nightly `mv-metabolismo` (verde 08-08→08-12, vermelho em 08-13) e, com ele,
+    // o required `watchdog G6` de TODO PR aberto.
+    const nsList = [pagesNs[mod] || mod].flat();
+    const ns = nsList[0];
 
     // ── qualidade (module-grade — REUSA, não recalcula) ──
     const gradeVal = typeof grades[mod] === 'number' ? grades[mod] : null;
 
     // ── tela (vital-signs: PAGES_NS direto → normalização EXATA de fallback) ──
-    let v = vitalByNs.get(ns);
-    let vNs = ns;
+    // Com 2 namespaces, o vital-signs pode ter linha em qualquer um dos dois —
+    // procura em todos antes de cair no fallback normalizado.
+    let vNs = nsList.find((n) => vitalByNs.has(n)) ?? ns;
+    let v = vitalByNs.get(vNs);
     let via = 'direto';
     if (!v) {
       const cand = vitalByNorm.get(normKey(mod));
-      if (cand && cand !== ns) { v = vitalByNs.get(cand); vNs = cand; via = 'normalizado'; }
+      if (cand && !nsList.includes(cand)) { v = vitalByNs.get(cand); vNs = cand; via = 'normalizado'; }
     }
-    const hasDir = hasPagesDir(ns);
+    // Existe superfície de tela se QUALQUER um dos namespaces tem pasta.
+    const nsComDir = nsList.filter((n) => hasPagesDir(n));
+    const hasDir = nsComDir.length > 0;
     let screens;
     let unmatchedScreenDir = false;
     if (v) {
@@ -163,7 +174,7 @@ export function buildDoc(src, deps) {
         charter_pct: v.charter_pct, casos_pct: v.casos_pct, stale: v.stale, idade_max_dias: v.idade_max_dias,
       };
     } else if (hasDir) {
-      screens = { matched: false, ns, note: `dir resources/js/Pages/${ns} existe mas sem linha em vital-signs — gap` };
+      screens = { matched: false, ns: nsComDir.join(', '), note: `dir resources/js/Pages/${nsComDir.join(' + ')} existe mas sem linha em vital-signs — gap` };
       unmatchedScreenDir = true;
     } else {
       screens = { matched: false, ns, backend_only: true, note: 'sem superfície de tela (backend-only) — n/a, não é falha' };
