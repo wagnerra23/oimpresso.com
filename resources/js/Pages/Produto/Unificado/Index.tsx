@@ -5,7 +5,7 @@ import type { ReactNode, KeyboardEvent, RefObject } from 'react';
 import {
   SlidersHorizontal, Search, X,
   ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight,
-  Package, Star, Moon, TrendingUp, Clock,
+  Package, Star, Moon, TrendingUp, Clock, ArrowUpDown,
 } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Grid, Inline } from '@/Components/layout';
@@ -48,6 +48,8 @@ type Props = {
     por_pagina: number;
     /** Recorte do KPI clicado. O mesmo predicado que contou o card filtra a lista. */
     kpi: string | null;
+    ordem: string;
+    dir: 'asc' | 'desc';
   };
   /**
    * Meta da paginação. Opcional no TIPO porque partial reload que não a peça não a traz —
@@ -235,7 +237,7 @@ function ProdutoUnificadoIndex({
             </span>
           </div>
 
-          <nav className="px-6 pb-2 flex items-center gap-1 text-[12.5px]" aria-label="Sub-telas do catálogo">
+          <nav className="px-6 pb-2 flex items-center gap-1 text-[12px]" aria-label="Sub-telas do catálogo">
             {([
               ['produtos',   'Produtos'],
               ['categorias', 'Categorias'],
@@ -314,7 +316,15 @@ function ProdutoUnificadoIndex({
               )}
             </div>
           )}
-          {tela === 'produtos' && produtos.length > 0 && <TabelaProdutos rows={produtos} tweaks={tweaks} perm={permissoes} onOpen={(r) => router.visit(`/products/${r.id}`)} />}
+          {tela === 'produtos' && produtos.length > 0 && <TabelaProdutos
+              rows={produtos}
+              tweaks={tweaks}
+              perm={permissoes}
+              onOpen={(r) => router.visit(`/products/${r.id}`)}
+              ordem={filters.ordem}
+              dir={filters.dir}
+              onOrdenar={(col) => irPara({ ordem: col, dir: filters.ordem === col && filters.dir === 'asc' ? 'desc' : 'asc' }, false)}
+            />}
           {tela === 'categorias' && <ListaCategorias rows={categorias} />}
           {tela === 'insumos'    && <ListaInsumos rows={insumos} perm={permissoes} />}
           {tela === 'tabelas'    && <ListaTabelas rows={tabelas} produtos={produtos} perm={permissoes} />}
@@ -376,6 +386,34 @@ const KPI_CARDS = [
   { chave: 'margem',    prop: 'margem_baixa'   as const, label: 'Margem baixa',    sub: 'abaixo de 30%',      Icon: TrendingUp, cor: 'text-primary'          },
   { chave: 'demanda',   prop: 'sob_demanda'    as const, label: 'Sob demanda',     sub: 'sem estoque próprio', Icon: Clock,     cor: 'text-success-fg'       },
 ];
+
+/**
+ * Cabeçalho ordenável. Só existe nas colunas que o servidor SABE ordenar
+ * (`ORDENAVEIS` no controller: sku e name). Nas outras o `<th>` é comum — pôr seta
+ * onde o clique não faz nada é o mesmo erro do toggle "Grade" que a gente tirou da v2.
+ */
+function ThOrdenavel({ col, ordem, dir, onOrdenar, className = '', children }: {
+  col: string;
+  ordem: string;
+  dir: 'asc' | 'desc';
+  onOrdenar: (col: string) => void;
+  className?: string;
+  children: ReactNode;
+}) {
+  const ativo = ordem === col;
+  return (
+    <th scope="col" className={`px-4 py-2.5 ${className}`} aria-sort={ativo ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}>
+      <button
+        type="button"
+        onClick={() => onOrdenar(col)}
+        className="inline-flex items-center gap-1 uppercase tracking-wider font-semibold hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+      >
+        {children}
+        <ArrowUpDown size={11} className={ativo ? 'text-foreground' : 'opacity-40'} aria-hidden />
+      </button>
+    </th>
+  );
+}
 
 function KpiFiltro({ label, sub, value, Icon, cor, ativo, onClick }: {
   label: string;
@@ -529,7 +567,10 @@ function Paginacao({ meta, onPagina, onPorPagina }: {
   );
 }
 
-function TabelaProdutos({ rows, tweaks, perm, onOpen }: { rows: ProdutoRow[]; tweaks: Tweaks; perm: Permissoes; onOpen: (r: ProdutoRow) => void }) {
+function TabelaProdutos({ rows, tweaks, perm, onOpen, ordem, dir, onOrdenar }: {
+  rows: ProdutoRow[]; tweaks: Tweaks; perm: Permissoes; onOpen: (r: ProdutoRow) => void;
+  ordem: string; dir: 'asc' | 'desc'; onOrdenar: (col: string) => void;
+}) {
   const rowH = tweaks.density === 'compact' ? 36 : tweaks.density === 'cozy' ? 56 : 44;
   // O switch "Mostrar custo" é preferência de exibição; `perm.custo` é direito. A coluna só
   // existe quando os DOIS valem — e a preferência nunca ressuscita o que a permissão negou.
@@ -542,16 +583,16 @@ function TabelaProdutos({ rows, tweaks, perm, onOpen }: { rows: ProdutoRow[]; tw
   };
   return (
     <div className="mx-6 mt-3 rounded-md bg-card border border-border shadow-sm overflow-hidden">
-      <table className="w-full text-left">
-        <thead className="text-[10.5px] uppercase tracking-widest text-muted-foreground font-medium">
+      <table className="w-full text-left text-sm">
+        <thead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
           <tr className="border-b border-border bg-muted/40">
-            <th scope="col" className="pl-6 pr-3 py-2 w-20">SKU</th>
-            <th scope="col" className="pr-3 py-2">Produto</th>
-            <th scope="col" className="pr-3 py-2 w-32">Categoria</th>
-            {perm.preco && <th scope="col" className="pr-3 py-2 w-24 text-right">Preço</th>}
-            {mostrarCusto && <th scope="col" className="pr-3 py-2 w-24 text-right">Custo · margem</th>}
-            <th scope="col" className="pr-3 py-2 w-24 text-right">Estoque</th>
-            <th scope="col" className="pr-6 py-2 w-20 text-right">30d</th>
+            <ThOrdenavel col="sku" ordem={ordem} dir={dir} onOrdenar={onOrdenar} className="w-20">SKU</ThOrdenavel>
+            <ThOrdenavel col="name" ordem={ordem} dir={dir} onOrdenar={onOrdenar}>Produto</ThOrdenavel>
+            <th scope="col" className="px-4 py-2.5 w-32">Categoria</th>
+            {perm.preco && <th scope="col" className="px-4 py-2.5 w-24 text-right">Preço</th>}
+            {mostrarCusto && <th scope="col" className="px-4 py-2.5 w-24 text-right">Custo · margem</th>}
+            <th scope="col" className="px-4 py-2.5 w-24 text-right">Estoque</th>
+            <th scope="col" className="px-4 py-2.5 w-20 text-right">30d</th>
           </tr>
         </thead>
         <tbody>
@@ -566,16 +607,16 @@ function TabelaProdutos({ rows, tweaks, perm, onOpen }: { rows: ProdutoRow[]; tw
               className="border-b border-border/60 hover:bg-muted/60 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
               style={{ height: rowH }}
             >
-              <td className="pl-6 pr-3 font-mono text-[11.5px] text-muted-foreground">{r.sku}</td>
-              <td className="pr-3 text-[13px] font-medium">{r.name}</td>
-              <td className="pr-3 text-[12px] text-muted-foreground">{r.cat_label}</td>
+              <td className="px-4 py-2.5 font-mono text-[11px] text-muted-foreground">{r.sku}</td>
+              <td className="px-4 py-2.5 font-medium leading-tight">{r.name}</td>
+              <td className="px-4 py-2.5 text-[11px] text-muted-foreground">{r.cat_label}</td>
               {perm.preco && (
-                <td className="pr-3 text-[13px] text-right font-semibold tabular-nums">
+                <td className="px-4 py-2.5 text-right font-semibold tabular-nums">
                   {r.price !== undefined ? fmtBRL(r.price) : null}
                 </td>
               )}
               {mostrarCusto && (
-                <td className="pr-3 text-[12px] text-right tabular-nums">
+                <td className="px-4 py-2.5 text-right text-[11px] tabular-nums">
                   {r.cost !== undefined && <div className="text-foreground">{fmtBRL(r.cost)}</div>}
                   {/* `margin` só vem quando o usuário pode ver custo E preço — ela deriva dos dois.
                       Sem preço, a linha de margem some e sobra o custo cru. */}
@@ -586,7 +627,7 @@ function TabelaProdutos({ rows, tweaks, perm, onOpen }: { rows: ProdutoRow[]; tw
                   )}
                 </td>
               )}
-              <td className="pr-3 text-[12.5px] text-right text-foreground tabular-nums">
+              <td className="px-4 py-2.5 text-right text-foreground tabular-nums">
                 {/* `stockQty` é `null` fixo no ProdutoUnificadoController (TODO: somar
                     variation_location_details.qty_available). Até existir a soma, a coluna
                     mostra "—" (desconhecido) — NUNCA 0, que seria afirmar estoque zerado.
@@ -597,7 +638,7 @@ function TabelaProdutos({ rows, tweaks, perm, onOpen }: { rows: ProdutoRow[]; tw
                     ? <span title="Quantidade em estoque ainda não calculada nesta tela">—</span>
                     : `${r.stockQty} ${r.unit}`}
               </td>
-              <td className="pr-6 text-[12.5px] text-right tabular-nums">{r.uses30}</td>
+              <td className="pr-6 text-[12px] text-right tabular-nums">{r.uses30}</td>
             </tr>
           ))}
         </tbody>
@@ -631,7 +672,7 @@ function ListaInsumos({ rows, perm }: { rows: InsumoRow[]; perm: Permissoes }) {
   return (
     <div className="mx-6 mt-3 rounded-md bg-card border border-border shadow-sm overflow-hidden">
       <table className="w-full text-left">
-        <thead className="text-[10.5px] uppercase tracking-widest text-muted-foreground font-medium">
+        <thead className="text-[10px] uppercase tracking-widest text-muted-foreground font-medium">
           <tr className="border-b border-border bg-muted/40">
             <th scope="col" className="pl-6 py-2">Insumo</th>
             <th scope="col" className="py-2 w-20">Unid.</th>
@@ -646,11 +687,11 @@ function ListaInsumos({ rows, perm }: { rows: InsumoRow[]; perm: Permissoes }) {
               <td className="pl-6 text-[13px] font-medium">{i.name}</td>
               <td className="text-[12px] text-muted-foreground">{i.unit}</td>
               {perm.custo && (
-                <td className="text-[12.5px] text-right tabular-nums">
+                <td className="text-[12px] text-right tabular-nums">
                   {i.cost !== undefined ? fmtBRL(i.cost) : null}
                 </td>
               )}
-              <td className="text-[12.5px] text-right tabular-nums">{i.stock}</td>
+              <td className="text-[12px] text-right tabular-nums">{i.stock}</td>
               <td className="pr-6 text-[12px] text-muted-foreground truncate">{i.fornecedor ?? '—'}</td>
             </tr>
           ))}
@@ -668,8 +709,8 @@ function SubTelaSemPermissao({ texto }: { texto: string }) {
   return (
     <div className="mx-6 mt-3 rounded-md bg-card border border-border p-6">
       <div className="text-[13px] font-medium text-foreground">Você não tem acesso a esta informação</div>
-      <p className="mt-1.5 text-[12.5px] text-muted-foreground max-w-2xl">{texto}</p>
-      <p className="mt-2 text-[11.5px] text-muted-foreground">Peça ao administrador do negócio pra revisar as permissões do seu papel.</p>
+      <p className="mt-1.5 text-[12px] text-muted-foreground max-w-2xl">{texto}</p>
+      <p className="mt-2 text-[11px] text-muted-foreground">Peça ao administrador do negócio pra revisar as permissões do seu papel.</p>
     </div>
   );
 }
@@ -702,7 +743,7 @@ function ListaTabelas({ rows, produtos, perm }: { rows: TabelaRow[]; produtos: P
               <div className={`text-[10px] uppercase tracking-widest ${active ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>Tabela</div>
               <div className="mt-1 text-[16px] font-semibold">{t.label}</div>
               <div className={`mt-1.5 text-[12px] ${active ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>{t.desc}</div>
-              <div className="mt-3 text-[20px] font-semibold tabular-nums">{Math.round(t.mult * 100)}%</div>
+
             </button>
           );
         })}
@@ -710,7 +751,7 @@ function ListaTabelas({ rows, produtos, perm }: { rows: TabelaRow[]; produtos: P
       {cur && (
         <div className="rounded-md bg-card border border-border overflow-hidden">
           <table className="w-full text-left">
-            <thead className="text-[10.5px] uppercase tracking-widest text-muted-foreground font-medium">
+            <thead className="text-[10px] uppercase tracking-widest text-muted-foreground font-medium">
               <tr className="border-b border-border bg-muted/40">
                 <th scope="col" className="pl-6 py-2 w-20">SKU</th>
                 <th scope="col" className="py-2">Produto</th>
@@ -724,16 +765,20 @@ function ListaTabelas({ rows, produtos, perm }: { rows: TabelaRow[]; produtos: P
             <tbody>
               {produtos.filter((p) => p.active).map((p) => {
                 const base = p.price ?? 0;
-                const tab = base * cur.mult;
+                // D11 (decisão 2026-08-13): a sub-tela REDUZ A LEITURA até sair a ADR de schema.
+                // O multiplicador não existe nativamente no UltimatePOS — o backend devolve
+                // `mult` = 1.00 chumbado com TODO, então multiplicar aqui só ficava certo POR
+                // ACIDENTE. Enquanto a decisão não sai, mostra o preço base e não inventa derivado.
+                const tab = base;
                 const m = p.cost !== undefined && tab > 0 ? (tab - p.cost) / tab : undefined;
                 return (
                   <tr key={p.id} className="border-b border-border/60" style={{ height: 40 }}>
-                    <td className="pl-6 font-mono text-[11.5px] text-muted-foreground">{p.sku}</td>
+                    <td className="pl-6 font-mono text-[11px] text-muted-foreground">{p.sku}</td>
                     <td className="text-[13px] font-medium">{p.name}</td>
-                    <td className="text-[12.5px] text-right text-muted-foreground tabular-nums">{p.price !== undefined ? fmtBRL(p.price) : null}</td>
+                    <td className="text-[12px] text-right text-muted-foreground tabular-nums">{p.price !== undefined ? fmtBRL(p.price) : null}</td>
                     <td className="text-[13px] text-right font-semibold tabular-nums">{p.price !== undefined ? fmtBRL(tab) : null}</td>
                     {perm.custo && (
-                      <td className={`pr-6 text-[12.5px] text-right tabular-nums ${m === undefined ? '' : m >= 0.4 ? 'text-success-fg' : m >= 0.15 ? 'text-foreground' : 'text-destructive-fg'}`}>
+                      <td className={`pr-6 text-[12px] text-right tabular-nums ${m === undefined ? '' : m >= 0.4 ? 'text-success-fg' : m >= 0.15 ? 'text-foreground' : 'text-destructive-fg'}`}>
                         {m !== undefined ? fmtPct(m) : null}
                       </td>
                     )}
@@ -752,7 +797,7 @@ function ListaHistorico({ rows, perm }: { rows: HistoricoRow[]; perm: Permissoes
   return (
     <div className="mx-6 mt-3 rounded-md bg-card border border-border overflow-hidden">
       <table className="w-full text-left">
-        <thead className="text-[10.5px] uppercase tracking-widest text-muted-foreground font-medium">
+        <thead className="text-[10px] uppercase tracking-widest text-muted-foreground font-medium">
           <tr className="border-b border-border bg-muted/40">
             <th scope="col" className="pl-6 py-2 w-24">Data</th>
             <th scope="col" className="py-2 w-24">OS</th>
@@ -770,11 +815,11 @@ function ListaHistorico({ rows, perm }: { rows: HistoricoRow[]; perm: Permissoes
               <td>
                 <Badge variant="secondary" className="font-mono text-[11px] font-normal">{r.os}</Badge>
               </td>
-              <td className="text-[12.5px] font-medium">{r.prodName}</td>
+              <td className="text-[12px] font-medium">{r.prodName}</td>
               <td className="text-[12px] text-muted-foreground">{r.client ?? '—'}</td>
-              <td className="text-[12.5px] text-right tabular-nums">{r.qty}</td>
+              <td className="text-[12px] text-right tabular-nums">{r.qty}</td>
               {perm.preco && (
-                <td className="pr-6 text-[12.5px] text-right font-medium tabular-nums">
+                <td className="pr-6 text-[12px] text-right font-medium tabular-nums">
                   {r.value !== undefined ? fmtBRL(r.value) : null}
                 </td>
               )}
@@ -794,7 +839,7 @@ function TweaksPanel({ tweaks, setTweak, perm }: { tweaks: Tweaks; setTweak: (e:
           <button
             type="button"
             aria-label="Ajustes de exibição"
-            className="inline-flex items-center gap-2 h-9 px-3 rounded-md bg-card border border-border shadow-lg text-[12.5px] font-medium text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="inline-flex items-center gap-2 h-9 px-3 rounded-md bg-card border border-border shadow-lg text-[12px] font-medium text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <SlidersHorizontal className="w-4 h-4" aria-hidden="true" />
             Ajustes

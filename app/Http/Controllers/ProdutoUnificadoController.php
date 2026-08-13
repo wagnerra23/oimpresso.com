@@ -59,6 +59,16 @@ class ProdutoUnificadoController extends Controller
     private const POR_PAGINA_OPCOES = [12, 20, 50, 100];
 
     /**
+     * Colunas ordenáveis, com a coluna REAL de cada uma.
+     *
+     * Allowlist e não string livre: `?ordem=` é entrada de usuário e vai direto pro ORDER BY.
+     * Só estão aqui as que o servidor sabe ordenar HOJE — `preco` exigiria join em
+     * `variations` (que duplica linha em produto com variação) e `estoque`/`30d` ainda são
+     * null/0 no map. A tela NÃO desenha seta nessas: controle que não faz nada mente.
+     */
+    private const ORDENAVEIS = ['sku' => 'sku', 'name' => 'name'];
+
+    /**
      * Memo do resultado paginado — as props `produtos` e `paginacao` leem a MESMA query.
      *
      * @var array{rows: array<int,array<string,mixed>>, meta: array<string,mixed>}|null
@@ -98,6 +108,8 @@ class ProdutoUnificadoController extends Controller
             // é entrada de usuário, e `?por_pagina=99999` viraria o `limit(500)` de volta.
             'pagina'     => max(1, $request->integer('pagina') ?: 1),
             'kpi'        => $request->string('kpi', '')->toString() ?: null,
+            'ordem'      => array_key_exists($o = $request->string('ordem', 'name')->toString(), self::ORDENAVEIS) ? $o : 'name',
+            'dir'        => $request->string('dir', 'asc')->toString() === 'desc' ? 'desc' : 'asc',
             'por_pagina' => in_array($pp = $request->integer('por_pagina') ?: 20, self::POR_PAGINA_OPCOES, true)
                 ? $pp
                 : 20,
@@ -287,7 +299,7 @@ class ProdutoUnificadoController extends Controller
             });
         }
 
-        $pagina = $q->orderBy('name')->paginate(
+        $pagina = $q->orderBy(self::ORDENAVEIS[$f['ordem']] ?? 'name', $f['dir'])->paginate(
             perPage: $f['por_pagina'],
             pageName: 'pagina',
             page: $f['pagina'],
