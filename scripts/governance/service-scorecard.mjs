@@ -61,6 +61,10 @@ import { join } from 'node:path';
 import { execSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { PAGES_NS } from './module-surface.mjs';
+// Detector de history truncada — DONO: sdd-scorecard.mjs (nasceu lá no incidente de
+// 2026-07-08). Importado, não copiado: segundo detector do mesmo fato drifta.
+// Import é seguro — aquele módulo só roda o CLI sob guard `isMain`.
+import { isShallowHistory } from './sdd-scorecard.mjs';
 
 const ROOT = process.cwd();
 const args = process.argv.slice(2);
@@ -80,8 +84,33 @@ function readJson(p) {
 /** Índice normalizado (só a-z0-9) — casa mesmo-nome com casing/hífen diferente. */
 const normKey = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
 
-/** Data do último commit que tocou um path (%cs, ISO curta) — frescor REAL, não declarado. */
-function gitLastDate(relPath) {
+/**
+ * Data do último commit que tocou um path (%cs, ISO curta) — frescor REAL, não declarado.
+ *
+ * ⚠️ GUARD ANTI-FABRICAÇÃO (cinto + suspensório com o `fetch-depth: 0` do workflow).
+ * Num checkout RASO o `git log -1 -- <path>` só enxerga o commit da vez, então TODO
+ * arquivo volta datado do dia da run — e o número sai sempre plausível, que é o que
+ * torna a mentira invisível. Foi o que aconteceu aqui: o artefato commitado trazia
+ * `last_commit: 2026-08-12` em bloco quando a verdade era 08-07 / 08-05 / 07-23…
+ *
+ * A mesma doença já tinha mordido o `sdd-scorecard` em 2026-07-08→12 (o publish rodava
+ * com fetch-depth default), foi diagnosticada lá e a defesa ficou SÓ lá. Aqui a gente
+ * REUSA aquele detector — que é mais fino que `--is-shallow-repository` cru: ele só
+ * considera raso quando um boundary do `.git/shallow` é ANCESTRAL do HEAD (senão uma
+ * órfã tipo nightly-floor daria falso-positivo).
+ *
+ * Resultado: em clone raso devolve `null` (= "não medido"), NUNCA uma data inventada.
+ * Ausência de medição não é ausência de frescor — e é honesta.
+ */
+const REPO_RASO = isShallowHistory();
+
+/**
+ * @param {string} relPath
+ * @param {{raso?:boolean}} [opts] `raso` injetável SÓ pro bite-test — guard que
+ *   não pode ser exercitado é promessa, não defesa (§5 LC-15).
+ */
+export function gitLastDate(relPath, { raso = REPO_RASO } = {}) {
+  if (raso) return null;
   try {
     const out = execSync(`git log -1 --format=%cs -- "${relPath}"`, {
       cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'],
