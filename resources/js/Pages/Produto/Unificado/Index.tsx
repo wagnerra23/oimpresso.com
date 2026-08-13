@@ -7,6 +7,7 @@ import {
   ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight,
 } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
+import { Inline } from '@/Components/layout';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Badge } from '@/Components/ui/badge';
 import { Switch } from '@/Components/ui/switch';
@@ -363,7 +364,7 @@ function Toolbar({ busca, setBusca, buscaRef, categorias, categoriaAtual, onCate
 
   return (
     <>
-      <div className="mx-6 mt-3 flex items-center gap-2 flex-wrap">
+      <Inline gap={2} align="center" wrap className="mx-6 mt-3">
         <Select
           value={categoriaAtual ? String(categoriaAtual) : TODAS}
           onValueChange={(v) => onCategoria(v === TODAS ? '' : v)}
@@ -394,10 +395,10 @@ function Toolbar({ busca, setBusca, buscaRef, categorias, categoriaAtual, onCate
             className="h-8 pl-8 text-[12px]"
           />
         </div>
-      </div>
+      </Inline>
 
       {temFiltro && (
-        <div className="mx-6 mt-2 flex items-center gap-2 flex-wrap">
+        <Inline gap={2} align="center" wrap className="mx-6 mt-2">
           {busca && <Chip label={`Busca: ${busca}`} onRemove={() => { setBusca(''); onCategoria(categoriaAtual); }} />}
           {categoriaAtual && <Chip label={`Categoria: ${nomeCategoria ?? categoriaAtual}`} onRemove={() => onCategoria('')} />}
           <button
@@ -407,7 +408,7 @@ function Toolbar({ busca, setBusca, buscaRef, categorias, categoriaAtual, onCate
           >
             limpar tudo
           </button>
-        </div>
+        </Inline>
       )}
     </>
   );
@@ -415,12 +416,12 @@ function Toolbar({ busca, setBusca, buscaRef, categorias, categoriaAtual, onCate
 
 function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
-    <span className="inline-flex items-center gap-1 h-6 pl-2 pr-1 rounded border border-border bg-muted/40 text-[11px]">
+    <Inline gap={1} align="center" className="h-6 pl-2 pr-1 rounded border border-border bg-muted/40 text-[11px]">
       {label}
       <button type="button" onClick={onRemove} aria-label={`Remover filtro ${label}`} className="p-0.5 hover:text-destructive-fg">
         <X size={12} />
       </button>
-    </span>
+    </Inline>
   );
 }
 
@@ -439,12 +440,12 @@ function Paginacao({ meta, onPagina, onPorPagina }: {
   const btn = 'w-7 h-7 grid place-items-center rounded border border-border bg-card text-muted-foreground disabled:opacity-40 disabled:cursor-not-allowed hover:text-foreground';
 
   return (
-    <div className="mx-6 mt-3 mb-6 flex items-center gap-3">
+    <Inline gap={3} align="center" className="mx-6 mt-3 mb-6">
       <span className="text-[11px] text-muted-foreground tabular-nums">
         Mostrando {(meta.de ?? 0).toLocaleString('pt-BR')}–{(meta.ate ?? 0).toLocaleString('pt-BR')} de {meta.total.toLocaleString('pt-BR')}
       </span>
 
-      <div className="ml-auto flex items-center gap-2.5">
+      <Inline gap={2} align="center" className="ml-auto">
         <span className="text-[11px] text-muted-foreground">Por página</span>
         <Select value={String(meta.por_pagina)} onValueChange={(v) => onPorPagina(Number(v))}>
           <SelectTrigger className="h-7 w-[74px] text-[11px]"><SelectValue /></SelectTrigger>
@@ -453,15 +454,15 @@ function Paginacao({ meta, onPagina, onPorPagina }: {
           </SelectContent>
         </Select>
 
-        <div className="flex items-center gap-1">
+        <Inline gap={1} align="center">
           <button type="button" className={btn} aria-label="Primeira página" disabled={semAnterior} onClick={() => onPagina(1)}><ChevronsLeft size={14} /></button>
           <button type="button" className={btn} aria-label="Página anterior" disabled={semAnterior} onClick={() => onPagina(meta.pagina - 1)}><ChevronLeft size={14} /></button>
           <span className="min-w-[62px] text-center text-[11px] font-medium tabular-nums">{meta.pagina} / {meta.ultima}</span>
           <button type="button" className={btn} aria-label="Próxima página" disabled={semProxima} onClick={() => onPagina(meta.pagina + 1)}><ChevronRight size={14} /></button>
           <button type="button" className={btn} aria-label="Última página" disabled={semProxima} onClick={() => onPagina(meta.ultima)}><ChevronsRight size={14} /></button>
-        </div>
-      </div>
-    </div>
+        </Inline>
+      </Inline>
+    </Inline>
   );
 }
 
