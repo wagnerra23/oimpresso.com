@@ -86,11 +86,6 @@ const JM_FILTROS = ["todas", "minhas", "compartilhadas", "arquivadas"];
 
 // KPI → análise que EXPLICA aquele número. Só mapeia quando o card existe e fala do mesmo dado:
 // ticket médio (trendDown) não tem análise própria, então fica não-clicável em vez de abrir faturamento.
-// ⚠️ `truck`/frota: o protótipo RETRATA o cockpit do Martinho (biz=164), onde frota é o negócio
-// real — por isso fica aqui. O Non-Goal do Index.charter.md ([W] 2026-08-07) proíbe CONSTRUIR a
-// análise Frota na tela /ia do núcleo (ROTA LIVRE, vestuário); ele governa a TELA, não o que a
-// fonte de design retrata. Quem deriva daqui lê o charter antes. (Removi isto em 2026-08-13 e
-// [W] corrigiu no mesmo dia: "essa é a âncora correta do protótipo".)
 const JM_KPI_DRILL = { coins: "fat", alert: "inad", truck: "frota" };
 
 // Cada conversa tem thread própria — trocar no histórico troca o conteúdo (P0).
@@ -646,19 +641,13 @@ function JmDrillDrawer({ analise, onClose, onPerguntar }) {
   const DS = window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
   const { Drawer, DrawerSection, Button } = DS;
   if (!Drawer || !analise) return null;
-  // O 3º item é o MÉTODO REAL que calcula — lido de app/Services/Sells/SellsCockpitAggregator.php
-  // e alinhado ao JANA_DRILL_FONTES do código (resources/js/Pages/Jana/_components/JanaDrillDrawer.tsx).
-  // ⛔ NUNCA inventar nome de serviço aqui: este drawer se chama "de onde vem esse número", e nome
-  // fictício em <code> é mentira com selo de autoridade (anti-hook do Index.charter.md). Até
-  // 2026-08-13 esta tabela citava 6 Analise*Service — os SEIS inexistentes no repo (git grep → rc=1).
-  // Análise sem método no back declara isso em texto, e o render NÃO a veste de <code>.
   const FONTE = {
-    inad: ["transactions + contacts", "vencida = a receber com prazo definido e vencimento anterior a hoje; venda sem prazo não entra", "SellsCockpitAggregator::buildInsightsAggregates"],
-    fat: ["transactions", "soma do total de cada venda, dia a dia, nos últimos 30 dias; dia sem venda entra como zero", "SellsCockpitAggregator::buildCoworkAggregates"],
-    conc: ["transactions + contacts", "soma do total por cliente, os 5 maiores; venda sem cliente vira \"Cliente padrão\"", "SellsCockpitAggregator::buildInsightsAggregates"],
-    churn: ["contacts × transactions", "LTV alto sem compra há mais de 90 dias", "sem método no back ainda — número só do protótipo"],
-    frota: ["assets do tenant", "parada = sem movimento há 7 dias", "sem método no back ainda — número só do protótipo"],
-    cheq: ["transaction_payments + transactions", "soma dos pagamentos por forma; venda paga em 2 formas aparece nas duas", "SellsCockpitAggregator::buildInsightsAggregates"] }[
+    inad: ["transactions + transaction_payments", "exclui saldo virtual e parcela agrupada", "AnaliseInadimplenciaService"],
+    fat: ["transactions (venda final)", "24 janelas mês a mês", "AnaliseFaturamentoService"],
+    conc: ["contacts × transactions", "Pareto por LTV acumulado", "AnaliseConcentracaoService"],
+    churn: ["contacts com LTV > R$ 50k", "sem compra há mais de 90 dias", "AnaliseChurnService"],
+    frota: ["assets + locações abertas", "parada = sem movimento há 7 dias", "AnaliseFrotaService"],
+    cheq: ["cheques recebidos", "quitado vs em circulação", "AnaliseChequesService"] }[
   analise.id] || [];
   return (
     <Drawer open={!!analise} onClose={onClose} width={480}
@@ -677,8 +666,7 @@ function JmDrillDrawer({ analise, onClose, onPerguntar }) {
 
       <DrawerSection title="Fonte">
         <ul className="jm-dr-src">
-          {/* só veste de <code> o que É símbolo real (tem "::"); o resto é prosa honesta. */}
-          {FONTE.map((f, i) => <li key={i}>{i === 2 && String(f).includes("::") ? <code>{f}</code> : f}</li>)}
+          {FONTE.map((f, i) => <li key={i}>{i === 2 ? <code>{f}</code> : f}</li>)}
           <li>Apurado hoje às 09:42 · escopo <code>business_id</code> da sessão</li>
         </ul>
       </DrawerSection>
