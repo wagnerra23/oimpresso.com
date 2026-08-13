@@ -67,6 +67,16 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   reintroduz a locação erradicada pela [ADR 0265](../../../../memory/decisions/0265-oficina-reparo-erradica-locacao.md);
   (b) a fonte (`Modules/OficinaAuto/Entities/Vehicle`) é OficinaAuto — Martinho biz=164 —, não
   faz sentido pra ROTA LIVRE (vestuário). Reabrir exige decisão [W] nova.
+  _⚠️ **A âncora AINDA constrói isso — e nenhuma máquina barra.** Medido e RENDERIZADO em
+  2026-08-13 a partir de `prototipo-ui/cowork/jana-merge.jsx` (montado pelo shell canônico
+  `oimpresso.com.html`, que carrega `chat-jana.jsx` e depois `jana-merge.jsx?v=jm1`): o Painel
+  renderiza o KPI "FROTA UTILIZAÇÃO", a meta "Utilização de frota", o card "Frota" com a linha
+  **`Locadas`** e a legenda "91 caçambas avulsas". Contagem no fonte: **`frota` 8× · `caçamba` 7×**.
+  O `dominio-gate` **não pega**: seus `forbidden_ui_paths` são `Pages/OficinaAuto` e
+  `OficinaAuto/Database/{Seeders,Migrations}` — `prototipo-ui/` não está na lista. Ou seja, quem
+  derivar da âncora **sem ler este Non-Goal** reintroduz a locação erradicada, e o CI deixa passar.
+  Ampliar o gate pra varrer protótipo é decisão [W] com FP medido antes ([ADR 0336](../../../../memory/decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md)) —
+  e esbarra na exceção legítima "Caçambas" como razão social do cliente (§5 2026-06-09)._
 
 ## UX targets
 
