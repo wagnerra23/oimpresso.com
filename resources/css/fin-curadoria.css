@@ -1,12 +1,12 @@
 /* SCOPED-OK */ - escopo .fin-cowork aplicado por scripts/scope-fin-cowork-css.py
 /* fin-curadoria.css — Cowork KB-9.75 Financeiro Onda 5 R1 Curadoria
  *
- * Tokens visuais portados de prototipo-ui/styles.css (Refino #1).
+ * Tokens visuais portados de prototipo-ui/cowork/styles.css (Refino #1).
  * Escopados em .fin-curadoria pra não vazar pra outras telas Inertia.
  *
  * Refs:
- *   - prototipo-ui/financeiro-curation.jsx (canonical components)
- *   - prototipo-ui/styles.css linhas ~7700-7910 (canonical tokens)
+ *   - prototipo-ui/cowork/financeiro-curation.jsx (canonical components)
+ *   - prototipo-ui/cowork/styles.css linhas ~7700-7910 (canonical tokens)
  */
 .fin-cowork .fin-curadoria {
   /* fallback caso var global ausente */

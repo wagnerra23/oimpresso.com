@@ -2,7 +2,7 @@
 // (favoritos pessoais por business_id + atalho B).
 //
 // Refs:
-//  - prototipo-ui/financeiro-output.jsx FinFavStar + bookmarkAtalho
+//  - prototipo-ui/cowork/financeiro-output.jsx FinFavStar + bookmarkAtalho
 //
 // Hook localStorage-backed. Cada usuário/business tem seu próprio set de
 // lançamentos favoritados — útil pra Eliana marcar "olha mais tarde" sem

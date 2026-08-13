@@ -2,7 +2,7 @@
 // (detecta valor outlier vs histórico da contraparte).
 //
 // Refs:
-//  - prototipo-ui/financeiro-ai.jsx — finAiAnomalia + FinAiAnomalia
+//  - prototipo-ui/cowork/financeiro-ai.jsx — finAiAnomalia + FinAiAnomalia
 //
 // Pure compute (sem backend, sem LLM). Threshold: ≥25% desvio vs média e
 // histórico ≥3 transações pra considerar recorrente.

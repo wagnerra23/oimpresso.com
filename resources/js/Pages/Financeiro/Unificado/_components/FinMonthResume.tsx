@@ -2,7 +2,7 @@
 // (narrativa exec do mês — substitui o alert do botão "✦ Resumir mês").
 //
 // Refs:
-//  - prototipo-ui/financeiro-ai.jsx — FinAiResume
+//  - prototipo-ui/cowork/financeiro-ai.jsx — FinAiResume
 //  - FinMonthDigest.tsx — base de cálculo (Onda 6)
 //
 // Estratégia 2-fases:

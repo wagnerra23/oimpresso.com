@@ -1,7 +1,7 @@
 // VdSource — pill colorida na coluna "Origem" de Sells/Index (Onda 3 KB-9.75 A1).
 // Refs:
-//  - prototipo-ui/vendas-page.jsx::VdSource (function 145-160 canon Cowork 2026-05-25)
-//  - prototipo-ui/vendas.css L1651-1700 (tokens --vd-src-{balcao,oficina,online})
+//  - prototipo-ui/cowork/vendas-page.jsx::VdSource (function 145-160 canon Cowork 2026-05-25)
+//  - prototipo-ui/cowork/vendas.css L1651-1700 (tokens --vd-src-{balcao,oficina,online})
 //  - memory/decisions/0192-auto-faturar-os-venda-jobsheet-observer.md (ADR)
 //  - app/Http/Controllers/SellController.php::inertiaList (payload source/source_label/os_ref)
 //
