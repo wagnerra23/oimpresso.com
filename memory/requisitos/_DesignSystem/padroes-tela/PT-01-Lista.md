@@ -4,7 +4,7 @@ pattern_id: PT-01
 nome: Lista
 camada: 3-padroes-tela
 status: live
-versao: 1.0
+versao: '1.1'
 created: 2026-05-24
 parent_adr: UI-0013
 supersedes_partial: UI-0006 (template tela operacional)
@@ -40,7 +40,7 @@ Não aplicar pra: tela de Detalhe full-page (PT-03 quando documentado), Dashboar
 ┌─────────────────────────────────────────────────────────────┐
 │ 1 · PageHeader        título · subtítulo KPI · ações right  │ ← sticky
 ├─────────────────────────────────────────────────────────────┤
-│ 2 · ModuleTopNav      sub-tabs (Todas / Em aberto / ...)    │ ← ghost
+│ 2 · PageHeaderTabs    sub-tabs (Todas / Em aberto / ...)    │ ← ghost
 ├─────────────────────────────────────────────────────────────┤
 │ 3 · Toolbar           saved views │ filtros │ busca (⌘K)    │
 ├─────────────────────────────────────────────────────────────┤
@@ -58,8 +58,8 @@ Não aplicar pra: tela de Detalhe full-page (PT-03 quando documentado), Dashboar
 
 | Slot | Componente shared | Responsabilidade | Não faz |
 |---|---|---|---|
-| **1 · Header** | `<PageHeader>` ([Components/shared](../../../../resources/js/Components/shared/PageHeader.tsx)) | Título + subtítulo KPI-resumo (mono `tabular-nums`) + ações primárias à direita (Importar/Exportar/Novo). Sticky ao rolar. | filtros · busca · breadcrumb pesado |
-| **2 · Sub-tabs** | `<ModuleTopNav>` ([Components/shared](../../../../resources/js/Components/shared/ModuleTopNav.tsx)) | Sub-páginas do módulo com count mono na pílula. Action button **ghost** (sem cor primária). [ADR 0040 raiz](../../../decisions/0040-modulos-densos-sub-tabs.md) — substitui itens-densos no sidebar. | navegação cross-módulo |
+| **1 · Header** | `<PageHeader>` ([Components/PageHeader](../../../../resources/js/Components/PageHeader/index.ts)) | Título + subtítulo KPI-resumo (mono `tabular-nums`) + ações primárias à direita (Importar/Exportar/Novo). Sticky ao rolar. | filtros · busca · breadcrumb pesado |
+| **2 · Sub-tabs** | `<PageHeaderTabs>` ([Components/shared](../../../../resources/js/Components/shared/PageHeaderTabs.tsx)) | Sub-páginas do módulo com count mono na pílula. Action button **ghost** (sem cor primária). Substitui itens-densos no sidebar. **Sem ADR de respaldo:** o link antigo apontava pra `0040-modulos-densos-sub-tabs.md`, que nunca existiu (a ADR 0040 real é sobre policy de publicação). Proposta em aberto: [tab-nav canônico](../../../decisions/proposals/2026-07-15-tab-nav-canonico-e-componente-por-papel.md). | navegação cross-módulo |
 | **3 · Toolbar** | `<PageFilters>` + `<FilterDropdown>` + `<Input search>` | Saved views (4-6 presets opcionais) · separador · filtros (chips) · busca local. **⌘K** delega palette global. Filtros ativos viram chips removíveis (`<ActiveChip>`). | criar entidade · ações em lote |
 | **4 · BulkBar** | `<BulkActionBar>` ([Components/shared](../../../../resources/js/Components/shared/BulkActionBar.tsx)) | Aparece flutuante quando `selected.length > 0`. Contagem + 2-4 ações em lote. Ação destrutiva **sempre por último em vermelho**. | filtros · navegação |
 | **5 · Table** | `<DataTable>` ([Components/shared](../../../../resources/js/Components/shared/DataTable.tsx)) | Checkbox + colunas + status badge (sem bg-fill) + hover actions inline. Linha tem `--row-h` dinâmico (densidade compact/normal/comfy). Mono em IDs/valores/datas, sans no resto. Click-to-filter em campos pivotáveis. | criar/editar entidade |
@@ -86,7 +86,7 @@ Não aplicar pra: tela de Detalhe full-page (PT-03 quando documentado), Dashboar
 - Cor crua em arquivo de página · use token CSS var
 - Drawer modal sobre modal — abre nova rota ou usa o drawer único
 - Botão destrutivo no meio da BulkBar — sempre por último, em vermelho
-- Sub-tabs como itens-densos no sidebar — vira sub-tabs do header ([ADR 0040 raiz](../../../decisions/0040-modulos-densos-sub-tabs.md))
+- Sub-tabs como itens-densos no sidebar — vira sub-tabs do header (regra sem ADR de respaldo — ver Slot 2)
 
 ## Estados obrigatórios
 
@@ -150,8 +150,8 @@ Lista das telas que **hoje** seguem PT-01 — usada como benchmark de adoção (
 // resources/js/Pages/<Modulo>/Index.tsx
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred } from '@inertiajs/react';
-import { PageHeader } from '@/Components/shared/PageHeader';
-import { ModuleTopNav } from '@/Components/shared/ModuleTopNav';
+import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
+import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import { DataTable } from '@/Components/shared/DataTable';
 import { BulkActionBar } from '@/Components/shared/BulkActionBar';
 import { EmptyState } from '@/Components/shared/EmptyState';
@@ -167,7 +167,7 @@ export default function Index({ items, kpis, filters, permissions }) {
       />
 
       {/* Slot 2 (opcional) */}
-      <ModuleTopNav items={subTabItems} />
+      <PageHeaderTabs items={subTabItems} />
 
       {/* Slot 3 */}
       <Toolbar
@@ -218,10 +218,12 @@ ADR vai em `06-decisoes/` (ou ADR UI no oimpresso) e justifica desvio com bench.
 - **Pattern reuse**: [ADR 0149](../../../decisions/0149-mwart-screen-pattern-reuse-cowork.md)
 - **Loop Design↔Code**: [PROTOCOL.md](../../../../prototipo-ui/PROTOCOL.md)
 - **Skill correlata**: [`mwart-process`](../../../../.claude/skills/mwart-process/SKILL.md), [`charter-first`](../../../../.claude/skills/charter-first/SKILL.md)
-- **Protótipo de origem**: [`prototipo-ui/prototipos/clientes/`](../../../../prototipo-ui/prototipos/clientes/) (KB-9.75 9,4/10)
+- **Protótipo de origem**: [`prototipo-ui/cowork/clientes-page.jsx`](../../../../prototipo-ui/cowork/clientes-page.jsx) (KB-9.75 9,4/10)
 - **Handoff Claude Design v2**: 2026-05-24 (Constituição UI v2, ponteiro em [UI-0013](../adr/ui/0013-constituicao-ui-v2-camadas.md))
 
 ## Versão
+
+**v1.1** · 2026-08-13 · **corrige 2 nomes de componente que não existiam.** O Slot 2 apontava pra `<ModuleTopNav>` em `@/Components/shared/ModuleTopNav` — arquivo que **nunca existiu** na árvore. O canônico é `<PageHeaderTabs>` (`@/Components/shared/PageHeaderTabs`, export **default**), que é o que a tela de referência `Cliente/Index.tsx` usa desde o PageHeader canon v3.1 ([ADR 0189](../../../decisions/0189-pageheader-canon-v3-1-cadastro-roxo.md)). O Slot 1 apontava pra `@/Components/shared/PageHeader`; o caminho real é `@/Components/PageHeader` (barrel que exporta `PageHeader` e `PageHeaderPrimary`). **Custo medido do erro:** um ciclo inteiro de handoff Design↔Code em 13/08 — o briefing derivado deste doc mandou usar `ModuleTopNav`, e só apareceu quando alguém foi procurar o arquivo.
 
 **v1.0** · 2026-05-24 · primeira formalização. Documenta o padrão já vivo em 12+ telas.
 
