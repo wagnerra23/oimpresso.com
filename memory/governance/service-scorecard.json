@@ -26,7 +26,6 @@
       "Home",
       "Modules",
       "Purchase",
-      "Settings",
       "Site",
       "StockAdjustment",
       "StockTransfer",
@@ -74,7 +73,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-07-24",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -170,7 +169,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-07-30",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -270,7 +269,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-07-23",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -370,7 +369,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-07-23",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -478,7 +477,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-07-23",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -579,7 +578,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-07-27",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -676,7 +675,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-07-23",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -784,7 +783,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-07-27",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -986,7 +985,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-08-03",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1191,7 +1190,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-07-30",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1299,7 +1298,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-07-23",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1404,7 +1403,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-08-05",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1509,7 +1508,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-08-11",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1719,7 +1718,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-08-05",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1824,7 +1823,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-08-07",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1929,7 +1928,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-07-29",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2034,7 +2033,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-07-23",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2139,7 +2138,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-07-28",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2244,7 +2243,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-08-01",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2341,7 +2340,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-07-30",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2449,7 +2448,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-07-27",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2527,10 +2526,18 @@
           "baseline": "v3.6.2"
         },
         "screens": {
-          "matched": false,
-          "ns": "PaymentGateway",
-          "backend_only": true,
-          "note": "sem superfície de tela (backend-only) — n/a, não é falha"
+          "matched": true,
+          "ns": "Settings",
+          "via": "direto",
+          "telas": 2,
+          "com_scorecard": 2,
+          "nota_media": 79,
+          "nota_min": 76,
+          "pior_tela": "Settings/PaymentGateways/CnabRetorno",
+          "charter_pct": 100,
+          "casos_pct": 100,
+          "stale": false,
+          "idade_max_dias": 40
         },
         "graph": {
           "depends_on": 5,
@@ -2546,7 +2553,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-07-23",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2588,26 +2595,23 @@
         },
         {
           "key": "screens_matched",
-          "ok": false,
-          "rot": "telas rastreadas em vital-signs",
-          "na": true
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
         },
         {
           "key": "charter_full",
-          "ok": false,
-          "rot": "charter 100% nas telas",
-          "na": true
+          "ok": true,
+          "rot": "charter 100% nas telas"
         },
         {
           "key": "no_stale_screens",
-          "ok": false,
-          "rot": "nenhuma tela stale",
-          "na": true
+          "ok": true,
+          "rot": "nenhuma tela stale"
         }
       ],
       "maturity": {
-        "passed": 6,
-        "applicable": 6,
+        "passed": 9,
+        "applicable": 9,
         "ratio": 1,
         "level": "ouro"
       }
@@ -2654,7 +2658,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-08-07",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2751,7 +2755,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-07-23",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2855,7 +2859,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-07-30",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -3056,7 +3060,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-08-05",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -3161,7 +3165,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-08-06",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -3262,7 +3266,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-08-07",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -3359,7 +3363,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-08-01",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -3455,7 +3459,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-07-29",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -3563,7 +3567,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-08-11",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -3668,7 +3672,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-07-28",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -3765,7 +3769,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-08-11",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -3873,7 +3877,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-07-23",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -3970,7 +3974,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-08-11",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
