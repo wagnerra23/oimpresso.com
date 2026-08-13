@@ -3,7 +3,7 @@ slug: 0378-execucao-mcp-jana-para-forja-ondas
 number: 378
 title: "Execução do item 4 da 0366 — a plataforma MCP sai da Jana para a Forja em ondas, começando pelo schema"
 type: adr
-status: aceito
+status: proposto
 authority: canonical
 lifecycle: ativo
 kind: decision
@@ -22,10 +22,16 @@ related:
 
 # Execução do item 4 da 0366 — o MCP sai da Jana em ondas, começando pelo schema
 
-> **O merge deste PR é o ato de ratificação** ([W], R10). A decisão de DESTINO já era canon
-> desde a [0366](0366-fronteira-jana-forja-governance-kb.md) (aceita 2026-08-03); esta ADR
-> não redecide o destino — ela autoriza e desenha a **execução**, que a 0366 deixou
-> explicitamente pendente.
+> **Nasce `proposto`; a ratificação é PR de flip próprio** — `status: proposto → aceito`,
+> mudando SÓ essa linha, com o índice regenerado e o label `adr-metadata-normalization`
+> ([receita canônica](README.md#como-ratificar-uma-adr-proposta-flip-proposto--aceito),
+> convenção [ADR 0257](0257-adr-status-lifecycle-kind-modelo-canonico.md)). O merge daquele PR
+> é o ato ([W], R10). `decided_by`/`decided_at` já vêm preenchidos porque a **decisão** de
+> [W] é de 2026-08-13 e está datada — o que falta é o **ato formal**, não a decisão.
+>
+> A decisão de DESTINO já era canon desde a [0366](0366-fronteira-jana-forja-governance-kb.md)
+> (aceita 2026-08-03); esta ADR não a redecide — ela autoriza e desenha a **execução**, que a
+> 0366 deixou explicitamente pendente.
 
 ## Contexto
 
