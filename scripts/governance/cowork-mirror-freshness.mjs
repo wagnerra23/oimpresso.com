@@ -573,6 +573,106 @@ function main() {
     return;
   }
 
+  // ── --snapshot-from <dir>: MEDIR SEM CONSERTAR (2026-08-13) ──────────────────
+  // A tautologia consertada no PR #5754 tinha um resíduo: `--emit-snapshot` só existia
+  // ACOPLADO ao `--export-from`, que escreve o espelho antes de medir. Enquanto medir e
+  // consertar forem o mesmo comando, a pergunta "o vivo mudou?" é irrespondível — a
+  // resposta é SYNC por construção, e o `_stalePreExport` é só um consolo a posteriori.
+  // Aqui o snapshot sai dos MESMOS JSONs, com os MESMOS hashes, e o espelho não é tocado:
+  // o `--compare` seguinte dá o veredito REAL. Ordem certa do ciclo:
+  //   1) get_file → JSONs      2) --snapshot-from  (mede)      3) --compare --check
+  //   4) só então --export-from (conserta), se o veredito pedir.
+  const snapFromIdx = argv.indexOf('--snapshot-from');
+  if (snapFromIdx !== -1) {
+    const dir = argv[snapFromIdx + 1];
+    if (!dir || !existsSync(dir)) {
+      console.error('✗ --snapshot-from exige um diretório com os JSONs do get_file.');
+      process.exit(2);
+    }
+    const outIdx = argv.indexOf('--emit-snapshot');
+    const out = outIdx !== -1 ? argv[outIdx + 1] : null;
+    if (!out) {
+      console.error('✗ --snapshot-from exige --emit-snapshot <arquivo> (é o que ele produz).');
+      process.exit(2);
+    }
+    const snap = {};
+    let n = 0, tocaria = 0;
+    for (const j of readdirSync(dir).filter((f) => f.endsWith('.json') || f.endsWith('.txt'))) {
+      const raw = JSON.parse(readFileSync(join(dir, j), 'utf8'));
+      if (!raw.path || typeof raw.content !== 'string') {
+        console.error(`✗ ${j}: JSON do get_file precisa ter .path e .content — pulado.`);
+        process.exit(2);
+      }
+      const h = contentHash(raw.content);
+      snap[raw.path] = h;
+      n++;
+      // pré-visão honesta: compara com o disco SEM escrever, só pra o log não mentir
+      const abs = join(ROOT, 'prototipo-ui', 'cowork', raw.path);
+      const local = existsSync(abs) ? contentHash(readFileSync(abs, 'utf8')) : null;
+      const nota = local === null ? 'AUSENTE' : local === h ? 'igual' : 'DIVERGE';
+      if (nota !== 'igual') tocaria++;
+      console.log(`  ${nota.padEnd(8)} ${raw.path}  (${h.slice(0, 12)})`);
+    }
+    writeFileSync(out, JSON.stringify({ _origin: 'medicao', ...snap }, null, 2) + '\n');
+    console.log(`\n✓ snapshot de MEDIÇÃO em ${out} (${n} entrada(s)) — o espelho NÃO foi tocado.`);
+    console.log(`  ${tocaria} arquivo(s) divergem ou faltam. Veredito formal: --compare ${out} --check --ledger`);
+    if (tocaria) console.log(`  Pra consertar DEPOIS de ver o veredito: --export-from ${dir}`);
+    return;
+  }
+
+  // ── --snapshot-from-tree <dir>: medir a partir do PROJETO BAIXADO ────────────
+  // O caminho MCP (`get_file`) tem um teto de fidelidade que só aparece quando se mede:
+  // resultado grande o harness persiste em disco (o script lê, ninguém transcreve), mas
+  // resultado PEQUENO volta inline — e aí o conteúdo só chega ao disco passando pelo
+  // agente, que é transcrição, proibida (§5 2026-08-11) e já corrompeu 1 arquivo neste
+  // repo (`̀-ͯ` virou combining char em documentacao-page.jsx, #5743).
+  // Medido no espelho: 18 arquivos passam de 64KB · 173 não. Ou seja, o caminho MCP é
+  // fiel em 9% do acervo — e os 15 que desceram no #5743 eram TODOS pequenos.
+  // A saída não é um truque de encoding: é NÃO passar o conteúdo pelo agente. O Cowork
+  // exporta o projeto inteiro (o `~/Downloads/_cowork-handoff-staging` nasceu assim), e
+  // daí o script lê os arquivos CRUS do disco. Zero transcrição, zero MCP, custo de
+  // contexto zero, e cobre os 191 de uma vez em vez de 1 `get_file` por arquivo.
+  const treeIdx = argv.indexOf('--snapshot-from-tree');
+  if (treeIdx !== -1) {
+    const dir = argv[treeIdx + 1];
+    if (!dir || !existsSync(dir)) {
+      console.error('✗ --snapshot-from-tree exige o diretório do projeto Cowork baixado (ex: ~/Downloads/_cowork-handoff-staging/<proj>/project).');
+      process.exit(2);
+    }
+    const outIdx = argv.indexOf('--emit-snapshot');
+    const out = outIdx !== -1 ? argv[outIdx + 1] : null;
+    if (!out) {
+      console.error('✗ --snapshot-from-tree exige --emit-snapshot <arquivo>.');
+      process.exit(2);
+    }
+    const snap = {};
+    const tally = { igual: 0, DIVERGE: 0, 'SÓ-NO-BAIXADO': 0 };
+    const divergentes = [];
+    for (const rel of walkRel(dir)) {
+      if (!/\.(jsx|css|js)$/i.test(rel) && rel !== 'oimpresso.com.html') continue;
+      const h = contentHash(readFileSync(join(dir, rel)));
+      snap[rel] = h;
+      const abs = join(ROOT, 'prototipo-ui', 'cowork', rel);
+      if (!existsSync(abs)) { tally['SÓ-NO-BAIXADO']++; continue; }
+      const local = contentHash(readFileSync(abs));
+      if (local === h) tally.igual++;
+      else { tally.DIVERGE++; divergentes.push(rel); }
+    }
+    writeFileSync(out, JSON.stringify({ _origin: 'medicao-tree', ...snap }, null, 2) + '\n');
+    console.log(`\n📥 projeto baixado: ${Object.keys(snap).length} arquivo(s) lidos de ${dir}`);
+    console.log(`   ✓ igual: ${tally.igual} · ⛔ DIVERGE: ${tally.DIVERGE} · 🆕 só no baixado: ${tally['SÓ-NO-BAIXADO']}`);
+    if (divergentes.length) {
+      console.log(`\n   divergentes (o espelho não bate com o baixado):`);
+      for (const d of divergentes.slice(0, 40)) console.log(`     ⛔ ${d}`);
+      if (divergentes.length > 40) console.log(`     … +${divergentes.length - 40}`);
+    }
+    console.log(`\n✓ snapshot em ${out} — o espelho NÃO foi tocado.`);
+    console.log(`  ⚠️ o veredito vale a DATA DO DOWNLOAD, não "agora": um pacote velho acusa`);
+    console.log(`     divergência que já foi resolvida. Confira a data antes de agir.`);
+    console.log(`  Veredito formal: --compare ${out} --check --ledger`);
+    return;
+  }
+
   // --export-from <dir>: escreve o espelho a partir dos JSONs do DesignSync.get_file.
   // O agente busca (só ele tem o MCP) e o SCRIPT escreve — nunca o agente transcrevendo.
   const expIdx = argv.indexOf('--export-from');
