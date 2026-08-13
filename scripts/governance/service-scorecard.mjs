@@ -152,6 +152,39 @@ export function graphSignals(moduleId, edges, nodeIds) {
  * @param {{catalog:any, gradesDoc:any, vitalDoc:any}} src
  * @param {{pagesNs:Record<string,string|string[]>, hasPagesDir:(ns:string|string[])=>boolean, scopeExists:(rel:string)=>boolean, briefingInfo:(mod:string)=>{present:boolean,last_commit:string|null}}} deps
  */
+/**
+ * Junta as linhas de vital-signs dos N namespaces de UM módulo numa só.
+ * Cada campo agrega pela sua natureza — somar nota seria tão errado quanto ignorar o 2º namespace:
+ *   contagem → soma · nota/percentual → média PONDERADA por telas (tela pesa igual, não namespace)
+ *   nota_min → mínimo (e `pior_tela` vem de quem tem esse mínimo) · stale → OR · idade → máximo
+ * Devolve `undefined` para lista vazia (o chamador trata como "sem tela").
+ * @param {any[]} vs
+ */
+export function agregaVitals(vs) {
+  if (!vs.length) return undefined;
+  if (vs.length === 1) return vs[0];
+  const telas = vs.reduce((a, v) => a + (v.telas || 0), 0);
+  const pond = (campo) => {
+    const comPeso = vs.filter((v) => typeof v[campo] === 'number' && v.telas > 0);
+    if (!comPeso.length) return null;
+    const peso = comPeso.reduce((a, v) => a + v.telas, 0);
+    return peso ? Math.round(comPeso.reduce((a, v) => a + v[campo] * v.telas, 0) / peso) : null;
+  };
+  const comMin = vs.filter((v) => typeof v.nota_min === 'number');
+  const pior = comMin.length ? comMin.reduce((a, b) => (a.nota_min <= b.nota_min ? a : b)) : null;
+  return {
+    telas,
+    com_scorecard: vs.reduce((a, v) => a + (v.com_scorecard || 0), 0),
+    nota_media: pond('nota_media'),
+    nota_min: pior ? pior.nota_min : null,
+    pior_tela: pior ? pior.pior_tela : null,
+    charter_pct: pond('charter_pct'),
+    casos_pct: pond('casos_pct'),
+    stale: vs.some((v) => v.stale),
+    idade_max_dias: vs.reduce((a, v) => Math.max(a, v.idade_max_dias ?? 0), 0) || null,
+  };
+}
+
 export function buildDoc(src, deps) {
   const { catalog, gradesDoc, vitalDoc } = src;
   const { pagesNs, hasPagesDir, scopeExists, briefingInfo } = deps;
@@ -180,22 +213,29 @@ export function buildDoc(src, deps) {
     const gradeVal = typeof grades[mod] === 'number' ? grades[mod] : null;
 
     // ── tela (vital-signs: PAGES_NS direto → normalização EXATA de fallback) ──
-    let v;
-    let vNs = ns;
+    //
+    // AGREGA todos os namespaces do módulo — não para no primeiro que casa.
+    //
+    // A 1ª versão deste laço tinha `break` no primeiro hit, e isso SUBCONTAVA quando os DOIS
+    // namespaces existiam no vital-signs: `Whatsapp` casava com `Whatsapp` (3 telas) e
+    // `Atendimento` (8) caía na lista de "namespace órfão, sem serviço no catálogo" — o módulo
+    // publicava 3 de 11. Idem `Forja` 12 de 17 (perdia `team-mcp`) e `Cms`, que saía
+    // `backend_only` tendo 4 telas em `Site`. O `break` só acertava o caso em que o primeiro
+    // namespace não tinha linha (PaymentGateway → Settings).
+    const achados = nsLista.map((cand) => ({ cand, v: vitalByNs.get(cand) })).filter((x) => x.v);
     let via = 'direto';
-    for (const cand of nsLista) {
-      const hit = vitalByNs.get(cand);
-      if (hit) { v = hit; vNs = cand; break; }
-    }
-    if (!v) {
+    if (!achados.length) {
       const cand = vitalByNorm.get(normKey(mod));
-      if (cand && !nsLista.includes(cand)) { v = vitalByNs.get(cand); vNs = cand; via = 'normalizado'; }
+      const hit = cand && !nsLista.includes(cand) ? vitalByNs.get(cand) : null;
+      if (hit) { achados.push({ cand, v: hit }); via = 'normalizado'; }
     }
+    const v = agregaVitals(achados.map((a) => a.v));
+    const vNs = achados.length ? achados.map((a) => a.cand).join(' + ') : ns;
     const hasDir = hasPagesDir(nsLista);
     let screens;
     let unmatchedScreenDir = false;
     if (v) {
-      consumedNs.add(vNs);
+      for (const a of achados) consumedNs.add(a.cand); // todos consumidos → nenhum vira órfão falso
       screens = {
         matched: true, ns: vNs, via, telas: v.telas, com_scorecard: v.com_scorecard,
         nota_media: v.nota_media, nota_min: v.nota_min, pior_tela: v.pior_tela,

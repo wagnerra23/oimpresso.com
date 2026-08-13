@@ -51,7 +51,7 @@
 import { readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { ucScanRe, ucsDeclaredInCasos } from '../lib/uc-regex.mjs';
-import { isPageScreenPath } from './page-path.mjs';
+import { isPageScreenPath, raizesDePages } from './page-path.mjs';
 
 const ROOT = process.cwd();
 const PAGES_DIR = join(ROOT, 'resources', 'js', 'Pages');
@@ -97,8 +97,13 @@ function walk(dir, acc = []) {
  * estoque" entrava no CONJUNTO QUENTE Tier-0 e cobrava teste de comportamento de um
  * componente que não é tela — inflando o débito com alvo errado.
  */
-const screenFiles = walk(PAGES_DIR)
-  .map((abs) => ({ abs, rel: relative(PAGES_DIR, abs).split(sep).join('/') }))
+// Desde o PR #5686 as Pages moram em DUAS raízes (núcleo + `Modules/<X>/Resources/js/Pages`).
+// Varrer só o núcleo media 169 telas onde o `screen-coverage-map` — que já aprendeu a 2ª raiz —
+// mede 206. Aqui a cegueira é pior que contagem: as telas que sumiram do denominador saem
+// também do CONJUNTO QUENTE Tier-0, e o débito de teste de comportamento delas deixa de ser
+// cobrado em silêncio. `raizesDePages` é o dono da lista de raízes.
+const screenFiles = raizesDePages(ROOT)
+  .flatMap((raiz) => walk(raiz).map((abs) => ({ abs, rel: relative(raiz, abs).split(sep).join('/') })))
   .filter((s) => isPageScreenPath(s.rel));
 
 // =====================================================================================
