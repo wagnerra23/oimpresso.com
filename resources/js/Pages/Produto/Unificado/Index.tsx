@@ -531,9 +531,9 @@ function SkeletonTabela() {
     <div className="mx-6 mt-3 rounded-md border border-border bg-card overflow-hidden" aria-hidden>
       <div className="h-9 border-b border-border bg-muted/40" />
       {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="h-11 border-b border-border/60 px-4 flex items-center">
+        <Inline key={i} align="center" className="h-11 border-b border-border/60 px-4">
           <span className="h-2.5 w-full max-w-[42%] rounded bg-muted animate-pulse" />
-        </div>
+        </Inline>
       ))}
     </div>
   );
