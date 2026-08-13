@@ -1,7 +1,7 @@
 ---
 page_id: forja-aprovacoes
 page: /forja/aprovacoes
-component: resources/js/Pages/Forja/Aprovacoes/Index.tsx
+component: Modules/Forja/Resources/js/Pages/Forja/Aprovacoes/Index.tsx
 related_prototype: prototipo-ui/cowork/forja-page.jsx
 owner: wagner
 status: draft

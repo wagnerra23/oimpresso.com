@@ -24,7 +24,7 @@ uses(Tests\TestCase::class);
  * mcp_tasks (ALTER ... MODIFY ENUM) e quebraria. McpTask usa LogsActivity → desligo
  * o activitylog pra não exigir a tabela activity_log.
  *
- * @see Modules/Jana/Database/Migrations/2026_06_15_150000_add_acceptance_ref_to_mcp_tasks.php
+ * @see Modules/Forja/Database/Migrations/2026_06_15_150000_add_acceptance_ref_to_mcp_tasks.php
  * @see memory/decisions/0278-arquitetura-rede-ia-duravel-anti-vazamento.md
  */
 beforeEach(function () {

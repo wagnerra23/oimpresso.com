@@ -24,7 +24,7 @@ uses(Tests\TestCase::class);
  * ChannelUserAccessTest: a lane per-PR roda sqlite :memory:, e RefreshDatabase
  * (suite inteira) inclui migrations MySQL-only — então monta-se só a tabela do D1.
  *
- * @see Modules/Jana/Database/Migrations/2026_06_15_140000_create_mcp_work_leases_table.php
+ * @see Modules/Forja/Database/Migrations/2026_06_15_140000_create_mcp_work_leases_table.php
  * @see memory/decisions/0278-arquitetura-rede-ia-duravel-anti-vazamento.md
  */
 beforeEach(function () {

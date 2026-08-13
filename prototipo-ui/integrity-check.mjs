@@ -86,6 +86,25 @@ const spine = {
     charters.length === 0 ? 'nenhum charter em resources/js/Pages (ok — vacuo)'
       : orphans.length ? (orphans.length + ' charter(s) sem .tsx irmao: ' + orphans.join(' · '))
       : (vivos + ' charters com tela viva (.tsx) ok'));
+
+  // IT2b — o campo `component:` do frontmatter aponta pro .tsx que EXISTE.
+  //
+  // O IT2 mede o .tsx IRMAO (vizinhanca no disco) e por isso ficou verde durante a migracao
+  // do PR #5686: o charter viajou junto com a tela, irmao intacto. Mas o `component:` do
+  // frontmatter continuou apontando pra `resources/js/Pages/...`, onde o arquivo NAO esta
+  // mais — 37 de 209 charters, todos os migrados, e nenhum gate viu. Sao perguntas
+  // diferentes: "tem tela ao lado?" nao responde "o ponteiro declarado esta vivo?".
+  const ptrMortos = [];
+  for (const f of charters) {
+    const m = (await read(f) || '').match(/^component:\s*(.+?)\s*$/m);
+    if (!m) continue;                                   // sem o campo: outro assunto, nao invento
+    const alvo = m[1].replace(/^["']|["']$/g, '');
+    if (!existsSync(join(ROOT, alvo)) && !existsSync(alvo)) ptrMortos.push(`${rel(f)} -> ${alvo}`);
+  }
+  add('IT2b', true, ptrMortos.length === 0,
+    ptrMortos.length
+      ? (ptrMortos.length + ' charter(s) com `component:` apontando pra arquivo inexistente: ' + ptrMortos.slice(0, 5).join(' · ') + (ptrMortos.length > 5 ? ` (+${ptrMortos.length - 5})` : ''))
+      : (charters.length + ' charters com `component:` vivo'));
 }
 
 // ---- IT3 — STATUS aponta pra PROCESSO -------------------------------------

@@ -1,7 +1,7 @@
 ---
 id: resources-js-pages-team-mcp-team-index-charter
 page: /team-mcp/team
-component: resources/js/Pages/team-mcp/Team/Index.tsx
+component: Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 owner: wagner
 status: draft

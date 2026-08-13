@@ -94,11 +94,11 @@
  *       (precedente do padrão) · ADR 0048 (Vizra rejeitada — o incidente) · ADR 0314 ·
  *       arXiv 2602.11988 (context file errado é PIOR que ausente) · proibicoes §5.
  */
-import { execSync } from 'node:child_process';
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { classifyCodeStaleness, declaredDoorDate } from './briefing-code-staleness.mjs';
+import { gitLastDate } from './lib/git-history.mjs';
 
 const ROOT = process.cwd();
 // 30d — MESMO limiar dos eixos irmãos (não introduzir número mágico novo).
@@ -126,13 +126,9 @@ export function parseClaudeImports(content) {
 }
 
 // ── camada git/FS (impura — só no run real, nunca no self-test) ──────────────
-function gitDate(relPath) {
-  try {
-    return execSync(`git log -1 --format=%cs -- "${relPath}"`, {
-      cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'],
-    }).toString().trim() || null;
-  } catch { return null; }
-}
+// Guardado contra clone raso: em history truncada `git log -1` data TODO arquivo
+// com o dia da run (ver git-history.mjs). `null` = não medido, nunca data inventada.
+const gitDate = (relPath) => gitLastDate(relPath);
 
 /**
  * scan — monta a linha do eixo AGENTS.md × (CLAUDE.md ∪ @imports).

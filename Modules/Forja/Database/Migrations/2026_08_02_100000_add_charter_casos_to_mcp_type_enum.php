@@ -30,7 +30,7 @@ use Illuminate\Support\Facades\DB;
  * não tem coluna `type` (snapshot só content/title/meta), então nada a fazer lá.
  *
  * @see memory/decisions/proposals/2026-08-01-reverter-0364-trio-colocado-opcao-b.md (B3)
- * @see Modules/Jana/Database/Migrations/2026_07_22_100000_add_briefing_surface_to_mcp_type_enum.php
+ * @see Modules/Forja/Database/Migrations/2026_07_22_100000_add_briefing_surface_to_mcp_type_enum.php
  */
 return new class extends Migration
 {

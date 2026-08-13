@@ -259,6 +259,146 @@ export function classificarSucesso(consulta) {
   return { estado: 'inconclusivo', conclusion: c, at: consulta.at };
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// EIXO 3 — a SAÍDA declarada: "registre por que o vermelho é esperado"
+//
+// Até 2026-08-13 a mensagem de falha do eixo 3 oferecia essa saída e o código NÃO
+// a implementava: zero allowlist, zero arquivo de ack, e o único `process.env` era
+// `OBRA_PARADA_DIAS` (limiar do eixo 2). Afordância anunciada e não honrada — LC-15,
+// e a 3ª da classe a viver em `main`. Pior que as irmãs porque o alvo é um VIGIA:
+// quem "registrava" acreditava ter silenciado um alarme que seguia soando.
+//
+// A saída existe agora, e o desenho é o que impede ela de virar máscara:
+//   · expiração OBRIGATÓRIA  → sem fim, silêncio vira allowlist-que-só-cresce (§5 08-02)
+//   · expirado NÃO suprime   → o vermelho volta sozinho, sem ninguém lembrar
+//   · inválido DERRUBA       → fail-closed; entrada malformada nunca vira "nada a fazer"
+//   · silenciado ≠ verde     → a frase "todos concluíram com sucesso" fica PROIBIDA
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Teto de silêncio futuro, checado a cada leitura. Silêncio sem fim é máscara. */
+export const JANELA_MAXIMA_DIAS = 30;
+const RAZAO_MINIMA_CHARS = 12; // "-" e "ok" não são razão; força uma frase.
+
+/**
+ * Classifica as entradas de `governance/cron-vermelho-esperado.json`. PURA: recebe o
+ * doc já parseado e o instante, para o selftest ser determinístico (mesmo padrão do
+ * `nowMs` injetado no resto do arquivo).
+ *
+ * Devolve as três populações SEPARADAS de propósito — colapsar "expirado" e "inválido"
+ * em "não ativo" faria o relatório mentir por omissão, que é o defeito que este bloco
+ * inteiro existe para não repetir.
+ */
+export function carregarSilencios(doc, hojeMs) {
+  const ativos = new Map(), expirados = [], invalidos = [];
+  const lista = doc && Array.isArray(doc.silencios) ? doc.silencios : [];
+  for (const [i, e] of lista.entries()) {
+    const onde = `silencios[${i}]`;
+    if (!e || typeof e !== 'object') { invalidos.push(`${onde} — não é um objeto`); continue; }
+    const { workflow, razao, expira_em: exp, declarado_por: por } = e;
+    if (typeof workflow !== 'string' || !workflow.trim()) { invalidos.push(`${onde} — 'workflow' ausente/vazio`); continue; }
+    if (typeof razao !== 'string' || razao.trim().length < RAZAO_MINIMA_CHARS) {
+      invalidos.push(`${onde} (${workflow}) — 'razao' ausente ou curta demais (mín. ${RAZAO_MINIMA_CHARS} chars): registrar exige DIZER o porquê`); continue;
+    }
+    if (typeof por !== 'string' || !por.trim()) { invalidos.push(`${onde} (${workflow}) — 'declarado_por' ausente: silêncio sem dono não é registro`); continue; }
+    if (typeof exp !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(exp)) {
+      invalidos.push(`${onde} (${workflow}) — 'expira_em' ausente ou fora de YYYY-MM-DD: silêncio sem fim vira máscara permanente`); continue;
+    }
+    const fimMs = Date.parse(`${exp}T23:59:59Z`);
+    if (Number.isNaN(fimMs)) { invalidos.push(`${onde} (${workflow}) — 'expira_em' não é data real: ${exp}`); continue; }
+    const diasRestantes = Math.ceil((fimMs - hojeMs) / 86400000);
+    if (fimMs < hojeMs) { expirados.push(`${workflow} — silêncio EXPIROU em ${exp} (${-diasRestantes}d atrás); o vermelho volta. Conserte a origem ou renove com razão nova.`); continue; }
+    if (diasRestantes > JANELA_MAXIMA_DIAS) {
+      invalidos.push(`${onde} (${workflow}) — janela de ${diasRestantes}d excede o teto de ${JANELA_MAXIMA_DIAS}d: silêncio longo é dívida escondida, não exceção`); continue;
+    }
+    ativos.set(workflow, { razao: razao.trim(), expira_em: exp, declarado_por: por.trim(), diasRestantes });
+  }
+  return { ativos, expirados, invalidos };
+}
+
+export const REGISTRO_SILENCIOS = 'governance/cron-vermelho-esperado.json';
+
+/**
+ * Lê o registry do disco. AUSENTE = zero silêncios (é o estado padrão e legítimo).
+ * ILEGÍVEL = erro duro: JSON corrompido virando "sem silêncios" seria transformar
+ * falha-de-leitura em ausência-no-medido — §5 2026-07-29, e o modo exato pelo qual
+ * um vigia passa a afirmar verde sobre o que não conseguiu ler.
+ */
+function lerRegistroSilencios() {
+  let txt;
+  try { txt = readFileSync(join(ROOT, REGISTRO_SILENCIOS), 'utf8'); }
+  catch { return { doc: null, erro: null }; }
+  try { return { doc: JSON.parse(txt), erro: null }; }
+  catch (e) { return { doc: null, erro: `${REGISTRO_SILENCIOS} ILEGÍVEL (${e.message}) — registro de silêncio corrompido NÃO vira "sem silêncios"` }; }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONFIRMAÇÃO — uma amostra só não decide (falso-alarme MEDIDO em 2026-08-13)
+// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * O eixo 1 acusou 2 crons MORTOS na run 31705264590 (13:30:36Z) com datas de ~4 semanas
+ * atrás. Das 14 runs mais recentes deste mesmo job, 11 tinham log legível (3 ainda em
+ * curso) e **10 delas disseram `24 vivos · 0 mortos`** — todas na MESMA janela de 1h25
+ * (12:18:01 → 13:43:06 do mesmo dia). Mesmo código, mesma query, mesmo token, mesmo
+ * runner: o que variou foi a RESPOSTA da API.
+ *
+ * Medido local no mesmo dia, na mesma sequência de comandos:
+ *   `…/actions/workflows/299755607/runs?event=schedule&status=completed&per_page=1`
+ *       → total_count=6 · topo = run#6 (2026-07-27)   ← RETRATO VELHO
+ *   a MESMA rota com `per_page=3`, ~1 segundo depois
+ *       → total_count=8 · topo = run#8 (2026-08-10)   ← fresco
+ * O `total_count` errado (6 onde são 8) é o que fecha o diagnóstico: não é ordenação
+ * nem paginação — a resposta INTEIRA era um retrato antigo. Em seguida, uma sonda de
+ * 144 consultas (12 repetições × 4 formas de URL × 3 workflows) voltou 0 stale.
+ * Intermitente (1 em 11 runs de CI legíveis), e duas respostas a ~1s de distância
+ * podem discordar — que é justo o que torna a re-consulta imediata útil.
+ *
+ * ⚠️ O que NÃO ficou provado: o MECANISMO dentro do GitHub. A resposta velha foi pega
+ * UMA vez (n=1) e não reproduziu sob demanda. O FATO está medido; chamar a causa de
+ * "réplica com lag" seria inferir mecanismo a partir de sintoma (§5 2026-08-03).
+ *
+ * REFUTADAS por medição — não re-propor sem re-medir:
+ *   · rename/move do arquivo → `git log --diff-filter=R -- .github/workflows/` não
+ *     lista nenhum dos dois (só teammcp→forja, design-memory-gates, jana-bitemporal);
+ *   · ID de workflow antigo/duplicado → 130 registros na API, ZERO path duplicado;
+ *   · token/escopo/paginação/ordenação → 10 das 11 runs legíveis do dia acertaram com
+ *     a query idêntica; defeito dessas classes seria determinístico, não 1 em 11.
+ *
+ * O conserto explora que o erro é UNIDIRECIONAL: índice atrasado só SUBESTIMA a data
+ * da última run — nunca inventa uma que ainda não existe. Logo `max(createdAt)` sobre
+ * N amostras é sempre ≥ correto que qualquer amostra isolada, e re-amostrar NUNCA
+ * silencia cron de verdade morto (todas as amostras dele são velhas — é o que os
+ * asserts `PERSISTENTE` provam). Custo zero no caso saudável: só re-consulta quem ia
+ * virar 🔴/⛔.
+ *
+ * Ortogonal ao SILÊNCIO acima: aquele é decisão humana registrada de não derrubar por
+ * um vermelho VERDADEIRO; este é o instrumento não afirmar vermelho FALSO. Suprimir
+ * alarme errado com silêncio seria esconder defeito de medição atrás de bookkeeping.
+ */
+const CONFIRMACOES = 3;
+
+/**
+ * Melhor amostra = a de `createdAt` MAIS RECENTE entre as que foram MEDIDAS. Amostra
+ * cega não é evidência de nada e não entra na disputa; se TODAS forem cegas, o
+ * resultado é cego (a lápide 2026-07-29 continua valendo — não medir ≠ estado do cron).
+ */
+export function melhorAmostra(amostras) {
+  const medidas = (amostras || []).filter((a) => a && a.ok === true);
+  if (!medidas.length) return { ok: false };
+  return medidas.reduce((a, b) => ((b.at || '') > (a.at || '') ? b : a));
+}
+
+/**
+ * Vale gastar consulta extra? Só quando a amostra produziria 🔴 (morto/falhou) ou ⛔
+ * (cego) — os estados que ALARMAM. `bootstrap` e `inconclusivo` não alarmam e não
+ * pagam re-consulta: o teto de chamadas extras é o número de crons realmente doentes,
+ * não 24 (o job roda em todo PR e o GITHUB_TOKEN tem 1000 req/h por repo).
+ */
+export function precisaConfirmar(cron, consulta, nowMs) {
+  const l = classificarLiveness(cron, consulta, nowMs).estado;
+  const s = classificarSucesso(consulta).estado;
+  return l === 'morto' || l === 'cego' || s === 'falhou' || s === 'cego';
+}
+
 /**
  * FIAÇÃO dos eixos 1 e 3 — pura de propósito, recebendo `consultar` por parâmetro.
  *
@@ -274,15 +414,27 @@ export function classificarSucesso(consulta) {
  * este refactor faz é reduzir a superfície não-testada de um laço inteiro para uma
  * linha, não zerá-la. Declarar isso é parte do conserto.
  */
-export function avaliarCrons(wfs, consultar, nowMs) {
+export function avaliarCrons(wfs, consultar, nowMs, ativos = new Map(), tentativas = CONFIRMACOES) {
   const dead = [], boot = [], alive = [], cego = [], estados = [];
-  const falhando = [], inconclusivos = [], estadosSucesso = [];
+  const falhando = [], inconclusivos = [], silenciados = [], estadosSucesso = [];
+  let reconsultas = 0;
   for (const { file, cron } of wfs) {
-    const consulta = consultar(file); // UMA consulta alimenta os eixos 1 e 3
+    const amostras = [consultar(file)]; // UMA consulta alimenta os eixos 1 e 3
+    // Só quem ia alarmar paga confirmação; para assim que uma amostra desmentir o alarme.
+    while (amostras.length < tentativas && precisaConfirmar(cron, melhorAmostra(amostras), nowMs)) {
+      amostras.push(consultar(file));
+      reconsultas++;
+    }
+    const consulta = melhorAmostra(amostras);
     const c = classificarLiveness(cron, consulta, nowMs);
     const s = classificarSucesso(consulta);
-    estadosSucesso.push(s.estado);
-    if (s.estado === 'falhou') falhando.push(`${file} — última run agendada CONCLUIU '${s.conclusion}' (${s.at})`);
+    // O silêncio só alcança o eixo 3, e só quando ele de fato FALHOU: silenciar um cron
+    // verde é no-op, e o eixo 1 (morto) e o 2 (entrega) seguem intocados de propósito —
+    // "vermelho esperado" é sobre a run falhar, nunca sobre o cron parar de existir.
+    const sil = s.estado === 'falhou' ? ativos.get(file) : undefined;
+    estadosSucesso.push(sil ? 'silenciado' : s.estado);
+    if (sil) silenciados.push(`${file} — CONCLUIU '${s.conclusion}' (${s.at}) · silenciado até ${sil.expira_em} (${sil.diasRestantes}d restantes) por [${sil.declarado_por}]: ${sil.razao}`);
+    else if (s.estado === 'falhou') falhando.push(`${file} — última run agendada CONCLUIU '${s.conclusion}' (${s.at})`);
     else if (s.estado === 'inconclusivo') inconclusivos.push(`${file} — última run agendada CONCLUIU '${s.conclusion}' (${s.at}) — não afirma sucesso nem defeito`);
     estados.push(c.estado);
     if (c.estado === 'cego') cego.push(`${file} (cron '${cron}') — NÃO CONSULTÁVEL (gh ausente/sem auth/sem 'actions:read'/API fora): este cron NÃO foi medido`);
@@ -290,12 +442,17 @@ export function avaliarCrons(wfs, consultar, nowMs) {
     else if (c.estado === 'morto') dead.push(`${file} (cron '${cron}') MORTO há ${c.dias}d (limite ${c.limite}d) — última agendada: ${c.at}`);
     else alive.push(`${file} ${c.dias}d/${c.limite}d`);
   }
-  return { dead, boot, alive, cego, estados, falhando, inconclusivos, estadosSucesso };
+  return { dead, boot, alive, cego, estados, falhando, inconclusivos, silenciados, estadosSucesso, reconsultas };
 }
 
-/** Decisão de saída dos 3 eixos, num só lugar testável. */
-export function decidirExit(rLiveness, rSucesso, falhouEntrega) {
-  return (rLiveness.exit || rSucesso.exit || falhouEntrega) ? 1 : 0;
+/**
+ * Decisão de saída dos 3 eixos, num só lugar testável.
+ * `silencioInvalido` entra como 4ª causa independente: registro malformado é defeito
+ * DO REGISTRO, não do cron — e tratá-lo como "nenhum silêncio" deixaria uma entrada
+ * quebrada passar por ausência (fail-open), que é a doença que este arquivo cataloga.
+ */
+export function decidirExit(rLiveness, rSucesso, falhouEntrega, silencioInvalido = false) {
+  return (rLiveness.exit || rSucesso.exit || falhouEntrega || silencioInvalido) ? 1 : 0;
 }
 
 /**
@@ -304,11 +461,15 @@ export function decidirExit(rLiveness, rSucesso, falhouEntrega) {
  * `exit` só conta falha REAL: cancelamento não derruba o job.
  */
 export function resumoSucesso(estados) {
-  const cont = { ok: 0, bootstrap: 0, cego: 0, falhou: 0, inconclusivo: 0 };
+  const cont = { ok: 0, bootstrap: 0, cego: 0, falhou: 0, inconclusivo: 0, silenciado: 0 };
   for (const e of estados) if (e in cont) cont[e]++;
   const total = estados.length;
   return { ...cont, total, medidos: total - cont.cego,
-    afirmaVerde: cont.falhou === 0 && cont.cego === 0 && cont.inconclusivo === 0,
+    // `silenciado` NÃO derruba o exit — é exatamente para isso que o silêncio serve.
+    // Mas PROÍBE `afirmaVerde`: suprimir um vermelho é decisão registrada, não sucesso,
+    // e deixar a frase "todos concluíram com sucesso" sair com um silêncio ativo seria
+    // o relatório mentindo por omissão — o defeito que este eixo já corrigiu uma vez.
+    afirmaVerde: cont.falhou === 0 && cont.cego === 0 && cont.inconclusivo === 0 && cont.silenciado === 0,
     exit: cont.falhou > 0 ? 1 : 0 };
 }
 
@@ -522,6 +683,119 @@ if (EH_MAIN && ARGS.has('--selftest')) {
      && decidirExit(resumoLiveness(avCancel.estados), resumoSucesso(avCancel.estadosSucesso), 0) === 0,
     'FIAÇÃO: cron só-cancelado atravessa o caminho inteiro sem derrubar nada');
 
+  // ── SILÊNCIO ("registre por que o vermelho é esperado") — a saída que era falsa ──
+  // Cada perna tem controle negativo: um silêncio que NÃO deveria valer não pode valer.
+  const HOJE = Date.parse('2026-08-13T12:00:00Z');
+  const sil = (o) => ({ silencios: [{ workflow: 'a.yml', razao: 'fix mergeado, aguardando run agendada', expira_em: '2026-08-20', declarado_por: 'W', ...o }] });
+
+  ok(carregarSilencios(sil({}), HOJE).ativos.has('a.yml'),
+    'SILÊNCIO: entrada completa e dentro do prazo → ATIVA (a saída anunciada existe de fato)');
+  ok(carregarSilencios(null, HOJE).ativos.size === 0 && carregarSilencios({}, HOJE).invalidos.length === 0,
+    'LIBERA: registry ausente/vazio → zero silêncios, zero erro (o estado padrão é legítimo)');
+
+  // expirado NÃO suprime — é o que impede a lista de virar allowlist permanente
+  const expd = carregarSilencios(sil({ expira_em: '2026-08-01' }), HOJE);
+  ok(expd.ativos.size === 0 && expd.expirados.length === 1 && expd.expirados[0].includes('EXPIROU'),
+    'MORDE: silêncio EXPIRADO não suprime e é DITO — o vermelho volta sozinho');
+
+  // fail-closed: entrada quebrada nunca vira "sem silêncio"
+  for (const [campo, val, rot] of [['razao', 'x', 'razão curta'], ['expira_em', 'ontem', 'data malformada'],
+    ['declarado_por', '', 'sem dono'], ['workflow', '', 'sem workflow']]) {
+    const bad = carregarSilencios(sil({ [campo]: val }), HOJE);
+    ok(bad.invalidos.length === 1 && bad.ativos.size === 0,
+      `MORDE: ${rot} → INVÁLIDA (fail-closed), não "sem silêncio"`);
+  }
+  ok(carregarSilencios(sil({ expira_em: '2027-08-20' }), HOJE).invalidos.length === 1,
+    `MORDE: janela > ${JANELA_MAXIMA_DIAS}d → INVÁLIDA (silêncio longo é dívida escondida)`);
+  ok(decidirExit({ exit: 0 }, { exit: 0 }, 0, true) === 1,
+    'FIAÇÃO: registro inválido sozinho derruba o exit (mata o mutante que o ignora)');
+
+  // FIAÇÃO do silêncio: suprime o exit, NUNCA o relatório nem o eixo 1
+  const avSil = avaliarCrons(wfsFake, consultaFake, NOW3, carregarSilencios(sil({}), HOJE).ativos);
+  const rsSil = resumoSucesso(avSil.estadosSucesso);
+  ok(avSil.falhando.length === 0 && avSil.silenciados.length === 1 && avSil.silenciados[0].includes('a.yml'),
+    'FIAÇÃO: cron silenciado sai de `falhando` mas SEGUE no relatório (silêncio tira do exit, não da vista)');
+  ok(rsSil.exit === 0 && rsSil.afirmaVerde === false,
+    'FIAÇÃO: silenciado não derruba o exit E PROÍBE afirmaVerde (suprimir ≠ estar verde)');
+  ok(decidirExit(resumoLiveness(avSil.estados), rsSil, 0) === 0,
+    'FIAÇÃO: com o silêncio ativo o caminho inteiro sai 0 — a saída funciona ponta a ponta');
+
+  // controle negativo do ALVO: silenciar não pode alcançar outro cron nem outro eixo
+  const avOutro = avaliarCrons(wfsFake, consultaFake, NOW3, carregarSilencios(sil({ workflow: 'zzz.yml' }), HOJE).ativos);
+  ok(avOutro.falhando.length === 1 && avOutro.silenciados.length === 0,
+    'CONTROLE: silêncio de OUTRO workflow não suprime o a.yml (não é allowlist global)');
+  const NOW_MORTO = Date.parse('2026-10-03T12:00:00Z'); // 61d depois → eixo 1 acusa morto
+  const avMorto = avaliarCrons([{ file: 'a.yml', cron: '30 10 * * *' }],
+    () => ({ ok: true, at: '2026-08-03T10:30:00Z', conclusion: 'failure' }),
+    NOW_MORTO, carregarSilencios(sil({ expira_em: '2026-10-10' }), Date.parse('2026-10-03T12:00:00Z')).ativos);
+  ok(avMorto.dead.length === 1 && resumoLiveness(avMorto.estados).exit === 1,
+    'CONTROLE: silêncio do eixo 3 NÃO alcança o eixo 1 — cron MORTO segue derrubando');
+
+  // ── CONFIRMAÇÃO: amostra única de índice atrasado ≠ estado do cron (2026-08-13) ──
+  // Dados REAIS do caso: run 31705264590 (13:30:36Z) contra as 10 runs sãs vizinhas.
+  // Ortogonal ao silêncio acima: lá se suprime vermelho VERDADEIRO por decisão humana
+  // registrada; aqui se impede o instrumento de AFIRMAR vermelho falso.
+  const NOW_CASO = Date.parse('2026-08-13T13:32:05Z');
+  const GL_STALE = { ok: true, at: '2026-07-20T11:35:33Z', conclusion: 'success' }; // o que o CI leu
+  const GL_FRESCO = { ok: true, at: '2026-08-10T10:07:38Z', conclusion: 'success' }; // a verdade
+  const GD_STALE = { ok: true, at: '2026-07-16T11:17:37Z', conclusion: 'failure' };
+  const GD_FRESCO = { ok: true, at: '2026-08-13T10:35:50Z', conclusion: 'success' };
+
+  ok(melhorAmostra([GL_STALE, GL_FRESCO]).at === GL_FRESCO.at,
+    'melhorAmostra: fica com a MAIS RECENTE (erro do índice é unidirecional: só subestima)');
+  ok(melhorAmostra([GL_FRESCO, GL_STALE]).at === GL_FRESCO.at,
+    'melhorAmostra: e a ordem de chegada não muda o resultado');
+  ok(melhorAmostra([{ ok: false }, GL_STALE]).at === GL_STALE.at,
+    'melhorAmostra: amostra CEGA não disputa (não medir ≠ estado do cron — lápide 07-29)');
+  ok(melhorAmostra([{ ok: false }, { ok: false }]).ok === false,
+    'melhorAmostra: todas cegas → CEGO (não vira bootstrap nem verde)');
+  ok(melhorAmostra([]).ok === false, 'melhorAmostra: sem amostra → cego');
+
+  ok(precisaConfirmar('0 9 * * 1', GL_FRESCO, NOW_CASO) === false,
+    'CUSTO: cron vivo-e-ok NÃO paga re-consulta');
+  ok(precisaConfirmar('0 9 * * 1', GL_STALE, NOW_CASO) === true,
+    'CUSTO: 🔴 morto paga re-consulta');
+  ok(precisaConfirmar('35 9 * * *', { ok: true, at: '2026-08-13T10:00:00Z', conclusion: 'failure' }, NOW_CASO) === true,
+    'CUSTO: 🔴 vivo-mas-falhando paga re-consulta');
+  ok(precisaConfirmar('35 9 * * *', { ok: false }, NOW_CASO) === true, 'CUSTO: ⛔ cego paga re-consulta');
+  ok(precisaConfirmar('35 9 * * *', { ok: true, at: '' }, NOW_CASO) === false,
+    'CUSTO: bootstrap NÃO paga (é 🟡, não alarma)');
+  ok(precisaConfirmar('35 9 * * *', { ok: true, at: '2026-08-13T10:00:00Z', conclusion: 'cancelled' }, NOW_CASO) === false,
+    'CUSTO: inconclusivo NÃO paga (cancelamento benigno não alarma)');
+
+  // O falso-alarme REAL, reproduzido: 1ª leitura velha, 2ª fresca.
+  const wfsCaso = [{ file: 'gitleaks-history.yml', cron: '0 9 * * 1' },
+    { file: 'governance-drift.yml', cron: '35 9 * * *' }];
+  let nChamadas = 0;
+  const consultaFlapa = (f) => {
+    nChamadas++;
+    const primeira = nChamadas <= 2; // 1ª leitura de cada um vem do índice velho
+    if (f === 'gitleaks-history.yml') return primeira ? GL_STALE : GL_FRESCO;
+    return primeira ? GD_STALE : GD_FRESCO;
+  };
+  const avFlapa = avaliarCrons(wfsCaso, consultaFlapa, NOW_CASO);
+  ok(avFlapa.dead.length === 0 && avFlapa.falhando.length === 0,
+    'MORDE O FALSO-ALARME: 1ª amostra velha desmentida pela 2ª → 0 mortos, 0 falhando (era 2+2)');
+  ok(avFlapa.estados.every((e) => e === 'vivo') && avFlapa.reconsultas === 2,
+    'e gastou exatamente 1 re-consulta por cron suspeito (parou assim que foi desmentido)');
+
+  // E o alarme REAL segue mordendo: índice consistentemente velho = cron morto de fato.
+  let nPersistente = 0;
+  const avPersistente = avaliarCrons([wfsCaso[1]], () => { nPersistente++; return GD_STALE; }, NOW_CASO);
+  ok(avPersistente.dead.length === 1 && avPersistente.falhando.length === 1,
+    'LIBERA O ALARME REAL: todas as amostras velhas → MORTO + FALHANDO (confirmação não silencia)');
+  ok(nPersistente === CONFIRMACOES && avPersistente.reconsultas === CONFIRMACOES - 1,
+    `alarme real custa ${CONFIRMACOES} leituras — teto por cron doente, não por cron`);
+
+  let nSaudavel = 0;
+  avaliarCrons([wfsCaso[1]], () => { nSaudavel++; return GD_FRESCO; }, NOW_CASO);
+  ok(nSaudavel === 1, 'CUSTO ZERO no caso saudável: 1 chamada por cron, como antes (10 das 11 runs)');
+
+  let nCego = 0;
+  const avCego = avaliarCrons([wfsCaso[1]], () => { nCego++; return { ok: false }; }, NOW_CASO);
+  ok(nCego === CONFIRMACOES && avCego.cego.length === 1 && resumoLiveness(avCego.estados).exit === 1,
+    'cegueira persistente segue ⛔ + exit 1 (a lápide 2026-07-29 continua de pé)');
+
   console.log(falhas ? `\n✗ selftest: ${falhas} falha(s)` : '\n✓ selftest: núcleo morde e libera certo');
   process.exit(falhas ? 1 : 0);
 }
@@ -548,11 +822,23 @@ if (!wfs.length) {
 }
 
 const nowMs = Date.now(); // liveness real (não determinístico de propósito)
-const { dead, boot, alive, cego, estados, falhando, inconclusivos, estadosSucesso } =
-  avaliarCrons(wfs, lastScheduledRun, nowMs);
+
+const reg = lerRegistroSilencios();
+if (reg.erro) { console.error(`⛔ ${reg.erro}`); process.exit(1); }
+const { ativos, expirados, invalidos } = carregarSilencios(reg.doc, nowMs);
+// Silêncio apontando pra workflow que não é agendado = bookkeeping podre. Não derruba
+// (não é falha de cron), mas é dito: entrada que não alcança nada some do radar calada.
+const orfaos = [...ativos.keys()].filter((w) => !wfs.some((x) => x.file === w));
+
+const { dead, boot, alive, cego, estados, falhando, inconclusivos, silenciados, estadosSucesso, reconsultas } =
+  avaliarCrons(wfs, lastScheduledRun, nowMs, ativos);
 const r = resumoLiveness(estados);
 
 console.log(`🩺 cron-watchdog — ${wfs.length} crons agendados · ${alive.length} vivos · ${boot.length} bootstrap · ${cego.length} ⛔ não medidos · ${dead.length} 🔴 mortos`);
+// Diz o que fez: re-consulta > 0 significa que alguma amostra veio doente e foi
+// confirmada (ou desmentida) por outra. Silenciar isso esconderia justo o caso de
+// 2026-08-13, em que a 1ª amostra estava ~4 semanas atrasada.
+if (reconsultas) console.log(`   ↻ ${reconsultas} re-consulta(s): amostra suspeita confirmada com até ${CONFIRMACOES} leituras (índice do GitHub pode servir retrato velho — ver cabeçalho).`);
 for (const c of cego) console.error(`⛔ ${c}`);
 for (const b of boot) console.log(`🟡 ${b}`);
 for (const a of alive) console.log(`   ✓ ${a}`);
@@ -573,11 +859,22 @@ if (dead.length) {
 // estado independente de morto, e o caso real (system-map, governance-drift) estava
 // justamente vivo. Esconder atrás do eixo 1 faria o relatório mentir por omissão.
 const rs = resumoSucesso(estadosSucesso);
-console.log(`\n🎯 sucesso — ${rs.medidos} medido(s) de ${rs.total} · ${rs.ok} ok · ${rs.bootstrap} bootstrap · ${rs.cego} ⛔ não medidos · ${rs.inconclusivo} 🟠 inconclusivos · ${falhando.length} 🔴 falhando`);
+console.log(`\n🎯 sucesso — ${rs.medidos} medido(s) de ${rs.total} · ${rs.ok} ok · ${rs.bootstrap} bootstrap · ${rs.cego} ⛔ não medidos · ${rs.inconclusivo} 🟠 inconclusivos · ${rs.silenciado} 🔇 silenciados · ${falhando.length} 🔴 falhando`);
 for (const f of falhando) console.error(`🔴 ${f}`);
 for (const i of inconclusivos) console.log(`🟠 ${i}`);
+// Silenciado NUNCA some do relatório — o silêncio tira do exit, não da vista.
+for (const s of silenciados) console.log(`🔇 ${s}`);
+for (const x of expirados) console.error(`⌛ ${x}`);
+for (const o of orfaos) console.log(`🧹 silêncio órfão: '${o}' não é um workflow agendado — entrada podre em ${REGISTRO_SILENCIOS}, remova.`);
+if (invalidos.length) {
+  console.error(`\n✗ ${REGISTRO_SILENCIOS} tem ${invalidos.length} entrada(s) INVÁLIDA(s) — registro malformado não vira "sem silêncio":`);
+  for (const v of invalidos) console.error(`   ✗ ${v}`);
+  console.error(`   Contrato: workflow + razao (≥${RAZAO_MINIMA_CHARS} chars) + expira_em (YYYY-MM-DD, ≤${JANELA_MAXIMA_DIAS}d) + declarado_por.`);
+}
 if (falhando.length) {
-  console.error(`\n✗ ${falhando.length} cron(s) DISPARAM mas FALHAM — heartbeat fresco não é entrega. Abra o log com 'gh run list --workflow <file> --event schedule' e conserte a origem, ou registre por que o vermelho é esperado.`);
+  console.error(`\n✗ ${falhando.length} cron(s) DISPARAM mas FALHAM — heartbeat fresco não é entrega. Abra o log com 'gh run list --workflow <file> --event schedule' e conserte a origem. Se o vermelho for mesmo esperado, registre em ${REGISTRO_SILENCIOS} (exige razão + validade ≤${JANELA_MAXIMA_DIAS}d + quem declarou; merge de [W] é o ato que aprova).`);
+} else if (rs.silenciado) {
+  console.log(`\n⚠️ nenhum cron falhando SEM registro — mas ${rs.silenciado} vermelho(s) estão SILENCIADOS (acima). Isso não é "tudo verde": é dívida com prazo. Quando o silêncio expirar, o vermelho volta sozinho.`);
 } else if (rs.cego || rs.inconclusivo) {
   console.log(`✓ nenhum cron MEDIDO falhou — ⚠️ ${rs.cego} não medido(s) e ${rs.inconclusivo} inconclusivo(s) (cancelled/skipped/...): sobre esse(s) nada se afirma.`);
 } else {
@@ -588,6 +885,6 @@ if (falhando.length) {
 // independentes (um cron pode estar vivo e não entregar, e vice-versa) e esconder
 // a segunda atrás da primeira faria o relatório mentir por omissão.
 const falhouEntrega = reportarEntrega(checarEntrega(nowMs));
-process.exit(decidirExit(r, rs, falhouEntrega));
+process.exit(decidirExit(r, rs, falhouEntrega, invalidos.length > 0));
 
 }

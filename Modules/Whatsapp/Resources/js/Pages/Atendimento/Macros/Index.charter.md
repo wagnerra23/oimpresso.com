@@ -1,6 +1,6 @@
 ---
 page: /atendimento/macros
-component: resources/js/Pages/Atendimento/Macros/Index.tsx
+component: Modules/Whatsapp/Resources/js/Pages/Atendimento/Macros/Index.tsx
 owner: wagner
 status: draft
 last_validated: "2026-05-16"

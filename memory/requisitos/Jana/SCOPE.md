@@ -1,6 +1,6 @@
 ---
 module: Jana
-purpose: "Chat IA do business servido em /ia — conversa com memória, metas, períodos, alertas, custos LLM e qualidade RAG. ATENÇÃO fronteira em aberto: este módulo hospeda hoje também a plataforma MCP do time (servidor JSON-RPC /api/mcp, 44 tabelas mcp_* e 30 entidades Entities/Mcp/), cujo destino declarado em not_contains é Modules/Forja — movimento ainda não executado."
+purpose: "Chat IA do business servido em /ia — conversa com memória, metas, períodos, alertas, custos LLM e qualidade RAG. FRONTEIRA EM EXECUÇÃO (ADR 0366 §D-C item 4, autorizada por [W] em 2026-08-13): a plataforma MCP do time sai deste módulo para Modules/Forja. Onda 1 FEITA em 2026-08-13 — as 61 migrations mcp_* mudaram de casa e com elas o dono DERIVADO do schema. Ainda AQUI, e são as próximas ondas: 30 entidades Entities/Mcp/, o servidor JSON-RPC + 40 tools em Mcp/, 5 services em Services/Mcp/, 10 comandos Console/Commands/Mcp*, o McpAuthMiddleware e 44 testes."
 migracao_ui: "pendente — tem Blade servido, sem duvida de escopo; fila em module-surface --migracao"
 contains:
   # Chat IA core

@@ -14,10 +14,10 @@ const COMPANIES = [
 // ─── MENU completo — 36 módulos do repo wagnerra23/oimpresso.com@main ───
 // Auditoria: AUDITORIA_MODULOS.md. Cada item.id casa com a chave em MIGRATION_INFO (app.jsx).
 const MENU = [
-  // ── Shortcuts de topo (não-grupos) — canon repo: IA · Equipe · Atendimento ──
-  { id: "chat",   icon: "chat",  label: "IA",          badge: 3, shortcut: true },
-  { id: "equipe", icon: "users", label: "Equipe",                shortcut: true },
-  { id: "inbox",  icon: "inbox", label: "Atendimento", badge: 6, shortcut: true },
+  // ── Shortcuts de topo (não-grupos) — [W] 2026-08: IA · Forja · Atendimento (Equipe → MAIS) ──
+  { id: "chat",     icon: "chat",  label: "IA",          badge: 3, shortcut: true },
+  { id: "projects", icon: "bot",   label: "Forja",                 shortcut: true },
+  { id: "inbox",    icon: "inbox", label: "Atendimento", badge: 6, shortcut: true },
 
   // ── 8 grupos canon (ADR 0180 / Sidebar.tsx v3) em ordem fixa ──
   { group: "CADASTRO", items: [
@@ -75,6 +75,7 @@ const MENU = [
     { id: "usuarios",    icon: "user",  label: "Usuários" },
     { id: "relatorios",  icon: "chart", label: "Relatórios" },
     { id: "kb",          icon: "book",  label: "Base de Conhecimento" },
+    { id: "documentacao", icon: "book", label: "Documentação" },
   ]},
 
   // ── MAIS — fallback (fechado por default): páginas soltas sem casa canônica ──
@@ -85,7 +86,7 @@ const MENU = [
     { id: "acabamento", icon: "scissor",   label: "Acabamento" },
     { id: "expedicao",  icon: "truck",     label: "Expedição" },
     { id: "brief",      icon: "doc",       label: "Briefings" },
-    { id: "projects",   icon: "bot",       label: "Forja" },
+    { id: "equipe",     icon: "users",     label: "Equipe" },
     { id: "governance", icon: "scale",     label: "Governança" },
     { id: "site",       icon: "globe",     label: "Site (CMS)" },
     // [W] 2026-06-16: removidos da nav (Copiloto · MemCofre · Arquivos · Connector · Team MCP · SRS)

@@ -12,6 +12,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "5560", "--directory", "D:\\oimpresso.com\\public\\prototipos\\kb"],
       "port": 5560
+    },
+    {
+      "name": "cowork-espelho",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "5570", "--directory", "D:\\oimpresso.com\\prototipo-ui\\cowork"],
+      "port": 5570
     }
   ]
 }
