@@ -26,8 +26,9 @@
 
 import { readdirSync, readFileSync, existsSync, writeFileSync, realpathSync } from 'node:fs';
 import { execSync } from 'node:child_process';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isShallowHistory, gitLastDate } from './lib/git-history.mjs';
 
 const ROOT = process.cwd();
 const OUT = join(ROOT, 'governance', 'sdd-scorecard.json');
@@ -249,35 +250,15 @@ export function measureRagasRealUptime(trendPath = join(ROOT, 'governance', 'rag
 const STALE_DAYS_DISTILLER = 7;
 const DISTILLED_AT_RE = /^distilled_at:\s*["']?(\d{4}-\d{2}-\d{2})/m;
 
-function gitDateOf(file) {
-  try {
-    return execSync(`git log -1 --format=%cs -- "${file}"`, { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] })
-      .toString().trim() || null;
-  } catch { return null; }
-}
+const gitDateOf = (file) => gitLastDate(file);
 
-// Checkout shallow (fetch-depth:1) fabrica datas: `git log -1` só enxerga o HEAD, então
-// TODO arquivo "foi commitado hoje" — qualquer métrica baseada em data-git mente nesse
-// cenário (mede calendário, não eventos). PEGADINHA (pega no smoke 2026-07-12):
-// `--is-shallow-repository` é grosso demais — o `git fetch origin governance/nightly-floor
-// --depth 1` (materialização da órfã, que o próprio ratchet manda rodar) marca o repo
-// shallow SEM truncar a history do HEAD. Shallow só invalida a medição se algum boundary
-// do `.git/shallow` for ANCESTRAL do HEAD. Erro de git = não-confiável → true.
-export function isShallowHistory() {
-  const git = (cmd) => execSync(cmd, { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
-  try {
-    if (git('git rev-parse --is-shallow-repository') === 'false') return false;
-    const shallowFile = resolve(ROOT, git('git rev-parse --git-path shallow'));
-    if (!existsSync(shallowFile)) return true; // marcado shallow sem boundary legível — não confia
-    for (const sha of readFileSync(shallowFile, 'utf8').split('\n').map((s) => s.trim()).filter(Boolean)) {
-      try {
-        execSync(`git merge-base --is-ancestor ${sha} HEAD`, { cwd: ROOT, stdio: 'ignore' });
-        return true; // boundary corta a ancestry do HEAD → datas fabricáveis
-      } catch { /* boundary fora da ancestry (ex: órfã nightly-floor) — não trunca */ }
-    }
-    return false;
-  } catch { return true; }
-}
+// O detector NASCEU aqui (incidente 2026-07-08→12) e virou o dono de fato: o
+// service-scorecard importava daqui e o anchor-lint teve que ESPELHAR, porque este
+// módulo o invoca por execSync e o import seria circular. Mudou-se o corpo pro
+// módulo-FOLHA `git-history.mjs`, que não importa nada do repo e por isso todo mundo
+// consegue importar sem ciclo. Re-exportado aqui só pra não quebrar quem já importava
+// daqui — o dono da REGRA agora é o folha, e há UM detector, não seis.
+export { isShallowHistory };
 
 /**
  * Doc REGENERADO por máquina? Lê o `authority: generated` do frontmatter.

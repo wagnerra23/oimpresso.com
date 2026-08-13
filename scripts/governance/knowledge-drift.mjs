@@ -33,12 +33,12 @@
 //       node scripts/governance/knowledge-drift.mjs --write-baseline [--baseline <dir>]
 //       node scripts/governance/knowledge-drift.mjs --check-paths   (advisory: cita path morto sem tombstone?)
 //       node scripts/governance/knowledge-drift.mjs --selftest      (prova que a catraca de path morde/solta)
-// Node puro (fs + git via execSync). Sem deps, sem DB, sem PHP.
+// Node puro (fs + git via git-history.mjs, que guarda contra clone raso). Sem deps, sem DB, sem PHP.
 
 import { readdirSync, statSync, readFileSync, existsSync, mkdirSync, writeFileSync, realpathSync } from 'node:fs';
-import { execSync } from 'node:child_process';
 import { join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { gitLastDate } from './lib/git-history.mjs';
 
 const ROOT = process.cwd();
 const REQ = join(ROOT, 'memory', 'requisitos');
@@ -94,12 +94,10 @@ function allMdLive(dir) {
   return out;
 }
 
-function gitDate(file) {
-  try {
-    return execSync(`git log -1 --format=%cs -- "${file}"`, { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] })
-      .toString().trim() || null;
-  } catch { return null; }
-}
+// Guardado contra clone raso: em history truncada `git log -1` data TODO arquivo com o
+// dia da run (ver git-history.mjs). `null` = não medido, nunca data inventada. O detector
+// é LAZY — o `--check` não deriva data e por isso segue sem gastar git nenhum (medido).
+const gitDate = (file) => gitLastDate(file);
 
 const TRUTH_RE = /^(SPEC|README|ARCHITECTURE|BRIEFING|CAPTERRA.*|CAPTERRA-INVENTARIO|AUDIT.*|AUDITORIA.*)\.md$/i;
 // MOD_REF_RE — referência a um app-module Modules/<X>. Compartilhada (export): usada aqui
