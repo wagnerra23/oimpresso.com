@@ -121,3 +121,60 @@ test('determinismo: buildDoc duas vezes → JSON idêntico', () => {
   const b = JSON.stringify(buildDoc({ catalog, gradesDoc, vitalDoc }, deps));
   assert.equal(a, b);
 });
+
+// ── PAGES_NS 1:N (um módulo, vários namespaces) ────────────────────────────────
+// Desde que as Pages passaram a morar no módulo dono (PR #5686), PAGES_NS aceita ARRAY:
+// Whatsapp → ['Whatsapp','Atendimento']. Este bloco é auto-contido de propósito — não
+// mexe nas fixtures compartilhadas acima, para não deslocar as contagens dos testes de stats.
+//
+// Sem este teste a regressão passava CALADA: os 8 casos acima usam pagesNs só com string,
+// então nenhum deles exercitava o array. Em produção o cron `mv-metabolismo` quebrou com
+// `ERR_INVALID_ARG_TYPE` em join(), e o defeito silencioso era pior que o barulhento —
+// `vitalByNs.get(<array>)` devolve undefined sem erro, classificando o módulo como
+// backend-only. Cobre os dois: o crash E o silêncio.
+const catalog1N = {
+  stats: { modules: 2 },
+  nodes: [
+    { id: 'module:Multi', type: 'module', module: 'Multi', charter_adr: '0090', path: 'memory/requisitos/Multi/SCOPE.md', purpose: 'namespace primário sem telas; as telas vivem no secundário.' },
+    { id: 'module:Unico', type: 'module', module: 'Unico', charter_adr: '0091', path: 'memory/requisitos/Unico/SCOPE.md', purpose: 'string simples — a forma legada segue valendo.' },
+  ],
+  edges: [],
+};
+const vital1N = {
+  generated_at: '2026-08-13',
+  modulos: [
+    // repare: NÃO existe linha 'Multi'. A única linha é a do namespace SECUNDÁRIO.
+    { mod: 'Secundario', telas: 7, com_scorecard: 7, nota_media: 82, nota_min: 75, pior_tela: 'Secundario/A', charter_pct: 100, casos_pct: 50, stale: false, idade_max_dias: 2 },
+    { mod: 'Unico', telas: 1, com_scorecard: 1, nota_media: 90, nota_min: 90, pior_tela: 'Unico/A', charter_pct: 100, casos_pct: 100, stale: false, idade_max_dias: 1 },
+  ],
+};
+const deps1N = {
+  pagesNs: { Multi: ['Multi', 'Secundario'], Unico: 'Unico' },
+  // recebe a LISTA inteira e casa se QUALQUER namespace tiver dir — como as duas raízes reais
+  hasPagesDir: (nss) => (Array.isArray(nss) ? nss : [nss]).some((n) => n === 'Secundario' || n === 'Unico'),
+  scopeExists: () => true,
+  briefingInfo: () => ({ present: true, last_commit: '2026-08-01' }),
+};
+const doc1N = buildDoc({ catalog: catalog1N, gradesDoc: { baseline_version: 'vTEST', rubric_adr: '0155', modules: { Multi: 80, Unico: 80 } }, vitalDoc: vital1N }, deps1N);
+const by1N = Object.fromEntries(doc1N.services.map((s) => [s.id, s]));
+
+test('1:N — módulo com PAGES_NS array acha o vital-signs pelo namespace SECUNDÁRIO', () => {
+  const sc = by1N.Multi.signals.screens;
+  assert.equal(sc.matched, true, 'sem o fallback pela lista, Multi cairia em backend_only');
+  assert.equal(sc.ns, 'Secundario');
+  assert.equal(sc.telas, 7);
+});
+
+test('1:N — o ns publicado é STRING, nunca o array cru (não vaza pro JSON nem pro template)', () => {
+  for (const s of doc1N.services) {
+    assert.equal(Array.isArray(s.signals.screens.ns), false, `${s.id} publicou ns como array`);
+    assert.equal(typeof s.signals.screens.ns, 'string');
+  }
+});
+
+test('1:N — a forma STRING legada continua funcionando (não regredir quem não é 1:N)', () => {
+  const sc = by1N.Unico.signals.screens;
+  assert.equal(sc.matched, true);
+  assert.equal(sc.ns, 'Unico');
+  assert.equal(sc.telas, 1);
+});

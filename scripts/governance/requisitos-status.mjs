@@ -41,7 +41,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 // Fonte ÚNICA de "o que é tela" (reconciliação #4836/#4840) — o mesmo módulo que o
 // casos-coverage-guard e o screen-coverage-map consomem. Ver telasDoModulo().
-import { isPageScreenPath } from '../qa/page-path.mjs';
+import { isPageScreenPath, raizesDePages } from '../qa/page-path.mjs';
 /**
  * Fonte ÚNICA do regex de UC-id (ADR 0264 · `scripts/lib/uc-regex.mjs`).
  *
@@ -67,7 +67,29 @@ import { ucScanRe } from '../lib/uc-regex.mjs';
  * a doenca que a lib de UC ja documenta: "regex que deviam ser iguais e drifam".
  */
 import { PAGES_NS } from './module-surface.mjs';
-const pagesNsDe = (mod) => PAGES_NS[mod] || mod;
+const pagesNsDe = (mod) => { const v = PAGES_NS[mod] ?? mod; return Array.isArray(v) ? v : [v]; };
+/**
+ * Bases de Pages REAIS do módulo — o produto (raiz × namespace) que existe em disco.
+ *
+ * Duas mudanças do PR #5686 quebram a forma antiga (`resources/js/Pages/${PAGES_NS[mod]}`),
+ * e as duas falham em SILÊNCIO aqui (o `readdirSync` mora dentro de um `try/catch` que
+ * devolve lista vazia — logo o módulo aparece com 0 telas em vez de dar erro):
+ *   1. as Pages passaram a morar TAMBÉM em `Modules/<X>/Resources/js/Pages` — raiz fixa é cegueira;
+ *   2. `PAGES_NS` virou 1:N, então o valor pode ser array e o template produzia `Forja,team-mcp`.
+ * `raizesDePages` é o dono da lista de raízes — não reimplementar a segunda aqui.
+ */
+const basesDePages = (mod) => {
+  const nss = pagesNsDe(mod);
+  const out = [];
+  for (const raizAbs of raizesDePages(ROOT)) {
+    const raizRel = raizAbs.slice(ROOT.length + 1).replace(/\\/g, '/');
+    for (const ns of nss) {
+      const rel = `${raizRel}/${ns}`;
+      if (existsSync(join(ROOT, rel))) out.push(rel);
+    }
+  }
+  return out;
+};
 
 // Guard IS_MAIN (padrao do doc-freshness-score): os extratores sao EXPORTADOS pra teste;
 // sem isto, um `import` do modulo dispara o CLI e polui a saida de quem so queria a funcao.
@@ -215,8 +237,7 @@ function casosDoModulo(mod) {
       });
     }
   };
-  const pagesDir = `resources/js/Pages/${pagesNsDe(mod)}`;
-  coletar(pagesDir, '', pagesDir, true);
+  for (const pagesDir of basesDePages(mod)) coletar(pagesDir, '', pagesDir, true);
   coletar(`memory/requisitos/${mod}/_telas`, ' (blade)');
   return out;
 }
@@ -238,18 +259,19 @@ function casosDoModulo(mod) {
  * pra casar 1:1 com `Unificado/Index.casos.md` — mesma convenção em `casosDoModulo`.
  */
 function telasDoModulo(mod) {
-  const base = `resources/js/Pages/${pagesNsDe(mod)}`;
   const out = [];
-  const walk = (rel) => {
-    let ents; try { ents = readdirSync(join(ROOT, rel), { withFileTypes: true }); } catch { return; }
-    for (const e of ents) {
-      const p = `${rel}/${e.name}`;
-      if (e.isDirectory()) { walk(p); continue; }
-      if (!e.name.endsWith('.tsx') || !isPageScreenPath(p)) continue;
-      out.push(p.slice(base.length + 1).replace(/\.tsx$/, ''));
-    }
-  };
-  walk(base);
+  for (const base of basesDePages(mod)) {
+    const walk = (rel) => {
+      let ents; try { ents = readdirSync(join(ROOT, rel), { withFileTypes: true }); } catch { return; }
+      for (const e of ents) {
+        const p = `${rel}/${e.name}`;
+        if (e.isDirectory()) { walk(p); continue; }
+        if (!e.name.endsWith('.tsx') || !isPageScreenPath(p)) continue;
+        out.push(p.slice(base.length + 1).replace(/\.tsx$/, ''));
+      }
+    };
+    walk(base);
+  }
   return out;
 }
 function sddDoModulo(mod) {
