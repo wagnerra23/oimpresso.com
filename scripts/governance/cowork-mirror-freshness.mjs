@@ -100,19 +100,44 @@ export function shouldFail(verdicts) {
 
 /** Linha de veredito final do --compare. PURA (testável).
  *
- *  O texto NUNCA pode depender de `--check`: o modo relatório e o modo gate observam o MESMO
- *  fato, e só o EXIT CODE é privilégio do gate. Bug medido 2026-08-13: o
- *  `console.log('✓ sem espelho STALE')` vivia FORA do `if (strict …)`, então uma rodada com
- *  `⛔ stale: 1` impresso no corpo TERMINAVA com a linha verde — e a última linha é o que quem
- *  roda sem `--check` lê como resultado. Reproduzido no dia: `--compare snap.json` com o
- *  `jana-merge.jsx` divergente imprimiu corpo vermelho e rodapé verde.
+ *  DUAS doenças consertadas aqui, medidas no mesmo dia (2026-08-13), ambas no eixo do OUTPUT:
  *
- *  É a família LC-10 (artefato afirmando o próprio estado) no eixo do OUTPUT — a mesma doença
- *  que o `ancora.mjs` teve carimbando `✓` sobre âncora `n/a`, consertada em 2026-08-11. */
-export function veredictoFinal(nStale) {
-  return nStale > 0
-    ? { ok: false, texto: `✗ ${nStale} arquivo(s) do espelho STALE — o vivo avançou e o espelho ficou. Re-exporte do Cowork.` }
-    : { ok: true, texto: '✓ sem espelho STALE (divergência hash-provada).' };
+ *  (1) VERDE COM VERMELHO NO CORPO — o `console.log('✓ sem espelho STALE')` vivia FORA do
+ *      `if (strict …)`. Com `--check` o `process.exit(1)` saía antes e a linha nunca era
+ *      alcançada; SEM `--check` ela sempre imprimia. Reproduzido: corpo com `⛔ stale: 1` e
+ *      rodapé `✓`. Família LC-10 (artefato afirmando o próprio estado) — a mesma doença que o
+ *      `ancora.mjs` teve carimbando `✓` sobre âncora `n/a`.
+ *      Regra que sai disso: o TEXTO é do fato medido; `--check` decide só o EXIT CODE.
+ *
+ *  (2) VERDE POR NÃO-MEDIÇÃO — com 0 STALE entre 2 arquivos medidos e 119 SEM VEREDITO, a
+ *      linha final dizia `✓ sem espelho STALE (divergência hash-provada)`. Nada foi provado
+ *      sobre os 119: "não achei divergência" e "não procurei" viravam a mesma frase. Família
+ *      LC-13 — o mesmo formato de `0 failed` numa suíte que não rodou.
+ *      Regra que sai disso: superlativo ("sem espelho STALE") só pode falar do que foi MEDIDO,
+ *      e o denominador anda junto. Cobertura parcial ⇒ INCONCLUSIVO, nunca ✓.
+ *
+ *  ⚠️ O ENFORCEMENT NÃO MUDA: `--check` continua mordendo SÓ em STALE (contrato de
+ *  `shouldFail`). Inconclusivo é um VEREDITO honesto, não um gate novo — promover cobertura a
+ *  bloqueio seria decisão [W] (ADR 0336), não efeito colateral de conserto de texto. Por isso
+ *  `ok` segue true no caso inconclusivo: ele descreve "não é falha dura", não "está em dia".
+ *
+ *  `cobertura` é opcional — sem ela o comportamento é o de antes (compat com chamador velho). */
+export function veredictoFinal(nStale, cobertura = null) {
+  if (nStale > 0) {
+    return { ok: false, texto: `✗ ${nStale} arquivo(s) do espelho STALE — o vivo avançou e o espelho ficou. Re-exporte do Cowork.` };
+  }
+  if (cobertura && cobertura.semVeredito > 0) {
+    return {
+      ok: true,
+      inconclusivo: true,
+      texto:
+        `⚠ INCONCLUSIVO — 0 STALE entre os ${cobertura.medidos} arquivo(s) MEDIDO(S), mas ` +
+        `${cobertura.semVeredito} de ${cobertura.total} seguem SEM VEREDITO. ` +
+        `"Não achei divergência" não é "não há divergência": complete o snapshot antes de concluir que o espelho está em dia.`,
+    };
+  }
+  const quantos = cobertura ? `${cobertura.total} arquivo(s) medido(s)` : 'todos os medidos';
+  return { ok: true, texto: `✓ sem espelho STALE — ${quantos}, divergência hash-provada.` };
 }
 
 // ── LIVE-ONLY: o ponto cego que deixou `jana-merge.jsx` fora do git por dias ──────
@@ -821,9 +846,13 @@ function main() {
     console.log(`  ledger: rodada registrada em ${LEDGER_REL} (${entries.length} entrada(s)). Commite o ledger.`);
   }
 
-  // O VEREDITO é do fato medido; o `--check` decide só o exit code. Separar os dois é o
-  // conserto de 2026-08-13 (ver docblock de `veredictoFinal`).
-  const vf = veredictoFinal(stale.length);
+  // O VEREDITO é do fato medido E do denominador; o `--check` decide só o exit code.
+  // Ver docblock de `veredictoFinal` — as duas doenças que isto fecha.
+  const vf = veredictoFinal(stale.length, {
+    total: rows.length,
+    medidos: rows.length - unchecked.length,
+    semVeredito: unchecked.length,
+  });
   (vf.ok ? console.log : console.error)(vf.texto);
   if (strict && shouldFail(rows.map((r) => r.veredito))) process.exit(1);
 }
