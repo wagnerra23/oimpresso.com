@@ -40,6 +40,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { execSync } from 'node:child_process';
+import { isShallowHistory } from './git-history.mjs';
 
 const ROOT = process.cwd();
 const SCORECARD = 'memory/governance/scorecards/funcoes/app-utils-productutil.yaml';
@@ -89,7 +90,10 @@ function git(cmd) {
 
 /** (F) fix-commits localizados em ProductUtil.php, mapeados à função pelo intervalo de linhas. */
 function fixCommits(fns) {
-  const shallow = git('rev-parse --is-shallow-repository').trim() === 'true';
+  // Dono único (git-history.mjs): `--is-shallow-repository` cru acusaria raso só por
+  // alguém ter materializado uma órfã com `--depth 1`, cujo boundary não corta a
+  // ancestry do HEAD — aqui isso truncaria o sinal (F) sem necessidade.
+  const shallow = isShallowHistory();
   const log = git(`log --format=%H%x09%s -- ${TARGET_FILE}`).trim().split('\n').filter(Boolean);
   const hits = {}; // fn -> [{hash, subject}]
   const notas = [];

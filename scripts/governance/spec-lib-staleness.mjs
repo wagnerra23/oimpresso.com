@@ -80,6 +80,7 @@ import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { classifyCodeStaleness, declaredDoorDate } from './briefing-code-staleness.mjs';
+import { gitLastDate } from './git-history.mjs';
 
 const ROOT = process.cwd();
 // 30d — MESMO limiar dos eixos irmãos (não introduzir número mágico novo).
@@ -150,7 +151,9 @@ function gitOut(cmd) {
     return execSync(cmd, { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 256 * 1024 * 1024 }).toString();
   } catch { return ''; }
 }
-const gitDate = (rel) => gitOut(`git log -1 --format=%cs -- "${rel}"`).trim() || null;
+// Guardado contra clone raso: em history truncada `git log -1` data TODO arquivo
+// com o dia da run (ver git-history.mjs). `null` = não medido, nunca data inventada.
+const gitDate = (rel) => gitLastDate(rel);
 
 /**
  * lockVersionHistory — reconstrói, por commit do composer.lock (newest→oldest), a

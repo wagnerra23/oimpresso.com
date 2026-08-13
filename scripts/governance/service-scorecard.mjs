@@ -62,10 +62,10 @@ import { execSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { PAGES_NS } from './module-surface.mjs';
 import { raizesDePages } from '../qa/page-path.mjs';
-// Detector de history truncada — DONO: sdd-scorecard.mjs (nasceu lá no incidente de
-// 2026-07-08). Importado, não copiado: segundo detector do mesmo fato drifta.
-// Import é seguro — aquele módulo só roda o CLI sob guard `isMain`.
-import { isShallowHistory } from './sdd-scorecard.mjs';
+// Detector de history truncada — DONO: git-history.mjs (módulo-folha; nasceu no
+// sdd-scorecard no incidente de 2026-07-08 e mudou-se pra lá pra que todos possam
+// importar sem ciclo). Importado, não copiado: segundo detector do mesmo fato drifta.
+import { isShallowHistory } from './git-history.mjs';
 
 const ROOT = process.cwd();
 const args = process.argv.slice(2);

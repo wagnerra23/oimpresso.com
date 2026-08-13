@@ -48,6 +48,7 @@ import { join } from 'node:path';
 import { auditDocumentAuthority, CANONICAL_ENTRYPOINT } from './document-authority.mjs';
 import { factAnchorScan, factAnchorTabelas, factAnchorPaths } from './fact-anchor.mjs';
 import { ucsDeclaredInCasos } from '../lib/uc-regex.mjs';
+import { gitLastDate as gitLastDateGuardado } from './git-history.mjs';
 
 const ROOT = process.cwd();
 const JSON_OUT = process.argv.includes('--json');
@@ -72,11 +73,10 @@ const warns = []; // 🟡 só sinaliza
 // ── helpers ────────────────────────────────────────────────────────────────
 const read = (p) => readFileSync(join(ROOT, p), 'utf8');
 const exists = (p) => existsSync(join(ROOT, p));
-function gitLastDate(relPath) {
-  try {
-    return execSync(`git log -1 --format=%cs -- "${relPath}"`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
-  } catch { return ''; }
-}
+// Guardado contra clone raso: em history truncada `git log -1` data TODO arquivo com o
+// dia da run (ver git-history.mjs). Mantém o contrato `''` deste consumidor — trocar o
+// tipo de retorno por baixo dele seria trocar um bug por outro.
+const gitLastDate = (relPath) => gitLastDateGuardado(relPath, { ausente: '' });
 function listFiles(dir, filterFn) {
   const out = [];
   const walk = (d) => {
