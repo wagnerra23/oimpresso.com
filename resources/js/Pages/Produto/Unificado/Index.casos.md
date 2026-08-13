@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela reúne, numa rota só, tudo que as outras telas do Produto gateiam separadamente — custo, preço de venda, tabelas de preço e composição. Sem casos, ela vira o caminho por onde tudo isso sai sem permissão.
 owner: wagner
-last_run: "2026-08-11"
-last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane Estoque · MySQL"
+last_run: "2026-08-13"
+last_run_ci: "0 UC executado até aqui — o PR do gate (#5733) nasceu empilhado no #5597 e a lane Estoque · MySQL só dispara com base `main`, então ela nunca rodou. Com o #5597 mergeado e o #5733 re-apontado, a lane passa a executar. Os Status seguem ⬜ até haver run id."
 ---
 
 # Casos de Uso & Aceite — Catálogo Unificado (`/products/unificado`)
