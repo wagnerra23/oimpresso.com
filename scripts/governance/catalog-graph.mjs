@@ -886,7 +886,11 @@ function parseImportsCruzados(linhas, { modulosVivos, incluirTestes = false }) {
     // FQCN é a IDENTIDADE do símbolo (ver `simbolosCrossCutting`). O basename não serve:
     // dois módulos podem ter classes homônimas, e agrupá-las funde símbolos distintos.
     const fqcn = `Modules\\${dst}\\${[...partes.slice(0, -1), simbolo].join('\\')}`;
-    out.push({ src, dst, camada: partes[0] || '?', simbolo, fqcn });
+    // `grupo` = segmentos ENTRE a camada e o símbolo (`Entities\Mcp\McpTask` → `Mcp`).
+    // É o que revela SUB-TEMA dentro de um par: sem ele, 83 imports de `Entities\Mcp` e
+    // 11 de `Services\TaskRegistry` viram o mesmo indistinto "Forja → Jana".
+    const grupo = partes.slice(1, -1).join('\\');
+    out.push({ src, dst, camada: partes[0] || '?', grupo, simbolo, fqcn });
   }
   return out;
 }
@@ -933,20 +937,29 @@ function compararFronteira(refs, graph, { limiar = LIMIAR_CROSS_CUTTING, modulos
     const k = `${r.src}>${r.dst}`;
     let p = pares.get(k);
     if (!p) {
-      p = { src: r.src, dst: r.dst, imports: 0, peso: 'contrato', simbolos: new Set(), soPrimitiva: true };
+      p = { src: r.src, dst: r.dst, imports: 0, peso: 'contrato', simbolos: new Set(), grupos: new Map(), soPrimitiva: true };
       pares.set(k, p);
     }
     p.imports++;
     p.simbolos.add(r.simbolo);
+    const gk = r.grupo ? `${r.camada}\\${r.grupo}` : (r.camada || '?');
+    p.grupos.set(gk, (p.grupos.get(gk) || 0) + 1);
     if (!cross.has(identidadeDoSimbolo(r))) p.soPrimitiva = false;
     const w = pesoDaCamada(r.camada);
     if (ORDEM_PESO[w] > ORDEM_PESO[p.peso]) p.peso = w;
   }
-  const lista = [...pares.values()].map((p) => ({
-    ...p,
-    simbolos: [...p.simbolos].sort(),
-    declarado: Boolean(declaradas.get(p.src)?.has(p.dst)),
-  }));
+  const lista = [...pares.values()].map((p) => {
+    // O grupo DOMINANTE do par. `declarado` é binário POR PAR (`declaradas.get(src).has(dst)`),
+    // então uma delegação verdadeira num tema absolve todo import do outro — e sem o grupo
+    // não há como o leitor ver isso. Fato derivado, sem limiar: quem julga é humano.
+    const top = [...p.grupos].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
+    return {
+      ...p,
+      simbolos: [...p.simbolos].sort(),
+      grupoTop: top ? { nome: top[0], n: top[1] } : null,
+      declarado: Boolean(declaradas.get(p.src)?.has(p.dst)),
+    };
+  });
   const naoDeclaradas = lista.filter((p) => !p.declarado);
   const reais = new Set(lista.map((p) => `${p.src}>${p.dst}`));
   const soDeclaradas = [];
@@ -1137,6 +1150,25 @@ function reportAcoplamento(graph) {
   for (const p of negocio) {
     const selo = p.peso === 'dado' ? '⚠️ ' : '  ';
     console.log(`${selo}${p.src} → ${p.dst}  (${p.imports} imports · ${p.peso}) ${p.simbolos.slice(0, 3).join(', ')}`);
+  }
+  // Par DECLARADO não é dívida — mas também não pode ser INVISÍVEL, e até 2026-08-13 era:
+  // este loop só imprimia os NÃO-declarados, e `confirmadas` era só um número no cabeçalho.
+  // Como `declarado` é binário POR PAR, uma delegação verdadeira num tema absolve todo import
+  // do outro. Medido no dia: `Forja → Jana` saiu declarado com 94 imports (as duas delegações
+  // do `not_contains` do Forja descrevem "Skills governance" e "Chat IA", ~11 imports), e
+  // 83 dos 94 eram `Entities\Mcp` — a plataforma que a ADR 0366 (aceita 2026-08-03) mandou
+  // PRA Forja e ninguém tinha movido. A maior aresta do repo, fora do radar por 9 dias.
+  // O canon já diz qual é o desenho certo: `allowlist_razoes` = "par fica VISÍVEL, isento de
+  // morder". Aqui a visibilidade passa a valer pra toda declaração. NENHUM veredito muda:
+  // a catraca segue lendo só `naoDeclaradas`, e o exit code é o mesmo.
+  const declarados = r.pares.filter((p) => p.declarado);
+  if (declarados.length) {
+    console.log('');
+    console.log(`ℹ️  ${declarados.length} par(es) DECLARADOS — fora da dívida, NÃO fora do radar (o volume e o grupo são o sinal):`);
+    for (const p of declarados) {
+      const g = p.grupoTop ? ` · maior grupo: ${p.grupoTop.nome} ${p.grupoTop.n}` : '';
+      console.log(`   ${p.src} → ${p.dst}  (${p.imports} imports · ${p.peso}${g}) ${p.simbolos.slice(0, 3).join(', ')}`);
+    }
   }
   const t = reportFronteiraDeTabela(modulosVivos);
   console.log('');

@@ -462,7 +462,7 @@ test('parseImportsCruzados: extrai src/dst/camada/símbolo e ignora self-ref', (
   ], { modulosVivos: VIVOS });
   assert.equal(refs.length, 1, 'self-ref não é fronteira');
   assert.deepEqual(refs[0], {
-    src: 'Alpha', dst: 'Beta', camada: 'Entities', simbolo: 'Nota',
+    src: 'Alpha', dst: 'Beta', camada: 'Entities', grupo: '', simbolo: 'Nota',
     fqcn: 'Modules\\Beta\\Entities\\Nota',
   });
 });
@@ -530,6 +530,42 @@ test('parseImportsCruzados carimba fqcn, e o alias não entra nele', () => {
     L('Modules/Alpha/S.php', 'use Modules\\Beta\\Entities\\Nota as N;'),
   ], { modulosVivos: VIVOS });
   assert.equal(refs[0].fqcn, 'Modules\\Beta\\Entities\\Nota');
+});
+
+test('parseImportsCruzados carimba `grupo` (sub-tema entre camada e símbolo)', () => {
+  const refs = parseImportsCruzados([
+    L('Modules/Alpha/S.php', 'use Modules\\Beta\\Entities\\Mcp\\McpTask;'),
+    L('Modules/Alpha/S.php', 'use Modules\\Beta\\Entities\\Nota;'),
+  ], { modulosVivos: VIVOS });
+  assert.equal(refs[0].grupo, 'Mcp', 'MORDE: sub-namespace vira grupo');
+  assert.equal(refs[1].grupo, '', 'CONTROLE NEGATIVO: sem sub-namespace, grupo é vazio');
+});
+
+test('BITE: grupoTop expõe o sub-tema DOMINANTE dentro de um par declarado', () => {
+  // O defeito de 2026-08-13: `declarado` é binário POR PAR, então uma delegação verdadeira
+  // num tema (2 imports de Services) absolvia o tema inteiro do outro lado (3 de Entities\Mcp).
+  const g = buildGraph(recordsFromSynthetic());
+  const refs = parseImportsCruzados([
+    L('Modules/Alpha/A.php', 'use Modules\\Beta\\Entities\\Mcp\\McpTask;'),
+    L('Modules/Alpha/B.php', 'use Modules\\Beta\\Entities\\Mcp\\McpToken;'),
+    L('Modules/Alpha/C.php', 'use Modules\\Beta\\Entities\\Mcp\\McpActor;'),
+    L('Modules/Alpha/D.php', 'use Modules\\Beta\\Services\\Legit;'),
+    L('Modules/Alpha/E.php', 'use Modules\\Beta\\Services\\Outro;'),
+  ], { modulosVivos: VIVOS });
+  const par = compararFronteira(refs, g).pares.find((p) => p.src === 'Alpha' && p.dst === 'Beta');
+  assert.ok(par.declarado, 'pré-condição: o par é declarado (SCOPE_ALPHA not_contains → Beta)');
+  assert.equal(par.imports, 5);
+  assert.equal(par.grupoTop.nome, 'Entities\\Mcp', 'MORDE: o grupo dominante fica visível');
+  assert.equal(par.grupoTop.n, 3);
+});
+
+test('grupoTop de par sem sub-namespace é a própria camada (não fabrica grupo)', () => {
+  const g = buildGraph(recordsFromSynthetic());
+  const refs = parseImportsCruzados([
+    L('Modules/Alpha/A.php', 'use Modules\\Gama\\Entities\\Escondida;'),
+  ], { modulosVivos: VIVOS });
+  const par = compararFronteira(refs, g).pares.find((p) => p.dst === 'Gama');
+  assert.equal(par.grupoTop.nome, 'Entities', 'CONTROLE NEGATIVO: camada nua, sem barra');
 });
 
 test('pesoDaCamada: model/entity é o pior; contrato é o mais fraco', () => {
