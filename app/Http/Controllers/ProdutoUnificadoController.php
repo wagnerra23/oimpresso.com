@@ -134,12 +134,16 @@ class ProdutoUnificadoController extends Controller
             // closures D-14: não mudam com a troca de sub-tela (`tela`) — pulam no
             // partial reload do setSubTela. kpis/categorias são por business; produtos
             // varia com tab/busca/categoria mas o nav de sub-tela preserva esses filtros.
-            'kpis'       => fn () => $this->kpis($business_id),
-            'produtos'   => fn () => $this->produtos($business_id, $filters, $podeVerCusto, $podeVerPreco, $podeVerBom)['rows'],
+            // DEFER nas props caras (RUNBOOK-inertia-defer-pattern · Tier 0 desde 2026-05-15):
+            // `kpis` são 5 COUNTs + a agregação de vendas 30d; `produtos`/`paginacao` são o
+            // paginate. Closure comum roda no 1º render e segura o HTML; `defer` manda a página
+            // primeiro e busca isso depois — é o que dá o skeleton em vez da tela travada.
+            'kpis'       => Inertia::defer(fn () => $this->kpis($business_id)),
+            'produtos'   => Inertia::defer(fn () => $this->produtos($business_id, $filters, $podeVerCusto, $podeVerPreco, $podeVerBom)['rows']),
             // Meta da paginação em prop SEPARADA de propósito: `produtos` continua sendo a LISTA
             // crua. Os UCs do contrato fazem `collect($props['produtos'])->firstWhere('id', …)` —
             // embrulhar a lista num objeto quebraria os 7 casos que acabaram de entrar (#5597).
-            'paginacao'  => fn () => $this->produtos($business_id, $filters, $podeVerCusto, $podeVerPreco, $podeVerBom)['meta'],
+            'paginacao'  => Inertia::defer(fn () => $this->produtos($business_id, $filters, $podeVerCusto, $podeVerPreco, $podeVerBom)['meta']),
             'categorias' => fn () => $this->categorias($business_id),
             // UC-PUNI-04 / UC-PUNI-03: a sub-tela inteira não é servida sem o direito.
             // O gate é aqui (e não dentro do helper) pra que a prop nasça `[]` sem custo de query.

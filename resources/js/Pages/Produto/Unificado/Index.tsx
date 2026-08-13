@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, router, Deferred } from '@inertiajs/react';
 import { usePageProps, useBusiness } from '@/Hooks/usePageProps';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import type { ReactNode, KeyboardEvent, RefObject } from 'react';
@@ -65,14 +65,19 @@ type Props = {
     ate: number | null;
     opcoes: number[];
   };
-  kpis: {
+  /**
+   * DEFERIDAS (Inertia::defer no controller): NÃO chegam no 1º render — a página pinta
+   * primeiro e elas vêm depois. Por isso são opcionais no tipo e têm default aqui embaixo:
+   * ler `.length` de prop deferida antes da hora derruba a tela inteira.
+   */
+  kpis?: {
     catalogo_ativo: number;
     populares: number;
     sem_giro: number;
     margem_baixa: number;
     sob_demanda: number;
   };
-  produtos: ProdutoRow[];
+  produtos?: ProdutoRow[];
   categorias: CategoriaRow[];
   insumos: InsumoRow[];
   tabelas: TabelaRow[];
@@ -125,7 +130,7 @@ const fmtBRL = (n: number) =>
 const fmtPct = (n: number) => Math.round(n * 100) + '%';
 
 function ProdutoUnificadoIndex({
-  tela, filters, kpis, produtos, categorias, insumos, tabelas, historico, paginacao,
+  tela, filters, kpis, produtos = [], categorias, insumos, tabelas, historico, paginacao,
   // Fail-closed: se a prop não chegar por qualquer caminho, esconde tudo em vez de
   // estourar `undefined.custo`. Ausência de permissão declarada nunca vira permissão.
   permissoes = { custo: false, preco: false, composicao: false },
@@ -232,7 +237,9 @@ function ProdutoUnificadoIndex({
           <div className="px-6 pt-4 pb-3 flex items-baseline gap-3">
             <h1 className="text-[22px] font-bold tracking-tight leading-snug">Catálogo</h1>
             <span className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
-              {kpis.catalogo_ativo} {kpis.catalogo_ativo === 1 ? 'produto' : 'produtos'}
+              {/* `kpis` é deferida: no 1º render ela não existe. Sem o guard, esta linha
+                  derruba a página antes de a lista sequer chegar. */}
+              {kpis ? `${kpis.catalogo_ativo} ${kpis.catalogo_ativo === 1 ? 'produto' : 'produtos'}` : '…'}
               {businessName ? ` · ${businessName}` : ''}
             </span>
           </div>
@@ -267,17 +274,19 @@ function ProdutoUnificadoIndex({
               Clicar filtra; clicar de novo desliga. O count do card e a lista filtrada saem
               do MESMO predicado no controller (aplicarRecorte), então não divergem.
               A placa roxa cheia saiu: roxo agora significa "filtro ativo", como na /contacts. */}
-          <Grid min="sm" gap={3} className="mx-6 mt-4">
-            {KPI_CARDS.map((k) => (
-              <KpiFiltro
-                key={k.chave}
-                {...k}
-                value={kpis[k.prop]}
-                ativo={filters.kpi === k.chave}
-                onClick={() => irPara({ kpi: filters.kpi === k.chave ? '' : k.chave })}
-              />
-            ))}
-          </Grid>
+          <Deferred data="kpis" fallback={<SkeletonKpis />}>
+            <Grid min="sm" gap={3} className="mx-6 mt-4">
+              {KPI_CARDS.map((k) => (
+                <KpiFiltro
+                  key={k.chave}
+                  {...k}
+                  value={kpis?.[k.prop] ?? 0}
+                  ativo={filters.kpi === k.chave}
+                  onClick={() => irPara({ kpi: filters.kpi === k.chave ? '' : k.chave })}
+                />
+              ))}
+            </Grid>
+          </Deferred>
 
           {/* Slot 3 · Toolbar — só na sub-tela Produtos, que é a única paginada/filtrável */}
           {tela === 'produtos' && (
@@ -298,7 +307,14 @@ function ProdutoUnificadoIndex({
           {/* Conteúdo por sub-tela.
               Estado "busca sem resultado" é obrigatório no PT-01 — sem ele a tela some a
               lista e não diz por quê, e o usuário acha que o produto não existe. */}
-          {tela === 'produtos' && produtos.length === 0 && (
+          {/* `produtos`/`paginacao` são deferidas: o <Deferred> segura este bloco com
+              skeleton enquanto elas não chegam. Sem ele a tela pintaria "Nenhum produto
+              cadastrado ainda" por meio segundo — dizendo ao usuário que o catálogo está
+              vazio quando na verdade ainda está carregando. */}
+          {tela === 'produtos' && (
+            <Deferred data={['produtos', 'paginacao']} fallback={<SkeletonTabela />}>
+              <>
+          {produtos.length === 0 && (
             <div className="mx-6 mt-3 rounded-md border border-border bg-card px-6 py-10 text-center">
               <p className="text-[13px] text-foreground">
                 {busca || filters.categoria
@@ -316,7 +332,7 @@ function ProdutoUnificadoIndex({
               )}
             </div>
           )}
-          {tela === 'produtos' && produtos.length > 0 && <TabelaProdutos
+          {produtos.length > 0 && <TabelaProdutos
               rows={produtos}
               tweaks={tweaks}
               perm={permissoes}
@@ -325,6 +341,9 @@ function ProdutoUnificadoIndex({
               dir={filters.dir}
               onOrdenar={(col) => irPara({ ordem: col, dir: filters.ordem === col && filters.dir === 'asc' ? 'desc' : 'asc' }, false)}
             />}
+              </>
+            </Deferred>
+          )}
           {tela === 'categorias' && <ListaCategorias rows={categorias} />}
           {tela === 'insumos'    && <ListaInsumos rows={insumos} perm={permissoes} />}
           {tela === 'tabelas'    && <ListaTabelas rows={tabelas} produtos={produtos} perm={permissoes} />}
@@ -386,6 +405,43 @@ const KPI_CARDS = [
   { chave: 'margem',    prop: 'margem_baixa'   as const, label: 'Margem baixa',    sub: 'abaixo de 30%',      Icon: TrendingUp, cor: 'text-primary'          },
   { chave: 'demanda',   prop: 'sob_demanda'    as const, label: 'Sob demanda',     sub: 'sem estoque próprio', Icon: Clock,     cor: 'text-success-fg'       },
 ];
+
+/**
+ * Esqueletos das props deferidas. Preenchem o MESMO espaço que o conteúdo real vai
+ * ocupar — skeleton menor que o conteúdo faz a página pular quando o dado chega, e o
+ * pulo é pior que a espera.
+ */
+function SkeletonKpis() {
+  return (
+    <Grid min="sm" gap={3} className="mx-6 mt-4" aria-hidden>
+      {[0, 1, 2, 3, 4].map((i) => (
+        <div key={i} className="rounded-md border border-border bg-card p-3">
+          <Inline gap={2} align="center">
+            <span className="h-9 w-9 rounded-md bg-muted animate-pulse shrink-0" />
+            <span className="flex-1 min-w-0">
+              <span className="block h-2 w-20 rounded bg-muted animate-pulse" />
+              <span className="block h-4 w-12 rounded bg-muted animate-pulse mt-1.5" />
+              <span className="block h-2 w-16 rounded bg-muted animate-pulse mt-1.5" />
+            </span>
+          </Inline>
+        </div>
+      ))}
+    </Grid>
+  );
+}
+
+function SkeletonTabela() {
+  return (
+    <div className="mx-6 mt-3 rounded-md border border-border bg-card overflow-hidden" aria-hidden>
+      <div className="h-9 border-b border-border bg-muted/40" />
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div key={i} className="h-11 border-b border-border/60 px-4 flex items-center">
+          <span className="h-2.5 w-full max-w-[42%] rounded bg-muted animate-pulse" />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 /**
  * Cabeçalho ordenável. Só existe nas colunas que o servidor SABE ordenar
