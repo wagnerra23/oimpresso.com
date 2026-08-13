@@ -17,6 +17,7 @@ import {
   classifyMirror,
   verdictFor,
   shouldFail,
+  veredictoFinal,
   buildManifest,
   parseShellDeps,
   defaultShellPath,
@@ -65,6 +66,31 @@ check('constructor idem', verdictFor('constructor', H1, {}) === 'UNCHECKED');
 check('STALE presente → morde', shouldFail(['SYNC', 'STALE', 'UNCHECKED']) === true);
 check('só SYNC → libera', shouldFail(['SYNC', 'SYNC']) === false);
 check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', shouldFail(['UNCHECKED', 'LIVE-ABSENT', 'SYNC']) === false);
+
+// 4b. veredictoFinal — a LINHA FINAL não pode mentir quando se roda sem `--check`.
+//     Bug medido 2026-08-13: `stale: 1` no corpo e `✓ sem espelho STALE` no rodapé, porque o
+//     log verde estava fora do `if (strict …)`. O texto é do FATO; `--check` é só exit code.
+check('1 stale → veredito NEGATIVO', veredictoFinal(1).ok === false);
+check('1 stale → texto não afirma verde', !/✓/.test(veredictoFinal(1).texto) && /STALE/.test(veredictoFinal(1).texto));
+check('0 stale → veredito positivo', veredictoFinal(0).ok === true && /✓/.test(veredictoFinal(0).texto));
+// CONTROLE NEGATIVO do bite: o veredito NÃO pode depender de flag nenhuma — só do número.
+check('mesmo número → mesmo veredito (independe de --check)',
+  JSON.stringify(veredictoFinal(3)) === JSON.stringify(veredictoFinal(3)) && veredictoFinal(3).ok === false);
+{
+  // BITE de integração: o fonte não pode mais imprimir a linha verde fora do veredito.
+  // Conta só CÓDIGO — o docblock do `veredictoFinal` cita o `console.log` bugado de propósito,
+  // e contar comentário como código é o falso-positivo que a medição de hoje catalogou
+  // (`<FinAiAnomalia>` só existia numa linha `//`).
+  const HERE_ = dirname(fileURLToPath(import.meta.url));
+  const semComentario = readFileSync(join(HERE_, 'cowork-mirror-freshness.mjs'), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/^\s*\/\/.*$/gm, '');
+  const verdes = [...semComentario.matchAll(/console\.log\('✓ sem espelho STALE/g)].length;
+  check('nenhum console.log direto da linha verde (só via veredictoFinal)', verdes === 0, `achei ${verdes}`);
+  // CONTROLE POSITIVO do stripper: ele não pode estar apagando o arquivo inteiro.
+  check('CONTROLE: o stripper preserva o código (veredictoFinal segue no fonte)',
+    /export function veredictoFinal/.test(semComentario));
+}
 
 // 5. READ-ONLY por contrato (ADR 0315 Eixo B): o fonte não pode invocar método de ESCRITA do
 //    DesignSync. Denylist = métodos de escrita reais do schema da tool (validados na sessão
