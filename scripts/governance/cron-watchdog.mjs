@@ -331,6 +331,74 @@ function lerRegistroSilencios() {
   catch (e) { return { doc: null, erro: `${REGISTRO_SILENCIOS} ILEGÍVEL (${e.message}) — registro de silêncio corrompido NÃO vira "sem silêncios"` }; }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// CONFIRMAÇÃO — uma amostra só não decide (falso-alarme MEDIDO em 2026-08-13)
+// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * O eixo 1 acusou 2 crons MORTOS na run 31705264590 (13:30:36Z) com datas de ~4 semanas
+ * atrás. Das 14 runs mais recentes deste mesmo job, 11 tinham log legível (3 ainda em
+ * curso) e **10 delas disseram `24 vivos · 0 mortos`** — todas na MESMA janela de 1h25
+ * (12:18:01 → 13:43:06 do mesmo dia). Mesmo código, mesma query, mesmo token, mesmo
+ * runner: o que variou foi a RESPOSTA da API.
+ *
+ * Medido local no mesmo dia, na mesma sequência de comandos:
+ *   `…/actions/workflows/299755607/runs?event=schedule&status=completed&per_page=1`
+ *       → total_count=6 · topo = run#6 (2026-07-27)   ← RETRATO VELHO
+ *   a MESMA rota com `per_page=3`, ~1 segundo depois
+ *       → total_count=8 · topo = run#8 (2026-08-10)   ← fresco
+ * O `total_count` errado (6 onde são 8) é o que fecha o diagnóstico: não é ordenação
+ * nem paginação — a resposta INTEIRA era um retrato antigo. Em seguida, uma sonda de
+ * 144 consultas (12 repetições × 4 formas de URL × 3 workflows) voltou 0 stale.
+ * Intermitente (1 em 11 runs de CI legíveis), e duas respostas a ~1s de distância
+ * podem discordar — que é justo o que torna a re-consulta imediata útil.
+ *
+ * ⚠️ O que NÃO ficou provado: o MECANISMO dentro do GitHub. A resposta velha foi pega
+ * UMA vez (n=1) e não reproduziu sob demanda. O FATO está medido; chamar a causa de
+ * "réplica com lag" seria inferir mecanismo a partir de sintoma (§5 2026-08-03).
+ *
+ * REFUTADAS por medição — não re-propor sem re-medir:
+ *   · rename/move do arquivo → `git log --diff-filter=R -- .github/workflows/` não
+ *     lista nenhum dos dois (só teammcp→forja, design-memory-gates, jana-bitemporal);
+ *   · ID de workflow antigo/duplicado → 130 registros na API, ZERO path duplicado;
+ *   · token/escopo/paginação/ordenação → 10 das 11 runs legíveis do dia acertaram com
+ *     a query idêntica; defeito dessas classes seria determinístico, não 1 em 11.
+ *
+ * O conserto explora que o erro é UNIDIRECIONAL: índice atrasado só SUBESTIMA a data
+ * da última run — nunca inventa uma que ainda não existe. Logo `max(createdAt)` sobre
+ * N amostras é sempre ≥ correto que qualquer amostra isolada, e re-amostrar NUNCA
+ * silencia cron de verdade morto (todas as amostras dele são velhas — é o que os
+ * asserts `PERSISTENTE` provam). Custo zero no caso saudável: só re-consulta quem ia
+ * virar 🔴/⛔.
+ *
+ * Ortogonal ao SILÊNCIO acima: aquele é decisão humana registrada de não derrubar por
+ * um vermelho VERDADEIRO; este é o instrumento não afirmar vermelho FALSO. Suprimir
+ * alarme errado com silêncio seria esconder defeito de medição atrás de bookkeeping.
+ */
+const CONFIRMACOES = 3;
+
+/**
+ * Melhor amostra = a de `createdAt` MAIS RECENTE entre as que foram MEDIDAS. Amostra
+ * cega não é evidência de nada e não entra na disputa; se TODAS forem cegas, o
+ * resultado é cego (a lápide 2026-07-29 continua valendo — não medir ≠ estado do cron).
+ */
+export function melhorAmostra(amostras) {
+  const medidas = (amostras || []).filter((a) => a && a.ok === true);
+  if (!medidas.length) return { ok: false };
+  return medidas.reduce((a, b) => ((b.at || '') > (a.at || '') ? b : a));
+}
+
+/**
+ * Vale gastar consulta extra? Só quando a amostra produziria 🔴 (morto/falhou) ou ⛔
+ * (cego) — os estados que ALARMAM. `bootstrap` e `inconclusivo` não alarmam e não
+ * pagam re-consulta: o teto de chamadas extras é o número de crons realmente doentes,
+ * não 24 (o job roda em todo PR e o GITHUB_TOKEN tem 1000 req/h por repo).
+ */
+export function precisaConfirmar(cron, consulta, nowMs) {
+  const l = classificarLiveness(cron, consulta, nowMs).estado;
+  const s = classificarSucesso(consulta).estado;
+  return l === 'morto' || l === 'cego' || s === 'falhou' || s === 'cego';
+}
+
 /**
  * FIAÇÃO dos eixos 1 e 3 — pura de propósito, recebendo `consultar` por parâmetro.
  *
@@ -346,11 +414,18 @@ function lerRegistroSilencios() {
  * este refactor faz é reduzir a superfície não-testada de um laço inteiro para uma
  * linha, não zerá-la. Declarar isso é parte do conserto.
  */
-export function avaliarCrons(wfs, consultar, nowMs, ativos = new Map()) {
+export function avaliarCrons(wfs, consultar, nowMs, ativos = new Map(), tentativas = CONFIRMACOES) {
   const dead = [], boot = [], alive = [], cego = [], estados = [];
   const falhando = [], inconclusivos = [], silenciados = [], estadosSucesso = [];
+  let reconsultas = 0;
   for (const { file, cron } of wfs) {
-    const consulta = consultar(file); // UMA consulta alimenta os eixos 1 e 3
+    const amostras = [consultar(file)]; // UMA consulta alimenta os eixos 1 e 3
+    // Só quem ia alarmar paga confirmação; para assim que uma amostra desmentir o alarme.
+    while (amostras.length < tentativas && precisaConfirmar(cron, melhorAmostra(amostras), nowMs)) {
+      amostras.push(consultar(file));
+      reconsultas++;
+    }
+    const consulta = melhorAmostra(amostras);
     const c = classificarLiveness(cron, consulta, nowMs);
     const s = classificarSucesso(consulta);
     // O silêncio só alcança o eixo 3, e só quando ele de fato FALHOU: silenciar um cron
@@ -367,7 +442,7 @@ export function avaliarCrons(wfs, consultar, nowMs, ativos = new Map()) {
     else if (c.estado === 'morto') dead.push(`${file} (cron '${cron}') MORTO há ${c.dias}d (limite ${c.limite}d) — última agendada: ${c.at}`);
     else alive.push(`${file} ${c.dias}d/${c.limite}d`);
   }
-  return { dead, boot, alive, cego, estados, falhando, inconclusivos, silenciados, estadosSucesso };
+  return { dead, boot, alive, cego, estados, falhando, inconclusivos, silenciados, estadosSucesso, reconsultas };
 }
 
 /**
@@ -656,6 +731,71 @@ if (EH_MAIN && ARGS.has('--selftest')) {
   ok(avMorto.dead.length === 1 && resumoLiveness(avMorto.estados).exit === 1,
     'CONTROLE: silêncio do eixo 3 NÃO alcança o eixo 1 — cron MORTO segue derrubando');
 
+  // ── CONFIRMAÇÃO: amostra única de índice atrasado ≠ estado do cron (2026-08-13) ──
+  // Dados REAIS do caso: run 31705264590 (13:30:36Z) contra as 10 runs sãs vizinhas.
+  // Ortogonal ao silêncio acima: lá se suprime vermelho VERDADEIRO por decisão humana
+  // registrada; aqui se impede o instrumento de AFIRMAR vermelho falso.
+  const NOW_CASO = Date.parse('2026-08-13T13:32:05Z');
+  const GL_STALE = { ok: true, at: '2026-07-20T11:35:33Z', conclusion: 'success' }; // o que o CI leu
+  const GL_FRESCO = { ok: true, at: '2026-08-10T10:07:38Z', conclusion: 'success' }; // a verdade
+  const GD_STALE = { ok: true, at: '2026-07-16T11:17:37Z', conclusion: 'failure' };
+  const GD_FRESCO = { ok: true, at: '2026-08-13T10:35:50Z', conclusion: 'success' };
+
+  ok(melhorAmostra([GL_STALE, GL_FRESCO]).at === GL_FRESCO.at,
+    'melhorAmostra: fica com a MAIS RECENTE (erro do índice é unidirecional: só subestima)');
+  ok(melhorAmostra([GL_FRESCO, GL_STALE]).at === GL_FRESCO.at,
+    'melhorAmostra: e a ordem de chegada não muda o resultado');
+  ok(melhorAmostra([{ ok: false }, GL_STALE]).at === GL_STALE.at,
+    'melhorAmostra: amostra CEGA não disputa (não medir ≠ estado do cron — lápide 07-29)');
+  ok(melhorAmostra([{ ok: false }, { ok: false }]).ok === false,
+    'melhorAmostra: todas cegas → CEGO (não vira bootstrap nem verde)');
+  ok(melhorAmostra([]).ok === false, 'melhorAmostra: sem amostra → cego');
+
+  ok(precisaConfirmar('0 9 * * 1', GL_FRESCO, NOW_CASO) === false,
+    'CUSTO: cron vivo-e-ok NÃO paga re-consulta');
+  ok(precisaConfirmar('0 9 * * 1', GL_STALE, NOW_CASO) === true,
+    'CUSTO: 🔴 morto paga re-consulta');
+  ok(precisaConfirmar('35 9 * * *', { ok: true, at: '2026-08-13T10:00:00Z', conclusion: 'failure' }, NOW_CASO) === true,
+    'CUSTO: 🔴 vivo-mas-falhando paga re-consulta');
+  ok(precisaConfirmar('35 9 * * *', { ok: false }, NOW_CASO) === true, 'CUSTO: ⛔ cego paga re-consulta');
+  ok(precisaConfirmar('35 9 * * *', { ok: true, at: '' }, NOW_CASO) === false,
+    'CUSTO: bootstrap NÃO paga (é 🟡, não alarma)');
+  ok(precisaConfirmar('35 9 * * *', { ok: true, at: '2026-08-13T10:00:00Z', conclusion: 'cancelled' }, NOW_CASO) === false,
+    'CUSTO: inconclusivo NÃO paga (cancelamento benigno não alarma)');
+
+  // O falso-alarme REAL, reproduzido: 1ª leitura velha, 2ª fresca.
+  const wfsCaso = [{ file: 'gitleaks-history.yml', cron: '0 9 * * 1' },
+    { file: 'governance-drift.yml', cron: '35 9 * * *' }];
+  let nChamadas = 0;
+  const consultaFlapa = (f) => {
+    nChamadas++;
+    const primeira = nChamadas <= 2; // 1ª leitura de cada um vem do índice velho
+    if (f === 'gitleaks-history.yml') return primeira ? GL_STALE : GL_FRESCO;
+    return primeira ? GD_STALE : GD_FRESCO;
+  };
+  const avFlapa = avaliarCrons(wfsCaso, consultaFlapa, NOW_CASO);
+  ok(avFlapa.dead.length === 0 && avFlapa.falhando.length === 0,
+    'MORDE O FALSO-ALARME: 1ª amostra velha desmentida pela 2ª → 0 mortos, 0 falhando (era 2+2)');
+  ok(avFlapa.estados.every((e) => e === 'vivo') && avFlapa.reconsultas === 2,
+    'e gastou exatamente 1 re-consulta por cron suspeito (parou assim que foi desmentido)');
+
+  // E o alarme REAL segue mordendo: índice consistentemente velho = cron morto de fato.
+  let nPersistente = 0;
+  const avPersistente = avaliarCrons([wfsCaso[1]], () => { nPersistente++; return GD_STALE; }, NOW_CASO);
+  ok(avPersistente.dead.length === 1 && avPersistente.falhando.length === 1,
+    'LIBERA O ALARME REAL: todas as amostras velhas → MORTO + FALHANDO (confirmação não silencia)');
+  ok(nPersistente === CONFIRMACOES && avPersistente.reconsultas === CONFIRMACOES - 1,
+    `alarme real custa ${CONFIRMACOES} leituras — teto por cron doente, não por cron`);
+
+  let nSaudavel = 0;
+  avaliarCrons([wfsCaso[1]], () => { nSaudavel++; return GD_FRESCO; }, NOW_CASO);
+  ok(nSaudavel === 1, 'CUSTO ZERO no caso saudável: 1 chamada por cron, como antes (10 das 11 runs)');
+
+  let nCego = 0;
+  const avCego = avaliarCrons([wfsCaso[1]], () => { nCego++; return { ok: false }; }, NOW_CASO);
+  ok(nCego === CONFIRMACOES && avCego.cego.length === 1 && resumoLiveness(avCego.estados).exit === 1,
+    'cegueira persistente segue ⛔ + exit 1 (a lápide 2026-07-29 continua de pé)');
+
   console.log(falhas ? `\n✗ selftest: ${falhas} falha(s)` : '\n✓ selftest: núcleo morde e libera certo');
   process.exit(falhas ? 1 : 0);
 }
@@ -690,11 +830,15 @@ const { ativos, expirados, invalidos } = carregarSilencios(reg.doc, nowMs);
 // (não é falha de cron), mas é dito: entrada que não alcança nada some do radar calada.
 const orfaos = [...ativos.keys()].filter((w) => !wfs.some((x) => x.file === w));
 
-const { dead, boot, alive, cego, estados, falhando, inconclusivos, silenciados, estadosSucesso } =
+const { dead, boot, alive, cego, estados, falhando, inconclusivos, silenciados, estadosSucesso, reconsultas } =
   avaliarCrons(wfs, lastScheduledRun, nowMs, ativos);
 const r = resumoLiveness(estados);
 
 console.log(`🩺 cron-watchdog — ${wfs.length} crons agendados · ${alive.length} vivos · ${boot.length} bootstrap · ${cego.length} ⛔ não medidos · ${dead.length} 🔴 mortos`);
+// Diz o que fez: re-consulta > 0 significa que alguma amostra veio doente e foi
+// confirmada (ou desmentida) por outra. Silenciar isso esconderia justo o caso de
+// 2026-08-13, em que a 1ª amostra estava ~4 semanas atrasada.
+if (reconsultas) console.log(`   ↻ ${reconsultas} re-consulta(s): amostra suspeita confirmada com até ${CONFIRMACOES} leituras (índice do GitHub pode servir retrato velho — ver cabeçalho).`);
 for (const c of cego) console.error(`⛔ ${c}`);
 for (const b of boot) console.log(`🟡 ${b}`);
 for (const a of alive) console.log(`   ✓ ${a}`);
