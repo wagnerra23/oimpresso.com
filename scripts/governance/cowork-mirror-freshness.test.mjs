@@ -6,7 +6,7 @@
 // arte 2026-07-06-arte-design-code-sync-frescor (hash(normalizado) por PATH COMPLETO).
 // Os asserts de EOL/BOM e colisão-por-path existem porque a v1 NÃO os tinha e morreu por isso.
 // Roda: node scripts/governance/cowork-mirror-freshness.test.mjs
-import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
@@ -332,5 +332,49 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
     man.some((f) => f.cowork === 'oimpresso.com.html'));
 }
 
-console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel + absent-local)');
+// ── FLUXO END-TO-END (2026-08-13) ────────────────────────────────────────────────
+// Os asserts acima provam PEÇAS. Este prova a TRAVESSIA: get_file(JSON) →
+// --export-from --emit-snapshot → --compare. É onde os contratos se encontram, e
+// onde um erro de junção (chave prefixada, hash de conteúdo cru, snapshot vazio)
+// aparece — nenhum assert de peça isolada pegaria.
+// Roda em sandbox por cwd: não toca o espelho real.
+{
+  const tmp = mkdtempSync(join(tmpdir(), 'cowork-fluxo-'));
+  const mirror = join(tmp, 'prototipo-ui', 'cowork');
+  mkdirSync(mirror, { recursive: true });
+  // espelho de partida: 1 arquivo DESATUALIZADO + o shell que o carrega
+  writeFileSync(join(mirror, 'x.jsx'), 'versao ANTIGA\n');
+  writeFileSync(join(mirror, 'oimpresso.com.html'), '<script src="x.jsx?v=1"></script>');
+  const dirJson = join(tmp, 'baixados');
+  mkdirSync(dirJson);
+  // o que o DesignSync.get_file devolveria pro arquivo, já ATUALIZADO no vivo
+  writeFileSync(join(dirJson, 'x.json'), JSON.stringify({ path: 'x.jsx', content: 'versao NOVA\n' }));
+
+  const cli = fileURLToPath(new URL('./cowork-mirror-freshness.mjs', import.meta.url));
+  const run = (args) => {
+    try {
+      return { out: execFileSync(process.execPath, [cli, ...args], { cwd: tmp, encoding: 'utf8' }), code: 0 };
+    } catch (e) { return { out: (e.stdout || '') + (e.stderr || ''), code: e.status }; }
+  };
+
+  const snap = join(tmp, 'snap.json');
+  const exp = run(['--export-from', dirJson, '--emit-snapshot', snap]);
+  check('FLUXO 1/3: export escreve o conteúdo do vivo e marca ATUALIZADO',
+    /ATUALIZADO/.test(exp.out) && readFileSync(join(mirror, 'x.jsx'), 'utf8') === 'versao NOVA\n');
+  check('FLUXO 2/3: o snapshot sai do MESMO passo (sem 2º download)', existsSync(snap));
+
+  // o compare tem que dizer SYNC — o espelho acabou de receber o conteúdo do vivo
+  const cmpOk = run(['--compare', snap, '--check']);
+  check('FLUXO 3/3: compare fecha SYNC e --check libera (exit 0)', cmpOk.code === 0);
+
+  // ⚠️ CONTROLE POSITIVO: sem ele o fluxo acima passaria mesmo se o compare fosse cego
+  writeFileSync(join(mirror, 'x.jsx'), 'alguem editou o espelho a mao\n');
+  const cmpBad = run(['--compare', snap, '--check']);
+  check('BITE do fluxo: espelho divergindo do snapshot → --check MORDE (exit 1)',
+    cmpBad.code === 1 && /STALE/.test(cmpBad.out));
+
+  rmSync(tmp, { recursive: true, force: true });
+}
+
+console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel + absent-local + fluxo e2e)');
 process.exit(fails ? 1 : 0);

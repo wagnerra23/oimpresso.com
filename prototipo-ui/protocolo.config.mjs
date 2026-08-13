@@ -24,7 +24,7 @@
 // Refs: ADR 0325 (pull direto) · ADR 0324 (identidade normalizada) · INDEX-DESIGN-MEMORIAS §0.2 ·
 //       prototipo-ui/RUNBOOK-aplicar-prototipo-orquestracao.md (as 7 fases −1..5).
 
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { homedir } from 'node:os';
@@ -106,12 +106,48 @@ function scriptsReferenciados() {
   }
   return [...out];
 }
+// ── CONSISTÊNCIA DOS IDs (2026-08-13) ───────────────────────────────────────────
+// Este arquivo se declara "a fonte" dos 2 IDs, e o selftest provava que eles são UUID
+// e distintos — mas NÃO que o resto do repo concorda com eles. Dois consumidores
+// dependem disso na prática:
+//   · o SHELL do espelho (`prototipo-ui/cowork/oimpresso.com.html`) linka
+//     `_ds/<DESIGN_SYSTEM_PROJECT_ID>/…`, e o `--preview-ds` do cowork-mirror-freshness
+//     DERIVA o id dali pra repor o DS. Se o shell trouxer outro id (troca de design
+//     system upstream), o preview repõe no diretório errado e a tela abre sem tokens
+//     — exatamente o "falta css" de 2026-08-13, só que silencioso.
+//   · código de produção (venda-v3.css, CreateV3.tsx) e o ds-push.mjs carregam o id
+//     hardcoded; divergir daqui é apontar pro DS errado.
+// Varre só CÓDIGO EXECUTÁVEL: doc/handoff/ADR citam id por CONTEXTO HISTÓRICO
+// (o id que valia naquela data) e não devem ser corrigidos — §5 "registro datado".
+/** Arquivos de código que carregam algum dos 2 IDs, e qual esperamos. */
+function conferirIdsNoRepo() {
+  const alvos = [
+    { path: join(MIRROR_DIR, 'oimpresso.com.html'), espera: DESIGN_SYSTEM_PROJECT_ID, papel: 'shell do espelho (de onde --preview-ds deriva)' },
+    { path: join(REPO_ROOT, 'scripts', 'design-sync', 'ds-push.mjs'), espera: DESIGN_SYSTEM_PROJECT_ID, papel: 'push do DS' },
+    { path: join(REPO_ROOT, 'resources', 'css', 'venda-v3.css'), espera: DESIGN_SYSTEM_PROJECT_ID, papel: 'css de produção' },
+    { path: join(REPO_ROOT, 'resources', 'js', 'Pages', 'Sells', 'CreateV3.tsx'), espera: DESIGN_SYSTEM_PROJECT_ID, papel: 'tela de produção' },
+    { path: join(REPO_ROOT, '.claude', 'hooks', 'design-agente-ativa.mjs'), espera: COWORK_PROJECT_ID, papel: 'hook que manda o agente consultar o vivo' },
+  ];
+  const problemas = [];
+  for (const a of alvos) {
+    if (!existsSync(a.path)) continue; // arquivo pode não existir num checkout parcial — não inventa falha
+    const txt = readFileSync(a.path, 'utf8');
+    const achados = [...new Set([...txt.matchAll(/\b(019d[0-9a-f]{4}-[0-9a-f-]{20,})\b/g)].map((m) => m[1]))];
+    if (!achados.length) continue;                       // não cita id: nada a conferir
+    if (!achados.includes(a.espera)) {
+      problemas.push(`${a.papel}: esperava ${a.espera.slice(0, 8)}…, achei ${achados.map((x) => x.slice(0, 8) + '…').join(', ')} (${a.path.replace(REPO_ROOT, '.')})`);
+    }
+  }
+  return problemas;
+}
+
 function selftest() {
   const fails = [];
   if (!UUID.test(COWORK_PROJECT_ID)) fails.push('COWORK_PROJECT_ID não é UUID');
   if (!UUID.test(DESIGN_SYSTEM_PROJECT_ID)) fails.push('DESIGN_SYSTEM_PROJECT_ID não é UUID');
   if (COWORK_PROJECT_ID === DESIGN_SYSTEM_PROJECT_ID) fails.push('os 2 IDs colidiram (anti-confusão dos projetos)');
   if (!existsSync(MIRROR_DIR)) fails.push(`MIRROR_DIR ausente no repo: ${MIRROR_DIR}`);
+  fails.push(...conferirIdsNoRepo());
   for (const fn of [['normalize', normalize], ['contentHash', contentHash], ['resolveAncora', resolveAncora]]) {
     if (typeof fn[1] !== 'function') fails.push(`motor re-exportado quebrou: ${fn[0]} não é função`);
   }
