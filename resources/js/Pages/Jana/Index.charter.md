@@ -67,26 +67,25 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   reintroduz a locação erradicada pela [ADR 0265](../../../../memory/decisions/0265-oficina-reparo-erradica-locacao.md);
   (b) a fonte (`Modules/OficinaAuto/Entities/Vehicle`) é OficinaAuto — Martinho biz=164 —, não
   faz sentido pra ROTA LIVRE (vestuário). Reabrir exige decisão [W] nova.
-  _**Consertado na âncora em 2026-08-13** (escopo: só `jana-merge.jsx`, decisão [W]). Em
-  2026-08-13, ANTES do conserto, o fonte da âncora contava **`frota` 8× · `caçamba` 7×** e
-  ensinava a meta "Utilização de frota", o mapeamento de drill `truck → frota`, o toggle "Frota"
-  e a fonte `assets + locações abertas`. Hoje: a meta virou "Conversão de orçamentos", o `truck`
-  saiu do `JM_KPI_DRILL` (KPI fica não-clicável, que é a regra da tabela), o toggle saiu, e o
-  `cfg` força `frota: false` **depois** do merge do `localStorage` — porque Non-Goal é decisão,
-  não preferência do usuário. Como o filtro do Painel é `cfg[a.id] !== false`, o card da Frota
-  deixa de ser renderizado._
+  _⚠️ **O Non-Goal governa a TELA, não o que a ÂNCORA retrata — decisão [W] 2026-08-13.** Neste dia
+  o agente removeu Frota/caçamba do `jana-merge.jsx` (meta, drill `truck`, toggle, `cfg`, textos),
+  lendo este Non-Goal como se ele proibisse o protótipo de **mostrar**. [W] corrigiu na mesma
+  sessão, com a captura do Cowork vivo na mão: **"essa é a âncora correta do protótipo"**. O
+  protótipo retrata o cockpit do **Martinho (`biz=164`)**, onde frota É o negócio — e a emenda §5 de
+  2026-08-11 já tinha fixado que âncora errada se prova **estruturalmente** (desenha outra tela?),
+  não pelo vocabulário nem pelo carimbo de tenant. O `jana-merge.jsx` desenha o Painel: é a âncora
+  certa. **A remoção foi revertida**; agravante registrado: o agente trocou domínio real por
+  "Conversão de orçamentos", que ele **inventou** — anti-padrão inventado na fonte de design parece
+  canon e a próxima sessão obedece (§5 2026-07-16)._
 
-  _⚠️ **O que NÃO foi consertado, e é achado aberto:** a linha **`Locadas`**, a legenda
-  "91 caçambas avulsas" e o KPI "FROTA UTILIZAÇÃO" **não vivem no `jana-merge.jsx`** — a medição
-  de 2026-08-13 os atribuiu a ele por engano. Eles nascem em `prototipo-ui/cowork/chat-jana.jsx`
-  (`:129`, `:137`, `:91`), que o shell carrega junto e que é **banido como âncora** da Jana
-  (§5 2026-08-10, emendado em 2026-08-11: o critério é ser **outra tela** — o cockpit de cobrança
-  do Martinho —, não o carimbo de tenant). Mexer nele é mexer em artefato de outro dono: decisão
-  [W] separada. O `dominio-gate` segue **sem pegar** qualquer um dos dois: seus
-  `forbidden_ui_paths` são `Pages/OficinaAuto` e `OficinaAuto/Database/{Seeders,Migrations}` —
-  `prototipo-ui/` não está na lista. Ampliar o gate pra varrer protótipo é decisão [W] com FP
-  medido antes ([ADR 0336](../../../../memory/decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md)) —
-  e esbarra na exceção legítima "Caçambas" como razão social do cliente (§5 2026-06-09)._
+  _O que **continua valendo**: não construir a análise Frota **na tela** `/ia` do núcleo (ROTA LIVRE,
+  vestuário). A defesa é este Non-Goal + o `dominio-gate` nos paths de **tela** — não podar a fonte
+  de design. O `dominio-gate` não varre `prototipo-ui/` (seus `forbidden_ui_paths` são
+  `Pages/OficinaAuto` e `OficinaAuto/Database/{Seeders,Migrations}`), e **está certo em não varrer**:
+  ampliar pra protótipo reprovaria o retrato legítimo do cliente. Nota de precisão: a linha
+  `Locadas`, a legenda "91 caçambas avulsas" e o KPI "FROTA UTILIZAÇÃO" **não vivem no
+  `jana-merge.jsx`** — nascem em `prototipo-ui/cowork/chat-jana.jsx` (`:137`, `:129`, `:91`); a
+  medição de 2026-08-13 os atribuiu à âncora por engano._
 
 ## UX targets
 
@@ -131,18 +130,19 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 
 ## Charter version log
 
-- v6 (2026-08-13) — **A âncora consertada**, não só sinalizada. O v5 (#5719) deixou os 3 defeitos
-  REGISTRADOS com recibo; este PR os conserta em `prototipo-ui/cowork/jana-merge.jsx` +
-  `chat-jana.css`. (1) **P-1** — os 6 `Analise*Service` inexistentes viraram
-  `SellsCockpitAggregator::<metodo>`, lidos do `JANA_DRILL_FONTES`; `churn` declara em texto que
-  não tem método no back, e o render deixou de vestir de `<code>` o que não é símbolo. (2) **P-2**
-  — Frota/caçamba saiu do `jana-merge.jsx` (meta, drill, toggle, `cfg`, textos mock); o que ficou
-  está em `chat-jana.jsx`, arquivo de outro dono, e virou achado aberto acima. (3) **P-3** — os 12
-  fundos `*-soft` de status passaram a `color-mix(cor 12%, var(--surface))`: o shell força os
-  `*-soft` CLAROS nos dois temas, e no escuro isso reprovava o AA (neg 2,19 · warn 1,60 · pos 1,93
-  → 4,22 · 5,68 · 5,08), sem regredir o claro. O `accent` FICOU como estava — medido, ele passa
-  hoje (4,41) e o mesmo mix o reprovaria (2,35). Junto: o detector do `ancora.mjs` passou a
-  enxergar `Classe::metodo` (ele ficaria cego no formato correto — FP medido antes, zero).
+- v6 (2026-08-13) — **Dois dos três defeitos do v5 consertados; o terceiro era diagnóstico errado.**
+  (1) **P-1 consertado** — os 6 `Analise*Service` inexistentes viraram
+  `SellsCockpitAggregator::<metodo>`, lidos do `JANA_DRILL_FONTES`; `churn` e `frota`, que **não
+  têm** método no back, declaram isso em texto, e o render deixou de vestir de `<code>` o que não é
+  símbolo. (2) **P-2 RETIRADO** — não era defeito: o Non-Goal governa a tela, não o retrato da
+  âncora; a remoção foi revertida por decisão [W] no mesmo dia (ver §Non-Goals). (3) **P-3
+  consertado** — os 12 fundos `*-soft` de status passaram a `color-mix(cor 12%, var(--surface))`:
+  o shell força os `*-soft` CLAROS nos dois temas, e no escuro isso reprovava o AA (neg 2,19 ·
+  warn 1,60 · pos 1,93 → 4,22 · 5,68 · 5,08), sem regredir o claro. O `accent` FICOU como estava —
+  medido, ele passa hoje (4,41) e o mesmo mix o reprovaria (2,35). Junto: o detector do
+  `ancora.mjs` passou a enxergar `Classe::metodo` (ele ficaria cego no formato correto — FP medido
+  antes, zero), e a **baseline de pixel da Jana foi regenerada**: a de 10/ago era anterior ao #5719
+  (paridade de tema escuro) e reprovava por uma mudança de cor que já era aprovada.
 - v5 (2026-08-12) — **Paridade de tema escuro** do Painel (`/ia`), sobre o pedido [CC] rev.2.
   Remove do §UX targets a prescrição de **cor** do "Demo polish (v2)" — **decisão [W] nesta data**,
   tomada com o conflito na mesa: o `Index.tsx` já contava **6 violações `no-restricted-syntax`** no
