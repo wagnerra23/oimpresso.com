@@ -51,7 +51,20 @@ type Props = {
   insumos: InsumoRow[];
   tabelas: TabelaRow[];
   historico: HistoricoRow[];
+  permissoes: Permissoes;
 };
+
+/**
+ * Quem pode ver o quê (UC-PUNI-01..04 · Index.casos.md). O backend NÃO EMITE a chave do dado
+ * que o usuário não pode ver — `price`, `cost`, `margin`, `value` e `bomCount` são opcionais
+ * de propósito. Esta tela usa os flags pra remover a COLUNA INTEIRA, nunca pra imprimir 0/—
+ * no lugar do valor: zero é uma afirmação sobre o custo, e o contrato é ausência
+ * (AR-PROD-015 — "os campos somem da tela").
+ *
+ * ⚠️ Não é decoração: `fmtBRL(undefined)` lança TypeError (`n.toLocaleString`) e derruba a
+ * página inteira. Renderizar a coluna sem o dado troca um vazamento por uma tela branca.
+ */
+type Permissoes = { custo: boolean; preco: boolean; composicao: boolean };
 
 type ProdutoRow = {
   id: number;
@@ -60,20 +73,20 @@ type ProdutoRow = {
   cat: string | null;
   cat_label: string | null;
   unit: string;
-  price: number;
-  cost: number;
-  margin: number;
+  price?: number;
+  cost?: number;
+  margin?: number;
   stockKind: 'estoque' | 'sob_demanda';
   stockQty: number | null;
   uses30: number;
   active: boolean;
   updated: string | null;
-  bomCount: number;
+  bomCount?: number;
 };
 type CategoriaRow  = { id: number; slug: string; label: string; count: number };
-type InsumoRow     = { id: number; name: string; unit: string; cost: number; stock: number; fornecedor: string | null };
+type InsumoRow     = { id: number; name: string; unit: string; cost?: number; stock: number; fornecedor: string | null };
 type TabelaRow     = { id: string; label: string; desc: string; mult: number };
-type HistoricoRow  = { os: string; date: string; prodId: string; prodName: string; cat: string | null; unit: string; client: string | null; qty: number; value: number };
+type HistoricoRow  = { os: string; date: string; prodId: string; prodName: string; cat: string | null; unit: string; client: string | null; qty: number; value?: number };
 
 type Tweaks = { density: 'compact' | 'comfortable' | 'cozy'; view: 'table' | 'grid'; showCost: boolean };
 
@@ -83,7 +96,7 @@ const fmtBRL = (n: number) =>
   n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const fmtPct = (n: number) => Math.round(n * 100) + '%';
 
-function ProdutoUnificadoIndex({ tela, filters, kpis, produtos, categorias, insumos, tabelas, historico }: Props) {
+function ProdutoUnificadoIndex({ tela, filters, kpis, produtos, categorias, insumos, tabelas, historico, permissoes }: Props) {
   // Nome da empresa: MESMA fonte que o AppShellV2 usa na sidebar
   // (`shell.cockpit.businessNome`, AppShellV2.tsx:273), que sai de uma query em
   // `App\Business` — robusta. O `business.name` do shared prop vem da SESSÃO e
@@ -184,15 +197,15 @@ function ProdutoUnificadoIndex({ tela, filters, kpis, produtos, categorias, insu
           </section>
 
           {/* Conteúdo por sub-tela */}
-          {tela === 'produtos'   && <TabelaProdutos rows={produtos} tweaks={tweaks} onOpen={(r) => router.visit(`/products/${r.id}`)} />}
+          {tela === 'produtos'   && <TabelaProdutos rows={produtos} tweaks={tweaks} perm={permissoes} onOpen={(r) => router.visit(`/products/${r.id}`)} />}
           {tela === 'categorias' && <ListaCategorias rows={categorias} />}
-          {tela === 'insumos'    && <ListaInsumos rows={insumos} />}
-          {tela === 'tabelas'    && <ListaTabelas rows={tabelas} produtos={produtos} />}
-          {tela === 'historico'  && <ListaHistorico rows={historico} />}
+          {tela === 'insumos'    && <ListaInsumos rows={insumos} perm={permissoes} />}
+          {tela === 'tabelas'    && <ListaTabelas rows={tabelas} produtos={produtos} perm={permissoes} />}
+          {tela === 'historico'  && <ListaHistorico rows={historico} perm={permissoes} />}
         </div>
 
         {/* Tweaks panel (canto inferior direito) */}
-        <TweaksPanel tweaks={tweaks} setTweak={setTweak} />
+        <TweaksPanel tweaks={tweaks} setTweak={setTweak} perm={permissoes} />
       </div>
     </>
   );
@@ -225,8 +238,11 @@ function Kpi({ label, value, sub, tone = 'default', emphasize = false }: {
   );
 }
 
-function TabelaProdutos({ rows, tweaks, onOpen }: { rows: ProdutoRow[]; tweaks: Tweaks; onOpen: (r: ProdutoRow) => void }) {
+function TabelaProdutos({ rows, tweaks, perm, onOpen }: { rows: ProdutoRow[]; tweaks: Tweaks; perm: Permissoes; onOpen: (r: ProdutoRow) => void }) {
   const rowH = tweaks.density === 'compact' ? 36 : tweaks.density === 'cozy' ? 56 : 44;
+  // O switch "Mostrar custo" é preferência de exibição; `perm.custo` é direito. A coluna só
+  // existe quando os DOIS valem — e a preferência nunca ressuscita o que a permissão negou.
+  const mostrarCusto = perm.custo && tweaks.showCost;
   const onRowKey = (e: KeyboardEvent<HTMLTableRowElement>, r: ProdutoRow) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -241,8 +257,8 @@ function TabelaProdutos({ rows, tweaks, onOpen }: { rows: ProdutoRow[]; tweaks: 
             <th scope="col" className="pl-6 pr-3 py-2 w-20">SKU</th>
             <th scope="col" className="pr-3 py-2">Produto</th>
             <th scope="col" className="pr-3 py-2 w-32">Categoria</th>
-            <th scope="col" className="pr-3 py-2 w-24 text-right">Preço</th>
-            {tweaks.showCost && <th scope="col" className="pr-3 py-2 w-24 text-right">Custo · margem</th>}
+            {perm.preco && <th scope="col" className="pr-3 py-2 w-24 text-right">Preço</th>}
+            {mostrarCusto && <th scope="col" className="pr-3 py-2 w-24 text-right">Custo · margem</th>}
             <th scope="col" className="pr-3 py-2 w-24 text-right">Estoque</th>
             <th scope="col" className="pr-6 py-2 w-20 text-right">30d</th>
           </tr>
@@ -262,13 +278,21 @@ function TabelaProdutos({ rows, tweaks, onOpen }: { rows: ProdutoRow[]; tweaks: 
               <td className="pl-6 pr-3 font-mono text-[11.5px] text-muted-foreground">{r.sku}</td>
               <td className="pr-3 text-[13px] font-medium">{r.name}</td>
               <td className="pr-3 text-[12px] text-muted-foreground">{r.cat_label}</td>
-              <td className="pr-3 text-[13px] text-right font-semibold tabular-nums">{fmtBRL(r.price)}</td>
-              {tweaks.showCost && (
+              {perm.preco && (
+                <td className="pr-3 text-[13px] text-right font-semibold tabular-nums">
+                  {r.price !== undefined ? fmtBRL(r.price) : null}
+                </td>
+              )}
+              {mostrarCusto && (
                 <td className="pr-3 text-[12px] text-right tabular-nums">
-                  <div className="text-foreground">{fmtBRL(r.cost)}</div>
-                  <div className={r.margin >= 0.5 ? 'text-success-fg text-[11px]' : r.margin >= 0.3 ? 'text-muted-foreground text-[11px]' : 'text-destructive-fg text-[11px]'}>
-                    {fmtPct(r.margin)}
-                  </div>
+                  {r.cost !== undefined && <div className="text-foreground">{fmtBRL(r.cost)}</div>}
+                  {/* `margin` só vem quando o usuário pode ver custo E preço — ela deriva dos dois.
+                      Sem preço, a linha de margem some e sobra o custo cru. */}
+                  {r.margin !== undefined && (
+                    <div className={r.margin >= 0.5 ? 'text-success-fg text-[11px]' : r.margin >= 0.3 ? 'text-muted-foreground text-[11px]' : 'text-destructive-fg text-[11px]'}>
+                      {fmtPct(r.margin)}
+                    </div>
+                  )}
                 </td>
               )}
               <td className="pr-3 text-[12.5px] text-right text-foreground tabular-nums">
@@ -306,7 +330,13 @@ function ListaCategorias({ rows }: { rows: CategoriaRow[] }) {
   );
 }
 
-function ListaInsumos({ rows }: { rows: InsumoRow[] }) {
+function ListaInsumos({ rows, perm }: { rows: InsumoRow[]; perm: Permissoes }) {
+  // UC-PUNI-04 — sem módulo Manufacturing no pacote + `manufacturing.access_recipe`, o backend
+  // devolve `[]`. Sem esta mensagem a sub-tela pareceria um catálogo de insumos vazio.
+  if (!perm.composicao) {
+    return <SubTelaSemPermissao texto="A composição (insumos e BOM) depende do módulo de Produção estar no plano do negócio e da permissão de acessar receitas." />;
+  }
+
   return (
     <div className="mx-6 mt-3 rounded-md bg-card border border-border shadow-sm overflow-hidden">
       <table className="w-full text-left">
@@ -314,7 +344,7 @@ function ListaInsumos({ rows }: { rows: InsumoRow[] }) {
           <tr className="border-b border-border bg-muted/40">
             <th scope="col" className="pl-6 py-2">Insumo</th>
             <th scope="col" className="py-2 w-20">Unid.</th>
-            <th scope="col" className="py-2 w-28 text-right">Custo</th>
+            {perm.custo && <th scope="col" className="py-2 w-28 text-right">Custo</th>}
             <th scope="col" className="py-2 w-24 text-right">Estoque</th>
             <th scope="col" className="pr-6 py-2 w-44">Fornecedor</th>
           </tr>
@@ -324,7 +354,11 @@ function ListaInsumos({ rows }: { rows: InsumoRow[] }) {
             <tr key={i.id} className="border-b border-border/60" style={{ height: 40 }}>
               <td className="pl-6 text-[13px] font-medium">{i.name}</td>
               <td className="text-[12px] text-muted-foreground">{i.unit}</td>
-              <td className="text-[12.5px] text-right tabular-nums">{fmtBRL(i.cost)}</td>
+              {perm.custo && (
+                <td className="text-[12.5px] text-right tabular-nums">
+                  {i.cost !== undefined ? fmtBRL(i.cost) : null}
+                </td>
+              )}
               <td className="text-[12.5px] text-right tabular-nums">{i.stock}</td>
               <td className="pr-6 text-[12px] text-muted-foreground truncate">{i.fornecedor ?? '—'}</td>
             </tr>
@@ -335,9 +369,32 @@ function ListaInsumos({ rows }: { rows: InsumoRow[] }) {
   );
 }
 
-function ListaTabelas({ rows, produtos }: { rows: TabelaRow[]; produtos: ProdutoRow[] }) {
+/**
+ * Sub-tela que o usuário não pode ver. Diz QUE não pode e POR QUÊ — tabela vazia sem explicação
+ * faz o operador achar que o cadastro está vazio e abrir chamado.
+ */
+function SubTelaSemPermissao({ texto }: { texto: string }) {
+  return (
+    <div className="mx-6 mt-3 rounded-md bg-card border border-border p-6">
+      <div className="text-[13px] font-medium text-foreground">Você não tem acesso a esta informação</div>
+      <p className="mt-1.5 text-[12.5px] text-muted-foreground max-w-2xl">{texto}</p>
+      <p className="mt-2 text-[11.5px] text-muted-foreground">Peça ao administrador do negócio pra revisar as permissões do seu papel.</p>
+    </div>
+  );
+}
+
+function ListaTabelas({ rows, produtos, perm }: { rows: TabelaRow[]; produtos: ProdutoRow[]; perm: Permissoes }) {
+  // Hooks antes de qualquer return condicional (Rules of Hooks) — mesmo motivo do par de
+  // hooks incondicionais do nome da empresa lá em cima.
   const [tableId, setTableId] = useState(rows[0]?.id ?? '');
   const cur = rows.find((t) => t.id === tableId);
+
+  // UC-PUNI-03 — tabela de preço É preço de venda agrupado: mesmo dado, mesmo gate. O backend
+  // devolve `[]`; sem esta mensagem a sub-tela pareceria "nenhuma tabela cadastrada".
+  if (!perm.preco) {
+    return <SubTelaSemPermissao texto="As tabelas de preço mostram o preço de venda agrupado por perfil de cliente — elas seguem a mesma permissão de ver preço de venda." />;
+  }
+
   return (
     <div className="px-6 mt-3 space-y-4">
       <div className="grid grid-cols-4 gap-3">
@@ -368,20 +425,27 @@ function ListaTabelas({ rows, produtos }: { rows: TabelaRow[]; produtos: Produto
                 <th scope="col" className="py-2">Produto</th>
                 <th scope="col" className="py-2 w-28 text-right">Balcão</th>
                 <th scope="col" className="py-2 w-28 text-right">Esta tabela</th>
-                <th scope="col" className="pr-6 py-2 w-24 text-right">Margem</th>
+                {/* Margem = (preço da tabela − custo) / preço da tabela. Sem direito ao custo,
+                    a coluna some — calcular com `?? 0` imprimiria 100% e afirmaria custo zero. */}
+                {perm.custo && <th scope="col" className="pr-6 py-2 w-24 text-right">Margem</th>}
               </tr>
             </thead>
             <tbody>
               {produtos.filter((p) => p.active).map((p) => {
-                const tab = p.price * cur.mult;
-                const m = tab > 0 ? (tab - p.cost) / tab : 0;
+                const base = p.price ?? 0;
+                const tab = base * cur.mult;
+                const m = p.cost !== undefined && tab > 0 ? (tab - p.cost) / tab : undefined;
                 return (
                   <tr key={p.id} className="border-b border-border/60" style={{ height: 40 }}>
                     <td className="pl-6 font-mono text-[11.5px] text-muted-foreground">{p.sku}</td>
                     <td className="text-[13px] font-medium">{p.name}</td>
-                    <td className="text-[12.5px] text-right text-muted-foreground tabular-nums">{fmtBRL(p.price)}</td>
-                    <td className="text-[13px] text-right font-semibold tabular-nums">{fmtBRL(tab)}</td>
-                    <td className={`pr-6 text-[12.5px] text-right tabular-nums ${m >= 0.4 ? 'text-success-fg' : m >= 0.15 ? 'text-foreground' : 'text-destructive-fg'}`}>{fmtPct(m)}</td>
+                    <td className="text-[12.5px] text-right text-muted-foreground tabular-nums">{p.price !== undefined ? fmtBRL(p.price) : null}</td>
+                    <td className="text-[13px] text-right font-semibold tabular-nums">{p.price !== undefined ? fmtBRL(tab) : null}</td>
+                    {perm.custo && (
+                      <td className={`pr-6 text-[12.5px] text-right tabular-nums ${m === undefined ? '' : m >= 0.4 ? 'text-success-fg' : m >= 0.15 ? 'text-foreground' : 'text-destructive-fg'}`}>
+                        {m !== undefined ? fmtPct(m) : null}
+                      </td>
+                    )}
                   </tr>
                 );
               })}
@@ -393,7 +457,7 @@ function ListaTabelas({ rows, produtos }: { rows: TabelaRow[]; produtos: Produto
   );
 }
 
-function ListaHistorico({ rows }: { rows: HistoricoRow[] }) {
+function ListaHistorico({ rows, perm }: { rows: HistoricoRow[]; perm: Permissoes }) {
   return (
     <div className="mx-6 mt-3 rounded-md bg-card border border-border overflow-hidden">
       <table className="w-full text-left">
@@ -404,7 +468,8 @@ function ListaHistorico({ rows }: { rows: HistoricoRow[] }) {
             <th scope="col" className="py-2">Produto</th>
             <th scope="col" className="py-2 w-44">Cliente</th>
             <th scope="col" className="py-2 w-16 text-right">Qtd</th>
-            <th scope="col" className="pr-6 py-2 w-28 text-right">Valor</th>
+            {/* UC-PUNI-02b — `value` é qty × preço unitário: a porta lateral do preço de venda. */}
+            {perm.preco && <th scope="col" className="pr-6 py-2 w-28 text-right">Valor</th>}
           </tr>
         </thead>
         <tbody>
@@ -417,7 +482,11 @@ function ListaHistorico({ rows }: { rows: HistoricoRow[] }) {
               <td className="text-[12.5px] font-medium">{r.prodName}</td>
               <td className="text-[12px] text-muted-foreground">{r.client ?? '—'}</td>
               <td className="text-[12.5px] text-right tabular-nums">{r.qty}</td>
-              <td className="pr-6 text-[12.5px] text-right font-medium tabular-nums">{fmtBRL(r.value)}</td>
+              {perm.preco && (
+                <td className="pr-6 text-[12.5px] text-right font-medium tabular-nums">
+                  {r.value !== undefined ? fmtBRL(r.value) : null}
+                </td>
+              )}
             </tr>
           ))}
         </tbody>
@@ -426,7 +495,7 @@ function ListaHistorico({ rows }: { rows: HistoricoRow[] }) {
   );
 }
 
-function TweaksPanel({ tweaks, setTweak }: { tweaks: Tweaks; setTweak: (e: Partial<Tweaks>) => void }) {
+function TweaksPanel({ tweaks, setTweak, perm }: { tweaks: Tweaks; setTweak: (e: Partial<Tweaks>) => void; perm: Permissoes }) {
   return (
     <div className="fixed bottom-4 right-4 z-40">
       <Popover>
@@ -470,14 +539,18 @@ function TweaksPanel({ tweaks, setTweak }: { tweaks: Tweaks; setTweak: (e: Parti
             </Select>
           </div>
 
-          <div className="flex items-center justify-between gap-3">
-            <Label htmlFor="tweak-cost" className="font-normal">Mostrar custo</Label>
-            <Switch
-              id="tweak-cost"
-              checked={tweaks.showCost}
-              onCheckedChange={(v) => setTweak({ showCost: v })}
-            />
-          </div>
+          {/* O switch some pra quem não pode ver custo — oferecer um controle que não liga nada
+              é dizer que a informação existe e o app está com defeito. */}
+          {perm.custo && (
+            <div className="flex items-center justify-between gap-3">
+              <Label htmlFor="tweak-cost" className="font-normal">Mostrar custo</Label>
+              <Switch
+                id="tweak-cost"
+                checked={tweaks.showCost}
+                onCheckedChange={(v) => setTweak({ showCost: v })}
+              />
+            </div>
+          )}
         </PopoverContent>
       </Popover>
     </div>
