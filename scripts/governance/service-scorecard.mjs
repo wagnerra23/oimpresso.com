@@ -90,25 +90,24 @@ const normKey = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
  * ⚠️ GUARD ANTI-FABRICAÇÃO (cinto + suspensório com o `fetch-depth: 0` do workflow).
  * Num checkout RASO o `git log -1 -- <path>` só enxerga o commit da vez, então TODO
  * arquivo volta datado do dia da run — e o número sai sempre plausível, que é o que
- * torna a mentira invisível. Foi o que aconteceu aqui: o artefato commitado trazia
+ * torna a mentira invisível. Foi o que aconteceu: o artefato publicado trazia
  * `last_commit: 2026-08-12` em bloco quando a verdade era 08-07 / 08-05 / 07-23…
  *
- * A mesma doença já tinha mordido o `sdd-scorecard` em 2026-07-08→12 (o publish rodava
- * com fetch-depth default), foi diagnosticada lá e a defesa ficou SÓ lá. Aqui a gente
- * REUSA aquele detector — que é mais fino que `--is-shallow-repository` cru: ele só
- * considera raso quando um boundary do `.git/shallow` é ANCESTRAL do HEAD (senão uma
- * órfã tipo nightly-floor daria falso-positivo).
+ * A mesma doença mordeu o `sdd-scorecard` em 2026-07-08→12 (o publish rodava com
+ * fetch-depth default), foi diagnosticada lá e a defesa ficou SÓ lá. Aqui a gente
+ * REUSA aquele detector — mais fino que `--is-shallow-repository` cru: só considera
+ * raso quando um boundary do `.git/shallow` é ANCESTRAL do HEAD (senão uma órfã tipo
+ * nightly-floor daria falso-positivo).
  *
- * Resultado: em clone raso devolve `null` (= "não medido"), NUNCA uma data inventada.
- * Ausência de medição não é ausência de frescor — e é honesta.
+ * Em clone raso devolve `null` (= "não medido"), NUNCA uma data inventada. Ausência
+ * de medição não é ausência de frescor — e é honesta.
+ *
+ * @param {string} relPath
+ * @param {{raso?:boolean}} [opts] `raso` injetável SÓ pro bite-test — guard que não
+ *   pode ser exercitado é promessa, não defesa (§5 LC-15).
  */
 const REPO_RASO = isShallowHistory();
 
-/**
- * @param {string} relPath
- * @param {{raso?:boolean}} [opts] `raso` injetável SÓ pro bite-test — guard que
- *   não pode ser exercitado é promessa, não defesa (§5 LC-15).
- */
 export function gitLastDate(relPath, { raso = REPO_RASO } = {}) {
   if (raso) return null;
   try {
@@ -150,7 +149,7 @@ export function graphSignals(moduleId, edges, nodeIds) {
  * PURA: não lê fs nem git; recebe tudo. `deps.hasPagesDir(ns)` e `deps.briefingInfo(mod)` são
  * injetados (o main passa as versões reais; o teste passa stubs).
  * @param {{catalog:any, gradesDoc:any, vitalDoc:any}} src
- * @param {{pagesNs:Record<string,string|string[]>, hasPagesDir:(ns:string)=>boolean, scopeExists:(rel:string)=>boolean, briefingInfo:(mod:string)=>{present:boolean,last_commit:string|null}}} deps
+ * @param {{pagesNs:Record<string,string>, hasPagesDir:(ns:string)=>boolean, scopeExists:(rel:string)=>boolean, briefingInfo:(mod:string)=>{present:boolean,last_commit:string|null}}} deps
  */
 export function buildDoc(src, deps) {
   const { catalog, gradesDoc, vitalDoc } = src;
@@ -168,31 +167,20 @@ export function buildDoc(src, deps) {
 
   function buildService(node) {
     const mod = node.module;
-    // `PAGES_NS` passou a aceitar ARRAY em 2026-08-12 — módulo servindo DOIS
-    // namespaces Inertia (Forja, PaymentGateway, Whatsapp). O dono do mapa
-    // (`module-surface.mjs`) já tratava array; este consumidor não, e o `join()`
-    // de `hasPagesDir` estourava `ERR_INVALID_ARG_TYPE`, derrubando o cron
-    // nightly `mv-metabolismo` (verde 08-08→08-12, vermelho em 08-13) e, com ele,
-    // o required `watchdog G6` de TODO PR aberto.
-    const nsList = [pagesNs[mod] || mod].flat();
-    const ns = nsList[0];
+    const ns = pagesNs[mod] || mod;
 
     // ── qualidade (module-grade — REUSA, não recalcula) ──
     const gradeVal = typeof grades[mod] === 'number' ? grades[mod] : null;
 
     // ── tela (vital-signs: PAGES_NS direto → normalização EXATA de fallback) ──
-    // Com 2 namespaces, o vital-signs pode ter linha em qualquer um dos dois —
-    // procura em todos antes de cair no fallback normalizado.
-    let vNs = nsList.find((n) => vitalByNs.has(n)) ?? ns;
-    let v = vitalByNs.get(vNs);
+    let v = vitalByNs.get(ns);
+    let vNs = ns;
     let via = 'direto';
     if (!v) {
       const cand = vitalByNorm.get(normKey(mod));
-      if (cand && !nsList.includes(cand)) { v = vitalByNs.get(cand); vNs = cand; via = 'normalizado'; }
+      if (cand && cand !== ns) { v = vitalByNs.get(cand); vNs = cand; via = 'normalizado'; }
     }
-    // Existe superfície de tela se QUALQUER um dos namespaces tem pasta.
-    const nsComDir = nsList.filter((n) => hasPagesDir(n));
-    const hasDir = nsComDir.length > 0;
+    const hasDir = hasPagesDir(ns);
     let screens;
     let unmatchedScreenDir = false;
     if (v) {
@@ -203,7 +191,7 @@ export function buildDoc(src, deps) {
         charter_pct: v.charter_pct, casos_pct: v.casos_pct, stale: v.stale, idade_max_dias: v.idade_max_dias,
       };
     } else if (hasDir) {
-      screens = { matched: false, ns: nsComDir.join(', '), note: `dir resources/js/Pages/${nsComDir.join(' + ')} existe mas sem linha em vital-signs — gap` };
+      screens = { matched: false, ns, note: `dir resources/js/Pages/${ns} existe mas sem linha em vital-signs — gap` };
       unmatchedScreenDir = true;
     } else {
       screens = { matched: false, ns, backend_only: true, note: 'sem superfície de tela (backend-only) — n/a, não é falha' };
