@@ -25,6 +25,7 @@ import {
   liveOnly,
   exportPlan,
   absentLocal,
+  previewDsPlan,
   SLA_DAYS,
 } from './cowork-mirror-freshness.mjs';
 
@@ -275,7 +276,10 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
   // O FP conhecido: bundle do design-system é linkado pelo shell mas fica FORA do espelho
   // por regra do .gitignore. Tem que aparecer em `ignorados`, jamais em `faltando`.
   {
-    const r = absentLocal('<link href="_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/colors_and_type.css"/>');
+    // ⚠️ path INEXISTENTE de propósito: o assert prova a REGRA (gitignored → isenta), não o
+    // estado do disco. A 1ª versão usava o colors_and_type.css real e quebrou no dia em que
+    // o `--preview-ds` passou a repô-lo — teste acoplado a estado mede o ambiente, não o contrato.
+    const r = absentLocal('<link href="_ds/qualquer-ds/arquivo-que-nao-existe.css"/>');
     check('CONTROLE absentLocal: _ds/** (gitignored) isenta, não acusa', r.faltando.length === 0 && r.ignorados.length === 1);
   }
   check('CONTROLE absentLocal: sem shell não inventa sinal', absentLocal(null).faltando.length === 0);
@@ -297,6 +301,28 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
   // o hash emitido tem que ser o do conteúdo NORMALIZADO — senão CRLF daria STALE falso
   check('hash do snapshot emitido == contentHash do conteúdo (normalizado)',
     contentHash('a\r\nb\r\n') === contentHash(exportPlan([{ path: 'z.jsx', content: 'a\nb\n' }])[0].content));
+}
+
+// ── PREVIEW-DS (2026-08-13): o espelho versionado NÃO renderiza sozinho ─────────
+// Medido: `_ds/` é gitignored (certo — o DS tem dono próprio, ADR 0239), então quem
+// clona vê `--pos`/`--neg`/`--warn` VAZIOS e a tela sai sem cores de status. Isso
+// contradiz o motivo da ADR 0374 (o time trabalha só com o git). O conteúdo já está
+// versionado no mirror-snapshot; faltava REPOR no path do shell.
+{
+  const shell = '<link href="_ds/ds-abc123/colors_and_type.css"/><script src="_ds/ds-abc123/_ds_bundle.js"></script>';
+  const p = previewDsPlan(shell);
+  // o id sai do SHELL (versionado) — hardcode quebraria quando [W] trocar de design system
+  check('previewDs: id do design system é DERIVADO do shell, não hardcoded', p.id === 'ds-abc123');
+  check('previewDs: enumera os arquivos que o shell realmente pede',
+    JSON.stringify(p.arquivos.map((a) => a.nome)) === '["colors_and_type.css","_ds_bundle.js"]');
+  check('previewDs: destino é o path do shell, e segue gitignored',
+    p.destino === 'prototipo-ui/cowork/_ds/ds-abc123');
+  // honestidade: arquivo sem fonte no repo é DECLARADO, não silenciado (LC-13)
+  check('previewDs: marca o que o repo NÃO tem (bundle compilado) em vez de fingir',
+    p.arquivos.find((a) => a.nome === '_ds_bundle.js').temNoRepo === false);
+  check('previewDs: sem shell não inventa plano', previewDsPlan(null).arquivos.length === 0);
+  check('previewDs: 2 design systems no shell = erro explícito, não escolha silenciosa',
+    !!previewDsPlan('<link href="_ds/a/x.css"/><link href="_ds/b/y.css"/>').erro);
 }
 
 // O SHELL entra no próprio manifesto quando versionado — fiação não medida foi a doença nº1.
