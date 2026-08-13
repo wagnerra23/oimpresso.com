@@ -81,3 +81,20 @@ DRE conferido
 # Substring com o contexto junto (não `R$5` solto), pelo mesmo motivo das entradas
 # acima: isentar o valor sozinho abriria a porta pra qualquer linha em qualquer arquivo.
 virou "ajuste por eixo" (`G: +R$5`)
+
+# ── 2026-08-13 · espelho Cowork: mock de protótipo, não dado de negócio ──────────
+# Os dois trechos abaixo vieram FIÉIS do Cowork vivo (projeto 019dcfd3) no PR que
+# consertou o espelho incoerente. Não são faturamento, meta, MRR nem valor de
+# cliente: são (a) a constante de gamificação do mock e (b) um exemplo de
+# FORMATAÇÃO numa doc de UI que ensina "sinal pelo tipo, nunca por cor sozinha".
+#
+# POR QUE ALLOWLIST E NÃO REDIGIR (decisão [W] 2026-08-13): `prototipo-ui/cowork/`
+# é ESPELHO — sua correção é ser byte-idêntico ao vivo. Redigir aqui criaria STALE
+# PERMANENTE nos dois arquivos e todo import futuro re-divergiria: recriaria
+# exatamente a doença que o PR conserta. A dívida some quando o valor sair do
+# Cowork upstream, não por edição no espelho.
+#
+# Substring COM contexto (nunca `R$ 10` solto) — mesma regra das entradas acima:
+# isentar o valor sozinho abriria a porta pra qualquer linha de qualquer arquivo.
+1 ponto a cada R$ 10 faturados
+<code>R$ 12.480</code> — sinal pelo tipo, nunca por cor sozinha

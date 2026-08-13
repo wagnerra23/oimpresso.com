@@ -161,14 +161,32 @@ export function ledgerEntry(rows, dateIso) {
 
 /** Veredito de SLA (puro): a rotina rodou há ≤ days? E a última rodada estava limpa?
  *  NEVER-RAN e OVERDUE = vermelho de CADÊNCIA; LAST-STALE = vermelho de RESULTADO
- *  (a última rodada achou divergência e nenhuma rodada posterior limpou). */
+ *  (a última rodada achou divergência e nenhuma rodada posterior limpou);
+ *  LAST-PARTIAL = vermelho de COBERTURA (a rodada aconteceu, mas mediu pouco).
+ *
+ *  ── por que LAST-PARTIAL existe (2026-08-13) ──────────────────────────────────
+ *  O veredito olhava só `stale > 0`. Consequência medida no ledger REAL: a rodada
+ *  de 2026-07-07 registrou `5 sync · 0 stale · 98 unchecked` — mediu 5 de 103, 95%
+ *  cega — e o instrumento a classificava como limpa (só reclamou da IDADE). Ou seja:
+ *  o detector de frescor tinha, dentro dele, o "verde por não-execução" que o LC-13
+ *  descreve — `0 stale` numa rodada que não rodou não é saúde, é ausência de medição
+ *  (mesmo formato de `0 failed` em suíte que não executou).
+ *
+ *  Rodada PARCIAL é legítima por desenho (o --manifest recomenda "âncoras + deps
+ *  globais + css do módulo tocado"). O defeito nunca foi ser parcial — era REPORTAR
+ *  parcial como se fosse completa. Por isso o critério é binário e derivado
+ *  (`unchecked === 0`), não um limiar inventado: o §5 tem 5 lápides de guard com
+ *  corte arbitrário. E a cobertura passa a sair SEMPRE na mensagem. */
 export function slaVerdict(entries, nowIso, days = SLA_DAYS) {
   if (!Array.isArray(entries) || entries.length === 0) return { veredito: 'NEVER-RAN', last: null, ageDays: null };
   const last = entries[entries.length - 1];
   const ageDays = Math.floor((Date.parse(nowIso) - Date.parse(last.date)) / 86400000);
-  if (ageDays > days) return { veredito: 'OVERDUE', last, ageDays };
-  if (last.stale > 0) return { veredito: 'LAST-STALE', last, ageDays };
-  return { veredito: 'FRESH', last, ageDays };
+  const medidos = (last.files || 0) - (last.unchecked || 0);
+  const cobertura = { medidos, total: last.files || 0 };
+  if (ageDays > days) return { veredito: 'OVERDUE', last, ageDays, cobertura };
+  if (last.stale > 0) return { veredito: 'LAST-STALE', last, ageDays, cobertura };
+  if ((last.unchecked || 0) > 0) return { veredito: 'LAST-PARTIAL', last, ageDays, cobertura };
+  return { veredito: 'FRESH', last, ageDays, cobertura };
 }
 
 /** Extrai as DEPS DE RENDER dos src/href de um shell HTML (pura, testável — LC-07).
@@ -398,16 +416,35 @@ function main() {
       vivos.push({ path: raw.path, content: raw.content });
     }
     const plano = exportPlan(vivos);
+    // O SNAPSHOT sai daqui de graça (2026-08-13). Antes o ciclo pedia DOIS downloads
+    // por arquivo: um pro --export-from, outro pro snapshot do --compare — e o agente
+    // é o único que fala MCP, então esse 2º download custava contexto dele. Mas o
+    // conteúdo do vivo já está na mão AQUI: emitir o snapshot no mesmo passo corta o
+    // ciclo pela metade. ([W] 2026-08-13: "arrumar as máquinas sempre melhor que fazer mão".)
+    const snapIdx2 = argv.indexOf('--emit-snapshot');
+    const snapOut = snapIdx2 !== -1 ? argv[snapIdx2 + 1] : null;
+    const snapshotEmitido = {};
+    const tally = { NOVO: 0, ATUALIZADO: 0, inalterado: 0 };
     for (const { relPath, content, bytes } of plano) {
       const abs = join(ROOT, relPath);
       const antes = existsSync(abs) ? contentHash(readFileSync(abs, 'utf8')) : null;
       writeFileSync(abs, content, 'utf8');
       const depois = contentHash(content);
       const nota = antes === null ? 'NOVO' : antes === depois ? 'inalterado' : 'ATUALIZADO';
+      tally[nota]++;
+      // chave = path RELATIVO ao espelho (o mesmo que o manifesto usa)
+      snapshotEmitido[relPath.replace(/^prototipo-ui\/cowork\//, '')] = depois;
       console.log(`  ${nota.padEnd(11)} ${relPath}  (${bytes} bytes · ${depois.slice(0, 12)})`);
     }
     console.log(`\n✓ ${plano.length} arquivo(s) escritos do JSON — fiel por construção, sem transcrição.`);
-    console.log('  Confira com: --manifest --all → get_file → --compare snap.json --check');
+    console.log(`  ${tally.ATUALIZADO} atualizado(s) · ${tally.NOVO} novo(s) · ${tally.inalterado} inalterado(s)`);
+    if (snapOut) {
+      writeFileSync(snapOut, JSON.stringify(snapshotEmitido, null, 2) + '\n');
+      console.log(`  snapshot emitido em ${snapOut} (${Object.keys(snapshotEmitido).length} entrada(s)) — sem re-baixar.`);
+      console.log(`  Feche o ciclo: --compare ${snapOut} --check --ledger`);
+    } else {
+      console.log('  Dica: --emit-snapshot <arq> emite o snapshot AQUI e evita re-baixar tudo pro --compare.');
+    }
     return;
   }
 
@@ -418,15 +455,18 @@ function main() {
     let entries = [];
     try { entries = existsSync(lp) ? JSON.parse(readFileSync(lp, 'utf8')) : []; } catch { entries = []; }
     const r = slaVerdict(entries, new Date().toISOString());
-    const detail = r.last ? `última rodada ${r.last.date} (há ${r.ageDays}d): ${r.last.sync} sync · ${r.last.stale} stale · ${r.last.unchecked} unchecked` : 'nenhuma rodada registrada';
+    // COBERTURA sai sempre: "0 stale" só significa alguma coisa junto de quantos foram medidos.
+    const cob = r.cobertura ? ` · mediu ${r.cobertura.medidos}/${r.cobertura.total}` : '';
+    const detail = r.last ? `última rodada ${r.last.date} (há ${r.ageDays}d): ${r.last.sync} sync · ${r.last.stale} stale · ${r.last.unchecked} unchecked${cob}` : 'nenhuma rodada registrada';
     if (r.veredito === 'FRESH') {
-      console.log(`✓ rotina de frescor dentro do SLA (${SLA_DAYS}d) — ${detail}.`);
+      console.log(`✓ rotina de frescor dentro do SLA (${SLA_DAYS}d) e COMPLETA — ${detail}.`);
       return;
     }
     const msg = {
-      'NEVER-RAN': () => `rotina de frescor NUNCA rodou (ledger vazio) — rode o dispatch logado (--manifest → DesignSync.get_file → --compare snap.json --check --ledger).`,
+      'NEVER-RAN': () => `rotina de frescor NUNCA rodou (ledger vazio) — rode o dispatch logado (--manifest → DesignSync.get_file → --export-from <dir> --emit-snapshot snap.json → --compare snap.json --check --ledger).`,
       'OVERDUE': () => `rotina de frescor FORA do SLA (${SLA_DAYS}d) — ${detail}. Rode o dispatch logado.`,
       'LAST-STALE': () => `última rodada achou STALE não-resolvido — ${detail} (${(r.last.staleList || []).join(', ')}). Re-exporte do Cowork e rode de novo.`,
+      'LAST-PARTIAL': () => `última rodada foi PARCIAL — ${detail}. Rodada parcial é legítima, mas "${r.last.stale} stale" só cobre o que foi medido: ${r.last.unchecked} arquivo(s) seguem sem veredito. Pra fechar, exporte o resto (--export-from <dir> --emit-snapshot) e rode --compare --ledger.`,
     }[r.veredito]();
     console.error(`✗ ${msg}`);
     process.exit(1);
