@@ -6,7 +6,7 @@
 // arte 2026-07-06-arte-design-code-sync-frescor (hash(normalizado) por PATH COMPLETO).
 // Os asserts de EOL/BOM e colisão-por-path existem porque a v1 NÃO os tinha e morreu por isso.
 // Roda: node scripts/governance/cowork-mirror-freshness.test.mjs
-import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
@@ -25,6 +25,7 @@ import {
   liveOnly,
   exportPlan,
   absentLocal,
+  previewDsPlan,
   SLA_DAYS,
 } from './cowork-mirror-freshness.mjs';
 
@@ -275,7 +276,10 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
   // O FP conhecido: bundle do design-system é linkado pelo shell mas fica FORA do espelho
   // por regra do .gitignore. Tem que aparecer em `ignorados`, jamais em `faltando`.
   {
-    const r = absentLocal('<link href="_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/colors_and_type.css"/>');
+    // ⚠️ path INEXISTENTE de propósito: o assert prova a REGRA (gitignored → isenta), não o
+    // estado do disco. A 1ª versão usava o colors_and_type.css real e quebrou no dia em que
+    // o `--preview-ds` passou a repô-lo — teste acoplado a estado mede o ambiente, não o contrato.
+    const r = absentLocal('<link href="_ds/qualquer-ds/arquivo-que-nao-existe.css"/>');
     check('CONTROLE absentLocal: _ds/** (gitignored) isenta, não acusa', r.faltando.length === 0 && r.ignorados.length === 1);
   }
   check('CONTROLE absentLocal: sem shell não inventa sinal', absentLocal(null).faltando.length === 0);
@@ -299,6 +303,28 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
     contentHash('a\r\nb\r\n') === contentHash(exportPlan([{ path: 'z.jsx', content: 'a\nb\n' }])[0].content));
 }
 
+// ── PREVIEW-DS (2026-08-13): o espelho versionado NÃO renderiza sozinho ─────────
+// Medido: `_ds/` é gitignored (certo — o DS tem dono próprio, ADR 0239), então quem
+// clona vê `--pos`/`--neg`/`--warn` VAZIOS e a tela sai sem cores de status. Isso
+// contradiz o motivo da ADR 0374 (o time trabalha só com o git). O conteúdo já está
+// versionado no mirror-snapshot; faltava REPOR no path do shell.
+{
+  const shell = '<link href="_ds/ds-abc123/colors_and_type.css"/><script src="_ds/ds-abc123/_ds_bundle.js"></script>';
+  const p = previewDsPlan(shell);
+  // o id sai do SHELL (versionado) — hardcode quebraria quando [W] trocar de design system
+  check('previewDs: id do design system é DERIVADO do shell, não hardcoded', p.id === 'ds-abc123');
+  check('previewDs: enumera os arquivos que o shell realmente pede',
+    JSON.stringify(p.arquivos.map((a) => a.nome)) === '["colors_and_type.css","_ds_bundle.js"]');
+  check('previewDs: destino é o path do shell, e segue gitignored',
+    p.destino === 'prototipo-ui/cowork/_ds/ds-abc123');
+  // honestidade: arquivo sem fonte no repo é DECLARADO, não silenciado (LC-13)
+  check('previewDs: marca o que o repo NÃO tem (bundle compilado) em vez de fingir',
+    p.arquivos.find((a) => a.nome === '_ds_bundle.js').temNoRepo === false);
+  check('previewDs: sem shell não inventa plano', previewDsPlan(null).arquivos.length === 0);
+  check('previewDs: 2 design systems no shell = erro explícito, não escolha silenciosa',
+    !!previewDsPlan('<link href="_ds/a/x.css"/><link href="_ds/b/y.css"/>').erro);
+}
+
 // O SHELL entra no próprio manifesto quando versionado — fiação não medida foi a doença nº1.
 {
   const man = buildManifest(undefined, { shellHtml: '<script src="app.jsx"></script>' });
@@ -306,5 +332,49 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
     man.some((f) => f.cowork === 'oimpresso.com.html'));
 }
 
-console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel + absent-local)');
+// ── FLUXO END-TO-END (2026-08-13) ────────────────────────────────────────────────
+// Os asserts acima provam PEÇAS. Este prova a TRAVESSIA: get_file(JSON) →
+// --export-from --emit-snapshot → --compare. É onde os contratos se encontram, e
+// onde um erro de junção (chave prefixada, hash de conteúdo cru, snapshot vazio)
+// aparece — nenhum assert de peça isolada pegaria.
+// Roda em sandbox por cwd: não toca o espelho real.
+{
+  const tmp = mkdtempSync(join(tmpdir(), 'cowork-fluxo-'));
+  const mirror = join(tmp, 'prototipo-ui', 'cowork');
+  mkdirSync(mirror, { recursive: true });
+  // espelho de partida: 1 arquivo DESATUALIZADO + o shell que o carrega
+  writeFileSync(join(mirror, 'x.jsx'), 'versao ANTIGA\n');
+  writeFileSync(join(mirror, 'oimpresso.com.html'), '<script src="x.jsx?v=1"></script>');
+  const dirJson = join(tmp, 'baixados');
+  mkdirSync(dirJson);
+  // o que o DesignSync.get_file devolveria pro arquivo, já ATUALIZADO no vivo
+  writeFileSync(join(dirJson, 'x.json'), JSON.stringify({ path: 'x.jsx', content: 'versao NOVA\n' }));
+
+  const cli = fileURLToPath(new URL('./cowork-mirror-freshness.mjs', import.meta.url));
+  const run = (args) => {
+    try {
+      return { out: execFileSync(process.execPath, [cli, ...args], { cwd: tmp, encoding: 'utf8' }), code: 0 };
+    } catch (e) { return { out: (e.stdout || '') + (e.stderr || ''), code: e.status }; }
+  };
+
+  const snap = join(tmp, 'snap.json');
+  const exp = run(['--export-from', dirJson, '--emit-snapshot', snap]);
+  check('FLUXO 1/3: export escreve o conteúdo do vivo e marca ATUALIZADO',
+    /ATUALIZADO/.test(exp.out) && readFileSync(join(mirror, 'x.jsx'), 'utf8') === 'versao NOVA\n');
+  check('FLUXO 2/3: o snapshot sai do MESMO passo (sem 2º download)', existsSync(snap));
+
+  // o compare tem que dizer SYNC — o espelho acabou de receber o conteúdo do vivo
+  const cmpOk = run(['--compare', snap, '--check']);
+  check('FLUXO 3/3: compare fecha SYNC e --check libera (exit 0)', cmpOk.code === 0);
+
+  // ⚠️ CONTROLE POSITIVO: sem ele o fluxo acima passaria mesmo se o compare fosse cego
+  writeFileSync(join(mirror, 'x.jsx'), 'alguem editou o espelho a mao\n');
+  const cmpBad = run(['--compare', snap, '--check']);
+  check('BITE do fluxo: espelho divergindo do snapshot → --check MORDE (exit 1)',
+    cmpBad.code === 1 && /STALE/.test(cmpBad.out));
+
+  rmSync(tmp, { recursive: true, force: true });
+}
+
+console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel + absent-local + fluxo e2e)');
 process.exit(fails ? 1 : 0);

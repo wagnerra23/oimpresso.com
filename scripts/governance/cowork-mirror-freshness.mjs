@@ -58,10 +58,10 @@
  *   node scripts/governance/cowork-mirror-freshness.mjs --sla               # headless: rotina rodou ≤14d? última limpa?
  */
 
-import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
 import { homedir } from 'node:os';
 import { anchorRelPath } from './anchor-content-check.mjs'; // fonte única: como extrair o path do related_prototype
 
@@ -329,6 +329,42 @@ function walkRel(base, dir = base, acc = []) {
   return acc;
 }
 
+// ── PREVIEW-DS: o espelho é versionado, mas NÃO RENDERIZA sozinho (2026-08-13) ────
+// O shell do Cowork faz <link> de `_ds/<id>/colors_and_type.css` + `cockpit_domains.css`
+// e <script> do `_ds_bundle.js`. O `.gitignore` do espelho exclui `_ds/` — correto, porque
+// o Design System tem dono próprio em git (ADR 0239) e duplicá-lo criaria 2º armazém.
+// CONSEQUÊNCIA MEDIDA: quem clona o repo e abre o protótipo vê `--pos`/`--neg`/`--warn`
+// VAZIOS — a tela renderiza sem as cores de status. Isso contradiz o motivo da ADR 0374
+// ("vai ter computadores que não vão ter acesso ao design dessa máquina e vão trabalhar
+// só com o git"): o time recebe o protótipo, mas não o vê como ele é.
+//
+// O conteúdo JÁ ESTÁ versionado em `scripts/design-sync/mirror-snapshot/` (dono:
+// ds-mirror-build.mjs + gate ds-mirror-drift) — só não no path que o shell procura.
+// Este modo REPÕE, derivando o id do DS do PRÓPRIO SHELL (nunca hardcode: o shell é
+// versionado, então o id acompanha quando [W] trocar de design system).
+// O `_ds/` continua gitignored: isto é build de preview, não versionamento.
+//
+// Não é detector — é ação determinística (copiar), então não tem FP a medir.
+export function previewDsPlan(shellHtml, root = ROOT) {
+  if (!shellHtml) return { erro: 'sem shell — não dá pra derivar o id do design system', arquivos: [] };
+  // o id sai dos próprios <link>/<script> do shell
+  const ids = [...new Set([...String(shellHtml).matchAll(/_ds\/([^/"]+)\//g)].map((m) => m[1]))];
+  if (ids.length !== 1) return { erro: `esperava 1 design system no shell, achei ${ids.length}`, arquivos: [] };
+  const id = ids[0];
+  const querUsar = [...new Set([...String(shellHtml).matchAll(/_ds\/[^/"]+\/([^"?]+)/g)].map((m) => m[1]))];
+  const origem = join(root, 'scripts', 'design-sync', 'mirror-snapshot');
+  return {
+    id,
+    destino: `prototipo-ui/cowork/_ds/${id}`,
+    arquivos: querUsar.map((f) => ({
+      nome: f,
+      de: join(origem, f),
+      para: join(root, 'prototipo-ui', 'cowork', '_ds', id, f),
+      temNoRepo: existsSync(join(origem, f)),
+    })),
+  };
+}
+
 /** Imprime o ABSENT-LOCAL. ADVISORY por desenho (ADR 0275 "nasce advisory" · 0336
  *  "promoção só por mordida provada"): o `--check` segue mordendo SÓ em STALE, que é o
  *  sinal hash-provado. Promover isto a bloqueio é decisão [W], não do script.
@@ -393,6 +429,31 @@ function main() {
     for (const p of outros) console.log(`     · ${p}`);
     console.log('\n  Para versionar: DesignSync.get_file de cada → salve os JSON num dir → --export-from <dir>.');
     console.log('  ⚠️ advisory por desenho: o que merece descer é decisão [W], não da máquina.\n');
+    return;
+  }
+
+  // --preview-ds: repõe o `_ds/` do espelho a partir do mirror-snapshot versionado.
+  // Sem isso o protótipo abre COM os tokens de status vazios (medido 2026-08-13).
+  if (argv.includes('--preview-ds')) {
+    const shellIdx0 = argv.indexOf('--shell');
+    const sp = shellIdx0 !== -1 ? argv[shellIdx0 + 1] : defaultShellPath();
+    const html = sp && existsSync(sp) ? readFileSync(sp, 'utf8') : null;
+    const plano = previewDsPlan(html);
+    if (plano.erro) { console.error(`✗ ${plano.erro}`); process.exit(2); }
+    console.log(`\n  PREVIEW-DS — repondo o _ds/ do espelho (id derivado do shell, não hardcode)\n`);
+    console.log(`  design system: ${plano.id}`);
+    let ok = 0, faltando = [];
+    for (const a of plano.arquivos) {
+      if (!a.temNoRepo) { faltando.push(a.nome); console.log(`  ⚠ SEM FONTE   ${a.nome}  (não existe em scripts/design-sync/mirror-snapshot/)`); continue; }
+      mkdirSync(dirname(a.para), { recursive: true });
+      writeFileSync(a.para, readFileSync(a.de));
+      ok++;
+      console.log(`  ✓ reposto     ${a.nome}`);
+    }
+    console.log(`\n  ${ok} reposto(s) · ${faltando.length} sem fonte no repo${faltando.length ? ` (${faltando.join(', ')})` : ''}`);
+    console.log(`  destino: ${plano.destino}/ — segue gitignored (build de preview, não versionamento).`);
+    if (faltando.length) console.log(`  ⚠ o que falta o repo NÃO TEM: são componentes compilados do DS, e o código do protótipo tem fallback pra eles.`);
+    console.log('');
     return;
   }
 

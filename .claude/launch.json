@@ -16,7 +16,7 @@
     {
       "name": "cowork-espelho",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "5570", "--directory", "D:\\oimpresso.com\\.claude\\worktrees\\nice-lamarr-fdc982\\prototipo-ui\\cowork"],
+      "runtimeArgs": ["-m", "http.server", "5570", "--directory", "D:\\oimpresso.com\\prototipo-ui\\cowork"],
       "port": 5570
     }
   ]

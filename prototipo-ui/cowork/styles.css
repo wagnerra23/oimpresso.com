@@ -10,15 +10,9 @@
   --sb-hover:     oklch(0.28 0.035 295);
   --sb-active:    oklch(0.34 0.05 295);
 
-  /* Surface */
-  --bg:           oklch(0.985 0.003 90);
-  --bg-2:         oklch(0.965 0.004 90);
-  --surface:      #ffffff;
-  --border:       oklch(0.90 0.004 90);
-  --border-2:     oklch(0.93 0.004 90);
-  --text:         oklch(0.22 0.01 80);
-  --text-dim:     oklch(0.50 0.01 80);
-  --text-mute:    oklch(0.65 0.01 80);
+  /* Neutros de superfície/texto — vêm do DS VIVO (.cockpit): --bg / --bg-2 / --surface /
+     --border / --border-2 / --text / --text-dim / --text-mute. NÃO redefinir aqui — redefinir
+     criava ciclo com o adaptador ds-v6 (--bg-2:var(--sunken) × --sunken:var(--bg-2)) = vazio no light. */
 
   /* ── ACCENT · fonte canônica de FALLBACK (pré-JS) ──────────────────────────
      Roxo canon · ADR 0235. No RUNTIME quem vence é app.jsx, que faz
@@ -33,7 +27,7 @@
 
   --bubble-me:    oklch(0.55 0.15 295); /* roxo canon ADR 0235 (era azul 220 stale); app.jsx sobrescreve via accentHue */
   --bubble-me-fg: #ffffff;
-  --bubble-them:  oklch(0.96 0.003 90);
+  --bubble-them:  var(--sunken);
   --bubble-them-fg: var(--text);
 
   /* Origens (módulos que geram tarefas) */
@@ -58,24 +52,12 @@
 [data-density="compact"]{ --row-h: 26px; }
 [data-density="comfy"]{   --row-h: 34px; }
 
-[data-theme="dark"]{
-  --bg:        oklch(0.16 0.003 240);
-  --bg-2:      oklch(0.14 0.003 240);
-  --surface:   oklch(0.19 0.003 240);
-  --border:    oklch(0.26 0.005 240);
-  --border-2:  oklch(0.23 0.005 240);
-  --text:      oklch(0.92 0.005 90);
-  --text-dim:  oklch(0.68 0.005 90);
-  --text-mute: oklch(0.55 0.005 90);
-  --bubble-them: oklch(0.24 0.005 240);
-  --accent-soft: oklch(0.30 0.06 295);
-
-  --origin-OS-bg:  oklch(0.30 0.07 60);   --origin-OS-fg:  oklch(0.85 0.07 60);
-  --origin-CRM-bg: oklch(0.30 0.07 220);  --origin-CRM-fg: oklch(0.85 0.07 220);
-  --origin-FIN-bg: oklch(0.30 0.07 145);  --origin-FIN-fg: oklch(0.85 0.07 145);
-  --origin-PNT-bg: oklch(0.30 0.07 295);  --origin-PNT-fg: oklch(0.85 0.07 295);
-  --origin-MFG-bg: oklch(0.30 0.07 30);   --origin-MFG-fg: oklch(0.85 0.07 30);
-}
+/* [data-theme="dark"] — REMOVIDO 2026-07-10 (convergência DS↔proto, mandato [W] "mesmas cores").
+   Este bloco redefinia os neutros dark em hue 240, competindo com o ds-v6/tokens.css (hue 282,
+   [W] 06-22 "preto menos agressivo") = o split-brain que fazia o design não aplicar.
+   Agora TODOS os neutros dark (--bg/--surface/--border/--text) + accent-soft + origens vêm SÓ do DS;
+   os aliases legados (--bg-2/--text-dim/--text-mute/--bubble-them) no :root acima re-resolvem por var()
+   e seguem o tema automaticamente. Uma fonte, um hue. */
 
 *{ box-sizing: border-box; }
 html, body, #app{ height: 100%; margin: 0; }
@@ -6324,3 +6306,279 @@ body{
 }
 
 /* ═══════════════════════════════════════════════════════════════════
+
+/* ═══════════════════════════════════════════════════════════════════
+   CAMADA ADAPTADOR (dobrada do antigo ds-v6/tokens.css em 2026-07-10 · [W] "faça o fold").
+   O ds-v6/tokens.css foi DELETADO — seu conteúdo (aliases dos nomes do protótipo → tokens do DS,
+   + escalares z/s/focus + accent com tweak) vive aqui. NÃO define neutros/radius/type (DS vivo:
+   colors_and_type.css) nem domínios (cockpit_domains.css). Carrega depois do colors_and_type e
+   antes do cockpit_domains — accent hue-var vence o accent fixo do DS (preserva o tweak "Tom").
+   ═══════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════
+   OIMPRESSO DESIGN SYSTEM v5 — TOKENS (fonte única)
+   Acabamento estado-da-arte · roxo canônico oklch(0.55 0.15 295) preservado
+   Camadas: primitivo → semântico. Componentes consomem o semântico.
+   Eixos ortogonais: [data-theme] (light/dark) × [data-density].
+   ═══════════════════════════════════════════════════════════════════ */
+:root{
+  /* ── Neutros — LIVE do DS (colors_and_type.css .cockpit, carregado ANTES). NÃO redefinir:
+     --bg/--surface/--border/--border-2/--text/--bg-2/--text-dim/--text-mute são PINTADOS pelo
+     DS vivo (herdados via <html class="cockpit">) e seguem o tema sozinhos. Linkado, não copiado
+     → não apodrece ([W] 2026-07-10). Aqui só os nomes EXTRA do protótipo, apontando pro DS. ── */
+  --sunken:    var(--bg-2);
+  --raised:    var(--surface);
+  --hairline:  var(--border-2);
+  --text-2:    var(--text-dim);
+  --text-3:    var(--text-mute);
+  --text-4:    var(--text-mute);
+
+  /* ── Accent — ROXO canônico (ADR 0235). Mudar = reindexar (só [W]). ── */
+  --accent-h:    295;                     /* hue do accent — Único ponto que o tweak "Tom" rotaciona (inline). Luminância é DONA DO TEMA (fix 2026-06-12 · verifier). */
+  --accent:      oklch(0.55 0.15 var(--accent-h, 295));
+  --accent-hi:   oklch(0.50 0.16 var(--accent-h, 295));   /* hover (mais escuro no claro) */
+  --accent-soft: oklch(0.945 0.045 var(--accent-h, 295)); /* fundo suave · VIDA 06-11 [W]: +chroma */
+  --accent-line: oklch(0.80 0.09 var(--accent-h, 295));   /* borda accent */
+  --accent-fg:   oklch(1 0 0);
+
+  /* ── Número semântico (Mercury) · VIDA 06-11 [W] "cor fosca é erro sistêmico, capriche":
+     chroma de verdade nos sólidos E nos -soft — a fonte estava lavada, não os componentes. ── */
+  --pos:       oklch(0.55 0.17 150);  --pos-soft:  oklch(0.93 0.11 150);
+  --neg:       oklch(0.58 0.21 25);   --neg-soft:  oklch(0.93 0.08 25);
+  --warn:      oklch(0.63 0.16 68);   --warn-soft: oklch(0.93 0.11 80);
+  --info:      var(--accent);          --info-soft: var(--accent-soft);
+
+  /* ── Origens — cor-por-módulo (Attio) · CANON do DS (SSOT semantic.tokens.json cockpit.origin, ADR 0310).
+     Alinhado 2026-07-10 [W] "canon vence": o Cowork era +saturado (CRM 245/chroma 0.13) = drift; agora = SSOT. ── */
+
+  /* ── Pipeline / etapas (tempero 06-03 · [W]) — escala categórica de
+     etapas/kanban (Recepção→Pronto). Antes vivia cru na Oficina; agora é
+     token do DS, reusável por qualquer pipeline. Roxo canon intocado. ── */
+  /* recepção / neutro */
+   /* diagnóstico */
+    /* aguardando peças */
+   /* em execução */
+   /* pronto */
+
+  /* ── Avatar palette — determinística (hash → c1..c8) ── */
+  --av-1: oklch(0.58 0.14 285); --av-2: oklch(0.55 0.13 150);
+  --av-3: oklch(0.60 0.13 60);  --av-4: oklch(0.57 0.16 25);
+  --av-5: oklch(0.56 0.12 230); --av-6: oklch(0.55 0.12 175);
+  --av-7: oklch(0.57 0.15 330); --av-8: oklch(0.52 0.08 250);
+
+  /* ── Frescor (recência Clientes) CONSOLIDADO em --sla-* ([W] 2026-06-24): recente→fresh · fresc→aging · distante→late · frio→expired. Família --frescor-* aposentada. ── */
+
+  /* ── Kind — categórico de tipo de entidade (cliente/fornecedor/funcionário/representante). -soft = fundo ── */
+
+  /* ── KPI feature — card de destaque escuro (Faturamento). Navy intencional, fora do eixo roxo. ── */
+
+  /* ── VIP — selo dourado ── */
+
+  /* ── SLA — escala de tempo de resposta (Atendimento) · promovido [W] 2026-06-24. -soft=fundo · -dot=ponto · -line=borda ── */
+   /* estado neutro: paga/pago (theme-aware via alias) */
+
+  /* ── Canal — tom por canal de atendimento (-tint=fundo do thread · -bg=balão · -fg=texto) ── */
+
+  /* ── Elevação — em camada, suave, intencional ── */
+  --sh-1: 0 1px 1px oklch(0.25 0.02 280 / .05), 0 2px 4px -1px oklch(0.25 0.02 280 / .07);
+  --sh-2: 0 2px 4px -2px oklch(0.25 0.02 280 / .06), 0 6px 16px -5px oklch(0.25 0.02 280 / .11);
+  --sh-3: 0 4px 9px -4px oklch(0.25 0.02 280 / .08), 0 14px 32px -8px oklch(0.25 0.02 280 / .14);
+  --sh-4: 0 8px 18px -8px oklch(0.25 0.02 280 / .10), 0 26px 56px -14px oklch(0.25 0.02 280 / .20);
+  --sh-key: 0 12px 40px -12px oklch(0.45 0.14 295 / .26);
+
+  /* ── Radius — teto 12px em componentes (16px só drawer/modal) ── */
+  /* ── Radius — primitivos apontam pro DS vivo (.cockpit --radius*): 6 / 8 / 12; 16 só drawer/modal ── */
+  --r-1: var(--radius-sm);  --r-2: var(--radius);  --r-3: var(--radius-lg);  --r-4: 16px;  --r-pill: 999px;
+
+  /* ── Type ── */
+  --sans: "Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* ── Type RAMP (âncora única de tamanho · [W] "vai" 2026-06-10) ──
+     9 degraus; TODO font-size do sistema snapa aqui. Enforcement = G8 (qa-conformance).
+     Acabamento: pesos só 400/500/600/700 · lh 1 números · 1.2 títulos · 1.45 corpo ·
+     caption uppercase +0.08em · números sempre --font-mono tabular. */
+  --fs-1: 10.5px;  /* caption / eyebrow uppercase */
+  --fs-2: 11.5px;  /* label · chip · hint */
+  --fs-3: 12.5px;  /* corpo denso (células, drawer) */
+  --fs-4: 13.5px;  /* corpo padrão (= body) */
+  --fs-5: 15px;    /* título de seção/card */
+  --fs-6: 18px;    /* subtítulo de página */
+  --fs-7: 22px;    /* h1 de página · KPI médio */
+  --fs-8: 28px;    /* número grande */
+  --fs-9: 38px;    /* número hero */
+
+  /* ── TEMPERO — norte visual do ERP ([W] autorizou 2026-06-10 · fonte: "Norte - Fluxo do Caminhão") ──
+     6 conceitos: contraste tipográfico (ramp acima) · uma família de cor (matriz oklch única,
+     soft-state = color-mix do PRÓPRIO tom) · UMA fonte de luz · fundo com atmosfera ·
+     microfísica (--ease) · medida de linha (título ≤24ch balance · prosa ≤60ch pretty). */
+  --sh-1: 0 4px 14px -6px oklch(0.2 0.02 282 / .10), 0 1px 3px oklch(0.2 0.02 282 / .07);   /* card assentado */
+  --sh-2: 0 18px 50px -18px oklch(0.2 0.02 282 / .30), 0 4px 14px -6px oklch(0.2 0.02 282 / .16); /* flutuante: drawer/modal/popover */
+  --ease: cubic-bezier(.22, 1, .36, 1);  /* desacelera como coisa física — curva Única do ERP */
+  --t-1: .15s; --t-2: .3s;
+  --atmo: radial-gradient(1100px 600px at 82% -8%, oklch(0.55 0.15 295 / .05), transparent 60%),
+          radial-gradient(900px 520px at 8% 108%, oklch(0.55 0.10 250 / .04), transparent 62%);
+
+  /* ── Spacing — base 4 ── */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px;
+  --s-5: 20px; --s-6: 24px; --s-8: 32px; --s-10: 40px;
+
+  /* ── Densidade (default) — sobrescrita por [data-density] ── */
+  --row-h: 32px; --field-h: 34px; --pad-x: 12px; --pad-y: 9px;
+
+  /* ── Foco — anel canônico AA ── */
+  --focus: 0 0 0 3px var(--accent-soft), 0 0 0 1px var(--accent);
+
+  /* ── Motion ── */
+  --t-1: 110ms; --t-2: 180ms; --t-3: 320ms;
+  --ease: cubic-bezier(.22,1,.36,1);
+  --ease-soft: cubic-bezier(.4,0,.2,1);
+
+  /* ── Z-stack ── */
+  --z-sticky: 25; --z-drawer: 40; --z-overlay: 50; --z-toast: 60;
+  --z-modal: 80; --z-popover: 90;
+}
+
+/* ═══════════════════════════════ DARK ═══ */
+[data-theme="dark"]{
+  /* NEUTROS DARK = LIVE do DS (.cockpit[data-theme=dark]). Não redefinir aqui — os extras
+     (--sunken/--raised/--hairline/--text-2..4) são var() do DS no :root e já seguem o dark. */
+
+  --accent:      oklch(0.70 0.15 var(--accent-h, 295));
+  --accent-hi:   oklch(0.76 0.15 var(--accent-h, 295));
+  --accent-soft: oklch(0.33 0.09 var(--accent-h, 295));  /* VIDA 06-11 */
+  --accent-line: oklch(0.47 0.13 var(--accent-h, 295));
+  --accent-fg:   oklch(0.14 0.02 295);
+
+  /* VIDA 06-11 [W] — mesmos saltos de chroma do light, calibrados pro escuro */
+  --pos: oklch(0.76 0.18 150); --pos-soft: oklch(0.34 0.11 150);
+  --neg: oklch(0.74 0.19 25);  --neg-soft: oklch(0.36 0.12 25);
+  --warn: oklch(0.82 0.16 75); --warn-soft: oklch(0.37 0.11 70);
+
+  /* ── TEMPERO · dark ── */
+  --sh-1: 0 4px 14px -6px rgba(0,0,0,.45), 0 1px 3px rgba(0,0,0,.3);
+  --sh-2: 0 18px 50px -18px rgba(0,0,0,.6), 0 4px 14px -6px rgba(0,0,0,.4);
+  --atmo: radial-gradient(1100px 600px at 82% -8%, oklch(0.26 0.07 295 / .28), transparent 60%),
+          radial-gradient(900px 520px at 8% 108%, oklch(0.24 0.05 250 / .22), transparent 62%);
+
+  /* Origens dark — CANON do SSOT (cockpit.origin dark · ADR 0310). Alinhado 2026-07-10. */
+
+  /* Pipeline / etapas — variante dark (mais brilho p/ contraste no escuro) */
+
+  --av-1: oklch(0.66 0.14 285); --av-2: oklch(0.64 0.13 150);
+  --av-3: oklch(0.68 0.13 60);  --av-4: oklch(0.65 0.16 25);
+  --av-5: oklch(0.64 0.12 230); --av-6: oklch(0.63 0.12 175);
+  --av-7: oklch(0.66 0.15 330); --av-8: oklch(0.60 0.08 250);
+
+  /* ── Kind / KPI-feature / VIP · variante dark (mesmos saltos, calibrados pro escuro) ── */
+
+  --sh-1: 0 1px 2px oklch(0 0 0 / .3), 0 1px 1px oklch(0 0 0 / .2);
+  --sh-2: 0 3px 8px -3px oklch(0 0 0 / .42), 0 8px 20px -6px oklch(0 0 0 / .4);
+  --sh-3: 0 8px 18px -8px oklch(0 0 0 / .5), 0 18px 40px -12px oklch(0 0 0 / .55);
+  --sh-4: 0 12px 26px -10px oklch(0 0 0 / .55), 0 30px 60px -16px oklch(0 0 0 / .65);
+  --sh-key: 0 14px 44px -12px oklch(0.70 0.15 295 / .35);
+
+  --focus: 0 0 0 3px oklch(0.45 0.12 295 / .45), 0 0 0 1px var(--accent);
+}
+
+/* ═══════════════════════════ Densidade ═══ */
+[data-density="compact"]{ --row-h: 28px; --field-h: 30px; --pad-x: 10px; --pad-y: 6px; }
+[data-density="default"] { --row-h: 32px; --field-h: 34px; --pad-x: 12px; --pad-y: 9px; }
+[data-density="comfy"]   { --row-h: 38px; --field-h: 40px; --pad-x: 16px; --pad-y: 13px; }
+
+/* ═══════════════ CAMADA COMPAT / FUSÃO v4→v5 (2026-06-02 · [CC]) ═══════════════
+   Autorizado por [W]: "fundir o melhor, no final só 1". ds-v5/tokens.css é a FONTE
+   ÚNICA. Este bloco absorve os nomes que o tokens.css (v4) provia e que módulos do
+   host ainda consomem — mapeados para o token v5 equivalente VIA var() (assim tema
+   dark + density propagam sozinhos). Roxo canon (ADR 0235) preservado; tipo segue
+   IBM Plex (carregado), não a Hanken do v5. Auditoria: 29 tokens de quebra cobertos
+   + aliases de coerência (neutros/texto v4 passam a apontar pro v5).
+   Depois de verificado tela-a-tela, o tokens.css é removido (lápide). */
+:root{
+  /* — Neutros/texto v4→v5: --bg-2/--text-dim/--text-mute vêm do DS VIVO (não redefinir aqui —
+     criava ciclo com --sunken/--text-2/--text-3 → vazio no light). Só --accent-2 (compat) fica. — */
+  --accent-2:  var(--accent-hi);
+
+  /* — Type: manter IBM Plex carregado; v5 (Hanken/JetBrains) NÃO entra — */
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --sans: var(--font-sans);
+  --mono: var(--font-mono);
+  --font-display: var(--font-sans);
+
+  /* — Radius: --radius/-sm/-lg vêm do DS vivo (.cockpit). Só --radius-md (o DS não expõe) fica aqui. — */
+  --radius-md: var(--radius);
+
+  /* — Shadow v4 → v5 — */
+  --shadow-0: none;
+  --shadow-1: var(--sh-1);
+  --shadow-2: var(--sh-2);
+  --shadow-3: var(--sh-3);
+  --shadow-4: var(--sh-4);
+  --shadow-soft: var(--sh-1);
+  --shadow-pop:  var(--sh-3);
+
+  /* — Motion v4 → v5 — */
+  --t-fast: var(--t-1);
+  --t-base: var(--t-2);
+  --t-slow: var(--t-3);
+  --ease-out: var(--ease);
+
+  /* — Z (faltava --z-raised) — */
+  --z-base: 0;
+  --z-raised: 10;
+  --z-max: 100;
+
+  /* — Status semântico v4 → v5 (dark propaga via var) — */
+  --ok-bg:     var(--pos-soft);    --ok-fg:     var(--pos);
+  --warn-bg:   var(--warn-soft);   --warn-fg:   var(--warn);
+  --danger-bg: var(--neg-soft);    --danger-fg: var(--neg);
+  --info-bg:   var(--accent-soft); --info-fg:   var(--accent);
+
+  /* — Camada semântica de intenção (v3) — */
+  --color-action-primary:       var(--accent);
+  --color-action-primary-hover: var(--accent-hi);
+  --color-action-primary-fg:    var(--accent-fg);
+  --color-text-default:    var(--text);
+  --color-text-secondary:  var(--text-2);
+  --color-text-tertiary:   var(--text-3);
+  --color-text-danger:     var(--neg);
+  --color-text-success:    var(--pos);
+  --color-text-link:       var(--accent);
+  --surface-page:    var(--bg);
+  --surface-subtle:  var(--sunken);
+  --surface-default: var(--surface);
+  --surface-raised:  var(--raised);
+  --border-default:  var(--border);
+  --border-subtle:   var(--border-2);
+  --border-focus:    var(--accent);
+  --focus-ring:      var(--focus);
+
+  /* — Primary das Index (PT-03 · roxo universal, ADR 0190) — */
+  --primary-page:        var(--accent);
+  --primary-page-border: var(--accent-hi);
+  --primary-page-fg:     var(--accent-fg);
+
+  /* — Helpers neutros/texto que módulos consomem (fallback; runtime app.jsx pode sobrepor) — */
+  --bg-1:    var(--bg);
+  --bg-3:    var(--sunken);
+  --bg-elev: var(--raised);
+  --panel:   var(--surface);
+  --ink-1:   var(--text);
+  --ink-3:   var(--text-3);
+  --gh:      var(--hairline);
+  --row-c:   var(--sunken);
+  --om-q-color: var(--accent);
+
+  /* — Hue scalars (accent tweak; default roxo canon 295) — */
+  --hue: 295;
+  --cb-hue: 295;
+  --fsm-hue: 295;
+  --accent-h: 295;
+
+  /* — Breakpoints v4 — */
+  --bp-mobile: 640px;  --bp-tablet: 900px;  --bp-desktop: 1200px;
+  --bp-wide: 1440px;   --bp-ultra: 1920px;
+
+  /* — Oficina kanban cols (usos têm fallback ,5) — */
+  --ofc-cols: 5;
+}
