@@ -5,7 +5,7 @@ component: resources/js/Pages/Jana/Index.tsx
 related_prototype: prototipo-ui/cowork/jana-merge.jsx
 owner: wagner
 status: live
-last_validated: "2026-08-07"
+last_validated: "2026-08-12"
 parent_module: Jana
 parent_adr: memory/decisions/0052-memoria-jana-3-angulos-faturamento.md
 related_adrs: [26, 31, 35, 36, 52, 93, 94, 107, 114]
@@ -17,7 +17,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 4
+charter_version: 5
 permissao: copiloto.access
 ---
 
@@ -76,7 +76,12 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 - Toast `sonner` em mutations (arquivar meta)
 - `KpiCard` shared component pra cada meta (consistência cross-module)
 - `EmptyState` shared component se 0 metas — CTA "Pergunte algo a Jana"
-- **Demo polish (v2 — CYCLE-06 G3):** badge gradient `JANA V2` violet→fuchsia→pink no header, KPI strip 3 colunas (Memória ativa / Última conversa / Brain B hoje — placeholders pra Brain B preencher futuro via `Inertia::defer`), card "Próxima ação sugerida" violet-tinted (mock didático), empty state com ícone `Sparkles` + CTA `Pergunte algo a Jana` em vez de texto plano
+- **Demo polish (v2 — CYCLE-06 G3):** badge `JANA V2` no header, KPI strip 3 colunas (Memória ativa / Última conversa / Brain B hoje — placeholders pra Brain B preencher futuro via `Inertia::defer`), card "Próxima ação sugerida" (mock didático), empty state com ícone `Sparkles` + CTA `Pergunte algo a Jana` em vez de texto plano.
+  _A **prescrição de COR** deste bullet foi **revogada por [W] em 2026-08-12** (ver v5). Ela dizia
+  `badge gradient violet→fuchsia→pink` e `card "Próxima ação sugerida" violet-tinted` — escala crua
+  Tailwind, fora do sistema de token e sem par no escuro. A **estrutura** (badge, strip, card, empty
+  state) segue valendo tal como o v2 a definiu; só a **cor** passa a vir de token semântico
+  (`primary`/`success`/`warning`/`destructive`)._
 
 ## Anti-hooks
 
@@ -100,6 +105,15 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 
 ## Charter version log
 
+- v5 (2026-08-12) — **Paridade de tema escuro** do Painel (`/ia`), sobre o pedido [CC] rev.2.
+  Remove do §UX targets a prescrição de **cor** do "Demo polish (v2)" — **decisão [W] nesta data**,
+  tomada com o conflito na mesa: o `Index.tsx` já contava **6 violações `no-restricted-syntax`** no
+  [`config/eslint-baseline.json`](../../../../config/eslint-baseline.json) (regra
+  `ds/no-raw-palette-color`, ratchet [ADR 0209](../../../../memory/decisions/0209-eslint-9-flat-config.md)),
+  ou seja, o guard DS já tratava aquelas cores como **dívida** enquanto este charter as declarava
+  **alvo de UX**. Os dois não podiam estar certos. Corrigido o perdedor no mesmo PR, como manda a
+  regra de precedência ([`proibicoes.md`](../../../../memory/proibicoes.md) §Precedência).
+  A estrutura do v2 fica intacta; muda só a origem da cor.
 - v1 (2026-05-16) — Charter retroativo Wave M boost Modules/Jana 64→78
 - v4 (2026-08-08) — **Fatia A** da fusão (US-COPI-148): barra ÚNICA no `<PageHeader>` canon (ver §Goals). Duas correções de fato, não de estilo: (1) o §Goals e o §Anti-hooks citavam `MetricasApurador::farol`, classe que existe (`Modules/Jana/Services/Metricas/MetricasApurador.php`) mas **não tem** método `farol` — a implementação é `ApuracaoService::farol` (`:151`, PR #5394); charter que aponta pro lugar errado manda a próxima sessão procurar a regra onde ela não está. (2) o §Goals descrevia o header antigo (dot JANA + tabs `Dashboard | Chat`), que esta onda substituiu — corrigido no mesmo PR, como manda a regra de precedência (corrigir o perdedor junto). _Nasceu numerado v3 e virou v4 no merge: a Fatia B (abaixo) landou primeiro e já tinha tomado o v3._
 - v3 (2026-08-07) — Drill-down "de onde vem esse número" (`_components/JanaDrillDrawer.tsx`) nos 4

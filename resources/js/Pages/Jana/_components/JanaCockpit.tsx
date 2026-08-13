@@ -14,7 +14,22 @@
 // memory/requisitos/Jana/RUNBOOK-components.md.
 //
 // Golden de referência: resources/js/Pages/governance/Dashboard.tsx
-// Âncora de design: prototipo-ui/cowork/chat-jana.jsx (.jc-* · "dark herda via token")
+//
+// ÂNCORA DE DESIGN — resolva com `node prototipo-ui/ancora.mjs Jana/Index`, nunca
+// no olho. Ela é `prototipo-ui/cowork/jana-merge.jsx` (declarada em
+// Index.charter.md `related_prototype`). Este bloco dizia `chat-jana.jsx`, o que
+// contradiz o charter e a porta viva. O `chat-jana` NÃO é a âncora — mas é onde
+// as regras `.jc-*` moram, e citá-lo por isso é legítimo: `jana-merge.jsx:725`
+// importa `BriefDiario`/`KPICard`/`AnaliseCard` dele via `window` e reusa 11
+// classes `.jc-*`. Ou seja: âncora = jana-merge; implementação = chat-jana.
+//
+// ⚠️ VOCABULÁRIO DE COR NESTA ÁREA — `accent` significa DUAS coisas na mesma
+// página, e a armadilha é silenciosa:
+//   · shell cockpit  → `--accent` é o ROXO da marca (oklch .55 .15 295)
+//   · Tailwind/shadcn → `--color-accent` é um CINZA de hover (oklch .235 .010 240)
+// Logo, em `Pages/Jana/**` o roxo é SEMPRE `primary`. Só use `accent` quando
+// quiser mesmo a superfície de hover cinza do shadcn — `hover:bg-accent` escrito
+// pensando "accent = roxo" entrega CINZA.
 
 import { useMemo, useState, type ReactNode } from 'react';
 import {
@@ -310,7 +325,13 @@ export default function JanaCockpit({
           sem o header, ele não tinha mais nenhum consumidor pra esses dois. */}
 
       {/* Brief diário ──────────────────────────────────────────────────────── */}
-      <Card className="border-primary/20 bg-primary/5">
+      {/* Tint OPACO sobre a superfície de card, nunca translúcido sobre o fundo.
+          `bg-primary/5` compõe sobre `--color-background` (dark: oklch 0.26) —
+          mais ESCURO que um card (0.30) —, então o bloco mais importante da tela
+          afundava em vez de subir. A âncora faz o oposto (`.jc-brief` em
+          chat-jana.css:89, consumido por jana-merge.jsx:725 via `BriefDiario`):
+          `color-mix(in oklch, var(--accent) 9%, var(--surface))`. */}
+      <Card className="border-primary/25 bg-[color:color-mix(in_oklch,var(--color-primary)_9%,var(--color-card))]">
         <CardContent className="flex flex-col gap-3.5 p-5">
           <header className="flex flex-wrap items-center gap-3">
             <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -370,7 +391,7 @@ export default function JanaCockpit({
             </p>
 
             {overdueCount > 0 && (
-              <p className="flex items-start gap-2 rounded-md border-l-[3px] border-destructive bg-destructive-soft px-3 py-2.5 text-sm text-foreground">
+              <p className="flex items-start gap-2 rounded-md border border-destructive/25 bg-destructive/6 px-3 py-2.5 text-sm text-foreground">
                 <span className="mt-0.5 inline-flex shrink-0 text-destructive">
                   <AlertCircle size={13} />
                 </span>
@@ -393,7 +414,7 @@ export default function JanaCockpit({
             )}
 
             {deltaTicket !== null && Math.abs(deltaTicket) >= 5 && (
-              <p className="flex items-start gap-2 rounded-md border-l-[3px] border-warning bg-warning-soft px-3 py-2.5 text-sm text-foreground">
+              <p className="flex items-start gap-2 rounded-md border border-warning/25 bg-warning/6 px-3 py-2.5 text-sm text-foreground">
                 <span className="mt-0.5 inline-flex shrink-0 text-warning">
                   <AlertCircle size={13} />
                 </span>
@@ -419,13 +440,13 @@ export default function JanaCockpit({
               )}
               <button
                 type="button"
-                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground hover:border-primary/40 hover:bg-[color:color-mix(in_oklch,var(--color-primary)_8%,var(--color-card))] hover:text-foreground"
               >
                 <ClipboardList size={11} /> Ver top devedores
               </button>
               <button
                 type="button"
-                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground hover:border-primary/40 hover:bg-[color:color-mix(in_oklch,var(--color-primary)_8%,var(--color-card))] hover:text-foreground"
               >
                 <Search size={11} /> Investigar queda ticket médio
               </button>
@@ -444,11 +465,16 @@ export default function JanaCockpit({
           delta={deltaRev !== null ? { value: deltaRev, label: 'vs ontem' } : undefined}
           onClick={abrirFat}
         />
+        {/* `tone` só enfatiza quando HÁ alerta. O ramo `else` era `success`, que
+            pintava o card de VERDE exibindo R$ 0,00 — verde afirmando "bom"
+            sobre ausência de dado. A âncora enfatiza UM KPI só, e só no alerta
+            (chat-jana.jsx:89 — 1 de 4 com `emphasize:true`; `.jc-kpi.emph` em
+            chat-jana.css:144). */}
         <KpiCard
           label="Inadimplência total"
           value={fmtShort(overdueValue)}
           icon="alert-triangle"
-          tone={overdueValue > 0 ? 'danger' : 'success'}
+          tone={overdueValue > 0 ? 'danger' : 'default'}
           description={
             overdueCount > 0
               ? `${overdueCount} ${plural(overdueCount, 'venda vencida', 'vendas vencidas')}`
@@ -467,7 +493,7 @@ export default function JanaCockpit({
           label="PIX hoje"
           value={fmtShort(pixHoje)}
           icon="zap"
-          tone="info"
+          tone="default"
           description={
             faturadoHoje > 0
               ? `${Math.round((pixHoje / faturadoHoje) * 100)}% do faturado`
@@ -485,13 +511,17 @@ export default function JanaCockpit({
       </SectionTitle>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {/* Inadimplência buckets */}
+        {/* Inadimplência buckets.
+            `big` herda `text-foreground`; só o NEGATIVO vira vermelho — senão
+            R$ 0,00 aparece em vermelho afirmando alerta sobre ausência de dado.
+            Âncora: `.jc-kpi-v` é `--text`, e só `.jc-kpi-v.red` é `--neg`
+            (chat-jana.css:151-155). */}
         <AnalysisCard
           icon={<AlertTriangle size={16} />}
           title="Inadimplência"
           subtitle={`${overdueCount} ${plural(overdueCount, 'venda vencida', 'vendas vencidas')}`}
           pill={{ label: overdueCount > 0 ? 'Crítico' : 'OK', tone: overdueCount > 0 ? 'crit' : 'ok' }}
-          big={<span className="text-destructive">{fmtShort(ageingTotal)}</span>}
+          big={<span className={ageingTotal > 0 ? 'text-destructive' : undefined}>{fmtShort(ageingTotal)}</span>}
           onClick={abrirInad}
         >
           <div className="flex flex-col gap-2">
@@ -503,7 +533,7 @@ export default function JanaCockpit({
                 </div>
                 <div className="h-1.5 overflow-hidden rounded-full bg-muted">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-warning to-destructive"
+                    className="h-full rounded-full bg-destructive"
                     style={{ width: ageingTotal > 0 ? `${(v / ageingTotal) * 100}%` : '0%' }}
                   />
                 </div>
@@ -522,7 +552,7 @@ export default function JanaCockpit({
               ? { label: `${deltaRev >= 0 ? '+' : ''}${deltaRev}% vs ontem`, tone: deltaRev >= 0 ? 'ok' : 'warn' }
               : undefined
           }
-          big={<span className="text-success">{fmtShort(sparkSum)}</span>}
+          big={<span>{fmtShort(sparkSum)}</span>}
           onClick={abrirFat}
         >
           {sparkline.length === 0 ? (
