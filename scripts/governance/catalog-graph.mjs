@@ -886,7 +886,11 @@ function parseImportsCruzados(linhas, { modulosVivos, incluirTestes = false }) {
     // FQCN é a IDENTIDADE do símbolo (ver `simbolosCrossCutting`). O basename não serve:
     // dois módulos podem ter classes homônimas, e agrupá-las funde símbolos distintos.
     const fqcn = `Modules\\${dst}\\${[...partes.slice(0, -1), simbolo].join('\\')}`;
-    out.push({ src, dst, camada: partes[0] || '?', simbolo, fqcn });
+    // `grupo` = segmentos ENTRE a camada e o símbolo (`Entities\Mcp\McpTask` → `Mcp`).
+    // É o que revela SUB-TEMA dentro de um par: sem ele, 83 imports de `Entities\Mcp` e
+    // 11 de `Services\TaskRegistry` viram o mesmo indistinto "Forja → Jana".
+    const grupo = partes.slice(1, -1).join('\\');
+    out.push({ src, dst, camada: partes[0] || '?', grupo, simbolo, fqcn });
   }
   return out;
 }
@@ -933,20 +937,29 @@ function compararFronteira(refs, graph, { limiar = LIMIAR_CROSS_CUTTING, modulos
     const k = `${r.src}>${r.dst}`;
     let p = pares.get(k);
     if (!p) {
-      p = { src: r.src, dst: r.dst, imports: 0, peso: 'contrato', simbolos: new Set(), soPrimitiva: true };
+      p = { src: r.src, dst: r.dst, imports: 0, peso: 'contrato', simbolos: new Set(), grupos: new Map(), soPrimitiva: true };
       pares.set(k, p);
     }
     p.imports++;
     p.simbolos.add(r.simbolo);
+    const gk = r.grupo ? `${r.camada}\\${r.grupo}` : (r.camada || '?');
+    p.grupos.set(gk, (p.grupos.get(gk) || 0) + 1);
     if (!cross.has(identidadeDoSimbolo(r))) p.soPrimitiva = false;
     const w = pesoDaCamada(r.camada);
     if (ORDEM_PESO[w] > ORDEM_PESO[p.peso]) p.peso = w;
   }
-  const lista = [...pares.values()].map((p) => ({
-    ...p,
-    simbolos: [...p.simbolos].sort(),
-    declarado: Boolean(declaradas.get(p.src)?.has(p.dst)),
-  }));
+  const lista = [...pares.values()].map((p) => {
+    // O grupo DOMINANTE do par. `declarado` é binário POR PAR (`declaradas.get(src).has(dst)`),
+    // então uma delegação verdadeira num tema absolve todo import do outro — e sem o grupo
+    // não há como o leitor ver isso. Fato derivado, sem limiar: quem julga é humano.
+    const top = [...p.grupos].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
+    return {
+      ...p,
+      simbolos: [...p.simbolos].sort(),
+      grupoTop: top ? { nome: top[0], n: top[1] } : null,
+      declarado: Boolean(declaradas.get(p.src)?.has(p.dst)),
+    };
+  });
   const naoDeclaradas = lista.filter((p) => !p.declarado);
   const reais = new Set(lista.map((p) => `${p.src}>${p.dst}`));
   const soDeclaradas = [];
@@ -1008,8 +1021,23 @@ function derivarDonoDeTabela(linhasModulo, linhasCore = []) {
 }
 
 /**
- * Extrai leituras cruas cross-module. Só literal — `DB::table($var)` é contado à parte
- * como NÃO RESOLVÍVEL (não vira zero silencioso: "não medi" ≠ "não há", §5 2026-07-29).
+ * Extrai toques crus cross-module em tabela alheia. Dois padrões, mesma pergunta:
+ *
+ *   `DB::table('x')`     — LÊ ou ESCREVE linha na tabela do outro          (via: 'query')
+ *   `Schema::table('x')` — ALTERA a ESTRUTURA da tabela do outro           (via: 'alter')
+ *
+ * O ALTER entrou depois (2026-08-12) e é o sinal MAIS forte dos dois: adicionar coluna na
+ * casa alheia é ownership, não uso. Ele era invisível aos dois eixos por construção — o dono
+ * só sai de `Schema::create` e o consumo só saía de `DB::table` — e escondia um par que
+ * NENHUMA baseline conhecia (`NfeBrasil>NFSe`, coluna nova em `nfse_emissoes`).
+ *
+ * Medido antes de instalar (§5: há 4 lápides de guard que reprovava o legítimo por não medir):
+ * 237 ALTER na PRÓPRIA tabela · 61 em tabela CORE (excluídos pela regra que já existia) ·
+ * 3 cross-module · 1 novo. Não é eixo novo nem baseline nova: mesmo dono, mesmo par, mesma
+ * catraca.
+ *
+ * `DB::table($var)` continua contado à parte como NÃO RESOLVÍVEL — "não medi" ≠ "não há"
+ * (§5 2026-07-29).
  */
 function parseQueriesCruas(linhas, { donoDe, modulosVivos }) {
   const refs = [];
@@ -1021,13 +1049,18 @@ function parseQueriesCruas(linhas, { donoDe, modulosVivos }) {
     if (/\/Tests?\//i.test(path)) continue;
     const src = (path.match(/^Modules\/([A-Za-z]+)\//) || [])[1];
     if (!src || !modulosVivos.has(src)) continue;
-    const m = code.match(/DB::table\('([a-z0-9_]+)'/);
-    if (!m) { if (/DB::table\(\s*\$/.test(code)) dinamico++; continue; }
-    const tabela = m[1];
+    const mQuery = code.match(/DB::table\('([a-z0-9_]+)'/);
+    const mAlter = code.match(/Schema::table\('([a-z0-9_]+)'/);
+    if (!mQuery && !mAlter) { if (/DB::table\(\s*\$/.test(code)) dinamico++; continue; }
+    const via = mQuery ? 'query' : 'alter';
+    const tabela = (mQuery || mAlter)[1];
     const dono = donoDe.get(tabela);
     if (!dono) { semDono++; continue; }
     if (dono === src || dono === CORE) continue; // própria tabela ou core UltimatePOS
-    refs.push({ src, dono, tabela });
+    // Migration é append-only por construção: escrita que entra por lá NUNCA sai. Não é
+    // motivo pra ignorar (medido: só 10% dos pares são só-migration), mas o leitor precisa
+    // distinguir "o módulo faz isso todo dia" de "fez uma vez, em 2026-05".
+    refs.push({ src, dono, tabela, via, emMigration: /\/Database\/Migrations\//i.test(path) });
   }
   return { refs, dinamico, semDono };
 }
@@ -1049,9 +1082,11 @@ function agruparFronteiraDeTabela(refs, { limiar = LIMIAR_TABELA_COMPARTILHADA }
   for (const r of refs) {
     if (infra.has(r.tabela)) continue;
     const k = `${r.src}>${r.dono}`;
-    if (!pares.has(k)) pares.set(k, { src: r.src, dono: r.dono, n: 0, tabelas: new Set() });
+    if (!pares.has(k)) pares.set(k, { src: r.src, dono: r.dono, n: 0, tabelas: new Set(), alter: 0, mig: 0, runtime: 0 });
     const o = pares.get(k);
     o.n++; o.tabelas.add(r.tabela);
+    if (r.via === 'alter') o.alter++;
+    if (r.emMigration) o.mig++; else o.runtime++;
   }
   return {
     pares: [...pares.values()]
@@ -1067,7 +1102,7 @@ function reportFronteiraDeTabela(modulosVivos) {
     grepArvore(["Schema::create\\('"], 'database/migrations/*.php').map((l) => l.slice(l.indexOf(':') + 1)),
   );
   const { refs, dinamico, semDono } = parseQueriesCruas(
-    grepArvore(['DB::table\\('], 'Modules/*.php'),
+    grepArvore(['DB::table\\(', "Schema::table\\('"], 'Modules/*.php'),
     { donoDe, modulosVivos },
   );
   const r = agruparFronteiraDeTabela(refs);
@@ -1083,7 +1118,14 @@ function reportFronteiraDeTabela(modulosVivos) {
     console.log(`⚠️  ownership DISPUTADO: \`${c.tabela}\` criada por migration de ${c.modulos.join(' E ')} — dono atribuído: ${c.modulos[0]}`);
   }
   for (const p of r.pares) {
-    console.log(`  ${p.src} → ${p.dono}  (${p.n} queries) ${p.tabelas.slice(0, 4).join(', ')}`);
+    // `mig=N runtime=M` separa "faz isso todo dia" de "fez uma vez em 2026-05"; `alter=N`
+    // marca o toque na ESTRUTURA, que é ownership e não uso. Nenhum dos dois muda veredito
+    // — mudam o que o leitor entende antes de decidir.
+    const selo = [
+      p.alter ? `alter=${p.alter}` : null,
+      `mig=${p.mig} runtime=${p.runtime}`,
+    ].filter(Boolean).join(' · ');
+    console.log(`  ${p.src} → ${p.dono}  (${p.n} toques · ${selo}) ${p.tabelas.slice(0, 4).join(', ')}`);
   }
   console.log(
     `ℹ️  não resolvido (NÃO é zero): ${dinamico} \`DB::table($var)\` dinâmico · ` +
@@ -1137,6 +1179,25 @@ function reportAcoplamento(graph) {
   for (const p of negocio) {
     const selo = p.peso === 'dado' ? '⚠️ ' : '  ';
     console.log(`${selo}${p.src} → ${p.dst}  (${p.imports} imports · ${p.peso}) ${p.simbolos.slice(0, 3).join(', ')}`);
+  }
+  // Par DECLARADO não é dívida — mas também não pode ser INVISÍVEL, e até 2026-08-13 era:
+  // este loop só imprimia os NÃO-declarados, e `confirmadas` era só um número no cabeçalho.
+  // Como `declarado` é binário POR PAR, uma delegação verdadeira num tema absolve todo import
+  // do outro. Medido no dia: `Forja → Jana` saiu declarado com 94 imports (as duas delegações
+  // do `not_contains` do Forja descrevem "Skills governance" e "Chat IA", ~11 imports), e
+  // 83 dos 94 eram `Entities\Mcp` — a plataforma que a ADR 0366 (aceita 2026-08-03) mandou
+  // PRA Forja e ninguém tinha movido. A maior aresta do repo, fora do radar por 9 dias.
+  // O canon já diz qual é o desenho certo: `allowlist_razoes` = "par fica VISÍVEL, isento de
+  // morder". Aqui a visibilidade passa a valer pra toda declaração. NENHUM veredito muda:
+  // a catraca segue lendo só `naoDeclaradas`, e o exit code é o mesmo.
+  const declarados = r.pares.filter((p) => p.declarado);
+  if (declarados.length) {
+    console.log('');
+    console.log(`ℹ️  ${declarados.length} par(es) DECLARADOS — fora da dívida, NÃO fora do radar (o volume e o grupo são o sinal):`);
+    for (const p of declarados) {
+      const g = p.grupoTop ? ` · maior grupo: ${p.grupoTop.nome} ${p.grupoTop.n}` : '';
+      console.log(`   ${p.src} → ${p.dst}  (${p.imports} imports · ${p.peso}${g}) ${p.simbolos.slice(0, 3).join(', ')}`);
+    }
   }
   const t = reportFronteiraDeTabela(modulosVivos);
   console.log('');
@@ -1274,9 +1335,9 @@ function main() {
 
       const paresTabela = paresDeTabelaComoPares(r.tabela && r.tabela.pares);
       const conteudoTabela = JSON.stringify({
-        _doc: 'Baseline FORWARD-ONLY da catraca de acoplamento por TABELA (`DB::table` cru em tabela de outro módulo). Mesmo desenho da module-coupling-baseline: par NOVO reprova; a lista só DESCE.',
-        _regra: 'Este eixo é o que o `use` NÃO enxerga. Dono da tabela é DERIVADO de quem faz `Schema::create` na migration, nunca do `db_tables_owned` escrito à mão. Tabela lida por ≥3 módulos é infra compartilhada e não conta como fronteira.',
-        _medicao: 'node scripts/governance/catalog-graph.mjs --acoplamento (seção "fronteira por TABELA")',
+        _doc: 'Baseline FORWARD-ONLY da catraca de acoplamento por TABELA (`DB::table` cru + `Schema::table` ALTER em tabela de outro módulo). Mesmo desenho da module-coupling-baseline: par NOVO reprova; a lista só DESCE.',
+        _regra: 'Este eixo é o que o `use` NÃO enxerga. Dono da tabela é DERIVADO de quem faz `Schema::create` na migration, nunca do `db_tables_owned` escrito à mão. Tabela lida por ≥3 módulos é infra compartilhada e não conta como fronteira — limiar NÃO se baixa pra 3→2: medido em 2026-08-12, isso cegaria o detector em `fin_contas_bancarias` e `subscriptions` pra calar 1 falso-positivo.',
+        _medicao: 'node scripts/governance/catalog-graph.mjs --acoplamento (seção "fronteira por TABELA"). O selo `alter=N` marca toque na ESTRUTURA (ownership, mais forte que uso); `mig=N runtime=M` separa "faz todo dia" de "fez uma vez".',
         _regenerar: 'node scripts/governance/catalog-graph.mjs --acoplamento --write-baseline (grava os DOIS eixos). Ao CURAR um par, remova a linha no MESMO PR — a catraca avisa (não reprova) quando há entrada já curada.',
         _piso: 'PISO, não teto: só `DB::table(\'literal\')`. `DB::table($var)`, Eloquent via Model alheio e SQL cru em string ficam invisíveis — o report diz quantos não resolveu.',
         grandfathered: paresTabela.map(chaveDoPar).sort(),
