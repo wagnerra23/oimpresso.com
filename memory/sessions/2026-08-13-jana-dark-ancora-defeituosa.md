@@ -123,6 +123,57 @@ Pra mostrar a âncora renderizada, montei o shell canônico local. Deu trabalho 
 Por isso o render mostrava a Jana antiga. Não é o `jana-merge` que está velho — é o **espelho que
 está incoerente**.
 
+## 6. Pós-handoff — o alarme que eu ignorei 3× era 2/3 FALSO
+
+> Registrado **depois** do handoff ([#5735](https://github.com/wagnerra23/oimpresso.com/pull/5735)),
+> que é append-only. Aconteceu no fechamento, por cobrança do [W]: *"tem alguma coisa errada"*.
+
+Durante a sessão inteira o check `crons de governança vivos? (watchdog G6)` ficou vermelho e eu o
+dispensei **três vezes** com a mesma frase — *"é o `mv-metabolismo`, some amanhã"* — sem reler o
+log. Quando [W] desconfiou e eu finalmente li, o watchdog reportava **quatro** problemas, não um:
+
+```
+24 crons agendados · 22 vivos · 2 🔴 MORTOS
+🔴 gitleaks-history.yml   MORTO há 24d (limite 10d) — última agendada: 2026-07-20
+🔴 governance-drift.yml   MORTO há 28d (limite  3d) — última agendada: 2026-07-16
+2 DISPARAM mas FALHAM: governance-drift (2026-07-16) · mv-metabolismo (hoje 10:36Z)
+```
+
+Rodando **a query exata do watchdog** (`cron-watchdog.mjs:146`) localmente, minutos depois:
+
+| workflow | watchdog diz | medido local |
+|---|---|---|
+| `gitleaks-history.yml` | 2026-07-20 · morto 24d | **2026-08-10 · success** (4 runs depois) |
+| `governance-drift.yml` | 2026-07-16 · `failure` | **2026-08-13 10:35 · success** (hoje) |
+| `mv-metabolismo.yml` | hoje 10:36 · `failure` | **confere** — é o único real |
+
+**2 de 3 vereditos são falsos**, e os dois "mortos" congelaram em meados/fim de **julho**. Hipótese
+não-medida: `gh run list --workflow <arquivo>` resolvendo workflow ID antigo em CI (rename/move por
+volta daquela data) enquanto o `gh` local resolve o atual. Outras a descartar: token/permissão de
+CI, paginação, ordenação não-garantida.
+
+### Por que isso é o pior achado do dia
+
+O watchdog é a sentinela que vigia as outras sentinelas ([ADR 0317](../decisions/0317-maquina-revisao-adr-quando-rever-gatilhos.md) §2 — é a ADR que o próprio script cita; o slug fala de gatilhos de revisão, mas o corpo cobre o heartbeat).
+**Falso alarme nele é pior que alarme ausente** — e a prova é o que eu fiz: dispensei o vermelho 3×
+como ruído conhecido. Dentro dele havia um alarme dizendo que a **varredura histórica de segredo**
+(`gitleaks-history`) estava parada há 24 dias. Era falso, mas **eu não sabia disso: eu não tinha
+lido**. Alarme ruidoso vira alarme ignorado, e quem quebrou o ciclo foi o [W], não eu.
+
+Ironia registrada: o §5 já tem lápide de **2026-07-29** sobre este mesmo watchdog — *"instrumento
+AFIRMAR verde quando não conseguiu MEDIR"* (fail-open). Agora ele erra pro **outro lado**: afirma
+vermelho sobre dado velho. Vale avaliar se aquela lápide precisa de emenda.
+
+**Nota de enforcement:** o check é **advisory** — não está em `governance/required-checks-baseline.json`
+nem na união classic+rulesets (44 contexts, zero de cron/watchdog). Não bloqueia merge. Chip aberto
+com a medição inteira.
+
+### A forma final do padrão do dia
+
+Todos os erros desta sessão têm a mesma assinatura, e este é o caso mais caro: **formei uma crença
+cedo e parei de medir**. Nos outros a crença era sobre um número; aqui era sobre um **alarme** — e
+crença sobre alarme se auto-confirma, porque quem decidiu que é ruído não lê mais.
+
 ## O que fica pra decidir
 
 - **[W]:** apagar a pasta `prototipo-ui/` no Cowork (só os 10 do eco; a raiz fica)
@@ -130,3 +181,4 @@ está incoerente**.
   legítima "Caçambas" como razão social do cliente (§5 2026-06-09) — precisa FP medido antes
 - **[W]:** valve pro `cron-watchdog` (hoje anuncia uma que não existe — LC-15)
 - **aberto:** fechar a classe do clone raso num helper único que os 10 scripts importem
+- **aberto:** por que o `cron-watchdog` vê run de 4 semanas atrás como a última (§6) — chip aberto
