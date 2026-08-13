@@ -245,6 +245,39 @@ function resolvesViaRename(absPath) {
  *   2. só resolve se o destino EXISTIR de fato no disco — apontar pra lugar nenhum
  *      continua morto, que é o caso que o gate deve pegar.
  */
+/**
+ * Migration que trocou de MÓDULO dono. Irmão exato do `resolvesViaRaizDeModulo` acima, no
+ * eixo schema: `Modules/<A>/Database/Migrations/<arquivo>` → o mesmo `<arquivo>` sob
+ * `Modules/<B>/Database/Migrations/`. O arquivo NÃO sumiu — mudou de casa, e a tabela
+ * `migrations` do Laravel casa por NOME, então mover preservando o nome é o caminho
+ * canônico (é por isso que ele é único e serve de chave aqui).
+ *
+ * Motivo de existir (2026-08-13): a ADR 0366 §D-C item 4 mandou as `mcp_*` da Jana pro
+ * Forja. As 61 migrations moveram; ADR 0073 e 0084 as citam e são APPEND-ONLY — não dá
+ * pra "consertar o texto". Sem isto, executar uma decisão de fronteira quebraria o gate
+ * por dívida que a própria proibicoes.md manda NÃO pagar editando ADR aceita.
+ *
+ * As mesmas duas travas do `resolvesViaRename`:
+ *   1. só casa o padrão EXATO `Modules/<X>/Database/Migrations/<arquivo>` — nada de substring;
+ *   2. só resolve se o arquivo EXISTIR de fato sob outro módulo. Migration que nunca
+ *      existiu, ou que foi DELETADA, continua morta — que é o caso que o gate deve pegar.
+ */
+const MIGRATION_RE = /^Modules\/[A-Za-z]\w*\/Database\/Migrations\/([^/]+)$/;
+function resolvesViaMigrationDeOutroModulo(absPath) {
+  const rel = relative(ROOT, absPath).split(sep).join('/');
+  const m = rel.match(MIGRATION_RE);
+  if (!m) return false;
+  const arquivo = m[1];
+  const modulesDir = join(ROOT, 'Modules');
+  let mods;
+  try { mods = readdirSync(modulesDir, { withFileTypes: true }); } catch { return false; }
+  for (const mod of mods) {
+    if (!mod.isDirectory()) continue;
+    if (existsSync(join(modulesDir, mod.name, 'Database', 'Migrations', arquivo))) return true;
+  }
+  return false;
+}
+
 function resolvesViaRaizDeModulo(absPath) {
   const rel = relative(ROOT, absPath).split(sep).join('/');
   const PREFIXO = 'resources/js/Pages/';
@@ -302,6 +335,7 @@ function scan() {
   let tombstoned = 0;       // alvos ausentes que RESOLVEM via ledger (ADR 0316) — não são mortos
   let renamed = 0;
   let migradas = 0;      // alvos que RESOLVEM na raiz do modulo dono (migracao 2026-08-12)          // alvos ausentes que RESOLVEM via rename-map classe A — idem
+  let migrations = 0;    // migrations que trocaram de MODULO dono preservando o nome (2026-08-13)
   for (const f of corpus()) {
     const rel = relative(ROOT, f).split(sep).join('/');
     const isHist = HISTORY_RE.test(relative(ROOT, f));
@@ -313,13 +347,14 @@ function scan() {
         if (resolvesViaTombstone(abs)) { tombstoned++; continue; }
         if (resolvesViaRename(abs)) { renamed++; continue; }
         if (resolvesViaRaizDeModulo(abs)) { migradas++; continue; }
+        if (resolvesViaMigrationDeOutroModulo(abs)) { migrations++; continue; }
         const bucket = isHist ? hist : vivo;
         if (!bucket.has(rel)) bucket.set(rel, []);
         bucket.get(rel).push(target);
       }
     }
   }
-  return { vivo, hist, totalLinks, tombstoned, renamed, migradas };
+  return { vivo, hist, totalLinks, tombstoned, renamed, migradas, migrations };
 }
 
 const count = (map) => [...map.values()].reduce((a, v) => a + v.length, 0);
@@ -331,7 +366,7 @@ function loadBaseline() {
 
 // ── modos ────────────────────────────────────────────────────────────────────
 const mode = argv.find((a) => ['--scan', '--check', '--write-baseline', '--triage'].includes(a)) || '--scan';
-const { vivo, hist, totalLinks, tombstoned, renamed, migradas } = scan();
+const { vivo, hist, totalLinks, tombstoned, renamed, migradas, migrations } = scan();
 // Visível SEMPRE que houver: mecanismo que absorve caso em silêncio vira cobertura falsa
 // (§5 presence-gate / verde-por-não-execução). Aqui o número aparece em todo modo.
 const tombLine = tombstoned > 0
@@ -342,6 +377,10 @@ const renameLine = renamed > 0
   ? `[deadlink-gate] ${renamed} referência(s) a PATH RENOMEADO resolvidas pelo rename-map (${CLASS_A_RENAMES.length} rename(s) classe A em governance/ghost-rename-map.json); não contam como mortas.`
   : null;
 if (renameLine) console.log(renameLine);
+const migrationLine = migrations > 0
+  ? `[deadlink-gate] ${migrations} referência(s) a MIGRATION que trocou de módulo dono (mesmo nome de arquivo sob outro Modules/*/Database/Migrations/); não contam como mortas.`
+  : null;
+if (migrationLine) console.log(migrationLine);
 
 if (mode === '--write-baseline') {
   const files = {};
