@@ -26,6 +26,7 @@ import { join, resolve, dirname, basename, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ehPrintSemantico } from '../.claude/hooks/block-ancora-no-olho.mjs';
 import { read, frontmatter, walk } from './_lib-charter.mjs';
+import { raizesDePages } from '../scripts/qa/page-path.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)); // prototipo-ui/
 const REPO_DEFAULT = resolve(HERE, '..');
@@ -79,8 +80,12 @@ export async function resolveAncora(query, { repoRoot = REPO_DEFAULT, stagingDir
       if (r.ok) return { ...r, query, avisoMangle: `query recebida mangleada pelo MSYS ("${query}") — recuperada como "${cand}". Use MSYS_NO_PATHCONV=1 no Git Bash.` };
     }
   }
-  const pagesRoot = join(repoRoot, 'resources', 'js', 'Pages');
-  const charters = (await walk(pagesRoot)).filter((f) => f.endsWith('.charter.md'));
+  // DUAS raízes desde o PR #5686 (núcleo + `Modules/<X>/Resources/js/Pages`). Varrer só o núcleo
+  // fazia a busca por query NUNCA achar charter de tela migrada. E o efeito passa daqui: este
+  // arquivo é o dono da resolução de âncora, e `design-coverage`, `ancora-guard` e
+  // `integrity-check` derivam DELE — um cego aqui cega os três.
+  const charters = (await Promise.all(raizesDePages(repoRoot).map((r) => walk(r))))
+    .flat().filter((f) => f.endsWith('.charter.md')); // [busca-por-query]
   const q = norm(query);
 
   let hit = null;
@@ -149,7 +154,10 @@ function printResolve(r) {
 }
 
 async function listAll(repoRoot, asJson = false) {
-  const charters = (await walk(join(repoRoot, 'resources', 'js', 'Pages'))).filter((f) => f.endsWith('.charter.md'));
+  // idem `resolveAncora`: as duas raízes. Este é o `--list`, consumido por design-coverage,
+  // ancora-guard e integrity-check — os três mediam 172 de 209 charters por causa desta linha.
+  const charters = (await Promise.all(raizesDePages(repoRoot).map((r) => walk(r))))
+    .flat().filter((f) => f.endsWith('.charter.md')); // [listAll]
   const rows = [];
   for (const cf of charters.sort()) {
     const fm = frontmatter(await read(cf));
