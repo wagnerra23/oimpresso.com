@@ -505,6 +505,7 @@ lifecycle: ativo
 | `governance/anchor-entry-baseline.json` | anchor entry/covers GRANDFATHER — US legadas isentas (ratchet só-desce · ADR 0275 advisory→required por calendário) |
 | `governance/blade-migration-baseline.json` | Censo de migração Blade→React — catraca só-desce por escopo (ADR 0277 contrato de completude) |
 | `governance/charter-refs-baseline.json` | (baseline/estado) |
+| `governance/cron-vermelho-esperado.json` | (baseline/estado) |
 | `governance/deadlink-baseline.json` | (baseline/estado) |
 | `governance/dependency-direction-baseline.json` | (baseline/estado) |
 | `governance/doc-id-index.json` | (baseline/estado) |
@@ -545,4 +546,4 @@ lifecycle: ativo
 | `scripts/perf-static-baseline.json` | perf-static-guard (Onda 4 lente 5b — AUDITORIA-PERFORMANCE-2026-07, ratchet advisory) |
 | `scripts/reuse-duplicates-baseline.json` | (baseline/estado) |
 
-> Total baselines JSON em governance/+config/+scripts: 45 · (mais ~5 dot-baselines na raiz + fixtures em tests/).
+> Total baselines JSON em governance/+config/+scripts: 46 · (mais ~5 dot-baselines na raiz + fixtures em tests/).
