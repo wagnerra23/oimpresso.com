@@ -65,6 +65,9 @@ class ProdutoUnificadoController extends Controller
      */
     private ?array $produtosPaginados = null;
 
+    /** Memo das vendas 30d — 5 KPIs + o filtro leem a mesma coleção. @var \Illuminate\Support\Collection<int,float>|null */
+    private ?\Illuminate\Support\Collection $vendas30d = null;
+
     public function __construct(private readonly ModuleUtil $moduleUtil)
     {
     }
@@ -94,6 +97,7 @@ class ProdutoUnificadoController extends Controller
             // Paginação: `por_pagina` é VALIDADO contra as opções que a UI oferece — querystring
             // é entrada de usuário, e `?por_pagina=99999` viraria o `limit(500)` de volta.
             'pagina'     => max(1, $request->integer('pagina') ?: 1),
+            'kpi'        => $request->string('kpi', '')->toString() ?: null,
             'por_pagina' => in_array($pp = $request->integer('por_pagina') ?: 20, self::POR_PAGINA_OPCOES, true)
                 ? $pp
                 : 20,
@@ -156,25 +160,75 @@ class ProdutoUnificadoController extends Controller
 
     // ───────── Helpers privados ─────────
 
-    private function kpis(int $business_id): array
+    /**
+     * Quantidade vendida por produto nos últimos 30 dias. UMA query, memoizada — os 5 KPIs
+     * e o filtro da lista leem daqui, então "Populares" e "Sem giro" não custam 2 varreduras.
+     *
+     * @return \Illuminate\Support\Collection<int,float> product_id => quantidade
+     */
+    private function vendas30d(int $business_id): \Illuminate\Support\Collection
     {
-        $base = Product::where('business_id', $business_id);
-
-        // "Saídas em 30d" e "uses_30d" exigem agregação de transaction_sell_lines.
-        // TODO [CL]: cachear por job diário pra evitar N+1 — UltimatePOS faz isso via cron.
-        $saidas30 = TransactionSellLine::join('transactions as t', 't.id', '=', 'transaction_sell_lines.transaction_id')
+        return $this->vendas30d ??= TransactionSellLine::query()
+            ->join('transactions as t', 't.id', '=', 'transaction_sell_lines.transaction_id')
             ->where('t.business_id', $business_id)
             ->where('t.type', 'sell')
             ->where('t.status', 'final')
             ->where('t.transaction_date', '>=', now()->subDays(30))
-            ->sum('transaction_sell_lines.quantity');
+            ->groupBy('transaction_sell_lines.product_id')
+            ->selectRaw('transaction_sell_lines.product_id as pid, SUM(transaction_sell_lines.quantity) as qtd')
+            ->pluck('qtd', 'pid');
+    }
+
+    /**
+     * O RECORTE de cada KPI, em UM lugar só.
+     *
+     * Regra dura: o card e a lista filtrada usam ESTE método. Se o count do card viesse de
+     * uma query e a lista de outra, o card diria "12" e a lista mostraria 9 — e o usuário
+     * confiaria no número errado. Aqui os dois são o mesmo predicado por construção.
+     *
+     * `populares` e `sem_giro` deixam de ser o `0` chumbado que estava aqui desde o scaffold.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Product>  $q
+     */
+    private function aplicarRecorte($q, ?string $kpi, int $business_id): void
+    {
+        $vendas = $this->vendas30d($business_id);
+
+        match ($kpi) {
+            // à venda hoje
+            'ativos'    => $q->active(),
+            // 30+ saídas em 30d
+            'populares' => $q->whereIn('id', $vendas->filter(fn ($qt) => (float) $qt >= 30)->keys()->all() ?: [0]),
+            // ativo e nenhuma saída em 30d — o oposto de popular, sobre o mesmo dado
+            'semgiro'   => $q->active()->whereNotIn('id', $vendas->keys()->all() ?: [0]),
+            // alguma variação com margem < 30% (sell > 0 pra não dividir por zero)
+            'margem'    => $q->whereHas('variations', fn ($v) => $v
+                ->where('sell_price_inc_tax', '>', 0)
+                ->whereRaw('((sell_price_inc_tax - default_purchase_price) / sell_price_inc_tax) < 0.30')),
+            // não controla estoque próprio
+            'demanda'   => $q->where('enable_stock', 0),
+            default     => null,
+        };
+    }
+
+    /**
+     * Os 5 recortes do strip. Cada `count()` sai do MESMO `aplicarRecorte()` que a lista usa.
+     */
+    private function kpis(int $business_id): array
+    {
+        $conta = function (string $kpi) use ($business_id): int {
+            $q = Product::where('business_id', $business_id);
+            $this->aplicarRecorte($q, $kpi, $business_id);
+
+            return $q->count();
+        };
 
         return [
-            'catalogo_ativo'  => (clone $base)->active()->count(),
-            'populares'       => 0,  // TODO [CL]: top vendidos 30d (join sell_lines)
-            'saidas_30d'      => (int) $saidas30,
-            'margem_media'    => 0.0, // TODO [CL]: AVG((default_sell_price - default_purchase_price) / default_sell_price) via Variation
-            'sem_giro'        => 0,   // TODO [CL]: count(products) sem sell_line nos últimos 30d
+            'catalogo_ativo' => $conta('ativos'),
+            'populares'      => $conta('populares'),
+            'sem_giro'       => $conta('semgiro'),
+            'margem_baixa'   => $conta('margem'),
+            'sob_demanda'    => $conta('demanda'),
         ];
     }
 
@@ -212,6 +266,9 @@ class ProdutoUnificadoController extends Controller
             'lowstock' => $q,  // TODO [CL]: join variation_location_details where qty_available <= alert_quantity
             default    => null,
         };
+
+        // O recorte do KPI clicado usa o MESMO predicado que contou o card (aplicarRecorte).
+        $this->aplicarRecorte($q, $f['kpi'] ?? null, $business_id);
 
         if ($f['categoria']) $q->where('category_id', $f['categoria']);
         if ($f['busca']) {

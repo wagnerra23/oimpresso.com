@@ -5,9 +5,10 @@ import type { ReactNode, KeyboardEvent, RefObject } from 'react';
 import {
   SlidersHorizontal, Search, X,
   ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight,
+  Package, Star, Moon, TrendingUp, Clock,
 } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
-import { Inline } from '@/Components/layout';
+import { Grid, Inline } from '@/Components/layout';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Badge } from '@/Components/ui/badge';
 import { Switch } from '@/Components/ui/switch';
@@ -45,6 +46,8 @@ type Props = {
     densidade: 'compact' | 'comfortable' | 'cozy';
     pagina: number;
     por_pagina: number;
+    /** Recorte do KPI clicado. O mesmo predicado que contou o card filtra a lista. */
+    kpi: string | null;
   };
   /**
    * Meta da paginação. Opcional no TIPO porque partial reload que não a peça não a traz —
@@ -63,9 +66,9 @@ type Props = {
   kpis: {
     catalogo_ativo: number;
     populares: number;
-    saidas_30d: number;
-    margem_media: number;
     sem_giro: number;
+    margem_baixa: number;
+    sob_demanda: number;
   };
   produtos: ProdutoRow[];
   categorias: CategoriaRow[];
@@ -225,7 +228,7 @@ function ProdutoUnificadoIndex({
             </div>
           </div>
           <div className="px-6 pt-4 pb-3 flex items-baseline gap-3">
-            <h1 className="text-[24px] font-semibold tracking-tight">Catálogo</h1>
+            <h1 className="text-[22px] font-bold tracking-tight leading-snug">Catálogo</h1>
             <span className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
               {kpis.catalogo_ativo} {kpis.catalogo_ativo === 1 ? 'produto' : 'produtos'}
               {businessName ? ` · ${businessName}` : ''}
@@ -258,14 +261,21 @@ function ProdutoUnificadoIndex({
         </header>
 
         <div className="pb-16">
-          {/* KPI strip */}
-          <section className="mx-6 mt-4 rounded-md bg-card border border-border shadow-sm grid grid-cols-5 divide-x divide-border overflow-hidden">
-            <Kpi label="Catálogo ativo" value={kpis.catalogo_ativo} emphasize />
-            <Kpi label="Populares · 30d" value={kpis.populares} sub="≥30 vendas/mês" />
-            <Kpi label="Saídas em 30 dias" value={kpis.saidas_30d.toLocaleString('pt-BR')} tone="pos" />
-            <Kpi label="Margem média" value={fmtPct(kpis.margem_media || 0)} />
-            <Kpi label="Sem giro" value={kpis.sem_giro} tone="neg" sub="0 saídas em 30d" />
-          </section>
+          {/* Slot · KPI strip CLICÁVEL — cada card é um recorte da lista, não um enfeite.
+              Clicar filtra; clicar de novo desliga. O count do card e a lista filtrada saem
+              do MESMO predicado no controller (aplicarRecorte), então não divergem.
+              A placa roxa cheia saiu: roxo agora significa "filtro ativo", como na /contacts. */}
+          <Grid min="sm" gap={3} className="mx-6 mt-4">
+            {KPI_CARDS.map((k) => (
+              <KpiFiltro
+                key={k.chave}
+                {...k}
+                value={kpis[k.prop]}
+                ativo={filters.kpi === k.chave}
+                onClick={() => irPara({ kpi: filters.kpi === k.chave ? '' : k.chave })}
+              />
+            ))}
+          </Grid>
 
           {/* Slot 3 · Toolbar — só na sub-tela Produtos, que é a única paginada/filtrável */}
           {tela === 'produtos' && (
@@ -277,7 +287,9 @@ function ProdutoUnificadoIndex({
               categoriaAtual={filters.categoria}
               onCategoria={(c) => irPara({ categoria: c })}
               total={paginacao?.total ?? produtos.length}
-              onLimpar={() => { setBusca(''); irPara({ busca: '', categoria: '' }); }}
+              kpiLabel={KPI_CARDS.find((k) => k.chave === filters.kpi)?.label ?? null}
+              onRemoverKpi={() => irPara({ kpi: '' })}
+              onLimpar={() => { setBusca(''); irPara({ busca: '', categoria: '', kpi: '' }); }}
             />
           )}
 
@@ -349,7 +361,55 @@ export default ProdutoUnificadoIndex;
  */
 const TODAS = 'todas';
 
-function Toolbar({ busca, setBusca, buscaRef, categorias, categoriaAtual, onCategoria, total, onLimpar }: {
+/**
+ * Os 5 recortes do strip. `chave` é o mesmo valor que o controller espera em `?kpi=` —
+ * mudar aqui sem mudar o `aplicarRecorte()` quebra o par card↔lista.
+ *
+ * Tipografia igual à referência /contacts (`KpiStripClickable`): quadrado 36px (h-9),
+ * label 10px caixa-alta, VALOR text-lg (18px) tabular-nums, legenda 10px. O valor de 28px
+ * que estava aqui era o degrau mais fora de escala da tela.
+ */
+const KPI_CARDS = [
+  { chave: 'ativos',    prop: 'catalogo_ativo' as const, label: 'Catálogo ativo', sub: 'à venda hoje',        Icon: Package,    cor: 'text-primary'          },
+  { chave: 'populares', prop: 'populares'      as const, label: 'Populares · 30d', sub: '30+ saídas',         Icon: Star,       cor: 'text-warning-fg'       },
+  { chave: 'semgiro',   prop: 'sem_giro'       as const, label: 'Sem giro',        sub: '0 saídas em 30d',    Icon: Moon,       cor: 'text-destructive-fg'   },
+  { chave: 'margem',    prop: 'margem_baixa'   as const, label: 'Margem baixa',    sub: 'abaixo de 30%',      Icon: TrendingUp, cor: 'text-primary'          },
+  { chave: 'demanda',   prop: 'sob_demanda'    as const, label: 'Sob demanda',     sub: 'sem estoque próprio', Icon: Clock,     cor: 'text-success-fg'       },
+];
+
+function KpiFiltro({ label, sub, value, Icon, cor, ativo, onClick }: {
+  label: string;
+  sub: string;
+  value: number;
+  Icon: typeof Package;
+  cor: string;
+  ativo: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={ativo}
+      className={`text-left rounded-md border p-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+        ativo ? 'border-primary bg-primary/5' : 'border-border bg-card hover:bg-muted/50'
+      }`}
+    >
+      <Inline gap={2} align="center">
+        <span className={`h-9 w-9 rounded-md grid place-items-center shrink-0 ${ativo ? 'bg-primary/15' : 'bg-muted'} ${cor}`}>
+          <Icon className="h-4 w-4" />
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className="block text-[10px] font-semibold tracking-wider uppercase text-muted-foreground truncate leading-none">{label}</span>
+          <span className="block text-lg font-semibold text-foreground tabular-nums leading-tight mt-1">{value.toLocaleString('pt-BR')}</span>
+          <span className="block text-[10px] text-muted-foreground truncate leading-none mt-0.5">{sub}</span>
+        </span>
+      </Inline>
+    </button>
+  );
+}
+
+function Toolbar({ busca, setBusca, buscaRef, categorias, categoriaAtual, onCategoria, total, kpiLabel, onRemoverKpi, onLimpar }: {
   busca: string;
   setBusca: (v: string) => void;
   buscaRef: RefObject<HTMLInputElement | null>;
@@ -357,9 +417,11 @@ function Toolbar({ busca, setBusca, buscaRef, categorias, categoriaAtual, onCate
   categoriaAtual: string;
   onCategoria: (c: string) => void;
   total: number;
+  kpiLabel: string | null;
+  onRemoverKpi: () => void;
   onLimpar: () => void;
 }) {
-  const temFiltro = Boolean(busca) || Boolean(categoriaAtual);
+  const temFiltro = Boolean(busca) || Boolean(categoriaAtual) || Boolean(kpiLabel);
   const nomeCategoria = categorias.find((c) => String(c.id) === String(categoriaAtual))?.label;
 
   return (
@@ -401,6 +463,7 @@ function Toolbar({ busca, setBusca, buscaRef, categorias, categoriaAtual, onCate
         <Inline gap={2} align="center" wrap className="mx-6 mt-2">
           {busca && <Chip label={`Busca: ${busca}`} onRemove={() => { setBusca(''); onCategoria(categoriaAtual); }} />}
           {categoriaAtual && <Chip label={`Categoria: ${nomeCategoria ?? categoriaAtual}`} onRemove={() => onCategoria('')} />}
+          {kpiLabel && <Chip label={kpiLabel} onRemove={onRemoverKpi} />}
           <button
             type="button"
             onClick={onLimpar}
@@ -463,20 +526,6 @@ function Paginacao({ meta, onPagina, onPorPagina }: {
         </Inline>
       </Inline>
     </Inline>
-  );
-}
-
-function Kpi({ label, value, sub, tone = 'default', emphasize = false }: {
-  label: string; value: string | number; sub?: string;
-  tone?: 'default' | 'pos' | 'neg'; emphasize?: boolean;
-}) {
-  const toneClass = tone === 'pos' ? 'text-success-fg' : tone === 'neg' ? 'text-destructive-fg' : 'text-foreground';
-  return (
-    <div className={`px-5 py-4 ${emphasize ? 'bg-primary text-primary-foreground' : 'bg-card'}`}>
-      <div className={`text-[10px] uppercase tracking-widest font-medium ${emphasize ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>{label}</div>
-      <div className={`mt-1 text-[28px] leading-none font-semibold tracking-tight ${emphasize ? 'text-primary-foreground' : toneClass}`}>{value}</div>
-      {sub && <div className={`mt-2 text-[11.5px] ${emphasize ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>{sub}</div>}
-    </div>
   );
 }
 
