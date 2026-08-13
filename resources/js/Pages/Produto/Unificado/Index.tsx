@@ -1,8 +1,12 @@
 import { Head, router } from '@inertiajs/react';
 import { usePageProps, useBusiness } from '@/Hooks/usePageProps';
-import { useState, useCallback } from 'react';
-import type { ReactNode, KeyboardEvent } from 'react';
-import { SlidersHorizontal } from 'lucide-react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import type { ReactNode, KeyboardEvent, RefObject } from 'react';
+import {
+  SlidersHorizontal, Search, X,
+  ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight,
+} from 'lucide-react';
+import { Input } from '@/Components/ui/input';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Badge } from '@/Components/ui/badge';
 import { Switch } from '@/Components/ui/switch';
@@ -38,6 +42,22 @@ type Props = {
     categoria: string;
     view: 'table' | 'grid';
     densidade: 'compact' | 'comfortable' | 'cozy';
+    pagina: number;
+    por_pagina: number;
+  };
+  /**
+   * Meta da paginação. Opcional no TIPO porque partial reload que não a peça não a traz —
+   * o rodapé some em vez de estourar. `produtos` continua sendo a LISTA crua (os UCs do
+   * contrato fazem `firstWhere('id', …)` nela); a meta viaja separada de propósito.
+   */
+  paginacao?: {
+    total: number;
+    pagina: number;
+    ultima: number;
+    por_pagina: number;
+    de: number | null;
+    ate: number | null;
+    opcoes: number[];
   };
   kpis: {
     catalogo_ativo: number;
@@ -99,7 +119,7 @@ const fmtBRL = (n: number) =>
 const fmtPct = (n: number) => Math.round(n * 100) + '%';
 
 function ProdutoUnificadoIndex({
-  tela, filters, kpis, produtos, categorias, insumos, tabelas, historico,
+  tela, filters, kpis, produtos, categorias, insumos, tabelas, historico, paginacao,
   // Fail-closed: se a prop não chegar por qualquer caminho, esconde tudo em vez de
   // estourar `undefined.custo`. Ausência de permissão declarada nunca vira permissão.
   permissoes = { custo: false, preco: false, composicao: false },
@@ -138,6 +158,49 @@ function ProdutoUnificadoIndex({
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch {}
       return next;
     });
+  }, []);
+
+  // ── Slot 3 · Toolbar (busca + filtros + paginação) ────────────────────────────
+  // `filters.busca` e `filters.categoria` JÁ chegavam do controller e morriam sem UI:
+  // a tela não tinha como achar um produto. O estado local existe só pro debounce —
+  // a verdade é a querystring, então voltar/avançar no navegador continua funcionando.
+  const [busca, setBusca] = useState(filters.busca ?? '');
+  const buscaRef = useRef<HTMLInputElement>(null);
+  const primeiraRenderizacao = useRef(true);
+
+  /**
+   * Navega preservando os demais filtros. Qualquer mudança que altere o CONJUNTO
+   * (busca, categoria, aba, por_pagina) volta pra página 1 — senão o usuário filtra
+   * estando na página 7 e cai numa lista vazia sem entender por quê.
+   */
+  const irPara = useCallback((patch: Record<string, unknown>, resetarPagina = true) => {
+    router.get(
+      route('products.unificado.index'),
+      { ...filters, ...patch, ...(resetarPagina ? { pagina: 1 } : {}) },
+      { preserveState: true, preserveScroll: true, replace: true, only: ['produtos', 'paginacao', 'filters'] },
+    );
+  }, [filters]);
+
+  // Debounce da busca: 350ms sem digitar. Sem isso, cada tecla vira um request.
+  useEffect(() => {
+    if (primeiraRenderizacao.current) { primeiraRenderizacao.current = false; return; }
+    if (busca === (filters.busca ?? '')) return;
+    const t = setTimeout(() => irPara({ busca }), 350);
+    return () => clearTimeout(t);
+  }, [busca, filters.busca, irPara]);
+
+  // `/` foca a busca (atalho canônico PT-01). Não sequestra a tecla quando o usuário
+  // já está digitando em outro campo.
+  useEffect(() => {
+    // `globalThis.KeyboardEvent` explícito: o arquivo importa o KeyboardEvent do React
+    // (tipo de evento sintético), e usá-lo aqui não casa com o addEventListener do window.
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      const alvo = e.target as HTMLElement | null;
+      const digitando = alvo && (alvo.tagName === 'INPUT' || alvo.tagName === 'TEXTAREA' || alvo.isContentEditable);
+      if (e.key === '/' && !digitando) { e.preventDefault(); buscaRef.current?.focus(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, []);
 
   const setSubTela = (t: Props['tela']) =>
@@ -203,12 +266,57 @@ function ProdutoUnificadoIndex({
             <Kpi label="Sem giro" value={kpis.sem_giro} tone="neg" sub="0 saídas em 30d" />
           </section>
 
-          {/* Conteúdo por sub-tela */}
-          {tela === 'produtos'   && <TabelaProdutos rows={produtos} tweaks={tweaks} perm={permissoes} onOpen={(r) => router.visit(`/products/${r.id}`)} />}
+          {/* Slot 3 · Toolbar — só na sub-tela Produtos, que é a única paginada/filtrável */}
+          {tela === 'produtos' && (
+            <Toolbar
+              busca={busca}
+              setBusca={setBusca}
+              buscaRef={buscaRef}
+              categorias={categorias}
+              categoriaAtual={filters.categoria}
+              onCategoria={(c) => irPara({ categoria: c })}
+              total={paginacao?.total ?? produtos.length}
+              onLimpar={() => { setBusca(''); irPara({ busca: '', categoria: '' }); }}
+            />
+          )}
+
+          {/* Conteúdo por sub-tela.
+              Estado "busca sem resultado" é obrigatório no PT-01 — sem ele a tela some a
+              lista e não diz por quê, e o usuário acha que o produto não existe. */}
+          {tela === 'produtos' && produtos.length === 0 && (
+            <div className="mx-6 mt-3 rounded-md border border-border bg-card px-6 py-10 text-center">
+              <p className="text-[13px] text-foreground">
+                {busca || filters.categoria
+                  ? 'Nenhum produto encontrado nesse filtro.'
+                  : 'Nenhum produto cadastrado ainda.'}
+              </p>
+              {(busca || filters.categoria) && (
+                <button
+                  type="button"
+                  onClick={() => { setBusca(''); irPara({ busca: '', categoria: '' }); }}
+                  className="mt-2 text-[12px] text-primary underline underline-offset-2"
+                >
+                  limpar os filtros
+                </button>
+              )}
+            </div>
+          )}
+          {tela === 'produtos' && produtos.length > 0 && <TabelaProdutos rows={produtos} tweaks={tweaks} perm={permissoes} onOpen={(r) => router.visit(`/products/${r.id}`)} />}
           {tela === 'categorias' && <ListaCategorias rows={categorias} />}
           {tela === 'insumos'    && <ListaInsumos rows={insumos} perm={permissoes} />}
           {tela === 'tabelas'    && <ListaTabelas rows={tabelas} produtos={produtos} perm={permissoes} />}
           {tela === 'historico'  && <ListaHistorico rows={historico} perm={permissoes} />}
+
+          {/* Rodapé de paginação — formato da referência /contacts: "Mostrando X–Y de N"
+              à esquerda, "Por página" + « ‹ pág/total › » à direita. NÃO numera páginas:
+              com catálogo grande a régua numerada não fecha (a /contacts tem 269). */}
+          {tela === 'produtos' && paginacao && paginacao.total > 0 && (
+            <Paginacao
+              meta={paginacao}
+              onPagina={(p) => irPara({ pagina: p }, false)}
+              onPorPagina={(n) => irPara({ por_pagina: n })}
+            />
+          )}
         </div>
 
         {/* Tweaks panel (canto inferior direito) */}
@@ -230,6 +338,132 @@ ProdutoUnificadoIndex.layout = (page: ReactNode) => (
 export default ProdutoUnificadoIndex;
 
 /* ─── Subcomponentes ────────────────────────────────────────────────── */
+
+/**
+ * Slot 3 · Toolbar — filtros à esquerda, busca à direita, chips de filtro ativo embaixo.
+ * Mesma anatomia da /contacts (`Cliente/Index.tsx`), que é a referência do PT-01.
+ *
+ * ⚠️ Nenhum `<SelectItem value="">`: valor vazio explode o Radix em runtime (§5 2026-06-29).
+ * O "todas" usa a sentinela TODAS, e a lista de categorias é filtrada por id truthy.
+ */
+const TODAS = 'todas';
+
+function Toolbar({ busca, setBusca, buscaRef, categorias, categoriaAtual, onCategoria, total, onLimpar }: {
+  busca: string;
+  setBusca: (v: string) => void;
+  buscaRef: RefObject<HTMLInputElement | null>;
+  categorias: CategoriaRow[];
+  categoriaAtual: string;
+  onCategoria: (c: string) => void;
+  total: number;
+  onLimpar: () => void;
+}) {
+  const temFiltro = Boolean(busca) || Boolean(categoriaAtual);
+  const nomeCategoria = categorias.find((c) => String(c.id) === String(categoriaAtual))?.label;
+
+  return (
+    <>
+      <div className="mx-6 mt-3 flex items-center gap-2 flex-wrap">
+        <Select
+          value={categoriaAtual ? String(categoriaAtual) : TODAS}
+          onValueChange={(v) => onCategoria(v === TODAS ? '' : v)}
+        >
+          <SelectTrigger className="h-8 w-[180px] text-[12px]">
+            <SelectValue placeholder="Categoria" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={TODAS}>Todas as categorias</SelectItem>
+            {categorias.filter((c) => c.id).map((c) => (
+              <SelectItem key={c.id} value={String(c.id)}>{c.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <span className="text-[11px] text-muted-foreground tabular-nums pl-1">
+          {total.toLocaleString('pt-BR')} {total === 1 ? 'registro' : 'registros'}
+        </span>
+
+        <div className="ml-auto relative w-[300px] min-w-[220px]">
+          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden />
+          <Input
+            ref={buscaRef}
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder="Buscar por nome ou SKU…   /"
+            aria-label="Buscar produto por nome ou SKU"
+            className="h-8 pl-8 text-[12px]"
+          />
+        </div>
+      </div>
+
+      {temFiltro && (
+        <div className="mx-6 mt-2 flex items-center gap-2 flex-wrap">
+          {busca && <Chip label={`Busca: ${busca}`} onRemove={() => { setBusca(''); onCategoria(categoriaAtual); }} />}
+          {categoriaAtual && <Chip label={`Categoria: ${nomeCategoria ?? categoriaAtual}`} onRemove={() => onCategoria('')} />}
+          <button
+            type="button"
+            onClick={onLimpar}
+            className="h-6 px-1 text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
+          >
+            limpar tudo
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
+function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
+  return (
+    <span className="inline-flex items-center gap-1 h-6 pl-2 pr-1 rounded border border-border bg-muted/40 text-[11px]">
+      {label}
+      <button type="button" onClick={onRemove} aria-label={`Remover filtro ${label}`} className="p-0.5 hover:text-destructive-fg">
+        <X size={12} />
+      </button>
+    </span>
+  );
+}
+
+/**
+ * Rodapé de paginação no formato da referência: "Mostrando X–Y de N" à esquerda,
+ * "Por página" + « ‹ pág/total › » à direita. Sem numerar páginas — a /contacts tem
+ * 269 e a régua numerada não fecha em catálogo grande.
+ */
+function Paginacao({ meta, onPagina, onPorPagina }: {
+  meta: NonNullable<Props['paginacao']>;
+  onPagina: (p: number) => void;
+  onPorPagina: (n: number) => void;
+}) {
+  const semAnterior = meta.pagina <= 1;
+  const semProxima = meta.pagina >= meta.ultima;
+  const btn = 'w-7 h-7 grid place-items-center rounded border border-border bg-card text-muted-foreground disabled:opacity-40 disabled:cursor-not-allowed hover:text-foreground';
+
+  return (
+    <div className="mx-6 mt-3 mb-6 flex items-center gap-3">
+      <span className="text-[11px] text-muted-foreground tabular-nums">
+        Mostrando {(meta.de ?? 0).toLocaleString('pt-BR')}–{(meta.ate ?? 0).toLocaleString('pt-BR')} de {meta.total.toLocaleString('pt-BR')}
+      </span>
+
+      <div className="ml-auto flex items-center gap-2.5">
+        <span className="text-[11px] text-muted-foreground">Por página</span>
+        <Select value={String(meta.por_pagina)} onValueChange={(v) => onPorPagina(Number(v))}>
+          <SelectTrigger className="h-7 w-[74px] text-[11px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {meta.opcoes.map((n) => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}
+          </SelectContent>
+        </Select>
+
+        <div className="flex items-center gap-1">
+          <button type="button" className={btn} aria-label="Primeira página" disabled={semAnterior} onClick={() => onPagina(1)}><ChevronsLeft size={14} /></button>
+          <button type="button" className={btn} aria-label="Página anterior" disabled={semAnterior} onClick={() => onPagina(meta.pagina - 1)}><ChevronLeft size={14} /></button>
+          <span className="min-w-[62px] text-center text-[11px] font-medium tabular-nums">{meta.pagina} / {meta.ultima}</span>
+          <button type="button" className={btn} aria-label="Próxima página" disabled={semProxima} onClick={() => onPagina(meta.pagina + 1)}><ChevronRight size={14} /></button>
+          <button type="button" className={btn} aria-label="Última página" disabled={semProxima} onClick={() => onPagina(meta.ultima)}><ChevronsRight size={14} /></button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function Kpi({ label, value, sub, tone = 'default', emphasize = false }: {
   label: string; value: string | number; sub?: string;
