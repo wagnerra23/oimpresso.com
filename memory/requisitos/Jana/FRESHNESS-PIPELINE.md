@@ -107,7 +107,7 @@ Dashboard futuro (não escopo desta PR): expor em `/copiloto/admin/memoria` ([Mo
 
 ## Alertas mcp_alertas_eventos
 
-Schema canônico já existente ([migration `2026_04_29_600001_create_mcp_alertas_eventos_table`](../../../Modules/Jana/Database/Migrations/2026_04_29_600001_create_mcp_alertas_eventos_table.php)). Esta feature **reusa** com:
+Schema canônico já existente ([migration `2026_04_29_600001_create_mcp_alertas_eventos_table`](../../../Modules/Forja/Database/Migrations/2026_04_29_600001_create_mcp_alertas_eventos_table.php)). Esta feature **reusa** com:
 
 - `tipo` = `memory_staleness`
 - `severidade` = `high`

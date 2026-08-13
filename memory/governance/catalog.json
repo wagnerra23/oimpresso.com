@@ -26,24 +26,24 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 649,
-    "edges": 916,
+    "nodes": 677,
+    "edges": 950,
     "by_node_type": {
       "module": 39,
-      "table": 73,
+      "table": 101,
       "adr": 105,
       "component": 389,
       "api": 43
     },
     "by_edge_type": {
-      "ownsTable": 58,
+      "ownsTable": 90,
       "ownsLegacyView": 13,
       "consumesTable": 6,
       "providesApi": 43,
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 389,
-      "dependsOn": 111,
+      "dependsOn": 113,
       "delegatesTo": 105,
       "migratesTo": 1,
       "supersedes": 15,
@@ -4081,7 +4081,7 @@
       "id": "module:Jana",
       "type": "module",
       "module": "Jana",
-      "purpose": "Chat IA do business servido em /ia — conversa com memória, metas, períodos, alertas, custos LLM e qualidade RAG. ATENÇÃO fronteira em aberto: este módulo hospeda hoje também a plataforma MCP do time (servidor JSON-RPC /api/mcp, 44 tabelas mcp_* e 30 entidades Entities/Mcp/), cujo destino declarado em not_contains é Modules/Forja — movimento ainda não executado.",
+      "purpose": "Chat IA do business servido em /ia — conversa com memória, metas, períodos, alertas, custos LLM e qualidade RAG. FRONTEIRA EM EXECUÇÃO (ADR 0366 §D-C item 4, autorizada por [W] em 2026-08-13): a plataforma MCP do time sai deste módulo para Modules/Forja. Onda 1 FEITA em 2026-08-13 — as 61 migrations mcp_* mudaram de casa e com elas o dono DERIVADO do schema. Ainda AQUI, e são as próximas ondas: 30 entidades Entities/Mcp/, o servidor JSON-RPC + 40 tools em Mcp/, 5 services em Services/Mcp/, 10 comandos Console/Commands/Mcp*, o McpAuthMiddleware e 44 testes.",
       "trust": "L2",
       "owner": "wagner",
       "permission_prefix": "jana.*",
@@ -4520,6 +4520,17 @@
       "ownership_mode": "unowned"
     },
     {
+      "id": "table:cowork_handoffs",
+      "type": "table",
+      "name": "cowork_handoffs",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:gateway_webhook_events",
       "type": "table",
       "name": "gateway_webhook_events",
@@ -4812,15 +4823,105 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:mcp_actors",
+      "type": "table",
+      "name": "mcp_actors",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_alertas",
+      "type": "table",
+      "name": "mcp_alertas",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_alertas_eventos",
+      "type": "table",
+      "name": "mcp_alertas_eventos",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:mcp_audit_log",
       "type": "table",
       "name": "mcp_audit_log",
-      "owners": [],
+      "owners": [
+        "Forja"
+      ],
       "consumers": [
         "Governance"
       ],
       "legacy_views": [],
-      "ownership_mode": "unowned"
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_automation_runs",
+      "type": "table",
+      "name": "mcp_automation_runs",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_automations",
+      "type": "table",
+      "name": "mcp_automations",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_cc_blobs",
+      "type": "table",
+      "name": "mcp_cc_blobs",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_cc_messages",
+      "type": "table",
+      "name": "mcp_cc_messages",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_cc_sessions",
+      "type": "table",
+      "name": "mcp_cc_sessions",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_components",
@@ -4867,9 +4968,31 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:mcp_doc_summaries",
+      "type": "table",
+      "name": "mcp_doc_summaries",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:mcp_epics",
       "type": "table",
       "name": "mcp_epics",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_git_links",
+      "type": "table",
+      "name": "mcp_git_links",
       "owners": [
         "Forja"
       ],
@@ -4889,9 +5012,53 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:mcp_handoff_diffs",
+      "type": "table",
+      "name": "mcp_handoff_diffs",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_handoff_drafts",
+      "type": "table",
+      "name": "mcp_handoff_drafts",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_handoff_summaries",
+      "type": "table",
+      "name": "mcp_handoff_summaries",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:mcp_inbox_notifications",
       "type": "table",
       "name": "mcp_inbox_notifications",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_ingest_heartbeat",
+      "type": "table",
+      "name": "mcp_ingest_heartbeat",
       "owners": [
         "Forja"
       ],
@@ -4926,22 +5093,24 @@
       "type": "table",
       "name": "mcp_memory_documents",
       "owners": [
+        "Forja",
         "KB"
       ],
       "consumers": [],
       "legacy_views": [],
-      "ownership_mode": "single"
+      "ownership_mode": "shared-declared"
     },
     {
       "id": "table:mcp_memory_documents_history",
       "type": "table",
       "name": "mcp_memory_documents_history",
       "owners": [
+        "Forja",
         "KB"
       ],
       "consumers": [],
       "legacy_views": [],
-      "ownership_mode": "single"
+      "ownership_mode": "shared-declared"
     },
     {
       "id": "table:mcp_project_parts",
@@ -4958,6 +5127,94 @@
       "id": "table:mcp_projects",
       "type": "table",
       "name": "mcp_projects",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_quotas",
+      "type": "table",
+      "name": "mcp_quotas",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_scopes",
+      "type": "table",
+      "name": "mcp_scopes",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_scorecard_ai_suggestions",
+      "type": "table",
+      "name": "mcp_scorecard_ai_suggestions",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_skill_approvals",
+      "type": "table",
+      "name": "mcp_skill_approvals",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_skill_labels",
+      "type": "table",
+      "name": "mcp_skill_labels",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_skill_test_runs",
+      "type": "table",
+      "name": "mcp_skill_test_runs",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_skill_versions",
+      "type": "table",
+      "name": "mcp_skill_versions",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_skills",
+      "type": "table",
+      "name": "mcp_skills",
       "owners": [
         "Forja"
       ],
@@ -5043,6 +5300,17 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:mcp_tokens",
+      "type": "table",
+      "name": "mcp_tokens",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:mcp_tool_executions",
       "type": "table",
       "name": "mcp_tool_executions",
@@ -5057,12 +5325,14 @@
       "id": "table:mcp_usage_diaria",
       "type": "table",
       "name": "mcp_usage_diaria",
-      "owners": [],
+      "owners": [
+        "Forja"
+      ],
       "consumers": [
         "Governance"
       ],
       "legacy_views": [],
-      "ownership_mode": "unowned"
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_user_module_access",
@@ -5076,9 +5346,53 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:mcp_user_scopes",
+      "type": "table",
+      "name": "mcp_user_scopes",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:mcp_views",
       "type": "table",
       "name": "mcp_views",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_weekly_digests",
+      "type": "table",
+      "name": "mcp_weekly_digests",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_work_leases",
+      "type": "table",
+      "name": "mcp_work_leases",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_workflows",
+      "type": "table",
+      "name": "mcp_workflows",
       "owners": [
         "Forja"
       ],
@@ -7664,6 +7978,66 @@
     },
     {
       "from": "module:Forja",
+      "to": "table:cowork_handoffs",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_actors",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_alertas_eventos",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_alertas",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_audit_log",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_automation_runs",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_automations",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_cc_blobs",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_cc_messages",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_cc_sessions",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
       "to": "table:mcp_components",
       "type": "ownsTable",
       "source": "db_tables_owned"
@@ -7688,13 +8062,49 @@
     },
     {
       "from": "module:Forja",
+      "to": "table:mcp_doc_summaries",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
       "to": "table:mcp_epics",
       "type": "ownsTable",
       "source": "db_tables_owned"
     },
     {
       "from": "module:Forja",
+      "to": "table:mcp_git_links",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_handoff_diffs",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_handoff_drafts",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_handoff_summaries",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
       "to": "table:mcp_inbox_notifications",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_ingest_heartbeat",
       "type": "ownsTable",
       "source": "db_tables_owned"
     },
@@ -7712,6 +8122,18 @@
     },
     {
       "from": "module:Forja",
+      "to": "table:mcp_memory_documents_history",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_memory_documents",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
       "to": "table:mcp_project_parts",
       "type": "ownsTable",
       "source": "db_tables_owned"
@@ -7719,6 +8141,54 @@
     {
       "from": "module:Forja",
       "to": "table:mcp_projects",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_quotas",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_scopes",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_scorecard_ai_suggestions",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_skill_approvals",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_skill_labels",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_skill_test_runs",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_skill_versions",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_skills",
       "type": "ownsTable",
       "source": "db_tables_owned"
     },
@@ -7766,7 +8236,19 @@
     },
     {
       "from": "module:Forja",
+      "to": "table:mcp_tokens",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
       "to": "table:mcp_tool_executions",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_usage_diaria",
       "type": "ownsTable",
       "source": "db_tables_owned"
     },
@@ -7778,7 +8260,31 @@
     },
     {
       "from": "module:Forja",
+      "to": "table:mcp_user_scopes",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
       "to": "table:mcp_views",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_weekly_digests",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_work_leases",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_workflows",
       "type": "ownsTable",
       "source": "db_tables_owned"
     },
@@ -7896,6 +8402,20 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Identity Mesh (mcp_actors) UI"
+    },
+    {
+      "from": "module:Governance",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "mcp_audit_log"
+    },
+    {
+      "from": "module:Governance",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "mcp_usage_diaria"
     },
     {
       "from": "module:Governance",
@@ -10915,20 +11435,22 @@
         "source": "supersedes"
       }
     ],
-    "consumed_tables_without_catalog_owner": [
+    "consumed_tables_without_catalog_owner": [],
+    "tables_owned_by_multiple": [
       {
-        "table": "mcp_audit_log",
-        "consumers": [
-          "Governance"
+        "table": "mcp_memory_documents_history",
+        "owners": [
+          "Forja",
+          "KB"
         ]
       },
       {
-        "table": "mcp_usage_diaria",
-        "consumers": [
-          "Governance"
+        "table": "mcp_memory_documents",
+        "owners": [
+          "Forja",
+          "KB"
         ]
       }
-    ],
-    "tables_owned_by_multiple": []
+    ]
   }
 }

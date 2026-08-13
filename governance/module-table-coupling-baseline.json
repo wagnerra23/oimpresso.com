@@ -12,9 +12,7 @@
     "Financeiro>Superadmin",
     "Fiscal>NfeBrasil",
     "Fiscal>Superadmin",
-    "Forja>Jana",
     "Governance>Forja",
-    "Governance>Jana",
     "Jana>Forja",
     "Jana>Whatsapp",
     "NfeBrasil>Arquivos",
@@ -24,7 +22,7 @@
     "PaymentGateway>Financeiro",
     "PaymentGateway>RecurringBilling",
     "RecurringBilling>Financeiro",
-    "Superadmin>Jana"
+    "Superadmin>Forja"
   ],
   "allowlist": [
     "Governance>Whatsapp"
