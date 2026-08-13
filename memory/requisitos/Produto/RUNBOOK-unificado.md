@@ -44,8 +44,10 @@ Cockpit denso com **5 sub-telas numa rota só**, trocadas por partial reload (`s
 | Tabelas de preço | `tabelas` | `App\SellingPriceGroup` |
 | Histórico de uso | `historico` | `App\TransactionSellLine` (30d, vendas `final`) |
 
-Backend: [`app/Http/Controllers/ProdutoUnificadoController.php`](../../../app/Http/Controllers/ProdutoUnificadoController.php)
-(mora em `app/`, **não** em `Modules/Produto` — o domínio produto é UltimatePOS herdado).
+Backend: [`app/Http/Controllers/ProdutoUnificadoController.php`](../../../app/Http/Controllers/ProdutoUnificadoController.php).
+Ele mora em `app/` porque **não existe módulo nWidart homônimo** — o domínio produto é
+UltimatePOS herdado (`App\Product`, `App\Variation`, `App\Category` direto em `app/`), o que faz
+do Produto um módulo CLASSE B (ver `SUPERFICIE.md`).
 Frontend: [`resources/js/Pages/Produto/Unificado/Index.tsx`](../../../resources/js/Pages/Produto/Unificado/Index.tsx).
 Rota: `routes/web.php` → `products.unificado.index`.
 
