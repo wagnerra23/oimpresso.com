@@ -61,5 +61,30 @@
     "liveAbsent": 0,
     "unchecked": 113,
     "staleList": []
+  },
+  {
+    "date": "2026-08-13T21:03:07.663Z",
+    "files": 121,
+    "sync": 17,
+    "stale": 3,
+    "liveAbsent": 3,
+    "unchecked": 98,
+    "staleList": [
+      "forja-page.css",
+      "forja-page.jsx",
+      "jana-merge.jsx"
+    ],
+    "origin": "medicao"
+  },
+  {
+    "date": "2026-08-13T21:04:26.683Z",
+    "files": 121,
+    "sync": 20,
+    "stale": 0,
+    "liveAbsent": 3,
+    "unchecked": 98,
+    "staleList": [],
+    "origin": "export",
+    "stalePreExport": 0
   }
 ]
