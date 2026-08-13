@@ -23,6 +23,20 @@
 // importa `BriefDiario`/`KPICard`/`AnaliseCard` dele via `window` e reusa 11
 // classes `.jc-*`. Ou seja: âncora = jana-merge; implementação = chat-jana.
 //
+// ⛔ MAS A ÂNCORA ESTÁ DEFEITUOSA — não derive dela sem conferir. O `ancora.mjs`
+// devolve `✓` e cala sobre isso; quem cataloga é o pedido [CC] de 2026-08-09
+// (`cowork-inbox/JANA-MODULO-ONDAS-PR-2026-08-09.md` §1 P-1/P-2 + §7), cujo
+// PR 0.5 de conserto NUNCA rodou. Medido de novo aqui em 2026-08-13, ambos vivos:
+//   · `jana-merge.jsx:89`      `truck: "frota"` — [W] MATOU a análise Frota em
+//     2026-08-07; o Non-Goal já está no Index.charter.md. Este componente resiste
+//     por conta própria (mapeia 2 de 4 KPIs, nenhum é frota) — mantenha assim.
+//   · `jana-merge.jsx:645-646` cita `AnaliseInadimplenciaService` /
+//     `AnaliseFaturamentoService`. NÃO EXISTEM (`git grep` rc=1). A fonte real é
+//     `app/Services/Sells/SellsCockpitAggregator.php` — é o que o
+//     `JanaDrillDrawer` já usa, e o anti-hook do charter proíbe o contrário.
+// Regra prática: as regras VISUAIS (`.jc-*` do chat-jana) são confiáveis; o que
+// o jana-merge diz sobre DADO e FONTE não é.
+//
 // ⚠️ VOCABULÁRIO DE COR NESTA ÁREA — `accent` significa DUAS coisas na mesma
 // página, e a armadilha é silenciosa:
 //   · shell cockpit  → `--accent` é o ROXO da marca (oklch .55 .15 295)

@@ -125,7 +125,55 @@ export async function resolveAncora(query, { repoRoot = REPO_DEFAULT, stagingDir
   };
 }
 
-function printResolve(r) {
+// ── Defeito na âncora (P-1 "símbolo fantasma") ───────────────────────────────
+// Resolver a âncora e carimbar `✓` não diz se ela PRESTA. Caso real 2026-08-13:
+// `ancora.mjs Jana/Index` devolveu `jana-merge.jsx` com ✓, e aquele build cita 6
+// serviços que NÃO EXISTEM no repo — defeito que o próprio [CC] catalogou em
+// 2026-08-09 (P-1) num PR de conserto que nunca rodou. Um agente derivou dali.
+// É a MESMA família do `n/a` logo abaixo: `✓` sobre algo que não sustenta é
+// sinal de saúde falso (LC-10, eixo do OUTPUT).
+//
+// Escopo deliberadamente ESTREITO — só string literal com sufixo de classe de
+// backend. Medido no corpus (108 .jsx de prototipo-ui/cowork): casa 6 símbolos,
+// e o controle positivo passa (`SellsCockpitAggregator`/`ApuracaoService` existem
+// e NÃO flagram). Não tenta adivinhar "design velho" por nome/pasta — guard
+// sintático desse tipo tem 4 lápides no §5.
+const RE_SIMBOLO_BACKEND = /"([A-Z][A-Za-z0-9]*(?:Service|Aggregator|Job|Repository))"/g;
+
+/** Extrai os símbolos de backend citados como string literal. Puro = testável. */
+export function simbolosCitados(text) {
+  return [...new Set([...String(text || '').matchAll(RE_SIMBOLO_BACKEND)].map((m) => m[1]))].sort();
+}
+
+/**
+ * `null` = NÃO CONSEGUI MEDIR (git ausente/erro) — nunca colapsa em "não existe".
+ * Vazio não é evidência quando o comando pode ter falhado (§5 2026-07-31/08-01).
+ */
+async function classeExiste(nome, repoRoot) {
+  const { spawnSync } = await import('node:child_process');
+  const r = spawnSync('git', ['grep', '-q', '-E', `(class|interface) ${nome}\\b`, '--', 'Modules/', 'app/'],
+    { cwd: repoRoot, encoding: 'utf8' });
+  if (r.error || (r.status !== 0 && r.status !== 1)) return null;
+  return r.status === 0;
+}
+
+/** Devolve { fantasmas[], naoMedidos[] } para o arquivo de âncora. */
+export async function defeitosDaAncora(ancoraRel, repoRoot = REPO_DEFAULT) {
+  const abs = resolve(repoRoot, ancoraRel);
+  // ⚠️ `read` do _lib-charter devolve NULL em vez de lançar — `try/catch` aqui
+  // nunca dispararia, e o "arquivo ausente" viraria "0 fantasmas" (fail-open).
+  // Pego no próprio selftest. Vazio só é evidência quando a leitura aconteceu.
+  const txt = await read(abs);
+  if (txt === null || txt === undefined) return { fantasmas: [], naoMedidos: [], lido: false };
+  const fantasmas = [], naoMedidos = [];
+  for (const s of simbolosCitados(txt)) {
+    const ex = await classeExiste(s, repoRoot);
+    if (ex === null) naoMedidos.push(s); else if (!ex) fantasmas.push(s);
+  }
+  return { fantasmas, naoMedidos, lido: true };
+}
+
+async function printResolve(r) {
   if (!r.ok) { console.error(`✗ ${r.query}: ${r.motivo}`); return 1; }
   if (r.avisoMangle) console.log(`⚠️ ${r.avisoMangle}`);
   console.log(`ÂNCORA da tela: ${r.query}`);
@@ -141,7 +189,18 @@ function printResolve(r) {
       console.log(`  sem âncora: ${a.valor}`);
       console.log('              (declaração legítima — a tela nasce do DS. NÃO entra no anchor-content-check.)');
     } else {
-      console.log(`  âncora ✓:   [${a.tipo}] ${a.valor}`);
+      const d = await defeitosDaAncora(a.valor);
+      const selo = d.fantasmas.length ? '⚠️' : '✓';
+      console.log(`  âncora ${selo}:   [${a.tipo}] ${a.valor}`);
+      if (d.fantasmas.length) {
+        console.log(`              ⚠️ ÂNCORA COM DEFEITO — ${d.fantasmas.length} símbolo(s) citado(s) que NÃO existem no repo:`);
+        for (const s of d.fantasmas) console.log(`                 · ${s}`);
+        console.log('              As regras VISUAIS seguem válidas; o que ela diz sobre DADO/FONTE, não.');
+        console.log('              Confira a fonte real antes de derivar (o charter costuma nomeá-la no anti-hook).');
+      }
+      if (d.naoMedidos.length) {
+        console.log(`              ⚠️ NÃO MEDIDO (git indisponível) p/ ${d.naoMedidos.length} símbolo(s) — ausência NÃO comprovada.`);
+      }
     }
   }
   console.log(`  ⛔ ${r.aviso}`);
@@ -184,7 +243,32 @@ async function selftest() {
   // query mangleada pelo MSYS (Git Bash converte "/" inicial) DEVE recuperar a rota
   const rm = await resolveAncora('C:/Program Files/Git/financeiro/unificado');
   t('resolve query mangleada MSYS recupera /financeiro/unificado', rm.ok === true && /Unificado/.test(rm.charter || '') && !!rm.avisoMangle);
-  console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — âncora = charter, png de auditoria barrado.');
+  // ── BITE do detector de âncora defeituosa (P-1 símbolo fantasma) ───────────
+  // Morde no ruim E fica quieto no bom — sem o segundo, é carimbo, não teste.
+  t('BITE fantasma: extrai símbolo de backend citado como string',
+    simbolosCitados('const F = { inad: ["x", "y", "AnaliseInadimplenciaService"] }').join() === 'AnaliseInadimplenciaService');
+  t('BITE fantasma: pega mais de um e deduplica',
+    simbolosCitados('"AJob" "AJob" "BRepository"').join() === 'AJob,BRepository');
+  t('CONTROLE fantasma: prosa sem string literal NÃO casa',
+    simbolosCitados('usa o AnaliseInadimplenciaService aqui').length === 0);
+  t('CONTROLE fantasma: sufixo fora da lista NÃO casa',
+    simbolosCitados('"AnaliseInadimplenciaHelper" "FooController"').length === 0);
+  t('CONTROLE fantasma: minúscula NÃO casa',
+    simbolosCitados('"analiseService"').length === 0);
+  // contra a árvore REAL: a âncora da Jana está defeituosa hoje; a fonte real existe
+  const dj = await defeitosDaAncora('prototipo-ui/cowork/jana-merge.jsx');
+  t('BITE real: jana-merge.jsx acusa fantasma(s)', dj.lido === true && dj.fantasmas.length > 0);
+  t('BITE real: acusa o AnaliseFaturamentoService nomeado pelo [CC] em 2026-08-09',
+    dj.fantasmas.includes('AnaliseFaturamentoService'));
+  t('CONTROLE real: símbolo que EXISTE não entra como fantasma',
+    !dj.fantasmas.includes('SellsCockpitAggregator'));
+  const dc = await defeitosDaAncora('prototipo-ui/cowork/chat-jana.jsx');
+  t('CONTROLE real: chat-jana.jsx (regras visuais) NÃO acusa fantasma',
+    dc.lido === true && dc.fantasmas.length === 0);
+  t('CONTROLE real: caminho inexistente não explode nem inventa fantasma',
+    (await defeitosDaAncora('prototipo-ui/cowork/__nao-existe__.jsx')).lido === false);
+
+  console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — âncora = charter, png de auditoria barrado, âncora defeituosa acusada.');
   process.exit(fails ? 1 : 0);
 }
 
@@ -201,6 +285,6 @@ if (invokedDirectly) {
     const tela = argv.find((a) => !a.startsWith('--') && argv[argv.indexOf(a) - 1] !== '--staging');
     if (!tela) { console.error('uso: node prototipo-ui/ancora.mjs <tela> [--staging <dir>] | --list | --selftest'); process.exit(2); }
     const r = await resolveAncora(tela, { stagingDir: val('--staging') });
-    process.exit(printResolve(r));
+    process.exit(await printResolve(r));
   }
 }
