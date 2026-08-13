@@ -1,7 +1,7 @@
 ---
 id: resources-js-pages-team-mcp-forja-cockpit-charter
 page: /forja
-component: resources/js/Pages/team-mcp/Forja/Cockpit.tsx
+component: Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.tsx
 related_prototype: prototipo-ui/cowork/forja-page.jsx
 owner: wagner
 status: draft

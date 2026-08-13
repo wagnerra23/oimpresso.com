@@ -1,7 +1,7 @@
 ---
 id: resources-js-pages-ads-admin-tools-charter
 page: /ads/admin/tools
-component: resources/js/Pages/ads/Admin/Tools.tsx
+component: Modules/Forja/Resources/js/Pages/ads/Admin/Tools.tsx
 related_prototype: n/a (herda PT-01 Lista; catálogo de cards em grid — segue o Padrão de Tela)
 owner: wagner
 status: draft

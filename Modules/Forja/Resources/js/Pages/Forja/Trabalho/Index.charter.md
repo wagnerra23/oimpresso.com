@@ -1,7 +1,7 @@
 ---
 page_id: forja-trabalho
 page: /forja/trabalho
-component: resources/js/Pages/Forja/Trabalho/Index.tsx
+component: Modules/Forja/Resources/js/Pages/Forja/Trabalho/Index.tsx
 related_prototype: prototipo-ui/cowork/forja-page.jsx
 owner: wagner
 status: draft

@@ -1,7 +1,7 @@
 ---
 id: resources-js-pages-team-mcp-cc-sessions-index-charter
 page: /team-mcp/cc-sessions
-component: resources/js/Pages/team-mcp/CcSessions/Index.tsx
+component: Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/Index.tsx
 related_prototype: "n/a (herda PT-07 Feed/Timeline; segue o DS) · golden do arquétipo · ref cc-sessions-visual-comparison.md"
 owner: wagner
 status: draft

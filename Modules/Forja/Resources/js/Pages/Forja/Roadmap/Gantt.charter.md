@@ -1,7 +1,7 @@
 ---
 page_id: forja-roadmap-gantt
 page: /forja/roadmap-gantt
-component: resources/js/Pages/Forja/Roadmap/Gantt.tsx
+component: Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.tsx
 owner: wagner
 status: draft
 last_validated: "2026-08-05"

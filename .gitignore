@@ -32,6 +32,10 @@ npm-debug.log
 # binários. Se precisar testar local, rode `npm run build:inertia` (saída
 # vai pra public/build-inertia/ ignorado).
 /public/build-inertia/
+# Saída do build SSR (`vite build --ssr`), irmã de public/build-inertia/ e pelo mesmo motivo:
+# artefato gerado, não fonte. Faltava aqui — quem rodasse o build SSR via o working tree sujar
+# e podia commitar o bundle sem querer (dívida registrada no handoff de 2026-08-12).
+/bootstrap/ssr/
 .scribe
 /public/docs
 /public/js/skins/

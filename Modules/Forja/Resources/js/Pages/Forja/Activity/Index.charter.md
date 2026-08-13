@@ -1,7 +1,7 @@
 ---
 id: resources-js-pages-project-mgmt-activity-index-charter
 page: /project-mgmt/activity
-component: resources/js/Pages/Forja/Activity/Index.tsx
+component: Modules/Forja/Resources/js/Pages/Forja/Activity/Index.tsx
 related_prototype: n/a (feed cronologico de atividade bespoke, agrupado por dia — nao segue um dos 5 Padroes de Tela)
 owner: wagner
 status: draft

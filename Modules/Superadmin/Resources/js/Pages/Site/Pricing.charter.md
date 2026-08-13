@@ -1,7 +1,7 @@
 ---
 id: resources-js-pages-site-pricing-charter
 page: /pricing
-component: resources/js/Pages/Site/Pricing.tsx
+component: Modules/Superadmin/Resources/js/Pages/Site/Pricing.tsx
 related_prototype: n/a (landing pública de preços bespoke — não segue um dos 5 Padrões de Tela do ERP)
 owner: wagner
 status: draft

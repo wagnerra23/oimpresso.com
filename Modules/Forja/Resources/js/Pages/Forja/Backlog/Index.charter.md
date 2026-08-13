@@ -1,7 +1,7 @@
 ---
 id: resources-js-pages-project-mgmt-backlog-index-charter
 page: /project-mgmt/backlog
-component: resources/js/Pages/Forja/Backlog/Index.tsx
+component: Modules/Forja/Resources/js/Pages/Forja/Backlog/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 owner: wagner
 status: draft

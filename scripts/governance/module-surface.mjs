@@ -684,6 +684,22 @@ function derivarNamespaces() {
  * Namespace com mais de um dono vira AVISO: a quem ele pertence é decisão [W], não do script
  * (atribuir no olho seria escolher a dedo, a família de guard que o §5 já matou 4×).
  */
+/**
+ * FRONTEIRA — namespaces com mais de um dono que já foram DECIDIDOS por [W].
+ *
+ * A regra é a mesma do `ALLOWED_DIRS` do components-tree-guard: multi-dono é permitido e
+ * **caro de propósito** — exige uma entrada aqui, com o motivo, no mesmo PR. Assim a exceção
+ * aparece no diff e alguém pergunta "por quê", em vez de virar aviso perpétuo que ninguém lê.
+ *
+ * O que este mapa NÃO faz: escolher dono. Atribuir no olho é a família de guard que o §5 já
+ * matou 4× (allowlist-de-pasta · `@scope` · vocabulário · `toHaveKey`). Ele só exige que a
+ * decisão **exista e esteja escrita** — quem decide é [W].
+ */
+const MULTI_DONO_DECIDIDO = {
+  Site: 'Cms é dono do conteúdo institucional (Home/Blogs/BlogPost/Page); Pricing é do Superadmin (tela de planos); Login/Register ficam no NÚCLEO por serem Auth, não conteúdo. Divisão por natureza da tela. ELIMINÁVEL: o namespace é só o nome do componente Inertia, então separar (ex.: `Planos/Index` pro Superadmin) não toca URL, nome de rota nem permission — é decisão de arrumação, não bloqueio técnico.',
+  ads: 'Forja (Projects/ProjectShow/Tools/TeamScopes) + KB (Graph). ELIMINÁVEL, e a razão que esta linha carregava antes estava ERRADA: eu afirmei que a ADR 0363 impedia renomear. Ela congela quatro superfícies — URLs `/ads/admin/*`, nomes de rota `ads.admin.*`, permissions `ads.admin.skills.*` e `ads_module` — e o namespace do componente NÃO é nenhuma delas. Medido: a tela do KB já responde por `kb.graph.page` (`/kb/graph`), com controller em `Modules/KB`; só o nome do componente ficou `ads`.',
+};
+
 function relatorioNamespaces() {
   const porNs = derivarNamespaces();
   const modulos = new Set(listarModulos());
@@ -711,17 +727,29 @@ function relatorioNamespaces() {
     .map((p) => p.split('/')[3]).filter(Boolean);
   const orfas = [...new Set(semRender)].filter((d) => !porNs.has(d)).sort();
   if (orfas.length) console.log(`\n  ⚠️  pasta(s) em Pages/ sem NENHUM render apontando: ${orfas.join(', ')}`);
-  if (ambiguos.length) {
-    console.log('\n  ⚠️  namespace com mais de um renderizador — a quem pertence é decisão [W], não deste script:');
-    for (const [ns, d] of ambiguos) console.log(`      ${ns}: ${d}`);
+  // Multi-dono se separa em DOIS baldes: o que já foi decidido (com motivo escrito) e o que
+  // ninguém decidiu ainda. O 1º é informação; o 2º é fronteira nova aberta em silêncio.
+  const decididos = ambiguos.filter(([ns]) => MULTI_DONO_DECIDIDO[ns]);
+  const indecisos = ambiguos.filter(([ns]) => !MULTI_DONO_DECIDIDO[ns]);
+  if (decididos.length) {
+    console.log('\n  ℹ️  namespace multi-dono com decisão DECLARADA:');
+    for (const [ns, d] of decididos) console.log(`      ${ns}: ${d}\n         └─ ${MULTI_DONO_DECIDIDO[ns]}`);
   }
   if (faltando.length) {
     console.error('\n  ✗ namespace(s) com dono ÚNICO fora do PAGES_NS — o módulo não enxerga as próprias telas:');
     for (const [ns, mod, d] of faltando) console.error(`      ${ns} (${d}) → declare em PAGES_NS: ${mod}: ['${mod}', '${ns}']`);
     console.error('');
-    return 1;
   }
-  console.log('\n  ✓ todo namespace com dono único está coberto pelo PAGES_NS.\n');
+  if (indecisos.length) {
+    console.error('\n  ✗ namespace(s) com MAIS DE UM dono e SEM decisão declarada:');
+    for (const [ns, d] of indecisos) console.error(`      ${ns}: ${d}`);
+    console.error('\n    Uma tela passou a ser servida por 2+ módulos e ninguém disse a quem ela pertence.');
+    console.error('    Este script NÃO escolhe dono — escolher no olho é a família de guard que o §5 já');
+    console.error('    matou 4×. Leve a [W] e registre a decisão em MULTI_DONO_DECIDIDO (module-surface.mjs),');
+    console.error('    com o motivo, no mesmo PR — a exceção tem que aparecer no diff.\n');
+  }
+  if (faltando.length || indecisos.length) return 1;
+  console.log('\n  ✓ todo namespace com dono único está coberto pelo PAGES_NS, e todo multi-dono tem decisão declarada.\n');
   return 0;
 }
 

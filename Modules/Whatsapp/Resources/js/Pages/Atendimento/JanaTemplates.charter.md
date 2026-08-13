@@ -1,6 +1,6 @@
 ---
 page: /atendimento/canais/jana-templates
-component: resources/js/Pages/Atendimento/JanaTemplates.tsx
+component: Modules/Whatsapp/Resources/js/Pages/Atendimento/JanaTemplates.tsx
 owner: wagner
 status: draft
 last_validated: "2026-05-12"
