@@ -76,6 +76,35 @@ check('0 stale → veredito positivo', veredictoFinal(0).ok === true && /✓/.te
 // CONTROLE NEGATIVO do bite: o veredito NÃO pode depender de flag nenhuma — só do número.
 check('mesmo número → mesmo veredito (independe de --check)',
   JSON.stringify(veredictoFinal(3)) === JSON.stringify(veredictoFinal(3)) && veredictoFinal(3).ok === false);
+
+// 4c. COBERTURA — "não achei divergência" ≠ "não há divergência" (LC-13: verde por não-medição).
+//     Reproduzido 2026-08-13: 2 medidos de 121, 0 stale, e a linha final afirmava
+//     "✓ sem espelho STALE (divergência hash-provada)" sobre 119 arquivos que ninguém olhou.
+{
+  const parcial = veredictoFinal(0, { total: 121, medidos: 2, semVeredito: 119 });
+  check('cobertura parcial + 0 stale → INCONCLUSIVO, não ✓', parcial.inconclusivo === true && !/^✓/.test(parcial.texto));
+  check('o texto do inconclusivo carrega o DENOMINADOR (medidos e faltantes)',
+    /\b2\b/.test(parcial.texto) && /\b119\b/.test(parcial.texto) && /\b121\b/.test(parcial.texto));
+  check('inconclusivo NÃO afirma "hash-provada" (nada foi provado sobre os 119)',
+    !/hash-provada/.test(parcial.texto));
+
+  const completa = veredictoFinal(0, { total: 121, medidos: 121, semVeredito: 0 });
+  // CONTROLE POSITIVO: cobertura total volta a ser ✓ — o conserto não vira alarme cego.
+  check('CONTROLE: cobertura total + 0 stale → ✓ (não virou alarme permanente)',
+    completa.inconclusivo === undefined && /✓/.test(completa.texto));
+
+  // O sinal DURO vence a cobertura: stale é hash-provado, não depende de quantos faltam.
+  check('1 stale + 119 sem veredito → ✗ STALE (o duro vence o inconclusivo)',
+    veredictoFinal(1, { total: 121, medidos: 2, semVeredito: 119 }).ok === false);
+
+  // ENFORCEMENT INALTERADO: inconclusivo não é falha dura — `--check` morde só em STALE.
+  check('inconclusivo mantém ok=true (não promove cobertura a gate — ADR 0336 é decisão [W])',
+    parcial.ok === true);
+
+  // COMPAT: chamador sem cobertura segue funcionando (o argumento é opcional).
+  check('CONTROLE: sem cobertura → comportamento antigo (✓ sem inconclusivo)',
+    veredictoFinal(0).ok === true && veredictoFinal(0).inconclusivo === undefined);
+}
 {
   // BITE de integração: o fonte não pode mais imprimir a linha verde fora do veredito.
   // Conta só CÓDIGO — o docblock do `veredictoFinal` cita o `console.log` bugado de propósito,
