@@ -155,9 +155,16 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
         // Wagner 2026-05-27 -- sub-tab "Placas" do OssTab drawer 760 (read-only).
         // Daniela @ Martinho cadastrou Heinig + pediu ver caminhoes basculantes
         // direto no drawer Cliente sem abrir /oficina-auto/veiculos separado.
-        // Endpoint condicional ao modulo OficinaAuto instalado (gate frontend
-        // via oficinaAutoEnabled prop + backend rota sempre registrada — retorna
-        // [] se Vehicle model inexistente em ambiente sem modulo).
+        // Endpoint condicional ao modulo OficinaAuto: gate no FRONTEND via prop
+        // oficinaauto_enabled + gate no BACKEND dentro do proprio index(), que
+        // checa ModuleUtil::isModuleInstalled('OficinaAuto') antes de tocar
+        // Vehicle e devolve paginador vazio quando o modulo nao esta instalado.
+        // A rota fica sempre registrada de proposito.
+        //
+        // ⚠️ Ate 2026-08-13 esta linha afirmava que o controller "retorna [] se
+        // Vehicle model inexistente" — nao retornava: nao havia gate nenhum, e a
+        // query so nao estourava porque a tabela `vehicles` viaja no
+        // database/schema/mysql-schema.sql. Gate real posto no controller.
         Route::get('{id}/veiculos', [\Modules\Crm\Http\Controllers\ClienteVeiculosController::class, 'index'])
             ->whereNumber('id')
             ->name('veiculos.index');
