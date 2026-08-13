@@ -52,6 +52,15 @@ use Modules\Manufacturing\Entities\MfgRecipeIngredient;
  */
 class ProdutoUnificadoController extends Controller
 {
+    /**
+     * Opções de "Por página" que a UI oferece. Serve de allowlist do querystring:
+     * valor fora daqui cai no default (20), pra ninguém pedir a lista inteira por URL.
+     */
+    private const POR_PAGINA_OPCOES = [12, 20, 50, 100];
+
+    /** Memo do resultado paginado — as props `produtos` e `paginacao` leem a MESMA query. */
+    private ?array $produtosPaginados = null;
+
     public function __construct(private readonly ModuleUtil $moduleUtil)
     {
     }
@@ -78,6 +87,12 @@ class ProdutoUnificadoController extends Controller
             'categoria' => $request->integer('categoria') ?: null,
             'view'      => $request->string('view', 'table')->toString(),
             'densidade' => $request->string('densidade', 'comfortable')->toString(),
+            // Paginação: `por_pagina` é VALIDADO contra as opções que a UI oferece — querystring
+            // é entrada de usuário, e `?por_pagina=99999` viraria o `limit(500)` de volta.
+            'pagina'     => max(1, $request->integer('pagina') ?: 1),
+            'por_pagina' => in_array($pp = $request->integer('por_pagina') ?: 20, self::POR_PAGINA_OPCOES, true)
+                ? $pp
+                : 20,
         ];
 
         return Inertia::render('Produto/Unificado/Index', [
@@ -100,7 +115,11 @@ class ProdutoUnificadoController extends Controller
             // partial reload do setSubTela. kpis/categorias são por business; produtos
             // varia com tab/busca/categoria mas o nav de sub-tela preserva esses filtros.
             'kpis'       => fn () => $this->kpis($business_id),
-            'produtos'   => fn () => $this->produtos($business_id, $filters, $podeVerCusto, $podeVerPreco, $podeVerBom),
+            'produtos'   => fn () => $this->produtos($business_id, $filters, $podeVerCusto, $podeVerPreco, $podeVerBom)['rows'],
+            // Meta da paginação em prop SEPARADA de propósito: `produtos` continua sendo a LISTA
+            // crua. Os UCs do contrato fazem `collect($props['produtos'])->firstWhere('id', …)` —
+            // embrulhar a lista num objeto quebraria os 7 casos que acabaram de entrar (#5597).
+            'paginacao'  => fn () => $this->produtos($business_id, $filters, $podeVerCusto, $podeVerPreco, $podeVerBom)['meta'],
             'categorias' => fn () => $this->categorias($business_id),
             // UC-PUNI-04 / UC-PUNI-03: a sub-tela inteira não é servida sem o direito.
             // O gate é aqui (e não dentro do helper) pra que a prop nasça `[]` sem custo de query.
@@ -155,8 +174,26 @@ class ProdutoUnificadoController extends Controller
         ];
     }
 
+    /**
+     * Catálogo paginado.
+     *
+     * ANTES desta versão a lista saía com `->limit(500)->get()` e SEM paginação: catálogo acima
+     * de 500 produtos era truncado EM SILÊNCIO — a tela não dizia que havia mais, e a Larissa
+     * simplesmente nunca via o resto. A lista irmã `/contacts` mostra "1–50 de 13.433" em 269
+     * páginas; esta mostrava 500 e ponto.
+     *
+     * MEMOIZADO: as props `produtos` e `paginacao` chamam este método na mesma request. Sem o
+     * memo, o `paginate()` roda 2× (2 counts + 2 selects) — e as duas closures são justamente
+     * o caminho que o partial reload do `setSubTela` percorre.
+     *
+     * @return array{rows: list<array<string,mixed>>, meta: array<string,int|null>}
+     */
     private function produtos(int $business_id, array $f, bool $podeVerCusto, bool $podeVerPreco, bool $podeVerBom): array
     {
+        if ($this->produtosPaginados !== null) {
+            return $this->produtosPaginados;
+        }
+
         $q = Product::where('business_id', $business_id)
             ->with(['category:id,name', 'brand:id,name', 'unit:id,short_name', 'variations']);
 
@@ -175,7 +212,13 @@ class ProdutoUnificadoController extends Controller
             });
         }
 
-        return $q->orderBy('name')->limit(500)->get()
+        $pagina = $q->orderBy('name')->paginate(
+            perPage: $f['por_pagina'],
+            pageName: 'pagina',
+            page: $f['pagina'],
+        );
+
+        $rows = $pagina->getCollection()
             ->map(function (Product $p) use ($podeVerCusto, $podeVerPreco, $podeVerBom) {
                 $defaultVar = $p->variations->firstWhere('name', 'DUMMY') ?? $p->variations->first();
                 $price = (float) ($defaultVar->sell_price_inc_tax ?? 0);
@@ -216,6 +259,21 @@ class ProdutoUnificadoController extends Controller
 
                 return $linha;
             })->all();
+
+        return $this->produtosPaginados = [
+            'rows' => $rows,
+            'meta' => [
+                'total'      => $pagina->total(),
+                'pagina'     => $pagina->currentPage(),
+                'ultima'     => $pagina->lastPage(),
+                'por_pagina' => $pagina->perPage(),
+                // `de`/`ate` vêm null quando a página está vazia (filtro sem resultado) — o
+                // .tsx trata, e é o que alimenta o "Mostrando X–Y de N" do rodapé.
+                'de'         => $pagina->firstItem(),
+                'ate'        => $pagina->lastItem(),
+                'opcoes'     => self::POR_PAGINA_OPCOES,
+            ],
+        ];
     }
 
     /**
