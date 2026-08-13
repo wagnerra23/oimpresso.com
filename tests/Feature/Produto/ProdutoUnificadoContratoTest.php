@@ -48,7 +48,7 @@ use Tests\Support\EstoqueFixture;
  */
 uses(DatabaseTransactions::class);
 
-function produtoUnificadoInertiaVersion(): string
+function unificadoContratoInertiaVersion(): string
 {
     $manifest = public_path('build-inertia/manifest.json');
 
@@ -62,13 +62,13 @@ function produtoUnificadoInertiaVersion(): string
  * @param  array<string,mixed>  $query
  * @return array<string,mixed>  o objeto `props` da página
  */
-function produtoUnificadoProps(object $test, array $props, array $query = []): array
+function unificadoContratoProps(object $test, array $props, array $query = []): array
 {
     $url = '/products/unificado' . ($query ? '?' . http_build_query($query) : '');
 
     $response = $test->withHeaders([
         'X-Inertia' => 'true',
-        'X-Inertia-Version' => produtoUnificadoInertiaVersion(),
+        'X-Inertia-Version' => unificadoContratoInertiaVersion(),
         'X-Inertia-Partial-Component' => 'Produto/Unificado/Index',
         'X-Inertia-Partial-Data' => implode(',', $props),
     ])->get($url);
@@ -86,7 +86,7 @@ function produtoUnificadoProps(object $test, array $props, array $query = []): a
  *
  * @return list<float>
  */
-function produtoUnificadoNumeros(mixed $payload): array
+function unificadoContratoNumeros(mixed $payload): array
 {
     $out = [];
     array_walk_recursive(
@@ -152,7 +152,7 @@ it('UC-PUNI-01 · catálogo unificado não entrega custo a quem não pode vê-lo
             'sell_price_inc_tax' => $vendaSentinela,
         ]);
 
-    $props = produtoUnificadoProps($this, ['produtos']);
+    $props = unificadoContratoProps($this, ['produtos']);
 
     // PRÉ-CONDIÇÃO ANTI-VÁCUO: a prop chegou E a linha do produto está nela.
     expect($props)->toHaveKey('produtos');
@@ -161,7 +161,7 @@ it('UC-PUNI-01 · catálogo unificado não entrega custo a quem não pode vê-lo
         'A linha do produto semeado não veio — sem ela, "não tem custo" mediria não-execução.'
     );
 
-    $numeros = produtoUnificadoNumeros($linha);
+    $numeros = unificadoContratoNumeros($linha);
 
     expect(in_array(round($custoSentinela, 2), $numeros, true))->toBeFalse(
         "O custo vazou na linha do catálogo unificado para usuário SEM view_purchase_price "
@@ -197,13 +197,13 @@ it('UC-PUNI-02 · catálogo unificado não entrega preço de venda a quem não p
             'sell_price_inc_tax' => $vendaSentinela,
         ]);
 
-    $props = produtoUnificadoProps($this, ['produtos']);
+    $props = unificadoContratoProps($this, ['produtos']);
 
     expect($props)->toHaveKey('produtos');
     $linha = collect($props['produtos'])->firstWhere('id', $produto->productId);
     expect($linha)->not->toBeNull();
 
-    expect(in_array(round($vendaSentinela, 2), produtoUnificadoNumeros($linha), true))->toBeFalse(
+    expect(in_array(round($vendaSentinela, 2), unificadoContratoNumeros($linha), true))->toBeFalse(
         "O preço de venda vazou na linha para usuário SEM access_default_selling_price (sentinela {$vendaSentinela})."
     );
 });
@@ -215,7 +215,7 @@ it('UC-PUNI-02b · a porta lateral do Histórico também não entrega preço de 
 
     // O Histórico devolve `value` = qty × unit_price_inc_tax (ProdutoUnificadoController:249,260).
     // Gatear a lista e deixar o histórico aberto entrega o MESMO dado por outro caminho.
-    $props = produtoUnificadoProps($this, ['historico'], ['tela' => 'historico']);
+    $props = unificadoContratoProps($this, ['historico'], ['tela' => 'historico']);
 
     expect($props)->toHaveKey('historico');
 
@@ -238,7 +238,7 @@ it('UC-PUNI-03 · tabelas de preço seguem o mesmo gate do preço de venda', fun
         $this->markTestSkipped('User seedado JÁ tem access_default_selling_price — sem cenário pra provar o gate.');
     }
 
-    $props = produtoUnificadoProps($this, ['tabelas'], ['tela' => 'tabelas']);
+    $props = unificadoContratoProps($this, ['tabelas'], ['tela' => 'tabelas']);
 
     expect($props)->toHaveKey('tabelas');
     expect($props['tabelas'])->toBeArray()->toBeEmpty(
@@ -263,7 +263,7 @@ it('UC-PUNI-04 · composição (BOM) não chega sem manufacturing.access_recipe'
     $bizId = (int) $this->business->id;
     $produto = EstoqueFixture::singleProduct($bizId);
 
-    $props = produtoUnificadoProps($this, ['produtos']);
+    $props = unificadoContratoProps($this, ['produtos']);
     $linha = (array) collect($props['produtos'])->firstWhere('id', $produto->productId);
     expect($linha)->not->toBeEmpty();
 
@@ -276,7 +276,7 @@ it('UC-PUNI-04 · composição (BOM) não chega sem manufacturing.access_recipe'
         . 'nunca hardcode por business.'
     );
 
-    $props = produtoUnificadoProps($this, ['insumos'], ['tela' => 'insumos']);
+    $props = unificadoContratoProps($this, ['insumos'], ['tela' => 'insumos']);
     expect($props['insumos'])->toBeArray()->toBeEmpty(
         'A sub-tela Insumos entregou a lista sem manufacturing.access_recipe.'
     );
@@ -297,7 +297,7 @@ it('UC-PUNI-05 · nenhuma prop do unificado enxerga produto de outro business', 
 
     $intruso = EstoqueFixture::singleProduct($outroBiz);
 
-    $props = produtoUnificadoProps($this, ['produtos', 'kpis', 'categorias']);
+    $props = unificadoContratoProps($this, ['produtos', 'kpis', 'categorias']);
 
     $idsVisiveis = collect($props['produtos'])->pluck('id')->all();
     expect(in_array($intruso->productId, $idsVisiveis, true))->toBeFalse(
@@ -333,7 +333,7 @@ it('UC-PUNI-06 · a tela exige product.view (ou product.create, como a lista irm
 
     $response = $this->withHeaders([
         'X-Inertia' => 'true',
-        'X-Inertia-Version' => produtoUnificadoInertiaVersion(),
+        'X-Inertia-Version' => unificadoContratoInertiaVersion(),
     ])->get('/products/unificado');
 
     expect($response->getStatusCode())->toBe(
