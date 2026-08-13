@@ -24,6 +24,7 @@ import {
   slaVerdict,
   liveOnly,
   exportPlan,
+  absentLocal,
   SLA_DAYS,
 } from './cowork-mirror-freshness.mjs';
 
@@ -207,6 +208,23 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
   check('rodada nova limpa APÓS suja → FRESH (só a última conta)', slaVerdict([dirty, clean], NOW).veredito === 'FRESH');
   check('ageDays calculado', slaVerdict([clean], NOW).ageDays === 5);
   check('fronteira: exatamente SLA_DAYS não é OVERDUE', slaVerdict([{ ...clean, date: '2026-06-22T12:00:00.000Z' }], NOW, SLA_DAYS).veredito === 'FRESH');
+
+  // ── LAST-PARTIAL (2026-08-13): "0 stale" numa rodada que não mediu não é saúde ──
+  // Caso REAL do ledger: a rodada de 2026-07-07 tinha `5 sync · 0 stale · 98 unchecked`
+  // e o veredito a tratava como limpa — o LC-13 ("verde por não-execução") DENTRO do
+  // instrumento que existe pra pegar isso. Critério binário e derivado (unchecked===0),
+  // nunca limiar inventado: o §5 tem 5 lápides de guard com corte arbitrário.
+  const parcial = { ...clean, files: 103, sync: 5, stale: 0, unchecked: 98 };
+  check('BITE: rodada 95% UNCHECKED não é FRESH (0 stale sem cobertura não prova nada)',
+    slaVerdict([parcial], NOW).veredito === 'LAST-PARTIAL');
+  check('cobertura sai no veredito (medidos/total), não só a contagem de stale',
+    JSON.stringify(slaVerdict([parcial], NOW).cobertura) === '{"medidos":5,"total":103}');
+  check('CONTROLE: rodada COMPLETA e limpa continua FRESH (parcial não vira FP em todo mundo)',
+    slaVerdict([{ ...clean, unchecked: 0 }], NOW).veredito === 'FRESH');
+  check('PRECEDÊNCIA: stale vence parcial (resultado sujo é pior que cobertura baixa)',
+    slaVerdict([{ ...parcial, stale: 2, staleList: ['a.jsx', 'b.jsx'] }], NOW).veredito === 'LAST-STALE');
+  check('PRECEDÊNCIA: idade vence tudo (rodada velha é OVERDUE mesmo parcial)',
+    slaVerdict([{ ...parcial, date: '2026-01-01T00:00:00.000Z' }], NOW).veredito === 'OVERDUE');
   check(`SLA_DAYS = 14`, SLA_DAYS === 14);
 }
 
@@ -242,5 +260,51 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
     /export: conteúdo ausente para "a\.jsx"/.test(msg));
 }
 
-console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel)');
+// ── ABSENT-LOCAL (2026-08-13): a 3ª doença — o espelho INCOERENTE ────────────────
+// Incidente: `app.jsx` de 07-07 montava o JanaCockpit antigo enquanto `jana-merge.jsx` já
+// estava versionado; e 13 deps que o shell CARREGA nunca desceram. Render quebrava sem
+// nenhum veredito vermelho, porque `buildManifest.add()` descarta dep ausente em silêncio.
+// FP medido ANTES de escrever (§5 — 5 lápides de guard sintático): 16 brutas → 3 são
+// `_ds/**`, gitignorado POR DESIGN. Filtro = `git check-ignore` (a regra JÁ escrita do
+// repo), nunca denylist de nome inventada aqui.
+{
+  check('BITE absentLocal: dep que o shell carrega e não existe → acusa',
+    JSON.stringify(absentLocal('<script src="nao-existe-mesmo.jsx"></script>').faltando) === '["nao-existe-mesmo.jsx"]');
+  check('CONTROLE absentLocal: dep existente no espelho não acusa',
+    absentLocal('<link href="styles.css?v=1"/><script src="app.jsx?v=eb2"></script>').faltando.length === 0);
+  // O FP conhecido: bundle do design-system é linkado pelo shell mas fica FORA do espelho
+  // por regra do .gitignore. Tem que aparecer em `ignorados`, jamais em `faltando`.
+  {
+    const r = absentLocal('<link href="_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/colors_and_type.css"/>');
+    check('CONTROLE absentLocal: _ds/** (gitignored) isenta, não acusa', r.faltando.length === 0 && r.ignorados.length === 1);
+  }
+  check('CONTROLE absentLocal: sem shell não inventa sinal', absentLocal(null).faltando.length === 0);
+  // Remoto e data: URL não é dep do espelho (mesma regra do parseShellDeps).
+  check('CONTROLE absentLocal: CDN remoto não vira ausência',
+    absentLocal('<script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>').faltando.length === 0);
+}
+
+// ── CICLO EM 1 DOWNLOAD (2026-08-13) ────────────────────────────────────────────
+// O --export-from passou a emitir o snapshot (--emit-snapshot). O contrato que este
+// assert trava é a CHAVE: o exportPlan devolve `relPath` COM o prefixo do espelho,
+// mas o --compare procura pelo path RELATIVO (o campo `cowork` do manifesto). Emitir
+// com o prefixo errado daria "UNCHECKED" em tudo — verde-por-não-medir, o LC-13 na veia.
+{
+  const plano = exportPlan([{ path: 'app.jsx', content: 'x\n' }, { path: 'venda-v3/sells-ui.jsx', content: 'y\n' }]);
+  const chaves = plano.map((p) => p.relPath.replace(/^prototipo-ui\/cowork\//, ''));
+  check('snapshot emitido usa a MESMA chave do manifesto (relativa, não prefixada)',
+    JSON.stringify(chaves) === '["app.jsx","venda-v3/sells-ui.jsx"]');
+  // o hash emitido tem que ser o do conteúdo NORMALIZADO — senão CRLF daria STALE falso
+  check('hash do snapshot emitido == contentHash do conteúdo (normalizado)',
+    contentHash('a\r\nb\r\n') === contentHash(exportPlan([{ path: 'z.jsx', content: 'a\nb\n' }])[0].content));
+}
+
+// O SHELL entra no próprio manifesto quando versionado — fiação não medida foi a doença nº1.
+{
+  const man = buildManifest(undefined, { shellHtml: '<script src="app.jsx"></script>' });
+  check('shell versionado entra no manifesto (vira STALE se [W] mexer nele)',
+    man.some((f) => f.cowork === 'oimpresso.com.html'));
+}
+
+console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel + absent-local)');
 process.exit(fails ? 1 : 0);

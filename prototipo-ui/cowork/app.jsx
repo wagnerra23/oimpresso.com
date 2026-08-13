@@ -263,7 +263,7 @@ function ModuleStub({ routeId }) {
 
 }
 
-function Header({ company, route, onSelectRoute, prodType, onProdType, chatTab, onChatTab }) {
+function Header({ company, route, onSelectRoute, prodType, onProdType, chatTab, onChatTab, chatTabs }) {
   const flat = MOCK.MENU_FLAT;
   const item = flat.find((i) => i.id === route);
   const groupKey = item?.group && item.group !== "__user__" ? item.group : null;
@@ -287,15 +287,17 @@ function Header({ company, route, onSelectRoute, prodType, onProdType, chatTab, 
   { key: "servico", label: "Serviço", color: "oklch(0.48 0.13 220)" },
   { key: "composicao", label: "Composição", color: "oklch(0.48 0.13 145)" }];
 
-  const CHAT_TABS = [
-  { key: "dashboard", label: "Dashboard", icon: "📊", color: "oklch(0.42 0.10 250)" },
-  { key: "ia", label: "Analista IA", icon: "🤖", color: "oklch(0.45 0.15 290)" }];
+  // Abas de área da Jana (fusão 2026-08: Painel absorve /ia/dashboard e mata /ia/cockpit).
+  // Ícones lucide-like do JcIcon — sem emoji no app (proibição visual).
+  const CHAT_TABS = chatTabs || [];
 
 
   // Rotas de módulo (hubs/ghosts) usam o PageHeaderNav abaixo do título — não o topbar global.
   // O topbar contextual agora só serve à Jana (chat). Em Produtos as abas de tipo
   // foram movidas pra DENTRO da página, abaixo do page header ([W] 2026-06-22).
-  if (!isChat) return null;
+  // Fusão Jana (2026-08): as abas da Jana foram pra DENTRO da página, no ModuleTopNav
+  // abaixo do page header — igual às outras telas. O topbar contextual global ficou sem uso.
+  if (isChat || true) return null;
 
   return (
     <header className="topbar topbar--ctx">
@@ -322,8 +324,8 @@ function Header({ company, route, onSelectRoute, prodType, onProdType, chatTab, 
             <button key={t.key}
             className={"topbar-tab topbar-tab--chat" + (active ? " active" : "")}
             onClick={() => onChatTab?.(t.key)}
-            style={active ? { borderBottomColor: t.color, color: t.color } : null}>
-                <span className="topbar-tab-emoji">{t.icon}</span>
+            style={active ? { borderBottomColor: "var(--accent)", color: "var(--accent)" } : null}>
+                {window.JcIcon && <window.JcIcon name={t.icon} className="topbar-tab-ic" />}
                 <span>{t.label}</span>
               </button>);
 
@@ -440,10 +442,17 @@ function App() {
   }, [prodType]);
   // Tab do Chat (Dashboard | Analista IA)
   const [chatTab, setChatTab] = useStateA(() => {
-    try {return localStorage.getItem("oimpresso.chat.tab") || "dashboard";} catch (e) {return "dashboard";}
+    // Fusão das telas Jana: valores legados (dashboard/ia) migram pras abas novas.
+    // Chave própria (prefixo oimpresso.jana.* do charter) — antes colidia com o
+    // filtro de conversas da sidebar, que grava em oimpresso.chat.tab.
+    const LEGACY = { dashboard: "painel", ia: "conversa" };
+    try {
+      const v = localStorage.getItem("oimpresso.jana.tab") || "painel";
+      return LEGACY[v] || v;
+    } catch (e) {return "painel";}
   });
   useEffectA(() => {
-    try {localStorage.setItem("oimpresso.chat.tab", chatTab);} catch (e) {}
+    try {localStorage.setItem("oimpresso.jana.tab", chatTab);} catch (e) {}
   }, [chatTab]);
   useEffectA(() => {
     try {localStorage.setItem("oimpresso.linked.collapsed", linkedCollapsed ? "1" : "0");} catch (e) {}
@@ -517,7 +526,9 @@ function App() {
     "theme": "dark",
     "density": 50,
     "accentHue": 295,
-    "showLaravel": false
+    "showLaravel": false,
+    "janaMetas": "seção",
+    "janaEstado": "dados"
   } /*EDITMODE-END*/;
   const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
 
@@ -558,6 +569,7 @@ function App() {
       try {localStorage.setItem(`oimpresso.group.${fi.group}.route`, r);} catch (e) {}
     }
   };
+  window.__go = handleSelectRoute;
   window.__selectRoute = handleSelectRoute;
 
   const handleSelectConv = (id) => {
@@ -573,13 +585,22 @@ function App() {
     return () => window.removeEventListener('pg:goto-route', onGoto);
   }, []);
 
+  // Abas de área da Jana — Metas como seção do Painel (canon) ou aba própria (tweak).
+  const janaTab = tweaks.janaMetas !== "aba" && chatTab === "metas" ? "painel" : chatTab;
+
   let content;
-  if (route === "chat") content = <window.JanaCockpit company={company} tab={chatTab} />;else
+  if (route === "chat") content = <window.JanaPage company={company} tab={janaTab} metasMode={tweaks.janaMetas === "aba" ? "aba" : "secao"} estado={tweaks.janaEstado} onGoTab={setChatTab} />;else
   if (route === "tarefas") content = <TasksPage />;else
   if (route === "perfil") content = <window.PerfilPage />;else
   if (route === "usuarios") content = <window.UsuariosPage />;else
   if (route === "os") content = <OsListPage />;else
   if (route === "clientes") content = <CliListPage />;else
+  if (route === "cli-import") content = <window.ClienteImportPage />;else
+  if (route === "cli-novo") content = <window.ClienteFormPage modo="novo" />;else
+  if (route === "cli-editar") content = <window.ClienteFormPage modo="editar" />;else
+  if (route === "cli-extrato") content = <window.ClienteExtratoPage clientId={window.__CLI_EXTRATO_ID} />;else
+  if (route === "cli-mapa") content = <window.ClienteMapaPage />;else
+  if (route === "cli-grupos") content = <window.ClienteGruposPage />;else
   if (route === "orcamentos") content = <OrcListPage />;else
   if (route === "produtos") content = <ProdListPage typeFilter={prodType} onTypeFilter={setProdType} />;else
   if (route === "vendas") content = <VendasModule />;else
@@ -602,6 +623,8 @@ function App() {
   if (route === "inbox") content = <window.InboxPage data-comment-anchor="0aa4565a1c-small-841-23" />;else
   if (route === "equipe") content = <window.EquipePage />;else
   if (route === "kb") content = <window.KBPage />;else
+  if (route === "documentacao") content = <window.DocumentacaoPage />;else
+  if (route === "programa-doc") content = <window.ProgramaDocPage />;else
   if (route === "projects" || route === "teammcp") content = <window.ForjaPage />;
   // Cobrança Recorrente (F1) — sub-nav espelha git RecurringBilling (Assinaturas/Planos/Faturas/Configurações)
   else if (route === "recurring") content = <window.CobrancaRecorrentePage view="assinaturas" />;else
@@ -648,7 +671,7 @@ function App() {
       <div className="main">
         <Header company={company} route={route} onSelectRoute={handleSelectRoute}
         prodType={prodType} onProdType={setProdType}
-        chatTab={chatTab} onChatTab={setChatTab} />
+        chatTab={janaTab} onChatTab={setChatTab} />
         <div className="main-body"><RouteErrorBoundary key={route}>{content}</RouteErrorBoundary></div>
       </div>
       {showLaravel && <LaravelPanel onClose={() => setShowLaravel(false)} />}
@@ -680,6 +703,19 @@ function App() {
           min={0} max={360} step={10}
           unit="°"
           onChange={(v) => setTweak("accentHue", v)} />
+
+        <TweakSection label="Jana" />
+        <TweakRadio
+          label="Metas (ex-/ia/dashboard)"
+          value={tweaks.janaMetas}
+          options={["seção", "aba"]}
+          onChange={(v) => setTweak("janaMetas", v)} />
+
+        <TweakRadio
+          label="Estado dos dados"
+          value={tweaks.janaEstado}
+          options={["dados", "vazio", "erro"]}
+          onChange={(v) => setTweak("janaEstado", v)} />
 
         <TweakSection label="Sistema" />
         <TweakToggle
