@@ -24,6 +24,7 @@ import {
   slaVerdict,
   liveOnly,
   exportPlan,
+  absentLocal,
   SLA_DAYS,
 } from './cowork-mirror-freshness.mjs';
 
@@ -242,5 +243,36 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
     /export: conteúdo ausente para "a\.jsx"/.test(msg));
 }
 
-console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel)');
+// ── ABSENT-LOCAL (2026-08-13): a 3ª doença — o espelho INCOERENTE ────────────────
+// Incidente: `app.jsx` de 07-07 montava o JanaCockpit antigo enquanto `jana-merge.jsx` já
+// estava versionado; e 13 deps que o shell CARREGA nunca desceram. Render quebrava sem
+// nenhum veredito vermelho, porque `buildManifest.add()` descarta dep ausente em silêncio.
+// FP medido ANTES de escrever (§5 — 5 lápides de guard sintático): 16 brutas → 3 são
+// `_ds/**`, gitignorado POR DESIGN. Filtro = `git check-ignore` (a regra JÁ escrita do
+// repo), nunca denylist de nome inventada aqui.
+{
+  check('BITE absentLocal: dep que o shell carrega e não existe → acusa',
+    JSON.stringify(absentLocal('<script src="nao-existe-mesmo.jsx"></script>').faltando) === '["nao-existe-mesmo.jsx"]');
+  check('CONTROLE absentLocal: dep existente no espelho não acusa',
+    absentLocal('<link href="styles.css?v=1"/><script src="app.jsx?v=eb2"></script>').faltando.length === 0);
+  // O FP conhecido: bundle do design-system é linkado pelo shell mas fica FORA do espelho
+  // por regra do .gitignore. Tem que aparecer em `ignorados`, jamais em `faltando`.
+  {
+    const r = absentLocal('<link href="_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/colors_and_type.css"/>');
+    check('CONTROLE absentLocal: _ds/** (gitignored) isenta, não acusa', r.faltando.length === 0 && r.ignorados.length === 1);
+  }
+  check('CONTROLE absentLocal: sem shell não inventa sinal', absentLocal(null).faltando.length === 0);
+  // Remoto e data: URL não é dep do espelho (mesma regra do parseShellDeps).
+  check('CONTROLE absentLocal: CDN remoto não vira ausência',
+    absentLocal('<script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>').faltando.length === 0);
+}
+
+// O SHELL entra no próprio manifesto quando versionado — fiação não medida foi a doença nº1.
+{
+  const man = buildManifest(undefined, { shellHtml: '<script src="app.jsx"></script>' });
+  check('shell versionado entra no manifesto (vira STALE se [W] mexer nele)',
+    man.some((f) => f.cowork === 'oimpresso.com.html'));
+}
+
+console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel + absent-local)');
 process.exit(fails ? 1 : 0);

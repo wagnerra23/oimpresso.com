@@ -60,6 +60,7 @@
 
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { anchorRelPath } from './anchor-content-check.mjs'; // fonte única: como extrair o path do related_prototype
@@ -187,6 +188,37 @@ export function parseShellDeps(html) {
   return out;
 }
 
+// ── ABSENT-LOCAL: a 3ª doença — o espelho INCOERENTE (2026-08-13) ────────────────
+// STALE mede "o espelho ficou atrás"; LIVE-ABSENT mede "sumiu do vivo"; liveOnly mede
+// "existe no vivo e nunca desceu". Faltava a que quebra o RENDER: dep que o SHELL
+// carrega e que não existe no espelho — o app monta e a tela vem vazia/quebrada, sem
+// nenhum veredito vermelho. Foi assim que o `app.jsx` de 07-07 (montando o JanaCockpit
+// antigo) conviveu por dias com um `jana-merge.jsx` já versionado: chegou o arquivo,
+// não chegou a fiação.
+//
+// Por que NÃO era detectável: `buildManifest.add()` faz `existsSync → return`, então dep
+// ausente é DESCARTADA em silêncio. O comentário de lá dizia "ausência upstream é outro
+// sinal" — mas esse outro sinal não existia em lugar nenhum.
+//
+// FP MEDIDO ANTES de escrever (§5 — 5 lápides de guard sintático mataram o contrário):
+//   corpus real 2026-08-13, shell vivo: 16 deps ausentes brutas → 3 são `_ds/**`, que o
+//   .gitignore do espelho exclui POR DESIGN (bundle do design-system, não é fonte).
+//   Excluindo o que o git ignora: 13 sinal real, 0 falso-positivo.
+// Por isso o filtro é `git check-ignore` — a REGRA JÁ ESCRITA do repo, não uma denylist
+// de nome inventada aqui (que é a família banida: allowlist-de-pasta · guard `@scope`).
+/** Deps que o shell CARREGA e que não existem no espelho (puro exceto o check-ignore).
+ *  Devolve { faltando, ignorados } — `ignorados` é reportado, nunca escondido. */
+export function absentLocal(shellHtml, root = ROOT) {
+  if (!shellHtml) return { faltando: [], ignorados: [] };
+  const rel = (d) => `prototipo-ui/cowork/${d}`;
+  const ausentes = parseShellDeps(shellHtml).filter((d) => !existsSync(join(root, rel(d))));
+  const ignorados = ausentes.filter((d) => {
+    try { execFileSync('git', ['check-ignore', '-q', rel(d)], { cwd: root, stdio: 'ignore' }); return true; }
+    catch { return false; } // exit≠0 = NÃO ignorado (git check-ignore -q usa o código, não a saída)
+  });
+  return { faltando: ausentes.filter((d) => !ignorados.includes(d)), ignorados };
+}
+
 /** Enumera os arquivos-âncora do espelho, keyed por PATH RELATIVO COMPLETO (nunca basename)
  *  + as DEPS DE RENDER do shell (LC-07). `kind`: 'ancora' (tem tela de charter) | 'dep'.
  *  Mesmo conjunto de âncoras que o anchor-content-check enxerga (reusa anchorRelPath). */
@@ -222,16 +254,30 @@ export function buildManifest(root = ROOT, { all = false, shellHtml = null } = {
     add(rel.split('\\').join('/'), [tela]);
   }
   // DEPS DE RENDER (LC-07): derivadas do shell, nunca curadas na mão. Dep que não existe
-  // no espelho fica FORA (o espelho é o universo medível; ausência upstream é outro sinal).
+  // no espelho fica FORA daqui — mas NÃO some mais em silêncio: `absentLocal()` a reporta
+  // (era o buraco que deixou a fiação nova conviver com componente ausente, 2026-08-13).
   if (shellHtml) for (const dep of parseShellDeps(shellHtml)) add(dep, []);
+  // O SHELL entra no próprio manifesto quando versionado: ele é a fiação, e fiação que não
+  // é medida é a doença nº1. Assim, [W] mexer no shell do Cowork vira STALE na próxima rodada.
+  add('oimpresso.com.html', []);
   return [...seen.values()]
     .map((e) => ({ ...e, kind: e.telas.length ? 'ancora' : 'dep' }))
     .sort((a, b) => a.cowork.localeCompare(b.cowork));
 }
 
-/** Shell default: o oimpresso.com.html do staging fixo de handoff (RUNBOOK §−1).
- *  Null se não houver — o CLI avisa em vez de omitir em silêncio. */
-export function defaultShellPath() {
+/** Shell default. Ordem: (1) o VERSIONADO no espelho; (2) o staging fixo de handoff.
+ *  Null se não houver — o CLI avisa em vez de omitir em silêncio.
+ *
+ *  Por que o repo vem PRIMEIRO (2026-08-13): o universo de deps de render era derivado de
+ *  um arquivo em `~/Downloads` — fora do git, na máquina de UMA pessoa, e congelado na data
+ *  do último ZIP extraído. Medido: o staging estava em 01/jul e conhecia 103 deps; o shell
+ *  vivo já tinha 120. As 17 deps novas (incl. `jana-merge.*` e as 6 telas de cliente)
+ *  eram invisíveis POR CONSTRUÇÃO — o manifesto não podia acusar o que não sabia existir.
+ *  Versionar o shell põe a fiação sob a mesma catraca dos arquivos que ela carrega: o shell
+ *  entra no manifesto, e mudança dele no vivo vira STALE como qualquer outro arquivo. */
+export function defaultShellPath(root = ROOT) {
+  const noRepo = join(root, 'prototipo-ui', 'cowork', 'oimpresso.com.html');
+  if (existsSync(noRepo)) return noRepo;
   const base = join(homedir(), 'Downloads', '_cowork-handoff-staging');
   if (!existsSync(base)) return null;
   for (const e of readdirSync(base)) {
@@ -263,6 +309,31 @@ function walkRel(base, dir = base, acc = []) {
     else if (/\.(jsx|html|css|js)$/i.test(e)) acc.push(f.slice(base.length + 1).split('\\').join('/'));
   }
   return acc;
+}
+
+/** Imprime o ABSENT-LOCAL. ADVISORY por desenho (ADR 0275 "nasce advisory" · 0336
+ *  "promoção só por mordida provada"): o `--check` segue mordendo SÓ em STALE, que é o
+ *  sinal hash-provado. Promover isto a bloqueio é decisão [W], não do script.
+ *
+ *  `stream`: no --manifest o STDOUT é o JSON do manifesto — relatório humano ali dentro
+ *  quebra `--manifest | jq` / `require()` (peguei isso na 1ª vez que consumi por pipe).
+ *  Regra: modo que emite dado → relatório vai pro stderr; modo que emite relatório → stdout. */
+function reportAbsentLocal(shellHtml, stream = process.stdout) {
+  if (!shellHtml) return;
+  const { faltando, ignorados } = absentLocal(shellHtml);
+  if (!faltando.length && !ignorados.length) return;
+  const w = (s) => stream.write(s + '\n');
+  w(`  ── ABSENT-LOCAL — o shell CARREGA e o espelho NÃO TEM (render quebra sem veredito)\n`);
+  for (const d of faltando) w(`  ⛔ FALTA        ${d}`);
+  if (ignorados.length) {
+    w(`\n  (${ignorados.length} fora por .gitignore do espelho — esperado, não é achado: ${ignorados.map((d) => d.split('/')[0]).filter((v, i, a) => a.indexOf(v) === i).join(', ')})`);
+  }
+  w(
+    `\n  ⛔ ausentes: ${faltando.length} · ⬜ ignorados por design: ${ignorados.length}\n` +
+    (faltando.length
+      ? `  Pra versionar: DesignSync.get_file de cada → salve os JSON num dir → --export-from <dir>.\n  (advisory — o --check morde só em STALE; promover é decisão [W])\n`
+      : `  ✓ toda dep do shell existe no espelho.\n`),
+  );
 }
 
 // ── CLI ───────────────────────────────────────────────────────────────────────
@@ -379,6 +450,7 @@ function main() {
       `  Próximo passo (agente logado): DesignSync.get_file por path → snapshot {relPath: contentHash} → --compare snap.json.\n` +
       `  ATENÇÃO: o snapshot DEVE usar a MESMA normalização (importe contentHash/normalize deste módulo).\n\n`,
     );
+    reportAbsentLocal(shellHtml, process.stderr); // stdout aqui é o JSON do manifesto
     return;
   }
 
@@ -407,6 +479,7 @@ function main() {
   for (const r of absent) console.log(`  🟡 LIVE-ABSENT ${r.cowork}  (não achado no vivo — rename/delete upstream ou mapa errado)`);
   for (const r of unchecked) console.log(`  ⬜ UNCHECKED   ${r.cowork}  (agente não buscou — snapshot incompleto)`);
   console.log(`\n  ⛔ stale: ${stale.length} · 🟡 live-absent: ${absent.length} · ⬜ unchecked: ${unchecked.length} · ✓ sync: ${sync.length}\n`);
+  reportAbsentLocal(shellHtml);
 
   // --ledger: registra a rodada (datada, append-only) — é o que o --sla audita depois.
   if (argv.includes('--ledger')) {
