@@ -263,7 +263,7 @@ function gitDateOf(file) {
 // --depth 1` (materialização da órfã, que o próprio ratchet manda rodar) marca o repo
 // shallow SEM truncar a history do HEAD. Shallow só invalida a medição se algum boundary
 // do `.git/shallow` for ANCESTRAL do HEAD. Erro de git = não-confiável → true.
-function isShallowHistory() {
+export function isShallowHistory() {
   const git = (cmd) => execSync(cmd, { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
   try {
     if (git('git rev-parse --is-shallow-repository') === 'false') return false;

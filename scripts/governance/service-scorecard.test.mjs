@@ -11,7 +11,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { graphSignals, buildDoc } from './service-scorecard.mjs';
+import { graphSignals, buildDoc, gitLastDate } from './service-scorecard.mjs';
 
 // ── fixtures sintéticas ────────────────────────────────────────────────────────
 const catalog = {
@@ -120,6 +120,25 @@ test('determinismo: buildDoc duas vezes → JSON idêntico', () => {
   const a = JSON.stringify(buildDoc({ catalog, gradesDoc, vitalDoc }, deps));
   const b = JSON.stringify(buildDoc({ catalog, gradesDoc, vitalDoc }, deps));
   assert.equal(a, b);
+});
+
+// ── BITE do guard anti-fabricação de data (clone raso) ──────────────────────
+// Num checkout raso o `git log -1 -- <path>` datava TODO arquivo com o dia da run,
+// e o número saía plausível — foi assim que `last_commit: 2026-08-12` em bloco
+// passou meses sem ninguém notar. O guard tem que devolver `null` ("não medido"),
+// nunca uma data inventada. Sem as DUAS pernas isto é carimbo, não teste.
+test('BITE raso: em history truncada NÃO inventa data — devolve null', () => {
+  assert.equal(gitLastDate('memory/requisitos/Jana/BRIEFING.md', { raso: true }), null);
+});
+
+test('CONTROLE completo: com history NÃO truncada mede de verdade (ISO curta)', () => {
+  const d = gitLastDate('memory/requisitos/Jana/BRIEFING.md', { raso: false });
+  assert.match(String(d), /^\d{4}-\d{2}-\d{2}$/);
+});
+
+test('CONTROLE raso: path inexistente devolve null nos dois modos (vazio ≠ fabricação)', () => {
+  assert.equal(gitLastDate('memory/requisitos/__nao_existe__/BRIEFING.md', { raso: false }), null);
+  assert.equal(gitLastDate('memory/requisitos/__nao_existe__/BRIEFING.md', { raso: true }), null);
 });
 
 // ── PAGES_NS 1:N (um módulo, vários namespaces) ────────────────────────────────
