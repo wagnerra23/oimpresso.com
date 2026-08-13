@@ -34,7 +34,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * então estes casos não precisam de tenant: precisam de schema.
  *
  * @see Modules\Forja\Services\TrabalhoService
- * @see resources/js/Pages/Forja/Trabalho/Index.charter.md
+ * @see Modules/Forja/Resources/js/Pages/Forja/Trabalho/Index.charter.md
  */
 
 function trabalhoExigeSchema(): void
@@ -169,7 +169,7 @@ it('UC-TRAB-07 — as fases do quadro batem com o dono do pipeline (backend)', f
     $php = file_get_contents(base_path('Modules/Forja/Services/ForjaQuadroService.php'));
     preg_match_all("/'key'\s*=>\s*'([^']+)'/", $php, $mPhp);
 
-    $tsx = file_get_contents(base_path('resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx'));
+    $tsx = file_get_contents(base_path('Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx'));
     $ini = strpos($tsx, 'const FASES');
     expect($ini)->not->toBeFalse('FASES sumiu do TrabalhoQuadro — o espelho mudou de forma.');
     $bloco = substr($tsx, $ini, strpos($tsx, '];', $ini) - $ini);

@@ -47,6 +47,7 @@ import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { classifyCodeStaleness } from './briefing-code-staleness.mjs';
+import { gitLastDate } from './lib/git-history.mjs';
 
 const ROOT = process.cwd();
 const DEFAULT_STALE_DAYS = Number(process.env.OIMPRESSO_VISCOMP_STALE_DAYS) || 30;
@@ -81,13 +82,9 @@ export function comparisonTarget(content) {
 }
 
 // ── camada git/FS (impura — só no run real, nunca no self-test) ──────────────
-function gitDate(relPath) {
-  try {
-    return execSync(`git log -1 --format=%cs -- "${relPath}"`, {
-      cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'],
-    }).toString().trim() || null;
-  } catch { return null; }
-}
+// Guardado contra clone raso: em history truncada `git log -1` data TODO arquivo
+// com o dia da run (ver git-history.mjs). `null` = não medido, nunca data inventada.
+const gitDate = (relPath) => gitLastDate(relPath);
 function listDocs() {
   try {
     // lista tudo em memory/requisitos e filtra em JS (robusto a quirks de glob do git ls-files).

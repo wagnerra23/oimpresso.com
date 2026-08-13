@@ -1,7 +1,7 @@
 name: Forja Shortcuts Gate — atalhos do Board (overlay `?` + J/K/E/A que o charter fixa)
 
 # PMG-008. O Board da Forja é operado por teclado pelo time interno; a lógica vive
-# em resources/js/Pages/Forja/Board/_components/useBoardShortcuts.ts (extraída do
+# em Modules/Forja/Resources/js/Pages/Forja/Board/_components/useBoardShortcuts.ts (extraída do
 # Index.tsx justamente pra ser montável em jsdom sem AppShellV2/Inertia).
 #
 # POR QUE ESTA LANE EXISTE: medido em 2026-08-03 — NENHUMA lane roda `vitest run`
@@ -30,17 +30,17 @@ name: Forja Shortcuts Gate — atalhos do Board (overlay `?` + J/K/E/A que o cha
 on:
   pull_request:
     paths:
-      - 'resources/js/Pages/Forja/Board/_components/useBoardShortcuts.ts'
-      - 'resources/js/Pages/Forja/Board/_components/ShortcutsOverlay.tsx'
-      - 'resources/js/Pages/Forja/Board/Index.tsx'
+      - 'Modules/Forja/Resources/js/Pages/Forja/Board/_components/useBoardShortcuts.ts'
+      - 'Modules/Forja/Resources/js/Pages/Forja/Board/_components/ShortcutsOverlay.tsx'
+      - 'Modules/Forja/Resources/js/Pages/Forja/Board/Index.tsx'
       - 'tests/forjaBoardShortcuts.spec.tsx'
       - '.github/workflows/forja-shortcuts-gate.yml'
   push:
     branches: [main]
     paths:
-      - 'resources/js/Pages/Forja/Board/_components/useBoardShortcuts.ts'
-      - 'resources/js/Pages/Forja/Board/_components/ShortcutsOverlay.tsx'
-      - 'resources/js/Pages/Forja/Board/Index.tsx'
+      - 'Modules/Forja/Resources/js/Pages/Forja/Board/_components/useBoardShortcuts.ts'
+      - 'Modules/Forja/Resources/js/Pages/Forja/Board/_components/ShortcutsOverlay.tsx'
+      - 'Modules/Forja/Resources/js/Pages/Forja/Board/Index.tsx'
       - 'tests/forjaBoardShortcuts.spec.tsx'
 
 concurrency:

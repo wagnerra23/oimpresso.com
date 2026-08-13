@@ -1550,7 +1550,7 @@ Quando Maiara entregar `review`, Daily Brief avisa Wagner automatic. NAO criar t
 > owner: wagner · priority: p1 · estimate: 24h · type: story
 > blocked_by: cliente (Kamila/Martinho biz=164 buscando credenciais sandbox Sicoob Developer Portal)
 
-**Implementado em:** _parcial_ · `Modules/PaymentGateway/Services/Drivers/SicoobApiDriver.php` · `Modules/PaymentGateway/Http/Controllers/Webhooks/SicoobApiWebhookController.php` · `resources/js/Pages/Settings/PaymentGateways/_components/SheetNovoGateway.tsx` · verificado@dd3ed7c (2026-07-01) — driver OAuth2+mTLS+webhook + wizard Sicoob prontos (cross-module PaymentGateway); falta apenas o smoke E2E real com credenciais sandbox do cliente (pré-req humano).
+**Implementado em:** _parcial_ · `Modules/PaymentGateway/Services/Drivers/SicoobApiDriver.php` · `Modules/PaymentGateway/Http/Controllers/Webhooks/SicoobApiWebhookController.php` · `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/SheetNovoGateway.tsx` · verificado@dd3ed7c (2026-07-01) — driver OAuth2+mTLS+webhook + wizard Sicoob prontos (cross-module PaymentGateway); falta apenas o smoke E2E real com credenciais sandbox do cliente (pré-req humano).
 
 ## Contexto
 

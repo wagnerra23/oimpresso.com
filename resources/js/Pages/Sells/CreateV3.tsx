@@ -30,6 +30,7 @@
 // Âncora de design: design_handoff_cadastro_venda/design/sells-create.jsx
 
 import AppShellV2 from '@/Layouts/AppShellV2';
+import { Search, Settings } from 'lucide-react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
@@ -60,6 +61,7 @@ import {
   rotuloIcmsLongo,
   type ClienteConsulta,
 } from './_components/v3/cliente-consulta-dominio';
+import { abaDaAcao, type Aba } from './_components/v3/item-fiscal-dominio';
 import { type Parcela } from './_components/v3/parcelas-dominio';
 import { type Beneficiario, type Gatilho } from './_components/v3/comissao-dominio';
 import { carregarColunas, salvarColunas } from './_components/v3/colunas-dominio';
@@ -191,6 +193,16 @@ export default function SellsCreateV3({ cena }: Props) {
   /* onda 4 — drawer de detalhe do item. Guarda o INDICE (nao a linha) pra
      navegacao Anterior/Proximo continuar valida se a lista mudar. */
   const [itemAberto, setItemAberto] = useState<number | null>(null);
+  /* Aba em que o drawer de detalhe ABRE — decidida por QUAL botão foi clicado,
+     como na âncora (`sells-create.jsx:65`: `abrirItem = (i, aba) => …`). A lupa
+     entra em Geral; o Impostos entra direto em Tributação. Antes isto era fixo
+     em "tributacao" no render do <ItemDetalhe>, então os dois caminhos caíam no
+     mesmo lugar e o botão de detalhe não tinha o que fazer de diferente. */
+  const [abaDoItem, setAbaDoItem] = useState<Aba>('geral');
+  const abrirItem = (linha: Item, aba: Aba = 'geral') => {
+    setAbaDoItem(aba);
+    setItemAberto(itens.findIndex((x) => x.k === linha.k));
+  };
   /* onda 5 — comissao. Beneficiarios e gatilho vivem na Page porque o resumo
      do fechamento os mostra junto do total. */
   const [beneficiarios, setBeneficiarios] = useState<Beneficiario[]>([]);
@@ -525,13 +537,28 @@ export default function SellsCreateV3({ cena }: Props) {
                       style={{ boxShadow: SOMBRA_COLUNA_FIXA }}
                       className="sticky right-0 whitespace-nowrap border-b border-border/60 bg-card px-2 py-2 text-center"
                     >
+                      {/* Três ações, na ordem da âncora (`sells-create.jsx:295-305`):
+                          Impostos (rótulo + ícone) · detalhe (só ícone, cor de
+                          destaque) · remover. Os dois primeiros abrem o MESMO
+                          drawer em abas diferentes — é o que os distingue. */}
                       <Inline gap={1} align="center" justify="center">
                         <button
                           type="button"
-                          onClick={() => setItemAberto(itens.findIndex((x) => x.k === l.k))}
-                          className="cursor-pointer text-[11.5px] font-semibold leading-none text-muted-foreground underline decoration-dotted underline-offset-2 hover:text-foreground"
+                          title="Impostos deste item — NCM, CFOP, CST e alíquotas"
+                          onClick={() => abrirItem(l, abaDaAcao('impostos'))}
+                          className="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md border border-border bg-card px-2 text-[11.5px] font-semibold leading-none text-muted-foreground hover:text-foreground"
                         >
+                          <Settings className="size-3.5" aria-hidden />
                           Impostos
+                        </button>
+                        <button
+                          type="button"
+                          title="Detalhes do item — produção, tributação, anexos, observação"
+                          onClick={() => abrirItem(l, abaDaAcao('detalhe'))}
+                          className="inline-flex size-7 cursor-pointer items-center justify-center rounded-md border border-border bg-card text-primary hover:bg-accent"
+                        >
+                          <Search className="size-3.5" aria-hidden />
+                          <span className="sr-only">Detalhes do item</span>
                         </button>
                         {!travada && !cancelada && (
                           <button
@@ -1041,7 +1068,7 @@ export default function SellsCreateV3({ cena }: Props) {
         onNavegar={(delta) =>
           setItemAberto((i) => (i === null ? null : Math.max(0, Math.min(itens.length - 1, i + delta))))
         }
-        abaInicial="tributacao"
+        abaInicial={abaDoItem}
       />
 
       <ParcelasDrawer

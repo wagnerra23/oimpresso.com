@@ -4,7 +4,7 @@ namespace Modules\Forja\Services;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 // A parte 6 (ADR 0363) resolveu o acoplamento transitório que esta linha
 // carregava: as duas peças vieram junto pra Forja em vez de morrer com o
 // núcleo do ADS, porque este service é consumidor vivo das duas.

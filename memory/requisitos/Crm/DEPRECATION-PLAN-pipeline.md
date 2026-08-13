@@ -159,7 +159,7 @@ Como B é **descontinuação** (não migração), não há receptor que absorve 
 |---|---|---|---|---|---|
 | 1 | DROP de coluna/linha em `contacts` quebra cadastro da Larissa | Crítico | **SIM** | NUNCA dropar `contacts`/colunas `crm_*`. PRESERVE in-place. Pest cross-tenant + smoke `/cliente` biz=4 | E3/E4 |
 | 2 | Cross-tenant leak ao arquivar (dump sem filtro `business_id`) | Crítico | **SIM (0093)** | Dump particionado por business; Pest cross-tenant antes/depois | E3 |
-| 3 | PII em `crm_call_logs`/`crm_proposals` em dump claro | Crítico | **SIM (LGPD)** | `PiiRedactor` (`Modules\Jana\Services\Privacy\PiiRedactor`); AES-256; retention | E3 |
+| 3 | PII em `crm_call_logs`/`crm_proposals` em dump claro | Crítico | **SIM (LGPD)** | `PiiRedactor` (`App\Support\Privacy\PiiRedactor`); AES-256; retention | E3 |
 | 4 | API externa Connector quebra (Delphi ainda chama) | Alto | parcial | Auditar `log.delphi` antes de remover `Schedule`/`CrmContact`. 410 só após confirmar morto | E4 BLOQUEIO |
 | 5 | `down()` defeituosos (call_logs nome errado; followup_invoices/users vazios) | Alto | **SIM (proibicoes)** | Migration de remoção (E5) com `down()` reverso CORRETO; não confiar nas legacy | E5 |
 | 6 | Schedule cron órfão (everyMinute!) se remover command sem tirar do schedule | Alto | não | Remover schedule + command no MESMO PR | E4 |

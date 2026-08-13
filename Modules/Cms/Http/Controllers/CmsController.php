@@ -14,7 +14,7 @@ use Modules\Cms\Http\Requests\SubmitContactFormRequest;
 use Modules\Cms\Notifications\NewLeadGeneratedNotification;
 use Modules\Cms\Services\SiteContentService;
 use Modules\Cms\Utils\CmsUtil;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Notification;
 
 class CmsController extends Controller
@@ -54,7 +54,7 @@ class CmsController extends Controller
         //
         // Site/Home NÃƒO foi alvo do rollback PR #963 (que afetou sÃ³ Blogs/BlogPost/Page) â€”
         // se sintoma "undefined initial render" aparecer, frontend tem <Deferred> wrapper
-        // com fallback={null} pra cada seÃ§Ã£o (resources/js/Pages/Site/Home.tsx).
+        // com fallback={null} pra cada seÃ§Ã£o (Modules/Cms/Resources/js/Pages/Site/Home.tsx).
         //
         // SoC: payload continua thin via SiteContentService (D4.a ADR 0094 Â§5).
         return Inertia::render('Site/Home', [

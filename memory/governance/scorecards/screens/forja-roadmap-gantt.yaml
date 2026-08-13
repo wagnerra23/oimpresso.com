@@ -3,7 +3,7 @@
 # A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
 # Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
 screen: Forja/Roadmap/Gantt
-path: resources/js/Pages/Forja/Roadmap/Gantt.tsx
+path: Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.tsx
 archetype: dashboard
 persona: wagner
 nota: 76

@@ -8,7 +8,7 @@ use App\Util\OtelHelper;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Log;
 use Laravel\Ai\AnonymousAgent;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 /**
  * PR-C do keystone distiller-módulo-verdade ([ADR 0291] · emenda 0270 F3 · peça 2).

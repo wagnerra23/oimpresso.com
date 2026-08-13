@@ -17,13 +17,13 @@ uses(Tests\TestCase::class)->in(__DIR__);
  */
 
 use App\Concerns\HasBusinessScope;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 
 test('trait HasBusinessScope existe', function () {
     expect(trait_exists(HasBusinessScope::class))->toBeTrue();
 });
 
-test('trait usa ScopeByBusiness do Modules\Jana\Scopes', function () {
+test('trait usa ScopeByBusiness do App\Scopes', function () {
     expect(class_exists(ScopeByBusiness::class))->toBeTrue();
 
     // Verifica via reflection que bootHasBusinessScope chama addGlobalScope

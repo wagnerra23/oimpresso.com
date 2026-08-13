@@ -64,6 +64,7 @@ import { readdirSync, readFileSync, existsSync, realpathSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { gitLastDate as gitLastDateGuardado, gitLogRaw } from './lib/git-history.mjs';
 import {
   classifyPathCitation, loadPathTombstones,
   WF_CITE_RE, MJS_CITE_RE, MOD_REF_RE,
@@ -177,7 +178,11 @@ function gitOut(cmd) {
       .toString();
   } catch { return ''; }
 }
-const gitLastDate = (rel) => gitOut(`git log -1 --format=%cs -- "${rel}"`).trim() || null;
+// Guardado contra clone raso: em history truncada `git log -1` data TODO arquivo
+// com o dia da run (ver git-history.mjs). `null` = não medido — e o laço de `rows`
+// já faz `if (!dataGit) continue`, então o score encolhe honestamente em vez de
+// nascer inteiro com a data de hoje.
+const gitLastDate = (rel) => gitLastDateGuardado(rel);
 
 /** parseia `git log --format=@%cs --name-only` em [{date, files:Set, mods:Set}] */
 function parseNameOnlyLog(raw) {
@@ -246,14 +251,16 @@ function scan() {
 
   // 1 chamada git pras datas do corpus inteiro (primeira vez que um path aparece =
   // commit mais novo que o tocou) — evita 250 execSync de `git log -1`.
-  const dateLog = parseNameOnlyLog(gitOut('git log --format=@%cs --name-only -- CLAUDE.md README.md DESIGN.md TEAM.md INFRA.md MANUAL_CLAUDE_CODE.md HOW_TO_ASK_CLAUDE.md MEMORY.md memory prototipo-ui'));
+  // guardado: em clone raso esta passada enxerga UM commit e dataria o corpus inteiro
+  // de hoje — pior que o `git log -1`, porque acerta em bloco e parece consistente.
+  const dateLog = parseNameOnlyLog(gitLogRaw('git log --format=@%cs --name-only -- CLAUDE.md README.md DESIGN.md TEAM.md INFRA.md MANUAL_CLAUDE_CODE.md HOW_TO_ASK_CLAUDE.md MEMORY.md memory prototipo-ui') ?? '');
   const gitDateByDoc = new Map();
   for (const c of dateLog) for (const f of c.files) if (!gitDateByDoc.has(f)) gitDateByDoc.set(f, c.date);
 
   // 1 chamada git pro índice de churn (janela CHURN_WINDOW_DAYS até hoje).
   const since = new Date(Date.parse(hoje + 'T00:00:00Z') - CHURN_WINDOW_DAYS * 86400000)
     .toISOString().slice(0, 10);
-  const churnIdx = parseNameOnlyLog(gitOut(`git log --since="${since} 00:00:00" --format=@%cs --name-only`));
+  const churnIdx = parseNameOnlyLog(gitLogRaw(`git log --since="${since} 00:00:00" --format=@%cs --name-only`) ?? '');
 
   const rows = [];
   for (const doc of docs) {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Jana\Services\Privacy;
 
+use App\Support\Privacy\PiiRedactor;
 use App\Util\OtelHelper;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -38,7 +39,7 @@ use Throwable;
  * NÃO altera contratos `LaravelAiSdkDriver`/`MeilisearchDriver`. Atua fora do path quente do chat.
  *
  * @see Modules\Jana\Config\retention.php
- * @see Modules\Jana\Services\Privacy\PiiRedactor
+ * @see App\Support\Privacy\PiiRedactor
  * @see Modules\Jana\Services\JanaAuditService
  * @see Modules\Jana\Console\Commands\RetentionPurgeCommand
  */

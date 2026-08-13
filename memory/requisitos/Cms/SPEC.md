@@ -38,7 +38,7 @@ Modules/Cms hoje serve o **landing oimpresso.com** (home, pricing, blog, página
 **Como** visitante anônimo
 **Quero** acessar `/` e ver landing institucional oimpresso.com
 **Pra** conhecer o produto antes de cadastrar
-**Implementado em:** `Modules/Cms/Http/Controllers/CmsController.php` · `resources/js/Pages/Site/Home.tsx` · `Modules/Superadmin/Http/Controllers/PricingController.php` · `resources/js/Pages/Site/Pricing.tsx` · verificado@8af585a (2026-07-02)
+**Implementado em:** `Modules/Cms/Http/Controllers/CmsController.php` · `Modules/Cms/Resources/js/Pages/Site/Home.tsx` · `Modules/Superadmin/Http/Controllers/PricingController.php` · `Modules/Superadmin/Resources/js/Pages/Site/Pricing.tsx` · verificado@8af585a (2026-07-02)
 
 **Acceptance:**
 - `GET /` retorna 200 sem auth
@@ -98,7 +98,7 @@ Modules/Cms hoje serve o **landing oimpresso.com** (home, pricing, blog, página
 **Como** visitante
 **Quero** acessar páginas dinâmicas por slug
 **Pra** ler termos, política, sobre, blog posts
-**Implementado em:** _parcial_ · `Modules/Cms/Http/Controllers/CmsPageController.php` · `resources/js/Pages/Site/Page.tsx` · verificado@8af585a (2026-07-02) — rota pública renderiza Inertia; falta isolamento multi-tenant do slug (depende US-CMS-002)
+**Implementado em:** _parcial_ · `Modules/Cms/Http/Controllers/CmsPageController.php` · `Modules/Cms/Resources/js/Pages/Site/Page.tsx` · verificado@8af585a (2026-07-02) — rota pública renderiza Inertia; falta isolamento multi-tenant do slug (depende US-CMS-002)
 
 **Acceptance:**
 - Rota `/c/page/{slug}` renderiza Inertia `Site/Page` (já existe em `SitePageTest.php`)
@@ -127,7 +127,7 @@ Modules/Cms hoje serve o **landing oimpresso.com** (home, pricing, blog, página
 **Como** business owner
 **Quero** mostrar planos próprios na landing
 **Pra** vender com pricing personalizado (não só do oimpresso)
-**Implementado em:** _parcial_ · `Modules/Superadmin/Http/Controllers/PricingController.php` · `resources/js/Pages/Site/Pricing.tsx` · `Modules/Superadmin/Http/Controllers/PackagesController.php` · verificado@8af585a (2026-07-02) — pricing público lê packages reais do DB + CRUD admin superadmin; falta pricing per-tenant (packages são globais)
+**Implementado em:** _parcial_ · `Modules/Superadmin/Http/Controllers/PricingController.php` · `Modules/Superadmin/Resources/js/Pages/Site/Pricing.tsx` · `Modules/Superadmin/Http/Controllers/PackagesController.php` · verificado@8af585a (2026-07-02) — pricing público lê packages reais do DB + CRUD admin superadmin; falta pricing per-tenant (packages são globais)
 
 **Acceptance:**
 - `SitePricingDinamicoTest.php` valida pricing per-tenant

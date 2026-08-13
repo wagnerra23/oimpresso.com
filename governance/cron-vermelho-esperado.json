@@ -1,0 +1,20 @@
+{
+  "_meta": {
+    "schema": "cron-vermelho-esperado/v1",
+    "purpose": "Onde se REGISTRA por que o vermelho de um cron de governanca e esperado. Existe porque `scripts/governance/cron-watchdog.mjs` ANUNCIAVA essa saida ('conserte a origem, ou registre por que o vermelho e esperado') sem implementa-la: zero allowlist, zero ack, zero env. Afordancia falsa catalogada como LC-15 em `memory/LICOES_CODE.md` e §5 2026-08-08 de `memory/proibicoes.md`.",
+    "contrato": "silencios[] suprime o EIXO 3 (sucesso) de UM workflow agendado. NAO suprime o eixo 1 (heartbeat/morto) nem o eixo 2 (entrega) — cron morto e artefato parado continuam derrubando o job. Silenciar move o cron de 'falhando' para 'silenciado': ele NUNCA some do relatorio, e a presenca de qualquer silencio PROIBE a frase 'todos concluiram com sucesso'.",
+    "regra": "Toda entrada exige `workflow` + `razao` + `expira_em` + `declarado_por`. Entrada invalida (campo faltando, data malformada, janela > JANELA_MAXIMA_DIAS) NAO e ignorada: derruba o watchdog com exit 1 (fail-closed). Silencio EXPIRADO nao suprime nada — o vermelho volta E o script diz que expirou. Isso e o que impede a lista de virar allowlist-que-so-cresce (§5 2026-08-02).",
+    "prior_art": "E o padrao 'silence/suppression window' de alerting (Alertmanager silences, PagerDuty maintenance windows, Nagios scheduled downtime). A propriedade canonica que todos compartilham, e que este arquivo copia, e a EXPIRACAO OBRIGATORIA: um silencio sem fim vira mascara permanente.",
+    "janela_maxima_dias": 30,
+    "quem_pode_declarar": "[W]. O agente PROPOE uma entrada em PR e explica a razao; o merge de [W] e o ato que a aprova. Nenhuma entrada entra sem PR.",
+    "nao_use_para": [
+      "Silenciar vermelho cuja origem voce ainda nao leu — a mensagem manda ABRIR O LOG primeiro (`gh run list --workflow <file> --event schedule`).",
+      "Silenciar vermelho que se resolve sozinho na proxima run agendada (ex.: fix ja mergeado, cauda de <24h). Nesse caso a resposta e ESPERAR, nao registrar.",
+      "Silenciar um cron porque o watchdog pode estar medindo errado. Se a suspeita e do INSTRUMENTO, conserte o instrumento — mascarar medicao suspeita e o erro do drift-sentinel (§5 2026-07-17)."
+    ],
+    "consumido_por": "scripts/governance/cron-watchdog.mjs (funcao pura `carregarSilencios`, coberta por bite-test em --selftest)",
+    "criado_em": "2026-08-13",
+    "adr": "memory/decisions/0317-heartbeat-que-vigia-os-heartbeats.md"
+  },
+  "silencios": []
+}

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\Manufacturing\Concerns;
 
 use Illuminate\Support\Facades\Log;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 /**
  * Trait helper — Wave 17 D7.a LGPD hardening (2026-05-16).

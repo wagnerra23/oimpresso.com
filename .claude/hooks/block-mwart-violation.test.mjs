@@ -147,9 +147,19 @@ check('charterRunbookExists: related_runbook: FANTASMA → false (ampliar leitur
   charterRunbookExists('resources/js/Pages/Kb/CanonicoFantasma/Index.tsx', root) === false);
 check('charterRunbookExists: sem charter ao lado → false',
   charterRunbookExists('resources/js/Pages/Sells/Create.tsx', root) === false);
-check('mensagem cita ADR 0104 + /cockpit-runbook + override', (() => {
+// ── CONTROLE NEGATIVO (LC-15): a mensagem não pode OFERECER saída que o hook não implementa ─
+// Até 2026-08-12 este assert EXIGIA a oferta ('/mwart-override' na mensagem) — ou seja, fixava
+// em contrato de teste uma promessa falsa: o hook tem zero process.env e só sai por exit 2, e o
+// '/mwart-override' é registro HUMANO no PR (mwart-process/SKILL.md §131), impossível de honrar
+// num PreToolUse que dispara antes do PR existir. [W] chegou a decidir em cima da promessa
+// (lápide §5 2026-08-08). O nome PODE aparecer — mas só na forma que NEGA o destravamento.
+check('mensagem cita ADR 0104 + /cockpit-runbook e NÃO oferece escape (controle negativo)', (() => {
   const m = decide('Edit', 'resources/js/Pages/Sells/Create.tsx', root);
-  return /ADR 0104/.test(m) && /cockpit-runbook/.test(m) && /mwart-override/.test(m);
+  const ofereceEscape = /Override:\s*comentar/i.test(m);          // a forma exata que era falsa
+  const nomeiaOverride = /mwart-override/.test(m);
+  const negaDestrave = /NÃO tem escape|não destrava/i.test(m);     // nomear a fronteira é OK
+  return /ADR 0104/.test(m) && /cockpit-runbook/.test(m)
+    && !ofereceEscape && (!nomeiaOverride || negaDestrave);
 })());
 
 // ── E2E: stdin JSON → exit code, cwd = fixture (prova wrapper + fail-open) ───────

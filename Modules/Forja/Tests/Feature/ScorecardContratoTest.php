@@ -15,7 +15,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
 /**
  * Scorecard · contrato da tela `/team-mcp/scorecard` (Facts+Checks).
  *
- * Cobre os UC de `resources/js/Pages/team-mcp/Scorecard/Index.casos.md` que estavam
+ * Cobre os UC de `Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.casos.md` que estavam
  * ÓRFÃOS — nenhum teste do repo citava `UC-SC-*` (medido 2026-07-28, `git grep -l`
  * sobre os dirs de teste (Modules, tests, e2e): 0 ocorrências pros 8.
  *
@@ -45,7 +45,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * NUNCA biz=4 (ROTA LIVRE prod) — ADR 0101 usa biz=1 canônico.
  *
  * @see Modules\Forja\Services\ScorecardBuilderService
- * @see resources/js/Pages/team-mcp/Scorecard/Index.casos.md
+ * @see Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.casos.md
  * @see memory/requisitos/TeamMcp/SDD-tela-hub-team-mcp-v1.0.md (§5.3 F3 · CU-TEAM-08)
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
  */
@@ -83,7 +83,7 @@ it('UC-SC-01 · o componente Inertia que o controller renderiza existe em disco'
 
     expect($controller)->toContain("Inertia::render('team-mcp/Scorecard/Index'");
 
-    expect(file_exists(base_path('resources/js/Pages/team-mcp/Scorecard/Index.tsx')))->toBeTrue(
+    expect(file_exists(base_path('Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.tsx')))->toBeTrue(
         'O controller renderiza `team-mcp/Scorecard/Index` mas o .tsx não existe — '.
         'é exatamente o Inertia 500 que o UC-SC-01 nasceu pra impedir. '.
         'Renomeou/moveu a Page? Atualize o Inertia::render no mesmo PR.'

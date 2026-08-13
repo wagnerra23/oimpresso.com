@@ -6,7 +6,7 @@ use Modules\AssetManagement\Entities\Asset;
 use Modules\AssetManagement\Entities\AssetMaintenance;
 use Modules\AssetManagement\Entities\AssetTransaction;
 use Modules\AssetManagement\Entities\AssetWarranty;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 uses(Tests\TestCase::class);
@@ -64,13 +64,13 @@ it('Entity %s retorna LogOptions válido (D7.b nominal)', function (string $mode
 it('PiiRedactor existe e redaciona CPF brasileiro', function () {
     $redactor = app(PiiRedactor::class);
 
-    $input = 'erro processando alocacao asset CPF 123.456.789-09 inválido';
+    $input = 'erro processando alocacao asset CPF 123.456.789-09 inválido'; # pii-allowlist
     $output = $redactor->redact($input);
 
     expect($output)
         ->toContain('[REDACTED:CPF]')
         ->and($output)
-        ->not->toContain('123.456.789-09');
+        ->not->toContain('123.456.789-09'); # pii-allowlist
 });
 
 it('PiiRedactor redaciona email + telefone BR juntos', function () {

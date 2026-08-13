@@ -52,6 +52,7 @@ import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { execSync } from 'node:child_process'; // SÓ pro eixo --stale (C8) — ver bloco "eixo TEMPORAL"
 import { join, dirname, resolve, relative } from 'node:path';
 import { particionarSpecs } from './lib/spec-encerrado.mjs';
+import { isShallowHistory } from './lib/git-history.mjs';
 
 const ROOT = process.cwd();
 const REQ = join(ROOT, 'memory', 'requisitos');
@@ -319,7 +320,6 @@ function pageHitKey(seg) {
 // CUSTO: 1 chamada git por SHA DISTINTO (medido 2026-07-17: 20 distintos pra 427 âncoras —
 // um SPEC inteiro é carimbado com o sha de um commit só), não 1 por âncora.
 const _staleCache = new Map(); // sha → { ok:true, files:Set } | { ok:false, reason }
-let _shallowCache = null;
 
 function gitTry(cmd) {
   // stdio ignore no stderr: NADA de `2>/dev/null` — execSync no Windows cai em cmd.exe,
@@ -334,32 +334,14 @@ function gitOk(cmd) {
 // Guard anti-fabricação: em checkout shallow o histórico é truncado → `git log <sha>..HEAD`
 // mede calendário, não eventos. Tudo vira unknown, NUNCA "fresco".
 //
-// ESPELHA sdd-scorecard.mjs::isShallowHistory (o DONO desta regra — não dá pra importar:
-// o sdd-scorecard invoca ESTE script por execSync, então o import seria circular). A regra
-// fina importa: `--is-shallow-repository` é GROSSO DEMAIS — materializar uma órfã
-// (`git fetch origin governance/nightly-floor --depth 1`, que o próprio ratchet manda rodar,
-// ou a governance/ragas-real-trend) marca o repo shallow SEM truncar a history do HEAD.
-// Shallow só invalida a medição se algum boundary do `.git/shallow` for ANCESTRAL do HEAD.
-// Sem esta finura o eixo reportaria unknown pra TUDO em qualquer clone que buscou órfã —
-// me pegou ao medir este próprio chip (5334 commits e "shallow=true"). Erro de git → true.
-function isShallowHistory() {
-  if (_shallowCache !== null) return _shallowCache;
-  _shallowCache = (() => {
-    const marcado = gitTry('git rev-parse --is-shallow-repository');
-    if (marcado === null) return true; // git indisponível/erro → não-confiável
-    if (marcado.trim() === 'false') return false;
-    const p = gitTry('git rev-parse --git-path shallow');
-    if (p === null) return true;
-    const shallowFile = resolve(ROOT, p.trim());
-    if (!existsSync(shallowFile)) return true; // marcado shallow sem boundary legível — não confia
-    for (const sha of readFileSync(shallowFile, 'utf8').split('\n').map((s) => s.trim()).filter(Boolean)) {
-      if (gitOk(`git merge-base --is-ancestor ${sha} HEAD`)) return true; // boundary corta a ancestry do HEAD
-      /* boundary fora da ancestry (órfã nightly-floor / ragas-real-trend) — não trunca */
-    }
-    return false;
-  })();
-  return _shallowCache;
-}
+// O detector vivia ESPELHADO aqui, porque o dono era o `sdd-scorecard` e ele invoca ESTE
+// script por execSync — o import seria circular. O corpo mudou-se pro módulo-FOLHA
+// `git-history.mjs`, que não importa nada do repo: o ciclo deixa de existir e o espelho
+// (que podia drifar do original em silêncio) sai. A finura que este eixo depende continua
+// lá: `--is-shallow-repository` é GROSSO DEMAIS — materializar uma órfã (`git fetch origin
+// governance/nightly-floor --depth 1`, que o próprio ratchet manda rodar) marca o repo
+// shallow SEM truncar a history do HEAD, e sem a finura o eixo reportaria unknown pra TUDO
+// em qualquer clone que buscou órfã (me pegou em 2026-07-17: 5334 commits e "shallow=true").
 
 /**
  * DECISÃO PURA (sem git, sem fs) — o --stale-selftest exercita ISTO.

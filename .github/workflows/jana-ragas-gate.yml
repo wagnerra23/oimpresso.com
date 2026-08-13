@@ -235,7 +235,12 @@ jobs:
             const icon = result.gate_status === 'pass' ? '✅' : '❌';
             const status = result.gate_status === 'pass' ? 'PASSOU' : 'BLOQUEADO';
             const mode = result.mode === 'real' ? `real (custo $${result.cost_usd})` : 'mock (zero $)';
+            // UPSERT por marcador — 1 comentário vivo por PR (padrão canônico:
+            // scripts/pr-critic/comentar.mjs). Medido no PR #5686: 7 comentários deste gate,
+            // todos "PASSOU" idênticos. Notificação por gate verde é ruído puro.
+            const MARCADOR = '<!-- jana-ragas-gate -->';
             const body = [
+              MARCADOR,
               `${icon} **Jana RAGAS Gate — ${status}** (modo ${mode})`,
               '',
               `| Métrica | Score médio | Threshold | Status |`,
@@ -247,12 +252,28 @@ jobs:
               `Perguntas: ${result.n_passed}/${result.n_questions} acima do threshold (${result.n_failed} falharam).`,
               result.failures.length > 0 ? `\n<details><summary>Primeiras falhas</summary>\n\n\`\`\`json\n${JSON.stringify(result.failures.slice(0, 5), null, 2)}\n\`\`\`\n</details>` : ''
             ].join('\n');
-            await github.rest.issues.createComment({
+            const existentes = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body
+              per_page: 100,
             });
+            const vivo = existentes.find((c) => (c.body || '').includes(MARCADOR));
+            if (vivo) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: vivo.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body
+              });
+            }
 
       - name: Fail if gate did not pass (só modo REAL — mock é advisory)
         env:

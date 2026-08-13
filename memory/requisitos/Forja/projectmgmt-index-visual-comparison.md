@@ -8,7 +8,7 @@ status: draft
 approved_by: null
 date: 2026-05-29
 canon_reference: tools MCP `triage` + `my-inbox` (CLI/MCP — sem superfície humana antes desta entrega)
-inertia_target: resources/js/Pages/Forja/Triage/Index.tsx + resources/js/Pages/Forja/Inbox/Index.tsx
+inertia_target: Modules/Forja/Resources/js/Pages/Forja/Triage/Index.tsx + Modules/Forja/Resources/js/Pages/Forja/Inbox/Index.tsx
 controller: Modules/Forja/Http/Controllers/TriageController@index + InboxController@index
 stories: [US-TR-301, US-TR-302, US-TR-303, US-TR-304, US-TR-305, US-TR-306, US-TR-307, US-TR-308]
 related_adrs: [0070, 0093, 0094, 0100, 0104, 0107, 0114, 0058]
@@ -187,6 +187,6 @@ Sem PII de cliente nessas telas (tasks + notificações de governança interna).
 - [ADR 0114 — aprovação por SCREENSHOT (Cowork loop)](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
 - [ADR UI-0013 — Constituição UI v2](../_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md)
 - [PT-01 Lista](../_DesignSystem/padroes-tela/PT-01-Lista.md)
-- Charters: [`Triage/Index.charter.md`](../../../resources/js/Pages/Forja/Triage/Index.charter.md) · [`Inbox/Index.charter.md`](../../../resources/js/Pages/Forja/Inbox/Index.charter.md)
+- Charters: [`Triage/Index.charter.md`](../../../Modules/Forja/Resources/js/Pages/Forja/Triage/Index.charter.md) · [`Inbox/Index.charter.md`](../../../Modules/Forja/Resources/js/Pages/Forja/Inbox/Index.charter.md)
 - Padrão fonte: `Board/Index.tsx` (J/K + ⌘K via AppShellV2 PMG-002) + `MyWork/Index.tsx` (J/K + R)
 - PR #1940 — code-complete; segue DRAFT aguardando gate visual Wagner

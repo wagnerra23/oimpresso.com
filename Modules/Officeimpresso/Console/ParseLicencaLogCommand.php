@@ -5,7 +5,7 @@ namespace Modules\Officeimpresso\Console;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Modules\Officeimpresso\Entities\LicencaLog;
 
 /**

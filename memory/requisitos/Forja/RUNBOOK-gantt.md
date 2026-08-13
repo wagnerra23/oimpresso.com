@@ -33,8 +33,8 @@ related_adrs:
 # RUNBOOK — Forja Roadmap Gantt
 
 > Rota: `GET /forja/roadmap-gantt` · `PATCH /forja/roadmap-gantt/tasks/{taskId}/schedule`
-> Componente: `resources/js/Pages/Forja/Roadmap/Gantt.tsx`
-> Charter: `resources/js/Pages/Forja/Roadmap/Gantt.charter.md`
+> Componente: `Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.tsx`
+> Charter: `Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.charter.md`
 > Controller: `Modules/Forja/Http/Controllers/RoadmapGanttController.php`
 > Testes: `Modules/Forja/Tests/Feature/Roadmap/RoadmapGanttControllerTest.php`
 > ⚠️ **Nome do arquivo (`RUNBOOK-gantt.md`, não `RUNBOOK-roadmap-gantt.md`):** o hook

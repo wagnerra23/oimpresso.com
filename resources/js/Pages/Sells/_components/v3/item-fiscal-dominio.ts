@@ -202,3 +202,23 @@ export function errosFiscais(c: CamposFiscais): string[] {
 export function fiscalValido(c: CamposFiscais): boolean {
   return errosFiscais(c).length === 0;
 }
+
+/* ─── qual aba cada ação da linha abre ──────────────────────────────────────
+   A âncora (`prototipo-ui/cowork/venda-v3/sells-create.jsx:65`) passa a aba no
+   próprio `abrirItem(i, aba)`: são DOIS caminhos de entrada no mesmo drawer, e
+   é a aba que os distingue. Antes disso morava hardcoded no render da Page —
+   os dois botões caíam em Tributação e o de detalhe não tinha o que fazer de
+   diferente. Aqui vira dado, para o teste poder afirmar o invariante que
+   importa: ações distintas NÃO colapsam na mesma aba. */
+export const ABA_POR_ACAO = {
+  /** lupa "Detalhes do item" — entra na visão geral do item */
+  detalhe: 'geral',
+  /** "Impostos" — entra direto na tributação, sem passo intermediário */
+  impostos: 'tributacao',
+} as const satisfies Record<string, Aba>;
+
+export type AcaoDaLinha = keyof typeof ABA_POR_ACAO;
+
+export function abaDaAcao(acao: AcaoDaLinha): Aba {
+  return ABA_POR_ACAO[acao];
+}

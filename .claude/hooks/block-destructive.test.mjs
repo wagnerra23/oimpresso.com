@@ -9,7 +9,7 @@
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { matchDestructive, normalizeCmd, blockMessage } from './block-destructive.mjs';
+import { matchDestructive, normalizeCmd, blockMessage, avisoStashPop, consomeTopoPorPosicao } from './block-destructive.mjs';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), 'block-destructive.mjs');
 let fails = 0;
@@ -73,5 +73,46 @@ check('E2E: tool não-Bash → exit 0', runHook(JSON.stringify({ tool_name: 'Wri
 check('E2E: stdin vazio → exit 0 (fail-open)', runHook('') === 0);
 check('E2E: JSON inválido → exit 0 (fail-open, NUNCA trava sessão)', runHook('{lixo') === 0);
 
-console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — porte .mjs bloqueia as 8 categorias destrutivas em Win/Mac/Linux, whitelist rm preservada, DELETE-com-WHERE liberado (regra como escrita); fail-open provado (E2E).');
+// ── AVISO stash pop (advisory) — §5 2026-07-27, 2ª ocorrência 2026-08-11 ────────
+// O estado do git entra por parâmetro, então isto roda sem repo e sem sujar pilha.
+const TOPO_ALHEIO = 'stash@{0}: On claude/forja-trabalho-6a: handoff-forja-6a';
+const TOPO_MEU = 'stash@{0}: On minha-branch: wip';
+const ctx = (topo, branchAtual = 'minha-branch') => ({ branchAtual, topo });
+
+// BITE: é exatamente o cenário das 2 ocorrências reais
+check('BITE: pop sem entry + topo de OUTRA branch → avisa',
+  /NAO e desta branch/.test(avisoStashPop('git stash pop', ctx(TOPO_ALHEIO)) || ''));
+check('BITE: o aviso NOMEIA o dono do topo (é a informação útil)',
+  /forja-trabalho-6a/.test(avisoStashPop('git stash pop', ctx(TOPO_ALHEIO)) || ''));
+check('BITE: vale pra `apply`, não só `pop`',
+  avisoStashPop('git stash apply', ctx(TOPO_ALHEIO)) !== null);
+check('BITE: formato `WIP on <branch>` também é reconhecido',
+  avisoStashPop('git stash pop', ctx('stash@{0}: WIP on outra-branch: 3fa57c2 msg')) !== null);
+
+// CONTROLES NEGATIVOS: o que NÃO pode avisar (senão vira ruído em fluxo legítimo)
+check('CN: topo é da MINHA branch → silêncio (caso comum e correto)',
+  avisoStashPop('git stash pop', ctx(TOPO_MEU)) === null);
+check('CN: entry EXPLÍCITA (stash@{2}) → silêncio (o autor sabe o que pega)',
+  avisoStashPop('git stash pop stash@{2}', ctx(TOPO_ALHEIO)) === null);
+check('CN: pilha vazia → silêncio (o pop falha sozinho)',
+  avisoStashPop('git stash pop', ctx(null)) === null);
+check('CN: `git stash push` não é consumo → silêncio',
+  avisoStashPop('git stash push -u -m x', ctx(TOPO_ALHEIO)) === null);
+check('CN: `git stash list` não é consumo → silêncio',
+  avisoStashPop('git stash list', ctx(TOPO_ALHEIO)) === null);
+check('CN: topo em formato irreconhecível → calo (não invento dono)',
+  avisoStashPop('git stash pop', ctx('formato estranho sem branch')) === null);
+check('CN: comando alheio ao stash → silêncio',
+  avisoStashPop('git status', ctx(TOPO_ALHEIO)) === null);
+check('CN: sem branch atual (detached HEAD) → calo',
+  avisoStashPop('git stash pop', { branchAtual: '', topo: TOPO_ALHEIO }) === null);
+
+// o detector de "consome por posição", isolado
+check('consomeTopoPorPosicao: pop sem entry = true', consomeTopoPorPosicao('git stash pop') === true);
+check('consomeTopoPorPosicao: pop com entry = false', consomeTopoPorPosicao('git stash pop stash@{1}') === false);
+
+// E2E: o aviso NÃO bloqueia — esta é a diferença pro resto do hook
+check('E2E: git stash pop → exit 0 (ADVISORY, jamais bloqueia)', runHook(j('git stash pop')) === 0);
+
+console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — porte .mjs bloqueia as 8 categorias destrutivas em Win/Mac/Linux, whitelist rm preservada, DELETE-com-WHERE liberado (regra como escrita); fail-open provado (E2E). Aviso de `git stash pop` (advisory) morde no topo alheio e cala nos 8 controles negativos.');
 process.exit(fails ? 1 : 0);

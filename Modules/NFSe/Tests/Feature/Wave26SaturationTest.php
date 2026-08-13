@@ -197,7 +197,7 @@ describe('Wave 26 NFSe SATURATION', function () {
         $src = file_get_contents(base_path('Modules/NFSe/Services/NfseEmissaoService.php'));
 
         // Importa o redactor
-        expect($src)->toContain('Modules\Jana\Services\Privacy\PiiRedactor');
+        expect($src)->toContain('App\Support\Privacy\PiiRedactor');
         expect($src)->toContain('->redact($e->getMessage())');
     });
 

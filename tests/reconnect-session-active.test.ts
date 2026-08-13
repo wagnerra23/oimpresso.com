@@ -10,7 +10,7 @@
 
 import { describe, it, expect } from 'vitest';
 
-import { isSessionActive } from '@/Pages/Atendimento/CaixaUnificada/_components/reconnectState';
+import { isSessionActive } from '../Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/reconnectState';
 
 describe('isSessionActive — sessão já ativa = sucesso (não erro)', () => {
   it("aceita o vocabulário do connect ('paired'/paired:true) E do status ('connected')", () => {

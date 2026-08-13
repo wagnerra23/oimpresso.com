@@ -4,6 +4,7 @@ namespace Modules\Jana\Services\Mcp;
 
 use App\Util\OtelHelper;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Entities\Mcp\McpQuota;
@@ -38,8 +39,64 @@ class QuotaEnforcer
         ], fn () => $this->checarInternal($userId));
     }
 
+    /** Chave do fast-path — pública para o invalidador não redigitar a string. */
+    public static function chaveTemQuota(int $userId): string
+    {
+        return "mcp:quota:tem:{$userId}";
+    }
+
+    /**
+     * Invalida o fast-path de um user. Chame ao CRIAR ou reativar quota para
+     * não esperar o TTL — desativar/apagar não precisa (o caminho ao vivo já
+     * devolve `sem_quota` quando a lista sai vazia).
+     */
+    public static function esquecerQuotas(int $userId): void
+    {
+        Cache::forget(self::chaveTemQuota($userId));
+    }
+
+    /**
+     * Existe alguma quota ativa para este user? Memoizado — ver justificativa
+     * e trade-off no início de checarInternal().
+     */
+    private function temQuotaConfigurada(int $userId): bool
+    {
+        $consulta = static fn (): bool => McpQuota::where('user_id', $userId)
+            ->whereIn('kind', ['brl', 'calls', 'tokens'])
+            ->where('ativo', true)
+            ->exists();
+
+        $ttl = (int) config('copiloto.mcp.quota_cache_ttl', 60);
+
+        if ($ttl <= 0) {
+            return $consulta();
+        }
+
+        return (bool) Cache::remember(self::chaveTemQuota($userId), $ttl, $consulta);
+    }
+
     private function checarInternal(int $userId): array
     {
+        // Fast-path memoizado (incidente 2026-08-12) — só a EXISTÊNCIA de quota,
+        // que é CONFIGURAÇÃO e muda raramente; o cálculo de consumo abaixo segue
+        // sempre ao vivo, então o enforcement não afrouxa.
+        //
+        // Antes, toda requisição autenticada pagava esta query. O MCP roda no CT
+        // 100 contra o MySQL do Hostinger (~360ms por roundtrip) e o banco tem
+        // ZERO quotas cadastradas — ou seja, ~360ms por request para descobrir
+        // que não há nada a enforçar. O docblock desta classe já prometia
+        // "Cache 60s pra reduzir queries repetidas"; agora a promessa é real.
+        //
+        // O custo: criar a PRIMEIRA quota de um user demora até o TTL para valer
+        // (quotas seguintes não, o user já cai no caminho ao vivo).
+        // `esquecerQuotas($userId)` invalida na hora; TTL 0 desliga.
+        if (! $this->temQuotaConfigurada($userId)) {
+            return [
+                'ok' => true,
+                'sem_quota' => true,
+            ];
+        }
+
         // Pega TODAS quotas ativas (BRL OU calls OU tokens) deste user
         $quotas = McpQuota::where('user_id', $userId)
             ->whereIn('kind', ['brl', 'calls', 'tokens'])

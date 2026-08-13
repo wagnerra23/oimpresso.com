@@ -8,7 +8,7 @@ use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Log;
 use Modules\Cms\Entities\CmsSiteDetail;
 use Modules\Cms\Notifications\NewLeadGeneratedNotification;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Notification;
 
 /**

@@ -91,7 +91,7 @@ related_adrs:
 
 ### US-SUPER-009 — Pricing público (`/pricing`)
 **Como** visitante anônimo, **quero** ver planos disponíveis com preço/limite/feature comparison, **pra** decidir contratar.
-**Implementado em:** `Modules/Superadmin/Http/Controllers/PricingController.php` · `resources/js/Pages/Site/Pricing.tsx` · `Modules/Superadmin/Resources/views/pricing/index.blade.php` · verificado@8af585a (2026-07-02)
+**Implementado em:** `Modules/Superadmin/Http/Controllers/PricingController.php` · `Modules/Superadmin/Resources/js/Pages/Site/Pricing.tsx` · `Modules/Superadmin/Resources/views/pricing/index.blade.php` · verificado@8af585a (2026-07-02)
 - Tela: `pricing/index.blade.php`
 - Controller: `PricingController`
 - Aceite: respeita `enable_custom_link` no Package; ordena por `sort_order`

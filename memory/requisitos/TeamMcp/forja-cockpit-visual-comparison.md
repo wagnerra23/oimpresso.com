@@ -10,7 +10,7 @@ approved_by: wagner
 approved_at: "2026-06-16"
 canon_reference: os-page.jsx
 blade_source: "N/A — tela nova (cockpit do cowork loop, sem legacy Blade)"
-inertia_target: resources/js/Pages/team-mcp/Forja/*.tsx
+inertia_target: Modules/Forja/Resources/js/Pages/team-mcp/Forja/*.tsx
 ---
 
 # Forja — cockpit do cowork loop (F1.5 · referência aprovada)

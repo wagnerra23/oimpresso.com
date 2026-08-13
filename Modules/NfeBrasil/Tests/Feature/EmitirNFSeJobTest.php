@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\NfeBrasil\Jobs\EmitirNFSeJob;
 use Modules\NfeBrasil\Models\NfseEmissao;
 

@@ -77,7 +77,7 @@ Contornos: **0** telas em `Pages/TeamMcp/` (as telas vivem em `Pages/team-mcp/` 
 | `Modules/Governance/Tests/Feature/IngestLivenessCheckerTest.php` | ❌ morre (6º) |
 | `Modules/ADS/Http/Requests/ExecuteToolRequest.php` | ❌ morre (4º) |
 | `Modules/ADS/Routes/web.php` | ❌ morre (4º) |
-| `resources/js/Pages/team-mcp/Forja/Cockpit.charter.md` | ❌ sai com o módulo |
+| `Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.charter.md` | ❌ sai com o módulo |
 
 **4 sobrevivem — todos no Jana.** É o Jana que herda ou perde as tools.
 
@@ -193,7 +193,7 @@ A Fase 4 pede *"MIGRATE obrigatório"* de `mcp_tokens`. Medido, a tabela **nunca
 
 | Peça | Onde vive hoje |
 |---|---|
-| migration que **cria** | `Modules/Jana/Database/Migrations/2026_04_29_100003_create_mcp_tokens_table.php` |
+| migration que **cria** | `Modules/Forja/Database/Migrations/2026_04_29_100003_create_mcp_tokens_table.php` |
 | Entity | `Modules/Jana/Entities/Mcp/McpToken.php` |
 | middleware que autentica | `Modules/Jana/Http/Middleware/McpAuthMiddleware.php` |
 

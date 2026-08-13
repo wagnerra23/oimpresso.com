@@ -228,7 +228,7 @@ Sem retenção declarada nem obrigação de guarda clara (descobertas): `contact
 
 ## Cobertura do PiiRedactor por fluxo
 
-Padrões redigidos ([PiiRedactor.php](../../Modules/Jana/Services/Privacy/PiiRedactor.php)): EMAIL, CNPJ, CPF, CEP, telefone BR. **Não cobre** (declarado no próprio arquivo): nome de pessoa, RG, cartão.
+Padrões redigidos ([PiiRedactor.php](../../app/Support/Privacy/PiiRedactor.php)): EMAIL, CNPJ, CPF, CEP, telefone BR. **Não cobre** (declarado no próprio arquivo): nome de pessoa, RG, cartão.
 
 | Fluxo | Cobertura | Evidência |
 |---|---|---|

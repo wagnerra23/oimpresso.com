@@ -3,6 +3,23 @@
 .github/financeiro-pest-quarantine.list merge=union
 .github/estoque-pest-quarantine.list merge=union
 
+# ── Índices append-no-topo: conflito estrutural entre sessões paralelas ──────────
+# O ARQUIVO de handoff nunca conflita (nome único por sessão, `YYYY-MM-DD-HHMM-slug`).
+# O que conflita é sempre o ÍNDICE: toda sessão insere UMA linha no MESMO lugar (topo
+# da lista "Últimos handoffs"), então duas sessões fechando juntas colidem na mesma
+# âncora — e o conteúdo das duas linhas é disjunto, ou seja, não há nada a "resolver":
+# as duas devem entrar. `merge=union` faz exatamente isso, sem marcador de conflito.
+#
+# CUSTO ACEITO, declarado: entre as duas linhas concorrentes a ordem é arbitrária, e a
+# lista pode passar de 5 itens até alguém truncar. Nenhum dos dois perde informação —
+# cada linha carrega o próprio timestamp, então a cronologia continua legível.
+#
+# ⚠️ O QUE ISTO NÃO RESOLVE: se duas sessões editarem as SEÇÕES DE INSTRUÇÃO deste
+# arquivo ("Como retomar", "Como fechar"), union DUPLICA o texto em vez de conflitar.
+# É raro (as instruções são estáveis) e o resultado é visível na revisão do PR — mas
+# quem editar instrução aqui deve olhar o diff, não confiar no merge limpo.
+memory/08-handoff.md merge=union
+
 # Biblioteca de terceiros servida do nosso domínio (nunca CDN — a /documentacao
 # não carrega recurso externo). Marcada como vendored para não poluir diff, busca
 # nem estatística de linguagem: é código que não mantemos, só hospedamos.

@@ -28,7 +28,14 @@ import { useMemo, useState, type ReactNode } from 'react';
 
 import { Grid, Inline, Stack } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/Components/ui/sheet';
 import { Input } from '@/Components/ui/input';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/ui/select';
@@ -101,7 +108,7 @@ function Texto({
   return (
     <Campo label={label} erro={erro}>
       <Input
-        className={'h-8 text-[12.5px] ' + (erro ? 'border-destructive' : '')}
+        className={erro ? 'border-destructive' : undefined}
         value={value}
         placeholder={placeholder}
         readOnly={!onChange}
@@ -126,7 +133,7 @@ function Escolha({
   return (
     <Campo label={label}>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="h-8 w-full text-[12.5px]">
+        <SelectTrigger className="w-full">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -185,17 +192,27 @@ export default function ItemDetalhe({
   const baseDeCalculo = parseBR(linha.qtd) * parseBR(linha.preco);
 
   return (
-    <Dialog open={!!linha} onOpenChange={(v) => !v && onFechar()}>
-      <DialogContent className="venda-v3 max-h-[90vh] sm:max-w-[1000px]">
-        <DialogHeader>
-          <DialogTitle>
+    <Sheet open={!!linha} onOpenChange={(v) => !v && onFechar()}>
+      {/* `venda-v3` FICA no SheetContent, e não some numa "limpeza": o Radix
+          portala o conteúdo pro <body>, FORA do wrapper da Page — sem a classe
+          aqui, as regras de `resources/css/venda-v3.css` não alcançam nada do
+          que está dentro (§5 proibicoes, 2026-07-10). */}
+      <SheetContent
+        side="right"
+        className="venda-v3 w-full overflow-hidden p-0 sm:max-w-[880px]"
+      >
+        {/* a coluna é `Stack`, não `flex flex-col` na mão: o `layout:check`
+            (ADR 0253) cobra a primitiva, e ela dá o mesmo eixo vertical. */}
+        <Stack gap={0} className="h-full">
+        <SheetHeader className="shrink-0 border-b border-border px-5 py-4 text-left">
+          <SheetTitle className="text-[15px] leading-tight">
             Item {indice + 1} · {linha.nome}
-          </DialogTitle>
-          <span className="block text-[12px] text-muted-foreground">
+          </SheetTitle>
+          <SheetDescription className="text-[12px] text-muted-foreground">
             {linha.sku} · {linha.un}
             {linha.medidas ? ` · ${linha.medidas}` : ''} · {brl(baseDeCalculo)}
-          </span>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
         {/* ─── abas ────────────────────────────────────────────────────── */}
         {/* `<SubNav>` do DS, não tablist hand-rolado: é switch in-page controlado
@@ -212,7 +229,7 @@ export default function ItemDetalhe({
           ariaLabel="Detalhe do item"
         />
 
-        <Stack gap={4} className="min-h-0 overflow-auto py-1">
+        <Stack gap={4} className="min-h-0 flex-1 overflow-auto px-5 py-4">
           {aba === 'geral' && (
             <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-3">
               <Texto label="Produto / serviço" value={linha.nome} />
@@ -348,13 +365,17 @@ export default function ItemDetalhe({
                 value={observacao}
                 onChange={(e) => setObservacao(e.target.value)}
                 placeholder="Instrução de produção, cuidado de manuseio, referência do cliente…"
-                className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-[12.5px] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/40"
+                /* `<textarea>` CRU (não o `<Textarea>` do DS), então não passa por
+                   `.cw-input` nem pela regra escopada — aqui as classes VALEM e
+                   precisam trazer a caixa na mão. Valores do Textarea do DS vivo
+                   (`controlStyle()` + `{ lineHeight: 1.5 }`): 13px/1.5, padding 7/10. */
+                className="w-full rounded-md border border-input bg-background px-[10px] py-[7px] text-[13px] leading-[1.5] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/40"
               />
             </Campo>
           )}
         </Stack>
 
-        <DialogFooter className="sm:justify-between">
+        <SheetFooter className="shrink-0 flex-row items-center justify-between gap-2 border-t border-border px-5 py-3">
           <Inline gap={2} align="center">
             <Button type="button" variant="outline" size="sm" disabled={indice <= 0} onClick={() => onNavegar?.(-1)}>
               ‹ Anterior
@@ -388,8 +409,9 @@ export default function ItemDetalhe({
               Confirmar item
             </Button>
           </Inline>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </SheetFooter>
+        </Stack>
+      </SheetContent>
+    </Sheet>
   );
 }

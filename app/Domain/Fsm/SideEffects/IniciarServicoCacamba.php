@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Schema;
 use InvalidArgumentException;
 use Modules\OficinaAuto\Entities\ServiceOrder;
 use Modules\OficinaAuto\Entities\Vehicle;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 
 /**
  * Wave 5-A — Side-effect "Iniciar serviço de manutenção" (process `cacamba_manutencao`).

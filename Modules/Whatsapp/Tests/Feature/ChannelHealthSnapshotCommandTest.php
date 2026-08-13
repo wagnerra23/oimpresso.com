@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Console\Commands\ChannelHealthSnapshotCommand as Snap;
 use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Services\Centrifugo\CentrifugoPublisher;

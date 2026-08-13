@@ -147,7 +147,42 @@ if (typeof fetch !== 'function') { log('FATAL: fetch ausente — Node < 18'); pr
 let sessionId = null;
 let buffer = '';
 
+// Cache do tools/list (incidente 2026-08-12). O Claude Desktop pede a MESMA
+// lista várias vezes por handshake — medido no log real: 153 tools/list para 94
+// initialize, e 3x contra 1x de prompts/resources num handshake observado. Cada
+// ida paga o pipeline inteiro do servidor (auth + audit contra MySQL remoto,
+// ~2,2s), para devolver bytes idênticos.
+// Só tools/list é cacheado: é a única que o cliente repete, e é derivada de
+// código (muda só em deploy). TTL curto mesmo assim, e o cache morre junto com
+// o processo — o bridge sobe a cada sessão do Desktop.
+const TOOLS_CACHE_MS = Number(process.env.MCP_TOOLS_CACHE_MS || 300000);
+let toolsCache = null; // { result, at }
+
+function emitir(obj) { process.stdout.write(JSON.stringify(obj) + '\\n'); }
+
+// Guarda o result de uma resposta de tools/list, se for uma.
+function talvezCachear(metodo, texto) {
+  if (metodo !== 'tools/list' || TOOLS_CACHE_MS <= 0) return;
+  try {
+    const r = JSON.parse(texto);
+    if (r && r.result) { toolsCache = { result: r.result, at: Date.now() }; }
+  } catch {}
+}
+
 async function postOne(line) {
+  let metodo = null;
+  let reqId;
+  try { const m = JSON.parse(line); metodo = m.method || null; reqId = m.id; } catch {}
+
+  // Fast-path: serve tools/list do cache REMONTANDO com o id DESTA request —
+  // devolver o id da request antiga faria o cliente descartar a resposta.
+  if (metodo === 'tools/list' && reqId !== undefined && toolsCache
+      && (Date.now() - toolsCache.at) < TOOLS_CACHE_MS) {
+    emitir({ jsonrpc: '2.0', id: reqId, result: toolsCache.result });
+    log(\`tools/list id=\${reqId} servido do cache (idade \${Date.now() - toolsCache.at}ms)\`);
+    return;
+  }
+
   const headers = {
     'Content-Type': 'application/json',
     'Accept': 'application/json, text/event-stream',
@@ -185,14 +220,14 @@ async function postOne(line) {
           const ev = sseBuf.slice(0, evEnd);
           sseBuf = sseBuf.slice(evEnd + 2);
           for (const evLine of ev.split('\\n')) {
-            if (evLine.startsWith('data:')) { const data = evLine.slice(5).trim(); if (data) process.stdout.write(data + '\\n'); }
+            if (evLine.startsWith('data:')) { const data = evLine.slice(5).trim(); if (data) { talvezCachear(metodo, data); process.stdout.write(data + '\\n'); } }
           }
         }
       }
     } catch (e) { log(\`SSE read error: \${e.message}\`); }
   } else {
     const text = await res.text();
-    if (text) process.stdout.write(text.endsWith('\\n') ? text : text + '\\n');
+    if (text) { talvezCachear(metodo, text.trim()); process.stdout.write(text.endsWith('\\n') ? text : text + '\\n'); }
   }
 }
 

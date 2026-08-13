@@ -281,6 +281,44 @@ function makeCharter(root, relDir, name, body) {
   rmSync(root, { recursive: true, force: true });
 }
 
+// ── MIGRATION que trocou de modulo dono (2026-08-13, ADR 0366 §D-C item 4) ───
+// A migration mudou de casa preservando o NOME (a tabela `migrations` do Laravel casa por
+// nome, e e por isso que ele serve de chave). ADR que a cita e append-only: sem isto,
+// executar uma decisao de fronteira quebraria o gate por divida que a proibicoes.md manda
+// NAO pagar editando ADR aceita. Os dois lados sao testados — absorver o que MUDOU DE CASA
+// sem absorver o que SUMIU e o unico jeito do mecanismo nao virar cobertura falsa.
+{
+  const root = makeRepo();
+  mkdirSync(join(root, 'Modules', 'Forja', 'Database', 'Migrations'), { recursive: true });
+  writeFileSync(join(root, 'Modules', 'Forja', 'Database', 'Migrations', '2026_01_01_000001_create_mcp_x_table.php'), '<?php\n');
+  writeFileSync(join(root, 'memory', 'decisions', '0002-migration.md'),
+    'cita o path ANTIGO: [m](../../Modules/Jana/Database/Migrations/2026_01_01_000001_create_mcp_x_table.php)\n');
+  const r = run(root, '--check');
+  check('CN: migration que trocou de modulo (mesmo nome) RESOLVE — exit 0', r.status === 0);
+  check('CN: e o relatorio DIZ quantas absorveu (mecanismo mudo = cobertura falsa)',
+    /1 referência\(s\) a MIGRATION que trocou de módulo dono/.test(r.stdout));
+  rmSync(root, { recursive: true, force: true });
+}
+{
+  const root = makeRepo();
+  mkdirSync(join(root, 'Modules', 'Forja', 'Database', 'Migrations'), { recursive: true });
+  writeFileSync(join(root, 'memory', 'decisions', '0003-deletada.md'),
+    'migration DELETADA: [m](../../Modules/Jana/Database/Migrations/2026_01_01_000009_nunca_existiu.php)\n');
+  const r = run(root, '--check');
+  check('MORDE: migration que NAO existe sob modulo nenhum continua MORTA — exit 1', r.status === 1);
+  rmSync(root, { recursive: true, force: true });
+}
+{
+  const root = makeRepo();
+  mkdirSync(join(root, 'Modules', 'Forja', 'Database', 'Seeders'), { recursive: true });
+  writeFileSync(join(root, 'Modules', 'Forja', 'Database', 'Seeders', 'XSeeder.php'), '<?php\n');
+  writeFileSync(join(root, 'memory', 'decisions', '0004-seeder.md'),
+    'NAO e migration: [s](../../Modules/Jana/Database/Seeders/XSeeder.php)\n');
+  const r = run(root, '--check');
+  check('MORDE: o padrao e EXATO — Database/Seeders/ nao entra pela porta das migrations', r.status === 1);
+  rmSync(root, { recursive: true, force: true });
+}
+
 console.log('');
 if (fails > 0) { console.error(`${fails} check(s) falharam`); process.exit(1); }
 console.log('deadlink-gate.test: todos os checks passaram');

@@ -69,6 +69,7 @@ import { readdirSync, existsSync, realpathSync, readFileSync } from 'node:fs';
 import { execFileSync, execSync } from 'node:child_process';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { gitLastDate } from './lib/git-history.mjs';
 
 const ROOT = process.cwd();
 const REQ = join(ROOT, 'memory', 'requisitos');
@@ -159,13 +160,16 @@ export function declaredDoorDate(content) {
 }
 
 // ── camada git/FS (impura — só no run real, nunca no self-test) ──────────────
-function gitDate(relPath) {
-  try {
-    return execSync(`git log -1 --format=%cs -- "${relPath}"`, {
-      cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'],
-    }).toString().trim() || null;
-  } catch { return null; }
-}
+// Guardado contra clone raso: em history truncada `git log -1` data TODO arquivo
+// com o dia da run (ver git-history.mjs). `null` = não medido, nunca data inventada.
+const gitDate = (relPath) => gitLastDate(relPath);
+
+// `commitsSince` NÃO precisa de guard próprio, e isso é por construção, não por sorte:
+// ele só é chamado com `stale === true` (call-site abaixo), e `classifyCodeStaleness`
+// devolve `stale: false` sempre que `codeDate` é null — que é exatamente o que o
+// `gitDate` guardado produz em clone raso. Se alguém mudar essa cadeia, guarde aqui
+// também: em history truncada este `--since` conta 0 e reporta "nada à frente", que lê
+// como "está em dia" (§5 2026-08-03 — medir os irmãos da família, não só um).
 function commitsSince(dateStr, relPaths) {
   if (!dateStr || !relPaths.length) return 0;
   try {

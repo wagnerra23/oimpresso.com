@@ -39,7 +39,7 @@ on:
       # não dispararia o guard dela (gate mudo com cara de cobertura · §5 2026-08-02).
       - 'Modules/Jana/Mcp/Tools/**'
       - 'Modules/Jana/Tests/Unit/McpToolsNaoCitamComandoInexistenteTest.php'
-      - 'Modules/Jana/Services/Privacy/PiiRedactor.php'
+      - 'app/Support/Privacy/PiiRedactor.php'
       # 2026-08-08 — 1º alvo FORA da Jana: o veredito do sentinela de migração
       # Blade→React (ADR 0277 peça 2). Entrou aqui, e não em `modules-pest`, porque
       # `Governance` NÃO está na matriz daquela lane (medido) e ligá-la rodaria os
@@ -82,7 +82,7 @@ on:
       - 'Modules/Jana/Tests/Unit/JanaViewsSemAndaimeTest.php'
       - 'Modules/Jana/Resources/views/**'
       - 'Modules/Jana/Database/Migrations/*_add_event_time_to_jana_memoria_facts.php'
-      - 'Modules/Jana/Database/Migrations/*_add_hash_chain_to_mcp_audit_log.php'
+      - 'Modules/Forja/Database/Migrations/*_add_hash_chain_to_mcp_audit_log.php'
       - '.github/workflows/jana-logica-pura-pest.yml'
   workflow_dispatch:
 

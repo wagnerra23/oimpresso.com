@@ -7,7 +7,7 @@ namespace Modules\Essentials\Services;
 use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Log;
 use Modules\Essentials\Entities\Reminder;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 /**
  * ReminderAuditService — wrap append-only de auditoria pra CRUD de lembretes.
@@ -28,7 +28,7 @@ use Modules\Jana\Services\Privacy\PiiRedactor;
  * pra que dashboards/observabilidade externos não recebam PII bruta.
  *
  * @see Modules\Essentials\Entities\Reminder
- * @see Modules\Jana\Services\Privacy\PiiRedactor
+ * @see App\Support\Privacy\PiiRedactor
  * @see Modules\Essentials\Services\LeaveAuditService (pattern irmão)
  * @see Modules\Essentials\Config\retention.php
  */

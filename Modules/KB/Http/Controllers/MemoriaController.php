@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Modules\Jana\Contracts\MemoriaContrato;
 use Modules\Jana\Entities\MemoriaFato;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 /**
  * MemoriaController — tela "O Copiloto lembra de você" (/ia/memoria, LGPD).

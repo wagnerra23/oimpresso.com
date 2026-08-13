@@ -10,7 +10,7 @@ approved_at: 2026-06-16
 date: 2026-06-16
 canon_reference: forja-cowork (.fj-triagem + dossiê)
 blade_source: "N/A — evolui Page Inertia existente"
-inertia_target: resources/js/Pages/Forja/Triage/Index.tsx
+inertia_target: Modules/Forja/Resources/js/Pages/Forja/Triage/Index.tsx
 pr_branch: feat/forja-pr5a-triagem-analista
 ---
 

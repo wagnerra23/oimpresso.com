@@ -177,6 +177,31 @@ it('multi-tenant: business 1 e business 2 sincronizam isolados', function () {
         ->and($rowB->business_id)->toBe(2);
 });
 
+it('multi-tenant: o bypass do scope é EXPLÍCITO — varre todos os tenants mesmo COM sessão ativa', function () {
+    $contaA = fakeInterBalanceCredential(businessId: 1);
+    $contaB = fakeInterBalanceCredential(businessId: 2);
+    fakeInterSaldoEndpoint(disponivel: 500);
+
+    // Em produção este job roda em fila, SEM sessão — e aí o `BusinessScopeImpl`
+    // sai cedo e nenhum filtro é aplicado. Isso torna "cross-tenant deliberado"
+    // indistinguível de "esqueceram de filtrar".
+    //
+    // Com sessão ativa de biz=1, o scope PASSA a aplicar `where business_id = 1`.
+    // Sem o `withoutGlobalScope(BusinessScopeImpl::class)` explícito no job, a
+    // conta B ficaria com `saldo_cached` NULL EM SILÊNCIO. Este assert é o que
+    // distingue as duas coisas — e morde se alguém remover o bypass explícito.
+    session(['user.business_id' => 1]);
+
+    (new SyncBankBalancesJob())->handle();
+
+    $rowA = DB::table('fin_contas_bancarias')->where('id', $contaA)->first();
+    $rowB = DB::table('fin_contas_bancarias')->where('id', $contaB)->first();
+
+    expect((float) $rowA->saldo_cached)->toBe(500.0)
+        ->and((float) $rowB->saldo_cached)->toBe(500.0)
+        ->and($rowB->business_id)->toBe(2);
+});
+
 it('falha em uma conta não derruba o batch (warn-and-continue)', function () {
     fakeInterBalanceCredential(businessId: 1);
     fakeInterBalanceCredential(businessId: 2);

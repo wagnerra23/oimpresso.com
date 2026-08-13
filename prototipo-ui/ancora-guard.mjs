@@ -17,6 +17,7 @@
 import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { raizesDePages } from '../scripts/qa/page-path.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(HERE, '..');
@@ -77,9 +78,11 @@ function walk(dir, out = []) {
 }
 
 function modoReal() {
-  const pagesDir = join(REPO, 'resources', 'js', 'Pages');
-  if (!existsSync(pagesDir)) { console.error('[ancora-guard] resources/js/Pages não encontrado — worktree órfã?'); process.exit(2); }
-  const charters = walk(pagesDir);
+  // DUAS raízes desde o PR #5686. Varrer só o núcleo media 172 charters de 209 — e este guard
+  // AFIRMA que as âncoras estão no lugar; afirmar sobre população que não viu é o pior modo de erro.
+  const raizes = raizesDePages(REPO);
+  if (raizes.length === 0) { console.error('[ancora-guard] nenhuma raiz de Pages encontrada — worktree órfã?'); process.exit(2); }
+  const charters = raizes.flatMap((r) => walk(r));
   const items = charters.map((ch) => ({
     rel: ch.replace(REPO, '').replace(/^[\\/]/, '').replace(/\\/g, '/'),
     conteudo: readFileSync(ch, 'utf8'),

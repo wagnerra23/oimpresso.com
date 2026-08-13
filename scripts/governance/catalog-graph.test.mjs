@@ -8,6 +8,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   parseFrontmatter,
   componentNameFromContains,
@@ -24,6 +25,16 @@ import {
   serialize,
   queryGraph,
   classifyReferencedOnly,
+  parseImportsCruzados,
+  simbolosCrossCutting,
+  compararFronteira,
+  catracaAcoplamento,
+  paresDeTabelaComoPares,
+  chaveDoPar,
+  pesoDaCamada,
+  derivarDonoDeTabela,
+  parseQueriesCruas,
+  agruparFronteiraDeTabela,
   EDGE_TYPES,
 } from './catalog-graph.mjs';
 
@@ -440,6 +451,285 @@ test('BITE: SCOPE que cita ADR tombada NÃO carimba o slug morto no nó do núme
   assert.equal(g.nodes.find((n) => n.id === 'adr:0093').slug, '0093-multi-tenant', 'slug legítimo continua carimbado');
 });
 
+// ── acoplamento derivado (advisory) ─────────────────────────────────────────
+const VIVOS = new Set(['Alpha', 'Beta', 'Gama']);
+const L = (path, code) => `${path}:${code}`;
+
+test('parseImportsCruzados: extrai src/dst/camada/símbolo e ignora self-ref', () => {
+  const refs = parseImportsCruzados([
+    L('Modules/Alpha/Services/X.php', 'use Modules\\Beta\\Entities\\Nota;'),
+    L('Modules/Alpha/Services/X.php', 'use Modules\\Alpha\\Services\\Proprio;'),
+  ], { modulosVivos: VIVOS });
+  assert.equal(refs.length, 1, 'self-ref não é fronteira');
+  assert.deepEqual(refs[0], {
+    src: 'Alpha', dst: 'Beta', camada: 'Entities', grupo: '', simbolo: 'Nota',
+    fqcn: 'Modules\\Beta\\Entities\\Nota',
+  });
+});
+
+test('FP: comentário/docblock que MENCIONA o import NÃO conta (o erro que inflou 41→116)', () => {
+  const refs = parseImportsCruzados([
+    L('Modules/Alpha/S.php', ' * use Modules\\Beta\\Entities\\Nota; (morava aqui até 2026-07)'),
+    L('Modules/Alpha/S.php', '// use Modules\\Beta\\Services\\Velho;'),
+    L('Modules/Alpha/S.php', '# use Modules\\Beta\\Models\\Y;'),
+  ], { modulosVivos: VIVOS });
+  assert.deepEqual(refs, [], 'prosa não é acoplamento');
+});
+
+test('módulo REMOVIDO citado em import não vira fronteira (tombstone ≠ aresta)', () => {
+  const refs = parseImportsCruzados([
+    L('Modules/Alpha/S.php', 'use Modules\\Fantasma\\Entities\\Z;'),
+  ], { modulosVivos: VIVOS });
+  assert.deepEqual(refs, []);
+});
+
+test('Tests/ fica fora por padrão e entra com incluirTestes', () => {
+  const linhas = [L('Modules/Alpha/Tests/Feature/AT.php', 'use Modules\\Beta\\Services\\S;')];
+  assert.equal(parseImportsCruzados(linhas, { modulosVivos: VIVOS }).length, 0);
+  assert.equal(parseImportsCruzados(linhas, { modulosVivos: VIVOS, incluirTestes: true }).length, 1);
+});
+
+test('simbolosCrossCutting: primitiva é DERIVADA do nº de módulos, não de lista à mão', () => {
+  const refs = ['Alpha', 'Beta', 'Gama'].map((src) =>
+    ({ src, dst: 'Jana', camada: 'Scopes', simbolo: 'ScopeByBusiness' }));
+  refs.push({ src: 'Alpha', dst: 'Beta', camada: 'Entities', simbolo: 'Nota' });
+  // sem `fqcn` nos refs sintéticos, a identidade cai no fallback `Modules\<dst>\<simbolo>`
+  assert.deepEqual([...simbolosCrossCutting(refs, 3)], ['Modules\\Jana\\ScopeByBusiness']);
+  assert.deepEqual([...simbolosCrossCutting(refs, 4)], [], 'limiar acima do uso real não elege ninguém');
+});
+
+test('BITE: classes HOMÔNIMAS de módulos diferentes NÃO somam no limiar', () => {
+  // Defeito real medido 2026-08-12: `Subscription` existe em Superadmin\Entities
+  // (4 importadores) E em RecurringBilling\Models (1). Agrupado por BASENAME somavam
+  // exatamente 5, cruzavam o corte e eram eleitos "primitiva cross-cutting" — sem
+  // nenhuma qualificar sozinha. A identidade do símbolo é o FQCN, não o nome curto.
+  const refs = [
+    ...['Connector', 'Officeimpresso', 'PaymentGateway', 'VozDoCliente'].map((src) => ({
+      src, dst: 'Superadmin', camada: 'Entities', simbolo: 'Subscription',
+      fqcn: 'Modules\\Superadmin\\Entities\\Subscription',
+    })),
+    {
+      src: 'Financeiro', dst: 'RecurringBilling', camada: 'Models', simbolo: 'Subscription',
+      fqcn: 'Modules\\RecurringBilling\\Models\\Subscription',
+    },
+  ];
+  assert.equal(refs.length, 5, 'somados por nome curto dariam exatamente o limiar');
+  assert.deepEqual([...simbolosCrossCutting(refs, 5)], [], 'nenhuma qualifica: 4 e 1, não 5');
+});
+
+test('CN: símbolo REALMENTE cross-cutting segue eleito (o fix não cega o detector)', () => {
+  const refs = ['A', 'B', 'C', 'D', 'E'].map((src) => ({
+    src, dst: 'Jana', camada: 'Services', simbolo: 'PiiRedactor',
+    fqcn: 'Modules\\Jana\\Services\\Privacy\\PiiRedactor',
+  }));
+  assert.deepEqual([...simbolosCrossCutting(refs, 5)], ['Modules\\Jana\\Services\\Privacy\\PiiRedactor']);
+});
+
+test('parseImportsCruzados carimba fqcn, e o alias não entra nele', () => {
+  const refs = parseImportsCruzados([
+    L('Modules/Alpha/S.php', 'use Modules\\Beta\\Entities\\Nota as N;'),
+  ], { modulosVivos: VIVOS });
+  assert.equal(refs[0].fqcn, 'Modules\\Beta\\Entities\\Nota');
+});
+
+test('parseImportsCruzados carimba `grupo` (sub-tema entre camada e símbolo)', () => {
+  const refs = parseImportsCruzados([
+    L('Modules/Alpha/S.php', 'use Modules\\Beta\\Entities\\Mcp\\McpTask;'),
+    L('Modules/Alpha/S.php', 'use Modules\\Beta\\Entities\\Nota;'),
+  ], { modulosVivos: VIVOS });
+  assert.equal(refs[0].grupo, 'Mcp', 'MORDE: sub-namespace vira grupo');
+  assert.equal(refs[1].grupo, '', 'CONTROLE NEGATIVO: sem sub-namespace, grupo é vazio');
+});
+
+test('BITE: grupoTop expõe o sub-tema DOMINANTE dentro de um par declarado', () => {
+  // O defeito de 2026-08-13: `declarado` é binário POR PAR, então uma delegação verdadeira
+  // num tema (2 imports de Services) absolvia o tema inteiro do outro lado (3 de Entities\Mcp).
+  const g = buildGraph(recordsFromSynthetic());
+  const refs = parseImportsCruzados([
+    L('Modules/Alpha/A.php', 'use Modules\\Beta\\Entities\\Mcp\\McpTask;'),
+    L('Modules/Alpha/B.php', 'use Modules\\Beta\\Entities\\Mcp\\McpToken;'),
+    L('Modules/Alpha/C.php', 'use Modules\\Beta\\Entities\\Mcp\\McpActor;'),
+    L('Modules/Alpha/D.php', 'use Modules\\Beta\\Services\\Legit;'),
+    L('Modules/Alpha/E.php', 'use Modules\\Beta\\Services\\Outro;'),
+  ], { modulosVivos: VIVOS });
+  const par = compararFronteira(refs, g).pares.find((p) => p.src === 'Alpha' && p.dst === 'Beta');
+  assert.ok(par.declarado, 'pré-condição: o par é declarado (SCOPE_ALPHA not_contains → Beta)');
+  assert.equal(par.imports, 5);
+  assert.equal(par.grupoTop.nome, 'Entities\\Mcp', 'MORDE: o grupo dominante fica visível');
+  assert.equal(par.grupoTop.n, 3);
+});
+
+test('grupoTop de par sem sub-namespace é a própria camada (não fabrica grupo)', () => {
+  const g = buildGraph(recordsFromSynthetic());
+  const refs = parseImportsCruzados([
+    L('Modules/Alpha/A.php', 'use Modules\\Gama\\Entities\\Escondida;'),
+  ], { modulosVivos: VIVOS });
+  const par = compararFronteira(refs, g).pares.find((p) => p.dst === 'Gama');
+  assert.equal(par.grupoTop.nome, 'Entities', 'CONTROLE NEGATIVO: camada nua, sem barra');
+});
+
+test('pesoDaCamada: model/entity é o pior; contrato é o mais fraco', () => {
+  assert.equal(pesoDaCamada('Entities'), 'dado');
+  assert.equal(pesoDaCamada('Models'), 'dado');
+  assert.equal(pesoDaCamada('Scopes'), 'comportamento');
+  assert.equal(pesoDaCamada('Events'), 'contrato');
+  assert.equal(pesoDaCamada('Services'), 'servico');
+});
+
+test('BITE: fronteira REAL não declarada no SCOPE é detectada (e a declarada não vira ruído)', () => {
+  // Alpha declara depender de Beta (SCOPE_ALPHA: not_contains → Modules/Beta).
+  const g = buildGraph(recordsFromSynthetic());
+  const refs = parseImportsCruzados([
+    L('Modules/Alpha/S.php', 'use Modules\\Beta\\Services\\Legit;'),  // declarada
+    L('Modules/Alpha/S.php', 'use Modules\\Gama\\Entities\\Escondida;'), // NÃO declarada
+  ], { modulosVivos: VIVOS });
+  const r = compararFronteira(refs, g);
+  const nd = r.naoDeclaradas.map((p) => `${p.src}>${p.dst}`);
+  assert.ok(nd.includes('Alpha>Gama'), 'MORDE: import sem declaração tem que aparecer');
+  assert.ok(!nd.includes('Alpha>Beta'), 'CONTROLE NEGATIVO: declarada não pode virar achado');
+  assert.equal(r.naoDeclaradas.find((p) => p.dst === 'Gama').peso, 'dado');
+});
+
+test('par cujo acoplamento é SÓ primitiva é marcado soPrimitiva (1 decisão, não N)', () => {
+  const g = buildGraph(recordsFromSynthetic());
+  const refs = ['Alpha', 'Beta', 'Gama'].map((src) =>
+    ({ src, dst: 'Jana', camada: 'Services', simbolo: 'PiiRedactor' }));
+  const r = compararFronteira(refs, g, { limiar: 3 });
+  assert.ok(r.naoDeclaradas.every((p) => p.soPrimitiva));
+});
+
+test('soDeclaradas: aresta no SCOPE sem NENHUM import é reportada (boilerplate)', () => {
+  const g = buildGraph(recordsFromSynthetic());
+  const r = compararFronteira([], g);
+  assert.ok(r.soDeclaradas.some((p) => p.src === 'Alpha' && p.dst === 'Beta'));
+});
+
+test('soDeclaradas NÃO conta alvo REMOVIDO (tombstone já tem diagnóstica própria)', () => {
+  const g = buildGraph(recordsFromSynthetic());
+  const semFiltro = compararFronteira([], g);
+  const comFiltro = compararFronteira([], g, { modulosVivos: VIVOS });
+  assert.ok(semFiltro.soDeclaradas.some((p) => !VIVOS.has(p.dst)), 'fixture tem alvo fora dos vivos');
+  assert.ok(comFiltro.soDeclaradas.every((p) => VIVOS.has(p.dst)), 'com modulosVivos, só vivo entra');
+});
+
+// ── fronteira por TABELA (query crua) ───────────────────────────────────────
+const MIG = (mod, tabela) => `Modules/${mod}/Database/Migrations/2026_01_01_x.php:        Schema::create('${tabela}', function (Blueprint $t) {`;
+const QRY = (mod, code) => `Modules/${mod}/Services/S.php:        ${code}`;
+
+test('derivarDonoDeTabela: dono é quem CRIA na migration; core não sobrescreve módulo', () => {
+  const { dono } = derivarDonoDeTabela(
+    [MIG('Alpha', 'alpha_notas'), MIG('Beta', 'beta_itens')],
+    ["database/migrations/x.php:        Schema::create('contacts', function (Blueprint $t) {"],
+  );
+  assert.equal(dono.get('alpha_notas'), 'Alpha');
+  assert.equal(dono.get('beta_itens'), 'Beta');
+  assert.equal(dono.get('contacts'), '(core)');
+});
+
+test('REVISÃO: 2 módulos criando a MESMA tabela é conflito REPORTADO, não first-wins calado', () => {
+  // Caso real medido: nfe_certificados e nfse_emissoes (NFSe vs NfeBrasil). A diagnóstica
+  // do grafo DECLARADO diz "0 conflito de ownership" — ela olha db_tables_owned, não a árvore.
+  const { dono, conflitos } = derivarDonoDeTabela([MIG('Beta', 'disputada'), MIG('Alpha', 'disputada')]);
+  assert.deepEqual(conflitos, [{ tabela: 'disputada', modulos: ['Alpha', 'Beta'] }]);
+  assert.equal(dono.get('disputada'), 'Alpha', 'atribuição determinística (ordem alfabética), não ordem de leitura');
+});
+
+test('CN: tabela criada por 1 módulo só NÃO entra em conflitos', () => {
+  const { conflitos } = derivarDonoDeTabela([MIG('Alpha', 'so_dela'), MIG('Alpha', 'so_dela')]);
+  assert.deepEqual(conflitos, [], 'mesmo módulo 2x não é disputa');
+});
+
+test('REVISÃO: `use X as Alias` não polui o símbolo (senão o limiar cross-cutting conta errado)', () => {
+  const refs = parseImportsCruzados([
+    L('Modules/Alpha/S.php', 'use Modules\\Beta\\Http\\Controllers\\DataController as BetaData;'),
+    L('Modules/Gama/S.php', 'use Modules\\Beta\\Http\\Controllers\\DataController;'),
+  ], { modulosVivos: VIVOS });
+  assert.deepEqual(refs.map((r) => r.simbolo), ['DataController', 'DataController'],
+    'o mesmo símbolo com 2 apelidos tem que contar como 1');
+});
+
+test('parseQueriesCruas: tabela alheia vira ref; própria e core NÃO', () => {
+  const { dono } = derivarDonoDeTabela([MIG('Alpha', 'alpha_notas'), MIG('Beta', 'beta_itens')],
+    ["database/migrations/x.php:Schema::create('contacts', function (Blueprint $t) {"]);
+  const { refs } = parseQueriesCruas([
+    QRY('Alpha', "DB::table('beta_itens')->get();"),   // alheia → conta
+    QRY('Alpha', "DB::table('alpha_notas')->get();"),  // própria → não
+    QRY('Alpha', "DB::table('contacts')->get();"),     // core → não
+  ], { donoDe: dono, modulosVivos: VIVOS });
+  // `via`/`emMigration` entraram em 2026-08-12 com o eixo ALTER. O deepEqual estrito é de
+  // propósito: se um campo novo nascer sem teste, este assert quebra e cobra o teste.
+  assert.deepEqual(refs, [{ src: 'Alpha', dono: 'Beta', tabela: 'beta_itens', via: 'query', emMigration: false }]);
+});
+
+test('DB::table($var) dinâmico é NÃO RESOLVIDO — nunca some como zero (§5 2026-07-29)', () => {
+  const { refs, dinamico } = parseQueriesCruas([
+    QRY('Alpha', 'DB::table($tabela)->get();'),
+    QRY('Alpha', 'DB::table( $this->tbl )->get();'),
+  ], { donoDe: new Map(), modulosVivos: VIVOS });
+  assert.equal(refs.length, 0);
+  assert.equal(dinamico, 2, 'o que não deu pra resolver tem que ser CONTADO, não engolido');
+});
+
+test('tabela sem migration localizada conta em semDono, não vira fronteira inventada', () => {
+  const { refs, semDono } = parseQueriesCruas(
+    [QRY('Alpha', "DB::table('tabela_fantasma')->get();")],
+    { donoDe: new Map(), modulosVivos: VIVOS },
+  );
+  assert.equal(refs.length, 0);
+  assert.equal(semDono, 1);
+});
+
+test('infra compartilhada é DERIVADA por limiar (o caso failed_jobs), não por lista à mão', () => {
+  const refs = ['Alpha', 'Beta', 'Gama'].map((src) => ({ src, dono: 'Delta', tabela: 'failed_jobs' }));
+  refs.push({ src: 'Alpha', dono: 'Beta', tabela: 'beta_itens' });
+  const r = agruparFronteiraDeTabela(refs, { limiar: 3 });
+  assert.deepEqual(r.infra, ['failed_jobs']);
+  assert.deepEqual(r.pares.map((p) => `${p.src}>${p.dono}`), ['Alpha>Beta'], 'infra sai; fronteira real fica');
+});
+
+test('CN: abaixo do limiar a tabela NÃO é rebaixada a infra (limiar não é lista disfarçada)', () => {
+  const refs = ['Alpha', 'Beta'].map((src) => ({ src, dono: 'Delta', tabela: 'failed_jobs' }));
+  const r = agruparFronteiraDeTabela(refs, { limiar: 3 });
+  assert.deepEqual(r.infra, []);
+  assert.equal(r.pares.length, 2);
+});
+
+test('Tests/ não conta como acoplamento de produção também no eixo tabela', () => {
+  const { dono } = derivarDonoDeTabela([MIG('Beta', 'beta_itens')]);
+  const { refs } = parseQueriesCruas(
+    ["Modules/Alpha/Tests/Feature/T.php:        DB::table('beta_itens')->get();"],
+    { donoDe: dono, modulosVivos: VIVOS },
+  );
+  assert.deepEqual(refs, []);
+});
+
+// ── INVOCAÇÃO: a máquina roda no MOMENTO CERTO? ─────────────────────────────
+// Estes não testam o cálculo — testam que alguém CHAMA o cálculo. Sem eles, uma edição
+// futura pode deixar o medidor perfeito e órfão ("máquina que ninguém invoca é bug",
+// proibicoes.md §Sempre fazer; meta-padrão 'correção-do-mecanismo ≠ invocação', §5 2026-07-09).
+const WORKFLOW = readFileSync(new URL('../../.github/workflows/catalog-graph.yml', import.meta.url), 'utf8');
+
+test('INVOCAÇÃO: o workflow chama --acoplamento (senão o medidor nasce órfão)', () => {
+  assert.match(WORKFLOW, /catalog-graph\.mjs --acoplamento/, 'nenhum step invoca o medidor');
+});
+
+test('INVOCAÇÃO: roda em TODO PR — `on: pull_request` SEM `paths:`', () => {
+  // O momento certo é "todo PR", não "PR que toca Modules/". Acoplamento entra por PR que
+  // nem encosta em SCOPE.md; com path-filter o medidor ficaria mudo justamente aí.
+  const on = WORKFLOW.slice(WORKFLOW.indexOf('\non:'), WORKFLOW.indexOf('\npermissions:'));
+  assert.match(on, /pull_request/, 'tem que disparar em pull_request');
+  assert.doesNotMatch(on, /paths:/, 'path-filter faria o medidor calar no PR que mais importa');
+});
+
+test('INVOCAÇÃO: o step do medidor NÃO tem continue-on-error nem `|| true`', () => {
+  // Ele já sai 0 por desenho; um `continue-on-error` aqui seria teatro (§5 2026-07-09)
+  // e mascararia uma falha REAL de execução (ex.: o script quebrar ao ser editado).
+  const linha = WORKFLOW.split('\n').find((l) => l.includes('--acoplamento'));
+  assert.ok(linha, 'step não encontrado');
+  assert.doesNotMatch(linha, /\|\| true/);
+  assert.doesNotMatch(WORKFLOW, /--acoplamento[\s\S]{0,120}continue-on-error/);
+});
+
 test('serialize: os 3 tipos novos entram no by_edge_type e o JSON segue determinístico', () => {
   const cat = JSON.parse(serialize(buildWithAdrs()));
   assert.equal(cat.stats.by_edge_type.supersedes, 1);
@@ -447,4 +737,115 @@ test('serialize: os 3 tipos novos entram no by_edge_type e o JSON segue determin
   assert.equal(cat.stats.by_edge_type.supersededBy, 1);
   assert.deepEqual(Object.keys(cat.stats.by_edge_type).sort(), [...EDGE_TYPES].sort());
   assert.equal(serialize(buildWithAdrs()), serialize(buildWithAdrs()));
+});
+
+// ── catraca de acoplamento módulo→módulo (forward-only) ──────────────────────
+const P = (src, dst) => ({ src, dst });
+
+test('catraca: par NOVO (fora da baseline) é acusado', () => {
+  const r = catracaAcoplamento([P('Alpha', 'Beta'), P('Gama', 'Beta')],
+    { grandfathered: ['Alpha>Beta'], allowlist: [] });
+  assert.deepEqual(r.novos, ['Gama>Beta'], 'MORDE: o que não está congelado reprova');
+});
+
+test('CN: par JÁ na baseline não vira achado', () => {
+  const r = catracaAcoplamento([P('Alpha', 'Beta')],
+    { grandfathered: ['Alpha>Beta'], allowlist: [] });
+  assert.deepEqual(r.novos, [], 'dívida congelada não reprova — é forward-only, não big-bang');
+});
+
+test('CN: allowlist isenta igual ao grandfathered (dívida consciente)', () => {
+  const r = catracaAcoplamento([P('Alpha', 'Beta')],
+    { grandfathered: [], allowlist: ['Alpha>Beta'] });
+  assert.deepEqual(r.novos, []);
+});
+
+test('catraca aponta par CURADO pra baseline encolher (só desce)', () => {
+  const r = catracaAcoplamento([], { grandfathered: ['Alpha>Beta'], allowlist: [] });
+  assert.deepEqual(r.curados, ['Alpha>Beta']);
+  assert.deepEqual(r.novos, [], 'curar não pode reprovar — o objetivo É curar');
+});
+
+test('chaveDoPar é estável e direcional (A→B ≠ B→A)', () => {
+  assert.equal(chaveDoPar(P('Alpha', 'Beta')), 'Alpha>Beta');
+  assert.notEqual(chaveDoPar(P('Alpha', 'Beta')), chaveDoPar(P('Beta', 'Alpha')));
+});
+
+// ── eixo TABELA na MESMA catraca (`DB::table` cru) ───────────────────────────
+// O eixo tabela não tem comparação própria de propósito: ele normaliza `{src,dono}` na
+// forma `{src,dst}` e reusa `catracaAcoplamento`. Estes testes provam que a normalização
+// preserva o que a chave precisa — sem isso, `chaveDoPar` produziria `Alpha>undefined` e
+// TODO par de tabela viraria "novo" (falso vermelho) ou entraria na baseline como lixo.
+const PT = (src, dono) => ({ src, dono, n: 1, tabelas: ['x'] });
+
+test('paresDeTabelaComoPares: `dono` vira `dst` e a chave sai correta', () => {
+  const [p] = paresDeTabelaComoPares([PT('Officeimpresso', 'Financeiro')]);
+  assert.equal(p.dst, 'Financeiro');
+  assert.equal(chaveDoPar(p), 'Officeimpresso>Financeiro', 'MORDE: sem o mapa a chave sairia `>undefined`');
+});
+
+test('eixo tabela: par NOVO é acusado pela MESMA catraca', () => {
+  const r = catracaAcoplamento(
+    paresDeTabelaComoPares([PT('Officeimpresso', 'Financeiro'), PT('Vestuario', 'Financeiro')]),
+    { grandfathered: ['Officeimpresso>Financeiro'], allowlist: [] },
+  );
+  assert.deepEqual(r.novos, ['Vestuario>Financeiro'], 'MORDE: query crua em tabela alheia NOVA reprova');
+});
+
+test('CN eixo tabela: par congelado não reprova, e curado só encolhe a baseline', () => {
+  const congelado = catracaAcoplamento(
+    paresDeTabelaComoPares([PT('Officeimpresso', 'Financeiro')]),
+    { grandfathered: ['Officeimpresso>Financeiro'], allowlist: [] },
+  );
+  assert.deepEqual(congelado.novos, [], 'forward-only: a dívida de hoje não reprova hoje');
+  const curado = catracaAcoplamento([], { grandfathered: ['Officeimpresso>Financeiro'], allowlist: [] });
+  assert.deepEqual(curado.curados, ['Officeimpresso>Financeiro']);
+  assert.deepEqual(curado.novos, []);
+});
+
+test('paresDeTabelaComoPares: entrada vazia/ausente não explode (medição pode falhar antes)', () => {
+  assert.deepEqual(paresDeTabelaComoPares(undefined), []);
+  assert.deepEqual(paresDeTabelaComoPares([]), []);
+});
+
+// ── ALTER cross-module (`Schema::table`) — o toque que os 2 eixos não viam ────
+// Adicionar COLUNA na tabela do outro é ownership, não uso — sinal mais forte que escrever
+// linha, e era invisível por construção: o dono só sai de `Schema::create` e o consumo só
+// saía de `DB::table`. Escondia `NfeBrasil>NFSe`, que nenhuma baseline conhecia.
+/** ALTER numa migration do módulo `mod` sobre a tabela `tabela`. */
+const ALT = (mod, tabela) => `Modules/${mod}/Database/Migrations/2026_01_01_y.php:        Schema::table('${tabela}', function (Blueprint $t) {`;
+const donoDeTeste = () => derivarDonoDeTabela(
+  [MIG('Alpha', 'alpha_notas'), MIG('Beta', 'beta_itens')],
+  ["database/migrations/x.php:Schema::create('contacts', function (Blueprint $t) {"],
+).dono;
+
+test('MORDE: `Schema::table` em tabela alheia vira ref com via=alter', () => {
+  const { refs } = parseQueriesCruas([ALT('Alpha', 'beta_itens')],
+    { donoDe: donoDeTeste(), modulosVivos: VIVOS });
+  assert.equal(refs.length, 1, 'MORDE: o ALTER cross-module é capturado');
+  assert.equal(refs[0].via, 'alter');
+  assert.equal(refs[0].dono, 'Beta');
+  assert.equal(refs[0].emMigration, true, 'path sob Database/Migrations é marcado');
+});
+
+test('CN: `Schema::table` na PRÓPRIA tabela e em tabela CORE NÃO viram ref', () => {
+  const { refs } = parseQueriesCruas(
+    [ALT('Alpha', 'alpha_notas'), ALT('Alpha', 'contacts')],
+    { donoDe: donoDeTeste(), modulosVivos: VIVOS },
+  );
+  assert.deepEqual(refs, [], 'casa própria e core saem pela MESMA regra que já valia pro DB::table');
+});
+
+test('agrupa: `alter` e `mig/runtime` contados por par, sem mudar a CHAVE do par', () => {
+  const { refs } = parseQueriesCruas([
+    ALT('Alpha', 'beta_itens'),
+    QRY('Alpha', "DB::table('beta_itens')->get();"),
+  ], { donoDe: donoDeTeste(), modulosVivos: VIVOS });
+  const r = agruparFronteiraDeTabela(refs, { limiar: 3 });
+  assert.equal(r.pares.length, 1, 'os dois toques colapsam num par só — a chave não muda');
+  const [p] = r.pares;
+  assert.equal(p.n, 2);
+  assert.equal(p.alter, 1, 'o ALTER é contado à parte pra o leitor ver ownership');
+  assert.equal(p.mig, 1);
+  assert.equal(p.runtime, 1, 'mig=1 runtime=1 separa "fez uma vez" de "faz todo dia"');
 });
