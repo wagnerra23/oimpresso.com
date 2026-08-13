@@ -25,6 +25,7 @@
 //       prototipo-ui/RUNBOOK-aplicar-prototipo-orquestracao.md (as 7 fases −1..5).
 
 import { existsSync, readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { homedir } from 'node:os';
@@ -43,6 +44,20 @@ const REPO_ROOT = resolve(HERE, '..');
 // — nunca "descobrir" por lista. Por isso o ID tem que viver aqui, não na memória do agente.
 export const COWORK_PROJECT_ID = '019dcfd3-6ef2-7ee6-8512-b1b0e5544e58';        // "Oimpresso ERP Comunicação Visual" — FONTE DAS TELAS (*-page.jsx, 1337 arq)
 export const DESIGN_SYSTEM_PROJECT_ID = '019dd02f-d2d0-7ba6-a57f-24b3ddd073ac'; // "Office Impresso — Design System" — biblioteca do DS (tokens/componentes)
+
+// ── TELAS QUE VÊM DE OUTRA CONTA DE DESIGN ([W] 2026-08-13) ─────────────────────
+// Fato de dono, não heurística: **Venda e Produto originam-se de OUTRA CONTA** do design
+// (telas do Luiz e da Maiara). Não é "outro projeto dentro da minha conta" — é outra conta,
+// logo o `DesignSync` daqui NUNCA vai listá-las e o espelho `prototipo-ui/cowork/` NUNCA
+// vai contê-las. Elas estão CORRETAS assim.
+// CONSEQUÊNCIA PRA QUEM MEDE: pra estas telas, "não achei no espelho / no DesignSync" é
+// ORIGEM EXTERNA, não drift nem fonte faltando. Máquina que as tratar como ausência gera
+// FP permanente — e a resposta certa a "cadê a fonte de design da Venda?" é "outra conta",
+// não "gerar do DS canon". Consulte esta constante em vez de reinferir pelo nome do arquivo.
+export const FORA_DESTA_CONTA = [
+  { tela: 'Sells (Venda)',   arquivos: ['resources/css/venda-v3.css', 'resources/js/Pages/Sells/CreateV3.tsx'], quem: '[L]/[M]', declaradoPor: '[W]', em: '2026-08-13' },
+  { tela: 'Produto',         arquivos: ['resources/js/Pages/Produto/'],                                          quem: '[L]/[M]', declaradoPor: '[W]', em: '2026-08-13' },
+];
 
 export const PROJETOS = {
   cowork:       { id: COWORK_PROJECT_ID,        nome: 'Oimpresso ERP Comunicação Visual', papel: 'telas',  listado: false },
@@ -115,30 +130,77 @@ function scriptsReferenciados() {
 //     DERIVA o id dali pra repor o DS. Se o shell trouxer outro id (troca de design
 //     system upstream), o preview repõe no diretório errado e a tela abre sem tokens
 //     — exatamente o "falta css" de 2026-08-13, só que silencioso.
-//   · código de produção (venda-v3.css, CreateV3.tsx) e o ds-push.mjs carregam o id
-//     hardcoded; divergir daqui é apontar pro DS errado.
+//   · o `ds-push.mjs` carrega o id hardcoded pra ESCREVER no projeto; divergir daqui
+//     é empurrar tokens pro DS errado.
+//   · o hook `design-agente-ativa` manda o agente consultar o Cowork vivo por ID.
 // Varre só CÓDIGO EXECUTÁVEL: doc/handoff/ADR citam id por CONTEXTO HISTÓRICO
 // (o id que valia naquela data) e não devem ser corrigidos — §5 "registro datado".
+//
+// FP MEDIDO ANTES DE FECHAR O VETOR (2026-08-13, e o número reprovou a MINHA lista):
+// a lista nasceu com 5 alvos, incluindo `venda-v3.css` e `Sells/CreateV3.tsx` sob a
+// justificativa "código de produção carrega o id hardcoded". FALSO em duas camadas:
+//   forma  — medido: citam o PREFIXO abreviado (`019dd02f`, 8 chars) em COMENTÁRIO de
+//            proveniência, não o UUID; `git grep` do id completo não os lista;
+//   fundo  — [W] 2026-08-13: essas duas telas são do **Luiz e da Maiara** e têm **fonte
+//            de design diferente** desta — e estão CORRETAS. Não são consumidoras deste
+//            DS, então cobrá-las pelo id daqui é falso-positivo POR CONSTRUÇÃO, não por
+//            detalhe de regex. Nenhuma variante de casamento conserta isso.
+// Com elas, o vetor "alvo parou de citar o id" acusava 2/5. Sem elas, 0/3. Os 3 que
+// ficam consomem o id de verdade (o shell é de onde o `--preview-ds` DERIVA o caminho).
+// Corolário pra quem for ampliar esta lista: alvo entra por CONSUMIR o id, e o teste é
+// "de qual projeto de design esta tela vive?" — não "o id aparece no arquivo?".
+// ⚠️ O `continue` silencioso mordeu AQUI (adversário 2026-08-13): "arquivo sumiu" e
+// "arquivo perdeu o id" eram indistinguíveis de "conferido e OK" — 3 dos 4 vetores de
+// drift escapavam. A regra agora é a do §5 2026-07-29: o instrumento **não colapsa
+// "não consegui medir" num estado do objeto medido**. Alvo RASTREADO NO GIT que sumiu
+// ou perdeu o id é FALHA (o repo é a fonte, e ele diz que o arquivo deveria estar lá);
+// alvo não-rastreado (checkout parcial, artefato local) é PULADO e sai na contagem.
+/** git ls-files nos alvos → Set de rastreados, ou null se não deu pra medir (sem git). */
+function rastreadosNoGit(paths) {
+  try {
+    const out = execFileSync('git', ['ls-files', '-z', '--', ...paths], {
+      cwd: REPO_ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    return new Set(out.split('\0').filter(Boolean).map((p) => resolve(REPO_ROOT, p)));
+  } catch { return null; }
+}
+
 /** Arquivos de código que carregam algum dos 2 IDs, e qual esperamos. */
 function conferirIdsNoRepo() {
   const alvos = [
     { path: join(MIRROR_DIR, 'oimpresso.com.html'), espera: DESIGN_SYSTEM_PROJECT_ID, papel: 'shell do espelho (de onde --preview-ds deriva)' },
     { path: join(REPO_ROOT, 'scripts', 'design-sync', 'ds-push.mjs'), espera: DESIGN_SYSTEM_PROJECT_ID, papel: 'push do DS' },
-    { path: join(REPO_ROOT, 'resources', 'css', 'venda-v3.css'), espera: DESIGN_SYSTEM_PROJECT_ID, papel: 'css de produção' },
-    { path: join(REPO_ROOT, 'resources', 'js', 'Pages', 'Sells', 'CreateV3.tsx'), espera: DESIGN_SYSTEM_PROJECT_ID, papel: 'tela de produção' },
     { path: join(REPO_ROOT, '.claude', 'hooks', 'design-agente-ativa.mjs'), espera: COWORK_PROJECT_ID, papel: 'hook que manda o agente consultar o vivo' },
   ];
   const problemas = [];
+  const rastreados = rastreadosNoGit(alvos.map((a) => a.path));
+  let medidos = 0;
+  const pulados = [];
   for (const a of alvos) {
-    if (!existsSync(a.path)) continue; // arquivo pode não existir num checkout parcial — não inventa falha
+    const rel = a.path.replace(REPO_ROOT, '.');
+    // rastreados === null ⇒ sem git: não dá pra separar "sumiu" de "nunca existiu".
+    // Não invento falha NEM verde — o alvo sai como não-medido e a contagem denuncia.
+    const eRastreado = rastreados === null ? null : rastreados.has(resolve(a.path));
+    if (!existsSync(a.path)) {
+      if (eRastreado === true) problemas.push(`${a.papel}: alvo RASTREADO no git sumiu do checkout (${rel})`);
+      else pulados.push(rel);
+      continue;
+    }
     const txt = readFileSync(a.path, 'utf8');
     const achados = [...new Set([...txt.matchAll(/\b(019d[0-9a-f]{4}-[0-9a-f-]{20,})\b/g)].map((m) => m[1]))];
-    if (!achados.length) continue;                       // não cita id: nada a conferir
+    if (!achados.length) {
+      // Alvo rastreado que PAROU de citar o id é drift: o consumidor virou órfão do
+      // projeto Cowork sem ninguém notar. Só é "nada a conferir" se não for rastreado.
+      if (eRastreado === true) problemas.push(`${a.papel}: alvo RASTREADO no git não cita mais nenhum ID de projeto (${rel})`);
+      else pulados.push(rel);
+      continue;
+    }
+    medidos++;
     if (!achados.includes(a.espera)) {
-      problemas.push(`${a.papel}: esperava ${a.espera.slice(0, 8)}…, achei ${achados.map((x) => x.slice(0, 8) + '…').join(', ')} (${a.path.replace(REPO_ROOT, '.')})`);
+      problemas.push(`${a.papel}: esperava ${a.espera.slice(0, 8)}…, achei ${achados.map((x) => x.slice(0, 8) + '…').join(', ')} (${rel})`);
     }
   }
-  return problemas;
+  return { problemas, medidos, total: alvos.length, pulados, semGit: rastreados === null };
 }
 
 function selftest() {
@@ -147,7 +209,8 @@ function selftest() {
   if (!UUID.test(DESIGN_SYSTEM_PROJECT_ID)) fails.push('DESIGN_SYSTEM_PROJECT_ID não é UUID');
   if (COWORK_PROJECT_ID === DESIGN_SYSTEM_PROJECT_ID) fails.push('os 2 IDs colidiram (anti-confusão dos projetos)');
   if (!existsSync(MIRROR_DIR)) fails.push(`MIRROR_DIR ausente no repo: ${MIRROR_DIR}`);
-  fails.push(...conferirIdsNoRepo());
+  const ids = conferirIdsNoRepo();
+  fails.push(...ids.problemas);
   for (const fn of [['normalize', normalize], ['contentHash', contentHash], ['resolveAncora', resolveAncora]]) {
     if (typeof fn[1] !== 'function') fails.push(`motor re-exportado quebrou: ${fn[0]} não é função`);
   }
@@ -159,7 +222,12 @@ function selftest() {
     if (!existsSync(join(REPO_ROOT, s))) fails.push(`script referenciado no mapa FASES não existe: ${s}`);
   }
   if (fails.length) { console.error('SELFTEST FALHOU:\n - ' + fails.join('\n - ')); process.exit(1); }
-  console.log(`✓ protocolo.config selftest OK — 2 IDs válidos+distintos · MIRROR_DIR presente · ${scripts.length} scripts do mapa existem · motores (normalize/contentHash/resolveAncora) vivos.`);
+  // A contagem é o antídoto do "verde mudo": se `medidos` < `total`, o OK acima vale
+  // só pelos medidos — quem lê sabe quantos ficaram de fora e por quê (§5 2026-07-29).
+  const cob = `conferi ${ids.medidos} de ${ids.total} alvos de ID`
+    + (ids.pulados.length ? ` (${ids.pulados.length} pulado(s), não-rastreado(s): ${ids.pulados.join(', ')})` : '')
+    + (ids.semGit ? ' ⚠ sem git: não deu pra separar "sumiu" de "nunca existiu"' : '');
+  console.log(`✓ protocolo.config selftest OK — 2 IDs válidos+distintos · ${cob} · MIRROR_DIR presente · ${scripts.length} scripts do mapa existem · motores (normalize/contentHash/resolveAncora) vivos.`);
   process.exit(0);
 }
 
