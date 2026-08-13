@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-12**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-13**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -27,14 +27,14 @@ lente: [construir]
 | Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-07-23 |
 | Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-07-23 |
 | Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-07-27 |
-| ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-07-28 |
+| ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-08-12 |
 | Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-08-03 |
-| ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-07-23 |
+| ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-08-12 |
 | Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-07-30 |
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-07-23 |
 | Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-08-05 |
 | Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-08-11 |
-| Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-08-11 |
+| Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-08-12 |
 | Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-08-05 |
 | Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-08-07 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **341**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **335**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -150,7 +150,7 @@ lente: [construir]
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 106 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 112 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -223,6 +223,7 @@ lente: [construir]
 - ~~2026-08-02 — Reescrever DOCUMENTO por casamento textual sem delimitar o alvo (come informação vizinha)~~
 - ~~2026-08-02 — Recuar À MÃO num arquivo em vez de virar REGRA do mecanismo (o próximo run repete)~~
 - ~~2026-08-02 — Registrar a suíte no `phpunit.xml` e achar que o teste passou a rodar (a lane lista ARQUIVO)~~
+- ~~2026-08-12 — EMENDA da lápide acima: a inclusão tem um GÊMEO SUBTRATIVO — a QUARENTENA, que exclui o arquivo mesmo com registro e trigger certos~~
 - ~~2026-08-02 — Ampliar o regex de segredo para pegar par `usuário/senha` (MEDIDO: 122 FP) — o eixo certo é o CORPUS, não o detector~~
 - ~~2026-08-02 — Ressuscitar o `Modules/ADS` (núcleo dual-brain), recriar suas tabelas, ou religar o daemon `ads-brain-a` no CT 100~~
 - ~~2026-08-02 — Corrigir UMA de N implementações duplicadas: o fix pousou na cópia que o consumidor não usa~~
@@ -259,6 +260,11 @@ lente: [construir]
 - ~~2026-08-11 — `git fetch --depth` num repo COMPLETO (trunca), e o `|| true` que transformava o erro disso em "0 arquivos" — 4 required saindo verdes sem validar nada~~
 - ~~2026-08-11 — Comentário de workflow AFIRMANDO "esta lane é ADVISORY, não bloqueia merge" 11 dias depois da lápide que baniu isso (LC-10, e a defesa é cultural POR MEDIÇÃO)~~
 - ~~2026-08-11 — Instrumento cuja DEPENDÊNCIA não existe: `jq` ausente no Windows faz o silêncio virar "nada a reportar" (e o fallback do próprio jq nunca roda)~~
+- ~~2026-08-12 — Construir mecanismo sem procurar PRIOR ART EXTERNA (a técnica tinha nome desde 1995 e ferramenta madura no ecossistema)~~
+- ~~2026-08-12 — Herdar rótulo Tier-0 de uma ABREVIAÇÃO de lápide lida FORA do escopo dela (o componente não reaplica — o parent reaplica)~~
+- ~~2026-08-12 — Codemod de RENAME assumindo UMA forma de referência (foram 4) — e a medição quebrada que deixou o dano sobreviver~~
+- ~~2026-08-12 — Script de reescrita em massa passou POR BAIXO do guard que protege exatamente aquela classe de arquivo~~
+- ~~2026-08-12 — Propor mudança em artefato que a MÁQUINA LÊ sem RODAR a máquina com a mudança aplicada (o `depends_on` que marcaria 18 acoplamentos vivos como "curados")~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -269,14 +275,14 @@ lente: [construir]
 
 ## Rastro
 
-- **427** handoffs · **610** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **448** handoffs · **622** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
-  - `2026-08-11-triagem-tres-lapides-revisar`
-  - `2026-08-11-prototipo-jana-no-git-e-a-defesa-que-era-a-causa`
-  - `2026-08-11-memory-arrumada-e-a-nota-71-da-dimensao-memoria`
-  - `2026-08-11-gap44-decidido-e-a-errata-da-errata`
-  - `2026-08-11-contrato-fantasma-e-a-fronteira-de-modulo-morto`
-  - `2026-08-11-consulta-clientes-v3-dv-medido-e-smoke`
+  - `2026-08-12-sec5-derivado-e-o-indice-que-conflita`
+  - `2026-08-12-reguas-evidencia-integra`
+  - `2026-08-12-refutacao-lote-pr5675`
+  - `2026-08-12-pages-para-dentro-dos-modulos-piloto`
+  - `2026-08-12-glob-inertia-e-as-duas-camadas-de-mudez`
+  - `2026-08-12-fronteiras-ciclo-fechado-e-a-premissa-derrubada`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-12 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-13 · deriva das fontes canônicas, não as substitui._
