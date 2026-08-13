@@ -2,10 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Business;
 use App\Contact;
 use App\User;
 use App\Utils\ModuleUtil;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 uses(Tests\TestCase::class);
 
@@ -19,64 +23,96 @@ uses(Tests\TestCase::class);
  * ACIDENTE DE INFRA (PSR-4 na raiz torna `Vehicle` autoloadable com o módulo desligado, e
  * `vehicles` viaja no `mysql-schema.sql`). Classe LC-10.
  *
- * ⚠️ ONDE ESTE TESTE RODA — declarado, não presumido:
- * `Modules/Crm/Tests/Feature` está no `phpunit.xml:44`, mas **nenhuma lane de PR o executa**
- * — medido com o dono da pergunta (`node scripts/governance/test-lane-coverage.mjs --modulo
- * Crm` → **13/13 fora do PR**); o `modules-pest.yml` tem matrix e o Crm **não está nela**.
- * Logo: roda na árvore nightly do CT 100 e **não é gate de merge**.
+ * TENANT: cria o próprio via `Business::factory()`, em vez de fixar um id. A 1ª versão
+ * deste arquivo hardcodava `business_id = 98` (o tenant canônico da ADR 0358) e **falhou
+ * no CT 100 com FK violation** — o staging tem business `1, 99, 2`, não 98. Fixar id
+ * assume seed; criar o próprio não assume nada. O espírito da 0358 (nunca tocar tenant de
+ * cliente real, jamais biz=4) é respeitado com folga.
  *
- * ⚠️ NÃO EXECUTADO pelo autor: Pest é proibido na máquina local (ADR 0062, hook
- * `block-test-fora-ct100`) e o checkout do CT 100 está em 2026-07-23, sem estes arquivos.
- * A primeira execução real será a nightly. Isto é rótulo honesto, não desculpa.
- *
- * Tenant: 98 (ADR 0358 — tenant fictício canônico). NUNCA biz=4, que é cliente real.
+ * ⚠️ ONDE RODA: `Modules/Crm/Tests/Feature` está no `phpunit.xml`, mas **nenhuma lane de
+ * PR o executa** — `test-lane-coverage --modulo Crm` → 13/13 fora do PR, e o
+ * `modules-pest.yml` tem matrix onde o Crm não está.
  *
  * @see Modules/Crm/Http/Controllers/ClienteVeiculosController::index()
- * @see app/Http/Controllers/ContactController (linha do `isModuleInstalled('OficinaAuto')` — o pattern canon)
  */
-
-const CV_BIZ_FICTICIO = 98;
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
         $this->markTestSkipped('SQLite-incompatível: exige schema MySQL UltimatePOS (FKs business/contacts/users).');
     }
-});
+    if (! Schema::hasTable('business') || ! Schema::hasTable('contacts')) {
+        $this->markTestSkipped('Schema UltimatePOS ausente — esta suíte roda em MySQL real semeado.');
+    }
 
-/** Usuário + contato do tenant fictício, com as permissões que o endpoint exige. */
-function cvSeed(): array
-{
-    $user = User::factory()->create(['business_id' => CV_BIZ_FICTICIO]);
-    $user->givePermissionTo('customer.view');
-
-    $contact = Contact::create([
-        'business_id' => CV_BIZ_FICTICIO,
-        'type' => 'customer',
-        'name' => 'Cliente Fixture Gate',
-        'created_by' => $user->id,
+    // Tenant 98 (ADR 0358). `App\Business` NÃO tem `HasFactory` — não existe
+    // `BusinessFactory` no repo, então `Business::factory()` estoura
+    // BadMethodCallException. O idioma que funciona é `find`-ou-`forceCreate` com as
+    // colunas NOT NULL sem default do schema real, espelhando o seed do
+    // `.github/actions/pest-mysql-setup` (mesmo padrão do ComprasContratoFiltrosTest,
+    // que roda em lane própria).
+    $this->biz = Business::find(98) ?: Business::forceCreate([
+        'id' => 98,
+        'name' => 'Tenant ficticio 98 (ADR 0358)',
+        'currency_id' => 1,
+        'start_date' => now()->toDateString(),
+        'default_profit_percent' => 0,
+        'owner_id' => 1,
+        'stop_selling_before' => 0,
+        'weighing_scale_setting' => '',
+        'certificado' => '',
+        'officeimpresso_numerodemaquinas' => 0,
     ]);
 
-    return [$user, $contact];
+    // `roles.business_id` é NOT NULL + FK pra business (proibicoes.md §FSM), e o sufixo
+    // `#{biz}` é a convenção da casa pra role por tenant.
+    $perm = Permission::firstOrCreate(['name' => 'customer.view', 'guard_name' => 'web']);
+    $role = Role::firstOrCreate(
+        ['name' => 'cv-gate-test#'.$this->biz->id, 'guard_name' => 'web'],
+        ['business_id' => $this->biz->id]
+    );
+    $role->givePermissionTo($perm);
+
+    // user_type='user' + allow_login=1: sem eles o middleware CheckUserLogin aborta 403.
+    $this->user = User::factory()->create([
+        'business_id' => $this->biz->id,
+        'username' => 'cv_gate_'.uniqid(),
+        'user_type' => 'user',
+        'allow_login' => 1,
+    ]);
+    $this->user->assignRole($role);
+
+    $this->contact = Contact::create([
+        'business_id' => $this->biz->id,
+        'type' => 'customer',
+        'name' => 'Cliente Fixture Gate',
+        'contact_status' => 'active',
+        'is_customer' => 1,
+        // FK NOT NULL `contacts.created_by` -> `users.id`. Medido no CT 100: sem isto,
+        // 1452 Integrity constraint violation.
+        'created_by' => $this->user->id,
+    ]);
+});
+
+/** Troca o ModuleUtil do container — o controller resolve por `app(ModuleUtil::class)`. */
+function cvModulo(bool $instalado): void
+{
+    $fake = Mockery::mock(ModuleUtil::class)->makePartial();
+    $fake->shouldReceive('isModuleInstalled')->with('OficinaAuto')->andReturn($instalado);
+    app()->instance(ModuleUtil::class, $fake);
 }
 
-function cvChamar(User $user, Contact $contact)
+function cvChamar()
 {
     return test()
-        ->actingAs($user)
-        ->withSession(['user' => ['business_id' => CV_BIZ_FICTICIO, 'id' => $user->id]])
-        ->getJson("/cliente/{$contact->id}/veiculos");
+        ->actingAs(test()->user)
+        ->withSession(['user.business_id' => test()->biz->id, 'user' => ['business_id' => test()->biz->id, 'id' => test()->user->id]])
+        ->getJson('/cliente/'.test()->contact->id.'/veiculos');
 }
 
-it('MORDE: sem o módulo OficinaAuto, o endpoint responde 200 com paginador VAZIO', function () {
-    [$user, $contact] = cvSeed();
+it('MORDE: sem o módulo OficinaAuto, responde 200 com paginador VAZIO', function () {
+    cvModulo(false);
 
-    // O controller resolve por `app(ModuleUtil::class)`, então o fake intercepta sem
-    // precisar desinstalar módulo de verdade.
-    $fake = Mockery::mock(ModuleUtil::class);
-    $fake->shouldReceive('isModuleInstalled')->with('OficinaAuto')->andReturnFalse();
-    app()->instance(ModuleUtil::class, $fake);
-
-    cvChamar($user, $contact)
+    cvChamar()
         ->assertOk()
         ->assertExactJson([
             'data' => [],
@@ -89,32 +125,22 @@ it('MORDE: sem o módulo OficinaAuto, o endpoint responde 200 com paginador VAZI
 });
 
 it('CN: com o módulo instalado, o gate NÃO curto-circuita — responde a shape real', function () {
-    [$user, $contact] = cvSeed();
-
-    $fake = Mockery::mock(ModuleUtil::class);
-    $fake->shouldReceive('isModuleInstalled')->with('OficinaAuto')->andReturnTrue();
-    app()->instance(ModuleUtil::class, $fake);
+    cvModulo(true);
 
     // Controle negativo do próprio gate: se ele passasse a barrar SEMPRE, o caminho feliz
     // morreria em silêncio e o sub-tab ficaria vazio pra quem TEM o módulo — regressão pior
-    // que o defeito original, e invisível sem esta asserção. O cliente não tem veículo
-    // semeado, então `data` vem vazia nos dois casos: o que distingue é `current_page`, que
-    // no caminho real vem do paginator do Eloquent, não da constante.
-    cvChamar($user, $contact)
+    // que o defeito original, e invisível sem esta asserção.
+    cvChamar()
         ->assertOk()
         ->assertJsonStructure(['data', 'total', 'current_page', 'last_page', 'from', 'to']);
 });
 
 it('permissão continua obrigatória — o gate de módulo não abriu buraco de autorização', function () {
-    [$user, $contact] = cvSeed();
-    $user->revokePermissionTo('customer.view');
-
-    $fake = Mockery::mock(ModuleUtil::class);
-    $fake->shouldReceive('isModuleInstalled')->with('OficinaAuto')->andReturnFalse();
-    app()->instance(ModuleUtil::class, $fake);
+    cvModulo(false);
+    $this->user->removeRole('cv-gate-test#'.$this->biz->id);
 
     // O 403 tem de vir ANTES do paginador vazio: sem esta asserção, um refactor que
-    // subisse o gate de módulo pra cima do gate de permissão passaria despercebido e
-    // qualquer usuário autenticado saberia que o cliente existe.
-    cvChamar($user, $contact)->assertStatus(403);
+    // subisse o gate de módulo acima do gate de permissão passaria despercebido e
+    // qualquer autenticado saberia que o cliente existe.
+    cvChamar()->assertStatus(403);
 });
