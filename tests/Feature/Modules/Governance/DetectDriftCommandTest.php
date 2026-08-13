@@ -29,7 +29,7 @@ beforeEach(function () {
         $this->markTestSkipped('era-sqlite: Schema::dropIfExists/create mcp_alertas_eventos corrompe MySQL nightly — teste foi projetado pra SQLite in-memory');
     }
 
-    // Schema mínimo replicando mcp_alertas_eventos (Modules/Jana/Database/Migrations/2026_04_29_600001_*).
+    // Schema mínimo replicando mcp_alertas_eventos (Modules/Forja/Database/Migrations/2026_04_29_600001_*).
     Schema::dropIfExists('mcp_alertas_eventos');
     Schema::create('mcp_alertas_eventos', function (Blueprint $t) {
         $t->bigIncrements('id');

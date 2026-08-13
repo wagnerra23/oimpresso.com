@@ -193,7 +193,7 @@ A Fase 4 pede *"MIGRATE obrigatório"* de `mcp_tokens`. Medido, a tabela **nunca
 
 | Peça | Onde vive hoje |
 |---|---|
-| migration que **cria** | `Modules/Jana/Database/Migrations/2026_04_29_100003_create_mcp_tokens_table.php` |
+| migration que **cria** | `Modules/Forja/Database/Migrations/2026_04_29_100003_create_mcp_tokens_table.php` |
 | Entity | `Modules/Jana/Entities/Mcp/McpToken.php` |
 | middleware que autentica | `Modules/Jana/Http/Middleware/McpAuthMiddleware.php` |
 

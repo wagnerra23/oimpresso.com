@@ -51,7 +51,7 @@ related_adrs:
 
 ### Linear-parity (US-MCP-011..016) — em backlog longo
 
-**Implementado em:** _parcial_ · `Modules/Jana/Database/Migrations/2026_05_04_180015_extend_mcp_tasks_for_jira_style.php` · `Modules/Jana/Http/Controllers/Admin/RoadmapController.php` · `Modules/Jana/Mcp/Tools/WhatsLockedTool.php` · verificado@8af585a (2026-07-02) — US-MCP-011 (sub-issues: `parent_task_id`/`epic_id` + drawer subtasks), US-MCP-012 (roadmap view: rota `/ia/admin/roadmap`) e US-MCP-015 (whats-active Tier 2: WhatsLockedTool + WorkLeaseService, ADR 0278) construídas; 013 (dependency graph)/014 (custom fields)/016 (handoff Brain B→CC) em backlog. Nota: handoff tools do TeamMcp (HandoffSubmitTool etc, 2026-06-17) são Cowork↔CC, escopo distinto da US-MCP-016
+**Implementado em:** _parcial_ · `Modules/Forja/Database/Migrations/2026_05_04_180015_extend_mcp_tasks_for_jira_style.php` · `Modules/Forja/Http/Controllers/RoadmapController.php` · `Modules/Jana/Mcp/Tools/WhatsLockedTool.php` · verificado@8af585a (2026-07-02) — US-MCP-011 (sub-issues: `parent_task_id`/`epic_id` + drawer subtasks), US-MCP-012 (roadmap view: rota `/ia/admin/roadmap`) e US-MCP-015 (whats-active Tier 2: WhatsLockedTool + WorkLeaseService, ADR 0278) construídas; 013 (dependency graph)/014 (custom fields)/016 (handoff Brain B→CC) em backlog. Nota: handoff tools do TeamMcp (HandoffSubmitTool etc, 2026-06-17) são Cowork↔CC, escopo distinto da US-MCP-016
 
 - US-MCP-011..016 — ver [Jana/COMPARATIVO-MCP-ESTADO-DA-ARTE-2026-05-13.md](../Jana/COMPARATIVO-MCP-ESTADO-DA-ARTE-2026-05-13.md) §Linear-parity
 

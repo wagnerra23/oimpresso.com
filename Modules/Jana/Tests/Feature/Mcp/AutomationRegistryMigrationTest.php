@@ -13,7 +13,8 @@ uses(Tests\TestCase::class);
  */
 function loadMigration(string $file)
 {
-    return require base_path("Modules/Jana/Database/Migrations/{$file}");
+    // Migrations `mcp_*` moraram em Modules/Jana até 2026-08-13 (ADR 0366 §D-C item 4).
+    return require base_path("Modules/Forja/Database/Migrations/{$file}");
 }
 
 beforeEach(function () {

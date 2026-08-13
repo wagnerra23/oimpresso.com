@@ -15,7 +15,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 >
 > **O que isto é:** o módulo `Produto` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Produto/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`products`, `variations`, `product_variations`, `variation_location_details`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 87 arquivos em 7 papéis.
+**Total mapeado:** 88 arquivos em 7 papéis.
 
 ## Controllers — 8
 
@@ -115,7 +115,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [StockHistory.charter.md](../../../resources/js/Pages/Produto/StockHistory.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Produto/Unificado/Index.charter.md)
 
-## Casos (contrato UC) — 7
+## Casos (contrato UC) — 8
 
 - [BulkEdit.casos.md](../../../resources/js/Pages/Produto/BulkEdit.casos.md)
 - [Create.casos.md](../../../resources/js/Pages/Produto/Create.casos.md)
@@ -124,3 +124,4 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [SellingPrices.casos.md](../../../resources/js/Pages/Produto/SellingPrices.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Produto/Show.casos.md)
 - [StockHistory.casos.md](../../../resources/js/Pages/Produto/StockHistory.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Produto/Unificado/Index.casos.md)

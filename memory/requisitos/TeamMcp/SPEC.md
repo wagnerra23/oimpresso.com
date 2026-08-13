@@ -112,7 +112,7 @@ Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom 
 - Cobertura: `ActorPermissionMatrixTest.php` (cenários 7-8)
 
 ### US-TEAM-007 — Audit log MCP append-only (Tier 0)
-**Implementado em:** `Modules/Jana/Database/Migrations/2026_04_29_100005_create_mcp_audit_log_table.php` · `Modules/Jana/Database/Migrations/2026_05_05_230001_add_immutability_triggers_to_mcp_audit_log.php` · `Modules/Jana/Entities/Mcp/McpAuditLog.php` · verificado@8af585a (2026-07-02) — schema + trigger de imutabilidade vivem em Modules/Jana (não neste módulo)
+**Implementado em:** `Modules/Forja/Database/Migrations/2026_04_29_100005_create_mcp_audit_log_table.php` · `Modules/Forja/Database/Migrations/2026_05_05_230001_add_immutability_triggers_to_mcp_audit_log.php` · `Modules/Jana/Entities/Mcp/McpAuditLog.php` · verificado@8af585a (2026-07-02) — schema + trigger de imutabilidade vivem em Modules/Jana (não neste módulo)
 **Testado em:** _lacuna — nenhum Pest tenta UPDATE ou DELETE na tabela de audit esperando a recusa do trigger (2026-07-28). O próprio aceite já declarava "SPEC-only por ora". Cobertura a criar — ver CU-TEAM-07 do SDD._
 **Como** sistema MCP
 **Quero** que toda ação em tool MCP registre em `mcp_audit_log` (actor_id, tool_name, payload_hash, timestamp, business_id_efetivo)

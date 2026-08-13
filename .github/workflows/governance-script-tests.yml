@@ -178,6 +178,14 @@ jobs:
       # falha, aresta pendurada, maturidade só sobre checks aplicáveis, determinismo.
       - name: Service scorecard (join grade/tela/grafo · normalização exata · determinismo)
         run: node --test scripts/governance/service-scorecard.test.mjs
+      # Guard anti-fabricação de data por clone raso — DONO único do detector, importado
+      # pelos 12 derivadores de data (antes eram 6 detectores copiados, em 2 granularidades
+      # que discordavam). As DUAS pernas: MORDE em history truncada (devolve "não medido")
+      # e SOLTA em history completa (mede de verdade). O caso de FINURA usa repos reais em
+      # tmp: órfã buscada com `--depth 1` marca o repo shallow SEM truncar o HEAD, e o
+      # detector tem que soltar — é o falso-positivo que o `--is-shallow-repository` cru tem.
+      - name: Git history guard (raso morde · completo solta · finura da órfã)
+        run: node --test scripts/governance/git-history.test.mjs
       - name: Função-scorecard blind pack (IDs opacos + docblocks sem tells + scorer compatível)
         run: node --test scripts/governance/funcao-scorecard-calibracao.test.mjs
       - name: Função-scorecard gold humano (9/9 obrigatório + K/9 + Cohen kappa)

@@ -41,7 +41,7 @@ beforeEach(function () use (&$repoTmp) {
     // os 3 contextual), e como este arquivo não rodava em lane NENHUMA — fora do CI
     // de PR E pulado na nightly, que é MySQL e cai no markTestSkipped acima — o drift
     // ficou invisível até a lane ligar (PR #5213). Ao mexer aqui, confira contra:
-    //   Modules/Jana/Database/Migrations/2026_04_29_100008_create_mcp_memory_documents_table.php
+    //   Modules/Forja/Database/Migrations/2026_04_29_100008_create_mcp_memory_documents_table.php
     //   ...2026_04_30_200001_add_business_id_to_mcp_memory_documents.php
     //   ...2026_05_01_100001_add_typed_cols_to_mcp_memory_documents.php
     //   ...2026_05_15_120000_add_contextual_context_to_mcp_memory_documents.php
