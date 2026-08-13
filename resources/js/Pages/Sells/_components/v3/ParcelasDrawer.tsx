@@ -22,7 +22,14 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
 import { Checkbox } from '@/Components/ui/checkbox';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/Components/ui/sheet';
 import { Input } from '@/Components/ui/input';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/ui/select';
@@ -163,13 +170,26 @@ export default function ParcelasDrawer({
     onParcelasChange(parcelas.map((p) => (p.k === k ? { ...p, venc } : p)));
 
   return (
-    <Dialog open={aberto} onOpenChange={(v) => !v && onFechar()}>
-      <DialogContent className="venda-v3 max-h-[88vh] sm:max-w-[980px]">
-        <DialogHeader>
-          <DialogTitle>Parcelas da venda</DialogTitle>
-        </DialogHeader>
+    <Sheet open={aberto} onOpenChange={(v) => !v && onFechar()}>
+      {/* `venda-v3` FICA aqui: o Radix portala o conteúdo pro <body>, FORA do
+          wrapper da Page — sem a classe, nada de `venda-v3.css` alcança o que
+          está dentro (§5 proibicoes, 2026-07-10). */}
+      <SheetContent
+        side="right"
+        className="venda-v3 w-full overflow-hidden p-0 sm:max-w-[860px]"
+      >
+        {/* coluna é `Stack`, não `flex flex-col` na mão — `layout:check`/ADR 0253. */}
+        <Stack gap={0} className="h-full">
+          <SheetHeader className="shrink-0 border-b border-border px-5 py-4 text-left">
+            <SheetTitle className="text-[15px] leading-tight">
+              Financeiro da venda — parcelas
+            </SheetTitle>
+            <SheetDescription className="text-[12px] text-muted-foreground">
+              Total a parcelar {brl(total)}
+            </SheetDescription>
+          </SheetHeader>
 
-        <Stack gap={4} className="min-h-0 overflow-auto">
+          <Stack gap={4} className="min-h-0 flex-1 overflow-auto px-5 py-4">
           {/* ─── gerador ─────────────────────────────────────────────────── */}
           <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-4">
             <Escolha
@@ -311,7 +331,7 @@ export default function ParcelasDrawer({
           )}
         </Stack>
 
-        <DialogFooter>
+          <SheetFooter className="shrink-0 flex-row items-center justify-between gap-2 border-t border-border px-5 py-3">
           <Button type="button" variant="outline" onClick={onFechar}>
             Fechar
           </Button>
@@ -325,8 +345,9 @@ export default function ParcelasDrawer({
           >
             Confirmar parcelas
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </SheetFooter>
+        </Stack>
+      </SheetContent>
+    </Sheet>
   );
 }
