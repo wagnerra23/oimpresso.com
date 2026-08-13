@@ -48,6 +48,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # OBRIGATÓRIO: o batimento deriva frescor de `git log -1 --format=%cs -- <path>`
+          # (service-scorecard `briefingInfo`, briefing-code-staleness). O default do
+          # checkout é RASO (1 commit) — e num clone raso o `git log` de qualquer path
+          # só enxerga o commit da vez, então TODO arquivo volta datado do dia em que o
+          # cron rodou. O artefato commitado provava isso: `last_commit: 2026-08-12` em
+          # bloco, quando a verdade (history completo) é 2026-08-07 / 08-05 / 07-23…
+          # Não era frescor, era a data da run. Lápide §5 2026-07-24.
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '20'

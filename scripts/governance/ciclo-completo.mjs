@@ -35,7 +35,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdirSync, rmSync } from 'node:fs';
 import { join, dirname, resolve, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { isPageScreenPath } from '../qa/page-path.mjs';
+import { isPageScreenPath, raizesDePages } from '../qa/page-path.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..', '..');
@@ -152,7 +152,11 @@ function classifyPage(tsxAbs, { root, ptMap, goldenStatus }) {
 }
 
 function computeRows(root, pagesDir, deps) {
-  return walkPages(pagesDir).map((p) => classifyPage(p, { root, ...deps })).sort((a, b) => a.page.localeCompare(b.page));
+  // `pagesDir` continua sendo a raiz do NÚCLEO — o selftest passa uma fixture por aqui e
+  // depende disso. Em uso real varremos as DUAS raízes (PR #5686): sem isso a porta media
+  // 169 telas roteadas onde o screen-coverage-map mede 206.
+  const raizes = pagesDir === PAGES ? raizesDePages(root) : [pagesDir];
+  return raizes.flatMap((raiz) => walkPages(raiz)).map((p) => classifyPage(p, { root, ...deps })).sort((a, b) => a.page.localeCompare(b.page));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

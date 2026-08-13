@@ -62,6 +62,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { isShallowHistory } from './lib/git-history.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, '..', '..');
@@ -253,15 +254,17 @@ function readSyncLog() {
   return readFileSync(p, 'utf8');
 }
 
-/** true se o repo é um clone raso (shallow) — histórico por-arquivo é incompleto. */
-function isShallowRepo() {
-  try {
-    const out = execFileSync('git', ['rev-parse', '--is-shallow-repository'], { cwd: REPO_ROOT, encoding: 'utf8' });
-    return out.trim() === 'true';
-  } catch {
-    return false;
-  }
-}
+/**
+ * true se o repo é um clone raso (shallow) — histórico por-arquivo é incompleto.
+ *
+ * Delega ao dono único (git-history.mjs). Era `--is-shallow-repository` cru, que erra
+ * nos DOIS sentidos: (a) acusa raso quando alguém só materializou uma órfã com
+ * `--depth 1` — o boundary nem toca a ancestry do HEAD; (b) devolvia `false` quando o
+ * git falhava, ou seja, tratava "não consegui medir" como "history confiável". O dono
+ * confere se algum boundary do `.git/shallow` é ANCESTRAL do HEAD, e erro de git conta
+ * como não-confiável.
+ */
+const isShallowRepo = () => isShallowHistory({ cwd: REPO_ROOT });
 
 /** Coleta registros git: por .tsx em Pages (exclui _components/__tests__), commits ASC. */
 function collectGitRecords() {

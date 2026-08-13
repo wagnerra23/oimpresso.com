@@ -19,6 +19,7 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
+import { raizesDePages } from './page-path.mjs';
 
 const ROOT = process.cwd();
 const ANCORA = join(ROOT, 'prototipo-ui', 'ancora.mjs');
@@ -51,7 +52,9 @@ function walkTsx(dir) {
   }
   return out;
 }
-const pages = walkTsx(PAGES);
+// Duas raízes desde o PR #5686 (núcleo + `Modules/<X>/Resources/js/Pages`): varrer só o núcleo
+// media 172 charters de 209. `raizesDePages` é o dono da lista — não reimplementar a 2ª aqui.
+const pages = raizesDePages(ROOT).flatMap((raiz) => walkTsx(raiz));
 const noCharter = pages.filter((p) => !existsSync(p.replace(/\.tsx$/, '.charter.md'))).length;
 
 const pct = (n, d) => d ? Math.round((n / d) * 100) : 0;

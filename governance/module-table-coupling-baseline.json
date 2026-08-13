@@ -4,6 +4,7 @@
   "_medicao": "node scripts/governance/catalog-graph.mjs --acoplamento (seção \"fronteira por TABELA\"). O selo `alter=N` marca toque na ESTRUTURA (ownership, mais forte que uso); `mig=N runtime=M` separa \"faz todo dia\" de \"fez uma vez\".",
   "_regenerar": "node scripts/governance/catalog-graph.mjs --acoplamento --write-baseline (grava os DOIS eixos). Ao CURAR um par, remova a linha no MESMO PR — a catraca avisa (não reprova) quando há entrada já curada.",
   "_piso": "PISO, não teto: só `DB::table('literal')`. `DB::table($var)`, Eloquent via Model alheio e SQL cru em string ficam invisíveis — o report diz quantos não resolveu.",
+  "_proveniencia_2026_08_13": "Par RE-APONTADO, não par novo: `Superadmin>Forja` é o `Superadmin>Jana` que já estava nesta lista — as tabelas `mcp_quotas`/`mcp_tokens` trocaram de dono quando as 61 migrations `mcp_*` foram pra Forja (ADR 0366 §D-C item 4, autorizado por [W]). Nenhuma query nova foi escrita: o mesmo código do Superadmin lê as mesmas 2 tabelas. Prova de que não houve afrouxamento: a lista ENCOLHEU de 20 para 18 — saíram `Forja>Jana`, `Governance>Jana` e `Superadmin>Jana` (curados pela troca de dono), entrou 1 renomeado. A NORMA do par segue indecidida na mesa de fronteiras (memory/decisions/proposals/2026-08-12-fronteiras-de-modulo-norma-por-par.md) — por isso ele fica em `grandfathered` (dívida congelada) e NÃO em `allowlist` (acoplamento deliberado com razão): usar o slot de norma pra dizer o que a mesa ainda não decidiu seria mentir no slot certo.",
   "grandfathered": [
     "Arquivos>Cms",
     "Arquivos>Financeiro",
@@ -12,9 +13,7 @@
     "Financeiro>Superadmin",
     "Fiscal>NfeBrasil",
     "Fiscal>Superadmin",
-    "Forja>Jana",
     "Governance>Forja",
-    "Governance>Jana",
     "Jana>Forja",
     "Jana>Whatsapp",
     "NfeBrasil>Arquivos",
@@ -24,7 +23,7 @@
     "PaymentGateway>Financeiro",
     "PaymentGateway>RecurringBilling",
     "RecurringBilling>Financeiro",
-    "Superadmin>Jana"
+    "Superadmin>Forja"
   ],
   "allowlist": [
     "Governance>Whatsapp"

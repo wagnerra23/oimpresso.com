@@ -72,7 +72,7 @@ Score consolidação memoria-senior: 86 → 91 (+5pp, MAIOR gap do roadmap pra m
 | `Modules/Jana/Services/Memoria/Contextual/DocumentChunker.php` | Quebra markdown em chunks ~800 tokens (heading-aware) |
 | `Modules/Jana/Services/Mcp/IndexarMemoryGitParaDb.php` | Hook `aplicarContextualRetrieval()` adicionado no sync git→DB |
 | `Modules/Jana/Entities/Mcp/McpMemoryDocument.php` | Fillable+casts pra novas colunas + `toSearchableArray()` prepend |
-| `Modules/Jana/Database/Migrations/2026_05_15_120000_add_contextual_context_to_mcp_memory_documents.php` | 3 colunas + índice |
+| `Modules/Forja/Database/Migrations/2026_05_15_120000_add_contextual_context_to_mcp_memory_documents.php` | 3 colunas + índice |
 | `Modules/Jana/Console/Commands/ContextualizeBackfillCommand.php` | Backfill `jana:contextualize-backfill` |
 | `Modules/Jana/Config/config.php` | Seção `contextual_retrieval` (linhas finais) |
 

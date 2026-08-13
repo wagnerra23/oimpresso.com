@@ -59,6 +59,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { readdir } from 'node:fs/promises';
 import { join, resolve, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { raizesDePages } from '../qa/page-path.mjs';
 import { shaAtualPara, shaIndeterminado } from '../../prototipo-ui/gerar-map.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -178,7 +179,8 @@ async function coletar(root) {
   // charter.md vive AO LADO da tela viva (resources/js/Pages/<Mod>/<Tela>.charter.md) — são
   // árvores DIFERENTES, walk cada uma na raiz certa (bug real pego no smoke: 6≠146).
   const reqTree = await walk(join(root, 'memory', 'requisitos'));
-  const pagesTree = await walk(join(root, 'resources', 'js', 'Pages'));
+  // DUAS raízes desde o PR #5686 — o denominador de charters saía 172 em vez de 209.
+  const pagesTree = (await Promise.all(raizesDePages(root).map((r) => walk(r)))).flat();
   const maps = reqTree.filter((f) => f.endsWith('.map.json'));
   const gaps = reqTree.filter((f) => f.endsWith('-gap.md'));
   const charters = pagesTree.filter((f) => f.endsWith('.charter.md'));

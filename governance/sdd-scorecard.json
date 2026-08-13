@@ -15,23 +15,23 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 88.1,
+      "value": 88.2,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 88.1,
+        "coverage_pct": 88.2,
         "specs_total": 51,
         "us_total": 956,
-        "anchor_coverage_pct": 88.1,
+        "anchor_coverage_pct": 88.2,
         "by_state": {
           "sem_campo": 112,
           "placeholder": 1,
           "pendente": 403,
-          "parcial": 113,
+          "parcial": 114,
           "anchored_ok": 326,
-          "anchored_dead": 1,
+          "anchored_dead": 0,
           "anchored_zombie": 0
         },
         "fields_total": 850,
@@ -40,13 +40,13 @@
         "orphan_fields": 6,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
-        "req_sem_aceite_total": 245,
-        "req_sem_covering_test_total": 349,
+        "req_sem_aceite_total": 246,
+        "req_sem_covering_test_total": 350,
         "req_teste_vermelho_total": 0,
         "req_sem_lane_total": 48,
         "behavior_known": false,
-        "servido_total": 17,
-        "nao_servido_total": 89,
+        "servido_total": 16,
+        "nao_servido_total": 67,
         "servido_ledger": true,
         "anchor_stale_on": false,
         "anchor_stale_total": null,
@@ -68,22 +68,14 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 335,
+      "value": 336,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "17bc5445bef9ae1f",
+        "floor_files_hash": "e198805b9e312f3d",
         "runs": [
-          {
-            "sha": "2c9fbc8a",
-            "ts": "20260809-020001",
-            "failed": 687,
-            "errors": 395,
-            "skipped": 2250,
-            "all_shards_measured": true
-          },
           {
             "sha": "26daa88c",
             "ts": "20260810-020001",
@@ -93,15 +85,23 @@
             "all_shards_measured": true
           },
           {
-            "sha": null,
+            "sha": "ab6aef2d",
             "ts": "20260812-020001",
             "failed": 658,
             "errors": 394,
             "skipped": 2329,
             "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260813-020001",
+            "failed": 697,
+            "errors": 388,
+            "skipped": 2253,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260812-020001",
+        "computed_at": "20260813-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -120,22 +120,15 @@
     },
     "coverage_pct": {
       "status": "measured",
-      "value": 19.6,
+      "value": 20.4,
       "unit": "%",
       "direction": "up",
       "target": "só sobe (catraca C2)",
       "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
       "detail": {
-        "covered": 46114,
-        "total": 235515,
+        "covered": 47999,
+        "total": 235584,
         "runs": [
-          {
-            "sha": "2c9fbc8a",
-            "ts": "20260809-020001",
-            "coverage_pct": 19.7,
-            "covered": 46317,
-            "total": 235316
-          },
           {
             "sha": "26daa88c",
             "ts": "20260810-020001",
@@ -144,14 +137,21 @@
             "total": 235341
           },
           {
-            "sha": null,
+            "sha": "ab6aef2d",
             "ts": "20260812-020001",
             "coverage_pct": 19.6,
             "covered": 46114,
             "total": 235515
+          },
+          {
+            "sha": null,
+            "ts": "20260813-020001",
+            "coverage_pct": 20.4,
+            "covered": 47999,
+            "total": 235584
           }
         ],
-        "computed_at": "20260812-020001",
+        "computed_at": "20260813-020001",
         "measured_of": 3
       },
       "stream": "FV"
@@ -284,10 +284,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 54,
+        "entries_aprovadas": 56,
         "max_error_rate_pct": 1.82,
-        "last_pr": 5675,
-        "last_lote": "ARQ-piiredactor-app-support-5675-r3"
+        "last_pr": 5722,
+        "last_lote": "MCP-migrations-jana-para-forja-5722"
       },
       "stream": "GT"
     }

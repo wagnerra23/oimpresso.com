@@ -82,7 +82,7 @@ on:
       - 'Modules/Jana/Tests/Unit/JanaViewsSemAndaimeTest.php'
       - 'Modules/Jana/Resources/views/**'
       - 'Modules/Jana/Database/Migrations/*_add_event_time_to_jana_memoria_facts.php'
-      - 'Modules/Jana/Database/Migrations/*_add_hash_chain_to_mcp_audit_log.php'
+      - 'Modules/Forja/Database/Migrations/*_add_hash_chain_to_mcp_audit_log.php'
       - '.github/workflows/jana-logica-pura-pest.yml'
   workflow_dispatch:
 

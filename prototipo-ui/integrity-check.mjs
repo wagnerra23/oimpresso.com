@@ -28,6 +28,7 @@ import { readFile, readdir, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, resolve, dirname, basename, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { raizesDePages } from '../scripts/qa/page-path.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)); // prototipo-ui/
 const ROOT = resolve(HERE, '..');                     // repo root
@@ -73,7 +74,9 @@ const spine = {
 // (§12) quando os 5 orfaos historicos zeraram (3 movidos pro componente real em
 // kb/_components/, 2 arquivados como lapide em memory/requisitos/**/_arquivo/).
 {
-  const files = await walk(join(ROOT, 'resources', 'js', 'Pages'));
+  // DUAS raízes desde o PR #5686 — o IT2 dava [PASS] sobre 172 de 209 charters, ou seja,
+  // aprovava sem ter olhado os 37 que moram no módulo dono.
+  const files = (await Promise.all(raizesDePages(ROOT).map((r) => walk(r)))).flat();
   const charters = files.filter((f) => f.endsWith('.charter.md'));
   const orphans = charters
     .filter((f) => !existsSync(f.slice(0, -'.charter.md'.length) + '.tsx'))

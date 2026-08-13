@@ -358,7 +358,7 @@ Trocar por chamada interna à tool MCP `tasks-current` (mesma fonte que `/team-m
 
 ### US-COPI-078 · Schema tipado KB — migration + validação webhook
 
-**Implementado em:** `Modules/Jana/Database/Migrations/2026_05_01_100001_add_typed_cols_to_mcp_memory_documents.php` · `Modules/Jana/Database/Migrations/2026_04_30_120001_expand_mcp_memory_documents_type_enum.php` · verificado@dd3ed7c (2026-07-01) — migrations de colunas tipadas (status/expires_at/superseded_by/frontmatter_json) + enum type aplicadas
+**Implementado em:** `Modules/Forja/Database/Migrations/2026_05_01_100001_add_typed_cols_to_mcp_memory_documents.php` · `Modules/Forja/Database/Migrations/2026_04_30_120001_expand_mcp_memory_documents_type_enum.php` · verificado@dd3ed7c (2026-07-01) — migrations de colunas tipadas (status/expires_at/superseded_by/frontmatter_json) + enum type aplicadas
 
 > owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 6h · status: done · progress: 90% · done_at: 2026-05-04 · session: memory/sessions/2026-05-04-ragas-baseline-infra.md
 
@@ -1970,7 +1970,7 @@ Escopo:
 > owner: — · priority: p2 · estimate: 2h · status: todo · type: story
 > blocked_by: —
 
-**Implementado em:** `Modules/Jana/Database/Migrations/2026_07_28_120000_create_mcp_handoff_drafts_table.php` · `Modules/Jana/Mcp/Tools/HandoffDraftTool.php` (2026-07-28) — a tabela fantasma foi fechada. O resto desta US é **decisão [W]**, por isso a US fica `todo`.
+**Implementado em:** `Modules/Forja/Database/Migrations/2026_07_28_120000_create_mcp_handoff_drafts_table.php` · `Modules/Jana/Mcp/Tools/HandoffDraftTool.php` (2026-07-28) — a tabela fantasma foi fechada. O resto desta US é **decisão [W]**, por isso a US fica `todo`.
 
 **Origem:** varredura de higiene de schema da camada de IA (2026-07-28), levantada por leitura de código. Ao verificar cada item com o oráculo certo — `git grep` contado no repo inteiro + `SHOW TABLES`/`COUNT(*)` no **banco** — 4 dos achados não sobreviveram, e 2 achados novos apareceram.
 

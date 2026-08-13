@@ -28,8 +28,8 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * DDL no beforeEach — CREATE TRIGGER auto-commita e quebraria o wrapping de
  * transação do teste. Se a migração ainda não rodou, a suíte dá skip-as-pass.
  *
- * @see Modules/Jana/Database/Migrations/2026_06_15_160000_add_immutability_triggers_to_mcp_task_events.php
- * @see Modules/Jana/Database/Migrations/2026_05_05_230001_add_immutability_triggers_to_mcp_audit_log.php
+ * @see Modules/Forja/Database/Migrations/2026_06_15_160000_add_immutability_triggers_to_mcp_task_events.php
+ * @see Modules/Forja/Database/Migrations/2026_05_05_230001_add_immutability_triggers_to_mcp_audit_log.php
  * @see memory/decisions/0278-arquitetura-rede-ia-duravel-anti-vazamento.md
  */
 function triggerExists(string $name): bool
