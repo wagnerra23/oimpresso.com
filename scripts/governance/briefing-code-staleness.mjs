@@ -69,7 +69,7 @@ import { readdirSync, existsSync, realpathSync, readFileSync } from 'node:fs';
 import { execFileSync, execSync } from 'node:child_process';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { gitLastDate } from './git-history.mjs';
+import { gitLastDate } from './lib/git-history.mjs';
 
 const ROOT = process.cwd();
 const REQ = join(ROOT, 'memory', 'requisitos');

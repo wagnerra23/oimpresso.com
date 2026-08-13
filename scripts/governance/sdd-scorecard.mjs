@@ -28,7 +28,7 @@ import { readdirSync, readFileSync, existsSync, writeFileSync, realpathSync } fr
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { isShallowHistory, gitLastDate } from './git-history.mjs';
+import { isShallowHistory, gitLastDate } from './lib/git-history.mjs';
 
 const ROOT = process.cwd();
 const OUT = join(ROOT, 'governance', 'sdd-scorecard.json');

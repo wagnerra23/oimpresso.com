@@ -40,7 +40,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { execSync } from 'node:child_process';
-import { isShallowHistory } from './git-history.mjs';
+import { isShallowHistory } from './lib/git-history.mjs';
 
 const ROOT = process.cwd();
 const SCORECARD = 'memory/governance/scorecards/funcoes/app-utils-productutil.yaml';

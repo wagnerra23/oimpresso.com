@@ -52,7 +52,7 @@ import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { execSync } from 'node:child_process'; // SÓ pro eixo --stale (C8) — ver bloco "eixo TEMPORAL"
 import { join, dirname, resolve, relative } from 'node:path';
 import { particionarSpecs } from './lib/spec-encerrado.mjs';
-import { isShallowHistory } from './git-history.mjs';
+import { isShallowHistory } from './lib/git-history.mjs';
 
 const ROOT = process.cwd();
 const REQ = join(ROOT, 'memory', 'requisitos');

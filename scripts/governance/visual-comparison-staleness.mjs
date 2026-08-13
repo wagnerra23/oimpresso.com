@@ -47,7 +47,7 @@ import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { classifyCodeStaleness } from './briefing-code-staleness.mjs';
-import { gitLastDate } from './git-history.mjs';
+import { gitLastDate } from './lib/git-history.mjs';
 
 const ROOT = process.cwd();
 const DEFAULT_STALE_DAYS = Number(process.env.OIMPRESSO_VISCOMP_STALE_DAYS) || 30;

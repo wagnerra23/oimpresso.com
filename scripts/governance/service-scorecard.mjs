@@ -65,7 +65,7 @@ import { raizesDePages } from '../qa/page-path.mjs';
 // Detector de history truncada — DONO: git-history.mjs (módulo-folha; nasceu no
 // sdd-scorecard no incidente de 2026-07-08 e mudou-se pra lá pra que todos possam
 // importar sem ciclo). Importado, não copiado: segundo detector do mesmo fato drifta.
-import { isShallowHistory } from './git-history.mjs';
+import { isShallowHistory } from './lib/git-history.mjs';
 
 const ROOT = process.cwd();
 const args = process.argv.slice(2);

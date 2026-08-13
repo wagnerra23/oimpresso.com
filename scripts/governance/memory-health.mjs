@@ -48,7 +48,7 @@ import { join } from 'node:path';
 import { auditDocumentAuthority, CANONICAL_ENTRYPOINT } from './document-authority.mjs';
 import { factAnchorScan, factAnchorTabelas, factAnchorPaths } from './fact-anchor.mjs';
 import { ucsDeclaredInCasos } from '../lib/uc-regex.mjs';
-import { gitLastDate as gitLastDateGuardado } from './git-history.mjs';
+import { gitLastDate as gitLastDateGuardado } from './lib/git-history.mjs';
 
 const ROOT = process.cwd();
 const JSON_OUT = process.argv.includes('--json');

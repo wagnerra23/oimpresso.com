@@ -19,7 +19,7 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { isShallowHistory, gitLastDate, gitLogRaw, _resetCacheParaTeste } from './git-history.mjs';
+import { isShallowHistory, gitLastDate, gitLogRaw, _resetCacheParaTeste } from './lib/git-history.mjs';
 
 // ── helpers de fixture ────────────────────────────────────────────────────────
 const sh = (cmd, cwd) => execSync(cmd, { cwd, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();

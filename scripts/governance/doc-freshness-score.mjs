@@ -64,7 +64,7 @@ import { readdirSync, readFileSync, existsSync, realpathSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { gitLastDate as gitLastDateGuardado, gitLogRaw } from './git-history.mjs';
+import { gitLastDate as gitLastDateGuardado, gitLogRaw } from './lib/git-history.mjs';
 import {
   classifyPathCitation, loadPathTombstones,
   WF_CITE_RE, MJS_CITE_RE, MOD_REF_RE,

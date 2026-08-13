@@ -98,7 +98,7 @@ import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { classifyCodeStaleness, declaredDoorDate } from './briefing-code-staleness.mjs';
-import { gitLastDate } from './git-history.mjs';
+import { gitLastDate } from './lib/git-history.mjs';
 
 const ROOT = process.cwd();
 // 30d — MESMO limiar dos eixos irmãos (não introduzir número mágico novo).
