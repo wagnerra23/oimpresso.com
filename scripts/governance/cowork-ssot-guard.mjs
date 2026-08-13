@@ -5,6 +5,19 @@
 // (sem workflow novo — respeita o teto anti-proliferação, ADR 0298).
 // Origem: ADR-proposta 2026-06-23-prototipo-ssot-unico-com-historico.
 //
+// ⚠️ LIMITE REAL (medido 2026-08-13 — a frase acima promete mais do que o código faz):
+// as 3 regras varrem SÓ dentro de `prototipo-ui/`. Dupla-fonte FORA dali passa verde.
+// Achados no dia, com o guard verde: 13 duplicatas `.jsx/.css` na raiz de `prototipo-ui/`
+// (7 DEFASADAS vs o espelho — o `oficina-page.jsx` da raiz tinha 26KB a menos que o vivo)
+// e 11 arquivos de design em `resources/js/Pages/Financeiro/_cowork-bundle/`.
+// POR QUE NÃO VIROU R4 — o FP foi medido ANTES e reprovou: a regra sintática óbvia
+// ("arquivo de design fora do espelho com homônimo dentro") dá 24 hits, dos quais ~5 são
+// falso-positivo por construção (fixtures de teste PRECISAM da cópia: `prototipo-ui/fixtures/`,
+// `tests/governance-fixtures/`) e 19 são cópias DECLARADAS e intencionais (`_BACKUP-NAO-USAR-…`,
+// `_cowork-bundle/` com README explicando, allowlist do R3). Distinguir "duplicata acidental"
+// de "cópia declarada" não é decidível pelo path — é a família das 4 lápides de guard sintático
+// do §5 (allowlist-de-pasta 06-30 · `@scope` 07-09 · vocabulário 130 FP 07-16 · `toHaveKey` 07-26).
+// Fechar isso exige um critério que leia INTENÇÃO (README/marcador declarado), não nome de pasta.
 // Falha (exit 1) se:
 //   R1  qualquer .md dentro de cowork/        (knowledge = canon: memory/ + prototipo-ui root, não aqui)
 //   R2  bundle datado prototipo-ui/cowork-*/  (SSOT é UM cowork/, sem datados = sem 2ª fonte)

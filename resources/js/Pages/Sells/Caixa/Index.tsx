@@ -3,7 +3,7 @@
 // com /cash-register/* Blade legacy (decisão Wagner 2026-05-25 ~15h, pattern
 // Cliente Wave A-G drawer 760 · rollback trivial).
 // Refs:
-//  - prototipo-ui/vendas-extras.jsx · função VendasCaixaPage (linhas 123-354)
+//  - prototipo-ui/cowork/vendas-extras.jsx · função VendasCaixaPage (linhas 123-354)
 //  - memory/requisitos/Sells/Caixa-r1-visual-comparison.md (15 dimensões)
 //  - resources/js/Pages/Sells/Caixa/Index.charter.md (rascunho)
 //  - ADR 0192 · 0104 MWART · 0107 visual gate · 0114 Cowork loop · 0143 FSM

@@ -24,7 +24,7 @@ related_adrs:
   - 0189-pageheader-canon-v3-1-cadastro-roxo
   - 0190-primary-button-roxo-universal-295
   - 0192-auto-faturar-os-venda-jobsheet-observer
-visual_source: prototipo-ui/vendas-page.jsx + KB-9.75 batch Cowork (2026-05-25 → 2026-05-26)
+visual_source: prototipo-ui/cowork/vendas-page.jsx + KB-9.75 batch Cowork (2026-05-25 → 2026-05-26)
 canon_method: Cowork KB-9.75 + Unificação tabs Visão (ADR 0178) + Integração Vendas × Oficina (ADR 0192) + Emit modais + BulkActionBar + saved view Aguardando faturamento (PRs #1641 / #1644 / #1648 / #1649)
 ---
 

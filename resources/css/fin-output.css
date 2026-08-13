@@ -1,12 +1,12 @@
 /* SCOPED-OK */ - escopo .fin-cowork aplicado por scripts/scope-fin-cowork-css.py
 /* fin-output.css — Cowork KB-9.75 Financeiro Onda 7 R3 Guia + Cross-link
  *
- * Tokens portados de prototipo-ui/styles.css (Refino #3).
+ * Tokens portados de prototipo-ui/cowork/styles.css (Refino #3).
  * Escopados em .fin-curadoria (wrapper compartilhado Onda 5/6/7).
  *
  * Refs:
- *   - prototipo-ui/financeiro-output.jsx
- *   - prototipo-ui/vendas-curation.jsx VdLinkify (cross-link pattern)
+ *   - prototipo-ui/cowork/financeiro-output.jsx
+ *   - prototipo-ui/cowork/vendas-curation.jsx VdLinkify (cross-link pattern)
  */
 /* ─────────────────────────────────────────────────────────────
  * Cross-linkify pills — #V- #BL- #PC- #OS- #R- #P-

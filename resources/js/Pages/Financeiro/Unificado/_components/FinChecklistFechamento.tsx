@@ -2,7 +2,7 @@
 // (trilha 12 passos do fechamento mensal · checkbox + progress + persist).
 //
 // Refs:
-//  - prototipo-ui/financeiro-output.jsx — FinChecklistFechamento (canonical)
+//  - prototipo-ui/cowork/financeiro-output.jsx — FinChecklistFechamento (canonical)
 //
 // Storage: localStorage[oimpresso.financeiro.fechamento.{YYYY-MM}] = { stepId: when }
 // 12 passos canônicos do fechamento do mês — pode evoluir pra backend audit

@@ -2,7 +2,7 @@
 // (thread de comentários por lançamento — Eliana ↔ Wagner ↔ Bruna).
 //
 // Refs:
-//  - prototipo-ui/financeiro-curation.jsx — useFinComments + FinCommentsThread
+//  - prototipo-ui/cowork/financeiro-curation.jsx — useFinComments + FinCommentsThread
 //  - SaleItemComments.tsx pattern (canon localStorage Sells Onda 3)
 //
 // Storage: localStorage[oimpresso.financeiro.comments] = { rowId: [{author, text, when}] }
