@@ -739,6 +739,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** **doc que a máquina LÊ é código com cara de doc** — mudança nele não se valida revisando o texto, se valida **rodando o consumidor com a mudança aplicada** e olhando o que ele passa a dizer. Vale pra frontmatter de `SCOPE.md`/charter/casos, baseline JSON de catraca, `gates-registry.json`, `modules_statuses.json`, `phpunit.xml`, `quarantine.list` e qualquer YAML de workflow. O teste é **antes→depois da saída do consumidor**, nunca "o texto ficou correto". Corolário que generaliza o agravante: **antes de propor preencher um campo, medir a ADOÇÃO dele** — campo com adoção de 1/32, sem schema e sem gate não é "o slot certo pouco usado", é sinal de que o slot certo é outro. E o corolário de leitura: quando a máquina **imprime as opções** na mensagem de erro, essa lista é especificação, não decoração.
 
+### 2026-08-13 — `git checkout <ref> -- <path>` sobre working tree sujo: come o não-commitado sem aviso (2× no MESMO dia, a 2ª DEPOIS de eu escrever a lápide da 1ª)
+
+- **O limite (variante também proibida):** para levar trabalho entre branches, **commite primeiro** e use `cherry-pick` — nunca `checkout <ref> -- <path>`. E antes de qualquer `checkout`/`restore` que aponte para um path, **rode `git status --short <path>`**: se houver `M`/`A`, o comando vai destruir aquilo. Vale igual pra `git restore --source`, `git checkout .` e `git reset --hard` (este último já barrado pelo `block-destructive` quando aponta pra remote — a família é a mesma, só a porta é outra). Corolário do terceiro caso: **`checkout -- <path>` sobre arquivo untracked é NO-OP silencioso** — reverter untracked exige `rm`/`git clean`, e "rodou sem erro" não é "reverteu".
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:

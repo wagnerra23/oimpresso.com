@@ -39,6 +39,7 @@
 
 import { readFileSync, readdirSync, statSync, writeFileSync, appendFileSync, existsSync } from 'node:fs';
 import { join, sep } from 'node:path';
+import { raizesDePages, pageNamespacePath } from './page-path.mjs';
 
 const ROOT = process.cwd();
 const PAGES_DIR = join(ROOT, 'resources', 'js', 'Pages');
@@ -155,10 +156,21 @@ function coletaFrota(hoje = new Date()) {
   }
 
   // 2. Telas reais → junta scorecard (ou pior-caso) + contrato ao lado.
+  //
+  // Desde o PR #5686 as Pages moram em DUAS raízes (núcleo + `Modules/<X>/Resources/js/Pages`).
+  // Varrer só o núcleo apagava 5 módulos INTEIROS do prontuário — Atendimento, Forja, team-mcp,
+  // ads e Settings sumiam da lista (38 → 33), e `Site` caía de 7 para 2. Nada disso dava erro:
+  // o módulo simplesmente deixava de existir para a frota, com nota, frescor e fila junto.
+  //
+  // O `mod` também não podia continuar saindo de `rel.split(sep)[3]` — esse índice pressupõe a
+  // profundidade do núcleo (`resources/js/Pages/<Mod>`) e no módulo o namespace está em outra
+  // posição. `pageNamespacePath` remove QUALQUER uma das raízes e devolve `<Ns>/...`, então o
+  // namespace é sempre o primeiro segmento — sem contar pasta na mão.
   const telas = [];
-  for (const abs of walk(PAGES_DIR, isScreen)) {
+  for (const abs of raizesDePages(ROOT).flatMap((raiz) => walk(raiz, isScreen))) {
     const rel = abs.slice(ROOT.length + 1);
-    const mod = rel.split(sep)[3]; // resources/js/Pages/<Mod>/...
+    const nsPath = pageNamespacePath(rel); // `<Ns>/<...>.tsx`, independente da raiz
+    const mod = nsPath.split('/')[0];
     if (!mod || !mod.length) continue;
     const classe = classeDoModulo(mod);
     const sc = porPath.get(rel) || null;
@@ -166,7 +178,7 @@ function coletaFrota(hoje = new Date()) {
     const stale = isStale(idade, classe);
     const nota = sc ? sc.nota : null;
     telas.push({
-      screen: sc ? sc.screen : rel.replace(/^resources[\\/]js[\\/]Pages[\\/]/, '').replace(/\.tsx$/, '').replace(/\\/g, '/'),
+      screen: sc ? sc.screen : nsPath.replace(/\.tsx$/, ''),
       mod,
       classe,
       nota,

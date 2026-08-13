@@ -61,6 +61,11 @@ import { join } from 'node:path';
 import { execSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { PAGES_NS } from './module-surface.mjs';
+import { raizesDePages } from '../qa/page-path.mjs';
+// Detector de history truncada — DONO: sdd-scorecard.mjs (nasceu lá no incidente de
+// 2026-07-08). Importado, não copiado: segundo detector do mesmo fato drifta.
+// Import é seguro — aquele módulo só roda o CLI sob guard `isMain`.
+import { isShallowHistory } from './sdd-scorecard.mjs';
 
 const ROOT = process.cwd();
 const args = process.argv.slice(2);
@@ -80,8 +85,32 @@ function readJson(p) {
 /** Índice normalizado (só a-z0-9) — casa mesmo-nome com casing/hífen diferente. */
 const normKey = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
 
-/** Data do último commit que tocou um path (%cs, ISO curta) — frescor REAL, não declarado. */
-function gitLastDate(relPath) {
+/**
+ * Data do último commit que tocou um path (%cs, ISO curta) — frescor REAL, não declarado.
+ *
+ * ⚠️ GUARD ANTI-FABRICAÇÃO (cinto + suspensório com o `fetch-depth: 0` do workflow).
+ * Num checkout RASO o `git log -1 -- <path>` só enxerga o commit da vez, então TODO
+ * arquivo volta datado do dia da run — e o número sai sempre plausível, que é o que
+ * torna a mentira invisível. Foi o que aconteceu: o artefato publicado trazia
+ * `last_commit: 2026-08-12` em bloco quando a verdade era 08-07 / 08-05 / 07-23…
+ *
+ * A mesma doença mordeu o `sdd-scorecard` em 2026-07-08→12 (o publish rodava com
+ * fetch-depth default), foi diagnosticada lá e a defesa ficou SÓ lá. Aqui a gente
+ * REUSA aquele detector — mais fino que `--is-shallow-repository` cru: só considera
+ * raso quando um boundary do `.git/shallow` é ANCESTRAL do HEAD (senão uma órfã tipo
+ * nightly-floor daria falso-positivo).
+ *
+ * Em clone raso devolve `null` (= "não medido"), NUNCA uma data inventada. Ausência
+ * de medição não é ausência de frescor — e é honesta.
+ *
+ * @param {string} relPath
+ * @param {{raso?:boolean}} [opts] `raso` injetável SÓ pro bite-test — guard que não
+ *   pode ser exercitado é promessa, não defesa (§5 LC-15).
+ */
+const REPO_RASO = isShallowHistory();
+
+export function gitLastDate(relPath, { raso = REPO_RASO } = {}) {
+  if (raso) return null;
   try {
     const out = execSync(`git log -1 --format=%cs -- "${relPath}"`, {
       cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'],
@@ -121,8 +150,41 @@ export function graphSignals(moduleId, edges, nodeIds) {
  * PURA: não lê fs nem git; recebe tudo. `deps.hasPagesDir(ns)` e `deps.briefingInfo(mod)` são
  * injetados (o main passa as versões reais; o teste passa stubs).
  * @param {{catalog:any, gradesDoc:any, vitalDoc:any}} src
- * @param {{pagesNs:Record<string,string>, hasPagesDir:(ns:string)=>boolean, scopeExists:(rel:string)=>boolean, briefingInfo:(mod:string)=>{present:boolean,last_commit:string|null}}} deps
+ * @param {{pagesNs:Record<string,string|string[]>, hasPagesDir:(ns:string|string[])=>boolean, scopeExists:(rel:string)=>boolean, briefingInfo:(mod:string)=>{present:boolean,last_commit:string|null}}} deps
  */
+/**
+ * Junta as linhas de vital-signs dos N namespaces de UM módulo numa só.
+ * Cada campo agrega pela sua natureza — somar nota seria tão errado quanto ignorar o 2º namespace:
+ *   contagem → soma · nota/percentual → média PONDERADA por telas (tela pesa igual, não namespace)
+ *   nota_min → mínimo (e `pior_tela` vem de quem tem esse mínimo) · stale → OR · idade → máximo
+ * Devolve `undefined` para lista vazia (o chamador trata como "sem tela").
+ * @param {any[]} vs
+ */
+export function agregaVitals(vs) {
+  if (!vs.length) return undefined;
+  if (vs.length === 1) return vs[0];
+  const telas = vs.reduce((a, v) => a + (v.telas || 0), 0);
+  const pond = (campo) => {
+    const comPeso = vs.filter((v) => typeof v[campo] === 'number' && v.telas > 0);
+    if (!comPeso.length) return null;
+    const peso = comPeso.reduce((a, v) => a + v.telas, 0);
+    return peso ? Math.round(comPeso.reduce((a, v) => a + v[campo] * v.telas, 0) / peso) : null;
+  };
+  const comMin = vs.filter((v) => typeof v.nota_min === 'number');
+  const pior = comMin.length ? comMin.reduce((a, b) => (a.nota_min <= b.nota_min ? a : b)) : null;
+  return {
+    telas,
+    com_scorecard: vs.reduce((a, v) => a + (v.com_scorecard || 0), 0),
+    nota_media: pond('nota_media'),
+    nota_min: pior ? pior.nota_min : null,
+    pior_tela: pior ? pior.pior_tela : null,
+    charter_pct: pond('charter_pct'),
+    casos_pct: pond('casos_pct'),
+    stale: vs.some((v) => v.stale),
+    idade_max_dias: vs.reduce((a, v) => Math.max(a, v.idade_max_dias ?? 0), 0) || null,
+  };
+}
+
 export function buildDoc(src, deps) {
   const { catalog, gradesDoc, vitalDoc } = src;
   const { pagesNs, hasPagesDir, scopeExists, briefingInfo } = deps;
@@ -139,31 +201,48 @@ export function buildDoc(src, deps) {
 
   function buildService(node) {
     const mod = node.module;
-    const ns = pagesNs[mod] || mod;
+    // PAGES_NS virou 1:N quando as Pages passaram a morar no módulo dono (PR #5686): um módulo
+    // pode responder por mais de um namespace (Whatsapp → ['Whatsapp','Atendimento']). Normaliza
+    // para lista SEMPRE; o primeiro é o canônico (identidade e mensagem), os demais são alternativas
+    // de lookup. Sem isso, `vitalByNs.get(<array>)` devolve undefined em SILÊNCIO e o módulo é
+    // classificado como backend-only — o crash em join() era só a metade barulhenta do defeito.
+    const nsLista = Array.isArray(pagesNs[mod]) ? pagesNs[mod] : [pagesNs[mod] || mod];
+    const ns = nsLista[0];
 
     // ── qualidade (module-grade — REUSA, não recalcula) ──
     const gradeVal = typeof grades[mod] === 'number' ? grades[mod] : null;
 
     // ── tela (vital-signs: PAGES_NS direto → normalização EXATA de fallback) ──
-    let v = vitalByNs.get(ns);
-    let vNs = ns;
+    //
+    // AGREGA todos os namespaces do módulo — não para no primeiro que casa.
+    //
+    // A 1ª versão deste laço tinha `break` no primeiro hit, e isso SUBCONTAVA quando os DOIS
+    // namespaces existiam no vital-signs: `Whatsapp` casava com `Whatsapp` (3 telas) e
+    // `Atendimento` (8) caía na lista de "namespace órfão, sem serviço no catálogo" — o módulo
+    // publicava 3 de 11. Idem `Forja` 12 de 17 (perdia `team-mcp`) e `Cms`, que saía
+    // `backend_only` tendo 4 telas em `Site`. O `break` só acertava o caso em que o primeiro
+    // namespace não tinha linha (PaymentGateway → Settings).
+    const achados = nsLista.map((cand) => ({ cand, v: vitalByNs.get(cand) })).filter((x) => x.v);
     let via = 'direto';
-    if (!v) {
+    if (!achados.length) {
       const cand = vitalByNorm.get(normKey(mod));
-      if (cand && cand !== ns) { v = vitalByNs.get(cand); vNs = cand; via = 'normalizado'; }
+      const hit = cand && !nsLista.includes(cand) ? vitalByNs.get(cand) : null;
+      if (hit) { achados.push({ cand, v: hit }); via = 'normalizado'; }
     }
-    const hasDir = hasPagesDir(ns);
+    const v = agregaVitals(achados.map((a) => a.v));
+    const vNs = achados.length ? achados.map((a) => a.cand).join(' + ') : ns;
+    const hasDir = hasPagesDir(nsLista);
     let screens;
     let unmatchedScreenDir = false;
     if (v) {
-      consumedNs.add(vNs);
+      for (const a of achados) consumedNs.add(a.cand); // todos consumidos → nenhum vira órfão falso
       screens = {
         matched: true, ns: vNs, via, telas: v.telas, com_scorecard: v.com_scorecard,
         nota_media: v.nota_media, nota_min: v.nota_min, pior_tela: v.pior_tela,
         charter_pct: v.charter_pct, casos_pct: v.casos_pct, stale: v.stale, idade_max_dias: v.idade_max_dias,
       };
     } else if (hasDir) {
-      screens = { matched: false, ns, note: `dir resources/js/Pages/${ns} existe mas sem linha em vital-signs — gap` };
+      screens = { matched: false, ns, note: `dir de Pages para '${nsLista.join("' ou '")}' existe (núcleo ou módulo dono) mas sem linha em vital-signs — gap` };
       unmatchedScreenDir = true;
     } else {
       screens = { matched: false, ns, backend_only: true, note: 'sem superfície de tela (backend-only) — n/a, não é falha' };
@@ -243,7 +322,12 @@ function buildFromDisk() {
   const catalog = readJson(CATALOG_PATH);
   const gradesDoc = readJson(GRADES_PATH);
   const vitalDoc = readJson(VITAL_PATH);
-  const hasPagesDir = (ns) => existsSync(join(ROOT, 'resources', 'js', 'Pages', ns));
+  // As Pages moram em DUAS raízes desde o PR #5686 (núcleo + `Modules/<X>/Resources/js/Pages`).
+  // `raizesDePages` é o dono dessa lista — não reimplementar a segunda raiz aqui.
+  const hasPagesDir = (nss) => {
+    const lista = Array.isArray(nss) ? nss : [nss];
+    return raizesDePages(ROOT).some((raiz) => lista.some((n) => existsSync(join(raiz, n))));
+  };
   const scopeExists = (rel) => existsSync(join(ROOT, rel));
   const briefingInfo = (mod) => {
     const rel = `memory/requisitos/${mod}/BRIEFING.md`;

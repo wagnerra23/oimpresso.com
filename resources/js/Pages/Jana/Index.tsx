@@ -77,10 +77,13 @@ function farolDaMeta(meta: Meta): Farol {
   return meta.farol ?? 'cinza'
 }
 
+// Tokens semânticos, não escala crua: mesma semântica (bom/atenção/ruim), com o
+// hue do sistema — e o dark passa a herdar via token em vez de ficar preso no
+// tom claro da paleta Tailwind.
 const FAROL_CLASSES: Record<string, string> = {
-  verde:    'bg-emerald-500',
-  amarelo:  'bg-amber-400',
-  vermelho: 'bg-rose-500',
+  verde:    'bg-success',
+  amarelo:  'bg-warning',
+  vermelho: 'bg-destructive',
   cinza:    'bg-muted-foreground/30',
 }
 
@@ -192,21 +195,21 @@ function JanaKpiStrip() {
       label: 'Memória ativa',
       value: '—',
       hint: 'facts indexados',
-      tone: 'text-violet-500',
+      tone: 'text-primary',
     },
     {
       icon: Clock,
       label: 'Última conversa',
       value: '—',
       hint: 'aguardando contexto',
-      tone: 'text-sky-500',
+      tone: 'text-primary',
     },
     {
       icon: Zap,
       label: 'Brain B hoje',
       value: '0/50',
       hint: 'orçamento diário',
-      tone: 'text-amber-500',
+      tone: 'text-primary',
     },
   ]
 
@@ -215,7 +218,7 @@ function JanaKpiStrip() {
       {kpis.map(({ icon: Icon, label, value, hint, tone }) => (
         <Card key={label} className="border-muted/60">
           <CardContent className="flex items-center gap-3 p-4">
-            <div className={`rounded-full bg-muted/40 p-2 ${tone}`}>
+            <div className={`rounded-full bg-primary/10 p-2 ${tone}`}>
               <Icon className="h-5 w-5" aria-hidden="true" />
             </div>
             <div className="min-w-0 flex-1">
@@ -233,11 +236,14 @@ function JanaKpiStrip() {
 function ProximaAcaoCard() {
   // Mock pra demo — Brain B vai preencher próxima ação sugerida
   return (
-    <Card className="border-violet-500/20 bg-gradient-to-br from-violet-500/5 via-transparent to-fuchsia-500/5">
+    // Mesmo tratamento do brief no JanaCockpit: tint OPACO sobre a superfície de
+    // card. O gradiente translúcido de 3 paradas compunha sobre o fundo da página
+    // (dark: oklch 0.26, mais escuro que um card 0.30) e o bloco afundava.
+    <Card className="border-primary/25 bg-[color:color-mix(in_oklch,var(--color-primary)_6%,var(--color-card))]">
       <CardHeader className="pb-2">
         <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-violet-500" />
-          <CardTitle className="text-sm font-medium text-violet-700 dark:text-violet-300">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <CardTitle className="text-sm font-medium text-primary">
             Próxima ação sugerida
           </CardTitle>
         </div>
@@ -306,10 +312,10 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Badge
-                className="border-0 bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 text-white shadow-sm"
-                aria-label="Versão Jana V2"
-              >
+              {/* Badge sólido em `primary`. Era um gradiente de 3 paradas
+                  (violet→fuchsia→pink) — paleta inventada, fora do sistema de
+                  token e sem par no dark. Não vira "gradiente de token": some. */}
+              <Badge aria-label="Versão Jana V2">
                 <Sparkles className="mr-1 h-3 w-3" aria-hidden="true" />
                 METAS
               </Badge>
@@ -348,8 +354,8 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
         {metas.length === 0 ? (
           <Card className="border-dashed">
             <CardContent className="flex flex-col items-center justify-center gap-4 py-12 text-center">
-              <div className="rounded-full bg-violet-500/10 p-4">
-                <Sparkles className="h-10 w-10 text-violet-500" aria-hidden="true" />
+              <div className="rounded-full bg-primary/10 p-4">
+                <Sparkles className="h-10 w-10 text-primary" aria-hidden="true" />
               </div>
               <div className="space-y-1">
                 <p data-contract="painel-metas-vazio" className="text-base font-medium">Nenhuma meta cadastrada ainda</p>

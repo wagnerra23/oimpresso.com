@@ -29,6 +29,7 @@
 import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { execSync } from 'node:child_process';
+import { raizesDePages } from '../qa/page-path.mjs';
 
 const ROOT = process.cwd();
 const JSON_OUT = process.argv.includes('--json');
@@ -117,7 +118,11 @@ function touchedCharters() {
 }
 
 // --- análise ---
-const charters = walkCharters(join(ROOT, PAGES_DIR)).sort();
+// Desde o PR #5686 as Pages moram em DUAS raízes (núcleo + `Modules/<X>/Resources/js/Pages`).
+// Varrer só o núcleo media 172 charters de 209 — e o buraco não era só de contagem: o
+// `touched` filtra por `.charter.md` sem olhar raiz, então um charter NOVO dentro de um módulo
+// nunca entrava no universo e o `--check` não podia bloqueá-lo. Gate furado, não só cego.
+const charters = raizesDePages(ROOT).flatMap((raiz) => walkCharters(raiz)).sort();
 const touched = CHECK ? touchedCharters() : new Set();
 
 let semUs = 0;
