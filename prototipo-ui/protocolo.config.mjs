@@ -65,8 +65,17 @@ export const PROJETOS = {
 };
 
 // ── PATHS FIXOS (as âncoras do protocolo dependem destes — RUNBOOK Fase −1) ─────
-// STAGING_DIR: 1 destino FIXO fora do repo, sobrescrito a cada import (path estável → âncoras não erram).
 // MIRROR_DIR: SSOT do design no repo, build-only (R1 do cowork-ssot-guard rejeita .md aqui).
+//
+// ⚠️ STAGING_DIR é LEGADO do caminho ZIP ([W] 2026-08-13: "não existe mais zip"). Continua
+// exportado porque `render-proto-baseline.mjs` ainda o usa como default (com `args.staging ||`
+// na frente, então quem passa o path explícito não depende dele) — remover a constante hoje
+// quebraria esse consumidor sem ganho. Mas NÃO é destino de nada novo:
+//   · a catraca `ancora-guard` já lista `_cowork-handoff-staging` e `Downloads/` como LUGAR
+//     PROIBIDO pra âncora ([W] 2026-07-01: "não pode trocar de lugar nunca");
+//   · o destino do design versionado é MIRROR_DIR, e o shell mora lá desde 2026-08-13.
+// Ler design de dentro do STAGING_DIR é reabrir a doença: o pacote de lá estava congelado em
+// 01/jul e conhecia 103 deps quando o vivo já tinha 120.
 export const STAGING_DIR = join(homedir(), 'Downloads', '_cowork-handoff-staging');
 export const MIRROR_DIR  = join(REPO_ROOT, 'prototipo-ui', 'cowork');
 
@@ -83,10 +92,20 @@ export const PREFLIGHT_GATES = [
 
 // ── MAPA FASE → comando(s) reais (o "painel" executável do RUNBOOK) ─────────────
 export const FASES = [
+  // ⚠️ FASE −1 RECONCILIADA ([W] 2026-08-13: "não existe mais zip, é direto o protocolo").
+  // Este painel se declara "fonte única" e listava TRÊS caminhos como se fossem alternativas
+  // vivas. Não são: o ZIP é o caminho MORTO. Estado medido no dia da reconciliação:
+  //   · `importar-bundle.mjs` — invocado em CI SÓ como `--selftest`; nenhum import real.
+  //   · `check-handoff.ps1 -Zip` — idem, sem invocador de produção.
+  //   · a skill `aplicar-prototipo` AINDA manda usar `importar-bundle.mjs "<zip>"` (dívida
+  //     conhecida, fica anotada aqui em vez de sumir).
+  // O canônico é o pull direto (ADR 0325) escrito por `--export-from` (ADR 0374, ratificada
+  // 2026-08-13). Os comandos de ZIP saem da lista de FASES — deletar os SCRIPTS é poda de
+  // capacidade, decisão [W], e não se faz de lado dentro de uma reconciliação de redação.
   { fase: '-1', nome: 'Importar/baixar o design', comandos: [
-      'DesignSync.get_file(projectId=COWORK_PROJECT_ID, path=<âncora>) → STAGING_DIR   # pull direto, agente logado (ADR 0325)',
-      'node prototipo-ui/importar-bundle.mjs "<zip>"                                    # fallback bundle cheio',
-      'pwsh prototipo-ui/check-handoff.ps1 -Zip <zip>                                   # portão barato "mudou?"',
+      'DesignSync.get_file(projectId=COWORK_PROJECT_ID, path=<âncora>)                  # pull direto, agente logado (ADR 0325)',
+      'node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir-jsons>     # escreve o raw.content no espelho (ADR 0374 — transcrever à mão é PROIBIDO)',
+      'node scripts/governance/cowork-mirror-freshness.mjs --snapshot-from <dir> --emit-snapshot <s>  # MEDIR sem consertar (antes do export)',
     ], selftest: 'node prototipo-ui/handoff-changed.mjs --selftest' },
   { fase: '0/0.5', nome: 'Detectar + manifesto', comandos: [
       'node prototipo-ui/detectar-telas.mjs --staging <dir> --json --strict',

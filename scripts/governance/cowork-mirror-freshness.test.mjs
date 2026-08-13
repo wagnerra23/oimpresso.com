@@ -460,6 +460,26 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
   check('lerShellHtml devolve CONTEÚDO (não o caminho) — a confusão que quebrou o wire',
     typeof lerShellHtml === 'function' && (lerShellHtml(tmp) || '').includes('<script'));
 
+  // ── MEDIR ≠ CONSERTAR (resíduo da tautologia, 2026-08-13) ───────────────────
+  // Enquanto `--emit-snapshot` só existia dentro do `--export-from`, a pergunta do [W]
+  // ("se eu alterar o protótipo, ele vê?") era irrespondível: o export escreve antes de
+  // medir, então a resposta era SYNC por construção. O `--snapshot-from` mede sem tocar
+  // no espelho. Os 3 asserts abaixo são o contrato: DETECTA · NÃO ESCREVE · MORDE.
+  writeFileSync(join(mirror, 'x.jsx'), 'ESPELHO ANTIGO\n');
+  const dirVivo = join(tmp, 'vivo-alterado');
+  mkdirSync(dirVivo);
+  writeFileSync(join(dirVivo, 'x.json'), JSON.stringify({ path: 'x.jsx', content: 'W ALTEROU NO COWORK\n' }));
+  const snapMed = join(tmp, 'medicao.json');
+  const med = run(['--snapshot-from', dirVivo, '--emit-snapshot', snapMed]);
+  check('--snapshot-from DETECTA que o vivo divergiu', /DIVERGE/.test(med.out) && med.code === 0);
+  check('--snapshot-from NÃO escreve no espelho (medir ≠ consertar)',
+    readFileSync(join(mirror, 'x.jsx'), 'utf8') === 'ESPELHO ANTIGO\n');
+  const vered = run(['--compare', snapMed, '--check']);
+  check('veredito do snapshot de MEDIÇÃO é STALE e morde (exit 1)',
+    vered.code === 1 && /STALE/.test(vered.out));
+  check('snapshot de medição se declara `_origin: medicao` (o ledger não o confunde com export)',
+    JSON.parse(readFileSync(snapMed, 'utf8'))._origin === 'medicao');
+
   rmSync(tmp, { recursive: true, force: true });
 }
 

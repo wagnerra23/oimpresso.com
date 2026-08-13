@@ -62,7 +62,6 @@ import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdirSy
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
-import { homedir } from 'node:os';
 import { anchorRelPath } from './anchor-content-check.mjs'; // fonte única: como extrair o path do related_prototype
 
 const ROOT = process.cwd();
@@ -319,12 +318,14 @@ export function lerShellHtml(root = ROOT) {
 export function defaultShellPath(root = ROOT) {
   const noRepo = join(root, 'prototipo-ui', 'cowork', 'oimpresso.com.html');
   if (existsSync(noRepo)) return noRepo;
-  const base = join(homedir(), 'Downloads', '_cowork-handoff-staging');
-  if (!existsSync(base)) return null;
-  for (const e of readdirSync(base)) {
-    const p = join(base, e, 'project', 'oimpresso.com.html');
-    if (existsSync(p)) return p;
-  }
+  // Sem fallback pro `~/Downloads/_cowork-handoff-staging` ([W] 2026-08-13: "não existe mais
+  // zip, é direto o protocolo"). O staging era o caminho do BUNDLE, e ele morreu duas vezes:
+  // a catraca `ancora-guard` já lista `_cowork-handoff-staging` e `Downloads/` como LUGAR
+  // PROIBIDO ([W] 2026-07-01 "não pode trocar de lugar nunca. deve ser isso que fica errando"),
+  // e a rota canônica hoje é `get_file` → `--export-from` (ADR 0374, ratificada 2026-08-13).
+  // Ler o shell de lá reintroduzia exatamente a doença que motivou versioná-lo: o staging
+  // estava congelado em 01/jul e conhecia 103 deps quando o vivo já tinha 120.
+  // Sem shell no espelho, o certo é dizer que não há — não achar um velho fora do git.
   return null;
 }
 
@@ -570,6 +571,53 @@ function main() {
     console.log(`  destino: ${plano.destino}/ — segue gitignored (build de preview, não versionamento).`);
     if (faltando.length) console.log(`  ⚠ o que falta o repo NÃO TEM: são componentes compilados do DS, e o código do protótipo tem fallback pra eles.`);
     console.log('');
+    return;
+  }
+
+  // ── --snapshot-from <dir>: MEDIR SEM CONSERTAR (2026-08-13) ──────────────────
+  // A tautologia consertada no PR #5754 tinha um resíduo: `--emit-snapshot` só existia
+  // ACOPLADO ao `--export-from`, que escreve o espelho antes de medir. Enquanto medir e
+  // consertar forem o mesmo comando, a pergunta "o vivo mudou?" é irrespondível — a
+  // resposta é SYNC por construção, e o `_stalePreExport` é só um consolo a posteriori.
+  // Aqui o snapshot sai dos MESMOS JSONs, com os MESMOS hashes, e o espelho não é tocado:
+  // o `--compare` seguinte dá o veredito REAL. Ordem certa do ciclo:
+  //   1) get_file → JSONs      2) --snapshot-from  (mede)      3) --compare --check
+  //   4) só então --export-from (conserta), se o veredito pedir.
+  const snapFromIdx = argv.indexOf('--snapshot-from');
+  if (snapFromIdx !== -1) {
+    const dir = argv[snapFromIdx + 1];
+    if (!dir || !existsSync(dir)) {
+      console.error('✗ --snapshot-from exige um diretório com os JSONs do get_file.');
+      process.exit(2);
+    }
+    const outIdx = argv.indexOf('--emit-snapshot');
+    const out = outIdx !== -1 ? argv[outIdx + 1] : null;
+    if (!out) {
+      console.error('✗ --snapshot-from exige --emit-snapshot <arquivo> (é o que ele produz).');
+      process.exit(2);
+    }
+    const snap = {};
+    let n = 0, tocaria = 0;
+    for (const j of readdirSync(dir).filter((f) => f.endsWith('.json') || f.endsWith('.txt'))) {
+      const raw = JSON.parse(readFileSync(join(dir, j), 'utf8'));
+      if (!raw.path || typeof raw.content !== 'string') {
+        console.error(`✗ ${j}: JSON do get_file precisa ter .path e .content — pulado.`);
+        process.exit(2);
+      }
+      const h = contentHash(raw.content);
+      snap[raw.path] = h;
+      n++;
+      // pré-visão honesta: compara com o disco SEM escrever, só pra o log não mentir
+      const abs = join(ROOT, 'prototipo-ui', 'cowork', raw.path);
+      const local = existsSync(abs) ? contentHash(readFileSync(abs, 'utf8')) : null;
+      const nota = local === null ? 'AUSENTE' : local === h ? 'igual' : 'DIVERGE';
+      if (nota !== 'igual') tocaria++;
+      console.log(`  ${nota.padEnd(8)} ${raw.path}  (${h.slice(0, 12)})`);
+    }
+    writeFileSync(out, JSON.stringify({ _origin: 'medicao', ...snap }, null, 2) + '\n');
+    console.log(`\n✓ snapshot de MEDIÇÃO em ${out} (${n} entrada(s)) — o espelho NÃO foi tocado.`);
+    console.log(`  ${tocaria} arquivo(s) divergem ou faltam. Veredito formal: --compare ${out} --check --ledger`);
+    if (tocaria) console.log(`  Pra consertar DEPOIS de ver o veredito: --export-from ${dir}`);
     return;
   }
 
