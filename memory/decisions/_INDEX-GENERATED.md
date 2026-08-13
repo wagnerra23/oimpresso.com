@@ -7,7 +7,7 @@
 ## Resumo
 - **382** arquivos · **367** números únicos · máx **0377**
 - **ADRs ATIVOS (lifecycle ativo): 344** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 345 · superseded 16 · deprecated 12 · proposto 7 · rascunho 1 · recusado 1
+- Por status: aceito 346 · superseded 16 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 344 · arquivado 22 · substituido 16
 - Sem frontmatter (formato-tabela legado): 0
 
@@ -416,7 +416,7 @@ _(nenhuma)_
 | 0371 | aceito | ativo | decision | Deploy Hostinger — o `git reset` no servidor não é atômico com o build: sob raja |
 | 0372 | aceito | ativo | decision | Emenda à 0094 — princípio 9 (Audit Card): decisão automatizada que afeta titular |
 | 0373 | aceito | ativo | decision | Emenda à 0314 — screen-grades-ratchet a required: exceção soberana [W] com a DR- |
-| 0374 | proposto | ativo | decision | Emenda à 0315 — espelhar o projeto Cowork para `prototipo-ui/cowork/` é a rota P |
+| 0374 | aceito | ativo | decision | Emenda à 0315 — espelhar o projeto Cowork para `prototipo-ui/cowork/` é a rota P |
 | 0375 | aceito | ativo | decision | SCOPE.md e LICOES-OPERACAO.md saem de Modules/ para memory/requisitos/ |
 | 0376 | aceito | ativo | decision | §5 vira DERIVADO — o limite fica no contexto, a arqueologia sai para memory/lico |
 | 0377 | aceito | ativo | decision | Emenda à 0094 — append-only de ADR canon admite exceção por label `adr-body-edit |
