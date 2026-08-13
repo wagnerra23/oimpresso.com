@@ -33,8 +33,8 @@ use Modules\Jana\Entities\MetaApuracao;
 use Modules\Jana\Entities\MetaFonte;
 use Modules\Jana\Entities\MetaPeriodo;
 use Modules\Jana\Entities\Sugestao;
-use Modules\Jana\Scopes\ScopeByBusiness;
-use Modules\Jana\Scopes\ScopeByBusinessViaParent;
+use App\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusinessViaParent;
 
 uses(Tests\TestCase::class);
 

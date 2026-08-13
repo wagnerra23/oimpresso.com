@@ -17,8 +17,8 @@ use Modules\Essentials\Entities\EssentialsUserShift;
 use Modules\Essentials\Entities\PayrollGroup;
 use Modules\Essentials\Entities\PayrollGroupTransaction;
 use Modules\Essentials\Entities\Shift;
-use Modules\Jana\Scopes\ScopeByBusiness;
-use Modules\Jana\Scopes\ScopeByBusinessViaParent;
+use App\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusinessViaParent;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 uses(Tests\TestCase::class);

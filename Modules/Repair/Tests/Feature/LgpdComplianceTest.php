@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 uses(Tests\TestCase::class);
 
@@ -39,13 +39,13 @@ it('PiiRedactor é resolvível via container Laravel (sanity)', function () {
 it('PiiRedactor redaciona CPF brasileiro em mensagem de exception Repair', function () {
     $redactor = app(PiiRedactor::class);
 
-    $input = 'falha update job_sheet contact CPF 123.456.789-09 device defeito X';
+    $input = 'falha update job_sheet contact CPF 123.456.789-09 device defeito X'; # pii-allowlist
     $output = $redactor->redact($input);
 
     expect($output)
         ->toContain('[REDACTED:CPF]')
         ->and($output)
-        ->not->toContain('123.456.789-09');
+        ->not->toContain('123.456.789-09'); # pii-allowlist
 });
 
 it('PiiRedactor redaciona email + telefone do cliente Repair', function () {
@@ -73,7 +73,7 @@ it('controller %s importa PiiRedactor (D7.a aplicação em logs exception)', fun
     $contents = file_get_contents($absolutePath);
 
     expect($contents)
-        ->toContain('use Modules\\Jana\\Services\\Privacy\\PiiRedactor;')
+        ->toContain('use App\\Support\\Privacy\\PiiRedactor;')
         ->and($contents)
         ->toContain('PiiRedactor::class');
 })->with('repair_controllers_with_pii_redactor');

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\Whatsapp\Services\Contacts;
 
 use Illuminate\Support\Facades\Cache;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\LidPhoneMap;
 
 /**

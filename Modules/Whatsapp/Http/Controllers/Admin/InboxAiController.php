@@ -138,7 +138,7 @@ class InboxAiController extends Controller
 
         // LGPD — CPF/CNPJ/PII nunca vão pro provider (reusa redactor canon da Jana)
         try {
-            return app(\Modules\Jana\Services\Privacy\PiiRedactor::class)->redact($lines);
+            return app(\App\Support\Privacy\PiiRedactor::class)->redact($lines);
         } catch (\Throwable) {
             // Fallback regex CPF/CNPJ (mesmo do LaravelAiSdkDriver legacy path)
             $lines = (string) preg_replace('/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/', 'XXX.XXX.XXX-NN', $lines);

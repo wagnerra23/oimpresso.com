@@ -47,12 +47,19 @@ beforeEach(function () {
     // Tenant canônico de teste — resolvido pela constante, NÃO fixado em 1.
     // O id literal aqui era dívida latente: o arranjo abaixo só funcionava porque o seed
     // do CI criava `business_locations` justamente para o tenant seedado. Quando o tenant
-    // saiu de 1 para 99, o biz=1 ficou sem location, o ramo de insert passou a rodar e
-    // estourou a FK `business_locations_invoice_scheme_id_foreign`.
-    // PHP 8.3+ transforma `Trait::CONST` em Error ("Cannot access trait constant
-    // directly") — constante de trait so e legivel pela classe que a USA. Reflection
-    // resolve mantendo a fonte unica da ADR 0358 (sem hardcode do 98). Padrao canonico
-    // ja documentado em Modules/KB/Tests/Unit/KbActAsUserTenantTest.php:73.
+    // saiu de 1 para 98 (ADR 0358 — o 99 é o SUPPORT_CLIENT_TENANT_ID, papel DIFERENTE:
+    // apontar os dois pro mesmo id faria agente e cliente virarem a mesma empresa e o
+    // cross-tenant ficaria verde sem provar isolamento), o biz=1 ficou sem location, o
+    // ramo de insert passou a rodar e estourou a FK
+    // `business_locations_invoice_scheme_id_foreign`.
+    // `Trait::CONST` e Error ("Cannot access trait constant directly") — constante de
+    // trait so e legivel pela classe que a USA. Reflection resolve mantendo a fonte
+    // unica da ADR 0358 (sem hardcode do 98). Padrao canonico ja documentado em
+    // Modules/KB/Tests/Unit/KbActAsUserTenantTest.php:73.
+    // Bite-test da regra, MEDIDO no PHP 8.4.22 do CT 100 (a versao que o CI roda):
+    // `K::C` (classe que usa o trait) = 98; `T::C` (nome do trait) -> Error.
+    // Foi o que derrubou os 2 testes deste arquivo entre 2026-07-28 (#4974) e o fix
+    // em main — eles nem chegavam a EXECUTAR (vermelho por nao-execucao).
     $tenantId = (int) (new \ReflectionClass(\Tests\Support\WithSeededTenant::class))
         ->getConstant('SEEDED_TENANT_ID');
 

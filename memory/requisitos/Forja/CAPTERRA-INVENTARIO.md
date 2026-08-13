@@ -18,7 +18,7 @@ source_spec: SPEC.md
 # CAPTERRA-INVENTÁRIO — Forja
 
 > **Reauditado 2026-08-04.** A redação anterior era de **2026-05-08** e estava ~3 meses stale: **9 das 24 capacidades subiram de bucket sem que ninguém reauditasse** — todas por trabalho que **já tinha shipado** entre maio e agosto, nenhuma por trabalho feito nesta reauditoria.
-> Fontes: [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (24 capacidades) + `Modules/Forja/` + `resources/js/Pages/Forja/`.
+> Fontes: [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (24 capacidades) + `Modules/Forja/` + `Modules/Forja/Resources/js/Pages/Forja/`.
 > ADR de governança: [0089](../../decisions/0089-capterra-driven-module-evolution.md). ADR mãe redesign: [0100](../../decisions/0100-projectmgmt-ui-redesign.md).
 > Detalhe por US vive no [SPEC.md](SPEC.md) — este doc **não** recopia critério de aceite.
 

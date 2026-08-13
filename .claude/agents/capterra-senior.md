@@ -116,13 +116,13 @@ O dogfood de `capterra-senior` em `Modules/Whatsapp` marcou C-007 multi-phone UI
 
 2. **Grep keywords da capacidade nos Pages Inertia:**
    ```
-   Grep "<ComponentName>|<keyword>" resources/js/Pages/<Mod>/ resources/js/Pages/Atendimento/
+   Grep "<ComponentName>|<keyword>" resources/js/Pages/<Mod>/ Modules/Whatsapp/Resources/js/Pages/Atendimento/
    ```
    Ex: `Grep "ChannelSelector|availableChannels" resources/js/Pages/`
 
 3. **Verificar componentes em `_components/` do módulo:**
    ```
-   ls resources/js/Pages/<Mod>/_components/ resources/js/Pages/Atendimento/<Mod>/_components/
+   ls resources/js/Pages/<Mod>/_components/ Modules/Whatsapp/Resources/js/Pages/Atendimento/<Mod>/_components/
    ```
 
 4. **Procurar marcadores de cycle/PR no código:**

@@ -98,14 +98,14 @@ Branch raiz: `feat/adr-0144-paymentgateway-ui` derivada de `main`.
 - Rename `prototipo-ui/.../Boletos/Index.charter.md` → `Cobranca/Index.charter.md` + atualizar
 
 **PR-2: Tela 2 Settings/PaymentGateways** (`/settings/payment-gateways`)
-- `resources/js/Pages/Settings/PaymentGateways/Index.tsx` — converter `pg-payment-gateways-page.jsx`
-- `resources/js/Pages/Settings/PaymentGateways/_components/` — DrawerGateway (4 tabs), SheetNovoGateway (3 steps), ConfirmToggleModal, CheatSheetSettings
+- `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.tsx` — converter `pg-payment-gateways-page.jsx`
+- `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/` — DrawerGateway (4 tabs), SheetNovoGateway (3 steps), ConfirmToggleModal, CheatSheetSettings
 - `Modules/PaymentGateway/Http/Controllers/PaymentGatewayController.php` — CRUD credenciais + health check + Spatie permission `paymentgateway.credenciais.*`
 - `Modules/PaymentGateway/Services/HealthCheckService.php` — roda health real por driver
 - Drivers concretos validam credenciais via `PaymentGatewayContract::healthCheck()` (já existe pela Onda 1)
 - Route `/settings/payment-gateways` middleware permission
 - Tests 8 Pest GUARDs (Tier 0 + Trust L3 audit toggle + masked secrets nunca em response)
-- Charter novo: `prototipo-ui/resources/js/Pages/Settings/PaymentGateways/Index.charter.md`
+- Charter novo: `prototipo-ui/Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.charter.md`
 
 **PR-3: Tela 3 drawer Vendas — chip cobrança** (`/sells/{id}` drawer)
 - `resources/js/Pages/Sells/_components/CobrancaChip.tsx` — chip variant 5 estados

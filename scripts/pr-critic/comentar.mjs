@@ -15,6 +15,25 @@ import { basename } from 'node:path';
 
 export const MARCADOR = '<!-- pr-critic-contrato -->';
 
+/**
+ * Marcador efetivo: `--marcador` quando dado, senão o do pr-critic (retrocompat).
+ *
+ * Generalizado em 2026-08-12: o upsert aqui já resolvia "1 comentário vivo por PR", mas só o
+ * pr-critic o usava. Medido no PR #5686: 27 comentários, 22 REDUNDANTES — `module-grades-gate`
+ * postou 15 (12 verdes idênticos) e `jana-ragas-gate` 7, cada run criando um novo. Além do
+ * ruído para quem lê, cada comentário dispara notificação e faz o agente reprocessar um gate
+ * que está VERDE.
+ */
+export function marcadorDe(argv = process.argv) {
+  const i = argv.indexOf('--marcador');
+  const v = i !== -1 ? argv[i + 1] : null;
+  if (!v) return MARCADOR;
+  if (!/^<!--\s*[a-z0-9-]+\s*-->$/i.test(v)) {
+    throw new Error(`marcador inválido: ${v} — use o formato <!-- nome-do-gate -->`);
+  }
+  return v;
+}
+
 function argVal(flag) {
   const i = process.argv.indexOf(flag);
   return i !== -1 ? process.argv[i + 1] : null;
@@ -34,10 +53,10 @@ async function gh(caminho, opts = {}) {
   return res.json();
 }
 
-async function acharComentarioExistente(repo, pr) {
+async function acharComentarioExistente(repo, pr, marcador = MARCADOR) {
   for (let page = 1; page <= 10; page++) {
     const lote = await gh(`/repos/${repo}/issues/${pr}/comments?per_page=100&page=${page}`);
-    const hit = lote.find((c) => typeof c.body === 'string' && c.body.includes(MARCADOR));
+    const hit = lote.find((c) => typeof c.body === 'string' && c.body.includes(marcador));
     if (hit) return hit;
     if (lote.length < 100) return null;
   }
@@ -52,7 +71,8 @@ async function main() {
     console.error('[comentar] faltando GITHUB_TOKEN / GITHUB_REPOSITORY / --pr');
     process.exit(1);
   }
-  const existente = await acharComentarioExistente(repo, pr);
+  const marcador = marcadorDe();
+  const existente = await acharComentarioExistente(repo, pr, marcador);
   if (existente) {
     await gh(`/repos/${repo}/issues/comments/${existente.id}`, { method: 'PATCH', body: JSON.stringify({ body }) });
     console.log(`[comentar] comentário ${existente.id} atualizado no PR #${pr}`);

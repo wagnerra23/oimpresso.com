@@ -61,13 +61,21 @@ export function lerCampos(content) {
     return m ? m[1].trim() : null;
   };
   const dm = /^decided_at:\s*["']?(\d{4}-\d{2}-\d{2})/m.exec(content || '');
-  // formalizada: a proposta aponta a LEI top-level que a realizou/substituiu — os 3 marcadores
-  // reais do corpus (auditoria #4034): resulting_adr (0283/0285/UI-0014) · realized_by (0304) ·
-  // superseded_by (baileys). Com marcador, o doc é registro histórico VISÍVEL via a ADR apontada.
+  // formalizada: a proposta aponta a LEI top-level que a realizou/substituiu — os 4 marcadores
+  // reais do corpus: resulting_adr (0283/0285/UI-0014) · realized_by (0304/0351/0364) ·
+  // superseded_by (baileys) · promoted_to (0345 ×2). Com marcador, o doc é registro histórico
+  // VISÍVEL via a ADR apontada.
+  // `promoted_to` ENTROU em 2026-08-11: a lista vinha da auditoria #4034, ANTERIOR às duas
+  // proposals de 2026-07-21 que usam esse nome (funcao-scorecard-opiniao-ancorada-rubrica e
+  // taxonomia-arquivos-modulo, ambas `promoted_to: 0345-topicos-vivos-...`, ADR que EXISTE e
+  // está `aceito`). Sem ele o Check A gritava "mover pro top-level" há ~21 dias sobre 2 docs
+  // já resolvidos — e mover teria DUPLICADO a 0345. Alarme que chora lobo é alarme que se
+  // aprende a ignorar. Medido no corpus (105 proposals, 2026-08-11): resulting_adr 3 ·
+  // realized_by 3 · superseded_by 1 · promoted_to 2 — FP zero, os 2 apontam ADR existente.
   // valor VAZIO não formaliza: `superseded_by: []` / `~` / `null` são placeholder de schema
   // (caso real: 0314 tem `superseded_by: []` — sem este filtro ela seria liberada do check B!).
   const vazio = new Set(['[]', '~', 'null', '""', "''", '-']);
-  const formalizada = ['resulting_adr', 'realized_by', 'superseded_by'].some((k) => {
+  const formalizada = ['resulting_adr', 'realized_by', 'superseded_by', 'promoted_to'].some((k) => {
     const v = (grab(k) || '').trim();
     return v.length > 0 && !vazio.has(v);
   });
@@ -181,6 +189,13 @@ function selftest() {
   eq('lerCampos comentário inline (0125)', lerCampos('---\nkind: feature-wish # era lifecycle feature_wish\n---').kind, 'feature-wish');
   // formalizada (fix pós-#4034): proposta decidida COM ponteiro pra lei top-level = registro histórico, não lei invisível.
   eq('lerCampos formalizada (0283)', lerCampos('---\nstatus: decided\nresulting_adr: "0283-handoff-loop-zero-paste"\n---').formalizada, true);
+  // promoted_to — 4º marcador do corpus (2026-08-11). BITE: o par real que o Check A
+  // acusava havia ~21 dias; mover teria duplicado a 0345.
+  eq('lerCampos formalizada (promoted_to 0345)', lerCampos('---\nstatus: accepted\npromoted_to: 0345-topicos-vivos-aprendizado-por-critica-revisada\n---').formalizada, true);
+  eq('libera A com promoted_to', classify({ emProposals: true, numerado: false, status: 'accepted', kind: '', decidedAt: null, hojeIso: H, formalizada: lerCampos('---\nstatus: accepted\npromoted_to: 0345-x\n---').formalizada }).check, null);
+  // CONTROLE NEGATIVO: marcador vazio não formaliza (mesmo filtro do superseded_by: [])
+  eq('promoted_to VAZIO não formaliza', lerCampos('---\nstatus: accepted\npromoted_to: []\n---').formalizada, false);
+  eq('A segue mordendo com promoted_to vazio', classify({ emProposals: true, numerado: false, status: 'accepted', kind: '', decidedAt: null, hojeIso: H, formalizada: lerCampos('---\nstatus: accepted\npromoted_to: ~\n---').formalizada }).check, 'A');
   eq('libera A formalizada (realized_by 0304)', classify({ emProposals: true, numerado: false, status: 'accepted', kind: '', decidedAt: null, hojeIso: H, formalizada: true }).check, null);
   eq('A segue mordendo SEM marcador (0320-era)', classify({ emProposals: true, numerado: true, status: 'aceito', kind: 'decision', decidedAt: '2026-06-01', hojeIso: H, formalizada: false }).check, 'A');
 

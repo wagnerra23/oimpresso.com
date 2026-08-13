@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Modules\Jana\Ai\Agents\KbAnswerAgent;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Modules\KB\Entities\KbNode;
 use Modules\KB\Services\Dtos\MetaSuggestion;
 use Modules\KB\Services\Dtos\RagResult;
@@ -790,7 +790,7 @@ class KbRagService
     }
 
     /**
-     * Sanitização PII canônica (LGPD — Modules/Jana/Services/Privacy/PiiRedactor).
+     * Sanitização PII canônica (LGPD — app/Support/Privacy/PiiRedactor).
      *
      * Cobre CPF, CNPJ, email, CEP, phone BR. Tudo que vai pra LLM externo + cache + log
      * passa aqui (defense in depth — Wagner regra ADR 0094 + COPI-43).

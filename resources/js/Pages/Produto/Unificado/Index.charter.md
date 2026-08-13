@@ -1,6 +1,6 @@
 ---
 id: resources-js-pages-produto-unificado-index-charter
-page: /produto/unificado
+page: /products/unificado
 component: resources/js/Pages/Produto/Unificado/Index.tsx
 related_prototype: prototipo-ui/cowork/prototipo-ui-patch/prototipos/produto/produto-app.jsx (formalizado 2026-08-10 — o corpo do charter já declarava "criado a partir de produto-app.jsx"; o frontmatter dizia n/a e deixava ancora.mjs sem âncora. Segue PT-01 Lista nos 6 slots.)
 owner: wagner
@@ -13,7 +13,7 @@ tier: A
 charter_version: 1
 ---
 
-# Page Charter — /produto/unificado (DRAFT)
+# Page Charter — /products/unificado (DRAFT)
 
 > **Status:** draft criado em batch 2026-05-09 a partir de `produto-app.jsx` (60 KB — material mais robusto do canon). Wagner aprova **Non-Goals + Automation Anti-hooks** ANTES de virar `status: live`.
 >
@@ -94,7 +94,7 @@ Catálogo unificado: numa tela única alterna entre 5 sub-views (Produtos / Cate
 
 ## Automation Hooks
 
-- Endpoint `GET /produto/unificado?tela=<sub>` — `ProdutoUnificadoController::index()` agrega:
+- Endpoint `GET /products/unificado?tela=<sub>` — `ProdutoUnificadoController::index()` agrega:
   - `Product::where('business_id', $bid)->active()->count()` (KPI catálogo ativo)
   - `TransactionSellLine` join `transactions` últimos 30d sum quantity (KPI saídas)
   - Sub-view específica conforme `tela`
@@ -170,3 +170,4 @@ it('does not access App\\Product without ->where(business_id)')
 |---|---|---|
 | 2026-08-10 | [M+C] | `related_prototype` deixa de ser `n/a` → `prototipo-ui/cowork/prototipo-ui-patch/prototipos/produto/produto-app.jsx`. **Por quê:** o corpo do charter (§Status e §Refs) sempre declarou que a tela nasceu desse protótipo, mas o frontmatter dizia `n/a` — e é o frontmatter que `prototipo-ui/ancora.mjs` lê. Com `n/a`, a tela não tinha âncora resolvível e a fidelidade proto×prod só podia ser julgada no olho (o incidente que originou a máquina de âncora). Âncora desambiguada: `produtos-page.jsx` (ex-`prod-page.jsx`, "visual Picker Mecânica") é do `Produto/Index`, **não** desta tela. Adicionado também `related_us: [US-PROD-023]` — a lane `charter-us-lint --check` (no-new-lie, ADR 0275 §5) morde charter tocado sem US declarada, e este era um dos 92 sem cobertura. A US-PROD-023 (*[G-05] Finalizar + promover as 8 telas React do Produto draft→live*, [SPEC.md](../../../../../memory/requisitos/Produto/SPEC.md)) é a que cobre esta tela — cita `/unificado` nominalmente. **Resíduo declarado:** o arquivo não segue o padrão `<id>-page.jsx` nem tem rota no shell de staging, então `render-proto-baseline.mjs --gerar` segue indisponível aqui — o loop 0→6 do RUNBOOK-fidelidade-fingerprint roda **manual** (passo 1 na mão) até o protótipo ganhar rota própria. |
 | 2026-05-09 | [CL] | Charter draft criado em batch. Path canon `Pages/Produto/Unificado/Index.tsx` segue padrão `Pages/Financeiro/Unificado/Index.tsx` (subdir). Backend em `app/Http/Controllers/` (UPOS canon — não em Modules). **Decisões pendentes pra Wagner:** (1) `SellingPriceGroup.multiplier` schema (a vs b) precisa ADR; (2) confirmar `MfgRecipe` namespace em `Modules\Manufacturing\Entities\` (controller candidato Cowork admite "TODO confirmar"); (3) cache strategy KPIs (job diário vs `Cache::remember`). **Aprovação pendente** em Non-Goals + Anti-hooks pra `status: live`. |
+| 2026-08-11 | [M+C] | `page` corrigido de `/produto/unificado` → **`/products/unificado`**. A rota real é `routes/web.php:450` (`products.unificado.index`); a declarada não existe. Ficava contraditória com o `Index.casos.md` que nasce no mesmo PR e cita a rota certa. `ancora.mjs` resolve por `page`/`component` — `component` já estava certo, então a âncora nunca quebrou; o campo errado enganava humano, não máquina. |

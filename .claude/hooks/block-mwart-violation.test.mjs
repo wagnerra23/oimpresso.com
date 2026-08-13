@@ -61,6 +61,16 @@ mkdirSync(join(root, 'resources', 'js', 'Pages', 'Kb', 'CanonicoFantasma'), { re
 writeFileSync(join(root, 'resources', 'js', 'Pages', 'Kb', 'CanonicoFantasma', 'Index.charter.md'),
   '---\npage: /kb/canonico-fantasma\nrelated_runbook: memory/requisitos/Kb/RUNBOOK-nao-existe.md\n---\n# Charter mentiroso');
 
+// ── fixture #6: convenção com PREFIXO DO MÓDULO (RUNBOOK-<mod>-<primario>.md) ────
+// Convenção REAL do repo (RUNBOOK-compras-index.md, RUNBOOK-repair-index.md, os 7
+// RUNBOOK-produto-*.md). Antes de 2026-08-11 o gate exigia `RUNBOOK-index.md` exato e
+// bloqueava `Compras/Index` — que TEM runbook. Achado pelo confronto do hook-replay
+// contra a porta viva `screen-coverage-map` (tela editada 10× no corpus real).
+mkdirSync(join(root, 'memory', 'requisitos', 'Compras'), { recursive: true });
+writeFileSync(join(root, 'memory', 'requisitos', 'Compras', 'RUNBOOK-compras-index.md'), '# F1 ok');
+mkdirSync(join(root, 'memory', 'requisitos', 'Repair'), { recursive: true });
+writeFileSync(join(root, 'memory', 'requisitos', 'Repair', 'RUNBOOK-repair-index.md'), '# F1 ok');
+
 // ── BLOCK: F1 ausente (ADR 0104 — não há 2º caminho) ────────────────────────────
 check('BLOCK: tela sem RUNBOOK (pasta existe)', decide('Edit', 'resources/js/Pages/Sells/Create.tsx', root) !== null);
 check('BLOCK: módulo sem pasta de requisitos (F1 nunca rolou)', decide('Write', 'resources/js/Pages/Financeiro/Painel.tsx', root) !== null);
@@ -71,10 +81,32 @@ check('BLOCK: MultiEdit também', decide('MultiEdit', 'resources/js/Pages/Sells/
 check('BLOCK: charter aponta runbook inexistente (aninhada) → não fura o gate',
   decide('Edit', 'resources/js/Pages/Kb/Fantasma/Index.tsx', root) !== null);
 
+// ── CONTROLE ANTI-CARIMBO do prefixo-de-módulo (é o assert que segura a régua) ────
+// O prefixo vale SÓ pro kebab PRIMÁRIO. Se valesse pra todos os candidatos, TODA
+// <Mod>/<Sub>/Index.tsx casaria RUNBOOK-<mod>-index.md e o gate viraria carimbo:
+// medido em 2026-08-11, isso destravava 5 telas Repair distintas com o MESMO arquivo,
+// reintroduzindo a ambiguidade que o #4648 tratou.
+check('BLOCK: aninhada NAO herda RUNBOOK-<mod>-index.md do irmao flat (anti-carimbo)',
+  decide('Edit', 'resources/js/Pages/Repair/Status/Index.tsx', root) !== null);
+check('BLOCK: prefixo-modulo nao resgata tela sem runbook proprio (Compras/Create)',
+  decide('Edit', 'resources/js/Pages/Compras/Create.tsx', root) !== null);
+check('BLOCK: prefixo so casa o modulo CERTO (Sells nao herda de Compras)',
+  decide('Edit', 'resources/js/Pages/Sells/Compras.tsx', root) !== null);
+
 // ── ALLOW: F1 feita OU fora de escopo (exempções derivadas da regra) ─────────────
 check('ALLOW: RUNBOOK existe (Sells/Index)', decide('Edit', 'resources/js/Pages/Sells/Index.tsx', root) === null);
 check('ALLOW: lookup case-insensitive (pasta nfebrasil + RUNBOOK-NFCE-STATUS.md ← Linux não pode divergir do Windows)',
   decide('Edit', 'resources/js/Pages/NfeBrasil/NfceStatus.tsx', root) === null);
+// BITE do fix 2026-08-11: sem o prefixo-de-módulo estas duas BLOQUEAVAM tendo RUNBOOK.
+check('ALLOW: RUNBOOK-<mod>-<tela>.md resgata tela flat (Compras/Index — o FP achado pelo replay)',
+  decide('Edit', 'resources/js/Pages/Compras/Index.tsx', root) === null);
+check('ALLOW: mesma convencao noutro modulo (Repair/Index)',
+  decide('Edit', 'resources/js/Pages/Repair/Index.tsx', root) === null);
+// a perna direta do resolver, isolada do decide()
+check('runbookStatus: prefixo-modulo so vale pro kebab PRIMARIO (4o param)',
+  runbookStatus('Compras', ['index'], root, 'index') === 'ok'
+  && runbookStatus('Compras', ['index'], root) === 'sem-runbook'
+  && runbookStatus('Repair', ['index', 'status'], root, 'status') === 'sem-runbook');
 // ANINHADA: RUNBOOK por rota/subdir (mecanismo #1) — o falso-positivo do PR #4648
 check('ALLOW: tela aninhada com RUNBOOK-<subdir>.md (governance/ModuleGrades/Index.tsx)',
   decide('Edit', 'resources/js/Pages/governance/ModuleGrades/Index.tsx', root) === null);
@@ -115,9 +147,19 @@ check('charterRunbookExists: related_runbook: FANTASMA → false (ampliar leitur
   charterRunbookExists('resources/js/Pages/Kb/CanonicoFantasma/Index.tsx', root) === false);
 check('charterRunbookExists: sem charter ao lado → false',
   charterRunbookExists('resources/js/Pages/Sells/Create.tsx', root) === false);
-check('mensagem cita ADR 0104 + /cockpit-runbook + override', (() => {
+// ── CONTROLE NEGATIVO (LC-15): a mensagem não pode OFERECER saída que o hook não implementa ─
+// Até 2026-08-12 este assert EXIGIA a oferta ('/mwart-override' na mensagem) — ou seja, fixava
+// em contrato de teste uma promessa falsa: o hook tem zero process.env e só sai por exit 2, e o
+// '/mwart-override' é registro HUMANO no PR (mwart-process/SKILL.md §131), impossível de honrar
+// num PreToolUse que dispara antes do PR existir. [W] chegou a decidir em cima da promessa
+// (lápide §5 2026-08-08). O nome PODE aparecer — mas só na forma que NEGA o destravamento.
+check('mensagem cita ADR 0104 + /cockpit-runbook e NÃO oferece escape (controle negativo)', (() => {
   const m = decide('Edit', 'resources/js/Pages/Sells/Create.tsx', root);
-  return /ADR 0104/.test(m) && /cockpit-runbook/.test(m) && /mwart-override/.test(m);
+  const ofereceEscape = /Override:\s*comentar/i.test(m);          // a forma exata que era falsa
+  const nomeiaOverride = /mwart-override/.test(m);
+  const negaDestrave = /NÃO tem escape|não destrava/i.test(m);     // nomear a fronteira é OK
+  return /ADR 0104/.test(m) && /cockpit-runbook/.test(m)
+    && !ofereceEscape && (!nomeiaOverride || negaDestrave);
 })());
 
 // ── E2E: stdin JSON → exit code, cwd = fixture (prova wrapper + fail-open) ───────

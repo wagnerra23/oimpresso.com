@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 51 |
+| US no SPEC | 52 |
 | CU no SDD | 6 |
-| Telas (.tsx) | 8 |
-| Telas com `casos.md` | 3 |
-| UC declarados | 16 |
-| UC com teste que os cita | 15 |
+| Telas (.tsx) | 9 |
+| Telas com `casos.md` | 4 |
+| UC declarados | 49 |
+| UC com teste que os cita | 48 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -97,6 +97,7 @@ authority: generated
 | US-SELL-055 | `todo` | Pix QR no PDV + webhook auto-reconcile ligado à venda/caixa |
 | US-SELL-056 | `todo` | Keyboard-first coeso no Create — hotkeys configuráveis + Enter-avança + F-key pa |
 | US-SELL-057 | `todo` | Skeleton de carregamento no Create + INP < 200ms |
+| US-SELL-058 | `desconhecido` | Redesenho do cadastro de venda em tela PARALELA (`/sells/create-v3`) — sem tocar |
 
 ## UC por status
 
@@ -111,6 +112,39 @@ authority: generated
 | UC-S1X | Index | 📝 sem_teste |
 | UC-SIDX-01 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-02 | Index | 🧪 aguarda veredito da lane |
+| UC-V301 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V302 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V303 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V320 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V330 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V331 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V332 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V333 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V334 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V335 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V336 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V337 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V340 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V341 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V342 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V343 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V344 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V345 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V346 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V350 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V351 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V352 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V353 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V354 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V355 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V356 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V360 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V361 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V362 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V363 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V364 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V365 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V366 | CreateV3 | 🧪 aguarda veredito da lane |
 | UC-VSHOW-01 | Show | 🧪 aguarda veredito da lane |
 | UC-VSHOW-02 | Show | 🧪 aguarda veredito da lane |
 | UC-VSHOW-03 | Show | 🧪 aguarda veredito da lane |

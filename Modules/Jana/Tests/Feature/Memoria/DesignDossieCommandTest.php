@@ -48,7 +48,7 @@ function dossieRun(string $module, string $tela): string
 $charterCaixa = <<<'MD'
 ---
 page: /atendimento/caixa-unificada
-component: resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx
+component: Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx
 related_adrs:
   - 0093-multi-tenant-isolation-tier-0
 ---
@@ -67,7 +67,7 @@ Inbox unificada de atendimento omnichannel.
 MD;
 
 test('tela aninhada: slug normaliza `/` → `-` (RUNBOOK achado, sem path quebrado)', function () use ($charterCaixa) {
-    dossieSeed('resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md', $charterCaixa);
+    dossieSeed('Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md', $charterCaixa);
     dossieSeed('memory/requisitos/Atendimento/RUNBOOK-caixaunificada-index.md', "# RUNBOOK caixa\nreceita.");
 
     $out = dossieRun('Atendimento', 'CaixaUnificada/Index');
@@ -78,7 +78,7 @@ test('tela aninhada: slug normaliza `/` → `-` (RUNBOOK achado, sem path quebra
 });
 
 test('page_id deriva do `page:` quando o charter não tem `page_id:`', function () use ($charterCaixa) {
-    dossieSeed('resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md', $charterCaixa);
+    dossieSeed('Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md', $charterCaixa);
 
     $out = dossieRun('Atendimento', 'CaixaUnificada/Index');
 

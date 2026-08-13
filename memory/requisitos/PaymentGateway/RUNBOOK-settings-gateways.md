@@ -4,7 +4,14 @@ title: "RUNBOOK — /settings/payment-gateways (Tela 2 PaymentGateway UI F3)"
 type: runbook
 authority: canonical
 lifecycle: ativo
-related_adrs: [0093, 0094, 0104, 0144, 0170]
+owner: W
+last_validated: "2026-08-12"
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0144-tasks-db-canonico-spec-template
+  - 0170-bancos-nativos-top5-drivers-separados
 related_us: [US-PG-F3-SETTINGS]
 parent_module: PaymentGateway
 persona: Wagner (superadmin / dono)
@@ -48,14 +55,14 @@ Wagner gerencia credenciais dos 5 drivers (Inter + C6 + Asaas + BCB Pix + PesaPa
 ## Frontend canônico
 
 ### Arquivos
-- `resources/js/Pages/Settings/PaymentGateways/Index.tsx` (root)
-- `resources/js/Pages/Settings/PaymentGateways/Index.charter.md`
-- `resources/js/Pages/Settings/PaymentGateways/_lib/gateway-shared.ts`
-- `resources/js/Pages/Settings/PaymentGateways/_components/atoms-settings.tsx` (DriverChip + HealthBadge + Toggle + FileField)
-- `resources/js/Pages/Settings/PaymentGateways/_components/DrawerGateway.tsx` (4 tabs: Identificação · Credenciais · Webhook · Health)
-- `resources/js/Pages/Settings/PaymentGateways/_components/SheetNovoGateway.tsx` (wizard 3 steps: Driver · Credenciais · Vínculo)
-- `resources/js/Pages/Settings/PaymentGateways/_components/ConfirmToggleModal.tsx` (Trust L3 modal — N cobranças afetadas)
-- `resources/js/Pages/Settings/PaymentGateways/_components/CheatSheetSettings.tsx`
+- `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.tsx` (root)
+- `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.charter.md`
+- `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_lib/gateway-shared.ts`
+- `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/atoms-settings.tsx` (DriverChip + HealthBadge + Toggle + FileField)
+- `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/DrawerGateway.tsx` (4 tabs: Identificação · Credenciais · Webhook · Health)
+- `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/SheetNovoGateway.tsx` (wizard 3 steps: Driver · Credenciais · Vínculo)
+- `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/ConfirmToggleModal.tsx` (Trust L3 modal — N cobranças afetadas)
+- `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/CheatSheetSettings.tsx`
 
 Reusa: atoms canon (`Btn`, `KpiCard`, `PageHeader`, `Field`) via `@/Pages/Financeiro/Cobranca/_components/atoms`.
 
@@ -92,6 +99,6 @@ Reusa: atoms canon (`Btn`, `KpiCard`, `PageHeader`, `Field`) via `@/Pages/Financ
 ## Refs
 
 - ADR 0144 + ADR 0170 PaymentGateway
-- Charter live: `resources/js/Pages/Settings/PaymentGateways/Index.charter.md`
+- Charter live: `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.charter.md`
 - Cowork F1: `prototipo-ui/prototipos/payment-gateway-ui/components/pg-payment-gateways-page.jsx`
 - LICOES_F3 + KB-9.75

@@ -7,7 +7,7 @@ namespace Modules\Whatsapp\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Jobs\DeleteBaileysInstanceJob;
 

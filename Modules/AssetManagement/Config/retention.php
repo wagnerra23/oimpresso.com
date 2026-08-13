@@ -23,7 +23,7 @@ declare(strict_types=1);
  * fica em backlog pra próxima onda Governance.
  *
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
- * @see Modules\Jana\Services\Privacy\PiiRedactor
+ * @see App\Support\Privacy\PiiRedactor
  */
 
 return [

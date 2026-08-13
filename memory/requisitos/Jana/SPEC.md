@@ -358,7 +358,7 @@ Trocar por chamada interna à tool MCP `tasks-current` (mesma fonte que `/team-m
 
 ### US-COPI-078 · Schema tipado KB — migration + validação webhook
 
-**Implementado em:** `Modules/Jana/Database/Migrations/2026_05_01_100001_add_typed_cols_to_mcp_memory_documents.php` · `Modules/Jana/Database/Migrations/2026_04_30_120001_expand_mcp_memory_documents_type_enum.php` · verificado@dd3ed7c (2026-07-01) — migrations de colunas tipadas (status/expires_at/superseded_by/frontmatter_json) + enum type aplicadas
+**Implementado em:** `Modules/Forja/Database/Migrations/2026_05_01_100001_add_typed_cols_to_mcp_memory_documents.php` · `Modules/Forja/Database/Migrations/2026_04_30_120001_expand_mcp_memory_documents_type_enum.php` · verificado@dd3ed7c (2026-07-01) — migrations de colunas tipadas (status/expires_at/superseded_by/frontmatter_json) + enum type aplicadas
 
 > owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 6h · status: done · progress: 90% · done_at: 2026-05-04 · session: memory/sessions/2026-05-04-ragas-baseline-infra.md
 
@@ -1144,7 +1144,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 **Quero** rota `/copiloto/admin/roadmap` com Gantt visual cronológico (SVAR React Gantt MIT) + sub-issues hierarchy view (parent_task_id) + drag-drop datas + filtro current cycle default
 **Para** fechar gap Viz (5%→70%) — listas markdown via tools MCP não mostram cronologia/dependências; Linear/Plane/GitHub Projects vão 5 anos à frente em viz
 
-**Implementado em:** _parcial_ · `resources/js/Pages/Forja/Roadmap/Gantt.tsx` · `Modules/Forja/Http/Controllers/RoadmapGanttController.php` · `resources/js/Pages/Forja/Roadmap/Gantt.charter.md` · verificado@a68b435 (2026-07-12, máquina) — **CORREÇÃO de página:** o Gantt do V1 vive na tela Jana Admin Roadmap (não na tela ProjectMgmt Roadmap, que é outra — colunas por quarter). O Gantt SVAR de LEITURA já estava construído (barras + summary por módulo + dependency arrows via `blocked_by` + drawer de detalhe), roteado em `/forja/roadmap-gantt` e surfaced no menu IA (ghost em `DataController`). **B2 — drag-drop reschedule (Wagner-explícito 2026-07-12, override do Non-Goal do charter):** arrastar/redimensionar a barra reagenda o PRAZO (`due_date`) via PATCH em /forja/roadmap-gantt/tasks/{taskId}/schedule (gated `jana.mcp.tasks.write`, persiste pelo `TaskCrudService` canônico). `started_at` fica lifecycle-managed (não arrastável). **Gate visual R7/R1 FECHADO (2026-07-12):** Wagner arrastou a barra "Listar Budget" em prod (tela /forja/roadmap-gantt no oimpresso.com) e o prazo persistiu — evidência objetiva: Duration 6→8 entre dois screenshots (due_date estendido, recalculado e servido pelo backend) + confirmação humana "persistiu". Deploy Hostinger @f8d68b232d. Backend coberto por 3 Pest (403/422/update). status→done.
+**Implementado em:** _parcial_ · `Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.tsx` · `Modules/Forja/Http/Controllers/RoadmapGanttController.php` · `Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.charter.md` · verificado@a68b435 (2026-07-12, máquina) — **CORREÇÃO de página:** o Gantt do V1 vive na tela Jana Admin Roadmap (não na tela ProjectMgmt Roadmap, que é outra — colunas por quarter). O Gantt SVAR de LEITURA já estava construído (barras + summary por módulo + dependency arrows via `blocked_by` + drawer de detalhe), roteado em `/forja/roadmap-gantt` e surfaced no menu IA (ghost em `DataController`). **B2 — drag-drop reschedule (Wagner-explícito 2026-07-12, override do Non-Goal do charter):** arrastar/redimensionar a barra reagenda o PRAZO (`due_date`) via PATCH em /forja/roadmap-gantt/tasks/{taskId}/schedule (gated `jana.mcp.tasks.write`, persiste pelo `TaskCrudService` canônico). `started_at` fica lifecycle-managed (não arrastável). **Gate visual R7/R1 FECHADO (2026-07-12):** Wagner arrastou a barra "Listar Budget" em prod (tela /forja/roadmap-gantt no oimpresso.com) e o prazo persistiu — evidência objetiva: Duration 6→8 entre dois screenshots (due_date estendido, recalculado e servido pelo backend) + confirmação humana "persistiu". Deploy Hostinger @f8d68b232d. Backend coberto por 3 Pest (403/422/update). status→done.
 
 **Testado em:** `Modules/Forja/Tests/Feature/Roadmap/RoadmapGanttControllerTest.php` (reschedule: 403 sem write, 422 sem due_date, update de due_date pelo TaskCrudService; `// @covers-us US-COPI-111`)
 
@@ -1672,7 +1672,7 @@ Ou seja: liberar `gpt-4o` no projeto OpenAI sobe o **chat** por `.env` (zero có
 
 **Testado em:** `Modules/Jana/Tests/Feature/Telemetry/JudgeTraceOnlineJobTest.php` — shouldSample (0/1/determinismo/~5% sobre 10k) · **wiring** (config resolve em `copiloto.*`, o `jana.*` é vazio = a mordida do bug) · **judge=local** pontua via Ollama com PII redigida ANTES do juiz (CPF/email não vão no request) · judge=local com Ollama down NÃO grava score (sem 0.0 fabricado) · judge=openai PII-redigido · juiz-em-mock não pontua. `Modules/Jana/Tests/Feature/Ragas/OllamaRagasJudgeTest.php` — transporte Ollama (parse score 0..1, url+model, sanitize, `JudgeUnavailableException` em HTTP 500/JSON-sem-score/transporte, mock curto-circuita).
 
-**Refs:** ADR 0318 · ADR 0093 · `Modules/Jana/Services/Telemetry/LangfuseClient.php` · `Modules/Jana/Services/Privacy/PiiRedactor.php`
+**Refs:** ADR 0318 · ADR 0093 · `Modules/Jana/Services/Telemetry/LangfuseClient.php` · `app/Support/Privacy/PiiRedactor.php`
 
 ### US-COPI-138 · Heartbeat langfuse_trace_uptime_24h no HealthCheckCommand
 **Implementado em:** `Modules/Jana/Console/Commands/HealthCheckCommand.php` · `Modules/Jana/Tests/Feature/Smoke/LangfuseTraceUptimeCheckTest.php` · verificado@e7f6090 (2026-07-17) — check DURO registrado em handle(), lendo meta.totalItems da API pública do Langfuse (fonte real, não flag); 9 testes verdes no CT 100 incl. 2 de fiação (200-e-mudo → vermelho)
@@ -1970,7 +1970,7 @@ Escopo:
 > owner: — · priority: p2 · estimate: 2h · status: todo · type: story
 > blocked_by: —
 
-**Implementado em:** `Modules/Jana/Database/Migrations/2026_07_28_120000_create_mcp_handoff_drafts_table.php` · `Modules/Jana/Mcp/Tools/HandoffDraftTool.php` (2026-07-28) — a tabela fantasma foi fechada. O resto desta US é **decisão [W]**, por isso a US fica `todo`.
+**Implementado em:** `Modules/Forja/Database/Migrations/2026_07_28_120000_create_mcp_handoff_drafts_table.php` · `Modules/Jana/Mcp/Tools/HandoffDraftTool.php` (2026-07-28) — a tabela fantasma foi fechada. O resto desta US é **decisão [W]**, por isso a US fica `todo`.
 
 **Origem:** varredura de higiene de schema da camada de IA (2026-07-28), levantada por leitura de código. Ao verificar cada item com o oráculo certo — `git grep` contado no repo inteiro + `SHOW TABLES`/`COUNT(*)` no **banco** — 4 dos achados não sobreviveram, e 2 achados novos apareceram.
 

@@ -3,7 +3,7 @@
 //
 // Este arquivo é a SOURCE-OF-TRUTH visual de `/atendimento/caixa-unificada`
 // (wagnerra23/oimpresso.com) — citada explicitamente no charter do repo:
-//   resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md →
+//   Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md →
 //   visual_source: prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx
 //
 // SINCRONIZAÇÃO (2026-05-15):
@@ -41,7 +41,7 @@
 //    • Sem emoji em UI produtiva · PT-BR sempre · sem rounded-xl+
 //
 // COMPONENTES MOCK (no repo real são shadcn):
-//    Cá:                 No repo (resources/js/Pages/Atendimento/CaixaUnificada/_components):
+//    Cá:                 No repo (Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components):
 //    ─────────────────   ─────────────────────────────────────────────────────────────────
 //    <ChannelGlyph>      ChannelChipsRow.tsx (chips + sub-row contas)
 //    <OpAvatar>          ContextSidebarV4 (assignee placeholder)

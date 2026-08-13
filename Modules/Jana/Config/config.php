@@ -193,6 +193,33 @@ return [
         // SEM user/RBAC: se vazar, só revela o SHA. Setar em .env: MCP_DRIFT_TOKEN=...
         'drift_token' => env('MCP_DRIFT_TOKEN'),
 
+        // === Memo do gate `jana.mcp.use` (incidente 2026-08-12) ===
+        // Segundos que o veredito de permissão do McpAuthMiddleware fica em cache.
+        // `$user->can()` do Spatie custa 3 queries e o MySQL é remoto (~360ms por
+        // roundtrip): eram ~1102ms por requisição relendo permissão que quase nunca
+        // muda. O TTL é a janela em que uma permissão revogada segue valendo — por
+        // isso curto. `0` desliga o memo; `esquecerPermissao($userId)` invalida na hora.
+        'auth_cache_ttl' => env('MCP_AUTH_CACHE_TTL', 60),
+
+        // === Throttle do carimbo de uso do token (mesmo incidente) ===
+        // Segundos entre gravações de `last_used_at`/`last_used_ip`. Era um
+        // UPDATE por requisição (~360ms cada, MySQL remoto) para carimbar o
+        // mesmo minuto 4× durante um handshake. `0` desliga o throttle.
+        'uso_throttle_segundos' => env('MCP_USO_THROTTLE_SEGUNDOS', 60),
+
+        // === Fast-path do QuotaEnforcer (mesmo incidente) ===
+        // Segundos que a EXISTÊNCIA de quota do user fica memoizada. Só a
+        // configuração — o cálculo de consumo segue sempre ao vivo. `0` desliga;
+        // `QuotaEnforcer::esquecerQuotas($userId)` invalida ao criar a 1ª quota.
+        'quota_cache_ttl' => env('MCP_QUOTA_CACHE_TTL', 60),
+
+        // === Memo da resolução do token (mesmo incidente) ===
+        // Segundos que os atributos do token ficam em cache. Revogar/apagar pelo
+        // Model invalida na hora, e `expires_at` é reavaliado a cada hit — mas
+        // com o valor CACHEADO: mexer no token por SQL direto só vale após o TTL
+        // (limite documentado em McpToken::encontrarPorRaw). `0` desliga.
+        'token_cache_ttl' => env('MCP_TOKEN_CACHE_TTL', 60),
+
         // === Audit log governança ===
         // Quanto tempo manter audit log antes de purgar (LGPD: mínimo 1 ano)
         'audit_retention_days' => env('COPILOTO_MCP_AUDIT_RETENTION_DAYS', 365),

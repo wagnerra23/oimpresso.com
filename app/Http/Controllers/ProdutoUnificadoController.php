@@ -8,6 +8,7 @@ use App\Category;
 use App\Product;
 use App\SellingPriceGroup;          // UltimatePOS standard — tabelas de preço
 use App\TransactionSellLine;        // histórico de uso (consumo de produto em vendas/OS)
+use App\Utils\ModuleUtil;           // camada 1 (módulo no pacote do business)
 use App\Variation;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -28,17 +29,47 @@ use Modules\Manufacturing\Entities\MfgRecipeIngredient;
  *
  * @memcofre tela=/products/unificado status=em-implementacao
  *
+ * ── VISIBILIDADE (UC-PUNI-01..06 · Index.casos.md) ──────────────────────────
+ * Esta tela reúne numa rota só o que as outras telas do Produto gateiam separadamente:
+ * custo, preço de venda, tabelas de preço e composição. Até 2026-08-13 ela não consultava
+ * permissão nenhuma — varredura de `view_purchase_price|access_default_selling_price` no
+ * arquivo devolvia 0 ocorrências, e a rota não tinha gate. O contrato agora é:
+ *
+ *   - a tela      → product.view OU product.create (mesma semântica de ProductController@index)
+ *   - cost/margin → view_purchase_price
+ *   - price/value → access_default_selling_price (inclusive a porta lateral do Histórico)
+ *   - tabelas     → access_default_selling_price (decisão 2026-08-11: mesmo dado, mesmo gate)
+ *   - insumos/BOM → módulo Manufacturing no pacote + manufacturing.access_recipe
+ *
+ * A regra é AUSÊNCIA, não campo vazio (AR-PROD-015: os campos SOMEM da tela). Por isso a
+ * chave NÃO é emitida — emitir 0/null afirmaria um valor que o usuário não pode ver, e o
+ * teste de contrato varre o payload por VALOR (renomear a chave não o faz passar).
+ *
  * TODO [CL]:
  * - Confirmar nomes exatos das classes Mfg* (ler Modules/Manufacturing/Entities/).
  * - Confirmar SellingPriceGroup vs VariationLocationDetails pra preço por tabela.
- * - Plugar permission middleware: 'product.view', 'product.create', 'product.update'.
  * - Reusar BusinessUtil/ProductUtil traits do core (ver ProductController existente).
  */
 class ProdutoUnificadoController extends Controller
 {
+    public function __construct(private readonly ModuleUtil $moduleUtil)
+    {
+    }
+
     public function index(Request $request): Response
     {
+        // UC-PUNI-06 — a semântica canônica NÃO é middleware: a lista irmã aborta DENTRO do
+        // controller e aceita `product.view` OU `product.create` (ProductController@index:66),
+        // porque quem pode cadastrar produto precisa alcançar o catálogo.
+        if (! auth()->user()->can('product.view') && ! auth()->user()->can('product.create')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $business_id = request()->session()->get('user.business_id');
+
+        $podeVerCusto = (bool) auth()->user()->can('view_purchase_price');
+        $podeVerPreco = (bool) auth()->user()->can('access_default_selling_price');
+        $podeVerBom   = $this->podeVerComposicao((int) $business_id);
 
         $filters = [
             'tela'      => $request->string('tela', 'produtos')->toString(),
@@ -52,16 +83,52 @@ class ProdutoUnificadoController extends Controller
         return Inertia::render('Produto/Unificado/Index', [
             'tela'       => $filters['tela'],
             'filters'    => $filters,
+            // EAGER (não closure): são 3 booleanos já resolvidos acima — embrulhar em closure
+            // não pouparia query nenhuma, que é o único ganho do defer/D-14.
+            // O `only:[...]` do setSubTela NÃO pede esta prop, então ela não viaja no partial
+            // reload — e não precisa: o Inertia MESCLA a resposta parcial com as props que a
+            // página já tem no cliente, então `permissoes` persiste entre as sub-telas. (Isso
+            // vale pra prop eager e closure igual: o que decide o que viaja é a lista `only`,
+            // não a forma da prop.) Do outro lado, o `.tsx` aplica default fail-closed — se a
+            // prop faltar, esconde tudo em vez de estourar; ausência nunca vira permissão.
+            'permissoes' => [
+                'custo'      => $podeVerCusto,
+                'preco'      => $podeVerPreco,
+                'composicao' => $podeVerBom,
+            ],
             // closures D-14: não mudam com a troca de sub-tela (`tela`) — pulam no
             // partial reload do setSubTela. kpis/categorias são por business; produtos
             // varia com tab/busca/categoria mas o nav de sub-tela preserva esses filtros.
             'kpis'       => fn () => $this->kpis($business_id),
-            'produtos'   => fn () => $this->produtos($business_id, $filters),
+            'produtos'   => fn () => $this->produtos($business_id, $filters, $podeVerCusto, $podeVerPreco, $podeVerBom),
             'categorias' => fn () => $this->categorias($business_id),
-            'insumos'    => $filters['tela'] === 'insumos'   ? $this->insumos($business_id)   : [],
-            'tabelas'    => $filters['tela'] === 'tabelas'   ? $this->tabelas($business_id)   : [],
-            'historico'  => $filters['tela'] === 'historico' ? $this->historico($business_id) : [],
+            // UC-PUNI-04 / UC-PUNI-03: a sub-tela inteira não é servida sem o direito.
+            // O gate é aqui (e não dentro do helper) pra que a prop nasça `[]` sem custo de query.
+            'insumos'    => $filters['tela'] === 'insumos'   && $podeVerBom  ? $this->insumos($business_id, $podeVerCusto) : [],
+            'tabelas'    => $filters['tela'] === 'tabelas'   && $podeVerPreco ? $this->tabelas($business_id)              : [],
+            'historico'  => $filters['tela'] === 'historico' ? $this->historico($business_id, $podeVerPreco) : [],
         ]);
+    }
+
+    /**
+     * Composição (BOM/insumos) = camada 1 (módulo no pacote do business) + camada 3 (permissão
+     * do papel), as camadas canônicas de habilitar módulo por business. ZERO permissão nova e
+     * NUNCA `if ($business_id === N)` — ver memory/reference/feedback-habilitar-modulo-por-business.md.
+     *
+     * O predicado das camadas 1 é cópia literal de ProductController:328 (`isModuleInstalled`
+     * + superadmin OU assinatura); a camada 3 (`manufacturing.access_recipe`) é a mesma que
+     * Modules\Manufacturing\Http\Controllers\RecipeController:66 exige pra ver receita.
+     */
+    private function podeVerComposicao(int $business_id): bool
+    {
+        if (! $this->moduleUtil->isModuleInstalled('Manufacturing')) {
+            return false;
+        }
+
+        $temModuloNoPacote = auth()->user()->can('superadmin')
+            || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module');
+
+        return (bool) $temModuloNoPacote && auth()->user()->can('manufacturing.access_recipe');
     }
 
     // ───────── Helpers privados ─────────
@@ -88,7 +155,7 @@ class ProdutoUnificadoController extends Controller
         ];
     }
 
-    private function produtos(int $business_id, array $f): array
+    private function produtos(int $business_id, array $f, bool $podeVerCusto, bool $podeVerPreco, bool $podeVerBom): array
     {
         $q = Product::where('business_id', $business_id)
             ->with(['category:id,name', 'brand:id,name', 'unit:id,short_name', 'variations']);
@@ -108,28 +175,47 @@ class ProdutoUnificadoController extends Controller
             });
         }
 
-        return $q->orderBy('name')->limit(500)->get()->map(function (Product $p) {
-            $defaultVar = $p->variations->firstWhere('name', 'DUMMY') ?? $p->variations->first();
-            $price = (float) ($defaultVar->sell_price_inc_tax ?? 0);
-            $cost  = (float) ($defaultVar->default_purchase_price ?? 0);
-            return [
-                'id'         => $p->id,
-                'sku'        => $p->sku,
-                'name'       => $p->name,
-                'cat'        => $p->category?->id ? (string) $p->category->id : null,
-                'cat_label'  => $p->category?->name,
-                'unit'       => $p->unit?->short_name ?? 'un',
-                'price'      => $price,
-                'cost'       => $cost,
-                'margin'     => $price > 0 ? round(($price - $cost) / $price, 4) : 0,
-                'stockKind'  => $p->enable_stock ? 'estoque' : 'sob_demanda',
-                'stockQty'   => null, // TODO [CL]: somar variation_location_details.qty_available
-                'uses30'     => 0,    // TODO [CL]: agregação cached
-                'active'     => $p->is_inactive == 0,
-                'updated'    => $p->updated_at?->locale('pt_BR')->isoFormat('DD MMM'),
-                'bomCount'   => 0,    // TODO [CL]: count(MfgRecipe::where('variation_id', $defaultVar->id))
-            ];
-        })->all();
+        return $q->orderBy('name')->limit(500)->get()
+            ->map(function (Product $p) use ($podeVerCusto, $podeVerPreco, $podeVerBom) {
+                $defaultVar = $p->variations->firstWhere('name', 'DUMMY') ?? $p->variations->first();
+                $price = (float) ($defaultVar->sell_price_inc_tax ?? 0);
+                $cost  = (float) ($defaultVar->default_purchase_price ?? 0);
+
+                $linha = [
+                    'id'         => $p->id,
+                    'sku'        => $p->sku,
+                    'name'       => $p->name,
+                    'cat'        => $p->category?->id ? (string) $p->category->id : null,
+                    'cat_label'  => $p->category?->name,
+                    'unit'       => $p->unit?->short_name ?? 'un',
+                    'stockKind'  => $p->enable_stock ? 'estoque' : 'sob_demanda',
+                    'stockQty'   => null, // TODO [CL]: somar variation_location_details.qty_available
+                    'uses30'     => 0,    // TODO [CL]: agregação cached
+                    'active'     => $p->is_inactive == 0,
+                    'updated'    => $p->updated_at?->locale('pt_BR')->isoFormat('DD MMM'),
+                ];
+
+                // UC-PUNI-02 / UC-PUNI-01 — a chave só existe se o usuário puder ver o valor.
+                if ($podeVerPreco) {
+                    $linha['price'] = $price;
+                }
+                if ($podeVerCusto) {
+                    $linha['cost'] = $cost;
+                }
+                // `margin` deriva dos DOIS. Entregá-la sabendo um deles entrega o outro por
+                // dedução — é o mesmo vazamento com uma conta no meio.
+                if ($podeVerCusto && $podeVerPreco) {
+                    $linha['margin'] = $price > 0 ? round(($price - $cost) / $price, 4) : 0;
+                }
+                // UC-PUNI-04 — preventivo: hoje é literal 0 porque a composição não é servida.
+                // A chave nasce gated pra que plugar a query (TODO [CL]: count(MfgRecipe::where(
+                // 'variation_id', $defaultVar->id))) não vaze a estrutura de custo por descuido.
+                if ($podeVerBom) {
+                    $linha['bomCount'] = 0;
+                }
+
+                return $linha;
+            })->all();
     }
 
     /**
@@ -190,20 +276,29 @@ class ProdutoUnificadoController extends Controller
      * ou produtos referenciados como ingredient em MfgRecipe. TODO [CL]: confirmar
      * convenção do oimpresso com Wagner.
      */
-    private function insumos(int $business_id): array
+    private function insumos(int $business_id, bool $podeVerCusto): array
     {
         return Product::where('business_id', $business_id)
             ->where('not_for_selling', 1)
             ->with('unit:id,short_name')
             ->orderBy('name')->limit(200)->get()
-            ->map(fn ($p) => [
-                'id'         => $p->id,
-                'name'       => $p->name,
-                'unit'       => $p->unit?->short_name ?? 'un',
-                'cost'       => 0.0, // TODO: variation default_purchase_price
-                'stock'      => 0,   // TODO: variation_location_details
-                'fornecedor' => null, // TODO: contact_supplier no UltimatePOS
-            ])->all();
+            ->map(function ($p) use ($podeVerCusto) {
+                $linha = [
+                    'id'         => $p->id,
+                    'name'       => $p->name,
+                    'unit'       => $p->unit?->short_name ?? 'un',
+                    'stock'      => 0,   // TODO: variation_location_details
+                    'fornecedor' => null, // TODO: contact_supplier no UltimatePOS
+                ];
+                // UC-PUNI-01 — hoje é literal 0.0, mas o TODO abaixo vai plugar o custo real
+                // (variation default_purchase_price): a chave já nasce atrás do mesmo gate da
+                // coluna Custo do catálogo, senão o insumo vira a terceira porta lateral.
+                if ($podeVerCusto) {
+                    $linha['cost'] = 0.0; // TODO: variation default_purchase_price
+                }
+
+                return $linha;
+            })->all();
     }
 
     /**
@@ -229,7 +324,7 @@ class ProdutoUnificadoController extends Controller
      * Histórico de uso = transaction_sell_lines dos últimos 30d.
      * Cada linha é um produto consumido em uma venda/OS final.
      */
-    private function historico(int $business_id): array
+    private function historico(int $business_id, bool $podeVerPreco): array
     {
         return TransactionSellLine::join('transactions as t', 't.id', '=', 'transaction_sell_lines.transaction_id')
             ->join('products as p', 'p.id', '=', 'transaction_sell_lines.product_id')
@@ -248,16 +343,25 @@ class ProdutoUnificadoController extends Controller
                 'transaction_sell_lines.quantity as qty',
                 'transaction_sell_lines.unit_price_inc_tax as unit_price',
             ])
-            ->map(fn ($r) => [
-                'os'       => $r->os,
-                'date'     => substr($r->date, 0, 10),
-                'prodId'   => $r->prod_id,
-                'prodName' => $r->prod_name,
-                'cat'      => $r->cat,
-                'unit'     => 'un',
-                'client'   => $r->client,
-                'qty'      => (float) $r->qty,
-                'value'    => (float) $r->qty * (float) $r->unit_price,
-            ])->all();
+            ->map(function ($r) use ($podeVerPreco) {
+                $linha = [
+                    'os'       => $r->os,
+                    'date'     => substr($r->date, 0, 10),
+                    'prodId'   => $r->prod_id,
+                    'prodName' => $r->prod_name,
+                    'cat'      => $r->cat,
+                    'unit'     => 'un',
+                    'client'   => $r->client,
+                    'qty'      => (float) $r->qty,
+                ];
+                // UC-PUNI-02b — `value` é qty × unit_price_inc_tax, ou seja preço de venda por
+                // outro caminho. Gatear a lista e deixar o histórico aberto entrega o mesmo dado
+                // produto a produto. `unit_price` cru nunca chega ao payload (só o produto dele).
+                if ($podeVerPreco) {
+                    $linha['value'] = (float) $r->qty * (float) $r->unit_price;
+                }
+
+                return $linha;
+            })->all();
     }
 }

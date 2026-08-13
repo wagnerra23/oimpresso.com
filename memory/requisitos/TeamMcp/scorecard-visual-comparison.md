@@ -10,7 +10,7 @@ approved_at: 2026-06-16
 date: 2026-06-16
 canon_reference: forja-cowork (forja-page.jsx — view .fj-saude/.fj-metric/.fj-gate-health)
 blade_source: "N/A — Page nova (rota existia sem componente)"
-inertia_target: resources/js/Pages/team-mcp/Scorecard/Index.tsx
+inertia_target: Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.tsx
 pr_branch: feat/forja-pr3-scorecard
 ---
 

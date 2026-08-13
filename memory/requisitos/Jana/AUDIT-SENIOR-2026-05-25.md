@@ -547,8 +547,8 @@ ENTREGÁVEL FINAL: score governance D1-D9 = 96 → 97-98
 
 **Código verificado linha-a-linha:**
 
-- `Modules/Jana/Scopes/ScopeByBusiness.php` (48 linhas) — global scope direto
-- `Modules/Jana/Scopes/ScopeByBusinessViaParent.php` (83 linhas) — chain via FK
+- `app/Scopes/ScopeByBusiness.php` (48 linhas) — global scope direto
+- `app/Scopes/ScopeByBusinessViaParent.php` (83 linhas) — chain via FK
 - `Modules/Jana/Http/Controllers/ChatController.php` (~750 linhas inspecionadas 1-500)
 - `Modules/Jana/Ai/Agents/ChatCopilotoAgent.php` (265 linhas) — prompt cache + cache_control marker
 - `Modules/Jana/Services/ContextSnapshotService.php` (197 linhas) — 3 ângulos faturamento

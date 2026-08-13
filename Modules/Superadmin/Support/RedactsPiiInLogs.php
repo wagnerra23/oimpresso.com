@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\Superadmin\Support;
 
 use Illuminate\Support\Facades\Log;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 /**
  * Trait RedactsPiiInLogs — LGPD Tier 0 D7.a (Wave 11 Superadmin).

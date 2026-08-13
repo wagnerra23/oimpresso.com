@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * per-user em tasks repo-wide. Sem `business_id` by design (isolamento via
  * user_id). Wave 25 SATURATION marker explícito pra rubrica D1.c v3.2 hardened.
  *
- * Migration: Modules/Jana/Database/Migrations/2026_05_04_180011_create_mcp_task_watchers_table.php
+ * Migration: Modules/Forja/Database/Migrations/2026_05_04_180011_create_mcp_task_watchers_table.php
  *   - id (bigIncrements)
  *   - task_id (string 40, FK lógica pra mcp_tasks.task_id)
  *   - user_id (unsignedBigInteger, FK lógica pra users.id)

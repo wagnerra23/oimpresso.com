@@ -1767,6 +1767,35 @@ class ProductController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // UC-PQCK-02 (Tier 0 multi-tenant · ADR 0093) — MESMO guard do `store()` acima
+        // (UC-PCAD-05), aplicado ao caminho que NÃO tinha nenhum: aqui o payload nasce de
+        // `$request->only($form_fields)` e vai direto pro `Product::create`, então os FKs de
+        // insumo chegavam CRUS. Os dropdowns da Blade já são escopados
+        // (`Category::forDropdown($business_id)`) — o que faltava era o servidor não confiar
+        // no que a UI mandou. Mesma família do UC-PTAB-04 (#4300), UC-PBULK-03 e UC-PBOM-02.
+        //
+        // Este caminho é chamado de 10 Blades (compra, pedido, PDV, venda) + 1 JS direto:
+        // quem cadastra produto no meio de uma venda passa por AQUI.
+        //
+        // ANTES do `try` de propósito: o `catch (\Exception)` lá embaixo engoliria a
+        // ValidationException e devolveria sucesso genérico (mesma razão escrita no `store()`).
+        // `! empty()` trata ''/null como AUSENTE — produto sem categoria/marca segue legítimo.
+        $uc_pqck_02_bid = $request->session()->get('user.business_id');
+        $uc_pqck_02_fks = [
+            'category_id' => 'categories', 'sub_category_id' => 'categories',
+            'brand_id' => 'brands', 'unit_id' => 'units', 'warranty_id' => 'warranties',
+        ];
+        $uc_pqck_02_alheios = [];
+        foreach ($uc_pqck_02_fks as $field => $table) {
+            $val = $request->input($field);
+            if (! empty($val) && ! DB::table($table)->where('id', $val)->where('business_id', $uc_pqck_02_bid)->exists()) {
+                $uc_pqck_02_alheios[$field] = "O {$field} selecionado não pertence a este negócio.";
+            }
+        }
+        if (! empty($uc_pqck_02_alheios)) {
+            throw \Illuminate\Validation\ValidationException::withMessages($uc_pqck_02_alheios);
+        }
+
         try {
             $business_id = $request->session()->get('user.business_id');
             $form_fields = ['name', 'brand_id', 'unit_id', 'category_id', 'tax', 'barcode_type', 'tax_type', 'sku',

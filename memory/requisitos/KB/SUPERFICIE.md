@@ -12,9 +12,9 @@ module: KB
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs KB --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/KB/**` + `resources/js/Pages/kb/**` (namespace Inertia `kb`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `KB`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/KB/**` + `resources/js/Pages/kb/**` (namespace Inertia `kb`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `KB` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 175 arquivos em 18 papéis.
+**Total mapeado:** 177 arquivos em 18 papéis.
 
 ## Controllers — 14
 
@@ -128,8 +128,9 @@ module: KB
 - [config.php](../../../Modules/KB/Config/config.php)
 - [retention.php](../../../Modules/KB/Config/retention.php)
 
-## Telas (Inertia/React) — 3
+## Telas (Inertia/React) — 4
 
+- [Graph.tsx](../../../Modules/KB/Resources/js/Pages/ads/Admin/Graph.tsx)
 - [Graph.tsx](../../../resources/js/Pages/kb/Graph.tsx)
 - [Index.tsx](../../../resources/js/Pages/kb/Index.tsx)
 - [Index.v2.tsx](../../../resources/js/Pages/kb/Index.v2.tsx)
@@ -150,8 +151,9 @@ module: KB
 - [PathsDialog.tsx](../../../resources/js/Pages/kb/_components/PathsDialog.tsx)
 - [TroubleshooterDialog.tsx](../../../resources/js/Pages/kb/_components/TroubleshooterDialog.tsx)
 
-## Charters (lei da tela) — 6
+## Charters (lei da tela) — 7
 
+- [Graph.charter.md](../../../Modules/KB/Resources/js/Pages/ads/Admin/Graph.charter.md)
 - [Graph.charter.md](../../../resources/js/Pages/kb/Graph.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/kb/Index.charter.md)
 - [Index.v2.charter.md](../../../resources/js/Pages/kb/Index.v2.charter.md)

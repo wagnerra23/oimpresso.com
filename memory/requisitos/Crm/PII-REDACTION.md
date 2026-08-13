@@ -8,7 +8,7 @@ id: requisitos-crm-pii-redaction
 
 ## Implementação canônica
 
-PII de leads/contatos/agendamentos CRM é redactada via `Modules\Jana\Services\Privacy\PiiRedactor` (serviço compartilhado canon entre módulos do oimpresso).
+PII de leads/contatos/agendamentos CRM é redactada via `App\Support\Privacy\PiiRedactor` (serviço compartilhado canon entre módulos do oimpresso).
 
 ## Pontos de uso
 
@@ -48,7 +48,7 @@ Config: `LogOptions::defaults()->logFillable()->logOnlyDirty()->dontSubmitEmptyL
 
 - ADR 0093 (multi-tenant Tier 0) — PII NUNCA cruza tenant
 - skill `commit-discipline` (Tier A) — bloqueia PII real em commit
-- `Modules/Jana/Services/Privacy/PiiRedactor.php` — implementação canônica
+- `app/Support/Privacy/PiiRedactor.php` — implementação canônica
 - `memory/requisitos/Jana/PII-REDACTION.md` — doc fonte
 
 ---

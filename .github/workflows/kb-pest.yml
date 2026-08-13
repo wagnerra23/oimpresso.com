@@ -125,10 +125,50 @@ jobs:
         # suspeito nº1 é a flakiness Spatie order-dependent do GAP 2 (403 intermitente em
         # HTTP com `can:` coarse), não o contrato: mitigada pelo forgetCachedPermissions()
         # do kbActAsUser, a mesma que destravou o KbIndexV2ContractTest.
+        #   ^^^ SUPERADO — ver ERRATA 2026-08-11 abaixo. O palpite estava errado: não era
+        #       Spatie, não era ordem, e não era flake.
         #
         # Os 13: provados verdes na DB EFÊMERA do CI (PR #4725 + follow-ups). GAP 1 fechado;
         # GAP 2 tem os 4 bugs de comportamento CORRIGIDOS no código (ver abaixo), mas os 6
         # testes restantes NÃO entram ainda — bloqueio de ISOLAMENTO de teste (não de código).
+        #
+        # ═══ ERRATA 2026-08-11 — o "403 intermitente" não era Spatie, e não era flake ═══
+        # Toda menção a "flakiness Spatie order-dependent" NESTE header (acima e no BLOQUEIO
+        # do GAP 2, abaixo) está SUPERADA. Fica como registro do que se acreditou até
+        # 2026-08-11 — NÃO use como pista.
+        #
+        # Causa REAL, medida no job probe-403 (runs 31519646171 e 31520525185, 25 processos
+        # por braço) e fechada no #5606:
+        #     braço A (usuário já existia) ....... 0/25 != 200   (antes E depois)
+        #     braço B (usuário recriado a cada) .. 25/25 ANTES  →  0/25 DEPOIS
+        # É DETERMINÍSTICO. No ramo de CRIAÇÃO do kbActAsUser o `save()` insere e o MySQL
+        # aplica os DEFAULTs (users.user_type='user', users.allow_login=1), mas o Eloquent
+        # NÃO recarrega o modelo: a instância em memória fica com os dois NULL, e é ELA que
+        # o actingAs() põe no guard. O CheckUserLogin (app/Http/Middleware/CheckUserLogin.php,
+        # roda ANTES do `can:` na stack) lê do MODELO, não do banco:
+        #     if ($request->user()->user_type != 'user' || ...->allow_login != 1) abort(403)
+        # O diagnóstico capturou a mensagem literal "Unauthorized action." (do CheckUserLogin,
+        # NÃO do `can:`) com a linha do banco JÁ correta. Fix: $user->refresh() após o save.
+        #
+        # POR QUE PARECIA FLAKE: dispara UMA vez por banco (o desta lane é efêmero por run) e
+        # MultiTenantTraitTest chama kbActAsUser SEM fazer request — quando ele sorteia
+        # primeiro, o usuário nasce lá e o bug é consumido em silêncio (run verde). O
+        # aleatório era QUEM leva o golpe, nunca o bug. Nos artefatos JUnit das 6 falhas
+        # (31425398494 · 31482695145 · 31491029075 · 31513833674 · 31514548359 · 31517070137)
+        # a vítima é SEMPRE o 1º request autenticado do processo, nunca o 2º.
+        #
+        # DUAS premissas das correções anteriores também caem por medição:
+        #   - config/cache.php:18 lê CACHE_DRIVER e esta lane grava `array` ⇒ o cache do
+        #     Spatie JÁ era per-app-instance aqui, e o config(permission.cache.store=array)
+        #     do kbActAsUser é NO-OP na CI.
+        #   - `grep -rn "static \$" vendor/spatie/laravel-permission/src` = ZERO ⇒ o registry
+        #     não tem estado que atravesse teste.
+        #
+        # NÃO era bug de produção: em prod o guard resolve o usuário do banco, com a linha
+        # inteira. Era defeito de test-infra. Guards que travam a volta: L5 (BITE — userId
+        # inédito força o ramo de criação em qualquer ordem) e L6 (CONTROLE NEGATIVO — sem a
+        # coarse, o 403 legítimo continua 403), ambos em KbNodeBodyReaderTest.
+        # ═════════════════════════════════════════════════════════════════════════════════
         #
         # DIAGNÓSTICO CORRIGIDO (2026-07-23 — a hipótese do #4725 estava errada nos DOIS
         # gaps; investigação com oráculos de schema + config Spatie + run real da lane):
@@ -175,6 +215,10 @@ jobs:
         #     1. Flakiness Spatie order-dependent (executionOrder=random): should-pass HTTP dá
         #        403 intermitente (KbDecisionTree); forgetCached não zera; reset por-user via
         #        raw-delete NÃO resolveu (relation cache do Model fica stale) → revertido.
+        #        ^^^ SUPERADO pela ERRATA 2026-08-11 (topo deste step). O 403 era o
+        #            CheckUserLogin lendo um modelo pela metade, não o registry do Spatie —
+        #            o que explica por que "forgetCached não zera" e por que o reset
+        #            por-user não resolvia: nenhum dos dois tocava o defeito.
         #     2. mcp_memory_documents ACUMULAM entre testes (CORE, não limpa) → o bridge job do
         #        CrossTenant conta N nós em vez de 1 quando há mais testes na frente.
         #   Fechar de vez pede isolamento por-teste REAL (DatabaseTransactions sem drop de schema,

@@ -14,7 +14,7 @@ module: Crm
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Crm/**` + `resources/js/Pages/Crm/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 233 arquivos em 14 papéis.
+**Total mapeado:** 232 arquivos em 14 papéis.
 
 ## Controllers — 28
 
@@ -224,12 +224,12 @@ module: Crm
 - [index.blade.php](../../../Modules/Crm/Resources/views/sell/index.blade.php)
 - [index.blade.php](../../../Modules/Crm/Resources/views/settings/index.blade.php)
 
-## Testes (Pest) — 13
+## Testes (Pest) — 14
 
-- 13 em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature)
+- 14 em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 48
+## Demais arquivos (manifestos, docs, assets e misc) — 46
 
 - [ClienteProximaAcaoAgent.php](../../../Modules/Crm/Ai/Agents/ClienteProximaAcaoAgent.php)
 - [ClienteResumoAgent.php](../../../Modules/Crm/Ai/Agents/ClienteResumoAgent.php)
@@ -276,6 +276,4 @@ module: Crm
 - [CrmUtil.php](../../../Modules/Crm/Utils/CrmUtil.php)
 - [composer.json](../../../Modules/Crm/composer.json)
 - [module.json](../../../Modules/Crm/module.json)
-- [package.json](../../../Modules/Crm/package.json)
-- [webpack.mix.js](../../../Modules/Crm/webpack.mix.js)
 - [SCOPE.md](../../../memory/requisitos/Crm/SCOPE.md)

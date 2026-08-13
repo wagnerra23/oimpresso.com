@@ -88,7 +88,7 @@ function NovoCliente({
         if (!v) fechar();
       }}
     >
-      <DialogContent className="sm:max-w-[560px]">
+      <DialogContent className="venda-v3 sm:max-w-[560px]">
         <DialogHeader>
           <DialogTitle>Novo cliente — sem sair da venda</DialogTitle>
         </DialogHeader>
@@ -98,7 +98,6 @@ function NovoCliente({
             <Lbl>Nome / razão social</Lbl>
             <Input
               autoFocus
-              className="h-8 text-[12.5px]"
               value={nome}
               placeholder="Obrigatório"
               onChange={(e) => setNome(e.target.value)}
@@ -107,7 +106,6 @@ function NovoCliente({
           <div>
             <Lbl>CPF / CNPJ</Lbl>
             <Input
-              className="h-8 text-[12.5px]"
               value={doc}
               placeholder="Opcional"
               onChange={(e) => setDoc(e.target.value)}
@@ -116,7 +114,6 @@ function NovoCliente({
           <div>
             <Lbl>Telefone</Lbl>
             <Input
-              className="h-8 text-[12.5px]"
               value={fone}
               placeholder="(47) 9…"
               onChange={(e) => setFone(e.target.value)}
@@ -127,7 +124,7 @@ function NovoCliente({
             {/* `SafeSelectItem` e não `SelectItem`: opção com value vazio derruba o
                 render inteiro do Radix (tela branca) — lápide de 2026-06-29. */}
             <Select value={grupo} onValueChange={setGrupo}>
-              <SelectTrigger className="h-8 w-full text-[12.5px]">
+              <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -202,14 +199,13 @@ export default function ConsultaCliente({
           if (!v) onFechar();
         }}
       >
-        <DialogContent className="max-h-[80vh] sm:max-w-[880px]">
+        <DialogContent className="venda-v3 max-h-[80vh] sm:max-w-[880px]">
           <DialogHeader>
             <DialogTitle>Consulta de clientes</DialogTitle>
           </DialogHeader>
 
           <Input
             autoFocus
-            className="h-8 text-[12.5px]"
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             placeholder="Buscar por nome, CNPJ/CPF, cidade ou código…"

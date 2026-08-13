@@ -6,6 +6,7 @@ namespace Modules\Crm\Http\Controllers;
 
 use App\Contact;
 use App\Http\Controllers\Controller;
+use App\Utils\ModuleUtil;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\OficinaAuto\Entities\Vehicle;
@@ -29,18 +30,39 @@ use Modules\OficinaAuto\Entities\Vehicle;
  *
  * Permission gate: customer.view OR supplier.view OR view_own variantes.
  *
- * Visibility: rota só registrada se módulo OficinaAuto instalado (verificar
- * Routes/web.php — usar Module::has('OficinaAuto') guard ou similar pattern
- * canon do projeto).
+ * Visibility: a rota é registrada SEMPRE; quem gateia o módulo é o `index()`,
+ * com `ModuleUtil::isModuleInstalled('OficinaAuto')` antes de tocar `Vehicle`
+ * (pattern canon do núcleo — `ContactController:2178`). Sem o módulo, devolve
+ * paginador VAZIO em 200, que é o contrato que o consumidor já espera.
+ *
+ * ⚠️ Esta linha dizia, de 2026-05-27 a 2026-08-13, "rota só registrada se módulo
+ * instalado (verificar Routes/web.php — usar Module::has guard)". Era uma
+ * PENDÊNCIA escrita como se fosse estado: o guard nunca foi posto em lugar
+ * nenhum, e o `Routes/web.php` afirmava em presente que o controller "retorna []
+ * se Vehicle model inexistente" — o que ele não fazia. Só não quebrou porque a
+ * tabela `vehicles` viaja no `mysql-schema.sql`. (Classe LC-10.)
  *
  * @see Modules\Crm\Http\Controllers\ClienteAutosaveController (pattern canon
  *      pra ler contact com multi-tenant scope + permission gate)
  * @see app\Http\Controllers\ContactController::buildClienteVehiclesPaginator
  *      (lógica original — replicada aqui pra desacoplar drawer de Show.tsx)
- * @see resources\js\Pages\Cliente\_drawer\oss\PlacasSubTab.tsx (consumer)
+ * @see resources\js\Pages\Cliente\_drawer\PlacasMainTab.tsx (consumer)
  */
 class ClienteVeiculosController extends Controller
 {
+    /**
+     * Forma vazia do contrato de resposta — mesma shape do caminho feliz, para o
+     * consumidor não precisar de um segundo ramo de parsing.
+     */
+    private const PAGINADOR_VAZIO = [
+        'data' => [],
+        'total' => 0,
+        'current_page' => 1,
+        'last_page' => 1,
+        'from' => null,
+        'to' => null,
+    ];
+
     /**
      * GET /cliente/{id}/veiculos
      *
@@ -69,6 +91,21 @@ class ClienteVeiculosController extends Controller
         $businessId = (int) $request->session()->get('user.business_id');
         if ($businessId <= 0) {
             return response()->json(['message' => 'Sessao sem business_id'], 403);
+        }
+
+        // Gate de MODULO — pattern canon do nucleo (ContactController:2178, que faz o
+        // mesmo `isModuleInstalled` antes de referenciar Vehicle). Tem de vir ANTES de
+        // qualquer toque em `Modules\OficinaAuto\Entities\Vehicle`: o `use` no topo e
+        // so alias (nao autoloada nada), a classe so resolve aqui embaixo.
+        //
+        // Por que ate hoje nao quebrou, e por que isso NAO era garantia: com PSR-4 na
+        // raiz a classe e autoloadable mesmo com o modulo desligado, e a tabela
+        // `vehicles` viaja no `database/schema/mysql-schema.sql` — entao todo install
+        // que usou o baseline tem a tabela e a query devolve vazio por acidente de
+        // infra, nao por desenho. Em ambiente onde as migrations do OficinaAuto nunca
+        // rodaram, a linha 88 estourava.
+        if (! app(ModuleUtil::class)->isModuleInstalled('OficinaAuto')) {
+            return response()->json(self::PAGINADOR_VAZIO);
         }
 
         // Multi-tenant Tier 0 ADR 0093: scope explicito antes da query relacional.

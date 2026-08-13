@@ -93,7 +93,7 @@ Module Jira-style já em prod desde 2026-05-04 (PRs #91/#92). Redesign UI em **4
 - [x] Frontend trata 409: revert otimismo + banner amarelo "Atualizado por outro usuário" + refetch silencioso
 - [x] Tests Pest: R-PMG-005 conflict + happy path com expected_updated_at correto
 
-**Implementado em:** [`Modules/Forja/Http/Controllers/BoardController.php`](../../../Modules/Forja/Http/Controllers/BoardController.php) + [`resources/js/Pages/Forja/Board/Index.tsx`](../../../resources/js/Pages/Forja/Board/Index.tsx)
+**Implementado em:** [`Modules/Forja/Http/Controllers/BoardController.php`](../../../Modules/Forja/Http/Controllers/BoardController.php) + [`Modules/Forja/Resources/js/Pages/Forja/Board/Index.tsx`](../../../Modules/Forja/Resources/js/Pages/Forja/Board/Index.tsx)
 
 #### PMG-002 · Cmd+K Search Global
 
@@ -132,7 +132,7 @@ Module Jira-style já em prod desde 2026-05-04 (PRs #91/#92). Redesign UI em **4
 ✅ **concluída 2026-05-08** ([PR #220](https://github.com/wagnerra23/oimpresso.com/pull/220))
 
 - [x] `BoardController::show($taskId)` — `GET /project-mgmt/board/{taskId}/detail` retorna `{task, comments, events, subtasks, dependencies}`. Eager load comments (≤100), events (≤50), subtasks (parent_task_id), dependencies + target map
-- [x] `resources/js/Pages/Forja/Board/DetailSheet.tsx` — Sheet shadcn slide-in à direita, w-2xl, overflow-y-auto. Header com display_id + priority dot + status badge + title + meta. 4 tabs state-driven (sem Tabs primitive nova): Description / Comments / Activity / Subtasks. Counts inline.
+- [x] `Modules/Forja/Resources/js/Pages/Forja/Board/DetailSheet.tsx` — Sheet shadcn slide-in à direita, w-2xl, overflow-y-auto. Header com display_id + priority dot + status badge + title + meta. 4 tabs state-driven (sem Tabs primitive nova): Description / Comments / Activity / Subtasks. Counts inline.
 - [x] Click card → URL `?task=ID` via `window.history.replaceState` (preserveState/Scroll implícito)
 - [x] 3 cenários Pest (403, 404, happy)
 
@@ -188,14 +188,14 @@ Module Jira-style já em prod desde 2026-05-04 (PRs #91/#92). Redesign UI em **4
 - [x] `Enter` abre o DetailSheet da task selecionada
 - [x] `preventDefault` em todas as teclas tratadas + guarda `isTypingTarget` (INPUT/TEXTAREA/contentEditable) — digitar "java" na busca não move card nem avança status
 - [x] Hook extraído e **testável**: `useBoardShortcuts` roda em jsdom sem a Page inteira (sem AppShellV2/Inertia/defer), com lane de CI própria
-- [ ] ⚠️ **Resíduo não entregue:** atalho `c` cria task na coluna ativa (foco no input). Varredura contada 2026-08-04 (`grep "'c'" resources/js/Pages/Forja/Board/Index.tsx` → 0 ocorrências; a tecla não aparece no `useBoardShortcuts` nem no `ShortcutsOverlay`). **Vira US nova ou é descartado = decisão [W]** — não foi inventada US pra ele aqui.
+- [ ] ⚠️ **Resíduo não entregue:** atalho `c` cria task na coluna ativa (foco no input). Varredura contada 2026-08-04 (`grep "'c'" Modules/Forja/Resources/js/Pages/Forja/Board/Index.tsx` → 0 ocorrências; a tecla não aparece no `useBoardShortcuts` nem no `ShortcutsOverlay`). **Vira US nova ou é descartado = decisão [W]** — não foi inventada US pra ele aqui.
 
 **Correção do texto do SPEC (precedência charter > SPEC, [`memory/proibicoes.md`](../../proibicoes.md) §Regra de precedência):**
 o item original pedia `e` = *"editar task selecionada"*. **Não foi feito, e por decisão certa** —
 `Board/Index.charter.md` (lei) fixa **`E` = avançar status** e **`A` = voltar**, e roubar o `E` quebraria
 a memória muscular de quem usa o board todo dia. O "abrir pra editar" ficou no **`Enter`**, que estava
 livre. A justificativa está escrita no cabeçalho do próprio hook
-([`useBoardShortcuts.ts`](../../../resources/js/Pages/Forja/Board/_components/useBoardShortcuts.ts) L9-13).
+([`useBoardShortcuts.ts`](../../../Modules/Forja/Resources/js/Pages/Forja/Board/_components/useBoardShortcuts.ts) L9-13).
 O SPEC era o perdedor da precedência e está corrigido aqui, no lugar de o código ser dobrado à linha velha.
 
 **Correção do item de teste:** o SPEC dizia *"Tests Pest (~não aplicável; teste manual)"*. Falso hoje —
@@ -203,7 +203,7 @@ a cobertura existe e é automatizada em jsdom, não em Pest:
 [`tests/forjaBoardShortcuts.spec.tsx`](../../../tests/forjaBoardShortcuts.spec.tsx) rodado pela lane
 [`.github/workflows/forja-shortcuts-gate.yml`](../../../.github/workflows/forja-shortcuts-gate.yml).
 
-**Implementado em:** [`resources/js/Pages/Forja/Board/_components/useBoardShortcuts.ts`](../../../resources/js/Pages/Forja/Board/_components/useBoardShortcuts.ts) + [`resources/js/Pages/Forja/Board/_components/ShortcutsOverlay.tsx`](../../../resources/js/Pages/Forja/Board/_components/ShortcutsOverlay.tsx)
+**Implementado em:** [`Modules/Forja/Resources/js/Pages/Forja/Board/_components/useBoardShortcuts.ts`](../../../Modules/Forja/Resources/js/Pages/Forja/Board/_components/useBoardShortcuts.ts) + [`Modules/Forja/Resources/js/Pages/Forja/Board/_components/ShortcutsOverlay.tsx`](../../../Modules/Forja/Resources/js/Pages/Forja/Board/_components/ShortcutsOverlay.tsx)
 
 #### PMG-009 · Cycle close UI (retro markdown + rollover)
 
@@ -309,7 +309,7 @@ comando `mcp:tasks:unassigned` — re-rode em vez de reescrever o número aqui.
 **Sem migration, sem status novo.** O `cancelled` já é canônico
 ([`McpTask::STATUSES`](../../../Modules/Jana/Entities/Mcp/McpTask.php) L88 = `backlog/todo/doing/review/done/blocked/cancelled`,
 e `CLOSED_STATUSES` L91 = `done/cancelled`), e a UI do Backlog já o oferece — em filtro e em edição em lote
-([`Backlog/Index.tsx`](../../../resources/js/Pages/Forja/Backlog/Index.tsx) L198/206/293).
+([`Backlog/Index.tsx`](../../../Modules/Forja/Resources/js/Pages/Forja/Backlog/Index.tsx) L198/206/293).
 
 O que falta **não é o status — é a política**: hoje cancelar é um select como outro qualquer, sem motivo
 registrado e sem critério de quando fazer. Backlog que só cresce vira ruído; expurgo sem rastro vira
@@ -495,9 +495,9 @@ ADR 0368 §3 aposentou. Reconciliar exige migration de procedure + `ProcedureDri
 
 ## Onda 2 — Triage + Inbox (US-TR-301..308 · SPEC-UI-FASE7)
 
-**Implementado em:** `Modules/Forja/Http/Controllers/TriageController.php` · `resources/js/Pages/Forja/Triage/Index.tsx` · verificado@98cae0a (2026-06-18)
+**Implementado em:** `Modules/Forja/Http/Controllers/TriageController.php` · `Modules/Forja/Resources/js/Pages/Forja/Triage/Index.tsx` · verificado@98cae0a (2026-06-18)
 
-> Superfícies humanas das tools MCP `triage` e `my-inbox`. Telas: `resources/js/Pages/Forja/{Triage,Inbox}/Index.tsx`.
+> Superfícies humanas das tools MCP `triage` e `my-inbox`. Telas: `Modules/Forja/Resources/js/Pages/Forja/{Triage,Inbox}/Index.tsx`.
 > **PR #1940 — code-complete, segue DRAFT** aguardando gate visual do Wagner (ADR 0107/0114; Chrome MCP off).
 > Fonte funcional: [`TaskRegistry/SPEC-UI-FASE7.md`](../TaskRegistry/SPEC-UI-FASE7.md) (pasta `TaskRegistry/` é HISTORICAL→TeamMcp, mas **este arquivo segue a fonte viva** destas telas). RUNBOOK: [`RUNBOOK-index.md`](RUNBOOK-index.md). Visual: [`projectmgmt-index-visual-comparison.md`](projectmgmt-index-visual-comparison.md) (status draft).
 
@@ -505,11 +505,11 @@ ADR 0368 §3 aposentou. Reconciliar exige migration de procedure + `ProcedureDri
 
 > owner: wagner · priority: p1 · estimate: codável (fator 10x) · status: review · type: feature
 
-Como membro do time, vejo uma tela **Triage** (`/project-mgmt/triage`) com todas as tasks órfãs (sem owner OU sem prioridade OU em backlog). A lista = MESMO conjunto que a tool MCP `triage` (scope `McpTask::triage()`, exclui done/cancelled). Vazio → empty state **"Nada pra triar"** (sem emoji — AP). Implementado em [`Triage/Index.tsx`](../../../resources/js/Pages/Forja/Triage/Index.tsx) + [`TriageController`](../../../Modules/Forja/Http/Controllers/TriageController.php).
+Como membro do time, vejo uma tela **Triage** (`/project-mgmt/triage`) com todas as tasks órfãs (sem owner OU sem prioridade OU em backlog). A lista = MESMO conjunto que a tool MCP `triage` (scope `McpTask::triage()`, exclui done/cancelled). Vazio → empty state **"Nada pra triar"** (sem emoji — AP). Implementado em [`Triage/Index.tsx`](../../../Modules/Forja/Resources/js/Pages/Forja/Triage/Index.tsx) + [`TriageController`](../../../Modules/Forja/Http/Controllers/TriageController.php).
 
 ### US-TR-310 · Triage — atribuir owner + prioridade inline
 
-**Implementado em:** `Modules/Forja/Http/Controllers/TriageController.php` · `resources/js/Pages/Forja/Triage/Index.tsx` · verificado@98cae0a (2026-06-18)
+**Implementado em:** `Modules/Forja/Http/Controllers/TriageController.php` · `Modules/Forja/Resources/js/Pages/Forja/Triage/Index.tsx` · verificado@98cae0a (2026-06-18)
 
 > owner: wagner · priority: p1 · estimate: codável · status: review · type: feature
 
@@ -517,7 +517,7 @@ Na Triage, atribuo **owner + prioridade inline** sem abrir a task: select inline
 
 ### US-TR-311 · Triage — mover cycle/epic
 
-**Implementado em:** `Modules/Forja/Http/Controllers/TriageController.php` · `resources/js/Pages/Forja/Triage/Index.tsx` · verificado@98cae0a (2026-06-18)
+**Implementado em:** `Modules/Forja/Http/Controllers/TriageController.php` · `Modules/Forja/Resources/js/Pages/Forja/Triage/Index.tsx` · verificado@98cae0a (2026-06-18)
 
 > owner: wagner · priority: p2 · estimate: codável · status: review · type: feature
 
@@ -525,15 +525,15 @@ Na Triage, movo a task pra um **cycle/epic** opcionalmente (dropdowns na mesma l
 
 ### US-TR-304 · Inbox — lista de não-lidas
 
-**Implementado em:** `Modules/Forja/Http/Controllers/InboxController.php` · `resources/js/Pages/Forja/Inbox/Index.tsx` · verificado@98cae0a (2026-06-18)
+**Implementado em:** `Modules/Forja/Http/Controllers/InboxController.php` · `Modules/Forja/Resources/js/Pages/Forja/Inbox/Index.tsx` · verificado@98cae0a (2026-06-18)
 
 > owner: wagner · priority: p1 · estimate: codável · status: review · type: feature
 
-Como membro, vejo uma tela **Inbox** (`/project-mgmt/inbox`) com minhas notificações: lê `mcp_inbox_notifications WHERE user_id=me` (não-lidas por default), **agrupado por tipo**. Paridade com a tool MCP `my-inbox`. Implementado em [`Inbox/Index.tsx`](../../../resources/js/Pages/Forja/Inbox/Index.tsx) + [`InboxController`](../../../Modules/Forja/Http/Controllers/InboxController.php).
+Como membro, vejo uma tela **Inbox** (`/project-mgmt/inbox`) com minhas notificações: lê `mcp_inbox_notifications WHERE user_id=me` (não-lidas por default), **agrupado por tipo**. Paridade com a tool MCP `my-inbox`. Implementado em [`Inbox/Index.tsx`](../../../Modules/Forja/Resources/js/Pages/Forja/Inbox/Index.tsx) + [`InboxController`](../../../Modules/Forja/Http/Controllers/InboxController.php).
 
 ### US-TR-305 · Inbox — marcar lido (individual + todas)
 
-**Implementado em:** `Modules/Forja/Http/Controllers/InboxController.php` · `resources/js/Pages/Forja/Inbox/Index.tsx` · verificado@98cae0a (2026-06-18)
+**Implementado em:** `Modules/Forja/Http/Controllers/InboxController.php` · `Modules/Forja/Resources/js/Pages/Forja/Inbox/Index.tsx` · verificado@98cae0a (2026-06-18)
 
 > owner: wagner · priority: p1 · estimate: codável · status: review · type: feature
 
@@ -541,7 +541,7 @@ No Inbox, **marco como lido** individual (`PATCH /inbox/{id}/read`) e "marcar to
 
 ### US-TR-306 · Inbox — deep-link pra task/DetailSheet
 
-**Implementado em:** `Modules/Forja/Http/Controllers/InboxController.php` · `resources/js/Pages/Forja/Inbox/Index.tsx` · verificado@98cae0a (2026-06-18)
+**Implementado em:** `Modules/Forja/Http/Controllers/InboxController.php` · `Modules/Forja/Resources/js/Pages/Forja/Inbox/Index.tsx` · verificado@98cae0a (2026-06-18)
 
 > owner: wagner · priority: p1 · estimate: codável · status: review · type: feature
 
@@ -549,7 +549,7 @@ No Inbox, clico (ou Enter) numa notificação e vou direto pra **task** no Board
 
 ### US-TR-307 · Operador não-técnico usa sem treino
 
-**Implementado em:** `Modules/Forja/Http/Controllers/BoardController.php` · `Modules/Forja/Http/Controllers/TriageController.php` · `Modules/Forja/Http/Controllers/InboxController.php` · `resources/js/Pages/Forja/Board/Index.tsx` · `resources/js/Pages/Forja/Triage/Index.tsx` · `resources/js/Pages/Forja/Inbox/Index.tsx` · verificado@98cae0a (2026-06-18)
+**Implementado em:** `Modules/Forja/Http/Controllers/BoardController.php` · `Modules/Forja/Http/Controllers/TriageController.php` · `Modules/Forja/Http/Controllers/InboxController.php` · `Modules/Forja/Resources/js/Pages/Forja/Board/Index.tsx` · `Modules/Forja/Resources/js/Pages/Forja/Triage/Index.tsx` · `Modules/Forja/Resources/js/Pages/Forja/Inbox/Index.tsx` · verificado@98cae0a (2026-06-18)
 
 > owner: wagner · priority: p2 · estimate: codável · status: review · type: feature
 

@@ -10,7 +10,7 @@ use App\Domain\Fsm\Models\SaleProcessStage;
 use App\Domain\Fsm\Models\SaleStageAction;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 
 /**
  * US-SELL-012 — Seed canônico dos 3 processos FSM padrão por business.

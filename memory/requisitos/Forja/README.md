@@ -99,7 +99,7 @@ private function makeService(Request $request): ProjectService
 
 ## D7 LGPD compliance (Wave 16)
 
-- **PiiRedactor:** Service de audit aplica `Modules\Jana\Services\Privacy\PiiRedactor::redact()` em toda string livre (description, body de comment, note de event) antes de persistir no `activity_log`. CPF/CNPJ/email/telefone/CEP brasileiro substituídos por `[REDACTED:TIPO]`.
+- **PiiRedactor:** Service de audit aplica `App\Support\Privacy\PiiRedactor::redact()` em toda string livre (description, body de comment, note de event) antes de persistir no `activity_log`. CPF/CNPJ/email/telefone/CEP brasileiro substituídos por `[REDACTED:TIPO]`.
 - **Audit trail:** Eventos canônicos no `activity_log` com `log_name='project-mgmt'`. Forja **não usa LogsActivity trait** porque depende de Entities Jana (área proibida cross-módulo). Ao invés, `ForjaAuditService` registra direto na API Spatie.
 - **Retention policy:** [`Config/retention.php`](../../../Modules/Forja/Config/retention.php) declara TTL por entidade (5y projects, 3y tasks, 2y comments, 5y events append-only, 1y inbox notifications). Strategy default `anonymize`.
 

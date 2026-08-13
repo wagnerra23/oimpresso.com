@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Cms\Entities\CmsSiteDetail;
 use Modules\Cms\Http\Requests\StoreCmsSettingsRequest;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 class SettingsController extends Controller
 {

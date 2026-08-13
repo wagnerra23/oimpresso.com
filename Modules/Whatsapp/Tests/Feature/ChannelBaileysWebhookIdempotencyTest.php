@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Message;
@@ -41,7 +41,7 @@ uses(Tests\TestCase::class);
  *   em US-WA-074 (charter Pest suite) com mock daemon HTTP.
  *
  * @see memory/decisions/0135-omnichannel-inbox-arquitetura.md
- * @see resources/js/Pages/Atendimento/Inbox/Index.charter.md §Métricas vivas
+ * @see Modules/Whatsapp/Resources/js/Pages/Atendimento/Inbox/Index.charter.md §Métricas vivas
  */
 beforeEach(function () {
     if (DB::connection()->getDriverName() !== 'sqlite') {

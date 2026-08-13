@@ -6,7 +6,7 @@ namespace Modules\Financeiro\Services;
 
 use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Log;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 /**
  * FinanceiroAuditLogger — wrapper de Log que redaciona PII brasileira
@@ -25,7 +25,7 @@ use Modules\Jana\Services\Privacy\PiiRedactor;
  * **Multi-tenant Tier 0** (ADR 0093): mantém `business_id` no contexto sem
  * redacionar (chave operacional, não PII).
  *
- * **Reuso PiiRedactor canônico** (`Modules\Jana\Services\Privacy\PiiRedactor`):
+ * **Reuso PiiRedactor canônico** (`App\Support\Privacy\PiiRedactor`):
  * mesmo regex set BR (CPF/CNPJ/CEP/email/telefone), modo `placeholder` default
  * pra preservar legibilidade em troubleshooting.
  *
@@ -33,12 +33,12 @@ use Modules\Jana\Services\Privacy\PiiRedactor;
  * ```php
  * app(FinanceiroAuditLogger::class)->info(
  *     'titulo_baixa.skip_no_conta',
- *     ['business_id' => 4, 'titulo_id' => 123, 'observacoes' => 'CPF 123.456.789-00']
+ *     ['business_id' => 4, 'titulo_id' => 123, 'observacoes' => 'CPF 123.456.789-00'] # pii-allowlist
  * );
  * // Log final: ['observacoes' => 'CPF [REDACTED:CPF]', business_id intacto]
  * ```
  *
- * @see Modules\Jana\Services\Privacy\PiiRedactor
+ * @see App\Support\Privacy\PiiRedactor
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
 class FinanceiroAuditLogger

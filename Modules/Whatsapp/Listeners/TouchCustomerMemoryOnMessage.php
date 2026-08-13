@@ -6,7 +6,7 @@ namespace Modules\Whatsapp\Listeners;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\CustomerMemory;
 use Modules\Whatsapp\Events\OmnichannelMessageReceived;

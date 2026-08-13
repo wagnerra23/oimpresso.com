@@ -103,7 +103,7 @@ const CORPUS_RE = /\.(casos|charter)\.md$/;
 const NAO_CARIMBAR = new Map([
   ['resources/js/Pages/Produto/SellingPrices.charter.md',
    'BRL scan: 14 ocorrências de R$ pré-existentes (valores reais) — redigir é decisão [W]'],
-  ['resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md',
+  ['Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md',
    'charter-us-lint: sem `related_us` — só [W] sabe qual US a tela atende'],
 ]);
 

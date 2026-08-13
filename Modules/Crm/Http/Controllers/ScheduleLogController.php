@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\View;
 use Modules\Crm\Entities\CrmCallLog;
 use Modules\Crm\Entities\Schedule;
 use Modules\Crm\Entities\ScheduleLog;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 class ScheduleLogController extends Controller
 {

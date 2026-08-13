@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 uses(Tests\TestCase::class);
 
@@ -58,13 +58,13 @@ it('D7.a PiiRedactor disponivel via container e redaciona CPF/CNPJ/email/telefon
     expect($redactor)->toBeInstanceOf(PiiRedactor::class);
 
     // Smoke: garantir que numero de OS contendo PII colado por engano e redacted
-    $entradaSuja = 'OS 4821 contato cliente@acme.com.br CPF 123.456.789-00';
+    $entradaSuja = 'OS 4821 contato cliente@acme.com.br CPF 123.456.789-00'; # pii-allowlist
     $saida = $redactor->redact($entradaSuja);
 
     expect($saida)->toContain('[REDACTED:EMAIL]');
     expect($saida)->toContain('[REDACTED:CPF]');
     expect($saida)->not->toContain('cliente@acme.com.br');
-    expect($saida)->not->toContain('123.456.789-00');
+    expect($saida)->not->toContain('123.456.789-00'); # pii-allowlist
 });
 
 it('D7.b busca publica registra audit log estruturado sem vazar PII', function () {

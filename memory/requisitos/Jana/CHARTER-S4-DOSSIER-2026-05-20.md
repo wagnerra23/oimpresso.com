@@ -154,7 +154,7 @@ related_adrs: [0101, 0094]
 | # | Charter | Status | Module | Page route |
 |---|---|---|---|---|
 | 1 | `resources/js/Pages/Admin/Index.charter.md` | draft | Admin | /admin |
-| 2 | `resources/js/Pages/Atendimento/Inbox/Index.charter.md` | live | Atendimento | /atendimento/inbox |
+| 2 | `Modules/Whatsapp/Resources/js/Pages/Atendimento/Inbox/Index.charter.md` | live | Atendimento | /atendimento/inbox |
 | ... (112 linhas) ... |
 
 ## Module charters — <N> charters

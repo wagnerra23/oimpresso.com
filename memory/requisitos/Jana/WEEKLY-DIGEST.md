@@ -130,7 +130,7 @@ CREATE TABLE mcp_weekly_digests (
 );
 ```
 
-Migration: `Modules/Jana/Database/Migrations/2026_05_13_140000_create_mcp_weekly_digests_table.php`.
+Migration: `Modules/Forja/Database/Migrations/2026_05_13_140000_create_mcp_weekly_digests_table.php`.
 
 Tool MCP `weekly-digest-fetch` (`Modules/Jana/Mcp/Tools/WeeklyDigestFetchTool.php`) permite
 consultar via MCP server (tipicamente Felipe/Maiara abrem digest via Claude Code).

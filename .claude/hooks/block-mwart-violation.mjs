@@ -9,8 +9,16 @@
 // proibicoes.md §MWART: Edit/Write em `resources/js/Pages/<Mod>/<Tela>.tsx` SEM
 // `memory/requisitos/<Mod>/RUNBOOK-<tela-kebab>.md` é PROIBIDO. Desde a ADR 0271 onda 2
 // (mwart-gate.yml de CI deletado — era teatro continue-on-error) este hook runtime é o
-// ÚNICO enforcement de RUNBOOK. Override: comentar '/mwart-override <razão>' em PR
-// (vira ADR per-tela lifecycle:historical).
+// ÚNICO enforcement de RUNBOOK.
+//
+// ⚠️ NÃO TEM ESCAPE — e até 2026-08-12 esta linha e a mensagem OFERECIAM um ('/mwart-override
+// <razão>' em PR). Não havia handler (zero process.env, exit 2 é o único veto) e não poderia
+// haver: o '/mwart-override' é registro HUMANO no PR — exceção de PROCESSO que vira ADR
+// per-tela (ex. 0112 Whatsapp/Settings, 0177 Cliente/Show) — nunca comando de máquina, porque
+// nenhum workflow processa `issue_comment` (mwart-process/SKILL.md §131, caso PR #2544) e este
+// hook é PreToolUse: dispara ANTES de existir PR pra comentar. Mesma correção que o
+// visual-regression.yml fez em 2026-06-11 ("removida a oferta — nunca houve handler que a
+// processasse"). O único caminho aqui é fazer a F1: criar o RUNBOOK.
 //
 // Exempções (derivadas da regra — _components/helpers não são telas migráveis):
 //   - Pages/_Showcase|_components|_internal/** (módulo utilitário, não vertical)
@@ -73,8 +81,21 @@ export function parsePagePath(filePath) {
 
 /** lookup case-insensitive: pasta do módulo em memory/requisitos + QUALQUER RUNBOOK-<kebab>.md
  *  dentre os candidatos (kebab da tela E/OU do subdir). Aceita string ou array de kebabs.
- *  Retorna 'ok' | 'sem-pasta' | 'sem-runbook'. fs-fail → 'ok' (fail-open). */
-export function runbookStatus(modulo, kebabCandidatos, root = process.cwd()) {
+ *  Retorna 'ok' | 'sem-pasta' | 'sem-runbook'. fs-fail → 'ok' (fail-open).
+ *
+ *  `primarioKebab` (opcional) habilita a convenção com PREFIXO DO MÓDULO —
+ *  `RUNBOOK-<modulo-kebab>-<primario>.md` — usada de fato no repo (`RUNBOOK-compras-index.md`,
+ *  `RUNBOOK-repair-index.md`, `RUNBOOK-repair-show.md`, os 7 `RUNBOOK-produto-*.md`).
+ *
+ *  POR QUE SÓ O PRIMÁRIO, e não todos os candidatos (medido 2026-08-11, 210 telas do repo):
+ *  aplicar o prefixo a TODOS destravava 8 telas, mas 5 eram FALSO-RESGATE — `Repair/Status/Index`,
+ *  `Repair/JobSheet/Index`, `Repair/Dashboard/Index` e `Repair/ProducaoOficina/Index` casavam
+ *  TODAS o mesmo `RUNBOOK-repair-index.md`, porque `<Mod>/<Sub>/Index.tsx` tem `index` entre os
+ *  candidatos. Isso reintroduziria a ambiguidade que o #4648 tratou e viraria carimbo. Restrito
+ *  ao primário (subdir p/ aninhada, tela p/ flat) destrava 3, todas flat e inequívocas; 120 das
+ *  123 telas seguem bloqueadas. Tela aninhada com nome divergente resolve pelo `runbook:` do
+ *  charter — declaração é autoritativa, adivinhação não. */
+export function runbookStatus(modulo, kebabCandidatos, root = process.cwd(), primarioKebab = null) {
   try {
     const base = join(root, 'memory', 'requisitos');
     const dirs = readdirSync(base, { withFileTypes: true });
@@ -85,6 +106,7 @@ export function runbookStatus(modulo, kebabCandidatos, root = process.cwd()) {
         .filter(Boolean)
         .map((k) => `runbook-${k}.md`.toLowerCase()),
     );
+    if (primarioKebab) alvos.add(`runbook-${toKebab(modulo)}-${primarioKebab}.md`.toLowerCase());
     const files = readdirSync(join(base, modDir.name));
     return files.some((f) => alvos.has(f.toLowerCase())) ? 'ok' : 'sem-runbook';
   } catch {
@@ -137,23 +159,26 @@ export function decide(toolName, filePath, root = process.cwd()) {
   const telaKebab = toKebab(page.tela);
   const subdirKebab = page.subdir ? toKebab(page.subdir) : null;
   const candidatos = subdirKebab ? [telaKebab, subdirKebab] : [telaKebab];
-  const status = runbookStatus(page.modulo, candidatos, root);
+  // canônico da tela aninhada = por rota (subdir); flat = por nome (tela).
+  const primaryKebab = subdirKebab || telaKebab;
+  const status = runbookStatus(page.modulo, candidatos, root, primaryKebab);
   if (status === 'ok') return null;
   // resgate por proveniência: charter irmão declara um runbook: cujo arquivo EXISTE (validado).
   if (charterRunbookExists(filePath, root)) return null;
-  // canônico da tela aninhada = por rota (subdir); flat = por nome (tela).
-  const primaryKebab = subdirKebab || telaKebab;
+  const modKebab = toKebab(page.modulo);
   const runbook = `memory/requisitos/${page.modulo}/RUNBOOK-${primaryKebab}.md`;
+  const comPrefixo = `RUNBOOK-${modKebab}-${primaryKebab}.md (com prefixo do módulo)`;
   const alternativas = subdirKebab
-    ? `RUNBOOK-${subdirKebab}.md (por rota) ou RUNBOOK-${telaKebab}.md (por nome), nem 'runbook:' válido em ${page.tela}.charter.md`
-    : `RUNBOOK-${telaKebab}.md, nem 'runbook:' válido em ${page.tela}.charter.md`;
+    ? `RUNBOOK-${subdirKebab}.md (por rota), ${comPrefixo} ou RUNBOOK-${telaKebab}.md (por nome), nem 'runbook:' válido em ${page.tela}.charter.md`
+    : `RUNBOOK-${telaKebab}.md, ${comPrefixo}, nem 'runbook:' válido em ${page.tela}.charter.md`;
   const causa = status === 'sem-pasta'
     ? `A pasta 'memory/requisitos/${page.modulo}/' nem existe — F1 (PLAN) nunca rolou.`
     : `Nenhum candidato encontrado (${alternativas}).`;
   return `[mwart-process] ${toolName} em '${filePath}' BLOQUEADO.
 ADR 0104 §F1 PLAN exige RUNBOOK '${runbook}' antes de F3 FRONTEND (codar a Page). ${causa}
-Rode '/cockpit-runbook /<rota>' pra gerar RUNBOOK + SPEC (~12min com IA-pair).
-Override: comentar '/mwart-override <razão>' em PR (vira ADR per-tela lifecycle:historical).
+Rode '/cockpit-runbook /<rota>' pra gerar RUNBOOK + SPEC (~12min com IA-pair) — é o caminho.
+Este bloqueio NÃO tem escape: '/mwart-override' é registro HUMANO no PR (exceção de processo,
+vira ADR per-tela) e não destrava este Edit — o hook roda ANTES de existir PR pra comentar.
 Desde a ADR 0271 onda 2 este hook runtime é o ÚNICO enforcement de RUNBOOK (mwart-gate CI foi deletado).`;
 }
 

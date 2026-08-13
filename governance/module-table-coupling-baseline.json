@@ -1,0 +1,34 @@
+{
+  "_doc": "Baseline FORWARD-ONLY da catraca de acoplamento por TABELA (`DB::table` cru + `Schema::table` ALTER em tabela de outro módulo). Mesmo desenho da module-coupling-baseline: par NOVO reprova; a lista só DESCE.",
+  "_regra": "Este eixo é o que o `use` NÃO enxerga. Dono da tabela é DERIVADO de quem faz `Schema::create` na migration, nunca do `db_tables_owned` escrito à mão. Tabela lida por ≥3 módulos é infra compartilhada e não conta como fronteira — limiar NÃO se baixa pra 3→2: medido em 2026-08-12, isso cegaria o detector em `fin_contas_bancarias` e `subscriptions` pra calar 1 falso-positivo.",
+  "_medicao": "node scripts/governance/catalog-graph.mjs --acoplamento (seção \"fronteira por TABELA\"). O selo `alter=N` marca toque na ESTRUTURA (ownership, mais forte que uso); `mig=N runtime=M` separa \"faz todo dia\" de \"fez uma vez\".",
+  "_regenerar": "node scripts/governance/catalog-graph.mjs --acoplamento --write-baseline (grava os DOIS eixos). Ao CURAR um par, remova a linha no MESMO PR — a catraca avisa (não reprova) quando há entrada já curada.",
+  "_piso": "PISO, não teto: só `DB::table('literal')`. `DB::table($var)`, Eloquent via Model alheio e SQL cru em string ficam invisíveis — o report diz quantos não resolveu.",
+  "_proveniencia_2026_08_13": "Par RE-APONTADO, não par novo: `Superadmin>Forja` é o `Superadmin>Jana` que já estava nesta lista — as tabelas `mcp_quotas`/`mcp_tokens` trocaram de dono quando as 61 migrations `mcp_*` foram pra Forja (ADR 0366 §D-C item 4, autorizado por [W]). Nenhuma query nova foi escrita: o mesmo código do Superadmin lê as mesmas 2 tabelas. Prova de que não houve afrouxamento: a lista ENCOLHEU de 20 para 18 — saíram `Forja>Jana`, `Governance>Jana` e `Superadmin>Jana` (curados pela troca de dono), entrou 1 renomeado. A NORMA do par segue indecidida na mesa de fronteiras (memory/decisions/proposals/2026-08-12-fronteiras-de-modulo-norma-por-par.md) — por isso ele fica em `grandfathered` (dívida congelada) e NÃO em `allowlist` (acoplamento deliberado com razão): usar o slot de norma pra dizer o que a mesa ainda não decidiu seria mentir no slot certo.",
+  "grandfathered": [
+    "Arquivos>Cms",
+    "Arquivos>Financeiro",
+    "Connector>Officeimpresso",
+    "Financeiro>RecurringBilling",
+    "Financeiro>Superadmin",
+    "Fiscal>NfeBrasil",
+    "Fiscal>Superadmin",
+    "Governance>Forja",
+    "Jana>Forja",
+    "Jana>Whatsapp",
+    "NfeBrasil>Arquivos",
+    "NfeBrasil>NFSe",
+    "Officeimpresso>Financeiro",
+    "OficinaAuto>Ponto",
+    "PaymentGateway>Financeiro",
+    "PaymentGateway>RecurringBilling",
+    "RecurringBilling>Financeiro",
+    "Superadmin>Forja"
+  ],
+  "allowlist": [
+    "Governance>Whatsapp"
+  ],
+  "allowlist_razoes": {
+    "Governance>Whatsapp": "FALSO-POSITIVO do detector, nao fronteira: as 2 unicas queries sao `failed_jobs` (Modules/Jana/Services/HealthSnapshotService.php), tabela de INFRA do Laravel cuja migration por acaso mora em Modules/Whatsapp. A mitigacao `>=3 modulos = infra compartilhada` nao dispara porque so Jana e Governance a leem — UM modulo abaixo do limiar. Baixar o limiar pra 2 foi MEDIDO e DESCARTADO em 2026-08-12: cegaria o detector em fin_contas_bancarias e subscriptions pra calar este alarme. Se um 3o modulo ler failed_jobs, a tabela vira infra sozinha e esta entrada pode sair."
+  }
+}
