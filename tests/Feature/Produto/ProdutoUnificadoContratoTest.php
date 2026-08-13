@@ -89,8 +89,11 @@ function unificadoContratoProps(object $test, array $props, array $query = []): 
 function unificadoContratoNumeros(mixed $payload): array
 {
     $out = [];
+    // array_walk_recursive() exige VARIÁVEL por referência — passar o retorno de
+    // json_decode() direto lança "Argument #1 could not be passed by reference".
+    $decodificado = (array) json_decode((string) json_encode($payload), true);
     array_walk_recursive(
-        (array) json_decode((string) json_encode($payload), true),
+        $decodificado,
         static function ($v) use (&$out) {
             if (is_numeric($v)) {
                 $out[] = round((float) $v, 2);
