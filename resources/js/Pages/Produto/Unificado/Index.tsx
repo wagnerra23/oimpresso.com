@@ -51,7 +51,9 @@ type Props = {
   insumos: InsumoRow[];
   tabelas: TabelaRow[];
   historico: HistoricoRow[];
-  permissoes: Permissoes;
+  // Opcional no TIPO porque o runtime pode não entregá-la (partial reload que não a peça);
+  // o componente aplica default fail-closed. O backend sempre a envia no load completo.
+  permissoes?: Permissoes;
 };
 
 /**
@@ -96,7 +98,12 @@ const fmtBRL = (n: number) =>
   n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const fmtPct = (n: number) => Math.round(n * 100) + '%';
 
-function ProdutoUnificadoIndex({ tela, filters, kpis, produtos, categorias, insumos, tabelas, historico, permissoes }: Props) {
+function ProdutoUnificadoIndex({
+  tela, filters, kpis, produtos, categorias, insumos, tabelas, historico,
+  // Fail-closed: se a prop não chegar por qualquer caminho, esconde tudo em vez de
+  // estourar `undefined.custo`. Ausência de permissão declarada nunca vira permissão.
+  permissoes = { custo: false, preco: false, composicao: false },
+}: Props) {
   // Nome da empresa: MESMA fonte que o AppShellV2 usa na sidebar
   // (`shell.cockpit.businessNome`, AppShellV2.tsx:273), que sai de uma query em
   // `App\Business` — robusta. O `business.name` do shared prop vem da SESSÃO e

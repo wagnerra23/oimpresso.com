@@ -83,10 +83,14 @@ class ProdutoUnificadoController extends Controller
         return Inertia::render('Produto/Unificado/Index', [
             'tela'       => $filters['tela'],
             'filters'    => $filters,
-            // EAGER de propósito: a tela precisa das permissões em TODA sub-tela pra decidir
-            // quais colunas existem, e o partial reload do setSubTela não pede esta prop —
-            // como closure ela sumiria na troca de aba e as colunas voltariam a renderizar
-            // valor ausente. É barato (3 booleanos já resolvidos acima).
+            // EAGER (não closure): são 3 booleanos já resolvidos acima — embrulhar em closure
+            // não pouparia query nenhuma, que é o único ganho do defer/D-14.
+            // O `only:[...]` do setSubTela NÃO pede esta prop, então ela não viaja no partial
+            // reload — e não precisa: o Inertia MESCLA a resposta parcial com as props que a
+            // página já tem no cliente, então `permissoes` persiste entre as sub-telas. (Isso
+            // vale pra prop eager e closure igual: o que decide o que viaja é a lista `only`,
+            // não a forma da prop.) Do outro lado, o `.tsx` aplica default fail-closed — se a
+            // prop faltar, esconde tudo em vez de estourar; ausência nunca vira permissão.
             'permissoes' => [
                 'custo'      => $podeVerCusto,
                 'preco'      => $podeVerPreco,
