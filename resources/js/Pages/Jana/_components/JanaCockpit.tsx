@@ -342,8 +342,9 @@ export default function JanaCockpit({
       {/* Tint OPACO sobre a superfície de card, nunca translúcido sobre o fundo.
           `bg-primary/5` compõe sobre `--color-background` (dark: oklch 0.26) —
           mais ESCURO que um card (0.30) —, então o bloco mais importante da tela
-          afundava em vez de subir. A âncora faz o oposto (`.jc-brief` em
-          chat-jana.css:89, consumido por jana-merge.jsx:725 via `BriefDiario`):
+          afundava em vez de subir. A âncora faz o oposto (seletor `.jc-brief` em
+          chat-jana.css, consumido via `BriefDiario` no jana-merge.jsx — âncora de
+          SÍMBOLO, não de linha: `grep -n "\.jc-brief{" prototipo-ui/cowork/chat-jana.css`):
           `color-mix(in oklch, var(--accent) 9%, var(--surface))`. */}
       <Card className="border-primary/25 bg-[color:color-mix(in_oklch,var(--color-primary)_9%,var(--color-card))]">
         <CardContent className="flex flex-col gap-3.5 p-5">
@@ -482,8 +483,9 @@ export default function JanaCockpit({
         {/* `tone` só enfatiza quando HÁ alerta. O ramo `else` era `success`, que
             pintava o card de VERDE exibindo R$ 0,00 — verde afirmando "bom"
             sobre ausência de dado. A âncora enfatiza UM KPI só, e só no alerta
-            (chat-jana.jsx:89 — 1 de 4 com `emphasize:true`; `.jc-kpi.emph` em
-            chat-jana.css:144). */}
+            (1 de 4 com `emphasize:true` no chat-jana.jsx; seletor `.jc-kpi.emph` no
+            chat-jana.css — âncora de SÍMBOLO, re-localize com
+            `grep -n "jc-kpi.emph" prototipo-ui/cowork/chat-jana.css`). */}
         <KpiCard
           label="Inadimplência total"
           value={fmtShort(overdueValue)}
@@ -528,8 +530,9 @@ export default function JanaCockpit({
         {/* Inadimplência buckets.
             `big` herda `text-foreground`; só o NEGATIVO vira vermelho — senão
             R$ 0,00 aparece em vermelho afirmando alerta sobre ausência de dado.
-            Âncora: `.jc-kpi-v` é `--text`, e só `.jc-kpi-v.red` é `--neg`
-            (chat-jana.css:151-155). */}
+            Âncora: `.jc-kpi-v` é `--text`, e só `.jc-kpi-v.red` é `--neg` — âncora de
+            SÍMBOLO no chat-jana.css, re-localize com
+            `grep -n "jc-kpi-v" prototipo-ui/cowork/chat-jana.css`. */}
         <AnalysisCard
           icon={<AlertTriangle size={16} />}
           title="Inadimplência"

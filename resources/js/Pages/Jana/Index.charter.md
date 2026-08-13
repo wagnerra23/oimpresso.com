@@ -5,7 +5,7 @@ component: resources/js/Pages/Jana/Index.tsx
 related_prototype: prototipo-ui/cowork/jana-merge.jsx
 owner: wagner
 status: live
-last_validated: "2026-08-12"
+last_validated: "2026-08-13"
 parent_module: Jana
 parent_adr: memory/decisions/0052-memoria-jana-3-angulos-faturamento.md
 related_adrs: [26, 31, 35, 36, 52, 93, 94, 107, 114]
@@ -17,7 +17,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 5
+charter_version: 6
 permissao: copiloto.access
 ---
 
@@ -67,16 +67,25 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   reintroduz a locação erradicada pela [ADR 0265](../../../../memory/decisions/0265-oficina-reparo-erradica-locacao.md);
   (b) a fonte (`Modules/OficinaAuto/Entities/Vehicle`) é OficinaAuto — Martinho biz=164 —, não
   faz sentido pra ROTA LIVRE (vestuário). Reabrir exige decisão [W] nova.
-  _⚠️ **A âncora AINDA constrói isso — e nenhuma máquina barra.** Medido e RENDERIZADO em
-  2026-08-13 a partir de `prototipo-ui/cowork/jana-merge.jsx` (montado pelo shell canônico
-  `oimpresso.com.html`, que carrega `chat-jana.jsx` e depois `jana-merge.jsx?v=jm1`): o Painel
-  renderiza o KPI "FROTA UTILIZAÇÃO", a meta "Utilização de frota", o card "Frota" com a linha
-  **`Locadas`** e a legenda "91 caçambas avulsas". Contagem no fonte: **`frota` 8× · `caçamba` 7×**.
-  O `dominio-gate` **não pega**: seus `forbidden_ui_paths` são `Pages/OficinaAuto` e
-  `OficinaAuto/Database/{Seeders,Migrations}` — `prototipo-ui/` não está na lista. Ou seja, quem
-  derivar da âncora **sem ler este Non-Goal** reintroduz a locação erradicada, e o CI deixa passar.
-  Ampliar o gate pra varrer protótipo é decisão [W] com FP medido antes ([ADR 0336](../../../../memory/decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md)) —
-  e esbarra na exceção legítima "Caçambas" como razão social do cliente (§5 2026-06-09)._
+  _⚠️ **O Non-Goal governa a TELA, não o que a ÂNCORA retrata — decisão [W] 2026-08-13.** Neste dia
+  o agente removeu Frota/caçamba do `jana-merge.jsx` (meta, drill `truck`, toggle, `cfg`, textos),
+  lendo este Non-Goal como se ele proibisse o protótipo de **mostrar**. [W] corrigiu na mesma
+  sessão, com a captura do Cowork vivo na mão: **"essa é a âncora correta do protótipo"**. O
+  protótipo retrata o cockpit do **Martinho (`biz=164`)**, onde frota É o negócio — e a emenda §5 de
+  2026-08-11 já tinha fixado que âncora errada se prova **estruturalmente** (desenha outra tela?),
+  não pelo vocabulário nem pelo carimbo de tenant. O `jana-merge.jsx` desenha o Painel: é a âncora
+  certa. **A remoção foi revertida**; agravante registrado: o agente trocou domínio real por
+  "Conversão de orçamentos", que ele **inventou** — anti-padrão inventado na fonte de design parece
+  canon e a próxima sessão obedece (§5 2026-07-16)._
+
+  _O que **continua valendo**: não construir a análise Frota **na tela** `/ia` do núcleo (ROTA LIVRE,
+  vestuário). A defesa é este Non-Goal + o `dominio-gate` nos paths de **tela** — não podar a fonte
+  de design. O `dominio-gate` não varre `prototipo-ui/` (seus `forbidden_ui_paths` são
+  `Pages/OficinaAuto` e `OficinaAuto/Database/{Seeders,Migrations}`), e **está certo em não varrer**:
+  ampliar pra protótipo reprovaria o retrato legítimo do cliente. Nota de precisão: a linha
+  `Locadas`, a legenda "91 caçambas avulsas" e o KPI "FROTA UTILIZAÇÃO" **não vivem no
+  `jana-merge.jsx`** — nascem em `prototipo-ui/cowork/chat-jana.jsx` (`:137`, `:129`, `:91`); a
+  medição de 2026-08-13 os atribuiu à âncora por engano._
 
 ## UX targets
 
@@ -100,11 +109,17 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 - ⛔ Segunda barra de header na tela — identidade/ações vivem no `JanaAreaHeader` (PageHeader canon), nunca num `<header>` próprio de componente filho
 - ⛔ Mutation otimista sem rollback — usar `router.patch` com `onError`
 - ⛔ **Citar no drawer de drill-down fonte/serviço que não existe no repo.** O drawer se chama
-  "de onde vem esse número" — nome fictício ali é mentira com selo de autoridade. O protótipo
-  lista `AnaliseInadimplenciaService`/`AnaliseFaturamentoService`/etc, e **nenhuma existe**
-  (medido 2026-08-07: `git grep -l 'Analise.*Service' -- Modules/ app/` → rc=1). A fonte vem lida
-  do código real (`app/Services/Sells/SellsCockpitAggregator.php`). Mexeu no aggregator, mexe no
-  `JANA_DRILL_FONTES` no mesmo PR.
+  "de onde vem esse número" — nome fictício ali é mentira com selo de autoridade. Até
+  **2026-08-13** o protótipo listava `AnaliseInadimplenciaService`/`AnaliseFaturamentoService`/etc,
+  e **nenhuma das seis existia** (medido 2026-08-07 e re-medido 2026-08-13:
+  `git grep -E '(class|interface) Analise[A-Za-z]*Service'` → rc=1). Nessa data a tabela `FONTE` do
+  `jana-merge.jsx` passou a citar `SellsCockpitAggregator::<metodo>`, alinhada ao
+  `JANA_DRILL_FONTES`; `churn`, que **não tem** método no back, declara isso em texto e o render
+  só veste de `<code>` o que contém `::`. A fonte vem lida do código real
+  (`app/Services/Sells/SellsCockpitAggregator.php`). Mexeu no aggregator, mexe no
+  `JANA_DRILL_FONTES` **e na tabela da âncora** no mesmo PR.
+  _Guard: `prototipo-ui/ancora.mjs` acusa símbolo de backend citado na âncora que não exista no
+  repo — e desde 2026-08-13 enxerga também o formato `Classe::metodo` (antes ficava cego nele)._
 - ⛔ **Prometer no botão do drawer o que a rota não entrega.** `ChatController@novaConversa` não
   aceita pergunta inicial e `Chat.tsx` não lê query param (medido 2026-08-07) — por isso o CTA diz
   "Conversar com a Jana", não "Perguntar sobre isso". Semear a pergunta é PR próprio (backend + Page).
@@ -115,6 +130,19 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 
 ## Charter version log
 
+- v6 (2026-08-13) — **Dois dos três defeitos do v5 consertados; o terceiro era diagnóstico errado.**
+  (1) **P-1 consertado** — os 6 `Analise*Service` inexistentes viraram
+  `SellsCockpitAggregator::<metodo>`, lidos do `JANA_DRILL_FONTES`; `churn` e `frota`, que **não
+  têm** método no back, declaram isso em texto, e o render deixou de vestir de `<code>` o que não é
+  símbolo. (2) **P-2 RETIRADO** — não era defeito: o Non-Goal governa a tela, não o retrato da
+  âncora; a remoção foi revertida por decisão [W] no mesmo dia (ver §Non-Goals). (3) **P-3
+  consertado** — os 12 fundos `*-soft` de status passaram a `color-mix(cor 12%, var(--surface))`:
+  o shell força os `*-soft` CLAROS nos dois temas, e no escuro isso reprovava o AA (neg 2,19 ·
+  warn 1,60 · pos 1,93 → 4,22 · 5,68 · 5,08), sem regredir o claro. O `accent` FICOU como estava —
+  medido, ele passa hoje (4,41) e o mesmo mix o reprovaria (2,35). Junto: o detector do
+  `ancora.mjs` passou a enxergar `Classe::metodo` (ele ficaria cego no formato correto — FP medido
+  antes, zero), e a **baseline de pixel da Jana foi regenerada**: a de 10/ago era anterior ao #5719
+  (paridade de tema escuro) e reprovava por uma mudança de cor que já era aprovada.
 - v5 (2026-08-12) — **Paridade de tema escuro** do Painel (`/ia`), sobre o pedido [CC] rev.2.
   Remove do §UX targets a prescrição de **cor** do "Demo polish (v2)" — **decisão [W] nesta data**,
   tomada com o conflito na mesa: o `Index.tsx` já contava **6 violações `no-restricted-syntax`** no
