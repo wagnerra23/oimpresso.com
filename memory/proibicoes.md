@@ -735,6 +735,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** antes de reescrever em massa **qualquer** classe de arquivo, perguntar **quem mais escreve nesses arquivos, e se esse produtor tem guarda** — e então rodar a guarda, ou reproduzir o predicado dela. Vale pra `memory/modulos/` (`guardaPerdaDeBranch`), baseline de catraca, `SUPERFICIE.md`, `catalog.json` e qualquer saída de gerador. Corolário afiado: **guarda acoplada ao COMANDO não protege o ARQUIVO** — `sed`, `Edit`, codemod e `git checkout` passam por baixo dela sem erro nenhum. E o teste de identidade prova que você não comeu o vizinho; **não prova que você tinha direito de comer o alvo**.
 
+### 2026-08-12 — Propor mudança em artefato que a MÁQUINA LÊ sem RODAR a máquina com a mudança aplicada (o `depends_on` que marcaria 18 acoplamentos vivos como "curados")
+
+- **O limite (variante também proibida):** **doc que a máquina LÊ é código com cara de doc** — mudança nele não se valida revisando o texto, se valida **rodando o consumidor com a mudança aplicada** e olhando o que ele passa a dizer. Vale pra frontmatter de `SCOPE.md`/charter/casos, baseline JSON de catraca, `gates-registry.json`, `modules_statuses.json`, `phpunit.xml`, `quarantine.list` e qualquer YAML de workflow. O teste é **antes→depois da saída do consumidor**, nunca "o texto ficou correto". Corolário que generaliza o agravante: **antes de propor preencher um campo, medir a ADOÇÃO dele** — campo com adoção de 1/32, sem schema e sem gate não é "o slot certo pouco usado", é sinal de que o slot certo é outro. E o corolário de leitura: quando a máquina **imprime as opções** na mensagem de erro, essa lista é especificação, não decoração.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
