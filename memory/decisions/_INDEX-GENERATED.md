@@ -7,7 +7,7 @@
 ## Resumo
 - **383** arquivos · **368** números únicos · máx **0378**
 - **ADRs ATIVOS (lifecycle ativo): 345** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 346 · superseded 16 · deprecated 12 · proposto 7 · rascunho 1 · recusado 1
+- Por status: aceito 347 · superseded 16 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 345 · arquivado 22 · substituido 16
 - Sem frontmatter (formato-tabela legado): 0
 
@@ -420,4 +420,4 @@ _(nenhuma)_
 | 0375 | aceito | ativo | decision | SCOPE.md e LICOES-OPERACAO.md saem de Modules/ para memory/requisitos/ |
 | 0376 | aceito | ativo | decision | §5 vira DERIVADO — o limite fica no contexto, a arqueologia sai para memory/lico |
 | 0377 | aceito | ativo | decision | Emenda à 0094 — append-only de ADR canon admite exceção por label `adr-body-edit |
-| 0378 | proposto | ativo | decision | Execução do item 4 da 0366 — a plataforma MCP sai da Jana para a Forja em ondas, |
+| 0378 | aceito | ativo | decision | Execução do item 4 da 0366 — a plataforma MCP sai da Jana para a Forja em ondas, |
