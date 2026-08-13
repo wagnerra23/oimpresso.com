@@ -98,6 +98,23 @@ export function shouldFail(verdicts) {
   return verdicts.some((v) => v === 'STALE');
 }
 
+/** Linha de veredito final do --compare. PURA (testável).
+ *
+ *  O texto NUNCA pode depender de `--check`: o modo relatório e o modo gate observam o MESMO
+ *  fato, e só o EXIT CODE é privilégio do gate. Bug medido 2026-08-13: o
+ *  `console.log('✓ sem espelho STALE')` vivia FORA do `if (strict …)`, então uma rodada com
+ *  `⛔ stale: 1` impresso no corpo TERMINAVA com a linha verde — e a última linha é o que quem
+ *  roda sem `--check` lê como resultado. Reproduzido no dia: `--compare snap.json` com o
+ *  `jana-merge.jsx` divergente imprimiu corpo vermelho e rodapé verde.
+ *
+ *  É a família LC-10 (artefato afirmando o próprio estado) no eixo do OUTPUT — a mesma doença
+ *  que o `ancora.mjs` teve carimbando `✓` sobre âncora `n/a`, consertada em 2026-08-11. */
+export function veredictoFinal(nStale) {
+  return nStale > 0
+    ? { ok: false, texto: `✗ ${nStale} arquivo(s) do espelho STALE — o vivo avançou e o espelho ficou. Re-exporte do Cowork.` }
+    : { ok: true, texto: '✓ sem espelho STALE (divergência hash-provada).' };
+}
+
 // ── LIVE-ONLY: o ponto cego que deixou `jana-merge.jsx` fora do git por dias ──────
 // O manifesto monta o universo do lado do ESPELHO (readdir de prototipo-ui/cowork/).
 // Consequência estrutural: arquivo que existe no VIVO e nunca foi exportado é invisível
@@ -804,11 +821,11 @@ function main() {
     console.log(`  ledger: rodada registrada em ${LEDGER_REL} (${entries.length} entrada(s)). Commite o ledger.`);
   }
 
-  if (strict && shouldFail(rows.map((r) => r.veredito))) {
-    console.error(`✗ ${stale.length} arquivo(s) do espelho STALE — o vivo avançou e o espelho ficou. Re-exporte do Cowork.`);
-    process.exit(1);
-  }
-  console.log('✓ sem espelho STALE (divergência hash-provada).');
+  // O VEREDITO é do fato medido; o `--check` decide só o exit code. Separar os dois é o
+  // conserto de 2026-08-13 (ver docblock de `veredictoFinal`).
+  const vf = veredictoFinal(stale.length);
+  (vf.ok ? console.log : console.error)(vf.texto);
+  if (strict && shouldFail(rows.map((r) => r.veredito))) process.exit(1);
 }
 
 if (process.argv[1] && process.argv[1].replace(/\\/g, '/').endsWith('cowork-mirror-freshness.mjs')) main();
