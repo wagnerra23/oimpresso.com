@@ -3,7 +3,7 @@ slug: 0378-execucao-mcp-jana-para-forja-ondas
 number: 378
 title: "Execução do item 4 da 0366 — a plataforma MCP sai da Jana para a Forja em ondas, começando pelo schema"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
