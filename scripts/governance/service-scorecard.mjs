@@ -61,6 +61,7 @@ import { join } from 'node:path';
 import { execSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { PAGES_NS } from './module-surface.mjs';
+import { raizesDePages } from '../qa/page-path.mjs';
 
 const ROOT = process.cwd();
 const args = process.argv.slice(2);
@@ -121,7 +122,7 @@ export function graphSignals(moduleId, edges, nodeIds) {
  * PURA: não lê fs nem git; recebe tudo. `deps.hasPagesDir(ns)` e `deps.briefingInfo(mod)` são
  * injetados (o main passa as versões reais; o teste passa stubs).
  * @param {{catalog:any, gradesDoc:any, vitalDoc:any}} src
- * @param {{pagesNs:Record<string,string>, hasPagesDir:(ns:string)=>boolean, scopeExists:(rel:string)=>boolean, briefingInfo:(mod:string)=>{present:boolean,last_commit:string|null}}} deps
+ * @param {{pagesNs:Record<string,string|string[]>, hasPagesDir:(ns:string|string[])=>boolean, scopeExists:(rel:string)=>boolean, briefingInfo:(mod:string)=>{present:boolean,last_commit:string|null}}} deps
  */
 export function buildDoc(src, deps) {
   const { catalog, gradesDoc, vitalDoc } = src;
@@ -139,20 +140,30 @@ export function buildDoc(src, deps) {
 
   function buildService(node) {
     const mod = node.module;
-    const ns = pagesNs[mod] || mod;
+    // PAGES_NS virou 1:N quando as Pages passaram a morar no módulo dono (PR #5686): um módulo
+    // pode responder por mais de um namespace (Whatsapp → ['Whatsapp','Atendimento']). Normaliza
+    // para lista SEMPRE; o primeiro é o canônico (identidade e mensagem), os demais são alternativas
+    // de lookup. Sem isso, `vitalByNs.get(<array>)` devolve undefined em SILÊNCIO e o módulo é
+    // classificado como backend-only — o crash em join() era só a metade barulhenta do defeito.
+    const nsLista = Array.isArray(pagesNs[mod]) ? pagesNs[mod] : [pagesNs[mod] || mod];
+    const ns = nsLista[0];
 
     // ── qualidade (module-grade — REUSA, não recalcula) ──
     const gradeVal = typeof grades[mod] === 'number' ? grades[mod] : null;
 
     // ── tela (vital-signs: PAGES_NS direto → normalização EXATA de fallback) ──
-    let v = vitalByNs.get(ns);
+    let v;
     let vNs = ns;
     let via = 'direto';
+    for (const cand of nsLista) {
+      const hit = vitalByNs.get(cand);
+      if (hit) { v = hit; vNs = cand; break; }
+    }
     if (!v) {
       const cand = vitalByNorm.get(normKey(mod));
-      if (cand && cand !== ns) { v = vitalByNs.get(cand); vNs = cand; via = 'normalizado'; }
+      if (cand && !nsLista.includes(cand)) { v = vitalByNs.get(cand); vNs = cand; via = 'normalizado'; }
     }
-    const hasDir = hasPagesDir(ns);
+    const hasDir = hasPagesDir(nsLista);
     let screens;
     let unmatchedScreenDir = false;
     if (v) {
@@ -163,7 +174,7 @@ export function buildDoc(src, deps) {
         charter_pct: v.charter_pct, casos_pct: v.casos_pct, stale: v.stale, idade_max_dias: v.idade_max_dias,
       };
     } else if (hasDir) {
-      screens = { matched: false, ns, note: `dir resources/js/Pages/${ns} existe mas sem linha em vital-signs — gap` };
+      screens = { matched: false, ns, note: `dir de Pages para '${nsLista.join("' ou '")}' existe (núcleo ou módulo dono) mas sem linha em vital-signs — gap` };
       unmatchedScreenDir = true;
     } else {
       screens = { matched: false, ns, backend_only: true, note: 'sem superfície de tela (backend-only) — n/a, não é falha' };
@@ -243,7 +254,12 @@ function buildFromDisk() {
   const catalog = readJson(CATALOG_PATH);
   const gradesDoc = readJson(GRADES_PATH);
   const vitalDoc = readJson(VITAL_PATH);
-  const hasPagesDir = (ns) => existsSync(join(ROOT, 'resources', 'js', 'Pages', ns));
+  // As Pages moram em DUAS raízes desde o PR #5686 (núcleo + `Modules/<X>/Resources/js/Pages`).
+  // `raizesDePages` é o dono dessa lista — não reimplementar a segunda raiz aqui.
+  const hasPagesDir = (nss) => {
+    const lista = Array.isArray(nss) ? nss : [nss];
+    return raizesDePages(ROOT).some((raiz) => lista.some((n) => existsSync(join(raiz, n))));
+  };
   const scopeExists = (rel) => existsSync(join(ROOT, rel));
   const briefingInfo = (mod) => {
     const rel = `memory/requisitos/${mod}/BRIEFING.md`;
