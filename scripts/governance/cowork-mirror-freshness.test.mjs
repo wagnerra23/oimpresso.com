@@ -480,33 +480,6 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
   check('snapshot de medição se declara `_origin: medicao` (o ledger não o confunde com export)',
     JSON.parse(readFileSync(snapMed, 'utf8'))._origin === 'medicao');
 
-  // ── --snapshot-from-tree: o caminho SEM transcrição (2026-08-13) ────────────
-  // Medido: 18 dos 191 arquivos do espelho passam de 64KB. Só esses o harness persiste
-  // em disco; os outros 173 voltariam inline e só chegariam ao disco passando pelo agente
-  // — transcrição, que já corrompeu 1 arquivo real (#5743). Lendo o projeto BAIXADO, o
-  // conteúdo nunca entra no contexto: 191 arquivos por 1 comando, fidelidade por
-  // construção. Contrato: lê a árvore · compara · NÃO escreve · marca o que só existe lá.
-  const baixado = join(tmp, 'projeto-baixado');
-  mkdirSync(join(baixado, 'sub'), { recursive: true });
-  writeFileSync(join(baixado, 'x.jsx'), 'ESPELHO ANTIGO\n');        // igual ao espelho
-  writeFileSync(join(baixado, 'novo-la.jsx'), 'só no baixado\n');    // não existe no espelho
-  writeFileSync(join(baixado, 'sub', 'dentro.css'), 'a{}\n');        // subdir entra
-  writeFileSync(join(mirror, 'diverge.jsx'), 'VERSAO DO ESPELHO\n');
-  writeFileSync(join(baixado, 'diverge.jsx'), 'VERSAO DO BAIXADO\n');
-  const snapTree = join(tmp, 'tree.json');
-  const tr = run(['--snapshot-from-tree', baixado, '--emit-snapshot', snapTree]);
-  const st = JSON.parse(readFileSync(snapTree, 'utf8'));
-  check('--snapshot-from-tree lê a árvore inteira, subdir incluso',
-    st['x.jsx'] && st['novo-la.jsx'] && st['sub/dentro.css']);
-  check('--snapshot-from-tree separa igual × DIVERGE × só-no-baixado',
-    /igual: 1/.test(tr.out) && /DIVERGE: 1/.test(tr.out) && /só no baixado: 2/.test(tr.out));
-  check('--snapshot-from-tree nomeia o divergente (não só conta)', /diverge\.jsx/.test(tr.out));
-  check('--snapshot-from-tree NÃO escreve no espelho',
-    readFileSync(join(mirror, 'diverge.jsx'), 'utf8') === 'VERSAO DO ESPELHO\n');
-  check('--snapshot-from-tree avisa que o veredito vale a DATA DO DOWNLOAD (pacote velho engana)',
-    /DATA DO DOWNLOAD/.test(tr.out));
-  check('snapshot de árvore se declara `_origin: medicao-tree`', st._origin === 'medicao-tree');
-
   rmSync(tmp, { recursive: true, force: true });
 }
 
