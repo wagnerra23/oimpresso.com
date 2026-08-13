@@ -115,7 +115,7 @@ it('os tipos filtrados existem no enum VIGENTE da tabela do acervo', function ()
     // `*mcp_memory_documents*` no NOME deixava as duas últimas de fora. Filtra por
     // CONTEÚDO e ordena por nome (= ordem de aplicação).
     $migrations = array_values(array_filter(
-        glob(base_path('Modules/Jana/Database/Migrations/*.php')),
+        glob(base_path('Modules/Forja/Database/Migrations/*.php')),
         fn ($f) => str_contains((string) file_get_contents($f), 'mcp_memory_documents')
     ));
     sort($migrations);

@@ -108,6 +108,46 @@ db_tables_owned:
   - mcp_decision_links     # DecisionLinksService (escreve a cada decompose)
   - mcp_tool_executions    # Admin/ToolsController (INSERT por execução de tool)
   - mcp_user_module_access # UserScopeService (RBAC usuário × módulo)
+  # Já eram desta casa desde sempre (migrations próprias) — só nunca foram declaradas.
+  - cowork_handoffs
+  - mcp_actors
+  - mcp_ingest_heartbeat
+  # RECEBIDAS do Modules/Jana em 2026-08-13 — execução do item 4 do §D-C da
+  # [ADR 0366](../../decisions/0366-fronteira-jana-forja-governance-kb.md), autorizada por [W].
+  # A 0366 (aceita 2026-08-03) já dizia que o dono do MCP é o Forja; o que faltava era mover.
+  # 61 migrations `mcp_*` vieram de `Modules/Jana/Database/Migrations/` com o NOME PRESERVADO
+  # — a tabela `migrations` casa por nome de arquivo, então nada re-roda em prod.
+  # Classificação DERIVADA da tabela que cada migration toca, não do nome do arquivo
+  # (duas medições independentes concordaram em 61; as 20 `jana_*`/`copiloto_*` ficaram lá).
+  - mcp_alertas
+  - mcp_alertas_eventos
+  - mcp_audit_log
+  - mcp_automation_runs
+  - mcp_automations
+  - mcp_cc_blobs
+  - mcp_cc_messages
+  - mcp_cc_sessions
+  - mcp_doc_summaries
+  - mcp_git_links
+  - mcp_handoff_diffs
+  - mcp_handoff_drafts
+  - mcp_handoff_summaries
+  - mcp_memory_documents
+  - mcp_memory_documents_history
+  - mcp_quotas
+  - mcp_scopes
+  - mcp_scorecard_ai_suggestions
+  - mcp_skill_approvals
+  - mcp_skill_labels
+  - mcp_skill_test_runs
+  - mcp_skill_versions
+  - mcp_skills
+  - mcp_tokens
+  - mcp_usage_diaria
+  - mcp_user_scopes
+  - mcp_weekly_digests
+  - mcp_work_leases
+  - mcp_workflows
 drift_alerts: []
   # Fase 3.7 PR-1 (2026-05-06): Admin/ProjectsController absorvido do ADS.
   # URL /ads/admin/projects mantida — só namespace mudou.
