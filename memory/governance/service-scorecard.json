@@ -22,7 +22,6 @@
     "with_grade": 32,
     "unmatched_screen_dirs": [],
     "orphan_screen_ns": [
-      "Atendimento",
       "Home",
       "Modules",
       "Purchase",
@@ -33,8 +32,7 @@
       "Tarefas",
       "TransactionPayment",
       "User",
-      "ads",
-      "team-mcp"
+      "ads"
     ],
     "maturity_levels": {
       "ouro": 24,
@@ -1587,15 +1585,15 @@
         },
         "screens": {
           "matched": true,
-          "ns": "Forja",
+          "ns": "Forja + team-mcp",
           "via": "direto",
-          "telas": 12,
+          "telas": 17,
           "com_scorecard": 9,
           "nota_media": 83,
           "nota_min": 76,
           "pior_tela": "Forja/Roadmap/Gantt",
           "charter_pct": 100,
-          "casos_pct": 50,
+          "casos_pct": 47,
           "stale": true,
           "idade_max_dias": 38
         },
@@ -3851,15 +3849,15 @@
         },
         "screens": {
           "matched": true,
-          "ns": "Whatsapp",
+          "ns": "Whatsapp + Atendimento",
           "via": "direto",
-          "telas": 3,
-          "com_scorecard": 2,
-          "nota_media": 80,
-          "nota_min": 74,
-          "pior_tela": "Whatsapp/Templates/Index",
+          "telas": 11,
+          "com_scorecard": 10,
+          "nota_media": 79,
+          "nota_min": 73,
+          "pior_tela": "Atendimento/Macros/Variants",
           "charter_pct": 100,
-          "casos_pct": 33,
+          "casos_pct": 9,
           "stale": true,
           "idade_max_dias": 38
         },

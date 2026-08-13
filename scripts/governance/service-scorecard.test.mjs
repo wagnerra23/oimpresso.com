@@ -191,6 +191,43 @@ test('1:N — o ns publicado é STRING, nunca o array cru (não vaza pro JSON ne
   }
 });
 
+// ── 1:N com AMBOS os namespaces presentes — o caso que o `break` subcontava ──────
+// A 1ª versão parava no primeiro hit: `Whatsapp` casava com `Whatsapp` (3) e `Atendimento` (8)
+// virava "namespace órfão", publicando 3 de 11. Aqui os DOIS têm linha, então o teste morde
+// exatamente esse `break`.
+const vitalAmbos = {
+  generated_at: '2026-08-13',
+  modulos: [
+    { mod: 'Multi', telas: 3, com_scorecard: 3, nota_media: 90, nota_min: 88, pior_tela: 'Multi/A', charter_pct: 100, casos_pct: 100, stale: false, idade_max_dias: 1 },
+    { mod: 'Secundario', telas: 7, com_scorecard: 5, nota_media: 60, nota_min: 40, pior_tela: 'Secundario/Z', charter_pct: 50, casos_pct: 0, stale: true, idade_max_dias: 30 },
+  ],
+};
+const docAmbos = buildDoc(
+  { catalog: catalog1N, gradesDoc: { baseline_version: 'vTEST', rubric_adr: '0155', modules: { Multi: 80, Unico: 80 } }, vitalDoc: vitalAmbos },
+  { ...deps1N, pagesNs: { Multi: ['Multi', 'Secundario'], Unico: 'Unico' } },
+);
+const multiAmbos = docAmbos.services.find((s) => s.id === 'Multi').signals.screens;
+
+test('1:N — com AMBOS presentes SOMA as telas (não para no primeiro)', () => {
+  assert.equal(multiAmbos.telas, 10, '3 + 7 — o `break` publicava 3');
+  assert.equal(multiAmbos.com_scorecard, 8);
+});
+
+test('1:N — nenhum dos namespaces agregados vira órfão falso', () => {
+  assert.equal(docAmbos.stats.orphan_screen_ns.includes('Secundario'), false);
+  assert.equal(docAmbos.stats.orphan_screen_ns.includes('Multi'), false);
+});
+
+test('1:N — agrega por NATUREZA: mín/stale/idade pelo pior, nota e % ponderados por telas', () => {
+  assert.equal(multiAmbos.nota_min, 40, 'o mínimo é do pior namespace');
+  assert.equal(multiAmbos.pior_tela, 'Secundario/Z', 'pior_tela acompanha o mínimo');
+  assert.equal(multiAmbos.stale, true, 'stale é OR — um namespace velho contamina o módulo');
+  assert.equal(multiAmbos.idade_max_dias, 30, 'idade é o máximo');
+  // ponderado por telas (3×90 + 7×60)/10 = 69 — média simples daria 75, e esconderia o pior
+  assert.equal(multiAmbos.nota_media, 69);
+  assert.equal(multiAmbos.casos_pct, 30); // (3×100 + 7×0)/10
+});
+
 test('1:N — a forma STRING legada continua funcionando (não regredir quem não é 1:N)', () => {
   const sc = by1N.Unico.signals.screens;
   assert.equal(sc.matched, true);
