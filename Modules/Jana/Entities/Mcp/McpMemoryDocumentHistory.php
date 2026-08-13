@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * trigger de imutabilidade nesta tabela. Um `UPDATE`/`DELETE` direto passa.
  * Só `mcp_audit_log` e `mcp_task_events` têm trigger (`trg_*_no_update`/`_no_delete`).
  * Verificar antes de confiar:
- *   grep -rhoE "trg_[a-z_]+" Modules/Jana/Database/Migrations/*.php | sort -u
+ *   grep -rhoE "trg_[a-z_]+" Modules/Forja/Database/Migrations/*.php | sort -u
  *
  * Multi-tenant Tier 0 (ADR 0093) — Wave 15: tenancy herdada via parent
  * `document` (mcp_memory_documents.business_id). Nota: parent McpMemoryDocument

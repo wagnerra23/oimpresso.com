@@ -245,39 +245,6 @@ function resolvesViaRename(absPath) {
  *   2. só resolve se o destino EXISTIR de fato no disco — apontar pra lugar nenhum
  *      continua morto, que é o caso que o gate deve pegar.
  */
-/**
- * Migration que trocou de MÓDULO dono. Irmão exato do `resolvesViaRaizDeModulo` acima, no
- * eixo schema: `Modules/<A>/Database/Migrations/<arquivo>` → o mesmo `<arquivo>` sob
- * `Modules/<B>/Database/Migrations/`. O arquivo NÃO sumiu — mudou de casa, e a tabela
- * `migrations` do Laravel casa por NOME, então mover preservando o nome é o caminho
- * canônico (é por isso que ele é único e serve de chave aqui).
- *
- * Motivo de existir (2026-08-13): a ADR 0366 §D-C item 4 mandou as `mcp_*` da Jana pro
- * Forja. As 61 migrations moveram; ADR 0073 e 0084 as citam e são APPEND-ONLY — não dá
- * pra "consertar o texto". Sem isto, executar uma decisão de fronteira quebraria o gate
- * por dívida que a própria proibicoes.md manda NÃO pagar editando ADR aceita.
- *
- * As mesmas duas travas do `resolvesViaRename`:
- *   1. só casa o padrão EXATO `Modules/<X>/Database/Migrations/<arquivo>` — nada de substring;
- *   2. só resolve se o arquivo EXISTIR de fato sob outro módulo. Migration que nunca
- *      existiu, ou que foi DELETADA, continua morta — que é o caso que o gate deve pegar.
- */
-const MIGRATION_RE = /^Modules\/[A-Za-z]\w*\/Database\/Migrations\/([^/]+)$/;
-function resolvesViaMigrationDeOutroModulo(absPath) {
-  const rel = relative(ROOT, absPath).split(sep).join('/');
-  const m = rel.match(MIGRATION_RE);
-  if (!m) return false;
-  const arquivo = m[1];
-  const modulesDir = join(ROOT, 'Modules');
-  let mods;
-  try { mods = readdirSync(modulesDir, { withFileTypes: true }); } catch { return false; }
-  for (const mod of mods) {
-    if (!mod.isDirectory()) continue;
-    if (existsSync(join(modulesDir, mod.name, 'Database', 'Migrations', arquivo))) return true;
-  }
-  return false;
-}
-
 function resolvesViaRaizDeModulo(absPath) {
   const rel = relative(ROOT, absPath).split(sep).join('/');
   const PREFIXO = 'resources/js/Pages/';
@@ -304,6 +271,39 @@ function resolvesViaRaizDeModulo(absPath) {
     // `raizesDePages` devolve o núcleo também; ele já foi testado por `existsCaseSensitive`.
     if (!raiz.replace(/\\/g, '/').includes('/Modules/')) continue;
     for (const cand of candidatos) if (existsSync(join(raiz, cand))) return true;
+  }
+  return false;
+}
+
+/**
+ * Migration que trocou de MÓDULO dono. Irmão do `resolvesViaRaizDeModulo` acima, no eixo
+ * schema: `Modules/<A>/Database/Migrations/<arquivo>` → o mesmo `<arquivo>` sob
+ * `Modules/<B>/Database/Migrations/`. O arquivo NÃO sumiu — mudou de casa, e a tabela
+ * `migrations` do Laravel casa por NOME, então mover preservando o nome é o caminho
+ * canônico (é por isso que ele é único e serve de chave aqui).
+ *
+ * Motivo de existir (2026-08-13): a ADR 0366 §D-C item 4 mandou as `mcp_*` da Jana pro
+ * Forja. As 61 migrations moveram; ADR 0073 e 0084 as citam e são APPEND-ONLY — não dá
+ * pra "consertar o texto". Sem isto, executar uma decisão de fronteira quebraria o gate
+ * por dívida que a própria proibicoes.md manda NÃO pagar editando ADR aceita.
+ *
+ * As mesmas duas travas do `resolvesViaRename`:
+ *   1. só casa o padrão EXATO `Modules/<X>/Database/Migrations/<arquivo>` — nada de substring;
+ *   2. só resolve se o arquivo EXISTIR de fato sob outro módulo. Migration que nunca
+ *      existiu, ou que foi DELETADA, continua morta — que é o caso que o gate deve pegar.
+ */
+const MIGRATION_RE = /^Modules\/[A-Za-z]\w*\/Database\/Migrations\/([^/]+)$/;
+function resolvesViaMigrationDeOutroModulo(absPath) {
+  const rel = relative(ROOT, absPath).split(sep).join('/');
+  const m = rel.match(MIGRATION_RE);
+  if (!m) return false;
+  const arquivo = m[1];
+  const modulesDir = join(ROOT, 'Modules');
+  let mods;
+  try { mods = readdirSync(modulesDir, { withFileTypes: true }); } catch { return false; }
+  for (const mod of mods) {
+    if (!mod.isDirectory()) continue;
+    if (existsSync(join(modulesDir, mod.name, 'Database', 'Migrations', arquivo))) return true;
   }
   return false;
 }
