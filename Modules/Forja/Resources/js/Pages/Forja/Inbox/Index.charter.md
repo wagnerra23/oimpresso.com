@@ -1,7 +1,7 @@
 ---
 id: resources-js-pages-project-mgmt-inbox-index-charter
 page: /project-mgmt/inbox
-component: resources/js/Pages/Forja/Inbox/Index.tsx
+component: Modules/Forja/Resources/js/Pages/Forja/Inbox/Index.tsx
 related_prototype: "n/a (herda PT-07 Feed/Timeline; segue o DS)"
 owner: wagner
 status: draft

@@ -696,8 +696,8 @@ function derivarNamespaces() {
  * decisão **exista e esteja escrita** — quem decide é [W].
  */
 const MULTI_DONO_DECIDIDO = {
-  Site: 'Cms é dono do conteúdo institucional (Home/Blogs/BlogPost/Page); Pricing é do Superadmin (tela de planos); Login/Register ficam no NÚCLEO por serem Auth, não conteúdo. Divisão por natureza da tela, decidida com [W] em 2026-08-13.',
-  ads: 'Forja (Projects/ProjectShow/Tools/TeamScopes) + KB (Graph). O NOME `ads` está congelado pela ADR 0363 — renomear revogaria `route(\'ads.admin.*\')` e as permissions Spatie em silêncio, então os donos convivem sob o namespace legado.',
+  Site: 'Cms é dono do conteúdo institucional (Home/Blogs/BlogPost/Page); Pricing é do Superadmin (tela de planos); Login/Register ficam no NÚCLEO por serem Auth, não conteúdo. Divisão por natureza da tela. ELIMINÁVEL: o namespace é só o nome do componente Inertia, então separar (ex.: `Planos/Index` pro Superadmin) não toca URL, nome de rota nem permission — é decisão de arrumação, não bloqueio técnico.',
+  ads: 'Forja (Projects/ProjectShow/Tools/TeamScopes) + KB (Graph). ELIMINÁVEL, e a razão que esta linha carregava antes estava ERRADA: eu afirmei que a ADR 0363 impedia renomear. Ela congela quatro superfícies — URLs `/ads/admin/*`, nomes de rota `ads.admin.*`, permissions `ads.admin.skills.*` e `ads_module` — e o namespace do componente NÃO é nenhuma delas. Medido: a tela do KB já responde por `kb.graph.page` (`/kb/graph`), com controller em `Modules/KB`; só o nome do componente ficou `ads`.',
 };
 
 function relatorioNamespaces() {
