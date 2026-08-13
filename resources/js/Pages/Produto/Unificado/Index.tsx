@@ -8,6 +8,13 @@ import {
   Package, Star, Moon, TrendingUp, Clock, ArrowUpDown,
 } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/Components/ui/sheet';
 import { Grid, Inline } from '@/Components/layout';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Badge } from '@/Components/ui/badge';
@@ -176,6 +183,9 @@ function ProdutoUnificadoIndex({
   // a tela não tinha como achar um produto. O estado local existe só pro debounce —
   // a verdade é a querystring, então voltar/avançar no navegador continua funcionando.
   const [busca, setBusca] = useState(filters.busca ?? '');
+  // Drawer: guarda a LINHA, não o id. A ficha mostra o que a lista já carregou —
+  // buscar de novo o que está na mão seria latência sem ganho.
+  const [linhaAberta, setLinhaAberta] = useState<ProdutoRow | null>(null);
   const buscaRef = useRef<HTMLInputElement>(null);
   const primeiraRenderizacao = useRef(true);
 
@@ -336,7 +346,7 @@ function ProdutoUnificadoIndex({
               rows={produtos}
               tweaks={tweaks}
               perm={permissoes}
-              onOpen={(r) => router.visit(`/products/${r.id}`)}
+              onOpen={(r) => setLinhaAberta(r)}
               ordem={filters.ordem}
               dir={filters.dir}
               onOrdenar={(col) => irPara({ ordem: col, dir: filters.ordem === col && filters.dir === 'asc' ? 'desc' : 'asc' }, false)}
@@ -363,6 +373,8 @@ function ProdutoUnificadoIndex({
 
         {/* Tweaks panel (canto inferior direito) */}
         <TweaksPanel tweaks={tweaks} setTweak={setTweak} perm={permissoes} />
+
+        <DrawerProduto row={linhaAberta} perm={permissoes} onClose={() => setLinhaAberta(null)} />
       </div>
     </>
   );
@@ -405,6 +417,90 @@ const KPI_CARDS = [
   { chave: 'margem',    prop: 'margem_baixa'   as const, label: 'Margem baixa',    sub: 'abaixo de 30%',      Icon: TrendingUp, cor: 'text-primary'          },
   { chave: 'demanda',   prop: 'sob_demanda'    as const, label: 'Sob demanda',     sub: 'sem estoque próprio', Icon: Clock,     cor: 'text-success-fg'       },
 ];
+
+/**
+ * Slot 6 · Drawer da ficha do produto — 760px, o canon de entidade cadastral
+ * (ADR 0185 / ADR 0179). Em 1280 (monitor da Larissa): 760 + 260 do shell = 1020,
+ * cabe sem scroll horizontal. A referência /contacts usa exatamente esta largura.
+ *
+ * Abre com o que a LINHA já tem — não dispara request novo. Isso é decisão, não
+ * preguiça: os dados do drawer (sku, nome, categoria, preço, custo, margem, estoque)
+ * são os mesmos que a lista carregou. Buscar de novo pra mostrar o que já está na mão
+ * seria latência sem ganho.
+ *
+ * O que NÃO tem aqui, e por quê: a v2 desenha seções de "Composição (BOM)" e
+ * "Histórico do produto". O controller devolve `bomCount` = 0 literal (TODO) e não
+ * serve histórico por produto. Desenhar as seções vazias afirmaria "este produto não
+ * tem composição" — que é diferente de "ainda não sabemos". Elas entram quando o dado
+ * entrar; seção vazia com cara de resposta é pior que seção ausente.
+ */
+function DrawerProduto({ row, perm, onClose }: { row: ProdutoRow | null; perm: Permissoes; onClose: () => void }) {
+  return (
+    <Sheet open={row !== null} onOpenChange={(o) => { if (! o) onClose(); }}>
+      <SheetContent side="right" className="cw-sheet w-[760px] sm:max-w-[760px] p-0 flex flex-col">
+        {row && (
+          <>
+            <SheetHeader className="px-6 py-4 border-b border-border">
+              <Inline gap={2} align="center">
+                <span className="font-mono text-[11px] text-muted-foreground">{row.sku}</span>
+                <Badge variant={row.active ? 'default' : 'secondary'}>{row.active ? 'à venda' : 'inativo'}</Badge>
+              </Inline>
+              <SheetTitle className="text-[16px] font-semibold leading-snug text-left">{row.name}</SheetTitle>
+              <SheetDescription className="text-[11px] text-muted-foreground text-left">
+                {row.cat_label ?? 'Sem categoria'} · unidade {row.unit}
+              </SheetDescription>
+            </SheetHeader>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5">
+              {(perm.preco || perm.custo) && (
+                <section>
+                  <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Preço e margem</h3>
+                  <Grid cols={3} gap={3}>
+                    {perm.preco && <FichaValor rotulo="Preço de venda" valor={row.price !== undefined ? fmtBRL(row.price) : '—'} />}
+                    {perm.custo && <FichaValor rotulo="Custo" valor={row.cost !== undefined ? fmtBRL(row.cost) : '—'} />}
+                    {row.margin !== undefined && <FichaValor rotulo="Margem" valor={fmtPct(row.margin)} />}
+                  </Grid>
+                </section>
+              )}
+
+              <section>
+                <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Estoque</h3>
+                <Grid cols={3} gap={3}>
+                  <FichaValor
+                    rotulo="Controle"
+                    valor={row.stockKind === 'estoque' ? 'Estoque próprio' : 'Sob demanda'}
+                  />
+                  {/* `stockQty` é null fixo no controller (TODO: somar variation_location_details).
+                      "—" = desconhecido. Imprimir 0 afirmaria estoque zerado. */}
+                  <FichaValor rotulo="Quantidade" valor={row.stockQty !== null ? `${row.stockQty} ${row.unit}` : '—'} />
+                  <FichaValor rotulo="Atualizado" valor={row.updated ?? '—'} />
+                </Grid>
+              </section>
+            </div>
+
+            <div className="border-t border-border px-6 py-3">
+              <a
+                href={`/products/${row.id}`}
+                className="text-[12px] text-primary underline underline-offset-2"
+              >
+                Abrir ficha completa
+              </a>
+            </div>
+          </>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function FichaValor({ rotulo, valor }: { rotulo: string; valor: string }) {
+  return (
+    <div className="rounded-md border border-border bg-card px-3 py-2">
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{rotulo}</div>
+      <div className="text-[14px] font-semibold tabular-nums mt-0.5">{valor}</div>
+    </div>
+  );
+}
 
 /**
  * Esqueletos das props deferidas. Preenchem o MESMO espaço que o conteúdo real vai
