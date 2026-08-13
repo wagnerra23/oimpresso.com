@@ -58,7 +58,11 @@ class ProdutoUnificadoController extends Controller
      */
     private const POR_PAGINA_OPCOES = [12, 20, 50, 100];
 
-    /** Memo do resultado paginado — as props `produtos` e `paginacao` leem a MESMA query. */
+    /**
+     * Memo do resultado paginado — as props `produtos` e `paginacao` leem a MESMA query.
+     *
+     * @var array{rows: array<int,array<string,mixed>>, meta: array<string,mixed>}|null
+     */
     private ?array $produtosPaginados = null;
 
     public function __construct(private readonly ModuleUtil $moduleUtil)
@@ -186,7 +190,12 @@ class ProdutoUnificadoController extends Controller
      * memo, o `paginate()` roda 2× (2 counts + 2 selects) — e as duas closures são justamente
      * o caminho que o partial reload do `setSubTela` percorre.
      *
-     * @return array{rows: list<array<string,mixed>>, meta: array<string,int|null>}
+     * `meta` é `array<string,mixed>` e não `array<string,int|null>`: além dos contadores,
+     * ela carrega `opcoes` (a lista de tamanhos de página). O primeiro docblock declarava
+     * o tipo mais estrito e o PHPStan mordeu — o tipo tem que descrever o que o método
+     * devolve, não o que seria mais bonito.
+     *
+     * @return array{rows: array<int,array<string,mixed>>, meta: array<string,mixed>}
      */
     private function produtos(int $business_id, array $f, bool $podeVerCusto, bool $podeVerPreco, bool $podeVerBom): array
     {
