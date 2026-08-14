@@ -96,9 +96,13 @@ export const FASES = [
   // Este painel se declara "fonte única" e listava TRÊS caminhos como se fossem alternativas
   // vivas. Não são: o ZIP é o caminho MORTO. Estado medido no dia da reconciliação:
   //   · `importar-bundle.mjs` — invocado em CI SÓ como `--selftest`; nenhum import real.
-  //   · `check-handoff.ps1 -Zip` — idem, sem invocador de produção.
-  //   · a skill `aplicar-prototipo` AINDA manda usar `importar-bundle.mjs "<zip>"` (dívida
-  //     conhecida, fica anotada aqui em vez de sumir).
+  //     (Segue vivo como MÓDULO: `render-proto-baseline.mjs` importa `acharBundleRoot` dele.)
+  //   · `check-handoff.ps1 -Zip` — mais fraco ainda: nem `--selftest`, zero invocador. (Os
+  //     hits de "check-handoff" em `.github/` são o `bin/check-handoff-scope.php`, outro
+  //     script, sobre `memory/handoffs/` — não confundir.)
+  //   · a skill `aplicar-prototipo` e o `RUNBOOK-aplicar-prototipo-orquestracao.md` mandavam
+  //     usar `importar-bundle.mjs "<zip>"`. **Dívida PAGA em 2026-08-13**: os dois passaram a
+  //     citar o pull direto; o ZIP ficou como história/lição, marcado sem invocador.
   // O canônico é o pull direto (ADR 0325) escrito por `--export-from` (ADR 0374, ratificada
   // 2026-08-13). Os comandos de ZIP saem da lista de FASES — deletar os SCRIPTS é poda de
   // capacidade, decisão [W], e não se faz de lado dentro de uma reconciliação de redação.
