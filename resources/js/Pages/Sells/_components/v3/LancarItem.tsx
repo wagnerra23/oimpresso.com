@@ -1,5 +1,5 @@
 // Lançamento do item — o passo entre ESCOLHER o produto e ele ENTRAR na venda.
-// Porte de `design_handoff_cadastro_venda/design/sells-lancamento.jsx` (onda 1).
+// Porte de `prototipo-ui/cowork/venda-v3/sells-lancamento.jsx` (onda 1).
 //
 // POR QUE ESTE PASSO EXISTE (e por que a busca não pode adicionar direto)
 // Num produto dimensional a quantidade faturada NÃO é digitada: ela é derivada

@@ -4,7 +4,7 @@
 //   adrs: 0114 (Cowork loop) · 0135 (omnichannel) · 0093 (multi-tenant Tier 0) · 0107 (visual gate F3)
 //   spec: memory/requisitos/Whatsapp/SPEC.md
 //   visual-comparison: memory/requisitos/Whatsapp/CaixaUnificadaV4-visual-comparison.md
-//   prototipo: prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx
+//   prototipo: prototipo-ui/cowork/inbox-page.jsx
 //   status: implementada PR-D wave fix — coexiste com /atendimento/inbox durante canary 7d
 //   permissao: whatsapp.access
 //

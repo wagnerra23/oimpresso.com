@@ -2,7 +2,8 @@
 // (barra horizontal segmentada com aging dos títulos A receber).
 //
 // Refs:
-//  - prototipo-ui-patch/vendas-financeiro-completo/financeiro-app.jsx FinAgeing (linha 331)
+//  - resources/js/Pages/Financeiro/_cowork-bundle/financeiro-app.jsx → `const FinAgeing`
+//    (linha 331 conferida em 2026-08-13; se mover, ache pelo símbolo, não pela linha)
 //
 // Pure compute. Recebe lançamentos kind=receivable não-pagos, classifica por
 // dias até vencimento (delta = due - hoje):

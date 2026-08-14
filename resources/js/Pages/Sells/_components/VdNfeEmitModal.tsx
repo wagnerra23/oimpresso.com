@@ -1,6 +1,6 @@
 // VdNfeEmitModal — Emit NF-e 3-step modal (KB-9.75 Cowork bundle 2026-05-26 P0 gap #2).
 // Refs:
-//   - prototipo-ui/cowork-2026-05-26-comunicacao-visual/project/vendas-flow.jsx:294 (canon)
+//   - prototipo-ui/cowork/vendas-flow.jsx:294 (canon)
 //   - memory/requisitos/Sells/Sells-r4-cowork-kb975-2026-05-26-visual-comparison.md gap #2
 //
 // Wire-up real (TRAVA-SEGUNDA CU-4, 2026-06-02): a transmissão chama o backend

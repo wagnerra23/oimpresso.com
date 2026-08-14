@@ -2,7 +2,7 @@
 /* fin-cowork.css — Onda 8 KB-9.75 Financeiro F1 Cowork rewrite (2026-05-18)
  *
  * Tokens visuais portados do prototipo Cowork canon
- * (`prototipo-ui/financeiro-app.jsx` + `prototipo-ui/cowork/styles.css`).
+ * (`resources/js/Pages/Financeiro/_cowork-bundle/financeiro-app.jsx` + `prototipo-ui/cowork/styles.css`).
  * Escopados em `.fin-curadoria` (mesma wrapper das Ondas 5/6/7).
  *
  * Adiciona ao bundle:
