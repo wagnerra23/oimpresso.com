@@ -30,9 +30,15 @@
  * paralelo (§5 proibicoes "não duplicar régua/dono"). Ver ZELADOR.md.
  *
  * ── FRONTEIRA HONESTA ──
- *  - `ds-tokens-build-sync` fica FORA do scan: o `--check` dele exige `npm run tokens:build`
- *    antes (pesado, precisa de deps) — o recorder é leve/hermético. Mordida dele, se houver,
- *    entra manual pelo ZELADOR. Declarado, não escondido.
+ *  - `ds-tokens-build-sync` ENTROU no scan em 2026-08-14 (chip G6a). Ele estava fora com uma
+ *    razão que deixou de valer: na época o "check" dele era shell inline no workflow
+ *    (`npm run tokens:build` + `git diff`), que REESCREVIA os _generated na árvore — inviável
+ *    pro recorder, que roda numa árvore de trabalho real. Hoje existe
+ *    `scripts/design-sync/ds-tokens-build-sync.mjs --check`, que builda num tmpdir e só LÊ o
+ *    repo. Custo medido: ~4s (load do style-dictionary + build de 57ms) — dentro do timeout
+ *    de 120s por gate. Se as deps não estiverem instaladas, ele sai 2 com `Error:` no stderr
+ *    → classificado `crashed` pela regra abaixo → NÃO vira mordida. Degradação declarada,
+ *    não silenciosa.
  *  - O scan detecta violação PRESENTE no main; se o recorder for plugado quando uma violação
  *    já existe (backfill), atribui ao merge que disparou o 1º scan (imperfeição de bootstrap
  *    declarada) — daí em diante a atribuição é correta (o merge que introduz roda o scan e vê
@@ -61,9 +67,10 @@ const DRY = args.includes('--dry-run');
 const LEDGER = join(ROOT, 'memory/governance/design-gate-bites.jsonl');
 
 /**
- * Registro dos gates de design escaneáveis (leves, sem build). Cada um: nome canônico do
- * check + o comando que o CI roda. exit≠0 (com saída de drift) = mordida.
- * FORA (declarado): ds-tokens-build-sync (exige `npm run tokens:build`).
+ * Registro dos gates de design escaneáveis. Cada um: nome canônico do check + o comando que
+ * o CI roda — o MESMO comando, pra não medir um caminho e afirmar sobre outro. exit≠0 (com
+ * saída de drift) = mordida; crash (deps ausentes, stack trace) = pulado, nunca mordida.
+ * Nenhum dos comandos escreve na árvore de trabalho.
  */
 const GATES = [
   { name: 'component-registry', cmd: ['scripts/governance/component-registry-check.mjs', '--check', '--strict'] },
@@ -71,6 +78,7 @@ const GATES = [
   { name: 'ds-mirror-drift', cmd: ['scripts/governance/ds-mirror-drift.mjs'] },
   { name: 'design-coverage', cmd: ['scripts/qa/design-coverage.mjs', '--check'] },
   { name: 'ds-token-version', cmd: ['scripts/design-sync/ds-token-version.mjs', '--check'] },
+  { name: 'ds-tokens-build-sync', cmd: ['scripts/design-sync/ds-tokens-build-sync.mjs', '--check'] },
 ];
 
 // ── util ────────────────────────────────────────────────────────────────────

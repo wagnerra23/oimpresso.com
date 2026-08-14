@@ -2,8 +2,11 @@ name: DS token version (advisory)
 
 # Advisory (ADR 0314 — required = só Tier-0; versionar o pacote de tokens é HIGIENE, não
 # dinheiro/PII/multi-tenant/fiscal). Roda quando um PR toca a superfície de tokens e AVISA se
-# a superfície mudou sem bump de version.json + CHANGELOG. Nunca bloqueia merge (continue-on-error).
+# a superfície mudou sem bump de version.json + CHANGELOG.
 # Fix = npm run tokens:version:write. O selftest (governance-script-tests.yml) prova que morde.
+# (Esta linha dizia "Nunca bloqueia merge (continue-on-error)" — factualmente errado: não há
+# `continue-on-error` neste arquivo, e afirmar o próprio enforcement em presente é a família
+# LC-10, §5 2026-07-16. Quem é required no vivo: governance/required-checks-baseline.json.)
 
 on:
   pull_request:

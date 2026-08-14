@@ -3,11 +3,25 @@
 /**
  * screen-coverage-map.mjs — mapa de cobertura de QA por tela + baseline da catraca.
  *
- * Cruza as 4 camadas de garantia que uma tela Inertia pode ter:
+ * Cruza as camadas de garantia que uma tela Inertia pode ter:
  *   1. CHARTER   — contrato vivo (<Tela>.charter.md ao lado do .tsx)
  *   2. E2E       — referência da tela em tests/Browser/**.php (Pest 4 Browser/Playwright)
+ *                  UNIÃO com o contrato visreg (ver eixo 5) — ver nota abaixo
  *   3. SCORECARD — nota persistida (memory/governance/scorecards/screens/*.yaml)
  *   4. A11Y      — referência da tela em teste que injeta axe (heurística: "axe" no arquivo E2E)
+ *   5. VISREG    — contrato de regressão visual: `source` em tests/Browser/visreg-screens.json
+ *                  (baseline de pixel) e, separado, `visreg_states` = tela com snapshots de
+ *                  ESTADOS ISOLADOS declarados em tests/Browser/visreg-states.json (gate L2)
+ *
+ * POR QUE O VISREG VIROU EIXO PRÓPRIO (2026-08-14): o sinal já era LIDO aqui desde sempre,
+ * mas só DENTRO do `e2e` (união `e2e.length > 0 || hasVisregContract`) — então a cobertura de
+ * regressão visual não era publicada como número em lugar nenhum, e o rótulo "E2E (Pest Browser)"
+ * creditava telas que não têm teste Browser. MEDIDO no corpus (`node scripts/qa/screen-coverage-map.mjs`):
+ * dos 18 do `e2e`, apenas 4 têm Pest Browser de fato; 16 têm contrato visreg; 2 têm os dois.
+ * Ou seja, 14 dos 18 eram crédito de visreg lido como E2E. O número do `e2e` NÃO muda (é a mesma
+ * união de sempre — a catraca não pode regredir por reclassificação); o que muda é que agora dá
+ * pra VER a decomposição. Estende o dono que já publica cobertura por tela em vez de abrir um
+ * `visreg:coverage` paralelo (§5 2026-07-09 "duplica régua consolidada" + LC-19).
  *
  * Saídas:
  *   - stdout: resumo por módulo + agregados (read-only, sem efeito colateral)
@@ -44,6 +58,7 @@ const ROOT = process.cwd();
 const PAGES_DIR = join(ROOT, 'resources', 'js', 'Pages');
 const BROWSER_DIR = join(ROOT, 'tests', 'Browser');
 const VISREG_MANIFEST = join(BROWSER_DIR, 'visreg-screens.json');
+const VISREG_STATES_MANIFEST = join(BROWSER_DIR, 'visreg-states.json');
 const SCORECARD_DIR = join(ROOT, 'memory', 'governance', 'scorecards', 'screens');
 const REQ_DIR = join(ROOT, 'memory', 'requisitos'); // onde vivem RUNBOOK/visual-comparison/proto-baseline (nome drifta)
 const BASELINE = join(ROOT, 'memory', 'governance', 'screen-coverage-baseline.json');
@@ -92,6 +107,10 @@ const browserCorpus = browserFiles
 const visregSources = new Set(
   JSON.parse(readFileSync(VISREG_MANIFEST, 'utf8')).map((entry) => entry.source),
 );
+// Estados isolados (gate L2) — namespaces declarados no manifesto, ver telasComEstadosIsolados.
+const visregStateScreens = new Set(
+  telasComEstadosIsolados(JSON.parse(readFileSync(VISREG_STATES_MANIFEST, 'utf8'))),
+);
 
 // 3. Scorecards existentes (slug modulo-tela).
 const scorecards = new Set(
@@ -113,6 +132,32 @@ function e2eFor(relTsx) {
   return browserCorpus.filter((b) => b.body.includes(key) || b.body.includes(keyAlt));
 }
 
+/**
+ * telasComEstadosIsolados — namespaces das telas que têm snapshot de ESTADO ISOLADO (gate L2),
+ * derivados do manifesto tests/Browser/visreg-states.json. PURO/testável.
+ *
+ * RESOLVE PELA DECLARAÇÃO, NÃO PELO NOME: cada entrada do manifesto declara o `charter:` da tela,
+ * e é dele que sai o namespace (via `pageNamespacePath`, a mesma fonte única que define o universo
+ * de telas). A chave do manifesto NÃO serve — ela é um slug livre que já drifta do slug da tela
+ * (`clientes` × `cliente-index`, `oficina-os` × `oficinaauto-serviceorders-board`), e casar por ela
+ * seria adivinhação por nome, o oposto da doutrina desta porta (§5 2026-06-30: proveniência vem da
+ * declaração, nunca da string do filename).
+ *
+ * A declaração é confiável porque JÁ TEM GATE: `scripts/visreg-states-lint.mjs` regra 1 prova que
+ * todo screen do manifesto aponta um charter que EXISTE (e a regra 4, que nenhum charter declara
+ * `states:` sem entrada aqui). Este eixo CONTA o que aquele lint LINKA — perguntas diferentes,
+ * então não é régua duplicada.
+ *
+ * @param {{screens?: Record<string, {charter?: string}>}} manifest conteúdo do visreg-states.json
+ * @returns {string[]} namespaces sem extensão, ex.: ["Sells/Index", "Atendimento/CaixaUnificada/Index"]
+ */
+export function telasComEstadosIsolados(manifest) {
+  return Object.values(manifest?.screens ?? {})
+    .map((entry) => entry?.charter)
+    .filter(Boolean)
+    .map((charterPath) => pageNamespacePath(charterPath).replace(/\.charter\.md$/, ''));
+}
+
 export function inertiaSourcesFor(relTsx) {
   const pageSource = relTsx.replace(/\.tsx$/, '');
   return pageSource.endsWith('/Index')
@@ -120,10 +165,30 @@ export function inertiaSourcesFor(relTsx) {
     : [pageSource];
 }
 
+/**
+ * Eixos PUBLICADOS (aparecem no stdout, no `aggregates` e no `covered_screens` do baseline).
+ * Publicar é de graça e não bloqueia ninguém.
+ */
+export const EIXOS_PUBLICADOS = ['charter', 'e2e', 'a11y', 'scorecard', 'visreg', 'visreg_states'];
+
+/**
+ * Eixos que a CATRACA cobra (`--check` reprova o PR se regredirem). É um SUBCONJUNTO dos
+ * publicados, e a diferença é deliberada: `screen-coverage-gate` é required, então incluir um
+ * eixo aqui APERTA um gate required — o que é flip [W] com mordida provada, nunca efeito
+ * colateral de publicar um número ([ADR 0314](memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md) +
+ * [ADR 0336](memory/decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md);
+ * o que nasce, nasce advisory — [ADR 0275](memory/decisions/0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes.md)).
+ *
+ * Antes de 2026-08-14 as duas listas eram literais idênticos em lugares diferentes, e a
+ * coincidência escondia a fronteira: acrescentar um eixo à publicação apertaria a catraca
+ * sem ninguém decidir isso. Agora a fronteira é explícita e tem controle-negativo no selftest.
+ */
+export const EIXOS_NA_CATRACA = ['charter', 'e2e', 'a11y', 'scorecard'];
+
 export function coverageRegressions(current, previous, currentCovered = {}, previousCovered = {}) {
   const decode = (value) => new Set((value ?? '').split('|').filter(Boolean));
 
-  return ['charter', 'e2e', 'a11y', 'scorecard'].filter((key) => {
+  return EIXOS_NA_CATRACA.filter((key) => {
     if (current[key] < previous[key]) return true;
     const now = decode(currentCovered[key]);
     return [...decode(previousCovered[key])].some((screen) => !now.has(screen));
@@ -439,6 +504,66 @@ if (flags.has('--selftest')) {
     ),
     ['e2e'],
   );
+  // --- eixo VISREG: publicado, mas FORA da catraca (advisory por construção) --------
+  // A fronteira publicação × catraca é o ponto do eixo novo. Se alguém acrescentar 'visreg'
+  // a EIXOS_NA_CATRACA, estes três controles caem juntos — e a promoção deixa de ser
+  // acidente de publicar número pra virar decisão explícita ([W], ADR 0314/0336).
+  assert.ok(EIXOS_PUBLICADOS.includes('visreg'));
+  assert.ok(EIXOS_PUBLICADOS.includes('visreg_states'));
+  // CONTROLE-NEGATIVO 1: visreg despencando de 16 → 0 NÃO reprova o PR (o gate é required).
+  assert.deepEqual(
+    coverageRegressions(
+      { charter: 10, e2e: 2, a11y: 1, scorecard: 10, visreg: 0, visreg_states: 0 },
+      { charter: 10, e2e: 2, a11y: 1, scorecard: 10, visreg: 16, visreg_states: 6 },
+    ),
+    [],
+  );
+  // CONTROLE-NEGATIVO 2: idem pela via das telas nomeadas (o outro braço do coverageRegressions).
+  assert.deepEqual(
+    coverageRegressions(
+      { charter: 10, e2e: 2, a11y: 1, scorecard: 10 },
+      { charter: 10, e2e: 2, a11y: 1, scorecard: 10 },
+      { visreg: '' },
+      { visreg: 'Sells/Index.tsx' },
+    ),
+    [],
+  );
+  // MORDE: a catraca continua reprovando os 4 eixos de sempre — o eixo novo não a afrouxou.
+  assert.deepEqual(EIXOS_NA_CATRACA, ['charter', 'e2e', 'a11y', 'scorecard']);
+  assert.deepEqual(
+    coverageRegressions(
+      { charter: 10, e2e: 1, a11y: 1, scorecard: 10, visreg: 99 },
+      { charter: 10, e2e: 2, a11y: 1, scorecard: 10, visreg: 0 },
+    ),
+    ['e2e'],
+  );
+
+  // --- telasComEstadosIsolados: resolve pelo `charter:` declarado, nunca pela chave ---
+  // MORDE: as 2 formas reais do manifesto — tela do núcleo e tela DENTRO do módulo dono.
+  assert.deepEqual(
+    telasComEstadosIsolados({
+      screens: {
+        'sells-index': { charter: 'resources/js/Pages/Sells/Index.charter.md' },
+        'caixa-unificada': {
+          charter: 'Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md',
+        },
+      },
+    }),
+    ['Sells/Index', 'Atendimento/CaixaUnificada/Index'],
+  );
+  // CONTROLE-NEGATIVO 1: a CHAVE do manifesto é ignorada. `clientes` não vira tela nenhuma —
+  // quem resolve é o charter (`Cliente/Index`). Casar por chave era o falso-positivo óbvio:
+  // `clientes` × slug real `cliente-index`, `oficina-os` × `oficinaauto-serviceorders-board`.
+  assert.deepEqual(
+    telasComEstadosIsolados({ screens: { clientes: { charter: 'resources/js/Pages/Cliente/Index.charter.md' } } }),
+    ['Cliente/Index'],
+  );
+  // CONTROLE-NEGATIVO 2: entrada sem `charter:` não credita tela fantasma (some, não vira '').
+  assert.deepEqual(telasComEstadosIsolados({ screens: { x: { route: '/x' } } }), []);
+  assert.deepEqual(telasComEstadosIsolados({}), []);
+  // CONTROLE-NEGATIVO 3: o `_doc` do manifesto vive FORA de `screens` e não pode virar tela.
+  assert.deepEqual(telasComEstadosIsolados({ _doc: 'texto', screens: {} }), []);
+
   // --- chavesDeNome: o kebab que faltava (defeito medido 2026-08-11) ---------------
   // BITE: sem o kebab, `feedbackpublico` nunca casa `RUNBOOK-feedback-publico.md` — era
   // falso-negativo silencioso em 7 das 210 telas migráveis.
@@ -506,7 +631,7 @@ if (flags.has('--selftest')) {
   assert.deepEqual(ucsFromCasos('## UC-DSR-08b acesso\n## UC-DSR-09 outro\n'), ['UC-DSR-08B', 'UC-DSR-09']);
   // Prefixo hifenado longo (UC-FORJA-01/UC-KBV2-01) — a razão de a lib existir (4 regex drifados).
   assert.deepEqual(ucsFromCasos('## UC-KBV2-01 x\n## UC-FORJA-01 y\n'), ['UC-KBV2-01', 'UC-FORJA-01']);
-  console.log('screen-coverage selftest: aliases Inertia + resolver por-tela (classifyArtifact/screenSlug/ucsFromCasos) passaram');
+  console.log('screen-coverage selftest: aliases Inertia + resolver por-tela (classifyArtifact/screenSlug/ucsFromCasos) + eixo visreg fora da catraca passaram');
   process.exit(0);
 }
 
@@ -522,9 +647,17 @@ const rows = screens.map((abs) => {
     screen: relTsx,
     module: mod,
     charter,
+    // INTOCADO de propósito: continua a UNIÃO (Pest Browser ∪ contrato visreg). Separar aqui
+    // derrubaria o número de 18 → 4 e a catraca reprovaria o PR por RECLASSIFICAÇÃO, não por
+    // regressão de cobertura. A decomposição honesta vai nos eixos novos + no stdout.
     e2e: e2e.length > 0 || hasVisregContract,
     a11y: e2e.some((b) => b.hasAxe),
     scorecard: scorecards.has(slug),
+    visreg: hasVisregContract,
+    visreg_states: visregStateScreens.has(relTsx.replace(/\.tsx$/, '')),
+    // Só pro stdout decompor o `e2e` (quanto dele é Pest Browser de verdade). Não vira eixo:
+    // é a MESMA medida do `e2e`, vista de outro ângulo — eixo próprio seria régua duplicada.
+    e2eBrowserReal: e2e.length > 0,
   };
 });
 
@@ -537,9 +670,11 @@ const agg = {
   e2e: rows.filter((r) => r.e2e).length,
   a11y: rows.filter((r) => r.a11y).length,
   scorecard: rows.filter((r) => r.scorecard).length,
+  visreg: rows.filter((r) => r.visreg).length,
+  visreg_states: rows.filter((r) => r.visreg_states).length,
 };
 const coveredScreens = Object.fromEntries(
-  ['charter', 'e2e', 'a11y', 'scorecard'].map((key) => [
+  EIXOS_PUBLICADOS.map((key) => [
     key,
     rows.filter((row) => row[key]).map((row) => row.screen).sort().join('|'),
   ]),
@@ -548,27 +683,58 @@ const coveredScreens = Object.fromEntries(
 // Por módulo.
 const byModule = {};
 for (const r of rows) {
-  const m = (byModule[r.module] ??= { total: 0, charter: 0, e2e: 0, a11y: 0, scorecard: 0 });
+  const m = (byModule[r.module] ??= {
+    total: 0, charter: 0, e2e: 0, a11y: 0, scorecard: 0, visreg: 0, visreg_states: 0,
+  });
   m.total++;
   if (r.charter) m.charter++;
   if (r.e2e) m.e2e++;
   if (r.a11y) m.a11y++;
   if (r.scorecard) m.scorecard++;
+  if (r.visreg) m.visreg++;
+  if (r.visreg_states) m.visreg_states++;
 }
 
 // --- Relatório stdout ---
 console.log(`\n=== Mapa de cobertura QA-de-tela · ${total} telas ===\n`);
 console.log(ESCOPO_TELAS + '\n');
+// Decomposição do `e2e` (mesma medida, outro ângulo) — o rótulo antigo dizia "Pest Browser" e
+// creditava tela sem NENHUM teste Browser, porque o eixo sempre foi a união com o visreg.
+const e2eBrowserReal = rows.filter((r) => r.e2eBrowserReal).length;
+const e2eAmbos = rows.filter((r) => r.e2eBrowserReal && r.visreg).length;
+
 console.log(`  CHARTER (contrato)   : ${agg.charter}/${total}  (${pct(agg.charter)}%)`);
-console.log(`  E2E (Pest Browser)   : ${agg.e2e}/${total}  (${pct(agg.e2e)}%)`);
+console.log(`  E2E (Browser ∪ VRT)  : ${agg.e2e}/${total}  (${pct(agg.e2e)}%)`);
+console.log(`     ├─ Pest Browser   : ${e2eBrowserReal}  (teste Browser cita o path da tela)`);
+console.log(`     └─ contrato VRT   : ${agg.visreg}  (interseção com Pest Browser: ${e2eAmbos})`);
 console.log(`  A11Y (axe no E2E)    : ${agg.a11y}/${total}  (${pct(agg.a11y)}%)`);
-console.log(`  SCORECARD (nota)     : ${agg.scorecard}/${total}  (${pct(agg.scorecard)}%)\n`);
+console.log(`  SCORECARD (nota)     : ${agg.scorecard}/${total}  (${pct(agg.scorecard)}%)`);
+console.log(`  VISREG (pixel)       : ${agg.visreg}/${total}  (${pct(agg.visreg)}%)  [advisory]`);
+console.log(`  VISREG L2 (estados)  : ${agg.visreg_states}/${total}  (${pct(agg.visreg_states)}%)  [advisory]\n`);
+
+// O que os manifestos declaram e o mapa NÃO conseguiu casar com uma tela do universo. Silencioso
+// quando é zero (é o estado de hoje). Sem isto, manifesto crescer sem o mapa enxergar viraria
+// subcontagem calada — "gate mudo é pior que gate ausente" (CLAUDE.md §Sempre fazer, item 5).
+const nsDasTelas = new Set(rows.map((r) => r.screen.replace(/\.tsx$/, '')));
+const visregOrfaos = [...visregSources].filter(
+  (src) => !rows.some((r) => inertiaSourcesFor(r.screen).includes(src)),
+);
+const statesOrfaos = [...visregStateScreens].filter((ns) => !nsDasTelas.has(ns));
+if (visregOrfaos.length) {
+  console.log(`  ⚠ visreg-screens.json: ${visregOrfaos.length} source(s) sem tela casada: ${visregOrfaos.join(', ')}`);
+}
+if (statesOrfaos.length) {
+  console.log(`  ⚠ visreg-states.json: ${statesOrfaos.length} charter(s) sem tela casada: ${statesOrfaos.join(', ')}`);
+}
+if (visregOrfaos.length || statesOrfaos.length) console.log('');
 
 const mods = Object.entries(byModule).sort((a, b) => b[1].total - a[1].total);
-console.log('  Módulo'.padEnd(22) + 'Telas  Charter  E2E  Score');
+console.log('  Módulo'.padEnd(22) + 'Telas  Charter  E2E  Score   VRT   L2');
 for (const [m, s] of mods) {
   console.log(
-    '  ' + m.padEnd(20) + String(s.total).padStart(5) + String(s.charter).padStart(9) + String(s.e2e).padStart(5) + String(s.scorecard).padStart(7),
+    '  ' + m.padEnd(20) + String(s.total).padStart(5) + String(s.charter).padStart(9) +
+    String(s.e2e).padStart(5) + String(s.scorecard).padStart(7) +
+    String(s.visreg).padStart(6) + String(s.visreg_states).padStart(5),
   );
 }
 

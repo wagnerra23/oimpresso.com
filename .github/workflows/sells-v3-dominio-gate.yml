@@ -100,6 +100,11 @@ jobs:
       # a lane acende, roda os outros e passa — gate aceso num arquivo que ele não testa, que
       # é pior que gate mudo. Foi o que aconteceu com `cliente-consulta-dominio.test.ts`
       # (#5579): nasceu com 23 testes e mutação provada, e sem lane nenhuma.
+      # REINCIDIU em `item-acoes-dominio.test.ts`, detectado 2026-08-14 por varredura dos 31
+      # specs do `vitest.config` include contra as invocações reais de CI: o `paths` glob já
+      # acendia esta lane quando ele mudava, e os outros 5 é que passavam por ele. Contador
+      # da lane ao incluí-lo: 5 arquivos/93 testes → 6/96 (+3, os mesmos 3 que o
+      # `Sells/CreateV3.casos.md` cita no UC de ações-do-item).
       - name: domínio do preview de venda (vitest/jsdom)
         run: |
           npx vitest run \
@@ -108,6 +113,7 @@ jobs:
             tests/js/comissao-dominio.test.ts \
             tests/js/colunas-dominio.test.ts \
             tests/js/cliente-consulta-dominio.test.ts \
+            tests/js/item-acoes-dominio.test.ts \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-sells-v3-dominio-junit.xml

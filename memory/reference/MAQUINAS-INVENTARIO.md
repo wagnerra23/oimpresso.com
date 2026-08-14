@@ -59,8 +59,8 @@ lifecycle: ativo
 | `dominio-gate.yml` | Dominio-dict ratchet (coerência de domínio) |
 | `ds-gate.yml` | DS gate (fusão F1 — cor/UI/css/index/bundle/scorer · ADR 0314) |
 | `ds-mirror-drift.yml` | ds-mirror-drift (advisory) — sentinela de drift git↔espelho do Design System: compara os _generated-*.css do git contra o snapshot commitado do espelho claude.ai/design (… |
-| `ds-token-version.yml` | ds-token-version (advisory) — semver + changelog do pacote de tokens do DS: versiona a superfície dos _generated-*.css (296 tokens/4 escopos), fingerprint sha256; --check… |
-| `ds-tokens-build-sync.yml` | ds-tokens-build-sync (advisory) — ANCORA a premissa do loop diff-first (git = fonte verdadeira): roda 'npm run tokens:build' e falha se os _generated-*.css commitados div… |
+| `ds-token-version.yml` | ds-token-version — semver + changelog do pacote de tokens do DS: versiona a superfície dos _generated-*.css (296 tokens/4 escopos) por fingerprint sha256; `--check` sai ≠… |
+| `ds-tokens-build-sync.yml` | ds-tokens-build-sync — ANCORA a premissa do loop diff-first (git = fonte verdadeira): `scripts/design-sync/ds-tokens-build-sync.mjs --check` builda os *.tokens.json num t… |
 | `dup-detector-gate.yml` | Dup detector (advisory · L3 anti-duplicação de trabalho entre sessões paralelas · arquivo hot-path em PR aberto sem Dedup-ack · proposta anti-duplicacao-work-claim-gate) |
 | `e2e-gate.yml` | E2E Playwright (UCs críticos) — G-3 |
 | `eslint-gate.yml` | ESLint 9 (ADR 0209) |
@@ -209,7 +209,7 @@ lifecycle: ativo
 | Skill | Tier | Descrição (início) |
 |---|---|---|
 | `alinhar-tela` | B | Use quando Wagner pedir "alinhar a tela X", "ligar a máquina da tela Y", "o que já tem pronto e o que falta na tela Z", "fidelidade spec↔código de <Mo… |
-| `aplicar-prototipo` | B | ATIVAR quando Wagner pedir "importar o zip do protótipo", "importa esse zip/bundle/handoff", "conferir se o protocolo de import funciona", "pega o que… |
+| `aplicar-prototipo` | B | ATIVAR quando Wagner pedir "pega o que mudou no protótipo e aplica", "aplicar protótipo nas telas", "atualizar as telas com o protótipo", "o que mudou… |
 | `audit-constituicao` | C | ATIVAR quando user pedir "audit pós-constituição", "/audit-constituicao", "consolidação geral", "revisão geral desde a constituição", OU trimestralmen… |
 | `audit-to-backlog` | B | ATIVAR quando user pedir "transformar audit em tasks", "levar audit X pro backlog", "criar tasks do audit", "/audit-to-backlog <doc>", OU quando agent… |
 | `automem-pending` | B | BLOQUEADOR — quando user mencionar tópico/módulo OU Edit/Read em path com auto-mem stale pendente migração (ADR 0061), esta skill carrega manifesto AU… |
@@ -353,7 +353,7 @@ lifecycle: ativo
 | `charter-us-lint.mjs` | ci | lint do campo canônico `related_us` nos Page Charters |
 | `ciclo-completo.mjs` | ci | GATE "a tela nasceu (e segue) COMPLETA?" (Constituição UI v2 · UI-0013). |
 | `component-registry-check.mjs` | ci, script | sentinela de DRIFT do registro de componentes (Onda O2). |
-| `cowork-mirror-freshness.mjs` | agente, ci | comparador de FRESCOR do espelho Cowork (v2, identidade canônica). |
+| `cowork-mirror-freshness.mjs` | agente, ci, script | comparador de FRESCOR do espelho Cowork (v2, identidade canônica). |
 | `cowork-ssot-guard.mjs` | ci | MÁQUINA de fonte única do protótipo de design. |
 | `criar-tela.mjs` | agente, ci, npm, script | GERADOR de tela que NASCE do Padrão de Tela (Constituição UI v2 · UI-0013). |
 | `cron-watchdog.mjs` | ci | G6: heartbeat dos crons de governança (generaliza o auto-canário |
