@@ -58,8 +58,12 @@ jobs:
         continue-on-error: true
         run: |
           set +e
+          # rc do NODE, não do `tee` (§5 2026-08-13: num pipeline o rc é do ÚLTIMO comando).
+          # Com `rc=$?` cru depois do pipe, o rc capturado era sempre o do tee (=0), o
+          # `::warning::` abaixo NUNCA disparava e o `exit $rc` saía 0 — o detector achava
+          # o 🔴 e ninguém era avisado. Provado: node sozinho=1 · node|tee=0.
           node scripts/governance/protection-drift.mjs | tee /tmp/drift.txt
-          rc=$?
+          rc=${PIPESTATUS[0]}
           { echo '## Protection Drift + Watchdog (GT-G4 · advisory)'; echo '```'; cat /tmp/drift.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           if [ $rc -ne 0 ]; then
             echo "::warning::protection-drift detectou 🔴 — required demovido/enforcement fraco/fonte stale. Ver job summary (advisory perene, ADR 0275 métrica 9)."
