@@ -36,6 +36,12 @@ on:
       - 'resources/js/Components/ui/**'
       - 'resources/js/Components/layout/**'
       - 'resources/js/Pages/**/*.tsx'
+      # 2ª raiz de Pages (PR #5686 — a tela mora no módulo dono). Sem estas duas linhas, um PR
+      # que toca SÓ tela migrada não dispara esta lane: eram 73 telas + 37 charters fora do
+      # gatilho, e a migração é 73 de 445 — a cegueira cresce a cada onda. As duas grafias
+      # porque `page-path.mjs` (dono das raízes) aceita `Resources` e `resources`.
+      - 'Modules/**/Resources/js/Pages/**'
+      - 'Modules/**/resources/js/Pages/**'
       - 'prototipo-ui/**'
       - 'resources/css/tokens/**'   # inclui *.tokens.json, _generated-*.css e o style-dictionary.config
       - 'resources/css/inertia.css'
@@ -241,6 +247,16 @@ jobs:
         if: always()
         continue-on-error: true
         run: node scripts/governance/cowork-mirror-freshness.mjs --sla
+      # Poda do espelho (PR #5763, 96 arquivos): ao contrário do --compare acima, ESTE é 100%
+      # local — não precisa da auth interativa do DesignSync, então roda headless no CI. Só
+      # olha o que o PR APAGA sob prototipo-ui/cowork/ e pergunta se sobrou alguém apontando
+      # pra lá. PR que não deleta nada do espelho passa sem ter o que medir (diff-aware).
+      # FP medido nos 4 commits que já podaram o espelho: 0. Mordida provada em gate-selftest
+      # (fixture cowork-refs boa/ruim) — sem o par, "nunca disparou" seria indistinguível de cego.
+      - name: cowork-refs (a poda quebrou o render do protótipo? · advisory)
+        if: always()
+        continue-on-error: true
+        run: node scripts/governance/cowork-mirror-freshness.mjs --check-refs
       - name: importar-bundle selftest (import atômico · verifica antes de trocar)
         if: always()
         continue-on-error: true

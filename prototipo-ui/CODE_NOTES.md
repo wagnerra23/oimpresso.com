@@ -1297,7 +1297,7 @@ _[W] "design-sync tem o get e o set, leia a documentação". Li os 3 runbooks (d
 
 ## 2026-08-11 [CL] → [W] — Método KB-9.75 entra no canon (estava fora do git)
 
-**Branch:** `docs/metodo-kb-975-canon` (base `main`). PR aberto — **não mergeei**.
+**Branch:** `docs/metodo-kb-975-canon` → **mergeado 2026-08-11** ([#5594](https://github.com/wagnerra23/oimpresso.com/pull/5594), squash `232735f2f`).
 
 ### O buraco
 
@@ -1336,3 +1336,92 @@ errados** (o board de 222 telas, a `receita.html` do DS v6, o RUNBOOK de Ondas) 
 
 O playbook lista *"próximas aplicações: Caixa Unificada · CRM · Vendas · Compras · Financeiro"* — de
 maio. Vale reabrir essa fila hoje? O `Produto/Unificado` não está nela e é a tela em revisão agora.
+
+---
+
+## 2026-08-11 [CL] → [W] — Fonte canon: 3 documentos, 3 respostas diferentes (1 é a real)
+
+**Branch:** `docs/fonte-canon-ibm-plex` (base `main`). PR aberto — **não mergeei**.
+
+Origem: revisão de tela do Produto/Unificado no loop com o Claude Design. Ao explicar por que o
+protótipo não "batia" com o design system, achei que os documentos de identidade discordam entre si
+**e** com o código.
+
+### O que roda de verdade
+
+**IBM Plex Sans** (UI) + **IBM Plex Mono** (números/códigos). Prova em 3 camadas:
+
+1. `package.json` → `@fontsource/ibm-plex-sans ^5.2.8` + `@fontsource/ibm-plex-mono ^5.2.7`
+2. `resources/js/app.tsx` → importa 6 pesos (sans 400/500/600/700 · mono 400/500)
+3. `resources/css/tokens/_generated-cockpit-light.css` → `--font-sans: "IBM Plex Sans", …`
+
+Self-hosted desde **2026-07-16**; o motivo está registrado no `layouts/inertia.blade.php` (o
+`display=swap` do CDN tornava a fonte não-determinística no runner do gate visual, que compensava com
+`font-family: Arial !important` — e o force cegava o gate pra regressão de fonte).
+
+### O placar
+
+| Fonte | Onde está escrito | Situação |
+|---|---|---|
+| **IBM Plex Sans/Mono** | `package.json` + `app.tsx` + tokens gerados | ✅ é o que roda |
+| Hanken Grotesk | `prototipo-ui/cowork/ds-v6/tokens.css` (`--sans`) | ❌ **zero** ocorrências fora do kit — nunca entrou no repo |
+| Inter | `MANUAL-IDENTIDADE.md` §1.1 | ❌ sobrevive só no SCSS legado UltimatePOS (`_typography.scss`, `_buttons.scss`) |
+
+(O protótipo do Produto carrega ainda uma quarta, Inter Tight, via Google Fonts.)
+
+### O que este PR faz
+
+- **Corrige** `MANUAL-IDENTIDADE.md` §1.1: `Fonte: Inter` → IBM Plex Sans/Mono, com o porquê e a data.
+- **Registra** a divergência do kit DS v6 em §4 Pendências.
+
+### ⚠️ AÇÃO PRA VOCÊ NO COWORK
+
+**Não editei `prototipo-ui/cowork/ds-v6/tokens.css`** — é export do Cowork, e a regra de ouro do
+`README.md` diz que export não se edita no repo. A correção do `--sans` (Hanken Grotesk → IBM Plex
+Sans) precisa ser feita **no Cowork** e re-exportada. Enquanto não for, quem desenhar tela nova a
+partir do kit vai especificar uma fonte que não existe em produção — foi exatamente o que aconteceu
+na rodada do Produto/Unificado.
+
+### Não mexi (e por quê)
+
+- **Nenhuma linha de código.** Só documentação; o runtime já está correto.
+- **`next_review` do MANUAL** (venceu 2026-07-31, hoje `stale_review` no `DesignDocsFreshnessChecker`)
+  segue vencido de propósito: revalidei **uma** das 10 dimensões, não o documento. Bumpar a data
+  certificaria uma revisão que não fiz. O achado é anterior a este PR.
+
+### Emenda 2026-08-11 (mesma sessão) — a afirmação anterior era ampla demais
+
+Pergunta de verificação do [M] ("tem certeza sobre a fonte?") forçou fechar a cadeia até o pixel.
+A entrada acima provava que o IBM Plex está **instalado e importado** — não que ele **pinta**. São
+coisas diferentes em Tailwind 4. Cadeia real:
+
+`app.tsx` (@font-face) → `AppShellV2.tsx:94` importa `cockpit.css` → `cockpit.css:11` importa
+`_generated-cockpit-light.css` (`--font-sans: "IBM Plex Sans"` **escopado em `.cockpit`**) →
+`cockpit.css:30` aplica `.cockpit { font-family: var(--font-sans) }`.
+
+**Dentro do shell: IBM Plex ✓.** Mas o mesmo bundle importa `_generated-inertia-theme.css`, cujo
+`@theme` declara `--font-sans: ui-sans-serif, system-ui, …` **sem IBM Plex** — e o `body` do
+`inertia.css` não seta `font-family`. Logo **toda tela Inertia fora do AppShellV2 (login, público)
+renderiza na fonte do sistema operacional**.
+
+Os dois arquivos de token gerados discordam entre si. Registrado como pendência nova no MANUAL §4.
+Correção, se for o caso, é no `.tokens.json` — os dois CSS são **saída** do Style Dictionary.
+
+### Emenda 2 · 2026-08-11 — o kit DS v6 NÃO especifica Hanken; é uma linha morta
+
+Ao abrir o kit pra mostrar a `receita.html` ao [M], conferi a fonte dentro dele. A entrada anterior
+("kit declara Hanken Grotesk") é **verdade literal e impressão errada**:
+
+| Arquivo do kit | Fonte |
+|---|---|
+| `receita.html` · `showcase.html` · `gabarito-vendas.html` | **IBM Plex Sans + IBM Plex Mono** (Google Fonts) |
+| `ds-v6/README.md` | *"Tipo: IBM Plex Sans (UI) + IBM Plex Mono (números/ids/datas)"* |
+| `tokens.css:98-99` | `--sans: "Hanken Grotesk"` · `--mono: "JetBrains Mono"` ← **resíduo** |
+| `tokens.css:245-246` | `--sans: var(--font-sans)` · `--mono: var(--font-mono)` ← re-aponta no MESMO arquivo |
+
+Ou seja: o kit inteiro usa IBM Plex; **uma linha** do `tokens.css` contradiz o próprio HTML do kit,
+o próprio README e outra linha do próprio arquivo. Gravidade cai de "kit aponta pra fonte errada"
+pra "limpar linha morta". A ação no Cowork continua de pé — só é menor do que eu disse.
+
+Lição registrada: `git grep` acha a string, não a intenção. Antes de escalar divergência com base em
+uma ocorrência, ler os vizinhos do mesmo arquivo e os irmãos da mesma pasta.

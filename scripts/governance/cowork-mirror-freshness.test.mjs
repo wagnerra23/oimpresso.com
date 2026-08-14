@@ -29,6 +29,7 @@ import {
   absentLocal,
   previewDsPlan,
   nasceSemMedicao,
+  refsParaDeletado,
   SLA_DAYS,
 } from './cowork-mirror-freshness.mjs';
 
@@ -538,5 +539,57 @@ check('mesmo número → mesmo veredito (independe de --check)',
   rmSync(tmp, { recursive: true, force: true });
 }
 
-console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel + absent-local + fluxo e2e)');
+// ── refsParaDeletado: a poda quebrou o grafo interno do espelho? ────────────────
+// Contrato ancorado no incidente 2026-08-13 (poda de 96 arquivos, PR #5763): a pergunta que
+// NINGUÉM fazia era "sobrou alguém apontando pro que saiu?". Os asserts abaixo fixam os dois
+// lados — o que DEVE acusar (senão o gate é cego) e o que NÃO PODE acusar (senão é FP, a
+// doença das 4 lápides de guard sintático do §5).
+{
+  const M = 'prototipo-ui/cowork';
+  const del = (...p) => new Set(p.map((x) => `${M}/${x}`));
+
+  // ACUSA — o que quebra render de verdade
+  const shell = { path: `${M}/oimpresso.com.html`, texto: '<script src="app.jsx?v=eb2"></script>' };
+  check('acusa <script src> pra arquivo deletado, IGNORANDO a query string',
+    refsParaDeletado([shell], del('app.jsx')).length === 1,
+    'a query `?v=` é cache-busting do shell real — se ela cegar o parser, o gate não vê nada');
+
+  check('acusa <link href> de css deletado',
+    refsParaDeletado([{ path: `${M}/x.html`, texto: '<link rel="stylesheet" href="styles.css">' }], del('styles.css')).length === 1);
+
+  check('acusa import com extensão IMPLÍCITA (./x → x.jsx)',
+    refsParaDeletado([{ path: `${M}/a.jsx`, texto: "import X from './x';" }], del('x.jsx')).length === 1);
+
+  check('acusa path relativo que SOBE de diretório (../)',
+    refsParaDeletado([{ path: `${M}/sub/a.jsx`, texto: "import X from '../base.jsx';" }], del('base.jsx')).length === 1);
+
+  check('acusa @import e url() de CSS',
+    refsParaDeletado([{ path: `${M}/a.css`, texto: "@import 'tema.css'; div{background:url(bg.css)}" }],
+      del('tema.css', 'bg.css')).length === 2);
+
+  // NÃO ACUSA — os falso-positivos que matariam o gate no dia 1
+  check('NÃO acusa alias de bundler (@/Layouts/…) — não é caminho de arquivo',
+    refsParaDeletado([{ path: `${M}/a.tsx`, texto: "import L from '@/Layouts/AppShellV2';" }], del('Layouts/AppShellV2')).length === 0);
+
+  check('NÃO acusa pacote npm nu (react)',
+    refsParaDeletado([{ path: `${M}/a.jsx`, texto: "import React from 'react';" }], del('react')).length === 0);
+
+  check('NÃO acusa URL externa nem âncora',
+    refsParaDeletado([{ path: `${M}/a.html`, texto: '<script src="https://cdn/app.jsx"></script><a href="#topo">t</a>' }],
+      del('app.jsx')).length === 0);
+
+  check('NÃO acusa referência a arquivo que CONTINUA vivo',
+    refsParaDeletado([shell], del('outro.jsx')).length === 0);
+
+  check('binário/desconhecido não entra (só html/css/js/jsx/ts/tsx)',
+    refsParaDeletado([{ path: `${M}/img.png`, texto: 'app.jsx' }], del('app.jsx')).length === 0);
+
+  // O achado tem que dizer QUEM aponta e PRA QUE — sem isso não dá pra consertar
+  const um = refsParaDeletado([shell], del('app.jsx'))[0];
+  check('o achado nomeia origem, referência crua e alvo resolvido',
+    um.de === `${M}/oimpresso.com.html` && um.ref === 'app.jsx?v=eb2' && um.alvo === `${M}/app.jsx`,
+    JSON.stringify(um));
+}
+
+console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel + absent-local + refs-da-poda + fluxo e2e)');
 process.exit(fails ? 1 : 0);

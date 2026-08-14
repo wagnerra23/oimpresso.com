@@ -26,6 +26,8 @@ pii: false
 >
 > **O que muda:** o TRANSPORTE do design (Cowork vivo → lado código). **O que NÃO muda:** a fonte de design (Cowork, §0.2 do INDEX), o SSOT git (ADR 0239) e o Eixo A da [ADR 0315](0315-design-sync-claude-design-vs-cowork-charter.md) — claude.ai/design segue **não** sendo armazém canônico; escrita (`write_files`/`delete_files`/`create_project`) segue gateada.
 
+> **⚠️ EMENDA NO CORPO — [W] 2026-08-13** (verbatim: *"não existe mais zip, é direto o protocolo"* e, sobre esta ADR, *"remova ou altere a adr, ela não é mais read only"*). **O D2 caducou:** o ZIP deixou de ser *fallback* e virou caminho **morto**. Emenda pela exceção da [ADR 0377](0377-append-only-adr-excecao-por-label-emenda-0094.md), que libera **mexer**, não **falsificar** — o que está **datado** (o que se decidiu e se mediu em 2026-07-07) fica preservado abaixo; só a **rota** foi atualizada. O PR desta emenda exige a label `adr-body-edit-W`.
+
 # ADR 0325 — Import de protótipo via DesignSync pull direto (Fase −1-PULL)
 
 ## Contexto
@@ -46,17 +48,21 @@ Nesta sessão o acesso direto foi **verificado de ponta a ponta** (sem browser):
 Quando a mudança de design é de **poucas telas/arquivos conhecidos** (o caso comum: "o Design mexeu no Financeiro"), o agente logado puxa DIRETO, sem Wagner no meio:
 
 1. Resolver a âncora da tela (charter → `bundle_source`/`related_prototype`, `ancora.mjs`).
-2. `DesignSync.get_file(projectId: 019dcfd3…, path: <âncora>)` → **persistir em arquivo** no staging fixo (`~/Downloads/_cowork-handoff-staging/…`, mesmo destino do ZIP — âncoras intactas).
+2. `DesignSync.get_file(projectId: 019dcfd3…, path: <âncora>)` → **persistir em arquivo**. ⚠️ *Atualizado 2026-08-13:* o destino deixou de ser o staging do ZIP (`~/Downloads/_cowork-handoff-staging/…`, hoje **legado**) e passou a ser o espelho versionado `prototipo-ui/cowork/`, escrito por `cowork-mirror-freshness.mjs --export-from` ([ADR 0374](0374-emenda-0315-espelho-cowork-e-rota-prevista.md)) — **transcrever à mão é proibido**: a escrita sai do dado, por script.
 3. Seguir o fluxo normal: `detectar-telas.mjs` → manifesto → Fases 1-5. Comparação de identidade sempre com `contentHash`/`normalize` de `cowork-mirror-freshness.mjs` (ADR 0324 D1 — nunca hash "de memória").
 
-### D2 — ZIP vira **fallback de bundle cheio**, não regra
+### D2 — ZIP vira **fallback de bundle cheio**, não regra · ⛔ CADUCADO em 2026-08-13
 
-O import por ZIP (`importar-bundle.mjs`) permanece canônico quando o handoff é o **projeto inteiro** (centenas de arquivos — `get_file` é 1 chamada/arquivo com cap 256 KiB e o conteúdo entra no contexto do agente; pull integral seria caro e lento). A regra antiga "transporte = SEMPRE export zip via browser" está **revogada** — o zip é um dos dois transportes, escolhido por escopo:
+> **O QUE VALE HOJE ([W] 2026-08-13):** o ZIP **não é mais transporte** — nem default, nem fallback. Todo import desce pelo **−1-PULL** (D1), e a escrita no espelho `prototipo-ui/cowork/` é do `cowork-mirror-freshness.mjs --export-from` ([ADR 0374](0374-emenda-0315-espelho-cowork-e-rota-prevista.md)). **Medido no dia da emenda:** `importar-bundle.mjs` só é invocado no CI como `--selftest` (zero imports reais) e `check-handoff.ps1` não tem invocador nenhum. **Os scripts NÃO foram apagados** — `render-proto-baseline.mjs` importa `acharBundleRoot` de `importar-bundle.mjs`, e podar capacidade é decisão [W] à parte, não efeito colateral de uma emenda de redação.
+>
+> ⚠️ **O limite técnico que motivava o fallback NÃO desapareceu** (segue vivo em D3): `get_file` é 1 chamada/arquivo, cap 256 KiB, e o conteúdo entra no contexto do agente — logo **re-importar o projeto inteiro segue caro**. O que mudou foi a *resolução*: em vez de reabrir o ZIP, bundle cheio se resolve por pull **escopado/em lote** (o espelho já é o SSOT do último handoff, e na prática o que muda por vez são poucas telas). Se um dia o custo de um re-import integral pesar de verdade, a saída é decisão [W] — não o retorno silencioso do ZIP.
 
-| Escopo da mudança | Transporte |
-|---|---|
-| 1–10 arquivos conhecidos (tela/componente) | **−1-PULL** DesignSync (default) |
-| Bundle cheio / reorganização ampla | ZIP + `importar-bundle.mjs` (fallback) |
+**Registro do que se decidiu em 2026-07-07 (preservado, não reescrito):** o import por ZIP (`importar-bundle.mjs`) permanecia canônico quando o handoff era o **projeto inteiro**, pelas razões de custo acima; e a regra ainda anterior — *"transporte = SEMPRE export zip via browser"* — já ficava **revogada** naquela data, com o zip virando um dos dois transportes escolhidos por escopo:
+
+| Escopo da mudança | Transporte (decidido em 2026-07-07) | Transporte VIGENTE (desde 2026-08-13) |
+|---|---|---|
+| 1–10 arquivos conhecidos (tela/componente) | **−1-PULL** DesignSync (default) | **−1-PULL** DesignSync (único) |
+| Bundle cheio / reorganização ampla | ZIP + `importar-bundle.mjs` (fallback) | **−1-PULL** escopado/em lote — ZIP morto ([W]) |
 
 ### D3 — Limites de plataforma (honestos, herdam da 0324 D3)
 
@@ -76,4 +82,4 @@ Leitura = transporte permitido (0315: métodos read livres). **Escrita segue gat
 ## Consequências
 
 ✅ "O que mudou no protótipo do Financeiro?" vira 1 pull + 1 diff — sem Wagner exportar zip no browser. ✅ A premissa morta da 0114 fica corrigida por emenda (append-only). ✅ 0315/0324 intactas — esta ADR só promove a leitura de "medição de frescor" a "transporte de import escopado".
-⚠️ Pull integral de bundle segue caro — o fallback ZIP não pode ser deletado. ⚠️ Se a plataforma ganhar export headless/webhook, reavaliar (gatilho da 0324 D4 — PR-bot regenerador).
+⚠️ **[atualizado 2026-08-13]** Pull integral de bundle **segue caro** (D3 intacto) — mas a resposta deixou de ser o fallback ZIP, morto por decisão [W]. Os scripts do ZIP continuam no repo por **dependência de módulo** (`acharBundleRoot`), não como rota; apagá-los é decisão [W] à parte. ⚠️ Se a plataforma ganhar export headless/webhook, reavaliar (gatilho da 0324 D4 — PR-bot regenerador).

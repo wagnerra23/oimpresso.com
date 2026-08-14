@@ -109,9 +109,14 @@ jobs:
           - label: Handoff (memory/handoffs/*.md)
             schema: scripts/memory-schemas/handoff.schema.json
             glob: "memory/handoffs/[0-9][0-9][0-9][0-9]-*.md"
+          # ⚠️ NÃO renomear este `label`: ele vira o NOME do check, e este é um required
+          # context da branch protection. Renomear faz o required nunca nascer e trava TODO
+          # merge do repo (§5 2026-08-08). Trocar o nome exige flip de protection = [W].
+          # O glob abaixo cobre as 2 raízes desde o PR #5686 — o rótulo ficou historicamente
+          # com o caminho antigo; o dono do escopo é o glob, não o texto do label.
           - label: Charter (resources/js/Pages/**/*.charter.md)
             schema: scripts/memory-schemas/charter.schema.json
-            glob: "resources/js/Pages/**/*.charter.md"
+            glob: "{resources/js/Pages,Modules/*/[Rr]esources/js/Pages}/**/*.charter.md"
           # 2026-07-12 (proposal estrutura-canon-memoria · Fase 0): as famílias
           # BRIEFING + reference ficam em GRACE (warn-only, diff-aware) — o
           # campo `grace: true` força STRICT=false SÓ pra elas (ver step

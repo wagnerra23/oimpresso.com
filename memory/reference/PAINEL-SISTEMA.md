@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-13**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-14**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -35,8 +35,8 @@ lente: [construir]
 | Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-08-05 |
 | Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-08-11 |
 | Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-08-12 |
-| Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-08-05 |
-| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-08-07 |
+| Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-08-13 |
+| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-08-13 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
 | Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-07-23 |
 | NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-07-28 |
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **335**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **336**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -144,13 +144,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **382** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 345 · superseded: 16 · deprecated: 12 · proposto: 7 · rascunho: 1 · recusado: 1.
+- **383** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 347 · superseded: 16 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 112 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 118 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -265,6 +265,12 @@ lente: [construir]
 - ~~2026-08-12 — Codemod de RENAME assumindo UMA forma de referência (foram 4) — e a medição quebrada que deixou o dano sobreviver~~
 - ~~2026-08-12 — Script de reescrita em massa passou POR BAIXO do guard que protege exatamente aquela classe de arquivo~~
 - ~~2026-08-12 — Propor mudança em artefato que a MÁQUINA LÊ sem RODAR a máquina com a mudança aplicada (o `depends_on` que marcaria 18 acoplamentos vivos como "curados")~~
+- ~~2026-08-13 — `git checkout <ref> -- <path>` sobre working tree sujo: come o não-commitado sem aviso (2× no MESMO dia, a 2ª DEPOIS de eu escrever a lápide da 1ª)~~
+- ~~2026-08-13 — Cinco sondas responderam a pergunta ERRADA no mesmo dia — e o gatilho comum era a CERTEZA, não a ignorância~~
+- ~~2026-08-13 — EMENDA da lápide 2026-08-03 (máquina paralela ao dono): quando o dono é uma SESSÃO VIVA, existe saída mecânica — e ela é Tier 1 desde sempre~~
+- ~~2026-08-13 — EMENDA da lápide 2026-07-29 (fail-open: afirmar verde sem ter medido): o MESMO watchdog errou pro outro lado — mediu, obteve resposta, e a resposta era um RETRATO DE 4 SEMANAS ATRÁS~~
+- ~~2026-08-13 — PODAR A FONTE DE DESIGN para fazer cumprir um Non-Goal que governa a TELA (e inventar produto no lugar do domínio removido)~~
+- ~~2026-08-13 — Ler o projeto BAIXADO (`~/Downloads/_cowork-handoff-staging`) como saída pro teto de fidelidade do `get_file` — construí o caminho que [W] já tinha banido, no mesmo repo, com a catraca ligada~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -275,14 +281,14 @@ lente: [construir]
 
 ## Rastro
 
-- **448** handoffs · **622** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **452** handoffs · **625** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-08-13-jana-dark-ancora-defeituosa`
+  - `2026-08-13-espelho-cowork-medir-vs-consertar`
+  - `2026-08-13-ancora-jana-consertada-e-o-p2-que-nao-era`
   - `2026-08-12-sec5-derivado-e-o-indice-que-conflita`
   - `2026-08-12-reguas-evidencia-integra`
   - `2026-08-12-refutacao-lote-pr5675`
-  - `2026-08-12-pages-para-dentro-dos-modulos-piloto`
-  - `2026-08-12-glob-inertia-e-as-duas-camadas-de-mudez`
-  - `2026-08-12-fronteiras-ciclo-fechado-e-a-premissa-derrubada`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-13 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-14 · deriva das fontes canônicas, não as substitui._

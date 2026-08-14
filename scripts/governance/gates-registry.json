@@ -577,7 +577,7 @@
       "nome": "Design-memory gate (advisory · FUNDIDO ADR 0314 F2 de 3 workflows: registry-check ex-component-registry O2 + gates ex-design-memory-gates §8/§15 + prove ex-dtcg-equivalence Onda DTCG; 1 job por sub-check, todos os self-tests preservados)",
       "classe": "gate",
       "terminal": "advisory",
-      "anchor": "ADR 0314 F2 (poda onda 2 · fusão de 3 advisory de design-memory) sobre: Onda O2 (registro bloco→componente) + prototipo-ui/PROCESSO_MEMORIA_CC.md §8/§15 (ds-guard + integrity-check) + ADR 0239/0249 (DTCG ↔ CSS canônico). Custo: drift de tradução handoff Cowork + paleta inventada + token DTCG divergente.",
+      "anchor": "ADR 0314 F2 (poda onda 2 · fusão de 3 advisory de design-memory) sobre: Onda O2 (registro bloco→componente) + prototipo-ui/PROCESSO_MEMORIA_CC.md §8/§15 (ds-guard + integrity-check) + ADR 0239/0249 (DTCG ↔ CSS canônico). Custo: drift de tradução handoff Cowork + paleta inventada + token DTCG divergente. Sub-check cowork-refs (2026-08-13, pós-PR #5763 que podou 96 arquivos do espelho): PR que apaga arquivo de prototipo-ui/cowork/ deixando outro arquivo do espelho apontando pra ele quebra o render do protótipo em silêncio — o ABSENT-LOCAL cobria só as deps do shell, este cobre o grafo inteiro. FP medido = 0 nos 4 commits históricos de poda; mordida provada pela fixture cowork-refs no gate-selftest.",
       "promote_by": "2026-09-30"
     },
     "reconcile-triplet.yml": {

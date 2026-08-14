@@ -17,7 +17,7 @@ charter_version: 1
 
 > **Status:** `draft`. Promover pra `live` é ato de [W] (merge + gate visual).
 >
-> **Origem:** [ADR 0368](../../../../../memory/decisions/0368-funil-admissao-feature-pesquisa-propoe-w-admite.md)
+> **Origem:** [ADR 0368](../../../../../../../memory/decisions/0368-funil-admissao-feature-pesquisa-propoe-w-admite.md)
 > (aceita 2026-08-04) fechou a POLÍTICA do funil de admissão e escreveu, textual, que
 > *"o código vai em PR próprio, com evidência"*. O estado (`pending_approval`), o FSM e a
 > trava de recusa-sem-motivo chegaram em [#5283](https://github.com/wagnerra23/oimpresso.com/pull/5283)
@@ -32,7 +32,7 @@ Mostrar **o que espera por uma decisão de [W]**, em ordem de espera, com o arte
 decisão a um toque. Responde a pergunta *"o que está parado por minha causa, e há quanto tempo"*.
 
 A entidade é a submissão que espera aval — `mcp_tasks` em `pending_approval`
-([`McpTask::AWAITING_HUMAN`](../../../../../Modules/Jana/Entities/Mcp/McpTask.php)). Não é lista de
+([`McpTask::AWAITING_HUMAN`](../../../../../../../Modules/Jana/Entities/Mcp/McpTask.php)). Não é lista de
 tarefas nem backlog: é **mesa de decisão**, e sai da mesa assim que decidida.
 
 ## Contrato de dados
@@ -45,14 +45,14 @@ tarefas nem backlog: é **mesa de decisão**, e sai da mesa assim que decidida.
 | `contagem` | `ForjaAprovacoesService::contagem()` | **defer** |
 
 Escrita: **exclusivamente** `POST /forja/aprovacoes/{taskId}/decidir` →
-[`TaskCrudService::update`](../../../../../Modules/Jana/Services/TaskRegistry/TaskCrudService.php),
+[`TaskCrudService::update`](../../../../../../../Modules/Jana/Services/TaskRegistry/TaskCrudService.php),
 o mesmo chokepoint da tool MCP `tasks-update`.
 
 ## Multi-tenant
 
 `mcp_tasks` é **repo-wide** (governança da plataforma, não de tenant) — sem `business_id` por
-design, igual `TriageController`/`ForjaMcpService` ([ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
-Permissão `jana.mcp.usage.all`; a [ADR 0368 §4](../../../../../memory/decisions/0368-funil-admissao-feature-pesquisa-propoe-w-admite.md)
+design, igual `TriageController`/`ForjaMcpService` ([ADR 0093](../../../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
+Permissão `jana.mcp.usage.all`; a [ADR 0368 §4](../../../../../../../memory/decisions/0368-funil-admissao-feature-pesquisa-propoe-w-admite.md)
 é explícita em **não** criar permission de aprovação enquanto houver um único aprovador.
 
 ## Vocabulário (ADR 0368 §6 — eixo "decisão humana")
@@ -86,7 +86,7 @@ coisa ("a capacidade existe no sistema"), e dois sentidos lado a lado é ambigui
 > Cada item vira Pest GUARD. Derivados do que já é lei em ADR/§5 — **não** de preferência minha.
 
 - ❌ **Não** listar `blocked` na fila. É trava técnica; misturar reconstrói o proxy que a
-  [ADR 0368 §3](../../../../../memory/decisions/0368-funil-admissao-feature-pesquisa-propoe-w-admite.md)
+  [ADR 0368 §3](../../../../../../../memory/decisions/0368-funil-admissao-feature-pesquisa-propoe-w-admite.md)
   aposentou. _(defendido por UC-APROV-02)_
 - ❌ **Não** hardcodar a lista de decisões. Ela deriva de `McpTask::TRANSITIONS`; uma cópia aqui vira
   segunda declaração do fluxo e diverge na primeira mudança. _(UC-APROV-05)_
@@ -105,7 +105,7 @@ coisa ("a capacidade existe no sistema"), e dois sentidos lado a lado é ambigui
 ## Estado / pendências
 
 - Todos os UC nascem 🧪: `AprovacoesMesaTest.php` entrou na allowlist do `forja-pest.yml`
-  **failing-first** (rodar Pest local é proibido — [ADR 0062](../../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
+  **failing-first** (rodar Pest local é proibido — [ADR 0062](../../../../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
   O ✅ vem do manifesto derivado do JUnit, nunca escrito à mão.
 - **Não verificado localmente:** `route:list` e `tsc` — esta worktree não tem `vendor/` nem
   `node_modules/`. Os dois são checados no CI.

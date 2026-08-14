@@ -460,6 +460,19 @@ function runDonenessBaseline(kind) {
 
 const CATRACAS = [
   {
+    // PODA DO ESPELHO COWORK (2026-08-13). O `--check-refs` é diff-aware: só acusa quando um
+    // arquivo do espelho que SOBREVIVEU aponta pra um path que o diff apaga. FP medido contra
+    // os 4 commits da história que podaram o espelho (152 · 42 · 6 · 96 arquivos): 0 disparo.
+    // É justamente esse perfil — "nunca disparou" — que exige o par boa/ruim: sem ele, detector
+    // cego e catraca sã são indistinguíveis (a lição do drift-sentinel, §5 2026-07-17).
+    // A fixture `bad` reproduz o acidente real: o shell carrega `app.jsx` e o diff o apaga.
+    id: 'cowork-refs',
+    run: (kind) => runNode(
+      script('cowork-mirror-freshness', 'scripts/governance/cowork-mirror-freshness.mjs'),
+      ['--check-refs', '--deleted-from', 'deletados.txt'], join(FIX, 'cowork-refs', kind)),
+    expect: { good: /integridade referencial preservada/, bad: /apontam pra arquivo que este diff APAGA/ },
+  },
+  {
     id: 'knowledge-drift',
     run: (kind) => runNode(script('knowledge-drift', 'scripts/governance/knowledge-drift.mjs'), ['--check'], join(FIX, 'knowledge-drift', kind)),
     expect: { good: /nenhum ghost novo/, bad: /GhostNovo/ },
