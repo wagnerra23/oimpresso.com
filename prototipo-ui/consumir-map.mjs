@@ -31,7 +31,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveGap } from './gerar-contrato.mjs';
-import { shaAtualPara, shaIndeterminado } from './gerar-map.mjs';
+import { shaAtualPara, shaIndeterminado, shaBate } from './gerar-map.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(HERE, '..');
@@ -54,7 +54,8 @@ export function verificarFrescor(mapa, { root = REPO } = {}) {
   if (shaIndeterminado(salvo) || !arquivos.length) return { fresco: true, indeterminado: true, salvo, atual: null };
   const atual = shaAtualPara(salvo, arquivos, root);
   if (shaIndeterminado(atual)) return { fresco: true, indeterminado: true, salvo, atual };
-  return { fresco: atual === salvo, indeterminado: false, salvo, atual };
+  // shaBate, não `===`: git-sha legado pode estar abreviado com outra largura (ver gerar-map).
+  return { fresco: shaBate(salvo, atual), indeterminado: false, salvo, atual };
 }
 
 const NAO_ABRIR = /^(no-op|rejeitar)/i;
