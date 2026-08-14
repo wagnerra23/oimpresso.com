@@ -9,6 +9,17 @@
 
 Adicionar ao bloco `rules` do override `files: ['resources/js/**/*.{ts,tsx}']`. Severidade `warn` (o ratchet trata como gate por delta).
 
+> ### ⚙️ ALVO DERIVADO DO REGISTRY (2026-08-14 — o bloco de código abaixo é a spec ORIGINAL, não o texto vivo)
+>
+> Nas regras **component-substitute** (tipo 2 do [ADR 0338](../memory/decisions/0338-ds-lint-eixo-valor-token-fecha-por-forma.md)), o nome do componente e o `import_path` da mensagem **não são mais copiados** dentro da string: vêm de [`component-registry.json`](component-registry.json) via [`ds-lint-alvos.mjs`](ds-lint-alvos.mjs) (`alvo()` / `variantes()`). Assim a âncora fica no **componente** — renomeou o símbolo ou mudou o path no registry, a orientação que o dev/agente lê muda junto, em vez de apodrecer com cara de canon.
+>
+> Regra de **eixo de valor** (cor/radius/jargão) **não tem componente alvo** e mantém mensagem própria — isso é declarado, não escondido. O mesmo vale pros alvos que o registry **não conhece** (`SafeSelectItem`, `PageHeaderTabs`/`SubNav`, `StatusBadge`): a ausência está **declarada** em `ALVO_POR_REGRA`, e **não** foi fabricada entrada de registry pra fechar o número (o `_doc` do registry proíbe: bloco sem componente entra como `status: gap`).
+>
+> **Cobertura (medida, não escrita aqui):** `node prototipo-ui/ds-lint-alvos.mjs`
+> O número fica **pinado no selftest** (`scripts/governance/ds-lint-selftest.mjs`), que também prova a derivação: a mensagem que o ESLint realmente emitiu tem que conter `<Componente> (import_path)` como está hoje no registry, e um registry sem a entrada faz `alvo()` **lançar** em vez de cair em texto fixo.
+>
+> **Fonte viva do texto das mensagens = `eslint.config.js`.** O bloco abaixo preserva a spec como foi entregue (registro datado) — não é o texto atual.
+
 ```js
 'no-restricted-syntax': ['warn',
   {
@@ -163,3 +174,5 @@ Promover componente = entregar o **tripé**: impl em `@/Components/ui` + regra `
 | `ds/no-handrolled-status-pill` | pill `rounded-full` + `px-` + token de status (`*-soft/-fg`) inline | `<Badge variant="…">` / `<StatusBadge kind value>` |
 | `ds/no-handrolled-form-section` | `rounded-lg border p-4\|p-5` | FormSection |
 | `ds/icons` (opt) | import direto `lucide-react` | icon-registry |
+
+> A coluna **Use** acima é prosa de leitura humana. Quais dessas regras têm o alvo **derivado do registry** (e quais não, com a razão) sai da máquina: `node prototipo-ui/ds-lint-alvos.mjs`. Não repetir o número aqui — apodrece ([ADR 0256](../memory/decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md)).

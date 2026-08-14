@@ -18,6 +18,11 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import globals from 'globals';
+// Alvo canônico das mensagens ds/* — DERIVADO de prototipo-ui/component-registry.json.
+// A âncora fica no COMPONENTE (estável, reusável entre telas); renomeou o componente ou
+// mudou o import_path no registry, a orientação da mensagem muda junto. Cobertura medida
+// e declarada em ds-lint-alvos.mjs (`node prototipo-ui/ds-lint-alvos.mjs`).
+import { alvo, variantes } from './prototipo-ui/ds-lint-alvos.mjs';
 
 export default [
   // Ignore patterns globais — evita análise em dist/, vendor/, etc
@@ -123,6 +128,14 @@ export default [
   // Severidade `warn` — o ratchet (config/eslint-baseline.json) trata como gate por
   // delta>0: baseline absorve o hand-roll atual; PR novo que hand-rolar regride.
   // Selectors casam Literal puro E dentro de BinaryExpression/CallExpression (clsx).
+  //
+  // ALVO DERIVADO DO REGISTRY (chip G4, 2026-08-14): onde a regra é COMPONENT-SUBSTITUTE
+  // (tipo 2 do ADR 0338), o nome do componente + o `import_path` da mensagem vêm de
+  // `prototipo-ui/component-registry.json` via `alvo()`/`variantes()` — não são copiados
+  // aqui. Regra de EIXO DE VALOR (cor/radius/jargão) não tem componente alvo e mantém
+  // mensagem própria; quem não tem entrada no registry (SafeSelectItem, PageHeaderTabs,
+  // StatusBadge) fica declarado como ausente em `ALVO_POR_REGRA`, nunca fabricado.
+  // Cobertura medida: `node prototipo-ui/ds-lint-alvos.mjs`.
   // Ref: prototipo-ui/REGRAS_DS_LINT.md §1 · REGISTRY_DS_COMPONENTES.md · PR-A 9d28f56a0
   {
     files: [
@@ -138,17 +151,17 @@ export default [
         {
           // radio nativo → RadioGroup / Segmented. Dispara no atributo type="radio".
           selector: 'JSXAttribute[name.name="type"][value.value="radio"]',
-          message: 'ds/no-native-radio — use <RadioGroup> (@/Components/ui/radio-group) ou <Segmented> pra toggle 2–3 opções. Ver REGISTRY_DS_COMPONENTES.md.',
+          message: `ds/no-native-radio — use ${alvo('RadioGroup')} ou ${alvo('Segmented')} pra toggle 2–3 opções. Ver REGISTRY_DS_COMPONENTES.md.`,
         },
         {
           // checkbox nativo → Checkbox
           selector: 'JSXAttribute[name.name="type"][value.value="checkbox"]',
-          message: 'ds/no-native-checkbox — use <Checkbox> (@/Components/ui/checkbox).',
+          message: `ds/no-native-checkbox — use ${alvo('Checkbox')}.`,
         },
         {
           // select nativo → Select. <select> lowercase = nativo; <Select> Radix não casa.
           selector: 'JSXOpeningElement[name.name="select"]',
-          message: 'ds/no-native-select — use <Select> (@/Components/ui/select).',
+          message: `ds/no-native-select — use ${alvo('Select')}.`,
         },
         {
           // rounded-xl+ proibido (charter): radius máximo é rounded-md/lg
@@ -179,7 +192,7 @@ export default [
           // (cresce só quando um shell class ganha equivalente DS). os-page-h /
           // os-drawer-head são scaffold SEM substituto ainda → NÃO entram aqui.
           selector: 'JSXAttribute[name.name="className"] Literal[value=/\\bos-btn\\b/]',
-          message: 'ds/no-os-btn — use <Button> (@/Components/ui/button, variant/size), não a classe de shell os-btn.',
+          message: `ds/no-os-btn — use ${alvo('Button')} com variant/size, não a classe de shell os-btn.`,
         },
         {
           // ds/no-radix-item-empty-value (ADVISORY EXTRA — a defesa REAL é o
@@ -267,7 +280,7 @@ export default [
           // <Button> trigger + <ul role="listbox"> à mão é indistinguível do canônico
           // sem análise de import — quem pega isso é component-registry-check --roles.
           selector: 'JSXAttribute[name.name="aria-autocomplete"], JSXOpeningElement[name.name="input"] > JSXAttribute[name.name="role"][value.value="combobox"]',
-          message: 'ds/no-handrolled-combobox — não hand-role o combobox/autocomplete (input + lista role="listbox" à mão). Campo de busca com dropdown = <Command> (@/Components/ui/command, motor cmdk) dentro de <Popover> (@/Components/ui/popover). Ref: Pages/OficinaAuto/ServiceOrders/Create.tsx. Ver REGISTRY_DS_COMPONENTES.md §"Combobox".',
+          message: `ds/no-handrolled-combobox — não hand-role o combobox/autocomplete (input + lista role="listbox" à mão). Campo de busca com dropdown = ${alvo('Command')}, motor cmdk, dentro de ${alvo('Popover')}. Ref: Pages/OficinaAuto/ServiceOrders/Create.tsx. Ver REGISTRY_DS_COMPONENTES.md §"Combobox".`,
         },
         {
           // ds/no-handrolled-status-pill — COMPONENT-SUBSTITUTE (tipo 2 do ADR 0338,
@@ -289,7 +302,7 @@ export default [
           // de papel (component-registry-check --roles) + migração humana. Ver
           // REGISTRY_DS_COMPONENTES.md §"pílula de status" · REGRAS_DS_LINT.md §1.
           selector: 'JSXAttribute[name.name="className"] Literal[value=/(?=[\\s\\S]*\\brounded-full\\b)(?=[\\s\\S]*\\bpx-\\d)(?=[\\s\\S]*\\b(?:success|warning|destructive|info)-(?:soft|fg)\\b)/]',
-          message: 'ds/no-handrolled-status-pill — não hand-role a pílula de status. Use <Badge variant="success|warning|danger|info|neutral"> (@/Components/ui/badge) ou <StatusBadge kind value> (@/Components/shared/StatusBadge). Ver REGISTRY_DS_COMPONENTES.md §"pílula de status".',
+          message: `ds/no-handrolled-status-pill — não hand-role a pílula de status. Use ${alvo('Badge')} com variant="${variantes('Badge').join('|')}" ou <StatusBadge kind value> (@/Components/shared/StatusBadge — sem entrada no registry, ver ALVO_POR_REGRA). Ver REGISTRY_DS_COMPONENTES.md §"pílula de status".`,
         },
       ],
     },
