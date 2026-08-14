@@ -324,7 +324,9 @@ export function publicarResumo(d, destino = process.env.GITHUB_STEP_SUMMARY) {
     `| Drift (âncora quebrada / sha stale / schema) | ${d.totalDrift} |`,
     `| Âncoras \`TODO\` pendentes (não é drift) | ${d.totalPendentes} |`, '',
     `Denominador canônico da cobertura é o \`-gap.md\` (tela que já passou pela Fase 1), não o charter.`,
-    `Reproduzir: \`node scripts/governance/design-code-map-check.mjs --check\`. Advisory.`, '',
+    // LC-10: o relatório publica NÚMERO, nunca o próprio enforcement — quem é required tem dono
+    // único (`governance/required-checks-baseline.json`), e restatear aqui apodrece no 1º flip.
+    `Reproduzir: \`node scripts/governance/design-code-map-check.mjs --check\`.`, '',
   ];
   try { appendFileSync(destino, L.join('\n') + '\n'); return true; } catch { return false; }
 }
