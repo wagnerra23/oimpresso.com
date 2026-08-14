@@ -6,7 +6,7 @@
 // sha, que é a razão de existir do prototipo_sha). Rodar: node scripts/governance/
 // design-code-map-check.test.mjs — exit 0 = passa.
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -39,7 +39,11 @@ git(root, ['add', '-A']);
 git(root, ['commit', '-q', '-m', 'v1 protótipo']);
 const shaV1 = sha(root);
 
-const runCheck = (extra = []) => spawnSync('node', [SCRIPT, '--root', root, ...extra], { encoding: 'utf8' });
+// GITHUB_STEP_SUMMARY zerado: rodando no CI, o script anexaria os números DA FIXTURE ao resumo
+// do job real (mesma precaução de documentation-loop.mjs). O publicador tem teste próprio abaixo.
+const runCheck = (extra = []) => spawnSync('node', [SCRIPT, '--root', root, ...extra], {
+  encoding: 'utf8', env: { ...process.env, GITHUB_STEP_SUMMARY: '' },
+});
 
 function writeMap(overrides = {}) {
   const base = {
@@ -123,6 +127,10 @@ check('âncora presente mas não-declarada → WARN nudge (declare e trave), exi
 
 // ── SHA POR CONTEÚDO (PR-C, ADR 0324): formato sha256: roteado pro contentHash ────
 const { computeProtoHash } = await import('../../prototipo-ui/gerar-map.mjs');
+// sha FRESCO por conteúdo — a partir daqui o conteúdo do protótipo muda dentro do próprio teste,
+// então reusar o git-sha antigo faria os casos seguintes falharem por STALE (staleness é outro
+// eixo; os casos abaixo testam ÂNCORA). Recalcular por chamada isola um eixo do outro.
+const shaProtoFresco = () => computeProtoHash(['prototipo-ui/cowork/fixture-page.jsx'], root);
 
 // 10. sha256: fresco → strict exit 0 (release no formato canônico)
 writeFileSync(join(vivoDir, 'Index.tsx'), 'export default function Index() { return null }\n');
@@ -142,6 +150,76 @@ writeMap({ prototipo_sha: computeProtoHash(['prototipo-ui/cowork/fixture-page.js
 git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'commit toca o repo, conteúdo do proto intacto']);
 const contentImune = runCheck(['--check', '--strict']);
 check('commit sem mudança de conteúdo do proto → sha256 segue fresco (imune ao falso-STALE do git-sha)', contentImune.status === 0);
+
+// ── NUDGE GENÉRICO + DECOMPOSIÇÃO DO LINHA-ONLY (2026-08-14) ────────────────
+// Antes, o nudge exigia data-contract="<p.id>" — coincidência entre o vocabulário do id da parte
+// (slug da seção do -gap.md) e o do contrato-de-tela (nome de região). Medido no corpus real:
+// 0 avisos em 30 partes, com 15 data-contract existindo no repo. Inerte por construção.
+
+// 13. MORDE: id DIFERENTE do p.id → nudge dispara e LISTA o id disponível (o caso que era mudo)
+writeFileSync(join(vivoDir, 'Index.tsx'), 'export default function Index() { return <div data-contract="reconnect-modal">x</div> }\n');
+writeMap({ prototipo_sha: shaProtoFresco(), partes: [parteBase()] });
+const nudgeIdDiferente = runCheck(['--check', '--strict']);
+check('âncora de id DIFERENTE presente + ancora ausente → nudge dispara (era mudo antes)',
+  nudgeIdDiferente.status === 0 && /não declara vivo\.ancora/.test(nudgeIdDiferente.stdout));
+check('nudge NOMEIA o id disponível no arquivo', /reconnect-modal/.test(nudgeIdDiferente.stdout));
+check('nudge sugere a forma de id custom quando o p.id não casa', /vivo\.ancora: "<um destes ids>"/.test(nudgeIdDiferente.stdout));
+check('decomposição conta a parte como linha-only COM data-contract no arquivo',
+  /1 com data-contract JÁ no vivo\.arquivo/.test(nudgeIdDiferente.stdout));
+
+// 14. id custom declarado + presente → estável (prova que a forma sugerida pelo nudge funciona)
+writeMap({ prototipo_sha: shaProtoFresco(), partes: [parteBase({ ancora: 'reconnect-modal' })] });
+const idCustom = runCheck(['--check', '--strict']);
+check('vivo.ancora: "<id custom>" + data-contract presente → estável 1/1, strict exit 0',
+  idCustom.status === 0 && /âncora estável \(data-contract no vivo\): 1\/1/.test(idCustom.stdout));
+
+// 15. CONTROLE-NEGATIVO: `ancora: false` EXPLÍCITO é opt-out consciente → NÃO nudga, mesmo com
+// âncora disponível no arquivo (é o caso real das 13 partes de caixa-unificada.map.json, cujo
+// _nota_mapeamento registra a decisão). Campo ausente ≠ campo false.
+writeMap({ prototipo_sha: shaProtoFresco(), partes: [parteBase({ ancora: false })] });
+const optOut = runCheck(['--check', '--strict']);
+check('ancora:false explícito + âncora disponível → SEM nudge (opt-out consciente respeitado)',
+  optOut.status === 0 && !/não declara vivo\.ancora/.test(optOut.stdout));
+check('opt-out consciente aparece contado no resumo', /1 com 'vivo\.ancora: false' explícito/.test(optOut.stdout));
+
+// 16. CONTROLE-NEGATIVO: arquivo SEM nenhum data-contract → nunca nudga, e o resumo diz POR QUE
+// o 0/N é 0 (não há o que declarar), em vez de sugerir um backfill inexistente.
+writeFileSync(join(vivoDir, 'Index.tsx'), 'export default function Index() { return <div>sem ancora nenhuma</div> }\n');
+writeMap({ prototipo_sha: shaProtoFresco(), partes: [parteBase()] });
+const semAncora = runCheck(['--check', '--strict']);
+check('arquivo sem data-contract → SEM nudge, strict exit 0',
+  semAncora.status === 0 && !/não declara vivo\.ancora/.test(semAncora.stdout));
+check('resumo explica o 0/N: sem data-contract no arquivo, ancorar o .tsx primeiro',
+  /1 sem NENHUM data-contract no vivo\.arquivo/.test(semAncora.stdout));
+
+// ── PUBLICAÇÃO no job summary (a cobertura saindo do log pra superfície que se lê) ──
+const { publicarResumo } = await import('./design-code-map-check.mjs');
+const sumFile = join(root, 'step-summary.md');
+const dadosFake = {
+  maps: 3, cov: { cobertas: 3, total: 15 }, pctCobertura: 20, charters: 209,
+  totalEstaveis: 0, ancoraveis: 30, totalLinhaOnly: 30, totalComAncora: 0, totalSemAncora: 30,
+  totalOptOut: 30, totalDrift: 0, totalPendentes: 1,
+};
+// O caso `undefined` cai no DEFAULT do parâmetro, que lê process.env — logo depende do ambiente:
+// local a env não existe (false), no CI ela existe (true). A 1ª versão deste check assertava só
+// `=== false` e passou local / quebrou no CI (§5 2026-08-07: verde numa plataforma não é veredito).
+// Controlar a env explicitamente torna o controle-negativo determinístico nos dois.
+const envAntes = process.env.GITHUB_STEP_SUMMARY;
+delete process.env.GITHUB_STEP_SUMMARY;
+const semEnv = publicarResumo(dadosFake, undefined);
+process.env.GITHUB_STEP_SUMMARY = join(root, 'step-summary-via-env.md'); // arquivo próprio: não sujar o do check seguinte
+const comEnvDefault = publicarResumo(dadosFake, undefined);
+if (envAntes === undefined) delete process.env.GITHUB_STEP_SUMMARY; else process.env.GITHUB_STEP_SUMMARY = envAntes;
+check('publicarResumo sem destino e sem $GITHUB_STEP_SUMMARY → no-op (não escreve nada)',
+  publicarResumo(dadosFake, '') === false && semEnv === false);
+check('publicarResumo cai no default $GITHUB_STEP_SUMMARY quando a env existe', comEnvDefault === true);
+check('publicarResumo com destino → grava', publicarResumo(dadosFake, sumFile) === true);
+const resumo = readFileSync(sumFile, 'utf8');
+check('resumo publica a COBERTURA 3/15 (denominador -gap.md, não charter)', /\*\*3\/15\*\* \(20%\)/.test(resumo));
+check('resumo declara que o denominador canônico é o -gap.md', /Denominador canônico da cobertura é o `-gap\.md`/.test(resumo));
+check('resumo traz o comando que o reproduz (número nunca sem comando ao lado)',
+  /node scripts\/governance\/design-code-map-check\.mjs --check/.test(resumo));
+check('resumo decompõe o linha-only em acionável × precisa-ancorar', /fila acionável/.test(resumo) && /ancorar o `\.tsx` primeiro/.test(resumo));
 
 rmSync(root, { recursive: true, force: true });
 console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — design-code-map-check morde (âncora quebrada, sha stale por CONTEÚDO ou legado git, schema, data-contract declarado que sumiu) e libera certo (íntegro, TODO pendente, linha-only, commit sem mudança de conteúdo).');
