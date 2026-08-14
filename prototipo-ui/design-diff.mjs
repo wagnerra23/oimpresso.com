@@ -31,6 +31,13 @@
  *    do agente — só as dimensões de computed-style puro são auto-diffáveis aqui hoje. Honesto:
  *    o tool NÃO substitui o protocolo, MECANIZA a parte medível dele. §"não-goals".)
  *
+ * ── TOLERÂNCIA (chip G8, 2026-08-14) ─────────────────────────────────────────────
+ *   As bandas destas dimensões estavam inline (±2px de título, ±8° de matiz, ±0,1 de luminância).
+ *   Agora vêm de `TOLERANCIAS` (style-fingerprint.mjs) — UM dono para os dois comparadores, senão
+ *   os dois números drifam no primeiro ajuste. Cada eixo lá carrega a RAZÃO do valor, e a fronteira
+ *   (um caso logo abaixo, um logo acima) está travada no `--selftest` dos dois lados.
+ *   Importar o módulo é seguro: ele só roda CLI quando é o entrypoint (guard `ehEntrypoint`).
+ *
  * Uso:
  *   node prototipo-ui/design-diff.mjs --probe                       # imprime a sonda pra injetar
  *   node prototipo-ui/design-diff.mjs --compare prod.json design.json          # relatório
@@ -40,6 +47,7 @@
  */
 
 import { readFileSync } from 'node:fs';
+import { TOLERANCIAS } from './style-fingerprint.mjs';
 
 /* ─────────────────────────────────────────────────────────────────────────────
  * A SONDA CANÔNICA (roda no browser via Chrome MCP javascript_tool).
@@ -137,8 +145,9 @@ function dimTipografia(prod, design) { // D4
   const rows = [];
   const a = prod.title, b = design.title;
   if (!a || !b) return [{ dim: 'D4', campo: 'título', prod: '—', design: '—', veredito: 'SEM-DADO' }];
-  // tolerância de ±2px (rounding entre renders)
-  if (Math.abs(a.fontPx - b.fontPx) > 2) rows.push({ dim: 'D4', campo: 'título font-size', prod: a.fontPx + 'px', design: b.fontPx + 'px', veredito: 'DIVERGE (bug)' });
+  // banda declarada (TOLERANCIAS.tituloPx): 1px = o artefato máximo do Math.round da própria sonda.
+  const dT = Math.abs(a.fontPx - b.fontPx);
+  if (dT > TOLERANCIAS.tituloPx.valor) rows.push({ dim: 'D4', campo: 'título font-size', prod: a.fontPx + 'px', design: b.fontPx + 'px', veredito: 'DIVERGE (bug)', detalhe: `Δ ${dT}px · banda tituloPx ±${TOLERANCIAS.tituloPx.valor}px` });
   if (!rows.length) rows.push({ dim: 'D4', campo: 'tipografia', prod: 'ok', design: 'ok', veredito: 'IGUAL' });
   return rows;
 }
@@ -157,10 +166,11 @@ function dimCor(prod, design) { // D6
     // compara HUE do accent (o "roxinho"): 3º número do oklch
     const hue = (c) => { const m = /ok(?:lch|lab)\([0-9.]+ [0-9.-]+ ([0-9.]+)/.exec(c || ''); return m ? Math.round(parseFloat(m[1])) : null; };
     const ph = hue(a.bg), dh = hue(b.bg);
-    if (ph != null && dh != null && Math.abs(ph - dh) > 8) rows.push({ dim: 'D6', campo: 'primary hue', prod: a.bg, design: b.bg, veredito: 'DIVERGE (bug)' });
+    if (ph != null && dh != null && Math.abs(ph - dh) > TOLERANCIAS.matiz.valor) rows.push({ dim: 'D6', campo: 'primary hue', prod: a.bg, design: b.bg, veredito: 'DIVERGE (bug)', detalhe: `Δ ${Math.abs(ph - dh)}° · banda matiz ±${TOLERANCIAS.matiz.valor}°` });
     // lightness do accent (roxo escuro travado × roxinho que clareia no dark)
     const pl = lightnessOf(a.bg), dl = lightnessOf(b.bg);
-    if (pl != null && dl != null && Math.abs(pl - dl) > 0.1) rows.push({ dim: 'D6', campo: 'primary lightness', prod: pl, design: dl, veredito: prod.__theme === design.__theme ? 'DIVERGE (bug)' : 'DIVERGE (tema)' });
+    const dL = pl != null && dl != null ? Math.abs(pl - dl) : null;
+    if (dL != null && dL > TOLERANCIAS.luminancia.valor) rows.push({ dim: 'D6', campo: 'primary lightness', prod: pl, design: dl, veredito: prod.__theme === design.__theme ? 'DIVERGE (bug)' : 'DIVERGE (tema)', detalhe: `Δ ${Number(dL.toFixed(5))} · banda luminancia ±${TOLERANCIAS.luminancia.valor}` });
   }
   // contraste do texto do KPI: lightness do texto vs (heurística) fundo do tema
   const pk = prod.kpi;
@@ -236,6 +246,35 @@ function selftest() {
   // controle: dois lados IGUAIS não acusam bug
   const eq = compare(design, design);
   checks.push(['design×design = 0 bug (não mente)', eq.bugs === 0]);
+
+  // ── FRONTEIRA das bandas declaradas (chip G8, 2026-08-14) ────────────────────
+  // As bandas destas dimensões vêm de TOLERANCIAS (style-fingerprint.mjs). Sem um par
+  // abaixo/acima, o número é decorativo: aqui cada eixo prova que absorve o que deve absorver
+  // e morde no primeiro passo além. Fixture MÍNIMO (1 KPI alinhado, mesmo tema) pra isolar o eixo.
+  const base = (over = {}) => ({ theme: 'dark', roles: {
+    kpi: { count: 1, tag: 'DIV', overflowX: false, items: [{ label: 'k', textAlign: 'start', alignItems: 'normal', textColor: 'oklch(0.965 0 0)', smallAlign: 'start', valueFontPx: 22 }] },
+    title: { fontPx: 22, weight: '600', color: 'oklch(0.965 0 0)' },
+    primary: { bg: 'oklch(0.55 0.15 295)', color: 'oklch(0.99 0 0)', border: 'oklch(0.45 0.15 295)' },
+    filterRows: 1,
+    ...over,
+  } });
+  const titulo = (px) => base({ title: { fontPx: px, weight: '600', color: 'oklch(0.965 0 0)' } });
+  const accent = (bg) => base({ primary: { bg, color: 'oklch(0.99 0 0)', border: 'oklch(0.45 0.15 295)' } });
+  const acusa = (a, b, campo) => compare(a, b).rows.some((r) => r.campo.includes(campo) && r.veredito.startsWith('DIVERGE'));
+  const T = TOLERANCIAS;
+  checks.push(
+    // controle NEGATIVO do fixture mínimo: sem estímulo, zero bug (senão a fronteira mediria ruído)
+    ['fronteira: fixture mínimo × ele mesmo = 0 bug', compare(base(), base()).bugs === 0],
+    // D4 título — banda 1px (o artefato máximo do Math.round da própria sonda)
+    [`fronteira D4: título Δ${T.tituloPx.valor}px (na banda) → não acusa`, !acusa(titulo(22), titulo(22 + T.tituloPx.valor), 'título')],
+    ['fronteira D4: título Δ2px → acusa', acusa(titulo(22), titulo(24), 'título')],
+    // D6 matiz — banda 8°
+    [`fronteira D6: matiz Δ${T.matiz.valor}° (na banda) → não acusa`, !acusa(accent('oklch(0.55 0.15 295)'), accent(`oklch(0.55 0.15 ${295 + T.matiz.valor})`), 'hue')],
+    ['fronteira D6: matiz Δ9° → acusa', acusa(accent('oklch(0.55 0.15 295)'), accent('oklch(0.55 0.15 304)'), 'hue')],
+    // D6 luminância — banda 0.1 (sondada em 0.09/0.11: a fronteira nominal cai no binário)
+    ['fronteira D6: luminância Δ0.09 (na banda) → não acusa', !acusa(accent('oklch(0.55 0.15 295)'), accent('oklch(0.64 0.15 295)'), 'lightness')],
+    ['fronteira D6: luminância Δ0.11 → acusa', acusa(accent('oklch(0.55 0.15 295)'), accent('oklch(0.66 0.15 295)'), 'lightness')],
+  );
   let ok = true;
   for (const [label, pass] of checks) { console.log(`  [${pass ? 'PASS' : 'FAIL'}] ${label}`); if (!pass) ok = false; }
   console.log(ok ? '\nSELFTEST OK — mede o que o olho perdeu em 07/07 (D8 align + D2 overflow + D6 dark).' : '\nSELFTEST FALHOU');
