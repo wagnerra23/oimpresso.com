@@ -87,16 +87,17 @@ const GATES = [
  * roda um gate; devolve {exit, out, err, saida, crashed}.
  *
  * `saida` = stdout + stderr. É ela que alimenta sig/motivo/arquivo — NUNCA `out` sozinho.
- * MEDIDO em 2026-08-14 (violação plantada em cada um dos 5 gates do array, um a um):
- *   component-registry → drift no **stdout**
- *   pt-conformance     → drift no **stderr**  (console.error)
- *   design-coverage    → drift no **stderr**  (console.error)
- *   ds-token-version   → drift no **stderr**  (console.error)
- *   ds-mirror-drift    → **exit 0** no comando que o CI roda (sem `--enforce`, todo caminho
- *                        de drift cai em `console.log` + exit 0) → não vira mordida por
- *                        construção. Fato declarado, não corrigido aqui: mudar o comando faria
- *                        o recorder medir um caminho diferente do que o CI executa.
- * Ou seja: 3 de 5 escreviam o drift onde o recorder não olhava. O efeito não era só motivo em
+ * MEDIDO em 2026-08-14 (violação plantada em cada um dos 6 gates do array, um a um):
+ *   component-registry   → drift no **stdout**
+ *   ds-tokens-build-sync → drift no **stdout**  (o do #5787; medido, não presumido)
+ *   pt-conformance       → drift no **stderr**  (console.error)
+ *   design-coverage      → drift no **stderr**  (console.error)
+ *   ds-token-version     → drift no **stderr**  (console.error)
+ *   ds-mirror-drift      → **exit 0** no comando que o CI roda (sem `--enforce`, todo caminho
+ *                          de drift cai em `console.log` + exit 0) → não vira mordida por
+ *                          construção. Fato declarado, não corrigido aqui: mudar o comando faria
+ *                          o recorder medir um caminho diferente do que o CI executa.
+ * Ou seja: 3 de 6 escreviam o drift onde o recorder não olhava. O efeito não era só motivo em
  * branco — o `sig` virava sha256(gate + ""), IGUAL pra qualquer violação daquele gate, e o
  * dedup do `scan` descartava a 2ª violação distinta. Como o `--tally` conta PRs distintos
  * (critério DR-2 da ADR 0336), o contador que decide promoção ficava travado em 1.
@@ -253,7 +254,7 @@ function selftest() {
   assert(fb && fb.bites === 2, 'tally conta 2 mordidas totais');
 
   // 5) GATE QUE ESCREVE O DRIFT SÓ NO **stderr** — o defeito real de 3 dos 5 gates do array
-  //    (pt-conformance, design-coverage, ds-token-version usam console.error). Antes do fix,
+  //    (pt-conformance, design-coverage, ds-token-version usam console.error — 3 de 6). Antes do fix,
   //    sig/motivo liam só o stdout: motivo vinha VAZIO e o sig era sha256(gate+"") — o MESMO
   //    pra qualquer violação, então a 2ª violação distinta era engolida pelo dedup e o --tally
   //    (critério DR-2) ficava travado em 1 PR.
