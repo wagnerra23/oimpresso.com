@@ -1,11 +1,11 @@
 /* SCOPED-OK */ - escopo .fin-cowork aplicado por scripts/scope-fin-cowork-css.py
 /* fin-ia.css — Cowork KB-9.75 Financeiro Onda 6 R2 IA
  *
- * Tokens visuais portados de prototipo-ui/styles.css (Refino #2).
+ * Tokens visuais portados de prototipo-ui/cowork/styles.css (Refino #2).
  * Escopados em .fin-curadoria (mesma wrapper da Onda 5).
  *
  * Refs:
- *   - prototipo-ui/financeiro-ai.jsx (canonical components)
+ *   - prototipo-ui/cowork/financeiro-ai.jsx (canonical components)
  *   - resources/css/fin-curadoria.css (Onda 5 — wrapper compartilhado)
  */
 /* ─────────────────────────────────────────────────────────────

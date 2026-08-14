@@ -5,7 +5,7 @@
 //   rules: R-PUR-001 (multi-tenant business_id Tier 0), R-PUR-002 (permitted_locations), R-PUR-003 (purchase.create)
 //   adrs: 0104 (MWART), 0093 (Tier 0), 0114 (gate visual), 0149 (pattern reuse)
 //
-// Origem: Cowork "Compras" (prototipo-ui/prototipos/compras/visual-source.html).
+// Origem: Cowork "Compras" (prototipo-ui/prototipos/compras/visual-source.html (MORTO 2026-08-13 — sem fonte no repo)).
 // Runbook: memory/requisitos/Purchase/RUNBOOK-create.md
 // Charter: ./Create.charter.md
 // MVP1: dados gerais + itens (busca + tabela) + desconto/frete + total + notas. Pagamento V2.

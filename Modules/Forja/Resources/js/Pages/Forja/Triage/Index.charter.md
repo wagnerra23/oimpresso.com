@@ -90,8 +90,8 @@ Dar ao time não-técnico (e futuros clientes B2B) uma tela dedicada pra **triar
 
 ## Refs
 
-- [SPEC-UI-FASE7](../../../../../memory/requisitos/TaskRegistry/SPEC-UI-FASE7.md) — US-TR-301..303
-- [TriageTool MCP](../../../../../Modules/Jana/Mcp/Tools/TriageTool.php) — fila canônica espelhada
-- [ADR 0070 Jira-style PM](../../../../../memory/decisions/0070-jira-style-task-management-current-md-removed.md)
-- [ADR UI-0013 Constituição UI v2](../../../../../memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md)
+- [SPEC-UI-FASE7](../../../../../../../memory/requisitos/TaskRegistry/SPEC-UI-FASE7.md) — US-TR-301..303
+- [TriageTool MCP](../../../../../../../Modules/Jana/Mcp/Tools/TriageTool.php) — fila canônica espelhada
+- [ADR 0070 Jira-style PM](../../../../../../../memory/decisions/0070-jira-style-task-management-current-md-removed.md)
+- [ADR UI-0013 Constituição UI v2](../../../../../../../memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md)
 - Pattern fonte: `MyWork/Index.tsx` + `Backlog/Index.tsx`

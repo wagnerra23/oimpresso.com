@@ -2,7 +2,7 @@
 // (dialog modal árvore de decisão pra divergências comuns).
 //
 // Refs:
-//  - prototipo-ui/financeiro-output.jsx FIN_TROUBLES + FinTroubleButton
+//  - prototipo-ui/cowork/financeiro-output.jsx FIN_TROUBLES + FinTroubleButton
 //
 // 4 troubleshooters canônicos:
 //   1. Saldo do extrato não bate com o caixa (conciliação)

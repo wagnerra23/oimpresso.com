@@ -2,7 +2,7 @@
 // (folha jurídica imprimível — pra Eliana mandar pro escritório/contabilidade).
 //
 // Refs:
-//  - prototipo-ui/financeiro-output.jsx FinTranscriptPDF + @print media
+//  - prototipo-ui/cowork/financeiro-output.jsx FinTranscriptPDF + @print media
 //
 // Render fullscreen overlay com "folha A4" simulada. Print CSS isola a folha
 // quando user dá Ctrl+P (esconde overlay + header + footer da página).

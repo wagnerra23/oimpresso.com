@@ -2,7 +2,7 @@
 // (histórico determinístico de eventos derivado do row).
 //
 // Refs:
-//  - prototipo-ui/financeiro-curation.jsx — finAuditTrail + FinAuditTrail
+//  - prototipo-ui/cowork/financeiro-curation.jsx — finAuditTrail + FinAuditTrail
 //  - SaleAuditTrail.tsx pattern (canon Sells Onda 3)
 //
 // Determinístico: SEM persistência. Deriva eventos do row (created/categorize/edit/concil/alert)

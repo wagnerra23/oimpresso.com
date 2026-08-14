@@ -1,6 +1,6 @@
 // SaleAiPanel — Cowork KB-9.75 Onda 2 R2 IA (drawer ✦ IA).
 // Refs:
-//  - prototipo-ui/prototipos/sells-index/vendas-ai.jsx (canonical source)
+//  - prototipo-ui/cowork/vendas-ai.jsx (canonical source)
 //  - SellController::aiAsk (POST /sells/{id}/ai-ask)
 //  - resources/css/sells-cowork-ia.css (.sells-cowork-ia-panel scope)
 //  - memory/requisitos/_DesignSystem/RUNBOOK-onda-cowork.md F4

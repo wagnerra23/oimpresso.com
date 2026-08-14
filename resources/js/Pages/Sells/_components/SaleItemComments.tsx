@@ -2,7 +2,7 @@
 // (comentários inline por item da venda).
 //
 // Refs:
-//  - prototipo-ui/prototipos/sells-index/vendas-curation.jsx (canonical source)
+//  - prototipo-ui/cowork/vendas-curation.jsx (canonical source)
 //  - resources/css/sells-cowork-curadoria.css (.vd-item-cur tokens)
 //  - SaleSheet.tsx (callsite — tab Itens dentro do drawer)
 //

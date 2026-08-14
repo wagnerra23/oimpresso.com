@@ -60,7 +60,7 @@ import { readdir } from 'node:fs/promises';
 import { join, resolve, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { raizesDePages } from '../qa/page-path.mjs';
-import { shaAtualPara, shaIndeterminado } from '../../prototipo-ui/gerar-map.mjs';
+import { shaAtualPara, shaIndeterminado, shaBate } from '../../prototipo-ui/gerar-map.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -164,7 +164,7 @@ export function verificarMapa(mapa, { root = ROOT } = {}) {
     const atual = shaAtualPara(mapa.prototipo_sha, [...arquivosPrototipoReais], root);
     if (shaIndeterminado(atual)) {
       warn.push(`prototipo_sha='${mapa.prototipo_sha}' salvo, mas o(s) arquivo(s) de protótipo referenciado(s) não permitem recomputar agora (staleness indeterminada)`);
-    } else if (atual !== mapa.prototipo_sha) {
+    } else if (!shaBate(mapa.prototipo_sha, atual)) { // abreviação legada casa por prefixo
       drift.push(`STALE: prototipo_sha salvo='${mapa.prototipo_sha}' · atual='${atual}' — o protótipo re-exportou (regenerar via gerar-map.mjs --atualizar, preserva o preenchido)`);
     }
   }

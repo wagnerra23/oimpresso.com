@@ -11,8 +11,7 @@ created: 2026-05-20
 owner: wagner
 related_us: [US-FISCAL-002]
 related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0358-doutrina-de-teste-tenant-98-supersede-0101, 0104-processo-mwart-canonico-unico-caminho, 0114-prototipo-ui-cowork-loop-formalizado]
-prototypes:
-  - "prototipo-ui/.../fiscal-page.jsx §8 FiscalCockpit"
+prototypes: []   # 2026-08-13: era "prototipo-ui/.../fiscal-page.jsx §8 FiscalCockpit" — path NÃO existe (0 protótipo fiscal no repo, medido); âncora viva = `related_prototype` acima. Mesmo caso do Nfe.charter.md (reconciliação 2026-07-27).
 ---
 
 # Charter — `Fiscal/Cockpit`

@@ -143,7 +143,17 @@ export async function resolveAncora(query, { repoRoot = REPO_DEFAULT, stagingDir
 // e o controle positivo passa (`SellsCockpitAggregator`/`ApuracaoService` existem
 // e NÃO flagram). Não tenta adivinhar "design velho" por nome/pasta — guard
 // sintático desse tipo tem 4 lápides no §5.
-const RE_SIMBOLO_BACKEND = /"([A-Z][A-Za-z0-9]*(?:Service|Aggregator|Job|Repository))"/g;
+//
+// 2026-08-13 — sufixo `::metodo` passou a ser tolerado. Motivo: o conserto do P-1
+// trocou os 6 fantasmas pelo formato REAL do código (`Classe::metodo`, igual ao
+// JANA_DRILL_FONTES), e a v1 do regex exigia a string ser SÓ a classe — ou seja,
+// ficaria cega justamente pro formato correto, e um `FakeService::foo` futuro
+// passaria batido. O guard teria ficado quieto por não ENXERGAR, não por aprovar
+// (LC-13: verde por não-execução). Só a CLASSE é capturada e verificada; o método
+// não é conferido (o oráculo barato é `git grep` de classe). FP medido ANTES da
+// troca no corpus (116 .jsx/.js de prototipo-ui/cowork): ATUAL casa 0 · NOVO casa
+// 1 (`SellsCockpitAggregator`, que EXISTE → não flagra) · zero falso-positivo.
+const RE_SIMBOLO_BACKEND = /"([A-Z][A-Za-z0-9]*(?:Service|Aggregator|Job|Repository))(?:::[A-Za-z0-9_]+)?"/g;
 
 /** Extrai os símbolos de backend citados como string literal. Puro = testável. */
 export function simbolosCitados(text) {
@@ -263,12 +273,19 @@ async function selftest() {
     simbolosCitados('"AnaliseInadimplenciaHelper" "FooController"').length === 0);
   t('CONTROLE fantasma: minúscula NÃO casa',
     simbolosCitados('"analiseService"').length === 0);
-  // contra a árvore REAL: a âncora da Jana está defeituosa hoje; a fonte real existe
+  t('BITE fantasma: sufixo ::metodo é tolerado e captura só a CLASSE',
+    simbolosCitados('"FakeService::calcular"').join() === 'FakeService');
+  t('CONTROLE fantasma: ::metodo de classe REAL captura a classe (e o existe() decide)',
+    simbolosCitados('"SellsCockpitAggregator::buildInsightsAggregates"').join() === 'SellsCockpitAggregator');
+  // contra a árvore REAL. Os 6 fantasmas do P-1 foram consertados em 2026-08-13 (a tabela
+  // FONTE passou a citar SellsCockpitAggregator::<metodo>, lido do JANA_DRILL_FONTES). Este
+  // par asserta o estado NOVO — e o bite do detector continua provado acima, em fixture, que
+  // é onde ele pode morder sem depender da árvore estar suja.
   const dj = await defeitosDaAncora('prototipo-ui/cowork/jana-merge.jsx');
-  t('BITE real: jana-merge.jsx acusa fantasma(s)', dj.lido === true && dj.fantasmas.length > 0);
-  t('BITE real: acusa o AnaliseFaturamentoService nomeado pelo [CC] em 2026-08-09',
-    dj.fantasmas.includes('AnaliseFaturamentoService'));
-  t('CONTROLE real: símbolo que EXISTE não entra como fantasma',
+  t('BITE real: jana-merge.jsx foi LIDO (ausência não vira 0 fantasmas)', dj.lido === true);
+  t('BITE real: zero fantasma na âncora da Jana (P-1 consertado em 2026-08-13)',
+    dj.fantasmas.length === 0);
+  t('CONTROLE real: o símbolo REAL citado é visto pelo detector e NÃO vira fantasma',
     !dj.fantasmas.includes('SellsCockpitAggregator'));
   const dc = await defeitosDaAncora('prototipo-ui/cowork/chat-jana.jsx');
   t('CONTROLE real: chat-jana.jsx (regras visuais) NÃO acusa fantasma',

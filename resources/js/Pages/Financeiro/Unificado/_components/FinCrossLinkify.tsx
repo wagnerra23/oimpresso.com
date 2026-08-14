@@ -2,7 +2,7 @@
 // (regex parser pra detectar referências cruzadas e linkar pra outros módulos).
 //
 // Refs:
-//  - prototipo-ui/financeiro-output.jsx — cross-link Vendas ↔ Financeiro
+//  - prototipo-ui/cowork/financeiro-output.jsx — cross-link Vendas ↔ Financeiro
 //  - resources/js/Pages/Sells/_components/SaleLinkifier.tsx (canon Vendas Onda 3)
 //
 // Detecta no texto:

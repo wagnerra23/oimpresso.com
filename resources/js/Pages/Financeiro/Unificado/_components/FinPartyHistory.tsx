@@ -2,7 +2,7 @@
 // (stats da contraparte: média, on-time%, categoria top, recorrência).
 //
 // Refs:
-//  - prototipo-ui/financeiro-ai.jsx — finAiPartyHistory + FinAiPartyContext
+//  - prototipo-ui/cowork/financeiro-ai.jsx — finAiPartyHistory + FinAiPartyContext
 //
 // Pure compute do array `lancamentos` (sem backend, sem IA real).
 // Determinístico. Multi-tenant Tier 0 safe (lancamentos já vem business_id-scoped).

@@ -2,7 +2,7 @@
 // (4-card snapshot do mês — "Eliana 5min sexta" digest executivo).
 //
 // Refs:
-//  - prototipo-ui/financeiro-ai.jsx — FinAiMonthDigest
+//  - prototipo-ui/cowork/financeiro-ai.jsx — FinAiMonthDigest
 //
 // Pure compute do array `lancamentos` + `kpis` que já vêm no payload. Sem backend.
 // Pode ser exibido como section colapsada acima da tabela OU como tab no header.

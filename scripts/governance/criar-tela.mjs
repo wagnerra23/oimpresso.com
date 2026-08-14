@@ -58,6 +58,49 @@ const kebab = (s) => s.replace(/([a-z0-9])([A-Z])/g, '$1-$2').replace(/[_\s]+/g,
 const ucPrefix = (tela) => (tela.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 6) || 'TELA');
 
 // ─────────────────────────────────────────────────────────────────────────────
+// CODE CONNECT em tempo de GERAÇÃO (degrau `dtc-code-connect-geracao`, memory/reguas —
+// a nota mais baixa da dimensão design→código: 6,0, parada desde 2026-07-18).
+//
+// O import do template deixa de ser string literal e passa a ser DERIVADO do
+// component-registry.json — a mesma natureza do Figma Code Connect: a âncora vive no
+// COMPONENTE (estável, reusável entre telas), não na cópia dentro de cada template.
+// Componente `mapped` que mude de `import_path` passa a chegar sozinho na tela nova.
+//
+// LIMITE DECLARADO (medido 2026-08-14, não é omissão): o registry é **protótipo-first**
+// — a chave dele é `bloco_prototipo` (bloco Cowork → React), e ele NÃO cataloga todo
+// componente do repo. Dos 8 imports usados pelos templates, 3 têm entrada `mapped`
+// (Button/Input/FormSection) e 5 não têm (PageHeader, DataTable, KpiGrid, KpiCard,
+// BoardColumn — existem em disco, `export default function`, sem bloco de protótipo
+// mapeado). Criar entrada pra eles exigiria INVENTAR o `bloco_prototipo`, que as
+// entradas `status: gap` proíbem em nota literal ("NÃO fabricar"). Então esses 5 caem
+// no path declarado aqui — e migram sozinhos no dia em que ganharem entrada real.
+const REGISTRY = join(ROOT, 'prototipo-ui', 'component-registry.json');
+let _regCache = null;
+function registryMapped() {
+  if (_regCache) return _regCache;
+  _regCache = new Map();
+  try {
+    const j = JSON.parse(readFileSync(REGISTRY, 'utf8'));
+    const arr = Array.isArray(j.entries) ? j.entries : Object.values(j.entries || {});
+    for (const e of arr) {
+      if (e && e.status === 'mapped' && e.componente_react && e.import_path) _regCache.set(e.componente_react, e.import_path);
+    }
+  } catch { /* registry ausente/ilegível → templates seguem com o path declarado (nunca crasha) */ }
+  return _regCache;
+}
+
+/** import_path do registry (entrada `mapped`) ou o declarado. Exportado pro selftest. */
+export function importPath(componente, declarado) {
+  return registryMapped().get(componente) || declarado;
+}
+
+/** Quem está amarrado ao registry vs. quem segue no path declarado — visibilidade honesta. */
+export function provenienciaImports(pares) {
+  const reg = registryMapped();
+  return pares.map(([c, d]) => ({ componente: c, declarado: d, registry: reg.get(c) || null, fonte: reg.has(c) ? 'registry' : 'declarado' }));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // TEMPLATES do .tsx por arquétipo — cada um carimba a ASSINATURA do PT (pt-signatures).
 // Esqueleto real (importa componentes canônicos) + marcadores {/* TODO */} pro dev preencher.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -65,8 +108,8 @@ function tsxTemplate(pt, mod, tela) {
   const head = `// ${mod}/${tela} — carimbado do ${pt} ${PT_META[pt].nome} por criar-tela.mjs (UI-0013).\n// Herda o Padrão de Tela: NÃO reinvente a estrutura — preencha os {/* TODO */}.\n`;
   const bodies = {
     'PT-01': `import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
-import DataTable from '@/Components/shared/DataTable';
+import PageHeader from '${importPath('PageHeader', '@/Components/shared/PageHeader')}';
+import DataTable from '${importPath('DataTable', '@/Components/shared/DataTable')}';
 import type { ColumnDef } from '@tanstack/react-table';
 
 interface Row { id: number /* TODO: campos da linha */ }
@@ -88,9 +131,9 @@ export default function ${tela}({ paginator }: Props) {
 `,
     'PT-02': `import AppShellV2 from '@/Layouts/AppShellV2';
 import { useForm } from '@inertiajs/react';
-import { FormSection, FormGrid } from '@/Components/ui/form-section';
-import { Input } from '@/Components/ui/input';
-import { Button } from '@/Components/ui/button';
+import { FormSection, FormGrid } from '${importPath('FormSection', '@/Components/ui/form-section')}';
+import { Input } from '${importPath('Input', '@/Components/ui/input')}';
+import { Button } from '${importPath('Button', '@/Components/ui/button')}';
 
 interface Props { /* TODO: modelo em edição (Edit) ou vazio (Create) */ }
 
@@ -153,9 +196,9 @@ export default function ${tela}({ registro }: Props) {
 }
 `,
     'PT-04': `import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
-import KpiGrid from '@/Components/shared/KpiGrid';
-import KpiCard from '@/Components/shared/KpiCard';
+import PageHeader from '${importPath('PageHeader', '@/Components/shared/PageHeader')}';
+import KpiGrid from '${importPath('KpiGrid', '@/Components/shared/KpiGrid')}';
+import KpiCard from '${importPath('KpiCard', '@/Components/shared/KpiCard')}';
 
 interface Props { kpis?: Record<string, number> /* TODO: agregados do dashboard */ }
 
@@ -174,7 +217,7 @@ export default function ${tela}({ kpis }: Props) {
 `,
     'PT-05': `import AppShellV2 from '@/Layouts/AppShellV2';
 import KanbanDndProvider from './_components/KanbanDndProvider'; // TODO: crie/reuse o provider dnd-kit da tela
-import BoardColumn from '@/Components/board/BoardColumn';
+import BoardColumn from '${importPath('BoardColumn', '@/Components/board/BoardColumn')}';
 
 interface Card { id: number /* TODO */ }
 interface Props { colunas: { key: string; titulo: string; cards: Card[] }[] }
@@ -431,6 +474,25 @@ if (process.argv.includes('--selftest')) {
     t(ucMatch && conj.teste.includes(ucMatch[1]), `${pt}: stub de teste cita o UC (G-2 rastreabilidade)`);
     t(/test\.fixme/.test(conj.teste), `${pt}: stub de teste é fixme (não quebra CI)`);
   }
+  // ── CODE CONNECT em tempo de geração (degrau dtc-code-connect-geracao) ──────
+  // BITE: o registry VENCE o path declarado no template. Passo um declarado sabidamente
+  // errado — se o retorno ainda for o do registry, a injeção é real (e não decoração).
+  const doRegistry = importPath('Button', '@/PATH/DECLARADO/ERRADO');
+  t(doRegistry !== '@/PATH/DECLARADO/ERRADO' && doRegistry === '@/Components/ui/button',
+    'MORDE: componente `mapped` no registry vence o path declarado no template (injeção real)');
+  t(importPath('__ComponenteInexistente__', '@/fallback/ok') === '@/fallback/ok',
+    'controle-negativo: componente fora do registry cai no declarado (não crasha, não inventa)');
+  t(renderConjunto('PT-02', 'X', 'Y').tsx.includes("from '@/Components/ui/button'"),
+    'PT-02 gerado carrega o import_path vindo do registry');
+  // Proveniência honesta: 3 dos 8 imports dos templates são registry-backed; os 5 restantes
+  // não têm `bloco_prototipo` e criar um seria fabricar proveniência (entradas `gap`: "NÃO fabricar").
+  const prov = provenienciaImports([['Button', '@/Components/ui/button'], ['Input', '@/Components/ui/input'],
+    ['FormSection', '@/Components/ui/form-section'], ['PageHeader', '@/Components/shared/PageHeader'],
+    ['DataTable', '@/Components/shared/DataTable'], ['KpiGrid', '@/Components/shared/KpiGrid'],
+    ['KpiCard', '@/Components/shared/KpiCard'], ['BoardColumn', '@/Components/board/BoardColumn']]);
+  t(prov.filter((p) => p.fonte === 'registry').length === 3 && prov.filter((p) => p.fonte === 'declarado').length === 5,
+    `cobertura declarada do Code Connect: ${prov.filter((p) => p.fonte === 'registry').length}/8 registry-backed (o resto sem bloco de protótipo)`);
+
   // cross-check: PT-02 NÃO deve passar como se fosse PT-05 (assinaturas distintas)
   const pt02 = detectSignals(renderConjunto('PT-02', 'X', 'Y').tsx);
   t(!REQUIRED['PT-05'](pt02), 'PT-02 carimbado NÃO satisfaz assinatura de PT-05 (arquétipos distintos)');

@@ -1,6 +1,6 @@
 // SaleTranscriptPDF — Cowork KB-9.75 Sells Onda 4 R4 Distribuição (transcript A4 print-friendly).
 // Refs:
-//  - prototipo-ui/prototipos/sells-index/vendas-output.jsx (canonical source VdTranscriptPDF)
+//  - prototipo-ui/cowork/vendas-output.jsx (canonical source VdTranscriptPDF)
 //  - resources/css/sells-cowork-distribuicao.css (.vd-transcript)
 //  - SaleSheet.tsx (button "Transcript" no footer drawer)
 //

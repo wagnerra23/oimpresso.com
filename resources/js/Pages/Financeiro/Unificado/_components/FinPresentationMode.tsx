@@ -2,7 +2,7 @@
 // (fullscreen pra reunião com sócio).
 //
 // Refs:
-//  - prototipo-ui/financeiro-output.jsx FinPresentationMode
+//  - prototipo-ui/cowork/financeiro-output.jsx FinPresentationMode
 //  - Sells SalePresentationMode (pattern parecido)
 //
 // Render minimalista pra apresentar dados Fin em reunião:

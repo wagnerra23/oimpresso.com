@@ -2,7 +2,7 @@
 // (pill de SLA derivado de due/paid_at — 5 estados).
 //
 // Refs:
-//  - prototipo-ui/financeiro-curation.jsx — finFrescorInfo + FinPillFrescor (canonical)
+//  - prototipo-ui/cowork/financeiro-curation.jsx — finFrescorInfo + FinPillFrescor (canonical)
 //  - resources/css/fin-curadoria.css — .fin-frescor tokens
 //  - SaleSheet pattern (compact pill ao lado do total)
 //

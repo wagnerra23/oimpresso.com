@@ -48,8 +48,8 @@
     {
       "key": "charter",
       "schema": "scripts/memory-schemas/charter.schema.json",
-      "glob": "resources/js/Pages/**/*.charter.md",
-      "regex": "^resources/js/Pages/.*\\.charter\\.md$"
+      "glob": "{resources/js/Pages,Modules/*/[Rr]esources/js/Pages}/**/*.charter.md",
+      "regex": "^(?:Modules/[^/]+/[Rr]esources|resources)/js/Pages/.*\\.charter\\.md$"
     },
     {
       "key": "briefing",

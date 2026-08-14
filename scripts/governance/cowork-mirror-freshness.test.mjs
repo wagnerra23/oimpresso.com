@@ -17,15 +17,19 @@ import {
   classifyMirror,
   verdictFor,
   shouldFail,
+  veredictoFinal,
   buildManifest,
   parseShellDeps,
   defaultShellPath,
   ledgerEntry,
+  lerShellHtml,
   slaVerdict,
   liveOnly,
   exportPlan,
   absentLocal,
   previewDsPlan,
+  nasceSemMedicao,
+  refsParaDeletado,
   SLA_DAYS,
 } from './cowork-mirror-freshness.mjs';
 
@@ -63,6 +67,60 @@ check('constructor idem', verdictFor('constructor', H1, {}) === 'UNCHECKED');
 check('STALE presente → morde', shouldFail(['SYNC', 'STALE', 'UNCHECKED']) === true);
 check('só SYNC → libera', shouldFail(['SYNC', 'SYNC']) === false);
 check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', shouldFail(['UNCHECKED', 'LIVE-ABSENT', 'SYNC']) === false);
+
+// 4b. veredictoFinal — a LINHA FINAL não pode mentir quando se roda sem `--check`.
+//     Bug medido 2026-08-13: `stale: 1` no corpo e `✓ sem espelho STALE` no rodapé, porque o
+//     log verde estava fora do `if (strict …)`. O texto é do FATO; `--check` é só exit code.
+check('1 stale → veredito NEGATIVO', veredictoFinal(1).ok === false);
+check('1 stale → texto não afirma verde', !/✓/.test(veredictoFinal(1).texto) && /STALE/.test(veredictoFinal(1).texto));
+check('0 stale → veredito positivo', veredictoFinal(0).ok === true && /✓/.test(veredictoFinal(0).texto));
+// CONTROLE NEGATIVO do bite: o veredito NÃO pode depender de flag nenhuma — só do número.
+check('mesmo número → mesmo veredito (independe de --check)',
+  JSON.stringify(veredictoFinal(3)) === JSON.stringify(veredictoFinal(3)) && veredictoFinal(3).ok === false);
+
+// 4c. COBERTURA — "não achei divergência" ≠ "não há divergência" (LC-13: verde por não-medição).
+//     Reproduzido 2026-08-13: 2 medidos de 121, 0 stale, e a linha final afirmava
+//     "✓ sem espelho STALE (divergência hash-provada)" sobre 119 arquivos que ninguém olhou.
+{
+  const parcial = veredictoFinal(0, { total: 121, medidos: 2, semVeredito: 119 });
+  check('cobertura parcial + 0 stale → INCONCLUSIVO, não ✓', parcial.inconclusivo === true && !/^✓/.test(parcial.texto));
+  check('o texto do inconclusivo carrega o DENOMINADOR (medidos e faltantes)',
+    /\b2\b/.test(parcial.texto) && /\b119\b/.test(parcial.texto) && /\b121\b/.test(parcial.texto));
+  check('inconclusivo NÃO afirma "hash-provada" (nada foi provado sobre os 119)',
+    !/hash-provada/.test(parcial.texto));
+
+  const completa = veredictoFinal(0, { total: 121, medidos: 121, semVeredito: 0 });
+  // CONTROLE POSITIVO: cobertura total volta a ser ✓ — o conserto não vira alarme cego.
+  check('CONTROLE: cobertura total + 0 stale → ✓ (não virou alarme permanente)',
+    completa.inconclusivo === undefined && /✓/.test(completa.texto));
+
+  // O sinal DURO vence a cobertura: stale é hash-provado, não depende de quantos faltam.
+  check('1 stale + 119 sem veredito → ✗ STALE (o duro vence o inconclusivo)',
+    veredictoFinal(1, { total: 121, medidos: 2, semVeredito: 119 }).ok === false);
+
+  // ENFORCEMENT INALTERADO: inconclusivo não é falha dura — `--check` morde só em STALE.
+  check('inconclusivo mantém ok=true (não promove cobertura a gate — ADR 0336 é decisão [W])',
+    parcial.ok === true);
+
+  // COMPAT: chamador sem cobertura segue funcionando (o argumento é opcional).
+  check('CONTROLE: sem cobertura → comportamento antigo (✓ sem inconclusivo)',
+    veredictoFinal(0).ok === true && veredictoFinal(0).inconclusivo === undefined);
+}
+{
+  // BITE de integração: o fonte não pode mais imprimir a linha verde fora do veredito.
+  // Conta só CÓDIGO — o docblock do `veredictoFinal` cita o `console.log` bugado de propósito,
+  // e contar comentário como código é o falso-positivo que a medição de hoje catalogou
+  // (`<FinAiAnomalia>` só existia numa linha `//`).
+  const HERE_ = dirname(fileURLToPath(import.meta.url));
+  const semComentario = readFileSync(join(HERE_, 'cowork-mirror-freshness.mjs'), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/^\s*\/\/.*$/gm, '');
+  const verdes = [...semComentario.matchAll(/console\.log\('✓ sem espelho STALE/g)].length;
+  check('nenhum console.log direto da linha verde (só via veredictoFinal)', verdes === 0, `achei ${verdes}`);
+  // CONTROLE POSITIVO do stripper: ele não pode estar apagando o arquivo inteiro.
+  check('CONTROLE: o stripper preserva o código (veredictoFinal segue no fonte)',
+    /export function veredictoFinal/.test(semComentario));
+}
 
 // 5. READ-ONLY por contrato (ADR 0315 Eixo B): o fonte não pode invocar método de ESCRITA do
 //    DesignSync. Denylist = métodos de escrita reais do schema da tool (validados na sessão
@@ -161,6 +219,17 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
     check('styles.css entra como dep', byPath['styles.css']?.kind === 'dep');
     check('dep referenciada no shell mas AUSENTE do espelho fica fora (universo = espelho)', !byPath['ds-v6/tokens.css']);
     check('âncora que TAMBÉM é dep permanece ancora (telas ganham)', byPath['financeiro-page.jsx'].telas.includes('Fin/Tela'));
+    // ── DENOMINADOR LIMPO: `_ds/` NÃO é do espelho (adversário 2026-08-13) ──────
+    // `_ds/<id>/` é o Design System REPOSTO pelo `--preview-ds` a partir do snapshot já
+    // versionado — é build local, gitignored, e NÃO tem contrapartida no projeto Cowork.
+    // Entrando no manifesto ele inflava o total (124 em vez de 122) e nunca poderia sair
+    // de UNCHECKED, porque o vivo não tem esses arquivos pra comparar: cobertura que jamais
+    // fecha por construção. §5 2026-07-27 (denominador inventado).
+    mkdirSync(join(cowork, '_ds', '019dd02f-d2d0-7ba6-a57f-24b3ddd073ac'), { recursive: true });
+    writeFileSync(join(cowork, '_ds', '019dd02f-d2d0-7ba6-a57f-24b3ddd073ac', 'tokens.css'), ':root{}');
+    const comDs = buildManifest(dir, { shellHtml: SHELL, all: true });
+    check('_ds/ (build local do DS) fica FORA do manifesto — não infla o denominador',
+      comDs.every((m) => !m.cowork.startsWith('_ds/')));
     // sem shell → só âncoras (comportamento antigo preservado; o WARN é do CLI)
     const semShell = buildManifest(dir, {});
     check('sem shellHtml → só âncoras (back-compat)', semShell.length === 1 && semShell[0].kind === 'ancora');
@@ -193,10 +262,28 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
     { cowork: 'b.jsx', veredito: 'STALE' },
     { cowork: 'c.jsx', veredito: 'UNCHECKED' },
   ];
+  const NOW_TAUT = '2026-07-06T12:00:00.000Z';
   const e = ledgerEntry(rows, '2026-07-06T12:00:00.000Z');
   check('ledgerEntry conta por veredito', e.files === 3 && e.sync === 1 && e.stale === 1 && e.unchecked === 1 && e.liveAbsent === 0);
   check('ledgerEntry lista os STALE por path', e.staleList.length === 1 && e.staleList[0] === 'b.jsx');
   check('ledgerEntry carrega a data da rodada', e.date === '2026-07-06T12:00:00.000Z');
+
+  // ── ANTI-TAUTOLOGIA (adversário 2026-08-13) ─────────────────────────────────
+  // O `--export-from … --emit-snapshot` ESCREVE o conteúdo do vivo e SÓ ENTÃO emite o
+  // snapshot que o `--compare` vai usar. Logo o SYNC seguinte é garantido por construção:
+  // o instrumento media a si mesmo. O ledger gravava `stale: 0` numa rodada que tinha
+  // ACABADO de consertar N arquivos — e eu li isso como "espelho estava em dia" (era
+  // falso: 2 arquivos reais, styles.css e inbox-page.jsx, estavam stale). O `stale` segue
+  // 0 e está CERTO (nada diverge agora); o que faltava era registrar a divergência REAL
+  // de antes do export. É a mesma família do §5 2026-07-17 (drift-sentinel tautológico).
+  // rows PÓS-export: nada diverge, porque o export acabou de escrever o conteúdo do vivo.
+  const rowsPosExport = [{ cowork: 'a.jsx', veredito: 'SYNC' }, { cowork: 'b.jsx', veredito: 'SYNC' }];
+  const eExp = ledgerEntry(rowsPosExport, NOW_TAUT, { origin: 'export', stalePreExport: 2 });
+  check('ledger registra a divergência REAL de antes do export (não só o 0 pós-conserto)',
+    eExp.stale === 0 && eExp.stalePreExport === 2 && eExp.origin === 'export');
+  const eNorm = ledgerEntry(rowsPosExport, NOW_TAUT, {});
+  check('CONTROLE: rodada que NÃO veio de export não ganha campo fantasma',
+    eNorm.stalePreExport === undefined && eNorm.origin === undefined);
 
   const NOW = '2026-07-06T12:00:00.000Z';
   const clean = { date: '2026-07-01T12:00:00.000Z', stale: 0, sync: 3, unchecked: 0 };
@@ -332,6 +419,44 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
     man.some((f) => f.cowork === 'oimpresso.com.html'));
 }
 
+// ── NASCE-SEM-MEDIÇÃO (2026-08-13) ──────────────────────────────────────────────
+// [W]: "garanta todos os novos sempre checados". Os 3 filtros são por DADO — cada um
+// foi medido em 60d de histórico real (251 arquivos adicionados) antes de virar código:
+//   todos ......... 51% fora (ruído: relatório .html)
+//   só jsx/css/js . 38% fora (ruído: subdir com shell próprio)
+//   + raiz ........ 15% fora
+//   + no vivo ..... ~1% fora  ← o sinal
+{
+  const man = [{ cowork: 'app.jsx' }, { cowork: 'styles.css' }];
+  const vivos = ['app.jsx', 'styles.css', 'forja-tarefas.jsx']; // norte-app.jsx NÃO está: sumiu do vivo
+
+  const r = nasceSemMedicao(['prototipo-ui/cowork/forja-tarefas.jsx'], man, vivos);
+  check('BITE: arquivo novo na raiz, no vivo e fora do manifesto → ACUSA',
+    JSON.stringify(r.acusados) === '["forja-tarefas.jsx"]');
+
+  check('CONTROLE: arquivo novo que JÁ está no manifesto não acusa',
+    nasceSemMedicao(['prototipo-ui/cowork/app.jsx'], man, vivos).acusados.length === 0);
+  // filtro 1 — subdir tem shell próprio (venda-v3/, prototipo-ui-patch/): 38%→15% do FP saiu daqui
+  check('CONTROLE: subdir não acusa (tem shell próprio por desenho)',
+    nasceSemMedicao(['prototipo-ui/cowork/venda-v3/sells-ui.jsx'], man, vivos).acusados.length === 0);
+  // filtro 2 — .html no espelho é relatório/auditoria, não protótipo: 51%→38% saiu daqui
+  check('CONTROLE: .html não acusa (é relatório, não protótipo de tela)',
+    nasceSemMedicao(['prototipo-ui/cowork/Auditoria Financeiro.html'], man, vivos).acusados.length === 0);
+  // filtro 3 — o que sumiu do vivo é resíduo a limpar, não "novo sem medição": 15%→1%
+  {
+    const res = nasceSemMedicao(['prototipo-ui/cowork/norte-app.jsx'], man, vivos);
+    check('CONTROLE: sumiu do vivo → vai pra `residuo`, não pra `acusados`',
+      res.acusados.length === 0 && JSON.stringify(res.residuo) === '["norte-app.jsx"]');
+  }
+  // honestidade: sem a lista do vivo o filtro forte não roda — e isso é DECLARADO, não escondido
+  {
+    const sv = nasceSemMedicao(['prototipo-ui/cowork/norte-app.jsx'], man, null);
+    check('sem --vivos: marca semVivo e NÃO finge que filtrou',
+      sv.semVivo === true && sv.acusados.length === 1);
+  }
+  check('CONTROLE: lista vazia não inventa acusação', nasceSemMedicao([], man, vivos).acusados.length === 0);
+}
+
 // ── FLUXO END-TO-END (2026-08-13) ────────────────────────────────────────────────
 // Os asserts acima provam PEÇAS. Este prova a TRAVESSIA: get_file(JSON) →
 // --export-from --emit-snapshot → --compare. É onde os contratos se encontram, e
@@ -373,8 +498,98 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
   check('BITE do fluxo: espelho divergindo do snapshot → --check MORDE (exit 1)',
     cmpBad.code === 1 && /STALE/.test(cmpBad.out));
 
+  // ── NASCE-SEM-MEDIÇÃO ligado no export (o `--check-novos` era órfão) ─────────
+  // Discriminação real: dois arquivos nascem, só um está no shell. Se acusar os dois
+  // (ou nenhum), o aviso é decorativo. Foi assim que o wire nasceu quebrado: o call site
+  // passava o CAMINHO do shell onde `parseShellDeps` quer o CONTEÚDO — sem erro, sem dep,
+  // e o arquivo que ESTAVA no shell aparecia como não-medido.
+  writeFileSync(join(dirJson, 'novo-visto.json'), JSON.stringify({ path: 'novo-visto.jsx', content: 'V' }));
+  writeFileSync(join(dirJson, 'novo-cego.json'), JSON.stringify({ path: 'novo-cego.jsx', content: 'C' }));
+  writeFileSync(join(mirror, 'oimpresso.com.html'), '<script src="x.jsx?v=1"></script><script src="novo-visto.jsx"></script>');
+  const nasc = run(['--export-from', dirJson]);
+  check('nasce-sem-medição roda NO export e acusa o que o shell não carrega',
+    /NASCERAM sem entrar no manifesto/.test(nasc.out) && /novo-cego\.jsx/.test(nasc.out));
+  check('CONTROLE: arquivo novo que o shell CARREGA não é acusado',
+    !/ {4}novo-visto\.jsx/.test(nasc.out));
+  check('CONTROLE: re-export sem nascimento não emite o aviso',
+    !/NASCERAM sem entrar/.test(run(['--export-from', dirJson]).out));
+  check('lerShellHtml devolve CONTEÚDO (não o caminho) — a confusão que quebrou o wire',
+    typeof lerShellHtml === 'function' && (lerShellHtml(tmp) || '').includes('<script'));
+
+  // ── MEDIR ≠ CONSERTAR (resíduo da tautologia, 2026-08-13) ───────────────────
+  // Enquanto `--emit-snapshot` só existia dentro do `--export-from`, a pergunta do [W]
+  // ("se eu alterar o protótipo, ele vê?") era irrespondível: o export escreve antes de
+  // medir, então a resposta era SYNC por construção. O `--snapshot-from` mede sem tocar
+  // no espelho. Os 3 asserts abaixo são o contrato: DETECTA · NÃO ESCREVE · MORDE.
+  writeFileSync(join(mirror, 'x.jsx'), 'ESPELHO ANTIGO\n');
+  const dirVivo = join(tmp, 'vivo-alterado');
+  mkdirSync(dirVivo);
+  writeFileSync(join(dirVivo, 'x.json'), JSON.stringify({ path: 'x.jsx', content: 'W ALTEROU NO COWORK\n' }));
+  const snapMed = join(tmp, 'medicao.json');
+  const med = run(['--snapshot-from', dirVivo, '--emit-snapshot', snapMed]);
+  check('--snapshot-from DETECTA que o vivo divergiu', /DIVERGE/.test(med.out) && med.code === 0);
+  check('--snapshot-from NÃO escreve no espelho (medir ≠ consertar)',
+    readFileSync(join(mirror, 'x.jsx'), 'utf8') === 'ESPELHO ANTIGO\n');
+  const vered = run(['--compare', snapMed, '--check']);
+  check('veredito do snapshot de MEDIÇÃO é STALE e morde (exit 1)',
+    vered.code === 1 && /STALE/.test(vered.out));
+  check('snapshot de medição se declara `_origin: medicao` (o ledger não o confunde com export)',
+    JSON.parse(readFileSync(snapMed, 'utf8'))._origin === 'medicao');
+
   rmSync(tmp, { recursive: true, force: true });
 }
 
-console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel + absent-local + fluxo e2e)');
+// ── refsParaDeletado: a poda quebrou o grafo interno do espelho? ────────────────
+// Contrato ancorado no incidente 2026-08-13 (poda de 96 arquivos, PR #5763): a pergunta que
+// NINGUÉM fazia era "sobrou alguém apontando pro que saiu?". Os asserts abaixo fixam os dois
+// lados — o que DEVE acusar (senão o gate é cego) e o que NÃO PODE acusar (senão é FP, a
+// doença das 4 lápides de guard sintático do §5).
+{
+  const M = 'prototipo-ui/cowork';
+  const del = (...p) => new Set(p.map((x) => `${M}/${x}`));
+
+  // ACUSA — o que quebra render de verdade
+  const shell = { path: `${M}/oimpresso.com.html`, texto: '<script src="app.jsx?v=eb2"></script>' };
+  check('acusa <script src> pra arquivo deletado, IGNORANDO a query string',
+    refsParaDeletado([shell], del('app.jsx')).length === 1,
+    'a query `?v=` é cache-busting do shell real — se ela cegar o parser, o gate não vê nada');
+
+  check('acusa <link href> de css deletado',
+    refsParaDeletado([{ path: `${M}/x.html`, texto: '<link rel="stylesheet" href="styles.css">' }], del('styles.css')).length === 1);
+
+  check('acusa import com extensão IMPLÍCITA (./x → x.jsx)',
+    refsParaDeletado([{ path: `${M}/a.jsx`, texto: "import X from './x';" }], del('x.jsx')).length === 1);
+
+  check('acusa path relativo que SOBE de diretório (../)',
+    refsParaDeletado([{ path: `${M}/sub/a.jsx`, texto: "import X from '../base.jsx';" }], del('base.jsx')).length === 1);
+
+  check('acusa @import e url() de CSS',
+    refsParaDeletado([{ path: `${M}/a.css`, texto: "@import 'tema.css'; div{background:url(bg.css)}" }],
+      del('tema.css', 'bg.css')).length === 2);
+
+  // NÃO ACUSA — os falso-positivos que matariam o gate no dia 1
+  check('NÃO acusa alias de bundler (@/Layouts/…) — não é caminho de arquivo',
+    refsParaDeletado([{ path: `${M}/a.tsx`, texto: "import L from '@/Layouts/AppShellV2';" }], del('Layouts/AppShellV2')).length === 0);
+
+  check('NÃO acusa pacote npm nu (react)',
+    refsParaDeletado([{ path: `${M}/a.jsx`, texto: "import React from 'react';" }], del('react')).length === 0);
+
+  check('NÃO acusa URL externa nem âncora',
+    refsParaDeletado([{ path: `${M}/a.html`, texto: '<script src="https://cdn/app.jsx"></script><a href="#topo">t</a>' }],
+      del('app.jsx')).length === 0);
+
+  check('NÃO acusa referência a arquivo que CONTINUA vivo',
+    refsParaDeletado([shell], del('outro.jsx')).length === 0);
+
+  check('binário/desconhecido não entra (só html/css/js/jsx/ts/tsx)',
+    refsParaDeletado([{ path: `${M}/img.png`, texto: 'app.jsx' }], del('app.jsx')).length === 0);
+
+  // O achado tem que dizer QUEM aponta e PRA QUE — sem isso não dá pra consertar
+  const um = refsParaDeletado([shell], del('app.jsx'))[0];
+  check('o achado nomeia origem, referência crua e alvo resolvido',
+    um.de === `${M}/oimpresso.com.html` && um.ref === 'app.jsx?v=eb2' && um.alvo === `${M}/app.jsx`,
+    JSON.stringify(um));
+}
+
+console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel + absent-local + refs-da-poda + fluxo e2e)');
 process.exit(fails ? 1 : 0);

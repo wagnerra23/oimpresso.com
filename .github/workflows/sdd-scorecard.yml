@@ -150,6 +150,9 @@ jobs:
 
       - name: Medir — agregador escreve governance/sdd-scorecard.json
         run: |
+          # pipefail: sem ele o `| tee` engole a falha do agregador e este step (que NÃO tem
+          # continue-on-error) passaria verde com o scorecard não-escrito (§5 2026-08-13).
+          set -o pipefail
           node scripts/governance/sdd-scorecard.mjs | tee /tmp/scorecard.txt
           { echo '## SDD Scorecard (medição desta run)'; echo '```'; cat /tmp/scorecard.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 

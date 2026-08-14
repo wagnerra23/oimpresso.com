@@ -4,7 +4,7 @@
 /* escopo: .sells-cowork · tokens: ds @theme (inertia.css/cockpit.css) · proibido: hex/oklch cru novo, token-def
  * ordem-alvo: layout → componentes → estados → responsivo → print (PACOTE-Q9 PR-2 padrão único) */
 /* ───────────────────── Oimpresso ERP — Sells Cowork ─────────────────────
- * Copiado verbatim de prototipo-ui/prototipos/sells-index/styles.css (handoff
+ * Copiado verbatim de prototipo-ui/prototipos/sells-index/styles.css (MORTO 2026-08-13 — sem fonte no repo) (handoff
  * Claude Design `Kf6GHQu6fkwlh0vnL30Oog`, sessão chat10 "KB-9.75 Vendas"
  * 2026-05-16, score 9.75/10).
  *
@@ -3840,7 +3840,7 @@
 }
 /* ──────────────────────────────────────────────────────────────
    Integração Vendas × Oficina (Ondas 3-4 · ADR 0192)
-   Refs: prototipo-ui/vendas.css L1651-1775 verbatim (escopo .sells-cowork)
+   Refs: prototipo-ui/cowork/vendas.css L1651-1775 verbatim (escopo .sells-cowork)
    Tokens source (balcao/oficina/online) + .vd-src-* pill + .vd-row-oficina
    stripe + .vd-kpi-breakdown (KPI hero quando foco=faturamento).
    ────────────────────────────────────────────────────────────── */

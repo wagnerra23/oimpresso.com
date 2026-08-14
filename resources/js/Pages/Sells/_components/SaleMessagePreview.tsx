@@ -1,6 +1,6 @@
 // SaleMessagePreview — Cowork KB-9.75 Sells Onda 4 R4 Distribuição (WhatsApp message preview).
 // Refs:
-//  - prototipo-ui/prototipos/sells-index/vendas-output.jsx (canonical VdMessagePreview)
+//  - prototipo-ui/cowork/vendas-output.jsx (canonical VdMessagePreview)
 //
 // 3 templates (Confirmação · Retirada · Cobrança) com substituição de
 // variáveis {{cliente}} {{id}} {{total}} {{forma}} {{seller}} {{prazo}}

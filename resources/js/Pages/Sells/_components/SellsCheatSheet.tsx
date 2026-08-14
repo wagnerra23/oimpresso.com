@@ -1,6 +1,6 @@
 // Sells/_components/SellsCheatSheet — cheat-sheet overlay reusável (gap P3 #12 KB-9.75).
 // Refs:
-//  - prototipo-ui/cowork-2026-05-26-comunicacao-visual/project/vendas-shortcuts.jsx (canon)
+//  - prototipo-ui/cowork/vendas-shortcuts.jsx (canon)
 //  - memory/requisitos/Sells/Sells-r4-cowork-kb975-2026-05-26-visual-comparison.md
 //  - resources/css/sells-kb975-cheatsheet.css (CSS escopado fora .sells-cowork)
 //

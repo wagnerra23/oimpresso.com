@@ -75,7 +75,7 @@ interface Props {
 const DEFAULT_COMPANY: CompanyInfo = {
   name: 'OIMPRESSO',
   tagline: 'Comunicação Visual',
-  cnpj: 'CNPJ 12.345.678/0001-90',
+  cnpj: 'CNPJ não informado',
   ie: 'IE 123.456.789.012',
   address: 'Rua Exemplo 100, São Paulo/SP · 01310-100',
   phone: '(11) 4002-8922',
