@@ -278,6 +278,37 @@ jobs:
         run: node scripts/governance/settings-portlote2-nudges-registration.test.mjs
       - name: Licoes-code-two-strikes PORTE .mjs (loop aprendizado · logica + E2E · roda em Linux)
         run: node .claude/hooks/licoes-code-two-strikes.test.mjs
+      # O SELFTEST acima prova a LOGICA do reconciliador. Nao prova que alguem o RODA sobre o
+      # corpus real: ate 2026-08-14 o `--reconcile` so existia no banner do SessionStart, entao
+      # lapide nova sem recibo (ou recibo citando data inexistente) so era vista se alguem
+      # abrisse uma sessao E lesse o banner. Medido naquele dia, elo por elo, com bite-test:
+      #   elo 1 (fonte != §5 derivada) .... sec5-derive --check ...... rc=1  MORDE
+      #   elo 2 (recibo PENDURADO) ........ --reconcile ............... detecta, rc=0
+      #   elo 3 (lapide SEM recibo) ....... --reconcile ............... detecta, rc=0
+      # Os elos 2 e 3 detectavam e nao mordiam, e nao rodavam em CI nenhum. Este step liga o
+      # que ja existia — nao inventa detector novo.
+      # FORWARD-ONLY de proposito: falha so em `pos_frontier_SEM_marcador` (lapide que NASCE
+      # sem entrada no ledger). Os recibos pendurados PRE-frontier sao backlog conhecido (5 em
+      # 2026-08-14, todos anteriores) e ficam no log como aviso — gatear neles seria backfill
+      # de legado em massa, a forma que o §5 2026-07-12 mata.
+      # NAO afirma o proprio enforcement: se esta lane bloqueia merge, quem sabe e
+      # governance/required-checks-baseline.json (dono unico, vigiado por protection-drift).
+      - name: Ledger de licoes <-> §5 reconciliado (auto-feed · forward-only)
+        run: |
+          OUT="${RUNNER_TEMP:-.}/licoes-reconcile.txt"
+          node .claude/hooks/licoes-code-two-strikes.mjs --reconcile > "$OUT"
+          rc=$?
+          cat "$OUT"
+          if [ "$rc" -gt 1 ]; then echo "::error::reconcile nao rodou (rc=$rc)"; exit 1; fi
+          RECONCILE_OUT="$OUT" node -e '
+            const t = require("fs").readFileSync(process.env.RECONCILE_OUT, "utf8");
+            const m = t.match(/"pos_frontier_SEM_marcador":\s*(\d+)/);
+            // "nao consegui medir" NUNCA vira verde (§5 2026-07-29): sem o campo, falha.
+            if (!m) { console.error("::error::campo pos_frontier_SEM_marcador ausente — nao afirmo verde sem ter medido"); process.exit(1); }
+            const n = Number(m[1]);
+            console.log("pos_frontier_SEM_marcador =", n);
+            if (n > 0) { console.error(`::error::${n} lapide(s) §5 pos-frontier SEM recibo no ledger — toda lapide nova entra numa classe LC`); process.exit(1); }
+          '
       - name: Loop-fechar-check PORTE .mjs (rotina IA-OS idempotente · logica + E2E · roda em Linux)
         run: node .claude/hooks/loop-fechar-check.test.mjs
       - name: Check-skills-fresh PORTE .mjs (skill nova entre sessoes · logica + E2E · roda em Linux)
