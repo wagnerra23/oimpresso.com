@@ -28,6 +28,20 @@ export const PLANOS = ['1.1.5 — Recebido em depósito', '1.1.1 — Caixa', '1.
 export const CONTAS = ['1 — Caixa financeiro', '2 — Banco Itaú c/c', '3 — Banco Sicredi'];
 export const LANCAMENTOS = ['A RECEBER', 'RECEBIDA'];
 
+/* Formas de pagamento aceitas numa parcela. Vem da âncora
+   (`sells-parcelas.jsx:166`) e mora AQUI, não na Page: é dado de domínio da
+   parcela, e o `METODOS_RAPIDOS` da CreateV3 é outra coisa — os 4 atalhos do
+   rodapé de pagamento, não o universo do que uma parcela pode ser. */
+export const METODOS_PAGAMENTO = [
+  'Dinheiro',
+  'PIX',
+  'Cartão de crédito',
+  'Cartão de débito',
+  'Boleto',
+  'Cheque',
+  'Fiado (a prazo)',
+];
+
 /** Teto de parcelas. 48 é o do protótipo; existe pra `n` digitado não virar laço infinito. */
 export const MAX_PARCELAS = 48;
 
