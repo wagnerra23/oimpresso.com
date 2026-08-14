@@ -2,7 +2,7 @@
 // Port literal da pg-cobranca-page.jsx Cowork F1.5 (score 96/100) aprovado [W] 2026-05-19.
 //
 // Refs:
-//  - prototipo-ui/prototipos/payment-gateway-ui/components/pg-cobranca-page.jsx (canonical visual-source)
+//  - prototipo-ui/cowork/pg-cobranca-page.jsx (canonical visual-source)
 //  - resources/js/Pages/Financeiro/Cobranca/Index.charter.md (Mission/Goals/Non-Goals/Anti-hooks)
 //  - memory/requisitos/Financeiro/RUNBOOK-cobranca.md
 //  - ADR 0144 + ADR 0170 PaymentGateway · ADR 0093 Tier 0 multi-tenant

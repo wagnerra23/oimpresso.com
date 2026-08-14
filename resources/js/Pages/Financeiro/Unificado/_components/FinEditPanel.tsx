@@ -2,7 +2,7 @@
 // (panel inline de edição — substitui preview readOnly da V2.1).
 //
 // Refs:
-//  - prototipo-ui-patch/vendas-financeiro-completo/financeiro-curation.jsx FinEditPanel (linha 138)
+//  - resources/js/Pages/Financeiro/_cowork-bundle/financeiro-curation.jsx FinEditPanel (linha 138)
 //  - TituloEditSheet.tsx (Sheet separado existente — preservado pra fallback)
 //
 // Form REAL com inputs editáveis + submit Inertia useForm.

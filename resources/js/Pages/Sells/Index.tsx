@@ -1,6 +1,6 @@
 // Sells/Index — cópia visual KB-9.75 (prototype Cowork chat10 2026-05-16, score 9.75/10).
 // Refs:
-//  - prototipo-ui/prototipos/sells-index/vendas-page.jsx (canonical visual-source)
+//  - prototipo-ui/cowork/vendas-page.jsx (canonical visual-source)
 //  - memory/requisitos/Sells/index-r1-visual-comparison.md (15 dimensões + plug-points)
 //  - memory/reference/feedback-design-literal-copy-quando-aprovado.md
 //  - ADR 0104 MWART · 0107 visual gate · 0114 Cowork loop · 0143 FSM live biz=1

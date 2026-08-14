@@ -1,6 +1,6 @@
 // SaleLinkifier — Cowork KB-9.75 Sells Onda 3 R3 Curadoria (linkify).
 // Refs:
-//  - prototipo-ui/prototipos/sells-index/vendas-curation.jsx (canonical source)
+//  - prototipo-ui/cowork/vendas-curation.jsx (canonical source)
 //  - memory/requisitos/_DesignSystem/RUNBOOK-onda-cowork.md F4
 //
 // Parsea ocorrências de `#V-NNNN`, `#OS-NNNN`, `#CLI-Nome`, `#orc-NNNN`

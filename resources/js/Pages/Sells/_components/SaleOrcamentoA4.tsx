@@ -1,6 +1,6 @@
 // SaleOrcamentoA4 — Proposta comercial A4 imprimível.
 // Refs: Cowork KB-9.75 bundle 2026-05-26 P2 gap #9 (orçamento A4 formal).
-//        prototipo-ui project/vendas-flow.jsx:1228 VdOrcamentoPrint (canon visual)
+//        prototipo-ui prototipo-ui/cowork/vendas-flow.jsx:1228 VdOrcamentoPrint (canon visual)
 //        prototipo-ui project/vendas.css:3016-3347 (.vd-orc-* + @page A4)
 //        memory/requisitos/Sells/Sells-r4-cowork-kb975-2026-05-26-visual-comparison.md
 //
