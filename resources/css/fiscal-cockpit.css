@@ -2,7 +2,12 @@
  * Scoped sob `.fx-page` (raiz do FxShell) para não vazar.
  * Tokens reaproveitam variáveis globais do app.css; fallback inline.
  *
- * Origem: prototipo-ui/Oimpresso ERP Conunicação Visual. Ultimotopo/fiscal-page.css (R#1 KB-9.75).
+ * Origem: tarball de export Cowork "…Ultimotopo/fiscal-page.css" (R#1 KB-9.75) — NUNCA
+ * foi commitado. Não existe no repositório e não há para onde reapontar (medido
+ * 2026-08-13: 0 arquivos casando `fiscal-page` no índice do git; 0 casando `Ultimotopo`).
+ * A âncora VIVA desta tela é o charter, que declara
+ * `related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)`
+ * — ver resources/js/Pages/Fiscal/Nfe.charter.md (reconciliação factual 2026-07-27).
  * Versão port: PR #1 Fiscal/Nfe — apenas selectors usados em Nfe.tsx + FxShell + NotaDrawer.
  * Próximos PRs portarão CSS extra (sparklines, KPIs, alertas) conforme novas sub-páginas.
  */

@@ -2,7 +2,7 @@
 //
 // Tab 3 do drawer 760px Cliente. CEP + ViaCEP autopreenche + endereço completo.
 // Refs: ADR 0179 · Charter Index.charter.md v3 · HANDOFF_CLIENTES.md §2.3
-// Cowork blueprint: prototipo-ui/prototipos/clientes/clientes-drawer.jsx::SectionEndereco
+// Cowork blueprint: prototipo-ui/prototipos/clientes/clientes-drawer.jsx (MORTO 2026-08-13 — sem fonte no repo)::SectionEndereco
 //
 // Contrato:
 //   PATCH /cliente/{id}/endereco

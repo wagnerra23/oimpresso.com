@@ -1,5 +1,5 @@
 // Cobrança Recorrente — primeiro Page Inertia (v9,75 Ondas 3+4+5).
-// Visual canon: prototipo-ui/prototipos/recurring/recurring-page.jsx (Refino #1 — 3-col base).
+// Visual canon: prototipo-ui/prototipos/recurring/recurring-page.jsx (MORTO 2026-08-13 — sem fonte no repo) (Refino #1 — 3-col base).
 // Charter: ./Index.charter.md
 // Refs: ADR 0104 MWART · 0107 visual gate · 0114 Cowork loop · 0093 multi-tenant Tier 0
 

@@ -1,6 +1,6 @@
 // SaleReciboPrint80mm — Recibo térmico 80mm imprimível.
 // Refs: Cowork KB-9.75 bundle 2026-05-26 P2 gap #8 (recibo térmico).
-//        prototipo-ui project/vendas-flow.jsx:899 VdReceiptThermal (canon visual)
+//        prototipo-ui prototipo-ui/cowork/vendas-flow.jsx:899 VdReceiptThermal (canon visual)
 //        prototipo-ui project/vendas.css:2666-2930 (.vd-receipt-* + .vd-rcp-* + @page 80mm)
 //        memory/requisitos/Sells/Sells-r4-cowork-kb975-2026-05-26-visual-comparison.md
 //

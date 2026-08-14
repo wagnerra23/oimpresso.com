@@ -2,8 +2,13 @@
 /* fin-cowork.css — Onda 8 KB-9.75 Financeiro F1 Cowork rewrite (2026-05-18)
  *
  * Tokens visuais portados do prototipo Cowork canon
- * (`prototipo-ui/financeiro-app.jsx` + `prototipo-ui/cowork/styles.css`).
+ * (`resources/js/Pages/Financeiro/_cowork-bundle/financeiro-app.jsx` + `prototipo-ui/cowork/styles.css`).
  * Escopados em `.fin-curadoria` (mesma wrapper das Ondas 5/6/7).
+ *
+ * Nota de path (2026-08-13): as citações DATADAS mais abaixo neste arquivo usam o nome
+ * histórico `erp-shell/financeiro-app.jsx`. É o MESMO arquivo do path acima — conferido
+ * por CONTEÚDO, não por nome (`:669` = footer sticky, `:738` = drawer `w-[560px]
+ * max-w-[92vw]`). As linhas datadas ficam como estão: dizem o que era verdade na data.
  *
  * Adiciona ao bundle:
  *   - .fin-page-h  → header bar com h1 + breadcrumb + 7 botões

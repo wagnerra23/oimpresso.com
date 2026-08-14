@@ -2,7 +2,7 @@
 //
 // Tab 2 do drawer 760px Cliente. tel/tel2/email/site/canal preferido.
 // Refs: ADR 0179 · Charter Index.charter.md v3 · HANDOFF_CLIENTES.md §2.2
-// Cowork blueprint: prototipo-ui/prototipos/clientes/clientes-drawer.jsx::SectionContato
+// Cowork blueprint: prototipo-ui/prototipos/clientes/clientes-drawer.jsx (MORTO 2026-08-13 — sem fonte no repo)::SectionContato
 //
 // Contrato:
 //   PATCH /cliente/{id}/contato  body: { tel, tel2, email, site, canal }

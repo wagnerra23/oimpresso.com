@@ -13,7 +13,7 @@
 // Toggle: clique 2x na mesma desativa.
 //
 // Refs:
-//   - prototipo-ui/prototipos/clientes/clientes-ptdp.jsx::KPIStrip (Cowork canon)
+//   - prototipo-ui/prototipos/clientes/clientes-ptdp.jsx (MORTO 2026-08-13 — sem fonte no repo)::KPIStrip (Cowork canon)
 //   - HANDOFF_CLIENTES.md §PTDP KPI strip (5 cards-âncora · Bruna)
 //   - Constituição UI v2 · ADR UI-0013 (camada 4-Módulo)
 //   - PT-01 Slot 1 estende (não substitui PageHeader/KpiCard global)

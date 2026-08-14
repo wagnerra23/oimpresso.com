@@ -4,7 +4,7 @@
  * Escopo .sells-cowork pra coexistir com legacy printSaleReceipt.ts (Bootstrap 3)
  * Refs:
  *   - prototipo-ui project/vendas.css linhas 2666-2930 (recibo) + 3016-3347 (orçamento)
- *   - prototipo-ui project/vendas-flow.jsx VdReceiptThermal (899) + VdOrcamentoPrint (1228)
+ *   - prototipo-ui prototipo-ui/cowork/vendas-flow.jsx VdReceiptThermal (899) + VdOrcamentoPrint (1228)
  *   - memory/requisitos/Sells/Sells-r4-cowork-kb975-2026-05-26-visual-comparison.md
  */
 

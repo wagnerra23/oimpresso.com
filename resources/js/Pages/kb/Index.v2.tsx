@@ -5,7 +5,7 @@
 //   charter: resources/js/Pages/kb/Index.charter.md (v1.0 — 2026-05-15)
 //   adrs: 0039 (cockpit), 0093 (multi-tenant Tier 0), 0104 (MWART), 0114 (gate visual)
 //
-// V2 ONDA 2 — port do protótipo Cowork prototipo-ui/prototipos/kb/kb-page.jsx
+// V2 ONDA 2 — port do protótipo Cowork prototipo-ui/cowork/kb-page.jsx
 // pra Inertia React 19 + TS estrito + AppShellV2 + tokens canon OKLCH hue 240.
 //
 // NÃO substitui Index.tsx (V3 atual) — roda em paralelo em /kb/v2 pra Wagner

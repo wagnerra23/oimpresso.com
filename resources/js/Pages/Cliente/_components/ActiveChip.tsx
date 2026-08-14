@@ -6,7 +6,7 @@
 //
 // Refs:
 //   - ADR 0179 (drawer 760 paradigma cadastral)
-//   - prototipo-ui/prototipos/clientes/clientes-listagem.jsx::ActiveChip
+//   - prototipo-ui/prototipos/clientes/clientes-listagem.jsx (MORTO 2026-08-13 — sem fonte no repo)::ActiveChip
 //   - visual-comparison cliente-drawer-760 dim 4 (filtros + ActiveChip)
 //
 // Uso:

@@ -1,6 +1,6 @@
 // VdNfseEmitModal — Emit NFS-e 3-step modal (KB-9.75 Cowork bundle 2026-05-26 P0 gap #3).
 // Refs:
-//   - prototipo-ui/cowork-2026-05-26-comunicacao-visual/project/vendas-flow.jsx:294 (canon, mesma estrutura NF-e)
+//   - prototipo-ui/cowork/vendas-flow.jsx:294 (canon, mesma estrutura NF-e)
 //   - memory/requisitos/Sells/Sells-r4-cowork-kb975-2026-05-26-visual-comparison.md gap #3
 //
 // Diferenças vs NF-e:

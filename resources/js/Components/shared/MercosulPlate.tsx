@@ -1,5 +1,5 @@
 // Placa estilo Mercosul (visual, não literal) — espelha .ofc-plate do
-// protótipo Cowork canon (prototipo-ui/prototipos/producao-oficina/visual-source.html).
+// protótipo Cowork canon (prototipo-ui/prototipos/producao-oficina/visual-source.html (MORTO 2026-08-13 — sem fonte no repo)).
 //
 // Componente puro display — sem state, sem fetch. Reusável em qualquer card
 // que mostre placa de veículo. PROMOVIDO de OficinaAuto/ProducaoOficina pra
