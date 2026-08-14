@@ -1,6 +1,6 @@
 ---
 page: /atendimento/metricas
-component: resources/js/Pages/Atendimento/Metricas/Index.tsx
+component: Modules/Whatsapp/Resources/js/Pages/Atendimento/Metricas/Index.tsx
 owner: wagner
 status: draft
 last_validated: "2026-05-16"

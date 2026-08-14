@@ -44,9 +44,13 @@
 
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+// DUAS RAÍZES desde o PR #5686 — a tela pode morar no núcleo ou dentro do módulo dono. Varrer só
+// o núcleo media 15 âncoras resolvíveis de 19: as 4 de fora (3 `forja-page.jsx` + 1
+// `pg-payment-gateways-page.jsx`) não eram auditadas por gate nenhum, e este é REQUIRED
+// (ADR 0327). `page-path.mjs` é o dono da lista de raízes — não reimplementar a 2ª aqui.
+import { raizesDePages, pageNamespacePath } from '../qa/page-path.mjs';
 
 const ROOT = process.cwd();
-const PAGES = join(ROOT, 'resources', 'js', 'Pages');
 const COWORK = join(ROOT, 'prototipo-ui', 'cowork');
 export const SHELL_MIN_CSS = 10; // ≥10 <link stylesheet> = índice do app, não uma tela
 
@@ -136,14 +140,16 @@ function walkCharters(dir, acc = []) {
 function main() {
   const strict = process.argv.includes('--check');
   const rows = [];
-  for (const charter of walkCharters(PAGES)) {
+  for (const charter of raizesDePages(ROOT).flatMap((raiz) => walkCharters(raiz))) {
     const t = readFileSync(charter, 'utf8');
     const m = t.match(/^related_prototype:\s*(.+)$/m);
     if (!m) continue;
     const rawAnchor = m[1].trim();
     const file = anchorRelPath(rawAnchor);
     if (!file) continue; // prosa não-resolvível — fora do escopo deste sentinela
-    const rel = charter.slice(PAGES.length + 1).replace(/\.charter\.md$/, '').replace(/\\/g, '/');
+    // Namespace da tela (`Forja/Inbox/Index`), idêntico nas duas raízes — descascar por
+    // `PAGES.length` deixaria o prefixo `Modules/<X>/Resources/js/Pages/` colado no nome.
+    const rel = pageNamespacePath(charter.slice(ROOT.length + 1)).replace(/\.charter\.md$/, '');
     const modulo = rel.split('/')[0].toLowerCase();
     const frag = anchorFragment(rawAnchor); // seção declarada no parêntese, ou null
     const abs = join(COWORK, file); // path completo dentro do espelho (subdir preservado)

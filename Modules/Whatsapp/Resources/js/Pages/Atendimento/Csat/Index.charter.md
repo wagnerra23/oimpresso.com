@@ -1,7 +1,7 @@
 ---
 id: resources-js-pages-atendimento-csat-index-charter
 page: /atendimento/csat
-component: resources/js/Pages/Atendimento/Csat/Index.tsx
+component: Modules/Whatsapp/Resources/js/Pages/Atendimento/Csat/Index.tsx
 related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)
 owner: wagner
 status: draft

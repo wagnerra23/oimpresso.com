@@ -1,7 +1,7 @@
 ---
 id: resources-js-pages-team-mcp-cc-sessions-index-charter
 page: /team-mcp/cc-sessions
-component: resources/js/Pages/team-mcp/CcSessions/Index.tsx
+component: Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/Index.tsx
 related_prototype: "n/a (herda PT-07 Feed/Timeline; segue o DS) · golden do arquétipo · ref cc-sessions-visual-comparison.md"
 owner: wagner
 status: draft
@@ -21,7 +21,7 @@ charter_version: 1
 
 # Page Charter — `/team-mcp/cc-sessions` (DRAFT)
 
-> Criado no PR **Forja PR-2** (re-skin DS v6, 2026-06-16). Persona: Wagner [W] (admin, `jana.cc.read.all`) + cada dev (vê só as próprias). Backend: `CcSessionsController` (Inertia::defer). Ref visual: [cc-sessions-visual-comparison.md](../../../../../memory/requisitos/TeamMcp/cc-sessions-visual-comparison.md).
+> Criado no PR **Forja PR-2** (re-skin DS v6, 2026-06-16). Persona: Wagner [W] (admin, `jana.cc.read.all`) + cada dev (vê só as próprias). Backend: `CcSessionsController` (Inertia::defer). Ref visual: [cc-sessions-visual-comparison.md](../../../../../../../memory/requisitos/TeamMcp/cc-sessions-visual-comparison.md).
 
 ## Mission
 

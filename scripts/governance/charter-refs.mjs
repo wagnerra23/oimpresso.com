@@ -21,6 +21,7 @@
  * Uso: node scripts/governance/charter-refs.mjs [--check|--fix|--list]
  */
 import { readFileSync, writeFileSync, existsSync, readdirSync, realpathSync } from 'node:fs';
+import { raizesDePages } from '../qa/page-path.mjs';
 import { join, dirname } from 'node:path';
 
 // existsSync é case-INSENSITIVE no Windows/macOS — mente vs CI Linux (e PHP no Hostinger,
@@ -34,24 +35,28 @@ function existsExact(p) {
 }
 
 const ROOT = process.cwd();
-const PAGES = join(ROOT, 'resources/js/Pages');
 const BASELINE_PATH = join(ROOT, 'governance/charter-refs-baseline.json');
 
 // ── scan ──────────────────────────────────────────────────────────────────────
 const hasUnderscoreSeg = (rel) => rel.split('/').some((s) => s && s[0] === '_');
 
+// DUAS RAÍZES desde o PR #5686 (núcleo + `Modules/<X>/Resources/js/Pages`). `rel` passa a ser
+// REPO-relativo — com duas raízes, um caminho relativo à raiz é ambíguo pra rejuntar depois.
+// Motivo medido: a migração levou 37 charters pra fora do universo deste gate E quebrou o
+// `component:` dos 37 no mesmo movimento; o gate que existe pra pegar ref morta não os via.
 function charterFiles() {
   const out = [];
-  (function walk(dir) {
+  const walk = (dir) => {
     for (const e of readdirSync(dir, { withFileTypes: true })) {
       const p = join(dir, e.name);
       if (e.isDirectory()) walk(p);
       else if (e.isFile()) {
-        const rel = p.slice(PAGES.length + 1).replaceAll('\\', '/');
+        const rel = p.slice(ROOT.length + 1).replaceAll('\\', '/');
         if (p.endsWith('.charter.md') && !hasUnderscoreSeg(rel)) out.push(rel);
       }
     }
-  })(PAGES);
+  };
+  for (const raiz of raizesDePages(ROOT)) walk(raiz);
   return out.sort();
 }
 
@@ -80,7 +85,7 @@ function resolveRelative(dir, rel) {
 function collectBroken() {
   const broken = [];
   for (const rel of charterFiles()) {
-    const abs = join(PAGES, rel);
+    const abs = join(ROOT, rel);
     const [fm, body] = splitFrontmatter(readFileSync(abs, 'utf8'));
 
     for (const key of ['component', 'runbook', 'parent_capterra']) {
@@ -117,7 +122,7 @@ function applySafeFix() {
     byCharter.get(b.charter).push(b);
   }
   for (const [rel, items] of byCharter) {
-    const abs = join(PAGES, rel);
+    const abs = join(ROOT, rel);
     const dir = dirname(abs).replaceAll('\\', '/');
     let content = readFileSync(abs, 'utf8');
     let touched = false;

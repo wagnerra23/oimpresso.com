@@ -18,8 +18,8 @@
     },
     "component": {
       "type": "string",
-      "pattern": "^resources/js/Pages/.+\\.tsx$",
-      "description": "Path do arquivo Inertia React (relative ao repo root)"
+      "pattern": "^(?:Modules/[^/]+/[Rr]esources|resources)/js/Pages/.+\\.tsx$",
+      "description": "Path do arquivo Inertia React (relativo ao repo root). DUAS RAÍZES desde o PR #5686: a tela mora no núcleo OU dentro do módulo dono — ver scripts/qa/page-path.mjs"
     },
     "related_prototype": {
       "type": "string",

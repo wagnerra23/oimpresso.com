@@ -25,10 +25,12 @@ import { fileURLToPath } from 'node:url';
 // Assinaturas dos 5 arquétipos = FONTE ÚNICA em lib/pt-signatures.mjs (o gerador criar-tela.mjs
 // consome a MESMA tabela pra carimbar tsx que passa aqui POR CONSTRUÇÃO — sem drift entre os dois).
 import { detectSignals, REQUIRED, claimedPT } from './lib/pt-signatures.mjs';
+// DUAS RAÍZES desde o PR #5686 — varrer só o núcleo media 90 telas declarantes de 108: os 18
+// charters que migraram pro módulo dono juram um PT-0X que ninguém falsificava.
+import { raizesDePages } from '../qa/page-path.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..', '..');
-const PAGES = join(ROOT, 'resources', 'js', 'Pages');
 
 const fmGet = (fm, key) => {
   const m = fm.match(new RegExp('^' + key + ':\\s*(.+)$', 'im'));
@@ -63,7 +65,7 @@ function classifyCharter(charterPath) {
 }
 
 function runAll() {
-  return walk(PAGES).map(classifyCharter).filter(Boolean);
+  return raizesDePages(ROOT).flatMap((raiz) => walk(raiz)).map(classifyCharter).filter(Boolean);
 }
 
 // ── selftest ──

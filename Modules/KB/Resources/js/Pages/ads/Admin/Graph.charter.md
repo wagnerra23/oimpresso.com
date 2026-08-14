@@ -1,7 +1,7 @@
 ---
 id: resources-js-pages-ads-admin-graph-charter
 page: /ads/admin/graph
-component: resources/js/Pages/ads/Admin/Graph.tsx
+component: Modules/KB/Resources/js/Pages/ads/Admin/Graph.tsx
 related_prototype: n/a (visualização de grafo bespoke ReactFlow — não segue um dos 5 Padrões de Tela)
 owner: wagner
 status: draft

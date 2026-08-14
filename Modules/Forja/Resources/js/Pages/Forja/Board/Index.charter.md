@@ -1,6 +1,6 @@
 ---
 page: /project-mgmt/board
-component: resources/js/Pages/Forja/Board/Index.tsx
+component: Modules/Forja/Resources/js/Pages/Forja/Board/Index.tsx
 related_us: [US-TR-201]
 owner: wagner
 status: live
@@ -30,7 +30,7 @@ Kanban board Jira-style pra gerenciar tarefas/épicos do oimpresso por ciclos: n
 - `<KpiGrid>` + `<KpiCard>` shared 5 contadores (Total / Doing / Review / Blocked / P0)
 - Filtros: cycle dropdown + epic + owner + texto busca (persistidos em localStorage)
 - Atalhos teclado (lógica em `_components/useBoardShortcuts.ts`; defendidos por
-  [tests/forjaBoardShortcuts.spec.tsx](../../../../../tests/forjaBoardShortcuts.spec.tsx)
+  [tests/forjaBoardShortcuts.spec.tsx](../../../../../../../tests/forjaBoardShortcuts.spec.tsx)
   na lane `forja-shortcuts-gate`):
   - **J / K** — navegar cards (próximo/anterior)
   - **E** — avançar status (todo→doing→review→done)
@@ -91,14 +91,14 @@ DetailSheet aqui foi a primeira implementação do drawer canon. SaleSheet (Sell
 
 ## Tests anti-regressão
 
-- [tests/Feature/Design/CockpitPatternConformanceTest.php](../../../../../tests/Feature/Design/CockpitPatternConformanceTest.php) — sistêmico (canon target)
+- [tests/Feature/Design/CockpitPatternConformanceTest.php](../../../../../../../tests/Feature/Design/CockpitPatternConformanceTest.php) — sistêmico (canon target)
 
 ---
 
 ## Refs
 
-- [DESIGN.md §16 Cockpit V2](../../../../../DESIGN.md)
-- [ADR 0110 Cockpit Pattern V2](../../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
-- [ADR 0070 Jira-style PM](../../../../../memory/decisions/0070-jira-style-task-management-current-md-removed.md)
-- [ADR 0100 PMG fase 2 specs](../../../../../memory/decisions/0100-projectmgmt-ui-redesign.md)
-- [ADR 0039 Cockpit layout-mãe](../../../../../memory/decisions/0039-ui-chat-cockpit-padrao.md)
+- [DESIGN.md §16 Cockpit V2](../../../../../../../DESIGN.md)
+- [ADR 0110 Cockpit Pattern V2](../../../../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
+- [ADR 0070 Jira-style PM](../../../../../../../memory/decisions/0070-jira-style-task-management-current-md-removed.md)
+- [ADR 0100 PMG fase 2 specs](../../../../../../../memory/decisions/0100-projectmgmt-ui-redesign.md)
+- [ADR 0039 Cockpit layout-mãe](../../../../../../../memory/decisions/0039-ui-chat-cockpit-padrao.md)
