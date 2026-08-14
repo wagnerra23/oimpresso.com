@@ -657,6 +657,17 @@ jobs:
       # pré-mudança e as de não-regressão passam nos dois. Advisory por desenho (ADR 0314/0275).
       - name: Réguas workflow (persistência incremental · checkpoint antes da prosa · retrato parcial declarado)
         run: node scripts/governance/reguas-workflow.test.mjs
+      # O rc que decide um alarme NÃO pode vir de um pipe. Incidente 2026-08-14: o
+      # protection-drift.yml fazia `node ... | tee` seguido de `rc=$?` — rc do TEE, não do
+      # node → o `::warning::` NUNCA disparava e o `exit $rc` sempre saía 0, com um 🔴 REAL
+      # parado (required `PHP / Pest (KB · MySQL)` sumido do vivo). Sem este teste o conserto
+      # seria "escrito+lembrado" (ADR 0256) e a próxima sessão reintroduz. HARD (não advisory)
+      # porque o FP foi medido ANTES: 1 ocorrência de `rc=$?` no corpus, 0 falso-positivo —
+      # redirect (`> f 2>&1`) e `a || b` têm controle-negativo próprio nas fixtures (o step
+      # "Ratchet" do sdd-scorecard usa redirect e está CORRETO, não pode ser acusado).
+      # Bite conferido contra a versão pré-fix: detecta o ofensor na linha 62.
+      - name: rc mascarado por pipe em workflow (§5 2026-08-13 · fixtures boa/ruim + corpus)
+        run: node scripts/governance/workflow-pipe-rc.test.mjs
       # doc-id-index --check — o modo que lê o CORPUS REAL nunca teve invocador. O script já
       # tinha o `--selftest` wirado acima desde o PR1, e foi por isso que escapou da TRIAGEM DOS 13
       # (26-27/07): o detector de órfão enxerga o ARQUIVO, e o arquivo estava coberto — o MODO não.
