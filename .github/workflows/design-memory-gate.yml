@@ -13,8 +13,8 @@ name: Design-memory gate (advisory)
 # Componentes fundidos:
 #   - registry-check (ex-component-registry.yml · Onda O2): sentinela de drift do
 #     registro bloco-de-protótipo → componente React (prototipo-ui/
-#     component-registry.json). self-test obrigatório (bloqueia se o gate mentir)
-#     + drift advisory.
+#     component-registry.json). self-test sem `continue-on-error` (a suíte que valida
+#     a sentinela não pode mentir) + drift com `continue-on-error`.
 #   - gates (ex-design-memory-gates.yml): Cowork SSOT guard (hard) + ds-guard §8
 #     nos arquivos tocados + relatório de dívida + integrity-check §15 + selftests
 #     da espinha de import (detectar-telas/ancora/importar-bundle/gerar-contrato/
@@ -22,10 +22,29 @@ name: Design-memory gate (advisory)
 #   - prove (ex-dtcg-equivalence.yml): equivalência DTCG ↔ CSS canônico (tokens
 #     editados no JSON portável, CSS é SAÍDA) + self-test que morde.
 #
-# ADVISORY de nascença (ADR 0271/0275/0298): cada sub-check de drift roda em
-# continue-on-error (não bloqueia merge); os self-tests/guards rodam SEM
-# continue-on-error (a suite que valida o gate não pode mentir). NÃO entra em
-# branch protection. Node puro, sem DB/rede — segundos.
+# ENFORCEMENT — este bloco NÃO declara o próprio enforcement (§5 2026-07-16 · LC-10).
+# O dono único de "o que é required" é `governance/required-checks-baseline.json`
+# (baseline↔vivo vigiado por `scripts/governance/protection-drift.mjs`). Quem precisar
+# saber se este workflow bloqueia merge consulta LÁ — não este comentário, que apodrece
+# no primeiro flip.
+#
+# O QUE O ARQUIVO ABAIXO DE FATO FAZ (retrato datado 2026-08-14, contado do YAML por
+# parser, não estimado): 46 steps, dos quais 8 são `uses:` de setup e 38 são steps de
+# comando — 13 SEM `continue-on-error` e 25 COM. Os 13 sem se decompõem em 9 selftests
+# + 2 guards (Cowork SSOT · ancora-adversário) + `detect-handoff` + o `Job summary`.
+#
+# A redação anterior deste bloco afirmava "os self-tests/guards rodam SEM continue-on-
+# error" e isso era FALSO: dos 20 selftests do arquivo, 9 rodam sem e **11 rodam com**
+# (detectar-telas ×2, ancora, anchor-content, cowork-freshness, importar-bundle, gerar-
+# contrato, recortar-regiao, analise-regiao, gerar-map, consumir-map). A metade dos
+# guards era verdadeira: 2 de 2 rodam sem. Nada foi promovido nem rebaixado ao corrigir
+# a frase — mudou só o texto (promover/rebaixar é decisão [W] · ADR 0314/0336).
+#
+# Régua viva = o `continue-on-error:` ao lado de cada step. O número acima é retrato de
+# uma data; se ele incomodar, RE-CONTE o YAML em vez de editar o número (§5 2026-07-17).
+#
+# Intenção de origem (ADR 0271/0275/0298 · 0336): sub-check de drift nasce advisory e só
+# sobe por mordida provada. Node puro, sem DB/rede — segundos.
 #
 # Trigger: união dos paths dos 3 antigos (é exatamente onde cada drift nasce).
 
@@ -82,9 +101,9 @@ jobs:
         with:
           node-version: '20'
       # self-test do próprio gate PRIMEIRO — prova que a sentinela morde/libera (sem máscara)
-      - name: self-test da sentinela (.test.mjs · bloqueia se o gate mentir)
+      - name: self-test da sentinela (.test.mjs · a suíte que valida o gate não pode mentir)
         run: node scripts/governance/component-registry-check.test.mjs
-      # drift do registry real — advisory (não bloqueia)
+      # drift do registry real — continue-on-error (não derruba o job)
       - name: component-registry-check (advisory · report-only)
         continue-on-error: true
         run: node scripts/governance/component-registry-check.mjs --check --strict
@@ -110,8 +129,9 @@ jobs:
 
       # Cowork SSOT guard: fonte ÚNICA do design — cowork/ build-only (zero .md) ·
       # sem bundles datados cowork-* · sem protótipo fora do allowlist. SEM
-      # continue-on-error de propósito = falha VERMELHO (Wagner: "deve dar erro").
-      # Workflow segue fora de branch-protection até maturar (ADR 0271/0275).
+      # continue-on-error de propósito = ESTE step falha VERMELHO (Wagner: "deve dar
+      # erro"). Se isso chega a bloquear merge quem responde é a branch protection, e o
+      # dono dessa resposta é `governance/required-checks-baseline.json` (§5 2026-07-16).
       - name: Cowork SSOT guard (fonte única · build-only)
         run: node scripts/governance/cowork-ssot-guard.mjs
 
@@ -162,7 +182,7 @@ jobs:
       # DS-GUARD nos arquivos TOCADOS (css/html de design-memory). O ds-guard so
       # checa .css/.html; .tsx e ignorado por ele (log '. ... ignorado'), entao
       # alimentamos so o que ele entende. Sem arquivos tocados -> ds-guard imprime
-      # uso e sai 0 (nao bloqueia). continue-on-error = advisory.
+      # uso e sai 0 (nao derruba o job). continue-on-error abaixo.
       - name: DS-GUARD (arquivos tocados · §8)
         if: always()  # advisory roda mesmo se o ssot-guard (hard-fail) falhar antes — senao skipa
         continue-on-error: true
@@ -179,7 +199,7 @@ jobs:
           echo "---"
           node prototipo-ui/ds-guard.mjs $CHANGED
 
-      # DS-GUARD --all: relatorio de divida da arvore (NAO bloqueia por design · §8).
+      # DS-GUARD --all: relatorio de divida da arvore (NAO derruba o job por design · §8).
       # Sempre roda, da visibilidade da divida acumulada (paleta inventada / tela na raiz).
       - name: DS-GUARD relatorio de divida (--all · §8)
         if: always()
@@ -199,11 +219,12 @@ jobs:
       # diffavel correto. O modo --staging (bundle->repo) so roda local (bundle vive fora do
       # repo). Advisory de nascenca (ADR 0271/0275). Já integrado ao gate-selftest.mjs (id
       # 'detectar-telas', good/bad em tests/governance-fixtures/) — este step aqui é a redundância
-      # de defesa dentro do gate de design; a catraca required vive no gate-selftest.
+      # de defesa dentro do gate de design; a outra ponta é a catraca do gate-selftest
+      # (se ELA é required, quem responde é `governance/required-checks-baseline.json`).
       - name: detectar-telas selftest (gate de import · Fase 0/0.5)
         # if: always() — roda mesmo quando um step hard-fail antes (ex: cowork-ssot-guard com
         # drift pre-existente prototipos/perfil) skiparia os steps seguintes. O selftest e'
-        # independente do ssot-guard; continue-on-error mantem o job advisory.
+        # independente do ssot-guard; o continue-on-error abaixo mantem ESTE step nao-fatal.
         if: always()
         continue-on-error: true
         run: node prototipo-ui/detectar-telas.mjs --selftest
@@ -372,7 +393,7 @@ jobs:
 
       - name: Provar equivalencia (advisory)
         id: prove
-        continue-on-error: true  # advisory: divergencia nunca derruba o PR (ADR 0271/0275)
+        continue-on-error: true  # divergencia nao derruba ESTE job (ADR 0271/0275)
         run: |
           node scripts/governance/dtcg-equivalence.mjs --json > /tmp/dtcg.json
           node scripts/governance/dtcg-equivalence.mjs --detail | tee /tmp/dtcg.txt
@@ -383,9 +404,11 @@ jobs:
           {
             echo '## DTCG <-> CSS canonico — equivalencia (Onda DTCG)'
             echo ''
-            echo 'ADVISORY (nao bloqueia). Onda DTCG ATIVADA: prova que cada token DTCG tem'
+            echo 'Onda DTCG ATIVADA. Prova que cada token DTCG tem'
             echo 'o MESMO valor que o CSS emitido (_generated-*.css) que o build consome.'
             echo 'Divergencia aqui = edicao manual no gerado OU regressao do gerador.'
+            echo 'Este texto nao declara se o check bloqueia merge — o dono dessa resposta'
+            echo 'e governance/required-checks-baseline.json.'
             echo ''
             echo '```'
             cat /tmp/dtcg.txt 2>/dev/null || echo '(sem saida — ver passo anterior)'
