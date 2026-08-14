@@ -20,8 +20,8 @@ charter_version: 1
 > de existir no mesmo PR** — por isso o nome aparece aqui como texto e não como
 > link: ref pra arquivo deletado quebra o `charter-refs-gate`, e link que não
 > resolve é pior que citação honesta. Quem quiser o conteúdo original acha no
-> histórico do git. Movido pela [ADR 0366 §D-B](../../../../../memory/decisions/0366-fronteira-jana-forja-governance-kb.md)
-> e [ADR 0367 D4](../../../../../memory/decisions/0367-cockpit-unico-forja-project-mgmt-morre.md).
+> histórico do git. Movido pela [ADR 0366 §D-B](../../../../../../../memory/decisions/0366-fronteira-jana-forja-governance-kb.md)
+> e [ADR 0367 D4](../../../../../../../memory/decisions/0367-cockpit-unico-forja-project-mgmt-morre.md).
 > **Os Non-Goals e os Automation Anti-hooks abaixo são cópia literal do charter de origem** — nenhum
 > item foi inferido, adicionado ou reinterpretado neste porte (`charter-write` é proibida de inferir;
 > só [W] preenche). Promover pra `status: live` segue sendo ato de [W].
@@ -36,10 +36,10 @@ agrupado por módulo, com filtros por cycle/owner/priority/module e setas de dep
 **Forja** (time interno) no critério da ADR 0366 §D-A.
 
 **Não substitui** `/project-mgmt/roadmap` (`Forja/Roadmap/Index`): aquela agrupa **epics por
-trimestre**, esta agrupa **tasks no tempo**. Convivência decidida na [ADR 0367 D7](../../../../../memory/decisions/0367-cockpit-unico-forja-project-mgmt-morre.md)
+trimestre**, esta agrupa **tasks no tempo**. Convivência decidida na [ADR 0367 D7](../../../../../../../memory/decisions/0367-cockpit-unico-forja-project-mgmt-morre.md)
 — *"o quarter view sobrevive como segunda leitura do roadmap e só sai quando o Gantt provar que
 substitui"*. Recibo da não-duplicação:
-[`memory/sessions/2026-08-05-duplicacao-roadmap-forja.md`](../../../../../memory/sessions/2026-08-05-duplicacao-roadmap-forja.md).
+[`memory/sessions/2026-08-05-duplicacao-roadmap-forja.md`](../../../../../../../memory/sessions/2026-08-05-duplicacao-roadmap-forja.md).
 
 ---
 
@@ -159,7 +159,7 @@ substitui"*. Recibo da não-duplicação:
 - **Arquivo `Gantt.tsx`, não `Index.tsx`:** `Forja/Roadmap/Index` já é o quarter view — sobrescrever
   seria a fusão que a 0367 D7 proibiu
 - **Permissions:** `jana.mcp.tasks.read` / `.write` **inalteradas**. Permission Spatie vive por id de
-  linha; renomear revoga acesso em silêncio ([ADR 0087](../../../../../memory/decisions/0087-drift-resolution-sem-mover-url.md))
+  linha; renomear revoga acesso em silêncio ([ADR 0087](../../../../../../../memory/decisions/0087-drift-resolution-sem-mover-url.md))
 - **`TaskCrudService` fica no Jana** — a Forja só importa. O item #4 da ADR 0366 §D-C (mover as 30
   `Mcp*`) **não está autorizado** por aquela ADR
 - **`owners`/`modules` por CLOSURE, não `Inertia::defer`** — desenho consciente (HOTFIX Wagner
@@ -174,13 +174,13 @@ substitui"*. Recibo da não-duplicação:
 
 ## Refs
 
-- [ADR 0366 — fronteira Jana/Forja/Governance/KB](../../../../../memory/decisions/0366-fronteira-jana-forja-governance-kb.md) §D-B
-- [ADR 0367 — cockpit único da Forja](../../../../../memory/decisions/0367-cockpit-unico-forja-project-mgmt-morre.md) D4/D7
-- [ADR 0070 — Jira-style tasks](../../../../../memory/decisions/0070-jira-style-task-management-current-md-removed.md)
-- [ADR 0087 — drift sem mover URL / permissions por id](../../../../../memory/decisions/0087-drift-resolution-sem-mover-url.md)
-- [ADR 0093 — multi-tenant Tier 0](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- [ADR 0253 — primitivos de layout](../../../../../memory/decisions/0253-primitivos-layout.md)
-- [RUNBOOK-gantt](../../../../../memory/requisitos/Forja/RUNBOOK-gantt.md)
+- [ADR 0366 — fronteira Jana/Forja/Governance/KB](../../../../../../../memory/decisions/0366-fronteira-jana-forja-governance-kb.md) §D-B
+- [ADR 0367 — cockpit único da Forja](../../../../../../../memory/decisions/0367-cockpit-unico-forja-project-mgmt-morre.md) D4/D7
+- [ADR 0070 — Jira-style tasks](../../../../../../../memory/decisions/0070-jira-style-task-management-current-md-removed.md)
+- [ADR 0087 — drift sem mover URL / permissions por id](../../../../../../../memory/decisions/0087-drift-resolution-sem-mover-url.md)
+- [ADR 0093 — multi-tenant Tier 0](../../../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+- [ADR 0253 — primitivos de layout](../../../../../../../memory/decisions/0253-primitivos-layout.md)
+- [RUNBOOK-gantt](../../../../../../../memory/requisitos/Forja/RUNBOOK-gantt.md)
 - Charter de origem: `resources/js/Pages/Jana/Admin/Roadmap.charter.md` — **deletado neste PR** (a tela mudou de dono). Sem link de propósito: o alvo não existe mais; o conteúdo vive no histórico do git.
 
 ---

@@ -109,9 +109,9 @@ jobs:
           - label: Handoff (memory/handoffs/*.md)
             schema: scripts/memory-schemas/handoff.schema.json
             glob: "memory/handoffs/[0-9][0-9][0-9][0-9]-*.md"
-          - label: Charter (resources/js/Pages/**/*.charter.md)
+          - label: Charter (núcleo + módulo dono · 2 raízes desde o PR #5686)
             schema: scripts/memory-schemas/charter.schema.json
-            glob: "resources/js/Pages/**/*.charter.md"
+            glob: "{resources/js/Pages,Modules/*/[Rr]esources/js/Pages}/**/*.charter.md"
           # 2026-07-12 (proposal estrutura-canon-memoria · Fase 0): as famílias
           # BRIEFING + reference ficam em GRACE (warn-only, diff-aware) — o
           # campo `grace: true` força STRICT=false SÓ pra elas (ver step
