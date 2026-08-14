@@ -247,6 +247,16 @@ jobs:
         if: always()
         continue-on-error: true
         run: node scripts/governance/cowork-mirror-freshness.mjs --sla
+      # Poda do espelho (PR #5763, 96 arquivos): ao contrário do --compare acima, ESTE é 100%
+      # local — não precisa da auth interativa do DesignSync, então roda headless no CI. Só
+      # olha o que o PR APAGA sob prototipo-ui/cowork/ e pergunta se sobrou alguém apontando
+      # pra lá. PR que não deleta nada do espelho passa sem ter o que medir (diff-aware).
+      # FP medido nos 4 commits que já podaram o espelho: 0. Mordida provada em gate-selftest
+      # (fixture cowork-refs boa/ruim) — sem o par, "nunca disparou" seria indistinguível de cego.
+      - name: cowork-refs (a poda quebrou o render do protótipo? · advisory)
+        if: always()
+        continue-on-error: true
+        run: node scripts/governance/cowork-mirror-freshness.mjs --check-refs
       - name: importar-bundle selftest (import atômico · verifica antes de trocar)
         if: always()
         continue-on-error: true

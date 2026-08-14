@@ -56,6 +56,18 @@
  *   node scripts/governance/cowork-mirror-freshness.mjs --compare snap.json --check    # exit 1 se STALE
  *   node scripts/governance/cowork-mirror-freshness.mjs --compare snap.json --check --ledger  # + registra a rodada
  *   node scripts/governance/cowork-mirror-freshness.mjs --sla               # headless: rotina rodou ≤14d? última limpa?
+ *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs        # a poda deste PR quebrou o grafo do espelho? (exit 1 = sim)
+ *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs --range <a>..<b>
+ *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs --deleted-from <lista.txt>   # fixture/manual
+ *
+ * ── OS 3 MODOS DE VERIFICAÇÃO, E QUAL PERGUNTA CADA UM RESPONDE ──────────────────
+ * Não são redundantes; cada um cobre um flanco que os outros NÃO veem:
+ *   --compare      "o espelho está ATRASADO em relação ao vivo?"  (precisa do DesignSync → dispatch logado, não gate)
+ *   --live-only    "tem coisa no vivo que NUNCA desceu pro espelho?" (o ponto cego que escondeu jana-merge.jsx)
+ *   --check-refs   "a poda deste PR quebrou o grafo INTERNO do espelho?" (100% local → gateável em CI)
+ * O ABSENT-LOCAL (dentro do --manifest) é o quarto: "o shell carrega algo que o espelho não tem?".
+ * --check-refs e ABSENT-LOCAL se completam: aquele deriva o universo do DIFF, este do SHELL — então
+ * apagar o espelho inteiro passa vazio no primeiro e é pego pelo segundo.
  */
 
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdirSync } from 'node:fs';
@@ -507,6 +519,88 @@ function reportAbsentLocal(shellHtml, stream = process.stdout) {
   );
 }
 
+// ── INTEGRIDADE REFERENCIAL NA PODA (--check-refs) ────────────────────────────
+// O QUE DEFENDE: podar o espelho é operação legítima e recorrente (4 commits na história
+// removeram 296 arquivos). O risco não é podar — é podar um arquivo que OUTRO arquivo do
+// espelho ainda carrega, e o protótipo parar de renderizar sem ninguém notar. O ABSENT-LOCAL
+// (acima) já cobre as deps do SHELL; este cobre o resto do grafo: qualquer arquivo do espelho
+// apontando pra qualquer outro.
+//
+// POR QUE ESTE PREDICADO E NÃO "toda referência resolve": medido 2026-08-13 no espelho real,
+// 30 das 171 referências não resolvem POR DESENHO — alias de bundler (`@/Layouts/…`), pacote
+// npm (`@inertiajs/react`), rota de API (`/api/…`) e o `_ds/` que é gitignored. Gatear nisso
+// seria 30 falso-positivos no dia 1, a doença das 4 lápides de guard sintático do §5. O
+// predicado que importa é diff-aware: "sobrou alguém apontando pro que ESTE diff apagou?".
+//
+// FP MEDIDO ANTES DE INSTALAR (§5 "ligar ≠ criar"): rodado contra os 4 commits da história que
+// deletaram do espelho (152 · 42 · 6 · 96 arquivos) → 0 disparo. Não reprova poda legítima.
+// MORDIDA PROVADA: removendo `app.jsx` e `styles.css` (deps reais do shell) o predicado acusa
+// as 2, nominalmente. Fixture boa/ruim em tests/governance-fixtures/cowork-refs/, wirada no
+// gate-selftest — o par existe porque "0 disparos em 4 commits" também é o perfil de um
+// detector cego, e sem controle positivo não dá pra distinguir os dois.
+//
+// LIMITE HONESTO (§5 2026-08-10, catraca que itera o lado mutável): se o arquivo QUE REFERENCIA
+// também é apagado no mesmo diff, o par some junto e isto passa em silêncio — corretamente,
+// mas significa que apagar o espelho inteiro passa vazio. Quem cobre esse flanco é o
+// ABSENT-LOCAL, que deriva o universo do shell, não do diff.
+const REF_PAT = {
+  html: [/<script[^>]+src=["']([^"']+)["']/gi, /<link[^>]+href=["']([^"']+)["']/gi,
+         /<img[^>]+src=["']([^"']+)["']/gi, /<iframe[^>]+src=["']([^"']+)["']/gi],
+  js: [/\bimport\s+[^"'()]*?from\s*["']([^"']+)["']/g, /\bimport\s*\(\s*["']([^"']+)["']/g,
+       /\brequire\s*\(\s*["']([^"']+)["']/g],
+  css: [/@import\s+(?:url\()?["']?([^"')\n]+)["']?\)?/g, /url\(\s*["']?([^"')\n]+)["']?\s*\)/g],
+};
+const refKind = (f) => (/\.html?$/i.test(f) ? 'html' : /\.css$/i.test(f) ? 'css'
+  : /\.(m?jsx?|tsx?)$/i.test(f) ? 'js' : null);
+// Externo = protocolo/âncora. Alias = `@…` (alias de bundler ou escopo npm) ou token sem
+// barra e sem extensão (pacote). Nenhum dos dois é caminho de arquivo — ignorar não é
+// leniência, é não confundir universos.
+const refExterno = (r) => /^(https?:|data:|blob:|mailto:|#|\/\/)/i.test(r) || !r.trim();
+const refAlias = (r) => r.startsWith('@') || /^[a-z0-9_-]+$/i.test(r);
+
+/** Referências do espelho que apontam pra path DELETADO (pura, testável).
+ *  `vivos`: [{path, texto}] dos arquivos do espelho que SOBRARAM (path relativo à raiz do repo).
+ *  `deletados`: Set de paths (relativos à raiz) removidos pelo diff.
+ *  Devolve [{de, ref, alvo}] — vazio = a poda não quebrou nada. */
+export function refsParaDeletado(vivos, deletados) {
+  const out = [];
+  for (const { path: f, texto } of vivos) {
+    const kind = refKind(f);
+    if (!kind || !texto) continue;
+    const dir = posixDirname(f);
+    for (const re of REF_PAT[kind]) {
+      re.lastIndex = 0;
+      let m;
+      while ((m = re.exec(texto))) {
+        const ref = m[1];
+        if (refExterno(ref) || refAlias(ref)) continue;
+        const limpo = ref.split('?')[0].split('#')[0];
+        const alvo = limpo.startsWith('/')
+          ? posixJoin(MIRROR_REL, limpo.slice(1))
+          : posixJoin(dir, limpo);
+        // extensão implícita: `import './x'` resolve `x.jsx`
+        for (const e of ['', '.jsx', '.js', '.mjs', '.css', '.html']) {
+          if (deletados.has(alvo + e)) { out.push({ de: f, ref, alvo: alvo + e }); break; }
+        }
+      }
+    }
+  }
+  return out;
+}
+
+// posix path sem depender de node:path (o resto do arquivo também é self-contained)
+function posixDirname(p) { const i = p.lastIndexOf('/'); return i === -1 ? '.' : p.slice(0, i); }
+function posixJoin(base, rel) {
+  const partes = `${base}/${rel}`.split('/');
+  const pilha = [];
+  for (const seg of partes) {
+    if (!seg || seg === '.') continue;
+    if (seg === '..') pilha.pop(); else pilha.push(seg);
+  }
+  return pilha.join('/');
+}
+export const MIRROR_REL = 'prototipo-ui/cowork';
+
 // ── CLI ───────────────────────────────────────────────────────────────────────
 function main() {
   const argv = process.argv.slice(2);
@@ -518,6 +612,72 @@ function main() {
   // escrever um `--selftest` embutido aqui e o REMOVI: seria um 2º dono do mesmo teste, que é
   // o anti-padrão que este repo cataloga (§5 "duplica régua consolidada" · LC-19). As funções
   // novas (liveOnly · exportPlan) foram para o irmão.
+
+  // --check-refs: a poda quebrou o grafo interno do espelho? Diff-aware, 100% LOCAL — por
+  // isso ISTO é gateável e o --compare não é (aquele precisa da auth interativa do DesignSync).
+  // Universo dos deletados: `git diff --diff-filter=D <range>` (default origin/main...HEAD) ou
+  // --deleted-from <arquivo> (uma linha por path) pra fixture rodar sem git.
+  if (argv.includes('--check-refs')) {
+    const delIdx = argv.indexOf('--deleted-from');
+    let deletados;
+    if (delIdx !== -1) {
+      const dp = argv[delIdx + 1];
+      if (!dp || !existsSync(dp)) {
+        console.error('✗ --deleted-from exige um arquivo com um path por linha.');
+        process.exit(2);
+      }
+      deletados = new Set(readFileSync(dp, 'utf8').split('\n').map((s) => s.trim()).filter(Boolean));
+    } else {
+      const rIdx = argv.indexOf('--range');
+      const range = rIdx !== -1 && argv[rIdx + 1] ? argv[rIdx + 1] : 'origin/main...HEAD';
+      // O range é UM token (`a..b`/`a...b`). `--range HEAD~1 HEAD` pareceria funcionar e o git
+      // compararia `HEAD~1` contra a WORKING TREE — universo diferente, veredito diferente, sem
+      // aviso. Medir a coisa errada calado é pior que não medir (§5 2026-08-13).
+      if (!range.includes('..')) {
+        console.error(`✗ --check-refs: --range espera UM token de range ("a..b" ou "a...b"), recebi "${range}".`);
+        console.error('  Passar duas revisões separadas faz o git diffar contra a working tree.');
+        process.exit(2);
+      }
+      let saida;
+      try {
+        saida = execFileSync('git', ['diff', '--name-only', '--diff-filter=D', range, '--', `${MIRROR_REL}/`],
+          { encoding: 'utf8', maxBuffer: 1 << 28 });
+      } catch (e) {
+        // Vazio de comando que FALHOU não é "nada deletado" (§5 2026-07-31 · 2026-08-11).
+        console.error(`✗ --check-refs: git diff falhou no range "${range}" — sem universo, sem veredito.`);
+        console.error(`  ${String(e.message || e).split('\n')[0]}`);
+        process.exit(2);
+      }
+      deletados = new Set(saida.split('\n').map((s) => s.trim()).filter(Boolean));
+    }
+
+    const raizEspelho = join(ROOT, MIRROR_REL);
+    const vivos = [];
+    if (existsSync(raizEspelho)) {
+      (function walk(rel) {
+        for (const e of readdirSync(join(ROOT, rel), { withFileTypes: true })) {
+          const p = `${rel}/${e.name}`;
+          if (e.isDirectory()) walk(p);
+          else if (refKind(p)) { try { vivos.push({ path: p, texto: readFileSync(join(ROOT, p), 'utf8') }); } catch { /* binário */ } }
+        }
+      })(MIRROR_REL);
+    }
+
+    const quebras = refsParaDeletado(vivos, deletados);
+    console.log(`  espelho: ${vivos.length} arquivo(s) textual(is) · deletados no diff: ${deletados.size}`);
+    if (!deletados.size) {
+      console.log('  ✓ nenhuma deleção no espelho neste diff — nada a verificar.');
+      process.exit(0);
+    }
+    if (!quebras.length) {
+      console.log(`  ✓ integridade referencial preservada: nenhum arquivo do espelho aponta pros ${deletados.size} deletado(s).`);
+      process.exit(0);
+    }
+    console.error(`\n  ⛔ ${quebras.length} referência(s) apontam pra arquivo que este diff APAGA:`);
+    for (const q of quebras) console.error(`     ${q.de}\n        -> "${q.ref}"  = ${q.alvo}`);
+    console.error('\n  A poda quebrou o render do protótipo. Restaure o arquivo OU remova a referência no mesmo PR.');
+    process.exit(1);
+  }
 
   // --live-only <lista.json>: o LADO CEGO. Recebe a saída do DesignSync.list_files
   // ({paths:[…]} ou array cru) e mostra o que existe no VIVO e nunca desceu pro espelho.
