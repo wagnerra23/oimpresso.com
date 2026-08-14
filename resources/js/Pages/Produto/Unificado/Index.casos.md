@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela reúne, numa rota só, tudo que as outras telas do Produto gateiam separadamente — custo, preço de venda, tabelas de preço e composição. Sem casos, ela vira o caminho por onde tudo isso sai sem permissão.
 owner: wagner
-last_run: "2026-08-13"
-last_run_ci: "6/6 UC verdes na lane Estoque · MySQL (run 31706439580, PR #5733): 7 testes · 0 skipped · 23 assertions. Veredito lido do JUnit da run, não declarado à mão — scripts/casos-test-results.json."
+last_run: "2026-08-14"
+last_run_ci: "6/6 UC verdes na lane Estoque · MySQL (run 31706439580, PR #5733): 7 testes · 0 skipped · 23 assertions — veredito lido do JUnit, não declarado à mão. Os UC-PUNI-07/08 nasceram em 2026-08-14 com o porte de fidelidade e AINDA NÃO têm run: o `last_run` foi bumpado porque os 6 antigos foram revalidados contra a mudança (as colunas de preço/custo seguem sumindo por permissão, e o teste não toca as props que mudaram), não porque os dois novos já provaram algo."
 ---
 
 # Casos de Uso & Aceite — Catálogo Unificado (`/products/unificado`)

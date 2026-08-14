@@ -11,7 +11,9 @@ import {
   DsFilterChip, DsInput, DsKpiFilterCard, DsSelect, DsSkeleton, DsToast,
 } from '../_components/ds';
 import type { DsColumn, DsKpiTone, DsMenuItem, DsRow } from '../_components/ds';
-import '../../../css/produto-catalogo.css';
+// 4 níveis até `resources/` (Unificado → Produto → Pages → js → resources).
+// `tsc` NÃO confere import de CSS — quem pega errado aqui é só o build do Vite.
+import '../../../../css/produto-catalogo.css';
 
 /**
  * Catálogo Unificado · módulo Produto.
