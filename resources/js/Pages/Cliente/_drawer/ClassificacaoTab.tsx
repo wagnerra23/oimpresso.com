@@ -2,7 +2,7 @@
 //
 // Tab 5 do drawer 760px Cliente. Segmento + tags + status + VIP toggle.
 // Refs: ADR 0179 · Charter Index.charter.md v3 · HANDOFF_CLIENTES.md §2.5
-// Cowork blueprint: prototipo-ui/prototipos/clientes/clientes-drawer.jsx::SectionClassificacao
+// Cowork blueprint: prototipo-ui/prototipos/clientes/clientes-drawer.jsx (MORTO 2026-08-13 — sem fonte no repo)::SectionClassificacao
 //
 // Contrato:
 //   PATCH /cliente/{id}/classificacao  body: { segmento, tags[], status, vip }

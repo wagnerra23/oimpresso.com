@@ -1,6 +1,6 @@
 // SalePresentationMode — Cowork KB-9.75 Sells Onda 4 R4 Distribuição (apresentar fullscreen).
 // Refs:
-//  - prototipo-ui/prototipos/sells-index/vendas-output.jsx (canonical VdPresentationMode)
+//  - prototipo-ui/cowork/vendas-output.jsx (canonical VdPresentationMode)
 //  - resources/css/sells-cowork-distribuicao.css (.vd-presentation)
 //
 // Modo apresentação fullscreen escuro 4 slides:

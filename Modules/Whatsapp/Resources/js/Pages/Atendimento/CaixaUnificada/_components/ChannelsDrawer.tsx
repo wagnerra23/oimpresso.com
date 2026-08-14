@@ -4,7 +4,7 @@
 // Substitui o context-switch pra /atendimento/canais por um Sheet in-place:
 // lista agrupada por TYPE de canal (glyph hue do catálogo) + contas com
 // status ativo/em-breve + link "Gerenciar canais" pra página completa.
-// Referência visual: prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx
+// Referência visual: prototipo-ui/cowork/inbox-page.jsx
 // (om-drawer "Canais e contas").
 //
 // ZERO backend novo — reusa payloads deferred `availableChannels` (catálogo

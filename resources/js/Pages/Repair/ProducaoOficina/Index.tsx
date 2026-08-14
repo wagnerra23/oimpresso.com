@@ -1,5 +1,5 @@
 // @memcofre tela=/repair/producao-oficina module=Repair
-// F3 baseada em prototipo-ui/prototipos/producao-oficina/F1.html — kanban
+// F3 baseada em prototipo-ui/prototipos/producao-oficina/F1.html (MORTO 2026-08-13 — sem fonte no repo) — kanban
 // 5 colunas Recepção→Diagnóstico→Aguardando peças→Em execução→Pronto.
 // US-REPAIR-PROD-4 (2026-05-09): drag-and-drop entre colunas via HTML5 nativo.
 //

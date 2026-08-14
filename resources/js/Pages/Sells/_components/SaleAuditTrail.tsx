@@ -2,7 +2,7 @@
 // (histórico de edições + emissões fiscais + transições FSM REAIS).
 //
 // Refs:
-//  - prototipo-ui/prototipos/sells-index/vendas-curation.jsx (canonical source)
+//  - prototipo-ui/cowork/vendas-curation.jsx (canonical source)
 //  - sale_stage_history table (ADR 0143 FSM Pipeline live biz=1)
 //  - GET /sells/{sale}/audit → SellAuditController (Onda 3.5)
 //

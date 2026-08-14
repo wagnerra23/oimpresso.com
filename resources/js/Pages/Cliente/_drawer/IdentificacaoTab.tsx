@@ -2,7 +2,7 @@
 //
 // Tab 1 do drawer 760px Cliente. PF/PJ toggle + dados de identificação.
 // Refs: ADR 0179 · Charter Index.charter.md v3 · HANDOFF_CLIENTES.md §2.1
-// Cowork blueprint: prototipo-ui/prototipos/clientes/clientes-drawer.jsx::SectionIdentificacao
+// Cowork blueprint: prototipo-ui/prototipos/clientes/clientes-drawer.jsx (MORTO 2026-08-13 — sem fonte no repo)::SectionIdentificacao
 //
 // Contrato (combinado com Agent B + Agent C-BE):
 //   PATCH /cliente/{id}/identificacao  body: { tipo, nome, fantasia, doc, ie, rg, nascimento, contato, cargo }
