@@ -32,7 +32,7 @@
       "promote_by_razao": "apenas 20 runs (medido 2026-08-05) — amostra insuficiente. (prazo anterior: 2026-07-23; decisão [W] 2026-08-05, ADR 0369 §Decisão)"
     },
     "ds-token-version.yml": {
-      "nome": "ds-token-version (advisory) — semver + changelog do pacote de tokens do DS: versiona a superfície dos _generated-*.css (296 tokens/4 escopos), fingerprint sha256; --check acusa surface mudada sem bump (::warning::, nunca bloqueia). Reusa a disciplina do ds-token-diff (fonte = os _generated-*.css, não a palavra de ninguém).",
+      "nome": "ds-token-version — semver + changelog do pacote de tokens do DS: versiona a superfície dos _generated-*.css (296 tokens/4 escopos) por fingerprint sha256; `--check` sai ≠0 quando a superfície mudou sem bump de version.json + CHANGELOG. Reusa a disciplina do ds-token-diff (fonte = os _generated-*.css, não a palavra de ninguém). Quem é required no vivo: governance/required-checks-baseline.json.",
       "classe": "gate",
       "terminal": "advisory",
       "promote_by": "2026-09-05",
@@ -40,11 +40,11 @@
       "promote_by_razao": "apenas 10 runs (medido 2026-08-05) — amostra insuficiente. (prazo anterior: 2026-07-24; decisão [W] 2026-08-05, ADR 0369 §Decisão)"
     },
     "ds-tokens-build-sync.yml": {
-      "nome": "ds-tokens-build-sync (advisory) — ANCORA a premissa do loop diff-first (git = fonte verdadeira): roda 'npm run tokens:build' e falha se os _generated-*.css commitados divergem do build fresco de semantic.tokens.json. Sem isto, editar o source sem rebuildar deixa o _generated stale e TODO o loop (ds-token-diff/mirror-drift/token-version) valida contra valor errado sem ninguém perceber.",
+      "nome": "ds-tokens-build-sync — ANCORA a premissa do loop diff-first (git = fonte verdadeira): `scripts/design-sync/ds-tokens-build-sync.mjs --check` builda os *.tokens.json num tmpdir e compara byte-a-byte com os _generated-*.css commitados (exit 1 = diverge · exit 2 = não consegui medir · não escreve na árvore). Sem isto, editar o source sem rebuildar deixa o _generated stale e TODO o loop (ds-token-diff/mirror-drift/token-version) valida contra valor errado sem ninguém perceber. Tem `--selftest` (par boa/ruim) rodado no próprio job e entra no bite-log (DR-2a). Quem é required no vivo: governance/required-checks-baseline.json.",
       "classe": "gate",
       "terminal": "advisory",
       "promote_by": "2026-09-05",
-      "anchor": "gap nº1 da auditoria de cobertura do loop diff-first (2026-07-11): não existia gate provando que o _generated commitado bate com a fonte. Verificado em sincronia na criação. Advisory por ADR 0314 (integridade de tokens é quality/visual, não dinheiro/PII/multi-tenant/fiscal); promote_by força a decisão em 14d.",
+      "anchor": "gap nº1 da auditoria de cobertura do loop diff-first (2026-07-11): não existia gate provando que o _generated commitado bate com a fonte. Verificado em sincronia na criação. Advisory por ADR 0314 (integridade de tokens é quality/visual, não dinheiro/PII/multi-tenant/fiscal); promote_by força a decisão em 14d. Em 2026-08-14 (chip G6a da grade de réguas) descobriu-se que o passo era MUDO desde a criação: o ramo que detectava a divergência fazia `echo ::warning` + `exit 0`, então o job ficava verde justamente quando havia drift — e, sem selftest e fora do bite-log, cego e são eram indistinguíveis. Conserto: o check virou script (`scripts/design-sync/ds-tokens-build-sync.mjs`) que re-levanta o exit, ganhou `--selftest` com par boa/ruim e entrou no GATES do design-gate-bites.",
       "promote_by_razao": "apenas 5 runs (medido 2026-08-05) — amostra insuficiente. (prazo anterior: 2026-07-25; decisão [W] 2026-08-05, ADR 0369 §Decisão)"
     },
     "design-coverage.yml": {

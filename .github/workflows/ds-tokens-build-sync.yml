@@ -4,9 +4,13 @@ name: DS tokens build-sync (advisory)
 # build inputs RASTREADOS (committados) consumidos pelo app, pelo espelho e por TODO o loop
 # (ds-token-diff/ds-mirror-drift/ds-token-version). Se alguém editar semantic.tokens.json e
 # NÃO rebuildar, o _generated commitado fica stale e o loop inteiro valida contra o valor
-# ERRADO — sem ninguém perceber. Este gate roda o build fresco e falha se o resultado difere
-# do commitado. Advisory (ADR 0314 — integridade de tokens é quality, não Tier-0); nunca
-# bloqueia. Fix = `npm run tokens:build && git add resources/css/tokens/_generated-*.css`.
+# ERRADO — sem ninguém perceber. Este job roda o build fresco (num tmpdir, sem sujar a
+# árvore) e compara byte-a-byte com o commitado.
+# Fix = `npm run tokens:build && git add resources/css/tokens/_generated-*.css`.
+#
+# Classificado `advisory` por ADR 0314 (integridade de tokens é quality, não Tier-0). Quem é
+# required no vivo é assunto de governance/required-checks-baseline.json — este arquivo não
+# restateia isso (§5 2026-07-16: artefato não declara o próprio enforcement em presente).
 
 on:
   pull_request:
@@ -15,6 +19,10 @@ on:
       - 'resources/css/tokens/*.tokens.json'
       - 'resources/css/tokens/style-dictionary.config.mjs'
       - 'resources/css/tokens/_generated-*.css'
+      # O ARQUIVO SOB TESTE entra no trigger, senão mexer no gate não roda o gate
+      # (§5 2026-08-02: "gate mudo com cara de cobertura").
+      - 'scripts/design-sync/ds-tokens-build-sync.mjs'
+      - '.github/workflows/ds-tokens-build-sync.yml'
   workflow_dispatch:
 
 concurrency:
@@ -35,13 +43,23 @@ jobs:
           node-version: '20'
       - name: Instalar deps (style-dictionary)
         run: npm ci --no-audit --no-fund
-      - name: Build fresco de tokens
-        run: npm run tokens:build
+
+      # O selftest mora AQUI (e não no governance-script-tests, que é dep-free por desenho):
+      # é o único job que já tem o style-dictionary instalado. Ele prova o par boa/ruim —
+      # sem ele, "nunca disparou" e "está cego" são indistinguíveis (lição do drift-sentinel
+      # tautológico, §5 2026-07-17).
+      - name: O gate morde? (par boa/ruim + controle positivo + "não medi" ≠ verde)
+        run: node scripts/design-sync/ds-tokens-build-sync.mjs --selftest
+
+      # O `--check` MORDE: exit≠0 derruba o passo (job vermelho e visível). O `||` só ENFEITA
+      # o erro com a receita de conserto e RE-LEVANTA o exit. A versão anterior deste passo
+      # fazia `if git diff …; else echo "::warning"; exit 0; fi` — o ramo que DETECTAVA a
+      # divergência saía 0 e o job ficava verde: o gate era mudo. Advisory = "não bloqueia o
+      # merge", NUNCA = "não pode ficar vermelho" (§5 2026-07-09).
+      # exit 2 (não consegui medir) também derruba: gate mudo é pior que gate ausente.
       - name: _generated commitado == build fresco?
         run: |
-          if git diff --exit-code -- resources/css/tokens/_generated-*.css; then
-            echo "✅ _generated-*.css em sincronia com semantic.tokens.json (build determinístico)."
-          else
-            echo "::warning title=DS tokens build-sync::_generated-*.css DIVERGE de um build fresco — semantic.tokens.json mudou sem rebuildar. O loop valida contra valor stale. Rode 'npm run tokens:build' e commite (advisory, não bloqueia)."
-            exit 0
-          fi
+          node scripts/design-sync/ds-tokens-build-sync.mjs --check || {
+            echo "::error title=DS tokens build-sync::_generated-*.css DIVERGE de um build fresco — semantic.tokens.json mudou sem rebuildar, e o loop diff-first está validando contra valor stale. Rode 'npm run tokens:build' e commite os _generated-*.css."
+            exit 1
+          }
