@@ -775,6 +775,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** não ligar `--enforce` (nem no CI, nem no array do bite-log) enquanto o `ds-mirror-drift` **não distinguir por exit code** "não consegui medir" de "drift subiu" — os dois caminhos de não-medição são o snapshot ausente (L51-55) e a falha do `ds-token-diff` (L62-65), e hoje ambos saem 1 sob `--enforce`. **Pré-requisito nomeado, se [W] quiser reabrir:** exit **2** = não-medi (recorder trata como `skipped`, igual a `crashed`), exit **1** = drift real; só então a flag faz sentido. Também proibido o atalho tentador: ligar `--enforce` **só** no array do recorder deixando o CI advisory — além de não escapar da razão (3), cria a divergência que o docblock do array proíbe em texto (*"o MESMO comando, pra não medir um caminho e afirmar sobre outro"*).
 
+### 2026-08-14 — Remendar o espelho de design À MÃO pra escapar do teto de fidelidade do `get_file`
+
+- **O limite:** o da mãe, sem reformular — **não transcrever; a escrita sai do dado, por script**. O que esta entrada fixa é o **desfecho**, porque a primeira redação que eu ia registrar (*"espelho não se edita — se baixa inteiro"*) estava **errada e seria pior que a ausência**: pra arquivo abaixo do piso do harness **não existe rota fiel hoje**, nem pra consertar **nem pra medir**, então "baixa inteiro" instrui a próxima sessão a fazer o que a plataforma não permite — ou paralisia, ou violação. O desfecho correto é o que a 08-13(c) já dizia: **não conserta — mede, registra o STALE, e o teto é decisão [W]** (aberta em [#5757](https://github.com/wagnerra23/oimpresso.com/pull/5757)). Ordem executável: `--snapshot-from <dir> --emit-snapshot` (mede sem escrever) → `--compare --check` → só então `--export-from`.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
