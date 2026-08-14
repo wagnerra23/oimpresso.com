@@ -93,8 +93,26 @@ export function resolveGap(arg) {
   const walk = (d) => { let es; try { es = readdirSync(d, { withFileTypes: true }); } catch { return; }
     for (const e of es) { const f = join(d, e.name); if (e.isDirectory()) walk(f); else if (e.name.endsWith('-gap.md')) hits.push(f); } };
   walk(reqRoot);
+  return escolherGap(hits, arg, reqRoot);
+}
+
+// ESCOLHA do gap entre os candidatos (lógica PURA, testável — o walk fica no resolveGap).
+// EXATO antes de SUBSTRING (bug 2026-08-14): com `includes` puro, slug('Sells/vendas') =
+// 'sells-vendas' casava 'sells-vendas-create-gap-md', e 'vendas-create-gap.md' vem ANTES de
+// 'vendas-gap.md' na ordem do walk (c < g) — então `Sells/vendas` resolvia pro gap do IRMÃO.
+// Efeito medido: `consumir-map.mjs Sells/vendas` → rc=1 "map não encontrado" com o
+// vendas.map.json existindo (a Fase 4 ficava inalcançável pela forma canônica <Mod/Tela>).
+// Substring segue valendo — mas só decide quando NENHUM exato casa (busca frouxa é o fallback,
+// não a regra). Mesma família do §5 2026-08-02: casamento textual sem delimitar o alvo.
+export function escolherGap(hits, arg, reqRoot) {
   const want = slug(arg);
-  return hits.find((h) => slug(relative(reqRoot, h)).includes(want)) || hits.find((h) => slug(basename(h)).includes(want)) || null;
+  const exatoRel = `${want}-gap-md`;
+  const exatoBase = `${slug(basename(arg))}-gap-md`;
+  return hits.find((h) => slug(relative(reqRoot, h)) === exatoRel)
+    || hits.find((h) => slug(basename(h)) === exatoBase)
+    || hits.find((h) => slug(relative(reqRoot, h)).includes(want))
+    || hits.find((h) => slug(basename(h)).includes(want))
+    || null;
 }
 
 export function gerar(gapPath) {
@@ -129,6 +147,17 @@ function selftest() {
   t('slug normaliza acento+parênteses', slug('Thread (mensagens)') === 'thread' && slug('Header da página') === 'header-da-pagina');
   t('ehAcionavel: "Nada (vivo à frente)"=false · "Catch-up opcional"=true',
     ehAcionavel('**Nada** (vivo à frente)') === false && ehAcionavel('**Catch-up opcional**') === true && ehAcionavel('**NÃO RESSUSCITAR**') === false);
+  // BITE do fix 2026-08-14 (escolherGap: EXATO antes de SUBSTRING) — hermético: hits
+  // sintéticos, zero disco, separador-agnóstico (a pegadinha Windows do gerar-map).
+  const fkRoot = join(HERE, '__fake');
+  const hitsFake = ['vendas-create-gap.md', 'vendas-gap.md', 'vendas-index-gap.md']
+    .map((n) => join(fkRoot, 'Sells', n)); // ordem do walk: -create vem ANTES de -gap (c < g)
+  t('MORDE: Sells/vendas escolhe vendas-gap.md, não o irmão -create (era o bug)',
+    escolherGap(hitsFake, 'Sells/vendas', fkRoot) === hitsFake[1]);
+  t('desambigua o outro irmão: Sells/vendas-index → vendas-index-gap.md',
+    escolherGap(hitsFake, 'Sells/vendas-index', fkRoot) === hitsFake[2]);
+  t('controle-negativo: sem o exato, o substring ainda resolve (fallback vivo, não vira null)',
+    escolherGap([join(fkRoot, 'Sells', 'vendas-create-gap.md')], 'Sells/vendas', fkRoot) !== null);
   const fx = join(HERE, 'fixtures', 'gerar-contrato');
   if (existsSync(join(fx, 'boa-gap.md'))) {
     const g = gerar(join(fx, 'boa-gap.md'));
