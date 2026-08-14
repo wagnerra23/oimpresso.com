@@ -613,6 +613,35 @@ function main() {
   // o anti-padrão que este repo cataloga (§5 "duplica régua consolidada" · LC-19). As funções
   // novas (liveOnly · exportPlan) foram para o irmão.
 
+  // --absent-local: "o shell CARREGA e o espelho NÃO TEM?" — o 4º flanco do cabeçalho, que até
+  // aqui era MEDIDO e INCAPAZ DE REPROVAR: `reportAbsentLocal` só imprime, e o exit code do
+  // --manifest vem do `shouldFail()`, que morde SÓ em STALE. Gate mudo com cara de cobertura.
+  //
+  // 100% LOCAL — lê o shell do próprio espelho, zero DesignSync — e por isso É gateável, ao
+  // contrário do --compare/--live-only, que precisam da auth interativa (ADR 0315). A ressalva
+  // do cabeçalho ("rotina de dispatch logado, não gate") vale pro flanco que fala com o VIVO;
+  // este não fala. Responde literalmente "pegou todos os componentes, subpáginas, CSS e JS?"
+  // ([W] 2026-08-14). NÃO substitui o --live-only: aquele vê o que NUNCA desceu; este vê o que
+  // o shell precisa e não está — universos diferentes (LIVE-ONLY, §5 2026-08-11).
+  if (argv.includes('--absent-local')) {
+    const shellHtml = lerShellHtml();
+    if (!shellHtml) {
+      // FAIL-CLOSED: "não consegui medir" NUNCA vira verde (§5 2026-07-29 — instrumento não
+      // afirma saúde do que não percorreu). Sem shell não há universo, logo não há veredito.
+      console.error('✗ --absent-local: shell do espelho não encontrado — sem universo, sem veredito.');
+      process.exit(2);
+    }
+    const { faltando, ignorados } = absentLocal(shellHtml);
+    reportAbsentLocal(shellHtml, process.stdout);
+    console.log(`\n  ABSENT-LOCAL — ⛔ ausentes: ${faltando.length} · ⬜ ignorados por design: ${ignorados.length}`);
+    if (faltando.length) {
+      console.error(`✗ espelho INCOMPLETO — ${faltando.length} dep(s) que o shell carrega não existe(m) no espelho.`);
+      process.exit(1);
+    }
+    console.log('  ✓ toda dep do shell existe no espelho.');
+    process.exit(0);
+  }
+
   // --check-refs: a poda quebrou o grafo interno do espelho? Diff-aware, 100% LOCAL — por
   // isso ISTO é gateável e o --compare não é (aquele precisa da auth interativa do DesignSync).
   // Universo dos deletados: `git diff --diff-filter=D <range>` (default origin/main...HEAD) ou

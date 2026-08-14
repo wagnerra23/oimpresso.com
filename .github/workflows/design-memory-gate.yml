@@ -257,6 +257,25 @@ jobs:
         if: always()
         continue-on-error: true
         run: node scripts/governance/cowork-mirror-freshness.mjs --check-refs
+      # ABSENT-LOCAL — "o espelho pegou todos os componentes, subpáginas, CSS e JS?" ([W]
+      # 2026-08-14). É o 4º flanco do cabeçalho do script e, até este PR, era MEDIDO e
+      # INCAPAZ DE REPROVAR: `reportAbsentLocal` só imprimia e o exit do --manifest vem do
+      # `shouldFail()`, que morde SÓ em STALE — gate mudo com cara de cobertura.
+      # Complementa o cowork-refs acima sem duplicá-lo: aquele deriva o universo do DIFF
+      # (só vê o que o PR APAGA), este deriva do SHELL (vê o que o render PRECISA) — apagar
+      # o espelho inteiro passa vazio no primeiro e é pego por este.
+      # 100% local: lê o shell do próprio espelho, zero DesignSync — por isso é gateável, ao
+      # contrário do --compare/--live-only, que precisam da auth interativa (ADR 0315).
+      # NÃO responde "está atualizado?" (isso é --compare/--live-only, e segue sem invocador
+      # por causa da auth) — responde "está COMPLETO?". Universos distintos, §5 2026-08-11.
+      # Estado medido ao ligar: 120 deps do shell, 117 vivas fora de `_ds/`, 0 ausentes.
+      # Bite provado local: esconder `styles.css` → exit 1; restaurar → exit 0. Fail-closed
+      # sem shell (exit 2) — "não consegui medir" nunca vira verde (§5 2026-07-29).
+      # Advisory de nascença (ADR 0275); promoção só por mordida provada (ADR 0336).
+      - name: cowork absent-local (o espelho tem toda dep que o shell carrega? · advisory)
+        if: always()
+        continue-on-error: true
+        run: node scripts/governance/cowork-mirror-freshness.mjs --absent-local
       - name: importar-bundle selftest (import atômico · verifica antes de trocar)
         if: always()
         continue-on-error: true

@@ -591,5 +591,29 @@ check('mesmo número → mesmo veredito (independe de --check)',
     JSON.stringify(um));
 }
 
-console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel + absent-local + refs-da-poda + fluxo e2e)');
+// ── --absent-local: o 4º flanco agora REPROVA (antes só imprimia) ───────────────
+// Até 2026-08-14 o ABSENT-LOCAL era medido e incapaz de morder: `reportAbsentLocal` só
+// imprime, e o exit do --manifest vem do `shouldFail()`, que morde SÓ em STALE. Estes
+// asserts travam o contrato do modo novo — sem eles, alguém "simplifica" o exit 1 e o
+// gate volta a ser mudo (§5 2026-07-29: instrumento não afirma o que não percorreu).
+{
+  const shellFalta = '<html><head><link rel="stylesheet" href="styles.css"></head>'
+    + '<body><script src="__nao-existe-no-espelho.jsx"></script></body></html>';
+  const r1 = absentLocal(shellFalta);
+  check('--absent-local MORDE: dep que o shell carrega e o espelho não tem entra em `faltando`',
+    r1.faltando.some((d) => d.includes('__nao-existe-no-espelho.jsx')), JSON.stringify(r1.faltando));
+
+  const shellOk = '<html><head><link rel="stylesheet" href="styles.css"></head></html>';
+  check('--absent-local LIBERA: dep existente no espelho não é acusada',
+    !absentLocal(shellOk).faltando.some((d) => d.includes('styles.css')));
+
+  // controle-negativo do bucket ignorado: `_ds/**` fica fora do espelho por .gitignore —
+  // acusá-lo seria falso-positivo permanente (é a razão de o bucket existir).
+  const shellDs = '<html><head><link rel="stylesheet" href="_ds/qualquer/colors.css"></head></html>';
+  const r3 = absentLocal(shellDs);
+  check('--absent-local NÃO acusa `_ds/**` (fora por .gitignore do espelho, não é achado)',
+    !r3.faltando.some((d) => d.startsWith('_ds/')), JSON.stringify(r3));
+}
+
+console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel + absent-local que MORDE + refs-da-poda + fluxo e2e)');
 process.exit(fails ? 1 : 0);
