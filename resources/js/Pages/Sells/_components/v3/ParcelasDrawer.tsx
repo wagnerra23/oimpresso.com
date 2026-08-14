@@ -30,6 +30,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/Components/ui/sheet';
+import EmptyState from '@/Components/shared/EmptyState';
 import { Input } from '@/Components/ui/input';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/ui/select';
@@ -42,6 +43,7 @@ import {
   PLANOS,
   dataISO,
   diaZero,
+  dataBR,
   diferencaParaOTotal,
   fechaNoTotal,
   mesmoDiaNoMes,
@@ -243,6 +245,17 @@ export default function ParcelasDrawer({
           </Inline>
 
           {/* ─── grade ───────────────────────────────────────────────────── */}
+                    {/* Sem parcelas a tabela sumia inteira — a tela muda e não diz por quê.
+              A âncora (`sells-parcelas.jsx:99`) põe um EmptyState que ENSINA o
+              caminho; é o que o operador precisa na primeira venda do dia. */}
+          {parcelas.length === 0 && (
+            <EmptyState
+              icon="inbox"
+              title="Nenhuma parcela gerada"
+              description="Escolha a condição, o número de parcelas e o 1º vencimento e clique em Gerar parcelas. Depois você pode editar valor, data e conta de cada uma."
+            />
+          )}
+
           {parcelas.length > 0 && (
             <div className="overflow-x-auto rounded-lg border border-border">
               <table className="w-full text-[12.5px]">
@@ -253,6 +266,7 @@ export default function ParcelasDrawer({
                     <th className="px-3 py-2 font-medium">Vencimento</th>
                     <th className="px-3 py-2 font-medium">Valor</th>
                     <th className="px-3 py-2 font-medium">Tipo</th>
+                    <th className="px-3 py-2 font-medium">Conta</th>
                     <th className="px-3 py-2 font-medium">Lançamento</th>
                   </tr>
                 </thead>
@@ -284,7 +298,11 @@ export default function ParcelasDrawer({
                       </td>
                       <td className="px-3 py-1.5">{p.tipo}</td>
                       <td className="px-3 py-1.5">
-                        <Pill tom={p.lanc === 'RECEBIDA' ? 'success' : 'neutro'}>{p.lanc}</Pill>
+                        {/* "recebida 12/08" > "RECEBIDA": a data é o que responde "isso já
+                              entrou?" sem abrir outra tela (âncora `sells-parcelas.jsx:120`). */}
+                          <Pill tom={p.lanc === 'RECEBIDA' ? 'success' : 'neutro'}>
+                            {p.lanc === 'RECEBIDA' && p.pgto ? `recebida ${dataBR(p.pgto)}` : p.lanc}
+                          </Pill>
                       </td>
                     </tr>
                   ))}
