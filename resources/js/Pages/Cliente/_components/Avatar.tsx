@@ -5,7 +5,7 @@
 //
 // Refs:
 //   - ADR 0179 (drawer 760 substitui Show.tsx full-page) §dim 2 paleta cor semântica
-//   - prototipo-ui/prototipos/clientes/clientes-icons.jsx (avatarFor + initialsFor)
+//   - prototipo-ui/prototipos/clientes/clientes-icons.jsx (MORTO 2026-08-13 — sem fonte no repo) (avatarFor + initialsFor)
 //   - HANDOFF_CLIENTES.md §5.3 helpers (avatar.ts)
 //   - visual-comparison cliente-drawer-760 dim 2 score 15→95
 //
@@ -28,7 +28,7 @@ function hashStr(s: string): number {
 
 // Z-2.1 alinhado ao protótipo: 12 gradients oklch distinctos + texto branco.
 // Estilo Stripe/Linear/Notion (vivos, legíveis). NÃO pastel chapado HSL.
-// Ref: prototipo-ui/prototipos/clientes/clientes-icons.jsx:128-146 AV_GRADS.
+// Ref: prototipo-ui/prototipos/clientes/clientes-icons.jsx (MORTO 2026-08-13 — sem fonte no repo):128-146 AV_GRADS.
 const AVATAR_GRADIENTS: ReadonlyArray<string> = [
   'linear-gradient(135deg, oklch(0.65 0.18 25),   oklch(0.55 0.20 350))', // rosa-vermelho
   'linear-gradient(135deg, oklch(0.65 0.18 60),   oklch(0.55 0.20 30))',  // âmbar-vermelho

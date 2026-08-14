@@ -8,7 +8,7 @@
 // Multi-tenant Tier 0: props ja vem filtradas por business_id no backend.
 //
 // Pattern reuse: prototipo Claude Design
-//   `prototipo-ui/prototipos/clientes/clientes-tabs.jsx::RiscoCliente`
+//   `prototipo-ui/prototipos/clientes/clientes-tabs.jsx (MORTO 2026-08-13 — sem fonte no repo)::RiscoCliente`
 //   (adaptado pra inverter a escala — direto, nao 10-pesos).
 
 import { useMemo } from 'react';
