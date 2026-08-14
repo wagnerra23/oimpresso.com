@@ -6,7 +6,7 @@
 //   rules: R-PUR-001 (multi-tenant business_id), R-PUR-002 (permitted_locations)
 //   adrs: 0141 (skill migracao), 0104 (MWART), 0093 (Tier 0), 0110 (Cockpit V2)
 //
-// Origem: protótipo Cowork "Compras" (prototipo-ui/prototipos/compras/visual-source.html).
+// Origem: protótipo Cowork "Compras" (prototipo-ui/prototipos/compras/visual-source.html (MORTO 2026-08-13 — sem fonte no repo)).
 // Snapshot paridade: memory/mwart-inventory/purchase/index.snapshot.md
 // Persona: Wagner/Maiara — compras escritório, lista densa, ações rápidas inline.
 // Tokens: stone (neutro), emerald (paid/received), rose (overdue/cancel), amber (partial/pending), accent (status badges).

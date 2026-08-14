@@ -2,7 +2,7 @@
 //
 // Tab 4 do drawer 760px Cliente. Limite, prazo, tabela preço, pgto, obs comercial.
 // Refs: ADR 0179 · Charter Index.charter.md v3 · HANDOFF_CLIENTES.md §2.4
-// Cowork blueprint: prototipo-ui/prototipos/clientes/clientes-drawer.jsx::SectionComercial
+// Cowork blueprint: prototipo-ui/prototipos/clientes/clientes-drawer.jsx (MORTO 2026-08-13 — sem fonte no repo)::SectionComercial
 //
 // Contrato:
 //   PATCH /cliente/{id}/comercial  body: { limite_credito, prazo_padrao_dias, customer_group_id, pgto_padrao, mensagem_venda, obs_comercial }
