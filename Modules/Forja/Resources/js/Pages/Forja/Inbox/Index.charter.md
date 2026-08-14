@@ -81,9 +81,9 @@ Caixa de entrada dedicada por-pessoa: mostrar as notificações do usuário aute
 
 ## Refs
 
-- [SPEC-UI-FASE7](../../../../../memory/requisitos/TaskRegistry/SPEC-UI-FASE7.md) — US-TR-304..306
-- [MyWorkController](../../../../../Modules/Forja/Http/Controllers/MyWorkController.php) — inbox payload espelhado
-- [McpInboxNotification](../../../../../Modules/Jana/Entities/Mcp/McpInboxNotification.php) — modelo + types
-- [ADR 0070 Jira-style PM](../../../../../memory/decisions/0070-jira-style-task-management-current-md-removed.md)
-- [ADR 0058 Centrifugo realtime](../../../../../memory/decisions/0058-reverb-substituido-por-centrifugo-frankenphp.md)
-- [ADR UI-0013 Constituição UI v2](../../../../../memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md)
+- [SPEC-UI-FASE7](../../../../../../../memory/requisitos/TaskRegistry/SPEC-UI-FASE7.md) — US-TR-304..306
+- [MyWorkController](../../../../../../../Modules/Forja/Http/Controllers/MyWorkController.php) — inbox payload espelhado
+- [McpInboxNotification](../../../../../../../Modules/Jana/Entities/Mcp/McpInboxNotification.php) — modelo + types
+- [ADR 0070 Jira-style PM](../../../../../../../memory/decisions/0070-jira-style-task-management-current-md-removed.md)
+- [ADR 0058 Centrifugo realtime](../../../../../../../memory/decisions/0058-reverb-substituido-por-centrifugo-frankenphp.md)
+- [ADR UI-0013 Constituição UI v2](../../../../../../../memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md)
