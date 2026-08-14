@@ -62,8 +62,8 @@ last_run_ci: "6/6 UC verdes na lane Estoque · MySQL (run 31706439580, PR #5733)
 | UC-PUNI-04 | Composição (BOM) só aparece com módulo Manufacturing **e** `manufacturing.access_recipe` | must | permissões `Modules/Manufacturing` + camada 1/3 ([feedback-habilitar-modulo-por-business](../../../../../memory/reference/feedback-habilitar-modulo-por-business.md)) | `ProdutoUnificadoContratoTest` | ✅ verde — `insumos` vazio e `bomCount` ausente sem as camadas 1+3 |
 | UC-PUNI-05 | Nenhuma prop enxerga outro business | must `[T0]` | `CU-PROD-10.2` + [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ProdutoUnificadoContratoTest` | ✅ verde — guard cross-tenant confirmado |
 | UC-PUNI-06 | A tela exige `product.view` **ou** `product.create` | should | `ProductController@index:66` (a lista irmã) + `routes/web.php:449` (TODO) | `ProdutoUnificadoContratoTest` | ✅ verde — 403 sem `product.view` nem `product.create` |
-| UC-PUNI-07 | O card "Populares · 30d" e a coluna `30d` contam o **mesmo** período | must | achado §3.1 de [produto-unificado-visual-comparison](../../../../../memory/requisitos/Produto/_telas/produto-unificado-visual-comparison.md) | `ProdutoUnificadoContratoTest` | 🕐 nasce 2026-08-14 — veredito na lane |
-| UC-PUNI-08 | O badge das abas não conta o que o usuário não pode ver | must | UC-PUNI-03 + UC-PUNI-04 (borda nova aberta pelo TabBar) | `ProdutoUnificadoContratoTest` | 🕐 nasce 2026-08-14 — veredito na lane |
+| UC-PUNI-07 | O card "Populares · 30d" e a coluna `30d` contam o **mesmo** período | must | achado §3.1 de [produto-unificado-visual-comparison](../../../../../memory/requisitos/Produto/_telas/produto-unificado-visual-comparison.md) | `ProdutoUnificadoContratoTest` | 🧪 **PULOU** na run `31801940305` — seed sem venda em 30d, recorte vazio. NÃO provado. |
+| UC-PUNI-08 | O badge das abas não conta o que o usuário não pode ver | must | UC-PUNI-03 + UC-PUNI-04 (borda nova aberta pelo TabBar) | `ProdutoUnificadoContratoTest` | ✅ verde na run `31801940305` |
 
 ---
 
@@ -180,7 +180,12 @@ last_run_ci: "6/6 UC verdes na lane Estoque · MySQL (run 31706439580, PR #5733)
 - **Não é `[V0]`:** não altera cálculo de valor nem movimenta estoque — corrige o que a tela
   LÊ. A REGRA MESTRE não se aplica (mesma leitura do UC-PUNI-01).
 - **Teste:** [`ProdutoUnificadoContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoContratoTest.php) — `UC-PUNI-07`.
-- **Status: 🕐** — nasce com o porte de fidelidade. Veredito vem da lane, não desta linha.
+- **Status: 🧪 PULOU** — run `31801940305` (lane Estoque · MySQL): `1 skipped, 71 passed (194 assertions)`,
+  e o skipped é este. O seed da lane não tem venda nos últimos 30 dias, então o recorte
+  `populares` volta vazio e o caso **não é exercitável**. Isso é o skip honesto que o teste
+  declara de propósito — lista vazia satisfaz qualquer `forall`, e passar por vacuidade seria
+  pior que não rodar. **O caso NÃO está provado**, e o `🧪` diz isso. Pra virar `✅`, a lane
+  precisa de fixture com venda em 30d — não de um ajuste no assert.
 
 ## UC-PUNI-08 · O badge das abas não conta o que o usuário não pode ver · `must`
 
@@ -196,4 +201,4 @@ last_run_ci: "6/6 UC verdes na lane Estoque · MySQL (run 31706439580, PR #5733)
   continua navegável (ela mostra a explicação de permissão ao abrir). Omitir a chave faria o
   contador sumir da UI inteira, inclusive das abas que o usuário PODE ver.
 - **Teste:** [`ProdutoUnificadoContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoContratoTest.php) — `UC-PUNI-08`.
-- **Status: 🕐** — nasce com o porte de fidelidade. Veredito vem da lane.
+- **Status: ✅** — verde na run `31801940305` (lane Estoque · MySQL). O badge de "Tabelas de preço" volta `0` pra quem não tem `access_default_selling_price`.
