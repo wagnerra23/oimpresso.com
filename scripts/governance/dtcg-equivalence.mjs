@@ -16,16 +16,40 @@
 // `$extensions.com.oimpresso.source` ("arquivo escopo --var") que diz EXATAMENTE
 // qual bloco canônico é a verdade.
 //
-// Node puro, ESM, sem deps. UTF-8 sem BOM, LF. rc0 = todos provados iguais.
+// ── CINTURÃO DE FORMA: `--schema` (2026-08-14) ──────────────────────────────
+// O modo sem flag prova VALOR (DTCG ≡ CSS). Ele não tinha como provar FORMA, e
+// dependia dela: um token sem `$extensions.com.oimpresso.source` não tem endereço
+// canônico para comparar, então caía num `continue` silencioso e SUMIA do
+// denominador — verde indistinguível de "provei". Medido em 2026-08-14 o buraco
+// estava vazio (0 pulados em 169 folhas), o que o tornava latente, não ativo:
+// o primeiro token novo escrito sem `source` entraria mudo.
+// Duas mudanças, ambas de FP zero medido no corpus real:
+//   (a) token sem `source` virou ERRO (`sem-source`), não pulo — todo token agora
+//       é provado ou acusado, nunca ignorado;
+//   (b) `--schema` valida os *.tokens.json contra resources/css/tokens/dtcg.schema.json
+//       (JSON Schema 2020-12, via ajv), que exige `source` na origem e barra as
+//       formas que quebram o parser deste arquivo antes de virarem valor errado.
+// O schema descreve o DTCG QUE ESTE REPO USA (ver o $description dele): `$value`
+// sempre string CSS verbatim, `$type` herdável do grupo, `$description` OPCIONAL
+// (141 das 169 folhas não têm — exigir seria backfill de legado, proibicoes §5
+// 2026-07-12). ESCOPO: só `resources/css/tokens/*.tokens.json`. O
+// `_PARCIAL-domain-semantic.tokens.json` do espelho Cowork fica de fora por medição,
+// não por esquecimento — 45 das 45 folhas dele não têm `source` (é entrega parcial
+// de handoff, não fonte do build) e o espelho é de LEITURA (ADR 0374).
+//
+// Node puro no modo sem flag. UTF-8 sem BOM, LF. rc0 = todos provados iguais.
 // Uso: node scripts/governance/dtcg-equivalence.mjs [--json] [--detail]
+//      node scripts/governance/dtcg-equivalence.mjs --schema [--json]
+// Exit: 0 ok · 1 violação (valor divergente / forma fora do schema) · 2 não-medido.
 // ─────────────────────────────────────────────────────────────────────────────
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const JSON_OUT = process.argv.includes('--json');
 const DETAIL = process.argv.includes('--detail');
+const SCHEMA_MODE = process.argv.includes('--schema');
 
 const TOKENS_DIR = join(ROOT, 'resources', 'css', 'tokens');
 
@@ -150,10 +174,110 @@ function normalize(v) {
   return String(v).replace(/\s+/g, ' ').trim();
 }
 
+// ── modo --schema: valida a FORMA dos *.tokens.json contra o JSON Schema ─────
+// Descobre os arquivos por varredura do diretório (não por lista fixa) para que um
+// `*.tokens.json` NOVO nasça coberto em vez de nascer invisível.
+//
+// `--tokens-dir <dir>` é o SEAM do bite-test: só o modo --schema o honra, e ele
+// existe para o self-test poder rodar este CLI DE FORA contra fixture boa/ruim sem
+// tocar os arquivos versionados (assert sobre helper exportado não prova contrato de
+// pipeline · §5 2026-07-30). O CI não passa a flag. Não se usa junction para isso —
+// junction em worktree Windows já esvaziou `vendor/` e `node_modules` reais duas
+// vezes (CLAUDE.md §Ambiente); o seam é a alternativa sem esse risco.
+const dirFlag = (() => {
+  const i = process.argv.indexOf('--tokens-dir');
+  return i >= 0 ? process.argv[i + 1] : null;
+})();
+const SCHEMA_DIR = dirFlag || TOKENS_DIR;
+const SCHEMA_PATH = join(SCHEMA_DIR, 'dtcg.schema.json');
+
+function listarTokensJson() {
+  return readdirSync(SCHEMA_DIR)
+    .filter((f) => f.endsWith('.tokens.json'))
+    .sort()
+    .map((f) => join(SCHEMA_DIR, f));
+}
+
+async function mainSchema() {
+  if (!existsSync(SCHEMA_DIR)) {
+    console.error(`⛔ NÃO MEDIDO — diretório de tokens ausente: ${SCHEMA_DIR}`);
+    process.exit(2);
+  }
+  if (!existsSync(SCHEMA_PATH)) {
+    console.error(`⛔ NÃO MEDIDO — schema ausente: ${SCHEMA_PATH}`);
+    console.error('   NADA foi validado. Isto é erro de ambiente, não ausência de violação.');
+    process.exit(2);
+  }
+  // ajv é a MESMA engine que scripts/memory-schemas/validate.mjs já usa para os
+  // schemas de memory/** — reuso do que existe, não motor novo. Ausência dela é
+  // "não consegui medir" (exit 2), NUNCA um verde silencioso (§5 2026-07-29).
+  let Ajv, addFormats;
+  try {
+    ({ default: Ajv } = await import('ajv/dist/2020.js'));
+    ({ default: addFormats } = await import('ajv-formats'));
+  } catch (e) {
+    console.error('⛔ NÃO MEDIDO — ajv/ajv-formats ausentes; nenhum token foi validado.');
+    console.error('   Local: `npm i` na raiz. CI: o step `Install deps do validador de schema` cobre.');
+    console.error(`   Detalhe: ${e && e.message}`);
+    process.exit(2);
+  }
+
+  const arquivos = listarTokensJson();
+  if (arquivos.length === 0) {
+    // Zero arquivo NÃO é "forma conforme": é a varredura não ter encontrado nada.
+    console.error(`⛔ NÃO MEDIDO — nenhum *.tokens.json em ${SCHEMA_DIR}.`);
+    process.exit(2);
+  }
+
+  const ajv = new Ajv({ allErrors: true, strict: false });
+  addFormats(ajv);
+  // Schema que não compila é ERRO DE AMBIENTE (2), não violação de token (1) — se
+  // vazasse como exceção o rc seria 1 e a régua quebrada leria como "os tokens estão
+  // errados", culpando o corpus por um defeito da própria régua.
+  let validate;
+  try {
+    validate = ajv.compile(JSON.parse(readFileSync(SCHEMA_PATH, 'utf8')));
+  } catch (e) {
+    console.error(`⛔ NÃO MEDIDO — o schema não compila: ${SCHEMA_PATH}`);
+    console.error(`   Nenhum token foi validado. Defeito é da régua, não do corpus.`);
+    console.error(`   Detalhe: ${String(e && e.message).split('\n')[0]}`);
+    process.exit(2);
+  }
+
+  const violations = [];
+  for (const f of arquivos) {
+    const rel = (f.startsWith(ROOT) ? f.slice(ROOT.length + 1) : f).replace(/\\/g, '/');
+    let data;
+    try { data = JSON.parse(readFileSync(f, 'utf8')); } catch (e) {
+      violations.push({ file: rel, errors: [`JSON inválido: ${String(e && e.message).split('\n')[0]}`] });
+      continue;
+    }
+    if (validate(data)) continue;
+    violations.push({
+      file: rel,
+      errors: (validate.errors || []).map((e) => `${e.instancePath || '/'} ${e.message}`),
+    });
+  }
+
+  const summary = { arquivos: arquivos.length, arquivosComViolacao: violations.length, ok: violations.length === 0 };
+  if (JSON_OUT) {
+    console.log(JSON.stringify({ summary, violations }, null, 2));
+  } else {
+    console.log('DTCG — forma dos tokens contra resources/css/tokens/dtcg.schema.json');
+    console.log(`  arquivos validados : ${arquivos.length} (${arquivos.map((f) => f.split(/[\\/]/).pop()).join(', ')})`);
+    console.log(`  com violação       : ${violations.length}`);
+    for (const v of violations) {
+      console.log(`\n✗ ${v.file}`);
+      for (const e of v.errors) console.log(`    ${e}`);
+    }
+    if (!violations.length) console.log(`\n✓ Forma conforme nos ${arquivos.length} arquivo(s).`);
+  }
+  process.exit(violations.length ? 1 : 0);
+}
+
 function main() {
   const errors = [];
   const proven = [];
-  const skipped = [];
 
   if (!existsSync(TOKENS_DIR)) {
     console.error(`FALHA: ${TOKENS_DIR} não existe.`);
@@ -177,7 +301,14 @@ function main() {
       const ext = token.$extensions || {};
       const src = ext['com.oimpresso.source'];
       if (!src) {
-        skipped.push({ path, reason: 'sem com.oimpresso.source' });
+        // Era `skipped.push(...)` + `continue` — o token saía do denominador em
+        // silêncio e o resumo dizia "todos fiéis" tendo deixado de comparar. Um
+        // token sem `source` não tem endereço canônico: é IMPROVÁVEL por
+        // construção, e improvável ≠ provado. Fica erro. FP medido = 0 (169 de 169
+        // folhas do corpus canônico têm `source` em 2026-08-14), e o `$description`
+        // dos dois arquivos já mandava citar o escopo em `source` desde a origem —
+        // isto passa a cobrar o que a fonte já declarava.
+        errors.push({ path, kind: 'sem-source' });
         continue;
       }
       const file = fileOfSource(src);
@@ -218,28 +349,30 @@ function main() {
     }
   }
 
+  // `skipped` não existe mais: não há terceira categoria. Cada folha DTCG sai deste
+  // laço como `proven` ou como `errors` — o denominador é fechado, e é isso que
+  // deixa a frase "todos fiéis" abaixo ser verdadeira sobre o corpus inteiro.
   const summary = {
     proven: proven.length,
     divergences: errors.length,
-    skipped: skipped.length,
     ok: errors.length === 0,
   };
 
   if (JSON_OUT) {
-    console.log(JSON.stringify({ summary, errors, skipped: DETAIL ? skipped : undefined }, null, 2));
+    console.log(JSON.stringify({ summary, errors }, null, 2));
   } else {
     console.log(`DTCG ↔ CSS canônico — equivalência escopo-aware`);
     console.log(`  provados iguais : ${proven.length} (light+dark)`);
     console.log(`  divergências    : ${errors.length}`);
-    console.log(`  pulados         : ${skipped.length}`);
-    if (DETAIL && skipped.length) {
-      for (const s of skipped) console.log(`    · pulado ${s.path}: ${s.reason}`);
-    }
     if (errors.length) {
       console.log(`\n✗ DIVERGÊNCIAS (DTCG não bate com a fonte CSS):`);
       for (const e of errors) {
         if (e.kind === 'valor-divergente' || e.kind === 'valor-dark-divergente') {
           console.log(`  ${e.scope} ${e.var} (${e.file}) [${e.path}]\n      DTCG: ${e.dtcg}\n      CSS : ${e.css}`);
+        } else if (e.kind === 'sem-source') {
+          console.log(`  sem-source [${e.path}] — sem $extensions."com.oimpresso.source", logo sem`);
+          console.log(`      endereço canônico para comparar. Declare o escopo (ex "inertia.css`);
+          console.log(`      @theme --minha-var") ou rode --schema, que aponta o mesmo na origem.`);
         } else {
           console.log(`  ${e.kind}: ${e.var ?? ''} (${e.file ?? ''}) [${e.path}] ${e.src ?? ''}`);
         }
@@ -252,4 +385,5 @@ function main() {
   process.exit(errors.length ? 1 : 0);
 }
 
-main();
+if (SCHEMA_MODE) await mainSchema();
+else main();

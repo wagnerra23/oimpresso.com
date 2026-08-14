@@ -49,7 +49,11 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { resolveAncora } from './ancora.mjs';
 import { SNIPPET, rotulosDistintivos, overlapConteudo } from './style-fingerprint.mjs';
-import { computeGitSha } from './gerar-map.mjs';
+// shaBate junto do computeGitSha: o baseline LEGADO guarda o sha ABREVIADO (10 chars) que o
+// `%h` produzia antes de 2026-08-14; hoje o `computeGitSha` emite `%H` (40). Comparar por `===`
+// acusa STALE em 9/9 baselines onde o salvo é PREFIXO do atual — o sha não mudou, o FORMATO
+// mudou. `shaBate` aceita o abreviado como prefixo (contrato de abreviação do próprio git).
+import { computeGitSha, shaBate } from './gerar-map.mjs';
 import { acharBundleRoot } from './importar-bundle.mjs';
 import { STAGING_DIR, normalize, contentHash } from './protocolo.config.mjs';
 import { chaveCelula } from './fingerprint-harness.mjs';
@@ -152,7 +156,8 @@ export function verificarBaseline(b, { ancoraAtual = null, shaAtual = null } = {
   }
   if (shaAtual != null && b.prototipo_sha !== 'sem-historico') {
     if (shaAtual === 'sem-historico') warn.push('staleness indeterminada: protótipo sem histórico git rastreável agora');
-    else if (shaAtual !== b.prototipo_sha) drift.push(`STALE: prototipo_sha salvo='${b.prototipo_sha}' · atual='${shaAtual}' — o protótipo re-exportou; regenerar via --gerar`);
+    // shaBate, não `!==`: o salvo pode ser o abreviado legado (prefixo do atual) — ver import.
+    else if (!shaBate(b.prototipo_sha, shaAtual)) drift.push(`STALE: prototipo_sha salvo='${b.prototipo_sha}' · atual='${shaAtual}' — o protótipo re-exportou; regenerar via --gerar`);
   }
   return { ok: drift.length === 0, drift, warn };
 }
