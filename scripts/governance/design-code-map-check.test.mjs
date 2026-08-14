@@ -200,8 +200,19 @@ const dadosFake = {
   totalEstaveis: 0, ancoraveis: 30, totalLinhaOnly: 30, totalComAncora: 0, totalSemAncora: 30,
   totalOptOut: 30, totalDrift: 0, totalPendentes: 1,
 };
-check('publicarResumo sem $GITHUB_STEP_SUMMARY → no-op (rodada local não escreve nada)',
-  publicarResumo(dadosFake, '') === false && publicarResumo(dadosFake, undefined) === false);
+// O caso `undefined` cai no DEFAULT do parâmetro, que lê process.env — logo depende do ambiente:
+// local a env não existe (false), no CI ela existe (true). A 1ª versão deste check assertava só
+// `=== false` e passou local / quebrou no CI (§5 2026-08-07: verde numa plataforma não é veredito).
+// Controlar a env explicitamente torna o controle-negativo determinístico nos dois.
+const envAntes = process.env.GITHUB_STEP_SUMMARY;
+delete process.env.GITHUB_STEP_SUMMARY;
+const semEnv = publicarResumo(dadosFake, undefined);
+process.env.GITHUB_STEP_SUMMARY = join(root, 'step-summary-via-env.md'); // arquivo próprio: não sujar o do check seguinte
+const comEnvDefault = publicarResumo(dadosFake, undefined);
+if (envAntes === undefined) delete process.env.GITHUB_STEP_SUMMARY; else process.env.GITHUB_STEP_SUMMARY = envAntes;
+check('publicarResumo sem destino e sem $GITHUB_STEP_SUMMARY → no-op (não escreve nada)',
+  publicarResumo(dadosFake, '') === false && semEnv === false);
+check('publicarResumo cai no default $GITHUB_STEP_SUMMARY quando a env existe', comEnvDefault === true);
 check('publicarResumo com destino → grava', publicarResumo(dadosFake, sumFile) === true);
 const resumo = readFileSync(sumFile, 'utf8');
 check('resumo publica a COBERTURA 3/15 (denominador -gap.md, não charter)', /\*\*3\/15\*\* \(20%\)/.test(resumo));
