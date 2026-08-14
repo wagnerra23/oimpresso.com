@@ -1,0 +1,64 @@
+/* =============================================================================
+   Catálogo Unificado (/products/unificado) — CSS de tela
+   -----------------------------------------------------------------------------
+   Derivado do bloco <style> do protótipo canônico
+   `prototipo-ui/cowork/prototipos/produto/produto-unificado-v2.dc.html`.
+
+   ⚠️ ESCOPADO em `.cat-v2`. O protótipo escreve estas regras em `.cockpit` (ele é
+   uma página só, escopo global não custa nada lá). No app o `.cockpit` é o shell
+   de TODA tela — reescalar `--fs-*` ali mexeria em Vendas, Financeiro, Fiscal e
+   mais. `.cat-v2` é o wrapper desta tela; a cascata chega igual aos filhos e para
+   na porta das outras.
+
+   ⚠️ SEM `!important`, e a ausência é o ponto. No protótipo TODA a régua da tabela
+   (th 12px, corpo 14px, `b` 14/500, `small` 11/1.25, mono 12, padding lateral 16,
+   densidade, foco da linha) precisava de `!important` pra vencer o estilo inline do
+   bundle DS, que é inedítavel de lá. Aqui o componente é nosso: esses valores vivem
+   dentro do `DsDataTable` (`Pages/Produto/_components/ds.tsx`), com a MESMA
+   pixelagem. Sobrou neste arquivo só o que é genuinamente folha de estilo — o que
+   não tem elemento próprio pra receber inline.
+
+   NÃO é bundle Cowork novo: os tokens de cor/tipo do protótipo são byte-idênticos
+   aos de `resources/css/tokens/_generated-cockpit-light.css` (medido 2026-08-14,
+   0 divergências em 38 tokens). Ver
+   `memory/requisitos/Produto/_telas/produto-unificado-visual-comparison.md` §0.
+   ============================================================================= */
+
+/* A escala local da tela. O protótipo redefine a rampa DS pra uma régua mais
+   densa (10/11/12/14/16 no lugar de 10.5/11.5/12.5/13.5/15) — é o que dá a
+   densidade de balcão. Os componentes que leem `var(--fs-N)` (KpiFilterCard)
+   herdam daqui sem saber. */
+.cat-v2 {
+  --fs-1: 10px;
+  --fs-2: 11px;
+  --fs-3: 12px;
+  --fs-4: 14px;
+  --fs-5: 16px;
+}
+
+.cat-v2 a { color: var(--accent); text-decoration: none; }
+.cat-v2 a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* Os números das stats do PageHeader — 12px, não os 13px herdados do parágrafo.
+   O `<strong>` é do componente canon e não aceita estilo inline por prop. */
+.cat-v2 strong { font-size: 12px; }
+
+/* A TabBar mora colada no PageHeader, que já traz a própria borda inferior —
+   sem isso ficam duas linhas de 1px empilhadas. */
+.cat-v2 .barra nav { border-bottom: 0; }
+
+/* Rótulos do KpiFilterCard cortam com reticências: com 5 cards em 1280px,
+   quebrar linha desalinharia a régua. (O tamanho já vem de --fs-1 acima.) */
+.cat-v2 .kpis button > span > span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cat-v2 .pag button:disabled { opacity: .35; cursor: default; }
+
+/* Shimmer do DsSkeleton — @keyframes não existe como estilo inline. */
+@keyframes ds-shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}

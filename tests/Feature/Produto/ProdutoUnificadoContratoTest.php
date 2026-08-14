@@ -346,3 +346,60 @@ it('UC-PUNI-06 · a tela exige product.view (ou product.create, como a lista irm
         . 'nada — o TODO está em routes/web.php:449.'
     );
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UC-PUNI-07 / UC-PUNI-08 — nascem em 2026-08-14 junto com o porte de fidelidade
+// ao protótipo v2. Os dois defendem ACHADOS reais, não hipóteses: o §3 do
+// comparativo visual mediu a tela afirmando coisas que os dados não sustentavam.
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('UC-PUNI-07 · o card "Populares · 30d" e a coluna 30d contam o MESMO período', function () {
+    // Até 2026-08-14 `uses30` saía `0` chumbado na linha enquanto os KPIs contavam de
+    // verdade (`vendas30d()` soma transaction_sell_lines dos últimos 30 dias). Efeito na
+    // tela: o card dizia "N produtos com 30+ saídas", o operador clicava, e TODAS as
+    // linhas mostravam 0. Card e lista discordando sobre o mesmo fato, na mesma tela.
+    //
+    // O assert é de COERÊNCIA, não de valor: não fixa quantos produtos populares o seed
+    // tem (isso apodreceria a cada mudança de fixture). Fixa que, filtrando pelo recorte
+    // `populares`, nenhuma linha pode voltar com giro 0 — porque o predicado que contou o
+    // card é o mesmo que filtrou a lista (`aplicarRecorte`).
+    $props = unificadoContratoProps($this, ['produtos'], ['tela' => 'produtos', 'kpi' => 'populares']);
+
+    expect($props)->toHaveKey('produtos');
+    $linhas = $props['produtos'];
+
+    if ($linhas === []) {
+        // Seed sem venda nos últimos 30d — o caso não é exercitável, e dizer isso é mais
+        // honesto que passar por vacuidade (uma lista vazia satisfaz qualquer forall).
+        $this->markTestSkipped('Nenhum produto no recorte "populares" neste seed — sem cenário pra medir coerência.');
+    }
+
+    foreach ($linhas as $linha) {
+        expect($linha)->toHaveKey('uses30');
+        expect((float) $linha['uses30'])->toBeGreaterThan(
+            0.0,
+            'Produto apareceu no recorte "Populares · 30d" com uses30 = 0. O card e a coluna '
+            . 'saem de fontes diferentes — era o `uses30 => 0` chumbado em ProdutoUnificadoController. '
+            . 'Ver produto-unificado-visual-comparison.md §3.1.'
+        );
+    }
+});
+
+it('UC-PUNI-08 · o badge das abas não conta o que o usuário não pode ver', function () {
+    // O TabBar do protótipo mostra a contagem ao lado do rótulo. Sem gate, o badge de
+    // "Tabelas de preço" entregaria QUANTAS tabelas o negócio tem justamente a quem o
+    // UC-PUNI-03 manda esconder a lista — vazamento pela borda, com 2 caracteres.
+    // Badge é payload como qualquer outro.
+    if ($this->user->can('access_default_selling_price')) {
+        $this->markTestSkipped('User seedado JÁ tem access_default_selling_price — sem cenário pra provar o gate.');
+    }
+
+    $props = unificadoContratoProps($this, ['contagens'], ['tela' => 'produtos']);
+
+    expect($props)->toHaveKey('contagens');
+    expect((int) $props['contagens']['tabelas'])->toBe(
+        0,
+        'O badge da aba "Tabelas de preço" entregou a contagem a um usuário sem '
+        . 'access_default_selling_price — o mesmo dado que o UC-PUNI-03 esconde da lista.'
+    );
+});

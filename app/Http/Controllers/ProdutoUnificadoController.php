@@ -11,6 +11,7 @@ use App\TransactionSellLine;        // histórico de uso (consumo de produto em 
 use App\Utils\ModuleUtil;           // camada 1 (módulo no pacote do business)
 use App\Variation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Manufacturing\Entities\MfgRecipe;            // BOM real do UltimatePOS Mfg
@@ -66,7 +67,17 @@ class ProdutoUnificadoController extends Controller
      * `variations` (que duplica linha em produto com variação) e `estoque`/`30d` ainda são
      * null/0 no map. A tela NÃO desenha seta nessas: controle que não faz nada mente.
      */
-    private const ORDENAVEIS = ['sku' => 'sku', 'name' => 'name'];
+    private const ORDENAVEIS = [
+        'sku'     => 'products.sku',
+        'produto' => 'products.name',
+        // Chegam por subquery/joinSub em produtos() — não são colunas de `products`.
+        // `preco` e `custo` saem de `variations` por SUBQUERY escalar (não join): join em
+        // `variations` DUPLICA a linha de produto com variação, e a lista passaria a contar
+        // errado no `paginate()`. `uses` e `estoque` vêm de agregados já joinados.
+        'preco'   => 'ord_preco',
+        'custo'   => 'ord_margem',
+        'uses'    => 'uses30',
+    ];
 
     /**
      * Memo do resultado paginado — as props `produtos` e `paginacao` leem a MESMA query.
@@ -99,16 +110,20 @@ class ProdutoUnificadoController extends Controller
 
         $filters = [
             'tela'      => $request->string('tela', 'produtos')->toString(),
-            'tab'       => $request->string('tab', 'all')->toString(),
             'busca'     => $request->string('busca', '')->toString(),
             'categoria' => $request->integer('categoria') ?: null,
-            'view'      => $request->string('view', 'table')->toString(),
-            'densidade' => $request->string('densidade', 'comfortable')->toString(),
+            // Os dois menus que o protótipo tem e a tela não tinha. Allowlist, não string
+            // livre: os dois valores vão pra cláusula WHERE.
+            'situacao'  => in_array($s = $request->string('situacao', '')->toString(), ['ativo', 'inativo'], true) ? $s : '',
+            'estoque'   => in_array($e = $request->string('estoque', '')->toString(), ['estoque', 'demanda'], true) ? $e : '',
+            // Vocabulário do protótipo (compact|normal|comfy), que é o que o `data-d` da
+            // tabela lê. O antigo `comfortable/cozy` não casava com nenhum seletor CSS.
+            'densidade' => in_array($d = $request->string('densidade', 'normal')->toString(), ['compact', 'normal', 'comfy'], true) ? $d : 'normal',
             // Paginação: `por_pagina` é VALIDADO contra as opções que a UI oferece — querystring
             // é entrada de usuário, e `?por_pagina=99999` viraria o `limit(500)` de volta.
             'pagina'     => max(1, $request->integer('pagina') ?: 1),
             'kpi'        => $request->string('kpi', '')->toString() ?: null,
-            'ordem'      => array_key_exists($o = $request->string('ordem', 'name')->toString(), self::ORDENAVEIS) ? $o : 'name',
+            'ordem'      => array_key_exists($o = $request->string('ordem', 'produto')->toString(), self::ORDENAVEIS) ? $o : 'produto',
             'dir'        => $request->string('dir', 'asc')->toString() === 'desc' ? 'desc' : 'asc',
             'por_pagina' => in_array($pp = $request->integer('por_pagina') ?: 20, self::POR_PAGINA_OPCOES, true)
                 ? $pp
@@ -145,6 +160,10 @@ class ProdutoUnificadoController extends Controller
             // embrulhar a lista num objeto quebraria os 7 casos que acabaram de entrar (#5597).
             'paginacao'  => Inertia::defer(fn () => $this->produtos($business_id, $filters, $podeVerCusto, $podeVerPreco, $podeVerBom)['meta']),
             'categorias' => fn () => $this->categorias($business_id),
+            // Badge de cada aba do TabBar. Closure (não defer): são 5 COUNTs simples, e o
+            // partial reload do setSubTela PEDE esta prop — deferir aqui faria o badge
+            // piscar a cada troca de sub-tela.
+            'contagens'  => fn () => $this->contagens($business_id, $podeVerPreco, $podeVerBom),
             // UC-PUNI-04 / UC-PUNI-03: a sub-tela inteira não é servida sem o direito.
             // O gate é aqui (e não dentro do helper) pra que a prop nasça `[]` sem custo de query.
             'insumos'    => $filters['tela'] === 'insumos'   && $podeVerBom  ? $this->insumos($business_id, $podeVerCusto) : [],
@@ -282,28 +301,100 @@ class ProdutoUnificadoController extends Controller
             return $this->produtosPaginados;
         }
 
-        $q = Product::where('business_id', $business_id)
-            ->with(['category:id,name', 'brand:id,name', 'unit:id,short_name', 'variations']);
-
-        match ($f['tab']) {
-            'active'   => $q->active(),
-            'inactive' => $q->inactive(),
-            'lowstock' => $q,  // TODO [CL]: join variation_location_details where qty_available <= alert_quantity
-            default    => null,
-        };
+        $q = Product::where('products.business_id', $business_id)
+            ->with(['category:id,name', 'brand:id,name', 'unit:id,short_name', 'variations'])
+            ->select('products.*')
+            /*
+             * `uses30` REAL — o achado §3.1 do comparativo visual. Até 2026-08-14 a linha saía
+             * com `0` chumbado enquanto os KPIs "Populares · 30d" e "Sem giro" contavam de
+             * verdade pelo mesmo período: o card dizia "N com 30+ saídas", o usuário clicava, e
+             * a lista mostrava 0 em todas as linhas. Card e lista discordando na mesma tela.
+             *
+             * `leftJoinSub` e não map da coleção `vendas30d()`: o valor precisa existir em SQL
+             * pra `?ordem=uses` poder ordenar ANTES do `paginate()`. Ordenar em PHP ordenaria
+             * só a página corrente — que é o bug clássico de "ordenei e o maior sumiu".
+             * COALESCE porque produto sem venda não tem linha no agregado, e ausência aqui é 0
+             * de verdade (não vendeu), diferente do estoque abaixo.
+             */
+            ->leftJoinSub(
+                TransactionSellLine::query()
+                    ->join('transactions as t30', 't30.id', '=', 'transaction_sell_lines.transaction_id')
+                    ->where('t30.business_id', $business_id)
+                    ->where('t30.type', 'sell')
+                    ->where('t30.status', 'final')
+                    ->where('t30.transaction_date', '>=', now()->subDays(30))
+                    ->groupBy('transaction_sell_lines.product_id')
+                    ->selectRaw('transaction_sell_lines.product_id as pid, SUM(transaction_sell_lines.quantity) as qtd'),
+                'v30',
+                'v30.pid',
+                '=',
+                'products.id'
+            )
+            ->selectRaw('COALESCE(v30.qtd, 0) as uses30')
+            /*
+             * `stockQty` REAL — achado §3.2. Era `null` fixo, então TODA linha que controla
+             * estoque mostrava "—". Soma `qty_available` das localizações do business.
+             *
+             * ⚠️ O `null` continua existindo e é SIGNIFICATIVO: produto que não tem linha em
+             * `variation_location_details` (nunca movimentou) sai NULL, e a tela imprime "—"
+             * = desconhecido. Só quem tem linha soma — inclusive pra 0. NÃO trocar por
+             * COALESCE(...,0): isso afirmaria "estoque zerado" pra quem nunca movimentou, que
+             * é exatamente a mentira que o "—" evita.
+             *
+             * Leitura pura: nenhuma escrita, nenhuma movimentação, nenhuma reserva.
+             */
+            ->leftJoinSub(
+                DB::table('variation_location_details as vld')
+                    ->join('business_locations as bl', 'bl.id', '=', 'vld.location_id')
+                    ->where('bl.business_id', $business_id)
+                    ->groupBy('vld.product_id')
+                    ->selectRaw('vld.product_id as pid, SUM(vld.qty_available) as qty'),
+                'vstock',
+                'vstock.pid',
+                '=',
+                'products.id'
+            )
+            ->selectRaw('vstock.qty as stock_qty')
+            // Preço e margem pra ORDENAÇÃO. Subquery escalar (`limit 1`), não join: join em
+            // `variations` duplicaria a linha do produto com variação e estouraria o total().
+            ->selectSub(
+                Variation::query()
+                    ->whereColumn('variations.product_id', 'products.id')
+                    ->orderByRaw("CASE WHEN variations.name = 'DUMMY' THEN 0 ELSE 1 END")
+                    ->limit(1)
+                    ->select('sell_price_inc_tax'),
+                'ord_preco'
+            )
+            ->selectSub(
+                Variation::query()
+                    ->whereColumn('variations.product_id', 'products.id')
+                    ->orderByRaw("CASE WHEN variations.name = 'DUMMY' THEN 0 ELSE 1 END")
+                    ->limit(1)
+                    // Margem, não custo: ordenar por "custo/margem" na tela é ordenar pelo
+                    // percentual, que é o que a coluna destaca em cor. Guarda de divisão por
+                    // zero — produto sem preço não pode derrubar o ORDER BY.
+                    ->selectRaw('CASE WHEN sell_price_inc_tax > 0 THEN (sell_price_inc_tax - default_purchase_price) / sell_price_inc_tax ELSE NULL END'),
+                'ord_margem'
+            );
 
         // O recorte do KPI clicado usa o MESMO predicado que contou o card (aplicarRecorte).
         $this->aplicarRecorte($q, $f['kpi'] ?? null, $business_id);
 
-        if ($f['categoria']) $q->where('category_id', $f['categoria']);
+        if ($f['categoria']) $q->where('products.category_id', $f['categoria']);
+        // Menu Situação do protótipo. `active()`/`inactive()` são os scopes do UltimatePOS.
+        if ($f['situacao'] === 'ativo') $q->active();
+        if ($f['situacao'] === 'inativo') $q->inactive();
+        // Menu Estoque: `enable_stock` é o mesmo campo que o recorte "Sob demanda" usa.
+        if ($f['estoque'] === 'estoque') $q->where('products.enable_stock', 1);
+        if ($f['estoque'] === 'demanda') $q->where('products.enable_stock', 0);
         if ($f['busca']) {
             $q->where(function ($qq) use ($f) {
-                $qq->where('name', 'like', "%{$f['busca']}%")
-                   ->orWhere('sku', 'like', "%{$f['busca']}%");
+                $qq->where('products.name', 'like', "%{$f['busca']}%")
+                   ->orWhere('products.sku', 'like', "%{$f['busca']}%");
             });
         }
 
-        $pagina = $q->orderBy(self::ORDENAVEIS[$f['ordem']] ?? 'name', $f['dir'])->paginate(
+        $pagina = $q->orderBy(self::ORDENAVEIS[$f['ordem']] ?? 'products.name', $f['dir'])->paginate(
             perPage: $f['por_pagina'],
             pageName: 'pagina',
             page: $f['pagina'],
@@ -323,8 +414,12 @@ class ProdutoUnificadoController extends Controller
                     'cat_label'  => $p->category?->name,
                     'unit'       => $p->unit?->short_name ?? 'un',
                     'stockKind'  => $p->enable_stock ? 'estoque' : 'sob_demanda',
-                    'stockQty'   => null, // TODO [CL]: somar variation_location_details.qty_available
-                    'uses30'     => 0,    // TODO [CL]: agregação cached
+                    // `stock_qty` e `uses30` são aliases dos agregados joinados acima — lidos
+                    // por getAttribute() porque não são colunas de `products`.
+                    // NULL preservado de propósito: "—" na tela = desconhecido (nunca
+                    // movimentou), que é diferente de 0 = "acabou". Ver o comentário do joinSub.
+                    'stockQty'   => $p->getAttribute('stock_qty') === null ? null : (float) $p->getAttribute('stock_qty'),
+                    'uses30'     => (float) $p->getAttribute('uses30'),
                     'active'     => $p->is_inactive == 0,
                     'updated'    => $p->updated_at?->locale('pt_BR')->isoFormat('DD MMM'),
                 ];
@@ -391,6 +486,38 @@ class ProdutoUnificadoController extends Controller
      * TODO: quando alguém extrair um Service/scope de categorias-com-contagem, apagar esta
      * cópia e consumir a fonte única. Enquanto forem duas, mudança numa exige a outra.
      */
+    /**
+     * Badge de cada aba do TabBar (o protótipo mostra a contagem ao lado do rótulo).
+     *
+     * As sub-telas gateadas contam **0** quando o usuário não tem o direito — e isso é
+     * deliberado: mostrar "4" ao lado de "Tabelas de preço" pra quem não pode vê-las
+     * entregaria, pelo badge, exatamente o que o UC-PUNI-03 manda esconder (quantas
+     * tabelas o negócio tem). Badge é payload como qualquer outro.
+     *
+     * @return array<string,int>
+     */
+    private function contagens(int $business_id, bool $podeVerPreco, bool $podeVerBom): array
+    {
+        return [
+            'produtos'   => Product::where('business_id', $business_id)->count(),
+            'categorias' => Category::where('business_id', $business_id)
+                ->where('category_type', 'product')->where('parent_id', 0)->count(),
+            'insumos'    => $podeVerBom
+                ? Product::where('business_id', $business_id)->where('not_for_selling', 1)->count()
+                : 0,
+            'tabelas'    => $podeVerPreco
+                ? SellingPriceGroup::where('business_id', $business_id)->count()
+                : 0,
+            'historico'  => TransactionSellLine::query()
+                ->join('transactions as th', 'th.id', '=', 'transaction_sell_lines.transaction_id')
+                ->where('th.business_id', $business_id)
+                ->where('th.type', 'sell')
+                ->where('th.status', 'final')
+                ->where('th.transaction_date', '>=', now()->subDays(30))
+                ->count(),
+        ];
+    }
+
     private function categorias(int $business_id): array
     {
         $cats = Category::where('categories.business_id', $business_id)
@@ -405,6 +532,9 @@ class ProdutoUnificadoController extends Controller
             ->leftJoin('products', 'products.category_id', '=', 'categories.id')
             ->groupBy('categories.id', 'categories.name', 'categories.slug')
             ->selectRaw('COUNT(products.id) as count')
+            // Coluna "À venda" do protótipo. `is_inactive` é a mesma coluna que os scopes
+            // active()/inactive() do UltimatePOS usam; contar aqui evita uma 2ª varredura.
+            ->selectRaw('SUM(CASE WHEN products.is_inactive = 0 THEN 1 ELSE 0 END) as ativos')
             ->orderBy('categories.name')
             ->get();
 
@@ -416,7 +546,8 @@ class ProdutoUnificadoController extends Controller
             // pra não introduzir "Access to an undefined property" novo. A mesma leitura em
             // ProductController::buildProdutoIndexCategorias() usa `$c->count` e só passa
             // por estar grandfathered no phpstan-baseline.neon; código novo não herda isenção.
-            'count' => (int) $c->getAttribute('count'),
+            'count'  => (int) $c->getAttribute('count'),
+            'ativos' => (int) $c->getAttribute('ativos'),
         ])->all();
     }
 
@@ -434,6 +565,9 @@ class ProdutoUnificadoController extends Controller
             ->map(function ($p) use ($podeVerCusto) {
                 $linha = [
                     'id'         => $p->id,
+                    // Coluna "Código" do protótipo. O SKU é o identificador que o operador
+                    // lê no balcão; `id` é chave interna e não serve de rótulo.
+                    'codigo'     => (string) ($p->sku ?? $p->id),
                     'name'       => $p->name,
                     'unit'       => $p->unit?->short_name ?? 'un',
                     'stock'      => 0,   // TODO: variation_location_details
@@ -459,13 +593,21 @@ class ProdutoUnificadoController extends Controller
      */
     private function tabelas(int $business_id): array
     {
-        return SellingPriceGroup::where('business_id', $business_id)
-            ->orderBy('name')->get()
+        return SellingPriceGroup::where('selling_price_groups.business_id', $business_id)
+            ->select('selling_price_groups.id', 'selling_price_groups.name', 'selling_price_groups.description', 'selling_price_groups.updated_at')
+            // "Produtos" = quantas VARIAÇÕES têm preço cadastrado nesta tabela. É o número
+            // que responde "esta tabela está em uso?" — o único que a sub-tela pode afirmar
+            // enquanto a ADR do multiplicador não sai (decisão D11, 2026-08-13).
+            ->leftJoin('variation_group_prices as vgp', 'vgp.price_group_id', '=', 'selling_price_groups.id')
+            ->groupBy('selling_price_groups.id', 'selling_price_groups.name', 'selling_price_groups.description', 'selling_price_groups.updated_at')
+            ->selectRaw('COUNT(DISTINCT vgp.variation_id) as vinculados')
+            ->orderBy('selling_price_groups.name')->get()
             ->map(fn ($g) => [
-                'id'    => (string) $g->id,
-                'label' => $g->name,
-                'desc'  => $g->description ?? '',
-                'mult'  => 1.00, // TODO [CL]: ver decisão acima
+                'id'         => (string) $g->id,
+                'label'      => $g->name,
+                'desc'       => $g->description ?? '',
+                'vinculados' => (int) $g->getAttribute('vinculados'),
+                'upd'        => $g->updated_at?->locale('pt_BR')->diffForHumans() ?? '—',
             ])->all();
     }
 

@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/office-impresso-atual-d7f88676-3e1c-47b0-99fe-34d9030ebc76/colors_and_type.css">
+<link rel="stylesheet" href="_ds/office-impresso-atual-d7f88676-3e1c-47b0-99fe-34d9030ebc76/styles.css">
+<script src="_ds/office-impresso-atual-d7f88676-3e1c-47b0-99fe-34d9030ebc76/_ds_bundle.js"></script>
+<style>
+  body { margin: 0; background: oklch(0.985 0.003 90); }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .tbl[data-d="compact"] td { padding-top: 5px !important; padding-bottom: 5px !important; }
+  .tbl[data-d="comfy"] td { padding-top: 16px !important; padding-bottom: 16px !important; }
+  .tbl { overflow-x: auto; }
+  .tbl table { font-variant-numeric: tabular-nums; table-layout: fixed; min-width: 1014px; }
+  .tbl td, .tbl th { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tbl td b { display: block; overflow: hidden; text-overflow: ellipsis; font-size: 14px !important; font-weight: 500 !important; }
+  .tbl td, .tbl th { box-sizing: border-box; padding-left: 16px !important; padding-right: 16px !important; }
+  .tbl th { font-size: 12px !important; }
+  .tbl table { font-size: 14px !important; }
+  .tbl td span[style*="font-mono"] { font-size: 12px !important; }
+  .cockpit strong { font-size: 12px !important; }
+  .cockpit { --fs-1: 10px; --fs-2: 11px; --fs-3: 12px; --fs-4: 14px; --fs-5: 16px; }
+  .tbl td small { font-size: 11px !important; line-height: 1.25 !important; margin-top: 2px !important; }
+  .cockpit h1 { font-weight: 700 !important; line-height: 1.375 !important; }
+  .kpis button > span > span:first-child, .kpis button > span > span:last-child { font-size: 10px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tbl tr:has(.foco) td { background: color-mix(in oklab, var(--accent) 7%, transparent) !important; }
+  .tbl tr:has(.foco) td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+  .barra nav[aria-label="Sub-navegação"] { border-bottom: 0; }
+  .pag button:disabled { opacity: .35; cursor: default; }
+</style>
+</helmet>
+
+<div class="cockpit" ref="{{ raiz }}" style="display:flex; min-height:100vh; background:var(--bg); color:var(--text); font-family:var(--font-sans); font-size:12px; line-height:1.45; -webkit-font-smoothing:antialiased;">
+
+  <main style="flex:1; min-width:0; display:flex; flex-direction:column;">
+
+    <div style="position:sticky; top:0; z-index:20; background:var(--bg); padding:0 24px; border-bottom:1px solid var(--border);">
+      <x-import component-from-global-scope="OfficeImpressoDesignSystem_d7f886.PageHeader" title="Catálogo" stats="{{ stats }}" actions="{{ acoes }}" hint-size="100%,64px"></x-import>
+      <div class="barra">
+        <x-import component-from-global-scope="OfficeImpressoDesignSystem_d7f886.TabBar" tabs="{{ abas }}" active="{{ tela }}" onChange="{{ setTela }}" hint-size="100%,34px"></x-import>
+      </div>
+    </div>
+
+    <div class="kpis" style="display:grid; grid-template-columns:repeat(5, 1fr); gap:12px; margin:12px 24px 0;">
+      <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="5">
+        <x-import component-from-global-scope="OfficeImpressoDesignSystem_d7f886.KpiFilterCard" label="{{ k.label }}" value="{{ k.value }}" sub="{{ k.sub }}" tone="{{ k.tone }}" icon="{{ k.icon }}" selected="{{ k.selected }}" onClick="{{ k.onClick }}" hint-size="100%,64px"></x-import>
+      </sc-for>
+    </div>
+
+    <div style="margin:12px 24px 0; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:8px; min-width:0;">
+        <span>{{ menuCategoria }}</span>
+        <span>{{ menuSituacao }}</span>
+        <span>{{ menuEstoque }}</span>
+        <span style="font-size:11px; color:var(--text-mute); font-variant-numeric:tabular-nums; padding-left:4px;">{{ contagemFiltro }}</span>
+      </div>
+      <div ref="{{ buscaRef }}" style="margin-left:auto; flex:0 1 300px; min-width:220px;">
+        <x-import component-from-global-scope="OfficeImpressoDesignSystem_d7f886.Input" value="{{ busca }}" onChange="{{ onBusca }}" placeholder="Buscar por nome, SKU ou insumo…   /" hint-size="100%,34px"></x-import>
+      </div>
+    </div>
+
+    <sc-if value="{{ temChips }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:8px 24px 0; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+        <sc-for list="{{ chips }}" as="c" hint-placeholder-count="2">
+          <span>{{ c.node }}</span>
+        </sc-for>
+        <button type="button" onClick="{{ limparTudo }}" style="height:24px; padding:0 4px; border:0; background:transparent; color:var(--text-dim); font-family:var(--font-sans); font-size:11px; text-decoration:underline; text-underline-offset:3px; cursor:pointer;" style-hover="color:var(--text);">limpar tudo</button>
+      </div>
+    </sc-if>
+
+    <div style="flex:1; min-height:0; padding:12px 24px 24px;">
+
+      <sc-if value="{{ carregando }}" hint-placeholder-val="{{ false }}">
+        <div style="border:1px solid var(--border); border-radius:12px; background:var(--surface); padding:14px 16px;">
+          <x-import component-from-global-scope="OfficeImpressoDesignSystem_d7f886.Skeleton" variant="row" count="{{ 8 }}" hint-size="100%,340px"></x-import>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ comErro }}" hint-placeholder-val="{{ false }}">
+        <x-import component-from-global-scope="OfficeImpressoDesignSystem_d7f886.EmptyState" variant="error" title="Não deu pra carregar o catálogo" description="A consulta ao servidor falhou. Nada foi alterado — é só tentar de novo." action="{{ acaoRetry }}" hint-size="100%,240px"></x-import>
+      </sc-if>
+
+      <sc-if value="{{ vazio }}" hint-placeholder-val="{{ false }}">
+        <x-import component-from-global-scope="OfficeImpressoDesignSystem_d7f886.EmptyState" variant="{{ vazioVariante }}" title="{{ vazioTitulo }}" description="{{ vazioTexto }}" action="{{ vazioAcao }}" hint-size="100%,240px"></x-import>
+      </sc-if>
+
+      <sc-if value="{{ temTabela }}" hint-placeholder-val="{{ true }}">
+        <div style="border:1px solid var(--border); border-radius:12px; background:var(--surface); box-shadow:var(--sh-1); overflow:hidden;">
+          <sc-if value="{{ notaTabelas }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:12px 12px 0;">
+              <x-import component-from-global-scope="OfficeImpressoDesignSystem_d7f886.Alert" tone="info" title="Multiplicador aguarda decisão de schema" hint-size="100%,auto">Enquanto a ADR não sai, esta sub-tela lista as tabelas cadastradas sem calcular preço derivado.</x-import>
+            </div>
+          </sc-if>
+          <div class="tbl" data-d="{{ densidade }}">
+            <x-import component-from-global-scope="OfficeImpressoDesignSystem_d7f886.DataTable" columns="{{ colunas }}" rows="{{ linhas }}" onRowClick="{{ onLinha }}" sortKey="{{ sortKey }}" sortDir="{{ sortDir }}" onSort="{{ onSort }}" hint-size="100%,420px"></x-import>
+          </div>
+        </div>
+
+        <div class="pag" style="margin-top:12px; display:flex; align-items:center; gap:10px;">
+            <button type="button" onClick="{{ abrirAjuda }}" aria-label="Atalhos de teclado" style="width:24px; height:24px; display:grid; place-items:center; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--text-mute); cursor:pointer;" style-hover="color:var(--accent); border-color:var(--accent);">{{ icoTeclado }}</button>
+            <button type="button" onClick="{{ abrirAjuda }}" aria-label="Todos os atalhos" style="width:24px; height:24px; display:grid; place-items:center; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--text-mute); font:600 11px/1 var(--font-mono); cursor:pointer;" style-hover="color:var(--accent); border-color:var(--accent);">?</button>
+            <span style="font-size:11px; color:var(--text-dim); font-variant-numeric:tabular-nums;">{{ resumoPag }}</span>
+            <div style="margin-left:auto; display:flex; align-items:center; gap:10px;">
+              <span style="font-size:11px; color:var(--text-mute);">Por página</span>
+              <div style="width:78px;">
+                <x-import component-from-global-scope="OfficeImpressoDesignSystem_d7f886.Select" value="{{ pageSizeStr }}" onChange="{{ onPageSizeSel }}" options="{{ opcoesPagina }}" hint-size="100%,30px"></x-import>
+              </div>
+              <div style="display:flex; align-items:center; gap:3px;">
+                <button type="button" aria-label="Primeira página" onClick="{{ irPrimeira }}" disabled="{{ semAnterior }}" style="width:28px; height:28px; display:grid; place-items:center; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--text-dim); font:500 11px/1 var(--font-mono); cursor:pointer;">«</button>
+                <button type="button" aria-label="Página anterior" onClick="{{ irAnterior }}" disabled="{{ semAnterior }}" style="width:28px; height:28px; display:grid; place-items:center; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--text-dim); font:500 11px/1 var(--font-mono); cursor:pointer;">‹</button>
+                <span style="min-width:62px; text-align:center; font:500 11px/1 var(--font-mono); color:var(--text); font-variant-numeric:tabular-nums;">{{ paginaLabel }}</span>
+                <button type="button" aria-label="Próxima página" onClick="{{ irProxima }}" disabled="{{ semProxima }}" style="width:28px; height:28px; display:grid; place-items:center; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--text-dim); font:500 11px/1 var(--font-mono); cursor:pointer;">›</button>
+                <button type="button" aria-label="Última página" onClick="{{ irUltima }}" disabled="{{ semProxima }}" style="width:28px; height:28px; display:grid; place-items:center; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--text-dim); font:500 11px/1 var(--font-mono); cursor:pointer;">»</button>
+              </div>
+            </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </main>
+
+  <x-import component-from-global-scope="OfficeImpressoDesignSystem_d7f886.Drawer" open="{{ drawerAberto }}" onClose="{{ fecharDrawer }}" width="{{ larguraDrawer }}" badge="{{ dSku }}" title="{{ dNome }}" subtitle="{{ dSub }}" footer="{{ dRodape }}" hint-size="760px,100%">
+    <x-import component-from-global-scope="OfficeImpressoDesignSystem_d7f886.DrawerSection" title="Preço e margem" hint-size="100%,auto">
+      <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px;">
+        <sc-for list="{{ dNumeros }}" as="n" hint-placeholder-count="4">
+          <div style="border:1px solid var(--border); border-radius:8px; background:var(--bg-2); padding:10px 12px;">
+            <div style="font:600 10px/1.2 var(--font-sans); letter-spacing:.07em; text-transform:uppercase; color:var(--text-mute);">{{ n.label }}</div>
+            <div style="font:600 18px/1.2 var(--font-sans); font-variant-numeric:tabular-nums; margin-top:5px; color:{{ n.cor }};">{{ n.valor }}</div>
+            <div style="font:400 11px/1.3 var(--font-sans); color:var(--text-mute); margin-top:3px;">{{ n.sub }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </x-import>
+
+    <x-import component-from-global-scope="OfficeImpressoDesignSystem_d7f886.DrawerSection" title="Composição (BOM)" hint-size="100%,auto">
+      <sc-if value="{{ dTemBom }}" hint-placeholder-val="{{ true }}">
+        <div style="border:1px solid var(--border); border-radius:8px; overflow:hidden;">
+          <sc-for list="{{ dBom }}" as="b" hint-placeholder-count="3">
+            <div style="display:flex; align-items:baseline; gap:12px; padding:9px 12px; border-bottom:1px solid var(--border-2);">
+              <span style="flex:1; min-width:0; font-size:11px; color:var(--text);">{{ b.nome }}</span>
+              <span style="font:500 11px/1 var(--font-mono); color:var(--text-dim); font-variant-numeric:tabular-nums;">{{ b.qtd }}</span>
+              <span style="width:88px; text-align:right; font:500 11px/1 var(--font-mono); color:var(--text-dim); font-variant-numeric:tabular-nums;">{{ b.custo }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ dSemBom }}" hint-placeholder-val="{{ false }}">
+        <div style="border:1px dashed var(--border); border-radius:8px; padding:12px; font-size:11px; color:var(--text-mute);">Sem ficha de composição. O custo vem da última compra.</div>
+      </sc-if>
+    </x-import>
+
+    <x-import component-from-global-scope="OfficeImpressoDesignSystem_d7f886.DrawerSection" title="Especificações" hint-size="100%,auto">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:9px 20px;">
+        <sc-for list="{{ dSpecs }}" as="s" hint-placeholder-count="6">
+          <div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding-bottom:6px; border-bottom:1px dotted var(--border);">
+            <span style="font-size:11px; color:var(--text-mute);">{{ s.label }}</span>
+            <span style="font-size:11px; color:var(--text); font-variant-numeric:tabular-nums; text-align:right;">{{ s.valor }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </x-import>
+
+    <x-import component-from-global-scope="OfficeImpressoDesignSystem_d7f886.DrawerSection" title="Consumo em OS · últimos 30 dias" hint-size="100%,auto">
+      <sc-if value="{{ dTemUso }}" hint-placeholder-val="{{ true }}">
+        <div style="border:1px solid var(--border); border-radius:8px; overflow:hidden;">
+          <sc-for list="{{ dUso }}" as="u" hint-placeholder-count="4">
+            <div style="display:flex; align-items:baseline; gap:12px; padding:9px 12px; border-bottom:1px solid var(--border-2);">
+              <span style="width:74px; flex:none; font:500 11px/1 var(--font-mono); color:var(--text-dim); font-variant-numeric:tabular-nums;">{{ u.data }}</span>
+              <span style="width:82px; flex:none; font:500 11px/1 var(--font-mono); color:var(--accent);">{{ u.os }}</span>
+              <span style="flex:1; min-width:0; font-size:11px; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ u.cliente }}</span>
+              <span style="font:500 11px/1 var(--font-mono); color:var(--text-dim); font-variant-numeric:tabular-nums;">{{ u.qtd }}</span>
+              <span style="width:88px; text-align:right; font:600 11px/1 var(--font-mono); font-variant-numeric:tabular-nums;">{{ u.valor }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ dSemUso }}" hint-placeholder-val="{{ false }}">
+        <div style="border:1px dashed var(--border); border-radius:8px; padding:12px; font-size:11px; color:var(--text-mute);">Nenhuma saída em 30 dias.</div>
+      </sc-if>
+    </x-import>
+  </x-import>
+
+  <sc-if value="{{ ajudaAberta }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ fecharAjuda }}" style="position:fixed; inset:0; z-index:70; background:oklch(0.22 0.01 80 / .38); display:grid; place-items:center; padding:24px;">
+      <div style="width:440px; max-width:100%; background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:0 24px 60px rgba(0,0,0,.18); overflow:hidden;">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border);">
+          <span style="font:600 13px/1.3 var(--font-sans);">Atalhos</span>
+          <span style="font:500 11px/1 var(--font-mono); color:var(--text-mute);">Esc fecha</span>
+        </div>
+        <div style="padding:8px 16px 14px;">
+          <sc-for list="{{ atalhos }}" as="a" hint-placeholder-count="7">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; padding:7px 0; border-bottom:1px solid var(--border-2);">
+              <span style="font-size:11px; color:var(--text);">{{ a.acao }}</span>
+              <kbd style="font:600 11px/1 var(--font-mono); color:var(--text-dim); background:var(--bg-2); border:1px solid var(--border); border-radius:4px; padding:4px 7px;">{{ a.tecla }}</kbd>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ temToast }}" hint-placeholder-val="{{ false }}">
+    <x-import component-from-global-scope="OfficeImpressoDesignSystem_d7f886.Toast" tone="{{ toastTom }}" hint-size="auto,auto">{{ toastMsg }}</x-import>
+  </sc-if>
+
+  <x-import component-from-global-scope="OfficeImpressoDesignSystem_d7f886.Command" open="{{ cmdAberto }}" onClose="{{ fecharCmd }}" placeholder="Ir para produto, sub-tela ou filtro…" groups="{{ cmdGrupos }}" hint-size="100%,100%"></x-import>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900},&quot;estado&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;cheia&quot;,&quot;carregando&quot;,&quot;vazia&quot;,&quot;erro&quot;],&quot;default&quot;:&quot;cheia&quot;,&quot;tsType&quot;:&quot;'cheia'|'carregando'|'vazia'|'erro'&quot;,&quot;section&quot;:&quot;Estados obrigatórios&quot;},&quot;densidade&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;compact&quot;,&quot;normal&quot;,&quot;comfy&quot;],&quot;default&quot;:&quot;normal&quot;,&quot;tsType&quot;:&quot;'compact'|'normal'|'comfy'&quot;,&quot;section&quot;:&quot;Densidade&quot;}}">
+const NS = window.OfficeImpressoDesignSystem_d7f886 || {};
+const LS = 'oimpresso.produto.lista.';
+const h = React.createElement;
+
+const brl = (n) => 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const pct = (n) => Math.round(n * 100) + '%';
+
+// Nome de produto de gráfica identifica pelo FIM (medida e cores). Se precisar
+// cortar, corta o meio — nunca a ponta que diferencia 9×5cm 4×4 de 8×4cm 1×0.
+const meio = (txt, max) => {
+  if (txt.length <= max) return txt;
+  const fim = Math.min(14, Math.floor(max / 2));
+  return txt.slice(0, max - fim - 1).trimEnd() + '…' + txt.slice(-fim).trimStart();
+};
+
+const CATS = [
+  { key: 'impressos', label: 'Impressos' },
+  { key: 'comunicacao', label: 'Comunicação visual' },
+  { key: 'brindes', label: 'Brindes' },
+  { key: 'acabamento', label: 'Acabamento' },
+  { key: 'servicos', label: 'Serviços' },
+];
+const CAT_LABEL = (k) => (CATS.find(c => c.key === k) || {}).label || '—';
+
+const P = (id, name, cat, unit, price, cost, uses30, active, kind, qty, upd, bom) =>
+  ({ id, name, cat, unit, price, cost, uses30, active, kind, qty, upd, bom: bom || [] });
+
+const PRODUTOS = [
+  P('P-001', 'Cartão de visita 9×5cm 4×4', 'impressos', 'milheiro', 189.00, 71.40, 62, true, 'estoque', 14, '2 dias', [['Couché 300g 66×96', '1,2 folha', 38.90], ['Laminação fosca BOPP', '0,9 m²', 12.40], ['Corte e refile', '1 serviço', 20.10]]),
+  P('P-002', 'Folder A4 frente e verso 4×4', 'impressos', 'milheiro', 640.00, 291.20, 24, true, 'sob_demanda', null, '5 dias', [['Couché 150g A4', '1 milheiro', 210.00], ['Dobra em 3', '1 serviço', 81.20]]),
+  P('P-003', 'Banner lona 440g 1×1m', 'comunicacao', 'm²', 78.00, 33.54, 96, true, 'estoque', 63, 'ontem', [['Lona 440g brilho', '1,05 m²', 21.30], ['Tinta solvente', '1 aplicação', 6.24], ['Ilhós + bastão', '1 kit', 6.00]]),
+  P('P-004', 'Adesivo vinil recortado', 'comunicacao', 'm²', 96.00, 42.24, 71, true, 'estoque', 40, 'ontem', [['Vinil branco 0,08mm', '1,1 m²', 27.40], ['Aplicação transfer', '1 m²', 14.84]]),
+  P('P-005', 'Placa ACM 3mm com impressão', 'comunicacao', 'm²', 340.00, 210.80, 12, true, 'sob_demanda', null, '1 semana', [['Chapa ACM 3mm', '1,05 m²', 168.00], ['Adesivo impresso', '1 m²', 42.80]]),
+  P('P-006', 'Camiseta personalizada DTF', 'brindes', 'unidade', 46.00, 27.14, 138, true, 'estoque', 210, 'hoje', [['Camiseta algodão 30.1', '1 un', 18.90], ['Transfer DTF A4', '1 un', 8.24]]),
+  P('P-007', 'Caneca cerâmica sublimada', 'brindes', 'unidade', 32.00, 17.60, 84, true, 'estoque', 96, '3 dias', [['Caneca branca 325ml', '1 un', 11.20], ['Papel sublimático', '1 folha', 1.40], ['Prensa térmica', '1 ciclo', 5.00]]),
+  P('P-008', 'Chaveiro acrílico personalizado', 'brindes', 'unidade', 12.50, 5.63, 46, true, 'estoque', 340, '4 dias', [['Acrílico 3mm', '0,01 m²', 3.10], ['Corte a laser', '1 peça', 2.53]]),
+  P('P-009', 'Squeeze alumínio 500ml', 'brindes', 'unidade', 38.00, 26.60, 0, false, 'estoque', 22, '14/09', []),
+  P('P-010', 'Bloco de anotações A5 100 folhas', 'impressos', 'unidade', 18.90, 9.83, 31, true, 'estoque', 128, '1 semana', [['Offset 75g A5', '100 folhas', 6.20], ['Colagem topo', '1 serviço', 3.63]]),
+  P('P-011', 'Talão de pedido 2 vias', 'impressos', 'bloco', 34.00, 15.30, 27, true, 'sob_demanda', null, '6 dias', [['Autocopiativo 2 vias', '50 jogos', 11.40], ['Numeração', '1 serviço', 3.90]]),
+  P('P-012', 'Panfleto A6 4×0', 'impressos', 'milheiro', 148.00, 79.92, 58, true, 'sob_demanda', null, '2 dias', [['Couché 115g', '0,25 milheiro', 52.00], ['Refile', '1 serviço', 27.92]]),
+  P('P-013', 'Envelope timbrado ofício', 'impressos', 'cento', 92.00, 57.04, 9, true, 'estoque', 31, '3 semanas', []),
+  P('P-014', 'Laminação fosca sob demanda', 'acabamento', 'm²', 14.00, 6.30, 143, true, 'estoque', 88, 'hoje', []),
+  P('P-015', 'Verniz UV localizado', 'acabamento', 'm²', 26.00, 13.52, 8, true, 'estoque', 16, '2 semanas', []),
+  P('P-016', 'Corte a laser em acrílico', 'acabamento', 'hora', 120.00, 52.80, 34, true, 'sob_demanda', null, '4 dias', []),
+  P('P-017', 'Encadernação wire-o', 'acabamento', 'unidade', 9.50, 5.99, 21, true, 'estoque', 240, '1 semana', []),
+  P('P-018', 'Aplicação de ilhós', 'acabamento', 'unidade', 2.20, 1.65, 0, true, 'estoque', 1200, '1 mês', []),
+  P('P-019', 'Criação de layout', 'servicos', 'hora', 140.00, 42.00, 44, true, 'sob_demanda', null, 'hoje', []),
+  P('P-020', 'Instalação em fachada', 'servicos', 'hora', 180.00, 108.00, 17, true, 'sob_demanda', null, '5 dias', []),
+  P('P-021', 'Projeto de sinalização interna', 'servicos', 'projeto', 1250.00, 812.50, 3, true, 'sob_demanda', null, '2 semanas', []),
+  P('P-022', 'Wind banner 2,8m com base', 'comunicacao', 'unidade', 420.00, 260.40, 6, true, 'sob_demanda', null, '1 semana', [['Tecido sublimado', '2,4 m²', 96.00], ['Estrutura + base', '1 kit', 164.40]]),
+  P('P-023', 'Fachada em lona tensionada', 'comunicacao', 'm²', 165.00, 108.90, 4, true, 'sob_demanda', null, '2 semanas', []),
+  P('P-024', 'Etiqueta adesiva em bobina', 'impressos', 'milheiro', 210.00, 96.60, 39, true, 'estoque', 52, '4 dias', [['Couché adesivo bobina', '1 rolo', 74.00], ['Faca de corte', '1 uso', 22.60]]),
+  P('P-025', 'Ímã de geladeira 7×5cm', 'brindes', 'cento', 88.00, 59.84, 0, false, 'estoque', 8, '22/08', []),
+  P('P-026', 'Display de balcão em PS', 'comunicacao', 'unidade', 76.00, 53.20, 2, true, 'estoque', 11, '3 semanas', []),
+  P('P-027', 'Papel timbrado A4 4×0', 'impressos', 'milheiro', 268.00, 128.64, 15, true, 'sob_demanda', null, '1 semana', []),
+  P('P-028', 'Faixa de inauguração 3×0,7m', 'comunicacao', 'unidade', 195.00, 89.70, 11, true, 'sob_demanda', null, '6 dias', []),
+];
+
+const INSUMOS = [
+  { id: 'I-01', name: 'Couché 300g 66×96', unit: 'folha', cost: 1.86, stock: 4200, forn: 'Papelaria Ipiranga' },
+  { id: 'I-02', name: 'Lona 440g brilho', unit: 'm²', cost: 20.30, stock: 318, forn: 'Vinilex Distribuidora' },
+  { id: 'I-03', name: 'Vinil branco 0,08mm', unit: 'm²', cost: 24.90, stock: 176, forn: 'Vinilex Distribuidora' },
+  { id: 'I-04', name: 'Tinta solvente ciano', unit: 'litro', cost: 168.00, stock: 9, forn: 'InkPrint Suprimentos' },
+  { id: 'I-05', name: 'Camiseta algodão 30.1', unit: 'unidade', cost: 18.90, stock: 412, forn: 'Malharia São Judas' },
+  { id: 'I-06', name: 'Caneca branca 325ml', unit: 'unidade', cost: 11.20, stock: 260, forn: 'Brindes Nacional' },
+  { id: 'I-07', name: 'Chapa ACM 3mm', unit: 'm²', cost: 160.00, stock: 24, forn: 'Alumibras' },
+  { id: 'I-08', name: 'Acrílico cristal 3mm', unit: 'm²', cost: 310.00, stock: 12, forn: 'Acrilnorte' },
+  { id: 'I-09', name: 'Verniz UV', unit: 'litro', cost: 96.00, stock: 16, forn: 'InkPrint Suprimentos' },
+  { id: 'I-10', name: 'Papel sublimático A4', unit: 'folha', cost: 1.40, stock: 1800, forn: 'Papelaria Ipiranga' },
+  { id: 'I-11', name: 'Autocopiativo 2 vias', unit: 'jogo', cost: 0.23, stock: 9400, forn: 'Papelaria Ipiranga' },
+  { id: 'I-12', name: 'Ilhós latão 10mm', unit: 'unidade', cost: 0.42, stock: 6200, forn: 'Ferragens Leste' },
+];
+
+const TABELAS = [
+  { id: 'T-01', label: 'Balcão', desc: 'Preço cheio, venda no balcão', vinculados: 28, upd: 'há 2 meses' },
+  { id: 'T-02', label: 'Atacado', desc: 'Acima de 5 mil unidades', vinculados: 19, upd: 'há 2 meses' },
+  { id: 'T-03', label: 'Agência', desc: 'Parceiros com contrato mensal', vinculados: 22, upd: 'há 3 meses' },
+  { id: 'T-04', label: 'Evento', desc: 'Feiras e ativações pontuais', vinculados: 11, upd: 'há 5 meses' },
+];
+
+const CLIENTES = ['Padaria do Zé', 'Auto Center Martinho', 'Colégio Novo Tempo', 'Rota Livre Transportes', 'Studio Bela Pele', 'Mercado União', 'Academia Corpo em Foco', 'Bar do Português'];
+const HISTORICO = (() => {
+  const out = [];
+  for (let i = 0; i < 42; i++) {
+    const p = PRODUTOS[(i * 5 + 3) % PRODUTOS.length];
+    const dia = 30 - (i % 28);
+    const qtd = 1 + ((i * 7) % 9);
+    out.push({
+      id: 'H-' + i,
+      os: 'OS-' + (2140 + i),
+      data: String(dia).padStart(2, '0') + '/07/2026',
+      prod: p.name, cat: p.cat, unit: p.unit,
+      cliente: CLIENTES[i % CLIENTES.length],
+      qtd, valor: p.price * qtd,
+    });
+  }
+  return out;
+})();
+
+const ATALHOS = [
+  { acao: 'Navegar entre linhas', tecla: 'J / K' },
+  { acao: 'Abrir a ficha da linha', tecla: '↵' },
+  { acao: 'Focar a busca', tecla: '/' },
+  { acao: 'Paleta de comandos', tecla: '⌘K' },
+  { acao: 'Novo produto', tecla: 'N' },
+  { acao: 'Esta lista', tecla: '?' },
+  { acao: 'Fechar ficha, paleta ou lista', tecla: 'Esc' },
+];
+
+const ico = (d, size) => h('svg', { width: size || 16, height: size || 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' },
+  d.map((p, i) => h('path', { key: i, d: p })));
+const ICONES = {
+  caixa: ['M21 8v8a2 2 0 0 1-1 1.73l-7 4a2 2 0 0 1-2 0l-7-4A2 2 0 0 1 3 16V8a2 2 0 0 1 1-1.73l7-4a2 2 0 0 1 2 0l7 4A2 2 0 0 1 21 8z', 'm3.3 7 8.7 5 8.7-5'],
+  estrela: ['m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9L12 3z'],
+  parado: ['M12 3a9 9 0 1 0 9 9', 'M12 7v5l3 2'],
+  margem: ['M3 17 9 11l4 4 8-8', 'M21 7v6h-6'],
+  relogio: ['M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z', 'M12 7v5l3 2'],
+  lista: ['M8 6h13', 'M8 12h13', 'M8 18h13', 'M3 6h.01', 'M3 12h.01', 'M3 18h.01'],
+  pasta: ['M4 20h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-7.5l-2-2H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2z'],
+  frasco: ['M9 3h6', 'M10 3v6L5.5 17A2 2 0 0 0 7.2 20h9.6a2 2 0 0 0 1.7-3L14 9V3'],
+  etiqueta: ['M20.6 13.4 12 22l-9-9V4a1 1 0 0 1 1-1h9l7.6 7.6a2 2 0 0 1 0 2.8z', 'M7.5 7.5h.01'],
+  historico: ['M3 12a9 9 0 1 0 3-6.7', 'M3 4v4h4', 'M12 8v4l3 2'],
+  teclado: ['M2 6h20v12H2z', 'M6 10h.01', 'M10 10h.01', 'M14 10h.01', 'M18 10h.01', 'M8 14h8'],
+  kebab: ['M12 5h.01', 'M12 12h.01', 'M12 19h.01'],
+  importar: ['M12 15V3', 'M7 8l5-5 5 5', 'M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2'],
+  exportar: ['M12 3v12', 'M7 10l5 5 5-5', 'M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2'],
+  mais: ['M12 5v14', 'M5 12h14'],
+};
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const ler = (k, d) => { try { const v = localStorage.getItem(LS + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } };
+    let q = '';
+    try { q = new URLSearchParams(location.search).get('q') || ''; } catch (e) {}
+    const um = (v, ok) => (ok.indexOf(v) >= 0 ? v : null);
+    this.state = {
+      tela: um(ler('tela', 'produtos'), ['produtos', 'categorias', 'insumos', 'tabelas', 'historico']) || 'produtos',
+      busca: q,
+      categoria: um(ler('categoria', null), CATS.map(c => c.key)),
+      situacao: um(ler('situacao', null), ['ativo', 'inativo']),
+      estoque: um(ler('estoque', null), ['estoque', 'demanda']),
+      kpi: um(ler('kpi', null), ['ativos', 'populares', 'semgiro', 'margem', 'demanda']),
+      densidade: um(ler('densidade', 'normal'), ['compact', 'normal', 'comfy']) || 'normal',
+      page: 1,
+      pageSize: [20, 50, 100].indexOf(ler('pageSize', 20)) >= 0 ? ler('pageSize', 20) : 20,
+      sortKey: ler('sortKey', null),
+      sortDir: ler('sortDir', 'asc'),
+      cursor: null,
+      abertoId: null,
+      ajuda: false,
+      cmd: false,
+      toast: null,
+      largura: 1280,
+    };
+    this.buscaRef = React.createRef();
+    this.raiz = React.createRef();
+  }
+
+  componentDidMount() {
+    this.onKey = (e) => this.tecla(e);
+    document.addEventListener('keydown', this.onKey);
+    this.onResize = () => this.setState({ largura: window.innerWidth });
+    window.addEventListener('resize', this.onResize);
+    this.setState({ largura: window.innerWidth });
+  }
+  componentWillUnmount() {
+    document.removeEventListener('keydown', this.onKey);
+    window.removeEventListener('resize', this.onResize);
+    clearTimeout(this.toastTimer);
+  }
+  componentDidUpdate() {
+    const s = this.state;
+    const w = (k, v) => { try { localStorage.setItem(LS + k, JSON.stringify(v)); } catch (e) {} };
+    w('tela', s.tela); w('categoria', s.categoria); w('situacao', s.situacao); w('estoque', s.estoque);
+    w('kpi', s.kpi); w('densidade', s.densidade); w('pageSize', s.pageSize); w('sortKey', s.sortKey); w('sortDir', s.sortDir);
+    try {
+      const u = new URL(location.href);
+      s.busca ? u.searchParams.set('q', s.busca) : u.searchParams.delete('q');
+      u.searchParams.set('tela', s.tela);
+      history.replaceState(null, '', u);
+    } catch (e) {}
+  }
+
+  aviso(msg, tom) {
+    clearTimeout(this.toastTimer);
+    this.setState({ toast: { msg, tom: tom || 'default' } });
+    this.toastTimer = setTimeout(() => this.setState({ toast: null }), 2600);
+  }
+
+  tecla(e) {
+    const k = e.key;
+    const digitando = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName || '');
+    if (k === 'Escape') {
+      if (this.state.ajuda) { this.setState({ ajuda: false }); return; }
+      if (this.state.abertoId) { this.setState({ abertoId: null }); return; }
+      if (digitando && this.state.busca) { this.setState({ busca: '', page: 1 }); return; }
+      return;
+    }
+    if ((e.metaKey || e.ctrlKey) && (k === 'k' || k === 'K')) { e.preventDefault(); this.setState({ cmd: true }); return; }
+    if (digitando) return;
+    if (this.state.cmd) return;
+    if (k === '/') {
+      e.preventDefault();
+      const el = this.buscaRef.current && this.buscaRef.current.querySelector('input');
+      if (el) el.focus();
+      return;
+    }
+    if (k === '?') { e.preventDefault(); this.setState(s => ({ ajuda: !s.ajuda })); return; }
+    if (k === 'n' || k === 'N') { e.preventDefault(); this.novo(); return; }
+    const lista = this.pagina();
+    if (!lista.length) return;
+    const desce = k === 'j' || k === 'J' || k === 'ArrowDown';
+    const sobe = k === 'k' || k === 'K' || k === 'ArrowUp';
+    if (desce || sobe) {
+      e.preventDefault();
+      this.setState(s => {
+        const n = s.cursor === null ? 0 : Math.min(lista.length - 1, Math.max(0, s.cursor + (desce ? 1 : -1)));
+        return { cursor: n, abertoId: s.abertoId ? String(lista[n].id) : null };
+      });
+      return;
+    }
+    if (k === 'Enter' && this.state.tela === 'produtos') {
+      if (this.state.cursor === null) return;
+      e.preventDefault();
+      const alvo = lista[this.state.cursor];
+      if (alvo) this.setState({ abertoId: String(alvo.id) });
+    }
+  }
+
+  novo = () => this.aviso('Cadastro abre em rota própria — /products/create', 'default');
+
+  setTela = (t) => this.setState({ tela: t, page: 1, cursor: null, abertoId: null, sortKey: null });
+  onBusca = (e) => this.setState({ busca: e.target.value, page: 1, cursor: null });
+  onDensidade = (e) => this.setState({ densidade: e.target.value });
+  onPageSize = (n) => this.setState({ pageSize: Number(n), page: 1, cursor: null });
+  setPage = (p) => this.setState({ page: p, cursor: null });
+  onSort = (key) => this.setState(s => ({ sortKey: key, sortDir: s.sortKey === key && s.sortDir === 'asc' ? 'desc' : 'asc', page: 1 }));
+  limparTudo = () => this.setState({ categoria: null, situacao: null, estoque: null, kpi: null, busca: '', page: 1, cursor: null });
+  fecharDrawer = () => this.setState({ abertoId: null });
+  fecharAjuda = () => this.setState({ ajuda: false });
+  fecharCmd = () => this.setState({ cmd: false });
+
+  aplicarKpi = (chave) => this.setState(s => ({ kpi: s.kpi === chave ? null : chave, categoria: null, situacao: null, estoque: null, page: 1, cursor: null, tela: 'produtos' }));
+
+  /* ── dados derivados ─────────────────────────────────────────── */
+
+  base() {
+    const s = this.state;
+    if (s.tela === 'categorias') {
+      return CATS.map(c => ({
+        id: c.key, label: c.label,
+        total: PRODUTOS.filter(p => p.cat === c.key).length,
+        ativos: PRODUTOS.filter(p => p.cat === c.key && p.active).length,
+      }));
+    }
+    if (s.tela === 'insumos') return INSUMOS.slice();
+    if (s.tela === 'tabelas') return TABELAS.slice();
+    if (s.tela === 'historico') return HISTORICO.slice();
+    return PRODUTOS.slice();
+  }
+
+  filtrada() {
+    const s = this.state;
+    const q = s.busca.trim().toLowerCase();
+    let list = this.base();
+    if (q) {
+      list = list.filter(r => {
+        const alvo = [r.id, r.name, r.label, r.prod, r.cliente, r.os, r.forn, r.desc, CAT_LABEL(r.cat)]
+          .filter(Boolean).join(' ').toLowerCase();
+        const emBom = (r.bom || []).some(b => String(b[0]).toLowerCase().indexOf(q) >= 0);
+        return alvo.indexOf(q) >= 0 || emBom;
+      });
+    }
+    if (s.tela !== 'produtos') return list;
+    if (s.categoria) list = list.filter(p => p.cat === s.categoria);
+    if (s.situacao) list = list.filter(p => (s.situacao === 'ativo' ? p.active : !p.active));
+    if (s.estoque) list = list.filter(p => (s.estoque === 'estoque' ? p.kind === 'estoque' : p.kind === 'sob_demanda'));
+    if (s.kpi === 'ativos') list = list.filter(p => p.active);
+    if (s.kpi === 'populares') list = list.filter(p => p.uses30 >= 30);
+    if (s.kpi === 'semgiro') list = list.filter(p => p.uses30 === 0);
+    if (s.kpi === 'margem') list = list.filter(p => (p.price - p.cost) / p.price < 0.30);
+    if (s.kpi === 'demanda') list = list.filter(p => p.kind === 'sob_demanda');
+    const { sortKey, sortDir } = s;
+    if (sortKey) {
+      const v = (p) => {
+        if (sortKey === 'sku') return p.id;
+        if (sortKey === 'produto') return p.name.toLowerCase();
+        if (sortKey === 'preco') return p.price;
+        if (sortKey === 'custo') return (p.price - p.cost) / p.price;
+        if (sortKey === 'uses') return p.uses30;
+        return 0;
+      };
+      list.sort((a, b) => {
+        const x = v(a), y = v(b);
+        const r = x < y ? -1 : x > y ? 1 : 0;
+        return sortDir === 'desc' ? -r : r;
+      });
+    }
+    return list;
+  }
+
+  pagina() {
+    const s = this.state;
+    const list = this.filtrada();
+    const ini = (s.page - 1) * s.pageSize;
+    return list.slice(ini, ini + s.pageSize);
+  }
+
+  situacaoNode(p) {
+    return h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, whiteSpace: 'nowrap', color: p.active ? 'var(--pos)' : 'var(--text-mute)' } },
+      h('span', { style: { width: 6, height: 6, borderRadius: 99, background: p.active ? 'var(--pos)' : 'var(--text-mute)' } }),
+      p.active ? 'à venda' : 'fora de venda');
+  }
+
+  custoNode(p) {
+    const m = (p.price - p.cost) / p.price;
+    const cor = m >= 0.5 ? 'var(--pos)' : m >= 0.3 ? 'var(--text-dim)' : 'var(--neg)';
+    return h('span', null,
+      h('span', { style: { display: 'block', fontVariantNumeric: 'tabular-nums' } }, brl(p.cost)),
+      h('span', { style: { display: 'block', fontSize: 11, color: cor, fontVariantNumeric: 'tabular-nums' } }, pct(m)));
+  }
+
+  colunasDe(tela) {
+    if (tela === 'categorias') return [
+      { key: 'label', label: 'Categoria' },
+      { key: 'total', label: 'Produtos', align: 'right', width: 120 },
+      { key: 'ativos', label: 'À venda', align: 'right', width: 120 },
+    ];
+    if (tela === 'insumos') return [
+      { key: 'id', label: 'Código', mono: true, width: 90 },
+      { key: 'name', label: 'Insumo' },
+      { key: 'unit', label: 'Unidade', width: 110 },
+      { key: 'cost', label: 'Custo', align: 'right', width: 120 },
+      { key: 'stock', label: 'Estoque', align: 'right', width: 110 },
+      { key: 'forn', label: 'Fornecedor', width: 200 },
+    ];
+    if (tela === 'tabelas') return [
+      { key: 'label', label: 'Tabela', width: 160 },
+      { key: 'desc', label: 'Descrição' },
+      { key: 'vinculados', label: 'Produtos', align: 'right', width: 120 },
+      { key: 'upd', label: 'Atualizada', align: 'right', width: 140 },
+    ];
+    if (tela === 'historico') return [
+      { key: 'data', label: 'Data', mono: true, width: 110 },
+      { key: 'os', label: 'OS', mono: true, width: 110 },
+      { key: 'prod', label: 'Produto' },
+      { key: 'cliente', label: 'Cliente', width: 200 },
+      { key: 'qtd', label: 'Qtd', align: 'right', width: 80 },
+      { key: 'valor', label: 'Valor', align: 'right', width: 120 },
+    ];
+    return [
+      { key: 'sku', label: 'SKU', mono: true, width: 78, sortable: true },
+      { key: 'produto', label: 'Produto', sortable: true, width: 250 },
+      { key: 'cat', label: 'Categoria', width: 140 },
+      { key: 'situacao', label: 'Situação', width: 110 },
+      { key: 'preco', label: 'Preço', align: 'right', width: 102, sortable: true },
+      { key: 'custo', label: 'Custo/margem', align: 'right', width: 146, sortable: true },
+      { key: 'estoque', label: 'Estoque', align: 'right', width: 132 },
+      { key: 'uses', label: '30d', align: 'right', width: 70, sortable: true },
+    ];
+  }
+
+  linhasDe(tela, itens) {
+    if (tela === 'categorias') return itens.map(c => ({ id: c.id, cells: { label: c.label, total: String(c.total), ativos: String(c.ativos) } }));
+    if (tela === 'insumos') return itens.map(i => ({ id: i.id, cells: { id: i.id, name: i.name, unit: i.unit, cost: brl(i.cost), stock: i.stock.toLocaleString('pt-BR'), forn: i.forn } }));
+    if (tela === 'tabelas') return itens.map(t => ({ id: t.id, cells: { label: t.label, desc: t.desc, vinculados: String(t.vinculados), upd: t.upd } }));
+    if (tela === 'historico') return itens.map(r => ({ id: r.id, cells: { data: r.data, os: r.os, prod: r.prod, cliente: r.cliente, qtd: String(r.qtd), valor: brl(r.valor) } }));
+    const c = this.state.cursor;
+    const cursorId = c === null ? null : (itens[c] || {}).id;
+    return itens.map(p => {
+      const foco = this.state.abertoId === p.id || cursorId === p.id;
+      return {
+      id: p.id,
+      state: p.active ? undefined : 'archived',
+      cells: {
+        sku: foco ? h('span', null, h('span', { className: 'foco', 'aria-hidden': true }), p.id) : p.id,
+        produto: { primary: meio(p.name, 72), sub: 'atualizado ' + p.upd },
+        cat: h('span', { style: { fontSize: 12, color: 'var(--text-dim)' } }, CAT_LABEL(p.cat)),
+        situacao: this.situacaoNode(p),
+        preco: brl(p.price),
+        custo: this.custoNode(p),
+        estoque: h('span', { style: { fontSize: 12, color: 'var(--text-dim)' } }, p.kind === 'sob_demanda' ? 'sob demanda' : (p.qty === null ? '—' : p.qty.toLocaleString('pt-BR') + ' ' + p.unit)),
+        uses: String(p.uses30),
+      },
+    };
+    });
+  }
+
+  chipsAtivos() {
+    const s = this.state;
+    const out = [];
+    const add = (label, valor, limpar) => out.push({
+      id: label,
+      node: h(NS.FilterChip, { label, value: valor, onRemove: () => this.setState(Object.assign({ page: 1 }, limpar)) }),
+    });
+    if (s.kpi) add('Recorte', { ativos: 'catálogo ativo', populares: 'populares', semgiro: 'sem giro', margem: 'margem baixa', demanda: 'sob demanda' }[s.kpi], { kpi: null });
+    if (s.categoria) add('Categoria', CAT_LABEL(s.categoria), { categoria: null });
+    if (s.situacao) add('Situação', s.situacao === 'ativo' ? 'à venda' : 'fora de venda', { situacao: null });
+    if (s.estoque) add('Estoque', s.estoque === 'estoque' ? 'em estoque' : 'sob demanda', { estoque: null });
+    if (s.busca.trim()) add('Busca', '“' + s.busca.trim() + '”', { busca: '' });
+    return out;
+  }
+
+  menu(rotulo, valor, itens) {
+    const ativo = valor != null;
+    return h(NS.DropdownMenu, {
+      align: 'start', width: 220,
+      trigger: ({ onClick }) => h('button', {
+        type: 'button',
+        onClick,
+        style: {
+          display: 'inline-flex', alignItems: 'center', gap: 6, height: 32, padding: ativo ? '0 11px' : '0 8px',
+          border: ativo ? '1px solid var(--accent)' : '1px solid transparent', borderRadius: 6,
+          background: ativo ? 'var(--accent-soft)' : 'transparent',
+          color: ativo ? 'var(--accent)' : 'var(--text-dim)',
+          font: '500 12px/1 var(--font-sans)', cursor: 'pointer', whiteSpace: 'nowrap',
+        },
+      }, rotulo, h('span', { 'aria-hidden': true, style: { opacity: .55, fontSize: 10 } }, '▾')),
+      items: itens,
+    });
+  }
+
+  botao(rotulo, variante, onClick, kbd) {
+    return h(NS.Button, { variant: variante, size: 'sm', onClick, kbd }, rotulo);
+  }
+
+  renderVals() {
+    const s = this.state;
+    const lista = this.filtrada();
+    const total = lista.length;
+    const pageCount = Math.max(1, Math.ceil(total / s.pageSize));
+    const page = Math.min(s.page, pageCount);
+    const itens = lista.slice((page - 1) * s.pageSize, (page - 1) * s.pageSize + s.pageSize);
+    const carregando = this.props.estado === 'carregando';
+    const comErro = this.props.estado === 'erro';
+    const catalogoVazio = this.props.estado === 'vazia';
+    const semResultado = !carregando && !comErro && !catalogoVazio && total === 0;
+    const vazio = catalogoVazio || semResultado;
+    const temTabela = !carregando && !comErro && !vazio;
+
+    const ativos = PRODUTOS.filter(p => p.active).length;
+    const populares = PRODUTOS.filter(p => p.uses30 >= 30).length;
+    const semGiro = PRODUTOS.filter(p => p.uses30 === 0).length;
+    const margemBaixa = PRODUTOS.filter(p => (p.price - p.cost) / p.price < 0.30).length;
+    const sobDemanda = PRODUTOS.filter(p => p.kind === 'sob_demanda').length;
+
+    const kpis = [
+      { chave: 'ativos', label: 'Catálogo ativo', value: ativos, sub: 'à venda hoje', tone: 'primary', icon: ico(ICONES.caixa, 17) },
+      { chave: 'populares', label: 'Populares · 30d', value: populares, sub: '30+ saídas', tone: 'amber', icon: ico(ICONES.estrela, 17) },
+      { chave: 'semgiro', label: 'Sem giro', value: semGiro, sub: '0 saídas em 30d', tone: 'rose', icon: ico(ICONES.parado, 17) },
+      { chave: 'margem', label: 'Margem baixa', value: margemBaixa, sub: 'abaixo de 30%', tone: 'violet', icon: ico(ICONES.margem, 17) },
+      { chave: 'demanda', label: 'Sob demanda', value: sobDemanda, sub: 'sem estoque próprio', tone: 'emerald', icon: ico(ICONES.relogio, 17) },
+    ].map(k => Object.assign({}, k, { selected: s.kpi === k.chave, onClick: () => this.aplicarKpi(k.chave) }));
+
+    const conta = (t) => t === 'produtos' ? PRODUTOS.length : t === 'categorias' ? CATS.length : t === 'insumos' ? INSUMOS.length : t === 'tabelas' ? TABELAS.length : HISTORICO.length;
+    const abas = [
+      { key: 'produtos', label: 'Produtos', count: conta('produtos'), icon: ico(ICONES.lista, 14) },
+      { key: 'categorias', label: 'Categorias', count: conta('categorias'), icon: ico(ICONES.pasta, 14) },
+      { key: 'insumos', label: 'Insumos · BOM', count: conta('insumos'), icon: ico(ICONES.frasco, 14) },
+      { key: 'tabelas', label: 'Tabelas de preço', count: conta('tabelas'), icon: ico(ICONES.etiqueta, 14) },
+      { key: 'historico', label: 'Histórico de uso', count: conta('historico'), icon: ico(ICONES.historico, 14) },
+    ];
+
+    const p = PRODUTOS.filter(x => x.id === s.abertoId)[0] || null;
+    const margem = p ? (p.price - p.cost) / p.price : 0;
+    const usoDoProduto = p ? HISTORICO.filter(x => x.prod === p.name).slice(0, 5) : [];
+
+    return {
+      raiz: this.raiz,
+      buscaRef: this.buscaRef,
+      tela: s.tela,
+      abas,
+      setTela: this.setTela,
+      stats: [
+        { value: String(PRODUTOS.length), label: 'produtos' },
+        { value: String(CATS.length), label: 'categorias' },
+        { value: String(semGiro), label: 'sem giro', tone: 'danger' },
+      ],
+      acoes: h('span', { style: { display: 'flex', alignItems: 'center', gap: 8 } },
+        h(NS.DropdownMenu, {
+          align: 'end', width: 216,
+          trigger: ({ onClick }) => h('button', {
+            type: 'button', onClick, 'aria-label': 'Mais ações',
+            style: {
+              width: 30, height: 30, display: 'grid', placeItems: 'center', border: 0, borderRadius: 6,
+              background: 'transparent', color: 'var(--text-dim)', cursor: 'pointer',
+            },
+          }, ico(ICONES.kebab, 16)),
+          items: [
+            { id: 'g1', label: 'DADOS', disabled: true },
+            { id: 'import', label: 'Importar', icon: ico(ICONES.importar, 14), onSelect: () => this.aviso('Importação abre em rota própria — /products/import') },
+            { id: 'csv', label: 'Exportar CSV', icon: ico(ICONES.exportar, 14), onSelect: () => this.aviso('CSV do recorte atual gerado', 'ok') },
+            { id: 'sep', separator: true },
+            { id: 'g2', label: 'CONFIGURAÇÃO', disabled: true },
+            { id: 'cats', label: 'Categorias de produto', icon: ico(ICONES.pasta, 14), onSelect: () => this.setTela('categorias') },
+            { id: 'etiquetas', label: 'Imprimir etiquetas', icon: ico(ICONES.etiqueta, 14), onSelect: () => this.aviso('Etiquetas abrem em rota própria') },
+          ],
+        }),
+        h(NS.Button, { variant: 'primary', size: 'sm', onClick: this.novo, kbd: 'N' },
+          h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: 6 } }, ico(ICONES.mais, 14), 'Novo produto'))),
+      acaoAba: null,
+
+      kpis,
+      menuCategoria: this.menu(s.categoria ? 'Categoria · ' + CAT_LABEL(s.categoria) : 'Categoria', s.categoria,
+        [{ id: 'todas', label: 'Todas as categorias', onSelect: () => this.setState({ categoria: null, page: 1 }) }, { id: 'sep', separator: true }]
+          .concat(CATS.map(c => ({ id: c.key, label: c.label, onSelect: () => this.setState({ categoria: c.key, page: 1, cursor: null }) })))),
+      menuSituacao: this.menu(s.situacao ? 'Situação · ' + (s.situacao === 'ativo' ? 'à venda' : 'fora de venda') : 'Situação', s.situacao, [
+        { id: 'todas', label: 'Qualquer situação', onSelect: () => this.setState({ situacao: null, page: 1 }) },
+        { id: 'ativo', label: 'À venda', onSelect: () => this.setState({ situacao: 'ativo', page: 1, cursor: null }) },
+        { id: 'inativo', label: 'Fora de venda', onSelect: () => this.setState({ situacao: 'inativo', page: 1, cursor: null }) },
+      ]),
+      menuEstoque: this.menu(s.estoque ? 'Estoque · ' + (s.estoque === 'estoque' ? 'em estoque' : 'sob demanda') : 'Estoque', s.estoque, [
+        { id: 'todos', label: 'Qualquer origem', onSelect: () => this.setState({ estoque: null, page: 1 }) },
+        { id: 'estoque', label: 'Em estoque', onSelect: () => this.setState({ estoque: 'estoque', page: 1, cursor: null }) },
+        { id: 'demanda', label: 'Sob demanda', onSelect: () => this.setState({ estoque: 'demanda', page: 1, cursor: null }) },
+      ]),
+      busca: s.busca,
+      onBusca: this.onBusca,
+      densidade: this.props.densidade || s.densidade,
+      contagemFiltro: total.toLocaleString('pt-BR') + (total === 1 ? ' registro' : ' registros'),
+      icoTeclado: ico(ICONES.teclado, 13),
+      chips: this.chipsAtivos(),
+      temChips: this.chipsAtivos().length > 0,
+      limparTudo: this.limparTudo,
+
+      carregando, comErro, vazio, temTabela,
+      acaoRetry: this.botao('Tentar de novo', 'primary', () => this.aviso('Recarregando o catálogo…')),
+      vazioVariante: catalogoVazio ? 'first' : 'no-results',
+      vazioTitulo: catalogoVazio ? 'Nenhum produto cadastrado ainda' : 'Nenhum produto encontrado nesse filtro',
+      vazioTexto: catalogoVazio
+        ? 'O catálogo começa vazio. Cadastre o primeiro produto ou importe a planilha que você já usa.'
+        : 'Nada bate com a busca e os filtros ativos. Tente outro termo ou limpe os filtros.',
+      vazioAcao: catalogoVazio
+        ? this.botao('Cadastrar primeiro produto', 'primary', this.novo)
+        : this.botao('Limpar tudo', 'ghost', this.limparTudo),
+
+      notaTabelas: s.tela === 'tabelas',
+      colunas: this.colunasDe(s.tela),
+      linhas: this.linhasDe(s.tela, itens),
+      onLinha: s.tela === 'produtos' ? (row) => this.setState({ abertoId: String(row.id) }) : undefined,
+      sortKey: s.sortKey, sortDir: s.sortDir, onSort: s.tela === 'produtos' ? this.onSort : undefined,
+      resumoPag: total === 0 ? 'Nenhum item' : 'Mostrando ' + ((page - 1) * s.pageSize + 1) + '–' + Math.min(total, page * s.pageSize) + ' de ' + total.toLocaleString('pt-BR'),
+      paginaLabel: page + ' / ' + pageCount,
+      pageSizeStr: String(s.pageSize),
+      opcoesPagina: [{ value: '20', label: '20' }, { value: '50', label: '50' }, { value: '100', label: '100' }],
+      onPageSizeSel: (e) => this.onPageSize(e.target.value),
+      semAnterior: page <= 1,
+      semProxima: page >= pageCount,
+      irPrimeira: () => this.setPage(1),
+      irAnterior: () => this.setPage(Math.max(1, page - 1)),
+      irProxima: () => this.setPage(Math.min(pageCount, page + 1)),
+      irUltima: () => this.setPage(pageCount),
+      dicas: [
+        { id: 'jk', tecla: 'J / K', acao: 'navegar' },
+        { id: 'enter', tecla: '↵', acao: 'abrir' },
+        { id: 'barra', tecla: '/', acao: 'buscar' },
+        { id: 'cmd', tecla: '⌘K', acao: 'comandos' },
+      ],
+      abrirAjuda: () => this.setState({ ajuda: true }),
+
+      drawerAberto: !!p,
+      larguraDrawer: s.largura < 1100 ? s.largura : 760,
+      fecharDrawer: this.fecharDrawer,
+      dSku: p ? p.id : '',
+      dNome: p ? p.name : '',
+      dSub: p ? CAT_LABEL(p.cat) + ' · preço por ' + p.unit + ' · atualizado ' + p.upd : '',
+      dRodape: p ? h('span', { style: { display: 'flex', gap: 8, justifyContent: 'flex-end' } },
+        this.botao('Fechar', 'ghost', this.fecharDrawer),
+        this.botao('Abrir ficha completa', 'primary', () => this.aviso('Ficha completa segue em /products/' + p.id))) : null,
+      dNumeros: p ? [
+        { label: 'Preço', valor: brl(p.price), sub: 'por ' + p.unit, cor: 'var(--text)' },
+        { label: 'Custo', valor: brl(p.cost), sub: 'última compra', cor: 'var(--text)' },
+        { label: 'Margem', valor: pct(margem), sub: margem < 0.3 ? 'abaixo do piso' : 'dentro do piso', cor: margem >= 0.5 ? 'var(--pos)' : margem >= 0.3 ? 'var(--text)' : 'var(--neg)' },
+        { label: 'Saídas 30d', valor: String(p.uses30), sub: p.uses30 === 0 ? 'sem giro' : 'via OS', cor: p.uses30 === 0 ? 'var(--neg)' : 'var(--text)' },
+      ] : [],
+      dTemBom: !!(p && p.bom.length),
+      dSemBom: !!(p && !p.bom.length),
+      dBom: p ? p.bom.map((b, i) => ({ id: i, nome: b[0], qtd: b[1], custo: brl(b[2]) })) : [],
+      dSpecs: p ? [
+        { id: 'a', label: 'SKU', valor: p.id },
+        { id: 'b', label: 'Categoria', valor: CAT_LABEL(p.cat) },
+        { id: 'c', label: 'Unidade de venda', valor: p.unit },
+        { id: 'd', label: 'Situação', valor: p.active ? 'à venda' : 'fora de venda' },
+        { id: 'e', label: 'Origem', valor: p.kind === 'estoque' ? 'estoque próprio' : 'sob demanda' },
+        { id: 'f', label: 'Disponível', valor: p.kind === 'sob_demanda' ? 'sob demanda' : (p.qty === null ? '—' : p.qty.toLocaleString('pt-BR') + ' ' + p.unit) },
+      ] : [],
+      dTemUso: usoDoProduto.length > 0,
+      dSemUso: !!p && usoDoProduto.length === 0,
+      dUso: usoDoProduto.map(u => ({ id: u.id, data: u.data, os: u.os, cliente: u.cliente, qtd: u.qtd + '×', valor: brl(u.valor) })),
+
+      ajudaAberta: s.ajuda,
+      fecharAjuda: this.fecharAjuda,
+      atalhos: ATALHOS.map((a, i) => Object.assign({ id: i }, a)),
+
+      temToast: !!s.toast,
+      toastMsg: s.toast ? s.toast.msg : '',
+      toastTom: s.toast ? s.toast.tom : 'default',
+
+      cmdAberto: s.cmd,
+      fecharCmd: this.fecharCmd,
+      cmdGrupos: [
+        { label: 'Sub-telas', items: abas.map(a => ({ id: 'tela-' + a.key, label: a.label, hint: a.count + ' itens', onSelect: () => this.setTela(a.key) })) },
+        { label: 'Recortes', items: kpis.map(k => ({ id: 'kpi-' + k.chave, label: k.label, hint: String(k.value), onSelect: () => this.aplicarKpi(k.chave) })) },
+        { label: 'Produtos', items: PRODUTOS.slice(0, 12).map(x => ({ id: 'p-' + x.id, label: x.name, hint: x.id + ' · ' + brl(x.price), onSelect: () => this.setState({ tela: 'produtos', abertoId: x.id }) })) },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

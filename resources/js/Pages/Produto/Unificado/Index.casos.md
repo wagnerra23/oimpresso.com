@@ -62,6 +62,8 @@ last_run_ci: "6/6 UC verdes na lane Estoque · MySQL (run 31706439580, PR #5733)
 | UC-PUNI-04 | Composição (BOM) só aparece com módulo Manufacturing **e** `manufacturing.access_recipe` | must | permissões `Modules/Manufacturing` + camada 1/3 ([feedback-habilitar-modulo-por-business](../../../../../memory/reference/feedback-habilitar-modulo-por-business.md)) | `ProdutoUnificadoContratoTest` | ✅ verde — `insumos` vazio e `bomCount` ausente sem as camadas 1+3 |
 | UC-PUNI-05 | Nenhuma prop enxerga outro business | must `[T0]` | `CU-PROD-10.2` + [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ProdutoUnificadoContratoTest` | ✅ verde — guard cross-tenant confirmado |
 | UC-PUNI-06 | A tela exige `product.view` **ou** `product.create` | should | `ProductController@index:66` (a lista irmã) + `routes/web.php:449` (TODO) | `ProdutoUnificadoContratoTest` | ✅ verde — 403 sem `product.view` nem `product.create` |
+| UC-PUNI-07 | O card "Populares · 30d" e a coluna `30d` contam o **mesmo** período | must | achado §3.1 de [produto-unificado-visual-comparison](../../../../../memory/requisitos/Produto/_telas/produto-unificado-visual-comparison.md) | `ProdutoUnificadoContratoTest` | 🕐 nasce 2026-08-14 — veredito na lane |
+| UC-PUNI-08 | O badge das abas não conta o que o usuário não pode ver | must | UC-PUNI-03 + UC-PUNI-04 (borda nova aberta pelo TabBar) | `ProdutoUnificadoContratoTest` | 🕐 nasce 2026-08-14 — veredito na lane |
 
 ---
 
@@ -158,3 +160,40 @@ last_run_ci: "6/6 UC verdes na lane Estoque · MySQL (run 31706439580, PR #5733)
   (`ProductController@index:66`). Vermelho esperado.
 - **Teste:** [`ProdutoUnificadoContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoContratoTest.php) — `UC-PUNI-06`.
 - **Status: ✅** — verde na run `31706439580`.
+
+## UC-PUNI-07 · O card "Populares · 30d" e a coluna `30d` contam o mesmo período · `must`
+
+- **Persona:** Larissa no balcão. Clica no card "Populares · 30d" pra ver o que está girando
+  antes de decidir o que repor.
+- **O que estava errado (medido 2026-08-14):** `vendas30d()` somava de verdade e alimentava os
+  cards `populares` e `sem_giro`; a LINHA da lista saía com `'uses30' => 0` chumbado
+  (`ProdutoUnificadoController:327`). Resultado na tela: o card afirmava "N produtos com 30+
+  saídas", ela clicava, e **todas** as linhas mostravam `0` na coluna `30d`. A mesma tela
+  discordando de si mesma sobre o mesmo fato.
+- **Aceite:** Dado o recorte `?kpi=populares` · Quando a lista volta · Então **nenhuma** linha
+  tem `uses30 = 0` — porque o predicado que contou o card é o mesmo que filtrou a lista.
+- **Por que o assert é de COERÊNCIA e não de valor:** fixar "o seed tem 7 populares" apodrece na
+  primeira mudança de fixture. O que não apodrece é a relação entre os dois números.
+- **Skip honesto:** seed sem venda em 30 dias → o caso não é exercitável e o teste **pula
+  dizendo isso**. Lista vazia satisfaz qualquer `forall`; passar por vacuidade seria pior que
+  não rodar (§5 2026-07-24 — `0 failed` não prova execução).
+- **Não é `[V0]`:** não altera cálculo de valor nem movimenta estoque — corrige o que a tela
+  LÊ. A REGRA MESTRE não se aplica (mesma leitura do UC-PUNI-01).
+- **Teste:** [`ProdutoUnificadoContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoContratoTest.php) — `UC-PUNI-07`.
+- **Status: 🕐** — nasce com o porte de fidelidade. Veredito vem da lane, não desta linha.
+
+## UC-PUNI-08 · O badge das abas não conta o que o usuário não pode ver · `must`
+
+- **Persona:** a mesma do UC-PUNI-02/03 — operador sem direito a preço de venda.
+- **Por que o caso nasce agora:** o TabBar do protótipo mostra a contagem ao lado do rótulo, e
+  essa contagem é **superfície nova**. Sem gate, o badge de "Tabelas de preço" entregaria
+  quantas tabelas o negócio tem exatamente a quem o UC-PUNI-03 manda esconder a lista — o
+  mesmo vazamento, pela borda, com dois caracteres. Badge é payload como qualquer outro.
+- **Aceite:** Dado um usuário sem `access_default_selling_price` · Quando a página carrega ·
+  Então `contagens.tabelas` é `0`. Mesma regra vale pra `contagens.insumos` sem as camadas do
+  UC-PUNI-04.
+- **Por que `0` e não ausência:** aqui o badge simplesmente não renderiza com `0`, e a aba
+  continua navegável (ela mostra a explicação de permissão ao abrir). Omitir a chave faria o
+  contador sumir da UI inteira, inclusive das abas que o usuário PODE ver.
+- **Teste:** [`ProdutoUnificadoContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoContratoTest.php) — `UC-PUNI-08`.
+- **Status: 🕐** — nasce com o porte de fidelidade. Veredito vem da lane.
