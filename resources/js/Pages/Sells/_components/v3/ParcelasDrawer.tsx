@@ -72,7 +72,7 @@ import {
   venceuAntesDeHoje,
   type Parcela,
 } from './parcelas-dominio';
-import { Lbl, Pill } from './primitivos';
+import { Lbl, Pill, Sec } from './primitivos';
 
 function Campo({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -226,6 +226,12 @@ export default function ParcelasDrawer({
           </SheetHeader>
 
           <Stack gap={4} className="min-h-0 flex-1 overflow-auto px-5 py-4">
+          {/* O drawer era um empilhado de blocos soltos; o protótipo organiza em
+              CARDS NOMEADOS (`DrawerSection`), e é isso que faz a tela parecer
+              outra. Medido no protótipo rodando: <h4> 10.5px/600 uppercase,
+              letter-spacing .525px, caixa radius 12px, padding 14px 18px — que é
+              exatamente o `Sec` que a Page da V3 já usa. */}
+          <Sec title="Condição de pagamento">
           {/* ─── gerador ─────────────────────────────────────────────────── */}
           <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-4">
             <Escolha
@@ -261,8 +267,11 @@ export default function ParcelasDrawer({
           <Inline gap={3} align="center" className="flex-wrap">
             <Inline gap={2} align="center">
               <Checkbox id="v3-por-mes" checked={porMes} onCheckedChange={(v) => setPorMes(v === true)} />
-              <label htmlFor="v3-por-mes" className="cursor-pointer text-[12px] leading-tight">
-                Vence no mesmo dia de cada mês
+              <label htmlFor="v3-por-mes" className="cursor-pointer leading-tight">
+                <span className="block text-[12px] font-medium">Mês fechado</span>
+                <span className="block text-[11px] text-muted-foreground">
+                  Vence no mesmo dia de cada mês
+                </span>
               </label>
             </Inline>
             <div className="min-w-[220px] flex-1">
@@ -278,6 +287,9 @@ export default function ParcelasDrawer({
             )}
           </Inline>
 
+          </Sec>
+
+          <Sec title="Recebimento">
           {/* ─── grade ───────────────────────────────────────────────────── */}
                     {/* Sem parcelas a tabela sumia inteira — a tela muda e não diz por quê.
               A âncora (`sells-parcelas.jsx:99`) põe um EmptyState que ENSINA o
@@ -363,6 +375,8 @@ export default function ParcelasDrawer({
               </table>
             </div>
           )}
+
+          </Sec>
 
           {/* ─── conferência ─────────────────────────────────────────────── */}
           {parcelas.length > 0 && (
