@@ -60,6 +60,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
       - name: Selftests de contrato (hard — batimento não roda com contrato quebrado)
         run: |
@@ -76,6 +77,13 @@ jobs:
           if [ "$ABERTO" != "0" ]; then
             echo "::notice::PR mv-batch aberto aguardando Wagner — batimento pula esta noite (arte §3.6 regra 3)."
           fi
+
+      # Só os medidores de ADOÇÃO DO DS precisam de node_modules (`ds-ledger`/`ds-report`
+      # chamam `npx --no-install eslint`); os demais passos são node puro e sempre rodaram
+      # sem deps. Fica aqui, sob o mesmo guard, pra não gastar ~1min nas noites travadas.
+      - name: Dependências (eslint — exigido só pelos medidores de adoção do DS)
+        if: steps.pendente.outputs.aberto == '0'
+        run: npm ci
 
       - name: Espinha dorsal — vital-signs (snapshot + trend append-only)
         if: steps.pendente.outputs.aberto == '0'
@@ -163,8 +171,11 @@ jobs:
           `vital-signs.json` congela e o painel do MV passa a mentir sobre a frota.
 
           Conteúdo: `vital-signs.json` + `vital-signs-history.jsonl` (append-only) +
-          `prototipo-readiness.json` + `service-scorecard.json`. **Nenhuma proposta de
-          trabalho, nenhuma decisão sua embutida** — é retrato, não pedido.
+          `prototipo-readiness.json` + `service-scorecard.json` + adoção do DS
+          (`governance/ds-ledger.json` censo por tela, que alimenta
+          `/governance/ds-rollout`; e `prototipo-ui/DS_ADOCAO_INDICE.md` placar `ds/*`
+          por módulo). **Nenhuma proposta de trabalho, nenhuma decisão sua embutida** —
+          é retrato, não pedido.
 
           Determinístico, zero LLM. Auto-merge habilitado (mesmo padrão do índice
           derivado em `system-map.yml`); nenhum batch é mergeado por esta via.
@@ -200,6 +211,64 @@ jobs:
           { echo '## Bite-log dos gates de design (DR-2a)'; echo '```'; cat /tmp/bites.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           node scripts/governance/design-gate-bites.mjs --tally >> "$GITHUB_STEP_SUMMARY" || true
 
+      # ── ADOÇÃO DO DS: os dois medidores que existiam sem NENHUM invocador ────────
+      # `scripts/ds-ledger.mjs --write`  → governance/ds-ledger.json        (censo POR TELA)
+      # `scripts/ds-report.mjs  --write` → prototipo-ui/DS_ADOCAO_INDICE.md (placar ds/* POR MÓDULO)
+      #
+      # Medido em 2026-08-14 (`git grep -n -E "ds-report|ds-ledger" -- .github/`): as duas
+      # únicas ocorrências em .github/ eram TEXTO (um comentário e um `echo` de mensagem de
+      # conserto no design-return-gate) — nunca invocação. `memory/governance/AUTOMATIONS.md`:
+      # 0 ocorrências. Consequência medida: `governance/ds-ledger.json` carimbado
+      # `2026-06-12` e `DS_ADOCAO_INDICE.md` em `2026-06-29` — a tela `/governance/ds-rollout`
+      # servia 9% de ~2 meses atrás. Rodando hoje: ledger 9% → 29%; placar `ds/*` 148 → 1604
+      # (Financeiro voltou de `0 ✅ concluído` a 465). O congelamento não errava pra um lado
+      # só: subestimava o ledger e superestimava o índice, ao mesmo tempo.
+      #
+      # Por que AQUI (LC-19 — estender o dono, não abrir paralelo): este job já roda diário,
+      # já persiste artefato derivado via auto-PR com token, e é o mesmo padrão do bite-log
+      # acima. Zero workflow novo, zero secret novo.
+      #
+      # Estes passos MEDEM e PUBLICAM — nenhum deles decide merge de ninguém, e este PR não
+      # propõe promover nada a required (em particular NÃO o `component-registry-check`:
+      # §5 2026-07-17, decisão [W] de mantê-lo como está). Quem é required se lê no dono —
+      # `governance/required-checks-baseline.json` — não aqui (§5 2026-08-11, LC-10).
+      #
+      # `continue-on-error` pra não derrubar o batimento (vital-signs é o carro-chefe), mas
+      # a falha NÃO fica muda: o `rc` é capturado e escrito no summary. "Não consegui medir"
+      # não pode virar "nada a reportar" (§5 2026-07-29).
+      # `set -o pipefail` obrigatório antes do `| tee` — senão o rc vira o do tee
+      # (selftest `scripts/governance/workflow-pipe-rc.test.mjs`).
+      - name: Adoção do DS — ledger por tela + placar ds/* por módulo (advisory)
+        if: steps.pendente.outputs.aberto == '0'
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          rc=0
+          node scripts/ds-ledger.mjs --write | tee /tmp/ds-ledger.txt || rc=$?
+          node scripts/ds-report.mjs --write | tee /tmp/ds-report.txt || rc=$?
+          if [ "$rc" != "0" ]; then
+            {
+              echo '## ⚠️ Adoção do DS — MEDIÇÃO NÃO ACONTECEU'
+              echo ''
+              echo "Os medidores saíram com rc=$rc. Os artefatos NÃO foram atualizados —"
+              echo 'o `generatedAt` de `governance/ds-ledger.json` segue o da última noite boa.'
+              echo 'Isto é ausência de medição, não adoção estável.'
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit "$rc"
+          fi
+          {
+            echo '## Adoção do DS (censo por tela + placar por módulo)'
+            echo '```'
+            tail -6 /tmp/ds-ledger.txt
+            echo '```'
+            echo '<details><summary>Placar `ds/*` por módulo</summary>'
+            echo ''
+            echo '```'
+            tail -25 /tmp/ds-report.txt
+            echo '```'
+            echo '</details>'
+          } >> "$GITHUB_STEP_SUMMARY"
+
       # Auto-PR — UMA invocação (o `add-paths` stasheia e restaura o que não casa, então
       # `mv-batches/*.md` simplesmente não tem diff nas noites sem batch). Sem diff em
       # NENHUM add-path, a action sai silenciosa e não cria PR (verificado no README v7).
@@ -218,6 +287,8 @@ jobs:
             memory/governance/service-scorecard.json
             memory/governance/design-gate-bites.jsonl
             memory/governance/mv-batches/*.md
+            governance/ds-ledger.json
+            prototipo-ui/DS_ADOCAO_INDICE.md
           commit-message: |
             ${{ steps.batch.outputs.gerado == 'true' && 'chore(governance): batch MV do metabolismo nightly + snapshot dos sinais vitais [CC]' || 'chore(governance): snapshot dos sinais vitais do metabolismo nightly [CC]' }}
 

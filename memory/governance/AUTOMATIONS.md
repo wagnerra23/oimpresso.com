@@ -6,7 +6,7 @@ type: governance-spec
 authority: canonical
 lifecycle: ativo
 maintained_by: wagner
-last_updated: 2026-07-20
+last_updated: 2026-08-14
 related: [automation-registry-mcp, 0076, 0079, 0080]
 pii: false
 ---
@@ -195,6 +195,7 @@ Tipo ADR 0234: `routine`. Automações orquestradas de mais alto nível que não
 |------|---------|-----------|------------|
 | **Fechar o Loop** _(primeira rotina tipo routine registrada — audit 2026-05-29)_ | SessionStart, após brief-fetch | Verifica idempotentemente os 4 gaps P0 da auditoria IA-OS (RAGAS CI, drift sentinel, observability, LGPD purge) e aponta o próximo pendente; NUNCA toca Brain B/autonomia. | `.claude/hooks/loop-fechar-check.mjs` + `.claude/loop-fechar-o-loop.json` _(criados e validados 2026-05-29; já registrados no `SessionStart` do `settings.json`)_ |
 | **ZELADOR · ciclo documental** | Segundas 07:10 BRT, via automação Codex local `zelador-ciclo-documental` (ativada em 2026-07-22) | Compõe os detectores existentes, seleciona no máximo 1 drift, corrige no dono, exige recibo `Documentation-Receipt: <id>` antes→depois e, na primeira execução posterior ao merge, confirma o ID ausente no `main`. A run sempre emite resultado: silêncio não prova liveness. Nunca mergeia. | `scripts/governance/ZELADOR.md` + `scripts/governance/documentation-loop.mjs` + `.claude/workflows/documentacao-tecnica.js` |
+| **MV metabolismo · batimento nightly** _(registrado em 2026-08-14 — o cron rodava desde 2026-07 sem entrada aqui)_ | Diário 06:30 BRT (`schedule` do workflow) + `workflow_dispatch` | Regenera os índices DERIVADOS da frota e os aterrissa por auto-PR: sinais vitais (+ trend append-only), service scorecard, prontidão do protótipo, bite-log dos gates de design e — desde 2026-08-14 — a **adoção do DS**: censo por tela (`ds-ledger --write` → `governance/ds-ledger.json`, que alimenta a tela `/governance/ds-rollout`) e placar `ds/*` por módulo (`ds-report --write` → `prototipo-ui/DS_ADOCAO_INDICE.md`). Quando o metabolismo propõe batch de telas, o PR ganha o label `mv-batch` e espera o merge do [W]; sem batch, só o snapshot derivado sobe. Nunca cria task MCP, nunca mergeia batch. | `.github/workflows/mv-metabolismo.yml` + `scripts/qa/vital-signs.mjs` + `scripts/qa/mv-metabolismo.mjs` + `scripts/governance/service-scorecard.mjs` + `scripts/qa/prototipo-readiness.mjs` + `scripts/governance/design-gate-bites.mjs` + `scripts/ds-ledger.mjs` + `scripts/ds-report.mjs` |
 
 ---
 
