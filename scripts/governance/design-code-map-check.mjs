@@ -23,8 +23,32 @@
  *   - `ancora: true` (ou string com id custom) → o checker EXIGE data-contract="<id>" presente
  *     no vivo.arquivo; sumiu = DRIFT (refactor removeu a âncora — exatamente o rot silencioso).
  *   - ausente/false → parte é "linha-only" (frágil): contada e reportada no resumo, nunca DRIFT
- *     (o backfill dos maps antigos não vira punição). Se o data-contract="<id>" JÁ existe no
- *     .tsx mas não foi declarado, o checker avisa (nudge pra travar de graça).
+ *     (o backfill dos maps antigos não vira punição). Se o .tsx JÁ tem data-contract mas o map
+ *     não declara, o checker avisa (nudge pra travar de graça).
+ *
+ * POR QUE O RESUMO DECOMPÕE OS LINHA-ONLY (2026-08-14): "0/N estáveis" sozinho é ambíguo — não
+ * distingue "ninguém declarou ainda" (backfill pendente, barato) de "o .tsx nem tem o atributo"
+ * (declarar exige ANTES ancorar a tela, que é mudança de UI com gate próprio). O resumo dizia só
+ * o primeiro, implicitamente, e nudgava "declare e trave de graça" quando não havia nada de graça
+ * pra declarar. Agora as duas populações são CONTADAS separado, lendo o disco:
+ *   · `com data-contract no arquivo` → fila acionável de verdade (o id existe, é só declarar).
+ *   · `sem nenhum data-contract`     → o .tsx precisa ser ancorado primeiro (fora deste gate).
+ * Medido no corpus real em 2026-08-14 (`node scripts/governance/design-code-map-check.mjs
+ * --check`): 0 de 30 partes com vivo.arquivo real têm QUALQUER data-contract no arquivo — logo
+ * `0/30` é o segundo caso, não o primeiro, e nenhuma âncora podia ser declarada honestamente.
+ *
+ * NUDGE — id EXATO era inerte por construção: até 2026-08-14 ele só disparava se existisse
+ * data-contract="<p.id>", isto é, exigia coincidência entre DOIS vocabulários que não se
+ * encontram: o id da parte é slug da seção do `-gap.md` (`header-da-pagina`, `lista-de-conversas`)
+ * e o id do contrato é nome de região de UI (`reconnect-modal`, `guia`, `painel-metas-vazio`).
+ * Medido: 0 avisos em 30 partes, com 15 data-contract reais no repo — presence-check cuja agulha
+ * o produtor nunca emite. Hoje o nudge lista QUALQUER id presente no arquivo e sugere a forma
+ * `vivo.ancora: "<id>"` (o campo já aceita id custom, ver ancoraDeclarada).
+ *
+ * `ancora: false` EXPLÍCITO ≠ campo ausente: `false` é opt-out CONSCIENTE (ex.: as 13 partes de
+ * caixa-unificada.map.json, cujo `_nota_mapeamento` registra que os data-contract do vivo
+ * pertencem ao contrato-de-tela e têm ids ≠ dos ids das partes) — nesse caso o checker NÃO
+ * nudga, pra não insistir contra uma decisão já registrada. Campo ausente = ainda não avaliado.
  *
  * Pra cada `*.map.json` encontrado sob `memory/requisitos/**`:
  *
@@ -55,7 +79,7 @@
  *   node scripts/governance/design-code-map-check.mjs [--check] [--strict] [--root <path>]
  *   node scripts/governance/design-code-map-check.mjs --selftest
  */
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, appendFileSync } from 'node:fs';
 import { readdir } from 'node:fs/promises';
 import { join, resolve, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -112,17 +136,32 @@ export function ancoraDeclarada(p) {
   return null;
 }
 
+// `false` LITERAL = opt-out consciente (decisão registrada de não ancorar esta parte);
+// campo ausente = ainda não avaliado. Só o segundo recebe nudge.
+export function optOutConsciente(p) { return p?.vivo?.ancora === false; }
+
+/** Todos os ids de data-contract presentes num fonte .tsx (ordem de aparição, sem repetir). */
+export function ancorasNoArquivo(src) {
+  if (src == null) return [];
+  const ids = [...String(src).matchAll(/data-contract=(?:"([^"]+)"|'([^']+)'|\{[`'"]([^`'"]+)[`'"]\})/g)]
+    .map((m) => m[1] ?? m[2] ?? m[3]);
+  return [...new Set(ids)];
+}
+
 /**
  * Verifica um map.json já parseado contra o disco (âncoras + staleness + âncora estável).
- * @returns {{drift: string[], warn: string[], pendentes: number, totalPartes: number, estaveis: number, linhaOnly: number}}
+ * @returns {{drift: string[], warn: string[], pendentes: number, totalPartes: number, estaveis: number, linhaOnly: number, comAncoraNoArquivo: number, semAncoraNoArquivo: number, optOut: number}}
  */
 export function verificarMapa(mapa, { root = ROOT } = {}) {
   const drift = [];
   const warn = [];
   const schemaProblemas = validarSchema(mapa);
-  if (schemaProblemas.length) return { drift: schemaProblemas.map((m) => `schema: ${m}`), warn, pendentes: 0, totalPartes: 0, estaveis: 0, linhaOnly: 0 };
+  if (schemaProblemas.length) return { drift: schemaProblemas.map((m) => `schema: ${m}`), warn, pendentes: 0, totalPartes: 0, estaveis: 0, linhaOnly: 0, comAncoraNoArquivo: 0, semAncoraNoArquivo: 0, optOut: 0 };
 
   let pendentes = 0, estaveis = 0, linhaOnly = 0;
+  // decomposição do linha-only lendo o DISCO (não a declaração) — ver cabeçalho §"POR QUE O
+  // RESUMO DECOMPÕE OS LINHA-ONLY": separa backfill barato de "o .tsx nem foi ancorado".
+  let comAncoraNoArquivo = 0, semAncoraNoArquivo = 0, optOut = 0;
   const arquivosPrototipoReais = new Set();
   const fonteCache = new Map(); // vivo.arquivo → conteúdo (várias partes ancoram no mesmo .tsx)
   const lerVivo = (rel) => {
@@ -151,7 +190,14 @@ export function verificarMapa(mapa, { root = ROOT } = {}) {
         else drift.push(`${tag}: âncora estável DECLARADA (vivo.ancora) mas data-contract="${idDeclarado}" NÃO existe em ${p.vivo.arquivo} — refactor removeu a âncora (re-ancorar ou remover a declaração conscientemente)`);
       } else {
         linhaOnly++;
-        if (temAncora(src, p.id)) warn.push(`${tag}: data-contract="${p.id}" JÁ existe em ${p.vivo.arquivo} mas o map não declara vivo.ancora — declare true e trave de graça (range de linha é frágil)`);
+        const idsNoArquivo = ancorasNoArquivo(src);
+        if (idsNoArquivo.length) comAncoraNoArquivo++; else semAncoraNoArquivo++;
+        if (optOutConsciente(p)) {
+          optOut++; // decisão registrada de não ancorar — não insistir
+        } else if (idsNoArquivo.length) {
+          const forma = idsNoArquivo.includes(p.id) ? 'vivo.ancora: true' : `vivo.ancora: "<um destes ids>"`;
+          warn.push(`${tag}: ${p.vivo.arquivo} JÁ tem data-contract (${idsNoArquivo.join(', ')}) mas o map não declara vivo.ancora — declare ${forma} e trave de graça (range de linha é frágil)`);
+        }
       }
     }
   }
@@ -169,7 +215,7 @@ export function verificarMapa(mapa, { root = ROOT } = {}) {
     }
   }
 
-  return { drift, warn, pendentes, totalPartes: mapa.partes.length, estaveis, linhaOnly };
+  return { drift, warn, pendentes, totalPartes: mapa.partes.length, estaveis, linhaOnly, comAncoraNoArquivo, semAncoraNoArquivo, optOut };
 }
 
 function escRe(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
@@ -179,7 +225,9 @@ async function coletar(root) {
   // charter.md vive AO LADO da tela viva (resources/js/Pages/<Mod>/<Tela>.charter.md) — são
   // árvores DIFERENTES, walk cada uma na raiz certa (bug real pego no smoke: 6≠146).
   const reqTree = await walk(join(root, 'memory', 'requisitos'));
-  // DUAS raízes desde o PR #5686 — o denominador de charters saía 172 em vez de 209.
+  // DUAS raízes desde o PR #5686: varrer só o núcleo SUBCONTAVA os charters (a tela pode morar em
+  // `Modules/<X>/Resources/js/Pages/**`). `raizesDePages` é o dono da lista de raízes — não fixar o
+  // denominador aqui, ele é calculado abaixo e sai no relatório.
   const pagesTree = (await Promise.all(raizesDePages(root).map((r) => walk(r)))).flat();
   const maps = reqTree.filter((f) => f.endsWith('.map.json'));
   const gaps = reqTree.filter((f) => f.endsWith('-gap.md'));
@@ -205,6 +253,7 @@ async function main() {
   const cov = cobertura(gaps, maps, ROOT);
 
   let totalDrift = 0, totalWarn = 0, totalPendentes = 0, totalPartes = 0, totalEstaveis = 0, totalLinhaOnly = 0;
+  let totalComAncora = 0, totalSemAncora = 0, totalOptOut = 0;
   const relatorio = [];
   for (const mPath of maps) {
     const rel = relative(ROOT, mPath).replaceAll('\\', '/');
@@ -215,13 +264,22 @@ async function main() {
     relatorio.push({ rel, ...r });
     totalDrift += r.drift.length; totalWarn += r.warn.length; totalPendentes += r.pendentes; totalPartes += r.totalPartes;
     totalEstaveis += r.estaveis; totalLinhaOnly += r.linhaOnly;
+    totalComAncora += r.comAncoraNoArquivo; totalSemAncora += r.semAncoraNoArquivo; totalOptOut += r.optOut;
   }
 
-  console.log(`design-code-map-check — ${maps.length} map.json encontrado(s) sob memory/requisitos/`);
-  console.log(`cobertura: ${cov.cobertas}/${cov.total} telas com gap.md têm .map.json versionado (${cov.total ? Math.round((cov.cobertas / cov.total) * 100) : 0}%)`);
-  console.log(`alcance amplo: ${maps.length}/${charters.length} charters têm .map.json (denominador maior, inclui telas ainda não analisadas pela Fase 1)`);
+  const pctCobertura = cov.total ? Math.round((cov.cobertas / cov.total) * 100) : 0;
   const ancoraveis = totalEstaveis + totalLinhaOnly;
-  console.log(`âncora estável (data-contract no vivo): ${totalEstaveis}/${ancoraveis} parte(s) com vivo.arquivo real${totalLinhaOnly ? ` — ${totalLinhaOnly} linha-only (frágil: refactor desloca linhas em silêncio; ancore com data-contract="<id>" + vivo.ancora: true)` : ''}`);
+  console.log(`design-code-map-check — ${maps.length} map.json encontrado(s) sob memory/requisitos/`);
+  console.log(`cobertura: ${cov.cobertas}/${cov.total} telas com gap.md têm .map.json versionado (${pctCobertura}%)`);
+  console.log(`alcance amplo: ${maps.length}/${charters.length} charters têm .map.json (denominador maior, inclui telas ainda não analisadas pela Fase 1)`);
+  console.log(`âncora estável (data-contract no vivo): ${totalEstaveis}/${ancoraveis} parte(s) com vivo.arquivo real`);
+  if (totalLinhaOnly) {
+    // decomposição: sem ela, "0/N" não distingue backfill pendente de tela ainda não ancorada.
+    console.log(`  · ${totalLinhaOnly} linha-only (frágil: refactor desloca linhas em silêncio) — dos quais:`);
+    console.log(`    - ${totalComAncora} com data-contract JÁ no vivo.arquivo → fila ACIONÁVEL: declare vivo.ancora e trave de graça`);
+    console.log(`    - ${totalSemAncora} sem NENHUM data-contract no vivo.arquivo → declarar exige ANTES ancorar o .tsx (mudança de UI, gate próprio); não há o que declarar aqui hoje`);
+    if (totalOptOut) console.log(`    - ${totalOptOut} com 'vivo.ancora: false' explícito (opt-out consciente — registrado no map, sem nudge)`);
+  }
   if (cov.semMap.length) {
     console.log(`\ngap.md SEM map.json correspondente (candidatos a 'node prototipo-ui/gerar-map.mjs <gap.md>'):`);
     for (const g of cov.semMap) console.log(`  - ${g}`);
@@ -239,7 +297,38 @@ async function main() {
     for (const r of relatorio) if (r.warn.length) { console.log(`  ${r.rel}:`); for (const w of r.warn) console.log(`    - ${w}`); }
   }
 
+  // PUBLICAÇÃO — a cobertura só existia como linha de log dentro do job (ninguém lê log de step
+  // advisory). Sobe pro job summary do GitHub, que é a superfície que já se lê no PR/run. Mesmo
+  // padrão de detect-ui-drift.mjs e handoff-integrity-guard.mjs — não é publicador novo, é a
+  // saída existente chegando onde alguém olha. Best-effort: falhar aqui nunca muda o veredito.
+  publicarResumo({
+    maps: maps.length, cov, pctCobertura, charters: charters.length,
+    totalEstaveis, ancoraveis, totalLinhaOnly, totalComAncora, totalSemAncora, totalOptOut,
+    totalDrift, totalPendentes,
+  });
+
   process.exit(STRICT && totalDrift > 0 ? 1 : 0);
+}
+
+/** Anexa o resumo ao $GITHUB_STEP_SUMMARY quando presente. Sem a env (rodada local), no-op. */
+export function publicarResumo(d, destino = process.env.GITHUB_STEP_SUMMARY) {
+  if (!destino) return false;
+  const L = [
+    '### Ponte design↔código — `<tela>.map.json`', '',
+    '| Métrica | Valor |', '|---|---|',
+    `| Cobertura (telas com \`-gap.md\` que têm \`.map.json\`) | **${d.cov.cobertas}/${d.cov.total}** (${d.pctCobertura}%) |`,
+    `| Alcance amplo (charters com \`.map.json\`) | ${d.maps}/${d.charters} |`,
+    `| Âncora estável (\`data-contract\` no vivo) | ${d.totalEstaveis}/${d.ancoraveis} partes |`,
+    `| └ linha-only COM \`data-contract\` no arquivo (fila acionável) | ${d.totalComAncora} |`,
+    `| └ linha-only SEM \`data-contract\` no arquivo (ancorar o \`.tsx\` primeiro) | ${d.totalSemAncora} |`,
+    `| Drift (âncora quebrada / sha stale / schema) | ${d.totalDrift} |`,
+    `| Âncoras \`TODO\` pendentes (não é drift) | ${d.totalPendentes} |`, '',
+    `Denominador canônico da cobertura é o \`-gap.md\` (tela que já passou pela Fase 1), não o charter.`,
+    // LC-10: o relatório publica NÚMERO, nunca o próprio enforcement — quem é required tem dono
+    // único (`governance/required-checks-baseline.json`), e restatear aqui apodrece no 1º flip.
+    `Reproduzir: \`node scripts/governance/design-code-map-check.mjs --check\`.`, '',
+  ];
+  try { appendFileSync(destino, L.join('\n') + '\n'); return true; } catch { return false; }
 }
 
 const invokedDirectly = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
