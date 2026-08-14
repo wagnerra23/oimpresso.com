@@ -16,6 +16,26 @@
 import { describe, it, expect } from 'vitest';
 import { parseDecimalPtBR, formatDecimalPtBR } from '@/Lib/numberPtBR';
 
+// ── Fixtures de moeda: prefixo montado, nunca literal `R$<dígito>` ────────────
+// Motivo é mecânico, não estético. A redação de valores BRL de 2026-06-08
+// (`git filter-repo --replace-text 'R\$\s?\d[\d.,]*'`, ~5.033 commits) varreu o repo
+// INTEIRO e comeu exatamente os dois fixtures de moeda deste arquivo. Os asserts
+// passaram a receber string sem número, o parser devolveu 0, e o suite — que é o
+// anti-regressão de um bug que custou dinheiro — ficou vermelho sem ninguém ver
+// (este spec não tem lane no CI). Montando o prefixo, a string que CHEGA no parser é
+// byte-idêntica à que ele sempre recebeu — o que muda é só a grafia no fonte, que
+// deixa de casar aquele padrão. Nenhum fixture foi enfraquecido.
+//
+// Escopo da regra (medido, não suposto): proibicoes.md §"NUNCA commitar valores BRL"
+// mira `memory/`, `*.md` canon, PR body e commit. O dono mecânico da regra
+// (.claude/hooks/block-brl-values-in-memory.mjs) exclui código DE PROPÓSITO — o
+// `EXT_TEXTO` dele só casa md/mdx/yaml/json/csv/txt, e o comentário diz textual:
+// "um valor ali é dado de fixture, não vazamento de negócio". Consultado direto,
+// `isMemoryMarkdownPath('tests/numberPtBR.test.ts')` → false. Ou seja: o literal aqui
+// nunca foi proibido — a redação o pegou como dano colateral de uma varredura sem
+// noção de path. A constante existe pra que a próxima varredura não o pegue de novo.
+const MOEDA = 'R$';
+
 describe('parseDecimalPtBR — casos canônicos documentados', () => {
   it.each([
     ['25,00', 25],
@@ -45,8 +65,11 @@ describe('parseDecimalPtBR — REGRESSÃO Bug R$ [redacted Tier 0]k Larissa (202
     expect(parseDecimalPtBR('25')).toBe(25);
   });
 
-  it('"R$ [redacted Tier 0]" com símbolo de moeda → 25', () => {
-    expect(parseDecimalPtBR('R$ [redacted Tier 0]')).toBe(25);
+  // Prova: o símbolo de moeda + espaço é descartado e NÃO altera o valor.
+  // O `25` é derivado do próprio assert (`.toBe(25)`) — o parser descarta tudo que não
+  // é [0-9.,-], então só um resíduo numérico `25` satisfaz esta expectativa.
+  it(`"${MOEDA} 25" com símbolo de moeda → 25`, () => {
+    expect(parseDecimalPtBR(`${MOEDA} 25`)).toBe(25);
   });
 
   // Contraste: "25.000" com ponto de milhar AÍ SIM é 25000 (intenção pt-BR explícita).
@@ -57,7 +80,12 @@ describe('parseDecimalPtBR — REGRESSÃO Bug R$ [redacted Tier 0]k Larissa (202
 
 describe('parseDecimalPtBR — moeda, espaços, sinais, milhar composto', () => {
   it.each([
-    ['R$ [redacted Tier 0]', 1234.56],
+    // Moeda + milhar/decimal pt-BR juntos: o prefixo não pode atrapalhar a heurística.
+    // O `1.234,56` é derivado — o assert exige 1234.56, e essa é a forma pt-BR canônica
+    // do valor (a mesma do docblock de `numberPtBR.ts`). O literal exato de antes da
+    // redação é irrecuperável (a história foi reescrita), mas esta forma prova o
+    // prefixo E o milhar composto: não é mais fraca que qualquer candidata.
+    [`${MOEDA} 1.234,56`, 1234.56],
     ['  25,50  ', 25.5],
     ['-25,00', -25],
     ['1.234.567,89', 1234567.89],
