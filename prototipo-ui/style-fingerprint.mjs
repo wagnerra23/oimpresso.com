@@ -54,6 +54,11 @@
 //      hover/focus/active: o harness força a pseudo-classe por elemento interativo e anexa, por
 //      elemento, o CONJUNTO de propriedades que REAGEM (a afordância) — comparado aqui por
 //      compararEstados (paridade de afordância, NÃO escore — ADR 0290 / lápide "razão de fidelidade").
+// Chip G8 (2026-08-14) declarou a TOLERÂNCIA POR EIXO (ver `TOLERANCIAS` abaixo): antes cada banda
+//      era um número mágico inline (1.5 · 0.04 · 0.02) OU string exata implícita (cor/padding/
+//      tipografia), então "0,5px de espaçamento" e "matiz completamente outro" caíam no MESMO
+//      veredito binário e ninguém sabia dizer QUANTO. Agora cada eixo tem banda nomeada, razão
+//      MEDIDA no corpus e fronteira travada no selftest; a célula divergente diz o Δ que mediu.
 // Ainda FORA (precisa dep de imagem): backstop perceptual sem âncora (SSIM → ADR). Estados de DADOS
 //      (vazio/loading/erro/drawer) seguem no loop manual — exigem manipular o estado do app, não CSS.
 
@@ -81,8 +86,240 @@ export const CAMPOS = [
   'radius', 'borderW', 'borderColor', 'boxShadow', 'padding', 'opacity', 'transform', 'display',
 ];
 
-// Tolerâncias de comparação (px inteiro; strings exatas pro resto).
-const TOL_PX = 1.5;
+// ── TOLERÂNCIA DECLARADA POR EIXO (chip G8 · 2026-08-14) ──────────────────────
+// POR QUE EXISTE: até aqui a banda de cada eixo era (a) número mágico inline — 1.5 pra qualquer
+// px, 0.04 pra posição, 0.02 pra opacidade — ou (b) igualdade de STRING implícita (cor, padding,
+// radius, tipografia). Consequência medida: uma diferença de 0,5px de espaçamento e uma cor
+// completamente outra produziam o MESMO veredito binário, e a célula não dizia QUANTO diferia.
+// Aqui cada eixo ganha banda NOMEADA + razão + fronteira travada no selftest (par abaixo/acima).
+//
+// ⛔ O QUE ISTO **NÃO** É (lápide §5 2026-07-17, "razão de fidelidade"): NÃO existe, e não pode
+// nascer daqui, nenhuma NOTA/RAZÃO/ESCORE que agregue os vereditos. Os vereditos não são
+// comensuráveis (bug de prod × proto atrasado × ruído de dado apontam pra lados diferentes).
+// O que este bloco muda é a RESOLUÇÃO DA CÉLULA: de "difere sim/não" para "difere N unidades,
+// contra uma banda de M declarada" — por célula, nunca somado.
+//
+// COMO OS VALORES FORAM ESCOLHIDOS (2026-08-14): medindo o CORPUS REAL — os 9
+// `memory/requisitos/**/*.proto-baseline.json` (36 células viewport×tema, 197 valores de cor
+// distintos, 18.7k pares de cor). A regra de decisão é uma só: **a banda fica ABAIXO do menor
+// passo REAL que o Design System usa naquele eixo** — assim ela absorve ruído de representação
+// e nunca decisão de design. Onde o menor passo real é ~0, a banda honesta é 0.
+//
+// ⚠ LIÇÃO CARA DESTA MEDIÇÃO (§5 2026-07-16 — "importar solução sem checar a premissa"): a banda
+// de cor "de mercado" seria o JND de OKLab (≈0,02 ΔEOK). No NOSSO corpus isso mascararia o bug
+// canônico que esta máquina existe pra pegar: `oklch(0.335 0.012 282)` → `oklch(0.34 0.008 240)`
+// (borda warm→fria, ADR UI-0022) tem ΔEOK = 0,0095, e o par warm/frio em luminância alta
+// (`0.965 0.004 282` → `0.965 0.004 240`) tem 0,0029. O menor par com diferença REAL de token no
+// corpus é 0,0025. Por isso a banda de cor é 0,0005 — 5× abaixo dele: ela absorve APENAS
+// equivalência de NOTAÇÃO (`rgb(255, 255, 255)` ≡ `oklch(1 0 0)`, ΔEOK ≈ 1e-16), jamais percepção.
+//
+// LIMITES HONESTOS (declarados, não escondidos):
+//  · A banda de cor vale nas passadas ancoradas em TEXTO (elementos/compostos), onde existe
+//    célula-campo. As passadas por INVENTÁRIO (divisórias/containers/elevação) casam por CHAVE
+//    EXATA — lá uma diferença de notação segue forkando a chave em SO_PROTO+SO_PROD. Mudar isso
+//    é mexer no MATCHING, não na resolução do veredito; fica fora deste chip, e por isso está escrito.
+//  · Limiar de DETECÇÃO ≠ banda de COMPARAÇÃO. `ehClaro()` (claro-no-dark) e o "texto escuro no
+//    dark" do design-diff julgam UM lado contra um absoluto; não entram aqui de propósito — juntar
+//    as duas coisas numa constante só seria misturar grandezas incomensuráveis.
+//  · Campo não-mensurável (`none`, `50%`, `normal`, radius elíptico com `/`, cor em função não
+//    suportada) NUNCA é absorvido: cai em comparação de texto e a célula diz que não mediu
+//    (fail-closed — §5 2026-07-29: instrumento não afirma verde quando não conseguiu medir).
+//  · A passada de ESTADOS (hover/focus/active) compara CONJUNTOS de propriedades que reagem
+//    (paridade de afordância), não grandezas — não tem banda por construção, e por isso não entra
+//    na checagem de completude de campos. Registrado aqui pra a omissão ser deliberada, não silêncio.
+export const TOLERANCIAS = {
+  caixa: {
+    valor: 1.5, unidade: 'px', tipo: 'px', campos: ['w', 'h'],
+    razao: 'HERDADA (o antigo TOL_PX, desde 2026-07-07). w/h vêm de getBoundingClientRect: largura/altura'
+      + ' de layout sofrem sub-pixel REAL (arredondamento de flex/grid, scrollbar, zoom do device).'
+      + ' NÃO se aplica a espessura nem a espaçamento — esses têm passo de 1px no DS e ganharam banda própria.',
+  },
+  borda: {
+    valor: 0.5, unidade: 'px', tipo: 'px', campos: ['borderW'],
+    razao: 'MEDIDA: o corpus inteiro só usa DOIS valores de borderW — 0px e 1px (menor passo real = 1px).'
+      + ' O TOL_PX=1.5 herdado engolia |0-1|=1 → o eixo era MUDO: borderW aparece em 0 das 10.302 células'
+      + ' DIVERGE do corpus, embora os dois valores existam. Banda 0,5 = metade do passo real: borda que'
+      + ' SOME (1px→0px) volta a morder, e ruído de rem fracionário segue absorvido.',
+  },
+  espacamento: {
+    valor: 0.5, unidade: 'px', tipo: 'listaPx', campos: ['padding', 'radius'],
+    razao: 'MEDIDA: entre os componentes distintos de padding (23 valores) e de radius (13 px), o menor'
+      + ' passo real é 1px nos dois. Banda 0,5 = metade — absorve arredondamento de rem/em fracionário e'
+      + ' nada mais. Comparação é COMPONENTE A COMPONENTE (Δ reportado = o maior); contagem de componentes'
+      + ' diferente ou componente não-px (`50%`, radius elíptico `a / b`) cai em texto, sem absorver.',
+  },
+  tipografia: {
+    valor: 0, unidade: 'px', tipo: 'px', campos: ['fontSize', 'lineHeight', 'letterSpacing'],
+    razao: 'MEDIDA e CONTRA-INTUITIVA: no corpus o menor passo REAL é 0,5px em fontSize (10/10.5/11/11.5…),'
+      + ' 0,05px em lineHeight e 0,005px em letterSpacing. Ou seja, "0,5px é ruído" é FALSO aqui — é passo'
+      + ' de design. Qualquer banda > 0 mascararia letter-spacing real, então a banda honesta é ZERO'
+      + ' (equivale à igualdade exata de hoje, agora DECLARADA em vez de implícita, e com Δ reportado).',
+  },
+  posicao: {
+    valor: 0.04, unidade: 'fração da viewport', tipo: 'px', campos: ['xnorm', 'ynorm'],
+    razao: 'HERDADA (furo 6, 2026-07-08). 4% da viewport ≈ 51px em 1280 — abaixo disso é reflow/scrollbar;'
+      + ' acima é MUDANÇA DE LUGAR (alinhamento), que precisa divergir em vez de virar IDENTICO mentiroso.',
+  },
+  opacidade: {
+    valor: 0.02, unidade: '0-1', tipo: 'px', campos: ['opacity'],
+    razao: 'HERDADA, e a medição CONFIRMA: o corpus usa 0/0.38/0.55/0.66/0.7/0.78/1 — menor passo real'
+      + ' = 0,04 (0.66→0.7). Banda 0,02 fica 2× abaixo: absorve só serialização, nunca um passo do DS.',
+  },
+  contagem: {
+    valor: 0, unidade: 'unidades', tipo: 'px', campos: ['linhas', 'filhos'],
+    razao: 'GRANDEZA DISCRETA — não existe "meia linha" nem "meio filho". Qualquer diferença é diferença'
+      + ' (regra 7: quebrar em 2 linhas é o defeito, não uma aproximação dele). O 0.01 que estava inline'
+      + ' era epsilon de float; com inteiros o resultado é idêntico e a intenção fica legível.',
+  },
+  cor: {
+    valor: 0.0005, unidade: 'ΔEOK (OKLab)', tipo: 'cor', campos: ['color', 'bgEfetivo', 'bgProprio', 'borderColor'],
+    razao: 'MEDIDA (ver a lição no cabeçalho deste bloco): menor par com diferença REAL de token no corpus'
+      + ' = 0,0025; o par warm/frio 282×240 da ADR UI-0022 = 0,0029 (e 0,0095 na variante escura). Banda'
+      + ' 0,0005 fica 5× abaixo do menor par real e absorve exclusivamente NOTAÇÃO equivalente'
+      + ' (`rgb(255, 255, 255)` ≡ `oklch(1 0 0)`), que hoje é falso-positivo puro. NÃO é o JND de mercado'
+      + ' (~0,02) — esse mascararia o bug canônico. Distância euclidiana em OKLab (Ottosson), sRGB→OKLab.',
+  },
+  corAlfa: {
+    valor: 0.005, unidade: 'alfa 0-1', tipo: 'cor', campos: [],
+    razao: 'MEDIDA e INDISPENSÁVEL: o corpus tem 12 pares com ΔEOK = 0 e alfa DIFERENTE — `rgb(255,255,255)`'
+      + ' × `rgba(255,255,255,0.12)`, `rgba(0,0,0,0)` × `rgb(0,0,0)`. Sem checar alfa, a banda de cor'
+      + ' transformaria "véu de 12%" e "transparente" em IDENTICO — mascarando bug de superfície. Menor'
+      + ' passo real de alfa no corpus = 0,03 (0.22→0.25); banda 0,005 fica 6× abaixo. Sempre em conjunto'
+      + ' com a banda `cor`: basta UM dos dois estourar pra célula divergir.',
+  },
+  categorico: {
+    valor: 0, unidade: 'igualdade exata', tipo: 'exato',
+    campos: ['overflowX', 'fontWeight', 'textTransform', 'fontFamily', 'bgImage', 'boxShadow', 'transform', 'display'],
+    razao: 'NÃO SÃO GRANDEZA CONTÍNUA — não existe banda por construção. `display:flex` não fica "0,5 perto"'
+      + ' de `display:grid`; fontWeight anda de 100 em 100 (o corpus usa 400/500/600/700); boxShadow é'
+      + ' assinatura composta (offset+blur+cor) já normalizada. Declarados aqui pra que a checagem de'
+      + ' COMPLETUDE do selftest prove que nenhum campo comparado ficou sem eixo — silêncio por omissão'
+      + ' é como uma banda errada passa despercebida.',
+  },
+  // ── eixos do design-diff.mjs (mesma constante = 1 dono; ver import lá) ────────
+  tituloPx: {
+    valor: 1, unidade: 'px', tipo: 'px', campos: ['design-diff:title.fontPx'],
+    razao: 'APERTADA de 2 → 1 com base no próprio código: o design-diff compara `Math.round(fontSize)`,'
+      + ' logo o artefato máximo do arredondamento é 1px (22,4→22 vs 22,6→23). A banda de 2px que estava'
+      + ' inline era o DOBRO do necessário e deixava passar 2px REAIS de diferença de título — que, no'
+      + ' corpus onde o passo de fontSize é 0,5px, são 4 passos de design.',
+  },
+  matiz: {
+    valor: 8, unidade: 'graus OKLCH', tipo: 'px', campos: ['design-diff:primary.hue'],
+    razao: 'HERDADA (design-diff D6). Matiz do accent: ±8° cobre variação de token entre temas sem deixar'
+      + ' passar troca de família (o roxo 295 × o frio 240 distam 55°).',
+  },
+  luminancia: {
+    valor: 0.1, unidade: 'L OKLCH', tipo: 'px', campos: ['design-diff:primary.L'],
+    razao: 'HERDADA (design-diff D6). Separa "o accent clareia no dark" (ADR UI-0021, ~0,17 de salto) de'
+      + ' jitter de token. Só vira bug quando os DOIS lados estão no mesmo tema — senão é DIVERGE (tema).',
+  },
+};
+
+// mapa campo → eixo. Fail-CLOSED: campo declarado em dois eixos é erro de declaração (um venceria
+// em silêncio e a banda aplicada não seria a que está escrita) — quebra alto, no load.
+export const EIXO_DE_CAMPO = (() => {
+  const m = new Map();
+  for (const [eixo, t] of Object.entries(TOLERANCIAS)) {
+    for (const c of t.campos) {
+      if (m.has(c)) throw new Error(`TOLERANCIAS: campo "${c}" declarado em 2 eixos ("${m.get(c)}" e "${eixo}")`);
+      m.set(c, eixo);
+    }
+  }
+  return m;
+})();
+
+// ── cor como GRANDEZA: sRGB/hex/oklch/oklab → OKLab (Björn Ottosson) ───────────
+// Sem isto, cor só podia ser comparada como TEXTO — e texto não tem banda: `rgb(255, 255, 255)` e
+// `oklch(1 0 0)` são a MESMA cor e divergiam. Retorna null pra qualquer coisa que não seja cor
+// reconhecida (`none`, `color-mix(...)`, palavra-chave) → o chamador cai em texto, nunca absorve.
+const _lin = (c) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+function _rgbParaOklab(r, g, b) {
+  const R = _lin(r / 255), G = _lin(g / 255), B = _lin(b / 255);
+  const l = Math.cbrt(0.4122214708 * R + 0.5363325363 * G + 0.0514459929 * B);
+  const m = Math.cbrt(0.2119034982 * R + 0.6806995451 * G + 0.1073969566 * B);
+  const s = Math.cbrt(0.0883024619 * R + 0.2817188376 * G + 0.6299787005 * B);
+  return [
+    0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
+    1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+    0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s,
+  ];
+}
+const _pct = (s, escala = 1) => (String(s).endsWith('%') ? (parseFloat(s) / 100) * escala : parseFloat(s));
+export function parseCor(v) {
+  const s = String(v ?? '').trim().toLowerCase();
+  if (!s) return null;
+  let m = s.match(/^oklch\(\s*([\d.]+%?)\s+([\d.]+%?)\s+(-?[\d.]+)(?:deg)?\s*(?:\/\s*([\d.]+%?)\s*)?\)$/);
+  if (m) {
+    const L = _pct(m[1]);
+    const C = m[2].endsWith('%') ? (parseFloat(m[2]) / 100) * 0.4 : parseFloat(m[2]); // 100% = 0.4 (CSS Color 4)
+    const H = (parseFloat(m[3]) * Math.PI) / 180;
+    return { lab: [L, C * Math.cos(H), C * Math.sin(H)], alfa: m[4] == null ? 1 : _pct(m[4]) };
+  }
+  m = s.match(/^oklab\(\s*([\d.]+%?)\s+(-?[\d.]+%?)\s+(-?[\d.]+%?)\s*(?:\/\s*([\d.]+%?)\s*)?\)$/);
+  if (m) return { lab: [_pct(m[1]), _pct(m[2], 0.4), _pct(m[3], 0.4)], alfa: m[4] == null ? 1 : _pct(m[4]) };
+  m = s.match(/^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)\s*(?:[,/]\s*([\d.]+%?)\s*)?\)$/);
+  if (m) return { lab: _rgbParaOklab(+m[1], +m[2], +m[3]), alfa: m[4] == null ? 1 : _pct(m[4]) };
+  m = s.match(/^#([0-9a-f]{3,8})$/);
+  if (m) {
+    const h = m[1];
+    if (![3, 4, 6, 8].includes(h.length)) return null;
+    const n = h.length <= 4 ? 1 : 2;
+    const canal = (i) => parseInt(n === 1 ? h[i] + h[i] : h.slice(i * 2, i * 2 + 2), 16);
+    return { lab: _rgbParaOklab(canal(0), canal(1), canal(2)), alfa: (h.length === 4 || h.length === 8) ? canal(3) / 255 : 1 };
+  }
+  if (s === 'transparent') return { lab: [0, 0, 0], alfa: 0 };
+  return null; // 'none', 'currentcolor', color-mix(), palavra-chave: NÃO é medível aqui
+}
+export function deltaEOK(a, b) {
+  return Math.hypot(a.lab[0] - b.lab[0], a.lab[1] - b.lab[1], a.lab[2] - b.lab[2]);
+}
+
+// ── comparação de UMA célula-campo contra a banda do seu eixo ──────────────────
+// Devolve null (dentro da banda ⇒ a célula NÃO entra no diff) ou a linha do diff, que agora
+// carrega o Δ MEDIDO e a banda contra a qual ele foi julgado. Dono único da lógica: `diffElemento`
+// e `diffComposto` chamam esta função — duas cópias divergiriam no primeiro ajuste (§5 2026-08-02).
+const _num = (v) => {
+  if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+  const m = /^(-?[\d.]+)(px)?$/.exec(String(v ?? '').trim());
+  return m ? parseFloat(m[1]) : null;
+};
+function _deltaListaPx(va, vb) {
+  const A = String(va ?? '').trim().split(/\s+/).map(_num);
+  const B = String(vb ?? '').trim().split(/\s+/).map(_num);
+  if (A.length !== B.length || A.some((x) => x == null) || B.some((x) => x == null)) return null;
+  let max = 0;
+  for (let i = 0; i < A.length; i++) max = Math.max(max, Math.abs(A[i] - B[i]));
+  return max;
+}
+const _fmt = (n) => (Number.isInteger(n) ? String(n) : String(Number(n.toFixed(5))));
+export function diffCampo(campo, va, vb) {
+  const eixo = EIXO_DE_CAMPO.get(campo);
+  const t = eixo ? TOLERANCIAS[eixo] : null;
+  const textoIgual = String(va ?? '') === String(vb ?? '');
+  const linhaTexto = (nota) => (textoIgual ? null : `${campo}: ${va} → ${vb}   [${nota}]`);
+  if (!t || t.tipo === 'exato') return textoIgual ? null : `${campo}: ${va} → ${vb}`;
+
+  if (t.tipo === 'cor') {
+    const ca = parseCor(va), cb = parseCor(vb);
+    if (!ca || !cb) return linhaTexto(`não-mensurável (${!ca ? va : vb}) · comparado como texto`);
+    const d = deltaEOK(ca, cb), dAlfa = Math.abs(ca.alfa - cb.alfa);
+    const foraCor = d > TOLERANCIAS.cor.valor, foraAlfa = dAlfa > TOLERANCIAS.corAlfa.valor;
+    if (!foraCor && !foraAlfa) return null;
+    const partes = [];
+    if (foraCor) partes.push(`ΔEOK ${_fmt(d)} · banda cor ±${TOLERANCIAS.cor.valor}`);
+    if (foraAlfa) partes.push(`Δalfa ${_fmt(dAlfa)} · banda corAlfa ±${TOLERANCIAS.corAlfa.valor}`);
+    return `${campo}: ${va} → ${vb}   [${partes.join(' · ')}]`;
+  }
+
+  const d = t.tipo === 'listaPx' ? _deltaListaPx(va, vb) : (() => {
+    const a = _num(va), b = _num(vb);
+    return a == null || b == null ? null : Math.abs(a - b);
+  })();
+  if (d == null) return linhaTexto('não-mensurável · comparado como texto');
+  if (d <= t.valor) return null;
+  return `${campo}: ${va} → ${vb}   [Δ ${_fmt(d)} ${t.unidade} · banda ${eixo} ±${t.valor}]`;
+}
 
 // normaliza texto visível: colapsa espaços, troca números/moeda/data por placeholder,
 // e TIRA glifos de afordância de UI (setas de ordenação/chevrons) — são controle, não
@@ -123,27 +360,14 @@ export function agruparLinhas(rects) {
 
 export function chave(el) { return el.tag + '|' + normTexto(el.texto); }
 
-function ehNum(c) { return ['w', 'h', 'xnorm', 'ynorm', 'linhas', 'borderW', 'opacity'].includes(c); }
-
+// Cada campo é julgado contra a banda DECLARADA do seu eixo (TOLERANCIAS) — a lógica mora só
+// em diffCampo. `tag` não entra: é a âncora do pareamento, não uma medida.
 export function diffElemento(a, b) {
   const campos = [];
   for (const c of CAMPOS) {
     if (c === 'tag') continue;
-    const va = a[c], vb = b[c];
-    if (ehNum(c)) {
-      const na = parseFloat(va) || 0, nb = parseFloat(vb) || 0;
-      // linhas: qualquer diferença é DIVERGE (regra 7). xnorm/ynorm: fração 0-1 →
-      // tolerância 0.04 (4%) — abaixo é ruído de sub-pixel, acima é MUDANÇA de lugar
-      // (furo 6: mesmo elemento, posição diferente = DIVERGE, não IDENTICO mentiroso).
-      // opacity: 0-1, tolerância 0.02.
-      const tol = c === 'linhas' ? 0.01
-        : (c === 'xnorm' || c === 'ynorm') ? 0.04
-        : c === 'opacity' ? 0.02
-        : TOL_PX;
-      if (Math.abs(na - nb) > tol) campos.push(`${c}: ${va} → ${vb}`);
-    } else if (String(va ?? '') !== String(vb ?? '')) {
-      campos.push(`${c}: ${va} → ${vb}`);
-    }
+    const linha = diffCampo(c, a[c], b[c]);
+    if (linha) campos.push(linha);
   }
   return campos;
 }
@@ -261,12 +485,8 @@ export function chaveComposto(c) { return 'CARD ' + c.tag + '|' + normTexto(c.te
 export function diffComposto(a, b) {
   const campos = [];
   for (const c of CAMPOS_COMPOSTO) {
-    const va = a[c], vb = b[c];
-    if (['w', 'h', 'xnorm', 'ynorm', 'borderW', 'filhos'].includes(c)) {
-      const na = parseFloat(va) || 0, nb = parseFloat(vb) || 0;
-      const tol = (c === 'xnorm' || c === 'ynorm') ? 0.04 : c === 'filhos' ? 0.01 : TOL_PX;
-      if (Math.abs(na - nb) > tol) campos.push(`${c}: ${va} → ${vb}`);
-    } else if (String(va ?? '') !== String(vb ?? '')) campos.push(`${c}: ${va} → ${vb}`);
+    const linha = diffCampo(c, a[c], b[c]); // mesma banda por eixo dos elementos (1 dono)
+    if (linha) campos.push(linha);
   }
   return campos;
 }
@@ -887,6 +1107,15 @@ function selftest() {
     { tier: 'sm', cor: 'neutral', span: 320 },   // único que sobrou elevado
   ];
 
+  // ── chip G8 (2026-08-14) — as duas pontas da banda, provadas END-TO-END (via comparar, não só
+  // na função pura): (a) borda que SOME (1px→0px) tem que morder — era o eixo MUDO, engolido pelo
+  // TOL_PX=1.5 herdado (0 ocorrências de borderW em 10.302 DIVERGE do corpus real); (b) a MESMA
+  // cor em NOTAÇÃO diferente tem que virar IDENTICO — era falso-positivo puro de string.
+  proto.elementos.push(mk({ texto: 'Borda some', borderW: '1px' }));
+  prod.elementos.push(mk({ texto: 'Borda some', borderW: '0px' }));
+  proto.elementos.push(mk({ texto: 'Branco notacao', color: 'rgb(255, 255, 255)' }));
+  prod.elementos.push(mk({ texto: 'Branco notacao', color: 'oklch(1 0 0)' }));
+
   const { rows, tally } = comparar(proto, prod);
   const by = (t) => rows.find((r) => r.chave.includes(t));
   const checks = [
@@ -1095,6 +1324,100 @@ function selftest() {
     if (!ok) fails++;
     console.log(`  [${ok ? 'PASS' : 'FAIL'}] ${label} → esperado ${exp}, obtido ${got}`);
   }
+  // ── chip G8 (2026-08-14): FRONTEIRA de cada banda declarada ────────────────────
+  // Uma tolerância sem par abaixo/acima é número decorativo — ninguém sabe se ela morde nem se
+  // ela absorve demais. Aqui cada eixo é provado NO CHOKEPOINT (diffCampo, o dono único da lógica):
+  // um caso logo ABAIXO da banda tem que ser absorvido (null = a célula não entra no diff) e um
+  // logo ACIMA tem que virar linha. Os valores "acima" são, sempre que possível, o MENOR PASSO REAL
+  // medido no corpus — assim o teste prova que a banda não come decisão de design.
+  const dentro = (campo, a, b) => diffCampo(campo, a, b) === null;
+  const fora = (campo, a, b) => typeof diffCampo(campo, a, b) === 'string';
+  console.log('\n  — fronteira das TOLERANCIAS (abaixo passa · acima reprova) —');
+  for (const [label, got] of [
+    // caixa (1.5px, herdada): bbox sofre sub-pixel real de layout
+    ['caixa: Δ1.5px (na banda) → absorve', dentro('w', 100, 101.5)],
+    ['caixa: Δ1.6px → morde', fora('w', 100, 101.6)],
+    // borda (0.5px): o passo real do corpus é 1px (só existem 0px e 1px)
+    ['borda: Δ0.5px (na banda) → absorve', dentro('borderW', '1px', '1.5px')],
+    ['borda: 1px→0px (borda SOME, passo real) → morde', fora('borderW', '1px', '0px')],
+    // espaçamento (0.5px), componente a componente; passo real do DS = 1px
+    ['espaçamento: padding Δ0.5px num componente → absorve', dentro('padding', '8px 8px 8px 8px', '8px 8.5px 8px 8px')],
+    ['espaçamento: padding Δ1px (passo real) → morde', fora('padding', '8px 8px 8px 8px', '8px 9px 8px 8px')],
+    ['espaçamento: radius Δ0.5px → absorve', dentro('radius', '6px', '6.5px')],
+    ['espaçamento: radius Δ1px (passo real) → morde', fora('radius', '6px', '7px')],
+    ['espaçamento: nº de componentes diferente → não mede, compara texto', fora('padding', '8px', '8px 8px')],
+    // tipografia (0px): passo real é 0.5px (fontSize) e 0.005px (letterSpacing)
+    ['tipografia: fontSize igual → absorve', dentro('fontSize', '12px', '12px')],
+    ['tipografia: fontSize Δ0.5px (passo real do DS) → morde', fora('fontSize', '12px', '12.5px')],
+    ['tipografia: letterSpacing Δ0.005px (passo real) → morde', fora('letterSpacing', '0.11px', '0.115px')],
+    // posição (0.04 da viewport, herdada do furo 6). A fronteira é sondada em 0.039/0.041 porque
+    // 0.1→0.14 dá 0.04000000000000001 em binário: o valor NOMINAL da banda cai do lado de fora.
+    // É assim desde sempre (o código antigo já fazia parseFloat), então fica REGISTRADO, não "corrigido".
+    ['posição: Δ0.039 (na banda) → absorve', dentro('xnorm', 0.1, 0.139)],
+    ['posição: Δ0.041 → morde', fora('xnorm', 0.1, 0.141)],
+    // opacidade (0.02); passo real do corpus = 0.04
+    ['opacidade: Δ0.019 → absorve', dentro('opacity', '0.7', '0.719')],
+    ['opacidade: Δ0.021 → morde', fora('opacity', '0.7', '0.721')],
+    // contagem (0): grandeza discreta
+    ['contagem: linhas iguais → absorve', dentro('linhas', 1, 1)],
+    ['contagem: 1→2 linhas (regra 7) → morde', fora('linhas', 1, 2)],
+    // cor (0.0005 ΔEOK): absorve NOTAÇÃO, nunca token
+    ['cor: rgb(255,255,255) ≡ oklch(1 0 0) (só notação) → absorve', dentro('color', 'rgb(255, 255, 255)', 'oklch(1 0 0)')],
+    ['cor: warm 282 → frio 240 (ΔEOK 0.0029 · ADR UI-0022) → morde', fora('borderColor', 'oklch(0.965 0.004 282)', 'oklch(0.965 0.004 240)')],
+    ['cor: warm 282 → frio 240 na variante escura (ΔEOK 0.0095) → morde', fora('borderColor', 'oklch(0.335 0.012 282)', 'oklch(0.34 0.008 240)')],
+    ['cor: menor par REAL de token do corpus (ΔEOK 0.0025) → morde', fora('bgEfetivo', 'oklch(0.992 0.0015 95)', 'oklch(0.99 0 0)')],
+    // alfa: ΔEOK pode ser ZERO e a superfície ser outra (véu × sólido) — a banda de cor NÃO engole
+    ['alfa: Δ0.002 → absorve', dentro('bgProprio', 'oklch(0.55 0.15 295 / 0.25)', 'oklch(0.55 0.15 295 / 0.252)')],
+    ['alfa: véu 12% × branco sólido (ΔEOK 0, alfa difere) → morde', fora('bgProprio', 'rgba(255, 255, 255, 0.12)', 'rgb(255, 255, 255)')],
+    ['alfa: transparente × preto sólido (ΔEOK 0, alfa difere) → morde', fora('borderColor', 'rgba(0, 0, 0, 0)', 'rgb(0, 0, 0)')],
+    // não-mensurável NUNCA é absorvido (fail-closed)
+    ['não-mensurável: none × cor → morde (comparado como texto)', fora('bgProprio', 'none', 'oklch(0.24 0.01 282)')],
+    ['não-mensurável: none × none → absorve', dentro('bgProprio', 'none', 'none')],
+    ['não-mensurável: radius 50% × 50% → absorve', dentro('radius', '50%', '50%')],
+    ['não-mensurável: radius 50% × 40% → morde', fora('radius', '50%', '40%')],
+    // categórico: sem banda por construção
+    ['categórico: display flex × flex → absorve', dentro('display', 'flex', 'flex')],
+    ['categórico: display flex × grid → morde', fora('display', 'flex', 'grid')],
+    ['categórico: fontWeight 500 × 600 → morde', fora('fontWeight', '500', '600')],
+  ]) {
+    if (!got) fails++;
+    console.log(`  [${got ? 'PASS' : 'FAIL'}] ${label}`);
+  }
+  // a célula divergente DIZ o Δ e a banda contra a qual foi julgada (resolução por célula).
+  const linhaCor = diffCampo('borderColor', 'oklch(0.965 0.004 282)', 'oklch(0.965 0.004 240)');
+  const linhaPx = diffCampo('padding', '8px 8px 8px 8px', '8px 9px 8px 8px');
+  for (const [label, got] of [
+    ['célula de cor reporta ΔEOK + banda nomeada', /ΔEOK [\d.]+ · banda cor ±/.test(linhaCor || '')],
+    ['célula de px reporta Δ + banda nomeada', /Δ 1 px · banda espacamento ±/.test(linhaPx || '')],
+    ['prefixo `campo: ` preservado (resumoCampos/FAMILIA_CAMPO seguem parseando)', /^borderColor: /.test(linhaCor || '')],
+  ]) {
+    if (!got) fails++;
+    console.log(`  [${got ? 'PASS' : 'FAIL'}] ${label}`);
+  }
+  // COMPLETUDE: todo campo comparado pertence a EXATAMENTE um eixo declarado. Sem isto, um campo
+  // novo entra em CAMPOS e é julgado por igualdade exata sem ninguém ter decidido a banda dele —
+  // que é como uma tolerância errada passa despercebida (o silêncio por omissão).
+  const semEixo = [...CAMPOS.filter((c) => c !== 'tag'), ...CAMPOS_COMPOSTO].filter((c) => !EIXO_DE_CAMPO.has(c));
+  const semRazao = Object.entries(TOLERANCIAS).filter(([, t]) => !t.razao || t.razao.length < 40).map(([k]) => k);
+  const nDeclarados = Object.values(TOLERANCIAS).reduce((n, t) => n + t.campos.length, 0);
+  for (const [label, got] of [
+    [`completude: todo campo comparado tem eixo (sem eixo: ${semEixo.join(',') || '—'})`, semEixo.length === 0],
+    [`completude: todo eixo tem razão escrita (sem razão: ${semRazao.join(',') || '—'})`, semRazao.length === 0],
+    ['unicidade: nenhum campo em 2 eixos', EIXO_DE_CAMPO.size === nDeclarados],
+  ]) {
+    if (!got) fails++;
+    console.log(`  [${got ? 'PASS' : 'FAIL'}] ${label}`);
+  }
+  // end-to-end (via comparar): a borda que some MORDE; a mesma cor em outra notação NÃO acusa.
+  const bs = by('Borda some');
+  for (const [label, got] of [
+    ['G8 e2e: borderW 1px→0px vira DIVERGE nomeando borderW (eixo era MUDO)', bs?.veredito === 'DIVERGE' && bs.campos.some((c) => c.startsWith('borderW:'))],
+    ['G8 e2e: mesma cor em notação diferente = IDENTICO (falso-positivo morto)', by('Branco notacao')?.veredito === 'IDENTICO'],
+  ]) {
+    if (!got) fails++;
+    console.log(`  [${got ? 'PASS' : 'FAIL'}] ${label}`);
+  }
+
   console.log(`  resumo: ${Object.entries(tally).map(([k, v]) => `${k}=${v}`).join(' · ')}`);
   console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — comparador provado pelos dois lados.');
   process.exit(fails ? 1 : 0);
