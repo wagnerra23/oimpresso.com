@@ -223,6 +223,16 @@ console.log('\n[4] --schema (forma) → boa passa, ruim falha, não-medido sai 2
     assert(r7.rc === 2, `schema ausente = rc2, nunca 0 (rc=${r7.rc})`);
     assert(/NÃO MEDIDO/.test(r7.stderr), 'schema ausente declara que nada foi validado');
 
+    // (g2) NÃO-MEDIDO — schema que NÃO COMPILA. Defeito da régua não pode sair 1
+    // (violação), senão lê como "os tokens estão errados" e culpa o corpus.
+    const schemaQuebrado = join(box, 'schema-quebrado');
+    mkdirSync(schemaQuebrado, { recursive: true });
+    writeFileSync(join(schemaQuebrado, 'dtcg.schema.json'), '{ "type": "object", "properties": { "x": { "type": "naoExisteEsseTipo" } } }');
+    writeFileSync(join(schemaQuebrado, 'x.tokens.json'), JSON.stringify(semOrig, null, 2));
+    const r8 = runSchema(['--tokens-dir', schemaQuebrado]);
+    assert(r8.rc === 2, `schema que não compila = rc2 (ambiente), não 1 (rc=${r8.rc})`);
+    assert(/NÃO MEDIDO/.test(r8.stderr), 'schema quebrado declara NÃO MEDIDO, não culpa o corpus');
+
     // (h) NÃO-MEDIDO — ajv ausente. Roda uma CÓPIA do check em tmpdir: a resolução ESM
     // parte do arquivo importador, e de lá não há `node_modules` — é o cenário real de
     // "a dependência não está instalada". Tem de sair 2, jamais 0 (§5 2026-08-11).

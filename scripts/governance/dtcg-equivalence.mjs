@@ -231,7 +231,18 @@ async function mainSchema() {
 
   const ajv = new Ajv({ allErrors: true, strict: false });
   addFormats(ajv);
-  const validate = ajv.compile(JSON.parse(readFileSync(SCHEMA_PATH, 'utf8')));
+  // Schema que não compila é ERRO DE AMBIENTE (2), não violação de token (1) — se
+  // vazasse como exceção o rc seria 1 e a régua quebrada leria como "os tokens estão
+  // errados", culpando o corpus por um defeito da própria régua.
+  let validate;
+  try {
+    validate = ajv.compile(JSON.parse(readFileSync(SCHEMA_PATH, 'utf8')));
+  } catch (e) {
+    console.error(`⛔ NÃO MEDIDO — o schema não compila: ${SCHEMA_PATH}`);
+    console.error(`   Nenhum token foi validado. Defeito é da régua, não do corpus.`);
+    console.error(`   Detalhe: ${String(e && e.message).split('\n')[0]}`);
+    process.exit(2);
+  }
 
   const violations = [];
   for (const f of arquivos) {
