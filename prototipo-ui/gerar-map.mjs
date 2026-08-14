@@ -81,7 +81,7 @@ export function resolverArquivoVivo(fmTelaVivaField) {
   return m ? m[1] : null;
 }
 
-// sha do estado ATUAL do(s) arquivo(s) do protótipo — git log -1 --format=%h|%ct por arquivo,
+// sha do estado ATUAL do(s) arquivo(s) do protótipo — git log -1 --format=%H|%ct por arquivo,
 // devolve o do commit MAIS RECENTE entre eles (o map fica válido até o mais novo mudar de novo).
 // Sem histórico git rastreável (arquivo untracked / repo sem .git) → 'sem-historico', NUNCA lança
 // (staleness fica indeterminada, não falsa — o checker trata isso como WARN, não DRIFT).
@@ -91,7 +91,11 @@ export function computeGitSha(relPaths, root = REPO) {
     const abs = join(root, rel);
     if (!existsSync(abs)) continue;
     try {
-      const out = execFileSync('git', ['log', '-1', '--format=%h|%ct', '--', rel], { cwd: root, encoding: 'utf8' }).trim();
+      // %H (40 chars), NUNCA %h: a largura do abreviado é escolhida pelo git por repo/ambiente
+      // (core.abbrev=auto) — MEDIDO no MESMO commit deste repo: 7/9/10/11 chars conforme o
+      // ambiente. Gravar abreviado fazia o map nascer num ambiente e ficar STALE eterno noutro
+      // sem nada ter mudado. A comparação (shaBate) aceita o legado abreviado como PREFIXO.
+      const out = execFileSync('git', ['log', '-1', '--format=%H|%ct', '--', rel], { cwd: root, encoding: 'utf8' }).trim();
       if (!out) continue;
       const [sha, ct] = out.split('|');
       const ts = Number(ct);
@@ -123,6 +127,21 @@ export function shaIndeterminado(sha) { return !sha || SHA_INDETERMINADO.has(sha
 // `sha256:` → contentHash combinado (canônico) · resto → git-sha legado (back-compat).
 export function shaAtualPara(salvo, relPaths, root = REPO) {
   return String(salvo || '').startsWith('sha256:') ? computeProtoHash(relPaths, root) : computeGitSha(relPaths, root);
+}
+
+// Igualdade de sha TOLERANTE A ABREVIAÇÃO — fonte única pro consumir-map E pro
+// design-code-map-check (1 fato = 1 lugar; corrigir só um dos dois é o §5 2026-08-02).
+// `sha256:` (contentHash canônico ADR 0324) é sempre EXATO — largura fixa, sem abreviação.
+// git-sha LEGADO: o salvo pode ser abreviado (7..40) e o atual é sempre completo (%H); vale o
+// contrato de abreviação do próprio git — o salvo é PREFIXO do completo. Sem isso, todo map
+// legado gravado com outra largura de core.abbrev fica STALE pra sempre (falso-vermelho).
+export function shaBate(salvo, atual) {
+  const s = String(salvo || '').trim(), a = String(atual || '').trim();
+  if (!s || !a) return false;
+  if (s === a) return true;
+  if (s.startsWith('sha256:') || a.startsWith('sha256:')) return false; // contentHash nunca abrevia
+  if (!/^[0-9a-f]{4,40}$/i.test(s) || !/^[0-9a-f]{4,40}$/i.test(a)) return false; // não é git-sha
+  return a.toLowerCase().startsWith(s.toLowerCase());
 }
 
 export function gerar(gapPath, { root = REPO, hoje = null } = {}) {
@@ -207,6 +226,19 @@ function selftest() {
   })());
   t('resolverArquivoVivo: extrai path Pages real', resolverArquivoVivo('resources/js/Pages/Financeiro/Unificado/Index.tsx (2784 ln) + _components/') === 'resources/js/Pages/Financeiro/Unificado/Index.tsx');
   t('computeGitSha: arquivo inexistente / sem repo git → sem-historico, não lança', computeGitSha(['prototipo-ui/fixtures/gerar-map/__nao-existe.jsx'], '/tmp') === 'sem-historico');
+
+  // BITE do fix 2026-08-14 (%h → %H + shaBate por prefixo) — o degrau literal do ledger:
+  // "shas de comprimentos diferentes do MESMO commit". Hermético: strings, sem tocar git.
+  const shaFull = 'f13f77cd860175477d067d190962a0a58475495c';
+  t('MORDE: salvo abreviado (7/9/10/11 — larguras MEDIDAS neste repo) bate com o %H do MESMO commit',
+    ['f13f77c', 'f13f77cd8', 'f13f77cd86', 'f13f77cd860'].every((ab) => shaBate(ab, shaFull)));
+  t('controle-negativo: commit DIFERENTE não bate (o portão de frescor segue mordendo)',
+    shaBate('deadbeef', shaFull) === false);
+  t('sha256: (contentHash ADR 0324) exige igualdade EXATA — prefixo NÃO vale',
+    shaBate('sha256:1a05cdbf', 'sha256:1a05cdbf51be') === false
+    && shaBate('sha256:1a05cdbf51be', 'sha256:1a05cdbf51be') === true);
+  t('vazio/sentinela não vira verde por acidente',
+    shaBate('', shaFull) === false && shaBate('sem-historico', shaFull) === false);
 
   if (existsSync(join(fx, 'boa-gap.md'))) {
     // separador-agnóstico: no Windows HERE vem com backslash (pegadinha pega 2026-07-09 — o
