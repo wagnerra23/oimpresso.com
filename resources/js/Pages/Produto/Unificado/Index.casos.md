@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: a tela reúne, numa rota só, tudo que as outras telas do Produto gateiam separadamente — custo, preço de venda, tabelas de preço e composição. Sem casos, ela vira o caminho por onde tudo isso sai sem permissão.
 owner: wagner
 last_run: "2026-08-14"
-last_run_ci: "6/6 UC verdes na lane Estoque · MySQL (run 31706439580, PR #5733): 7 testes · 0 skipped · 23 assertions — veredito lido do JUnit, não declarado à mão. Os UC-PUNI-07/08 nasceram em 2026-08-14 com o porte de fidelidade e AINDA NÃO têm run: o `last_run` foi bumpado porque os 6 antigos foram revalidados contra a mudança (as colunas de preço/custo seguem sumindo por permissão, e o teste não toca as props que mudaram), não porque os dois novos já provaram algo."
+last_run_ci: "run 31801940305 (lane Estoque · MySQL, PR #5756): 1 skipped, 71 passed, 194 assertions. Os 6 UCs antigos seguem VERDES após o porte de fidelidade — o gate de permissão não regrediu. UC-PUNI-08 nasceu verde. UC-PUNI-07 é o único skipped: o seed da lane não tem venda em 30d, o recorte 'populares' volta vazio e o caso não é exercitável — NÃO está provado, e o 🧪 na tabela diz isso. Veredito lido do log da run, não declarado à mão."
 ---
 
 # Casos de Uso & Aceite — Catálogo Unificado (`/products/unificado`)
