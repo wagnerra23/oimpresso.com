@@ -118,15 +118,15 @@ class MemoriaGabaritoSeeder extends Seeder
 
             ['business_id' => 1, 'categoria' => 'info-extraction', 'subcategoria' => 'faturamento',
              'pergunta' => 'Qual foi o faturamento de março?',
-             'memoria_esperada_keys' => ['março', 'R$ [redacted Tier 0]', '2026'],
+             'memoria_esperada_keys' => ['março', '310,86', '2026'],
              'resposta_esperada_pattern' => '(R\\$\\s?310|310,86)', 'dificuldade' => 1,
-             'notas' => 'WR2 fact #4: março R$ [redacted Tier 0]'],
+             'notas' => 'WR2 fact #4: março 310,86'],
 
             ['business_id' => 1, 'categoria' => 'info-extraction', 'subcategoria' => 'faturamento',
              'pergunta' => 'Qual foi o faturamento de abril?',
-             'memoria_esperada_keys' => ['abril', 'R$ [redacted Tier 0]', '2026'],
+             'memoria_esperada_keys' => ['abril', '150,00', '2026'],
              'resposta_esperada_pattern' => '(R\\$\\s?150|150,00)', 'dificuldade' => 1,
-             'notas' => 'WR2 fact #4: abril R$ [redacted Tier 0]'],
+             'notas' => 'WR2 fact #4: abril 150,00'],
 
             ['business_id' => null, 'categoria' => 'info-extraction', 'subcategoria' => 'capability',
              'pergunta' => 'O que você sabe sobre o meu negócio?',
@@ -166,7 +166,7 @@ class MemoriaGabaritoSeeder extends Seeder
 
             ['business_id' => 1, 'categoria' => 'multi-session', 'subcategoria' => 'faturamento',
              'pergunta' => 'Qual foi o melhor mês de faturamento de 2026?',
-             'memoria_esperada_keys' => ['março', 'R$ [redacted Tier 0]', '2026', 'maior'],
+             'memoria_esperada_keys' => ['março', '310,86', '2026', 'maior'],
              'resposta_esperada_pattern' => '(março|março\\/2026)', 'dificuldade' => 3,
              'notas' => 'Multi-hop: compara março vs abril vs outros'],
 
@@ -182,7 +182,7 @@ class MemoriaGabaritoSeeder extends Seeder
 
             ['business_id' => 1, 'categoria' => 'multi-session', 'subcategoria' => 'faturamento',
              'pergunta' => 'Qual a tendência do meu faturamento?',
-             'memoria_esperada_keys' => ['março', 'abril', 'queda', 'crescimento', 'R$ [redacted Tier 0]', 'R$ [redacted Tier 0]'],
+             'memoria_esperada_keys' => ['março', 'abril', 'queda', 'crescimento', '310', '150'],
              'resposta_esperada_pattern' => '(queda|caiu|crescimento|tendência)', 'dificuldade' => 3,
              'notas' => 'WR2: 310 → 150 = queda de 50%'],
 
@@ -277,15 +277,15 @@ class MemoriaGabaritoSeeder extends Seeder
             // ============================================================
 
             ['business_id' => 4, 'categoria' => 'knowledge-update', 'subcategoria' => 'metas',
-             'pergunta' => 'Mudei minha meta pra R$ [redacted Tier 0] mil. Qual é minha meta agora?',
-             'memoria_esperada_keys' => ['R$ [redacted Tier 0] mil', '100.000', 'meta atualizada'],
+             'pergunta' => 'Mudei minha meta pra 100 mil. Qual é minha meta agora?',
+             'memoria_esperada_keys' => ['100 mil', '100.000', 'meta atualizada'],
              'resposta_esperada_pattern' => '(R\\$\\s?100|100\\s?mil)', 'dificuldade' => 2,
-             'notas' => 'Testa update — agente deve atualizar e responder R$ [redacted Tier 0]k não 80k',
-             'contexto_setup' => ['executar_antes' => 'INSERT meta R$ [redacted Tier 0]k com valid_from=NOW']],
+             'notas' => 'Testa update — agente deve atualizar e responder 100k não 80k',
+             'contexto_setup' => ['executar_antes' => 'INSERT meta 100k com valid_from=NOW']],
 
             ['business_id' => 4, 'categoria' => 'knowledge-update', 'subcategoria' => 'metas',
              'pergunta' => 'Qual era minha meta antes de eu trocar?',
-             'memoria_esperada_keys' => ['R$ [redacted Tier 0] mil', '80.000', 'meta antiga', 'valid_until'],
+             'memoria_esperada_keys' => ['80 mil', '80.000', 'meta antiga', 'valid_until'],
              'resposta_esperada_pattern' => '(R\\$\\s?80|antes era)', 'dificuldade' => 3,
              'notas' => 'Testa temporal+update: precisa achar fato antigo com valid_until setado'],
 
@@ -312,13 +312,13 @@ class MemoriaGabaritoSeeder extends Seeder
              'notas' => 'Pergunta seguida pra validar persistência multi-turno'],
 
             ['business_id' => 4, 'categoria' => 'knowledge-update', 'subcategoria' => 'metas',
-             'pergunta' => 'Diminui minha meta pra R$ [redacted Tier 0] mil. Quanto falta pra bater?',
-             'memoria_esperada_keys' => ['R$ [redacted Tier 0] mil', 'meta nova', 'falta'],
+             'pergunta' => 'Diminui minha meta pra 50 mil. Quanto falta pra bater?',
+             'memoria_esperada_keys' => ['50 mil', 'meta nova', 'falta'],
              'resposta_esperada_pattern' => '(R\\$\\s?50|50\\s?mil|falta)', 'dificuldade' => 2],
 
             ['business_id' => 4, 'categoria' => 'knowledge-update', 'subcategoria' => 'capability',
-             'pergunta' => 'Esquece o que falei sobre a meta de R$ [redacted Tier 0] mil. A meta é R$ [redacted Tier 0] mil.',
-             'memoria_esperada_keys' => ['R$ [redacted Tier 0] mil', 'meta', 'esquecer', 'override'],
+             'pergunta' => 'Esquece o que falei sobre a meta anterior. A meta é 80 mil.',
+             'memoria_esperada_keys' => ['80 mil', 'meta', 'esquecer', 'override'],
              'resposta_esperada_pattern' => '(certo|combinado|R\\$\\s?80)', 'dificuldade' => 3,
              'notas' => 'Testa retract: agente deve invalidar fact anterior'],
 
