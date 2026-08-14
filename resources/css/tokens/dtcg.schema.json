@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://oimpresso.com/schemas/dtcg.tokens.schema.json",
+  "title": "DTCG tokens do oimpresso (resources/css/tokens/*.tokens.json)",
+  "description": "Schema do formato DTCG COMO ESTE REPO O USA — não o spec ideal. Diferenças deliberadas do W3C Design Tokens Community Group, todas medidas no corpus em 2026-08-14 (169 folhas · 27 grupos · 2 arquivos): (a) $value é SEMPRE string CSS verbatim, inclusive em tipos que o spec define como composite (shadow/cubicBezier) — é o contrato de fidelidade byte-a-byte do pipeline (o Style Dictionary emite o $value sem reparse, ver style-dictionary.config.mjs); (b) $type é opcional na folha porque herda do grupo (23 grupos declaram, 4 folhas declaram); (c) $description é OPCIONAL — 141 das 169 folhas não têm, e exigir seria backfill em massa de legado, o que morre no CI (proibicoes §5 2026-07-12); (d) $extensions é OBRIGATÓRIO na folha e precisa de com.oimpresso.source, porque é ele que diz a qual bloco CSS canônico o token deve ser provado igual — sem ele o dtcg-equivalence.mjs não tem o que comparar. Quem valida: node scripts/governance/dtcg-equivalence.mjs --schema. Este arquivo descreve FORMA; a igualdade de VALOR contra o CSS é o modo sem flag do mesmo script.",
+  "type": "object",
+  "properties": {
+    "$description": { "type": "string", "minLength": 1 },
+    "$extensions": { "type": "object" }
+  },
+  "patternProperties": {
+    "^\\$": true,
+    "^[^$]": { "$ref": "#/$defs/no" }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "no": {
+      "title": "nó da árvore DTCG — folha (tem $value) ou grupo (não tem)",
+      "type": "object",
+      "if": { "required": ["$value"] },
+      "then": { "$ref": "#/$defs/token" },
+      "else": { "$ref": "#/$defs/grupo" }
+    },
+
+    "grupo": {
+      "title": "grupo DTCG",
+      "description": "Agrupa outros nós e pode declarar $type herdado pelos descendentes. O `not` abaixo exige ao menos UM filho non-$: um grupo só com chaves $ é, na prática, uma folha cujo $value foi escrito errado ($valeu, $vaule) — o parser deixa de reconhecê-la como token e ela some do denominador em silêncio.",
+      "type": "object",
+      "properties": {
+        "$type": { "$ref": "#/$defs/tipoDtcg" },
+        "$description": { "type": "string", "minLength": 1 }
+      },
+      "patternProperties": {
+        "^\\$": true,
+        "^[^$]": { "$ref": "#/$defs/no" }
+      },
+      "additionalProperties": false,
+      "not": {
+        "patternProperties": { "^\\$": true },
+        "additionalProperties": false
+      }
+    },
+
+    "token": {
+      "title": "folha DTCG (token)",
+      "type": "object",
+      "required": ["$value", "$extensions"],
+      "properties": {
+        "$value": {
+          "type": "string",
+          "minLength": 1,
+          "description": "String CSS verbatim. O Style Dictionary emite este valor SEM reparse, então o que sai no _generated-*.css é byte-idêntico ao que está aqui. Por isso não há forma composite (objeto) neste repo, nem para shadow/cubicBezier."
+        },
+        "$type": { "$ref": "#/$defs/tipoDtcg" },
+        "$description": { "type": "string", "minLength": 1 },
+        "$extensions": { "$ref": "#/$defs/extensoes" }
+      },
+      "patternProperties": { "^\\$": true },
+      "additionalProperties": false
+    },
+
+    "extensoes": {
+      "title": "$extensions da folha",
+      "description": "Sem additionalProperties:false de propósito — o namespace com.oimpresso.* precisa poder crescer sem que uma extensão nova nasça reprovada. O único campo exigido é o que o gate de equivalência CONSOME.",
+      "type": "object",
+      "required": ["com.oimpresso.source"],
+      "properties": {
+        "com.oimpresso.source": {
+          "type": "string",
+          "description": "Endereço do bloco CSS canônico que é a verdade deste token, na forma '<arquivo>.css <escopo> --<var>'. Os dois `pattern` abaixo são exatamente o que dtcg-equivalence.mjs precisa extrair (fileOfSource + varOfSource); source que não casa vira o erro `source-ilegivel` lá. Padrão em duas partes em vez de um regex com lookahead — `pattern` do JSON Schema é ECMA-262, mas lookahead não é portável entre validadores.",
+          "allOf": [
+            {
+              "pattern": "(inertia|foundations|cockpit)\\.css",
+              "$comment": "qual dos 3 CSS canônicos — o mesmo trio que fileOfSource() reconhece"
+            },
+            {
+              "pattern": "--[A-Za-z][A-Za-z0-9-]*",
+              "$comment": "a custom property alvo; A-Za-z porque há vars com sufixo maiúsculo (--mod-CRM-bg) e varOfSource() casa com flag /i"
+            }
+          ]
+        },
+        "com.oimpresso.dark": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Valor da variante dark, quando a fonte redefine a var no bloco escuro. Ausente = o token não tem variante dark declarada."
+        },
+        "com.oimpresso.dark_absent": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Razão declarada de NÃO haver variante dark (ex.: 'herda light'). É prosa para humano — o gate não a consome; serve para distinguir 'não tem dark de propósito' de 'esqueceram o dark'."
+        },
+        "com.oimpresso.alias_of": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Caminho DTCG do token de que este é cópia de valor (ex.: 'cockpit.accent.accent')."
+        },
+        "com.oimpresso.alias_hint": { "type": "string", "minLength": 1 }
+      }
+    },
+
+    "tipoDtcg": {
+      "title": "$type",
+      "description": "Tipos do W3C DTCG mais `other`, que é extensão local e está em uso (1 token). O enum é SUPERSET do que o corpus usa hoje (color, dimension, duration, cubicBezier, shadow, fontFamily, other) justamente para que um tipo legítimo do spec não nasça reprovado.",
+      "enum": [
+        "color",
+        "dimension",
+        "fontFamily",
+        "fontWeight",
+        "duration",
+        "cubicBezier",
+        "number",
+        "strokeStyle",
+        "border",
+        "transition",
+        "shadow",
+        "gradient",
+        "typography",
+        "other"
+      ]
+    }
+  }
+}

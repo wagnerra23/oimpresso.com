@@ -20,7 +20,11 @@ name: Design-memory gate (advisory)
 #     da espinha de import (detectar-telas/ancora/importar-bundle/gerar-contrato/
 #     recortar-regiao/analise-regiao) + ancora-adversário (hard).
 #   - prove (ex-dtcg-equivalence.yml): equivalência DTCG ↔ CSS canônico (tokens
-#     editados no JSON portável, CSS é SAÍDA) + self-test que morde.
+#     editados no JSON portável, CSS é SAÍDA) + self-test que morde. Dois eixos desde
+#     2026-08-14: FORMA (`--schema`, os *.tokens.json contra resources/css/tokens/
+#     dtcg.schema.json) e VALOR (modo sem flag). A forma existe porque o valor
+#     dependia dela em silêncio — token sem `com.oimpresso.source` não tinha endereço
+#     canônico e saía do denominador sem aparecer.
 #
 # ENFORCEMENT — este bloco NÃO declara o próprio enforcement (§5 2026-07-16 · LC-10).
 # O dono único de "o que é required" é `governance/required-checks-baseline.json`
@@ -29,9 +33,10 @@ name: Design-memory gate (advisory)
 # no primeiro flip.
 #
 # O QUE O ARQUIVO ABAIXO DE FATO FAZ (retrato datado 2026-08-14, contado do YAML por
-# parser, não estimado): 46 steps, dos quais 8 são `uses:` de setup e 38 são steps de
-# comando — 13 SEM `continue-on-error` e 25 COM. Os 13 sem se decompõem em 9 selftests
-# + 2 guards (Cowork SSOT · ancora-adversário) + `detect-handoff` + o `Job summary`.
+# parser, não estimado): 48 steps, dos quais 8 são `uses:` de setup e 40 são steps de
+# comando — 14 SEM `continue-on-error` e 26 COM. Os 14 sem se decompõem em 9 selftests
+# + 2 guards (Cowork SSOT · ancora-adversário) + `detect-handoff` + o `Job summary`
+# + o `npm install` do ajv (sem ele o modo `--schema` do DTCG sai 2, NÃO MEDIDO).
 #
 # A redação anterior deste bloco afirmava "os self-tests/guards rodam SEM continue-on-
 # error" e isso era FALSO: dos 20 selftests do arquivo, 9 rodam sem e **11 rodam com**
@@ -388,8 +393,26 @@ jobs:
         with:
           node-version: '20'
 
+      # ajv é a MESMA engine que scripts/memory-schemas/validate.mjs ja usa pros schemas
+      # de memory/** — reuso da dependencia que o repo ja tem, nao motor novo. Sem ela o
+      # modo --schema sai 2 (NAO MEDIDO) em vez de verde calado, e o self-test cobra isso.
+      - name: Install deps do validador de schema (ajv)
+        run: npm install --no-save ajv@^8.17.1 ajv-formats@^3.0.1
+
       - name: Self-test (fixture boa passa + fixture ruim falha)
         run: node scripts/governance/dtcg-equivalence.test.mjs
+
+      # FORMA (cinturao DTCG). O passo seguinte prova VALOR e depende de forma: token sem
+      # `$extensions.com.oimpresso.source` nao tem endereco canonico pra comparar. Este
+      # passo pega isso na origem, com a mensagem do campo que falta.
+      # `set -o pipefail`: sem ele o rc do step vem do `tee` e o node falha calado
+      # (scripts/governance/workflow-pipe-rc.test.mjs cobra este padrao).
+      - name: Forma — *.tokens.json contra dtcg.schema.json (advisory)
+        id: forma
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          node scripts/governance/dtcg-equivalence.mjs --schema | tee /tmp/dtcg-schema.txt
 
       - name: Provar equivalencia (advisory)
         id: prove
@@ -409,6 +432,14 @@ jobs:
             echo 'Divergencia aqui = edicao manual no gerado OU regressao do gerador.'
             echo 'Este texto nao declara se o check bloqueia merge — o dono dessa resposta'
             echo 'e governance/required-checks-baseline.json.'
+            echo ''
+            echo '### Forma (JSON Schema)'
+            echo ''
+            echo '```'
+            cat /tmp/dtcg-schema.txt 2>/dev/null || echo '(sem saida — ver o passo Forma)'
+            echo '```'
+            echo ''
+            echo '### Valor (DTCG <-> CSS)'
             echo ''
             echo '```'
             cat /tmp/dtcg.txt 2>/dev/null || echo '(sem saida — ver passo anterior)'
