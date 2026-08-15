@@ -737,6 +737,9 @@ jobs:
       - name: doc-auto-relink --detect (link-rot doc↔doc · DRY-RUN, nunca --apply em CI)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/doc-auto-relink.mjs --detect
+      - name: doc-auto-relink --orfaos (dívida residual religável · DRY-RUN, nunca --apply em CI)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/doc-auto-relink.mjs --orfaos
       - name: funcao-scorecard outcome-probe (nota × defeito real · advisory read-only)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/funcao-scorecard-outcome-probe.mjs
