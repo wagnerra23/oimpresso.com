@@ -19,10 +19,34 @@
  * (Copiloto→Jana), que é a maior fonte de link morto. (id DERIVADO muda no rename de filename;
  * esse caso é coberto por git-rename na máquina de realocação, não aqui.)
  *
+ * ── MODO --orfaos (2026-08-15): a dívida que o --detect NÃO alcança ────────────
+ * O `--detect` só enxerga doc que moveu E tem `id` STAMPED no índice commitado. A dívida
+ * REAL de link morto é maior e mais velha: o `deadlink-gate` (required) carrega 1.082 links
+ * mortos em 568 arquivos congelados em `governance/deadlink-baseline.json` — o ratchet impede
+ * PIORAR, e ninguém paga. Medição 2026-08-15: 55% desses têm o basename resolvendo pra UM
+ * único arquivo real (o caso clássico `decisions/proposals/NNNN.md` → a proposta virou ADR
+ * aceita e mudou de pasta), e 72,5% da dívida mora em área MUTÁVEL.
+ *
+ * Este modo fecha o elo detectar→consertar que faltava: o CI já roda `--detect` dry-run
+ * ("nunca --apply em CI", e correto), mas nada nunca propôs o conserto do resíduo.
+ *
+ * As 5 travas (o que o torna seguro o bastante pra existir):
+ *   1. referrer não-relinkável   → PULA (reusa isUnrelinkableReferrer: decisions/sessions/
+ *                                  handoffs append-only + gate-guarded). Nunca edita ADR.
+ *   2. alvo AMBÍGUO (N basenames)→ PULA. Adivinhar destino é a doença do guard sintático.
+ *   3. alvo INEXISTENTE          → PULA (link pra doc deletado de verdade não tem conserto).
+ *   4. reescrita ANCORADA        → replaceExact (lança se o texto driftou), nunca replace solto
+ *                                  — a lápide §5 2026-08-02 é exatamente esse erro.
+ *   5. cap explícito `--max N`   → sem big-bang (§5 2026-07-12: backfill em massa de legado).
+ * Dry-run é o default; `--apply` é sempre explícito.
+ *
  * Uso:
  *   node scripts/governance/doc-auto-relink.mjs --detect            (dry-run: moves + plano de religação)
  *   node scripts/governance/doc-auto-relink.mjs --move A.md B.md    (plano de UM move explícito)
  *   node scripts/governance/doc-auto-relink.mjs --detect --apply    (aplica: reescreve mutáveis + tombstone)
+ *   node scripts/governance/doc-auto-relink.mjs --orfaos            (dry-run: link morto religável por alvo único)
+ *   node scripts/governance/doc-auto-relink.mjs --orfaos --apply --max 20   (aplica, com teto)
+ *   node scripts/governance/doc-auto-relink.mjs --orfaos --escopo memory/requisitos/  (recorte)
  *   node scripts/governance/doc-auto-relink.mjs --selftest
  *   ... [--root <dir>]
  *
@@ -134,6 +158,92 @@ function trackedFiles(root) {
   return git(root, ['ls-files', '-z']).split('\0').filter(Boolean).map(posixify);
 }
 
+// ── MODO --orfaos ──────────────────────────────────────────────────────────────
+// Link markdown interno. Fragmento (#ancora) preservado; http/mailto/âncora-pura fora.
+const MD_LINK = /\[[^\]]*\]\(([^)\s]+)\)/g;
+
+/**
+ * Propõe religação do link morto RESIDUAL: aquele cujo basename resolve pra UM único
+ * arquivo real do repo. NÃO escreve nada. É o complemento do planForMove — lá o move é
+ * conhecido (índice de ids); aqui só o sintoma é conhecido (o link não abre).
+ *
+ * Retorna { proposals, skipped } — `skipped` é o disclosure honesto (por que cada um ficou
+ * de fora), porque instrumento que só mostra o que achou esconde o denominador.
+ */
+export function planOrphanRelinks(root, allFiles, { escopo = null, max = Infinity } = {}) {
+  const byBase = new Map();
+  for (const p of allFiles) {
+    const b = posix.basename(p);
+    if (!byBase.has(b)) byBase.set(b, []);
+    byBase.get(b).push(p);
+  }
+
+  const proposals = [];
+  const skipped = { nao_relinkavel: 0, ambiguo: 0, sem_alvo: 0, fora_escopo: 0, root_relative: 0 };
+  const seen = new Set(); // dedupe (file, rawHref) — replaceExact já troca todas as ocorrências
+
+  for (const file of allFiles) {
+    if (!file.toLowerCase().endsWith('.md')) continue;
+    if (escopo && !file.startsWith(escopo)) { skipped.fora_escopo++; continue; }
+    const abs = join(root, file);
+    if (!existsSync(abs)) continue;
+    const text = readFileSync(abs, 'utf8');
+
+    for (const m of text.matchAll(MD_LINK)) {
+      const raw = m[1];
+      if (/^(?:https?:|mailto:|#)/.test(raw)) continue;
+      const [pathPart, fragment = ''] = raw.split('#');
+      if (!pathPart) continue;
+      // Vivo? nada a fazer. (resolve relativo ao dir do referrer — é a semântica do markdown.)
+      if (existsSync(resolve(join(root, posix.dirname(file)), pathPart))) continue;
+
+      // Trava 1: referrer append-only / gate-guarded nunca é reescrito.
+      if (isUnrelinkableReferrer(file)) { skipped.nao_relinkavel++; continue; }
+
+      const cands = byBase.get(posix.basename(pathPart)) || [];
+      if (cands.length === 0) { skipped.sem_alvo++; continue; }   // trava 3
+      if (cands.length > 1) { skipped.ambiguo++; continue; }      // trava 2
+      // Trava 6 (medida 2026-08-15: 100 de 633 propostas = 15,8% de FP): o link já é o path
+      // EXATO do alvo a partir da RAIZ do repo — convenção root-relative, usada de propósito
+      // em `.claude/agents/*.md` e afins. Não resolve como relativo, mas não está quebrado;
+      // reescrever pra `../../` seria trocar a convenção do autor por conta própria.
+      if (pathPart === cands[0]) { skipped.root_relative++; continue; }
+
+      const key = `${file} ${raw}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      const to = destination(file, cands[0], 'markdown-link', fragment);
+      if (to === raw) continue; // já é o caminho certo (nada a reescrever)
+      proposals.push({ file, kind: 'markdown-link', from: raw, to, target: cands[0] });
+      if (proposals.length >= max) return { proposals, skipped, capped: true }; // trava 5
+    }
+  }
+  return { proposals, skipped, capped: false };
+}
+
+/** Aplica propostas do --orfaos. Reescrita ANCORADA (trava 4): replaceExact lança em drift. */
+export function applyOrphanRelinks(root, proposals) {
+  const byFile = new Map();
+  for (const p of proposals) {
+    if (!byFile.has(p.file)) byFile.set(p.file, []);
+    byFile.get(p.file).push(p);
+  }
+  const applied = [];
+  for (const [file, list] of byFile) {
+    const abs = join(root, file);
+    let text = readFileSync(abs, 'utf8');
+    for (const p of list) {
+      const [search, replace] = searchReplaceFor(p.kind, p.from, p.to);
+      const r = replaceExact(text, search, replace);
+      text = r.text;
+      applied.push({ file, from: p.from, to: p.to, count: r.count });
+    }
+    writeFileSync(abs, text, 'utf8');
+  }
+  return applied;
+}
+
 function runSelftest() {
   const cases = [];
   const check = (name, ok, ev) => cases.push({ name, ok: Boolean(ok), ev });
@@ -185,6 +295,62 @@ function runSelftest() {
       const det = detectMoves(fx2);
       check('detectMoves: id stamped rastreia rename de PASTA', det.moves.some((m) => m.id === 'jana-x-canon' && m.from.includes('Copiloto') && m.to.includes('Jana')), det);
     } finally { if (fx2.startsWith(tmpdir())) rmSync(fx2, { recursive: true, force: true }); }
+
+    // ── --orfaos: bite-test (morde o religável, SOLTA os 4 casos que não pode tocar) ──
+    const fx3 = mkdtempSync(join(tmpdir(), 'oimpresso-orfaos-'));
+    try {
+      git(fx3, ['init', '-q']); git(fx3, ['config', 'user.email', 't@t.test']); git(fx3, ['config', 'user.name', 'T']);
+      mkdirSync(join(fx3, 'memory/decisions'), { recursive: true });
+      mkdirSync(join(fx3, 'memory/requisitos/Jana'), { recursive: true });
+      mkdirSync(join(fx3, 'memory/reference'), { recursive: true });
+      mkdirSync(join(fx3, 'dup/a'), { recursive: true }); mkdirSync(join(fx3, 'dup/b'), { recursive: true });
+
+      // alvo real, único no repo:
+      writeFileSync(join(fx3, 'memory/decisions/0320-aceita.md'), '# aceita\n');
+      // alvo AMBÍGUO (mesmo basename em 2 lugares):
+      writeFileSync(join(fx3, 'dup/a/dobrado.md'), '# a\n');
+      writeFileSync(join(fx3, 'dup/b/dobrado.md'), '# b\n');
+      // referrer MUTÁVEL com: (1) morto religável, (2) morto ambíguo, (3) morto sem alvo, (4) VIVO
+      writeFileSync(join(fx3, 'memory/reference/guia.md'),
+        '[a](../decisions/proposals/0320-aceita.md)\n'
+        + '[b](../../dup/dobrado.md)\n'
+        + '[c](../nunca-existiu.md)\n'
+        + '[d](../decisions/0320-aceita.md)\n'
+        + '[e](memory/decisions/0320-aceita.md)\n');
+      // referrer APPEND-ONLY com o MESMO link morto religável — não pode ser tocado:
+      writeFileSync(join(fx3, 'memory/decisions/0001-cita.md'), '[a](proposals/0320-aceita.md)\n');
+      git(fx3, ['add', '.']); git(fx3, ['commit', '-q', '-m', 'fx']);
+
+      const files3 = trackedFiles(fx3);
+      const { proposals, skipped } = planOrphanRelinks(fx3, files3);
+
+      check('--orfaos MORDE: link morto com alvo único vira proposta',
+        proposals.some((p) => p.file === 'memory/reference/guia.md' && p.from.includes('proposals/0320-aceita.md') && p.target === 'memory/decisions/0320-aceita.md'), proposals);
+      check('--orfaos SOLTA: alvo ambíguo (2 basenames) não vira proposta',
+        !proposals.some((p) => p.from.includes('dobrado.md')) && skipped.ambiguo >= 1, { proposals, skipped });
+      check('--orfaos SOLTA: alvo inexistente não vira proposta',
+        !proposals.some((p) => p.from.includes('nunca-existiu')) && skipped.sem_alvo >= 1, { proposals, skipped });
+      check('--orfaos SOLTA: link VIVO não vira proposta (controle negativo)',
+        !proposals.some((p) => p.from === '../decisions/0320-aceita.md'), proposals);
+      check('--orfaos SOLTA: referrer append-only (ADR) nunca vira proposta',
+        !proposals.some((p) => p.file.startsWith('memory/decisions/')) && skipped.nao_relinkavel >= 1, { proposals, skipped });
+      check('--orfaos SOLTA: link ROOT-RELATIVE válido não vira proposta (trava 6 — 15,8% de FP medido)',
+        !proposals.some((p) => p.from === 'memory/decisions/0320-aceita.md') && skipped.root_relative >= 1, { proposals, skipped });
+
+      // aplica e faz TESTE DE IDENTIDADE: só o link alvo muda; o resto do arquivo fica idêntico.
+      const antes = readFileSync(join(fx3, 'memory/reference/guia.md'), 'utf8');
+      applyOrphanRelinks(fx3, proposals);
+      const depois = readFileSync(join(fx3, 'memory/reference/guia.md'), 'utf8');
+      check('APLICADO: o link religado aponta pro alvo real', depois.includes('](../decisions/0320-aceita.md)'), depois);
+      check('IDENTIDADE: só a linha do link religável mudou (as outras 4 intactas)',
+        antes.split('\n').filter((l, i) => l !== depois.split('\n')[i]).length === 1, { antes, depois });
+      const adr3 = readFileSync(join(fx3, 'memory/decisions/0001-cita.md'), 'utf8');
+      check('APLICADO: ADR append-only byte-a-byte intacta', adr3 === '[a](proposals/0320-aceita.md)\n', adr3);
+
+      // cap: --max limita o big-bang.
+      const capped = planOrphanRelinks(fx3, files3, { max: 1 });
+      check('--max N corta a leva (anti big-bang)', capped.proposals.length <= 1, capped);
+    } finally { if (fx3.startsWith(tmpdir())) rmSync(fx3, { recursive: true, force: true }); }
   } finally {
     if (fixture.startsWith(tmpdir())) rmSync(fixture, { recursive: true, force: true });
   }
@@ -203,6 +369,26 @@ function main() {
   const apply = args.includes('--apply');
   const files = trackedFiles(root);
 
+  if (args.includes('--orfaos')) {
+    const escIdx = args.indexOf('--escopo');
+    const maxIdx = args.indexOf('--max');
+    const escopo = escIdx >= 0 ? posixify(args[escIdx + 1]) : null;
+    const max = maxIdx >= 0 ? Number(args[maxIdx + 1]) : Infinity;
+    const { proposals, skipped, capped } = planOrphanRelinks(root, files, { escopo, max });
+
+    console.log(`[orfaos] link morto RELIGÁVEL (basename com alvo único, referrer mutável): ${proposals.length}${capped ? ` (cortado em --max ${max})` : ''}`);
+    console.log(`[orfaos] não propostos — ambíguo: ${skipped.ambiguo} · sem alvo: ${skipped.sem_alvo} · referrer append-only/gate-guarded: ${skipped.nao_relinkavel}`);
+    for (const p of proposals) console.log(`    ${p.file}\n      ${p.from}  →  ${p.to}`);
+    if (!proposals.length) { console.log('(nada religável neste escopo.)'); return; }
+    if (apply) {
+      const done = applyOrphanRelinks(root, proposals);
+      console.log(`\n  APLICADO: ${done.length} link(s) religado(s) em ${new Set(done.map((d) => d.file)).size} arquivo(s).`);
+    } else {
+      console.log('\n(dry-run — nada escrito. Use --apply pra religar.)');
+    }
+    return;
+  }
+
   const moveIdx = args.indexOf('--move');
   let moves;
   if (moveIdx >= 0) {
@@ -212,7 +398,7 @@ function main() {
     if (det.error) { console.error(det.error); process.exit(2); }
     moves = det.moves;
   } else {
-    console.error('uso: --detect [--apply] | --move <A.md> <B.md> [--apply] | --selftest');
+    console.error('uso: --detect [--apply] | --move <A.md> <B.md> [--apply] | --orfaos [--escopo <dir>] [--max N] [--apply] | --selftest');
     process.exit(2);
   }
 

@@ -592,6 +592,8 @@ jobs:
         run: node scripts/governance/doc-auto-relink.mjs --selftest
       - name: doc-auto-relink --detect (link-rot doc↔doc · DRY-RUN, nunca --apply em CI)
         run: node scripts/governance/doc-auto-relink.mjs --detect
+      - name: doc-auto-relink --orfaos (dívida residual religável · DRY-RUN, nunca --apply em CI)
+        run: node scripts/governance/doc-auto-relink.mjs --orfaos
       - name: funcao-scorecard outcome-probe (nota × defeito real · advisory read-only)
         run: node scripts/governance/funcao-scorecard-outcome-probe.mjs
       # P15 entrega 3 — desorfanar .test.mjs (sweep selftest-registry-check.mjs, 2026-07-13).
