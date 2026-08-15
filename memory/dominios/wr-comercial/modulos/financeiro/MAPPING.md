@@ -12,7 +12,7 @@ related_specs: [requisitos/Financeiro/SPEC.md]
 
 # MAPPING — Financeiro / Contas Bancárias
 
-> ⚠️ **Anticorruption Layer documentada** ([ADR 0118](../../../decisions/0118-segregacao-dominios-externos-clientes-legacy.md)). Único arquivo bilíngue (vocabulário Delphi + Laravel) por design. Eric Evans, *Domain-Driven Design* (2003) cap. 14.
+> ⚠️ **Anticorruption Layer documentada** ([ADR 0118](../../../../decisions/0118-segregacao-dominios-externos-clientes-legacy.md)). Único arquivo bilíngue (vocabulário Delphi + Laravel) por design. Eric Evans, *Domain-Driven Design* (2003) cap. 14.
 
 ## Contexto
 

@@ -30,6 +30,24 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/Components/ui/sheet';
+import EmptyState from '@/Components/shared/EmptyState';
+/* O Dialog volta — não como o drawer (a C1 tirou ele daí, e com razão), mas
+   como o MODAL da parcela: decisão pontual sobre uma linha, com o drawer atrás
+   ainda visível. É a mesma composição da âncora (Drawer + Modal aninhado). */
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/Components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
+import { Textarea } from '@/Components/ui/textarea';
 import { Input } from '@/Components/ui/input';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/ui/select';
@@ -42,6 +60,8 @@ import {
   PLANOS,
   dataISO,
   diaZero,
+  METODOS_PAGAMENTO,
+  dataBR,
   diferencaParaOTotal,
   fechaNoTotal,
   mesmoDiaNoMes,
@@ -52,7 +72,7 @@ import {
   venceuAntesDeHoje,
   type Parcela,
 } from './parcelas-dominio';
-import { Lbl, Pill } from './primitivos';
+import { Lbl, Pill, Sec } from './primitivos';
 
 function Campo({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -163,6 +183,21 @@ export default function ParcelasDrawer({
     onParcelasChange(parcelas.map((p, i) => (i === parcelas.length - 1 ? { ...p, valor: fmtBR(novo) } : p)));
   };
 
+  /* Rascunho do editor de parcela. Ele NÃO escreve na lista enquanto o usuário
+     digita: só no Confirmar. Editar valor a cada tecla faria a conferência
+     "soma × total" piscar vermelho no meio da digitação e, pior, gravaria
+     estados intermediários num campo Tier 0. */
+  const [emEdicao, setEmEdicao] = useState<Parcela | null>(null);
+
+  /* Grava a parcela inteira pelo MESMO caminho que os inputs da linha usam —
+     `onParcelasChange` com a lista mapeada. Um só ponto de escrita: se um dia
+     a persistência mudar, muda num lugar. */
+  const salvarEdicao = () => {
+    if (!emEdicao) return;
+    onParcelasChange(parcelas.map((p) => (p.k === emEdicao.k ? emEdicao : p)));
+    setEmEdicao(null);
+  };
+
   const editarValor = (k: number, valor: string) =>
     onParcelasChange(parcelas.map((p) => (p.k === k ? { ...p, valor } : p)));
 
@@ -170,6 +205,7 @@ export default function ParcelasDrawer({
     onParcelasChange(parcelas.map((p) => (p.k === k ? { ...p, venc } : p)));
 
   return (
+    <>
     <Sheet open={aberto} onOpenChange={(v) => !v && onFechar()}>
       {/* `venda-v3` FICA aqui: o Radix portala o conteúdo pro <body>, FORA do
           wrapper da Page — sem a classe, nada de `venda-v3.css` alcança o que
@@ -190,6 +226,12 @@ export default function ParcelasDrawer({
           </SheetHeader>
 
           <Stack gap={4} className="min-h-0 flex-1 overflow-auto px-5 py-4">
+          {/* O drawer era um empilhado de blocos soltos; o protótipo organiza em
+              CARDS NOMEADOS (`DrawerSection`), e é isso que faz a tela parecer
+              outra. Medido no protótipo rodando: <h4> 10.5px/600 uppercase,
+              letter-spacing .525px, caixa radius 12px, padding 14px 18px — que é
+              exatamente o `Sec` que a Page da V3 já usa. */}
+          <Sec title="Condição de pagamento">
           {/* ─── gerador ─────────────────────────────────────────────────── */}
           <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-4">
             <Escolha
@@ -225,8 +267,11 @@ export default function ParcelasDrawer({
           <Inline gap={3} align="center" className="flex-wrap">
             <Inline gap={2} align="center">
               <Checkbox id="v3-por-mes" checked={porMes} onCheckedChange={(v) => setPorMes(v === true)} />
-              <label htmlFor="v3-por-mes" className="cursor-pointer text-[12px] leading-tight">
-                Vence no mesmo dia de cada mês
+              <label htmlFor="v3-por-mes" className="cursor-pointer leading-tight">
+                <span className="block text-[12px] font-medium">Mês fechado</span>
+                <span className="block text-[11px] text-muted-foreground">
+                  Vence no mesmo dia de cada mês
+                </span>
               </label>
             </Inline>
             <div className="min-w-[220px] flex-1">
@@ -242,7 +287,21 @@ export default function ParcelasDrawer({
             )}
           </Inline>
 
+          </Sec>
+
+          <Sec title="Recebimento">
           {/* ─── grade ───────────────────────────────────────────────────── */}
+                    {/* Sem parcelas a tabela sumia inteira — a tela muda e não diz por quê.
+              A âncora (`sells-parcelas.jsx:99`) põe um EmptyState que ENSINA o
+              caminho; é o que o operador precisa na primeira venda do dia. */}
+          {parcelas.length === 0 && (
+            <EmptyState
+              icon="inbox"
+              title="Nenhuma parcela gerada"
+              description="Escolha a condição, o número de parcelas e o 1º vencimento e clique em Gerar parcelas. Depois você pode editar valor, data e conta de cada uma."
+            />
+          )}
+
           {parcelas.length > 0 && (
             <div className="overflow-x-auto rounded-lg border border-border">
               <table className="w-full text-[12.5px]">
@@ -253,6 +312,8 @@ export default function ParcelasDrawer({
                     <th className="px-3 py-2 font-medium">Vencimento</th>
                     <th className="px-3 py-2 font-medium">Valor</th>
                     <th className="px-3 py-2 font-medium">Tipo</th>
+                    <th className="px-3 py-2 font-medium">Conta</th>
+                    <th className="w-10 px-3 py-2" />
                     <th className="px-3 py-2 font-medium">Lançamento</th>
                   </tr>
                 </thead>
@@ -284,7 +345,29 @@ export default function ParcelasDrawer({
                       </td>
                       <td className="px-3 py-1.5">{p.tipo}</td>
                       <td className="px-3 py-1.5">
-                        <Pill tom={p.lanc === 'RECEBIDA' ? 'success' : 'neutro'}>{p.lanc}</Pill>
+                        {/* "recebida 12/08" > "RECEBIDA": a data é o que responde "isso já
+                              entrou?" sem abrir outra tela (âncora `sells-parcelas.jsx:120`). */}
+                          <Pill tom={p.lanc === 'RECEBIDA' ? 'success' : 'neutro'}>
+                            {p.lanc === 'RECEBIDA' && p.pgto ? `recebida ${dataBR(p.pgto)}` : p.lanc}
+                          </Pill>
+                      </td>
+                      <td className="px-3 py-1.5 text-center">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              type="button"
+                              title="Ações da parcela"
+                              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-md border border-border bg-card text-muted-foreground hover:text-foreground"
+                            >
+                              ⋯
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onSelect={() => setEmEdicao(p)}>
+                              Editar detalhes…
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </td>
                     </tr>
                   ))}
@@ -292,6 +375,8 @@ export default function ParcelasDrawer({
               </table>
             </div>
           )}
+
+          </Sec>
 
           {/* ─── conferência ─────────────────────────────────────────────── */}
           {parcelas.length > 0 && (
@@ -349,5 +434,127 @@ export default function ParcelasDrawer({
         </Stack>
       </SheetContent>
     </Sheet>
+
+    {/* ─── editor da parcela ────────────────────────────────────────────────
+        A âncora (`sells-parcelas.jsx:151`) abre um modal por parcela, e é o que
+        torna as parcelas EDITÁVEIS de verdade: gerar 6x é o começo, ajustar a
+        3ª pra outro plano de contas com histórico é o trabalho real.
+
+        Modal (não outro drawer) porque é decisão pontual sobre UMA linha, com
+        o drawer atrás ainda visível — a mesma escolha da âncora. */}
+    <Dialog open={!!emEdicao} onOpenChange={(v) => !v && setEmEdicao(null)}>
+      <DialogContent className="venda-v3 sm:max-w-[620px]">
+        <DialogHeader>
+          <DialogTitle>
+            {emEdicao ? `Parcela ${emEdicao.num}/${emEdicao.de}` : 'Parcela'}
+          </DialogTitle>
+        </DialogHeader>
+
+        {emEdicao && (
+          <Stack gap={3}>
+            <Grid gap={3} className="sm:grid-cols-2">
+              <div>
+                <Lbl>Responsável</Lbl>
+                <Input
+                  value={emEdicao.resp}
+                  placeholder="Cliente da venda"
+                  onChange={(e) => setEmEdicao({ ...emEdicao, resp: e.target.value })}
+                />
+              </div>
+              <Escolha
+                label="Lançamento"
+                value={emEdicao.lanc}
+                onChange={(v) => setEmEdicao({ ...emEdicao, lanc: v })}
+                options={LANCAMENTOS}
+              />
+            </Grid>
+
+            <Grid gap={3} className="sm:grid-cols-3">
+              <Escolha
+                label="Tipo de pagamento"
+                value={emEdicao.tipo}
+                onChange={(v) => setEmEdicao({ ...emEdicao, tipo: v })}
+                options={METODOS_PAGAMENTO}
+              />
+              <div>
+                <Lbl>Documento</Lbl>
+                <Input
+                  value={emEdicao.doc}
+                  onChange={(e) => setEmEdicao({ ...emEdicao, doc: e.target.value })}
+                />
+              </div>
+              <div>
+                {/* MESMO `<Input>` da linha, de propósito: dar ao valor um
+                    segundo componente de digitação criaria dois comportamentos
+                    para o campo Tier 0 desta tela. */}
+                <Lbl>Valor</Lbl>
+                <Input
+                  className="text-right"
+                  inputMode="decimal"
+                  value={emEdicao.valor}
+                  onChange={(e) => setEmEdicao({ ...emEdicao, valor: e.target.value })}
+                />
+              </div>
+            </Grid>
+
+            <Grid gap={3} className="sm:grid-cols-2">
+              <div>
+                <Lbl>Vencimento</Lbl>
+                <Input
+                  type="date"
+                  value={emEdicao.venc}
+                  onChange={(e) => setEmEdicao({ ...emEdicao, venc: e.target.value })}
+                />
+              </div>
+              <div>
+                {/* Data do pagamento: é ela que faz a linha virar "recebida 12/08"
+                    na lista (onda C2). */}
+                <Lbl>Pagamento</Lbl>
+                <Input
+                  type="date"
+                  value={emEdicao.pgto ?? ''}
+                  onChange={(e) => setEmEdicao({ ...emEdicao, pgto: e.target.value || null })}
+                />
+              </div>
+            </Grid>
+
+            <Grid gap={3} className="sm:grid-cols-2">
+              <Escolha
+                label="Plano de contas"
+                value={emEdicao.plano}
+                onChange={(v) => setEmEdicao({ ...emEdicao, plano: v })}
+                options={PLANOS}
+              />
+              <Escolha
+                label="Conta"
+                value={emEdicao.conta}
+                onChange={(v) => setEmEdicao({ ...emEdicao, conta: v })}
+                options={CONTAS}
+              />
+            </Grid>
+
+            <div>
+              <Lbl>Histórico</Lbl>
+              <Textarea
+                rows={2}
+                value={emEdicao.hist}
+                placeholder="Cliente pediu boleto por e-mail"
+                onChange={(e) => setEmEdicao({ ...emEdicao, hist: e.target.value })}
+              />
+            </div>
+          </Stack>
+        )}
+
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => setEmEdicao(null)}>
+            Cancelar
+          </Button>
+          <Button type="button" onClick={salvarEdicao}>
+            Confirmar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

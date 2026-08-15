@@ -775,6 +775,18 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** não ligar `--enforce` (nem no CI, nem no array do bite-log) enquanto o `ds-mirror-drift` **não distinguir por exit code** "não consegui medir" de "drift subiu" — os dois caminhos de não-medição são o snapshot ausente (L51-55) e a falha do `ds-token-diff` (L62-65), e hoje ambos saem 1 sob `--enforce`. **Pré-requisito nomeado, se [W] quiser reabrir:** exit **2** = não-medi (recorder trata como `skipped`, igual a `crashed`), exit **1** = drift real; só então a flag faz sentido. Também proibido o atalho tentador: ligar `--enforce` **só** no array do recorder deixando o CI advisory — além de não escapar da razão (3), cria a divergência que o docblock do array proíbe em texto (*"o MESMO comando, pra não medir um caminho e afirmar sobre outro"*).
 
+### 2026-08-14 — Remendar o espelho de design À MÃO pra escapar do teto de fidelidade do `get_file`
+
+- **O limite:** o da mãe, sem reformular — **não transcrever; a escrita sai do dado, por script**. O que esta entrada fixa é o **desfecho**, porque a primeira redação que eu ia registrar (*"espelho não se edita — se baixa inteiro"*) estava **errada e seria pior que a ausência**: pra arquivo abaixo do piso do harness **não existe rota fiel hoje**, nem pra consertar **nem pra medir**, então "baixa inteiro" instrui a próxima sessão a fazer o que a plataforma não permite — ou paralisia, ou violação. O desfecho correto é o que a 08-13(c) já dizia: **não conserta — mede, registra o STALE, e o teto é decisão [W]** (aberta em [#5757](https://github.com/wagnerra23/oimpresso.com/pull/5757)). Ordem executável: `--snapshot-from <dir> --emit-snapshot` (mede sem escrever) → `--compare --check` → só então `--export-from`.
+
+### 2026-08-15 — Explicar um diff de baseline visual por DEDUÇÃO em vez de decodificar os dois lados (5 hipóteses, 5 derrubadas)
+
+- **O limite (variantes também proibidas):** não emitir causa de diff de baseline visual sem **decodificar os dois lados** — o `.snap` é PNG em base64 numa linha, e o diff textual (`+1 −1`) é opaco por construção; ler o nome do arquivo, o artefato ou o step **não é medir a imagem**. Também proibido: **(a)** delimitar bloco de log de CI por NOME de step/arquivo/comando — o log não carrega rótulo (`UNKNOWN STEP`), e a delimitação honesta é por `started_at`/`completed_at` da API; **(b)** tratar "todos os `Tests:` deram passed" como "o step passou" — exceção em `afterAll`/`tearDown` sai DEPOIS do resumo e com código diferente (2=exceção × 1=falha); **(c)** usar como controle um PR/run cujo step relevante ficou `skipped` — antes de dizer "passa no mesmo check", conferir que ele **executou**.
+
+### 2026-08-15 — Culpar o PR das fontes (`#5806`) pelo ruído de rasterização
+
+- **O limite (variante também proibida):** não atribuir causa a um commit por **proximidade de data + tema plausível**. Antes de citar um PR como causa, conferir **(a)** que ele entrou ANTES do efeito e **(b)** que os arquivos dele participam do caminho medido. As duas checagens custam um `git log -1 --format=%cd` e um `--stat`.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:

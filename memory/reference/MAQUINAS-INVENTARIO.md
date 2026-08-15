@@ -443,7 +443,7 @@ lifecycle: ativo
 | `visual-comparison-staleness.mjs` | ci, script | sentinela: o `<tela>-visual-comparison.md` ficou atrás da TELA? |
 | `worktree-janitor.mjs` | ci, npm | Faxineiro de worktrees — classifica worktree MORTO vs VIVO por ORÁCULO, nunca por heurística. |
 
-### 5.2 `scripts/tests/` — 9
+### 5.2 `scripts/tests/` — 10
 
 | Script | Invocador | Descrição (cabeçalho) |
 |---|---|---|
@@ -455,6 +455,7 @@ lifecycle: ativo
 | `ragas-trend-compute.mjs` | ci, script | write-side do trend do RAGAS real (ADR 0318 + pattern |
 | `shards-merge.mjs` | ci, script | funde os summaries junit POR SHARD numa medição da noite (SDD P04 |
 | `shards-plan.mjs` | agente, ci, script | particiona a suíte Pest em N shards POR DIRETÓRIO (determinístico). |
+| `snap-diff.mjs` | — (só `.test`) | LÊ o que mudou entre duas baselines de pixel (`.snap` do Pest Browser). |
 | `visreg-clock-bite.mjs` | ci | TEST do congelamento do relógio do navegador (gate visual-regression). |
 
 ### 5.3 `scripts/` (raiz) — 35
