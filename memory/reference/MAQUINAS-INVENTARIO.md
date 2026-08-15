@@ -361,7 +361,7 @@ lifecycle: ativo
 | `design-code-map-check.mjs` | ci | sentinela da ponte design↔código PERSISTENTE (<tela>.map.json). |
 | `design-gate-bites.mjs` | agente, ci | o BITE-LOG dos gates de design (DR-2a da ADR 0336). |
 | `detect-handoff.mjs` | ci, npm | DETECTOR-EM-LOTE do G4 ("paste zip → 1 tarefa por tela"). |
-| `detect-ui-drift.mjs` | ci, npm | M1: detector de MUDANÇA DE UI NÃO-DECLARADA (eixo de AUTORIZAÇÃO). |
+| `detect-ui-drift.mjs` | ci, npm, script | M1: detector de MUDANÇA DE UI NÃO-DECLARADA (eixo de AUTORIZAÇÃO). |
 | `doc-auto-relink.mjs` | ci, npm | AUTO-RELIGADOR: dado um doc que MOVEU (A→B), religa os links. |
 | `doc-freshness-score.mjs` | ci, script | RADAR de frescor POR DOC (score 0-100 · régua Dosu). |
 | `doc-id-index.mjs` | ci, script | GERADOR determinístico do índice `id → path atual` do corpus memory/. |
@@ -370,11 +370,11 @@ lifecycle: ativo
 | `document-relocation-adversary.mjs` | agente, ci, npm, script | Validador read-only de planos de realocacao documental. |
 | `document-relocation-classifier.mjs` | ci, npm | Classificador conservador de documentos. Produz plano v2 pinado ao HEAD; |
 | `document-relocation-executor.mjs` | ci, npm, script | Executor transacional de planos documentais aprovados. Dry-run por padrao. |
-| `documentation-loop.mjs` | agente, ci, npm | recibo determinístico do ciclo documental. |
+| `documentation-loop.mjs` | agente, ci, npm, script | recibo determinístico do ciclo documental. |
 | `doneness-lint.mjs` | ci, script | catraca de fonte-única do "done-ness" de US (ADR 0302). |
 | `ds-lint-selftest.mjs` | ci | LINT SELFTEST — controle-negativo das regras ds/* (as `no-restricted-syntax` |
 | `ds-mirror-drift.mjs` | agente, ci, script | SENTINELA de drift git ↔ espelho vivo (P3). |
-| `dtcg-equivalence.mjs` | ci | onda DTCG (ancora: ADR 0239 DS git SSOT + ADR 0249 DS v6 + |
+| `dtcg-equivalence.mjs` | ci, npm | onda DTCG (ancora: ADR 0239 DS git SSOT + ADR 0249 DS v6 + |
 | `dup-detector.mjs` | ci | L3 (keystone) da trava anti-duplicação de trabalho entre sessões |
 | `fact-anchor.mjs` | script | lógica PURA do Check T de memory-health.mjs (fact-anchor). |
 | `feature-lint.mjs` | ci, npm, script | valida o TRIO de feature (requirements.md + plan.md + tasks.md) em |
@@ -443,7 +443,7 @@ lifecycle: ativo
 | `visual-comparison-staleness.mjs` | ci, script | sentinela: o `<tela>-visual-comparison.md` ficou atrás da TELA? |
 | `worktree-janitor.mjs` | ci, npm | Faxineiro de worktrees — classifica worktree MORTO vs VIVO por ORÁCULO, nunca por heurística. |
 
-### 5.2 `scripts/tests/` — 8
+### 5.2 `scripts/tests/` — 9
 
 | Script | Invocador | Descrição (cabeçalho) |
 |---|---|---|
@@ -455,6 +455,7 @@ lifecycle: ativo
 | `ragas-trend-compute.mjs` | ci, script | write-side do trend do RAGAS real (ADR 0318 + pattern |
 | `shards-merge.mjs` | ci, script | funde os summaries junit POR SHARD numa medição da noite (SDD P04 |
 | `shards-plan.mjs` | agente, ci, script | particiona a suíte Pest em N shards POR DIRETÓRIO (determinístico). |
+| `snap-diff.mjs` | — (só `.test`) | LÊ o que mudou entre duas baselines de pixel (`.snap` do Pest Browser). |
 
 ### 5.3 `scripts/` (raiz) — 35
 
@@ -474,13 +475,13 @@ lifecycle: ativo
 | `design-spec-gen.mjs` | ci, npm | tela (componentes/tokens/layout) é PURA e DERIVÁVEL, mas era julgada por LLM |
 | `domain-dict-guard.mjs` | ci, npm, script | scripts/domain-dict-guard.mjs — Gate G-4 (dicionário de domínio) da Governança executável (ADR 0264). |
 | `ds-canon-color-guard.mjs` | ci, npm | scripts/ds-canon-color-guard.mjs — catraca: a camada canônica NÃO usa paleta crua |
-| `ds-ledger.mjs` | npm | scripts/ds-ledger.mjs — Ledger de Conformidade DS (censo Onda 0, por tela). |
-| `ds-report.mjs` | npm, script | scripts/ds-report.mjs — placar de adoção do Design System (ds/* por regra × módulo) |
+| `ds-ledger.mjs` | ci, npm | scripts/ds-ledger.mjs — Ledger de Conformidade DS (censo Onda 0, por tela). |
+| `ds-report.mjs` | ci, npm, script | scripts/ds-report.mjs — placar de adoção do Design System (ds/* por regra × módulo) |
 | `dsih-gate.mjs` | ci, script | porque NENHUM gate mordia CONTEUDO em .tsx (so canal: lint/build/conformance). |
 | `eslint-baseline.mjs` | ci, npm, script | scripts/eslint-baseline.mjs — Onda 1.2 (ADR 0209) |
 | `foundation-guard.mjs` | ci, npm, script | Determinístico, sem browser, sem dependência. Roda em CI (exit≠0 = bloqueia merge) E local. |
 | `generate-dxt.js` | script | Gera arquivo .dxt (Claude Desktop Extension) para membros do time oimpresso. |
-| `handoff-integrity-guard.mjs` | ci, npm | scripts/handoff-integrity-guard.mjs — catraca de Integridade do Handoff (PROCESSO_MEMORIA_CC.md §16 · IT8). |
+| `handoff-integrity-guard.mjs` | ci, npm, script | scripts/handoff-integrity-guard.mjs — catraca de Integridade do Handoff (PROCESSO_MEMORIA_CC.md §16 · IT8). |
 | `layout-primitives-guard.mjs` | ci, npm, script | scripts/layout-primitives-guard.mjs — enforcement da ADR 0253 (primitivos de layout) |
 | `no-mock-in-prod.mjs` | ci, npm, script | scripts/no-mock-in-prod.mjs — Frente 6 (plano anti-duplicacao 2026-06-06) |
 | `pageheader-migration-guard.mjs` | ci, npm, script | scripts/pageheader-migration-guard.mjs — F4 do roadmap de convergência UI (MANUAL-CSS-JS.md §5) |
@@ -494,7 +495,7 @@ lifecycle: ativo
 | `uc-derive.mjs` | — | scripts/uc-derive.mjs — Auto-derivador de vínculo UC↔teste (PoC read-only, determinístico) |
 | `visreg-flows-lint.mjs` | ci, npm, script | Catraca do contrato de fluxos visuais: cenário sem viewport, ação ou evidência não entra no CI. |
 | `visreg-sells-lint.mjs` | ci, npm | Catraca do contrato de fluxos visuais de Sells/Create: cenário sem viewport, ação ou |
-| `visreg-states-lint.mjs` | ci, npm | charter `states:` ⇄ manifesto do gate L2 (estados isolados do VRT). |
+| `visreg-states-lint.mjs` | ci, npm, script | charter `states:` ⇄ manifesto do gate L2 (estados isolados do VRT). |
 
 ## 6. Baselines & JSON de estado
 
