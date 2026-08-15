@@ -699,6 +699,15 @@ jobs:
       # Bite conferido contra a versão pré-fix: detecta o ofensor na linha 62.
       - name: rc mascarado por pipe em workflow (§5 2026-08-13 · fixtures boa/ruim + corpus)
         run: node scripts/governance/workflow-pipe-rc.test.mjs
+      # snap-diff — o repo NÃO TINHA como ler o que muda num `.snap` (PNG base64 em 1
+      # linha): todo diff de baseline aparece como `+1 −1` opaco, e revisar virava aprovar
+      # no escuro. Custo medido (2026-08-14/15): 5 explicações plausíveis emitidas e
+      # derrubadas pra UM vermelho, até alguém decodificar os dois lados. O selftest trava
+      # o que importa: as 2 ASSINATURAS discriminam (Δ≤3 rasterização × Δ≥200 conteúdo —
+      # os dois casos reais do corpus classificam certo) e o decodificador ABORTA no
+      # formato que não sabe ler, em vez de devolver "0 pixels diferentes" (§5 2026-07-29).
+      - name: snap-diff (lê o diff de baseline de pixel · 2 assinaturas + fail-loud)
+        run: node scripts/tests/snap-diff.test.mjs
       # doc-id-index --check — o modo que lê o CORPUS REAL nunca teve invocador. O script já
       # tinha o `--selftest` wirado acima desde o PR1, e foi por isso que escapou da TRIAGEM DOS 13
       # (26-27/07): o detector de órfão enxerga o ARQUIVO, e o arquivo estava coberto — o MODO não.
