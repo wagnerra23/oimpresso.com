@@ -215,7 +215,7 @@ function RichSpan({ runs }) {
   });
 }
 
-function JanaHeader({ company, person, biz, updatedAt, onNew, isChat }) {
+function JanaHeader({ company, person, biz, updatedAt, onNew, isChat, onConfig, plano, exportar, onRefresh }) {
   return (
     <header className="jc-header">
       <div className="jc-header-l">
@@ -229,23 +229,24 @@ function JanaHeader({ company, person, biz, updatedAt, onNew, isChat }) {
         </div>
       </div>
       <div className="jc-header-r">
-        <span className="jc-updated"><span className="d"/>Atualizado {updatedAt}</span>
-        {isChat
-          ? <button className="jc-btn ghost" onClick={onNew}><JcIcon name="plus" className="ic"/><span>Nova conversa</span></button>
-          : <button className="jc-btn ghost"><JcIcon name="settings" className="ic"/><span>Configurar</span></button>}
-        <button className="jc-btn dark"><JcIcon name="download" className="ic"/><span>Exportar</span></button>
+        <span className="jc-updated">{onRefresh ? <button className="jc-updated-b" onClick={onRefresh} title="Atualizar agora"><span className="d"/>Atualizado {updatedAt}</button> : <><span className="d"/>Atualizado {updatedAt}</>}</span>
+        {plano}
+        {isChat &&
+          <button className="jc-btn ghost" onClick={onNew}><JcIcon name="plus" className="ic"/><span>Nova conversa</span></button>}
+        <button className={"jc-btn ghost" + (isChat ? " jm-icon-only" : "")} onClick={onConfig} aria-label="Configurar" title="Configurar"><JcIcon name="settings" className="ic"/><span>Configurar</span></button>
+        {exportar || <button className="jc-btn dark"><JcIcon name="download" className="ic"/><span>Exportar</span></button>}
       </div>
     </header>
   );
 }
 
-function BriefDiario({ today, brief }) {
+function BriefDiario({ today, brief, onChip, onAudio }) {
   return (
     <section className="jc-brief">
       <div className="jc-brief-h">
         <span className="jc-brief-h-l"><JcIcon name="calendar" className="ic"/> <b>Brief diário</b> <span className="sep">·</span> {today}</span>
         <span className="jc-pill ia">IA</span>
-        <button className="jc-audio"><JcIcon name="play" className="ic"/> Ouvir áudio</button>
+        {onAudio && <button className="jc-audio" onClick={onAudio}><JcIcon name="play" className="ic"/> Ouvir áudio</button>}
       </div>
       <p className="jc-brief-greet"><strong>{brief.greeting}</strong> <RichSpan runs={brief.paragraphs[0].body}/></p>
       <p><RichSpan runs={brief.paragraphs[1].body}/></p>
@@ -256,7 +257,7 @@ function BriefDiario({ today, brief }) {
       <div className="jc-brief-sep"/>
       <div className="jc-brief-chips">
         {brief.chips.map((c, i) => (
-          <button key={i} className={"jc-chip " + c.tone}>
+          <button key={i} className={"jc-chip " + c.tone} onClick={() => onChip?.(c.label)}>
             <JcIcon name={c.icon} className="ic"/> {c.label}
           </button>
         ))}
@@ -411,12 +412,12 @@ function AnaliseCard({ a }) {
   );
 }
 
-function AcaoRow({ a }) {
+function AcaoRow({ a, onCta }) {
   return (
     <div className={"jc-acao tone-" + a.tone}>
       <span className="jc-acao-ic"><JcIcon name={a.icon}/></span>
       <div className="jc-acao-text"><b>{a.title}</b><small>{a.sub}</small></div>
-      <button className={"jc-cta " + a.cta.tone}>{a.cta.label}</button>
+      <button className={"jc-cta " + a.cta.tone} onClick={() => onCta?.(a)}>{a.cta.label}</button>
     </div>
   );
 }
@@ -577,15 +578,46 @@ function ConverseComJana({ data }) {
     if (!q || typing) return;
     setMsgs(m => [...m, { from:"user", kind:"text", text:q }]);
     setDraft("");
-    // resposta mock contextual
-    streamReply(
-      [
+    // Resposta mock por assunto — o real vem do Brain B via stream.
+    const t = q.toLowerCase();
+    let linhas, fontes;
+    if (/deve|inadimpl|vencid|cobran|receber/.test(t)) {
+      linhas = [
+        "Puxei os títulos em aberto antes de responder:",
+        "• **R$ 4.535.636** vencidos em 4.255 títulos — mas o **top 20 concentra 47%** [1].",
+        "• Acima de 365 dias há R$ 770k: isso é baixa, não cobrança.",
+      ];
+      fontes = [{ n:1, label:"Top 20 devedores · base atual", href:"#top20" }];
+    } else if (/frota|caçamba|cacamba|parad|ativo/.test(t)) {
+      linhas = [
+        "A frota está em **33% de utilização** — 30 de 91 locadas.",
+        "• 8 unidades paradas há mais de 7 dias, **3 já em overdue** [1].",
+        "• Cada dia parado custa mais que o desconto que fecharia a locação.",
+      ];
+      fontes = [{ n:1, label:"Ativos parados · leitura de hoje", href:"#frota" }];
+    } else if (/ticket|margem|preço|preco|m³|m3/.test(t)) {
+      linhas = [
+        "Ticket médio em **R$ 1.890**, caindo há 4 meses (era R$ 2.430).",
+        "• A margem não caiu: o preço por m³ está estável — mudou o **mix** [1].",
+        "• Ou seja: não é desconto, é produto menor.",
+      ];
+      fontes = [{ n:1, label:"Curva de ticket médio · 4 meses", href:"#ticket" }];
+    } else if (/cliente|ouro|reativ|churn|perdendo/.test(t)) {
+      linhas = [
+        "Oito contas de **LTV acima de R$ 50k** pararam de comprar há mais de 90 dias.",
+        "• Juntas somam **R$ 612k de LTV** — é a maior alavanca do mês [1].",
+        "• Começaria pelas três com obra ativa na região.",
+      ];
+      fontes = [{ n:1, label:"Cohort 2024 · retenção 35%", href:"#cohort" }];
+    } else {
+      linhas = [
         "Boa pergunta. Puxei os números do período e o padrão é claro:",
         "• O movimento se concentra em **poucas contas** — risco de dependência.",
         "• Sugiro priorizar **relacionamento** com o topo da curva antes de prospectar [1].",
-      ],
-      [{ n:1, label:"Pareto de clientes · base atual", href:"#pareto" }]
-    );
+      ];
+      fontes = [{ n:1, label:"Pareto de clientes · base atual", href:"#pareto" }];
+    }
+    streamReply(linhas, fontes);
   }
 
   function answerAction(state) {
@@ -706,3 +738,5 @@ function JanaCockpit({ company, tab = "dashboard" }) {
 }
 
 window.JanaCockpit = JanaCockpit;
+// Peças reusadas pela fusão das telas Jana (jana-merge.jsx → window.JanaPage).
+Object.assign(window, { JcIcon, JanaHeader, BriefDiario, KPICard, AnaliseCard, AcaoRow, ConverseComJana, getJanaData, Sparkline });
