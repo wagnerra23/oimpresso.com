@@ -28,11 +28,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
+        id: setup
         with:
           node-version: '20'
       - name: Decoder de titulo !!binary (adr-index-generate)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/adr-index-generate.test.mjs
       - name: Fact-anchor Check T (versoes derivaveis · fixtures boa/ruim · proposal fatos-derivaveis)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/fact-anchor.test.mjs
 
       # Bridge DXT (incidente 2026-08-12): o Desktop pede tools/list várias vezes
@@ -41,17 +44,22 @@ jobs:
       # sem erro visível. Este teste sobe o bridge de verdade contra um servidor
       # que CONTA requisições, e traz o controle negativo (TTL=0 desliga).
       - name: Bridge DXT · cache de tools/list (+ controle negativo)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/generate-dxt.test.mjs
       # Fecha o gap "scripts/** + agents sem indice-dono": o MAQUINAS-INVENTARIO.md e derivado
       # e agora ENFORCADO. --check e por COBERTURA (morde so quando maquina e add/removida sem
       # regenerar, nao byte-exact que viraria ruido). Advisory (ADR 0314/0275: required = so Tier-0).
       - name: Maquinas-inventario DRIFT (indice cobre todas as maquinas · rode --write se vermelho)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/maquinas-inventario.mjs --check
       - name: Ancora doc->codigo DRIFT (o codigo moveu e a doc nao sabe · rode --sync)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/ancora-codigo-sync.mjs --check
       - name: Ancora doc->codigo · bite-test (sincroniza ponteiro, recusa ambiguo, nao toca assercao)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/ancora-codigo-sync.mjs --selftest
       - name: Maquinas-inventario bite-test (--check morde missing+ghost, libera fiel · fixture temp)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/maquinas-inventario.test.mjs
       # §5 derivado: a FONTE e memory/licoes-rejeitadas.md (corpos integros, append-only);
       # o §5 de proibicoes.md carrega SO os limites e e GERADO. Duas pernas independentes:
@@ -60,8 +68,10 @@ jobs:
       # (2) SINCRONIA -- o §5 no disco e byte-identico ao que o gerador produz (anti-drift
       #     de quem editar o derivado a mao em vez da fonte).
       - name: §5 derivado == fonte (nao-perda de limite + anti-drift)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/sec5-derive.mjs --check
       - name: §5 derive bite-test (corta arqueologia, NUNCA come limite · lapide de 2 eixos)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/sec5-derive.mjs --selftest
       # O contrato de completude da ADR 0277 ("migrado = route Blade morto") foi decidido em
       # 2026-06-13 e NUNCA ganhou maquina — medido: 0 scripts, 0 workflows contavam route Blade
@@ -72,34 +82,46 @@ jobs:
       # aceita dois-pontos-espaco — vira chave de mapa e o workflow inteiro para de subir
       # (startup_failure, ZERO jobs). Foi o que aconteceu em 2026-08-08 (#5424).
       - name: 'Censo Blade->React (bite: resource-string, namespace de grupo, indirecao $this-> · NEG: json/ciclo/mailable)'
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/blade-migration-census.mjs --selftest
       # A lista de lanes que alimentam o manifesto por-UC (G-7) e DERIVADA desde 2026-08-04
       # (a lista a mao apodreceu: 4 lanes emitiam JUnit e ninguem lia). Sem este bite-test,
       # quebrar a derivacao volta a congelar a colheita EM SILENCIO -- que foi o defeito.
       - name: Junit-lanes bite-test (morde junit+artifact e bloco literal, solta comentario e junit sem artifact)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/junit-lanes.mjs --selftest
       # Fixtures do falso-positivo REAL de 2026-08-04: main parado a noite toda + rajada de
       # 2 commits -> a formula antiga (head - served) devolvia 14.4h e alarmava com o servidor
       # 3min atras. A fixture "a formula ANTIGA teria alarmado" impede a regressao voltar.
       - name: MCP drift · lag mede HA QUANTO TEMPO o servidor deve (nao a distancia entre commits)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/mcp-drift-sentinel.mjs --selftest
       - name: System-map camada de IA (censo derivado · morde no caching.embeddings que a mao contou errado)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/system-map-ia.test.mjs
       - name: System-map path morto (transcricao de lapide libera, ponteiro inventado morde)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/system-map-deadlinks.test.mjs
       - name: Grupo de memoria por modulo (case-trap Pages/kb x requisitos/KB + token no nome do arquivo)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/module-group-resolve.test.mjs
       - name: Shipped-log gerador honesto (fixtures-armadilha)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/shipped-log-generate.test.mjs
       - name: Dup-detector L3 (overlap/ack/exclude)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/dup-detector.test.mjs
       - name: Protection-drift frescor da orfa (computed_at do conteudo, nao o tip · V5 GT-G4)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/protection-drift-freshness.test.mjs
       - name: Outcome metrics (medidor de aceitacao · fixtures-armadilha · Onda O1)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/outcome-metrics.test.mjs
       - name: Agent PR outcomes (DORA do agente · CFR morde/libera · card #0 grade-das-reguas)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/agent-pr-outcomes.test.mjs
       - name: Agent cost per PR (custo USD por PR · join 2-sinais morde/libera · item #7 grade-das-reguas)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/agent-cost-per-pr.test.mjs
       # Alcance arquivo-de-teste -> lane de PR. O selftest e a defesa do MEDIDOR
       # (bite + controles negativos); o relatorio e ADVISORY e nao derruba o PR —
@@ -108,8 +130,10 @@ jobs:
       # Sem contador no nome: "bite 15/15" apodreceria no proximo caso novo (LC-10 —
       # artefato afirmando em tempo presente algo que muda). O numero vive na saida.
       - name: Test-lane coverage (teste existe x lane de PR alcanca · bite + controles)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/test-lane-coverage.mjs --selftest
       - name: Test-lane coverage — relatorio (ADVISORY, nao bloqueia)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/test-lane-coverage.mjs || true
 
       # EIXO 2 (2026-08-10): o eixo acima mede "a lane ALCANCA o arquivo?".
@@ -119,6 +143,7 @@ jobs:
       # casos e trava multi-tenant Tier 0 (ADR 0093). ADVISORY: relato, nao veredito
       # — ligar qualquer um deles numa lane exige rodar no CT 100 antes.
       - name: Test-lane MUDOS — alcancado x deixado rodar (ADVISORY, nao bloqueia)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/test-lane-coverage.mjs --mudos || true
 
       # FORWARD-ONLY: nao cobra a divida historica (957 arquivos, nao e deste PR).
@@ -138,6 +163,7 @@ jobs:
       # nessas funções; um pearson bugado seria LC-08 (medir errado). Prova contra valores conhecidos
       # + point-biserial conferido à mão. Advisory por desenho (ADR 0314/0275: required = só Tier-0).
       - name: funcao-scorecard outcome-probe (estatística da correlação nota↔outcome · barra CodeScene)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/funcao-scorecard-outcome-probe.test.mjs
       # Aritmetica de viabilidade do contrafactual de corpus (chip C1 da grade 2026-07-17 ·
       # fraqueza F1 "corpus nunca medido" 3/10). O harness de 3 arms foi PODADO em
@@ -150,18 +176,21 @@ jobs:
       # mentisse SUBESTIMARIA o custo do experimento -- o numero que [W] usa pra decidir.
       # Deterministico de proposito: nao flaka. Advisory por desenho.
       - name: Agent corpus counterfactual (aritmética de viabilidade · poder por Monte Carlo determinístico · chip C1 grade 2026-07-17)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/agent-corpus-counterfactual.test.mjs
       # Braço CROSS-MODEL da grade de réguas (fraqueza "verificação same-model" 5,0 · orquestracao-adversarial).
       # Testa SÓ a lógica pura (classificarDivergencia/resumoControleNegativo/seleção/prompt-blind) — a
       # direção da divergência é o que o arm existe pra pegar; fixtures boa/ruim mordem (DERRUBA) e liberam
       # (CONCORDA). NUNCA chama modelo/rede aqui — a chamada cross-vendor é técnica de PROCESSO, fora do CI.
       - name: Reguas cross-model (direção do controle-negativo · blind sem vazar peer · same-vendor barrado)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/reguas-cross-model.test.mjs
       # Grafo tipado DERIVADO dos memory/requisitos/*/SCOPE.md (chip #2 grade catálogo/IDP 2026-07-21).
       # Testa a lógica PURA (parse frontmatter + extratores + buildGraph + serialização
       # determinística + detecção de aresta pendurada) com SCOPE sintéticos — não a árvore viva.
       # Advisory por desenho (ADR 0314/0275: required = só Tier-0).
       - name: Catalog graph (arestas tipadas do SCOPE · aresta pendurada morde · determinismo)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/catalog-graph.test.mjs
       # CATRACA de acoplamento módulo→módulo (forward-only). Roda contra a ÁRVORE VIVA,
       # não fixture: reprova par NOVO que não esteja congelado em
@@ -170,6 +199,7 @@ jobs:
       # promoção é flip [W] com mordida provada). Espelha a DependencyDirectionTest
       # (app/ ↛ Modules/) um nível abaixo.
       - name: Catraca de acoplamento módulo→módulo (advisory · forward-only)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/catalog-graph.mjs --acoplamento --catraca
       # Scorecard de sinais-vivos por serviço (grade Catálogo/IDP 7,5 · "scorecard de sinais-vivos"
       # + UI consultável, 2026-07-21). AGREGADOR advisory que junta grade+telas+grafo+briefing por
@@ -177,6 +207,7 @@ jobs:
       # exato, join tela PAGES_NS + normalização EXATA (sem casar por similaridade), backend-only ≠
       # falha, aresta pendurada, maturidade só sobre checks aplicáveis, determinismo.
       - name: Service scorecard (join grade/tela/grafo · normalização exata · determinismo)
+        if: always() && steps.setup.outcome == 'success'
         run: node --test scripts/governance/service-scorecard.test.mjs
       # Guard anti-fabricação de data por clone raso — DONO único do detector, importado
       # pelos 12 derivadores de data (antes eram 6 detectores copiados, em 2 granularidades
@@ -185,10 +216,13 @@ jobs:
       # tmp: órfã buscada com `--depth 1` marca o repo shallow SEM truncar o HEAD, e o
       # detector tem que soltar — é o falso-positivo que o `--is-shallow-repository` cru tem.
       - name: Git history guard (raso morde · completo solta · finura da órfã)
+        if: always() && steps.setup.outcome == 'success'
         run: node --test scripts/governance/git-history.test.mjs
       - name: Função-scorecard blind pack (IDs opacos + docblocks sem tells + scorer compatível)
+        if: always() && steps.setup.outcome == 'success'
         run: node --test scripts/governance/funcao-scorecard-calibracao.test.mjs
       - name: Função-scorecard gold humano (9/9 obrigatório + K/9 + Cohen kappa)
+        if: always() && steps.setup.outcome == 'success'
         run: node --test scripts/governance/funcao-scorecard-humano.test.mjs
       # Descasamento de vocabulário de `status` entre schema canônico e filtro de retrieval
       # (2026-07-28). Medido no DB de prod: 285 de 2.012 docs indexados (14%) são invisíveis
@@ -198,8 +232,10 @@ jobs:
       # (o FP medido antes de instalar) e que o extrator acha os tipos vistos no índice real —
       # âncora contra o falso-negativo que a 1ª versão tinha (perdia `runbook`).
       - name: RAG status-vocab (schema × retrieval · interseção de conjuntos)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/rag-status-vocab-check.mjs --selftest
       - name: RAG status-vocab — relatório (advisory, não piorar vs baseline)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/rag-status-vocab-check.mjs --check
       # Fonte ÚNICA de UC-id (ADR 0264) — a lib existia pra matar "4 regex que drifaram" e
       # não tinha teste nenhum. O USO dela (split por bloco `## ` antes do ucHeadRe) seguiu
@@ -207,61 +243,85 @@ jobs:
       # na LINHA CRUA e media 4 telas cobertas onde havia 29 (perna casos_coverage morta).
       # Inclui o CONTROLE-NEGATIVO da raiz: linha crua NÃO casa, bloco casa.
       - name: UC-id fonte única (parser de casos.md · controle-negativo da linha crua)
+        if: always() && steps.setup.outcome == 'success'
         run: node --test scripts/lib/uc-regex.test.mjs
       # Detector ADVISORY de DONO-DE-TEMA (pedido [W] 2026-07-21 "como sei que a Maiara não
       # está duplicando estrutura?"). Consome o catalog.json + tópicos; mede sobreposição de
       # ENTIDADE declarada (não nome de arquivo). O selftest é a MORDIDA: prova que casa por
       # entidade e NÃO por nome, self-exclui, passa limpo em tema novo (§5 ancora-guard 2026-06-30).
       - name: Tema-owner núcleo (mordida · mede entidade não nome · self-exclude · passa-limpo · prova real)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/tema-owner.test.mjs
       - name: Tema-owner hook advisory (controle-negativo de acoplamento · dispara no path · fail-open)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/tema-owner-advisory.test.mjs
       # ex-órfãos de CI (adversário 2026-07-13): existiam no repo mas nenhum workflow os
       # rodava — reencarnação da proibição "Tests sem phpunit.xml = falsa cobertura".
       - name: SDD distiller_freshness read-side (anti-stale + shallow honesto · ADR 0291 D-D)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/sdd-distiller-freshness.test.mjs
       - name: CT100 sdd-scorecard-snapshot wrapper (sintaxe + fatal-sem-artefato + docker mock + staleness WARNING)
+        if: always() && steps.setup.outcome == 'success'
         run: bash scripts/tests/ct100-sdd-scorecard-snapshot.test.sh
       - name: CT100 jana-evals invocador (US-COPI-140 · docker mock + nao-mascara-falha + drift-sentinel fora)
+        if: always() && steps.setup.outcome == 'success'
         run: bash scripts/tests/ct100-jana-evals.test.sh
       - name: Block-test-fora-ct100 PORTE .mjs (logica + E2E · roda em Linux · card #2 cross-platform)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/block-test-fora-ct100.test.mjs
       - name: Block-test-fora-ct100 REGISTRADO como node (correcao != invocacao)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-test-fora-ct100-registration.test.mjs
       - name: Block-automem PORTE .mjs (ADR 0061/0131 · logica + E2E · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/block-automem.test.mjs
       - name: Block-edit-authority-generated (ADR 0256 · bloqueia editar gerado a mao · logica + E2E)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/block-edit-authority-generated.test.mjs
       - name: Block-mwart-violation PORTE .mjs (ADR 0104 F1 · logica + E2E · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/block-mwart-violation.test.mjs
       - name: Block-automem + block-mwart REGISTRADOS como node (correcao != invocacao)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-automem-mwart-registration.test.mjs
       - name: Block-edit-authority-generated REGISTRADO no settings (correcao != invocacao)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-block-generated-registration.test.mjs
       - name: Block-bom-encoding PORTE .mjs (proibicoes Ambiente BOM · #984 · logica + E2E · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/block-bom-encoding.test.mjs
       - name: Block-test-without-red PORTE .mjs (SDD FV-T0 · logica + E2E · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/block-test-without-red.test.mjs
       - name: Warn-red-first PORTE .mjs (SDD FV-T0 advisory · logica + E2E · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/warn-red-first.test.mjs
       - name: Commit-discipline-check PORTE .mjs (skill Tier A · ADR 0094 §5 · logica + E2E · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/commit-discipline-check.test.mjs
       - name: Lote porte .ps1->.mjs REGISTRADO como node (correcao != invocacao · US-GOV-052)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-portlote-ps1-mjs-registration.test.mjs
       - name: Memory-pending PORTE .mjs (Stop · skill memory-sync · ADR 0070 · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/memory-pending.test.mjs
       # Corpus REAL (19 prompts da sessão 2026-08-07 da fusão Jana) + controle negativo.
       # Wirado junto com a ampliação do INTENT: selftest sem invocador é a máquina
       # que existe e não avisa — o defeito que esta própria sessão catalogou.
       - name: Design-agente-ativa (gatilho INTENT × DESIGN · verbos de acesso · bite + controle negativo)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/design-agente-ativa.mjs --selftest
       - name: Nudge-recommend-not-menu PORTE .mjs (R13 · advisory · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/nudge-recommend-not-menu.test.mjs
       - name: Nudge-diagnosis-without-evidence PORTE .mjs (R1 · advisory · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/nudge-diagnosis-without-evidence.test.mjs
       - name: Nudge-test-contract-anchor PORTE .mjs (proibicoes §descartadas Check 9 · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/nudge-test-contract-anchor.test.mjs
       - name: Vista publicada segue o padrao (PreToolUse:Artifact · advisory · morde em fixture)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/vista-publicada-padrao.test.mjs
       # Doc que nasce em memory/requisitos/<Mod>/ fora da allowlist de 9 nomes existe no git
       # e NAO existe pra busca da IA (Regra 2 de como-escrever-doc-para-o-rag.md). O hook e
@@ -271,12 +331,16 @@ jobs:
       # O selftest tambem le o PHP do indexador e compara allowlist+globs: se o indexador
       # ganhar um 10o nome, ESTE step fica vermelho (o hook nao pode mentir em silencio).
       - name: Doc fora do indice do RAG (PreToolUse:Write · advisory · morde + anti-deriva vs indexador)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/doc-fora-do-rag.test.mjs
       - name: Doc fora do RAG REGISTRADO como node (correcao != invocacao)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-doc-fora-do-rag-registration.test.mjs
       - name: Lote 2 nudges REGISTRADO como node (correcao != invocacao · US-GOV-052)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-portlote2-nudges-registration.test.mjs
       - name: Licoes-code-two-strikes PORTE .mjs (loop aprendizado · logica + E2E · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/licoes-code-two-strikes.test.mjs
       # O SELFTEST acima prova a LOGICA do reconciliador. Nao prova que alguem o RODA sobre o
       # corpus real: ate 2026-08-14 o `--reconcile` so existia no banner do SessionStart, entao
@@ -294,6 +358,7 @@ jobs:
       # NAO afirma o proprio enforcement: se esta lane bloqueia merge, quem sabe e
       # governance/required-checks-baseline.json (dono unico, vigiado por protection-drift).
       - name: Ledger de licoes <-> §5 reconciliado (auto-feed · forward-only)
+        if: always() && steps.setup.outcome == 'success'
         run: |
           OUT="${RUNNER_TEMP:-.}/licoes-reconcile.txt"
           node .claude/hooks/licoes-code-two-strikes.mjs --reconcile > "$OUT"
@@ -310,40 +375,58 @@ jobs:
             if (n > 0) { console.error(`::error::${n} lapide(s) §5 pos-frontier SEM recibo no ledger — toda lapide nova entra numa classe LC`); process.exit(1); }
           '
       - name: Loop-fechar-check PORTE .mjs (rotina IA-OS idempotente · logica + E2E · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/loop-fechar-check.test.mjs
       - name: Check-skills-fresh PORTE .mjs (skill nova entre sessoes · logica + E2E · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/check-skills-fresh.test.mjs
       - name: Modulo-preflight-warning PORTE .mjs (FASE 1 pre-flight Tier 0 · logica + E2E · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/modulo-preflight-warning.test.mjs
       - name: Lote 3 SessionStart+preflight REGISTRADO como node (correcao != invocacao · US-GOV-052)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-portlote3-sessionstart-registration.test.mjs
       - name: Charter-validate PORTE .mjs (Charter > Spec · logica + E2E · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/charter-validate.test.mjs
       - name: Preflight-new-capability PORTE .mjs (anti-reinvencao framework · logica + E2E · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/preflight-new-capability.test.mjs
       - name: Lote 4 charter+preflight REGISTRADO como node (correcao != invocacao · US-GOV-052)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-portlote4-charter-preflight-registration.test.mjs
       - name: Brief-fetch-curl PORTE .mjs (HTTP autenticado MCP · fetch nativo + timeout + redacao token · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/brief-fetch-curl.test.mjs
       - name: Tier-a-banner PORTE .mjs (banner Skills Tier A de-numerado · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/tier-a-banner.test.mjs
       - name: Handoff-inline PORTE .mjs (indice handoff SessionStart · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/handoff-inline.test.mjs
       - name: Lote 5 SessionStart REGISTRADO como node (correcao != invocacao · US-GOV-052)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-portlote5-sessionstart-registration.test.mjs
       - name: Block-merge-markers PORTE .mjs (post-mortem v4 anti-pattern A · #1000/#1001 · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/block-merge-markers.test.mjs
       - name: Block-routes-string-legacy PORTE .mjs (rules/routes.md FQCN · incidente #843 · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/block-routes-string-legacy.test.mjs
       - name: Lote B REGISTRADO como node (correcao != invocacao)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-merge-routes-registration.test.mjs
       - name: Registro Figma-não-é-fonte em settings.json (camada L4)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-figma-registration.test.mjs
       - name: Registro âncora-no-olho em settings.json (incidente #7)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-ancora-registration.test.mjs
       - name: Porta-viva morde (LC-08 · fixtures boa/ruim + INVOCAÇÃO real por stdin)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/block-instrumento-sem-porta-viva.mjs --selftest
       - name: Registro porta-viva em settings.json (LC-08 · matcher Glob E Grep)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-porta-viva-registration.test.mjs
       # Incidente 2026-07-26 (#4798): session log + handoff com frontmatter fora do schema
       # mergearam no main — a skill não disparou, o validador não existia como comando, e os
@@ -352,6 +435,7 @@ jobs:
       # que a LÓGICA morde/libera; o de registro prova que ela está INVOCADA (hook fora do
       # settings.json enforça nada — "correção-do-mecanismo ≠ invocação").
       - name: Guard de schema de memory/ morde (fixtures boa/ruim + E2E por stdin)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/memory-schema-guard.mjs --selftest
       # Permissão renomeada (família `copiloto.mcp.*` → `jana.mcp.*`, #4853). [W] cobrou
       # 2026-07-28: "chato já retornou 3 vezes isso". A recorrência tinha causa mecânica —
@@ -361,8 +445,10 @@ jobs:
       # ADVISORY de nascença (ADR 0275/0336) — promoção só com mordida provada.
       # O --diff é forward-only: legado fica grandfatherado (lápide §5 2026-07-12).
       - name: Permissão renomeada — o lint morde nome velho em linha NOVA
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/permissao-renomeada-lint.mjs --selftest
       - name: Permissão renomeada — diff-aware no PR (advisory)
+        if: always() && steps.setup.outcome == 'success'
         continue-on-error: true
         run: node scripts/governance/permissao-renomeada-lint.mjs --diff origin/${{ github.base_ref || 'main' }}
       # Achado adversarial 2026-07-26 (sobre a ADR 0353): o ledger de réguas contém
@@ -373,6 +459,7 @@ jobs:
       # na escrita, só CONFERIDA. O teste existente (reguas-workflow.test.mjs) só olha
       # o prompt (presence-gate sobre texto) e por construção não vê o arquivo.
       - name: Ledger de réguas — o selftest morde os 2 defeitos reais
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/reguas-ledger-check.mjs --selftest
       # 2026-08-08: este step rodava SEM `--check` — imprimia as 3 violações e saía 0.
       # Gate mudo é pior que gate ausente (parece cobertura). Não dava pra ligar o
@@ -380,108 +467,151 @@ jobs:
       # vermelho-permanente; agora elas são DADO em config.json `residuos_irrecuperaveis`
       # — o conhecido é reportado sem derrubar, e drift NOVO derruba. Segue advisory.
       - name: Ledger de réguas — coerência do arquivo (advisory · morde drift NOVO)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/reguas-ledger-check.mjs --check
       - name: Registro do guard de schema em settings.json (matcher Write E Edit)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-memory-schema-registration.test.mjs
       - name: Baseline armado Figma-não-é-fonte (camada L5 · vetores de ataque)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/evals/design-source-of-truth.eval.mjs
       - name: Lógica + E2E block-design-sync (ADR 0315 · fecha Gap 1 da 0299)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/block-design-sync-without-optin.test.mjs
       - name: Lógica + E2E block-skill-design-sync (ADR 0315 · Eixo B via matcher Skill)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/block-skill-design-sync-without-optin.test.mjs
       - name: Registro design-sync-não-é-fonte em settings.json (camada L4 · DesignSync + Skill)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-design-sync-registration.test.mjs
       - name: ds-push orquestrador morde (dry-run VALOR:0 + determinismo · loop diff-first)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/ds-push.test.mjs
       - name: ds-token-version morde (seed + bumps MINOR/MAJOR + gate --check · loop diff-first)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/ds-token-version.test.mjs
       - name: ds-token-diff MOTOR morde (diverge/designOnly/gitOnly/alias-skip/companion · loop diff-first)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/ds-token-diff.test.mjs
       - name: ds-mirror-drift SENTINELA morde (bite/release/catraca · loop diff-first)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/ds-mirror-drift.test.mjs
       - name: design-coverage CATRACA morde (bite/release · cobertura de design UI-0013)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/qa/design-coverage.test.mjs
       - name: pt-conformance morde (declaração de PT falsificável · PT-02..05)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/pt-conformance.mjs --selftest
       - name: criar-tela GERADOR carimba conforme ao PT (máquina de nascimento de tela · UI-0013)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/criar-tela.mjs --selftest
       - name: Design-memory gate wired no CI (Onda O3 · fundido ADR 0314 F2)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/design-memory-gate.test.mjs
       - name: UI-impact classificador (paths visuais + negativos + escopo affected)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/ui-impact.mjs --selftest
       - name: Catraca de path-fantasma morde/solta (P16 · knowledge-drift --selftest)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/knowledge-drift.mjs --selftest
       # O selftest do watchdog existia e NINGUÉM invocava — os asserts do eixo 2 nunca
       # rodaram em CI, e por isso o eixo 1 pôde afirmar "✓ todos os crons com heartbeat
       # < limite" tendo medido zero (cego lido como bootstrap). Ver proibicoes §"LIGUE A
       # MÁQUINA" item 2: máquina que ninguém invoca é bug, não neutralidade.
       - name: cron-watchdog — cego ≠ bootstrap, entrega parada morde, e rodar ≠ dar certo (eixos 1+2+3)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/cron-watchdog.mjs --selftest
       - name: Ciclo documental — recibo antes→depois morde/solta (ADR 0270 · ZELADOR)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/documentation-loop.test.mjs
       - name: Adversario de realocacao documental (plano seguro solta; historia/relink/path ruim mordem)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/document-relocation-adversary.mjs --selftest
       - name: Classificador documental (camadas ADR 0334 + receita stale vira revisao)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/document-relocation-classifier.mjs --selftest
       - name: Executor documental (dry-run + git mv + relink + recibo Git)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/document-relocation-executor.mjs --selftest
       # P10 — integridade referencial rota↔código (T-AP-3/14/15 · M-AP-1 do F3 rejeitado).
       # A catraca é hermética (fixtures bite/release, ancorada no contrato LICOES_F3); se ela
       # parar de morder, ESTE passo falha. O relatório é ADVISORY (ADR 0314 — não-Tier-0): roda
       # em seguida, exit 0 sempre, só imprime os achados no log (o valor é o relatório).
       - name: ref-integrity — selftest da catraca (bite/release · T-AP-3/14/15/M-AP-1)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/ref-integrity.mjs --selftest
       - name: ref-integrity — relatório advisory rota↔código (exit 0 · nunca bloqueia)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/ref-integrity.mjs
       # US-GOV-052 P31+P32 — fonte única de skills-tier e de hue primário (ADR 0314: advisory).
       - name: Skills index gerador morde/solta (P31 · bite/release hermético)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/skills-index-generate.test.mjs
       - name: Skills index em dia (P31 · CLAUDE.md AUTO:SKILLS + _SKILLS-INDEX vs frontmatter)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/skills-index-generate.mjs --check
       - name: Hue-canon check morde/solta (P32 · construção, nunca número cru)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/hue-canon-check.test.mjs
       - name: Hue primário íntegro (P32 · declarações expected_hue/hue_correct vs governance/hue-canon.json)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/hue-canon-check.mjs
       # Fonte única de HOOKS (grade de réguas 2026-07-19 · fraquezas spec-hooks-desarmados 8,0
       # + spec-enforcement-geracao 6,5). Extensão do padrão skills-index (fonte-única gerada,
       # nunca à mão). Report-only (ADR 0314): --check morde só em drift/fantasma; órfão = warn.
       - name: Hooks manifest gerador morde/solta (bite/release hermético · fantasma/drift)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/hooks-manifest-generate.test.mjs
       - name: Hooks manifest em dia (_HOOKS-INDEX vs settings/hooks/baseline)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/hooks-manifest-generate.mjs --check
       - name: pr-critic — roteamento diff→contratos (fixtures-armadilha · ataque ① grade-das-réguas)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/pr-critic/coleta.test.mjs
       - name: pr-critic — trava de citação + AGREGAÇÃO DE VOTOS das lentes + comentário honesto (determinístico)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/pr-critic/critica.test.mjs
       - name: pr-critic — precisão do próprio critic (agiu/ignorado morde · fecha o loop grade v3)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/pr-critic/precisao.test.mjs
       - name: Block-claim-without-evidence PORTE .mjs (advisory ADR 0224 · logica + E2E · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/block-claim-without-evidence.test.mjs
       - name: Post-merge-ui-smoke PORTE .mjs (R1 · bite/release/TTL · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/post-merge-ui-smoke-required.test.mjs
       - name: Evidence + ui-smoke REGISTRADOS como node nos 4 pontos (correcao != invocacao)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-evidence-smoke-registration.test.mjs
       - name: Block-memory-drift PORTE .mjs (Tier-0 append-only + autoridade documental Q · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/block-memory-drift.test.mjs
       - name: Block-destructive PORTE .mjs (Tier-0 US-COPI-085 · 8 categorias + whitelist rm · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/block-destructive.test.mjs
       - name: Pii-redactor PORTE .mjs (Tier-0 LGPD US-COPI-086 · commit-only opcao B · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/pii-redactor.test.mjs
       - name: ciclo-completo GATE morde/solta (charter+PT+conforme+casos+teste+golden-live · GOLDEN-LIVE)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/ciclo-completo.mjs --selftest
       # P15 "done = comportamento + evidência do alvo" (adversário 2026-07-13 wf_33e38126) —
       # todas advisory (lei ADR 0314): doneness v2 (done×DoD aberto) + sweep de teste órfão.
       - name: Doneness-lint v2 morde/solta (P15 · done × DoD checkbox aberto · fixtures)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/doneness-lint.test.mjs
       # SPEC encerrado (status: historical|arquivado) fora do corpus de anchor-lint +
       # doneness-lint. Par bite/release em cada caso: o controle-negativo (`rascunho`/`ativo`
       # seguem DENTRO) é o que impede o filtro de virar exclusão cega. Mutantes mortos na
       # origem: filtro-desligado → 5 FAIL · filtro-exagerado → 5 FAIL.
       - name: SPEC encerrado sai do gate morde/solta (contrato morto ≠ dívida)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/spec-encerrado.test.mjs
       - name: Selftest-registry CATRACA morde/solta (P15 · fixtures herméticas)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/selftest-registry-check.mjs --selftest
       - name: Selftest-registry sweep advisory (teste .mjs órfão de workflow · exit 0 sempre)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/selftest-registry-check.mjs
       # ── DESORFANADOS 2026-07-29 (Rodada 3) ────────────────────────────────────────
       # O sweep acima listava 5 `*.test.mjs` órfãos havia tempo, e o detector novo de
@@ -489,14 +619,19 @@ jobs:
       # são os dependency-free; os que precisam de gray-matter/ajv foram pro job que já
       # paga o install (memory-schema-gate.yml), porque este workflow não instala nada.
       - name: charter-da-tela-que-o-controller-serve — o hook morde e libera
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/charter-da-tela-que-o-controller-serve.test.mjs
       - name: php-syntax-after-write — o hook morde e libera
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/php-syntax-after-write.test.mjs
       - name: hook-bites — o dead-man's-switch dos hooks morde e libera
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/hook-bites.test.mjs
       - name: hook-replay — o replay morde e libera
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/hook-replay.test.mjs
       - name: permission-drift — a sentinela de permissão morde e libera
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/permission-drift.test.mjs
       # ── 2026-08-06 — o MEDIDOR passa a rodar, não só o teste dele ──────────────────
       # O `.test.mjs` acima é HERMÉTICO por desenho (injeta conteúdo, não lê o repo): ele
@@ -523,8 +658,10 @@ jobs:
       # A TRIAGEM das 43 órfãs é a US-GOV-059 (memory/requisitos/Governance/SPEC.md) e é
       # trabalho humano; este step só faz o número parar de ser invisível.
       - name: permission-drift — censo declarada × aplicada (report-only · exit 0 sempre)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/permission-drift.mjs
       - name: doc-id-index — o índice de doc-id morde e libera
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/doc-id-index.mjs --selftest
       # Auditoria 2026-07-26: o sweep acima estava VERDE (125/125 testes registrados)
       # enquanto 12 de 88 SCRIPTS não-teste não tinham invocador nenhum. Mesma regra,
@@ -534,6 +671,7 @@ jobs:
       # humano. O valor é a lista existir; gate heurístico avermelhando legado é o
       # anti-padrão que o §5 das proibições mata.
       - name: Script órfão de invocador (report-only · lista candidatos, não julga)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/selftest-registry-check.mjs --scripts
       # ── TRIAGEM DOS 13 (2026-07-27, [W]: "eu quero que ligue... faça todos") ────────
       # O sweep acima nasceu em 26/07 e AVISOU corretamente; o que faltava era o ato de
@@ -574,6 +712,7 @@ jobs:
       # `required-checks-baseline.json` — quem manda em "o que bloqueia merge" é ele, não
       # este nome. AVISO segue advisory por desenho do script (só ERRO morde).
       - name: feature-lint --check (trio requirements/plan/tasks · exit 1 em ERRO)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/feature-lint.mjs --check
       # fluxo-morde — exercício de fogo do CICLO (não da catraca: isso é o gate-selftest).
       # Injeta 1 defeito por etapa e mede os 3 elos: o script acusa → o CI transmite o exit →
@@ -581,20 +720,27 @@ jobs:
       # medidor quebrar, não pode passar calado (gate mudo PARECE cobertura). O relatório é
       # advisory (exit 0 sem --check) — promoção exige mordida provada (ADR 0336).
       - name: fluxo-morde --selftest (o medidor vê o exit engolido e lê o baseline do dono)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/fluxo-morde.mjs --selftest
       - name: fluxo-morde (1 defeito injetado por etapa × 3 elos · advisory)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/fluxo-morde.mjs
       - name: reguas-indexar CATRACA morde/solta (fixture boa/ruim)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/reguas-indexar.mjs --selftest
       - name: reguas-indexar fila (existia-mas-invisível não indexado · report-only)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/reguas-indexar.mjs
       - name: doc-auto-relink CATRACA morde/solta (fixture boa/ruim)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/doc-auto-relink.mjs --selftest
       - name: doc-auto-relink --detect (link-rot doc↔doc · DRY-RUN, nunca --apply em CI)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/doc-auto-relink.mjs --detect
       - name: doc-auto-relink --orfaos (dívida residual religável · DRY-RUN, nunca --apply em CI)
         run: node scripts/governance/doc-auto-relink.mjs --orfaos
       - name: funcao-scorecard outcome-probe (nota × defeito real · advisory read-only)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/funcao-scorecard-outcome-probe.mjs
       # P15 entrega 3 — desorfanar .test.mjs (sweep selftest-registry-check.mjs, 2026-07-13).
       # Estes 9 tinham .test.mjs no repo mas nenhum step de CI: passavam só na máquina do dev
@@ -602,31 +748,41 @@ jobs:
       # (O 10º órfão, sdd-distiller-freshness.test.mjs, já é wireado acima pelo PR #4205 / chip A3.)
       # Advisory de nascença (ADR 0314 — nada vira required).
       - name: Block-askq-execution-menu PORTE .mjs (menu de execução/escopo · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/block-askq-execution-menu.test.mjs
       - name: Block-figma-without-optin PORTE .mjs (ADR 0299 · classificação + opt-in · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/block-figma-without-optin.test.mjs
       - name: Design-handoff-reprocess PORTE .mjs (G2 ADR 0236 · idempotência + header · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/design-handoff-reprocess.test.mjs
       - name: Git-base-freshness-guard PORTE .mjs (§10.4 · stale morde/solta · roda em Linux)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/git-base-freshness-guard.test.mjs
       - name: Feature-lint (contrato do trio de feature · us-no-spec/dod/plan/covers)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/feature-lint.test.mjs
       - name: SDD-flow (cadeia US → feature → SDD/CU → tela → âncora)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/sdd-flow.test.mjs
       # A JORNADA, não a peça: o gate-selftest prova que cada catraca morde (72/72) e o
       # fluxo-morde prova que a mordida chega ao merge. Faltava "um item atravessa o fluxo
       # inteiro, e pular um elo é detectado — por QUEM". Fixture sintética em tmpdir; roda
       # os linters REAIS por subprocess. Advisory por natureza: não é gate, é evidência.
       - name: Fluxo-jornada (dado atravessa os elos + variações · ADR 0368/0273/0306/0264)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/fluxo-jornada.test.mjs
       - name: Ghost-fix (reescrita SPEC + ADR append-only intacto)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/ghost-fix.test.mjs
       - name: Negócio-vs-governança ratio (alarme morde no crossover, solta no equilíbrio)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/negocio-vs-governanca-ratio.test.mjs
       # Chip C10 (grade 2026-07-17 · orquestração-adversarial 6,0): o tipo `juiz` entra
       # num script que roda --enforce em job REQUIRED — os 2 vetores testados são
       # "calibração vira atalho pra liberar lote" e "número sem rótulo humano".
       - name: Ledger tipo juiz — calibração não libera lote + rótulo humano às cegas (C10)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/ledger-check-juiz.test.mjs
       # Emenda 2026-07-30 (refutação GT-G5 rodada 2 do PR #5069): gerador não-Anthropic
       # deixava `rank()===0` reprovar o lote INDEPENDENTEMENTE do veredito — gate sem
@@ -634,6 +790,7 @@ jobs:
       # Os 2 vetores testados são simétricos: afrouxar demais (string qualquer vira
       # "externo", ou refutador fraco valida lote externo) e não pegar (o lote segue preso).
       - name: Ledger gerador externo — vendor cruzado destrava sem afrouxar o tier
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/ledger-check-external.test.mjs
       # Transparency-log (Rekor-style) do sdd-verification-ledger — grade de réguas
       # 2026-07-21 (sub-dim "Humano-no-loop + ledger de rejeição" 8,0, gap a): hash-chain
@@ -641,16 +798,20 @@ jobs:
       # imutável (crítico/prompt/hash-da-rubrica) por lote. O selftest prova que a corrente
       # MORDE (tamper → --verify --check exit 1); o --verify roda advisory (exit 0) todo PR.
       - name: Ledger hash-chain — selftest (tamper retroativo morde, append legítimo solta)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/ledger-hash-chain.test.mjs
       - name: Ledger hash-chain — verificação advisory da integridade (exit 0 · nunca bloqueia)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/ledger-hash-chain.mjs --verify
       # Re-check de frescor das lápides §5 (grade 2026-07-21, gap b): o registro de rejeição
       # também apodrece. Surfaça lápides cujas ÂNCORAS citadas driftaram (script/gate/arquivo
       # sumido) pra revisão HUMANA — NUNCA apaga (§5 append-only), NUNCA é presence-gate nem
       # catraca de campo auto-declarado. Report-only (exit 0 sempre).
       - name: Lápide-recheck — selftest (drift de âncora morde, FP de shorthand/ADR-slug morto)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/lapide-recheck.test.mjs
       - name: Lápide-recheck — relatório advisory de frescor do §5 (exit 0 · surfaça pra humano)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/lapide-recheck.mjs
       # Chip orq-anti-goodhart (grade 2026-07-18 · orquestração-adversarial 5,0 "sem
       # anti-Goodhart no layer de agente"): negative control do REFUTER. Prova que a
@@ -658,26 +819,33 @@ jobs:
       # da catraca `refuter-canary` do gate-selftest cobre o par good/bad; este .test.mjs
       # cobre os vetores finos (classificação, corpus, ilegível, sanidade cego).
       - name: Refuter-canary — anti-Goodhart do layer de agente (aprovar plantado morde)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/refuter-canary-check.test.mjs
       - name: Prototipo-readiness (contrato de prontidão · casos/UC/scorecard/âncora)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/qa/prototipo-readiness.test.mjs
       - name: Screen-grade-report (contrato de derivação · cobertura/D1/drift)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/qa/screen-grade-report.test.mjs
       # Vetor 2 da catraca de nota (deleção de scorecard com a tela viva). O selftest
       # tem bite E2E pelo CLI, não só assert no helper puro — helper puro não prova
       # pipeline (§5 2026-07-30). Os 2 mutantes (detector cego / exit 1→0) morrem.
       - name: 'Screen-grades-ratchet (bite: deletar scorecard não escapa da catraca)'
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/qa/screen-grades-ratchet.mjs --selftest
       # +2 órfãos surgidos após 13-jul, pegos ao re-rodar o sweep (agora vivo via #4210).
       # Fecha em 0 órfãos. Ambos verdes em node puro.
       - name: Adversário-intenção-fluxo (rota legada crítica · cobertura mínima · contraprova)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/adversario-intencao-fluxo.test.mjs
       - name: Auditar-intenção-fluxo (contrato + evidência + rota proibida + prosa não mascara)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/auditar-intencao-fluxo.test.mjs
       # Integridade referencial doc↔doc (ADR 0256) — ratchet de links markdown mortos.
       # Fixtures provam MORDE (link morto novo/pior) + controles-negativos (história
       # append-only nunca enforça; dívida grandfathered passa). Sessão 2026-07-23.
       - name: Deadlink-gate (ratchet de links mortos · morde/grandfather/história)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/deadlink-gate.test.mjs
       # Persistência INCREMENTAL da grade de réguas (.claude/workflows/reguas-do-sistema.js).
       # Defeito medido: 2 rodadas mortas no meio (2026-07-25 interrompida · 07-26 teto de uso,
@@ -689,6 +857,7 @@ jobs:
       # rebaixa · regra 16). Controle-negativo conferido: 20 asserções MORDEM no arquivo
       # pré-mudança e as de não-regressão passam nos dois. Advisory por desenho (ADR 0314/0275).
       - name: Réguas workflow (persistência incremental · checkpoint antes da prosa · retrato parcial declarado)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/reguas-workflow.test.mjs
       # O rc que decide um alarme NÃO pode vir de um pipe. Incidente 2026-08-14: o
       # protection-drift.yml fazia `node ... | tee` seguido de `rc=$?` — rc do TEE, não do
@@ -700,6 +869,7 @@ jobs:
       # "Ratchet" do sdd-scorecard usa redirect e está CORRETO, não pode ser acusado).
       # Bite conferido contra a versão pré-fix: detecta o ofensor na linha 62.
       - name: rc mascarado por pipe em workflow (§5 2026-08-13 · fixtures boa/ruim + corpus)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/workflow-pipe-rc.test.mjs
       # snap-diff — o repo NÃO TINHA como ler o que muda num `.snap` (PNG base64 em 1
       # linha): todo diff de baseline aparece como `+1 −1` opaco, e revisar virava aprovar
@@ -709,6 +879,7 @@ jobs:
       # os dois casos reais do corpus classificam certo) e o decodificador ABORTA no
       # formato que não sabe ler, em vez de devolver "0 pixels diferentes" (§5 2026-07-29).
       - name: snap-diff (lê o diff de baseline de pixel · 2 assinaturas + fail-loud)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/tests/snap-diff.test.mjs
       # doc-id-index --check — o modo que lê o CORPUS REAL nunca teve invocador. O script já
       # tinha o `--selftest` wirado acima desde o PR1, e foi por isso que escapou da TRIAGEM DOS 13
@@ -773,6 +944,7 @@ jobs:
       # O modo de corpus sai exit 0 SEMPRE: é relato, não veredito. Quem morde é o
       # `--selftest` logo acima dele, sobre fixture — que é onde mordida se prova.
       - name: uc-sem-lane — bite-test da lógica (fixture boa/ruim + controles negativos)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/uc-sem-lane.mjs --selftest
       - name: uc-sem-lane — UC alcançável × nunca alcançado no corpus real (advisory)
         if: ${{ !cancelled() }}
@@ -790,12 +962,17 @@ jobs:
       # fora de `node:`/relativo. Isso importa porque este job NÃO instala dependência
       # de propósito: script que precise de gray-matter/ajv não mora aqui.
       - name: block-ancora-no-olho — morde print de auditoria, libera design legítimo
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/block-ancora-no-olho.test.mjs
       - name: nudge-auditoria-resposta — classificador + E2E fail-open
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/nudge-auditoria-resposta.test.mjs
       - name: nudge-auditoria-resposta — bite-test embutido do classificador
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/nudge-auditoria-resposta.mjs --selftest
       - name: observabilidade-tags — os 15 hooks da leva emitem a tag (com controle negativo)
+        if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/observabilidade-tags.test.mjs
       - name: worktree-janitor — nunca apaga worktree VIVA (13 casos)
+        if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/worktree-janitor.mjs --selftest
