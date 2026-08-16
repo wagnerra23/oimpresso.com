@@ -28,9 +28,9 @@
         "by_state": {
           "sem_campo": 112,
           "placeholder": 1,
-          "pendente": 403,
+          "pendente": 402,
           "parcial": 114,
-          "anchored_ok": 326,
+          "anchored_ok": 327,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
@@ -68,22 +68,14 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 343,
+      "value": 356,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "9c8819e59de837bc",
+        "floor_files_hash": "6b7d573630c00475",
         "runs": [
-          {
-            "sha": "ab6aef2d",
-            "ts": "20260812-020001",
-            "failed": 658,
-            "errors": 394,
-            "skipped": 2329,
-            "all_shards_measured": true
-          },
           {
             "sha": "1d60683b",
             "ts": "20260813-020001",
@@ -93,15 +85,23 @@
             "all_shards_measured": true
           },
           {
-            "sha": null,
+            "sha": "263dd38f",
             "ts": "20260815-020002",
             "failed": 673,
             "errors": 398,
             "skipped": 2283,
             "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260816-020001",
+            "failed": 687,
+            "errors": 401,
+            "skipped": 2285,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260815-020002",
+        "computed_at": "20260816-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -120,22 +120,15 @@
     },
     "coverage_pct": {
       "status": "measured",
-      "value": 20,
+      "value": 20.6,
       "unit": "%",
       "direction": "up",
       "target": "só sobe (catraca C2)",
       "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
       "detail": {
-        "covered": 47178,
-        "total": 235617,
+        "covered": 48455,
+        "total": 235616,
         "runs": [
-          {
-            "sha": "ab6aef2d",
-            "ts": "20260812-020001",
-            "coverage_pct": 19.6,
-            "covered": 46114,
-            "total": 235515
-          },
           {
             "sha": "1d60683b",
             "ts": "20260813-020001",
@@ -144,14 +137,21 @@
             "total": 235584
           },
           {
-            "sha": null,
+            "sha": "263dd38f",
             "ts": "20260815-020002",
             "coverage_pct": 20,
             "covered": 47178,
             "total": 235617
+          },
+          {
+            "sha": null,
+            "ts": "20260816-020001",
+            "coverage_pct": 20.6,
+            "covered": 48455,
+            "total": 235616
           }
         ],
-        "computed_at": "20260815-020002",
+        "computed_at": "20260816-020001",
         "measured_of": 3
       },
       "stream": "FV"
@@ -211,22 +211,22 @@
     },
     "ragas_real_uptime": {
       "status": "measured",
-      "value": 66.7,
+      "value": 71.4,
       "unit": "%",
       "direction": "up",
       "target": 95,
       "source": "governance/ragas-real-trend.json (transporte CT100→scorecard · órfã governance/ragas-real-trend · ADR 0318 + pattern ADR 0279)",
       "detail": {
-        "weeks_expected": 6,
-        "weeks_valid": 4,
+        "weeks_expected": 7,
+        "weeks_valid": 5,
         "first_scheduled": "2026-07-05",
-        "last_week": "2026-08-09",
+        "last_week": "2026-08-16",
         "latest": {
           "gate_status": "fail",
           "n_evaluated": 50,
-          "faithfulness_avg": 0.303,
-          "relevancy_avg": 0.412,
-          "context_recall_avg": 0.043
+          "faithfulness_avg": 0.2748,
+          "relevancy_avg": 0.372,
+          "context_recall_avg": 0.0314
         }
       },
       "stream": "MEM"
