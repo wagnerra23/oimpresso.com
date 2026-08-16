@@ -1,0 +1,86 @@
+{
+  "schema": "ragas-real-trend/v1 (ADR 0318 · transporte pattern nightly-floor ADR 0279)",
+  "first_scheduled": "2026-07-05",
+  "cadence": "weekly-sunday 07:00 BRT (app/Console/Kernel.php · jana:ragas-real-eval)",
+  "weeks": [
+    {
+      "week": "2026-06-28",
+      "ran_at": "2026-07-04T16:45:51-03:00",
+      "gate_status": "pass",
+      "n_evaluated": 51,
+      "n_no_context": 0,
+      "n_synth_failed": 0,
+      "faithfulness_avg": 0.7145,
+      "relevancy_avg": 0.8745,
+      "context_recall_avg": 0.3951,
+      "reason": null,
+      "valid": true
+    },
+    {
+      "week": "2026-07-19",
+      "ran_at": "2026-07-19T06:07:54-03:00",
+      "gate_status": "pass",
+      "n_evaluated": 51,
+      "n_no_context": 0,
+      "n_synth_failed": 0,
+      "faithfulness_avg": 0.7127,
+      "relevancy_avg": 0.8255,
+      "context_recall_avg": 0.4016,
+      "reason": null,
+      "valid": true
+    },
+    {
+      "week": "2026-07-26",
+      "ran_at": "2026-07-26T06:06:46-03:00",
+      "gate_status": "fail",
+      "n_evaluated": 51,
+      "n_no_context": 0,
+      "n_synth_failed": 0,
+      "faithfulness_avg": 0.6865,
+      "relevancy_avg": 0.8294,
+      "context_recall_avg": 0.3461,
+      "reason": null,
+      "valid": true
+    },
+    {
+      "week": "2026-08-02",
+      "ran_at": "2026-08-02T06:00:09-03:00",
+      "gate_status": "skipped",
+      "n_evaluated": 0,
+      "n_no_context": 51,
+      "n_synth_failed": 0,
+      "faithfulness_avg": null,
+      "relevancy_avg": null,
+      "context_recall_avg": null,
+      "reason": "Nenhuma pergunta avaliável (no_context=51, synth_failed=0, judge_failed=0) — corpus/infra/juiz insuficiente. Não inventamos score.",
+      "valid": false
+    },
+    {
+      "week": "2026-08-09",
+      "ran_at": "2026-08-09T06:06:44-03:00",
+      "gate_status": "fail",
+      "n_evaluated": 50,
+      "n_no_context": 1,
+      "n_synth_failed": 0,
+      "faithfulness_avg": 0.303,
+      "relevancy_avg": 0.412,
+      "context_recall_avg": 0.043,
+      "reason": null,
+      "valid": true
+    },
+    {
+      "week": "2026-08-16",
+      "ran_at": "2026-08-16T06:06:27-03:00",
+      "gate_status": "fail",
+      "n_evaluated": 50,
+      "n_no_context": 1,
+      "n_synth_failed": 0,
+      "faithfulness_avg": 0.2748,
+      "relevancy_avg": 0.372,
+      "context_recall_avg": 0.0314,
+      "reason": null,
+      "valid": true
+    }
+  ],
+  "note": "run válido = gate pass/fail com n_evaluated>0; skipped (sem OPENAI/contexto) = inválido — conta contra o uptime. Semana ausente = transporte/cron down = inválida (read-side conta pelo gap)."
+}
