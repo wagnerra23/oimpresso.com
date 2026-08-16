@@ -501,7 +501,7 @@ if (MODO === 'delta') {
   const alvo = (scan.fraquezas || []).filter((f) => ativas.includes(f.dimensao))
   const verificadas = alvo.length ? (await parallel(capEstratificado('Verificar', alvo, CAP_AGENTES_POR_FASE, log).map((f) => () => agent(
     `RE-VERIFICAÇÃO delta. Fraqueza CONHECIDA do ledger: "${f.titulo}" (dimensão ${f.dimensao}; nota anterior ${f.nota == null ? 's/nota' : f.nota}; veredito anterior ${f.veredito}; evidência anterior: ${(f.evidencia || '').slice(0, 250)}). A dimensão teve commits novos desde o último retrato — re-meça no repo VIVO (paths ABSOLUTOS a partir de ${BASE}): fechou? avançou? regrediu? Dê o veredito e a nota SÓ com evidência NOVA (file:line ou PR — recibo, não memória) e diga onde indexar se existia-mas-invisível.\n\nRUBRICA DA NOTA (obrigatória — a escala tem degraus definidos, não é impressão):\n${RUBRICA_NOTA}`,
-    { label: `v:${f.titulo}`.slice(0, 48), phase: 'Verificar', schema: EXISTE, effort: 'high' },
+    { label: `v:${f.titulo}`.slice(0, 48), phase: 'Verificar', schema: EXISTE, effort: 'high', agentType: 'general-purpose' },
   ).then((v) => (v ? { ...f, check: v } : null))))).filter(Boolean) : []
   log(`delta-verificação: ${verificadas.length}/${alvo.length} fraquezas re-medidas`)
 
@@ -575,7 +575,7 @@ if (MODO === 'delta') {
 
   const prosa = await agent(
     `PROSA da rodada DELTA da grade de réguas (PT-BR, ≤450 palavras, datada de hoje). Os NÚMEROS estão FECHADOS pela composição determinística (regra 16 — PROIBIDO alterar, fundir ou re-atribuir nota): ${JSON.stringify({ notasNovas, notasAntigas, proveniencia, dims_ativas: ativas, dims_delta: scan.dims_delta })}.\nFraquezas re-medidas (evidência nova): ${JSON.stringify(verificadas.map((v) => ({ id: v.id, dimensao: v.dimensao, titulo: v.titulo, de: v.nota, para: v.check.nota_sugerida, veredito: v.check.veredito, evidencia: (v.check.evidencia || '').slice(0, 200) })))}.\nClaims re-vereditadas: ${JSON.stringify(reRefutadas.map((r) => ({ id: r.id, de: r.refutador, para: r.verdict.veredito, peer: r.verdict.quem_ja_faz || '' })))}.\nEscreva: (1) o que mudou e por quê (Δ por dimensão re-medida, com a evidência); (2) o que segue herdado; (3) DISCLOSURE OBRIGATÓRIO do placar (regra 17): REFUTADO_TB acumulado ${JSON.stringify(integHist)}. Até 2026-07-19 o braço negativo nunca disparou (0/81) e o valor esteve nas RAZÕES, não no binário; a pergunta de Integração foi reformulada nessa data (emenda §5) pra ganhar braço discriminativo — mas delta NÃO roda Integração, então este número é HERDADO do último full; NÃO afirme que "agora discrimina" antes do placar de um full pós-emenda; (4) próximo degrau mais barato. NADA de nota nova inventada.`,
-    { label: 'prosa-delta', phase: 'Grade', effort: 'medium' },
+    { label: 'prosa-delta', phase: 'Grade', effort: 'medium', agentType: 'general-purpose' },
   )
 
   // Fase Persistir = RETENTATIVA. Se os dois checkpoints confirmaram, não gasta agente nenhum.
@@ -620,7 +620,7 @@ const dossie = await agent(
 O INVENTÁRIO É A LISTA ANTI-FALSO-NEGATIVO — antes de declarar que o oimpresso NÃO tem X, procure X ali. Ele é gerado da árvore e cobre o que o mapa dos níveis (curado à mão) não menciona: medido em 2026-08-11, 373 das 466 máquinas do inventário NÃO aparecem em nenhuma das outras fontes deste dossiê (80%). NÃO enumere o inventário inteiro (são centenas — não cabe em 500 palavras): (a) percorra-o procurando máquina que já cubra cada FRAQUEZA CONFESSA — se achar, a fraqueza está desatualizada e você diz isso com o nome do arquivo; (b) termine o dossiê com a linha literal, pros pesquisadores: "ANTES de afirmar que o oimpresso não faz X, procure X em memory/reference/MAQUINAS-INVENTARIO.md — o mapa dos níveis é curado e incompleto por construção."
 
 Estruture: mecanismos por camada (com nome de arquivo/gate e required|advisory) + FRAQUEZAS CONFESSAS (do mapa + do §5), cada uma marcada [ainda aberta] ou [já coberta por <arquivo>] conforme o inventário — sem esconder nada. Se o mapa citar "mecanismos que existiam mas eram inacháveis", INCLUA.`,
-  { label: 'dossie', phase: 'Dossiê', effort: 'high' },
+  { label: 'dossie', phase: 'Dossiê', effort: 'high', agentType: 'general-purpose' },
 )
 log('dossiê montado do mapa vivo')
 
@@ -704,7 +704,7 @@ phase('Verificar')
 const fraquezas = pesquisas.flatMap((p) => p.oimpresso_atras.map((f) => ({ fraqueza: f, dimensao: p.dimensao })))
 const verificadas = (await parallel(capEstratificado('Verificar', fraquezas, CAP_AGENTES_POR_FASE, log).map((f) => () => agent(
   `A pesquisa marcou o oimpresso como FRACO em: "${f.fraqueza}" (dimensão ${f.dimensao}). ANTES de aceitar: cace no repo VIVO (paths ABSOLUTOS a partir de ${BASE}) mecanismos que JÁ cobrem isso total/parcialmente — .github/workflows (nomes dos checks!), scripts/governance, .claude/{skills,hooks}, prototipo-ui/*.mjs, gates-registry/required-checks-baseline. Precedente: numa rodada anterior 7 de 9 "fraquezas" JÁ existiam, invisíveis por desorganização. Dê a nota SÓ com evidência (file:line ou prova de ausência) e diga onde indexar o achado (mapa 0330-corrente) se existia-mas-invisível.\n\nRUBRICA DA NOTA (obrigatória — a escala tem degraus definidos, não é impressão):\n${RUBRICA_NOTA}`,
-  { label: `v:${f.fraqueza}`.slice(0, 48), phase: 'Verificar', schema: EXISTE, effort: 'high' },
+  { label: `v:${f.fraqueza}`.slice(0, 48), phase: 'Verificar', schema: EXISTE, effort: 'high', agentType: 'general-purpose' },
 ).then((v) => (v ? { ...f, check: v } : null))))).filter(Boolean)
 // Counter por veredito (achado #24) — denominador honesto pra grade: distingue
 // "já existe inteiro" de "parcial" de "buraco real". `total` = fraquezas VERIFICADAS
@@ -780,7 +780,7 @@ if (SELECAO !== 'completa') log(`⚠️ seleção ${SELECAO} (${dimsAlvo.length}
 // pra viajar junto no mesmo checkpoint; se falhar, o retrato grava sem ele em vez de
 // perder a rodada (o outcome é coluna a mais, nunca pré-requisito da nota).
 phase('Outcome')
-const outcomeMedido = await agent(promptOutcome(), { label: 'outcome', phase: 'Outcome', schema: OUTCOME, effort: 'low' })
+const outcomeMedido = await agent(promptOutcome(), { label: 'outcome', phase: 'Outcome', schema: OUTCOME, effort: 'low', agentType: 'general-purpose' })
 log(outcomeMedido ? `outcome lido de ${(outcomeMedido.medidos || []).length} fonte(s) declarada(s)` : 'outcome não medido nesta rodada (o retrato grava sem a coluna)')
 
 const cpRetrato = await persistir('cp-retrato', promptRetrato({
@@ -816,7 +816,7 @@ const grade = await agent(
   `⚠️ NÚMEROS JÁ FECHADOS PELA COMPOSIÇÃO DETERMINÍSTICA (regra 16 — adversário 2026-07-18). NOTA POR DIMENSÃO = ${JSON.stringify(notasPorDim)} (média das fraquezas verificadas; null = sem fraqueza-com-nota nesta rodada — declare "sem nota" honestamente, NÃO invente). PLACAR = ${JSON.stringify(placarJS)}. Você é PROIBIDO de alterar, arredondar, fundir ou re-atribuir qualquer número: use EXATAMENTE estes. Seu trabalho é a PROSA (evidência, diferenciais, degraus, leitura fria) em volta dos números fechados.\n\n` +
   `ANTI-GOODHART (negative control do refuter · regra 17 — DISCLOSAR no placar): ${JSON.stringify(canarioRefuter)}. São artefatos PLANTADOS (claims absurdamente falsas) que o refuter TINHA que derrubar; goodhart>0 = o refuter CARIMBOU e os vereditos da rodada ficam suspeitos. É o análogo do gate-selftest aplicado ao layer de agente e a prova controlada de que o braço negativo dispara (cf. REFUTADO_TB).\n\n` +
   `PESQUISAS: ${pesquisasStr}\nREFUTAÇÃO slice-a-slice: ${refutadosStr}\nTESTE DE INTEGRAÇÃO (DIFERENCIAL_SISTEMA = à-frente-por-integração, o peer só cobre a peça; REFUTADO_TB = o todo também tem par): ${integradosStr}\nVERIFICAÇÃO NO REPO (nota só com evidência): ${verificadasStr}\n\nCOBERTURA OBRIGATÓRIA: as ${pesquisas.length} dimensões acima cobrem TRÊS eixos — (1) CONSTRUIR-E-GOVERNAR, (2) RODAR-E-OBSERVAR (observabilidade-agente · qualidade-drift-ia-producao · seguranca-do-agente · custo-eficiencia — eixo add pela ADR 0333 porque era ponto cego), (3) SERVIR-O-NEGÓCIO (inteligencia-de-negocio — ponto cego da ADR 0334). A grade DEVE emitir nota pras dimensões dos TRÊS eixos; se um eixo sair sem fraqueza/nota, o ponto cego que as 0333/0334 fecharam volta pela síntese. Declare no cabeçalho as ${pesquisas.length} dimensões — não só as que renderam mais texto.\n\nDUAS REGRAS ANTES DE ESCREVER: (a) NÃO reporte "0 acima" a partir de refutação de slices — o placar de superioridade tem DUAS colunas distintas: "acima-de-categoria" (ACIMA_CONFIRMADO) E "à-frente-por-integração" (DIFERENCIAL_SISTEMA — o diferencial real quando ninguém monta o TODO no mesmo contexto; NÃO re-inflar a peça isolada). (b) CREDITE O QUE JÁ SHIPOU: antes de listar um gap/roubar como aberto, cheque em ${BASE} (git log recente + arquivos novos) se já foi fechado desde o último retrato; se sim, marque FEITO e não re-liste.\n\nEstrutura: 1) placar honesto (acima-de-categoria · à-frente-por-integração · empatadas · refutadas); 2) DIFERENCIAIS REAIS (os DIFERENCIAL_SISTEMA, na altitude do sistema, com o limite honesto de cada um); 3) GRADE das fraquezas — técnica · régua (quem+prática+fonte) · critério objetivo · nota COM evidência · próximo degrau; 4) JÁ FEITO desde o último retrato; 5) onde a régua é você (empates a defender); 6) O QUE ROUBAR top-8 (impacto÷esforço, onde plugar) — só o que NÃO shipou; 7) CHIPS SUGERIDOS (1 por fraqueza real, ressalva do adversário embutida); 8) REJEITADOS → proibições §5; 9) leitura fria (3 frases). Regra: nenhuma nota sem evidência citada.`,
-  { label: 'grade-final', phase: 'Grade', effort: 'high' }, // era 'max' — composição determinística (regra 16) deixou o agente só com a prosa
+  { label: 'grade-final', phase: 'Grade', effort: 'high', agentType: 'general-purpose' }, // era 'max' — composição determinística (regra 16) deixou o agente só com a prosa
 )
 
 // ── Fase Persistir (Órgão 1) — agora é RETENTATIVA dos checkpoints ────────────
