@@ -69,7 +69,7 @@ import { readdirSync, existsSync, realpathSync, readFileSync } from 'node:fs';
 import { execFileSync, execSync } from 'node:child_process';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { gitLastDate } from './lib/git-history.mjs';
+import { gitLastDate, isShallowHistory } from './lib/git-history.mjs';
 
 const ROOT = process.cwd();
 const REQ = join(ROOT, 'memory', 'requisitos');
@@ -280,6 +280,13 @@ function run() {
   const rows = scan(staleDays);
   const stale = rows.filter((r) => r.stale).sort((a, b) => (b.gapDays ?? 0) - (a.gapDays ?? 0));
   const noDoor = rows.filter((r) => !r.hasDoor).map((r) => r.mod);
+  // MEDIDO × NÃO-MEDIDO (§5 2026-07-29 — "não consegui medir" não é estado do medido).
+  // `classifyCodeStaleness` já devolve `evaluated:false` quando falta doorDate ou
+  // codeDate; o que faltava era o relatório RESPEITAR isso. Módulo COM porta que não
+  // foi avaliado = data-git ilegível (history truncada), nunca "está em dia".
+  const avaliados = rows.filter((r) => r.evaluated);
+  const naoMedidos = rows.filter((r) => r.hasDoor && !r.evaluated).map((r) => r.mod);
+  const historiaTruncada = naoMedidos.length > 0 && isShallowHistory();
   // Gap de COBERTURA = módulo BACKEND sem BRIEFING (subconjunto de noDoor que exclui
   // áreas só-frontend tipo User/Perfil). É o que --strict-coverage morde; hoje = 0 (36/36).
   const coverageGaps = rows.filter((r) => isBriefingCoverageGap(r)).map((r) => r.mod);
@@ -292,7 +299,12 @@ function run() {
       gate: 'briefing-code-staleness',
       axis: 'BRIEFING.md data declarada (updated_at/distilled_at/Atualizado; fallback git) vs Modules/<Mod>/ ∪ resources/js/Pages/<Mod>/ data-git',
       staleDays,
-      evaluated: rows.length,
+      // `evaluated` contava rows.length — em clone raso dizia "45 avaliados" tendo
+      // medido 0. Agora conta os REALMENTE medidos, e o não-medido é campo próprio.
+      evaluated: avaliados.length,
+      scanned: rows.length,
+      notMeasured: naoMedidos,
+      historyTruncated: historiaTruncada,
       stale: stale.map((r) => ({ mod: r.mod, gapDays: r.gapDays, commitsAhead: r.commitsAhead, doorDate: r.doorDate, doorSource: r.doorSource, codeDate: r.codeDate })),
       noDoor,
       coverageGaps,
@@ -306,8 +318,17 @@ function run() {
   console.log(`\n  BRIEFING × CÓDIGO — porta atrás da superfície do módulo (limiar ${staleDays}d)`);
   console.log(`  eixo: memory/requisitos/<Mod>/BRIEFING.md  vs  Modules/<Mod>/ ∪ resources/js/Pages/<Mod>/`);
   console.log('  ' + '─'.repeat(74));
-  if (!stale.length) {
-    console.log('  🟢 nenhuma porta atrás do código além do limiar.');
+  if (naoMedidos.length) {
+    console.log(`  ⚠️  NÃO MEDIDO: ${naoMedidos.length} módulo(s) sem data-git legível (${naoMedidos.join(', ')}).`);
+    if (historiaTruncada) {
+      console.log('     CAUSA: history TRUNCADA (clone raso). Conserte o instrumento: `git fetch --unshallow`.');
+    }
+    console.log('     Ausência de medição não é ausência de atraso — o veredito abaixo fala só dos medidos.');
+  }
+  if (!avaliados.length) {
+    console.log(`  ⚠️  VEREDITO INDISPONÍVEL — 0 de ${rows.length} módulo(s) medido(s). Nada foi verificado.`);
+  } else if (!stale.length) {
+    console.log(`  🟢 nenhuma porta atrás do código além do limiar (entre os ${avaliados.length} medidos).`);
   } else {
     console.log(`  ${'MÓDULO'.padEnd(20)} ${'porta(git)'.padEnd(12)} ${'código(git)'.padEnd(12)} atraso`);
     for (const r of stale) {
@@ -315,7 +336,7 @@ function run() {
     }
   }
   console.log('  ' + '─'.repeat(74));
-  console.log(`  ${stale.length} porta(s) stale · ${rows.length} módulos avaliados · ${noDoor.length} sem porta (${noDoor.join(', ') || '—'})`);
+  console.log(`  ${stale.length} porta(s) stale · ${avaliados.length} de ${rows.length} módulos MEDIDOS · ${noDoor.length} sem porta (${noDoor.join(', ') || '—'})`);
   console.log(`  COBERTURA: ${coverageGaps.length} módulo(s) BACKEND sem BRIEFING (${coverageGaps.join(', ') || '— 0, cobertura completa 36/36'}) · --strict-coverage morde isto`);
   console.log('  ADVISORY (ADR 0314 — higiene, nunca required). Ação: skill brief-update no módulo.');
   console.log('  NÃO é presence-gate: mede a derivada porta×código (frescor) e existência de módulo-backend (cobertura); nunca "BRIEFING no diff" (proibicoes §5 + L-24).\n');

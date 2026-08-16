@@ -97,8 +97,7 @@ function normalizeMemoryHealth(data) {
   return out;
 }
 
-function normalizeBriefing() {
-  const rows = scanBriefing();
+function normalizeBriefing(rows = scanBriefing()) {
   const out = [];
   for (const row of rows.filter((item) => item.stale)) {
     const target = { mod: row.mod };
@@ -556,7 +555,7 @@ export function sortIssues(issues) {
   });
 }
 
-export function buildSnapshot({ sha = null, memoryHealth = {}, briefingIssues = [], freshness = {} } = {}) {
+export function buildSnapshot({ sha = null, memoryHealth = {}, briefingIssues = [], freshness = {}, briefingScan = null } = {}) {
   const rawIssues = [
     ...normalizeMemoryHealth(memoryHealth),
     ...briefingIssues,
@@ -565,9 +564,18 @@ export function buildSnapshot({ sha = null, memoryHealth = {}, briefingIssues = 
   // O mesmo link pode aparecer repetido no sample do detector (ex.: índice que o
   // cita várias vezes). Recibo é por achado estável, não por ocorrência textual.
   const issues = sortIssues([...new Map(rawIssues.map((issue) => [issue.id, issue])).values()]);
+  // COBERTURA DA MEDIÇÃO — o loop agregava fontes que podiam não ter medido nada e
+  // apresentava o resultado como retrato completo. Um snapshot com fonte cega tem
+  // menos achados, e "menos achados" lê como "melhorou" (§5 2026-07-29 · LC-13).
+  const naoMedido = {
+    'briefing-code-staleness': briefingScan
+      ? briefingScan.filter((r) => r.hasDoor && !r.evaluated).length : null,
+    'doc-freshness-score': (freshness?.nao_medidos || []).length,
+  };
   return {
     schema_version: 1,
     git_sha: sha,
+    nao_medido: naoMedido,
     sources: {
       'memory-health': issues.filter((x) => x.source === 'memory-health').length,
       'briefing-code-staleness': issues.filter((x) => x.source === 'briefing-code-staleness').length,
@@ -582,8 +590,9 @@ export function snapshot(root = ROOT) {
   const freshness = runJson(root, 'scripts/governance/doc-freshness-score.mjs', ['--json']);
   // scanBriefing usa process.cwd() como raiz. No snapshot do checkout corrente ele
   // evita subprocesso; snapshots de ref chamam este CLI com cwd na worktree-ref.
-  const briefingIssues = root === process.cwd() ? normalizeBriefing() : [];
-  return buildSnapshot({ sha: gitSha(root), memoryHealth, briefingIssues, freshness });
+  const briefingScan = root === process.cwd() ? scanBriefing() : null;
+  const briefingIssues = briefingScan ? normalizeBriefing(briefingScan) : [];
+  return buildSnapshot({ sha: gitSha(root), memoryHealth, briefingIssues, freshness, briefingScan });
 }
 
 export function compareSnapshots(before, after, expected = []) {
@@ -617,6 +626,12 @@ function parseExpected() {
 function printSnapshot(data) {
   if (JSON_OUT) return console.log(JSON.stringify(data, null, 2));
   console.log(`\n  DOCUMENTATION LOOP — ${data.issues.length} achado(s) · sha ${data.git_sha || '—'}\n`);
+  const cegas = Object.entries(data.nao_medido || {}).filter(([, n]) => Number(n) > 0);
+  if (cegas.length) {
+    console.log('  ⚠️  SNAPSHOT PARCIAL — fonte(s) que não mediram tudo:');
+    for (const [fonte, n] of cegas) console.log(`     · ${fonte}: ${n} alvo(s) NÃO medido(s)`);
+    console.log('     Menos achado aqui pode ser cegueira, não melhora. Recibo contra este snapshot é inválido.\n');
+  }
   for (const issue of data.issues.slice(0, 20)) {
     console.log(`  ${issue.severity === 'fail' ? '🔴' : '🟡'} ${issue.id}`);
     console.log(`     ${issue.details}`);

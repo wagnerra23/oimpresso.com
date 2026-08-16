@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-15**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-16**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -150,7 +150,7 @@ lente: [construir]
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 122 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 124 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -275,6 +275,8 @@ lente: [construir]
 - ~~2026-08-14 — Selftest verde que exercitava a CÓPIA (`scanForTest`), não o chokepoint — 3 dos 6 gates de design invisíveis pro bite-log por 4 semanas~~
 - ~~2026-08-14 — Ligar `--enforce` no `ds-mirror-drift` pra destravar a evidência DR-2 dele (proposta minha, reprovada por 3 medições independentes)~~
 - ~~2026-08-14 — Remendar o espelho de design À MÃO pra escapar do teto de fidelidade do `get_file`~~
+- ~~2026-08-15 — Explicar um diff de baseline visual por DEDUÇÃO em vez de decodificar os dois lados (5 hipóteses, 5 derrubadas)~~
+- ~~2026-08-15 — Culpar o PR das fontes (`#5806`) pelo ruído de rasterização~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -285,14 +287,14 @@ lente: [construir]
 
 ## Rastro
 
-- **453** handoffs · **626** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **454** handoffs · **627** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-08-15-espelho-jana-baixar-nao-e-converter`
   - `2026-08-14-censo-redacao-brl-em-codigo`
   - `2026-08-13-jana-dark-ancora-defeituosa`
   - `2026-08-13-espelho-cowork-medir-vs-consertar`
   - `2026-08-13-ancora-jana-consertada-e-o-p2-que-nao-era`
   - `2026-08-12-sec5-derivado-e-o-indice-que-conflita`
-  - `2026-08-12-reguas-evidencia-integra`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-15 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-16 · deriva das fontes canônicas, não as substitui._

@@ -227,6 +227,21 @@ it('o sumario da pagina e derivado dos titulos, com ancora estavel nos codigos d
     expect($ids)->toContain('b6');
     expect(array_unique($ids))->toHaveCount(count($ids));   // âncora duplicada rouba o link
 
+    // SUB-SEÇÕES (h4) entram no trilho. 14 seções deste guia são h4 — entre elas TODO o
+    // B8 ("quem pode alterar o quê"), que existia na página e não na navegação enquanto o
+    // sumário casava só h2|h3. Estar na página não é estar navegável.
+    expect($ids)->toContain('b8-1');
+    expect($ids)->toContain('b8-4');
+    expect($ids)->toContain('b6-2');
+    expect(array_column($sumario, 'nivel'))->toContain(4);
+
+    // A âncora do sub-tópico deriva do CÓDIGO da seção ("B8.1" → `b8-1`), não de um
+    // sufixo de desempate. Sufixo (`b8-2` no sentido de "segundo b8") mudaria sozinho
+    // quando um irmão nascesse acima — âncora que se move não serve pra ser copiada.
+    $porId = array_column($sumario, 'rotulo', 'id');
+    expect($porId['b8-1'])->not->toStartWith('B8.1');       // o código não se repete no rótulo
+    expect($porId['b8-1'])->toContain('Quem pode alterar');
+
     // Todo item do sumário tem título correspondente no HTML — sumário e página não
     // podem divergir, e só não divergem porque um é derivado do outro.
     foreach ($ids as $id) {

@@ -741,7 +741,10 @@ class DocumentacaoController extends Controller
         $usados = [];
 
         $html = preg_replace_callback(
-            '/<h([23])>(.*?)<\/h\1>/su',
+            // h4 entra porque 14 seções deste guia são h4 — incluindo TODO o B8 ("quem
+            // pode alterar o quê"), que foi pedido explícito do [W]. Casar só h2|h3
+            // deixava-as inalcançáveis pelo trilho: existiam na página e não na navegação.
+            '/<h([234])>(.*?)<\/h\1>/su',
             function (array $m) use (&$sumario, &$usados): string {
                 $nivel = (int) $m[1];
 
@@ -753,9 +756,16 @@ class DocumentacaoController extends Controller
                     return $m[0];
                 }
 
-                $codigo = preg_match('/^([AB]\d{1,2})\./u', $texto, $c) ? $c[1] : null;
+                // Captura o código INTEIRO, sub-nível incluso: "B8.1" precisa virar `b8-1`,
+                // não `b6`-com-sufixo-de-desempate. A regex antiga (`^([AB]\d{1,2})\.`)
+                // parava no primeiro ponto, então "B6.1 — …" devolvia "B6" e colidia com a
+                // própria B6 — a âncora do sub-tópico saía como `b6-2`, instável (muda
+                // sozinha quando um irmão nasce acima) e ilegível.
+                $codigo = preg_match('/^([AB]\d{1,2}(?:\.\d{1,2})?)[.\s]/u', $texto, $c) ? $c[1] : null;
 
-                $id = $codigo !== null ? Str::lower($codigo) : Str::slug($texto);
+                // Ponto vira hífen: `b8.1` é id válido em HTML mas quebra seletor CSS e
+                // âncora copiada. As âncoras de h2/h3 já existentes não mudam (`B7.` → `b7`).
+                $id = $codigo !== null ? str_replace('.', '-', Str::lower($codigo)) : Str::slug($texto);
                 if ($id === '') {
                     $id = 'secao';
                 }
@@ -771,7 +781,15 @@ class DocumentacaoController extends Controller
                 // roda"). O título da página continua inteiro; só o trilho encurta.
                 $rotulo = trim(preg_replace('/\s*\(.*$/us', '', $texto));
                 if ($codigo !== null) {
-                    $rotulo = trim(Str::after($rotulo, $codigo . '.'));
+                    // Str::after($rotulo, "$codigo.") não servia pro sub-nível: o texto é
+                    // "B6.1 — Como pedir…" (traço, não ponto), o needle "B6.1." não casava
+                    // e o rótulo saía com o código repetido dentro. Aqui o separador é
+                    // opcional e cobre ponto, traço e travessão.
+                    $rotulo = trim(preg_replace(
+                        '/^' . preg_quote($codigo, '/') . '\s*[.\x{2013}\x{2014}-]?\s*/u',
+                        '',
+                        $rotulo,
+                    ));
                 }
                 if ($rotulo === '') {
                     $rotulo = $texto;
