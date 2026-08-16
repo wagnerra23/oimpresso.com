@@ -102,7 +102,25 @@ export function ghContent(repo, ref, path, ghFn = gh) {
 }
 
 function gh(path) {
-  return JSON.parse(execSync(`gh api "${path}"`, { maxBuffer: 8 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] }).toString());
+  // NÃO-MEDIÇÃO ≠ DRIFT (§5 2026-08-11 · 2026-07-29). Sem `gh` no PATH — o caso normal
+  // fora do CI, inclusive em sessão de agente — o execSync estourava e o Node cuspia o
+  // objeto de erro cru (stderr como array de bytes). Erro ilegível é falha do
+  // consultante, e lê como defeito do consultado. Aqui o instrumento diz o que faltou.
+  let out;
+  try {
+    out = execSync(`gh api "${path}"`, { maxBuffer: 8 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] }).toString();
+  } catch (e) {
+    const err = (e?.stderr?.toString() || e?.message || '').trim();
+    const semGh = /not found|ENOENT|command not found/i.test(err);
+    console.error(`\n  ⚠️  NÃO CONSEGUI MEDIR — a proteção viva não foi lida (nenhum veredito de drift).`);
+    console.error(`     path: ${path}`);
+    console.error(semGh
+      ? '     CAUSA: `gh` ausente ou sem autenticação neste ambiente. Este script exige GitHub CLI autenticado.'
+      : `     CAUSA: ${err.slice(0, 300)}`);
+    console.error('     Ausência de medição não é ausência de drift — exit 2 (≠ 1, que é drift REAL).\n');
+    process.exit(2);
+  }
+  return JSON.parse(out);
 }
 
 function fetchLive() {
