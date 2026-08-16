@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **336**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **343**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -287,7 +287,7 @@ lente: [construir]
 
 ## Rastro
 
-- **454** handoffs · **627** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **455** handoffs · **627** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
   - `2026-08-15-espelho-jana-baixar-nao-e-converter`
   - `2026-08-14-censo-redacao-brl-em-codigo`
