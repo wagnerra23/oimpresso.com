@@ -629,6 +629,7 @@ que manda abri-lo **antes** de `Glob`/`Grep`): `contains` · `not_contains` · `
 | Que testes rodam em que lane? | `node scripts/governance/test-lane-coverage.mjs` |
 | …e a lane deixa rodar? | `node scripts/governance/test-lane-coverage.mjs --mudos` |
 | Que link está morto? | `node scripts/governance/deadlink-gate.mjs --check` |
+| …e como **consertar** os que dá? | `npm run docs:relink:orfaos` (dry-run; ver [B9](#b9)) |
 | Doc cita módulo que morreu? | `node scripts/governance/knowledge-drift.mjs --check` |
 | O que este módulo tem? | `node scripts/governance/module-surface.mjs <Mod> --check` |
 | Que gate trava merge? | `governance/required-checks-baseline.json` |
@@ -668,6 +669,70 @@ percebe — porque o gate que existia nunca olhou aquele eixo. Antes de escrever
 e [07-25](proibicoes.md)) — inclusive com a prova dura de que um índice **existia 4 dias antes** de um
 erro que ele deveria ter evitado, e não evitou. O caminho é **estender o dono do eixo**, com FP
 medido antes, advisory primeiro.
+
+### B9. Manutenção — a catraca acusou, e agora?
+
+> **Pra que serve esta seção:** as catracas impedem **piorar**. Elas não pagam a dívida que já
+> existe — isso é trabalho, e alguém precisa mandar fazer. Aqui está o como.
+
+#### O que é uma catraca (em uma frase)
+
+Um número congelado num arquivo de baseline. O gate compara o estado de hoje com esse número:
+**se piorou, reprova o PR; se melhorou, passa** — mas o número **não muda sozinho**.
+
+Consequência prática, e é o ponto que mais confunde: **você pode consertar 265 coisas e o sistema
+continuar aceitando que voltem.** Enquanto o baseline não for regravado, o ganho está solto.
+
+#### O ciclo completo — 4 passos, sempre nesta ordem
+
+```bash
+# 1. VER o que dá pra consertar (dry-run — não escreve nada)
+npm run docs:relink:orfaos
+
+# 2. APLICAR num escopo por vez (nunca tudo de uma vez)
+node scripts/governance/doc-auto-relink.mjs --orfaos \
+     --escopo memory/requisitos/Financeiro/ --apply --max 20
+
+# 3. CONFERIR que não comeu conteúdo vizinho  ← este passo não é opcional
+git diff --numstat | awk '$1!=1 || $2!=1 {print "ANOMALIA:",$0}'
+#    saída vazia = cada arquivo mudou exatamente 1 linha
+
+# 4. TRAVAR o ganho (sem isso, o passo 2 foi em vão)
+node scripts/governance/deadlink-gate.mjs --write-baseline
+node scripts/governance/baseline-tamper-guard.mjs   # prova que ENCOLHEU
+```
+
+O passo 3 existe porque este projeto já teve dois codemods que comeram conteúdo vizinho
+([§5 2026-08-02](proibicoes.md) e [08-12](proibicoes.md)). "Rodou sem erro" e até "teste verde" são
+compatíveis com dano intacto — **diff idêntico é a prova**.
+
+#### Três perguntas que sempre aparecem
+
+**"Se eu rodar várias vezes, ele aprende?"** Não. É determinístico e idempotente — rodar de novo
+sobre o mesmo estado **não propõe nada** (há teste que prova: `re-rodar após o apply é NO-OP`). O que
+faz aparecer trabalho novo é **o repo mudar**, não a repetição.
+
+**"Então o que trava a catraca?"** O passo 4, e só ele. Enquanto o baseline não for regravado, o
+gate segue aceitando o número velho — verde e cego.
+
+**"Ele pode estragar alguma coisa?"** Ele se recusa a agir em seis situações: documento
+append-only (ADR, handoff), destino ambíguo, destino inexistente, link que já funciona, drift no
+texto, e acima do teto do `--max`. O que ele não consegue resolver **ele conta no relatório** em vez
+de esconder — é por isso que a saída sempre traz a linha `não propostos: …`.
+
+#### O que NUNCA é automático (decisão sua, não minha)
+
+| Situação | Por quê |
+|---|---|
+| Links dentro de `memory/decisions/` | ADR é append-only — exige label `adr-body-edit-W` |
+| Destino ambíguo (mesmo nome em 2 pastas) | adivinhar destino é erro já catalogado 4× |
+| Link para documento realmente deletado | não há para onde apontar; ou some, ou vira ponteiro novo |
+| Subir um número de baseline | catraca só desce; subir é decisão explícita |
+
+#### Detalhe técnico
+
+Receita completa, casos de uso cobertos por teste e o resíduo medido:
+[RUNBOOK-doc-auto-relink-orfaos.md](requisitos/Infra/RUNBOOK-doc-auto-relink-orfaos.md).
 
 ## Backbone operacional — como tudo se conecta
 
@@ -723,7 +788,7 @@ flowchart LR
 | Linhas vermelhas | [proibicoes.md](proibicoes.md) |
 | Time e papéis | [regras-time.md](regras-time.md) · [TEAM.md](../TEAM.md) |
 | Responsabilidade de um módulo | `memory/requisitos/<X>/SCOPE.md` + `BRIEFING.md` |
-| Planejar uma feature complexa por SDD | [B7 deste guia](#b7-como-especificar-e-executar-uma-feature-complexa-sdd) · [template do trio](requisitos/_TEMPLATE_FEATURE/BRIEFING.md) |
+| Planejar uma feature complexa por SDD | [B7 deste guia](#b7) · [template do trio](requisitos/_TEMPLATE_FEATURE/BRIEFING.md) |
 | Conectar um dev novo ao MCP | [MEMORY_TEAM_ONBOARDING.md](../MEMORY_TEAM_ONBOARDING.md) |
 
 ---
