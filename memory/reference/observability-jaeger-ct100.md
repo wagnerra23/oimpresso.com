@@ -243,7 +243,7 @@ console.log('exporter url:', exp.url);
 
 - [Jaeger docs](https://www.jaegertracing.io/docs/1.60/)
 - [W3C Trace Context spec](https://www.w3.org/TR/trace-context/)
-- Daemon source: [`Modules/Whatsapp/daemon-node/src/observability/otel.ts`](../../Modules/Whatsapp/daemon-node/src/observability/otel.ts)
+- Daemon source: `Modules/Whatsapp/daemon-node/src/observability/otel.ts` — **removido em 2026-05-27** (commit `e8cd5be4e`, junto com o daemon Node inteiro pela [ADR 0202](../decisions/0202-whatsapp-profissionalizacao-baileys-out.md)). Fica como texto porque é o que era verdade na data; não há sucessor pra apontar.
 - Hostinger middleware: [`Modules/Whatsapp/Http/Middleware/PropagateTraceparent.php`](../../Modules/Whatsapp/Http/Middleware/PropagateTraceparent.php)
 - Config: [`config/otel.php`](../../config/otel.php)
 - Session log deploy: [`memory/sessions/2026-05-14-maratona-whatsapp-onda-1-2-otel-completa.md`](../sessions/2026-05-14-maratona-whatsapp-onda-1-2-otel-completa.md)

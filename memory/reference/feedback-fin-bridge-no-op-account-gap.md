@@ -103,6 +103,6 @@ A escolha entre (1)/(2)/(3) é arquitetural — não há solução universalment
 - Session log: [2026-05-20-financeiro-bridge-larissa-backfill-recovery.md](../sessions/2026-05-20-financeiro-bridge-larissa-backfill-recovery.md)
 - RUNBOOK pareado: [bridge-sells-titulos-backfill.md](../requisitos/Financeiro/RUNBOOK-bridge-sells-titulos-backfill.md)
 - Agent canônico: [`.claude/agents/financeiro-bridge-auditor.md`](../../.claude/agents/financeiro-bridge-auditor.md)
-- ADR 0175 proposta: [fix-observer-conta-bancaria-opcional](../decisions/proposals/fix-observer-conta-bancaria-opcional.md)
+- ADR 0175 (ratificada — nasceu como proposta): [fix-observer-conta-bancaria-opcional](../decisions/0175-fix-observer-conta-bancaria-opcional.md)
 - Commit do bug original: `540a26a41` (2026-05-08)
 - Files: `Modules/Financeiro/Services/TituloAutoService.php:209-220`, `Modules/Financeiro/Observers/TransactionPaymentObserver.php`
