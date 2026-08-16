@@ -361,6 +361,18 @@ function selftest() {
   // IDADE anti-gaming — declarada mais velha que git PIORA; declarada "futura" não melhora.
   ok('dataDeclarada: extrai o maior carimbo', dataDeclarada('updated_at: 2026-05-01\n**Atualizado:** 2026-06-01') === '2026-06-01');
 
+  // ── UC-DOC-06 · O CORPUS NÃO PODE SER VAZIO ────────────────────────────────
+  // Este é o único caso aqui que toca o disco, e é de propósito: a falha que ele pega
+  // não é de cálculo, é de POPULAÇÃO. Um corpus vazio faz o radar imprimir
+  // "0 podres · 0 envelhecendo · 0 frescos" — indistinguível de saúde perfeita, e foi
+  // exatamente o que apareceu em clone raso (0 de 392). O score pode estar impecável
+  // e o instrumento, decorativo. Não fixa número (ele cresce): exige que EXISTA corpus.
+  const corpus = corpusDocs();
+  ok(`UC-DOC-06: o corpus do radar não é vazio (${corpus.length} docs) — 0 docs = radar decorativo`,
+    corpus.length > 0);
+  ok('UC-DOC-06: o corpus inclui os guias-raiz canônicos (CLAUDE.md + GUIA-DO-SISTEMA)',
+    corpus.includes('CLAUDE.md') && corpus.includes('memory/GUIA-DO-SISTEMA.md'));
+
   console.log(fails
     ? `\n  ${fails} FALHA(S) — o radar de frescor não está honesto.\n`
     : `\n  SELFTEST OK — morde (podre) e solta (fresco); pesos anti-gaming valem.\n`);

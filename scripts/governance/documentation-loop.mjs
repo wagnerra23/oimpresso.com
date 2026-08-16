@@ -605,8 +605,18 @@ export function compareSnapshots(before, after, expected = []) {
     .filter((row) => row.before !== row.after);
   const resolvedIds = new Set(resolved.map((issue) => issue.id));
   const missingExpected = expected.filter((id) => !resolvedIds.has(id));
+  // RECIBO CONTRA SNAPSHOT CEGO NÃO VALE. Um achado "some" tanto por ter sido consertado
+  // quanto por a fonte não ter medido — e os dois são indistinguíveis aqui dentro. Sem
+  // esta trava a mensagem "recibo inválido" seria só prosa (LC-15: mecanismo anunciando
+  // saída que não implementa). Vale pros DOIS lados: cegueira no `before` fabrica
+  // "resolvido"; no `after`, esconde o que voltou.
+  const cegas = [before, after].flatMap((snap, i) => Object.entries(snap?.nao_medido || {})
+    .filter(([, n]) => Number(n) > 0)
+    .map(([fonte, n]) => ({ lado: i === 0 ? 'before' : 'after', fonte, nao_medidos: Number(n) })));
   return {
-    ok: missingExpected.length === 0,
+    ok: missingExpected.length === 0 && cegas.length === 0,
+    parcial: cegas.length > 0,
+    fontes_cegas: cegas,
     before_sha: before.git_sha || null,
     after_sha: after.git_sha || null,
     expected,
@@ -644,6 +654,11 @@ function printComparison(data) {
   if (JSON_OUT) return console.log(JSON.stringify(data, null, 2));
   console.log(`\n  RECIBO DOCUMENTAL — ${data.before_sha || '—'} → ${data.after_sha || '—'}`);
   console.log(`  resolvidos ${data.resolved.length} · novos ${data.introduced.length} · métricas alteradas ${data.changed.length}`);
+  if (data.parcial) {
+    console.log('  🔴 RECIBO INVÁLIDO — snapshot com fonte cega; "resolvido" aqui pode ser não-medido:');
+    for (const c of data.fontes_cegas) console.log(`     · ${c.lado}: ${c.fonte} — ${c.nao_medidos} alvo(s) não medido(s)`);
+    console.log('     Conserte o instrumento (`git fetch --unshallow origin`) e re-tire os dois snapshots.');
+  }
   for (const issue of data.resolved) console.log(`  ✅ ${issue.id}`);
   for (const id of data.missing_expected) console.log(`  ❌ esperado não fechou: ${id}`);
   for (const rejection of data.receipt_evidence?.rejected || []) {
@@ -710,6 +725,29 @@ function selftest() {
   const deletedReceipt = compareSnapshots({ issues: [deleted] }, { issues: [] }, [deleted.id]);
   check('BITE: apagar o alvo não fecha o achado',
     !applyReceiptEvidence(deletedReceipt, { issues: [deleted] }, []).ok);
+  // ── CONTRATO DE MEDIÇÃO (UC-DOC-*, 2026-08-16) ───────────────────────────────
+  // Os 3 casos abaixo defendem a propriedade que sustenta o ciclo INTEIRO: um achado
+  // pode sumir por ter sido consertado OU por a fonte não ter medido, e aqui dentro os
+  // dois são indistinguíveis. Sem isto, cegueira vira recibo — o ciclo "melhora" no papel.
+  const parcialSnap = buildSnapshot({
+    sha: 'x',
+    freshness: { docs: [], nao_medidos: ['memory/requisitos/X/SPEC.md', 'memory/requisitos/Y/SPEC.md'] },
+  });
+  check('UC-DOC-04 · snapshot declara a fonte que não mediu (nao_medido por fonte)',
+    parcialSnap.nao_medido['doc-freshness-score'] === 2);
+
+  const cego = compareSnapshots(
+    { git_sha: 'a', issues: [issue], nao_medido: { 'doc-freshness-score': 3 } },
+    { git_sha: 'b', issues: [] }, [id]);
+  check('UC-DOC-05 · BITE: recibo contra snapshot cego é RECUSADO mesmo com o ID sumindo',
+    !cego.ok && cego.parcial === true && cego.fontes_cegas[0]?.fonte === 'doc-freshness-score');
+
+  const vidente = compareSnapshots(
+    { git_sha: 'a', issues: [issue], nao_medido: { 'doc-freshness-score': 0, 'briefing-code-staleness': 0 } },
+    { git_sha: 'b', issues: [] }, [id]);
+  check('UC-DOC-05 · RELEASE: sem fonte cega, o MESMO par fecha o recibo (isola a variável)',
+    vidente.ok && vidente.parcial === false);
+
   const impact = buildImpactReport(['Modules/Financeiro/Services/FluxoService.php'], {
     nodes: [
       { type: 'module', module: 'Financeiro' },

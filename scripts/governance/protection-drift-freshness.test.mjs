@@ -8,7 +8,14 @@
 //   D) ghContent decoda base64 → JSON (ghFn injetável, sem rede)
 //   E) ghContent fail-closed: encoding 'none'/ausente/content vazio → LANÇA (caller reduz a stale)
 // Uso: node scripts/governance/protection-drift-freshness.test.mjs
+import { spawnSync } from 'node:child_process';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { parseFloorTs, resolveOrfaFreshness, ghContent } from './protection-drift.mjs';
+
+// Resolve o irmão pelo próprio arquivo (não por process.cwd()): o teste é chamado de
+// vários cwd — raiz do repo no CI, pasta do script na mão.
+const AQUI = dirname(fileURLToPath(import.meta.url));
 
 let fails = 0;
 const ok = (cond, msg) => { if (cond) console.log(`  ✓ ${msg}`); else { console.error(`  ✗ ${msg}`); fails++; } };
@@ -44,6 +51,25 @@ const throws = (fn) => { try { fn(); return false; } catch { return true; } };
 ok(throws(() => ghContent('r', 'br', 'p.json', () => ({ encoding: 'none', content: 'x' }))), "ghContent LANÇA com encoding='none'");
 ok(throws(() => ghContent('r', 'br', 'p.json', () => ({ encoding: 'base64', content: '' }))), 'ghContent LANÇA com content vazio');
 ok(throws(() => ghContent('r', 'br', 'p.json', () => ({}))), 'ghContent LANÇA sem encoding (resposta inesperada)');
+
+// ── F: UC-DOC-07 · dependência ausente é NÃO-MEDIÇÃO, não drift ─────────────
+// Sem `gh` no PATH o execSync estourava e o Node cuspia o objeto de erro cru (stderr
+// como array de bytes) — erro do CONSULTANTE lido como defeito do CONSULTADO
+// (§5 2026-08-11). O contrato tem duas metades e as duas importam:
+//   · exit 2 (≠ 1) — 1 significa "a proteção viva DIVERGIU do baseline", uma acusação
+//     concreta; confundir os dois faria o watchdog reportar drift que ninguém causou.
+//   · a mensagem nomeia o que faltou, em vez de despejar bytes.
+// Roda o CLI de FORA, com PATH vazio: é o único jeito de exercitar o caminho real
+// (o `gh()` não é exportado — assert em satélite não prova chokepoint, LC-15).
+{
+  const r = spawnSync(process.execPath, [join(AQUI, 'protection-drift.mjs')], {
+    encoding: 'utf8', env: { ...process.env, PATH: '' },
+  });
+  const saida = (r.stdout || '') + (r.stderr || '');
+  ok(r.status === 2, `UC-DOC-07: sem \`gh\` no PATH → exit 2 (não-medição), nunca 1 (drift real) — obtido ${r.status}`);
+  ok(/NÃO CONSEGUI MEDIR/.test(saida), 'UC-DOC-07: a saída DECLARA a não-medição em vez de despejar o erro cru');
+  ok(!/\[\s*\d+,\s*\d+,/.test(saida), 'UC-DOC-07: nenhum dump de array de bytes na saída (o sintoma do crash antigo)');
+}
 
 if (fails) { console.error(`\n  ✗ ${fails} caso(s) falharam — read-side de frescor da órfã NÃO garantido.\n`); process.exit(1); }
 console.log('\n  ✓ read-side de frescor da órfã garantido (computed_at do conteúdo, não o tip).\n');
