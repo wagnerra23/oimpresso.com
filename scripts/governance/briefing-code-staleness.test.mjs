@@ -14,7 +14,7 @@
  * Determinístico (Date.parse UTC) → mesma resposta em qualquer máquina/CI.
  * Uso: node scripts/governance/briefing-code-staleness.test.mjs
  */
-import { classifyCodeStaleness, declaredDoorDate, isBriefingCoverageGap, isValidLegacyBriefingTombstone, classifyScorecardFreshness } from './briefing-code-staleness.mjs';
+import { classifyCodeStaleness, declaredDoorDate, isBriefingCoverageGap, isValidLegacyBriefingTombstone, classifyScorecardFreshness, resumirMedicao } from './briefing-code-staleness.mjs';
 
 let fails = 0;
 const ok = (cond, msg) => { if (cond) console.log(`  ✓ ${msg}`); else { console.error(`  ✗ ${msg}`); fails++; } };
@@ -149,6 +149,40 @@ console.log('\n  briefing-code-staleness — self-test do núcleo puro\n');
   const rubricDrift = classifyScorecardFreshness({ declaredHash: 'abc', currentHash: 'abc', declaredRubric: '1.0', currentRubric: '1.1' });
   ok(!fresh.stale && codeDrift.sourceStale && rubricDrift.rubricStale,
     'SCORECARD: fingerprint+rubrica iguais liberam; drift de código OU rubrica MORDE');
+}
+
+// ── UC-DOC-01/02/03 · CONTRATO DE MEDIÇÃO (2026-08-16) ──────────────────────
+// Por que estes 3 casos existem: em clone raso `gitLastDate` devolve null (o dono se
+// recusa a inventar data), TODA linha vira evaluated:false — e o relatório dizia
+// "45 módulos avaliados · 🟢 nenhuma porta atrás". Verde por não-execução (LC-13).
+// O denominador é a defesa: se ele conta o que NÃO foi medido, o verde é fabricado.
+{
+  const rows = [
+    { mod: 'Compras', hasDoor: true, evaluated: true },     // as duas datas legíveis
+    { mod: 'NFSe', hasDoor: true, evaluated: true },
+    { mod: 'Jana', hasDoor: true, evaluated: false },       // data-git ausente = não medido
+    { mod: 'User', hasDoor: false, evaluated: false },      // sem porta = COBERTURA, outro eixo
+  ];
+  const r = resumirMedicao(rows);
+
+  ok(r.avaliados.length === 2,
+    `UC-DOC-01 · o denominador conta só os MEDIDOS, não as linhas varridas (esperado 2 de 4, obtido ${r.avaliados.length})`);
+
+  ok(r.naoMedidos.length === 1 && r.naoMedidos[0] === 'Jana',
+    `UC-DOC-02 · módulo com porta e sem data-git é declarado NÃO-MEDIDO, nunca "em dia" (obtido: [${r.naoMedidos}])`);
+
+  ok(!r.naoMedidos.includes('User'),
+    'UC-DOC-03 · módulo SEM porta não entra em não-medido — é gap de cobertura, não cegueira de medição');
+}
+
+// UC-DOC-02b · o caso do clone raso INTEIRO: nenhuma data chega, nada é medido.
+// O contrato é o denominador ir a ZERO — é isso que faz o relatório dizer
+// "VEREDITO INDISPONÍVEL" em vez de "🟢 nenhuma porta atrás".
+{
+  const rasas = ['Compras', 'NFSe', 'Jana', 'Financeiro'].map((mod) => ({ mod, hasDoor: true, evaluated: false }));
+  const r = resumirMedicao(rasas);
+  ok(r.avaliados.length === 0 && r.naoMedidos.length === 4,
+    `UC-DOC-02b · history truncada: 0 medidos e 4 declarados cegos (obtido: ${r.avaliados.length} medidos, ${r.naoMedidos.length} cegos)`);
 }
 
 console.log(`\n  ${fails === 0 ? '✅ TODOS os casos passaram' : `❌ ${fails} caso(s) falharam`}\n`);

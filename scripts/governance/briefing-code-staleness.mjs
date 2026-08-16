@@ -104,6 +104,29 @@ export function classifyCodeStaleness({ hasDoor, moduleCodeExists, doorDate, cod
 }
 
 /**
+ * resumirMedicao — separa o que foi MEDIDO do que não deu pra medir.
+ *
+ * Existe como função pura (e exportada) por dois motivos. O primeiro é testabilidade:
+ * o self-test deste sentinela é núcleo puro, sem FS nem git, e a contabilidade precisa
+ * ser exercitável lá. O segundo é o defeito que ela conserta — o relatório imprimia
+ * `rows.length` como "módulos avaliados", então em clone raso dizia "45 avaliados"
+ * tendo medido ZERO, e concluía "🟢 nenhuma porta atrás" (§5 2026-07-29 · LC-13).
+ *
+ * `naoMedidos` só inclui módulo COM porta: módulo sem BRIEFING é sinal de COBERTURA
+ * (outro eixo, já reportado por `isBriefingCoverageGap`), não de medição falha.
+ * Misturar os dois inflaria o alarme de cegueira com um gap que não é cegueira.
+ *
+ * @param {Array<{mod:string, hasDoor:boolean, evaluated:boolean}>} rows
+ * @returns {{avaliados:Array<any>, naoMedidos:string[]}}
+ */
+export function resumirMedicao(rows) {
+  return {
+    avaliados: rows.filter((r) => r.evaluated),
+    naoMedidos: rows.filter((r) => r.hasDoor && !r.evaluated).map((r) => r.mod),
+  };
+}
+
+/**
  * isBriefingCoverageGap — sinal de COBERTURA DE EXISTÊNCIA (não frescor): um
  * MÓDULO DE BACKEND real (`Modules/<X>/` no disco) que NÃO tem `BRIEFING.md` = gap.
  *
@@ -280,12 +303,7 @@ function run() {
   const rows = scan(staleDays);
   const stale = rows.filter((r) => r.stale).sort((a, b) => (b.gapDays ?? 0) - (a.gapDays ?? 0));
   const noDoor = rows.filter((r) => !r.hasDoor).map((r) => r.mod);
-  // MEDIDO × NÃO-MEDIDO (§5 2026-07-29 — "não consegui medir" não é estado do medido).
-  // `classifyCodeStaleness` já devolve `evaluated:false` quando falta doorDate ou
-  // codeDate; o que faltava era o relatório RESPEITAR isso. Módulo COM porta que não
-  // foi avaliado = data-git ilegível (history truncada), nunca "está em dia".
-  const avaliados = rows.filter((r) => r.evaluated);
-  const naoMedidos = rows.filter((r) => r.hasDoor && !r.evaluated).map((r) => r.mod);
+  const { avaliados, naoMedidos } = resumirMedicao(rows);
   const historiaTruncada = naoMedidos.length > 0 && isShallowHistory();
   // Gap de COBERTURA = módulo BACKEND sem BRIEFING (subconjunto de noDoor que exclui
   // áreas só-frontend tipo User/Perfil). É o que --strict-coverage morde; hoje = 0 (36/36).
