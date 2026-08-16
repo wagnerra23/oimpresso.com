@@ -630,14 +630,21 @@ code owner sem acesso de escrita, então hoje todo `# TODO: + @<handle>` do arqu
 #### B8.2 As 4 camadas — cada uma age num momento diferente
 
 ```
-[1] HOOK           antes de o agente escrever    91 hooks · bloqueia na hora
-     ↓                                            git ls-files '.claude/hooks/*.mjs' | wc -l
+[1] HOOK           antes de o agente escrever    49 hooks · bloqueia na hora
+     ↓                                       git ls-files '.claude/hooks/*.mjs' | grep -vc '\.test\.mjs'
 [2] SCOPE + rules  o que LER antes de mexer       32 SCOPE.md (32 de 32 módulos)
      ↓                                            git ls-files 'memory/requisitos/*/SCOPE.md' | wc -l
 [3] CI             depois do push                 123 workflows · 45 travam merge
      ↓                                            governance/required-checks-baseline.json
 [4] CODEOWNERS     antes do merge                 [W], nos caminhos Tier 0
 ```
+
+⚠️ **O comando dos hooks exclui `*.test.mjs` de propósito.** Sem o `grep -v` ele conta
+**91** — e 42 desses são os testes dos próprios hooks, não hooks. Os donos concordam com
+49: o [`MAQUINAS-INVENTARIO`](reference/MAQUINAS-INVENTARIO.md) diz 49, e o
+[`_HOOKS-INDEX`](../.claude/hooks/_HOOKS-INDEX.md) tem 54 linhas porque hook multi-evento
+é **fatiado por evento** (mesmo arquivo, 2 linhas). Três números, três perguntas
+diferentes — reproduzir um comando não prova que ele responde a que você fez (LC-08).
 
 ⚠️ **O "45 travam merge" é a UNIÃO de duas listas, não uma.** `classic_protection.contexts`
 tem 44 e `rulesets.contexts` tem 1 (o `Governance Gate`) — quem lê só a proteção clássica
