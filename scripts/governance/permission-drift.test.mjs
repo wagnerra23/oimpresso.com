@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @covers-us US-GOV-059
 // Teste do permission-drift.mjs. Hermético: injeta conteúdo, não lê o repo.
 //
 // Cada CONTROLE NEGATIVO aqui corresponde a uma classe de falso-positivo que foi

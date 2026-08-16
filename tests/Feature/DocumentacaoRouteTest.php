@@ -516,3 +516,50 @@ it('o escopo que a pagina MOSTRA e derivado de TIPOS_DOC — nenhum tipo some ca
     expect(Illuminate\Support\Facades\View::shared('escopoTipos'))->toBe($tipos);
     expect(Illuminate\Support\Facades\View::shared('escopoProsa'))->toBe($prosa);
 });
+
+// @covers-us US-INFRA-048
+it('a linha da Trilha D no plano continua legivel pela maquina que publica a pagina', function () {
+    // POR QUE ESTE CASO EXISTE: a célula de status da Trilha D, na tabela do `## Status
+    // vivo`, NÃO é prosa — é entrada de `execucaoDaTrilha()`, que extrai a onda com
+    // `/\bD(\d+)\b\s+em execução/u` e a US com `/\b(US-[A-Z]+-\d+)\b/`. Quem reescrever
+    // aquela célula ("D0 concluída", "em andamento", um emoji a mais no lugar errado)
+    // faz os cartões de execução SUMIREM de /documentacao/programa — e some calado: o
+    // controller devolve null de propósito ("melhor um vazio honesto que um D0
+    // fossilizado"), a página segue 200, e ninguém fica sabendo.
+    //
+    // Verificar isso relendo o markdown não vale: é o mesmo erro de achar que doc que a
+    // máquina lê se valida no olho. Este caso invoca o CONSUMIDOR REAL por reflection,
+    // contra o arquivo REAL — nunca uma cópia da regex, que ficaria verde enquanto o
+    // controller regride.
+    $controller = new App\Http\Controllers\DocumentacaoController;
+    $classe = new ReflectionClass($controller);
+
+    $markdown = file_get_contents(base_path('memory/requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md'));
+    expect($markdown)->toBeString()->not->toBeEmpty();
+
+    $secao = $classe->getMethod('secaoDoPlano');
+    $secao->setAccessible(true);
+    $tabela = $classe->getMethod('linhasDeTabela');
+    $tabela->setAccessible(true);
+    $execucao = $classe->getMethod('execucaoDaTrilha');
+    $execucao->setAccessible(true);
+
+    $ondas = $tabela->invoke($controller, $secao->invoke($controller, $markdown, 'D.3'));
+    expect($ondas)->not->toBeEmpty();   // sem ondas o próprio controller aborta 503
+
+    $estado = $execucao->invoke($controller, $markdown, $ondas);
+
+    // A onda tem que ser LIDA. `null` aqui = cartões omitidos na página.
+    expect($estado['onda'])->not->toBeNull('a célula de status da Trilha D deixou de casar "D<n> em execução" — os cartões de /documentacao/programa somem em silêncio');
+    expect($estado['onda'])->toMatch('/^D\d+$/');
+
+    // E a onda lida tem que EXISTIR na tabela §D.3 — senão a página aponta pra uma onda
+    // fantasma, que é pior que não apontar.
+    expect($estado['posicao'])->not->toBeNull('a onda declarada no status não existe na tabela §D.3');
+    expect($estado['posicao'])->toBeGreaterThan(0);
+    expect($estado['posicao'])->toBeLessThanOrEqual($estado['total']);
+    expect($estado['onda_nome'])->not->toBeNull();
+
+    // A US da fila também sai dali: sem ela a página perde o link pro backlog canônico.
+    expect($estado['task'])->toBe('US-INFRA-048');
+});
