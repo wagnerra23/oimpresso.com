@@ -1034,7 +1034,9 @@ detectando.
 
 ### US-INFRA-048 · Ativar a documentação técnica e operacional ponta a ponta
 
-**Implementado em:** _pendente_ — a US rastreia a execução da D0; plano e visão humana já foram preparados, mas inventário inicial e owners ainda serão fechados nesta onda
+**Implementado em:** parcial (2 de 5 AC fechados, medição de 2026-08-16) — `scripts/governance/maquinas-inventario.mjs` (eixo `Invocador`, #5342) · `memory/reference/MAQUINAS-INVENTARIO.md` (índice derivado, `--check` verde) · `memory/GUIA-DO-SISTEMA.md` §B6.2 (visão humana) · `app/Http/Controllers/DocumentacaoController.php` (publica e deriva a onda da linha do plano) · `memory/requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md` §Trilha D. Resíduo dos 3 AC parciais listado abaixo
+
+**Testado em:** [`tests/Feature/DocumentacaoRouteTest.php`](../../../tests/Feature/DocumentacaoRouteTest.php) — o caso `a linha da Trilha D no plano continua legivel pela maquina que publica a pagina` (`@covers-us`) invoca `execucaoDaTrilha()` por reflection contra o plano REAL: trava que a célula de status siga casando `D<n> em execução`, que a onda lida exista na tabela §D.3 e que a US da fila continue extraível. Sem ele, reescrever aquela célula apaga os cartões de `/documentacao/programa` em silêncio — a página segue 200
 
 > owner: wagner · priority: p1 · estimate: 4h · status: doing · type: story
 > blocked_by: —
@@ -1053,10 +1055,20 @@ canônico fica no Git; a fila MCP acompanha a execução; e a visão humana é p
 - [ ] manter o Guia do Sistema como visão humana e o Plano Mestre como dono das ondas.
 
 **Acceptance criteria:**
-- [ ] `node scripts/governance/maquinas-inventario.mjs --check` verde e contagens registradas;
-- [ ] matriz inicial `máquina → invocador → owner → documento → evidência` revisada;
-- [ ] pelo menos um gap priorizado com task canônica, ou evidência explícita de zero gaps acionáveis;
-- [ ] visão humana aponta para a Trilha D sem duplicar o estado da fila;
-- [ ] handoff e session log registram validações, bloqueios e próximo passo.
+- [x] `node scripts/governance/maquinas-inventario.mjs --check` verde e contagens registradas — `474 máquinas · 0 faltando · 0 ghost`, exit 0; contagens por família nos headers do índice gerado (medido 2026-08-16);
+- [ ] 🟡 matriz inicial `máquina → invocador → owner → documento → evidência` revisada — **1 de 5 eixos**, e só em **155/474 máquinas (32,7%)**: `Invocador` existe nas 3 tabelas de scripts, ausente nas 319 não-script (workflows, hooks, skills, agents, baselines); `owner`, `documento` e `evidência` não existem;
+- [ ] 🟡 pelo menos um gap priorizado com task canônica, ou evidência explícita de zero gaps acionáveis — o gap existe e foi trabalhado até o fim (`US-GOV-059`: 43 órfãs → 15, todas com razão escrita; `fiscal.inutilizar` resolvido em #5361), mas a **task na fila com `parent_plan=programa-ondas` não é auditável** deste ambiente (fila vive em `mcp_tasks`, fora do git — ausência **não** afirmada);
+- [x] visão humana aponta para a Trilha D sem duplicar o estado da fila — `memory/GUIA-DO-SISTEMA.md` §B6.2 aponta plano e donos; varredura por status `todo/doing/done` no Guia: 0 ocorrências que sejam status (as 2 encontradas são a própria regra de não-duplicação). O estado não é copiado: `DocumentacaoController::execucaoDaTrilha()` **deriva** a onda da linha do plano em runtime;
+- [ ] 🟡 handoff e session log registram validações, bloqueios e próximo passo — handoff presente e completo (`memory/handoffs/2026-08-06-1303-d0-trilha-d-invocador-e-permissoes-orfas.md`, com validação por `git show`, bloqueio de credencial e 3 próximos passos); **session log da execução da D0 ausente** (`ls memory/sessions/ | grep 2026-08-06` → 0).
+
+**Resíduo medido dos 3 AC parciais (2026-08-16) — o que fecharia cada um:**
+
+| AC | Falta | Natureza |
+|---|---|---|
+| matriz | eixos `owner`/`documento`/`evidência` + `Invocador` nas 319 não-script | mecanizável **se derivável**; o §D.2 do plano proíbe inventário editado à mão, então coluna auto-declarada em 474 linhas não é saída legítima |
+| gap/task | materializar a task na fila e reconciliar `US-GOV-059` (`status: todo` contra corpo que prova a triagem completa) | **bloqueado** — credencial MCP ausente em `.claude/settings.local.json` desde 2026-08-05 |
+| handoff/log | session log da sessão de 2026-08-06 | registro histórico; escrever hoje um log de sessão alheia seria fabricar — cabe a quem a executou, ou fica declarado como lacuna |
+
+> **O gate da D0 tem 3 partes** (`plano ligado ao MCP; inventários --check; baseline documental registrada`) e a **primeira segue travada** pela mesma credencial ausente — por isso a onda permanece `em execução` no plano, e não `fechada`.
 
 **Refs:** [PLANO-MESTRE § Trilha D](../_Governanca/programa-ondas/PLANO-MESTRE.md) · [GUIA-DO-SISTEMA § B6.2](../../GUIA-DO-SISTEMA.md)
