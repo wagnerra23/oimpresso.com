@@ -52,7 +52,7 @@ Exemplo no projeto:
 | Caso | Protocolo apropriado |
 |---|---|
 | Senha que Wagner usa em UI navegador (não vai pro DB) | Vaultwarden direto, sem Python |
-| `.env` do projeto (DB_PASSWORD, APP_KEY) | SFTP do .env via [reference hostinger-mysql](hostinger-mysql-conexao.md) |
+| `.env` do projeto (DB_PASSWORD, APP_KEY) | SFTP do `.env` — o `hostinger-mysql-conexao.md` que esta linha citava **nunca existiu** (0 commits na história); acesso pelo [INFRA-ACESSO-CANON](INFRA-ACESSO-CANON.md) |
 | Chave SSH (`id_ed25519_*`) | `~/.ssh/` direto, nunca commit |
 | Token MCP server | Settings local do Claude Code (`~/.claude/settings.local.json`), [team-onboarding](../../.claude/skills/oimpresso-team-onboarding/SKILL.md) |
 | Credencial transitória (1 uso, ex: token OAuth temporário) | Não persistir — usar em memória só |

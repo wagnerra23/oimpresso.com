@@ -72,7 +72,7 @@ Source PECL release 1.2.1 (stable 2025-10-02), zip oficial PHP 8.4 NTS x64 VS17:
 https://downloads.php.net/~windows/pecl/releases/opentelemetry/1.2.1/php_opentelemetry-1.2.1-8.4-nts-vs17-x64.zip
 ```
 
-Script idempotente em [`scripts/install-otel-ext.ps1`](../../scripts/install-otel-ext.ps1) (não versionado no repo principal, mantido neste worktree). Reusável caso suba PHP minor (ex: 8.5) no futuro.
+Script idempotente em `scripts/install-otel-ext.ps1` — **não é link de propósito**: o próprio texto abaixo diz que ele não é versionado no repo principal (0 commits na história inteira), então linká-lo prometia um arquivo que nunca esteve aqui. Reusável caso suba PHP minor (ex: 8.5) no futuro.
 
 ### Passo 2 — Editar php.ini
 

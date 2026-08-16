@@ -3,6 +3,7 @@ id: reference-feedback-memoria-nao-e-privada
 name: Memórias do oimpresso NÃO são privadas — léxico errado
 description: No oimpresso todo conhecimento de projeto é compartilhado com o time via MCP. NUNCA usar a palavra "privada" pra descrever auto-mem ou qualquer memória do projeto. Categorias canônicas são CANON (git, visível ao time) vs LOCAL pessoal (~/.claude/oimpresso-local/, só Wagner) — ADR 0131
 type: feedback
+authority: canonical
 ---
 
 No léxico do oimpresso, **memória do projeto NÃO é "privada"**. Toda memória canon é compartilhada via MCP server com o time inteiro (Wagner/Felipe/Maiara/Eliana/Luiz).
@@ -30,4 +31,4 @@ No léxico do oimpresso, **memória do projeto NÃO é "privada"**. Toda memóri
 - [ADR 0061](../decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md) — conhecimento canônico vai pra git+MCP, zero auto-mem
 - [ADR 0131](../decisions/0131-tiering-memoria-canonico-local-segredo.md) — tiering canônico/local/segredo
 - [ADR 0094](../decisions/0094-constituicao-v2-7-camadas-8-principios.md) §7 — transparência como princípio duro
-- [MEMORY.md](../../../../C:/Users/wagne/.claude/projects/D--oimpresso-com/memory/MEMORY.md) — pointer auto-mem legada
+- `~/.claude/projects/<projeto>/memory/MEMORY.md` — pointer auto-mem legada. **Não é link de propósito:** é caminho de máquina local, fora do repo, e a auto-mem privada está banida pela [ADR 0061](../decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md). Era um caminho absoluto de Windows escrito como link relativo — apontava pra lugar nenhum e ainda vazava o usuário da máquina.
