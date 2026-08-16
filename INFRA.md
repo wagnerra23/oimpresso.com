@@ -38,9 +38,14 @@ ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 -o ConnectTimeout=60 u906587222@1
 
 ## 3. Deploy
 
-**Após push na branch principal (atualmente `main`) com mudança em `composer.json`/`composer.lock`:** rodar `composer install` (sem `--no-dev` — Faker é usado em prod). O workflow `quick-sync.yml` NÃO faz isso; sintoma de skip é tela branca Inertia. Ver `memory/sessions/` para incidente do upgrade Inertia v3.
+> ⚠️ **O caminho canônico de deploy mudou.** Hoje é o `deploy.yml` — **automático em push**, com build no
+> runner ([ADR 0269](memory/decisions/0269-deploy-automatico-build-no-runner.md)); o `quick-sync.yml` virou
+> escape manual. O texto abaixo nasceu quando o `quick-sync` era o padrão. Falhas de deploy catalogadas
+> (12 assinaturas com recuperação testada): [`deploy-recovery-patterns.md`](memory/reference/deploy-recovery-patterns.md).
 
-**Receita de deploy manual** (quando `quick-sync.yml` falhar — ver auto-memória `reference_quick_sync_quebrada.md`):
+**Após push na branch principal (atualmente `main`) com mudança em `composer.json`/`composer.lock`:** rodar `composer install` (sem `--no-dev` — Faker é usado em prod). O `quick-sync.yml` NÃO faz isso; sintoma de skip é tela branca Inertia — dissecado em [`deploy-recovery-patterns.md`](memory/reference/deploy-recovery-patterns.md) §3.
+
+**Receita de deploy manual** (quando o deploy automático falhar — diagnóstico em [`deploy-recovery-patterns.md`](memory/reference/deploy-recovery-patterns.md) §9):
 ```bash
 ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115 \
   "cd domains/oimpresso.com/public_html && \
@@ -56,7 +61,7 @@ Se `composer.lock` mudou, trocar `dump-autoload` por `composer install`.
 
 ## 4. Patches manuais ativos
 
-- **WP `/ajuda/`** tem patch manual de PHP 8.4 (`create_function` → closures) — atualização via wp-admin reverte; ver auto-memória `reference_wp_ajuda_fix.md` se precisar repatchar.
+- **WP `/ajuda/`** tem patch manual de PHP 8.4 (`create_function` → closures) — atualização via wp-admin reverte; receita pra repatchar em [`RUNBOOK-wp-ajuda-php84-patch.md`](memory/requisitos/Infra/RUNBOOK-wp-ajuda-php84-patch.md).
 
 ---
 
@@ -81,17 +86,19 @@ Se `composer.lock` mudou, trocar `dump-autoload` por `composer install`.
 | 6.1 | **Proxmox empresa `sistema`** | LAN 192.168.0.2 / pública 177.74.67.30:8006 | Hypervisor — hospeda CT 100 (Docker: Traefik+Portainer+Vaultwarden+Reverb futuro) | root@pam SSH/web + Token API mcp2 |
 | 6.2 | **Hostinger Cloud Startup** | 148.135.133.115 | App PHP-FPM principal (oimpresso.com) | SSH key + hPanel (Google OAuth) + API token |
 | 6.3 | **Windows Server 2022** | LAN 192.168.0.3 + 192.168.0.4 (2 NICs) | Sistemas Delphi (WR Comercial) + FireBird DB + serviços legados | RDS 3389 (login pendente Wagner) |
-| 6.4 | **Central VoIP** | LAN 192.168.0.21 | PBX Issabel/Asterisk/Elastix — telefonia interna | painel `https://192.168.0.21/` admin/wscrct.000465 |
-| 6.5 | **KingHost / Uni5** | painel.kinghost.com.br | DNS de `wr2.com.br` + e-mails da empresa | login eliana@wr2.com.br (senha em auto-memória, 2 candidatas) |
+| 6.4 | **Central VoIP** | LAN 192.168.0.21 | PBX Issabel/Asterisk/Elastix — telefonia interna | painel `https://192.168.0.21/` — usuário e senha no Vaultwarden ([`_INDEX-SECRETS.md`](memory/_INDEX-SECRETS.md)) |
+| 6.5 | **KingHost / Uni5** | painel.kinghost.com.br | DNS de `wr2.com.br` + e-mails da empresa | login eliana@wr2.com.br — senha no Vaultwarden ([`_INDEX-SECRETS.md`](memory/_INDEX-SECRETS.md)) |
 
-**Onde estão as credenciais detalhadas (auto-memória local, fora do git):**
+**Onde estão as credenciais detalhadas:**
 
-- Proxmox + CT 100: `reference_proxmox_credenciais.md`
-- Hostinger SSH: `reference_hostinger_ssh_credenciais.md` + `reference_hostinger_server.md`
-- Hostinger hPanel + API: `reference_hostinger_hpanel.md`
-- Central VoIP: `reference_central_voip_issabel.md`
-- KingHost/Uni5: `reference_painel_kinghost.md`
-- Vaultwarden (cofre que vai centralizar tudo isso): `reference_vaultwarden_credenciais.md`
+> ⚠️ **Ponteiros atualizados em 2026-08-16.** Esta lista apontava para arquivos `reference_*.md`
+> da auto-memória local, **purgada na auditoria de 2026-06-07** ([ADR 0061](memory/decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md) ·
+> [ADR 0131](memory/decisions/0131-tiering-memoria-canonico-local-segredo.md)) — os 6 destinos não existem mais, e quem
+> procurasse credencial de infra por aqui caía no vazio. Os donos vivos são dois:
+
+- **Índice de todo segredo** (o que existe, onde vive, estado de rotação): [`memory/_INDEX-SECRETS.md`](memory/_INDEX-SECRETS.md) — **consultar SEMPRE antes de procurar token** (skill `memory-first-secret-search`, Tier A)
+- **Cofre** (o valor em si): Vaultwarden em `vault.oimpresso.com`; leitura programática por `get-secret.sh <slug>` no CT 100 — ver [`memory/reference/INFRA-ACESSO-CANON.md`](memory/reference/INFRA-ACESSO-CANON.md) §Secrets
+- **Método de acesso por máquina** (sem valor): [`memory/reference/INFRA-ACESSO-CANON.md`](memory/reference/INFRA-ACESSO-CANON.md)
 
 > Hostinger compartilhado **não roda daemons persistentes** (sem supervisord, sem controle do nginx pra WS proxy). Pra Reverb, Meilisearch como serviço, agentes Vizra ADK em background, Horizon supervised, etc., usar os ativos abaixo.
 
@@ -123,8 +130,15 @@ VMs/CTs:       (nenhuma — instalação fresca em 2026-04-28)
 
 **Uso planejado (ordem de prioridade):**
 
-1. **VM `reverb`** — Reverb daemon + cloudflared (ou direto se IP fixo expor 443) — ver [ADR 0042](memory/decisions/0042-reverb-substitui-pusher-cloud.md)
-2. **VM `meilisearch`** — Meilisearch como serviço persistente (substitui o `~/meilisearch/` instalado mas não rodando do Hostinger) — ver task A4 de Felipe em [`CURRENT.md`](CURRENT.md) e [ADR 0036](memory/decisions/0036-replanejamento-meilisearch-first.md)
+> 🪦 **Este plano de 2026-04-28 foi executado por outro caminho — leia como história, não como instrução.**
+> O que de fato existe hoje é o **CT 100** (container LXC único, ~20 serviços em Docker), não as 4 VMs abaixo.
+> Retrato vivo: [`INFRA-ACESSO-CANON.md`](memory/reference/INFRA-ACESSO-CANON.md) e
+> [`AUDITORIA-OPS-DR-2026-07.md`](memory/requisitos/Infra/AUDITORIA-OPS-DR-2026-07.md). E o item 1 caducou por decisão:
+> **Reverb foi substituído por Centrifugo** ([ADR 0058](memory/decisions/0058-reverb-substituido-por-centrifugo-frankenphp.md)),
+> o que a própria §7 deste arquivo já registrava sem que o corpo fosse corrigido.
+
+1. ~~**VM `reverb`** — Reverb daemon + cloudflared~~ — **morto**: Reverb → Centrifugo ([ADR 0058](memory/decisions/0058-reverb-substituido-por-centrifugo-frankenphp.md)). O serviço vive hoje em `realtime.oimpresso.com` no CT 100
+2. **VM `meilisearch`** — Meilisearch como serviço persistente — **entregue**, mas como container no CT 100. (O ponteiro original citava `CURRENT.md`, arquivo **removido** pela [ADR 0070](memory/decisions/0070-jira-style-task-management-current-md-removed.md): tarefa viva hoje é tool MCP, não markdown.) Ver [ADR 0036](memory/decisions/0036-replanejamento-meilisearch-first.md)
 3. **VM `copiloto-workers`** — Horizon + queue workers + agentes Vizra ADK em background (Larissa, FaithCheck, etc.) — ver [ADR 0035](memory/decisions/0035-stack-ai-canonica-wagner-2026-04-26.md)
 4. **VM `staging`** — réplica Laravel pra teste pré-produção (evita os 3 incidentes de crash em prod do histórico — CLAUDE.md §4)
 
@@ -212,7 +226,7 @@ Login:         <pendente Wagner passar — guardar no Vaultwarden quando subir>
 ```
 
 **Roda:**
-- Sistema Delphi WR Comercial (`reference_delphi_wr_comercial.md`)
+- Sistema Delphi WR Comercial — dono vivo: [`memory/legacy-delphi/`](memory/legacy-delphi/) (`SCHEMA-FIREBIRD.md` · `CLIENTES-DELPHI-MATRIZ.md` · `PEGADINHAS.md`)
 - DB FireBird (banco antigo do WR Comercial)
 - Serviços diversos legados (Horse:19000, THorse:8050, socket_horce:55666, Rat:214)
 
@@ -231,7 +245,7 @@ SSH:           ssh root@192.168.0.21 (mesma senha do painel)
 SIP:           UDP 5060 fechado externamente (só LAN)
 ```
 
-**Inventário detalhado** (extensions, trunks, serviços, riscos): [`reference_central_voip_inventario.md`](memory/reference_central_voip_inventario.md) (auto-memória local, fora do git)
+**Inventário detalhado** (extensions, trunks, serviços, riscos): **não existe hoje.** O ponteiro daqui apontava para `reference_central_voip_inventario.md`, da auto-memória purgada em 2026-06-07 — e o link estava morto desde então. O que sobrevive sobre a central é a linha 6.4 acima + o contexto de rede em [`infra-rede-empresa.md`](memory/reference/infra-rede-empresa.md). Reconstruir o inventário é trabalho em aberto, não um arquivo a procurar.
 
 **Resumo:**
 - 16 ramais cadastrados (apenas 2 online: 1220 em 192.168.0.108 e 1230 em 192.168.0.103)
