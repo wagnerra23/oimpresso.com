@@ -3,6 +3,7 @@ id: reference-feedback-memoria-nao-e-privada
 name: Memórias do oimpresso NÃO são privadas — léxico errado
 description: No oimpresso todo conhecimento de projeto é compartilhado com o time via MCP. NUNCA usar a palavra "privada" pra descrever auto-mem ou qualquer memória do projeto. Categorias canônicas são CANON (git, visível ao time) vs LOCAL pessoal (~/.claude/oimpresso-local/, só Wagner) — ADR 0131
 type: feedback
+authority: canonical
 ---
 
 No léxico do oimpresso, **memória do projeto NÃO é "privada"**. Toda memória canon é compartilhada via MCP server com o time inteiro (Wagner/Felipe/Maiara/Eliana/Luiz).

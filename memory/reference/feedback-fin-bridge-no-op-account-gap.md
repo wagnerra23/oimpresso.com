@@ -3,6 +3,7 @@ id: reference-feedback-fin-bridge-no-op-account-gap
 name: feedback-fin-bridge-no-op-account-gap
 description: Feedback canônico — Observer no-op silencioso quando biz sem fin_contas_bancarias. Bug invisível em prod por 12d antes da Larissa reportar.
 type: feedback
+authority: canonical
 date_captured: 2026-05-20
 captured_in_session: memory/sessions/2026-05-20-financeiro-bridge-larissa-backfill-recovery.md
 applies_to: TODOS módulos que dependem de Observer com guard de pré-requisito
