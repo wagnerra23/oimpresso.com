@@ -291,7 +291,13 @@ const wfKeys = Object.keys(wf).sort();
 let required = new Set();
 try {
   const base = JSON.parse(readFileSync(join(ROOT, 'governance/required-checks-baseline.json'), 'utf8'));
+  // "O que bloqueia merge" tem DUAS fontes e ler uma só devolve número errado:
+  // a proteção clássica e os rulesets. Hoje o `Governance Gate` existe SÓ no ruleset —
+  // contar apenas `classic_protection` publica 44 e faz o leitor concluir que ele não é
+  // required, que é a assinatura do deadlock descrito no RUNBOOK-branch-protection
+  // (PR BLOCKED com 0 falhas e 0 pendentes). Lápide §5 2026-08-08.
   (base.classic_protection?.contexts || []).forEach((c) => required.add(c));
+  (base.rulesets?.contexts || []).forEach((c) => required.add(c));
 } catch {}
 // Invocador de WORKFLOW = o gatilho `on:` do próprio YAML — é o runtime que responde
 // "quem executa isto", não a leitura de quem o cita. Nenhum outro eixo da matriz

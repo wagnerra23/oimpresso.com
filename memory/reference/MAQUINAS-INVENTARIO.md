@@ -18,7 +18,7 @@ lifecycle: ativo
 > - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`
 > - Gates/Workflows → `scripts/governance/gates-registry.json` · Required → `governance/required-checks-baseline.json`
 
-## 1. Workflows / Gates de CI — 123 (44 contexts required)
+## 1. Workflows / Gates de CI — 123 (45 contexts required)
 
 > `Invocador` = gatilho `on:` do YAML · `Documento` = doc canônico de maior precedência que o cita.
 > **Evidência não é derivável aqui** (medido: 0 de 123): o `gate-selftest` prova que o SCRIPT morde,
@@ -370,7 +370,7 @@ lifecycle: ativo
 | `agent-pr-outcomes.mjs` | agente, ci, script | test | `memory/requisitos/Brief/BRIEFING.md` +6 | EVALS DE OUTCOME dos PRs do agente (DORA-style). |
 | `agents-md-staleness.mjs` | ci, script | — | `memory/decisions/proposals/2026-07-23-sentinelas-staleness-prontidao-required.md` +3 | sentinela: o AGENTS.md ficou atrás do CLAUDE.md? |
 | `anchor-content-check.mjs` | agente, ci, script | test | `memory/decisions/0327-anchor-content-required-emenda-0314.md` +24 | sentinela de CONTEÚDO da âncora de design. |
-| `anchor-lint.mjs` | agente, ci, script | selftest | `memory/decisions/0303-anchor-lint-wired-testado-sa-a2-bis.md` +122 | parser da gramática anchor spec↔código (ADR 0273 · passo SA-A2 |
+| `anchor-lint.mjs` | agente, ci, script | selftest | `memory/decisions/0303-anchor-lint-wired-testado-sa-a2-bis.md` +124 | parser da gramática anchor spec↔código (ADR 0273 · passo SA-A2 |
 | `ancora-codigo-sync.mjs` | ci, script | — | `memory/requisitos/_DesignSystem/SDD-TEMPLATE.md` +5 | AUTO-SYNC da âncora doc→CÓDIGO (o mecanismo do Swimm, traduzido). |
 | `baseline-tamper-guard.mjs` | ci, script | selftest | `memory/decisions/0331-anti-duplicacao-work-claim-gate.md` +43 | anti-grandfather (Gap 2 do blueprint SDD · ADR 0256/0258). |
 | `blade-migration-census.mjs` | ci, script | — | `memory/proibicoes.md` +39 | o CONTRATO DE COMPLETUDE da ADR 0277, derivado da árvore. |
@@ -427,7 +427,7 @@ lifecycle: ativo
 | `lapide-recheck.mjs` | agente, ci, script | test | `memory/decisions/0376-sec5-derivado-limite-no-contexto-arqueologia-na-fonte.md` +10 | re-verificação de FRESCOR das lápides §5 (memory/proibicoes.md, |
 | `ledger-check.mjs` | agente, ci, script | selftest | `memory/decisions/0291-distiller-modulo-verdade-contrato-emenda-0270-f3.md` +29 | enforcement do PROTOCOLO-REFUTADOR-BACKFILL (frente GT-G5, |
 | `ledger-hash-chain.mjs` | ci | test | (só sessão/handoff · 2) | transparency-log (Rekor/Sigstore-style) sobre o |
-| `maquinas-inventario.mjs` | agente, ci | test | `memory/requisitos/Infra/SPEC.md` +13 | DERIVA um índice único e legível de TODAS as "máquinas" |
+| `maquinas-inventario.mjs` | agente, ci | test | `memory/requisitos/Infra/SPEC.md` +15 | DERIVA um índice único e legível de TODAS as "máquinas" |
 | `mcp-drift-sentinel.mjs` | ci, script | — | `memory/decisions/proposals/2026-07-23-sentinelas-staleness-prontidao-required.md` +5 | sentinela EXTERNA de drift do MCP server (ADR 0256 + 0062). |
 | `memory-health.mjs` | ci, script | selftest | `memory/decisions/0317-maquina-revisao-adr-quando-rever-gatilhos.md` +109 | sentinela de saúde da base de conhecimento (ADR 0256, Onda 1). |
 | `module-group-resolve.mjs` | — (só `.test`) | test | `memory/decisions/proposals/2026-08-11-o-que-pode-existir-em-memory-requisitos.md` +1 | resolve O GRUPO DE MEMÓRIA de um módulo a partir da ÁRVORE. |
@@ -441,7 +441,7 @@ lifecycle: ativo
 | `palette-generate.mjs` | ci | — | `memory/requisitos/_DesignSystem/PIPELINE-TOKENS.md` +2 | GERADOR determinístico da página de paleta de cor. |
 | `permissao-renomeada-lint.mjs` | ci | — | — | barra o nome VELHO de permissão renomeada em linha NOVA. |
 | `permission-drift.mjs` | ci | test | `memory/requisitos/Governance/SPEC.md` +9 | mede o drift entre permissão DECLARADA e permissão APLICADA. |
-| `plan-health.mjs` | ci, script | — | `memory/decisions/0294-metodo-dual-track-shapeup-catraca.md` +16 | sentinela de PLANOS órfãos/podres (ADR 0294 Onda 1 · catraca da |
+| `plan-health.mjs` | ci, script | — | `memory/decisions/0294-metodo-dual-track-shapeup-catraca.md` +19 | sentinela de PLANOS órfãos/podres (ADR 0294 Onda 1 · catraca da |
 | `plans-index.mjs` | ci | test | `memory/decisions/0294-metodo-dual-track-shapeup-catraca.md` +11 | GERADOR determinístico do Índice de Planos Vivos (ADR 0294 + 0256). |
 | `protection-drift.mjs` | agente, ci, script | selftest | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +44 | drift de branch protection + watchdog de staleness (GT-G4, |
 | `pt-conformance.mjs` | ci, npm, script | bite-log | `memory/decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md` +19 | VERIFICA que uma tela que DECLARA "herda PT-0X" tem de fato a |
