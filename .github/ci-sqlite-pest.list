@@ -457,3 +457,28 @@ Modules/Governance/Tests/Feature/GovernanceModuleSubscriptionGateTest.php
 # Artisan::call; o unico acesso e filesystem.
 Modules/Jana/Tests/Feature/MemorySchema/JanaValidateMemoryCommandTest.php
 Modules/Jana/Tests/Feature/Mcp/McpAuthPermissaoMemoizadaTest.php
+
+# BackupMonitorScheduleTest — a catraca da Onda 3 Ops/DR que NUNCA mordeu.
+# Achado pela medição da D1/D8 da Trilha D (2026-08-16). O docblock do arquivo
+# afirma, em tempo presente, "Esta é a catraca (morde no CI): se alguém remover o
+# schedule OU afrouxar o limiar de idade, o teste quebra" — e isso era FALSO:
+# `git grep -l tests/Feature/Console -- .github/` = 0 (controle positivo no mesmo
+# comando: tests/Feature/Architecture = 14 hits), o arquivo não estava nesta lista,
+# e nenhuma lane deste repo usa --testsuite. Ou seja: registrado no phpunit.xml,
+# executado por ninguém. LC-13 — verde por não-execução — na defesa que existe
+# justamente pra impedir "o backup morreu e ninguém viu".
+#
+# O que ele protege (AUDITORIA-OPS-DR-2026-07, Onda 3): `backup:run` cria o backup
+# diário 01:30 mas nada VERIFICAVA frescor; `backup:monitor` foi agendado pra fechar
+# isso. Os asserts travam o schedule existir E o limiar `MaximumAgeInDays <= 1` —
+# afrouxar o limiar é o modo de falha silencioso que o mesmo documento observou no
+# backup do auth-state (quebrado 6+ dias sem alarme).
+#
+# Sqlite-safe conferido pelo critério do cabeçalho deste arquivo: DB-less (zero
+# RefreshDatabase / migrate / Schema:: / DB:: / factory) — só inspeciona o
+# Schedule. Mesmo idioma do IngestLivenessCheckerTest e do PlanDriftCheckerTest,
+# já nesta lista. Nenhum quarantine.list existe no repo pra excluí-lo (procurado).
+#
+# ⚠️ NÃO rodei o Pest (CT 100 only, ADR 0062). A prova de que passou a executar é o
+# CONTADOR da lane no run deste PR — não este comentário.
+tests/Feature/Console/BackupMonitorScheduleTest.php
