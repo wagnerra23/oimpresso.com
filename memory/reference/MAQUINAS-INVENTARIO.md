@@ -391,7 +391,7 @@ lifecycle: ativo
 | `hook-replay.mjs` | npm | testa hook contra TELEMETRIA REAL (advisory, exit 0 sempre). |
 | `hooks-manifest-generate.mjs` | agente, ci | GERADOR determinístico do manifesto de hooks (grade de réguas |
 | `hue-canon-check.mjs` | agente, ci | verificador da fonte única do hue primário (US-GOV-052 P32). |
-| `junit-lanes.mjs` | ci | fonte ÚNICA e DERIVADA das lanes de CI que alimentam o manifesto por-UC |
+| `junit-lanes.mjs` | ci, script | fonte ÚNICA e DERIVADA das lanes de CI que alimentam o manifesto por-UC |
 | `knowledge-drift.mjs` | agente, ci, script | primeira batida do "batimento" (ADR 0270 / sessão 2026-06-11). |
 | `lapide-recheck.mjs` | agente, ci, script | re-verificação de FRESCOR das lápides §5 (memory/proibicoes.md, |
 | `ledger-check.mjs` | agente, ci, script | enforcement do PROTOCOLO-REFUTADOR-BACKFILL (frente GT-G5, |
@@ -443,13 +443,14 @@ lifecycle: ativo
 | `visual-comparison-staleness.mjs` | ci, script | sentinela: o `<tela>-visual-comparison.md` ficou atrás da TELA? |
 | `worktree-janitor.mjs` | ci, npm | Faxineiro de worktrees — classifica worktree MORTO vs VIVO por ORÁCULO, nunca por heurística. |
 
-### 5.2 `scripts/tests/` — 9
+### 5.2 `scripts/tests/` — 10
 
 | Script | Invocador | Descrição (cabeçalho) |
 |---|---|---|
 | `coverage-compute.mjs` | ci, script | write-side do coverage_pct (SDD P07 · ADR 0275 §2 fonte |
 | `floor-compute.mjs` | ci, script | write-side do floor (ADR 0279 Opção A · PR-2 · US-GOV-018). |
 | `foundation-ratchet.mjs` | agente, ci, script | marcadores `legacy-quarantine` (burn-down: subir = regressão) |
+| `junit-corpus.mjs` | ci | agrega N summaries `junit-summary/v1` na DISTRIBUIÇÃO de assertions |
 | `junit-summary.mjs` | agente, ci, script | sumário JSON por arquivo de teste a partir de JUnit XML (PHPUnit/Pest). |
 | `nightly-diff.mjs` | ci | tripwire de regressão QUALITATIVA do nightly (ROADMAP-SDD P15). |
 | `ragas-trend-compute.mjs` | ci, script | write-side do trend do RAGAS real (ADR 0318 + pattern |
