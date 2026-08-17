@@ -17,7 +17,7 @@ related_adrs:
   - 0094-constituicao-v2-7-camadas-8-principios
   - 0095-skills-tiers-convencao-interna
   - 0130-handoff-append-only-mcp-first
-  - 0155-module-grade-v3-sub-dimensoes-gate-ci
+  - 0155-rubrica-module-grade-v3
   - 0160-scoped-scorecards
 charter_adr: 0094
 pii: false
