@@ -35,10 +35,14 @@ check('CONTROLE anti-drift: alias que o arquivo NAO contem nao vale',
   (() => { ALIASES['alias-mentiroso'] = 'inexistente'; const r = tagDe('alias-mentiroso', dir); delete ALIASES['alias-mentiroso']; return r.tag === null; })());
 
 // ── sondas + contagem (o nucleo: escape literal, sem regex) ──────────────────
-check('sondas cobre as 3 formas', sondas('x').length === 3
+// 4 formas desde 2026-08-16: as 3 de ADVISORY (a tag no INICIO do valor) + a do
+// CANAL DE BLOQUEIO, que prefixa `[node .claude/hooks/<arquivo>.mjs]: ` antes da tag.
+// Sem a 4a, o medidor era cego justamente aos hooks Tier-0 que barram.
+check('sondas cobre as 4 formas (3 advisory + 1 canal de bloqueio)', sondas('x').length === 4
   && sondas('x').some(s => s.includes('systemMessage'))
   && sondas('x').some(s => s.includes('permissionDecisionReason'))
-  && sondas('x').some(s => s.startsWith('"content":"[')));
+  && sondas('x').some(s => s.startsWith('"content":"['))
+  && sondas('x').some(s => s.startsWith('.mjs]: [')));
 
 const EMITIU = String.raw`{"content":"{\"systemMessage\":\"[block-destructive] Bash BLOQUEADO"}`;
 const EMITIU2 = String.raw`{"x":"permissionDecisionReason\":\"[charter-first] tela TEM contrato"}`;
@@ -46,6 +50,15 @@ const EMITIU3 = '{"content":"[mwart-process] Edit em BLOQUEADO"}';
 check('FIXTURE BOA: conta emissao systemMessage', contarNoTexto(EMITIU, 'block-destructive') === 1);
 check('FIXTURE BOA: conta emissao permissionDecisionReason', contarNoTexto(EMITIU2, 'charter-first') === 1);
 check('FIXTURE BOA: conta emissao content-plano', contarNoTexto(EMITIU3, 'mwart-process') === 1);
+
+// FIXTURE BOA do CANAL DE BLOQUEIO — forma COPIADA de transcript real (2026-08-16),
+// nao inventada. As 2 linhas sao o mesmo evento aparecendo 2x (content + Error:),
+// que e' a razao pela qual a contagem infla ~2x e o numero vale como PISO.
+const EMITIU_BLOQ = String.raw`"tool_result","content":"PreToolUse:Bash hook error: [node .claude/hooks/block-destructive.mjs]: [block-destructive] Bash BLOQUEADO (git-force-push). Motivo
+,"toolUseResult":"Error: PreToolUse:Bash hook error: [node .claude/hooks/block-destructive.mjs]: [block-destructive] Bash BLOQUEADO (git-force-push). Motivo`;
+check('FIXTURE BOA: conta emissao do canal de BLOQUEIO', contarNoTexto(EMITIU_BLOQ, 'block-destructive') === 2);
+check('CONTROLE NEGATIVO: mencao ao .mjs sem a tag colada NAO conta',
+  contarNoTexto('rodei node .claude/hooks/block-destructive.mjs e nada saiu', 'block-destructive') === 0);
 
 // FIXTURE RUIM — o erro que matou 2 das minhas 3 sondas em 2026-07-26:
 // a tag aparece no CODIGO-FONTE do hook lido/editado, nao numa emissao.
