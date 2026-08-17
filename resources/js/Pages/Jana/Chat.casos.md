@@ -75,6 +75,74 @@ conversa.
 
 ---
 
+## Inventário de cobertura — cada Goal e Anti-hook do charter, medido
+
+> Os 4 UCs acima cobrem **o painel de histórico e o teclado**. O charter promete muito mais. Esta
+> tabela é o retrato honesto de 2026-08-17: **o que está implementado** (medido por varredura em
+> `Pages/Jana/**`) × **o que tem contrato** (UC + teste que o cite).
+>
+> A coluna que importa é a terceira. Implementado sem contrato significa: funciona hoje, e nada
+> impede de sumir amanhã sem ninguém notar.
+
+### §Goals — features
+
+| Goal do charter | implementado | tem UC + teste |
+|---|---|---|
+| Layout 2-col: histórico + thread | ✅ | ✅ UC-01/02/03 |
+| Filtro `Todas`/`Arquivadas` (2 abas, v3) | ✅ | ✅ UC-01 |
+| Histórico recolhível (`⌘⇧H` · `Ctrl+⇧H` · chevron) | ✅ | ✅ UC-03 |
+| Sobreposição ≤1100px com scrim clicável | 🟡 overlay sim, **scrim não** | ❌ |
+| `aria-live` anuncia troca de conversa | ✅ | ✅ UC-04 |
+| `J`/`K` navega conversas | ✅ | ✅ UC-02 |
+| Bubbles por papel (`user` direita / `assistant` esquerda) | ✅ | ❌ |
+| Bloco `tool_use` (chip da ferramenta acionada) | ✅ (6 refs) | ❌ |
+| Bloco `data_table` (tabela inline read-only) | ✅ (2 refs) | ❌ |
+| Bloco `action_card` (confirmação de ação) | ✅ (3 refs) | ❌ |
+| Bloco `markdown` (fallback) | ✅ | ❌ |
+| Composer multi-line com `⌘+Enter`/`Ctrl+Enter` | ✅ | ❌ |
+| "Jana está pensando…" durante stream | ✅ (5 refs) | ❌ |
+| Streaming token-a-token | ✅ (18 refs) | ❌ |
+| `/` foca o composer | ✅ | ❌ |
+| Persistência `localStorage` prefix `oimpresso.jana.*` | ✅ (7 refs) | 🟡 só o recolhido, via UC-03 |
+| Multi-tenant Tier 0 (`business_id` em thread/mensagem/ação) | ✅ | ❌ |
+| Aviso de PII no composer (CPF/CNPJ/cartão) | ✅ (`PiiRedactor`, 4 refs) | ❌ |
+
+**16 Goals implementados · 5 com contrato · 11 sem.**
+
+### §Automation Anti-hooks — o que a tela NUNCA dispara
+
+O charter diz literalmente *"Vira Pest GUARD"*. **Nenhum dos oito virou.** Medido: o módulo tem
+apenas `BriefDiarioChatTriggerTest.php` e `Chat/ChatTokensTurnoTest.php` — nenhum guarda estes.
+
+| Anti-hook | Pest GUARD |
+|---|---|
+| ❌ Não dispara emails ao abrir | ausente |
+| ❌ Não dispara SMS | ausente |
+| ❌ Não escreve no banco no render inicial | ausente |
+| ❌ Não chama Brain B no render | ausente |
+| ❌ Não acessa thread de outro `business_id` (**Tier 0**) | ausente |
+| ❌ Não persiste credencial Brain B no client | ausente |
+| ❌ Não roda tool sem auth check do registry | ausente |
+| ❌ Não loga PII em plain text | ausente |
+
+### O que este inventário quer dizer
+
+O charter tem uma seção chamada **"Métricas vivas (Pest GUARD — a escrever em F1.5)"**. O parêntese
+é literal e continua verdadeiro: **as guardas nunca foram escritas**.
+
+Dois desses anti-hooks não são estética — são **Tier 0**: o de `business_id` (isolamento
+multi-tenant, [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)) e o de
+PII em plain text (LGPD). Eles estão implementados, e a ausência de guarda significa que uma
+refatoração futura pode removê-los com o CI verde.
+
+**Nenhum desses UCs foi escrito aqui de propósito.** UC declarado sem teste que o cite reprova o
+G-2 ([ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md)), e
+prometer teste inexistente é pior que a ausência declarada. O caminho é escrever o Pest **primeiro**
+e o UC junto — e os dois Tier 0 são a fila de prioridade óbvia, porque não dependem do desbloqueio
+do visreg: são teste de servidor, não de tela.
+
+---
+
 ## Ainda sem UC — prosa honesta, porque UC sem teste quebra o G-2
 
 > O `Chat.tsx` é Page **fora** do manifesto `tests/Browser/visreg-screens.json`, então qualquer
