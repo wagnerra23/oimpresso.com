@@ -5,8 +5,28 @@ irmaos: Create.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-07-30"
+last_run: "2026-08-17"
 ---
+
+<!-- REVALIDAÇÃO 2026-08-17 (G-6: o .tsx mudou depois do last_run anterior).
+     A mudança na tela foi UMA linha — o `placeholder` do campo de valor, que exibia
+     ao usuário a string de redação `R$ [redacted Tier 0]` (resíduo do filter-repo),
+     voltando a `R$ 0,00`. Como cada UC foi revalidado:
+
+     UC-S02 · tests/Feature/Calculo/CalculoValorSellsTest.php — RODADO no CT 100
+              (não local, `proibicoes.md` §Ambiente): 14 passed, 1 skipped,
+              20 assertions. O teste do caso aparece por nome no output:
+              `calculate invoice total desconto percentual nao infla` ✓.
+
+     UC-S01 · e2e/sells-index.spec.ts + e2e/sells-venda-balcao.spec.ts — MEDIDO que
+              não dependem do elemento alterado: `sells-index` tem 0 referências a
+              placeholder; as 2 de `sells-venda-balcao` são
+              `getByPlaceholder(/Buscar por nome, SKU/i)`, a caixa de BUSCA, não o
+              campo de valor. Mudar o placeholder do valor não os alcança.
+
+     O que este bump NÃO afirma: que a suíte inteira de Sells foi re-rodada. Ele
+     afirma o que foi medido acima, nos dois UCs deste arquivo. -->
+
 
 # Casos de Uso & Aceite — Venda balcão (Sells/Create)
 
