@@ -26,7 +26,7 @@ uses(Tests\TestCase::class);
  * artefato, e o `contrato-de-tela` que a vigia é ADVISORY — não bloqueia merge.
  * Este teste dá a ela um dente que morde na lane que roda de verdade.
  *
- * UC-PAINEL-08 (skeleton) ganhou caso quando o conserto nasceu — nunca antes.
+ * UC-COPI-PAINEL-08 (skeleton) ganhou caso quando o conserto nasceu — nunca antes.
  *
  * Tenant: `seededTenant()` (trait WithSeededTenant) — nunca resolução crua.
  * Skip acionável se o seed não rodou (UPos não migra em SQLite; a lane real é
@@ -80,8 +80,8 @@ function painelTsx(): string
 
 // ── RUNTIME ──────────────────────────────────────────────────────────────────
 
-/** UC-PAINEL-01 — rota abre o Painel (SPEC US-COPI-148: `/ia` é a rota viva). */
-it('UC-PAINEL-01: GET /ia retorna 200 com Inertia component Jana/Index', function () {
+/** UC-COPI-PAINEL-01 — rota abre o Painel (SPEC US-COPI-148: `/ia` é a rota viva). */
+it('UC-COPI-PAINEL-01: GET /ia retorna 200 com Inertia component Jana/Index', function () {
     painelBootstrap();
 
     $this->get('/ia')
@@ -90,12 +90,12 @@ it('UC-PAINEL-01: GET /ia retorna 200 com Inertia component Jana/Index', functio
 });
 
 /**
- * UC-PAINEL-02 — contrato de props.
+ * UC-COPI-PAINEL-02 — contrato de props.
  * As 4 eager chegam no first render; `coworkAggregates` NÃO — ela é deferida
  * (charter §Goals + HOTFIX [W] 2026-05-25: `metas` não pode ser deferida porque
  * a Page lê `metas.length` direto).
  */
-it('UC-PAINEL-02: as 4 props eager chegam e coworkAggregates NÃO vem no first render', function () {
+it('UC-COPI-PAINEL-02: as 4 props eager chegam e coworkAggregates NÃO vem no first render', function () {
     painelBootstrap();
 
     $this->get('/ia')->assertInertia(fn ($page) => $page
@@ -108,8 +108,8 @@ it('UC-PAINEL-02: as 4 props eager chegam e coworkAggregates NÃO vem no first r
     );
 });
 
-/** UC-PAINEL-03 — Tier 0: escopo da sessão, nunca de input (ADR 0093). */
-it('UC-PAINEL-03: janaContext.businessId vem da sessão e ignora ?business_id (Tier 0)', function () {
+/** UC-COPI-PAINEL-03 — Tier 0: escopo da sessão, nunca de input (ADR 0093). */
+it('UC-COPI-PAINEL-03: janaContext.businessId vem da sessão e ignora ?business_id (Tier 0)', function () {
     $user = painelBootstrap();
 
     $this->get('/ia?business_id=999')->assertInertia(fn ($page) => $page
@@ -118,11 +118,11 @@ it('UC-PAINEL-03: janaContext.businessId vem da sessão e ignora ?business_id (T
 });
 
 /**
- * UC-PAINEL-07 — farol é do servidor.
+ * UC-COPI-PAINEL-04 — farol é do servidor.
  * Duas metades: o payload ENTREGA farol, e a regra NÃO voltou pro frontend.
  * (`FarolServerSideTest` cobre as fronteiras −5%/−15%; aqui é o contrato da tela.)
  */
-it('UC-PAINEL-07: cada meta traz farol do servidor e o Index.tsx não recalcula', function () {
+it('UC-COPI-PAINEL-04: cada meta traz farol do servidor e o Index.tsx não recalcula', function () {
     painelBootstrap();
 
     $this->get('/ia')->assertInertia(function ($page) {
@@ -142,8 +142,8 @@ it('UC-PAINEL-07: cada meta traz farol do servidor e o Index.tsx não recalcula'
 
 // ── ARQUIVO (copy e vocabulário) ─────────────────────────────────────────────
 
-/** UC-PAINEL-04 — o empty state declara ausência (estado real de 100% dos tenants). */
-it('UC-PAINEL-04: a copy do empty state do contrato está na tela', function () {
+/** UC-COPI-PAINEL-05 — o empty state declara ausência (estado real de 100% dos tenants). */
+it('UC-COPI-PAINEL-05: a copy do empty state do contrato está na tela', function () {
     $tsx = painelTsx();
 
     foreach (painelCopyDoContrato('painel-metas-vazio') as $copy) {
@@ -153,8 +153,8 @@ it('UC-PAINEL-04: a copy do empty state do contrato está na tela', function () 
     expect($tsx)->toContain('data-contract="painel-metas-vazio"');
 });
 
-/** UC-PAINEL-05 — meta sem apuração não vira zero. */
-it('UC-PAINEL-05: meta sem apuração declara "Aguardando apuração…" em vez de zero', function () {
+/** UC-COPI-PAINEL-06 — meta sem apuração não vira zero. */
+it('UC-COPI-PAINEL-06: meta sem apuração declara "Aguardando apuração…" em vez de zero', function () {
     $tsx = painelTsx();
 
     foreach (painelCopyDoContrato('painel-meta-apurando') as $copy) {
@@ -164,8 +164,8 @@ it('UC-PAINEL-05: meta sem apuração declara "Aguardando apuração…" em vez 
     expect($tsx)->toContain('data-contract="painel-meta-apurando"');
 });
 
-/** UC-PAINEL-06 — sparkline sem série declara ausência. */
-it('UC-PAINEL-06: sparkline sem série declara "Sem histórico" em vez de desenhar zero', function () {
+/** UC-COPI-PAINEL-07 — sparkline sem série declara ausência. */
+it('UC-COPI-PAINEL-07: sparkline sem série declara "Sem histórico" em vez de desenhar zero', function () {
     $tsx = painelTsx();
 
     foreach (painelCopyDoContrato('painel-meta-sem-historico') as $copy) {
@@ -176,7 +176,7 @@ it('UC-PAINEL-06: sparkline sem série declara "Sem histórico" em vez de desenh
 });
 
 /**
- * UC-PAINEL-08 — enquanto o cockpit não chega, a tela NÃO mostra zero.
+ * UC-COPI-PAINEL-08 — enquanto o cockpit não chega, a tela NÃO mostra zero.
  *
  * O `?? 0` do `JanaCockpit` FICA (é ele que impede o TypeError e mantém válida a
  * entrada na `DEFER_GUARD_ONLY_ALLOWLIST`); o que este caso trava é o RENDER:
@@ -188,7 +188,7 @@ it('UC-PAINEL-06: sparkline sem série declara "Sem histórico" em vez de desenh
  * `<KpiCard>` direto, derruba o caso. O par visual (screenshot 1280/1440) é o
  * portão F1.5 e vive fora daqui.
  */
-it('UC-PAINEL-08: o cockpit declara carregando em vez de pintar zero', function () {
+it('UC-COPI-PAINEL-08: o cockpit declara carregando em vez de pintar zero', function () {
     $cockpit = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaCockpit.tsx'));
 
     // 1. o sinal existe e é `undefined` (ausência), não falsy — `?? 0` já virou 0
@@ -215,8 +215,8 @@ it('UC-PAINEL-08: o cockpit declara carregando em vez de pintar zero', function 
         ->not->toMatch('/carregandoCockpit\s*\?\s*\(\s*<KpiCardSkeleton label="Ticket médio"/u');
 });
 
-/** UC-PAINEL-09 — as 5 âncoras existem e a ordem declarada é subsequência da ordem de arquivo. */
-it('UC-PAINEL-09: as 5 âncoras data-contract existem e a ordem do contrato é respeitada', function () {
+/** UC-COPI-PAINEL-09 — as 5 âncoras existem e a ordem declarada é subsequência da ordem de arquivo. */
+it('UC-COPI-PAINEL-09: as 5 âncoras data-contract existem e a ordem do contrato é respeitada', function () {
     $j   = json_decode(file_get_contents(base_path(PAINEL_CONTRATO)), true);
     $tsx = painelTsx();
 
@@ -236,13 +236,13 @@ it('UC-PAINEL-09: as 5 âncoras data-contract existem e a ordem do contrato é r
 });
 
 /**
- * UC-PAINEL-10 — a análise "Frota" não existe NESTA tela.
+ * UC-COPI-PAINEL-10 — a análise "Frota" não existe NESTA tela.
  * O `dominio-gate` não varre paths da Jana (seus `forbidden_ui_paths` são só
  * `Pages/OficinaAuto` + as 2 pastas de DB dele) — sem este caso, nada defende.
  * Escopo: código de UI. Prosa de charter e comentário que DOCUMENTAM a decisão
  * ficam de fora de propósito — proibir falar da regra proíbe registrar a regra.
  */
-it('UC-PAINEL-10: nenhum termo de locação/frota em código de UI da Jana', function () {
+it('UC-COPI-PAINEL-10: nenhum termo de locação/frota em código de UI da Jana', function () {
     $arquivos = array_merge(
         glob(base_path('resources/js/Pages/Jana/*.tsx')) ?: [],
         glob(base_path('resources/js/Pages/Jana/**/*.tsx')) ?: [],
