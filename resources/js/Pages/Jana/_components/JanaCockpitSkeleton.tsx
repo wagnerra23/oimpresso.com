@@ -1,3 +1,5 @@
+import { Inline } from '@/Components/layout/inline';
+import { Stack } from '@/Components/layout/stack';
 import { Skeleton } from '@/Components/ui/skeleton';
 
 /**
@@ -30,15 +32,16 @@ import { Skeleton } from '@/Components/ui/skeleton';
  *  usado por vários módulos — blast radius que este defeito não justifica. */
 export function KpiCardSkeleton({ label }: { label: string }) {
   return (
-    <div
-      className="flex flex-col gap-2 rounded-lg border border-border bg-card p-4"
+    <Stack
+      gap={2}
+      className="rounded-lg border border-border bg-card p-4"
       aria-busy="true"
       aria-label={`${label} — carregando`}
     >
       <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</span>
       <Skeleton className="h-7 w-24" />
       <Skeleton className="h-3 w-16" />
-    </div>
+    </Stack>
   );
 }
 
@@ -53,10 +56,10 @@ export function SparklineSkeleton() {
   return (
     <div aria-busy="true" aria-label="Faturamento — carregando série">
       <Skeleton className="h-10 w-full" />
-      <div className="mt-1 flex justify-between">
+      <Inline gap={2} justify="between" className="mt-1">
         <Skeleton className="h-2 w-8" />
         <Skeleton className="h-2 w-8" />
-      </div>
+      </Inline>
     </div>
   );
 }

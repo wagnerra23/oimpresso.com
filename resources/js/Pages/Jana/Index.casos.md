@@ -100,7 +100,7 @@ retorna código de UI.
 
 ---
 
-## UC-PAINEL-08 — como foi consertado (2026-08-17)
+### Nota do conserto do UC-PAINEL-08 (2026-08-17)
 
 `_components/JanaCockpitSkeleton.tsx` (novo, ancorado em `jana-merge.jsx` §`JmPainelSkeleton`)
 + `carregandoCockpit = coworkAggregates === undefined` no `JanaCockpit`. Os `?? 0` **ficaram** —
