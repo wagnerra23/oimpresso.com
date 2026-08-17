@@ -17,7 +17,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 7
+charter_version: 8
 permissao: copiloto.access
 ---
 
@@ -54,6 +54,13 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   _Recibo 2026-08-11: no arquivo versionado (`SYNC` com o vivo, sha256 normalizado
   `057bd8ae081bfd1c…`) os símbolos caem em `:640` e `:887` — as duas refs que a v3 citava
   **conferem**. Ficam como símbolo, não linha, porque o número é que é frágil, não a citação._
+
+- **Configurar (v8 — 2026-08-17):** a ação "Configurar" do `JanaAreaHeader` abre
+  `_components/JanaConfigDrawer.tsx` — quais das 4 análises aparecem no painel, persistido em
+  `localStorage['oimpresso.jana.cfg']` (prefixo `oimpresso.jana.*`, canon do `Chat.charter.md`).
+  Âncora: `jana-merge.jsx` §`JmConfigDrawer` — âncora de SÍMBOLO
+  (`grep -n "JmConfigDrawer" prototipo-ui/cowork/jana-merge.jsx`).
+  O drawer é **deliberadamente menor que a âncora**: ver §Anti-hooks abaixo.
 
 ## Non-Goals
 
@@ -97,6 +104,21 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   `::`. Mexeu no aggregator, mexe no `JANA_DRILL_FONTES` no mesmo PR.
   _Guard: `prototipo-ui/ancora.mjs` acusa símbolo de backend citado na âncora que não exista no
   repo — e desde 2026-08-13 enxerga também o formato `Classe::metodo` (antes ficava cego nele)._
+- ⛔ **Oferecer no drawer de configuração um controle que o servidor não honra.** É a mesma família
+  do anti-hook acima, no eixo da CONFIGURAÇÃO em vez do da FONTE. Medido em 2026-08-17: o
+  `JmConfigDrawer` da âncora oferece brief diário on/off + hora (o brief é gerado server-side por
+  `BriefingAgent` — nenhum cron lê o `localStorage` de um navegador), áudio/TTS (não existe; o
+  próprio protótipo diz *"entra na M2"*), retenção *"ela esquece sozinha"*
+  (`jana:retention-purge` foi **descartado por [W]** — *"num ERP não se apaga PII"*) e 6 toggles de
+  análise quando a tela renderiza **4** cards. Toggle que não muda nada é a promessa do rodapé do
+  brief com outra roupa — e foi por isso que o contrato manteve os botões "(em breve)" fora dele.
+  Entra no drawer só o que é verdade **e** de fato local (quais análises aparecem); preferência que
+  vale pra empresa toda aponta pro dono server-side que já existe (`PATCH /ia/alertas/config` →
+  `business.essentials_settings.alertas`, per-business), em vez de ganhar um segundo dono.
+  _Guard: `UC-COPI-PAINEL-10` conta os `<Switch` do drawer (2: análises + HITL travado) e as
+  entradas de `JANA_ANALISES` (4) — toggle novo derruba o caso. A asserção é estrutural de
+  propósito: buscar a palavra "Frota" proibiria o próprio comentário que registra a decisão
+  (§5 2026-07-26)._
 - ⛔ **Prometer no botão do drawer o que a rota não entrega.** `ChatController@novaConversa` não
   aceita pergunta inicial e `Chat.tsx` não lê query param (medido 2026-08-07) — por isso o CTA diz
   "Conversar com a Jana", não "Perguntar sobre isso". Semear a pergunta é PR próprio (backend + Page).
@@ -106,6 +128,24 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 `brief-first` (Tier A) · `multi-tenant-patterns` (Tier A) · `inertia-defer-default` (Tier B) · `mwart-process` (Tier A)
 
 ## Charter version log
+
+- v8 (2026-08-17) — **O botão "Configurar" deixou de ser promessa** (entrega 4 da onda de
+  aproximação, região R8/R10 do `Index-visual-comparison.md`). Abre
+  `_components/JanaConfigDrawer.tsx`, com o estado em `_components/useJanaConfig.ts` (hook separado
+  porque arquivo de componente não exporta não-componente — `react-refresh`; a regressão apareceu no
+  `lint:baseline:check` e a saída certa foi separar, não regravar o baseline).
+
+  **O drawer é menor que a âncora, e isso é o conteúdo da decisão** — as 4 promessas do
+  `JmConfigDrawer` que o servidor não honra ficaram de fora, com a medição registrada no anti-hook
+  novo acima. Sobrou o que é verdade e é local: quais das 4 análises aparecem no painel, persistido
+  sob o prefixo canon `oimpresso.jana.*`.
+
+  **Uma correção de fato, no mesmo PR (regra de precedência):** este charter e o `casos.md` diziam
+  que os botões "(em breve)" eram **dois**. Agora é **um** (Exportar) — a pergunta do `_pendente_w`
+  segue idêntica para o que sobrou, e a de Configurar foi respondida entregando.
+
+  _O que NÃO mudou: o par visual segue pendente. `Jana/Index` está no manifesto do visreg, então o
+  PR gera diff de pixel e exige aprovação [W] (gate F1.5) — e o golden PT-04 continua `draft`._
 
 - v7 (2026-08-17) — **O Non-Goal da análise "Frota" foi REMOVIDO por decisão [W]**, textual:
   *"frota e caçambas locações remova do charter"* + *"eu não vejo problema em fazer igual. isso vai

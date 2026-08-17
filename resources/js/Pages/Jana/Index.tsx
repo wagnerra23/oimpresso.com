@@ -7,7 +7,7 @@
 //   status: implementada
 //   module: Copiloto
 
-import React from 'react'
+import React, { useState } from 'react'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { Link } from '@inertiajs/react'
 import { Button } from '@/Components/ui/button'
@@ -17,6 +17,8 @@ import { MessageSquare, TrendingUp, TrendingDown, Minus, ExternalLink, Sparkles,
 import FabJana from './components/FabJana'
 import { JanaAreaHeader } from './components/JanaAreaHeader'
 import JanaCockpit, { type JanaCockpitProps } from './_components/JanaCockpit'
+import JanaConfigDrawer from './_components/JanaConfigDrawer'
+import { useJanaConfig } from './_components/useJanaConfig'
 
 interface Apuracao {
   data_ref: string
@@ -266,6 +268,11 @@ function ProximaAcaoCard() {
 }
 
 export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkAggregates, janaContext }: Props) {
+  // Config da tela. Mora AQUI, e não no drawer, porque tem dois consumidores:
+  // o drawer escreve e o `JanaCockpit` lê pra decidir quais análises renderiza.
+  const { config, alternarAnalise } = useJanaConfig()
+  const [configAberto, setConfigAberto] = useState(false)
+
   return (
     <>
       {/* JanaAreaHeader — barra ÚNICA da área Jana (PageHeader canon).
@@ -279,7 +286,21 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
         businessId={janaContext.businessId ?? undefined}
         actions={
           <>
-            <Button variant="outline" size="sm" title="Configurar Brain B Jana (em breve)">
+            {/* Até 2026-08-17 este botão era clicável, sem rota e sem `disabled`,
+                anunciando Brain B como "em breve" — promessa que a tela não
+                cumpria, e por isso o contrato manteve os dois botões FORA dele
+                ("pinar uma promessa é congelá-la"). Agora abre o drawer.
+                Âncora: `jana-merge.jsx` §JmConfigDrawer.
+                (A frase antiga não é repetida aqui de propósito: o UC-10 asserta
+                a ausência dela, e citá-la no comentário criaria o falso-positivo
+                que o §5 2026-07-26 cataloga.) */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setConfigAberto(true)}
+              aria-haspopup="dialog"
+              aria-expanded={configAberto}
+            >
               <Settings className="h-3.5 w-3.5" /> Configurar
             </Button>
             <Button variant="outline" size="sm" title="Exportar relatório (em breve)">
@@ -302,6 +323,7 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
           insightsAggregates={insightsAggregates}
           coworkAggregates={coworkAggregates}
           userName={janaContext.userName ?? undefined}
+          analisesVisiveis={config.analises}
         />
       </div>
 
@@ -379,6 +401,13 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
           </div>
         )}
       </div>
+
+      <JanaConfigDrawer
+        open={configAberto}
+        onClose={() => setConfigAberto(false)}
+        config={config}
+        onAlternarAnalise={alternarAnalise}
+      />
 
       <FabJana contextRoute="/ia/dashboard" />
     </>
