@@ -500,6 +500,27 @@ const grepAmplo = (pattern) => {
 // auto-silenciamento já catalogado — o mecanismo casando com o próprio texto.
 const SELF_REL = 'scripts/governance/maquinas-inventario.mjs';
 
+// ── eixo RISCO da família `scripts` (gate D2 da Trilha D) ────────────────────
+// Só "escreve em disco", medido por CHAMADA DE API — não por prosa. O
+// `semComentario` é obrigatório e não é zelo: a nota 15 linhas acima já conta
+// que a 1ª versão deste gerador se via como invocador dos scripts que ela CITA
+// em comentário. Caí na mesma classe por outro eixo em 2026-08-17: o detector
+// casou `git commit` escrito na MINHA prosa explicando o eixo `Escreve?` dos
+// agents, 8 linhas abaixo.
+//
+// OS 2 EIXOS QUE MEDI E REJEITEI (com o número, pra ninguém tentar de novo —
+// corpus real, 310 scripts .mjs/.js/.cjs, delta com-comentário × sem-comentário):
+//   `git commit|push|checkout|reset|mv|rm|tag` .... 12 hits, 5 só em prosa = 41,7% FP  ❌
+//   `--write|--apply|--fix|--update-baseline` ..... 68 hits, 4 só em prosa =  5,9% FP  ❌
+//     (e conceitualmente errado: flag é CAPACIDADE, não escrita — quem escreve
+//      de fato já cai no eixo fs)
+//   `writeFileSync|appendFileSync|…` (o adotado) .. 160 hits, 1 só em prosa = 0,6% FP  ✅
+const semComentario = (t) =>
+  t.replace(/\/\*[\s\S]*?\*\//g, '').split('\n').map((l) => l.replace(/\/\/.*$/, '')).join('\n');
+const ESCREVE_DISCO_RE =
+  /writeFileSync|appendFileSync|createWriteStream|rmSync|unlinkSync|mkdirSync|renameSync|copyFileSync/;
+export const escreveEmDisco = (txt) => ESCREVE_DISCO_RE.test(semComentario(txt));
+
 const invocadorDe = (rel, file) => {
   const testFile = file.replace(/\.(mjs|js|cjs)$/, '.test.$1');
   const testRel = rel.replace(/\.(mjs|js|cjs)$/, '.test.$1');
@@ -528,12 +549,12 @@ const dumpScripts = (dir, titulo) => {
   const files = lsDir(dir).filter((f) => /\.(mjs|js|cjs)$/.test(f) && !f.includes('.test.'));
   P(`### ${titulo} — ${files.length}`);
   P('');
-  P('| Script | Invocador | Evidência | Documento | Descrição (cabeçalho) |');
-  P('|---|---|---|---|---|');
+  P('| Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |');
+  P('|---|---|---|---|---|---|');
   for (const f of files.sort()) {
     const rel = `${dir}/${f}`;
     const txt = readFileSync(join(ROOT, rel), 'utf8');
-    P(`| \`${f}\` | ${cell(invocadorDe(rel, f))} | ${cell(evidenciaDe(rel))} | ${documentoDe([f, nuDe(f)], [rel])} | ${cell(trunc(firstDescComment(txt), 160))} |`);
+    P(`| \`${f}\` | ${cell(invocadorDe(rel, f))} | ${escreveEmDisco(txt) ? '🔴 disco' : '🟢 só lê'} | ${cell(evidenciaDe(rel))} | ${documentoDe([f, nuDe(f)], [rel])} | ${cell(trunc(firstDescComment(txt), 160))} |`);
   }
   P('');
 };
@@ -544,6 +565,20 @@ P('> `ci` (workflow) · `npm` (package.json) · `agente` (`.claude/**`) · `scri
 P('> `php` (comando artisan/serviço). `—` = nenhum invocador encontrado; `— (só \\`.test\\`)` = o');
 P('> CI roda o **teste** dele, mas o script em si nunca é apontado para o repo; `?` = a varredura');
 P('> falhou (não medido — nunca leia como ausência).');
+P('>');
+P('> **Coluna `Escreve?` — DERIVADA** (eixo *risco* · Trilha D · D2). `🔴 disco` = o script chama');
+P('> API de escrita em arquivo (`writeFileSync`, `rmSync`, `mkdirSync`…); `🟢 só lê` = reporta em');
+P('> stdout e não toca o disco. Medido **com os comentários removidos** — obrigatório, não zelo: a');
+P('> nota do `SELF_REL` abaixo conta que a 1ª versão deste gerador se via como invocador dos');
+P('> scripts que ela CITA em comentário, e em 2026-08-17 o mesmo aconteceu com este eixo (o');
+P('> detector casou `git commit` escrito na prosa que explica a coluna `Escreve?` dos agents).');
+P('>');
+P('> 2 eixos MEDIDOS E REJEITADOS, com o número (pra não se tentar de novo). Corpus da medição de');
+P('> FP: `scripts/**` inteiro, **310** arquivos `.mjs/.js/.cjs` — maior que as linhas desta tabela,');
+P('> que exclui `.test.` e cobre só os diretórios listados. `git commit|push|checkout` deu **41,7%');
+P('> de FP** (12 hits, 5 só em prosa) · `--write|--apply` deu **5,9%** (68 hits, 4 em prosa) e é');
+P('> conceitualmente errado além disso, porque flag é *capacidade*, não escrita · o eixo adotado');
+P('> (`fs`) deu **0,6%** (160 hits, 1 em prosa).');
 P('>');
 P('> ⚠️ `—` **não** significa "apagar": one-shot (codemod, probe, PoC de migração) é órfão **por');
 P('> design**. O que é dívida é **medidor** órfão — a máquina existe, o teste prova que ela morde,');
