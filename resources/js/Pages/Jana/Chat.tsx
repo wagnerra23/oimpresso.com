@@ -8,7 +8,7 @@
 //   module: Copiloto
 
 import { Head, router } from '@inertiajs/react';
-import { useEffect, useMemo, useRef, useState, type ComponentProps } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Bell, ChevronLeft, Cog, Inbox, List, Pin, Plus, Search, SlidersHorizontal,
 } from 'lucide-react';
@@ -86,18 +86,10 @@ interface Props {
 
 // ── helpers ────────────────────────────────────────────────────────────
 
-// Pills soft do DS. Diferente das 5 de `Memoria.tsx`, estas TINHAM par `dark:` — não
-// quebravam no escuro; o defeito era só estarem fora do token (escala crua duplicada à
-// mão em 2 temas). A tradução é 1:1 na semântica e no tom: emerald→success,
-// amber→warning, rose→danger, com o token carregando os dois temas.
-// `ComponentProps` importado nomeado: este arquivo não traz `React` como namespace
-// (só named imports de 'react'), então `React.ComponentProps` não resolveria aqui.
-type BadgeVariant = NonNullable<ComponentProps<typeof Badge>['variant']>;
-
-const DIFICULDADE_CONFIG: Record<string, { label: string; variant: BadgeVariant }> = {
-  facil:     { label: 'Fácil',     variant: 'success' },
-  realista:  { label: 'Realista',  variant: 'warning' },
-  ambicioso: { label: 'Ambicioso', variant: 'danger'  },
+const DIFICULDADE_CONFIG: Record<string, { label: string; className: string }> = {
+  facil:     { label: 'Fácil',     className: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300' },
+  realista:  { label: 'Realista',  className: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' },
+  ambicioso: { label: 'Ambicioso', className: 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300' },
 };
 
 function formatCurrency(value: number) {
@@ -198,10 +190,9 @@ function PropostaCard({ sugestao }: { sugestao: Sugestao }) {
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="text-base leading-tight">{p.nome}</CardTitle>
-          {/* Era um <span> com as classes de pill escritas à mão (rounded-full, px, text-xs,
-              font-medium) — o mesmo desenho que o <Badge> já entrega, ao lado de dois <Badge>
-              reais na linha de baixo. Vira o componente. */}
-          <Badge variant={dif.variant}>{dif.label}</Badge>
+          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${dif.className}`}>
+            {dif.label}
+          </span>
         </div>
         <div className="flex flex-wrap gap-1 pt-1">
           <Badge variant="outline">{p.metrica}</Badge>
