@@ -130,12 +130,23 @@ it("UC-COPI-PAINEL-04 — 'cinza' cobre os quatro casos de SEM BASE pra julgar, 
 it('UC-COPI-PAINEL-04 — o frontend não calcula mais farol: a regra saiu do Index.tsx', function () {
     $src = (string) file_get_contents(base_path('resources/js/Pages/Jana/Index.tsx'));
 
-    // A função morreu; o que resta é o LEITOR do campo do servidor.
-    expect($src)->not->toContain('function calcularFarol');
-    expect($src)->toContain('function farolDaMeta');
+    // 2026-08-17: `farolDaMeta` MUDOU DE ARQUIVO. Ele foi pro
+    // `_components/metaFormat.ts` quando o `JanaMetaDrawer` nasceu e passou a
+    // precisar do mesmo leitor — arquivo de componente não exporta
+    // não-componente (`react-refresh`). O caso não perde nada com isso: o que
+    // ele prova é que o LEITOR existe e o CALCULADOR não, e as duas metades
+    // seguem checadas, só que no arquivo onde a função de fato mora.
+    $fmt = (string) file_get_contents(base_path('resources/js/Pages/Jana/_components/metaFormat.ts'));
 
-    // Controle negativo: os limites não podem reaparecer no frontend sob outro
-    // nome. Se alguém recolocar a regra, estes dois pegam.
-    expect($src)->not->toContain('desvioPct');
-    expect($src)->not->toContain('valor_alvo * progresso');
+    // A função morreu; o que resta é o LEITOR do campo do servidor.
+    expect($fmt)->toContain('function farolDaMeta');
+
+    // Controle negativo nos DOIS arquivos — mover a regra de lugar não pode ser
+    // caminho pra ela voltar. Se alguém recolocar o cálculo, sob este nome ou
+    // sob os limites antigos, um destes pega.
+    foreach ([$src, $fmt] as $conteudo) {
+        expect($conteudo)->not->toContain('function calcularFarol');
+        expect($conteudo)->not->toContain('desvioPct');
+        expect($conteudo)->not->toContain('valor_alvo * progresso');
+    }
 });

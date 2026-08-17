@@ -13,42 +13,26 @@ import { Link } from '@inertiajs/react'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
-import { MessageSquare, TrendingUp, TrendingDown, Minus, ExternalLink, Sparkles, Brain, Clock, Zap, Settings, Download } from 'lucide-react'
+import { MessageSquare, TrendingUp, TrendingDown, Minus, Plus, Sparkles, Brain, Clock, Zap, Settings, Download } from 'lucide-react'
 import FabJana from './components/FabJana'
 import { JanaAreaHeader } from './components/JanaAreaHeader'
 import JanaCockpit, { type JanaCockpitProps } from './_components/JanaCockpit'
 import JanaConfigDrawer from './_components/JanaConfigDrawer'
+import JanaMetaDrawer from './_components/JanaMetaDrawer'
+import { Inline } from '@/Components/layout'
 import { useJanaConfig } from './_components/useJanaConfig'
-
-interface Apuracao {
-  data_ref: string
-  valor_realizado: number
-}
-
-interface Periodo {
-  data_ini: string
-  data_fim: string
-  valor_alvo: number
-  trajetoria: string
-}
-
-interface Meta {
-  id: number
-  slug: string
-  nome: string
-  unidade: string
-  tipo_agregacao: string
-  periodo_atual: Periodo | null
-  ultima_apuracao: Apuracao | null
-  apuracoes_recentes: Apuracao[]
-  /**
-   * Veredito do farol, calculado pelo SERVIDOR (`ApuracaoService::farol`).
-   * Opcional de propósito: durante a janela de deploy o payload antigo ainda
-   * chega sem o campo, e `farolDaMeta()` degrada pra 'cinza' — que já é o
-   * rótulo de "não dá pra dizer" na própria regra.
-   */
-  farol?: 'verde' | 'amarelo' | 'vermelho' | 'cinza'
-}
+// Tipos e formatadores da seção Metas moram em `_components/metaFormat.ts` desde
+// a onda de aproximação da âncora (2026-08-17): o drawer novo precisa dos mesmos,
+// e arquivo de componente não pode exportar não-componente (`react-refresh`).
+import {
+  FAROL_CLASSES,
+  farolDaMeta,
+  formatValue,
+  progressoDaMeta,
+  rotuloPeriodo,
+  type Apuracao,
+  type Meta,
+} from './_components/metaFormat'
 
 interface Props {
   metas: Meta[]
@@ -63,39 +47,12 @@ interface Props {
   }
 }
 
-// Onda de fidelidade (2026-08-07): o farol NÃO é mais calculado aqui.
+// Onda de fidelidade (2026-08-07): o farol NÃO é calculado aqui.
 //
 // O `Index.charter.md` proibia isto em dois lugares — §Goals ("frontend só
 // consome") e §Anti-hooks ("⛔ Cálculo de farol no frontend") — e a regra vivia
-// no frontend mesmo assim. A fonte autoritativa passou a ser
-// `ApuracaoService::farol()`, que chega pronto no payload.
-//
-// Fallback 'cinza' quando o backend não manda: 'cinza' já é o rótulo de "não dá
-// pra dizer" na própria regra, então um payload antigo (deploy a meio) degrada
-// pro estado neutro em vez de inventar um veredito.
-type Farol = 'verde' | 'amarelo' | 'vermelho' | 'cinza'
-
-function farolDaMeta(meta: Meta): Farol {
-  return meta.farol ?? 'cinza'
-}
-
-// Tokens semânticos, não escala crua: mesma semântica (bom/atenção/ruim), com o
-// hue do sistema — e o dark passa a herdar via token em vez de ficar preso no
-// tom claro da paleta Tailwind.
-const FAROL_CLASSES: Record<string, string> = {
-  verde:    'bg-success',
-  amarelo:  'bg-warning',
-  vermelho: 'bg-destructive',
-  cinza:    'bg-muted-foreground/30',
-}
-
-function formatValue(value: number, unidade: string) {
-  if (unidade === 'R$') {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(value)
-  }
-  if (unidade === '%') return `${value.toFixed(1)}%`
-  return new Intl.NumberFormat('pt-BR').format(value)
-}
+// no frontend mesmo assim. A fonte autoritativa é `ApuracaoService::farol()`,
+// que chega pronto no payload; `farolDaMeta` (em `metaFormat.ts`) só lê.
 
 function Sparkline({ dados }: { dados: Apuracao[] }) {
   if (dados.length < 2) {
@@ -137,54 +94,82 @@ function Sparkline({ dados }: { dados: Apuracao[] }) {
   )
 }
 
-function MetaCard({ meta }: { meta: Meta }) {
+// O card inteiro abre o drawer, e por isso é um `<button>` nativo em vez de
+// `div[role=button]`: Enter/Espaço, foco e leitura de tela vêm de graça (mesma
+// escolha do `AnalysisCard` do JanaCockpit e do `KpiCard` canônico).
+//
+// O `<Link href="/ia/metas/{id}">Ver detalhe</Link>` que morava aqui SAIU — era
+// ele que tirava o usuário do Painel (R5 do `Index-visual-comparison.md`, o
+// maior buraco da tela). O destino não se perdeu: virou "Abrir a meta" no rodapé
+// do drawer, junto com a série de 12 janelas e a origem do número.
+function MetaCard({ meta, onOpen }: { meta: Meta; onOpen: (meta: Meta) => void }) {
   const farol        = farolDaMeta(meta)
   const realizado    = meta.ultima_apuracao?.valor_realizado ?? null
   const alvo         = meta.periodo_atual?.valor_alvo ?? null
-  const progresso    = alvo && realizado !== null ? Math.min(100, (realizado / alvo) * 100) : null
+  const progresso    = progressoDaMeta(meta)
+  const periodo      = rotuloPeriodo(meta.periodo_atual)
 
   return (
-    <Card className="relative overflow-hidden">
-      {/* Farol lateral */}
-      <div className={`absolute left-0 top-0 h-full w-1 ${FAROL_CLASSES[farol]}`} aria-hidden="true" />
+    <button
+      type="button"
+      onClick={() => onOpen(meta)}
+      aria-label={`Abrir a meta ${meta.nome}`}
+      className="rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <Card className="relative h-full overflow-hidden transition-colors hover:border-primary/40">
+        {/* Farol lateral */}
+        <div className={`absolute left-0 top-0 h-full w-1 ${FAROL_CLASSES[farol]}`} aria-hidden="true" />
 
-      <CardHeader className="pb-2 pl-5">
-        <div className="flex items-start justify-between gap-2">
-          <CardTitle className="text-base">{meta.nome}</CardTitle>
-          <Badge variant="outline" className="shrink-0">{meta.unidade}</Badge>
-        </div>
-      </CardHeader>
-
-      <CardContent className="pl-5 space-y-3">
-        {realizado !== null ? (
-          <div className="text-2xl font-semibold tabular-nums">
-            {formatValue(realizado, meta.unidade)}
+        <CardHeader className="pb-2 pl-5">
+          <div className="flex items-start justify-between gap-2">
+            <CardTitle className="text-base">{meta.nome}</CardTitle>
+            {/* Período no card — `jm-meta-p` da âncora. Ele responde "esse número
+                é de quando?", que antes só existia dentro da tela de detalhe. */}
+            <span className="shrink-0 text-xs text-muted-foreground">
+              {periodo ?? meta.unidade}
+            </span>
           </div>
-        ) : (
-          <div data-contract="painel-meta-apurando" className="text-sm text-muted-foreground">Aguardando apuração…</div>
-        )}
+        </CardHeader>
 
-        {alvo !== null && (
-          <div className="text-xs text-muted-foreground">
-            Alvo: {formatValue(alvo, meta.unidade)}
-            {progresso !== null && (
-              <span className="ml-2 font-medium text-foreground">{progresso.toFixed(0)}%</span>
-            )}
-          </div>
-        )}
+        <CardContent className="pl-5 space-y-3">
+          {realizado !== null ? (
+            <Inline gap={1} align="baseline">
+              <span className="text-2xl font-semibold tabular-nums">
+                {formatValue(realizado, meta.unidade)}
+              </span>
+              {alvo !== null && (
+                <small className="text-xs text-muted-foreground">de {formatValue(alvo, meta.unidade)}</small>
+              )}
+            </Inline>
+          ) : (
+            <div data-contract="painel-meta-apurando" className="text-sm text-muted-foreground">Aguardando apuração…</div>
+          )}
 
-        {meta.apuracoes_recentes.length > 0 && (
-          <Sparkline dados={meta.apuracoes_recentes} />
-        )}
+          {/* Barra de progresso — `jm-meta-track` da âncora. Trava em 100% na
+              LARGURA (barra que estoura o trilho vira ruído visual), mas o
+              rótulo abaixo mostra o percentual REAL: uma meta em 132% precisa
+              aparecer como 132%, não como "cheia". */}
+          {progresso !== null && (
+            <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+              <div
+                className={`h-full rounded-full ${FAROL_CLASSES[farol]}`}
+                style={{ width: `${Math.min(Math.max(progresso, 0), 100)}%` }}
+              />
+            </div>
+          )}
 
-        <Link
-          href={`/ia/metas/${meta.id}`}
-          className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-        >
-          Ver detalhe <ExternalLink className="h-3 w-3" />
-        </Link>
-      </CardContent>
-    </Card>
+          {progresso !== null && (
+            <div className="text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">{progresso.toFixed(0)}%</span> do alvo
+            </div>
+          )}
+
+          {meta.apuracoes_recentes.length > 0 && (
+            <Sparkline dados={meta.apuracoes_recentes} />
+          )}
+        </CardContent>
+      </Card>
+    </button>
   )
 }
 
@@ -272,6 +257,9 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
   // o drawer escreve e o `JanaCockpit` lê pra decidir quais análises renderiza.
   const { config, alternarAnalise } = useJanaConfig()
   const [configAberto, setConfigAberto] = useState(false)
+  // Meta aberta no drawer. Guarda o OBJETO, não o id: o payload já veio inteiro
+  // no first render, então reabrir não custa consulta nenhuma.
+  const [metaAberta, setMetaAberta] = useState<Meta | null>(null)
 
   return (
     <>
@@ -309,6 +297,16 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
           </>
         }
       />
+
+      {/* Aviso de viewport — `jm-nota-mob` da âncora. O Painel foi desenhado pro
+          monitor de 1280px da ROTA LIVRE (charter §UX targets); no celular os
+          cards ficam apertados e a Conversa é o caminho melhor. Dizer isso é
+          mais honesto que deixar o usuário descobrir rolando.
+          `sm:hidden` = some a partir de 640px. */}
+      <div className="mx-6 mt-6 rounded-lg border border-border bg-muted/40 px-3.5 py-2.5 text-xs leading-relaxed text-muted-foreground sm:hidden">
+        O painel foi desenhado pro escritório (1280px). No celular, a Conversa dá conta — os cards
+        abaixo ficam apertados.
+      </div>
 
       {/* JanaCockpit — conteúdo primário PT-04 (bifurcação do antigo JanaCockpitV2, US-COPI-146).
           Sem wrapper .sells-cowork: o cockpit agora usa shared KpiGrid/KpiCard + Card +
@@ -352,6 +350,17 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            {/* "Nova meta" — `jm-btn ghost` no cabeçalho da seção, na âncora.
+                Aponta pra `/ia/metas/create`, que EXISTE de verdade
+                (`Route::resource('/metas', MetasController)` com a view
+                `copiloto::metas.create`) — este botão entrega, não promete. A
+                tela de destino ainda é Blade; migrá-la é outro trabalho. */}
+            <Link href="/ia/metas/create">
+              <Button variant="outline" className="gap-2">
+                <Plus className="h-4 w-4" />
+                Nova meta
+              </Button>
+            </Link>
             {/* Entry-point pro paywall Jana Pro (ADR 0140). Upsell discreto —
                 a ação primária da Dashboard continua sendo "Conversar". */}
             <Link href="/ia/pro">
@@ -396,7 +405,7 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {metas.map(meta => (
-              <MetaCard key={meta.id} meta={meta} />
+              <MetaCard key={meta.id} meta={meta} onOpen={setMetaAberta} />
             ))}
           </div>
         )}
@@ -408,6 +417,9 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
         config={config}
         onAlternarAnalise={alternarAnalise}
       />
+
+      {/* A meta abre AQUI, não noutra tela — âncora §JmMetaDrawer. */}
+      <JanaMetaDrawer meta={metaAberta} onClose={() => setMetaAberta(null)} />
 
       <FabJana contextRoute="/ia/dashboard" />
     </>

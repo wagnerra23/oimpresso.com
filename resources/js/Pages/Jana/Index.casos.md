@@ -172,6 +172,36 @@ passaria só por acidente de capitalização e quebraria quando o comentário fo
 falso-positivo que o §5 2026-07-26 cataloga. Medido antes de fechar: `<Switch` 2→3 com um toggle novo;
 entradas 4→5 com uma análise sem fonte._
 
+## UC-COPI-PAINEL-11 — A meta abre na própria tela, e o drawer não projeta o futuro
+Status: 🧪 (`PainelContratoTest` — 5 blocos de asserção + 1 controle negativo; aguarda run verde **e** o screenshot F1.5)
+
+Clicar num card de meta abria `/ia/metas/{id}` — um `<Link>` que **tirava o usuário do Painel** rumo
+a uma tela Blade. O `Index-visual-comparison.md` marcava isso como o maior buraco da tela (R5, ordem
+1). Agora o card é um botão que abre `_components/JanaMetaDrawer.tsx`: Situação (realizado · alvo ·
+% do alvo · delta vs a janela anterior), Série de até 12 janelas em barras, e "De onde vem esse
+número". O caminho pra tela própria **não se perdeu** — virou "Abrir a meta" no rodapé do drawer.
+
+Âncora: `prototipo-ui/cowork/jana-merge.jsx` §`JmMetaDrawer` — âncora de SÍMBOLO
+(`grep -n "JmMetaDrawer" prototipo-ui/cowork/jana-merge.jsx`).
+
+**A divergência vs a âncora é o ponto do caso, de novo.** O protótipo mostra uma **projeção de
+fechamento** na Situação, calculada **no cliente**: `jmMeta()` faz `atual × 1.3` quando a meta
+acumula e extrapola a tendência das últimas 4 janelas quando é média/taxa. Portar isso repetiria
+letra por letra o defeito que este mesmo contrato já travou no UC-04 — o farol é do servidor porque
+veredito é do servidor, e projeção é veredito sobre o futuro. No lugar dela vai **"% do alvo"**, que
+é aritmética sobre dois números já exibidos. Pelo mesmo motivo a `nota` por meta ficou de fora: o
+payload não tem o campo.
+
+**Pronto quando:** o card não contém mais o link que sai da página; o clique abre o drawer; o rodapé
+preserva `/ia/metas/{id}`; a Situação tem **três** números e nenhum é projeção; e a fonte citada é
+`ApuracaoService::farol`, nunca o nome que a âncora usa.
+
+_Por que a asserção é de ARQUIVO e ESTRUTURAL: mesmo motivo dos UC-08 e UC-10 — o Pest não monta
+React, e buscar a palavra "Projeção" proibiria o próprio comentário que registra a decisão. Duas
+asserções minhas caíram exatamente nessa armadilha **na escrita** (`Ver detalhe` e o nome errado da
+classe, ambos vivos em comentário) e foram trocadas por estruturais antes de rodar: contagem de
+`<Numero rotulo=` (3) e ausência do literal do link._
+
 ## Nota do conserto do UC-COPI-PAINEL-08 (2026-08-17)
 
 `_components/JanaCockpitSkeleton.tsx` (novo, ancorado em `jana-merge.jsx` §`JmPainelSkeleton`) +
@@ -218,6 +248,15 @@ caso e teste a peças que já estavam fechadas. As 3 que faltam seguem sendo dec
   com o motivo, ou entrega? Enquanto não decidido **não entra no contrato** — pinar uma promessa é
   congelá-la. _(Eram **dois**; **Configurar** saiu desta lista em 2026-08-17 — entregou, ver UC-10.
   A pergunta segue idêntica para o que sobrou.)_
+- ⚖️ **Projeção de fechamento das metas** — a âncora mostra "R$ 61k no fechamento" em cada card. Não
+  foi portada porque projetar no frontend é o UC-04 ao contrário (ver UC-11). Se vira produto, o dono
+  é `ApuracaoService` — onde `farol` já mora — e a tela só consome. É backend, não wiring.
+- ⚖️ **Seletor de período nas Metas** — a âncora tem 3 janelas clicáveis. `buildMetasPayload` carrega
+  só `periodoAtual`, então não há o que filtrar no cliente. Backend.
+- ⚖️ **Chips do brief** — existem **três**, e nenhum tem `onClick` (medido 2026-08-17). Ligá-los pra
+  navegar sem semear a pergunta trocaria botão morto por botão que mente: o rótulo promete um assunto
+  ("Disparar régua WhatsApp pros N atrasados") e o destino seria uma conversa em branco —
+  `ChatController@novaConversa` não aceita pergunta inicial. Backend + Page.
 - ⚖️ **Brief diário, áudio e retenção como configuração de verdade** — o drawer do UC-10
   deliberadamente **não** os oferece, porque hoje o servidor não honra nenhum dos três (medição na
   tabela do UC-10). Se devem virar config real, o caminho é backend — estender o dono que já existe

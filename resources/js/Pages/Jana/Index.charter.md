@@ -17,7 +17,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 8
+charter_version: 9
 permissao: copiloto.access
 ---
 
@@ -61,6 +61,14 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   Âncora: `jana-merge.jsx` §`JmConfigDrawer` — âncora de SÍMBOLO
   (`grep -n "JmConfigDrawer" prototipo-ui/cowork/jana-merge.jsx`).
   O drawer é **deliberadamente menor que a âncora**: ver §Anti-hooks abaixo.
+
+- **A meta abre NA PRÓPRIA TELA (v9 — 2026-08-17):** o clique num card de meta abre
+  `_components/JanaMetaDrawer.tsx` — Situação (realizado · alvo · % do alvo · delta vs a janela
+  anterior), Série de até 12 janelas em barras, e "De onde vem esse número". O caminho pra tela
+  própria **não se perdeu**: virou "Abrir a meta" (`/ia/metas/{id}`) no rodapé do drawer.
+  Âncora: `jana-merge.jsx` §`JmMetaDrawer` — âncora de SÍMBOLO
+  (`grep -n "JmMetaDrawer" prototipo-ui/cowork/jana-merge.jsx`).
+  O drawer **não projeta o fechamento**: ver §Anti-hooks abaixo.
 
 ## Non-Goals
 
@@ -119,6 +127,17 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   entradas de `JANA_ANALISES` (4) — toggle novo derruba o caso. A asserção é estrutural de
   propósito: buscar a palavra "Frota" proibiria o próprio comentário que registra a decisão
   (§5 2026-07-26)._
+- ⛔ **Projetar o fechamento de meta no frontend.** É o §Anti-hooks do farol no eixo da PROJEÇÃO,
+  e vale pela mesma razão: projeção é veredito sobre o futuro, e veredito nasce no servidor. A
+  âncora faz o contrário — o `jmMeta()` do `jana-merge.jsx` extrapola o ritmo quando a meta acumula
+  (`atual × 1.3`) e projeta a tendência da série quando é média/taxa, tudo no cliente. Portar isso
+  daria à tela autoridade sobre um número que nenhum serviço apurou, e o rótulo "(tendência)" da
+  âncora não conserta: ele explica o método, não a fonte. O `JanaMetaDrawer` mostra **"% do alvo"**,
+  que é aritmética sobre dois números já exibidos. Se a projeção virar produto, o dono é
+  `ApuracaoService` (onde `farol` já mora) — e aí a tela só consome, como consome o farol.
+  _Pelo mesmo motivo o drawer não traz a `nota` por meta (`"mix de produto puxando pra baixo"`):
+  o payload não tem o campo, e escrevê-la seria a mentira com selo de autoridade que o
+  `JanaDrillDrawer` existe pra evitar._
 - ⛔ **Prometer no botão do drawer o que a rota não entrega.** `ChatController@novaConversa` não
   aceita pergunta inicial e `Chat.tsx` não lê query param (medido 2026-08-07) — por isso o CTA diz
   "Conversar com a Jana", não "Perguntar sobre isso". Semear a pergunta é PR próprio (backend + Page).
@@ -128,6 +147,26 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 `brief-first` (Tier A) · `multi-tenant-patterns` (Tier A) · `inertia-defer-default` (Tier B) · `mwart-process` (Tier A)
 
 ## Charter version log
+
+- v9 (2026-08-17) — **A meta abre na própria tela** (ordem 1 do `Index-visual-comparison.md`, região
+  R5 — *"hoje o clique tira o usuário da tela"*). Novo `_components/JanaMetaDrawer.tsx`; o card virou
+  `<button>` e ganhou período + barra de progresso; "Nova meta" aponta pra `/ia/metas/create`, que
+  existe; e o aviso de viewport (`jm-nota-mob`) entrou. Tipos e formatadores foram pra
+  `_components/metaFormat.ts` — arquivo de componente não exporta não-componente (`react-refresh`,
+  a mesma regressão que separou o `useJanaConfig` na v8).
+
+  **Duas coisas da âncora ficaram de fora, e o motivo é o §Anti-hooks novo acima:** a projeção de
+  fechamento e a `nota` por meta. Nenhuma das duas é pendência de wiring.
+
+  **Correção de fato no mesmo PR (regra de precedência):** o `Index-visual-comparison.md` afirmava
+  **seis** ausências que já não existiam (reapuração, Configurar, subtítulo das análises, drawer de
+  config, skeleton, `localStorage`) e chamava os chips do brief de ausentes quando eles existem e
+  são apenas mortos. Uma delas — *"botão de reapuração ❌"* — **nasceu falsa**: o botão landou em
+  #5429 (2026-08-07), dez dias antes. A tabela de correções ficou no topo daquele documento, com o
+  recibo de cada linha.
+
+  _O que NÃO mudou: o par visual segue pendente. `Jana/Index` está no manifesto do visreg, o PR gera
+  diff de pixel e exige aprovação [W] (gate F1.5); o golden PT-04 continua `draft`._
 
 - v8 (2026-08-17) — **O botão "Configurar" deixou de ser promessa** (entrega 4 da onda de
   aproximação, região R8/R10 do `Index-visual-comparison.md`). Abre
