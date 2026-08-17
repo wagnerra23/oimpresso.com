@@ -101,3 +101,55 @@ it('UC-COPI-CHAT-06 — abrir a thread é leitura PURA: zero e-mail, zero notifi
     Mail::assertNothingSent();
     Notification::assertNothingSent();
 });
+
+it('UC-COPI-CHAT-07 — o render inicial NÃO escreve no banco de mensagens', function () {
+    $dono = \App\User::query()->where('business_id', 98)->first();
+
+    if (! $dono) {
+        chatTier0Skip('Sem usuário em biz=98 — nada a abrir.');
+    }
+
+    $conversa = chatTier0Conversa(98, $dono->id);
+    $antes = \Illuminate\Support\Facades\DB::table('jana_mensagens')
+        ->where('conversa_id', $conversa->id)->count();
+
+    $this->actingAs($dono)->get(route('jana.conversas.show', $conversa->id));
+
+    $depois = \Illuminate\Support\Facades\DB::table('jana_mensagens')
+        ->where('conversa_id', $conversa->id)->count();
+
+    // Charter: "⛔ Não escreve no banco no render inicial (só no POST de mensagem)".
+    // Conta ANTES e DEPOIS em vez de assertar zero: a conversa pode nascer com
+    // mensagem de sistema, e o contrato é sobre o GET não ACRESCENTAR — não sobre
+    // a thread estar vazia.
+    expect($depois)->toBe($antes);
+});
+
+it('UC-COPI-CHAT-08 — o render NÃO chama o Brain B, e NÃO vaza credencial pro client', function () {
+    $dono = \App\User::query()->where('business_id', 98)->first();
+
+    if (! $dono) {
+        chatTier0Skip('Sem usuário em biz=98 — nada a abrir.');
+    }
+
+    // Qualquer chamada HTTP de saída no render vira falha: o charter diz que o
+    // Brain B só é acionado APÓS submit do usuário.
+    \Illuminate\Support\Facades\Http::preventStrayRequests();
+
+    $conversa = chatTier0Conversa(98, $dono->id);
+    $resposta = $this->actingAs($dono)->get(route('jana.conversas.show', $conversa->id));
+
+    $resposta->assertOk();
+
+    // Charter: "⛔ Não persiste credencial Brain B no client (token vive no backend)".
+    // O corpo servido não pode conter a chave — nem o valor dela, se estiver
+    // configurada. Testa os dois: o NOME (que denunciaria a prop trafegando) e o
+    // VALOR (que é o vazamento de fato).
+    $corpo = $resposta->getContent() ?: '';
+    expect($corpo)->not->toContain('ANTHROPIC_API_KEY');
+
+    $token = (string) config('services.anthropic.key', '');
+    if ($token !== '') {
+        expect($corpo)->not->toContain($token);
+    }
+});

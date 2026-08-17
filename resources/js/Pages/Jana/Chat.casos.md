@@ -102,6 +102,34 @@ mensagem, não à consulta.
 
 **Pronto quando:** `Mail::assertNothingSent()` e `Notification::assertNothingSent()` após o GET.
 
+## UC-COPI-CHAT-07 — O render inicial não escreve no banco
+Status: 🧪 (`ChatAntiHooksTier0Test` — cita o UC no título; aguarda run verde)
+
+Abrir a conversa **não acrescenta linha** em `jana_mensagens`. Escrita pertence ao POST.
+
+Âncora: charter §Anti-hooks *"⛔ Não escreve no banco no render inicial (só no POST de mensagem)"*.
+
+O teste conta **antes e depois** em vez de assertar zero: a conversa pode nascer com mensagem de
+sistema, e o contrato é sobre o GET **não acrescentar** — não sobre a thread estar vazia. Assertar
+zero passaria a depender de um detalhe de seed, não do comportamento.
+
+**Pronto quando:** a contagem depois do GET é idêntica à de antes.
+
+## UC-COPI-CHAT-08 — O render não chama o Brain B nem vaza credencial
+Status: 🧪 (`ChatAntiHooksTier0Test` — cita o UC no título; aguarda run verde)
+
+Abrir a conversa **não faz chamada HTTP de saída** (`Http::preventStrayRequests()`), e o corpo
+servido **não contém** o nome nem o valor da credencial do Brain B.
+
+Âncora: charter §Anti-hooks *"⛔ Não chama Brain B no render (só após user submit)"* + *"⛔ Não
+persiste credencial Brain B no client (token vive no backend)"*.
+
+Testa **os dois**: o nome (`ANTHROPIC_API_KEY`, que denunciaria a prop trafegando) e o valor
+configurado (que é o vazamento de fato). Só o nome não bastaria — um token servido sob outra chave
+passaria batido.
+
+**Pronto quando:** a resposta é 200 sem request de saída, e nenhuma das duas strings aparece no corpo.
+
 ---
 
 ## Inventário de cobertura — cada Goal e Anti-hook do charter, medido
@@ -140,17 +168,17 @@ mensagem, não à consulta.
 
 ### §Automation Anti-hooks — o que a tela NUNCA dispara
 
-O charter diz literalmente *"Vira Pest GUARD"*. **Três dos oito viraram em 2026-08-17** (UC-05/UC-06); os outros cinco seguem sem guarda. Medido: o módulo tem
+O charter diz literalmente *"Vira Pest GUARD"*. **Seis dos oito viraram em 2026-08-17** (UC-05 a UC-08); sobram DOIS sem guarda — *tool sem auth check do registry* e *PII em plain text no `jana_audit_log`*. Os dois exigem exercitar o POST de mensagem, não o GET, e por isso ficam pra leva própria. Medido: o módulo tem
 apenas `BriefDiarioChatTriggerTest.php` e `Chat/ChatTokensTurnoTest.php` — nenhum guarda estes.
 
 | Anti-hook | Pest GUARD |
 |---|---|
 | ❌ Não dispara emails ao abrir | 🧪 **UC-06** |
 | ❌ Não dispara SMS | 🧪 **UC-06** |
-| ❌ Não escreve no banco no render inicial | ausente |
-| ❌ Não chama Brain B no render | ausente |
+| ❌ Não escreve no banco no render inicial | 🧪 **UC-07** |
+| ❌ Não chama Brain B no render | 🧪 **UC-08** |
 | ❌ Não acessa thread de outro `business_id` (**Tier 0**) | 🧪 **UC-05** |
-| ❌ Não persiste credencial Brain B no client | ausente |
+| ❌ Não persiste credencial Brain B no client | 🧪 **UC-08** |
 | ❌ Não roda tool sem auth check do registry | ausente |
 | ❌ Não loga PII em plain text | ausente |
 
