@@ -186,6 +186,18 @@ function selftest() {
     const vazio = spawnSync(process.execPath, [fileURLToPath(import.meta.url), '--base', base2], { cwd: sandbox, encoding: 'utf8' });
     if (vazio.status === 2) ok++;
     else e2e.push(`  x diff totalmente vazio deveria MORDER (exit 2), veio ${vazio.status}`);
+
+    // (c) BINÁRIO-ONLY — 0 linha de TEXTO, mas o diff existe → libera (2026-08-17).
+    // Byte NUL no conteúdo é o que faz o git classificar como binário; sem ele o
+    // arquivo entra como texto e o caso não testaria nada. O controle é o (b) logo
+    // acima: lá o numstat vem VAZIO (cegueira real) e continua mordendo.
+    const base3 = gitS(sandbox, 'rev-parse', 'HEAD').stdout.trim();
+    writeFileSync(join(sandbox, 'fonte.woff2'), Buffer.from([0x77, 0x4f, 0x46, 0x32, 0x00, 0x01, 0x00, 0x00]));
+    gitS(sandbox, 'add', '-A');
+    gitS(sandbox, 'commit', '-q', '-m', 'so binario');
+    const bin = spawnSync(process.execPath, [fileURLToPath(import.meta.url), '--base', base3], { cwd: sandbox, encoding: 'utf8' });
+    if (bin.status === 0 && /BINÁRIOS/.test(bin.stdout)) ok++;
+    else e2e.push(`  x binário-only deveria LIBERAR (exit 0) declarando o motivo, veio ${bin.status}`);
   } catch (e) {
     e2e.push(`  x sandbox E2E falhou: ${e.message}`);
   } finally {
@@ -193,7 +205,7 @@ function selftest() {
   }
   falhas.push(...e2e);
 
-  const total = casos.length + 5;
+  const total = casos.length + 6;
   console.log(`brl-scan-diff selftest: ${ok}/${total}`);
   if (falhas.length) { console.error(falhas.join('\n')); process.exit(1); }
   console.log('  ACHA: linha + com valor, em qualquer extensao, dentro e fora de memory/');
@@ -280,9 +292,28 @@ function main() {
       const temRemocao = /^-(?!--)/m.test(diff);
       let head = '';
       try { head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(); } catch { /* ignore */ }
+
+      // BINÁRIO-ONLY é o irmão da subtração pura, e caiu na mesma armadilha em
+      // 2026-08-17: o PR #5863 adiciona 4 `.woff2` e NADA de texto. `git diff` de
+      // binário não emite linha `+` nem `-` — some assim como o diff de base
+      // inalcançável, e o gate reprovava um PR que ele não tinha o que varrer.
+      // Discriminador: `--numstat` emite uma linha POR arquivo tocado, e binário sai
+      // como `-\t-\tpath`. Se veio ≥1 linha e TODAS são binárias, o instrumento
+      // ENXERGOU o diff — só não há texto pra ler. Zero linha de numstat continua
+      // sendo cegueira de verdade e cai no ramo de baixo.
+      let numstat = '';
+      try {
+        numstat = execFileSync('git', ['diff', '--numstat', `${base}...HEAD`], { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
+      } catch { /* sem numstat, cai no comportamento antigo */ }
+      const linhasNumstat = numstat.split(/\r?\n/).filter((l) => l.trim());
+      const soBinario = linhasNumstat.length > 0 && linhasNumstat.every((l) => /^-\t-\t/.test(l));
+
       if (temRemocao) {
         console.log('brl-scan-diff: 0 linha(s) adicionada(s), mas HÁ remoções — PR de SUBTRAÇÃO pura.');
         console.log('Nada a varrer: linha removida não introduz valor. Instrumento OK (o diff produziu saída).');
+      } else if (soBinario) {
+        console.log(`brl-scan-diff: 0 linha(s) de texto, e os ${linhasNumstat.length} arquivo(s) do diff são BINÁRIOS.`);
+        console.log('Nada a varrer: valor BRL é padrão de TEXTO. Instrumento OK (o numstat enxergou o diff).');
       } else if (head && !head.startsWith(String(base).slice(0, 7))) {
         console.error(`brl-scan-diff: diff VAZIO entre ${String(base).slice(0, 10)} e HEAD — suspeito.`);
         console.error('Nem adição nem remoção, com HEAD != base: instrumento provavelmente cego (base inalcançável/shallow).');
