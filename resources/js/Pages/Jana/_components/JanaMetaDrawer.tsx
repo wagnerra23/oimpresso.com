@@ -163,7 +163,10 @@ export default function JanaMetaDrawer({ meta, onClose }: { meta: Meta | null; o
                   Farol apurado no servidor por <code className={codigo}>ApuracaoService::farol</code> — a tela
                   só exibe o veredito que chega.
                   {/* A âncora cita aqui outra classe: ela existe, mas o método
-                      `farol` NÃO é dela (charter v4, PR #5394). O nome certo é o
+                      `farol` NÃO é dela (charter v4, PR 5394 — o número vai sem
+                      cerquilha de propósito: o R1 do `ui:lint` lê "cerquilha +
+                      4 dígitos" como literal hexadecimal, e o ratchet acusa).
+                      O nome certo é o
                       de cima — e o `ancora.mjs` acusa símbolo de backend
                       inexistente justamente pra este tipo de citação.
                       O nome errado não é repetido aqui de propósito: o UC-11
