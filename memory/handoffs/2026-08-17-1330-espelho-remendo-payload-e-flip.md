@@ -2,7 +2,7 @@
 date: "2026-08-17"
 time: "13:30 BRT"
 slug: espelho-remendo-payload-e-flip
-tldr: "[W] pediu pra abrir o protótipo da Jana e a sessão virou três coisas: (1) o card 'A receber' não ficava bordô porque o espelho tinha um REMENDO À MÃO de 11 sites, invisível há 4 dias, defendido por 11 linhas de comentário no próprio CSS com números de contraste FALSOS; (2) eu afirmei 5× que 94 dos 121 arquivos 'não têm rota fiel' — errado, era limite do get_file, e o payload servido derrubou o teto (21→117 verificados); (3) flip do required executado com as 3 armadilhas medidas antes. 2 PRs mergeados + 1 aberto. O detector que criei achou DOIS defeitos em si mesmo no mesmo dia, ambos só porque rodou contra o repo real."
+tldr: "Abrir o protótipo da Jana virou três coisas: o card A-receber não ficava bordô porque o espelho tinha REMENDO À MÃO de 11 sites, invisível 4 dias, defendido por comentário com contraste FALSO (2,19 alegado × 4,32 medido); eu afirmei 5× que 94 de 121 arquivos não tinham rota fiel — era limite do get_file, e o payload servido derrubou o teto (21→117 verificados); flip a required com as 3 armadilhas medidas antes. O detector achou 2 defeitos EM SI MESMO."
 prs: [5854, 5859]
 decided_by: [W]
 next_steps:
