@@ -15,7 +15,7 @@ it('aceita payload completo com banco suportado', function () {
         'banco_codigo' => '756',
         'agencia' => '1234',
         'carteira' => '1',
-        'beneficiario_documento' => '12.345.678/0001-99',
+        'beneficiario_documento' => '12.345.678/0001-99', // pii-allowlist (CNPJ sintético de fixture — sequência 1..8, não é empresa real)
         'beneficiario_razao_social' => 'TESTE LTDA',
     ], $rules);
 
@@ -29,7 +29,7 @@ it('rejeita banco_codigo nao suportado', function () {
         'banco_codigo' => '999',
         'agencia' => '1234',
         'carteira' => '1',
-        'beneficiario_documento' => '12.345.678/0001-99',
+        'beneficiario_documento' => '12.345.678/0001-99', // pii-allowlist (CNPJ sintético de fixture — sequência 1..8, não é empresa real)
         'beneficiario_razao_social' => 'X',
     ], $rules);
 
