@@ -11,7 +11,7 @@ related_adrs:
   - 0094-constituicao-v2-7-camadas-8-principios
   - 0101-tests-business-id-1-nunca-cliente
   - 0121-oimpresso-modular-especializado-por-vertical
-  - 0155-rubrica-module-grade-v3
+  - 0155-module-grade-v3-sub-dimensoes-gate-ci
 piloto: biz=1 WR2 Sistemas (Wagner operador interno — time CLT real) — NÃO biz=4 (Larissa vestuário <20 empregados Art. 74 CLT desobriga)
 prazo_regulatorio_critico: AEJ canon Portaria 671/2021 Anexo VI (substitui AFDT) + eSocial S-2230 novo formato afastamento 2026
 ---

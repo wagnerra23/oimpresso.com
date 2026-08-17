@@ -8,7 +8,7 @@ related_adrs: [0230, 0231, 0232, 0250, 0254]
 
 # SCREEN-GRADE — método de maturidade de tela (nota /100 comparativa)
 
-> **O que é:** o `module-grade` ([ADR 0155](../../decisions/0155-rubrica-module-grade-v3.md)/[0160](../../decisions/0160-governance-v4-scoped-scorecards-buckets.md)) aplicado **por tela**. Nota 0-100 comparativa vs golden do arquétipo + ≥3 best-of-class, ponderada por persona e por Peso Real.
+> **O que é:** o `module-grade` ([ADR 0155](../../decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md)/[0160](../../decisions/0160-governance-v4-scoped-scorecards-buckets.md)) aplicado **por tela**. Nota 0-100 comparativa vs golden do arquétipo + ≥3 best-of-class, ponderada por persona e por Peso Real.
 > **Linhagem:** Método Governance Scorecard ([ADR 0230](../../decisions/0230-metodo-governance-scorecard.md)) + processo especialista-por-área ([ADR 0231](../../decisions/0231-processo-trabalho-canonico-especialista-por-area.md)) + Peso Real ([ADR 0232](../../decisions/0232-modelo-peso-real-classificacao-por-meta.md)) + `framework-15-dimensoes.md` + escala de maturidade USWDS/Figma DesignOps + score-as-code Backstage Soundcheck/Cortex.
 > **Origem:** 2026-05-30 (sessão `2026-05-30-screen-grade-metodo-estado-arte.md`). Candidata a ADR canon.
 

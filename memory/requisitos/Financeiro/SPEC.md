@@ -8,7 +8,7 @@ project: COPI
 status: ativo
 related_adrs:
   - 0154-rubrica-module-grade-v2
-  - 0155-rubrica-module-grade-v3
+  - 0155-module-grade-v3-sub-dimensoes-gate-ci
   - 0156-rubrica-module-grade-v3-detail
 na_justified_v3:
   D1.c: "Job `CriarTituloDeVendaJob` é `@deprecated` órfão (Onda 2, 2026-04-25) e nunca foi dispatched em produção; sincronização canônica de títulos a partir de transactions ocorre via `TituloAutoService::sincronizarDeTransacao` chamado diretamente pelo `TransactionObserver`. O constructor do Job recebe apenas `$transactionId` e extrai `business_id` da Eloquent (pattern legítimo de Job-por-ID), portanto a checagem `$businessId` no constructor não se aplica ao módulo."
