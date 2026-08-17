@@ -43,6 +43,12 @@ on:
       - 'app/Scopes/**'
       - 'app/Concerns/HasBusinessScope.php'
       - 'app/Concerns/BelongsToBusinessViaParent.php'
+      # O PainelContratoTest asserta sobre o CÓDIGO DA TELA (`Index.tsx`,
+      # `_components/JanaCockpit.tsx`) — asserção de arquivo, porque Pest não monta
+      # React. Sem esta linha, mexer no `.tsx` NÃO roda o teste que o defende: o
+      # terceiro caso do mesmo gate mudo que as duas notas acima já corrigiram
+      # (lápide §5 2026-08-02 — "inclua o arquivo SOB TESTE no trigger").
+      - 'resources/js/Pages/Jana/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/jana-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -81,6 +87,10 @@ jobs:
             jana:
               - 'Modules/Jana/**'
               - 'Modules/KB/Http/Controllers/MemoriaController.php'
+              # Espelha o `paths:` do push (ver nota lá): é ESTE filtro que decide o
+              # skip-as-pass, então sem a linha aqui um PR que mexe só no `.tsx` da
+              # tela concluiria verde sem ter rodado o PainelContratoTest.
+              - 'resources/js/Pages/Jana/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/jana-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -142,10 +152,21 @@ jobs:
             Modules/Jana/Tests/Feature/Wave14GovernanceV3Test.php \
             Modules/Jana/Tests/Feature/CockpitMockRemovidoTest.php \
             Modules/Jana/Tests/Feature/FarolServerSideTest.php \
+            Modules/Jana/Tests/Feature/PainelContratoTest.php \
             Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitShaPreservaTest.php \
             Modules/Jana/Tests/Feature/Mcp/McpTokenUsoThrottleTest.php \
             Modules/Jana/Tests/Feature/Mcp/QuotaEnforcerFastPathTest.php \
             Modules/Jana/Tests/Feature/Mcp/McpTokenMemoTest.php
+          # PainelContratoTest ENTROU em 2026-08-17. Ele nasceu no PR #5862 (UC-08) e
+          # ficou 1 dia FORA desta lista — logo os nove UCs do Painel nunca rodaram no
+          # CI, e o `🧪 aguarda run verde` do casos.md nunca poderia virar ✅: a lane
+          # lista ARQUIVO, e registrar o teste no repo não é o mesmo que a lane
+          # executá-lo (§5 2026-08-02 + emenda 08-12). Descoberto lendo o log desta
+          # lane atrás do UC-10 e não achando: `Tests: 6 skipped, 245 passed` era
+          # verde SEM ele. Elegível pela regra acima — medido: zero RefreshDatabase,
+          # zero migrate:fresh, zero dropIfExists (só `uses(Tests\TestCase::class)`).
+          # A prova de que passou a rodar é o CONTADOR desta lane subir de 245.
+          #
           # BriefDiarioAgentTest saiu daqui em 2026-08-10: guard sqlite-only fazia
           # ele pular 100% das vezes nesta lane MySQL (skip = exit 0 = verde que não
           # provava nada), e ele monta schema sintético com dropIfExists — o que a

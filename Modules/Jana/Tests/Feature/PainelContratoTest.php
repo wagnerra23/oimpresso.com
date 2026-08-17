@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\User;
+use Spatie\Permission\Models\Permission;
 
 uses(Tests\TestCase::class);
 
@@ -47,6 +48,24 @@ function painelBootstrap(): User
 
     if (! $user) {
         test()->markTestSkipped("Sem user em business_id={$business->id}.");
+    }
+
+    // O grupo `/ia` é protegido por `can:jana.access` — e isso é CORRETO: o
+    // `JanaAccessGateTest` tem um caso dedicado provando que sem a permissão a rota
+    // DEVE dar 403 ("MORDE: não-admin SEM jana.access leva 403 em /ia"). Sem esta
+    // concessão os 4 casos de runtime abaixo tomavam 403 e reprovavam por SETUP, não
+    // por defeito de produto.
+    //
+    // O defeito ficou 1 dia invisível porque este arquivo estava FORA da allowlist da
+    // lane `PHP / Pest (Jana · MySQL)` — nunca rodou. Ao entrar na lista (PR desta
+    // data), ele acusou na primeira execução. Padrão copiado do `JanaAccessGateTest`,
+    // que é o dono do tema; o gate NÃO é afrouxado aqui — damos ao usuário de teste a
+    // permissão que o usuário real tem.
+    try {
+        Permission::findOrCreate('jana.access', 'web');
+        $user->givePermissionTo('jana.access');
+    } catch (\Throwable $e) {
+        test()->markTestSkipped('Não foi possível garantir a permission jana.access: '.$e->getMessage());
     }
 
     test()->actingAs($user);
