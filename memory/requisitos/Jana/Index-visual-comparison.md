@@ -63,7 +63,7 @@ citado depois do prazo vira afirmação. Antes de usar qualquer linha daqui como
 | chips de pergunta | 4 chips clicáveis que semeiam a conversa | **3 chips, todos sem `onClick`** | 🟡 **botão morto** |
 | ouvir áudio (TTS) | `onAudio` condicionado ao toggle `cfg.audio` | botão presente, `title="(em breve)"` | 🟡 |
 | gate por plano | sem Pro → card de upsell no lugar do brief | — | ❌ produto |
-| aviso de viewport | `jm-nota-mob` | `sm:hidden` no topo do Painel | ✅ **(2026-08-17, esta onda)** |
+| aviso de viewport | `jm-nota-mob` | `md:hidden` no topo do Painel — casa o `@media (max-width:768px)` do protótipo | ✅ **(#5881)** |
 
 > **Por que os chips não viraram clicáveis nesta onda.** Semear a conversa é exatamente o que o
 > charter §Anti-hooks proíbe prometer: medido em 2026-08-07, `ChatController@novaConversa` **não**
@@ -76,8 +76,8 @@ citado depois do prazo vira afirmação. Antes de usar qualquer linha daqui como
 
 | # | protótipo | tela viva | veredito |
 |---|---|---|---|
-| 1 | Receita mês | Faturamento mês | ✅ |
-| 2 | A receber vencido (com `emphasize`) | Inadimplência total | ✅ |
+| 1 | Receita mês | **Receita mês** | ✅ **(rótulo alinhado em #5881)** |
+| 2 | A receber vencido (com `emphasize`) | **A receber vencido** | ✅ **(#5881)** — e o nome novo é mais preciso: é `overdueValue`, o que venceu e não foi pago |
 | 3 | Ticket médio | Ticket médio | ✅ |
 | 4 | **Frota utilização** | PIX hoje | 🟡 divergem — ver nota |
 | — | KPI clicável quando existe análise do mesmo dado (`JM_KPI_DRILL`) | 2 dos 4 abrem drill | ✅ |
@@ -90,8 +90,8 @@ citado depois do prazo vira afirmação. Antes de usar qualquer linha daqui como
 |---|---|---|---|
 | seção | `JmMetasSecao` — "METAS ATIVAS" com seletor de período | bloco "Metas ativas" | 🟡 |
 | seletor de período | 3 janelas clicáveis (`JM_PERIODOS`) | — | ❌ **precisa de backend** |
-| "Nova meta" | botão no cabeçalho da seção | `<Link href="/ia/metas/create">` — rota real | ✅ **(esta onda)** |
-| card | `JmMetaCard` — farol + período + valor/alvo + **barra de progresso** + % + **projeção** | `MetaCard` — farol + período + valor/alvo + barra + % + sparkline | 🟡 **sem a projeção** — ver nota |
+| "Nova meta" | botão no cabeçalho da seção | `<a href>` **nativo** pra `/ia/metas/create` | ✅ **(#5881)** — ver nota |
+| card | `JmMetaCard` — farol + período + valor/alvo + **barra de progresso** + % + **projeção** | `MetaCard` — farol + período (#5881) + alvo + **barra** + % + sparkline | 🟡 **sem a projeção** — ver nota |
 | série histórica | `JmSerie` — 12 barras no drawer | 12 barras no `JanaMetaDrawer` + sparkline no card | ✅ **(esta onda)** |
 | abrir a meta | `JmMetaDrawer` — **drawer na própria tela** | `JanaMetaDrawer` — drawer; o caminho pra tela própria virou "Abrir a meta" no rodapé | ✅ **(esta onda)** — era o buraco #1 |
 | empty state | dois textos distintos (vazio × erro) + CTA correspondente | um empty state | 🟡 — o payload não distingue erro |
@@ -171,7 +171,7 @@ suas de 5 regras sobre o dado real, então a contagem varia por tenant. O par:
 | vazio | EmptyState com copy própria + CTA "Ir para a Conversa" | EmptyState "Nenhuma meta cadastrada ainda" | 🟡 |
 | erro | EmptyState `variant="error"` + "Tentar de novo" com estado `tentando` | — | ❌ o payload não distingue erro de vazio |
 | toast | `jm-toast` em reapuração, export, ações | `sonner` disponível, sem uso no Painel | ❌ |
-| aviso mobile | "O painel foi desenhado pro escritório (1280px)…" | idem, `sm:hidden` | ✅ **(esta onda)** |
+| aviso mobile | "O painel foi desenhado pro escritório (1280px)…" | idem, `md:hidden` | ✅ **(#5881)** |
 
 ## R10 · Plano e upsell
 
@@ -196,12 +196,21 @@ suas de 5 regras sobre o dado real, então a contagem varia por tenant. O par:
 | 7 | Análises 4-6 (churn/frota/cheques) | R6 | **sem fonte de dado** |
 | 8 | Gate de plano + selo | R1/R3/R6/R10 | **produto** |
 
-### Fechado nesta onda (2026-08-17)
+### Fechado em 2026-08-17, por DOIS PRs em paralelo
 
-- **Drawer de meta** — o clique não tira mais o usuário da tela (era a ordem 1 da lista anterior)
-- **Card no shape da âncora** — período + barra de progresso + valor/alvo
-- **"Nova meta"** apontando pra rota que existe
-- **Aviso de viewport** no celular
+Dois trabalhos atacaram este documento no mesmo dia. O crédito fica separado porque
+é assim que a próxima sessão sabe onde procurar:
+
+| entrega | quem |
+|---|---|
+| Aviso de viewport (`md:hidden`) · "Nova meta" (`<a href>` nativo) · período no card · rótulos dos KPI 1 e 2 | **#5881** |
+| **Drawer de meta** (ordem 1 — o clique não tira mais o usuário da tela) · barra de progresso no card · re-medição deste documento | **#5882** |
+
+> **Uma lição da colisão, e ela é técnica.** O #5882 também fazia "Nova meta", com
+> `<Link>` do Inertia. O #5881 mediu que `MetasController@create` devolve **Blade** — e
+> `<Link>` numa rota não-Inertia vira **clique no-op silencioso**. A versão do #5881 ficou;
+> a do #5882 foi descartada na reconciliação. Antes de apontar `<Link>` pra uma rota da
+> Jana, confira se o destino é Inertia ou Blade.
 
 ## Fora de escopo — decisões [W] ainda abertas
 

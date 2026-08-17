@@ -11,6 +11,16 @@ last_run: "2026-08-17"
 
 > **Status:** ✅ passa (provado por teste) · 🧪 em teste (Pest escrito, aguarda run verde) · ⬜ não verificado · ❌ quebrou.
 
+> ⚠️ **Por que os 🧪 estavam presos (achado de 2026-08-17, corrigido no PR do UC-10).** O
+> `PainelContratoTest.php` nasceu no PR #5862 **fora** da allowlist da lane `PHP / Pest (Jana ·
+> MySQL)`, que roda **arquivo por arquivo** (`jana-pest.yml`, *"cada novo teste MySQL-only do Jana é
+> adicionado AQUI"*). Resultado: nenhum dos nove UCs jamais rodou no CI, e o `🧪 aguarda run verde`
+> não era uma espera — era um estado **inalcançável**, com a lane concluindo verde sem eles
+> (`Tests: 6 skipped, 245 passed`). Registrar o teste no repo **não é** a lane executá-lo
+> (§5 2026-08-02 + emenda 08-12). Faltava ainda o trigger: o `paths:` não incluía
+> `resources/js/Pages/Jana/**`, então mexer no `.tsx` não acordava o teste que o defende. As duas
+> pernas foram corrigidas; **a prova é o contador da lane subir de 245**, não o check ficar verde.
+
 > Derivados do `Index.charter.md` (§Goals/§Anti-hooks) e do `jana-painel.contract.json` — **não**
 > do `Index.tsx`. Derivar do código seria tautológico (§5 2026-06-05): passaria verde mesmo com o
 > comportamento errado.
@@ -209,9 +219,14 @@ classe, ambos vivos em comentário) e foram trocadas por estruturais antes de ro
 eles que impedem o `TypeError` e mantêm válida a entrada `Jana/Index` na
 `DEFER_GUARD_ONLY_ALLOWLIST`; o que mudou é o **render**.
 
-Escopo medido: só os **2** KPIs que dependem da prop deferida (Faturamento mês · PIX hoje) trocam de
-card. `Inadimplência total` e `Ticket médio` vêm de `insightsAggregates` (eager) e **não** podem
+Escopo medido: só os **2** KPIs que dependem da prop deferida (Receita mês · PIX hoje) trocam de
+card. `A receber vencido` e `Ticket médio` vêm de `insightsAggregates` (eager) e **não** podem
 sumir — há controle negativo no teste.
+
+_Rótulos atualizados em 2026-08-17 (`Faturamento mês` → `Receita mês`, `Inadimplência total` →
+`A receber vencido`) no alinhamento de copy com a âncora. Só a PALAVRA mudou: a prop de origem, a
+deferição e o escopo do controle negativo são os mesmos. O controle negativo do teste foi
+reapontado no MESMO diff — `not->toMatch` com label extinto passa vazio (LC-11)._
 
 De quebra, a série ganhou o terceiro estado que faltava: antes, `sparkline.length === 0` dizia
 *"Carregando sparkline…"* — então um business **sem vendas** ficava "carregando" pra sempre, e

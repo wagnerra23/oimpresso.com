@@ -34,8 +34,6 @@ import {
   FAROL_CLASSES,
   farolDaMeta,
   formatValue,
-  progressoDaMeta,
-  rotuloPeriodo,
   type Apuracao,
   type Meta,
 } from './metaFormat';
@@ -88,16 +86,28 @@ function Serie({ dados, unidade }: { dados: Apuracao[]; unidade: string }) {
 
 const codigo = 'rounded bg-muted px-1.5 py-1 font-mono text-[12px] text-foreground';
 
-export default function JanaMetaDrawer({ meta, onClose }: { meta: Meta | null; onClose: () => void }) {
+export default function JanaMetaDrawer({
+  meta,
+  // Período já formatado pelo card. Chega como prop pra que `periodoLabel`
+  // continue morando num lugar só (`Index.tsx`) — ele é do card, e duplicar a
+  // regra de "mai–jul/2026" nos dois lados é como as duas versões drifam.
+  periodo,
+  onClose,
+}: {
+  meta: Meta | null;
+  periodo: string | null;
+  onClose: () => void;
+}) {
   if (!meta) {
     return <Sheet open={false} onOpenChange={() => undefined} />;
   }
 
   const farol = farolDaMeta(meta);
-  const periodo = rotuloPeriodo(meta.periodo_atual);
   const realizado = meta.ultima_apuracao?.valor_realizado ?? null;
   const alvo = meta.periodo_atual?.valor_alvo ?? null;
-  const progresso = progressoDaMeta(meta);
+  // Mesmo cálculo do card (`Index.tsx`), inclusive o teto em 100 — os dois
+  // mostram "% do alvo" e divergir aqui seria a tela contradizendo a si mesma.
+  const progresso = alvo && realizado !== null ? Math.min(100, (realizado / alvo) * 100) : null;
   const serie = meta.apuracoes_recentes;
 
   // Delta contra a janela anterior — subtração entre dois valores APURADOS, não

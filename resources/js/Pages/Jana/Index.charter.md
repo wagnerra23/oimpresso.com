@@ -46,7 +46,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   (`_components/JanaDrillDrawer.tsx`) com **Fonte** (tabelas · regra do recorte · método que
   calcula) + **Escopo** (`business_id` da sessão). Um KPI só é clicável quando existe análise
   do **MESMO dado** — "ticket médio não abre faturamento". Hoje 2 dos 4 KPIs abrem
-  (Faturamento mês → Faturamento; Inadimplência total → Inadimplência); Ticket médio e PIX hoje
+  (Receita mês → Faturamento; A receber vencido → Inadimplência); Ticket médio e PIX hoje
   não têm análise do mesmo dado e permanecem estáticos. Âncora:
   `prototipo-ui/cowork/jana-merge.jsx` §`JmDrillDrawer` + §`JM_KPI_DRILL` — âncora de SÍMBOLO
   (ref de linha apodrece no 1º refactor, §5 2026-07-26; re-localize com
@@ -149,14 +149,25 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 ## Charter version log
 
 - v9 (2026-08-17) — **A meta abre na própria tela** (ordem 1 do `Index-visual-comparison.md`, região
-  R5 — *"hoje o clique tira o usuário da tela"*). Novo `_components/JanaMetaDrawer.tsx`; o card virou
-  `<button>` e ganhou período + barra de progresso; "Nova meta" aponta pra `/ia/metas/create`, que
-  existe; e o aviso de viewport (`jm-nota-mob`) entrou. Tipos e formatadores foram pra
-  `_components/metaFormat.ts` — arquivo de componente não exporta não-componente (`react-refresh`,
-  a mesma regressão que separou o `useJanaConfig` na v8).
+  R5 — *"hoje o clique tira o usuário da tela"*). Novo `_components/JanaMetaDrawer.tsx`: Situação,
+  Série de até 12 janelas e "de onde vem esse número". O card virou `<button>` e ganhou a barra de
+  progresso (`jm-meta-track`); o caminho pra tela própria virou "Abrir a meta" no rodapé do drawer.
+  Tipos e formatadores com dois consumidores foram pra `_components/metaFormat.ts` — arquivo de
+  componente não exporta não-componente (`react-refresh`, a mesma regressão que separou o
+  `useJanaConfig` na v8). `periodoLabel`/`Sparkline` **ficaram** no `Index.tsx`: são do card, e o
+  drawer recebe o período já formatado.
 
   **Duas coisas da âncora ficaram de fora, e o motivo é o §Anti-hooks novo acima:** a projeção de
   fechamento e a `nota` por meta. Nenhuma das duas é pendência de wiring.
+
+  ⚠️ **Trabalho paralelo, e o crédito é de quem fez:** o **#5881** landou no `main` enquanto este PR
+  estava aberto, fechando do mesmo pedido o **aviso de viewport** (`md:hidden`, casando o
+  `@media (max-width:768px)` do protótipo), **"Nova meta"** e o **período no card**, e renomeando
+  dois rótulos de KPI (Faturamento mês → **Receita mês**; Inadimplência total → **A receber
+  vencido**). Este PR fazia os três primeiros também, em versão pior num deles — o "Nova meta" saía
+  com `<Link>` do Inertia, e o #5881 mediu que `MetasController@create` devolve **Blade**, o que
+  faria o clique virar no-op silencioso. Na reconciliação **a versão deles ficou inteira**; deste PR
+  sobrou o que era só dele.
 
   **Correção de fato no mesmo PR (regra de precedência):** o `Index-visual-comparison.md` afirmava
   **seis** ausências que já não existiam (reapuração, Configurar, subtítulo das análises, drawer de
