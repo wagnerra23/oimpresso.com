@@ -305,8 +305,14 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
                   Jana Pro
                 </Button>
               </Link>
+              {/* A âncora `painel-cta-conversar` e a copy "Conversar agora" são
+                  seção PINADA do `jana-painel.contract.json` — copy é lei [W]. Elas
+                  moravam dentro do `ProximaAcaoCard`, que era mock declarado e saiu
+                  nesta onda. A copy NÃO foi alterada nem removida: mudou de
+                  hospedeiro, do card mock pro botão real que já existia aqui e leva
+                  pro mesmo lugar. O contrato continua satisfeito ao pé da letra. */}
               <Link href="/ia/conversa">
-                <Button variant="outline" className="gap-2">
+                <Button data-contract="painel-cta-conversar" variant="outline" className="gap-2">
                   <MessageSquare className="h-4 w-4" />
                   Conversar com a Jana
                 </Button>
