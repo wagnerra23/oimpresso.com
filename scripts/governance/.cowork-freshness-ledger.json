@@ -86,5 +86,50 @@
     "staleList": [],
     "origin": "export",
     "stalePreExport": 0
+  },
+  {
+    "date": "2026-08-17T10:57:07.394Z",
+    "files": 121,
+    "sync": 21,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 100,
+    "staleList": [],
+    "origin": "export",
+    "stalePreExport": 1
+  },
+  {
+    "date": "2026-08-17T11:12:25.738Z",
+    "files": 121,
+    "sync": 21,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 100,
+    "staleList": [],
+    "verified": [
+      "boletos-page.jsx",
+      "clientes-page.css",
+      "clientes-page.jsx",
+      "financeiro-page.jsx",
+      "financeiro.css",
+      "forja-page.css",
+      "forja-page.jsx",
+      "inbox-page.css",
+      "inbox-page.jsx",
+      "jana-merge.jsx",
+      "kb-page.css",
+      "kb-page.jsx",
+      "mockup-bodies.js",
+      "oficina-page.css",
+      "oficina-page.jsx",
+      "pg-cobranca-page.jsx",
+      "styles.css",
+      "vendas-extras.jsx",
+      "vendas-flow.jsx",
+      "vendas-page.jsx",
+      "vendas.css"
+    ],
+    "origin": "export",
+    "stalePreExport": 1
   }
 ]
