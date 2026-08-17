@@ -22,7 +22,7 @@
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
-import { Stack } from '@/Components/layout';
+import { Stack, Inline, Grid } from '@/Components/layout';
 import { Link } from '@inertiajs/react';
 
 export interface MetaDrawerApuracao {
@@ -88,7 +88,7 @@ function Serie({ dados, unidade }: { dados: MetaDrawerApuracao[]; unidade: strin
 
   return (
     <Stack gap={2}>
-      <div className="flex h-24 items-end gap-1" role="img" aria-label={`Série de ${dados.length} apurações`}>
+      <Inline gap={1} align="end" className="h-24" role="img" aria-label={`Série de ${dados.length} apurações`}>
         {dados.map((d, i) => (
           <div
             key={`${d.data_ref}-${i}`}
@@ -99,11 +99,11 @@ function Serie({ dados, unidade }: { dados: MetaDrawerApuracao[]; unidade: strin
             title={`${formatarData(d.data_ref)} · ${formatar(d.valor_realizado, unidade)}`}
           />
         ))}
-      </div>
-      <div className="flex justify-between text-xs text-muted-foreground">
+      </Inline>
+      <Inline justify="between" className="text-xs text-muted-foreground">
         <span>{formatarData(dados[0]!.data_ref)}</span>
         <span>{formatarData(dados[dados.length - 1]!.data_ref)}</span>
-      </div>
+      </Inline>
     </Stack>
   );
 }
@@ -123,10 +123,10 @@ export default function JanaMetaDrawer({ meta, onClose }: { meta: MetaDrawerMeta
         {meta && (
           <>
             <SheetHeader className="gap-2 border-b p-5">
-              <div className="flex items-start justify-between gap-3">
+              <Inline gap={3} align="start" justify="between">
                 <SheetTitle className="text-base">{meta.nome}</SheetTitle>
                 <Badge variant={badge.variante}>{badge.rotulo}</Badge>
-              </div>
+              </Inline>
               <SheetDescription>
                 {meta.periodo_atual
                   ? `Período ${formatarData(meta.periodo_atual.data_ini)} – ${formatarData(meta.periodo_atual.data_fim)}`
@@ -138,7 +138,7 @@ export default function JanaMetaDrawer({ meta, onClose }: { meta: MetaDrawerMeta
 
             <Stack gap={5} className="grow p-5">
               <Secao titulo="Situação">
-                <div className="grid grid-cols-3 gap-3">
+                <Grid cols={3} gap={3}>
                   <Stack gap={1}>
                     <span className="text-xs uppercase tracking-wide text-muted-foreground">Realizado</span>
                     <b className="text-lg tabular-nums">
@@ -158,7 +158,7 @@ export default function JanaMetaDrawer({ meta, onClose }: { meta: MetaDrawerMeta
                       {projecao ? formatar(projecao.projetado, meta.unidade) : '—'}
                     </b>
                   </Stack>
-                </div>
+                </Grid>
 
                 {projecao ? (
                   <p className="text-sm leading-relaxed text-muted-foreground">
