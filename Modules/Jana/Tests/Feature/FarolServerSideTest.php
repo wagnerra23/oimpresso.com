@@ -94,7 +94,7 @@ it('acima do projetado é verde (superar a meta não é anomalia)', function () 
     expect($svc->farol($meta, $agora))->toBe('verde');
 });
 
-it("'cinza' cobre os quatro casos de SEM BASE pra julgar — e não vira vermelho", function () {
+it("UC-COPI-PAINEL-04 — 'cinza' cobre os quatro casos de SEM BASE pra julgar, e não vira vermelho", function () {
     $svc = app(ApuracaoService::class);
 
     // 1. sem período
@@ -127,7 +127,7 @@ it("'cinza' cobre os quatro casos de SEM BASE pra julgar — e não vira vermelh
     expect($svc->farol($m4))->toBe('cinza');
 });
 
-it('o frontend não calcula mais farol — a regra saiu do Index.tsx', function () {
+it('UC-COPI-PAINEL-04 — o frontend não calcula mais farol: a regra saiu do Index.tsx', function () {
     $src = (string) file_get_contents(base_path('resources/js/Pages/Jana/Index.tsx'));
 
     // A função morreu; o que resta é o LEITOR do campo do servidor.
