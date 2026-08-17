@@ -14,6 +14,9 @@ import { Button } from '@/Components/ui/button'
 import { Card, CardContent } from '@/Components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert'
 import { Badge } from '@/Components/ui/badge'
+// Deriva do próprio componente em vez de repetir a união à mão: variante nova no DS
+// entra sozinha, e variante removida vira erro de tipo aqui em vez de classe morta.
+type BadgeVariant = NonNullable<React.ComponentProps<typeof Badge>['variant']>
 import { Brain, Trash2, Pencil, Save, Search, X } from 'lucide-react'
 import FabJana from './components/FabJana'
 import { JanaAreaHeader } from '@/Pages/Jana/components/JanaAreaHeader'
@@ -41,12 +44,24 @@ interface Props {
   userId: number
 }
 
-const CATEGORIA_LABELS: Record<string, { label: string; color: string }> = {
-  meta:           { label: 'Meta',           color: 'bg-blue-100 text-blue-800' },
-  preferencia:    { label: 'Preferência',    color: 'bg-purple-100 text-purple-800' },
-  restricao:      { label: 'Restrição',      color: 'bg-red-100 text-red-800' },
-  contexto:       { label: 'Contexto',       color: 'bg-gray-100 text-gray-800' },
-  acao_pendente:  { label: 'Ação pendente',  color: 'bg-amber-100 text-amber-800' },
+// Pills soft do DS, não escala crua. As 5 categorias eram `bg-<cor>-100 text-<cor>-800`
+// SEM par `dark:` nenhum — chip claro-sobre-claro no tema escuro, nas cinco. O pedido
+// [CC] de 2026-08-13 marcou só `acao_pendente` porque o grep dele cobria
+// `violet|fuchsia|pink|sky|emerald|rose|amber` e não via `blue|purple|red|gray`; medindo
+// aqui, o defeito é do mapa inteiro (+ o fallback abaixo).
+//
+// O `variant` soft do `Badge` já carrega light+dark no token (`-soft`/`-fg`, inertia.css),
+// então não se escreve `dark:` — é o que o próprio componente exige das Pages.
+// O mapeamento é por SEMÂNTICA, não por hue: `restricao` restringe (danger),
+// `acao_pendente` pende (warning), `meta` informa (info). `preferencia` e `contexto` não
+// têm carga semântica — ficam nos dois tons neutros distintos que o DS oferece, o que
+// preserva as 5 pills distinguíveis.
+const CATEGORIA_LABELS: Record<string, { label: string; variant: BadgeVariant }> = {
+  meta:           { label: 'Meta',           variant: 'info' },
+  preferencia:    { label: 'Preferência',    variant: 'secondary' },
+  restricao:      { label: 'Restrição',      variant: 'danger' },
+  contexto:       { label: 'Contexto',       variant: 'neutral' },
+  acao_pendente:  { label: 'Ação pendente',  variant: 'warning' },
 }
 
 function formatData(iso: string | null): string {
@@ -72,7 +87,7 @@ function FatoCard({ memoria }: { memoria: MemoriaFato }) {
   })
   const podeSalvar = data.fato.trim() !== '' && data.motivo.trim() !== ''
   const cat = memoria.metadata?.categoria as string | undefined
-  const catCfg = (cat && CATEGORIA_LABELS[cat]) || { label: cat || 'sem categoria', color: 'bg-gray-100 text-gray-700' }
+  const catCfg = (cat && CATEGORIA_LABELS[cat]) || { label: cat || 'sem categoria', variant: 'outline' as BadgeVariant }
   // Escala /10 MANTIDA — decisão [W] 2026-08-07: a produção é a fonte e o protótipo
   // (que desenha 1–5) se adapta. Mudar a escala seria migração de `metadata.relevancia`
   // já gravado, e não há razão de domínio pra isso.
@@ -109,7 +124,7 @@ function FatoCard({ memoria }: { memoria: MemoriaFato }) {
       <CardContent className="pt-6 space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge className={catCfg.color}>{catCfg.label}</Badge>
+            <Badge variant={catCfg.variant}>{catCfg.label}</Badge>
             {rel !== undefined && (
               <span className="text-xs text-muted-foreground">
                 relevância {rel}/10

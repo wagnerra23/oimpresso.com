@@ -4,7 +4,7 @@ casos: Jana Memória · fatos aprendidos · LGPD Art. 18 · /ia/memoria
 irmaos: Memoria.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-memoria.md (runbook)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-08"
+last_run: "2026-08-17"
 ---
 
 # Casos de uso — /ia/memoria (Memória da Jana)
@@ -89,6 +89,27 @@ motivo: o protótipo confirma o apagar inline, sem campo.
 - ✅ **`origem` passou a ser renderizada** (decisão [W] 2026-08-07, PR à parte). O dado já vinha no
   payload e não aparecia — o titular via *o que* a Jana aprendeu, mas não *de onde*. Fecha o Goal 4
   do charter (*"Mostrar `origem` do fato (chat / brief auto / inserção manual) — transparência"*).
+
+## Revalidação de 2026-08-17 — por que o `last_run` subiu
+
+O G-6 acusou `stale:` porque o `Memoria.tsx` mudou depois do `last_run` de 08-08. O que mudou:
+as 5 pills de categoria (`meta` `preferencia` `restricao` `contexto` `acao_pendente`) e o
+fallback saíram de `bg-<cor>-100 text-<cor>-800` — **escala crua sem par `dark:`, ilegível no
+tema escuro nas cinco** — para as variantes soft do `<Badge>`, que carregam light+dark no token.
+
+**Interseção com os UCs desta tela: nenhuma.** Os cinco tratam de comportamento de servidor
+(motivo obrigatório na edição, trilha em `activity_log`, redação de PII, trilha no esquecer);
+o diff não toca controller, service, validação nem payload — só qual `variant` o chip recebe.
+Por isso o bump é do `last_run`, e nada de `Status:` mudou: os cinco seguem `🧪`, como estavam.
+
+Registrado porque o §5 de 2026-07-27 já cataloga esta classe: mudança semanticamente inerte
+**não é inerte pro gate** — o G-6 mede data de git, não semântica. O `last_run` só sobe com o
+motivo escrito ao lado; subir o número calado é o que ele existe pra impedir.
+
+- `[BACKLOG]` a legibilidade das pills no tema escuro virou contrato de fato nesta tela, e hoje
+  nenhum UC a cobre — ficaria como UC quando existir teste que a prove (visual-regression da
+  aba Memória ou asserção de `variant`). Sem id de propósito: UC sem teste que o cite quebra o
+  G-2, e prometer teste que não existe é pior que a ausência.
 
 ## Ainda ABERTAS (sem decisão)
 
