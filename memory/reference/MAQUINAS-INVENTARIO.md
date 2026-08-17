@@ -483,7 +483,7 @@ lifecycle: ativo
 | `visual-comparison-staleness.mjs` | ci, script | — | `memory/decisions/0329-doutrina-documentacao-de-processo-executavel.md` +8 | sentinela: o `<tela>-visual-comparison.md` ficou atrás da TELA? |
 | `worktree-janitor.mjs` | ci, npm | — | — | Faxineiro de worktrees — classifica worktree MORTO vs VIVO por ORÁCULO, nunca por heurística. |
 
-### 5.2 `scripts/tests/` — 10
+### 5.2 `scripts/tests/` — 11
 
 | Script | Invocador | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|
@@ -497,6 +497,7 @@ lifecycle: ativo
 | `shards-merge.mjs` | ci, script | test | `memory/requisitos/Infra/RUNBOOK-ct100-fullsuite.md` +2 | funde os summaries junit POR SHARD numa medição da noite (SDD P04 |
 | `shards-plan.mjs` | agente, ci, script | selftest + test | `memory/requisitos/Infra/RUNBOOK-ct100-fullsuite.md` +17 | particiona a suíte Pest em N shards POR DIRETÓRIO (determinístico). |
 | `snap-diff.mjs` | — (só `.test`) | test | `memory/licoes-rejeitadas.md` +1 | LÊ o que mudou entre duas baselines de pixel (`.snap` do Pest Browser). |
+| `visreg-clock-bite.mjs` | ci | — | — | TEST do congelamento do relógio do navegador (gate visual-regression). |
 
 ### 5.3 `scripts/` (raiz) — 35
 
