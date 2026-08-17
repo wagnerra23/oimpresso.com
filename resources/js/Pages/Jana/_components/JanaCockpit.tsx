@@ -66,6 +66,7 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
+import { BriefValorSkeleton, KpiCardSkeleton, SparklineSkeleton } from './JanaCockpitSkeleton';
 import JanaDrillDrawer, { type DrillAnalise } from './JanaDrillDrawer';
 
 export interface JanaCockpitProps {
@@ -202,6 +203,15 @@ export default function JanaCockpit({
   // fusão 2026-08-07) — quem os exibe agora é o `JanaAreaHeader`.
 }: JanaCockpitProps): ReactNode {
   // ── Brief calculations (idêntico ao V2) ──────────────────────────────────
+  // UC-PAINEL-08: `coworkAggregates` é DEFERIDA (`IndexController:47`). Enquanto
+  // não chega, os `?? 0` abaixo produzem R$ 0 — e zero exibido como resultado é
+  // o que o contrato de tela proíbe em letra ("não pode mostrar zero como se
+  // fosse resultado"). Os `?? 0` FICAM (o cálculo derivado não pode quebrar, e é
+  // o que mantém válida a entrada `Jana/Index` na DEFER_GUARD_ONLY_ALLOWLIST);
+  // o que muda é o RENDER: com `carregandoCockpit`, o número não é pintado.
+  // `undefined` é o único sinal de "ainda não chegou" — `null`/`{}` seriam
+  // resposta do servidor, não ausência.
+  const carregandoCockpit = coworkAggregates === undefined;
   const faturadoHoje = coworkAggregates?.faturadoHojeTotal ?? 0;
   const pixHoje = coworkAggregates?.pixHojeTotal ?? 0;
   const deltaRev = coworkAggregates?.deltaRevenueVsYesterday ?? null;
@@ -380,8 +390,13 @@ export default function JanaCockpit({
                   <strong className="font-semibold">{totalPendentes}</strong> pendentes
                 </>
               )}
-              . Hoje somou <strong className="font-semibold">{fmtShort(faturadoHoje)}</strong>
-              {deltaRev !== null && (
+              . Hoje somou{' '}
+              {carregandoCockpit ? (
+                <BriefValorSkeleton />
+              ) : (
+                <strong className="font-semibold">{fmtShort(faturadoHoje)}</strong>
+              )}
+              {!carregandoCockpit && deltaRev !== null && (
                 <>
                   {' '}
                   <span
@@ -472,14 +487,18 @@ export default function JanaCockpit({
 
       {/* KPIs (4 cards) ────────────────────────────────────────────────────── */}
       <KpiGrid cols={4}>
-        <KpiCard
-          label="Faturamento mês"
-          value={fmtShort(sparkSum || faturadoHoje)}
-          icon="wallet"
-          tone="default"
-          delta={deltaRev !== null ? { value: deltaRev, label: 'vs ontem' } : undefined}
-          onClick={abrirFat}
-        />
+        {carregandoCockpit ? (
+          <KpiCardSkeleton label="Faturamento mês" />
+        ) : (
+          <KpiCard
+            label="Faturamento mês"
+            value={fmtShort(sparkSum || faturadoHoje)}
+            icon="wallet"
+            tone="default"
+            delta={deltaRev !== null ? { value: deltaRev, label: 'vs ontem' } : undefined}
+            onClick={abrirFat}
+          />
+        )}
         {/* `tone` só enfatiza quando HÁ alerta. O ramo `else` era `success`, que
             pintava o card de VERDE exibindo R$ 0,00 — verde afirmando "bom"
             sobre ausência de dado. A âncora enfatiza UM KPI só, e só no alerta
@@ -505,17 +524,21 @@ export default function JanaCockpit({
           tone="default"
           delta={deltaTicket !== null ? { value: deltaTicket, label: '7d' } : undefined}
         />
-        <KpiCard
-          label="PIX hoje"
-          value={fmtShort(pixHoje)}
-          icon="zap"
-          tone="default"
-          description={
-            faturadoHoje > 0
-              ? `${Math.round((pixHoje / faturadoHoje) * 100)}% do faturado`
-              : '— sem faturamento hoje'
-          }
-        />
+        {carregandoCockpit ? (
+          <KpiCardSkeleton label="PIX hoje" />
+        ) : (
+          <KpiCard
+            label="PIX hoje"
+            value={fmtShort(pixHoje)}
+            icon="zap"
+            tone="default"
+            description={
+              faturadoHoje > 0
+                ? `${Math.round((pixHoje / faturadoHoje) * 100)}% do faturado`
+                : '— sem faturamento hoje'
+            }
+          />
+        )}
       </KpiGrid>
 
       {/* Análises principais ───────────────────────────────────────────────── */}
@@ -569,11 +592,18 @@ export default function JanaCockpit({
               ? { label: `${deltaRev >= 0 ? '+' : ''}${deltaRev}% vs ontem`, tone: deltaRev >= 0 ? 'ok' : 'warn' }
               : undefined
           }
-          big={<span>{fmtShort(sparkSum)}</span>}
+          big={carregandoCockpit ? <BriefValorSkeleton /> : <span>{fmtShort(sparkSum)}</span>}
           onClick={abrirFat}
         >
-          {sparkline.length === 0 ? (
-            <div className="py-2 text-xs text-muted-foreground">Carregando sparkline…</div>
+          {/* Três estados, não dois. O código antigo dizia "Carregando sparkline…"
+              sempre que a série vinha vazia — então um business SEM vendas ficava
+              "carregando" pra sempre, e um carregando de verdade era indistinguível
+              de vazio. `carregandoCockpit` separa os dois; a copy de ausência é a
+              MESMA do contrato (`painel-meta-sem-historico` → "Sem histórico"). */}
+          {carregandoCockpit ? (
+            <SparklineSkeleton />
+          ) : sparkline.length === 0 ? (
+            <div className="py-2 text-xs text-muted-foreground">Sem histórico</div>
           ) : (
             <div className="text-primary">
               <svg viewBox={`0 0 ${sparkline.length * 4} 40`} preserveAspectRatio="none" className="h-10 w-full">
