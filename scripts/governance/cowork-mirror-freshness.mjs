@@ -209,6 +209,11 @@ export function ledgerEntry(rows, dateIso, meta = {}) {
     liveAbsent: n('LIVE-ABSENT'),
     unchecked: n('UNCHECKED'),
     staleList: rows.filter((r) => r.veredito === 'STALE').map((r) => r.cowork),
+    // QUAIS arquivos esta rodada de fato PROVOU idênticos ao vivo. Sem esta lista o ledger
+    // sabe "21 sync" mas não sabe 21 de QUEM — e aí não há como responder a pergunta que o
+    // remendo à mão de 2026-08-13 escapou por 4 dias: "este arquivo mudou DEPOIS da última
+    // vez que alguém provou que ele bate com o vivo?". É o insumo do `--unverified`.
+    verified: rows.filter((r) => r.veredito === 'SYNC').map((r) => r.cowork),
   };
   // `stale` conta o que DIVERGE AGORA. Numa rodada cujo snapshot veio de `--export-from`,
   // isso é sempre 0 por construção — o export consertou antes de medir. `stalePreExport`
@@ -237,6 +242,52 @@ export function ledgerEntry(rows, dateIso, meta = {}) {
  *  parcial como se fosse completa. Por isso o critério é binário e derivado
  *  (`unchecked === 0`), não um limiar inventado: o §5 tem 5 lápides de guard com
  *  corte arbitrário. E a cobertura passa a sair SEMPRE na mensagem. */
+/**
+ * MEXEU-DEPOIS-DE-VERIFICAR (pura, testável) — a defesa que faltava contra remendo à mão.
+ *
+ * O `--compare` responde "o espelho bate com o vivo AGORA?" e não roda em CI (auth
+ * interativa, ADR 0315). Esta função responde outra pergunta, que o CI PODE responder
+ * sozinho porque só precisa de git + ledger: **"que arquivo do espelho foi MODIFICADO
+ * depois da última vez que alguém provou que ele batia com o vivo?"**.
+ *
+ * Por que é o predicado certo: o espelho é build-only. Um arquivo dele só deveria mudar
+ * por `--export-from`, que grava conteúdo idêntico ao vivo e é seguido de `--compare
+ * --ledger`. Commit que mexe no espelho SEM rodada posterior é, por construção, conteúdo
+ * sem prova de fidelidade — foi exatamente o caso do remendo de 2026-08-13 (11 sites
+ * trocados à mão, 33min depois de uma rodada, e ninguém soube por 4 dias).
+ *
+ * NÃO é guard sintático: não olha nome de arquivo, pasta, vocabulário nem mensagem de
+ * commit — compara DUAS DATAS. Escapa da família das 4 lápides de §5 (allowlist-de-pasta
+ * 06-30 · `@scope` 07-09 · vocabulário 130 FP 07-16 · `toHaveKey` 07-26) porque o critério
+ * é determinístico e não tenta ler intenção.
+ *
+ * FORWARD-ONLY (ADR 0275): `NUNCA-VERIFICADO` é categoria SEPARADA e nunca bloqueia — senão
+ * puniria os 100 arquivos de legado que a rotina ainda não cobriu, que é o backfill em massa
+ * que o §5 2026-07-12 mata. Só `MEXIDO-DEPOIS` morde, e ele nasce em 0.
+ *
+ * @param entries  ledger (array de ledgerEntry)
+ * @param arquivos [{ cowork, lastCommitIso }] — data do último commit de cada arquivo
+ */
+export function unverifiedSince(entries, arquivos) {
+  const runs = (Array.isArray(entries) ? entries : []).filter((e) => Array.isArray(e.verified));
+  const ultimaVerificacaoDe = (cowork) => {
+    let melhor = null;
+    for (const r of runs) if (r.verified.includes(cowork) && (!melhor || r.date > melhor)) melhor = r.date;
+    return melhor;
+  };
+  const mexidoDepois = [], nuncaVerificado = [];
+  let ok = 0;
+  for (const a of arquivos) {
+    const verificadoEm = ultimaVerificacaoDe(a.cowork);
+    if (!verificadoEm) { nuncaVerificado.push(a.cowork); continue; }
+    // sem data de commit não se afirma nada (arquivo novo não-commitado): não é achado
+    if (a.lastCommitIso && a.lastCommitIso > verificadoEm) {
+      mexidoDepois.push({ cowork: a.cowork, verificadoEm, commitadoEm: a.lastCommitIso });
+    } else ok++;
+  }
+  return { mexidoDepois, nuncaVerificado, ok, comLedger: runs.length };
+}
+
 export function slaVerdict(entries, nowIso, days = SLA_DAYS) {
   if (!Array.isArray(entries) || entries.length === 0) return { veredito: 'NEVER-RAN', last: null, ageDays: null };
   const last = entries[entries.length - 1];
@@ -730,6 +781,69 @@ function main() {
     process.exit(1);
   }
 
+  // --lista-download <list_files.json>: A LISTA, derivada — nunca um .md commitado.
+  //
+  // Responde as DUAS perguntas com o MESMO insumo (1 chamada de `list_files`, sem conteúdo,
+  // barata — ao contrário do `--compare`, que precisa de N `get_file`):
+  //   1. "o que falta baixar?"        → manifesto − já verificados − o que não existe no vivo
+  //   2. "apareceu arquivo novo?"     → `liveOnly()` (reusa o dono, não reimplementa)
+  //
+  // POR QUE É COMANDO E NÃO DOCUMENTO: uma lista de 121 arquivos com hash e status apodrece no
+  // próximo export — é escrito+lembrado (ADR 0256). O `.md` que eu gerei à mão em 2026-08-17
+  // listava 3 arquivos que dão HTTP 404, porque foi derivado do ESPELHO sem cruzar com o dono
+  // do inventário do VIVO. Aqui o cruzamento é obrigatório: sem o `list_files` o modo recusa.
+  const ldIdx = argv.indexOf('--lista-download');
+  if (ldIdx !== -1) {
+    const lp = argv[ldIdx + 1];
+    if (!lp || !existsSync(lp)) {
+      console.error('✗ --lista-download exige o JSON do DesignSync.list_files (é ele que diz o que existe no vivo).');
+      console.error('  Sem ele a lista mente: em 2026-08-17 ela recomendou 3 arquivos que voltaram 404.');
+      process.exit(2);
+    }
+    const raw = JSON.parse(readFileSync(lp, 'utf8'));
+    const vivos = new Set(Array.isArray(raw) ? raw : (raw.paths || []));
+    const manifest = buildManifest(ROOT, { shellHtml: lerShellHtml() });
+    const ledgerRaw = existsSync(join(ROOT, LEDGER_REL)) ? JSON.parse(readFileSync(join(ROOT, LEDGER_REL), 'utf8')) : [];
+    const runs = Array.isArray(ledgerRaw) ? ledgerRaw : (ledgerRaw.runs || []);
+    const verificados = new Set();
+    for (const r of runs) (r.verified || []).forEach((v) => verificados.add(v));
+
+    const linhas = manifest.map((f) => {
+      const abs = join(ROOT, f.repoPath);
+      const bytes = existsSync(abs) ? statSync(abs).size : 0;
+      const estado = !vivos.has(f.cowork) ? 'SO-NO-ESPELHO'
+        : verificados.has(f.cowork) ? 'VERIFICADO' : 'A-BAIXAR';
+      return { ...f, bytes, estado };
+    }).sort((a, b) => b.bytes - a.bytes);
+
+    const g = (e) => linhas.filter((l) => l.estado === e);
+    // ⚠️ liveOnly PRECISA do manifesto COMPLETO (all:true) — o do shell tem só as âncoras+deps,
+    // e usá-lo aqui acusaria como "novo no vivo" todo arquivo do espelho fora do shell.
+    // Medido: com o manifesto do shell dava dezenas de FP (`prototipo-ui-patch/**`); com o
+    // completo dá 10, o mesmo número do `--live-only`, que é o dono desta pergunta.
+    const novos = liveOnly([...vivos], buildManifest(ROOT, { all: true, shellHtml: lerShellHtml() }));
+    const telaNova = novos.filter((p) => /-page\.(jsx|css)$/.test(p) || /^[^/]+-(page|merge)\.jsx$/.test(p));
+
+    console.log(`\n  LISTA DE DOWNLOAD — manifesto do shell × vivo × ledger\n`);
+    console.log(`  ${'ARQUIVO'.padEnd(52)} ${'BYTES'.padStart(8)}  HASH(espelho)`);
+    for (const l of g('A-BAIXAR')) console.log(`  ${l.cowork.padEnd(52)} ${String(l.bytes).padStart(8)}  ${l.repoHash.slice(0, 16)}`);
+    console.log(`\n  ⬇ A BAIXAR: ${g('A-BAIXAR').length}  ·  ✓ verificados: ${g('VERIFICADO').length}  ·  ❌ só-no-espelho (baixar dá 404): ${g('SO-NO-ESPELHO').length}`);
+    for (const l of g('SO-NO-ESPELHO')) console.log(`     ❌ ${l.cowork}  — origem externa ou poda; ver FORA_DESTA_CONTA em protocolo.config.mjs`);
+
+    console.log(`\n  🆕 NOVO NO VIVO (nunca desceu): ${novos.length}${telaNova.length ? ` — dos quais ${telaNova.length} parecem PROTÓTIPO DE TELA` : ''}`);
+    for (const p of novos) console.log(`     ${telaNova.includes(p) ? '🔴' : '·'} ${p}`);
+    if (!novos.length) console.log('     (nenhum — o espelho cobre tudo que o vivo tem)');
+
+    if (argv.includes('--json')) {
+      console.log('\n' + JSON.stringify({ aBaixar: g('A-BAIXAR'), verificados: g('VERIFICADO'), soNoEspelho: g('SO-NO-ESPELHO'), novoNoVivo: novos, telaNova }, null, 2));
+    }
+    // Morde só no caso que ESCONDEU o jana-merge.jsx: protótipo de tela novo no vivo,
+    // invisível pro espelho. O resto é lista pro humano — decidir o que versionar é do [W].
+    if (argv.includes('--check') && telaNova.length) { console.log('\n  ⛔ protótipo de tela novo no vivo e ausente do espelho — foi assim que o jana-merge.jsx ficou 3 meses invisível.'); process.exit(1); }
+    console.log('');
+    return;
+  }
+
   // --live-only <lista.json>: o LADO CEGO. Recebe a saída do DesignSync.list_files
   // ({paths:[…]} ou array cru) e mostra o que existe no VIVO e nunca desceu pro espelho.
   // Advisory por desenho: decidir o que merece versionar é do [W]; a máquina só deixa de
@@ -799,6 +913,43 @@ function main() {
       `  Pra medir: o shell precisa carregá-lo, OU rode a rodada com --manifest --all.\n` +
       `  (não muda o exit code: o --check morde só em STALE)\n`,
     );
+    return;
+  }
+
+  // --unverified: quem MEXEU no espelho depois da última prova de fidelidade.
+  // Só git + ledger — roda no CI headless, ao contrário do --compare (auth interativa).
+  if (argv.includes('--unverified')) {
+    // Lápide §5 2026-07-24: data vinda de `git log` num clone RASO mede o PISO, não a história.
+    let raso = false;
+    try { raso = execFileSync('git', ['rev-parse', '--is-shallow-repository']).toString().trim() === 'true'; } catch { /* sem git */ }
+
+    const versionados = execFileSync('git', ['ls-files', MIRROR_REL]).toString().split('\n').filter(Boolean);
+    // UMA passada de log pra todo o diretório: primeira data que aparece por path = a mais recente.
+    const bruto = execFileSync('git', ['log', '--format=@%cI', '--name-only', '--', MIRROR_REL]).toString().split('\n');
+    const dataDe = new Map();
+    let atual = null;
+    for (const ln of bruto) {
+      if (ln.startsWith('@')) { atual = ln.slice(1); continue; }
+      if (ln && atual && !dataDe.has(ln)) dataDe.set(ln, atual);
+    }
+    const arquivos = versionados.map((p) => ({ cowork: p.replace(`${MIRROR_REL}/`, ''), lastCommitIso: dataDe.get(p) || null }));
+
+    const ledger = existsSync(join(ROOT, LEDGER_REL)) ? JSON.parse(readFileSync(join(ROOT, LEDGER_REL), 'utf8')) : [];
+    const r = unverifiedSince(Array.isArray(ledger) ? ledger : (ledger.runs || []), arquivos);
+
+    console.log(`\n  MEXEU-DEPOIS-DE-VERIFICAR — espelho vs ledger (${arquivos.length} arquivo(s) versionado(s))\n`);
+    if (raso) console.log('  ⚠ clone RASO — as datas de commit medem o piso da história, não a história (§5 2026-07-24).\n');
+    if (!r.comLedger) {
+      console.log('  ⬜ nenhuma rodada do ledger registra QUAIS arquivos mediu (campo `verified` nasceu em 2026-08-17).');
+      console.log('     Este modo só tem sinal a partir da próxima `--compare --ledger`. Não é verde: é SEM DADO.\n');
+      process.exit(0);
+    }
+    for (const m of r.mexidoDepois) console.log(`  🔴 MEXIDO-DEPOIS  ${m.cowork}\n       verificado ${m.verificadoEm} · commitado ${m.commitadoEm}`);
+    console.log(`\n  🔴 mexido-depois: ${r.mexidoDepois.length} · ✓ intactos desde a verificação: ${r.ok} · ⬜ nunca verificados: ${r.nuncaVerificado.length}`);
+    if (r.nuncaVerificado.length) console.log('     (nunca-verificado NÃO bloqueia — forward-only, ADR 0275: puni-lo seria backfill em massa do legado)');
+    if (r.mexidoDepois.length) console.log('\n  Conteúdo do espelho mudou sem prova de que bate com o vivo. Rode o ciclo e re-verifique,\n  ou reverta o commit se foi remendo à mão (o espelho é build-only — não tem autor local legítimo).');
+    if (argv.includes('--check') && r.mexidoDepois.length) process.exit(1);
+    console.log('');
     return;
   }
 

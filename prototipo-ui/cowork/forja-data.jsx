@@ -13,15 +13,26 @@ const FORJA_ACTORS = {
   W2: { role: "W2", name: "Wagner aprovador",  kind: "human", color: "oklch(0.52 0.08 250)", desc: "F2 + F4 síncronos" },
 };
 
-// ─── 7 fases (PROTOCOL.md §2) ───
+// ─── 7 fases (PROTOCOL.md §2) — cada fase tem DONO, o que FAZ e o que DESTRAVA a saída ───
 const FORJA_PHASES = [
-  { id: "F0",   label: "Brief",      hue: 250, owner: "W"  },
-  { id: "F1",   label: "Design",     hue: 295, owner: "CC" },
-  { id: "F1.5", label: "Critique",   hue: 270, owner: "CD" },
-  { id: "F2",   label: "Screenshot", hue: 60,  owner: "W2" },
-  { id: "F3",   label: "Code",       hue: 195, owner: "CL" },
-  { id: "F3.5", label: "A11y",       hue: 150, owner: "CA" },
-  { id: "F4",   label: "Merge",      hue: 145, owner: "W2" },
+  { id: "F0",   label: "Brief",      hue: 250, owner: "W",  faz: "você escreve o pedido",             sai: "brief aceito → agente assume" },
+  { id: "F1",   label: "Design",     hue: 295, owner: "CC", faz: "protótipo visual no Cowork",        sai: "handoff + ✓ lido @main" },
+  { id: "F1.5", label: "Critique",   hue: 270, owner: "CD", faz: "avaliação heurística do design",    sai: "score ≥ 80" },
+  { id: "F2",   label: "Screenshot", hue: 60,  owner: "W2", faz: "VOCÊ aprova o visual",              sai: "seu aprovo (gate F2)" },
+  { id: "F3",   label: "Code",       hue: 195, owner: "CL", faz: "implementação Inertia/React real",  sai: "PR aberto + gates verdes" },
+  { id: "F3.5", label: "A11y",       hue: 150, owner: "CA", faz: "acessibilidade WCAG 2.1 AA",        sai: "a11y verde" },
+  { id: "F4",   label: "Merge",      hue: 145, owner: "W2", faz: "VOCÊ funde o PR",                   sai: "merge → entra no changelog" },
+];
+
+// ─── Status de execução (canon taskTokens.ts @main: dot Stripe, ativos primeiro) ───
+// Fase F0→F3.5 só existe pra trabalho do PIPELINE DE TELA; o resto segue este vocabulário.
+const FORJA_STATUS = [
+  { id:"doing",   label:"Fazendo",   hue:250 },
+  { id:"review",  label:"Revisão",   hue:60  },
+  { id:"todo",    label:"A fazer",   hue:250, neutral:true },
+  { id:"blocked", label:"Bloqueada", hue:25  },
+  { id:"backlog", label:"Backlog",   hue:250, neutral:true },
+  { id:"done",    label:"Concluído", hue:150 },
 ];
 
 // ─── Tipos de issue ───
@@ -34,6 +45,7 @@ const FORJA_TYPES = {
   infra: { label: "Infra", hue: 230 },
   doc:   { label: "Doc",   hue: 150 },
   epico: { label: "Épico", hue: 320 },
+  task:  { label: "Task",  hue: 230 },
 };
 
 // ─── Ondas / ciclos (vocabulário nativo: W·FA·Q) ───
@@ -48,20 +60,20 @@ const FORJA_ONDAS = [
 // ─── Backlog (issues) — ancorados em STATUS / COWORK_NOTES / review queue ───
 const FORJA_ISSUES = [
   // ── ÉPICO (agrupa issues por programa, cross-onda) ──
-  { id:"FORJA-160", frescor:"sync", frescorDias:5, titulo:"Épico — Identidade única (roxo canon)", tipo:"epico", prio:"P1", fase:"F1",
+  { id:"FORJA-160", exec:"doing", frescor:"sync", frescorDias:5, titulo:"Épico — Identidade única (roxo canon)", tipo:"epico", prio:"P1", fase:"F1",
     assignee:"CC", onda:null, modulo:"Sistema", origem:"cowork_notes", vinculos:[{k:"adr",v:"0235"}], bloqueado_por:[], children:["FORJA-137","FORJA-138"],
     desc:"Programa de identidade: chrome roxo único + tokens semânticos governados. Mata accent-por-módulo.", subtarefas:[], criados:"CC · 08/06", atualizado:"CC · 08/06", atividade:[] },
   // ── em TRIAGEM (propostos · aguardam analista + aprovação [W]) ──
-  { id:"FORJA-152", estado:"triagem", frescor:"inferido", titulo:"Busca semântica no KB (Meilisearch)", tipo:"tela", prio:"P2", fase:"F0",
+  { id:"FORJA-152", exec:"backlog", estado:"triagem", frescor:"inferido", titulo:"Busca semântica no KB (Meilisearch)", tipo:"tela", prio:"P2", fase:"F0",
     assignee:"CC", onda:null, modulo:"KB", origem:"agente_mcp", vinculos:[{k:"adr",v:"0033"}], bloqueado_por:[],
     desc:"Proposto: busca semântica no KB via Meilisearch, além do substring atual.", subtarefas:[], criados:"agente · agora", atualizado:"agente · agora", atividade:[] },
-  { id:"FORJA-151", estado:"triagem", frescor:"inferido", titulo:"Bug: drawer financeiro corta o valor no dark", tipo:"bug", prio:"P1", fase:"F0",
+  { id:"FORJA-151", exec:"backlog", estado:"triagem", frescor:"inferido", titulo:"Bug: drawer financeiro corta o valor no dark", tipo:"bug", prio:"P1", fase:"F0",
     assignee:"CC", onda:null, modulo:"Financeiro", origem:"cowork_notes", vinculos:[], bloqueado_por:[],
     desc:"Relato [W]: o valor do hero do drawer some no tema escuro.", subtarefas:[], criados:"W · agora", atualizado:"W · agora", atividade:[] },
-  { id:"FORJA-150", estado:"triagem", frescor:"inferido", titulo:"Rename inbox → Atendimento na topnav", tipo:"refino", prio:"P3", fase:"F0",
+  { id:"FORJA-150", exec:"backlog", estado:"triagem", frescor:"inferido", titulo:"Rename inbox → Atendimento na topnav", tipo:"refino", prio:"P3", fase:"F0",
     assignee:"CC", onda:null, modulo:"Atendimento", origem:"cowork_notes", vinculos:[], bloqueado_por:[],
     desc:"Cosmético: ajustar label da topnav.", subtarefas:[], criados:"W · agora", atualizado:"W · agora", atividade:[] },
-  { id:"FORJA-142", frescor:"lido", titulo:"Sells/Create — P0 do piloto ROTA LIVRE", tipo:"tela", prio:"P0", fase:"F1",
+  { id:"FORJA-142", exec:"doing", frescor:"lido", titulo:"Sells/Create — P0 do piloto ROTA LIVRE", tipo:"tela", prio:"P0", fase:"F1",
     assignee:"CC", onda:"v1.1", modulo:"Vendas", origem:"review_queue",
     vinculos:[{k:"adr",v:"0114"},{k:"sessao",v:"2026-06-03-vendas"}], bloqueado_por:[],
     desc:"Núcleo do POS de balcão. localStorage per-business `b<bizId>.` (multi-tenant Tier 0). Densidade alta, atalhos de teclado, monitor 1280×1024.",
@@ -71,55 +83,55 @@ const FORJA_ISSUES = [
       {ator:"W", t:"deu foco — aguarda 'vai' + ordem", quando:"03/06"},
       {ator:"CC", t:"reconciliou charter v2 ao git v6", quando:"03/06"},
     ]},
-  { id:"FORJA-141", frescor:"sync", frescorDias:2, titulo:"Completar §TEMPERO (--sh/--ease/--t/--atmo) na fundação", tipo:"infra", prio:"P0", fase:"F3",
+  { id:"FORJA-141", exec:"doing", frescor:"sync", frescorDias:2, titulo:"Completar §TEMPERO (--sh/--ease/--t/--atmo) na fundação", tipo:"infra", prio:"P0", fase:null,
     assignee:"CL", onda:"FA-1", modulo:"Financeiro", origem:"cowork_notes",
     vinculos:[{k:"pr",v:"#?"},{k:"sessao",v:"2026-06-11-financeiro-diff"}], bloqueado_por:[],
     desc:"PR-4 aplicou só ½ da autorização [W] 06-10: tempero não landou em foundations/cockpit/inertia. Tier 0 (fundação) já autorizado.",
     subtarefas:[{t:"--sh-1/2 par dark",done:false},{t:"--ease curva única",done:false},{t:"--atmo no body",done:false}],
     criados:"CC · 11/06", atualizado:"CL · 12/06",
     atividade:[{ator:"CC", t:"diff ×main: §TEMPERO = 0 em foundations", quando:"11/06"}]},
-  { id:"FORJA-140", frescor:"inferido", titulo:"Snap 314 font-size hardcoded ao ramp --fs-1..9", tipo:"refino", prio:"P1", fase:"F3",
+  { id:"FORJA-140", exec:"blocked", frescor:"inferido", titulo:"Snap 314 font-size hardcoded ao ramp --fs-1..9", tipo:"refino", prio:"P1", fase:"F3",
     assignee:"CL", onda:"FA-2", modulo:"Financeiro", origem:"cowork_notes",
     vinculos:[{k:"adr",v:"0253"}], bloqueado_por:["FORJA-141"],
     desc:"Ramp existe em foundations.css + G8 ratchet, mas adoção no fin live = 0 (var(--fs-)). 314 font-size fora (bundle 208 · output 57 · curadoria 18).",
     subtarefas:[{t:"bundle 208",done:false},{t:"output 57",done:false}],
     criados:"CC · 11/06", atualizado:"CC · 11/06", atividade:[]},
-  { id:"FORJA-139", frescor:"lido", titulo:"G-3 E2E Playwright → pull_request + required", tipo:"gate", prio:"P1", fase:"F3",
+  { id:"FORJA-139", exec:"doing", frescor:"lido", titulo:"G-3 E2E Playwright → pull_request + required", tipo:"gate", prio:"P1", fase:null,
     assignee:"CL", onda:"Q1", modulo:"Sistema", origem:"cowork_notes",
     vinculos:[{k:"adr",v:"0264"},{k:"pr",v:"#run 27233429304"}], bloqueado_por:[],
     desc:"e2e-gate.yml ainda workflow_dispatch manual não-required. Harness reconstruído (MySQL service + visreg-login bypass). Faltam 2 verdes pré-flip.",
     subtarefas:[{t:"harness estável",done:true},{t:"2 verdes em PR",done:false},{t:"flip required",done:false}],
     criados:"CL · 09/06", atualizado:"CL · 09/06",
     atividade:[{ator:"CL", t:"run verde em branch (não conta p/ os 2)", quando:"09/06"}]},
-    { id:"FORJA-138", frescor:"sync", frescorDias:8, parent:"FORJA-160", titulo:"Compras: ilha #1f3a5f → roxo canon", tipo:"refino", prio:"P2", fase:"F3",
+    { id:"FORJA-138", exec:"doing", frescor:"sync", frescorDias:8, parent:"FORJA-160", titulo:"Compras: ilha #1f3a5f → roxo canon", tipo:"refino", prio:"P2", fase:"F3",
     assignee:"CL", onda:null, modulo:"Compras", origem:"cowork_notes",
     vinculos:[{k:"adr",v:"0235"}], bloqueado_por:[],
     desc:"Única ilha git confirmada (cowork-compras-bundle.css@main = hex #1f3a5f). Censo provou que Sells/Financeiro já eram roxo — era espelho local stale.",
     subtarefas:[{t:"swap --cmp-* → --accent",done:false}],
     criados:"CC · 08/06", atualizado:"CC · 08/06", atividade:[]},
-    { id:"FORJA-137", frescor:"inferido", parent:"FORJA-160", titulo:"ADR — token --origin-DEV (selo da Forja)", tipo:"adr", prio:"P2", fase:"F0",
+    { id:"FORJA-137", exec:"review", frescor:"inferido", parent:"FORJA-160", titulo:"ADR — token --origin-DEV (selo da Forja)", tipo:"adr", prio:"P2", fase:null,
     assignee:"W", onda:null, modulo:"Sistema", origem:"agente_mcp",
     vinculos:[{k:"adr",v:"0235"}], bloqueado_por:[],
     desc:"Teal oklch(0.52 0.09 195) só pros SELOS de proveniência/changelog — não accent de chrome (chrome = roxo canon). Token novo no @theme = Tier 0, decisão [W].",
     subtarefas:[{t:"proposta _PROPOSTA-*",done:true},{t:"[W] decide",done:false},{t:"[CL] numera",done:false}],
     criados:"CC · 16/06", atualizado:"CC · 16/06",
     atividade:[{ator:"CC", t:"proposto via refutação (chrome teal violaria identidade única)", quando:"16/06"}]},
-  { id:"FORJA-136", frescor:"sync", frescorDias:7, titulo:"Financeiro — pilar Fiscal (parado em 5,5)", tipo:"tela", prio:"P1", fase:"F1",
+  { id:"FORJA-136", exec:"todo", frescor:"sync", frescorDias:7, titulo:"Financeiro — pilar Fiscal (parado em 5,5)", tipo:"tela", prio:"P1", fase:"F1",
     assignee:"CC", onda:null, modulo:"Financeiro", origem:"review_queue",
     vinculos:[{k:"sessao",v:"2026-06-09-reavaliacao"}], bloqueado_por:[],
     desc:"Único pilar parado da reavaliação: Caixa 8,5 · Concil 7,5 · Cobrança 8,0 · IA/DRE 8,0 · Fiscal 5,5. Censo do módulo Fiscal ANTES (Regra 7).",
     subtarefas:[{t:"censo módulo Fiscal",done:false}], criados:"CC · 09/06", atualizado:"CC · 09/06", atividade:[]},
-  { id:"FORJA-135", frescor:"inferido", titulo:"Rename ds-v5 → ds-v6 no git (ADR 0244)", tipo:"infra", prio:"P2", fase:"F3",
+  { id:"FORJA-135", exec:"todo", frescor:"inferido", titulo:"Rename ds-v5 → ds-v6 no git (ADR 0244)", tipo:"infra", prio:"P2", fase:null,
     assignee:"CL", onda:null, modulo:"Sistema", origem:"cowork_notes",
     vinculos:[{k:"adr",v:"0244"}], bloqueado_por:[],
     desc:"Cowork já renomeou local (host repontado, testado). Git ainda diz ds-v5 — rename enfileirado pro [CL].",
     subtarefas:[], criados:"CC · 04/06", atualizado:"CC · 04/06", atividade:[]},
-  { id:"FORJA-134", frescor:"inferido", titulo:"Painel de saúde — frescor do censo de gates", tipo:"infra", prio:"P3", fase:"F1",
+  { id:"FORJA-134", exec:"backlog", frescor:"inferido", titulo:"Painel de saúde — frescor do censo de gates", tipo:"infra", prio:"P3", fase:null,
     assignee:"CC", onda:null, modulo:"Sistema", origem:"agente_mcp",
     vinculos:[], bloqueado_por:[],
     desc:"memory-health.js ganha check de frescor (carimbo >14d = 🔴) → obriga re-derivar a tabela de gates por idade. Cada métrica linka a ação.",
     subtarefas:[], criados:"CC · 04/06", atualizado:"CC · 04/06", atividade:[]},
-  { id:"FORJA-133", frescor:"sync", frescorDias:4, titulo:"Sync now: endereço cliente ↔ venda", tipo:"bug", prio:"P2", fase:"F1",
+  { id:"FORJA-133", exec:"todo", frescor:"sync", frescorDias:4, titulo:"Sync now: endereço cliente ↔ venda", tipo:"bug", prio:"P2", fase:"F1",
     assignee:"CC", onda:null, modulo:"Vendas", origem:"cowork_notes",
     vinculos:[{k:"sessao",v:"2026-06-12-vendas"}], bloqueado_por:[],
     desc:"Comentário [W] aberto na lista de Vendas. Plano de contas + sync de endereço.",
@@ -204,9 +216,67 @@ const FORJA_HANDOFFS = [
     nota:"ack diz verde, mas a11y do PR ainda vermelho — CONFLITO" },
 ];
 
+// ─── Placar por agente (Hoje) — agregação mockada do que JÁ existe: cc_sessions (custo/sessões),
+// handoffs (critique F1.5 + retrabalho=blocked), tokens (quota BRL), heartbeat (lastIngest por papel) ───
+const FORJA_AGENT_STATS = [
+  { role:"CC", heartbeat:"há 2 min", hbOk:true,  sessoesHoje:4, custoHoje:38.20, quotaDia:120, critique:[82,88,86,91], retrabalho:1, entregas:9 },
+  { role:"CD", heartbeat:"há 3 h",   hbOk:true,  sessoesHoje:1, custoHoje:6.10,  quotaDia:40,  critique:[80,84,85,88], retrabalho:0, entregas:5 },
+  { role:"CL", heartbeat:"há 1 h",   hbOk:true,  sessoesHoje:2, custoHoje:22.75, quotaDia:100, critique:[90,86,88,92], retrabalho:1, entregas:7 },
+  { role:"CA", heartbeat:"há 2 d",   hbOk:false, sessoesHoje:0, custoHoje:0,     quotaDia:30,  critique:[78,81],       retrabalho:0, entregas:2 },
+  { role:"AN", heartbeat:"há 8 min", hbOk:true,  sessoesHoje:3, custoHoje:4.90,  quotaDia:20,  critique:[84,86,84],    retrabalho:0, entregas:12 },
+];
+
+// ─── Tamanho P/M/G (L-3) — responde "cabe na onda?"; ponto/hora não se aplica com agente na esteira ───
+const FORJA_TAM = { "FORJA-160":"GG","FORJA-152":"M","FORJA-151":"P","FORJA-150":"P","FORJA-142":"G","FORJA-141":"M","FORJA-140":"G","FORJA-139":"M","FORJA-138":"P","FORJA-137":"P","FORJA-136":"M","FORJA-135":"P","FORJA-134":"P","FORJA-133":"P" };
+FORJA_ISSUES.forEach(i => { i.tam = FORJA_TAM[i.id] || "M"; });
+
+// ─── Mesa de Aprovações — funcionários no Claude Code (via MCP) esperando [W] ───
+// pessoa = humano da equipe; a sessão é o Claude Code trabalhando EM NOME dela (selo agente×humano do CcSessions)
+const FORJA_AO_VIVO = [
+  { pessoa:"Felipe",  nivel:"senior",  status:"aguardando", fazendo:"Plano PJBank pronto — espera seu aval",            custoHoje:"R$ 14,20", ha:"agora" },
+  { pessoa:"Maiara",  nivel:"junior",  status:"executando", fazendo:"Corrigindo dark do drawer (3 arquivos)",           custoHoje:"R$ 6,75",  ha:"há 2 min" },
+  { pessoa:"Luiz",    nivel:"artista", status:"aguardando", fazendo:"Screenshot da Oficina pronto pro F2",              custoHoje:"R$ 2,10",  ha:"há 9 min" },
+  { pessoa:"Eliana",  nivel:"junior",  status:"offline",    fazendo:"—",                                               custoHoje:"R$ 0,00",  ha:"ontem 17:40" },
+];
+const FORJA_APROVACOES = [
+  { id:"AP-306", tipo:"mod", esperaMin:180, pessoa:"Eliana", nivel:"junior", titulo:"NF-e: tratar rejeição 539 (duplicidade) no reenvio", modulo:"Fiscal", espera:"há 3 h", sessao:"cc-8790", vinculo:"FORJA-136",
+    resumo:"Reenvio com mesmo nNF gerava 539 em loop. Passa a consultar situação antes e reaproveitar autorização quando a SEFAZ já tem a nota.",
+    arquivos:[{ f:"Modules/Fiscal/Services/NfeReenvioService.php", add:6, del:2 }],
+    gates:{ "ui:lint":"green", conformance:"green", "e2e":"green" } },
+  { id:"AP-309", tipo:"mod", esperaMin:65, pessoa:"Maiara", nivel:"junior", titulo:"Fix: drawer financeiro corta o valor no dark", modulo:"Financeiro", espera:"há 1 h", sessao:"cc-8815", vinculo:"FORJA-151",
+    resumo:"O hero do drawer usava cor fixa clara; no dark o valor sumia. Troquei pra token semântico e ajustei o contraste do sub-rótulo.",
+    arquivos:[{ f:"resources/css/cockpit.css", add:4, del:1 }, { f:"resources/js/Pages/Financeiro/_components/TituloDrawer.tsx", add:22, del:6 }, { f:"resources/js/Pages/Financeiro/Index.tsx", add:8, del:2 }],
+    gates:{ "ui:lint":"green", conformance:"green", "e2e":"amber" } },
+  { id:"AP-311", tipo:"plano", esperaMin:25, pessoa:"Felipe", nivel:"senior", titulo:"Plano — migrar boletos pro gateway PJBank", modulo:"Financeiro", espera:"há 25 min", sessao:"cc-8812", risco:"médio", custoEst:"R$ 4–6",
+    objetivo:"Tirar a emissão de boleto do banco atual (taxa maior, sem split) e ligar no PJBank mantendo a régua de cobrança intacta. Sem tocar título já emitido.",
+    passos:[{ t:"Contrato de serviço BoletoGateway (interface + adapter atual)" }, { t:"Adapter PJBank com sandbox + testes de emissão/baixa" }, { t:"Feature flag por business_id — piloto ROTA LIVRE", tier0:true }, { t:"Migrar webhooks de baixa (idempotente, replay-safe)" }, { t:"Desligar emissão antiga após 2 ciclos verdes" }],
+    escopo:["Modules/Financeiro/Services/Boleto/*", "Modules/Financeiro/Http/Webhooks/PjbankController.php", "config/gateways.php", "database/migrations/*_add_gateway_to_boletos.php"] },
+  { id:"AP-310", tipo:"design", esperaMin:9, pessoa:"Luiz", nivel:"artista", titulo:"F2 — fila de box da Oficina (re-skin DS v6)", tela:"Oficina — fila de box", espera:"há 9 min", img:"audit-oficina.png",
+    nota:"Re-skin da fila: cards de box com placa Mercosul, semáforo de etapa e drawer lateral. Roxo canon no chrome, sem cor crua. Pronto pro seu aprovo de screenshot." },
+];
+
+// ─── Tasks cross-frente (mock mcp_tasks; fonte única após a fusão PR-6) ───
+const FORJA_TK = [
+  { id: "T-1042", title: "Completar §TEMPERO (--sh/--ease/--atmo) na fundação", module: "Sistema", owner: "claude-code", sprint: "FA-2", priority: "P0", estimate_h: 6, blocked_by: [], status: "doing" },
+  { id: "T-1055", title: "Ghost do Roadmap (Gantt) não alimenta a topnav nova — tela vazia em produção", module: "Forja", owner: "felipe", sprint: "Q1", priority: "P0", estimate_h: 4, blocked_by: [], status: "review" },
+  { id: "T-1039", title: "Snap 314 font-size hardcoded ao ramp --fs-1..9", module: "Financeiro", owner: "claude-code", sprint: "FA-2", priority: "P1", estimate_h: 8, blocked_by: ["T-1042"], status: "blocked" },
+  { id: "T-1047", title: "G-3 E2E Playwright → pull_request + required", module: "Sistema", owner: "felipe", sprint: "Q1", priority: "P1", estimate_h: 5, blocked_by: [], status: "doing" },
+  { id: "T-1050", title: "NF-e rejeição 539: consultar situação antes do reenvio", module: "Fiscal", owner: "eliana", sprint: null, priority: "P1", estimate_h: 3, blocked_by: [], status: "review" },
+  { id: "T-1051", title: "Drawer financeiro corta o valor no dark", module: "Financeiro", owner: "maiara", sprint: null, priority: "P1", estimate_h: 2, blocked_by: [], status: "doing" },
+  { id: "T-1052", title: "F2 — fila de box da Oficina (re-skin DS v6)", module: "Oficina", owner: "luiz", sprint: "FA-2", priority: "P2", estimate_h: 6, blocked_by: [], status: "review" },
+  { id: "T-1031", title: "Jana: drill drawer — filtros J/K ⌘⇧H no Chat", module: "Jana", owner: "claude-code", sprint: null, priority: "P2", estimate_h: 4, blocked_by: [], status: "done" },
+  { id: "T-1044", title: "ADR — token --origin-DEV (selo da Forja)", module: "Sistema", owner: "wagner", sprint: null, priority: "P2", estimate_h: 1, blocked_by: [], status: "todo" },
+  { id: "T-1048", title: "Rename ds-v5 → ds-v6 no git (ADR 0244)", module: "Sistema", owner: "claude-code", sprint: null, priority: "P2", estimate_h: 1, blocked_by: [], status: "todo" },
+  { id: "T-1036", title: "Busca semântica no KB (Meilisearch)", module: "KB", owner: null, sprint: null, priority: "P2", estimate_h: 12, blocked_by: [], status: "backlog" },
+  { id: "T-1053", title: "Censo do módulo Fiscal antes do pilar (Regra 7)", module: "Fiscal", owner: "claude-cc", sprint: null, priority: "P1", estimate_h: 3, blocked_by: [], status: "todo" },
+  { id: "T-1029", title: "RecurringBilling re-skin DS v6 — UI-Judge 90", module: "Cobrança", owner: "claude-code", sprint: null, priority: "P2", estimate_h: 6, blocked_by: [], status: "done" },
+  { id: "T-1054", title: "Painel de saúde — frescor do censo de gates", module: "Sistema", owner: null, sprint: null, priority: "P3", estimate_h: 2, blocked_by: [], status: "backlog" },
+];
+
 window.FORJA = {
   ACTORS: FORJA_ACTORS, PHASES: FORJA_PHASES, TYPES: FORJA_TYPES,
-  ONDAS: FORJA_ONDAS, ISSUES: FORJA_ISSUES, CHANGELOG: FORJA_CHANGELOG, GATES: FORJA_GATES,
+  ONDAS: FORJA_ONDAS, ISSUES: FORJA_ISSUES, CHANGELOG: FORJA_CHANGELOG, GATES: FORJA_GATES, STATUS: FORJA_STATUS,
   MCP_TOOLS: FORJA_MCP_TOOLS, MCP_TOKENS: FORJA_MCP_TOKENS, MCP_AUDIT: FORJA_MCP_AUDIT,
-  HANDOFFS: FORJA_HANDOFFS, HANDOFF_HEARTBEAT: FORJA_HANDOFF_HEARTBEAT,
+  HANDOFFS: FORJA_HANDOFFS, HANDOFF_HEARTBEAT: FORJA_HANDOFF_HEARTBEAT, AGENT_STATS: FORJA_AGENT_STATS,
+  AO_VIVO: FORJA_AO_VIVO, APROVACOES: FORJA_APROVACOES, TK: FORJA_TK,
 };
