@@ -263,7 +263,7 @@ caso e teste a peças que já estavam fechadas. As 3 que faltam seguem sendo dec
   com o motivo, ou entrega? Enquanto não decidido **não entra no contrato** — pinar uma promessa é
   congelá-la. _(Eram **dois**; **Configurar** saiu desta lista em 2026-08-17 — entregou, ver UC-10.
   A pergunta segue idêntica para o que sobrou.)_
-- ⚖️ **Projeção de fechamento das metas** — a âncora mostra "R$ 61k no fechamento" em cada card. Não
+- ⚖️ **Projeção de fechamento das metas** — a âncora mostra "<valor> no fechamento" em cada card. Não
   foi portada porque projetar no frontend é o UC-04 ao contrário (ver UC-11). Se vira produto, o dono
   é `ApuracaoService` — onde `farol` já mora — e a tela só consome. É backend, não wiring.
 - ⚖️ **Seletor de período nas Metas** — a âncora tem 3 janelas clicáveis. `buildMetasPayload` carrega
