@@ -7,19 +7,22 @@ const { useState: useStateP, useMemo: useMemoP } = React;
 // ─── Paleta harmoniosa por categoria (estilo CLI_AVATAR_PALETTE de Clientes:
 //     L/C consistentes ~0.62/0.13, só o hue varia → limpo e vibrante, não "industrial" muddy).
 //     [W] 2026-06-22 "deve pegar as cores do cadastro de clientes… essas são muito feias". ───
+//     Refino 2026-08-08 ("mais no padrão do projeto"): categoria é TAXONOMIA, não status.
+//     No padrão Cockpit só status e o accent roxo têm cor cheia — então a categoria vira
+//     neutro quente com um sopro de hue (croma 0.02–0.03), legível sem virar arco-íris.
 const PMCat = {
-  "Mecânica": { color: "oklch(0.62 0.13 255)", short: "MEC" },
-  "Impressos": { color: "oklch(0.60 0.11 280)", short: "IMP" },
-  "Comunicação Visual": { color: "oklch(0.62 0.14 25)", short: "CV" },
-  "Embalagens": { color: "oklch(0.66 0.13 65)", short: "EMB" },
-  "Adesivos": { color: "oklch(0.64 0.14 45)", short: "ADE" },
-  "Vestuário": { color: "oklch(0.62 0.13 320)", short: "VES" },
-  "Acabamento": { color: "oklch(0.58 0.12 165)", short: "ACB" },
-  "Brindes": { color: "oklch(0.62 0.13 350)", short: "BRI" },
-  "Serviços": { color: "oklch(0.58 0.10 200)", short: "SRV" },
-  "Composições": { color: "oklch(0.64 0.14 145)", short: "KIT" }
+  "Mecânica": { color: "oklch(0.68 0.022 250)", short: "MEC" },
+  "Impressos": { color: "oklch(0.68 0.030 295)", short: "IMP" },
+  "Comunicação Visual": { color: "oklch(0.68 0.026 330)", short: "CV" },
+  "Embalagens": { color: "oklch(0.68 0.026 75)", short: "EMB" },
+  "Adesivos": { color: "oklch(0.68 0.026 40)", short: "ADE" },
+  "Vestuário": { color: "oklch(0.68 0.028 315)", short: "VES" },
+  "Acabamento": { color: "oklch(0.68 0.022 165)", short: "ACB" },
+  "Brindes": { color: "oklch(0.68 0.024 20)", short: "BRI" },
+  "Serviços": { color: "oklch(0.68 0.022 210)", short: "SRV" },
+  "Composições": { color: "oklch(0.68 0.024 145)", short: "KIT" }
 };
-const catColor = (c) => PMCat[c]?.color || "oklch(0.60 0.02 90)";
+const catColor = (c) => PMCat[c]?.color || "oklch(0.68 0.012 90)";
 const catShort = (c) => PMCat[c]?.short || c.slice(0, 3).toUpperCase();
 
 // Mock de prateleira determinístico (a partir do id) — sem mudar PROD_DATA
@@ -82,10 +85,10 @@ function buildPriceTable(p) {
 }
 
 const PM_TYPES = [
-  { key: "all",        label: "Todos",      color: "oklch(0.60 0.02 90)" },
-  { key: "produto",    label: "Produto",    color: "oklch(0.62 0.13 255)" },
-  { key: "servico",    label: "Serviço",    color: "oklch(0.58 0.10 200)" },
-  { key: "composicao", label: "Composição", color: "oklch(0.64 0.14 145)" },
+  { key: "all",        label: "Todos",      color: "oklch(0.68 0.012 90)" },
+  { key: "produto",    label: "Produto",    color: "var(--accent)" },
+  { key: "servico",    label: "Serviço",    color: "oklch(0.68 0.022 210)" },
+  { key: "composicao", label: "Composição", color: "oklch(0.68 0.024 145)" },
 ];
 
 function ProdListPage({ typeFilter = "all", onTypeFilter }) {
@@ -208,7 +211,7 @@ function ProdListPage({ typeFilter = "all", onTypeFilter }) {
       className={"pm-row" + (isOut ? " out" : "") + (openId === p.id ? " sel" : "")}
       style={{ "--row-c": catColor(p.category) }}
       onClick={() => setOpenId(p.id)}>
-        <div className="pm-thumb" style={{ background: catColor(p.category) }}>
+        <div className="pm-thumb" style={{ "--c": catColor(p.category) }}>
           {catShort(p.category)}
         </div>
         <div className="pm-info">
@@ -272,7 +275,7 @@ function ProdListPage({ typeFilter = "all", onTypeFilter }) {
       <div key={p.id}
       className={"pm-card" + (isOut ? " out" : "") + (openId === p.id ? " sel" : "")}
       onClick={() => setOpenId(p.id)}>
-        <div className="pm-img" style={{ background: catColor(p.category) }}>
+        <div className="pm-img" style={{ "--c": catColor(p.category) }}>
           <span className="pm-img-cat">{p.category}</span>
           <span className="pm-img-overlay">{catShort(p.category)}</span>
           <span className="pm-img-id">{p.id}</span>
@@ -523,7 +526,7 @@ function ProdListPage({ typeFilter = "all", onTypeFilter }) {
       {openProd && (() => {
         const t = prodType(openProd);
         const typeLbl = t === "servico" ? "Serviço" : t === "composicao" ? "Composição" : "Produto";
-        const typeColor = t === "servico" ? "oklch(0.58 0.10 200)" : t === "composicao" ? "oklch(0.64 0.14 145)" : "oklch(0.62 0.13 255)";
+        const typeColor = t === "servico" ? "oklch(0.68 0.022 210)" : t === "composicao" ? "oklch(0.68 0.024 145)" : "var(--accent)";
         const best = (openProd.suppliers || []).slice().sort((a, b) => a.cost - b.cost)[0];
         return (
           <>
@@ -533,7 +536,7 @@ function ProdListPage({ typeFilter = "all", onTypeFilter }) {
             <div className="os-drawer-h">
               <div>
                 <div className="pm-drawer-tags">
-                  <span className="pm-drawer-type" style={{ background: typeColor }}>{typeLbl}</span>
+                  <span className="pm-drawer-type" style={{ "--c": typeColor }}>{typeLbl}</span>
                   <span className="pm-drawer-id">{openProd.id}</span>
                   {!openProd.active && <span className="pm-drawer-inact">Inativo</span>}
                 </div>

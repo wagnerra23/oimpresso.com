@@ -44,6 +44,12 @@ try {
   ok(f.floor_count === 2, `floor = interseção {F2,F3} = 2 — got ${f.floor_count}`);
   ok(f.intersection_of === 2, 'intersection_of === 2');
   ok(typeof f.floor_files_hash === 'string' && f.floor_files_hash.length === 16, 'floor_files_hash 16 chars');
+  // O CONJUNTO, não só a contagem — o hash diz "mudou", nunca "mudou o quê". Sem estas
+  // 3 asserções a chave nova é promessa não testada: some num refactor e ninguém percebe,
+  // porque o `floor_count` continuaria verde.
+  ok(Array.isArray(f.floor_files), 'floor_files é array');
+  ok(f.floor_files.length === f.floor_count, `floor_files.length === floor_count — got ${f.floor_files.length} vs ${f.floor_count}`);
+  ok(f.floor_files.join('\n') === [...f.floor_files].sort().join('\n'), 'floor_files ordenado (diff estável entre noites)');
   ok(f.runs.length === 2 && f.runs[0].failed === 3, 'runs[] carrega counts por run');
 
   // 1 run válido → notYet
@@ -77,6 +83,11 @@ try {
   const fp = computeFloor(validRuns(rootS), 3);
   ok(fp.floor_count === null, 'janela com noite PARCIAL → floor_count null (não vira burn-down fake)');
   ok(fp.all_shards_measured === false && fp.partial_runs.includes('20260303-020000'), 'all_shards_measured=false + partial_runs aponta a noite morta');
+  // `null`, NUNCA `[]` — lista vazia afirmaria "nenhum arquivo falha", o oposto de "não medi".
+  // É a mesma família do `0 mortos` num host sem `gh` (§5 2026-07-29): não-medição não pode
+  // colapsar num estado do objeto medido.
+  ok(fp.floor_files === null, 'janela PARCIAL → floor_files null (não [], que afirmaria "nenhum arquivo falha")');
+  ok(computeFloor([], 3).floor_files === null, '0 runs → floor_files null');
   rmSync(rootS, { recursive: true, force: true });
 } finally { rmSync(root, { recursive: true, force: true }); }
 

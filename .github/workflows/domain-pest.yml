@@ -1,0 +1,197 @@
+name: Domain · Pest (MySQL)
+
+# Lane dedicada pra `tests/Feature/Domain/**` — a árvore de teste do KERNEL de
+# domínio (`app/Domain/`), que até hoje NENHUMA lane de CI executava.
+#
+# ── POR QUE EXISTE (varredura contada, 2026-08-17) ───────────────────────────
+# `tests/Feature/Domain/` tem 22 arquivos / 151 casos. Nenhum roda em PR:
+#   · `.github/ci-sqlite-pest.list` (a fonte de PEST_TARGETS do ci.yml) tem 155
+#     alvos e ZERO de `tests/Feature/Domain/` (medido: grep -c = 0).
+#   · Nenhum outro workflow referencia o diretório (varredura em .github/: 0).
+#   · `modules-pest.yml` roda `Modules/<X>/Tests` — a FSM vive em `app/Domain/`,
+#     fora daquele glob.
+#   · As lanes de módulo são path-filtered pros próprios diretórios.
+# 20 arquivos são de `Domain/Fsm/`, 2 de `Domain/Inventory/`.
+#
+# A FSM está LIVE em produção desde 2026-05-12 (ADR 0143) e é o portão de TODA
+# mudança de estado em Sells e Repair; os side-effects dela cancelam NFe na
+# SEFAZ e estornam pagamento. Oito dos testes são Tier 0 pelo nome:
+#   MultiTenantIsolationTest · TransicaoCriticaExigeAutorizacaoTest
+#   CancelarVendaCascadeSideEffectTest · SequencialNfeAposCancelamentoTest
+#   StockReservationsTest · ConsumirEstoqueAuditTest
+#   EstornarBoletoJobTest · SideEffects/InutilizarFaixaNfeTest
+#
+# NÃO é achado novo do zero: o `estoque-pest.yml` (cabeçalho, ~L85) JÁ documenta
+# esta classe pro diretório irmão — "os testes que pareciam cobrir isso NÃO
+# RODAM: tests/Feature/Domain/Inventory/… auto-pulam fora do sqlite e não estão
+# em ci-sqlite-pest.list nem em lane nenhuma → skip-as-pass em todo lugar".
+# Alguém tropeçou, contornou pro Estoque com testes de contrato próprios, e o
+# caso geral ficou aberto. Esta lane fecha os dois slices (Fsm + Inventory).
+#
+# ── ⚠️ O QUE A 1ª EXECUÇÃO MEDIU — e refutou ────────────────────────────────
+# Esta seção dizia: "18 dos 22 pulam fora do MySQL, logo MySQL real os destrava".
+# A 1ª execução (runs 32023204513 no PR e 32024252605 em main) REFUTOU isso:
+#
+#     Tests: 126 skipped, 9 passed (9 assertions)
+#
+# 126 de 135 casos (93%) pulam — e pulam POR CAUSA do MySQL, não apesar dele.
+# Razão verbatim de 108 deles: "era-sqlite: schema sintético manual incompatível
+# com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte
+# depois." Eles são sqlite-only por desenho, parqueados de propósito. A escolha
+# de runtime NÃO é o que os destrava. Os 8 arquivos Tier 0 nomeados acima saíram
+# todos com `assertions: 0` — nenhum provou nada.
+#
+# Logo: esta lane é, HOJE, VERDE POR NÃO-EXECUÇÃO (a classe LC-13 que o commit
+# original dizia querer evitar). Fica declarado no próprio arquivo em vez de
+# escondido — a régua é `assertions`, nunca "0 failed", e ela diz 9.
+#
+# ── O QUE A LANE ENTREGA MESMO ASSIM ────────────────────────────────────────
+# O RECIBO. Antes dela, ninguém sabia que 93% da árvore de teste do kernel de
+# domínio não executa; o artefato `pest-domain-junit-summary` agora publica isso
+# por arquivo, a cada PR. E quando o burn-down converter um teste de sqlite pra
+# MySQL, ele passa a rodar AQUI automaticamente — a lane é o destino, não o
+# problema. É medidor honesto de uma dívida, não prova de cobertura.
+#
+# ── QUEM É O DONO DA DÍVIDA (não é esta lane) ───────────────────────────────
+# ADR 0275 §3 — métrica `n_quarantine` do scorecard SDD, armada em GT-G3
+# REQUIRED, direction down, target 0. Ela media só o marcador
+# `legacy-quarantine` (25 arquivos) e era CEGA a `era-sqlite`: zero dos 8 Tier 0
+# da FSM casava. Ampliada em 2026-08-17 (decisão [W] "flip") pra
+# `legacy-quarantine|era-sqlite` → medido pelo consumidor real: 252. Baseline
+# absorvido 27→252 com nota e marcador BASELINE-ABSORB no mesmo PR.
+# O burn-down agora tem o número REAL pra descer.
+#
+# ── DIFERENÇA DELIBERADA vs as outras *-pest.yml ────────────────────────────
+# As lanes irmãs rodam ALLOWLIST de arquivos comprovadamente verdes, pra manter
+# uma lane required verde. Esta roda o DIRETÓRIO INTEIRO de propósito: o objetivo
+# é DESCOBRIR o estado de 151 casos que ninguém nunca executou. Não é allowlist
+# curada, e não deve ser lida como tal.
+#
+# ── ENFORCEMENT ─────────────────────────────────────────────────────────────
+# Nasce `advisory` (ADR 0275: forward-only, advisory primeiro; promoção é flip
+# [W] com mordida provada, ADR 0336). Advisory = NÃO está em
+# governance/required-checks-baseline.json, logo não bloqueia merge. Advisory
+# NÃO significa "não pode ficar vermelha" (§5 2026-07-09) — por isso NÃO há
+# `continue-on-error` aqui: se um caso Tier 0 falhar, o vermelho é o achado, e
+# escondê-lo reconstruiria o gate-de-teatro que a ADR 0271 deletou.
+#
+# Refs: ADR 0143 (FSM live prod) · ADR 0093 (multi-tenant Tier 0) ·
+#       ADR 0275 (advisory + forward-only) · ADR 0336 (promoção por mordida)
+
+on:
+  workflow_dispatch: {}
+  # pull_request SEM paths (always-run) + skip-as-pass interno via
+  # dorny/paths-filter: se nada do domínio mudou, pula o pesado e conclui verde
+  # (mesmo padrão de essentials-pest/jana-pest — required-ready sem deadlock).
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      # `app/Domain/**` é OBRIGATÓRIO aqui: sem o CÓDIGO sob teste no gatilho,
+      # mexer na FSM não dispararia o teste dela — gate mudo com cara de
+      # cobertura (a pegadinha que o sells-pest.yml documenta no próprio paths:).
+      - 'app/Domain/**'
+      - 'tests/Feature/Domain/**'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/domain-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: domain-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (Domain · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças do domínio (skip-as-pass)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            domain:
+              - 'app/Domain/**'
+              - 'tests/Feature/Domain/**'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/domain-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada do domínio mudou)
+        if: steps.changes.outputs.domain == 'false'
+        run: echo "✅ Sem mudanças em app/Domain ou tests/Feature/Domain — skip-as-pass."
+
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+        if: steps.changes.outputs.domain == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (root view sem build do front)
+        if: steps.changes.outputs.domain == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
+      - name: Run Pest (Domain · MySQL) — DESCOBERTA, não allowlist
+        if: steps.changes.outputs.domain == 'true'
+        # phpunit.xml aponta DB_CONNECTION=sqlite :memory: (sem force="true"), então
+        # a env daqui vence e a suíte roda no MySQL real semeado (biz=1 + biz=2).
+        # Nenhum dos 22 usa RefreshDatabase/migrate:fresh (medido) — o seed sobrevive.
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-domain-junit.xml \
+            tests/Feature/Domain/
+
+      # A régua honesta desta lane é `assertions`, NÃO "0 failed": skip sai exit 0
+      # e 18 dos 22 pulam fora do MySQL. Se o sumário mostrar muitos casos com 0
+      # assertions, a lane NÃO mediu — leia isso antes de comemorar verde (LC-13).
+      - name: Sumário JUnit por arquivo (assertions — a régua contra skip-as-pass)
+        if: always()
+        run: node scripts/tests/junit-summary.mjs test-results/pest-domain-junit.xml --out test-results/pest-domain-junit-summary.json || true
+
+      - name: Upload sumário JUnit (pest-domain-junit-summary)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-domain-junit-summary
+          path: test-results/pest-domain-junit-summary.json
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload JUnit (Domain · MySQL)
+        if: ${{ !cancelled() && steps.changes.outputs.domain == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-domain-junit
+          path: test-results/pest-domain-junit.xml
+          retention-days: 14

@@ -10,6 +10,37 @@
     $userTheme = auth()->check() ? auth()->user()->ui_theme : null;
     $htmlClass = $userTheme === 'dark' ? 'dark' : '';
     $autoMode = $userTheme === null;
+
+    /*
+     * VISREG — relógio do NAVEGADOR congelado (gate visual-regression).
+     *
+     * As suítes de baseline congelam o relógio do PHP com Carbon::setTestNow();
+     * telas que chamam `new Date()` no browser (JanaAreaHeader.tsx:80,
+     * JanaCockpit.tsx:356 e :107) ficavam de fora e faziam a baseline drifar POR
+     * MINUTO. Aqui a outra ponta é fechada: o shim entra no <head> antes do
+     * bundle da app, então `new Date()`/`Date.now()` já nascem congelados.
+     *
+     * Instante = Carbon::parse() do MESMO valor passado ao setTestNow, logo os
+     * dois relógios contam a mesma história.
+     *
+     * GUARDA dupla (igual VisregStateMiddleware): nunca em produção + só com a
+     * env VISREG_FREEZE_CLOCK, que só existe no .env do job visual-regression.
+     * Sem ela, nada é renderizado e o custo é uma comparação de string.
+     */
+    $visregFreezeAt = null;
+    $visregFreezeShim = null;
+    $visregFreezeRaw = config('visreg.freeze_clock');
+
+    if (! app()->isProduction() && is_string($visregFreezeRaw) && $visregFreezeRaw !== '') {
+        $visregShimPath = resource_path('visreg/freeze-clock.js');
+
+        if (is_file($visregShimPath)) {
+            // ->timestamp (segundos) * 1000: o instante do gate não tem fração, e
+            // isso não depende de getTimestampMs() estar disponível na versão do Carbon.
+            $visregFreezeAt = \Illuminate\Support\Carbon::parse($visregFreezeRaw)->timestamp * 1000;
+            $visregFreezeShim = file_get_contents($visregShimPath);
+        }
+    }
 @endphp
 <!DOCTYPE html>
 <html lang="{{ app()->getLocale() }}" class="{{ $htmlClass }}" data-theme="{{ $userTheme ?? 'auto' }}">
@@ -20,6 +51,15 @@
     <meta name="csrf-token" content="{{ csrf_token() }}" />
 
     <title data-inertia>{{ config('app.name', 'OI Impresso') }}</title>
+
+    {{-- VISREG — congela `new Date()`/`Date.now()` do navegador. PRIMEIRO script do
+         <head> de propósito: qualquer coisa que leia o relógio antes dele leria o
+         relógio vivo. Fonte única em `resources/visreg/freeze-clock.js` (lida, não
+         copiada — o bite-test carrega o MESMO arquivo). No-op sem a env
+         VISREG_FREEZE_CLOCK e sempre no-op em produção — ver o @php acima. --}}
+    @if ($visregFreezeShim !== null)
+        <script>window.__VISREG_FREEZE_AT__ = {{ $visregFreezeAt }};{!! $visregFreezeShim !!}</script>
+    @endif
 
     {{-- IBM Plex Sans/Mono — SELF-HOSTED desde 2026-07-16 (ITEM 7 · 3c). O <link> do
          Google Fonts (`display=swap`) saiu daqui: os @font-face agora vêm de

@@ -4,13 +4,13 @@
 // ───────────────────────── FORNECEDORES ─────────────────────────
 // Vocabulário: Categoria · Lead time · Frequência · A pagar · Crítico
 window.SUPPLIERS = [
-  { id:"f-1", name:"Papel & Cia Distribuidora",  doc:"22.111.333/0001-44", contact:"Carlos Bertoni",   phone:"(11) 3344-5566", category:"Papel",     leadDays:7,  freq:"semanal",   aPagar:18420, dueDate:"2026-05-30", lastOrder:"2026-05-22", openOrders:3, critical:false, tags:["preferido"] },
-  { id:"f-2", name:"Tintas Brasil S/A",          doc:"33.222.444/0001-55", contact:"Mariana Lopes",    phone:"(11) 2233-4455", category:"Tinta",     leadDays:14, freq:"mensal",    aPagar:0,     dueDate:"—",          lastOrder:"2026-05-12", openOrders:1, critical:false, tags:["homologado"] },
+  { id:"f-1", name:"Papel & Cia Distribuidora",  doc:"22.111.333/0001-44", contact:"Carlos Bertoni",   phone:"(11) 3344-5566", category:"Papel",     leadDays:7,  freq:"semanal",   aPagar:18420, dueDate:"2026-05-30", lastOrder:"2026-05-06", openOrders:3, critical:false, tags:["preferido"] },
+  { id:"f-2", name:"Tintas Brasil S/A",          doc:"33.222.444/0001-55", contact:"Mariana Lopes",    phone:"(11) 2233-4455", category:"Tinta",     leadDays:14, freq:"mensal",    aPagar:0,     dueDate:"—",          lastOrder:"2026-05-02", openOrders:1, critical:false, tags:["homologado"] },
   { id:"f-3", name:"Chapas & Bobinas Norte",     doc:"44.333.555/0001-66", contact:"Roberto Aoki",     phone:"(41) 3322-6677", category:"Substrato", leadDays:21, freq:"mensal",    aPagar:34800, dueDate:"2026-06-05", lastOrder:"2026-05-08", openOrders:2, critical:true,  tags:["alto-ticket"] },
-  { id:"f-4", name:"Plotter Suprimentos LTDA",   doc:"55.444.666/0001-77", contact:"Júlia Tanaka",     phone:"(11) 4455-7788", category:"Insumo",    leadDays:3,  freq:"semanal",   aPagar:5240,  dueDate:"2026-05-27", lastOrder:"2026-05-23", openOrders:1, critical:false, tags:["express"] },
-  { id:"f-5", name:"Embalagens RJ",              doc:"66.555.777/0001-88", contact:"Hugo Pacheco",     phone:"(21) 2233-9988", category:"Embalagem", leadDays:10, freq:"quinzenal", aPagar:9800,  dueDate:"2026-06-02", lastOrder:"2026-05-18", openOrders:0, critical:false, tags:[] },
+  { id:"f-4", name:"Plotter Suprimentos LTDA",   doc:"55.444.666/0001-77", contact:"Júlia Tanaka",     phone:"(11) 4455-7788", category:"Insumo",    leadDays:3,  freq:"semanal",   aPagar:5240,  dueDate:"2026-05-27", lastOrder:"2026-05-07", openOrders:1, critical:false, tags:["express"] },
+  { id:"f-5", name:"Embalagens RJ",              doc:"66.555.777/0001-88", contact:"Hugo Pacheco",     phone:"(21) 2233-9988", category:"Embalagem", leadDays:10, freq:"quinzenal", aPagar:9800,  dueDate:"2026-06-02", lastOrder:"2026-04-29", openOrders:0, critical:false, tags:[] },
   { id:"f-6", name:"Solventes & Químicos Sul",   doc:"77.666.888/0001-99", contact:"Diego Marçal",     phone:"(51) 3344-1122", category:"Químico",   leadDays:30, freq:"trimestral",aPagar:0,     dueDate:"—",          lastOrder:"2026-02-14", openOrders:0, critical:true,  tags:["risco"] },
-  { id:"f-7", name:"Serv. Acabamento Pronta",    doc:"88.777.999/0001-10", contact:"Bianca Reis",      phone:"(11) 5566-3344", category:"Serviço",   leadDays:5,  freq:"sob demanda",aPagar:12300,dueDate:"2026-05-29", lastOrder:"2026-05-21", openOrders:4, critical:false, tags:["terceiro"] },
+  { id:"f-7", name:"Serv. Acabamento Pronta",    doc:"88.777.999/0001-10", contact:"Bianca Reis",      phone:"(11) 5566-3344", category:"Serviço",   leadDays:5,  freq:"sob demanda",aPagar:12300,dueDate:"2026-05-29", lastOrder:"2026-05-05", openOrders:4, critical:false, tags:["terceiro"] },
 ];
 
 // ───────────────────────── FUNCIONÁRIOS ─────────────────────────
@@ -28,9 +28,23 @@ window.EMPLOYEES = [
 // ───────────────────────── REPRESENTANTES ─────────────────────────
 // Vocabulário: Região · Comissão % · Carteira · Vendas mês · A pagar comissão
 window.REPRESENTATIVES = [
-  { id:"r-1", name:"Beto Vendas (BV Rep.)",   doc:"99.888.777/0001-66", contact:"Beto Carvalho",  phone:"(11) 99887-7766", regions:["SP","MG"],      pct:8,  portfolio:34, vendasMes:48720, aPagarComissao:3898, lastDeal:"2026-05-23", status:"ativo",     tags:["top-1","sp-capital"] },
-  { id:"r-2", name:"NorteSul Comercial",      doc:"88.777.666/0001-55", contact:"Camila Souza",   phone:"(51) 98765-4321", regions:["RS","SC","PR"], pct:7,  portfolio:21, vendasMes:24380, aPagarComissao:1707, lastDeal:"2026-05-20", status:"ativo",     tags:["sul"] },
+  { id:"r-1", name:"Beto Vendas (BV Rep.)",   doc:"99.888.777/0001-66", contact:"Beto Carvalho",  phone:"(11) 99887-7766", regions:["SP","MG"],      pct:8,  portfolio:34, vendasMes:48720, aPagarComissao:3898, lastDeal:"2026-05-07", status:"ativo",     tags:["top-1","sp-capital"] },
+  { id:"r-2", name:"NorteSul Comercial",      doc:"88.777.666/0001-55", contact:"Camila Souza",   phone:"(51) 98765-4321", regions:["RS","SC","PR"], pct:7,  portfolio:21, vendasMes:24380, aPagarComissao:1707, lastDeal:"2026-05-04", status:"ativo",     tags:["sul"] },
   { id:"r-3", name:"Triângulo Mineiro Rep.",  doc:"77.666.555/0001-44", contact:"Lúcio Marques",  phone:"(34) 99887-1234", regions:["MG"],           pct:6,  portfolio:12, vendasMes:8240,  aPagarComissao:494,  lastDeal:"2026-04-18", status:"ociosa",    tags:[] },
+];
+
+// ───────────────────────── OUTROS (ADR 0246) ─────────────────────────
+// Cadastros sem CPF/CNPJ obrigatório: prospect, lead, contato avulso e a massa
+// que veio da migração do WR Comercial (TIPO='O'). Convertem em cliente/fornecedor
+// pelos chips de papel, sem tela dedicada.
+window.OTHERS = [
+  { id:"o-1", name:"Padaria do Zé (orçamento fachada)", doc:"",                   contact:"José Nunes",      phone:"(11) 98812-4477", origem:"Balcão",      interesse:"Fachada em ACM 4×1,2m",        criadoEm:"2026-05-02", ultimoContato:"2026-05-06", responsavel:"Larissa" },
+  { id:"o-2", name:"Marcos (indicação Beto)",           doc:"",                   contact:"Marcos Vieira",   phone:"(11) 99654-3321", origem:"Indicação",   interesse:"Adesivo de frota — 6 veículos", criadoEm:"2026-04-28", ultimoContato:"2026-05-04", responsavel:"Beto" },
+  { id:"o-3", name:"Escola Novo Saber",                 doc:"12.888.444/0001-21", contact:"Coord. Fabiana",  phone:"(11) 3355-9090",  origem:"Site",        interesse:"Sinalização interna",           criadoEm:"2026-03-19", ultimoContato:"2026-03-22", responsavel:"Larissa" },
+  { id:"o-4", name:"Contato feira Expoprint",           doc:"",                   contact:"Renata (crachá)", phone:"(41) 99123-8080", origem:"Feira",       interesse:"Banner e totem pra estande",    criadoEm:"2026-02-11", ultimoContato:"2026-02-11", responsavel:"Wagner" },
+  { id:"o-5", name:"Auto Elétrica Silva",               doc:"",                   contact:"Silvinho",        phone:"(11) 2244-6655", origem:"Migração WR", interesse:"—",                             criadoEm:"2019-07-03", ultimoContato:"2021-09-14", responsavel:"—" },
+  { id:"o-6", name:"Mercadinho Bom Preço",              doc:"",                   contact:"Dona Neusa",      phone:"(11) 2299-3344", origem:"Migração WR", interesse:"—",                             criadoEm:"2018-03-22", ultimoContato:"2020-11-08", responsavel:"—" },
+  { id:"o-7", name:"Studio Pilates Corpo Leve",         doc:"",                   contact:"Aline",           phone:"(11) 97744-1122", origem:"WhatsApp",    interesse:"Letra caixa iluminada",         criadoEm:"2026-05-05", ultimoContato:"2026-05-05", responsavel:"Larissa" },
 ];
 
 // ───────────────────────── COUNTS GLOBAIS ─────────────────────────
@@ -40,9 +54,11 @@ window.PEOPLE_COUNTS = {
   supplier:       window.SUPPLIERS.length,
   employee:       window.EMPLOYEES.length,
   representative: window.REPRESENTATIVES.length,
+  other:          window.OTHERS.length,
 };
 window.PEOPLE_COUNTS.all =
   window.PEOPLE_COUNTS.customer +
   window.PEOPLE_COUNTS.supplier +
   window.PEOPLE_COUNTS.employee +
-  window.PEOPLE_COUNTS.representative;
+  window.PEOPLE_COUNTS.representative +
+  window.PEOPLE_COUNTS.other;

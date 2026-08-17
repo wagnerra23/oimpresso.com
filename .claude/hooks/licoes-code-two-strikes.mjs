@@ -210,9 +210,42 @@ export function parseTombstones(text) {
   return tombs;
 }
 
+/** A linha de recibo é PROSA com datas interleavadas. Antes de procurar data, remove o que
+ *  NÃO é citação: o ALVO de link markdown (nome de arquivo — `0112-...-2026-05-09.md` não é
+ *  uma data citada, é um path) e código inline. Mede-se o texto, não o endereço.
+ *  Medido 2026-08-16: remove exatamente 1 match no corpus (LC-15:05-09, o FP do link) e
+ *  ZERO recibos que resolviam (92 antes, 92 depois). */
+export function saneiaLinhaRecibo(ln) {
+  return String(ln == null ? '' : ln)
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')  // [texto](alvo) → texto (o alvo é path, não citação)
+    .replace(/`[^`]*`/g, ' ');                 // `code` → fora
+}
+
+/** Uma data é RECIBO quando carrega MARCADOR de recibo adjacente — as 3 formas que o corpus
+ *  de fato usa (medidas, não supostas): `§5:` antes (convenção ADR 0344), `·` antes (item de
+ *  lista de recibos) ou `(n+N)` depois (numeração de ocorrência). Data solta na mesma linha é
+ *  PROSA — fato datado sobre outra coisa ("gate nasceu 2026-05-15", "required desde 07-02") —
+ *  e prosa não se acusa de recibo pendurado.
+ *  ⚠️ ISTO NÃO É GATE: é report-only e falha por OMISSÃO (deixa de conferir), nunca reprovando
+ *  o legítimo — não é a família dos guards sintáticos enterrados no §5 (allowlist-de-pasta,
+ *  `@scope`, `toHaveKey`), que reprovavam o certo. O ponto cego está medido e é declarado no
+ *  banner (`naoConferidos`), pra a omissão nunca passar por cobertura. */
+function temMarcadorDeRecibo(s, idx, len) {
+  const antes = s.slice(Math.max(0, idx - 14), idx);
+  const depois = s.slice(idx + len, idx + len + 8);
+  return /§5\s*[:\-—]?\s*\**\s*$/i.test(antes) || /·\s*\**\s*$/.test(antes) || /^\s*\(n\+/.test(depois);
+}
+
 /** datas do §5 que CADA LC cita (só em linhas que declaram "§5"/"proibicoes") →
- *  {byLc:[{id, mmdds:[]}], allMmdd:[]}. Ignora data de sessão (ex.: LC-06 cita
- *  2026-07-06 SEM "§5" → fora). Base do frontier (S3) e do fact-anchor de recibo (S2). */
+ *  {byLc:[{id, mmdds:[], recibos:[]}], allMmdd:[]}. Ignora data de sessão (ex.: LC-06 cita
+ *  2026-07-06 SEM "§5" → fora).
+ *
+ *  DOIS conjuntos porque são DUAS perguntas diferentes (separadas em 2026-08-16):
+ *   · `mmdds`  = AMPLO  → base do frontier (S3). Quer o MÁXIMO; data a mais não distorce
+ *                (medido: frontier 2026-08-15 idêntico no amplo e no estrito).
+ *   · `recibos` = ESTRITO (marcador declarado) → base da ACUSAÇÃO de pendurado (S2), que
+ *                precisa de PRECISÃO: acusar prosa de ser recibo podre é alarme falso, e
+ *                5/5 dos alarmes de 2026-08-16 eram exatamente isso. */
 export function ledgerCitacoesSecao5(text) {
   const blocks = String(text || '').split(/^##\s+(?=LC-)/m).slice(1);
   const byLc = [];
@@ -220,6 +253,7 @@ export function ledgerCitacoesSecao5(text) {
   for (const b of blocks) {
     const id = (b.match(/^LC-\S+/) || ['?'])[0];
     const mmdds = new Set();
+    const recibos = new Set();
     for (const ln of b.split('\n')) {
       // SÓ a linha de RECIBO — **Ocorrências:** que declara §5/proibicoes. O recibo datado
       // é a convenção do "Caminho único de atualização do count" (ADR 0344). Restringir à
@@ -228,12 +262,16 @@ export function ledgerCitacoesSecao5(text) {
       // pra 07-20 (bug pego pelo dry-run contado — a razão de o dry-run ser obrigatório).
       if (!/\*\*Ocorr/i.test(ln)) continue;
       if (!/§5|proibicoes/i.test(ln)) continue;
-      for (const m of ln.matchAll(/(?:\d{4}-)?(\d{2})-(\d{2})\b/g)) {
+      const s = saneiaLinhaRecibo(ln);
+      for (const m of s.matchAll(/(?:\d{4}-)?(\d{2})-(\d{2})\b/g)) {
         const mo = +m[1], da = +m[2];
-        if (mo >= 1 && mo <= 12 && da >= 1 && da <= 31) { const k = `${m[1]}-${m[2]}`; mmdds.add(k); allMmdd.add(k); }
+        if (mo < 1 || mo > 12 || da < 1 || da > 31) continue;
+        const k = `${m[1]}-${m[2]}`;
+        mmdds.add(k); allMmdd.add(k);
+        if (temMarcadorDeRecibo(s, m.index, m[0].length)) recibos.add(k);
       }
     }
-    if (mmdds.size) byLc.push({ id, mmdds: [...mmdds] });
+    if (mmdds.size) byLc.push({ id, mmdds: [...mmdds], recibos: [...recibos] });
   }
   return { byLc, allMmdd: [...allMmdd] };
 }
@@ -255,20 +293,27 @@ export function reconcile(ledgerText, proibicoesText, { cap = 5 } = {}) {
   // Sem §5 legível (arquivo vazio/ausente, ou §5 renomeada) → NADA a reconciliar. Não
   // inventa "recibo pendurado" (não há fonte-de-verdade pra checar) — padrão "sem fonte
   // → não inventa" do memory-health. Sandbox/temp-dir cai aqui e fica silencioso.
-  const neutro = { frontier: null, surfaced: [], surfacedTotal: 0, semMarcadorPosFrontier: 0, backlogPreFrontier: 0, dangling: [], recibosOk: 0, recibosTotal: 0, tombsTotal: 0, marcadosTotal: 0, lcComRecibo: 0 };
+  const neutro = { frontier: null, surfaced: [], surfacedTotal: 0, semMarcadorPosFrontier: 0, backlogPreFrontier: 0, dangling: [], recibosOk: 0, recibosTotal: 0, naoConferidos: 0, tombsTotal: 0, marcadosTotal: 0, lcComRecibo: 0 };
   if (!tombs.length) return neutro;
   const { byLc, allMmdd } = ledgerCitacoesSecao5(ledgerText);
   const frontier = computeFrontier(allMmdd, tombs);
   const marcados = tombs.filter((t) => t.marker);
-  // S2 — recibo PENDURADO: cada mmdd que o ledger cita resolve a ≥1 lápide do §5?
+  // S2 — recibo PENDURADO: cada mmdd que o ledger cita COMO RECIBO resolve a ≥1 lápide do §5?
   // (existência-da-data, não identidade-do-tombstone: datas não são únicas. Verde = "a
   //  data existe no §5", NUNCA "o recibo/contagem está certo".)
+  // Roda sobre `recibos` (marcador declarado), NÃO sobre `mmdds` (amplo): a linha é prosa com
+  // datas interleavadas, e data-de-prosa referencia legitimamente algo fora do §5. `naoConferidos`
+  // publica o ponto cego — omissão declarada não vira cobertura silenciosa (gate mudo).
   const mmddSet = new Set(tombs.map((t) => t.mmdd));
   const dangling = [];
-  let recibosTotal = 0, recibosOk = 0;
-  for (const lc of byLc) for (const mmdd of lc.mmdds) {
-    recibosTotal++;
-    if (mmddSet.has(mmdd)) recibosOk++; else dangling.push({ lc: lc.id, mmdd });
+  let recibosTotal = 0, recibosOk = 0, naoConferidos = 0;
+  for (const lc of byLc) {
+    const recibos = lc.recibos || lc.mmdds;
+    for (const mmdd of recibos) {
+      recibosTotal++;
+      if (mmddSet.has(mmdd)) recibosOk++; else dangling.push({ lc: lc.id, mmdd });
+    }
+    naoConferidos += lc.mmdds.filter((d) => !recibos.includes(d)).length;
   }
   // S3 — recorrência DECLARADA além do frontier, fora do ledger. forward-only (só pós-frontier).
   let surfaced = [], semMarcadorPosFrontier = 0, backlogPreFrontier = 0;
@@ -279,7 +324,7 @@ export function reconcile(ledgerText, proibicoesText, { cap = 5 } = {}) {
   }
   return {
     frontier, surfaced: surfaced.slice(0, cap), surfacedTotal: surfaced.length,
-    semMarcadorPosFrontier, backlogPreFrontier, dangling, recibosOk, recibosTotal,
+    semMarcadorPosFrontier, backlogPreFrontier, dangling, recibosOk, recibosTotal, naoConferidos,
     tombsTotal: tombs.length, marcadosTotal: marcados.length, lcComRecibo: byLc.length,
   };
 }
@@ -290,9 +335,12 @@ export function formatReconcile(recon) {
   if (!recon) return '';
   if (recon.surfaced.length === 0 && recon.dangling.length === 0) return '';
   const out = ['', '=== LICOES [CODE] - reconciliacao proibicoes-sec5 <-> ledger (advisory - auto-feed) ==='];
-  if (recon.frontier) out.push(`  frontier ${recon.frontier} (data mais recente da sec5 que o ledger cita) - recibos ${recon.recibosOk}/${recon.recibosTotal} resolvem`);
+  if (recon.frontier) {
+    const cego = recon.naoConferidos ? ` - ${recon.naoConferidos} data(s) de prosa NAO conferida(s) (sem marcador de recibo)` : '';
+    out.push(`  frontier ${recon.frontier} (data mais recente da sec5 que o ledger cita) - recibos ${recon.recibosOk}/${recon.recibosTotal} resolvem${cego}`);
+  }
   if (recon.dangling.length) {
-    out.push(`  [!] ${recon.dangling.length} recibo(s) PENDURADO(s) (data citada sem lapide na sec5 - typo/recibo fabricado):`);
+    out.push(`  [!] ${recon.dangling.length} recibo(s) PENDURADO(s) (data com marcador de recibo, sem lapide na sec5 - typo/recibo fabricado):`);
     for (const d of recon.dangling.slice(0, 8)) out.push(`      ${d.lc} cita ${d.mmdd} - sem "### *-${d.mmdd}" na sec5`);
   }
   if (recon.surfaced.length) {
@@ -343,6 +391,9 @@ function reconcileCli() {
     tombstones_com_marcador: recon.marcadosTotal,
     lc_que_citam_secao5: recon.lcComRecibo,
     recibos_resolvem: `${recon.recibosOk}/${recon.recibosTotal}`,
+    // ponto cego DECLARADO: datas de prosa na linha de recibo (sem marcador §5:/·/(n+N)).
+    // Publicado mesmo quando limpo — omissão silenciosa é o que faz gate mudo parecer cobertura.
+    datas_de_prosa_NAO_conferidas: recon.naoConferidos,
     recibos_pendurados_S2: recon.dangling,
     surface_S3_pos_frontier: recon.surfaced.map((t) => ({ date: t.date, marker: t.marker, title: t.title })),
     surface_S3_total: recon.surfacedTotal,

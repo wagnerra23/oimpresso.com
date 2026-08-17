@@ -170,12 +170,16 @@ Dono: [`CancelarVendaCascade`](../../app/Domain/Fsm/SideEffects/CancelarVendaCas
 · contrato provado em [`CancelarVendaCascadeSideEffectTest`](../../tests/Feature/Domain/Fsm/CancelarVendaCascadeSideEffectTest.php)
 · percurso próprio em [`FLUXO-CANCELAMENTO.md`](FLUXO-CANCELAMENTO.md).
 
-> ⚠️ **O mesmo buraco existe nos outros dois percursos** (medido 2026-08-17):
-> [`FLUXO-CANCELAMENTO.md`](FLUXO-CANCELAMENTO.md) e [`FLUXO-DEPLOY.md`](FLUXO-DEPLOY.md) também
-> não respondem tenant, retry nem rollback. O de **deploy** é o mais sério — um percurso de
-> deploy sem linha de rollback é a lacuna que a auditoria de infra já tinha apontado por outro
-> caminho. Não foi escrito aqui porque exige saber o procedimento **real** de reversão em
-> produção; inventar um passo que parece canon é pior do que a ausência declarada.
+> ⚠️ **Estado dos outros percursos** (medido 2026-08-17, atualizado no mesmo dia):
+> [`FLUXO-CANCELAMENTO.md`](FLUXO-CANCELAMENTO.md) tinha o mesmo buraco e **foi fechado** — as
+> quatro perguntas estão respondidas lá, com âncora no seeder da ação e nos quatro jobs da
+> cascata. [`FLUXO-DEPLOY.md`](FLUXO-DEPLOY.md) **segue aberto**, e é o mais sério: um percurso
+> de deploy sem linha de rollback é a lacuna que a auditoria de infra já tinha apontado por outro
+> caminho. Não foi escrito porque exige saber o procedimento **real** de reversão em produção;
+> inventar um passo que parece canon é pior do que a ausência declarada.
+>
+> Dos **7 fluxos** que o D7 pede (venda, cancelamento, fiscal, WhatsApp, IA, migração, deploy),
+> **3 têm documento** — fiscal, WhatsApp e migração não têm nenhum.
 
 ## Antes de mudar qualquer coisa neste caminho
 

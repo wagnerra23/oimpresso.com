@@ -186,6 +186,49 @@ const recDang = reconcile(LEDGER_DANG, PROIB);
 check('reconcile MORDE S2: recibo 07-14 sem lápide → pendurado', recDang.dangling.length === 1 && recDang.dangling[0].mmdd === '07-14' && recDang.recibosOk === 0);
 check('formatReconcile mostra recibo PENDURADO', /PENDURADO/.test(formatReconcile(recDang)) && /07-14/.test(formatReconcile(recDang)));
 
+// ── S2 precisão (2026-08-16): a linha de recibo é PROSA com datas interleavadas ──────────
+// Os 5 alarmes vivos daquele dia eram 5/5 FALSO-POSITIVO: nenhuma das datas era recibo.
+// Fixtures reproduzem as 4 formas reais + o link, e o CONTROLE POSITIVO garante que o
+// aperto não virou mudez (bite do 07-14 acima segue verde).
+
+// CONTROLE NEGATIVO 1 — data de PROSA (fato datado sobre outra coisa) não é recibo.
+// Formas reais medidas no corpus: "(gate nasceu 2026-05-15)" · "(414 deleções, 2026-06-08)"
+// · "required desde 07-02" · "já dera em **2026-06-11**".
+const LEDGER_PROSA = `# Licoes
+## LC-10 - prosa
+- **Ocorrências:** 2   (proibicoes §5: 07-15 real · a duracao real e 85 dias (gate nasceu 2026-05-15), nao 15 meses; o #2413 a deletou inteira (414 delecoes, 2026-06-08); required desde 07-02; ja dera em **2026-06-11**)
+- **Gate:** none
+`;
+const recProsa = reconcile(LEDGER_PROSA, PROIB);
+check('S2 CONTROLE NEGATIVO: data de prosa NAO vira recibo pendurado',
+  recProsa.dangling.length === 0 && recProsa.recibosOk === 1 && recProsa.recibosTotal === 1);
+check('S2 declara o ponto cego (naoConferidos) em vez de fingir cobertura',
+  recProsa.naoConferidos === 4 && /NAO conferida/.test(formatReconcile(reconcile(LEDGER_DANG + LEDGER_PROSA.replace('# Licoes', ''), PROIB))));
+
+// CONTROLE NEGATIVO 2 — data dentro do ALVO de link markdown é PATH, não citação.
+// Caso real: LC-15 citava "05-09" vindo de 0112-mwart-excecao-...-2026-05-09.md.
+const LEDGER_LINK = `# Licoes
+## LC-15 - link
+- **Ocorrências:** 1   (proibicoes §5: 07-15 real; ver [ADR 0112](decisions/0112-mwart-excecao-2026-05-09.md))
+- **Gate:** none
+`;
+check('S2 CONTROLE NEGATIVO: data no alvo do link markdown NAO vira recibo',
+  reconcile(LEDGER_LINK, PROIB).dangling.length === 0);
+
+// CONTROLE POSITIVO — as 3 formas de marcador reais seguem sendo conferidas (não virou mudo).
+const LEDGER_MARC = `# Licoes
+## LC-11 - marcadores
+- **Ocorrências:** 3   (proibicoes §5: 07-13 a · 07-12 b · **07-11 (n+1)** c)
+- **Gate:** none
+`;
+const recMarc = reconcile(LEDGER_MARC, PROIB);
+check('S2 CONTROLE POSITIVO: as 3 formas (§5: / · / (n+N)) seguem conferidas → 3 pendurados',
+  recMarc.recibosTotal === 3 && recMarc.dangling.map((d) => d.mmdd).sort().join(',') === '07-11,07-12,07-13');
+
+// frontier NÃO regride com o aperto (usa o conjunto AMPLO; medido idêntico no corpus real)
+check('frontier segue AMPLO (prosa conta pro max, so nao acusa)',
+  reconcile(LEDGER_PROSA, PROIB).frontier === '2026-07-15');
+
 // temp-dir safe: proibicoes vazio/ausente → reconcile não quebra, banner vazio
 check('reconcile temp-dir-safe (proibicoes vazio → 0 surface, banner vazio)', formatReconcile(reconcile(LEDGER, '')) === '');
 

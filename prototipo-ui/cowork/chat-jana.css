@@ -4,16 +4,6 @@
    Conforma MANUAL-CSS-JS (token único) + ds/* (radius ≤ lg, sem cor crua, sem emoji).
    Coexiste com styles.css — todos seletores prefixados .jc-. Dark herda via tokens. */
 
-/* ⚠️ NÃO "simplifique" os color-mix de fundo pra var(--*-soft) — é regressão conhecida.
-   O shell força os tokens *-soft CLAROS nos DOIS temas. No escuro isso deixava fundo quase
-   branco sob texto de status escuro. Medido 2026-08-13 (par renderizado do KPI enfatizado:
-   bg rgb(255,227,222) sob fg rgb(249,119,112) = 2,19:1, com font 700 22px → reprova o AA de
-   texto grande, 3:1). color-mix(cor 12%, var(--surface)) adapta ao tema REAL:
-     neg 2,19→4,22 · warn 1,60→5,68 · pos 1,93→5,08 (escuro) — e o claro não regride
-     (4,37→4,52 · 3,70→3,78 · 4,99→4,73). São 12 sites; o mix é INLINE de propósito, não
-   variável herdada, porque .jc-pill/.jc-cta podem renderizar em portal (Drawer) fora do
-   .jc-page — herdar quebraria lá. accent FICA em var(--accent-soft): ele passa hoje (4,41)
-   e o mesmo mix o REPROVARIA (2,35), porque --accent não tem override no escuro. */
 .jc-page{
   /* superfícies accent theme-robustas (o shell força --accent-soft claro p/ ambos os temas;
      color-mix com --surface adapta ao tema real) */
@@ -90,9 +80,9 @@
   background: var(--sunken); color: var(--text-2);
 }
 .jc-pill.ia   { background: var(--accent-soft); color: var(--accent); }
-.jc-pill.crit { background: color-mix(in oklch, var(--neg)  12%, var(--surface)); color: var(--neg); }
-.jc-pill.warn { background: color-mix(in oklch, var(--warn) 12%, var(--surface)); color: var(--warn); }
-.jc-pill.ok   { background: color-mix(in oklch, var(--pos)  12%, var(--surface)); color: var(--pos); }
+.jc-pill.crit { background: var(--neg-soft);    color: var(--neg); }
+.jc-pill.warn { background: var(--warn-soft);   color: var(--warn); }
+.jc-pill.ok   { background: var(--pos-soft);    color: var(--pos); }
 .jc-pill.react{ background: var(--accent-soft); color: var(--accent); }
 
 /* ── Brief diário ── */
@@ -151,7 +141,7 @@
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-2);
   padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 3px; min-width: 0;
 }
-.jc-kpi.emph{ border-color: color-mix(in oklch, var(--neg) 35%, var(--border)); background: color-mix(in oklch, var(--neg) 12%, var(--surface)); }
+.jc-kpi.emph{ border-color: color-mix(in oklch, var(--neg) 35%, var(--border)); background: var(--neg-soft); }
 .jc-kpi-h{
   display: flex; justify-content: space-between; align-items: center;
   font: 700 10px/1 var(--mono); text-transform: uppercase; letter-spacing: .06em;
@@ -247,9 +237,9 @@
 .jc-acao:hover{ background: var(--sunken); }
 .jc-acao-ic{ width: 32px; height: 32px; border-radius: var(--r-2); display: grid; place-items: center; background: var(--sunken); color: var(--text-2); }
 .jc-acao-ic svg{ width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; }
-.jc-acao.tone-rose   .jc-acao-ic{ background: color-mix(in oklch, var(--neg)  12%, var(--surface)); color: var(--neg); }
+.jc-acao.tone-rose   .jc-acao-ic{ background: var(--neg-soft); color: var(--neg); }
 .jc-acao.tone-violet .jc-acao-ic{ background: var(--accent-soft); color: var(--accent); }
-.jc-acao.tone-peach  .jc-acao-ic{ background: color-mix(in oklch, var(--warn) 12%, var(--surface)); color: var(--warn); }
+.jc-acao.tone-peach  .jc-acao-ic{ background: var(--warn-soft); color: var(--warn); }
 .jc-acao.tone-grey   .jc-acao-ic{ background: var(--sunken); color: var(--text-3); }
 .jc-acao-text b{ display: block; font: 600 13px/1.3 var(--sans); color: var(--text); }
 .jc-acao-text small{ display: block; font-size: 11.5px; color: var(--text-3); margin-top: 2px; }
@@ -268,11 +258,11 @@
 .jc-cta.primary{ background: var(--accent); color: var(--accent-fg); }
 .jc-cta.primary:hover{ background: var(--accent-hi); }
 .jc-cta.danger{ background: var(--surface); color: var(--neg); border-color: color-mix(in oklch, var(--neg) 32%, transparent); }
-.jc-cta.danger:hover{ background: color-mix(in oklch, var(--neg) 12%, var(--surface)); }
+.jc-cta.danger:hover{ background: var(--neg-soft); }
 .jc-cta.violet{ background: var(--accent-soft); color: var(--accent); border-color: var(--accent-line); }
 .jc-cta.violet:hover{ background: color-mix(in oklch, var(--accent-soft) 70%, var(--accent)); }
 .jc-cta.orange{ background: var(--surface); color: var(--warn); border-color: color-mix(in oklch, var(--warn) 32%, transparent); }
-.jc-cta.orange:hover{ background: color-mix(in oklch, var(--warn) 12%, var(--surface)); }
+.jc-cta.orange:hover{ background: var(--warn-soft); }
 .jc-cta.dark{ background: var(--text); color: var(--bg); }
 .jc-cta.dark:hover{ background: var(--text-2); }
 .jc-cta.ghost{ background: var(--surface); color: var(--text-2); border-color: var(--border); }
@@ -370,12 +360,12 @@
 .jc-action{
   display: flex; align-items: flex-start; gap: 11px;
   padding: 13px 15px; border-radius: var(--r-2);
-  background: color-mix(in oklch, var(--warn) 12%, var(--surface)); border: 1px solid color-mix(in oklch, var(--warn) 30%, transparent);
+  background: var(--warn-soft); border: 1px solid color-mix(in oklch, var(--warn) 30%, transparent);
 }
 .jc-action .aic{ width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; stroke: var(--warn); fill: none; stroke-width: 1.9; }
-.jc-action.done{ background: color-mix(in oklch, var(--pos) 12%, var(--surface)); border-color: color-mix(in oklch, var(--pos) 30%, transparent); }
+.jc-action.done{ background: var(--pos-soft); border-color: color-mix(in oklch, var(--pos) 30%, transparent); }
 .jc-action.done .aic{ stroke: var(--pos); }
-.jc-action.error{ background: color-mix(in oklch, var(--neg) 12%, var(--surface)); border-color: color-mix(in oklch, var(--neg) 30%, transparent); }
+.jc-action.error{ background: var(--neg-soft); border-color: color-mix(in oklch, var(--neg) 30%, transparent); }
 .jc-action.error .aic{ stroke: var(--neg); }
 .jc-action-bd{ flex: 1; min-width: 0; }
 .jc-action-bd b{ display: block; font: 650 13px/1.35 var(--sans); color: var(--text); }
@@ -395,7 +385,7 @@
 .jc-pii{
   display: flex; align-items: center; gap: 8px; margin-bottom: 9px;
   font: 500 12px/1.4 var(--sans); color: var(--warn);
-  background: color-mix(in oklch, var(--warn) 12%, var(--surface)); border: 1px solid color-mix(in oklch, var(--warn) 28%, transparent);
+  background: var(--warn-soft); border: 1px solid color-mix(in oklch, var(--warn) 28%, transparent);
   border-radius: var(--r-1); padding: 7px 11px;
 }
 .jc-pii svg{ width: 14px; height: 14px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 1.9; }

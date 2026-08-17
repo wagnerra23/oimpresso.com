@@ -77,8 +77,26 @@ function measureAnchors() {
 // (Pest fluent, granular por teste) e skip('legacy-quarantine: ...') — todas cravam o MESMO
 // token. Casar só @group subcontava (14 de 27 reais). Determinístico: contagem por arquivo,
 // independe da ordem do readdir. Escopo = tests/ + Modules/*/Tests (onde vive o marcador).
-const QUARANTINE_RE = /legacy-quarantine/;
-function measureQuarantine() {
+// AMPLIADO 2026-08-17 (decisão [W] "flip"): antes só `legacy-quarantine`, que media
+// 25 arquivos. A varredura da lane `domain-pest` (1ª execução de tests/Feature/Domain/
+// na história do repo) mostrou 126 de 135 casos pulando — e ZERO dos 8 arquivos Tier 0
+// da FSM casava este regex. Motivo verbatim dos skips: "era-sqlite: schema sintético
+// manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down
+// converte depois." Ou seja: `era-sqlite` É quarentena declarada pelo próprio autor,
+// e a métrica que existe pra impedir "quarentenar em silêncio sem pagar a dívida"
+// (nota_armamento deste campo) não a via. O marcador é literal e estável, escrito por
+// quem parqueou o teste — não é heurística sintática.
+//
+// RESÍDUO DECLARADO: as outras 2 razões de skip que a lane mediu seguem FORA daqui —
+// "Self-schema test — SQLite-only" (8 casos) e "corruptor de schema compartilhado"
+// (9 casos). Não foram incluídas porque não têm marcador literal estável como
+// `era-sqlite`; pegá-las por prosa seria o guard sintático que o §5 já enterrou 4×.
+const QUARANTINE_RE = /legacy-quarantine|era-sqlite/;
+// `root` injetável (mesmo padrão de measureDistillerFreshness) pra o bite-test
+// exercitar ESTA função — o chokepoint — e não uma cópia do regex. Assert sobre
+// helper/regex exportado prova a mecânica, nunca o contrato do pipeline (lição
+// 2026-08-14: selftest verde que rodava a cópia deixou 3 gates invisíveis 4 semanas).
+export function measureQuarantine(root = ROOT) {
   let files = 0;
   const walk = (dir) => {
     if (!existsSync(dir)) return;
@@ -88,8 +106,8 @@ function measureQuarantine() {
       else if (e.name.endsWith('.php') && QUARANTINE_RE.test(readFileSync(p, 'utf8'))) files++;
     }
   };
-  walk(join(ROOT, 'tests'));
-  const mods = join(ROOT, 'Modules');
+  walk(join(root, 'tests'));
+  const mods = join(root, 'Modules');
   if (existsSync(mods)) for (const e of readdirSync(mods, { withFileTypes: true }))
     if (e.isDirectory()) walk(join(mods, e.name, 'Tests'));
   return { files };
