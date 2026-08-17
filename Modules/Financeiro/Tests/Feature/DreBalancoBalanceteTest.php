@@ -24,7 +24,7 @@ uses(Tests\TestCase::class);
  * Cobre:
  *  - aba=demonstrativo é default e shape canon preservado
  *  - aba=balanco expõe payload no shape canon
- *  - aba=balancete expõe payload no shape canon
+ *  - UC-DRE-06 · aba=balancete expõe payload no shape canon
  *  - aba inválida cai pra default
  *  - Balanço: equação Ativo = Passivo + PL bate
  *  - Balancete: SUM hierárquico (saldo pai = SUM filhos com mesmo prefix)
@@ -140,7 +140,7 @@ it('aba=balanco expõe payload no shape canon (ativo + passivo + PL + equação)
     );
 });
 
-it('aba=balanco: equação Ativo = Passivo + PL (invariante contábil)', function () {
+it('UC-DRE-05 · aba=balanco: equação Ativo = Passivo + PL (invariante contábil)', function () {
     $user = dreBalancoBalanceteBootstrap();
 
     $response = $this->actingAs($user)->get('/financeiro/dre?aba=balanco');
@@ -357,7 +357,7 @@ it('Tier 0 IRREVOGÁVEL: aba=balancete respeita business scope (ADR 0093)', func
     );
 });
 
-it('aba=demonstrativo NÃO carrega balanco/balancete (perf — evita query custosa)', function () {
+it('UC-DRE-07 · aba=demonstrativo NÃO carrega balanco/balancete (perf — evita query custosa)', function () {
     $user = dreBalancoBalanceteBootstrap();
 
     $response = $this->actingAs($user)->get('/financeiro/dre?aba=demonstrativo');

@@ -21,6 +21,7 @@ class ContaBancariaIndexTest extends FinanceiroTestCase
         $this->actAsAdmin();
     }
 
+    /** UC-CTB-01 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_index_responde_200_e_nao_quebra_em_accounts_account_type(): void
     {
         $response = $this->inertiaGet('/financeiro/contas-bancarias');

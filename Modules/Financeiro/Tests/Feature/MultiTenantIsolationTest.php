@@ -157,6 +157,7 @@ class MultiTenantIsolationTest extends FinanceiroTestCase
             \Modules\Financeiro\Models\Titulo::class,
             \Modules\Financeiro\Models\TituloBaixa::class,
             \Modules\Financeiro\Models\CaixaMovimento::class,
+            // UC-CTB-04 — conta bancária de outro business não vaza (casos.md).
             \Modules\Financeiro\Models\ContaBancaria::class,
             \Modules\Financeiro\Models\PlanoConta::class,
             \Modules\Financeiro\Models\Categoria::class,

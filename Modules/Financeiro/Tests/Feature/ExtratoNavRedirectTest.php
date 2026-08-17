@@ -76,6 +76,7 @@ class ExtratoNavRedirectTest extends FinanceiroTestCase
         parent::tearDown();
     }
 
+    /** UC-EXT-04 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_extrato_sem_id_redireciona_pra_primeira_conta_do_business(): void
     {
         // Alvo esperado = menor id de conta do PRÓPRIO business (orderBy id),

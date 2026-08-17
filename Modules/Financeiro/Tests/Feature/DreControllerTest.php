@@ -80,7 +80,7 @@ it('renderiza DRE 200 com Inertia component Financeiro/Dre/Index', function () {
     expect($response->headers->get('X-Inertia'))->not()->toBeNull();
 });
 
-it('expõe Props no shape canon (meta, linhas, margem_operacional, top_categorias_receita)', function () {
+it('UC-DRE-01 · expõe Props no shape canon (meta, linhas, margem_operacional, top_categorias_receita)', function () {
     $user = dreBootstrap();
     $response = $this->actingAs($user)->get('/financeiro/dre');
 
@@ -164,7 +164,7 @@ it('top_categorias_receita tem no máximo 3 itens ordenados desc por valor (Q7)'
     });
 });
 
-it('Tier 0 IRREVOGÁVEL: respeita business scope (ADR 0093) — meta.business_id casa', function () {
+it('UC-DRE-08 · Tier 0 IRREVOGÁVEL: respeita business scope (ADR 0093) — meta.business_id casa', function () {
     $user = dreBootstrap();
     $businessId = (int) $user->business_id;
 
@@ -243,7 +243,7 @@ it('aceita ?periodo=mes (Q4 — F1 só "mes" funcional) e default cai pra mes', 
     );
 });
 
-it('aceita ?anchor=YYYY-MM e reflete em meta.anchor_mes', function () {
+it('UC-DRE-03 · aceita ?anchor=YYYY-MM e reflete em meta.anchor_mes', function () {
     $user = dreBootstrap();
     $response = $this->actingAs($user)->get('/financeiro/dre?anchor=2026-04');
 

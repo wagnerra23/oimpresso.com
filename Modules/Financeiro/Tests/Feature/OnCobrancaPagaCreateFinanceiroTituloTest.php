@@ -62,7 +62,7 @@ function onda5fin_cleanup(int $cobrancaId): void
     Cobranca::withoutGlobalScopes()->where('id', $cobrancaId)->forceDelete();
 }
 
-it('CobrancaPaga business_id=1 cria Titulo a receber em fin_titulos', function () {
+it('UC-COB-04 · CobrancaPaga business_id=1 cria Titulo a receber em fin_titulos', function () {
     $cobranca = onda5fin_makeCobranca(1, 9990);
 
     $event = new CobrancaPaga(

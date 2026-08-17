@@ -159,7 +159,7 @@ it('CnabDirectStrategy gera BoletoRemessa mock pra Inter (077) sem API real', fu
     }
 })->group('boleto-mock');
 
-it('linha digitável + nosso_numero + código de barras gerados localmente (lib eduardokum)', function () {
+it('UC-COB-05 · linha digitável + nosso_numero + código de barras gerados localmente (lib eduardokum)', function () {
     ['business' => $business, 'user' => $user, 'account' => $account] = boletoMockBootstrap();
 
     $conta = boletoMockCriarContaBancariaInter($business->id, $account->id);
