@@ -791,6 +791,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variantes também proibidas):** **(a)** não re-propor restringir a extração de recibo à convenção `§5:` pura — está medido, cega 46 de 92. **(b)** Não "resolver" pendurado **mexendo no ledger** (reescrever a linha de `Ocorrências` pra silenciar o alarme) quando os 5 são prosa legítima: o defeito era do **medidor**, e a doutrina do §5 2026-07-17 (drift-sentinel) já mandava — *"se a distribuição não discrimina, o baseline não é o problema, o MEDIDOR é"*. **(c)** Não ampliar o conjunto de marcadores por palpite: cada forma nova entra **medida no corpus** (quantos recibos ganha, quantos FP traz) e com controle negativo de prosa no selftest, senão volta o alarme de 0% de precisão.
 
+### 2026-08-17 — Comentário de código que se AUTODEFENDE com medição obsoleta (o remendo à mão do espelho sobreviveu 4 dias por causa dele)
+
+- **O limite (variantes também proibidas):** **(a)** afirmação **em presente** sobre comportamento medido (contraste, tamanho, performance, "o shell força X") não entra em comentário de código, docblock ou charter — ali só cabe **fato datado em passado** com o comando que o reproduz (é LC-10 aplicado ao comentário: o que apodrece não é a medição, é o tempo verbal). **(b)** comentário que **proíbe uma mudança** citando medição própria é instrução ativa pra próxima sessão: antes de obedecer, **re-rodar a medição** — e se o artefato não disser como reproduzi-la, isso por si só é motivo pra desconfiar. **(c)** em espelho de design (`prototipo-ui/cowork/**`), justificativa técnica no arquivo é **sempre** suspeita: o espelho é build-only e não tem autor local legítimo — o conserto nasce no Cowork vivo, e comentário que só existe do lado de cá é a assinatura do remendo.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:

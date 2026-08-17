@@ -87,6 +87,12 @@ function FinBaixaSheet({ row, open, onClose, onConfirm, aberto }) {
     onConfirm(row.id, { valor: v, contaId, conta: (CONTAS.find((c) => c.id === contaId) || {}).label, forma, plano, data, parcial });
     onClose();
   };
+  // DS v6 (bundle): Select/Input/Button do _ds_bundle.js (inline-style + tokens .cockpit).
+  // Mata 3 <select> nativos (ds/no-native-select) + os-btn → DS Button. P6: a forma já
+  // entra pré-selecionada pela prevista do título (row.channel) no useEffect acima.
+  // Fallback bespoke se o bundle não subir (defense-in-depth).
+  const NS = window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
+  const DsButton = NS.Button, DsSelect = NS.Select, DsInput = NS.Input;
   return (
     <div className="fin-ops-backdrop" onClick={onClose} onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}>
       <div className="fin-baixa-card" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Registrar baixa"
@@ -112,45 +118,62 @@ function FinBaixaSheet({ row, open, onClose, onConfirm, aberto }) {
               {parcial && <span className="fin-baixa-parcial">baixa parcial · resta {fmtBRL(max - v)}</span>}
             </em>
           </label>
-          <label className="fin-ops-field">
-            <span>Conta bancária</span>
-            <div className="fin-ops-select">
-              <select value={contaId} onChange={(e) => setContaId(e.target.value)}>
-                {CONTAS.map((c) => <option key={c.id} value={c.id}>{c.label} · {c.detail}</option>)}
-              </select>
-              <I.ChevronDown size={14} />
-            </div>
-          </label>
-          <label className="fin-ops-field">
-            <span>Forma de pagamento</span>
-            <div className="fin-ops-select">
-              <select value={forma} onChange={(e) => setForma(e.target.value)}>
-                {FORMAS.map((f) => <option key={f} value={f}>{f}</option>)}
-              </select>
-              <I.ChevronDown size={14} />
-            </div>
-          </label>
-          <label className="fin-ops-field">
-            <span>Plano de contas</span>
-            <div className="fin-ops-select">
-              <select value={plano} onChange={(e) => setPlano(e.target.value)}>
-                <option value="">— sem classificar —</option>
-                {planosList().map((p) => <option key={p} value={p}>{p}</option>)}
-              </select>
-              <I.ChevronDown size={14} />
-            </div>
-          </label>
-          <label className="fin-ops-field">
-            <span>Data da baixa</span>
-            <input type="date" value={data} onChange={(e) => setData(e.target.value)} className="fin-ops-date" />
-          </label>
+          {DsSelect ? (
+            <DsSelect label="Conta bancária" value={contaId}
+              onChange={(e) => setContaId(e.target.value)}
+              options={CONTAS.map((c) => ({ value: c.id, label: c.label + " · " + c.detail }))} />
+          ) : (
+            <label className="fin-ops-field"><span>Conta bancária</span>
+              <div className="fin-ops-select">
+                <select value={contaId} onChange={(e) => setContaId(e.target.value)}>
+                  {CONTAS.map((c) => <option key={c.id} value={c.id}>{c.label} · {c.detail}</option>)}
+                </select><I.ChevronDown size={14} />
+              </div>
+            </label>
+          )}
+          {DsSelect ? (
+            <DsSelect label="Forma de pagamento" value={forma}
+              onChange={(e) => setForma(e.target.value)} options={FORMAS} />
+          ) : (
+            <label className="fin-ops-field"><span>Forma de pagamento</span>
+              <div className="fin-ops-select">
+                <select value={forma} onChange={(e) => setForma(e.target.value)}>
+                  {FORMAS.map((f) => <option key={f} value={f}>{f}</option>)}
+                </select><I.ChevronDown size={14} />
+              </div>
+            </label>
+          )}
+          {DsSelect ? (
+            <DsSelect label="Plano de contas" value={plano} onChange={(e) => setPlano(e.target.value)}>
+              <option value="">— sem classificar —</option>
+              {planosList().map((p) => <option key={p} value={p}>{p}</option>)}
+            </DsSelect>
+          ) : (
+            <label className="fin-ops-field"><span>Plano de contas</span>
+              <div className="fin-ops-select">
+                <select value={plano} onChange={(e) => setPlano(e.target.value)}>
+                  <option value="">— sem classificar —</option>
+                  {planosList().map((p) => <option key={p} value={p}>{p}</option>)}
+                </select><I.ChevronDown size={14} />
+              </div>
+            </label>
+          )}
+          {DsInput ? (
+            <DsInput label="Data da baixa" type="date" value={data} onChange={(e) => setData(e.target.value)} />
+          ) : (
+            <label className="fin-ops-field"><span>Data da baixa</span>
+              <input type="date" value={data} onChange={(e) => setData(e.target.value)} className="fin-ops-date" />
+            </label>
+          )}
         </div>
         <div className="fin-baixa-foot">
           <span className="fin-baixa-foot-sum">{parcial ? "Baixa parcial" : "Quitação total"} · <b className="num">{fmtBRL(v)}</b></span>
-          <button className="os-btn ghost" onClick={onClose}>Cancelar</button>
-          <button className="os-btn primary" disabled={!can} onClick={submit}>
-            <I.Check size={13} /> {isIn ? "Confirmar recebimento" : "Confirmar pagamento"}
-          </button>
+          {DsButton
+            ? <DsButton variant="ghost" onClick={onClose}>Cancelar</DsButton>
+            : <button className="os-btn ghost" onClick={onClose}>Cancelar</button>}
+          {DsButton
+            ? <DsButton variant="primary" disabled={!can} onClick={submit}><I.Check size={13} /> {isIn ? "Confirmar recebimento" : "Confirmar pagamento"}</DsButton>
+            : <button className="os-btn primary" disabled={!can} onClick={submit}><I.Check size={13} /> {isIn ? "Confirmar recebimento" : "Confirmar pagamento"}</button>}
         </div>
       </div>
     </div>);
@@ -191,15 +214,23 @@ function FinAnexosPanel({ row, anexos }) {
       existing.add(f.name.toLowerCase());
     });
   };
+  // DS v6 (bundle): controles interativos padronizados vindos do _ds_bundle.js
+  // (inline-style + tokens .cockpit, zero CSS global). Fallback bespoke se o bundle
+  // não carregar (defense-in-depth). Anti-padrões mortos: fin-anexo-add → DS Button;
+  // empty bespoke → DS EmptyState (WHY + WHAT). Espelho F1 do P7a em DS.
+  const NS = window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
+  const DsButton = NS.Button, DsEmptyState = NS.EmptyState;
+  const pick = () => fileRef.current && fileRef.current.click();
+  const AnexarBtn = () => DsButton
+    ? <DsButton variant="ghost" size="sm" onClick={pick}><I.Plus size={12} /> Anexar</DsButton>
+    : <button type="button" className="fin-anexo-add" onClick={pick}><I.Plus size={12} /> Anexar</button>;
   return (
     <section className="fin-lens py-4">
       <header className="flex items-center gap-2 mb-2.5">
         <span className="fin-lens-ic fin-lens-ic-accent"><I.FileText size={13} /></span>
         <h4 className="text-[length:var(--fs-3)] font-semibold text-[var(--text)] m-0">Anexos</h4>
         <span className="fin-anexo-ct">{list.length}</span>
-        <button type="button" className="fin-anexo-add ml-auto" onClick={() => fileRef.current && fileRef.current.click()}>
-          <I.Plus size={12} /> Anexar
-        </button>
+        <span className="ml-auto"><AnexarBtn /></span>
         <input ref={fileRef} type="file" accept={accept} multiple hidden onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }} />
       </header>
       <div className={"fin-anexo-drop" + (drag ? " over" : "")}
@@ -207,10 +238,20 @@ function FinAnexosPanel({ row, anexos }) {
         onDragLeave={() => setDrag(false)}
         onDrop={(e) => { e.preventDefault(); setDrag(false); addFiles(e.dataTransfer.files); }}>
         {list.length === 0 ? (
-          <div className="fin-anexo-empty">
-            Arraste a NF, o comprovante ou a foto do boleto aqui — ou clique em <b>Anexar</b>.<br />
-            <span>Aceita PDF, PNG, JPG e XML (NF-e).</span>
-          </div>
+          DsEmptyState ? (
+            <DsEmptyState
+              variant="first"
+              icon={<I.FileText size={18} />}
+              title="Nenhum anexo ainda"
+              description="Arraste a NF, o comprovante ou a foto do boleto aqui — ou clique em Anexar. Aceita PDF, PNG, JPG e XML (NF-e)."
+              action={<AnexarBtn />}
+            />
+          ) : (
+            <div className="fin-anexo-empty">
+              Arraste a NF, o comprovante ou a foto do boleto aqui — ou clique em <b>Anexar</b>.<br />
+              <span>Aceita PDF, PNG, JPG e XML (NF-e).</span>
+            </div>
+          )
         ) : (
           <ul className="fin-anexo-list">
             {list.map((a, i) => (

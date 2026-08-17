@@ -30,6 +30,7 @@ import {
   previewDsPlan,
   nasceSemMedicao,
   refsParaDeletado,
+  unverifiedSince,
   SLA_DAYS,
 } from './cowork-mirror-freshness.mjs';
 
@@ -652,6 +653,40 @@ check('mesmo número → mesmo veredito (independe de --check)',
   const r3 = absentLocal(shellDs);
   check('--absent-local NÃO acusa `_ds/**` (fora por .gitignore do espelho, não é achado)',
     !r3.faltando.some((d) => d.startsWith('_ds/')), JSON.stringify(r3));
+}
+
+// ── unverifiedSince — MEXEU-DEPOIS-DE-VERIFICAR (v4 · 2026-08-17) ────────────────
+// A defesa contra remendo a mao no espelho. Predicado = DUAS DATAS, nunca nome/pasta/vocabulario
+// (escapa da familia das 4 lapides de guard sintatico do §5). O caso real que motivou:
+// 11 sites trocados a mao 33min DEPOIS de uma rodada de frescor, invisiveis por 4 dias.
+{
+  const L = [
+    { date: '2026-08-13T17:00:00.000Z', verified: ['chat-jana.css', 'app.jsx'] },
+    { date: '2026-08-13T21:00:00.000Z', verified: ['app.jsx'] },
+  ];
+  const r = unverifiedSince(L, [
+    { cowork: 'chat-jana.css', lastCommitIso: '2026-08-13T18:01:18.000Z' }, // MEXEU depois das 17:00
+    { cowork: 'app.jsx',       lastCommitIso: '2026-08-13T18:01:18.000Z' }, // verificado 21:00 = DEPOIS do commit
+    { cowork: 'vendas.css',    lastCommitIso: '2026-08-10T10:00:00.000Z' }, // nunca verificado
+    { cowork: 'novo.jsx',      lastCommitIso: null },                        // sem commit ainda
+  ]);
+  check('BITE unverifiedSince: MORDE o arquivo commitado DEPOIS da verificacao',
+    r.mexidoDepois.length === 1 && r.mexidoDepois[0].cowork === 'chat-jana.css', JSON.stringify(r.mexidoDepois));
+  check('unverifiedSince: LIBERA o arquivo cuja verificacao e POSTERIOR ao commit',
+    !r.mexidoDepois.some((m) => m.cowork === 'app.jsx') && r.ok === 1, JSON.stringify(r));
+  check('unverifiedSince: NUNCA-VERIFICADO nao vira mexido-depois (forward-only, nao pune legado)',
+    r.nuncaVerificado.includes('vendas.css') && !r.mexidoDepois.some((m) => m.cowork === 'vendas.css'), JSON.stringify(r));
+  check('unverifiedSince: arquivo SEM data de commit nao vira achado (nao afirma sem dado)',
+    !r.mexidoDepois.some((m) => m.cowork === 'novo.jsx'), JSON.stringify(r.mexidoDepois));
+  // ledger antigo (sem o campo `verified`) nao pode virar verde silencioso: e SEM DADO.
+  const rVelho = unverifiedSince([{ date: '2026-07-06T00:00:00.000Z', files: 3, sync: 1 }],
+    [{ cowork: 'chat-jana.css', lastCommitIso: '2026-08-13T18:01:18.000Z' }]);
+  check('unverifiedSince: rodada SEM `verified` nao conta como prova (comLedger=0)',
+    rVelho.comLedger === 0 && rVelho.mexidoDepois.length === 0 && rVelho.nuncaVerificado.length === 1, JSON.stringify(rVelho));
+  // ledgerEntry passa a gravar QUAIS mediu — sem isso o detector nao tem insumo
+  const e = ledgerEntry([{ cowork: 'a.css', veredito: 'SYNC' }, { cowork: 'b.css', veredito: 'STALE' }], '2026-08-17T00:00:00.000Z');
+  check('ledgerEntry: grava `verified` so com os SYNC (insumo do --unverified)',
+    Array.isArray(e.verified) && e.verified.length === 1 && e.verified[0] === 'a.css', JSON.stringify(e.verified));
 }
 
 console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel + absent-local que MORDE + refs-da-poda + fluxo e2e)');
