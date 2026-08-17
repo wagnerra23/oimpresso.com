@@ -17,7 +17,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 7
+charter_version: 8
 permissao: copiloto.access
 ---
 
@@ -105,7 +105,39 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 
 `brief-first` (Tier A) · `multi-tenant-patterns` (Tier A) · `inertia-defer-default` (Tier B) · `mwart-process` (Tier A)
 
+## Fonte de design desta tela — decisão [W] 2026-08-17
+
+**A fonte é o protótipo Cowork (`prototipo-ui/cowork/jana-merge.jsx`), não o Padrão de Tela do
+Design System.** [W], textual: *"na jana deveria ser Cowork ele existe"*.
+
+O contexto da pergunta importa, porque as duas fontes **não convergem**: o `PT-05 Dashboard` do
+Design System (`templates/pt-05-dashboard/Pt05Dashboard.dc.html`, lido via `DesignSync` em
+2026-08-17) estrutura a tela em **grid de 2 colunas** `1.5fr/1fr` — KPI *hero* com sparkline,
+painel de barras à esquerda, gauge + pendências à direita, rodapé com período. O `jana-merge.jsx`
+estrutura em **seções empilhadas** (brief → KPIs → metas → análises → ações). Não dá pra seguir
+as duas; [W] escolheu o Cowork.
+
+### Consequência declarada, para ninguém "consertar" depois
+
+O check `pt_declarado` do `ciclo-completo` só reconhece `related_prototype` que case `PT-0X`. Com
+o valor apontando pro `.jsx`, **ele reprova — e vai reprovar sempre**. Em cascata caem `pt_conforme`
+e `golden_live`. Esta tela, portanto, **não fecha o ciclo por esse caminho**, e isso é **escolha
+consciente**, não pendência.
+
+⛔ **Não troque `related_prototype` por `n/a (herda PT-04 Dashboard)` para "destravar o ciclo".**
+O agente chegou a recomendar isso em 2026-08-17 — antes de [W] decidir a fonte — argumentando que a
+proveniência sobreviveria escrita no charter. A recomendação **caiu com esta decisão**: trocar o
+campo faria a tela declarar que herda um padrão que ela deliberadamente não segue. Ganhar um check
+verde afirmando algo falso é pior que o vermelho honesto.
+
+Reabrir exige decisão [W] nova sobre a **fonte**, não sobre o check.
+
 ## Charter version log
+
+- v8 (2026-08-17) — **[W] decidiu a FONTE DE DESIGN desta tela: Cowork, não Design System.**
+  Textual: *"na jana deveria ser Cowork ele existe"*. Ver §Fonte de design acima — inclui a
+  consequência declarada (`pt_declarado` reprova pra sempre, e isso é escolha) e a proibição
+  explícita de trocar `related_prototype` por `n/a` só pra ganhar check verde.
 
 - v7 (2026-08-17) — **O Non-Goal da análise "Frota" foi REMOVIDO por decisão [W]**, textual:
   *"frota e caçambas locações remova do charter"* + *"eu não vejo problema em fazer igual. isso vai
