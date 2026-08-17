@@ -7,10 +7,29 @@ last_validated: "2026-06-08"
 
 # Runbook · NFSe
 
+> 🪦 **LÁPIDE 2026-08-16 — este runbook ficou para trás do módulo. Leia como história, não como instrução.**
+>
+> Ele foi escrito quando a decisão de emissor estava **aberta** e o módulo não existia. As duas
+> premissas caducaram, e seguir as seções 1-2 hoje faria alguém **reabrir uma decisão fechada** e
+> instalar um pacote que o projeto não usa:
+>
+> | O runbook manda | O que é verdade hoje (medido em 2026-08-16) |
+> |---|---|
+> | *"0% implementado, scaffolds vazios, ainda nem criado"* | **54 arquivos**, 5 migrations, 10 testes; `module-surface --check` reporta NFSe OK, sem drift |
+> | *"pareie 30min com Wagner pra fechar provider escolhido (Focus NFe / NFE.io / PlugNotas)"* | decisão **fechada**: emissão **direta ao Sistema Nacional** (`sefin.nfse.gov.br`), sem provider terceiro — ver o `purpose` do [`SCOPE.md`](SCOPE.md) |
+> | `composer require rafwell/laravel-focusnfe` + `NFSE_PROVIDER=focusnfe` | o pacote **não está** no `composer.json` (0 ocorrências) e o adapter entregue é [`Modules/NFSe/Adapters/SnNfseAdapter.php`](../../../Modules/NFSe/Adapters/SnNfseAdapter.php) |
+>
+> **Fonte da verdade sobre o módulo:** [`SCOPE.md`](SCOPE.md) (responsabilidade e limites) + [`SPEC.md`](SPEC.md) +
+> o código. Este runbook segue útil no que é **procedimento de operação** (§3 em diante); o que
+> está morto é o caminho de *escolher provider e criar o módulo*.
+>
+> O texto original fica abaixo, intacto — era verdade quando foi escrito, e apagar história não é
+> conserto (regra do projeto: *ponteiro podre atualiza, fato datado preserva*).
+
 > **Owner**: Eliana[E]
 > **Cliente**: empresa **oimpresso** (Wagner) — **NÃO** ROTA LIVRE
 > **Cidade**: Tubarão-SC
-> **Status do módulo**: 0% implementado (scaffolds vazios em `Modules/NFSe/` — ainda nem criado)
+> **Status do módulo**: 0% implementado (scaffolds vazios em `Modules/NFSe/` — ainda nem criado) ← ⚠️ superado, ver lápide acima
 > **SPEC**: [`SPEC.md`](SPEC.md) · **ADR canônica**: [`adr/arq/0001-cliente-oimpresso-modulo-standalone.md`](adr/arq/0001-cliente-oimpresso-modulo-standalone.md)
 
 Operação dia-a-dia, debug e procedimentos pra implementar e manter o módulo NFSe.

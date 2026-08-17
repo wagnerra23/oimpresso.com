@@ -27,7 +27,7 @@
         <p class="trilho-tit">Nesta página</p>
         <ol>
           @foreach ($sumario as $item)
-            <li @class(['grupo' => $item['nivel'] === 2])>
+            <li @class(['grupo' => $item['nivel'] === 2, 'sub' => $item['nivel'] === 4])>
               <a href="#{{ $item['id'] }}">
                 @if ($item['codigo'])<span class="cod">{{ $item['codigo'] }}</span>@endif
                 <span>{{ $item['rotulo'] }}</span>

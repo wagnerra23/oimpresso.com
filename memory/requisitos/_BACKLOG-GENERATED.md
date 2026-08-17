@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **882 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **881 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -11,7 +11,7 @@
 | [`Jana`](#jana) | 83 | 2 | 0 | 0 | 81 |
 | [`Whatsapp`](#whatsapp) | 67 | 0 | 0 | 0 | 67 |
 | [`Sells`](#sells) | 52 | 0 | 0 | 0 | 52 |
-| [`Governance`](#governance) | 48 | 0 | 0 | 3 | 45 |
+| [`Governance`](#governance) | 47 | 0 | 0 | 3 | 44 |
 | [`Infra`](#infra) | 46 | 0 | 0 | 0 | 46 |
 | [`Financeiro`](#financeiro) | 45 | 0 | 0 | 0 | 45 |
 | [`OficinaAuto`](#oficinaauto) | 37 | 0 | 0 | 0 | 36 |
@@ -322,7 +322,6 @@
 - **US-GOV-052** — Backlog da revisão da memória do processo — consertos M/G restantes _(`p2`)_
 - **US-GOV-053** — recall_eval_violations: transporte versionado do cron dominical pro scorecard SDD _(`p2`)_
 - **US-GOV-054** — Coletar bite-log retroativo dos 3 gates DS required (fechamento empírico ADR 0339 / DR-2a 0336) _(`p2`)_
-- **US-GOV-059** — Triar as 43 permissões órfãs — usadas no código, declaradas em lugar nenhum _(`p2`)_
 - **US-GOV-061** — `memory/modulos/` drifado: 15 specs editadas à mão assinam data de geração antiga _(`p2`)_
 - **US-GOV-033** — Corrigir links internos residuais (corpos de ADR append-only + dead-links de alvo incerto) _(`p3`)_
 - **US-GOV-039** — TDAD-lite — lane de testes impactados no PR (test-map via pcov + sombra 14d) _(`p3`)_

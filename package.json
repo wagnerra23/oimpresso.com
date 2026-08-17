@@ -46,6 +46,7 @@
     "docs:relocation:execute:selftest": "node scripts/governance/document-relocation-executor.mjs --selftest",
     "docs:relocation:history": "node scripts/governance/document-relocation-executor.mjs --history",
     "docs:relink": "node scripts/governance/doc-auto-relink.mjs --detect",
+    "docs:relink:orfaos": "node scripts/governance/doc-auto-relink.mjs --orfaos",
     "docs:relink:selftest": "node scripts/governance/doc-auto-relink.mjs --selftest",
     "docs:id-stamp": "node scripts/governance/doc-id-stamp.mjs",
     "adr:supersede": "node scripts/governance/adr-supersede.mjs",

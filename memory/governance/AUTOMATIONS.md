@@ -120,6 +120,7 @@ Tipo ADR 0234: `cron`. Todos os schedules são ambientes `live` salvo indicaçã
 |---------|----------|-----------|
 | `backup:clean` | `daily` às 01:00 | Limpa backups antigos (env=live). |
 | `backup:run` | `daily` às 01:30 | Executa backup completo (env=live). |
+| `backup:monitor` | `dailyAt('09:00')` BRT | **Verifica o FRESCOR do backup** — o `backup:run` acima só CRIA; nada checava se existe e está fresco. Limiares em `config/backup.php` (`MaximumAgeInDays=1`, `MaximumStorageInMegabytes=5000`); alerta por `UnhealthyBackupWasFoundNotification` + `onFailure` no log. Entrou na Onda 3 da [AUDITORIA-OPS-DR-2026-07](../requisitos/Infra/AUDITORIA-OPS-DR-2026-07.md) contra a morte silenciosa do backup. Defendido por `tests/Feature/Console/BackupMonitorScheduleTest.php`, na allowlist da lane `PHP / Pest (Unit)` desde 2026-08-16 (antes disso o teste existia e **não rodava em lane nenhuma**). |
 | `pos:generateSubscriptionInvoices` | `dailyAt('23:30')` | Gera faturas recorrentes de assinatura (env=live). |
 | `pos:updateRewardPoints` | `dailyAt('23:45')` | Atualiza pontos de fidelidade (env=live). |
 | `pos:autoSendPaymentReminder` | `dailyAt('8:00')` | Envia lembretes automáticos de pagamento (env=live). |
@@ -196,6 +197,20 @@ Tipo ADR 0234: `routine`. Automações orquestradas de mais alto nível que não
 | **Fechar o Loop** _(primeira rotina tipo routine registrada — audit 2026-05-29)_ | SessionStart, após brief-fetch | Verifica idempotentemente os 4 gaps P0 da auditoria IA-OS (RAGAS CI, drift sentinel, observability, LGPD purge) e aponta o próximo pendente; NUNCA toca Brain B/autonomia. | `.claude/hooks/loop-fechar-check.mjs` + `.claude/loop-fechar-o-loop.json` _(criados e validados 2026-05-29; já registrados no `SessionStart` do `settings.json`)_ |
 | **ZELADOR · ciclo documental** | Segundas 07:10 BRT, via automação Codex local `zelador-ciclo-documental` (ativada em 2026-07-22) | Compõe os detectores existentes, seleciona no máximo 1 drift, corrige no dono, exige recibo `Documentation-Receipt: <id>` antes→depois e, na primeira execução posterior ao merge, confirma o ID ausente no `main`. A run sempre emite resultado: silêncio não prova liveness. Nunca mergeia. | `scripts/governance/ZELADOR.md` + `scripts/governance/documentation-loop.mjs` + `.claude/workflows/documentacao-tecnica.js` |
 | **MV metabolismo · batimento nightly** _(registrado em 2026-08-14 — o cron rodava desde 2026-07 sem entrada aqui)_ | Diário 06:30 BRT (`schedule` do workflow) + `workflow_dispatch` | Regenera os índices DERIVADOS da frota e os aterrissa por auto-PR: sinais vitais (+ trend append-only), service scorecard, prontidão do protótipo, bite-log dos gates de design e — desde 2026-08-14 — a **adoção do DS**: censo por tela (`ds-ledger --write` → `governance/ds-ledger.json`, que alimenta a tela `/governance/ds-rollout`) e placar `ds/*` por módulo (`ds-report --write` → `prototipo-ui/DS_ADOCAO_INDICE.md`). Quando o metabolismo propõe batch de telas, o PR ganha o label `mv-batch` e espera o merge do [W]; sem batch, só o snapshot derivado sobe. Nunca cria task MCP, nunca mergeia batch. | `.github/workflows/mv-metabolismo.yml` + `scripts/qa/vital-signs.mjs` + `scripts/qa/mv-metabolismo.mjs` + `scripts/governance/service-scorecard.mjs` + `scripts/qa/prototipo-readiness.mjs` + `scripts/governance/design-gate-bites.mjs` + `scripts/ds-ledger.mjs` + `scripts/ds-report.mjs` |
+
+### Rotina SEM executor — declarada, não esquecida (registrada 2026-08-15)
+
+Uma entrada aqui **não** significa "roda sozinha". Esta significa o contrário, e está registrada exatamente por isso: a ausência era **implícita**, e foi o que permitiu um arquivo do espelho ficar **7 semanas** defasado sem ninguém saber.
+
+| Nome | Gatilho | O que faz | Arquivo(s) |
+|------|---------|-----------|------------|
+| **Dispatch de frescor do espelho Cowork** ⚠️ **MANUAL por construção — não há cron** | Uma **sessão com agente** rodando a Fase −1 da skill `aplicar-prototipo`. SLA declarado no código: **`SLA_DAYS = 14`** | `DesignSync.get_file` de cada arquivo → JSONs num dir → `--snapshot-from <dir> --emit-snapshot` (mede) → `--compare --ledger` (verdito por hash) → `--export-from` só se o veredito pedir. Responde "o espelho está ATRASADO em relação ao vivo?" — pergunta que **nenhum** dos modos headless responde. | `scripts/governance/cowork-mirror-freshness.mjs` (`--compare`/`--snapshot-from`/`--export-from`) + `.claude/skills/aplicar-prototipo/SKILL.md` |
+
+**Por que não tem cron, medido em 2026-08-15 (não é esquecimento):** o `--compare` **exige** um snapshot vindo do `DesignSync.get_file` — sai `rc=2` sem ele — e essa auth é **interativa** ([ADR 0315](../decisions/0315-design-sync-claude-design-vs-cowork-charter.md)). Nenhum workflow usa `DesignSync`: os 2 hits em `.github/workflows/` são **comentários explicando que não dá** (`design-memory-gate.yml:308,324`). Em run headless/cron o MCP autenticado interativamente pode simplesmente não existir.
+
+**Quem vigia, já que ninguém executa:** o **`--sla`** (`design-memory-gate.yml`, advisory). Ele mede se a rotina rodou dentro dos 14 dias e **se a rodada foi completa**. Estado em 2026-08-15: `rc=1` — *"20 sync · 0 stale · 98 unchecked · mediu 23/121"*. Ele **funcionou**; o que falhou foi o alarme ser ilegível dentro de um step `continue-on-error`, corrigido em [#5809](https://github.com/wagnerra23/oimpresso.com/pull/5809) (o veredito passou a ir pro resumo do PR).
+
+⚠️ **Corolário que esta entrada existe pra fixar:** `0 stale` **não** é veredito de espelho em dia — cobre só os medidos. O denominador é que conta a verdade, e é por isso que o `veredictoFinal` marca cobertura parcial como **INCONCLUSIVO**, nunca `✓`.
 
 ---
 

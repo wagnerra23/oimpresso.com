@@ -64,7 +64,7 @@ import { readdirSync, readFileSync, existsSync, realpathSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { gitLastDate as gitLastDateGuardado, gitLogRaw } from './lib/git-history.mjs';
+import { gitLastDate as gitLastDateGuardado, gitLogRaw, isShallowHistory } from './lib/git-history.mjs';
 import {
   classifyPathCitation, loadPathTombstones,
   WF_CITE_RE, MJS_CITE_RE, MOD_REF_RE,
@@ -263,10 +263,14 @@ function scan() {
   const churnIdx = parseNameOnlyLog(gitLogRaw(`git log --since="${since} 00:00:00" --format=@%cs --name-only`) ?? '');
 
   const rows = [];
+  // NÃO-MEDIDOS: doc do corpus que existe no disco mas não tem data-git legível. Antes
+  // caíam num `continue` mudo e o radar reportava "0 podres · 0 frescos" sobre 0 docs —
+  // que lê como saúde (§5 2026-07-29). Agora o descarte é CONTADO e declarado.
+  const naoMedidos = [];
   for (const doc of docs) {
     let txt = ''; try { txt = readFileSync(join(ROOT, doc), 'utf8'); } catch { continue; }
     const dataGit = gitDateByDoc.get(doc) || gitLastDate(doc);
-    if (!dataGit) continue; // sem histórico git → não dá pra medir (não inventa)
+    if (!dataGit) { naoMedidos.push(doc); continue; } // sem histórico git → não mede (não inventa)
     const declarada = dataDeclarada(txt);
     // idade: declarada só pode PIORAR (git mente pra cima — lição briefing-code-staleness).
     const baseIdade = declarada && declarada < dataGit ? declarada : dataGit;
@@ -309,7 +313,7 @@ function scan() {
     });
   }
   rows.sort((a, b) => a.score - b.score || b.churnCommits - a.churnCommits);
-  return { hoje, since, rows };
+  return { hoje, since, rows, naoMedidos };
 }
 
 // ── selftest (bite/release do NÚCLEO PURO — fixtures, sem FS/git) ─────────────
@@ -357,6 +361,18 @@ function selftest() {
   // IDADE anti-gaming — declarada mais velha que git PIORA; declarada "futura" não melhora.
   ok('dataDeclarada: extrai o maior carimbo', dataDeclarada('updated_at: 2026-05-01\n**Atualizado:** 2026-06-01') === '2026-06-01');
 
+  // ── UC-DOC-06 · O CORPUS NÃO PODE SER VAZIO ────────────────────────────────
+  // Este é o único caso aqui que toca o disco, e é de propósito: a falha que ele pega
+  // não é de cálculo, é de POPULAÇÃO. Um corpus vazio faz o radar imprimir
+  // "0 podres · 0 envelhecendo · 0 frescos" — indistinguível de saúde perfeita, e foi
+  // exatamente o que apareceu em clone raso (0 de 392). O score pode estar impecável
+  // e o instrumento, decorativo. Não fixa número (ele cresce): exige que EXISTA corpus.
+  const corpus = corpusDocs();
+  ok(`UC-DOC-06: o corpus do radar não é vazio (${corpus.length} docs) — 0 docs = radar decorativo`,
+    corpus.length > 0);
+  ok('UC-DOC-06: o corpus inclui os guias-raiz canônicos (CLAUDE.md + GUIA-DO-SISTEMA)',
+    corpus.includes('CLAUDE.md') && corpus.includes('memory/GUIA-DO-SISTEMA.md'));
+
   console.log(fails
     ? `\n  ${fails} FALHA(S) — o radar de frescor não está honesto.\n`
     : `\n  SELFTEST OK — morde (podre) e solta (fresco); pesos anti-gaming valem.\n`);
@@ -366,7 +382,7 @@ function selftest() {
 // ── run (CLI) ────────────────────────────────────────────────────────────────
 function run() {
   const JSON_OUT = process.argv.includes('--json');
-  const { hoje, since, rows } = scan();
+  const { hoje, since, rows, naoMedidos } = scan();
   const top10 = rows.slice(0, 10);
 
   if (JSON_OUT) {
@@ -375,6 +391,9 @@ function run() {
       regua: 'Dosu — score 0-100 de frescor por doc, determinístico (sem LLM); agregador/radar, dentes = sentinelas específicas',
       pesos: PESOS, hoje, churn_window_since: since,
       avaliados: rows.length,
+      corpus: rows.length + naoMedidos.length,
+      nao_medidos: naoMedidos,
+      history_truncada: naoMedidos.length > 0 && isShallowHistory(),
       top10_podres: top10,
       docs: rows,
     }, null, 2));
@@ -385,7 +404,7 @@ function run() {
   const nR = rows.filter((r) => r.score < 50).length;
   const nY = rows.filter((r) => r.score >= 50 && r.score < 80).length;
 
-  console.log(`\n  RADAR DE FRESCOR POR DOC — score 0-100 (régua Dosu · determinístico · ${rows.length} docs · hoje=${hoje})`);
+  console.log(`\n  RADAR DE FRESCOR POR DOC — score 0-100 (régua Dosu · determinístico · ${rows.length} de ${rows.length + naoMedidos.length} docs · hoje=${hoje})`);
   console.log(`  pesos: churn ${PESOS.churn} + refs-quebradas ${PESOS.refs} + claims-aterradas ${PESOS.tombstone} (não-declaráveis) · idade ${PESOS.idade}`);
   console.log('  ' + '─'.repeat(96));
   console.log(`  ${'score'.padStart(5)}  ${'DOC'.padEnd(58)} ${'idade'.padStart(6)} ${'churn'.padStart(6)} ${'quebr'.padStart(6)}`);
@@ -395,7 +414,15 @@ function run() {
   }
   if (rows.length > 20) console.log(`  … +${rows.length - 20} docs (use --json pra lista completa)`);
   console.log('  ' + '─'.repeat(96));
-  console.log(`  🔴 ${nR} podres (<50) · 🟡 ${nY} envelhecendo (50-79) · 🟢 ${rows.length - nR - nY} frescos (80+)`);
+  if (naoMedidos.length) {
+    console.log(`  ⚠️  NÃO MEDIDOS: ${naoMedidos.length} doc(s) do corpus sem data-git legível — fora de TODAS as contagens abaixo.`);
+    if (isShallowHistory()) console.log('     CAUSA: history TRUNCADA (clone raso). Conserte o instrumento: `git fetch --unshallow`.');
+  }
+  if (!rows.length) {
+    console.log(`  ⚠️  VEREDITO INDISPONÍVEL — 0 de ${naoMedidos.length} doc(s) medido(s). Nada foi avaliado.`);
+  } else {
+    console.log(`  🔴 ${nR} podres (<50) · 🟡 ${nY} envelhecendo (50-79) · 🟢 ${rows.length - nR - nY} frescos (80+)`);
+  }
   console.log('  RADAR advisory (ADR 0314) — a AÇÃO vem do dente específico (briefing-code-staleness /');
   console.log('  knowledge-drift / memory-health / visual-comparison-staleness); aqui só se vê ONDE olhar primeiro.\n');
 

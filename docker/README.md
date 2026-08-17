@@ -5,12 +5,26 @@ ADR canônica: [`memory/decisions/0060-tudo-rede-interna-proxmox-bye-hostinger.m
 
 ## Containers atuais
 
-| Diretório | Subdomínio | Função | Status |
-|---|---|---|---|
-| `oimpresso-mcp/` | `mcp.oimpresso.com` | MCP server FrankenPHP (ADR 0053) | ✅ prod |
-| `ollama-embedder/` | (interno LAN) | Embedder local Nomic/BGE-M3 (ADR 0060) | 🔲 setup pendente |
-| `oimpresso-workers/` | `workers.oimpresso.com` | Workers pesados Laravel (ADR 0060) | 🔲 setup pendente |
-| `centrifugo/` | `realtime.oimpresso.com` | Realtime WS+SSE (ADR 0058) | 🔲 setup pendente |
+> ⚠️ **A coluna "Status" foi separada em duas em 2026-08-16, e não é por estilo.** Ela era um campo
+> escrito à mão que apodreceu: marcava `🔲 setup pendente` para serviços que a
+> [auditoria Ops/DR de 2026-07-05](../memory/requisitos/Infra/AUDITORIA-OPS-DR-2026-07.md) já media
+> rodando — incluindo o Centrifugo, cuja perda ela classifica como **P0** no SPOF-2. Um doc que chama
+> de "pendente" o que está em produção manda o operador procurar trabalho que não existe, e esconder
+> o que existe.
+>
+> **Este arquivo não declara mais runtime.** Ele diz o que o repositório PROVA (a stack está aqui?) e
+> aponta a medição datada. Estado agora se pergunta ao runtime: `tailscale ssh root@ct100-mcp 'docker ps'`.
+
+| Diretório | Subdomínio | Função | Stack versionada aqui | Medido rodando |
+|---|---|---|---|---|
+| `oimpresso-mcp/` | `mcp.oimpresso.com` | MCP server FrankenPHP (ADR 0053) | ✅ completa (Dockerfile + compose + entrypoints + bootstrap) | ✅ 2026-07-05 |
+| `ollama-embedder/` | (interno LAN) | Embedder local Nomic/BGE-M3 (ADR 0060) | ✅ `docker-compose.yml` | ✅ 2026-07-05 (auditoria §Realtime/busca) |
+| `oimpresso-workers/` | `workers.oimpresso.com` | Workers pesados Laravel (ADR 0060) | ✅ `docker-compose.yml` + `Caddyfile` | ❓ **não confirmado** — a auditoria lista `mysql-workers` (um MySQL), que não é o worker Laravel |
+| ~~`centrifugo/`~~ | `realtime.oimpresso.com` | Realtime WS+SSE (ADR 0058) | ❌ **o diretório NÃO existe neste repo** — o compose e o `config.json` vivem só como heredoc dentro do [`RUNBOOK-deploy-centrifugo.md`](../memory/requisitos/Infra/RUNBOOK-deploy-centrifugo.md) | ✅ 2026-07-05 (e SPOF-2 o nomeia como perda **P0**) |
+
+> 🔴 **A linha do Centrifugo é dívida real, não formatação.** Serviço em produção, classificado P0 na
+> auditoria, com a configuração **não versionada** — recriá-lo hoje exige copiar heredoc de um runbook
+> à mão. É o oposto do que o §D.2 do Plano Mestre chama de configuração versionada.
 
 ## Padrão arquitetural (ADR 0042 + 0060)
 

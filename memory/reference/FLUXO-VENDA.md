@@ -5,7 +5,7 @@ description: A travessia completa de uma venda pelos quatro domínios (venda, es
 type: reference
 authority: canonical
 lifecycle: ativo
-updated_at: "2026-08-03"
+updated_at: "2026-08-17"
 nav_group: fluxo
 nav_order: 10
 lente: [operar, construir]
@@ -99,6 +99,83 @@ Dono: [`memory/dominio/fiscal-faturamento.md`](../dominio/fiscal-faturamento.md)
 | *"recebi mas o caixa não mostra"* | recebimento sem baixa — o caixa deriva da baixa, não da venda |
 | *"a nota não sai"* | estado da emissão + regime tributário, não a venda |
 | *"cancelei e o número sumiu"* | cancelamento é evento fiscal; número usado não volta |
+
+## As quatro perguntas que este percurso não respondia
+
+Medido em 2026-08-17 contra o gate da Trilha D (D7), que pede *ator, máquina, módulo, dado,
+auth, tenant, retry, falha parcial e rollback explícitos*. A máquina já estava aqui (parada 2)
+e a falha parcial também — é a frase *"as três pernas não são sequenciais"*, que é literalmente
+falha parcial sem o rótulo. **Estas quatro faltavam**, e todas têm dono no código.
+
+Vale a regra desta página: aqui vai o **percurso e o dono**, nunca o valor. Número de tentativa,
+nome de papel e lista de efeito **mudam** — quem sabe é o arquivo apontado, não este texto.
+
+### Quem tem permissão de mover a venda
+
+Não é "quem está logado". Cada ação da máquina de estados tem **papéis cadastrados**, e a
+resposta é dada em **dois lugares diferentes** — o que explica um sintoma que confunde:
+
+| Pergunta | Quem responde |
+|---|---|
+| *o botão aparece?* | [`StageActionPolicy`](../../app/Domain/Fsm/Policies/StageActionPolicy.php) |
+| *a ação executa?* | [`ExecuteStageActionService`](../../app/Domain/Fsm/Services/ExecuteStageActionService.php) |
+
+Os dois checam a empresa e os papéis. **Não são a mesma regra**, e o próprio código avisa que
+divergir entre eles faz a tela oferecer o que o backend recusa. Por isso *"o botão não aparece"*
+e *"clicou e negou"* se diagnosticam em arquivos diferentes — o primeiro é o Policy, o segundo
+é o Service.
+
+Ação marcada como **crítica sem nenhum papel cadastrado** é recusada na execução (falha
+fechada, deliberada). Quem recusa lança exceção própria.
+
+Dono: os dois arquivos acima · papéis em [`SaleStageActionRole`](../../app/Domain/Fsm/Models/SaleStageActionRole.php)
+· recusa em [`UnauthorizedActionException`](../../app/Domain/Fsm/Exceptions/UnauthorizedActionException.php).
+
+### De quem é esta venda
+
+O percurso inteiro é **por empresa**. Isso não é detalhe de implementação: é a razão de a venda
+de um cliente nunca aparecer no painel de outro, e é irrevogável ([ADR 0093](../decisions/0093-multi-tenant-isolation-tier-0.md)).
+
+A pegadinha operacional está na parada 3: o título nasce por **observer**, e observer dispara
+**job**, e job **não tem sessão**. Quem escreveu o job precisou passar a empresa explicitamente —
+o comentário `// SUPERADMIN:` no arquivo existe exatamente para marcar esse ponto. Se um dia um
+título aparecer na empresa errada, é aqui que se olha primeiro, não na tela.
+
+Dono: [`CriarTituloDeVendaJob`](../../Modules/Financeiro/Jobs/CriarTituloDeVendaJob.php)
+· regra em [`memory/proibicoes.md`](../proibicoes.md) (§ *Multi-tenant Tier 0*).
+
+### O que acontece quando uma perna falha na hora
+
+As pernas assíncronas **repetem sozinhas** — e repetir só é seguro porque o título tem chave
+única por empresa/origem/parcela: a segunda tentativa não cria um segundo título. É essa
+unicidade, não a sorte, que impede o *"cliente devendo duas vezes"* da tabela acima quando a
+causa é retry (o outro caminho, digitar à mão, segue valendo).
+
+O número de tentativas e o intervalo vivem no próprio job — **não são reproduzidos aqui de
+propósito**, porque mudam.
+
+Dono: [`CriarTituloDeVendaJob`](../../Modules/Financeiro/Jobs/CriarTituloDeVendaJob.php) (`$tries`/`$backoff` + a nota de idempotência no topo).
+
+### Desfazer não é apagar
+
+Cancelar uma venda que já andou **não desfaz o registro** — dispara uma cascata que precisa
+conversar com sistemas de fora: fisco, meio de pagamento e o aviso ao cliente. Cada um pode
+falhar por conta própria, então o cancelamento também tem **falha parcial** — e é por isso que
+"cancelei" nem sempre significa "cancelou em todos os lugares".
+
+O ponto irreversível da parada 4 continua valendo e é mais forte que a cascata: número de nota
+autorizada **não volta a ficar livre**, aconteça o que acontecer com o resto.
+
+Dono: [`CancelarVendaCascade`](../../app/Domain/Fsm/SideEffects/CancelarVendaCascade.php)
+· contrato provado em [`CancelarVendaCascadeSideEffectTest`](../../tests/Feature/Domain/Fsm/CancelarVendaCascadeSideEffectTest.php)
+· percurso próprio em [`FLUXO-CANCELAMENTO.md`](FLUXO-CANCELAMENTO.md).
+
+> ⚠️ **O mesmo buraco existe nos outros dois percursos** (medido 2026-08-17):
+> [`FLUXO-CANCELAMENTO.md`](FLUXO-CANCELAMENTO.md) e [`FLUXO-DEPLOY.md`](FLUXO-DEPLOY.md) também
+> não respondem tenant, retry nem rollback. O de **deploy** é o mais sério — um percurso de
+> deploy sem linha de rollback é a lacuna que a auditoria de infra já tinha apontado por outro
+> caminho. Não foi escrito aqui porque exige saber o procedimento **real** de reversão em
+> produção; inventar um passo que parece canon é pior do que a ausência declarada.
 
 ## Antes de mudar qualquer coisa neste caminho
 

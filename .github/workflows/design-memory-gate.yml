@@ -269,10 +269,41 @@ jobs:
         if: always()
         continue-on-error: true
         run: node scripts/governance/cowork-mirror-freshness.test.mjs
+      # O --sla SEMPRE mediu certo; o que faltava era o veredito CHEGAR em alguém. Ele saía
+      # rc=1 dentro de um step `continue-on-error`, então o motivo ficava enterrado no log e
+      # só era lido por quem já suspeitava. Medido em 2026-08-14: rc=1 com "20 sync · 0 stale ·
+      # 98 unchecked · mediu 23/121" ACESO desde 2026-08-13 — e a defasagem do `chat-jana.jsx`
+      # (7 semanas) foi descoberta por tropeço numa sessão, não por este alarme.
+      # NÃO muda enforcement: segue advisory, segue continue-on-error, e o rc real é preservado
+      # (`exit $rc`) — advisory pode ficar vermelho, §5 2026-07-09. O que muda é que o número
+      # vai pro resumo do PR, onde se lê sem abrir log.
+      # "0 stale" NUNCA é o veredito sozinho: ele só cobre o que foi medido, e o denominador
+      # é que diz o resto (§5 2026-07-29 — não afirmar sobre o que não se percorreu).
       - name: cowork-freshness SLA (rotina de dispatch em dia? · ledger · advisory)
         if: always()
         continue-on-error: true
-        run: node scripts/governance/cowork-mirror-freshness.mjs --sla
+        run: |
+          OUT="${RUNNER_TEMP:-.}/cowork-sla.txt"
+          node scripts/governance/cowork-mirror-freshness.mjs --sla > "$OUT" 2>&1
+          rc=$?
+          cat "$OUT"
+          {
+            echo "### Espelho Cowork — SLA de frescor (advisory)"
+            echo ""
+            if [ "$rc" -eq 0 ]; then
+              echo "✅ rotina de dispatch em dia."
+            else
+              echo "⚠️ **rotina PARCIAL ou vencida** — \`rc=$rc\`"
+            fi
+            echo ""
+            echo '```'
+            sed -n '1,12p' "$OUT"
+            echo '```'
+            echo ""
+            echo "_Advisory: não bloqueia merge (dono de \`required\` é \`governance/required-checks-baseline.json\`)._"
+            echo "_Cobertura parcial significa que \`0 stale\` cobre **só o que foi medido** — o resto segue sem veredito._"
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit $rc
       # Poda do espelho (PR #5763, 96 arquivos): ao contrário do --compare acima, ESTE é 100%
       # local — não precisa da auth interativa do DesignSync, então roda headless no CI. Só
       # olha o que o PR APAGA sob prototipo-ui/cowork/ e pergunta se sobrou alguém apontando

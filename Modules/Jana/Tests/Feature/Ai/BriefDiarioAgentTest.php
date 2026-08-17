@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Laravel\Ai\Ai;
@@ -32,6 +33,20 @@ beforeEach(function () {
     if (DB::connection()->getDriverName() !== 'sqlite') {
         test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
     }
+
+    // RELÓGIO CONGELADO — este teste semeia `transaction_date => now()->subHours(1)` e afirma
+    // o total de HOJE. Com o relógio vivo, rodar entre 00:00 e 01:00 no fuso da app
+    // (`Europe/London`, UTC+1 no verão) joga a venda pra ONTEM e o brief devolve 0.0.
+    // Não é regressão: é uma janela de UMA HORA POR DIA em que o teste falha sempre.
+    // MEDIDO 2026-08-15/16 em main, MESMO commit: runs 21:58 / 22:10 / 22:25 UTC verdes;
+    // 23:25 UTC (= 00:25 na app) vermelha, com `Failed asserting that 0.0 matches expected
+    // 500.0`; 00:25 UTC (= 01:25, já fora da janela) verde de novo. Mesmo código, relógios
+    // diferentes, resultados opostos.
+    // A falha nasce na lane `PHP / Pest (Unit)` — se ela é required hoje, quem sabe é
+    // `governance/required-checks-baseline.json`, não este comentário.
+    // Mesmo padrão de `IsolatedStatesBaselineTest.php:68`. Meio-dia é folgado dos dois
+    // lados: `subHours(1)` continua no mesmo dia com 11h de margem.
+    Carbon::setTestNow('2026-06-11 12:00:00');
 
     foreach (['transactions', 'transaction_payments', 'conversations', 'messages', 'channels', 'contacts', 'nfe_emissoes', 'transaction_sell_lines', 'products'] as $t) {
         Schema::dropIfExists($t);
@@ -116,6 +131,8 @@ beforeEach(function () {
         $t->timestamps();
     });
 });
+
+afterEach(fn () => Carbon::setTestNow());
 
 it('R-COPI-202-001 — cada Tool retorna JSON parseável com shape estável', function () {
     DB::table('transactions')->insert([

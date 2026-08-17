@@ -94,6 +94,20 @@ export function sondas(tag) {
     '{\\"systemMessage\\":\\"[' + tag + ']',
     'permissionDecisionReason\\":\\"[' + tag + ']',
     '"content":"[' + tag + ']',
+    // 4a sonda — o CANAL DE BLOQUEIO. As tres acima exigem a tag no INICIO do valor,
+    // e hook que BLOQUEIA nunca chega assim: ele sai pelo canal de erro, que prefixa
+    // `PreToolUse:<Tool> hook error: [node .claude/hooks/<arquivo>.mjs]: ` antes dela.
+    // Consequencia medida em 2026-08-16 nesta sessao: os 4 hooks que me barraram de
+    // fato (block-destructive, block-askq-execution-menu, block-test-fora-ct100,
+    // block-instrumento-sem-porta-viva) estavam no transcript e contavam ZERO. O dead
+    // man's switch enxergava so os nudges advisory e era CEGO justamente aos Tier-0
+    // que bloqueiam — o inverso do que importa.
+    // Ancorada em `.mjs]: ` de proposito: exige o prefixo do caminho do hook, entao
+    // mencao a tag em prosa (handoff, session log, este comentario) NAO casa.
+    // ⚠️ Ressalva de fidelidade: o mesmo bloqueio aparece 2x por evento (uma no
+    // "content" da mensagem, outra no "Error:"), entao a CONTAGEM infla ~2x. O
+    // veredito binario -- entregou ou nao -- e' que era falso; o numero e' piso.
+    '.mjs]: [' + tag + ']',
   ];
 }
 
@@ -113,7 +127,15 @@ function arquivosTranscript(dias) {
   const corte = dias ? Date.now() - dias * 86400000 : 0;
   const out = [];
   for (const d of readdirSync(base)) {
-    if (!d.startsWith('D--oimpresso-com')) continue;
+    // O nome do dir codifica o caminho ABSOLUTO do projeto, e ele muda com o SO:
+    // `D--oimpresso-com` no Windows do [W]; `-home-user-oimpresso-com` no container
+    // Linux; outro ainda nos Macs do time. O filtro era `startsWith('D--oimpresso-com')`
+    // — Windows-only — entao em TODA estacao nao-Windows o corpus vinha VAZIO e o
+    // dead man's switch reportava "0 entregaram" pra 41 hooks, sempre. Medido aqui:
+    // 17 .jsonl existiam em `-home-user-oimpresso-com` e nenhum era lido.
+    // `includes` cobre os tres casos E preserva os worktrees do Windows
+    // (`D--oimpresso-com--claude-worktrees-*`), que o startsWith ja pegava.
+    if (!d.includes('oimpresso-com')) continue;
     let fs2; try { fs2 = readdirSync(join(base, d)); } catch { continue; }
     for (const f of fs2) {
       if (!f.endsWith('.jsonl')) continue;
@@ -284,6 +306,19 @@ function main() {
     const comEntrega = wired.filter((h) => h.tag && (contagem.get(h.tag) || 0));
     const curto = (a) => a.replace(/\.mjs$/, '');
     console.log(`\n=== MAQUINAS: os hooks entregaram? (hook-bites · janela ${dias || 'toda'}d · ${segundos}s) ===`);
+    // CORPUS VAZIO NAO E' "ZERO ENTREGAS". Sem transcript local pra ler, este resumo nao
+    // MEDIU nada — e o modo completo ja imprime `corpus: N sessoes locais`, mas o heartbeat
+    // descartava esse numero e publicava "0 entregaram · 41 com ZERO entrega" como se fosse
+    // achado. Acontece em TODA estacao sem historico local: container de nuvem, clone fresco,
+    // maquina nova do time. Um dead man's switch que grita "todos mortos" quando esta cego e'
+    // exatamente o modo de falha que ele existe pra impedir (§5 2026-07-29: nao colapsar
+    // "nao consegui medir" num estado do objeto medido).
+    if (!arquivos.length) {
+      console.log(`  [?] NAO MEDIDO — corpus vazio (0 sessoes locais nesta estacao).`);
+      console.log(`      ${wired.length} hooks wired, ${naoObservaveis.length} sem tag. Nada foi contado: silencio aqui e' CEGUEIRA, nao morte.`);
+      console.log(`      detalhe: node scripts/governance/hook-bites.mjs --dias ${dias || 14}\n`);
+      process.exit(0);
+    }
     console.log(`  ${comEntrega.length} entregaram · ${semEntrega.length} wired com ZERO entrega · ${naoObservaveis.length} nao-observaveis (silencio = indistinguivel de morte)`);
     if (semEntrega.length) {
       console.log(`  zero entrega: ${semEntrega.slice(0, 6).map((h) => curto(h.arquivo)).join(', ')}${semEntrega.length > 6 ? ` (+${semEntrega.length - 6})` : ''}`);

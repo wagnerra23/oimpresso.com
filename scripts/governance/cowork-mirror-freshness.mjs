@@ -480,10 +480,32 @@ export function previewDsPlan(shellHtml, root = ROOT) {
   const id = ids[0];
   const querUsar = [...new Set([...String(shellHtml).matchAll(/_ds\/[^/"]+\/([^"?]+)/g)].map((m) => m[1]))];
   const origem = join(root, 'scripts', 'design-sync', 'mirror-snapshot');
+  // ── 2ª CAMADA: o que os CSS repostos pedem POR DENTRO (2026-08-14) ───────────
+  // Derivar o plano só do SHELL deixa de fora tudo que está a uma indireção: o
+  // shell não menciona fonte alguma — quem as pede é o `colors_and_type.css`, com
+  // `url('assets/fonts/…woff2')` (7 refs únicas). MEDIDO no preview antes deste
+  // conserto: 7 `@font-face` com status `error` e a tipografia caindo pro fallback
+  // do sistema — falha 404 SILENCIOSA, que é pior que ausência declarada, porque
+  // o `--preview-ds` dizia "2 reposto(s)" e dava a impressão de plano completo.
+  // Só refs RELATIVAS entram (data:/http(s):/protocol-relative/âncora ficam fora —
+  // não são arquivo do espelho). Isto não inventa origem: o que não existir no
+  // mirror-snapshot sai como "SEM FONTE", igual ao `_ds_bundle.js`.
+  const deCss = new Set();
+  for (const f of querUsar) {
+    if (!/\.css$/i.test(f)) continue;
+    const src = join(origem, f);
+    if (!existsSync(src)) continue;
+    for (const m of String(readFileSync(src, 'utf8')).matchAll(/url\(\s*['"]?([^)'"]+?)['"]?\s*\)/g)) {
+      const ref = String(m[1]).trim();
+      if (!ref || /^(data:|https?:|\/\/|#)/i.test(ref)) continue;
+      deCss.add(ref.replace(/^\.\//, '').split(/[?#]/)[0]);
+    }
+  }
+  const todos = [...new Set([...querUsar, ...deCss])];
   return {
     id,
     destino: `prototipo-ui/cowork/_ds/${id}`,
-    arquivos: querUsar.map((f) => ({
+    arquivos: todos.map((f) => ({
       nome: f,
       de: join(origem, f),
       para: join(root, 'prototipo-ui', 'cowork', '_ds', id, f),
@@ -800,7 +822,15 @@ function main() {
     }
     console.log(`\n  ${ok} reposto(s) · ${faltando.length} sem fonte no repo${faltando.length ? ` (${faltando.join(', ')})` : ''}`);
     console.log(`  destino: ${plano.destino}/ — segue gitignored (build de preview, não versionamento).`);
-    if (faltando.length) console.log(`  ⚠ o que falta o repo NÃO TEM: são componentes compilados do DS, e o código do protótipo tem fallback pra eles.`);
+    // A frase precisa distinguir os dois tipos, porque a consequência é diferente:
+    // JS compilado (`_ds_bundle.js`) o protótipo contorna; FONTE não se contorna —
+    // ela cai no fallback do sistema e MUDA o render (medido 2026-08-14).
+    if (faltando.length) {
+      const fontes = faltando.filter((f) => /\.(woff2?|ttf|otf|eot)$/i.test(f));
+      const resto = faltando.filter((f) => !/\.(woff2?|ttf|otf|eot)$/i.test(f));
+      if (resto.length) console.log(`  ⚠ o repo NÃO TEM ${resto.length} (${resto.join(', ')}) — componentes compilados do DS; o código do protótipo tem fallback pra eles.`);
+      if (fontes.length) console.log(`  ⚠ o repo NÃO TEM ${fontes.length} FONTE(s) — elas NÃO têm fallback equivalente: o preview renderiza com a fonte do sistema, então a tipografia diverge do Cowork vivo. Não é cosmético.`);
+    }
     console.log('');
     return;
   }

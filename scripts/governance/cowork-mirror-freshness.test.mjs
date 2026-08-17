@@ -400,8 +400,14 @@ check('mesmo número → mesmo veredito (independe de --check)',
   const p = previewDsPlan(shell);
   // o id sai do SHELL (versionado) — hardcode quebraria quando [W] trocar de design system
   check('previewDs: id do design system é DERIVADO do shell, não hardcoded', p.id === 'ds-abc123');
+  // ⚠️ era igualdade EXATA da lista até 2026-08-14; deixou de ser porque o plano passou a
+  // incluir a 2ª camada (o que o CSS pede por dentro), e este caso roda contra o ROOT real,
+  // onde `colors_and_type.css` existe e pede 7 fontes. O que o assert PROVA continua o mesmo:
+  // todo arquivo do shell entra no plano. Igualdade exata aqui viraria catraca sobre o
+  // conteúdo do mirror-snapshot — quebraria a cada fonte que o DS adicionasse, medindo a
+  // coisa errada. A cobertura da 2ª camada está no bloco temp-dir abaixo, hermético.
   check('previewDs: enumera os arquivos que o shell realmente pede',
-    JSON.stringify(p.arquivos.map((a) => a.nome)) === '["colors_and_type.css","_ds_bundle.js"]');
+    ['colors_and_type.css', '_ds_bundle.js'].every((n) => p.arquivos.some((a) => a.nome === n)));
   check('previewDs: destino é o path do shell, e segue gitignored',
     p.destino === 'prototipo-ui/cowork/_ds/ds-abc123');
   // honestidade: arquivo sem fonte no repo é DECLARADO, não silenciado (LC-13)
@@ -410,6 +416,39 @@ check('mesmo número → mesmo veredito (independe de --check)',
   check('previewDs: sem shell não inventa plano', previewDsPlan(null).arquivos.length === 0);
   check('previewDs: 2 design systems no shell = erro explícito, não escolha silenciosa',
     !!previewDsPlan('<link href="_ds/a/x.css"/><link href="_ds/b/y.css"/>').erro);
+}
+
+// 2ª CAMADA — o que os CSS pedem POR DENTRO (2026-08-14). Derivar o plano só do SHELL
+// deixava as FONTES de fora: o shell não menciona nenhuma, quem as pede é o
+// `colors_and_type.css` via `url('assets/fonts/…woff2')`. Medido no preview real antes do
+// conserto: 7 `@font-face` com status `error`, tipografia caindo pro fallback do sistema —
+// 404 SILENCIOSO, enquanto o comando dizia "2 reposto(s)" e parecia plano completo.
+// BITE-TEST: revertendo a 2ª camada, os 3 primeiros asserts abaixo reprovam.
+{
+  const raiz = mkdtempSync(join(tmpdir(), 'previewds-css-'));
+  try {
+    const snap = join(raiz, 'scripts', 'design-sync', 'mirror-snapshot');
+    mkdirSync(snap, { recursive: true });
+    writeFileSync(join(snap, 'colors_and_type.css'), [
+      "@font-face{font-family:'X';src:url('assets/fonts/x-400.woff2') format('woff2')}",
+      "@font-face{font-family:'X';src:url(\"./assets/fonts/x-700.woff2?v=2\") format('woff2')}",
+      '.a{background:url(data:image/png;base64,AAAA)}',      // data: NÃO é arquivo do espelho
+      '.b{background:url(https://cdn.exemplo/i.png)}',        // absoluto idem
+    ].join('\n'), 'utf8');
+    const shell = '<link href="_ds/ds-xyz/colors_and_type.css"/><script src="_ds/ds-xyz/_ds_bundle.js"></script>';
+    const nomes = previewDsPlan(shell, raiz).arquivos.map((a) => a.nome);
+
+    check('previewDs: enxerga a FONTE que o CSS pede por dentro (o shell não a menciona)',
+      nomes.includes('assets/fonts/x-400.woff2'));
+    check('previewDs: normaliza "./" e descarta a query da ref do CSS',
+      nomes.includes('assets/fonts/x-700.woff2'));
+    check('previewDs: ignora url() data:/http(s) — não são arquivo do espelho',
+      !nomes.some((n) => n.startsWith('data:') || n.startsWith('http')));
+    check('previewDs: fonte ausente no snapshot é DECLARADA (temNoRepo:false), não silenciada',
+      previewDsPlan(shell, raiz).arquivos.find((a) => a.nome === 'assets/fonts/x-400.woff2').temNoRepo === false);
+    check('previewDs: não duplica quando shell e CSS pedem o mesmo arquivo',
+      nomes.length === new Set(nomes).size);
+  } finally { rmSync(raiz, { recursive: true, force: true }); }
 }
 
 // O SHELL entra no próprio manifesto quando versionado — fiação não medida foi a doença nº1.

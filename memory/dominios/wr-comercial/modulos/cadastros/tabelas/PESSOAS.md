@@ -34,7 +34,7 @@ source: D:/Programas/WR Comercial/Resources/UpdateSQL.txt
 
 ## Foreign Keys (inferidas)
 
-> Convenção [`CONVENCOES.md` §1](../../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
+> Convenção [`CONVENCOES.md` §1](../../../CONVENCOES.md): colunas `COD<TABELA>` apontam pra `<TABELA>(CODIGO)`. Auto-detectadas — Wagner refina exceções em `lib/fk_resolver.py`.
 
 | Coluna | → Tabela alvo |
 |---|---|

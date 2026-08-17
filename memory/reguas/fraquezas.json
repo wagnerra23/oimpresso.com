@@ -740,5 +740,65 @@
     "degrau": null,
     "data": "2026-08-11",
     "existia_invisivel": false
+  },
+  {
+    "id": "spec-auto-remediacao",
+    "dimensao": "spec-governanca",
+    "titulo": "Catraca densa, mecânico ausente — a máquina reprova mas não conserta",
+    "veredito": "PARCIAL",
+    "nota": 4.5,
+    "evidencia": "Medido 2026-08-15: 123 workflows registrados, 22 se declaram catraca, ~30 baselines em governance/. Mas dos 9 workflows que abrem auto-PR, 8 só REGENERAM artefato derivado (system-map, sdd-scorecard-publish, shipped-log, casos-results, composer-lock-sync, visual-regression, screen-smoke-after-merge, jana-ragas-canary); só mv-metabolismo propõe batch. Renovate cobre dependência (ADR 0222). Nada pegava gate vermelho e abria PR de conserto. FECHOU EM 1 EIXO no mesmo dia: PR #5818 ligou doc-auto-relink --orfaos (o mecanismo JÁ existia, invisível — lição 7/9) e pagou 265 links mortos do deadlink-gate required (1.076→811). Barra 2026: Meta SapFix (mediana 69min detecção→fix), GitHub agentic autofix (re-roda o CodeQL pra CONFIRMAR que o alerta fechou antes de abrir draft PR).",
+    "degrau": "generalizar o contrato do Autofix: agente pega gate vermelho → conserta → RE-RODA o mesmo gate → só abre PR se passar. Começar pelas catracas mecânicas e reversíveis (stylelint/eslint-baseline, doc-id-stamp); nunca nas Tier-0 (valor/estoque/multi-tenant), onde a regra mestre exige dupla confirmação humana.",
+    "data": "2026-08-15",
+    "existia_invisivel": true,
+    "onde_indexar": "o doc-auto-relink existia com --detect/--apply/--selftest e rodava dry-run no CI desde sempre; ninguém sabia que dava pra pagar a dívida com ele. Indexado agora via PR #5818 + MAQUINAS-INVENTARIO."
+  },
+  {
+    "id": "spec-advisory-sem-criterio-saida",
+    "dimensao": "spec-governanca",
+    "titulo": "Advisory eterno — promote_by desliza por \"amostra insuficiente\"",
+    "veredito": "PARCIAL",
+    "nota": 5.5,
+    "evidencia": "Medido 2026-08-15 no gates-registry.json: 13 required · 27 advisory · 73 sem campo terminal (grandfathered pelo baseline do Check M). Três advisory tiveram promote_by empurrado para 2026-09-05 com promote_by_razao literal \"amostra insuficiente\" (ds-mirror-drift 20 runs, ds-token-version 10, ds-tokens-build-sync 5). O critério é circular: gate cuja superfície não muda nunca acumula runs, então a data desliza para sempre.",
+    "degrau": "trocar o critério de promoção de CONTAGEM DE RUNS por MORDIDA PROVADA (a ADR 0336 DR-2 já define: ≥2 PRs distintos). Gate que não consegue morder em 90 dias deve ser REMOVIDO, não adiado — advisory eterno é custo de CI sem enforcement.",
+    "data": "2026-08-15",
+    "existia_invisivel": false,
+    "onde_indexar": null
+  },
+  {
+    "id": "spec-gates-design-zero-mordida",
+    "dimensao": "spec-governanca",
+    "titulo": "Gates de design com bite-log VAZIO — indistinguível de carimbo",
+    "veredito": "NAO_EXISTE",
+    "nota": 4,
+    "evidencia": "Medido 2026-08-15: `node scripts/governance/design-gate-bites.mjs --tally` responde \"ledger vazio — 0 mordidas registradas; todos os gates de design seguem advisory\". O critério DR-2 (ADR 0336) exige ≥2 PRs distintos com mordida real para promover; com o log zerado, nenhum dos 6 gates de design tem como sair de advisory — e um gate que nunca reprovou é indistinguível de um que não sabe reprovar.",
+    "degrau": "ou provar mordida (rodar o recorder sobre o histórico do main, \"teria mordido?\") ou aposentar o gate. Não deixar em advisory silencioso: gate mudo parece cobertura e não é.",
+    "data": "2026-08-15",
+    "existia_invisivel": false,
+    "onde_indexar": null
+  },
+  {
+    "id": "spec-hooks-zero-entrega",
+    "dimensao": "spec-governanca",
+    "titulo": "Hooks WIRED com zero entrega em 14 dias (eixo comportamento, não wiring)",
+    "veredito": "NAO_EXISTE",
+    "nota": 4,
+    "evidencia": "Medido 2026-08-15 pelo hook-bites (janela 14d): 0 entregaram · 41 wired com ZERO entrega · 8 não-observáveis (\"silêncio = indistinguível de morte\"). NÃO é duplicata de spec-hooks-desarmados (nota 8, JA_EXISTE_TOTAL, 2026-07-18): aquela mede WIRING (o hook está registrado no settings.json), esta mede ENTREGA (o hook produziu efeito). É a distinção presença × comportamento do LC-11 aplicada ao próprio parque de hooks.",
+    "degrau": "triar os 41 por classe antes de agir — medidor (deve entregar; zero = defeito) × sob-demanda (órfão por design; zero = esperado) × decide/escreve (nunca deve rodar sozinho). Só o primeiro balde é bug. E tornar observável os 8 mudos, senão a próxima medição repete o mesmo empate.",
+    "data": "2026-08-15",
+    "existia_invisivel": false,
+    "onde_indexar": null
+  },
+  {
+    "id": "bi-ratio-governanca-domina",
+    "dimensao": "inteligencia-de-negocio",
+    "titulo": "Governança domina o FLUXO — 74% dos merges em 8 semanas",
+    "veredito": "NAO_EXISTE",
+    "nota": 3,
+    "evidencia": "Medido 2026-08-15 por `negocio-vs-governanca-ratio.mjs --weeks 8` (52 merges first-parent): NEGÓCIO 9 (17%) · GOVERNANÇA 26 (50%) · INFRA 4 (8%) · ratio 2,9× · gov/(gov+neg) = 74%, acima do limiar WARN de 65%. O alarme anti-atrofia DISPAROU. Contexto histórico do próprio script: mai 38% → jun 64% → jul 78% — o crossover não é novo e segue sem correção.",
+    "degrau": "decisão [W], não conserto de agente: ou entra trabalho de NEGÓCIO com sinal de cliente (ADR 0105), ou o limiar é reconhecido como aceito para esta fase e o alarme é recalibrado com razão datada. O que não serve é o alarme tocar todo dia e ninguém decidir — alarme ignorado vira ruído e depois vira desligado.",
+    "data": "2026-08-15",
+    "existia_invisivel": false,
+    "onde_indexar": null
   }
 ]

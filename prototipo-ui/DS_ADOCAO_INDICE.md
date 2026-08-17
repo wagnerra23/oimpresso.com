@@ -3,25 +3,25 @@
 <!-- ds:worklist:start (auto · npm run ds:report -- --write) -->
 ## Status da fila — placar de execução (auto)
 
-> Gerado por `npm run ds:report -- --write` · 2026-06-29 14:20 UTC · **total `ds/*` = 148** · fila 3/10 ✅.
+> Gerado por `npm run ds:report -- --write` · 2026-08-16 09:52 UTC · **total `ds/*` = 1604** · fila 2/10 ✅.
 > Derivado do `ds/*` real por módulo: **✅ = 0 (concluído)** · **☐ = pendente**. `[CC]` lê isto (Sync now) pra saber o que `[CL]` JÁ executou e o que falta — sem regerar o já-feito.
 
 | # | Módulo (fila) | `ds/*` | Status |
 |---|---|---:|---|
-| 1 | Sells | 5 | ☐ pendente |
-| 2 | RecurringBilling | 9 | ☐ pendente |
-| 3 | OficinaAuto | 5 | ☐ pendente |
-| 4 | Repair | 10 | ☐ pendente |
-| 5 | Purchase | 0 | ✅ concluído |
-| 6 | Admin | 10 | ☐ pendente |
-| 7 | Whatsapp | 19 | ☐ pendente |
-| 8 | Settings | 8 | ☐ pendente |
-| 9 | Financeiro | 0 | ✅ concluído |
-| 10 | Cliente | 0 | ✅ concluído |
+| 1 | Sells | 57 | ☐ pendente |
+| 2 | RecurringBilling | 391 | ☐ pendente |
+| 3 | OficinaAuto | 11 | ☐ pendente |
+| 4 | Repair | 52 | ☐ pendente |
+| 5 | Purchase | 134 | ☐ pendente |
+| 6 | Admin | 0 | ✅ concluído |
+| 7 | Whatsapp | 57 | ☐ pendente |
+| 8 | Settings | 0 | ✅ concluído |
+| 9 | Financeiro | 465 | ☐ pendente |
+| 10 | Cliente | 27 | ☐ pendente |
 
-**Fora da fila (pendentes · ordem por contagem):** Ponto (11) · ProjectMgmt (10) · governance (10) · Atendimento (7) · Produto (6) · StockTransfer (6) · NfeBrasil (5) · kb (5) · Home (4) · Site (4) · ads (4) · MemCofre (3) · StockAdjustment (3) · Compras (2) · ConsultaOs (1) · Nfse (1)
+**Fora da fila (pendentes · ordem por contagem):** Produto (115) · governance (111) · StockTransfer (45) · StockAdjustment (36) · Ponto (29) · Fiscal (19) · Compras (14) · Home (12) · NfeBrasil (10) · kb (9) · Jana (5) · Modules (2) · ConsultaOs (1) · Nfse (1) · Site (1)
 
-**Próximo da fila:** Sells (5)
+**Próximo da fila:** Sells (57)
 <!-- ds:worklist:end -->
 
 > **Origem:** Cowork [CC] · 2026-05-29 · disparado pelo diagnóstico KB-9.75 do cadastro de Contacts
