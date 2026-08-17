@@ -79,6 +79,15 @@ const GATES = [
   { name: 'design-coverage', cmd: ['scripts/qa/design-coverage.mjs', '--check'] },
   { name: 'ds-token-version', cmd: ['scripts/design-sync/ds-token-version.mjs', '--check'] },
   { name: 'ds-tokens-build-sync', cmd: ['scripts/design-sync/ds-tokens-build-sync.mjs', '--check'] },
+  // 2026-08-17 — entra com mordida REAL já colhida, não por simetria de array.
+  // O `ancora.mjs --selftest` roda no `design-memory-gate.yml:250` (advisory) e ficou
+  // `exit 1` no main por ~4 dias sem ninguém ver: ele acusava que o `Index.charter.md` v6
+  // declarava consertados os 6 `Analise*Service` fantasmas do `jana-merge.jsx`, e o
+  // conserto não existe nem no espelho nem no Cowork vivo (medido nos dois lados:
+  // SellsCockpitAggregator 0 · JANA_DRILL_FONTES 0 · Analise*Service 6).
+  // É exatamente o caso que a DR-2 da ADR 0336 quer contar — violação que MERGEOU porque
+  // o advisory não segura. Sem esta linha, a mordida acontece e o log não registra.
+  { name: 'ancora-selftest', cmd: ['prototipo-ui/ancora.mjs', '--selftest'] },
 ];
 
 // ── util ────────────────────────────────────────────────────────────────────
@@ -142,12 +151,17 @@ function filesFrom(out) {
   return [...set].slice(0, 20);
 }
 
-/** melhor-esforço: 1ª linha significativa de motivo. */
+/** melhor-esforço: 1ª linha significativa de motivo.
+ *  `\[FAIL\]|✗|⛔` entrou em 2026-08-17: gate em formato SELFTEST imprime a lista inteira
+ *  (PASS e FAIL), e o vocabulário anterior não casava nenhuma delas — o fallback pegava a
+ *  1ª linha do arquivo, que é um `[PASS]`. Registrava mordida real com motivo que diz o
+ *  OPOSTO do que aconteceu. Não é caso especial de um gate: é o vocabulário de falha que
+ *  os scripts deste repo já usam. */
 function motivoFrom(out) {
   const line = out
     .split(/\r?\n/)
     .map((l) => l.trim())
-    .find((l) => /\[DRIFT\]|regrediu|missing|ausente|drift|não resolve|diverg|perdeu/i.test(l));
+    .find((l) => /\[DRIFT\]|\[FAIL\]|✗|⛔|regrediu|missing|ausente|drift|não resolve|diverg|perdeu/i.test(l));
   return (line || out.split(/\r?\n/).find((l) => l.trim()) || '').slice(0, 240);
 }
 
