@@ -6,7 +6,8 @@
  * O QUE É: ferramenta de DISPATCH (agente logado) que compara cada arquivo-âncora do espelho
  * `prototipo-ui/cowork/` com o design VIVO no Cowork (projeto 019dcfd3, lido via
  * `DesignSync.get_file` — método de LEITURA, livre por ADR 0315 Eixo B). Divergiu = o espelho
- * ficou atrás do vivo → re-exportar. Automatiza o "diffar antes de concluir" que o
+ * DIVERGE do vivo → investigar. ⚠️ NÃO diz a DIREÇÃO: hash diferente não revela quem avançou.
+ * Automatiza o "diffar antes de concluir" que o
  * INDEX-DESIGN-MEMORIAS §0.2 (registro canônico da fonte Cowork) manda fazer.
  *
  * Nota de vocabulário (§0.2): o espelho "não apodrece SOZINHO" — ninguém o edita à toa. O que
@@ -136,7 +137,7 @@ export function shouldFail(verdicts) {
  *  `cobertura` é opcional — sem ela o comportamento é o de antes (compat com chamador velho). */
 export function veredictoFinal(nStale, cobertura = null) {
   if (nStale > 0) {
-    return { ok: false, texto: `✗ ${nStale} arquivo(s) do espelho STALE — o vivo avançou e o espelho ficou. Re-exporte do Cowork.` };
+    return { ok: false, texto: `✗ ${nStale} arquivo(s) DIVERGEM do vivo. O hash não diz QUEM avançou — antes de re-exportar, rode o dry-run do aplicar-payload: ele compara conteúdo e avisa se o espelho está À FRENTE (perda líquida de linhas).` };
   }
   if (cobertura && cobertura.semVeredito > 0) {
     return {
@@ -213,7 +214,13 @@ export function ledgerEntry(rows, dateIso, meta = {}) {
     // sabe "21 sync" mas não sabe 21 de QUEM — e aí não há como responder a pergunta que o
     // remendo à mão de 2026-08-13 escapou por 4 dias: "este arquivo mudou DEPOIS da última
     // vez que alguém provou que ele bate com o vivo?". É o insumo do `--unverified`.
+    // path + HASH. Só o path não basta: merge/squash/rebase reescrevem a data de commit de
+    // todo arquivo tocado sem mudar um byte, e um detector que compara só DATAS acusa isso como
+    // "mexido à mão". Medido 2026-08-17: o squash do #5854 (12:10:47) gerou 6 falsos-positivos
+    // sobre arquivos verificados 10min antes (12:00:45). Com o hash, "commitou depois" só vira
+    // achado quando o CONTEÚDO também mudou.
     verified: rows.filter((r) => r.veredito === 'SYNC').map((r) => r.cowork),
+    verifiedHash: Object.fromEntries(rows.filter((r) => r.veredito === 'SYNC').map((r) => [r.cowork, r.repoHash])),
   };
   // `stale` conta o que DIVERGE AGORA. Numa rodada cujo snapshot veio de `--export-from`,
   // isso é sempre 0 por construção — o export consertou antes de medir. `stalePreExport`
@@ -271,18 +278,27 @@ export function ledgerEntry(rows, dateIso, meta = {}) {
 export function unverifiedSince(entries, arquivos) {
   const runs = (Array.isArray(entries) ? entries : []).filter((e) => Array.isArray(e.verified));
   const ultimaVerificacaoDe = (cowork) => {
-    let melhor = null;
-    for (const r of runs) if (r.verified.includes(cowork) && (!melhor || r.date > melhor)) melhor = r.date;
-    return melhor;
+    let melhor = null, hash = null;
+    for (const r of runs) if (r.verified.includes(cowork) && (!melhor || r.date > melhor)) {
+      melhor = r.date; hash = (r.verifiedHash || {})[cowork] || null;
+    }
+    return { data: melhor, hash };
   };
   const mexidoDepois = [], nuncaVerificado = [];
   let ok = 0;
   for (const a of arquivos) {
-    const verificadoEm = ultimaVerificacaoDe(a.cowork);
+    const { data: verificadoEm, hash: hashVerificado } = ultimaVerificacaoDe(a.cowork);
     if (!verificadoEm) { nuncaVerificado.push(a.cowork); continue; }
     // sem data de commit não se afirma nada (arquivo novo não-commitado): não é achado
-    if (a.lastCommitIso && a.lastCommitIso > verificadoEm) {
-      mexidoDepois.push({ cowork: a.cowork, verificadoEm, commitadoEm: a.lastCommitIso });
+    const commitouDepois = a.lastCommitIso && a.lastCommitIso > verificadoEm;
+    // CONTEÚDO é o desempate. Sem hash gravado (ledger antigo) cai no comportamento de antes,
+    // que é o conservador: data sozinha. Com hash, merge/squash/rebase param de gritar.
+    const conteudoMudou = hashVerificado == null || a.hashAtual == null
+      ? true
+      : a.hashAtual !== hashVerificado;
+    if (commitouDepois && conteudoMudou) {
+      mexidoDepois.push({ cowork: a.cowork, verificadoEm, commitadoEm: a.lastCommitIso,
+        motivo: hashVerificado == null ? 'sem hash no ledger — só data' : 'hash mudou' });
     } else ok++;
   }
   return { mexidoDepois, nuncaVerificado, ok, comLedger: runs.length };
@@ -318,7 +334,7 @@ export function parseShellDeps(html) {
 }
 
 // ── ABSENT-LOCAL: a 3ª doença — o espelho INCOERENTE (2026-08-13) ────────────────
-// STALE mede "o espelho ficou atrás"; LIVE-ABSENT mede "sumiu do vivo"; liveOnly mede
+// STALE mede "o hash DIVERGE" (direção não medida — ver 2026-08-17); LIVE-ABSENT mede "sumiu do vivo"; liveOnly mede
 // "existe no vivo e nunca desceu". Faltava a que quebra o RENDER: dep que o SHELL
 // carrega e que não existe no espelho — o app monta e a tela vem vazia/quebrada, sem
 // nenhum veredito vermelho. Foi assim que o `app.jsx` de 07-07 (montando o JanaCockpit
@@ -932,7 +948,11 @@ function main() {
       if (ln.startsWith('@')) { atual = ln.slice(1); continue; }
       if (ln && atual && !dataDe.has(ln)) dataDe.set(ln, atual);
     }
-    const arquivos = versionados.map((p) => ({ cowork: p.replace(`${MIRROR_REL}/`, ''), lastCommitIso: dataDe.get(p) || null }));
+    const arquivos = versionados.map((p) => ({
+      cowork: p.replace(`${MIRROR_REL}/`, ''),
+      lastCommitIso: dataDe.get(p) || null,
+      hashAtual: existsSync(join(ROOT, p)) ? contentHash(readFileSync(join(ROOT, p), 'utf8')) : null,
+    }));
 
     const ledger = existsSync(join(ROOT, LEDGER_REL)) ? JSON.parse(readFileSync(join(ROOT, LEDGER_REL), 'utf8')) : [];
     const r = unverifiedSince(Array.isArray(ledger) ? ledger : (ledger.runs || []), arquivos);
@@ -1138,7 +1158,7 @@ function main() {
     const msg = {
       'NEVER-RAN': () => `rotina de frescor NUNCA rodou (ledger vazio) — rode o dispatch logado (--manifest → DesignSync.get_file → --export-from <dir> --emit-snapshot snap.json → --compare snap.json --check --ledger).`,
       'OVERDUE': () => `rotina de frescor FORA do SLA (${SLA_DAYS}d) — ${detail}. Rode o dispatch logado.`,
-      'LAST-STALE': () => `última rodada achou STALE não-resolvido — ${detail} (${(r.last.staleList || []).join(', ')}). Re-exporte do Cowork e rode de novo.`,
+      'LAST-STALE': () => `última rodada achou DIVERGÊNCIA não-resolvida — ${detail} (${(r.last.staleList || []).join(', ')}). Direção não medida: confira com o dry-run do aplicar-payload ANTES de re-exportar — o espelho pode estar À FRENTE (caso qa-conformance.js, 2026-08-17).`,
       'LAST-PARTIAL': () => `última rodada foi PARCIAL — ${detail}. Rodada parcial é legítima, mas "${r.last.stale} stale" só cobre o que foi medido: ${r.last.unchecked} arquivo(s) seguem sem veredito. Pra fechar, exporte o resto (--export-from <dir> --emit-snapshot) e rode --compare --ledger.`,
     }[r.veredito]();
     console.error(`✗ ${msg}`);
@@ -1188,7 +1208,11 @@ function main() {
   const sync = rows.filter((r) => r.veredito === 'SYNC');
 
   console.log(`\n  ESPELHO COWORK — frescor vs vivo (${rows.length} arquivo(s)-âncora · hash normalizado por path completo)\n`);
-  for (const r of stale) console.log(`  ⛔ STALE       ${r.cowork}  (espelho ficou atrás do vivo — re-exportar)`);
+  // NÃO afirma DIREÇÃO: este modo só tem HASHES, e hash diferente não diz quem avançou.
+  // Medido 2026-08-17: o `qa-conformance.js` foi rotulado "espelho ficou atrás — re-exportar",
+  // e era o INVERSO (espelho v2.5/G15 × vivo v2.4/G13). Obedecer teria apagado os gates
+  // G14/G15 do #4597. Quem sabe a direção é quem tem CONTEÚDO: `aplicar-payload.mjs`.
+  for (const r of stale) console.log(`  ⛔ DIVERGE     ${r.cowork}  (hash difere do vivo — direção NÃO medida aqui)`);
   for (const r of absent) console.log(`  🟡 LIVE-ABSENT ${r.cowork}  (não achado no vivo — rename/delete upstream ou mapa errado)`);
   for (const r of unchecked) console.log(`  ⬜ UNCHECKED   ${r.cowork}  (agente não buscou — snapshot incompleto)`);
   console.log(`\n  ⛔ stale: ${stale.length} · 🟡 live-absent: ${absent.length} · ⬜ unchecked: ${unchecked.length} · ✓ sync: ${sync.length}`);

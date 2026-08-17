@@ -73,7 +73,10 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
 //     Bug medido 2026-08-13: `stale: 1` no corpo e `✓ sem espelho STALE` no rodapé, porque o
 //     log verde estava fora do `if (strict …)`. O texto é do FATO; `--check` é só exit code.
 check('1 stale → veredito NEGATIVO', veredictoFinal(1).ok === false);
-check('1 stale → texto não afirma verde', !/✓/.test(veredictoFinal(1).texto) && /STALE/.test(veredictoFinal(1).texto));
+// Ancora = MARCADOR de veredito (✓/✗), nao a PALAVRA "STALE": em 2026-08-17 a redacao mudou
+// (o texto parou de afirmar a DIRECAO que o hash nao mede) e 3 asserts quebraram por acoplamento
+// a redacao, nao a comportamento. O contrato aqui e "nao afirma verde quando ha divergencia".
+check('1 stale → texto não afirma verde', !/✓/.test(veredictoFinal(1).texto) && /✗/.test(veredictoFinal(1).texto));
 check('0 stale → veredito positivo', veredictoFinal(0).ok === true && /✓/.test(veredictoFinal(0).texto));
 // CONTROLE NEGATIVO do bite: o veredito NÃO pode depender de flag nenhuma — só do número.
 check('mesmo número → mesmo veredito (independe de --check)',
@@ -536,7 +539,7 @@ check('mesmo número → mesmo veredito (independe de --check)',
   writeFileSync(join(mirror, 'x.jsx'), 'alguem editou o espelho a mao\n');
   const cmpBad = run(['--compare', snap, '--check']);
   check('BITE do fluxo: espelho divergindo do snapshot → --check MORDE (exit 1)',
-    cmpBad.code === 1 && /STALE/.test(cmpBad.out));
+    cmpBad.code === 1 && /✗|DIVERGE/i.test(cmpBad.out));
 
   // ── NASCE-SEM-MEDIÇÃO ligado no export (o `--check-novos` era órfão) ─────────
   // Discriminação real: dois arquivos nascem, só um está no shell. Se acusar os dois
@@ -572,7 +575,7 @@ check('mesmo número → mesmo veredito (independe de --check)',
     readFileSync(join(mirror, 'x.jsx'), 'utf8') === 'ESPELHO ANTIGO\n');
   const vered = run(['--compare', snapMed, '--check']);
   check('veredito do snapshot de MEDIÇÃO é STALE e morde (exit 1)',
-    vered.code === 1 && /STALE/.test(vered.out));
+    vered.code === 1 && /✗|DIVERGE/i.test(vered.out));
   check('snapshot de medição se declara `_origin: medicao` (o ledger não o confunde com export)',
     JSON.parse(readFileSync(snapMed, 'utf8'))._origin === 'medicao');
 
@@ -678,6 +681,31 @@ check('mesmo número → mesmo veredito (independe de --check)',
     r.nuncaVerificado.includes('vendas.css') && !r.mexidoDepois.some((m) => m.cowork === 'vendas.css'), JSON.stringify(r));
   check('unverifiedSince: arquivo SEM data de commit nao vira achado (nao afirma sem dado)',
     !r.mexidoDepois.some((m) => m.cowork === 'novo.jsx'), JSON.stringify(r.mexidoDepois));
+  // MERGE/SQUASH nao e remendo a mao (falso-positivo medido 2026-08-17).
+  // O squash do #5854 reescreveu a data de commit de 6 arquivos do espelho SEM mudar um byte;
+  // um detector que compara so DATAS acusou os 6. Com o hash no ledger, "commitou depois" so
+  // vira achado quando o CONTEUDO tambem mudou.
+  {
+    const L2 = [{ date: '2026-08-17T12:00:00.000Z', verified: ['a.jsx', 'b.jsx'],
+      verifiedHash: { 'a.jsx': 'HASH_A', 'b.jsx': 'HASH_B' } }];
+    const rSquash = unverifiedSince(L2, [
+      { cowork: 'a.jsx', lastCommitIso: '2026-08-17T12:10:47.000Z', hashAtual: 'HASH_A' }, // squash: data nova, conteudo igual
+      { cowork: 'b.jsx', lastCommitIso: '2026-08-17T12:10:47.000Z', hashAtual: 'OUTRO' },  // mexido de verdade
+    ]);
+    check('unverifiedSince: merge/squash (data nova, hash IGUAL) nao vira achado',
+      !rSquash.mexidoDepois.some((m) => m.cowork === 'a.jsx') && rSquash.ok === 1, JSON.stringify(rSquash));
+    check('BITE unverifiedSince: hash DIFERENTE depois da verificacao ainda MORDE',
+      rSquash.mexidoDepois.length === 1 && rSquash.mexidoDepois[0].cowork === 'b.jsx', JSON.stringify(rSquash.mexidoDepois));
+    // ledger SEM verifiedHash (rodada anterior ao campo) => fallback CONSERVADOR: acusa por data.
+    const rVelhoHash = unverifiedSince([{ date: '2026-08-17T12:00:00.000Z', verified: ['a.jsx'] }],
+      [{ cowork: 'a.jsx', lastCommitIso: '2026-08-17T12:10:47.000Z', hashAtual: 'HASH_A' }]);
+    check('unverifiedSince: sem hash no ledger cai no conservador (acusa por data, nao inventa verde)',
+      rVelhoHash.mexidoDepois.length === 1 && /sem hash/.test(rVelhoHash.mexidoDepois[0].motivo || ''), JSON.stringify(rVelhoHash.mexidoDepois));
+    const e2 = ledgerEntry([{ cowork: 'a.css', veredito: 'SYNC', repoHash: 'H1' }], '2026-08-17T00:00:00.000Z');
+    check('ledgerEntry: grava `verifiedHash` path->hash (insumo do desempate)',
+      e2.verifiedHash && e2.verifiedHash['a.css'] === 'H1', JSON.stringify(e2.verifiedHash));
+  }
+
   // ledger antigo (sem o campo `verified`) nao pode virar verde silencioso: e SEM DADO.
   const rVelho = unverifiedSince([{ date: '2026-07-06T00:00:00.000Z', files: 3, sync: 1 }],
     [{ cowork: 'chat-jana.css', lastCommitIso: '2026-08-13T18:01:18.000Z' }]);
