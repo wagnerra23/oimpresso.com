@@ -2,6 +2,18 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "cowork-jana-2",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5577",
+        "--directory",
+        "D:/oimpresso.com/.claude/worktrees/eloquent-easley-37d93a/prototipo-ui/cowork"
+      ],
+      "port": 5577
+    },
+    {
       "name": "cowork-recurring",
       "runtimeExecutable": "python",
       "runtimeArgs": [
