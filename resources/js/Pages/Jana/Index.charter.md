@@ -17,7 +17,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 6
+charter_version: 7
 permissao: copiloto.access
 ---
 
@@ -112,10 +112,16 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   "de onde vem esse número" — nome fictício ali é mentira com selo de autoridade. Até
   **2026-08-13** o protótipo listava `AnaliseInadimplenciaService`/`AnaliseFaturamentoService`/etc,
   e **nenhuma das seis existia** (medido 2026-08-07 e re-medido 2026-08-13:
-  `git grep -E '(class|interface) Analise[A-Za-z]*Service'` → rc=1). Nessa data a tabela `FONTE` do
-  `jana-merge.jsx` passou a citar `SellsCockpitAggregator::<metodo>`, alinhada ao
-  `JANA_DRILL_FONTES`; `churn`, que **não tem** método no back, declara isso em texto e o render
-  só veste de `<code>` o que contém `::`. A fonte vem lida do código real
+  `git grep -E '(class|interface) Analise[A-Za-z]*Service'` → rc=1).
+  ⚠️ **AINDA VIOLADO — medido 2026-08-17.** O v6 abaixo declarou este defeito consertado; **não
+  está**, nem no espelho nem no Cowork vivo. Contadores em `jana-merge.jsx`, os dois lados:
+  `SellsCockpitAggregator` **0** · `JANA_DRILL_FONTES` **0** · `Analise*Service` **6**
+  (vivo lido por `DesignSync.get_file`, `truncated:false`, 47.810 b). O `ancora.mjs --selftest`
+  reprova por isso (`BITE real: zero fantasma na âncora da Jana`) e ele roda no CI
+  (`design-memory-gate.yml:250`). O conserto tem que nascer no **Cowork vivo** (a escrita
+  `DesignSync` é gateada, ADR 0315) e descer por `--export-from` — editar o espelho à mão é o
+  que o [#5854](https://github.com/wagnerra23/oimpresso.com/pull/5854) puniu.
+  A fonte real segue sendo o código real
   (`app/Services/Sells/SellsCockpitAggregator.php`). Mexeu no aggregator, mexe no
   `JANA_DRILL_FONTES` **e na tabela da âncora** no mesmo PR.
   _Guard: `prototipo-ui/ancora.mjs` acusa símbolo de backend citado na âncora que não exista no
@@ -130,6 +136,25 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 
 ## Charter version log
 
+- v7 (2026-08-17) — **O v6 afirmou um conserto que não aconteceu (P-1); corrigido pela regra de
+  precedência.** O v6 declara *"a tabela FONTE do `jana-merge.jsx` passou a citar
+  `SellsCockpitAggregator::<metodo>`, alinhada ao `JANA_DRILL_FONTES`"*. Medido em 2026-08-17,
+  **nos dois lados**: espelho e Cowork vivo têm `SellsCockpitAggregator` **0**,
+  `JANA_DRILL_FONTES` **0**, `Analise*Service` **6**. Não é espelho defasado — o vivo também não
+  tem. O `git log -S` mostra o par entrando (#5738) e o commit seguinte (#5761, "3 arquivos do
+  espelho DEFASADOS") tocando as mesmas linhas: o conserto do P-1 viveu num remendo à mão e foi
+  embora junto com a reversão dele. Quem provou: `ancora.mjs --selftest` estava **vermelho**
+  (`exit 1`) com a asserção que assume o v6 — e ninguém tinha visto, porque o gate que o roda
+  (`design-memory-gate`) é **advisory** e o vermelho não bloqueia. O selftest **fica vermelho de
+  propósito**: ele está dizendo a verdade, e baixar a asserção pra verde seria o gate-de-teatro
+  que a [ADR 0271](../../../../memory/decisions/0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md) podou.
+  Precedência aplicada (`proibicoes.md` §Precedência): teste > casos > **charter** — o perdedor é
+  este documento, corrigido no mesmo PR. **O conserto real é tarefa do lado Cowork** (escrita
+  `DesignSync` gateada por [ADR 0315](../../../../memory/decisions/0315-design-sync-claude-design-vs-cowork-charter.md)).
+  Junto: `Index.casos.md` **nasce** (10 UCs derivados deste charter + do
+  `jana-painel.contract.json` + do SPEC, nunca do `.tsx`), e o `ancora.mjs` deixou de imprimir
+  `âncora ✓` quando **não conseguiu ler** o arquivo (fail-open do printer — a função já
+  distinguia, o consumidor não usava; bite + controle no selftest).
 - v6 (2026-08-13) — **Dois dos três defeitos do v5 consertados; o terceiro era diagnóstico errado.**
   (1) **P-1 consertado** — os 6 `Analise*Service` inexistentes viraram
   `SellsCockpitAggregator::<metodo>`, lidos do `JANA_DRILL_FONTES`; `churn` e `frota`, que **não
