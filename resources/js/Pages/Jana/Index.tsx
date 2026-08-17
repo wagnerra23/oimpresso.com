@@ -7,7 +7,7 @@
 //   status: implementada
 //   module: Copiloto
 
-import React from 'react'
+import React, { useState } from 'react'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { Link } from '@inertiajs/react'
 import { Button } from '@/Components/ui/button'
@@ -17,6 +17,7 @@ import { MessageSquare, TrendingUp, TrendingDown, Minus, ExternalLink, Sparkles,
 import FabJana from './components/FabJana'
 import { JanaAreaHeader } from './components/JanaAreaHeader'
 import JanaCockpit, { type JanaCockpitProps } from './_components/JanaCockpit'
+import JanaMetaDrawer from './_components/JanaMetaDrawer'
 
 interface Apuracao {
   data_ref: string
@@ -46,6 +47,13 @@ interface Meta {
    * rótulo de "não dá pra dizer" na própria regra.
    */
   farol?: 'verde' | 'amarelo' | 'vermelho' | 'cinza'
+  /**
+   * Projeção linear do período, calculada por `ApuracaoService::projecao`.
+   * `null` = sem base pra projetar — os MESMOS casos em que o farol é 'cinza'.
+   * Opcional pelo mesmo motivo do `farol`: durante a janela de deploy o payload
+   * antigo chega sem o campo, e a UI degrada pro traço em vez de inventar 0.
+   */
+  projecao?: { progresso: number; projetado: number; desvio_pct: number } | null
 }
 
 interface Props {
@@ -135,7 +143,7 @@ function Sparkline({ dados }: { dados: Apuracao[] }) {
   )
 }
 
-function MetaCard({ meta }: { meta: Meta }) {
+function MetaCard({ meta, onAbrir }: { meta: Meta; onAbrir: (m: Meta) => void }) {
   const farol        = farolDaMeta(meta)
   const realizado    = meta.ultima_apuracao?.valor_realizado ?? null
   const alvo         = meta.periodo_atual?.valor_alvo ?? null
@@ -175,12 +183,16 @@ function MetaCard({ meta }: { meta: Meta }) {
           <Sparkline dados={meta.apuracoes_recentes} />
         )}
 
-        <Link
-          href={`/ia/metas/${meta.id}`}
+        {/* Era um <Link> pra /ia/metas/{id}: ver 12 barras custava a página inteira.
+            A âncora (`JmMetaDrawer`) abre na própria tela — o painel continua atrás.
+            "Editar meta" segue levando pra tela própria, de dentro do drawer. */}
+        <button
+          type="button"
+          onClick={() => onAbrir(meta)}
           className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
         >
           Ver detalhe <ExternalLink className="h-3 w-3" />
-        </Link>
+        </button>
       </CardContent>
     </Card>
   )
@@ -266,6 +278,8 @@ function ProximaAcaoCard() {
 }
 
 export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkAggregates, janaContext }: Props) {
+  const [metaAberta, setMetaAberta] = useState<Meta | null>(null)
+
   return (
     <>
       {/* JanaAreaHeader — barra ÚNICA da área Jana (PageHeader canon).
@@ -374,11 +388,13 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {metas.map(meta => (
-              <MetaCard key={meta.id} meta={meta} />
+              <MetaCard key={meta.id} meta={meta} onAbrir={setMetaAberta} />
             ))}
           </div>
         )}
       </div>
+
+      <JanaMetaDrawer meta={metaAberta} onClose={() => setMetaAberta(null)} />
 
       <FabJana contextRoute="/ia/dashboard" />
     </>

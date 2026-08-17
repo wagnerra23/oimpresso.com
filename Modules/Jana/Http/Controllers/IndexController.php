@@ -78,6 +78,10 @@ class IndexController extends Controller
             // isso em §Goals e §Anti-hooks desde sempre, e o frontend calculava
             // assim mesmo. Agora ele só consome.
             'farol'              => $apuracao->farol($meta),
+            // Projeção vem do SERVIDOR pelo mesmo motivo do farol (§Anti-hooks do
+            // charter): a Page só consome. `null` = não há base pra projetar —
+            // exatamente os casos em que o farol é 'cinza'.
+            'projecao'           => $apuracao->projecao($meta),
             'id'                 => $meta->id,
             'slug'               => $meta->slug,
             'nome'               => $meta->nome,
