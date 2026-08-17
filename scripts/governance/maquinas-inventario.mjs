@@ -394,13 +394,59 @@ P('');
 P('> **Invocador/Evidência não são deriváveis** aqui (mesma razão das skills — agente é spawnado por');
 P('> intenção, e não há fixture de agente). Medido: 8 de 27 aparecem em script/workflow, todas como menção.');
 P('');
-P('| Agent | Documento | Descrição (início) |');
-P('|---|---|---|');
-for (const f of agents.sort()) {
-  const nome = f.replace('.md', '');
+// Eixo RISCO da familia (gate D2 da Trilha D). E' derivado do frontmatter `tools:`,
+// nao da prosa da `description` — e a diferenca entre os dois e' o achado:
+// `ciclo-adversary` e `document-relocation-adversary` se DECLARAM "read-only /
+// nunca edita", e ambos tem `Bash`, que escreve (`sed -i`, `>`, `git commit`).
+// "read-only" ali e' promessa em prosa, nao restricao de capacidade — a familia
+// LC-15 (mecanismo anuncia garantia que nao implementa).
+const TOOLS_ESCREVEM = ['Write', 'Edit', 'NotebookEdit', 'Bash'];
+// `frontmatterField` nao serve aqui: `tools:` e' LISTA (bloco `- Item` ou inline).
+// Um regex `^tools:\s*(.+)$` parece funcionar e MENTE — o `\s` atravessa a quebra
+// de linha e captura so o 1o item, o que classifica implementador como read-only.
+const toolsDe = (txt) => {
+  const fm = txt.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!fm) return null;
+  const linhas = fm[1].split(/\r?\n/);
+  const i = linhas.findIndex((l) => /^tools:/.test(l));
+  if (i < 0) return null;
+  const inline = linhas[i].slice('tools:'.length).trim();
+  if (inline) return inline.replace(/^\[|\]$/g, '').split(',').map((s) => s.trim()).filter(Boolean);
+  const lista = [];
+  for (let j = i + 1; j < linhas.length; j++) {
+    const m = linhas[j].match(/^\s+-\s*(.+?)\s*$/);
+    if (!m) break;
+    lista.push(m[1]);
+  }
+  return lista;
+};
+const escreveDe = (tools) => {
+  if (tools === null) return { rot: '⚠️ sem `tools:`', escreve: true };
+  if (tools.includes('*')) return { rot: '🔴 tudo (`*`)', escreve: true };
+  const q = tools.filter((t) => TOOLS_ESCREVEM.includes(t));
+  return q.length
+    ? { rot: '🔴 ' + q.join('/'), escreve: true }
+    : { rot: '🟢 só lê', escreve: false };
+};
+const agentesTools = agents.sort().map((f) => {
   const txt = readFileSync(join(ROOT, '.claude/agents', f), 'utf8');
-  const desc = frontmatterField(txt, 'description') || '';
-  P(`| \`${nome}\` | ${documentoDe([nome], [`.claude/agents/${f}`])} | ${cell(trunc(firstSentence(desc, 999), 170))} |`);
+  return { f, nome: f.replace('.md', ''), txt, ...escreveDe(toolsDe(txt)) };
+});
+const nEscrevem = agentesTools.filter((a) => a.escreve).length;
+P(`> **Coluna \`Escreve?\` — DERIVADA do frontmatter \`tools:\`** (eixo *risco*), não da prosa da`);
+P(`> \`description\`. Conta como escrita: \`${TOOLS_ESCREVEM.join('\`, \`')}\` — **\`Bash\` inclusive**, porque`);
+P('> `sed -i`, `>` e `git commit` escrevem (se você discorda desse critério, ele está aqui pra ser');
+P(`> discutido, não escondido). Medido agora: **${nEscrevem} de ${agentesTools.length}** podem escrever.`);
+P('>');
+P('> ⚠️ Onde a prosa e a capacidade DISCORDAM, quem manda é a capacidade: agente que se descreve');
+P('> "read-only / nunca edita / nunca commita" e tem `Bash` está fazendo uma **promessa**, não');
+P('> operando sob **restrição**. Instrução de prompt não é mecanismo.');
+P('');
+P('| Agent | Escreve? | Documento | Descrição (início) |');
+P('|---|---|---|---|');
+for (const a of agentesTools) {
+  const desc = frontmatterField(a.txt, 'description') || '';
+  P(`| \`${a.nome}\` | ${a.rot} | ${documentoDe([a.nome], [`.claude/agents/${a.f}`])} | ${cell(trunc(firstSentence(desc, 999), 170))} |`);
 }
 P('');
 
