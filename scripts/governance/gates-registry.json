@@ -640,6 +640,14 @@
       "anchor": "sinal de custo: ligar esta MESMA classe de teste mudo no Modules/Arquivos (#5526 -> #5546 -> #5553) expos DOIS bugs de producao escondidos atras de skip — (a) \"Undefined variable $businessId\" derrubava arquivos:retention-cleanup com dado real, sem rollback, depois de ja ter apagado um lote; (b) o valor \"exported\" nunca esteve no enum de arquivos_audit_log.action, entao o INSERT falhava em MySQL strict e o try/catch engolia => arquivos:export-zip gravava ZERO trilha de auditoria, violando ADR 0123 §8 / LGPD Art. 18. Estes 3 verticais nao tinham lane MySQL alguma e carregam 3 guards Tier 0 (ADR 0093) que nunca correram. Skip-as-pass ja e required-ready (ADR 0271 onda 2).",
       "promote_by": "2026-11-10",
       "promote_by_razao": "Nasce advisory porque os 13 arquivos NUNCA rodaram — nas lanes irmas essa classe deu 40-60% de divida acumulada na 1a execucao. Promover antes de ter historico armaria alarme sem mordida provada. Reavaliar com >=100 runs (ADR 0275 / 0336 DR-2)."
+    },
+    "domain-pest.yml": {
+      "nome": "Domain · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-11-17",
+      "anchor": "`tests/Feature/Domain/**` (22 arquivos / 151 casos) nao rodava em lane NENHUMA — varredura contada 2026-08-17: ci-sqlite-pest.list tem 155 alvos e ZERO de Domain/; nenhum outro workflow referencia o diretorio; modules-pest.yml cobre Modules/<X>/Tests e a FSM vive em app/Domain/. A FSM esta LIVE em prod desde 2026-05-12 (ADR 0143) e seus side-effects cancelam NFe na SEFAZ e estornam pagamento; 8 dos testes sao Tier 0 pelo nome (MultiTenantIsolation, TransicaoCriticaExigeAutorizacao, CancelarVendaCascade, SequencialNfeAposCancelamento, StockReservations, ConsumirEstoqueAudit, EstornarBoletoJob, InutilizarFaixaNfe). Classe JA documentada pro diretorio irmao no cabecalho do estoque-pest.yml (Domain/Inventory: \"skip-as-pass em todo lugar\") e nunca fechada no caso geral. MySQL e nao a lista sqlite porque 18 dos 22 pulam sozinhos fora do MySQL — adicionar ao sqlite seria verde por nao-execucao (LC-13).",
+      "promote_by_razao": "Nasce advisory (ADR 0275) porque NENHUM dos 151 casos tem execucao conhecida — esta lane e DESCOBERTA, nao allowlist verde curada como as irmas. Promocao so com mordida provada (ADR 0336) e depois de [W] decidir o que fazer com eventual vermelho: um caso Tier 0 falhando e achado, e consertar-vs-aceitar-bloqueio e decisao dele. Sem continue-on-error de proposito: advisory = nao bloqueia merge, nunca = nao pode ficar vermelha (lapide 2026-07-09)."
     }
   }
 }
