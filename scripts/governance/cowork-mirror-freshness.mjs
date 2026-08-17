@@ -214,7 +214,13 @@ export function ledgerEntry(rows, dateIso, meta = {}) {
     // sabe "21 sync" mas não sabe 21 de QUEM — e aí não há como responder a pergunta que o
     // remendo à mão de 2026-08-13 escapou por 4 dias: "este arquivo mudou DEPOIS da última
     // vez que alguém provou que ele bate com o vivo?". É o insumo do `--unverified`.
+    // path + HASH. Só o path não basta: merge/squash/rebase reescrevem a data de commit de
+    // todo arquivo tocado sem mudar um byte, e um detector que compara só DATAS acusa isso como
+    // "mexido à mão". Medido 2026-08-17: o squash do #5854 (12:10:47) gerou 6 falsos-positivos
+    // sobre arquivos verificados 10min antes (12:00:45). Com o hash, "commitou depois" só vira
+    // achado quando o CONTEÚDO também mudou.
     verified: rows.filter((r) => r.veredito === 'SYNC').map((r) => r.cowork),
+    verifiedHash: Object.fromEntries(rows.filter((r) => r.veredito === 'SYNC').map((r) => [r.cowork, r.repoHash])),
   };
   // `stale` conta o que DIVERGE AGORA. Numa rodada cujo snapshot veio de `--export-from`,
   // isso é sempre 0 por construção — o export consertou antes de medir. `stalePreExport`
@@ -272,18 +278,27 @@ export function ledgerEntry(rows, dateIso, meta = {}) {
 export function unverifiedSince(entries, arquivos) {
   const runs = (Array.isArray(entries) ? entries : []).filter((e) => Array.isArray(e.verified));
   const ultimaVerificacaoDe = (cowork) => {
-    let melhor = null;
-    for (const r of runs) if (r.verified.includes(cowork) && (!melhor || r.date > melhor)) melhor = r.date;
-    return melhor;
+    let melhor = null, hash = null;
+    for (const r of runs) if (r.verified.includes(cowork) && (!melhor || r.date > melhor)) {
+      melhor = r.date; hash = (r.verifiedHash || {})[cowork] || null;
+    }
+    return { data: melhor, hash };
   };
   const mexidoDepois = [], nuncaVerificado = [];
   let ok = 0;
   for (const a of arquivos) {
-    const verificadoEm = ultimaVerificacaoDe(a.cowork);
+    const { data: verificadoEm, hash: hashVerificado } = ultimaVerificacaoDe(a.cowork);
     if (!verificadoEm) { nuncaVerificado.push(a.cowork); continue; }
     // sem data de commit não se afirma nada (arquivo novo não-commitado): não é achado
-    if (a.lastCommitIso && a.lastCommitIso > verificadoEm) {
-      mexidoDepois.push({ cowork: a.cowork, verificadoEm, commitadoEm: a.lastCommitIso });
+    const commitouDepois = a.lastCommitIso && a.lastCommitIso > verificadoEm;
+    // CONTEÚDO é o desempate. Sem hash gravado (ledger antigo) cai no comportamento de antes,
+    // que é o conservador: data sozinha. Com hash, merge/squash/rebase param de gritar.
+    const conteudoMudou = hashVerificado == null || a.hashAtual == null
+      ? true
+      : a.hashAtual !== hashVerificado;
+    if (commitouDepois && conteudoMudou) {
+      mexidoDepois.push({ cowork: a.cowork, verificadoEm, commitadoEm: a.lastCommitIso,
+        motivo: hashVerificado == null ? 'sem hash no ledger — só data' : 'hash mudou' });
     } else ok++;
   }
   return { mexidoDepois, nuncaVerificado, ok, comLedger: runs.length };
@@ -933,7 +948,11 @@ function main() {
       if (ln.startsWith('@')) { atual = ln.slice(1); continue; }
       if (ln && atual && !dataDe.has(ln)) dataDe.set(ln, atual);
     }
-    const arquivos = versionados.map((p) => ({ cowork: p.replace(`${MIRROR_REL}/`, ''), lastCommitIso: dataDe.get(p) || null }));
+    const arquivos = versionados.map((p) => ({
+      cowork: p.replace(`${MIRROR_REL}/`, ''),
+      lastCommitIso: dataDe.get(p) || null,
+      hashAtual: existsSync(join(ROOT, p)) ? contentHash(readFileSync(join(ROOT, p), 'utf8')) : null,
+    }));
 
     const ledger = existsSync(join(ROOT, LEDGER_REL)) ? JSON.parse(readFileSync(join(ROOT, LEDGER_REL), 'utf8')) : [];
     const r = unverifiedSince(Array.isArray(ledger) ? ledger : (ledger.runs || []), arquivos);

@@ -681,6 +681,31 @@ check('mesmo número → mesmo veredito (independe de --check)',
     r.nuncaVerificado.includes('vendas.css') && !r.mexidoDepois.some((m) => m.cowork === 'vendas.css'), JSON.stringify(r));
   check('unverifiedSince: arquivo SEM data de commit nao vira achado (nao afirma sem dado)',
     !r.mexidoDepois.some((m) => m.cowork === 'novo.jsx'), JSON.stringify(r.mexidoDepois));
+  // MERGE/SQUASH nao e remendo a mao (falso-positivo medido 2026-08-17).
+  // O squash do #5854 reescreveu a data de commit de 6 arquivos do espelho SEM mudar um byte;
+  // um detector que compara so DATAS acusou os 6. Com o hash no ledger, "commitou depois" so
+  // vira achado quando o CONTEUDO tambem mudou.
+  {
+    const L2 = [{ date: '2026-08-17T12:00:00.000Z', verified: ['a.jsx', 'b.jsx'],
+      verifiedHash: { 'a.jsx': 'HASH_A', 'b.jsx': 'HASH_B' } }];
+    const rSquash = unverifiedSince(L2, [
+      { cowork: 'a.jsx', lastCommitIso: '2026-08-17T12:10:47.000Z', hashAtual: 'HASH_A' }, // squash: data nova, conteudo igual
+      { cowork: 'b.jsx', lastCommitIso: '2026-08-17T12:10:47.000Z', hashAtual: 'OUTRO' },  // mexido de verdade
+    ]);
+    check('unverifiedSince: merge/squash (data nova, hash IGUAL) nao vira achado',
+      !rSquash.mexidoDepois.some((m) => m.cowork === 'a.jsx') && rSquash.ok === 1, JSON.stringify(rSquash));
+    check('BITE unverifiedSince: hash DIFERENTE depois da verificacao ainda MORDE',
+      rSquash.mexidoDepois.length === 1 && rSquash.mexidoDepois[0].cowork === 'b.jsx', JSON.stringify(rSquash.mexidoDepois));
+    // ledger SEM verifiedHash (rodada anterior ao campo) => fallback CONSERVADOR: acusa por data.
+    const rVelhoHash = unverifiedSince([{ date: '2026-08-17T12:00:00.000Z', verified: ['a.jsx'] }],
+      [{ cowork: 'a.jsx', lastCommitIso: '2026-08-17T12:10:47.000Z', hashAtual: 'HASH_A' }]);
+    check('unverifiedSince: sem hash no ledger cai no conservador (acusa por data, nao inventa verde)',
+      rVelhoHash.mexidoDepois.length === 1 && /sem hash/.test(rVelhoHash.mexidoDepois[0].motivo || ''), JSON.stringify(rVelhoHash.mexidoDepois));
+    const e2 = ledgerEntry([{ cowork: 'a.css', veredito: 'SYNC', repoHash: 'H1' }], '2026-08-17T00:00:00.000Z');
+    check('ledgerEntry: grava `verifiedHash` path->hash (insumo do desempate)',
+      e2.verifiedHash && e2.verifiedHash['a.css'] === 'H1', JSON.stringify(e2.verifiedHash));
+  }
+
   // ledger antigo (sem o campo `verified`) nao pode virar verde silencioso: e SEM DADO.
   const rVelho = unverifiedSince([{ date: '2026-07-06T00:00:00.000Z', files: 3, sync: 1 }],
     [{ cowork: 'chat-jana.css', lastCommitIso: '2026-08-13T18:01:18.000Z' }]);
