@@ -51,7 +51,7 @@ function tecla(key: string, init: KeyboardEventInit = {}) {
 beforeEach(() => cleanup());
 afterEach(() => cleanup());
 
-describe('filtro Todas | Arquivadas (o filtro filtra de verdade)', () => {
+describe('UC-COPI-CHAT-01 — filtro Todas | Arquivadas (o filtro filtra de verdade)', () => {
   it('"Todas" mostra as ativas e ESCONDE a arquivada', () => {
     montar();
     expect(screen.getByText('Top devedores ativos')).toBeTruthy();
@@ -79,7 +79,7 @@ describe('filtro Todas | Arquivadas (o filtro filtra de verdade)', () => {
   });
 });
 
-describe('J/K navega entre CONVERSAS (não entre mensagens)', () => {
+describe('UC-COPI-CHAT-02 — J/K navega entre CONVERSAS (não entre mensagens)', () => {
   it('J desce pra próxima conversa da lista visível', () => {
     const { onSelectConv } = montar({ activeConvId: '2' });
     tecla('j');
@@ -127,7 +127,7 @@ describe('J/K navega entre CONVERSAS (não entre mensagens)', () => {
   });
 });
 
-describe('⌘⇧H recolhe o histórico + a dica é visível', () => {
+describe('UC-COPI-CHAT-03 — ⌘⇧H recolhe o histórico + a dica é visível', () => {
   it('⌘⇧H chama o toggle', () => {
     const { onToggle } = montar();
     tecla('H', { metaKey: true, shiftKey: true });
@@ -157,7 +157,7 @@ describe('⌘⇧H recolhe o histórico + a dica é visível', () => {
   });
 });
 
-describe('aria-live anuncia a troca de conversa', () => {
+describe('UC-COPI-CHAT-04 — aria-live anuncia a troca de conversa', () => {
   it('anuncia o título quando a conversa ativa muda', () => {
     const onSelectConv = vi.fn();
     const onToggle = vi.fn();
