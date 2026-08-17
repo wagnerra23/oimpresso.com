@@ -190,7 +190,7 @@ lifecycle: ativo
 | `diag-pretooluse-trace.mjs` | PreToolUse(Skill\|DesignSync\|design-login) | — | `memory/decisions/0315-design-sync-claude-design-vs-cowork-charter.md` +3 | INSTRUMENTO DE DIAGNÓSTICO (NÃO é um gate). |
 | `doc-fora-do-rag.mjs` | PreToolUse(Write) | test | `memory/reference/como-escrever-doc-para-o-rag.md` +5 | PreToolUse:Write. ADVISORY (nunca bloqueia). |
 | `force-r12-closing-signal.mjs` | UserPromptSubmit(*) | — | `memory/decisions/0234-automation-registry-mcp.md` +7 | Hook UserPromptSubmit — FORÇA R12 PROTOCOLO ao detectar sinal de fechamento. |
-| `git-base-freshness-guard.mjs` | SessionStart(*) | test | `memory/08-handoff.md` +12 | Hook SessionStart — GUARD de base fresca vs `origin/main`. |
+| `git-base-freshness-guard.mjs` | SessionStart(*) | test | `memory/LICOES_CODE.md` +12 | Hook SessionStart — GUARD de base fresca vs `origin/main`. |
 | `handoff-inline.mjs` | SessionStart(*) | test | `memory/08-handoff.md` +1 | SessionStart (PORTE cross-plataforma do comando PowerShell INLINE do settings.json). |
 | `licoes-code-two-strikes.mjs` | SessionStart(*) | test | `memory/decisions/0344-two-strikes-cobre-processo.md` +16 | SessionStart (PORTE cross-plataforma do .ps1, advisory). |
 | `loop-fechar-check.mjs` | SessionStart(*) | test | `memory/licoes-rejeitadas.md` +3 | SessionStart (PORTE cross-plataforma do .ps1, advisory). |
@@ -511,7 +511,7 @@ lifecycle: ativo
 | `ragas-trend-compute.mjs` | ci, script | 🔴 disco | test | `memory/requisitos/Infra/RUNBOOK-ct100-fullsuite.md` +1 | write-side do trend do RAGAS real (ADR 0318 + pattern |
 | `shards-merge.mjs` | ci, script | 🔴 disco | test | `memory/requisitos/Infra/RUNBOOK-ct100-fullsuite.md` +2 | funde os summaries junit POR SHARD numa medição da noite (SDD P04 |
 | `shards-plan.mjs` | agente, ci, script | 🔴 disco | selftest + test | `memory/requisitos/Infra/RUNBOOK-ct100-fullsuite.md` +17 | particiona a suíte Pest em N shards POR DIRETÓRIO (determinístico). |
-| `snap-diff.mjs` | — (só `.test`) | 🟢 só lê | test | `memory/licoes-rejeitadas.md` +1 | LÊ o que mudou entre duas baselines de pixel (`.snap` do Pest Browser). |
+| `snap-diff.mjs` | — (só `.test`) | 🟢 só lê | test | `memory/LICOES_CODE.md` +1 | LÊ o que mudou entre duas baselines de pixel (`.snap` do Pest Browser). |
 | `visreg-clock-bite.mjs` | ci | 🟢 só lê | — | — | TEST do congelamento do relógio do navegador (gate visual-regression). |
 
 ### 5.3 `scripts/` (raiz) — 35
@@ -586,7 +586,6 @@ lifecycle: ativo
 | `governance/module-group.json` | script | `memory/08-handoff.md` +1 | (baseline/estado) |
 | `governance/module-table-coupling-baseline.json` | script | — | (baseline/estado) |
 | `governance/multi-tenant-scope-baseline.json` | — | (só sessão/handoff · 2) | (baseline/estado) |
-| `governance/nightly-floor.json` | ci, script | `memory/decisions/0319-product-truth-stream-adversario-modulo-analise.md` +17 | (baseline/estado) |
 | `governance/prod-flags.json` | ci, script | `memory/requisitos/_DesignSystem/SPEC.md` +3 | (baseline/estado) |
 | `governance/required-checks-baseline.json` | agente, ci, script | `memory/decisions/0361-errata-0354-teammcp-pest-required-nunca-executado.md` +72 | Required checks de main CONGELADOS — GT-G4 (plano 2026-06-12 §2 GARANTIDA) |
 | `governance/reseed-meilisearch-manifest.json` | — | `memory/requisitos/_Governanca/roadmap/P11-kl-e2-renames-reseed-distiller.md` | (baseline/estado) |
@@ -611,4 +610,4 @@ lifecycle: ativo
 | `scripts/perf-static-baseline.json` | script | `memory/governance/AUDITORIA-PERFORMANCE-2026-07.md` +2 | perf-static-guard (Onda 4 lente 5b — AUDITORIA-PERFORMANCE-2026-07, ratchet advisory) |
 | `scripts/reuse-duplicates-baseline.json` | agente, ci, script | `memory/decisions/0272-arvore-componentes-canonica.md` +2 | (baseline/estado) |
 
-> Total baselines JSON em governance/+config/+scripts: 47 · (mais ~5 dot-baselines na raiz + fixtures em tests/).
+> Total baselines JSON em governance/+config/+scripts: 46 · (mais ~5 dot-baselines na raiz + fixtures em tests/).
