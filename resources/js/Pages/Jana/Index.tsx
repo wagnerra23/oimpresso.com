@@ -10,6 +10,7 @@
 import React, { useState } from 'react'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { Link } from '@inertiajs/react'
+import { Inline } from '@/Components/layout'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
@@ -173,9 +174,36 @@ function MetaCard({ meta, onAbrir }: { meta: Meta; onAbrir: (m: Meta) => void })
         {alvo !== null && (
           <div className="text-xs text-muted-foreground">
             Alvo: {formatValue(alvo, meta.unidade)}
-            {progresso !== null && (
-              <span className="ml-2 font-medium text-foreground">{progresso.toFixed(0)}%</span>
-            )}
+          </div>
+        )}
+
+        {/* Barra de progresso — a âncora (`JmMetaCard` §`jm-meta-track`) mostra o
+            avanço como TRILHO, não só como número: dá pra ler o rumo de várias
+            metas de relance, que é o que o painel serve. A cor é a MESMA do farol
+            lateral, então trilho e faixa nunca contam histórias diferentes. */}
+        {progresso !== null && (
+          <div className="space-y-1">
+            <div
+              className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
+              role="progressbar"
+              aria-valuenow={Math.round(progresso)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`${meta.nome}: ${progresso.toFixed(0)}% do alvo`}
+            >
+              <div className={`h-full rounded-full ${FAROL_CLASSES[farol]}`} style={{ width: `${progresso}%` }} />
+            </div>
+            <Inline justify="between" className="text-xs">
+              <span className="font-medium text-foreground">{progresso.toFixed(0)}% do alvo</span>
+              {/* Projeção do SERVIDOR (`ApuracaoService::projecao`) — a Page só
+                  consome, igual ao farol. Sem base pra projetar, o campo não
+                  aparece: inventar um número aqui seria pior que a ausência. */}
+              {meta.projecao && (
+                <span className="text-muted-foreground">
+                  projeção {formatValue(meta.projecao.projetado, meta.unidade)}
+                </span>
+              )}
+            </Inline>
           </div>
         )}
 
