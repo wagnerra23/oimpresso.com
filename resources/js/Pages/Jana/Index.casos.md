@@ -179,9 +179,14 @@ entradas 4→5 com uma análise sem fonte._
 eles que impedem o `TypeError` e mantêm válida a entrada `Jana/Index` na
 `DEFER_GUARD_ONLY_ALLOWLIST`; o que mudou é o **render**.
 
-Escopo medido: só os **2** KPIs que dependem da prop deferida (Faturamento mês · PIX hoje) trocam de
-card. `Inadimplência total` e `Ticket médio` vêm de `insightsAggregates` (eager) e **não** podem
+Escopo medido: só os **2** KPIs que dependem da prop deferida (Receita mês · PIX hoje) trocam de
+card. `A receber vencido` e `Ticket médio` vêm de `insightsAggregates` (eager) e **não** podem
 sumir — há controle negativo no teste.
+
+_Rótulos atualizados em 2026-08-17 (`Faturamento mês` → `Receita mês`, `Inadimplência total` →
+`A receber vencido`) no alinhamento de copy com a âncora. Só a PALAVRA mudou: a prop de origem, a
+deferição e o escopo do controle negativo são os mesmos. O controle negativo do teste foi
+reapontado no MESMO diff — `not->toMatch` com label extinto passa vazio (LC-11)._
 
 De quebra, a série ganhou o terceiro estado que faltava: antes, `sparkline.length === 0` dizia
 *"Carregando sparkline…"* — então um business **sem vendas** ficava "carregando" pra sempre, e

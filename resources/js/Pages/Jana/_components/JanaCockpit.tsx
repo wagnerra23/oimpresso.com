@@ -503,12 +503,33 @@ export default function JanaCockpit({
       </Card>
 
       {/* KPIs (4 cards) ────────────────────────────────────────────────────── */}
+      {/* RÓTULOS — alinhados à âncora (`jana-merge.jsx` → `getJanaData().kpis` no
+          `chat-jana.jsx`; re-localize com `grep -n "kpis: \[" prototipo-ui/cowork/chat-jana.jsx`).
+          Copiar RÓTULO é decisão de copy; copiar DADO seria erro — os números da
+          âncora são mock do Martinho (biz=164), e nenhum deles entra aqui.
+
+          Os 3 primeiros renomeiam porque descrevem o MESMO dado com a palavra da
+          âncora — e no 2º a palavra da âncora é mais PRECISA que a nossa:
+            Faturamento mês     → Receita mês
+            Inadimplência total → A receber vencido   (é `overdueValue`: o que já
+                                  venceu e não foi pago. "Inadimplência total"
+                                  sugeria um total de inadimplência que este
+                                  número não é.)
+            Ticket médio        → (igual, sem mudança)
+
+          O 4º NÃO foi renomeado. A âncora traz `Frota utilização`, e o slot vivo é
+          `PIX hoje` — dados DIFERENTES, não sinônimos. Renomear seria mentir sobre
+          o que o número mede; construir a Frota exige decidir de onde vem o dado
+          (`Vehicle` é do `Modules/OficinaAuto`, e a `/ia` do núcleo atende ROTA
+          LIVRE, vestuário). Isso é decisão [W], não implementação — o Non-Goal que
+          proibia a Frota saiu no charter v7, mas a AUSÊNCIA DE FONTE não saiu com
+          ele. */}
       <KpiGrid cols={4}>
         {carregandoCockpit ? (
-          <KpiCardSkeleton label="Faturamento mês" />
+          <KpiCardSkeleton label="Receita mês" />
         ) : (
           <KpiCard
-            label="Faturamento mês"
+            label="Receita mês"
             value={fmtShort(sparkSum || faturadoHoje)}
             icon="wallet"
             tone="default"
@@ -523,7 +544,7 @@ export default function JanaCockpit({
             chat-jana.css — âncora de SÍMBOLO, re-localize com
             `grep -n "jc-kpi.emph" prototipo-ui/cowork/chat-jana.css`). */}
         <KpiCard
-          label="Inadimplência total"
+          label="A receber vencido"
           value={fmtShort(overdueValue)}
           icon="alert-triangle"
           tone={overdueValue > 0 ? 'danger' : 'default'}
