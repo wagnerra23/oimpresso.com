@@ -189,6 +189,7 @@ class BackfillExtratoOfxTest extends FinanceiroTestCase
         );
     }
 
+    /** UC-EXT-05 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_idempotente_roda_2x_nao_duplica(): void
     {
         $this->linhaOfx('IDEM1');

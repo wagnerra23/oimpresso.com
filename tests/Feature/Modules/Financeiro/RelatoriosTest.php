@@ -32,6 +32,7 @@ class RelatoriosTest extends FinanceiroTestCase
         parent::tearDown();
     }
 
+    /** UC-REL-05 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_dashboard_alias_redireciona_301(): void
     {
         $this->actAsAdmin();
@@ -63,6 +64,7 @@ class RelatoriosTest extends FinanceiroTestCase
         );
     }
 
+    /** UC-REL-02 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_relatorios_com_admin_responde_200(): void
     {
         $this->actAsAdmin();
@@ -76,6 +78,7 @@ class RelatoriosTest extends FinanceiroTestCase
         );
     }
 
+    /** UC-REL-01 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_relatorios_props_tem_estrutura_esperada(): void
     {
         $this->actAsAdmin();
@@ -113,6 +116,7 @@ class RelatoriosTest extends FinanceiroTestCase
         $this->assertArrayHasKey('saldo_periodo', $props['resumo']);
     }
 
+    /** UC-REL-03 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_filtros_data_aplicam_no_payload(): void
     {
         $this->actAsAdmin();
@@ -163,6 +167,7 @@ class RelatoriosTest extends FinanceiroTestCase
         );
     }
 
+    /** UC-REL-06 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_dre_soma_titulos_do_business(): void
     {
         $this->actAsAdmin();

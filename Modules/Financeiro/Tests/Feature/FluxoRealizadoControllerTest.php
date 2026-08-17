@@ -84,7 +84,7 @@ it('tab default = projetado (sem query string)', function () {
     );
 });
 
-it('tab=realizado expõe payload canon (meta + totais + meses)', function () {
+it('UC-FLX-04 · tab=realizado expõe payload canon (meta + totais + meses)', function () {
     $user = fluxoRealizadoBootstrap();
 
     $response = $this->actingAs($user)->get('/financeiro/fluxo?tab=realizado');
@@ -153,7 +153,7 @@ it('cada mes do realizado tem shape esperado (mes, entradas, saidas, saldo, qtd_
     });
 });
 
-it('tab inválido cai pra default projetado', function () {
+it('UC-FLX-06 · tab inválido cai pra default projetado', function () {
     $user = fluxoRealizadoBootstrap();
 
     $response = $this->actingAs($user)->get('/financeiro/fluxo?tab=lixo');
@@ -188,7 +188,7 @@ it('?meses=N respeita clamp 1..36', function () {
     );
 });
 
-it('Tier 0 IRREVOGÁVEL: realizado respeita business_id (ADR 0093)', function () {
+it('UC-FLX-07 · Tier 0 IRREVOGÁVEL: realizado respeita business_id (ADR 0093)', function () {
     $user = fluxoRealizadoBootstrap();
     $businessId = (int) $user->business_id;
 

@@ -87,7 +87,7 @@ it('renderiza Inertia component Financeiro/Fluxo/Index', function () {
     );
 });
 
-it('expõe Props no shape esperado (saldo_hoje, saldo_30d, pior_dia, margem_minima, conta, dias)', function () {
+it('UC-FLX-01 · expõe Props no shape esperado (saldo_hoje, saldo_30d, pior_dia, margem_minima, conta, dias)', function () {
     $user = fluxoBootstrap();
     $response = $this->actingAs($user)->get('/financeiro/fluxo');
 
@@ -107,7 +107,7 @@ it('expõe Props no shape esperado (saldo_hoje, saldo_30d, pior_dia, margem_mini
     );
 });
 
-it('expõe margem_minima padrão R$ [redacted Tier 0] (Q3 hardcode aprovado 2026-05-14)', function () {
+it('UC-FLX-02 · expõe margem_minima padrão R$ [redacted Tier 0] (Q3 hardcode aprovado 2026-05-14)', function () {
     $user = fluxoBootstrap();
     $response = $this->actingAs($user)->get('/financeiro/fluxo');
 
@@ -125,7 +125,7 @@ it('expõe margem_minima padrão R$ [redacted Tier 0] (Q3 hardcode aprovado 2026
     );
 });
 
-it('aplica clamp em ?dias=N (range 7..60, default 35)', function () {
+it('UC-FLX-03 · aplica clamp em ?dias=N (range 7..60, default 35)', function () {
     $user = fluxoBootstrap();
 
     // dias=999 → clamp pra 60
@@ -150,7 +150,7 @@ it('aplica clamp em ?dias=N (range 7..60, default 35)', function () {
     );
 });
 
-it('Tier 0 IRREVOGÁVEL: query Titulo respeita business_id global scope (ADR 0093)', function () {
+it('UC-FLX-07 · Tier 0 IRREVOGÁVEL: query Titulo respeita business_id global scope (ADR 0093)', function () {
     $user = fluxoBootstrap();
     $businessId = (int) $user->business_id;
 

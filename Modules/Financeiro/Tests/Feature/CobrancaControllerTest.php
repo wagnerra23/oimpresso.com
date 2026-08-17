@@ -19,9 +19,9 @@ uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::
  *   1) renderiza Inertia component Financeiro/Cobranca/Index
  *   2) expõe Props no shape esperado
  *   3) expõe 4 KPIs (3 fixos + 1 contextual condicional)
- *   4) expõe funil 5 etapas
+ *   4) UC-COB-02 · expõe funil 5 etapas
  *   5) filtra por status/tipo/gateway/account/origem via querystring
- *   6) Tier 0 IRREVOGÁVEL: Cobranca respeita business_id global scope
+ *   6) UC-COB-07 · Tier 0 IRREVOGÁVEL: Cobranca respeita business_id global scope
  *   7) /financeiro/boletos continua acessível (redirect ainda não — preservado 60d)
  *   8) não dispara mutação em GET /cobranca (read-only puro)
  *
@@ -59,7 +59,7 @@ it('renderiza Inertia component Financeiro/Cobranca/Index', function () {
         ->assertInertia(fn ($page) => $page->component('Financeiro/Cobranca/Index'));
 });
 
-it('expõe Props no shape esperado (cobrancas, kpis, funil, accounts, gateways, filtros, isSaasBusiness, today)', function () {
+it('UC-COB-01 · expõe Props no shape esperado (cobrancas, kpis, funil, accounts, gateways, filtros, isSaasBusiness, today)', function () {
     $this->actingAs($this->user)
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
         ->get('/financeiro/cobranca')
@@ -126,7 +126,7 @@ it('expõe funil 5 etapas (aberto, lembrete, cobranca_ativa, vencido_5d, protest
         );
 });
 
-it('filtra por status via querystring', function () {
+it('UC-COB-03 · filtra por status via querystring', function () {
     $cred = PaymentGatewayCredential::create([
         'business_id' => $this->business->id,
         'gateway_key' => 'asaas',

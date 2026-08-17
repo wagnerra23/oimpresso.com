@@ -98,7 +98,7 @@ it('worker → CobrancaPaga → listener Financeiro cria Titulo a receber quitad
     expect($log->cobranca_id)->toBe($cobranca->id);
 });
 
-it('worker NÃO duplica Titulo em re-run (idempotência cross-module)', function () {
+it('UC-COB-06 · worker NÃO duplica Titulo em re-run (idempotência cross-module)', function () {
     $cobranca = Cobranca::query()->create([
         'business_id'                   => 1,
         'payment_gateway_credential_id' => $this->credential->id,

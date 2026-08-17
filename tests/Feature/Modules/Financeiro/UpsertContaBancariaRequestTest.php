@@ -37,7 +37,7 @@ it('rejeita banco_codigo nao suportado', function () {
     expect($validator->errors()->has('banco_codigo'))->toBeTrue();
 });
 
-it('exige banco/agencia/carteira/beneficiario obrigatorios', function () {
+it('UC-CTB-02 · exige banco/agencia/carteira/beneficiario obrigatorios', function () {
     $rules = (new UpsertContaBancariaRequest)->rules();
     $validator = Validator::make([], $rules);
 

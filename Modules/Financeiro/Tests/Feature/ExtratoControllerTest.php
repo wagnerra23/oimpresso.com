@@ -74,6 +74,7 @@ class ExtratoControllerTest extends FinanceiroTestCase
         parent::tearDown();
     }
 
+    /** UC-EXT-01 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_index_responde_200_com_filtro_padrao_ultimos_30d(): void
     {
         $this->seedLancamentos();
@@ -83,6 +84,7 @@ class ExtratoControllerTest extends FinanceiroTestCase
         $this->assertSame(200, $response->status());
     }
 
+    /** UC-EXT-06 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_index_404_quando_conta_eh_de_outro_business(): void
     {
         // O "outro business" precisa EXISTIR de verdade: fin_contas_bancarias.business_id
