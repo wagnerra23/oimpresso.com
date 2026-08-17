@@ -14,7 +14,7 @@ module: Financeiro
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 332 arquivos em 22 papéis.
+**Total mapeado:** 346 arquivos em 22 papéis.
 
 ## Controllers — 25
 
@@ -275,15 +275,29 @@ module: Financeiro
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Unificado/Index.charter.md)
 - [Novo.charter.md](../../../resources/js/Pages/Financeiro/Unificado/Novo.charter.md)
 
-## Casos (contrato UC) — 7
+## Casos (contrato UC) — 21
 
+- [Dashboard.casos.md](../../../resources/js/Pages/Financeiro/Advisor/Dashboard.casos.md)
+- [Login.casos.md](../../../resources/js/Pages/Financeiro/Advisor/Login.casos.md)
+- [AssinaturaAtualizar.casos.md](../../../resources/js/Pages/Financeiro/AssinaturaAtualizar.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Caixa/Index.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Financeiro/Categorias/Index.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Financeiro/Cobranca/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Conciliacao/Index.casos.md)
+- [Contador.casos.md](../../../resources/js/Pages/Financeiro/Configuracoes/Contador.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Financeiro/ContasBancarias/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/ContasPagar/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/ContasReceber/Index.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Financeiro/Dashboard/Index.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Financeiro/Dre/Index.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Financeiro/Extrato/Index.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Financeiro/Fluxo/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Impostos/Index.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Financeiro/PlanoContas/Index.casos.md)
 - [ProvaViva.casos.md](../../../resources/js/Pages/Financeiro/ProvaViva.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Financeiro/Relatorios/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Index.casos.md)
+- [Novo.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Novo.casos.md)
 
 ## Testes (Pest) — 82
 

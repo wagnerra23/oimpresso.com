@@ -44,7 +44,7 @@ function assinaturaAtualizarBootstrap(): User
     return $user;
 }
 
-it('A1 — GET /financeiro/assinaturas/atualizar renderiza a tela com prop assinaturas', function () {
+it('UC-ASS-01 · A1 — GET /financeiro/assinaturas/atualizar renderiza a tela com prop assinaturas', function () {
     $user = assinaturaAtualizarBootstrap();
 
     $response = test()->actingAs($user)->get('/financeiro/assinaturas/atualizar');

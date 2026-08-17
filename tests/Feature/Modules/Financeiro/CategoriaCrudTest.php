@@ -47,6 +47,7 @@ class CategoriaCrudTest extends FinanceiroTestCase
             ->forceDelete();
     }
 
+    /** UC-CAT-01 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_cria_categoria_scoped_no_business(): void
     {
         $businessId = $this->business->id;
@@ -70,6 +71,7 @@ class CategoriaCrudTest extends FinanceiroTestCase
         $this->assertEquals(1, $count, 'Categoria deveria ter sido criada no business correto.');
     }
 
+    /** UC-CAT-05 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_nao_vaza_categoria_de_outro_business_via_scope(): void
     {
         $primary = $this->business;
@@ -188,6 +190,7 @@ class CategoriaCrudTest extends FinanceiroTestCase
         $invalid->assertSessionHasErrors('cor');
     }
 
+    /** UC-CAT-03 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_toggle_ativo_flipa_boolean(): void
     {
         $categoria = Categoria::create([
@@ -212,6 +215,7 @@ class CategoriaCrudTest extends FinanceiroTestCase
         $this->assertTrue((bool) $reloaded->ativo, 'Segundo toggle deveria ter reativado.');
     }
 
+    /** UC-CAT-04 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_destroy_faz_soft_delete(): void
     {
         $categoria = Categoria::create([
@@ -241,6 +245,7 @@ class CategoriaCrudTest extends FinanceiroTestCase
         $this->assertNotContains('TEST_CATEGORIA_DEL', $nomes);
     }
 
+    /** UC-CAT-02 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_update_altera_campos_da_categoria(): void
     {
         $categoria = Categoria::create([

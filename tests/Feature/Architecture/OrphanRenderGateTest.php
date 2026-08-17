@@ -8,10 +8,13 @@ declare(strict_types=1);
  *
  * Origem: sessão 2026-06-17/18 (auditoria adversarial). Furo provado: NÃO havia
  * defesa contra render órfão / tela morta. O único teste capaz (AppShellUsageGateTest)
- * dá `continue` quando a page não existe (linha ~115) — cego POR DESIGN pro caso. Dois
- * renders apontam pra page inexistente em prod: `Atendimento/Inbox/Index` e
- * `Financeiro/Boletos/Index` (telas substituídas no cutover, controllers nunca limpos).
+ * dá `continue` quando a page não existe (linha ~115) — cego POR DESIGN pro caso. Na
+ * origem, dois renders apontavam pra page inexistente em prod: `Atendimento/Inbox/Index`
+ * e `Financeiro/Boletos/Index` (telas substituídas no cutover, controllers nunca limpos).
  * Render sem page = 500 em runtime se a rota for atingida, OU dead code silencioso.
+ *
+ * O estado ATUAL de quem é órfão não se lê aqui — lê-se na ORPHAN_RENDER_ALLOWLIST
+ * abaixo, que é o dono. (O Boletos saiu dela em 2026-08-17, dead code removido.)
  *
  * Plano: "Catraca Viva", Fase 1. Fecha o ponto cego do AppShellUsageGateTest sem
  * mexer nele (responsabilidade única: aquele checa AppShellV2, este checa existência).
@@ -33,8 +36,9 @@ declare(strict_types=1);
 const ORPHAN_RENDER_ALLOWLIST = [
     'Atendimento/Inbox/Index'
         => 'InboxController::index órfão pós-cutover Caixa Unificada V4 (ADR 0135); /inbox é 301 → caixa-unificada. Limpar dead code: task spawn_37d7a9e6',
-    'Financeiro/Boletos/Index'
-        => 'BoletoController::index órfão; /financeiro/boletos é 301 → /financeiro/cobranca (hotfix 2026-05-19). Limpar dead code: task separada',
+    // 'Financeiro/Boletos/Index' saiu em 2026-08-17: o dead code foi removido
+    // (BoletoController::index + shapeRemessa/kpis/funil/listarContas/bancoShort).
+    // Era a "task separada" que a própria entrada declarava como ação.
 ];
 
 function orphanGateRepoRoot(): string
