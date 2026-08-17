@@ -62,6 +62,9 @@ export function computeFloor(runs, window = WINDOW) {
   if (w.length < 2 || partial.length) {
     return {
       schema: 'nightly-floor/v1 (ADR 0279)', floor_count: null, floor_files_hash: null,
+      // null, NUNCA `[]`: não medimos. Lista vazia afirmaria "nenhum arquivo falha", que é
+      // o oposto do que sabemos. Mesmo princípio do `floor_count: null` na linha acima.
+      floor_files: null,
       all_shards_measured: partial.length === 0, partial_runs: partial,
       runs: runsMeta,
       computed_at: w.length ? w[w.length - 1].ts : null, intersection_of: w.length,
@@ -77,6 +80,22 @@ export function computeFloor(runs, window = WINDOW) {
     schema: 'nightly-floor/v1 (ADR 0279)',
     floor_count: floorFiles.length,
     floor_files_hash: createHash('sha256').update(floorFiles.join('\n')).digest('hex').slice(0, 16),
+    // O CONJUNTO, não só a contagem. Ele já estava calculado aqui e era descartado — o
+    // publicado era `floor_count` + um hash que só diz "mudou", nunca "mudou o quê".
+    //
+    // POR QUE ISSO IMPORTA (medido 2026-08-17): a catraca GT-G3 avermelhou com
+    // `full_suite_pass_rate: 358 -> 360 (só pode DESCER)` e NINGUÉM conseguia dizer quais 2
+    // arquivos entraram — nem o baseline (guarda só `value`), nem a branch órfã (1 commit,
+    // force-push), nem esta função. A resposta existia na memória do processo e ia pro lixo.
+    //
+    // Rodando esta mesma função por janela deslizante nas 12 noites de /opt/oimpresso-fullsuite/runs:
+    //   342 340 333 338 341 335 336 343 356 360  → oscila ±7 entre janelas ADJACENTES.
+    // Ou seja: a catraca trata como piso monótono um número que balança. Sem o conjunto não
+    // dá pra separar ruído-de-janela de regressão real — que é exatamente a pergunta.
+    //
+    // PII: path de arquivo de teste já é público (mesmo critério do junit-summary.mjs, que
+    // publica `s.files[].file`, de onde esta lista vem). Nunca mensagem, nunca stack.
+    floor_files: floorFiles,
     all_shards_measured: true, partial_runs: [],
     runs: runsMeta,
     computed_at: w[w.length - 1].ts,
