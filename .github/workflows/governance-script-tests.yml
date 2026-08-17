@@ -22,6 +22,35 @@ permissions:
   contents: read
 
 jobs:
+
+  # JOB PRÓPRIO E ALWAYS-RUN — as duas coisas por medição, não por gosto.
+  #
+  # PRÓPRIO: no GitHub o required context é o JOB, não o step. Deixá-lo dentro de um job
+  # com N steps `continue-on-error` tornaria impossível promovê-lo sem arrastar os N junto.
+  #
+  # ALWAYS-RUN: ele morava no `design-memory-gate.yml`, que é path-filtered. Medido
+  # 2026-08-17: um PR que não toca design NUNCA geraria este context, e required que não
+  # nasce = `BLOCKED` com 0 falhas e 0 pendentes — o deadlock de 2026-08-08 em pessoa.
+  # Este workflow roda em todo PR (`pull_request: branches:[main]`, sem `paths`), que é o
+  # padrão de required-readiness da ADR 0271 onda 2. Sem workflow novo (ADR 0298).
+  #
+  # Sem skip-as-pass de propósito: o custo é git + ledger, sem MySQL nem build — o remédio
+  # do `arquivos-pest` (dorny/paths-filter) existe pra evitar setup caro, e aqui não há.
+  espelho-verificado:
+    name: espelho — mexeu depois de verificar
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # o detector compara data-de-commit × data-de-verificação: história rasa mede o
+          # PISO da história, não a história (§5 2026-07-24). fetch-depth 0 é requisito.
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # Sem `continue-on-error`: este job existe pra poder ficar vermelho.
+      - name: espelho editado sem prova de fidelidade
+        run: node scripts/governance/cowork-mirror-freshness.mjs --unverified --check
   tests:
     name: governance script tests (advisory)
     runs-on: ubuntu-latest
