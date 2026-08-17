@@ -279,31 +279,6 @@ jobs:
       # vai pro resumo do PR, onde se lê sem abrir log.
       # "0 stale" NUNCA é o veredito sozinho: ele só cobre o que foi medido, e o denominador
       # é que diz o resto (§5 2026-07-29 — não afirmar sobre o que não se percorreu).
-      # MEXEU-DEPOIS-DE-VERIFICAR — a defesa contra remendo à mão no espelho (2026-08-17).
-      # O `--compare` responde "bate com o vivo AGORA?" e NÃO roda aqui (auth do DesignSync é
-      # interativa, ADR 0315). Este responde o que o CI headless PODE: "que arquivo mudou depois
-      # da última vez que alguém PROVOU que ele batia?" — só git + ledger, duas datas, zero
-      # heurística de nome (por isso escapa da família das 4 lápides de guard sintático do §5).
-      # Motivo: 11 sites do `chat-jana.css` trocados à mão em 08-13, 33min depois de uma rodada,
-      # invisíveis por 4 dias — nenhuma máquina do repo sinalizou; quem pegou foi [W] olhando a tela.
-      # FP medido antes de instalar: 0 no corpus real (21 verificados intactos · 179 nunca-verificados,
-      # categoria SEPARADA que não bloqueia — forward-only, ADR 0275).
-      # `--check` fica DE FORA por ora: promoção a required é flip [W] com mordida provada (ADR 0336).
-      - name: cowork mexeu-depois-de-verificar (espelho editado sem prova · advisory)
-        if: always()
-        continue-on-error: true
-        run: |
-          OUT="${RUNNER_TEMP:-.}/cowork-unverified.txt"
-          node scripts/governance/cowork-mirror-freshness.mjs --unverified > "$OUT" 2>&1 || true
-          cat "$OUT"
-          {
-            echo "### Espelho Cowork — mexeu depois de verificar (advisory)"
-            echo ""
-            echo '```'
-            tail -6 "$OUT"
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-
       - name: cowork-freshness SLA (rotina de dispatch em dia? · ledger · advisory)
         if: always()
         continue-on-error: true
@@ -440,6 +415,33 @@ jobs:
             | node prototipo-ui/render-proto-baseline.mjs --nudge | tee -a "$GITHUB_STEP_SUMMARY"
 
   # ── ex-dtcg-equivalence.yml (Onda DTCG ATIVADA) ──────────────────────────────
+  # JOB PRÓPRIO — de propósito. O required context do GitHub é o **job**, não o step: deixar
+  # este check dentro de `gates` (27 steps `continue-on-error`) tornaria impossível promovê-lo
+  # sem arrastar os 27 junto. Aqui ele é sozinho, determinístico e sem `continue-on-error`,
+  # então o vermelho dele significa exatamente uma coisa.
+  #
+  # ⚠️ DÍVIDA DECLARADA (LC-10): o context nasce como `Design-memory gate (advisory) / …` —
+  # o "(advisory)" vem do NOME DO WORKFLOW e vira afirmação falsa no dia que [W] promover.
+  # Renomear o workflow é seguro (medido 2026-08-17: ZERO contexts dele no
+  # `required-checks-baseline.json`), mas é decisão dele, não carona deste PR.
+  espelho-verificado:
+    name: espelho — mexeu depois de verificar
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # o detector compara data-de-commit × data-de-verificação: história rasa mede o PISO
+          # da história, não a história (§5 2026-07-24). fetch-depth 0 é requisito, não zelo.
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # Sem `continue-on-error`: este job existe pra poder ficar vermelho.
+      # Hoje `--check` morde só em MEXIDO-DEPOIS; NUNCA-VERIFICADO não bloqueia (forward-only,
+      # ADR 0275) e ledger sem o campo `verified` imprime SEM DADO, não verde (LC-13).
+      - name: espelho editado sem prova de fidelidade
+        run: node scripts/governance/cowork-mirror-freshness.mjs --unverified --check
+
   prove:
     name: equivalencia DTCG <-> CSS canonico (advisory)
     runs-on: ubuntu-latest
