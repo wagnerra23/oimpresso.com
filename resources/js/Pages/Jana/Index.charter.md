@@ -46,7 +46,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   (`_components/JanaDrillDrawer.tsx`) com **Fonte** (tabelas · regra do recorte · método que
   calcula) + **Escopo** (`business_id` da sessão). Um KPI só é clicável quando existe análise
   do **MESMO dado** — "ticket médio não abre faturamento". Hoje 2 dos 4 KPIs abrem
-  (Faturamento mês → Faturamento; Inadimplência total → Inadimplência); Ticket médio e PIX hoje
+  (Receita mês → Faturamento; A receber vencido → Inadimplência); Ticket médio e PIX hoje
   não têm análise do mesmo dado e permanecem estáticos. Âncora:
   `prototipo-ui/cowork/jana-merge.jsx` §`JmDrillDrawer` + §`JM_KPI_DRILL` — âncora de SÍMBOLO
   (ref de linha apodrece no 1º refactor, §5 2026-07-26; re-localize com

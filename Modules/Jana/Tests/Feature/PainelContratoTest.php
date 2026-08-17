@@ -196,8 +196,10 @@ it('UC-COPI-PAINEL-08: o cockpit declara carregando em vez de pintar zero', func
 
     // 2. os DOIS KPIs que dependem da prop deferida trocam de card enquanto carrega.
     //    `\(` no meio não é decoração: o JSX real é `carregandoCockpit ? (\n <KpiCardSkeleton`.
+    //    Rótulo "Receita mês" desde 2026-08-17 (era "Faturamento mês") — alinhamento
+    //    de COPY com a âncora `jana-merge.jsx`. Mesmo dado, mesma prop deferida.
     expect($cockpit)
-        ->toMatch('/carregandoCockpit\s*\?\s*\(\s*<KpiCardSkeleton label="Faturamento mês"/u')
+        ->toMatch('/carregandoCockpit\s*\?\s*\(\s*<KpiCardSkeleton label="Receita mês"/u')
         ->toMatch('/carregandoCockpit\s*\?\s*\(\s*<KpiCardSkeleton label="PIX hoje"/u');
 
     // 3. a série tem TRÊS arms — carregando · vazio-de-verdade · série. Asserção de
@@ -210,9 +212,25 @@ it('UC-COPI-PAINEL-08: o cockpit declara carregando em vez de pintar zero', func
 
     // 4. controle negativo: os KPIs EAGER não podem ter virado skeleton junto —
     //    `insightsAggregates` chega no first render e esconder é regressão.
+    //
+    //    ⚠️ O rótulo aqui foi atualizado junto com o rename (2026-08-17:
+    //    "Inadimplência total" → "A receber vencido"). Um `not->toMatch` cujo
+    //    LABEL não existe mais passa VAZIO — verde por o alvo ter sumido, não por
+    //    o comportamento estar certo. É a classe LC-11 (gate que mede presença em
+    //    vez de comportamento) na sua forma mais silenciosa, porque um controle
+    //    negativo já é verde por construção e ninguém nota que ele parou de medir.
+    //    Regra ao renomear label: atualize o negativo no MESMO diff, ou ele vira
+    //    decoração.
     expect($cockpit)
-        ->not->toMatch('/carregandoCockpit\s*\?\s*\(\s*<KpiCardSkeleton label="Inadimplência total"/u')
+        ->not->toMatch('/carregandoCockpit\s*\?\s*\(\s*<KpiCardSkeleton label="A receber vencido"/u')
         ->not->toMatch('/carregandoCockpit\s*\?\s*\(\s*<KpiCardSkeleton label="Ticket médio"/u');
+
+    //    Prova de que o par acima ainda tem alvo: os dois labels EXISTEM no arquivo
+    //    (só não podem estar sob `carregandoCockpit ? <KpiCardSkeleton`). Sem isto,
+    //    o próximo rename volta a esvaziar o negativo sem que nada acuse.
+    expect($cockpit)
+        ->toContain('label="A receber vencido"')
+        ->toContain('label="Ticket médio"');
 });
 
 /** UC-COPI-PAINEL-09 — as 5 âncoras existem e a ordem declarada é subsequência da ordem de arquivo. */
