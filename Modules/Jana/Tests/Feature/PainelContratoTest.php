@@ -331,3 +331,64 @@ it('UC-COPI-PAINEL-10: Configurar abre o drawer e não promete o que o servidor 
     expect($cockpit)->toContain("analisesVisiveis?.[id] !== false");
 });
 
+
+/**
+ * UC-COPI-PAINEL-11 — a meta abre NA PRÓPRIA TELA, e o drawer não projeta o futuro.
+ *
+ * Asserção de ARQUIVO pelo mesmo motivo dos UC-08 e UC-10: o defeito é de
+ * navegação/promessa, e o Pest não monta React. O par visual é o portão F1.5.
+ *
+ * Duas metades, e a segunda é a que reincide. Abrir um drawer é trivial; o risco
+ * é ele virar autoridade sobre número que ninguém apurou. A âncora
+ * (`jana-merge.jsx` §JmMetaDrawer) projeta o fechamento NO CLIENTE — `jmMeta()`
+ * faz `atual * 1.3` quando a meta acumula e extrapola a tendência quando é
+ * média/taxa. Portar isso seria o §Anti-hooks do farol de novo, no eixo da
+ * projeção.
+ */
+it('UC-COPI-PAINEL-11: a meta abre em drawer na própria tela, sem projetar o fechamento', function () {
+    $tsx    = painelTsx();
+    $drawer = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaMetaDrawer.tsx'));
+
+    // 1. o card deixou de ser um link que TIRA o usuário da tela: virou botão
+    //    que abre o drawer. A asserção é pelo LINK, não pela copy "Ver detalhe":
+    //    o comentário do `MetaCard` cita essa copy ao registrar o que saiu, e
+    //    proibir a prosa proibiria registrar a decisão (§5 2026-07-26 — a mesma
+    //    armadilha do item 3 abaixo, e ela mordeu esta suíte na escrita).
+    expect($tsx)
+        ->not->toContain('/ia/metas/${meta.id}')
+        ->toContain('setMetaAberta')
+        ->toContain('<JanaMetaDrawer');
+
+    // 2. nenhuma capacidade se perdeu — o caminho pra tela própria migrou pro
+    //    rodapé do drawer. Sem isto, "fechar a divergência" viraria remover
+    //    acesso.
+    expect($drawer)->toContain('/ia/metas/${meta.id}');
+
+    // 3. ANTI-PROJEÇÃO — asserção ESTRUTURAL, não de prosa, e é deliberado.
+    //    `not->toContain('Projeção')` FALHARIA hoje: o cabeçalho do arquivo cita
+    //    a palavra ao REGISTRAR por que a projeção não entrou. Proibir a prosa
+    //    proibiria registrar a decisão — o falso-positivo que o §5 2026-07-26
+    //    cataloga (mesmo raciocínio do item 2+3 do UC-10 acima).
+    //
+    //    O que morde é a contagem de números da seção "Situação": são TRÊS, e os
+    //    três saem de campos do payload. Uma projeção vira o quarto e derruba o
+    //    caso, seja qual for o rótulo escolhido.
+    expect(substr_count($drawer, '<Numero rotulo='))->toBe(3);
+    expect($drawer)
+        ->toContain('rotulo="Realizado"')
+        ->toContain('rotulo="Alvo"')
+        ->toContain('rotulo="% do alvo"');
+
+    // 4. a fonte citada existe de verdade. A âncora cita `MetricasApurador::farol`
+    //    — classe real, método inexistente (charter v4). O drawer se chama "de
+    //    onde vem esse número"; nome errado ali é mentira com selo de autoridade.
+    expect($drawer)
+        ->toContain('ApuracaoService::farol')
+        ->not->toContain('MetricasApurador');
+
+    // 5. controle negativo — o drawer PRECISA seguir entregando o que é verdade.
+    //    Sem isto, esvaziar o corpo passaria nos itens 3 e 4.
+    expect($drawer)
+        ->toContain('business_id')
+        ->toContain('<Serie dados={serie}');
+});
