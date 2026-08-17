@@ -919,10 +919,16 @@ Dono do ato = quem opera o loop Cowork. Escalado a [W] porque **17 dias de verme
 
 ### US-GOV-059 · Triar as 43 permissões órfãs — usadas no código, declaradas em lugar nenhum
 
-> owner: — · priority: p2 · status: todo · type: story
+> owner: — · priority: p2 · status: done · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_ — o detector existe (`scripts/governance/permission-drift.mjs`); falta a TRIAGEM das 43.
+**Implementado em:** `scripts/governance/permission-drift.mjs` · `scripts/governance/permission-drift.test.mjs` · `Modules/NfeBrasil/Tests/Feature/InutilizacaoAuthorizeRoleTest.php` · `app/Http/Middleware/AdminSidebarMenu.php` · `app/Http/Controllers/ReportController.php` · `app/Http/Controllers/Restaurant/KitchenController.php` · `app/Http/Controllers/Restaurant/ModifierSetsController.php` · `resources/views/role/edit.blade.php` · verificado@827ef97 (2026-08-16) — a TRIAGEM das 43 está **feita**, e o Aceite abaixo está cumprido: as 43 foram classificadas, as de tipo (a) declaradas, as de tipo (b) decididas com razão escrita, e o que sobra tem razão escrita (§"Contador e o que sobra"). PRs: [#5351](https://github.com/wagnerra23/oimpresso.com/pull/5351) (falso-positivo do detector) · [#5352](https://github.com/wagnerra23/oimpresso.com/pull/5352) (`kb.ai`) · [#5361](https://github.com/wagnerra23/oimpresso.com/pull/5361) (`fiscal.inutilizar` — opção (i), com teste) · [#5365](https://github.com/wagnerra23/oimpresso.com/pull/5365)/[#5368](https://github.com/wagnerra23/oimpresso.com/pull/5368)/[#5388](https://github.com/wagnerra23/oimpresso.com/pull/5388)/[#5426](https://github.com/wagnerra23/oimpresso.com/pull/5426) (família `restaurant.*`, incl. Cozinha) · [#5369](https://github.com/wagnerra23/oimpresso.com/pull/5369)/[#5381](https://github.com/wagnerra23/oimpresso.com/pull/5381)/[#5382](https://github.com/wagnerra23/oimpresso.com/pull/5382) (classe C) · [#5384](https://github.com/wagnerra23/oimpresso.com/pull/5384) (classe D) · [#5451](https://github.com/wagnerra23/oimpresso.com/pull/5451)/[#5455](https://github.com/wagnerra23/oimpresso.com/pull/5455) (os 2 casos sob a regra-mestre VALOR/ESTOQUE).
+
+**Testado em:** [`Modules/NfeBrasil/Tests/Feature/InutilizacaoAuthorizeRoleTest.php`](../../../Modules/NfeBrasil/Tests/Feature/InutilizacaoAuthorizeRoleTest.php) · [`scripts/governance/permission-drift.test.mjs`](../../../scripts/governance/permission-drift.test.mjs)
+
+> **Re-medido em 2026-08-16** (`node scripts/governance/permission-drift.mjs`, na base desta sessão): **369 declaradas · 324 usadas com alvo literal · 28 dinâmicas · 15 ÓRFÃS** — exatamente as 15 da composição de §"Contador e o que sobra" (7 scaffolding classe C · 5 idioma `Gate::before` · 3 `visit.*`), todas **resíduo declarado por decisão**, não triagem pendente. ⚠️ Número **datado**: quem for agir re-roda o comando, não cita esta linha.
+>
+> **O que continua aberto NÃO é esta US** e está nomeado no corpo: os 3 resíduos da Cozinha (`refreshOrdersList` · `refreshLineOrdersList` · `markAsCooked` por GET), o gate comentado do `NotificationController::send()`, e a cobertura de teste do Restaurante (uma linha em [`.github/ci-sqlite-pest.list`](../../../.github/ci-sqlite-pest.list) — decisão [W]). São achados adjacentes registrados aqui, não pendências do Aceite.
 
 Achado da sessão 2026-08-05, na triagem dos scripts órfãos: o `permission-drift.mjs` estava sem invocador, e rodá-lo revelou a dívida.
 
@@ -1277,6 +1283,8 @@ Ou seja: das 15, **as 15 têm razão escrita para ficar**. A classe D está tria
 #### Cozinha (`restaurant/kitchen`) — gate reativado, com o menu junto — 2026-08-07
 
 > ⚠️ **Escrito em 2026-08-07 aguardando decisão [W]** — a mudança tem duas pernas e elas se decidem separado (ver abaixo). _(Redação datada de propósito: "decisão pendente" em presente vira falsa no minuto em que [W] decidir, e ninguém volta pra consertar — §5 2026-07-16.)_
+>
+> ✅ **Desfecho — 2026-08-07: [W] aprovou e as DUAS pernas foram mergeadas no [#5388](https://github.com/wagnerra23/oimpresso.com/pull/5388)** (squash `433291bd`, CI 100 SUCCESS · smoke real autenticado). _Conferido no código vivo em 2026-08-16:_ `KitchenController::index()` tem o gate ativo com `can('sell.view')` e o menu Cozinha do `AdminSidebarMenu.php` carrega o **mesmo** `sell.view` no predicado do link. O texto acima fica como está — é o registro datado do estado em que foi escrito; os 3 resíduos que ele declara (`refreshOrdersList` · `refreshLineOrdersList` · `markAsCooked` por GET) **seguem abertos**.
 
 Mesma família dos `restaurant.*` acima, um grau mais sensível: o `KitchenController::index()` tinha o gate **comentado** e servia os **pedidos** da cozinha — transações, não nomes de catálogo — a qualquer usuário autenticado do business. `business_id` intacto (Tier 0 não foi violado); o que faltava era RBAC **dentro** do tenant.
 

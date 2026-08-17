@@ -37,9 +37,22 @@ Não inventamos. Reusamos pattern formal da indústria.
 | 5 | **Drift detection cron** | Cedar policy bundles + reconciliation; OPA periodic audit | L5 (Module Charter) | ⏸️ Fase 3.5 — depois de mcp_modules cache |
 | 6 | **Mutation testing** | NIST policy testing; OPA policy unit tests; Cedar test framework | L6 (Policy Gating) | ⏸️ Fase 5 — Pest tests gerados a partir de mcp_governance_rules |
 | 7 | **Quarterly constitutional review** | NIST 800-207 §7 governance review; ISO 27001 management review | L1, L3, L4 | ⏸️ pattern definido, primeira ocorrência 2026-08-05 |
-| 8 | **Public audit dashboard** | NIST 800-207 §6 monitoring + observability; Cedar audit logs | L7 (Audit Trail) | ⏸️ Fase 5 — UI `/governance/audit` |
+| 8 | **Public audit dashboard** | NIST 800-207 §6 monitoring + observability; Cedar audit logs | L7 (Audit Trail) | ✅ implementado — UI `/governance/audit` no ar (`Modules/Governance/Http/routes.php` · `AuditController` · `Pages/governance/Audit.tsx`, charter `status: live`) |
 
-**Status global:** 1/8 implementado, 7/8 distribuídos em ADR 0079 Fases 3-5.
+**Status global:** 2/8 implementado, 6/8 distribuídos em ADR 0079 Fases 3-5.
+
+> 📌 **Correção de 2026-08-16 (medição da D3 da Trilha D).** O item 8 estava marcado `⏸️ Fase 5`
+> — *a construir* — enquanto a tela já existia e o `Dashboard.tsx` linkava pra ela em dois pontos.
+> O texto envelheceu instruindo: quem lesse esta tabela concluiria que não há painel de auditoria
+> e poderia construir um segundo. Medido antes de corrigir: rota registrada em
+> `Modules/Governance/Http/routes.php:48` (declarada como `/audit` **dentro de um grupo com
+> prefixo**, o que faz a string `governance/audit` não aparecer naquele arquivo — grep pelo
+> caminho composto não a encontra), controller renderizando `governance/Audit`, e a rota listada
+> em `tests/Browser/visreg-screens.json`.
+>
+> ⚠️ **A mesma frase sobrevive em `CONSTITUTION.md`** (*"UI `/governance/audit` (a construir)"*).
+> Não foi corrigida aqui de propósito: editar a Constituição exige label `constitution-amendment`
+> \+ um `audit-*.md` no mesmo PR (§10.4 Cascade Review) — é ato de [W], não higiene de agente.
 
 ---
 

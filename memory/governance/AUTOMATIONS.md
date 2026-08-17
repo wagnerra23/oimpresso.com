@@ -120,6 +120,7 @@ Tipo ADR 0234: `cron`. Todos os schedules são ambientes `live` salvo indicaçã
 |---------|----------|-----------|
 | `backup:clean` | `daily` às 01:00 | Limpa backups antigos (env=live). |
 | `backup:run` | `daily` às 01:30 | Executa backup completo (env=live). |
+| `backup:monitor` | `dailyAt('09:00')` BRT | **Verifica o FRESCOR do backup** — o `backup:run` acima só CRIA; nada checava se existe e está fresco. Limiares em `config/backup.php` (`MaximumAgeInDays=1`, `MaximumStorageInMegabytes=5000`); alerta por `UnhealthyBackupWasFoundNotification` + `onFailure` no log. Entrou na Onda 3 da [AUDITORIA-OPS-DR-2026-07](../requisitos/Infra/AUDITORIA-OPS-DR-2026-07.md) contra a morte silenciosa do backup. Defendido por `tests/Feature/Console/BackupMonitorScheduleTest.php`, na allowlist da lane `PHP / Pest (Unit)` desde 2026-08-16 (antes disso o teste existia e **não rodava em lane nenhuma**). |
 | `pos:generateSubscriptionInvoices` | `dailyAt('23:30')` | Gera faturas recorrentes de assinatura (env=live). |
 | `pos:updateRewardPoints` | `dailyAt('23:45')` | Atualiza pontos de fidelidade (env=live). |
 | `pos:autoSendPaymentReminder` | `dailyAt('8:00')` | Envia lembretes automáticos de pagamento (env=live). |

@@ -51,6 +51,209 @@ const firstSentence = (s, max = 160) => {
 };
 const trunc = (s, n = 150) => (s && s.length > n ? s.slice(0, n) + '…' : s || '');
 const lsDir = (d) => (existsSync(join(ROOT, d)) ? readdirSync(join(ROOT, d)) : []);
+// Célula de tabela markdown: `|` cru PARTE a tabela (e matcher de hook tem `|` —
+// `Write|Edit|MultiEdit`). Escapa e achata quebras de linha.
+const cell = (s) => String(s ?? '').split('|').join('\\|').split(/\r?\n/).join(' ');
+const leSe = (p) => { try { return readFileSync(join(ROOT, p), 'utf8'); } catch { return ''; } };
+
+const readTree = (dir, exts, acc = [], depth = 0, maxDepth = 4) => {
+  if (!existsSync(join(ROOT, dir)) || depth > maxDepth) return acc;
+  for (const e of readdirSync(join(ROOT, dir))) {
+    const rel = `${dir}/${e}`;
+    let st; try { st = statSync(join(ROOT, rel)); } catch { continue; }
+    if (st.isDirectory()) readTree(rel, exts, acc, depth + 1, maxDepth);
+    else if (exts.some((x) => e.endsWith(x))) {
+      try { acc.push({ rel, txt: readFileSync(join(ROOT, rel), 'utf8') }); } catch {}
+    }
+  }
+  return acc;
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EIXO **OWNER** — MEDIDO E RECUSADO (2026-08-16). Não existe coluna de owner aqui.
+//
+// `.github/CODEOWNERS` tem 20 regras com dono; TODAS as 20 resolvem para o MESMO
+// handle (`@wagnerra23`) — as outras 4 pessoas do time aparecem só como `# TODO`,
+// porque o próprio arquivo declara que ninguém além do [W] é colaborador do repo.
+// E o único path de MÁQUINA que casa com alguma regra é `.github/`: 123 de 474
+// (25,9%), todas na tabela 1, com valor 100% idêntico — 0 nas outras 7 tabelas.
+// Coluna com um valor só não distingue nada: é decoração, e o passo de QC deste
+// índice trata isso como ruído, não como cobertura.
+//
+// A fonte canônica de ownership (matriz §3 do TEAM.md, per ADR 0070) é por TIPO DE
+// TASK e por MÓDULO — não há aresta mecânica de `scripts/governance/x.mjs` ou
+// `.claude/hooks/y.mjs` pra linha nenhuma dela. E o `owner:` de frontmatter é
+// boilerplate legado que o próprio TEAM.md §3.1 proíbe ler como posse.
+//
+// Reabre quando o CODEOWNERS cobrir `.claude/**` + `scripts/**` com handles
+// DISTINTOS — aí owner passa a ser derivável de verdade, e a coluna nasce medida.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ── EIXO **DOCUMENTO** (D0) — qual doc canônico cita esta máquina ──────────────
+// Derivado por varredura do corpus `.md` de `memory/**` + `.claude/**` + `docs/**`.
+// NÃO conta censo gerado (este arquivo, _HOOKS-INDEX, _SKILLS-INDEX, AUTOMATIONS,
+// PAINEL-SISTEMA): ser listado por outro inventário não é "estar documentado" —
+// contaria a si mesmo e daria 100% de cobertura falsa em toda tabela.
+//
+// A varredura é UMA passada tokenizando cada doc (3 regexes) e casando contra um
+// mapa token→máquina. A forma ingênua (474 × 3.818 `includes` sobre 17,8 MB) mede o
+// mesmo e custa ~9,6 s; esta custa uma fração porque é O(corpus), não O(corpus×máquinas).
+const DOCS_GERADOS = new Set([
+  'memory/reference/MAQUINAS-INVENTARIO.md',
+  '.claude/hooks/_HOOKS-INDEX.md',
+  '.claude/skills/_SKILLS-INDEX.md',
+  'memory/governance/AUTOMATIONS.md',
+  'memory/reference/PAINEL-SISTEMA.md',
+]);
+const corpusDocs = [
+  ...readTree('memory', ['.md'], [], 0, 8),
+  ...readTree('.claude', ['.md'], [], 0, 8),
+  ...readTree('docs', ['.md'], [], 0, 8),
+].filter((d) => !DOCS_GERADOS.has(d.rel));
+
+// Precedência de canonicidade. Sessão/handoff são append-only e HISTÓRICOS: citação
+// lá prova que a máquina existiu num dia, não que algum doc vivo a governa — por isso
+// caem no fundo e viram um marcador próprio, nunca um ponteiro de "documento dono".
+//
+// O 2º nível é DERIVADO do próprio CLAUDE.md (os `@imports` que ele carrega em toda
+// sessão = o canon always-on: proibicoes, how-trabalhar, regras-time…). Fixar essa
+// lista à mão aqui apodreceria no dia em que o CLAUDE.md mudasse os imports.
+// CONTROLE POSITIVO que motivou este nível: `block-test-fora-ct100.mjs` é citado
+// NOMINALMENTE em `memory/proibicoes.md` (§Ambiente, com o hook pelo nome), e a v1
+// desta precedência devolvia `requisitos/Forja/RUNBOOK-gantt.md` — porque punha todo
+// `memory/requisitos/**` acima da raiz. Canon Tier-0 perdendo pra RUNBOOK de módulo.
+const CANON_RAIZ = new Set(['CLAUDE.md']);
+for (const m of leSe('CLAUDE.md').matchAll(/^@([\w./-]+\.md)\s*$/gm)) CANON_RAIZ.add(m[1]);
+const rankDoc = (rel) =>
+  rel.startsWith('memory/sessions/') || rel.startsWith('memory/handoffs/') ? 9
+  : rel.startsWith('memory/decisions/proposals/') ? 4
+  : rel.startsWith('memory/decisions/') ? 0
+  : CANON_RAIZ.has(rel) ? 1
+  : rel.startsWith('memory/requisitos/') ? 2
+  : rel.startsWith('memory/reference/') ? 3
+  : rel.startsWith('.claude/') ? 5
+  : 6;
+
+// token → máquinas. Nome de arquivo (com extensão) é preciso por construção. Nome NU
+// (skill/agent) é ambíguo — `curador` casa 76 docs por ser palavra comum do PT — então
+// só conta em forma DELIMITADA: entre crases ou como segmento `skills/x` / `agents/x`.
+// Medido: solto=76 → crase=7. O estrito muda o total em 2 máquinas (418→416): o risco
+// de FP é real mas concentrado, e a forma delimitada o elimina sem perder sinal.
+// O mapa é construído SEM saber quem são as máquinas: cada doc é tokenizado e os
+// tokens viram chaves. As tabelas consultam depois. Assim a enumeração das máquinas
+// continua morando numa seção só (a que imprime a tabela) — sem lista paralela pra
+// drifar, que é como um índice deste tipo apodrece.
+const RX_ARQUIVO = /[\w.-]+\.(?:mjs|js|cjs|yml|yaml|json)/g;
+const RX_CRASE = /`([a-z0-9][\w.-]*)`/gi;
+const RX_PASTA = /(?:skills|agents)\/([\w.-]+)/g;
+
+const citacoes = new Map(); // token -> { n, melhor:{rank, rel} }
+for (const d of corpusDocs) {
+  const r = rankDoc(d.rel);
+  // conta OCORRÊNCIAS (não só presença): quantas vezes o doc fala da máquina é o
+  // desempate honesto entre docs de mesma precedência — mede o quanto ele trata do
+  // assunto. O critério que estava aqui antes (path mais curto) mede o tamanho do
+  // nome do arquivo, não a relevância.
+  const toks = new Map();
+  const conta = (t) => toks.set(t, (toks.get(t) || 0) + 1);
+  for (const m of d.txt.matchAll(RX_ARQUIVO)) conta(m[0]);
+  for (const m of d.txt.matchAll(RX_CRASE)) conta(m[1]);
+  for (const m of d.txt.matchAll(RX_PASTA)) conta(m[1]);
+  for (const [t, c] of toks) {
+    let e = citacoes.get(t);
+    if (!e) { e = { docs: [] }; citacoes.set(t, e); }
+    e.docs.push({ rel: d.rel, c, rank: r });
+  }
+}
+
+// O nome NU (sem extensão) é como o canon de fato cita a máquina: a ADR 0347 escreve
+// `deadlink-gate` 8× e `deadlink-gate.yml` ZERO vez — buscar só o nome-com-extensão
+// devolvia uma proposta solta e perdia a ADR que existe PRA ela. Só entra quando tem
+// hífen: `ci` e `deploy` (as 2 únicas sem hífen entre 374 máquinas nomeadas por arquivo)
+// são palavras comuns e casariam qualquer crase do repo.
+const nuDe = (nome) => {
+  const b = nome.split('/').pop().replace(/\.(mjs|js|cjs|yml|yaml|json|md)$/, '');
+  return b.includes('-') ? b : null;
+};
+
+// `self` = paths do próprio artefato: um doc não se cita como documentação de si.
+// Sem isto, todo SKILL.md documentaria a própria skill e a coluna daria 100%.
+//
+// ⚠️ O QUE A COLUNA AFIRMA — e o que ela NÃO afirma. Ela devolve **o citador de maior
+// precedência**, não "o doc DONO da máquina". Citação não prova posse, e quando N docs
+// de mesma precedência citam, nenhum desempate é *correto* — só defensável. Limite
+// MEDIDO (2026-08-16, `block-figma-without-optin.mjs`): a ADR 0299 (que existe pra
+// regra que o hook aplica) cita em 3 formas tokenizáveis e a ADR 0315 em 4, então a
+// densidade devolve a 0315. As duas são rank 0 e nenhuma leva o nome do hook no
+// arquivo — não há sinal derivável que separe as duas. Por isso o `+N` fica na célula:
+// ele é o aviso de que existe mais de um citador e a escolha foi por regra, não por
+// autoridade. Quem precisa do dono lê o `+N` e vai olhar.
+const documentoDe = (tokens, selfPrefixos = []) => {
+  const proprio = (rel) => selfPrefixos.some((p) => rel === p || rel.startsWith(p.endsWith('/') ? p : `${p}/`));
+  const alvos = tokens.filter(Boolean);
+  // "about-ness": doc cujo NOME carrega o nome da máquina é um doc ESCRITO PRA ELA
+  // (`0347-deadlink-gate-required-…md`), não um que a menciona de passagem. Desempata
+  // dentro do mesmo rank — sem isto, 70 ADRs citando um baseline caem no alfabético,
+  // que é sorteio com cara de critério.
+  const sobre = (rel) => alvos.some((t) => rel.split('/').pop().includes(t));
+  let melhor = null;
+  const vistos = new Map(); // rel -> ocorrências somadas (token pode repetir o mesmo doc)
+  for (const t of alvos) {
+    const e = citacoes.get(t);
+    if (!e) continue;
+    for (const d of e.docs) {
+      if (proprio(d.rel)) continue;
+      vistos.set(d.rel, (vistos.get(d.rel) || 0) + d.c);
+    }
+  }
+  for (const [rel, c] of vistos) {
+    // precedência → é-sobre-a-máquina → densidade de citação → path curto → alfabético
+    const cand = { rank: rankDoc(rel), sobre: sobre(rel) ? 0 : 1, c, len: rel.length, rel };
+    if (!melhor) { melhor = cand; continue; }
+    // menor é melhor em rank/sobre/len; MAIOR é melhor em c (densidade)
+    const chaves = [cand.rank - melhor.rank, cand.sobre - melhor.sobre,
+      melhor.c - cand.c, cand.len - melhor.len, cand.rel < melhor.rel ? -1 : 1];
+    if (chaves.find((d) => d !== 0) < 0) melhor = cand;
+  }
+  const n = vistos.size;
+  if (!melhor) return '—';
+  // rank 9 = só sessão/handoff: existe rastro, mas nenhum doc VIVO governa a máquina.
+  if (melhor.rank === 9) return `(só sessão/handoff · ${n})`;
+  return `\`${melhor.rel}\`${n > 1 ? ` +${n - 1}` : ''}`;
+};
+
+// ── EIXO **EVIDÊNCIA** (D0) — esta máquina tem PROVA de que morde ──────────────
+// Os donos do tema já existem; este índice só os LÊ (não abre um 3º medidor):
+//   `selftest`   → o script é rodado pelo `gate-selftest.mjs` contra o par de fixtures
+//                  boa/ruim de `tests/governance-fixtures/` (o caso ruim TEM que sair 1).
+//   `bite-log`   → está no array do `design-gate-bites.mjs` (DR-2a da ADR 0336).
+//   `test`       → tem `*.test.mjs` irmão no disco.
+//   `hook-bites` → o dead man's switch de runtime (`hook-bites.mjs`) conhece o hook.
+// `test (fora do CI)` é a distinção que o `selftest-registry-check` já faz e que
+// importa aqui: o teste existe no disco mas nenhum workflow o invoca — verde na
+// máquina do dev, nunca no CI. É cobertura narrada, não testada.
+const SELFTEST_PATHS = new Set(
+  [...leSe('scripts/governance/gate-selftest.mjs').matchAll(/script\('[^']+',\s*'([^']+)'\)/g)].map((m) => m[1]));
+const BITELOG_PATHS = new Set(
+  [...leSe('scripts/governance/design-gate-bites.mjs').matchAll(/cmd:\s*\['([^']+)'/g)].map((m) => m[1]));
+const HOOK_BITES_TXT = leSe('scripts/governance/hook-bites.mjs');
+const WF_YML = readTree('.github/workflows', ['.yml', '.yaml']);
+const WF_TXT = WF_YML.map((w) => w.txt).join('\n');
+
+const evidenciaDe = (rel) => {
+  const tags = [];
+  const irmao = rel.replace(/\.(mjs|js|cjs)$/, '.test.$1');
+  if (SELFTEST_PATHS.has(rel)) tags.push('selftest');
+  if (BITELOG_PATHS.has(rel)) tags.push('bite-log');
+  if (/\.(mjs|js|cjs)$/.test(rel) && irmao !== rel && existsSync(join(ROOT, irmao))) {
+    tags.push(WF_TXT.includes(irmao) ? 'test' : 'test (fora do CI)');
+  }
+  if (rel.startsWith('.claude/hooks/')) {
+    const nu = rel.split('/').pop().replace(/\.mjs$/, '');
+    if (HOOK_BITES_TXT.includes(nu)) tags.push('hook-bites');
+  }
+  return tags.length ? tags.join(' + ') : '—';
+};
 
 const out = [];
 const P = (s = '') => out.push(s);
@@ -88,15 +291,44 @@ const wfKeys = Object.keys(wf).sort();
 let required = new Set();
 try {
   const base = JSON.parse(readFileSync(join(ROOT, 'governance/required-checks-baseline.json'), 'utf8'));
+  // "O que bloqueia merge" tem DUAS fontes e ler uma só devolve número errado:
+  // a proteção clássica e os rulesets. Hoje o `Governance Gate` existe SÓ no ruleset —
+  // contar apenas `classic_protection` publica 44 e faz o leitor concluir que ele não é
+  // required, que é a assinatura do deadlock descrito no RUNBOOK-branch-protection
+  // (PR BLOCKED com 0 falhas e 0 pendentes). Lápide §5 2026-08-08.
   (base.classic_protection?.contexts || []).forEach((c) => required.add(c));
+  (base.rulesets?.contexts || []).forEach((c) => required.add(c));
 } catch {}
+// Invocador de WORKFLOW = o gatilho `on:` do próprio YAML — é o runtime que responde
+// "quem executa isto", não a leitura de quem o cita. Nenhum outro eixo da matriz
+// responde por ele: `ci` (o valor usado nos scripts) seria tautológico aqui.
+const ABREV_ON = {
+  pull_request: 'pr', pull_request_target: 'pr-target', push: 'push', schedule: 'cron',
+  workflow_dispatch: 'manual', workflow_call: 'chamado', issue_comment: 'comment',
+  merge_group: 'merge-queue', repository_dispatch: 'dispatch',
+};
+const gatilhoDe = (relYml) => {
+  if (!existsSync(join(ROOT, relYml))) return '?'; // registry aponta pra YAML ausente
+  const y = readFileSync(join(ROOT, relYml), 'utf8');
+  // bloco `on:` (até a próxima chave de coluna 0) OU forma inline `on: [a, b]`
+  const blk = y.match(/^on:\s*\r?\n((?:[ \t].*\r?\n|\r?\n)*?)(?=^\S)/m);
+  const src = blk ? blk[1] : (y.match(/^on:.*$/m)?.[0] || '');
+  const evs = Object.keys(ABREV_ON)
+    .filter((e) => new RegExp(`(^|[\\s\\[{,])${e}\\s*[:,\\]}]|^\\s+${e}\\s*$`, 'm').test(src))
+    .map((e) => ABREV_ON[e]);
+  return evs.length ? evs.join('+') : '—';
+};
 P(`## 1. Workflows / Gates de CI — ${wfKeys.length} (${required.size} contexts required)`);
 P('');
-P('| Workflow | Descrição |');
-P('|---|---|');
+P('> `Invocador` = gatilho `on:` do YAML · `Documento` = doc canônico de maior precedência que o cita.');
+P('> **Evidência não é derivável aqui** (medido: 0 de 123): o `gate-selftest` prova que o SCRIPT morde,');
+P('> nunca o workflow. Marcar o workflow como provado por causa do script dele seria medir outra coisa.');
+P('');
+P('| Workflow | Invocador | Documento | Descrição |');
+P('|---|---|---|---|');
 for (const k of wfKeys) {
   const nome = wf[k]?.nome || wf[k]?.description || '';
-  P(`| \`${k}\` | ${trunc(nome, 170)} |`);
+  P(`| \`${k}\` | ${gatilhoDe(`.github/workflows/${k}`)} | ${documentoDe([k, nuDe(k)], [`.github/workflows/${k}`])} | ${cell(trunc(nome, 170))} |`);
 }
 P('');
 
@@ -105,12 +337,32 @@ const hooks = lsDir('.claude/hooks').filter((f) => f.endsWith('.mjs') && !f.incl
 P(`## 2. Hooks (PreToolUse/PostToolUse/SessionStart) — ${hooks.length} arquivos`);
 P('');
 P('> Fonte viva com evento×matcher×sinal-de-bloqueio: **`.claude/hooks/_HOOKS-INDEX.md`** (auto-gerado).');
+P('>');
+P('> `Invocador` = o par `evento(matcher)` que o `.claude/settings.json` registra — quem de fato');
+P('> dispara o hook. `—` aqui significa hook NO DISCO E FORA DO WIRING: existe e nunca roda.');
 P('');
-P('| Hook | Descrição (cabeçalho) |');
-P('|---|---|');
+// Wiring real: quem dispara cada hook é o settings.json, não o cabeçalho do arquivo.
+const wiringHooks = new Map();
+try {
+  const st = JSON.parse(readFileSync(join(ROOT, '.claude/settings.json'), 'utf8'));
+  for (const [ev, grupos] of Object.entries(st.hooks || {})) {
+    for (const g of grupos || []) {
+      for (const h of g.hooks || []) {
+        for (const arq of (h.command || '').match(/[\w.-]+\.mjs/g) || []) {
+          if (!wiringHooks.has(arq)) wiringHooks.set(arq, new Set());
+          wiringHooks.get(arq).add(`${ev}(${trunc(g.matcher || '*', 44)})`);
+        }
+      }
+    }
+  }
+} catch {}
+P('| Hook | Invocador | Evidência | Documento | Descrição (cabeçalho) |');
+P('|---|---|---|---|---|');
 for (const f of hooks.sort()) {
-  const txt = readFileSync(join(ROOT, '.claude/hooks', f), 'utf8');
-  P(`| \`${f}\` | ${trunc(firstDescComment(txt), 160)} |`);
+  const rel = `.claude/hooks/${f}`;
+  const txt = readFileSync(join(ROOT, rel), 'utf8');
+  const inv = wiringHooks.has(f) ? [...wiringHooks.get(f)].sort().join(' ') : '—';
+  P(`| \`${f}\` | ${cell(inv)} | ${cell(evidenciaDe(rel))} | ${documentoDe([f, nuDe(f)], [rel])} | ${cell(trunc(firstDescComment(txt), 160))} |`);
 }
 P('');
 
@@ -119,14 +371,19 @@ const skillDirs = lsDir('.claude/skills').filter((d) => existsSync(join(ROOT, '.
 P(`## 3. Skills — ${skillDirs.length}`);
 P('');
 P('> Fonte viva com Tier/auto_trigger: **`.claude/skills/_SKILLS-INDEX.md`** (auto-gerado do frontmatter).');
+P('>');
+P('> **Invocador não é derivável** aqui: skill dispara por casamento de `description` (semântico),');
+P('> e o `Tier` já é o eixo de ativação. As 40 de 74 que aparecem em hook/workflow/script são');
+P('> MENÇÃO (o hook nudga a skill), não invocação — chamar isso de invocador seria medir outra');
+P('> propriedade. **Evidência** idem: não existe fixture boa/ruim de skill (medido: 0 de 74).');
 P('');
-P('| Skill | Tier | Descrição (início) |');
-P('|---|---|---|');
+P('| Skill | Tier | Documento | Descrição (início) |');
+P('|---|---|---|---|');
 for (const d of skillDirs.sort()) {
   const txt = readFileSync(join(ROOT, '.claude/skills', d, 'SKILL.md'), 'utf8');
   const desc = frontmatterField(txt, 'description') || '';
   const tier = frontmatterField(txt, 'tier') || frontmatterField(txt, 'x-tier') || '—';
-  P(`| \`${d}\` | ${tier} | ${trunc(firstSentence(desc, 999), 150)} |`);
+  P(`| \`${d}\` | ${tier} | ${documentoDe([d], [`.claude/skills/${d}`])} | ${cell(trunc(firstSentence(desc, 999), 150))} |`);
 }
 P('');
 
@@ -134,12 +391,62 @@ P('');
 const agents = lsDir('.claude/agents').filter((f) => f.endsWith('.md') && !f.startsWith('_'));
 P(`## 4. Agents (subagentes Task) — ${agents.length}`);
 P('');
-P('| Agent | Descrição (início) |');
-P('|---|---|');
-for (const f of agents.sort()) {
+P('> **Invocador/Evidência não são deriváveis** aqui (mesma razão das skills — agente é spawnado por');
+P('> intenção, e não há fixture de agente). Medido: 8 de 27 aparecem em script/workflow, todas como menção.');
+P('');
+// Eixo RISCO da familia (gate D2 da Trilha D). E' derivado do frontmatter `tools:`,
+// nao da prosa da `description` — e a diferenca entre os dois e' o achado:
+// `ciclo-adversary` e `document-relocation-adversary` se DECLARAM "read-only /
+// nunca edita", e ambos tem `Bash`, que escreve (`sed -i`, `>`, `git commit`).
+// "read-only" ali e' promessa em prosa, nao restricao de capacidade — a familia
+// LC-15 (mecanismo anuncia garantia que nao implementa).
+const TOOLS_ESCREVEM = ['Write', 'Edit', 'NotebookEdit', 'Bash'];
+// `frontmatterField` nao serve aqui: `tools:` e' LISTA (bloco `- Item` ou inline).
+// Um regex `^tools:\s*(.+)$` parece funcionar e MENTE — o `\s` atravessa a quebra
+// de linha e captura so o 1o item, o que classifica implementador como read-only.
+const toolsDe = (txt) => {
+  const fm = txt.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!fm) return null;
+  const linhas = fm[1].split(/\r?\n/);
+  const i = linhas.findIndex((l) => /^tools:/.test(l));
+  if (i < 0) return null;
+  const inline = linhas[i].slice('tools:'.length).trim();
+  if (inline) return inline.replace(/^\[|\]$/g, '').split(',').map((s) => s.trim()).filter(Boolean);
+  const lista = [];
+  for (let j = i + 1; j < linhas.length; j++) {
+    const m = linhas[j].match(/^\s+-\s*(.+?)\s*$/);
+    if (!m) break;
+    lista.push(m[1]);
+  }
+  return lista;
+};
+const escreveDe = (tools) => {
+  if (tools === null) return { rot: '⚠️ sem `tools:`', escreve: true };
+  if (tools.includes('*')) return { rot: '🔴 tudo (`*`)', escreve: true };
+  const q = tools.filter((t) => TOOLS_ESCREVEM.includes(t));
+  return q.length
+    ? { rot: '🔴 ' + q.join('/'), escreve: true }
+    : { rot: '🟢 só lê', escreve: false };
+};
+const agentesTools = agents.sort().map((f) => {
   const txt = readFileSync(join(ROOT, '.claude/agents', f), 'utf8');
-  const desc = frontmatterField(txt, 'description') || '';
-  P(`| \`${f.replace('.md', '')}\` | ${trunc(firstSentence(desc, 999), 170)} |`);
+  return { f, nome: f.replace('.md', ''), txt, ...escreveDe(toolsDe(txt)) };
+});
+const nEscrevem = agentesTools.filter((a) => a.escreve).length;
+P(`> **Coluna \`Escreve?\` — DERIVADA do frontmatter \`tools:\`** (eixo *risco*), não da prosa da`);
+P(`> \`description\`. Conta como escrita: \`${TOOLS_ESCREVEM.join('\`, \`')}\` — **\`Bash\` inclusive**, porque`);
+P('> `sed -i`, `>` e `git commit` escrevem (se você discorda desse critério, ele está aqui pra ser');
+P(`> discutido, não escondido). Medido agora: **${nEscrevem} de ${agentesTools.length}** podem escrever.`);
+P('>');
+P('> ⚠️ Onde a prosa e a capacidade DISCORDAM, quem manda é a capacidade: agente que se descreve');
+P('> "read-only / nunca edita / nunca commita" e tem `Bash` está fazendo uma **promessa**, não');
+P('> operando sob **restrição**. Instrução de prompt não é mecanismo.');
+P('');
+P('| Agent | Escreve? | Documento | Descrição (início) |');
+P('|---|---|---|---|');
+for (const a of agentesTools) {
+  const desc = frontmatterField(a.txt, 'description') || '';
+  P(`| \`${a.nome}\` | ${a.rot} | ${documentoDe([a.nome], [`.claude/agents/${a.f}`])} | ${cell(trunc(firstSentence(desc, 999), 170))} |`);
 }
 P('');
 
@@ -161,20 +468,8 @@ P('');
 //
 // NÃO julga: reporta o fato e o humano triaga. Um one-shot (codemod, probe,
 // PoC) é órfão POR DESIGN e não deve ser "ligado"; um medidor órfão é dívida.
-const readTree = (dir, exts, acc = [], depth = 0) => {
-  if (!existsSync(join(ROOT, dir)) || depth > 4) return acc;
-  for (const e of readdirSync(join(ROOT, dir))) {
-    const rel = `${dir}/${e}`;
-    let st; try { st = statSync(join(ROOT, rel)); } catch { continue; }
-    if (st.isDirectory()) readTree(rel, exts, acc, depth + 1);
-    else if (exts.some((x) => e.endsWith(x))) {
-      try { acc.push({ rel, txt: readFileSync(join(ROOT, rel), 'utf8') }); } catch {}
-    }
-  }
-  return acc;
-};
 const FONTES_INVOC = [
-  ['ci',     readTree('.github/workflows', ['.yml', '.yaml'])],
+  ['ci',     WF_YML],
   ['npm',    existsSync(join(ROOT, 'package.json')) ? [{ rel: 'package.json', txt: readFileSync(join(ROOT, 'package.json'), 'utf8') }] : []],
   ['agente', readTree('.claude', ['.json', '.md', '.js', '.mjs'])],
   ['script', readTree('scripts', ['.mjs', '.js', '.cjs', '.sh'])],
@@ -233,11 +528,12 @@ const dumpScripts = (dir, titulo) => {
   const files = lsDir(dir).filter((f) => /\.(mjs|js|cjs)$/.test(f) && !f.includes('.test.'));
   P(`### ${titulo} — ${files.length}`);
   P('');
-  P('| Script | Invocador | Descrição (cabeçalho) |');
-  P('|---|---|---|');
+  P('| Script | Invocador | Evidência | Documento | Descrição (cabeçalho) |');
+  P('|---|---|---|---|---|');
   for (const f of files.sort()) {
-    const txt = readFileSync(join(ROOT, dir, f), 'utf8');
-    P(`| \`${f}\` | ${invocadorDe(`${dir}/${f}`, f)} | ${trunc(firstDescComment(txt), 160)} |`);
+    const rel = `${dir}/${f}`;
+    const txt = readFileSync(join(ROOT, rel), 'utf8');
+    P(`| \`${f}\` | ${cell(invocadorDe(rel, f))} | ${cell(evidenciaDe(rel))} | ${documentoDe([f, nuDe(f)], [rel])} | ${cell(trunc(firstDescComment(txt), 160))} |`);
   }
   P('');
 };
@@ -252,6 +548,22 @@ P('>');
 P('> ⚠️ `—` **não** significa "apagar": one-shot (codemod, probe, PoC de migração) é órfão **por');
 P('> design**. O que é dívida é **medidor** órfão — a máquina existe, o teste prova que ela morde,');
 P('> e nada a executa. A matriz reporta o fato; a triagem é humana.');
+P('>');
+P('> **Coluna `Evidência` — DERIVADA** (Trilha D · D0). Prova de que a máquina MORDE, lida dos donos');
+P('> que já existem: `selftest` (par de fixtures boa/ruim rodado por `gate-selftest.mjs`) · `bite-log`');
+P('> (array do `design-gate-bites.mjs`, DR-2a da ADR 0336) · `test` (`*.test.mjs` irmão, invocado por');
+P('> algum workflow) · `test (fora do CI)` (o irmão existe mas nenhum YAML o roda — verde na máquina do');
+P('> dev, nunca no CI) · `—` (nenhuma prova).');
+P('>');
+P('> **Coluna `Documento` — DERIVADA.** É o **citador de maior precedência**, e não "o doc dono" —');
+P('> citação não prova posse. `+N` = quantos OUTROS docs também citam (é o aviso de que a escolha');
+P('> foi por regra, não por autoridade: com `+143` o dono provavelmente é outro, vá olhar).');
+P('> Precedência: `memory/decisions/` → canon raiz que o `CLAUDE.md` importa (`proibicoes.md` etc.) →');
+P('> `memory/requisitos/` → `memory/reference/` → `decisions/proposals/` → `.claude/**` → resto.');
+P('> Empate resolvido por: nome do arquivo carrega o nome da máquina → densidade de citação. Censo gerado');
+P('> (este arquivo, `_HOOKS-INDEX`, `_SKILLS-INDEX`, `AUTOMATIONS`, `PAINEL-SISTEMA`) **não conta** —');
+P('> ser listado por outro inventário não é estar documentado. `(só sessão/handoff · N)` = existe');
+P('> rastro histórico, mas **nenhum doc vivo** governa a máquina. `—` = nenhum doc a cita.');
 P('');
 dumpScripts('scripts/governance', '5.1 `scripts/governance/`');
 dumpScripts('scripts/tests', '5.2 `scripts/tests/`');
@@ -261,8 +573,27 @@ dumpScripts('scripts', '5.3 `scripts/` (raiz)');
 const jsonDirs = ['governance', 'config', 'scripts'];
 P('## 6. Baselines & JSON de estado');
 P('');
-P('| Arquivo | `_meta` / propósito |');
-P('|---|---|');
+P('> **Coluna `Leitor` — DERIVADA** (o eixo "invocador" desta tabela): baseline não é executado, é');
+P('> LIDO — então quem o executa é quem o consome. `ci` (workflow) · `script` · `agente` (`.claude/**`).');
+P('> `—` = **nenhum consumidor no versionado**: o arquivo é mantido e ninguém o lê. Evidência não é');
+P('> derivável aqui (medido: 0 de 46 — baseline não tem fixture própria; quem tem é a catraca que o usa).');
+P('');
+// Leitor = mesma varredura do invocador de script, invertida: procura o baseline nos
+// consumidores. Aceita path completo OU basename (todos os 46 basenames são únicos —
+// se um dia colidirem, o path completo já casa antes e o basename não infla).
+const leitorDe = (rel) => {
+  const base = rel.split('/').pop();
+  const kinds = new Set();
+  for (const [kind, arr] of FONTES_INVOC) {
+    for (const a of arr) {
+      if (a.rel === rel || a.rel === SELF_REL) continue;
+      if (a.txt.includes(rel) || a.txt.includes(base)) kinds.add(kind);
+    }
+  }
+  return kinds.size ? [...kinds].sort().join(', ') : '—';
+};
+P('| Arquivo | Leitor | Documento | `_meta` / propósito |');
+P('|---|---|---|---|');
 const seen = new Set();
 for (const d of jsonDirs) {
   for (const f of lsDir(d).filter((x) => x.endsWith('.json')).sort()) {
@@ -278,7 +609,7 @@ for (const d of jsonDirs) {
       const j = JSON.parse(readFileSync(join(ROOT, p), 'utf8'));
       meta = j._meta?.gate || j._meta?.baseline || j._meta?.nota || j._meta?.description || '';
     } catch {}
-    P(`| \`${p}\` | ${trunc(meta, 150) || '(baseline/estado)'} |`);
+    P(`| \`${p}\` | ${leitorDe(p)} | ${documentoDe([p, p.split('/').pop(), nuDe(p)], [p])} | ${cell(trunc(meta, 150) || '(baseline/estado)')} |`);
   }
 }
 P('');

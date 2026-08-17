@@ -351,6 +351,63 @@ function runSelftest() {
       const capped = planOrphanRelinks(fx3, files3, { max: 1 });
       check('--max N corta a leva (anti big-bang)', capped.proposals.length <= 1, capped);
     } finally { if (fx3.startsWith(tmpdir())) rmSync(fx3, { recursive: true, force: true }); }
+
+    // ── --orfaos: casos de USO que o bite-test acima não cobria (2026-08-15) ──────
+    // Buracos que a pergunta "como eu uso?" expôs: --escopo e --max entraram no CLI
+    // sem caso próprio, e 3 formas de link que aparecem no corpus real (fragmento,
+    // ocorrência repetida, code-span) nunca foram exercitadas.
+    const fx4 = mkdtempSync(join(tmpdir(), 'oimpresso-orfaos-uso-'));
+    try {
+      git(fx4, ['init', '-q']); git(fx4, ['config', 'user.email', 't@t.test']); git(fx4, ['config', 'user.name', 'T']);
+      mkdirSync(join(fx4, 'memory/requisitos/Jana'), { recursive: true });
+      mkdirSync(join(fx4, 'memory/reference'), { recursive: true });
+      writeFileSync(join(fx4, 'memory/requisitos/Jana/alvo.md'), '# alvo\n');
+      // (a) fragmento #ancora precisa sobreviver ao religamento
+      // (b) o MESMO href morto 2× no arquivo — dedupe na proposta, replaceExact troca as 2
+      // (c) code-span com o mesmo path: NÃO é markdown-link, não pode ser tocado
+      writeFileSync(join(fx4, 'memory/reference/uso.md'),
+        '[x](../antigo/alvo.md#secao-3)\n'
+        + '[y](../antigo/repetido.md)\n'
+        + '[z](../antigo/repetido.md)\n'
+        + 'veja `../antigo/alvo.md` no code-span\n');
+      writeFileSync(join(fx4, 'memory/requisitos/Jana/repetido.md'), '# repetido\n');
+      // arquivo em OUTRO escopo, pra provar o recorte de --escopo
+      mkdirSync(join(fx4, 'outra-area'), { recursive: true });
+      writeFileSync(join(fx4, 'outra-area/fora.md'), '[w](../antigo/alvo.md)\n');
+      git(fx4, ['add', '.']); git(fx4, ['commit', '-q', '-m', 'fx4']);
+      const files4 = trackedFiles(fx4);
+
+      const r4 = planOrphanRelinks(fx4, files4);
+      const comFrag = r4.proposals.find((p) => p.from.includes('alvo.md#secao-3'));
+      check('USO: fragmento #ancora é PRESERVADO no link religado',
+        Boolean(comFrag) && comFrag.to.endsWith('#secao-3'), comFrag);
+      check('USO: href morto repetido vira UMA proposta (dedupe por file+href)',
+        r4.proposals.filter((p) => p.from.includes('repetido.md')).length === 1, r4.proposals);
+
+      // --escopo recorta de verdade (caso de uso "pago um módulo por vez").
+      // MEDIDO ANTES do apply de propósito: depois de religar não sobra link morto
+      // pra propor, e o assert viraria verde-por-vacuidade (foi como ele falhou primeiro).
+      const soReference = planOrphanRelinks(fx4, files4, { escopo: 'memory/reference/' });
+      check('USO: --escopo restringe às propostas daquele prefixo',
+        soReference.proposals.length > 0 && soReference.proposals.every((p) => p.file.startsWith('memory/reference/')),
+        soReference.proposals);
+      check('USO: --escopo contabiliza o que ficou de fora (fora_escopo > 0)',
+        soReference.skipped.fora_escopo > 0, soReference.skipped);
+
+      const antes4 = readFileSync(join(fx4, 'memory/reference/uso.md'), 'utf8');
+      applyOrphanRelinks(fx4, r4.proposals.filter((p) => p.file === 'memory/reference/uso.md'));
+      const depois4 = readFileSync(join(fx4, 'memory/reference/uso.md'), 'utf8');
+      check('USO: as DUAS ocorrências do href repetido foram religadas',
+        !depois4.includes('](../antigo/repetido.md)'), depois4);
+      check('USO: code-span com o mesmo path fica INTACTO (só markdown-link é alvo)',
+        depois4.includes('`../antigo/alvo.md`'), depois4);
+      check('USO: nenhuma linha extra criada/removida pelo apply',
+        antes4.split('\n').length === depois4.split('\n').length, { antes4, depois4 });
+
+      // idempotência: re-rodar depois de religar não propõe nada (o link já está vivo)
+      const rerun = planOrphanRelinks(fx4, trackedFiles(fx4), { escopo: 'memory/reference/' });
+      check('USO: re-rodar após o apply é NO-OP (idempotente)', rerun.proposals.length === 0, rerun.proposals);
+    } finally { if (fx4.startsWith(tmpdir())) rmSync(fx4, { recursive: true, force: true }); }
   } finally {
     if (fixture.startsWith(tmpdir())) rmSync(fixture, { recursive: true, force: true });
   }

@@ -787,6 +787,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** não atribuir causa a um commit por **proximidade de data + tema plausível**. Antes de citar um PR como causa, conferir **(a)** que ele entrou ANTES do efeito e **(b)** que os arquivos dele participam do caminho medido. As duas checagens custam um `git log -1 --format=%cd` e um `--stat`.
 
+### 2026-08-16 — Restringir a extração de recibo à convenção `§5:` PURA pra zerar os "recibos pendurados" (medido: cega metade dos recibos legítimos)
+
+- **O limite (variantes também proibidas):** **(a)** não re-propor restringir a extração de recibo à convenção `§5:` pura — está medido, cega 46 de 92. **(b)** Não "resolver" pendurado **mexendo no ledger** (reescrever a linha de `Ocorrências` pra silenciar o alarme) quando os 5 são prosa legítima: o defeito era do **medidor**, e a doutrina do §5 2026-07-17 (drift-sentinel) já mandava — *"se a distribuição não discrimina, o baseline não é o problema, o MEDIDOR é"*. **(c)** Não ampliar o conjunto de marcadores por palpite: cada forma nova entra **medida no corpus** (quantos recibos ganha, quantos FP traz) e com controle negativo de prosa no selftest, senão volta o alarme de 0% de precisão.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:

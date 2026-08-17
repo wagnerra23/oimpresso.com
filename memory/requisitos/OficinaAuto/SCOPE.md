@@ -17,6 +17,7 @@ not_contains:
   - "Kanban shared infra → Modules/Repair (consumido opcionalmente)"
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Núcleo transactions/contacts → UltimatePOS core"
+  - "Transporte WhatsApp (envio, driver, fallback Meta, anti-ban) → Modules/Whatsapp — este módulo só DISPARA (EnviarLinkAprovacaoWhatsappJob); a entrega é de lá"
 trust_required: L2
 owner: wagner
 permission_prefix: oficina_auto.*

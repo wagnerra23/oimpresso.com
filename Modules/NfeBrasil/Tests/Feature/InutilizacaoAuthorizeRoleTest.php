@@ -9,6 +9,8 @@ use Spatie\Permission\Models\Role;
 uses(Tests\TestCase::class);
 
 /**
+ * @covers-us US-GOV-059
+ *
  * US-GOV-059 classe A — `fiscal.inutilizar` é ROLE, não permissão.
  *
  * O `CancelarNfeRequest::authorize()` fazia `can('fiscal.inutilizar')`, e esse

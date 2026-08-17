@@ -147,6 +147,9 @@
   .trilho .grupo > a{font-family:var(--serif);font-size:14.5px;color:var(--ink);
     margin-top:15px;border-left-color:transparent;padding-left:0}
   .trilho .grupo:first-child > a{margin-top:0}
+  /* h4 (B6.1, B8.1-B8.4, …): recuado e menor — hierarquia visível sem virar ruído,
+     já que são 14 dos 42 itens. Só indentação e escala; cor e foco herdam do irmão. */
+  .trilho .sub > a{padding-left:22px;font-size:12px}
   .trilho .cod{font-family:var(--mono);font-size:10.5px;color:var(--ink-mute);flex:0 0 auto}
   .trilho a[aria-current="true"] .cod{color:var(--accent)}
 

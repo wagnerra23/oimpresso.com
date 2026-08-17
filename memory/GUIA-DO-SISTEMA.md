@@ -4,9 +4,9 @@ title: "Guia do Sistema — mapa do oimpresso + como usar (Claude Code)"
 type: guide
 authority: canonical
 lifecycle: ativo
-version: "1.5.0"
+version: "1.6.0"
 maintained_by: wagner
-last_updated: "2026-08-10"
+last_updated: "2026-08-16"
 related:
   - 0094-constituicao-v2-7-camadas-8-principios
   - 0121-oimpresso-modular-especializado-por-vertical
@@ -319,6 +319,28 @@ um achado por execução. `system-map`, `maquinas-inventario`, `documentation-lo
 `briefing-code-staleness` medem; o especialista traduz; [W] decide o merge. A trilha permanece ativa
 enquanto houver task aberta, revisão fresca e consumo dos achados — não por criar outro gate.
 
+**O ciclo, estação por estação — cada uma com a porta que a executa.** O diagrama acima diz a
+ordem; esta tabela diz *como andar nela*. Nenhuma estação se cumpre no olho.
+
+| Estação | Porta viva (o comando) | O que ela devolve |
+|---|---|---|
+| **Medir** | `npm run docs:loop` | os achados do ciclo, com ID estável (é o que o recibo fecha) |
+| ↳ medir uma camada | `node scripts/governance/doc-freshness-score.mjs` · `briefing-code-staleness.mjs` · `deadlink-gate.mjs --check` · `knowledge-drift.mjs --check` | frescor por doc · porta×código · link morto · módulo-fantasma |
+| **Localizar o dono** | a tabela de donos do **B6.1**, logo acima | em QUAL arquivo o conserto aterrissa (nunca um arquivo novo) |
+| **Traduzir no Git** | editar **só** o dono | o conteúdo, no lugar que já é responsável por ele |
+| **Validar** | re-rodar **a mesma porta** que acusou | o achado sumiu de verdade, ou não sumiu |
+| **Recibo antes→depois** | `node scripts/governance/documentation-loop.mjs --compare-ref origin/main --expect <id>` | prova que o ID que você prometeu fechar sumiu mesmo |
+| **Publicar** | PR + merge [W] → [`/documentacao`](https://oimpresso.com/documentacao) | a página, no **próximo deploy de código** (ver passo 6 acima) |
+| **Operar / Drift** | o próprio `docs:loop` na execução seguinte | o achado que voltou, ou o que nasceu |
+
+⚠️ **Antes de confiar em qualquer verde deste ciclo, confira se o checkout tem história.**
+`doc-freshness-score` e `briefing-code-staleness` derivam de data-git: em **clone raso** eles não
+conseguem medir — e sessão de agente na nuvem pode vir rasa (a de 2026-08-16 veio, e foi assim que
+isto apareceu). Os três detectores do ciclo hoje **declaram**
+a não-medição (`⚠️ NÃO MEDIDO` / `SNAPSHOT PARCIAL`) em vez de imprimir verde, mas o conserto é
+seu: `git rev-parse --is-shallow-repository` → se `true`, `git fetch --unshallow origin`. Snapshot
+parcial **não serve de recibo**: menos achado pode ser cegueira, não melhora.
+
 ### B7. Como especificar e executar uma feature complexa (SDD)
 
 > **Não instalar outro kit nem criar outro `spec.md`.** O fluxo local já operacionaliza
@@ -608,14 +630,27 @@ code owner sem acesso de escrita, então hoje todo `# TODO: + @<handle>` do arqu
 #### B8.2 As 4 camadas — cada uma age num momento diferente
 
 ```
-[1] HOOK           antes de o agente escrever    91 hooks · bloqueia na hora
-     ↓                                            git ls-files '.claude/hooks/*.mjs' | wc -l
+[1] HOOK           antes de o agente escrever    49 hooks · bloqueia na hora
+     ↓                                       git ls-files '.claude/hooks/*.mjs' | grep -vc '\.test\.mjs'
 [2] SCOPE + rules  o que LER antes de mexer       32 SCOPE.md (32 de 32 módulos)
      ↓                                            git ls-files 'memory/requisitos/*/SCOPE.md' | wc -l
-[3] CI             depois do push                 121 workflows · 42 travam merge
+[3] CI             depois do push                 123 workflows · 45 travam merge
      ↓                                            governance/required-checks-baseline.json
 [4] CODEOWNERS     antes do merge                 [W], nos caminhos Tier 0
 ```
+
+⚠️ **O comando dos hooks exclui `*.test.mjs` de propósito.** Sem o `grep -v` ele conta
+**91** — e 42 desses são os testes dos próprios hooks, não hooks. Os donos concordam com
+49: o [`MAQUINAS-INVENTARIO`](reference/MAQUINAS-INVENTARIO.md) diz 49, e o
+[`_HOOKS-INDEX`](../.claude/hooks/_HOOKS-INDEX.md) tem 54 linhas porque hook multi-evento
+é **fatiado por evento** (mesmo arquivo, 2 linhas). Três números, três perguntas
+diferentes — reproduzir um comando não prova que ele responde a que você fez (LC-08).
+
+⚠️ **O "45 travam merge" é a UNIÃO de duas listas, não uma.** `classic_protection.contexts`
+tem 44 e `rulesets.contexts` tem 1 (o `Governance Gate`) — quem lê só a proteção clássica
+conclui 44 e perde um required, que é como se chega a um PR `BLOCKED` com tudo verde
+([§5 2026-08-08](proibicoes.md)). E o `_meta.capturado_em` do baseline diz de QUANDO é o
+retrato; o vivo × baseline quem compara é `node scripts/governance/protection-drift.mjs`.
 
 **Contexto restrito por módulo = o `SCOPE.md`** (é a FONTE PRIMÁRIA da rule `.claude/rules/modules.md`,
 que manda abri-lo **antes** de `Glob`/`Grep`): `contains` · `not_contains` · `db_tables_owned` ·
@@ -629,6 +664,7 @@ que manda abri-lo **antes** de `Glob`/`Grep`): `contains` · `not_contains` · `
 | Que testes rodam em que lane? | `node scripts/governance/test-lane-coverage.mjs` |
 | …e a lane deixa rodar? | `node scripts/governance/test-lane-coverage.mjs --mudos` |
 | Que link está morto? | `node scripts/governance/deadlink-gate.mjs --check` |
+| …e como **consertar** os que dá? | `npm run docs:relink:orfaos` (dry-run; ver [B9](#b9)) |
 | Doc cita módulo que morreu? | `node scripts/governance/knowledge-drift.mjs --check` |
 | O que este módulo tem? | `node scripts/governance/module-surface.mjs <Mod> --check` |
 | Que gate trava merge? | `governance/required-checks-baseline.json` |
@@ -668,6 +704,70 @@ percebe — porque o gate que existia nunca olhou aquele eixo. Antes de escrever
 e [07-25](proibicoes.md)) — inclusive com a prova dura de que um índice **existia 4 dias antes** de um
 erro que ele deveria ter evitado, e não evitou. O caminho é **estender o dono do eixo**, com FP
 medido antes, advisory primeiro.
+
+### B9. Manutenção — a catraca acusou, e agora?
+
+> **Pra que serve esta seção:** as catracas impedem **piorar**. Elas não pagam a dívida que já
+> existe — isso é trabalho, e alguém precisa mandar fazer. Aqui está o como.
+
+#### O que é uma catraca (em uma frase)
+
+Um número congelado num arquivo de baseline. O gate compara o estado de hoje com esse número:
+**se piorou, reprova o PR; se melhorou, passa** — mas o número **não muda sozinho**.
+
+Consequência prática, e é o ponto que mais confunde: **você pode consertar 265 coisas e o sistema
+continuar aceitando que voltem.** Enquanto o baseline não for regravado, o ganho está solto.
+
+#### O ciclo completo — 4 passos, sempre nesta ordem
+
+```bash
+# 1. VER o que dá pra consertar (dry-run — não escreve nada)
+npm run docs:relink:orfaos
+
+# 2. APLICAR num escopo por vez (nunca tudo de uma vez)
+node scripts/governance/doc-auto-relink.mjs --orfaos \
+     --escopo memory/requisitos/Financeiro/ --apply --max 20
+
+# 3. CONFERIR que não comeu conteúdo vizinho  ← este passo não é opcional
+git diff --numstat | awk '$1!=1 || $2!=1 {print "ANOMALIA:",$0}'
+#    saída vazia = cada arquivo mudou exatamente 1 linha
+
+# 4. TRAVAR o ganho (sem isso, o passo 2 foi em vão)
+node scripts/governance/deadlink-gate.mjs --write-baseline
+node scripts/governance/baseline-tamper-guard.mjs   # prova que ENCOLHEU
+```
+
+O passo 3 existe porque este projeto já teve dois codemods que comeram conteúdo vizinho
+([§5 2026-08-02](proibicoes.md) e [08-12](proibicoes.md)). "Rodou sem erro" e até "teste verde" são
+compatíveis com dano intacto — **diff idêntico é a prova**.
+
+#### Três perguntas que sempre aparecem
+
+**"Se eu rodar várias vezes, ele aprende?"** Não. É determinístico e idempotente — rodar de novo
+sobre o mesmo estado **não propõe nada** (há teste que prova: `re-rodar após o apply é NO-OP`). O que
+faz aparecer trabalho novo é **o repo mudar**, não a repetição.
+
+**"Então o que trava a catraca?"** O passo 4, e só ele. Enquanto o baseline não for regravado, o
+gate segue aceitando o número velho — verde e cego.
+
+**"Ele pode estragar alguma coisa?"** Ele se recusa a agir em seis situações: documento
+append-only (ADR, handoff), destino ambíguo, destino inexistente, link que já funciona, drift no
+texto, e acima do teto do `--max`. O que ele não consegue resolver **ele conta no relatório** em vez
+de esconder — é por isso que a saída sempre traz a linha `não propostos: …`.
+
+#### O que NUNCA é automático (decisão sua, não minha)
+
+| Situação | Por quê |
+|---|---|
+| Links dentro de `memory/decisions/` | ADR é append-only — exige label `adr-body-edit-W` |
+| Destino ambíguo (mesmo nome em 2 pastas) | adivinhar destino é erro já catalogado 4× |
+| Link para documento realmente deletado | não há para onde apontar; ou some, ou vira ponteiro novo |
+| Subir um número de baseline | catraca só desce; subir é decisão explícita |
+
+#### Detalhe técnico
+
+Receita completa, casos de uso cobertos por teste e o resíduo medido:
+[RUNBOOK-doc-auto-relink-orfaos.md](requisitos/Infra/RUNBOOK-doc-auto-relink-orfaos.md).
 
 ## Backbone operacional — como tudo se conecta
 
@@ -723,7 +823,7 @@ flowchart LR
 | Linhas vermelhas | [proibicoes.md](proibicoes.md) |
 | Time e papéis | [regras-time.md](regras-time.md) · [TEAM.md](../TEAM.md) |
 | Responsabilidade de um módulo | `memory/requisitos/<X>/SCOPE.md` + `BRIEFING.md` |
-| Planejar uma feature complexa por SDD | [B7 deste guia](#b7-como-especificar-e-executar-uma-feature-complexa-sdd) · [template do trio](requisitos/_TEMPLATE_FEATURE/BRIEFING.md) |
+| Planejar uma feature complexa por SDD | [B7 deste guia](#b7) · [template do trio](requisitos/_TEMPLATE_FEATURE/BRIEFING.md) |
 | Conectar um dev novo ao MCP | [MEMORY_TEAM_ONBOARDING.md](../MEMORY_TEAM_ONBOARDING.md) |
 
 ---

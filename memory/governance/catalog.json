@@ -27,7 +27,7 @@
   "stats": {
     "modules": 35,
     "nodes": 677,
-    "edges": 950,
+    "edges": 952,
     "by_node_type": {
       "module": 39,
       "table": 101,
@@ -43,8 +43,8 @@
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 389,
-      "dependsOn": 113,
-      "delegatesTo": 105,
+      "dependsOn": 114,
+      "delegatesTo": 106,
       "migratesTo": 1,
       "supersedes": 15,
       "supersedesPartially": 48,
@@ -9745,6 +9745,13 @@
     },
     {
       "from": "module:OficinaAuto",
+      "to": "module:Whatsapp",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Transporte WhatsApp (envio, driver, fallback Meta, anti-ban)"
+    },
+    {
+      "from": "module:OficinaAuto",
       "to": "module:KB",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -9756,6 +9763,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Kanban shared infra"
+    },
+    {
+      "from": "module:OficinaAuto",
+      "to": "module:Whatsapp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Transporte WhatsApp (envio, driver, fallback Meta, anti-ban)"
     },
     {
       "from": "module:OficinaAuto",
