@@ -138,7 +138,13 @@ Emissão de Nota Fiscal de Serviço eletrônica (NFSe) via **SN-NFSe federal** (
 
 ## 13. Último update
 
-**Atualizado:** 2026-05-16 BRT — Wave 18 saturation (D1 NfseCertificado cross-tenant Pest)
+**Atualizado:** 2026-08-01 BRT — catch-up 76d (#5153): cutover fiscal por-business biz=164 Martinho, nota de module-grade vira ponteiro. _(Revisão anterior: 2026-05-16, Wave 18 saturation — D1 NfseCertificado cross-tenant Pest.)_
+
+> **Carimbo único — não duplicar.** Este rodapé é a data que o `briefing-code-staleness` lê
+> (junto de `updated_at`/`distilled_at`/`reviewed_at`, pegando a MAIOR). O frontmatter
+> `last_review:` **não é lido por ele**. Se as duas discordarem, o detector acredita nesta —
+> foi o que produziu um alarme falso de **88 dias** entre 08-01 e 08-16, com o módulo já
+> revisado. Ao revisar, mova as duas juntas ou mantenha só uma.
 **Próximo update esperado:** quando US-NFSE-007 (bulk emission) ou cert A1 ativado prod
 **Mantenedor:** Claude (auto) + Eliana (owner) + Wagner (review)
 

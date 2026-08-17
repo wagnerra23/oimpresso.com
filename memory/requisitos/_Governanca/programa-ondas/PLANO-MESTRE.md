@@ -60,7 +60,7 @@ related_adrs:
 | 6.3 Régua telas Fiscal | (template) | — | ✅ 7 scorecards (Nfe UX 84 · Sped UX 68 **d1 aplica ✔** cross_check/golden✘ · casos 0% G-2; 4 agents) (#3761) | ~3h (4 agents) |
 | 6.4 Catraca+sentinela Fiscal | (template) | — | ✅ emergente — verificado 2026-07-03: ratchet bloqueia `fiscal-sped` 68→50 (exit 1 · "PR bloqueado"); sentinela `exposicao-tier0` cobre telas fiscal-Tier0 (peso 3); casos-gate vê 7 casos.md (débito −13) (sem gate novo) | ~1h |
 | **Passo 5 — SDD por módulo** (transversal · [W] "pode fazer" 2026-07-27) | [passo-5-sdd-por-modulo.md](passo-5-sdd-por-modulo.md) | — | 🔜 Onda 1 = Fiscal · Compras · Ponto (3 sessões paralelas) | custo do chip **não medido** (a Onda 1 é a medição) |
-| **Trilha D — documentação técnica e operacional** ([W] 2026-08-05) | § Trilha D deste plano | [US-INFRA-048](../../Infra/SPEC.md#us-infra-048--ativar-a-documentação-técnica-e-operacional-ponta-a-ponta) · `parent_plan=programa-ondas` | 🟡 D0 em execução; merge ratifica | cadência contínua, 1 achado acionável por vez |
+| **Trilha D — documentação técnica e operacional** ([W] 2026-08-05) | § Trilha D deste plano | [US-INFRA-048](../../Infra/SPEC.md#us-infra-048--ativar-a-documentação-técnica-e-operacional-ponta-a-ponta) · `parent_plan=programa-ondas` | 🟡 D0 em execução — 2/5 AC fechados, 3 parciais (resíduo nomeado na US); gate travado em "plano ligado ao MCP" por credencial ausente desde 2026-08-05 | cadência contínua, 1 achado acionável por vez |
 
 > Onda 3 (Financeiro) **encaixa no `_Roadmap_Faturamento.md`** por [ADR 0320](../../../decisions/0320-programa-ondas-regua-correcao.md) (T6 — Faturamento é canon macro; correção transversal ancora lá, status vivo aqui). Não é doc paralelo. Mesmo padrão valerá pra NfeBrasil/RecurringBilling.
 

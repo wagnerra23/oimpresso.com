@@ -164,7 +164,7 @@ Pare sem mover se ocorrer qualquer um destes casos:
   uma reescrita **estruturada** (`markdown-link`/`code-span`) do mesmo literal no mesmo arquivo —
   o replace cru sobrepõe as ocorrências estruturadas do literal `from`. O classificador nunca gera esse par
   (o extrator pula o que já é estruturado); é backstop para plano hand-crafted. Resolva à mão.
-  > O relink é **contexto-consciente** (`searchReplaceFor`): o mesmo literal como `[x](arq.md)`
+  > O relink é **contexto-consciente** (`searchReplaceFor`): o mesmo literal como `` `[x](arq.md)` ``
   > (markdown-link → `./rel`) **e** `` `arq.md` `` (code-span → `root/path`) recebe destinos
   > diferentes sem colidir. Foi assim que o lote `memory/comparativos/` (2026-07-22), densamente
   > cruzado com estilos de link mistos, deixou de cair em `CONFLICTING_REWRITE` e convergiu.

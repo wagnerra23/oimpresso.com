@@ -5,8 +5,8 @@ title: "BRIEFING — Modules/Compras"
 type: briefing
 module: Compras
 status: em-construcao
-updated_at: "2026-07-03"
-version: 0.2
+updated_at: "2026-08-16"
+version: 0.3
 owner: W
 ---
 
@@ -15,7 +15,7 @@ owner: W
 ## TL;DR (5 linhas)
 
 - **O que é:** cockpit de compras (`/compras`) — lista paginada + 4 KPIs + drawer denso 5 tabs. Complementa (não substitui) o CRUD `/purchases/*` Inertia (convergência C1). Domínio: nota de entrada / pedido de compra sobre `transactions` polimórfica.
-- **Estado (2026-07-03):** cockpit **live no código** (grade 59, bucket Médio, subiu de 38 pós-ESTABILIZAR). **NÃO está em produção nem canary pra nenhum business** (D5=0). Larissa @ ROTA LIVRE biz=4 sinalizou dor mas nunca usou.
+- **Estado (verificado 2026-08-16):** cockpit **live no código**. **NÃO está em produção nem canary pra nenhum business** (D5=0). Larissa @ ROTA LIVRE biz=4 sinalizou dor mas nunca usou. _(A nota do módulo não é restateada aqui — ver §Score.)_
 - **Caminho:** B híbrido — greenfield Controllers/Pages, REUSA `transactions` + `TransactionUtil` + Observer Financeiro.
 - **Maior gap:** a **ponte DF-e→compra** (`nfe_dfe_recebidos → Transaction type=purchase`, US-COM-003) — o import fiscal já existe no NfeBrasil, falta plugar. + **zero teste de cálculo custo/estoque** (Tier 0).
 - **Capacidade vs mercado:** **34/100** ([CAPTERRA-FICHA.md](CAPTERRA-FICHA.md)) — ganha em Tier 0 + UI, vazio no motor de compra (import/matching/recebimento/conciliação).
@@ -49,11 +49,13 @@ owner: W
 
 | Régua | Nota | O que mede | Fonte |
 |---|:-:|---|---|
-| **module-grade v3** | **59** (Médio) | governança/higiene (Tier 0, Pest, doc, sec, LGPD, obs) | `php artisan module:grade Compras` |
-| **CAPTERRA design** | **67** | UX/UI do protótipo Cowork F1 | [CAPTERRA-DESIGN-FICHA.md](CAPTERRA-DESIGN-FICHA.md) |
-| **CAPTERRA capacidade** | **34** | features/automação/fiscal/recebimento vs líderes | [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) |
+| **module-grade v3** | **viva — não copiada** | governança/higiene (Tier 0, Pest, doc, sec, LGPD, obs) | dono = [`governance/module-grades-baseline.json`](../../../governance/module-grades-baseline.json) · o gate `module-grades-gate` reporta em todo PR |
+| **CAPTERRA design** | **67** _(medido 2026-07-03)_ | UX/UI do protótipo Cowork F1 | [CAPTERRA-DESIGN-FICHA.md](CAPTERRA-DESIGN-FICHA.md) |
+| **CAPTERRA capacidade** | **34** _(medido 2026-07-03)_ | features/automação/fiscal/recebimento vs líderes | [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) |
 
-> Leitura: as três divergem de propósito. A higiene (59) e o design (67) escondem que o **motor de compra** (34) não fecha o ciclo — importa/manifesta (via NfeBrasil) mas não vira compra, não casa PO, não recebe parcial, não concilia. Ver §8 da FICHA.
+> **Por que a 1ª linha não tem número:** a nota do módulo tem **dono vivo** (baseline + gate que reporta em todo PR). Em **2026-08-16** este doc afirmava **59** enquanto o dono media **73** — 14 pontos de drift silencioso, porque a nota subiu e o texto não. _(Os dois números acima são o retrato daquele dia, não o valor de hoje: para o valor de hoje, leia o dono.)_ Doc canônico não restateia número que outro sistema sabe melhor (proibições §5, 2026-07-17). As duas CAPTERRA ficam porque são **fato datado** de auditoria — snapshot honesto, não ponteiro podre.
+>
+> Leitura: as três divergem de propósito. Higiene e design escondem que o **motor de compra** (34) não fecha o ciclo — importa/manifesta (via NfeBrasil) mas não vira compra, não casa PO, não recebe parcial, não concilia. Ver §8 da FICHA.
 
 ## Próximos passos (backlog priorizado)
 
@@ -69,14 +71,15 @@ Fonte viva: [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md) (16 tasks P0-P3, ag
 
 - Multi-tenant ADR 0093 — `auth()->user()->business_id` (não session); Job recebe `$businessId` no constructor
 - **Valor/estoque (regra-mestre):** entrada de compra MEXE EM ESTOQUE (1 célula de grade = 1 SKU × custo × qty) — dupla confirmação + antes→depois + aprovação antes de mergear cálculo
-- Pest biz=1/99 NUNCA biz=4 (ADR 0101) — biz=4 só canary 7d pós-merge
+- **Tenant de teste = 98** ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md), que **supersede** a `0101-tests` e a esqueceu fisicamente — o slug antigo só resolve por lápide em `governance/adr-tombstones.json`). **biz=4 é proibido sem exceção** em teste, fixture, smoke ou exemplo; canary 7d em biz=4 é ato de [W], não de teste.
+  - ⚠️ **Drift aberto (não consertado aqui):** o `MultiTenantTest.php` deste módulo ainda usa **biz=1 vs biz=99**, doutrina anterior à 0358. Não toquei — é infra de teste Tier 0 e o conserto pertence à leva que migrou os outros módulos (#4974), não a um PR de BRIEFING. Decisão de [W].
 - Convergência C1 — NÃO criar `Pages/Compras/Create.tsx`; "+ Nova compra" delega `/purchases/create` via `router.visit`
 - Cowork bundle aplicar INTEIRO 1ª vez (proibicoes.md Tier 0)
 
 ## Owner & ADRs
 
 - Owner: Wagner
-- ADRs base: [0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) · 0094 · [0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) · 0104 · [0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) · 0106 · 0114 · 0143
+- ADRs base: [0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) · 0094 · [0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md) _(supersede a `0101-tests`)_ · 0104 · [0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) · 0106 · 0114 · 0143
 - ADR proposta: [compras-purchase-convergencia-c1](../../decisions/proposals/compras-purchase-convergencia-c1.md) (C1 vigente)
 
 ## Refs

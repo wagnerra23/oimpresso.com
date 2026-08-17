@@ -290,7 +290,7 @@ Wagner havia autorizado o caminho completo ("Sim, merge agora + abre PR follow-u
 | Detectou gap visual via smoke | — | ✅ reporta + propõe hotfix |
 | Tier 0 violado em algum passo | — | ✅ bloqueia + reporta |
 
-**Doc base:** este ADR + [feedback-continuar-ate-desfecho.md](feedback-continuar-ate-desfecho.md) (a criar como follow-up se reincidir).
+**Doc base:** este ADR + `feedback-continuar-ate-desfecho.md` (a criar como follow-up se reincidir — nunca foi criado; era link e por isso contava como referência morta).
 
 ---
 
