@@ -131,6 +131,47 @@ As 5 âncoras `data-contract` existem no `Index.tsx` e a ordem declarada
 **Pronto quando:** `npm run contrato:check -- prototipo-ui/contrato/jana-painel.contract.json` sai 0.
 
 
+## UC-COPI-PAINEL-10 — "Configurar" abre drawer, e o drawer não promete o que o servidor não cumpre
+Status: 🧪 (`PainelContratoTest` — 6 asserções + 2 controles negativos; bite provado em 4 vetores. Aguarda run verde **e** o screenshot F1.5)
+
+O botão **Configurar** do `JanaAreaHeader` era clicável, sem rota e sem `disabled` — uma das duas
+promessas que o contrato manteve deliberadamente **fora** dele (*"pinar uma promessa é congelá-la"*).
+Agora abre `_components/JanaConfigDrawer.tsx`.
+
+Âncora: `prototipo-ui/cowork/jana-merge.jsx` §`JmConfigDrawer` — âncora de SÍMBOLO
+(`grep -n "JmConfigDrawer" prototipo-ui/cowork/jana-merge.jsx`).
+
+**A divergência vs a âncora é o ponto do caso.** Medido em 2026-08-17, o protótipo oferece quatro
+coisas que o servidor não honra — e portá-las reintroduziria a classe que este contrato já barrou:
+
+| a âncora oferece | o que existe |
+|---|---|
+| 6 toggles de análise | a tela renderiza **4** cards (`inad`/`fat`/`conc`/`metodos`); churn, frota e cheques são a ordem 7 do mapa (*"fonte de dado que não existe"*) |
+| "Enviar brief todo dia" + hora | o brief é gerado server-side (`BriefingAgent`); nenhum cron lê o `localStorage` deste navegador |
+| "Versão em áudio" (TTS) | não existe — o próprio protótipo diz que *"entra na M2"* |
+| retenção *"ela esquece sozinha"* | `jana:retention-purge` foi **descartado por [W]** (*"num ERP não se apaga PII"*) |
+
+Fica só o que é verdade **e** é de fato local: **quais análises aparecem no painel**. Esse toggle não
+mente porque não promete cálculo — o aggregator apura as quatro numa consulta só, e o drawer diz isso
+em letra. Preferência que vale pra empresa toda aponta pro dono server-side que já existe
+(`PATCH /ia/alertas/config` → `business.essentials_settings.alertas`, per-business, Tier 0) em vez de
+ganhar um segundo dono aqui.
+
+Persistência em `localStorage['oimpresso.jana.cfg']` — prefixo `oimpresso.jana.*`, canon do charter
+irmão (`Chat.charter.md` §Goals + §Anti-hooks *"❌ sessionStorage"*). A escrita preserva as chaves que
+não são nossas (o protótipo grava `brief`/`pro`/`retencao` na mesma chave).
+
+**Pronto quando:** o botão abre o drawer; os 4 toggles escondem/mostram o card correspondente e
+sobrevivem ao reload; esconder as quatro mostra o estado que diz como voltar; e **nenhum** toggle de
+brief/áudio/retenção existe.
+
+_Por que a asserção é de ARQUIVO: mesmo motivo do UC-08 — o defeito é de render/promessa e o Pest não
+monta React. E por que ela é ESTRUTURAL (contagem de `<Switch`, não busca por "Frota"): a prosa do
+próprio componente **registra** por que aqueles toggles não entraram, então `not->toContain('Frota')`
+passaria só por acidente de capitalização e quebraria quando o comentário fosse reescrito — o
+falso-positivo que o §5 2026-07-26 cataloga. Medido antes de fechar: `<Switch` 2→3 com um toggle novo;
+entradas 4→5 com uma análise sem fonte._
+
 ## Nota do conserto do UC-COPI-PAINEL-08 (2026-08-17)
 
 `_components/JanaCockpitSkeleton.tsx` (novo, ancorado em `jana-merge.jsx` §`JmPainelSkeleton`) +
@@ -157,8 +198,10 @@ para o que aquele gate afirma.
 
 ## Decisões pendentes de [W] que travam o ciclo desta tela
 
-Medido em 2026-08-17 com `node scripts/governance/ciclo-completo.mjs`. Com este PR a tela sai de
-**1/6** para **3/6** (`casos` e `teste` fecham); os 3 restantes são todos decisão [W]:
+Medido em 2026-08-17 com `node scripts/governance/ciclo-completo.mjs` — que é o **dono do número**;
+o placar abaixo é retrato daquele dia, re-rode em vez de confiar nele. O PR do UC-08 levou a tela de
+**1/6** a **3/6** (`casos` e `teste` fecharam). O PR do UC-10 **não move o placar**: ele acrescenta
+caso e teste a peças que já estavam fechadas. As 3 que faltam seguem sendo decisão [W]:
 
 - ⚖️ **`related_prototype`** — o check `pt_declarado` só casa `PT-0X`, e o campo vale
   `jana-merge.jsx`. Mantê-lo reprova `pt_declarado` e `golden_live` **para sempre**; trocar por
@@ -171,6 +214,11 @@ Medido em 2026-08-17 com `node scripts/governance/ciclo-completo.mjs`. Com este 
   Nenhum código resolve, e trava **3 telas**, não só esta.
 - ⚖️ **"Dashboard" × "Painel"** — a aba se chama Painel e a rota é `/ia`, mas título, breadcrumb e o
   nome do componente exportado ainda dizem Dashboard.
-- ⚖️ **Os dois botões "(em breve)"** — Configurar e Exportar são clicáveis, sem `disabled` e sem
-  rota. Somem, viram `disabled` com o motivo, ou entregam? Enquanto não decidido **não entram no
-  contrato** — pinar uma promessa é congelá-la.
+- ⚖️ **O botão "Exportar (em breve)"** — clicável, sem `disabled` e sem rota. Some, vira `disabled`
+  com o motivo, ou entrega? Enquanto não decidido **não entra no contrato** — pinar uma promessa é
+  congelá-la. _(Eram **dois**; **Configurar** saiu desta lista em 2026-08-17 — entregou, ver UC-10.
+  A pergunta segue idêntica para o que sobrou.)_
+- ⚖️ **Brief diário, áudio e retenção como configuração de verdade** — o drawer do UC-10
+  deliberadamente **não** os oferece, porque hoje o servidor não honra nenhum dos três (medição na
+  tabela do UC-10). Se devem virar config real, o caminho é backend — estender o dono que já existe
+  (`PATCH /ia/alertas/config`, per-business) ou dar chave própria ao brief. É produto, não wiring.

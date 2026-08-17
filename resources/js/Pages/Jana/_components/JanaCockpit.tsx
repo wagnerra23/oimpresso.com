@@ -68,6 +68,7 @@ import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import { BriefValorSkeleton, KpiCardSkeleton, SparklineSkeleton } from './JanaCockpitSkeleton';
 import JanaDrillDrawer, { type DrillAnalise } from './JanaDrillDrawer';
+import { JANA_ANALISES, type JanaAnaliseId } from './useJanaConfig';
 
 export interface JanaCockpitProps {
   sellKpis: {
@@ -96,6 +97,17 @@ export interface JanaCockpitProps {
     totalAReceber: number;
   };
   userName?: string;
+  /**
+   * Quais análises renderizar (`JanaConfigDrawer`, persistido em
+   * `localStorage['oimpresso.jana.cfg']`). Preferência de EXIBIÇÃO: o
+   * aggregator apura as quatro de qualquer jeito, numa consulta só — esconder
+   * card não economiza cálculo, e o drawer diz isso ao usuário.
+   *
+   * Opcional de propósito: `undefined` = mostra tudo. Assim o componente segue
+   * montável sem a config (o `Chat.tsx` o reusa) e um storage bloqueado degrada
+   * pra tela cheia, nunca pra tela vazia.
+   */
+  analisesVisiveis?: Partial<Record<JanaAnaliseId, boolean>>;
 }
 
 const fmtBRL = (n: number) =>
@@ -199,9 +211,14 @@ export default function JanaCockpit({
   coworkAggregates,
   insightsAggregates,
   userName,
+  analisesVisiveis,
   // `businessName`/`businessId` saíram junto com o header próprio (onda de
   // fusão 2026-08-07) — quem os exibe agora é o `JanaAreaHeader`.
 }: JanaCockpitProps): ReactNode {
+  // `!== false` e não `?? true`: só um `false` EXPLÍCITO esconde. Sem config
+  // (SSR, storage bloqueado, ou outro consumidor do componente) mostra tudo.
+  const mostra = (id: JanaAnaliseId) => analisesVisiveis?.[id] !== false;
+  const nenhumaAnalise = !JANA_ANALISES.some((a) => mostra(a.id));
   // ── Brief calculations (idêntico ao V2) ──────────────────────────────────
   // UC-PAINEL-08: `coworkAggregates` é DEFERIDA (`IndexController:47`). Enquanto
   // não chega, os `?? 0` abaixo produzem R$ 0 — e zero exibido como resultado é
@@ -556,6 +573,7 @@ export default function JanaCockpit({
             Âncora: `.jc-kpi-v` é `--text`, e só `.jc-kpi-v.red` é `--neg` — âncora de
             SÍMBOLO no chat-jana.css, re-localize com
             `grep -n "jc-kpi-v" prototipo-ui/cowork/chat-jana.css`. */}
+        {mostra('inad') && (
         <AnalysisCard
           icon={<AlertTriangle size={16} />}
           title="Inadimplência"
@@ -581,8 +599,10 @@ export default function JanaCockpit({
             ))}
           </div>
         </AnalysisCard>
+        )}
 
         {/* Faturamento sparkline */}
+        {mostra('fat') && (
         <AnalysisCard
           icon={<TrendingUp size={16} />}
           title="Faturamento"
@@ -621,8 +641,10 @@ export default function JanaCockpit({
             </div>
           )}
         </AnalysisCard>
+        )}
 
         {/* Top clientes */}
+        {mostra('conc') && (
         <AnalysisCard
           icon={<Target size={16} />}
           title="Top 5 clientes"
@@ -653,8 +675,10 @@ export default function JanaCockpit({
             )}
           </div>
         </AnalysisCard>
+        )}
 
         {/* Métodos de pagamento */}
+        {mostra('metodos') && (
         <AnalysisCard
           icon={<CreditCard size={16} />}
           title="Métodos de pagamento"
@@ -685,6 +709,20 @@ export default function JanaCockpit({
             )}
           </div>
         </AnalysisCard>
+        )}
+
+        {/* Todas escondidas: a seção declara o estado e diz como voltar, em vez
+            de deixar um título com o vazio embaixo — o usuário que escondeu tudo
+            no drawer precisa achar o caminho de volta. */}
+        {nenhumaAnalise && (
+          <div className="col-span-full rounded-lg border border-dashed border-border p-6 text-center">
+            <p className="text-sm font-medium text-foreground">Nenhuma análise sendo exibida</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Você escondeu as quatro em <span className="font-medium text-foreground">Configurar</span>.
+              Os dados continuam lá — reative quando quiser.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Ações sugeridas ───────────────────────────────────────────────────── */}

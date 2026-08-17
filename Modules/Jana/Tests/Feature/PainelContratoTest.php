@@ -235,3 +235,62 @@ it('UC-COPI-PAINEL-09: as 5 âncoras data-contract existem e a ordem do contrato
     expect($declarada)->toBe($ordenada);
 });
 
+/**
+ * UC-COPI-PAINEL-10 — "Configurar" abre drawer e não promete o que o servidor não cumpre.
+ *
+ * Asserção de ARQUIVO pelo mesmo motivo do UC-08: o defeito é de render/promessa,
+ * e Pest não monta React. O par visual é o portão F1.5 e vive fora daqui.
+ *
+ * O caso tem DUAS metades, e a segunda é a que importa. Ligar o botão é trivial;
+ * o risco real é o drawer virar vitrine de promessa — foi por isso que o
+ * `_pendente_w` do contrato manteve os dois botões fora dele ("pinar uma promessa
+ * é congelá-la"). Então o teste trava a ausência das 4 promessas medidas em
+ * 2026-08-17 como não-cumpríveis hoje: brief diário (gerado server-side, nenhum
+ * cron lê o localStorage deste browser), TTS, retenção automática (o
+ * `jana:retention-purge` foi DESCARTADO por [W]) e as 3 análises sem fonte de dado.
+ */
+it('UC-COPI-PAINEL-10: Configurar abre o drawer e não promete o que o servidor não cumpre', function () {
+    $tsx    = painelTsx();
+    $drawer = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaConfigDrawer.tsx'));
+
+    // 1. o botão deixou de ser promessa: sem "(em breve)", com handler de abertura.
+    expect($tsx)
+        ->not->toContain('Configurar Brain B Jana (em breve)')
+        ->toContain('setConfigAberto(true)')
+        ->toContain('<JanaConfigDrawer');
+
+    // 2+3. Asserção de ESTRUTURA, não de prosa — e é deliberado. `not->toContain('Frota')`
+    //      passaria hoje só por acidente de capitalização (o cabeçalho do drawer cita
+    //      "churn, frota e cheques" ao REGISTRAR por que eles não entraram), e quebraria
+    //      no dia em que alguém reescrevesse o comentário. É o mesmo falso-positivo que o
+    //      UC-08 acima documenta: proibir a prosa proibiria registrar a decisão (§5 2026-07-26).
+    //
+    //      O que morde de verdade é a contagem de controles: existem DOIS `<Switch` no
+    //      drawer — os das análises (um `.map`) e o HITL travado. Qualquer toggle novo
+    //      (brief, áudio, retenção, análise sem fonte) vira um terceiro e derruba o caso,
+    //      independente da copy escolhida.
+    expect(substr_count($drawer, '<Switch'))->toBe(2);
+
+    //      E o conjunto de análises é fechado nos 4 ids que a tela renderiza.
+    $cfg = file_get_contents(base_path('resources/js/Pages/Jana/_components/useJanaConfig.ts'));
+    expect($cfg)
+        ->toContain("export type JanaAnaliseId = 'inad' | 'fat' | 'conc' | 'metodos';")
+        //  `{ id: '` com a aspa: sem ela a assinatura do tipo
+        //  (`ReadonlyArray<{ id: JanaAnaliseId; …`) entra na conta e vira 5.
+        ->and(substr_count($cfg, "{ id: '"))->toBe(4);
+
+    // 4. o que vale pra empresa toda aponta pro dono server-side que já existe,
+    //    em vez de ganhar um segundo dono no localStorage deste navegador.
+    expect($drawer)->toContain('/ia/alertas/config');
+
+    // 5. controle negativo — o drawer PRECISA seguir entregando o que é verdade.
+    //    Sem isto, apagar o corpo inteiro passaria nos itens 2 e 3 acima.
+    expect($drawer)
+        ->toContain('Configurar a Jana')
+        ->toContain('JANA_ANALISES.map');
+
+    // 6. e o filtro tem efeito real no cockpit (senão o toggle é decorativo).
+    $cockpit = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaCockpit.tsx'));
+    expect($cockpit)->toContain("analisesVisiveis?.[id] !== false");
+});
+
