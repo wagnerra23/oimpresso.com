@@ -287,6 +287,15 @@ jobs:
           # perder a pré-condição vira diff >> τ_alto e o gate GRITA, em vez de trocar um vazio
           # por outro. Só biz=1 (ADR 0101); biz=98 segue sem OS (estado `empty`).
           php artisan db:seed --class=Database\\Seeders\\VisregOficinaBoardSeeder --force
+          # PRÉ-CONDIÇÃO DA TELA Jana/Chat (/ia/conversa). Sem ela, `ChatController::index`
+          # CRIA a conversa no primeiro acesso e a mensagem nasce com `created_at` = instante
+          # REAL do render. E a hora da bolha vem do DADO, não do relógio congelado:
+          # `Chat.tsx:131` faz `new Date(m.created_at)` — COM argumento, caso que o shim
+          # VISREG_FREEZE_CLOCK deixa real DE PROPÓSITO (resources/visreg/freeze-clock.js:29).
+          # Resultado sem este seeder: baseline que drifa A CADA MINUTO. Mesma família do
+          # `oficina-os` acima — a tela depende de um dado que nenhum seeder estabelecia, e
+          # regravar a foto trataria o sintoma. GATE REAL — se quebrar, o job falha.
+          php artisan db:seed --class=Database\\Seeders\\VisregJanaChatSeeder --force
           echo "=== seed check ==="
           php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count().' roles='.\Spatie\Permission\Models\Role::count().' fin_titulos='.DB::table('fin_titulos')->where('business_id', 1)->count();"
           # PROVA da pré-condição do oficina-os (a sonda que o defeito 2 não tinha): conta os
@@ -299,6 +308,14 @@ jobs:
           # RENDER: quem prova o render é a própria baseline (6 cards). A lição do defeito 2 foi
           # essa — sonda no momento errado não flagra tela degradada.
           php artisan tinker --execute="echo 'oficina_os_fixture_biz1='.DB::table('service_orders')->where('business_id',1)->where('notes','like','VISREG-BOARD%')->count();"
+          # PROVA da pré-condição do Jana/Chat. Duas contagens, porque uma só mentiria:
+          #   jana_conversas_ativas_biz1= deve ser 1 — se for 0, o controller vai CRIAR a
+          #     conversa no render e a hora da bolha vira o relógio real;
+          #   jana_msg_fora_do_instante= deve ser 0 — conta mensagem cujo `created_at` NÃO é
+          #     o instante congelado. Qualquer valor > 0 significa que alguém (o controller,
+          #     um teste anterior) escreveu com o relógio vivo, e a baseline vai drifar. Não
+          #     regrave a baseline nesse caso: ache quem escreveu.
+          php artisan tinker --execute="echo 'jana_conversas_ativas_biz1='.DB::table('jana_conversas')->where('business_id',1)->where('status','ativa')->count().' jana_msg_fora_do_instante='.DB::table('jana_mensagens')->join('jana_conversas','jana_conversas.id','=','jana_mensagens.conversa_id')->where('jana_conversas.business_id',1)->whereDate('jana_mensagens.created_at','!=','2026-06-11')->count();"
 
       - name: Build Inertia bundles
         if: steps.mode.outputs.ui == 'true'
