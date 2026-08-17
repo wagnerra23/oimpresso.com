@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 512 arquivos em 19 papéis.
+**Total mapeado:** 514 arquivos em 19 papéis.
 
 ## Controllers — 10
 
@@ -306,10 +306,11 @@ module: Jana
 - [Memoria.tsx](../../../resources/js/Pages/Jana/Memoria.tsx)
 - [Pro.tsx](../../../resources/js/Pages/Jana/Pro.tsx)
 
-## Componentes / apoio de tela — 7
+## Componentes / apoio de tela — 8
 
 - [AssistantUiChat.tsx](../../../resources/js/Pages/Jana/_components/AssistantUiChat.tsx)
 - [JanaCockpit.tsx](../../../resources/js/Pages/Jana/_components/JanaCockpit.tsx)
+- [JanaCockpitSkeleton.tsx](../../../resources/js/Pages/Jana/_components/JanaCockpitSkeleton.tsx)
 - [JanaDrillDrawer.tsx](../../../resources/js/Pages/Jana/_components/JanaDrillDrawer.tsx)
 - [JanaMetaDrawer.tsx](../../../resources/js/Pages/Jana/_components/JanaMetaDrawer.tsx)
 - [JanaSubNav.tsx](../../../resources/js/Pages/Jana/_shared/JanaSubNav.tsx)
@@ -329,9 +330,9 @@ module: Jana
 - [Memoria.casos.md](../../../resources/js/Pages/Jana/Memoria.casos.md)
 - [Pro.casos.md](../../../resources/js/Pages/Jana/Pro.casos.md)
 
-## Testes (Pest) — 163
+## Testes (Pest) — 164
 
-- 30 em [Modules/Jana/Tests/Feature/](../../../Modules/Jana/Tests/Feature)
+- 31 em [Modules/Jana/Tests/Feature/](../../../Modules/Jana/Tests/Feature)
 - 12 em [Modules/Jana/Tests/Feature/Ai/](../../../Modules/Jana/Tests/Feature/Ai)
 - 2 em [Modules/Jana/Tests/Feature/Ai/Advisor/](../../../Modules/Jana/Tests/Feature/Ai/Advisor)
 - 2 em [Modules/Jana/Tests/Feature/Ai/Clarify/](../../../Modules/Jana/Tests/Feature/Ai/Clarify)

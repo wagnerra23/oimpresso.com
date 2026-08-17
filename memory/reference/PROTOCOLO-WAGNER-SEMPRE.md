@@ -6,7 +6,25 @@ type: protocol
 date: 2026-05-17
 session-origem: stupefied-noether-89f83d
 status: canon-tier-A-irrevogavel
-related_adrs: [0094, 0095, 0061, 0093, 0358, 0104, 0106, 0114, 0119, 0130, 0143, 0167]
+name: "PROTOCOLO WAGNER SEMPRE"
+description: "As regras R1-R15 que o Wagner sempre pede — executadas automaticamente, sem ele repedir. Tier A irrevogável."
+authority: canonical
+related_adrs:
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0095-skills-tiers-convencao-interna
+  - 0061-conhecimento-canonico-git-mcp-zero-automem
+  - 0093-multi-tenant-isolation-tier-0
+  - 0358-doutrina-de-teste-tenant-98-supersede-0101
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0106-recalibracao-velocidade-fator-10x-ia-pair
+  - 0114-prototipo-ui-cowork-loop-formalizado
+  # ⚠️ há DUAS ADRs 0119; a deste protocolo é a de paralelismo de sessões (whats-active),
+  # não a `0119-migration-factory-capacidade-institucional`. Resolver por número aqui troca
+  # a referência em silêncio.
+  - 0119-paralelismo-sessoes-whats-active-tier-1
+  - 0130-handoff-append-only-mcp-first
+  - 0143-fsm-pipeline-live-prod-marco-2026-05-12
+  - 0167-errata-0130-indice-handoff-historico-longo
 related_skills: [brief-first, mcp-first, multi-tenant-patterns, commit-discipline, preflight-modulo, smoke-prod-evidence, charter-first, wagner-request-refiner, wagner-protocol-enforce, mwart-comparative, brief-update]
 related_agents: [wagner-understand]
 supersedes: null
@@ -420,6 +438,29 @@ Declarei "no ar/funcionando" **2× em cima de prova PARCIAL** (1º `curl 302`; d
 **Sinal de violação:** Wagner volta com "404" / "tela branca" / "não abre" / "testa" / "fico de garoto de recado" → declarei sem conferir a jornada.
 
 **Ativação (3 camadas):** este doc (R14) + reforça R1 + DoD da skill [`incident-done-checklist`](../../.claude/skills/incident-done-checklist/SKILL.md) + feedback [feedback-deploy-smoke-browser-obrigatorio.md](feedback-deploy-smoke-browser-obrigatorio.md). Evidência da jornada (screenshots) ANEXADA antes de declarar.
+
+---
+
+## R15 — MEDIR em vez de perguntar. Só escala o que instrumento nenhum resolve
+
+**Origem:** Wagner palavras textuais 2026-08-17, sessão `angry-varahamihira-8a3d76`:
+
+> *"escolha, tem muita coisa que ainda pode ser medido então não preciso me envolver no que tu pode conferir. minha interação só vai ser efetiva se for medida. não deve me perguntar se eu puder errar e você puder conferir e medir"*
+
+**R13 é vizinho, não é o mesmo.** R13 diz *"recomende em vez de devolver menu"* — pressupõe que a pergunta é legítima. R15 é **anterior**: a pergunta só existe se **nenhum comando a responde**. Pergunta bem-formulada, com recomendação cravada, sobre algo que um `grep` decidiria, continua sendo desperdício — e transfere pro Wagner o risco de errar onde a máquina não erraria.
+
+**O que fazer (Claude executa):**
+
+1. **Antes de formular pergunta, rodar o teste que a responderia.** Existe gate, script, fixture, `git grep` ou porta viva que decide? Roda, segue, e relata o recibo.
+2. **Falso dilema dissolvido por medição não é pergunta.** Nesta sessão eu ia perguntar entre duas opções de `related_prototype`; uma terceira parecia satisfazer as duas máquinas. Medida, ela **quebrava** o `ancora.mjs` (fail-open: `lido:false` impresso como `✓`). A pergunta teria sido feita em cima de um instrumento mentindo.
+3. **Escalar só nestes três casos:**
+   - **(a) semântico/produto** — o predicado exige julgamento que instrumento nenhum tem
+   - **(b) soberania [W]** — merge, token/componente novo, screenshot F1.5, promover gate a required, podar capacidade
+   - **(c) irreversível sob qualquer hipótese** — proceder erraria de um jeito que não dá pra desfazer
+
+**Sinal de violação:** Wagner responde *"você que sabe"*, *"pode conferir"*, *"escolha"* — ou pior, responde uma pergunta cuja resposta estava a um comando de distância.
+
+**Corolário de honestidade:** medir e **errar a sonda** também é violação. Nesta mesma sessão li `exit 0` que era do `tail`, usei `document.fonts.check()` onde a propriedade certa era largura renderizada, e li um frame transitório como render quebrado. R15 exige medir **a propriedade certa**, não só rodar algo. Ver §5 de [`proibicoes.md`](../proibicoes.md), classe LC-08.
 
 ---
 
