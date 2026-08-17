@@ -205,8 +205,18 @@ async function printResolve(r) {
       console.log('              (declaração legítima — a tela nasce do DS. NÃO entra no anchor-content-check.)');
     } else {
       const d = await defeitosDaAncora(a.valor);
-      const selo = d.fantasmas.length ? '⚠️' : '✓';
+      // `✓` exige LEITURA. `lido:false` = não consegui abrir o arquivo da âncora (path que
+      // não resolve — p.ex. `arquivo.jsx (PT-04 Dashboard)`, onde o parêntese entra no path).
+      // Sem esta perna o printer imprimia `✓` com 0 fantasmas por AUSÊNCIA de medição — o
+      // fail-open que a própria defeitosDaAncora comenta ter matado na função, e que voltava
+      // aqui, no consumidor. É LC-11/§5 2026-07-29 (instrumento afirma verde sem ter medido).
+      const selo = !d.lido ? '⚠️' : d.fantasmas.length ? '⚠️' : '✓';
       console.log(`  âncora ${selo}:   [${a.tipo}] ${a.valor}`);
+      if (!d.lido) {
+        console.log('              ⚠️ NÃO MEDIDO — o arquivo da âncora não pôde ser LIDO neste path.');
+        console.log('                 Zero fantasma aqui é AUSÊNCIA DE MEDIÇÃO, não saúde.');
+        console.log('                 Causa comum: sufixo entre parênteses entrando no path.');
+      }
       if (d.fantasmas.length) {
         console.log(`              ⚠️ ÂNCORA COM DEFEITO — ${d.fantasmas.length} símbolo(s) citado(s) que NÃO existem no repo:`);
         for (const s of d.fantasmas) console.log(`                 · ${s}`);
@@ -292,6 +302,18 @@ async function selftest() {
     dc.lido === true && dc.fantasmas.length === 0);
   t('CONTROLE real: caminho inexistente não explode nem inventa fantasma',
     (await defeitosDaAncora('prototipo-ui/cowork/__nao-existe__.jsx')).lido === false);
+  // ── BITE do fail-open do PRINTER (2026-08-17) ─────────────────────────────
+  // A função já distinguia "não li" de "li e não achou"; o printResolve NÃO usava o
+  // `lido` e estampava `✓` nos dois casos. Provado com o path que o sufixo quebra:
+  // `…jana-merge.jsx (PT-04 Dashboard)` → resolve num arquivo inexistente → lido:false.
+  // Sem estas 2 asserções, declarar `related_prototype: <path> (PT-0X)` silenciava os
+  // 6 fantasmas da Jana e o comando reportava saúde. Um `✓` que some quando você mede
+  // é pior que um `⚠️` honesto.
+  const dSufixo = await defeitosDaAncora('prototipo-ui/cowork/jana-merge.jsx (PT-04 Dashboard)');
+  t('BITE printer: path com sufixo entre parênteses NÃO é lido (não vira ✓ por ausência)',
+    dSufixo.lido === false && dSufixo.fantasmas.length === 0);
+  t('CONTROLE printer: o MESMO arquivo sem o sufixo É lido (o defeito era o path, não o arquivo)',
+    (await defeitosDaAncora('prototipo-ui/cowork/jana-merge.jsx')).lido === true);
 
   console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — âncora = charter, png de auditoria barrado, âncora defeituosa acusada.');
   process.exit(fails ? 1 : 0);
