@@ -76,11 +76,11 @@
 //
 // Uso: node scripts/governance/hook-replay.mjs [--hook <nome>] [--json] [--selftest]
 
-import { readdirSync, readFileSync, existsSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { homedir } from 'node:os';
-import { join, dirname } from 'node:path';
+import { join, dirname, basename } from 'node:path';
+import { listarJsonlLocal } from './hook-bites.mjs';
 
 const EDIT_TOOLS = new Set(['Edit', 'Write', 'MultiEdit']);
 // Edit/MultiEdit contam como LEITURA porque o tool EXIGE Read previo do arquivo
@@ -257,19 +257,22 @@ export function formatar(hook, c, r) {
   return L.join('\n');
 }
 
+/**
+ * Corpus local. A LISTAGEM tem dono único — `hook-bites::listarJsonlLocal` —, porque é a
+ * mesma pergunta ("quais transcripts existem nesta estação?") que os dois medidores fazem.
+ *
+ * Esta cópia carregava DOIS defeitos que o irmão já tinha consertado, e nenhum dos dois
+ * dava erro — os dois só encolhiam o corpus em silêncio (medido 2026-08-17):
+ *   · `startsWith('D--oimpresso-com')` — Windows-only: em Mac/Linux o corpus vinha VAZIO,
+ *     e replay sem corpus não diverge de nada, então parecia acordo perfeito;
+ *   · varredura de 1 nível — perdia 845 de 1173 `.jsonl` (72,1%), todos de subagente
+ *     (`<sessao>/subagents/**`). Subagente dispara hook igual à sessão pai, então o
+ *     replay confrontava o hook contra ~1/4 da telemetria real.
+ */
 function corpusLocal() {
-  const base = join(homedir(), '.claude', 'projects');
-  if (!existsSync(base)) return [];
-  const out = [];
-  for (const d of readdirSync(base)) {
-    if (!d.startsWith('D--oimpresso-com')) continue;
-    let fs2; try { fs2 = readdirSync(join(base, d)); } catch { continue; }
-    for (const f of fs2) {
-      if (!f.endsWith('.jsonl')) continue;
-      try { out.push({ nome: f.slice(0, 8), texto: readFileSync(join(base, d, f), 'utf8') }); } catch { /* ignora */ }
-    }
-  }
-  return out;
+  return listarJsonlLocal().map((p) => {
+    try { return { nome: basename(p).slice(0, 8), texto: readFileSync(p, 'utf8') }; } catch { return null; }
+  }).filter(Boolean);
 }
 
 async function main() {

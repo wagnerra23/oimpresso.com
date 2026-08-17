@@ -121,12 +121,46 @@ export function contarNoTexto(texto, tag) {
   return n;
 }
 
-function arquivosTranscript(dias) {
-  const base = join(homedir(), '.claude', 'projects');
+/**
+ * Lista os `.jsonl` do corpus local de transcript — RECURSIVAMENTE.
+ *
+ * DONO ÚNICO desta varredura (importada por `hook-replay.mjs` e `agent-cost-per-pr.mjs`).
+ * São 3 consumidores da MESMA pergunta — "quais transcripts existem nesta estação?" —, e
+ * até 2026-08-17 cada um tinha a sua cópia, todas com o mesmo defeito. Consertar uma só
+ * deixaria o dano vivo nas outras (§5 2026-08-02).
+ *
+ * ── POR QUE RECURSIVO (medido 2026-08-17, reprodutível) ─────────────────────────────
+ * O loop era de UM nível (`readdirSync(join(base, d))` filtrando `.jsonl`). Nessa forma:
+ *   raso 328  ·  recursivo 1173  ·  PERDIDOS 845 (72,1%)
+ * Os 845 vivem em `<sessao-uuid>/subagents/**` — 555 sob `subagents/workflows/wf_<id>/`
+ * e 290 direto em `subagents/`. Subagente dispara hook IGUAL à sessão pai, então o dead
+ * man's switch SUBESTIMAVA a entrega por construção, e um hook que só dispare em
+ * subagente aparecia como "0 entregas" — o veredito exatamente invertido.
+ * Mesma família da lápide §5 2026-07-30 (`rg` sem `--hidden`): varredura cega por
+ * construção, cujo silêncio se lê como ausência.
+ *
+ * `withFileTypes` + `isDirectory()` NÃO segue symlink (symlink dá `isSymbolicLink`), então
+ * a recursão não tem risco de ciclo.
+ *
+ * @param {{base?: string, filtro?: string, desdeMs?: number}} opts
+ *   `filtro` casa **só no nome do dir de PRIMEIRO nível** (o que codifica o caminho do
+ *   projeto); subdiretório nenhum é filtrado por nome — senão `subagents/` seria excluído.
+ */
+export function listarJsonlLocal({ base = join(homedir(), '.claude', 'projects'), filtro = 'oimpresso-com', desdeMs = 0 } = {}) {
   if (!existsSync(base)) return [];
-  const corte = dias ? Date.now() - dias * 86400000 : 0;
   const out = [];
-  for (const d of readdirSync(base)) {
+  const alvo = String(filtro || '').toLowerCase();
+  const desce = (dir) => {
+    let entradas; try { entradas = readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    for (const e of entradas) {
+      const p = join(dir, e.name);
+      if (e.isDirectory()) { desce(p); continue; }
+      if (!e.name.endsWith('.jsonl')) continue;
+      try { if (statSync(p).mtimeMs >= desdeMs) out.push(p); } catch { /* ignora */ }
+    }
+  };
+  let raiz; try { raiz = readdirSync(base); } catch { return []; }
+  for (const d of raiz) {
     // O nome do dir codifica o caminho ABSOLUTO do projeto, e ele muda com o SO:
     // `D--oimpresso-com` no Windows do [W]; `-home-user-oimpresso-com` no container
     // Linux; outro ainda nos Macs do time. O filtro era `startsWith('D--oimpresso-com')`
@@ -135,15 +169,15 @@ function arquivosTranscript(dias) {
     // 17 .jsonl existiam em `-home-user-oimpresso-com` e nenhum era lido.
     // `includes` cobre os tres casos E preserva os worktrees do Windows
     // (`D--oimpresso-com--claude-worktrees-*`), que o startsWith ja pegava.
-    if (!d.includes('oimpresso-com')) continue;
-    let fs2; try { fs2 = readdirSync(join(base, d)); } catch { continue; }
-    for (const f of fs2) {
-      if (!f.endsWith('.jsonl')) continue;
-      const p = join(base, d, f);
-      try { if (statSync(p).mtimeMs >= corte) out.push(p); } catch { /* ignora */ }
-    }
+    if (alvo && !d.toLowerCase().includes(alvo)) continue;
+    desce(join(base, d));
   }
   return out;
+}
+
+/** wrapper do corpus deste script: janela em DIAS (0 = tudo). */
+export function arquivosTranscript(dias, base) {
+  return listarJsonlLocal({ base, desdeMs: dias ? Date.now() - dias * 86400000 : 0 });
 }
 
 /** tags que EMITIRAM no corpus mas não pertencem a nenhum hook wired.
@@ -238,6 +272,11 @@ export function checarAliases(dirHooks = DIR_HOOKS) {
  * ~735MB de transcript. Barato pra 1×/dia, caro pra toda sessão — e o SessionStart
  * já carrega 7 hooks. Estado em `.claude/run/` (gitignored, por-dev). Fail-open:
  * qualquer erro de I/O deixa passar (prefere rodar de novo a ficar mudo).
+ *
+ * ⚠️ Os dois números acima são de 2026-07 e mediam o corpus RASO. Com a varredura
+ * recursiva (2026-08-17) o corpus triplicou — remedido nesta máquina no mesmo dia:
+ * **13,5s (14d, 376 sessões)** e **28,5s (janela toda, 1173 sessões)**. Segue barato
+ * pro throttle de 20h; deixa de ser pra toda sessão, que é o que o throttle já resolve.
  */
 function heartbeatJaRodou(root, horas) {
   const marca = join(root, '.claude', 'run', '.last-hook-bites');

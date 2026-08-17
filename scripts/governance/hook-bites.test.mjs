@@ -4,10 +4,10 @@
 // sabemos que existe e NÃO achar o que sabemos que não existe).
 // Rodar: node scripts/governance/hook-bites.test.mjs
 
-import { mkdtempSync, writeFileSync, mkdirSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, mkdirSync, utimesSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { hooksWired, tagDe, sondas, contarNoTexto, relatorio, ALIASES, checarAliases } from './hook-bites.mjs';
+import { join, basename } from 'node:path';
+import { hooksWired, tagDe, sondas, contarNoTexto, relatorio, ALIASES, checarAliases, listarJsonlLocal, arquivosTranscript } from './hook-bites.mjs';
 
 let fails = 0;
 const check = (n, c) => { console.log((c ? '[OK]   ' : '[FAIL] ') + n); if (!c) fails++; };
@@ -114,5 +114,53 @@ check('relatorio diz que a convencao e forward-only', /Forward-only|forward-only
   check('checarAliases: o estado REAL do repo esta limpo', checarAliases().ok === true);
 }
 
-console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — mede ENTREGA real, ignora tag em codigo-fonte/prosa, zero e OLHAR nao falha, e --check-aliases morde.');
+// ── listarJsonlLocal: a varredura do corpus (RECURSIVA desde 2026-08-17) ─────
+// O defeito que isto trava: o loop era de 1 nivel e perdia 845 de 1173 .jsonl (72,1%)
+// no corpus real — TODOS de subagente. Subagente dispara hook igual a sessao pai, entao
+// o dead man's switch subestimava a entrega por construcao. A fixture abaixo reproduz a
+// hierarquia REAL medida no corpus (`<sessao>/subagents/**` e
+// `<sessao>/subagents/workflows/wf_<id>/**`), nao uma arvore inventada.
+{
+  const base = mkdtempSync(join(tmpdir(), 'hb-corpus-'));
+  const proj = join(base, 'D--oimpresso-com');
+  const sub = join(proj, 'sessao-uuid', 'subagents');
+  const wf = join(sub, 'workflows', 'wf_abc123');
+  mkdirSync(wf, { recursive: true });
+  writeFileSync(join(proj, 'raso.jsonl'), '{}');            // o unico que a versao antiga via
+  writeFileSync(join(sub, 'sub.jsonl'), '{}');              // nivel 2 — perdido antes
+  writeFileSync(join(wf, 'wfagente.jsonl'), '{}');          // nivel 4 — perdido antes
+  writeFileSync(join(proj, 'ruido.txt'), 'nao e jsonl');    // controle: extensao
+  // dir de OUTRO projeto: o filtro tem que continuar excluindo (senao mede o mundo)
+  const outro = join(base, 'D--outro-projeto');
+  mkdirSync(join(outro, 'subagents'), { recursive: true });
+  writeFileSync(join(outro, 'subagents', 'alheio.jsonl'), '{}');
+
+  const achados = listarJsonlLocal({ base }).map((p) => basename(p)).sort();
+  check('FIXTURE BOA: acha o .jsonl RASO (o unico que a versao de 1 nivel via)',
+    achados.includes('raso.jsonl'));
+  check('FIXTURE BOA: acha .jsonl de SUBAGENTE (nivel 2) — o caso que estava invisivel',
+    achados.includes('sub.jsonl'));
+  check('FIXTURE BOA: acha .jsonl sob subagents/workflows/wf_<id> (nivel 4)',
+    achados.includes('wfagente.jsonl'));
+  check('CONTROLE NEGATIVO: arquivo que nao e .jsonl fica de fora',
+    !achados.some((n) => n.endsWith('.txt')));
+  check('CONTROLE NEGATIVO: dir de outro projeto e excluido pelo filtro, INCLUSIVE em subdir',
+    !achados.includes('alheio.jsonl') && achados.length === 3);
+  check('filtro casa so no dir de 1o nivel — `subagents` NAO precisa casar o filtro',
+    listarJsonlLocal({ base, filtro: 'oimpresso-com' }).length === 3);
+  check('CONTROLE: filtro que nao casa nada devolve vazio',
+    listarJsonlLocal({ base, filtro: 'inexistente-xyz' }).length === 0);
+  check('base inexistente nao explode', listarJsonlLocal({ base: join(base, 'nao-existe') }).length === 0);
+
+  // corte por mtime: envelhece o de subagente e confirma que a janela o exclui
+  const velho = new Date(Date.now() - 40 * 86400000);
+  utimesSync(join(sub, 'sub.jsonl'), velho, velho);
+  const janela = listarJsonlLocal({ base, desdeMs: Date.now() - 7 * 86400000 }).map((p) => basename(p));
+  check('corte por mtime vale TAMBEM no subdiretorio (nao so na raiz)',
+    !janela.includes('sub.jsonl') && janela.includes('raso.jsonl') && janela.includes('wfagente.jsonl'));
+  check('arquivosTranscript(0) = janela toda (wrapper nao perde arquivo)',
+    arquivosTranscript(0, base).length === 3);
+}
+
+console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — mede ENTREGA real, ignora tag em codigo-fonte/prosa, zero e OLHAR nao falha, --check-aliases morde e a varredura do corpus desce em subagents/.');
 process.exit(fails ? 1 : 0);
