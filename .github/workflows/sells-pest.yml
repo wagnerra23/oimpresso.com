@@ -151,6 +151,20 @@ jobs:
       - name: Sumario JUnit por arquivo (junit-summary.mjs — corpus p/ LC-13)
         if: always()
         run: node scripts/tests/junit-summary.mjs test-results/pest-sells-junit.xml --out test-results/pest-sells-junit-summary.json || true
+      # ── PASSO 3 do plano do LC-13 — ARMADO (flip [W] 2026-08-16) ─────────────────
+      # Guardado pela MESMA condicao do run de Pest, NUNCA pelo `if: always()` do step
+      # de corpus acima: la o step roda ate quando o skip-as-pass (ADR 0271 onda 2)
+      # impediu o Pest e o XML nem existe — armar ali ficaria vermelho em todo PR que
+      # nao toca o modulo. Medido 2026-08-16; e a razao de isto ser um step PROPRIO e
+      # nao um flag no de cima.
+      #
+      # MORDE quando a lane RODOU e nao provou nada: `0 failed` com 0 assertions e
+      # ausencia de EXECUCAO, nao sucesso (LC-13 — "VERDE por NAO-EXECUCAO").
+      # Sem `always()`/`!cancelled()`, o `success()` implicito vale: se o Pest falhou,
+      # este step e pulado e a lane ja esta vermelha por conta propria (nao duplica).
+      - name: Suite provou algo? (--check-assertions · LC-13)
+        if: steps.changes.outputs.sells == 'true'
+        run: node scripts/tests/junit-summary.mjs test-results/pest-sells-junit.xml --check-assertions
 
       - name: Upload sumario JUnit (pest-sells-junit)
         if: always()
