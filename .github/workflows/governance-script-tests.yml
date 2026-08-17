@@ -493,6 +493,9 @@ jobs:
       - name: Registro design-sync-não-é-fonte em settings.json (camada L4 · DesignSync + Skill)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-design-sync-registration.test.mjs
+      - name: aplicar-payload morde (escopo/R1/bytes/regressão · CLI de fora, sandbox por cwd)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design-sync/aplicar-payload.test.mjs
       - name: ds-push orquestrador morde (dry-run VALOR:0 + determinismo · loop diff-first)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/ds-push.test.mjs

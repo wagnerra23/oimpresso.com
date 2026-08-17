@@ -6,7 +6,8 @@
  * O QUE É: ferramenta de DISPATCH (agente logado) que compara cada arquivo-âncora do espelho
  * `prototipo-ui/cowork/` com o design VIVO no Cowork (projeto 019dcfd3, lido via
  * `DesignSync.get_file` — método de LEITURA, livre por ADR 0315 Eixo B). Divergiu = o espelho
- * ficou atrás do vivo → re-exportar. Automatiza o "diffar antes de concluir" que o
+ * DIVERGE do vivo → investigar. ⚠️ NÃO diz a DIREÇÃO: hash diferente não revela quem avançou.
+ * Automatiza o "diffar antes de concluir" que o
  * INDEX-DESIGN-MEMORIAS §0.2 (registro canônico da fonte Cowork) manda fazer.
  *
  * Nota de vocabulário (§0.2): o espelho "não apodrece SOZINHO" — ninguém o edita à toa. O que
@@ -136,7 +137,7 @@ export function shouldFail(verdicts) {
  *  `cobertura` é opcional — sem ela o comportamento é o de antes (compat com chamador velho). */
 export function veredictoFinal(nStale, cobertura = null) {
   if (nStale > 0) {
-    return { ok: false, texto: `✗ ${nStale} arquivo(s) do espelho STALE — o vivo avançou e o espelho ficou. Re-exporte do Cowork.` };
+    return { ok: false, texto: `✗ ${nStale} arquivo(s) DIVERGEM do vivo. O hash não diz QUEM avançou — antes de re-exportar, rode o dry-run do aplicar-payload: ele compara conteúdo e avisa se o espelho está À FRENTE (perda líquida de linhas).` };
   }
   if (cobertura && cobertura.semVeredito > 0) {
     return {
@@ -318,7 +319,7 @@ export function parseShellDeps(html) {
 }
 
 // ── ABSENT-LOCAL: a 3ª doença — o espelho INCOERENTE (2026-08-13) ────────────────
-// STALE mede "o espelho ficou atrás"; LIVE-ABSENT mede "sumiu do vivo"; liveOnly mede
+// STALE mede "o hash DIVERGE" (direção não medida — ver 2026-08-17); LIVE-ABSENT mede "sumiu do vivo"; liveOnly mede
 // "existe no vivo e nunca desceu". Faltava a que quebra o RENDER: dep que o SHELL
 // carrega e que não existe no espelho — o app monta e a tela vem vazia/quebrada, sem
 // nenhum veredito vermelho. Foi assim que o `app.jsx` de 07-07 (montando o JanaCockpit
@@ -1138,7 +1139,7 @@ function main() {
     const msg = {
       'NEVER-RAN': () => `rotina de frescor NUNCA rodou (ledger vazio) — rode o dispatch logado (--manifest → DesignSync.get_file → --export-from <dir> --emit-snapshot snap.json → --compare snap.json --check --ledger).`,
       'OVERDUE': () => `rotina de frescor FORA do SLA (${SLA_DAYS}d) — ${detail}. Rode o dispatch logado.`,
-      'LAST-STALE': () => `última rodada achou STALE não-resolvido — ${detail} (${(r.last.staleList || []).join(', ')}). Re-exporte do Cowork e rode de novo.`,
+      'LAST-STALE': () => `última rodada achou DIVERGÊNCIA não-resolvida — ${detail} (${(r.last.staleList || []).join(', ')}). Direção não medida: confira com o dry-run do aplicar-payload ANTES de re-exportar — o espelho pode estar À FRENTE (caso qa-conformance.js, 2026-08-17).`,
       'LAST-PARTIAL': () => `última rodada foi PARCIAL — ${detail}. Rodada parcial é legítima, mas "${r.last.stale} stale" só cobre o que foi medido: ${r.last.unchecked} arquivo(s) seguem sem veredito. Pra fechar, exporte o resto (--export-from <dir> --emit-snapshot) e rode --compare --ledger.`,
     }[r.veredito]();
     console.error(`✗ ${msg}`);
@@ -1188,7 +1189,11 @@ function main() {
   const sync = rows.filter((r) => r.veredito === 'SYNC');
 
   console.log(`\n  ESPELHO COWORK — frescor vs vivo (${rows.length} arquivo(s)-âncora · hash normalizado por path completo)\n`);
-  for (const r of stale) console.log(`  ⛔ STALE       ${r.cowork}  (espelho ficou atrás do vivo — re-exportar)`);
+  // NÃO afirma DIREÇÃO: este modo só tem HASHES, e hash diferente não diz quem avançou.
+  // Medido 2026-08-17: o `qa-conformance.js` foi rotulado "espelho ficou atrás — re-exportar",
+  // e era o INVERSO (espelho v2.5/G15 × vivo v2.4/G13). Obedecer teria apagado os gates
+  // G14/G15 do #4597. Quem sabe a direção é quem tem CONTEÚDO: `aplicar-payload.mjs`.
+  for (const r of stale) console.log(`  ⛔ DIVERGE     ${r.cowork}  (hash difere do vivo — direção NÃO medida aqui)`);
   for (const r of absent) console.log(`  🟡 LIVE-ABSENT ${r.cowork}  (não achado no vivo — rename/delete upstream ou mapa errado)`);
   for (const r of unchecked) console.log(`  ⬜ UNCHECKED   ${r.cowork}  (agente não buscou — snapshot incompleto)`);
   console.log(`\n  ⛔ stale: ${stale.length} · 🟡 live-absent: ${absent.length} · ⬜ unchecked: ${unchecked.length} · ✓ sync: ${sync.length}`);
