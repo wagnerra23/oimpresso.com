@@ -514,5 +514,18 @@
     },
     "origin": "payload-servido",
     "stalePreExport": 0
+  },
+  {
+    "date": "2026-08-17T12:43:31.391Z",
+    "files": 121,
+    "sync": 0,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 121,
+    "staleList": [],
+    "verified": [],
+    "verifiedHash": {},
+    "origin": "export",
+    "stalePreExport": 1
   }
 ]
