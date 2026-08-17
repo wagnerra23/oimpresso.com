@@ -69,6 +69,15 @@ import KpiCard from '@/Components/shared/KpiCard';
 import JanaDrillDrawer, { type DrillAnalise } from './JanaDrillDrawer';
 
 export interface JanaCockpitProps {
+  /**
+   * Slot renderizado LOGO APÓS os KPIs, antes das análises.
+   *
+   * Existe porque a âncora (`jana-merge.jsx`) põe METAS exatamente aí — entre os
+   * KPIs e "ANÁLISES PRINCIPAIS" — e na tela viva o bloco de metas tinha ido pro
+   * fim da página, depois das ações. Sem este slot, corrigir a ordem exigiria
+   * quebrar o cockpit em dois ou duplicar seções.
+   */
+  aposKpis?: ReactNode;
   sellKpis: {
     total: number;
     paid: number;
@@ -194,6 +203,7 @@ function AnalysisCard({
 }
 
 export default function JanaCockpit({
+  aposKpis,
   sellKpis,
   coworkAggregates,
   insightsAggregates,
@@ -517,6 +527,10 @@ export default function JanaCockpit({
           }
         />
       </KpiGrid>
+
+      {/* Metas entram AQUI — posição da âncora. Ver §R5 de
+          `memory/requisitos/Jana/Index-visual-comparison.md`. */}
+      {aposKpis}
 
       {/* Análises principais ───────────────────────────────────────────────── */}
       <SectionTitle icon={<BarChart3 size={14} />}>
