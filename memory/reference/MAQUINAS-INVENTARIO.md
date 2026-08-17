@@ -37,10 +37,10 @@ lifecycle: ativo
 | `arquivos-pest.yml` | pr+push+manual | `memory/decisions/0354-teammcp-pest-required-emenda-0314.md` +5 | Arquivos · Pest (MySQL) — audit-log/download/enum rodam no MySQL real (skip no sqlite = verde mente); catraca allowlist verde |
 | `baseline-tamper-guard.yml` | pr+manual | `memory/decisions/0331-anti-duplicacao-work-claim-gate.md` +39 | Baseline tamper-guard (anti-grandfather · afrouxar baseline + código no mesmo PR · ADR 0256/0258 · Gap-2 blueprint SDD) |
 | `block-brl-values-selftest.yml` | pr+manual | — | block-brl-values selftest (meta-teste do hook Tier-0 dinheiro block-brl-values-in-memory.mjs — bite/release do detector via --selftest + registration test do settings.jso… |
-| `briefing-code-staleness.yml` | pr+cron+manual | `memory/proibicoes.md` +19 | Staleness reporters (advisory · 6 eixos: BRIEFING×código briefing-code-staleness.mjs · visual-comparison×tela visual-comparison-staleness.mjs · ADR pendente adr-proposto-… |
+| `briefing-code-staleness.yml` | pr+cron+manual | `memory/proibicoes.md` +20 | Staleness reporters (advisory · 6 eixos: BRIEFING×código briefing-code-staleness.mjs · visual-comparison×tela visual-comparison-staleness.mjs · ADR pendente adr-proposto-… |
 | `briefing-coverage-required.yml` | pr+push | `memory/decisions/0348-briefing-coverage-required-emenda-0314.md` +1 | Cobertura BRIEFING (required) — modulo backend (Modules/<X>/ com dir requisitos/<X>/) sem BRIEFING.md falha o merge. Sinal = EXISTENCIA (isBriefingCoverageGap), nao data … |
 | `brl-scan.yml` | pr+manual | `memory/08-handoff.md` +3 | BRL scan (advisory · valor monetário em linha NOVA do PR · diff-only · arquivos + PR body + commit subjects) |
-| `casos-gate.yml` | pr+push | `memory/decisions/0365-trio-de-tela-fica-colocado-reverte-eixo-0364.md` +143 | Casos-coverage ratchet (trio-de-tela + caso↔teste) |
+| `casos-gate.yml` | pr+push | `memory/decisions/0365-trio-de-tela-fica-colocado-reverte-eixo-0364.md` +146 | Casos-coverage ratchet (trio-de-tela + caso↔teste) |
 | `casos-results-publish.yml` | cron+manual | `memory/decisions/0354-teammcp-pest-required-emenda-0314.md` +10 | Casos results publish — colhe o JUnit das lanes (que já emitem --log-junit) e aterrissa o veredito por-UC em scripts/casos-test-results.json, fonte do G-7 do casos-gate; … |
 | `catalog-graph.yml` | pr+manual | `memory/decisions/0370-module-surface-catalog-graph-required-emenda-0314.md` +24 | Catalog graph — prova que memory/governance/catalog.json é a derivada determinística dos SCOPE.md + SUPERFICIE.md Classe B, sem referências estruturais penduradas; exerci… |
 | `charter-refs-gate.yml` | pr | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +6 | Charter refs (catraca charter_refs_broken ≤ teto · require-safe · US-GOV-043 · ADR 0256) |
@@ -161,7 +161,7 @@ lifecycle: ativo
 |---|---|---|---|---|
 | `audit-creates-tasks.mjs` | PostToolUse(Write\|Edit) | — | `memory/decisions/0234-automation-registry-mcp.md` +8 | Hook PostToolUse(Write) — detecta tasks órfãs em audit doc + propõe tasks-create MCP. |
 | `block-ancora-no-olho.mjs` | PreToolUse(Read\|Glob\|Grep) | test | `memory/decisions/0326-trava-ancora-compare-fingerprint.md` +12 | PreToolUse(Read): print de auditoria NÃO é âncora de design. |
-| `block-askq-execution-menu.mjs` | PreToolUse(AskUserQuestion) | test | `memory/reference/feedback-recomendado-quando-tecnico.md` +11 | enforcement POR MÁQUINA da regra |
+| `block-askq-execution-menu.mjs` | PreToolUse(AskUserQuestion) | test + hook-bites | `memory/reference/feedback-recomendado-quando-tecnico.md` +11 | enforcement POR MÁQUINA da regra |
 | `block-automem.mjs` | PreToolUse(Write\|Edit\|MultiEdit) | test | `memory/decisions/0299-figma-nao-e-fonte-de-design.md` +12 | PreToolUse:Write\|Edit\|MultiEdit (PORTE cross-plataforma do .ps1). |
 | `block-bom-encoding.mjs` | PreToolUse(Write\|Edit\|MultiEdit) | test | `memory/decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md` +3 | PreToolUse:Write\|Edit\|MultiEdit (PORTE cross-plataforma do .ps1). |
 | `block-brl-values-in-memory.mjs` | PreToolUse(Write\|Edit\|MultiEdit) | — | `memory/proibicoes.md` +6 | BLOQUEIA Write/Edit/MultiEdit que introduza valor BRL |
@@ -170,13 +170,13 @@ lifecycle: ativo
 | `block-destructive.mjs` | PreToolUse(Bash) | test + hook-bites | `memory/decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md` +48 | PreToolUse:Bash (PORTE cross-plataforma do .ps1). |
 | `block-edit-authority-generated.mjs` | PreToolUse(Write\|Edit\|MultiEdit) | test | `memory/licoes-rejeitadas.md` | PreToolUse:Write\|Edit\|MultiEdit. |
 | `block-figma-without-optin.mjs` | PreToolUse(mcp__.*figma.*\|mcp__.*__(use_figma\|get_desig…) UserPromptSubmit(*) | test | `memory/decisions/0315-design-sync-claude-design-vs-cowork-charter.md` +8 | Figma NÃO é fonte de design (block determinístico por tool_name). |
-| `block-instrumento-sem-porta-viva.mjs` | PreToolUse(Glob\|Grep\|Bash) | — | `memory/decisions/0353-maquina-evolucao-reguas-looping.md` +13 | PreToolUse:Glob\|Grep. |
+| `block-instrumento-sem-porta-viva.mjs` | PreToolUse(Glob\|Grep\|Bash) | hook-bites | `memory/decisions/0353-maquina-evolucao-reguas-looping.md` +13 | PreToolUse:Glob\|Grep. |
 | `block-memory-drift.mjs` | PreToolUse(Write\|Edit\|MultiEdit) | test | `memory/decisions/0377-append-only-adr-excecao-por-label-emenda-0094.md` +24 | PreToolUse:Write\|Edit\|MultiEdit (PORTE cross-plataforma do .ps1). |
 | `block-merge-markers.mjs` | PreToolUse(Write\|Edit\|MultiEdit) | test | `memory/decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md` +6 | PreToolUse:Write\|Edit\|MultiEdit (PORTE cross-plataforma do .ps1). |
 | `block-mwart-violation.mjs` | PreToolUse(Write\|Edit\|MultiEdit) | test + hook-bites | `memory/decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md` +43 | PreToolUse:Write\|Edit\|MultiEdit (PORTE cross-plataforma do .ps1). |
 | `block-routes-string-legacy.mjs` | PreToolUse(Write\|Edit\|MultiEdit) | test | `memory/decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md` +6 | PreToolUse:Write\|Edit\|MultiEdit (PORTE cross-plataforma do .ps1). |
 | `block-skill-design-sync-without-optin.mjs` | PreToolUse(Skill) | test | `.claude/runbooks/design-sync-push.md` | gateia a INVOCAÇÃO da skill /design-sync |
-| `block-test-fora-ct100.mjs` | PreToolUse(Bash\|PowerShell) | test | `memory/proibicoes.md` +12 | PreToolUse:Bash\|PowerShell (PORTE cross-plataforma do .ps1). |
+| `block-test-fora-ct100.mjs` | PreToolUse(Bash\|PowerShell) | test + hook-bites | `memory/proibicoes.md` +12 | PreToolUse:Bash\|PowerShell (PORTE cross-plataforma do .ps1). |
 | `block-test-without-red.mjs` | PreToolUse(Write\|Edit\|MultiEdit) | test | — | PreToolUse:Write\|Edit\|MultiEdit (PORTE cross-plataforma do .ps1). |
 | `brief-fetch-curl.mjs` | SessionStart(*) | test | `memory/decisions/proposals/2026-07-30-brief-se-divide-em-dois.md` +4 | SessionStart (PORTE cross-plataforma do brief-fetch-curl.ps1). |
 | `charter-da-tela-que-o-controller-serve.mjs` | PreToolUse(Read) | test + hook-bites | `memory/decisions/proposals/documentacao-do-fonte-layout-canonico.md` | PreToolUse:Read. ADVISORY (nunca bloqueia). |
@@ -300,35 +300,44 @@ lifecycle: ativo
 > **Invocador/Evidência não são deriváveis** aqui (mesma razão das skills — agente é spawnado por
 > intenção, e não há fixture de agente). Medido: 8 de 27 aparecem em script/workflow, todas como menção.
 
-| Agent | Documento | Descrição (início) |
-|---|---|---|
-| `audit-implement-expert` | `memory/decisions/0231-processo-trabalho-canonico-especialista-por-area.md` +13 | Implementador universal de gap específico — recebe um GAP da auditoria (Fase 1 do `/audit-and-fix`), pesquisa best-of-class do gap, mini-comparativo % atual→target, e imp… |
-| `audit-research-expert` | `memory/decisions/0236-scorecard-universal-entidade-arbitraria.md` +16 | Auditor universal de maturidade — recebe um TEMA (ex "reranker", "knowledge-architecture", "session-handoff", "observability"), pesquisa estado-da-arte 2025-2026, compara… |
-| `audit-senior-expert` | `memory/decisions/0231-processo-trabalho-canonico-especialista-por-area.md` +15 | Auditor SÊNIOR — pesquisa profunda (5-7 WebSearch POR gap), comparativo rigoroso, dossier executável pra Onda inteira. |
-| `capterra-senior` | `memory/decisions/0320-programa-ondas-regua-correcao.md` +53 | Use quando Wagner pedir "Capterra do módulo X", "compare meu módulo Y com os melhores e dá nota", "estado-da-arte profundo do módulo Z", "/capterra-senior <Modulo>", "pes… |
-| `ciclo-adversary` | `memory/LICOES_CODE.md` +1 | Adversário read-only do CICLO DE APRENDIZADO (erro → conserta → lápide §5 → ledger LC → defesa mecânica). |
-| `cliente-drawer-integrar` | (só sessão/handoff · 1) | Implementador especializado da integração legacy WR Comercial/Delphi → drawer Cliente 760px (ADR 0179). |
-| `como-integrar` | `memory/decisions/0200-contacts-sync-canon-amends-0197-0199.md` +29 | Use ANTES de Wagner aprovar implementação de feature nova/refactor médio no oimpresso. |
-| `comunicacao-visual-expert` | — | Especialista de domínio em Comunicação Visual industrial brasileira (CNAE 1813-0/01) — processos OS, PCP, instalação, tributação serviço vs mercadoria, NR-35 fachada, con… |
-| `coordenador-paralelo` | `memory/decisions/0180-drift-numero-adr-0178-conflito-paralelo.md` +22 | Use quando Wagner pedir "coordene em paralelo X", "decompor em waves", "spawne N agents pra Y", "faça em paralelo sem invadir outras áreas", OU quando o problema admite d… |
-| `cowork-to-inertia` | `.claude/agents/cliente-drawer-integrar.md` +2 | Use quando Wagner mandar design Cowork pra implementar como Inertia/React real — sinais típicos "implementa essa tela", "esse design tem nota 9,75", "vou te mandar a tela… |
-| `deprecar-modulo` | `memory/decisions/0301-separar-cliente-deprecar-crm-pipeline.md` +7 | Use quando Wagner decidir deprecar/aposentar um módulo Laravel modular do oimpresso (ex SRS, Officeimpresso legacy, Cms antigo, qualquer Modules/<X> em estado zumbi). |
-| `design-arte` | `memory/requisitos/Sells/SPEC.md` +17 | Use quando Wagner pedir "estado da arte de design do oimpresso", "nota de design da tela X", "Capterra de design pro módulo Y", "compare meu design com Linear/Shopify/Not… |
-| `document-relocation-adversary` | `memory/proibicoes.md` +2 | Adversario read-only de planos de classificacao, movimento e relink de documentacao. |
-| `documentacao-sistema` | `memory/08-handoff.md` +2 | ATIVAR quando [W] pedir qualquer coisa sobre a DOCUMENTAÇÃO DO SISTEMA — "documenta o sistema", |
-| `estado-da-arte` | `memory/decisions/0319-product-truth-stream-adversario-modulo-analise.md` +43 | Use quando o Wagner pedir "faça o estado da arte de X", "estado da arte de Y", "pesquise como os melhores fazem Z", "/estado-da-arte <problema>". |
-| `financeiro-bridge-auditor` | `memory/requisitos/Sells/Sells-r4-cowork-kb975-2026-05-26-visual-comparison.md` +6 | Auditor especialista da bridge Sells/Compras (UltimatePOS core) → Modules/Financeiro (`fin_titulos`/`fin_titulo_baixas` via Observers). |
-| `maturity-gap-expert` | `memory/requisitos/Jana/ONDA-5-DOSSIER-2026-05-13.md` +4 | Especialista em gap analysis maturidade oimpresso vs estado-da-arte 2026. |
-| `memoria-senior` | `memory/decisions/0148-cascade-review-onda-6-memoria-senior-98.md` +9 | Use quando Wagner pedir "auditoria de memória", "otimizar memory/", "estado-da-arte arquitetura de memória/knowledge architecture/RAG", "compare minha memória com Mem0/Le… |
-| `migracao-firebird-versoes` | `memory/reference/matriz-conhecimento-clientes-legacy.md` +3 | Use quando Wagner pedir "termine a migração", "migra os clientes legacy todos", "trate as versões diferentes Firebird", "/migrar-versoes <cliente>", "terminar Martinho", … |
-| `migracao-officeimpresso` | `memory/reference/migracao-officeimpresso-pattern.md` +5 | Use quando Wagner pedir "migrar cliente legacy <hash>", "importar Firebird de <cliente>", "trazer dados Delphi pra oimpresso", "/migrar-officeimpresso <cliente>", OU quan… |
-| `screen-qa-specialist` | `memory/decisions/0250-screen-qa-specialist-sustentavel.md` +2 | ATIVAR quando Wagner pedir "garantir QA da tela X", "testar a tela Y de ponta a ponta", "cobrir a tela Z", "/screen-qa <Mod>/<Tela>", "especialista de teste na tela W", "… |
-| `sdd-from-source` | `memory/decisions/0351-sdd-from-source.md` +56 | ATIVAR quando [W] pedir "gera o SDD da tela X a partir do fonte", "documenta o fluxo real de <Mod>/<Tela>", "faz o SDD/casos de <Mod>/<Tela> analisando o código", "/sdd-f… |
-| `tela-venda-arte` | `memory/requisitos/Sells/SPEC.md` +7 | Use quando Wagner pedir "estado da arte da tela de venda", "compare minha tela de venda com os concorrentes", "benchmark POS", "nota da minha tela de venda", "como o Blin… |
-| `testador-de-maquinas` | `memory/LICOES_CODE.md` +2 | ATIVAR quando [W] pedir "essa máquina morde?", "testa o gate X", "esse hook está funcionando mesmo?", "audita a máquina Y", "prova que o gate pega", "posso promover esse … |
-| `wagner-understand` | `memory/decisions/0319-product-truth-stream-adversario-modulo-analise.md` +26 | ATIVAR ANTES de Claude começar a executar pedido do Wagner — especialmente quando o pedido vem cru/curto/ambíguo ("faz isso", "implementa X", "copia aquilo", screenshot c… |
-| `whatsapp-arch-arte` | `memory/requisitos/Whatsapp/SPEC.md` +2 | Use quando Wagner pedir "estado da arte de arquitetura WhatsApp/mensagens", "compare minha estrutura WhatsApp com os melhores e dá nota", "auditar arquitetura técnica do … |
-| `whatsapp-doctor` | `memory/how-trabalhar.md` +14 | Use quando WhatsApp Baileys daemon der problema no CT 100 — "WhatsApp parou", "mensagem não saiu", "tá banido?", "loop de erro no daemon", "device_removed", "stream error… |
+> **Coluna `Escreve?` — DERIVADA do frontmatter `tools:`** (eixo *risco*), não da prosa da
+> `description`. Conta como escrita: `Write`, `Edit`, `NotebookEdit`, `Bash` — **`Bash` inclusive**, porque
+> `sed -i`, `>` e `git commit` escrevem (se você discorda desse critério, ele está aqui pra ser
+> discutido, não escondido). Medido agora: **27 de 27** podem escrever.
+>
+> ⚠️ Onde a prosa e a capacidade DISCORDAM, quem manda é a capacidade: agente que se descreve
+> "read-only / nunca edita / nunca commita" e tem `Bash` está fazendo uma **promessa**, não
+> operando sob **restrição**. Instrução de prompt não é mecanismo.
+
+| Agent | Escreve? | Documento | Descrição (início) |
+|---|---|---|---|
+| `audit-implement-expert` | 🔴 Bash/Write/Edit | `memory/decisions/0231-processo-trabalho-canonico-especialista-por-area.md` +13 | Implementador universal de gap específico — recebe um GAP da auditoria (Fase 1 do `/audit-and-fix`), pesquisa best-of-class do gap, mini-comparativo % atual→target, e imp… |
+| `audit-research-expert` | 🔴 Bash/Write | `memory/decisions/0236-scorecard-universal-entidade-arbitraria.md` +16 | Auditor universal de maturidade — recebe um TEMA (ex "reranker", "knowledge-architecture", "session-handoff", "observability"), pesquisa estado-da-arte 2025-2026, compara… |
+| `audit-senior-expert` | 🔴 Bash/Write | `memory/decisions/0231-processo-trabalho-canonico-especialista-por-area.md` +15 | Auditor SÊNIOR — pesquisa profunda (5-7 WebSearch POR gap), comparativo rigoroso, dossier executável pra Onda inteira. |
+| `capterra-senior` | 🔴 Write/Bash | `memory/decisions/0320-programa-ondas-regua-correcao.md` +53 | Use quando Wagner pedir "Capterra do módulo X", "compare meu módulo Y com os melhores e dá nota", "estado-da-arte profundo do módulo Z", "/capterra-senior <Modulo>", "pes… |
+| `ciclo-adversary` | 🔴 Bash | `memory/LICOES_CODE.md` +1 | Adversário read-only do CICLO DE APRENDIZADO (erro → conserta → lápide §5 → ledger LC → defesa mecânica). |
+| `cliente-drawer-integrar` | 🔴 Bash/Write/Edit | (só sessão/handoff · 1) | Implementador especializado da integração legacy WR Comercial/Delphi → drawer Cliente 760px (ADR 0179). |
+| `como-integrar` | 🔴 Bash/Write | `memory/decisions/0200-contacts-sync-canon-amends-0197-0199.md` +29 | Use ANTES de Wagner aprovar implementação de feature nova/refactor médio no oimpresso. |
+| `comunicacao-visual-expert` | 🔴 Write | — | Especialista de domínio em Comunicação Visual industrial brasileira (CNAE 1813-0/01) — processos OS, PCP, instalação, tributação serviço vs mercadoria, NR-35 fachada, con… |
+| `coordenador-paralelo` | 🔴 Write/Bash | `memory/decisions/0180-drift-numero-adr-0178-conflito-paralelo.md` +22 | Use quando Wagner pedir "coordene em paralelo X", "decompor em waves", "spawne N agents pra Y", "faça em paralelo sem invadir outras áreas", OU quando o problema admite d… |
+| `cowork-to-inertia` | 🔴 Bash/Write/Edit | `.claude/agents/cliente-drawer-integrar.md` +2 | Use quando Wagner mandar design Cowork pra implementar como Inertia/React real — sinais típicos "implementa essa tela", "esse design tem nota 9,75", "vou te mandar a tela… |
+| `deprecar-modulo` | 🔴 Bash/Write | `memory/decisions/0301-separar-cliente-deprecar-crm-pipeline.md` +7 | Use quando Wagner decidir deprecar/aposentar um módulo Laravel modular do oimpresso (ex SRS, Officeimpresso legacy, Cms antigo, qualquer Modules/<X> em estado zumbi). |
+| `design-arte` | 🔴 Write/Bash | `memory/requisitos/Sells/SPEC.md` +17 | Use quando Wagner pedir "estado da arte de design do oimpresso", "nota de design da tela X", "Capterra de design pro módulo Y", "compare meu design com Linear/Shopify/Not… |
+| `document-relocation-adversary` | 🔴 Bash | `memory/proibicoes.md` +2 | Adversario read-only de planos de classificacao, movimento e relink de documentacao. |
+| `documentacao-sistema` | 🔴 Bash/Write/Edit | `memory/08-handoff.md` +2 | ATIVAR quando [W] pedir qualquer coisa sobre a DOCUMENTAÇÃO DO SISTEMA — "documenta o sistema", |
+| `estado-da-arte` | 🔴 Write/Bash | `memory/decisions/0319-product-truth-stream-adversario-modulo-analise.md` +43 | Use quando o Wagner pedir "faça o estado da arte de X", "estado da arte de Y", "pesquise como os melhores fazem Z", "/estado-da-arte <problema>". |
+| `financeiro-bridge-auditor` | 🔴 Bash/Write | `memory/requisitos/Sells/Sells-r4-cowork-kb975-2026-05-26-visual-comparison.md` +6 | Auditor especialista da bridge Sells/Compras (UltimatePOS core) → Modules/Financeiro (`fin_titulos`/`fin_titulo_baixas` via Observers). |
+| `maturity-gap-expert` | 🔴 Bash/Write | `memory/requisitos/Jana/ONDA-5-DOSSIER-2026-05-13.md` +4 | Especialista em gap analysis maturidade oimpresso vs estado-da-arte 2026. |
+| `memoria-senior` | 🔴 Write/Bash | `memory/decisions/0148-cascade-review-onda-6-memoria-senior-98.md` +9 | Use quando Wagner pedir "auditoria de memória", "otimizar memory/", "estado-da-arte arquitetura de memória/knowledge architecture/RAG", "compare minha memória com Mem0/Le… |
+| `migracao-firebird-versoes` | 🔴 Bash/Write/Edit | `memory/reference/matriz-conhecimento-clientes-legacy.md` +3 | Use quando Wagner pedir "termine a migração", "migra os clientes legacy todos", "trate as versões diferentes Firebird", "/migrar-versoes <cliente>", "terminar Martinho", … |
+| `migracao-officeimpresso` | 🔴 Bash/Write/Edit | `memory/reference/migracao-officeimpresso-pattern.md` +5 | Use quando Wagner pedir "migrar cliente legacy <hash>", "importar Firebird de <cliente>", "trazer dados Delphi pra oimpresso", "/migrar-officeimpresso <cliente>", OU quan… |
+| `screen-qa-specialist` | 🔴 Bash/Write/Edit | `memory/decisions/0250-screen-qa-specialist-sustentavel.md` +2 | ATIVAR quando Wagner pedir "garantir QA da tela X", "testar a tela Y de ponta a ponta", "cobrir a tela Z", "/screen-qa <Mod>/<Tela>", "especialista de teste na tela W", "… |
+| `sdd-from-source` | 🔴 Bash/Write/Edit | `memory/decisions/0351-sdd-from-source.md` +56 | ATIVAR quando [W] pedir "gera o SDD da tela X a partir do fonte", "documenta o fluxo real de <Mod>/<Tela>", "faz o SDD/casos de <Mod>/<Tela> analisando o código", "/sdd-f… |
+| `tela-venda-arte` | 🔴 Write/Bash | `memory/requisitos/Sells/SPEC.md` +7 | Use quando Wagner pedir "estado da arte da tela de venda", "compare minha tela de venda com os concorrentes", "benchmark POS", "nota da minha tela de venda", "como o Blin… |
+| `testador-de-maquinas` | 🔴 Bash/Write | `memory/LICOES_CODE.md` +2 | ATIVAR quando [W] pedir "essa máquina morde?", "testa o gate X", "esse hook está funcionando mesmo?", "audita a máquina Y", "prova que o gate pega", "posso promover esse … |
+| `wagner-understand` | 🔴 Bash/Write | `memory/decisions/0319-product-truth-stream-adversario-modulo-analise.md` +26 | ATIVAR ANTES de Claude começar a executar pedido do Wagner — especialmente quando o pedido vem cru/curto/ambíguo ("faz isso", "implementa X", "copia aquilo", screenshot c… |
+| `whatsapp-arch-arte` | 🔴 Write/Bash | `memory/requisitos/Whatsapp/SPEC.md` +2 | Use quando Wagner pedir "estado da arte de arquitetura WhatsApp/mensagens", "compare minha estrutura WhatsApp com os melhores e dá nota", "auditar arquitetura técnica do … |
+| `whatsapp-doctor` | 🔴 Bash/Write | `memory/how-trabalhar.md` +14 | Use quando WhatsApp Baileys daemon der problema no CT 100 — "WhatsApp parou", "mensagem não saiu", "tá banido?", "loop de erro no daemon", "device_removed", "stream error… |
 
 ## 5. Scripts (`scripts/**`) — o gap sem índice-dono
 
@@ -374,7 +383,7 @@ lifecycle: ativo
 | `ancora-codigo-sync.mjs` | ci, script | — | `memory/requisitos/_DesignSystem/SDD-TEMPLATE.md` +5 | AUTO-SYNC da âncora doc→CÓDIGO (o mecanismo do Swimm, traduzido). |
 | `baseline-tamper-guard.mjs` | ci, script | selftest | `memory/decisions/0331-anti-duplicacao-work-claim-gate.md` +43 | anti-grandfather (Gap 2 do blueprint SDD · ADR 0256/0258). |
 | `blade-migration-census.mjs` | ci, script | — | `memory/proibicoes.md` +39 | o CONTRATO DE COMPLETUDE da ADR 0277, derivado da árvore. |
-| `briefing-code-staleness.mjs` | agente, ci, npm, script | test | `memory/decisions/0348-briefing-coverage-required-emenda-0314.md` +25 | sentinela: a PORTA (BRIEFING.md) ficou atrás do CÓDIGO? |
+| `briefing-code-staleness.mjs` | agente, ci, npm, script | test | `memory/decisions/0348-briefing-coverage-required-emenda-0314.md` +26 | sentinela: a PORTA (BRIEFING.md) ficou atrás do CÓDIGO? |
 | `brl-scan-diff.mjs` | ci, script | — | `memory/08-handoff.md` +3 | varre as LINHAS ADICIONADAS de um PR procurando valor BRL não-redigido. |
 | `catalog-graph.mjs` | agente, ci, script | test | `memory/decisions/0370-module-surface-catalog-graph-required-emenda-0314.md` +29 | GERADOR determinístico do GRAFO TIPADO de módulos. |
 | `charter-blueprint-pointers.mjs` | ci, script | — | `memory/decisions/proposals/2026-06-23-prototipo-ssot-unico-com-historico.md` +5 | auditoria de PONTEIROS DE PROTÓTIPO dos Page Charters. |
@@ -453,7 +462,7 @@ lifecycle: ativo
 | `reguas-indexar.mjs` | agente, ci, npm | — | `memory/decisions/0353-maquina-evolucao-reguas-looping.md` +8 | Órgão 4 da máquina de réguas em looping (ADR proposta reguas-loop-maquina-evolucao). |
 | `reguas-ledger-check.mjs` | ci | — | `memory/licoes-rejeitadas.md` +3 | o ledger de réguas contradiz a si mesmo? |
 | `required-always-run.mjs` | ci | — | `memory/decisions/0373-screen-grades-ratchet-required-emenda-0314.md` +10 | todo context REQUIRED nasce em TODO PR? |
-| `requisitos-status.mjs` | ci, npm, script | — | `memory/decisions/0364-trio-de-tela-mora-em-memory-emenda-0264.md` +59 | a CADEIA DE RASTREABILIDADE de um módulo, derivada e com STATUS. |
+| `requisitos-status.mjs` | ci, npm, script | — | `memory/decisions/0364-trio-de-tela-mora-em-memory-emenda-0264.md` +62 | a CADEIA DE RASTREABILIDADE de um módulo, derivada e com STATUS. |
 | `resolver-reclamacao.mjs` | ci, npm | — | `memory/decisions/proposals/2026-07-21-resolvedor-reclamacao-cadeia.md` +4 | resolvedor reclamação → cadeia de responsabilidade. |
 | `sdd-flow.mjs` | npm | test | (só sessão/handoff · 1) | recibo estrutural da cadeia: |
 | `sdd-output-lint.mjs` | ci, npm | — | `memory/decisions/proposals/2026-08-01-reverter-0364-trio-colocado-opcao-b.md` +2 | mede a QUALIDADE do artefato que o agent `sdd-from-source` (ADR 0351) produz. |
