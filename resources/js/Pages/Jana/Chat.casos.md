@@ -73,6 +73,35 @@ conversa.
 
 **Pronto quando:** mudar a conversa ativa escreve o título na região viva; re-render sem troca não escreve.
 
+## UC-COPI-CHAT-05 — Thread de outro business NUNCA é devolvida (Tier 0)
+Status: 🧪 (`Modules/Jana/Tests/Feature/Chat/ChatAntiHooksTier0Test.php` — cita o UC no título; aguarda run verde na lane MySQL)
+
+Um usuário de outro business pede a conversa pelo id e **não recebe 200**. Vale 403 (negado) ou 404
+(nem existe pra ele); o que não pode é conteúdo alheio na tela.
+
+Âncora: charter §Automation Anti-hooks *"⛔ Não acessa thread de outro `business_id`"* +
+[ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md). Tenant fictício 98 e
+um vizinho ([ADR 0358](../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)) — **nunca biz=4**.
+
+⚠️ **Este UC pode nascer vermelho, e isso é o achado.** O `ChatController::show()` guarda por
+`user_id` (`abort_unless($conversa->user_id === auth()->id(), 403)`), **não** por `business_id` — o
+charter promete isolamento por BUSINESS. Se passar, o `user_id` cobre o caso na prática; se falhar,
+o teste achou o buraco que o anti-hook descreve. Os dois desfechos são informação.
+
+**Pronto quando:** o status não é 200 **nem 302** (anti-vácuo: redirect de login faria o assert
+passar sem provar isolamento nenhum) e está em `[403, 404]`.
+
+## UC-COPI-CHAT-06 — Abrir a thread é leitura PURA
+Status: 🧪 (mesmo arquivo — cita o UC no título; aguarda run verde)
+
+Abrir uma conversa **não dispara e-mail nem notificação**. Efeito colateral pertence ao POST de
+mensagem, não à consulta.
+
+Âncora: charter §Automation Anti-hooks *"⛔ Não dispara emails ao abrir (read da thread é puro)"* +
+*"⛔ Não dispara SMS"*.
+
+**Pronto quando:** `Mail::assertNothingSent()` e `Notification::assertNothingSent()` após o GET.
+
 ---
 
 ## Inventário de cobertura — cada Goal e Anti-hook do charter, medido
@@ -104,23 +133,23 @@ conversa.
 | Streaming token-a-token | ✅ (18 refs) | ❌ |
 | `/` foca o composer | ✅ | ❌ |
 | Persistência `localStorage` prefix `oimpresso.jana.*` | ✅ (7 refs) | 🟡 só o recolhido, via UC-03 |
-| Multi-tenant Tier 0 (`business_id` em thread/mensagem/ação) | ✅ | ❌ |
+| Multi-tenant Tier 0 (`business_id` em thread/mensagem/ação) | ✅ | 🧪 UC-05 |
 | Aviso de PII no composer (CPF/CNPJ/cartão) | ✅ (`PiiRedactor`, 4 refs) | ❌ |
 
 **16 Goals implementados · 5 com contrato · 11 sem.**
 
 ### §Automation Anti-hooks — o que a tela NUNCA dispara
 
-O charter diz literalmente *"Vira Pest GUARD"*. **Nenhum dos oito virou.** Medido: o módulo tem
+O charter diz literalmente *"Vira Pest GUARD"*. **Três dos oito viraram em 2026-08-17** (UC-05/UC-06); os outros cinco seguem sem guarda. Medido: o módulo tem
 apenas `BriefDiarioChatTriggerTest.php` e `Chat/ChatTokensTurnoTest.php` — nenhum guarda estes.
 
 | Anti-hook | Pest GUARD |
 |---|---|
-| ❌ Não dispara emails ao abrir | ausente |
-| ❌ Não dispara SMS | ausente |
+| ❌ Não dispara emails ao abrir | 🧪 **UC-06** |
+| ❌ Não dispara SMS | 🧪 **UC-06** |
 | ❌ Não escreve no banco no render inicial | ausente |
 | ❌ Não chama Brain B no render | ausente |
-| ❌ Não acessa thread de outro `business_id` (**Tier 0**) | ausente |
+| ❌ Não acessa thread de outro `business_id` (**Tier 0**) | 🧪 **UC-05** |
 | ❌ Não persiste credencial Brain B no client | ausente |
 | ❌ Não roda tool sem auth check do registry | ausente |
 | ❌ Não loga PII em plain text | ausente |
