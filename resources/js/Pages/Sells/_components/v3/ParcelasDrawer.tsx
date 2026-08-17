@@ -72,7 +72,7 @@ import {
   venceuAntesDeHoje,
   type Parcela,
 } from './parcelas-dominio';
-import { Lbl, Pill, Sec } from './primitivos';
+import { Lbl, MoneyInput, Pill, Sec } from './primitivos';
 
 function Campo({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -517,15 +517,17 @@ export default function ParcelasDrawer({
                 />
               </div>
               <div>
-                {/* MESMO `<Input>` da linha, de propósito: dar ao valor um
-                    segundo componente de digitação criaria dois comportamentos
-                    para o campo Tier 0 desta tela. */}
-                <Lbl>Valor</Lbl>
-                <Input
-                  className="text-right"
-                  inputMode="decimal"
+                {/* `MoneyInput`, não `<Input>` cru. Na onda C3 eu recusei este
+                    componente alegando que criaria "um segundo caminho de
+                    digitação" — a justificativa estava ERRADA e o print do [L]
+                    mostrou: ele é usado em 17 pontos da V3 (CreateV3 5 ·
+                    LancarItem 10 · EntregaFrete 2) e traz o prefixo `R$`
+                    embutido. Quem estava fora do padrão era o `<Input>` cru.
+                    A âncora concorda: `sells-parcelas.jsx:166` usa `<Money>`. */}
+                <MoneyInput
+                  label="Valor"
                   value={emEdicao.valor}
-                  onChange={(e) => setEmEdicao({ ...emEdicao, valor: e.target.value })}
+                  onChange={(v) => setEmEdicao({ ...emEdicao, valor: v })}
                 />
               </div>
             </Stack>
