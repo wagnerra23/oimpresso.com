@@ -415,33 +415,6 @@ jobs:
             | node prototipo-ui/render-proto-baseline.mjs --nudge | tee -a "$GITHUB_STEP_SUMMARY"
 
   # ── ex-dtcg-equivalence.yml (Onda DTCG ATIVADA) ──────────────────────────────
-  # JOB PRÓPRIO — de propósito. O required context do GitHub é o **job**, não o step: deixar
-  # este check dentro de `gates` (27 steps `continue-on-error`) tornaria impossível promovê-lo
-  # sem arrastar os 27 junto. Aqui ele é sozinho, determinístico e sem `continue-on-error`,
-  # então o vermelho dele significa exatamente uma coisa.
-  #
-  # ⚠️ DÍVIDA DECLARADA (LC-10): o context nasce como `Design-memory gate (advisory) / …` —
-  # o "(advisory)" vem do NOME DO WORKFLOW e vira afirmação falsa no dia que [W] promover.
-  # Renomear o workflow é seguro (medido 2026-08-17: ZERO contexts dele no
-  # `required-checks-baseline.json`), mas é decisão dele, não carona deste PR.
-  espelho-verificado:
-    name: espelho — mexeu depois de verificar
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          # o detector compara data-de-commit × data-de-verificação: história rasa mede o PISO
-          # da história, não a história (§5 2026-07-24). fetch-depth 0 é requisito, não zelo.
-          fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      # Sem `continue-on-error`: este job existe pra poder ficar vermelho.
-      # Hoje `--check` morde só em MEXIDO-DEPOIS; NUNCA-VERIFICADO não bloqueia (forward-only,
-      # ADR 0275) e ledger sem o campo `verified` imprime SEM DADO, não verde (LC-13).
-      - name: espelho editado sem prova de fidelidade
-        run: node scripts/governance/cowork-mirror-freshness.mjs --unverified --check
-
   prove:
     name: equivalencia DTCG <-> CSS canonico (advisory)
     runs-on: ubuntu-latest

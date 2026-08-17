@@ -43,7 +43,7 @@
         "req_sem_aceite_total": 246,
         "req_sem_covering_test_total": 350,
         "req_teste_vermelho_total": 0,
-        "req_sem_lane_total": 48,
+        "req_sem_lane_total": 37,
         "behavior_known": false,
         "servido_total": 16,
         "nao_servido_total": 67,
@@ -68,22 +68,14 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 356,
+      "value": 360,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "6b7d573630c00475",
+        "floor_files_hash": "4ab9fbd77b7c7563",
         "runs": [
-          {
-            "sha": "1d60683b",
-            "ts": "20260813-020001",
-            "failed": 697,
-            "errors": 388,
-            "skipped": 2253,
-            "all_shards_measured": true
-          },
           {
             "sha": "263dd38f",
             "ts": "20260815-020002",
@@ -93,49 +85,50 @@
             "all_shards_measured": true
           },
           {
-            "sha": null,
+            "sha": "a6384167",
             "ts": "20260816-020001",
             "failed": 687,
             "errors": 401,
             "skipped": 2285,
             "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260817-020001",
+            "failed": 668,
+            "errors": 398,
+            "skipped": 2295,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260816-020001",
+        "computed_at": "20260817-020001",
         "intersection_of": 3
       },
       "stream": "FV"
     },
     "n_quarantine": {
       "status": "measured",
-      "value": 25,
+      "value": 252,
       "unit": "arquivos de teste",
       "direction": "down",
       "target": 0,
       "source": "convenção legacy-quarantine (@group | ->group() | skip) em tests/ + Modules/*/Tests (este script)",
       "detail": {
-        "quarantined_files": 25
+        "quarantined_files": 252
       },
       "stream": "FV"
     },
     "coverage_pct": {
       "status": "measured",
-      "value": 20.6,
+      "value": 20.5,
       "unit": "%",
       "direction": "up",
       "target": "só sobe (catraca C2)",
       "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
       "detail": {
-        "covered": 48455,
-        "total": 235616,
+        "covered": 48278,
+        "total": 235620,
         "runs": [
-          {
-            "sha": "1d60683b",
-            "ts": "20260813-020001",
-            "coverage_pct": 20.4,
-            "covered": 47999,
-            "total": 235584
-          },
           {
             "sha": "263dd38f",
             "ts": "20260815-020002",
@@ -144,14 +137,21 @@
             "total": 235617
           },
           {
-            "sha": null,
+            "sha": "a6384167",
             "ts": "20260816-020001",
             "coverage_pct": 20.6,
             "covered": 48455,
             "total": 235616
+          },
+          {
+            "sha": null,
+            "ts": "20260817-020001",
+            "coverage_pct": 20.5,
+            "covered": 48278,
+            "total": 235620
           }
         ],
-        "computed_at": "20260816-020001",
+        "computed_at": "20260817-020001",
         "measured_of": 3
       },
       "stream": "FV"

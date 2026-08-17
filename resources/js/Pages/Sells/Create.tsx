@@ -1510,7 +1510,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                       next[i] = { key: next[i]?.key ?? '', value: Number(e.target.value) };
                       setData('additional_expenses', next);
                     }}
-                    placeholder="R$ [redacted Tier 0]"
+                    placeholder="R$ 0,00"
                     className="text-sm tabular-nums"
                   />
                 </div>

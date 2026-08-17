@@ -98,3 +98,34 @@ virou "ajuste por eixo" (`G: +R$5`)
 # isentar o valor sozinho abriria a porta pra qualquer linha de qualquer arquivo.
 1 ponto a cada R$ 10 faturados
 <code>R$ 12.480</code> — sinal pelo tipo, nunca por cor sozinha
+
+# ── Forja · mock AO_VIVO do protótipo (2026-08-17) ──────────────────────────
+# O `forja-data.jsx` do espelho Cowork traz o placar de custo dos AGENTES IA
+# (Claude Cowork/Design/Code) — `custoHoje` e `custoEst` por sessão. É custo de
+# ferramenta em mock ilustrativo, não valor de cliente, faturamento, MRR ou meta:
+# encaixa no "mock/protótipo com valor ilustrativo" do cabeçalho, e NÃO no
+# "valor real de cliente" do QUANDO-NÃO-USAR.
+#
+# Por que redigir NÃO serve aqui (e por que isto não é preguiça): `cowork/` é
+# build-only e byte-idêntico ao vivo por contrato. Trocar pelo sentinela deixaria
+# o arquivo STALE PERMANENTE no `--compare` — foi exatamente esse atalho que virou
+# o remendo à mão de 2026-08-13 (11 sites), revertido neste mesmo PR.
+#
+# Âncora por CAMPO, não por linha nem por arquivo, de propósito:
+#   · não escreve nenhum valor no git — a substring termina antes do número;
+#   · sobrevive ao próximo export (o mock muda os números a cada rodada, e uma
+#     âncora de linha inteira quebraria e o ruído voltaria);
+#   · continua estreita — isenta 2 campos nomeados, não o arquivo: valor que
+#     apareça em QUALQUER outro campo deste mesmo arquivo segue disparando.
+#
+# LIMITE MEDIDO (bite por --stdin, 2026-08-17): a isenção é por SUBSTRING, então
+# `custoHoje:"R$` também isenta em OUTRO arquivo qualquer — é o desenho declarado
+# no cabeçalho deste arquivo, não um efeito colateral desta entrada. Fica escrito
+# porque quem herdar isto merece saber sem ter que descobrir:
+#   campo NOVO com valor  → rc=1  (não é cega)
+#   campo isento          → rc=0
+#   campo isento em outro arquivo → rc=0  ← o limite
+# Se um dia isso incomodar, o conserto é no MECANISMO (isenção com escopo de path),
+# não em apagar esta entrada — e aí vale pras 19 anteriores também.
+custoHoje:"R$
+custoEst:"R$
