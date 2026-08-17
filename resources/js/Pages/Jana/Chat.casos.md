@@ -130,6 +130,63 @@ passaria batido.
 
 **Pronto quando:** a resposta é 200 sem request de saída, e nenhuma das duas strings aparece no corpo.
 
+## UC-COPI-CHAT-09 — Toda tool exposta ao LLM declara a permissão que exige
+Status: 🧪 (`Modules/Jana/Tests/Feature/Chat/ChatAntiHooksAcaoTest.php` — cita o UC no título; aguarda run verde)
+
+Cada ferramenta que a Jana pode acionar declara **qual permissão ela exige**. O charter é literal:
+*"cada tool declara permission required"*.
+
+Âncora: charter §Automation Anti-hooks *"⛔ Não roda tool sem auth check do tool registry"*.
+
+⚠️ **Este UC nasce vermelho, e o vermelho é o achado.** Medido em 2026-08-17: as 5 tools do chat
+implementam `Laravel\Ai\Contracts\Tool` — que declara `description()`, `handle()` e `schema()`, e
+**nenhuma permissão**. Varredura por `permission|authorize|Gate::|->can(` em `Modules/Jana/Ai/Tools/`
+retorna **zero**. E **não existe tool registry no Jana**: as tools são lista hardcoded em
+`ChatCopilotoAgent::toolsAtivas()`. O registry com permissão que existe no projeto é o da **Forja**
+(`Modules/Forja/Services/ToolRegistry`), que o Jana não consome — e cujo contrato declara
+`isReadOnly()`, não permissão.
+
+O gate que **de fato** existe hoje é outro: a flag `copiloto.chat_tools.enabled` (default OFF) e o
+`business_id` da conversa. Os dois já têm dono — `ChatCopilotoAgentToolsTest` (R-COPI-141) — e **não
+são re-assertados aqui**; este UC cobre só o eixo que ninguém cobre.
+
+Fechar isto é decisão [W], não conserto silencioso: ou implementa permissão por tool, ou revoga a
+linha do charter. Enquanto não decidir, o vermelho é o registro honesto da distância entre a lei e o
+código.
+
+**Pronto quando:** com a flag ligada (anti-vácuo: com ela OFF são zero tools, e "todas as zero estão
+corretas" passaria sem examinar nada), as 5 tools existem **e** cada uma declara permissão não-vazia.
+
+## UC-COPI-CHAT-10 — O turno não manda PII em plain text pro sink de log
+Status: 🧪 (mesmo arquivo — cita o UC no título; aguarda run verde)
+
+Mandar uma mensagem contendo CPF **não** faz o CPF cru chegar ao sink de observabilidade. O sanitizer
+(`PiiRedactor`) roda antes.
+
+Âncora: charter §Automation Anti-hooks *"⛔ Não loga PII em plain text (sanitizer obrigatório antes de
+`jana_audit_log`)"* + LGPD.
+
+⚠️ **O oráculo do charter não existe com esse nome — foi preciso medir, não ler.** `jana_audit_log`
+**não é tabela**: é o `log_name` do Spatie ActivityLog (`JanaAuditService::register` chama
+`activity('jana_audit')`), cujo destino é `activity_log`. E o `ChatController` **não chama o
+JanaAuditService nenhuma vez** — zero ocorrência de `JanaAuditService`, `activity(` ou `Log::channel`
+no arquivo inteiro. Um teste escrito contra o nome do charter passaria **vacuamente**, medindo uma
+tabela onde o chat não escreve linha nenhuma. Guarda muda é pior que guarda ausente: parece
+cobertura.
+
+O sink que o chat **realmente** alimenta é o **Langfuse** — `ChatController:395` (`startTrace`) e
+`:550` (`endTrace`) — e é lá que este UC mede.
+
+⚠️ **Este UC também nasce vermelho.** `ChatController:401` passa `'input' => $userInput` **cru**, sem
+`PiiRedactor` no caminho; o `endTrace` faz o mesmo com o `output`. Se o teste falhar, ele achou
+**vazamento real de PII para observabilidade** — e o conserto é redigir antes de montar o payload,
+nunca afrouxar o assert.
+
+**Pronto quando:** o turno rodou de verdade (o adapter recebeu a mensagem e a mensagem `user` foi
+persistida), o sink foi acionado (senão não há payload pra examinar), o CPF da fixture é reconhecido
+pelo `PiiRedactor` (senão o contrato não está sendo exercitado) — e nenhum payload de `startTrace`
+ou `endTrace` contém o CPF cru.
+
 ---
 
 ## Inventário de cobertura — cada Goal e Anti-hook do charter, medido
@@ -168,8 +225,14 @@ passaria batido.
 
 ### §Automation Anti-hooks — o que a tela NUNCA dispara
 
-O charter diz literalmente *"Vira Pest GUARD"*. **Seis dos oito viraram em 2026-08-17** (UC-05 a UC-08); sobram DOIS sem guarda — *tool sem auth check do registry* e *PII em plain text no `jana_audit_log`*. Os dois exigem exercitar o POST de mensagem, não o GET, e por isso ficam pra leva própria. Medido: o módulo tem
-apenas `BriefDiarioChatTriggerTest.php` e `Chat/ChatTokensTurnoTest.php` — nenhum guarda estes.
+O charter diz literalmente *"Vira Pest GUARD"*. **Os oito viraram em 2026-08-17**, em duas levas: seis
+no GET (UC-05 a UC-08, `ChatAntiHooksTier0Test`) e os dois da **ação** (UC-09 e UC-10,
+`ChatAntiHooksAcaoTest`) — que não cabiam na primeira porque exigem exercitar o agente e o POST de
+mensagem, com setup próprio (dublê do `AiAdapter`, espião do `LangfuseClient`, guarda de buffer SSE).
+
+⚠️ **Placar de existência, não de saúde.** Oito guardas escritas ≠ oito contratos cumpridos: **UC-09 e
+UC-10 nascem vermelhos por medição**, e cada um é um achado aberto (tool sem permissão declarada ·
+PII crua indo pro Langfuse). Ler esta tabela como "8/8 ok" seria trocar cobertura por conformidade.
 
 | Anti-hook | Pest GUARD |
 |---|---|
@@ -179,24 +242,29 @@ apenas `BriefDiarioChatTriggerTest.php` e `Chat/ChatTokensTurnoTest.php` — nen
 | ❌ Não chama Brain B no render | 🧪 **UC-08** |
 | ❌ Não acessa thread de outro `business_id` (**Tier 0**) | 🧪 **UC-05** |
 | ❌ Não persiste credencial Brain B no client | 🧪 **UC-08** |
-| ❌ Não roda tool sem auth check do registry | ausente |
-| ❌ Não loga PII em plain text | ausente |
+| ❌ Não roda tool sem auth check do registry | 🧪 **UC-09** — nasce ❌ (não há registry nem permissão; decisão [W]) |
+| ❌ Não loga PII em plain text | 🧪 **UC-10** — nasce ❌ (`ChatController:401` manda `input` cru pro Langfuse) |
 
 ### O que este inventário quer dizer
 
-O charter tem uma seção chamada **"Métricas vivas (Pest GUARD — a escrever em F1.5)"**. O parêntese
-é literal e continua verdadeiro: **as guardas nunca foram escritas**.
+O charter tem uma seção chamada **"Métricas vivas (Pest GUARD — a escrever em F1.5)"**, com 13
+`it(...)` prometidos. **Até 2026-08-17 nenhum existia** — o parêntese era literal. Nesta data as
+**oito** do §Automation Anti-hooks passaram a existir (UC-05 a UC-10); as demais daquela lista
+(p95 de first-paint, primeiro token, auto-scroll, 1280px sem scroll horizontal) seguem sem guarda e
+dependem do desbloqueio do visreg, porque são medição de tela, não de servidor.
 
 Dois desses anti-hooks não são estética — são **Tier 0**: o de `business_id` (isolamento
 multi-tenant, [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)) e o de
-PII em plain text (LGPD). Eles estão implementados, e a ausência de guarda significa que uma
-refatoração futura pode removê-los com o CI verde.
+PII em plain text (LGPD). E aqui o inventário mudou de sentido depois de medido: a hipótese de 2026-08-17
+era que os dois *estavam implementados e só faltava a guarda*. **A guarda mostrou que não.** O de PII
+mede vermelho — `ChatController:401` manda o input cru pro Langfuse — e o de tool-permission descreve
+um controle que não existe. Escrever a guarda não travou o que já funcionava: descobriu que não
+funcionava.
 
-**Nenhum desses UCs foi escrito aqui de propósito.** UC declarado sem teste que o cite reprova o
+**Nenhum UC foi declarado aqui sem teste que o cite.** UC declarado sem teste reprova o
 G-2 ([ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md)), e
-prometer teste inexistente é pior que a ausência declarada. O caminho é escrever o Pest **primeiro**
-e o UC junto — e os dois Tier 0 são a fila de prioridade óbvia, porque não dependem do desbloqueio
-do visreg: são teste de servidor, não de tela.
+prometer teste inexistente é pior que a ausência declarada — que é por que os itens sem guarda ficam
+como `[BACKLOG]` sem id, logo abaixo, em vez de virarem UC otimista.
 
 ---
 
@@ -220,6 +288,42 @@ Registrado porque paridade não é via de mão única — apagar isto para "fica
 
 - **Busca por texto** na lista, com `normalizeSearch` (ignora acento). O protótipo não tem busca.
 - **Agrupamento fixadas + recentes**. O protótipo tem lista única.
+
+## ⚠️ Nenhuma lane do CI executa estes testes hoje — medido em 2026-08-17
+
+Achado da leva 2, e ele vale **retroativamente para a leva 1**: os UCs 05 a 08 estão marcados
+*"aguarda run verde na lane MySQL"*, mas **não existe lane que os rode**. O `🧪` deles não está
+esperando fila — está esperando uma lane que ninguém ligou.
+
+Medido, com controle positivo (a lista sqlite tem 33 entradas do Jana, então ela cobre o módulo — a
+ausência abaixo não é da lista estar vazia):
+
+| Lane | Como escolhe o que roda | Chat está? |
+|---|---|---|
+| `jana-pest.yml` (MySQL) | **allowlist de 20 arquivos** no `run:` | ❌ nenhum arquivo de `Feature/Chat/` |
+| `ci.yml` (sqlite) | lista curada `.github/ci-sqlite-pest.list` (155 entradas) | ❌ só `Telemetry/ChatStreamObservabilityTest` |
+| `jana-logica-pura-pest.yml` | lista explícita, e só `Tests/Unit/**` | ❌ (os do Chat são `Feature`) |
+
+O `phpunit.xml` registra `./Modules/Jana/Tests/Feature` como diretório — e **isso não basta**: as três
+lanes rodam por **lista de arquivos**, não por diretório. Registro não é execução (§5 2026-08-02); a
+prova é o contador da suíte, não o nome do arquivo aparecer em algum `.xml`.
+
+**Por que não foi consertado neste mesmo PR** — a allowlist do `jana-pest` tem regra escrita no
+próprio workflow: *"a lane roda só os arquivos comprovadamente verdes… cada novo teste MySQL-only é
+adicionado AQUI (ratchet up)"*. Os UC-09 e UC-10 **não são comprovadamente verdes** — a medição de
+código diz que nascem vermelhos. Pôr arquivo previsto-vermelho numa catraca compartilhada quebraria a
+lane de todo mundo, e isso é decisão de processo, não conserto de rotina.
+
+Há ainda um segundo motivo, e ele é honesto: **a previsão de vermelho é derivada de leitura de
+código, não de execução** (LC-08). Só o CI dá o veredito. Rodar no CT 100 não substituiria: o
+checkout de lá está em 2026-07-23, e mediria um `ChatController` que não é este.
+
+**Decisão [W] pendente, três caminhos:** (a) entrar na allowlist e aceitar a lane vermelha até os dois
+achados serem fechados; (b) fechar os achados primeiro — redigir a PII antes do `startTrace` e decidir
+a permissão por tool — e entrar já verde; (c) manter fora e assumir, por escrito, que os oito
+anti-hooks são contrato documentado sem execução. O que **não** é opção é deixar como está sem esta
+seção: guarda que não roda com `🧪` ao lado parece cobertura, e é a forma mais cara de mentira de
+processo que este projeto já catalogou.
 
 ## Limite honesto desta comparação
 
