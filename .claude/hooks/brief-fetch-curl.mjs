@@ -115,8 +115,16 @@ export function readAuthHeader(settingsText) {
     const s = JSON.parse(settingsText);
     const h = s && s.mcpServers && s.mcpServers.oimpresso && s.mcpServers.oimpresso.headers
       && s.mcpServers.oimpresso.headers.Authorization;
-    if (typeof h === 'string' && h.startsWith('Bearer mcp_')) return h;
-    return null;
+    if (typeof h !== 'string' || !h.startsWith('Bearer mcp_')) return null;
+    // O PLACEHOLDER do .example ("Bearer mcp_COLE_SEU_TOKEN_AQUI") satisfaz o prefixo.
+    // Sem esta linha, um settings.local.json recem-copiado do template passa por
+    // "tem token" e o hook faz chamada autenticada com o placeholder: troca o
+    // diagnostico honesto ("token ausente") por um 401 opaco. `restaurarDoCofre`
+    // (L100) ja rejeitava por `COLE_SEU`; a leitura DIRETA nao — mesma checagem
+    // faltando no caminho mais usado. Classe LC-11: o guard media a FORMA
+    // (prefixo) e nao a VALIDADE.
+    if (h.includes('COLE_SEU')) return null;
+    return h;
   } catch { return null; }
 }
 

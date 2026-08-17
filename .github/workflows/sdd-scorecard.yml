@@ -49,6 +49,8 @@ on:
       - 'scripts/tests/junit-summary.test.mjs'
       - 'scripts/tests/nightly-diff.mjs'           # guarda invalid (FV-F4 · US-GOV-045)
       - 'scripts/tests/nightly-diff.test.mjs'
+      - 'scripts/tests/junit-corpus.mjs'           # corpus LC-13 (passo 2 do Gate: do LC-13)
+      - 'scripts/tests/junit-corpus.test.mjs'
       - '.github/workflows/sdd-scorecard.yml'
   schedule:
     - cron: '50 9 * * *' # 06:50 BRT diário (pós-nightly)
@@ -103,6 +105,15 @@ jobs:
 
       - name: Guarda invalid — nightly-diff (hard · FV-F4 · US-GOV-045)
         run: node scripts/tests/nightly-diff.test.mjs
+
+      - name: Corpus LC-13 — denominador so-executadas + taxa null honesta (hard)
+        # Prova as duas RECUSAS de desenho do agregador: (a) lane NAO-EXECUTADA fica
+        # fora do denominador — incluí-la diluiria a taxa com o caso mais comum do repo
+        # (skip-as-pass) e mediria a colheita em vez da suíte; (b) dir vazio sai exit 1,
+        # nunca "0 candidatos" — corpus não medido saindo verde seria o próprio LC-13
+        # um nível acima. Se alguém afrouxar qualquer uma, o número que vai decidir o
+        # armamento do `--check-assertions` (passo 3) nasce mentindo.
+        run: node scripts/tests/junit-corpus.test.mjs
 
       - name: Read-side do coverage — meta-teste (hard · SDD P07 · ADR 0275 §2)
         # Counterfactual P07: prova que measureCoverage() NÃO mente 0 com arquivo

@@ -35,6 +35,18 @@ const noLeak = (label, s) => check(`SEM VAZAMENTO de token: ${label}`, !String(s
 check('readAuthHeader lê token válido', readAuthHeader(SETTINGS_OK) === TOKEN);
 check('readAuthHeader rejeita prefixo errado', readAuthHeader(JSON.stringify({ mcpServers: { oimpresso: { headers: { Authorization: 'Bearer abc' } } } })) === null);
 check('readAuthHeader rejeita ausente', readAuthHeader(JSON.stringify({ mcpServers: {} })) === null);
+// FIXTURE RUIM — o placeholder LITERAL do .claude/settings.local.json.example.
+// Ele satisfaz `startsWith("Bearer mcp_")`, entao passava por "tem token" e o hook
+// tentava HTTP autenticado com o placeholder (401 opaco em vez de "token ausente").
+check('readAuthHeader rejeita o PLACEHOLDER do .example (forma valida, valor invalido)',
+  readAuthHeader(JSON.stringify({ mcpServers: { oimpresso: { headers: { Authorization: 'Bearer mcp_COLE_SEU_TOKEN_AQUI' } } } })) === null);
+// CONTROLE POSITIVO — token real nao pode ser confundido com placeholder: o mesmo
+// prefixo, sem a marca. Sem este assert, "rejeitar tudo" passaria o teste acima.
+// O valor e' hifenizado e auto-rotulado DE PROPOSITO: um literal opaco tipo
+// `mcp_<alfanumerico longo>` acionaria o gitleaks (required) por parecer segredo.
+const FIXTURE_OK = 'Bearer mcp_fixture-de-teste-nao-e-um-token';
+check('CONTROLE POSITIVO: token com forma valida (mesmo prefixo, sem a marca) segue ACEITO',
+  readAuthHeader(JSON.stringify({ mcpServers: { oimpresso: { headers: { Authorization: FIXTURE_OK } } } })) === FIXTURE_OK);
 check('readAuthHeader rejeita JSON inválido (sem throw)', readAuthHeader('{lixo') === null);
 
 // ── buildBody ──

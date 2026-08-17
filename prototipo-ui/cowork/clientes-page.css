@@ -1241,3 +1241,113 @@
 [data-theme="dark"] .cli-status-ferias{ background: oklch(0.275 0.050 60); color: oklch(0.84 0.130 60); border-color: oklch(0.40 0.080 60); }
 [data-theme="dark"] .cli-status-afastado{ background: oklch(0.275 0.050 25); color: oklch(0.84 0.130 25); border-color: oklch(0.40 0.070 25); }
 [data-theme="dark"] .cli-status-ociosa{ background: oklch(0.275 0.050 250); color: oklch(0.84 0.060 250); }
+
+/* ─── Onda paridade Cliente: KPI-filtro · tags canônicas · status · cursor · skeleton · atalhos ─── */
+.cli-kpihero-on{ border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.cli-kpihero-on .cli-kpihero-l{ color: var(--accent); }
+.cli-fdrop-menu-tall{ max-height: 264px; overflow-y: auto; }
+.cli-fdrop-box{ width: 12px; height: 12px; flex: 0 0 12px; border-radius: 3px; border: 1px solid var(--border); background: var(--surface); }
+.cli-fdrop-box.on{ background: var(--accent); border-color: var(--accent); }
+.cli-tag-varejo{ background: oklch(0.94 0.04 200); color: oklch(0.45 0.10 230); }
+.cli-tag-atacado{ background: oklch(0.94 0.05 145); color: oklch(0.42 0.10 150); }
+.cli-tag-corporativo{ background: oklch(0.93 0.05 265); color: oklch(0.42 0.12 265); }
+.cli-tag-evento{ background: oklch(0.94 0.06 60); color: oklch(0.45 0.12 60); }
+.cli-tag-parceiro{ background: oklch(0.93 0.06 290); color: oklch(0.42 0.12 290); }
+.cli-tag-agencia{ background: oklch(0.94 0.05 320); color: oklch(0.44 0.12 320); }
+.cli-tag-governo{ background: oklch(0.93 0.02 250); color: oklch(0.40 0.04 250); }
+.cli-tag-reincidente{ background: oklch(0.94 0.05 25); color: oklch(0.45 0.12 25); }
+/* Badge do status do CADASTRO na lista de Clientes — nome próprio pra não
+   colidir com .cli-status-pill (usado por Funcionários/Representantes). */
+.cli-cadastro-status{ font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+.cli-cadastro-status--inativo{ background: oklch(0.93 0.005 90); color: oklch(0.44 0.01 90); }
+.cli-cadastro-status--bloqueado{ background: oklch(0.94 0.05 25); color: oklch(0.45 0.14 25); }
+.cli-row-cursor > td{ background: color-mix(in oklch, var(--accent) 8%, transparent); }
+.cli-row-cursor > td:first-child{ box-shadow: inset 2px 0 0 var(--accent); }
+.cli-row-skel > td{ padding: 10px 12px; }
+.cli-skel{ display: block; height: 14px; border-radius: 5px; background: linear-gradient(90deg, var(--bg-2) 0%, var(--surface) 40%, var(--bg-2) 80%); background-size: 300% 100%; animation: cli-shimmer 1.3s linear infinite; }
+@keyframes cli-shimmer{ from{ background-position: 120% 0 } to{ background-position: -120% 0 } }
+.cli-empty-a{ background: none; border: 0; padding: 0; font: inherit; color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.cli-ajuda-scrim{ position: fixed; inset: 0; z-index: 80; background: oklch(0.2 0.02 280 / 0.32); display: grid; place-items: center; }
+.cli-ajuda{ background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; min-width: 320px; box-shadow: 0 18px 44px -18px oklch(0.2 0.03 280 / 0.5); }
+.cli-ajuda > b{ display: block; font-size: 12.5px; margin-bottom: 10px; }
+.cli-ajuda dl{ margin: 0; display: grid; gap: 7px; }
+.cli-ajuda dl > div{ display: grid; grid-template-columns: 96px 1fr; align-items: center; gap: 10px; }
+.cli-ajuda dt, .cli-ajuda dd{ margin: 0; font-size: 12px; }
+.cli-ajuda dd{ color: var(--text-dim); }
+.cli-ajuda kbd{ font-family: var(--font-mono); font-size: 10.5px; padding: 1px 5px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-2); }
+[data-theme="dark"] .cli-cadastro-status--inativo{ background: oklch(0.275 0.005 90); color: oklch(0.84 0.010 90); }
+[data-theme="dark"] .cli-cadastro-status--bloqueado{ background: oklch(0.275 0.060 25); color: oklch(0.84 0.130 25); }
+[data-theme="dark"] .cli-tag-varejo{ background: oklch(0.275 0.050 200); color: oklch(0.84 0.100 230); }
+[data-theme="dark"] .cli-tag-atacado{ background: oklch(0.275 0.050 145); color: oklch(0.84 0.100 150); }
+[data-theme="dark"] .cli-tag-corporativo{ background: oklch(0.275 0.055 265); color: oklch(0.84 0.110 265); }
+[data-theme="dark"] .cli-tag-evento{ background: oklch(0.275 0.055 60); color: oklch(0.84 0.110 60); }
+[data-theme="dark"] .cli-tag-parceiro{ background: oklch(0.275 0.060 290); color: oklch(0.84 0.120 290); }
+[data-theme="dark"] .cli-tag-agencia{ background: oklch(0.275 0.055 320); color: oklch(0.84 0.110 320); }
+[data-theme="dark"] .cli-tag-governo{ background: oklch(0.275 0.020 250); color: oklch(0.80 0.030 250); }
+[data-theme="dark"] .cli-tag-reincidente{ background: oklch(0.275 0.050 25); color: oklch(0.84 0.120 25); }
+
+/* Toast de ação com desfazer (ativar/desativar cadastro) */
+.cli-toast{ position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 90; display: flex; align-items: center; gap: 14px; padding: 10px 12px 10px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); box-shadow: 0 14px 36px -14px oklch(0.2 0.03 280 / 0.45); font-size: 12.5px; max-width: min(92vw, 620px); }
+.cli-toast > span{ color: var(--text); }
+.cli-toast button{ background: none; border: 0; font: inherit; color: var(--accent); cursor: pointer; font-weight: 600; padding: 2px 4px; }
+.cli-toast .cli-toast-x{ color: var(--text-mute); font-weight: 400; }
+
+/* Crédito do cliente — saldo a favor */
+.cli-saldo-pos{ color: var(--pos, oklch(0.52 0.13 150)); font-weight: 600; }
+.cli-saldo-dupla{ display: inline-flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+.cli-saldo-pos-sub{ font-size: 10.5px; color: var(--pos, oklch(0.52 0.13 150)); }
+.cli-modal-scrim{ position: fixed; inset: 0; z-index: 95; background: oklch(0.2 0.02 280 / 0.34); display: grid; place-items: center; }
+.cli-modal{ width: min(94vw, 520px); background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 22px 54px -20px oklch(0.2 0.03 280 / 0.5); overflow: hidden; }
+.cli-modal > header{ display: flex; flex-direction: column; gap: 2px; padding: 16px 18px 12px; border-bottom: 1px solid var(--border); }
+.cli-modal > header b{ font-size: 14px; }
+.cli-modal > header span{ font-size: 12px; color: var(--text-dim); }
+.cli-modal-body{ padding: 16px 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.cli-modal-f{ display: flex; flex-direction: column; gap: 5px; }
+.cli-modal-f-full{ grid-column: 1 / -1; }
+.cli-modal-f > span{ font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); }
+.cli-modal-in{ width: 100%; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; font-size: 12.5px; }
+.cli-modal-nota{ grid-column: 1 / -1; margin: 0; font-size: 11.5px; line-height: 1.5; color: var(--text-dim); }
+.cli-modal > footer{ display: flex; justify-content: flex-end; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--border); background: var(--bg-2); }
+
+/* Cabeçalho ordenável */
+.cli-th-sort{ padding: 0 !important; }
+.cli-th-sort button{ display: inline-flex; align-items: center; gap: 5px; width: 100%; padding: 8px 12px; background: none; border: 0; font: inherit; font-size: inherit; font-weight: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; text-align: inherit; cursor: pointer; }
+.cli-th-sort.num button{ justify-content: flex-end; }
+.cli-th-ic{ font-size: 10px; color: var(--text-mute); }
+.cli-th-sort.on button{ color: var(--text); }
+.cli-th-sort.on .cli-th-ic{ color: var(--accent); }
+/* Rodapé de paginação */
+/* Calha de 24px: o .os-page tem padding 0 e cada bloco filho é dono da sua
+   (mesma convenção de .os-page-h e .os-table-wrap). */
+.cli-pag{ display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-top: 12px; padding: 0 24px 20px; font-size: 11.5px; color: var(--text-dim); }
+.cli-pag-l{ display: flex; align-items: center; gap: 10px; }
+.cli-pag-atalhos{ display: inline-flex; align-items: center; gap: 5px; background: none; border: 0; font: inherit; font-size: 11.5px; color: var(--text-dim); cursor: pointer; padding: 3px 6px; border-radius: 6px; }
+.cli-pag-atalhos:hover{ background: var(--bg-2); color: var(--text); }
+.cli-pag-atalhos kbd{ font-family: var(--font-mono); font-size: 10px; padding: 1px 4px; border-radius: 4px; border: 1px solid var(--border); }
+.cli-pag-r{ display: flex; align-items: center; gap: 14px; }
+.cli-pag-pp{ display: inline-flex; align-items: center; gap: 6px; }
+.cli-pag-pp select{ padding: 3px 6px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; font-size: 11.5px; }
+.cli-pag-nav{ display: flex; align-items: center; gap: 3px; }
+.cli-pag-nav button{ min-width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; cursor: pointer; }
+.cli-pag-nav button:disabled{ opacity: 0.4; cursor: default; }
+.cli-pag-nav span{ padding: 0 8px; color: var(--text); }
+.cli-pag-nav em{ font-style: normal; color: var(--text-mute); }
+/* Menu ⋮ com grupos */
+.cli-kebab-group{ padding: 7px 10px 3px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-mute); font-weight: 600; }
+/* Header */
+.cli-h-danger{ color: var(--neg); font-weight: 600; }
+/* Aba Outros — estado zero */
+.cli-outros-vazio{ display: flex; flex-direction: column; gap: 6px; padding: 44px 24px; text-align: center; color: var(--text-dim); }
+.cli-outros-vazio b{ font-size: 14px; color: var(--text); }
+.cli-outros-vazio span{ font-size: 12.5px; max-width: 52ch; margin: 0 auto; line-height: 1.55; }
+/* Confirmação destrutiva */
+.cli-modal-sm{ width: min(94vw, 460px); }
+.cli-modal-body-1col{ grid-template-columns: 1fr; }
+.os-btn.danger{ background: var(--neg); border-color: var(--neg); color: var(--neg-fg, var(--surface)); }
+
+.cli-kebab-menu button.off{ opacity: 0.45; cursor: default; }
+.cli-kebab-menu button.off:hover{ background: none; }
+
+.cli-sem-doc{ font-size: 11px; color: var(--text-mute); font-style: italic; }
+
+.cli-papel-extra{ margin-left: 6px; font-size: 10px; padding: 1px 6px; border-radius: 999px; background: color-mix(in oklch, var(--accent) 10%, transparent); color: var(--accent); font-weight: 600; }

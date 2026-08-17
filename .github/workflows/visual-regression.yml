@@ -224,6 +224,13 @@ jobs:
           # (provado por screenshot do artifact #2320) → fica fora do gate. Com o flag,
           # renderiza a Page Inertia canônica de Clientes — que é o que o gate deve proteger.
           MWART_CLIENTE_INDEX=true
+          # VISREG_FREEZE_CLOCK: congela `new Date()`/`Date.now()` DO NAVEGADOR no mesmo
+          # instante que as suítes passam pro Carbon::setTestNow (PixelBaselineTest:78 e
+          # irmãs). Sem isso, tela que renderiza "agora" no browser (JanaAreaHeader.tsx:80,
+          # JanaCockpit.tsx:356 e :107) fazia a baseline drifar POR MINUTO — o setTestNow
+          # só congelava o relógio do PHP. Injetado por layouts/inertia.blade.php, guardado
+          # por config/visreg.php + isProduction. Aspas: o valor tem espaço.
+          VISREG_FREEZE_CLOCK="2026-06-11 12:00:00"
           EOF
           php artisan key:generate --force
           php artisan package:discover --ansi
@@ -447,6 +454,22 @@ jobs:
         # (browser/socket/timeout), NUNCA em regressão de pixel (double-threshold é veredito
         # duro). O motor VisregThreshold segue intocado.
         run: bash scripts/tests/visreg-flake-retry.sh tests/Browser/CoreScreens/SellsCreateFlowBaselineTest.php
+
+      # ── MODO UPDATE (dispatch): PROVA o relógio congelado ANTES de assar baseline ──
+      # Ordem é o ponto: se o shim de VISREG_FREEZE_CLOCK estiver quebrado, a baseline
+      # nasceria com o relógio VIVO e voltaria a drifar por minuto — que é exatamente o
+      # defeito que ele conserta. Este bite-test roda em Chromium real e prova 4 pernas:
+      # controle-negativo (sem shim as capturas DIFEREM), libera (com shim ficam idênticas
+      # após >1min de separação real), morde (regressão de pixel proposital AINDA difere)
+      # e semântica (`new Date(x)` com argumento segue real, instanceof intacto).
+      #
+      # Só no dispatch de propósito: é o momento em que as baselines são ASSADAS, e ali o
+      # job pula toda a bateria Pest (`!= workflow_dispatch`), então os ~90s de espera —
+      # que são o próprio instrumento, não overhead — saem de graça. Em PR o consumidor
+      # do shim é o gate em si.
+      - name: Bite-test do relógio congelado (pré-condição do update)
+        if: github.event_name == 'workflow_dispatch'
+        run: node scripts/tests/visreg-clock-bite.mjs
 
       # ── MODO UPDATE (dispatch): regenera as baselines e abre PR ─────────────────
       - name: Regenerar baselines (pixel + estados + fluxos) — modo update

@@ -96,6 +96,48 @@ jobs:
           done < /tmp/lanes.txt
           echo "--- XMLs colhidos ---"; ls -1 test-results/ 2>/dev/null || echo "(nenhum)"
 
+      # ── CORPUS LC-13 (passo 2 do plano escrito no campo `Gate:` do LC-13) ──────────
+      # SEGUNDA LEITURA da colheita acima — nenhuma coleta nova, nenhum workflow novo.
+      # O passo (1) do plano ("ligar o report nas lanes pra CRIAR o corpus") fechou; o (2)
+      # é medir a distribuição, e é isto. O (3) — armar o `--check-assertions` do
+      # junit-summary — é decisão [W] COM o número na mão, nunca antes dele.
+      #
+      # Por que aqui e não num workflow próprio: este job já baixa o JUnit das lanes
+      # derivadas (junit-lanes.mjs) com `actions: read`. Abrir um coletor paralelo seria
+      # LC-19 (máquina paralela a tema com dono) e acionaria o Check M (ADR 0298) à toa.
+      #
+      # O que ele NÃO faz: não reprova nada e não decide nada. Report-only por construção.
+      #
+      # Por que WARN e não FAIL quando não mede: este step é HÓSPEDE de um job cujo
+      # contrato é publicar o manifesto por-UC. A política do anfitrião pra colheita vazia
+      # já é warn (o coletor não sobrescreve o manifesto e segue). Derrubar o job por uma
+      # medição minha mudaria o contrato dele. O `rc` é LIDO e ramificado explicitamente —
+      # não é `|| true`: a diferença entre "medi e deu 0" e "não consegui medir" fica
+      # visível no log e no summary, que é o que o §5 2026-07-29 exige.
+      - name: Corpus LC-13 — distribuicao de assertions por lane (report-only)
+        if: ${{ !cancelled() }}
+        run: |
+          mkdir -p /tmp/lc13-summaries
+          n=0
+          for xml in test-results/*.xml; do
+            [ -e "$xml" ] || continue          # glob sem match fica literal; este guard mata isso
+            lane="$(basename "$xml" .xml)"
+            # o dono faz o parse; eu só consumo o JSON dele (nada de 2º parser pra drifar)
+            node scripts/tests/junit-summary.mjs "$xml" --out "/tmp/lc13-summaries/$lane.json" >/dev/null 2>&1 || true
+            n=$((n+1))
+          done
+          echo "XMLs processados: $n"
+          set +e
+          node scripts/tests/junit-corpus.mjs --dir /tmp/lc13-summaries | tee /tmp/lc13.txt
+          rc=${PIPESTATUS[0]}
+          set -e
+          if [ "$rc" -ne 0 ]; then
+            echo "::warning::corpus LC-13 NAO medido hoje (colheita vazia) — nenhum numero publicado; isto nao e '0 candidatos'"
+            { echo '## Corpus LC-13'; echo '> NAO medido hoje (colheita vazia). Ausencia de medicao, nao ausencia de candidato.'; } >> "$GITHUB_STEP_SUMMARY"
+          else
+            { echo '## Corpus LC-13 — distribuicao de assertions por lane'; echo '```'; cat /tmp/lc13.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Coletar veredito por UC (merge per-UC — lane pulada preserva o veredito anterior)
         # SEGURANÇA do coletor: se NENHUM relatório for encontrado, ele NÃO sobrescreve o
         # manifesto (não zera o painel num dia de artifact expirado).

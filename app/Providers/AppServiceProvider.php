@@ -36,6 +36,37 @@ class AppServiceProvider extends ServiceProvider
         ini_set('memory_limit', '-1');
         set_time_limit(0);
 
+        /*
+         * VISREG — congela o relógio do PHP DO PROCESSO QUE SERVE O REQUEST.
+         *
+         * As suítes de baseline chamam `Carbon::setTestNow('2026-06-11 12:00:00')` no
+         * beforeEach, mas isso NÃO alcança quem renderiza a tela: o test process e o
+         * servidor do Pest Browser são PROCESSOS SEPARADOS — o próprio
+         * IsolatedStatesBaselineTest.php:59-61 registra isso ("o browser (subprocesso)
+         * usa MySQL […] mas o test process usa sqlite :memory:"). Por isso a baseline
+         * saía com um mês e o run com outro, e nenhum dos dois era Junho.
+         *
+         * Aqui a ponta do servidor é fechada: no boot, antes de qualquer controller,
+         * o `now()`/`Carbon::now()` do processo que responde o request passa a devolver
+         * o MESMO instante que o browser recebe via resources/visreg/freeze-clock.js.
+         * Fecha casos server-side como o header de período do Financeiro
+         * (Modules/Financeiro/Http/Controllers/UnificadoController.php:300 —
+         * `$start->locale('pt_BR')->isoFormat('MMMM YYYY')` → "Agosto 2026").
+         *
+         * GUARDA dupla (igual VisregStateMiddleware + o Blade): nunca em produção e só
+         * com a env VISREG_FREEZE_CLOCK, que só existe no .env do job visual-regression.
+         *
+         * ⚠️ ALCANCE: `setTestNow` governa `now()`, `Carbon::now()` e o facade `Date`.
+         * NÃO governa `time()`, `date()`, `new DateTime()` nem `NOW()` do MySQL — se um
+         * caso desses aparecer numa baseline, o sintoma volta e este comentário é o
+         * ponteiro.
+         */
+        $visregFreeze = config('visreg.freeze_clock');
+
+        if (! $this->app->isProduction() && is_string($visregFreeze) && $visregFreeze !== '') {
+            \Illuminate\Support\Carbon::setTestNow($visregFreeze);
+        }
+
         if (config('app.debug')) {
             error_reporting(E_ALL & ~E_USER_DEPRECATED);
         } else {

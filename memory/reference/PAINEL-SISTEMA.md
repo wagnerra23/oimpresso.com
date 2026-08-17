@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-16**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-17**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -26,7 +26,7 @@ lente: [construir]
 | AssetManagement | [BRIEFING](../requisitos/AssetManagement/BRIEFING.md) | 2026-07-23 |
 | Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-07-23 |
 | Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-07-23 |
-| Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-07-27 |
+| Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-08-16 |
 | ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-08-12 |
 | Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-08-03 |
 | ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-08-12 |
@@ -40,7 +40,7 @@ lente: [construir]
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
 | Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-07-23 |
 | NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-07-28 |
-| NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-08-01 |
+| NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-08-16 |
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
 | OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-07-27 |
 | PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-07-23 |
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **343**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **356**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -150,7 +150,7 @@ lente: [construir]
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 124 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 125 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -277,6 +277,7 @@ lente: [construir]
 - ~~2026-08-14 — Remendar o espelho de design À MÃO pra escapar do teto de fidelidade do `get_file`~~
 - ~~2026-08-15 — Explicar um diff de baseline visual por DEDUÇÃO em vez de decodificar os dois lados (5 hipóteses, 5 derrubadas)~~
 - ~~2026-08-15 — Culpar o PR das fontes (`#5806`) pelo ruído de rasterização~~
+- ~~2026-08-16 — Restringir a extração de recibo à convenção `§5:` PURA pra zerar os "recibos pendurados" (medido: cega metade dos recibos legítimos)~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -287,14 +288,14 @@ lente: [construir]
 
 ## Rastro
 
-- **455** handoffs · **627** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **456** handoffs · **628** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-08-16-trilha-d-d0-placar-medido-e-a-celula-que-e-maquina`
   - `2026-08-15-espelho-jana-baixar-nao-e-converter`
   - `2026-08-14-censo-redacao-brl-em-codigo`
   - `2026-08-13-jana-dark-ancora-defeituosa`
   - `2026-08-13-espelho-cowork-medir-vs-consertar`
   - `2026-08-13-ancora-jana-consertada-e-o-p2-que-nao-era`
-  - `2026-08-12-sec5-derivado-e-o-indice-que-conflita`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-16 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-17 · deriva das fontes canônicas, não as substitui._

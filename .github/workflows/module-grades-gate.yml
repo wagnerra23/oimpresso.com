@@ -404,7 +404,7 @@ jobs:
             // regra). Medido no PR #5686: este gate sozinho postou 15 comentários (12 verdes
             // IDÊNTICOS), cada um disparando notificação para um gate que estava passando.
             const MARCADOR = '<!-- module-grades-gate -->';
-            const body = `${MARCADOR}\n## ${title}\n\n${intro}\n${unlockedBlock}\n\n${report}\n\n---\n_Ver [ADR 0155 — rubrica module-grade v3](/memory/decisions/0155-rubrica-module-grade-v3.md)._`;
+            const body = `${MARCADOR}\n## ${title}\n\n${intro}\n${unlockedBlock}\n\n${report}\n\n---\n_Ver [ADR 0155 — rubrica module-grade v3](/memory/decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md)._`;
 
             const existentes = await github.paginate(github.rest.issues.listComments, {
               issue_number: context.issue.number,
