@@ -15,21 +15,18 @@ last_run: "2026-08-17"
 > do `Index.tsx`. Derivar do código seria tautológico (§5 2026-06-05): passaria verde mesmo com o
 > comportamento errado.
 >
-> ⚠️ **A âncora de design desta tela tem um trecho ENVENENADO.** O `related_prototype` é
+> ⚠️ **O que a âncora diz sobre FONTE de dado continua não valendo.** O `related_prototype` é
 > `prototipo-ui/cowork/jana-merge.jsx` (resolva sempre por `node prototipo-ui/ancora.mjs Jana/Index`,
-> nunca no olho). As regras **visuais** dele valem; o que ele diz sobre **dado e fonte** não:
-> ele renderiza o KPI `Frota utilização` e `caçambas` — domínio erradicado pela
-> [ADR 0265](../../../../memory/decisions/0265-oficina-reparo-erradica-locacao.md), vetado por [W] 2× —
-> e cita 6 `Analise*Service` que **não existem** no repo (a fonte real é
-> `app/Services/Sells/SellsCockpitAggregator.php`). O `dominio-gate` **não pega** — `prototipo-ui/`
-> não está em `forbidden_ui_paths` (`memory/dominio/oficina-auto.md:51-55`). Quem derivar da âncora
-> sem ler o §Non-Goals do charter reintroduz a locação, e o CI deixa passar.
+> nunca no olho). Ele cita 6 `Analise*Service` que **não existem** no repo — a fonte real é
+> `app/Services/Sells/SellsCockpitAggregator.php`. Isso é o §Anti-hooks do charter *"não citar no
+> drawer fonte/serviço que não existe"*, e segue valendo: nome fictício num drawer chamado "de onde
+> vem esse número" é mentira com selo de autoridade.
 >
-> _Nota de atribuição (2026-08-17): a linha `Locadas` e a legenda "91 caçambas avulsas" nascem no
-> `chat-jana.jsx`, **não** no `jana-merge.jsx` — a §Non-Goals do charter v6 já registrava isso, e
-> uma medição de 13/08 as atribuiu à âncora por engano. O `frota`/`caçamba` que ESTÁ no
-> `jana-merge.jsx` é real (medido 2026-08-17: `frota` 6+2, `caçamba` 4+3); a conclusão não muda,
-> só a atribuição por arquivo._
+> _**Frota deixou de ser proibida** — [W] removeu o Non-Goal no charter v7 (#5867), textual:
+> "frota e caçambas locações remova do charter". O UC que travava isso **saiu deste arquivo** na
+> mesma leva. As regras visuais da âncora sempre valeram; agora o domínio dela também não é mais
+> exceção. Sem obstáculo de máquina: o `dominio-gate` nunca varreu `Pages/Jana` — seus
+> `forbidden_ui_paths` são três, todos de `OficinaAuto`._
 
 ## UC-COPI-PAINEL-01 — A rota `/ia` abre o Painel (200 + componente)
 Status: 🧪 (`Modules/Jana/Tests/Feature/PainelContratoTest.php` — cita o UC; aguarda run verde na lane MySQL)
@@ -133,20 +130,6 @@ As 5 âncoras `data-contract` existem no `Index.tsx` e a ordem declarada
 
 **Pronto quando:** `npm run contrato:check -- prototipo-ui/contrato/jana-painel.contract.json` sai 0.
 
-## UC-COPI-PAINEL-10 — A análise "Frota" não existe NESTA tela
-Status: 🧪 (`PainelContratoTest` — varre `Pages/Jana/**/*.tsx` pulando comentário; aguarda run verde)
-
-O Painel do **núcleo** (ROTA LIVRE, vestuário) não constrói a análise Frota do protótipo. Este caso
-existe porque o `dominio-gate` **não varre** paths da Jana — sem ele, nada defende o Non-Goal.
-
-⚠️ O Non-Goal governa **a tela**, não o retrato da âncora: o `jana-merge.jsx` desenha o cockpit do
-Martinho (`biz=164`), onde frota É o negócio, e **podar a fonte de design é proibido** (decisão [W]
-2026-08-13 + §5 do mesmo dia).
-
-**Pronto quando:** `git grep -niE "frota|ca[çc]amba|locad" -- resources/js/Pages/Jana Modules/Jana`
-não retorna código de UI.
-
----
 
 ## Nota do conserto do UC-COPI-PAINEL-08 (2026-08-17)
 

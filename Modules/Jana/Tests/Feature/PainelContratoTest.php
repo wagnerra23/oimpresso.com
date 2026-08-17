@@ -235,32 +235,3 @@ it('UC-COPI-PAINEL-09: as 5 âncoras data-contract existem e a ordem do contrato
     expect($declarada)->toBe($ordenada);
 });
 
-/**
- * UC-COPI-PAINEL-10 — a análise "Frota" não existe NESTA tela.
- * O `dominio-gate` não varre paths da Jana (seus `forbidden_ui_paths` são só
- * `Pages/OficinaAuto` + as 2 pastas de DB dele) — sem este caso, nada defende.
- * Escopo: código de UI. Prosa de charter e comentário que DOCUMENTAM a decisão
- * ficam de fora de propósito — proibir falar da regra proíbe registrar a regra.
- */
-it('UC-COPI-PAINEL-10: nenhum termo de locação/frota em código de UI da Jana', function () {
-    $arquivos = array_merge(
-        glob(base_path('resources/js/Pages/Jana/*.tsx')) ?: [],
-        glob(base_path('resources/js/Pages/Jana/**/*.tsx')) ?: [],
-    );
-
-    expect($arquivos)->not->toBeEmpty('glob não achou .tsx — a varredura não mediu nada');
-
-    foreach ($arquivos as $arq) {
-        $linhas = file($arq, FILE_IGNORE_NEW_LINES);
-
-        foreach ($linhas as $i => $linha) {
-            if (preg_match('#^\s*(//|\*|/\*)#', $linha)) {
-                continue; // comentário que documenta a decisão não é UI
-            }
-
-            expect(mb_strtolower($linha))
-                ->not->toMatch('/\b(locada|locadas|locacao|locação|caçamba|cacamba)\b/u',
-                    basename($arq).':'.($i + 1).' reintroduz domínio erradicado (ADR 0265)');
-        }
-    }
-});

@@ -5,7 +5,7 @@ component: resources/js/Pages/Jana/Index.tsx
 related_prototype: prototipo-ui/cowork/jana-merge.jsx
 owner: wagner
 status: live
-last_validated: "2026-08-13"
+last_validated: "2026-08-17"
 parent_module: Jana
 parent_adr: memory/decisions/0052-memoria-jana-3-angulos-faturamento.md
 related_adrs: [26, 31, 35, 36, 52, 93, 94, 107, 114]
@@ -60,32 +60,6 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 - ⛔ Edição inline de meta (vai em `/copiloto/metas/{id}/edit` — US-COPI-013)
 - ⛔ Criação de meta (vai em chat US-COPI-004 ou wizard US-COPI-012)
 - ⛔ Comparativo entre business (superadmin tem `/copiloto/admin/governanca`)
-- ⛔ **Análise "Frota" do protótipo** — decisão [W] 2026-08-07: **não construir**. Dois motivos
-  independentes, cada um suficiente: (a) o card do protótipo rotula `Locadas` / `caçambas`, e
-  `memory/dominio/oficina-auto.md` declara `forbidden_ui_terms: ["locacao","cacamba"]` (match sem
-  acento/caixa) enforçado pelo `dominio-gate` **required** — construir literal reprova no CI e
-  reintroduz a locação erradicada pela [ADR 0265](../../../../memory/decisions/0265-oficina-reparo-erradica-locacao.md);
-  (b) a fonte (`Modules/OficinaAuto/Entities/Vehicle`) é OficinaAuto — Martinho biz=164 —, não
-  faz sentido pra ROTA LIVRE (vestuário). Reabrir exige decisão [W] nova.
-  _⚠️ **O Non-Goal governa a TELA, não o que a ÂNCORA retrata — decisão [W] 2026-08-13.** Neste dia
-  o agente removeu Frota/caçamba do `jana-merge.jsx` (meta, drill `truck`, toggle, `cfg`, textos),
-  lendo este Non-Goal como se ele proibisse o protótipo de **mostrar**. [W] corrigiu na mesma
-  sessão, com a captura do Cowork vivo na mão: **"essa é a âncora correta do protótipo"**. O
-  protótipo retrata o cockpit do **Martinho (`biz=164`)**, onde frota É o negócio — e a emenda §5 de
-  2026-08-11 já tinha fixado que âncora errada se prova **estruturalmente** (desenha outra tela?),
-  não pelo vocabulário nem pelo carimbo de tenant. O `jana-merge.jsx` desenha o Painel: é a âncora
-  certa. **A remoção foi revertida**; agravante registrado: o agente trocou domínio real por
-  "Conversão de orçamentos", que ele **inventou** — anti-padrão inventado na fonte de design parece
-  canon e a próxima sessão obedece (§5 2026-07-16)._
-
-  _O que **continua valendo**: não construir a análise Frota **na tela** `/ia` do núcleo (ROTA LIVRE,
-  vestuário). A defesa é este Non-Goal + o `dominio-gate` nos paths de **tela** — não podar a fonte
-  de design. O `dominio-gate` não varre `prototipo-ui/` (seus `forbidden_ui_paths` são
-  `Pages/OficinaAuto` e `OficinaAuto/Database/{Seeders,Migrations}`), e **está certo em não varrer**:
-  ampliar pra protótipo reprovaria o retrato legítimo do cliente. Nota de precisão: a linha
-  `Locadas`, a legenda "91 caçambas avulsas" e o KPI "FROTA UTILIZAÇÃO" **não vivem no
-  `jana-merge.jsx`** — nascem em `prototipo-ui/cowork/chat-jana.jsx` (`:137`, `:129`, `:91`); a
-  medição de 2026-08-13 os atribuiu à âncora por engano._
 
 ## UX targets
 
@@ -112,18 +86,15 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   "de onde vem esse número" — nome fictício ali é mentira com selo de autoridade. Até
   **2026-08-13** o protótipo listava `AnaliseInadimplenciaService`/`AnaliseFaturamentoService`/etc,
   e **nenhuma das seis existia** (medido 2026-08-07 e re-medido 2026-08-13:
-  `git grep -E '(class|interface) Analise[A-Za-z]*Service'` → rc=1).
-  ⚠️ **AINDA VIOLADO — medido 2026-08-17.** O v6 abaixo declarou este defeito consertado; **não
-  está**, nem no espelho nem no Cowork vivo. Contadores em `jana-merge.jsx`, os dois lados:
-  `SellsCockpitAggregator` **0** · `JANA_DRILL_FONTES` **0** · `Analise*Service` **6**
-  (vivo lido por `DesignSync.get_file`, `truncated:false`, 47.810 b). O `ancora.mjs --selftest`
-  reprova por isso (`BITE real: zero fantasma na âncora da Jana`) e ele roda no CI
-  (`design-memory-gate.yml:250`). O conserto tem que nascer no **Cowork vivo** (a escrita
-  `DesignSync` é gateada, ADR 0315) e descer por `--export-from` — editar o espelho à mão é o
-  que o [#5854](https://github.com/wagnerra23/oimpresso.com/pull/5854) puniu.
-  A fonte real segue sendo o código real
-  (`app/Services/Sells/SellsCockpitAggregator.php`). Mexeu no aggregator, mexe no
-  `JANA_DRILL_FONTES` **e na tabela da âncora** no mesmo PR.
+  `git grep -E '(class|interface) Analise[A-Za-z]*Service'` → rc=1). ⚠️ **Correção 2026-08-17:**
+  esta frase dizia que "nessa data a tabela `FONTE` do `jana-merge.jsx` passou a citar
+  `SellsCockpitAggregator::<metodo>`". **Não passou** — medido nos dois donos do inventário
+  (espelho e Cowork vivo): os seis `Analise*Service` seguem lá e `SellsCockpitAggregator` aparece
+  **0×**. Aquele conserto nunca landou no protótipo.
+  A **regra segue inteira**: a fonte citada no drawer vem lida do código real
+  (`app/Services/Sells/SellsCockpitAggregator.php`), nunca dos nomes do protótipo. Onde o back não
+  tem método (`churn`), declara-se isso em texto, e o render só veste de `<code>` o que contém
+  `::`. Mexeu no aggregator, mexe no `JANA_DRILL_FONTES` no mesmo PR.
   _Guard: `prototipo-ui/ancora.mjs` acusa símbolo de backend citado na âncora que não exista no
   repo — e desde 2026-08-13 enxerga também o formato `Classe::metodo` (antes ficava cego nele)._
 - ⛔ **Prometer no botão do drawer o que a rota não entrega.** `ChatController@novaConversa` não
@@ -136,25 +107,35 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 
 ## Charter version log
 
-- v7 (2026-08-17) — **O v6 afirmou um conserto que não aconteceu (P-1); corrigido pela regra de
-  precedência.** O v6 declara *"a tabela FONTE do `jana-merge.jsx` passou a citar
-  `SellsCockpitAggregator::<metodo>`, alinhada ao `JANA_DRILL_FONTES`"*. Medido em 2026-08-17,
-  **nos dois lados**: espelho e Cowork vivo têm `SellsCockpitAggregator` **0**,
-  `JANA_DRILL_FONTES` **0**, `Analise*Service` **6**. Não é espelho defasado — o vivo também não
-  tem. O `git log -S` mostra o par entrando (#5738) e o commit seguinte (#5761, "3 arquivos do
-  espelho DEFASADOS") tocando as mesmas linhas: o conserto do P-1 viveu num remendo à mão e foi
-  embora junto com a reversão dele. Quem provou: `ancora.mjs --selftest` estava **vermelho**
-  (`exit 1`) com a asserção que assume o v6 — e ninguém tinha visto, porque o gate que o roda
-  (`design-memory-gate`) é **advisory** e o vermelho não bloqueia. O selftest **fica vermelho de
-  propósito**: ele está dizendo a verdade, e baixar a asserção pra verde seria o gate-de-teatro
-  que a [ADR 0271](../../../../memory/decisions/0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md) podou.
-  Precedência aplicada (`proibicoes.md` §Precedência): teste > casos > **charter** — o perdedor é
-  este documento, corrigido no mesmo PR. **O conserto real é tarefa do lado Cowork** (escrita
-  `DesignSync` gateada por [ADR 0315](../../../../memory/decisions/0315-design-sync-claude-design-vs-cowork-charter.md)).
-  Junto: `Index.casos.md` **nasce** (10 UCs derivados deste charter + do
-  `jana-painel.contract.json` + do SPEC, nunca do `.tsx`), e o `ancora.mjs` deixou de imprimir
-  `âncora ✓` quando **não conseguiu ler** o arquivo (fail-open do printer — a função já
-  distinguia, o consumidor não usava; bite + controle no selftest).
+- v7 (2026-08-17) — **O Non-Goal da análise "Frota" foi REMOVIDO por decisão [W]**, textual:
+  *"frota e caçambas locações remova do charter"* + *"eu não vejo problema em fazer igual. isso vai
+  me destravar, os detalhes estão me atrapalhando"*. Saíram as 26 linhas que proibiam construir a
+  análise na tela `/ia` e que reproduziam o vocabulário do domínio OficinaAuto. O Painel passa a
+  poder seguir o protótipo sem essa exceção. **A decisão é [W], não inferência do agente** — ele
+  reverteu a própria posição de 2026-08-07/08-13, que está preservada nas entradas v3 e v6 abaixo
+  como o que era verdade naquelas datas.
+
+  **Sem obstáculo de máquina, medido hoje:** o `dominio-gate` **não** varre esta tela. Seus
+  `forbidden_ui_paths` são exatamente três — `resources/js/Pages/OficinaAuto`,
+  `Modules/OficinaAuto/Database/Seeders`, `Modules/OficinaAuto/Database/Migrations`
+  (`memory/dominio/oficina-auto.md`). `Pages/Jana` está fora. Uma sessão anterior (esta, mais cedo)
+  afirmou ao [W] que "o `dominio-gate` reprovaria" — **estava errado**, e o erro fica registrado
+  aqui em vez de sumir.
+
+  **Duas afirmações da v6 abaixo são FALSAS e não se apagam — corrigem-se aqui.** Medido em
+  2026-08-17 nos DOIS donos do inventário de design (espelho `prototipo-ui/` **e** Cowork vivo via
+  `DesignSync.get_file`):
+  - a v6 diz que os 6 `Analise*Service` "viraram `SellsCockpitAggregator::<metodo>`". **Não
+    viraram.** Os seis seguem no `jana-merge.jsx` (linhas 645-650) e `SellsCockpitAggregator`
+    aparece **0×** — no espelho e no vivo. Aquele conserto nunca landou.
+  - o §Non-Goals removido afirmava que `Locadas`/`caçambas`/`FROTA UTILIZAÇÃO` "não vivem no
+    `jana-merge.jsx`". **Vivem**: `frota` 8× e `caçamba` 7× no arquivo vivo.
+
+  **O que NÃO caiu com o Non-Goal:** o anti-hook *"não citar no drill fonte que não existe"* segue
+  valendo — ele é regra sobre honestidade da UI, não sobre frota. Ao construir o drill, a fonte
+  citada tem que existir no repo (`app/Services/Sells/SellsCockpitAggregator.php`), nunca os
+  `Analise*Service` do protótipo, que continuam fictícios.
+
 - v6 (2026-08-13) — **Dois dos três defeitos do v5 consertados; o terceiro era diagnóstico errado.**
   (1) **P-1 consertado** — os 6 `Analise*Service` inexistentes viraram
   `SellsCockpitAggregator::<metodo>`, lidos do `JANA_DRILL_FONTES`; `churn` e `frota`, que **não
