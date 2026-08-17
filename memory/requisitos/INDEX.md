@@ -9,15 +9,41 @@ id: requisitos-index
 >
 > **Atualizado em 2026-04-24** — snapshot datado. Para o estado vivo por módulo use a porta viva (`npm run screen-coverage:report` / `casos:report`) e o retrato gerado em [`../reference/PAINEL-SISTEMA.md`](../reference/PAINEL-SISTEMA.md).
 
+> ⚠️ **Este arquivo tem DONO, e não é a mão.** `writeIndex()` de
+> [`GenerateModuleRequirementsCommand`](../../app/Console/Commands/GenerateModuleRequirementsCommand.php)
+> escreve `INDEX.md` inteiro com `File::put` — o próximo
+> `php artisan module:requirements --index-only` **substitui tudo que está abaixo**
+> por uma tabela derivada do registry (`Módulo | BRIEFING | SPEC | SUPERFÍCIE`).
+> Não é perda: as 20 lápides `⚰️` citadas aqui vivem **nos próprios arquivos**
+> (medido 2026-08-17: 20/20 `memory/requisitos/<X>.md` têm a lápide própria) — o que
+> está abaixo é **restatement**, e restatement de fato que outro artefato sabe melhor
+> é a lápide §5 2026-07-17. Enquanto ninguém roda o dono, o corpo abaixo é fóssil
+> de 2026-04-24 e **não deve ser editado à mão** para "ficar em dia".
+>
+> ⚠️ O item **4** de "Como trabalhar" abaixo diz que o comando *"gera arquivos faltantes
+> sem sobrescrever edições manuais"*. Isso vale para os `SPEC.md`; **não vale para este
+> arquivo**, que é sobrescrito por inteiro. Editar aqui é trabalho com data de validade.
+
 ## Resumo
 
-| Categoria | Módulos | % |
-|---|---:|---:|
-| 🚀 Spec-ready (futuros) | 4 | 12% |
-| 🟢 Ativos | 14 | 42% |
-| ⚪ Inativos (presentes) | 5 | 15% |
-| ⚠️ Legados (ausentes) | 10 | 30% |
-| **Total** | **33** | 100% |
+⚰️ **A tabela de resumo que ficava aqui foi removida em 2026-08-17.** Ela restateava uma
+contagem que outro sistema sabe melhor, e estava **errada por medição** (§5 2026-07-17).
+
+Medido em 2026-08-17, e **são duas perguntas diferentes** — confundi-las foi meu primeiro
+erro nesta mesma medição:
+
+| Pergunta | Oráculo | Resposta |
+|---|---|---|
+| quantos módulos estão **habilitados**? | `modules_statuses.json` (registry nWidart) | **37** |
+| quantos **existem no checkout**? | `Modules/<X>/` no disco | **32** — os outros **5 são fantasmas** no registry (`CustomDashboard`, `Ecommerce`, `FieldForce`, `Hms`, `InboxReport`: marcados `true`, diretório inexistente, zero arquivos) |
+| quantos os 32 reais têm SPEC **e** BRIEFING? | `memory/requisitos/<X>/` | **32 de 32** |
+
+A tabela antiga dizia `Total 33`. E **13 dos 32 módulos reais não aparecem em lugar nenhum
+deste índice** (`Arquivos, Auditoria, Compras, ComunicacaoVisual, ConsultaOs, Forja, NFSe,
+OficinaAuto, PaymentGateway, Ponto, Vestuario, VozDoCliente, Whatsapp`) — **41% de
+cegueira**, e todos os 13 **têm SPEC e BRIEFING completos**. Ou seja: o buraco é **deste
+índice**, não da documentação. Motivo a mais pra deixar o dono gerar (topo desta página)
+em vez de remendar a lista à mão.
 
 ## 🚀 Módulos spec-ready (promovidos de `_Ideias/` em 2026-04-24)
 
@@ -66,9 +92,9 @@ Boleto e Fiscal foram **superados** pelos novos spec-ready (RecurringBilling/Bol
 - Boleto ⚠️ — ⚰️ `Boleto.md` subtraída (B6); **superado por** [RecurringBilling](RecurringBilling/) (sub-módulo Boleto) e [Financeiro](Financeiro/) (boleto avulso)
 - [Chat](Chat/) ⚠️ — spec plana `Chat.md` ⚰️ subtraída (B6); sucessor conversacional é a Jana
 - [Dashboard](Dashboard/) ⚠️ — spec plana `Dashboard.md` ⚰️ subtraída (B6)
-- [Fiscal](Fiscal/) ⚠️ — spec plana `Fiscal.md` ⚰️ subtraída (B6); **superado por** `NfeBrasil/`
+- [Fiscal](Fiscal/) ~~⚠️ legado ausente~~ → **🟢 ATIVO** — spec plana `Fiscal.md` ⚰️ subtraída (B6). ⚠️ **Correção 2026-08-17:** a classificação "legado (ausente)" era **falsa por medição** — `Fiscal` está `true` no `modules_statuses.json` **e** `Modules/Fiscal/` existe no disco. O "superado por `NfeBrasil/`" também não se sustenta: os dois convivem ativos hoje.
 - Help ⚠️ — ⚰️ `Help.md` subtraída (B6); sem sucessor ativo
-- [Jana](Jana/) ⚠️ — spec plana `Jana.md` ⚰️ subtraída (B6); dono vivo é a pasta
+- [Jana](Jana/) ~~⚠️ legado ausente~~ → **🟢 ATIVO** — spec plana `Jana.md` ⚰️ subtraída (B6); dono vivo é a pasta. ⚠️ **Correção 2026-08-17:** classificar a Jana como "legado ausente" era **falso por medição** — `Jana` está `true` no `modules_statuses.json` **e** `Modules/Jana/` existe no disco. É o módulo de IA em produção ([`what-oimpresso.md`](../what-oimpresso.md) §IA canônica), não um fóssil a "ressuscitar/deprecar".
 - Knowledgebase ⚠️ — ⚰️ `Knowledgebase.md` subtraída (B6); sucessor é [KB](KB/)
 - [Officeimpresso1](Officeimpresso1.md) ⚠️ — **preservada** (ref. histórica ADR 0017, não é fóssil)
 - codecanyon-32094844-… ⚠️ — ⚰️ subtraída (B6); doc de produto externo (CodeCanyon), não é módulo
