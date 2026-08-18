@@ -97,6 +97,9 @@ export const MIRROR_DIR  = join(REPO_ROOT, 'prototipo-ui', 'cowork');
 // SAI DO DADO, POR SCRIPT (`get_file` → JSON → `writeFile`). NUNCA transcrito pelo
 // contexto do agente. Foi transcrição que produziu o STALE daquele dia.
 export const DS_MIRROR_DIR = join(REPO_ROOT, 'prototipo-ui', 'design-system');
+// Artefatos COMPILADOS que o preview consome. É um papel diferente de DS_MIRROR_DIR
+// (fonte/templates): `--ds-runtime` grava aqui e `--preview-ds` lê daqui, sem diretório órfão.
+export const DS_RUNTIME_SNAPSHOT_DIR = join(REPO_ROOT, 'scripts', 'design-sync', 'mirror-snapshot');
 
 // ── PRÉ-FLIGHT da Fase 4 — os gates que a tela nova zera ANTES do PR ────────────
 // ("funciona no staging ≠ passa no portão": incidente perfil 2026-06-24 tripou 6 gates no PR).
@@ -128,7 +131,9 @@ export const FASES = [
   { fase: '-1', nome: 'Importar/baixar o design', comandos: [
       'DesignSync.get_file(projectId=COWORK_PROJECT_ID, path=<âncora>)                  # pull direto, agente logado (ADR 0325)',
       'node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir-jsons>     # escreve o raw.content no espelho (ADR 0374 — transcrever à mão é PROIBIDO)',
+      'node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir> --ds-runtime  # bundle/CSS/fontes → snapshot ÚNICO consumido pelo preview',
       'node scripts/governance/cowork-mirror-freshness.mjs --snapshot-from <dir> --emit-snapshot <s>  # MEDIR sem consertar (antes do export)',
+      'node scripts/governance/cowork-mirror-freshness.mjs --preview-ds                  # PORTÃO fail-closed: exit != 0 PROÍBE editar produto',
     ], selftest: 'node prototipo-ui/handoff-changed.mjs --selftest' },
   { fase: '0/0.5', nome: 'Detectar + manifesto', comandos: [
       'node prototipo-ui/detectar-telas.mjs --staging <dir> --json --strict',
@@ -251,6 +256,7 @@ function selftest() {
   if (!UUID.test(DESIGN_SYSTEM_PROJECT_ID)) fails.push('DESIGN_SYSTEM_PROJECT_ID não é UUID');
   if (COWORK_PROJECT_ID === DESIGN_SYSTEM_PROJECT_ID) fails.push('os 2 IDs colidiram (anti-confusão dos projetos)');
   if (!existsSync(MIRROR_DIR)) fails.push(`MIRROR_DIR ausente no repo: ${MIRROR_DIR}`);
+  if (!existsSync(DS_RUNTIME_SNAPSHOT_DIR)) fails.push(`DS_RUNTIME_SNAPSHOT_DIR ausente no repo: ${DS_RUNTIME_SNAPSHOT_DIR}`);
   const ids = conferirIdsNoRepo();
   fails.push(...ids.problemas);
   for (const fn of [['normalize', normalize], ['contentHash', contentHash], ['resolveAncora', resolveAncora]]) {
@@ -278,7 +284,7 @@ function painel() {
   console.log('PROJETOS Cowork (ADR 0325 · só por ID — NÃO confundir):');
   console.log(`  telas   ${COWORK_PROJECT_ID}  "${PROJETOS.cowork.nome}"  [não-listado, por ID]`);
   console.log(`  ds      ${DESIGN_SYSTEM_PROJECT_ID}  "${PROJETOS.designSystem.nome}"  [listado]`);
-  console.log(`\nPATHS FIXOS:\n  STAGING_DIR  ${STAGING_DIR}\n  MIRROR_DIR   ${MIRROR_DIR}`);
+  console.log(`\nPATHS FIXOS:\n  STAGING_DIR              ${STAGING_DIR}\n  MIRROR_DIR               ${MIRROR_DIR}\n  DS_MIRROR_DIR            ${DS_MIRROR_DIR}\n  DS_RUNTIME_SNAPSHOT_DIR  ${DS_RUNTIME_SNAPSHOT_DIR}`);
   console.log('\nFASES (fase → comando real):');
   for (const f of FASES) {
     console.log(`  [${f.fase}] ${f.nome}`);
