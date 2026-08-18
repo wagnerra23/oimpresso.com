@@ -10,13 +10,15 @@
 import { Head, router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Bell, ChevronLeft, Cog, Inbox, List, Pin, Plus, Search, SlidersHorizontal,
+  Bell, ChevronLeft, Cog, Inbox, List, Pin, Plus, Search, Settings, SlidersHorizontal,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { ThreadHeader } from '@/Components/cockpit/Thread';
 import { JanaAreaHeader } from './components/JanaAreaHeader';
+import JanaConfigDrawer from './_components/JanaConfigDrawer';
+import { useJanaConfig } from './_components/useJanaConfig';
 import {
   AvatarRef,
   BusinessOpt,
@@ -247,6 +249,10 @@ export default function Chat({
   sugestoesPendentes = [],
   janaContext,
 }: Props) {
+  // Config da Jana — mesmo hook e mesmo drawer do Painel (onda 4 da paridade).
+  const [configAberto, setConfigAberto] = useState(false);
+  const { config, alternarAnalise } = useJanaConfig();
+
   // Adapta mensagens só pra metadata visual da sidebar de conversas (avatar,
   // último excerto). O Thread real é renderizado pela lib assistant-ui.
   const mensagensCockpit = useMemo(
@@ -326,10 +332,32 @@ export default function Chat({
           2026-05-18). Espelha app.jsx Header function do protótipo Cockpit.
           Componente compartilhado com Dashboard.tsx. Gate F1.5:
           memory/requisitos/Jana/Chat-header-tabs-visual-comparison.md */}
+      {/* Onda 4 da paridade da área Jana: o "Configurar" existia SÓ no Painel — na
+          Conversa e na Memória o header não tinha ação nenhuma, embora a âncora
+          (`jana-merge.jsx` §JmConfigDrawer) o ponha no header da ÁREA, não de uma
+          aba. Drawer e hook já eram reusáveis (`useJanaConfig` mora fora do
+          componente de propósito, pra não quebrar react-refresh); só faltava montar. */}
       <JanaAreaHeader
         active="chat"
         businessName={janaContext?.businessName}
         businessId={janaContext?.businessId}
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setConfigAberto(true)}
+            aria-haspopup="dialog"
+            aria-expanded={configAberto}
+          >
+            <Settings className="h-3.5 w-3.5" /> Configurar
+          </Button>
+        }
+      />
+      <JanaConfigDrawer
+        open={configAberto}
+        onClose={() => setConfigAberto(false)}
+        config={config}
+        onAlternarAnalise={alternarAnalise}
       />
 
       {/* Master/detail interno — UI-0011 (sidebar single-pane) migrou conv
