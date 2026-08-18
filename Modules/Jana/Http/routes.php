@@ -140,6 +140,19 @@ Route::group(
         Route::get('/metas/{id}/fonte',                    [\Modules\KB\Http\Controllers\FontesController::class, 'show'])->name('jana.fontes.show');
         Route::patch('/metas/{id}/fonte',                  [\Modules\KB\Http\Controllers\FontesController::class, 'update'])->name('jana.fontes.update');
 
+        // ---- Ações sugeridas do Painel (HITL) -------------------------------
+        // Ordem 1 do `Index-visual-comparison.md`: até 2026-08-18 todo CTA da
+        // seção "Ações que … sugere" era decorativo. Estas 2 rotas são o backend
+        // que aquela linha declarava como trava.
+        //
+        // ESCOPO: prévia + registro da aprovação. O DISPARO (WhatsApp/e-mail) e a
+        // fila `/ia/acoes` são PR próprio — por isso o CTA diz "Revisar".
+        //
+        // FQCN obrigatório em rota nova (.claude/rules/routes.md): string
+        // 'Controller@method' quebra `route:cache` com ReflectionException.
+        Route::get('/acoes/{acao}/previa',                 [\Modules\Jana\Http\Controllers\AcaoHitlController::class, 'previa'])->name('jana.acoes.previa');
+        Route::post('/acoes/{acao}/aprovar',               [\Modules\Jana\Http\Controllers\AcaoHitlController::class, 'aprovar'])->name('jana.acoes.aprovar');
+
         // ---- Alertas -------------------------------------------------------
         Route::get('/alertas',                             'AlertasController@index')->name('jana.alertas.index');
         Route::get('/alertas/config',                      'AlertasController@config')->name('jana.alertas.config');

@@ -14,10 +14,11 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 520 arquivos em 19 papéis.
+**Total mapeado:** 524 arquivos em 19 papéis.
 
-## Controllers — 10
+## Controllers — 11
 
+- [AcaoHitlController.php](../../../Modules/Jana/Http/Controllers/AcaoHitlController.php)
 - [JanaProController.php](../../../Modules/Jana/Http/Controllers/Admin/JanaProController.php)
 - [AlertasController.php](../../../Modules/Jana/Http/Controllers/AlertasController.php)
 - [ChatController.php](../../../Modules/Jana/Http/Controllers/ChatController.php)
@@ -43,8 +44,9 @@ module: Jana
 
 - [McpAuthMiddleware.php](../../../Modules/Jana/Http/Middleware/McpAuthMiddleware.php)
 
-## Services — 90
+## Services — 91
 
+- [AcaoHitlService.php](../../../Modules/Jana/Services/AcaoHitlService.php)
 - [ProximaPerguntaService.php](../../../Modules/Jana/Services/Advisor/ProximaPerguntaService.php)
 - [ClarifyCascadeService.php](../../../Modules/Jana/Services/Ai/Clarify/ClarifyCascadeService.php)
 - [LaravelAiSdkDriver.php](../../../Modules/Jana/Services/Ai/LaravelAiSdkDriver.php)
@@ -136,8 +138,9 @@ module: Jana
 - [TraceContext.php](../../../Modules/Jana/Services/Telemetry/TraceContext.php)
 - [WorkLeaseService.php](../../../Modules/Jana/Services/WorkLease/WorkLeaseService.php)
 
-## Models / Entities — 43
+## Models / Entities — 44
 
+- [AcaoAprovacao.php](../../../Modules/Jana/Entities/AcaoAprovacao.php)
 - [CacheSemantico.php](../../../Modules/Jana/Entities/CacheSemantico.php)
 - [Conversa.php](../../../Modules/Jana/Entities/Conversa.php)
 - [HealthNarrative.php](../../../Modules/Jana/Entities/HealthNarrative.php)
@@ -251,7 +254,7 @@ module: Jana
 
 - [JanaServiceProvider.php](../../../Modules/Jana/Providers/JanaServiceProvider.php)
 
-## Migrations (schema) — 20
+## Migrations (schema) — 21
 
 - [2026_04_24_000001_create_copiloto_metas_table.php](../../../Modules/Jana/Database/Migrations/2026_04_24_000001_create_copiloto_metas_table.php)
 - [2026_04_24_000002_create_copiloto_meta_periodos_table.php](../../../Modules/Jana/Database/Migrations/2026_04_24_000002_create_copiloto_meta_periodos_table.php)
@@ -273,6 +276,7 @@ module: Jana
 - [2026_06_20_000002_add_event_time_to_jana_memoria_facts.php](../../../Modules/Jana/Database/Migrations/2026_06_20_000002_add_event_time_to_jana_memoria_facts.php)
 - [2026_06_21_000001_create_jana_health_write_canary_table.php](../../../Modules/Jana/Database/Migrations/2026_06_21_000001_create_jana_health_write_canary_table.php)
 - [2026_06_23_120000_add_confidence_to_jana_ui_judge_runs.php](../../../Modules/Jana/Database/Migrations/2026_06_23_120000_add_confidence_to_jana_ui_judge_runs.php)
+- [2026_08_18_000000_create_jana_acao_aprovacoes_table.php](../../../Modules/Jana/Database/Migrations/2026_08_18_000000_create_jana_acao_aprovacoes_table.php)
 
 ## Seeders — 4
 
