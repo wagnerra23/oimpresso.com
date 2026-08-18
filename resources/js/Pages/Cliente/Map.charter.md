@@ -2,6 +2,8 @@
 id: resources-js-pages-cliente-map-charter
 page: /contacts/map
 component: resources/js/Pages/Cliente/Map.tsx
+related_prototype: prototipo-ui/cowork/cliente-mapa.jsx
+related_us: [US-CRM-091]
 owner: wagner
 status: live
 last_validated: "2026-06-24"
