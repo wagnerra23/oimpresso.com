@@ -40,7 +40,15 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 - **Barra ÚNICA da área Jana** — `JanaAreaHeader` (em `Pages/Jana/components/`) É o `<PageHeader>` canon: título `Jana · Analista IA` + business/`biz=` + "Atualizado HH:MM" (botão de reapuração) na Zona L, `JanaSubNav` no slot `subnav`, ações da tela + primary "Conversar" na Zona R. Compartilhado com Chat.tsx e Memoria.tsx. Ver `memory/requisitos/Jana/Chat-header-tabs-visual-comparison.md` (gate F1.5).
 - Render < 200ms p95 com `Inertia::defer()` em `metas` paginated + `apuracoes` 12 janelas
 - Farol calculado server-side via `ApuracaoService::farol(meta, agora)` — frontend só consome
-- Click em meta → drilldown `/copiloto/metas/{id}` (US-COPI-011) com série completa
+- **Click em meta → drawer NA PRÓPRIA TELA** (`_components/JanaMetaDrawer.tsx`) com situação
+  (realizado · alvo · projeção), série das apurações e origem do número. **Editar** a meta é que
+  leva pra tela própria `/ia/metas/{id}` (US-COPI-011), de dentro do drawer.
+  _Este bullet dizia "click em meta → drilldown `/copiloto/metas/{id}` com série completa" e foi
+  **corrigido em 2026-08-17**, no MESMO PR que mudou o comportamento (regra de precedência: onde
+  código e charter discordam, o perdedor se corrige junto). Motivo: [W] pediu a tela **igual ao
+  protótipo**, e a âncora (`jana-merge.jsx` §`JmMetaDrawer`) abre drawer — sair da página pra ver
+  12 barras custava o painel inteiro. Quem pegou a divergência foi o `pr-critic` do CI, não eu:
+  eu implementei o drawer e deixei o §Goals contradizendo o código._
 - CTA "Conversar com a Jana" abre `Chat.tsx` com contexto da meta selecionada
 - **Drill-down "de onde vem esse número" (v3 — 2026-08-07):** card de análise abre drawer
   (`_components/JanaDrillDrawer.tsx`) com **Fonte** (tabelas · regra do recorte · método que
