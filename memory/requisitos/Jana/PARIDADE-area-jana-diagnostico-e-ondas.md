@@ -174,6 +174,23 @@ Isto é instância concreta do **teto de fidelidade do `get_file`** já aberto c
 
 **Saídas possíveis, todas decisão [W]:** (a) estender o `--export-from` para binário + chunking (mexe no dono, não cria paralelo); (b) publicar o bundle por outro transporte que não o `get_file`; (c) aceitar o espelho degradado e **declarar** que leitura visual dele não vale — hoje isso não está escrito em lugar nenhum, e foi o que permitiu a comparação cega.
 
+### O diretório do DS não é ESTÁVEL — 4 locais para o mesmo conteúdo
+
+Cobrança de [W] (2026-08-18): *"o diretório permitido tem que ser sempre o mesmo para manter versionamento dos arquivos"*. Medido — não é:
+
+| # | caminho | estado |
+|---|---|---|
+| 1 | `scripts/design-sync/mirror-snapshot/` | **versionado** — `colors_and_type.css` · `cockpit_domains.css` · 4 fontes sans. Existe pro sentinela `ds-mirror-drift` comparar (o CI não tem login claude.ai) |
+| 2 | `prototipo-ui/cowork/_ds/office-impresso-design-system-019dd02f…/` | **onde o host pede** (`<link>`/`<script>` do `oimpresso.com.html`) — **vazio** |
+| 3 | `prototipo-ui/design-system/` | onde `--export-from --ds` escreveria — **0 arquivos no git**, ninguém consome |
+| 4 | `.claude/launch.json` → `.claude/worktrees/<nome>/prototipo-ui/cowork` | **efêmero e gitignored** — 3 das 5 entradas apontam pra worktrees de sessões que podem já não existir |
+
+**A consequência é exatamente a que [W] previu:** o conteúdo **está versionado** em (1) e **nunca foi ligado** a (2). O snapshot do DS existe no git há tempo, e o protótipo local nunca o enxergou — foi por isso que o `DS_carregado: false` passou despercebido.
+
+O **default** do `--export-from` (prefixo `cowork`) escreve em `prototipo-ui/cowork/` + o path do Cowork, o que resolve para (2) — **está correto**. É o `--ds` que aponta pra (3), órfão.
+
+**Regra que falta escrever (decisão [W]):** um destino único e versionado pro DS do espelho, com os outros apontando pra ele — e o `launch.json` deixando de carregar path de worktree efêmero. Enquanto houver 4 locais, "está no git" e "o protótipo enxerga" continuam sendo perguntas diferentes.
+
 ### Onde isto se encaixa no canon
 
 É uma instância da lápide de **2026-08-11** (*"o manifesto é CEGO pro que nunca desceu — LIVE-ONLY"*): o `--compare` prova que o que **está** no espelho acompanha o vivo, nunca que o espelho **cobre** o vivo. Este caso é a prova concreta da classe.
