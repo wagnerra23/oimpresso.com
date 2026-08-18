@@ -41,6 +41,8 @@ interface MemoriaFato {
 interface Props {
   memorias: MemoriaFato[]
   businessId: number
+  /** Onda 2 da paridade: empresa + `biz=` no header, como no Painel. */
+  janaContext?: { businessId: number; businessName: string; userName?: string | null }
   userId: number
 }
 
@@ -224,7 +226,7 @@ function FatoCard({ memoria }: { memoria: MemoriaFato }) {
 
 const TODAS = '__todas__'
 
-function Memoria({ memorias }: Props) {
+function Memoria({ memorias, janaContext }: Props) {
   const [busca, setBusca] = useState('')
   const [categoria, setCategoria] = useState<string>(TODAS)
 
@@ -265,7 +267,11 @@ function Memoria({ memorias }: Props) {
       {/* Wagner 2026-05-25: JanaAreaHeader adicionado pós-audit browser MCP —
           /ia/memoria estava sem header da área Jana (vs Brief/Dashboard/etc).
           Consistência UX entre todos os ghosts. */}
-      <JanaAreaHeader active="memoria" />
+      <JanaAreaHeader
+        active="memoria"
+        businessName={janaContext?.businessName}
+        businessId={janaContext?.businessId}
+      />
 
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         {/* Título próprio REMOVIDO na onda de fusão (2026-08-08, US-COPI-148).
