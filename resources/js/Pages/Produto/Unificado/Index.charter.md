@@ -36,13 +36,18 @@ de abas é do recorte por **tipo do item**.
 
 ## Goals — Features (faz)
 
-> Layout: handoff **"Consulta de Produtos"** (2026-08-18). A árvore é a da golden master; só o
-> domínio varia. Toda diferença aprovada está declarada — qualquer outra exige aprovação antes
-> de implementar.
+> Layout: pacote **"Consulta de Produtos" de 2026-08-17** (decisão [M] 2026-08-18 — ver Histórico).
+> Toda diferença dele está declarada aqui — qualquer outra exige aprovação antes de implementar.
+>
+> ⚠️ Este bloco está sendo migrado por ondas. Enquanto a migração corre, **cada onda corrige no
+> seu próprio PR** os itens desta página que ela contradiz — é a regra de precedência
+> (`proibicoes.md`), não descuido. Itens ainda descrevendo o pacote de 18/08: a faixa de KPI em
+> uma linha (onda 2), as colunas e seus rótulos (onda 3), a ausência de rodapé (onda 6) e a
+> largura do drawer (onda 7).
 
-- **Árvore idêntica à `/contacts`:** AppShellV2 → cabeçalho (título + `N cadastrados` + ações)
-  → barra de abas → KPI-filtros → busca em linha própria → filtros + contagem → cartão da tabela
-  → drawer de detalhe
+- **Árvore:** AppShellV2 → cabeçalho (título + `N cadastrados` + ações) → barra de abas →
+  KPI-filtros → toolbar em uma linha (filtros → contagem → busca) → cartão da tabela →
+  drawer de detalhe
 - **Abas por TIPO do item:** Todos · Produtos · Serviços · Matéria-prima · Kits · Inativos. As
   abas de tipo contam **só ativos**; `Inativos` é o complemento; `Todos` é o cadastro inteiro.
   Trocar de aba muda tabela, contagem **e** os seis KPIs — não é filtro decorativo
@@ -50,10 +55,12 @@ de abas é do recorte por **tipo do item**.
   `not_for_selling = 1` → matéria-prima · `enable_stock = 0` → serviço · resto → produto
 - **Seis KPI-filtros** em uma linha, contados sobre a aba ativa e **clicáveis** (toggle): Ativos ·
   Estoque baixo · Sem estoque · Sem venda 90d · Margem baixa · Itens listados
-- **Busca** em linha própria (não divide a linha com os filtros) sobre descrição, código,
-  referência e categoria; `/` foca o campo
+- **Toolbar em UMA linha** (pacote 17/08 · `.fbar`): gatilhos de filtro → contagem de registros
+  → busca ocupando o resto da linha. Abaixo de 780px de largura disponível os gatilhos
+  opcionais somem e voltam pelo **"Mais filtros"**; Categoria e Tipo nunca somem
 - **Filtros** com aparência de campo (nunca chip preenchido em repouso): Categoria · Tipo ·
-  Marca · Estoque · Margem, com a contagem de registros encostada à direita
+  Unidade · Fornecedor · Estoque · Margem. A busca cobre descrição, código, referência e
+  categoria; `/` foca o campo
 - **Busca + aba + KPI + filtros compostos num único `where` server-side** — os quatro recortes
   se combinam
 - **Colunas por AUTORIZAÇÃO, não por CSS** (`_components/Colunas.tsx`): vendedor vê
@@ -218,3 +225,4 @@ it('does not access App\\Product without ->where(business_id)')
 | 2026-08-11 | [M+C] | `page` corrigido de `/produto/unificado` → **`/products/unificado`**. A rota real é `routes/web.php:450` (`products.unificado.index`); a declarada não existe. Ficava contraditória com o `Index.casos.md` que nasce no mesmo PR e cita a rota certa. `ancora.mjs` resolve por `page`/`component` — `component` já estava certo, então a âncora nunca quebrou; o campo errado enganava humano, não máquina. |
 | 2026-08-13 | [M+C] | `related_prototype` volta a **`n/a`**. Em 2026-08-10 o campo foi apontado pra `produto-app.jsx` só pra dar âncora resolvível ao `ancora.mjs`. Depois disso, Wagner definiu que **o padrão desta tela é a tela de Contatos** (`/contacts` = `Pages/Cliente/Index.tsx`, PT-01 gold 9,4/10) — e o `produto-app.jsx` é justamente o protótipo cujo drawer 480px e BulkBar foram **descartados** por decisão. Com a âncora velha, qualquer máquina de fidelidade mediria contra a fonte errada e empurraria a tela **de volta** pro descartado. `n/a` não é vazio: é a **declaração** "nasce do DS", usada por 135 dos 158 charters (medido 2026-08-11) e pelos irmãos `Produto/Index` e `Produto/Show`. A comparação de fidelidade desta tela é **prod×prod** (`/contacts` × `/products/unificado` via `style-fingerprint --snippet` + `--compare --sem-ancora`), não proto×prod. |
 | 2026-08-18 | [M+C] | **Layout do handoff "Consulta de Produtos" aplicado.** A tela passa a ser o índice do catálogo em paridade com a `/contacts` — a golden master que o próprio charter elegeu em 2026-08-13. O que mudou: a barra de abas deixa de ser "sub-telas" e vira **recorte por tipo do item** (6 abas com contagem); a faixa de 5 KPIs de leitura vira **6 KPI-filtros clicáveis** contados sobre a aba; entram busca em linha própria, 5 filtros com contagem à direita, colunas por autorização, disponibilidade com 4 rótulos e drawer de 2 seções. As 4 sub-telas anteriores **não sumiram** — foram pro menu de ações do cabeçalho, com os mesmos gates. Backend: `catalogoSub()` vira a fonte única de "o que é uma linha do catálogo" (linhas + KPIs + contagem das abas leem dela), com saldo real (`SUM(vld.qty_available)`), mínimo (`alert_quantity`), tipo derivado e última venda; `Inertia::defer` em toda prop agregada. UCs novos: **UC-PUNI-07..10** (`Index.casos.md`), com `ProdutoUnificadoIndiceContratoTest` na lane Estoque · MySQL. **Dois desvios declarados, pendentes de aprovação [W]:** (1) o filtro **"Fornecedor"** do handoff virou **"Marca"** — o UltimatePOS não guarda fornecedor no produto, só por compra; (2) **"Não estocável"** ficou neutro em vez do vermelho que o protótipo herda do badge de frescor — serviço não tem saldo por natureza, e pintá-lo de vermelho treina o balcão a ignorar a cor. **Dívidas do handoff que continuam abertas:** responsividade abaixo do desktop declarado e volume de catálogo real (ADR 0402 proposta — carga incremental × virtualização × rodapé canônico). |
+| 2026-08-18 | [M+C] | **Pacote canônico passa a ser a "Consulta de Produtos" de 17/08** (zip `Esse 1`), por decisão de [M]. O pacote de 18/08 que a tela seguia até aqui **revoga por escrito** vários pontos da 17/08 — toolbar em uma linha, filtro Unidade, "Mais filtros", paginação e as regras `@container`. Como a 17/08 volta a ser a oficial, essas revogações caem, e este charter passa a descrever a 17/08. Ondas planejadas: 1 toolbar · 2 grade de KPI `auto-fit` · 3 rótulos e coluna Referência · 4 avatar + código `P-` + cartão sem raio · 5 colunas que somem por largura · 6 paginação 10/20/50/100 · 7 drawer 410 · 8 filtro Fornecedor. **Onda 1 nesta PR:** toolbar em uma linha, entra Unidade, sai Marca, "Mais filtros" abaixo de 780px. **Duas divergências DECLARADAS do alvo, decididas por [M]:** (a) **"Importar" fica no menu ⋯**, não como botão visível ao lado de "Novo produto" — o menu também guarda as 4 sub-telas, e tirá-lo de lá quebraria esse agrupamento; (b) **"Fornecedor" ainda não é montado** — o UltimatePOS não guarda fornecedor no produto (só por compra), e gatilho que não filtra é affordance mentindo; ele entra na onda 8, com a consulta ao histórico. **Restrição dura de [M]:** a tela `/contacts` **não se toca em nenhuma hipótese** — nem o arquivo, nem componente compartilhado que ela consuma; por isso tudo desta onda vive em `Pages/Produto/Unificado/_components/`. |

@@ -113,7 +113,7 @@ class ProdutoUnificadoController extends Controller
             'kpi' => $request->string('kpi', '')->toString(),
             'categoria' => $request->integer('categoria') ?: null,
             'tipo' => $request->string('tipo', '')->toString(),
-            'marca' => $request->integer('marca') ?: null,
+            'unidade' => $request->integer('unidade') ?: null,
             'estoque' => $request->string('estoque', '')->toString(),
             'margem' => $request->string('margem', '')->toString(),
         ];
@@ -218,7 +218,7 @@ class ProdutoUnificadoController extends Controller
                 'p.alert_quantity',
                 'p.category_id',
                 'cat.name',
-                'p.brand_id',
+                'p.unit_id',
                 'u.short_name'
             )
             ->select([
@@ -229,7 +229,7 @@ class ProdutoUnificadoController extends Controller
                 'p.enable_stock',
                 'p.alert_quantity as minimo',
                 'p.category_id',
-                'p.brand_id',
+                'p.unit_id',
                 DB::raw('cat.name as categoria'),
                 DB::raw("COALESCE(u.short_name, 'un') as unidade"),
                 // Tipo do item — o UltimatePOS não tem coluna "tipo de item"; ele é derivado
@@ -303,8 +303,8 @@ class ProdutoUnificadoController extends Controller
         if ($f['categoria']) {
             $q->where('c.category_id', $f['categoria']);
         }
-        if ($f['marca']) {
-            $q->where('c.brand_id', $f['marca']);
+        if ($f['unidade']) {
+            $q->where('c.unit_id', $f['unidade']);
         }
         if ($f['tipo'] !== '') {
             $q->where('c.tipo', $f['tipo']);
@@ -499,12 +499,14 @@ class ProdutoUnificadoController extends Controller
     /**
      * Opções dos gatilhos de filtro da toolbar.
      *
-     * ⚠️ DESVIO DECLARADO do handoff (§4.5 lista Categoria · Tipo · Fornecedor · Estoque ·
-     * Margem): o UltimatePOS não guarda fornecedor NO PRODUTO — fornecedor só existe por
-     * COMPRA (`transactions.type = 'purchase'` → `contact_id`). Filtrar por ele exigiria
-     * varrer o histórico de compras a cada consulta. No lugar entra **Marca** (`brands`),
-     * que é o atributo que o produto de fato carrega. Diferença fora da lista aprovada do
-     * §6 — precisa de aprovação antes de virar definitivo.
+     * Pacote canônico desde 2026-08-18: **Consulta de Produtos 17/08**, que lista SEIS gatilhos
+     * — Categoria · Tipo · Unidade · Fornecedor · Estoque · Margem.
+     *
+     * ⚠️ **Fornecedor ainda não é servido** (onda 8 do plano): o UltimatePOS não guarda
+     * fornecedor NO PRODUTO — ele só existe por COMPRA (`transactions.type = 'purchase'` →
+     * `contact_id`), então o filtro exige uma consulta ao histórico que ainda não foi escrita.
+     * Enquanto ela não existe, o gatilho **não é montado** — gatilho que não filtra é
+     * affordance mentindo, e é pior que a ausência dele.
      *
      * @return array<string,list<array{value:string,label:string}>>
      */
@@ -515,14 +517,19 @@ class ProdutoUnificadoController extends Controller
             ->orderBy('categories.name')
             ->get(['categories.id', 'categories.name']);
 
-        $marcas = DB::table('brands')
+        // A unidade vem de `units` (o cadastro que o produto referencia em `unit_id`), não de
+        // uma lista escrita à mão: unidade é dado do tenant, não vocabulário de tela.
+        $unidades = DB::table('units')
             ->where('business_id', $business_id)
-            ->orderBy('name')
-            ->get(['id', 'name']);
+            ->orderBy('actual_name')
+            ->get(['id', 'actual_name', 'short_name']);
 
         return [
             'categorias' => $categorias->map(fn ($c) => ['value' => (string) $c->id, 'label' => (string) $c->name])->all(),
-            'marcas' => $marcas->map(fn ($b) => ['value' => (string) $b->id, 'label' => (string) $b->name])->all(),
+            'unidades' => $unidades->map(fn ($u) => [
+                'value' => (string) $u->id,
+                'label' => trim((string) $u->actual_name) !== '' ? (string) $u->actual_name : (string) $u->short_name,
+            ])->all(),
         ];
     }
 
