@@ -158,16 +158,16 @@ function ProPage({ plan, pricing, proof }: Props) {
                                 2026-08-08: sem ele a migração custaria a tag, que é
                                 literal do protótipo aprovado (PASS 90);
             · "Voltar ao chat" → `actions`, copy e destino intactos (`/ia/conversa`).
-          O dot da área (hue 220) entra no `leading` — é o que as outras 3 telas da
-          área já fazem via `JanaAreaHeader`, e era o que faltava pra identidade bater. */}
+          SEM o dot da área (hue 220) que as outras 3 telas põem no `leading`: ele não
+          está no charter do Pro, e a 1ª versão deste PR o adicionava "por consistência"
+          — o que era escopo extra e custou uma REGRESSÃO real de lint
+          (`ds/no-inline-raw-color`, Pro.tsx 3 → 4, pego pelo ratchet do CI). A cor vinha
+          crua no `style` inline, copiada do `JanaAreaHeader`, onde ela já é dívida
+          registrada no baseline. Corrigir era ou duplicar a dívida, ou tokenizar o dot —
+          e nenhum dos dois é assunto de um PR de header. Se o dot for desejado aqui, é
+          onda própria: extrai o dot pra um componente da área, tokeniza a cor e troca
+          nas 4 telas de uma vez. */}
       <PageHeader
-        leading={
-          <span
-            aria-hidden
-            className="mr-2 inline-block size-2 shrink-0 rounded-full align-middle"
-            style={{ background: 'oklch(0.62 0.13 220)' }}
-          />
-        }
         title="Jana Pro"
         titleBadge={
           <span className="ml-2 rounded-full border border-primary/25 bg-primary/5 px-[7px] py-0.5 align-middle text-[10px] font-bold tracking-wider text-primary">
