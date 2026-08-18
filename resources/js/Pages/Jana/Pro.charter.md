@@ -3,7 +3,8 @@ page: /ia/pro
 component: resources/js/Pages/Jana/Pro.tsx
 owner: wagner
 status: draft
-last_validated: "2026-06-01"
+last_validated: "2026-08-18"
+smoke: "2026-08-18 — render prod OK (Chrome MCP, sessao WR2 Sistemas, tema escuro): hero, card de prova, comparacao 6 linhas, preco e footer sticky com a CTA. DOIS defeitos CONFIRMADOS ao vivo, ambos antes so inferidos por leitura: (1) a comparacao de preco renderiza o sentinela de redacao no lugar dos numeros dos concorrentes; (2) 'Voltar ao chat' leva a /ia — titulo 'Jana — Dashboard', aba Painel ativa —, nao a Conversa. O (2) esta corrigido no PR #5892; o (1) aguarda decisao [W]."
 parent_module: Jana
 related_adrs: [140, 110, 190, 93]
 related_us: [US-COPI-148, US-COPI-118]
