@@ -79,6 +79,8 @@ interface Props {
     recentes: ConversaResumo[];
   };
   // Props específicos do Copiloto Chat
+  /** Onda 2 da paridade: empresa + `biz=` no header, como no Painel. */
+  janaContext?: { businessId: number; businessName: string; userName?: string | null };
   conversa: ConversaBackend;
   mensagens: MensagemBackend[];
   sugestoesPendentes?: Sugestao[];
@@ -243,6 +245,7 @@ export default function Chat({
   conversa,
   mensagens,
   sugestoesPendentes = [],
+  janaContext,
 }: Props) {
   // Adapta mensagens só pra metadata visual da sidebar de conversas (avatar,
   // último excerto). O Thread real é renderizado pela lib assistant-ui.
@@ -323,7 +326,11 @@ export default function Chat({
           2026-05-18). Espelha app.jsx Header function do protótipo Cockpit.
           Componente compartilhado com Dashboard.tsx. Gate F1.5:
           memory/requisitos/Jana/Chat-header-tabs-visual-comparison.md */}
-      <JanaAreaHeader active="chat" />
+      <JanaAreaHeader
+        active="chat"
+        businessName={janaContext?.businessName}
+        businessId={janaContext?.businessId}
+      />
 
       {/* Master/detail interno — UI-0011 (sidebar single-pane) migrou conv
           switcher pra dentro da própria Page. 320px lista + 1fr thread. */}

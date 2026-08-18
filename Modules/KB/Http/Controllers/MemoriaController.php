@@ -45,6 +45,16 @@ class MemoriaController extends Controller
             'memorias' => collect($memorias)->map(fn ($m) => $m->toArray())->values()->all(),
             'businessId' => $businessId,
             'userId' => $userId,
+
+            // Onda 2 da paridade da área Jana — ver a nota gêmea no `ChatController`.
+            // `businessId` já vinha (a tela usa no corpo); o header precisa do NOME
+            // junto, e do mesmo shape das outras duas telas da área.
+            // Multi-tenant Tier 0 (ADR 0093): sai da SESSÃO.
+            'janaContext' => [
+                'businessId'   => $businessId,
+                'businessName' => (string) ($request->session()->get('business.name') ?? ''),
+                'userName'     => optional(auth()->user())->name,
+            ],
         ]);
     }
 
