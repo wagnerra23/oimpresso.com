@@ -107,9 +107,27 @@ O lint exige slug `US-…` real — não aceita `n/a` nem `_pendente_`. Logo as 
 
 `prototipo-ui/FRESCOR-PRODUCAO-vs-PROTOTIPO.md:14` declara o Cliente **🔵 produção À FRENTE**, com o aviso *"Não propor split/layout antigo"*. O `Cliente/clientes-gap.md` (30/jun) concorda: veredito **MOCKUP-STALE**, tela viva à frente em header, KPIs, filtros e busca.
 
-**Os dois são honestos e os dois estão datados.** O quadro se identifica como *"Fase 1 · 2026-06-23"* e cita um bundle — `clientes-975.jsx` — que **não existe mais no espelho**. Nenhum dos dois viu os 6 protótipos que chegaram em **13/ago**.
+**Os dois são honestos e os dois estão datados.** O quadro se identifica como *"Fase 1 · 2026-06-23"* e cita um bundle — `clientes-975.jsx` — que **não existe mais no espelho**. Nenhum dos dois viu os protótipos que chegaram em **13/ago**.
 
-Isso **não** significa que a produção ficou atrás. Significa que o veredito atual **não cobre** o que entrou depois, e re-medir é barato agora que a Onda 0 deu âncora às 6. Tratar o 🔵 de junho como estado de hoje seria ler fóssil como retrato — e tratá-lo como obsoleto sem medir seria o erro simétrico.
+E o `clientes-gap.md` tem um problema mais fundo que a data: **ele analisou meio arquivo.** O [#5743](https://github.com/wagnerra23/oimpresso.com/pull/5743) (13/ago) registra que *"o `clientes-page.jsx` tinha **METADE** do arquivo vivo (58.331 vs 112.096 bytes)"* e o completou (+1075/−133). O veredito `MOCKUP-STALE` sobre o Index saiu de uma fonte truncada — não é conclusão a reusar.
+
+---
+
+## 4.1 · Direção medida, par a par (2026-08-18)
+
+O cabeçalho de 4 protótipos declara ter sido feito **por paridade com a produção** — `cliente-form.jsx` chega a listar os arquivos lidos (`_form/ClienteForm.tsx`, `_form/DadosFiscaisBRSection.tsx`, `_form/ClienteRail.tsx`, `Lib/format-br.ts`). Mas **declaração de autor não é medição**, e ao conferir aparecem melhorias que o redesenho trouxe:
+
+| Par | Veredito | O que sustenta |
+|---|---|---|
+| **Import** | 🟠 **protótipo à frente em 4** | drag-and-drop (`onDrop`/`onDragOver` = 0 na viva) · barra de progresso (`role="progressbar"` = 0) · teclado no dropzone (`tabIndex`/`onKeyDown` = 0 — **a11y**) · "Baixar as linhas com erro" (0). A viva está à frente em 2: guard da extensão PHP `zip` e limite de 10 MB declarado |
+| **Map** | 🟠 **protótipo à frente em 1** | protótipo usa **OpenStreetMap embed sem chave de API**; a viva usa `maps.google.com/maps?q=…&output=embed` hardcoded — que é exatamente o gap do scorecard (`preflight_conformance` 66, o mais baixo do módulo) |
+| **Ledger** | ✅ **paridade** | o "saldo acumulado" do protótipo é a coluna `Saldo` (`line.balance`) da viva — **vocabulário diferente, mesma capacidade**; e a viva calcula no servidor em vez de recalcular no cliente |
+| **Create/Edit** | ✅ **paridade estrutural** | as 5 seções do protótipo (Identificação · Dados fiscais BR · Contato · Endereço · Financeiro) existem todas em `_form/` |
+| **Index** | ⚠️ **não medido** | o único veredito existente saiu do arquivo truncado (acima). Re-medir exige o protótipo completo, que só desceu em 13/ago |
+
+> **Armadilha registrada:** três sondas por **texto** desta medição deram falso negativo — `acumulado` × `balance` (vocabulário), `erro` × `Falha` (case), e labels literais contra tela data-driven. Comparar protótipo × tela viva por string **penaliza a produção por construção**: o protótipo carrega dados mock hardcoded, a viva recebe props. Medir **capacidade**, nunca ocorrência de palavra.
+
+**Resposta à pergunta "copiar pra qual lado?":** hoje há **5 itens medidos para adotar do protótipo** (4 do Import + 1 do Map) — todos de UX/a11y/acabamento, **nenhum de regra de negócio**. No sentido inverso não há pendência medida: os protótipos de 13/ago já nasceram do código vivo.
 
 ---
 
@@ -120,11 +138,16 @@ A regra que as irmãs já aplicam: **paridade tem três direções**, e a onda *
 | Onda | Escopo | Toca `.tsx`? | Pré-requisito |
 |---|---|---|---|
 | **0** ✅ | Declarar as âncoras — **5 de 6 feitas**; `Map` bloqueado por decisão (§3.1) | não | — |
-| **1** | Snapshot `DesignSync` + `--compare` → saber se o espelho está fresco | não | Onda 0 |
-| **2** | Re-medir o FRESCOR do Cliente contra os protótipos de 13/ago | não | Onda 1 |
-| **3** | Uma tela por onda, começando por `Ledger` e `Map` (menor risco) | só se der 🟠 | Onda 2 |
-| **4** | Decidir o `cliente-grupos.jsx` órfão: tela que falta, ou dropdown ⋮ do Index? | decisão [W] | — |
-| **5** | `Index` + drawer 760 — **última** | só se der 🟠 | Ondas 2-3 |
+| **1** ✅ | Medir a direção par a par (§4.1) — 5 itens para adotar, 2 pares em paridade | não | Onda 0 |
+| **2** | **Import:** drag-and-drop + progresso + teclado no dropzone + baixar linhas com erro | **sim** | — |
+| **3** | **Map:** trocar iframe Google hardcoded por OSM sem chave (fecha o `preflight` 66) | **sim** | US do Map (§3.1) |
+| **4** | Re-medir o `Index` contra o protótipo **completo** — o veredito velho saiu de arquivo truncado | não | — |
+| **5** | Decidir o `cliente-grupos.jsx` órfão: tela que falta, ou dropdown ⋮ do Index? | decisão [W] | — |
+| **6** | Snapshot `DesignSync` + `--compare` → fidelidade visual (o que este doc **não** mede) | não | — |
+
+**Ondas 2 e 3 não tocam valor** (Import lê planilha; Map troca provedor de mapa) — não disparam a regra-mestre Tier 0. A Onda 4, se virar trabalho no `Index`, **dispara**: a tela exibe saldo e limite de crédito, e aí vale dupla confirmação + tabela antes→depois.
+
+A **Onda 3 está bloqueada pela mesma decisão do §3.1**: o Map não tem US porque a ADR 0105 o segurou. Vale registrar que o **custo caiu** — o desenho da solução já existe no protótipo; falta o sinal, não o desenho.
 
 **`Index`, `Create` e `Edit` exibem valor** (saldo, crédito, limite) e herdam a regra-mestre Tier 0: dupla confirmação por dois caminhos independentes + tabela antes→depois ao [W] **antes** de aplicar.
 
