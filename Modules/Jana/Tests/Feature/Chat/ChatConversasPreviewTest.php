@@ -63,9 +63,31 @@ function chatPreviewVersaoInertia(): string
     return file_exists($manifest) ? md5_file($manifest) : '1';
 }
 
-/** Pede a lista deferida do Chat como o `<Deferred>` do front pede. */
+/**
+ * Pede a lista deferida do Chat como o `<Deferred>` do front pede.
+ *
+ * A permissao `jana.access` e PRE-CONDICAO, nao objeto de teste. O grupo `/ia`
+ * ganhou `can:jana.access` no middleware em 2026-07-27, e a permissao nasce
+ * `default => false` no registry — entao o middleware corta com **403 antes do
+ * controller** e o teste mediria o gate em vez do payload que ele existe pra
+ * provar. Foi exatamente assim que este arquivo reprovou na terceira run (3x
+ * "Expected 200 but received 403"), ja no main.
+ *
+ * Conceder aqui NAO enfraquece nada: o contrato sob teste e "usuario COM acesso
+ * ao modulo recebe `preview` e `ultima_em` no card". Mesmo padrao ja usado em
+ * `Modules/Jana/Tests/Feature/FontesControllerCrossTenantTest.php:93-101`
+ * (imitar antes de inventar — ADR 0011). Quem mede o GATE e o
+ * `JanaAccessGateTest`, que e o dono desse tema.
+ *
+ * O `forgetCachedPermissions()` nao e supersticao: o Spatie cacheia o mapa de
+ * permissoes por request, e sem limpar a concessao recem-feita nao e enxergada.
+ */
 function chatPreviewConversas($teste, $user): array
 {
+    \Spatie\Permission\Models\Permission::findOrCreate('jana.access', 'web');
+    $user->givePermissionTo('jana.access');
+    $user->forgetCachedPermissions();
+
     $resposta = $teste->actingAs($user)->get(route('jana.chat.index'), [
         'X-Inertia'                   => 'true',
         'X-Inertia-Version'           => chatPreviewVersaoInertia(),
