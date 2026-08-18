@@ -17,9 +17,11 @@ import { Badge } from '@/Components/ui/badge'
 // Deriva do próprio componente em vez de repetir a união à mão: variante nova no DS
 // entra sozinha, e variante removida vira erro de tipo aqui em vez de classe morta.
 type BadgeVariant = NonNullable<React.ComponentProps<typeof Badge>['variant']>
-import { Brain, Trash2, Pencil, Save, Search, X } from 'lucide-react'
+import { Brain, Trash2, Pencil, Save, Search, Settings, X } from 'lucide-react'
 import FabJana from './components/FabJana'
 import { JanaAreaHeader } from '@/Pages/Jana/components/JanaAreaHeader'
+import JanaConfigDrawer from '@/Pages/Jana/_components/JanaConfigDrawer'
+import { useJanaConfig } from '@/Pages/Jana/_components/useJanaConfig'
 import { Inline } from '@/Components/layout'
 
 interface MemoriaFato {
@@ -227,6 +229,10 @@ function FatoCard({ memoria }: { memoria: MemoriaFato }) {
 const TODAS = '__todas__'
 
 function Memoria({ memorias, janaContext }: Props) {
+  // Config da Jana — mesmo hook e mesmo drawer do Painel (onda 4 da paridade).
+  const [configAberto, setConfigAberto] = useState(false)
+  const { config, alternarAnalise } = useJanaConfig()
+
   const [busca, setBusca] = useState('')
   const [categoria, setCategoria] = useState<string>(TODAS)
 
@@ -267,10 +273,32 @@ function Memoria({ memorias, janaContext }: Props) {
       {/* Wagner 2026-05-25: JanaAreaHeader adicionado pós-audit browser MCP —
           /ia/memoria estava sem header da área Jana (vs Brief/Dashboard/etc).
           Consistência UX entre todos os ghosts. */}
+      {/* Onda 4 da paridade da área Jana: o "Configurar" existia SÓ no Painel — na
+          Conversa e na Memória o header não tinha ação nenhuma, embora a âncora
+          (`jana-merge.jsx` §JmConfigDrawer) o ponha no header da ÁREA, não de uma
+          aba. Drawer e hook já eram reusáveis (`useJanaConfig` mora fora do
+          componente de propósito, pra não quebrar react-refresh); só faltava montar. */}
       <JanaAreaHeader
         active="memoria"
         businessName={janaContext?.businessName}
         businessId={janaContext?.businessId}
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setConfigAberto(true)}
+            aria-haspopup="dialog"
+            aria-expanded={configAberto}
+          >
+            <Settings className="h-3.5 w-3.5" /> Configurar
+          </Button>
+        }
+      />
+      <JanaConfigDrawer
+        open={configAberto}
+        onClose={() => setConfigAberto(false)}
+        config={config}
+        onAlternarAnalise={alternarAnalise}
       />
 
       <div className="max-w-4xl mx-auto p-6 space-y-6">
