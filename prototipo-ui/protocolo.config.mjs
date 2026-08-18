@@ -22,7 +22,7 @@
 //   import { COWORK_PROJECT_ID, STAGING_DIR, FASES } from './protocolo.config.mjs'
 //
 // Refs: ADR 0325 (pull direto) · ADR 0324 (identidade normalizada) · INDEX-DESIGN-MEMORIAS §0.2 ·
-//       prototipo-ui/RUNBOOK-aplicar-prototipo-orquestracao.md (as 7 fases −1..5).
+//       prototipo-ui/PROTOCOL.md (política; este arquivo é dono da execução).
 
 import { existsSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -37,6 +37,18 @@ export { normalize, contentHash, resolveAncora };
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, '..');
+
+// Estes arquivos são consumidores/ponteiros. Não podem voltar a carregar cópias dos comandos ou
+// IDs deste painel: foi assim que o fluxo ZIP, o preview incompleto e a aplicação atual ficaram
+// simultaneamente "canônicos". PROTOCOL.md é dono da política; este módulo é o único dono da
+// execução.
+const PONTEIROS_EXECUCAO = [
+  'prototipo-ui/PROTOCOL.md',
+  'prototipo-ui/PROTOCOL-F3-COWORK-CODE.md',
+  'prototipo-ui/RUNBOOK-aplicar-prototipo-orquestracao.md',
+  '.claude/skills/aplicar-prototipo/SKILL.md',
+  '.claude/hooks/design-agente-ativa.mjs',
+];
 
 // ── PROJETOS Cowork (ADR 0325 · INDEX §0.2) ─────────────────────────────────────
 // Os DOIS têm nome parecido — NÃO confundir (mordeu 3× em 2026-07-06). E ATENÇÃO: só o DS é
@@ -170,6 +182,44 @@ function scriptsReferenciados() {
   }
   return [...out];
 }
+
+function conferirFonteUnicaExecutavel() {
+  const problemas = [];
+  const marcadoresPrivados = [
+    ['comando do applier', /scripts[\\/]design-sync[\\/]aplicar-payload\.mjs/],
+    ['comando do preview DS', /scripts[\\/]governance[\\/]cowork-mirror-freshness\.mjs\s+--preview-ds/],
+    ['COWORK_PROJECT_ID literal', new RegExp(COWORK_PROJECT_ID.replaceAll('-', '\\-'))],
+    ['DESIGN_SYSTEM_PROJECT_ID literal', new RegExp(DESIGN_SYSTEM_PROJECT_ID.replaceAll('-', '\\-'))],
+  ];
+
+  for (const rel of PONTEIROS_EXECUCAO) {
+    const abs = join(REPO_ROOT, rel);
+    if (!existsSync(abs)) {
+      problemas.push(`ponteiro obrigatório ausente: ${rel}`);
+      continue;
+    }
+    const txt = readFileSync(abs, 'utf8');
+    for (const [nome, regex] of marcadoresPrivados) {
+      if (regex.test(txt)) problemas.push(`${rel} duplicou ${nome}; a fonte é protocolo.config.mjs`);
+    }
+  }
+
+  try {
+    const safeRoot = REPO_ROOT.replaceAll('\\', '/');
+    const tracked = execFileSync('git', [
+      '-c', `safe.directory=${safeRoot}`,
+      'ls-files', '-z', '--', 'prototipo-ui/cowork/_ds/**',
+    ], { cwd: REPO_ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+      .split('\0').filter(Boolean);
+    for (const rel of tracked) {
+      problemas.push(`${rel} está rastreado; cowork/_ds é cache derivado do mirror-snapshot`);
+    }
+  } catch {
+    problemas.push('não foi possível provar via git que prototipo-ui/cowork/_ds não está rastreado');
+  }
+
+  return problemas;
+}
 // ── CONSISTÊNCIA DOS IDs (2026-08-13) ───────────────────────────────────────────
 // Este arquivo se declara "a fonte" dos 2 IDs, e o selftest provava que eles são UUID
 // e distintos — mas NÃO que o resto do repo concorda com eles. Dois consumidores
@@ -181,7 +231,7 @@ function scriptsReferenciados() {
 //     — exatamente o "falta css" de 2026-08-13, só que silencioso.
 //   · o `ds-push.mjs` carrega o id hardcoded pra ESCREVER no projeto; divergir daqui
 //     é empurrar tokens pro DS errado.
-//   · o hook `design-agente-ativa` manda o agente consultar o Cowork vivo por ID.
+// O hook `design-agente-ativa` não carrega mais cópia do ID: manda executar este painel.
 // Varre só CÓDIGO EXECUTÁVEL: doc/handoff/ADR citam id por CONTEXTO HISTÓRICO
 // (o id que valia naquela data) e não devem ser corrigidos — §5 "registro datado".
 //
@@ -207,7 +257,8 @@ function scriptsReferenciados() {
 /** git ls-files nos alvos → Set de rastreados, ou null se não deu pra medir (sem git). */
 function rastreadosNoGit(paths) {
   try {
-    const out = execFileSync('git', ['ls-files', '-z', '--', ...paths], {
+    const safeRoot = REPO_ROOT.replaceAll('\\', '/');
+    const out = execFileSync('git', ['-c', `safe.directory=${safeRoot}`, 'ls-files', '-z', '--', ...paths], {
       cwd: REPO_ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
     });
     return new Set(out.split('\0').filter(Boolean).map((p) => resolve(REPO_ROOT, p)));
@@ -219,7 +270,6 @@ function conferirIdsNoRepo() {
   const alvos = [
     { path: join(MIRROR_DIR, 'oimpresso.com.html'), espera: DESIGN_SYSTEM_PROJECT_ID, papel: 'shell do espelho (de onde --preview-ds deriva)' },
     { path: join(REPO_ROOT, 'scripts', 'design-sync', 'ds-push.mjs'), espera: DESIGN_SYSTEM_PROJECT_ID, papel: 'push do DS' },
-    { path: join(REPO_ROOT, '.claude', 'hooks', 'design-agente-ativa.mjs'), espera: COWORK_PROJECT_ID, papel: 'hook que manda o agente consultar o vivo' },
   ];
   const problemas = [];
   const rastreados = rastreadosNoGit(alvos.map((a) => a.path));
@@ -261,6 +311,7 @@ function selftest() {
   if (!existsSync(DS_RUNTIME_SNAPSHOT_DIR)) fails.push(`DS_RUNTIME_SNAPSHOT_DIR ausente no repo: ${DS_RUNTIME_SNAPSHOT_DIR}`);
   const ids = conferirIdsNoRepo();
   fails.push(...ids.problemas);
+  fails.push(...conferirFonteUnicaExecutavel());
   for (const fn of [['normalize', normalize], ['contentHash', contentHash], ['resolveAncora', resolveAncora]]) {
     if (typeof fn[1] !== 'function') fails.push(`motor re-exportado quebrou: ${fn[0]} não é função`);
   }
@@ -277,7 +328,7 @@ function selftest() {
   const cob = `conferi ${ids.medidos} de ${ids.total} alvos de ID`
     + (ids.pulados.length ? ` (${ids.pulados.length} pulado(s), não-rastreado(s): ${ids.pulados.join(', ')})` : '')
     + (ids.semGit ? ' ⚠ sem git: não deu pra separar "sumiu" de "nunca existiu"' : '');
-  console.log(`✓ protocolo.config selftest OK — 2 IDs válidos+distintos · ${cob} · MIRROR_DIR presente · ${scripts.length} scripts do mapa existem · motores (normalize/contentHash/resolveAncora) vivos.`);
+  console.log(`✓ protocolo.config selftest OK — 2 IDs válidos+distintos · ${cob} · ${PONTEIROS_EXECUCAO.length} ponteiros sem cópia operacional · cowork/_ds não rastreado · MIRROR_DIR presente · ${scripts.length} scripts do mapa existem · motores (normalize/contentHash/resolveAncora) vivos.`);
   process.exit(0);
 }
 

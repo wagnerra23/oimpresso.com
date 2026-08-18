@@ -12,7 +12,7 @@
 | Skill | Tier | auto_trigger | enabled | Descrição (início) |
 |---|---|---|---|---|
 | alinhar-tela | B | — | sim | Use quando Wagner pedir "alinhar a tela X", "ligar a máquina da tela Y", "o que já tem pronto e o que falta na tela Z… |
-| aplicar-prototipo | B | — | sim | ATIVAR quando Wagner pedir "pega o que mudou no protótipo e aplica", "aplicar protótipo nas telas", "atualizar as tel… |
+| aplicar-prototipo | B | — | sim | ATIVAR quando Wagner pedir para baixar, comparar, aplicar ou sincronizar protótipo Cowork/Claude Design, inclusive sh… |
 | audit-constituicao | C | — | sim | ATIVAR quando user pedir "audit pós-constituição", "/audit-constituicao", "consolidação geral", "revisão geral desde … |
 | audit-to-backlog | B | — | sim | ATIVAR quando user pedir "transformar audit em tasks", "levar audit X pro backlog", "criar tasks do audit", "/audit-t… |
 | automem-pending | B | — | sim | BLOQUEADOR — quando user mencionar tópico/módulo OU Edit/Read em path com auto-mem stale pendente migração (ADR 0061)… |

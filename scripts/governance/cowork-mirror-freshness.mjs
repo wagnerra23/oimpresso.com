@@ -74,7 +74,7 @@
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { join, dirname } from 'node:path';
+import { join, dirname, resolve } from 'node:path';
 import { anchorRelPath } from './anchor-content-check.mjs'; // fonte única: como extrair o path do related_prototype
 
 const ROOT = process.cwd();
@@ -411,7 +411,18 @@ export function absentLocal(shellHtml, root = ROOT) {
   const rel = (d) => `prototipo-ui/cowork/${d}`;
   const ausentes = parseShellDeps(shellHtml).filter((d) => !existsSync(join(root, rel(d))));
   const ignorados = ausentes.filter((d) => {
-    try { execFileSync('git', ['check-ignore', '-q', rel(d)], { cwd: root, stdio: 'ignore' }); return true; }
+    try {
+      // Em worktrees controladas por outro usuário (Codex sandbox no Windows), git recusava
+      // antes de consultar o .gitignore. O cache `_ds` existente mascarava isso e deixava o
+      // teste verde; ao limpar o cache, o falso-verde apareceu. A exceção é escopada ao root
+      // que já recebemos, não altera config global e mantém o .gitignore como dono da regra.
+      const safeRoot = resolve(root).replaceAll('\\', '/');
+      execFileSync('git', ['-c', `safe.directory=${safeRoot}`, 'check-ignore', '-q', rel(d)], {
+        cwd: root,
+        stdio: 'ignore',
+      });
+      return true;
+    }
     catch { return false; } // exit≠0 = NÃO ignorado (git check-ignore -q usa o código, não a saída)
   });
   return { faltando: ausentes.filter((d) => !ignorados.includes(d)), ignorados };
