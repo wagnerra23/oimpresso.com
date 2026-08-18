@@ -1800,6 +1800,11 @@ class SellController extends ApiController
         } catch (ModelNotFoundException $e) {
             DB::rollback();
             $output = $this->modelNotFoundExceptionResult($e);
+        } catch (\App\Exceptions\SellReturnExceedsSold $e) {
+            // Regra de negócio (CU-DEV-08): devolver mais que o vendido. Não é falha interna —
+            // o consumidor da API precisa da mensagem pra corrigir o payload.
+            DB::rollback();
+            $output = ['success' => false, 'msg' => $e->getMessage()];
         } catch (\Exception $e) {
             DB::rollback();
 
