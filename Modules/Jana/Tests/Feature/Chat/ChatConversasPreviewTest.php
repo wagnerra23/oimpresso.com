@@ -46,15 +46,36 @@ function chatPreviewSkip(string $motivo): void
     test()->markTestSkipped($motivo);
 }
 
+/**
+ * Versao do asset que o Inertia espera — MESMA conta do app.
+ *
+ * `HandleInertiaRequests::version()` devolve `md5_file()` do manifest quando ele
+ * existe. Sem mandar isto no header, o middleware responde **409** (version
+ * mismatch, "recarrega a pagina inteira") em vez de 200, e o teste reprova por
+ * um motivo que nao tem nada a ver com o payload — foi assim que este arquivo
+ * reprovou na segunda run do PR #5901. A lane stuba o manifest num step
+ * dedicado, entao aqui o ramo do `file_exists` e deterministico.
+ */
+function chatPreviewVersaoInertia(): string
+{
+    $manifest = public_path('build-inertia/manifest.json');
+
+    return file_exists($manifest) ? md5_file($manifest) : '1';
+}
+
 /** Pede a lista deferida do Chat como o `<Deferred>` do front pede. */
 function chatPreviewConversas($teste, $user): array
 {
     $resposta = $teste->actingAs($user)->get(route('jana.chat.index'), [
         'X-Inertia'                   => 'true',
+        'X-Inertia-Version'           => chatPreviewVersaoInertia(),
         'X-Inertia-Partial-Component' => 'Jana/Chat',
         'X-Inertia-Partial-Data'      => 'conversas',
     ]);
 
+    // 409 aqui NAO seria "o payload esta errado" — seria o Inertia mandando
+    // recarregar. Asserir 200 explicitamente impede que a diferenca passe como
+    // se fosse ausencia de dado.
     $resposta->assertStatus(200);
 
     return json_decode($resposta->getContent(), true)['props']['conversas'] ?? [];
