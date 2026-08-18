@@ -78,10 +78,25 @@ O Pro era a única fora do header do sistema. O charter justificava com "modo FO
 | seção | vivo |
 |---|---|
 | Situação · Realizado · Projeção · Série · Fechar | ✅ |
-| **Origem do número** | ❌ 0 |
-| **Escopo** | ❌ 0 |
-| **Editar meta** | ❌ 0 |
-| **Falar com a Jana** (`onFalarComJana`) | ❌ 0 |
+| **Origem do número** | ❌ 0 → ✅ **onda 5 (2026-08-18)** |
+| **Escopo** | ❌ 0 → ✅ **onda 5 (2026-08-18)** |
+| **Editar meta** | ⚠️ **o `❌ 0` era FALSO** — ver errata abaixo |
+| **Falar com a Jana** (`onFalarComJana`) | ⚠️ **o `❌ 0` era FALSO** — ver errata abaixo |
+| **Projeção** (não estava nesta tabela) | ❌ → ✅ **onda 5** — o servidor já mandava e ninguém lia |
+
+> **Errata desta tabela (2026-08-18, onda 5).** Dois dos quatro `❌ 0` estavam **errados**, e o
+> defeito é meu método, não o código: medi por `grep` do **rótulo literal do protótipo**. Os dois
+> existem no `JanaMetaDrawer` desde 2026-08-17, com rótulos **deliberadamente diferentes** e a
+> razão escrita ao lado no próprio arquivo:
+>
+> | protótipo | vivo | por quê (comentário no código) |
+> |---|---|---|
+> | *Editar meta* | **`Abrir a meta`** | *"o destino é a tela de leitura (`show`) (…) prometer 'editar' mandaria o usuário pra um lugar que não é o formulário"* |
+> | *Falar com a Jana* | **`Conversar com a Jana`** | mesma copy do contrato `painel-cta-conversar`, sem semear a pergunta porque `ChatController@novaConversa` não aceita pergunta inicial |
+>
+> É a classe LC-08 (**medir a partir da fonte errada**): rótulo de protótipo não é chave de
+> busca em código que renomeou o rótulo de propósito. O que a onda 5 de fato entregou são os
+> **outros três** — Origem do número, Escopo e Projeção.
 
 ---
 
@@ -381,7 +396,7 @@ O conserto **estende o dono** (`cowork-mirror-freshness`, que já é o dono do p
 | **1** | Pro entra no `PageHeader` canon (sem `subnav`, preserva modo FOCO) | sim → F1.5 | ✅ **FEITA 2026-08-18** — a tag `UPGRADE` foi pro `leading` (slot que já existia); o `titleBadge` novo saiu por PREÇO, não por mérito — tocar o canon escalava o visreg pra 37 telas, 29 sem baseline. Smoke pós-merge pendente |
 | **2** | `janaContext` no Chat e na Memória (empresa + `biz=` no header) | sim → F1.5 | ✅ **FEITA 2026-08-18** — o header já aceitava as props; faltava o controller mandar. [#5919](https://github.com/wagnerra23/oimpresso.com/pull/5919) **mergeado**. Smoke pós-merge pendente |
 | **4** | selo de plano + Configurar + Exportar + skeleton nas 3 telas | sim → F1.5 | proposta |
-| **5** | drawer de metas: Origem do número · Escopo · Editar meta · Falar com a Jana | sim → F1.5 | proposta |
+| **5** | drawer de metas: Origem do número · Escopo · ~~Editar meta~~ · ~~Falar com a Jana~~ + **Projeção** | sim → F1.5 | ✅ **FEITA 2026-08-18** — 2 dos 4 itens originais já existiam com outro rótulo (errata §6); entrou Projeção, que o servidor mandava sem consumidor |
 | **6** | Dashboard × Painel (título, breadcrumb, componente exportado) | sim → F1.5 | decisão [W] |
 | **7** | as 4 telas Blade da área — uma onda por tela, F1 (RUNBOOK) antes de qualquer `.tsx` | sim | proposta |
 

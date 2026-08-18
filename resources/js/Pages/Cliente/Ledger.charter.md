@@ -2,6 +2,7 @@
 id: resources-js-pages-cliente-ledger-charter
 page: /contacts/ledger
 component: resources/js/Pages/Cliente/Ledger.tsx
+related_prototype: prototipo-ui/cowork/cliente-extrato.jsx
 owner: wagner
 status: live
 last_validated: "2026-06-24"

@@ -2,6 +2,7 @@
 id: resources-js-pages-cliente-edit-charter
 page: /contacts/{id}/edit
 component: resources/js/Pages/Cliente/Edit.tsx
+related_prototype: prototipo-ui/cowork/cliente-form.jsx
 owner: wagner
 status: live
 last_validated: "2026-06-24"
