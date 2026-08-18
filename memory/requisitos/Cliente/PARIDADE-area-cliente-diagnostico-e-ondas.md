@@ -33,7 +33,7 @@ Cada número traz a porta viva que o reproduz. Nada estimado.
 | E2E · VRT · L2 | **1 · 1 · 1** | idem |
 | UC declarados | **22** (Index 4 · Show 3 · Create 3 · Edit 4 · Import 1 · Ledger 5 · Map 2) | `grep -cE "^\s*###? *UC-" <Tela>.casos.md` |
 | Âncora Cowork **antes** desta sessão | **1/7** (só `Show`, e como `n/a`) | `node prototipo-ui/ancora.mjs Cliente/<Tela>` |
-| Âncora Cowork **depois** (Onda 0) | **7/7** — 6 `✓` + 1 `n/a` legítimo | idem |
+| Âncora Cowork **depois** (Onda 0) | **6/7** — 5 `✓` + 1 `n/a` legítimo · **`Map` bloqueado** (§3.1) | idem |
 | `.map.json` versionado | **0** | `node scripts/governance/design-code-map-check.mjs --check` |
 | Frescor do espelho | **⚠️ NÃO MEDIDO** | `--compare` aborta sem snapshot `DesignSync` |
 | `gap.md` | **2** (`Cliente/clientes-gap.md` + `Crm/clientes-gap.md`, conteúdos **diferentes**) | `design-code-map-check --check` |
@@ -51,7 +51,7 @@ Pareamento feito por **estrutura** (`<h1>` + conteúdo renderizado), nunca por s
 | `cliente-form.jsx` (312 ln) | `{modo === "editar" ? "Editar cadastro" : "Novo contato"}` | **Create + Edit** (o protótipo tem os 2 modos) | 2026-08-13 |
 | `cliente-import.jsx` (120 ln) | "Importar clientes" | **Import** | 2026-08-13 |
 | `cliente-extrato.jsx` (170 ln) | "Extrato do cliente" | **Ledger** | 2026-08-13 |
-| `cliente-mapa.jsx` (105 ln) | "Mapa de clientes" | **Map** | 2026-08-13 |
+| `cliente-mapa.jsx` (105 ln) | "Mapa de clientes" | **Map** — pareado, **não declarado** (§3.1) | 2026-08-13 |
 | `cliente-drawer760.jsx` (834 ln) | `CdIdentificacao`, `CdStatus`… | **componente** do Index (ADR 0179) — não é tela | 2026-08-13 |
 | `cliente-grupos.jsx` (156 ln) | "Grupos de cliente" | **⚠️ nenhuma tela Inertia** — ver Onda 4 | 2026-08-13 |
 | `crm-ficha.jsx` (184 ln) | frota: "Actros" · "Motorista" · "Abrir na Oficina" | **❌ NÃO é âncora do Cliente** — é cockpit de frota/oficina | — |
@@ -76,17 +76,30 @@ Create → prototipo-ui/cowork/cliente-form.jsx
 Edit   → prototipo-ui/cowork/cliente-form.jsx
 Import → prototipo-ui/cowork/cliente-import.jsx
 Ledger → prototipo-ui/cowork/cliente-extrato.jsx
-Map    → prototipo-ui/cowork/cliente-mapa.jsx
 ```
 
 **Recibo (o consumidor rodado com a mudança aplicada, não a leitura do texto):**
 
 | | antes | depois |
 |---|---|---|
-| `ancora.mjs Cliente/*` | 6× `⚠️ charter sem related_prototype` | 6× `âncora ✓ [related_prototype (charter)]` |
-| `git diff --numstat` | — | `1 0` em cada um dos 6 |
+| `ancora.mjs Cliente/*` | 6× `⚠️ charter sem related_prototype` | 5× `âncora ✓ [related_prototype (charter)]` |
+| `git diff --numstat` | — | `1 0` em cada um dos 5 |
 | `cowork-ssot-guard` | — | `✓ fonte única OK` |
 | `casos-coverage-guard` | — | sem violações novas (−17) |
+
+### 3.1 · O `Map` ficou de fora — e a razão é uma decisão registrada, não esquecimento
+
+A âncora do `Map` **existe e é conhecida**: `prototipo-ui/cowork/cliente-mapa.jsx` (`<h1>Mapa de clientes`). Ela foi declarada e **revertida** no mesmo PR, por este motivo:
+
+O gate `charter-us-lint` é **no-new-lie**: morde charter *tocado* que não tenha `related_us` válido. Dos 7 charters, o `Map` é o único sem — e **não é lacuna a preencher**. O [SPEC do Cliente](SPEC.md) (linha 331, 2026-07-03) registra:
+
+> Segurados ⏸️ ADR 0105: RFM, campos custom, **Map lib**, merge dup, header DS.
+
+O `Map` foi **deliberadamente segurado** pela [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) (backlog só recebe item com sinal de cliente). As US-CRM-079..085 criadas naquele dia cobrem Import (082) e Ledger (084); **nenhuma cobre o Map**, por decisão.
+
+O lint exige slug `US-…` real — não aceita `n/a` nem `_pendente_`. Logo as saídas eram: **(a)** inventar uma US — falsificação, e contra a ADR 0105; **(b)** criar US nova — decisão [W] que exige sinal; **(c)** não tocar o charter. Escolhi **(c)**, que é a doutrina forward-only: *normalizar legado só quando o toque paga a dívida que ele acorda*.
+
+**Desbloqueio:** quando existir sinal de cliente para o Map (ADR 0105), a US nasce, o `related_us` é declarado e a âncora entra em 1 linha — o pareamento já está medido aqui.
 
 ---
 
@@ -106,7 +119,7 @@ A regra que as irmãs já aplicam: **paridade tem três direções**, e a onda *
 
 | Onda | Escopo | Toca `.tsx`? | Pré-requisito |
 |---|---|---|---|
-| **0** ✅ | Declarar as 6 âncoras | não | — |
+| **0** ✅ | Declarar as âncoras — **5 de 6 feitas**; `Map` bloqueado por decisão (§3.1) | não | — |
 | **1** | Snapshot `DesignSync` + `--compare` → saber se o espelho está fresco | não | Onda 0 |
 | **2** | Re-medir o FRESCOR do Cliente contra os protótipos de 13/ago | não | Onda 1 |
 | **3** | Uma tela por onda, começando por `Ledger` e `Map` (menor risco) | só se der 🟠 | Onda 2 |
