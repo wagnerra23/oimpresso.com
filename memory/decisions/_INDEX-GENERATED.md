@@ -7,7 +7,7 @@
 ## Resumo
 - **383** arquivos · **368** números únicos · máx **0378**
 - **ADRs ATIVOS (lifecycle ativo): 345** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 347 · superseded 16 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
+- Por status: aceito 348 · superseded 16 · deprecated 12 · proposto 5 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 345 · arquivado 22 · substituido 16
 - Sem frontmatter (formato-tabela legado): 0
 
@@ -409,7 +409,7 @@ _(nenhuma)_
 | 0364 | aceito | ativo | decision | O trio de tela (charter + casos) muda de casa para memory/requisitos/<Modulo>/_t |
 | 0365 | aceito | ativo | decision | O trio de tela (charter + casos) FICA colocado ao lado do .tsx; a doc espelha o  |
 | 0366 | aceito | ativo | decision | Fronteira dos 4 módulos emaranhados — Jana (IA) · Forja (trabalho + MCP) · Gover |
-| 0367 | proposto | ativo | decision | Cockpit único do time: /project-mgmt morre, /forja e /team-mcp/tasks ficam — cin |
+| 0367 | aceito | ativo | decision | Cockpit único do time: /project-mgmt morre, /forja e /team-mcp/tasks ficam — cin |
 | 0368 | aceito | ativo | decision | Funil de admissão de feature — a pesquisa de mercado propõe, [W] admite ou recus |
 | 0369 | aceito | ativo | decision | Emenda à 0314 — Compras, Estoque e Ponto (Pest MySQL) promovidos a REQUIRED (val |
 | 0370 | aceito | ativo | decision | Emenda à 0314 — module-surface e catalog-graph promovidos a REQUIRED (índice der |
