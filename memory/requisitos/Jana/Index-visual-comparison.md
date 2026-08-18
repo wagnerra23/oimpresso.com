@@ -179,6 +179,25 @@ suas de 5 regras sobre o dado real, então a contagem varia por tenant. O par:
 | toast | `jm-toast` em reapuração, export, ações | aprovação de ação toasta pelo handler **global** do `app.tsx` (`router.on('success')` → `flash.success`); reapuração e export seguem sem | 🟡 **parcial (esta onda)** — a Page **não** monta toast próprio: seria em dobro |
 | aviso mobile | "O painel foi desenhado pro escritório (1280px)…" | idem, `md:hidden` | ✅ **(#5881)** |
 
+> ⚠️ **O gate de pixel NÃO enxerga a seção de ações — medido em 2026-08-18, no PR #5895.**
+> A tela `Jana` está no manifesto do visreg e o gate **roda** (`it Jana bate com a baseline de pixel`,
+> e o mapeamento resolve `_components/JanaCockpit.tsx` → `Jana` corretamente). Mas
+> [`database/seeders/VisregTenantSeeder.php`](../../../database/seeders/VisregTenantSeeder.php) semeia
+> **zero** `transactions` — e as 5 regras de `acoes` dependem de venda (`overdueCount`, `deltaTicket`,
+> `pixHoje`, `totalPendentes`). Sem venda, `acoes` sai vazio, o `{acoes.length > 0 && …}` não renderiza
+> e a seção inteira fica **fora do DOM**.
+>
+> Consequência: o #5895 trocou os 5 rótulos do CTA e acrescentou um modal, e o pixel-diff deu verde
+> **sem ter visto um pixel disso**. Vale pra qualquer mudança futura naquela seção — e, pelo mesmo
+> mecanismo, para todo bloco desta tela que só renderiza com dado (o brief, os KPIs derivados de
+> `coworkAggregates`, os buckets de inadimplência).
+>
+> **Verde real, não skip-as-pass** — o job executou 12 min. O que falta não é execução, é **dado**.
+> Conserto possível: semear venda vencida no tenant do visreg (PR próprio; conserta o ponto cego pra
+> sempre). Enquanto não houver, "visual-regression verde" nesta tela **não** é evidência de que a
+> mudança foi vista — e dizer que é seria a classe LC-13 (verde por não-execução) num eixo novo: verde
+> por **ausência de dado**.
+
 ## R10 · Plano e upsell
 
 | componente | protótipo | tela viva | veredito |
