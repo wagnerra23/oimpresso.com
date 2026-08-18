@@ -39,8 +39,8 @@ function montar(over: Partial<React.ComponentProps<typeof ConvSidePanel>> = {}) 
     onToggle,
     ...over,
   };
-  render(<ConvSidePanel {...props} />);
-  return { onSelectConv, onToggle };
+  const utils = render(<ConvSidePanel {...props} />);
+  return { onSelectConv, onToggle, container: utils.container };
 }
 
 /** Aperta a tecla no window — é onde o handler vive. */
@@ -178,5 +178,38 @@ describe('UC-COPI-CHAT-04 — aria-live anuncia a troca de conversa', () => {
 
     rerender(<ConvSidePanel {...base} activeConvId="3" />);
     expect(live!.textContent).toBe('Conversa: Caçambas paradas há mais de 7 dias');
+  });
+});
+
+describe('UC-COPI-CHAT-11 — o histórico diz QUANTAS conversas, expandido e recolhido', () => {
+  // Por que estes casos nasceram DEPOIS da feature: o contador e o peek existem
+  // desde 61c770ec0 (2026-08-07, PR #5405) e ficaram 10 dias sem contrato. O
+  // `Chat.casos.md` chegou a listá-los como AUSENTES — a comparação com o
+  // protótipo procurou pelas classes DELE (`jm-hist-n`, `jm-hist-peek-n`), que
+  // não existem aqui porque a tela viva as traduziu pro DS (`cs-count`,
+  // `cs-peek-n`). Classe de protótipo não é âncora; comportamento é.
+
+  it('expandido, o cabeçalho mostra o número de conversas visíveis', () => {
+    const { container } = montar();
+    // 3 ativas — a arquivada não conta na aba Todas.
+    expect(container.querySelector('.cs-count')!.textContent).toBe('3');
+  });
+
+  it('o contador RESPEITA o filtro — na aba Arquivadas cai pra 1', () => {
+    const { container } = montar();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Arquivadas' }));
+
+    expect(container.querySelector('.cs-count')!.textContent).toBe('1');
+  });
+
+  it('recolhido, o rail mostra o rótulo "Histórico" E o número — não só o ícone', () => {
+    const { container } = montar({ aberto: false });
+    const peek = screen.getByRole('button', { name: 'Expandir histórico de conversas' });
+
+    expect(peek.querySelector('.cs-peek-l')!.textContent).toBe('Histórico');
+    expect(peek.querySelector('.cs-peek-n')!.textContent).toBe('3');
+    // Controle negativo: recolhido não sobra cabeçalho expandido na árvore.
+    expect(container.querySelector('.cs-head')).toBeNull();
   });
 });

@@ -26,6 +26,7 @@ use Modules\Jana\Entities\AcaoAprovacao;
  * podem divergir.
  *
  * @see Modules\Jana\Http\Controllers\AcaoHitlController
+ * @see resources/js/Pages/Jana/_components/JanaAcaoModal.tsx
  */
 class AcaoHitlService
 {

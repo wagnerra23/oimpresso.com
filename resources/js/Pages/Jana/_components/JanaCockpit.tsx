@@ -68,6 +68,7 @@ import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import { BriefValorSkeleton, KpiCardSkeleton, SparklineSkeleton } from './JanaCockpitSkeleton';
 import JanaDrillDrawer, { type DrillAnalise } from './JanaDrillDrawer';
+import JanaAcaoModal, { type AcaoHitl } from './JanaAcaoModal';
 import { JANA_ANALISES, type JanaAnaliseId } from './useJanaConfig';
 
 export interface JanaCockpitProps {
@@ -265,7 +266,19 @@ export default function JanaCockpit({
   const firstName = userName?.split(' ')[0] || 'você';
   const firstNameUpper = firstName.toUpperCase();
 
-  // ── Ações sugeridas (idêntico ao V2) ─────────────────────────────────────
+  // ── Ações sugeridas ──────────────────────────────────────────────────────
+  // A LÓGICA das 5 regras veio idêntica do V2. O que mudou em 2026-08-18 é o
+  // CTA: era decorativo (`title="(HITL — em breve V2)"`, zero `onClick`) e agora
+  // abre o `JanaAcaoModal`.
+  //
+  // Os rótulos mudaram junto — `Disparar`/`Preparar`/`Investigar`/`Detalhe`/
+  // `Lembrar` viraram `Revisar …`. Não é cosmética: este PR REGISTRA a aprovação
+  // e não envia nada, então "Disparar" abrindo um modal que não dispara trocaria
+  // um botão morto por um botão que mente — o §Anti-hooks do charter ("prometer
+  // no botão o que a rota não entrega") vale igual pros dois.
+  //
+  // Paridade com `AcaoHitlService::ACOES` (o backend valida a chave e devolve 404
+  // pro que não conhece) é amarrada por teste — UC-COPI-PAINEL-12.
   type AcaoTone = 'rose' | 'violet' | 'peach' | 'grey';
   interface Acao {
     id: string;
@@ -285,7 +298,7 @@ export default function JanaCockpit({
         title: `Régua WhatsApp · ${overdueCount} ${plural(overdueCount, 'venda vencida', 'vendas vencidas')}`,
         sub: `Potencial recuperação: ${fmtShort(overdueValue)}${topDevedor ? ` · top devedor: ${topDevedor.name}` : ''}`,
         tone: 'rose',
-        cta: { label: 'Disparar', tone: 'danger' },
+        cta: { label: 'Revisar régua', tone: 'danger' },
       });
     }
     if (overdueCount > 0 && overdueValue > 1000 && topDevedor) {
@@ -295,7 +308,7 @@ export default function JanaCockpit({
         title: `Negociar com ${topDevedor.name}`,
         sub: `Valor ${fmtShort(topDevedor.total)} · contato direto vale mais que régua automática`,
         tone: 'violet',
-        cta: { label: 'Preparar', tone: 'violet' },
+        cta: { label: 'Revisar proposta', tone: 'violet' },
       });
     }
     if (deltaTicket !== null && deltaTicket <= -5) {
@@ -305,7 +318,7 @@ export default function JanaCockpit({
         title: 'Investigar queda ticket médio',
         sub: `${deltaTicket}% vs semana passada · pode ser mix de produto mudando`,
         tone: 'peach',
-        cta: { label: 'Investigar', tone: 'orange' },
+        cta: { label: 'Revisar recorte', tone: 'orange' },
       });
     }
     if (faturadoHoje > 0 && pixHoje > 0 && pixHoje / faturadoHoje > 0.5) {
@@ -316,7 +329,7 @@ export default function JanaCockpit({
         title: `PIX adoção em ${pct}% — manter`,
         sub: `${fmtShort(pixHoje)} de ${fmtShort(faturadoHoje)} hoje · custo zero vs maquininha`,
         tone: 'grey',
-        cta: { label: 'Detalhe', tone: 'dark' },
+        cta: { label: 'Revisar leitura', tone: 'dark' },
       });
     }
     if (overdueCount === 0 && totalPendentes > 10) {
@@ -326,7 +339,7 @@ export default function JanaCockpit({
         title: `${totalPendentes} pendentes sem estourar ainda`,
         sub: 'Janela ideal pra lembrete amigável antes da régua agressiva',
         tone: 'grey',
-        cta: { label: 'Lembrar', tone: 'primary' },
+        cta: { label: 'Revisar lembrete', tone: 'primary' },
       });
     }
     return list;
@@ -345,6 +358,11 @@ export default function JanaCockpit({
   //                         formas em 30d, não o PIX de hoje — dado e janela
   //                         diferentes, então não abre.            ✗
   const [drill, setDrill] = useState<DrillAnalise | null>(null);
+
+  // Ação em confirmação HITL. `null` = modal fechado. Guarda só o que o modal
+  // EXIBE — a prévia ele mesmo busca no servidor, porque texto que afirma número
+  // é veredito, e veredito não nasce aqui (mesma regra do farol e do drill).
+  const [acaoHitl, setAcaoHitl] = useState<AcaoHitl | null>(null);
 
   // `leitura` só entra quando existe fato REAL pra contar. Onde não existe, o
   // drawer mostra Fonte + Escopo e cala — melhor que inventar uma frase.
@@ -776,7 +794,12 @@ export default function JanaCockpit({
                     <b className="block text-sm font-semibold text-foreground">{a.title}</b>
                     <small className="block text-[11.5px] text-muted-foreground">{a.sub}</small>
                   </div>
-                  <Button variant={ctaVariant(a.cta.tone)} size="sm" title={`${a.cta.label} (HITL — em breve V2)`}>
+                  <Button
+                    variant={ctaVariant(a.cta.tone)}
+                    size="sm"
+                    onClick={() => setAcaoHitl({ id: a.id, title: a.title, sub: a.sub })}
+                    aria-haspopup="dialog"
+                  >
                     {a.cta.label}
                   </Button>
                 </div>
@@ -788,12 +811,15 @@ export default function JanaCockpit({
 
       <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
         <Lightbulb size={12} className="mt-0.5 shrink-0" />
-        Insights baseados em vendas filtradas atual + agregados 30d. Próximas ondas: ações HITL real
-        (régua WhatsApp · investigar anomalias) + agentes Brain B Jana real.
+        Insights baseados em vendas filtradas atual + agregados 30d. A aprovação de uma ação é
+        registrada aqui; o disparo das mensagens entra num PR próprio.
       </p>
 
       {/* Drawer "de onde vem esse número" — aberto por KPI ou card de análise. */}
       <JanaDrillDrawer analise={drill} onClose={() => setDrill(null)} />
+
+      {/* Confirmação HITL da ação sugerida — âncora §JmAcaoModal. */}
+      <JanaAcaoModal acao={acaoHitl} onClose={() => setAcaoHitl(null)} />
 
       {/* Anti-flicker placeholder de totalAReceber pra reuso futuro do hook. */}
       <span hidden data-total-a-receber={totalAReceber} />
