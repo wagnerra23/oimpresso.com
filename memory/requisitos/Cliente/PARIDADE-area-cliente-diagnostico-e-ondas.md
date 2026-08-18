@@ -2,7 +2,7 @@
 
 - **Data da medição:** 2026-08-18 · **base:** `origin/main` `6b923a26d` (worktree 0 ahead / 0 behind)
 - **Origem:** [W] perguntou *"qual a paridade do modulo contacts? contacts com o prototipo. acho que tem que fazer a paridade de ondas? como funciona?"*
-- **Irmãos vivos:** [Jana](../Jana/PARIDADE-area-jana-diagnostico-e-ondas.md) (#5916, merged — único já em `main`) · Forja `PARIDADE-area-forja-diagnostico-e-ondas.md` (#5921, **aberto**) · Financeiro `RUNBOOK-paridade-ondas.md` (#5917, **aberto**). Mesmo protocolo, mesma Onda 0 bloqueante. Os dois abertos ficam sem link de propósito — o arquivo ainda não existe em `main`.
+- **Irmãos vivos:** [Jana](../Jana/PARIDADE-area-jana-diagnostico-e-ondas.md) (#5916) · [Forja](../Forja/PARIDADE-area-forja-diagnostico-e-ondas.md) (#5921) · [Financeiro](../Financeiro/RUNBOOK-paridade-ondas.md) (#5917) — os três mergeados em `main` em 2026-08-18. Mesmo protocolo, mesma Onda 0 bloqueante.
 
 > **Limite deste documento.** Tudo abaixo é **estrutural** (leitura de código + espelho versionado + portas vivas). **Não mede fidelidade visual:** isso exige `cowork-mirror-freshness --compare` (SYNC) + sonda `design-diff` nos dois renders. O `--compare` **abortou** aqui — exige um `snapshot.json` do `DesignSync` que não existe. Onde este doc diz "à frente" ou "atrás", é **estrutura**, nunca pixel.
 
