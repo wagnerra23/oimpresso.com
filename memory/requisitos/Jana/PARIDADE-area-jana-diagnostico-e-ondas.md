@@ -49,7 +49,7 @@ Wrapper da área: `Pages/Jana/components/JanaAreaHeader.tsx` (usa o canon) + `Pa
 
 O Pro é a única fora do header do sistema. O charter justifica com "modo FOCO" — mas modo FOCO é *sem SubNav*, não *sem PageHeader*: um `<PageHeader>` sem a prop `subnav` daria o mesmo resultado dentro do canon.
 
-`janaContext` tem **0 hits** em `ChatController` e `MemoriaController`; o `IndexController` tem. Por isso só o Painel mostra empresa e `biz=`.
+`janaContext` tinha **0 hits** em `ChatController` e `MemoriaController`; o `IndexController` tinha. Por isso só o Painel mostrava empresa e `biz=`. ✅ **Corrigido na onda 2 (2026-08-18)** — o `JanaAreaHeader` já aceitava `businessName`/`businessId` e até documentava a lacuna no próprio JSDoc; faltava o controller mandar.
 
 ## 5 · Colunas e títulos
 
@@ -78,10 +78,25 @@ O Pro é a única fora do header do sistema. O charter justifica com "modo FOCO"
 | seção | vivo |
 |---|---|
 | Situação · Realizado · Projeção · Série · Fechar | ✅ |
-| **Origem do número** | ❌ 0 |
-| **Escopo** | ❌ 0 |
-| **Editar meta** | ❌ 0 |
-| **Falar com a Jana** (`onFalarComJana`) | ❌ 0 |
+| **Origem do número** | ❌ 0 → ✅ **onda 5 (2026-08-18)** |
+| **Escopo** | ❌ 0 → ✅ **onda 5 (2026-08-18)** |
+| **Editar meta** | ⚠️ **o `❌ 0` era FALSO** — ver errata abaixo |
+| **Falar com a Jana** (`onFalarComJana`) | ⚠️ **o `❌ 0` era FALSO** — ver errata abaixo |
+| **Projeção** (não estava nesta tabela) | ❌ → ✅ **onda 5** — o servidor já mandava e ninguém lia |
+
+> **Errata desta tabela (2026-08-18, onda 5).** Dois dos quatro `❌ 0` estavam **errados**, e o
+> defeito é meu método, não o código: medi por `grep` do **rótulo literal do protótipo**. Os dois
+> existem no `JanaMetaDrawer` desde 2026-08-17, com rótulos **deliberadamente diferentes** e a
+> razão escrita ao lado no próprio arquivo:
+>
+> | protótipo | vivo | por quê (comentário no código) |
+> |---|---|---|
+> | *Editar meta* | **`Abrir a meta`** | *"o destino é a tela de leitura (`show`) (…) prometer 'editar' mandaria o usuário pra um lugar que não é o formulário"* |
+> | *Falar com a Jana* | **`Conversar com a Jana`** | mesma copy do contrato `painel-cta-conversar`, sem semear a pergunta porque `ChatController@novaConversa` não aceita pergunta inicial |
+>
+> É a classe LC-08 (**medir a partir da fonte errada**): rótulo de protótipo não é chave de
+> busca em código que renomeou o rótulo de propósito. O que a onda 5 de fato entregou são os
+> **outros três** — Origem do número, Escopo e Projeção.
 
 ---
 
@@ -379,9 +394,9 @@ O conserto **estende o dono** (`cowork-mirror-freshness`, que já é o dono do p
 | **P** | **ligar `--omission` no CI** — a catraca que pega omissão sem declarar item a item | não | proposta |
 | **T** | **primeiro `design-diff` medido** (§7.6) — D2/D6 batem, D4/D8 divergem **a favor da produção** | não | ✅ **RODADO 2026-08-18** — 0 itens de backlog gerados |
 | **1** | Pro entra no `PageHeader` canon (sem `subnav`, preserva modo FOCO) | sim → F1.5 | proposta |
-| **2** | `janaContext` no Chat e na Memória (empresa + `biz=` no header) | sim → F1.5 | proposta |
+| **2** | `janaContext` no Chat e na Memória (empresa + `biz=` no header) | sim → F1.5 | ✅ **FEITA 2026-08-18** — o header já aceitava as props; faltava o controller mandar. Smoke pós-merge pendente |
 | **4** | selo de plano + Configurar + Exportar + skeleton nas 3 telas | sim → F1.5 | proposta |
-| **5** | drawer de metas: Origem do número · Escopo · Editar meta · Falar com a Jana | sim → F1.5 | proposta |
+| **5** | drawer de metas: Origem do número · Escopo · ~~Editar meta~~ · ~~Falar com a Jana~~ + **Projeção** | sim → F1.5 | ✅ **FEITA 2026-08-18** — 2 dos 4 itens originais já existiam com outro rótulo (errata §6); entrou Projeção, que o servidor mandava sem consumidor |
 | **6** | Dashboard × Painel (título, breadcrumb, componente exportado) | sim → F1.5 | decisão [W] |
 | **7** | as 4 telas Blade da área — uma onda por tela, F1 (RUNBOOK) antes de qualquer `.tsx` | sim | proposta |
 
