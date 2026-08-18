@@ -149,6 +149,31 @@ performance.getEntriesByType('resource').filter(r => r.responseStatus >= 400)
 
 O browser reporta tudo que tentou buscar em **qualquer** profundidade do grafo. Foi assim que as 7 fontes apareceram — nenhuma delas está no HTML. É a mesma doutrina de sempre: medir pela **consequência**, não pela declaração.
 
+### Onda E TENTADA em 2026-08-18 — e ela esbarra num TETO DURO
+
+Executar a onda E foi tentado nesta sessão. Resultado, item a item:
+
+| arquivo | caminho | estado |
+|---|---|---|
+| `colors_and_type.css` | **já está no repo** — `scripts/design-sync/mirror-snapshot/` | ✅ copiável, zero download |
+| `cockpit_domains.css` | idem (e ainda é **regenerável** por `scripts/design-sync/ds-domains-companion.mjs` a partir do SSOT `resources/css/tokens/`) | ✅ |
+| `ibm-plex-sans-{400,500,600,700}.woff2` | **já estão no repo** — `mirror-snapshot/assets/fonts/` | ✅ 4 de 7 |
+| `ibm-plex-mono-{400,500,600}.woff2` | não estão no repo · são **binários** | ❌ o `--export-from` só escreve **texto** |
+| **`_ds_bundle.js`** | **IMPOSSÍVEL hoje** | ❌ ver abaixo |
+
+**O teto, medido:** `DesignSync.get_file` do `_ds_bundle.js` volta com **`truncated: true`**, cortado em exatos **262.144 bytes (256 KiB)** — o cap do tool. O conteúdo termina no meio de uma linha (`const MENU = [{
+  label: 'Pa`). Escrevê-lo no espelho seria **pior que não escrever**: JS cortado é erro de sintaxe, o DS seguiria sem carregar, e agora com um arquivo que *parece* estar lá.
+
+E o bundle é justamente o **crítico** — é ele que define `window.OfficeImpressoPontoWR2DesignSystem_019dd0`. Sem ele, copiar os 2 CSS e as 4 fontes **não resolve** o `DS_carregado: false`; melhora tokens e tipografia, e mantém os componentes em fallback.
+
+**Duas limitações independentes do `--export-from`**, ambas medidas:
+1. **binário** — `exportPlan()` faz `Buffer.byteLength(content, 'utf8')` e o script tem **0 ocorrências** de `base64`/`Buffer.from`. Só escreve texto;
+2. **tamanho** — o insumo vem do `get_file`, que corta em 256 KiB.
+
+Isto é instância concreta do **teto de fidelidade do `get_file`** já aberto como decisão [W] em [#5757](https://github.com/wagnerra23/oimpresso.com/pull/5757). A lápide de 2026-08-14 prescreve o desfecho e ele foi seguido aqui: **não conserta — mede, registra, e o teto é decisão [W]**. Nada foi escrito no espelho.
+
+**Saídas possíveis, todas decisão [W]:** (a) estender o `--export-from` para binário + chunking (mexe no dono, não cria paralelo); (b) publicar o bundle por outro transporte que não o `get_file`; (c) aceitar o espelho degradado e **declarar** que leitura visual dele não vale — hoje isso não está escrito em lugar nenhum, e foi o que permitiu a comparação cega.
+
 ### Onde isto se encaixa no canon
 
 É uma instância da lápide de **2026-08-11** (*"o manifesto é CEGO pro que nunca desceu — LIVE-ONLY"*): o `--compare` prova que o que **está** no espelho acompanha o vivo, nunca que o espelho **cobre** o vivo. Este caso é a prova concreta da classe.
