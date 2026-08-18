@@ -123,11 +123,51 @@ O cabeçalho de 4 protótipos declara ter sido feito **por paridade com a produ�
 | **Map** | 🟠 **protótipo à frente em 1** | protótipo usa **OpenStreetMap embed sem chave de API**; a viva usa `maps.google.com/maps?q=…&output=embed` hardcoded — que é exatamente o gap do scorecard (`preflight_conformance` 66, o mais baixo do módulo) |
 | **Ledger** | ✅ **paridade** | o "saldo acumulado" do protótipo é a coluna `Saldo` (`line.balance`) da viva — **vocabulário diferente, mesma capacidade**; e a viva calcula no servidor em vez de recalcular no cliente |
 | **Create/Edit** | ✅ **paridade estrutural** | as 5 seções do protótipo (Identificação · Dados fiscais BR · Contato · Endereço · Financeiro) existem todas em `_form/` |
-| **Index** | ⚠️ **não medido** | o único veredito existente saiu do arquivo truncado (acima). Re-medir exige o protótipo completo, que só desceu em 13/ago |
+| **Index** | 🟠 **1 gap estrutural** (Onda 4 · §4.2) | a viva domina em a11y, export e paginação; o protótipo tem **views por papel** que a viva não tem |
 
 > **Armadilha registrada:** três sondas por **texto** desta medição deram falso negativo — `acumulado` × `balance` (vocabulário), `erro` × `Falha` (case), e labels literais contra tela data-driven. Comparar protótipo × tela viva por string **penaliza a produção por construção**: o protótipo carrega dados mock hardcoded, a viva recebe props. Medir **capacidade**, nunca ocorrência de palavra.
 
-**Resposta à pergunta "copiar pra qual lado?":** hoje há **5 itens medidos para adotar do protótipo** (4 do Import + 1 do Map) — todos de UX/a11y/acabamento, **nenhum de regra de negócio**. No sentido inverso não há pendência medida: os protótipos de 13/ago já nasceram do código vivo.
+**Resposta à pergunta "copiar pra qual lado?":** hoje há **5 itens medidos para adotar do protótipo** (4 do Import + 1 do Map) — todos de UX/a11y/acabamento, **nenhum de regra de negócio**. No sentido inverso não há pendência medida: os protótipos de 13/ago já nasceram do código vivo. O `Index` tem um 6º item, de natureza diferente — §4.2.
+
+---
+
+## 4.2 · Onda 4 — o `Index` re-medido contra o protótipo COMPLETO
+
+**Premissa conferida antes de medir:** o `clientes-page.jsx` do espelho tem **112.096 bytes** — bate exatamente com o "vivo" citado no [#5743](https://github.com/wagnerra23/oimpresso.com/pull/5743) (o truncado tinha 58.331). É o completo. A tela viva tem 112.605 bytes.
+
+**A viva domina na maior parte** (contagem em `Index.tsx` + `_components/` + `_drawer/`):
+
+| capacidade | protótipo | tela viva |
+|---|---:|---:|
+| `aria-*` (a11y) | 24 | **123** |
+| `role=` | 6 | **33** |
+| export/CSV/XLSX | 20 | **73** |
+| paginação | 10 | **36** |
+| favoritos · atalhos · grupos · crédito | — | 39 · 18 · 14 · 24 |
+
+**O gap único, e ele é estrutural: views por papel.** O protótipo declara no cabeçalho *"refactor: dispatcher por role. **Cada entidade tem vocabulário próprio**"* e entrega 5 views que **de fato diferem** em filtros e colunas:
+
+| View | filtros/colunas próprios |
+|---|---|
+| `SupplierView` | "Com pedido aberto" · "Críticos" · "Com saldo a pagar" / "Em dia" · coluna **Fornecedor** |
+| `EmployeeView` | **CLT · PJ · Estagiário · Sócio** |
+| `RepresentativeView` | "Ativos" / "Ociosos" · colunas **Comissão · Carteira · Vendas no mês** |
+
+A tela viva **tem as 6 tabs** (`all`/`customer`/`supplier`/`employee`/`representative`/`other`), mas os 9 termos distintivos acima dão **0 ocorrências** — e o payload é **único e cliente-cêntrico**: `buildClienteIndexCustomers($business_id, $type)` recebe o `$type` mas devolve sempre `total_os`, `os_abertas`, `valor_aberto`, `saldo_devedor`, `last_purchase_at`. O tipo **filtra**, não muda os campos. Vocabulário medido: 94× "cliente" contra 5 "fornecedor", 3 "representante", 3 "funcionário".
+
+### Custo real: isto NÃO é "copiar o protótipo"
+
+O gap é de **backend**, não de UI — medido campo a campo:
+
+| papel | o que falta | custo |
+|---|---|---|
+| Representante | comissão existe, mas em tabela separada (`crm_contact_person_commissions`); `contacts` não tem `commission` | JOIN + expor no payload |
+| Funcionário | regime CLT/PJ/Estagiário/Sócio **não existe** em `Contact` | migration + UI — **feature nova** |
+| Fornecedor | "pedido aberto" / "saldo a pagar" derivam de compras, não do payload atual | agregação nova |
+
+**Conclusão da Onda 4 (dupla, e as duas partes importam):** o veredito **geral** `MOCKUP-STALE` do `gap.md` continua **não reusável** — saiu de arquivo truncado. Mas o gap **específico** que ele nomeou (*"perspectiva Fornecedor/Funcionário/Representante — vocabulário por papel"*) **se confirma** na medição contra o arquivo completo. Ele acertou o item mesmo tendo visto metade.
+
+E como adotar exige schema novo, isto **não é onda de paridade** — é feature, e cai na [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md): entra com sinal de cliente, não por existir no protótipo.
 
 ---
 
@@ -141,7 +181,7 @@ A regra que as irmãs já aplicam: **paridade tem três direções**, e a onda *
 | **1** ✅ | Medir a direção par a par (§4.1) — 5 itens para adotar, 2 pares em paridade | não | Onda 0 |
 | **2** | **Import:** drag-and-drop + progresso + teclado no dropzone + baixar linhas com erro | **sim** | — |
 | **3** | **Map:** trocar iframe Google hardcoded por OSM sem chave (fecha o `preflight` 66) | **sim** | US do Map (§3.1) |
-| **4** | Re-medir o `Index` contra o protótipo **completo** — o veredito velho saiu de arquivo truncado | não | — |
+| **4** ✅ | Re-medir o `Index` contra o protótipo **completo** (§4.2) — viva domina; 1 gap: views por papel, que é **backend**, não UI | não | — |
 | **5** | Decidir o `cliente-grupos.jsx` órfão: tela que falta, ou dropdown ⋮ do Index? | decisão [W] | — |
 | **6** | Snapshot `DesignSync` + `--compare` → fidelidade visual (o que este doc **não** mede) | não | — |
 
