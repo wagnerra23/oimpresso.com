@@ -77,15 +77,26 @@ export function ThreadHeader({ conv }: { conv: ConversaFoco }) {
       : conv.cliente?.nome || 'Cliente';
   return (
     <header className="th-head">
-      <div className="th-av" style={{ background: gradientFor(av.gradId) }}>
+      {/* CONTRATO DE CLASSE (2026-08-17): os filhos do `.th-head` são `av`/`who`/`actions`,
+          SEM o prefixo `th-`. As 3 folhas que estilizam este header — cockpit.css:945-954,
+          sells-cowork.css:911-924 e cowork-canon-financeiro-bundle.css:940-946 — todas
+          escrevem `.th-head .av`, `.th-head .who`, `.th-head .actions`. O port deste
+          componente prefixou os filhos, e medido no repo inteiro havia ZERO regra CSS
+          casando a forma prefixada: o pai pegava seu flex/56px e os três filhos ficavam
+          SEM ESTILO NENHUM. Sintomas na baseline visreg de Jana/Chat: título e subtítulo
+          colados (faltava o `display:block` de `.who b`/`.who small`), botões empilhados e
+          cortados (faltava `margin-left:auto; display:flex` de `.actions`) e avatar
+          quadrado (faltava o círculo 34px de `.av`). Renomear aqui recupera o contrato que
+          o CSS já implementa — não inventa estilo novo. */}
+      <div className="av" style={{ background: gradientFor(av.gradId) }}>
         {av.iniciais}
         {conv.online && <span className="th-online" />}
       </div>
-      <div className="th-who">
+      <div className="who">
         <b>{conv.titulo}</b>
         <small>{sub}</small>
       </div>
-      <div className="th-actions">
+      <div className="actions">
         <button className="icon-btn" type="button" title="Ligar"><Phone size={14} /></button>
         <button className="icon-btn" type="button" title="Detalhes"><Info size={14} /></button>
         <button className="icon-btn" type="button" title="Mais"><MoreHorizontal size={14} /></button>
