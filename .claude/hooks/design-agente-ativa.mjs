@@ -120,8 +120,19 @@ LEITURA é **livre** e usa o login do [W] — sem senha, sem opt-in (só a ESCRI
 Claim de ausência exige consultar os TRÊS (§5 2026-07-28 — repo inteiro **+** dono do inventário).
 
 **⛔ PUXOU? PERSISTA PELA ROTA CANÔNICA — nunca escrevendo o conteúdo você mesmo:**
+    # SHELL COMPLETO (preferido): payload servido Cowork + DS, sem teto de 256 KiB
+    node scripts/design-sync/aplicar-payload.mjs <cowork.json> <ds.json> --dry --require-complete-shell
+    node scripts/design-sync/aplicar-payload.mjs <cowork.json> <ds.json> --require-complete-shell
     node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir-com-os-JSONs-do-get_file>
     node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir> --ds   # destino Design System
+    node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir> --ds-runtime  # bundle/CSS/fontes
+    node scripts/governance/cowork-mirror-freshness.mjs --preview-ds              # PORTÃO: precisa sair 0
+
+Shell completo só existe quando o applier imprime \`GRAFO COMPLETO\`: ele percorre HTML/CSS/JS
+transitivamente, exige \`missing:[]\` em TODOS os payloads e grava \`_ds/**\` no snapshot persistente.
+Se qualquer JSON trouxer \`truncated:true\`, ou o \`--preview-ds\` acusar bundle/fonte ausente,
+**PARE. Não edite \`Pages/\` nem \`Modules/\`**. O preview degradado esconde Drawer/Skeleton/
+DropdownMenu e não é evidência visual do protótipo.
 
 O agente BUSCA (só ele fala MCP) e o **SCRIPT ESCREVE** o \`raw.content\` — hash idêntico
 **por construção**, sem transcrição (ADR 0374, ratificada 2026-08-13 · FASE −1 do

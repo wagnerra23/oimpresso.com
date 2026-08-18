@@ -26,6 +26,9 @@ import {
   slaVerdict,
   liveOnly,
   exportPlan,
+  decodeDesignSyncPayload,
+  artifactHash,
+  dsRuntimeRelPath,
   absentLocal,
   previewDsPlan,
   nasceSemMedicao,
@@ -350,6 +353,34 @@ check('mesmo número → mesmo veredito (independe de --check)',
   try { exportPlan([{ path: 'a.jsx' }]); } catch (e) { msg = String(e.message); }
   check('BITE exportPlan: guard próprio lança citando o path',
     /export: conteúdo ausente para "a\.jsx"/.test(msg));
+
+  let truncado = '';
+  try {
+    decodeDesignSyncPayload({ path: '_ds/x/_ds_bundle.js', content: 'const MENU = [{', truncated: true }, 'bundle.json');
+  } catch (e) { truncado = String(e.message); }
+  check('BITE DesignSync: truncated:true é falha dura antes da escrita',
+    /TRUNCADO.*nada foi escrito/i.test(truncado), truncado);
+
+  const bytes = Buffer.from([0, 1, 2, 127, 128, 255]);
+  const bin = decodeDesignSyncPayload({ path: 'assets/font.woff2', content: bytes.toString('base64'), isBase64: true });
+  check('DesignSync base64: binário volta byte-idêntico, não como texto base64',
+    bin.binary === true && Buffer.isBuffer(bin.content) && bin.content.equals(bytes));
+  check('exportPlan: binário preserva bytes e tamanho real',
+    exportPlan([bin])[0].bytes === bytes.length && exportPlan([bin])[0].content.equals(bytes));
+  check('artifactHash: binário hasheia bytes crus',
+    artifactHash(bin.content, true) === artifactHash(bytes, true));
+  check('ds-runtime: remove o slug _ds e mantém o path relativo consumido pelo preview',
+    dsRuntimeRelPath('_ds/office-impresso-019dd0/assets/fonts/x.woff2') === 'assets/fonts/x.woff2');
+  let templateNoRuntime = '';
+  try { dsRuntimeRelPath('templates/pt-05-dashboard/Pt05Dashboard.dc.html'); }
+  catch (e) { templateNoRuntime = String(e.message); }
+  check('BITE ds-runtime: template não contamina o snapshot de runtime',
+    /use --ds/.test(templateNoRuntime), templateNoRuntime);
+  let traversalNoRuntime = '';
+  try { dsRuntimeRelPath('_ds/ds-teste/assets/../../fora.txt'); }
+  catch (e) { traversalNoRuntime = String(e.message); }
+  check('BITE ds-runtime: path traversal do payload é recusado',
+    /caminho inseguro/.test(traversalNoRuntime), traversalNoRuntime);
 }
 
 // ── ABSENT-LOCAL (2026-08-13): a 3ª doença — o espelho INCOERENTE ────────────────
@@ -579,6 +610,57 @@ check('mesmo número → mesmo veredito (independe de --check)',
   check('snapshot de medição se declara `_origin: medicao` (o ledger não o confunde com export)',
     JSON.parse(readFileSync(snapMed, 'utf8'))._origin === 'medicao');
 
+  // Regressão 2026-08-18: o payload real do _ds_bundle.js veio com truncated:true,
+  // mas o exportador ignorava o metadado e escrevia JS cortado como se fosse fiel.
+  const dirTrunc = join(tmp, 'truncado');
+  mkdirSync(dirTrunc);
+  writeFileSync(join(dirTrunc, 'bundle.json'), JSON.stringify({
+    path: '_ds/x/_ds_bundle.js', content: "const MENU = [{ label: 'Pa", truncated: true,
+  }));
+  const expTrunc = run(['--export-from', dirTrunc]);
+  check('FLUXO BITE: export truncado sai 2, nomeia TRUNCADO e não grava arquivo',
+    expTrunc.code === 2 && /TRUNCADO/.test(expTrunc.out)
+      && !existsSync(join(mirror, '_ds', 'x', '_ds_bundle.js')), expTrunc.out);
+
+  const dirBin = join(tmp, 'binario');
+  mkdirSync(dirBin);
+  const fontBytes = Buffer.from([0, 1, 2, 127, 128, 255]);
+  writeFileSync(join(dirBin, 'font.json'), JSON.stringify({
+    path: '_ds/ds-teste/assets/fonts/x.woff2', content: fontBytes.toString('base64'), isBase64: true,
+  }));
+  const expBin = run(['--export-from', dirBin, '--ds-runtime']);
+  const fontOut = join(tmp, 'scripts', 'design-sync', 'mirror-snapshot', 'assets', 'fonts', 'x.woff2');
+  check('FLUXO ds-runtime: base64 pousa no snapshot consumido pelo preview, byte-idêntico',
+    expBin.code === 0 && existsSync(fontOut) && readFileSync(fontOut).equals(fontBytes), expBin.out);
+
+  rmSync(tmp, { recursive: true, force: true });
+}
+
+// ── PREVIEW COMPLETO É PORTÃO, NÃO AVISO ─────────────────────────────────────
+// O comando dizia "SEM FONTE" para o bundle, mas encerrava 0. O agente seguia à Fase 4
+// e drawers/eventos sumiam porque o protótipo faz `if (!Drawer || !meta) return null`.
+{
+  const tmp = mkdtempSync(join(tmpdir(), 'preview-ds-failclosed-'));
+  const mirror = join(tmp, 'prototipo-ui', 'cowork');
+  const snap = join(tmp, 'scripts', 'design-sync', 'mirror-snapshot');
+  mkdirSync(mirror, { recursive: true });
+  mkdirSync(snap, { recursive: true });
+  writeFileSync(join(mirror, 'oimpresso.com.html'),
+    '<script src="_ds/ds-teste/_ds_bundle.js"></script><link href="_ds/ds-teste/colors_and_type.css">');
+  writeFileSync(join(snap, 'colors_and_type.css'), ':root{--x:1}');
+  const cli = fileURLToPath(new URL('./cowork-mirror-freshness.mjs', import.meta.url));
+  let out = '', code = 0;
+  try { out = execFileSync(process.execPath, [cli, '--preview-ds'], { cwd: tmp, encoding: 'utf8' }); }
+  catch (e) { code = e.status; out = (e.stdout || '') + (e.stderr || ''); }
+  check('BITE preview-ds: bundle sem fonte bloqueia com exit 1 antes de editar produto',
+    code === 1 && /PREVIEW INCOMPLETO.*PARE/s.test(out), out);
+
+  writeFileSync(join(snap, '_ds_bundle.js'), 'const MENU = [{');
+  let invalidoOut = '', invalidoCode = 0;
+  try { invalidoOut = execFileSync(process.execPath, [cli, '--preview-ds'], { cwd: tmp, encoding: 'utf8' }); }
+  catch (e) { invalidoCode = e.status; invalidoOut = (e.stdout || '') + (e.stderr || ''); }
+  check('BITE preview-ds: bundle truncado no disco falha no parser e mantém o portão fechado',
+    invalidoCode === 1 && /INVÁLIDO.*_ds_bundle\.js.*PREVIEW INCOMPLETO/s.test(invalidoOut), invalidoOut);
   rmSync(tmp, { recursive: true, force: true });
 }
 

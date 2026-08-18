@@ -184,12 +184,65 @@ export function liveOnly(livePaths, manifest, { exts = ['.jsx', '.html', '.css',
  *  Puro: recebe [{path, content}] e devolve [{relPath, content, bytes}].
  *  `path` é o path NO VIVO; o espelho grava em prototipo-ui/cowork/<path>. */
 export function exportPlan(arquivosVivos, { prefixo = 'prototipo-ui/cowork/' } = {}) {
-  return arquivosVivos.map(({ path: p, content }) => {
-    if (typeof content !== 'string') {
+  return arquivosVivos.map(({ path: p, content, binary = false }) => {
+    if (typeof content !== 'string' && !Buffer.isBuffer(content)) {
       throw new Error(`export: conteúdo ausente para "${p}" — o JSON do get_file precisa ter .content`);
     }
-    return { relPath: prefixo + p, content, bytes: Buffer.byteLength(content, 'utf8') };
+    return {
+      relPath: prefixo + p,
+      content,
+      binary: binary || Buffer.isBuffer(content),
+      bytes: Buffer.isBuffer(content) ? content.length : Buffer.byteLength(content, 'utf8'),
+    };
   });
+}
+
+/** Decodifica UMA resposta persistida do DesignSync.get_file sem permitir que o
+ *  metadado de transporte se perca. `truncated:true` é falha dura: o conteúdo termina
+ *  no meio do arquivo e jamais pode chegar ao espelho com aparência de download válido.
+ *  Binários chegam em base64 e são devolvidos como Buffer — escrever a string base64
+ *  criaria uma fonte corrompida com tamanho plausível. */
+export function decodeDesignSyncPayload(raw, origem = 'payload') {
+  if (!raw || typeof raw !== 'object' || typeof raw.path !== 'string' || !raw.path) {
+    throw new Error(`${origem}: JSON do get_file precisa ter .path`);
+  }
+  if (raw.truncated === true) {
+    throw new Error(`${origem}: DesignSync devolveu "${raw.path}" TRUNCADO — download incompleto; nada foi escrito`);
+  }
+  if (typeof raw.content !== 'string') {
+    throw new Error(`${origem}: JSON do get_file precisa ter .content para "${raw.path}"`);
+  }
+  if (raw.isBase64 === true) {
+    const compact = raw.content.replace(/\s+/g, '');
+    if (!compact || !/^[A-Za-z0-9+/]*={0,2}$/.test(compact) || compact.length % 4 !== 0) {
+      throw new Error(`${origem}: base64 inválido para "${raw.path}"`);
+    }
+    return { path: raw.path, content: Buffer.from(compact, 'base64'), binary: true };
+  }
+  return { path: raw.path, content: raw.content, binary: false };
+}
+
+/** Hash de artefato: texto usa a identidade normalizada do espelho; binário usa bytes crus. */
+export function artifactHash(content, binary = Buffer.isBuffer(content)) {
+  return binary
+    ? createHash('sha256').update(content).digest('hex')
+    : contentHash(content);
+}
+
+/** Caminho canônico de um artefato de RUNTIME do Design System dentro do snapshot.
+ *  O get_file pode devolver `_ds/<slug>/...`; o shell já escolhe o slug no destino,
+ *  portanto persistir esse prefixo de novo criaria `_ds/<slug>/_ds/<slug>/...`.
+ *  Template/componente-fonte não entra neste destino: usa `--ds`, não `--ds-runtime`. */
+export function dsRuntimeRelPath(path) {
+  const p = String(path || '').replace(/\\/g, '/').replace(/^\.\//, '');
+  const semSlug = p.replace(/^_ds\/[^/]+\//, '');
+  if (!semSlug || semSlug.startsWith('/') || semSlug.split('/').includes('..')) {
+    throw new Error(`ds-runtime: caminho inseguro "${path}"`);
+  }
+  if (!/^(?:_ds_bundle\.js|colors_and_type\.css|cockpit_domains\.css|assets\/)/.test(semSlug)) {
+    throw new Error(`ds-runtime: "${path}" não é bundle/CSS/asset de runtime; use --ds para fonte/template`);
+  }
+  return semSlug;
 }
 
 // ── LEDGER + SLA (a metade que o CI headless PODE checar com honestidade) ─────
@@ -983,25 +1036,39 @@ function main() {
     if (plano.erro) { console.error(`✗ ${plano.erro}`); process.exit(2); }
     console.log(`\n  PREVIEW-DS — repondo o _ds/ do espelho (id derivado do shell, não hardcode)\n`);
     console.log(`  design system: ${plano.id}`);
-    let ok = 0, faltando = [];
+    let ok = 0, faltando = [], invalidos = [];
     for (const a of plano.arquivos) {
       if (!a.temNoRepo) { faltando.push(a.nome); console.log(`  ⚠ SEM FONTE   ${a.nome}  (não existe em scripts/design-sync/mirror-snapshot/)`); continue; }
       mkdirSync(dirname(a.para), { recursive: true });
       writeFileSync(a.para, readFileSync(a.de));
+      if (a.nome === '_ds_bundle.js') {
+        try {
+          execFileSync(process.execPath, ['--check', a.para], { stdio: 'ignore' });
+        } catch {
+          invalidos.push(a.nome);
+          console.log(`  ⛔ INVÁLIDO    ${a.nome}  (JavaScript incompleto ou com erro de sintaxe)`);
+          continue;
+        }
+      }
       ok++;
       console.log(`  ✓ reposto     ${a.nome}`);
     }
-    console.log(`\n  ${ok} reposto(s) · ${faltando.length} sem fonte no repo${faltando.length ? ` (${faltando.join(', ')})` : ''}`);
+    console.log(`\n  ${ok} reposto(s) · ${faltando.length} sem fonte no repo${faltando.length ? ` (${faltando.join(', ')})` : ''} · ${invalidos.length} inválido(s)`);
     console.log(`  destino: ${plano.destino}/ — segue gitignored (build de preview, não versionamento).`);
-    // A frase precisa distinguir os dois tipos, porque a consequência é diferente:
-    // JS compilado (`_ds_bundle.js`) o protótipo contorna; FONTE não se contorna —
-    // ela cai no fallback do sistema e MUDA o render (medido 2026-08-14).
+    // A frase precisa distinguir os dois tipos, mas AMBOS bloqueiam fidelidade. Sem o
+    // `_ds_bundle.js`, Drawer/Skeleton/DropdownMenu ficam undefined e partes inteiras
+    // somem (`if (!Drawer || !meta) return null`). Fonte ausente muda a tipografia.
     if (faltando.length) {
       const fontes = faltando.filter((f) => /\.(woff2?|ttf|otf|eot)$/i.test(f));
       const resto = faltando.filter((f) => !/\.(woff2?|ttf|otf|eot)$/i.test(f));
-      if (resto.length) console.log(`  ⚠ o repo NÃO TEM ${resto.length} (${resto.join(', ')}) — componentes compilados do DS; o código do protótipo tem fallback pra eles.`);
+      if (resto.length) console.log(`  ⛔ o repo NÃO TEM ${resto.length} (${resto.join(', ')}) — componentes compilados do DS; drawers/eventos podem desaparecer no fallback.`);
       if (fontes.length) console.log(`  ⚠ o repo NÃO TEM ${fontes.length} FONTE(s) — elas NÃO têm fallback equivalente: o preview renderiza com a fonte do sistema, então a tipografia diverge do Cowork vivo. Não é cosmético.`);
     }
+    if (faltando.length || invalidos.length) {
+      console.error('\n✗ PREVIEW INCOMPLETO — PARE antes de editar Pages/Modules. Recupere todos os artefatos e rode --preview-ds novamente.');
+      process.exit(1);
+    }
+    console.log('\n✓ PREVIEW COMPLETO — todas as dependências do DS existem e o bundle passa no parser.');
     console.log('');
     return;
   }
@@ -1031,20 +1098,18 @@ function main() {
     const snap = {};
     let n = 0, tocaria = 0;
     for (const j of readdirSync(dir).filter((f) => f.endsWith('.json') || f.endsWith('.txt'))) {
-      const raw = JSON.parse(readFileSync(join(dir, j), 'utf8'));
-      if (!raw.path || typeof raw.content !== 'string') {
-        console.error(`✗ ${j}: JSON do get_file precisa ter .path e .content — pulado.`);
-        process.exit(2);
-      }
-      const h = contentHash(raw.content);
-      snap[raw.path] = h;
+      let vivo;
+      try { vivo = decodeDesignSyncPayload(JSON.parse(readFileSync(join(dir, j), 'utf8')), j); }
+      catch (e) { console.error(`✗ ${e.message}`); process.exit(2); }
+      const h = artifactHash(vivo.content, vivo.binary);
+      snap[vivo.path] = h;
       n++;
       // pré-visão honesta: compara com o disco SEM escrever, só pra o log não mentir
-      const abs = join(ROOT, 'prototipo-ui', 'cowork', raw.path);
-      const local = existsSync(abs) ? contentHash(readFileSync(abs, 'utf8')) : null;
+      const abs = join(ROOT, 'prototipo-ui', 'cowork', vivo.path);
+      const local = existsSync(abs) ? artifactHash(readFileSync(abs), vivo.binary) : null;
       const nota = local === null ? 'AUSENTE' : local === h ? 'igual' : 'DIVERGE';
       if (nota !== 'igual') tocaria++;
-      console.log(`  ${nota.padEnd(8)} ${raw.path}  (${h.slice(0, 12)})`);
+      console.log(`  ${nota.padEnd(8)} ${vivo.path}  (${h.slice(0, 12)})`);
     }
     writeFileSync(out, JSON.stringify({ _origin: 'medicao', ...snap }, null, 2) + '\n');
     console.log(`\n✓ snapshot de MEDIÇÃO em ${out} (${n} entrada(s)) — o espelho NÃO foi tocado.`);
@@ -1065,12 +1130,8 @@ function main() {
     const jsons = readdirSync(dir).filter((f) => f.endsWith('.json') || f.endsWith('.txt'));
     const vivos = [];
     for (const j of jsons) {
-      const raw = JSON.parse(readFileSync(join(dir, j), 'utf8'));
-      if (!raw.path || typeof raw.content !== 'string') {
-        console.error(`✗ ${j}: JSON do get_file precisa ter .path e .content — pulado.`);
-        process.exit(2);
-      }
-      vivos.push({ path: raw.path, content: raw.content });
+      try { vivos.push(decodeDesignSyncPayload(JSON.parse(readFileSync(join(dir, j), 'utf8')), j)); }
+      catch (e) { console.error(`✗ ${e.message}`); process.exit(2); }
     }
     // ── DESTINO — Cowork por default, Design System por `--ds` ────────────────
     //
@@ -1089,10 +1150,19 @@ function main() {
     // fazer primeiro: "quem já é dono deste tema?". Era este bloco.
     //
     // O `exportPlan` já aceitava `prefixo` desde sempre; só o chamador hardcodava.
-    const PREFIXOS = { cowork: 'prototipo-ui/cowork/', ds: 'prototipo-ui/design-system/' };
-    const destinoNome = argv.includes('--ds') ? 'ds' : 'cowork';
+    const PREFIXOS = {
+      cowork: 'prototipo-ui/cowork/',
+      ds: 'prototipo-ui/design-system/',
+      dsRuntime: 'scripts/design-sync/mirror-snapshot/',
+    };
+    const destinoNome = argv.includes('--ds-runtime') ? 'dsRuntime' : argv.includes('--ds') ? 'ds' : 'cowork';
     const prefixo = PREFIXOS[destinoNome];
-    const plano = exportPlan(vivos, { prefixo });
+    let paraExportar = vivos;
+    if (destinoNome === 'dsRuntime') {
+      try { paraExportar = vivos.map((v) => ({ ...v, path: dsRuntimeRelPath(v.path) })); }
+      catch (e) { console.error(`✗ ${e.message}`); process.exit(2); }
+    }
+    const plano = exportPlan(paraExportar, { prefixo });
     // O SNAPSHOT sai daqui de graça (2026-08-13). Antes o ciclo pedia DOIS downloads
     // por arquivo: um pro --export-from, outro pro snapshot do --compare — e o agente
     // é o único que fala MCP, então esse 2º download custava contexto dele. Mas o
@@ -1103,17 +1173,17 @@ function main() {
     const snapshotEmitido = {};
     const tally = { NOVO: 0, ATUALIZADO: 0, inalterado: 0 };
     const nascidos = []; // os NOVO desta rodada, pra alimentar o nasce-sem-medição no fim
-    for (const { relPath, content, bytes } of plano) {
+    for (const { relPath, content, bytes, binary } of plano) {
       const abs = join(ROOT, relPath);
-      const antes = existsSync(abs) ? contentHash(readFileSync(abs, 'utf8')) : null;
+      const antes = existsSync(abs) ? artifactHash(readFileSync(abs), binary) : null;
       // `mkdir -p` antes de escrever: o bloco nunca criou diretório e funcionava por
       // sorte — as pastas do espelho Cowork já existiam (200 arquivos versionados).
       // No primeiro destino NOVO (`--ds`) isso estourou ENOENT no 1º arquivo, medido
       // 2026-08-18. Vale pros dois destinos: subpasta nova no Cowork tinha o mesmo
       // buraco, só nunca tinha sido exercitada.
       mkdirSync(dirname(abs), { recursive: true });
-      writeFileSync(abs, content, 'utf8');
-      const depois = contentHash(content);
+      writeFileSync(abs, content);
+      const depois = artifactHash(content, binary);
       const nota = antes === null ? 'NOVO' : antes === depois ? 'inalterado' : 'ATUALIZADO';
       tally[nota]++;
       // chave = path RELATIVO ao espelho (o mesmo que o manifesto usa)
