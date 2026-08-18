@@ -16,6 +16,9 @@
  *   6. AVISA em perda líquida de linhas — o caso qa-conformance.js (espelho À FRENTE),
  *      que sem aviso vira regressão silenciosa
  *   7. o alerta NÃO dispara em sync legítimo que cresce — controle negativo
+ *   8. --require-complete-shell fecha HTML→CSS/JS→imports/assets transitivos
+ *   9. `_ds/**` pousa no snapshot canônico (bundle/CSS/base64 byte-idêntico)
+ *  10. dependência transitiva ausente cancela o lote inteiro antes do 1º write
  *
  * Uso: node scripts/design-sync/aplicar-payload.test.mjs
  */
@@ -50,9 +53,24 @@ function payload(dir, files) {
   }), 'utf8');
   return p;
 }
+function completePayload(dir, files, missing = []) {
+  const p = join(dir, 'payload-completo.json');
+  const normalized = files.map((f) => {
+    const binary = f.isBase64 === true || f.encoding === 'base64';
+    const bytes = binary ? Buffer.from(f.content, 'base64').length : Buffer.byteLength(f.content, 'utf8');
+    return { bytes, ...f };
+  });
+  writeFileSync(p, JSON.stringify({
+    schema: 'oimpresso-shell-v2', entry: 'oimpresso.com.html',
+    generatedAt: '2026-08-18T00:00:00Z', source: 'selftest', missing,
+    totalBytes: normalized.reduce((a, f) => a + f.bytes, 0), files: normalized,
+  }), 'utf8');
+  return p;
+}
 function rodar(dir, pay, args = []) {
   try {
-    const out = execFileSync('node', [APPLIER, pay, ...args], { cwd: dir, encoding: 'utf8' });
+    const payloads = Array.isArray(pay) ? pay : [pay];
+    const out = execFileSync('node', [APPLIER, ...payloads, ...args], { cwd: dir, encoding: 'utf8' });
     return { code: 0, out };
   } catch (e) { return { code: e.status ?? 1, out: (e.stdout || '') + (e.stderr || '') }; }
 }
@@ -122,5 +140,76 @@ function rodar(dir, pay, args = []) {
   check('o alerta é RELATO, não bloqueio (rc segue 0)', r.code === 0, 'rc=' + r.code);
 }
 
-console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ applier: escreve fiel · dry não escreve · recusa escopo/R1/bytes · avisa regressão sem bloquear');
+// ── 8 + 9: fechamento transitivo + roteamento persistente de `_ds/**` ─────────
+{
+  const fontBytes = Buffer.from([0, 1, 2, 127, 128, 255]);
+  const files = [
+    { path: 'oimpresso.com.html', content: [
+      '<link rel="stylesheet" href="styles.css?v=1">',
+      '<link rel="stylesheet" href="_ds/ds-teste/colors_and_type.css">',
+      '<script src="https://cdn.example/react.js"></script>',
+      '<script src="app.js"></script>',
+      '<script src="_ds/ds-teste/_ds_bundle.js"></script>',
+    ].join('\n') },
+    { path: 'styles.css', content: '@import "theme.css";\n' },
+    { path: 'theme.css', content: '.hero{background:url("assets/bg.svg#x")}\n' },
+    { path: 'assets/bg.svg', content: '<svg xmlns="http://www.w3.org/2000/svg"/>\n' },
+    { path: 'app.js', content: 'import "./lib/util.js";\nimport "react/jsx-runtime";\n' },
+    { path: 'lib/util.js', content: 'export const ok = true;\n' },
+    { path: '_ds/ds-teste/colors_and_type.css', content: '@font-face{src:url("assets/fonts/mono.woff2")}\n' },
+    { path: '_ds/ds-teste/_ds_bundle.js', content: 'globalThis.DS = { Drawer() {} };\n' },
+    { path: '_ds/ds-teste/assets/fonts/mono.woff2', content: fontBytes.toString('base64'), isBase64: true },
+  ];
+  const dir = sandbox();
+  const coworkPay = completePayload(dir, files.filter((f) => !f.path.startsWith('_ds/')));
+  const dsPay = join(dir, 'payload-ds.json');
+  const dsFiles = files.filter((f) => f.path.startsWith('_ds/')).map((f) => {
+    const binary = f.isBase64 === true || f.encoding === 'base64';
+    const bytes = binary ? Buffer.from(f.content, 'base64').length : Buffer.byteLength(f.content, 'utf8');
+    return { bytes, ...f };
+  });
+  writeFileSync(dsPay, JSON.stringify({ source: 'design-system', missing: [], files: dsFiles }), 'utf8');
+  const r = rodar(dir, [coworkPay, dsPay], ['--require-complete-shell']);
+  check('SHELL COMPLETO: fecha HTML→CSS/JS→imports/assets e ignora CDN externa',
+    r.code === 0 && /GRAFO COMPLETO/.test(r.out), r.out);
+  check('SHELL COMPLETO: fonte/CSS/bundle `_ds` pousam no snapshot canônico',
+    readFileSync(join(dir, 'scripts/design-sync/mirror-snapshot/_ds_bundle.js'), 'utf8').includes('Drawer') &&
+    readFileSync(join(dir, 'scripts/design-sync/mirror-snapshot/colors_and_type.css'), 'utf8').includes('@font-face') &&
+    readFileSync(join(dir, 'scripts/design-sync/mirror-snapshot/assets/fonts/mono.woff2')).equals(fontBytes), r.out);
+  check('SHELL COMPLETO: `_ds` não vira segunda cópia dentro do espelho',
+    !existsSync(join(dir, 'prototipo-ui/cowork/_ds/ds-teste/_ds_bundle.js')));
+  check('SHELL COMPLETO: arquivos Cowork seguem no espelho',
+    existsSync(join(dir, 'prototipo-ui/cowork/lib/util.js')) && existsSync(join(dir, 'prototipo-ui/cowork/assets/bg.svg')));
+}
+
+// ── 10: grafo incompleto é atômico — nenhum arquivo do lote é escrito ─────────
+{
+  const dir = sandbox();
+  const files = [
+    { path: 'oimpresso.com.html', content: '<link href="styles.css"><script src="app.js"></script>' },
+    { path: 'styles.css', content: '.x{color:red}\n' },
+    { path: 'app.js', content: 'import "./ausente.js";\n' },
+  ];
+  const pay = completePayload(dir, files);
+  const r = rodar(dir, pay, ['--require-complete-shell']);
+  check('BITE grafo: dependência JS transitiva ausente reprova nominalmente',
+    r.code === 1 && /grafo local incompleto: ausente\.js/.test(r.out), r.out);
+  check('BITE grafo: falha é atômica, nem o primeiro arquivo é escrito',
+    !existsSync(join(dir, 'prototipo-ui/cowork/oimpresso.com.html')) &&
+    !existsSync(join(dir, 'prototipo-ui/cowork/styles.css')), r.out);
+}
+
+// O gerador remoto também declara o que não conseguiu incluir; a máquina não aceita a palavra
+// dele sem conferir, mas tampouco ignora uma ausência que ele próprio reconheceu.
+{
+  const dir = sandbox();
+  const files = [{ path: 'oimpresso.com.html', content: '<div>ok</div>\n' }];
+  const pay = completePayload(dir, files, ['arquivo-remoto.jsx']);
+  const r = rodar(dir, pay, ['--require-complete-shell']);
+  check('BITE missing declarado: payload autodeclarado incompleto reprova sem escrever',
+    r.code === 1 && /payload declarou 1 ausente/.test(r.out) &&
+    !existsSync(join(dir, 'prototipo-ui/cowork/oimpresso.com.html')), r.out);
+}
+
+console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ applier: fiel/atômico · shell transitivo completo · _ds persistente · recusa escopo/R1/bytes · avisa regressão');
 process.exit(fails ? 1 : 0);
