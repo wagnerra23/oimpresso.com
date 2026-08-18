@@ -102,10 +102,18 @@ Isto é comparação **estrutural**, por leitura de código dos dois lados. Ela 
 | origem | `origem: {f.origem}` | `· origem: {origem}` | ✅ |
 | data | `desde {f.desde}` | `· desde {formatData(valid_from)}` (pt-BR) | ✅ |
 | relevância | **5 bolinhas** (`.jm-rel`, `title="Relevância N de 5"`) | **texto** `relevância N/10` | 🟡 divergência **decidida** [W] 2026-08-07: a **produção é a fonte**, o protótipo é que se adapta. Não re-propor |
-| **rastro da última edição** | `f.editado` → *"editado por você · agora · <motivo>"* **na própria linha** | — grava em `activity_log`, mas **não renderiza** | ❌ — ver nota |
+| **rastro da última edição** | `f.editado` → *"editado por você · agora · <motivo>"* **na própria linha** | — grava em `activity_log`, mas **não chega ao componente** | ❌ — ver nota (⚠️ **custo re-medido**) |
 | ordenação | ordem do array mock | `MemoriaContrato::listar($businessId, $userId)` — a interface **não declara** ordem | ⚠️ não medido (o charter pede `valid_from DESC`; a interface é silenciosa) |
 
-> **Nota sobre o rastro.** É a assimetria mais interessante da tela: a viva **grava** mais que o protótipo (autor + motivo + PII redigida, UC-MEM-03/04) e **mostra** menos. O titular não vê que corrigiu, nem por quê — o Art. 18 é sobre transparência pro titular, e o dado já existe em `activity_log`. Candidato natural a próxima entrega.
+> **Nota sobre o rastro.** É a assimetria mais interessante da tela: a viva **grava** mais que o protótipo (autor + motivo + PII redigida, UC-MEM-03/04) e **mostra** menos. O titular não vê que corrigiu, nem por quê — e o Art. 18 é sobre transparência pro titular.
+>
+> ⚠️ **Errata do próprio autor (2026-08-18).** A 1ª redação dizia *"o dado já existe em `activity_log` — é render, não backend"*. **Impreciso, e a imprecisão barateava o item.** O dado existe **no banco**, mas não existe **no componente**: o payload é `MemoriaPersistida::toArray()`, um DTO `final` com construtor `readonly` cujas 8 chaves são fixas (`id` · `business_id` · `user_id` · `fato` · `metadata` · `valid_from` · `valid_until` · `score`). Não há campo de rastro, e o `MemoriaController` não consulta `activity_log`.
+>
+> O custo real tem duas formas, e a escolha entre elas é decisão de arquitetura:
+> - **(a) mexer no DTO** — `MemoriaPersistida` é o contrato da **Camada C** (`MemoriaContrato`), compartilhado por `MeilisearchDriver`, `NullMemoriaDriver`, `McpMemoriaDriver` e o `RetrievalTelemetryDecorator`. Campo novo ali é mudança de contrato, não de tela;
+> - **(b) prop irmã** — o Controller monta um mapa `memoria_id → última edição` a partir de `activity_log` (um `whereIn`, sem N+1) e passa ao lado, sem tocar o DTO. Mais barato e localizado.
+>
+> Nos dois casos é **backend + frontend**, e a tela tem **baseline de pixel** — então o PR vai reprovar o `visual-regression` até a baseline nova ser aprovada por [W] (F1.5). Continua sendo a entrega de maior valor da tela; não é a de menor custo, como a 1ª redação sugeria.
 
 ## R6 · Edição inline
 
@@ -213,7 +221,7 @@ Isto é comparação **estrutural**, por leitura de código dos dois lados. Ela 
 
 | ordem | entrega | região | por que primeiro |
 |---|---|---|---|
-| 1 | **Rastro da edição visível no card** (`editado por … · motivo`) | R5 | o dado **já existe** em `activity_log`; é render, e fecha o Art. 18 pro titular |
+| 1 | **Rastro da edição visível no card** (`editado por … · motivo`) | R5 | fecha o Art. 18 pro titular — maior valor da tela. ⚠️ **não é só render**: exige o Controller trazer `activity_log` (ver errata em R5) **e** baseline de pixel nova aprovada [W] |
 | 2 | Editar **categoria** e **relevância** | R6 | 2 dos 3 campos que o protótipo edita estão ausentes; o charter os promete |
 | 3 | `businessName` + `businessId` no header | R1 | 1 linha no controller + 2 props; hoje o operador não vê o escopo Tier 0 |
 | 4 | Skeleton + `Inertia::defer` nos fatos | R8 | é o UX target U1 do charter, hoje a zero |
