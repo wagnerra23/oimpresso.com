@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 524 arquivos em 19 papéis.
+**Total mapeado:** 525 arquivos em 19 papéis.
 
 ## Controllers — 11
 
@@ -310,9 +310,10 @@ module: Jana
 - [Memoria.tsx](../../../resources/js/Pages/Jana/Memoria.tsx)
 - [Pro.tsx](../../../resources/js/Pages/Jana/Pro.tsx)
 
-## Componentes / apoio de tela — 9
+## Componentes / apoio de tela — 10
 
 - [AssistantUiChat.tsx](../../../resources/js/Pages/Jana/_components/AssistantUiChat.tsx)
+- [JanaAcaoModal.tsx](../../../resources/js/Pages/Jana/_components/JanaAcaoModal.tsx)
 - [JanaCockpit.tsx](../../../resources/js/Pages/Jana/_components/JanaCockpit.tsx)
 - [JanaCockpitSkeleton.tsx](../../../resources/js/Pages/Jana/_components/JanaCockpitSkeleton.tsx)
 - [JanaConfigDrawer.tsx](../../../resources/js/Pages/Jana/_components/JanaConfigDrawer.tsx)

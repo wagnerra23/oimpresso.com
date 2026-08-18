@@ -1468,7 +1468,7 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 **⚠️ Nota de vocabulário (2026-08-08 · ampliada 2026-08-18):** ~~existem **dois** "HITL" no projeto~~ — são **três**, e nenhum é o outro. Esta US é sobre o **Audit Card** — revisão de decisão automatizada pelo *titular de dados*. Os outros dois, vivos e que **não** servem aqui:
 - [`HitlEscalationService`](../../../Modules/Jana/Services/TaskRegistry/HitlEscalationService.php) — transporta pendência de sentinela para `mcp_tasks` `blocked`/`wagner` (o que o brief lê).
-- [`AcaoHitlService`](../../../Modules/Jana/Services/AcaoHitlService.php) (novo em 2026-08-18) — prévia + aprovação **humana** das ações sugeridas no Painel `/ia`, gravada em `jana_acao_aprovacoes` (`UC-COPI-PAINEL-12`).
+- [`AcaoHitlService`](../../../Modules/Jana/Services/AcaoHitlService.php) (novo em 2026-08-18) — prévia + aprovação **humana** das ações sugeridas no Painel `/ia`, gravada em `jana_acao_aprovacoes` (charter `Index.charter.md` v10 · `UC-COPI-PAINEL-12`).
 
 **Ele NÃO aciona o gatilho desta US, e a razão importa:** LGPD Art. 20 fala de decisão **automatizada**; ali a decisão é da pessoa — a Jana sugere, alguém aprova, e neste passo nada sequer é enviado. O §Implementado em acima segue valendo em letra: as regras que derivam as ações continuam um `useMemo` no frontend, não decisão calculada no servidor. O gatilho continua sendo *"o primeiro agente que volte a decidir sobre titular"*. Reusar o nome cria colisão.
 
