@@ -62,6 +62,10 @@ last_run_ci: "6/6 UC verdes na lane Estoque · MySQL (run 31706439580, PR #5733)
 | UC-PUNI-04 | Composição (BOM) só aparece com módulo Manufacturing **e** `manufacturing.access_recipe` | must | permissões `Modules/Manufacturing` + camada 1/3 ([feedback-habilitar-modulo-por-business](../../../../../memory/reference/feedback-habilitar-modulo-por-business.md)) | `ProdutoUnificadoContratoTest` | ✅ verde — `insumos` vazio e `bomCount` ausente sem as camadas 1+3 |
 | UC-PUNI-05 | Nenhuma prop enxerga outro business | must `[T0]` | `CU-PROD-10.2` + [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ProdutoUnificadoContratoTest` | ✅ verde — guard cross-tenant confirmado |
 | UC-PUNI-06 | A tela exige `product.view` **ou** `product.create` | should | `ProductController@index:66` (a lista irmã) + `routes/web.php:449` (TODO) | `ProdutoUnificadoContratoTest` | ✅ verde — 403 sem `product.view` nem `product.create` |
+| UC-PUNI-07 | O contador "Margem baixa" segue o gate do custo | must | handoff §9 + `AR-PROD-015` | `ProdutoUnificadoIndiceContratoTest` | ⏳ nasce nesta PR — veredito na lane Estoque · MySQL |
+| UC-PUNI-08 | A aba recorta por TIPO derivado e conta só ativos | must | handoff §4.2 + §6 exceção 6 | `ProdutoUnificadoIndiceContratoTest` | ⏳ nasce nesta PR |
+| UC-PUNI-09 | "Não estocável" e "sem estoque" são estados diferentes | must | handoff §4.6 + §6 exceção 6 | `ProdutoUnificadoIndiceContratoTest` | ⏳ nasce nesta PR |
+| UC-PUNI-10 | As agregações (abas · KPIs · total) não contam produto de outro business | must `[T0]` | [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ProdutoUnificadoIndiceContratoTest` | ⏳ nasce nesta PR |
 
 ---
 
@@ -158,3 +162,80 @@ last_run_ci: "6/6 UC verdes na lane Estoque · MySQL (run 31706439580, PR #5733)
   (`ProductController@index:66`). Vermelho esperado.
 - **Teste:** [`ProdutoUnificadoContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoContratoTest.php) — `UC-PUNI-06`.
 - **Status: ✅** — verde na run `31706439580`.
+
+---
+
+# Os casos que nasceram com a Consulta de Produtos (2026-08-18)
+
+> **Por que este bloco existe.** Em 2026-08-18 a tela recebeu o layout do handoff
+> **"Consulta de Produtos"** — índice em paridade com a `/contacts` (golden master do padrão de
+> índice): abas por **tipo do item**, seis **KPI-filtros** contados sobre a aba, busca em linha
+> própria, filtros com contagem, cartão de tabela com rolagem interna e drawer de detalhe. As 4
+> sub-telas anteriores (Categorias · Insumos·BOM · Tabelas de preço · Histórico) saíram da barra
+> de abas e foram pro **menu de ações do cabeçalho** — mesmos gates, mesmo controller, nenhuma
+> capacidade removida.
+>
+> Os UCs abaixo contratam o que a mudança introduziu. Os UC-PUNI-01..06 continuam valendo
+> inteiros: eles contratam **visibilidade**, que o layout não toca.
+
+## UC-PUNI-07 · O contador "Margem baixa" segue o gate do custo · `must`
+
+- **Persona:** a mesma do UC-PUNI-01 — balconista sem direito de ver custo.
+- **Aceite:** Dado um usuário sem `view_purchase_price` · Quando a faixa de KPIs é servida · Então
+  a chave `margem` **não existe** no payload, e o card não é montado na tela.
+- **Por que é o mesmo dado:** "quantos itens estão sob o piso de margem" é uma **leitura agregada
+  da estrutura de custo**. Gatear a coluna e deixar o contador entrega a mesma informação, só que
+  somada — e o operador que sabe o tamanho do catálogo consegue estreitar por aba até o número
+  virar um item. Mesma regra do §5 do handoff (coluna **montada ou não montada**), aplicada ao card.
+- **O piso é do NEGÓCIO, não da tela:** ele viaja como prop (`pisoMargem`) e o frontend nunca o
+  redeclara (handoff §9 — *"margem calculada com o piso vigente, não com 42% fixo"*).
+- **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-07`.
+- **Status: ⏳** — nasce nesta PR. O veredito vem da lane `PHP / Pest (Estoque · MySQL)`, não desta linha.
+
+## UC-PUNI-08 · A aba recorta por TIPO derivado e conta só ativos · `must`
+
+- **Persona:** Larissa no balcão. Ela pensa em "produto", "serviço", "matéria-prima" e "kit" —
+  não em `type`, `not_for_selling` e `enable_stock`.
+- **Aceite:** Dado um item **com** controle de estoque e outro **sem** · Quando a aba "Produtos" é
+  pedida · Então só o primeiro aparece; e na aba "Serviços", só o segundo. As abas de tipo contam
+  **apenas ativos**; `Todos` é o cadastro inteiro e é o teto de todas as outras.
+- **A derivação — e por que ela é declarada aqui:** o UltimatePOS **não tem** coluna "tipo de item"
+  (medido em `UC-PUNI-04`: varredura de `materia.?prima|raw_material` devolveu **0**). O tipo é
+  derivado de três colunas existentes, nesta ordem: `type = 'combo'` → kit · `not_for_selling = 1`
+  → matéria-prima · `enable_stock = 0` → serviço · resto → produto. A ordem **é** a regra: um combo
+  não-estocável é kit, não serviço.
+- **Dívida honesta:** enquanto a "natureza do item" do Delphi não for migrada
+  ([proposta 2026-08-11](../../../../../memory/decisions/proposals/2026-08-11-natureza-do-item-tipo-de-produto.md)),
+  esta derivação é a melhor aproximação disponível — e é **explícita**, não escondida numa query.
+- **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-08`.
+- **Status: ⏳** — nasce nesta PR.
+
+## UC-PUNI-09 · "Não estocável" e "sem estoque" são estados diferentes · `must`
+
+- **Persona:** Larissa perguntando "tem?". A resposta tem três formas, e confundi-las custa venda.
+- **Aceite:** Dado um serviço (`enable_stock = 0`) · Então `stockQty` é **`null`** e o badge diz
+  *Não estocável*. Dado um item estocável · Então `stockQty` é **numérico** — inclusive `0`, que é
+  *Sem estoque* e bloqueia venda.
+- **Por que não pode colapsar:** imprimir `0` pra um serviço afirma estoque zerado e faz o balcão
+  recusar uma venda que não depende de saldo; imprimir `—` pra um item zerado esconde o bloqueio.
+  **Os dois erros já aconteceram nesta tela** — o `stockQty` era `null` fixo no controller e a
+  coluna imprimia `null UNID` antes de 2026-08-07.
+- **Ordenação:** a coluna Disponibilidade ordena por **rank semântico** (sem estoque < baixo < em
+  estoque), não pelo texto do badge — alfabético colocaria "Em estoque" antes de "Sem estoque" e
+  esconderia o que precisa de ação.
+- **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-09`.
+- **Status: ⏳** — nasce nesta PR.
+
+## UC-PUNI-10 · As agregações não contam produto de outro business · `must` `[T0]`
+
+- **Persona:** qualquer tenant. O UC-PUNI-05 já cobre as **listas**; este cobre os **números**.
+- **Aceite:** Dado três produtos cadastrados em OUTRO business · Quando as abas, os KPIs e o total
+  do recorte são servidos · Então nenhum dos contadores sobe.
+- **Por que separar de UC-PUNI-05:** vazamento de agregação é o formato **silencioso** — nenhuma
+  linha do vizinho aparece na tela, mas o número no topo cresce e entrega o tamanho do catálogo
+  dele. Uma lista escopada com um contador não-escopado passa no UC-PUNI-05 e vaza aqui.
+- **Mecanismo:** as três leituras (linhas, KPIs, contagem das abas) saem da **mesma subconsulta**
+  (`catalogoSub`), que declara `business_id` explicitamente — `App\Product` não tem global scope
+  de tenant (ADR 0093). Fonte única também é o que garante que o contador não discorde da lista.
+- **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-10`.
+- **Status: ⏳** — nasce nesta PR.

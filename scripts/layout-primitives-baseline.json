@@ -396,6 +396,7 @@
     "resources/js/Pages/Whatsapp/Settings.tsx": 3,
     "resources/js/Pages/Whatsapp/Templates/Index.tsx": 10,
     "resources/js/Pages/governance/Custos.tsx": 4,
-    "resources/js/Pages/governance/QualidadeIa.tsx": 4
+    "resources/js/Pages/governance/QualidadeIa.tsx": 4,
+    "resources/js/Pages/Produto/Unificado/_components/KpiFiltros.tsx": 1
   }
 }

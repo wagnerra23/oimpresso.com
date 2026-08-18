@@ -4,13 +4,13 @@ module: Produto
 tela: Produto/Unificado/Index
 owner: W
 status: ativo
-last_validated: "2026-08-13"
+last_validated: "2026-08-18"
 preconditions:
   - "Usuário autenticado com product.view OU product.create no business ativo"
   - "Lane de teste: Estoque · MySQL (tests/Feature/Produto/) — nunca local, nunca biz=4"
 steps:
-  - "Conferir o contrato de visibilidade em Index.casos.md (UC-PUNI-01..06)"
-  - "Rodar ProdutoUnificadoContratoTest no CT 100"
+  - "Conferir o contrato de visibilidade em Index.casos.md (UC-PUNI-01..06) e o do índice (UC-PUNI-07..10)"
+  - "Rodar ProdutoUnificadoContratoTest e ProdutoUnificadoIndiceContratoTest na lane Estoque · MySQL"
   - "Smoke da tela nos 3 perfis de permissão"
 related_adrs:
   - 0104-processo-mwart-canonico-unico-caminho
@@ -134,3 +134,45 @@ Declarar "funcionando" sem isso viola a R1 do [PROTOCOLO-WAGNER-SEMPRE](../../re
 - **Sem `Inertia::defer`** — a tela é a exceção citada no SPEC §Dívidas.
 - **Charter segue `status: draft`** — promover pra `live` exige [W] aprovar Non-Goals +
   Anti-hooks (US-PROD-023).
+
+---
+
+## 2026-08-18 — a tela vira a **Consulta de Produtos** (handoff)
+
+O layout passou a ser o do handoff **"Consulta de Produtos"**, em paridade com a `/contacts`
+(golden master do padrão de índice). O que isso muda pra quem opera esta tela:
+
+| Antes | Agora |
+|---|---|
+| Barra de abas = 5 **sub-telas** | Barra de abas = **tipo do item** (Todos · Produtos · Serviços · Matéria-prima · Kits · Inativos), com contagem |
+| 4 sub-telas secundárias na barra | Menu **⋯** do cabeçalho (`?tela=categorias\|insumos\|tabelas\|historico`) — mesmos gates |
+| Faixa de 5 KPIs de leitura | **6 KPI-filtros** clicáveis, contados sobre a aba ativa |
+| Sem busca | Busca em linha própria (`/` foca) — descrição, código, referência, categoria |
+| Sem filtros | Categoria · Tipo · Marca · Estoque · Margem + contagem à direita |
+| Saldo `null` fixo, KPIs zerados | Saldo real (`SUM(vld.qty_available)`), mínimo (`alert_quantity`), tipo derivado, última venda |
+| Clique na linha → sai da tela | Clique na linha → **drawer** de 2 seções; o rodapé leva ao cadastro |
+
+**Smoke — o que conferir, nesta ordem:**
+
+1. Abrir `/products/unificado`. Título "Produtos" + `N cadastrados` batendo com o cadastro inteiro.
+2. Trocar de aba: tabela, contagem **e** os seis KPIs mudam juntos. `Todos` é sempre o maior número.
+3. Clicar num KPI: a lista recorta; clicar de novo: solta. "Itens listados" limpa o recorte.
+4. Digitar na busca: recorte no servidor (350ms), combinando com a aba e o KPI ativos.
+5. Perfil **sem** `view_purchase_price`: não existem as colunas Custo/Margem, **nem** o card
+   "Margem baixa", **nem** o filtro Margem — e o drawer também não os mostra.
+6. Perfil **sem** `access_default_selling_price`: sem coluna Preço; a sub-tela Tabelas de preço
+   diz por que está vazia, em vez de parecer "nada cadastrado".
+7. Serviço (item sem controle de estoque) aparece como **Não estocável**, nunca "Sem estoque".
+8. Menu ⋯: as quatro visões antigas abrem e voltam ao catálogo.
+
+**Dívidas herdadas do handoff, ainda abertas** — nenhuma é decisão desta tela:
+
+- **Viewport estreito** — a composição de 6 KPIs foi desenhada pro cockpit desktop. Aqui a grade
+  quebra em 3/2 colunas abaixo do desktop em vez de rolar na horizontal como o protótipo; o
+  comportamento canônico do padrão continua não decidido.
+- **Volume de catálogo real** — sem rodapé de paginação (o padrão de índice não tem) o servidor
+  corta em 500 linhas e a tela **declara** o corte. A resposta definitiva é a ADR 0402 (proposta):
+  carga incremental × virtualização × rodapé canônico.
+- **Dois desvios declarados** aguardando aprovação: filtro **Marca** no lugar de "Fornecedor" (o
+  UltimatePOS não guarda fornecedor no produto) e **"Não estocável" neutro** em vez do vermelho
+  que o protótipo herda do badge de frescor.

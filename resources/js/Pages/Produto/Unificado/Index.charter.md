@@ -23,28 +23,55 @@ charter_version: 1
 
 ## Mission
 
-Catálogo unificado: numa tela única alterna entre 5 sub-views (Produtos / Categorias / Insumos·BOM / Tabelas de preço / Histórico de uso) com KPI strip persistente + drawer detalhe — substitui múltiplas telas Blade UPOS dispersas (`/products`, `/categories`, `/manufacturing/recipes`, `/selling-price-group`, etc) numa visão Cockpit V2.
+**Consulta de produtos.** Responder três perguntas em um olhar — *existe?*, *tem?*, *quanto custa
+pro cliente?* — e levar ao cadastro completo quando a resposta exige ação. Índice do catálogo em
+PARIDADE com a Consulta de Clientes (`/contacts` = `Pages/Cliente/Index.tsx`), que é a golden
+master do padrão de índice.
+
+As outras visões do catálogo (Categorias · Insumos·BOM · Tabelas de preço · Histórico de uso)
+continuam nesta mesma rota, via `?tela=`, alcançadas pelo **menu de ações do cabeçalho** — a barra
+de abas é do recorte por **tipo do item**.
 
 ---
 
 ## Goals — Features (faz)
 
-- AppShellV2 + sidebar Catálogo expandido com 5 sub-items (Produtos default)
-- KPI strip persistente entre sub-views (5 KPIs: Catálogo ativo / Populares / Saídas 30d / Margem média / Sem giro)
-- 5 sub-views state-driven via querystring `?tela=produtos|categorias|insumos|tabelas|historico`:
-  - **Produtos** — segmented filter (todos/ativos/inativos/lowstock) + busca + view toggle (table/grid) + densidade (compact/comfortable/spacious)
-  - **Categorias** — tree view 1 nível com count produtos + flag inativo
-  - **Insumos · BOM** — listagem produtos `not_for_selling=1` + custo + estoque + fornecedor
-  - **Tabelas de preço** — `App\SellingPriceGroup` com multiplicador (decisão pendente — ver Non-Goals)
-  - **Histórico de uso** — `App\TransactionSellLine` últimos 30d com OS/cliente/qty/valor
-- Click row em "Produtos" → drawer 480px com:
-  - Header: SKU + nome + categoria + status active/inactive
-  - 4 KPIs: preço / custo / margem / saídas 30d
-  - Section "BOM" (se existir `MfgRecipe`): ingredientes + qty
-  - Section "Histórico" últimas 5 vendas
-- Densidade configurável (compact 32px / comfortable 44px / spacious 56px) persistida em `oimpresso.produto.densidade`
-- Multi-tenant: queries com `where('business_id', session('user.business_id'))` em todos models
-- Permission gate: `product.view`, `product.view_own`, `product.create`, `product.update` (Spatie UPOS canon)
+> Layout: handoff **"Consulta de Produtos"** (2026-08-18). A árvore é a da golden master; só o
+> domínio varia. Toda diferença aprovada está declarada — qualquer outra exige aprovação antes
+> de implementar.
+
+- **Árvore idêntica à `/contacts`:** AppShellV2 → cabeçalho (título + `N cadastrados` + ações)
+  → barra de abas → KPI-filtros → busca em linha própria → filtros + contagem → cartão da tabela
+  → drawer de detalhe
+- **Abas por TIPO do item:** Todos · Produtos · Serviços · Matéria-prima · Kits · Inativos. As
+  abas de tipo contam **só ativos**; `Inativos` é o complemento; `Todos` é o cadastro inteiro.
+  Trocar de aba muda tabela, contagem **e** os seis KPIs — não é filtro decorativo
+- **Tipo é DERIVADO** de colunas que já existem, nesta ordem: `type = 'combo'` → kit ·
+  `not_for_selling = 1` → matéria-prima · `enable_stock = 0` → serviço · resto → produto
+- **Seis KPI-filtros** em uma linha, contados sobre a aba ativa e **clicáveis** (toggle): Ativos ·
+  Estoque baixo · Sem estoque · Sem venda 90d · Margem baixa · Itens listados
+- **Busca** em linha própria (não divide a linha com os filtros) sobre descrição, código,
+  referência e categoria; `/` foca o campo
+- **Filtros** com aparência de campo (nunca chip preenchido em repouso): Categoria · Tipo ·
+  Marca · Estoque · Margem, com a contagem de registros encostada à direita
+- **Busca + aba + KPI + filtros compostos num único `where` server-side** — os quatro recortes
+  se combinam
+- **Colunas por AUTORIZAÇÃO, não por CSS** (`_components/Colunas.tsx`): vendedor vê
+  `Código · Produto · Disponibilidade · Preço de venda · Ações`; perfil autorizado ganha `Tipo`
+  (só quando a aba tem mais de um), `Custo` e `Margem`. Coluna que não aparece é coluna que não
+  foi montada
+- **Disponibilidade com quatro rótulos** e três estados de dado: `null` = Não estocável ·
+  `0` = Sem estoque · `≤ mínimo` = Estoque baixo · resto = Em estoque. Ordena por rank semântico
+- **Sem rodapé de paginação:** altura fixa (460) + rolagem interna, como a golden master. O corte
+  é do servidor e a tela **declara** quando cortou
+- **Drawer de detalhe** (420px) com duas seções — Estoque e Formação de preço — e rodapé que leva
+  ao cadastro. Custo e margem seguem o mesmo gate da tabela
+- **Sub-telas secundárias** preservadas em `?tela=categorias|insumos|tabelas|historico`, no menu
+  de ações do cabeçalho, com os mesmos gates de permissão de sempre
+- **Multi-tenant:** as três leituras (linhas · KPIs · contagem das abas) saem da **mesma
+  subconsulta**, com `business_id` declarado — contador que discorda da lista destrói a confiança
+- **Permission gate:** `product.view` **ou** `product.create` na tela; `view_purchase_price` pra
+  custo/margem (coluna, drawer **e** KPI); `access_default_selling_price` pra preço e tabelas
 
 ---
 
@@ -63,18 +90,23 @@ Catálogo unificado: numa tela única alterna entre 5 sub-views (Produtos / Cate
 - ❌ Recalcular custo médio em tempo real ao abrir drawer (usa `default_purchase_price` cached)
 - ❌ Forecast de demanda baseado em histórico (escopo Modules/Inventory futuro)
 - ❌ Preview de imagem do produto no drawer (UPOS guarda em `media` table — feature backlog)
+- ❌ Formação de preço com markup composto aqui (tela própria — handoff §8)
+- ❌ Ajuste/movimentação de estoque a partir desta tela (handoff §8)
+- ❌ Mobile/tablet: a plataforma alvo declarada é **cockpit desktop** (handoff §8)
+- ❌ Rodapé de paginação — o padrão de índice não tem (SPEC v1.0 D-06; a resposta pra volume real
+  é decisão em aberto: carga incremental × virtualização × rodapé canônico)
 - ❌ Trigger sync com fornecedor externo (cron separado)
 
 ---
 
 ## UX Targets
 
-- p95 first-paint < 1500ms (Produtos sub-view com 100 itens)
+- p95 first-paint < 1500ms (aba Produtos com 100 itens)
 - 0 erros JS console
 - Cabe em monitor 1280px (Larissa balcão)
-- Sub-view switching `<200ms` (Inertia partial reload)
-- Drawer abre `<300ms` após click linha
-- Densidade persiste reload (localStorage)
+- Troca de aba / KPI-filtro / filtro `<200ms` (Inertia partial reload — `only:[produtos,kpis,totalDaAba]`)
+- Drawer abre instantâneo (a linha já está carregada — nenhuma request ao abrir)
+- Busca debounced 350ms, resolvida no servidor
 - Tipografia canon ADR 0110: h1 22-24px, KPI value 28px, table row 13px
 - Cores semânticas: emerald (ativo/popular), amber (warning baixo estoque), rose (inativo/sem giro), stone (neutro)
 
@@ -85,9 +117,22 @@ Catálogo unificado: numa tela única alterna entre 5 sub-views (Produtos / Cate
 - ❌ 5 telas separadas em URLs diferentes (canon = sub-views state-driven via `?tela=`)
 - ❌ Modal/Dialog pra detalhe produto (canon = `<Sheet>` lateral)
 - ❌ Cor crua `bg-(red|green|orange)-N`
-- ❌ KPI custom inline (canon = `@/Components/shared/KpiCard`)
 - ❌ Avatar circular emoji-style em produto (canon = letra/SKU `rounded-md`)
-- ❌ `font-bold` em h1 (canon = `font-semibold`)
+- ❌ Chip preenchido como gatilho de filtro em repouso (canon = variante leve, aparência de campo)
+- ❌ Esconder coluna por CSS (`display:none`, `hidden`) — coluna é **montada ou não montada**
+- ❌ Redeclarar o piso de margem no frontend (ele vem do servidor em `pisoMargem`)
+- ❌ "Consertar" a faixa de 6 KPIs com `auto-fit` no desktop declarado — quebrar em duas linhas
+  diverge da referência e foi reprovado
+
+> **Corrigidos em 2026-08-18 (regra de precedência — `proibicoes.md`):** dois anti-padrões desta
+> lista contradiziam a golden master que o próprio charter elegeu em 2026-08-13, então o perdedor
+> foi corrigido no mesmo PR.
+> • *"`font-bold` em h1"* — a `/contacts` usa `text-[22px] font-bold` com decisão registrada no
+>   código (*"22px font-weight 700 — peso espelhando /sells canon"*). Obedecer ao charter faria a
+>   tela divergir da referência.
+> • *"KPI custom inline (canon `shared/KpiCard`)"* — a golden master **não** usa `KpiCard` na
+>   faixa: usa a `KpiStripClickable` local, porque KPI-filtro clicável não é KPI de leitura. O
+>   equivalente aqui é `_components/KpiFiltros.tsx`.
 - ❌ `sessionStorage` (canon = `localStorage` prefix `oimpresso.produto.*`)
 
 ---
@@ -172,3 +217,4 @@ it('does not access App\\Product without ->where(business_id)')
 | 2026-05-09 | [CL] | Charter draft criado em batch. Path canon `Pages/Produto/Unificado/Index.tsx` segue padrão `Pages/Financeiro/Unificado/Index.tsx` (subdir). Backend em `app/Http/Controllers/` (UPOS canon — não em Modules). **Decisões pendentes pra Wagner:** (1) `SellingPriceGroup.multiplier` schema (a vs b) precisa ADR; (2) confirmar `MfgRecipe` namespace em `Modules\Manufacturing\Entities\` (controller candidato Cowork admite "TODO confirmar"); (3) cache strategy KPIs (job diário vs `Cache::remember`). **Aprovação pendente** em Non-Goals + Anti-hooks pra `status: live`. |
 | 2026-08-11 | [M+C] | `page` corrigido de `/produto/unificado` → **`/products/unificado`**. A rota real é `routes/web.php:450` (`products.unificado.index`); a declarada não existe. Ficava contraditória com o `Index.casos.md` que nasce no mesmo PR e cita a rota certa. `ancora.mjs` resolve por `page`/`component` — `component` já estava certo, então a âncora nunca quebrou; o campo errado enganava humano, não máquina. |
 | 2026-08-13 | [M+C] | `related_prototype` volta a **`n/a`**. Em 2026-08-10 o campo foi apontado pra `produto-app.jsx` só pra dar âncora resolvível ao `ancora.mjs`. Depois disso, Wagner definiu que **o padrão desta tela é a tela de Contatos** (`/contacts` = `Pages/Cliente/Index.tsx`, PT-01 gold 9,4/10) — e o `produto-app.jsx` é justamente o protótipo cujo drawer 480px e BulkBar foram **descartados** por decisão. Com a âncora velha, qualquer máquina de fidelidade mediria contra a fonte errada e empurraria a tela **de volta** pro descartado. `n/a` não é vazio: é a **declaração** "nasce do DS", usada por 135 dos 158 charters (medido 2026-08-11) e pelos irmãos `Produto/Index` e `Produto/Show`. A comparação de fidelidade desta tela é **prod×prod** (`/contacts` × `/products/unificado` via `style-fingerprint --snippet` + `--compare --sem-ancora`), não proto×prod. |
+| 2026-08-18 | [M+C] | **Layout do handoff "Consulta de Produtos" aplicado.** A tela passa a ser o índice do catálogo em paridade com a `/contacts` — a golden master que o próprio charter elegeu em 2026-08-13. O que mudou: a barra de abas deixa de ser "sub-telas" e vira **recorte por tipo do item** (6 abas com contagem); a faixa de 5 KPIs de leitura vira **6 KPI-filtros clicáveis** contados sobre a aba; entram busca em linha própria, 5 filtros com contagem à direita, colunas por autorização, disponibilidade com 4 rótulos e drawer de 2 seções. As 4 sub-telas anteriores **não sumiram** — foram pro menu de ações do cabeçalho, com os mesmos gates. Backend: `catalogoSub()` vira a fonte única de "o que é uma linha do catálogo" (linhas + KPIs + contagem das abas leem dela), com saldo real (`SUM(vld.qty_available)`), mínimo (`alert_quantity`), tipo derivado e última venda; `Inertia::defer` em toda prop agregada. UCs novos: **UC-PUNI-07..10** (`Index.casos.md`), com `ProdutoUnificadoIndiceContratoTest` na lane Estoque · MySQL. **Dois desvios declarados, pendentes de aprovação [W]:** (1) o filtro **"Fornecedor"** do handoff virou **"Marca"** — o UltimatePOS não guarda fornecedor no produto, só por compra; (2) **"Não estocável"** ficou neutro em vez do vermelho que o protótipo herda do badge de frescor — serviço não tem saldo por natureza, e pintá-lo de vermelho treina o balcão a ignorar a cor. **Dívidas do handoff que continuam abertas:** responsividade abaixo do desktop declarado e volume de catálogo real (ADR 0402 proposta — carga incremental × virtualização × rodapé canônico). |
