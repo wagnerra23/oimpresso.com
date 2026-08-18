@@ -114,6 +114,7 @@ class ProdutoUnificadoController extends Controller
             'categoria' => $request->integer('categoria') ?: null,
             'tipo' => $request->string('tipo', '')->toString(),
             'unidade' => $request->integer('unidade') ?: null,
+            'marca' => $request->integer('marca') ?: null,
             'estoque' => $request->string('estoque', '')->toString(),
             'margem' => $request->string('margem', '')->toString(),
         ];
@@ -219,6 +220,7 @@ class ProdutoUnificadoController extends Controller
                 'p.category_id',
                 'cat.name',
                 'p.unit_id',
+                'p.brand_id',
                 'u.short_name'
             )
             ->select([
@@ -230,6 +232,7 @@ class ProdutoUnificadoController extends Controller
                 'p.alert_quantity as minimo',
                 'p.category_id',
                 'p.unit_id',
+                'p.brand_id',
                 DB::raw('cat.name as categoria'),
                 DB::raw("COALESCE(u.short_name, 'un') as unidade"),
                 // Tipo do item — o UltimatePOS não tem coluna "tipo de item"; ele é derivado
@@ -305,6 +308,9 @@ class ProdutoUnificadoController extends Controller
         }
         if ($f['unidade']) {
             $q->where('c.unit_id', $f['unidade']);
+        }
+        if ($f['marca']) {
+            $q->where('c.brand_id', $f['marca']);
         }
         if ($f['tipo'] !== '') {
             $q->where('c.tipo', $f['tipo']);
@@ -524,8 +530,17 @@ class ProdutoUnificadoController extends Controller
             ->orderBy('actual_name')
             ->get(['id', 'actual_name', 'short_name']);
 
+        // Marca FICA — decisao [M] 2026-08-18, ratificando a divergencia declarada do pacote:
+        // o alvo pede "Fornecedor", que o UltimatePOS nao guarda no produto (so por compra).
+        // Marca e o atributo que o produto de fato carrega, e o balcao ja procura por ela.
+        $marcas = DB::table('brands')
+            ->where('business_id', $business_id)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
         return [
             'categorias' => $categorias->map(fn ($c) => ['value' => (string) $c->id, 'label' => (string) $c->name])->all(),
+            'marcas' => $marcas->map(fn ($b) => ['value' => (string) $b->id, 'label' => (string) $b->name])->all(),
             'unidades' => $unidades->map(fn ($u) => [
                 'value' => (string) $u->id,
                 'label' => trim((string) $u->actual_name) !== '' ? (string) $u->actual_name : (string) $u->short_name,

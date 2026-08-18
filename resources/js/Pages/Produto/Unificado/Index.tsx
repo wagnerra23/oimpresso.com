@@ -79,6 +79,7 @@ type Filtros = {
   categoria: number | null;
   tipo: string;
   unidade: number | null;
+  marca: number | null;
   estoque: string;
   margem: string;
 };
@@ -99,7 +100,7 @@ type Props = {
   kpis?: KpisCatalogo;
   produtos?: ProdutoRow[];
   totalDaAba?: number;
-  opcoesFiltro?: { categorias: OpcaoFiltro[]; unidades: OpcaoFiltro[] };
+  opcoesFiltro?: { categorias: OpcaoFiltro[]; unidades: OpcaoFiltro[]; marcas: OpcaoFiltro[] };
   categorias?: CategoriaRow[];
   insumos: InsumoRow[];
   tabelas: TabelaRow[];
@@ -225,7 +226,7 @@ function ProdutoUnificadoIndex({
   const total = totalDaAba ?? linhas.length;
   const cortou = total > linhas.length && linhas.length >= tetoLinhas;
 
-  const temFiltro = !!(filters.categoria || filters.unidade || filters.tipo || filters.estoque || filters.margem);
+  const temFiltro = !!(filters.categoria || filters.unidade || filters.marca || filters.tipo || filters.estoque || filters.margem);
 
   // Abaixo de 780px de LARGURA DISPONÍVEL os gatilhos opcionais somem e voltam pelo
   // "Mais filtros" — comportamento do pacote 17/08 (`.f-opt` / `.f-more`).
@@ -382,6 +383,17 @@ function ProdutoUnificadoIndex({
                     value={filters.unidade ? String(filters.unidade) : ''}
                     options={opcoesFiltro?.unidades ?? []}
                     onChange={(v) => irPara({ unidade: v ? Number(v) : null }, RECORTE)}
+                  />
+                </div>
+                {/* Marca FICA — decisao [M] 2026-08-18. O pacote pede "Fornecedor", que o
+                    UltimatePOS nao guarda no produto (so por compra); Marca e o atributo que
+                    o produto carrega e que o balcao ja usa pra procurar. */}
+                <div className={opcionalCls}>
+                  <FiltroTrigger
+                    label="Marca"
+                    value={filters.marca ? String(filters.marca) : ''}
+                    options={opcoesFiltro?.marcas ?? []}
+                    onChange={(v) => irPara({ marca: v ? Number(v) : null }, RECORTE)}
                   />
                 </div>
                 <div className={opcionalCls}>
