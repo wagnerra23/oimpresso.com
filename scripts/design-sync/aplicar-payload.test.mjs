@@ -122,44 +122,5 @@ function rodar(dir, pay, args = []) {
   check('o alerta é RELATO, não bloqueio (rc segue 0)', r.code === 0, 'rc=' + r.code);
 }
 
-
-// ── 8: destino --ds (a flag que fechou o buraco de 2026-08-18) ───────────────
-{
-  const dir = mkdtempSync(join(tmpdir(), 'aplicar-payload-ds-'));
-  mkdirSync(join(dir, 'prototipo-ui', 'design-system'), { recursive: true });
-  mkdirSync(join(dir, 'prototipo-ui', 'cowork'), { recursive: true });
-  const pay = join(dir, 'p.json');
-  writeFileSync(pay, JSON.stringify({ files: [
-    { path: 'templates/pt-05-dashboard/Pt05Dashboard.dc.html', content: '<x-dc>ok</x-dc>\n' },
-    { path: 'README.md', content: '# espelho do DS\n' },
-  ] }), 'utf8');
-
-  const r = rodar(dir, pay, ['--ds']);
-  check('--ds escreve em prototipo-ui/design-system',
-    existsSync(join(dir, 'prototipo-ui/design-system/templates/pt-05-dashboard/Pt05Dashboard.dc.html')), r.out);
-  check('--ds NÃO escreve no espelho Cowork (destinos não se cruzam)',
-    !existsSync(join(dir, 'prototipo-ui/cowork/templates')), 'vazou pro cowork!');
-  // R1 do ssot-guard é do espelho COWORK: no DS o README é conteúdo do próprio espelho.
-  check('--ds ACEITA .md (R1 é regra do Cowork, não do DS)',
-    existsSync(join(dir, 'prototipo-ui/design-system/README.md')), r.out);
-
-  // controle negativo: o MESMO payload sem a flag recusa o .md
-  const dir2 = sandbox();
-  const r2 = rodar(dir2, payload(dir2, [{ path: 'README.md', content: '# nao\n' }]));
-  check('CONTROLE NEGATIVO: sem --ds, o .md segue recusado (R1 intacta)',
-    /R1 do ssot-guard/.test(r2.out) && r2.code !== 0, r2.out);
-
-  // a trava de escopo vale nos DOIS destinos
-  const dir3 = mkdtempSync(join(tmpdir(), 'aplicar-payload-ds2-'));
-  mkdirSync(join(dir3, 'prototipo-ui', 'design-system'), { recursive: true });
-  const pay3 = join(dir3, 'p.json');
-  writeFileSync(pay3, JSON.stringify({ files: [{ path: '../../fora.txt', content: 'x\n' }] }), 'utf8');
-  const r3 = rodar(dir3, pay3, ['--ds']);
-  check('BITE escopo com --ds: recusa path que SAI do destino',
-    /RECUSADO/.test(r3.out) && r3.code !== 0, r3.out);
-  check('BITE escopo com --ds: nada escrito fora', !existsSync(join(dir3, 'fora.txt')));
-}
-
-
 console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ applier: escreve fiel · dry não escreve · recusa escopo/R1/bytes · avisa regressão sem bloquear');
 process.exit(fails ? 1 : 0);

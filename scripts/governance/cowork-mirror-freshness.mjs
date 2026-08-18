@@ -1072,7 +1072,27 @@ function main() {
       }
       vivos.push({ path: raw.path, content: raw.content });
     }
-    const plano = exportPlan(vivos);
+    // ── DESTINO — Cowork por default, Design System por `--ds` ────────────────
+    //
+    // POR QUE (medido 2026-08-18): o `--export-from` é o DONO do papel "baixar fonte
+    // de design com fidelidade de byte" — o agente busca (só ele fala MCP) e o SCRIPT
+    // escreve o `raw.content`, então o hash é idêntico POR CONSTRUÇÃO. Mas ele só
+    // conhecia o espelho Cowork. Consequência real: em 2026-08-17 o
+    // `templates/pt-05-dashboard/Pt05Dashboard.dc.html` foi puxado do Design System pra
+    // responder uma pergunta e NÃO teve onde pousar — `git ls-files | grep -c
+    // pt-05-dashboard` = 0. A fonte morreu com a sessão.
+    //
+    // ⚠️ O conserto anterior estava ERRADO e foi revertido no mesmo PR: eu tinha posto
+    // uma flag `--ds` no `aplicar-payload.mjs`, que é dono de OUTRA coisa (aplicar
+    // payload servido). Máquina paralela a tema que já tem dono é a classe LC-19 — e eu
+    // a citei no commit enquanto a cometia. A pergunta que faltou é a que o canon manda
+    // fazer primeiro: "quem já é dono deste tema?". Era este bloco.
+    //
+    // O `exportPlan` já aceitava `prefixo` desde sempre; só o chamador hardcodava.
+    const PREFIXOS = { cowork: 'prototipo-ui/cowork/', ds: 'prototipo-ui/design-system/' };
+    const destinoNome = argv.includes('--ds') ? 'ds' : 'cowork';
+    const prefixo = PREFIXOS[destinoNome];
+    const plano = exportPlan(vivos, { prefixo });
     // O SNAPSHOT sai daqui de graça (2026-08-13). Antes o ciclo pedia DOIS downloads
     // por arquivo: um pro --export-from, outro pro snapshot do --compare — e o agente
     // é o único que fala MCP, então esse 2º download custava contexto dele. Mas o
@@ -1086,12 +1106,20 @@ function main() {
     for (const { relPath, content, bytes } of plano) {
       const abs = join(ROOT, relPath);
       const antes = existsSync(abs) ? contentHash(readFileSync(abs, 'utf8')) : null;
+      // `mkdir -p` antes de escrever: o bloco nunca criou diretório e funcionava por
+      // sorte — as pastas do espelho Cowork já existiam (200 arquivos versionados).
+      // No primeiro destino NOVO (`--ds`) isso estourou ENOENT no 1º arquivo, medido
+      // 2026-08-18. Vale pros dois destinos: subpasta nova no Cowork tinha o mesmo
+      // buraco, só nunca tinha sido exercitada.
+      mkdirSync(dirname(abs), { recursive: true });
       writeFileSync(abs, content, 'utf8');
       const depois = contentHash(content);
       const nota = antes === null ? 'NOVO' : antes === depois ? 'inalterado' : 'ATUALIZADO';
       tally[nota]++;
       // chave = path RELATIVO ao espelho (o mesmo que o manifesto usa)
-      const rel = relPath.replace(/^prototipo-ui\/cowork\//, '');
+      // chave RELATIVA ao destino escolhido — com `--ds` o prefixo é outro, e cortar
+      // o do Cowork deixaria a chave com o caminho inteiro dentro.
+      const rel = relPath.startsWith(prefixo) ? relPath.slice(prefixo.length) : relPath;
       if (nota === 'NOVO') nascidos.push(rel);
       snapshotEmitido[rel] = depois;
       console.log(`  ${nota.padEnd(11)} ${relPath}  (${bytes} bytes · ${depois.slice(0, 12)})`);
