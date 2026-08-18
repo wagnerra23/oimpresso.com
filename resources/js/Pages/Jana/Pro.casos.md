@@ -4,7 +4,7 @@ casos: Jana Pro · paywall/upgrade · /ia/pro
 irmaos: Pro.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-07-06"
+last_run: "2026-08-18"
 ---
 
 # Casos de uso — /ia/pro (Jana Pro paywall)
@@ -65,6 +65,34 @@ barato — a resposta é estável entre dois GETs (props idênticos), provando a
 estado no render. CTA "Ativar" é mock client-side (não há endpoint POST server-side pra morder).
 **Pronto quando:** dois GETs seguidos devolvem o mesmo `plan`/`pricing`/`proof` (render idempotente).
 
+## UC-PRO-07 — O "voltar" leva à Conversa, não ao Painel
+Status: 🧪 (`tests/jana-pro-voltar.test.tsx` — 4 casos sob o describe que cita este UC)
+
+> **Por que 🧪 e não ✅**, tendo o teste rodado verde localmente (`4 passed`, 2026-08-18): o **G-7 do
+> casos-gate** não aceita a minha palavra — `Status: ✅` exige veredito no manifesto
+> `scripts/casos-test-results.json`, que nasce do **JUnit da suíte inteira** via `casos:results`. Rodar
+> só este arquivo e regravar o manifesto apagaria o veredito dos outros UCs. O ✅ sobe quando o CI rodar
+> a suíte. _(O gate acusou `status:unverified` na 1ª redação, com razão — está funcionando.)_
+
+Os dois botões que prometem a conversa — **"Voltar ao chat"** no header e **"Falar com a Jana sobre o
+Pro"** no footer — e o atalho **`Esc`** levam a `/ia/conversa`. Âncora: charter Goals *"`Esc` volta ao
+chat"* + *"Voltar ao chat"* no header + Non-Goals *"'Falar com a Jana' → nunca WhatsApp"*.
+
+**Por que nasceu:** a onda de fusão (US-COPI-148) fez `/ia` virar o **Painel** e moveu o chat pra
+`/ia/conversa`. Os três consumidores continuaram apontando pra `/ia`, então o rótulo passou a mentir —
+quem clicava "Voltar ao chat" caía num dashboard. A copy está certa (é literal do protótipo); o endereço
+é que ficou pra trás.
+
+**Escopo — por que jsdom e não Pest:** os seis UCs anteriores mordem o **Controller**; nenhum toca a
+tela. `router.visit` é client-side e Pest de Controller não o alcança.
+
+**Pronto quando:** os dois cliques e o `Esc` chamam `router.visit('/ia/conversa')`, e **tecla qualquer
+não navega** (o 4º caso é controle negativo — sem ele, um handler que navegasse a cada keydown passaria
+nos três primeiros).
+
+_Bite-test (2026-08-18): com o endereço antigo (`/ia`), 3 dos 4 casos **falham** e só o controle negativo
+passa — como tem de ser._
+
 ---
 
 ## Fora do alcance backend (visual-only — ⬜ manual / visreg)
@@ -77,4 +105,7 @@ estado no render. CTA "Ativar" é mock client-side (não há endpoint POST serve
 - ⬜ **Atalhos de teclado** `⌘/Ctrl+Enter` ativa · `Esc` volta ao chat.
 - ⬜ **Cabe em 1280px** (Larissa) sem rolar muito; comparação + preço + confiança visíveis.
 - ⬜ **Tokens canon** `bg-primary` roxo (ADR 0190), `text-success`, zero `blue-*`/emoji.
-- ⬜ **A11y** `:focus-visible` em todo interativo; CTA tabável; card de prova legível a ~1m.
+- 🟡 **A11y** `:focus-visible` — o anel foi extraído pra constante `focusRing` e passou a valer também
+  na **CTA primária**, que era o alvo natural do Tab e não o tinha (2026-08-18). Segue ⬜ como *contrato
+  verificado*: nenhum teste mede o anel, e medir classe CSS não é medir foco renderizado. Card de prova
+  legível a ~1m: ⬜.
