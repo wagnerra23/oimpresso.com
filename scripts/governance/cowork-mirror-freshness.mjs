@@ -1124,7 +1124,42 @@ function main() {
       snapshotEmitido[rel] = depois;
       console.log(`  ${nota.padEnd(11)} ${relPath}  (${bytes} bytes · ${depois.slice(0, 12)})`);
     }
-    console.log(`\n✓ ${plano.length} arquivo(s) escritos do JSON — fiel por construção, sem transcrição.`);
+    // ── FIDELIDADE: DUAS garantias diferentes, e o script deixou de fingir que é uma ──
+    //
+    // Esta linha dizia SEMPRE "fiel por construção, sem transcrição". A frase é
+    // verdadeira quando o JSON foi escrito pelo HARNESS (saída do `get_file`
+    // persistida em disco): aí os bytes nunca passaram pelo agente e o hash bate por
+    // construção. É FALSA quando o próprio agente escreveu o JSON — e nesse caso a
+    // frase é pior que ausente, porque carimba de VERIFICADO o que é DECLARADO.
+    //
+    // ⚠️ POR QUE O CASO EXISTE (medido 2026-08-18): o harness só persiste a saída do
+    // `get_file` quando ela é GRANDE. Medido no corpus real desta máquina: o MENOR
+    // JSON persistido tem 47.810 chars. O `templates/pt-05-dashboard/ds-base.js` (~900
+    // chars) voltou INLINE no contexto — sem arquivo, sem rota. Não é buraco do repo,
+    // é da plataforma, e não se conserta daqui. O que se conserta é a MENTIRA sobre a
+    // garantia.
+    //
+    // AS DUAS SAÍDAS DESCARTADAS, medidas antes de codar, pra ninguém re-propor:
+    //   · stdin  — NÃO resolve: o resultado da tool volta pro CONTEXTO do agente, não
+    //     pro shell. Ele ainda teria que digitar o conteúdo. Transcrição com passos a mais.
+    //   · lote   — NÃO resolve: cada `get_file` é uma saída SEPARADA. Os 22 arquivos que
+    //     passaram por aqui em 2026-08-18 persistiram porque cada um, individualmente,
+    //     tem ≥47KB. Juntar pequenos não muda o limiar de nenhum deles.
+    //
+    // `--origem agente` é DECLARAÇÃO do operador, não detecção. Quem mentir aqui não é
+    // pego — mas a mentira fica explícita e datada no log, em vez de implícita numa
+    // frase que o script emitia sozinho em todo caso.
+    const origemAgente = argv.includes('--origem') && argv[argv.indexOf('--origem') + 1] === 'agente';
+    if (origemAgente) {
+      console.log(`
+⚠ ${plano.length} arquivo(s) escritos — FIDELIDADE DECLARADA, não por construção.`);
+      console.log('  O JSON foi escrito pelo AGENTE (--origem agente): os bytes passaram pelo contexto');
+      console.log('  dele. NÃO é o mesmo que exportar da saída persistida do get_file. Confira antes');
+      console.log('  de tratar como verificado, e prefira a rota persistida sempre que der.');
+    } else {
+      console.log(`
+✓ ${plano.length} arquivo(s) escritos do JSON — fiel por construção, sem transcrição.`);
+    }
     console.log(`  ${tally.ATUALIZADO} atualizado(s) · ${tally.NOVO} novo(s) · ${tally.inalterado} inalterado(s)`);
     if (snapOut) {
       // ⚠️ TAUTOLOGIA (achado do adversário 2026-08-13, provado em sandbox): este snapshot sai
