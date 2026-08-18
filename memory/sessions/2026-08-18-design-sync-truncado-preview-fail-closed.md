@@ -1,4 +1,24 @@
+---
+date: "2026-08-18"
+hour: "10:45 BRT"
+duration: "1.0h"
+topic: "DesignSync truncado e preview fail-closed antes de editar produto"
+authors: [W, C]
+outcomes:
+  - "PR #5910 aberto com rejeição atômica de payload truncado e preview fail-closed"
+  - "Auditoria dos seis PRs de produto já mergeados registrada sem reversão destrutiva"
+prs: [5910]
+us: []
+related_adrs: []
+---
+
 # Sessão — DesignSync truncado e preview fail-closed
+
+## TL;DR
+
+O fonte da Jana continha drawers e eventos, mas o bundle compilado chegou com `truncated:true` e o
+preview incompleto encerrava 0. O PR #5910 passa a bloquear esse estado antes de qualquer edição de
+produto; a recuperação dos quatro artefatos completos depende de autenticação no Claude/DesignSync.
 
 **Data:** 2026-08-18 10:45 BRT  
 **Pedido [W]:** ler o protocolo Claude Code → Design, explicar por que o DesignSync baixou CSS mas

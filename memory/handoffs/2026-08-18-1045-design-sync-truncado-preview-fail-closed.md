@@ -13,6 +13,11 @@ next_steps:
 
 # DesignSync truncava o bundle e o preview apagava drawers em silêncio
 
+## TL;DR
+
+O fonte tinha drawers e eventos; o runtime não, porque `_ds_bundle.js` chegou truncado e o preview
+tratava dependências ausentes como aviso. O PR #5910 fecha os dois silêncios antes de editar produto.
+
 ## O que realmente aconteceu
 
 O fonte da Jana em `prototipo-ui/cowork/jana-merge.jsx` contém `JmMetaDrawer`, callbacks,
