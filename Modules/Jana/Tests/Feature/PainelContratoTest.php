@@ -418,6 +418,12 @@ it('UC-COPI-PAINEL-12: a prévia vem do servidor com alcance, e ação desconhec
     // Fail-secure: chave fora do dicionário não vira prévia nem registro.
     $this->get('/ia/acoes/inventada/previa')->assertNotFound();
     $this->post('/ia/acoes/inventada/aprovar')->assertNotFound();
+
+    // E o Service fecha o próprio domínio — quem o chama DIRETO (job, tinker,
+    // outro teste) não passa pelo `abort_unless` da rota. Sem esta asserção o
+    // `default` do `match` seria código morto e a defesa valeria só pela rota.
+    expect(fn () => app(AcaoHitlService::class)->previa('inventada', 1))
+        ->toThrow(InvalidArgumentException::class);
 });
 
 /**

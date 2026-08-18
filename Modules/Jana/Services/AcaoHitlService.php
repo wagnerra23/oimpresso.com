@@ -105,6 +105,14 @@ class AcaoHitlService
                     ['totalAReceber' => $agg['totalAReceber']],
                     null,
                 ],
+                // O `match` fecha o domínio no próprio Service, e não só no
+                // Controller (que já faz `abort_unless(existe(), 404)`): sem este
+                // arm o PHPStan acusa "does not handle remaining value: string" —
+                // e ele tem razão, porque quem chamar o Service direto (job, tinker,
+                // teste) não passa pelo guard da rota. Defesa no dono do contrato.
+                default => throw new \InvalidArgumentException(
+                    "Ação HITL desconhecida: '{$acaoKey}'. Conhecidas: ".implode(', ', array_keys(self::ACOES))
+                ),
             };
 
             return ['previa' => $previa, 'contexto' => $contexto, 'alcance' => $alcance];
