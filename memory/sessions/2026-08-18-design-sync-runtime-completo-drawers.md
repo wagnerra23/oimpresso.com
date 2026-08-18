@@ -7,7 +7,7 @@ authors: [W, C]
 outcomes:
   - "Bundle integral e três fontes mono incorporados ao snapshot canônico"
   - "Preview do DS completo e drawers/eventos comprovados no navegador"
-prs: [5914]
+prs: [5914, 5915]
 us: []
 related_adrs: []
 ---
@@ -37,4 +37,5 @@ interface. O drawer de faturamento foi deixado visível para revisão.
 
 ## Estado
 
-O PR #5914 permanece aberto e não foi mesclado. Nenhum arquivo de produto foi editado.
+O #5914 já tinha sido mesclado antes deste lote. O runtime completo está no PR #5915, aberto e
+não mesclado. Nenhum arquivo de produto foi editado.

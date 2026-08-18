@@ -3,10 +3,10 @@ date: "2026-08-18"
 time: "14:00 BRT"
 slug: design-sync-runtime-completo-drawers
 tldr: "O bundle integral fornecido por [W] foi provado como continuação exata do get_file truncado; as três fontes mono vieram do DesignSync autenticado. O snapshot canônico agora fecha 10/10 dependências, e o navegador confirmou os eventos de abrir/fechar drawers."
-prs: [5914]
+prs: [5914, 5915]
 decided_by: [W]
 next_steps:
-  - "[W] revisar o drawer aberto no protótipo e autorizar explicitamente o merge do PR #5914 se estiver de acordo."
+  - "[W] revisar o drawer aberto no protótipo e autorizar explicitamente o merge do PR #5915 se estiver de acordo."
 ---
 
 # O bundle estava completo; faltava colocá-lo na única fonte que o preview consome
@@ -53,3 +53,6 @@ atualizada para o novo estado canônico; os BITE tests herméticos de dependênc
 verdes.
 
 Nenhum arquivo de produto em `Modules/` ou `resources/js/Pages/` foi alterado.
+
+O #5914 já havia sido mesclado antes deste lote. Como a branch remota tinha sido apagada, o
+runtime completo seguiu no PR separado #5915, aberto e não mesclado.
