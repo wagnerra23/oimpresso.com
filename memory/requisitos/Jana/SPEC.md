@@ -1466,7 +1466,11 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Sinal (ADR 0105 · LGPD Art.20):** direito de revisão de decisão automatizada. ~~a UI admin do HITL existe, mas falta a view do **cliente-final**~~ — redação de 2026-06-20, **falsa desde 2026-07-31**: a UI admin saiu com o ADS (ver §Implementado em). O sinal em si **permanece válido** e é legal, não arquitetural: LGPD Art. 20 + ANPD NT 12/2025 obrigam informar que a decisão é automatizada e oferecer canal de revisão humana. Hoje a exposição é **zero e prospectiva** — nenhuma decisão automatizada chega a titular (a 0363 mediu: `pr_url` e `commit_sha` em 0, 100% do volume em `business_id=1` interno).
 
-**⚠️ Nota de vocabulário (2026-08-08):** existem **dois** "HITL" no projeto e eles não são o mesmo. Esta US é sobre o **Audit Card** — revisão de decisão automatizada pelo *titular de dados*. O que está vivo e não serve aqui é [`HitlEscalationService`](../../../Modules/Jana/Services/TaskRegistry/HitlEscalationService.php), que transporta pendência de sentinela para `mcp_tasks` `blocked`/`wagner` (o que o brief lê). Reusar o nome cria colisão.
+**⚠️ Nota de vocabulário (2026-08-08 · ampliada 2026-08-18):** ~~existem **dois** "HITL" no projeto~~ — são **três**, e nenhum é o outro. Esta US é sobre o **Audit Card** — revisão de decisão automatizada pelo *titular de dados*. Os outros dois, vivos e que **não** servem aqui:
+- [`HitlEscalationService`](../../../Modules/Jana/Services/TaskRegistry/HitlEscalationService.php) — transporta pendência de sentinela para `mcp_tasks` `blocked`/`wagner` (o que o brief lê).
+- [`AcaoHitlService`](../../../Modules/Jana/Services/AcaoHitlService.php) (novo em 2026-08-18) — prévia + aprovação **humana** das ações sugeridas no Painel `/ia`, gravada em `jana_acao_aprovacoes` (`UC-COPI-PAINEL-12`).
+
+**Ele NÃO aciona o gatilho desta US, e a razão importa:** LGPD Art. 20 fala de decisão **automatizada**; ali a decisão é da pessoa — a Jana sugere, alguém aprova, e neste passo nada sequer é enviado. O §Implementado em acima segue valendo em letra: as regras que derivam as ações continuam um `useMemo` no frontend, não decisão calculada no servidor. O gatilho continua sendo *"o primeiro agente que volte a decidir sobre titular"*. Reusar o nome cria colisão.
 
 **DoD (revisado 2026-08-08 — o original pressupunha o ADS vivo):**
 - ~~Rota + página de revisão da decisão (cliente-final).~~ Só faz sentido com um sujeito: **nasce no mesmo movimento** que a primeira decisão automatizada persistida.
