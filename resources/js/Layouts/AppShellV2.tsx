@@ -129,22 +129,6 @@ interface AppShellV2Props {
   conversas?: { fixadas: ConversaResumo[]; rotinas: Rotina[]; recentes: ConversaResumo[] };
   /** Conversa em foco (opcional) — alimenta LinkedAppsPanel + breadcrumb */
   conversaFoco?: ConversaFoco;
-  /**
-   * Mostrar a 3ª coluna "Apps Vinculados"? Default `true` (comportamento histórico).
-   *
-   * POR QUE ESTA PROP EXISTE (2026-08-18): até aqui o layout INFERIA a coluna de
-   * `conversaFoco` — "tenho conversa em foco" virava "tenho apps vinculados". As duas
-   * coisas não são a mesma, e a conflação era o defeito: o `LinkedAppsPanel` monta 5
-   * cards de ENTIDADE em foco (OS / Cliente / Financeiro / Anexos / Histórico), que na
-   * conversa com a assistente da Jana não existem — a coluna renderizava só o título
-   * "Apps Vinculados" nu, sobre o fundo da página, e ainda roubava 320px do thread.
-   * O protótipo (`prototipo-ui/cowork/jana-merge.jsx` §JmConversa) é 2 colunas, e o
-   * DESIGN.md §10 já dizia que a coluna é OPCIONAL — "se não tem, a coluna some".
-   * Faltava só o layout deixar quem consome dizer isso.
-   *
-   * Default `true` preserva quem passava `conversaFoco` e esperava o painel.
-   */
-  linkedApps?: boolean;
   /** Id da conversa ativa pra highlight na sidebar */
   activeConvId?: string;
   /** Handler quando usuário clica em conversa na sidebar */
@@ -252,7 +236,6 @@ export default function AppShellV2({
   user: userProp,
   conversas: conversasProp,
   conversaFoco,
-  linkedApps = true,
   activeConvId,
   onSelectConv,
   breadcrumb,
@@ -312,13 +295,6 @@ export default function AppShellV2({
 
   // ── State do shell (apps colapsado + conversa ativa fallback)
   // Sidebar tab REMOVIDO em 2026-05-05 — sidebar agora é single-pane com Menu.
-  // Fonte única de "existe painel de Apps Vinculados nesta tela?". Os 3 pontos que
-  // dependiam disso (o `data-linked` que controla as colunas do grid, o botão de
-  // toggle e o próprio painel) leem daqui — o breadcrumb NÃO, porque `conversaFoco`
-  // continua legítimo pra ele. Era exatamente essa mistura que impedia desligar a
-  // coluna sem perder o título da conversa na trilha.
-  const mostrarLinkedApps = !!conversaFoco && linkedApps;
-
   const [linkedCollapsed, setLinkedCollapsed] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     return localStorage.getItem(LS.LINKED) === '1';
@@ -512,7 +488,7 @@ export default function AppShellV2({
       )}
       <div
         className="cockpit"
-        data-linked={!mostrarLinkedApps || linkedCollapsed ? 'off' : 'on'}
+        data-linked={!conversaFoco || linkedCollapsed ? 'off' : 'on'}
         data-sidebar={sidebarMode}
         data-mobile-menu={mobileMenuOpen ? 'open' : 'closed'}
         data-vibe={vibe}
@@ -653,7 +629,7 @@ export default function AppShellV2({
                então o botão chevron ficava órfão e confundia o usuário com o
                chevron de páginas que têm sidebar própria (ex: Whatsapp UX
                polish round 2 — Wagner 2026-05-11). */}
-            {mostrarLinkedApps && (
+            {conversaFoco && (
               <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
                 <button
                   className="icon-btn"
@@ -681,10 +657,8 @@ export default function AppShellV2({
           </div>
         </div>
 
-        {/* APPS VINCULADOS (opcional — `linkedApps` + conversa em foco).
-            O `conversaFoco &&` repetido não é redundância: `mostrarLinkedApps` é um
-            boolean derivado e o TS não propaga o narrowing dele até o `conv={}`. */}
-        {!linkedCollapsed && mostrarLinkedApps && conversaFoco && <LinkedAppsPanel conv={conversaFoco} />}
+        {/* APPS VINCULADOS (opcional, só aparece se tem conversaFoco) */}
+        {!linkedCollapsed && conversaFoco && <LinkedAppsPanel conv={conversaFoco} />}
 
         {/* COMMAND PALETTE (Cmd+K global — PMG-002, ADR 0100) */}
         <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
