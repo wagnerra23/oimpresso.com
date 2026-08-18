@@ -102,6 +102,26 @@ const COPILOTO_AVATAR: AvatarRef = { iniciais: 'JA', gradId: 17 };
 // ── histórico recolhível: persistência + breakpoint ────────────────────
 // Charter §Goals: localStorage com prefix `oimpresso.jana.*` (nunca sessionStorage).
 const HIST_KEY = 'oimpresso.jana.hist';
+
+/**
+ * A Conversa NÃO tem 3ª coluna ("Apps Vinculados").
+ *
+ * Os 5 cards do `LinkedAppsPanel` são todos sobre uma ENTIDADE em foco — OS, Cliente,
+ * Financeiro, Anexos, Histórico. Na conversa com a assistente não existe entidade
+ * nenhuma: a coluna renderizava só o título "Apps Vinculados" nu sobre o fundo da
+ * página e ainda tirava 320px do thread (visível na baseline visreg de 2026-08-17).
+ *
+ * O protótipo é 2 colunas (`prototipo-ui/cowork/jana-merge.jsx` §JmConversa: `jm-hist`
+ * + `jm-conv-thread`), e o DESIGN.md §10 já dizia que a coluna é opcional — "se não
+ * tem, a coluna some". Até 2026-08-18 o AppShellV2 INFERIA a coluna de `conversaFoco`,
+ * conflando "tenho conversa" com "tenho apps vinculados"; a prop `linkedApps` separou
+ * as duas.
+ *
+ * ⚠️ `conversaFoco` continua sendo passado DE PROPÓSITO — ele alimenta o breadcrumb e
+ * o `ThreadHeader`, que estão certos. Remover a prop pra sumir com a coluna apagaria o
+ * título da conversa na trilha junto.
+ */
+const LINKED_APPS_NA_CONVERSA = false;
 const HIST_BREAKPOINT = '(max-width: 1100px)';
 
 function lerHistAberto(): boolean {
@@ -314,6 +334,7 @@ export default function Chat({
       }}
       conversas={conversas}
       conversaFoco={conversaFoco}
+      linkedApps={LINKED_APPS_NA_CONVERSA}
       activeConvId={String(conversa.id)}
       onSelectConv={selectConv}
     >
