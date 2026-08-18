@@ -4,6 +4,7 @@ component: resources/js/Pages/Jana/Pro.tsx
 owner: wagner
 status: draft
 last_validated: "2026-08-18"
+gate_f1_5: "2026-08-18 — APROVADO por [W] ('aprovo f1.5') sobre a comparacao baseline x atual do PR #5918: tag UPGRADE antes do titulo (o protótipo poe depois; sem slot no canon e criar um escalava o visreg pra 37 telas), 'Jana · Plano' de eyebrow acima para subtitle abaixo, titulo 18px -> 22px do canon, conteudo ~14px abaixo (pt-6/min-h-60 do PageHeader vs py-3.5 do header proprio)."
 smoke: "2026-08-18 — render prod OK (Chrome MCP, sessao WR2 Sistemas, tema escuro): hero, card de prova, comparacao 6 linhas, preco e footer sticky com a CTA. DOIS defeitos CONFIRMADOS ao vivo, ambos antes so inferidos por leitura: (1) a comparacao de preco renderiza o sentinela de redacao no lugar dos numeros dos concorrentes; (2) 'Voltar ao chat' leva a /ia — titulo 'Jana — Dashboard', aba Painel ativa —, nao a Conversa. O (2) esta corrigido no PR #5892; o (1) aguarda decisao [W]."
 parent_module: Jana
 related_adrs: [140, 110, 190, 93]
