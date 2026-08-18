@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela reúne, numa rota só, tudo que as outras telas do Produto gateiam separadamente — custo, preço de venda, tabelas de preço e composição. Sem casos, ela vira o caminho por onde tudo isso sai sem permissão.
 owner: wagner
-last_run: "2026-08-13"
-last_run_ci: "6/6 UC verdes na lane Estoque · MySQL (run 31706439580, PR #5733): 7 testes · 0 skipped · 23 assertions. Veredito lido do JUnit da run, não declarado à mão — scripts/casos-test-results.json."
+last_run: "2026-08-18"
+last_run_ci: "11/11 UC verdes na lane Estoque · MySQL (run 32141318494, PR #5906): UC-PUNI-01..06 revalidados sobre a tela nova + UC-PUNI-07..10 estreando, 0 skipped. Veredito lido do JUnit da run (artifact pest-estoque-junit → npm run casos:results), não declarado à mão — scripts/casos-test-results.json."
 ---
 
 # Casos de Uso & Aceite — Catálogo Unificado (`/products/unificado`)
@@ -62,10 +62,10 @@ last_run_ci: "6/6 UC verdes na lane Estoque · MySQL (run 31706439580, PR #5733)
 | UC-PUNI-04 | Composição (BOM) só aparece com módulo Manufacturing **e** `manufacturing.access_recipe` | must | permissões `Modules/Manufacturing` + camada 1/3 ([feedback-habilitar-modulo-por-business](../../../../../memory/reference/feedback-habilitar-modulo-por-business.md)) | `ProdutoUnificadoContratoTest` | ✅ verde — `insumos` vazio e `bomCount` ausente sem as camadas 1+3 |
 | UC-PUNI-05 | Nenhuma prop enxerga outro business | must `[T0]` | `CU-PROD-10.2` + [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ProdutoUnificadoContratoTest` | ✅ verde — guard cross-tenant confirmado |
 | UC-PUNI-06 | A tela exige `product.view` **ou** `product.create` | should | `ProductController@index:66` (a lista irmã) + `routes/web.php:449` (TODO) | `ProdutoUnificadoContratoTest` | ✅ verde — 403 sem `product.view` nem `product.create` |
-| UC-PUNI-07 | O contador "Margem baixa" segue o gate do custo | must | handoff §9 + `AR-PROD-015` | `ProdutoUnificadoIndiceContratoTest` | ⏳ nasce nesta PR — veredito na lane Estoque · MySQL |
-| UC-PUNI-08 | A aba recorta por TIPO derivado e conta só ativos | must | handoff §4.2 + §6 exceção 6 | `ProdutoUnificadoIndiceContratoTest` | ⏳ nasce nesta PR |
-| UC-PUNI-09 | "Não estocável" e "sem estoque" são estados diferentes | must | handoff §4.6 + §6 exceção 6 | `ProdutoUnificadoIndiceContratoTest` | ⏳ nasce nesta PR |
-| UC-PUNI-10 | As agregações (abas · KPIs · total) não contam produto de outro business | must `[T0]` | [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ProdutoUnificadoIndiceContratoTest` | ⏳ nasce nesta PR |
+| UC-PUNI-07 | O contador "Margem baixa" segue o gate do custo | must | handoff §9 + `AR-PROD-015` | `ProdutoUnificadoIndiceContratoTest` | ✅ verde — run 32141318494 |
+| UC-PUNI-08 | A aba recorta por TIPO derivado e conta só ativos | must | handoff §4.2 + §6 exceção 6 | `ProdutoUnificadoIndiceContratoTest` | ✅ verde — run 32141318494 |
+| UC-PUNI-09 | "Não estocável" e "sem estoque" são estados diferentes | must | handoff §4.6 + §6 exceção 6 | `ProdutoUnificadoIndiceContratoTest` | ✅ verde — run 32141318494 |
+| UC-PUNI-10 | As agregações (abas · KPIs · total) não contam produto de outro business | must `[T0]` | [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ProdutoUnificadoIndiceContratoTest` | ✅ verde — run 32141318494 |
 
 ---
 
@@ -176,7 +176,8 @@ last_run_ci: "6/6 UC verdes na lane Estoque · MySQL (run 31706439580, PR #5733)
 > capacidade removida.
 >
 > Os UCs abaixo contratam o que a mudança introduziu. Os UC-PUNI-01..06 continuam valendo
-> inteiros: eles contratam **visibilidade**, que o layout não toca.
+> inteiros: eles contratam **visibilidade**, que o layout não toca — e foram **revalidados sobre
+> a tela nova** na mesma run `32141318494`, não herdados do verde antigo.
 
 ## UC-PUNI-07 · O contador "Margem baixa" segue o gate do custo · `must`
 
@@ -190,7 +191,7 @@ last_run_ci: "6/6 UC verdes na lane Estoque · MySQL (run 31706439580, PR #5733)
 - **O piso é do NEGÓCIO, não da tela:** ele viaja como prop (`pisoMargem`) e o frontend nunca o
   redeclara (handoff §9 — *"margem calculada com o piso vigente, não com 42% fixo"*).
 - **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-07`.
-- **Status: ⏳** — nasce nesta PR. O veredito vem da lane `PHP / Pest (Estoque · MySQL)`, não desta linha.
+- **Status: ✅** — verde na run `32141318494` (lane Estoque · MySQL). O veredito veio do JUnit da run, não desta linha.
 
 ## UC-PUNI-08 · A aba recorta por TIPO derivado e conta só ativos · `must`
 
@@ -208,7 +209,7 @@ last_run_ci: "6/6 UC verdes na lane Estoque · MySQL (run 31706439580, PR #5733)
   ([proposta 2026-08-11](../../../../../memory/decisions/proposals/2026-08-11-natureza-do-item-tipo-de-produto.md)),
   esta derivação é a melhor aproximação disponível — e é **explícita**, não escondida numa query.
 - **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-08`.
-- **Status: ⏳** — nasce nesta PR.
+- **Status: ✅** — verde na run `32141318494`.
 
 ## UC-PUNI-09 · "Não estocável" e "sem estoque" são estados diferentes · `must`
 
@@ -224,7 +225,7 @@ last_run_ci: "6/6 UC verdes na lane Estoque · MySQL (run 31706439580, PR #5733)
   estoque), não pelo texto do badge — alfabético colocaria "Em estoque" antes de "Sem estoque" e
   esconderia o que precisa de ação.
 - **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-09`.
-- **Status: ⏳** — nasce nesta PR.
+- **Status: ✅** — verde na run `32141318494`.
 
 ## UC-PUNI-10 · As agregações não contam produto de outro business · `must` `[T0]`
 
@@ -238,4 +239,4 @@ last_run_ci: "6/6 UC verdes na lane Estoque · MySQL (run 31706439580, PR #5733)
   (`catalogoSub`), que declara `business_id` explicitamente — `App\Product` não tem global scope
   de tenant (ADR 0093). Fonte única também é o que garante que o contador não discorde da lista.
 - **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-10`.
-- **Status: ⏳** — nasce nesta PR.
+- **Status: ✅** — verde na run `32141318494`.

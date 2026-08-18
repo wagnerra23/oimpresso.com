@@ -143,7 +143,12 @@ class ProdutoUnificadoController extends Controller
             'produtos' => Inertia::defer(fn () => $this->produtos($business_id, $filters, $podeVerCusto, $podeVerPreco, $podeVerBom)),
             'totalDaAba' => Inertia::defer(fn () => $this->totalDaAba($business_id, $filters, $podeVerCusto, $podeVerPreco)),
             'opcoesFiltro' => Inertia::defer(fn () => $this->opcoesFiltro($business_id)),
-            'categorias' => Inertia::defer(fn () => $this->categorias($business_id)),
+            // `categorias` é a ÚNICA que NÃO é deferida, e isso é contrato, não descuido:
+            // `ProdutoUnificadoCategoriasContratoTest` (C1..C4) faz uma visita COMPLETA e exige a
+            // prop na resposta — é a defesa contra o 500 que essa closure já causou duas vezes
+            // (`withCount('products')` numa relação inexistente; `whereNull('parent_id')` numa
+            // coluna NOT NULL). Deferir a tira do primeiro round-trip e o contrato quebra.
+            'categorias' => fn () => $this->categorias($business_id),
             // UC-PUNI-04 / UC-PUNI-03: a sub-tela inteira não é servida sem o direito.
             // O gate é aqui (e não dentro do helper) pra que a prop nasça `[]` sem custo de query.
             'insumos' => $filters['tela'] === 'insumos' && $podeVerBom ? $this->insumos($business_id, $podeVerCusto) : [],
