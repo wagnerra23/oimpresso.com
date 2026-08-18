@@ -212,6 +212,42 @@ asserções minhas caíram exatamente nessa armadilha **na escrita** (`Ver detal
 classe, ambos vivos em comentário) e foram trocadas por estruturais antes de rodar: contagem de
 `<Numero rotulo=` (3) e ausência do literal do link._
 
+## UC-COPI-PAINEL-12 — a ação sugerida vira decisão registrada, e a prévia é do SERVIDOR
+Status: 🧪 (`PainelContratoTest` — 3 `it()` de runtime, com 2 controles negativos; aguarda run verde na lane MySQL)
+
+> ⚠️ **Este caso entra em DUAS metades, e esta é a primeira.** Aqui está o **backend**: as rotas de
+> prévia/aprovação, o ledger `jana_acao_aprovacoes` e o escopo Tier 0. A metade de **tela** (o CTA
+> abrir o modal, os rótulos "Revisar …") entra no PR seguinte, com o `JanaAcaoModal` — e só então o
+> §Pronto quando ganha os itens de UI. Descrever aqui a tela que ainda não existe seria o mesmo
+> defeito que este contrato persegue nos botões.
+
+Todo CTA da seção "Ações que … sugere" é **decorativo** — `title="(HITL — em breve V2)"`, zero
+`onClick`. É a **ordem 1** do `Index-visual-comparison.md` (§Resumo) e a única linha cuja trava diz,
+em letra, *"backend — sem ele, todo CTA da seção é decorativo"*. Este PR entrega esse backend.
+
+Âncora: `prototipo-ui/cowork/jana-merge.jsx` §`JmAcaoModal` — âncora de SÍMBOLO
+(`grep -n "JmAcaoModal" prototipo-ui/cowork/jana-merge.jsx`).
+
+**A divergência vs a âncora é o ponto do caso, pela terceira vez — e agora no eixo da PRÉVIA.** O
+`JmAcaoModal` traz as 4 prévias em **texto fixo**, com números do Martinho (`biz=164`), citando
+`Analise*Service` que não existem no repo (re-medido 2026-08-17 no espelho **e** no Cowork vivo).
+Portar isso repetiria letra por letra o que o UC-04 travou no farol e o charter travou na fonte do
+drill: **veredito nasce no servidor**. A prévia vem de `GET /ia/acoes/{key}/previa`, lida do mesmo
+agregado que pinta a linha (`SellsCockpitAggregator::buildInsightsAggregates`) — prévia e linha não
+podem divergir.
+
+**O escopo para antes do envio.** `POST /ia/acoes/{key}/aprovar` **registra** a decisão; nada sai. O
+disparo (WhatsApp/e-mail) e a fila `/ia/acoes` são PR próprio.
+
+**Pronto quando:** `GET` da prévia devolve `previa` + `contexto` + `alcance` para as 5 chaves de
+`AcaoHitlService::ACOES`; chave desconhecida dá **404** em prévia e em aprovar; o que fica gravado em
+`previa` é o texto do **servidor**, mesmo com o cliente mandando outro; e o registro nasce com o
+`business_id` da **sessão**, invisível fora do tenant.
+
+_Por que as três asserções são de RUNTIME: o defeito que importa aqui é de comportamento — prévia
+forjada e vazamento de tenant não se veem lendo arquivo. A metade de tela do PR seguinte é que vai
+precisar de asserção de ARQUIVO (o Pest não monta React), como nos UC-08/10/11._
+
 ## Nota do conserto do UC-COPI-PAINEL-08 (2026-08-17)
 
 `_components/JanaCockpitSkeleton.tsx` (novo, ancorado em `jana-merge.jsx` §`JmPainelSkeleton`) +

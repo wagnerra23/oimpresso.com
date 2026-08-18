@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\User;
+use Modules\Jana\Entities\AcaoAprovacao;
+use Modules\Jana\Services\AcaoHitlService;
 use Spatie\Permission\Models\Permission;
 
 uses(Tests\TestCase::class);
@@ -391,4 +393,73 @@ it('UC-COPI-PAINEL-11: a meta abre em drawer na própria tela, sem projetar o fe
     expect($drawer)
         ->toContain('business_id')
         ->toContain('<Serie dados={serie}');
+});
+
+/**
+ * UC-COPI-PAINEL-12 — a ação sugerida vira decisão registrada, e a prévia é do SERVIDOR.
+ *
+ * Quatro `it()` porque são quatro perguntas independentes; um só bloco esconderia
+ * qual metade quebrou.
+ *
+ * A trava que a ordem 1 do `Index-visual-comparison.md` declarava era **backend** —
+ * e é ele que estes casos defendem. O risco que reincide não é abrir um modal
+ * (trivial): é o modal virar autoridade sobre número que ninguém apurou. É o mesmo
+ * §Anti-hooks do farol (UC-04) e da fonte do drill (charter), agora no eixo da
+ * PRÉVIA.
+ */
+/** UC-COPI-PAINEL-12 — a prévia é gerada no servidor, e só pras chaves conhecidas. */
+it('UC-COPI-PAINEL-12: a prévia vem do servidor com alcance, e ação desconhecida é 404', function () {
+    painelBootstrap();
+
+    $this->get('/ia/acoes/regua-whatsapp/previa')
+        ->assertStatus(200)
+        ->assertJsonStructure(['previa', 'contexto', 'alcance']);
+
+    // Fail-secure: chave fora do dicionário não vira prévia nem registro.
+    $this->get('/ia/acoes/inventada/previa')->assertNotFound();
+    $this->post('/ia/acoes/inventada/aprovar')->assertNotFound();
+});
+
+/**
+ * UC-COPI-PAINEL-12 — o que fica gravado é o recibo do SERVIDOR.
+ *
+ * O vetor que este caso fecha: se `previa` viesse do request, o cliente
+ * reescreveria o que "foi aprovado" — e o ledger deixaria de ser recibo.
+ */
+it('UC-COPI-PAINEL-12: aprovar grava a prévia do servidor e ignora o texto do cliente', function () {
+    painelBootstrap();
+
+    $this->post('/ia/acoes/regua-whatsapp/aprovar', [
+        'previa'   => 'TEXTO FORJADO PELO CLIENTE',
+        'acao_key' => 'negociar-top',
+        'status'   => 'executada',
+    ])->assertRedirect();
+
+    $registro = AcaoAprovacao::latest('id')->first();
+
+    expect($registro)->not->toBeNull();
+    expect($registro->previa)->not->toContain('TEXTO FORJADO PELO CLIENTE');
+    // A chave e o status também vêm da rota/serviço, nunca do corpo do request.
+    expect($registro->acao_key)->toBe('regua-whatsapp');
+    expect($registro->status)->toBe('aprovada');
+    // Controle negativo: sem isto, gravar string vazia passaria no `not->toContain`.
+    expect($registro->previa)->toContain('cobrança');
+});
+
+/** UC-COPI-PAINEL-12 — Tier 0: o registro nasce escopado pela SESSÃO (ADR 0093). */
+it('UC-COPI-PAINEL-12: a aprovação nasce com o business_id da sessão, nunca do request', function () {
+    $user = painelBootstrap();
+
+    $this->post('/ia/acoes/preventivo-pendentes/aprovar', ['business_id' => 999999])
+        ->assertRedirect();
+
+    $registro = AcaoAprovacao::latest('id')->first();
+
+    expect($registro->business_id)->toBe((int) $user->business_id);
+    expect($registro->user_id)->toBe((int) $user->id);
+
+    // E o global scope não deixa a linha ser lida de fora do tenant. Contar sob o
+    // scope é o que prova o isolamento — `where` cru só provaria a coluna.
+    session(['user.business_id' => 999999]);
+    expect(AcaoAprovacao::where('id', $registro->id)->count())->toBe(0);
 });
