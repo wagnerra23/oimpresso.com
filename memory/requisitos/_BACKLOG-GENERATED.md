@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **881 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **882 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -39,8 +39,8 @@
 | [`Essentials`](#essentials) | 11 | 0 | 0 | 0 | 11 |
 | [`Cms`](#cms) | 10 | 0 | 0 | 0 | 10 |
 | [`Superadmin`](#superadmin) | 10 | 0 | 0 | 0 | 10 |
+| [`Cliente`](#cliente) | 9 | 1 | 0 | 0 | 8 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
-| [`Cliente`](#cliente) | 8 | 1 | 0 | 0 | 7 |
 | [`KB`](#kb) | 8 | 0 | 0 | 0 | 8 |
 | [`Produto`](#produto) | 8 | 0 | 0 | 0 | 8 |
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
@@ -1063,6 +1063,24 @@
 - **US-SUPER-009** — Pricing público (`/pricing`)
 - **US-SUPER-010** — Usuario 360 (visão consolidada do cliente)
 
+## Cliente
+
+
+### doing
+
+- **US-CRM-078** — Múltiplos endereços por contato + seletor de endereço na venda
+
+### todo
+
+- **US-CRM-079** — Anonimização fiscal-aware do titular (DsrService → contacts) — LGPD Art. 18
+- **US-CRM-080** — Teste cross-tenant no App\Contact pai + avaliar global scope (Tier 0)
+- **US-CRM-081** — Limite de crédito com bloqueio/aviso na venda (wirar enforcement)
+- **US-CRM-082** — Import de clientes com preview + dedupe/merge (CPF/CNPJ)
+- **US-CRM-083** — UI de consentimento (opt-in/opt-out) + base legal por finalidade
+- **US-CRM-084** — Extrato (Ledger) render inline 100% — parar de abrir Blade legacy ao filtrar
+- **US-CRM-085** — Export de portabilidade do titular (registro completo CSV/JSON) — LGPD Art. 18 V
+- **US-CRM-091** — Mapa de clientes: trocar o iframe hardcoded por provedor tokenizado
+
 ## TaskRegistry
 
 
@@ -1080,23 +1098,6 @@
 - **US-TR-205** — Activity feed timeline _(`p2` · @wagner)_
 - **US-TR-206** — Burndown chart _(`p2` · @wagner)_
 - **US-TR-302** — tasks-suggest-* (D2 AI-native) _(`p2` · @wagner)_
-
-## Cliente
-
-
-### doing
-
-- **US-CRM-078** — Múltiplos endereços por contato + seletor de endereço na venda
-
-### todo
-
-- **US-CRM-079** — Anonimização fiscal-aware do titular (DsrService → contacts) — LGPD Art. 18
-- **US-CRM-080** — Teste cross-tenant no App\Contact pai + avaliar global scope (Tier 0)
-- **US-CRM-081** — Limite de crédito com bloqueio/aviso na venda (wirar enforcement)
-- **US-CRM-082** — Import de clientes com preview + dedupe/merge (CPF/CNPJ)
-- **US-CRM-083** — UI de consentimento (opt-in/opt-out) + base legal por finalidade
-- **US-CRM-084** — Extrato (Ledger) render inline 100% — parar de abrir Blade legacy ao filtrar
-- **US-CRM-085** — Export de portabilidade do titular (registro completo CSV/JSON) — LGPD Art. 18 V
 
 ## KB
 
