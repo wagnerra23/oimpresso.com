@@ -1072,7 +1072,27 @@ function main() {
       }
       vivos.push({ path: raw.path, content: raw.content });
     }
-    const plano = exportPlan(vivos);
+    // ── DESTINO — Cowork por default, Design System por `--ds` ────────────────
+    //
+    // POR QUE (medido 2026-08-18): o `--export-from` é o DONO do papel "baixar fonte
+    // de design com fidelidade de byte" — o agente busca (só ele fala MCP) e o SCRIPT
+    // escreve o `raw.content`, então o hash é idêntico POR CONSTRUÇÃO. Mas ele só
+    // conhecia o espelho Cowork. Consequência real: em 2026-08-17 o
+    // `templates/pt-05-dashboard/Pt05Dashboard.dc.html` foi puxado do Design System pra
+    // responder uma pergunta e NÃO teve onde pousar — `git ls-files | grep -c
+    // pt-05-dashboard` = 0. A fonte morreu com a sessão.
+    //
+    // ⚠️ O conserto anterior estava ERRADO e foi revertido no mesmo PR: eu tinha posto
+    // uma flag `--ds` no `aplicar-payload.mjs`, que é dono de OUTRA coisa (aplicar
+    // payload servido). Máquina paralela a tema que já tem dono é a classe LC-19 — e eu
+    // a citei no commit enquanto a cometia. A pergunta que faltou é a que o canon manda
+    // fazer primeiro: "quem já é dono deste tema?". Era este bloco.
+    //
+    // O `exportPlan` já aceitava `prefixo` desde sempre; só o chamador hardcodava.
+    const PREFIXOS = { cowork: 'prototipo-ui/cowork/', ds: 'prototipo-ui/design-system/' };
+    const destinoNome = argv.includes('--ds') ? 'ds' : 'cowork';
+    const prefixo = PREFIXOS[destinoNome];
+    const plano = exportPlan(vivos, { prefixo });
     // O SNAPSHOT sai daqui de graça (2026-08-13). Antes o ciclo pedia DOIS downloads
     // por arquivo: um pro --export-from, outro pro snapshot do --compare — e o agente
     // é o único que fala MCP, então esse 2º download custava contexto dele. Mas o
@@ -1086,17 +1106,60 @@ function main() {
     for (const { relPath, content, bytes } of plano) {
       const abs = join(ROOT, relPath);
       const antes = existsSync(abs) ? contentHash(readFileSync(abs, 'utf8')) : null;
+      // `mkdir -p` antes de escrever: o bloco nunca criou diretório e funcionava por
+      // sorte — as pastas do espelho Cowork já existiam (200 arquivos versionados).
+      // No primeiro destino NOVO (`--ds`) isso estourou ENOENT no 1º arquivo, medido
+      // 2026-08-18. Vale pros dois destinos: subpasta nova no Cowork tinha o mesmo
+      // buraco, só nunca tinha sido exercitada.
+      mkdirSync(dirname(abs), { recursive: true });
       writeFileSync(abs, content, 'utf8');
       const depois = contentHash(content);
       const nota = antes === null ? 'NOVO' : antes === depois ? 'inalterado' : 'ATUALIZADO';
       tally[nota]++;
       // chave = path RELATIVO ao espelho (o mesmo que o manifesto usa)
-      const rel = relPath.replace(/^prototipo-ui\/cowork\//, '');
+      // chave RELATIVA ao destino escolhido — com `--ds` o prefixo é outro, e cortar
+      // o do Cowork deixaria a chave com o caminho inteiro dentro.
+      const rel = relPath.startsWith(prefixo) ? relPath.slice(prefixo.length) : relPath;
       if (nota === 'NOVO') nascidos.push(rel);
       snapshotEmitido[rel] = depois;
       console.log(`  ${nota.padEnd(11)} ${relPath}  (${bytes} bytes · ${depois.slice(0, 12)})`);
     }
-    console.log(`\n✓ ${plano.length} arquivo(s) escritos do JSON — fiel por construção, sem transcrição.`);
+    // ── FIDELIDADE: DUAS garantias diferentes, e o script deixou de fingir que é uma ──
+    //
+    // Esta linha dizia SEMPRE "fiel por construção, sem transcrição". A frase é
+    // verdadeira quando o JSON foi escrito pelo HARNESS (saída do `get_file`
+    // persistida em disco): aí os bytes nunca passaram pelo agente e o hash bate por
+    // construção. É FALSA quando o próprio agente escreveu o JSON — e nesse caso a
+    // frase é pior que ausente, porque carimba de VERIFICADO o que é DECLARADO.
+    //
+    // ⚠️ POR QUE O CASO EXISTE (medido 2026-08-18): o harness só persiste a saída do
+    // `get_file` quando ela é GRANDE. Medido no corpus real desta máquina: o MENOR
+    // JSON persistido tem 47.810 chars. O `templates/pt-05-dashboard/ds-base.js` (~900
+    // chars) voltou INLINE no contexto — sem arquivo, sem rota. Não é buraco do repo,
+    // é da plataforma, e não se conserta daqui. O que se conserta é a MENTIRA sobre a
+    // garantia.
+    //
+    // AS DUAS SAÍDAS DESCARTADAS, medidas antes de codar, pra ninguém re-propor:
+    //   · stdin  — NÃO resolve: o resultado da tool volta pro CONTEXTO do agente, não
+    //     pro shell. Ele ainda teria que digitar o conteúdo. Transcrição com passos a mais.
+    //   · lote   — NÃO resolve: cada `get_file` é uma saída SEPARADA. Os 22 arquivos que
+    //     passaram por aqui em 2026-08-18 persistiram porque cada um, individualmente,
+    //     tem ≥47KB. Juntar pequenos não muda o limiar de nenhum deles.
+    //
+    // `--origem agente` é DECLARAÇÃO do operador, não detecção. Quem mentir aqui não é
+    // pego — mas a mentira fica explícita e datada no log, em vez de implícita numa
+    // frase que o script emitia sozinho em todo caso.
+    const origemAgente = argv.includes('--origem') && argv[argv.indexOf('--origem') + 1] === 'agente';
+    if (origemAgente) {
+      console.log(`
+⚠ ${plano.length} arquivo(s) escritos — FIDELIDADE DECLARADA, não por construção.`);
+      console.log('  O JSON foi escrito pelo AGENTE (--origem agente): os bytes passaram pelo contexto');
+      console.log('  dele. NÃO é o mesmo que exportar da saída persistida do get_file. Confira antes');
+      console.log('  de tratar como verificado, e prefira a rota persistida sempre que der.');
+    } else {
+      console.log(`
+✓ ${plano.length} arquivo(s) escritos do JSON — fiel por construção, sem transcrição.`);
+    }
     console.log(`  ${tally.ATUALIZADO} atualizado(s) · ${tally.NOVO} novo(s) · ${tally.inalterado} inalterado(s)`);
     if (snapOut) {
       // ⚠️ TAUTOLOGIA (achado do adversário 2026-08-13, provado em sandbox): este snapshot sai
