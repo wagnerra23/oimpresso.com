@@ -4,7 +4,7 @@ casos: Jana Conversa · histórico · teclado · acessibilidade · /ia/conversa
 irmaos: Chat.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-chat.md (runbook)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-17"
+last_run: "2026-08-18"
 ---
 
 # Casos de uso — /ia/conversa (Chat da Jana)
@@ -372,3 +372,28 @@ dois lados, componente a componente. **Não é medição de fidelidade visual**:
 `cowork-mirror-freshness --compare --check` provando o espelho `SYNC`, nem sonda
 `design-diff --probe` nos dois renders. Portanto **nenhum UC aqui afirma "fiel ao protótipo"** —
 eles afirmam comportamento, que é o que os 15 testes provam.
+
+## Revalidação de 2026-08-18 — por que o `last_run` subiu
+
+O G-6 acusou `stale:` porque o `Chat.tsx` mudou depois do `last_run` de 08-17. O que mudou, na
+onda 2 da paridade da área Jana ([#5919](https://github.com/wagnerra23/oimpresso.com/pull/5919)):
+
+- a Page passou a declarar e destruturar a prop `janaContext` (`businessId` · `businessName`);
+- o `<JanaAreaHeader active="chat">` passou a receber `businessName`/`businessId`, props que ele
+  **já aceitava** e ninguém mandava — o efeito visível é a empresa e o `biz=` voltarem ao header
+  ao trocar de aba dentro da área.
+
+**Interseção com os UCs desta tela: nenhuma.** Os UCs desta tela tratam de histórico, teclado e
+acessibilidade da conversa; o diff não toca thread, envio, atalho, foco nem o `ConvSidePanel` —
+só a identidade de tenant exibida no header compartilhado.
+
+Por isso o bump é do `last_run` e **nenhum `Status:` mudou** — os UCs seguem exatamente como
+estavam. Registrado porque o §5 de 2026-07-27 cataloga esta classe: mudança semanticamente
+inerte **não é inerte pro gate** — o G-6 mede data de git, não semântica. O `last_run` só sobe
+com o motivo escrito ao lado; subir o número calado é o que ele existe pra impedir.
+
+**Lição de método desta rodada** (vale pra quem repetir o fluxo): rodar o `casos-coverage-guard`
+**antes** de commitar dá verde falso — o G-6 lê a data do `.tsx` pelo **git**, então enquanto a
+mudança está só no working tree ela é invisível pro gate. Rode-o **depois** do commit, ou
+espere o CI dizer. Foi o que aconteceu aqui: o gate local passou, o do CI reprovou, e o certo
+era o do CI.
