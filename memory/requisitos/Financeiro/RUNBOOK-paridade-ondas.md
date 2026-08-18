@@ -101,6 +101,8 @@ A subnav do protótipo foi lida no runtime em `http://localhost:5577/oimpresso.c
 | Prova Viva | `Financeiro - Prova Viva (primitivos).html` | `ProvaViva.tsx` | ✅ declarada |
 | Assinaturas | `cobranca-recorrente-page.jsx` | **fora do módulo** → `RecurringBilling` | — |
 
+> ⚠️ **Os paths deste manual têm prazo.** As telas Inertia estão migrando para dentro do módulo dono ([#5686](https://github.com/wagnerra23/oimpresso.com/pull/5686), 73 de 445). O Financeiro **ainda não migrou** — medido em 2026-08-18, as 59 `.tsx` seguem em `resources/js/Pages/Financeiro/` (já migraram Cms, Forja, KB, PaymentGateway, Superadmin, Whatsapp). Quando a onda alcançar o módulo, o destino vira `Modules/Financeiro/Resources/js/Pages/`. Confirme o path na hora da onda, não confie nesta linha.
+
 **Sem correspondente no protótipo (13 telas):** `Advisor/Dashboard`, `Advisor/Login`, `AssinaturaAtualizar`, `Caixa`, `Categorias`, `Configuracoes/Contador`, `ContasBancarias`, `ContasPagar`, `ContasReceber`, `Dashboard`, `Extrato`, `Relatorios`, `Unificado/Novo`. Os charters delas declaram `n/a` com razão explícita (herda PT-01/PT-04, ou nasceu fora do loop Cowork). **Ausência declarada não é dívida** — essas fecham por conformidade de Padrão de Tela (Onda 9), não por repintura.
 
 ### Capacidades transversais do protótipo (aplicam a várias telas)
