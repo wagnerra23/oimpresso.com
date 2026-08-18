@@ -97,6 +97,74 @@ trabalho de plataforma com custo próprio, não conserto de um PR de tela. Fica 
 - **`main` desde 11/08**: **2 runs, ambos `failure`**. São dois — não sustenta conclusão
   sozinho, e fica registrado com o denominador à mostra em vez de virar "main está vermelho".
 
+## Achado 2 — **14 de 71 baselines divergem SEM nenhuma mudança de código**
+
+> Descoberto depois, ao executar o modo update pra atualizar UMA baseline (a `Jana/Pro`, com
+> F1.5 aprovado). [W], ao ver que eu ia deixar os outros 17 snapshots regenerados de fora com
+> uma nota de rodapé: **"não pode mudar em silêncio"**. Está certo — e a medição abaixo mostra
+> que é pior do que parecia.
+
+O modo update (`workflow_dispatch`, run 32177133506) regenerou **18 de 71** snapshots. Cruzando
+cada um com o histórico de código:
+
+| baseline divergente | mudança de código que explica |
+|---|---|
+| `Jana/Pro` | este PR (#5918) — F1.5 aprovado |
+| `Jana/Chat` · `Jana/Memoria` | onda 2 (#5919), mergeada |
+| `Produto/Unificado` | #5906 |
+| **`Clientes`** · **`Compras`** · `clientes·estado_default` · `clientes·estado_empty` · `compras·estado_default` · 6× `compras·abrir_*` · 3× `financeiro_unificado·*` | **NENHUMA** |
+
+**4 explicáveis · 14 sem causa de código.** Isso é **20% do parque de baselines**.
+
+### A prova de que não é código
+
+As baselines de `Clientes` e `Compras` foram regeneradas em 2026-08-18 pelo
+[#5897](https://github.com/wagnerra23/oimpresso.com/pull/5897) (que mexeu em **tokens**, e por
+isso tocou todas). Desde aquele commit até `origin/main` de hoje:
+
+```
+git diff --name-only 88fa460313 origin/main -- 'resources/css/**' 'resources/js/Components/**'
+→ (vazio)
+```
+
+Nenhum CSS, nenhum componente compartilhado. Os únicos arquivos de UI que mudaram no intervalo
+são de `Pages/Jana/**` e do Produto — que são exatamente os 4 explicáveis.
+
+Ou seja: **a baseline foi gerada, nada que a afeta mudou, e o render de hoje não bate com ela.**
+
+### Por que isto importa mais que o Achado 1
+
+O gate é **required**. Se 20% das baselines não reproduzem, então:
+
+1. **todo PR de escopo global entra vermelho** por telas que ele não tocou — e o autor é
+   empurrado a "regenerar tudo", que é justamente o que o gate avisa pra não fazer;
+2. **regressão visual real fica indistinguível de ruído** — o sinal que o gate existe pra dar
+   perde valor na proporção do ruído;
+3. o hábito de regenerar em lote **normaliza** mudar baseline de tela alheia — o silêncio que
+   [W] apontou.
+
+### O que NÃO afirmo
+
+**Não afirmo qual é a fonte do não-determinismo.** O [#5852](https://github.com/wagnerra23/oimpresso.com/pull/5852)
+já congelou o relógio ("regenera 24 baselines com o relógio congelado"), então tempo ao menos
+em parte já foi endereçado. Candidatos não medidos: dado semeado variável, ordem de query sem
+`ORDER BY`, fonte/antialiasing do runner, animação sem `prefers-reduced-motion`, lazy-load.
+Dizer qual é sem medir seria a classe de erro que este mesmo documento registra acima.
+
+O caminho de medição é barato e determinístico: **rodar o modo update duas vezes seguidas no
+MESMO commit** e diffar os snapshots. O que divergir entre duas execuções idênticas é ruído por
+definição — e aí o conjunto que sobra é o drift real.
+
+### O que fiz aqui, e o que deixei
+
+Peguei **1** snapshot (o da `Jana/Pro`, com F1.5). Os outros 17 **não entraram** no #5918 — não
+por descuido, mas porque não são daquele PR. Ficam no
+[#5932](https://github.com/wagnerra23/oimpresso.com/pull/5932) (e há um irmão, #5933, de outro
+run), abertos, para decisão [W] — **e agora com a medição escrita**, que é o que faltava pra não
+ser silêncio.
+
+---
+
 ## Método — o que eu errei no caminho
 
 1. **Afirmei bloqueio sistêmico a partir do meu próprio tropeço.** É a classe do §5 de
