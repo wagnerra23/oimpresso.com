@@ -4,7 +4,7 @@ casos: Jana Memória · fatos aprendidos · LGPD Art. 18 · /ia/memoria
 irmaos: Memoria.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-memoria.md (runbook)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-17"
+last_run: "2026-08-18"
 ---
 
 # Casos de uso — /ia/memoria (Memória da Jana)
@@ -117,3 +117,16 @@ motivo escrito ao lado; subir o número calado é o que ele existe pra impedir.
 - ❓ **Naming** — a tela ainda diz "O Copiloto lembra de você" (h1 + título do shell) enquanto o
   resto do módulo já é "Jana" (`RUNBOOK-chat.md`: *"Em texto novo sempre Jana"*). Mexer no título
   toca o breadcrumb do shell, então não é edição de 1 linha.
+
+## Revalidação de 2026-08-18 — por que o `last_run` subiu (2ª vez)
+
+O G-6 acusou `stale:` de novo, agora porque o `Memoria.tsx` mudou depois do `last_run` de 08-17.
+**O que mudou:** o `breadcrumbItems` foi removido do `AppShellV2` — **dado morto**, pela mesma razão
+registrada no `Index.casos.md` (o shell só renderiza breadcrumb sob `!hideTopbar`, e o default é `true`).
+
+**Interseção com os UCs desta tela: nenhuma.** Os cinco tratam de comportamento de servidor (motivo
+obrigatório, trilha em `activity_log`, redação de PII, trilha no esquecer). O que saiu nunca renderizou.
+Os cinco seguem `🧪`.
+
+É a segunda revalidação inerte seguida deste arquivo — e as duas pelo mesmo motivo estrutural: o G-6
+mede **data de git**. Continua correto que ele meça assim; o preço é esta nota, e o preço é barato.

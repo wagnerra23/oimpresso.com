@@ -365,7 +365,9 @@ function Memoria({ memorias }: Props) {
 }
 
 Memoria.layout = (page: React.ReactNode) => (
-  <AppShellV2 title="Jana — Memória" breadcrumbItems={[{ label: 'Jana' }, { label: 'Memória' }]}>
+  // `breadcrumbItems` removido — dado morto (mesma razão do Index: AppShellV2:559 só
+  // renderiza sob `!hideTopbar`, e o default é `true`).
+  <AppShellV2 title="Jana — Memória">
     {page}
   </AppShellV2>
 )

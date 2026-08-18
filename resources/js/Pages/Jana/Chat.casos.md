@@ -4,7 +4,7 @@ casos: Jana Conversa · histórico · teclado · acessibilidade · /ia/conversa
 irmaos: Chat.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-chat.md (runbook)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-17"
+last_run: "2026-08-18"
 ---
 
 # Casos de uso — /ia/conversa (Chat da Jana)
@@ -372,3 +372,17 @@ dois lados, componente a componente. **Não é medição de fidelidade visual**:
 `cowork-mirror-freshness --compare --check` provando o espelho `SYNC`, nem sonda
 `design-diff --probe` nos dois renders. Portanto **nenhum UC aqui afirma "fiel ao protótipo"** —
 eles afirmam comportamento, que é o que os 15 testes provam.
+
+## Revalidação de 2026-08-18 — por que o `last_run` subiu
+
+O G-6 acusou `stale:` porque o `Chat.tsx` mudou depois do `last_run` de 08-17. **O que mudou:** o
+título do shell passou de `Jana · Chat` para `Jana — Chat`, nos dois lugares (`AppShellV2 title` e
+`<Head title>`). As telas irmãs usam travessão (`Jana — Dashboard`, `Jana — Memória`); só esta usava
+ponto médio.
+
+**Interseção com os UCs desta tela: nenhuma.** Os quatro tratam de filtro de conversas, navegação por
+`J`/`K`, sequestro de teclado e acessibilidade. O `title` do shell vai para o `<title>` do documento —
+não toca lista, teclado nem ARIA. Nenhum `Status:` mudou.
+
+Registrado porque o §5 de 2026-07-27 cataloga esta classe: mudança semanticamente inerte **não é inerte
+pro gate** — o G-6 mede data de git, não semântica. O `last_run` só sobe com o motivo escrito ao lado.

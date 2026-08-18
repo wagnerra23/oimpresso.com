@@ -303,7 +303,7 @@ export default function Chat({
 
   return (
     <AppShellV2
-      title="Jana · Chat"
+      title="Jana — Chat"
       business={{ nome: businessNome, opcoes: businesses }}
       user={{
         nome: usuarioNome,
@@ -317,7 +317,7 @@ export default function Chat({
       activeConvId={String(conversa.id)}
       onSelectConv={selectConv}
     >
-      <Head title="Jana · Chat" />
+      <Head title="Jana — Chat" />
 
       {/* JanaAreaHeader — header sticky com tabs Dashboard | Chat (Wagner
           2026-05-18). Espelha app.jsx Header function do protótipo Cockpit.

@@ -357,3 +357,16 @@ caso e teste a peças que já estavam fechadas. As 3 que faltam seguem sendo dec
   deliberadamente **não** os oferece, porque hoje o servidor não honra nenhum dos três (medição na
   tabela do UC-10). Se devem virar config real, o caminho é backend — estender o dono que já existe
   (`PATCH /ia/alertas/config`, per-business) ou dar chave própria ao brief. É produto, não wiring.
+
+## Revalidação de 2026-08-18 — por que o `last_run` subiu
+
+O G-6 acusou `stale:` porque o `Index.tsx` mudou depois do `last_run` de 08-17. **O que mudou:** o
+`breadcrumbItems` foi removido do `AppShellV2` — era **dado morto**. O shell só renderiza breadcrumb
+dentro de `{!hideTopbar && …}` (`AppShellV2.tsx:559`) e `hideTopbar` é `true` por default (`:243`);
+nenhuma tela da Jana passa `hideTopbar={false}`, então o array nunca chegou à tela.
+
+**Interseção com os UCs desta tela: nenhuma.** O que saiu nunca renderizou — não havia comportamento
+observável para um UC cobrir. Nenhum `Status:` mudou.
+
+Registrado porque o §5 de 2026-07-27 cataloga esta classe: mudança semanticamente inerte **não é inerte
+pro gate** — o G-6 mede data de git, não semântica.
