@@ -6,6 +6,7 @@ contains:
   # Chat IA core
   - "ChatController — UI chat principal"
   - "IndexController — Painel (raiz /ia): brief · KPIs · análises · ações · metas"
+  - "AcaoHitlController — prévia + aprovação HITL das ações sugeridas do Painel (/ia/acoes/*); registra em jana_acao_aprovacoes, NÃO dispara"
   # PainelController: removido 2026-08-06 [W] — onda 1 da fusão das telas da Jana.
   #   Era hub de 3 links + `buildMockPayload()`; a capacidade (brief · KPIs ·
   #   análises · ações) já vive em IndexController com dado real do
