@@ -6,7 +6,12 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Modules\Jana\Entities\Conversa;
 use Modules\Jana\Entities\Mensagem;
 
-uses(DatabaseTransactions::class);
+// `Tests\TestCase::class` NAO e opcional aqui: o `tests/Pest.php` so vincula o
+// TestCase em `->in('Feature')`, que e a pasta RAIZ tests/Feature — nao alcanca
+// `Modules/*/Tests/Feature`. Sem ele o container do Laravel nao sobe e o primeiro
+// toque no banco estoura "Cannot use object of type ...Config as array", que foi
+// exatamente como este arquivo reprovou na primeira run (PR #5901).
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * UC-COPI-CHAT-12 — o card da conversa recebe `preview` e `ultima_em`.
