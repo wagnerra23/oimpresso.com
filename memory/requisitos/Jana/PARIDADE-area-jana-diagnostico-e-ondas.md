@@ -395,10 +395,37 @@ O conserto **estende o dono** (`cowork-mirror-freshness`, que já é o dono do p
 | **T** | **primeiro `design-diff` medido** (§7.6) — D2/D6 batem, D4/D8 divergem **a favor da produção** | não | ✅ **RODADO 2026-08-18** — 0 itens de backlog gerados |
 | **1** | Pro entra no `PageHeader` canon (sem `subnav`, preserva modo FOCO) | sim → F1.5 | proposta |
 | **2** | `janaContext` no Chat e na Memória (empresa + `biz=` no header) | sim → F1.5 | ✅ **FEITA 2026-08-18** — o header já aceitava as props; faltava o controller mandar. Smoke pós-merge pendente |
-| **4** | selo de plano + Configurar + Exportar + skeleton nas 3 telas | sim → F1.5 | proposta |
-| **5** | drawer de metas: Origem do número · Escopo · ~~Editar meta~~ · ~~Falar com a Jana~~ + **Projeção** | sim → F1.5 | ✅ **FEITA 2026-08-18** — 2 dos 4 itens originais já existiam com outro rótulo (errata §6); entrou Projeção, que o servidor mandava sem consumidor |
+| **4** | selo de plano + Configurar + Exportar + skeleton nas 3 telas | sim → F1.5 | 🟡 **PARCIAL 2026-08-18** — **Configurar** entregue nas 3; **selo de plano BLOQUEADO** (sem fonte de dado — ver §8.1); **Exportar** virou US própria (decisão [W]); **skeleton** só onde há `defer` (§8.1) |
+| **5** | drawer de metas: Origem do número · Escopo · ~~Editar meta~~ · ~~Falar com a Jana~~ + **Projeção** | sim → F1.5 | ✅ **FEITA 2026-08-18** — 2 dos 4 itens originais já existiam com outro rótulo (errata §6); entrou Projeção, que o servidor mandava sem consumidor. [#5923](https://github.com/wagnerra23/oimpresso.com/pull/5923) **mergeado** |
 | **6** | Dashboard × Painel (título, breadcrumb, componente exportado) | sim → F1.5 | decisão [W] |
 | **7** | as 4 telas Blade da área — uma onda por tela, F1 (RUNBOOK) antes de qualquer `.tsx` | sim | proposta |
+
+### 8.1 · O que a onda 4 NÃO entregou, e por quê (medido)
+
+**Selo de plano — BLOQUEADO por ausência de fonte, não por trabalho.** O protótipo mostra
+`plano Pro` / `Jana Grátis` no header. Em produção **não existe de onde ler isso**: o billing é
+Sprint JANA-B ([ADR 0140](../../decisions/0140-jana-pro-produto-comercial-saas.md)), o
+`JanaProController` se declara *"Sprint A foundation"* e só expõe `preview`, e não há coluna nem
+tabela de plano — `rg` por `jana_pro|plano_pro|isPro` no `Modules/` e `app/` não devolve nenhuma
+fonte de estado. O próprio `useJanaConfig.ts` **já documentava** a mesma conclusão por outro
+caminho: o protótipo grava `pro` no `localStorage` e o hook recusa, *"porque o servidor não as
+honra"*. No protótipo o selo é `cfg.pro`, um **toggle de simulação** — a legenda do
+`JmConfigDrawer` diz literalmente *"aqui o Pro é simulação pra ver o gating"*.
+
+Pintar `plano Pro` no header seria afirmar um estado que o sistema não sabe. Fica para quando o
+JANA-B existir — aí o selo é consequência, não enfeite.
+
+**Skeleton — só onde há `defer`.** `ChatController` tem 3 `Inertia::defer`; `MemoriaController`
+tem **0**. Skeleton numa tela que renderiza tudo no primeiro paint é animação sem espera. Entra
+no Chat quando alguém medir qual dos 3 defers o usuário percebe; na Memória, não entra.
+
+**Exportar — US própria.** Decisão [W] nesta sessão. Hoje é placeholder
+(`title="Exportar relatório (em breve)"`, sem handler). As três saídas do protótipo — Painel em
+PDF · Metas em CSV · Fatos da memória (LGPD) — são feature com backend e, no caso dos fatos,
+superfície LGPD. Junto com a paridade de UI, a onda estouraria as 300 linhas do
+`commit-discipline`.
+
+---
 
 **Ordem sugerida (revista em 2026-08-18):** `E` está **feita**. Agora `S` primeiro — enquanto o espelho estiver 174 linhas atrás do vivo, toda comparação nova mede uma fonte velha —, depois `P`. Ligada a catraca de omissão, as ondas 1/2/4/5 param de depender de alguém lembrar do que faltou — o gate passa a dizer.
 
