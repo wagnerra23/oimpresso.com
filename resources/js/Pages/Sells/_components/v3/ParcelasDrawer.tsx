@@ -72,7 +72,7 @@ import {
   venceuAntesDeHoje,
   type Parcela,
 } from './parcelas-dominio';
-import { Lbl, Pill, Sec } from './primitivos';
+import { Lbl, MoneyInput, Pill, Sec } from './primitivos';
 
 function Campo({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -198,6 +198,19 @@ export default function ParcelasDrawer({
     setEmEdicao(null);
   };
 
+  /* Atalho do caso comum: recebeu hoje. Carimba `lanc` + `pgto` de uma vez —
+     é o que a lista já sabe mostrar como "recebida 12/08" (onda C2). Passa pelo
+     MESMO `onParcelasChange` dos inputs da linha. */
+  const marcarRecebida = (k: number) =>
+    onParcelasChange(
+      parcelas.map((p) =>
+        p.k === k ? { ...p, lanc: 'RECEBIDA', pgto: dataISO(new Date()) } : p,
+      ),
+    );
+
+  const removerParcela = (k: number) =>
+    onParcelasChange(parcelas.filter((p) => p.k !== k));
+
   const editarValor = (k: number, valor: string) =>
     onParcelasChange(parcelas.map((p) => (p.k === k ? { ...p, valor } : p)));
 
@@ -307,14 +320,17 @@ export default function ParcelasDrawer({
               <table className="w-full text-[12.5px]">
                 <thead className="bg-muted/60 text-left text-[11px] tracking-wide text-muted-foreground uppercase">
                   <tr>
+                    {/* Ordem medida no protótipo: o VALOR vem logo depois do número,
+                        porque é o que se confere primeiro; Documento e Situação
+                        fecham a linha. A nossa ordem tinha Documento em 2º. */}
                     <th className="px-3 py-2 font-medium">#</th>
-                    <th className="px-3 py-2 font-medium">Documento</th>
-                    <th className="px-3 py-2 font-medium">Vencimento</th>
                     <th className="px-3 py-2 font-medium">Valor</th>
+                    <th className="px-3 py-2 font-medium">Vencimento</th>
                     <th className="px-3 py-2 font-medium">Tipo</th>
                     <th className="px-3 py-2 font-medium">Conta</th>
+                    <th className="px-3 py-2 font-medium">Documento</th>
+                    <th className="px-3 py-2 font-medium">Situação</th>
                     <th className="w-10 px-3 py-2" />
-                    <th className="px-3 py-2 font-medium">Lançamento</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -323,7 +339,14 @@ export default function ParcelasDrawer({
                       <td className="px-3 py-1.5 font-mono">
                         {p.num}/{p.de}
                       </td>
-                      <td className="px-3 py-1.5 font-mono">{p.doc}</td>
+                      <td className="px-3 py-1.5">
+                        <Input
+                          className="h-7 w-[110px] text-right text-[12px]"
+                          value={p.valor}
+                          onChange={(e) => editarValor(p.k, e.target.value)}
+                          inputMode="decimal"
+                        />
+                      </td>
                       <td className="px-3 py-1.5">
                         <Inline gap={2} align="center">
                           <Input
@@ -335,15 +358,9 @@ export default function ParcelasDrawer({
                           {venceuAntesDeHoje(p.venc) && <Pill tom="destructive">vencida</Pill>}
                         </Inline>
                       </td>
-                      <td className="px-3 py-1.5">
-                        <Input
-                          className="h-7 w-[110px] text-right text-[12px]"
-                          value={p.valor}
-                          onChange={(e) => editarValor(p.k, e.target.value)}
-                          inputMode="decimal"
-                        />
-                      </td>
                       <td className="px-3 py-1.5">{p.tipo}</td>
+                        <td className="px-3 py-1.5 text-[11.5px] text-muted-foreground">{p.conta}</td>
+                      <td className="px-3 py-1.5 font-mono">{p.doc}</td>
                       <td className="px-3 py-1.5">
                         {/* "recebida 12/08" > "RECEBIDA": a data é o que responde "isso já
                               entrou?" sem abrir outra tela (âncora `sells-parcelas.jsx:120`). */}
@@ -363,13 +380,29 @@ export default function ParcelasDrawer({
                             </button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            {/* Os 4 itens medidos no protótipo. "Marcar como recebida"
+                                carimba a data de hoje — é o atalho do caso comum, sem
+                                abrir o editor. "Imprimir recibo" fica desabilitado: a
+                                tela não grava (Non-Goal do charter), então não há o que
+                                imprimir — botão que promete e não entrega é pior que
+                                botão ausente. */}
                             <DropdownMenuItem onSelect={() => setEmEdicao(p)}>
-                              Editar detalhes…
+                              Editar parcela…
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              disabled={p.lanc === 'RECEBIDA'}
+                              onSelect={() => marcarRecebida(p.k)}
+                            >
+                              Marcar como recebida
+                            </DropdownMenuItem>
+                            <DropdownMenuItem disabled>Imprimir recibo</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => removerParcela(p.k)}>
+                              Excluir parcela
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </td>
-                    </tr>
+                      </tr>
                   ))}
                 </tbody>
               </table>
@@ -443,7 +476,7 @@ export default function ParcelasDrawer({
         Modal (não outro drawer) porque é decisão pontual sobre UMA linha, com
         o drawer atrás ainda visível — a mesma escolha da âncora. */}
     <Dialog open={!!emEdicao} onOpenChange={(v) => !v && setEmEdicao(null)}>
-      <DialogContent className="venda-v3 sm:max-w-[620px]">
+      <DialogContent className="venda-v3 sm:max-w-[420px]">
         <DialogHeader>
           <DialogTitle>
             {emEdicao ? `Parcela ${emEdicao.num}/${emEdicao.de}` : 'Parcela'}
@@ -452,7 +485,7 @@ export default function ParcelasDrawer({
 
         {emEdicao && (
           <Stack gap={3}>
-            <Grid gap={3} className="sm:grid-cols-2">
+            <Stack gap={3}>
               <div>
                 <Lbl>Responsável</Lbl>
                 <Input
@@ -467,9 +500,9 @@ export default function ParcelasDrawer({
                 onChange={(v) => setEmEdicao({ ...emEdicao, lanc: v })}
                 options={LANCAMENTOS}
               />
-            </Grid>
+            </Stack>
 
-            <Grid gap={3} className="sm:grid-cols-3">
+            <Stack gap={3}>
               <Escolha
                 label="Tipo de pagamento"
                 value={emEdicao.tipo}
@@ -484,20 +517,22 @@ export default function ParcelasDrawer({
                 />
               </div>
               <div>
-                {/* MESMO `<Input>` da linha, de propósito: dar ao valor um
-                    segundo componente de digitação criaria dois comportamentos
-                    para o campo Tier 0 desta tela. */}
-                <Lbl>Valor</Lbl>
-                <Input
-                  className="text-right"
-                  inputMode="decimal"
+                {/* `MoneyInput`, não `<Input>` cru. Na onda C3 eu recusei este
+                    componente alegando que criaria "um segundo caminho de
+                    digitação" — a justificativa estava ERRADA e o print do [L]
+                    mostrou: ele é usado em 17 pontos da V3 (CreateV3 5 ·
+                    LancarItem 10 · EntregaFrete 2) e traz o prefixo `R$`
+                    embutido. Quem estava fora do padrão era o `<Input>` cru.
+                    A âncora concorda: `sells-parcelas.jsx:166` usa `<Money>`. */}
+                <MoneyInput
+                  label="Valor"
                   value={emEdicao.valor}
-                  onChange={(e) => setEmEdicao({ ...emEdicao, valor: e.target.value })}
+                  onChange={(v) => setEmEdicao({ ...emEdicao, valor: v })}
                 />
               </div>
-            </Grid>
+            </Stack>
 
-            <Grid gap={3} className="sm:grid-cols-2">
+            <Stack gap={3}>
               <div>
                 <Lbl>Vencimento</Lbl>
                 <Input
@@ -516,9 +551,9 @@ export default function ParcelasDrawer({
                   onChange={(e) => setEmEdicao({ ...emEdicao, pgto: e.target.value || null })}
                 />
               </div>
-            </Grid>
+            </Stack>
 
-            <Grid gap={3} className="sm:grid-cols-2">
+            <Stack gap={3}>
               <Escolha
                 label="Plano de contas"
                 value={emEdicao.plano}
@@ -531,7 +566,7 @@ export default function ParcelasDrawer({
                 onChange={(v) => setEmEdicao({ ...emEdicao, conta: v })}
                 options={CONTAS}
               />
-            </Grid>
+            </Stack>
 
             <div>
               <Lbl>Histórico</Lbl>
@@ -545,13 +580,20 @@ export default function ParcelasDrawer({
           </Stack>
         )}
 
-        <DialogFooter>
+        <DialogFooter className="sm:justify-between">
+          {/* "Recibo" fica à ESQUERDA, separado do par cancelar/confirmar: é ação
+             sobre a parcela, não sobre o formulário (medido no protótipo). */}
+          <Button type="button" variant="outline" onClick={() => setEmEdicao(null)}>
+            Recibo
+          </Button>
+          <Inline gap={2} align="center">
           <Button type="button" variant="outline" onClick={() => setEmEdicao(null)}>
             Cancelar
           </Button>
           <Button type="button" onClick={salvarEdicao}>
             Confirmar
           </Button>
+          </Inline>
         </DialogFooter>
       </DialogContent>
     </Dialog>

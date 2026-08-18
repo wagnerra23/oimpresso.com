@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\User;
+use Spatie\Permission\Models\Permission;
 
 uses(Tests\TestCase::class);
 
@@ -47,6 +48,24 @@ function painelBootstrap(): User
 
     if (! $user) {
         test()->markTestSkipped("Sem user em business_id={$business->id}.");
+    }
+
+    // O grupo `/ia` é protegido por `can:jana.access` — e isso é CORRETO: o
+    // `JanaAccessGateTest` tem um caso dedicado provando que sem a permissão a rota
+    // DEVE dar 403 ("MORDE: não-admin SEM jana.access leva 403 em /ia"). Sem esta
+    // concessão os 4 casos de runtime abaixo tomavam 403 e reprovavam por SETUP, não
+    // por defeito de produto.
+    //
+    // O defeito ficou 1 dia invisível porque este arquivo estava FORA da allowlist da
+    // lane `PHP / Pest (Jana · MySQL)` — nunca rodou. Ao entrar na lista (PR desta
+    // data), ele acusou na primeira execução. Padrão copiado do `JanaAccessGateTest`,
+    // que é o dono do tema; o gate NÃO é afrouxado aqui — damos ao usuário de teste a
+    // permissão que o usuário real tem.
+    try {
+        Permission::findOrCreate('jana.access', 'web');
+        $user->givePermissionTo('jana.access');
+    } catch (\Throwable $e) {
+        test()->markTestSkipped('Não foi possível garantir a permission jana.access: '.$e->getMessage());
     }
 
     test()->actingAs($user);
@@ -196,8 +215,10 @@ it('UC-COPI-PAINEL-08: o cockpit declara carregando em vez de pintar zero', func
 
     // 2. os DOIS KPIs que dependem da prop deferida trocam de card enquanto carrega.
     //    `\(` no meio não é decoração: o JSX real é `carregandoCockpit ? (\n <KpiCardSkeleton`.
+    //    Rótulo "Receita mês" desde 2026-08-17 (era "Faturamento mês") — alinhamento
+    //    de COPY com a âncora `jana-merge.jsx`. Mesmo dado, mesma prop deferida.
     expect($cockpit)
-        ->toMatch('/carregandoCockpit\s*\?\s*\(\s*<KpiCardSkeleton label="Faturamento mês"/u')
+        ->toMatch('/carregandoCockpit\s*\?\s*\(\s*<KpiCardSkeleton label="Receita mês"/u')
         ->toMatch('/carregandoCockpit\s*\?\s*\(\s*<KpiCardSkeleton label="PIX hoje"/u');
 
     // 3. a série tem TRÊS arms — carregando · vazio-de-verdade · série. Asserção de
@@ -210,9 +231,25 @@ it('UC-COPI-PAINEL-08: o cockpit declara carregando em vez de pintar zero', func
 
     // 4. controle negativo: os KPIs EAGER não podem ter virado skeleton junto —
     //    `insightsAggregates` chega no first render e esconder é regressão.
+    //
+    //    ⚠️ O rótulo aqui foi atualizado junto com o rename (2026-08-17:
+    //    "Inadimplência total" → "A receber vencido"). Um `not->toMatch` cujo
+    //    LABEL não existe mais passa VAZIO — verde por o alvo ter sumido, não por
+    //    o comportamento estar certo. É a classe LC-11 (gate que mede presença em
+    //    vez de comportamento) na sua forma mais silenciosa, porque um controle
+    //    negativo já é verde por construção e ninguém nota que ele parou de medir.
+    //    Regra ao renomear label: atualize o negativo no MESMO diff, ou ele vira
+    //    decoração.
     expect($cockpit)
-        ->not->toMatch('/carregandoCockpit\s*\?\s*\(\s*<KpiCardSkeleton label="Inadimplência total"/u')
+        ->not->toMatch('/carregandoCockpit\s*\?\s*\(\s*<KpiCardSkeleton label="A receber vencido"/u')
         ->not->toMatch('/carregandoCockpit\s*\?\s*\(\s*<KpiCardSkeleton label="Ticket médio"/u');
+
+    //    Prova de que o par acima ainda tem alvo: os dois labels EXISTEM no arquivo
+    //    (só não podem estar sob `carregandoCockpit ? <KpiCardSkeleton`). Sem isto,
+    //    o próximo rename volta a esvaziar o negativo sem que nada acuse.
+    expect($cockpit)
+        ->toContain('label="A receber vencido"')
+        ->toContain('label="Ticket médio"');
 });
 
 /** UC-COPI-PAINEL-09 — as 5 âncoras existem e a ordem declarada é subsequência da ordem de arquivo. */
@@ -235,3 +272,123 @@ it('UC-COPI-PAINEL-09: as 5 âncoras data-contract existem e a ordem do contrato
     expect($declarada)->toBe($ordenada);
 });
 
+/**
+ * UC-COPI-PAINEL-10 — "Configurar" abre drawer e não promete o que o servidor não cumpre.
+ *
+ * Asserção de ARQUIVO pelo mesmo motivo do UC-08: o defeito é de render/promessa,
+ * e Pest não monta React. O par visual é o portão F1.5 e vive fora daqui.
+ *
+ * O caso tem DUAS metades, e a segunda é a que importa. Ligar o botão é trivial;
+ * o risco real é o drawer virar vitrine de promessa — foi por isso que o
+ * `_pendente_w` do contrato manteve os dois botões fora dele ("pinar uma promessa
+ * é congelá-la"). Então o teste trava a ausência das 4 promessas medidas em
+ * 2026-08-17 como não-cumpríveis hoje: brief diário (gerado server-side, nenhum
+ * cron lê o localStorage deste browser), TTS, retenção automática (o
+ * `jana:retention-purge` foi DESCARTADO por [W]) e as 3 análises sem fonte de dado.
+ */
+it('UC-COPI-PAINEL-10: Configurar abre o drawer e não promete o que o servidor não cumpre', function () {
+    $tsx    = painelTsx();
+    $drawer = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaConfigDrawer.tsx'));
+
+    // 1. o botão deixou de ser promessa: sem "(em breve)", com handler de abertura.
+    expect($tsx)
+        ->not->toContain('Configurar Brain B Jana (em breve)')
+        ->toContain('setConfigAberto(true)')
+        ->toContain('<JanaConfigDrawer');
+
+    // 2+3. Asserção de ESTRUTURA, não de prosa — e é deliberado. `not->toContain('Frota')`
+    //      passaria hoje só por acidente de capitalização (o cabeçalho do drawer cita
+    //      "churn, frota e cheques" ao REGISTRAR por que eles não entraram), e quebraria
+    //      no dia em que alguém reescrevesse o comentário. É o mesmo falso-positivo que o
+    //      UC-08 acima documenta: proibir a prosa proibiria registrar a decisão (§5 2026-07-26).
+    //
+    //      O que morde de verdade é a contagem de controles: existem DOIS `<Switch` no
+    //      drawer — os das análises (um `.map`) e o HITL travado. Qualquer toggle novo
+    //      (brief, áudio, retenção, análise sem fonte) vira um terceiro e derruba o caso,
+    //      independente da copy escolhida.
+    expect(substr_count($drawer, '<Switch'))->toBe(2);
+
+    //      E o conjunto de análises é fechado nos 4 ids que a tela renderiza.
+    $cfg = file_get_contents(base_path('resources/js/Pages/Jana/_components/useJanaConfig.ts'));
+    expect($cfg)
+        ->toContain("export type JanaAnaliseId = 'inad' | 'fat' | 'conc' | 'metodos';")
+        //  `{ id: '` com a aspa: sem ela a assinatura do tipo
+        //  (`ReadonlyArray<{ id: JanaAnaliseId; …`) entra na conta e vira 5.
+        ->and(substr_count($cfg, "{ id: '"))->toBe(4);
+
+    // 4. o que vale pra empresa toda aponta pro dono server-side que já existe,
+    //    em vez de ganhar um segundo dono no localStorage deste navegador.
+    expect($drawer)->toContain('/ia/alertas/config');
+
+    // 5. controle negativo — o drawer PRECISA seguir entregando o que é verdade.
+    //    Sem isto, apagar o corpo inteiro passaria nos itens 2 e 3 acima.
+    expect($drawer)
+        ->toContain('Configurar a Jana')
+        ->toContain('JANA_ANALISES.map');
+
+    // 6. e o filtro tem efeito real no cockpit (senão o toggle é decorativo).
+    $cockpit = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaCockpit.tsx'));
+    expect($cockpit)->toContain("analisesVisiveis?.[id] !== false");
+});
+
+
+/**
+ * UC-COPI-PAINEL-11 — a meta abre NA PRÓPRIA TELA, e o drawer não projeta o futuro.
+ *
+ * Asserção de ARQUIVO pelo mesmo motivo dos UC-08 e UC-10: o defeito é de
+ * navegação/promessa, e o Pest não monta React. O par visual é o portão F1.5.
+ *
+ * Duas metades, e a segunda é a que reincide. Abrir um drawer é trivial; o risco
+ * é ele virar autoridade sobre número que ninguém apurou. A âncora
+ * (`jana-merge.jsx` §JmMetaDrawer) projeta o fechamento NO CLIENTE — `jmMeta()`
+ * faz `atual * 1.3` quando a meta acumula e extrapola a tendência quando é
+ * média/taxa. Portar isso seria o §Anti-hooks do farol de novo, no eixo da
+ * projeção.
+ */
+it('UC-COPI-PAINEL-11: a meta abre em drawer na própria tela, sem projetar o fechamento', function () {
+    $tsx    = painelTsx();
+    $drawer = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaMetaDrawer.tsx'));
+
+    // 1. o card deixou de ser um link que TIRA o usuário da tela: virou botão
+    //    que abre o drawer. A asserção é pelo LINK, não pela copy "Ver detalhe":
+    //    o comentário do `MetaCard` cita essa copy ao registrar o que saiu, e
+    //    proibir a prosa proibiria registrar a decisão (§5 2026-07-26 — a mesma
+    //    armadilha do item 3 abaixo, e ela mordeu esta suíte na escrita).
+    expect($tsx)
+        ->not->toContain('/ia/metas/${meta.id}')
+        ->toContain('setMetaAberta')
+        ->toContain('<JanaMetaDrawer');
+
+    // 2. nenhuma capacidade se perdeu — o caminho pra tela própria migrou pro
+    //    rodapé do drawer. Sem isto, "fechar a divergência" viraria remover
+    //    acesso.
+    expect($drawer)->toContain('/ia/metas/${meta.id}');
+
+    // 3. ANTI-PROJEÇÃO — asserção ESTRUTURAL, não de prosa, e é deliberado.
+    //    `not->toContain('Projeção')` FALHARIA hoje: o cabeçalho do arquivo cita
+    //    a palavra ao REGISTRAR por que a projeção não entrou. Proibir a prosa
+    //    proibiria registrar a decisão — o falso-positivo que o §5 2026-07-26
+    //    cataloga (mesmo raciocínio do item 2+3 do UC-10 acima).
+    //
+    //    O que morde é a contagem de números da seção "Situação": são TRÊS, e os
+    //    três saem de campos do payload. Uma projeção vira o quarto e derruba o
+    //    caso, seja qual for o rótulo escolhido.
+    expect(substr_count($drawer, '<Numero rotulo='))->toBe(3);
+    expect($drawer)
+        ->toContain('rotulo="Realizado"')
+        ->toContain('rotulo="Alvo"')
+        ->toContain('rotulo="% do alvo"');
+
+    // 4. a fonte citada existe de verdade. A âncora cita `MetricasApurador::farol`
+    //    — classe real, método inexistente (charter v4). O drawer se chama "de
+    //    onde vem esse número"; nome errado ali é mentira com selo de autoridade.
+    expect($drawer)
+        ->toContain('ApuracaoService::farol')
+        ->not->toContain('MetricasApurador');
+
+    // 5. controle negativo — o drawer PRECISA seguir entregando o que é verdade.
+    //    Sem isto, esvaziar o corpo passaria nos itens 3 e 4.
+    expect($drawer)
+        ->toContain('business_id')
+        ->toContain('<Serie dados={serie}');
+});

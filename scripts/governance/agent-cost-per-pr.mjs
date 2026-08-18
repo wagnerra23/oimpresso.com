@@ -88,11 +88,11 @@
  *       skill oimpresso-cc-watcher-setup (schema do JSONL) · proibicoes §claim.
  */
 import { execFileSync, spawnSync } from 'node:child_process';
-import { readFileSync, readdirSync, statSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { homedir } from 'node:os';
+import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { join, dirname, basename } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { isAgentPR, DEFAULT_MARKER, median, changeFailure, failedPRNumbers, CFR_WINDOW_HOURS } from './agent-pr-outcomes.mjs';
+import { listarJsonlLocal } from './hook-bites.mjs';
 
 // ── preços (USD por MTok · da tabela oficial Anthropic — G4) ────────────────────
 // Preços são FATO EXTERNO (não dá pra derivar do dado em mãos). O honesto não é
@@ -588,35 +588,37 @@ export function isFonteTruncada(prs, sinceMs, limit = PR_FETCH_LIMIT) {
 }
 
 /**
- * escaneia ~/.claude/projects/<dirs com filter>/*.jsonl com mtime >= sinceMs.
+ * escaneia ~/.claude/projects/<dirs com filter>/**\/*.jsonl com mtime >= sinceMs.
  * 1 arquivo JSONL = 1 sessão → {id, entries, pr_mentions} (menções /pull/N do
  * transcript inteiro alimentam o Sinal 2 do join).
+ *
+ * ── SUBAGENTE ENTRA, E ISSO NÃO INFLA O CUSTO (medido 2026-08-17) ──────────────────
+ * A varredura era de 1 nível e perdia 845 de 1173 `.jsonl` (72,1%), todos de subagente.
+ * Como o custo do subagente é gasto REAL, incluí-lo corrige um número que estava baixo —
+ * mas só se não houver dupla contagem. As duas medições que autorizaram a mudança:
+ *   · interseção de `message.id` entre transcript-pai e transcript-de-subagente:
+ *     **0** (59.427 ids no pai × 16.638 no subagente) → o pai NÃO reemite o usage do
+ *     filho; cada linha `assistant` é contada uma vez só;
+ *   · `gitBranch` presente em **40.474 de 40.474** linhas de subagente (0 sem) → o join
+ *     por branch (Sinal 1, AUTORIA) funciona nelas exatamente como nas do pai.
+ * Efeito no agregado: +13% de tokens I/O escaneados (154,4M → 174,3M).
+ * Isto NÃO fecha o resíduo do G8 — sessão sem PR continua sem PR; ver a nota de lá.
  */
 export function scanSessionsLocal({ projectsDir, projectFilter = 'oimpresso', sinceMs = 0 } = {}) {
-  const root = projectsDir || join(homedir(), '.claude', 'projects');
   const sessions = [];
-  if (!existsSync(root)) return { sessions, files: 0 };
-  for (const dir of readdirSync(root)) {
-    if (projectFilter && !dir.toLowerCase().includes(projectFilter.toLowerCase())) continue;
-    const dirPath = join(root, dir);
-    let names;
-    try { names = readdirSync(dirPath); } catch { continue; }
-    for (const name of names) {
-      if (!name.endsWith('.jsonl')) continue;
-      const filePath = join(dirPath, name);
-      let st;
-      try { st = statSync(filePath); } catch { continue; }
-      if (st.mtimeMs < sinceMs) continue;
-      let data;
-      try { data = readFileSync(filePath, 'utf8'); } catch { continue; }
-      const entries = [];
-      for (const line of data.split('\n')) {
-        const e = parseUsageLine(line);
-        if (e) entries.push(e);
-      }
-      if (!entries.length) continue;
-      sessions.push({ id: name.replace(/\.jsonl$/, ''), entries, pr_mentions: extractPrMentions(data) });
+  // A LISTAGEM tem dono único (`hook-bites::listarJsonlLocal`) — mesma pergunta, mesmo
+  // corpus, e até 2026-08-17 esta era a 3a cópia do mesmo loop de 1 nível.
+  const arquivos = listarJsonlLocal({ base: projectsDir, filtro: projectFilter, desdeMs: sinceMs });
+  for (const filePath of arquivos) {
+    let data;
+    try { data = readFileSync(filePath, 'utf8'); } catch { continue; }
+    const entries = [];
+    for (const line of data.split('\n')) {
+      const e = parseUsageLine(line);
+      if (e) entries.push(e);
     }
+    if (!entries.length) continue;
+    sessions.push({ id: basename(filePath).replace(/\.jsonl$/, ''), entries, pr_mentions: extractPrMentions(data) });
   }
   return { sessions, files: sessions.length };
 }

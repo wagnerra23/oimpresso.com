@@ -11,6 +11,16 @@ last_run: "2026-08-17"
 
 > **Status:** ✅ passa (provado por teste) · 🧪 em teste (Pest escrito, aguarda run verde) · ⬜ não verificado · ❌ quebrou.
 
+> ⚠️ **Por que os 🧪 estavam presos (achado de 2026-08-17, corrigido no PR do UC-10).** O
+> `PainelContratoTest.php` nasceu no PR #5862 **fora** da allowlist da lane `PHP / Pest (Jana ·
+> MySQL)`, que roda **arquivo por arquivo** (`jana-pest.yml`, *"cada novo teste MySQL-only do Jana é
+> adicionado AQUI"*). Resultado: nenhum dos nove UCs jamais rodou no CI, e o `🧪 aguarda run verde`
+> não era uma espera — era um estado **inalcançável**, com a lane concluindo verde sem eles
+> (`Tests: 6 skipped, 245 passed`). Registrar o teste no repo **não é** a lane executá-lo
+> (§5 2026-08-02 + emenda 08-12). Faltava ainda o trigger: o `paths:` não incluía
+> `resources/js/Pages/Jana/**`, então mexer no `.tsx` não acordava o teste que o defende. As duas
+> pernas foram corrigidas; **a prova é o contador da lane subir de 245**, não o check ficar verde.
+
 > Derivados do `Index.charter.md` (§Goals/§Anti-hooks) e do `jana-painel.contract.json` — **não**
 > do `Index.tsx`. Derivar do código seria tautológico (§5 2026-06-05): passaria verde mesmo com o
 > comportamento errado.
@@ -139,6 +149,77 @@ texto o cita._
 **Pronto quando:** `npm run contrato:check -- prototipo-ui/contrato/jana-painel.contract.json` sai 0.
 
 
+## UC-COPI-PAINEL-10 — "Configurar" abre drawer, e o drawer não promete o que o servidor não cumpre
+Status: 🧪 (`PainelContratoTest` — 6 asserções + 2 controles negativos; bite provado em 4 vetores. Aguarda run verde **e** o screenshot F1.5)
+
+O botão **Configurar** do `JanaAreaHeader` era clicável, sem rota e sem `disabled` — uma das duas
+promessas que o contrato manteve deliberadamente **fora** dele (*"pinar uma promessa é congelá-la"*).
+Agora abre `_components/JanaConfigDrawer.tsx`.
+
+Âncora: `prototipo-ui/cowork/jana-merge.jsx` §`JmConfigDrawer` — âncora de SÍMBOLO
+(`grep -n "JmConfigDrawer" prototipo-ui/cowork/jana-merge.jsx`).
+
+**A divergência vs a âncora é o ponto do caso.** Medido em 2026-08-17, o protótipo oferece quatro
+coisas que o servidor não honra — e portá-las reintroduziria a classe que este contrato já barrou:
+
+| a âncora oferece | o que existe |
+|---|---|
+| 6 toggles de análise | a tela renderiza **4** cards (`inad`/`fat`/`conc`/`metodos`); churn, frota e cheques são a ordem 7 do mapa (*"fonte de dado que não existe"*) |
+| "Enviar brief todo dia" + hora | o brief é gerado server-side (`BriefingAgent`); nenhum cron lê o `localStorage` deste navegador |
+| "Versão em áudio" (TTS) | não existe — o próprio protótipo diz que *"entra na M2"* |
+| retenção *"ela esquece sozinha"* | `jana:retention-purge` foi **descartado por [W]** (*"num ERP não se apaga PII"*) |
+
+Fica só o que é verdade **e** é de fato local: **quais análises aparecem no painel**. Esse toggle não
+mente porque não promete cálculo — o aggregator apura as quatro numa consulta só, e o drawer diz isso
+em letra. Preferência que vale pra empresa toda aponta pro dono server-side que já existe
+(`PATCH /ia/alertas/config` → `business.essentials_settings.alertas`, per-business, Tier 0) em vez de
+ganhar um segundo dono aqui.
+
+Persistência em `localStorage['oimpresso.jana.cfg']` — prefixo `oimpresso.jana.*`, canon do charter
+irmão (`Chat.charter.md` §Goals + §Anti-hooks *"❌ sessionStorage"*). A escrita preserva as chaves que
+não são nossas (o protótipo grava `brief`/`pro`/`retencao` na mesma chave).
+
+**Pronto quando:** o botão abre o drawer; os 4 toggles escondem/mostram o card correspondente e
+sobrevivem ao reload; esconder as quatro mostra o estado que diz como voltar; e **nenhum** toggle de
+brief/áudio/retenção existe.
+
+_Por que a asserção é de ARQUIVO: mesmo motivo do UC-08 — o defeito é de render/promessa e o Pest não
+monta React. E por que ela é ESTRUTURAL (contagem de `<Switch`, não busca por "Frota"): a prosa do
+próprio componente **registra** por que aqueles toggles não entraram, então `not->toContain('Frota')`
+passaria só por acidente de capitalização e quebraria quando o comentário fosse reescrito — o
+falso-positivo que o §5 2026-07-26 cataloga. Medido antes de fechar: `<Switch` 2→3 com um toggle novo;
+entradas 4→5 com uma análise sem fonte._
+
+## UC-COPI-PAINEL-11 — A meta abre na própria tela, e o drawer não projeta o futuro
+Status: 🧪 (`PainelContratoTest` — 5 blocos de asserção + 1 controle negativo; aguarda run verde **e** o screenshot F1.5)
+
+Clicar num card de meta abria `/ia/metas/{id}` — um `<Link>` que **tirava o usuário do Painel** rumo
+a uma tela Blade. O `Index-visual-comparison.md` marcava isso como o maior buraco da tela (R5, ordem
+1). Agora o card é um botão que abre `_components/JanaMetaDrawer.tsx`: Situação (realizado · alvo ·
+% do alvo · delta vs a janela anterior), Série de até 12 janelas em barras, e "De onde vem esse
+número". O caminho pra tela própria **não se perdeu** — virou "Abrir a meta" no rodapé do drawer.
+
+Âncora: `prototipo-ui/cowork/jana-merge.jsx` §`JmMetaDrawer` — âncora de SÍMBOLO
+(`grep -n "JmMetaDrawer" prototipo-ui/cowork/jana-merge.jsx`).
+
+**A divergência vs a âncora é o ponto do caso, de novo.** O protótipo mostra uma **projeção de
+fechamento** na Situação, calculada **no cliente**: `jmMeta()` faz `atual × 1.3` quando a meta
+acumula e extrapola a tendência das últimas 4 janelas quando é média/taxa. Portar isso repetiria
+letra por letra o defeito que este mesmo contrato já travou no UC-04 — o farol é do servidor porque
+veredito é do servidor, e projeção é veredito sobre o futuro. No lugar dela vai **"% do alvo"**, que
+é aritmética sobre dois números já exibidos. Pelo mesmo motivo a `nota` por meta ficou de fora: o
+payload não tem o campo.
+
+**Pronto quando:** o card não contém mais o link que sai da página; o clique abre o drawer; o rodapé
+preserva `/ia/metas/{id}`; a Situação tem **três** números e nenhum é projeção; e a fonte citada é
+`ApuracaoService::farol`, nunca o nome que a âncora usa.
+
+_Por que a asserção é de ARQUIVO e ESTRUTURAL: mesmo motivo dos UC-08 e UC-10 — o Pest não monta
+React, e buscar a palavra "Projeção" proibiria o próprio comentário que registra a decisão. Duas
+asserções minhas caíram exatamente nessa armadilha **na escrita** (`Ver detalhe` e o nome errado da
+classe, ambos vivos em comentário) e foram trocadas por estruturais antes de rodar: contagem de
+`<Numero rotulo=` (3) e ausência do literal do link._
+
 ## Nota do conserto do UC-COPI-PAINEL-08 (2026-08-17)
 
 `_components/JanaCockpitSkeleton.tsx` (novo, ancorado em `jana-merge.jsx` §`JmPainelSkeleton`) +
@@ -146,9 +227,14 @@ texto o cita._
 eles que impedem o `TypeError` e mantêm válida a entrada `Jana/Index` na
 `DEFER_GUARD_ONLY_ALLOWLIST`; o que mudou é o **render**.
 
-Escopo medido: só os **2** KPIs que dependem da prop deferida (Faturamento mês · PIX hoje) trocam de
-card. `Inadimplência total` e `Ticket médio` vêm de `insightsAggregates` (eager) e **não** podem
+Escopo medido: só os **2** KPIs que dependem da prop deferida (Receita mês · PIX hoje) trocam de
+card. `A receber vencido` e `Ticket médio` vêm de `insightsAggregates` (eager) e **não** podem
 sumir — há controle negativo no teste.
+
+_Rótulos atualizados em 2026-08-17 (`Faturamento mês` → `Receita mês`, `Inadimplência total` →
+`A receber vencido`) no alinhamento de copy com a âncora. Só a PALAVRA mudou: a prop de origem, a
+deferição e o escopo do controle negativo são os mesmos. O controle negativo do teste foi
+reapontado no MESMO diff — `not->toMatch` com label extinto passa vazio (LC-11)._
 
 De quebra, a série ganhou o terceiro estado que faltava: antes, `sparkline.length === 0` dizia
 *"Carregando sparkline…"* — então um business **sem vendas** ficava "carregando" pra sempre, e
@@ -165,8 +251,10 @@ para o que aquele gate afirma.
 
 ## Decisões pendentes de [W] que travam o ciclo desta tela
 
-Medido em 2026-08-17 com `node scripts/governance/ciclo-completo.mjs`. Com este PR a tela sai de
-**1/6** para **3/6** (`casos` e `teste` fecham); os 3 restantes são todos decisão [W]:
+Medido em 2026-08-17 com `node scripts/governance/ciclo-completo.mjs` — que é o **dono do número**;
+o placar abaixo é retrato daquele dia, re-rode em vez de confiar nele. O PR do UC-08 levou a tela de
+**1/6** a **3/6** (`casos` e `teste` fecharam). O PR do UC-10 **não move o placar**: ele acrescenta
+caso e teste a peças que já estavam fechadas. As 3 que faltam seguem sendo decisão [W]:
 
 - ⚖️ **`related_prototype`** — o check `pt_declarado` só casa `PT-0X`, e o campo vale
   `jana-merge.jsx`. Mantê-lo reprova `pt_declarado` e `golden_live` **para sempre**; trocar por
@@ -179,6 +267,20 @@ Medido em 2026-08-17 com `node scripts/governance/ciclo-completo.mjs`. Com este 
   Nenhum código resolve, e trava **3 telas**, não só esta.
 - ⚖️ **"Dashboard" × "Painel"** — a aba se chama Painel e a rota é `/ia`, mas título, breadcrumb e o
   nome do componente exportado ainda dizem Dashboard.
-- ⚖️ **Os dois botões "(em breve)"** — Configurar e Exportar são clicáveis, sem `disabled` e sem
-  rota. Somem, viram `disabled` com o motivo, ou entregam? Enquanto não decidido **não entram no
-  contrato** — pinar uma promessa é congelá-la.
+- ⚖️ **O botão "Exportar (em breve)"** — clicável, sem `disabled` e sem rota. Some, vira `disabled`
+  com o motivo, ou entrega? Enquanto não decidido **não entra no contrato** — pinar uma promessa é
+  congelá-la. _(Eram **dois**; **Configurar** saiu desta lista em 2026-08-17 — entregou, ver UC-10.
+  A pergunta segue idêntica para o que sobrou.)_
+- ⚖️ **Projeção de fechamento das metas** — a âncora mostra "<valor> no fechamento" em cada card. Não
+  foi portada porque projetar no frontend é o UC-04 ao contrário (ver UC-11). Se vira produto, o dono
+  é `ApuracaoService` — onde `farol` já mora — e a tela só consome. É backend, não wiring.
+- ⚖️ **Seletor de período nas Metas** — a âncora tem 3 janelas clicáveis. `buildMetasPayload` carrega
+  só `periodoAtual`, então não há o que filtrar no cliente. Backend.
+- ⚖️ **Chips do brief** — existem **três**, e nenhum tem `onClick` (medido 2026-08-17). Ligá-los pra
+  navegar sem semear a pergunta trocaria botão morto por botão que mente: o rótulo promete um assunto
+  ("Disparar régua WhatsApp pros N atrasados") e o destino seria uma conversa em branco —
+  `ChatController@novaConversa` não aceita pergunta inicial. Backend + Page.
+- ⚖️ **Brief diário, áudio e retenção como configuração de verdade** — o drawer do UC-10
+  deliberadamente **não** os oferece, porque hoje o servidor não honra nenhum dos três (medição na
+  tabela do UC-10). Se devem virar config real, o caminho é backend — estender o dono que já existe
+  (`PATCH /ia/alertas/config`, per-business) ou dar chave própria ao brief. É produto, não wiring.

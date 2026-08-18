@@ -126,5 +126,13 @@
     "route": "/ia",
     "anchor": "Analista IA",
     "baseline": "it_Jana_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Jana/Chat",
+    "source": "Jana/Chat",
+    "component": "Jana/Chat",
+    "route": "/ia/conversa",
+    "anchor": "Arquivadas",
+    "baseline": "it_Jana_Chat_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]

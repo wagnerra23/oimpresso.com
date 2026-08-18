@@ -17,7 +17,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 7
+charter_version: 9
 permissao: copiloto.access
 ---
 
@@ -54,7 +54,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   (`_components/JanaDrillDrawer.tsx`) com **Fonte** (tabelas · regra do recorte · método que
   calcula) + **Escopo** (`business_id` da sessão). Um KPI só é clicável quando existe análise
   do **MESMO dado** — "ticket médio não abre faturamento". Hoje 2 dos 4 KPIs abrem
-  (Faturamento mês → Faturamento; Inadimplência total → Inadimplência); Ticket médio e PIX hoje
+  (Receita mês → Faturamento; A receber vencido → Inadimplência); Ticket médio e PIX hoje
   não têm análise do mesmo dado e permanecem estáticos. Âncora:
   `prototipo-ui/cowork/jana-merge.jsx` §`JmDrillDrawer` + §`JM_KPI_DRILL` — âncora de SÍMBOLO
   (ref de linha apodrece no 1º refactor, §5 2026-07-26; re-localize com
@@ -62,6 +62,21 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   _Recibo 2026-08-11: no arquivo versionado (`SYNC` com o vivo, sha256 normalizado
   `057bd8ae081bfd1c…`) os símbolos caem em `:640` e `:887` — as duas refs que a v3 citava
   **conferem**. Ficam como símbolo, não linha, porque o número é que é frágil, não a citação._
+
+- **Configurar (v8 — 2026-08-17):** a ação "Configurar" do `JanaAreaHeader` abre
+  `_components/JanaConfigDrawer.tsx` — quais das 4 análises aparecem no painel, persistido em
+  `localStorage['oimpresso.jana.cfg']` (prefixo `oimpresso.jana.*`, canon do `Chat.charter.md`).
+  Âncora: `jana-merge.jsx` §`JmConfigDrawer` — âncora de SÍMBOLO
+  (`grep -n "JmConfigDrawer" prototipo-ui/cowork/jana-merge.jsx`).
+  O drawer é **deliberadamente menor que a âncora**: ver §Anti-hooks abaixo.
+
+- **A meta abre NA PRÓPRIA TELA (v9 — 2026-08-17):** o clique num card de meta abre
+  `_components/JanaMetaDrawer.tsx` — Situação (realizado · alvo · % do alvo · delta vs a janela
+  anterior), Série de até 12 janelas em barras, e "De onde vem esse número". O caminho pra tela
+  própria **não se perdeu**: virou "Abrir a meta" (`/ia/metas/{id}`) no rodapé do drawer.
+  Âncora: `jana-merge.jsx` §`JmMetaDrawer` — âncora de SÍMBOLO
+  (`grep -n "JmMetaDrawer" prototipo-ui/cowork/jana-merge.jsx`).
+  O drawer **não projeta o fechamento**: ver §Anti-hooks abaixo.
 
 ## Non-Goals
 
@@ -105,6 +120,32 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   `::`. Mexeu no aggregator, mexe no `JANA_DRILL_FONTES` no mesmo PR.
   _Guard: `prototipo-ui/ancora.mjs` acusa símbolo de backend citado na âncora que não exista no
   repo — e desde 2026-08-13 enxerga também o formato `Classe::metodo` (antes ficava cego nele)._
+- ⛔ **Oferecer no drawer de configuração um controle que o servidor não honra.** É a mesma família
+  do anti-hook acima, no eixo da CONFIGURAÇÃO em vez do da FONTE. Medido em 2026-08-17: o
+  `JmConfigDrawer` da âncora oferece brief diário on/off + hora (o brief é gerado server-side por
+  `BriefingAgent` — nenhum cron lê o `localStorage` de um navegador), áudio/TTS (não existe; o
+  próprio protótipo diz *"entra na M2"*), retenção *"ela esquece sozinha"*
+  (`jana:retention-purge` foi **descartado por [W]** — *"num ERP não se apaga PII"*) e 6 toggles de
+  análise quando a tela renderiza **4** cards. Toggle que não muda nada é a promessa do rodapé do
+  brief com outra roupa — e foi por isso que o contrato manteve os botões "(em breve)" fora dele.
+  Entra no drawer só o que é verdade **e** de fato local (quais análises aparecem); preferência que
+  vale pra empresa toda aponta pro dono server-side que já existe (`PATCH /ia/alertas/config` →
+  `business.essentials_settings.alertas`, per-business), em vez de ganhar um segundo dono.
+  _Guard: `UC-COPI-PAINEL-10` conta os `<Switch` do drawer (2: análises + HITL travado) e as
+  entradas de `JANA_ANALISES` (4) — toggle novo derruba o caso. A asserção é estrutural de
+  propósito: buscar a palavra "Frota" proibiria o próprio comentário que registra a decisão
+  (§5 2026-07-26)._
+- ⛔ **Projetar o fechamento de meta no frontend.** É o §Anti-hooks do farol no eixo da PROJEÇÃO,
+  e vale pela mesma razão: projeção é veredito sobre o futuro, e veredito nasce no servidor. A
+  âncora faz o contrário — o `jmMeta()` do `jana-merge.jsx` extrapola o ritmo quando a meta acumula
+  (`atual × 1.3`) e projeta a tendência da série quando é média/taxa, tudo no cliente. Portar isso
+  daria à tela autoridade sobre um número que nenhum serviço apurou, e o rótulo "(tendência)" da
+  âncora não conserta: ele explica o método, não a fonte. O `JanaMetaDrawer` mostra **"% do alvo"**,
+  que é aritmética sobre dois números já exibidos. Se a projeção virar produto, o dono é
+  `ApuracaoService` (onde `farol` já mora) — e aí a tela só consome, como consome o farol.
+  _Pelo mesmo motivo o drawer não traz a `nota` por meta (`"mix de produto puxando pra baixo"`):
+  o payload não tem o campo, e escrevê-la seria a mentira com selo de autoridade que o
+  `JanaDrillDrawer` existe pra evitar._
 - ⛔ **Prometer no botão do drawer o que a rota não entrega.** `ChatController@novaConversa` não
   aceita pergunta inicial e `Chat.tsx` não lê query param (medido 2026-08-07) — por isso o CTA diz
   "Conversar com a Jana", não "Perguntar sobre isso". Semear a pergunta é PR próprio (backend + Page).
@@ -114,6 +155,55 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 `brief-first` (Tier A) · `multi-tenant-patterns` (Tier A) · `inertia-defer-default` (Tier B) · `mwart-process` (Tier A)
 
 ## Charter version log
+
+- v9 (2026-08-17) — **A meta abre na própria tela** (ordem 1 do `Index-visual-comparison.md`, região
+  R5 — *"hoje o clique tira o usuário da tela"*). Novo `_components/JanaMetaDrawer.tsx`: Situação,
+  Série de até 12 janelas e "de onde vem esse número". O card virou `<button>` e ganhou a barra de
+  progresso (`jm-meta-track`); o caminho pra tela própria virou "Abrir a meta" no rodapé do drawer.
+  Tipos e formatadores com dois consumidores foram pra `_components/metaFormat.ts` — arquivo de
+  componente não exporta não-componente (`react-refresh`, a mesma regressão que separou o
+  `useJanaConfig` na v8). `periodoLabel`/`Sparkline` **ficaram** no `Index.tsx`: são do card, e o
+  drawer recebe o período já formatado.
+
+  **Duas coisas da âncora ficaram de fora, e o motivo é o §Anti-hooks novo acima:** a projeção de
+  fechamento e a `nota` por meta. Nenhuma das duas é pendência de wiring.
+
+  ⚠️ **Trabalho paralelo, e o crédito é de quem fez:** o **#5881** landou no `main` enquanto este PR
+  estava aberto, fechando do mesmo pedido o **aviso de viewport** (`md:hidden`, casando o
+  `@media (max-width:768px)` do protótipo), **"Nova meta"** e o **período no card**, e renomeando
+  dois rótulos de KPI (Faturamento mês → **Receita mês**; Inadimplência total → **A receber
+  vencido**). Este PR fazia os três primeiros também, em versão pior num deles — o "Nova meta" saía
+  com `<Link>` do Inertia, e o #5881 mediu que `MetasController@create` devolve **Blade**, o que
+  faria o clique virar no-op silencioso. Na reconciliação **a versão deles ficou inteira**; deste PR
+  sobrou o que era só dele.
+
+  **Correção de fato no mesmo PR (regra de precedência):** o `Index-visual-comparison.md` afirmava
+  **seis** ausências que já não existiam (reapuração, Configurar, subtítulo das análises, drawer de
+  config, skeleton, `localStorage`) e chamava os chips do brief de ausentes quando eles existem e
+  são apenas mortos. Uma delas — *"botão de reapuração ❌"* — **nasceu falsa**: o botão landou em
+  #5429 (2026-08-07), dez dias antes. A tabela de correções ficou no topo daquele documento, com o
+  recibo de cada linha.
+
+  _O que NÃO mudou: o par visual segue pendente. `Jana/Index` está no manifesto do visreg, o PR gera
+  diff de pixel e exige aprovação [W] (gate F1.5); o golden PT-04 continua `draft`._
+
+- v8 (2026-08-17) — **O botão "Configurar" deixou de ser promessa** (entrega 4 da onda de
+  aproximação, região R8/R10 do `Index-visual-comparison.md`). Abre
+  `_components/JanaConfigDrawer.tsx`, com o estado em `_components/useJanaConfig.ts` (hook separado
+  porque arquivo de componente não exporta não-componente — `react-refresh`; a regressão apareceu no
+  `lint:baseline:check` e a saída certa foi separar, não regravar o baseline).
+
+  **O drawer é menor que a âncora, e isso é o conteúdo da decisão** — as 4 promessas do
+  `JmConfigDrawer` que o servidor não honra ficaram de fora, com a medição registrada no anti-hook
+  novo acima. Sobrou o que é verdade e é local: quais das 4 análises aparecem no painel, persistido
+  sob o prefixo canon `oimpresso.jana.*`.
+
+  **Uma correção de fato, no mesmo PR (regra de precedência):** este charter e o `casos.md` diziam
+  que os botões "(em breve)" eram **dois**. Agora é **um** (Exportar) — a pergunta do `_pendente_w`
+  segue idêntica para o que sobrou, e a de Configurar foi respondida entregando.
+
+  _O que NÃO mudou: o par visual segue pendente. `Jana/Index` está no manifesto do visreg, então o
+  PR gera diff de pixel e exige aprovação [W] (gate F1.5) — e o golden PT-04 continua `draft`._
 
 - v7 (2026-08-17) — **O Non-Goal da análise "Frota" foi REMOVIDO por decisão [W]**, textual:
   *"frota e caçambas locações remova do charter"* + *"eu não vejo problema em fazer igual. isso vai
