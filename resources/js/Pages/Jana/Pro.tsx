@@ -13,6 +13,7 @@
 import { type ReactNode, useEffect, useState } from 'react'
 import { router } from '@inertiajs/react'
 import AppShellV2 from '@/Layouts/AppShellV2'
+import { PageHeader } from '@/Components/PageHeader'
 import {
   ArrowLeft,
   ArrowRight,
@@ -140,24 +141,50 @@ function ProPage({ plan, pricing, proof }: Props) {
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-page-cream text-foreground">
-      {/* ── Header (modo FOCO) ── */}
-      <header className="flex shrink-0 items-center gap-4 border-b border-border bg-card/80 px-7 py-3.5 backdrop-blur">
-        <div>
-          <div className="text-xs text-muted-foreground">
+      {/* ── Header (modo FOCO) ──
+          Onda 1 da paridade da área Jana: era um <header> hand-rolled — a ÚNICA das 4
+          telas fora do header do sistema. O charter justificava com "modo FOCO", mas
+          modo FOCO é SEM SubNav, não SEM PageHeader: o canon sem a prop `subnav` dá
+          exatamente o mesmo resultado. Ver `PARIDADE-area-jana-diagnostico-e-ondas.md`
+          §4 (diagnóstico) e §8 (onda 1).
+
+          O que a migração PRESERVA, item a item do `Pro.charter.md` §Goals:
+            · "Jana · Plano"  → `subtitle` (era eyebrow ACIMA do h1; o canon põe o
+                                subtítulo ABAIXO — é a única mudança de posição, e ela
+                                vai ao gate F1.5 declarada, não de contrabando);
+            · "Jana Pro"      → `title`;
+            · tag UPGRADE     → `titleBadge`, slot opt-in criado neste mesmo PR pelo
+                                mesmo motivo (e com o mesmo desenho) do `leading` de
+                                2026-08-08: sem ele a migração custaria a tag, que é
+                                literal do protótipo aprovado (PASS 90);
+            · "Voltar ao chat" → `actions`, copy e destino intactos (`/ia/conversa`).
+          O dot da área (hue 220) entra no `leading` — é o que as outras 3 telas da
+          área já fazem via `JanaAreaHeader`, e era o que faltava pra identidade bater. */}
+      <PageHeader
+        leading={
+          <span
+            aria-hidden
+            className="mr-2 inline-block size-2 shrink-0 rounded-full align-middle"
+            style={{ background: 'oklch(0.62 0.13 220)' }}
+          />
+        }
+        title="Jana Pro"
+        titleBadge={
+          <span className="ml-2 rounded-full border border-primary/25 bg-primary/5 px-[7px] py-0.5 align-middle text-[10px] font-bold tracking-wider text-primary">
+            UPGRADE
+          </span>
+        }
+        subtitle={
+          <>
             <b className="font-medium text-foreground/70">Jana</b> · Plano
-          </div>
-          <h1 className="m-0 flex items-center gap-2 text-lg font-semibold tracking-tight">
-            Jana Pro
-            <span className="rounded-full border border-primary/25 bg-primary/5 px-[7px] py-0.5 text-[10px] font-bold tracking-wider text-primary">
-              UPGRADE
-            </span>
-          </h1>
-        </div>
-        <div className="flex-1" />
-        <button type="button" onClick={voltar} className={btnGhost}>
-          <ArrowLeft className="size-3.5" /> Voltar ao chat
-        </button>
-      </header>
+          </>
+        }
+        actions={
+          <button type="button" onClick={voltar} className={btnGhost}>
+            <ArrowLeft className="size-3.5" /> Voltar ao chat
+          </button>
+        }
+      />
 
       {/* ── Body (scroll) ── */}
       <div className="flex-1 overflow-y-auto p-7">

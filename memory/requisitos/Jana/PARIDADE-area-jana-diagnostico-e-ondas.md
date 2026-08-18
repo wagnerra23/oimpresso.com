@@ -45,9 +45,9 @@ Wrapper da área: `Pages/Jana/components/JanaAreaHeader.tsx` (usa o canon) + `Pa
 | Index | `JanaAreaHeader` | `dashboard` | **sim** | Configurar + Exportar |
 | Chat | `JanaAreaHeader` | `chat` | **não** | — |
 | Memoria | `JanaAreaHeader` | `memoria` | **não** | — |
-| **Pro** | **`<header>` hand-rolled** | — | — | Voltar ao chat |
+| **Pro** | `PageHeader` canon (sem `subnav`) — ✅ **corrigido 2026-08-18, onda 1** | — | — | Voltar ao chat |
 
-O Pro é a única fora do header do sistema. O charter justifica com "modo FOCO" — mas modo FOCO é *sem SubNav*, não *sem PageHeader*: um `<PageHeader>` sem a prop `subnav` daria o mesmo resultado dentro do canon.
+O Pro era a única fora do header do sistema. O charter justificava com "modo FOCO" — mas modo FOCO é *sem SubNav*, não *sem PageHeader*: um `<PageHeader>` sem a prop `subnav` dá o mesmo resultado dentro do canon. **Feito na onda 1 (2026-08-18)**: a tag `UPGRADE` entrou pelo slot opt-in `titleBadge`, criado no mesmo PR porque `suffix` é `string` e não renderiza pill — sem ele a migração custaria a tag, que é literal do protótipo PASS 90. Era exatamente esse custo que mantinha a tela fora do canon.
 
 `janaContext` tem **0 hits** em `ChatController` e `MemoriaController`; o `IndexController` tem. Por isso só o Painel mostra empresa e `biz=`.
 
@@ -378,7 +378,7 @@ O conserto **estende o dono** (`cowork-mirror-freshness`, que já é o dono do p
 | **S** | **ressincronizar o espelho com o Cowork vivo** (§7.5) — `jana-merge.jsx` 943 → 1.117 ln. **Bloqueada por transporte**, não por trabalho: o `.css` e o `chat-jana.jsx` voltam inline do `get_file` e transcrever é proibido | não | proposta — **primeira** |
 | **P** | **ligar `--omission` no CI** — a catraca que pega omissão sem declarar item a item | não | proposta |
 | **T** | **primeiro `design-diff` medido** (§7.6) — D2/D6 batem, D4/D8 divergem **a favor da produção** | não | ✅ **RODADO 2026-08-18** — 0 itens de backlog gerados |
-| **1** | Pro entra no `PageHeader` canon (sem `subnav`, preserva modo FOCO) | sim → F1.5 | proposta |
+| **1** | Pro entra no `PageHeader` canon (sem `subnav`, preserva modo FOCO) | sim → F1.5 | ✅ **FEITA 2026-08-18** — slot `titleBadge` no canon + migração; smoke pós-merge pendente |
 | **2** | `janaContext` no Chat e na Memória (empresa + `biz=` no header) | sim → F1.5 | proposta |
 | **4** | selo de plano + Configurar + Exportar + skeleton nas 3 telas | sim → F1.5 | proposta |
 | **5** | drawer de metas: Origem do número · Escopo · Editar meta · Falar com a Jana | sim → F1.5 | proposta |

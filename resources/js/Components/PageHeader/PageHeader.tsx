@@ -53,6 +53,18 @@ export interface PageHeaderProps {
   title: string;
   /** Sufixo cinza após o título · contexto. Ex: " · Boletos e PIX". Opcional. */
   suffix?: string;
+  /**
+   * OPT-IN (2026-08-18): selo APÓS o título — pill de estado/plano. Sem
+   * `titleBadge`, nada muda: telas que não declaram renderizam exatamente como
+   * antes. Mesmo padrão (e mesma justificativa) do `leading` acima.
+   *
+   * Existe porque `Jana/Pro` mantinha um `<header>` hand-rolled fora do canon
+   * SÓ por causa da tag `UPGRADE` que o protótipo aprovado põe depois do
+   * título (`Pro.charter.md` §Goals — gate F1.5 PASS 90). `suffix` não serve:
+   * é `string` e renderiza como texto cinza, não como pill. Sem este slot a
+   * migração pro canon custaria a tag — e foi por isso que a tela ficou fora.
+   */
+  titleBadge?: React.ReactNode;
   /** Subtítulo curto · métricas/contagem com `tabular-nums`. Pode ter `<strong>` semântico. */
   subtitle?: React.ReactNode;
   /** Zona C · subnav inline (tabs ou similar). Render entre Zona L e Zona R. Opcional. */
@@ -71,6 +83,7 @@ export function PageHeader({
   leading,
   title,
   suffix,
+  titleBadge,
   subtitle,
   subnav,
   actions,
@@ -95,6 +108,7 @@ export function PageHeader({
             {suffix && (
               <span className="font-semibold text-muted-foreground">{suffix}</span>
             )}
+            {titleBadge}
           </h1>
           {subtitle && (
             <p className="text-xs text-muted-foreground mt-0.5 tabular-nums">
