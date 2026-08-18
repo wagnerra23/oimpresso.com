@@ -1537,7 +1537,7 @@
   padding: 0 38px 0 26px;
   border-radius: 6px;
   border: 1px solid var(--border);
-  background: var(--bg-1);
+  background: var(--bg);
   color: var(--text);
   font-size: var(--fs-3);
   outline: none;
@@ -1592,7 +1592,7 @@
 }
 .cockpit .copiloto-chat-convs .cs-tab.active {
   background: var(--text);
-  color: var(--bg-1);
+  color: var(--bg);
   border-color: var(--text);
 }
 
