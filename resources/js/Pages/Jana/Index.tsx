@@ -503,7 +503,11 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
 }
 
 Dashboard.layout = (page: React.ReactNode) => (
-  <AppShellV2 title="Jana — Dashboard" breadcrumbItems={[{ label: 'Jana' }, { label: 'Dashboard' }]}>
+  // `breadcrumbItems` removido — dado morto: o AppShellV2 só renderiza breadcrumb sob
+  // `{!hideTopbar && …}` (:559) e `hideTopbar` é `true` por default (:243). Nenhuma tela
+  // da Jana passa `hideTopbar={false}`, então o array nunca chegou à tela. Exibir de fato
+  // é decisão de layout da área, não desta linha.
+  <AppShellV2 title="Jana — Dashboard">
     {page}
   </AppShellV2>
 )
