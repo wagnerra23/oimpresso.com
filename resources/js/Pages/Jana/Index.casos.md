@@ -4,7 +4,7 @@ casos: Jana Painel · metas ativas · farol server-side · cockpit deferido · /
 irmaos: Index.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-index.md (runbook) · prototipo-ui/contrato/jana-painel.contract.json (contrato visual)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-17"
+last_run: "2026-08-18"
 ---
 
 # Casos de uso — /ia (Painel da Jana)
@@ -37,6 +37,26 @@ last_run: "2026-08-17"
 > mesma leva. As regras visuais da âncora sempre valeram; agora o domínio dela também não é mais
 > exceção. Sem obstáculo de máquina: o `dominio-gate` nunca varreu `Pages/Jana` — seus
 > `forbidden_ui_paths` são três, todos de `OficinaAuto`._
+
+## Revalidação de 2026-08-18 — por que o `last_run` subiu
+
+O G-6 acusou `stale:` porque o `Index.tsx` mudou depois do `last_run` de 08-17. O que mudou, e o
+que isso faz com cada UC:
+
+| mudança | UCs afetados |
+|---|---|
+| METAS foi pro slot `aposKpis` do `JanaCockpit` (posição da âncora) | **nenhum** — os UCs falam de payload e copy, não de ordem vertical |
+| os 2 blocos mock (`JanaKpiStrip`, `ProximaAcaoCard`) saíram | **nenhum** — eram mock declarado, sem UC |
+| a âncora `painel-cta-conversar` mudou de hospedeiro (do mock pro botão real) | **UC-09** — re-rodado: `contrato:check` **limpo**, 5 seções + ordem OK |
+| `ApuracaoService::projecao()` extraída + campo no payload | **UC-02** — a prop `metas` ganhou um campo, mas a CONTAGEM não mudou: seguem 4 eager + 1 deferida |
+
+Nenhum `Status:` mudou. Os `🧪` continuam `🧪` e o `✅` do UC-04 continua ✅ — o
+`FarolServerSideTest` não foi tocado, e a extração do `projecao()` preservou o veredito do farol
+(cada `return 'cinza'` virou um `null`, as fronteiras −5%/−15% intactas).
+
+⚠️ O que **não** foi revalidado por execução: os `🧪` seguem sem run verde na lane MySQL. O bump do
+`last_run` diz *"o diff foi conferido contra os UCs"*, **não** *"os UCs foram provados"* — quem prova
+é o CI. Subir o número calado é o que o G-6 existe pra impedir.
 
 ## UC-COPI-PAINEL-01 — A rota `/ia` abre o Painel (200 + componente)
 Status: 🧪 (`Modules/Jana/Tests/Feature/PainelContratoTest.php` — cita o UC; aguarda run verde na lane MySQL)
