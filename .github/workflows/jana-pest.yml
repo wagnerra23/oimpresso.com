@@ -153,10 +153,28 @@ jobs:
             Modules/Jana/Tests/Feature/CockpitMockRemovidoTest.php \
             Modules/Jana/Tests/Feature/FarolServerSideTest.php \
             Modules/Jana/Tests/Feature/PainelContratoTest.php \
+            Modules/Jana/Tests/Feature/Chat/ChatConversasPreviewTest.php \
             Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitShaPreservaTest.php \
             Modules/Jana/Tests/Feature/Mcp/McpTokenUsoThrottleTest.php \
             Modules/Jana/Tests/Feature/Mcp/QuotaEnforcerFastPathTest.php \
             Modules/Jana/Tests/Feature/Mcp/McpTokenMemoTest.php
+          # ChatConversasPreviewTest ENTROU junto com o payload que ele mede, no MESMO
+          # PR e de proposito: registrar o teste no repo NAO e a lane executa-lo — a
+          # licao do PainelContratoTest logo abaixo tem UM dia. Elegivel pela regra
+          # acima: usa DatabaseTransactions, zero RefreshDatabase/migrate:fresh/
+          # dropIfExists. A prova de que passou a rodar e o CONTADOR desta lane subir.
+          #
+          # ACHADO NAO CONSERTADO AQUI (medido 2026-08-17): os OUTROS tres testes do
+          # Chat — Chat/ChatAntiHooksTier0Test, Chat/ChatAntiHooksAcaoTest e
+          # Chat/ChatTokensTurnoTest — nao estao em lane NENHUMA. Nem aqui, nem em
+          # .github/ci-sqlite-pest.list, e `Jana` nao esta na matrix do
+          # modules-pest.yml. Logo os UC-05..UC-10 do Chat.casos.md, marcados
+          # `aguarda run verde`, nunca podem virar verdes — e dois deles sao Tier 0
+          # (cross-tenant e PII). NAO os inclui junto porque o AcaoTest (UC-09/UC-10)
+          # nasce VERMELHO por desenho: acusa tool sem declaracao de permissao e PII
+          # crua no log. Liga-lo aqui deixaria o main vermelho ate os defeitos serem
+          # corrigidos, e isso e decisao [W] — nao efeito colateral de um PR de payload.
+          #
           # PainelContratoTest ENTROU em 2026-08-17. Ele nasceu no PR #5862 (UC-08) e
           # ficou 1 dia FORA desta lista — logo os nove UCs do Painel nunca rodaram no
           # CI, e o `🧪 aguarda run verde` do casos.md nunca poderia virar ✅: a lane

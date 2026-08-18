@@ -190,6 +190,8 @@ class ChatController extends Controller
             ->orderByDesc('iniciada_em')
             ->get(['id', 'titulo', 'status', 'iniciada_em']);
 
+        $ultimas = $this->ultimaMensagemPorConversa($conversasReais->pluck('id')->all());
+
         // `status` alimenta o filtro Todas|Arquivadas do ConvSidePanel (Chat.tsx).
         // A coluna já existia e já vinha no get() acima — só não trafegava pro
         // frontend, o que deixava a barra de filtro decorativa. Vocabulário:
@@ -202,6 +204,13 @@ class ChatController extends Controller
             'origem' => 'COPI',
             'status' => $c->status,
             'ativa'  => $conversaFoco && (int) $c->id === (int) $conversaFoco->id,
+            // `preview` e `ultima_em` alimentam os metadados do card (protótipo
+            // `jana-merge.jsx` §JmConversa: resumo de uma linha + "última em X").
+            // Nenhum dos dois é coluna: `jana_conversas` não guarda preview nem
+            // última atividade, e `iniciada_em` NÃO serve — é quando a conversa
+            // nasceu, não quando falaram nela pela última vez.
+            'preview'   => $ultimas[$c->id]['preview'] ?? null,
+            'ultima_em' => $ultimas[$c->id]['ultima_em'] ?? null,
         ])->values()->all();
 
         return [
@@ -209,6 +218,59 @@ class ChatController extends Controller
             'rotinas'  => [],
             'recentes' => $recentes,
         ];
+    }
+
+    /**
+     * Última mensagem de cada conversa — preview + instante, numa query só.
+     *
+     * UMA query pro conjunto inteiro (subquery de MAX(id) agrupada), não uma por
+     * conversa: a lista é servida em `Inertia::defer` no render da tela, e um N+1
+     * aqui apareceria direto na latência que o charter cobra (p95 < 1000ms).
+     * O índice `(conversa_id, created_at)` da migration 000006 cobre o agrupamento.
+     *
+     * MAX(`id`) e não MAX(`created_at`): `jana_mensagens` é append-only com
+     * auto-increment, então o maior id É o mais recente — e não empata quando duas
+     * mensagens caem no mesmo segundo, que é o caso normal de user+assistant.
+     *
+     * Multi-tenant Tier 0 (ADR 0093): duas camadas. `$ids` já vem de uma query
+     * escopada por `business_id` + `user_id`, e o `Mensagem::query()` ainda carrega
+     * o global scope `ScopeByBusinessViaParent` (tenancy herdada da conversa).
+     *
+     * @param  array<int, int|string>  $ids
+     * @return array<int|string, array{preview: string, ultima_em: string}>
+     */
+    protected function ultimaMensagemPorConversa(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        return Mensagem::query()
+            ->whereIn('conversa_id', $ids)
+            ->whereIn('id', function ($q) use ($ids) {
+                $q->selectRaw('MAX(id)')
+                    ->from('jana_mensagens')
+                    ->whereIn('conversa_id', $ids)
+                    ->groupBy('conversa_id');
+            })
+            ->get(['conversa_id', 'content', 'created_at'])
+            ->mapWithKeys(fn ($m) => [$m->conversa_id => [
+                'preview' => $this->resumirParaPreview((string) $m->content),
+                // ISO-8601 CRU, formatado no cliente de propósito. Formatar aqui
+                // herdaria o shift +3h que `format_date` aplica pra cliente legado
+                // (ADR 0066) — o card mostraria hora errada pra quem cair naquele
+                // caminho. O browser sabe o fuso e o locale de quem está olhando.
+                'ultima_em' => optional($m->created_at)->toIso8601String(),
+            ]])
+            ->all();
+    }
+
+    /** Resumo de UMA linha: colapsa espaço/quebra e corta em 90 caracteres. */
+    protected function resumirParaPreview(string $content): string
+    {
+        $limpo = trim((string) preg_replace('/\s+/u', ' ', $content));
+
+        return mb_strlen($limpo) > 90 ? mb_substr($limpo, 0, 89) . '…' : $limpo;
     }
 
     /**
