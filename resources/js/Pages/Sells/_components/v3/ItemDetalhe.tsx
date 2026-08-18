@@ -24,7 +24,7 @@
  * A tela continua sem gravar.
  */
 
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { Grid, Inline, Stack } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
@@ -186,6 +186,24 @@ export default function ItemDetalhe({
     [ncm, cfop, cest, gtin, cbenef, cst, aliquota],
   );
   const incoerencia = erroDeCoerencia(cst, aliquota);
+
+  /* Alteração não confirmada — o slot que a âncora tem no rodapé
+     (`sells-item-detail.jsx:199`). Guardo os valores de PARTIDA num ref e comparo
+     com os atuais: sem isso o pill acenderia já no primeiro render, porque o valor
+     inicial do `useState` também é "um valor". A CONFIRMAÇÃO ao navegar com edição
+     pendente é da onda D8 — aqui entra só a indicação, que é o que a D1 pede. */
+  const inicial = useRef({ ncm, cfop, cest, gtin, cbenef, cst, aliquota, local, impressao, observacao });
+  const sujo =
+    inicial.current.ncm !== ncm ||
+    inicial.current.cfop !== cfop ||
+    inicial.current.cest !== cest ||
+    inicial.current.gtin !== gtin ||
+    inicial.current.cbenef !== cbenef ||
+    inicial.current.cst !== cst ||
+    inicial.current.aliquota !== aliquota ||
+    inicial.current.local !== local ||
+    inicial.current.impressao !== impressao ||
+    inicial.current.observacao !== observacao;
 
   if (!linha) return null;
 
@@ -392,6 +410,16 @@ export default function ItemDetalhe({
             <span className="text-[11.5px] text-muted-foreground">
               {indice + 1}/{total}
             </span>
+            {/* Os dois selos do rodapé da âncora (`sells-item-detail.jsx:199-200`):
+                o que avisa que há edição não confirmada e o que conta pendência
+                fiscal. Ficam ao lado da navegação porque é ali que o operador olha
+                antes de trocar de item. */}
+            {sujo && <Pill tom="warning">alteração não confirmada</Pill>}
+            {erros.length > 0 && (
+              <Pill tom="destructive">
+                {erros.length === 1 ? '1 pendência fiscal' : `${erros.length} pendências fiscais`}
+              </Pill>
+            )}
           </Inline>
 
           <Inline gap={2} align="center">

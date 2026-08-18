@@ -120,7 +120,14 @@ export default function Aprovacoes({ titulo, subtitle, decisoes, fila = [], cont
 
   // Enquanto há decisão pendente, o item sai da vista (a mesa já andou), mas o
   // POST ainda não saiu. `fila[0]` é sempre o mais antigo — a ordem é do backend.
-  const atual = pendente ? null : (fila[0] ?? null);
+  // Item em foco na mesa. `null` = ninguém escolheu ainda, e aí vale o mais antigo
+  // (`fila[0]`) — a ordem é do backend, não da UI. Escolher na fila só MOVE o foco;
+  // não reordena e não decide nada. Se o escolhido sai da fila (decidido aqui ou por
+  // outra sessão), o `find` falha e o foco volta sozinho pro mais antigo.
+  const [selId, setSelId] = useState<string | null>(null);
+  const atual = pendente
+    ? null
+    : (fila.find((i) => i.task_id === selId) ?? fila[0] ?? null);
 
   // Item novo na mesa = motivo/erro do anterior não valem mais.
   useEffect(() => {
@@ -271,7 +278,72 @@ export default function Aprovacoes({ titulo, subtitle, decisoes, fila = [], cont
         {/* 1fr + coluna fixa de decisões: `cols` do primitivo é uniforme, então a
             proporção vai em className — o `Grid` segue dono do display e do gap. */}
         {atual && (
-          <Grid gap={4} className="lg:grid-cols-[1fr_18rem]">
+          <Grid
+            gap={4}
+            className={cn(
+              // A coluna da fila só existe quando a fila existe (>1). Sem isto o
+              // grid reservaria uma faixa de 15rem vazia no caso de item único.
+              fila.length > 1
+                ? 'lg:grid-cols-[15rem_1fr_18rem]'
+                : 'lg:grid-cols-[1fr_18rem]',
+            )}
+          >
+            {/* A fila (`ap-fila` do protótipo). Antes daqui a mesa mostrava só o mais
+                antigo e um contador "N na fila" — dava o número, não deixava olhar.
+                O dado já vinha do controller (`ForjaAprovacoesService::fila()`, teto
+                200); faltava a superfície. Some com 1 item: lista de um é ruído. */}
+            {fila.length > 1 && (
+              <Card data-testid="mesa-fila" className="hidden lg:block">
+                <CardContent className="p-0">
+                  <p className="border-b border-border px-3 py-2 text-xs font-medium text-muted-foreground tabular-nums">
+                    {fila.length} esperando
+                  </p>
+                  <Stack asChild gap={0}>
+                    <ul>
+                      {fila.map((item) => {
+                        const emFoco = item.task_id === atual?.task_id;
+                        return (
+                          <li key={item.task_id}>
+                            <button
+                              type="button"
+                              data-testid={`mesa-fila-item-${item.task_id}`}
+                              aria-current={emFoco ? 'true' : undefined}
+                              onClick={() => setSelId(item.task_id)}
+                              className={cn(
+                                'w-full border-l-2 px-3 py-2 text-left transition-colors',
+                                'hover:bg-muted focus-visible:bg-muted focus-visible:outline-none',
+                                emFoco
+                                  ? 'border-l-primary bg-muted'
+                                  : 'border-l-transparent',
+                              )}
+                            >
+                              <Inline gap={1} align="center" wrap>
+                                <span className="font-mono text-[11px] text-muted-foreground">
+                                  {item.identifier ?? item.task_id}
+                                </span>
+                                <span
+                                  className={cn(
+                                    'ml-auto text-[11px] tabular-nums',
+                                    SLA_CLASSE[item.sla],
+                                  )}
+                                  title={SLA_TITULO[item.sla]}
+                                >
+                                  {item.espera_min}min
+                                </span>
+                              </Inline>
+                              <span className="mt-0.5 block truncate text-xs text-foreground">
+                                {item.title}
+                              </span>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </Stack>
+                </CardContent>
+              </Card>
+            )}
+
             {/* O artefato no centro — é o que se decide, não a linha da lista. */}
             <Card data-testid="mesa-artefato">
               <CardContent className="space-y-4 py-5">
@@ -346,8 +418,11 @@ export default function Aprovacoes({ titulo, subtitle, decisoes, fila = [], cont
                 );
               })}
 
+              {/* O contador "N na fila" saiu daqui: virou o cabeçalho da própria fila
+                  (`mesa-fila`), que mostra o número E deixa olhar. Em telas estreitas,
+                  onde a coluna da fila não renderiza, ele continua valendo. */}
               {fila.length > 1 && (
-                <p className="pt-1 text-xs text-muted-foreground tabular-nums">
+                <p className="pt-1 text-xs text-muted-foreground tabular-nums lg:hidden">
                   {fila.length} na fila
                 </p>
               )}
