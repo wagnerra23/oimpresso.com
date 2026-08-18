@@ -31,13 +31,36 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join, dirname, normalize, sep } from 'node:path';
 
 const ROOT = process.cwd();
-const DESTINO = 'prototipo-ui/cowork';
 const args = process.argv.slice(2);
 const arquivo = args.find((a) => !a.startsWith('--'));
 const dry = args.includes('--dry');
 
+// ── DESTINO — Cowork por default, Design System por flag ──────────────────────
+//
+// POR QUE A FLAG EXISTE (medido 2026-08-18): o protocolo tinha destino pro Cowork e
+// NENHUM pro Design System. Consequência real: em 2026-08-17 o agente puxou
+// `templates/pt-05-dashboard/Pt05Dashboard.dc.html` via `DesignSync.get_file` pra
+// responder a uma pergunta do [W], leu no contexto e não gravou byte —
+// `git ls-files | grep -c pt-05-dashboard` = 0. A fonte evaporou com a sessão.
+//
+// Estendi ESTE script em vez de escrever um puxador novo: ele já é o dono do papel
+// "escreve fonte de design a partir de payload, do DADO e por SCRIPT". Máquina
+// paralela a tema que já tem dono é a classe LC-19 (7 ocorrências no ledger).
+//
+// ⚠️ A trava de escopo abaixo continua valendo pros DOIS destinos: nada sai da raiz
+// declarada, e `.md` segue recusado no espelho Cowork (R1 do `cowork-ssot-guard`).
+// No destino do DS o `.md` é permitido — lá o README do próprio espelho é conteúdo,
+// não knowledge fora de lugar.
+const DESTINOS = {
+  cowork: 'prototipo-ui/cowork',
+  ds: 'prototipo-ui/design-system',
+};
+const alvoNome = args.includes('--ds') ? 'ds' : 'cowork';
+const DESTINO = DESTINOS[alvoNome];
+
 if (!arquivo || !existsSync(arquivo)) {
-  console.error('✗ uso: node scripts/design-sync/aplicar-payload.mjs <payload.json> [--dry]');
+  console.error('✗ uso: node scripts/design-sync/aplicar-payload.mjs <payload.json> [--dry] [--ds]');
+  console.error('     --ds  escreve em prototipo-ui/design-system (default: prototipo-ui/cowork)');
   process.exit(2);
 }
 
@@ -71,7 +94,9 @@ for (const f of files) {
   const alvoRel = normalize(join(DESTINO, rel));
   const baseRel = normalize(DESTINO);
   if (!alvoRel.startsWith(baseRel + sep) && alvoRel !== baseRel) { forade.push(rel + ' (fora do espelho)'); continue; }
-  if (rel.toLowerCase().endsWith('.md')) { forade.push(rel + ' (.md — R1 do ssot-guard)'); continue; }
+  // R1 do `cowork-ssot-guard`: o espelho Cowork é BUILD-ONLY, knowledge mora em canon.
+  // No destino do DS a regra não se aplica — lá o README é parte do próprio espelho.
+  if (alvoNome === 'cowork' && rel.toLowerCase().endsWith('.md')) { forade.push(rel + ' (.md — R1 do ssot-guard)'); continue; }
 
   // INTEGRIDADE — o que eu consigo VERIFICAR, não o que soa mais forte.
   //
