@@ -6205,7 +6205,10 @@ class TransactionUtil extends Util
         foreach ($product_lines as $product_line) {
             $returns[$product_line['sell_line_id']] = $uf_number ? $this->num_uf($product_line['quantity']) : $product_line['quantity'];
         }
-        foreach ($sell->sell_lines as $sell_line) {
+        // Reusa a coleção montada na checagem de lastro acima (mesmas linhas, indexadas por id):
+        // evita um acesso a mais a `$sell->sell_lines`, que estouraria o `count` do padrão
+        // ignorado no phpstan-baseline.neon. Iterar a coleção keyBy percorre os mesmos objetos.
+        foreach ($linhas_da_venda as $sell_line) {
             if (array_key_exists($sell_line->id, $returns)) {
                 $multiplier = 1;
                 if (! empty($sell_line->sub_unit)) {
