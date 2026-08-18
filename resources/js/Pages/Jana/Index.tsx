@@ -13,7 +13,7 @@ import { Link } from '@inertiajs/react'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
-import { MessageSquare, TrendingUp, TrendingDown, Minus, Sparkles, Brain, Clock, Zap, Settings, Download, Target } from 'lucide-react'
+import { MessageSquare, TrendingUp, TrendingDown, Minus, Sparkles, Settings, Download, Target } from 'lucide-react'
 import FabJana from './components/FabJana'
 import { JanaAreaHeader } from './components/JanaAreaHeader'
 import JanaCockpit, { type JanaCockpitProps } from './_components/JanaCockpit'
@@ -221,84 +221,7 @@ function MetaCard({ meta, onOpen }: { meta: Meta; onOpen: (meta: Meta, periodo: 
   )
 }
 
-function JanaKpiStrip() {
-  // Placeholders — Brain B vai preencher via Inertia::defer no futuro
-  // Mocks intencionais pra demo CYCLE-06 G3 (não consultam DB)
-  const kpis = [
-    {
-      icon: Brain,
-      label: 'Memória ativa',
-      value: '—',
-      hint: 'facts indexados',
-      tone: 'text-primary',
-    },
-    {
-      icon: Clock,
-      label: 'Última conversa',
-      value: '—',
-      hint: 'aguardando contexto',
-      tone: 'text-primary',
-    },
-    {
-      icon: Zap,
-      label: 'Brain B hoje',
-      value: '0/50',
-      hint: 'orçamento diário',
-      tone: 'text-primary',
-    },
-  ]
 
-  return (
-    <div className="grid gap-3 sm:grid-cols-3">
-      {kpis.map(({ icon: Icon, label, value, hint, tone }) => (
-        <Card key={label} className="border-muted/60">
-          <CardContent className="flex items-center gap-3 p-4">
-            <div className={`rounded-full bg-primary/10 p-2 ${tone}`}>
-              <Icon className="h-5 w-5" aria-hidden="true" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
-              <div className="text-lg font-semibold tabular-nums">{value}</div>
-              <div className="text-[11px] text-muted-foreground">{hint}</div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  )
-}
-
-function ProximaAcaoCard() {
-  // Mock pra demo — Brain B vai preencher próxima ação sugerida
-  return (
-    // Mesmo tratamento do brief no JanaCockpit: tint OPACO sobre a superfície de
-    // card. O gradiente translúcido de 3 paradas compunha sobre o fundo da página
-    // (dark: oklch 0.26, mais escuro que um card 0.30) e o bloco afundava.
-    <Card className="border-primary/25 bg-[color:color-mix(in_oklch,var(--color-primary)_6%,var(--color-card))]">
-      <CardHeader className="pb-2">
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-primary" />
-          <CardTitle className="text-sm font-medium text-primary">
-            Próxima ação sugerida
-          </CardTitle>
-        </div>
-      </CardHeader>
-      <CardContent className="pt-1">
-        <p className="text-sm text-muted-foreground">
-          Quando houver sinal claro nas metas, a Jana vai sugerir aqui o próximo passo prático — sem você precisar perguntar.
-        </p>
-        <div className="mt-3">
-          <Link href="/ia/conversa">
-            <Button data-contract="painel-cta-conversar" size="sm" variant="outline" className="gap-2">
-              <MessageSquare className="h-4 w-4" />
-              Conversar agora
-            </Button>
-          </Link>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
 
 export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkAggregates, janaContext }: Props) {
   // Config da tela. Mora AQUI, e não no drawer, porque tem dois consumidores:
@@ -373,6 +296,132 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
           flex encolhia o wrapper e o conteúdo (mais alto) vazava sobre o bloco Metas. */}
       <div className="px-6 pt-6 shrink-0">
         <JanaCockpit
+          // METAS na posição da âncora: logo depois dos KPIs, antes das análises.
+          // Estava no fim da página, depois das ações — [W] 2026-08-17: "layout
+          // esta diferente". Ordem medida no render do protótipo:
+          // header → tabs → nota-mob → brief → KPIs → METAS → análises → ações.
+          aposKpis={
+            <>
+          {/* METAS — face PRIMÁRIA do painel, logo abaixo dos KPIs, como na âncora.
+              O comentário aqui dizia "bloco secundário … não é mais a face primária":
+              era verdade enquanto o bloco vivia no fim da página, e deixou de ser no
+              instante em que ele subiu. Corrigido junto, não depois.
+              Sem `p-6`/`shrink-0`: agora está DENTRO do cockpit, que já vive em
+              `px-6 pt-6`. */}
+        <div className="space-y-6 pt-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                {/* Badge sólido em `primary`. Era um gradiente de 3 paradas
+                    (violet→fuchsia→pink) — paleta inventada, fora do sistema de
+                    token e sem par no dark. Não vira "gradiente de token": some. */}
+                <Badge aria-label="Versão Jana V2">
+                  <Sparkles className="mr-1 h-3 w-3" aria-hidden="true" />
+                  METAS
+                </Badge>
+                <span data-contract="painel-metas-header" className="text-xs text-muted-foreground">Acompanhamento contínuo</span>
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold tracking-tight">Metas ativas</h2>
+                <p className="text-sm text-muted-foreground">
+                  {metas.length} {metas.length === 1 ? 'meta ativa' : 'metas ativas'} — visão consolidada do business
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {/* "Nova meta" — a âncora põe este botão no cabeçalho da seção METAS
+                  (`jana-merge.jsx`, símbolo `JmMetasSecao`; re-localize com
+                  `grep -n "Nova meta" prototipo-ui/cowork/jana-merge.jsx`).
+
+                  ⚠️ `<a href>` NATIVO, nunca `<Link>` do Inertia — e isto não é
+                  estilo, é a diferença entre funcionar e não funcionar.
+                  `MetasController@create` retorna BLADE (`view('copiloto::metas.create')`,
+                  MetasController.php:25-28), não `Inertia::render`. Um `<Link>` pediria
+                  resposta Inertia, não receberia, e o clique viraria NO-OP SILENCIOSO —
+                  exatamente o defeito que fez [W] remover o ghost 'metas' do
+                  DataController em 2026-05-23 (o comentário lá ainda descreve o caso).
+                  Navegação full-page entrega a tela real. Quando o MetasController for
+                  migrado via MWART, isto vira `<Link>` no mesmo PR.
+
+                  O charter proíbe "prometer no botão o que a rota não entrega"
+                  (§Anti-hooks) — a rota entrega: `Modules/Jana/Resources/views/metas/create.blade.php`
+                  existe e o prefixo do grupo é `ia` (routes.php:51). */}
+              <Button variant="outline" className="gap-2" asChild>
+                <a href="/ia/metas/create">
+                  <Target className="h-4 w-4" />
+                  Nova meta
+                </a>
+              </Button>
+              {/* Entry-point pro paywall Jana Pro (ADR 0140). Upsell discreto —
+                  a ação primária da Dashboard continua sendo "Conversar". */}
+              <Link href="/ia/pro">
+                <Button variant="outline" className="gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  Jana Pro
+                </Button>
+              </Link>
+              {/* Âncora `painel-cta-conversar` — seção PINADA do
+                  `jana-painel.contract.json`, e copy é lei [W]. Ela morava dentro do
+                  `ProximaAcaoCard`, bloco declarado "Mock pra demo" que saiu nesta
+                  onda. NÃO foi perdida nem reescrita: mudou de hospedeiro, do card
+                  mock pro botão real que já existia aqui e leva pro mesmo lugar.
+                  A copy "Conversar com a Jana" é a que este botão sempre teve e é
+                  exatamente a que o contrato pina. */}
+              <Link href="/ia/conversa">
+                <Button data-contract="painel-cta-conversar" variant="outline" className="gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Conversar com a Jana
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+
+
+          {metas.length === 0 ? (
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center justify-center gap-4 py-12 text-center">
+                <div className="rounded-full bg-primary/10 p-4">
+                  <Sparkles className="h-10 w-10 text-primary" aria-hidden="true" />
+                </div>
+                <div className="space-y-1">
+                  <p data-contract="painel-metas-vazio" className="text-base font-medium">Nenhuma meta cadastrada ainda</p>
+                  <p className="max-w-sm text-sm text-muted-foreground">
+                    Pergunte algo à Jana — ela aprende o que importa pro seu business e cria metas com base no que conversamos.
+                  </p>
+                </div>
+                <Link href="/ia/conversa">
+                  <Button className="gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Pergunte algo a Jana
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {metas.map(meta => (
+                <MetaCard
+                  key={meta.id}
+                  meta={meta}
+                  onOpen={(m, periodo) => setMetaAberta({ meta: m, periodo })}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        <JanaConfigDrawer
+          open={configAberto}
+          onClose={() => setConfigAberto(false)}
+          config={config}
+          onAlternarAnalise={alternarAnalise}
+        />
+
+        {/* A meta abre AQUI, não noutra tela — âncora §JmMetaDrawer. */}
+            </>
+          }
           sellKpis={sellKpis}
           insightsAggregates={insightsAggregates}
           coworkAggregates={coworkAggregates}
@@ -381,116 +430,6 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
         />
       </div>
 
-      {/* Bloco secundário — Dashboard de Metas (continua acessível, mas não é
-          mais a face primária da /ia/dashboard). shrink-0 pelo mesmo motivo do
-          wrapper do cockpit acima (flex-column scroll container). */}
-      <div className="space-y-6 p-6 shrink-0">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              {/* Badge sólido em `primary`. Era um gradiente de 3 paradas
-                  (violet→fuchsia→pink) — paleta inventada, fora do sistema de
-                  token e sem par no dark. Não vira "gradiente de token": some. */}
-              <Badge aria-label="Versão Jana V2">
-                <Sparkles className="mr-1 h-3 w-3" aria-hidden="true" />
-                METAS
-              </Badge>
-              <span data-contract="painel-metas-header" className="text-xs text-muted-foreground">Acompanhamento contínuo</span>
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold tracking-tight">Metas ativas</h2>
-              <p className="text-sm text-muted-foreground">
-                {metas.length} {metas.length === 1 ? 'meta ativa' : 'metas ativas'} — visão consolidada do business
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            {/* "Nova meta" — a âncora põe este botão no cabeçalho da seção METAS
-                (`jana-merge.jsx`, símbolo `JmMetasSecao`; re-localize com
-                `grep -n "Nova meta" prototipo-ui/cowork/jana-merge.jsx`).
-
-                ⚠️ `<a href>` NATIVO, nunca `<Link>` do Inertia — e isto não é
-                estilo, é a diferença entre funcionar e não funcionar.
-                `MetasController@create` retorna BLADE (`view('copiloto::metas.create')`,
-                MetasController.php:25-28), não `Inertia::render`. Um `<Link>` pediria
-                resposta Inertia, não receberia, e o clique viraria NO-OP SILENCIOSO —
-                exatamente o defeito que fez [W] remover o ghost 'metas' do
-                DataController em 2026-05-23 (o comentário lá ainda descreve o caso).
-                Navegação full-page entrega a tela real. Quando o MetasController for
-                migrado via MWART, isto vira `<Link>` no mesmo PR.
-
-                O charter proíbe "prometer no botão o que a rota não entrega"
-                (§Anti-hooks) — a rota entrega: `Modules/Jana/Resources/views/metas/create.blade.php`
-                existe e o prefixo do grupo é `ia` (routes.php:51). */}
-            <Button variant="outline" className="gap-2" asChild>
-              <a href="/ia/metas/create">
-                <Target className="h-4 w-4" />
-                Nova meta
-              </a>
-            </Button>
-            {/* Entry-point pro paywall Jana Pro (ADR 0140). Upsell discreto —
-                a ação primária da Dashboard continua sendo "Conversar". */}
-            <Link href="/ia/pro">
-              <Button variant="outline" className="gap-2">
-                <Sparkles className="h-4 w-4 text-primary" />
-                Jana Pro
-              </Button>
-            </Link>
-            <Link href="/ia/conversa">
-              <Button variant="outline" className="gap-2">
-                <MessageSquare className="h-4 w-4" />
-                Conversar com a Jana
-              </Button>
-            </Link>
-          </div>
-        </div>
-
-        <JanaKpiStrip />
-
-        <ProximaAcaoCard />
-
-        {metas.length === 0 ? (
-          <Card className="border-dashed">
-            <CardContent className="flex flex-col items-center justify-center gap-4 py-12 text-center">
-              <div className="rounded-full bg-primary/10 p-4">
-                <Sparkles className="h-10 w-10 text-primary" aria-hidden="true" />
-              </div>
-              <div className="space-y-1">
-                <p data-contract="painel-metas-vazio" className="text-base font-medium">Nenhuma meta cadastrada ainda</p>
-                <p className="max-w-sm text-sm text-muted-foreground">
-                  Pergunte algo à Jana — ela aprende o que importa pro seu business e cria metas com base no que conversamos.
-                </p>
-              </div>
-              <Link href="/ia/conversa">
-                <Button className="gap-2">
-                  <MessageSquare className="h-4 w-4" />
-                  Pergunte algo a Jana
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {metas.map(meta => (
-              <MetaCard
-                key={meta.id}
-                meta={meta}
-                onOpen={(m, periodo) => setMetaAberta({ meta: m, periodo })}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-      <JanaConfigDrawer
-        open={configAberto}
-        onClose={() => setConfigAberto(false)}
-        config={config}
-        onAlternarAnalise={alternarAnalise}
-      />
-
-      {/* A meta abre AQUI, não noutra tela — âncora §JmMetaDrawer. */}
       <JanaMetaDrawer
         meta={metaAberta?.meta ?? null}
         periodo={metaAberta?.periodo ?? null}

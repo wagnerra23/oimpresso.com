@@ -150,6 +150,44 @@ class ApuracaoService
      */
     public function farol(Meta $meta, ?Carbon $agora = null): string
     {
+        // O farol é a LEITURA de um número que a projeção já produz. Extraído em
+        // 2026-08-17 pro drawer de meta poder mostrar `projetado`/`desvio` sem
+        // recalcular no frontend — o §Anti-hooks do charter proíbe cálculo de
+        // farol na Page, e refazer a MESMA conta lá seria a mesma doença com
+        // outro nome.
+        //
+        // A extração é literal: cada `return 'cinza'` de antes virou um `null` do
+        // `projecao()`, e as fronteiras -5/-15 não se moveram. Quem prova é o
+        // `FarolServerSideTest` — ele trava as duas fronteiras E os quatro casos
+        // de 'cinza', e roda no CI.
+        $p = $this->projecao($meta, $agora);
+
+        if ($p === null) {
+            return 'cinza';
+        }
+
+        if ($p['desvio_pct'] >= -5) {
+            return 'verde';
+        }
+        if ($p['desvio_pct'] >= -15) {
+            return 'amarelo';
+        }
+
+        return 'vermelho';
+    }
+
+    /**
+     * Projeção linear do período + desvio do realizado contra ela.
+     *
+     * Devolve `null` nos MESMOS três casos que o farol chama de `cinza` — sem
+     * período/apuração, período de duração <= 0, ou projetado <= 0. `null` aqui
+     * significa "não há base pra projetar", nunca "projeção zero": mostrar 0 seria
+     * afirmar um número que ninguém calculou.
+     *
+     * @return array{progresso: float, projetado: float, desvio_pct: float}|null
+     */
+    public function projecao(Meta $meta, ?Carbon $agora = null): ?array
+    {
         // @var: as relações são `HasOne`, e o PHPStan vê o retorno como `Model`
         // genérico — sem isto ele acusa `property.notFound` em data_ini/data_fim/
         // valor_alvo/valor_realizado (medido no CT 100: 15 erros).
@@ -159,7 +197,7 @@ class ApuracaoService
         $ultima = $meta->ultimaApuracao;
 
         if (! $periodo || ! $ultima) {
-            return 'cinza';
+            return null;
         }
 
         $agora   = $agora ?: Carbon::now();
@@ -172,7 +210,7 @@ class ApuracaoService
         // `NaN >= -5` é false nos dois ramos → caía em 'vermelho'. Aqui isso vira
         // 'cinza' explicitamente: dados incoerentes não são "meta indo mal".
         if ($totalMs <= 0) {
-            return 'cinza';
+            return null;
         }
 
         $decorridoMs = $agora->getTimestampMs() - $ini->getTimestampMs();
@@ -180,18 +218,13 @@ class ApuracaoService
         $projetado   = ((float) $periodo->valor_alvo) * $progresso;
 
         if ($projetado <= 0) {
-            return 'cinza';
+            return null;
         }
 
-        $desvioPct = ((((float) $ultima->valor_realizado) - $projetado) / $projetado) * 100;
-
-        if ($desvioPct >= -5) {
-            return 'verde';
-        }
-        if ($desvioPct >= -15) {
-            return 'amarelo';
-        }
-
-        return 'vermelho';
+        return [
+            'progresso'  => $progresso,
+            'projetado'  => $projetado,
+            'desvio_pct' => ((((float) $ultima->valor_realizado) - $projetado) / $projetado) * 100,
+        ];
     }
 }
