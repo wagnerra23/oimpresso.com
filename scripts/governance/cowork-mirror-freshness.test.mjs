@@ -445,9 +445,10 @@ check('mesmo número → mesmo veredito (independe de --check)',
     ['colors_and_type.css', '_ds_bundle.js'].every((n) => p.arquivos.some((a) => a.nome === n)));
   check('previewDs: destino é o path do shell, e segue gitignored',
     p.destino === 'prototipo-ui/cowork/_ds/ds-abc123');
-  // honestidade: arquivo sem fonte no repo é DECLARADO, não silenciado (LC-13)
-  check('previewDs: marca o que o repo NÃO tem (bundle compilado) em vez de fingir',
-    p.arquivos.find((a) => a.nome === '_ds_bundle.js').temNoRepo === false);
+  // O runtime compilado completo passou a viver no snapshot canônico. A 2ª camada
+  // hermética abaixo preserva o BITE que declara qualquer dependência ausente.
+  check('previewDs: encontra o bundle compilado no snapshot canônico',
+    p.arquivos.find((a) => a.nome === '_ds_bundle.js').temNoRepo === true);
   check('previewDs: sem shell não inventa plano', previewDsPlan(null).arquivos.length === 0);
   check('previewDs: 2 design systems no shell = erro explícito, não escolha silenciosa',
     !!previewDsPlan('<link href="_ds/a/x.css"/><link href="_ds/b/y.css"/>').erro);
