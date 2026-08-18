@@ -71,9 +71,9 @@ Nesta tela a ressalva pesa mais que na Memória, por dois motivos independentes:
 | título + tag | `Jana Pro` + `.pro-tag` "UPGRADE" | idêntico | ✅ literal |
 | ação de saída | botão "Voltar ao chat" com seta | idêntico (`ArrowLeft` + `router.visit('/ia')`) | ✅ |
 | posicionamento | `position: sticky; top: 0` + `backdrop-filter: blur(8px)` | `shrink-0` em coluna flex + `backdrop-blur` | 🟡 mecanismo diferente, efeito equivalente |
-| destino do "Voltar" | `#` (sem ação — é mock) | `/ia` | 🟢 só na viva |
+| destino do "Voltar" | `#` (sem ação — é mock) | `/ia/conversa` | 🟢 só na viva — **corrigido 2026-08-18** (era `/ia`, o Painel) |
 
-> ⚠️ O botão diz **"Voltar ao chat"** mas vai pra **`/ia`**, que desde a fusão é o **Painel** — a Conversa é `/ia/conversa`. Copy e destino discordam. Não é divergência com o protótipo (lá o botão não vai a lugar nenhum); é defeito próprio da viva.
+> ✅ **Corrigido em 2026-08-18.** O botão dizia "Voltar ao chat" e ia pra `/ia`, que desde a fusão é o **Painel** — a Conversa é `/ia/conversa`. A copy estava certa (é literal do protótipo); o endereço é que ficou pra trás. Os **três** consumidores (este botão, o do footer e o `Esc`) compartilham a função `voltar()`, então se corrigiram juntos. Agora é contrato: **UC-PRO-07**, `tests/jana-pro-voltar.test.tsx`, bite-test provado (código antigo → 3 de 4 falham).
 
 ## R3 · Hero — pitch (coluna esquerda)
 
@@ -149,7 +149,7 @@ Nesta tela a ressalva pesa mais que na Memória, por dois motivos independentes:
 | componente | protótipo | tela viva | veredito |
 |---|---|---|---|
 | resumo | "**Jana Pro** · <mensalidade>/mês · N dias grátis" | idêntico, via `priceLabel` e `pricing.trialDays` | ✅ literal + 🟢 |
-| ação secundária | "Falar com a Jana sobre o Pro" — `id="talkBtn"`, **sem listener** | mesmo rótulo → `router.visit('/ia')` | ✅ copy · 🟢 a ação |
+| ação secundária | "Falar com a Jana sobre o Pro" — `id="talkBtn"`, **sem listener** | mesmo rótulo → `router.visit('/ia/conversa')` | ✅ copy · 🟢 a ação (destino corrigido — ver R2) |
 | CTA primária | "Ativar Jana Pro" com seta, roxo | idêntica (`ArrowRight`) | ✅ literal |
 | posicionamento | `position: sticky; bottom: 0` + blur | `shrink-0` em coluna flex + `backdrop-blur` | 🟡 mecanismo diferente, efeito equivalente |
 
@@ -173,7 +173,7 @@ Nesta tela a ressalva pesa mais que na Memória, por dois motivos independentes:
 | breakpoint do colapso | `@media (max-width: 1080px)` → hero e preço viram 1 coluna | `lg:` do Tailwind = **1024px** | 🟡 **56px de diferença** — entre 1024 e 1080 as duas discordam |
 | sidebar colapsada a 64px | sim, no mesmo media query | responsabilidade do `AppShellV2` | ⚠️ não medido (é do shell, não desta tela) |
 | largura do canvas | `max-width: 1060px` | `max-w-[1060px]` | ✅ idêntico |
-| `:focus-visible` | `outline: 2px solid var(--primary-ring); offset 2px` **global** | `focus-visible:outline-*` — **só no `btnGhost`** | 🟡 na viva o foco visível não é global; a CTA primária não o declara |
+| `:focus-visible` | `outline: 2px solid var(--primary-ring); offset 2px` **global** | constante `focusRing`, aplicada ao `btnGhost` **e à CTA primária** (2026-08-18) | ✅ nos interativos da tela · 🟡 no mecanismo: o protótipo declara **uma vez, global**; o Tailwind exige por-elemento, e foi essa duplicação que permitiu o esquecimento |
 | números tabulares | `.mono` com `font-variant-numeric: tabular-nums` | `font-mono tabular-nums` | ✅ |
 | fundo da página | `--bg: oklch(0.975 0.004 90)` | `bg-page-cream` | ⚠️ **não medido** — o token pode ou não bater |
 
@@ -191,7 +191,7 @@ Nesta tela a ressalva pesa mais que na Memória, por dois motivos independentes:
 | G6 | Confiança: Tier 0 · LGPD · BR | ✅ | ❌ |
 | G7 | Footer sticky + secundária + CTA | ✅ | ❌ |
 | G8 | CTA `idle → Ativando… → Pro ativo` | ✅ | ❌ (⬜ client-side, declarado no casos.md) |
-| G9 | Atalhos `⌘/Ctrl+Enter` e `Esc` | ✅ (o `Esc` **excede** o protótipo) | ❌ (⬜) |
+| G9 | Atalhos `⌘/Ctrl+Enter` e `Esc` | ✅ (o `Esc` **excede** o protótipo) | 🟡 **UC-PRO-07** morde o `Esc` (destino); o `⌘/Ctrl+Enter` segue ⬜ |
 | G10 | Tokens canon (roxo 295, `text-success`, zero `blue-*`/emoji) | ⚠️ não medido | ❌ |
 | H1 | `ProController@index` entrega `plan`/`pricing`/`proof`/`business` | ✅ | ✅ UC-PRO-01/02 |
 | H2 | `proof` liga em `BriefDiarioService::snapshot()` na Onda B | ❌ ainda mock | ✅ UC-PRO-04 (registra o mock como estado atual, com nota de escopo) |
@@ -201,13 +201,15 @@ Nesta tela a ressalva pesa mais que na Memória, por dois motivos independentes:
 | N4 | Sem escrita no banco no render | ✅ | ✅ UC-PRO-06 |
 | N5 | Sem email/SMS/WhatsApp/LLM no render | ✅ | 🟡 UC-PRO-06 mede **idempotência de props**, que é proxy — não prova ausência de dispatch |
 | U1 | Cabe em 1280px sem rolar muito | ⚠️ não medido | ❌ |
-| U2 | `:focus-visible` em **todo** interativo | 🟡 só no `btnGhost` (R10) | ❌ |
+| U2 | `:focus-visible` em **todo** interativo | ✅ `focusRing` no `btnGhost` + CTA primária (2026-08-18) | ❌ — medir classe não é medir foco renderizado |
 
-**Placar:** 19 itens · **6 cobertos por UC** (1 deles parcial) · 2 com cobertura só de contrato-de-props · 8 implementados-sem-contrato · 1 não implementado · 3 não medidos.
+**Placar (2026-08-18):** 19 itens · **7 cobertos por UC** (2 parciais) · 2 com cobertura só de contrato-de-props · 7 implementados-sem-contrato · 1 não implementado · 3 não medidos.
+
+> O 7º é o **UC-PRO-07**, e ele quebra a assimetria abaixo: é o **primeiro UC desta tela que morde a TELA**, não o Controller.
 
 **Status dos 6 UCs:** todos `🧪` no `casos.md`. `screen-coverage --screen Jana/Pro` confirma o vínculo UC↔teste dos seis (`✓ UC-PRO-01..06`) — isso prova **linkagem**, não run verde.
 
-**Assimetria que salta:** os 6 UCs cobrem **o Controller**, e nenhum toca a tela. É coerente com a honestidade de escopo já escrita no `Pro.casos.md` (*"tela de conversão majoritariamente visual"*) — mas some com a rede quando se lembra que **`Jana/Pro` não está no visreg**. Não há Pest de tela **nem** baseline de pixel: a camada visual desta tela está descoberta nas duas pontas.
+**Assimetria que saltava (parcialmente resolvida):** os 6 UCs originais cobrem **o Controller**, e nenhum tocava a tela — o UC-PRO-07 é o primeiro a tocar. É coerente com a honestidade de escopo já escrita no `Pro.casos.md` (*"tela de conversão majoritariamente visual"*) — mas some com a rede quando se lembra que **`Jana/Pro` não está no visreg**. Não há Pest de tela **nem** baseline de pixel: a camada visual desta tela está descoberta nas duas pontas.
 
 ---
 
@@ -216,11 +218,11 @@ Nesta tela a ressalva pesa mais que na Memória, por dois motivos independentes:
 | ordem | entrega | região | por que primeiro |
 |---|---|---|---|
 | 1 | **Restaurar os 2 preços comparativos** (hoje o sentinela de redação) | R6 | é texto quebrado **em produção**, numa tela de venda. Exige decisão [W]: são preços de concorrente público, não BRL do negócio |
-| 2 | Corrigir "Voltar ao chat" → `/ia/conversa`, **ou** a copy | R2 | rótulo e destino discordam desde a fusão |
+| ~~2~~ | ~~Corrigir "Voltar ao chat"~~ | R2 | ✅ **feito 2026-08-18** — destino corrigido nos 3 consumidores + UC-PRO-07 |
 | 3 | Pôr `Jana/Pro` no `visreg-screens.json` | gate | é a única tela Jana com charter e casos e **sem** baseline de pixel |
-| 4 | Declarar `related_prototype` + resolver o RUNBOOK ambíguo | ponteiros | hoje `ancora.mjs` não resolve e o `screen-coverage` acusa `⚠ AMBÍGUO (2)` |
+| 4 | Declarar `related_prototype` | ponteiros | 🟡 **metade feita 2026-08-18**: nasceu o `RUNBOOK-pro.md` e os artefatos passaram a ser **declarados** (o `⚠ AMBÍGUO (2)` sumiu). O `related_prototype` **segue ausente de propósito** — decisão [W] |
 | 5 | Trazer o protótipo pro espelho (ou declarar que ele é arquivado) | fonte | a fonte de design desta tela vive **só** no Cowork, sob `_arquivo/` |
-| 6 | `:focus-visible` na CTA primária e no "Voltar" | R10 | UX target do charter; hoje só o `btnGhost` declara |
+| ~~6~~ | ~~`:focus-visible` na CTA primária~~ | R10 | ✅ **feito 2026-08-18** — extraído pra `focusRing`, aplicado nos dois |
 | 7 | Ligar `proof` em `BriefDiarioService::snapshot()` | R4 | a copy promete "números reais das suas tabelas" sobre mock |
 | 8 | Reconciliar breakpoint 1024 × 1080 | R10 | 56px onde as duas fontes discordam |
 

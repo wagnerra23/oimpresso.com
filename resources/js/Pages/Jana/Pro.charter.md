@@ -3,11 +3,17 @@ page: /ia/pro
 component: resources/js/Pages/Jana/Pro.tsx
 owner: wagner
 status: draft
-last_validated: "2026-06-01"
+last_validated: "2026-08-18"
+smoke: "2026-08-18 — render prod OK (Chrome MCP, sessao WR2 Sistemas, tema escuro): hero, card de prova, comparacao 6 linhas, preco e footer sticky com a CTA. DOIS defeitos CONFIRMADOS ao vivo, ambos antes so inferidos por leitura: (1) a comparacao de preco renderiza o sentinela de redacao no lugar dos numeros dos concorrentes; (2) 'Voltar ao chat' leva a /ia — titulo 'Jana — Dashboard', aba Painel ativa —, nao a Conversa. O (2) esta corrigido no PR #5892; o (1) aguarda decisao [W]."
 parent_module: Jana
 related_adrs: [140, 110, 190, 93]
+related_us: [US-COPI-148, US-COPI-118]
+related_runbook: memory/requisitos/Jana/RUNBOOK-pro.md
+related_visual_comparison: memory/requisitos/Jana/Pro-visual-comparison.md
+related_casos:
+  - resources/js/Pages/Jana/Pro.casos.md
 tier: B
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /ia/pro
@@ -109,3 +115,4 @@ confiança, e uma só ação primária — **Ativar Jana Pro**. Persona-alvo: La
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-06-01 | [CL] (Claude Code) | Tela criada — F3 do design `Jana Pro - Paywall CC` (gate Cowork PASS 90). Controller + rota + página + charter. Billing real fica pra Sprint JANA-B. |
+| 2026-08-18 | [C] (Claude Code) | **v2 — a F1 que faltava.** A tela shipou em 2026-06-01 **sem RUNBOOK**, e a consequência era mecânica: o hook `block-mwart-violation` **bloqueava** todo Edit em `Pro.tsx` (`exit 2`, medido), porque não achava `RUNBOOK-pro.md` nem `RUNBOOK-jana-pro.md` — o `RUNBOOK-jana-pro-**concierge**.md` é de outra capacidade e não casa. Nasce [`RUNBOOK-pro.md`](../../../../memory/requisitos/Jana/RUNBOOK-pro.md) e os artefatos passam a ser **declarados**, não resolvidos por nome: o `screen-coverage --screen Jana/Pro` acusava `RUNBOOK ⚠ AMBÍGUO (2)` justamente por escolher no escuro entre dois candidatos parecidos. **`related_us` declarado**: `US-COPI-148` (a onda de fusão) e `US-COPI-118`. A 148 é a dona do join — foi ela que moveu o chat pra `/ia/conversa` e **declarou o resíduo desta tela por escrito** (SPEC §Onda 3: *"`Pro.tsx` mantém `voltar → /ia` (agora o Painel, não o chat) … consertar exige `RUNBOOK-pro.md`, que não existe"*). A 118 (`_pendente_`) é as cores cruas do card de prova — as mesmas 4 warnings `no-inline-raw-color` que o ESLint acusa aqui. **`US-COPI-211`** ("Pricing page"), citada no ADR 0140, **NÃO entra**: ela existe na ADR mas **não existe no SPEC** (0 hits, medido) — seria id fantasma, o mesmo erro que a v2 do `Memoria.charter.md` corrigiu. **`related_prototype` segue ausente de propósito** — o design desta tela (`Jana Pro - Paywall CC.html`) existe **só** no Cowork, sob `_arquivo/`, e declarar um path que o repo não tem criaria o ponteiro podre que o [`Pro-visual-comparison.md`](../../../../memory/requisitos/Jana/Pro-visual-comparison.md) denuncia. Trazer o arquivo ou declarar `n/a` é decisão [W]. |
