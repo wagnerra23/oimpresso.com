@@ -123,20 +123,23 @@ Vivem em 5 arquivos e o preview confirma que todas registram no `window`:
 
 Nenhuma onda de tela abre antes desta fechar. São quatro itens, todos medidos hoje.
 
-### 4.1 Destravar as 7 âncoras — `0/7` são mensuráveis
+### 4.1 Destravar as 7 âncoras — o `style-fingerprint --compare` aborta nelas
 
-`ancora.mjs` resolve a âncora de **todas** as 7 com o aviso:
+`ancora.mjs` resolve a âncora das 7 com o aviso `⚠️ NÃO MEDIDO — … sufixo entre parênteses entrando no path`. **Isso não deixa o módulo inteiro cego** — os dois medidores tratam o sufixo de formas opostas, e a diferença é o que importa:
 
-```
-⚠️ NÃO MEDIDO — o arquivo da âncora não pôde ser LIDO neste path.
-   Causa comum: sufixo entre parênteses entrando no path.
-```
+| Medidor | Como resolve | Nas 7 do Financeiro |
+|---|---|---|
+| `render-proto-baseline` | importa `resolveAncora` e aplica `primeiroToken()` — a prosa é descartada | **funciona** · `--check` dá 5/5 íntegros |
+| `style-fingerprint --compare --tela` | `spawnSync` do CLI + regex `/âncora ✓:\s*\[[^\]]*\]\s*(\S+)/` | **aborta** — a regex não casa em `⚠️`, e o compare sai por `exit 2` |
 
-**Controle positivo** (a prova de que o resolvedor funciona e o defeito é de forma): `node prototipo-ui/ancora.mjs Compras/Index` → `âncora ✓`. O charter do Compras declara o path **limpo**, sem comentário anexado.
+Provado com controle dos dois lados, rodando a regex do `style-fingerprint` contra a saída real do CLI:
 
-**Alcance medido no repo inteiro:** dos 20 charters com `related_prototype` não-`n/a`, **12 carregam parênteses** no valor — as 7 do Financeiro estão entre eles. Os arquivos-alvo **existem todos** (`financeiro-page.jsx`, `financeiro-telas-extras.jsx`, `cobranca-page.jsx`, o HTML da Prova Viva). Não falta fonte; falta forma.
+- `Financeiro/Unificado` (charter **com** prosa) → não casa → lançaria *"ancora.mjs não devolveu related_prototype"*
+- `Compras/Index` (charter **limpo**) → casa → `prototipo-ui/cowork/compras-page.jsx`
 
-> **Enquanto isso não fecha, o portão de âncora do módulo está cego** — e âncora cega é ausência de medição, não saúde. Este é o primeiro item da Onda 0 justamente porque todos os outros dependem de medir contra a fonte certa.
+**Alcance no repo:** dos 20 charters com `related_prototype` não-`n/a`, **12 carregam parênteses** — as 7 do Financeiro entre eles. Os arquivos-alvo existem todos. Não falta fonte; falta forma.
+
+> **Consequência prática:** o **passo 2 da receita** (a trava de âncora, ADR 0326) não roda em nenhuma das 7 até isto fechar — e é por isso que a Onda 0 vem antes. O que **não** se pode dizer é que o módulo está sem medição alguma: os 5 baselines de protótipo estão íntegros e provam o contrário.
 
 ### 4.2 Regenerar o `unificado.map.json` (STALE)
 
@@ -151,7 +154,18 @@ O gate reporta `prototipo_sha salvo='sha256:3c66ba0f55fe' · atual='sha256:944a1
 
 Isto **não é** automaticamente um erro do charter — pode ser decisão declarada de não seguir aquele protótipo. Mas é divergência entre dois artefatos canônicos, e a regra de precedência manda **corrigir o perdedor no mesmo PR**. Como envolve escolher a fonte de design de uma tela, é **decisão [W]**, não conserto silencioso.
 
-### 4.4 Inscrever o Financeiro no quadro de frescor
+### 4.4 Gerar os 3 proto-baseline que faltam
+
+`node prototipo-ui/render-proto-baseline.mjs --check` mostra o que já está pronto e o que não está. Medido em 2026-08-18:
+
+| Tela | Baseline do protótipo | Onda |
+|---|---|---|
+| `Unificado` · `Fluxo` · `Conciliacao` · `Dre` · `Impostos` | ✅ íntegro (âncora ✓ · sha ✓ · 4 células cada) | 1–5 |
+| `PlanoContas` · `Cobranca` · `ProvaViva` | ❌ **não existe** | 6–8 |
+
+As ondas 1–5 já começam com metade do passo 2 pronto. As 6–8 precisam de `--gerar` antes — e o `--gerar` roda **localmente** (render em CI é rejeitado, ADR 0290).
+
+### 4.5 Inscrever o Financeiro no quadro de frescor
 
 `FRESCOR-PRODUCAO-vs-PROTOTIPO.md` é o dono do tema "quem está à frente/atrás" e **não tem nenhuma linha do Financeiro**. Cada onda a partir daqui acrescenta ou atualiza a linha da sua tela lá — é assim que o Cowork descobre que não deve re-exportar uma tela 🔵.
 
@@ -186,18 +200,42 @@ Oito passos. O que muda entre ondas é a tela, nunca a receita.
 
 Critério: âncora primeiro (só se pode comparar quem tem fonte), risco Tier 0 dita o ritmo, telas sem âncora fecham em lote por Padrão de Tela.
 
-| Onda | Tela | Fonte | Risco | Por que nesta posição |
-|---:|---|---|---|---|
-| **0** | — (fundação) | — | — | sem ela as 7 medições saem cegas |
-| **1** | `Unificado/Index` | `financeiro-page.jsx` | 🔴 **valor** | maior (3090 ln), 9 UC sem prova, é a tela que a Eliana abre toda manhã |
-| **2** | `Fluxo/Index` | `TelaFluxo` | 🔴 **valor** (projeção/saldo) | visual-comparison 53d stale |
-| **3** | `Conciliacao/Index` | `TelaConciliacao` | 🔴 **valor** | 13 UC já com prova — melhor base do módulo |
-| **4** | `Dre/Index` | `TelaDRE` | 🔴 **valor** | visual-comparison 80d — o mais stale do módulo |
-| **5** | `Impostos/Index` | `TelaImpostos` | 🔴 **valor + fiscal** | 2 UC sem prova |
-| **6** | `PlanoContas/Index` | `TelaPContas` ⚠️ | 🟡 | **depende da decisão [W] de §4.3** |
-| **7** | `Cobranca/Index` | `cobranca-page.jsx` | 🔴 **valor** | fronteira com PaymentGateway — escopo a confirmar |
-| **8** | `ProvaViva` | HTML primitivos | 🟡 | 2 UC sem prova |
-| **9** | as 13 sem âncora | Padrão de Tela + DS | 🟡 | conformidade PT-01/PT-04, em lote por PT — **não** repintura |
+Cobertura conferida: **21/21**. O `UnificadoController` e irmãos renderizam 19 pages; `Advisor/Dashboard` e `Advisor/Login` vêm dos controllers próprios em `Http/Controllers/Advisor/`. 8 telas em ondas nomeadas + 13 na Onda 9 = 21.
+
+| Onda | Tela | Fonte | Baseline proto | Risco | Por que nesta posição |
+|---:|---|---|:---:|---|---|
+| **0** | — (fundação) | — | — | — | sem ela o passo 2 não roda em nenhuma das 7 |
+| **1** | `Unificado/Index` | `financeiro-page.jsx` | ✅ | 🔴 **valor** | maior (3090 ln), 9 UC sem prova, é a tela que a Eliana abre toda manhã |
+| **2** | `Fluxo/Index` | `TelaFluxo` | ✅ | 🔴 **valor** (projeção/saldo) | visual-comparison 53d stale |
+| **3** | `Conciliacao/Index` | `TelaConciliacao` | ✅ | 🔴 **valor** | 13 UC já com prova — melhor base do módulo |
+| **4** | `Dre/Index` | `TelaDRE` | ✅ | 🔴 **valor** | visual-comparison 80d — o mais stale do módulo |
+| **5** | `Impostos/Index` | `TelaImpostos` | ✅ | 🔴 **valor + fiscal** | 2 UC sem prova |
+| **6** | `PlanoContas/Index` | `TelaPContas` ⚠️ | ❌ gerar | 🟡 | **depende da decisão [W] de §4.3** |
+| **7** | `Cobranca/Index` | `cobranca-page.jsx` | ❌ gerar | 🔴 **valor** | fronteira com PaymentGateway — escopo a confirmar |
+| **8** | `ProvaViva` | HTML primitivos | ❌ gerar | 🟡 | 2 UC sem prova |
+| **9** | as 13 sem âncora | Padrão de Tela + DS | n/a | 🟡 | conformidade PT-01/PT-04, em lote por PT — **não** repintura |
+
+`Relatorios/Index` está hoje na **Onda 9**. Se a decisão [W] do §4.3 disser que ele segue o `TelaDRE`, ele passa para a Onda 4 — é o único item cuja onda muda conforme aquela decisão.
+
+### 6.1 Onda que NÃO deve existir — Boletos
+
+O espelho tem `boletos-page.jsx` (58 KB) e o módulo tem `boletos-visual-comparison.md`. **Não abra onda por causa disso.** A tela `Pages/Financeiro/Boletos/Index` foi **deletada por decisão [W]** (ADR 0144 + ADR 0170) e `GET /boletos` virou **301 → `/financeiro/cobranca`** — quem documenta é o próprio [`BoletoController`](../../../Modules/Financeiro/Http/Controllers/BoletoController.php), cujo `index()` e helpers foram removidos como código inalcançável depois que o `OrphanRenderGateTest` pegou o render órfão.
+
+Logo o `boletos-visual-comparison.md` é **fóssil**: seu `inertia_target_atual` aponta pra um path que não existe mais. Presença de protótipo no espelho **não é demanda de tela** — o alvo pode ter sido aposentado.
+
+Fica um ponto para o [W], sem relação com paridade: o comentário em `Routes/web.php` declarou preservar o `cancelar()` por 60 dias a partir de 2026-05-19; **o prazo venceu em 2026-07-18, há 31 dias**. Aposentar ou manter é decisão dele.
+
+### 6.2 Artefatos que já existem e não se chamam o que você espera
+
+Antes de criar comparativo novo numa onda, procure o que já existe — três não seguem o nome da tela:
+
+| Onda | Arquivo a atualizar | Pegadinha |
+|---|---|---|
+| 3 · Conciliação | `index-visual-comparison.md` | o nome diz "index", mas o campo `tela:` dele é `/financeiro/conciliacao` |
+| 1 · Unificado | `financeiro-unificado-visual-comparison.md` **+** `unificado-3-lentes-visual-comparison.md` | são **dois**, mais o `unificado-gap.md` e o `unificado.map.json` |
+| 9 · Caixa | `caixa-visual-comparison.md` | compara contra **Blade do core** (`resources/views/cash_register/index.blade.php`), não contra protótipo — eixo MWART, não paridade-Cowork |
+
+Não há dívida MWART **dentro** do módulo: `Modules/Financeiro/Resources/views/` tem 3 blades e nenhum é tela concorrente (`index`, `layouts/master`, `pdf/dre` — este último gera PDF).
 
 > As ondas 1–5 e 7 tocam telas que exibem **valor**. Cada uma delas herda a regra-mestre de cálculo: nada mergeia sem **dupla confirmação por dois caminhos independentes** e sem **tabela antes→depois** apresentada ao [W]. Isso não é opcional e não é acelerável.
 
@@ -273,6 +311,7 @@ npm run screen-coverage:report
 npm run casos:report
 node scripts/governance/visual-comparison-staleness.mjs
 node scripts/governance/design-code-map-check.mjs --check
+node prototipo-ui/render-proto-baseline.mjs --check
 node prototipo-ui/ancora.mjs Financeiro/Unificado
 ```
 
