@@ -112,18 +112,35 @@ devolve **string formatada** — comparação lexicográfica em código de estoq
 `num_f`, que lê `session('currency')` sem fallback e **estoura fora de request** — a API do Connector
 e qualquer job cairiam num `ErrorException` genérico em vez desta regra. Ambos corrigidos.
 
-### ⚠️ Pendência que a trava NÃO resolve — 11 registros legados em produção
+### Dado histórico em produção: **não há nada a corrigir** (e a 1ª leitura estava errada)
 
-Dry-run em prod (`SELECT` agregado, sem PII, 2026-08-18):
+Medido em prod, 2026-08-18:
 
-| Business | Linhas com `quantity_returned > quantity` | Pior excesso |
-|---|---:|---:|
-| **164** (Martinho, OficinaAuto — piloto LIVE) | **10** | 4,0 |
-| **1** (dogfood) | 1 | 1,0 |
-| **4** (ROTA LIVRE) | **0** | — |
+```
+excesso REAL de devolução (quantity >= 0):  0
+```
 
-A trava impede **novos** casos; não corrige esses. Corrigir dado histórico de estoque é
-**decisão [W] sob REGRA MESTRE** (dry-run por registro + antes→depois), em US separada.
+**Zero registros** de devolução acima do vendido. A trava é puramente preventiva.
+
+⚠️ **Correção de uma afirmação minha.** A primeira medição foi um `COUNT` agregado do predicado
+`quantity_returned > quantity` e devolveu 11 linhas (biz=164 com 10, biz=1 com 1). Eu li isso como
+*"11 devoluções acima do vendido"* e cheguei a levar a decisão de conserto ao [W] nesses termos.
+**Falso.** O dry-run por registro — exigido pela REGRA MESTRE **antes** de qualquer escrita — mostrou
+`quantity_returned = 0,0000` nas **onze**: o predicado disparava porque `quantity` é **negativo**
+(−1, −2, −4), e `0 > −1`. São linhas de quantidade negativa com devolução zero, e 5 delas nem são
+venda (`type=purchase status=received` dentro de `transaction_sell_lines`).
+
+Duas lições, ambas já catalogadas no §5 e reincididas aqui:
+
+1. **Agregado não é evidência do fenômeno** — `COUNT` de um predicado conta o predicado, não a
+   história que você atribui a ele. Abrir as linhas custava um `SELECT`.
+2. **O dry-run por registro não é burocracia** — foi ele que impediu uma escrita em produção
+   (tenant do piloto LIVE) baseada em diagnóstico falso.
+
+**Fica em aberto, como observação e não como ação:** existem 11 linhas com `quantity < 0` em
+`transaction_sell_lines`. Não são objeto desta trava e não foram investigadas — o padrão (biz=164,
+datas de 2017 e 2024, migração do Office Comercial) sugere legado de importação. Levantar isso é
+trabalho próprio, com dono próprio.
 
 ### O terceiro caminho, ainda sem lastro
 
