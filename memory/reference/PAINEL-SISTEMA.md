@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-17**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-18**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **356**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **360**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -80,7 +80,7 @@ lente: [construir]
 
 > Fontes versionadas (offline, sem `gh api`): censo [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o que **existe**) + [`required-checks-baseline.json`](../../governance/required-checks-baseline.json) (o que **bloqueia**, congelado). Anti-demoção invisível: `protection-drift.mjs` (GT-G4). As catracas mordem: `gate-selftest` (GT-G6). Censo cobrado por `memory-health` Check G/M.
 
-### Bloqueiam merge — 45 required (enforcement: everyone)
+### Bloqueiam merge — 46 required (enforcement: everyone)
 > Congelados no baseline (captura 2026-06-20). Divergência do vivo é sinalizada pelo `protection-drift`, não reconciliada aqui.
 
 - ADR (memory/decisions/*.md)
@@ -127,15 +127,16 @@ lente: [construir]
 - Tier-0 guards (WithoutGlobalScopes + BusinessId)
 - Tópico (memory/requisitos/*/topicos/*.md)
 - visual-regression
+- espelho — mexeu depois de verificar
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 123 workflows por classe
+### Censo — 124 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 91 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
+| gate (bloqueia/valida PR) | 92 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 21 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, casos-results-publish, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
@@ -150,7 +151,7 @@ lente: [construir]
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 125 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 127 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -278,6 +279,8 @@ lente: [construir]
 - ~~2026-08-15 — Explicar um diff de baseline visual por DEDUÇÃO em vez de decodificar os dois lados (5 hipóteses, 5 derrubadas)~~
 - ~~2026-08-15 — Culpar o PR das fontes (`#5806`) pelo ruído de rasterização~~
 - ~~2026-08-16 — Restringir a extração de recibo à convenção `§5:` PURA pra zerar os "recibos pendurados" (medido: cega metade dos recibos legítimos)~~
+- ~~2026-08-17 — Comentário de código que se AUTODEFENDE com medição obsoleta (o remendo à mão do espelho sobreviveu 4 dias por causa dele)~~
+- ~~2026-08-17 — Tratar PRESENÇA de protótipo no espelho como DEMANDA de tela (3 propostas, 3 evaporaram sob medição)~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -288,14 +291,14 @@ lente: [construir]
 
 ## Rastro
 
-- **456** handoffs · **628** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **459** handoffs · **631** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-08-17-visreg-relogios-divergentes-e-pedidos-cowork`
+  - `2026-08-17-jana-chat-gaps-do-card-tres-ja-existiam`
+  - `2026-08-17-financeiro-prototipo-medido-e-o-boletos-aposentado`
   - `2026-08-16-trilha-d-d0-placar-medido-e-a-celula-que-e-maquina`
   - `2026-08-15-espelho-jana-baixar-nao-e-converter`
   - `2026-08-14-censo-redacao-brl-em-codigo`
-  - `2026-08-13-jana-dark-ancora-defeituosa`
-  - `2026-08-13-espelho-cowork-medir-vs-consertar`
-  - `2026-08-13-ancora-jana-consertada-e-o-p2-que-nao-era`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-17 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-18 · deriva das fontes canônicas, não as substitui._

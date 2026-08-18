@@ -79,6 +79,25 @@ export const PROJETOS = {
 export const STAGING_DIR = join(homedir(), 'Downloads', '_cowork-handoff-staging');
 export const MIRROR_DIR  = join(REPO_ROOT, 'prototipo-ui', 'cowork');
 
+// ── DESTINO DA FONTE PUXADA DO **DESIGN SYSTEM** (projeto ≠ Cowork) ────────────
+//
+// BURACO QUE ISTO FECHA (medido 2026-08-18): o protocolo tinha destino pro Cowork
+// (`MIRROR_DIR`, 200 arquivos versionados, 117 provados idênticos ao vivo) e NENHUM
+// pro Design System. Consequência real: em 2026-08-17 o agente puxou
+// `templates/pt-05-dashboard/Pt05Dashboard.dc.html` via `DesignSync.get_file` pra
+// responder ao [W], leu o conteúdo NO CONTEXTO e não gravou byte nenhum —
+// `git ls-files | grep -c pt-05-dashboard` = **0**. A fonte evaporou com a sessão, e
+// a próxima teria que re-baixar pra responder a mesma pergunta.
+//
+// O `mirror-snapshot/` NÃO servia: o README dele declara escopo de UM arquivo — o
+// `colors_and_type.css`, que existe pro sentinela `ds-mirror-drift` comparar TOKENS
+// sem login no CI. Template não é token; enfiar ali confundiria os dois papéis.
+//
+// ⚠️ REGRA DE ESCRITA, e ela não é estilo — é a lápide de 2026-08-11: o conteúdo
+// SAI DO DADO, POR SCRIPT (`get_file` → JSON → `writeFile`). NUNCA transcrito pelo
+// contexto do agente. Foi transcrição que produziu o STALE daquele dia.
+export const DS_MIRROR_DIR = join(REPO_ROOT, 'prototipo-ui', 'design-system');
+
 // ── PRÉ-FLIGHT da Fase 4 — os gates que a tela nova zera ANTES do PR ────────────
 // ("funciona no staging ≠ passa no portão": incidente perfil 2026-06-24 tripou 6 gates no PR).
 export const PREFLIGHT_GATES = [
