@@ -108,7 +108,7 @@
     "source": "Produto/Unificado",
     "component": "Produto/Unificado/Index",
     "route": "/products/unificado",
-    "anchor": "Catálogo",
+    "anchor": "Produtos",
     "baseline": "it_Produto_Unificado_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
