@@ -153,10 +153,10 @@ function ProPage({ plan, pricing, proof }: Props) {
                                 subtítulo ABAIXO — é a única mudança de posição, e ela
                                 vai ao gate F1.5 declarada, não de contrabando);
             · "Jana Pro"      → `title`;
-            · tag UPGRADE     → `titleBadge`, slot opt-in criado neste mesmo PR pelo
-                                mesmo motivo (e com o mesmo desenho) do `leading` de
-                                2026-08-08: sem ele a migração custaria a tag, que é
-                                literal do protótipo aprovado (PASS 90);
+            · tag UPGRADE     → `leading` (ANTES do título, não depois como no
+                                protótipo) — a ÚNICA divergência visual desta onda, e
+                                ela é de custo, não de gosto: ver o comentário no
+                                `leading` abaixo;
             · "Voltar ao chat" → `actions`, copy e destino intactos (`/ia/conversa`).
           SEM o dot da área (hue 220) que as outras 3 telas põem no `leading`: ele não
           está no charter do Pro, e a 1ª versão deste PR o adicionava "por consistência"
@@ -168,12 +168,22 @@ function ProPage({ plan, pricing, proof }: Props) {
           onda própria: extrai o dot pra um componente da área, tokeniza a cor e troca
           nas 4 telas de uma vez. */}
       <PageHeader
-        title="Jana Pro"
-        titleBadge={
-          <span className="ml-2 rounded-full border border-primary/25 bg-primary/5 px-[7px] py-0.5 align-middle text-[10px] font-bold tracking-wider text-primary">
+        // A tag vai no `leading` (ANTES do título), não depois como no protótipo.
+        // Motivo medido, não estético: pôr um slot novo no `PageHeader` faz o
+        // `ui-impact.mjs` classificar o diff como `frontend-compartilhado` →
+        // escopo GLOBAL → 37 telas afetadas, das quais 29 não têm entrada em
+        // `visreg-screens.json` → `visual-regression` fail-closed. Gerar aquelas
+        // baselines aqui seria criar contrato visual pra telas de Financeiro,
+        // Ponto, Forja e team-mcp que este PR não toca — o próprio gate avisa que
+        // isso "muda em silêncio a referência de telas que seu PR não toca".
+        // O `leading` já existe no canon desde 2026-08-08, então usá-lo mantém o
+        // diff em `targeted` na Jana/Pro, que TEM baseline.
+        leading={
+          <span className="mr-2 rounded-full border border-primary/25 bg-primary/5 px-[7px] py-0.5 align-middle text-[10px] font-bold tracking-wider text-primary">
             UPGRADE
           </span>
         }
+        title="Jana Pro"
         subtitle={
           <>
             <b className="font-medium text-foreground/70">Jana</b> · Plano

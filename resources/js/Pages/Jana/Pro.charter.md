@@ -45,8 +45,10 @@ confiança, e uma só ação primária — **Ativar Jana Pro**. Persona-alvo: La
   (`Components/PageHeader`) **sem a prop `subnav`** — não mais um `<header>`
   hand-rolled. Modo FOCO é **sem SubNav**, nunca **sem PageHeader**; a tela era a
   única das 4 da área fora do header do sistema. A tag `UPGRADE` entra pelo slot
-  opt-in `titleBadge`, criado no mesmo PR (mesmo desenho do `leading` de
-  2026-08-08). Única mudança de posição: `Jana · Plano` era eyebrow ACIMA do
+  slot `leading` — que já existia no canon —, o que a põe **antes** do título e
+  não depois como no protótipo: pôr um slot novo no `PageHeader` escalaria o
+  `visual-regression` pra 37 telas, 29 sem baseline (medido). Outra mudança de
+  posição: `Jana · Plano` era eyebrow ACIMA do
   título e passa a `subtitle` ABAIXO — declarada, vai ao gate F1.5. **Sem** o dot
   da área que as outras 3 telas usam: ele não está neste charter, e adicioná-lo
   "por consistência" custou uma regressão de lint (`ds/no-inline-raw-color`) na 1ª
