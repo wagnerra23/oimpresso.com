@@ -57,8 +57,18 @@ const fmtBRL = (n: number) =>
   }).format(n)
 
 // ── Botões (classes base — reúsam tokens canon, sem competir 2 roxos) ─────────
+//
+// O protótipo declara o anel de foco UMA vez, global (`:focus-visible` no `*`), então
+// todo interativo dele o herda. Aqui o Tailwind exige por-elemento, e a tradução F3
+// pôs o anel só no `btnGhost` — a CTA primária, que é a ação da tela e o alvo natural
+// do Tab, ficava sem indicação visível de foco. É o UX target "foco visível em todo
+// interativo" do charter, cumprido pela metade. Extraído pra constante porque a
+// duplicação foi o que permitiu o esquecimento.
+const focusRing =
+  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary'
+
 const btnGhost =
-  'inline-flex items-center gap-2 rounded-md border border-border bg-card px-3.5 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:border-foreground/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary'
+  `inline-flex items-center gap-2 rounded-md border border-border bg-card px-3.5 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:border-foreground/15 ${focusRing}`
 
 // ── Linha da tabela de comparação ────────────────────────────────────────────
 function CmpRow({
@@ -101,7 +111,15 @@ function ProPage({ plan, pricing, proof }: Props) {
     window.setTimeout(() => setState('done'), 900)
   }
 
-  const voltar = () => router.visit('/ia')
+  // "Voltar ao chat" e "Falar com a Jana" prometem a CONVERSA, e `/ia` deixou de ser
+  // ela: a onda de fusão (US-COPI-148) fez `/ia` virar o Painel e moveu o chat pra
+  // `/ia/conversa`. O destino ficou pra trás e o rótulo passou a mentir — quem clicava
+  // "Voltar ao chat" caía num dashboard. O `Esc` compartilha esta função, então os TRÊS
+  // consumidores (botão do header, botão do footer, atalho) se corrigem juntos.
+  //
+  // A copy NÃO muda: "Voltar ao chat" é literal do protótipo aprovado. Quem estava
+  // errado era o endereço.
+  const voltar = () => router.visit('/ia/conversa')
 
   // Atalhos teclado (Larissa = teclado): ⌘/Ctrl+Enter ativa · Esc volta ao chat.
   useEffect(() => {
@@ -374,8 +392,8 @@ function ProPage({ plan, pricing, proof }: Props) {
           aria-live="polite"
           className={
             state === 'done'
-              ? 'inline-flex items-center gap-2 rounded-md border border-success bg-success px-5 py-2.5 text-sm font-medium text-success-foreground'
-              : 'inline-flex items-center gap-2 rounded-md border border-primary bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-[0.85]'
+              ? `inline-flex items-center gap-2 rounded-md border border-success bg-success px-5 py-2.5 text-sm font-medium text-success-foreground ${focusRing}`
+              : `inline-flex items-center gap-2 rounded-md border border-primary bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-[0.85] ${focusRing}`
           }
         >
           {state === 'done' ? (
