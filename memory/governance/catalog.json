@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 677,
-    "edges": 952,
+    "nodes": 678,
+    "edges": 953,
     "by_node_type": {
       "module": 39,
       "table": 101,
       "adr": 105,
-      "component": 389,
+      "component": 390,
       "api": 43
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 43,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 389,
+      "hasComponent": 390,
       "dependsOn": 114,
       "delegatesTo": 106,
       "migratesTo": 1,
@@ -2532,6 +2532,13 @@
       "module": "Governance",
       "name": "Services/PolicyEngine",
       "desc": "decision flow (Risk/Confidence/Policy) que o ActionGate consulta em runtime"
+    },
+    {
+      "id": "component:Jana/AcaoHitlController",
+      "type": "component",
+      "module": "Jana",
+      "name": "AcaoHitlController",
+      "desc": "prévia + aprovação HITL das ações sugeridas do Painel (/ia/acoes/*); registra em jana_acao_aprovacoes, NÃO dispara"
     },
     {
       "id": "component:Jana/Admin/JanaProController",
@@ -8706,6 +8713,12 @@
       "to": "adr:0053",
       "type": "governedByAdr",
       "source": "related_adrs"
+    },
+    {
+      "from": "module:Jana",
+      "to": "component:Jana/AcaoHitlController",
+      "type": "hasComponent",
+      "source": "contains"
     },
     {
       "from": "module:Jana",
