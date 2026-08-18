@@ -213,17 +213,13 @@ classe, ambos vivos em comentário) e foram trocadas por estruturais antes de ro
 `<Numero rotulo=` (3) e ausência do literal do link._
 
 ## UC-COPI-PAINEL-12 — a ação sugerida vira decisão registrada, e a prévia é do SERVIDOR
-Status: 🧪 (`PainelContratoTest` — 3 `it()` de runtime, com 2 controles negativos; aguarda run verde na lane MySQL)
+Status: 🧪 (`PainelContratoTest` — 4 `it()`: 1 de arquivo + 3 de runtime, com 2 controles negativos; aguarda run verde **e** o screenshot F1.5)
 
-> ⚠️ **Este caso entra em DUAS metades, e esta é a primeira.** Aqui está o **backend**: as rotas de
-> prévia/aprovação, o ledger `jana_acao_aprovacoes` e o escopo Tier 0. A metade de **tela** (o CTA
-> abrir o modal, os rótulos "Revisar …") entra no PR seguinte, com o `JanaAcaoModal` — e só então o
-> §Pronto quando ganha os itens de UI. Descrever aqui a tela que ainda não existe seria o mesmo
-> defeito que este contrato persegue nos botões.
-
-Todo CTA da seção "Ações que … sugere" é **decorativo** — `title="(HITL — em breve V2)"`, zero
-`onClick`. É a **ordem 1** do `Index-visual-comparison.md` (§Resumo) e a única linha cuja trava diz,
-em letra, *"backend — sem ele, todo CTA da seção é decorativo"*. Este PR entrega esse backend.
+Todo CTA da seção "Ações que … sugere" era **decorativo** — `title="(HITL — em breve V2)"`, zero
+`onClick`. Era a **ordem 1** do `Index-visual-comparison.md` (§Resumo) e a única linha cuja trava
+dizia, em letra, *"backend — sem ele, todo CTA da seção é decorativo"*. Agora o CTA abre
+`_components/JanaAcaoModal.tsx`: prévia do que a ação faria + **Aprovar**, que grava em
+`jana_acao_aprovacoes`.
 
 Âncora: `prototipo-ui/cowork/jana-merge.jsx` §`JmAcaoModal` — âncora de SÍMBOLO
 (`grep -n "JmAcaoModal" prototipo-ui/cowork/jana-merge.jsx`).
@@ -236,17 +232,31 @@ drill: **veredito nasce no servidor**. A prévia vem de `GET /ia/acoes/{key}/pre
 agregado que pinta a linha (`SellsCockpitAggregator::buildInsightsAggregates`) — prévia e linha não
 podem divergir.
 
-**O escopo para antes do envio.** `POST /ia/acoes/{key}/aprovar` **registra** a decisão; nada sai. O
-disparo (WhatsApp/e-mail) e a fila `/ia/acoes` são PR próprio.
+**O escopo parou antes do envio, e o botão fala a verdade sobre isso.** Este passo registra a
+aprovação; nada sai. Por isso os 5 rótulos mudaram:
 
-**Pronto quando:** `GET` da prévia devolve `previa` + `contexto` + `alcance` para as 5 chaves de
-`AcaoHitlService::ACOES`; chave desconhecida dá **404** em prévia e em aprovar; o que fica gravado em
-`previa` é o texto do **servidor**, mesmo com o cliente mandando outro; e o registro nasce com o
-`business_id` da **sessão**, invisível fora do tenant.
+| era (botão morto) | é (abre o modal) | chave no backend |
+|---|---|---|
+| Disparar | **Revisar régua** | `regua-whatsapp` |
+| Preparar | **Revisar proposta** | `negociar-top` |
+| Investigar | **Revisar recorte** | `investigar-ticket` |
+| Detalhe | **Revisar leitura** | `pix-adocao` |
+| Lembrar | **Revisar lembrete** | `preventivo-pendentes` |
 
-_Por que as três asserções são de RUNTIME: o defeito que importa aqui é de comportamento — prévia
-forjada e vazamento de tenant não se veem lendo arquivo. A metade de tela do PR seguinte é que vai
-precisar de asserção de ARQUIVO (o Pest não monta React), como nos UC-08/10/11._
+Manter "Disparar" abrindo um modal que não dispara trocaria botão morto por botão que **mente** — e
+o §Anti-hooks *"prometer no botão o que a rota não entrega"* vale igual pros dois.
+
+**Pronto quando:** o CTA abre o modal; cada rótulo do `.tsx` tem chave em `AcaoHitlService::ACOES`
+(regra só no front morreria em 404 — botão morto com um passo a mais); chave desconhecida dá **404**
+em prévia e em aprovar; o que fica gravado em `previa` é o texto do **servidor**, mesmo com o cliente
+mandando outro; e o registro nasce com o `business_id` da **sessão**, invisível fora do tenant.
+
+_Por que a 1ª asserção é de ARQUIVO e ESTRUTURAL: mesmo motivo dos UC-08/10/11 — o Pest não monta
+React, e `not->toContain('HITL — em breve V2')` **falharia**, porque a frase está viva no comentário
+que registra o que saiu (o falso-positivo do §5 2026-07-26, que já mordeu esta suíte duas vezes na
+escrita). O que morde é a FORMA do botão morto (`title={\`${a.cta.label}…\`}`) e a **contagem** de
+`cta: { label: '` batendo com `count(ACOES)`. As outras três são de RUNTIME porque o defeito que
+importa é de comportamento — prévia forjada e vazamento de tenant não se veem no `.tsx`._
 
 ## Nota do conserto do UC-COPI-PAINEL-08 (2026-08-17)
 
