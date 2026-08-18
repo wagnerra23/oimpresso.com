@@ -407,6 +407,48 @@ it('UC-COPI-PAINEL-11: a meta abre em drawer na própria tela, sem projetar o fe
  * §Anti-hooks do farol (UC-04) e da fonte do drill (charter), agora no eixo da
  * PRÉVIA.
  */
+function acaoCockpitTsx(): string
+{
+    return file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaCockpit.tsx'));
+}
+
+/** UC-COPI-PAINEL-12 — o CTA deixou de ser decorativo e os rótulos casam com o backend. */
+it('UC-COPI-PAINEL-12: o CTA abre o modal HITL e cada rótulo tem chave no AcaoHitlService', function () {
+    $cockpit = acaoCockpitTsx();
+    $modal   = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaAcaoModal.tsx'));
+
+    // 1. o botão ganhou comportamento. A asserção é pela FORMA do botão morto
+    //    (`title={`${a.cta.label} …`}`), não pela frase "HITL — em breve V2": essa
+    //    frase está viva no comentário que REGISTRA o que saiu, e proibi-la
+    //    proibiria registrar a decisão — o falso-positivo do §5 2026-07-26, o mesmo
+    //    que mordeu os UC-10 e UC-11 na escrita.
+    expect(substr_count($cockpit, 'onClick={() => setAcaoHitl({'))->toBe(1);
+    expect($cockpit)
+        ->toContain('<JanaAcaoModal')
+        ->not->toContain('title={`${a.cta.label}');
+
+    // 2. PARIDADE de vocabulário — o backend valida a chave e devolve 404 pro que
+    //    não conhece (caso abaixo). Sem esta amarração, uma 6ª regra nascendo só no
+    //    `.tsx` viraria um botão que abre modal e morre em 404 — botão morto com
+    //    passo a mais. A contagem é o que morde: acrescentar regra sem chave derruba.
+    expect(substr_count($cockpit, "cta: { label: '"))->toBe(count(AcaoHitlService::ACOES));
+
+    foreach (AcaoHitlService::ACOES as $chave => $rotulo) {
+        expect($cockpit)
+            ->toContain("id: '{$chave}',")
+            ->toContain("label: '{$rotulo}'");
+    }
+
+    // 3. a prévia NÃO nasce no cliente — vem da rota. A âncora (`JmAcaoModal`) traz
+    //    as 4 prévias em texto fixo do Martinho; portar isso seria a mentira com
+    //    selo de autoridade que o `JanaDrillDrawer` existe pra evitar.
+    expect($modal)->toContain('/ia/acoes/${acao.id}/previa');
+
+    // 4. o modal DIZ o alcance deste PR. Sem esta linha o botão "Aprovar" herdaria
+    //    a promessa que o CTA acabou de largar ao virar "Revisar".
+    expect($modal)->toContain('O envio entra quando o disparo for ligado.');
+});
+
 /** UC-COPI-PAINEL-12 — a prévia é gerada no servidor, e só pras chaves conhecidas. */
 it('UC-COPI-PAINEL-12: a prévia vem do servidor com alcance, e ação desconhecida é 404', function () {
     painelBootstrap();

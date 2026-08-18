@@ -1425,3 +1425,39 @@ pra "limpar linha morta". A ação no Cowork continua de pé — só é menor do
 
 Lição registrada: `git grep` acha a string, não a intenção. Antes de escalar divergência com base em
 uma ocorrência, ler os vizinhos do mesmo arquivo e os irmãos da mesma pasta.
+
+## 2026-08-18 [CL] → [W]/[CC] — Ação HITL no Painel da Jana (`/ia`): prévia do servidor + aprovação registrada
+
+Executa o pedido [CC] "Ação HITL no Painel da Jana — prévia + aprovação (ordem 1)". Fecha a **ordem
+1** do `Index-visual-comparison.md` §Resumo — a única linha cuja trava dizia, em letra, *"backend —
+sem ele, todo CTA da seção é decorativo"*.
+
+**Entregue:** `jana_acao_aprovacoes` (migration) · `Entities/AcaoAprovacao` · `Services/AcaoHitlService`
+· `Http/Controllers/AcaoHitlController` (2 rotas) · `_components/JanaAcaoModal.tsx` · charter v10 ·
+`UC-COPI-PAINEL-12` (4 `it()` no `PainelContratoTest`, já na allowlist da lane MySQL).
+
+**NÃO entregue, de propósito:** o disparo (WhatsApp/e-mail) e a fila `/ia/acoes` — PR próprio. Por
+isso os 5 CTA viraram **"Revisar …"**: manter "Disparar" abrindo um modal que não dispara trocaria
+botão morto por botão que mente.
+
+### Três divergências do pedido [CC] que a medição corrigiu
+
+| o pedido dizia | o que a medição mostrou |
+|---|---|
+| caso = `UC-COPI-PAINEL-11` | **já é da v9** (drawer de meta). Nasceu **12** — numerar por cima apagaria contrato vivo |
+| `flash.sucesso` + `useEffect`/`toast()` na Page (a "ordem 6 de carona") | a chave é `flash.**success**` (`HandleInertiaRequests:99`), e o toast **já é global** (`app.tsx` `router.on('success')` → `showFlashToast`). O código do pedido não dispararia; com o nome certo, dispararia **em dobro**. Virou anti-hook no charter, não código |
+| `addGlobalScope(new ScopeByBusiness)` na Entity | o canon é o trait `HasBusinessScope` — o docblock dele manda migrar o padrão antigo, e é o que `Meta`/`Conversa` usam |
+
+### O que o pedido acertou e vale registrar
+
+O ⛔ *"não copiar da âncora"* estava certo e foi seguido: o `JmAcaoModal` traz as 4 prévias em texto
+FIXO (biz=164) citando `Analise*Service` inexistentes. A prévia agora nasce em
+`SellsCockpitAggregator::buildInsightsAggregates` — o **mesmo** agregado que pinta a linha da ação,
+então prévia e linha não podem divergir.
+
+### Pendente [CC] (não é deste PR)
+
+O `jana-merge.jsx` segue com as 4 prévias fixas e os 6 `Analise*Service` fictícios — o PR 0.5 do
+`cowork-inbox/JANA-MODULO-ONDAS-PR-2026-08-09.md` nunca rodou. Não "consertei" o protótipo aqui:
+`prototipo-ui/cowork/**` é espelho de leitura (ADR 0374) e edição minha some no próximo
+`--export-from`. O durável nasce no Cowork vivo e desce.

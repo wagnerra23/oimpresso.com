@@ -2,7 +2,7 @@
 
 - **Data da medição:** 2026-08-17 (**re-medido** — ver §Correções abaixo) · **âncora:** `prototipo-ui/cowork/jana-merge.jsx` (resolvida por `node prototipo-ui/ancora.mjs Jana/Index`)
 - **Tela viva:** `resources/js/Pages/Jana/Index.tsx` + `_components/JanaCockpit.tsx` + `_components/JanaDrillDrawer.tsx` + `_components/JanaMetaDrawer.tsx` + `_components/JanaConfigDrawer.tsx`
-- **Charter:** `resources/js/Pages/Jana/Index.charter.md` **v9**
+- **Charter:** `resources/js/Pages/Jana/Index.charter.md` **v10**
 - **Gate F1.5:** esta tela está no manifesto `tests/Browser/visreg-screens.json` como `Jana`; toda mudança aqui gera diff de pixel e precisa de aprovação [W]
 
 > **Como ler:** ✅ existe e equivale · 🟡 existe mas diverge · ❌ não existe na tela viva · ⛔ existe e **não deve** ser copiado · 🟢 só na viva.
@@ -134,7 +134,7 @@ citado depois do prazo vira afirmação. Antes de usar qualquer linha daqui como
 |---|---|---|---|
 | seção | "AÇÕES QUE <NOME> SUGERE" | "Ações que <Nome> sugere" | ✅ |
 | linha de ação | `AcaoRow` com CTA por tom | equivalente (ícone + título + sub + CTA) | ✅ |
-| ao clicar o CTA | `JmAcaoModal` — confirma antes de disparar (HITL) | `title="(HITL — em breve V2)"`, sem `onClick` | ❌ **precisa de backend** |
+| ao clicar o CTA | `JmAcaoModal` — confirma antes de disparar (HITL) | `JanaAcaoModal` — prévia do servidor + **Aprovar** grava em `jana_acao_aprovacoes` | ✅ **(esta onda)** — registra a decisão; o **disparo** é PR próprio (por isso o CTA diz "Revisar") |
 | gate por plano | só no Pro | — | ❌ produto |
 
 **As linhas, uma a uma.** A âncora tem **4 ações fixas** (dados do Martinho); a viva **deriva** as
@@ -142,16 +142,22 @@ suas de 5 regras sobre o dado real, então a contagem varia por tenant. O par:
 
 | âncora | viva | veredito |
 |---|---|---|
-| Régua de cobrança · clientes >90d sem contato | `regua-whatsapp` — "Régua WhatsApp · N vendas vencidas" · CTA **Disparar** | ✅ mesmo par |
+| Régua de cobrança · clientes >90d sem contato | `regua-whatsapp` — "Régua WhatsApp · N vendas vencidas" · CTA **Revisar régua** | ✅ mesmo par |
 | Reativação · clientes "ouro" inativos | — | ❌ depende da análise **Churn ouro**, que não tem fonte |
 | Outbound · caçambas paradas >7d | — | ❌ depende de **Frota** (ver R4) |
 | Limpeza · títulos candidatos a baixa (>365d) | — | ❌ **o dado EXISTE** (`ageingBuckets['>365d']`), falta a regra — mas ver a nota |
 | — | `negociar-top` · `investigar-ticket` · `pix-adocao` · `preventivo-pendentes` | 🟢 quatro regras só na viva |
 
-> **Por que "Limpeza" não entrou nesta onda, mesmo com o dado na mão.** Toda ação da viva já tem CTA
+> **Por que "Limpeza" não entrou naquela onda, mesmo com o dado na mão.** Toda ação da viva tinha CTA
 > **morto** (`title="(HITL — em breve V2)"`, zero `onClick`). Acrescentar uma quinta linha morta não
-> aproxima da âncora — aproxima do problema que a âncora resolve com o `JmAcaoModal`. A ordem certa é
-> HITL primeiro, linha depois.
+> aproximava da âncora — aproximava do problema que a âncora resolve com o `JmAcaoModal`. A ordem
+> certa era HITL primeiro, linha depois.
+>
+> _**Atualizado 2026-08-18 (o HITL landou).** O CTA não é mais morto: abre o `JanaAcaoModal`, com
+> prévia do servidor e aprovação registrada. A trava da "Limpeza >365d" deixou de ser essa — sobra o
+> trabalho dela mesma: a **regra** que a deriva no `JanaCockpit` §acoes, a chave em
+> `AcaoHitlService::ACOES` (sem ela o botão abre e morre em 404 — o teste do UC-12 conta as duas
+> pontas) e o texto da prévia. Não entrou aqui porque este PR é o HITL; é PR próprio, e pequeno._
 
 ## R8 · Overlays
 
@@ -159,7 +165,7 @@ suas de 5 regras sobre o dado real, então a contagem varia por tenant. O par:
 |---|---|---|---|
 | drill "de onde vem o número" | `JmDrillDrawer` | `JanaDrillDrawer` | ✅ |
 | drawer de meta | `JmMetaDrawer` | `JanaMetaDrawer` | ✅ **(esta onda)** |
-| modal de ação (HITL) | `JmAcaoModal` | — | ❌ precisa de backend |
+| modal de ação (HITL) | `JmAcaoModal` — 4 prévias em texto FIXO (biz=164), citando `Analise*Service` inexistentes | `JanaAcaoModal` — prévia **do servidor** (`GET /ia/acoes/{key}/previa`) | ✅ **(esta onda)**, menor de propósito |
 | drawer Configurar | `JmConfigDrawer` — 6 análises, brief on/off + hora, áudio, retenção | `JanaConfigDrawer` — 4 análises + HITL travado | ✅ menor **de propósito** (charter v8) |
 
 ## R9 · Estados e feedback
@@ -170,7 +176,7 @@ suas de 5 regras sobre o dado real, então a contagem varia por tenant. O par:
 | `<Deferred>` na prop deferida | — | `coworkAggregates` é `Inertia::defer` e a Page **não** embrulha | 🟡 guarda por `?.`/`?? []` (allowlist do gate) |
 | vazio | EmptyState com copy própria + CTA "Ir para a Conversa" | EmptyState "Nenhuma meta cadastrada ainda" | 🟡 |
 | erro | EmptyState `variant="error"` + "Tentar de novo" com estado `tentando` | — | ❌ o payload não distingue erro de vazio |
-| toast | `jm-toast` em reapuração, export, ações | `sonner` disponível, sem uso no Painel | ❌ |
+| toast | `jm-toast` em reapuração, export, ações | aprovação de ação toasta pelo handler **global** do `app.tsx` (`router.on('success')` → `flash.success`); reapuração e export seguem sem | 🟡 **parcial (esta onda)** — a Page **não** monta toast próprio: seria em dobro |
 | aviso mobile | "O painel foi desenhado pro escritório (1280px)…" | idem, `md:hidden` | ✅ **(#5881)** |
 
 ## R10 · Plano e upsell
@@ -187,7 +193,7 @@ suas de 5 regras sobre o dado real, então a contagem varia por tenant. O par:
 
 | ordem | entrega | região | trava |
 |---|---|---|---|
-| 1 | Modal de ação HITL | R7/R8 | **backend** — sem ele, todo CTA da seção é decorativo |
+| ~~1~~ | ~~Modal de ação HITL~~ — **entregue**: prévia do servidor + aprovação registrada | R7/R8 | ✅ charter v10 · UC-COPI-PAINEL-12. **Sucessora:** o DISPARO (WhatsApp/e-mail) + a fila `/ia/acoes` |
 | 2 | Seletor de período + projeção | R5 | **backend** — payload só traz `periodo_atual`; projeção é veredito de servidor |
 | 3 | Chips do brief que semeiam a conversa | R3 | **backend + Page** — `novaConversa` não aceita pergunta |
 | 4 | Contador nas abas | R2 | **backend** — nasce no `DataController` (⚠️ afeta as 4 telas da área) |

@@ -68,22 +68,14 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 360,
+      "value": 356,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "4ab9fbd77b7c7563",
+        "floor_files_hash": "b460314e076a5844",
         "runs": [
-          {
-            "sha": "263dd38f",
-            "ts": "20260815-020002",
-            "failed": 673,
-            "errors": 398,
-            "skipped": 2283,
-            "all_shards_measured": true
-          },
           {
             "sha": "a6384167",
             "ts": "20260816-020001",
@@ -93,15 +85,23 @@
             "all_shards_measured": true
           },
           {
-            "sha": null,
+            "sha": "d47a21e1",
             "ts": "20260817-020001",
             "failed": 668,
             "errors": 398,
             "skipped": 2295,
             "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260818-020001",
+            "failed": 702,
+            "errors": 397,
+            "skipped": 2249,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260817-020001",
+        "computed_at": "20260818-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -120,22 +120,15 @@
     },
     "coverage_pct": {
       "status": "measured",
-      "value": 20.5,
+      "value": 20.1,
       "unit": "%",
       "direction": "up",
       "target": "só sobe (catraca C2)",
       "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
       "detail": {
-        "covered": 48278,
-        "total": 235620,
+        "covered": 47368,
+        "total": 235484,
         "runs": [
-          {
-            "sha": "263dd38f",
-            "ts": "20260815-020002",
-            "coverage_pct": 20,
-            "covered": 47178,
-            "total": 235617
-          },
           {
             "sha": "a6384167",
             "ts": "20260816-020001",
@@ -144,14 +137,21 @@
             "total": 235616
           },
           {
-            "sha": null,
+            "sha": "d47a21e1",
             "ts": "20260817-020001",
             "coverage_pct": 20.5,
             "covered": 48278,
             "total": 235620
+          },
+          {
+            "sha": null,
+            "ts": "20260818-020001",
+            "coverage_pct": 20.1,
+            "covered": 47368,
+            "total": 235484
           }
         ],
-        "computed_at": "20260817-020001",
+        "computed_at": "20260818-020001",
         "measured_of": 3
       },
       "stream": "FV"
