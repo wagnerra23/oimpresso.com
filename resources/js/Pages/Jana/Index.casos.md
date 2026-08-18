@@ -279,6 +279,13 @@ o §Anti-hooks *"prometer no botão o que a rota não entrega"* vale igual pros 
 em prévia e em aprovar; o que fica gravado em `previa` é o texto do **servidor**, mesmo com o cliente
 mandando outro; e o registro nasce com o `business_id` da **sessão**, invisível fora do tenant.
 
+⚠️ **O gate de pixel não defende este caso — medido em 2026-08-18.** A tela `Jana` está no manifesto
+do visreg e o job roda de verdade (12 min), mas o `VisregTenantSeeder` semeia **zero** `transactions`;
+sem venda, `acoes` sai vazio e a seção não entra no DOM. O #5895 mudou 5 rótulos e acrescentou um modal
+com o pixel-diff **verde e cego**. Por isso as asserções deste UC são de arquivo + runtime, e não
+"o screenshot bateu": aqui o screenshot não tem o que bater. Detalhe em
+[`Index-visual-comparison.md` §R9](../../../memory/requisitos/Jana/Index-visual-comparison.md).
+
 _Por que a 1ª asserção é de ARQUIVO e ESTRUTURAL: mesmo motivo dos UC-08/10/11 — o Pest não monta
 React, e `not->toContain('HITL — em breve V2')` **falharia**, porque a frase está viva no comentário
 que registra o que saiu (o falso-positivo do §5 2026-07-26, que já mordeu esta suíte duas vezes na
