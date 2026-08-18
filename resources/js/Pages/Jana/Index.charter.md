@@ -5,7 +5,7 @@ component: resources/js/Pages/Jana/Index.tsx
 related_prototype: prototipo-ui/cowork/jana-merge.jsx
 owner: wagner
 status: live
-last_validated: "2026-08-17"
+last_validated: "2026-08-18"
 parent_module: Jana
 parent_adr: memory/decisions/0052-memoria-jana-3-angulos-faturamento.md
 related_adrs: [26, 31, 35, 36, 52, 93, 94, 107, 114]
@@ -17,7 +17,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 9
+charter_version: 10
 permissao: copiloto.access
 ---
 
@@ -69,6 +69,17 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   Âncora: `jana-merge.jsx` §`JmMetaDrawer` — âncora de SÍMBOLO
   (`grep -n "JmMetaDrawer" prototipo-ui/cowork/jana-merge.jsx`).
   O drawer **não projeta o fechamento**: ver §Anti-hooks abaixo.
+
+- **Ação sugerida vira decisão REGISTRADA (v10 — 2026-08-18):** o CTA de cada linha
+  da seção "Ações que … sugere" abre `_components/JanaAcaoModal.tsx` — prévia do que a
+  ação faria + aprovação auditada em `jana_acao_aprovacoes` (`AcaoHitlService`,
+  `business_id` NOT NULL, Tier 0). **A PRÉVIA NASCE NO SERVIDOR**, lida do mesmo
+  agregado que pinta a linha (`SellsCockpitAggregator::buildInsightsAggregates`) —
+  pela mesma razão do farol e da fonte do drill: texto que afirma número é veredito.
+  **Este passo NÃO envia nada** — o disparo (WhatsApp/e-mail) e a fila `/ia/acoes` são
+  PR próprio, e é por isso que os rótulos viraram "Revisar …": ver §Anti-hooks.
+  Âncora: `jana-merge.jsx` §`JmAcaoModal` — âncora de SÍMBOLO
+  (`grep -n "JmAcaoModal" prototipo-ui/cowork/jana-merge.jsx`).
 
 ## Non-Goals
 
@@ -142,11 +153,62 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   aceita pergunta inicial e `Chat.tsx` não lê query param (medido 2026-08-07) — por isso o CTA diz
   "Conversar com a Jana", não "Perguntar sobre isso". Semear a pergunta é PR próprio (backend + Page).
 
+  _**Recibo v10 (2026-08-18), e ele é o conteúdo da decisão:** os 5 CTA da seção de ações eram
+  MORTOS (`title="(HITL — em breve V2)"`, zero `onClick`). Ao ganharem comportamento, foram
+  **RENOMEADOS** — `Disparar`/`Preparar`/`Investigar`/`Detalhe`/`Lembrar` → **`Revisar …`** — porque
+  este passo registra a aprovação e **não envia**. "Disparar" abrindo um modal que não dispara
+  trocaria um botão morto por um botão que MENTE, e esta regra vale igual pros dois. O rodapé da
+  seção perdeu junto a frase "Próximas ondas: ações HITL real …": metade dela deixou de ser futuro.
+  A paridade rótulo↔chave de backend é amarrada por teste (UC-COPI-PAINEL-12) — regra que nasce só
+  no `.tsx` viraria botão que abre modal e morre em 404, que é botão morto com um passo a mais._
+
+- ⛔ **Deixar a prévia da ação nascer no cliente.** É o §Anti-hooks da FONTE (drill) e o da PROJEÇÃO
+  (meta) no terceiro eixo: o da PRÉVIA. A âncora faz o contrário — o `JmAcaoModal` traz as 4 prévias
+  em texto FIXO, com números do Martinho (`biz=164`), e cita `Analise*Service` que **não existem no
+  repo** (re-medido 2026-08-17 nos dois donos do inventário: espelho e Cowork vivo). A prévia do
+  `JanaAcaoModal` vem de `GET /ia/acoes/{key}/previa`, gerada por `AcaoHitlService` a partir do mesmo
+  agregado que pinta a linha — prévia e linha não podem divergir. E o texto GRAVADO em
+  `jana_acao_aprovacoes.previa` é o do servidor, nunca o do request: aceitar o do cliente deixaria o
+  front reescrever o recibo do que foi aprovado. Mexeu no aggregator, mexe no `AcaoHitlService` no
+  mesmo PR.
+
+- ⛔ **Montar toast próprio nesta Page.** `app.tsx` já faz `router.on('success')` → `showFlashToast`,
+  lendo `flash.success` (a chave que `HandleInertiaRequests` expõe). Um `useEffect` + `toast()` aqui
+  dá toast **em dobro**; e a chave `flash.sucesso` — que parece natural em PT-BR — **não existe** e
+  falharia calada. Mutação da tela usa `->with('success', …)` no controller e para por aí.
+
 ## Skills relevantes
 
 `brief-first` (Tier A) · `multi-tenant-patterns` (Tier A) · `inertia-defer-default` (Tier B) · `mwart-process` (Tier A)
 
 ## Charter version log
+
+- v10 (2026-08-18) — **Ação HITL: prévia + aprovação registrada** (ordem 1 do
+  `Index-visual-comparison.md` — a única linha do §Resumo cuja trava era literalmente
+  *"backend — sem ele, todo CTA da seção é decorativo"*). Novos: migration
+  `jana_acao_aprovacoes`, `Entities/AcaoAprovacao`, `Services/AcaoHitlService`,
+  `Http/Controllers/AcaoHitlController` (2 rotas) e `_components/JanaAcaoModal.tsx`.
+
+  **O escopo parou onde a honestidade mandava.** Este PR entrega prévia + registro; o
+  **disparo** e a fila `/ia/acoes` são PR próprio. Por isso os 5 rótulos viraram
+  "Revisar …" e o rodapé da seção deixou de prometer — ver o recibo no §Anti-hooks.
+
+  **Três divergências do pedido [CC] que a medição corrigiu, e ficam registradas:**
+  - o pedido numerava o caso como **UC-COPI-PAINEL-11**. Esse número já é da v9 (drawer
+    de meta) — o caso nasceu **12**. Numerar por cima teria apagado um contrato vivo.
+  - o pedido mandava montar `usePage().props.flash.sucesso` + `toast()` na Page (a
+    "ordem 6 de carona"). **A chave `sucesso` não existe** — `HandleInertiaRequests`
+    expõe `flash.success` —, e mesmo com o nome certo seria **toast em dobro**: o
+    `app.tsx` já tem handler global. Virou anti-hook em vez de código.
+  - o pedido punha `addGlobalScope(new ScopeByBusiness)` na Entity; o canon do repo é o
+    trait `HasBusinessScope` (o docblock dele manda migrar o padrão antigo), que é o que
+    `Meta`/`Conversa` usam.
+
+  _O que NÃO mudou: o par visual segue pendente. `Jana/Index` está no manifesto do
+  visreg, este PR gera diff de pixel e exige aprovação [W] (gate F1.5); o golden PT-04
+  continua `draft`. E a linha "Limpeza >365d" da âncora **não** entrou — o dado existe
+  (`ageingBuckets['>365d']`), mas a ordem certa é HITL primeiro, linha depois, como o
+  próprio `Index-visual-comparison.md` §R7 já registrava._
 
 - v9 (2026-08-17) — **A meta abre na própria tela** (ordem 1 do `Index-visual-comparison.md`, região
   R5 — *"hoje o clique tira o usuário da tela"*). Novo `_components/JanaMetaDrawer.tsx`: Situação,

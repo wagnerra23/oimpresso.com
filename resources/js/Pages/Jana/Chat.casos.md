@@ -187,6 +187,25 @@ persistida), o sink foi acionado (senão não há payload pra examinar), o CPF d
 pelo `PiiRedactor` (senão o contrato não está sendo exercitado) — e nenhum payload de `startTrace`
 ou `endTrace` contém o CPF cru.
 
+## UC-COPI-CHAT-11 — O histórico diz QUANTAS conversas, expandido e recolhido
+Status: ✅ (`tests/jana-chat-conversas.test.tsx` — 3 casos sob o describe que cita este UC)
+
+O cabeçalho do histórico mostra o número de conversas **visíveis**, e esse número **respeita o
+filtro ativo** — na aba `Arquivadas` ele cai para o tamanho daquele conjunto, não do total.
+Recolhido, o rail de 40px continua mostrando o rótulo **"Histórico"** e o mesmo número: quem
+recolheu não perde a informação de que há conversas ali.
+
+⚠️ **Este UC nasceu 10 dias depois da feature, e o atraso tem uma lição.** O contador
+(`cs-count`) e o número do rail (`cs-peek-n`) existem desde `61c770ec0` (2026-08-07, PR #5405).
+Entre 08-07 e 08-17 este arquivo os listou como **ausentes**, no bloco `[BACKLOG]` — porque a
+comparação com o protótipo procurou pelas classes **dele** (`jm-hist-n`, `jm-hist-peek-n`), que
+não existem aqui: a tela viva traduziu tudo para o vocabulário do DS. **Classe de protótipo não
+é âncora — comportamento é.** Medido em produção antes de escrever este UC: `cs-count` → "2",
+peek → rótulo "Histórico" + "2", rail de 40px.
+
+**Pronto quando:** o número bate com o conjunto filtrado nas duas abas, e o rail recolhido mostra
+rótulo + número.
+
 ---
 
 ## Inventário de cobertura — cada Goal e Anti-hook do charter, medido
@@ -205,7 +224,8 @@ ou `endTrace` contém o CPF cru.
 | Layout 2-col: histórico + thread | ✅ | ✅ UC-01/02/03 |
 | Filtro `Todas`/`Arquivadas` (2 abas, v3) | ✅ | ✅ UC-01 |
 | Histórico recolhível (`⌘⇧H` · `Ctrl+⇧H` · chevron) | ✅ | ✅ UC-03 |
-| Sobreposição ≤1100px com scrim clicável | 🟡 overlay sim, **scrim não** | ❌ |
+| Contador de conversas (cabeçalho + rail recolhido) | ✅ `cs-count` · `cs-peek-n` | ✅ UC-11 |
+| Sobreposição ≤1100px com scrim clicável | ✅ overlay **e** scrim (`copiloto-chat-scrim`, `Chat.tsx`) | ❌ ver §Ainda sem UC |
 | `aria-live` anuncia troca de conversa | ✅ | ✅ UC-04 |
 | `J`/`K` navega conversas | ✅ | ✅ UC-02 |
 | Bubbles por papel (`user` direita / `assistant` esquerda) | ✅ | ❌ |
@@ -221,7 +241,9 @@ ou `endTrace` contém o CPF cru.
 | Multi-tenant Tier 0 (`business_id` em thread/mensagem/ação) | ✅ | 🧪 UC-05 |
 | Aviso de PII no composer (CPF/CNPJ/cartão) | ✅ (`PiiRedactor`, 4 refs) | ❌ |
 
-**16 Goals implementados · 5 com contrato · 11 sem.**
+**17 Goals implementados · 6 com contrato · 11 sem.** _(Retrato de 2026-08-17 22h — o contador
+entrou na tabela quando ganhou contrato, não quando foi implementado: ele existe desde
+2026-08-07, `61c770ec0`.)_
 
 ### §Automation Anti-hooks — o que a tela NUNCA dispara
 
@@ -270,17 +292,35 @@ como `[BACKLOG]` sem id, logo abaixo, em vez de virarem UC otimista.
 
 ## Ainda sem UC — prosa honesta, porque UC sem teste quebra o G-2
 
-> O `Chat.tsx` é Page **fora** do manifesto `tests/Browser/visreg-screens.json`, então qualquer
-> edição nele é **fail-closed** no `visual-regression` (reproduzido com `ui-impact.mjs` em
-> 2026-08-17). Os itens abaixo dependem de a tela entrar no manifesto — por isso entram como
-> `[BACKLOG]`, sem id e sem gate.
+> **Errata de 2026-08-17 22h.** Este bloco listava quatro itens; **dois não eram lacuna**. O
+> contador e o `peek` existiam desde 2026-08-07 (`61c770ec0`, PR #5405) e viraram o **UC-11**; o
+> scrim também existe (`copiloto-chat-scrim` em `Chat.tsx`), e continua aqui só por falta de
+> **teste**, não de código. A causa do engano está registrada no UC-11: a comparação procurou
+> pelas classes do protótipo, que a tela viva traduziu para o DS.
+>
+> **Nota datada sobre o gate** (fato, não estado): até o PR #5877, em 2026-08-17, `Jana/Chat`
+> estava fora de `tests/Browser/visreg-screens.json` e qualquer edição no `.tsx` era fail-closed
+> no `visual-regression`. Esse PR pôs a tela no manifesto e gerou a baseline. Para saber o estado
+> **de hoje**, rode `node scripts/governance/ui-impact.mjs` — não confie nesta linha.
 
-- `[BACKLOG]` **Metadados do card da conversa** — o protótipo mostra `preview`, *"última em X"* /
-  *"criada agora"*, e *"com {pessoa}"* quando compartilhada. A tela viva mostra só o título.
-- `[BACKLOG]` **Contador de conversas** no cabeçalho do histórico e no rail recolhido (`peek`).
-- `[BACKLOG]` **Escopo no cabeçalho da thread** — *"só sua"* / *"da equipe"* / *"compartilhada com X"*.
-- `[BACKLOG]` **Scrim clicável** ao abrir o histórico em sobreposição (≤1100px). O overlay já existe;
-  o scrim, não.
+- `[BACKLOG]` **`preview` e `quando` no card** — o protótipo mostra um resumo de uma linha e um
+  tempo adaptativo (`"09:38"` · `"ontem"` · `"ter"` · `"05/mai"`, e `"criada agora"` no recém-nascido).
+  **Não é trabalho de tela: é falta de dado.** O `buildConversasListPayload` manda
+  `id · titulo · unread · origem · status · ativa`, e `jana_conversas` não tem coluna de preview
+  nem de última atividade — `iniciada_em` **não** serve, é quando a conversa nasceu. Sairia de
+  `MAX(jana_mensagens.created_at)` + o conteúdo da última mensagem. Backend primeiro, pixel depois.
+- `[BACKLOG]` **`com {pessoa}` no card + escopo no cabeçalho da thread** (*"só sua"* / *"da equipe"*).
+  **Bloqueado pelo modelo de dados, não por prioridade:** não existe compartilhamento — sem tabela
+  de participantes, e `abort_unless($conversa->user_id === auth()->id(), 403)` em quatro pontos do
+  `ChatController`. Implementar hoje seria inventar dado. Mesmo bloqueio que levou o charter v3 a
+  remover a aba `Compartilhadas`. Reabrir é PR próprio e decisão [W]. _(O cabeçalho da thread em si
+  **existe** — `th-head`, com avatar, título e "Assistente IA · Jana"; o que falta nele é o rótulo
+  de escopo.)_
+- `[BACKLOG]` **Teste do scrim** ≤1100px. O elemento existe e fecha o histórico ao clicar; o que
+  falta é contrato. Ele é renderizado pelo componente `Chat`, **irmão** do `ConvSidePanel` — e a
+  suíte jsdom monta só o `ConvSidePanel` (foi exportado justamente para ser montável sem
+  AppShellV2/Inertia/assistant-ui). Cobrir exige subir a Page inteira ou mover o scrim para dentro
+  do painel; as duas saídas são decisão de desenho, não uma linha de teste.
 
 ## O que a tela viva tem e o protótipo NÃO tem
 

@@ -1,6 +1,7 @@
 ---
 page: /ia/conversa
 component: resources/js/Pages/Jana/Chat.tsx
+related_prototype: prototipo-ui/cowork/jana-merge.jsx
 owner: wagner
 status: live
 last_validated: "2026-08-07"
