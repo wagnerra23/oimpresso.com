@@ -68,7 +68,7 @@
     },
     {
       "screen": "Jana",
-      "note": "10 arquivo(s)",
+      "note": "15 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -345,8 +345,8 @@
   "progressPct": 29,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "8243ecdc9",
-  "generatedAt": "2026-08-17T10:06:13.301Z",
+  "measuredAgainstSha": "8b2ca41f1",
+  "generatedAt": "2026-08-18T09:59:34.495Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
