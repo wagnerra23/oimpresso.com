@@ -119,6 +119,22 @@ projectId acima, ou abra \`claude.ai/design\` → aba **Projects**.
 LEITURA é **livre** e usa o login do [W] — sem senha, sem opt-in (só a ESCRITA é gated, ADR 0315).
 Claim de ausência exige consultar os TRÊS (§5 2026-07-28 — repo inteiro **+** dono do inventário).
 
+**⛔ PUXOU? PERSISTA PELA ROTA CANÔNICA — nunca escrevendo o conteúdo você mesmo:**
+    node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir-com-os-JSONs-do-get_file>
+    node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir> --ds   # destino Design System
+
+O agente BUSCA (só ele fala MCP) e o **SCRIPT ESCREVE** o \`raw.content\` — hash idêntico
+**por construção**, sem transcrição (ADR 0374, ratificada 2026-08-13 · FASE −1 do
+\`prototipo-ui/protocolo.config.mjs\`). Transcrever pelo contexto é o que produziu o STALE de
+2026-08-11.
+
+_Este bloco existe porque as 3 linhas acima ensinavam só a **LER** (\`list_files\`/\`get_file\`/
+\`--manifest\`) e paravam um passo antes da PERSISTÊNCIA. Medido em 2026-08-18: um agente puxou
+\`templates/pt-05-dashboard/Pt05Dashboard.dc.html\` do Design System, leu no contexto, **não gravou
+byte** (\`git ls-files | grep -c pt-05-dashboard\` = 0) e ainda construiu um baixador PARALELO ao
+\`--export-from\` — que é o dono. [W]: **"máquina que não é seguida é bug"**. O bug era este hook
+disparar na hora certa e não nomear a rota de escrita._
+
 _Reincidência 2026-08-07 (fusão das telas da Jana): o agente varreu só o git, declarou "jana-merge.jsx não existe" e pediu ao [W] que subisse o arquivo._
 _**Reincidiu em 2026-08-11 com este hook JÁ ATIVO** — porque ele mandava rodar \`list_projects\` como PROVA, e aquele tool não enxerga projeto regular: a defesa era parte da causa. Pior: dois documentos MERGEADOS de 3 dias antes já diziam onde o arquivo morava (\`git grep jana-merge\` → 21 sites). Canon negou canon, e o oráculo custava 1 comando._
 _⚠️ O template de Dashboard chama-se \`pt-05-dashboard\` no design-system, mas no repo **Dashboard é PT-04** (PT-05 é Kanban). O dono da numeração é o repo (\`memory/requisitos/_DesignSystem/padroes-tela/\`)._`);
