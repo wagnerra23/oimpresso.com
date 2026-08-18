@@ -4,7 +4,7 @@ casos: Jana Memória · fatos aprendidos · LGPD Art. 18 · /ia/memoria
 irmaos: Memoria.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-memoria.md (runbook)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-17"
+last_run: "2026-08-18"
 ---
 
 # Casos de uso — /ia/memoria (Memória da Jana)
@@ -117,3 +117,28 @@ motivo escrito ao lado; subir o número calado é o que ele existe pra impedir.
 - ❓ **Naming** — a tela ainda diz "O Copiloto lembra de você" (h1 + título do shell) enquanto o
   resto do módulo já é "Jana" (`RUNBOOK-chat.md`: *"Em texto novo sempre Jana"*). Mexer no título
   toca o breadcrumb do shell, então não é edição de 1 linha.
+
+## Revalidação de 2026-08-18 — por que o `last_run` subiu
+
+O G-6 acusou `stale:` porque o `Memoria.tsx` mudou depois do `last_run` de 08-17. O que mudou, na
+onda 2 da paridade da área Jana ([#5919](https://github.com/wagnerra23/oimpresso.com/pull/5919)):
+
+- a Page passou a declarar e destruturar a prop `janaContext` (`businessId` · `businessName`);
+- o `<JanaAreaHeader active="memoria">` passou a receber `businessName`/`businessId`, props que
+  ele **já aceitava** e ninguém mandava.
+
+**Interseção com os UCs desta tela: nenhuma.** Os cinco tratam de comportamento de servidor (motivo
+obrigatório na edição, trilha em `activity_log`, redação de PII, trilha no esquecer); o diff não
+toca controller, service, validação nem o payload dos fatos — o `businessId` que a tela já usava
+no corpo continua vindo como antes, e o `janaContext` só alimenta o header.
+
+Por isso o bump é do `last_run` e **nenhum `Status:` mudou** — os UCs seguem exatamente como
+estavam. Registrado porque o §5 de 2026-07-27 cataloga esta classe: mudança semanticamente
+inerte **não é inerte pro gate** — o G-6 mede data de git, não semântica. O `last_run` só sobe
+com o motivo escrito ao lado; subir o número calado é o que ele existe pra impedir.
+
+**Lição de método desta rodada** (vale pra quem repetir o fluxo): rodar o `casos-coverage-guard`
+**antes** de commitar dá verde falso — o G-6 lê a data do `.tsx` pelo **git**, então enquanto a
+mudança está só no working tree ela é invisível pro gate. Rode-o **depois** do commit, ou
+espere o CI dizer. Foi o que aconteceu aqui: o gate local passou, o do CI reprovou, e o certo
+era o do CI.
