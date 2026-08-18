@@ -113,12 +113,57 @@ As três correções **estendem o dono do tema** (`contrato-de-tela`). Gate novo
 
 ---
 
+## 7.4 · O espelho está INCOMPLETO — e isso cegou a própria comparação
+
+Medido em 2026-08-18, com o protótipo servido em `localhost:5577`:
+
+**`window.OfficeImpressoPontoWR2DesignSystem_019dd0` → `false`.** O Design System **não carrega**. São **10 arquivos** que o host pede e que **nunca desceram** para `prototipo-ui/cowork/` — e os 10 **existem no Cowork**:
+
+| faltando | quantos |
+|---|---|
+| `_ds/office-impresso-design-system-019dd02f…/_ds_bundle.js` | 1 |
+| `…/colors_and_type.css` · `…/cockpit_domains.css` | 2 |
+| `…/assets/fonts/ibm-plex-{sans,mono}-{400,500,600,700}.woff2` | 7 |
+
+**Por que isso importa mais do que parece.** O protótipo é escrito para degradar sem o DS:
+
+```js
+const DS = window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
+const { Alert, EmptyState } = DS;
+{Alert ? <Alert …/> : <div className="jm-mem-lgpd">…</div>}
+```
+
+Sem o bundle, `Alert`, `EmptyState`, `Button`, `Toast` e `DropdownMenu` são `undefined` e o protótipo renderiza **fallbacks** — inclusive o `exportar`, que é um `DropdownMenu` do DS. Somando as 7 fontes ausentes, o que se vê no espelho **não é o protótipo**: é uma versão degradada dele. Qualquer comparação visual feita contra esse render mede o lado errado.
+
+⚠️ Os achados do §6 **não** dependem disso: foram medidos por `grep` no `.jsx` e no `.tsx`, não por render. Mas a confiança em *qualquer* leitura visual do espelho fica suspensa até os 10 arquivos descerem.
+
+### Como garantir que TUDO desce — e por que parsear o HTML não basta
+
+Derivar as dependências do `oimpresso.com.html` (`src=`/`href=`) devolve **120** entradas e pega os 3 arquivos do DS. **Não pega as 7 fontes**: elas são de **2º nível** (vêm de `url()` dentro do CSS do DS, que também falta). Derivação estática de 1º nível é **incompleta por construção** — e piora quando o nó que falta é justamente quem declara os filhos.
+
+**O oráculo completo é o runtime**, não o parser:
+
+```js
+performance.getEntriesByType('resource').filter(r => r.responseStatus >= 400)
+```
+
+O browser reporta tudo que tentou buscar em **qualquer** profundidade do grafo. Foi assim que as 7 fontes apareceram — nenhuma delas está no HTML. É a mesma doutrina de sempre: medir pela **consequência**, não pela declaração.
+
+### Onde isto se encaixa no canon
+
+É uma instância da lápide de **2026-08-11** (*"o manifesto é CEGO pro que nunca desceu — LIVE-ONLY"*): o `--compare` prova que o que **está** no espelho acompanha o vivo, nunca que o espelho **cobre** o vivo. Este caso é a prova concreta da classe.
+
+O conserto **estende o dono** (`cowork-mirror-freshness`, que já é o dono do papel "baixar fonte com fidelidade de byte" via `--export-from`) — não nasce script novo. O predicado é determinístico (o arquivo existe ou não), então não há FP a medir; o que falta é decidir se a lista de alvos vem do parse (barato, incompleto) ou de uma sonda de runtime (completa, exige abrir o protótipo).
+
+---
+
 ## 8 · Ondas de correção
 
 | onda | o quê | toca pixel? | estado |
 |---|---|---|---|
 | **0** | RUNBOOK do Pro + declarações + fix do "Voltar ao chat" + UC-PRO-07 + `Jana/Pro` no visreg + baseline + smoke | sim | **[#5891](https://github.com/wagnerra23/oimpresso.com/pull/5891)** — aguarda merge + F1.5 |
 | **3** | breadcrumb morto removido (Index, Memoria) + separador do Chat | **não** | **[#5907](https://github.com/wagnerra23/oimpresso.com/pull/5907)** |
+| **E** | **descer os 10 arquivos do DS pro espelho** (§7.4) — sem eles o protótipo local é degradado e toda leitura visual dele é suspeita | não | proposta — **primeira** |
 | **P** | **ligar `--omission` no CI** — a catraca que pega omissão sem declarar item a item | não | proposta |
 | **1** | Pro entra no `PageHeader` canon (sem `subnav`, preserva modo FOCO) | sim → F1.5 | proposta |
 | **2** | `janaContext` no Chat e na Memória (empresa + `biz=` no header) | sim → F1.5 | proposta |
@@ -127,6 +172,6 @@ As três correções **estendem o dono do tema** (`contrato-de-tela`). Gate novo
 | **6** | Dashboard × Painel (título, breadcrumb, componente exportado) | sim → F1.5 | decisão [W] |
 | **7** | as 4 telas Blade da área — uma onda por tela, F1 (RUNBOOK) antes de qualquer `.tsx` | sim | proposta |
 
-**Ordem sugerida:** `P` primeiro. Ligada a catraca de omissão, as ondas 1/2/4/5 param de depender de alguém lembrar do que faltou — o gate passa a dizer.
+**Ordem sugerida:** `E` primeiro (sem o DS, comparar é medir o lado errado), depois `P`. Ligada a catraca de omissão, as ondas 1/2/4/5 param de depender de alguém lembrar do que faltou — o gate passa a dizer.
 
 **Bloqueadas por decisão [W], não por trabalho:** os preços do paywall (restaurar × remover a frase) e o rastro da edição na Memória (DTO da Camada C × prop irmã — ver errata no `Memoria-visual-comparison.md`).
