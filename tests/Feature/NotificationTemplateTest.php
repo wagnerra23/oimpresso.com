@@ -5,8 +5,14 @@ declare(strict_types=1);
 // tests/Feature/NotificationTemplateTest.php
 //
 // Contrato da tela "Modelos de notificação" (/notification-templates).
-// Cada `it()` cita o UC-id de resources/js/Pages/NotificationTemplate/Index.casos.md —
-// é o que o casos-gate (ADR 0264 G-2) lê, e o que o casos-results-collect colhe do JUnit.
+//
+// Cada `it()` cita um UC-id (UC-NOT-NN). O `Index.casos.md` que os DECLARA ainda não está
+// no repo: ele é artefato da Page Inertia, e esta tela ainda é Blade
+// (resources/views/notification_template/). Charter sem `.tsx` irmão quebra o invariante
+// duro IT2 do prototipo-ui/integrity-check.mjs — medido: dos 171 charters do repo, zero
+// estão sem `.tsx`. Charter + casos + contrato entram juntos, na onda da migração; os ids
+// aqui já ficam certos pra quando o casos.md chegar e reivindicá-los (ADR 0264 G-2 lê o
+// heading `## UC-`, e o casos-results-collect colhe o id do título do teste no JUnit).
 //
 // Origem: pacote F1 do Cowork 2026-08-19, autorizado por [W]. Os helpers de tenant do
 // pacote (criarNegocioComAdmin/entrarComoNegocio) NÃO existem neste projeto — o canônico é
