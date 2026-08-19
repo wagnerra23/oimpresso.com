@@ -23,6 +23,16 @@ on:
   # classificador abaixo): a baseline antiga falha e prova a mudança visual. O dispatch serve
   # pra REGENERAR as baselines no runner canônico quando a mudança é intencional/aprovada.
   workflow_dispatch:
+    inputs:
+      screens:
+        description: >-
+          JSON array de telas do manifesto pra regenerar SÓ elas (ex: ["superadmin/Dashboard"]).
+          Vazio = comportamento de sempre (matriz inteira + estados + flows). Existe porque o
+          job tem timeout-minutes 15 e o update completo NÃO cabe nele: medido em 2026-08-19,
+          6 dispatches seguidos morreram em 15min02s marcados como `cancelled` — o que parece
+          concorrência e não é. Baseline de UMA tela nova cabe folgado.
+        required: false
+        default: ""
 
 permissions:
   # O modo update autentica push/PR exclusivamente com COWORK_BOT_PAT. O GITHUB_TOKEN
@@ -499,12 +509,21 @@ jobs:
       # ── MODO UPDATE (dispatch): regenera as baselines e abre PR ─────────────────
       - name: Regenerar baselines (pixel + estados + fluxos) — modo update
         if: github.event_name == 'workflow_dispatch'
+        env:
+          # Escopo opcional: com `screens`, o PixelBaselineTest filtra o manifesto (ele já lê
+          # VISREG_SCREENS) e as suítes de estados/flows ficam de fora — elas cobrem OUTRAS
+          # telas e não têm o que regenerar quando o alvo é uma tela só.
+          VISREG_SCREENS: ${{ inputs.screens }}
         run: |
           npm run visreg:update
-          npm run visreg:states:update
-          npm run visreg:flows:update
-          npm run visreg:sells:update
-          npm run visreg:flows:compras:update
+          if [ -z "${{ inputs.screens }}" ]; then
+            npm run visreg:states:update
+            npm run visreg:flows:update
+            npm run visreg:sells:update
+            npm run visreg:flows:compras:update
+          else
+            echo "escopo=${{ inputs.screens }} — estados/flows pulados (cobrem outras telas)."
+          fi
 
       # COWORK_BOT_PAT, NÃO GITHUB_TOKEN (anti-recursão do Actions): o GitHub NÃO dispara
       # workflows `pull_request` em eventos causados pelo GITHUB_TOKEN → PR de baselines
