@@ -46,17 +46,20 @@ beforeEach(function () {
         $this->markTestSkipped('SQLite-incompatível: schema MySQL UltimatePOS necessário (ADR 0358).');
     }
 
-    // `layouts/app.blade.php:56` lê `$_SERVER['REMOTE_ADDR']` DIRETO do
-    // superglobal (não do Request), e em teste HTTP ele não existe: a view
-    // estoura ErrorException → ViewException → a resposta vira pagina de erro,
-    // e todo `viewData()` falha com "The response is not a view".
+    // ENUMERADOS, não descobertos um por rodada de CI: destes dois o caminho de
+    // render depende, e nenhum tem default no código.
+    //   REMOTE_ADDR      layouts/app.blade.php:56  ·  Util.php:1267 (último else)
+    //   HTTP_USER_AGENT  helpers.php:72 `isMobile()`, chamada na app.blade.php:72
+    // Os vizinhos HTTP_X_FORWARDED_FOR e HTTP_CLIENT_IP (Util.php:1260-65) já são
+    // guardados por `! empty()`; HTTP_HOST só aparece no middleware Csv, fora daqui.
     //
-    // `withServerVariables()` NÃO resolve: ele alimenta o server bag do Request
-    // criado pelo Symfony, e não toca o superglobal que a Blade lê.
+    // `withServerVariables()` NÃO serve: ele alimenta o server bag do Request do
+    // Symfony, e este código lê o SUPERGLOBAL direto.
     //
-    // Toda requisição HTTP real traz REMOTE_ADDR — o teste só está fornecendo o
-    // que o ambiente sempre forneceria. Não é máscara de defeito de produto.
+    // Toda requisição HTTP real traz os dois — o teste só fornece o que o ambiente
+    // sempre forneceria. O `??=` preserva valor existente.
     $_SERVER['REMOTE_ADDR'] ??= '127.0.0.1';
+    $_SERVER['HTTP_USER_AGENT'] ??= 'Pest/CI (X11; Linux x86_64) HeadlessChrome';
 
     $this->oiMarcador = 'BASE' . strtoupper(substr(uniqid(), -8));
     $this->oiLicencaIds = [];
