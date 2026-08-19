@@ -305,6 +305,37 @@ it('UC-LOGS-10 · a flag ON NÃO afrouxa a guarda de acesso', function () {
     $user->forceDelete();
 });
 
+it('UC-TL-07 · com a flag ON a timeline responde Inertia com a máquina', function () {
+    $business = $this->seededTenant();
+    $user = actingAsOiLeitor($this, $business->id);
+    $alvo = criaMaquinaOi($this, $business->id, ['user_win' => $this->oiMarcador . '-ON']);
+
+    forcaFlagV2($this, true);
+
+    $this->get('/officeimpresso/licenca_log/timeline/' . $alvo)
+        ->assertOk()
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->component('Officeimpresso/Logs/Timeline')
+            ->where('maquina.id', $alvo)
+        );
+
+    $user->forceDelete();
+});
+
+it('UC-TL-10 · a flag ON NÃO afrouxa a guarda da timeline', function () {
+    $business = $this->seededTenant();
+
+    // Contraparte do UC-LOGS-10 pro caminho da timeline: o render novo não pode
+    // virar porta dos fundos. A guarda roda antes.
+    $user = makeOiLogsTestUser($business->id);
+    $this->actingAs($user);
+    forcaFlagV2($this, true);
+
+    $this->get('/officeimpresso/licenca_log/timeline/' . LICENCA_INEXISTENTE_BASE)->assertForbidden();
+
+    $user->forceDelete();
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
