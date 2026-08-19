@@ -272,6 +272,28 @@ it('UC-NOT-30 · sanitiza script no corpo do e-mail ao montar a mensagem', funct
     expect($corpo)->not->toContain('<script');
 });
 
+// ── P8: new_booking só com a agenda ligada ───────────────────────────────────
+
+it('UC-NOT-31 · esconde new_booking quando a agenda nao esta ligada pro negocio', function () {
+    $resposta = $this->actingAs($this->admin)->withSession([
+        'user.business_id' => $this->business->id,
+        'business.id' => $this->business->id,
+        'business.enabled_modules' => ['purchases'],   // sem 'booking'
+    ])->get(rotaIndice());
+
+    expect(array_keys($resposta->viewData('customer_notifications')))->not->toContain('new_booking');
+});
+
+it('UC-NOT-31 · mostra new_booking quando a agenda esta ligada', function () {
+    $resposta = $this->actingAs($this->admin)->withSession([
+        'user.business_id' => $this->business->id,
+        'business.id' => $this->business->id,
+        'business.enabled_modules' => ['booking'],
+    ])->get(rotaIndice());
+
+    expect(array_keys($resposta->viewData('customer_notifications')))->toContain('new_booking');
+});
+
 // ── P6: teste de envio ───────────────────────────────────────────────────────
 
 it('UC-NOT-22 · manda o teste para o usuario logado, nunca para o destino do request', function () {

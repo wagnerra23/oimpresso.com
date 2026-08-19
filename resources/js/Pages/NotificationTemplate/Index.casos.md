@@ -166,6 +166,15 @@ last_run: "2026-08-19"
 
 ---
 
+## UC-NOT-31 · `new_booking` só aparece com a agenda ligada
+- **Persona:** negócio que não usa agenda não deve ver — nem poder editar — o modelo de reserva.
+- **Aceite:** Dado um negócio SEM `booking` em `enabled_modules` · Quando abro a tela · Então `new_booking` não vem no grupo Cliente; com `booking` ligado, vem.
+- **Teste:** `NotificationTemplateTest.php` — `UC-NOT-31 · esconde new_booking quando a agenda nao esta ligada pro negocio` + `UC-NOT-31 · mostra new_booking quando a agenda esta ligada`.
+- **Patch:** P8. Critério = `enabled_modules` (Camada 2), o mesmo dos outros 3 call-sites do sistema — **não** `isModuleInstalled('Booking')`: não existe `Modules/Booking`, agenda é feature core.
+- **Status: 🧪** — os 2 lados do gate (ligado e desligado) têm assert.
+
+---
+
 ## Backlog — comportamento pretendido, ainda sem teste que o prove
 
 > Estes itens descrevem a **Page Inertia que ainda não existe** (a tela hoje é Blade). Ficam
