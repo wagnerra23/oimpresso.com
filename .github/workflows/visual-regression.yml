@@ -59,7 +59,11 @@ concurrency:
 jobs:
   visual-regression:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    # 15 min no caminho quente (PR) — nao mexo nele, e o custo que o gate deve pagar.
+    # 35 min so no dispatch manual: MEDIDO em 2026-08-19 que o modo update NAO cabe em 15,
+    # e o gargalo e o SETUP (composer + npm + playwright + mysql + migrate + seed), nao o
+    # numero de telas — um dispatch escopado a UMA tela morreu igual, em 15min15s.
+    timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && 35 || 15 }}
     env:
       VISREG_GRAY_APPROVED: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'visreg-gray-approved') && '1' || '0' }}
 
