@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 use Modules\Superadmin\Entities\Subscription;
 use Modules\Superadmin\Services\SuperadminDashboardService;
 use Illuminate\Routing\Controller;
@@ -16,11 +17,13 @@ use Illuminate\Routing\Controller;
 class SuperadminController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Visão geral da plataforma (`GET /superadmin`).
      *
-     * @return Response
+     * O retorno deixou de ser `Illuminate\Http\Response` (view Blade) e passou a
+     * `Inertia\Response` na SA-O1 — o docblock acompanha, senão o PHPStan acusa
+     * `return.type` com razão.
      */
-    public function index(Request $request, SuperadminDashboardService $dashboard)
+    public function index(Request $request, SuperadminDashboardService $dashboard): InertiaResponse
     {
         if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
@@ -121,7 +124,10 @@ class SuperadminController extends Controller
      */
     private function recentesPayload(): array
     {
-        return Business::query()
+        // DB::table, não Business::query(): as colunas do JOIN (`sub_status`, `sub_end`) não
+        // existem no model, e hidratar Eloquent só pra ler 5 linhas não paga. O PHPStan
+        // reclamava disso com razão (`property.notFound`) — aqui o retorno é stdClass mesmo.
+        return DB::table('business')
             ->leftJoin('subscriptions AS s', function ($join) {
                 $join->on('business.id', '=', 's.business_id')
                     ->whereRaw('s.id = (SELECT MAX(s2.id) FROM subscriptions s2 WHERE s2.business_id = business.id)');
