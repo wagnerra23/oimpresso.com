@@ -157,6 +157,15 @@ last_run: "2026-08-19"
 
 ---
 
+## UC-NOT-22 · Teste de envio vai para o usuário logado, nunca para o request
+- **Persona:** Wagner quer conferir como o texto chega, sem que a rota vire relay aberto.
+- **Aceite:** Dado o canal E-mail · Quando peço "Enviar teste pra mim" · Então a mensagem vai para **o e-mail do usuário logado**; um `to_email` enviado no request é **ignorado**; e `template_for` fora das chaves da tela é recusado com erro de validação.
+- **Teste:** `NotificationTemplateTest.php` — `UC-NOT-22 · manda o teste para o usuario logado, nunca para o destino do request` + `UC-NOT-22 · recusa template_for fora das chaves que a tela oferece`.
+- **Patch:** P6. O `throttle:6,1` vive na rota, não no controller — vale antes de tocar o método.
+- **Status: 🧪** — o P6 landou com rota + método + os 2 asserts.
+
+---
+
 ## Backlog — comportamento pretendido, ainda sem teste que o prove
 
 > Estes itens descrevem a **Page Inertia que ainda não existe** (a tela hoje é Blade). Ficam
@@ -178,4 +187,3 @@ last_run: "2026-08-19"
 - [BACKLOG] Atalho `/` foca a busca; `Esc` limpa o texto e devolve o foco.
 - [BACKLOG] Alternar Visual ↔ HTML preserva o conteúdo do corpo nos dois sentidos.
 - [BACKLOG] Modelo injetado por módulo via `notification_list` aparece no grupo com as `extra_tags` declaradas (R1 — a tela não assume lista fixa).
-- [BACKLOG] "Enviar teste pra mim" manda para o e-mail do usuário logado (nunca do request) e a segunda tentativa imediata é barrada por `throttle:6,1` (P6).
