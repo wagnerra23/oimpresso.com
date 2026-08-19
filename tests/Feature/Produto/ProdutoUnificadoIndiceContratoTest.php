@@ -135,7 +135,7 @@ it('UC-PUNI-08 · a aba de tipo recorta por tipo derivado e conta só ativos', f
     $estocavel = EstoqueFixture::singleProduct($bizId, true);
     $servico = EstoqueFixture::singleProduct($bizId, false);
 
-    $abaProdutos = indiceContratoProps($this, ['produtos', 'abas'], ['aba' => 'produtos']);
+    $abaProdutos = indiceContratoProps($this, ['produtos', 'abas'], ['aba' => 'produtos', 'busca' => 'Produto Estoque Fix', 'porPagina' => 100]);
     $idsProdutos = collect($abaProdutos['produtos'])->pluck('id')->all();
 
     expect(in_array($estocavel->productId, $idsProdutos, true))->toBeTrue(
@@ -147,7 +147,7 @@ it('UC-PUNI-08 · a aba de tipo recorta por tipo derivado e conta só ativos', f
         . 'e a aba de tipo não é filtro decorativo.'
     );
 
-    $abaServicos = indiceContratoProps($this, ['produtos'], ['aba' => 'servicos']);
+    $abaServicos = indiceContratoProps($this, ['produtos'], ['aba' => 'servicos', 'busca' => 'Produto Estoque Fix', 'porPagina' => 100]);
     $idsServicos = collect($abaServicos['produtos'])->pluck('id')->all();
     expect(in_array($servico->productId, $idsServicos, true))->toBeTrue(
         'O item sem controle de estoque não apareceu na aba "Serviços".'
@@ -173,7 +173,7 @@ it('UC-PUNI-09 · não estocável e sem estoque são estados diferentes no paylo
     $estocavel = EstoqueFixture::singleProduct($bizId, true);
     $servico = EstoqueFixture::singleProduct($bizId, false);
 
-    $props = indiceContratoProps($this, ['produtos'], ['aba' => 'todos']);
+    $props = indiceContratoProps($this, ['produtos'], ['aba' => 'todos', 'busca' => 'Produto Estoque Fix', 'porPagina' => 100]);
     $linhas = collect($props['produtos']);
 
     $linhaEstocavel = (array) $linhas->firstWhere('id', $estocavel->productId);
@@ -227,5 +227,116 @@ it('UC-PUNI-10 · as agregações do índice não contam produto de outro busine
         $totalAntes,
         'O total do recorte subiu com produto de outro business — o contador da toolbar vaza o '
         . 'tamanho do catálogo do vizinho.'
+    );
+});
+
+// =============================================================================
+// UC-PUNI-11 — paginação server-side (handoff V2 §4.8 e §9). Três invariantes:
+//   a) `produtos` é a FATIA (≤ porPagina) e `totalDaAba` é o total do RECORTE
+//   b) páginas não se sobrepõem — sem ordem estável, item aparece duas vezes ou some
+//   c) `porPagina` fora da lista branca cai no padrão; `ordem` fora da lista é ignorada
+// =============================================================================
+
+it('UC-PUNI-11 · a fatia respeita porPagina e o total continua sendo o do recorte', function () {
+    // Seis itens do mesmo tenant garantem mais de uma página com porPagina=10 quando somados
+    // ao que o seed já tem; com o tenant vazio, garantem pelo menos a fatia curta.
+    for ($i = 0; $i < 6; $i++) {
+        EstoqueFixture::singleProduct((int) $this->business->id);
+    }
+
+    $consulta = ['aba' => 'todos', 'busca' => 'Produto Estoque Fix', 'porPagina' => 10, 'pagina' => 1];
+    $props = indiceContratoProps($this, ['produtos', 'totalDaAba'], $consulta);
+
+    expect($props)->toHaveKey('produtos')->toHaveKey('totalDaAba');
+
+    $fatia = collect($props['produtos']);
+    $total = (int) $props['totalDaAba'];
+
+    expect($fatia->count())->toBeLessThanOrEqual(
+        10,
+        'A resposta trouxe mais linhas que `porPagina`. O LIMIT não está sendo aplicado — com o '
+        . 'catálogo real isso é a tela inteira vindo num payload só.'
+    );
+    expect($total)->toBeGreaterThanOrEqual(
+        $fatia->count(),
+        'O total do recorte veio MENOR que a fatia. `totalDaAba` é o total autoritativo (V2 §9): '
+        . 'se ele contar menos que a página, o rodapé escreve "1–10 de 6".'
+    );
+    expect($total)->toBeGreaterThanOrEqual(6, 'Os 6 itens semeados não entraram na contagem do recorte.');
+});
+
+it('UC-PUNI-11B · página 2 não repete nenhuma linha da página 1', function () {
+    // 12 itens com `porPagina = 10` garante duas páginas. O valor TEM de estar na lista branca
+    // (10/25/50/100): a 1ª versão deste teste usava `porPagina = 3` e o controller, certíssimo,
+    // caiu no padrão 25 e devolveu as 6 numa página só — o teste media a validação, não a
+    // paginação. Quem prova a lista branca é o UC-PUNI-11D; aqui o valor é válido de propósito.
+    for ($i = 0; $i < 12; $i++) {
+        EstoqueFixture::singleProduct((int) $this->business->id);
+    }
+
+    $base = ['aba' => 'todos', 'busca' => 'Produto Estoque Fix', 'porPagina' => 10];
+
+    $p1 = collect(indiceContratoProps($this, ['produtos'], $base + ['pagina' => 1])['produtos'])->pluck('id');
+    $p2 = collect(indiceContratoProps($this, ['produtos'], $base + ['pagina' => 2])['produtos'])->pluck('id');
+
+    expect($p1)->toHaveCount(10, 'A página 1 não veio cheia — sem ela o teste de sobreposição não mede nada.');
+    expect($p2->isNotEmpty())->toBeTrue('A página 2 veio vazia com 12 itens semeados e porPagina=10.');
+
+    expect($p1->intersect($p2)->all())->toBe(
+        [],
+        'Item apareceu nas duas páginas. Sem desempate estável no ORDER BY, o MySQL é livre pra '
+        . 'devolver ordens diferentes entre as duas consultas — e aí item repete numa página e '
+        . 'some da outra.'
+    );
+});
+
+it('UC-PUNI-11C · ordenar por custo é ignorado pra quem não pode ver custo', function () {
+    if ($this->user->can('view_purchase_price')) {
+        $this->markTestSkipped('User seedado JÁ tem view_purchase_price — sem cenário pra provar o gate.');
+    }
+
+    // Dois itens com custos MUITO diferentes e preço igual: se a ordenação por custo passasse,
+    // a posição na lista denunciaria qual é o mais caro — o número invisível vazaria por
+    // ordem, que é o mesmo vazamento de AR-PROD-015 com um passo a mais.
+    $barato = EstoqueFixture::singleProduct((int) $this->business->id);
+    $caro = EstoqueFixture::singleProduct((int) $this->business->id);
+    DB::table('variations')->whereIn('id', array_column($barato->variations, 'variation_id'))
+        ->update(['dpp_inc_tax' => 1.0, 'default_purchase_price' => 1.0]);
+    DB::table('variations')->whereIn('id', array_column($caro->variations, 'variation_id'))
+        ->update(['dpp_inc_tax' => 9999.0, 'default_purchase_price' => 9999.0]);
+
+    $base = ['aba' => 'todos', 'busca' => 'Produto Estoque Fix', 'porPagina' => 100];
+
+    $asc = collect(indiceContratoProps($this, ['produtos'], $base + ['ordem' => 'custo', 'dir' => 'asc'])['produtos'])->pluck('id')->all();
+    $desc = collect(indiceContratoProps($this, ['produtos'], $base + ['ordem' => 'custo', 'dir' => 'desc'])['produtos'])->pluck('id')->all();
+
+    expect($asc)->not->toBeEmpty('O recorte veio vazio — sem linhas, "a ordem não mudou" mediria não-execução.');
+    expect($asc)->toBe(
+        $desc,
+        'Pedir custo asc e custo desc devolveu ordens DIFERENTES para quem não pode ver custo. '
+        . 'A ordem denuncia o valor: o primeiro da lista é o mais barato. O controller precisa '
+        . 'cair no padrão (nome) quando o perfil não tem `view_purchase_price`.'
+    );
+});
+
+it('UC-PUNI-11D · porPagina e ordem fora da lista branca caem no padrão', function () {
+    EstoqueFixture::singleProduct((int) $this->business->id);
+
+    // `porPagina=99999` seria varredura do catálogo inteiro; `ordem=c.id; DROP` seria injeção
+    // no ORDER BY. Os dois têm de morrer na validação, não no banco.
+    $props = indiceContratoProps($this, ['filters', 'produtos'], [
+        'aba' => 'todos',
+        'busca' => 'Produto Estoque Fix',
+        'porPagina' => 99999,
+        'ordem' => 'c.id; DROP TABLE products',
+    ]);
+
+    expect((int) $props['filters']['porPagina'])->toBe(
+        25,
+        '`porPagina` fora da lista branca não caiu no padrão — a URL vira alavanca pra varrer o catálogo.'
+    );
+    expect($props['filters']['ordem'])->toBe(
+        '',
+        '`ordem` fora da lista branca sobreviveu à validação — isso entra cru no ORDER BY.'
     );
 });
