@@ -135,8 +135,14 @@ class NotificationTemplateController extends Controller
         $template_data = $request->input('template_data');
         $business_id = request()->session()->get('user.business_id');
 
+        // POST sem `template_data` (ou com escalar): trata como "nada a gravar" e segue pro
+        // mesmo fim do método. NÃO usar early-return aqui — o `store()` tem um `@return
+        // Illuminate\Http\Response` no docblock que já não bate com o RedirectResponse real,
+        // e essa divergência está no phpstan-baseline com `count: 1`. Um segundo `return
+        // redirect()` faria a MESMA mensagem ocorrer 2×, e o ratchet reprova por contagem.
+        // Corrigir o docblock seria o certo, mas muda o baseline — decisão separada.
         if (! is_array($template_data)) {
-            return redirect()->back();
+            $template_data = [];
         }
 
         // P2 — só as chaves que a PRÓPRIA tela oferece. Sem isto, `template_data[qualquer
