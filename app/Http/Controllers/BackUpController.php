@@ -209,7 +209,7 @@ class BackUpController extends Controller
      */
     private function resolverArquivo($file_name)
     {
-        abort_unless(is_string($file_name) && preg_match(self::NOME_VALIDO, $file_name) === 1, 404, "The backup file doesn't exist.");
+        abort_unless(preg_match(self::NOME_VALIDO, (string) $file_name) === 1, 404, "The backup file doesn't exist.");
         abort_if(str_contains($file_name, '..'), 404, "The backup file doesn't exist.");
 
         $pasta = str_replace('\\', '/', (string) config('backup.backup.name'));
