@@ -11,17 +11,17 @@ last_run: "2026-08-19"
 # Casos de Uso & Aceite — Máquinas Cadastradas (`/officeimpresso/licenca_log`)
 
 > Contrato derivado do **`LicencaLogController`**, do Blade legado e do
-> [logs-parity.md](../../../../../../memory/requisitos/Officeimpresso/logs-parity.md) —
+> [logs-parity.md](../../../../../../../memory/requisitos/Officeimpresso/logs-parity.md) —
 > **não do `Index.tsx`** (caso derivado do código é tautológico, §5 2026-06-05).
-> Ancorado em **US-OI-004** ([SPEC](../../../../../../memory/requisitos/Officeimpresso/SPEC.md)).
+> Ancorado em **US-OI-004** ([SPEC](../../../../../../../memory/requisitos/Officeimpresso/SPEC.md)).
 >
-> ⚠️ **Rota cross-empresa intencional** ([ADR 0093](../../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+> ⚠️ **Rota cross-empresa intencional** ([ADR 0093](../../../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
 > §exceções): a WR2 é a fornecedora do desktop e o suporte precisa ver a máquina do cliente.
 > UC-LOGS-01 e UC-LOGS-10 existem justamente pra travar essa exceção contra "consertos"
 > bem-intencionados.
 >
 > ⚖️ **Onde rodam:** lane `officeimpresso-pest` (MySQL real, allowlist explícita). Tenant
-> canônico **98** ([ADR 0358](../../../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md))
+> canônico **98** ([ADR 0358](../../../../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md))
 > — **nunca biz=4**.
 >
 > **Status:** ✅ passa e com prova no manifesto · 🧪 escrito e na allowlist, **veredito ainda não
@@ -152,7 +152,7 @@ seria testar o contrário do que o defer faz.
 ## `[BACKLOG]` — comportamento real, ainda sem teste que o cite
 
 Sem id de propósito: UC sem teste que o cite é órfão e reprova o G-2
-([ADR 0264](../../../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md)).
+([ADR 0264](../../../../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md)).
 Viram UC quando ganharem teste — os 4 primeiros são itens de severidade **alta** do
 `logs-parity.md` e fechá-los é a **US-OI-006** (F4).
 

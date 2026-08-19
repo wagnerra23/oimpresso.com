@@ -22,9 +22,9 @@ charter_version: 1
 quando ela falou com o servidor pela última vez, e como eu libero/travo agora"* — sem sair do
 cockpit e sem abrir o Delphi.
 
-**Padrão de tela:** [PT-01 Lista](../../../../../../memory/requisitos/_DesignSystem/padroes-tela/PT-01-Lista.md).
-**Plano:** [RUNBOOK-logs.md](../../../../../../memory/requisitos/Officeimpresso/RUNBOOK-logs.md) ·
-**Paridade:** [logs-parity.md](../../../../../../memory/requisitos/Officeimpresso/logs-parity.md).
+**Padrão de tela:** [PT-01 Lista](../../../../../../../memory/requisitos/_DesignSystem/padroes-tela/PT-01-Lista.md).
+**Plano:** [RUNBOOK-logs.md](../../../../../../../memory/requisitos/Officeimpresso/RUNBOOK-logs.md) ·
+**Paridade:** [logs-parity.md](../../../../../../../memory/requisitos/Officeimpresso/logs-parity.md).
 
 ## Sobre a âncora de design — leia antes de usar
 
@@ -95,7 +95,7 @@ por conta própria.
 `superadmin` **ou** `officeimpresso.access` para ver; `officeimpresso.licencas.gerenciar` (ou
 `superadmin`) para as ações de bloqueio, que somem quando o usuário não pode.
 
-**A visão cross-empresa é por design** ([ADR 0093](../../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+**A visão cross-empresa é por design** ([ADR 0093](../../../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
 §exceções): a WR2 é a fornecedora do desktop e quem dá assistência precisa ver a máquina do
 cliente. Quem **não** tem a permissão continua preso ao próprio `business_id`.
 
