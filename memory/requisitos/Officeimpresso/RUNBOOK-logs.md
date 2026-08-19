@@ -67,8 +67,22 @@ e quem não tem a permissão continua preso ao próprio `business_id`.
    `podeVerTodasEmpresas()`, os 5 filtros (`q`, `estado_atual`, `business_id`, `licenca_id`, `hd`),
    os 4 KPIs, e o 404 do `timeline()` com `licenca_id` inexistente.
 2. **Action dual** no `LicencaLogController@index` e `@timeline`: devolve `Inertia::render` quando
-   header `X-Inertia` **E** flag `useV2Logs` ligada; senão `view('officeimpresso::...')` como hoje.
-3. **Feature flag** `useV2Logs` default **OFF** + comando `officeimpresso:enable-v2 {business_id}`.
+   a flag está ligada; senão `view('officeimpresso::...')` como hoje.
+   > ⚠️ **Correção 2026-08-19 (medida na implementação).** A primeira redação desta linha e o DoD
+   > da skill `mwart-process` mandam condicionar **também** ao header `X-Inertia`. **Está errado**
+   > e quebraria a tela: o primeiro carregamento do Inertia é um GET de HTML comum e **não manda
+   > esse header** — exigi-lo faria a React nunca abrir por navegação direta. O único dual em
+   > produção (`SellController::create` + `SellPosController::create`) decide **só pela flag**;
+   > `git grep 'X-Inertia' -- '*/Http/Controllers/*.php'` não acha nenhum controller gateando
+   > página por header. Seguimos o código que roda, não o DoD.
+3. **Feature flag** `useV2OfficeimpressoLogs`, default **OFF**.
+   > ⚠️ **Correção 2026-08-19.** A primeira redação pedia um comando
+   > `officeimpresso:enable-v2 {business_id}`. **Não existe esse padrão no projeto** —
+   > `git grep -lE 'enable-v2|enableV2' -- '*.php'` devolve zero. Flag no oimpresso é
+   > `FeatureFlagService` sobre GrowthBook (CT 100), ligada por toggle na UI, sem deploy.
+   > Nome segue a convenção da única em produção: `useV2SellsCreate` → `useV2<Modulo><Tela>`.
+   > Enquanto o GrowthBook não conhecer a chave, o `fallbackDefaults` não a lista e o default
+   > é `false` — o Blade segue servindo.
 4. **`Inertia::defer`** nas props caras — a lista de máquinas faz JOIN + N enriquecimentos e os KPIs
    são 4 `count()`; ambos entram em `defer` ([RUNBOOK-inertia-defer-pattern](../_DesignSystem/RUNBOOK-inertia-defer-pattern.md)).
    `filters` e `permissions` ficam eager (state de UI, ~0ms).

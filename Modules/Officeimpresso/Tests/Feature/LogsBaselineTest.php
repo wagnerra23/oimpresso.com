@@ -32,6 +32,8 @@ uses(Tests\TestCase::class);
  * rodam em sqlite). Tenant canônico de teste = 98 (ADR 0358), NUNCA biz=4.
  *
  * @covers-us US-OI-001
+ * @covers-us US-OI-002
+ * @covers-us US-OI-003
  * @see Modules\Officeimpresso\Http\Controllers\LicencaLogController
  * @see memory/requisitos/Officeimpresso/RUNBOOK-logs.md
  * @see memory/requisitos/Officeimpresso/SPEC.md (US-OI-001)
@@ -179,6 +181,19 @@ it('estado_atual separa máquina bloqueada de ativa', function () {
     $user->forceDelete();
 });
 
+it('não quebra com business_id não-numérico na query string', function () {
+    $business = $this->seededTenant();
+    $user = actingAsOiLeitor($this, $business->id);
+
+    // Regressão da extração de `buildMaquinasPayload()` (F2): o valor vem de
+    // `$request->query('business_id')`, que é STRING. Tipar o parâmetro como
+    // `?int` transformaria isto num TypeError 500. O comportamento correto —
+    // e o de antes da extração — é devolver lista vazia.
+    $this->get('/officeimpresso/licenca_log?business_id=abc')->assertOk();
+
+    $user->forceDelete();
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Timeline — payload
 // ─────────────────────────────────────────────────────────────────────────────
@@ -224,8 +239,101 @@ it('timeline preserva o was_blocked do metadata (tri-estado da coluna Estado no 
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Caminho dual (F2) — @covers-us US-OI-002
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('com a flag OFF as duas telas continuam servindo Blade', function () {
+    $business = $this->seededTenant();
+    $user = actingAsOiLeitor($this, $business->id);
+    $alvo = criaMaquinaOi($this, $business->id, ['user_win' => $this->oiMarcador . '-OFF']);
+
+    // Default é OFF: o GrowthBook não conhece a chave e o `fallbackDefaults` do
+    // FeatureFlagService não a lista. Este é o estado em produção até [W]
+    // ligar — e é o que garante que o merge deste PR não muda nada pro usuário.
+    forcaFlagV2($this, false);
+
+    // `viewData` só existe em resposta de view: se um dia isto virar Inertia
+    // sem alguém ligar a flag, o teste quebra aqui.
+    expect($this->get('/officeimpresso/licenca_log')->viewData('kpis'))->toBeArray();
+    expect($this->get('/officeimpresso/licenca_log/timeline/' . $alvo)->viewData('maquina'))->not->toBeNull();
+
+    $user->forceDelete();
+});
+
+it('com a flag ON a lista responde Inertia com filters e permissions', function () {
+    $business = $this->seededTenant();
+    $user = actingAsOiLeitor($this, $business->id);
+
+    forcaFlagV2($this, true);
+
+    $this->get('/officeimpresso/licenca_log?q=' . $this->oiMarcador)
+        ->assertOk()
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->component('Officeimpresso/Logs/Index')
+            // `maquinas` e `kpis` NÃO entram aqui de propósito — são
+            // `Inertia::defer`, então não vêm no payload inicial. Afirmar que
+            // existem seria testar o contrário do que o defer faz.
+            ->has('filters')
+            ->where('filters.q', $this->oiMarcador)
+            ->has('permissions.pode_ver_todas_empresas')
+        );
+
+    $user->forceDelete();
+});
+
+it('com a flag ON a timeline responde Inertia com a máquina', function () {
+    $business = $this->seededTenant();
+    $user = actingAsOiLeitor($this, $business->id);
+    $alvo = criaMaquinaOi($this, $business->id, ['user_win' => $this->oiMarcador . '-ON']);
+
+    forcaFlagV2($this, true);
+
+    $this->get('/officeimpresso/licenca_log/timeline/' . $alvo)
+        ->assertOk()
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->component('Officeimpresso/Logs/Timeline')
+            ->where('maquina.id', $alvo)
+        );
+
+    $user->forceDelete();
+});
+
+it('a flag ON NÃO afrouxa a guarda de acesso', function () {
+    $business = $this->seededTenant();
+
+    // O caminho novo não pode virar porta dos fundos: quem não podia ver a tela
+    // no Blade continua tomando 403 no Inertia. A guarda roda antes do render.
+    $user = makeOiLogsTestUser($business->id);
+    $this->actingAs($user);
+    session(['user.business_id' => $business->id]);
+    forcaFlagV2($this, true);
+
+    $this->get('/officeimpresso/licenca_log')->assertForbidden();
+    $this->get('/officeimpresso/licenca_log/timeline/' . LICENCA_INEXISTENTE_BASE)->assertForbidden();
+
+    $user->forceDelete();
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Força o veredito da feature flag sem depender do GrowthBook do CT 100 —
+ * teste que sai na rede não é teste, é sorte.
+ */
+function forcaFlagV2($test, bool $ligada): void
+{
+    $test->instance(\App\Services\FeatureFlagService::class, new class($ligada) extends \App\Services\FeatureFlagService
+    {
+        public function __construct(private bool $ligada) {}
+
+        public function isOn(string $flag, array $attrs = []): bool
+        {
+            return $this->ligada;
+        }
+    });
+}
 
 function makeOiLogsTestUser(int $businessId): User
 {

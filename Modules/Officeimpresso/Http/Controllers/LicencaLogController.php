@@ -2,13 +2,28 @@
 
 namespace Modules\Officeimpresso\Http\Controllers;
 
+use App\Services\FeatureFlagService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Modules\Officeimpresso\Entities\LicencaLog;
 use Yajra\DataTables\Facades\DataTables;
 
 class LicencaLogController extends Controller
 {
+    /**
+     * Flag do caminho React destas duas telas (F2 do MWART · ADR 0104).
+     *
+     * Convenção de nome copiada da única em produção (`useV2SellsCreate`, em
+     * SellController/SellPosController): `useV2<Modulo><Tela>`. Enquanto o
+     * GrowthBook não conhecer a chave, o FeatureFlagService cai no
+     * `fallbackDefaults` — que NÃO lista esta flag, então o default é `false`
+     * e o Blade continua servindo. Ligar é toggle no GrowthBook, não deploy.
+     *
+     * @see memory/requisitos/Officeimpresso/RUNBOOK-logs.md
+     */
+    private const FLAG_V2 = 'useV2OfficeimpressoLogs';
+
     /**
      * Autoriza a leitura do log de acesso das máquinas. Aceita `superadmin`
      * (acesso histórico) OU a permissão delegável `officeimpresso.access`,
@@ -155,6 +170,66 @@ class LicencaLogController extends Controller
         $filter_estado_atual = $request->query('estado_atual');
         $filter_hd           = trim((string) $request->query('hd', ''));
 
+        $filtros = [
+            'q'            => $filter_q,
+            'estado_atual' => $filter_estado_atual,
+            'business_id'  => $filter_business_id,
+            'licenca_id'   => $filter_licenca_id,
+            'hd'           => $filter_hd,
+        ];
+
+        // ── Caminho dual — F2 do MWART (ADR 0104) ────────────────────────────
+        // Só a flag decide. NÃO condicionar também ao header `X-Inertia`: o
+        // primeiro carregamento do Inertia é um GET de HTML comum e NÃO manda
+        // esse header — exigi-lo faria a tela React nunca abrir por navegação
+        // direta. É o mesmo desenho do único dual em produção
+        // (SellController::create + SellPosController::create).
+        //
+        // As props caras vão em `Inertia::defer` (Tier 0 desde 2026-05-15): a
+        // lista faz JOIN + enriquecimento por log e os KPIs são 4 count(), e
+        // partial reload de filtro não deve pagar os KPIs de novo.
+        if (app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+            return Inertia::render('Officeimpresso/Logs/Index', [
+                'filters'     => $filtros,
+                'permissions' => [
+                    'pode_ver_todas_empresas' => $this->podeVerTodasEmpresas(),
+                    'pode_bloquear'           => auth()->user()->can('superadmin')
+                        || auth()->user()->can('officeimpresso.licencas.gerenciar'),
+                ],
+                'maquinas' => Inertia::defer(fn () => $this->buildMaquinasPayload($business_id, $filtros)),
+                'kpis'     => Inertia::defer(fn () => $this->buildKpisPayload()),
+            ]);
+        }
+
+        $maquinas = $this->buildMaquinasPayload($business_id, $filtros);
+        $kpis     = $this->buildKpisPayload();
+
+        return view('officeimpresso::licenca_log.index', compact(
+            'kpis', 'filter_licenca_id', 'filter_business_id', 'filter_q',
+            'filter_estado_atual', 'filter_hd', 'maquinas'
+        ));
+    }
+
+    /**
+     * Lista de máquinas cadastradas, enriquecida com o último acesso logado.
+     *
+     * Extraído de `index()` sem mudar uma linha da consulta — os dois caminhos
+     * (Blade e Inertia) consomem exatamente o mesmo payload, que é o que faz o
+     * `LogsBaselineTest` continuar valendo depois do cutover.
+     *
+     * @param  mixed  $business_id  null = todas as empresas (visão do suporte).
+     *   SEM type hint de propósito: em `index()` este valor vem de
+     *   `$request->query('business_id')`, que é STRING. Tipar `?int` faria
+     *   `?business_id=abc` virar TypeError 500 — hoje a consulta só devolve
+     *   lista vazia, e migração não pode trocar "vazio" por "quebrou".
+     */
+    private function buildMaquinasPayload($business_id, array $filtros)
+    {
+        $filter_licenca_id   = $filtros['licenca_id'];
+        $filter_q            = $filtros['q'];
+        $filter_estado_atual = $filtros['estado_atual'];
+        $filter_hd           = $filtros['hd'];
+
         $query = \DB::table('licenca_computador as lc')
             ->leftJoin('business as b', 'b.id', '=', 'lc.business_id')
             ->select([
@@ -270,8 +345,16 @@ class LicencaLogController extends Controller
         // Ordena pelo ultimo acesso efetivo desc (log > cadastro; nulls no fim)
         $maquinas = $maquinas->sortByDesc(fn ($m) => $m->effective_ts ?: '0000-00-00')->values();
 
-        // KPIs gerais (nao dependem do filtro aplicado)
-        $kpis = [
+        return $maquinas;
+    }
+
+    /**
+     * Os 4 KPIs do topo. Globais de propósito — NÃO seguem o filtro aplicado
+     * (era assim no Blade e a migração não muda semântica de indicador).
+     */
+    private function buildKpisPayload(): array
+    {
+        return [
             'total_maquinas'      => \DB::table('licenca_computador')->count(),
             'maquinas_bloqueadas' => \DB::table('licenca_computador')->where('bloqueado', 1)->count(),
             'empresas_bloqueadas' => \DB::table('business')->where('officeimpresso_bloqueado', 1)->count(),
@@ -280,11 +363,6 @@ class LicencaLogController extends Controller
                 ->where('created_at', '>=', now()->subHours(24))
                 ->count(),
         ];
-
-        return view('officeimpresso::licenca_log.index', compact(
-            'kpis', 'filter_licenca_id', 'filter_business_id', 'filter_q',
-            'filter_estado_atual', 'filter_hd', 'maquinas'
-        ));
     }
 
     /**
@@ -310,12 +388,29 @@ class LicencaLogController extends Controller
             abort_unless($maquina->business_id === session()->get('user.business_id'), 403);
         }
 
-        $logs = LicencaLog::where('licenca_id', $licenca_id)
+        // Mesma consulta nos dois caminhos — ver buildMaquinasPayload().
+        $carregarLogs = fn () => LicencaLog::where('licenca_id', $licenca_id)
             ->where('source', 'delphi_middleware')
             ->where('endpoint', 'like', '%processa-dados-cliente%')
             ->orderByDesc('created_at')
             ->limit(200)
             ->get();
+
+        // Caminho dual — F2 do MWART (ADR 0104). Só a flag decide; ver o
+        // comentário em index() sobre por que o header X-Inertia fica de fora.
+        if (app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $maquina->business_id])) {
+            return Inertia::render('Officeimpresso/Logs/Timeline', [
+                // `maquina` é 1 linha já carregada — eager, não vale defer.
+                'maquina'     => $maquina,
+                'permissions' => [
+                    'pode_bloquear' => auth()->user()->can('superadmin')
+                        || auth()->user()->can('officeimpresso.licencas.gerenciar'),
+                ],
+                'logs' => Inertia::defer($carregarLogs),
+            ]);
+        }
+
+        $logs = $carregarLogs();
 
         return view('officeimpresso::licenca_log.timeline', compact('maquina', 'logs'));
     }
