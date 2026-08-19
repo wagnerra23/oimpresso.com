@@ -9,7 +9,6 @@ use App\Utils\PermissionCatalog;
 use DB;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
-use App\Utils\PermissionCatalog;
 use Spatie\Permission\Models\Role;
 use Yajra\DataTables\Facades\DataTables;
 
