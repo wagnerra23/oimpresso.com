@@ -384,6 +384,10 @@ class RoleController extends Controller
 
             return $output;
         }
+
+        // Requisicao nao-ajax nao tem resposta neste fluxo (a tela so chama por ajax).
+        // O return explicito existe porque o tipo declarado exige um em todo caminho.
+        return null;
     }
 
     /**
