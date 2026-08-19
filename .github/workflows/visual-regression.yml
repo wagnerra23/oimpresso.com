@@ -561,7 +561,12 @@ jobs:
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         run: |
           if [ "${{ steps.financeiro-flows.outcome }}" = "failure" ]; then
-            echo "🔴 L2.5 ADVISORY FALHOU — fluxo ou viewport divergiu acima de τ_alto. Ver pixel-diff-views."
+            # NÃO afirma a banda: este step só enxerga o outcome, não mediu ratio nenhum.
+            # Em 2026-08-19 ele anunciou "acima de τ_alto" numa falha que era ZONA CINZA
+            # (0.1158%, τ_alto = 2%) — causa não medida. O ratio de cada tela sai do log do
+            # próprio step de fluxos (VisregThreshold) e do $GITHUB_STEP_SUMMARY.
+            echo "🔴 L2.5 Financeiro FALHOU. A causa está no log do step de fluxos acima:"
+            echo "   REGRESSÃO CLARA (> τ_alto) · ZONA CINZA (entre limiares, precisa de [W]) · dimensões divergentes · ou o fluxo não montou."
           elif [ "${{ steps.financeiro-flows.outcome }}" = "success" ]; then
             echo "✅ fluxos Financeiro OK — criar, drawer, baixa e lote capturados em compact/desktop/wide."
           fi
@@ -570,7 +575,8 @@ jobs:
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         run: |
           if [ "${{ steps.sells-flows.outcome }}" = "failure" ]; then
-            echo "🔴 L2.5 Sells/Create ADVISORY FALHOU — fluxo ou viewport divergiu acima de τ_alto (ou baseline ausente na 1ª execução). Ver pixel-diff-views."
+            echo "🔴 L2.5 Sells/Create FALHOU. A causa está no log do step de fluxos acima:"
+            echo "   REGRESSÃO CLARA (> τ_alto) · ZONA CINZA (entre limiares, precisa de [W]) · dimensões divergentes · baseline ausente na 1ª execução · ou o fluxo não montou."
           elif [ "${{ steps.sells-flows.outcome }}" = "success" ]; then
             echo "✅ fluxos Sells/Create OK — adicionar produto, abrir busca, aplicar desconto e adicionar pagamento capturados em compact/desktop/wide."
           fi
@@ -579,7 +585,8 @@ jobs:
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         run: |
           if [ "${{ steps.compras-flows.outcome }}" = "failure" ]; then
-            echo "🔴 L2.5 COMPRAS ADVISORY FALHOU — fluxo ou viewport divergiu acima de τ_alto. Ver pixel-diff-views."
+            echo "🔴 L2.5 COMPRAS FALHOU. A causa está no log do step de fluxos acima:"
+            echo "   REGRESSÃO CLARA (> τ_alto) · ZONA CINZA (entre limiares, precisa de [W]) · dimensões divergentes · ou o fluxo não montou."
             echo "   1ª execução sem baseline GERA e passa (artifact pixel-snapshots comita). Regressão? conserte. Fix aprovado? modo update (dispatch) regenera."
           elif [ "${{ steps.compras-flows.outcome }}" = "success" ]; then
             echo "✅ fluxos Compras OK — visibilidade de colunas, menu de Ações e drawer capturados em compact/desktop/wide."
