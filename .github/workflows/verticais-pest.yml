@@ -172,7 +172,8 @@ jobs:
             Modules/Repair/Tests/Feature/DeviceModelsInertiaSmokeTest.php \
             Modules/Repair/Tests/Feature/ProducaoOficinaRefactorTest.php \
             Modules/Vestuario/Tests/Feature/SmokeRoutesVestuarioTest.php \
-            Modules/Superadmin/Tests/Feature/SuperadminDashboardContratoTest.php
+            Modules/Superadmin/Tests/Feature/SuperadminDashboardContratoTest.php \
+            Modules/Superadmin/Tests/Feature/SubscriptionLifecycleServiceTest.php
 
       # O sumário conta `assertions` POR ARQUIVO — é o discriminador que separa
       # "passou" de "pulou" (LC-13). Aqui só REPORTA.
