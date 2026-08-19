@@ -35,6 +35,23 @@ use App\Transaction;
 use App\User;
 use Carbon\Carbon;
 
+/**
+ * DELETE com o header que a TELA REAL envia.
+ *
+ * O destroy() do UltimatePOS embrulha o corpo INTEIRO em `if (request()->ajax())`, e
+ * `ajax()` testa o header `X-Requested-With: XMLHttpRequest`. O `deleteJson()` do Pest manda
+ * `Accept: application/json` mas NAO manda esse header — entao o metodo caia no fim, devolvia
+ * null e a resposta era 200 VAZIA, sem executar nada.
+ *
+ * Foi assim que os casos NEGATIVOS passaram pelo motivo errado: 'o agente continuou marcado' e
+ * 'o alheio nao foi tocado' sao verdade quando o controller nem roda. Sem o caso POSITIVO ao
+ * lado, este arquivo teria ficado verde provando nada.
+ */
+function ajaxDeleteHeaders(): array
+{
+    return ['X-Requested-With' => 'XMLHttpRequest'];
+}
+
 function agenteDoNegocio(int $businessId): User
 {
     return User::factory()->create([
@@ -109,7 +126,7 @@ it('BLOQUEIA a exclusão de comissionado com venda vinculada, e diz quantas', fu
     // 422 = a guarda respondeu. Sem assertar STATUS, "o agente continuou marcado" tambem seria
     // verdade se a requisicao fosse barrada por 403 — foi assim que o RoleTenantIsolationTest
     // quase passou pelo motivo errado nesta mesma sessao.
-    $this->deleteJson('/sales-commission-agents/'.$agente->id)->assertStatus(422);
+    $this->withHeaders(ajaxDeleteHeaders())->deleteJson('/sales-commission-agents/'.$agente->id)->assertStatus(422);
 
     $agente->refresh();
     expect((bool) $agente->is_cmmsn_agnt)->toBeTrue();
@@ -135,7 +152,7 @@ it('sem venda vinculada, DESMARCA o papel em vez de excluir o usuário', functio
     session(['user.business_id' => TENANT_TESTE]);
 
     // 200 = chegou ao controller e o caminho feliz respondeu (a rota devolve o array $output).
-    $this->deleteJson('/sales-commission-agents/'.$agente->id)->assertOk();
+    $this->withHeaders(ajaxDeleteHeaders())->deleteJson('/sales-commission-agents/'.$agente->id)->assertOk();
 
     // withTrashed porque o comportamento ANTIGO era delete() (soft): se voltar a ser,
     // o refresh() puro não acharia a linha e o teste falharia por motivo errado.
@@ -151,7 +168,7 @@ it('comissionado de outro negócio não é alcançado', function () {
     $this->actingAs($operador);
     session(['user.business_id' => TENANT_TESTE]);
 
-    $this->deleteJson('/sales-commission-agents/'.$alheio->id);
+    $this->withHeaders(ajaxDeleteHeaders())->deleteJson('/sales-commission-agents/'.$alheio->id);
 
     $depois = User::withTrashed()->findOrFail($alheio->id);
     expect((bool) $depois->is_cmmsn_agnt)->toBeTrue();
