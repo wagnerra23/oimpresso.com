@@ -37,36 +37,45 @@ class NotificationTemplateController extends Controller
 
         $business_id = request()->session()->get('user.business_id');
 
-        $general_notifications = NotificationTemplate::generalNotifications();
+        $grupos = $this->__grupos();
 
-        $general_notifications = $this->__getTemplateDetails($general_notifications);
-
-        $customer_notifications = NotificationTemplate::customerNotifications();
-
-        $module_customer_notifications = $this->moduleUtil->getModuleData('notification_list', ['notification_for' => 'customer']);
-
-        if (! empty($module_customer_notifications)) {
-            foreach ($module_customer_notifications as $module_customer_notification) {
-                $customer_notifications = array_merge($customer_notifications, $module_customer_notification);
-            }
-        }
-
-        $customer_notifications = $this->__getTemplateDetails($customer_notifications);
-
-        $supplier_notifications = NotificationTemplate::supplierNotifications();
-
-        $module_supplier_notifications = $this->moduleUtil->getModuleData('notification_list', ['notification_for' => 'supplier']);
-
-        if (! empty($module_supplier_notifications)) {
-            foreach ($module_supplier_notifications as $module_supplier_notification) {
-                $supplier_notifications = array_merge($supplier_notifications, $module_supplier_notification);
-            }
-        }
-
-        $supplier_notifications = $this->__getTemplateDetails($supplier_notifications);
+        $general_notifications = $this->__getTemplateDetails($grupos['general']);
+        $customer_notifications = $this->__getTemplateDetails($grupos['customer']);
+        $supplier_notifications = $this->__getTemplateDetails($grupos['supplier']);
 
         return view('notification_template.index')
                 ->with(compact('customer_notifications', 'supplier_notifications', 'general_notifications'));
+    }
+
+    /**
+     * Os 3 grupos de modelos que ESTA tela oferece — core + os que módulos injetam
+     * via `notification_list`.
+     *
+     * Fonte única de propósito: o `index()` monta a tela a partir daqui e o `store()`
+     * deriva daqui a lista de chaves aceitas (P2). Se as duas composições fossem
+     * escritas separadamente, um modelo novo injetado por módulo apareceria na tela e
+     * seria recusado ao salvar — ou pior, a whitelist envelheceria e voltaria a aceitar
+     * qualquer coisa sem ninguém notar.
+     *
+     * @return array{general: array, customer: array, supplier: array}
+     */
+    private function __grupos()
+    {
+        $customer = NotificationTemplate::customerNotifications();
+        foreach ($this->moduleUtil->getModuleData('notification_list', ['notification_for' => 'customer']) ?: [] as $extra) {
+            $customer = array_merge($customer, $extra);
+        }
+
+        $supplier = NotificationTemplate::supplierNotifications();
+        foreach ($this->moduleUtil->getModuleData('notification_list', ['notification_for' => 'supplier']) ?: [] as $extra) {
+            $supplier = array_merge($supplier, $extra);
+        }
+
+        return [
+            'general' => NotificationTemplate::generalNotifications(),
+            'customer' => $customer,
+            'supplier' => $supplier,
+        ];
     }
 
     private function __getTemplateDetails($notifications)
@@ -102,6 +111,28 @@ class NotificationTemplateController extends Controller
 
         $template_data = $request->input('template_data');
         $business_id = request()->session()->get('user.business_id');
+
+        if (! is_array($template_data)) {
+            return redirect()->back();
+        }
+
+        // P2 — só as chaves que a PRÓPRIA tela oferece. Sem isto, `template_data[qualquer
+        // _coisa]` num POST forjado cria linha com `template_for` arbitrário e polui a
+        // tabela do negócio (achado A3).
+        $permitidas = array_keys(array_merge(...array_values($this->__grupos())));
+        $template_data = array_intersect_key($template_data, array_flip($permitidas));
+
+        // P3 — validação server-side de cc/bcc. Antes disto só o `type="email"` do HTML
+        // protegia: qualquer POST gravava o que chegasse (achado A2). R8 do charter: é UM
+        // endereço por campo, não lista — se um dia virar lista, trocar por regra própria.
+        $regras = [];
+        foreach (array_keys($template_data) as $key) {
+            $regras["template_data.{$key}.cc"] = 'nullable|email';
+            $regras["template_data.{$key}.bcc"] = 'nullable|email';
+        }
+        if ($regras !== []) {
+            $request->validate($regras);
+        }
 
         foreach ($template_data as $key => $value) {
             NotificationTemplate::updateOrCreate(
