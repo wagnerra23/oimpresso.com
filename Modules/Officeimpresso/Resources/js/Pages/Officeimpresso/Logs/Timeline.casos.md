@@ -11,12 +11,12 @@ last_run: "2026-08-19"
 # Casos de Uso & Aceite — Timeline da máquina
 
 > Contrato derivado do **`LicencaLogController::timeline()`**, do Blade legado e do
-> [logs-parity.md](../../../../../../memory/requisitos/Officeimpresso/logs-parity.md) itens 38-51 —
+> [logs-parity.md](../../../../../../../memory/requisitos/Officeimpresso/logs-parity.md) itens 38-51 —
 > **não do `Timeline.tsx`**. Ancorado em **US-OI-005**
-> ([SPEC](../../../../../../memory/requisitos/Officeimpresso/SPEC.md)).
+> ([SPEC](../../../../../../../memory/requisitos/Officeimpresso/SPEC.md)).
 >
 > ⚖️ **Onde rodam:** lane `officeimpresso-pest` (MySQL real, allowlist explícita). Tenant canônico
-> **98** ([ADR 0358](../../../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)).
+> **98** ([ADR 0358](../../../../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)).
 >
 > **Status:** ✅ passa e com prova no manifesto · 🧪 escrito e na allowlist, **veredito ainda não
 > emitido** · ⬜ não verificado · ❌ o teste prova comportamento indesejado.

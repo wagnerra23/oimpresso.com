@@ -21,9 +21,9 @@ charter_version: 1
 estava liberado na hora?"* — que é a pergunta que o suporte faz quando o cliente liga dizendo que
 o sistema não abre.
 
-**Padrão de tela:** [PT-07 Feed/Timeline](../../../../../../memory/requisitos/_DesignSystem/padroes-tela/PT-07-Feed-Timeline.md).
-**Plano:** [RUNBOOK-logs.md](../../../../../../memory/requisitos/Officeimpresso/RUNBOOK-logs.md) ·
-**Paridade:** [logs-parity.md](../../../../../../memory/requisitos/Officeimpresso/logs-parity.md) itens 38-51.
+**Padrão de tela:** [PT-07 Feed/Timeline](../../../../../../../memory/requisitos/_DesignSystem/padroes-tela/PT-07-Feed-Timeline.md).
+**Plano:** [RUNBOOK-logs.md](../../../../../../../memory/requisitos/Officeimpresso/RUNBOOK-logs.md) ·
+**Paridade:** [logs-parity.md](../../../../../../../memory/requisitos/Officeimpresso/logs-parity.md) itens 38-51.
 
 ## Sobre a âncora de design
 
