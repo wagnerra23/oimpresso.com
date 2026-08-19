@@ -161,7 +161,7 @@
   },
   {
     "screen": "superadmin/Dashboard",
-    "source": "Superadmin",
+    "source": "superadmin/Dashboard",
     "component": "superadmin/Dashboard/Index",
     "route": "/superadmin",
     "anchor": "Superadmin",
