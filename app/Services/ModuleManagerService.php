@@ -109,8 +109,22 @@ class ModuleManagerService
             try {
                 $moduleJsonPath = $modulePath . DIRECTORY_SEPARATOR . 'module.json';
                 $moduleJson = [];
+                // O status "Com erro" só era alcançável por Throwable na LEITURA — ou seja,
+                // quase nunca: `json_decode` de um JSON malformado devolve null sem lançar.
+                // Aqui as 3 causas reais viram `error` (medido 2026-08-19: 0 dos 32 módulos
+                // acende hoje — o detector nasce escuro e só fala de módulo de fato quebrado).
                 if (File::exists($moduleJsonPath)) {
-                    $moduleJson = json_decode(File::get($moduleJsonPath), true) ?? [];
+                    $decoded = json_decode(File::get($moduleJsonPath), true);
+                    if (! is_array($decoded)) {
+                        $error = 'module.json inválido: ' . json_last_error_msg();
+                    } else {
+                        $moduleJson = $decoded;
+                        if (empty($moduleJson['providers'])) {
+                            $error = 'module.json sem providers[] — o módulo não é carregado.';
+                        }
+                    }
+                } else {
+                    $error = 'module.json ausente.';
                 }
 
                 $migrationsDir = $modulePath . DIRECTORY_SEPARATOR . 'Database' . DIRECTORY_SEPARATOR . 'Migrations';
@@ -133,7 +147,7 @@ class ModuleManagerService
                     'has_migrations'     => $migrationCount > 0,
                     'migration_count'    => $migrationCount,
                     'has_datacontroller' => $hasDataController,
-                    'error'              => null,
+                    'error'              => $error,
                 ];
             } catch (Throwable $e) {
                 $modules[] = [
@@ -198,7 +212,12 @@ class ModuleManagerService
             throw new \InvalidArgumentException("Módulo '{$name}' não existe em Modules/.");
         }
 
-        // Primeiro ativa
+        // O ativar precede o migrate porque o nWidart só registra módulo habilitado.
+        // Guarda o estado de ANTES: se o migrate falhar, o certo é voltar pra ele — e não
+        // pra `false`. Num "Reinstalar" o módulo já estava ativo, e desativá-lo por causa de
+        // um migrate que falhou derrubaria um módulo que estava funcionando.
+        $estadoAnterior = $this->readStatuses()[$name] ?? false;
+
         $this->setActive($name, true);
 
         try {
@@ -217,6 +236,11 @@ class ModuleManagerService
                 'install_output' => $installOutput,
             ];
         } catch (Throwable $e) {
+            // Sem isto a tela afirma "Ativo" para um módulo com schema incompleto (UC-MOD-13).
+            // ⚠️ Migrations que JÁ rodaram antes da exceção NÃO são revertidas — quem avisa
+            // disso é o toast do Controller; aqui só o estado do statuses volta.
+            $this->setActive($name, $estadoAnterior);
+
             return [
                 'success' => false,
                 'output'  => $e->getMessage(),

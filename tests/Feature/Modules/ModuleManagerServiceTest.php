@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\File;
  * nenhum usa `uses(TestCase::class)`. Como este arquivo usa `storage_path()` e a facade
  * `File`, em `tests/Unit/Services/` ele quebraria.
  *
- * UCs: 05, 07, 11, 12, 13, 14, 17, 18, 19.
+ * UCs: 05, 07, 11, 12, 13, 14, 17, 18, 19, 20.
  *
  * @see app/Services/ModuleManagerService.php
  * @see resources/js/Pages/Modules/Index.casos.md
@@ -126,20 +126,64 @@ it('UC-MOD-12 · install de módulo inexistente é recusado e não altera o JSON
     expect(File::get($this->statuses))->toBe($antes);
 })->group('modules');
 
-it('UC-MOD-13 · [ACHADO] install que falha no migrate deixa o módulo ATIVO — a linha mente', function () {
-    // `install()` chama setActive(true) ANTES do module:migrate. Migrate de um módulo que o
-    // nWidart não conhece falha; a flag já foi gravada e ninguém a reverte.
+it('UC-MOD-13 - install que falha no migrate NAO deixa o modulo marcado como ativo', function () {
+    // Era caracterizacao do defeito ate 2026-08-19 (P1). Agora exige o comportamento certo:
+    // migrate de modulo que o nWidart nao conhece falha, e a flag tem que voltar ao que era.
     fakeModule($this->modulesDir, 'ModuloFantasma', ['alias' => 'modulofantasma'], 1);
     File::put($this->statuses, json_encode(['ModuloFantasma' => false]));
 
     $result = ($this->svc)()->install('ModuloFantasma', null);
 
-    expect($result['success'])->toBeFalse('migrate de módulo não registrado tem que falhar');
+    expect($result['success'])->toBeFalse('migrate de modulo nao registrado tem que falhar')
+        ->and(json_decode(File::get($this->statuses), true)['ModuloFantasma'])
+        ->toBeFalse('install que falhou nao pode deixar o modulo marcado como ativo');
+})->group('modules');
 
-    // CARACTERIZAÇÃO do defeito, não endosso: trava o comportamento ATUAL para que o patch P1
-    // (reverter a flag no catch) quebre este teste de propósito e obrigue a atualizar o UC-MOD-13.
-    expect(json_decode(File::get($this->statuses), true)['ModuloFantasma'])
-        ->toBeTrue('hoje o install falho DEIXA o módulo ativo — é o achado que a MOD-O2/P1 corrige');
+it('UC-MOD-13 - reinstalar que falha preserva o modulo ATIVO, nao o derruba', function () {
+    // O patch [CC] propunha setActive(false) no catch. Isso conserta o caso "instalar" e
+    // QUEBRA o caso "reinstalar": um modulo que ja estava ativo e funcionando seria
+    // desativado por causa de um migrate que falhou. O certo e restaurar o estado ANTERIOR.
+    fakeModule($this->modulesDir, 'ModuloFantasma', ['alias' => 'modulofantasma'], 1);
+    File::put($this->statuses, json_encode(['ModuloFantasma' => true]));
+
+    $result = ($this->svc)()->install('ModuloFantasma', null);
+
+    expect($result['success'])->toBeFalse()
+        ->and(json_decode(File::get($this->statuses), true)['ModuloFantasma'])
+        ->toBeTrue('reinstalar que falha nao pode derrubar modulo que ja estava ativo');
+})->group('modules');
+
+it('UC-MOD-20 - modulo sem module.json aparece Com erro, nao silenciosamente OK', function () {
+    fakeModule($this->modulesDir, 'SemJson', []); // sem module.json
+    File::put($this->statuses, json_encode(['SemJson' => true]));
+
+    $row = collect(($this->svc)()->list())->firstWhere('name', 'SemJson');
+
+    expect($row['error'])->toContain('module.json ausente');
+})->group('modules');
+
+it('UC-MOD-20 - module.json malformado aparece Com erro (json_decode nao lanca)', function () {
+    $path = $this->modulesDir . DIRECTORY_SEPARATOR . 'JsonQuebrado';
+    File::makeDirectory($path, 0777, true);
+    File::put($path . DIRECTORY_SEPARATOR . 'module.json', '{ "alias": "quebrado", ');
+    File::put($this->statuses, json_encode(['JsonQuebrado' => true]));
+
+    $row = collect(($this->svc)()->list())->firstWhere('name', 'JsonQuebrado');
+
+    // prefixo sem acento: a mensagem do Service e 'module.json invalido: <motivo>' com acento
+    // no 'a'; casar pelo prefixo evita depender do encoding do assert.
+    expect($row['error'])->toContain('module.json inv');
+})->group('modules');
+
+it('UC-MOD-20 - module.json sem providers[] aparece Com erro (o modulo nao carrega)', function () {
+    fakeModule($this->modulesDir, 'SemProviders', ['alias' => 'semproviders']);
+    fakeModule($this->modulesDir, 'ComProviders', ['alias' => 'comproviders', 'providers' => ['X\Y\Z']]);
+    File::put($this->statuses, json_encode(['SemProviders' => true, 'ComProviders' => true]));
+
+    $byName = collect(($this->svc)()->list())->keyBy('name');
+
+    expect($byName['SemProviders']['error'])->toContain('providers')
+        ->and($byName['ComProviders']['error'])->toBeNull();
 })->group('modules');
 
 it('UC-MOD-14 · desativar preserva as tabelas: uninstall só derruba a flag', function () {

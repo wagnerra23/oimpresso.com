@@ -28,11 +28,15 @@ last_run: "2026-08-19"
 > diferença deliberada em relação ao rascunho [CC], que fazia backup/restore do arquivo de verdade.
 > Tenant: biz=1 — **nunca biz=4** (ADR 0358).
 >
-> **Run real (recibo):** CT 100, container `oimpresso-staging`, MySQL `oimpresso_staging`, 2026-08-19 —
-> `ModuleManagerServiceTest` **10 passed (22 assertions)** · `ModuleManagementTest` **8 passed
-> (36 assertions)**, zero skip. Total **18 passed / 58 assertions**. Ler *assertions*, não "0 failed":
+> **Run real (recibo):** CT 100, container `oimpresso-staging`, 2026-08-19.
+> Rodada 1 (manhã, MySQL com schema completo): `ModuleManagerServiceTest` **10 passed (22 assertions)**
+> · `ModuleManagementTest` **8 passed (36 assertions)**, zero skip.
+> Rodada 2 (tarde, após P1/P2): `ModuleManagerServiceTest` **14 passed (28 assertions)**.
+> ⚠️ Na rodada 2 as 7 suítes HTTP **não puderam rodar**: o banco de staging foi zerado por outra
+> sessão entre as duas rodadas (377 → 13 tabelas, `users` inexistente). É ambiente, não código — e
+> o veredito HTTP fica com a lane de CI, que sobe banco limpo. Ler *assertions*, não "0 failed":
 > skip também sai exit 0 (LC-13). O `modules_statuses.json` do container ficou com o **mesmo md5**
-> antes e depois — prova de que os testes de mutação rodaram no sandbox, não no arquivo real.
+> antes e depois nas duas rodadas — os testes de mutação rodam no sandbox, não no arquivo real.
 >
 > **Status:** ✅ passa **e** com prova no manifesto G-7 · 🧪 passa no CT 100, ainda **sem** manifesto
 > (o ✅ só vem quando a lane de CI rodar + `npm run casos:results` regravar) · ⬜ não verificado ·
@@ -51,12 +55,13 @@ last_run: "2026-08-19"
 | UC-MOD-07 | Pasta sem chave no JSON aparece como "Não registrado" | must | `ModuleManagerServiceTest` | 🧪 |
 | UC-MOD-11 | Toggle grava o JSON sem corromper as outras chaves | must `[T0]` | `ModuleManagerServiceTest` | 🧪 |
 | UC-MOD-12 | Instalar exige módulo existente e não altera o JSON quando recusa | must | `ModuleManagerServiceTest` | 🧪 |
-| UC-MOD-13 | Instalar que falha não deixa a linha mentindo "Ativo" | must `[bug]` | `ModuleManagerServiceTest` | ❌ |
+| UC-MOD-13 | Instalar que falha não deixa a linha mentindo "Ativo" | must `[bug]` | `ModuleManagerServiceTest` | 🧪 |
 | UC-MOD-14 | Desativar preserva as tabelas do banco | must `[T0]` | `ModuleManagerServiceTest` | 🧪 |
 | UC-MOD-15 | Trocar de negócio não muda o que a tela mostra | must `[T0]` | `ModuleManagementTest` | 🧪 |
 | UC-MOD-17 | A versão exibida é a declarada, não um default | should | `ModuleManagerServiceTest` | 🧪 |
 | UC-MOD-18 | Módulo sem DataController é identificável (não monta menu) | should | `ModuleManagerServiceTest` | 🧪 |
 | UC-MOD-19 | A contagem de migrations da linha é real | should | `ModuleManagerServiceTest` | 🧪 |
+| UC-MOD-20 | Módulo quebrado aparece "Com erro" em vez de silenciosamente OK | should | `ModuleManagerServiceTest` | 🧪 |
 
 > Os ids 08, 09, 10 e 16 estão **reservados** para os `[BACKLOG]` do fim deste arquivo — não reutilizar.
 
@@ -164,17 +169,19 @@ last_run: "2026-08-19"
 
 ---
 
-## UC-MOD-13 · [ACHADO] Install que falha deixa o módulo marcado como ativo · `must` `[bug]`
+## UC-MOD-13 · Install que falha não deixa a linha mentindo "Ativo" · `must` `[bug]`
 
-- **Aceite desejado:** Dado que `module:migrate` lança · Então a UI mostra o erro **e** a linha não
-  afirma "Ativo": ou a flag volta a `false`, ou o status derivado passa a **Com erro**.
-- **Estado atual (defeito):** `install()` chama `setActive($name, true)` **antes** do migrate (o nWidart
-  só registra módulo habilitado) e o `catch` só devolve a mensagem — a linha fica verde com o schema
-  incompleto.
-- **Teste:** `tests/Feature/Modules/ModuleManagerServiceTest.php` (caracterização: trava o comportamento
-  atual para que o patch P1 quebre o teste de propósito e obrigue a atualizar este UC junto).
-- **Status: ❌** — conserto na MOD-O2 (patch P1). Ressalva do próprio P1: migrations já aplicadas antes
-  da exceção **não** são revertidas — o toast precisa dizer isso.
+- **Aceite:** Dado que `module:migrate` lança · Então o resultado é `success = false` **e** o estado
+  do módulo volta ao que era antes da tentativa — a linha nunca afirma "Ativo" com schema incompleto.
+  Em "Reinstalar" (módulo já ativo), o estado preservado é **ativo**: um migrate que falhou não pode
+  derrubar módulo que estava funcionando.
+- **Corrigido em 2026-08-19 (P1).** Antes, `setActive(true)` rodava antes do migrate e o `catch` só
+  devolvia a mensagem. O patch [CC] propunha `setActive($name, false)` — isso conserta o "instalar" e
+  **quebra o "reinstalar"**; a correção guarda o estado anterior e restaura ele.
+- ⚠️ **Ressalva que a UI precisa dizer:** migrations já aplicadas antes da exceção **não** são
+  revertidas. O toast do Controller avisa; o Service só restaura a flag.
+- **Teste:** `tests/Feature/Modules/ModuleManagerServiceTest.php` — dois casos (instalar e reinstalar).
+- **Status: 🧪**
 
 ---
 
@@ -225,6 +232,22 @@ last_run: "2026-08-19"
   `has_migrations` reflete N > 0.
 - **Por que importa:** a confirmação de install promete "rodar N migration(s)"; N precisa ser verdade.
 - **Teste:** `tests/Feature/Modules/ModuleManagerServiceTest.php`
+- **Status: 🧪**
+
+---
+
+## UC-MOD-20 · Módulo quebrado aparece "Com erro", não silenciosamente OK · `should`
+
+- **Aceite:** Dado um módulo cujo `module.json` está **ausente**, **malformado** ou **sem
+  `providers[]`** · Quando a lista é montada · Então a linha traz `error` preenchido e o status
+  derivado é **Com erro** — e módulo íntegro continua com `error = null`.
+- **Por que importa:** o KPI "Com erro" e o badge existiam mas eram inalcançáveis na prática: `error`
+  só era preenchido por `Throwable` na leitura, e `json_decode` de JSON malformado devolve `null` sem
+  lançar. O status existia na UI e nunca podia acender.
+- **FP medido antes de instalar o detector (2026-08-19):** **0 dos 32** módulos acende hoje — todos
+  têm `module.json` válido com `providers[]`. Nasce escuro e só fala de módulo de fato quebrado.
+- **Teste:** `tests/Feature/Modules/ModuleManagerServiceTest.php` — três casos (ausente · malformado ·
+  sem providers, com controle positivo de módulo íntegro).
 - **Status: 🧪**
 
 ---

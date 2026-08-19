@@ -66,7 +66,12 @@ class ModuleManagementController extends Controller
                 return back()->with('status', ['success' => $msg]);
             }
 
-            return back()->with('status', ['error' => "Falha ao instalar {$name}: " . $result['output']]);
+            // O estado do módulo volta ao que era (Service), mas migrations que já rodaram
+            // antes da exceção permanecem aplicadas — o operador precisa saber disso.
+            return back()->with('status', ['error' =>
+                "Falha ao instalar {$name}: " . $result['output']
+                . ' — o módulo voltou ao estado anterior, mas migrations já aplicadas NÃO foram'
+                . ' revertidas; corrija a causa e rode novamente.']);
         } catch (\Throwable $e) {
             return back()->with('status', ['error' => "Falha: {$e->getMessage()}"]);
         }
