@@ -47,9 +47,6 @@ beforeEach(function () {
 /** Tenant do teste. NUNCA biz=4 (ROTA LIVRE, produção) — ADR 0358. */
 const BIZ_DASH = 98;
 
-/** Segundo tenant, pra provar que a home enxerga ALÉM do business do usuário logado. */
-const BIZ_DASH_OUTRO = 99;
-
 function dashSuperadmin(): User
 {
     Business::firstOrCreate(['id' => BIZ_DASH], ['name' => 'Tenant fictício dashboard', 'currency_id' => 1]);
@@ -155,26 +152,28 @@ it('UC-SADASH-03 · admin de negócio é barrado ENQUANTO o superadmin passa', f
 // ── UC-SADASH-04 · as queries enxergam TODOS os negócios (cross-tenant) ──────
 
 it('UC-SADASH-04 · a contagem cobre negócio de outro business, não só o do usuário', function () {
-    // Os DOIS são criados aqui, sem depender de outro caso ter rodado antes nem de
-    // estado deixado por run anterior: no CT 100 a database PERSISTE entre execuções
-    // (o BIZ_DASH sobrevivia de runs passadas e mascarava isso), enquanto no CI cada
-    // lane sobe MySQL fresco. Verde no CT 100 não substitui o gate de merge.
-    Business::firstOrCreate(['id' => BIZ_DASH], ['name' => 'Tenant fictício dashboard', 'currency_id' => 1]);
-    Business::firstOrCreate(['id' => BIZ_DASH_OUTRO], ['name' => 'Outro tenant fictício', 'currency_id' => 1]);
-
-    // Sem mock: exercita a query real do service.
+    // NÃO cria tenant de propósito. `business.owner_id` tem FK pra `users.id`, então
+    // inserir negócio novo num banco fresco esbarra na constraint — e o que este UC mede
+    // é AUSÊNCIA DE ESCOPO, não criação de dado. As duas contagens abaixo já discriminam:
+    // se alguém aplicar `business_id` scope no service, elas divergem na hora.
+    //
+    // (Primeira versão criava os tenants e passava no CT 100 só porque a database de lá
+    // PERSISTE entre runs — no CI, fresco, a FK apareceu. Verde no CT 100 não substitui
+    // o gate de merge.)
     $doService = app(SuperadminDashboardService::class)->countNotSubscribedBusinesses();
 
-    // O usuário logado é do BIZ_DASH; a contagem tem que enxergar o BIZ_DASH_OUTRO também.
-    // Cross-tenant aqui é INTENCIONAL (ADR 0093 §exceções Superadmin) — este caso existe
-    // pra impedir que alguém "conserte" a tela aplicando escopo de tenant.
     $semEscopo = DB::table('business')
         ->leftJoin('subscriptions AS s', 'business.id', '=', 's.business_id')
         ->whereNull('s.id')
         ->count();
 
-    expect($doService)->toBe($semEscopo)
-        ->and($doService)->toBeGreaterThanOrEqual(2);
+    // Cross-tenant aqui é INTENCIONAL (ADR 0093 §exceções Superadmin) — este caso existe
+    // pra impedir que alguém "conserte" a tela aplicando escopo de tenant.
+    expect($doService)->toBe($semEscopo);
+
+    // E o banco precisa ter mais de um negócio, senão o caso não discriminaria nada:
+    // com um tenant só, query escopada e não-escopada devolvem o mesmo número.
+    expect(DB::table('business')->count())->toBeGreaterThanOrEqual(2);
 });
 
 // ── UC-SADASH-05 · nenhum bloco renderizado com número inventado ─────────────
