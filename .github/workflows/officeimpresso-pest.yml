@@ -20,6 +20,15 @@ name: Officeimpresso · Pest (MySQL)
 # próprio, depois de verificado — allowlist é catraca de verde comprovado, não
 # lista de desejos.
 #
+# 2026-08-19 — entra LogsBaselineTest (F2 da Onda 1 da migração React,
+# memory/requisitos/Officeimpresso/RUNBOOK-logs.md). É baseline do
+# comportamento ATUAL das telas licenca_log index+timeline servindo Blade:
+# guarda 403/404, os 4 KPIs, os 4 filtros e o payload da timeline. Nasce aqui
+# na allowlist DE PROPÓSITO e no mesmo PR do arquivo: teste que só entra no
+# phpunit.xml não roda em lane nenhuma (§5 2026-08-02 — "registrar não é
+# rodar"), e a prova de que passou a rodar é o CONTADOR de assertions deste
+# JUnit subir, não o nome aparecer no log.
+#
 # Reusa .github/actions/pest-mysql-setup: PHP 8.4 + deps + .env MySQL + migrate
 # (schema baseline) + seed biz=1 (fixture completa) E biz=2 (Tier 0 cross-tenant).
 # Refs: ADR 0093 (multi-tenant Tier 0) · ADR 0101 (biz=1 nunca biz=4).
@@ -112,7 +121,8 @@ jobs:
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-officeimpresso-junit.xml \
-            Modules/Officeimpresso/Tests/Feature/LicencasAcessoPermissionTest.php
+            Modules/Officeimpresso/Tests/Feature/LicencasAcessoPermissionTest.php \
+            Modules/Officeimpresso/Tests/Feature/LogsBaselineTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
