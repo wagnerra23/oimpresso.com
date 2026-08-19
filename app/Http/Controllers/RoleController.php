@@ -6,6 +6,7 @@ use App\SellingPriceGroup;
 use App\Utils\ModuleUtil;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
+use App\Utils\PermissionCatalog;
 use Spatie\Permission\Models\Role;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -135,20 +136,25 @@ class RoleController extends Controller
                     'is_service_staff' => $is_service_staff,
                 ]);
 
-                //Include selling price group permissions
-                $spg_permissions = $request->input('radio_option');
-                if (! empty($spg_permissions)) {
-                    foreach ($spg_permissions as $spg_permission) {
-                        $permissions[] = $spg_permission;
+                // Grupo de preco chega em spg_permissions[] (checkbox gerado em LOOP pela view,
+                // valor 'selling_price_group.<id>') e as opcoes exclusivas em radio_option[]
+                // (escopo de visao). Varredura das views em 2026-08-19: 122 permissions[] + 29
+                // radio_option[] estaticos + 1 spg_permissions[] dinamico.
+                //
+                // ANTES, so aqui no store(): radio_option era lido DUAS vezes (duplicando todo
+                // radio no array) e spg_permissions NUNCA era lido — ou seja, ao CRIAR um papel o
+                // grupo de preco marcado era simplesmente PERDIDO. O update() sempre leu as duas
+                // chaves certas; era o create que estava torto.
+                foreach (['spg_permissions', 'radio_option'] as $campo) {
+                    $valores = $request->input($campo);
+                    if (! empty($valores) && is_array($valores)) {
+                        foreach ($valores as $valor) {
+                            $permissions[] = $valor;
+                        }
                     }
                 }
 
-                $radio_options = $request->input('radio_option');
-                if (! empty($radio_options)) {
-                    foreach ($radio_options as $key => $value) {
-                        $permissions[] = $value;
-                    }
-                }
+                $permissions = $this->__somenteDoCatalogo($permissions);
 
                 $this->__createPermissionIfNotExists($permissions);
 
@@ -266,10 +272,12 @@ class RoleController extends Controller
 
                     $radio_options = $request->input('radio_option');
                     if (! empty($radio_options)) {
-                        foreach ($radio_options as $key => $value) {
+                        foreach ($radio_options as $value) {
                             $permissions[] = $value;
                         }
                     }
+
+                    $permissions = $this->__somenteDoCatalogo($permissions);
 
                     $this->__createPermissionIfNotExists($permissions);
 
@@ -339,6 +347,45 @@ class RoleController extends Controller
 
             return $output;
         }
+    }
+
+    /**
+     * Descarta o que NAO pertence ao catalogo fechado (nucleo + modulos ativos).
+     *
+     * POR QUE: __createPermissionIfNotExists() criava QUALQUER nome que chegasse no POST, e a
+     * tabela `permissions` do Spatie e GLOBAL (nao tem business_id). Um POST forjado poluia o
+     * catalogo de TODOS os tenants, sem sinal em lugar nenhum da UI.
+     *
+     * Descarta em vez de recusar o salvamento inteiro: um papel legado pode carregar permissao
+     * de modulo hoje desativado, e recusar travaria a edicao de um papel legitimo. O intruso vai
+     * pro log com quem tentou — auditavel sem quebrar quem nao tem culpa.
+     *
+     * @param  mixed  $permissions
+     */
+    private function __somenteDoCatalogo($permissions): array
+    {
+        $permissions = is_array($permissions) ? $permissions : [];
+
+        if (empty($permissions)) {
+            return [];
+        }
+
+        $intrusas = PermissionCatalog::intrusas(
+            $permissions,
+            $this->moduleUtil->getModuleData('user_permissions')
+        );
+
+        if (! empty($intrusas)) {
+            \Log::warning('RoleController: permissao fora do catalogo DESCARTADA', [
+                'business_id' => request()->session()->get('user.business_id'),
+                'user_id' => auth()->id(),
+                'descartadas' => $intrusas,
+            ]);
+
+            $permissions = array_values(array_diff($permissions, $intrusas));
+        }
+
+        return $permissions;
     }
 
     /**
