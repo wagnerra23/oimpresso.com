@@ -40,12 +40,12 @@ function fontesDeAppTz(string $dir): array
         return [];
     }
 
-    $raiz = str_replace('\', '/', base_path()).'/';
+    $raiz = str_replace(DIRECTORY_SEPARATOR, '/', base_path()).'/';
 
     return collect(File::allFiles($base))
         ->filter(fn ($f) => $f->getExtension() === 'php')
         ->map(fn ($f) => [
-            'path' => str_replace($raiz, '', str_replace('\', '/', $f->getPathname())),
+            'path' => str_replace($raiz, '', str_replace(DIRECTORY_SEPARATOR, '/', $f->getPathname())),
             'src' => File::get($f->getPathname()),
         ])
         ->values()
