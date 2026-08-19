@@ -334,6 +334,7 @@ return [
     'download_complete_backup' => 'Download complete backup',
     'backup_doesnt_exist' => "Backup Doesn't exist",
     'backup_ultimo_nao_excluir' => 'This is the only backup on disk — create a new one before deleting it.',
+    'backup_enfileirado' => 'Backup queued. You can close this screen — it runs on the server.',
     'lot_report' => 'Lot Report',
     'purchase_payment_report' => 'Purchase Payment Report',
     'paid_on' => 'Paid on',
