@@ -319,8 +319,14 @@ class RoleController extends Controller
     /**
      * Remove the specified resource from storage.
      *
+     * Retorno heterogeneo por heranca do UltimatePOS: a rota e consumida por ajax e o
+     * caminho feliz devolve o array `$output` cru (o front le success/msg). A guarda de
+     * papel-em-uso precisa de STATUS pra ser distinguivel de um no-op, entao devolve
+     * JsonResponse 422. O tipo declarado passa a dizer a verdade em vez de mentir um
+     * Response que este metodo nunca retornou.
+     *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse|array<string, mixed>|null
      */
     public function destroy($id)
     {
