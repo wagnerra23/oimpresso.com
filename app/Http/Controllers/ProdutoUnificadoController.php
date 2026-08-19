@@ -77,6 +77,53 @@ class ProdutoUnificadoController extends Controller
      */
     private const TETO_LINHAS = 500;
 
+    /**
+     * Paginação server-side (handoff V2 §4.8 e §9).
+     *
+     * O pacote 18/08 resolvia volume com TETO + rolagem interna: a tela pedia as 500 primeiras
+     * e avisava que tinha cortado. Funciona, mas o operador não alcança a 501ª sem inventar um
+     * filtro — e a lista real do biz=1 passa disso. O V2 troca o teto por página.
+     *
+     * `TETO_LINHAS` continua existindo como o teto duro de `porPagina`: a tela oferece
+     * 10/25/50/100, e um `?porPagina=99999` colado na URL não vira varredura do catálogo.
+     */
+    private const POR_PAGINA_OPCOES = [10, 25, 50, 100];
+
+    /**
+     * Padrão 25, não o 10 que o protótipo mostra.
+     *
+     * O 10 do pacote é artefato do dataset dele — 14 itens, e sem duas páginas não dá pra
+     * demonstrar o rodapé. Num catálogo real de milhares, 10 por página vira centenas de
+     * páginas. 25 é o menor valor que a golden master (`/contacts`) oferece, então é o mesmo
+     * ritmo de leitura que o operador já tem na outra consulta. O 10 continua na lista pra
+     * quem quiser.
+     */
+    private const POR_PAGINA_PADRAO = 25;
+
+    /**
+     * Lista branca de ordenação (handoff V2 §9: "ordenação server-side com lista branca").
+     *
+     * Chave da tela → expressão SQL. Sem a lista, `?ordem=` vira injeção no ORDER BY. E a
+     * ordenação PRECISA ser do servidor: a tela ordena o recorte inteiro, não a página
+     * carregada — ordenar só a fatia devolveria a "mais cara da página 1", não a mais cara.
+     */
+    private const ORDEM_COLUNAS = [
+        'cod' => 'c.id',
+        'prod' => 'c.nome',
+        'tipo' => 'c.tipo',
+        // Rank semântico, igual ao da tela: sem estoque < baixo < em estoque, saldo desempata.
+        // Serviço (`enable_stock = 0`) fica fora da escala — não tem saldo pra comparar.
+        'est' => "CASE
+            WHEN c.enable_stock = 0 THEN -1
+            WHEN COALESCE(c.qtd, 0) <= 0 THEN 0
+            WHEN c.minimo IS NOT NULL AND c.qtd <= c.minimo THEN 1
+            ELSE 2
+        END * 1000000000 + COALESCE(c.qtd, 0)",
+        'custo' => 'c.custo',
+        'preco' => 'c.preco',
+        'margem' => 'CASE WHEN c.preco > 0 THEN (c.preco - c.custo) / c.preco ELSE -1 END',
+    ];
+
     /** Abas por tipo. A chave `todos` é o cadastro inteiro; `inativos` é o complemento. */
     private const ABAS = ['todos', 'produtos', 'servicos', 'materia', 'kits', 'inativos'];
 
@@ -117,6 +164,17 @@ class ProdutoUnificadoController extends Controller
             'marca' => $request->integer('marca') ?: null,
             'estoque' => $request->string('estoque', '')->toString(),
             'margem' => $request->string('margem', '')->toString(),
+            // Paginação e ordenação viajam no MESMO pacote de filtros que o resto do recorte.
+            // Assim a URL descreve a tela inteira: recarregar, compartilhar ou voltar no
+            // histórico devolve a mesma página, com a mesma ordem.
+            'ordem' => array_key_exists($request->string('ordem', '')->toString(), self::ORDEM_COLUNAS)
+                ? $request->string('ordem', '')->toString()
+                : '',
+            'dir' => $request->string('dir', 'asc')->toString() === 'desc' ? 'desc' : 'asc',
+            'pagina' => max(1, $request->integer('pagina', 1)),
+            'porPagina' => in_array($request->integer('porPagina', self::POR_PAGINA_PADRAO), self::POR_PAGINA_OPCOES, true)
+                ? $request->integer('porPagina', self::POR_PAGINA_PADRAO)
+                : self::POR_PAGINA_PADRAO,
         ];
 
         return Inertia::render('Produto/Unificado/Index', [
@@ -125,6 +183,7 @@ class ProdutoUnificadoController extends Controller
             'pisoMargem' => self::PISO_MARGEM,
             'diasParado' => self::DIAS_PARADO,
             'tetoLinhas' => self::TETO_LINHAS,
+            'porPaginaOpcoes' => self::POR_PAGINA_OPCOES,
             // EAGER (não closure): são 3 booleanos já resolvidos acima — embrulhar em closure
             // não pouparia query nenhuma, que é o único ganho do defer/D-14.
             // O `only:[...]` dos partial reloads NÃO pede esta prop, e não precisa: o Inertia
@@ -445,12 +504,48 @@ class ProdutoUnificadoController extends Controller
     {
         $limite = now()->subDays(self::DIAS_PARADO)->toDateTimeString();
 
-        $linhas = $this->aplicarRecortes(
+        $q = $this->aplicarRecortes(
             $this->catalogoDaAba($business_id, $f['aba']),
             $f,
             $podeVerCusto,
             $podeVerPreco
-        )->orderBy('c.nome')->limit(self::TETO_LINHAS)->get();
+        );
+
+        // Ordenação server-side com lista branca (V2 §9). Sem ordem escolhida, nome — que é
+        // como o balcão procura quando não sabe o código.
+        //
+        // Custo e margem só ordenam pra quem pode VER custo. Ordenar por um número invisível
+        // entrega esse número por posição: quem não vê a coluna leria "o mais caro é o
+        // primeiro" e teria a estrutura de custo de graça. Perfil sem direito cai em nome.
+        $ordem = $f['ordem'];
+        if (in_array($ordem, ['custo', 'margem'], true) && ! ($podeVerCusto && $podeVerPreco)) {
+            $ordem = '';
+        }
+
+        if ($ordem === '') {
+            $q->orderBy('c.nome');
+        } else {
+            $q->orderByRaw(self::ORDEM_COLUNAS[$ordem] . ' ' . $f['dir'])
+                // Desempate estável: sem ele, duas linhas com o mesmo preço trocam de lugar
+                // entre páginas e o operador vê o mesmo item duas vezes (ou nenhuma).
+                ->orderBy('c.id');
+        }
+
+        $porPagina = (int) $f['porPagina'];
+        $pagina = (int) $f['pagina'];
+        $linhas = $q->forPage($pagina, $porPagina)->get();
+
+        // Página fora do intervalo devolve fatia vazia, e vazio por deep-link (`?pagina=99`,
+        // ou um filtro que encolheu a lista enquanto o operador estava na página 7) é
+        // indistinguível de "não achou nada". Aqui a gente conta e volta pra última página
+        // real. A contagem extra só roda no caso raro — página > 1 que veio vazia.
+        if ($linhas->isEmpty() && $pagina > 1) {
+            $total = (int) $q->getCountForPagination();
+            $ultima = max(1, (int) ceil($total / $porPagina));
+            if ($ultima < $pagina) {
+                $linhas = $q->forPage($ultima, $porPagina)->get();
+            }
+        }
 
         return $linhas->map(function ($r) use ($podeVerCusto, $podeVerPreco, $podeVerBom, $limite) {
             $estocavel = (bool) $r->enable_stock;
