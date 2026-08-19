@@ -62,14 +62,14 @@ Bridge legacy entre o ERP Delphi histórico **WR Comercial / WR Sistemas (Office
 
 ### US-OI-002 — F2: action dual + feature flag `useV2OfficeimpressoLogs`
 **Como** dono do módulo, **quero** as duas telas atrás de flag com o Blade intacto, **pra** ter rota de fuga se a React falhar em produção.
-**Implementado em:** `Modules/Officeimpresso/Http/Controllers/LicencaLogController.php`
-**Testado em:** `Modules/Officeimpresso/Tests/Feature/LogsBaselineTest.php`
+**Implementado em:** _pendente_
 **Aceite:**
 - `blocked_by`: US-OI-001
+- **A troca de caminho mora com a TELA, não aqui.** O `Inertia::render` só entra no PR que traz o `.tsx` correspondente: render apontando pra page inexistente é 500 esperando a flag ligar, e o `OrphanRenderGateTest` (required) reprova — corretamente. Esta US fecha quando as duas telas da F3 tiverem o seu render
 - `Inertia::render` quando a flag está ligada; senão `view()` como hoje. **Só a flag decide** — condicionar ao header `X-Inertia` (como o DoD da skill `mwart-process` pede) quebraria o first load, que não manda esse header; o único dual em produção decide só pela flag
 - Flag via `FeatureFlagService`/GrowthBook, default OFF pelo `fallbackDefaults` não listá-la. **Não** há comando `enable-v2` — esse padrão não existe no projeto (`git grep -lE 'enable-v2|enableV2' -- '*.php'` = zero)
 - Props caras (lista de máquinas, KPIs, logs da timeline) em `Inertia::defer`
-- A extração de `buildMaquinasPayload()`/`buildKpisPayload()` não muda uma linha da consulta: os dois caminhos consomem o mesmo payload
+- A extração de `buildMaquinasPayload()`/`buildKpisPayload()` (essa sim já feita na F2) não muda uma linha da consulta: quando o render entrar, ele consome o MESMO payload que o Blade
 
 ### US-OI-003 — F2: mapa de paridade Blade↔React
 **Como** revisor, **quero** todo campo do Blade mapeado com severidade, **pra** que "some um campo" seja detectável, não descoberto pelo usuário.
