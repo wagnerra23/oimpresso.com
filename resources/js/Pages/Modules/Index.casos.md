@@ -49,7 +49,7 @@ last_run: "2026-08-19"
 | UC-MOD-01 | Superadmin abre a tela e vê o inventário com o contrato de 11 chaves | must | `ModuleManagementTest` | 🧪 |
 | UC-MOD-02 | Usuário comum do negócio é barrado | must `[sec]` | `ModuleManagementTest` | 🧪 |
 | UC-MOD-03 | Visitante sem sessão é barrado nas quatro rotas | must `[sec]` | `ModuleManagementTest` | 🧪 |
-| UC-MOD-04 | Admin por papel Spatie entra numa tela app-wide | must `[sec]` | `ModuleManagementTest` | ❌ |
+| UC-MOD-04 | Só quem tem `manage_modules` entra — papel de negócio não basta | must `[sec]` | `ModuleManagementTest` | 🧪 |
 | UC-MOD-05 | Ordem das linhas: ativos → área → nome | should | `ModuleManagerServiceTest` | 🧪 |
 | UC-MOD-06 | Chave no JSON sem pasta não vira linha | must | `ModuleManagementTest` | ❌ |
 | UC-MOD-07 | Pasta sem chave no JSON aparece como "Não registrado" | must | `ModuleManagerServiceTest` | 🧪 |
@@ -100,17 +100,24 @@ last_run: "2026-08-19"
 
 ---
 
-## UC-MOD-04 · [ACHADO] Admin de um negócio entra numa tela app-wide · `must` `[sec]`
+## UC-MOD-04 · Só quem tem `manage_modules` entra · `must` `[sec]`
 
-- **Aceite desejado:** o portão de `/modulos` corresponde ao escopo da tela — app-wide exige superadmin.
-- **Estado atual (defeito):** o construtor aceita `is_admin` **OU** o papel `Admin#<businessId>`, que é
-  admin **de um negócio** — e esta tela desliga módulo do app inteiro, para todos os tenants. Pior: o
-  item de menu ([AdminSidebarMenu.php:809](../../../../app/Http/Middleware/AdminSidebarMenu.php)) e o legado
-  ([Install/ModulesController](../../../../app/Http/Controllers/Install/ModulesController.php)) autorizam pela
-  permissão `manage_modules`, registrada em `AuthServiceProvider:36` — **são duas leis diferentes** para a
-  mesma capacidade, e dá para ver o item no menu e tomar 403 na tela.
-- **Teste:** `tests/Feature/Modules/ModuleManagementTest.php` (caracterização — mede se entrou, não o fonte).
-- **Status: ❌** — decisão **D2** [W]. Patch P5 propõe unificar em `manage_modules`.
+- **Aceite:** Dado um usuário com o papel `Admin#<biz>` e **sem** `manage_modules` · Quando pede
+  `GET /modulos` · Então **403** — papel é admin **de um negócio**, e esta tela desliga módulo do app
+  inteiro · E dado um usuário **com** `manage_modules` · Então 200.
+- **Era ACHADO até 2026-08-19.** O construtor aceitava `session('is_admin')` **OU** `Admin#<biz>`,
+  enquanto o item de menu ([AdminSidebarMenu:809](../../../../app/Http/Middleware/AdminSidebarMenu.php))
+  e o legado ([Install/ModulesController](../../../../app/Http/Controllers/Install/ModulesController.php),
+  4 usos) autorizavam por `manage_modules`. Duas leis para a mesma capacidade: dava para ver o item no
+  menu e tomar 403 na tela. O furo do papel foi **medido** (um `200` observado), não suposto.
+- **Decisão D2 [W] 2026-08-19 — unificar em `manage_modules`** (patch P5). O `Gate::before` do
+  `AuthServiceProvider` já trata essa ability como de superadmin: o atalho por papel do `else`
+  **não** se aplica a ela; só a allowlist `ADMINISTRATOR_USERNAMES` (verificada presente em
+  produção antes de trocar o portão) ou concessão Spatie explícita.
+- **Dois casos, porque um não bastava:** o 403 sozinho seria compatível com "ninguém entra" — a tela
+  quebrada, não consertada. O controle positivo prova que quem deve, entra.
+- **Teste:** `tests/Feature/Modules/ModuleManagementTest.php`
+- **Status: 🧪**
 
 ---
 
