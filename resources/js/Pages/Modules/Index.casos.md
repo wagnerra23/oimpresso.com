@@ -63,7 +63,8 @@ last_run: "2026-08-19"
 | UC-MOD-19 | A contagem de migrations da linha é real | should | `ModuleManagerServiceTest` | 🧪 |
 | UC-MOD-20 | Módulo quebrado aparece "Com erro" em vez de silenciosamente OK | should | `ModuleManagerServiceTest` | 🧪 |
 
-> Os ids 08, 09, 10 e 16 estão **reservados** para os `[BACKLOG]` do fim deste arquivo — não reutilizar.
+> Os ids 10 e 16 seguem **reservados** para os `[BACKLOG]` do fim deste arquivo — não reutilizar.
+> (08 e 09 saíram do backlog em 2026-08-19, com a MOD-O5.)
 
 ---
 
@@ -148,6 +149,29 @@ last_run: "2026-08-19"
   e o status derivado é **Não registrado** — não "Inativo". São estados diferentes: um é decisão, o
   outro é lacuna de registro.
 - **Teste:** `tests/Feature/Modules/ModuleManagerServiceTest.php`
+- **Status: 🧪**
+
+---
+
+## UC-MOD-08 · Filtro e busca se combinam · `should`
+
+- **Aceite:** Dado filtros e termo aplicados juntos · Então a lista é a **interseção**, nunca a união ·
+  E o contador diz o recorte (`1 de 3 módulos`), não o total.
+- **Saiu do `[BACKLOG]` em 2026-08-19 (MOD-O5).** Estava lá porque nenhum teste citava o id — o
+  contrato de tela trava a **copy** do bloco, não o comportamento. O teste jsdom é a perna que faltava.
+- **Teste:** `tests/modulos-filtros-busca.test.tsx`
+- **Status: 🧪**
+
+---
+
+## UC-MOD-09 · Busca casa nome, alias, descrição e área · `should`
+
+- **Aceite:** Dado o termo `oficina-auto` · Então casa pelo **alias**, que difere do nome
+  (`OficinaAuto`) · E `ordens de serviço` casa pela **descrição** · E `operações` casa pela **área**,
+  trazendo os dois módulos dela. Debounce de 300 ms.
+- **Controle negativo incluído:** termo que não casa nada deixa a lista vazia — sem ele, um filtro
+  que não filtrasse passaria em todos os casos acima.
+- **Teste:** `tests/modulos-filtros-busca.test.tsx`
 - **Status: 🧪**
 
 ---
@@ -278,15 +302,9 @@ last_run: "2026-08-19"
 ## [BACKLOG] — contrato de tela, ainda sem teste que os cite
 
 > Prosa honesta pré-teste (o canon permite bullet `[BACKLOG]` sem id). Viram UC-MOD-08/09/10/16 quando
-> a **MOD-O5** landar `prototipo-ui/contrato/modulos.contract.json` com check no CI — os ids estão
-> reservados. Texto preservado do contrato [CC].
+> produção alcançar o desenho — os ids seguem reservados. Texto preservado do contrato [CC].
+> (08 e 09 saíram daqui na MOD-O5, quando ganharam teste que os cita.)
 
-- **[BACKLOG] Filtros combinam (reservado UC-MOD-08):** área "Operações" + status "Ativo" + busca "rep"
-  ⇒ interseção dos três; contador "N de 32 módulos"; cada filtro com chip removível; "limpar tudo". As
-  opções de área são as áreas presentes, com contador.
-- **[BACKLOG] Busca de 4 campos (reservado UC-MOD-09):** `oficina` casa `OficinaAuto` por nome **e** por
-  alias (`oficina-auto`); `m²` casa `ComunicacaoVisual` pela descrição; `financeiro` casa por área.
-  Debounce 300 ms; `/` foca o campo; `Esc` limpa.
 - **[BACKLOG] Vazio com motivo (reservado UC-MOD-10):** filtro sem resultado diz **o motivo** (termo +
   filtros ativos) e oferece "Limpar busca e filtros" — nunca uma linha muda de tabela.
 - **[BACKLOG] Detalhe em drawer (reservado UC-MOD-16):** clique na linha abre painel lateral (PT-02) com
