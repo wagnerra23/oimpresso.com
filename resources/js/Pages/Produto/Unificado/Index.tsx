@@ -5,7 +5,7 @@
  * contra a Consulta de Clientes (`/contacts` · `Pages/Cliente/Index.tsx`), que é a golden
  * master do padrão de índice. A árvore é a mesma; só o domínio varia:
  *
- *   PageHeader → abas por TIPO → KPI-filtros → busca (linha própria) → filtros + contagem
+ *   PageHeader → abas por TIPO → KPI-filtros → toolbar em UMA linha (filtros → contagem → busca)
  *   → cartão da tabela (altura fixa, rolagem interna, SEM rodapé) → drawer de detalhe
  *
  * As quatro regras da catraca (handoff §3):
@@ -32,6 +32,7 @@ import {
   ArrowDown,
   ArrowUp,
   ArrowUpDown,
+  ChevronDown,
   Download,
   History,
   Layers,
@@ -77,6 +78,7 @@ type Filtros = {
   kpi: string;
   categoria: number | null;
   tipo: string;
+  unidade: number | null;
   marca: number | null;
   estoque: string;
   margem: string;
@@ -98,7 +100,7 @@ type Props = {
   kpis?: KpisCatalogo;
   produtos?: ProdutoRow[];
   totalDaAba?: number;
-  opcoesFiltro?: { categorias: OpcaoFiltro[]; marcas: OpcaoFiltro[] };
+  opcoesFiltro?: { categorias: OpcaoFiltro[]; unidades: OpcaoFiltro[]; marcas: OpcaoFiltro[] };
   categorias?: CategoriaRow[];
   insumos: InsumoRow[];
   tabelas: TabelaRow[];
@@ -164,6 +166,7 @@ function ProdutoUnificadoIndex({
   const [busca, setBusca] = useState(filters.busca);
   const [abertoId, setAbertoId] = useState<number | null>(null);
   const [ordem, setOrdem] = useState<{ key: ColunaKey; dir: 'asc' | 'desc' } | null>(null);
+  const [maisFiltros, setMaisFiltros] = useState(false);
   const buscaRef = useRef<HTMLInputElement>(null);
 
   /** Navega preservando o resto do recorte. `only` diz quais props re-rodam no servidor. */
@@ -223,9 +226,11 @@ function ProdutoUnificadoIndex({
   const total = totalDaAba ?? linhas.length;
   const cortou = total > linhas.length && linhas.length >= tetoLinhas;
 
-  const temFiltro = !!(filters.categoria || filters.marca || filters.tipo || filters.estoque || filters.margem);
-  const limparFiltros = () =>
-    irPara({ categoria: null, marca: null, tipo: '', estoque: '', margem: '' }, RECORTE);
+  const temFiltro = !!(filters.categoria || filters.unidade || filters.marca || filters.tipo || filters.estoque || filters.margem);
+
+  // Abaixo de 780px de LARGURA DISPONÍVEL os gatilhos opcionais somem e voltam pelo
+  // "Mais filtros" — comportamento do pacote 17/08 (`.f-opt` / `.f-more`).
+  const opcionalCls = maisFiltros ? '' : '@max-[780px]:hidden';
 
   const trocarOrdem = (key: ColunaKey) =>
     setOrdem((o) => (o?.key === key ? { key, dir: o.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }));
@@ -345,86 +350,118 @@ function ProdutoUnificadoIndex({
                 />
               </Deferred>
 
-              {/* ───── BLOCO 3 · TOOLBAR: busca em linha própria, filtros embaixo ─── */}
-              <div className="pt-4">
-                {/* A busca ocupa a linha inteira e NÃO divide espaço com os filtros: é a
-                    entrada principal da tela de índice (SPEC D-03). */}
-                <div className="flex items-center gap-2">
-                  <label className="flex-1 flex items-center gap-2.5 h-[38px] px-3 rounded-[10px] border border-border bg-card">
-                    <Search className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <input
-                      ref={buscaRef}
-                      type="search"
-                      value={busca}
-                      onChange={(e) => setBusca(e.target.value)}
-                      aria-label="Buscar produtos"
-                      placeholder="Buscar descrição, código, referência, categoria…"
-                      className="flex-1 min-w-0 border-0 outline-none bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground"
-                    />
-                    {busca && (
-                      <button type="button" onClick={() => setBusca('')} aria-label="Limpar busca" className="text-muted-foreground hover:text-foreground">
-                        <X className="h-4 w-4" />
-                      </button>
-                    )}
-                    <span className="hidden md:flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                      <kbd className="font-mono text-[10px] font-semibold bg-muted border border-border rounded px-1.5 py-0.5">/</kbd>
-                      pra focar
-                    </span>
-                  </label>
-                </div>
+              {/* ───── BLOCO 3 · TOOLBAR EM UMA LINHA ──────────────────────
+                  Composicao do pacote 17/08 (`.fbar`): gatilhos de filtro -> contagem de
+                  registros -> busca ocupando o resto da linha, que quebra sozinha quando
+                  nao cabe.
 
-                {/* Filtros e contagem na segunda linha (SPEC D-04). */}
-                <div className="mt-[11px] flex items-center gap-2 flex-wrap">
+                  Isto REVERTE a composicao de duas linhas que o pacote de 18/08 tinha posto
+                  no lugar (D-03/D-04). Decisao [M] 2026-08-18: a 17/08 e a oficial.
+
+                  O container e `@container` porque o alvo mede a LARGURA DISPONIVEL, nao a da
+                  janela: com a sidebar aberta ou fechada a mesma janela da larguras diferentes,
+                  e e a barra que precisa decidir se cabe. */}
+              <div className="@container mt-4 flex items-center flex-wrap gap-2">
+                <FiltroTrigger
+                  label="Categoria"
+                  value={filters.categoria ? String(filters.categoria) : ''}
+                  options={opcoesFiltro?.categorias ?? []}
+                  onChange={(v) => irPara({ categoria: v ? Number(v) : null }, RECORTE)}
+                />
+                <FiltroTrigger
+                  label="Tipo"
+                  value={filters.tipo}
+                  options={TIPO_OPCOES}
+                  onChange={(v) => irPara({ tipo: v }, RECORTE)}
+                />
+
+                {/* Gatilhos opcionais: somem abaixo de 780px e voltam pelo "Mais filtros".
+                    Categoria e Tipo nunca somem — sao os dois que o alvo mantem sempre. */}
+                <div className={opcionalCls}>
                   <FiltroTrigger
-                    label="Categoria"
-                    value={filters.categoria ? String(filters.categoria) : ''}
-                    options={opcoesFiltro?.categorias ?? []}
-                    onChange={(v) => irPara({ categoria: v ? Number(v) : null }, RECORTE)}
+                    label="Unidade"
+                    value={filters.unidade ? String(filters.unidade) : ''}
+                    options={opcoesFiltro?.unidades ?? []}
+                    onChange={(v) => irPara({ unidade: v ? Number(v) : null }, RECORTE)}
                   />
-                  <FiltroTrigger
-                    label="Tipo"
-                    value={filters.tipo}
-                    options={TIPO_OPCOES}
-                    onChange={(v) => irPara({ tipo: v }, RECORTE)}
-                  />
-                  {/* DESVIO DECLARADO: o handoff pede "Fornecedor", que o UltimatePOS não guarda
-                      no produto (só por compra). Marca é o atributo que o produto carrega. */}
+                </div>
+                {/* Marca FICA — decisao [M] 2026-08-18. O pacote pede "Fornecedor", que o
+                    UltimatePOS nao guarda no produto (so por compra); Marca e o atributo que
+                    o produto carrega e que o balcao ja usa pra procurar. */}
+                <div className={opcionalCls}>
                   <FiltroTrigger
                     label="Marca"
                     value={filters.marca ? String(filters.marca) : ''}
                     options={opcoesFiltro?.marcas ?? []}
                     onChange={(v) => irPara({ marca: v ? Number(v) : null }, RECORTE)}
                   />
+                </div>
+                <div className={opcionalCls}>
                   <FiltroTrigger
                     label="Estoque"
                     value={filters.estoque}
                     options={ESTOQUE_OPCOES}
                     onChange={(v) => irPara({ estoque: v }, RECORTE)}
                   />
-                  {/* Recorte por margem é leitura da estrutura de custo — some pra quem não
-                      pode ver custo, igual à coluna e ao card de KPI. */}
-                  {permissoes.custo && permissoes.preco && (
+                </div>
+                {/* Recorte por margem e leitura da estrutura de custo — some pra quem nao
+                    pode ver custo, igual a coluna e ao card de KPI. */}
+                {permissoes.custo && permissoes.preco && (
+                  <div className={opcionalCls}>
                     <FiltroTrigger
                       label="Margem"
                       value={filters.margem}
                       options={MARGEM_OPCOES}
                       onChange={(v) => irPara({ margem: v }, RECORTE)}
                     />
-                  )}
-                  {temFiltro && (
-                    <button type="button" onClick={limparFiltros} className="text-[11px] text-muted-foreground underline-offset-2 hover:underline hover:text-foreground">
-                      limpar filtros
+                  </div>
+                )}
+
+                {/* "Mais filtros" so existe na largura em que os opcionais sumiram — e ABRE os
+                    mesmos gatilhos, em vez de ser um botao decorativo. */}
+                <button
+                  type="button"
+                  onClick={() => setMaisFiltros((v) => !v)}
+                  aria-expanded={maisFiltros}
+                  className={
+                    'hidden @max-[780px]:inline-flex items-center gap-1.5 h-[30px] px-[11px] rounded-lg border text-xs transition-colors ' +
+                    (maisFiltros
+                      ? 'border-primary/40 bg-primary/10 text-primary'
+                      : 'border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted/60')
+                  }
+                >
+                  Mais filtros
+                  <ChevronDown size={12} className="opacity-60" />
+                </button>
+
+                {/* Contagem — sans 12px no alvo, nao mono. Quando o teto corta, a tela DIZ que
+                    cortou: contador que discorda da lista destroi a confianca. */}
+                <span className="text-[12px] leading-[12px] text-muted-foreground whitespace-nowrap">
+                  {cortou
+                    ? `${linhas.length.toLocaleString('pt-BR')} de ${total.toLocaleString('pt-BR')} registros`
+                    : `${total.toLocaleString('pt-BR')} ${total === 1 ? 'registro' : 'registros'}`}
+                </span>
+
+                {/* A busca fecha a linha e ocupa o que sobrar (`flex:1 1 160px` no alvo). */}
+                <label className="flex-[1_1_160px] min-w-[150px] ml-2 flex items-center gap-2.5 h-[38px] px-[13px] rounded-[10px] border border-border bg-card">
+                  <Search className="h-[15px] w-[15px] text-muted-foreground shrink-0" />
+                  <input
+                    ref={buscaRef}
+                    type="search"
+                    value={busca}
+                    onChange={(e) => setBusca(e.target.value)}
+                    aria-label="Buscar produtos"
+                    placeholder="Buscar descricao, codigo, referencia, categoria…"
+                    className="flex-1 min-w-0 border-0 outline-none bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground"
+                  />
+                  {/* So aparece com texto digitado — na tela em repouso a barra fica identica
+                      ao alvo, e quem digitou ganha o atalho de limpar. */}
+                  {busca && (
+                    <button type="button" onClick={() => setBusca('')} aria-label="Limpar busca" className="text-muted-foreground hover:text-foreground shrink-0">
+                      <X className="h-4 w-4" />
                     </button>
                   )}
-
-                  <span className="ml-auto font-mono text-[12px] text-muted-foreground whitespace-nowrap tabular-nums">
-                    {/* Quando o teto corta, a tela DIZ que cortou. Contador que discorda da
-                        lista destrói a confiança (handoff §9). */}
-                    {cortou
-                      ? `${linhas.length.toLocaleString('pt-BR')} de ${total.toLocaleString('pt-BR')} registros`
-                      : `${total.toLocaleString('pt-BR')} ${total === 1 ? 'registro' : 'registros'}`}
-                  </span>
-                </div>
+                </label>
               </div>
 
               {cortou && (
