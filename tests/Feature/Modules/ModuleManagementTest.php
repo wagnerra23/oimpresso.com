@@ -47,6 +47,38 @@ function moduloUser(int $businessId = BIZ_MOD_TESTE): \App\User
     return $user;
 }
 
+/**
+ * Concede `manage_modules` ao user e devolve um callback de limpeza.
+ *
+ * Depois da D2 (2026-08-19) a tela autoriza SO por essa permissao. `session('is_admin')`
+ * nao autoriza mais nada aqui, e o Gate::before (AuthServiceProvider) trata
+ * `manage_modules` como ability de superadmin: o atalho por papel `Admin#<biz>` do `else`
+ * NAO se aplica a ela. Entao o unico caminho testavel e a concessao Spatie explicita.
+ *
+ * A base do CT 100 persiste entre runs — por isso o cleanup remove o que este arquivo criou.
+ */
+function concedeManageModules(\App\User $user): callable
+{
+    $perm = \Spatie\Permission\Models\Permission::firstOrCreate([
+        'name' => 'manage_modules', 'guard_name' => 'web',
+    ]);
+    $criouPermissao = $perm->wasRecentlyCreated;
+    $jaTinha = $user->hasPermissionTo($perm);
+
+    if (! $jaTinha) {
+        $user->givePermissionTo($perm);
+    }
+
+    return function () use ($user, $perm, $jaTinha, $criouPermissao) {
+        if (! $jaTinha) {
+            $user->revokePermissionTo($perm);
+        }
+        if ($criouPermissao) {
+            $perm->delete();
+        }
+    };
+}
+
 /** Extrai as props Inertia de uma resposta de página. */
 function modulosProps(\Illuminate\Testing\TestResponse $response): array
 {
@@ -54,12 +86,15 @@ function modulosProps(\Illuminate\Testing\TestResponse $response): array
 }
 
 it('UC-MOD-01 · admin abre a tela e recebe o inventário com o contrato de 11 chaves', function () {
-    session(['user.business_id' => BIZ_MOD_TESTE, 'business.id' => BIZ_MOD_TESTE, 'is_admin' => true]);
+    session(['user.business_id' => BIZ_MOD_TESTE, 'business.id' => BIZ_MOD_TESTE]);
 
-    $response = $this->actingAs(moduloUser())->get('/modulos');
-    $response->assertOk();
+    $user = moduloUser();
+    $limpa = concedeManageModules($user);
 
-    $props = modulosProps($response);
+    try {
+        $response = $this->actingAs($user)->get('/modulos');
+        $response->assertOk();
+        $props = modulosProps($response);
 
     expect($props['component'] ?? 'Modules/Index')->toBeString()
         ->and($props['modules'])->toBeArray()->not->toBeEmpty()
@@ -67,11 +102,14 @@ it('UC-MOD-01 · admin abre a tela e recebe o inventário com o contrato de 11 c
             'name', 'alias', 'version', 'description', 'area',
             'active', 'registered', 'has_migrations', 'migration_count',
             'has_datacontroller', 'error',
-        ]);
+            ]);
+    } finally {
+        $limpa();
+    }
 })->group('modules');
 
 it('UC-MOD-02 · usuário autenticado sem admin recebe 403 e nenhuma prop de módulo', function () {
-    session(['user.business_id' => BIZ_MOD_TESTE, 'business.id' => BIZ_MOD_TESTE, 'is_admin' => false]);
+    session(['user.business_id' => BIZ_MOD_TESTE, 'business.id' => BIZ_MOD_TESTE]);
 
     $response = $this->actingAs(moduloUser())->get('/modulos');
 
@@ -97,14 +135,11 @@ it('UC-MOD-03 · visitante sem sessão é barrado, e as quatro rotas existem', f
     expect($this->get('/modulos')->getStatusCode())->toBeIn([301, 302, 401]);
 })->group('modules');
 
-it('UC-MOD-04 - [ACHADO] admin de UM negocio entra numa tela que desliga modulo do app inteiro', function () {
-    // O construtor aceita `is_admin` (superadmin) OU a role `Admin#<business>`. A segunda e admin
-    // DE UM NEGOCIO - e esta tela e app-wide. Mede COMPORTAMENTO (entrou?), nao a string do fonte.
-    // Caracteriza o furo ate a MOD-O3/P5 fechar o portao (decisao D2 -> `manage_modules`).
-    //
-    // O papel e provisionado aqui porque o seed do CT 100 nao tem nenhum `Admin#<biz>` (medido
-    // 2026-08-19: 1 role na base inteira). Sem isto o teste PULA, e skip nao prova furo nenhum.
-    // roles.business_id e NOT NULL com FK pra business (proibicoes.md) - o sufixo #1 e so naming.
+it('UC-MOD-04 - admin de UM negocio NAO entra numa tela que desliga modulo do app inteiro', function () {
+    // Era ACHADO ate 2026-08-19: o construtor aceitava `Admin#<biz>`, que e admin DE UM
+    // NEGOCIO, numa tela app-wide. Medido na epoca: entrava com 200. Depois da D2 a tela
+    // autoriza so por `manage_modules`, e o Gate::before exclui de proposito o atalho por
+    // papel para essa ability -- entao o papel sozinho nao basta mais.
     $user = moduloUser();
     $nomeRole = 'Admin#' . BIZ_MOD_TESTE;
 
@@ -122,13 +157,12 @@ it('UC-MOD-04 - [ACHADO] admin de UM negocio entra numa tela que desliga modulo 
     }
 
     try {
-        session(['user.business_id' => BIZ_MOD_TESTE, 'business.id' => BIZ_MOD_TESTE, 'is_admin' => false]);
+        session(['user.business_id' => BIZ_MOD_TESTE, 'business.id' => BIZ_MOD_TESTE]);
 
         $this->actingAs($user)
             ->get('/modulos')
-            ->assertOk(); // hoje ENTRA. Quando a D2 fechar, vira 403 e o UC-MOD-04 muda junto.
+            ->assertStatus(403);
     } finally {
-        // Limpa o que este teste criou - a base do CT 100 persiste entre runs.
         if (! $jaTinhaPapel) {
             $user->removeRole($role);
         }
@@ -138,10 +172,30 @@ it('UC-MOD-04 - [ACHADO] admin de UM negocio entra numa tela que desliga modulo 
     }
 })->group('modules');
 
-it('UC-MOD-06 · [ACHADO] chave do statuses sem pasta não vira linha, e a tela é silenciosa', function () {
-    session(['user.business_id' => BIZ_MOD_TESTE, 'business.id' => BIZ_MOD_TESTE, 'is_admin' => true]);
+it('UC-MOD-04 - quem TEM manage_modules entra: uma lei so, a mesma do menu e do legado', function () {
+    // Controle positivo do caso acima. Sem ele, o 403 poderia ser "ninguem entra" em vez de
+    // "so entra quem deve" -- e a tela estaria quebrada, nao consertada.
+    $user = moduloUser();
+    $limpa = concedeManageModules($user);
 
-    $response = $this->actingAs(moduloUser())->get('/modulos');
+    try {
+        session(['user.business_id' => BIZ_MOD_TESTE, 'business.id' => BIZ_MOD_TESTE]);
+
+        $this->actingAs($user)
+            ->get('/modulos')
+            ->assertOk();
+    } finally {
+        $limpa();
+    }
+})->group('modules');
+
+it('UC-MOD-06 · [ACHADO] chave do statuses sem pasta não vira linha, e a tela é silenciosa', function () {
+    session(['user.business_id' => BIZ_MOD_TESTE, 'business.id' => BIZ_MOD_TESTE]);
+
+    $user = moduloUser();
+    $limpa = concedeManageModules($user);
+    $response = $this->actingAs($user)->get('/modulos');
+    $limpa();
     $modules = modulosProps($response)['modules'];
 
     $nomesNaTela = collect($modules)->pluck('name')->all();
@@ -161,15 +215,22 @@ it('UC-MOD-06 · [ACHADO] chave do statuses sem pasta não vira linha, e a tela 
 })->group('modules');
 
 it('UC-MOD-11 · alternar sem informar o estado desejado é recusado com 422', function () {
-    session(['user.business_id' => BIZ_MOD_TESTE, 'business.id' => BIZ_MOD_TESTE, 'is_admin' => true]);
+    session(['user.business_id' => BIZ_MOD_TESTE, 'business.id' => BIZ_MOD_TESTE]);
 
-    $this->actingAs(moduloUser())
-        ->postJson('/modulos/Jana/toggle', [])
-        ->assertStatus(422);
+    $user = moduloUser();
+    $limpa = concedeManageModules($user);
+
+    try {
+        $this->actingAs($user)
+            ->postJson('/modulos/Jana/toggle', [])
+            ->assertStatus(422);
+    } finally {
+        $limpa();
+    }
 })->group('modules');
 
 it('UC-MOD-11 · alternar exige admin: usuário comum não consegue nem tentar', function () {
-    session(['user.business_id' => BIZ_MOD_TESTE, 'business.id' => BIZ_MOD_TESTE, 'is_admin' => false]);
+    session(['user.business_id' => BIZ_MOD_TESTE, 'business.id' => BIZ_MOD_TESTE]);
 
     $this->actingAs(moduloUser())
         ->postJson('/modulos/Jana/toggle', ['active' => false])
@@ -178,10 +239,17 @@ it('UC-MOD-11 · alternar exige admin: usuário comum não consegue nem tentar',
 
 it('UC-MOD-15 · a lista é idêntica entre negócios — cross-tenant é lei, não drift', function () {
     $extrai = function (int $businessId) {
-        session(['user.business_id' => $businessId, 'business.id' => $businessId, 'is_admin' => true]);
+        session(['user.business_id' => $businessId, 'business.id' => $businessId]);
 
-        $response = $this->actingAs(moduloUser($businessId))->get('/modulos');
-        $response->assertOk();
+        $user = moduloUser($businessId);
+        $limpa = concedeManageModules($user);
+
+        try {
+            $response = $this->actingAs($user)->get('/modulos');
+            $response->assertOk();
+        } finally {
+            $limpa();
+        }
 
         return collect(modulosProps($response)['modules'])
             ->map(fn ($m) => $m['name'] . ':' . (int) $m['active'])
