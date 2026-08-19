@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela reúne, numa rota só, tudo que as outras telas do Produto gateiam separadamente — custo, preço de venda, tabelas de preço e composição. Sem casos, ela vira o caminho por onde tudo isso sai sem permissão.
 owner: wagner
-last_run: "2026-08-18"
-last_run_ci: "11/11 UC verdes na lane Estoque · MySQL (run 32141318494, PR #5906): UC-PUNI-01..06 revalidados sobre a tela nova + UC-PUNI-07..10 estreando, 0 skipped. Veredito lido do JUnit da run (artifact pest-estoque-junit → npm run casos:results), não declarado à mão — scripts/casos-test-results.json."
+last_run: "2026-08-19"
+last_run_ci: "10/10 UC verdes na lane Estoque · MySQL (run 32246398030, workflow_dispatch sobre main d4ad0804): revalidação após o #5920 reescrever a barra de filtros da tela (161 linhas em Index.tsx). ProdutoUnificadoContratoTest 7/7 (40 assertions) + ProdutoUnificadoIndiceContratoTest 4/4 (38 assertions), 0 skipped; suíte da lane 77/77 com provou_algo=true (guard LC-13). Os 10 ids UC-PUNI-01..10 conferidos um a um no JUnit da run (artifact pest-estoque-junit), não declarados à mão. Run anterior: 32141318494 (PR #5906)."
 ---
 
 # Casos de Uso & Aceite — Catálogo Unificado (`/products/unificado`)
