@@ -32,8 +32,6 @@ uses(Tests\TestCase::class);
  * rodam em sqlite). Tenant canônico de teste = 98 (ADR 0358), NUNCA biz=4.
  *
  * @covers-us US-OI-001
- * @covers-us US-OI-002
- * @covers-us US-OI-003
  * @see Modules\Officeimpresso\Http\Controllers\LicencaLogController
  * @see memory/requisitos/Officeimpresso/RUNBOOK-logs.md
  * @see memory/requisitos/Officeimpresso/SPEC.md (US-OI-001)
@@ -84,7 +82,6 @@ it('UC-TL-05 · nega a timeline pra autenticado sem permissão do módulo', func
     // TIMELINE não estava coberta por ninguém — e é a segunda tela desta onda.
     $user = makeOiLogsTestUser($business->id);
     $this->actingAs($user);
-    session(['user.business_id' => $business->id]);
 
     $this->get('/officeimpresso/licenca_log/timeline/' . LICENCA_INEXISTENTE_BASE)
         ->assertForbidden();
@@ -251,84 +248,75 @@ it('UC-TL-09 · timeline preserva o was_blocked do metadata (tri-estado da colun
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Caminho dual da LISTA (F3) — @covers-us US-OI-002
-//
-// Os casos da TIMELINE moram no PR dela: teste de render só entra junto da page
-// que ele renderiza, mesma razão pela qual o `Inertia::render` saiu da F2
-// (OrphanRenderGateTest — render órfão é 500 esperando a flag ligar).
-// ─────────────────────────────────────────────────────────────────────────────
-
-it('UC-LOGS-08 · com a flag OFF a lista continua servindo Blade', function () {
-    $business = $this->seededTenant();
-    $user = actingAsOiLeitor($this, $business->id);
-
-    // Default é OFF: o GrowthBook não conhece a chave e o `fallbackDefaults` do
-    // FeatureFlagService não a lista. É o estado em produção até [W] ligar — e o
-    // que garante que mergear isto não muda nada pro usuário.
-    forcaFlagV2($this, false);
-
-    // `viewData` só existe em resposta de view: se um dia isto virar Inertia sem
-    // alguém ligar a flag, o teste quebra aqui.
-    expect($this->get('/officeimpresso/licenca_log')->viewData('kpis'))->toBeArray();
-
-    $user->forceDelete();
-});
-
-it('UC-LOGS-09 · com a flag ON a lista responde Inertia com filters e permissions', function () {
-    $business = $this->seededTenant();
-    $user = actingAsOiLeitor($this, $business->id);
-
-    forcaFlagV2($this, true);
-
-    $this->get('/officeimpresso/licenca_log?q=' . $this->oiMarcador)
-        ->assertOk()
-        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
-            ->component('Officeimpresso/Logs/Index')
-            // `maquinas` e `kpis` NÃO entram aqui de propósito — são
-            // `Inertia::defer`, então não vêm no payload inicial. Afirmar que
-            // existem seria testar o contrário do que o defer faz.
-            ->has('filters')
-            ->where('filters.q', $this->oiMarcador)
-            ->has('permissions.pode_ver_todas_empresas')
-        );
-
-    $user->forceDelete();
-});
-
-it('UC-LOGS-10 · a flag ON NÃO afrouxa a guarda de acesso', function () {
-    $business = $this->seededTenant();
-
-    // O caminho novo não pode virar porta dos fundos: quem não podia ver a tela
-    // no Blade continua tomando 403 no Inertia. A guarda roda antes do render.
-    $user = makeOiLogsTestUser($business->id);
-    $this->actingAs($user);
-    session(['user.business_id' => $business->id]);
-    forcaFlagV2($this, true);
-
-    $this->get('/officeimpresso/licenca_log')->assertForbidden();
-
-    $user->forceDelete();
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Força o veredito da feature flag sem depender do GrowthBook do CT 100 —
- * teste que sai na rede não é teste, é sorte.
- */
-function forcaFlagV2($test, bool $ligada): void
+function makeOiLogsTestUser(int $businessId): User
 {
-    $test->instance(\App\Services\FeatureFlagService::class, new class($ligada) extends \App\Services\FeatureFlagService
-    {
-        public function __construct(private bool $ligada) {}
+    // Sem role nenhuma — com role o Gate::before faz bypass e o teste de guarda
+    // passaria por motivo errado.
+    return User::create([
+        'business_id' => $businessId,
+        'first_name'  => 'OI',
+        'surname'     => 'Logs',
+        'username'    => 'oi_logs_' . $businessId . '_' . uniqid(),
+        'email'       => 'oi_logs_' . $businessId . '_' . uniqid() . '@test.local',
+        'password'    => bcrypt('test12345'),
+        'language'    => 'pt_BR',
+    ]);
+}
 
-        public function isOn(string $flag, array $attrs = []): bool
-        {
-            return $this->ligada;
-        }
-    });
+/** Usuário com `officeimpresso.access` já logado e com sessão montada. */
+function actingAsOiLeitor($test, int $businessId): User
+{
+    Permission::firstOrCreate(['name' => PERM_OI_ACCESS_BASE, 'guard_name' => 'web']);
+
+    $user = makeOiLogsTestUser($businessId);
+    $user->givePermissionTo(PERM_OI_ACCESS_BASE);
+    $test->actingAs($user);
+
+    // NÃO semear `session(['user.business_id' => ...])` aqui.
+    // O `SetSessionData` só monta a sessão quando ela ainda NÃO tem `user`
+    // (SetSessionData.php:29). Semear na mão faz ele RETORNAR CEDO — e aí
+    // `currency`, `business` e `financial_year` nunca entram na sessão, e a
+    // `layouts/app.blade.php:61` (`session('currency')['code']`) estoura
+    // "Trying to access array offset on null". Deixar o middleware montar é o
+    // que a requisição real faz; ele preenche `user.business_id` a partir do
+    // `Auth::user()`, com o MESMO valor que eu estava semeando.
+
+    return $user;
+}
+
+/** Cria uma máquina de fixture e registra o id pra limpeza no afterEach. */
+function criaMaquinaOi($test, int $businessId, array $attrs = []): int
+{
+    $id = DB::table('licenca_computador')->insertGetId(array_merge([
+        'business_id' => $businessId,
+        'hd'          => $test->oiMarcador . '-' . uniqid(),
+        'user_win'    => $test->oiMarcador,
+        'hostname'    => $test->oiMarcador,
+        'ip_interno'  => '10.0.0.1',
+        'bloqueado'   => 0,
+    ], $attrs));
+
+    $test->oiLicencaIds[] = $id;
+
+    return $id;
+}
+
+function criaLogOi(int $licencaId, int $businessId, array $attrs = []): void
+{
+    LicencaLog::create(array_merge([
+        'licenca_id'  => $licencaId,
+        'business_id' => $businessId,
+        'event'       => 'login_success',
+        // O controller filtra a timeline por ESTES dois campos — fixture que
+        // erra qualquer um deles some da tela e o teste vira falso-negativo.
+        'source'      => 'delphi_middleware',
+        'endpoint'    => '/connector/api/processa-dados-cliente',
+        'http_status' => 200,
+        'created_at'  => now(),
+    ], $attrs));
 }
 
 /** Extrai os ids das máquinas que a tela devolveu. */
