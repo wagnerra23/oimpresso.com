@@ -82,7 +82,6 @@ it('nega a timeline pra autenticado sem permissão do módulo', function () {
     // TIMELINE não estava coberta por ninguém — e é a segunda tela desta onda.
     $user = makeOiLogsTestUser($business->id);
     $this->actingAs($user);
-    session(['user.business_id' => $business->id]);
 
     $this->get('/officeimpresso/licenca_log/timeline/' . LICENCA_INEXISTENTE_BASE)
         ->assertForbidden();
@@ -262,7 +261,15 @@ function actingAsOiLeitor($test, int $businessId): User
     $user = makeOiLogsTestUser($businessId);
     $user->givePermissionTo(PERM_OI_ACCESS_BASE);
     $test->actingAs($user);
-    session(['user.business_id' => $businessId]);
+
+    // NÃO semear `session(['user.business_id' => ...])` aqui.
+    // O `SetSessionData` só monta a sessão quando ela ainda NÃO tem `user`
+    // (SetSessionData.php:29). Semear na mão faz ele RETORNAR CEDO — e aí
+    // `currency`, `business` e `financial_year` nunca entram na sessão, e a
+    // `layouts/app.blade.php:61` (`session('currency')['code']`) estoura
+    // "Trying to access array offset on null". Deixar o middleware montar é o
+    // que a requisição real faz; ele preenche `user.business_id` a partir do
+    // `Auth::user()`, com o MESMO valor que eu estava semeando.
 
     return $user;
 }
