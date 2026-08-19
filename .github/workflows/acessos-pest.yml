@@ -1,0 +1,158 @@
+name: Acessos · Pest (MySQL)
+
+# Lane de ACESSOS: papéis (/roles), permissões e comissionados (/sales-commission-agents).
+#
+# POR QUE existe: varredura contada em 2026-08-19 sobre as 17 lanes *-pest.yml — NENHUMA
+# executa tests/Feature/Roles/ ou tests/Feature/Users/. Sem lane, um teste nesses diretórios
+# nasce MUDO: `tests/Feature` está no testsuite do phpunit.xml, mas registro não é execução
+# (proibicoes.md §5 2026-08-02) e "0 failed" numa suíte que não rodou não prova nada (LC-13).
+# Foi exatamente o que aconteceu na mesma sessão com o TimezoneGuardTest: o CI passou VERDE
+# sem executá-lo, e só o wiring numa lane revelou um ParseError real.
+#
+# MySQL e não a lista sqlite: os testes daqui autenticam usuário, montam papel Spatie e batem
+# em rota HTTP com sessão de negócio — em sqlite sem schema semeado eles pulariam, e skip sai
+# exit 0 (verde por não-execução). A action pest-mysql-setup semeia biz=1 E biz=2, que é o que
+# o teste de isolamento cross-tenant precisa para existir.
+#
+# ⚠️ O comando roda SO tests/Feature/Roles/ por enquanto: o Pest ABORTA com exit 2 se um
+# caminho da lista nao existe ("Test file ... not found"), e tests/Feature/Users/ ainda
+# nao tem arquivo. O diretorio segue no `paths:` de proposito — quando o primeiro teste
+# de comissionado chegar, ele entra no comando NO MESMO PR que o cria.
+#
+# Cobre hoje:
+#   - RoleTenantIsolationTest — Tier 0 (ADR 0093): /roles/{id} não alcança papel de outro
+#     negócio. Traz o controle POSITIVO junto, senão um filtro largo demais passaria no
+#     negativo e o teste diria "ninguém edita nada" chamando isso de sucesso.
+#
+# O CÓDIGO SOB TESTE está no gatilho (RoleController, SalesCommissionAgentController,
+# PermissionCatalog, views de papel). Sem isso, mexer no controller não dispararia a lane —
+# gate mudo com cara de cobertura, a pegadinha que o domain-pest.yml documenta no próprio paths:.
+#
+# Estrutura copiada de domain-pest.yml (mesmo setup MySQL, mesmo skip-as-pass, mesmo sumário
+# JUnit por assertions). Não é lane paralela a nada: é área que não tinha dono.
+
+on:
+  workflow_dispatch: {}
+  # pull_request SEM paths (always-run) + skip-as-pass interno via
+  # dorny/paths-filter: se nada do domínio mudou, pula o pesado e conclui verde
+  # (mesmo padrão de essentials-pest/jana-pest — required-ready sem deadlock).
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      # `app/Domain/**` é OBRIGATÓRIO aqui: sem o CÓDIGO sob teste no gatilho,
+      # mexer na FSM não dispararia o teste dela — gate mudo com cara de
+      # cobertura (a pegadinha que o sells-pest.yml documenta no próprio paths:).
+      - 'app/Http/Controllers/RoleController.php'
+      - 'app/Http/Controllers/SalesCommissionAgentController.php'
+      - 'app/Utils/PermissionCatalog.php'
+      - 'resources/views/role/**'
+      - 'tests/Feature/Roles/**'
+      - 'tests/Feature/Users/**'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/acessos-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: acessos-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (Acessos · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças de acessos (skip-as-pass)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            acessos:
+              - 'app/Http/Controllers/RoleController.php'
+              - 'app/Http/Controllers/SalesCommissionAgentController.php'
+              - 'app/Utils/PermissionCatalog.php'
+              - 'resources/views/role/**'
+              - 'tests/Feature/Roles/**'
+              - 'tests/Feature/Users/**'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/acessos-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada do domínio mudou)
+        if: steps.changes.outputs.acessos == 'false'
+        run: echo "✅ Sem mudanças em papéis/comissionados — skip-as-pass."
+
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+        if: steps.changes.outputs.acessos == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (root view sem build do front)
+        if: steps.changes.outputs.acessos == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
+      - name: Run Pest (Acessos · MySQL) — DESCOBERTA, não allowlist
+        if: steps.changes.outputs.acessos == 'true'
+        # phpunit.xml aponta DB_CONNECTION=sqlite :memory: (sem force="true"), então
+        # a env daqui vence e a suíte roda no MySQL real semeado (biz=1 + biz=2).
+        # Nenhum dos 22 usa RefreshDatabase/migrate:fresh (medido) — o seed sobrevive.
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-acessos-junit.xml \
+            tests/Feature/Roles/
+
+      # A régua honesta desta lane é `assertions`, NÃO "0 failed": skip sai exit 0
+      # e 18 dos 22 pulam fora do MySQL. Se o sumário mostrar muitos casos com 0
+      # assertions, a lane NÃO mediu — leia isso antes de comemorar verde (LC-13).
+      - name: Sumário JUnit por arquivo (assertions — a régua contra skip-as-pass)
+        if: always()
+        run: node scripts/tests/junit-summary.mjs test-results/pest-acessos-junit.xml --out test-results/pest-acessos-junit-summary.json || true
+
+      - name: Upload sumário JUnit (pest-acessos-junit-summary)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-acessos-junit-summary
+          path: test-results/pest-acessos-junit-summary.json
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload JUnit (Domain · MySQL)
+        if: ${{ !cancelled() && steps.changes.outputs.acessos == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-acessos-junit
+          path: test-results/pest-acessos-junit.xml
+          retention-days: 14
