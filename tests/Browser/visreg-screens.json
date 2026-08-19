@@ -142,5 +142,13 @@
     "route": "/ia/pro",
     "anchor": "Grátis vs Pro",
     "baseline": "it_Jana_Pro_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Forja/Aprovacoes",
+    "source": "Forja/Aprovacoes",
+    "component": "Forja/Aprovacoes/Index",
+    "route": "/forja/aprovacoes",
+    "anchor": "Aprovações",
+    "baseline": "it_Forja_Aprovacoes_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]

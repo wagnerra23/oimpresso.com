@@ -4,7 +4,7 @@ casos: Forja · mesa de aprovações · /forja/aprovacoes
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-12"
+last_run: "2026-08-18"
 ---
 
 # Casos de uso — /forja/aprovacoes
@@ -61,6 +61,7 @@ Decisão dupla sobre o mesmo item é pior que decisão perdida: outra aba, outra
 
 Prosa honesta: cada item **está no charter** e **não tem** teste citando um UC. Vira UC quando ganhar teste — não antes ([`how-trabalhar.md`](../../../../../memory/how-trabalhar.md) §Pedido de tela/feature).
 
+- [BACKLOG] Fila lateral navegável (`mesa-fila`) — o `ap-fila` do protótipo. Trocar o foco entre as submissões em espera é **só front** (`selId`); o dado já vinha inteiro do `ForjaAprovacoesService::fila()` e a ordem segue sendo do backend. Não vira UC porque não há teste que o exercite: a tela tem 0 E2E, e UC sem teste que o cite quebra o `casos-gate` G-2. Escolher item **não** decide nada e **não** reordena.
 - [BACKLOG] Janela de 6s em que a decisão fica desfazível **antes** do POST (modelo "Undo Send") — hoje é comportamento só de front, sem teste E2E que o exercite.
 - [BACKLOG] Atalhos de teclado `a`/`d`/`x` derivados do FSM, inertes enquanto o foco está no campo de motivo.
 - [BACKLOG] Placar da equipe de agentes (heartbeat · custo/quota · critique F1.5 · retrabalho) — pedido do [W] em 2026-08-08, ainda sem backend.

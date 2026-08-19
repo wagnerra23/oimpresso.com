@@ -23,20 +23,20 @@
       "detail": {
         "coverage_pct": 88.2,
         "specs_total": 51,
-        "us_total": 956,
+        "us_total": 957,
         "anchor_coverage_pct": 88.2,
         "by_state": {
           "sem_campo": 112,
           "placeholder": 1,
-          "pendente": 402,
+          "pendente": 403,
           "parcial": 114,
           "anchored_ok": 327,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 850,
+        "fields_total": 851,
         "fields_placeholder": 1,
-        "fields_grammar_ok": 787,
+        "fields_grammar_ok": 788,
         "orphan_fields": 6,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
@@ -233,7 +233,7 @@
     },
     "distiller_freshness": {
       "status": "measured",
-      "value": 6,
+      "value": 7,
       "unit": "portas atrás dos eventos (>7d vs doc mais novo · ADR 0291 D-D)",
       "direction": "down",
       "target": 0,
@@ -242,7 +242,7 @@
         "portas": 78,
         "carimbadas": 14,
         "sem_carimbo": 64,
-        "stale": 6,
+        "stale": 7,
         "oldest_distilled_at": "2026-07-17"
       },
       "stream": "MEM"
