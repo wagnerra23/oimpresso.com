@@ -807,6 +807,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** listar gap design × produção por **casamento de string** — do protótipo no código, ou do código no protótipo. Copy adaptada **não é** ausência de capacidade. O gap se estabelece por **medida do DOM nos dois lados** (`design-diff.mjs --probe` → mesma sonda → `--compare`) **e** pela leitura do dono do inventário daquela tela (`<Tela>-visual-comparison.md`), que já traz veredito e data por item. Corolário de método, e é o que fecha: **ausência de renderização não é ausência de capacidade** — antes de dizer "falta X na tela", checar a **pré-condição** (a Memória sem fatos não desenha busca nem relevância).
 
+### 2026-08-19 — Escrever arquivo com par de barra invertida por heredoc: o par COLAPSA no transporte e o PHP recebe string aberta
+
+- **O limite (variante também proibida):** não escrever **par de barra invertida** em conteúdo de arquivo transportado por heredoc, script ou tool de escrita — em nenhuma linguagem. A forma positiva é remover a barra do texto: `chr(92)` montado em variável (Python), `DIRECTORY_SEPARATOR` em vez de `str_replace` de separador (PHP), ou um placeholder substituído depois (`__BS__`). E a verificação que fecha, porque é barata e determinística: depois de escrever, **conte as barras do arquivo e olhe cada uma** — se aparecer um par onde você queria um par, ok; se aparecer uma solteira onde deveria haver duas, o conteúdo foi corrompido no caminho. Vale igual para conteúdo com `\n`, `\t` e `\u` literais.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
