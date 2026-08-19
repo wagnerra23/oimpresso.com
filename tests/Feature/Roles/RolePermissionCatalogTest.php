@@ -41,7 +41,13 @@ function usuarioCat(array $permissoes, int $businessId = 1): User
     $papel->syncPermissions($permissoes);
     $user->assignRole($papel);
 
-    return $user;
+    // Mesma correcao do RoleTenantIsolationTest (ja em main): sem limpar o cache de
+    // permissoes do Spatie e sem reler o usuario, o can() responde com o retrato anterior
+    // e o controller aborta 403 — e ai os casos NEGATIVOS passam pelo MOTIVO ERRADO,
+    // porque 'nada foi criado' tambem e verdade quando a requisicao nem chega.
+    app(\\Spatie\\Permission\\PermissionRegistrar::class)->forgetCachedPermissions();
+
+    return User::findOrFail($user->id);
 }
 
 it('D1: permissão fora do catálogo não vira linha na tabela global', function () {
