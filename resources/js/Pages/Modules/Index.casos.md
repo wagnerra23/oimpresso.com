@@ -227,7 +227,9 @@ last_run: "2026-08-19"
 - **Aceite:** Dado um módulo com `Http/Controllers/DataController.php` e outro sem · Então
   `has_datacontroller` distingue os dois **e a linha do que não tem exibe "sem menu"**, com título
   explicando a consequência. Módulo **inativo** sem DataController **não** é marcado — inativo já não
-  monta menu, o aviso seria ruído.
+  monta menu, o aviso seria ruído. **O marcador é badge tokenizado**, não texto solto: reusa
+  `STATUS_STYLE.unregistered` (mesmos tokens do badge "Não registrado"), porque o charter é
+  explícito — *"estado de cada módulo legível por badge tokenizado, nunca por texto solto"*.
 - **Por que importa:** o `DataController` é quem monta o item na sidebar — "instalei e não apareceu no
   menu" é o sintoma clássico, documentado na skill `criar-modulo`. O campo chegava na prop e a tela o
   ignorava (corrigido pelo P3 em 2026-08-19).

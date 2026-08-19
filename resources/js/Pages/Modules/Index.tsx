@@ -310,7 +310,10 @@ export default function ModulesIndex({ modules }: Props) {
                                 nasce escuro). */}
                             {m.active && !m.has_datacontroller && (
                               <span
-                                className="ml-2 text-warning-fg"
+                                className={
+                                  'ml-2 inline-flex items-center rounded-full border px-2 py-0.5 ' +
+                                  'text-[10px] font-medium ' + STATUS_STYLE.unregistered
+                                }
                                 title="Sem DataController — o módulo está ativo mas não monta item na sidebar"
                               >
                                 sem menu
