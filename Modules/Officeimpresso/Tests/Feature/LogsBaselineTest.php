@@ -32,6 +32,7 @@ uses(Tests\TestCase::class);
  * rodam em sqlite). Tenant canônico de teste = 98 (ADR 0358), NUNCA biz=4.
  *
  * @covers-us US-OI-001
+ * @covers-us US-OI-002
  * @see Modules\Officeimpresso\Http\Controllers\LicencaLogController
  * @see memory/requisitos/Officeimpresso/RUNBOOK-logs.md
  * @see memory/requisitos/Officeimpresso/SPEC.md (US-OI-001)
@@ -248,6 +249,63 @@ it('UC-TL-09 · timeline preserva o was_blocked do metadata (tri-estado da colun
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Caminho dual da LISTA (F3) — @covers-us US-OI-002
+//
+// Os casos da TIMELINE moram no PR dela: teste de render só entra junto da page
+// que ele renderiza, mesma razão pela qual o `Inertia::render` saiu da F2
+// (OrphanRenderGateTest — render órfão é 500 esperando a flag ligar).
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('UC-LOGS-08 · com a flag OFF a lista continua servindo Blade', function () {
+    $business = $this->seededTenant();
+    $user = actingAsOiLeitor($this, $business->id);
+
+    // Default é OFF: o GrowthBook não conhece a chave e o `fallbackDefaults` do
+    // FeatureFlagService não a lista. É o estado em produção até [W] ligar.
+    forcaFlagV2($this, false);
+
+    // `viewData` só existe em resposta de view: se um dia isto virar Inertia sem
+    // alguém ligar a flag, o teste quebra aqui.
+    expect($this->get('/officeimpresso/licenca_log')->viewData('kpis'))->toBeArray();
+
+    $user->forceDelete();
+});
+
+it('UC-LOGS-09 · com a flag ON a lista responde Inertia com filters e permissions', function () {
+    $business = $this->seededTenant();
+    $user = actingAsOiLeitor($this, $business->id);
+
+    forcaFlagV2($this, true);
+
+    $this->get('/officeimpresso/licenca_log?q=' . $this->oiMarcador)
+        ->assertOk()
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->component('Officeimpresso/Logs/Index')
+            // `maquinas` e `kpis` NÃO entram aqui de propósito — são
+            // `Inertia::defer`, então não vêm no payload inicial.
+            ->has('filters')
+            ->where('filters.q', $this->oiMarcador)
+            ->has('permissions.pode_ver_todas_empresas')
+        );
+
+    $user->forceDelete();
+});
+
+it('UC-LOGS-10 · a flag ON NÃO afrouxa a guarda de acesso', function () {
+    $business = $this->seededTenant();
+
+    // O caminho novo não pode virar porta dos fundos: quem não podia ver a tela
+    // no Blade continua tomando 403 no Inertia. A guarda roda antes do render.
+    $user = makeOiLogsTestUser($business->id);
+    $this->actingAs($user);
+    forcaFlagV2($this, true);
+
+    $this->get('/officeimpresso/licenca_log')->assertForbidden();
+
+    $user->forceDelete();
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -323,4 +381,26 @@ function criaLogOi(int $licencaId, int $businessId, array $attrs = []): void
 function idsDasMaquinas($resposta): array
 {
     return collect($resposta->viewData('maquinas'))->pluck('licenca_id')->all();
+}
+
+/**
+ * Força o veredito da feature flag sem depender do GrowthBook do CT 100 —
+ * teste que sai na rede não é teste, é sorte.
+ *
+ * Fica no FIM do arquivo DE PROPÓSITO. Quando ele morava no começo da seção de
+ * helpers, uma remoção por intervalo "deste docblock até o idsDasMaquinas"
+ * engoliu os quatro helpers que estavam no meio (§5 2026-08-02). No fim, um
+ * intervalo assim não tem vizinho pra comer.
+ */
+function forcaFlagV2($test, bool $ligada): void
+{
+    $test->instance(\App\Services\FeatureFlagService::class, new class($ligada) extends \App\Services\FeatureFlagService
+    {
+        public function __construct(private bool $ligada) {}
+
+        public function isOn(string $flag, array $attrs = []): bool
+        {
+            return $this->ligada;
+        }
+    });
 }
