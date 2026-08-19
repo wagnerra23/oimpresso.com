@@ -215,13 +215,27 @@ last_run: "2026-08-19"
 
 ---
 
-## UC-MOD-18 · Módulo sem DataController é identificável · `should`
+## UC-MOD-18 · Módulo ativo sem DataController é sinalizado na tela · `should`
 
 - **Aceite:** Dado um módulo com `Http/Controllers/DataController.php` e outro sem · Então
-  `has_datacontroller` distingue os dois.
+  `has_datacontroller` distingue os dois **e a linha do que não tem exibe "sem menu"**, com título
+  explicando a consequência. Módulo **inativo** sem DataController **não** é marcado — inativo já não
+  monta menu, o aviso seria ruído.
 - **Por que importa:** o `DataController` é quem monta o item na sidebar — "instalei e não apareceu no
-  menu" é o sintoma clássico. Hoje o campo chega na prop e a tela **não o renderiza** (patch P3).
-- **Teste:** `tests/Feature/Modules/ModuleManagerServiceTest.php`
+  menu" é o sintoma clássico, documentado na skill `criar-modulo`. O campo chegava na prop e a tela o
+  ignorava (corrigido pelo P3 em 2026-08-19).
+- **Duas provas, porque uma não bastava:** o Pest de serviço prova que o campo é **computado** certo;
+  ele não alcança o que a tela **renderiza** — e o defeito era exatamente esse. O caso do render vive
+  em jsdom.
+- ⚠️ **Sem smoke visual possível:** medido 2026-08-19, **32 de 32** módulos têm DataController, então o
+  marcador nasce escuro em produção. Não há linha real para fotografar; o caso só existe em fixture.
+  Isso é dado, não desculpa — quando algum módulo quebrar, a tela passa a dizer.
+- ⚠️ **Divergência deliberada do protótipo:** `prototipo-ui/cowork/modulos-page.jsx` **não** tem este
+  marcador. Produção fica à frente do desenho aqui. O espelho é build-only (não se edita deste lado —
+  ADR 0374), então incorporar isso ao protótipo é ação no Cowork vivo, decisão [W].
+- **Testes:** `tests/Feature/Modules/ModuleManagerServiceTest.php` (campo computado) ·
+  `tests/modulos-sem-menu.test.tsx` (render, 3 casos + 2 controles negativos; bite-test feito —
+  removendo o marcador, 3 falham e os 2 controles seguem verdes).
 - **Status: 🧪**
 
 ---

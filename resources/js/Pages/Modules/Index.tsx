@@ -302,6 +302,20 @@ export default function ModulesIndex({ modules }: Props) {
                           <div className="text-foreground font-medium leading-tight">{m.name}</div>
                           <div className="text-[11px] text-muted-foreground/70 leading-tight mt-0.5">
                             {m.alias} · v{m.version}
+                            {/* `has_datacontroller` chegava na prop e a tela ignorava. E o
+                                DataController e quem monta o item na sidebar: sem ele, o modulo
+                                fica ativo e INVISIVEL no menu -- o sintoma classico de "instalei
+                                e nao apareceu". Marcador so aparece quando ha o que dizer
+                                (medido 2026-08-19: 32/32 tem DataController, entao hoje ele
+                                nasce escuro). */}
+                            {m.active && !m.has_datacontroller && (
+                              <span
+                                className="ml-2 text-warning-fg"
+                                title="Sem DataController — o módulo está ativo mas não monta item na sidebar"
+                              >
+                                sem menu
+                              </span>
+                            )}
                           </div>
                           {m.description && (
                             <div className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
