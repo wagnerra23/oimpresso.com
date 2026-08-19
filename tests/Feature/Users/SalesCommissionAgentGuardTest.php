@@ -22,6 +22,15 @@ declare(strict_types=1);
 
 use App\BusinessLocation;
 use App\Contact;
+/**
+ * Tenant canonico de teste = 98 (ADR 0358 / CLAUDE.md R6). Nao e detalhe de estilo: a action
+ * pest-mysql-setup so semeia business_locations e contacts para o 98 — em biz=1 o firstOrFail
+ * da venda estoura com 'No query results for model [App\BusinessLocation]', que foi como
+ * este teste falhou no primeiro run da lane.
+ */
+const TENANT_TESTE = 98;
+const TENANT_OUTRO = 2;
+
 use App\Transaction;
 use App\User;
 use Carbon\Carbon;
@@ -79,16 +88,17 @@ function vendaDoAgente(int $businessId, User $agente): Transaction
 }
 
 it('BLOQUEIA a exclusão de comissionado com venda vinculada, e diz quantas', function () {
-    $agente = agenteDoNegocio(1);
-    vendaDoAgente(1, $agente);
+    $agente = agenteDoNegocio(TENANT_TESTE);
+    vendaDoAgente(TENANT_TESTE, $agente);
 
-    $operador = operadorQuePodeExcluir(1);
+    $operador = operadorQuePodeExcluir(TENANT_TESTE);
     $this->actingAs($operador);
-    session(['user.business_id' => 1]);
+    session(['user.business_id' => TENANT_TESTE]);
 
-    $resposta = $this->deleteJson('/sales-commission-agents/'.$agente->id);
-
-    $resposta->assertStatus(422);
+    // 422 = a guarda respondeu. Sem assertar STATUS, "o agente continuou marcado" tambem seria
+    // verdade se a requisicao fosse barrada por 403 — foi assim que o RoleTenantIsolationTest
+    // quase passou pelo motivo errado nesta mesma sessao.
+    $this->deleteJson('/sales-commission-agents/'.$agente->id)->assertStatus(422);
 
     $agente->refresh();
     expect((bool) $agente->is_cmmsn_agnt)->toBeTrue();
@@ -96,13 +106,14 @@ it('BLOQUEIA a exclusão de comissionado com venda vinculada, e diz quantas', fu
 });
 
 it('sem venda vinculada, DESMARCA o papel em vez de excluir o usuário', function () {
-    $agente = agenteDoNegocio(1);
+    $agente = agenteDoNegocio(TENANT_TESTE);
 
-    $operador = operadorQuePodeExcluir(1);
+    $operador = operadorQuePodeExcluir(TENANT_TESTE);
     $this->actingAs($operador);
-    session(['user.business_id' => 1]);
+    session(['user.business_id' => TENANT_TESTE]);
 
-    $this->deleteJson('/sales-commission-agents/'.$agente->id);
+    // 200 = chegou ao controller e o caminho feliz respondeu (a rota devolve o array $output).
+    $this->deleteJson('/sales-commission-agents/'.$agente->id)->assertOk();
 
     // withTrashed porque o comportamento ANTIGO era delete() (soft): se voltar a ser,
     // o refresh() puro não acharia a linha e o teste falharia por motivo errado.
@@ -112,11 +123,11 @@ it('sem venda vinculada, DESMARCA o papel em vez de excluir o usuário', functio
 });
 
 it('comissionado de outro negócio não é alcançado', function () {
-    $alheio = agenteDoNegocio(2);
+    $alheio = agenteDoNegocio(TENANT_OUTRO);
 
-    $operador = operadorQuePodeExcluir(1);
+    $operador = operadorQuePodeExcluir(TENANT_TESTE);
     $this->actingAs($operador);
-    session(['user.business_id' => 1]);
+    session(['user.business_id' => TENANT_TESTE]);
 
     $this->deleteJson('/sales-commission-agents/'.$alheio->id);
 
