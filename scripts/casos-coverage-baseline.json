@@ -1,27 +1,65 @@
 {
   "_meta": {
-    "generated_at": "2026-08-12T17:30:10.203Z",
+    "generated_at": "2026-08-19T12:23:05.181Z",
     "gate": "casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado)",
     "escopo_telas": "ESCOPO (fonte única scripts/qa/page-path.mjs · idêntico ao screen-coverage-map):\n  inclui: resources/js/Pages/**/<Sub>/<Tela>.tsx (Page Inertia executável)\n  exclui: dirs auxiliares (_*, components, partials, hooks, utils, lib, types,\n          constants, schemas, stores, contexts) · .tsx na raiz de Pages/ · *.charter.tsx · *.test.tsx",
     "stats": {
-      "pages": 206,
-      "casos_files": 90,
-      "ucs_declared": 503,
+      "pages": 207,
+      "casos_files": 108,
+      "ucs_declared": 566,
       "missing_charter": 0,
-      "missing_casos": 117,
+      "missing_casos": 100,
       "orphan_ucs": 12,
       "metadata_issues": 0,
       "stale_cases": 0,
       "status_lies": 0,
       "status_unverified": 0,
       "status_stale": 0,
-      "exec_backed_ucs": 193,
-      "exec_backed_declared": 499,
-      "exec_backed_pct": 39,
-      "teto_no_titulo": 387,
-      "teto_so_docblock": 100,
-      "teto_distintos": 499,
+      "exec_backed_ucs": 234,
+      "exec_backed_declared": 562,
+      "exec_backed_pct": 42,
+      "teto_no_titulo": 421,
+      "teto_so_docblock": 129,
+      "teto_distintos": 562,
       "teto_presos_por_modulo": [
+        {
+          "modulo": "Financeiro",
+          "ucs": [
+            "UC-ADVD-01",
+            "UC-ADVD-03",
+            "UC-ADVD-04",
+            "UC-ADVL-01",
+            "UC-ADVL-02",
+            "UC-CAT-01",
+            "UC-CAT-02",
+            "UC-CAT-03",
+            "UC-CAT-04",
+            "UC-CAT-05",
+            "UC-COB-02",
+            "UC-COB-07",
+            "UC-CTB-01",
+            "UC-CTB-04",
+            "UC-CTD-01",
+            "UC-CTD-03",
+            "UC-CTD-04",
+            "UC-CTD-05",
+            "UC-DRE-06",
+            "UC-EXT-01",
+            "UC-EXT-04",
+            "UC-EXT-05",
+            "UC-EXT-06",
+            "UC-IMP-04",
+            "UC-PV-01",
+            "UC-PV-02",
+            "UC-PV-04",
+            "UC-PV-06",
+            "UC-REL-01",
+            "UC-REL-02",
+            "UC-REL-03",
+            "UC-REL-05",
+            "UC-REL-06"
+          ]
+        },
         {
           "modulo": "Cliente",
           "ucs": [
@@ -80,6 +118,18 @@
           ]
         },
         {
+          "modulo": "Jana",
+          "ucs": [
+            "UC-PRO-01",
+            "UC-PRO-02",
+            "UC-PRO-03",
+            "UC-PRO-04",
+            "UC-PRO-05",
+            "UC-PRO-06",
+            "UC-PRO-07"
+          ]
+        },
+        {
           "modulo": "kb",
           "ucs": [
             "UC-KBV2-01",
@@ -115,17 +165,6 @@
           ]
         },
         {
-          "modulo": "Jana",
-          "ucs": [
-            "UC-PRO-01",
-            "UC-PRO-02",
-            "UC-PRO-03",
-            "UC-PRO-04",
-            "UC-PRO-05",
-            "UC-PRO-06"
-          ]
-        },
-        {
           "modulo": "Ponto",
           "ucs": [
             "UC-BHSHOW-01",
@@ -145,16 +184,6 @@
             "UC-PSHOW-04",
             "UC-PSHOW-05",
             "UC-PSHOW-07"
-          ]
-        },
-        {
-          "modulo": "Financeiro",
-          "ucs": [
-            "UC-IMP-04",
-            "UC-PV-01",
-            "UC-PV-02",
-            "UC-PV-04",
-            "UC-PV-06"
           ]
         },
         {
@@ -221,6 +250,8 @@
     "trio:missing-casos:Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx",
     "trio:missing-casos:Modules/KB/Resources/js/Pages/ads/Admin/Graph.tsx",
     "trio:missing-casos:Modules/Superadmin/Resources/js/Pages/Site/Pricing.tsx",
+    "trio:missing-casos:Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Index.tsx",
+    "trio:missing-casos:Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Show.tsx",
     "trio:missing-casos:Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx",
     "trio:missing-casos:Modules/Whatsapp/Resources/js/Pages/Atendimento/Channels/Index.tsx",
     "trio:missing-casos:Modules/Whatsapp/Resources/js/Pages/Atendimento/Channels/Show.tsx",
@@ -245,20 +276,6 @@
     "trio:missing-casos:resources/js/Pages/Essentials/Todo/Edit.tsx",
     "trio:missing-casos:resources/js/Pages/Essentials/Todo/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Essentials/Todo/Show.tsx",
-    "trio:missing-casos:resources/js/Pages/Financeiro/Advisor/Dashboard.tsx",
-    "trio:missing-casos:resources/js/Pages/Financeiro/Advisor/Login.tsx",
-    "trio:missing-casos:resources/js/Pages/Financeiro/AssinaturaAtualizar.tsx",
-    "trio:missing-casos:resources/js/Pages/Financeiro/Categorias/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Financeiro/Cobranca/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Financeiro/Configuracoes/Contador.tsx",
-    "trio:missing-casos:resources/js/Pages/Financeiro/ContasBancarias/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Financeiro/Dashboard/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Financeiro/Dre/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Financeiro/Extrato/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Financeiro/Fluxo/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Financeiro/PlanoContas/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Financeiro/Relatorios/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Financeiro/Unificado/Novo.tsx",
     "trio:missing-casos:resources/js/Pages/governance/Audit.tsx",
     "trio:missing-casos:resources/js/Pages/governance/Custos.tsx",
     "trio:missing-casos:resources/js/Pages/governance/Dashboard.tsx",
@@ -268,8 +285,6 @@
     "trio:missing-casos:resources/js/Pages/governance/Policies.tsx",
     "trio:missing-casos:resources/js/Pages/governance/QualidadeIa.tsx",
     "trio:missing-casos:resources/js/Pages/Home/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Jana/Chat.tsx",
-    "trio:missing-casos:resources/js/Pages/Jana/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Manufacturing/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Modules/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Nfse/Emitir.tsx",
@@ -282,7 +297,6 @@
     "trio:missing-casos:resources/js/Pages/Ponto/Dashboard/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Escalas/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Welcome.tsx",
-    "trio:missing-casos:resources/js/Pages/Produto/Unificado/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Purchase/Create.tsx",
     "trio:missing-casos:resources/js/Pages/Purchase/Edit.tsx",
     "trio:missing-casos:resources/js/Pages/Purchase/Index.tsx",
@@ -311,8 +325,6 @@
     "trio:missing-casos:resources/js/Pages/StockAdjustment/Index.tsx",
     "trio:missing-casos:resources/js/Pages/StockTransfer/Create.tsx",
     "trio:missing-casos:resources/js/Pages/StockTransfer/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/superadmin/Usuario360/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/superadmin/Usuario360/Show.tsx",
     "trio:missing-casos:resources/js/Pages/Tarefas/Index.tsx",
     "trio:missing-casos:resources/js/Pages/TransactionPayment/Edit.tsx",
     "trio:missing-casos:resources/js/Pages/TransactionPayment/Index.tsx",

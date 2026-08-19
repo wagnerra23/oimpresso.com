@@ -158,15 +158,15 @@ module: Superadmin
 
 - [Pricing.tsx](../../../Modules/Superadmin/Resources/js/Pages/Site/Pricing.tsx)
 - [Index.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx)
-- [Index.tsx](../../../resources/js/Pages/superadmin/Usuario360/Index.tsx)
-- [Show.tsx](../../../resources/js/Pages/superadmin/Usuario360/Show.tsx)
+- [Index.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Index.tsx)
+- [Show.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Show.tsx)
 
 ## Charters (lei da tela) — 4
 
 - [Pricing.charter.md](../../../Modules/Superadmin/Resources/js/Pages/Site/Pricing.charter.md)
 - [Index.charter.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.charter.md)
-- [Index.charter.md](../../../resources/js/Pages/superadmin/Usuario360/Index.charter.md)
-- [Show.charter.md](../../../resources/js/Pages/superadmin/Usuario360/Show.charter.md)
+- [Index.charter.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Index.charter.md)
+- [Show.charter.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Show.charter.md)
 
 ## Casos (contrato UC) — 1
 

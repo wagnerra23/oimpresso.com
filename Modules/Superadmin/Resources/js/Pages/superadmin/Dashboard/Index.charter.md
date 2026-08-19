@@ -14,10 +14,15 @@ charter_version: 1
 
 # Page Charter — /superadmin (DRAFT)
 
-> **Status:** draft criado em 2026-08-19 na onda SA-O1 (Blade → Inertia).
+> **Status:** criado em 2026-08-19 na onda SA-O1 (Blade → Inertia).
 > Os **Non-Goals** e os **Anti-hooks** abaixo foram **transportados** do F1 do Cowork
-> (`cowork-inbox/SUPERADMIN-F1-2026-08-18.md`), não inferidos por mim — mas quem ratifica é
-> [W]. Enquanto não houver esse aval, o charter fica `draft`.
+> (`cowork-inbox/SUPERADMIN-F1-2026-08-18.md`), não inferidos por mim — e **[W] ratificou em
+> 2026-08-19**, o que os habilita a virar Pest GUARD.
+>
+> Segue `draft` por um motivo só, e não é falta de aval: o gate `charter-live-signal` exige
+> **sinal de prod** pra `status: live`, e esta tela ainda não foi ao ar. Promove a `live` o PR
+> curto que vier depois do deploy, carregando a evidência do smoke — marcar `live` antes seria
+> afirmar o que ainda não é verdade.
 >
 > Backend: `Modules\Superadmin\Http\Controllers\SuperadminController@index` (rota `GET /superadmin`).
 > **Acesso em 2 camadas** (medido 2026-08-19 — o F1 dizia "Bouncer" e estava errado):
@@ -93,8 +98,12 @@ toma 403.
 
 ## Pendências antes de `status: live`
 
-1. [W] ratifica os Non-Goals e os Anti-hooks acima (transportados do F1, não inferidos).
-2. Blocos da SA-O1b entram: MRR, funil trial→pago, churn (depende da migration
-   `cancel_reason`), receita por pacote, fila "Vencendo ou vencido".
-3. Decisões D1/D2/D3 do F1 seguem abertas — impersonar, `pages`/`pricing` no CMS,
-   `subscription/pay` de quem é.
+1. ~~[W] ratifica os Non-Goals e os Anti-hooks~~ — **feito em 2026-08-19**.
+2. **Sinal de prod**: deploy + smoke real de `/superadmin` (o `charter-live-signal` exige, e é
+   o único item que ainda segura o `live`).
+
+Independentes do `live`, seguem em aberto:
+
+- Blocos da SA-O1b: MRR, funil trial→pago, churn (depende da migration `cancel_reason`),
+  receita por pacote, fila "Vencendo ou vencido".
+- Decisões D1/D2/D3 do F1 — impersonar, `pages`/`pricing` no CMS, `subscription/pay` de quem é.
