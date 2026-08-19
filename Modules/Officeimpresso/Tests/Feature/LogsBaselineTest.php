@@ -47,6 +47,18 @@ beforeEach(function () {
         $this->markTestSkipped('SQLite-incompatível: schema MySQL UltimatePOS necessário (ADR 0358).');
     }
 
+    // `layouts/app.blade.php:56` lê `$_SERVER['REMOTE_ADDR']` DIRETO do
+    // superglobal (não do Request), e em teste HTTP ele não existe: a view
+    // estoura ErrorException → ViewException → a resposta vira pagina de erro,
+    // e todo `viewData()` falha com "The response is not a view".
+    //
+    // `withServerVariables()` NÃO resolve: ele alimenta o server bag do Request
+    // criado pelo Symfony, e não toca o superglobal que a Blade lê.
+    //
+    // Toda requisição HTTP real traz REMOTE_ADDR — o teste só está fornecendo o
+    // que o ambiente sempre forneceria. Não é máscara de defeito de produto.
+    $_SERVER['REMOTE_ADDR'] ??= '127.0.0.1';
+
     $this->oiMarcador = 'BASE' . strtoupper(substr(uniqid(), -8));
     $this->oiLicencaIds = [];
 });
