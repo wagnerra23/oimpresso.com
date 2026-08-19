@@ -6,6 +6,7 @@ use App\Business;
 use App\Product;
 use App\Transaction;
 use App\User;
+use App\Util\OtelHelper;
 use App\Utils\BusinessUtil;
 use App\Utils\ModuleUtil;
 use App\VariationLocationDetails;
@@ -14,6 +15,8 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 use Modules\Superadmin\Entities\Package;
 use Modules\Superadmin\Http\Requests\StoreBusinessRequest;
 use Modules\Superadmin\Http\Requests\UpdateBusinessPasswordRequest;
@@ -40,153 +43,180 @@ class BusinessController extends BaseController
     }
 
     /**
-     * Display a listing of the resource.
+     * Lista de negócios (`GET /superadmin/business`) — onda SA-O2.
      *
-     * @return Response
+     * Deixou de servir DataTables por AJAX e passou a Inertia com paginação SERVER-SIDE.
+     * A troca não é cosmética: o legado trazia a página inteira pro DataTables montar, e
+     * o `groupBy('business.id')` que ele usava para desfazer a multiplicação do join com
+     * `business_locations` quebra a contagem do `paginate()` (o COUNT passa a ser por
+     * grupo). Aqui o local vira SUBQUERY ESCALAR e a assinatura entra pela mais recente
+     * (`MAX(id)`), então cada negócio é exatamente uma linha e o total pagina certo.
      */
-    public function index()
+    public function index(Request $request): InertiaResponse
     {
         if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            $date_today = \Carbon::today();
-            $businesses = Business::leftjoin('subscriptions AS s', function ($join) use ($date_today) {
+        return OtelHelper::spanBiz('superadmin.negocios.index', function () use ($request) {
+            $filtros = [
+                'q' => trim((string) $request->input('q', '')),
+                'pacote' => $request->input('pacote'),
+                'assinatura' => $this->opcaoValida($request->input('assinatura'), ['vigente', 'vencida', 'sem']),
+                'status' => $this->opcaoValida($request->input('status'), ['ativo', 'inativo']),
+                'venda' => $this->opcaoValida($request->input('venda'), ['today', 'yesterday', 'this_week', 'this_month', 'last_month', 'this_year', 'last_year']),
+            ];
+
+            return Inertia::render('superadmin/Negocios/Index', [
+                'filtros' => $filtros,
+                'pacotes' => Inertia::defer(fn () => $this->opcoesDePacote()),
+                'negocios' => Inertia::defer(fn () => $this->negociosPayload($filtros)),
+            ]);
+        }, ['component' => 'superadmin.negocios.index']);
+    }
+
+    /** Opção de filtro fora da lista vira `null` — nunca chega cru na query. */
+    private function opcaoValida(?string $valor, array $aceitos): ?string
+    {
+        return in_array($valor, $aceitos, true) ? $valor : null;
+    }
+
+    /**
+     * Pacotes para o filtro. Só id + nome: a lista é combo, não catálogo.
+     *
+     * @return array<int, array{id: int, nome: string}>
+     */
+    private function opcoesDePacote(): array
+    {
+        return Package::query()
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn ($p) => ['id' => (int) $p->id, 'nome' => (string) $p->name])
+            ->all();
+    }
+
+    /**
+     * Página de negócios já filtrada.
+     *
+     * SUPERADMIN: leitura GLOBAL cross-tenant intencional (ADR 0093 §exceções) — esta tela
+     * existe para enxergar todos os negócios da plataforma.
+     */
+    private function negociosPayload(array $filtros): array
+    {
+        $hoje = \Carbon::today()->toDateString();
+
+        // DB::table, não Business::query(): as colunas do JOIN (`sub_status`, `pacote`,
+        // `cidade`, `dono`…) não existem no model, e hidratar Eloquent pra montar uma lista
+        // de leitura não paga. O PHPStan reclamava disso com razão (`property.notFound`).
+        $query = DB::table('business')
+            // A assinatura MAIS RECENTE de cada negócio, uma só. Sem o MAX(id) o join
+            // multiplicaria a linha por assinatura histórica e a paginação mentiria.
+            ->leftJoin('subscriptions AS s', function ($join) {
                 $join->on('business.id', '=', 's.business_id')
-                                    ->whereDate('s.start_date', '<=', $date_today)
-                                    ->whereDate('s.end_date', '>=', $date_today)
-                                    ->where('s.status', 'approved');
+                    ->whereRaw('s.id = (SELECT MAX(s2.id) FROM subscriptions s2 WHERE s2.business_id = business.id)');
             })
-                            ->leftjoin('packages as p', 's.package_id', '=', 'p.id')
-                            ->leftjoin('business_locations as bl', 'business.id', '=', 'bl.business_id')
-                            ->leftjoin('users as u', 'u.id', '=', 'business.owner_id')
-                            ->leftjoin('users as creator', 'creator.id', '=', 'business.created_by')
-                            ->select(
-                                    'business.id',
-                                    'business.name',
-                                    DB::raw("CONCAT(COALESCE(u.surname, ''), ' ', COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, '')) as owner_name"),
-                                    'u.email as owner_email',
-                                    'u.contact_number',
-                                    'bl.mobile',
-                                    'bl.alternate_number',
-                                    'bl.city',
-                                    'bl.state',
-                                    'bl.country',
-                                    'bl.landmark',
-                                    'bl.zip_code',
-                                    'business.is_active',
-                                    's.start_date',
-                                    's.end_date',
-                                    'p.name as package_name',
-                                    'business.created_at',
-                                    DB::raw("CONCAT(COALESCE(creator.surname, ''), ' ', COALESCE(creator.first_name, ''), ' ', COALESCE(creator.last_name, '')) as biz_creator")
-                                )->groupBy('business.id');
+            ->leftJoin('packages AS p', 's.package_id', '=', 'p.id')
+            ->leftJoin('users AS u', 'u.id', '=', 'business.owner_id')
+            ->select([
+                'business.id',
+                'business.name',
+                'business.is_active',
+                'business.created_at',
+                'u.email AS dono_email',
+                DB::raw("TRIM(CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, ''))) AS dono"),
+                's.status AS sub_status',
+                's.end_date AS sub_fim',
+                'p.name AS pacote',
+                // Subquery escalar em vez de join: `business_locations` é 1-para-N e o join
+                // duplicaria o negócio por local.
+                DB::raw('(SELECT bl.city FROM business_locations bl WHERE bl.business_id = business.id ORDER BY bl.id LIMIT 1) AS cidade'),
+            ]);
 
-            if (! empty(request()->package_id)) {
-                $businesses->where('p.id', request()->package_id);
-            }
+        if ($filtros['q'] !== '') {
+            $termo = '%'.$filtros['q'].'%';
+            $query->where(function ($w) use ($termo, $filtros) {
+                $w->where('business.name', 'like', $termo)
+                    ->orWhere('u.email', 'like', $termo)
+                    ->orWhere('u.first_name', 'like', $termo)
+                    ->orWhere('u.last_name', 'like', $termo);
 
-            $subscription_status = request()->subscription_status;
-            if ($subscription_status == 30) {
-                $businesses->whereDate('s.end_date', '<=', \Carbon::today()->addDays(30));
-            } elseif ($subscription_status == 7) {
-                $businesses->whereDate('s.end_date', '<=', \Carbon::today()->addDays(7));
-            } elseif ($subscription_status == 3) {
-                $businesses->whereDate('s.end_date', '<=', \Carbon::today()->addDays(3));
-            } elseif ($subscription_status == 'expired') {
-                $businesses->where(function ($q) {
-                    $q->whereDate('s.end_date', '<', \Carbon::today())
-                    ->orWhereNull('s.end_date');
-                });
-            } elseif ($subscription_status == 'subscribed') {
-                $businesses->whereNotNull('s.start_date');
-            }
-
-            $is_active = request()->is_active;
-            if ($is_active == 'active') {
-                $businesses->where('business.is_active', 1);
-            } elseif ($is_active == 'inactive') {
-                $businesses->where('business.is_active', 0);
-            }
-
-            $last_transaction_date = request()->last_transaction_date;
-            $query = $this->filterTransactionDate($businesses, $last_transaction_date, '>');
-
-            $no_transaction_since = request()->no_transaction_since;
-
-            $query = $this->filterTransactionDate($businesses, $no_transaction_since, '=');
-
-            return Datatables::of($query)
-                ->addColumn('address', '{{$city}}, {{$state}}, {{$country}} {{$landmark}}, {{$zip_code}}')
-                ->addColumn('business_contact_number', '{{$mobile}} @if(!empty($alternate_number)), {{$alternate_number}}@endif')
-                ->editColumn('is_active', '@if($is_active == 1) <span class="label bg-green">@lang("business.is_active")</span> @else <span class="label bg-gray">@lang("lang_v1.inactive")</span> @endif')
-                ->addColumn('action', function ($row) {
-                    $html = '<a href="'.
-                            action([\Modules\Superadmin\Http\Controllers\BusinessController::class, 'show'], [$row->id]).'"
-                                class="btn btn-info btn-xs">'.__('superadmin::lang.manage').'</a>
-                            <button type="button" class="btn btn-primary btn-xs btn-modal" data-href="'.action([\Modules\Superadmin\Http\Controllers\SuperadminSubscriptionsController::class, 'create'], ['business_id' => $row->id]).'" data-container=".view_modal">'
-                                  .__('superadmin::lang.add_subscription').'</button>';
-
-                    if ($row->is_active == 1) {
-                        $html .= ' <a href="'.action([\Modules\Superadmin\Http\Controllers\BusinessController::class, 'toggleActive'], [$row->id, 0]).'"
-                                    class="btn btn-danger btn-xs link_confirmation">'.__('lang_v1.deactivate').'
-                                </a>';
-                    } else {
-                        $html .= ' <a href="'.action([\Modules\Superadmin\Http\Controllers\BusinessController::class, 'toggleActive'], [$row->id, 1]).'"
-                                    class="btn btn-success btn-xs link_confirmation">'.__('lang_v1.activate').'
-                                </a>';
-                    }
-
-                    if (request()->session()->get('user.business_id') != $row->id) {
-                        $html .= ' <a href="'.action([\Modules\Superadmin\Http\Controllers\BusinessController::class, 'destroy'], [$row->id]).'"
-                                    class="btn btn-danger btn-xs delete_business_confirmation">'.__('messages.delete').'</a>';
-                    }
-
-                    return $html;
-                })
-                ->filterColumn('owner_name', function ($query, $keyword) {
-                    $query->whereRaw("CONCAT(COALESCE(surname, ''), ' ', COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) like ?", ["%{$keyword}%"]);
-                })
-                ->filterColumn('address', function ($query, $keyword) {
-                    $query->whereRaw("CONCAT(COALESCE(city, ''), ', ', COALESCE(state, ''), ', ', COALESCE(country, ''), ', ', COALESCE(landmark, ''), ', ', COALESCE(zip_code, '')) like ?", ["%{$keyword}%"]);
-                })
-                ->filterColumn('business_contact_number', function ($query, $keyword) {
-                    $query->where(function ($q) use ($keyword) {
-                        $q->where('bl.mobile', 'like', "%{$keyword}%")
-                        ->orWhere('bl.alternate_number', 'like', "%{$keyword}%");
-                    });
-                })
-                ->addColumn('current_subscription', '{{$package_name ?? ""}} @if(!empty($start_date) && !empty($end_date)) ({{@format_date($start_date)}} - {{@format_date($end_date)}}) @endif')
-                ->editColumn('created_at', '{{@format_datetime($created_at)}}')
-                ->rawColumns(['action', 'is_active', 'created_at'])
-                ->make(true);
+                // Busca por número do negócio só quando o termo É um número — senão a
+                // comparação vira cast implícito e casa linha errada.
+                if (ctype_digit($filtros['q'])) {
+                    $w->orWhere('business.id', (int) $filtros['q']);
+                }
+            });
         }
 
-        $business_id = request()->session()->get('user.business_id');
+        if (! empty($filtros['pacote'])) {
+            $query->where('p.id', (int) $filtros['pacote']);
+        }
 
-        $packages = Package::listPackages()->pluck('name', 'id');
+        if ($filtros['assinatura'] === 'vigente') {
+            $query->where('s.status', 'approved')
+                ->where(function ($w) use ($hoje) {
+                    $w->whereNull('s.end_date')->orWhereDate('s.end_date', '>=', $hoje);
+                });
+        } elseif ($filtros['assinatura'] === 'vencida') {
+            $query->whereNotNull('s.id')->whereDate('s.end_date', '<', $hoje);
+        } elseif ($filtros['assinatura'] === 'sem') {
+            $query->whereNull('s.id');
+        }
 
-        $subscription_statuses = [
-            'subscribed' => __('superadmin::lang.subscribed'),
-            'expired' => __('report.expired'),
-            '30' => __('superadmin::lang.expiring_in_one_month'),
-            '7' => __('superadmin::lang.expiring_in_7_days'),
-            '3' => __('superadmin::lang.expiring_in_3_days'),
+        if ($filtros['status'] === 'ativo') {
+            $query->where('business.is_active', 1);
+        } elseif ($filtros['status'] === 'inativo') {
+            $query->where('business.is_active', 0);
+        }
+
+        // 4o filtro do F1 ("ultima venda"): reusa o `filterTransactionDate` que ja servia o
+        // DataTables — a subquery em `transactions` e cara, mas e a mesma que rodava antes, e
+        // reescrever mudaria o resultado sem necessidade. O operador `>` = "vendeu no periodo".
+        if ($filtros['venda'] !== null) {
+            $this->filterTransactionDate($query, $filtros['venda'], '>');
+        }
+
+        $pagina = $query->orderByDesc('business.id')->paginate(20)->withQueryString();
+
+        return [
+            'linhas' => collect($pagina->items())->map(fn ($b) => [
+                'id' => (int) $b->id,
+                'nome' => (string) $b->name,
+                'dono' => trim((string) ($b->dono ?? '')) ?: null,
+                'email' => $b->dono_email,
+                'cidade' => $b->cidade,
+                'pacote' => $b->pacote,
+                'ativo' => (bool) $b->is_active,
+                'assinatura' => $this->rotuloDeAssinatura($b->sub_status, $b->sub_fim),
+                'criado' => $b->created_at ? \Carbon::parse($b->created_at)->format('d/m/Y') : null,
+            ])->all(),
+            'total' => $pagina->total(),
+            'pagina' => $pagina->currentPage(),
+            'paginas' => $pagina->lastPage(),
+            'por_pagina' => $pagina->perPage(),
         ];
+    }
 
-        $last_transaction_date = [
-            'today' => __('home.today'),
-            'yesterday' => __('superadmin::lang.yesterday'),
-            'this_week' => __('home.this_week'),
-            'this_month' => __('home.this_month'),
-            'last_month' => __('superadmin::lang.last_month'),
-            'this_year' => __('superadmin::lang.this_year'),
-            'last_year' => __('superadmin::lang.last_year'),
-        ];
+    /**
+     * Enum do banco → PT-BR. A tela NUNCA mostra o valor cru.
+     *
+     * Mesma tabela do RUNBOOK-dashboard §2 — `declined` é gravado por
+     * OnCobrancaVencidaBloqueaSubscription quando a cobrança vence.
+     */
+    private function rotuloDeAssinatura(?string $status, $fim): string
+    {
+        if ($status === null) {
+            return 'Sem assinatura';
+        }
 
-        return view('superadmin::business.index')
-            ->with(compact('business_id', 'packages', 'subscription_statuses', 'last_transaction_date'));
+        return match ($status) {
+            'approved' => ($fim && \Carbon::parse($fim)->isPast()) ? 'Vencida' : 'Ativa',
+            'waiting' => 'Pendente',
+            'declined' => 'Bloqueada',
+            'expired' => 'Vencida',
+            'cancelled' => 'Cancelada',
+            default => 'Sem assinatura',
+        };
     }
 
     private function filterTransactionDate($query, $filter, $operator)
