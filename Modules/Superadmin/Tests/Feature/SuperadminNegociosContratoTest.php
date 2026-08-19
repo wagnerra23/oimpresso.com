@@ -181,3 +181,78 @@ it('UC-SANEG-06 · a busca preserva o termo digitado nos filtros', function () {
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page->where('filtros.q', '12'));
 });
+
+// ── UC-SANEG-07 · o drawer é estado da lista, não outra tela ────────────────
+
+it('UC-SANEG-07 · o detalhe vem por partial reload, sem rota de pagina nova', function () {
+    $negocio = DB::table('business')->orderBy('id')->first();
+
+    if ($negocio === null) {
+        $this->markTestSkipped('sem negocio pra abrir.');
+    }
+
+    $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+
+    // O drawer e a MESMA rota da lista com `?negocio=<id>` — se virar rota propria, o
+    // componente muda e este caso cai.
+    $resposta = $this->actingAs(negSuperadmin())->get('/superadmin/business?negocio='.$negocio->id, [
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => (string) $versao,
+        'X-Inertia-Partial-Data' => 'detalhe,aberto',
+        'X-Inertia-Partial-Component' => 'superadmin/Negocios/Index',
+    ]);
+
+    $resposta->assertOk();
+
+    expect($resposta->json('props.aberto'))->toBe((int) $negocio->id)
+        ->and($resposta->json('props.detalhe.id'))->toBe((int) $negocio->id)
+        ->and($resposta->json('props.detalhe.historico'))->toBeArray();
+
+    // Sem `?negocio`, nao ha detalhe — e o que o `esc` produz ao fechar.
+    $this->actingAs(negSuperadmin())
+        ->get('/superadmin/business')
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('aberto', null));
+});
+
+// ── UC-SANEG-08 · o drawer não inventa o que o dado não liga ────────────────
+
+it('UC-SANEG-08 · o detalhe nao traz valor recorrente e trata teto 0 como ilimitado', function () {
+    $negocio = DB::table('business')->orderBy('id')->first();
+
+    if ($negocio === null) {
+        $this->markTestSkipped('sem negocio pra abrir.');
+    }
+
+    $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+
+    $resposta = $this->actingAs(negSuperadmin())->get('/superadmin/business?negocio='.$negocio->id, [
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => (string) $versao,
+        'X-Inertia-Partial-Data' => 'detalhe',
+        'X-Inertia-Partial-Component' => 'superadmin/Negocios/Index',
+    ]);
+
+    $resposta->assertOk();
+    $detalhe = $resposta->json('props.detalhe');
+
+    // NAO existe FK ligando a cobranca (rb_subscriptions -> contacts do biz=1) ao business.
+    // Casar por nome acerta 4 de 109 — entao o payload nao carrega valor nenhum. Se alguem
+    // adicionar um campo de valor aqui sem resolver o vinculo, este caso cai.
+    foreach (['mrr', 'valor', 'recorrencia', 'valor_mensal'] as $proibido) {
+        expect($detalhe)->not->toHaveKey($proibido);
+    }
+
+    // O uso vem sempre com os 3 eixos, e `teto` distingue os tres estados possiveis:
+    // null = sem pacote vigente · 0 = ILIMITADO (convencao UltimatePOS) · >0 = teto real.
+    expect($detalhe['uso'])->toBeArray()->toHaveCount(3);
+
+    foreach ($detalhe['uso'] as $eixo) {
+        expect($eixo)->toHaveKeys(['rotulo', 'usado', 'teto'])
+            ->and($eixo['usado'])->toBeInt();
+
+        if ($eixo['teto'] !== null) {
+            expect($eixo['teto'])->toBeInt()->toBeGreaterThanOrEqual(0);
+        }
+    }
+});
