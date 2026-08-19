@@ -45,6 +45,11 @@ function usuarioComPermissoes(array $permissoes, int $businessId): User
     $papel->syncPermissions($permissoes);
     $user->assignRole($papel);
 
+    // O Spatie CACHEIA o mapa de permissões. Sem limpar, auth()->user()->can() pode responder
+    // com o retrato anterior e o controller aborta 403 — e aí o caso NEGATIVO passaria pelo
+    // motivo errado (o papel alheio fica intacto porque a requisição nem chegou ao update()).
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
     return $user;
 }
 
@@ -57,10 +62,12 @@ it('NEGATIVO: papel de outro negócio não é renomeado pelo update', function (
     $this->actingAs($invasor);
     session(['user.business_id' => 1]);
 
+    // 404: o findOrFail filtrado por business_id não acha o papel de outro negócio. Assertar o
+    // STATUS é o que separa "foi barrado pelo filtro" de "a requisição nem chegou ao controller".
     $this->put('/roles/'.$alheio->id, [
         'name' => 'Invadido',
         'permissions' => [],
-    ]);
+    ])->assertNotFound();
 
     $alheio->refresh();
     expect($alheio->name)->toBe($nomeOriginal);
@@ -76,10 +83,12 @@ it('POSITIVO: papel do próprio negócio continua editável (o filtro não fecho
     session(['user.business_id' => 1]);
 
     $novoNome = 'BalcaoRenomeado'.uniqid();
+    // 302: o update() bem-sucedido redireciona para /roles. Se vier 403, o problema é permissão
+    // (e não o filtro); se vier 404, o filtro pegou demais. O status diz QUAL dos dois.
     $this->put('/roles/'.$proprio->id, [
         'name' => $novoNome,
         'permissions' => [],
-    ]);
+    ])->assertStatus(302);
 
     $proprio->refresh();
     expect($proprio->name)->toBe($novoNome.'#1');
