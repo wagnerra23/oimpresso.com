@@ -9,6 +9,7 @@ use App\Utils\PermissionCatalog;
 use DB;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
+use App\Utils\PermissionCatalog;
 use Spatie\Permission\Models\Role;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -388,6 +389,45 @@ class RoleController extends Controller
         // Requisicao nao-ajax nao tem resposta neste fluxo (a tela so chama por ajax).
         // O return explicito existe porque o tipo declarado exige um em todo caminho.
         return null;
+    }
+
+    /**
+     * Descarta o que NAO pertence ao catalogo fechado (nucleo + modulos ativos).
+     *
+     * POR QUE: __createPermissionIfNotExists() criava QUALQUER nome que chegasse no POST, e a
+     * tabela `permissions` do Spatie e GLOBAL (nao tem business_id). Um POST forjado poluia o
+     * catalogo de TODOS os tenants, sem sinal em lugar nenhum da UI.
+     *
+     * Descarta em vez de recusar o salvamento inteiro: um papel legado pode carregar permissao
+     * de modulo hoje desativado, e recusar travaria a edicao de um papel legitimo. O intruso vai
+     * pro log com quem tentou — auditavel sem quebrar quem nao tem culpa.
+     *
+     * @param  mixed  $permissions
+     */
+    private function __somenteDoCatalogo($permissions): array
+    {
+        $permissions = is_array($permissions) ? $permissions : [];
+
+        if (empty($permissions)) {
+            return [];
+        }
+
+        $intrusas = PermissionCatalog::intrusas(
+            $permissions,
+            $this->moduleUtil->getModuleData('user_permissions')
+        );
+
+        if (! empty($intrusas)) {
+            \Log::warning('RoleController: permissao fora do catalogo DESCARTADA', [
+                'business_id' => request()->session()->get('user.business_id'),
+                'user_id' => auth()->id(),
+                'descartadas' => $intrusas,
+            ]);
+
+            $permissions = array_values(array_diff($permissions, $intrusas));
+        }
+
+        return $permissions;
     }
 
     /**
