@@ -12,13 +12,17 @@ use Yajra\DataTables\Facades\DataTables;
 class LicencaLogController extends Controller
 {
     /**
-     * Flag do caminho React destas duas telas (F2 do MWART · ADR 0104).
+     * Flag do caminho React destas telas.
      *
      * Convenção de nome copiada da única em produção (`useV2SellsCreate`, em
      * SellController/SellPosController): `useV2<Modulo><Tela>`. Enquanto o
      * GrowthBook não conhecer a chave, o FeatureFlagService cai no
-     * `fallbackDefaults` — que NÃO lista esta flag, então o default é `false`
-     * e o Blade continua servindo. Ligar é toggle no GrowthBook, não deploy.
+     * `fallbackDefaults` — que NÃO a lista, então o default é `false` e o Blade
+     * continua servindo. Ligar é toggle no GrowthBook, não deploy.
+     *
+     * A const entra NESTE PR, e não na F2, porque ela só faz sentido junto do
+     * `Inertia::render` — e o render só pode existir depois que a page existe
+     * (`OrphanRenderGateTest`). Ver RUNBOOK-logs §F2.
      *
      * @see memory/requisitos/Officeimpresso/RUNBOOK-logs.md
      */
@@ -178,11 +182,11 @@ class LicencaLogController extends Controller
             'hd'           => $filter_hd,
         ];
 
-        // ── Caminho dual — F2 do MWART (ADR 0104) ────────────────────────────
+        // ── Caminho dual — a tela React desta rota ───────────────────────────
         // Só a flag decide. NÃO condicionar também ao header `X-Inertia`: o
         // primeiro carregamento do Inertia é um GET de HTML comum e NÃO manda
         // esse header — exigi-lo faria a tela React nunca abrir por navegação
-        // direta. É o mesmo desenho do único dual em produção
+        // direta. Mesmo desenho do único dual em produção
         // (SellController::create + SellPosController::create).
         //
         // As props caras vão em `Inertia::defer` (Tier 0 desde 2026-05-15): a
@@ -213,9 +217,10 @@ class LicencaLogController extends Controller
     /**
      * Lista de máquinas cadastradas, enriquecida com o último acesso logado.
      *
-     * Extraído de `index()` sem mudar uma linha da consulta — os dois caminhos
-     * (Blade e Inertia) consomem exatamente o mesmo payload, que é o que faz o
-     * `LogsBaselineTest` continuar valendo depois do cutover.
+     * Extraído de `index()` sem mudar uma linha da consulta. É a preparação da
+     * F3: quando a Page Inertia entrar, ela consome ESTE mesmo payload — e é isso
+     * que faz o `LogsBaselineTest` continuar valendo depois do cutover, em vez de
+     * virar teste de um caminho que ninguém mais percorre.
      *
      * @param  mixed  $business_id  null = todas as empresas (visão do suporte).
      *   SEM type hint de propósito: em `index()` este valor vem de
@@ -388,27 +393,12 @@ class LicencaLogController extends Controller
             abort_unless($maquina->business_id === session()->get('user.business_id'), 403);
         }
 
-        // Mesma consulta nos dois caminhos — ver buildMaquinasPayload().
         $carregarLogs = fn () => LicencaLog::where('licenca_id', $licenca_id)
             ->where('source', 'delphi_middleware')
             ->where('endpoint', 'like', '%processa-dados-cliente%')
             ->orderByDesc('created_at')
             ->limit(200)
             ->get();
-
-        // Caminho dual — F2 do MWART (ADR 0104). Só a flag decide; ver o
-        // comentário em index() sobre por que o header X-Inertia fica de fora.
-        if (app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $maquina->business_id])) {
-            return Inertia::render('Officeimpresso/Logs/Timeline', [
-                // `maquina` é 1 linha já carregada — eager, não vale defer.
-                'maquina'     => $maquina,
-                'permissions' => [
-                    'pode_bloquear' => auth()->user()->can('superadmin')
-                        || auth()->user()->can('officeimpresso.licencas.gerenciar'),
-                ],
-                'logs' => Inertia::defer($carregarLogs),
-            ]);
-        }
 
         $logs = $carregarLogs();
 

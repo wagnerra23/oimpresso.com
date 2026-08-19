@@ -239,23 +239,25 @@ it('UC-TL-09 · timeline preserva o was_blocked do metadata (tri-estado da colun
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Caminho dual (F2) — @covers-us US-OI-002
+// Caminho dual da LISTA (F3) — @covers-us US-OI-002
+//
+// Os casos da TIMELINE moram no PR dela: teste de render só entra junto da page
+// que ele renderiza, mesma razão pela qual o `Inertia::render` saiu da F2
+// (OrphanRenderGateTest — render órfão é 500 esperando a flag ligar).
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('UC-LOGS-08 · com a flag OFF as duas telas continuam servindo Blade', function () {
+it('UC-LOGS-08 · com a flag OFF a lista continua servindo Blade', function () {
     $business = $this->seededTenant();
     $user = actingAsOiLeitor($this, $business->id);
-    $alvo = criaMaquinaOi($this, $business->id, ['user_win' => $this->oiMarcador . '-OFF']);
 
     // Default é OFF: o GrowthBook não conhece a chave e o `fallbackDefaults` do
-    // FeatureFlagService não a lista. Este é o estado em produção até [W]
-    // ligar — e é o que garante que o merge deste PR não muda nada pro usuário.
+    // FeatureFlagService não a lista. É o estado em produção até [W] ligar — e o
+    // que garante que mergear isto não muda nada pro usuário.
     forcaFlagV2($this, false);
 
-    // `viewData` só existe em resposta de view: se um dia isto virar Inertia
-    // sem alguém ligar a flag, o teste quebra aqui.
+    // `viewData` só existe em resposta de view: se um dia isto virar Inertia sem
+    // alguém ligar a flag, o teste quebra aqui.
     expect($this->get('/officeimpresso/licenca_log')->viewData('kpis'))->toBeArray();
-    expect($this->get('/officeimpresso/licenca_log/timeline/' . $alvo)->viewData('maquina'))->not->toBeNull();
 
     $user->forceDelete();
 });
@@ -281,23 +283,6 @@ it('UC-LOGS-09 · com a flag ON a lista responde Inertia com filters e permissio
     $user->forceDelete();
 });
 
-it('UC-TL-07 · com a flag ON a timeline responde Inertia com a máquina', function () {
-    $business = $this->seededTenant();
-    $user = actingAsOiLeitor($this, $business->id);
-    $alvo = criaMaquinaOi($this, $business->id, ['user_win' => $this->oiMarcador . '-ON']);
-
-    forcaFlagV2($this, true);
-
-    $this->get('/officeimpresso/licenca_log/timeline/' . $alvo)
-        ->assertOk()
-        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
-            ->component('Officeimpresso/Logs/Timeline')
-            ->where('maquina.id', $alvo)
-        );
-
-    $user->forceDelete();
-});
-
 it('UC-LOGS-10 · a flag ON NÃO afrouxa a guarda de acesso', function () {
     $business = $this->seededTenant();
 
@@ -309,7 +294,6 @@ it('UC-LOGS-10 · a flag ON NÃO afrouxa a guarda de acesso', function () {
     forcaFlagV2($this, true);
 
     $this->get('/officeimpresso/licenca_log')->assertForbidden();
-    $this->get('/officeimpresso/licenca_log/timeline/' . LICENCA_INEXISTENTE_BASE)->assertForbidden();
 
     $user->forceDelete();
 });
@@ -333,66 +317,6 @@ function forcaFlagV2($test, bool $ligada): void
             return $this->ligada;
         }
     });
-}
-
-function makeOiLogsTestUser(int $businessId): User
-{
-    // Sem role nenhuma — com role o Gate::before faz bypass e o teste de guarda
-    // passaria por motivo errado.
-    return User::create([
-        'business_id' => $businessId,
-        'first_name'  => 'OI',
-        'surname'     => 'Logs',
-        'username'    => 'oi_logs_' . $businessId . '_' . uniqid(),
-        'email'       => 'oi_logs_' . $businessId . '_' . uniqid() . '@test.local',
-        'password'    => bcrypt('test12345'),
-        'language'    => 'pt_BR',
-    ]);
-}
-
-/** Usuário com `officeimpresso.access` já logado e com sessão montada. */
-function actingAsOiLeitor($test, int $businessId): User
-{
-    Permission::firstOrCreate(['name' => PERM_OI_ACCESS_BASE, 'guard_name' => 'web']);
-
-    $user = makeOiLogsTestUser($businessId);
-    $user->givePermissionTo(PERM_OI_ACCESS_BASE);
-    $test->actingAs($user);
-    session(['user.business_id' => $businessId]);
-
-    return $user;
-}
-
-/** Cria uma máquina de fixture e registra o id pra limpeza no afterEach. */
-function criaMaquinaOi($test, int $businessId, array $attrs = []): int
-{
-    $id = DB::table('licenca_computador')->insertGetId(array_merge([
-        'business_id' => $businessId,
-        'hd'          => $test->oiMarcador . '-' . uniqid(),
-        'user_win'    => $test->oiMarcador,
-        'hostname'    => $test->oiMarcador,
-        'ip_interno'  => '10.0.0.1',
-        'bloqueado'   => 0,
-    ], $attrs));
-
-    $test->oiLicencaIds[] = $id;
-
-    return $id;
-}
-
-function criaLogOi(int $licencaId, int $businessId, array $attrs = []): void
-{
-    LicencaLog::create(array_merge([
-        'licenca_id'  => $licencaId,
-        'business_id' => $businessId,
-        'event'       => 'login_success',
-        // O controller filtra a timeline por ESTES dois campos — fixture que
-        // erra qualquer um deles some da tela e o teste vira falso-negativo.
-        'source'      => 'delphi_middleware',
-        'endpoint'    => '/connector/api/processa-dados-cliente',
-        'http_status' => 200,
-        'created_at'  => now(),
-    ], $attrs));
 }
 
 /** Extrai os ids das máquinas que a tela devolveu. */
