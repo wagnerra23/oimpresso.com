@@ -218,6 +218,14 @@ jobs:
           SESSION_DRIVER=file
           MAIL_MAILER=array
           BCRYPT_ROUNDS=4
+          # ADMINISTRATOR_USERNAMES=visreg_admin: a rota /superadmin NAO e gateada por
+          # permissao Spatie — `App\Http\Middleware\Superadmin` compara o USERNAME com
+          # esta lista. O admin que o PixelBaselineTest autentica e o `visreg_admin` do
+          # VisregTenantSeeder; sem o nome aqui, /superadmin da 403 e a baseline nunca
+          # nasce (medido 2026-08-19: 19 telas passaram, so a do Superadmin caiu no
+          # assertOk). Mesmo espirito do MWART_CLIENTE_INDEX logo abaixo: flag de
+          # ambiente pra tela poder ENTRAR no gate, nao pra mudar o que ela mostra.
+          ADMINISTRATOR_USERNAMES=visreg_admin
           TELESCOPE_ENABLED=false
           VIEW_COMPILED_PATH=storage/framework/views
           # MWART_CLIENTE_INDEX=true: sem o flag, /cliente cai no Blade legacy e dá 500
