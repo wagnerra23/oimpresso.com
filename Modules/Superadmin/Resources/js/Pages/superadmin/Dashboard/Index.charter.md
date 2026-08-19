@@ -6,6 +6,7 @@ related_prototype: prototipo-ui/cowork/superadmin-page.jsx
 owner: wagner
 status: draft
 last_validated: "2026-08-19"
+related_us: [US-SUPER-011]
 parent_module: Superadmin
 related_adrs: [104, 93, 374]
 tier: B
