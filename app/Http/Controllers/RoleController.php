@@ -247,7 +247,12 @@ class RoleController extends Controller
                         ->where('business_id', $business_id)
                         ->count();
             if ($count == 0) {
-                $role = Role::findOrFail($id);
+                // Tier 0 multi-tenant (ADR 0093): sem o filtro por business_id, um usuário com
+                // roles.update do negócio A renomeava e re-permissionava papel do negócio B — o
+                // Role é o Spatie puro (config/permission.php:27), que NÃO tem global scope.
+                // Medido 2026-08-19: dos 7 acessos a Role neste controller, este era o ÚNICO sem
+                // o filtro; index/edit/destroy já filtravam. Fora do padrão, não decisão.
+                $role = Role::where('business_id', $business_id)->findOrFail($id);
 
                 if (! $role->is_default || $role->name == 'Cashier#'.$business_id) {
                     if ($role->name == 'Cashier#'.$business_id) {
