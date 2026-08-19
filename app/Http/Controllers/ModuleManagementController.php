@@ -21,13 +21,24 @@ class ModuleManagementController extends Controller
             if (!$request->user()) {
                 abort(401);
             }
-            // Admin via session (padrão UltimatePOS) OU Spatie Role
-            $isAdmin = (bool) $request->session()->get('is_admin', false);
-            if (!$isAdmin && method_exists($request->user(), 'hasRole')) {
-                $businessId = $request->session()->get('business.id');
-                $isAdmin = $request->user()->hasRole('Admin#' . $businessId);
-            }
-            abort_unless($isAdmin, 403, 'Acesso restrito a administradores.');
+
+            // UMA lei só (decisão D2, 2026-08-19). Antes eram duas para a mesma
+            // capacidade: aqui `session('is_admin')` OU o papel `Admin#<biz>`; no item de
+            // menu (AdminSidebarMenu:809) e no legado (Install/ModulesController, 4 usos)
+            // a permissão `manage_modules`. Dava pra ver o item no menu e tomar 403 na tela.
+            //
+            // `Admin#<biz>` sai de propósito: é admin DE UM NEGÓCIO, e esta tela desliga
+            // módulo do APP INTEIRO, para todos os tenants (furo medido — um user só com
+            // Admin#1 entrava). O Gate::before (AuthServiceProvider) já trata
+            // `manage_modules` como ability de superadmin: o atalho por papel do `else`
+            // NÃO se aplica a ela, só a allowlist `ADMINISTRATOR_USERNAMES` (presente em
+            // produção, verificado) ou concessão Spatie explícita.
+            abort_unless(
+                $request->user()->can('manage_modules'),
+                403,
+                'Acesso restrito a administradores.'
+            );
+
             return $next($request);
         });
     }
