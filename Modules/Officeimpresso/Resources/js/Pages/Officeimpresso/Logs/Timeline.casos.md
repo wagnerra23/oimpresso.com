@@ -37,6 +37,7 @@ last_run: "2026-08-19"
 | UC-TL-07 | Com a flag ON a timeline responde Inertia com a máquina | must | `LogsBaselineTest` | 🧪 |
 | UC-TL-08 | A timeline traz só os acessos daquela máquina | must | `LogsBaselineTest` | 🧪 |
 | UC-TL-09 | O `was_blocked` do metadata é preservado | must | `LogsBaselineTest` | 🧪 |
+| UC-TL-10 | A flag ON não afrouxa a guarda da timeline | must `[sec]` | `LogsBaselineTest` | 🧪 |
 
 ---
 
@@ -90,6 +91,16 @@ tela pra afirmar ao cliente o que aconteceu no computador **dele**.
 **Por quê:** `metadata` chega como **objeto OU string JSON** conforme o caminho de leitura (o cast
 `array` do model não vale pra consulta via `DB::table`). Ler errado faz a coluna "Estado no login"
 afirmar que a licença estava liberada num acesso em que ela estava travada.
+
+## UC-TL-10 · Flag ON não afrouxa a guarda · `must [sec]`
+
+**Status:** 🧪 — teste escrito e na allowlist da lane; a lane ainda não rodou.
+
+**Dado** um autenticado sem permissão **e** a flag `useV2OfficeimpressoLogs` ligada
+**Quando** ele abre a timeline
+**Então** recebe **403** — o caminho React não pode virar porta dos fundos.
+**Por quê é caso próprio:** o UC-LOGS-10 cobre a lista. O render da timeline entra num PR
+diferente (junto da page dela, pra não criar render órfão), então precisa da sua própria prova.
 
 ---
 
