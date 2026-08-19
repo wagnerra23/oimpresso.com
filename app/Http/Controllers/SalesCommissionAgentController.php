@@ -223,7 +223,9 @@ class SalesCommissionAgentController extends Controller
                 // servindo login e vinculos; o que sai e o papel de comissionado. O delete anterior
                 // era SOFT (o model usa SoftDeletes), mas ainda assim tirava o usuario das consultas
                 // normais — e com ele o nome do agente nos relatorios de venda.
-                $agente->is_cmmsn_agnt = 0;
+                // `false`, nao `0`: o Larastan infere bool do schema (tinyint(1)) e recusa int
+                // na atribuicao de propriedade. O valor gravado e o mesmo.
+                $agente->is_cmmsn_agnt = false;
                 $agente->save();
 
                 $output = ['success' => true,
