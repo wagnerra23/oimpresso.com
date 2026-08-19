@@ -13,8 +13,9 @@
 // cliente porque trabalha com mock de 12 linhas; em produção são centenas de negócios, e
 // trazer tudo pro browser seria a mesma dívida que o DataTables tinha.
 //
-// O drawer de detalhe (PT-02) NÃO está aqui: entra na SA-O2b. Clicar na linha ainda não faz
-// nada — e é melhor não fazer nada do que abrir um drawer vazio.
+// O drawer de detalhe (PT-02) entrou na SA-O2b: é um ESTADO da lista (`?negocio=<id>` via
+// partial reload), não outra tela. Duas seções do F1 ficaram DE FORA por falta de vínculo no
+// dado, não por esquecimento — o `detalheDoNegocio()` do controller explica cada uma.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router } from '@inertiajs/react';
@@ -60,10 +61,42 @@ interface Pagina {
   por_pagina: number;
 }
 
+interface HistoricoItem {
+  id: number;
+  pacote: string | null;
+  inicio: string | null;
+  fim: string | null;
+  situacao: string;
+}
+
+interface UsoItem {
+  rotulo: string;
+  usado: number;
+  /** null = sem pacote vigente · 0 = ILIMITADO (convenção do UltimatePOS, confirmada por [W]) */
+  teto: number | null;
+}
+
+interface Detalhe {
+  id: number;
+  nome: string;
+  cidade: string | null;
+  ativo: boolean;
+  criado: string | null;
+  dono: string | null;
+  email: string | null;
+  fone_dono: string | null;
+  fone_negocio: string | null;
+  ultima_venda: string | null;
+  uso: UsoItem[];
+  historico: HistoricoItem[];
+}
+
 interface Props {
   filtros: Filtros;
+  aberto?: number | null;
   pacotes?: PacoteOpcao[];
   negocios?: Pagina;
+  detalhe?: Detalhe | null;
 }
 
 const ROTA = '/superadmin/business';
@@ -127,7 +160,7 @@ function Select({
   );
 }
 
-function NegociosIndex({ filtros, pacotes, negocios }: Props) {
+function NegociosIndex({ filtros, aberto, pacotes, negocios, detalhe }: Props) {
   const [q, setQ] = useState(filtros.q ?? '');
   const buscaRef = useRef<HTMLInputElement>(null);
   const primeiraRodada = useRef(true);
@@ -158,6 +191,41 @@ function NegociosIndex({ filtros, pacotes, negocios }: Props) {
     }, 300);
     return () => clearTimeout(t);
   }, [q, filtros.q]);
+
+  // O drawer é um ESTADO da lista: `?negocio=<id>` no partial reload, sem rota nova.
+  const abrir = (id: number) => {
+    router.get(
+      ROTA,
+      { ...filtrosAtuais(), negocio: id },
+      { only: ['detalhe', 'aberto'], preserveState: true, preserveScroll: true, replace: true },
+    );
+  };
+
+  const fechar = () => {
+    router.get(
+      ROTA,
+      filtrosAtuais(),
+      { only: ['detalhe', 'aberto'], preserveState: true, preserveScroll: true, replace: true },
+    );
+  };
+
+  // `esc` fecha — o F1 pede (UC-SA-005). Só escuta quando há drawer aberto.
+  useEffect(() => {
+    if (!aberto) return;
+    const h = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') fechar();
+    };
+    document.addEventListener('keydown', h);
+    return () => document.removeEventListener('keydown', h);
+  }, [aberto]);
+
+  const filtrosAtuais = () => ({
+    q: filtros.q || undefined,
+    pacote: filtros.pacote || undefined,
+    assinatura: filtros.assinatura || undefined,
+    status: filtros.status || undefined,
+    venda: filtros.venda || undefined,
+  });
 
   /** Toda navegação preserva os demais filtros — trocar um não zera os outros. */
   const irPara = (mudanca: Record<string, string | number | undefined>) => {
@@ -216,9 +284,15 @@ function NegociosIndex({ filtros, pacotes, negocios }: Props) {
 
       <div className="px-6 pt-4">
         <Deferred data="negocios" fallback={<Card><CardContent className="p-4"><Skeleton className="h-64 w-full" /></CardContent></Card>}>
-          <Tabela negocios={negocios} busca={filtros.q ?? ''} temFiltro={temFiltro} irPara={irPara} />
+          <Tabela negocios={negocios} busca={filtros.q ?? ''} temFiltro={temFiltro} irPara={irPara} onAbrir={abrir} />
         </Deferred>
       </div>
+
+      {aberto ? (
+        <Deferred data="detalhe" fallback={<DrawerEsqueleto onFechar={fechar} />}>
+          <Drawer detalhe={detalhe} onFechar={fechar} />
+        </Deferred>
+      ) : null}
     </div>
   );
 }
@@ -244,11 +318,13 @@ function Tabela({
   busca,
   temFiltro,
   irPara,
+  onAbrir,
 }: {
   negocios?: Pagina;
   busca: string;
   temFiltro: boolean;
   irPara: (m: Record<string, string | number | undefined>) => void;
+  onAbrir: (id: number) => void;
 }) {
   const p = negocios;
   const linhas = p?.linhas ?? [];
@@ -292,7 +368,11 @@ function Tabela({
             </thead>
             <tbody>
               {linhas.map((n) => (
-                <tr key={n.id} className="border-b last:border-0">
+                <tr
+                  key={n.id}
+                  onClick={() => onAbrir(n.id)}
+                  className="cursor-pointer border-b last:border-0 hover:bg-muted/50"
+                >
                   <td className="px-4 py-2.5">
                     <div className="flex flex-col">
                       <span className="font-medium">{n.nome}</span>
@@ -335,6 +415,170 @@ function Tabela({
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function Scrim({ onFechar }: { onFechar: () => void }) {
+  return <div className="fixed inset-0 z-40 bg-black/40" onClick={onFechar} aria-hidden="true" />;
+}
+
+function Casca({ children, onFechar, titulo }: { children: ReactNode; onFechar: () => void; titulo: string }) {
+  return (
+    <>
+      <Scrim onFechar={onFechar} />
+      <aside
+        role="dialog"
+        aria-modal="true"
+        aria-label={titulo}
+        className="fixed inset-y-0 right-0 z-50 flex w-[min(460px,92vw)] flex-col border-l bg-background shadow-2xl"
+      >
+        {children}
+      </aside>
+    </>
+  );
+}
+
+function DrawerEsqueleto({ onFechar }: { onFechar: () => void }) {
+  return (
+    <Casca onFechar={onFechar} titulo="Carregando negócio">
+      <div className="flex flex-col gap-3 p-5">
+        <Skeleton className="h-5 w-48" />
+        <Skeleton className="h-3 w-32" />
+        <Skeleton className="mt-4 h-40 w-full" />
+        <Skeleton className="h-32 w-full" />
+      </div>
+    </Casca>
+  );
+}
+
+function Linha({ rotulo, valor }: { rotulo: string; valor: ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="text-xs text-muted-foreground">{rotulo}</span>
+      <span className="text-right text-xs font-medium">{valor ?? '—'}</span>
+    </div>
+  );
+}
+
+function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
+  return (
+    <section className="border-b px-5 py-4">
+      <h3 className="mb-2.5 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">{titulo}</h3>
+      {children}
+    </section>
+  );
+}
+
+function Uso({ item }: { item: UsoItem }) {
+  const semPacote = item.teto === null;
+  const ilimitado = item.teto === 0;
+  const pct = !semPacote && !ilimitado ? Math.min((item.usado / (item.teto as number)) * 100, 100) : 0;
+  // ≥90% grita, ≥70% avisa — os cortes que o F1 pede (UC-SA-006).
+  const tom = pct >= 90 ? 'bg-destructive' : pct >= 70 ? 'bg-amber-500' : 'bg-primary';
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-xs text-muted-foreground">{item.rotulo}</span>
+        <span className="text-xs tabular-nums">
+          {item.usado}
+          {semPacote ? '' : ilimitado ? ' · ilimitado' : ` / ${item.teto}`}
+        </span>
+      </div>
+      {/* Sem teto não há barra: progresso contra ilimitado não informa nada. */}
+      {!semPacote && !ilimitado && (
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+          <div className={`h-full rounded-full ${tom}`} style={{ width: `${Math.max(pct, 2)}%` }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Drawer({ detalhe, onFechar }: { detalhe?: Detalhe | null; onFechar: () => void }) {
+  if (!detalhe) {
+    return (
+      <Casca onFechar={onFechar} titulo="Negócio não encontrado">
+        <div className="p-5">
+          <EmptyState title="Negócio não encontrado" description="Ele pode ter sido removido enquanto a lista estava aberta." />
+        </div>
+      </Casca>
+    );
+  }
+
+  const d = detalhe;
+  const vigente = d.historico.length > 0 ? d.historico[0] : null;
+
+  return (
+    <Casca onFechar={onFechar} titulo={`Negócio ${d.nome}`}>
+      <header className="flex items-start justify-between gap-3 border-b px-5 py-4">
+        <div className="min-w-0">
+          <span className="text-[11px] tabular-nums text-muted-foreground">negócio #{d.id}</span>
+          <h2 className="truncate text-base font-semibold">{d.nome}</h2>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
+            {d.cidade ? `${d.cidade} · ` : ''}
+            {d.criado ? `cadastro ${d.criado}` : 'sem data de cadastro'}
+          </p>
+        </div>
+        <Button variant="outline" size="sm" className="h-8 shrink-0 text-xs" onClick={onFechar} title="Fechar (esc)">
+          Fechar
+        </Button>
+      </header>
+
+      <div className="flex-1 overflow-y-auto">
+        <Secao titulo="Assinatura">
+          <div className="flex flex-col gap-2">
+            <Linha rotulo="Situação" valor={vigente ? <Badge variant={tomDaAssinatura(vigente.situacao)}>{vigente.situacao}</Badge> : 'Sem assinatura'} />
+            <Linha rotulo="Pacote" valor={vigente?.pacote} />
+            <Linha rotulo="Vigência" valor={vigente?.inicio ? `${vigente.inicio} → ${vigente.fim ?? 'sem fim'}` : null} />
+          </div>
+          <p className="mt-3 rounded border bg-muted/40 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
+            O <strong>valor</strong> desta assinatura não aparece aqui: a cobrança recorrente vive
+            em <code>rb_subscriptions</code>, ligada ao contato do CRM, e não há vínculo com o
+            negócio — casar por nome acerta 4 de 109. Mostrar valor errado é pior que não mostrar.
+          </p>
+        </Secao>
+
+        <Secao titulo="Uso contra o limite do pacote">
+          <div className="flex flex-col gap-3">
+            {d.uso.map((u) => (
+              <Uso key={u.rotulo} item={u} />
+            ))}
+          </div>
+        </Secao>
+
+        <Secao titulo="Dono e contato">
+          <div className="flex flex-col gap-2">
+            <Linha rotulo="Dono" valor={d.dono} />
+            <Linha rotulo="E-mail" valor={d.email} />
+            <Linha rotulo="Celular" valor={d.fone_dono} />
+            <Linha rotulo="Telefone do negócio" valor={d.fone_negocio} />
+            <Linha rotulo="Acesso" valor={d.ativo ? 'Ativo' : 'Inativo'} />
+            <Linha rotulo="Última venda" valor={d.ultima_venda ?? 'nunca vendeu'} />
+          </div>
+        </Secao>
+
+        <Secao titulo="Histórico de assinaturas">
+          {d.historico.length === 0 ? (
+            <p className="text-xs text-muted-foreground">Nunca assinou — só cadastro.</p>
+          ) : (
+            <ul className="flex flex-col gap-2.5">
+              {d.historico.map((h) => (
+                <li key={h.id} className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 flex-col">
+                    <span className="text-xs font-medium">{h.pacote ?? 'sem pacote'}</span>
+                    <span className="text-[11px] text-muted-foreground">
+                      {h.inicio ?? '—'} a {h.fim ?? '—'}
+                    </span>
+                  </div>
+                  <Badge variant={tomDaAssinatura(h.situacao)}>{h.situacao}</Badge>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Secao>
+      </div>
+    </Casca>
   );
 }
 
