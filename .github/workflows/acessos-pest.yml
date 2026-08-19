@@ -14,6 +14,11 @@ name: Acessos · Pest (MySQL)
 # exit 0 (verde por não-execução). A action pest-mysql-setup semeia biz=1 E biz=2, que é o que
 # o teste de isolamento cross-tenant precisa para existir.
 #
+# ⚠️ O comando roda SO tests/Feature/Roles/ por enquanto: o Pest ABORTA com exit 2 se um
+# caminho da lista nao existe ("Test file ... not found"), e tests/Feature/Users/ ainda
+# nao tem arquivo. O diretorio segue no `paths:` de proposito — quando o primeiro teste
+# de comissionado chegar, ele entra no comando NO MESMO PR que o cria.
+#
 # Cobre hoje:
 #   - RoleTenantIsolationTest — Tier 0 (ADR 0093): /roles/{id} não alcança papel de outro
 #     negócio. Traz o controle POSITIVO junto, senão um filtro largo demais passaria no
@@ -126,7 +131,7 @@ jobs:
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-acessos-junit.xml \
-            tests/Feature/Roles/ tests/Feature/Users/
+            tests/Feature/Roles/
 
       # A régua honesta desta lane é `assertions`, NÃO "0 failed": skip sai exit 0
       # e 18 dos 22 pulam fora do MySQL. Se o sumário mostrar muitos casos com 0
