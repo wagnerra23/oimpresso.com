@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
@@ -120,6 +121,13 @@ class ModuleManagerService
                     } else {
                         $moduleJson = $decoded;
                         if (empty($moduleJson['providers'])) {
+                            // Não é fallback silencioso: o erro vai pra tela E pro log. Um módulo
+                            // sem providers[] não é carregado pelo nWidart, então quem investiga
+                            // "instalei e não apareceu" acha o rastro aqui (ADR 0212 Camada 2).
+                            Log::warning('modulo sem providers[] no module.json', [
+                                'module' => $name,
+                                'path'   => $moduleJsonPath,
+                            ]);
                             $error = 'module.json sem providers[] — o módulo não é carregado.';
                         }
                     }
