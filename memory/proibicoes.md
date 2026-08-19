@@ -803,6 +803,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** escrita de doc versionado por script **nunca** abre o destino em modo que zera antes de ter o conteúdo final **pronto e codificado**. A forma positiva é uma linha: `data = s.encode('utf-8')` **antes** do `open` — assim o erro de encoding estoura com o arquivo intacto — e então `open(p,'wb').write(data)`. Vale igual pra `>` do shell, `Set-Content`, `fs.writeFileSync` com encoder custom, e qualquer pipeline `ler → transformar → gravar` no mesmo path. Corolário de vocabulário: **nunca escreva emoji como escape de surrogate** (`👍`) — em Python é `\U0001f44d`, ou o caractere literal num arquivo `.py` salvo em UTF-8; o par surrogate é uma representação UTF-16 que não sobrevive a `encode('utf-8')`. E o corolário de diagnóstico: quando uma sonda devolve **arquivo vazio / 0 bytes / 1 linha**, o primeiro suspeito é a **sua** escrita anterior, não o `cwd` — confira `git status <path>` antes de investigar o ambiente.
 
+### 2026-08-18 — Listar gap protótipo × produção por GREP DE STRING LITERAL, com 3 donos do inventário sem serem abertos
+
+- **O limite (variante também proibida):** listar gap design × produção por **casamento de string** — do protótipo no código, ou do código no protótipo. Copy adaptada **não é** ausência de capacidade. O gap se estabelece por **medida do DOM nos dois lados** (`design-diff.mjs --probe` → mesma sonda → `--compare`) **e** pela leitura do dono do inventário daquela tela (`<Tela>-visual-comparison.md`), que já traz veredito e data por item. Corolário de método, e é o que fecha: **ausência de renderização não é ausência de capacidade** — antes de dizer "falta X na tela", checar a **pré-condição** (a Memória sem fatos não desenha busca nem relevância).
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
