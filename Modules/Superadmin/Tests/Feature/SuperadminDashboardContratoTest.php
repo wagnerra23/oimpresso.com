@@ -13,6 +13,8 @@ use Spatie\Permission\Models\Permission;
 
 uses(Tests\TestCase::class);
 
+// @covers-us US-SUPER-011
+
 /**
  * Contrato da tela `/superadmin` (visão geral) — onda SA-O1 (Blade/AdminLTE → Inertia).
  *

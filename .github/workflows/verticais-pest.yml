@@ -52,6 +52,11 @@ on:
       - 'Modules/ComunicacaoVisual/**'
       - 'Modules/Repair/**'
       - 'Modules/Vestuario/**'
+      # 2026-08-19 — SA-O1: o contrato de /superadmin precisa de MySQL real (em sqlite
+      # os 5 casos pulam e o arquivo sai exit 0 sem provar nada). Entra o modulo INTEIRO
+      # e nao so a pasta de teste: sem o arquivo SOB TESTE no trigger, mexer no controller
+      # nao dispara o teste dele — gate mudo com cara de cobertura.
+      - 'Modules/Superadmin/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/verticais-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -166,7 +171,7 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/Tier0GuardTest.php \
             Modules/Repair/Tests/Feature/DeviceModelsInertiaSmokeTest.php \
             Modules/Repair/Tests/Feature/ProducaoOficinaRefactorTest.php \
-            Modules/Vestuario/Tests/Feature/SmokeRoutesVestuarioTest.php
+            Modules/Vestuario/Tests/Feature/SmokeRoutesVestuarioTest.php \n            Modules/Superadmin/Tests/Feature/SuperadminDashboardContratoTest.php
 
       # O sumário conta `assertions` POR ARQUIVO — é o discriminador que separa
       # "passou" de "pulou" (LC-13). Aqui só REPORTA.
