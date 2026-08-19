@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: a tela reúne, numa rota só, tudo que as outras telas do Produto gateiam separadamente — custo, preço de venda, tabelas de preço e composição. Sem casos, ela vira o caminho por onde tudo isso sai sem permissão.
 owner: wagner
 last_run: "2026-08-20"
-last_run_ci: "10/10 UC verdes (UC-PUNI-01..10) na lane Estoque · MySQL, run 32318469674. Suite: 85 passed, 306 assertions, 0 skipped — o contador de assertions é a prova de execução, não o '0 failed' (guard LC-13). A run cobriu a PILHA INTEIRA do pacote V2 (ondas 1+2+3) apontando pro main; como as mudanças desta PR são subconjunto do que rodou, o verde vale pra ela. POR QUE a run vive numa PR temporária (#6001, ja fechada): as PRs #5995/#5996/#5997 sao empilhadas e os workflows de Pest declaram pull_request: branches [main] — lane de teste NAO dispara em PR que aponta pra outra branch (medido: 126 checks na #5995 contra 55 nas empilhadas). Bump de last_run em 2026-08-20 apos rebase sobre origin/main: o G-6 mede DATA-GIT, e o rebase reescreve a data do commit sem mudar conteudo — conferido blob a blob, Index.tsx e Index.casos.md sao byte-identicos ao que a lane testou. Run anterior: 32246398030."
+last_run_ci: "18/18 UC verdes na lane Estoque · MySQL (run 32318469674, PR temporária #6001 — a pilha inteira apontando pro main, aberta e fechada só pra a lane rodar). Suite: 85 passed, 306 assertions, 0 skipped — o contador de assertions é a prova de execução, nao o '0 failed' (guard LC-13). Cobre os 10 UC-PUNI-01..10 anteriores + os 8 novos desta leva: UC-PUNI-11/11B/11C/11D (paginação server-side) e UC-PUNI-12/12B/13/14 (revelação progressiva). POR QUE a run vive numa PR temporária: as PRs #5995/#5996/#5997 são empilhadas e os workflows de Pest declaram pull_request: branches [main], entao lane de teste NAO dispara em PR que aponta pra outra branch — medido, 126 checks na #5995 contra 55 nas empilhadas. A run tocou 2 defeitos reais nos proprios testes antes de fechar verde: UC-PUNI-11B usava porPagina=3 (fora da lista branca, o controller caiu no padrao) e UC-PUNI-13 passava a mensagem como 2o needle do toContain (que e variadico — lapide 2026-07-28). Bump de last_run apos o rebase de 2026-08-20 sobre origin/main: o G-6 mede DATA-GIT, e o rebase reescreveu a data dos commits sem mudar conteudo — conferido blob a blob, Index.tsx / Index.casos.md / ProdutoUnificadoIndiceContratoTest.php / ProdutoUnificadoController.php sao byte-identicos ao commit fb300b046 que a lane testou. Run anterior: 32246398030."
 ---
 
 # Casos de Uso & Aceite — Catálogo Unificado (`/products/unificado`)
@@ -70,6 +70,10 @@ last_run_ci: "10/10 UC verdes (UC-PUNI-01..10) na lane Estoque · MySQL, run 323
 | UC-PUNI-11B | Página 2 não repete nenhuma linha da página 1 | must | V2 §9 | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
 | UC-PUNI-11C | Ordenar por custo é ignorado pra quem não pode ver custo | must `[V0]` | AR-PROD-015 | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
 | UC-PUNI-11D | `porPagina` e `ordem` fora da lista branca caem no padrão | must | V2 §9 | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
+| UC-PUNI-12 | Saldo por local so viaja com MAIS DE UM local, e a soma bate com o total | must | V2 §4.6 · §9 | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
+| UC-PUNI-12B | Local de outro business nao entra no saldo por local | must `[T0]` | [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
+| UC-PUNI-13 | Observacao chega sem HTML, e a chave so existe quando ha nota | must | V2 §4.7 | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
+| UC-PUNI-14 | A variacao-fantasma do UltimatePOS nao vira variacao na tela | must | V2 §3.2 | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
 
 ---
 
@@ -294,4 +298,65 @@ last_run_ci: "10/10 UC verdes (UC-PUNI-01..10) na lane Estoque · MySQL, run 323
   payload; `ordem` sem lista branca entra **cru** no `ORDER BY`, que é o único lugar da consulta
   onde não dá pra usar bind de parâmetro.
 - **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-11D`.
+- **Status: 🕐** — escrito nesta PR.
+
+## UC-PUNI-12 · Saldo por local só viaja com mais de um local · `must`
+
+- **Persona:** Larissa no balcão, com o cliente na frente. "Tem 7" e "tem 7, mas 0 aqui na loja"
+  são respostas **diferentes** — a segunda muda o que ela promete de prazo.
+- **Aceite:** Dado um item com saldo em **2 locais** · Então a linha traz `locais` e a **soma** deles
+  é exatamente o `stockQty` da coluna. Dado um item com **1 local** · Então a chave `locais`
+  **não existe**.
+- **Por que a ausência importa:** a tela monta o gatilho de popover quando a chave existe. Um
+  popover que lista um local só é affordance que não cumpre — pior que ausência.
+- **Por que a soma tem que bater:** divergência entre o total da coluna e a soma do popover é a
+  primeira coisa que o operador confere, e é o que destrói a confiança na tela inteira. As duas
+  leituras saem das MESMAS variações vivas (`v.deleted_at IS NULL`).
+- **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-12`.
+- **Status: 🕐** — escrito nesta PR; veredito na primeira run da lane Estoque · MySQL.
+
+## UC-PUNI-12B · Local de outro business não entra no saldo por local · `must` `[T0]`
+
+- **Persona:** qualquer tenant.
+- **Aceite:** Dada uma linha de `variation_location_details` do MEU produto pendurada num local de
+  OUTRO business · Então ela **não** aparece no popover nem entra na soma.
+- **Por que existe o cenário:** parece impossível, mas é o resultado de restore parcial ou
+  importação mal feita — e o `product_id` sozinho não protege, porque ele já é do meu tenant. O
+  escopo tem que vir de `business_locations.business_id`.
+- **O que vazaria:** o **nome** do local do vizinho (endereço comercial dele) e um saldo que infla
+  a soma até contradizer a coluna.
+- **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-12B`.
+- **Status: 🕐** — escrito nesta PR.
+
+## UC-PUNI-13 · Observação chega sem HTML, e a chave só existe quando há nota · `must`
+
+- **Persona:** quem vende um item com pegadinha — "sob encomenda", "conferir metragem do rolo".
+- **Aceite:** Dado um produto com `product_description` preenchido · Então a linha traz `obs` em
+  **texto puro**, com os parágrafos separados por espaço. Dado um produto sem descrição · Então a
+  chave **não existe**.
+- **Por que o HTML morre no servidor:** `product_description` é editado por WYSIWYG no
+  UltimatePOS. Renderizar com `dangerouslySetInnerHTML` um campo que o usuário digita é **XSS
+  armazenado**; renderizar como texto com a tag dentro mostra `<p>` na tela.
+- **O detalhe que parece bobo:** `</p>` vira espaço **antes** do strip. Sem isso, dois parágrafos
+  colam numa palavra só (`depósito.Conferir`), e o operador lê como erro de cadastro.
+- **O que NÃO é servido, e por quê:** os badges "Sob encomenda" / "Exige aprovação" do pacote.
+  Eles não existem no cadastro — no protótipo são campo do dado de mentira. Deduzi-los do texto
+  ("se contém 'encomenda' então…") seria adivinhação exibida como fato.
+- **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-13`.
+- **Status: 🕐** — escrito nesta PR.
+
+## UC-PUNI-14 · A variação-fantasma do UltimatePOS não vira "variação" na tela · `must`
+
+- **Persona:** qualquer um lendo a lista. A terceira linha da célula Produto só pode existir
+  quando o item **tem** variação.
+- **Aceite:** Dado um produto simples · Então a chave `variacoes` **não existe**. Dado um produto
+  com 3 valores de variação reais · Então `variacoes` existe e a contagem é 3.
+- **O mecanismo:** o UltimatePOS cria uma `product_variations` com `is_dummy = 1` para **todo**
+  produto simples, só pra ele ter uma linha em `variations`. Contá-la faria cada item do catálogo
+  anunciar uma variação inexistente embaixo do próprio nome.
+- **Divergência declarada do pacote:** o protótipo imprime `4 cores · 3 tamanhos`. Aqui sai
+  `Cor (4) · Tamanho (3)` — o nome do atributo é **texto livre do tenant**
+  (`product_variations.name`), pode ser "Cor", "Cores" ou "Tonalidade", e pluralizar o que o
+  cliente digitou daria "4 Cors". O nome vai literal; a contagem entre parênteses.
+- **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-14`.
 - **Status: 🕐** — escrito nesta PR.

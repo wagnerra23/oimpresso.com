@@ -48,7 +48,37 @@ export type ProdutoRow = {
   cost?: number;
   margin?: number;
   bomCount?: number;
+  /**
+   * Saldo por local. Chave AUSENTE quando o item não é estocável ou tem um local só — nesses
+   * casos não há o que comparar, e a presença da chave faria a tela montar um gatilho de
+   * popover que não revela nada (handoff V2 §4.6).
+   */
+  locais?: LocalSaldo[];
+  /** Observação livre do produto, já sem HTML. Chave ausente quando não há nota (§4.7). */
+  obs?: string;
+  /** Atributos de variação com a contagem de valores de cada um. Ausente quando não há (§3.2). */
+  variacoes?: AtributoVariacao[];
 };
+
+/** Uma linha do popover de estoque por local. */
+export type LocalSaldo = { nome: string; qtd: number };
+
+/**
+ * Um atributo de variação e quantos valores ele tem.
+ *
+ * `nome` vem do cadastro do tenant (`product_variations.name`) e é texto livre — pode ser
+ * "Cor", "Cores" ou "Tonalidade". Por isso o resumo imprime o nome LITERAL com a contagem
+ * entre parênteses em vez de pluralizar, como faz o protótipo: pluralizar o que o cliente
+ * digitou daria "4 Cors".
+ */
+export type AtributoVariacao = { nome: string; n: number };
+
+/** `Cor (4) · Tamanho (3)` — a terceira linha da célula Produto (handoff V2 §3.2). */
+export const resumoVariacoes = (vs: AtributoVariacao[] | undefined): string =>
+  !vs || vs.length === 0 ? '' : vs.map((v) => `${v.nome} (${v.n})`).join(' · ');
+
+/** Saldo com unidade, pro popover e pro drawer. */
+export const qtdComUnidade = (qtd: number, unit: string) => `${numero(qtd)} ${unit}`;
 
 /** Estado de disponibilidade — vocabulário aprovado (handoff §6 exceção 6). */
 export type EstadoEstoque = {
