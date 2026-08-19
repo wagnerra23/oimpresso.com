@@ -331,6 +331,7 @@ return [
     'backup' => 'Backup',
     'download_complete_backup' => 'Fazer o backup completo',
     'backup_doesnt_exist' => 'O backup não existe',
+    'backup_ultimo_nao_excluir' => 'Este é o único backup no disco — gere um novo antes de excluir.',
     'lot_report' => 'Relatório em lote',
     'purchase_payment_report' => 'Relatório de pagamento de compra',
     'paid_on' => 'Pago em',
