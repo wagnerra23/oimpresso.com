@@ -123,7 +123,37 @@ curl -sv https://oimpresso.com/superadmin/usuarios 2>&1 | grep '^< HTTP'
 
 ---
 
-## 6. Refs
+## 6. Atrito conhecido de CI — `visual-regression` cancelado
+
+Medido em 2026-08-19, nos PRs #5955 e #5957 desta onda. O check `visual-regression` é
+**required**, e um run `cancelled` no head SHA trava o merge mesmo com **0 falhas** — a
+branch protection lê `cancelled` como bloqueio, enquanto `gh pr checks` mostra "pass".
+O sintoma é PR `BLOCKED` com `fail=` vazio e `pending=0`.
+
+O comentário do próprio [`visual-regression.yml`](../../../.github/workflows/visual-regression.yml)
+descreve o vetor e prescreve `gh run rerun`. **Aqui isso não resolveu.** O que foi tentado,
+em ordem, e o resultado:
+
+| Tentativa | Resultado |
+|---|---|
+| `gh run rerun` (2×) | cancelled |
+| commit vazio → SHA novo (`synchronize`) | cancelled |
+| close + reopen (`reopened`, que a config diz NÃO cancelar) | cancelled |
+
+Sinal que aponta a causa: o head SHA acumulou **dois** check-runs `visual-regression`,
+ambos `cancelled` — ou seja, mais de um run nasce no mesmo commit e um cancela o outro.
+O PR **não tinha label**, então o race `opened`+`labeled` que o workflow documenta não
+explica este caso.
+
+**Como sair:** o primeiro run de um PR costuma passar (foi o caso às 14:39 no #5957); o
+problema aparece nos pushes seguintes. Se travar, tente um push quando a fila do PR
+estiver vazia (`pending=0`) — run competindo parece ser o gatilho. Persistindo, é
+diagnóstico do dono do workflow: mexer no `concurrency` está fora do escopo de quem só
+passa por ali, e o próprio arquivo avisa para não desligar o cancel cegamente.
+
+---
+
+## 7. Refs
 
 - Protótipo: [`prototipo-ui/cowork/superadmin-page.jsx`](../../../prototipo-ui/cowork/superadmin-page.jsx) `ViewVisao()`
 - Charter: `Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.charter.md`
