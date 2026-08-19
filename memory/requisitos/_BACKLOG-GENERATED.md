@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **883 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **890 tarefas abertas** em **51 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -44,6 +44,7 @@
 | [`KB`](#kb) | 8 | 0 | 0 | 0 | 8 |
 | [`Produto`](#produto) | 8 | 0 | 0 | 0 | 8 |
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
+| [`Officeimpresso`](#officeimpresso) | 7 | 0 | 0 | 0 | 7 |
 | [`TeamMcp`](#teammcp) | 7 | 0 | 0 | 0 | 7 |
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
 | [`Woocommerce`](#woocommerce) | 6 | 0 | 0 | 0 | 6 |
@@ -1140,6 +1141,19 @@
 - **US-EVOL-005** — Subagent CC `evolucao.md`
 - **US-EVOL-006** — Tier-2 autonomia: comentar PR
 - **US-EVOL-007** — Tier-3 autonomia: PR-draft autônomo
+
+## Officeimpresso
+
+
+### todo
+
+- **US-OI-001** — F2: Pest baseline do comportamento atual
+- **US-OI-002** — F2: action dual + feature flag `useV2Logs`
+- **US-OI-003** — F2: mapa de paridade Blade↔React
+- **US-OI-004** — F3: tela `Logs/Index` (Máquinas Cadastradas) em PT-01
+- **US-OI-005** — F3: tela `Logs/Timeline` (acessos por máquina) em PT-07
+- **US-OI-006** — F4: QA — os itens `alta` da paridade viram teste
+- **US-OI-007** — F5: cutover e sunset do Blade
 
 ## TeamMcp
 
