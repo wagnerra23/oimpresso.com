@@ -98,9 +98,19 @@ related_adrs:
 
 ### US-SUPER-010 — Usuario 360 (visão consolidada do cliente)
 **Como** superadmin, **quero** ver consolidado de um business (subscription ativa + uso + tickets + última atividade), **pra** preparar call de suporte/upsell.
-**Implementado em:** _parcial_ · `Modules/Superadmin/Http/Controllers/Usuario360Controller.php` · `resources/js/Pages/superadmin/Usuario360/Show.tsx` · verificado@8af585a (2026-07-02) — visão 360 Inertia lê `mcp_audit_log` pra exibir auditoria; falta gravar log de acesso do superadmin previsto no aceite (LGPD Art. 7º)
+**Implementado em:** _parcial_ · `Modules/Superadmin/Http/Controllers/Usuario360Controller.php` · `Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Show.tsx` · verificado@8af585a (2026-07-02) — visão 360 Inertia lê `mcp_audit_log` pra exibir auditoria; falta gravar log de acesso do superadmin previsto no aceite (LGPD Art. 7º)
 - Controller: `Usuario360Controller`
 - Aceite: cross-tenant explícito + logs de acesso em `audit_log` (LGPD Art. 7º)
+- 2026-08-19: a Page saiu de `resources/js/Pages/` e foi pra dentro do módulo ([W]: "vai para dentro do módulo"). O namespace Inertia **não** mudou — o path acima é o novo endereço do mesmo arquivo, e nenhum call-site do controller mudou.
+
+### US-SUPER-011 — Visão geral da plataforma (`/superadmin`)
+**Como** superadmin, **quero** ver o pulso do negócio-SaaS num período (entradas, cadastros sem assinatura e tendência), **pra** saber se a plataforma está crescendo ou vazando antes de abrir tela nenhuma.
+**Implementado em:** _parcial_ · `Modules/Superadmin/Http/Controllers/SuperadminController.php` · `Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx` · `Modules/Superadmin/Services/SuperadminDashboardService.php`
+**Testado em:** `Modules/Superadmin/Tests/Feature/SuperadminDashboardContratoTest.php`
+- Tela: `superadmin/Dashboard/Index` (Inertia desde a SA-O1; era `superadmin::superadmin.index` em Blade/AdminLTE)
+- Charter + casos: ao lado do `.tsx` · RUNBOOK: `RUNBOOK-dashboard.md`
+**Aceite:** KPIs saem do `SuperadminDashboardService`, não de query inline no controller (UC-SADASH-02) · a rota responde Inertia com o componente `superadmin/Dashboard/Index`, não Blade (UC-SADASH-01) · admin de negócio é barrado enquanto o superadmin passa (UC-SADASH-03) · as contagens enxergam TODOS os negócios, cross-tenant intencional por ADR 0093 §exceções (UC-SADASH-04) · nenhum bloco sem query no backend chega às props (UC-SADASH-05). Provado por `Modules/Superadmin/Tests/Feature/SuperadminDashboardContratoTest.php`.
+- **Parcial por escolha, não por esquecimento:** MRR, funil trial→pago, churn, receita por pacote e a fila "Vencendo ou vencido" ainda **não têm query** e por isso não são renderizados — o protótipo os desenha com mock, e mock em produção é número fabricado. Entram na SA-O1b (churn depende da migration `cancel_reason`, decisão [W] 2026-08-19)
 
 ## Anti-padrões (NÃO fazer)
 
