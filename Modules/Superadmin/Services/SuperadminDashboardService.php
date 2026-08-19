@@ -145,34 +145,26 @@ class SuperadminDashboardService
     }
 
     /**
-     * MRR — receita recorrente mensal (SA-O1b).
+     * MRR — receita recorrente mensal (SA-O1b, fonte corrigida em 2026-08-19).
      *
-     * Regra R1 do F1: **só pacote recorrente com preço > 0**. Gratuito e avulso
-     * (`packages.is_one_time`) entram no caixa do mês, nunca na recorrência.
+     * O número vem da COBRANÇA RECORRENTE (`Modules/RecurringBilling`), não do
+     * licenciamento legado do UltimatePOS. Medido em prod: `packages`/`subscriptions`
+     * têm 75 pacotes ativos TODOS com preço 0 — não cobram ninguém —, enquanto
+     * `rb_plans`/`rb_subscriptions` têm 161 planos com valor e 109 assinaturas ativas.
+     * A primeira versão deste método lia a fonte errada e devolvia zero.
      *
-     * Três decisões que o número esconde, e que mudam o resultado:
+     * E o CÁLCULO é delegado ao dono (`SubscriptionRepository::mrrBaselineCached`), não
+     * refeito aqui. Ele respeita duas regras que uma soma crua de `rb_plans.valor` erra:
+     * o `metadata.valor` da assinatura SOBREPÕE o valor do plano (é onde mora o preço
+     * negociado por empresa), e o ciclo normaliza pro mês. Medido no mesmo dia: canônico
+     * R$ 37.116,26 × soma crua R$ 38.661,36 — ~4% de diferença por UMA assinatura com
+     * preço próprio. Um segundo dono do mesmo número seria um segundo número.
      *
-     * 1. **Só assinatura VIGENTE.** `status = approved` E (`end_date` no futuro OU nula).
-     *    Sem o recorte de vigência o número infla: medido em prod 2026-08-19 há 126
-     *    assinaturas `approved` e apenas 13 vigentes — as outras 113 venceram e nunca
-     *    foram expiradas (o sweep de `findOverdueApproved()` não tem invocador). Somar
-     *    todas daria um MRR ~10× maior que a realidade.
+     * `canceladas` conta as saídas dos últimos 30 dias (`canceled_at`), que é o insumo do
+     * churn — `rb_subscriptions` já traz `churn_reason` de fábrica.
      *
-     * 2. **O valor vem de `subscriptions.package_price`** (congelado na contratação), não
-     *    de `packages.price`. O cliente paga o que contratou; mudar o preço do pacote não
-     *    reescreve o passado.
-     *
-     * 3. **O intervalo vem de `packages`** (atual), e isso é uma limitação assumida:
-     *    `subscriptions.package_details` congela só `location_count`, `user_count`,
-     *    `product_count`, `invoice_count` e `name` (medido em prod) — não guarda `interval`
-     *    nem `is_one_time`. Se um pacote virar de mensal para anual, as assinaturas antigas
-     *    passam a ser normalizadas pelo intervalo novo. Congelar isso exige migration e é
-     *    decisão [W].
-     *
-     * Normalização para o mês: `years` divide por 12×N, `months` por N, `days` multiplica
-     * por 30/N. `interval_count` 0 ou negativo é ignorado em vez de dividir por zero.
-     *
-     * @return array{mrr: float, assinaturas: int, sem_preco: int}
+     * @param  int|null  $businessId  business dono da carteira; null usa o do usuário logado
+     * @return array{mrr: float, assinaturas: int, canceladas: int, fonte: string}
      */
     public function calcularMrr(?int $businessId = null): array
     {

@@ -150,5 +150,13 @@
     "route": "/forja/aprovacoes",
     "anchor": "Aprovações",
     "baseline": "it_Forja_Aprovacoes_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "superadmin/Dashboard",
+    "source": "Superadmin",
+    "component": "superadmin/Dashboard/Index",
+    "route": "/superadmin",
+    "anchor": "Superadmin",
+    "baseline": "it_superadmin_Dashboard_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]
