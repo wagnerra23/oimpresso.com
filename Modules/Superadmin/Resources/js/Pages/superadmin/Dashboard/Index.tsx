@@ -46,7 +46,8 @@ interface NegocioRecente {
 interface Mrr {
   mrr: number;
   assinaturas: number;
-  sem_preco: number;
+  canceladas: number;
+  fonte: string;
 }
 
 interface Props {
@@ -195,18 +196,19 @@ function KpiSemAssinatura({ semAssinatura }: { semAssinatura?: number }) {
 
 function KpiMrr({ mrr }: { mrr?: Mrr }) {
   const valor = Number(mrr?.mrr ?? 0);
-  const contadas = Number(mrr?.assinaturas ?? 0);
-  const semPreco = Number(mrr?.sem_preco ?? 0);
+  const ativas = Number(mrr?.assinaturas ?? 0);
+  const canceladas = Number(mrr?.canceladas ?? 0);
+  const indisponivel = mrr?.fonte === 'indisponivel';
 
-  // Um MRR zero pode significar duas coisas MUITO diferentes, e a tela precisa dizer qual:
-  // não há assinatura vigente, ou há mas nenhuma tem preço cadastrado no pacote. Sem essa
-  // nota o card parece quebrado (era o caso em 19/08: nenhum pacote tinha preço).
-  const nota =
-    valor > 0
-      ? `${plural(contadas, 'assinatura recorrente', 'assinaturas recorrentes')} vigente${contadas === 1 ? '' : 's'}`
-      : semPreco > 0
-        ? `${plural(semPreco, 'assinatura vigente', 'assinaturas vigentes')} sem preço no pacote`
-        : 'nenhuma assinatura recorrente vigente';
+  // O número vem da cobrança recorrente (rb_subscriptions), não do licenciamento legado
+  // (packages/subscriptions) — que está zerado e não cobra ninguém. A nota diz o que
+  // sustenta o valor, e denuncia quando a fonte não pôde ser lida.
+  const nota = indisponivel
+    ? 'fonte de cobrança indisponível neste ambiente'
+    : valor > 0
+      ? `${plural(ativas, 'assinatura ativa', 'assinaturas ativas')}` +
+        (canceladas > 0 ? ` · ${canceladas} cancelada${canceladas === 1 ? '' : 's'} em 30 dias` : '')
+      : 'nenhuma assinatura ativa na cobrança recorrente';
 
   return <Kpi valor={brl(valor)} rotulo="Receita recorrente (MRR)" nota={nota} tom={valor > 0 ? 'ok' : undefined} />;
 }

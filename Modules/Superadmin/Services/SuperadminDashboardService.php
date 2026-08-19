@@ -8,6 +8,7 @@ use App\Business;
 use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Modules\RecurringBilling\Repositories\SubscriptionRepository;
 use Modules\Superadmin\Entities\Subscription;
 
 /**
@@ -173,65 +174,45 @@ class SuperadminDashboardService
      *
      * @return array{mrr: float, assinaturas: int, sem_preco: int}
      */
-    public function calcularMrr(): array
+    public function calcularMrr(?int $businessId = null): array
     {
-        return OtelHelper::spanBiz('superadmin.dashboard.mrr', function (): array {
-            // SUPERADMIN: leitura GLOBAL cross-tenant intencional (ADR 0093 §exceções).
-            $vigentes = DB::table('subscriptions')
-                ->join('packages', 'packages.id', '=', 'subscriptions.package_id')
-                ->where('subscriptions.status', 'approved')
-                ->where(function ($q) {
-                    $q->whereNull('subscriptions.end_date')
-                        ->orWhereDate('subscriptions.end_date', '>=', Carbon::today());
-                })
-                ->get([
-                    'subscriptions.package_price',
-                    'packages.interval',
-                    'packages.interval_count',
-                    'packages.is_one_time',
-                ]);
+        return OtelHelper::spanBiz('superadmin.dashboard.mrr', function () use ($businessId): array {
+            $biz = $businessId ?? (int) (auth()->user()->business_id ?? 0);
 
-            $mrr = 0.0;
-            $contadas = 0;
-            $semPreco = 0;
-
-            foreach ($vigentes as $linha) {
-                $preco = (float) $linha->package_price;
-
-                if ((int) $linha->is_one_time === 1) {
-                    continue; // avulso não é recorrência (R1)
-                }
-
-                if ($preco <= 0) {
-                    $semPreco++;
-
-                    continue; // gratuito não entra no MRR (R1)
-                }
-
-                $n = (int) $linha->interval_count;
-
-                if ($n <= 0) {
-                    continue; // intervalo inválido: fora da conta, nunca divisão por zero
-                }
-
-                $mrr += match ($linha->interval) {
-                    'years' => $preco / (12 * $n),
-                    'months' => $preco / $n,
-                    'days' => $preco * (30 / $n),
-                    default => 0.0,
-                };
-
-                $contadas++;
+            if ($biz <= 0 || ! class_exists(SubscriptionRepository::class)) {
+                return ['mrr' => 0.0, 'assinaturas' => 0, 'canceladas' => 0, 'fonte' => 'indisponivel'];
             }
 
+            // O CÁLCULO é do RecurringBilling, não daqui. `mrrBaselineCached` respeita duas
+            // coisas que uma soma crua de `rb_plans.valor` erra:
+            //   · `metadata.valor` da assinatura SOBREPÕE o valor do plano (é onde mora o
+            //     preço negociado por empresa);
+            //   · o ciclo normaliza pro mês (trimestral/3, semestral/6, anual/12).
+            // Medido em prod 2026-08-19: canônico R$ 37.116,26 × soma crua R$ 38.661,36 —
+            // ~4% de diferença por UMA assinatura com preço próprio. Reimplementar aqui seria
+            // um segundo dono do mesmo número, e o segundo dono estava errado.
+            $mrr = app(SubscriptionRepository::class)->mrrBaselineCached($biz);
+
+            $ativas = DB::table('rb_subscriptions')
+                ->where('business_id', $biz)
+                ->where('status', 'active')
+                ->whereNull('deleted_at')
+                ->count();
+
+            // Churn: canceladas nos últimos 30 dias. `rb_subscriptions` já tem `canceled_at`
+            // e `churn_reason` — não precisou de coluna nova.
+            $canceladas = DB::table('rb_subscriptions')
+                ->where('business_id', $biz)
+                ->where('status', 'canceled')
+                ->whereNotNull('canceled_at')
+                ->where('canceled_at', '>=', Carbon::today()->subDays(30))
+                ->count();
+
             return [
-                // 2 casas: o consumidor é KPI de tela, e float longo vira dízima na UI.
-                'mrr' => round($mrr, 2),
-                'assinaturas' => $contadas,
-                // Quantas vigentes ficaram FORA por não ter preço — é o que explica um MRR
-                // zero sem a tela parecer quebrada (em prod 2026-08-19: nenhum pacote tem
-                // preço cadastrado, então todas caem aqui).
-                'sem_preco' => $semPreco,
+                'mrr' => round((float) $mrr, 2),
+                'assinaturas' => $ativas,
+                'canceladas' => $canceladas,
+                'fonte' => 'recurring_billing',
             ];
         }, ['module' => 'Superadmin', 'service' => self::class]);
     }
