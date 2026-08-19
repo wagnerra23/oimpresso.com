@@ -8,6 +8,7 @@ status: draft
 last_validated: "2026-08-19"
 parent_module: Superadmin
 related_adrs: [93, 101, 114, 286]
+related_us: [US-SUPER-006]
 tier: B
 charter_version: 2
 ---
