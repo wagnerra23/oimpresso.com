@@ -1569,15 +1569,27 @@ class Util
 
         $business = session()->has('business') ? session('business') : Business::find($business_id);
 
-        date_default_timezone_set($business->time_zone);
+        // O fuso é estado GLOBAL do processo e este método roda no ERP inteiro (todo activityLog).
+        // Sem restaurar, o fuso do negócio logado vazava para o resto do request/job. Medido
+        // 2026-08-19. O ?? null também cobre $business nulo, que antes era fatal aqui.
+        $fusoOriginal = date_default_timezone_get();
+        $fusoDoNegocio = $business?->time_zone ?? null;
 
-        $activity = activity()
-            ->performedOn($on)
-            ->withProperties($properties)
-            ->log($action);
+        if (! empty($fusoDoNegocio)) {
+            date_default_timezone_set($fusoDoNegocio);
+        }
 
-        $activity->business_id = $business_id;
-        $activity->save();
+        try {
+            $activity = activity()
+                ->performedOn($on)
+                ->withProperties($properties)
+                ->log($action);
+
+            $activity->business_id = $business_id;
+            $activity->save();
+        } finally {
+            date_default_timezone_set($fusoOriginal);
+        }
     }
 
     public function getBackupCleanCronJobCommand()
