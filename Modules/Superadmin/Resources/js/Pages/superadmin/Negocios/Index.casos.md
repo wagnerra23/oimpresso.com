@@ -97,6 +97,35 @@ Status: 🧪
 
 ---
 
+## UC-SANEG-07 · O drawer é estado da lista, não outra tela · `must`
+
+**Dado** que clico numa linha
+**Quando** o detalhe abre
+**Então** ele vem por **partial reload** (`?negocio=<id>`, só as props `detalhe` e `aberto`) —
+sem rota de página nova, sem perder filtro, busca ou posição de scroll.
+
+**E** `esc` fecha, voltando a URL ao estado sem `?negocio`.
+
+Status: 🧪
+
+---
+
+## UC-SANEG-08 · O drawer não inventa o que o dado não liga · `must`
+
+**Dado** que a cobrança recorrente vive em `rb_subscriptions` → `contacts` (biz=1) e **não
+existe FK** ligando contato ao `business`
+**Quando** o drawer de um negócio é montado
+**Então** o **valor recorrente não é exibido**, e a tela **diz por quê** — em vez de casar por
+nome, que acerta 4 de 109.
+
+**E dado** um pacote com teto `0` (= ilimitado, confirmado por [W] em 2026-08-19)
+**Então** a linha de uso mostra o consumo com a palavra "ilimitado" e **não** desenha barra de
+progresso — progresso contra ilimitado não informa nada.
+
+Status: 🧪
+
+---
+
 ## Testes mínimos
 
 - DQE: 1 negócio com 2 locais, 1 com 2 assinaturas, 1 sem assinatura, 1 inativo.
