@@ -114,6 +114,26 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
     online:  { variant: 'default',     label: 'online',  className: 'bg-success text-success-foreground hover:bg-success/90' },
     offline: { variant: 'destructive', label: 'offline' },
   },
+  // Officeimpresso — estado de licença desktop (Onda 1 da migração React,
+  // memory/requisitos/Officeimpresso/RUNBOOK-logs.md §4). Substitui as pills
+  // `.oi-pill-ok`/`.oi-pill-blocked` do design-system próprio do módulo, que
+  // não atravessa (Camada 1 da Constituição UI v2).
+  //
+  // Os dois bloqueios são estados SEPARADOS de propósito: no Blade eles eram
+  // duas pills visualmente parecidas e o de empresa é o mais grave (derruba o
+  // cliente inteiro, não uma máquina). O label carrega a diferença.
+  licenca: {
+    ativa:              { variant: 'default',     label: 'Ativa', className: 'bg-success text-success-foreground hover:bg-success/90' },
+    maquina_bloqueada:  { variant: 'destructive', label: 'Máquina bloqueada' },
+    empresa_bloqueada:  { variant: 'destructive', label: 'Empresa bloqueada' },
+  },
+  // Estado da licença NO MOMENTO do último acesso logado — eixo diferente do
+  // `licenca` (que é o estado ATUAL). Tri-estado: sem log nenhum, a tela mostra
+  // travessão em vez de badge; ver a pegadinha 5 do RUNBOOK.
+  licenca_no_acesso: {
+    liberada:  { variant: 'default',     label: 'Liberada', className: 'bg-success text-success-foreground hover:bg-success/90' },
+    bloqueada: { variant: 'destructive', label: 'Bloqueada' },
+  },
 };
 
 interface Props {
