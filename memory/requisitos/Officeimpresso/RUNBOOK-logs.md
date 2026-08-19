@@ -68,6 +68,15 @@ e quem não tem a permissão continua preso ao próprio `business_id`.
    os 4 KPIs, e o 404 do `timeline()` com `licenca_id` inexistente.
 2. **Action dual** no `LicencaLogController@index` e `@timeline`: devolve `Inertia::render` quando
    a flag está ligada; senão `view('officeimpresso::...')` como hoje.
+   > ⚠️ **O `Inertia::render` entra no PR da TELA, não no da F2** (medido 2026-08-19). Pôr o render
+   > antes do `.tsx` existir cria um render órfão — 500 esperando alguém ligar a flag — e o
+   > `OrphanRenderGateTest` (required) reprova, corretamente: *"Inertia::render apontando pra page
+   > inexistente — tela órfã/morta"*. A allowlist dele **não** serve de saída: o docblock crava que
+   > ela **só encolhe** e é pra dead code em remoção, não pra tela que chega depois.
+   > O que a F2 entrega de verdade é a **extração do payload** (`buildMaquinasPayload` /
+   > `buildKpisPayload`) e o baseline Pest; a flag e o render viajam com a tela.
+   > *(O DoD da skill `mwart-process` lista o dual na F2 — para a PRIMEIRA tela de um módulo isso é
+   > cedo demais, porque não existe page nenhuma ainda pra apontar.)*
    > ⚠️ **Correção 2026-08-19 (medida na implementação).** A primeira redação desta linha e o DoD
    > da skill `mwart-process` mandam condicionar **também** ao header `X-Inertia`. **Está errado**
    > e quebraria a tela: o primeiro carregamento do Inertia é um GET de HTML comum e **não manda
