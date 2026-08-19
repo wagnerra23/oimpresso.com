@@ -99,11 +99,12 @@ it('G1: em runtime o fuso efetivo é brasileiro', function () {
 it('G2: date_default_timezone_set em app/ só nos arquivos conhecidos', function () {
     $permitidos = [
         'app/Http/Middleware/Timezone.php',   // legítimo: corrige por request
-        // Ofensores (baseline MEDIDA 2026-08-19) — remover conforme a PR-2 entrar:
+        // Chamam, mas RESTAURAM o fuso anterior (corrigido na PR-2, 2026-08-19):
         'app/Console/Commands/RecurringExpense.php',
         'app/Console/Commands/RecurringInvoice.php',
-        'app/Http/Controllers/NfeController.php',
         'app/Utils/Util.php',
+        // Ainda não restaura — fiscal, fica para PR própria:
+        'app/Http/Controllers/NfeController.php',
     ];
 
     $ofensores = collect(fontesDeAppTz('app'))
@@ -130,12 +131,10 @@ it('G2: nenhum date_default_timezone_set novo dentro de loop sem restaurar', fun
     }
     sort($suspeitos);
 
-    // Baseline MEDIDA 2026-08-19 (4, não 2). A PR-2 esvazia esta lista.
+    // Baseline APERTADA pela PR-2: eram 4 medidos, sobrou 1. Só o NfeController segue sem
+    // restaurar — é caminho fiscal e sai em PR própria. NUNCA somar nome aqui para calar o teste.
     expect($suspeitos)->toBe([
-        'app/Console/Commands/RecurringExpense.php',
-        'app/Console/Commands/RecurringInvoice.php',
         'app/Http/Controllers/NfeController.php',
-        'app/Utils/Util.php',
     ]);
 });
 
