@@ -50,7 +50,9 @@ function usuarioComPermissoes(array $permissoes, int $businessId): User
     // motivo errado (o papel alheio fica intacto porque a requisição nem chegou ao update()).
     app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
-    return $user;
+    // Instância FRESCA: a que passou por assignRole() carrega a relação `roles` em memória, e o
+    // actingAs() usaria esse retrato. Buscar de novo elimina essa variável do diagnóstico.
+    return User::findOrFail($user->id);
 }
 
 it('NEGATIVO: papel de outro negócio não é renomeado pelo update', function () {
@@ -58,6 +60,12 @@ it('NEGATIVO: papel de outro negócio não é renomeado pelo update', function (
     $nomeOriginal = $alheio->name;
 
     $invasor = usuarioComPermissoes(['roles.update'], 1);
+
+    // SANIDADE — o run anterior devolveu 403 nos dois casos, o que significa que a requisição
+    // nem chegava ao update(). Este expect separa as duas causas possíveis numa única rodada:
+    // se falhar AQUI, o setup de permissão está errado; se passar aqui e o HTTP ainda der 403,
+    // o bloqueio é do middleware/contexto de request, não do can().
+    expect($invasor->can('roles.update'))->toBeTrue();
 
     $this->actingAs($invasor);
     session(['user.business_id' => 1]);
@@ -78,6 +86,8 @@ it('POSITIVO: papel do próprio negócio continua editável (o filtro não fecho
     $proprio = papelDoNegocio('Balcao'.uniqid(), 1);
 
     $dono = usuarioComPermissoes(['roles.update'], 1);
+
+    expect($dono->can('roles.update'))->toBeTrue();   // mesma sanidade do caso acima
 
     $this->actingAs($dono);
     session(['user.business_id' => 1]);
