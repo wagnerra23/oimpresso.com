@@ -92,6 +92,17 @@ it('BLOQUEIA a exclusão de comissionado com venda vinculada, e diz quantas', fu
     vendaDoAgente(TENANT_TESTE, $agente);
 
     $operador = operadorQuePodeExcluir(TENANT_TESTE);
+    // SANIDADE — o run anterior devolveu 200 SEM efeito nos dois casos, e o unico caminho do
+    // controller que faz isso e `empty($agente)`: a query nao acha o comissionado. Estes dois
+    // expects separam as causas numa unica rodada — se o primeiro falhar, o DADO esta errado
+    // (is_cmmsn_agnt/business_id nao gravou como esperado); se ele passar e o request ainda nao
+    // tiver efeito, o controller esta vendo OUTRO business_id que o da sessao que eu setei.
+    expect(User::where('id', $agente->id)
+        ->where('business_id', TENANT_TESTE)
+        ->where('is_cmmsn_agnt', 1)
+        ->exists())->toBeTrue();
+    expect($operador->can('user.delete'))->toBeTrue();
+
     $this->actingAs($operador);
     session(['user.business_id' => TENANT_TESTE]);
 
@@ -109,6 +120,17 @@ it('sem venda vinculada, DESMARCA o papel em vez de excluir o usuário', functio
     $agente = agenteDoNegocio(TENANT_TESTE);
 
     $operador = operadorQuePodeExcluir(TENANT_TESTE);
+    // SANIDADE — o run anterior devolveu 200 SEM efeito nos dois casos, e o unico caminho do
+    // controller que faz isso e `empty($agente)`: a query nao acha o comissionado. Estes dois
+    // expects separam as causas numa unica rodada — se o primeiro falhar, o DADO esta errado
+    // (is_cmmsn_agnt/business_id nao gravou como esperado); se ele passar e o request ainda nao
+    // tiver efeito, o controller esta vendo OUTRO business_id que o da sessao que eu setei.
+    expect(User::where('id', $agente->id)
+        ->where('business_id', TENANT_TESTE)
+        ->where('is_cmmsn_agnt', 1)
+        ->exists())->toBeTrue();
+    expect($operador->can('user.delete'))->toBeTrue();
+
     $this->actingAs($operador);
     session(['user.business_id' => TENANT_TESTE]);
 
