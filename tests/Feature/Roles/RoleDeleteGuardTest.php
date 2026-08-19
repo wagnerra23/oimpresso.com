@@ -23,6 +23,20 @@ use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
+/**
+ * Headers que a TELA REAL manda. O destroy() do UltimatePOS embrulha o corpo INTEIRO em
+ * `if (request()->ajax())`, e `ajax()` testa `X-Requested-With: XMLHttpRequest`. O deleteJson()
+ * do Pest manda so `Accept: application/json` — sem este header o metodo cai no fim, devolve
+ * null e a resposta e 200 VAZIA, sem executar nada.
+ *
+ * Sem isso os casos NEGATIVOS passam pelo MOTIVO ERRADO: 'o papel continuou la' e verdade
+ * quando o controller nem roda. Diagnosticado no #5970, mesma leva.
+ */
+function headersAjaxDel(): array
+{
+    return ['X-Requested-With' => 'XMLHttpRequest'];
+}
+
 function papelDel(string $nome, int $businessId = 1, bool $isDefault = false): Role
 {
     return Role::create([
@@ -61,7 +75,7 @@ it('BLOQUEIA excluir papel em uso e informa quantos usuários dependem dele', fu
     $this->actingAs($operador);
     session(['user.business_id' => 1]);
 
-    $this->deleteJson('/roles/'.$papel->id)->assertStatus(422);
+    $this->withHeaders(headersAjaxDel())->deleteJson('/roles/'.$papel->id)->assertStatus(422);
 
     expect(Role::find($papel->id))->not->toBeNull();
     expect(DB::table('model_has_roles')->where('role_id', $papel->id)->count())->toBe(1);
@@ -74,7 +88,7 @@ it('POSITIVO: papel sem nenhum usuário continua sendo excluível', function () 
     $this->actingAs($operador);
     session(['user.business_id' => 1]);
 
-    $this->deleteJson('/roles/'.$papel->id);
+    $this->withHeaders(headersAjaxDel())->deleteJson('/roles/'.$papel->id);
 
     expect(Role::find($papel->id))->toBeNull();
 });
@@ -87,7 +101,7 @@ it('papel is_default segue protegido, mesmo sem usuário nenhum', function () {
     $this->actingAs($operador);
     session(['user.business_id' => 1]);
 
-    $this->deleteJson('/roles/'.$papel->id);
+    $this->withHeaders(headersAjaxDel())->deleteJson('/roles/'.$papel->id);
 
     expect(Role::find($papel->id))->not->toBeNull();
 });
