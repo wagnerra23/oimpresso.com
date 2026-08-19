@@ -68,8 +68,9 @@ O que a tela entrega **hoje**:
 
 - Achar um negócio por número tem que ser o caminho mais curto: `/` → digitar → ver.
 - Filtro nunca zera outro filtro. Refresh mantém o que estava filtrado.
-- Nenhuma linha clicável **enquanto não houver para onde ir** — melhor inerte do que abrir um
-  drawer vazio (o drawer é a SA-O2b).
+- Clicar na linha abre o **drawer** (SA-O2b) sem sair da lista: filtro, busca e scroll ficam
+  onde estavam, e `esc` fecha. Antes do drawer existir, a linha era inerte de propósito —
+  melhor inerte do que abrir vazio.
 - Sem emoji. Sentence case. Plural PT-BR correto (1 negócio / 2 negócios).
 
 ---
@@ -99,8 +100,12 @@ O que a tela entrega **hoje**:
 
 Em aberto (SA-O2b / SA-O3):
 
-- Drawer de detalhe PT-02, seleção múltipla + BulkBar, uso contra o teto do pacote
-  (`Progress`), ordenação por coluna.
+- ~~Drawer de detalhe PT-02~~ e ~~uso contra o teto~~ — **entregues na SA-O2b** (2026-08-19).
+- **O valor recorrente NAO entra no drawer** enquanto não houver vínculo no dado: a cobrança
+  vive em `rb_subscriptions` → `contacts` (biz=1), sem FK para `business`; casar por nome
+  acerta 4 de 109. [W] confirmou que "o resto ainda vai ter que arrumar" — quando o vínculo
+  existir, a seção Assinatura ganha o valor e a nota sai.
+- Seleção múltipla + BulkBar e ordenação por coluna seguem em aberto.
 - Decisão do F1 sobre a grade: o protótipo usa `os-table` do shell, o DS tem `DataTablePro`.
   Esta tela usa tabela simples com tokens do DS — não fecha a porta para nenhum dos dois, e a
   escolha segue sendo de [W].
