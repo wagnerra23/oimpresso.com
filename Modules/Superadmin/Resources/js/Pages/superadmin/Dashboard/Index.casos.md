@@ -97,7 +97,7 @@ Status: 🧪
 > **Por que delegar, e não somar:** o repositório respeita duas regras que uma soma crua de
 > `rb_plans.valor` erra — o `metadata.valor` da assinatura **sobrepõe** o do plano (é onde mora
 > o preço negociado por empresa), e o ciclo normaliza pro mês. Medido em prod 2026-08-19:
-> canônico **R$ 37.116,26** × soma crua **R$ 38.661,36**, ~4% de diferença por UMA assinatura
+> canônico **R$ [redacted Tier 0]** × soma crua **R$ [redacted Tier 0]**, ~4% de diferença por UMA assinatura
 > com preço próprio. Um segundo dono do mesmo número seria um segundo número.
 >
 > **Correção de rumo:** a primeira versão deste UC (mesma data) media `subscriptions` +

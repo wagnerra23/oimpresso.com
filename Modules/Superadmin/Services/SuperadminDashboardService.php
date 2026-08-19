@@ -157,7 +157,7 @@ class SuperadminDashboardService
      * refeito aqui. Ele respeita duas regras que uma soma crua de `rb_plans.valor` erra:
      * o `metadata.valor` da assinatura SOBREPÕE o valor do plano (é onde mora o preço
      * negociado por empresa), e o ciclo normaliza pro mês. Medido no mesmo dia: canônico
-     * R$ 37.116,26 × soma crua R$ 38.661,36 — ~4% de diferença por UMA assinatura com
+     * R$ [redacted Tier 0] × soma crua R$ [redacted Tier 0] — ~4% de diferença por UMA assinatura com
      * preço próprio. Um segundo dono do mesmo número seria um segundo número.
      *
      * `canceladas` conta as saídas dos últimos 30 dias (`canceled_at`), que é o insumo do
@@ -180,7 +180,7 @@ class SuperadminDashboardService
             //   · `metadata.valor` da assinatura SOBREPÕE o valor do plano (é onde mora o
             //     preço negociado por empresa);
             //   · o ciclo normaliza pro mês (trimestral/3, semestral/6, anual/12).
-            // Medido em prod 2026-08-19: canônico R$ 37.116,26 × soma crua R$ 38.661,36 —
+            // Medido em prod 2026-08-19: canônico R$ [redacted Tier 0] × soma crua R$ [redacted Tier 0] —
             // ~4% de diferença por UMA assinatura com preço próprio. Reimplementar aqui seria
             // um segundo dono do mesmo número, e o segundo dono estava errado.
             $mrr = app(SubscriptionRepository::class)->mrrBaselineCached($biz);
