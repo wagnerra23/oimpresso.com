@@ -155,6 +155,11 @@ it('UC-SADASH-03 · admin de negócio é barrado ENQUANTO o superadmin passa', f
 // ── UC-SADASH-04 · as queries enxergam TODOS os negócios (cross-tenant) ──────
 
 it('UC-SADASH-04 · a contagem cobre negócio de outro business, não só o do usuário', function () {
+    // Os DOIS são criados aqui, sem depender de outro caso ter rodado antes nem de
+    // estado deixado por run anterior: no CT 100 a database PERSISTE entre execuções
+    // (o BIZ_DASH sobrevivia de runs passadas e mascarava isso), enquanto no CI cada
+    // lane sobe MySQL fresco. Verde no CT 100 não substitui o gate de merge.
+    Business::firstOrCreate(['id' => BIZ_DASH], ['name' => 'Tenant fictício dashboard', 'currency_id' => 1]);
     Business::firstOrCreate(['id' => BIZ_DASH_OUTRO], ['name' => 'Outro tenant fictício', 'currency_id' => 1]);
 
     // Sem mock: exercita a query real do service.
