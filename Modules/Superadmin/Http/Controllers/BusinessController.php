@@ -59,6 +59,8 @@ class BusinessController extends BaseController
         }
 
         return OtelHelper::spanBiz('superadmin.negocios.index', function () use ($request) {
+            $aberto = (int) $request->input('negocio', 0);
+
             $filtros = [
                 'q' => trim((string) $request->input('q', '')),
                 'pacote' => $request->input('pacote'),
@@ -69,8 +71,14 @@ class BusinessController extends BaseController
 
             return Inertia::render('superadmin/Negocios/Index', [
                 'filtros' => $filtros,
+                'aberto' => $aberto > 0 ? $aberto : null,
                 'pacotes' => Inertia::defer(fn () => $this->opcoesDePacote()),
                 'negocios' => Inertia::defer(fn () => $this->negociosPayload($filtros)),
+                // Drawer PT-02: e um ESTADO da lista (?negocio=<id>), nao outra tela. Só
+                // consulta quando ha id — sem id, a closure nem roda.
+                'detalhe' => Inertia::defer(
+                    fn () => $aberto > 0 ? $this->detalheDoNegocio($aberto) : null
+                ),
             ]);
         }, ['component' => 'superadmin.negocios.index']);
     }
@@ -194,6 +202,115 @@ class BusinessController extends BaseController
             'pagina' => $pagina->currentPage(),
             'paginas' => $pagina->lastPage(),
             'por_pagina' => $pagina->perPage(),
+        ];
+    }
+
+    /**
+     * Detalhe de UM negócio para o drawer (PT-02) — onda SA-O2b.
+     *
+     * Chega por partial reload (`?negocio=<id>`), sem rota de página nova: o drawer é um
+     * estado da lista, não outra tela.
+     *
+     * DUAS SEÇÕES DO F1 FICARAM DE FORA, e não por esquecimento (medido em prod 2026-08-19):
+     *
+     *  · **Valor recorrente / MRR do negócio** — a cobrança recorrente vive em
+     *    `rb_subscriptions`, que aponta pra `contacts` do biz=1 (a carteira do CRM), e NÃO
+     *    existe FK ligando contato a `business`. Tentar casar por nome acerta 4 de 109.
+     *    Mostrar o valor errado no drawer de um cliente é pior que não mostrar.
+     *
+     *  · **Uso contra o teto do pacote** — só 5 dos 75 pacotes têm limite definido
+     *    (`user_count > 0`); nos outros 70 o teto é 0, que no UltimatePOS significa
+     *    ILIMITADO. Barra de progresso contra ilimitado não informa nada.
+     *
+     * @return array<string, mixed>|null  null quando o id não existe
+     */
+    private function detalheDoNegocio(int $negocioId): ?array
+    {
+        // SUPERADMIN: leitura GLOBAL cross-tenant intencional (ADR 0093 §exceções).
+        $b = DB::table('business')
+            ->leftJoin('users AS u', 'u.id', '=', 'business.owner_id')
+            ->where('business.id', $negocioId)
+            ->select([
+                'business.id',
+                'business.name',
+                'business.is_active',
+                'business.created_at',
+                'u.email AS dono_email',
+                'u.contact_number AS dono_fone',
+                DB::raw("TRIM(CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, ''))) AS dono"),
+                DB::raw('(SELECT bl.city FROM business_locations bl WHERE bl.business_id = business.id ORDER BY bl.id LIMIT 1) AS cidade'),
+                DB::raw('(SELECT bl.mobile FROM business_locations bl WHERE bl.business_id = business.id ORDER BY bl.id LIMIT 1) AS fone_negocio'),
+            ])
+            ->first();
+
+        if ($b === null) {
+            return null;
+        }
+
+        // Histórico completo de licenciamento, do mais recente pro mais antigo.
+        $historico = DB::table('subscriptions AS s')
+            ->leftJoin('packages AS p', 'p.id', '=', 's.package_id')
+            ->where('s.business_id', $negocioId)
+            ->whereNull('s.deleted_at')
+            ->orderByDesc('s.id')
+            ->limit(12)
+            ->get(['s.id', 's.status', 's.start_date', 's.end_date', 'p.name AS pacote'])
+            ->map(fn ($s) => [
+                'id' => (int) $s->id,
+                'pacote' => $s->pacote,
+                'inicio' => $s->start_date ? \Carbon::parse($s->start_date)->format('d/m/Y') : null,
+                'fim' => $s->end_date ? \Carbon::parse($s->end_date)->format('d/m/Y') : null,
+                'situacao' => $this->rotuloDeAssinatura($s->status, $s->end_date),
+            ])
+            ->all();
+
+        // Uso contra o teto do pacote VIGENTE. Teto 0 = ILIMITADO no UltimatePOS — confirmado
+        // por [W] em 2026-08-19 — e ilimitado NÃO vira barra de progresso: vira a palavra.
+        // Medido no mesmo dia: só 5 dos 75 pacotes definem limite; nos outros 70 esta seção
+        // mostra o consumo real sem teto, que continua sendo informação útil.
+        $pacoteVigente = DB::table('subscriptions AS s')
+            ->join('packages AS p', 'p.id', '=', 's.package_id')
+            ->where('s.business_id', $negocioId)
+            ->where('s.status', 'approved')
+            ->orderByDesc('s.id')
+            ->first(['p.user_count', 'p.location_count', 'p.product_count', 'p.invoice_count']);
+
+        $uso = [
+            [
+                'rotulo' => 'Usuários',
+                'usado' => DB::table('users')->where('business_id', $negocioId)->count(),
+                'teto' => $pacoteVigente ? (int) $pacoteVigente->user_count : null,
+            ],
+            [
+                'rotulo' => 'Locais',
+                'usado' => DB::table('business_locations')->where('business_id', $negocioId)->count(),
+                'teto' => $pacoteVigente ? (int) $pacoteVigente->location_count : null,
+            ],
+            [
+                'rotulo' => 'Produtos',
+                'usado' => DB::table('products')->where('business_id', $negocioId)->count(),
+                'teto' => $pacoteVigente ? (int) $pacoteVigente->product_count : null,
+            ],
+        ];
+
+        $ultimaVenda = DB::table('transactions')
+            ->where('business_id', $negocioId)
+            ->whereIn('type', ['sell'])
+            ->max('transaction_date');
+
+        return [
+            'id' => (int) $b->id,
+            'nome' => (string) $b->name,
+            'cidade' => $b->cidade,
+            'ativo' => (bool) $b->is_active,
+            'criado' => $b->created_at ? \Carbon::parse($b->created_at)->format('d/m/Y') : null,
+            'dono' => trim((string) ($b->dono ?? '')) ?: null,
+            'email' => $b->dono_email,
+            'fone_dono' => $b->dono_fone,
+            'fone_negocio' => $b->fone_negocio,
+            'ultima_venda' => $ultimaVenda ? \Carbon::parse($ultimaVenda)->format('d/m/Y') : null,
+            'uso' => $uso,
+            'historico' => $historico,
         ];
     }
 
