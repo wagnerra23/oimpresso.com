@@ -99,7 +99,7 @@ last_run: "2026-08-19"
 - **Teste:** `NotificationTemplateTest.php` — `UC-NOT-24 · recusa cc invalido no servidor`.
 - **Regra:** R8 — um endereço por campo.
 - **Patch:** P3.
-- **Status: ⬜** — hoje **falha**: só o `type="email"` do HTML protege. Vira 🧪 quando o P3 landar.
+- **Status: 🧪** — o P3 landou: `nullable|email` por modelo no `store()`.
 
 ---
 
@@ -108,7 +108,7 @@ last_run: "2026-08-19"
 - **Aceite:** Dado `template_data` com uma chave fora das que a tela oferece · Quando salvo · Então nenhuma linha com aquele `template_for` é criada.
 - **Teste:** `NotificationTemplateTest.php` — `UC-NOT-27 · ignora chave de modelo desconhecida no POST`.
 - **Patch:** P2.
-- **Status: ⬜** — hoje **falha**: o `store()` grava qualquer chave. Vira 🧪 quando o P2 landar.
+- **Status: 🧪** — o P2 landou: whitelist derivada de `__grupos()`, a mesma composição que monta a tela.
 
 ---
 
@@ -135,7 +135,7 @@ last_run: "2026-08-19"
 - **Aceite:** Dado `email_body` com `<p>ok</p><script>alert(1)</script>` · Quando o e-mail é montado · Então o conteúdo mantém `ok` e **não** contém `<script`.
 - **Teste:** `NotificationTemplateTest.php` — `UC-NOT-30 · sanitiza script no corpo do e-mail ao montar a mensagem`.
 - **Patch:** P4 — sanitização na **saída**, em `CustomerNotification::toMail()` + `SupplierNotification::toMail()` (os 2 pontos onde os 4 produtores de e-mail convergem), não em cada produtor.
-- **Status: ⬜** — hoje **falha**: nada sanitiza. Vira 🧪 quando o P4 landar.
+- **Status: 🧪** — o P4 landou: `HtmlSanitizer::clean()` nos 2 `toMail()` onde os 4 produtores convergem.
 
 ---
 

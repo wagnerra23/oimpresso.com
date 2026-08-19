@@ -221,13 +221,13 @@ it('UC-NOT-27 · ignora chave de modelo desconhecida no POST', function () {
 
     expect(NotificationTemplate::where('business_id', $this->business->id)
         ->where('template_for', 'modelo_inventado')->exists())->toBeFalse();
-})->todo('P2 — o store() ainda grava qualquer template_for. Vira assert no PR da whitelist.');
+});
 
 it('UC-NOT-24 · recusa cc invalido no servidor', function () {
     ($this->entrar)($this->admin)->post(rotaStore(), ['template_data' => [
         'new_sale' => camposDoModelo(['cc' => 'nao-e-email']),
     ]])->assertSessionHasErrors('template_data.new_sale.cc');
-})->todo('P3 — hoje só o type="email" do HTML protege. Vira assert no PR da validação.');
+});
 
 it('UC-NOT-28 · semeia os modelos em portugues para negocio novo', function () {
     // Semeia num business descartável usando o MESMO caminho de produção do seed.
@@ -270,7 +270,7 @@ it('UC-NOT-30 · sanitiza script no corpo do e-mail ao montar a mensagem', funct
 
     expect($corpo)->toContain('ok');
     expect($corpo)->not->toContain('<script');
-})->todo('P4 — nada sanitiza hoje. Vira assert no PR que põe HtmlSanitizer nos 2 toMail().');
+});
 
 // ── Envio: dependem de fixture de venda/contato ──────────────────────────────
 // autoSendNotification($business_id, $tipo, $transaction, $contact) precisa de uma
