@@ -50,17 +50,24 @@ O que a tela entrega **hoje** (medido no smoke de 2026-08-19, não prometido):
 
 - Segmented de período (Hoje/Semana/Mês/Ano) recalculando os KPIs por **janela rolante**, com
   a janela dita em texto — sem recarregar a página (partial reload do Inertia).
-- **3** KPIs do período: novas assinaturas (R$), novos cadastros, sem assinatura.
-- Tendência mensal de assinaturas — barra, último mês destacado.
+- **4** KPIs do período: novas assinaturas (R$), novos cadastros, sem assinatura e **MRR**
+  (este entrou na SA-O1b).
+- Tendência mensal de assinaturas — barra, último mês destacado, **série contínua**: mês sem
+  assinatura aparece zerado em vez de sumir do eixo (SA-O1b).
 - Cadastros recentes — 5 linhas, com negócio, status da assinatura e data.
 - Vocabulário PT-BR fechado: negócio, assinatura, pacote, MRR, trial. O enum do banco
   **nunca** aparece na tela (mapa no RUNBOOK §2).
 
+**O MRR diz por que está zero.** A regra R1 conta só recorrência vigente e paga; quando o
+total dá zero o card distingue as duas causas possíveis — "nenhuma assinatura recorrente
+vigente" × "N assinaturas vigentes sem preço no pacote". Sem isso o card parece quebrado, que
+é o estado real de hoje: **nenhum dos pacotes tem preço cadastrado** (medido em prod
+2026-08-19 — 13 vigentes, 13 sem preço).
+
 Alvo do F1 ainda **não** entregue — está aqui pra não se perder, não como promessa cumprida:
 
-- 4º KPI (MRR) e os blocos funil/churn/receita-por-pacote/fila: sem query no backend.
-- Série de 12 meses **contínua**: hoje o service agrupa por mês existente e **pula mês sem
-  assinatura** (o smoke mediu 11 pontos, sem Oct-2025). Buraco em série temporal engana o olho.
+- Blocos funil trial→pago / churn / receita-por-pacote / fila "Vencendo ou vencido": sem query
+  no backend (churn depende da migration `cancel_reason`, aprovada por [W] em 2026-08-19).
 - Coluna "dono" nos cadastros recentes.
 
 ## Non-Goals — Features (NÃO faz)
@@ -110,10 +117,13 @@ Fechado em 2026-08-19: ratificação [W] dos Non-Goals/Anti-hooks · deploy · s
 
 Em aberto:
 
-- **Blocos sem query**: MRR, funil trial→pago, churn (depende da migration `cancel_reason`,
+- **Blocos sem query**: funil trial→pago, churn (depende da migration `cancel_reason`,
   decisão [W] 2026-08-19), receita por pacote, fila "Vencendo ou vencido".
-- **Gráfico visualmente vazio** — o smoke mostrou todas as barras em zero, porque os pacotes
-  dos cadastros recentes têm `package_price` 0. O número está certo; a tela não comunica nada.
-  Decidir o que a tendência deve medir quando a receita é zero.
-- **Série com buraco** — 11 pontos em vez de 12 (o service pula mês sem assinatura).
+- **Nenhum pacote tem preço cadastrado** (medido em prod 2026-08-19: 75 pacotes, todos com
+  `price` 0; 13 assinaturas vigentes, 13 sem preço). Enquanto isso valer, MRR, tendência,
+  receita-por-pacote e funil mostram zero **legitimamente** — não é bug de tela, é ausência de
+  dado. Decisão de produto: os pacotes recebem preço no sistema, ou a receita é medida fora
+  dele e esses blocos não fazem sentido aqui?
+- **113 assinaturas `approved` com vigência vencida** que ninguém expira — o
+  `findOverdueApproved()` não tem invocador. Afeta todo KPI que recorta por vigência.
 - Decisões D1/D2/D3 do F1 — impersonar, `pages`/`pricing` no CMS, `subscription/pay` de quem é.

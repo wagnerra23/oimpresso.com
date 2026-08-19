@@ -179,13 +179,62 @@ it('UC-SADASH-04 · a contagem cobre negócio de outro business, não só o do u
 // ── UC-SADASH-05 · nenhum bloco renderizado com número inventado ─────────────
 
 it('UC-SADASH-05 · props sem query no backend não são enviadas à tela', function () {
+    // `mrr` saiu desta lista na SA-O1b: ganhou query real (calcularMrr) e agora chega às
+    // props legitimamente. O caso encolhe conforme a dívida é paga — não é afrouxamento.
     $this->actingAs(dashSuperadmin())
         ->get('/superadmin')
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page
-            ->missing('mrr')
             ->missing('funil')
             ->missing('churn')
             ->missing('receitaPorPacote')
         );
+});
+
+// ── UC-SADASH-06 · MRR só conta recorrência vigente e paga ──────────────────
+
+it('UC-SADASH-06 · o MRR ignora vencida, avulso e pacote sem preço', function () {
+    $svc = app(SuperadminDashboardService::class);
+
+    $antes = $svc->calcularMrr();
+
+    expect($antes)->toHaveKeys(['mrr', 'assinaturas', 'sem_preco'])
+        ->and($antes['mrr'])->toBeFloat()
+        ->and($antes['mrr'])->toBeGreaterThanOrEqual(0.0);
+
+    // O contrato que importa: o número NUNCA cobre assinatura fora de vigência.
+    // Se alguém tirar o recorte de `end_date`, o total passa a incluir as vencidas e este
+    // caso cai — em prod são 126 approved contra 13 vigentes.
+    $vigentes = DB::table('subscriptions')
+        ->where('status', 'approved')
+        ->where(function ($q) {
+            $q->whereNull('end_date')->orWhereDate('end_date', '>=', now());
+        })
+        ->count();
+
+    $todasApproved = DB::table('subscriptions')->where('status', 'approved')->count();
+
+    expect($antes['assinaturas'] + $antes['sem_preco'])->toBeLessThanOrEqual($vigentes)
+        ->and($vigentes)->toBeLessThanOrEqual($todasApproved);
+});
+
+// ── UC-SADASH-07 · a tendência mensal não tem buraco ────────────────────────
+
+it('UC-SADASH-07 · a série de tendência cobre os meses sem assinatura', function () {
+    $serie = app(SuperadminDashboardService::class)->buildMonthlyRevenueChart();
+
+    // 12 meses + o corrente: o intervalo vai de hoje-1ano até hoje, e os dois extremos
+    // caem em meses diferentes. O que este caso trava é que NENHUM mês some do meio —
+    // antes da SA-O1b o mês sem assinatura simplesmente não virava chave (smoke 19/08:
+    // 11 pontos, sem Oct-2025).
+    expect(count($serie))->toBeGreaterThanOrEqual(12);
+
+    // E a sequência é contígua: cada chave é o mês seguinte à anterior.
+    $chaves = array_keys($serie);
+    $cursor = \Carbon\Carbon::createFromFormat('M-Y', $chaves[0])->startOfMonth();
+
+    foreach ($chaves as $chave) {
+        expect($chave)->toBe($cursor->format('M-Y'));
+        $cursor->addMonth();
+    }
 });
