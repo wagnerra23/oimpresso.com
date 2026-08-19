@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Transaction;
 use App\User;
 use App\Utils\Util;
 use DataTables;
@@ -187,10 +188,37 @@ class SalesCommissionAgentController extends Controller
             try {
                 $business_id = request()->session()->get('user.business_id');
 
-                User::where('id', $id)
+                $agente = User::where('id', $id)
                     ->where('business_id', $business_id)
                     ->where('is_cmmsn_agnt', 1)
-                    ->delete();
+                    ->first();
+
+                if (empty($agente)) {
+                    return ['success' => false,
+                        'msg' => __('messages.something_went_wrong'),
+                    ];
+                }
+
+                // GUARDA POR VINCULO DE DADO, nao por regra de negocio: transactions.commission_agent
+                // guarda o id do usuario e NAO tem FK (migration 2018_02_26_134500) — nada no banco
+                // impediria a venda de ficar apontando pra um agente que sumiu da listagem.
+                $vendasVinculadas = Transaction::where('business_id', $business_id)
+                    ->where('commission_agent', $agente->id)
+                    ->count();
+
+                if ($vendasVinculadas > 0) {
+                    return response()->json([
+                        'success' => false,
+                        'msg' => __('lang_v1.commission_agent_has_sales', ['count' => $vendasVinculadas]),
+                    ], 422);
+                }
+
+                // Sem venda vinculada: DESMARCA em vez de excluir. O registro em `users` continua
+                // servindo login e vinculos; o que sai e o papel de comissionado. O delete anterior
+                // era SOFT (o model usa SoftDeletes), mas ainda assim tirava o usuario das consultas
+                // normais — e com ele o nome do agente nos relatorios de venda.
+                $agente->is_cmmsn_agnt = 0;
+                $agente->save();
 
                 $output = ['success' => true,
                     'msg' => __('lang_v1.commission_agent_deleted_success'),
