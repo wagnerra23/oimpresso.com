@@ -333,6 +333,7 @@ return [
     'backup' => 'Administer Backup',
     'download_complete_backup' => 'Download complete backup',
     'backup_doesnt_exist' => "Backup Doesn't exist",
+    'backup_ultimo_nao_excluir' => 'This is the only backup on disk — create a new one before deleting it.',
     'lot_report' => 'Lot Report',
     'purchase_payment_report' => 'Purchase Payment Report',
     'paid_on' => 'Paid on',
