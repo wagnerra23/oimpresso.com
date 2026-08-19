@@ -71,12 +71,48 @@ Status: 🧪
 
 ## UC-SADASH-05 · Nenhum bloco é renderizado com número inventado · `must`
 
-**Dado** que MRR, funil trial→pago, churn e receita-por-pacote ainda não têm query
+**Dado** que funil trial→pago, churn e receita-por-pacote ainda não têm query
 **Quando** a visão geral é montada
 **Então** esses blocos **não** chegam nas props — a tela mostra só o que o banco sustenta.
 
 > O protótipo desenha os 9 blocos com mock. Renderizar mock em produção seria fabricar
-> número — pior que não mostrar. Entram na SA-O1b, com query real.
+> número — pior que não mostrar.
+>
+> **Atualizado na SA-O1b (2026-08-19):** o `mrr` SAIU desta lista — passou a ter query real
+> (`calcularMrr`) e agora chega às props legitimamente. O caso encolhe conforme a dívida é
+> paga; não é afrouxamento.
+
+Status: 🧪
+
+---
+
+## UC-SADASH-06 · O MRR só conta recorrência vigente e paga · `must`
+
+**Dado** assinaturas em estados diferentes
+**Quando** o MRR é calculado
+**Então** entram **apenas** as `approved` com vigência futura ou nula, cujo pacote **não** é
+avulso (`is_one_time = 0`) e cujo `package_price` é **maior que zero** — regra R1 do F1.
+
+**E** assinatura vencida fica de fora: em produção (19/08) há 126 `approved` e só 13 vigentes;
+somar todas daria um MRR ~10× maior que a realidade.
+
+**E** `interval_count` zero ou negativo é ignorado, nunca dividido.
+
+> O valor sai de `subscriptions.package_price` (congelado na contratação), não de
+> `packages.price` — o cliente paga o que contratou.
+
+Status: 🧪
+
+---
+
+## UC-SADASH-07 · A tendência mensal não tem buraco · `must`
+
+**Dado** um mês do intervalo sem nenhuma assinatura criada
+**Quando** a série de 12 meses é montada
+**Então** esse mês aparece com valor **zero**, não some do eixo.
+
+> O smoke de 19/08 mediu 11 pontos num eixo que se anuncia como 12 meses (faltava Oct-2025).
+> Buraco em série temporal engana o olho: o leitor lê "sem queda" onde havia mês zerado.
 
 Status: 🧪
 

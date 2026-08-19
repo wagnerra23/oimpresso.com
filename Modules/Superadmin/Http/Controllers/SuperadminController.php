@@ -56,6 +56,9 @@ class SuperadminController extends Controller
                 'semAssinatura' => Inertia::defer(
                     fn () => $dashboard->countNotSubscribedBusinesses()
                 ),
+                'mrr' => Inertia::defer(
+                    fn () => $dashboard->calcularMrr()
+                ),
                 'tendencia' => Inertia::defer(
                     fn () => $this->tendenciaPayload($dashboard)
                 ),

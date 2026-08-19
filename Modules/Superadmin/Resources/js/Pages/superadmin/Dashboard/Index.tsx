@@ -43,11 +43,18 @@ interface NegocioRecente {
   assinatura: string;
 }
 
+interface Mrr {
+  mrr: number;
+  assinaturas: number;
+  sem_preco: number;
+}
+
 interface Props {
   periodo: string;
   janela: Janela;
   statsPeriodo?: StatsPeriodo;
   semAssinatura?: number;
+  mrr?: Mrr;
   tendencia?: PontoTendencia[];
   recentes?: NegocioRecente[];
 }
@@ -65,9 +72,15 @@ const brl = (v: number) =>
 /** Plural PT-BR sem gambiarra de string (o charter cobra "1 negócio / 2 negócios"). */
 const plural = (n: number, sing: string, plur: string) => `${n} ${n === 1 ? sing : plur}`;
 
-function Kpi({ valor, rotulo, nota, tom }: { valor: ReactNode; rotulo: string; nota: string; tom?: 'accent' | 'danger' }) {
+function Kpi({ valor, rotulo, nota, tom }: { valor: ReactNode; rotulo: string; nota: string; tom?: 'accent' | 'danger' | 'ok' }) {
   const corValor =
-    tom === 'accent' ? 'text-primary' : tom === 'danger' ? 'text-destructive' : 'text-foreground';
+    tom === 'accent'
+      ? 'text-primary'
+      : tom === 'danger'
+        ? 'text-destructive'
+        : tom === 'ok'
+          ? 'text-emerald-600 dark:text-emerald-400'
+          : 'text-foreground';
 
   return (
     <Card>
@@ -92,7 +105,7 @@ function KpiEsqueleto() {
   );
 }
 
-function SuperadminDashboard({ periodo, janela, statsPeriodo, semAssinatura, tendencia, recentes }: Props) {
+function SuperadminDashboard({ periodo, janela, statsPeriodo, semAssinatura, mrr, tendencia, recentes }: Props) {
   // Partial reload: só os KPIs do período e a janela voltam do servidor. `semAssinatura`,
   // `tendencia` e `recentes` não dependem do período e ficam de fora do `only`.
   const trocarPeriodo = (novo: string) => {
@@ -126,13 +139,17 @@ function SuperadminDashboard({ periodo, janela, statsPeriodo, semAssinatura, ten
         <span className="text-[11px] text-muted-foreground">{janela.rotulo}</span>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 px-6 pt-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 px-6 pt-4 sm:grid-cols-2 lg:grid-cols-4">
         <Deferred data="statsPeriodo" fallback={<><KpiEsqueleto /><KpiEsqueleto /></>}>
           <KpisDoPeriodo statsPeriodo={statsPeriodo} />
         </Deferred>
 
         <Deferred data="semAssinatura" fallback={<KpiEsqueleto />}>
           <KpiSemAssinatura semAssinatura={semAssinatura} />
+        </Deferred>
+
+        <Deferred data="mrr" fallback={<KpiEsqueleto />}>
+          <KpiMrr mrr={mrr} />
         </Deferred>
       </div>
 
@@ -174,6 +191,24 @@ function KpiSemAssinatura({ semAssinatura }: { semAssinatura?: number }) {
   const n = Number(semAssinatura ?? 0);
 
   return <Kpi valor={n} rotulo="Sem assinatura" nota="cadastrou e não assinou" tom="danger" />;
+}
+
+function KpiMrr({ mrr }: { mrr?: Mrr }) {
+  const valor = Number(mrr?.mrr ?? 0);
+  const contadas = Number(mrr?.assinaturas ?? 0);
+  const semPreco = Number(mrr?.sem_preco ?? 0);
+
+  // Um MRR zero pode significar duas coisas MUITO diferentes, e a tela precisa dizer qual:
+  // não há assinatura vigente, ou há mas nenhuma tem preço cadastrado no pacote. Sem essa
+  // nota o card parece quebrado (era o caso em 19/08: nenhum pacote tinha preço).
+  const nota =
+    valor > 0
+      ? `${plural(contadas, 'assinatura recorrente', 'assinaturas recorrentes')} vigente${contadas === 1 ? '' : 's'}`
+      : semPreco > 0
+        ? `${plural(semPreco, 'assinatura vigente', 'assinaturas vigentes')} sem preço no pacote`
+        : 'nenhuma assinatura recorrente vigente';
+
+  return <Kpi valor={brl(valor)} rotulo="Receita recorrente (MRR)" nota={nota} tom={valor > 0 ? 'ok' : undefined} />;
 }
 
 function Tendencia({ tendencia }: { tendencia?: PontoTendencia[] }) {
