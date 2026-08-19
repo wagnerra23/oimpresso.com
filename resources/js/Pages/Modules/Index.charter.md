@@ -106,12 +106,12 @@ R10 toggle/install limpam cache · R11 toast via `->with('status')` → prop `fl
       [`App\System`](../../../../app/System.php) (`getProperty` na linha 36). E a chave consultada por
       `ModuleUtil::isModuleInstalled()` é `strtolower($name).'_version'`, **não** o alias — para
       módulo com alias kebab (`oficina-auto`) as duas divergem. Travar a convenção antes de exibir.
-- [ ] **D2 — RBAC: existem duas leis para a mesma capacidade.** `/modulos` autoriza por
-      `session('is_admin')` OU papel `Admin#<biz>`; o item de menu
-      ([AdminSidebarMenu.php:809](../../../../app/Http/Middleware/AdminSidebarMenu.php)) e o legado
-      ([Install/ModulesController](../../../../app/Http/Controllers/Install/ModulesController.php), 4 usos)
-      autorizam pela permissão `manage_modules`, registrada em `AuthServiceProvider:36` — **verificado
-      2026-08-19**. Dá para ver o item no menu e tomar 403 na tela. Patch P5 unifica em `manage_modules`.
+- [x] ~~**D2 — RBAC.**~~ **Decidido [W] 2026-08-19: unificar em `manage_modules`** (patch P5).
+      Antes eram duas leis para a mesma capacidade — a tela usava `session('is_admin')` OU o papel
+      `Admin#<biz>`; o menu e o legado já usavam a permissão. `Admin#<biz>` sai de propósito: é admin
+      **de um negócio** numa tela app-wide, e o furo foi medido (um `200` observado). O `Gate::before`
+      já trata `manage_modules` como ability de superadmin — o atalho por papel não se aplica a ela.
+      `ADMINISTRATOR_USERNAMES` verificada presente em produção **antes** de trocar o portão.
 - [ ] **D3 — drawer PT-02 entra na produção?** Decide o A4 e o `[BACKLOG]` reservado como UC-MOD-16.
 - [ ] **D4 — `install` roda migration dentro do request web.** Fila com estado "instalando", ou lock +
       limite declarado. ⚠️ `config/queue.php` tem `'default' => env('QUEUE_CONNECTION', 'sync')` — se o
