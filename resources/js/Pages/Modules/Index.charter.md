@@ -2,7 +2,8 @@
 id: resources-js-pages-modules-index-charter
 page: /modulos
 component: resources/js/Pages/Modules/Index.tsx
-related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
+related_prototype: prototipo-ui/cowork/modulos-page.jsx
+related_prototype_nota: '(herda PT-01 Lista + PT-02 Drawer — baixado do Cowork 2026-08-19)'
 owner: wagner
 status: draft
 last_validated: "2026-08-19"
@@ -118,11 +119,12 @@ R10 toggle/install limpam cache · R11 toast via `->with('status')` → prop `fl
       Medir no servidor antes de escolher.
 - [ ] [W] ratifica Non-Goals + Anti-hooks
 - [ ] Smoke visual 1280/1440 (screenshot)
-- [ ] Exportar `modulos-page.{jsx,css}` do projeto Cowork para o espelho
-      (`cowork-mirror-freshness --export-from`) e só então trocar o `related_prototype` para
-      `prototipo-ui/cowork/modulos/modulos-page.jsx`. Hoje o arquivo existe **no Cowork** e **não** no
-      espelho local (130 arquivos, flat, nenhum `modulos-*`) — declarar o path antes do export apontaria
-      a âncora para arquivo inexistente, e transcrever build à mão é proibido (ADR 0374).
+- [x] ~~Exportar `modulos-page.{jsx,css}` do Cowork para o espelho.~~ **Feito 2026-08-19.**
+      `--live-only` deu o veredito (era 1 de 14 protótipos que nunca desceram), `--snapshot-from`
+      mediu (**AUSENTE** nos dois, espelho intocado) e `--export-from` escreveu o `raw.content` —
+      fiel por construção, sem transcrição (ADR 0374). Hashes idênticos entre medição e escrita:
+      `a6100cb00af3` (jsx) · `4e427d46b483` (css). O path canônico é a **raiz** do espelho, não um
+      subdir `modulos/`: o produtor escreve na raiz, e é isso que o `--live-only` nomeia.
 
 ## Irmãos
 
