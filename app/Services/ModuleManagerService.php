@@ -64,10 +64,16 @@ class ModuleManagerService
         'grow'        => 'Office Impresso',
     ];
 
-    public function __construct()
+    /**
+     * Paths injetáveis (default = raiz do app). Existem para que o teste possa
+     * exercitar o ciclo de vida num diretório sandbox — sem eles, qualquer teste
+     * de `setActive`/`install` escreveria no `modules_statuses.json` REAL do repo.
+     * Nenhuma mudança de comportamento: o default é exatamente o que era fixo aqui.
+     */
+    public function __construct(?string $modulesDir = null, ?string $statusesFile = null)
     {
-        $this->modulesDir = base_path('Modules');
-        $this->statusesFile = base_path('modules_statuses.json');
+        $this->modulesDir = $modulesDir ?? base_path('Modules');
+        $this->statusesFile = $statusesFile ?? base_path('modules_statuses.json');
     }
 
     /**
