@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\SellingPriceGroup;
+use App\User;
 use App\Utils\ModuleUtil;
+use App\Utils\PermissionCatalog;
+use DB;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -135,20 +138,25 @@ class RoleController extends Controller
                     'is_service_staff' => $is_service_staff,
                 ]);
 
-                //Include selling price group permissions
-                $spg_permissions = $request->input('radio_option');
-                if (! empty($spg_permissions)) {
-                    foreach ($spg_permissions as $spg_permission) {
-                        $permissions[] = $spg_permission;
+                // Grupo de preco chega em spg_permissions[] (checkbox gerado em LOOP pela view,
+                // valor 'selling_price_group.<id>') e as opcoes exclusivas em radio_option[]
+                // (escopo de visao). Varredura das views em 2026-08-19: 122 permissions[] + 29
+                // radio_option[] estaticos + 1 spg_permissions[] dinamico.
+                //
+                // ANTES, so aqui no store(): radio_option era lido DUAS vezes (duplicando todo
+                // radio no array) e spg_permissions NUNCA era lido — ou seja, ao CRIAR um papel o
+                // grupo de preco marcado era simplesmente PERDIDO. O update() sempre leu as duas
+                // chaves certas; era o create que estava torto.
+                foreach (['spg_permissions', 'radio_option'] as $campo) {
+                    $valores = $request->input($campo);
+                    if (! empty($valores) && is_array($valores)) {
+                        foreach ($valores as $valor) {
+                            $permissions[] = $valor;
+                        }
                     }
                 }
 
-                $radio_options = $request->input('radio_option');
-                if (! empty($radio_options)) {
-                    foreach ($radio_options as $key => $value) {
-                        $permissions[] = $value;
-                    }
-                }
+                $permissions = $this->__somenteDoCatalogo($permissions);
 
                 $this->__createPermissionIfNotExists($permissions);
 
@@ -271,10 +279,12 @@ class RoleController extends Controller
 
                     $radio_options = $request->input('radio_option');
                     if (! empty($radio_options)) {
-                        foreach ($radio_options as $key => $value) {
+                        foreach ($radio_options as $value) {
                             $permissions[] = $value;
                         }
                     }
+
+                    $permissions = $this->__somenteDoCatalogo($permissions);
 
                     $this->__createPermissionIfNotExists($permissions);
 
@@ -309,8 +319,14 @@ class RoleController extends Controller
     /**
      * Remove the specified resource from storage.
      *
+     * Retorno heterogeneo por heranca do UltimatePOS: a rota e consumida por ajax e o
+     * caminho feliz devolve o array `$output` cru (o front le success/msg). A guarda de
+     * papel-em-uso precisa de STATUS pra ser distinguivel de um no-op, entao devolve
+     * JsonResponse 422. O tipo declarado passa a dizer a verdade em vez de mentir um
+     * Response que este metodo nunca retornou.
+     *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse|array<string, mixed>|null
      */
     public function destroy($id)
     {
@@ -323,6 +339,30 @@ class RoleController extends Controller
                 $business_id = request()->user()->business_id;
 
                 $role = Role::where('business_id', $business_id)->find($id);
+
+                if (empty($role)) {
+                    return ['success' => false,
+                        'msg' => __('messages.something_went_wrong'),
+                    ];
+                }
+
+                // GUARDA POR VINCULO: apagar um papel em uso deixa N usuarios sem as permissoes
+                // que ele carrega, de uma vez e sem aviso. A pivot do Spatie nao tem restricao que
+                // impeca — a decisao tem de ser explicita de quem administra.
+                // Contagem pela pivot (padrao vivo em Modules/Forja/Services/UserScopeService.php)
+                // em vez de $role->users(): o vendor nao esta montado neste worktree, e eu nao
+                // afirmo API que nao pude verificar.
+                $usuariosComOPapel = DB::table('model_has_roles')
+                    ->where('role_id', $role->id)
+                    ->where('model_type', User::class)
+                    ->count();
+
+                if ($usuariosComOPapel > 0) {
+                    return response()->json([
+                        'success' => false,
+                        'msg' => __('user.role_in_use', ['count' => $usuariosComOPapel]),
+                    ], 422);
+                }
 
                 if (! $role->is_default || $role->name == 'Cashier#'.$business_id) {
                     $role->delete();
@@ -344,6 +384,49 @@ class RoleController extends Controller
 
             return $output;
         }
+
+        // Requisicao nao-ajax nao tem resposta neste fluxo (a tela so chama por ajax).
+        // O return explicito existe porque o tipo declarado exige um em todo caminho.
+        return null;
+    }
+
+    /**
+     * Descarta o que NAO pertence ao catalogo fechado (nucleo + modulos ativos).
+     *
+     * POR QUE: __createPermissionIfNotExists() criava QUALQUER nome que chegasse no POST, e a
+     * tabela `permissions` do Spatie e GLOBAL (nao tem business_id). Um POST forjado poluia o
+     * catalogo de TODOS os tenants, sem sinal em lugar nenhum da UI.
+     *
+     * Descarta em vez de recusar o salvamento inteiro: um papel legado pode carregar permissao
+     * de modulo hoje desativado, e recusar travaria a edicao de um papel legitimo. O intruso vai
+     * pro log com quem tentou — auditavel sem quebrar quem nao tem culpa.
+     *
+     * @param  mixed  $permissions
+     */
+    private function __somenteDoCatalogo($permissions): array
+    {
+        $permissions = is_array($permissions) ? $permissions : [];
+
+        if (empty($permissions)) {
+            return [];
+        }
+
+        $intrusas = PermissionCatalog::intrusas(
+            $permissions,
+            $this->moduleUtil->getModuleData('user_permissions')
+        );
+
+        if (! empty($intrusas)) {
+            \Log::warning('RoleController: permissao fora do catalogo DESCARTADA', [
+                'business_id' => request()->session()->get('user.business_id'),
+                'user_id' => auth()->id(),
+                'descartadas' => $intrusas,
+            ]);
+
+            $permissions = array_values(array_diff($permissions, $intrusas));
+        }
+
+        return $permissions;
     }
 
     /**
