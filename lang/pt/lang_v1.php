@@ -258,6 +258,8 @@ return [
     'tooltip_rack_details' => 'Digite os detalhes de onde o produto está armazenado na loja, para diferentes locais comerciais.',
 
     'updated_success' => 'Atualizado com sucesso',
+    'test_sent_to' => 'Teste enviado para :destino',
+    'no_email_found' => 'Seu usuário não tem e-mail cadastrado — cadastre um para receber o teste',
     'added_success' => 'Adicionado com sucesso',
     'deleted_success' => 'deletado com sucesso',
     'enable_disable_modules' => 'Ativar / desativar módulos',
@@ -333,6 +335,7 @@ return [
     'download_complete_backup' => 'Fazer o backup completo',
     'backup_doesnt_exist' => 'O backup não existe',
     'backup_ultimo_nao_excluir' => 'Este é o único backup no disco — gere um novo antes de excluir.',
+    'backup_enfileirado' => 'Backup na fila. Pode fechar a tela — ele roda no servidor.',
     'lot_report' => 'Relatório em lote',
     'purchase_payment_report' => 'Relatório de pagamento de compra',
     'paid_on' => 'Pago em',

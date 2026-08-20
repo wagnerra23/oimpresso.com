@@ -280,6 +280,58 @@ it('UC-NOT-30 · sanitiza script no corpo do e-mail ao montar a mensagem', funct
     expect($corpo)->not->toContain('<script');
 });
 
+// ── P8: new_booking só com a agenda ligada ───────────────────────────────────
+
+it('UC-NOT-31 · esconde new_booking quando a agenda nao esta ligada pro negocio', function () {
+    $resposta = $this->actingAs($this->admin)->withSession([
+        'user.business_id' => $this->business->id,
+        'business.id' => $this->business->id,
+        'business.enabled_modules' => ['purchases'],   // sem 'booking'
+    ])->get(rotaIndice());
+
+    expect(array_keys($resposta->viewData('customer_notifications')))->not->toContain('new_booking');
+});
+
+it('UC-NOT-31 · mostra new_booking quando a agenda esta ligada', function () {
+    $resposta = $this->actingAs($this->admin)->withSession([
+        'user.business_id' => $this->business->id,
+        'business.id' => $this->business->id,
+        'business.enabled_modules' => ['booking'],
+    ])->get(rotaIndice());
+
+    expect(array_keys($resposta->viewData('customer_notifications')))->toContain('new_booking');
+});
+
+// ── P6: teste de envio ───────────────────────────────────────────────────────
+
+it('UC-NOT-22 · manda o teste para o usuario logado, nunca para o destino do request', function () {
+    \Illuminate\Support\Facades\Notification::fake();
+
+    ($this->entrar)($this->admin)->post(route('notification-templates.test'), [
+        'template_for' => 'new_sale',
+        'canal' => 'email',
+        // Destinatário forjado no request: tem de ser IGNORADO (senão é relay aberto).
+        'to_email' => 'atacante@exemplo.invalido',
+    ])->assertRedirect();
+
+    \Illuminate\Support\Facades\Notification::assertSentOnDemand(
+        \App\Notifications\CustomerNotification::class,
+        function ($notificacao, $canais, $notifiable) {
+            $rotas = $notifiable->routes['mail'] ?? [];
+
+            return in_array($this->admin->email, (array) $rotas, true)
+                && ! in_array('atacante@exemplo.invalido', (array) $rotas, true);
+        }
+    );
+});
+
+it('UC-NOT-22 · recusa template_for fora das chaves que a tela oferece', function () {
+    ($this->entrar)($this->admin)->post(route('notification-templates.test'), [
+        'template_for' => 'modelo_inventado',
+        'canal' => 'email',
+    ])->assertSessionHasErrors('template_for');
+});
+
 // ── Envio: dependem de fixture de venda/contato ──────────────────────────────
 // autoSendNotification($business_id, $tipo, $transaction, $contact) precisa de uma
 // Transaction + Contact reais do tenant. Montar isso é trabalho de fixture que este pacote

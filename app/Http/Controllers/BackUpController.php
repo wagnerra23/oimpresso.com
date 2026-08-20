@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\RunBackupJob;
 use App\Utils\Util;
-use Illuminate\Support\Facades\Artisan;
-use Log;
 use Storage;
 
 class BackUpController extends Controller
@@ -83,15 +82,12 @@ class BackUpController extends Controller
                 return $notAllowed;
             }
 
-            // start the backup process
-            Artisan::call('backup:run');
-            $output = Artisan::output();
-
-            // log the results
-            Log::info("Backpack\BackupManager -- new backup started from admin interface \r\n".$output);
+            // Onda 2: sai da requisicao. O worker da fila `backups` (agendado em
+            // app/Console/Kernel.php) executa o backup:run fora do request-lifecycle.
+            RunBackupJob::dispatch(auth()->id());
 
             $output = ['success' => 1,
-                'msg' => __('lang_v1.success'),
+                'msg' => __('lang_v1.backup_enfileirado'),
             ];
         } catch (\Throwable $e) {
             // O legado usava `catch (Exception $e)` sem barra dentro do namespace
