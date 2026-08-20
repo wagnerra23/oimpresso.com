@@ -119,7 +119,14 @@ it('NEGATIVO: papel de outro negócio não é excluído pelo destroy', function 
     $this->actingAs($invasor);
     session(['user.business_id' => 1]);
 
-    $this->deleteJson('/roles/'.$alheio->id);
+    // X-Requested-With: o destroy() do UltimatePOS embrulha o corpo INTEIRO em
+    // `if (request()->ajax())`, e ajax() testa ESTE header. O deleteJson() do Pest manda so
+    // `Accept: application/json` — sem ele o metodo cai no fim, devolve null, e a resposta e
+    // 200 VAZIA sem executar nada. Este caso estava passando pelo MOTIVO ERRADO: "o papel
+    // continuou la" e verdade quando o controller nem roda.
+    $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
+        ->deleteJson('/roles/'.$alheio->id)
+        ->assertOk();
 
     expect(Role::find($alheio->id))->not->toBeNull();
 });
