@@ -18,8 +18,8 @@ related:
 # RUNBOOK — Officeimpresso `Empresas/Index` (Onda 2, tela 5/14)
 
 > **Escopo:** a tela **#5** do [RUNBOOK-migracao-react.md](RUNBOOK-migracao-react.md) — última das
-> 3 telas P1 da Onda 2. As outras duas: [RUNBOOK-licencas.md](RUNBOOK-licencas.md) (#3) e
-> [RUNBOOK-empresa.md](RUNBOOK-empresa.md) (#4).
+> 3 telas P1 da Onda 2. As outras duas: `RUNBOOK-licencas.md` (#3) e
+> `RUNBOOK-empresa.md` (#4).
 > Artefato **F1 PLAN** que a [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)
 > exige e que o hook [`block-mwart-violation.mjs`](../../../.claude/hooks/block-mwart-violation.mjs)
 > procura — ele resolve pelo **kebab do subdir** (`Empresas/` → `RUNBOOK-empresas.md`).
@@ -206,7 +206,7 @@ import { Deferred } from '@inertiajs/react';
    o dual-run.
 6. **Esta tela é global por design, e isso é coerente.** Ela lista todos os clientes da WR2 e o
    título diz exatamente isso. Não confundir com a pergunta aberta da tela #4 (§10.1 do
-   [RUNBOOK-empresa.md](RUNBOOK-empresa.md)), que é sobre uma rota **de ficha** aceitar id arbitrário
+   `RUNBOOK-empresa.md`), que é sobre uma rota **de ficha** aceitar id arbitrário
    sem guarda nomeando a intenção. Aqui a intenção está no nome da tela; lá, não está em lugar nenhum.
 7. **KPIs são calculados no Blade**, com `collect($business)->where(...)`, não no controller. Na React
    vêm do backend como prop (mesma decisão das telas irmãs) — o número não muda, a origem sim.
@@ -227,7 +227,7 @@ import { Deferred } from '@inertiajs/react';
 - [ADR UI-0013](../_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md) — Constituição UI v2 (camada 3 = Padrão de Tela)
 - [RUNBOOK-migracao-react.md](RUNBOOK-migracao-react.md) — plano do módulo (14 telas); esta é a #5
 - [RUNBOOK-logs.md](RUNBOOK-logs.md) — Onda 1; dono do mapa `oi-*` e do caminho de entrada no gate visual
-- [RUNBOOK-empresa.md](RUNBOOK-empresa.md) — a tela #4, destino do botão "Ver computadores"
+- `RUNBOOK-empresa.md` — a tela #4, destino do botão "Ver computadores"
 
 ---
 
