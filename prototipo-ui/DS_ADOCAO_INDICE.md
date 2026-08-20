@@ -3,7 +3,7 @@
 <!-- ds:worklist:start (auto · npm run ds:report -- --write) -->
 ## Status da fila — placar de execução (auto)
 
-> Gerado por `npm run ds:report -- --write` · 2026-08-20 10:01 UTC · **total `ds/*` = 1604** · fila 2/10 ✅.
+> Gerado por `npm run ds:report -- --write` · 2026-08-20 21:04 UTC · **total `ds/*` = 1603** · fila 2/10 ✅.
 > Derivado do `ds/*` real por módulo: **✅ = 0 (concluído)** · **☐ = pendente**. `[CC]` lê isto (Sync now) pra saber o que `[CL]` JÁ executou e o que falta — sem regerar o já-feito.
 
 | # | Módulo (fila) | `ds/*` | Status |
@@ -19,7 +19,7 @@
 | 9 | Financeiro | 465 | ☐ pendente |
 | 10 | Cliente | 27 | ☐ pendente |
 
-**Fora da fila (pendentes · ordem por contagem):** Produto (115) · governance (111) · StockTransfer (45) · StockAdjustment (36) · Ponto (29) · Fiscal (19) · Compras (14) · Home (12) · NfeBrasil (10) · kb (9) · Jana (5) · Modules (2) · ConsultaOs (1) · Nfse (1) · Site (1)
+**Fora da fila (pendentes · ordem por contagem):** Produto (115) · governance (111) · StockTransfer (45) · StockAdjustment (36) · Ponto (29) · Fiscal (19) · Compras (14) · Home (12) · NfeBrasil (10) · kb (9) · Jana (4) · Modules (2) · ConsultaOs (1) · Nfse (1) · Site (1)
 
 **Próximo da fila:** Sells (57)
 <!-- ds:worklist:end -->
