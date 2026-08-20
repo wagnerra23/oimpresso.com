@@ -811,6 +811,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** não escrever **par de barra invertida** em conteúdo de arquivo transportado por heredoc, script ou tool de escrita — em nenhuma linguagem. A forma positiva é remover a barra do texto: `chr(92)` montado em variável (Python), `DIRECTORY_SEPARATOR` em vez de `str_replace` de separador (PHP), ou um placeholder substituído depois (`__BS__`). E a verificação que fecha, porque é barata e determinística: depois de escrever, **conte as barras do arquivo e olhe cada uma** — se aparecer um par onde você queria um par, ok; se aparecer uma solteira onde deveria haver duas, o conteúdo foi corrompido no caminho. Vale igual para conteúdo com `\n`, `\t` e `\u` literais.
 
+### 2026-08-20 — Afirmar "o PR X não toca este arquivo" contra a MINHA PRÓPRIA consulta, feita na mesma sessão
+
+- **O limite (variante também proibida):** claim de **ausência sobre conjunto enumerável** (*"o PR X não toca"*, *"só o Y usa"*, *"nenhum outro consumidor"*) não se escreve de memória — **nem da sua própria memória de ter medido**. Antes de a frase entrar num artefato publicado (PR body, ADR, handoff, comentário), **re-ler a saída da consulta** ou re-rodá-la. O custo é um scroll; o custo do erro é uma afirmação com aparência de recibo. Corolário que generaliza para além do PR: quando você fizer uma varredura ampla cedo e escrever a conclusão tarde, a conclusão cita a **saída**, não a lembrança dela — é a mesma doutrina de "derivado > lembrado" ([ADR 0256](decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md)) aplicada dentro de uma sessão só.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
