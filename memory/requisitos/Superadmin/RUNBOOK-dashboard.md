@@ -110,6 +110,12 @@ O `SuperadminDashboardService` cobre **6 dos 10 blocos** que o F1 pede pra view 
 > não há plano não-mensal), o que torna esta a janela barata para consertar: corrigir agora
 > não move nenhum número existente.
 >
+> **O que esta nota NÃO mediu:** R1 tem uma segunda metade — *"gratuito e avulso entram no
+> **caixa do mês**"*. Aqui só foi verificado o lado da **recorrência** (o KPI MRR desta tela).
+> Se o avulso de fato aparece no caixa do mês, e em qual tela, segue **não verificado** — e
+> hoje a pergunta é abstrata, porque não existe nenhuma fatura avulsa em prod para aparecer
+> em lugar nenhum.
+>
 > Reproduzir (SSH Hostinger, warm-up antes — [`how-trabalhar.md`](../../how-trabalhar.md)):
 > ```sql
 > SELECT business_id, ciclo, COUNT(*) FROM rb_plans WHERE deleted_at IS NULL GROUP BY 1,2;
