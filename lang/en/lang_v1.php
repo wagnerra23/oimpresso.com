@@ -13,6 +13,7 @@ return [
     'edit_sales_commission_agent' => 'Edit sales commission agent',
     'commission_agent_updated_success' => 'Commission agent updated successfully',
     'commission_agent_deleted_success' => 'Commission agent deleted successfully',
+    'commission_agent_has_sales' => 'Cannot delete: this commission agent has :count linked sale(s).',
     'contact_no' => 'Contact No.',
     'commission_agent' => 'Commission Agent',
     'cmmsn_percent' => 'Sales Commission Percentage (%)',

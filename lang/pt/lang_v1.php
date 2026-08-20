@@ -13,6 +13,7 @@ return [
     'edit_sales_commission_agent' => 'Editar agente comercial',
     'commission_agent_updated_success' => 'Agente comercial atualizado com sucesso',
     'commission_agent_deleted_success' => 'Agente Comercial Excluído com Sucesso',
+    'commission_agent_has_sales' => 'Nao e possivel excluir: este comissionado tem :count venda(s) vinculada(s).',
     'contact_no' => 'No. de Contato',
     'commission_agent' => 'Comissionista',
     'cmmsn_percent' => 'Porcentagem da Comissão de Vendas (%)',

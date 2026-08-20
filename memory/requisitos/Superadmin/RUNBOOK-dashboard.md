@@ -42,9 +42,37 @@ tem query** — e renderizar com número inventado seria pior que não renderiza
 | Cadastros recentes (5 linhas) | query direta em `business` | SA-O1 |
 | KPI MRR | ❌ sem query — R1 exige só pacote recorrente com preço > 0 | SA-O1b |
 | Funil trial→pago | ❌ sem query — depende de `subscriptions.trial_end_date` | SA-O1b |
-| Churn 30 d + motivos | ❌ depende da migration `cancel_reason` (decisão [W] 19/08) | SA-O1b |
+| Churn 30 d | ✅ `canceladas` — saídas de 30 d em `rb_subscriptions.canceled_at` | SA-O1b |
+| Motivos de churn | ❌ **a coluna certa é `rb_subscriptions.churn_reason`**, ver nota abaixo | — |
 | Receita por pacote | ❌ sem query | SA-O1b |
 | Fila "Vencendo ou vencido" | 🟡 derivável de `findOverdueApproved()` | SA-O1b |
+
+> **Onde o gráfico de motivos tem que ler — medido em prod 2026-08-19, contra as duas
+> tabelas.** A decisão SA-O0 de [W] pediu `cancel_reason` por migration, e ela foi entregue
+> (`2026_08_19_000002`, aplicada). Mas a medição *posterior* mostra que ela ficou na tabela
+> que nunca churna:
+>
+> | tabela | linhas | cancelados | coluna de motivo | preenchida |
+> |---|---|---|---|---|
+> | `subscriptions` (licença UltimatePOS) | 126 | **0** — 126/126 `approved` | `cancel_reason` | 0 |
+> | `rb_subscriptions` (cobrança real) | 162 | **52** com `canceled_at` | `churn_reason` | 0 de 52 |
+>
+> `subscriptions` **nunca teve um cancelamento** na história do sistema — o ciclo de vida dela
+> não roda (e o mesmo pré-flight achou 113 `approved` vencidas que nada expira). O churn que
+> este dashboard reporta já vem de `rb_subscriptions`, pela mesma fonte do MRR.
+>
+> `rb_subscriptions.churn_reason` **já existe desde 2026-05-16 e tem caminho de escrita
+> completo**: `AssinaturaService::cancelar()` grava, `CancelSubscriptionRequest` exige
+> (`required` + `Rule::in`), e há teste (`D4 — cancelar() é idempotente + grava churn_reason`).
+> Estar 0 de 52 é **história, não defeito**: 50 dos 52 cancelamentos são anteriores a
+> 2026-05-16 — vieram da migração do legado, quando a coluna não existia. (Os outros 2 são
+> posteriores e estão vazios: cancelamento que não passou pelo service. É achado do
+> RecurringBilling, não deste dashboard.)
+>
+> **Consequência prática:** quem for desenhar o gráfico de motivos lê `churn_reason`. Ler
+> `cancel_reason` produziria um gráfico permanentemente vazio com cara de funcionando. O que
+> fazer com as 2 colunas ociosas — manter (custam nada, e licença pode um dia ser cancelada)
+> ou derrubar por migration — é decisão de [W]; não desfaço a SA-O0 por conta própria.
 
 **Dívida encontrada no pré-flight:** `SuperadminController::index()` **não usa** o service —
 refaz a query de `not_subscribed` inline (`Business::leftjoin('subscriptions'...)`) enquanto
