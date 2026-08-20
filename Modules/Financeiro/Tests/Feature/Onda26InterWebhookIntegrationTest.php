@@ -73,7 +73,7 @@ it('worker → CobrancaPaga → listener Financeiro cria Titulo a receber quitad
     ]);
 
     // 3. Worker roda síncrono (event dispatcher real — listener Financeiro reage)
-    (new ProcessarWebhookPixInterJob($log->id, 1))->handle();
+    app()->call([new ProcessarWebhookPixInterJob($log->id, 1), 'handle']);
 
     // 4. Cobranca foi marcada paga
     $cobranca->refresh();
@@ -121,9 +121,9 @@ it('UC-COB-06 · worker NÃO duplica Titulo em re-run (idempotência cross-modul
     ]);
 
     // 1ª execução
-    (new ProcessarWebhookPixInterJob($log->id, 1))->handle();
+    app()->call([new ProcessarWebhookPixInterJob($log->id, 1), 'handle']);
     // 2ª execução (simula retry do queue worker mesma linha)
-    (new ProcessarWebhookPixInterJob($log->id, 1))->handle();
+    app()->call([new ProcessarWebhookPixInterJob($log->id, 1), 'handle']);
 
     // Apenas 1 Titulo criado (listener checa origem_id ANTES de criar)
     $count = Titulo::withoutGlobalScopes()
