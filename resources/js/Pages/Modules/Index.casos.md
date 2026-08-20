@@ -51,7 +51,7 @@ last_run: "2026-08-19"
 | UC-MOD-03 | Visitante sem sessão é barrado nas quatro rotas | must `[sec]` | `ModuleManagementTest` | 🧪 |
 | UC-MOD-04 | Só quem tem `manage_modules` entra — papel de negócio não basta | must `[sec]` | `ModuleManagementTest` | 🧪 |
 | UC-MOD-05 | Ordem das linhas: ativos → área → nome | should | `ModuleManagerServiceTest` | 🧪 |
-| UC-MOD-06 | Chave no JSON sem pasta não vira linha | must | `ModuleManagementTest` | ❌ |
+| UC-MOD-06 | Toda chave do statuses tem pasta, e toda pasta vira linha | must | `ModuleManagementTest` | 🧪 |
 | UC-MOD-07 | Pasta sem chave no JSON aparece como "Não registrado" | must | `ModuleManagerServiceTest` | 🧪 |
 | UC-MOD-11 | Toggle grava o JSON sem corromper as outras chaves | must `[T0]` | `ModuleManagerServiceTest` | 🧪 |
 | UC-MOD-12 | Instalar exige módulo existente e não altera o JSON quando recusa | must | `ModuleManagerServiceTest` | 🧪 |
@@ -131,15 +131,22 @@ last_run: "2026-08-19"
 
 ---
 
-## UC-MOD-06 · [ACHADO] Chave órfã no JSON não vira linha, e ninguém avisa · `must`
+## UC-MOD-06 · Toda chave do statuses tem pasta, e toda pasta vira linha · `must`
 
-- **Aceite:** Dado `modules_statuses.json` com chave sem pasta correspondente em `Modules/` · Quando a
-  tela lista · Então essa chave **não** aparece — a lista é varredura de pastas, não de chaves.
-- **Estado atual (defeito):** são **6** hoje (Accounting, CustomDashboard, Ecommerce, FieldForce, Hms,
-  InboxReport — 38 chaves contra 32 pastas, medido 2026-08-19) e a tela é silenciosa sobre elas.
-- **Regressão que defende:** mostrar módulo sem código produz botão Instalar que só pode falhar.
-- **Teste:** `tests/Feature/Modules/ModuleManagementTest.php`
-- **Status: ❌** — decisão [W] (patch P8): limpar o JSON, ou a tela dizer "no registro, sem código".
+- **Aceite (dois sentidos):** Dado o `modules_statuses.json` · Então **nenhuma** chave é órfã (sem
+  pasta em `Modules/`) · E **toda** pasta aparece como linha na tela — nenhuma some do inventário.
+- **Era ACHADO até 2026-08-19 (P8).** Havia **6 chaves órfãs** — Accounting, CustomDashboard,
+  Ecommerce, FieldForce, Hms, InboxReport — e **5 delas marcadas `true`**: módulo inexistente
+  "habilitado". Ruído de merge que a tela não mostrava e ninguém via.
+- **Removidas.** Verificado antes que a remoção é **inerte** para os 4 consumidores do arquivo: o
+  file activator do nWidart (`config/modules.php:269`) consulta por módulo descoberto no disco; o
+  `LegacyMenuAdapter` pula com `if (!file_exists($path)) continue`; o `ModuleSpecGenerator` busca por
+  nome; e o `ModuleManagerService` lista pastas, não chaves.
+- **Efeito colateral desejável:** se algum desses módulos voltar a existir, ele nasce **Não
+  registrado** em vez de já-ativo — que é o estado honesto para pasta sem decisão registrada.
+- **Teste:** `tests/Feature/Modules/ModuleManagementTest.php` — a asserção inverteu junto: antes
+  exigia que houvesse órfãs (caracterização), agora exige que não haja (invariante).
+- **Status: 🧪**
 
 ---
 
