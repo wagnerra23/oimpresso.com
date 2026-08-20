@@ -52,8 +52,8 @@ related_adrs:
 
 ### US-SUPER-003 — Subscriptions (cobrança recorrente)
 **Como** superadmin, **quero** consultar e ativar subscriptions, incluindo confirmar pagamentos offline, **pra** controlar acesso pago dos clientes.
-**Implementado em:** `Modules/Superadmin/Http/Controllers/SubscriptionController.php` · `Modules/Superadmin/Http/Controllers/SuperadminSubscriptionsController.php` · `Modules/Superadmin/Console/SubscriptionExpiryAlert.php` · verificado@8af585a (2026-07-02)
-- Tela: `subscription/index.blade.php` + `pay.blade.php`
+**Implementado em:** `Modules/Superadmin/Http/Controllers/SubscriptionController.php` · `Modules/Superadmin/Http/Controllers/SuperadminSubscriptionsController.php` · `Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx` · `Modules/Superadmin/Support/RotuloAssinatura.php` · `Modules/Superadmin/Console/SubscriptionExpiryAlert.php` · verificado@58d46213a0 (2026-08-20)
+- Tela: `superadmin/Assinaturas/Index.tsx` (Inertia desde a SA-O4a, 2026-08-20) — a lista é LEITURA; as ações do F1 (status, vigência, cancelar) são a SA-O4b. `subscription/index.blade.php` deixou de ser a tela do superadmin; `subscription/pay.blade.php` é a tela do CLIENTE e não foi tocada
 - Controller: `SubscriptionController`, `SuperadminSubscriptionsController`
 - Aceite: gateways suportados PayPal/Stripe/Razorpay/PesaPal/Paystack/Flutterwave/offline; cron `SubscriptionExpiryAlert` envia `SendSubscriptionExpiryAlert` D-N antes do término
 

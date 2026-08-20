@@ -176,6 +176,14 @@
     "baseline": "it_superadmin_Negocios_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
+    "screen": "superadmin/Assinaturas",
+    "source": "superadmin/Assinaturas",
+    "component": "superadmin/Assinaturas/Index",
+    "route": "/superadmin/superadmin-subscription",
+    "anchor": "Assinaturas",
+    "baseline": "it_superadmin_Assinaturas_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
     "screen": "Cliente/Import",
     "source": "Cliente/Import",
     "component": "Cliente/Import",
