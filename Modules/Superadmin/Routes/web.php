@@ -30,7 +30,15 @@ Route::middleware(['web', 'auth', 'language', 'AdminSidebarMenu', 'superadmin', 
     Route::get('/users/{business_id}', [Modules\Superadmin\Http\Controllers\BusinessController::class, 'usersList']);
     Route::post('/update-password', [Modules\Superadmin\Http\Controllers\BusinessController::class, 'updatePassword']);
 
-    Route::resource('/business', Modules\Superadmin\Http\Controllers\BusinessController::class);
+    // `edit`/`update` FORA de proposito. Nao e escolha de produto — e conserto: as duas
+    // rotas existiam e estavam QUEBRADAS (medido 2026-08-20, pre-flight da SA-O3 no #6011):
+    //   GET  /superadmin/business/{id}/edit -> 500, `view('superadmin::edit')` nunca existiu
+    //   PUT  /superadmin/business/{id}      -> 200 vazio, `update()` tinha corpo vazio
+    // Andaime do gerador do UltimatePOS, exposto atras do middleware `superadmin`. Zero
+    // chamadores no repo (contado, com controle positivo). Editar negocio, se um dia entrar,
+    // nasce com charter e contrato — nao herdando estas.
+    Route::resource('/business', Modules\Superadmin\Http\Controllers\BusinessController::class)
+        ->except(['edit', 'update']);
     Route::get('/business/{id}/destroy', [Modules\Superadmin\Http\Controllers\BusinessController::class, 'destroy']);
 
     Route::resource('/packages', 'Modules\Superadmin\Http\Controllers\PackagesController');

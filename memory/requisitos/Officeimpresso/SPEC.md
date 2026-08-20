@@ -74,7 +74,7 @@ Bridge legacy entre o ERP Delphi histórico **WR Comercial / WR Sistemas (Office
 
 ### US-OI-003 — F2: mapa de paridade Blade↔React
 **Como** revisor, **quero** todo campo do Blade mapeado com severidade, **pra** que "some um campo" seja detectável, não descoberto pelo usuário.
-**Implementado em:** _parcial_ · `memory/requisitos/Officeimpresso/logs-parity.md` — o mapa está completo (54 itens, 21 de severidade `alta`), mas a US só fecha quando os 21 tiverem teste de comportamento: hoje são **10 defendidos e 11 em aberto** (a lista nominal está no fim do mapa). O template é explícito: *"um `-parity.md` sem teste pros itens `alta` é débito, não conclusão"* — fechar os 11 é a US-OI-006.
+**Implementado em:** `memory/requisitos/Officeimpresso/logs-parity.md` — o mapa está completo (54 itens, 21 de severidade `alta`) e os **21 de 21** têm teste de comportamento citando o id do UC (F4, US-OI-006). O template é explícito: *"um `-parity.md` sem teste pros itens `alta` é débito, não conclusão"* — a dívida foi paga.
 **Testado em:** `Modules/Officeimpresso/Tests/Feature/LogsBaselineTest.php`
 **Aceite:**
 - `logs-parity.md` no [template](../_DesignSystem/PARITY-TEMPLATE.md), cobrindo as 10 colunas da tabela, os 4 KPIs, os 5 filtros, os 3 chips de filtro ativo, os 2 empty states e as 2 ações de bloqueio
@@ -98,7 +98,8 @@ Bridge legacy entre o ERP Delphi histórico **WR Comercial / WR Sistemas (Office
 
 ### US-OI-006 — F4: QA — os itens `alta` da paridade viram teste
 **Como** revisor, **quero** que cada item de severidade `alta` quebre um teste se sumir, **pra** que a paridade seja enforcement de comportamento, não papel.
-**Implementado em:** _pendente_
+**Implementado em:** _parcial_ · `Modules/Officeimpresso/Tests/Feature/LogsBaselineTest.php` — os **21 de 21** itens `alta` têm teste citando o UC (32 passed · 123 assertions no CT 100, tenant 98). Falta só o smoke com screenshot 1280/1440 do aceite abaixo, que depende da flag ligada (F5).
+**Testado em:** `Modules/Officeimpresso/Tests/Feature/LogsBaselineTest.php`
 **Aceite:**
 - `blocked_by`: US-OI-004, US-OI-005
 - Cada item `alta` com teste que cita o id do UC; **presença do `-parity.md` não conta**

@@ -4,7 +4,15 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { useForm } from '@inertiajs/react';
-import { useRef, useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react';
+import {
+  useRef,
+  useState,
+  type ChangeEvent,
+  type DragEvent,
+  type FormEvent,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -32,13 +40,52 @@ export default function ClienteImport(props: ClienteImportPageProps) {
     contacts_csv: null,
   });
   const [filename, setFilename] = useState<string>('');
+  const [dragging, setDragging] = useState(false);
+  const [formatoInvalido, setFormatoInvalido] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] ?? null;
+  // O `accept` do <input> NÃO filtra arquivo solto: o drop entrega o File direto, sem
+  // passar pelo seletor. Conferir a extensão aqui é do ARQUIVO, não linha a linha —
+  // a validação row-by-row segue Non-Goal do charter (é o backend que devolve os erros).
+  const EXTENSOES_ACEITAS = /\.(xlsx|xls|csv)$/i;
+
+  const aceitarArquivo = (file: File | null) => {
+    if (!file) return;
+    if (!EXTENSOES_ACEITAS.test(file.name)) {
+      setFormatoInvalido(`"${file.name}" não é XLSX, XLS nem CSV. Baixe o modelo e salve nele.`);
+      return;
+    }
+    setFormatoInvalido('');
     setData('contacts_csv', file);
-    setFilename(file?.name ?? '');
+    setFilename(file.name);
   };
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    aceitarArquivo(e.target.files?.[0] ?? null);
+  };
+
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragging(false);
+    aceitarArquivo(e.dataTransfer.files?.[0] ?? null);
+  };
+
+  // Sem Enter/Espaço o dropzone é inalcançável por teclado: é um <div> com onClick,
+  // que o leitor de tela não anuncia como acionável nem o Tab alcança.
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      fileInputRef.current?.click();
+    }
+  };
+
+  // O label acompanha o ESTADO. `aria-label` tem precedência sobre o conteúdo do elemento,
+  // então um texto fixo faz o leitor de tela anunciar sempre a mesma frase — sem nunca dizer
+  // que já existe arquivo anexado, nem qual. O usuário vidente lê o nome dentro do dropzone;
+  // o de leitor de tela não ouvia nada disso.
+  const dropzoneLabel = filename
+    ? `Planilha anexada: ${filename}. Clique ou tecle Enter para trocar de arquivo.`
+    : 'Escolher a planilha de clientes: clique, arraste o arquivo aqui, ou tecle Enter';
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -138,12 +185,30 @@ export default function ClienteImport(props: ClienteImportPageProps) {
 
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-colors"
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragging(true);
+            }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={handleDrop}
+            onKeyDown={handleKeyDown}
+            role="button"
+            tabIndex={0}
+            aria-label={dropzoneLabel}
+            className={
+              'border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ' +
+              'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ' +
+              (dragging
+                ? 'border-primary bg-primary/10'
+                : 'border-border hover:border-primary/40 hover:bg-primary/5')
+            }
           >
             <Upload size={28} className="mx-auto text-muted-foreground mb-2" />
             <p className="text-sm text-foreground">
               {filename ? (
                 <span className="font-medium">{filename}</span>
+              ) : dragging ? (
+                'Solte o arquivo para anexar'
               ) : (
                 'Clique ou arraste o arquivo aqui'
               )}
@@ -159,6 +224,12 @@ export default function ClienteImport(props: ClienteImportPageProps) {
               className="hidden"
             />
           </div>
+
+          {formatoInvalido && (
+            <p role="alert" className="text-xs text-destructive mt-2">
+              {formatoInvalido}
+            </p>
+          )}
 
           {errors.contacts_csv && (
             <p className="text-xs text-destructive mt-2">{errors.contacts_csv}</p>

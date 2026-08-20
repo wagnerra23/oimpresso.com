@@ -28,15 +28,15 @@
         "by_state": {
           "sem_campo": 112,
           "placeholder": 1,
-          "pendente": 410,
-          "parcial": 115,
-          "anchored_ok": 327,
+          "pendente": 407,
+          "parcial": 116,
+          "anchored_ok": 329,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
         "fields_total": 859,
         "fields_placeholder": 1,
-        "fields_grammar_ok": 795,
+        "fields_grammar_ok": 792,
         "orphan_fields": 6,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
@@ -195,8 +195,8 @@
       "target": 100,
       "source": "scripts/governance/knowledge-drift.mjs --json (BRIEFING.md presente por módulo)",
       "detail": {
-        "with_door": 75,
-        "modules": 75
+        "with_door": 76,
+        "modules": 76
       },
       "stream": "MEM"
     },
@@ -239,9 +239,9 @@
       "target": 0,
       "source": "memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs data-git do doc mais novo do módulo (determinístico — ADR 0291 D-D)",
       "detail": {
-        "portas": 78,
+        "portas": 79,
         "carimbadas": 14,
-        "sem_carimbo": 64,
+        "sem_carimbo": 65,
         "stale": 7,
         "oldest_distilled_at": "2026-07-17"
       },
@@ -255,7 +255,7 @@
       "target": 1,
       "source": "scripts/governance/knowledge-drift.mjs --json .[].hops → mediana (mesma fórmula do relatório humano · ADR 0270 D-5)",
       "detail": {
-        "modules": 75,
+        "modules": 76,
         "hops_worst": 14
       },
       "stream": "MEM"
