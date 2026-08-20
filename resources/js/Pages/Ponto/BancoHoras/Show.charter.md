@@ -2,7 +2,7 @@
 id: resources-js-pages-ponto-banco-horas-show-charter
 page: /ponto/banco-horas/{colaborador}
 component: resources/js/Pages/Ponto/BancoHoras/Show.tsx
-related_prototype: n/a (herda PT-03 Detalhe; segue o Padrão de Tela)
+related_prototype: prototipo-ui/cowork/ponto-telas.jsx
 owner: wagner
 status: draft
 last_validated: "2026-07-11"
