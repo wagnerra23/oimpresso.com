@@ -45,7 +45,8 @@ related_adrs:
 
 ### US-SUPER-002 — Gestão de Packages (planos comerciais)
 **Como** superadmin, **quero** criar e configurar packages (Free/Starter/Pro/etc) com custom_permissions + limites de location/user/product, **pra** definir SKUs comerciais.
-**Implementado em:** `Modules/Superadmin/Http/Controllers/PackagesController.php` · `Modules/Superadmin/Entities/Package.php` · `Modules/Superadmin/Resources/views/packages/index.blade.php` · verificado@8af585a (2026-07-02)
+**Implementado em:** `Modules/Superadmin/Http/Controllers/PackagesController.php` · `Modules/Superadmin/Entities/Package.php` · `Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx` · verificado@58d46213a0 (2026-08-20)
+- Tela: `superadmin/Pacotes/Index.tsx` (Inertia desde a SA-O4c, 2026-08-20) — grid de cards, LEITURA. O FormDrawer novo/editar/duplicar (UC-SA-010/011) é a SA-O4d: escreve `price`, então depende da REGRA MESTRE de `memory/proibicoes.md` e da decisão [W] sobre a assimetria medida no [RUNBOOK-pacotes §5.1](RUNBOOK-pacotes.md) (`store()` interpreta o preço em pt-BR; `update()` grava cru)
 - Tela: `packages/index|create|edit.blade.php`
 - Entity: `Package` com JSON `custom_permissions`
 - Aceite: package marcado `enable_custom_link` aparece em `/pricing` público; campos `min_termination_alert_days` controlam alertas
