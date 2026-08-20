@@ -666,6 +666,7 @@ jobs:
       # Prova contrafactual final: mudança visual nunca pode concluir verde se o
       # classificador, o modo e a execução real do pixel-diff divergirem.
       - name: Canário anti-verde-vazio
+        id: canario
         if: always() && github.event_name == 'pull_request'
         env:
           IMPACT: ${{ steps.impact.outputs.visual_required }}
@@ -800,61 +801,49 @@ jobs:
           path: tests/Browser/Screenshots/
           retention-days: 7
 
+      # A NARRATIVA é escolhida pelo ui-impact.mjs (dono da semântica scope↔uncovered, a mesma
+      # do canário) e NOMEIA o step que reprovou. Antes o corpo saía só de `uncovered_screens`
+      # não-vazio, ignorando o scope — e em `global` isso quase nunca é vazio, então toda falha
+      # virava "Tela sem contrato visual" (medido 2026-08-20, PR #5976 · job 96505067528).
+      - name: Corpo do comentário de falha (narrativa medida, não escolhida)
+        id: corpo-falha
+        if: (failure() || steps.pest-browser.outputs.fail == '1') && github.event_name == 'pull_request'
+        continue-on-error: true
+        env:
+          SCOPE: ${{ steps.impact.outputs.scope }}
+          UNCOVERED: ${{ steps.impact.outputs.uncovered_screens }}
+          GRAY: ${{ steps.pixel-diff.outputs.gray }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PASSOS: >-
+            [{"nome":"Classificar impacto visual do diff","outcome":"${{ steps.impact.outcome }}"},
+             {"nome":"Run Pest Browser tests","outcome":"${{ steps.pest-browser.outcome }}"},
+             {"nome":"Pixel-diff afetadas/núcleo-6 (ENFORCING · double-threshold L7)","outcome":"${{ steps.pixel-diff.outcome }}"},
+             {"nome":"Estados isolados matriz (ENFORCING · 6 telas)","outcome":"${{ steps.matriz-states.outcome }}"},
+             {"nome":"Fluxos visuais Financeiro (ENFORCING · L2.5)","outcome":"${{ steps.financeiro-flows.outcome }}"},
+             {"nome":"Fluxos visuais Compras (ENFORCING · L2.5)","outcome":"${{ steps.compras-flows.outcome }}"},
+             {"nome":"Fluxos visuais Sells/Create (ENFORCING · L2.5)","outcome":"${{ steps.sells-flows.outcome }}"},
+             {"nome":"Canário anti-verde-vazio","outcome":"${{ steps.canario.outcome }}"}]
+        run: |
+          node scripts/governance/ui-impact.mjs --explain-failure \
+            --scope="$SCOPE" --uncovered-screens="${UNCOVERED:-[]}" \
+            --gray-zone="${GRAY:-[]}" --steps="$PASSOS" --run-url="$RUN_URL" \
+            | tee /tmp/visreg-comment.md >> "$GITHUB_STEP_SUMMARY"
+
       - name: Comment on PR if regression detected
         if: (failure() || steps.pest-browser.outputs.fail == '1') && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
-            // 2026-08-11: o corpo era FIXO e descrevia só o caminho pixel-diff — mandava baixar
-            // o artifact `screenshots-diff` e comparar actual×expected. Medido num run real de
-            // falha por UNCOVERED: **zero artifacts** (o Pest Browser nem roda; o job morre no
-            // classificador, antes). O leitor era mandado atrás de um arquivo inexistente.
-            // Segunda vez que este mesmo texto anuncia caminho que não existe — a 1ª foi o
-            // `/mwart-override` sem handler, removido em 2026-06-11 (nota preservada abaixo).
-            // Agora o corpo é ESCOLHIDO pelo modo de falha; quando não dá pra saber, diz que
-            // não sabe em vez de afirmar o modo errado.
-            const uncovered = `${{ steps.impact.outputs.uncovered_screens || '' }}`;
-            const ehUncovered = uncovered && uncovered !== '[]';
-            const cabecalho = ehUncovered
-              ? [
-                  '## 🚧 Tela sem contrato visual (fail-closed)',
-                  '',
-                  `**Não é diff de pixel — não há baseline pra comparar.** Telas afetadas sem entrada em \`tests/Browser/visreg-screens.json\`: \`${uncovered}\`.`,
-                  '',
-                  '### Como resolver',
-                  '1. Rode o **modo update** (`workflow_dispatch` desta workflow) na sua branch — ele gera a baseline no runner canônico (render determinístico).',
-                  '2. Baixe o artifact `pixel-snapshots` e copie **apenas** o `.snap` NOVO da sua tela (o modo update regenera os ~68; sobrescrever os outros muda em silêncio a referência de telas que seu PR não toca).',
-                  '3. **Entrada no manifesto e `.snap` entram no MESMO commit** — meia unidade deixa o classificador inválido e quebra o gate em TODO PR do repo, não só no seu.',
-                  '4. Aprovação visual do [W] (gate F1.5) registrada no PR.',
-                  '',
-                  '_Não existe artifact `screenshots-diff` nesta falha: o Pest Browser não chegou a rodar._',
-                ]
-              : [
-              '## 📸 Visual Regression Detected',
-              '',
-              'Screenshots têm diff > threshold contra baseline no **gate real** (Pest Browser smoke: telas públicas + auth-bridge + a11y axe + conformance). Esse check é **REQUIRED** — o PR não mergeia vermelho.',
-              '',
-              '> ℹ️ O **pixel-diff afetadas/núcleo-6** é **ENFORCING**: diff targeted executa as telas afetadas mapeadas; diff global executa o núcleo-6. Tela sem contrato ou baseline, diff acima de τ_alto (2%) ou zona cinza sem label de aprovação bloqueiam o merge.',
-              '>',
-              '> ℹ️ O **lint L2** (charter `states:` ⇄ manifesto) é **ENFORCING** desde 2026-07-06 (aprovação [W]) — drift charter↔JSON bloqueia o merge. Os **snapshots L2 de estados isolados** são **ENFORCING pra a matriz global inteira** — as 6 telas (Financeiro+Sells+Clientes+Compras+Caixa+Oficina) × estados (onda 3, 2026-07-14) — regressão clara em qualquer estado bloqueia o merge. Não há mais estado advisory na matriz L2. Segue advisory: L5 perf Lighthouse (calendário ADR 0275 §5).',
-              '',
-              '### Como resolver',
-              '1. Baixar artifact `screenshots-diff` deste workflow run',
-              '2. Comparar `actual.png` vs `expected.png` lado-a-lado',
-              '3. Se mudança intencional: **aprovação visual do Wagner (gate F1.5)** registrada no PR, e ATUALIZAR snapshots no mesmo PR:',
-              '   ```bash',
-              '   ./vendor/bin/pest tests/Browser/ --update-snapshots',
-              '   git add tests/Browser/Screenshots/ && git commit',
-              '   ```',
-              '4. Se regressão não-intencional: revisar mudanças de código',
-              '',
-              '(2026-06-11: removida a oferta de `/mwart-override` — nunca houve handler que a processasse; o único caminho real é atualizar snapshots com aprovação do Wagner.)',
-                ];
-            const body = [
-              ...cabecalho,
-              '',
-              '_Ver [ADR 0108](../../memory/decisions/0108-regressao-visual-pest-browser-tier-2.md)._'
-            ].join('\n');
+            const fs = require('fs');
+            // Fail-open com a razão NA CARA: se o gerador do corpo não rodou, o comentário diz
+            // isso — não inventa a causa nem some (a falha do job já está no run).
+            const falhou = '${{ steps.corpo-falha.outcome }}';
+            const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = fs.existsSync('/tmp/visreg-comment.md')
+              ? fs.readFileSync('/tmp/visreg-comment.md', 'utf8')
+              : ['## ❓ Gate visual vermelho — não consegui gerar o diagnóstico', '',
+                 `O step "Corpo do comentário de falha" não produziu saída (${falhou}), então **não sei** qual step reprovou.`,
+                 '', `Abra o run e veja o primeiro step vermelho: ${run}`].join(String.fromCharCode(10));
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,

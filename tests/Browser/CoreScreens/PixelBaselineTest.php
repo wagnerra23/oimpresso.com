@@ -115,11 +115,27 @@ $execution = new ArrayObject([
 afterAll(function () use ($execution, $grayZone) {
     $githubOutput = getenv('GITHUB_OUTPUT');
     if ($githubOutput !== false && $githubOutput !== '') {
+        // `gray` alimenta a narrativa do comentário de falha (ui-impact.mjs --explain-failure):
+        // sem ele o comentário não distingue ZONA CINZA de REGRESSÃO CLARA. JSON numa linha só
+        // (GITHUB_OUTPUT é key=value por linha), escrito ANTES do writeGrayZoneSummary(), que
+        // lança quando a zona cinza bloqueia.
+        $gray = json_encode(
+            array_map(
+                static fn (array $item): array => [
+                    'screen' => $item['screen'],
+                    'ratio' => round((float) $item['ratio'], 6),
+                ],
+                $grayZone->getArrayCopy(),
+            ),
+            JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE,
+        );
+
         $lines = sprintf(
-            "expected=%d\nexecuted=%d\ncompared=%d\n",
+            "expected=%d\nexecuted=%d\ncompared=%d\ngray=%s\n",
             $execution['expected'],
             $execution['executed'],
             $execution['compared'],
+            $gray === false ? '[]' : $gray,
         );
         file_put_contents($githubOutput, $lines, FILE_APPEND | LOCK_EX);
     }
