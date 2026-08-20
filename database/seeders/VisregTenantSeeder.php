@@ -66,6 +66,7 @@ class VisregTenantSeeder extends Seeder
 
         if (DB::table('business')->where('id', 1)->exists()) {
             $this->ensureAdminRole();
+            $this->ensureManageModulesPermission();
             $this->ensureProduct();
 
             return;
@@ -141,6 +142,7 @@ class VisregTenantSeeder extends Seeder
         }
 
         $this->ensureAdminRole();
+        $this->ensureManageModulesPermission();
         $this->ensureProduct();
     }
 
@@ -218,6 +220,50 @@ class VisregTenantSeeder extends Seeder
         if (! $linked) {
             DB::table('model_has_roles')->insert([
                 'role_id' => $roleId,
+                'model_type' => \App\User::class,
+                'model_id' => 1,
+            ]);
+        }
+    }
+    /**
+     * Permissao spatie `manage_modules` (guard web) + vinculo direto com o admin.
+     *
+     * POR QUE NAO BASTA A ROLE `Admin#1`: o `Gate::before` do AuthServiceProvider trata
+     * `backup`, `superadmin` e `manage_modules` como abilities de SUPERADMIN — o atalho
+     * "tem Admin#<biz> => pode tudo" esta no `else` e NAO se aplica a elas. Para essas tres
+     * o Gate so concede por USERNAME (`ADMINISTRATOR_USERNAMES`, ausente no workflow — o
+     * ponto cego que o docblock do topo ja declarava). Sem esta concessao a tela `/modulos`
+     * responde 403 no harness e nao pode ter baseline de pixel.
+     *
+     * POR QUE PERMISSAO E NAO A ENV: setar `ADMINISTRATOR_USERNAMES=visreg_admin` tambem
+     * concederia `superadmin` e `backup`, o que muda o que OUTRAS telas do manifesto
+     * renderizam — e mexeria em baselines que este PR nao toca. A permissao e o corte
+     * estreito: da exatamente a ability da tela onboardada.
+     *
+     * Insert direto (sem o model spatie) pra manter o estilo do `ensureAdminRole` e o
+     * morph `model_type` = App\User (sem morphMap no projeto).
+     */
+    private function ensureManageModulesPermission(): void
+    {
+        $permId = DB::table('permissions')
+            ->where('name', 'manage_modules')->where('guard_name', 'web')->value('id');
+
+        if (! $permId) {
+            $permId = DB::table('permissions')->insertGetId([
+                'name' => 'manage_modules',
+                'guard_name' => 'web',
+            ]);
+        }
+
+        $linked = DB::table('model_has_permissions')
+            ->where('permission_id', $permId)
+            ->where('model_type', \App\User::class)
+            ->where('model_id', 1)
+            ->exists();
+
+        if (! $linked) {
+            DB::table('model_has_permissions')->insert([
+                'permission_id' => $permId,
                 'model_type' => \App\User::class,
                 'model_id' => 1,
             ]);

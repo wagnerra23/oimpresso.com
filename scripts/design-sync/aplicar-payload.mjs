@@ -57,7 +57,65 @@ function fnv1a64(value) {
   return h.toString(16).padStart(16, '0');
 }
 
-const payloads = arquivos.map((arquivo) => ({ arquivo, ...JSON.parse(readFileSync(arquivo, 'utf8')) }));
+/**
+ * Lê um payload com as DUAS guardas que faltavam — medidas em 2026-08-19.
+ *
+ * O painel do protocolo anuncia este caminho como "sem teto get_file". A frase valia pro
+ * conteúdo POR ARQUIVO, mas não pro payload em si: `sync/payload.json` tem ~3,5 MB e o
+ * único transporte que o agente tem pra buscá-lo (`DesignSync.get_file`) corta em 256 KiB
+ * e devolve `"truncated": true`. Sem guarda, o JSON cortado morria num
+ * `SyntaxError: Unterminated string`, que não diz NADA sobre a causa nem sobre o remédio —
+ * e o remédio já existe aqui: o applier aceita vários lotes e faz merge (`payloads.flatMap`).
+ */
+function lerPayload(arquivo) {
+  const bruto = readFileSync(arquivo, 'utf8');
+  let obj;
+  try {
+    obj = JSON.parse(bruto);
+  } catch (e) {
+    console.error(`✗ payload ilegível: ${arquivo}`);
+    console.error(`  ${e && e.message}`);
+    console.error(`  JSON cortado no meio costuma ser TETO DE TRANSPORTE, não payload ruim.`);
+    console.error(`  Este arquivo tem ${bruto.length.toLocaleString('pt-BR')} chars; o DesignSync.get_file`);
+    console.error(`  corta em 256 KiB e sinaliza com "truncated": true no envelope.`);
+    console.error(`  Remédio: sirva o payload em PARTES de até 256 KiB — este applier já junta lotes:`);
+    console.error(`    node scripts/design-sync/aplicar-payload.mjs p1.json p2.json ... --require-complete-shell`);
+    process.exit(2);
+  }
+  // 3o caso: ENVELOPE do `DesignSync.get_file`, nao o payload. Medido 2026-08-20 com o
+  // artefato REAL (259,5 KB): o envelope e JSON VALIDO (so o `content` de dentro esta
+  // cortado) e nao tem `fileCount` — entao escapa das duas guardas acima e cai la embaixo
+  // no generico "payload sem `files`", que foi exatamente a mensagem que mandou uma sessao
+  // concluir errado. E o caso que o agente MAIS encontra: quando o harness persiste a
+  // resposta do get_file em disco, e este o formato do arquivo.
+  //
+  // Detecta, NAO desembrulha: o docblock deste arquivo diz que ele aplica payload SERVIDO,
+  // "nao de get_file". Desembrulhar aqui abriria a rota que o desenho recusa. Quem consome
+  // envelope de proposito e o `cowork-mirror-freshness --export-from`.
+  if (obj && typeof obj === 'object' && typeof obj.content === 'string' && !Array.isArray(obj.files)) {
+    console.error(`✗ isto e um ENVELOPE do DesignSync.get_file, nao um payload: ${arquivo}`);
+    console.error(`  path="${obj.path || '?'}" truncated=${obj.truncated === true}`);
+    if (obj.truncated === true) {
+      console.error(`  O download veio INCOMPLETO — o get_file corta em 256 KiB e o payload tem ~3,5 MB.`);
+    }
+    console.error(`  Este applier recebe o payload SERVIDO, nao a resposta do get_file.`);
+    console.error(`  Remedio: sirva o payload em PARTES de ate 256 KiB — este applier ja junta lotes:`);
+    console.error(`    node scripts/design-sync/aplicar-payload.mjs p1.json p2.json ... --require-complete-shell`);
+    process.exit(2);
+  }
+
+  const declarado = Number(obj && obj.fileCount);
+  const real = Array.isArray(obj && obj.files) ? obj.files.length : 0;
+  if (Number.isFinite(declarado) && declarado !== real) {
+    console.error(`✗ payload incompleto: ${arquivo}`);
+    console.error(`  declara fileCount=${declarado} mas traz ${real} arquivo(s) — faltam ${declarado - real}.`);
+    console.error(`  Aplicar assim escreveria um espelho pela metade SEM avisar, que é pior que não aplicar.`);
+    process.exit(2);
+  }
+  return obj;
+}
+
+const payloads = arquivos.map((arquivo) => ({ arquivo, ...lerPayload(arquivo) }));
 const files = payloads.flatMap((p) => p.files || []);
 if (!Array.isArray(files) || !files.length) { console.error('✗ payload sem `files`'); process.exit(2); }
 

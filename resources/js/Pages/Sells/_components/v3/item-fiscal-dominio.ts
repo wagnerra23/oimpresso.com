@@ -222,3 +222,14 @@ export type AcaoDaLinha = keyof typeof ABA_POR_ACAO;
 export function abaDaAcao(acao: AcaoDaLinha): Aba {
   return ABA_POR_ACAO[acao];
 }
+
+/* Como o preço da linha foi formado. Vem da âncora
+   (`sells-item-detail.jsx`, select "Tipo de preço") e mora no domínio porque é
+   dado do item, não da tela: a mesma lista serve o drawer e qualquer outro
+   consumidor que precise explicar de onde saiu o unitário. */
+export const TIPOS_PRECO = ['Tabela do grupo', 'Manual', 'Por m²', 'Por milheiro'];
+
+/* Unidades de medida que o item pode assumir. `m²` é o caso que faz a área ser
+   calculada (ver `areaUnitaria` em `calculo-item.ts`); as demais faturam pela
+   quantidade digitada. */
+export const UNIDADES = ['un', 'm²', 'm', 'kg', 'cx', 'pç', 'milheiro'];

@@ -1,0 +1,132 @@
+<?php
+
+declare(strict_types=1);
+
+// Tests\TestCase já é aplicado globalmente em tests/Pest.php (uses(TestCase::class)->in('Feature')). NÃO redeclarar aqui — Pest 4 lança TestCaseAlreadyInUse.
+
+/**
+ * Tier 0 multi-tenant (ADR 0093) — /roles/{id} não alcança papel de outro negócio.
+ *
+ * O QUE ESTAVA ERRADO (medido no main em 2026-08-19): RoleController::update() carregava o papel
+ * com `Role::findOrFail($id)`, sem filtrar business_id. O Role é o Spatie puro
+ * (config/permission.php:27), que não tem global scope de tenant, e nenhum provider registra um.
+ * Dos 7 acessos a Role no controller, 6 filtravam (index/store/edit/destroy) — só o update() não.
+ *
+ * O caso NEGATIVO sozinho não bastaria: um filtro errado demais (que bloqueasse tudo) também o
+ * faria passar. Por isso o controle POSITIVO — papel do próprio negócio continua editável — está
+ * aqui e é obrigatório. Sem ele, o teste provaria "ninguém edita nada" e chamaria isso de sucesso.
+ *
+ * Roda na lane acessos-pest.yml, com MySQL real e biz=1 + biz=2 semeados. Em sqlite pularia, e
+ * skip sai exit 0 — verde por não-execução é o vetor da LC-13.
+ */
+
+use App\User;
+use Spatie\Permission\Models\Role;
+
+/** Papel do negócio informado. O nome carrega o sufixo '#<business_id>', convenção do UltimatePOS. */
+function papelDoNegocio(string $nome, int $businessId): Role
+{
+    return Role::create([
+        'name' => $nome.'#'.$businessId,
+        'business_id' => $businessId,
+        'guard_name' => 'web',
+    ]);
+}
+
+/** Usuário do negócio com as permissões pedidas, via papel próprio. */
+function usuarioComPermissoes(array $permissoes, int $businessId): User
+{
+    $user = User::factory()->create(['business_id' => $businessId]);
+
+    $papel = papelDoNegocio('AutoTeste'.uniqid(), $businessId);
+    foreach ($permissoes as $p) {
+        \Spatie\Permission\Models\Permission::findOrCreate($p, 'web');
+    }
+    $papel->syncPermissions($permissoes);
+    $user->assignRole($papel);
+
+    // O Spatie CACHEIA o mapa de permissões. Sem limpar, auth()->user()->can() pode responder
+    // com o retrato anterior e o controller aborta 403 — e aí o caso NEGATIVO passaria pelo
+    // motivo errado (o papel alheio fica intacto porque a requisição nem chegou ao update()).
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+    // Instância FRESCA: a que passou por assignRole() carrega a relação `roles` em memória, e o
+    // actingAs() usaria esse retrato. Buscar de novo elimina essa variável do diagnóstico.
+    return User::findOrFail($user->id);
+}
+
+it('NEGATIVO: papel de outro negócio não é renomeado pelo update', function () {
+    $alheio = papelDoNegocio('DoOutroNegocio'.uniqid(), 2);
+    $nomeOriginal = $alheio->name;
+
+    $invasor = usuarioComPermissoes(['roles.update'], 1);
+
+    // SANIDADE — o run anterior devolveu 403 nos dois casos, o que significa que a requisição
+    // nem chegava ao update(). Este expect separa as duas causas possíveis numa única rodada:
+    // se falhar AQUI, o setup de permissão está errado; se passar aqui e o HTTP ainda der 403,
+    // o bloqueio é do middleware/contexto de request, não do can().
+    expect($invasor->can('roles.update'))->toBeTrue();
+
+    $this->actingAs($invasor);
+    session(['user.business_id' => 1]);
+
+    // 302, não 404 — e a razão importa: o findOrFail filtrado POR business_id lança
+    // ModelNotFoundException, mas o update() envolve tudo num catch (\Exception) que a engole,
+    // loga como emergency e devolve o redirect genérico. O bloqueio acontece; o status só não
+    // conta isso. Não "consertei" o catch: é herança do UltimatePOS e mudaria o comportamento de
+    // toda falha da tela, o que está fora do escopo de um fix de isolamento.
+    //
+    // O que separa "foi barrado" de "não chegou", então, é o PAR com o caso positivo: ambos
+    // usam o mesmo helper e o mesmo status (302), e só o próprio negócio tem o nome alterado.
+    // O expect($user->can(...)) acima fecha a terceira possibilidade (403 por permissão).
+    $this->put('/roles/'.$alheio->id, [
+        'name' => 'Invadido',
+        'permissions' => [],
+    ])->assertStatus(302);
+
+    $alheio->refresh();
+    expect($alheio->name)->toBe($nomeOriginal);
+    expect($alheio->business_id)->toBe(2);
+});
+
+it('POSITIVO: papel do próprio negócio continua editável (o filtro não fechou o caminho feliz)', function () {
+    $proprio = papelDoNegocio('Balcao'.uniqid(), 1);
+
+    $dono = usuarioComPermissoes(['roles.update'], 1);
+
+    expect($dono->can('roles.update'))->toBeTrue();   // mesma sanidade do caso acima
+
+    $this->actingAs($dono);
+    session(['user.business_id' => 1]);
+
+    $novoNome = 'BalcaoRenomeado'.uniqid();
+    // 302: o update() bem-sucedido redireciona para /roles. Se vier 403, o problema é permissão
+    // (e não o filtro); se vier 404, o filtro pegou demais. O status diz QUAL dos dois.
+    $this->put('/roles/'.$proprio->id, [
+        'name' => $novoNome,
+        'permissions' => [],
+    ])->assertStatus(302);
+
+    $proprio->refresh();
+    expect($proprio->name)->toBe($novoNome.'#1');
+});
+
+it('NEGATIVO: papel de outro negócio não é excluído pelo destroy', function () {
+    $alheio = papelDoNegocio('NaoApagar'.uniqid(), 2);
+
+    $invasor = usuarioComPermissoes(['roles.delete'], 1);
+
+    $this->actingAs($invasor);
+    session(['user.business_id' => 1]);
+
+    // X-Requested-With: o destroy() do UltimatePOS embrulha o corpo INTEIRO em
+    // `if (request()->ajax())`, e ajax() testa ESTE header. O deleteJson() do Pest manda so
+    // `Accept: application/json` — sem ele o metodo cai no fim, devolve null, e a resposta e
+    // 200 VAZIA sem executar nada. Este caso estava passando pelo MOTIVO ERRADO: "o papel
+    // continuou la" e verdade quando o controller nem roda.
+    $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
+        ->deleteJson('/roles/'.$alheio->id)
+        ->assertOk();
+
+    expect(Role::find($alheio->id))->not->toBeNull();
+});

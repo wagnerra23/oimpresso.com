@@ -164,9 +164,27 @@ export function veredictoFinal(nStale, cobertura = null) {
 /** Paths que existem no VIVO e não têm contraparte no espelho (puro, testável).
  *  `livePaths`: lista de paths do projeto vivo (DesignSync.list_files).
  *  `manifest`: saída de buildManifest (cada item tem `.cowork`).
- *  Só considera extensões que o espelho versiona — o vivo tem .md/.png/_arquivo que
- *  não são protótipo e acusá-los seria ruído (falso-positivo por construção). */
-export function liveOnly(livePaths, manifest, { exts = ['.jsx', '.html', '.css', '.js'] } = {}) {
+ *
+ *  `.md` ENTRA (2026-08-20). A redação anterior dizia que o vivo "tem .md/.png que não são
+ *  protótipo e acusá-los seria ruído". MEDIDO contra o projeto vivo (`list_files` no
+ *  COWORK_PROJECT_ID do painel): 1589 paths, 229 `.md`, dos quais **174 vivos** fora de
+ *  `_arquivo/` — e ZERO no espelho. O que há neles derruba a premissa:
+ *
+ *    cowork-inbox/SUPERADMIN-F1-2026-08-18.md   o F1 da onda que o Code implementou
+ *    cowork-inbox/{MODULOS,NOTIFICACOES,ACESSOS,CMS}-F1-*.md   F1 das outras ondas
+ *    prototipo-ui-patch/PROMPT_PARA_CODE_*.md   30+ arquivos, literalmente prompt pro Code
+ *    cowork-inbox/**​/Index.{charter,casos}.md   charter e casos escritos no lado do design
+ *    prototipo-ui-patch/LICOES_F3_FINANCEIRO_REJEITADO.md   leitura que o CLAUDE.md exige
+ *
+ *  Ou seja: o `.md` do Cowork carrega COMO CONSTRUIR A TELA. Ficar fora do detector não o
+ *  tornava ruído — tornava invisível, que é exatamente o ponto cego que esta função nasceu
+ *  pra fechar (incidente `jana-merge.jsx`, 2026-08-11). [W] 2026-08-20: "lá tem informações
+ *  de como construir as telas. precisa ser liberado".
+ *
+ *  `.png` segue FORA: imagem não é fonte de construção e o `block-ancora-no-olho` já trata
+ *  o eixo dela. E os filtros de `_arquivo/` (morto declarado upstream) e `prototipo-ui/`
+ *  (cópia do próprio espelho) continuam — são de PROVENIÊNCIA, não de extensão. */
+export function liveOnly(livePaths, manifest, { exts = ['.jsx', '.html', '.css', '.js', '.md'] } = {}) {
   const noEspelho = new Set(manifest.map((f) => f.cowork));
   return livePaths
     .filter((p) => exts.some((e) => p.toLowerCase().endsWith(e)))

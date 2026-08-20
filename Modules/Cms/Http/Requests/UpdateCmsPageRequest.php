@@ -34,7 +34,7 @@ class UpdateCmsPageRequest extends FormRequest
             'meta_description' => ['nullable', 'string', 'max:500'],
             'tags'             => ['nullable', 'string', 'max:500'],
             'priority'         => ['nullable', 'integer', 'min:0'],
-            'type'             => ['nullable', 'string', 'in:page,post,banner'],
+            'type'             => ['nullable', 'string', 'in:page,blog,testimonial'],
             'feature_image'    => ['nullable', 'file', 'image', 'max:5120'],
             'is_enabled'       => ['nullable'],
         ];
@@ -47,7 +47,7 @@ class UpdateCmsPageRequest extends FormRequest
     {
         return [
             'title.required'      => 'O título da página é obrigatório.',
-            'type.in'             => 'Tipo inválido. Use page, post ou banner.',
+            'type.in'             => 'Tipo inválido. Use página, blog ou depoimento.',
             'feature_image.image' => 'A imagem em destaque deve ser um arquivo de imagem válido.',
             'feature_image.max'   => 'A imagem em destaque não pode ultrapassar 5MB.',
         ];

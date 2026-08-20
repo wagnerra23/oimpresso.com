@@ -170,3 +170,88 @@ it('findOverdueApproved() retorna apenas approved com end_date < now', function 
 
     $overdue->forceDelete();
 });
+
+// ── SA-O1b · o motivo do cancelamento passa a ser PERSISTIDO ──────────────────
+//
+// Até 2026-08-19 o `$reason` era recebido e descartado: virava só `reason_len` num
+// atributo de span. O gráfico de motivos de churn do F1 não tinha de onde sair.
+
+it('cancel() grava a categoria quando o motivo bate com a lista', function () {
+    if (! Schema::hasColumn('subscriptions', 'cancel_reason')) {
+        $this->markTestSkipped('migration 2026_08_19_000002 não rodou neste ambiente.');
+    }
+
+    $sub = Subscription::create([
+        'business_id' => 1,
+        'package_id' => 1,
+        'package_price' => 0,
+        'status' => 'approved',
+        'start_date' => now(),
+        'end_date' => now()->addMonth(),
+        'package_details' => json_encode(['interval' => 'months', 'interval_count' => 1]),
+        'created_id' => 1,
+    ]);
+
+    expect((new SubscriptionLifecycleService())->cancel($sub, 'preco'))->toBeTrue();
+
+    $sub->refresh();
+    expect($sub->status)->toBe('cancelled')
+        ->and($sub->cancel_reason)->toBe('preco');
+
+    $sub->forceDelete();
+});
+
+it('cancel() com texto livre vira `outro` e PRESERVA o que foi escrito', function () {
+    if (! Schema::hasColumn('subscriptions', 'cancel_reason')) {
+        $this->markTestSkipped('migration 2026_08_19_000002 não rodou neste ambiente.');
+    }
+
+    $sub = Subscription::create([
+        'business_id' => 1,
+        'package_id' => 1,
+        'package_price' => 0,
+        'status' => 'approved',
+        'start_date' => now(),
+        'end_date' => now()->addMonth(),
+        'package_details' => json_encode(['interval' => 'months', 'interval_count' => 1]),
+        'created_id' => 1,
+    ]);
+
+    $escrito = 'mudou de cidade e fechou a filial';
+    expect((new SubscriptionLifecycleService())->cancel($sub, $escrito))->toBeTrue();
+
+    $sub->refresh();
+    // Categoria vira `outro` — mas o texto NÃO se perde na tradução, que era o defeito antigo.
+    expect($sub->cancel_reason)->toBe('outro')
+        ->and($sub->cancel_note)->toBe($escrito);
+
+    $sub->forceDelete();
+});
+
+it('cancel() SEM motivo deixa a categoria nula, não carimba `outro`', function () {
+    if (! Schema::hasColumn('subscriptions', 'cancel_reason')) {
+        $this->markTestSkipped('migration 2026_08_19_000002 não rodou neste ambiente.');
+    }
+
+    $sub = Subscription::create([
+        'business_id' => 1,
+        'package_id' => 1,
+        'package_price' => 0,
+        'status' => 'approved',
+        'start_date' => now(),
+        'end_date' => now()->addMonth(),
+        'package_details' => json_encode(['interval' => 'months', 'interval_count' => 1]),
+        'created_id' => 1,
+    ]);
+
+    expect((new SubscriptionLifecycleService())->cancel($sub))->toBeTrue();
+
+    $sub->refresh();
+    // Regra R10 do F1: saída sem motivo declarado fica FORA do gráfico e é dita em texto.
+    // Carimbar `outro` inventaria um dado que ninguém informou.
+    expect($sub->status)->toBe('cancelled')
+        ->and($sub->cancel_reason)->toBeNull()
+        ->and($sub->cancel_note)->toBeNull();
+
+    $sub->forceDelete();
+});
