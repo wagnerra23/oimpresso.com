@@ -94,14 +94,55 @@ curl -sv https://oimpresso.com/superadmin/usuarios 2>&1 | grep '^< HTTP'
 
 ## 6. O que NÃO entrou nesta onda
 
-- **Drawer de detalhe (PT-02)** — SA-O2b. Clicar na linha não faz nada de propósito: melhor
-  inerte do que abrir drawer vazio.
-- **Seleção múltipla + BulkBar** — depende do drawer e das ações da SA-O3.
-- **Uso contra o teto do pacote** (`Progress`) — precisa contar usuários/locais/produtos por
-  negócio; é query nova e entra com o drawer.
+- ~~**Drawer de detalhe (PT-02)**~~ e ~~**uso contra o teto do pacote**~~ — **entregues na
+  SA-O2b** ([#5982](https://github.com/wagnerra23/oimpresso.com/pull/5982), 2026-08-19). O
+  drawer é estado da lista (`?negocio=<id>`, partial reload), a linha é clicável e `esc`
+  fecha. Teto `0` = ilimitado (confirmado por [W]) e não desenha barra.
+- **Seleção múltipla + BulkBar** — depende das ações da SA-O3 (ver §7).
 - **Ordenação por coluna** — hoje é `business.id` desc (mais recentes primeiro).
 
-## 7. Refs
+## 7. Pré-flight da SA-O3 (ações sobre o negócio) — **a onda não é o que parecia**
+
+> F1 do MWART ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)):
+> medido em 2026-08-20 contra `origin/main`, antes de tocar qualquer `.tsx`.
+
+O handoff descrevia a SA-O3 como *"create/edit/deactivate"*. A medição mostra que **a metade
+`edit` não existe pra migrar** — é andaime quebrado do gerador do UltimatePOS, exposto como
+rota viva atrás do middleware `superadmin`:
+
+| rota (do `Route::resource('/business')`) | código | comportamento REAL |
+|---|---|---|
+| `GET /superadmin/business/{id}/edit` | `edit()` → `view('superadmin::edit')` | **500** — `Modules/Superadmin/Resources/views/edit.blade.php` **não existe** |
+| `PUT/PATCH /superadmin/business/{id}` | `update(Request $request)` | **corpo vazio** — responde e não faz nada |
+
+Recibo da ausência (claim negativa precisa do inventário, não do olho): `git ls-tree -r
+origin/main --name-only Modules/Superadmin/` traz **4** `edit.blade.php`, todos em subpasta
+(`packages/`, `pages/`, `superadmin_settings/`, `superadmin_subscription/`). Nenhum resolve
+`superadmin::edit`, que aponta pra raiz de `Resources/views/`.
+
+**Consequência pro escopo:** a SA-O3 é três coisas distintas, não uma.
+
+1. **`create`/`store` — migração de verdade.** `create.blade.php` existe e `store()` tem ~90
+   linhas com `StoreBusinessRequest`. É o único pedaço que é F3 clássico.
+2. **`edit`/`update` — decisão [W], não migração.** Ou se implementa a edição (feature
+   nova, precisa de charter e contrato) ou se **removem as duas rotas** do `Route::resource`
+   via `->except(['edit','update'])`. Migrar não é opção: não há comportamento a preservar.
+3. **`destroy`/`toggleActive` — migração com uma pergunta aberta.** Ambas estão registradas
+   como **`GET`** (`/business/{id}/destroy` e `/{business_id}/toggle-active/{is_active}`).
+   Ação destrutiva por GET é disparável por link, prefetch de browser e crawler autenticado.
+
+   **Medido (2026-08-20):** `toggle-active` aparece em **2 lugares no repo inteiro** — a
+   definição da rota e o método do controller. `business/{id}/destroy` idem. **Zero
+   chamadores** em Blade, JS ou template. Verificado com controle positivo (o mesmo comando,
+   com um padrão que eu sabia existir, retornou os 2 hits esperados — §5 proibicoes
+   2026-08-01: vazio pode ser comando que falhou).
+
+   Ou seja, trocar o verbo pra `POST`/`DELETE` **não quebra chamador nenhum hoje**. O que
+   sobra é o risco de link externo/favorito, que o repo não enxerga.
+
+**Nada disso foi corrigido nesta passagem** — é pré-flight, e o item 2 é soberania [W].
+
+## 8. Refs
 
 - Protótipo: [`prototipo-ui/cowork/superadmin-page.jsx`](../../../prototipo-ui/cowork/superadmin-page.jsx) `ViewNegocios()`
 - Charter/casos: ao lado do `.tsx`
