@@ -2,24 +2,24 @@
 ---
 status: parcial
 cycle: CYCLE-08
-window: "2026-05-31..2026-08-17"
-generated: "2026-08-17"
+window: "2026-05-31..2026-08-20"
+generated: "2026-08-20"
 ---
 
 # Shipped log (PARCIAL) · CYCLE-08
 
 > ⚠️ **PARCIAL** — janela ainda aberta. Regenerar ao fechar o cycle.
-> **Rótulo honesto:** lista o que foi **mergeado em `main`** em `2026-05-31..2026-08-17` (BRT). Merge ≠ deploy ≠ funciona em produção.
+> **Rótulo honesto:** lista o que foi **mergeado em `main`** em `2026-05-31..2026-08-20` (BRT). Merge ≠ deploy ≠ funciona em produção.
 > Fonte: REST por sub-janela de dia (sem teto da Search API) + API `/commits` pra push-direto + revert reconciliado. **Não** depende de `Refs: US-XXX`.
 > 🚀 = no ar (mergeado ≤ deploy de produção) · ⏳ = mergeado, aguardando deploy (G8, via /api/mcp/version, por data). Limite: área = scope do título (G5 paths-por-PR fora por custo).
 
 ## Contagem
 
-- **3597 PRs** mergeados em `main` · 1746 de produto · 1851 de manutenção (docs/chore/test/ci/build)
+- **3718 PRs** mergeados em `main` · 1815 de produto · 1903 de manutenção (docs/chore/test/ci/build)
 - **35 entregas push-direto** (commits sem objeto-PR — invisíveis a query de PR)
 - **2 revert reconciliado** (par riscado — entrega líquida zero)
-- **402 tocam Design System**
-- 🚀 **Deploy de produção:** `d47a21e14` (2026-08-17T02:17:25+01:00) · **3597** no ar · **0** mergeados **aguardando deploy**
+- **413 tocam Design System**
+- 🚀 **Deploy de produção:** `c01ee7615` (2026-08-19T22:32:42-03:00) · **3718** no ar · **0** mergeados **aguardando deploy**
 
 ## Reconciliação — merge ≠ entrega
 
@@ -68,7 +68,7 @@ generated: "2026-08-17"
 
 ## Por área (PRs mergeados)
 
-### governance — 473 (+546 manutenção)
+### governance — 478 (+555 manutenção)
 - fix: guard automático de base STALE vs origin/main + PROTOCOL §10.4 Passo 0 (#2033) 🚀
 - feat: G4 retorno automático §10.2 — design_return_skipped + workflow pós-merge (#2064) 🚀
 - feat: governanca:scorecard — placar [CC]×Jana mecanizado (graduação de lições) (#2151) 🚀
@@ -542,8 +542,13 @@ generated: "2026-08-17"
 - fix: ciclo da documentação para de mentir em clone raso + fica navegável (#5826) 🚀
 - fix: inventário contava required de UMA fonte só (44 → 45) (#5838) 🚀
 - fix: o dead man's switch dos hooks estava cego em 3 frentes (#5846) 🚀
+- fix: S2 acusava prosa (5/5 FP) + corpus LC-13 + armar --check-assertions (#5824) 🚀
+- fix: floor noturno publica o CONJUNTO, não só a contagem [C] (#5856) 🚀
+- feat: eixo risco da família `scripts` — 3 critérios testados, 2 rejeitados por FP medido (#5858) 🚀
+- feat: flip do espelho a REQUIRED + handoff da sessão [C] (#5860) 🚀
+- fix: o dead-man's-switch dos hooks lia 28% do corpus — 845 dos 1173 .jsonl eram de subagente [C] (#5885) 🚀
 
-### jana — 158 (+44 manutenção)
+### jana — 175 (+54 manutenção)
 - feat: health-check de charter (advisory) no jana:health-check (#2055) 🚀
 - feat: tela Jana Pro paywall (/ia/pro) — F3 do design aprovado (#2069) 🚀
 - feat: health-check alerta recall backend down (resiliência Meilisearch) + Pest (#2070) 🚀
@@ -702,8 +707,25 @@ generated: "2026-08-17"
 - fix: conserta os 3 defeitos da âncora do /ia — o #5719 sinalizou, este conserta [C] (#5738) 🚀
 - fix: restaura chave-oráculo do gabarito redigida pelo filter-repo [C] (#5797) 🚀
 - fix: congela o relógio no BriefDiarioAgentTest — falhava 1h por dia [C] (#5823) 🚀
+- fix: pill de categoria era claro-sobre-claro no escuro — nas CINCO, não numa (#5865) 🚀
+- fix: o Painel pintava R$ 0 como se fosse resultado enquanto a prop deferida não chegava [C] (#5862) 🚀
+- feat: os 8 anti-hooks do Chat viram Pest GUARD — e os 2 últimos acusam [C] (#5874) 🚀
+- feat: o botão "Configurar" era promessa — agora abre drawer, e ele é menor que o protótipo [C] (#5878) · `DS` 🚀
+- feat: 4 das 7 divergências do Painel fecham — e 3 do briefing não procediam [C] (#5881) 🚀
+- feat: a meta abre na própria tela — e o doc que media isso errava em 7 linhas [C] (#5882) 🚀
+- feat: o backend do HITL das ações do Painel — prévia do servidor + aprovação auditada [C] (#5889) 🚀
+- feat: o CTA das ações do Painel deixa de ser decorativo — abre o modal HITL [C] (#5895) 🚀
+- fix: o casos.md do Chat listava como AUSENTE o que existia há 10 dias — errata + UC-11 [C] (#5898) · `DS` 🚀
+- fix: o charter do Chat nunca declarou a âncora — `ancora.mjs` dizia "registre o protótipo" [C] (#5899) 🚀
+- fix: o header da conversa e o pill ativo estavam sem estilo — 2 tokens que o port largou [C] (#5897) 🚀
+- feat: o card da conversa não mostrava preview porque o PAYLOAD não tinha o dado [C] (#5901) 🚀
+- fix: o teste de preview media o gate, não o payload — lane Jana · Pest vermelha no main (#5912) 🚀
+- fix: onda 2 — empresa e biz= voltam ao header do Chat e da Memória [C] (#5919) 🚀
+- fix: onda 5 — origem do número, escopo e a projeção que ninguém lia [C] (#5923) 🚀
+- fix: onda 4 — Configurar no header da Conversa e da Memória [C] (#5922) 🚀
+- fix: onda 1 — Pro entra no PageHeader canon, e o slot que faltava pra isso [C] (#5918) · `DS` 🚀
 
-### financeiro — 114 (+37 manutenção)
+### financeiro — 116 (+40 manutenção)
 - fix: agingBucket usa diffInDays absoluto (Carbon 3 signed) (#2050) 🚀
 - feat: Fase 1 ADR 0236 — conciliação lê extrato API (+ dedupe OFX) (#2060) 🚀
 - feat: Fase 2 ADR 0236 — backfill OFX→extrato canônico (código, sem exec prod) (#2068) 🚀
@@ -818,8 +840,63 @@ generated: "2026-08-17"
 - fix: Onda7bTroubleshootPresentTest sai da quarentena — mesmo molde do #5214 (#5216) 🚀
 - fix: bridge expense quebrava com transactions.deleted_at inexistente [C] (#5319) 🚀
 - fix: botao primary renderizava sem estilo em 6 telas [C] (#5436) 🚀
+- refactor: remove o dead code do render órfão Boletos/Index [C] (#5871) 🚀
+- fix: tira a prosa de dentro do path da âncora em 6 charters [W+C] (#5930) 🚀
 
-### ds — 48 (+12 manutenção)
+### sells — 51 (+18 manutenção)
+- feat: navegação por teclado no dropdown de produto + 1ª infra de teste de componente (#2029) 🚀
+- feat: endereço de entrega 1ª classe consome contact_addresses (US-CRM-078 PR2) (#2104) 🚀 — ⚠️ REVERTIDO por #2107 (líquido 0)
+- feat: CTA "Enviar pra faturamento" source-agnostic (gap balcão · Passo-0 Dani) (#2146) 🚀
+- feat: adiciona botão de excluir no modal de detalhes da venda (#2167) 🚀
+- feat: botão de excluir venda (tela React + fallback blade) (#2168) 🚀
+- feat: botão de excluir venda na tela React (Sells/Show) (#2180) 🚀
+- feat: botão "Excluir venda" no Sells/Show + paridade de permissão (#2175) 🚀
+- fix: data da venda automática (hoje) — venda sem data sumia da consulta (#2208) 🚀
+- fix: parsear transaction_date d/m/Y do Inertia (venda sumia da consulta) (#2213) 🚀
+- fix: avisar quando a venda é bloqueada (estoque) em vez de falhar silencioso (#2222) 🚀
+- feat: confirmar Cancelar quando há venda montada (não perde o carrinho) (#2236) 🚀
+- fix: venda bloqueada fica na tela (não perde o carrinho) (#2230) 🚀
+- feat: veículo na venda direta de oficina — seletor + cadastro rápido + placa na consulta (ADR 0251) (#2276) 🚀
+- fix: valor inflado ×100k — num_uf strippava ponto decimal (incidente prod ROTA LIVRE) (#2279) 🚀
+- feat: enviar venda pra oficina + breadcrumb "onde a venda está" (#2299) 🚀
+- refactor: breadcrumb oficina read-only + remove botão "Enviar para a oficina" (#2309) 🚀
+- design: residual chrome azul 220 → roxo 295 — finaliza Trilho A (modelo único de identidade) (#2425) 🚀
+- fix: exibe desconto da venda no drawer (Resumo de valores) (#2932) · `DS` 🚀
+- fix: Resumo de valores usa <Inline> — destrava Layout primitives ratchet em main (#2933) 🚀
+- fix: tamanho selecionado no popover não era adicionado à venda (#2962) 🚀
+- fix: total de itens no card de produtos + desconto antes do pagamento (#2965) 🚀
+- feat: link "Caixa do dia" no dropdown Visões (redo #3231, gates corrigidos) (#3234) 🚀
+- refactor: pílulas SLA do Vendas → escala canônica --sla-* (ADR 0310) (#3363) 🚀
+- feat: restaura menu "Ações" por linha na lista + Devolução (perdido no #1032) [CC] (#3494) 🚀
+- feat: US-SELL-054..057 — gaps novos da CAPTERRA-FICHA (Onda 1.1) (#3702) 🚀
+- fix: restaura indicador de devolução na lista (setinha de retorno) [CC] (#3734) 🚀
+- fix: preserva ordem de bipagem no recibo/romaneio da venda (#4768) 🚀
+- fix: liga os 3 testes de Sells que existiam e não rodavam + mata o path fantasma [CC] (#4921) 🚀
+- feat: tela Venda V3 paralela em /sells/create-v3 [L+C] (#5356) 🚀
+- feat: porta o handoff de design na tela de venda V3 [L+C] (#5514) 🚀
+- feat: onda 1 do preview V3 — lançamento do item por modal [L+C] (#5529) 🚀
+- feat: fonte de design versionada + onda 2 (entrega e frete · CU-SELL-11) do preview v3 [C] (#5560) 🚀
+- feat: onda 3 do preview v3 — parcelas com rateio provado (CU-SELL-09) [C] (#5561) 🚀
+- feat: onda 4 do preview v3 — detalhe do item, 7 abas e coerência fiscal [C] (#5562) 🚀
+- feat: onda 5 do preview v3 — modelo de comissão de ERP [C] (#5563) 🚀
+- feat: onda 6 do preview v3 — colunas do grid (a última) [C] (#5564) 🚀
+- feat: consulta de clientes no preview v3 — o extra do handoff [C] (#5579) 🚀
+- feat: promove 29 [BACKLOG] a UC-V330..V366 + lane que faz os 70 testes de domínio EXECUTAREM [CC] (#5578) 🚀
+- fix: densidade da V3 converge na caixa do protótipo (34,19px) [C] (#5613) 🚀
+- fix: onda A1 do preview V3 — a lupa que faltava e a aba certa por botão [L+C] (#5618) 🚀
+- fix: detalhe do item vira drawer lateral, como a âncora manda [L+C] (#5734) · `DS` 🚀
+- fix: parcelas viram drawer de verdade + cabeçalho da âncora [L+C] (#5740) · `DS` 🚀
+- fix: recibo e orçamento imprimiam um CNPJ inventado como se fosse da empresa [C] (#5773) 🚀
+- feat: a lista de parcelas conta a história certa — vazio, conta e data do recebimento [L+C] (#5782) 🚀
+- feat: editor de parcela — o que [L] usava no original e sumiu na V3 [L+C] (#5804) 🚀
+- fix: parcelas ganham as seções nomeadas do protótipo [L+C] (#5808) 🚀
+- fix: sentinela de redação vazou pro placeholder da tela de venda [C] (#5798) 🚀
+- fix: fidelidade do drawer de parcelas ao protótipo + conserta a coluna Conta que eu quebrei [L+C] (#5879) · `DS` 🚀
+- fix: campo Valor do editor de parcela usa MoneyInput — desfaz uma decisão errada minha [L+C] (#5883) 🚀
+- feat: onda D1 — casca do drawer de detalhe ganha os selos do rodapé [L+C] (#5927) · `DS` 🚀
+- fix: devolução exige lastro — trava no serviço + contrato + inventário Blade [C] (#5928) 🚀
+
+### ds — 49 (+12 manutenção)
 - refactor: migra controles RecurringBilling -> DS (baixa baseline) (#1988) · `DS` 🚀
 - fix: T0-A — --bubble-me azul → roxo canon (último drift de cor) (#2128) · `DS` 🚀
 - feat: DS v6 — tokens de fundação --stage-* (PR1 token delta) (#2170) · `DS` 🚀
@@ -868,8 +945,9 @@ generated: "2026-08-17"
 - feat: Onda "status-badge" — tripé componente-por-papel (canon + ds/no-* + fidelidade) [CC] (#4298) · `DS` 🚀
 - feat: abre onda de detecção in-page do papel sub-navegacao-contextual [CC] (#4306) · `DS` 🚀
 - feat: PageHeader ganha slot `leading` opt-in; Jana recupera o dot da área [CC] (#5445) · `DS` 🚀
+- feat: as 4 woff2 do IBM Plex Sans descem pro mirror-snapshot — o preview renderizava com fonte do sistema [C] (#5863) · `DS` 🚀
 
-### ci — 46 (+13 manutenção)
+### ci — 47 (+13 manutenção)
 - feat: stylelint ratchet anti-drift CSS (fecha G5 · ADR 0209) (#2054) 🚀
 - fix: quick-sync robusto — composer dump-autoload + ssh-keyscan não-fatal [M] (#2162) 🚀
 - fix: quick-sync build single-thread (RAYON_NUM_THREADS=1) — evita 500 por estouro de threads [M] (#2183) 🚀
@@ -916,54 +994,7 @@ generated: "2026-08-17"
 - fix: gate verde para de empilhar comentário a cada push [C] (#5710) 🚀
 - fix: o alarme do protection-drift NUNCA disparava — `rc=$?` depois de `| tee` [C] (#5778) 🚀
 - fix: liga o BackupMonitorScheduleTest, que se dizia catraca e não mordia (#5841) 🚀
-
-### sells — 46 (+18 manutenção)
-- feat: navegação por teclado no dropdown de produto + 1ª infra de teste de componente (#2029) 🚀
-- feat: endereço de entrega 1ª classe consome contact_addresses (US-CRM-078 PR2) (#2104) 🚀 — ⚠️ REVERTIDO por #2107 (líquido 0)
-- feat: CTA "Enviar pra faturamento" source-agnostic (gap balcão · Passo-0 Dani) (#2146) 🚀
-- feat: adiciona botão de excluir no modal de detalhes da venda (#2167) 🚀
-- feat: botão de excluir venda (tela React + fallback blade) (#2168) 🚀
-- feat: botão de excluir venda na tela React (Sells/Show) (#2180) 🚀
-- feat: botão "Excluir venda" no Sells/Show + paridade de permissão (#2175) 🚀
-- fix: data da venda automática (hoje) — venda sem data sumia da consulta (#2208) 🚀
-- fix: parsear transaction_date d/m/Y do Inertia (venda sumia da consulta) (#2213) 🚀
-- fix: avisar quando a venda é bloqueada (estoque) em vez de falhar silencioso (#2222) 🚀
-- feat: confirmar Cancelar quando há venda montada (não perde o carrinho) (#2236) 🚀
-- fix: venda bloqueada fica na tela (não perde o carrinho) (#2230) 🚀
-- feat: veículo na venda direta de oficina — seletor + cadastro rápido + placa na consulta (ADR 0251) (#2276) 🚀
-- fix: valor inflado ×100k — num_uf strippava ponto decimal (incidente prod ROTA LIVRE) (#2279) 🚀
-- feat: enviar venda pra oficina + breadcrumb "onde a venda está" (#2299) 🚀
-- refactor: breadcrumb oficina read-only + remove botão "Enviar para a oficina" (#2309) 🚀
-- design: residual chrome azul 220 → roxo 295 — finaliza Trilho A (modelo único de identidade) (#2425) 🚀
-- fix: exibe desconto da venda no drawer (Resumo de valores) (#2932) · `DS` 🚀
-- fix: Resumo de valores usa <Inline> — destrava Layout primitives ratchet em main (#2933) 🚀
-- fix: tamanho selecionado no popover não era adicionado à venda (#2962) 🚀
-- fix: total de itens no card de produtos + desconto antes do pagamento (#2965) 🚀
-- feat: link "Caixa do dia" no dropdown Visões (redo #3231, gates corrigidos) (#3234) 🚀
-- refactor: pílulas SLA do Vendas → escala canônica --sla-* (ADR 0310) (#3363) 🚀
-- feat: restaura menu "Ações" por linha na lista + Devolução (perdido no #1032) [CC] (#3494) 🚀
-- feat: US-SELL-054..057 — gaps novos da CAPTERRA-FICHA (Onda 1.1) (#3702) 🚀
-- fix: restaura indicador de devolução na lista (setinha de retorno) [CC] (#3734) 🚀
-- fix: preserva ordem de bipagem no recibo/romaneio da venda (#4768) 🚀
-- fix: liga os 3 testes de Sells que existiam e não rodavam + mata o path fantasma [CC] (#4921) 🚀
-- feat: tela Venda V3 paralela em /sells/create-v3 [L+C] (#5356) 🚀
-- feat: porta o handoff de design na tela de venda V3 [L+C] (#5514) 🚀
-- feat: onda 1 do preview V3 — lançamento do item por modal [L+C] (#5529) 🚀
-- feat: fonte de design versionada + onda 2 (entrega e frete · CU-SELL-11) do preview v3 [C] (#5560) 🚀
-- feat: onda 3 do preview v3 — parcelas com rateio provado (CU-SELL-09) [C] (#5561) 🚀
-- feat: onda 4 do preview v3 — detalhe do item, 7 abas e coerência fiscal [C] (#5562) 🚀
-- feat: onda 5 do preview v3 — modelo de comissão de ERP [C] (#5563) 🚀
-- feat: onda 6 do preview v3 — colunas do grid (a última) [C] (#5564) 🚀
-- feat: consulta de clientes no preview v3 — o extra do handoff [C] (#5579) 🚀
-- feat: promove 29 [BACKLOG] a UC-V330..V366 + lane que faz os 70 testes de domínio EXECUTAREM [CC] (#5578) 🚀
-- fix: densidade da V3 converge na caixa do protótipo (34,19px) [C] (#5613) 🚀
-- fix: onda A1 do preview V3 — a lupa que faltava e a aba certa por botão [L+C] (#5618) 🚀
-- fix: detalhe do item vira drawer lateral, como a âncora manda [L+C] (#5734) · `DS` 🚀
-- fix: parcelas viram drawer de verdade + cabeçalho da âncora [L+C] (#5740) · `DS` 🚀
-- fix: recibo e orçamento imprimiam um CNPJ inventado como se fosse da empresa [C] (#5773) 🚀
-- feat: a lista de parcelas conta a história certa — vazio, conta e data do recebimento [L+C] (#5782) 🚀
-- feat: editor de parcela — o que [L] usava no original e sumiu na V3 [L+C] (#5804) 🚀
-- fix: parcelas ganham as seções nomeadas do protótipo [L+C] (#5808) 🚀
+- fix: o PainelContratoTest nunca rodou — a lane Jana lista ARQUIVO, e ele não estava na lista [C] (#5880) 🚀
 
 ### whatsapp — 41 (+15 manutenção)
 - fix: inbound usa hora real do evento, não now() (fuso London na fila) (#2057) 🚀
@@ -1046,7 +1077,7 @@ generated: "2026-08-17"
 - feat: SDD + contratos de RecurringBilling — chip da Onda 5 (#4914) 🚀
 - feat: SDD + contratos de NfeBrasil — chip da Onda 5 (#4913) 🚀
 
-### forja — 33 (+2 manutenção)
+### forja — 34 (+3 manutenção)
 - fix: fusão real — Jana não rouba /team-mcp/* (follow-up adversário) (#2855) · `DS` 🚀
 - refactor: marca única 'Forja' — atalho sidebar + breadcrumbs (#2857) · `DS` 🚀
 - fix: tab-strip não colapsa nas telas absorvidas (shrink-0) (#2862) · `DS` 🚀
@@ -1080,6 +1111,7 @@ generated: "2026-08-17"
 - fix: registra `claude` no Identity Mesh — o selo lê dado, não palpite [C] (#5517) · `DS` 🚀
 - fix: registra as migrations do módulo (loadMigrationsFrom) + guards de idempotência [C] (#5626) · `DS` 🚀
 - feat: F4 Merge vira coluna do Quadro — fecha a divergência com a fonte de design [C] (#5625) · `DS` 🚀
+- feat: Onda 1 — a mesa de aprovações ganha a fila do protótipo [C] (#5931) · `DS` 🚀
 
 ### kb — 31 (+15 manutenção)
 - fix: modo dark da tela /sops — vars quebradas + pares de cor claro-fixo (#4419) 🚀
@@ -1147,6 +1179,37 @@ generated: "2026-08-17"
 - fix: resolveGap casava o gap do IRMÃO — exato antes de substring [C] (#5774) 🚀
 - fix: 3º consumidor do sha ficou de fora do #5775 — 8 falso-STALE em main [C] (#5794) 🚀
 
+### prototipo-ui — 29 (+17 manutenção)
+- feat: PROCESSO_MEMORIA_CC + DS-GUARD/integrity (handoff Cowork) (#2116) · `DS` 🚀
+- feat: kit DS v6 — showcase + receita + gabarito-vendas (#2165) · `DS` 🚀
+- feat: registra caixa-unificada no cowork-map (destrava ingest da Inbox) (#3040) · `DS` 🚀
+- feat: cowork-map v2 — handoff completo por prefixo (18 telas + handoff-buckets) (#3042) · `DS` 🚀
+- feat: portao barato pra handoff Cowork — detecta se mudou (zero LLM) [CC] (#3409) · `DS` 🚀
+- fix: detectar-telas aceita header `module=` (falso AMBIGUO no Caixa) [CC] (#3923) · `DS` 🚀
+- feat: fingerprint Onda 1 — vetor 14→25 campos + furo 4/5 + captioning-lite [CC] (#3959) · `DS` 🚀
+- feat: fingerprint Onda 2 — containers (causa do layout) + compostos/cards (furo 3) [CC] (#3961) · `DS` 🚀
+- feat: fingerprint Onda 3a — harness Playwright (responsivo + matriz de temas) [CC] (#3962) · `DS` 🚀
+- feat: trava de âncora no --compare do fingerprint (fail-closed) [CC] (#3967) · `DS` 🚀
+- feat: F5 — trava de âncora ganha check de conteúdo (rótulos .jsx × captura) [CC] (#3971) · `DS` 🚀
+- fix: F5 extração poluída por código → falso-refuse (pego pelo teste do processo) [CC] (#3973) · `DS` 🚀
+- feat: style-fingerprint passada de elevação por inventário (Onda 3) [CC] (#3993) · `DS` 🚀
+- feat: mecanismo do &lt;tela&gt;.map.json — ponte design↔código persistente (#4020) · `DS` 🚀
+- feat: proto vira BASELINE versionado — render-proto-baseline mecaniza o passo 1 do loop de fidelidade [CC] (#4033) · `DS` 🚀
+- feat: consumir-map fecha o ciclo do <tela>.map.json — Fase 4 consome + sha por CONTEÚDO (ADR 0324) [CC] (#4048) · `DS` 🚀
+- feat: operacionaliza proto-baselines — Sells+Compras reais + nudge de compare no design-memory-gate [CC] (#4042) · `DS` 🚀
+- feat: fingerprint cobre estados hover/focus/active + mobile 375 (Onda 3a.2 · chip C-F2) [CC] (#4489) · `DS` 🚀
+- feat: G14 contraste AA + G15 foco visível no probe qa-conformance [CC] (#4597) · `DS` 🚀
+- fix: espelho Cowork incoerente — 14 arquivos que nunca desceram + a fiação [C] (#5743) · `DS` 🚀
+- fix: os 7 achados do adversário no medidor de frescor do espelho [C] (#5754) · `DS` 🚀
+- fix: separa MEDIR de CONSERTAR + reconcilia o protocolo (o ZIP morreu) [C] (#5757) · `DS` 🚀
+- fix: 13 duplicatas na raiz, 7 DEFASADAS — e o charter tinha 2 âncoras discordando [C] (#5758) · `DS` 🚀
+- fix: 3 arquivos do espelho DEFASADOS — e o piso do harness, medido [C] (#5761) · `DS` 🚀
+- fix: o protocolo de import ainda mandava usar o ZIP morto — skill, RUNBOOK e ADR 0325 [C] (#5767) · `DS` 🚀
+- feat: tolerância declarada por eixo na fidelidade — banda medida no corpus, fronteira travada [C] (#5791) · `DS` 🚀
+- fix: o --preview-ds era CEGO pras fontes — 7 @font-face falhavam calados [C] (#5806) · `DS` 🚀
+- feat: chat-jana.jsx desce do vivo — 7 semanas de defasagem fechadas [C] (#5816) · `DS` 🚀
+- fix: o espelho foi remendado à mão e ninguém soube — conserta e arma a defesa [C] (#5854) · `DS` 🚀
+
 ### oficina — 28 (+10 manutenção)
 - feat: handoff design Produção — charter v3 + drawer Vendas×Oficina + arrasto preditivo (#2228) · `DS` 🚀
 - feat: re-tokeniza Kanban Oficina → família stage DS (UI-Lint #2228) (#2234) · `DS` 🚀
@@ -1176,36 +1239,6 @@ generated: "2026-08-17"
 - fix: corrige mis-anchor oficina-page (C=Repair/JobSheet, não duplicata) — migração C cancelada (#3446) 🚀
 - fix: Board usa tokens semânticos do DS — dark deixa de renderizar branco [CC] (#4367) 🚀
 - fix: par dark: nos 6 tons de KPI do Board (sub 1.92:1 → 6.3:1) [CC] (#4373) 🚀
-
-### prototipo-ui — 28 (+17 manutenção)
-- feat: PROCESSO_MEMORIA_CC + DS-GUARD/integrity (handoff Cowork) (#2116) · `DS` 🚀
-- feat: kit DS v6 — showcase + receita + gabarito-vendas (#2165) · `DS` 🚀
-- feat: registra caixa-unificada no cowork-map (destrava ingest da Inbox) (#3040) · `DS` 🚀
-- feat: cowork-map v2 — handoff completo por prefixo (18 telas + handoff-buckets) (#3042) · `DS` 🚀
-- feat: portao barato pra handoff Cowork — detecta se mudou (zero LLM) [CC] (#3409) · `DS` 🚀
-- fix: detectar-telas aceita header `module=` (falso AMBIGUO no Caixa) [CC] (#3923) · `DS` 🚀
-- feat: fingerprint Onda 1 — vetor 14→25 campos + furo 4/5 + captioning-lite [CC] (#3959) · `DS` 🚀
-- feat: fingerprint Onda 2 — containers (causa do layout) + compostos/cards (furo 3) [CC] (#3961) · `DS` 🚀
-- feat: fingerprint Onda 3a — harness Playwright (responsivo + matriz de temas) [CC] (#3962) · `DS` 🚀
-- feat: trava de âncora no --compare do fingerprint (fail-closed) [CC] (#3967) · `DS` 🚀
-- feat: F5 — trava de âncora ganha check de conteúdo (rótulos .jsx × captura) [CC] (#3971) · `DS` 🚀
-- fix: F5 extração poluída por código → falso-refuse (pego pelo teste do processo) [CC] (#3973) · `DS` 🚀
-- feat: style-fingerprint passada de elevação por inventário (Onda 3) [CC] (#3993) · `DS` 🚀
-- feat: mecanismo do &lt;tela&gt;.map.json — ponte design↔código persistente (#4020) · `DS` 🚀
-- feat: proto vira BASELINE versionado — render-proto-baseline mecaniza o passo 1 do loop de fidelidade [CC] (#4033) · `DS` 🚀
-- feat: consumir-map fecha o ciclo do <tela>.map.json — Fase 4 consome + sha por CONTEÚDO (ADR 0324) [CC] (#4048) · `DS` 🚀
-- feat: operacionaliza proto-baselines — Sells+Compras reais + nudge de compare no design-memory-gate [CC] (#4042) · `DS` 🚀
-- feat: fingerprint cobre estados hover/focus/active + mobile 375 (Onda 3a.2 · chip C-F2) [CC] (#4489) · `DS` 🚀
-- feat: G14 contraste AA + G15 foco visível no probe qa-conformance [CC] (#4597) · `DS` 🚀
-- fix: espelho Cowork incoerente — 14 arquivos que nunca desceram + a fiação [C] (#5743) · `DS` 🚀
-- fix: os 7 achados do adversário no medidor de frescor do espelho [C] (#5754) · `DS` 🚀
-- fix: separa MEDIR de CONSERTAR + reconcilia o protocolo (o ZIP morreu) [C] (#5757) · `DS` 🚀
-- fix: 13 duplicatas na raiz, 7 DEFASADAS — e o charter tinha 2 âncoras discordando [C] (#5758) · `DS` 🚀
-- fix: 3 arquivos do espelho DEFASADOS — e o piso do harness, medido [C] (#5761) · `DS` 🚀
-- fix: o protocolo de import ainda mandava usar o ZIP morto — skill, RUNBOOK e ADR 0325 [C] (#5767) · `DS` 🚀
-- feat: tolerância declarada por eixo na fidelidade — banda medida no corpus, fronteira travada [C] (#5791) · `DS` 🚀
-- fix: o --preview-ds era CEGO pras fontes — 7 @font-face falhavam calados [C] (#5806) · `DS` 🚀
-- feat: chat-jana.jsx desce do vivo — 7 semanas de defasagem fechadas [C] (#5816) · `DS` 🚀
 
 ### team-mcp — 27 (+4 manutenção)
 - fix: McpToken SoftDeletes — corrige crash deleted_at + completa audit LGPD (#2742) · `DS` 🚀
@@ -1264,7 +1297,7 @@ generated: "2026-08-17"
 - feat: Contexto vira drawer lateral (handoff [W] 2026-06-19) (#3054) · `DS` 🚀
 - fix: composer — ordem de foco do teclado = ordem visual (a11y, WCAG 2.4.3) (#3061) · `DS` 🚀
 
-### cliente — 26 (+12 manutenção)
+### cliente — 26 (+15 manutenção)
 - feat: chip "anexos" no header do drawer ao lado de placas (#2082) · `DS` 🚀
 - feat: carrega anexos existentes no painel Documentos do drawer (#2086) · `DS` 🚀
 - feat: habilita enviar/excluir anexos no drawer (era read-only) (#2088) · `DS` 🚀
@@ -1319,7 +1352,7 @@ generated: "2026-08-17"
 - fix: escopo do acervo deriva de TIPOS_DOC, nunca digitado (#5297) 🚀
 - fix: reaponta 6 refs de código do stub Copiloto pra verdade viva em Jana [C] (#5596) 🚀
 
-### hooks — 20 (+3 manutenção)
+### hooks — 21 (+3 manutenção)
 - feat: gatilho block-test-fora-ct100 — testes/PHPStan só no CT 100 (#2081) 🚀
 - fix: pii-redactor escaneia só git commit, libera debug por CPF/CNPJ (#2683) 🚀
 - fix: matcher de Chrome morto (casing) + ref morta mwart-gate.yml [CC] (#3970) 🚀
@@ -1340,6 +1373,29 @@ generated: "2026-08-17"
 - fix: selftest do brief-fetch era dependente de plataforma — verde no Windows, vermelho no Linux [C] (#5377) 🚀
 - fix: hook enxerga o corpo do PR (heredoc) e cobra completude [M+C] (#5077) 🚀
 - fix: block-mwart-violation para de oferecer o escape que nunca existiu [C] (#5683) 🚀
+- fix: resgate por related_runbook estava morto no Windows [C] (#5936) 🚀
+
+### visreg — 20 (+46 manutenção)
+- feat: auth bridge cross-process — destrava smoke das telas autenticadas (Fase B) (#2317) 🚀
+- feat: VisregTenantSeeder minimal — ativa smoke autenticado (US-GOV-013 Fase B) (#2319) 🚀
+- feat: amplia smoke autenticado pro núcleo-6 de retenção (US-GOV-013 Fase B) (#2320) 🚀
+- feat: ativa Clientes no gate via MWART_CLIENTE_INDEX — fecha o núcleo-6 (8 telas) (#2323) 🚀
+- feat: modo UPDATE via workflow_dispatch — baselines no runner canônico [CC] (#3933) 🚀
+- fix: restaura baseline oficina-os dark sobrescrito pelo regen #4251 [CC] (#4256) 🚀
+- fix: executar impacto visual classificado (#4338) 🚀
+- fix: fechar falsos negativos do impacto visual (#4339) 🚀
+- fix: rastrear consumidores visuais reais (#4341) 🚀
+- fix: validar identidade runtime das telas (#4342) 🚀
+- fix: fixar ambiente do runner visual (#4348) 🚀
+- fix: exigir ledger completo de execução (#4349) 🚀
+- fix: atualizar baseline explícita correta (#4353) 🚀
+- fix: validar permissão do publicador (#4359) 🚀
+- fix: preservar artefatos entre suítes (#4360) 🚀
+- fix: estabelecer pré-condição FSM da Oficina no gate (update ⇄ verify) [CC] (#4366) 🚀
+- fix: bloquear zona cinza sem aprovação (#4364) 🚀
+- fix: cobrança de contrato é de `targeted` — em `global` o pixel roda o núcleo-6 [CC] (#4391) 🚀
+- feat: contrato visual das 5 telas da Governanca (manifesto + baselines) (#5326) 🚀
+- fix: congela o relógio do navegador E do servidor nas capturas do gate visual [C] (#5800) 🚀
 
 ### reguas — 19 (+4 manutenção)
 - fix: args.base tolera string OU objeto + corrige nota errada [CC] (#4080) 🚀
@@ -1361,27 +1417,6 @@ generated: "2026-08-17"
 - feat: a nota ganha RUBRICA — a escala tinha degraus, mas nunca escritos [C] (#5634) 🚀
 - feat: OUTCOME entra como coluna própria — a régua "funciona?" ao lado da "existe?" [C] (#5645) 🚀
 - fix: uniformiza agentType general-purpose nas 14 chamadas de agent() (#5839) 🚀
-
-### visreg — 19 (+39 manutenção)
-- feat: auth bridge cross-process — destrava smoke das telas autenticadas (Fase B) (#2317) 🚀
-- feat: VisregTenantSeeder minimal — ativa smoke autenticado (US-GOV-013 Fase B) (#2319) 🚀
-- feat: amplia smoke autenticado pro núcleo-6 de retenção (US-GOV-013 Fase B) (#2320) 🚀
-- feat: ativa Clientes no gate via MWART_CLIENTE_INDEX — fecha o núcleo-6 (8 telas) (#2323) 🚀
-- feat: modo UPDATE via workflow_dispatch — baselines no runner canônico [CC] (#3933) 🚀
-- fix: restaura baseline oficina-os dark sobrescrito pelo regen #4251 [CC] (#4256) 🚀
-- fix: executar impacto visual classificado (#4338) 🚀
-- fix: fechar falsos negativos do impacto visual (#4339) 🚀
-- fix: rastrear consumidores visuais reais (#4341) 🚀
-- fix: validar identidade runtime das telas (#4342) 🚀
-- fix: fixar ambiente do runner visual (#4348) 🚀
-- fix: exigir ledger completo de execução (#4349) 🚀
-- fix: atualizar baseline explícita correta (#4353) 🚀
-- fix: validar permissão do publicador (#4359) 🚀
-- fix: preservar artefatos entre suítes (#4360) 🚀
-- fix: estabelecer pré-condição FSM da Oficina no gate (update ⇄ verify) [CC] (#4366) 🚀
-- fix: bloquear zona cinza sem aprovação (#4364) 🚀
-- fix: cobrança de contrato é de `targeted` — em `global` o pixel roda o núcleo-6 [CC] (#4391) 🚀
-- feat: contrato visual das 5 telas da Governanca (manifesto + baselines) (#5326) 🚀
 
 ### outros — 17
 - outros: Reforço AppShell + testes + CSS (handoff Cowork 2026-06-02) (#2119) 🚀
@@ -1420,7 +1455,7 @@ generated: "2026-08-17"
 - fix: endurece classmap-authoritative stale — verify pós-dump + boot gate WEB + token self-heal (#3296) 🚀
 - fix: site para de cair a cada compilacao — 2 causas medidas [C] (#5690) 🚀
 
-### design — 13 (+19 manutenção)
+### design — 13 (+20 manutenção)
 - design: 37 telas <70 → ≥70 (US-TR-309..314) + XSS sanitize Cms (#2037) 🚀
 - design: 7 telas overlap — minha versão superset (complementa #2037) (#2038) 🚀
 - feat: gerador design:review por tela (charter page viva) + gate de frescor [Tier 0 · espera W] (#2078) · `DS` 🚀
@@ -1449,6 +1484,20 @@ generated: "2026-08-17"
 - feat: SCOPE.md e LICOES-OPERACAO.md saem de Modules/ — fase 3 (ADR 0375) [C] (#5568) 🚀
 - fix: o piso do harness era (48; 49,1]KB, não 64KB — corrige o número em 2 registros [C] (#5766) 🚀
 - fix: fecha 18 dos 19 links mortos da canon front-facing + trava o ganho no baseline (#5828) 🚀
+
+### produto — 12 (+33 manutenção)
+- feat: aba Preço especial — F1 + charter v2→v3 (8 cortes de [F]) (#4403) 🚀
+- fix: UC-PCAD-05 — store() recusa FK de insumo cross-tenant (Tier 0) [DRAFT — CT 100 + review M/F] (#4554) 🚀
+- feat: Kardex real na StockHistory (CU-PROD-11) + trio casos.md/teste (#4658) · `DS` 🚀
+- fix: update() cross-tenant retorna 404, não 500 (Tier 0) [W] (#4769) 🚀
+- fix: 8 asserts apontavam pra RUNBOOK inexistente — vermelho real no nightly (#4807) 🚀
+- fix: fecha 2 dos 3 achados Tier 0 do #4823 (preço de venda + guard cross-tenant) [W+C] (#4832) 🚀
+- fix: editar produto para de zerar estoque/flags que a tela não envia [F+C] (#4943) 🚀
+- fix: destrava o 500 de /products/unificado (sub-tela Categorias) [F+C] (#5383) 🚀
+- fix: fecha 2 vazamentos cross-tenant Tier 0 (quick-add + BOM) [W+C] (#5631) 🚀
+- fix: fecha o gate de visibilidade do Catálogo Unificado — os 6 UCs saem do vermelho [C] (#5733) 🚀
+- feat: /products/unificado vira a Consulta de Produtos do handoff [M+C] (#5906) 🚀
+- feat: onda 1 — toolbar volta pra uma linha (pacote 17/08) [M+C] (#5920) 🚀
 
 ### suporte — 12 (+1 manutenção)
 - feat: resolução de tenants acessíveis do Modo Suporte (PR-A) (#3263) 🚀
@@ -1515,19 +1564,7 @@ generated: "2026-08-17"
 - fix: importação AFD exigia permissão inexistente + authorize era fail-OPEN (#5382) 🚀
 - fix: botao primary renderizava sem estilo em 4 telas [C] (#5441) 🚀
 
-### produto — 10 (+32 manutenção)
-- feat: aba Preço especial — F1 + charter v2→v3 (8 cortes de [F]) (#4403) 🚀
-- fix: UC-PCAD-05 — store() recusa FK de insumo cross-tenant (Tier 0) [DRAFT — CT 100 + review M/F] (#4554) 🚀
-- feat: Kardex real na StockHistory (CU-PROD-11) + trio casos.md/teste (#4658) · `DS` 🚀
-- fix: update() cross-tenant retorna 404, não 500 (Tier 0) [W] (#4769) 🚀
-- fix: 8 asserts apontavam pra RUNBOOK inexistente — vermelho real no nightly (#4807) 🚀
-- fix: fecha 2 dos 3 achados Tier 0 do #4823 (preço de venda + guard cross-tenant) [W+C] (#4832) 🚀
-- fix: editar produto para de zerar estoque/flags que a tela não envia [F+C] (#4943) 🚀
-- fix: destrava o 500 de /products/unificado (sub-tela Categorias) [F+C] (#5383) 🚀
-- fix: fecha 2 vazamentos cross-tenant Tier 0 (quick-add + BOM) [W+C] (#5631) 🚀
-- fix: fecha o gate de visibilidade do Catálogo Unificado — os 6 UCs saem do vermelho [C] (#5733) 🚀
-
-### payment-gateway — 8 (+7 manutenção)
+### payment-gateway — 9 (+7 manutenção)
 - feat: InterDriver registerWebhook + artisan command [E] (#2155) 🚀
 - feat: reconciliacao por polling PIX Inter (fallback do webhook) (#2158) 🚀
 - feat: cert mTLS base64 inline + testes Inter polling (delta #2158) (#2164) 🚀
@@ -1536,6 +1573,28 @@ generated: "2026-08-17"
 - fix: config_json json→longtext alinha schema ao cast (US-GOV-018 frente B) (#2636) 🚀
 - fix: mata ghost-scheduled retry-orphan-webhooks (schedule dormente flag-off) (#3364) 🚀
 - feat: destrava linkage cobranca_id no webhook genérico (US-PG-008) — flag OFF (#3371) 🚀
+- fix: $queue redeclarada colide com trait Queueable e é FATAL na carga [C] (#5987) 🚀
+
+### superadmin — 9 (+2 manutenção)
+- fix: registra comando superadmin:health no ServiceProvider (#2647) 🚀
+- fix: enum de subscriptions.status aceita expired/cancelled [C] (#5945) 🚀
+- feat: SA-O1 — a home vira Inertia, com o trio da tela [C] (#5948) 🚀
+- fix: UC-SADASH-04 não cria mais tenant (FK owner_id) — main verde [C] (#5952) 🚀
+- feat: SA-O1b — KPI de MRR + tendência sem buraco na série [C] (#5955) 🚀
+- feat: motivo do cancelamento passa a ser PERSISTIDO [W+C] (#5957) 🚀
+- feat: SA-O2 — lista de Negócios sai do DataTables pra Inertia [C] (#5965) 🚀
+- feat: SA-O2b — drawer de detalhe do negócio (PT-02) [C] (#5982) · `DS` 🚀
+- fix: MRR lia a fonte ERRADA — passa a delegar ao RecurringBilling [W+C] (#5981) 🚀
+
+### design-sync — 8 (+3 manutenção)
+- feat: conclui o loop — push git→espelho + sentinela vivo (drift 0) [CC] (#3997) 🚀
+- feat: loop design→code otimizado (diff-first) + ds-project-diff.mjs testado [CC] (#4099) 🚀
+- refactor: ds-token-diff companion-aware + remove tool reinventado + salva protocolo [CC] (#4100) 🚀
+- feat: ds-push — orquestrador determinístico do PUSH git→espelho [CC] (#4102) 🚀
+- feat: ds-token-version — semver + changelog do pacote de tokens [CC] (#4103) 🚀
+- fix: bloquear download truncado e preview incompleto (#5910) 🚀
+- fix: consolidar fonte executável única (#5914) 🚀
+- fix: restaurar runtime completo dos drawers (#5915) 🚀
 
 ### casos — 7 (+2 manutenção)
 - feat: ancora 4 UCs de Impostos em testes vivos + fix colisao de id no meta-test (#3252) · `DS` 🚀
@@ -1644,13 +1703,6 @@ generated: "2026-08-17"
 - feat: skills:tier-review — loop telemetria→tier (Parte B T7, ADR 0095) (#3077) 🚀
 - feat: OUTCOME DO AGENTE (7d) + flag ADR pendente no Daily Brief [CC] (#4053) 🚀
 
-### design-sync — 5 (+3 manutenção)
-- feat: conclui o loop — push git→espelho + sentinela vivo (drift 0) [CC] (#3997) 🚀
-- feat: loop design→code otimizado (diff-first) + ds-project-diff.mjs testado [CC] (#4099) 🚀
-- refactor: ds-token-diff companion-aware + remove tool reinventado + salva protocolo [CC] (#4100) 🚀
-- feat: ds-push — orquestrador determinístico do PUSH git→espelho [CC] (#4102) 🚀
-- feat: ds-token-version — semver + changelog do pacote de tokens [CC] (#4103) 🚀
-
 ### documentacao — 5 (+3 manutenção)
 - feat: sumario navegavel derivado + link relativo resolve certo na rota (#5227) 🚀
 - fix: link de doc em subpasta resolvia contra memory/, não contra a pasta dele (#5237) 🚀
@@ -1658,7 +1710,7 @@ generated: "2026-08-17"
 - feat: rail derivado, lente Operar/Construir e anterior/próximo (#5244) 🚀
 - feat: tela do programa (Trilha D) — renderiza o plano, não é cópia [CC] (#5354) 🚀
 
-### officeimpresso — 5 (+2 manutenção)
+### officeimpresso — 5 (+5 manutenção)
 - feat: permissão delegável `clientes.liberar` (separa "liberar clientes" do superadmin) (#3246) 🚀
 - fix: exige permissão nas telas de licença (rota pedia só auth) (#5044) 🚀
 - fix: porta de entrada /officeimpresso devolvia 404 [C] (#5074) 🚀
@@ -1728,17 +1780,23 @@ generated: "2026-08-17"
 - refactor: no-db-jargon-in-ui exclui <code>/<pre>/<kbd> + PaymentGateways usa <code> (#4278) 🚀
 - feat: mensagem ds/* deriva o alvo do component-registry (6/13 regras) [C] (#5790) 🚀
 
-### handoff — 4 (+271 manutenção)
+### handoff — 4 (+273 manutenção)
 - feat: catraca de integridade do handoff (fila ↔ prompts) — gate advisory (#2865) 🚀
 - feat: + C3 (cabeçalho fundido) na catraca de integridade do handoff (#2869) 🚀
 - feat: publisher Cowork→repo — fecha o 1º hop zero-paste (ADR 0285) (#2929) 🚀
 - fix: refaz handoff Modo Suporte com frontmatter válido (schema) (#3347) 🚀
 
-### matriz — 4 (+28 manutenção)
+### matriz — 4 (+30 manutenção)
 - feat: painel do sistema gerado (system-map.mjs) — índice derivado anti-drift (#4150) 🚀
 - feat: system-map gera COMECE-AQUI.md — onboarding que não apodrece (#4169) 🚀
 - fix: system-map se mantém via auto-PR (commit-back direto era rejeitado por GH013) (#4177) 🚀
 - fix: conserta os 2 gaps do canário (88/100) + regra pega path inline (#4176) 🚀
+
+### modulos — 4 (+1 manutenção)
+- fix: a tela para de mentir sobre o estado do módulo (P1+P2) [C] (#5956) 🚀
+- fix: uma lei só pra gerenciar módulos — manage_modules (D2/P5) [C] (#5961) 🚀
+- feat: a linha diz quando o módulo ativo não monta menu (P3) [C] (#5958) 🚀
+- feat: contrato de tela trava copy e ordem no CI (MOD-O5) [C] (#5963) 🚀
 
 ### nfse — 4 (+6 manutenção)
 - fix: ambiente de emissão resolvido por-business (cutover fiscal biz=164) (#2147) 🚀
@@ -1758,7 +1816,7 @@ generated: "2026-08-17"
 - fix: subnav tab ativo roxo universal (não hue-por-grupo verde 145) [CC] (#3921) · `DS` 🚀
 - fix: D-2 da ADR 0340 — o modo `auto` deixa de colapsar em direções opostas [CC] (#4386) · `DS` 🚀
 
-### skills — 4 (+5 manutenção)
+### skills — 4 (+6 manutenção)
 - fix: corrige drift de path Modules/Copiloto → Modules/Jana (3 skills) (#3063) 🚀
 - feat: reguas-do-sistema — método canônico de medir o IA OS contra o mercado [CC] (#4050) 🚀
 - feat: pre-decisao-git-first — resolve dúvida factual no git antes de interromper o Wagner [M+C] (#5068) 🚀
@@ -1830,6 +1888,11 @@ generated: "2026-08-17"
 - fix: related_adrs como slugs (corrige gate session-log de #3009) (#3010) 🚀
 - fix: authors=['C'] — fecha o gate session-log (fim da cadeia #3009/#3010) (#3011) 🚀
 
+### tier0 — 3
+- feat: gate de isolamento multi-tenant no RENDER (L3) (#3268) 🚀
+- feat: receptor do MultiTenantScopeChecker na lane required [C] (#5112) 🚀
+- fix: papel de outro negócio deixa de ser editável via /roles/{id} [C] (#5962) 🚀
+
 ### agents — 2
 - fix: 9 agents nao carregavam por frontmatter YAML invalido (#5168) 🚀
 - feat: documentacao-sistema — especialista de escopo travado (#5205) 🚀
@@ -1866,6 +1929,10 @@ generated: "2026-08-17"
 - feat: documento raiz de estoque + fix R1 (consumo FSM auditável) (#2258) 🚀
 - fix: US-PROD-028 — fixVariationStockMisMatch aplica num_uf (saldo locale-safe) [CC] (#4636) 🚀
 
+### fix — 2
+- fix: ExportZip signature braces + OndaComments skip + DetectDrift register (RC-12+13+14) (#2715) 🚀
+- fix: placeholder aceito como token + link morto da ADR 0155 publicado em todo PR (#5850) 🚀
+
 ### gh — 2
 - feat: safe-merge.sh — merge de PR à prova de desync headRefOid + disciplina Claude (#3768) 🚀
 - fix: safe-merge post-check MSYS-safe (ls-tree) — dogfood pegou falso-positivo (#3769) 🚀
@@ -1873,6 +1940,10 @@ generated: "2026-08-17"
 ### governance-eval — 2
 - feat: prompt-injection-corpus — 1º red-team do agente (advisory) (#4070) 🚀
 - fix: corpus invoca hooks .mjs (não .ps1) — backstop volta a 6/6 (#4076) 🚀
+
+### hook — 2
+- fix: endurece R10 — falso-positivo merge, ancora publish, cobre PowerShell (#3065) 🚀
+- fix: design-agente-ativa aponta pra máquina de comparação, e reconhece divergência [C] (#5941) 🚀
 
 ### lint — 2 (+1 manutenção)
 - fix: remove 28 unused eslint-disable directives + refresh baseline (F6) (#2326) 🚀
@@ -1885,6 +1956,10 @@ generated: "2026-08-17"
 ### nfe — 2 (+3 manutenção)
 - fix: retry pós-falha não viola nfe_emissoes_biz_tx_unique (#2120) 🚀
 - fix: retry-with-backoff em erro de transporte SEFAZ (connection reset) (#2125) 🚀
+
+### notificacoes — 2 (+1 manutenção)
+- feat: P1 — seed dos modelos em PT-BR + migration da base migrada [C] (#5984) 🚀
+- fix: P2+P3+P4 — whitelist, validação de cc/bcc e sanitização do corpo [C] (#5985) 🚀
 
 ### otel — 2
 - fix: provider compatível com SDK atual + Pest provando o boot (T1.b) (#2074) 🚀
@@ -1922,6 +1997,10 @@ generated: "2026-08-17"
 - revert: PR2 endereço na venda (#2104) — incidente regressão cliente pós-merge (#2107) 🚀
 - revert: remove coverage.yml (Brick B) — duplicava #3150 (#3184) 🚀
 
+### roles — 2
+- sec: catálogo FECHADO de permissões + o grupo de preço que sumia no create [C] (#5964) 🚀
+- fix: excluir papel em uso passa a ser bloqueado, com a contagem [C] (#5971) 🚀
+
 ### scope — 2 (+1 manutenção)
 - fix: not_contains roteava 11x pra Modules/ADS removido — 2 negavam o próprio módulo [C] (#5525) 🚀
 - fix: 5 contains[] sem lastro + conserta o índice cego que acusava código real [C] (#5530) 🚀
@@ -1946,10 +2025,6 @@ generated: "2026-08-17"
 - fix: 17 US entregues destravam o forward-close — faltava o blockquote `status:` (ADR 0337) [C] (#4944) 🚀
 - feat: forward-close segue a ADR 0355 + resgata a errata 0356 que ficou órfã [C] (#4970) 🚀
 
-### tier0 — 2
-- feat: gate de isolamento multi-tenant no RENDER (L3) (#3268) 🚀
-- feat: receptor do MultiTenantScopeChecker na lane required [C] (#5112) 🚀
-
 ### vestuario — 2 (+2 manutenção)
 - fix: cria DataController com entry de sidebar (etiquetas) (#2673) · `DS` 🚀
 - fix: devolução reintegra estoque (UC-EST-04, Tier 0) [CC] (#3691) 🚀
@@ -1961,11 +2036,17 @@ generated: "2026-08-17"
 ### a11y — 1 (+2 manutenção)
 - feat: Fase 2 — axe-core runtime (jsdom) nos componentes canon (#2361) 🚀
 
+### ancora — 1
+- fix: o printer afirmava `✓` sem ter LIDO a âncora — e o selftest vermelho não tinha onde ser contado [C] (#5861) 🚀
+
 ### atendimento — 1 (+1 manutenção)
 - fix: dark flipa sem F5 (toggle sincroniza data-theme) + thread usa token (#3044) 🚀
 
 ### atendimento,whatsapp — 1
 - perf: D-14 partial reload — only: nos filtros [CC] (#3899) 🚀
+
+### backup — 1 (+1 manutenção)
+- fix: Onda 1 — trava travessia de caminho, catch morto e exclusao do ultimo backup [C] (#5980) 🚀
 
 ### business — 1
 - fix: cadastro de filial parava com erro genérico quando faltava esquema/layout de fatura (#2441) 🚀
@@ -1981,6 +2062,15 @@ generated: "2026-08-17"
 
 ### casos-guard — 1
 - fix: regex enxerga UC-IMP/UC-FORJA (35 UCs invisiveis ao gate) + rebaseline honesto (#3250) · `DS` 🚀
+
+### cms — 1
+- fix: o whitelist de `type` recusava blog e depoimento — alinha ao domínio real [C] (#5992) 🚀
+
+### comissionado — 1
+- fix: excluir agente com venda vinculada passa a ser bloqueado [C] (#5970) 🚀
+
+### config — 1
+- fix: o fuso padrão deixa de ser Europe/London (e o exemplo, Asia/Kolkata) [C] (#5959) 🚀
 
 ### contrato-tela — 1 (+1 manutenção)
 - fix: re-aponta fonte CaixaUnificada pro SSOT cowork/ (CI verde) (#3273) 🚀
@@ -2003,6 +2093,9 @@ generated: "2026-08-17"
 ### e2e — 1 (+2 manutenção)
 - fix: destrava e2e-gate — UC-S11 após UC-S01 (hotfix do merge stale do #3501) [CC] (#3506) 🚀
 
+### espelho — 1
+- fix: direção não-medida, selftest do applier e o falso-positivo do squash [C] (#5859) 🚀
+
 ### eval — 1 (+2 manutenção)
 - fix: recall-golden — tira 4 ADRs vivas (supersede parcial) de violations (#3511) 🚀
 
@@ -2012,14 +2105,14 @@ generated: "2026-08-17"
 ### fidelidade — 1
 - feat: style-fingerprint v2 — tema-cockpit + região + ícones + claro-no-dark [CC] (#4093) 🚀
 
-### fix — 1
-- fix: ExportZip signature braces + OndaComments skip + DetectDrift register (RC-12+13+14) (#2715) 🚀
-
 ### foundations — 1
 - feat: §TEMPERO na fundação — sombras/ease/atmosfera + atmosfera no shell (FA-1) (#2569) 🚀
 
 ### fsm — 1 (+2 manutenção)
 - fix: garante reset do FsmAuthorizationFlag no lifecycle (Octane + fila) [CC] (#4660) 🚀
+
+### fuso — 1
+- fix: o fuso de um negócio para de vazar para o resto do job [C] (#5960) 🚀
 
 ### g4 — 1
 - feat: detect-handoff — detector-em-lote (diff cowork/ → chip por tela) (#3265) 🚀
@@ -2033,9 +2126,6 @@ generated: "2026-08-17"
 ### guia — 1 (+4 manutenção)
 - fix: B8.2 dizia 91 hooks — 42 daqueles são os testes dos hooks (#5832) 🚀
 
-### hook — 1
-- fix: endurece R10 — falso-positivo merge, ancora publish, cobre PowerShell (#3065) 🚀
-
 ### ia — 1
 - fix: flags da camada de IA saem de env() para config/ — eram inoperantes em prod (#4977) 🚀
 
@@ -2048,7 +2138,7 @@ generated: "2026-08-17"
 ### layout — 1
 - fix: destrava o ratchet ADR 0253 no main (drawers de #2821/#2824) (#2834) 🚀
 
-### licoes — 1 (+22 manutenção)
+### licoes — 1 (+25 manutenção)
 - fix: ledger duplicado e bloco partido — o hook lia 24 entradas de 17 [C] (#5183) 🚀
 
 ### main — 1
@@ -2096,6 +2186,9 @@ generated: "2026-08-17"
 ### projectmgmt — 1 (+1 manutenção)
 - refactor: conformance DS — ds/* 10→0 (status token + rounded-lg + checkbox DS) [CC] (#3404) 🚀
 
+### protocolo — 1 (+2 manutenção)
+- fix: fonte puxada do Design System não tinha onde persistir (#5888) 🚀
+
 ### prototipo+governance — 1
 - fix: máquina de âncora Financeiro — mangle MSYS + âncoras/US/sinais de prod [CC] (#3615) 🚀
 
@@ -2126,6 +2219,9 @@ generated: "2026-08-17"
 ### scope-guard — 1
 - feat: direção contains→árvore ("declarado mas ausente") — advisory [C] (#5527) 🚀
 
+### scorecard — 1
+- fix: n_quarantine era cega a era-sqlite — 25 medidos, 252 reais [BASELINE-ABSORB] (#5853) 🚀
+
 ### seeders — 1
 - security: guard isProduction nos 6 seeders com senha publica (repo aberto) [CC] (#4333) 🚀
 
@@ -2146,9 +2242,6 @@ generated: "2026-08-17"
 
 ### srs — 1 (+6 manutenção)
 - fix: tela branca em /memcofre/memoria — \R sem /u partia o UTF-8 [C] (#5030) 🚀
-
-### superadmin — 1 (+1 manutenção)
-- fix: registra comando superadmin:health no ServiceProvider (#2647) 🚀
 
 ### tamper-guard — 1
 - feat: cobre casos-coverage-baseline (anti-grandfather) (#3251) · `DS` 🚀
@@ -2176,7 +2269,7 @@ generated: "2026-08-17"
 
 ### accounting — 0 (+1 manutenção)
 
-### adr — 0 (+78 manutenção)
+### adr — 0 (+79 manutenção)
 
 ### adr-0296 — 0 (+1 manutenção)
 
@@ -2193,6 +2286,8 @@ generated: "2026-08-17"
 ### automations — 0 (+2 manutenção)
 
 ### autopecas — 0 (+1 manutenção)
+
+### baseline — 0 (+1 manutenção)
 
 ### blueprint — 0 (+1 manutenção)
 
@@ -2311,8 +2406,6 @@ generated: "2026-08-17"
 ### proposal — 0 (+13 manutenção)
 
 ### protocol — 0 (+3 manutenção)
-
-### protocolo — 0 (+2 manutenção)
 
 ### quality — 0 (+1 manutenção)
 
