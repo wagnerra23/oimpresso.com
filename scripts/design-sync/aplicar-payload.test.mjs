@@ -212,4 +212,46 @@ function rodar(dir, pay, args = []) {
 }
 
 console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ applier: fiel/atômico · shell transitivo completo · _ds persistente · recusa escopo/R1/bytes · avisa regressão');
+
+// ── 11: payload CORTADO no transporte (medido 2026-08-19) ───────────────────
+// `sync/payload.json` tem ~3,5 MB e o DesignSync.get_file corta em 256 KiB. Antes da
+// guarda isso morria num "Unterminated string" que nao dizia a causa nem o remedio.
+// Bite dos dois lados: cortado reprova nomeando o teto; inteiro segue passando.
+{
+  const dir = sandbox();
+  const pay = payload(dir, [{ path: 'a.jsx', content: 'conteudo integro' }]);
+  const inteiro = readFileSync(pay, 'utf8');
+  const cortado = join(dir, 'payload-cortado.json');
+  writeFileSync(cortado, inteiro.slice(0, Math.floor(inteiro.length * 0.6)), 'utf8');
+
+  const r = rodar(dir, cortado);
+  check('BITE truncagem: payload cortado reprova nomeando o teto de transporte',
+    r.code === 2 && r.out.includes('payload ilegível') && r.out.includes('256 KiB'), r.out);
+  check('BITE truncagem: a mensagem ENSINA o remedio (aplicar em partes)',
+    r.out.includes('em PARTES') && r.out.includes('p1.json p2.json'), r.out);
+  check('BITE truncagem: nada e escrito quando o payload nao parseia',
+    !existsSync(join(dir, 'prototipo-ui/cowork/a.jsx')), r.out);
+
+  const ok = rodar(dir, pay);
+  check('CONTROLE POSITIVO: payload inteiro continua aplicando',
+    ok.code === 0 && existsSync(join(dir, 'prototipo-ui/cowork/a.jsx')), ok.out);
+}
+
+// ── 12: payload que PARSEIA mas veio incompleto ─────────────────────────────
+// Pior que o cortado: e JSON valido, entao passaria batido e escreveria meio espelho.
+{
+  const dir = sandbox();
+  const pay = payload(dir, [{ path: 'a.jsx', content: 'x' }]);
+  const obj = JSON.parse(readFileSync(pay, 'utf8'));
+  obj.fileCount = obj.files.length + 3;          // declara mais do que traz
+  const mentiroso = join(dir, 'payload-incompleto.json');
+  writeFileSync(mentiroso, JSON.stringify(obj), 'utf8');
+
+  const r = rodar(dir, mentiroso);
+  check('BITE incompleto: fileCount declarado > arquivos trazidos reprova',
+    r.code === 2 && r.out.includes('payload incompleto') && r.out.includes('faltam 3'), r.out);
+  check('BITE incompleto: nao escreve espelho pela metade',
+    !existsSync(join(dir, 'prototipo-ui/cowork/a.jsx')), r.out);
+}
+
 process.exit(fails ? 1 : 0);
