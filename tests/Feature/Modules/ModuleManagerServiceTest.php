@@ -196,15 +196,64 @@ it('UC-MOD-14 · desativar preserva as tabelas: uninstall só derruba a flag', f
         ->and(File::isDirectory($this->modulesDir . '/Alvo/Database/Migrations'))->toBeTrue();
 })->group('modules');
 
-it('UC-MOD-17 · mostra a versão declarada no module.json e cai em 0.0 quando o campo não existe', function () {
+it('UC-MOD-17 - versao vem do module.json quando declarada', function () {
     fakeModule($this->modulesDir, 'ComVersao', ['alias' => 'comversao', 'version' => '2.1.0']);
-    fakeModule($this->modulesDir, 'SemVersao', ['alias' => 'semversao']);
-    File::put($this->statuses, json_encode(['ComVersao' => true, 'SemVersao' => true]));
+    File::put($this->statuses, json_encode(['ComVersao' => true]));
 
-    $byName = collect(($this->svc)()->list())->keyBy('name');
+    $row = collect(($this->svc)()->list())->firstWhere('name', 'ComVersao');
 
-    expect($byName['ComVersao']['version'])->toBe('2.1.0')
-        ->and($byName['SemVersao']['version'])->toBe('0.0');
+    expect($row['version'])->toBe('2.1.0');
+})->group('modules');
+
+it('UC-MOD-17 - sem versao em lugar nenhum, a linha devolve null (a tela mostra "—")', function () {
+    // Antes o fallback era '0.0' -- numero falso em 32 linhas. Decisao D1 [W] 2026-08-20:
+    // sem dado, a coluna diz "—". `null` e o que a tela usa pra distinguir.
+    fakeModule($this->modulesDir, 'SemVersaoNenhuma', ['alias' => 'semversaonenhuma']);
+    File::put($this->statuses, json_encode(['SemVersaoNenhuma' => true]));
+
+    $row = collect(($this->svc)()->list())->firstWhere('name', 'SemVersaoNenhuma');
+
+    expect($row['version'])->toBeNull()
+        ->and($row['version'])->not->toBe('0.0');
+})->group('modules');
+
+it('UC-MOD-17 - versao INSTALADA aparece quando o module.json nao declara', function () {
+    if (! \Illuminate\Support\Facades\Schema::hasTable('system')) {
+        test()->markTestSkipped('tabela `system` ausente nesta base — nao da pra medir');
+    }
+
+    fakeModule($this->modulesDir, 'InstaladoX', ['alias' => 'instaladox']);
+    File::put($this->statuses, json_encode(['InstaladoX' => true]));
+
+    \App\System::updateOrCreate(['key' => 'instaladox_version'], ['value' => '3.7']);
+
+    try {
+        $row = collect(($this->svc)()->list())->firstWhere('name', 'InstaladoX');
+        expect($row['version'])->toBe('3.7');
+    } finally {
+        \App\System::where('key', 'instaladox_version')->delete();
+    }
+})->group('modules');
+
+it('UC-MOD-17 - modulo RENOMEADO acha a versao pela chave do ALIAS', function () {
+    // O caso real: `Forja` nao tem `forja_version`, mas tem `projectmgmt_version` = 0.1, e o
+    // module.json dele documenta essa row como "legacy por compat". Sem o passo do alias o
+    // modulo apareceria sem versao tendo uma -- e o comando de carimbo o rebaixaria pra 1.0.
+    if (! \Illuminate\Support\Facades\Schema::hasTable('system')) {
+        test()->markTestSkipped('tabela `system` ausente nesta base — nao da pra medir');
+    }
+
+    fakeModule($this->modulesDir, 'NomeNovo', ['alias' => 'nomeantigo']);
+    File::put($this->statuses, json_encode(['NomeNovo' => true]));
+
+    \App\System::updateOrCreate(['key' => 'nomeantigo_version'], ['value' => '0.1']);
+
+    try {
+        $row = collect(($this->svc)()->list())->firstWhere('name', 'NomeNovo');
+        expect($row['version'])->toBe('0.1');
+    } finally {
+        \App\System::where('key', 'nomeantigo_version')->delete();
+    }
 })->group('modules');
 
 it('UC-MOD-18 · sinaliza has_datacontroller, que é o que faz o módulo montar item na sidebar', function () {

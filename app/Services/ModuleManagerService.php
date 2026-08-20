@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Throwable;
 
 /**
@@ -147,7 +148,7 @@ class ModuleManagerService
                 $modules[] = [
                     'name'               => $name,
                     'alias'              => $moduleJson['alias']       ?? strtolower($name),
-                    'version'            => (string) ($moduleJson['version'] ?? '0.0'),
+                    'version'            => $this->resolverVersao($name, $moduleJson),
                     'description'        => $moduleJson['description'] ?? '',
                     'area'               => $this->guessArea($name),
                     'active'             => $statuses[$name] ?? false,
@@ -339,6 +340,55 @@ class ModuleManagerService
             $this->statusesFile,
             json_encode($statuses, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "\n"
         );
+    }
+
+    /**
+     * Versao a EXIBIR na linha. Ordem de fonte, da mais especifica pra mais geral:
+     *
+     *   1. `module.json` `version`  — o que o modulo DECLARA de si
+     *   2. `system.<nome>_version`  — o que o INSTALL gravou (a convencao do
+     *      `ModuleUtil::isModuleInstalled`, travada pelo InstallControllerKeyConventionTest)
+     *   3. `system.<alias>_version` — a mesma coisa sob o ALIAS, que e o que salva modulo
+     *      RENOMEADO. Medido 2026-08-20 em producao: `Forja` nao tem `forja_version`, mas tem
+     *      `projectmgmt_version` = 0.1, e o proprio module.json dele documenta essa row como
+     *      "legacy por compat". Sem este passo o modulo aparece sem versao tendo uma.
+     *   4. `null` — a tela mostra "—". NAO existe mais fallback '0.0': as 32 linhas diziam
+     *      v0.0 porque nenhum module.json declara `version`, e numero falso ensina o operador
+     *      a ignorar a coluna (decisao D1 [W], 2026-08-20).
+     *
+     * ⚠️ NAO confundir com `system.project_version` = 2.1, que e do modulo "Project" ORIGINAL
+     * do UltimatePOS — outro modulo, nao o Forja. A busca por alias evita justamente esse
+     * tipo de atribuicao errada.
+     *
+     * A tabela `system` pode nao existir (base de teste sem schema): nesse caso a versao
+     * instalada e INDISPONIVEL, nao ausente — o metodo devolve o que tiver de declarado.
+     */
+    protected function resolverVersao(string $name, array $moduleJson): ?string
+    {
+        $declarada = $moduleJson['version'] ?? null;
+        if (is_string($declarada) && $declarada !== '') {
+            return $declarada;
+        }
+
+        if (! Schema::hasTable('system')) {
+            return null;
+        }
+
+        $chaves = [strtolower($name) . '_version'];
+
+        $alias = $moduleJson['alias'] ?? null;
+        if (is_string($alias) && $alias !== '' && strtolower($alias) !== strtolower($name)) {
+            $chaves[] = strtolower($alias) . '_version';
+        }
+
+        foreach ($chaves as $chave) {
+            $instalada = \App\System::getProperty($chave);
+            if (is_string($instalada) && $instalada !== '') {
+                return $instalada;
+            }
+        }
+
+        return null;
     }
 
     protected function guessArea(string $name): string

@@ -235,13 +235,28 @@ last_run: "2026-08-19"
 
 ---
 
-## UC-MOD-17 · A versão exibida é a declarada, não um default · `should`
+## UC-MOD-17 · A versão exibida é real, ou é "—" · `should`
 
-- **Aceite:** Dado um módulo com `version` no `module.json` e outro sem · Então o primeiro mostra a
-  versão declarada e o segundo cai no fallback `0.0`.
-- **Por que importa:** hoje **0 de 32** `module.json` declaram o campo (medido 2026-08-19), então as 32
-  linhas dizem `v0.0` — ruído que ensina a ignorar a coluna. É a decisão **D1**.
-- **Teste:** `tests/Feature/Modules/ModuleManagerServiceTest.php`
+- **Aceite (cadeia de fonte, da mais específica pra mais geral):** `module.json` `version` →
+  `system.<nome>_version` (o que o install gravou) → `system.<alias>_version` (o que salva módulo
+  **renomeado**) → `null`, e aí a tela mostra **"—"**.
+- **Decisão D1 [W] 2026-08-20 — opção (a), ler a versão instalada.** Antes as 32 linhas diziam
+  `v0.0`: nenhum `module.json` declara `version` e o Service caía num fallback fixo. Número falso
+  ensina o operador a ignorar a coluna, então **o fallback `'0.0'` saiu**.
+- **Medido em produção (2026-08-20):** a tabela `system` tem versão instalada para **30 dos 32**
+  módulos — `superadmin` 4.0, `repair` 2.0, `essentials` 4.0, `manufacturing` 3.1, `jana` 0.7… O dado
+  existia; a tela é que olhava para o lugar errado.
+- **O passo do alias não é enfeite.** O `Forja` não tem `forja_version`, mas tem
+  `projectmgmt_version` = 0.1 — e o `module.json` dele documenta essa row como *"legacy por compat"*
+  desde o rename de 2026-07-30. Sem esse passo ele apareceria sem versão tendo uma, e o comando de
+  carimbo o rebaixaria para 1.0.
+- ⚠️ **Não confundir com `system.project_version` = 2.1**: é do módulo "Project" original do
+  UltimatePOS, outro módulo. A busca por alias evita exatamente esse tipo de atribuição errada.
+- **Os 2 sem versão em lugar nenhum** (`compras`, `vozdocliente`) recebem `1.0` pelo comando
+  idempotente `modulos:versao-inicial` — nunca por escrita ad-hoc no banco. Simulado contra produção:
+  criaria exatamente esses 2.
+- **Teste:** `tests/Feature/Modules/ModuleManagerServiceTest.php` — 4 casos: declarada · ausente
+  (devolve `null`, não `'0.0'`) · instalada · **renomeada via alias**.
 - **Status: 🧪**
 
 ---
