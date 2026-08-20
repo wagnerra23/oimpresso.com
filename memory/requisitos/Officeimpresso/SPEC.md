@@ -121,8 +121,8 @@ Bridge legacy entre o ERP Delphi histórico **WR Comercial / WR Sistemas (Office
 > | # | Blade | Rota | Page alvo | Padrão de Tela | F1 PLAN |
 > |---|---|---|---|---|---|
 > | 3 | `licenca_computador/index.blade.php` | `/officeimpresso/licenca_computador` | `Officeimpresso/Licencas/Index` | PT-01 Lista | [RUNBOOK-licencas.md](RUNBOOK-licencas.md) |
-> | 4 | `licenca_computador/computadores.blade.php` | `/officeimpresso/computadores` | `Officeimpresso/Empresa/Show` | PT-03 Detalhe | [RUNBOOK-empresa.md](RUNBOOK-empresa.md) |
-> | 5 | `licenca_computador/businessall.blade.php` | `/officeimpresso/businessall` | `Officeimpresso/Empresas/Index` | PT-01 Lista | [RUNBOOK-empresas.md](RUNBOOK-empresas.md) |
+> | 4 | `licenca_computador/computadores.blade.php` | `/officeimpresso/computadores` | `Officeimpresso/Empresa/Show` | PT-03 Detalhe | `RUNBOOK-empresa.md` (chega no PR da tela #4) |
+> | 5 | `licenca_computador/businessall.blade.php` | `/officeimpresso/businessall` | `Officeimpresso/Empresas/Index` | PT-01 Lista | `RUNBOOK-empresas.md` (chega no PR da tela #5) |
 >
 > **F1 PLAN (feita):** um RUNBOOK de 11 seções por tela + um `-parity.md` por tela. Não são US: são
 > os artefatos que a [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) exige

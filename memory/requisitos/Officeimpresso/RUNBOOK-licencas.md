@@ -18,8 +18,8 @@ related:
 # RUNBOOK — Officeimpresso `Licencas/Index` (Onda 2, tela 3/14)
 
 > **Escopo:** a tela **#3** do [RUNBOOK-migracao-react.md](RUNBOOK-migracao-react.md) — primeira das
-> 3 telas P1 da Onda 2. As outras duas têm RUNBOOK próprio: [RUNBOOK-empresa.md](RUNBOOK-empresa.md)
-> (#4) e [RUNBOOK-empresas.md](RUNBOOK-empresas.md) (#5).
+> 3 telas P1 da Onda 2. As outras duas têm RUNBOOK próprio: `RUNBOOK-empresa.md` (chega no PR da tela #4)
+> (#4) e `RUNBOOK-empresas.md` (chega no PR da tela #5) (#5).
 > Artefato **F1 PLAN** que a [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) exige
 > e que o hook [`block-mwart-violation.mjs`](../../../.claude/hooks/block-mwart-violation.mjs) procura
 > — ele resolve pelo **kebab do subdir** (`Licencas/` → `RUNBOOK-licencas.md`), não pelo filename
