@@ -114,8 +114,27 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          git fetch --no-tags --depth=100 origin "$BASE_SHA"
-          node scripts/governance/ui-impact.mjs --base="$BASE_SHA" --head=HEAD --github-output="$GITHUB_OUTPUT"
+          # O `actions/checkout` faz checkout do MERGE REF (refs/pull/N/merge), não do head do
+          # PR — o log dele diz "Merge <head> into <tip de main NAQUELE momento>". Já o
+          # `pull_request.base.sha` é o tip de main de quando o PR foi ABERTO. Diferenciar um
+          # contra o outro traz junto tudo que entrou em main no meio, e o classificador acusa
+          # como "tela afetada" arquivo de PR alheio: quanto mais tempo o PR fica aberto, mais
+          # telas fantasma. (Medido 2026-08-19 no PR #5983: `changed_files: 7` no CI contra 1
+          # arquivo real; o impactado era um BusinessController de OUTRO PR, e o gate cobrou
+          # baseline de `superadmin/Negocios`, tela que o PR não tocava.)
+          #
+          # Num merge ref, o que o PR muda é exatamente HEAD^1..HEAD — o 1º pai É o tip de main
+          # que o próprio merge usou. Imune a main andar. Se não for merge commit (checkout
+          # configurado com `ref:` explícito), cai no BASE_SHA de antes.
+          if [ "$(git rev-list --count --no-walk --merges HEAD)" = "1" ]; then
+            DIFF_BASE="$(git rev-parse HEAD^1)"
+            echo "merge ref detectado — base = HEAD^1 ($DIFF_BASE), o tip de main que o merge usou"
+          else
+            DIFF_BASE="$BASE_SHA"
+            echo "HEAD não é merge commit — base = pull_request.base.sha ($DIFF_BASE)"
+            git fetch --no-tags --depth=100 origin "$DIFF_BASE"
+          fi
+          node scripts/governance/ui-impact.mjs --base="$DIFF_BASE" --head=HEAD --github-output="$GITHUB_OUTPUT"
 
       # Fonte única do "roda o pesado?": dispatch = sempre true (modo update);
       # pull_request = decisão estruturada do ui-impact.mjs.
