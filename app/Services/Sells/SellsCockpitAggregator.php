@@ -21,6 +21,24 @@ use Illuminate\Support\Facades\DB;
 class SellsCockpitAggregator
 {
     /**
+     * Recorte do "Churn ouro" — clientes de maior LTV que pararam de comprar.
+     *
+     * DIVERGÊNCIA DELIBERADA vs o protótipo (`prototipo-ui/cowork/jana-merge.jsx`
+     * :648), e ela é o ponto: lá o recorte é `LTV > R$ 50.000` — piso ABSOLUTO,
+     * herdado do tenant onde o protótipo foi desenhado (mecânica pesada, ticket
+     * alto). Aplicado à ROTA LIVRE (vestuário, biz=4) esse piso devolveria lista
+     * vazia todo dia, e card que nunca tem linha é indistinguível de card
+     * quebrado.
+     *
+     * Aqui o recorte é RELATIVO: os N maiores LTV ENTRE os inativos. Funciona em
+     * qualquer vertical sem número mágico por tenant, e é exatamente o que o
+     * `JanaDrillDrawer` declara ao usuário em "De onde vem esse número".
+     */
+    private const CHURN_DIAS_INATIVO = 90;
+
+    private const CHURN_TOP_N = 5;
+
+    /**
      * KPIs counters da grade Sells (Total / Paga / Pendente / Parcial / Estourada).
      *
      * Origem: extraído verbatim de SellController@index linhas 649-665.
@@ -299,6 +317,41 @@ class SellsCockpitAggregator
             'total' => (float) $r->total,
         ])->values()->all();
 
+        // Churn ouro — os maiores LTV entre quem parou de comprar.
+        //
+        // `join` (INNER) e não `leftJoin` de propósito: venda sem cliente
+        // identificado vira "Cliente padrão" no card de concentração, onde ele
+        // ainda informa. Aqui não — o card existe pra alguém LIGAR pro cliente,
+        // e um balde anônimo não é acionável. Mesma razão do filtro de nome
+        // vazio: linha sem nome não vira telefonema.
+        $churnRaw = (clone $base)
+            ->join('contacts', 'contacts.id', '=', 'transactions.contact_id')
+            // Defesa em profundidade (cabeçalho desta classe): a venda já é do tenant,
+            // mas se um `contact_id` apontasse pra contato de OUTRO business — dado
+            // corrompido — o nome dele apareceria aqui. Vazar nome é pior que perder
+            // linha, então o filtro exclui. Tier 0, ADR 0093.
+            ->where('contacts.business_id', $businessId)
+            ->whereRaw("TRIM(COALESCE(contacts.supplier_business_name, contacts.name, '')) <> ''")
+            ->selectRaw(
+                "contacts.id as contact_id,
+                 COALESCE(NULLIF(TRIM(contacts.supplier_business_name), ''), contacts.name) as name,
+                 SUM(transactions.final_total) as ltv,
+                 MAX(transactions.transaction_date) as ultima_compra,
+                 DATEDIFF(CURDATE(), MAX(transactions.transaction_date)) as dias_inativo"
+            )
+            ->groupBy('contacts.id', 'contacts.name', 'contacts.supplier_business_name')
+            ->havingRaw('DATEDIFF(CURDATE(), MAX(transactions.transaction_date)) > ?', [self::CHURN_DIAS_INATIVO])
+            ->orderByDesc('ltv')
+            ->limit(self::CHURN_TOP_N)
+            ->get();
+
+        $churnOuro = $churnRaw->map(fn ($r) => [
+            'name'         => (string) $r->name,
+            'ltv'          => (float) $r->ltv,
+            'diasInativo'  => (int) $r->dias_inativo,
+            'ultimaCompra' => $r->ultima_compra ? Carbon::parse($r->ultima_compra)->toDateString() : null,
+        ])->values()->all();
+
         // Ticket médio + total a receber.
         $aggregates = (clone $base)
             ->selectRaw('COUNT(*) as c, SUM(final_total) as s, SUM(CASE WHEN payment_status != \'paid\' THEN final_total ELSE 0 END) as a_receber')
@@ -316,6 +369,7 @@ class SellsCockpitAggregator
             'topDevedor'     => $topDevedor,
             'ticketMedio'    => $ticketMedio,
             'totalAReceber'  => $totalAReceber,
+            'churnOuro'      => $churnOuro,
         ];
     }
 }

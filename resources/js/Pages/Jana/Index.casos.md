@@ -293,6 +293,52 @@ escrita). O que morde é a FORMA do botão morto (`title={\`${a.cta.label}…\`}
 `cta: { label: '` batendo com `count(ACOES)`. As outras três são de RUNTIME porque o defeito que
 importa é de comportamento — prévia forjada e vazamento de tenant não se veem no `.tsx`._
 
+## UC-COPI-PAINEL-13 — Churn ouro: o recorte é RELATIVO, porque o piso do protótipo é premissa de outro tenant
+Status: 🧪 (`PainelContratoTest` — 2 `it()`: 1 de runtime com controle negativo + 1 estrutural sobre TODAS as fontes do drill; aguarda run verde **e** o screenshot F1.5)
+
+Quinta análise do Painel, e a primeira depois das quatro que nasceram juntas. Mostra os **5
+clientes de maior valor acumulado entre os que não compram há mais de 90 dias** — a lista pra
+quem alguém deveria ligar hoje.
+
+Âncora: `prototipo-ui/cowork/jana-merge.jsx` §`JmDrillDrawer` (`grep -n "churn:" prototipo-ui/cowork/jana-merge.jsx`
+→ :559 o toggle, :648 a fonte).
+
+**A divergência vs a âncora é o ponto do caso, pela quarta vez — e agora no eixo do RECORTE.** O
+protótipo define churn ouro como `LTV > R$ 50.000`: um **piso absoluto em reais**. Esse número não
+é errado — ele é **de outro tenant**. O protótipo foi desenhado sobre o movimento do Martinho
+(`biz=164`, mecânica pesada de caminhão: ticket alto, poucos clientes). Aplicado à ROTA LIVRE
+(`biz=4`, vestuário) o mesmo piso devolveria lista vazia todos os dias, e **card que nunca tem
+linha é indistinguível de card quebrado** — o usuário não sabe se ninguém sumiu ou se a tela
+parou. Importar o número seria a lápide §5 2026-07-16 em letra: *"que premissa do modelo DELES
+sustenta essa solução, e ela vale AQUI?"*.
+
+O recorte aqui é **relativo**: os 5 maiores LTV **entre** os inativos, sem piso. Funciona em
+qualquer vertical sem número mágico por tenant, e é exatamente o que o `JanaDrillDrawer` diz ao
+usuário em "De onde vem esse número" — sem prometer uma `AnaliseChurnService` que não existe.
+
+**Venda sem cliente identificado fica de fora, e isso também é decisão.** No card de concentração
+(UC anterior) o balde `Cliente padrão` informa — ele mostra quanto da receita não tem nome. Aqui
+não: a lista existe pra **alguém ligar**, e balde anônimo não vira telefonema. Por isso o `join` é
+INNER e o nome vazio é filtrado no SQL.
+
+**Pronto quando:** um cliente parado há 200 dias aparece; um cliente que comprou ontem **não**
+aparece nem valendo 5× mais (é o controle negativo — sem ele, um bug que ignorasse a data passaria
+verde e o card viraria "top clientes" com outro título); `ltv`, `diasInativo` e `ultimaCompra` são
+medidos, não estimados; o recorte é do tenant pedido e de mais nenhum (ADR 0093); e **todo**
+`metodo:` declarado pelo drill drawer existe de fato no aggregator.
+
+⚠️ **O gate de pixel não defende este caso — pela mesma razão medida no UC-12.** O
+`VisregTenantSeeder` semeia zero `transactions`; sem venda não há inativo, o card renderiza o
+empty state e o pixel-diff fica verde e cego. As asserções são de runtime + estrutura, não "o
+screenshot bateu".
+
+_Por que a 2ª asserção varre TODAS as fontes e não só a do churn: o defeito que o
+`JanaDrillDrawer` existe pra evitar é de CLASSE — "o drawer promete um método que não existe" —, e
+travar só a instância de hoje deixaria a próxima entrar igual. `method_exists` sobre a classe real
+é comportamento, não presença de string: um `metodo:` bem escrito apontando pra nome inventado
+reprova. Tem controle positivo (`expect($m[1])->not->toBeEmpty()`) porque regex que para de casar
+devolveria lista vazia e o caso viraria carimbo — lápide §5 2026-08-01._
+
 ## Nota do conserto do UC-COPI-PAINEL-08 (2026-08-17)
 
 `_components/JanaCockpitSkeleton.tsx` (novo, ancorado em `jana-merge.jsx` §`JmPainelSkeleton`) +

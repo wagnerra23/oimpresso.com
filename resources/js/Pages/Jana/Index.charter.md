@@ -64,7 +64,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   **conferem**. Ficam como símbolo, não linha, porque o número é que é frágil, não a citação._
 
 - **Configurar (v8 — 2026-08-17):** a ação "Configurar" do `JanaAreaHeader` abre
-  `_components/JanaConfigDrawer.tsx` — quais das 4 análises aparecem no painel, persistido em
+  `_components/JanaConfigDrawer.tsx` — quais das 5 análises aparecem no painel, persistido em
   `localStorage['oimpresso.jana.cfg']` (prefixo `oimpresso.jana.*`, canon do `Chat.charter.md`).
   Âncora: `jana-merge.jsx` §`JmConfigDrawer` — âncora de SÍMBOLO
   (`grep -n "JmConfigDrawer" prototipo-ui/cowork/jana-merge.jsx`).
@@ -143,7 +143,8 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   vale pra empresa toda aponta pro dono server-side que já existe (`PATCH /ia/alertas/config` →
   `business.essentials_settings.alertas`, per-business), em vez de ganhar um segundo dono.
   _Guard: `UC-COPI-PAINEL-10` conta os `<Switch` do drawer (2: análises + HITL travado) e as
-  entradas de `JANA_ANALISES` (4) — toggle novo derruba o caso. A asserção é estrutural de
+  entradas de `JANA_ANALISES` (5, desde o churn ouro do UC-13) — toggle novo derruba o caso.
+  A asserção é estrutural de
   propósito: buscar a palavra "Frota" proibiria o próprio comentário que registra a decisão
   (§5 2026-07-26)._
 - ⛔ **Projetar o fechamento de meta no frontend.** É o §Anti-hooks do farol no eixo da PROJEÇÃO,
@@ -257,7 +258,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 
   **O drawer é menor que a âncora, e isso é o conteúdo da decisão** — as 4 promessas do
   `JmConfigDrawer` que o servidor não honra ficaram de fora, com a medição registrada no anti-hook
-  novo acima. Sobrou o que é verdade e é local: quais das 4 análises aparecem no painel, persistido
+  novo acima. Sobrou o que é verdade e é local: quais das 5 análises aparecem no painel, persistido
   sob o prefixo canon `oimpresso.jana.*`.
 
   **Uma correção de fato, no mesmo PR (regra de precedência):** este charter e o `casos.md` diziam

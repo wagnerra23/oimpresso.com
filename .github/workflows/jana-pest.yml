@@ -49,6 +49,12 @@ on:
       # terceiro caso do mesmo gate mudo que as duas notas acima já corrigiram
       # (lápide §5 2026-08-02 — "inclua o arquivo SOB TESTE no trigger").
       - 'resources/js/Pages/Jana/**'
+      # O aggregator é a FONTE dos números do Painel — o UC-13 (churn ouro) o
+      # exercita de verdade (semeia venda, chama buildInsightsAggregates) e ainda
+      # prova que todo `metodo:` prometido pelo JanaDrillDrawer existe nele. Sem
+      # esta linha, mexer no aggregator NÃO roda o teste que o defende: o quarto
+      # caso do mesmo gate mudo que as três notas acima já corrigiram.
+      - 'app/Services/Sells/SellsCockpitAggregator.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/jana-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
