@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Util\HtmlSanitizer;
 use App\Utils\NotificationUtil;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -52,11 +53,13 @@ class SupplierNotification extends Notification
     public function toMail($notifiable)
     {
         $data = $this->notificationInfo;
+        // P4 — mesma razão da CustomerNotification: sanitiza na SAÍDA, no ponto onde os
+        // 4 produtores de e-mail convergem. Ver o comentário longo lá.
         $mail = (new MailMessage)
                     ->subject($data['subject'])
                     ->view(
                         'emails.plain_html',
-                        ['content' => $data['email_body']]
+                        ['content' => HtmlSanitizer::clean($data['email_body'] ?? '')]
                     );
         if (! empty($this->cc)) {
             $mail->cc($this->cc);

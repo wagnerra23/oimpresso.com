@@ -51,7 +51,7 @@ last_run: "2026-08-19"
 | UC-MOD-03 | Visitante sem sessão é barrado nas quatro rotas | must `[sec]` | `ModuleManagementTest` | 🧪 |
 | UC-MOD-04 | Só quem tem `manage_modules` entra — papel de negócio não basta | must `[sec]` | `ModuleManagementTest` | 🧪 |
 | UC-MOD-05 | Ordem das linhas: ativos → área → nome | should | `ModuleManagerServiceTest` | 🧪 |
-| UC-MOD-06 | Chave no JSON sem pasta não vira linha | must | `ModuleManagementTest` | ❌ |
+| UC-MOD-06 | Toda chave do statuses tem pasta, e toda pasta vira linha | must | `ModuleManagementTest` | 🧪 |
 | UC-MOD-07 | Pasta sem chave no JSON aparece como "Não registrado" | must | `ModuleManagerServiceTest` | 🧪 |
 | UC-MOD-11 | Toggle grava o JSON sem corromper as outras chaves | must `[T0]` | `ModuleManagerServiceTest` | 🧪 |
 | UC-MOD-12 | Instalar exige módulo existente e não altera o JSON quando recusa | must | `ModuleManagerServiceTest` | 🧪 |
@@ -63,7 +63,8 @@ last_run: "2026-08-19"
 | UC-MOD-19 | A contagem de migrations da linha é real | should | `ModuleManagerServiceTest` | 🧪 |
 | UC-MOD-20 | Módulo quebrado aparece "Com erro" em vez de silenciosamente OK | should | `ModuleManagerServiceTest` | 🧪 |
 
-> Os ids 08, 09, 10 e 16 estão **reservados** para os `[BACKLOG]` do fim deste arquivo — não reutilizar.
+> Os ids 10 e 16 seguem **reservados** para os `[BACKLOG]` do fim deste arquivo — não reutilizar.
+> (08 e 09 saíram do backlog em 2026-08-19, com a MOD-O5.)
 
 ---
 
@@ -130,15 +131,22 @@ last_run: "2026-08-19"
 
 ---
 
-## UC-MOD-06 · [ACHADO] Chave órfã no JSON não vira linha, e ninguém avisa · `must`
+## UC-MOD-06 · Toda chave do statuses tem pasta, e toda pasta vira linha · `must`
 
-- **Aceite:** Dado `modules_statuses.json` com chave sem pasta correspondente em `Modules/` · Quando a
-  tela lista · Então essa chave **não** aparece — a lista é varredura de pastas, não de chaves.
-- **Estado atual (defeito):** são **6** hoje (Accounting, CustomDashboard, Ecommerce, FieldForce, Hms,
-  InboxReport — 38 chaves contra 32 pastas, medido 2026-08-19) e a tela é silenciosa sobre elas.
-- **Regressão que defende:** mostrar módulo sem código produz botão Instalar que só pode falhar.
-- **Teste:** `tests/Feature/Modules/ModuleManagementTest.php`
-- **Status: ❌** — decisão [W] (patch P8): limpar o JSON, ou a tela dizer "no registro, sem código".
+- **Aceite (dois sentidos):** Dado o `modules_statuses.json` · Então **nenhuma** chave é órfã (sem
+  pasta em `Modules/`) · E **toda** pasta aparece como linha na tela — nenhuma some do inventário.
+- **Era ACHADO até 2026-08-19 (P8).** Havia **6 chaves órfãs** — Accounting, CustomDashboard,
+  Ecommerce, FieldForce, Hms, InboxReport — e **5 delas marcadas `true`**: módulo inexistente
+  "habilitado". Ruído de merge que a tela não mostrava e ninguém via.
+- **Removidas.** Verificado antes que a remoção é **inerte** para os 4 consumidores do arquivo: o
+  file activator do nWidart (`config/modules.php:269`) consulta por módulo descoberto no disco; o
+  `LegacyMenuAdapter` pula com `if (!file_exists($path)) continue`; o `ModuleSpecGenerator` busca por
+  nome; e o `ModuleManagerService` lista pastas, não chaves.
+- **Efeito colateral desejável:** se algum desses módulos voltar a existir, ele nasce **Não
+  registrado** em vez de já-ativo — que é o estado honesto para pasta sem decisão registrada.
+- **Teste:** `tests/Feature/Modules/ModuleManagementTest.php` — a asserção inverteu junto: antes
+  exigia que houvesse órfãs (caracterização), agora exige que não haja (invariante).
+- **Status: 🧪**
 
 ---
 
@@ -148,6 +156,29 @@ last_run: "2026-08-19"
   e o status derivado é **Não registrado** — não "Inativo". São estados diferentes: um é decisão, o
   outro é lacuna de registro.
 - **Teste:** `tests/Feature/Modules/ModuleManagerServiceTest.php`
+- **Status: 🧪**
+
+---
+
+## UC-MOD-08 · Filtro e busca se combinam · `should`
+
+- **Aceite:** Dado filtros e termo aplicados juntos · Então a lista é a **interseção**, nunca a união ·
+  E o contador diz o recorte (`1 de 3 módulos`), não o total.
+- **Saiu do `[BACKLOG]` em 2026-08-19 (MOD-O5).** Estava lá porque nenhum teste citava o id — o
+  contrato de tela trava a **copy** do bloco, não o comportamento. O teste jsdom é a perna que faltava.
+- **Teste:** `tests/modulos-filtros-busca.test.tsx`
+- **Status: 🧪**
+
+---
+
+## UC-MOD-09 · Busca casa nome, alias, descrição e área · `should`
+
+- **Aceite:** Dado o termo `oficina-auto` · Então casa pelo **alias**, que difere do nome
+  (`OficinaAuto`) · E `ordens de serviço` casa pela **descrição** · E `operações` casa pela **área**,
+  trazendo os dois módulos dela. Debounce de 300 ms.
+- **Controle negativo incluído:** termo que não casa nada deixa a lista vazia — sem ele, um filtro
+  que não filtrasse passaria em todos os casos acima.
+- **Teste:** `tests/modulos-filtros-busca.test.tsx`
 - **Status: 🧪**
 
 ---
@@ -222,13 +253,29 @@ last_run: "2026-08-19"
 
 ---
 
-## UC-MOD-18 · Módulo sem DataController é identificável · `should`
+## UC-MOD-18 · Módulo ativo sem DataController é sinalizado na tela · `should`
 
 - **Aceite:** Dado um módulo com `Http/Controllers/DataController.php` e outro sem · Então
-  `has_datacontroller` distingue os dois.
+  `has_datacontroller` distingue os dois **e a linha do que não tem exibe "sem menu"**, com título
+  explicando a consequência. Módulo **inativo** sem DataController **não** é marcado — inativo já não
+  monta menu, o aviso seria ruído. **O marcador é badge tokenizado**, não texto solto: reusa
+  `STATUS_STYLE.unregistered` (mesmos tokens do badge "Não registrado"), porque o charter é
+  explícito — *"estado de cada módulo legível por badge tokenizado, nunca por texto solto"*.
 - **Por que importa:** o `DataController` é quem monta o item na sidebar — "instalei e não apareceu no
-  menu" é o sintoma clássico. Hoje o campo chega na prop e a tela **não o renderiza** (patch P3).
-- **Teste:** `tests/Feature/Modules/ModuleManagerServiceTest.php`
+  menu" é o sintoma clássico, documentado na skill `criar-modulo`. O campo chegava na prop e a tela o
+  ignorava (corrigido pelo P3 em 2026-08-19).
+- **Duas provas, porque uma não bastava:** o Pest de serviço prova que o campo é **computado** certo;
+  ele não alcança o que a tela **renderiza** — e o defeito era exatamente esse. O caso do render vive
+  em jsdom.
+- ⚠️ **Sem smoke visual possível:** medido 2026-08-19, **32 de 32** módulos têm DataController, então o
+  marcador nasce escuro em produção. Não há linha real para fotografar; o caso só existe em fixture.
+  Isso é dado, não desculpa — quando algum módulo quebrar, a tela passa a dizer.
+- ⚠️ **Divergência deliberada do protótipo:** `prototipo-ui/cowork/modulos-page.jsx` **não** tem este
+  marcador. Produção fica à frente do desenho aqui. O espelho é build-only (não se edita deste lado —
+  ADR 0374), então incorporar isso ao protótipo é ação no Cowork vivo, decisão [W].
+- **Testes:** `tests/Feature/Modules/ModuleManagerServiceTest.php` (campo computado) ·
+  `tests/modulos-sem-menu.test.tsx` (render, 3 casos + 2 controles negativos; bite-test feito —
+  removendo o marcador, 3 falham e os 2 controles seguem verdes).
 - **Status: 🧪**
 
 ---
@@ -262,15 +309,9 @@ last_run: "2026-08-19"
 ## [BACKLOG] — contrato de tela, ainda sem teste que os cite
 
 > Prosa honesta pré-teste (o canon permite bullet `[BACKLOG]` sem id). Viram UC-MOD-08/09/10/16 quando
-> a **MOD-O5** landar `prototipo-ui/contrato/modulos.contract.json` com check no CI — os ids estão
-> reservados. Texto preservado do contrato [CC].
+> produção alcançar o desenho — os ids seguem reservados. Texto preservado do contrato [CC].
+> (08 e 09 saíram daqui na MOD-O5, quando ganharam teste que os cita.)
 
-- **[BACKLOG] Filtros combinam (reservado UC-MOD-08):** área "Operações" + status "Ativo" + busca "rep"
-  ⇒ interseção dos três; contador "N de 32 módulos"; cada filtro com chip removível; "limpar tudo". As
-  opções de área são as áreas presentes, com contador.
-- **[BACKLOG] Busca de 4 campos (reservado UC-MOD-09):** `oficina` casa `OficinaAuto` por nome **e** por
-  alias (`oficina-auto`); `m²` casa `ComunicacaoVisual` pela descrição; `financeiro` casa por área.
-  Debounce 300 ms; `/` foca o campo; `Esc` limpa.
 - **[BACKLOG] Vazio com motivo (reservado UC-MOD-10):** filtro sem resultado diz **o motivo** (termo +
   filtros ativos) e oferece "Limpar busca e filtros" — nunca uma linha muda de tabela.
 - **[BACKLOG] Detalhe em drawer (reservado UC-MOD-16):** clique na linha abre painel lateral (PT-02) com

@@ -34,6 +34,14 @@ beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
         $this->markTestSkipped('Requer User do schema UltimatePOS (lane MySQL — CT 100/CI)');
     }
+
+    // "nao consegui medir" != "medi e falhou". Sem a tabela `users` o teste explodia com
+    // QueryException e reportava 8 FALHAS — alegando defeito onde havia so ausencia de
+    // ambiente (o banco do CT 100 foi zerado por outra sessao em 2026-08-19). O CI provisiona
+    // o schema, entao la ele RODA; aqui ele diz o que houve em vez de mentir vermelho.
+    if (! \Illuminate\Support\Facades\Schema::hasTable('users')) {
+        $this->markTestSkipped('Schema UltimatePOS ausente nesta base — nao da pra medir (CI provisiona)');
+    }
 });
 
 function moduloUser(int $businessId = BIZ_MOD_TESTE): \App\User
@@ -189,29 +197,33 @@ it('UC-MOD-04 - quem TEM manage_modules entra: uma lei so, a mesma do menu e do 
     }
 })->group('modules');
 
-it('UC-MOD-06 · [ACHADO] chave do statuses sem pasta não vira linha, e a tela é silenciosa', function () {
+it('UC-MOD-06 - toda chave do statuses tem pasta, e toda pasta vira linha', function () {
+    // Era ACHADO ate 2026-08-19 (P8): o statuses tinha 6 chaves sem pasta em Modules/
+    // (Accounting, CustomDashboard, Ecommerce, FieldForce, Hms, InboxReport), 5 delas
+    // marcadas `true` -- modulo inexistente "habilitado". Ruido de merge que a tela nao
+    // mostrava e ninguem via. Removidas; agora a invariante e travada nos DOIS sentidos.
     session(['user.business_id' => BIZ_MOD_TESTE, 'business.id' => BIZ_MOD_TESTE]);
 
     $user = moduloUser();
     $limpa = concedeManageModules($user);
     $response = $this->actingAs($user)->get('/modulos');
     $limpa();
-    $modules = modulosProps($response)['modules'];
 
-    $nomesNaTela = collect($modules)->pluck('name')->all();
+    $nomesNaTela = collect(modulosProps($response)['modules'])->pluck('name')->all();
     $chavesNoJson = array_keys(json_decode(file_get_contents(base_path('modules_statuses.json')), true));
 
+    // (a) nenhuma chave orfa: chave sem pasta e ruido que so pode confundir
     $orfas = array_values(array_diff($chavesNoJson, $nomesNaTela));
+    expect($orfas)->toBeEmpty(
+        'chave no statuses sem pasta em Modules/: ' . implode(', ', $orfas)
+        . ' -- ou o modulo foi removido sem limpar a chave, ou a chave nasceu errada (P8)'
+    );
 
-    // Nenhuma órfã pode ter pasta (isso seria regressão da R2 — pasta some da lista).
-    foreach ($orfas as $orfa) {
-        expect(is_dir(base_path("Modules/{$orfa}")))->toBeFalse(
-            "'{$orfa}' tem pasta e ficou fora da lista — regressão de R2."
-        );
-    }
-
-    // Caracterização do achado: hoje existem órfãs e nada na tela as comunica.
-    expect($orfas)->not->toBeEmpty('se zerou, o statuses foi limpo (patch P8) — atualize o UC-MOD-06');
+    // (b) R2 no outro sentido: toda pasta aparece na lista (nenhuma some do inventario)
+    $pastas = collect(glob(base_path('Modules/*'), GLOB_ONLYDIR))->map(fn ($d) => basename($d))->all();
+    expect(array_values(array_diff($pastas, $nomesNaTela)))->toBeEmpty(
+        'pasta em Modules/ que nao virou linha na tela -- regressao de R2'
+    );
 })->group('modules');
 
 it('UC-MOD-11 · alternar sem informar o estado desejado é recusado com 422', function () {
