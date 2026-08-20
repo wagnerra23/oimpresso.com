@@ -752,6 +752,12 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
 
     Route::resource('selling-price-group', SellingPriceGroupController::class);
 
+    // P6 — "Enviar teste pra mim". O destino é SEMPRE o e-mail do usuário logado; a rota
+    // não aceita destinatário do request (seria relay aberto). throttle:6,1 limita a 6 por
+    // minuto por usuário, que é folgado pra conferir um texto e apertado pra abuso.
+    Route::post('notification-templates/test', [NotificationTemplateController::class, 'test'])
+        ->middleware('throttle:6,1')
+        ->name('notification-templates.test');
     Route::resource('notification-templates', NotificationTemplateController::class)->only(['index', 'store']);
     Route::get('notification/get-template/{transaction_id}/{template_for}', [NotificationController::class, 'getTemplate']);
     Route::post('notification/send', [NotificationController::class, 'send']);
