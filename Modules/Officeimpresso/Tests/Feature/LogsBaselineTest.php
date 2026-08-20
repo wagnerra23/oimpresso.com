@@ -341,6 +341,105 @@ it('UC-TL-10 · a flag ON NÃO afrouxa a guarda da timeline', function () {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// F4 — os itens `alta` do logs-parity.md que ainda não tinham teste de comportamento.
+// Cada um cita o id do UC no título (G-2) e QUEBRA se o campo/regra sumir.
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('UC-LOGS-11 · quem tem officeimpresso.access enxerga máquina de OUTRA empresa (cross-empresa é POR DESIGN)', function () {
+    $casa = $this->seededTenant();
+    $cliente = $this->seededSupportClientTenant();
+    $user = actingAsOiLeitor($this, $casa->id);
+
+    $minha = criaMaquinaOi($this, $casa->id, ['user_win' => $this->oiMarcador . '-CASA']);
+    $doCliente = criaMaquinaOi($this, $cliente->id, ['user_win' => $this->oiMarcador . '-CLIENTE']);
+
+    // Tier 0, e o sentido aqui é o INVERSO do usual: a WR2 é a FORNECEDORA do desktop
+    // e os licenciados são outros businesses, então o suporte PRECISA ver a máquina do
+    // cliente (docblock de `podeVerTodasEmpresas()`, relato do Luiz em 29/07). Este teste
+    // existe pra que estreitar isso seja uma decisão DELIBERADA, não um efeito colateral:
+    // a consulta é `DB::table` cru (sem global scope), logo nada além deste teste avisa.
+    $ids = idsDasMaquinas($this->get('/officeimpresso/licenca_log'));
+    expect($ids)->toContain($minha)->and($ids)->toContain($doCliente);
+
+    $user->forceDelete();
+});
+
+it('UC-LOGS-12 · filtro business_id devolve só as máquinas daquela empresa', function () {
+    $casa = $this->seededTenant();
+    $cliente = $this->seededSupportClientTenant();
+    $user = actingAsOiLeitor($this, $casa->id);
+
+    $minha = criaMaquinaOi($this, $casa->id, ['user_win' => $this->oiMarcador . '-F-CASA']);
+    $doCliente = criaMaquinaOi($this, $cliente->id, ['user_win' => $this->oiMarcador . '-F-CLI']);
+
+    // O contraponto do UC-LOGS-11: a visão é ampla por default, e o filtro é o que
+    // estreita. Os dois sentidos, senão um WHERE que devolve tudo passaria.
+    $ids = idsDasMaquinas($this->get('/officeimpresso/licenca_log?business_id=' . $cliente->id));
+    expect($ids)->toContain($doCliente)->and($ids)->not->toContain($minha);
+
+    $user->forceDelete();
+});
+
+it('UC-LOGS-13 · os filtros compõem: business_id + hd juntos estreitam, e sozinho o hd não', function () {
+    $casa = $this->seededTenant();
+    $cliente = $this->seededSupportClientTenant();
+    $user = actingAsOiLeitor($this, $casa->id);
+
+    $hd = $this->oiMarcador . '-HD-COMPOE';
+    $mesmaHdCasa    = criaMaquinaOi($this, $casa->id,    ['hd' => $hd]);
+    $mesmaHdCliente = criaMaquinaOi($this, $cliente->id, ['hd' => $hd]);
+    $outraHdCasa    = criaMaquinaOi($this, $casa->id,    ['hd' => $hd . '-X']);
+
+    // Composição de verdade: os dois filtros ao mesmo tempo têm que ser MAIS estreitos
+    // que cada um sozinho. Sem o caso "hd sozinho traz os dois", um AND quebrado que
+    // ignorasse o business_id passaria despercebido.
+    $juntos = idsDasMaquinas($this->get('/officeimpresso/licenca_log?business_id=' . $casa->id . '&hd=' . $hd));
+    expect($juntos)->toContain($mesmaHdCasa)
+        ->and($juntos)->not->toContain($mesmaHdCliente)
+        ->and($juntos)->not->toContain($outraHdCasa);
+
+    $soHd = idsDasMaquinas($this->get('/officeimpresso/licenca_log?hd=' . $hd));
+    expect($soHd)->toContain($mesmaHdCasa)->and($soHd)->toContain($mesmaHdCliente);
+
+    $user->forceDelete();
+});
+
+it('UC-TL-02 · a timeline entrega business_blocked e machine_blocked separados, nos três estados', function () {
+    $casa = $this->seededTenant();
+    $user = actingAsOiLeitor($this, $casa->id);
+    forcaFlagV2($this, true);
+
+    // A PRECEDÊNCIA (empresa > máquina > ativa) é expressão do Timeline.tsx:81-85. O que o
+    // backend controla — e o que o Blade computava no servidor antes da migração — são as
+    // DUAS flags chegarem SEPARADAS. Se alguém tirar `business_blocked` do select, a tela
+    // passa a chamar de "máquina bloqueada" um cliente inteiro bloqueado. É esse o dano que
+    // este teste pega; a expressão em si só um teste de browser alcança (não existe hoje).
+    $ativa = criaMaquinaOi($this, $casa->id, ['bloqueado' => 0]);
+    $this->get('/officeimpresso/licenca_log/timeline/' . $ativa)
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->where('maquina.business_blocked', false)
+            ->where('maquina.machine_blocked', false));
+
+    $bloqueada = criaMaquinaOi($this, $casa->id, ['bloqueado' => 1]);
+    $this->get('/officeimpresso/licenca_log/timeline/' . $bloqueada)
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->where('maquina.business_blocked', false)
+            ->where('maquina.machine_blocked', true));
+
+    \DB::table('business')->where('id', $casa->id)->update(['officeimpresso_bloqueado' => 1]);
+    try {
+        $this->get('/officeimpresso/licenca_log/timeline/' . $bloqueada)
+            ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+                ->where('maquina.business_blocked', true)
+                ->where('maquina.machine_blocked', true));
+    } finally {
+        \DB::table('business')->where('id', $casa->id)->update(['officeimpresso_bloqueado' => 0]);
+    }
+
+    $user->forceDelete();
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 

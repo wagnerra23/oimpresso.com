@@ -57,13 +57,13 @@ related_adrs:
 | 8 | Filtro `estado_atual` = `ativa` \| `bloqueada` \| todos | ⏳ | `index.blade.php:80-85` | **alta** | `LogsBaselineTest` (os dois lados) |
 | 9 | Filtro `hd` (via link na célula) — "todas as empresas com este HD" | ⏳ | `index.blade.php:171-174` | **alta** | `LogsBaselineTest` (hd exato) |
 | 10 | Filtro `licenca_id` (via link na célula Máquina) | ⏳ | `index.blade.php:161-164` | **alta** | `LogsBaselineTest` (licenca_id) |
-| 11 | Filtro `business_id` (via link na célula Empresa) | ⏳ | `index.blade.php:141-145` | **alta** | UC-LOGS-02 (F4) |
+| 11 | Filtro `business_id` (via link na célula Empresa) | ⏳ | `index.blade.php:141-145` | **alta** | UC-LOGS-12 |
 | 12 | Botão "Aplicar" | ⏳ | `index.blade.php:88` | média | UC-LOGS-02 |
 | 13 | Botão "Limpar" — só aparece com algum filtro ativo | ⏳ | `index.blade.php:89-91` | média | UC-LOGS-02 |
 | 14 | Chip removível "Filtrado por empresa #N" | ⏳ | `index.blade.php:97-102` | média | UC-LOGS-02 |
 | 15 | Chip removível "Filtrado por equipamento #N" | ⏳ | `index.blade.php:103-108` | média | UC-LOGS-02 |
 | 16 | Chip removível "Filtrado por HD X" | ⏳ | `index.blade.php:109-114` | média | UC-LOGS-02 |
-| 17 | Os filtros **compõem** (limpar um preserva os outros via `array_filter`) | ⏳ | `index.blade.php:100,106,112` | **alta** | UC-LOGS-03 (F4) |
+| 17 | Os filtros **compõem** (limpar um preserva os outros via `array_filter`) | ⏳ | `index.blade.php:100,106,112` | **alta** | UC-LOGS-13 |
 
 ### Tabela — 10 colunas
 
@@ -107,7 +107,7 @@ related_adrs:
 | 38 | Título "Timeline — `user_win ?: hostname ?: 'sem hostname'`" | ⏳ | `timeline.blade.php:14` | média | UC-TL-01 |
 | 39 | Subtítulo: empresa · HD · IP interno | ⏳ | `timeline.blade.php:16-19` | média | UC-TL-01 |
 | 40 | Botão "Voltar" pra lista | ⏳ | `timeline.blade.php:23` | média | UC-TL-01 |
-| 41 | Selo de estado (empresa bloqueada / máquina bloqueada / ativa) | ⏳ | `timeline.blade.php:24-30` | **alta** | UC-TL-02 |
+| 41 | Selo de estado (empresa bloqueada / máquina bloqueada / ativa) | ⏳ | `timeline.blade.php:24-30` | **alta** | UC-TL-02 (dado provado; precedência no .tsx sem e2e) |
 | 42 | Header "Últimos 200 acessos a processa-dados-cliente (N)" | ⏳ | `timeline.blade.php:35-37` | média | UC-TL-01 |
 | 43 | Limite de 200 registros, ordem desc por `created_at` | ⏳ | controller `timeline()` | média | `LogsBaselineTest` (só os acessos dela) |
 | 44 | Só logs `source=delphi_middleware` **e** endpoint `processa-dados-cliente` | ⏳ | controller `timeline()` | **alta** | `LogsBaselineTest` |
@@ -124,7 +124,7 @@ related_adrs:
 | # | Feature | React? | Evidência | Severidade | Defendido por |
 |---|---|---|---|---|---|
 | 52 | 403 pra autenticado sem `superadmin` nem `officeimpresso.access` | ⏳ | `LicencaLogController::authorizeAccess()` | **alta** | `LogsBaselineTest` + `LicencasAcessoPermissionTest` |
-| 53 | Quem NÃO tem `podeVerTodasEmpresas()` fica preso ao próprio `business_id` | ⏳ | `LicencaLogController::index()` | **alta** (Tier 0) | UC-LOGS-10 (F4) |
+| 53 | ~~Quem NÃO tem `podeVerTodasEmpresas()` fica preso ao próprio `business_id`~~ — **caminho inalcançável** (a guarda 403 roda antes; ver UC-LOGS-11). O contrato real é o inverso: com a permissão, a visão É cross-empresa | ⏳ | `LicencaLogController::index()` | **alta** (Tier 0) | UC-LOGS-11 |
 | 54 | Quem tem a permissão vê **todas** as empresas (cross-tenant por design) | ⏳ | `podeVerTodasEmpresas()` | **alta** | `LicencasAcessoPermissionTest` |
 
 ## Divergências deliberadas (não são regressão)
