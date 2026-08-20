@@ -1,8 +1,8 @@
 ---
 id: requisitos-officeimpresso-spec
 module: Officeimpresso
-version: "1.1"
-last_updated: "2026-08-19"
+version: "1.2"
+last_updated: "2026-08-20"
 owner: wagner
 status: ativo
 related_adrs:
@@ -112,6 +112,45 @@ Bridge legacy entre o ERP Delphi histórico **WR Comercial / WR Sistemas (Office
 - `blocked_by`: US-OI-006
 - Flag ON, período de observação, então remove `licenca_log/*.blade.php`, a flag e o comando
 - **Portão:** não entra antes de US-OI-006 verde. Enquanto o Blade existe, ele é a rota de fuga.
+
+## Onda 2 — telas P1 · US da tela #4 (`Empresa/Show`)
+
+> O **epic da Onda 2** (tabela das 3 telas + escopo negativo) é entregue no PR da tela #3
+> ([RUNBOOK-licencas.md](RUNBOOK-licencas.md), US-OI-008..010) — dono único, para não duplicar.
+> Esta seção traz só as US da tela **#4**, cujo F1 PLAN é o [RUNBOOK-empresa.md](RUNBOOK-empresa.md)
+> e cujo contrato campo-a-campo é o [empresa-parity.md](empresa-parity.md).
+
+### US-OI-011 — F2: baseline, payload seguro e flag da `Empresa/Show`
+**Como** dono do módulo, **quero** o comportamento de hoje travado em teste e o payload extraído ANTES de mexer, **pra** que a migração não perca regra nem publique credencial.
+**Implementado em:** _pendente_
+**Aceite:**
+- `blocked_by`: **decisão [W] sobre o escopo do `viewLicencas`** (D1 do `empresa-parity.md`) — ela precede a F2 porque define o que a fixture assere
+- Pest baseline no CT 100, tenant 98 ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)): 403 sem permissão e 200 com `access` (já cobertos), os dois no-leak de escrita (já cobertos), a ficha abrindo **sem** `package` e **sem** `active` (os dois blocos são condicionais), e o escopo das **duas** rotas
+- `buildEmpresaPayload()` (10 campos) + `buildComputadoresPayload()` (9 campos) devolvendo DTO. **Nunca os models** — `Licenca_Computador` não tem `$hidden` e o `$fillable` lista `senha`, `contra_senha`, `serial` e `token`; `Business` é um model gordo do ERP inteiro
+- Flag `useV2OfficeimpressoEmpresa` default OFF, valendo para as **duas** rotas — ligar só uma faz o suporte trocar de shell ao clicar "Ver computadores desta empresa" no `businessall`
+- **Só a flag decide** o dual; o `Inertia::render` viaja com a tela (US-OI-012), não aqui
+- `empresa-parity.md` completo (45 itens, 23 de severidade `alta`) — já entregue na F1
+
+### US-OI-012 — F3: tela `Empresa/Show` (ficha + computadores) em PT-03
+**Como** suporte, **quero** a ficha da empresa licenciada no shell React, **pra** bloquear cliente, ajustar versão obrigatória e chegar no log sem sair do cockpit.
+**Implementado em:** _pendente_
+**Aceite:**
+- `blocked_by`: US-OI-011
+- PT-03 (header-identidade, resumo, seções, ações contextuais); `StatusBadge kind="empresa"` **novo** e distinto do `kind="licenca"` — o sujeito aqui é a empresa, não a máquina
+- Modal de configuração vira `<Dialog>` do DS + `useForm`. **Não** é drawer 760 ([ADR 0185](../../decisions/0185-drawer-760-canon-entidades-cadastrais.md) é pra entidade cadastral; aqui são 3 campos de config)
+- `computadores` e `assinatura` em `Inertia::defer`; `empresa` e `permissions` eager
+- Preserva o que é intencional: `@format_date` com o shift +3h ([ADR 0066](../../decisions/0066-format-date-shift-3h-preservado-legacy-clientes.md)), `limite == 0` = "Ilimitado", e os blocos condicionais **ausentes** quando não há `package`/`active`
+- Traz o `Inertia::render` + o dual das duas actions, no mesmo PR do `.tsx`
+- 1280px com sidebar aberta sem scroll horizontal — são 10 colunas, o mesmo número que estoura na `Logs/Index`
+
+### US-OI-013 — F4: QA da `Empresa/Show` — os itens `alta` viram teste
+**Como** revisor, **quero** que cada item de severidade `alta` quebre um teste se sumir, **pra** que a paridade seja enforcement de comportamento, não papel.
+**Implementado em:** _pendente_
+**Aceite:**
+- `blocked_by`: US-OI-012
+- Os **18 itens `alta` ainda sem teste** do `empresa-parity.md` com teste citando o id do UC. Os outros 5 (38, 39, 40, 41, 42) já são cobertos por `LicencasAcessoPermissionTest`
+- Inclui o **assert negativo** do item 45 (`senha`, `contra_senha`, `serial`, `token` ausentes da prop) e a fixture de escopo do item 44, conforme a decisão [W]
+- **Presença do `-parity.md` não conta**; smoke com screenshot 1280 + 1440 **nas duas rotas**
 
 ## N/A justificado
 
