@@ -8,6 +8,7 @@ use App\Business;
 use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Modules\RecurringBilling\Models\Subscription as AssinaturaRecorrente;
 use Modules\RecurringBilling\Repositories\SubscriptionRepository;
 use Modules\Superadmin\Entities\Subscription;
 
@@ -183,17 +184,28 @@ class SuperadminDashboardService
             // Medido em prod 2026-08-19: canônico R$ [redacted Tier 0] × soma crua R$ [redacted Tier 0] —
             // ~4% de diferença por UMA assinatura com preço próprio. Reimplementar aqui seria
             // um segundo dono do mesmo número, e o segundo dono estava errado.
-            $mrr = app(SubscriptionRepository::class)->mrrBaselineCached($biz);
+            $repo = app(SubscriptionRepository::class);
+            $mrr = $repo->mrrBaselineCached($biz);
 
-            $ativas = DB::table('rb_subscriptions')
-                ->where('business_id', $biz)
-                ->where('status', 'active')
-                ->whereNull('deleted_at')
-                ->count();
+            // A CONTAGEM também é do dono — mesma razão do MRR logo acima. A primeira versão
+            // deste método consultava a tabela do RecurringBilling por query builder cru, o
+            // que criou um par de acoplamento NOVO `Superadmin>RecurringBilling` no eixo
+            // tabela e deixou a catraca de acoplamento vermelha em TODO PR do repositório —
+            // inclusive nos que só mexem em documentação.
+            //
+            // ⚠️ `contarAtivas` conta `active|trialing|past_due` — MAIS amplo que o
+            // `status = 'active'` que estava aqui. Medido em prod 2026-08-19 antes de trocar:
+            // `active:109 · paused:1 · canceled:52`, ZERO linhas em `trialing`/`past_due`. Logo
+            // o número exibido é idêntico hoje, e passa a seguir a definição do dono quando
+            // esses status aparecerem — que é o comportamento correto pra um KPI de "ativas".
+            $ativas = $repo->contarAtivas($biz);
 
-            // Churn: canceladas nos últimos 30 dias. `rb_subscriptions` já tem `canceled_at`
-            // e `churn_reason` — não precisou de coluna nova.
-            $canceladas = DB::table('rb_subscriptions')
+            // Churn: canceladas nos últimos 30 dias. Não há método no repositório pra isso,
+            // então uso o MODEL do dono (não `DB::table`): preserva SoftDeletes e qualquer
+            // scope que o RecurringBilling aplique — o `whereNull('deleted_at')` que estava
+            // aqui à mão vira implícito. `rb_subscriptions` já tem `canceled_at` e
+            // `churn_reason`; não precisou de coluna nova.
+            $canceladas = AssinaturaRecorrente::query()
                 ->where('business_id', $biz)
                 ->where('status', 'canceled')
                 ->whereNotNull('canceled_at')
