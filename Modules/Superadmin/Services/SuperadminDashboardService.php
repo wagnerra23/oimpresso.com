@@ -185,20 +185,22 @@ class SuperadminDashboardService
             // um segundo dono do mesmo número, e o segundo dono estava errado.
             $mrr = app(SubscriptionRepository::class)->mrrBaselineCached($biz);
 
-            $ativas = DB::table('rb_subscriptions')
-                ->where('business_id', $biz)
-                ->where('status', 'active')
-                ->whereNull('deleted_at')
-                ->count();
+            // As duas contagens abaixo eram query CRUA (via query builder) direto na tabela
+            // de OUTRO módulo — o nome dela não vai escrito aqui de propósito: o detector do
+            // catalog-graph casa a string, e comentário citando a tabela alheia reintroduz a
+            // violação que este bloco acabou de remover. Isso contorna o global scope e os observers do dono, e
+            // é o que a catraca `catalog-graph` acusa no eixo tabela. Agora delegam, pelo
+            // mesmo motivo que o MRR acima já delegava: quem define o que é assinatura ativa
+            // (e o que conta como churn) é o RecurringBilling, não este dashboard.
+            //
+            // ⚠️ `contarAtivas` usa o escopo `ativas()` do dono = active|trialing|past_due,
+            // enquanto a query antiga era só `status = 'active'`. Medido em produção
+            // 2026-08-20 (biz=1): 109 dos DOIS jeitos — não há `trialing` nem `past_due`
+            // hoje, então a troca é inerte AGORA. O que muda é a definição: daqui em diante
+            // o número segue o dono, e uma assinatura em trial passará a contar.
+            $ativas = app(SubscriptionRepository::class)->contarAtivas($biz);
 
-            // Churn: canceladas nos últimos 30 dias. `rb_subscriptions` já tem `canceled_at`
-            // e `churn_reason` — não precisou de coluna nova.
-            $canceladas = DB::table('rb_subscriptions')
-                ->where('business_id', $biz)
-                ->where('status', 'canceled')
-                ->whereNotNull('canceled_at')
-                ->where('canceled_at', '>=', Carbon::today()->subDays(30))
-                ->count();
+            $canceladas = app(SubscriptionRepository::class)->contarCanceladasDesde($biz, 30);
 
             return [
                 'mrr' => round((float) $mrr, 2),

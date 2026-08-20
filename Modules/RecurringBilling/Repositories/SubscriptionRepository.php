@@ -61,6 +61,23 @@ class SubscriptionRepository
     }
 
     /**
+     * Canceladas nos ultimos N dias — KPI de churn.
+     *
+     * Mora AQUI, e nao em quem consome, porque `rb_subscriptions` e tabela deste modulo:
+     * consulta crua de fora (`DB::table`) contorna o global scope e os observers do dono
+     * (catraca `catalog-graph`, eixo tabela). O Superadmin usava exatamente isso pro
+     * churn do dashboard e passou a chamar este metodo.
+     */
+    public function contarCanceladasDesde(int $businessId, int $dias = 30): int
+    {
+        return (int) $this->base($businessId)
+            ->where('status', 'canceled')
+            ->whereNotNull('canceled_at')
+            ->where('canceled_at', '>=', now()->startOfDay()->subDays($dias))
+            ->count();
+    }
+
+    /**
      * MRR baseline cached — soma metadata.valor das ativas com ciclo mensal,
      * + trimestral/3, + semestral/6, + anual/12. Cache leve em runtime per request.
      */

@@ -21,6 +21,7 @@ not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/Forja"
   - "MCP server admin → Modules/Forja"
+  - "Cobrança recorrente (MRR, assinaturas ativas, churn) → Modules/RecurringBilling"
 trust_required: L0
 owner: wagner
 permission_prefix: superadmin.*
