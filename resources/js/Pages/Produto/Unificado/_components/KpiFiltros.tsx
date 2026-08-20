@@ -1,5 +1,9 @@
 /**
- * Faixa de KPI-filtros do catálogo — seis cards em UMA linha (handoff §4.3, exceção 1).
+ * Faixa de KPI-filtros do catálogo — CINCO cards em UMA linha (handoff V2 §4.2).
+ *
+ * Eram seis até o pacote 18/08. O 19/08 removeu "Itens listados": ele não recortava nada
+ * (o total da aba já É a lista sem recorte) e agora a contagem vive no rodapé de paginação,
+ * onde ela responde a pergunta certa — "de quantos?" — junto do intervalo mostrado.
  *
  * São TOGGLES, não placar: clicar recorta a lista, clicar de novo solta. Os valores são
  * contados sobre a ABA ATIVA, no servidor, pela mesma subconsulta da listagem — contador que
@@ -19,7 +23,7 @@
  */
 
 import type { ComponentType, CSSProperties } from 'react';
-import { BarChart3, Boxes, CircleSlash, Clock, Percent, TriangleAlert } from 'lucide-react';
+import { Boxes, CircleSlash, Clock, Percent, TriangleAlert } from 'lucide-react';
 import { Inline } from '@/Components/layout';
 import type { KpiKey, Permissoes } from './catalogo';
 
@@ -38,6 +42,7 @@ export type KpisCatalogo = {
   min: number;
   zero: number;
   parado: number;
+  /** Total da aba. Não vira mais card (V2 §4.2) — quem o consome é o rodapé de paginação. */
   total: number;
   /** Ausente pra perfil sem direito a custo — a chave não é emitida pelo servidor. */
   margem?: number;
@@ -75,14 +80,15 @@ export function KpiFiltros({ kpis, ativo, onToggle, perm, diasParado }: KpiFiltr
     cards.push({ key: 'margem', label: 'Margem baixa', sub: 'sob o piso', tone: 'emerald', icon: Percent, valor: kpis.margem });
   }
 
-  cards.push({ key: 'total', label: 'Itens listados', sub: 'nesta aba', tone: 'primary', icon: BarChart3, valor: kpis.total });
-
-  // Seis cards em UMA linha no desktop declarado (exceção de domínio 1). Abaixo dele a grade
+  // Cinco cards em UMA linha no desktop declarado (exceção de domínio 1). Abaixo dele a grade
   // quebra em 3/2 colunas em vez de transbordar na horizontal como o protótipo: aqui a tela
   // vive dentro do AppShellV2, e rolagem horizontal do conteúdo esconderia os KPIs da direita
   // sem nenhum affordance. `gap: 9px` é herdado da golden master.
+  //
+  // `lg:grid-cols-5` acompanha a contagem real: com 4 cards (perfil sem custo) a grade cai
+  // pra 4 e nenhum fica órfão numa segunda linha.
   return (
-    <div className="grid gap-[9px] grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+    <div className={'grid gap-[9px] grid-cols-2 sm:grid-cols-3 ' + (cards.length === 5 ? 'lg:grid-cols-5' : 'lg:grid-cols-4')}>
       {cards.map((card) => {
         const Icon = card.icon;
         const tone = TONE_STYLES[card.tone];

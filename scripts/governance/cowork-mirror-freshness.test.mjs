@@ -339,7 +339,18 @@ check('mesmo número → mesmo veredito (independe de --check)',
     liveOnly(['_arquivo/velho.jsx'], man).length === 0);
   check('CONTROLE liveOnly: prototipo-ui/ (cópia do espelho dentro do vivo) não acusa',
     liveOnly(['prototipo-ui/cowork/chat-jana.jsx'], man).length === 0);
-  check('CONTROLE liveOnly: .md não é protótipo', liveOnly(['NOTA.md'], man).length === 0);
+  // INVERTIDO em 2026-08-20. Este caso afirmava "CONTROLE: .md não é protótipo" e
+  // congelava uma premissa MEDIDA COMO FALSA: o `list_files` do projeto vivo traz 174 `.md`
+  // fora de `_arquivo/`, entre eles os F1 das ondas (`SUPERADMIN-F1-2026-08-18.md`), 30+
+  // `PROMPT_PARA_CODE_*.md` e charters/casos escritos do lado do design. Eles dizem COMO
+  // CONSTRUIR A TELA. Fica o BITE (detecta) + o controle do `.png`, que segue fora de
+  // propósito — imagem não é fonte de construção e tem guard próprio (block-ancora-no-olho).
+  check('BITE liveOnly: .md do vivo fora do espelho APARECE (F1/PROMPT_PARA_CODE)',
+    JSON.stringify(liveOnly(['cowork-inbox/SUPERADMIN-F1-2026-08-18.md'], man)) === '["cowork-inbox/SUPERADMIN-F1-2026-08-18.md"]');
+  check('CONTROLE liveOnly: .png segue fora (não é fonte de construção)',
+    liveOnly(['screenshots/tela.png'], man).length === 0);
+  check('CONTROLE liveOnly: .md em _arquivo/ (morto upstream) NAO acusa',
+    liveOnly(['_arquivo/docs-legado/velho.md'], man).length === 0);
 
   // exportPlan: a transcrição manual causou STALE em 2026-08-11 (923 ln à mão vs 943 reais)
   // e ainda me levou a "corrigir" um charter que estava CERTO. A escrita sai do JSON.
