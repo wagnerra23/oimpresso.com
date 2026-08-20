@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Event;
+use Modules\Financeiro\Listeners\OnCobrancaPagaCreateFinanceiroTitulo;
 use Modules\Financeiro\Models\Titulo;
+use Modules\PaymentGateway\Events\CobrancaPaga;
 use Modules\PaymentGateway\Jobs\ProcessarWebhookPixInterJob;
 use Modules\PaymentGateway\Models\Cobranca;
 use Modules\PaymentGateway\Models\InterWebhookLog;
@@ -40,6 +43,21 @@ beforeEach(function () {
             'webhook_secret' => 'integration-secret',
         ],
     ]);
+
+    // FinanceiroServiceProvider::registerPaymentGatewayListeners() guarda o registro
+    // atrás de uma flag ESTÁTICA (`private static bool $paymentgatewayListenersRegistered`).
+    // Em produção isso é inócuo — um boot por request. Na suíte NÃO: a estática sobrevive
+    // entre testes do mesmo processo PHP, enquanto o Laravel recria a aplicação (e o event
+    // dispatcher) a cada teste. Resultado: do 2º teste em diante o provider retorna cedo e
+    // CobrancaPaga fica SEM listener — o evento dispara, ninguém escuta, nenhum Titulo é
+    // criado e nenhum log aparece (o guard que retorna não loga).
+    //
+    // Por isso este teste de INTEGRAÇÃO registra o listener explicitamente: sem isso ele
+    // depende da posição na suíte, que é o que o fazia falhar de forma determinística.
+    // ⚠️ Este registro NÃO prova que o provider registra em produção — prova só o trecho
+    // job → service → event → listener → Titulo. A flag estática é um defeito à parte,
+    // reportado pra decisão [W] (mexer nela toca criação de título = REGRA MESTRE valor).
+    Event::listen(CobrancaPaga::class, [OnCobrancaPagaCreateFinanceiroTitulo::class, 'handle']);
 });
 
 it('worker → CobrancaPaga → listener Financeiro cria Titulo a receber quitado/aberto', function () {
