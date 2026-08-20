@@ -61,7 +61,9 @@ export default function BackupIndex({
 }: Props) {
   const [copiado, setCopiado] = useState(false)
 
-  const lista = backups ?? []
+  // memoizado: `backups ?? []` cru cria identidade nova a cada render e faz os useMemo
+  // abaixo recalcularem sempre (react-hooks/exhaustive-deps).
+  const lista = useMemo(() => backups ?? [], [backups])
   const ultimo = lista[0]
   const total = useMemo(() => lista.reduce((a, b) => a + b.file_size, 0), [lista])
   const totalHumano = useMemo(
