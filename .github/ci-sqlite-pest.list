@@ -482,3 +482,17 @@ Modules/Jana/Tests/Feature/Mcp/McpAuthPermissaoMemoizadaTest.php
 # ⚠️ NÃO rodei o Pest (CT 100 only, ADR 0062). A prova de que passou a executar é o
 # CONTADOR da lane no run deste PR — não este comentário.
 tests/Feature/Console/BackupMonitorScheduleTest.php
+#
+# Colisao de property $queue com o trait Queueable (2026-08-19). O trait declara
+# `public $queue;` sem tipo/default; re-declarar na classe e FATAL na CARGA — e
+# `php -l` NAO pega (medido: rc=0 no arquivo que fatalava). Os 2 testes que ja
+# instanciavam o job afetado nao protegiam nada: o Onda26InterWebhookIntegrationTest
+# esta na quarentena do financeiro-pest anotado "2 failed (0 assertions)" — a
+# assinatura de morrer antes de assertar — e o InterWebhookTest depende de DB.
+# Os 2 alvos abaixo sao sqlite-safe de proposito: o Contrato e DB-less (sem
+# TestCase, so instancia a classe) e o guard so LE arquivos. Assim nao viram skip.
+#
+# ⚠️ NAO rodei o Pest (CT 100 only, ADR 0062). A prova de que passaram a executar
+# e o CONTADOR da lane no run deste PR — nao este comentario.
+Modules/PaymentGateway/Tests/Feature/ProcessarWebhookPixInterJobContratoTest.php
+tests/Feature/Architecture/QueueablePropertyCollisionTest.php
