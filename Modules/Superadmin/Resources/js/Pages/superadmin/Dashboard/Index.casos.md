@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a única tela do ERP cujas queries são cross-tenant POR DESENHO (ADR 0093 §exceções). Sem casos, a próxima sessão "conserta" isso aplicando escopo de tenant e quebra o produto — ou renderiza número inventado onde não há query.
 owner: wagner
-last_run: "2026-08-19"
+last_run: "2026-08-20"
 last_run_ci: "_pendente_ — o trio nasce nesta onda (SA-O1). O veredito por UC entra no manifesto quando a lane rodar no CI; até lá o Status é 🧪, nunca ✅."
 ---
 
@@ -86,20 +86,23 @@ Status: 🧪
 
 ---
 
-## UC-SADASH-06 · O MRR só conta recorrência vigente e paga · `must`
+## UC-SADASH-06 · O MRR sai da cobrança recorrente, não do licenciamento legado · `must`
 
-**Dado** assinaturas em estados diferentes
+**Dado** que a receita real do oimpresso vive em `rb_subscriptions` × `rb_plans`
+(`Modules/RecurringBilling`), e que `packages`/`subscriptions` do UltimatePOS estão zerados
 **Quando** o MRR é calculado
-**Então** entram **apenas** as `approved` com vigência futura ou nula, cujo pacote **não** é
-avulso (`is_one_time = 0`) e cujo `package_price` é **maior que zero** — regra R1 do F1.
+**Então** o valor vem do **`SubscriptionRepository::mrrBaselineCached()`** — o dono do cálculo
+— e não de uma soma feita aqui.
 
-**E** assinatura vencida fica de fora: em produção (19/08) há 126 `approved` e só 13 vigentes;
-somar todas daria um MRR ~10× maior que a realidade.
-
-**E** `interval_count` zero ou negativo é ignorado, nunca dividido.
-
-> O valor sai de `subscriptions.package_price` (congelado na contratação), não de
-> `packages.price` — o cliente paga o que contratou.
+> **Por que delegar, e não somar:** o repositório respeita duas regras que uma soma crua de
+> `rb_plans.valor` erra — o `metadata.valor` da assinatura **sobrepõe** o do plano (é onde mora
+> o preço negociado por empresa), e o ciclo normaliza pro mês. Medido em prod 2026-08-19:
+> canônico **R$ [redacted Tier 0]** × soma crua **R$ [redacted Tier 0]**, ~4% de diferença por UMA assinatura
+> com preço próprio. Um segundo dono do mesmo número seria um segundo número.
+>
+> **Correção de rumo:** a primeira versão deste UC (mesma data) media `subscriptions` +
+> `packages` e dava zero — [W] apontou que os preços eram reais, e a medição achou a fonte
+> certa. O caso mudou de sujeito porque o sujeito estava errado.
 
 Status: 🧪
 

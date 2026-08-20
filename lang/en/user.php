@@ -28,6 +28,7 @@ return [
     'edit_role' => 'Edit role',
     'role_updated' => 'Role updated successfully',
     'role_deleted' => 'Role deleted successfully',
+    'role_in_use' => 'Cannot delete: :count user(s) are using this role.',
     'manage_users' => 'Manage users',
     'all_users' => 'All users',
     'name' => 'Name',
