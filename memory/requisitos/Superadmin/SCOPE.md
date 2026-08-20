@@ -18,6 +18,7 @@ contains:
   - "SuperadminSubscriptionsController"
   - "Usuario360Controller"
 not_contains:
+  - "Cálculo e contagem de assinatura recorrente (rb_*, MRR, churn) → Modules/RecurringBilling — o Superadmin LÊ pelo repositório e pelo Model do dono, nunca recalcula nem consulta a tabela por query crua"
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/Forja"
   - "MCP server admin → Modules/Forja"

@@ -54,26 +54,31 @@ Bridge legacy entre o ERP Delphi histórico **WR Comercial / WR Sistemas (Office
 
 ### US-OI-001 — F2: Pest baseline do comportamento atual
 **Como** dono do módulo, **quero** o comportamento de hoje travado em teste ANTES de mexer, **pra** que a migração não perca regra em silêncio.
-**Implementado em:** _pendente_
+**Implementado em:** `Modules/Officeimpresso/Tests/Feature/LogsBaselineTest.php`
+**Testado em:** `Modules/Officeimpresso/Tests/Feature/LogsBaselineTest.php`
 **Aceite:**
 - ≥5 fixtures — guarda 403 sem permissão; escopo por business de quem não é `podeVerTodasEmpresas()`; os 5 filtros (`q`, `estado_atual`, `business_id`, `licenca_id`, `hd`); os 4 KPIs; 404 do `timeline()` com id inexistente
 - Rodado no CT 100 (nunca local), tenant 98 ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md))
 
-### US-OI-002 — F2: action dual + feature flag `useV2Logs`
+### US-OI-002 — F2: action dual + feature flag `useV2OfficeimpressoLogs`
 **Como** dono do módulo, **quero** as duas telas atrás de flag com o Blade intacto, **pra** ter rota de fuga se a React falhar em produção.
 **Implementado em:** _pendente_
 **Aceite:**
 - `blocked_by`: US-OI-001
-- `Inertia::render` só com header `X-Inertia` **E** flag ligada; sem os dois, `view()` como hoje
-- Flag default OFF + comando `officeimpresso:enable-v2 {business_id}` liga/desliga em <30s
-- Props caras (lista de máquinas, KPIs) em `Inertia::defer`
+- **A troca de caminho mora com a TELA, não aqui.** O `Inertia::render` só entra no PR que traz o `.tsx` correspondente: render apontando pra page inexistente é 500 esperando a flag ligar, e o `OrphanRenderGateTest` (required) reprova — corretamente. Esta US fecha quando as duas telas da F3 tiverem o seu render
+- `Inertia::render` quando a flag está ligada; senão `view()` como hoje. **Só a flag decide** — condicionar ao header `X-Inertia` (como o DoD da skill `mwart-process` pede) quebraria o first load, que não manda esse header; o único dual em produção decide só pela flag
+- Flag via `FeatureFlagService`/GrowthBook, default OFF pelo `fallbackDefaults` não listá-la. **Não** há comando `enable-v2` — esse padrão não existe no projeto (`git grep -lE 'enable-v2|enableV2' -- '*.php'` = zero)
+- Props caras (lista de máquinas, KPIs, logs da timeline) em `Inertia::defer`
+- A extração de `buildMaquinasPayload()`/`buildKpisPayload()` (essa sim já feita na F2) não muda uma linha da consulta: quando o render entrar, ele consome o MESMO payload que o Blade
 
 ### US-OI-003 — F2: mapa de paridade Blade↔React
 **Como** revisor, **quero** todo campo do Blade mapeado com severidade, **pra** que "some um campo" seja detectável, não descoberto pelo usuário.
-**Implementado em:** _pendente_
+**Implementado em:** _parcial_ · `memory/requisitos/Officeimpresso/logs-parity.md` — o mapa está completo (54 itens, 21 de severidade `alta`), mas a US só fecha quando os 21 tiverem teste de comportamento: hoje são **10 defendidos e 11 em aberto** (a lista nominal está no fim do mapa). O template é explícito: *"um `-parity.md` sem teste pros itens `alta` é débito, não conclusão"* — fechar os 11 é a US-OI-006.
+**Testado em:** `Modules/Officeimpresso/Tests/Feature/LogsBaselineTest.php`
 **Aceite:**
 - `logs-parity.md` no [template](../_DesignSystem/PARITY-TEMPLATE.md), cobrindo as 10 colunas da tabela, os 4 KPIs, os 5 filtros, os 3 chips de filtro ativo, os 2 empty states e as 2 ações de bloqueio
 - Divergências deliberadas declaradas — a principal é `toggle-block` sair de `GET` pra `POST`
+- A coluna "Está no React?" nasce `⏳` e é a F3 que a preenche, tela por tela
 
 ### US-OI-004 — F3: tela `Logs/Index` (Máquinas Cadastradas) em PT-01
 **Como** suporte, **quero** a lista de máquinas no shell React, **pra** operar licença sem sair do cockpit.

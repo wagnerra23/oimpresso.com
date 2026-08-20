@@ -44,6 +44,7 @@ import {
   X,
 } from 'lucide-react';
 import AppShellV2 from '@/Layouts/AppShellV2';
+import { Inline } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
 import { usePageProps, useBusiness } from '@/Hooks/usePageProps';
 import {
@@ -228,6 +229,57 @@ function ProdutoUnificadoIndex({
 
   const temFiltro = !!(filters.categoria || filters.unidade || filters.marca || filters.tipo || filters.estoque || filters.margem);
 
+  /**
+   * Chips do recorte ativo (handoff V2 §4.3).
+   *
+   * O rótulo do chip mostra o VALOR LEGÍVEL, não o id: `Categoria: Insumos`, nunca
+   * `Categoria: 37`. Categoria/Unidade/Marca chegam como id numérico e o texto vive em
+   * `opcoesFiltro`, que é prop DEFERIDA — enquanto ela não chegou não dá pra rotular o chip
+   * com honestidade, então ele espera. Chip com id cru é pior que chip nenhum: o operador não
+   * reconhece o próprio filtro e clica no × por desconfiança.
+   *
+   * A busca também vira chip. Ela já tem o × dentro do campo, mas quem chegou na tela por um
+   * link com `?busca=` não olhou o campo — o chip é onde o recorte se declara por inteiro.
+   */
+  const chipsAtivos = useMemo(() => {
+    const rotulo = (lista: OpcaoFiltro[] | undefined, v: number | null) =>
+      v ? lista?.find((o) => o.value === String(v))?.label ?? null : null;
+
+    const brutos: Array<{ k: string; label: string; valor: string | null; patch: Partial<Filtros> }> = [
+      { k: 'categoria', label: 'Categoria', valor: rotulo(opcoesFiltro?.categorias, filters.categoria), patch: { categoria: null } },
+      { k: 'tipo', label: 'Tipo', valor: TIPO_OPCOES.find((o) => o.value === filters.tipo)?.label ?? null, patch: { tipo: '' } },
+      { k: 'unidade', label: 'Unidade', valor: rotulo(opcoesFiltro?.unidades, filters.unidade), patch: { unidade: null } },
+      { k: 'marca', label: 'Marca', valor: rotulo(opcoesFiltro?.marcas, filters.marca), patch: { marca: null } },
+      { k: 'estoque', label: 'Estoque', valor: ESTOQUE_OPCOES.find((o) => o.value === filters.estoque)?.label ?? null, patch: { estoque: '' } },
+      { k: 'margem', label: 'Margem', valor: MARGEM_OPCOES.find((o) => o.value === filters.margem)?.label ?? null, patch: { margem: '' } },
+      { k: 'busca', label: 'Busca', valor: filters.busca || null, patch: { busca: '' } },
+    ];
+
+    return brutos.flatMap((c) =>
+      c.valor === null
+        ? []
+        : [{
+            k: c.k,
+            label: c.label,
+            valor: c.valor,
+            onRemove: () => {
+              if (c.k === 'busca') setBusca('');
+              irPara(c.patch, RECORTE);
+            },
+          }]
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, opcoesFiltro]);
+
+  /** Zera busca, KPI e os seis gatilhos numa visita só — não seis idas ao servidor. */
+  const limparFiltros = () => {
+    setBusca('');
+    irPara(
+      { busca: '', kpi: '', categoria: null, tipo: '', unidade: null, marca: null, estoque: '', margem: '' },
+      RECORTE
+    );
+  };
+
   // Abaixo de 780px de LARGURA DISPONÍVEL os gatilhos opcionais somem e voltam pelo
   // "Mais filtros" — comportamento do pacote 17/08 (`.f-opt` / `.f-more`).
   const opcionalCls = maisFiltros ? '' : '@max-[780px]:hidden';
@@ -317,14 +369,25 @@ function ProdutoUnificadoIndex({
                         aria-selected={ativa}
                         onClick={() => irPara({ aba: a.key, kpi: '' }, RECORTE)}
                         className={
-                          'inline-flex items-center gap-1.5 h-[46px] px-3 text-[12.5px] whitespace-nowrap border-b-2 transition-colors ' +
+                          'inline-flex items-center gap-1.5 py-[7px] px-3 -mb-px text-[13.5px] whitespace-nowrap ' +
+                          'border-0 border-b-2 transition-[color,background-color,border-color] duration-150 ' +
                           (ativa
-                            ? 'border-primary text-foreground font-medium'
-                            : 'border-transparent text-muted-foreground hover:text-foreground')
+                            ? 'border-primary text-foreground font-semibold bg-[var(--idx-tab-ativa-bg)]'
+                            : 'border-transparent text-muted-foreground font-medium hover:text-foreground hover:bg-[var(--idx-tab-hover-bg)]')
                         }
                       >
                         {a.label}
-                        <span className="font-mono text-[11px] tabular-nums opacity-70">
+                        {/* Badge arredondado, não número solto: a contagem é um segundo dado
+                            dentro da aba, e sem a cápsula ela lê como parte do rótulo. Ativa
+                            usa o accent cheio; inativa usa o par escuro da referência. */}
+                        <span
+                          className={
+                            'inline-block min-w-[18px] rounded-full px-1.5 text-center font-mono text-[10.5px] font-semibold tabular-nums leading-[1.4] ' +
+                            (ativa
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-[var(--idx-badge-cont-bg)] text-[var(--idx-badge-cont-fg)]')
+                          }
+                        >
                           {(abas?.[a.key] ?? 0).toLocaleString('pt-BR')}
                         </span>
                       </button>
@@ -469,16 +532,57 @@ function ProdutoUnificadoIndex({
                   Mostrando os {tetoLinhas.toLocaleString('pt-BR')} primeiros — refine a busca ou os filtros pra alcançar o resto.
                 </p>
               )}
+              {/* ───── BLOCO 3b · CHIPS DO RECORTE ATIVO ─────────────────────
+                  Segunda linha, e só existe quando há recorte (handoff V2 §4.3). Com o
+                  gatilho neutro, o filtro aplicado deixou de saltar da faixa — o chip é o que
+                  devolve essa visibilidade, e dá o alvo de "tira só este" que o gatilho não
+                  dá sem reabrir o popover. "Limpar filtros" zera busca, KPI e os seis. */}
+              {chipsAtivos.length > 0 && (
+                <Inline gap={1} wrap className="gap-1.5">
+                  {chipsAtivos.map((c) => (
+                    <span
+                      key={c.k}
+                      className="inline-flex items-center gap-1.5 h-7 pl-2.5 pr-1.5 rounded-md border border-primary/30 bg-primary/5 text-[11.5px] text-foreground"
+                    >
+                      <span className="text-muted-foreground">{c.label}:</span>
+                      <span className="font-medium max-w-[180px] truncate">{c.valor}</span>
+                      <button
+                        type="button"
+                        onClick={c.onRemove}
+                        aria-label={`Remover filtro ${c.label}`}
+                        className="inline-flex h-4 w-4 items-center justify-center rounded-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={limparFiltros}
+                    className="h-7 px-2 rounded-md text-[11.5px] text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                  >
+                    Limpar filtros
+                  </button>
+                </Inline>
+              )}
 
-              {/* ───── BLOCO 4 · CARTÃO DA TABELA ────────────────────────────── */}
-              {/* Altura fixa + rolagem interna: é o que substitui a paginação (SPEC D-06). */}
-              {/* raio 12 (`rounded-lg` é o teto do DS) + sombra pela utilitária `shadow-sm`,
-                  a mesma do cartão da golden master — sombra crua inline quebra o dark. */}
-              <div className="mt-3 rounded-lg border border-border bg-card shadow-sm overflow-hidden">
+              {/* ───── BLOCO 4 · GRID ────────────────────────────────────────── */}
+              {/* Contêiner SEM RAIO (handoff V2 §3.1) — decisão do produto, difere do cartão
+                  `rounded-xl` do DS. Motivo: com raio, o cabeçalho sticky precisa de clipe de
+                  canto, e `backdrop-filter` no cabeçalho quebra esse clipe (achado do LAUDO).
+                  Sem raio, o cabeçalho pode ser opaco e simples, que é o que ele precisa ser
+                  pra a linha não vazar por baixo dele durante a rolagem.
+
+                  `min-w-[1000px]` num wrapper `overflow-x-auto`: abaixo disso as sete colunas
+                  não cabem sem esmagar o nome do produto. A tabela rola na horizontal em vez
+                  de truncar — a tela é de cockpit desktop declarado (≥1000px útil). */}
+              <div className="mt-3 border border-border bg-card overflow-hidden">
                 <Deferred data="produtos" fallback={<EsqueletoTabela />}>
-                  <div className="overflow-auto" style={{ height: 460 }}>
-                    <table className="w-full text-left">
-                      <thead className="sticky top-0 z-10 bg-muted/60 backdrop-blur">
+                  <div className="overflow-auto cw-scroll-thin" style={{ height: 460 }}>
+                    <table className="w-full min-w-[1000px] text-left">
+                      {/* Fundo OPACO, sem `backdrop-blur`: translúcido deixava o texto da
+                          linha aparecer por trás do rótulo da coluna durante a rolagem. */}
+                      <thead className="sticky top-0 z-10 bg-[var(--idx-grid-head-bg)]">
                         <tr className="border-b border-border">
                           {colunas.map((c) => (
                             <th
@@ -487,7 +591,10 @@ function ProdutoUnificadoIndex({
                               style={{ width: c.width }}
                               className={
                                 'px-4 py-2 text-[10.5px] uppercase tracking-widest text-muted-foreground font-medium ' +
-                                (c.align === 'right' ? 'text-right' : '')
+                                (c.align === 'right' ? 'text-right ' : '') +
+                                // 58 = 16 (padding) + 32 (avatar) + 10 (gap): o rótulo PRODUTO
+                                // alinha com o nome, não com o avatar (handoff V2 §3.1).
+                                (c.key === 'prod' ? '!pl-[58px]' : '')
                               }
                             >
                               {c.sortable ? (
@@ -547,7 +654,7 @@ function ProdutoUnificadoIndex({
                                 }}
                                 className={
                                   'border-b border-border/60 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ' +
-                                  (aberta ? 'bg-primary/10' : 'hover:bg-muted/40') +
+                                  (aberta ? 'bg-[var(--idx-row-sel-bg)]' : 'hover:bg-muted/40') +
                                   // Estado de linha: urgente quando zerado, arquivada quando inativa.
                                   (r.stockQty === 0 ? ' bg-destructive-soft/30' : r.active ? '' : ' opacity-60')
                                 }
