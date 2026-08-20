@@ -62,7 +62,7 @@ Bridge legacy entre o ERP Delphi histórico **WR Comercial / WR Sistemas (Office
 
 ### US-OI-002 — F2: action dual + feature flag `useV2OfficeimpressoLogs`
 **Como** dono do módulo, **quero** as duas telas atrás de flag com o Blade intacto, **pra** ter rota de fuga se a React falhar em produção.
-**Implementado em:** _parcial_ · `Modules/Officeimpresso/Http/Controllers/LicencaLogController.php` — a flag e o `Inertia::render` da **lista** entraram com a tela dela; o render da **timeline** entra no PR da timeline.
+**Implementado em:** `Modules/Officeimpresso/Http/Controllers/LicencaLogController.php` — flag + `Inertia::render` das **duas** telas, cada um entregue no PR da sua page (render antes da page é órfão; ver RUNBOOK-logs §F2).
 **Testado em:** `Modules/Officeimpresso/Tests/Feature/LogsBaselineTest.php`
 **Aceite:**
 - `blocked_by`: US-OI-001

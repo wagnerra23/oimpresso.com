@@ -400,6 +400,20 @@ class LicencaLogController extends Controller
             ->limit(200)
             ->get();
 
+        // Caminho dual da timeline — entra com a page dela, pela mesma razão que
+        // tirou o render da F2 (ver a const FLAG_V2 e o RUNBOOK-logs §F2).
+        if (app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $maquina->business_id])) {
+            return Inertia::render('Officeimpresso/Logs/Timeline', [
+                // `maquina` é 1 linha já carregada pela guarda — eager, não vale defer.
+                'maquina'     => $maquina,
+                'permissions' => [
+                    'pode_bloquear' => auth()->user()->can('superadmin')
+                        || auth()->user()->can('officeimpresso.licencas.gerenciar'),
+                ],
+                'logs' => Inertia::defer($carregarLogs),
+            ]);
+        }
+
         $logs = $carregarLogs();
 
         return view('officeimpresso::licenca_log.timeline', compact('maquina', 'logs'));

@@ -506,6 +506,92 @@ function loadBaseline() {
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
+// ── DÍVIDA PRÓPRIA × DÍVIDA HERDADA (2026-08-20, [W]: "não pode reprovar por isso") ──
+//
+// O PROBLEMA, medido: o gate comparava o repo inteiro contra o baseline e reprovava
+// QUALQUER violação nova — "nova" = *não está no baseline*, nunca *foi você quem causou*.
+// Consequência real: a Maiara mudou `Produto/Unificado` nas 3 ondas do handoff V2 sem
+// bumpar o `last_run` do `casos.md`; a violação entrou em `main`; e o PR do avatar da
+// Jana (que toca ZERO arquivos do Produto) reprovou por ela. Quem paga é o próximo que
+// abre PR, não quem criou a dívida — e o autor não tem como consertar, porque revalidar
+// UC de tela alheia é declarar um teste que ele não rodou.
+//
+// O QUE **NÃO** MUDA (e é o ponto): o ratchet continua inteiro. Quem TOCA a tela
+// continua obrigado a fechar o trio dela. O que deixa de acontecer é terceiro ser
+// bloqueado por dívida que não é dele.
+//
+// A dívida herdada NÃO some do radar: sai no relatório com o nome de quem tocou a tela
+// por último (`git log -1 --format=%an`), pra virar cobrança endereçada em vez de
+// pedágio anônimo.
+//
+// EM PUSH/MAIN (sem base de PR) o comportamento é o ANTIGO — tudo bloqueia. Senão a
+// dívida entraria em `main` sem nunca ser cobrada de ninguém, que é pior que o pedágio.
+
+/** Arquivos que o PR tocou vs a base. Vazio (ou null) = não é PR → comportamento antigo. */
+function arquivosTocados() {
+  const base = process.env.CASOS_BASE_REF
+    || (process.env.GITHUB_BASE_REF ? `origin/${process.env.GITHUB_BASE_REF}` : null);
+  if (!base) return null;
+  try {
+    const out = execSync(`git diff --name-only ${base}...HEAD`, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore','pipe','ignore'] });
+    const arr = out.split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
+    return arr.length ? arr : [];
+  } catch { return null; }
+}
+
+/** Extrai o path do artefato citado na violação (`stale:<path>` · `meta:<path>` · …).
+ *  Pega o que vem depois do ÚLTIMO `:` que separa tipo de path — o path pode estar em
+ *  `resources/js/Pages/**` OU em `Modules/<X>/Resources/js/Pages/**` (módulo nWidart).
+ *  Medido em 2026-08-20: a 1ª versão só casava `resources/js/Pages/` minúsculo e deixava
+ *  a violação do Officeimpresso cair no ramo conservador. */
+function pathDaViolacao(v) {
+  const m = String(v).match(/([A-Za-z0-9_@./-]+\.(?:casos|charter)\.md|[A-Za-z0-9_@./-]+\.tsx)/);
+  return m ? m[1] : null;
+}
+
+/** A violação é DO PR? Sim se o PR tocou qualquer artefato do MESMO diretório de tela. */
+function ehPropria(v, tocados) {
+  const alvo = pathDaViolacao(v);
+  if (!alvo) return true;                     // não sei localizar → conservador: trata como própria
+  const dir = alvo.replace(/\/[^/]+$/, '');
+  const base = alvo.replace(/\.(casos|charter)\.md$|\.tsx$/, '');
+  return tocados.some((t) => t === alvo || t.startsWith(base) || t.replace(/\/[^/]+$/, '') === dir);
+}
+
+/** Quem mexeu na tela por último — pra cobrança endereçada, não anônima. */
+function ultimoAutor(v) {
+  const alvo = pathDaViolacao(v);
+  if (!alvo) return null;
+  const tsx = alvo.replace(/\.(casos|charter)\.md$/, '.tsx');
+  try {
+    const a = execSync(`git log -1 --format=%an -- "${tsx}"`, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore','pipe','ignore'] }).trim();
+    return a || null;
+  } catch { return null; }
+}
+
+// ── SELFTEST da classificação própria × herdada (bite-test em fixture, sem tocar o repo) ──
+// Prova que a separação MORDE e LIBERA. Sem isto, "não bloqueia terceiro" seria promessa.
+if (process.argv.includes('--selftest-diff-aware')) {
+  const CASOS = [
+    // [violação, arquivos tocados pelo PR, esperado ehPropria]
+    ['stale:resources/js/Pages/Produto/Unificado/Index.casos.md', ['resources/js/Pages/Jana/components/JanaAreaHeader.tsx'], false],
+    ['stale:resources/js/Pages/Produto/Unificado/Index.casos.md', ['resources/js/Pages/Produto/Unificado/Index.tsx'], true],
+    ['stale:resources/js/Pages/Produto/Unificado/Index.casos.md', ['resources/js/Pages/Produto/Unificado/Index.casos.md'], true],
+    // módulo nWidart (o path que a 1ª versão do regex não casava — medido 2026-08-20)
+    ['stale:Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.casos.md', ['resources/js/Pages/Jana/Chat.tsx'], false],
+    ['stale:Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.casos.md', ['Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx'], true],
+    // violação sem path localizável → CONSERVADOR: trata como própria (nunca libera no escuro)
+    ['meta:algo-que-nao-e-path', ['resources/js/Pages/Jana/Chat.tsx'], true],
+  ];
+  let bad = 0;
+  for (const [v, tocados, esperado] of CASOS) {
+    const r = ehPropria(v, tocados);
+    if (r !== esperado) { bad++; console.error(`  X ${v.slice(0, 58)} | tocados=${tocados[0].slice(0, 40)} | esperado ${esperado}, veio ${r}`); }
+  }
+  console.log(`[casos-guard --selftest-diff-aware] ${CASOS.length - bad}/${CASOS.length} ok${bad ? ` · ${bad} FALHA(S)` : ''}`);
+  process.exit(bad ? 1 : 0);
+}
+
 function main() {
   // Modo só-desce compara baseline ATUAL (commitado no PR) vs baseline de REFERÊNCIA
   // (main) — não varre o repo. Roda ANTES de computeViolations (barato, sem I/O de Pages).
@@ -617,7 +703,33 @@ function main() {
   const baseSet = new Set(baseline.violations || []);
   const novos = violations.filter((v) => !baseSet.has(v));
 
-  if (novos.length) {
+  // Separa o que ESTE PR causou do que herdou de main. `tocados === null` = nao e PR
+  // (push/main/local sem base) -> comportamento antigo, tudo bloqueia.
+  const tocados = arquivosTocados();
+  const proprias = tocados === null ? novos : novos.filter((v) => ehPropria(v, tocados));
+  const herdadas = tocados === null ? [] : novos.filter((v) => !ehPropria(v, tocados));
+
+  if (herdadas.length) {
+    console.log(`
+⚠️  ${herdadas.length} violação(ões) HERDADA(s) de main — este PR não tocou essas telas:
+`);
+    for (const v of herdadas.slice(0, 20)) {
+      const autor = ultimoAutor(v);
+      console.log('  ↪ ' + v + (autor ? `   (último a tocar a tela: ${autor})` : ''));
+    }
+    if (herdadas.length > 20) console.log(`  … +${herdadas.length - 20}`);
+    console.log(
+      `
+  NÃO bloqueiam este PR: revalidar UC de tela alheia seria declarar um teste que` +
+      `
+  quem abre o PR não rodou. A cobrança é de quem tocou a tela — o nome está ao lado.` +
+      `
+  (Em push/main o gate segue bloqueando tudo: dívida não entra em main de graça.)`,
+    );
+  }
+
+  if (proprias.length) {
+    const novos = proprias;
     console.error(`\n❌ ${novos.length} violação(ões) NOVA(s) de trio/rastreabilidade (não no baseline):\n`);
     for (const v of novos.slice(0, 50)) console.error('  🆕 ' + v);
     if (novos.length > 50) console.error(`  … +${novos.length - 50}`);
@@ -636,7 +748,8 @@ function main() {
   }
 
   const delta = (baseline.violations?.length || 0) - violations.length;
-  console.log(`✅ Sem violações novas (débito ${delta > 0 ? `caiu −${delta}` : 'estável'} vs baseline).`);
+  const sufixo = (typeof herdadas !== 'undefined' && herdadas.length) ? ` · ${herdadas.length} herdada(s) de main, não deste PR` : '';
+  console.log(`✅ Sem violações novas DESTE PR (débito ${delta > 0 ? `caiu −${delta}` : 'estável'} vs baseline)${sufixo}.`);
   process.exit(0);
 }
 
