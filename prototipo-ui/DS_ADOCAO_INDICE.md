@@ -3,7 +3,7 @@
 <!-- ds:worklist:start (auto · npm run ds:report -- --write) -->
 ## Status da fila — placar de execução (auto)
 
-> Gerado por `npm run ds:report -- --write` · 2026-08-18 09:59 UTC · **total `ds/*` = 1604** · fila 2/10 ✅.
+> Gerado por `npm run ds:report -- --write` · 2026-08-20 10:01 UTC · **total `ds/*` = 1604** · fila 2/10 ✅.
 > Derivado do `ds/*` real por módulo: **✅ = 0 (concluído)** · **☐ = pendente**. `[CC]` lê isto (Sync now) pra saber o que `[CL]` JÁ executou e o que falta — sem regerar o já-feito.
 
 | # | Módulo (fila) | `ds/*` | Status |
