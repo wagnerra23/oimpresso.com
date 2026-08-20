@@ -27,7 +27,7 @@
   "stats": {
     "modules": 35,
     "nodes": 678,
-    "edges": 953,
+    "edges": 955,
     "by_node_type": {
       "module": 39,
       "table": 101,
@@ -43,8 +43,8 @@
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 390,
-      "dependsOn": 114,
-      "delegatesTo": 106,
+      "dependsOn": 115,
+      "delegatesTo": 107,
       "migratesTo": 1,
       "supersedes": 15,
       "supersedesPartially": 48,
@@ -10801,6 +10801,13 @@
     },
     {
       "from": "module:Superadmin",
+      "to": "module:RecurringBilling",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Cálculo e contagem de assinatura recorrente (rb_*, MRR, churn)"
+    },
+    {
+      "from": "module:Superadmin",
       "to": "module:Forja",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -10819,6 +10826,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "module:RecurringBilling",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Cálculo e contagem de assinatura recorrente (rb_*, MRR, churn)"
     },
     {
       "from": "module:Superadmin",
