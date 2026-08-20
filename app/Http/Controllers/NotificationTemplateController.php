@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\NotificationTemplate;
+use App\Notifications\CustomerNotification;
 use App\Utils\ModuleUtil;
+use App\Utils\NotificationUtil;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Validation\Rule;
 
 class NotificationTemplateController extends Controller
 {
@@ -13,15 +17,18 @@ class NotificationTemplateController extends Controller
      */
     protected $moduleUtil;
 
+    protected $notificationUtil;
+
     /**
      * Constructor
      *
      * @param  ProductUtils  $product
      * @return void
      */
-    public function __construct(ModuleUtil $moduleUtil)
+    public function __construct(ModuleUtil $moduleUtil, NotificationUtil $notificationUtil)
     {
         $this->moduleUtil = $moduleUtil;
+        $this->notificationUtil = $notificationUtil;
     }
 
     /**
@@ -160,6 +167,66 @@ class NotificationTemplateController extends Controller
             );
         }
 
-        return redirect()->back();
+        // P5 — o `redirect()->back()` mudo deixava o operador sem saber se gravou (achado A5).
+        return redirect()->back()->with('status', [
+            'success' => 1,
+            'msg' => __('lang_v1.updated_success'),
+        ]);
+    }
+
+    /**
+     * P6 — "Enviar teste pra mim" (decisão D3).
+     *
+     * Manda o modelo escolhido para o e-mail do PRÓPRIO usuário logado, para ele conferir
+     * como o texto chega. O destinatário NUNCA vem do request: aceitar destino do cliente
+     * transformaria a rota num relay aberto autenticado. O throttle vive na rota
+     * (`throttle:6,1`), não aqui, para valer também no 429 antes de tocar o controller.
+     */
+    public function test(Request $request)
+    {
+        if (! auth()->user()->can('send_notification')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = request()->session()->get('user.business_id');
+
+        $permitidas = array_keys(array_merge(...array_values($this->__grupos())));
+
+        $validado = $request->validate([
+            'template_for' => ['required', 'string', Rule::in($permitidas)],
+            'canal' => 'required|in:email,sms,whatsapp',
+        ]);
+
+        $destino = auth()->user()->email;
+        if ($validado['canal'] === 'email' && empty($destino)) {
+            return redirect()->back()->with('status', [
+                'success' => 0,
+                'msg' => __('lang_v1.no_email_found'),
+            ]);
+        }
+
+        $modelo = NotificationTemplate::getTemplate($business_id, $validado['template_for']);
+
+        // Sem transação de referência, as tags ficam literais — é o que se quer num teste:
+        // o operador vê onde cada tag cai, não um valor inventado que não existe no negócio.
+        $dados = $this->notificationUtil->replaceTags($business_id, [
+            'email_body' => $modelo['email_body'] ?? '',
+            'sms_body' => $modelo['sms_body'] ?? '',
+            'subject' => $modelo['subject'] ?? '',
+            'whatsapp_text' => $modelo['whatsapp_text'] ?? '',
+        ], null);
+
+        $dados['email_settings'] = request()->session()->get('business.email_settings');
+        $dados['sms_settings'] = request()->session()->get('business.sms_settings');
+        $dados['subject'] = '[teste] '.($dados['subject'] ?? '');
+
+        if ($validado['canal'] === 'email') {
+            Notification::route('mail', [$destino])->notify(new CustomerNotification($dados));
+        }
+
+        return redirect()->back()->with('status', [
+            'success' => 1,
+            'msg' => __('lang_v1.test_sent_to', ['destino' => $destino]),
+        ]);
     }
 }

@@ -41,7 +41,10 @@ import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import SubNav from '@/Components/shared/SubNav';
 
-import { brl, fmtBR, parseBR } from './numeros';
+import { Checkbox } from '@/Components/ui/checkbox';
+import { areaUnitaria, totalDoItem, unitarioLiquido } from './calculo-item';
+import { BASES, TIPOS_BENEFICIARIO } from './comissao-dominio';
+import { brl, fmtBR, fmtQtd, parseBR } from './numeros';
 import {
   ABAS,
   CST_ICMS,
@@ -58,8 +61,10 @@ import {
   validarGtin,
   validarNcm,
   type Aba,
+  TIPOS_PRECO,
+  UNIDADES,
 } from './item-fiscal-dominio';
-import { Lbl, Pill } from './primitivos';
+import { Lbl, Pill, Sec } from './primitivos';
 
 export type LinhaDoItem = {
   k: number;
@@ -187,6 +192,38 @@ export default function ItemDetalhe({
   );
   const incoerencia = erroDeCoerencia(cst, aliquota);
 
+  /* ─── aba Geral (onda D2) ─────────────────────────────────────────────────
+     Os campos nascem do que a linha já traz; o que é DERIVADO não vira estado —
+     é calculado das mesmas funções que a tabela usa, para não existirem duas
+     verdades sobre a mesma medida ou o mesmo total. */
+  const [descricao, setDescricao] = useState(linha?.nome ?? '');
+  const [un, setUn] = useState(linha?.un ?? 'un');
+  const [pecas, setPecas] = useState('1');
+  const [altura, setAltura] = useState('0,00');
+  const [largura, setLargura] = useState('0,00');
+  const [espessura, setEspessura] = useState('0,00');
+  const [tipoPreco, setTipoPreco] = useState<string>(TIPOS_PRECO[0]!);
+
+  const [comissiona, setComissiona] = useState(true);
+  const [tipoComissionado, setTipoComissionado] = useState<string>(TIPOS_BENEFICIARIO[0]!.l);
+  const [executante, setExecutante] = useState('—');
+  const [baseComissao, setBaseComissao] = useState<string>(BASES[0]!.label);
+  const [percentual, setPercentual] = useState('3,00');
+
+  /* DERIVADOS — `calculo-item.ts`, o mesmo módulo provado em `tests/js/`. */
+  const areaCalculada = areaUnitaria(un, parseBR(altura), parseBR(largura), parseBR(espessura));
+  const unitLiquido = unitarioLiquido(
+    parseBR(linha?.preco ?? '0'),
+    parseBR(linha?.desc ?? '0'),
+    parseBR(linha?.acr ?? '0'),
+  );
+  const totalDaLinha = totalDoItem(parseBR(linha?.qtd ?? '0'), unitLiquido);
+  /* O desconto em VALOR é a diferença entre o bruto e o líquido — não um campo
+     próprio. Assim ele nunca discorda do percentual que o operador digitou. */
+  const descontoEmValor =
+    parseBR(linha?.qtd ?? '0') * parseBR(linha?.preco ?? '0') - totalDaLinha;
+  const comissaoDoItem = comissiona ? (totalDaLinha * parseBR(percentual)) / 100 : 0;
+
   /* Alteração não confirmada — o slot que a âncora tem no rodapé
      (`sells-item-detail.jsx:199`). Guardo os valores de PARTIDA num ref e comparo
      com os atuais: sem isso o pill acenderia já no primeiro render, porque o valor
@@ -249,14 +286,106 @@ export default function ItemDetalhe({
 
         <Stack gap={4} className="min-h-0 flex-1 overflow-auto px-5 py-4">
           {aba === 'geral' && (
-            <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-3">
-              <Texto label="Produto / serviço" value={linha.nome} />
-              <Texto label="SKU" value={linha.sku} />
-              <Texto label="Unidade" value={linha.un} />
-              <Texto label="Quantidade" value={linha.qtd} />
-              <Texto label="Medidas" value={linha.medidas ?? '—'} />
-              <Texto label="Valor unitário" value={linha.preco} />
-            </Grid>
+            <Stack gap={4}>
+              {/* As 3 seções da âncora (`sells-item-detail.jsx` — DrawerSections
+                  "Identificação e medidas" · "Valores da linha" · "Comissão deste
+                  item"). O que existia eram 6 campos só-leitura soltos. */}
+              <Sec title="Identificação e medidas">
+                <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-4">
+                  <Texto label="Código do produto" value={linha.sku} />
+                  <Texto label="Descrição na venda" value={descricao} onChange={setDescricao} />
+                  <Escolha label="Unidade" value={un} onChange={setUn} options={UNIDADES} />
+                  <Texto label="Peças" value={pecas} onChange={setPecas} />
+                  <Texto label="Altura" value={altura} onChange={setAltura} />
+                  <Texto label="Largura" value={largura} onChange={setLargura} />
+                  <Texto label="Espessura" value={espessura} onChange={setEspessura} />
+                  <Campo label="Área calculada">
+                    {/* Somente leitura E derivada: quem manda é `areaUnitaria` do
+                        `calculo-item.ts`, provado em teste. Campo editável abriria
+                        um segundo caminho para a medida. */}
+                    <Input readOnly value={fmtQtd(areaCalculada)} className="bg-muted/40" />
+                    <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                      peças × altura × largura
+                    </span>
+                  </Campo>
+                </Grid>
+              </Sec>
+
+              <Sec title="Valores da linha">
+                <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-4">
+                  <Texto label="Quantidade" value={linha.qtd} />
+                  <Texto label="Valor unitário" value={linha.preco} />
+                  <Escolha label="Tipo de preço" value={tipoPreco} onChange={setTipoPreco} options={TIPOS_PRECO} />
+                  <Texto label="% desconto" value={linha.desc} />
+                  <Texto label="Desconto R$" value={fmtQtd(descontoEmValor)} />
+                  <Texto label="% acréscimo" value={linha.acr} />
+                  <Campo label="Total deste item">
+                    {/* Derivado de `unitarioLiquido` + `totalDoItem` — as MESMAS
+                        funções que a linha da tabela usa. Nenhuma conta nova. */}
+                    <Input readOnly value={brl(totalDaLinha)} className="bg-muted/40" />
+                    <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                      quantidade × valor unitário, com desconto e acréscimo
+                    </span>
+                  </Campo>
+                </Grid>
+              </Sec>
+
+              <Sec title="Comissão deste item">
+                <Stack gap={3}>
+                  <Inline gap={2} align="center">
+                    <Checkbox
+                      id="v3-item-comissiona"
+                      checked={comissiona}
+                      onCheckedChange={(v) => setComissiona(v === true)}
+                    />
+                    <label htmlFor="v3-item-comissiona" className="cursor-pointer leading-tight">
+                      <span className="block text-[12px] font-medium">Comissiona este item</span>
+                      <span className="block text-[11px] text-muted-foreground">
+                        desligado, o item sai da base de comissão da venda
+                      </span>
+                    </label>
+                  </Inline>
+
+                  <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-4">
+                    <Escolha
+                      label="Tipo de comissionado"
+                      value={tipoComissionado}
+                      onChange={setTipoComissionado}
+                      options={TIPOS_BENEFICIARIO.map((t) => t.l)}
+                    />
+                    <Escolha label="Quem executa / vende" value={executante} onChange={setExecutante} options={['—']} />
+                    <Escolha
+                      label="Base de cálculo"
+                      value={baseComissao}
+                      onChange={setBaseComissao}
+                      options={BASES.map((b) => b.label)}
+                    />
+                    <Texto label="Percentual" value={percentual} onChange={setPercentual} />
+                  </Grid>
+
+                  {/* Faixa de resumo — `Plate` NÃO serve aqui: ele é o KPI grande
+                      de `label`+`valor`, não um container. Uso a caixa neutra do
+                      DS, que é o que a âncora desenha nesse bloco. */}
+                  <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
+                    <Inline gap={4} align="center" className="flex-wrap">
+                      <div>
+                        <Lbl className="mb-0">Base do item</Lbl>
+                        <b className="text-[14px] tabular-nums">{brl(totalDaLinha)}</b>
+                      </div>
+                      <div>
+                        <Lbl className="mb-0">Comissão do item</Lbl>
+                        <b className="text-[14px] tabular-nums">{brl(comissaoDoItem)}</b>
+                      </div>
+                      <span className="min-w-[220px] flex-1 text-[11px] leading-tight text-muted-foreground">
+                        Somada à comissão da venda e apurada para <b>quem executou</b> — não
+                        para quem digitou. É por aqui que serviço com técnico próprio recebe
+                        percentual diferente do produto.
+                      </span>
+                    </Inline>
+                  </div>
+                </Stack>
+              </Sec>
+            </Stack>
           )}
 
           {aba === 'producao' && (
