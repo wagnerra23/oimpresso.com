@@ -80,6 +80,29 @@ Sem drawer: um zip não tem detalhe além do que a linha mostra. Sem filtro/busc
   rodando.
 - **Idade em linguagem humana** ao lado da data absoluta — o Blade tinha as duas.
 
+## Contrato visual
+
+> Copy literal + ordem das seções. Verificado em CI por
+> `node scripts/contrato-de-tela.mjs --contract prototipo-ui/contrato/backup.contract.json`.
+> Mudar qualquer string abaixo **quebra o gate de propósito** — copy de tela é decisão, não detalhe.
+
+Ordem das âncoras `data-contract`, de cima pra baixo:
+
+`cabecalho` → `kpis` → `alerta-destino` → `lista` → `cron`
+
+| Seção | Copy que a tela precisa mostrar |
+|---|---|
+| `cabecalho` | `Backup` · `Gerar backup agora` |
+| `kpis` | `Último backup` · `Backups guardados` · `Espaço ocupado` · `Agendamento diário` |
+| `alerta-destino` | `O arquivo contém os dados de todos os negócios` · `Backup no mesmo servidor não é backup` |
+| `lista` | `Arquivo` · `Origem` · `Tamanho` · `Data` · `Idade` · `Ações` · `Baixar` · `Excluir` |
+| `cron` | `Backup automático` · `Copiar` · `Pasta` · `Retenção` · `Permissão` |
+
+⚠️ **`Permissão` diz `backup`, não `superadmin`.** A decisão [W] de restringir a superadmin está
+registrada em [DECISOES-ONDA-0](../../../../memory/requisitos/Backup/DECISOES-ONDA-0.md) §1 mas
+**ainda não foi implementada** — o controller segue checando `can('backup')`. A copy descreve o que
+é verdade hoje; quando a restrição entrar, esta linha e o contrato mudam junto.
+
 ## Estados
 
 | Estado | Tratamento |

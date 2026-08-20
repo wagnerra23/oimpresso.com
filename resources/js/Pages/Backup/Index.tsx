@@ -272,6 +272,7 @@ export default function BackupIndex({
           <ul className="mt-3 space-y-1 text-xs text-muted-foreground">
             <li>Pasta: <code>{destino.pasta}</code></li>
             <li>Retenção: <code>{retencao.estrategia}</code> — guarda {retencao.manter}, apaga o resto</li>
+            <li>Permissão: <code>backup</code> — sem ela a rota devolve 403</li>
           </ul>
         </div>
       )}
