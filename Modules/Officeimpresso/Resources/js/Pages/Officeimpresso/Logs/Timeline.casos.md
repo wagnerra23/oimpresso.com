@@ -5,7 +5,7 @@ irmaos: Timeline.charter.md (lei) · Timeline.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o recorte (200 acessos, source delphi_middleware, endpoint processa-dados-cliente) e os códigos 403/404 são contrato — não mudam quando a tela ganhar coluna.
 owner: wagner
-last_run: "2026-08-19"
+last_run: "2026-08-20"
 ---
 
 # Casos de Uso & Aceite — Timeline da máquina

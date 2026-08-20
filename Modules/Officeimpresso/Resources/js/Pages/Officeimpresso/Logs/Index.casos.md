@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o comportamento é durável — quem-pode, o que a linha afirma e o que o filtro devolve não mudam quando a tela ganhar coluna nova.
 owner: wagner
-last_run: "2026-08-19"
+last_run: "2026-08-20"
 ---
 
 # Casos de Uso & Aceite — Máquinas Cadastradas (`/officeimpresso/licenca_log`)
