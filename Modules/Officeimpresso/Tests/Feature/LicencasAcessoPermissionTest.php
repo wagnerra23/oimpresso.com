@@ -115,9 +115,14 @@ it('libera as telas de leitura pra quem tem officeimpresso.access (caso do supor
     $this->actingAs($user);
     session(['user.business_id' => $business->id]);
 
-    expect($this->get('/officeimpresso/licenca_computador')->status())->not->toBe(403)
-        ->and($this->get('/officeimpresso/licenca_log')->status())->not->toBe(403)
-        ->and($this->get('/officeimpresso/businessall')->status())->not->toBe(403);
+    // `->not->toBe(403)` era verde-que-não-prova: um 500 também não é 403.
+    // Medido em 2026-08-19 (run 32290877986) — estas duas primeiras rotas
+    // estavam em 500 (`ViewException: Undefined array key "REMOTE_ADDR"`,
+    // `layouts/app.blade.php:56`) e este caso passava mesmo assim. `assertOk()`
+    // exige que a tela ABRA, que é o que o enunciado promete.
+    $this->get('/officeimpresso/licenca_computador')->assertOk();
+    $this->get('/officeimpresso/licenca_log')->assertOk();
+    $this->get('/officeimpresso/businessall')->assertOk();
 
     $user->forceDelete();
 });
@@ -142,8 +147,13 @@ it('exige licencas.gerenciar pra liberar/bloquear máquina — ver não basta', 
     $suporte->givePermissionTo(PERM_OI_GERENCIAR);
     $this->actingAs($suporte);
     session(['user.business_id' => $business->id]);
-    expect($this->get('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE . '/toggle-block')->status())
-        ->not->toBe(403);
+    // Atravessar o gate tem desfecho CONHECIDO: o findOrFail do id inexistente
+    // estoura e o controller cai no catch → `redirect()->back()->with('error')`.
+    // Exigir o redirect MAIS o flash prova que a requisição chegou ao CORPO do
+    // controller — `->not->toBe(403)` aceitaria um 500 de qualquer origem.
+    $this->get('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE . '/toggle-block')
+        ->assertRedirect()
+        ->assertSessionHas('error');
     $suporte->forceDelete();
 });
 
@@ -179,8 +189,11 @@ it('delega escopo empresa-inteira via officeimpresso.empresa.gerenciar', functio
     // BUSINESS_INEXISTENTE de propósito: o gate roda ANTES do service, então o
     // caso "com permissão" atravessa a guarda e morre no findOrFail (catch →
     // redirect) — sem alternar o bloqueio de NENHUMA empresa real.
-    expect($this->get('/officeimpresso/licenca_computador/businessbloqueado/' . BUSINESS_INEXISTENTE)->status())
-        ->not->toBe(403);
+    // O redirect + o flash de erro são o desfecho conhecido desse caminho:
+    // asseverar os dois prova que o corpo do controller rodou.
+    $this->get('/officeimpresso/licenca_computador/businessbloqueado/' . BUSINESS_INEXISTENTE)
+        ->assertRedirect()
+        ->assertSessionHas('error');
 
     $gestor->forceDelete();
 });
@@ -214,8 +227,12 @@ it('delega exclusão via officeimpresso.licencas.excluir', function () {
     session(['user.business_id' => $business->id]);
 
     // Atravessa o gate e morre no find() → 404 JSON. Nenhuma licença real some.
-    expect($this->delete('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE)->status())
-        ->not->toBe(403);
+    // O corpo do JSON entra na asserção de propósito: é o que distingue "o
+    // service rodou e não achou" de um 404 de rota inexistente (ambos são
+    // "não é 403").
+    $this->delete('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE)
+        ->assertNotFound()
+        ->assertJson(['error' => 'Computador não encontrado']);
 
     $user->forceDelete();
 });

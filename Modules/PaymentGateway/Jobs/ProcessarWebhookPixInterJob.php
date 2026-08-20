@@ -52,8 +52,13 @@ class ProcessarWebhookPixInterJob implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
-    public string $queue = 'paymentgateway';
-
+    // PHP 8.4 + Laravel 13: o trait Queueable declara `public $queue;` (sem tipo,
+    // sem default). Re-declarar a property aqui com QUALQUER default viola as regras
+    // de composição de trait ("definition differs and is considered incompatible")
+    // e é FATAL na carga da classe — `php -l` NÃO pega (é erro de composição, não
+    // de sintaxe). Solução canônica: setar via $this->onQueue() no constructor.
+    // $tries/$backoff são do contrato ShouldQueue (não do trait), seguros.
+    // @see Modules/NfeBrasil/Jobs/EmitirNfceJob.php (mesma pegadinha, mesmo fix)
     public int $tries = 3;
 
     public int $backoff = 60; // 1min entre retries
@@ -62,6 +67,7 @@ class ProcessarWebhookPixInterJob implements ShouldQueue
         public readonly int $interWebhookLogId,
         public readonly int $businessId, // ADR 0093 — propagação obrigatória
     ) {
+        $this->onQueue('paymentgateway');
     }
 
     public function handle(ReconciliarCobrancaService $reconciliador): void
