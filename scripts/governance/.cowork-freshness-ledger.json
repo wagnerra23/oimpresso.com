@@ -540,5 +540,21 @@
     "verifiedHash": {},
     "origin": "export",
     "stalePreExport": 0
+  },
+  {
+    "date": "2026-08-20T20:23:43.911Z",
+    "files": 133,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 132,
+    "staleList": [],
+    "verified": [
+      "oimpresso.com.html"
+    ],
+    "verifiedHash": {
+      "oimpresso.com.html": "5606b09d6a6a4edc363e7860dd3464990aeaae6b9ea80a5549f8da5f9a4e3c4c"
+    },
+    "origin": "medicao"
   }
 ]
