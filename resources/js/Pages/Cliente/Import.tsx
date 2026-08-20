@@ -79,6 +79,14 @@ export default function ClienteImport(props: ClienteImportPageProps) {
     }
   };
 
+  // O label acompanha o ESTADO. `aria-label` tem precedência sobre o conteúdo do elemento,
+  // então um texto fixo faz o leitor de tela anunciar sempre a mesma frase — sem nunca dizer
+  // que já existe arquivo anexado, nem qual. O usuário vidente lê o nome dentro do dropzone;
+  // o de leitor de tela não ouvia nada disso.
+  const dropzoneLabel = filename
+    ? `Planilha anexada: ${filename}. Clique ou tecle Enter para trocar de arquivo.`
+    : 'Escolher a planilha de clientes: clique, arraste o arquivo aqui, ou tecle Enter';
+
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!data.contacts_csv) return;
@@ -186,7 +194,7 @@ export default function ClienteImport(props: ClienteImportPageProps) {
             onKeyDown={handleKeyDown}
             role="button"
             tabIndex={0}
-            aria-label="Escolher a planilha de clientes: clique, arraste o arquivo aqui, ou tecle Enter"
+            aria-label={dropzoneLabel}
             className={
               'border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ' +
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ' +
