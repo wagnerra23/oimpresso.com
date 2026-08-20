@@ -211,5 +211,57 @@ function rodar(dir, pay, args = []) {
     !existsSync(join(dir, 'prototipo-ui/cowork/oimpresso.com.html')), r.out);
 }
 
+// -- 11-13: ENVELOPE do DesignSync.get_file (medido 2026-08-20) --------------
+// O payload do Cowork tem 3.504.544 bytes e o `get_file` corta em 262.144 (`styles.css`
+// sozinho ocupa 82% do teto). Quem tenta essa rota recebe um envelope truncado. O applier
+// ja era fail-closed (rc=2), mas dizia so "payload sem `files`" -- e foi essa mensagem que
+// me fez concluir "precisa fatiar em partes" e propor maquina nova, com a rota certa
+// (curl, `sync/README.md`) ja escrita. Aqui o BITE e sobre o DIAGNOSTICO.
+{
+  const dir = sandbox();
+  const env = join(dir, 'envelope-truncado.json');
+  writeFileSync(env, JSON.stringify({
+    method: 'get_file', path: 'sync/payload.json', truncated: true,
+    content: '{"schema":"cowork-payload/1","files":[{"path":"styles.css","content":"cortado no meio',
+  }), 'utf8');
+  const r = rodar(dir, env);
+  check('BITE envelope truncado: recusa NOMEANDO o teto do get_file',
+    r.code === 2 && /TRUNCADO/.test(r.out) && /262\.144/.test(r.out), r.out);
+  check('BITE envelope truncado: aponta a rota fiel (curl do README), nao so o erro',
+    /curl -sL/.test(r.out), r.out);
+}
+
+// Controle POSITIVO: envelope INTEIRO tem de ser desembrulhado sozinho. Sem isto, o arquivo
+// que o harness grava em disco so serviria se alguem editasse o JSON a mao -- e editar a mao
+// e transcricao, que a ADR 0374 proibe. Esta e a metade que ganha capacidade nova.
+{
+  const dir = sandbox();
+  const conteudo = 'novo';
+  const interno = {
+    schema: 'oimpresso-shell-v2', entry: 'oimpresso.com.html', generatedAt: '2026-08-20T00:00:00Z',
+    source: 'selftest-envelope', missing: [],
+    totalBytes: Buffer.byteLength(conteudo, 'utf8'),
+    files: [{ path: 'a.jsx', bytes: Buffer.byteLength(conteudo, 'utf8'), content: conteudo }],
+  };
+  const env = join(dir, 'envelope-inteiro.json');
+  writeFileSync(env, JSON.stringify({
+    method: 'get_file', path: 'sync/payload.json', truncated: false, content: JSON.stringify(interno),
+  }), 'utf8');
+  const r = rodar(dir, env);
+  check('BITE envelope inteiro: desembrulha e aplica sem edicao manual',
+    r.code === 0 && existsSync(join(dir, 'prototipo-ui/cowork/a.jsx')) &&
+    readFileSync(join(dir, 'prototipo-ui/cowork/a.jsx'), 'utf8') === conteudo, r.out);
+}
+
+// Controle NEGATIVO: payload cru (sem envelope) segue funcionando igual -- o conserto nao
+// pode ter trocado o caminho de sempre pelo caminho novo.
+{
+  const dir = sandbox();
+  const pay = completePayload(dir, [{ path: 'oimpresso.com.html', content: '<div>ok</div>' }]);
+  const r = rodar(dir, pay, ['--require-complete-shell']);
+  check('CONTROLE: payload cru (sem envelope) continua aplicando',
+    r.code === 0 && existsSync(join(dir, 'prototipo-ui/cowork/oimpresso.com.html')), r.out);
+}
+
 console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ applier: fiel/atômico · shell transitivo completo · _ds persistente · recusa escopo/R1/bytes · avisa regressão');
 process.exit(fails ? 1 : 0);

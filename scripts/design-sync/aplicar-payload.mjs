@@ -57,7 +57,87 @@ function fnv1a64(value) {
   return h.toString(16).padStart(16, '0');
 }
 
-const payloads = arquivos.map((arquivo) => ({ arquivo, ...JSON.parse(readFileSync(arquivo, 'utf8')) }));
+/**
+ * Le um payload aceitando DUAS formas: o payload cru (`cowork-payload/1`) e o ENVELOPE do
+ * `DesignSync.get_file` (`{method,path,content,truncated}`), que e o formato em que a
+ * resposta chega ao disco quando o harness persiste um resultado grande.
+ *
+ * POR QUE (medido 2026-08-20): o `sync/README.md` do Cowork diz que a rota fiel e
+ * `curl <URL curta> -o payload.json`. Um agente sem essa URL tenta o caminho obvio —
+ * `DesignSync.get_file('sync/payload.json')` — e bate num teto de 256 KiB do transporte,
+ * enquanto o payload real tem 3.504.544 bytes (`styles.css` sozinho tem 214.215, 82% do
+ * teto). O envelope volta com `truncated: true` e o `content` cortado no meio de uma
+ * string — o ENVELOPE segue JSON valido, so o `content` de dentro esta cortado.
+ *
+ * MEDIDO antes → depois (o applier JA era fail-closed; o que faltava era DIAGNOSTICO):
+ *   antes:  `payload sem \`files\`` · rc=2   ← nao diz a causa nem a saida
+ *   depois: nomeia o teto + aponta o `curl` do README · rc=2
+ * Nao e conserto de seguranca — e conserto de MENSAGEM, e ela custou caro: com o "sem
+ * files" na mao eu conclui que "o payload precisa ser fatiado em partes" e fui propor uma
+ * maquina nova, quando a rota certa ja estava escrita no README. O proprio README ja
+ * registrava essa mesma conclusao como refutada antes ("errada como teto absoluto").
+ *
+ * Entao o conserto tem duas metades, e as duas importam:
+ *   (a) envelope INTEIRO → desembrulha sozinho. O arquivo que o harness gravou passa a ser
+ *       consumivel direto, sem ninguem editar JSON a mao (editar seria transcricao, ADR 0374).
+ *   (b) envelope TRUNCADO → recusa NOMEANDO o teto e apontando o `curl`. Fail-closed: nada
+ *       e escrito. Diagnostico > stack trace.
+ */
+function lerPayload(arquivo) {
+  const texto = readFileSync(arquivo, 'utf8');
+  const bytes = Buffer.byteLength(texto, 'utf8');
+  const CAP = 262144; // 256 KiB — teto do DesignSync.get_file, medido 2026-08-20
+  const receita =
+    `
+  A rota fiel para o payload NAO e o get_file — e a do sync/README.md do Cowork:
+` +
+    `    curl -sL "<URL do payload>" -o /tmp/payload.json
+` +
+    `    node scripts/design-sync/aplicar-payload.mjs /tmp/payload.json --dry
+` +
+    `  A URL e curta (~1h) e e gerada do lado do design a cada rodada.`;
+
+  let obj;
+  try {
+    obj = JSON.parse(texto);
+  } catch (e) {
+    // JSON cortado. Se cheira a envelope de get_file no teto, diga a causa em vez do parser.
+    if (/^\s*\{"method":"get_file"/.test(texto) || bytes >= CAP) {
+      throw new Error(
+        `${arquivo}: JSON incompleto (${bytes.toLocaleString('pt-BR')} bytes). ` +
+        `Isso e a assinatura do teto de ${CAP.toLocaleString('pt-BR')} bytes do DesignSync.get_file — ` +
+        `o payload do Cowork nao cabe nele.${receita}`
+      );
+    }
+    throw new Error(`${arquivo}: JSON invalido — ${e.message}`);
+  }
+
+  // Envelope do get_file? (tem .content string e nao tem .files proprio)
+  const ehEnvelope = obj && typeof obj === 'object' && typeof obj.content === 'string' && !Array.isArray(obj.files);
+  if (!ehEnvelope) return obj;
+
+  if (obj.truncated === true) {
+    throw new Error(
+      `${arquivo}: DesignSync devolveu "${obj.path || '?'}" TRUNCADO — download incompleto, nada foi escrito. ` +
+      `O teto do get_file e ${CAP.toLocaleString('pt-BR')} bytes.${receita}`
+    );
+  }
+  try {
+    return JSON.parse(obj.content);
+  } catch (e) {
+    throw new Error(
+      `${arquivo}: envelope get_file de "${obj.path || '?'}" nao carrega um payload JSON valido — ${e.message}.${receita}`
+    );
+  }
+}
+
+let payloads;
+try {
+  payloads = arquivos.map((arquivo) => ({ arquivo, ...lerPayload(arquivo) }));
+} catch (e) {
+  console.error(`✗ ${e.message}`);
+  process.exit(2);
+}
 const files = payloads.flatMap((p) => p.files || []);
 if (!Array.isArray(files) || !files.length) { console.error('✗ payload sem `files`'); process.exit(2); }
 
