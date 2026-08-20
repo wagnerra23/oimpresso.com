@@ -205,7 +205,7 @@ function summarizeImpact(impacted) {
   return { visual_required: impacted.length > 0, scope, screens, impacted };
 }
 
-export function classifyChanges(changes, { readContent = () => '', consumerScreens = () => [] } = {}) {
+export function classifyChanges(changes, { readContent = () => '', consumerScreens = () => [], manifestoSoAdiciona = () => false } = {}) {
   const impacted = [];
   const seen = new Set();
   for (const change of changes) {
@@ -222,6 +222,35 @@ export function classifyChanges(changes, { readContent = () => '', consumerScree
 
     const content = CONTENT_AWARE_BACKEND.test(rawPath) ? readContent(rawPath) : '';
     let hit = classifyFile(rawPath, content);
+
+    // ADICIONAR baseline de tela NOVA nao e o vetor que o `contrato-visual`->global protege.
+    //
+    // O vetor real e REBASELINAR EM SILENCIO: trocar o .snap de uma tela que ja tinha
+    // referencia, ou remove-lo. Nesses casos global segue certo — e o que o
+    // baseline-tamper-guard vigia. Mas quando o .snap NASCE (status A), nao ha referencia
+    // anterior pra sobrescrever, e as outras telas nao foram tocadas: rodar o nucleo-6
+    // inteiro nao acrescenta protecao nenhuma.
+    //
+    // O CUSTO de nao distinguir era um beco sem saida ESTRUTURAL, medido em 2026-08-20 no
+    // #6027: pra criar a baseline de uma tela nova voce e OBRIGADO a tocar o manifesto + o
+    // .snap (o proprio gate manda faze-lo no MESMO commit); isso vira global; global exige o
+    // nucleo-6 limpo; e o nucleo-6 nao estava limpo porque o #5995 mudou Produto/Unificado
+    // sem regenerar a baseline dele. Resultado: NINGUEM conseguia adicionar tela nova
+    // enquanto qualquer outra tela do nucleo estivesse com drift — de quem quer que fosse.
+    //
+    // A cobertura NAO cai: se o mesmo PR mexer em algo compartilhado, esse arquivo dispara
+    // global pela regra DELE (frontend-compartilhado / componente-de-page-compartilhado /
+    // fundacao-visual). O .snap forcar global era protecao REDUNDANTE.
+    //
+    // MEDIDO nos 300 commits mais recentes de main que tocam baseline de pixel: 29 commits,
+    // dos quais 11 so ADICIONAM (viram targeted) e 18 modificam/removem (seguem global).
+    if (hit?.reason === 'contrato-visual') {
+      const nasceu = status.startsWith('A') && /^tests\/\.pest\/snapshots\/Browser\//i.test(rawPath);
+      const manifestoAditivo = rawPath === SCREEN_MANIFEST && manifestoSoAdiciona(rawPath);
+      if (nasceu || manifestoAditivo) {
+        hit = { ...hit, scope: 'targeted', reason: 'contrato-visual-adicao' };
+      }
+    }
     if (hit?.scope === 'global' && /^resources\/js\//i.test(rawPath)) {
       const consumers = consumerScreens(rawPath);
       if (consumers.length) {
@@ -442,6 +471,36 @@ function run(argv) {
     try { previous = git(['show', `${diffBase}:${path}`]); } catch { /* arquivo novo */ }
     return `${previous}\n${current}`;
   };
+  // O manifesto e UM arquivo, entao adicionar tela nele e sempre status 'M' — o status do
+  // diff nao distingue "entrou tela nova" de "mexeram numa que ja existia". Quem distingue e
+  // o CONTEUDO: se toda entrada da base sobreviveu IDENTICA e o head so tem entradas a mais,
+  // a mudanca e puramente aditiva e nada foi rebaselinado em silencio.
+  const entradasPorSource = (texto) => {
+    try {
+      const j = JSON.parse(texto);
+      const xs = Array.isArray(j) ? j : (j?.screens ?? []);
+      return new Map(xs.filter((e) => e?.source).map((e) => [e.source, JSON.stringify(e)]));
+    } catch { return null; }
+  };
+  const manifestoSoAdiciona = (path) => {
+    if (path !== SCREEN_MANIFEST) return false;
+    let antes = '';
+    try { antes = git(['show', `${diffBase}:${path}`]); } catch { return false; }
+    // O head vem do GIT, nao do disco: `--head` pode ser uma ref (outro branch) e ái o disco
+    // é de outra coisa. No CI dá no mesmo (checkout == head); localmente, ler o disco mente.
+    let depois = '';
+    try { depois = git(['show', `${head}:${path}`]); }
+    catch { const disk = join(ROOT, path); if (!existsSync(disk)) return false; depois = readFileSync(disk, 'utf8'); }
+    const a = entradasPorSource(antes);
+    const b = entradasPorSource(depois);
+    // JSON ilegivel de qualquer lado -> conservador (global). Nao inventa aditivo.
+    if (!a || !b) return false;
+    for (const [source, json] of a) {
+      if (b.get(source) !== json) return false;   // sumiu ou mudou => NAO e aditivo
+    }
+    return b.size > a.size;
+  };
+
   const manifest = JSON.parse(readFileSync(join(ROOT, SCREEN_MANIFEST), 'utf8'));
   const manifestErrors = validateScreenManifest(manifest, {
     baselineExists: (baseline) => existsSync(join(ROOT, 'tests/.pest/snapshots/Browser/CoreScreens/PixelBaselineTest', baseline)),
@@ -454,7 +513,7 @@ function run(argv) {
   if (manifestErrors.length) throw new Error(`contrato ${SCREEN_MANIFEST} invalido: ${manifestErrors.join('; ')}`);
   const needsConsumerGraph = changes.some((change) => /^resources\/js\//i.test(normalizePath(change.path)));
   const consumerScreens = needsConsumerGraph ? createRepositoryConsumerResolver() : () => [];
-  const impact = classifyChanges(changes, { readContent, consumerScreens });
+  const impact = classifyChanges(changes, { readContent, consumerScreens, manifestoSoAdiciona });
   const result = {
     base,
     diff_base: diffBase,
@@ -623,6 +682,39 @@ function selfTest() {
     validateExecution({ visualRequired: 'true', mode: 'true', pixelOutcome: 'success', scope: 'global', uncoveredScreens: ['Admin'], expected: 6, executed: 6, compared: 3 }).length > 0,
     'global com pixel incompleto segue reprovando',
   );
+  // ADICAO x MODIFICACAO de contrato visual (2026-08-20) — o beco sem saida do #6027.
+  // BITE dos dois lados: adicionar tela nova NAO precisa do nucleo-6; rebaselinar precisa.
+  {
+    const SNAP = 'tests/.pest/snapshots/Browser/CoreScreens/PixelBaselineTest/it_X.snap';
+    const nasce = classifyChanges([{ status: 'A', path: SNAP }]);
+    assert.deepEqual([nasce.scope, nasce.impacted[0].reason], ['targeted', 'contrato-visual-adicao']);
+
+    const rebaseline = classifyChanges([{ status: 'M', path: SNAP }]);
+    assert.deepEqual([rebaseline.scope, rebaseline.impacted[0].reason], ['global', 'contrato-visual']);
+
+    const removida = classifyChanges([{ status: 'D', path: SNAP }]);
+    assert.equal(removida.scope, 'global');
+
+    // O manifesto e 1 arquivo: adicionar tela nele e sempre 'M'. Quem decide e o CONTEUDO,
+    // via resolver — e sem resolver o default e conservador (global).
+    const semResolver = classifyChanges([{ status: 'M', path: SCREEN_MANIFEST }]);
+    assert.equal(semResolver.scope, 'global');
+
+    const aditivo = classifyChanges([{ status: 'M', path: SCREEN_MANIFEST }], { manifestoSoAdiciona: () => true });
+    assert.deepEqual([aditivo.scope, aditivo.impacted[0].reason], ['targeted', 'contrato-visual-adicao']);
+
+    const alterou = classifyChanges([{ status: 'M', path: SCREEN_MANIFEST }], { manifestoSoAdiciona: () => false });
+    assert.equal(alterou.scope, 'global');
+
+    // CONTROLE: adicionar .snap NAO apaga o global que vem de arquivo compartilhado no
+    // mesmo PR — a protecao continua vindo da regra CERTA.
+    const junto = classifyChanges([
+      { status: 'A', path: SNAP },
+      { status: 'M', path: 'resources/css/cockpit.css' },
+    ]);
+    assert.equal(junto.scope, 'global');
+  }
+
 
   // ── explainFailure: a narrativa segue o MESMO scope do canário ───────────────────────
   // REPRODUÇÃO do caso medido (PR #5976 · job 96505067528): scope=global + 8 uncovered, e o

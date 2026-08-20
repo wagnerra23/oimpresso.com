@@ -1,0 +1,66 @@
+{
+  "_nota": "Copy e seções derivadas do contrato escrito por [CC] em cowork-inbox/SUPERADMIN-F1-2026-08-18.md §3, TRADUZIDAS para o schema que a máquina deste repositório consome (contract.schema.json: alvo + secoes[{id,copy,estados}]). O original usa outro formato (screen/views/copy-plana/states/forbidden) e descreve UMA tela `Superadmin/Index` com seis views; a migração F3 entregou telas SEPARADAS, então o contrato do F1 vira DOIS. Mesmo caminho que o modulos.contract.json seguiu.",
+  "_nota_invisivel": "Por que só agora: o F1 estava no projeto Cowork desde 2026-08-18 e era INVISÍVEL ao repositório — o detector de frescor do espelho só olhava .jsx/.html/.css/.js (consertado em #6019). A onda inteira foi construída de uma cópia colada no chat, e as copy abaixo bateram por acerto, não por contrato. Agora batem por contrato.",
+  "_nota_recorte": "⚠️ 4 das 7 seções que o F1 §1 pede pra view `negocios`. De fora: `bulkbar` (comunicar/exportar/desativar) e a seleção múltipla que a alimenta — produção não tem, e dependem das ações da SA-O3; e o `FormDrawer novo/editar` — o pré-flight da SA-O3 (#6011) MEDIU que `edit`/`update` são andaime quebrado (view inexistente + método de corpo vazio), ou seja não há comportamento a contratar ainda.",
+  "tela": "superadmin/Negocios",
+  "fonte": "prototipo-ui/cowork/superadmin-page.jsx",
+  "_nota_fonte": "Mesma âncora que o charter declara em `related_prototype`.",
+  "alvo": [
+    "Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "superadmin.negocios.busca-filtros",
+      "_papel": "busca com `/` + os 4 filtros combináveis do F1 (UC-SA-004)",
+      "copy": [
+        "Assinatura",
+        "Status do negócio",
+        "Última venda"
+      ],
+      "estados": []
+    },
+    {
+      "id": "superadmin.negocios.tabela",
+      "_papel": "6 colunas. O F1 pede 5 + seleção; produção tem 6 sem seleção — divergência declarada, não escondida.",
+      "copy": [
+        "Negócio",
+        "Dono",
+        "Pacote",
+        "Assinatura",
+        "Status",
+        "Cadastro"
+      ],
+      "estados": [
+        "vazio-filtro",
+        "vazio-busca",
+        "carregando"
+      ]
+    },
+    {
+      "id": "superadmin.negocios.paginacao",
+      "_papel": "paginação server-side. ⚠️ F1 pede 6/página; produção usa 20 — decisão [W] em aberto.",
+      "copy": [],
+      "estados": []
+    },
+    {
+      "id": "superadmin.negocios.drawer",
+      "_papel": "Drawer PT-02 como ESTADO da lista (UC-SA-005). As 4 seções são as do F1.",
+      "copy": [
+        "Assinatura",
+        "Uso contra o limite do pacote",
+        "Dono e contato",
+        "Histórico de assinaturas"
+      ],
+      "estados": [
+        "carregando",
+        "vazio"
+      ]
+    }
+  ],
+  "ordem": [
+    "superadmin.negocios.busca-filtros",
+    "superadmin.negocios.tabela",
+    "superadmin.negocios.paginacao",
+    "superadmin.negocios.drawer"
+  ]
+}
