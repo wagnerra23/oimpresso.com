@@ -245,12 +245,21 @@ class VisregTenantSeeder extends Seeder
      */
     private function ensureManageModulesPermission(): void
     {
+        $this->ensurePermission('manage_modules');
+        // `backup` — onboarda /backup no gate visual. Sem ela a rota devolve 403 e a
+        // baseline nunca nasce (mesmo sintoma medido no /superadmin em 2026-08-19).
+        $this->ensurePermission('backup');
+    }
+
+    /** Cria a permission se faltar e liga ao visreg_admin (model_id 1). */
+    private function ensurePermission(string $nome): void
+    {
         $permId = DB::table('permissions')
-            ->where('name', 'manage_modules')->where('guard_name', 'web')->value('id');
+            ->where('name', $nome)->where('guard_name', 'web')->value('id');
 
         if (! $permId) {
             $permId = DB::table('permissions')->insertGetId([
-                'name' => 'manage_modules',
+                'name' => $nome,
                 'guard_name' => 'web',
             ]);
         }
