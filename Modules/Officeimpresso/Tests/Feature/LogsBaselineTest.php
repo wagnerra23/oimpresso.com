@@ -32,6 +32,7 @@ uses(Tests\TestCase::class);
  * rodam em sqlite). Tenant canônico de teste = 98 (ADR 0358), NUNCA biz=4.
  *
  * @covers-us US-OI-001
+ * @covers-us US-OI-003
  * @see Modules\Officeimpresso\Http\Controllers\LicencaLogController
  * @see memory/requisitos/Officeimpresso/RUNBOOK-logs.md
  * @see memory/requisitos/Officeimpresso/SPEC.md (US-OI-001)
@@ -189,6 +190,19 @@ it('estado_atual separa máquina bloqueada de ativa', function () {
     // caso oposto o teste passaria com um WHERE que devolve tudo.
     $ativas = idsDasMaquinas($this->get('/officeimpresso/licenca_log?estado_atual=ativa'));
     expect($ativas)->toContain($ativa)->and($ativas)->not->toContain($bloqueada);
+
+    $user->forceDelete();
+});
+
+it('não quebra com business_id não-numérico na query string', function () {
+    $business = $this->seededTenant();
+    $user = actingAsOiLeitor($this, $business->id);
+
+    // Regressão da extração de `buildMaquinasPayload()` (F2): o valor vem de
+    // `$request->query('business_id')`, que é STRING. Tipar o parâmetro como
+    // `?int` transformaria isto num TypeError 500. O comportamento correto —
+    // e o de antes da extração — é devolver lista vazia.
+    $this->get('/officeimpresso/licenca_log?business_id=abc')->assertOk();
 
     $user->forceDelete();
 });

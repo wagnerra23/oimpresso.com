@@ -82,6 +82,28 @@ function lerPayload(arquivo) {
     console.error(`    node scripts/design-sync/aplicar-payload.mjs p1.json p2.json ... --require-complete-shell`);
     process.exit(2);
   }
+  // 3o caso: ENVELOPE do `DesignSync.get_file`, nao o payload. Medido 2026-08-20 com o
+  // artefato REAL (259,5 KB): o envelope e JSON VALIDO (so o `content` de dentro esta
+  // cortado) e nao tem `fileCount` — entao escapa das duas guardas acima e cai la embaixo
+  // no generico "payload sem `files`", que foi exatamente a mensagem que mandou uma sessao
+  // concluir errado. E o caso que o agente MAIS encontra: quando o harness persiste a
+  // resposta do get_file em disco, e este o formato do arquivo.
+  //
+  // Detecta, NAO desembrulha: o docblock deste arquivo diz que ele aplica payload SERVIDO,
+  // "nao de get_file". Desembrulhar aqui abriria a rota que o desenho recusa. Quem consome
+  // envelope de proposito e o `cowork-mirror-freshness --export-from`.
+  if (obj && typeof obj === 'object' && typeof obj.content === 'string' && !Array.isArray(obj.files)) {
+    console.error(`✗ isto e um ENVELOPE do DesignSync.get_file, nao um payload: ${arquivo}`);
+    console.error(`  path="${obj.path || '?'}" truncated=${obj.truncated === true}`);
+    if (obj.truncated === true) {
+      console.error(`  O download veio INCOMPLETO — o get_file corta em 256 KiB e o payload tem ~3,5 MB.`);
+    }
+    console.error(`  Este applier recebe o payload SERVIDO, nao a resposta do get_file.`);
+    console.error(`  Remedio: sirva o payload em PARTES de ate 256 KiB — este applier ja junta lotes:`);
+    console.error(`    node scripts/design-sync/aplicar-payload.mjs p1.json p2.json ... --require-complete-shell`);
+    process.exit(2);
+  }
+
   const declarado = Number(obj && obj.fileCount);
   const real = Array.isArray(obj && obj.files) ? obj.files.length : 0;
   if (Number.isFinite(declarado) && declarado !== real) {

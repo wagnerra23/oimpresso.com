@@ -1148,7 +1148,7 @@
 ### todo
 
 - **US-OI-001** — F2: Pest baseline do comportamento atual
-- **US-OI-002** — F2: action dual + feature flag `useV2Logs`
+- **US-OI-002** — F2: action dual + feature flag `useV2OfficeimpressoLogs`
 - **US-OI-003** — F2: mapa de paridade Blade↔React
 - **US-OI-004** — F3: tela `Logs/Index` (Máquinas Cadastradas) em PT-01
 - **US-OI-005** — F3: tela `Logs/Timeline` (acessos por máquina) em PT-07
