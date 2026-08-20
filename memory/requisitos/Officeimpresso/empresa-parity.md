@@ -102,7 +102,7 @@ related_adrs:
 
 > ⚠️ **O item 45 não existe no Blade — é criado pela migração.** Não é paridade; é contramedida a um
 > risco que **só a Inertia introduz** (a prop inteira é serializada no `data-page` do HTML). Mesmo
-> mecanismo do item 29 do [licencas-parity.md](licencas-parity.md), porque as duas telas consomem o
+> mecanismo do item 29 do `licencas-parity.md`, porque as duas telas consomem o
 > mesmo Service.
 
 ## Divergências deliberadas (não são regressão)

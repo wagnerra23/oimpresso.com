@@ -116,7 +116,7 @@ Bridge legacy entre o ERP Delphi histórico **WR Comercial / WR Sistemas (Office
 ## Onda 2 — telas P1 · US da tela #4 (`Empresa/Show`)
 
 > O **epic da Onda 2** (tabela das 3 telas + escopo negativo) é entregue no PR da tela #3
-> ([RUNBOOK-licencas.md](RUNBOOK-licencas.md), US-OI-008..010) — dono único, para não duplicar.
+> (`RUNBOOK-licencas.md`, US-OI-008..010) — dono único, para não duplicar.
 > Esta seção traz só as US da tela **#4**, cujo F1 PLAN é o [RUNBOOK-empresa.md](RUNBOOK-empresa.md)
 > e cujo contrato campo-a-campo é o [empresa-parity.md](empresa-parity.md).
 

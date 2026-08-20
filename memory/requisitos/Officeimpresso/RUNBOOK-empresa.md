@@ -18,8 +18,8 @@ related:
 # RUNBOOK — Officeimpresso `Empresa/Show` (Onda 2, tela 4/14)
 
 > **Escopo:** a tela **#4** do [RUNBOOK-migracao-react.md](RUNBOOK-migracao-react.md) — segunda das
-> 3 telas P1 da Onda 2. As outras duas: [RUNBOOK-licencas.md](RUNBOOK-licencas.md) (#3) e
-> [RUNBOOK-empresas.md](RUNBOOK-empresas.md) (#5).
+> 3 telas P1 da Onda 2. As outras duas: `RUNBOOK-licencas.md` (#3) e
+> `RUNBOOK-empresas.md` (#5).
 > Artefato **F1 PLAN** que a [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)
 > exige e que o hook [`block-mwart-violation.mjs`](../../../.claude/hooks/block-mwart-violation.mjs)
 > procura — ele resolve pelo **kebab do subdir** (`Empresa/` → `RUNBOOK-empresa.md`), não pelo
@@ -76,7 +76,7 @@ concede a outra** — há teste de no-leak pros dois sentidos (`:179`, `:218`).
    decisão do item 5 das pré-condições.
 2. **Payload seguro** — `buildEmpresaPayload()` + `buildComputadoresPayload()` devolvendo **DTO
    explícito**, nunca os models. Vale pras duas pontas: `Licenca_Computador` carrega `senha` e
-   `contra_senha` (ver [RUNBOOK-licencas §10.1](RUNBOOK-licencas.md)) e `Business` é um model gordo,
+   `contra_senha` (ver `RUNBOOK-licencas §10.1`) e `Business` é um model gordo,
    com dados de todo o ERP que esta tela não usa.
 3. **`Inertia::render` viaja com a TELA, não com a F2.** Render apontando pra page inexistente é 500
    esperando a flag ligar, e o `OrphanRenderGateTest` (required) reprova — corretamente.
@@ -210,7 +210,7 @@ caminho_banco, dt_ultimo_acesso, bloqueado}` — **9 campos**. Nunca o model (pe
    que a fixture assere: (a) manter como está e nomear a intenção numa guarda explícita, ou (b)
    escopar `viewLicencas` a quem tem permissão de ver todas. Não decidir por conta própria.
 2. **O model inteiro vira JSON na prop, e ele carrega credencial.** Mesmo mecanismo da
-   [RUNBOOK-licencas §10.1](RUNBOOK-licencas.md), e esta tela consome o **mesmo** Service: em Blade
+   `RUNBOOK-licencas §10.1`, e esta tela consome o **mesmo** Service: em Blade
    inofensivo, em Inertia a prop vai serializada no `data-page`. `Licenca_Computador` não tem
    `$hidden` e o `$fillable` lista `senha`, `contra_senha`, `serial` e `token`. Vale também pro
    `Business`, que é um model gordo do ERP inteiro.
