@@ -79,7 +79,7 @@ afterEach(function () {
 // Guarda de acesso
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('nega a timeline pra autenticado sem permissão do módulo', function () {
+it('UC-TL-05 · nega a timeline pra autenticado sem permissão do módulo', function () {
     $business = $this->seededTenant();
 
     // O irmão LicencasAcessoPermissionTest cobre /licenca_log (a lista). A
@@ -93,7 +93,7 @@ it('nega a timeline pra autenticado sem permissão do módulo', function () {
     $user->forceDelete();
 });
 
-it('devolve 404 na timeline de máquina inexistente pra quem TEM permissão', function () {
+it('UC-TL-06 · devolve 404 na timeline de máquina inexistente pra quem TEM permissão', function () {
     $business = $this->seededTenant();
     $user = actingAsOiLeitor($this, $business->id);
 
@@ -110,7 +110,7 @@ it('devolve 404 na timeline de máquina inexistente pra quem TEM permissão', fu
 // KPIs
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('publica os 4 KPIs da tela como inteiros', function () {
+it('UC-LOGS-02 · publica os 4 KPIs da tela como inteiros', function () {
     $business = $this->seededTenant();
     $user = actingAsOiLeitor($this, $business->id);
 
@@ -132,7 +132,7 @@ it('publica os 4 KPIs da tela como inteiros', function () {
 // Filtros — o coração do que a migração pode perder em silêncio
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('filtra por hd exato e ignora as outras máquinas', function () {
+it('UC-LOGS-03 · filtra por hd exato e ignora as outras máquinas', function () {
     $business = $this->seededTenant();
     $user = actingAsOiLeitor($this, $business->id);
 
@@ -146,7 +146,7 @@ it('filtra por hd exato e ignora as outras máquinas', function () {
     $user->forceDelete();
 });
 
-it('filtra por licenca_id e devolve só aquele equipamento', function () {
+it('UC-LOGS-04 · filtra por licenca_id e devolve só aquele equipamento', function () {
     $business = $this->seededTenant();
     $user = actingAsOiLeitor($this, $business->id);
 
@@ -160,7 +160,7 @@ it('filtra por licenca_id e devolve só aquele equipamento', function () {
     $user->forceDelete();
 });
 
-it('busca livre q acha por hostname e não traz quem não casa', function () {
+it('UC-LOGS-05 · busca livre q acha por hostname e não traz quem não casa', function () {
     $business = $this->seededTenant();
     $user = actingAsOiLeitor($this, $business->id);
 
@@ -176,7 +176,7 @@ it('busca livre q acha por hostname e não traz quem não casa', function () {
     $user->forceDelete();
 });
 
-it('estado_atual separa máquina bloqueada de ativa', function () {
+it('UC-LOGS-06 · estado_atual separa máquina bloqueada de ativa', function () {
     $business = $this->seededTenant();
     $user = actingAsOiLeitor($this, $business->id);
 
@@ -194,7 +194,7 @@ it('estado_atual separa máquina bloqueada de ativa', function () {
     $user->forceDelete();
 });
 
-it('não quebra com business_id não-numérico na query string', function () {
+it('UC-LOGS-07 · não quebra com business_id não-numérico na query string', function () {
     $business = $this->seededTenant();
     $user = actingAsOiLeitor($this, $business->id);
 
@@ -211,7 +211,7 @@ it('não quebra com business_id não-numérico na query string', function () {
 // Timeline — payload
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('timeline devolve a máquina e só os acessos dela', function () {
+it('UC-TL-08 · timeline devolve a máquina e só os acessos dela', function () {
     $business = $this->seededTenant();
     $user = actingAsOiLeitor($this, $business->id);
 
@@ -233,7 +233,7 @@ it('timeline devolve a máquina e só os acessos dela', function () {
     $user->forceDelete();
 });
 
-it('timeline preserva o was_blocked do metadata (tri-estado da coluna Estado no Login)', function () {
+it('UC-TL-09 · timeline preserva o was_blocked do metadata (tri-estado da coluna Estado no Login)', function () {
     $business = $this->seededTenant();
     $user = actingAsOiLeitor($this, $business->id);
 

@@ -112,7 +112,7 @@ it('concede acesso às licenças SEM abrir superadmin nem Financeiro (no-leak)',
     $user->forceDelete();
 });
 
-it('barra usuário autenticado sem permissão nas telas de licença e log', function () {
+it('UC-LOGS-01 · barra usuário autenticado sem permissão nas telas de licença e log', function () {
     $business = $this->seededTenant();
 
     $user = makeOiAcessoTestUser($business->id);
