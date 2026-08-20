@@ -811,6 +811,14 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** não escrever **par de barra invertida** em conteúdo de arquivo transportado por heredoc, script ou tool de escrita — em nenhuma linguagem. A forma positiva é remover a barra do texto: `chr(92)` montado em variável (Python), `DIRECTORY_SEPARATOR` em vez de `str_replace` de separador (PHP), ou um placeholder substituído depois (`__BS__`). E a verificação que fecha, porque é barata e determinística: depois de escrever, **conte as barras do arquivo e olhe cada uma** — se aparecer um par onde você queria um par, ok; se aparecer uma solteira onde deveria haver duas, o conteúdo foi corrompido no caminho. Vale igual para conteúdo com `\n`, `\t` e `\u` literais.
 
+### 2026-08-19 — Painel do protocolo anunciar "sem teto get_file" num caminho cujo INSUMO passa pelo get_file
+
+- **O limite (variante também proibida):** comando de painel/skill/doc não declara "sem teto X" sobre uma rota cujo INSUMO atravessa X. Antes de anunciar que um caminho contorna um limite, medir o insumo dele, não só a saída — vale pra teto de tamanho, rate-limit, timeout e permissão. Corolário: quando o consumidor já suporta a saída (aqui, `payloads.flatMap` junta lotes desde sempre), o defeito não é falta de capacidade, é a documentação não ensinar a usá-la.
+
+### 2026-08-20 — Consertar `front_door_coverage` com README, depois de ler o regex de docs CONCORRENTES em vez do predicado da porta
+
+- **O limite (variante também proibida):** ao consertar métrica de gate, achar a linha que COMPUTA o veredito — a variável que entra na conta — e não a primeira constante de aparência compatível. E o sinal de que você leu errado é barato: **se a métrica não se mexer depois do conserto, o predicado lido estava errado** — não insista com mais do mesmo tipo de arquivo.
+
 ### 2026-08-20 — Afirmar "o PR X não toca este arquivo" contra a MINHA PRÓPRIA consulta, feita na mesma sessão
 
 - **O limite (variante também proibida):** claim de **ausência sobre conjunto enumerável** (*"o PR X não toca"*, *"só o Y usa"*, *"nenhum outro consumidor"*) não se escreve de memória — **nem da sua própria memória de ter medido**. Antes de a frase entrar num artefato publicado (PR body, ADR, handoff, comentário), **re-ler a saída da consulta** ou re-rodá-la. O custo é um scroll; o custo do erro é uma afirmação com aparência de recibo. Corolário que generaliza para além do PR: quando você fizer uma varredura ampla cedo e escrever a conclusão tarde, a conclusão cita a **saída**, não a lembrança dela — é a mesma doutrina de "derivado > lembrado" ([ADR 0256](decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md)) aplicada dentro de uma sessão só.
