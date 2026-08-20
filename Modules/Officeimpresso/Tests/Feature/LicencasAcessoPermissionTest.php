@@ -62,6 +62,20 @@ defined('LICENCA_INEXISTENTE') || define('LICENCA_INEXISTENTE', 999999999);
 defined('BUSINESS_INEXISTENTE') || define('BUSINESS_INEXISTENTE', 999999999);
 
 beforeEach(function () {
+    // `layouts/app.blade.php` lê `$_SERVER['REMOTE_ADDR']` (linha 56) e
+    // `HTTP_USER_AGENT` (via `isMobile()`, helpers.php:72) DIRETO do superglobal,
+    // não do Request — e em teste HTTP eles não existem. Sem isto a view estoura
+    // e `assertOk()` reprova.
+    //
+    // O #5989 torna a linha 56 defensiva, o que é o conserto de raiz; este arquivo
+    // não pode DEPENDER daquele merge pra ficar honesto. E não pode depender da
+    // ORDEM: o Pest roda os arquivos no mesmo processo, então o `beforeEach` do
+    // LogsBaselineTest já setava isto — quando ele calhava de rodar primeiro, este
+    // aqui passava de carona. Medido 2026-08-20: verde no CT 100 (ordem favorável)
+    // e vermelho no CI (ordem desfavorável), MESMO commit.
+    $_SERVER['REMOTE_ADDR'] ??= '127.0.0.1';
+    $_SERVER['HTTP_USER_AGENT'] ??= 'Pest/CI (X11; Linux x86_64) HeadlessChrome';
+
     if (DB::connection()->getDriverName() === 'sqlite') {
         $this->markTestSkipped('SQLite-incompatível: schema MySQL UltimatePOS necessário (ADR 0101).');
     }
