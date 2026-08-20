@@ -105,8 +105,20 @@ Alvo do F1 ainda **não** entregue — está aqui pra não se perder, não como 
 - **Não aplica escopo de tenant nas queries.** O cross-tenant aqui é intencional
   (ADR 0093 §exceções Superadmin) — Wagner enxerga todos os negócios. Adicionar `business_id`
   scope quebraria o produto.
-- **Não inventa número que o banco não tem.** Enquanto MRR, funil, churn e receita-por-pacote
+- **Não inventa número que o banco não tem.** Enquanto funil, churn e receita-por-pacote
   não tiverem query, os blocos ficam fora da tela (ver RUNBOOK §1).
+
+  > **MRR saiu desta lista em 2026-08-20**, com aprovação [W] — reconciliação do que o
+  > [#5981](https://github.com/wagnerra23/oimpresso.com/pull/5981) já tinha entregue. Ele ganhou
+  > query real (`SuperadminDashboardService::calcularMrr`, que **delega** ao
+  > `SubscriptionRepository::mrrBaselineCached`) e chega às props legitimamente. O mesmo
+  > encolhimento já estava no `UC-SADASH-05` e no teste de contrato desde 19/08; o charter é que
+  > ficou pra trás — obedecê-lo como estava cobraria a remoção do card que [W] pediu.
+  >
+  > Os outros três seguem fora, e o `UC-SADASH-05` prova por asserção (`missing('funil')`,
+  > `missing('churn')`, `missing('receitaPorPacote')`). Precisão sobre o churn: o **insumo** dele
+  > já chega — `calcularMrr` devolve `canceladas` (saídas em 30 dias) e o card de MRR mostra
+  > "N ativas · M canceladas em 30 dias". O que falta é o **bloco** de churn, não a fonte.
 
 ---
 
@@ -117,13 +129,47 @@ Fechado em 2026-08-19: ratificação [W] dos Non-Goals/Anti-hooks · deploy · s
 
 Em aberto:
 
-- **Blocos sem query**: funil trial→pago, churn (depende da migration `cancel_reason`,
-  decisão [W] 2026-08-19), receita por pacote, fila "Vencendo ou vencido".
-- **Nenhum pacote tem preço cadastrado** (medido em prod 2026-08-19: 75 pacotes, todos com
-  `price` 0; 13 assinaturas vigentes, 13 sem preço). Enquanto isso valer, MRR, tendência,
-  receita-por-pacote e funil mostram zero **legitimamente** — não é bug de tela, é ausência de
-  dado. Decisão de produto: os pacotes recebem preço no sistema, ou a receita é medida fora
-  dele e esses blocos não fazem sentido aqui?
+- **Blocos sem query**: funil trial→pago, churn, receita por pacote, fila "Vencendo ou vencido".
+
+  > **Corrigido em 2026-08-20 (medição do #5981):** o churn **não** depende da migration
+  > `cancel_reason`. Ela nasceu em `subscriptions` — a tabela do licenciamento legado, que nunca
+  > churnou (medido em prod 19/08: 126 linhas, 0 cancelamentos) — enquanto
+  > `rb_subscriptions.churn_reason` já existe desde 2026-05-16, com caminho de escrita completo
+  > (`AssinaturaService::cancelar()` grava; `CancelSubscriptionRequest` exige). Está 0/52
+  > preenchido por **história**, não por defeito: 50 dos 52 cancelamentos são anteriores à coluna
+  > e vieram da migração do legado. Destino das 2 colunas ociosas em `subscriptions`: decisão [W].
+- **Nenhum pacote do licenciamento legado tem preço** (medido em prod 2026-08-19: 75 pacotes
+  `packages` ativos, todos com `price` 0; 13 assinaturas vigentes, 13 sem preço). **A medição
+  continua verdadeira; a conclusão que ela sustentava foi REFUTADA em 2026-08-19.** Ela estava
+  certa sobre a tabela e errada sobre QUAL tabela sustenta a receita: [W] apontou que "os preços
+  já estão nos pacotes ativos, são preços reais", e a medição seguinte achou a fonte —
+  `rb_plans`/`rb_subscriptions` (`Modules/RecurringBilling`), com os planos valorados e
+  assinaturas ativas. `packages`/`subscriptions` está zerado porque **não cobra ninguém**.
+
+  Consequências, item a item:
+
+  - **MRR não mostra mais zero** — mostrava por ler a fonte errada, e o #5981 consertou.
+  - **A pergunta de produto deste item está RESPONDIDA**: a receita é cobrada, e pelo
+    RecurringBilling. Ela não precisa mais de decisão.
+  - **DOIS blocos ainda têm o bug que o MRR tinha** (varrido em 2026-08-20: `package_price`
+    aparece em 2 métodos do service, e os 2 chegam à tela):
+
+    | símbolo | bloco na tela | efeito hoje |
+    |---|---|---|
+    | `SuperadminDashboardService::buildMonthlyRevenueChart()` | gráfico de tendência | barras em zero |
+    | `SuperadminDashboardService::statsForPeriod()` → `new_subscriptions` | KPI **"Novas assinaturas"** | **sempre zero** |
+
+    O segundo é o mais enganoso: o `Index.tsx` renderiza esse valor com `brl()` e a nota "soma
+    do valor contratado na janela" — ou seja, um card de **dinheiro** que soma a coluna do
+    licenciamento legado, que está zerada e não cobra ninguém. É a mesma fonte errada do MRR,
+    no card ao lado, ainda não corrigida.
+
+    Isso **deixa de ser** "ausência de dado legítima" e passa a ser dívida NOMEADA. Vale
+    também para `receita por pacote` e `funil` quando ganharem query.
+
+    ⚠️ **Corrigir isto é mudança de VALOR** (`proibicoes.md` §REGRA MESTRE): exige dupla
+    confirmação do cálculo por dois caminhos independentes + tabela antes→depois apresentada
+    a [W] **antes** de aplicar. Não é conserto de passagem — é decisão [W], como o #5981 foi.
 - **113 assinaturas `approved` com vigência vencida** que ninguém expira — o
   `findOverdueApproved()` não tem invocador. Afeta todo KPI que recorta por vigência.
 - Decisões D1/D2/D3 do F1 — impersonar, `pages`/`pricing` no CMS, `subscription/pay` de quem é.
