@@ -5,7 +5,7 @@ irmaos: Import.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o assistente de importação abrir (não cair no Blade legacy) não muda no refactor.
 owner: wagner
-last_run: "2026-07-08"
+last_run: "2026-08-20"
 ---
 
 # Casos de Uso & Aceite — Importar clientes em massa
@@ -32,6 +32,9 @@ last_run: "2026-07-08"
 - **[BACKLOG] Baixar o template XLSX (27 colunas UPOS)** — exige spec de download no harness.
 - **[BACKLOG] Upload valida extensão + retorna count de sucesso/erro** — `postImportContacts` (multipart) exige teste de upload dedicado.
 - **[BACKLOG] Banner de erro quando o PHP Zip não está disponível** — assertar `zip_available=false` num ambiente sem a extensão.
+- **[BACKLOG] Soltar a planilha no dropzone anexa o arquivo** — `onDrop`/`onDragOver` entregues em 2026-08-18. Exige spec de browser com `DataTransfer` sintético; feature test HTTP não alcança.
+- **[BACKLOG] Dropzone alcançável por teclado (Tab + Enter/Espaço abrem o seletor)** — `role="button"` + `tabIndex` + `onKeyDown` entregues em 2026-08-18. Exige spec de browser com axe; é o eixo `a11y_wcag` do scorecard, hoje 74 nesta tela.
+- **[BACKLOG] Arquivo de extensão errada solto no dropzone é recusado com aviso** — o `accept` do `<input>` não vale pro drop (`DataTransfer` o ignora); a recusa passou a ser explícita em 2026-08-18. Exige o mesmo harness de browser.
 
 ## Rastreabilidade (UC → CU do SDD → US do SPEC)
 
@@ -47,5 +50,7 @@ last_run: "2026-07-08"
 3. **Cadência:** rodar ao fim de toda mexida em `Import.tsx` / `ContactController::getImportContacts`.
 
 ## Trilha do tempo
+- 2026-08-20 · [CC] `last_run` re-bumpado por G-6, 2ª vez no mesmo PR. A revisão do próprio PR achou o `aria-label` estático do dropzone (o leitor de tela nunca anunciava o arquivo anexado) e o conserto tocou o `.tsx` de novo — **eu devia ter bumpado no mesmo commit do fix**, e não bumpei; o gate cobrou. Revalidação por ANÁLISE: o aceite do UC-CIMP-01 fala de rota, flag, componente Inertia e `zip_available`, e o diff de hoje tem **0 ocorrências** desses termos (só label de acessibilidade e a variável que o compõe). `Status: 🧪` **inalterado** — o teste segue sem re-rodar, e bumpar data não promove status.
+- 2026-08-18 · [CC] `last_run` bumpado por G-6: `Import.tsx` mudou (Onda 2 — `onDrop`/`onDragOver`, teclado no dropzone, recusa de extensão no drop). **Revalidação por ANÁLISE, não por execução** — e a distinção importa: o UC-CIMP-01 afirma que a rota renderiza Inertia `Cliente/Import` com `zip_available`, e a mudança não toca rota, flag, render nem payload, logo o aceite segue verdadeiro. O teste **não foi re-rodado** nesta sessão (roda no CT 100 / lane advisory `cliente-pest`), e por isso o `Status: 🧪` **fica como está** — bumpar `last_run` não promove status. Os 3 comportamentos novos entraram como `[BACKLOG]` sem id: não têm teste que os defenda, e UC com id sem teste quebraria o G-2.
 - 2026-07-27 · [CC] chip S-Cliente do passo 5 (agent `sdd-from-source`). **Nenhum UC reescrito.** Lane `PHP / Pest (Cliente · MySQL)` criada (**advisory**) — antes o teste não rodava em lane de PR nenhuma; + ponteiro pro SDD §6.4. Refs: [SDD Cliente](../../../../memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md) · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md).
 - 2026-07-08 · [CC] criado — Fase 2 (lanes Cliente). Teste-âncora `ClienteImportInertiaTest` escrito nesta onda (o Wave1* era quarentena/source-grep). Refs: [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md) G-1/G-2.
