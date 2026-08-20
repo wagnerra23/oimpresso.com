@@ -40,7 +40,7 @@
  */
 
 import { execFileSync, spawnSync } from 'node:child_process';
-import { readFileSync, existsSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { readFileSync, readSync, existsSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -118,6 +118,55 @@ export function acharVazamentos(adicionadas, allow = []) {
 /** Mascara o valor — o relatório do CI é público no log do Actions. */
 export function mascarar(linha) {
   return String(linha).replace(/R\$\s?\d[\d.,]*/g, 'R$ <valor>');
+}
+
+/** Espera síncrona — o leitor de stdin é síncrono e não dá pra virar async sem mexer no main. */
+function dormirSync(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+/**
+ * Lê o fd 0 até o EOF, tolerando EAGAIN.
+ *
+ * POR QUE: `readFileSync(0)` não faz retry. Stdin como pipe non-blocking cujo escritor
+ * (`printf`, `git log`) ainda não pôs byte devolve EAGAIN e MATA o processo. Medido
+ * 2026-08-20 sobre ~2.000 runs deste workflow: ~2-3% caem assim, e o check ficava
+ * VERMELHO sem ter medido nada (§5 proibicoes 2026-07-29, na cor oposta) — e vermelho
+ * que não significa nada treina o time a ignorar o vermelho que significa.
+ *
+ * EAGAIN ≠ EOF: fim de entrada é `readSync` devolvendo 0 (ou erro `EOF`, como o Windows
+ * sinaliza). EAGAIN = escritor vivo que ainda não escreveu → espera e tenta de novo, com
+ * teto; byte lido ZERA o orçamento, então escritor lento não estoura por acumulação.
+ * Estourou o teto: LANÇA — nunca devolve ''. Vazio legítimo (PR body em branco) segue
+ * distinguível de "não consegui ler": quem chama sai 2 (não medi), jamais 0 (nada a
+ * reportar). `read`/`sleep` são parâmetro pra o selftest exercitar ESTA função (a de
+ * produção, parametrizada) e não uma cópia paralela — §5 2026-08-14.
+ */
+export function lerStdinComRetry({ read = readSync, sleep = dormirSync, tetoMs = 5000, passoMs = 5 } = {}) {
+  const buf = Buffer.alloc(64 * 1024);
+  const partes = [];
+  let esperaMs = 0;
+  for (;;) {
+    let n;
+    try {
+      n = read(0, buf, 0, buf.length, null);
+    } catch (e) {
+      if (e && e.code === 'EOF') break; // Windows sinaliza fim de pipe por exceção
+      if (e && e.code === 'EAGAIN') {
+        if (esperaMs >= tetoMs) {
+          throw new Error(`stdin deu EAGAIN por ${tetoMs}ms seguidos sem entregar byte`);
+        }
+        sleep(passoMs);
+        esperaMs += passoMs;
+        continue;
+      }
+      throw e;
+    }
+    if (n === 0) break;
+    esperaMs = 0;
+    partes.push(Buffer.from(buf.subarray(0, n)));
+  }
+  return Buffer.concat(partes).toString('utf8');
 }
 
 function selftest() {
@@ -205,7 +254,44 @@ function selftest() {
   }
   falhas.push(...e2e);
 
-  const total = casos.length + 6;
+  // ── BITE-TEST do leitor de stdin (o caminho que morria de EAGAIN) ──────────
+  // Exercita a função DE PRODUÇÃO parametrizada (§5 2026-08-14: parâmetro, nunca cópia).
+  // LIMITE declarado: injetando o `read` isto prova a lógica de retry, NÃO o O_NONBLOCK do
+  // runner — Node não expõe fcntl. O fd non-blocking REAL foi reproduzido à mão num Linux
+  // (CT 100; recibo no corpo do PR) e o pipe real fica no E2E abaixo, que roda o CLI de fora.
+  const eagain = () => Object.assign(new Error('EAGAIN'), { code: 'EAGAIN' });
+  const eof = () => Object.assign(new Error('EOF'), { code: 'EOF' });
+  // seq(...): fabrica um `read`. String = entrega bytes; função = lança; fim da lista = EOF.
+  const seq = (...passos) => { let i = 0; return (_fd, b) => {
+    const passo = passos[i++];
+    if (typeof passo === 'function') throw passo();
+    return passo === undefined ? 0 : b.write(passo, 0, 'utf8');
+  }; };
+  // esperado null = tem que LANÇAR: é o controle negativo, e o ponto inteiro do conserto
+  // — "não consegui ler" ≠ "nada a reportar".
+  for (const [nome, read, esperado] of [
+    ['EAGAIN transitório entrega o texto', seq(eagain, eagain, eagain, 'novo'), 'novo'],
+    ['EOF imediato = vazio LEGÍTIMO (PR body em branco)', seq(), ''],
+    ['EOF-por-exceção (Windows) preserva o já lido', seq('meio', eof), 'meio'],
+    ['EAGAIN eterno LANÇA, jamais devolve vazio', () => { throw eagain(); }, null],
+  ]) {
+    let veio; let erro = null;
+    try { veio = lerStdinComRetry({ read, sleep: () => {}, tetoMs: 100 }); } catch (e) { erro = e; }
+    if (esperado === null ? !!erro : (!erro && veio === esperado)) ok++;
+    else falhas.push(`  x ${nome}: veio ${erro ? `erro ${erro.message}` : JSON.stringify(veio)}`);
+  }
+  // E2E do CLI com pipe REAL — prova a fiação `--stdin` → leitor → predicado.
+  const eu = fileURLToPath(import.meta.url);
+  for (const [nome, entrada, esperado] of [
+    ['--stdin com texto limpo deveria sair 0', 'sem valor aqui', 0],
+    ['--stdin com valor deveria sair 1', 'custo de R' + '$ 1.234,56', 1],
+  ]) {
+    const r = spawnSync(process.execPath, [eu, '--stdin'], { input: entrada, encoding: 'utf8' });
+    if (r.status === esperado) ok++;
+    else falhas.push(`  x ${nome}, veio ${r.status}`);
+  }
+
+  const total = casos.length + 6 + 6;
   console.log(`brl-scan-diff selftest: ${ok}/${total}`);
   if (falhas.length) { console.error(falhas.join('\n')); process.exit(1); }
   console.log('  ACHA: linha + com valor, em qualquer extensao, dentro e fora de memory/');
@@ -228,7 +314,18 @@ function main() {
     // morta aqui. Sem isso, um PR que DOCUMENTA o predicado dispara o predicado:
     // aconteceu neste próprio PR, com `R$ 0,50` citado como exemplo do que bloqueia.
     // Mesmo trade-off que o hook já aceita: exemplo didático vai em ``` … ```.
-    const txt = readFileSync(0, 'utf8');
+    //
+    // A LEITURA vai pelo `lerStdinComRetry`: `readFileSync(0)` morria de EAGAIN em
+    // ~2-3% das runs (medido 2026-08-20) sem ter varrido nada. Ver o docblock dele.
+    let txt;
+    try {
+      txt = lerStdinComRetry();
+    } catch (e) {
+      console.error(`brl-scan-diff: NÃO consegui LER o stdin (${e.message}).`);
+      console.error('Isto é ausência de MEDIÇÃO, não ausência de valor BRL no texto.');
+      console.error('Por isso exit 2 (não medi), nunca exit 0 (nada a reportar) — §5 2026-07-29.');
+      process.exit(2);
+    }
     const r = scanBrlLeak(txt);
     const allowTxt = carregarAllowlist();
     if (r.blocked && !allowTxt.some((a) => r.line.includes(a))) {
