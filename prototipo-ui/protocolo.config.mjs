@@ -141,7 +141,9 @@ export const FASES = [
   // 2026-08-13). Os comandos de ZIP saem da lista de FASES — deletar os SCRIPTS é poda de
   // capacidade, decisão [W], e não se faz de lado dentro de uma reconciliação de redação.
   { fase: '-1', nome: 'Importar/baixar o design', comandos: [
-      'node scripts/design-sync/aplicar-payload.mjs <cowork.json> <ds.json> --dry --require-complete-shell  # shell TODO + deps HTML/CSS/JS, sem teto get_file',
+      'node scripts/design-sync/aplicar-payload.mjs <p1.json> [p2.json ...] --dry --require-complete-shell  # shell TODO + deps HTML/CSS/JS (fechamento transitivo)',
+      '  ^ escapa o teto do get_file POR ARQUIVO, nao o do PAYLOAD: sync/payload.json tem ~3,5 MB e o',
+      '    get_file corta em 256 KiB ("truncated": true). Peca o payload em PARTES <=256 KiB — o applier junta lotes.',
       'node scripts/design-sync/aplicar-payload.mjs <cowork.json> <ds.json> --require-complete-shell        # só após GRAFO COMPLETO + revisão do dry-run',
       'DesignSync.get_file(projectId=COWORK_PROJECT_ID, path=<âncora>)                  # pull direto, agente logado (ADR 0325)',
       'node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir-jsons>     # escreve o raw.content no espelho (ADR 0374 — transcrever à mão é PROIBIDO)',
