@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a única tela do ERP cujas queries são cross-tenant POR DESENHO (ADR 0093 §exceções). Sem casos, a próxima sessão "conserta" isso aplicando escopo de tenant e quebra o produto — ou renderiza número inventado onde não há query.
 owner: wagner
-last_run: "2026-08-19"
+last_run: "2026-08-20"
 last_run_ci: "_pendente_ — o trio nasce nesta onda (SA-O1). O veredito por UC entra no manifesto quando a lane rodar no CI; até lá o Status é 🧪, nunca ✅."
 ---
 
