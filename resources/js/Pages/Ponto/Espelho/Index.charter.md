@@ -2,7 +2,7 @@
 id: resources-js-pages-ponto-espelho-index-charter
 page: /ponto/espelho
 component: resources/js/Pages/Ponto/Espelho/Index.tsx
-related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
+related_prototype: prototipo-ui/cowork/ponto-page.jsx
 owner: wagner
 status: draft
 last_validated: "2026-07-11"
