@@ -312,6 +312,72 @@ export function validateExecution({
   return [];
 }
 
+/**
+ * Escolhe a NARRATIVA do comentário de falha do gate visual — e NOMEIA o step que reprovou.
+ *
+ * O predicado de `scope` NÃO nasce aqui: é o MESMO de validateExecution() acima — targeted ⇒ a
+ * lista de uncovered É a cobrança; global ⇒ o pixel roda o núcleo-6 e a lista é raio
+ * informativo. O comentário era o único consumidor que a ignorava, então em `global` (onde a
+ * lista quase nunca é vazia) toda falha virava "tela sem contrato". Medido 2026-08-20 no PR
+ * #5976 · job 96505067528 — detalhe no corpo do PR desta mudança.
+ *
+ * Sem step instrumentado em `failure`, devolve `indeterminado`: DIZ que não sabe, em vez de
+ * escolher a narrativa plausível — e sem calar.
+ */
+export function explainFailure({ scope, uncoveredScreens = [], steps = [], grayZone = [], runUrl = '' }) {
+  const passo = steps.find((step) => step?.outcome === 'failure')?.nome || null;
+  const linhaPasso = passo
+    ? `**Step que reprovou:** \`${passo}\``
+    : '**Step que reprovou:** não identificado entre os steps instrumentados.';
+  const aprovacao = 'Mudança intencional? **aprovação visual do [W] (gate F1.5)** no PR + baseline regenerada pelo **modo update** (`workflow_dispatch`), no MESMO PR. Regressão? corrija o código.';
+
+  // MESMO predicado de validateExecution: em `global` a lista é informativa, não cobrança.
+  if (scope !== 'global' && uncoveredScreens.length > 0) {
+    return { modo: 'sem-contrato', passo, corpo: [
+      '## 🚧 Tela sem contrato visual (fail-closed)', '', linhaPasso, '',
+      `**Não é diff de pixel — não há baseline pra comparar.** Escopo \`${scope || 'targeted'}\`, logo esta lista É a comparação. Telas afetadas sem entrada em \`tests/Browser/visreg-screens.json\`: \`${JSON.stringify(uncoveredScreens)}\`.`,
+      '', '### Como resolver',
+      '1. Rode o **modo update** (`workflow_dispatch`) na sua branch — gera a baseline no runner canônico.',
+      '2. Do artifact `pixel-snapshots`, copie **apenas** o `.snap` NOVO da sua tela (o update regenera TODAS as baselines de pixel — sobrescrever as outras muda em silêncio a referência de telas que seu PR não toca).',
+      '3. **Manifesto e `.snap` no MESMO commit** — meia unidade quebra o gate em TODO PR do repo.',
+      '4. Aprovação visual do [W] (gate F1.5) registrada no PR.',
+    ] };
+  }
+
+  if (!passo) {
+    return { modo: 'indeterminado', passo: null, corpo: [
+      '## ❓ Gate visual vermelho — causa NÃO determinada', '',
+      'Nenhum step instrumentado (classificador · Pest Browser · pixel-diff · matriz de estados · fluxos Financeiro/Compras/Sells · canário) reporta `failure`.',
+      '', 'Normalmente isso é falha em step **não instrumentado** (setup PHP/Node, dependências, seed do tenant, build do Inertia) ou cancelamento do job.',
+      '', `**Não vou escolher uma narrativa que não medi.** Abra o run e veja o primeiro step vermelho${runUrl ? `: ${runUrl}` : '.'}`,
+    ] };
+  }
+
+  const cinza = grayZone.filter((item) => item?.screen);
+  if (cinza.length > 0) {
+    return { modo: 'zona-cinza', passo, corpo: [
+      '## 🟡 Gate visual — ZONA CINZA (bloqueia até revisão do [W])', '', linhaPasso, '',
+      `**${cinza.length} tela(s)** ficaram ENTRE os limiares (τ_baixo..τ_alto). Zona cinza não é regressão clara: bloqueia porque exige olho humano.`,
+      '', '| tela | diff medido |', '|---|---|',
+      ...cinza.map((item) => `| \`${item.screen}\` | ${(Number(item.ratio) * 100).toFixed(4)}% |`),
+      '', '### Como resolver',
+      '1. Baixe o artifact `pixel-diff-views` e olhe o diff-view de cada tela acima.',
+      '2. Aprovada pelo [W]? aplique o label `visreg-gray-approved` — ou regenere a baseline pelo **modo update**.',
+      `3. ${aprovacao}`,
+      '', '_Se ALÉM da zona cinza houver tela acima de τ_alto (regressão clara), ela está no log do step — esta lista cobre só a faixa do meio._',
+    ] };
+  }
+
+  return { modo: 'step-nomeado', passo, corpo: [
+    `## 🔴 Gate visual reprovou em \`${passo}\``, '', linhaPasso, '',
+    'Causas possíveis deste step (o gate **não** escolhe uma sem medir): **regressão clara** (> τ_alto) · **dimensões divergentes** entre baseline e render · **baseline ausente** · a tela/fluxo **não montou**.',
+    '', '### Como resolver',
+    '1. Abra o log do step acima — ele nomeia a tela e o diff medido.',
+    '2. Baixe o artifact `pixel-diff-views` para comparar lado-a-lado.',
+    `3. ${aprovacao}`,
+  ] };
+}
+
 export function validateScreenManifest(entries, {
   baselineExists = () => true,
   sourceExists = () => true,
@@ -425,6 +491,7 @@ const norm = (path) => { try { return realpathSync(path).replace(/\\/g, '/').toL
 const isEntry = !!process.argv[1] && norm(fileURLToPath(import.meta.url)) === norm(process.argv[1]);
 
 function selfTest() {
+  const chr10 = String.fromCharCode(10);
   assert.equal(normalizePath('resources\\css\\cockpit.css'), 'resources/css/cockpit.css');
   assert.equal(classifyFile('resources/js/Pages/Sells/Create.tsx')?.screen, 'Sells/Create');
   assert.equal(classifyFile('resources/js/Pages/Index.tsx')?.screen, 'Index');
@@ -556,6 +623,37 @@ function selfTest() {
     validateExecution({ visualRequired: 'true', mode: 'true', pixelOutcome: 'success', scope: 'global', uncoveredScreens: ['Admin'], expected: 6, executed: 6, compared: 3 }).length > 0,
     'global com pixel incompleto segue reprovando',
   );
+
+  // ── explainFailure: a narrativa segue o MESMO scope do canário ───────────────────────
+  // REPRODUÇÃO do caso medido (PR #5976 · job 96505067528): scope=global + 8 uncovered, e o
+  // único step não-success foi o pixel-diff, por ZONA CINZA. O comentário dizia "sem contrato
+  // visual" e mandava baselinar 8 telas — 2 impossíveis (Financeiro/Dashboard é deprecada;
+  // Cliente/Show só renderiza em rollback de canary). Trocar o predicado pelo antigo
+  // (`uncoveredScreens.length > 0`, sem o scope) deixa este bloco VERMELHO.
+  const caso5976 = explainFailure({
+    scope: 'global',
+    uncoveredScreens: ['Cliente/Show', 'Financeiro/Dashboard', 'Nfse', 'Ponto/Dashboard'],
+    steps: [{ nome: 'Classificar impacto visual do diff', outcome: 'success' }, { nome: 'Pixel-diff', outcome: 'failure' }],
+    grayZone: [{ screen: 'Produto/Unificado', ratio: 0.008261 }, { screen: 'Jana/Chat', ratio: 0.007743 }],
+  });
+  const texto5976 = caso5976.corpo.join(chr10);
+  assert.notEqual(caso5976.modo, 'sem-contrato', 'global NUNCA escolhe a narrativa de contrato (o bug de 2026-08-20)');
+  assert.equal(caso5976.modo, 'zona-cinza');
+  assert.equal(caso5976.passo, 'Pixel-diff', 'o comentário tem que NOMEAR o step que reprovou');
+  assert.ok(texto5976.includes('0.8261%'), 'zona cinza tem que trazer o ratio medido');
+  assert.ok(!texto5976.includes('Financeiro/Dashboard'), 'não pode cobrar baseline de tela que não reprovou');
+  // Controle POSITIVO: em targeted a cobrança de contrato TEM que continuar aparecendo.
+  assert.equal(explainFailure({ scope: 'targeted', uncoveredScreens: ['Cliente'], steps: [{ nome: 'Canário', outcome: 'failure' }] }).modo, 'sem-contrato');
+  assert.equal(explainFailure({ uncoveredScreens: ['Cliente'], steps: [] }).modo, 'sem-contrato', 'scope ausente = conservador, igual ao canário');
+  // Sem failure instrumentado → diz que não sabe; nem cala, nem inventa.
+  const indet = explainFailure({ scope: 'global', steps: [{ nome: 'Pixel-diff', outcome: 'skipped' }] });
+  assert.equal(indet.modo, 'indeterminado');
+  assert.ok(indet.corpo.join(chr10).includes('NÃO determinada'));
+  // Step nomeado sem zona cinza → lista as causas possíveis, não escolhe uma.
+  const claro = explainFailure({ scope: 'global', steps: [{ nome: 'Fluxos Compras', outcome: 'failure' }] });
+  assert.equal(claro.modo, 'step-nomeado');
+  assert.ok(claro.corpo.join(chr10).includes('Fluxos Compras'));
+
   console.log('ui-impact selftest: sensibilidade, especificidade e fail-closed passaram');
 }
 
@@ -563,6 +661,16 @@ if (isEntry) {
   const argv = process.argv.slice(2);
   if (argv.includes('--selftest')) {
     try { selfTest(); } catch (error) { console.error(error); process.exitCode = 1; }
+  } else if (argv.includes('--explain-failure')) {
+    const { corpo, modo, passo } = explainFailure({
+      scope: argValue(argv, 'scope'),
+      uncoveredScreens: jsonArray(argValue(argv, 'uncovered-screens', '[]')),
+      grayZone: jsonArray(argValue(argv, 'gray-zone', '[]')),
+      steps: jsonArray(argValue(argv, 'steps', '[]')),
+      runUrl: argValue(argv, 'run-url', ''),
+    });
+    console.error(`explain-failure: modo=${modo} passo=${passo || '(não identificado)'}`);
+    console.log([...corpo, '', '_Ver [ADR 0108](../../memory/decisions/0108-regressao-visual-pest-browser-tier-2.md)._'].join('\n'));
   } else if (argv.includes('--assert-execution')) {
     const errors = validateExecution({
       visualRequired: argValue(argv, 'visual-required'),
