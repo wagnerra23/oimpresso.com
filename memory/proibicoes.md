@@ -819,6 +819,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** ao consertar métrica de gate, achar a linha que COMPUTA o veredito — a variável que entra na conta — e não a primeira constante de aparência compatível. E o sinal de que você leu errado é barato: **se a métrica não se mexer depois do conserto, o predicado lido estava errado** — não insista com mais do mesmo tipo de arquivo.
 
+### 2026-08-20 — Afirmar "o PR X não toca este arquivo" contra a MINHA PRÓPRIA consulta, feita na mesma sessão
+
+- **O limite (variante também proibida):** claim de **ausência sobre conjunto enumerável** (*"o PR X não toca"*, *"só o Y usa"*, *"nenhum outro consumidor"*) não se escreve de memória — **nem da sua própria memória de ter medido**. Antes de a frase entrar num artefato publicado (PR body, ADR, handoff, comentário), **re-ler a saída da consulta** ou re-rodá-la. O custo é um scroll; o custo do erro é uma afirmação com aparência de recibo. Corolário que generaliza para além do PR: quando você fizer uma varredura ampla cedo e escrever a conclusão tarde, a conclusão cita a **saída**, não a lembrança dela — é a mesma doutrina de "derivado > lembrado" ([ADR 0256](decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md)) aplicada dentro de uma sessão só.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
