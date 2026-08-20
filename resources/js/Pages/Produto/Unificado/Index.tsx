@@ -33,6 +33,10 @@ import {
   ArrowUp,
   ArrowUpDown,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Download,
   History,
   Layers,
@@ -44,8 +48,10 @@ import {
   X,
 } from 'lucide-react';
 import AppShellV2 from '@/Layouts/AppShellV2';
+import { Inline } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
 import { usePageProps, useBusiness } from '@/Hooks/usePageProps';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,7 +60,7 @@ import {
   DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu';
 import { ABAS_CATALOGO, type AbaKey, type KpiKey, type Permissoes, type ProdutoRow } from './_components/catalogo';
-import { celulasDe, colunasDe, valorOrdenacao, type ColunaKey } from './_components/Colunas';
+import { celulasDe, colunasDe, type ColunaKey } from './_components/Colunas';
 import KpiFiltros, { type KpisCatalogo } from './_components/KpiFiltros';
 import FiltroTrigger, { type OpcaoFiltro } from './_components/FiltroTrigger';
 import DetalheProduto from './_components/DetalheProduto';
@@ -82,6 +88,11 @@ type Filtros = {
   marca: number | null;
   estoque: string;
   margem: string;
+  /** Coluna de ordenação. `''` = padrão do servidor (nome). Lista branca no controller. */
+  ordem: string;
+  dir: 'asc' | 'desc';
+  pagina: number;
+  porPagina: number;
 };
 
 type Props = {
@@ -90,8 +101,12 @@ type Props = {
   /** Piso de margem vigente — PARÂMETRO DE NEGÓCIO servido pelo backend. A tela não o redeclara. */
   pisoMargem: number;
   diasParado: number;
-  /** Teto de linhas por resposta. A tela DECLARA quando o recorte foi cortado. */
+  /** Teto duro de `porPagina` no servidor. A tela não o consome — quem o aplica é o
+   *  controller ao validar `porPagina` contra a lista de opções. Fica no contrato porque o
+   *  teste de contrato exige a prop na resposta. */
   tetoLinhas: number;
+  /** Opções do "Por página" do rodapé. Vem do servidor pra tela e backend não divergirem. */
+  porPaginaOpcoes: number[];
   // Opcional no TIPO porque o runtime pode não entregá-la (partial reload que não a peça);
   // o componente aplica default fail-closed. O backend sempre a envia no load completo.
   permissoes?: Permissoes;
@@ -138,7 +153,7 @@ function ProdutoUnificadoIndex({
   filters,
   pisoMargem,
   diasParado,
-  tetoLinhas,
+  porPaginaOpcoes,
   // Fail-closed: se a prop não chegar por qualquer caminho, esconde tudo em vez de
   // estourar `undefined.custo`. Ausência de permissão declarada nunca vira permissão.
   permissoes = { custo: false, preco: false, composicao: false },
@@ -165,7 +180,6 @@ function ProdutoUnificadoIndex({
 
   const [busca, setBusca] = useState(filters.busca);
   const [abertoId, setAbertoId] = useState<number | null>(null);
-  const [ordem, setOrdem] = useState<{ key: ColunaKey; dir: 'asc' | 'desc' } | null>(null);
   const [maisFiltros, setMaisFiltros] = useState(false);
   const buscaRef = useRef<HTMLInputElement>(null);
 
@@ -211,29 +225,106 @@ function ProdutoUnificadoIndex({
   // DERIVADOS — nunca em estado.
   const mostraTipo = useMemo(() => new Set(linhas.map((r) => r.tipo)).size > 1, [linhas]);
   const colunas = useMemo(() => colunasDe({ perm: permissoes, mostraTipo }), [permissoes, mostraTipo]);
-  const ordenadas = useMemo(() => {
-    if (!ordem) return linhas;
-    const fator = ordem.dir === 'asc' ? 1 : -1;
-    return [...linhas].sort((a, b) => {
-      const va = valorOrdenacao(a, ordem.key);
-      const vb = valorOrdenacao(b, ordem.key);
-      if (va === vb) return 0;
-      return va > vb ? fator : -fator;
-    });
-  }, [linhas, ordem]);
+  /**
+   * Ordem vem do SERVIDOR, não de estado local (handoff V2 §9).
+   *
+   * Até o pacote 18/08 a tela ordenava o array recebido. Sem paginação isso bastava — o array
+   * ERA o recorte. Com página, ordenar a fatia responde a pergunta errada: clicar em "Preço"
+   * na página 1 daria "o mais caro entre estes 25", não o mais caro do catálogo. Agora o
+   * clique navega e o `ORDER BY` roda sobre o recorte inteiro, antes do `LIMIT`.
+   */
+  const ordem = filters.ordem
+    ? { key: filters.ordem as ColunaKey, dir: filters.dir }
+    : null;
 
   const produtoAberto = abertoId === null ? null : linhas.find((r) => r.id === abertoId) ?? null;
+
+  /**
+   * Total AUTORITATIVO do recorte — vem do servidor (`totalDaAba`), não de `linhas.length`
+   * (handoff V2 §9). Com página, `linhas` é a fatia: contar ela diria "25 registros" num
+   * recorte de 1.300 e o rodapé mentiria pro operador.
+   *
+   * Enquanto a prop deferida não chegou, cai no tamanho da fatia. É o único valor honesto
+   * disponível nesse instante, e o rodapé todo já está em esqueleto junto com a tabela.
+   */
   const total = totalDaAba ?? linhas.length;
-  const cortou = total > linhas.length && linhas.length >= tetoLinhas;
+  const porPagina = filters.porPagina;
+  const paginas = Math.max(1, Math.ceil(total / porPagina));
+  const pagina = Math.min(Math.max(1, filters.pagina), paginas);
+  const primeiraDaPagina = total === 0 ? 0 : (pagina - 1) * porPagina + 1;
+  const ultimaDaPagina = Math.min(pagina * porPagina, total);
+
+  // Fechar o drawer ao paginar: o item aberto não está mais na tela, e um painel de detalhe
+  // sobre uma linha que sumiu é o tipo de estado que faz o operador desconfiar do que lê.
+  const irParaPagina = (p: number) => {
+    setAbertoId(null);
+    irPara({ pagina: Math.min(Math.max(1, p), paginas) }, RECORTE);
+  };
 
   const temFiltro = !!(filters.categoria || filters.unidade || filters.marca || filters.tipo || filters.estoque || filters.margem);
+
+  /**
+   * Chips do recorte ativo (handoff V2 §4.3).
+   *
+   * O rótulo do chip mostra o VALOR LEGÍVEL, não o id: `Categoria: Insumos`, nunca
+   * `Categoria: 37`. Categoria/Unidade/Marca chegam como id numérico e o texto vive em
+   * `opcoesFiltro`, que é prop DEFERIDA — enquanto ela não chegou não dá pra rotular o chip
+   * com honestidade, então ele espera. Chip com id cru é pior que chip nenhum: o operador não
+   * reconhece o próprio filtro e clica no × por desconfiança.
+   *
+   * A busca também vira chip. Ela já tem o × dentro do campo, mas quem chegou na tela por um
+   * link com `?busca=` não olhou o campo — o chip é onde o recorte se declara por inteiro.
+   */
+  const chipsAtivos = useMemo(() => {
+    const rotulo = (lista: OpcaoFiltro[] | undefined, v: number | null) =>
+      v ? lista?.find((o) => o.value === String(v))?.label ?? null : null;
+
+    const brutos: Array<{ k: string; label: string; valor: string | null; patch: Partial<Filtros> }> = [
+      { k: 'categoria', label: 'Categoria', valor: rotulo(opcoesFiltro?.categorias, filters.categoria), patch: { categoria: null } },
+      { k: 'tipo', label: 'Tipo', valor: TIPO_OPCOES.find((o) => o.value === filters.tipo)?.label ?? null, patch: { tipo: '' } },
+      { k: 'unidade', label: 'Unidade', valor: rotulo(opcoesFiltro?.unidades, filters.unidade), patch: { unidade: null } },
+      { k: 'marca', label: 'Marca', valor: rotulo(opcoesFiltro?.marcas, filters.marca), patch: { marca: null } },
+      { k: 'estoque', label: 'Estoque', valor: ESTOQUE_OPCOES.find((o) => o.value === filters.estoque)?.label ?? null, patch: { estoque: '' } },
+      { k: 'margem', label: 'Margem', valor: MARGEM_OPCOES.find((o) => o.value === filters.margem)?.label ?? null, patch: { margem: '' } },
+      { k: 'busca', label: 'Busca', valor: filters.busca || null, patch: { busca: '' } },
+    ];
+
+    return brutos.flatMap((c) =>
+      c.valor === null
+        ? []
+        : [{
+            k: c.k,
+            label: c.label,
+            valor: c.valor,
+            onRemove: () => {
+              if (c.k === 'busca') setBusca('');
+              irPara(c.patch, RECORTE);
+            },
+          }]
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, opcoesFiltro]);
+
+  /** Zera busca, KPI e os seis gatilhos numa visita só — não seis idas ao servidor. */
+  const limparFiltros = () => {
+    setBusca('');
+    irPara(
+      { busca: '', kpi: '', categoria: null, tipo: '', unidade: null, marca: null, estoque: '', margem: '' },
+      RECORTE
+    );
+  };
 
   // Abaixo de 780px de LARGURA DISPONÍVEL os gatilhos opcionais somem e voltam pelo
   // "Mais filtros" — comportamento do pacote 17/08 (`.f-opt` / `.f-more`).
   const opcionalCls = maisFiltros ? '' : '@max-[780px]:hidden';
 
+  // Clicar de novo na coluna ativa inverte; coluna nova começa ascendente. Volta pra página 1:
+  // manter a página 7 depois de reordenar mostraria linhas que nunca estiveram lá.
   const trocarOrdem = (key: ColunaKey) =>
-    setOrdem((o) => (o?.key === key ? { key, dir: o.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }));
+    irPara(
+      { ordem: key, dir: ordem?.key === key && ordem.dir === 'asc' ? 'desc' : 'asc', pagina: 1 },
+      RECORTE
+    );
 
   return (
     <>
@@ -317,14 +408,25 @@ function ProdutoUnificadoIndex({
                         aria-selected={ativa}
                         onClick={() => irPara({ aba: a.key, kpi: '' }, RECORTE)}
                         className={
-                          'inline-flex items-center gap-1.5 h-[46px] px-3 text-[12.5px] whitespace-nowrap border-b-2 transition-colors ' +
+                          'inline-flex items-center gap-1.5 py-[7px] px-3 -mb-px text-[13.5px] whitespace-nowrap ' +
+                          'border-0 border-b-2 transition-[color,background-color,border-color] duration-150 ' +
                           (ativa
-                            ? 'border-primary text-foreground font-medium'
-                            : 'border-transparent text-muted-foreground hover:text-foreground')
+                            ? 'border-primary text-foreground font-semibold bg-[var(--idx-tab-ativa-bg)]'
+                            : 'border-transparent text-muted-foreground font-medium hover:text-foreground hover:bg-[var(--idx-tab-hover-bg)]')
                         }
                       >
                         {a.label}
-                        <span className="font-mono text-[11px] tabular-nums opacity-70">
+                        {/* Badge arredondado, não número solto: a contagem é um segundo dado
+                            dentro da aba, e sem a cápsula ela lê como parte do rótulo. Ativa
+                            usa o accent cheio; inativa usa o par escuro da referência. */}
+                        <span
+                          className={
+                            'inline-block min-w-[18px] rounded-full px-1.5 text-center font-mono text-[10.5px] font-semibold tabular-nums leading-[1.4] ' +
+                            (ativa
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-[var(--idx-badge-cont-bg)] text-[var(--idx-badge-cont-fg)]')
+                          }
+                        >
                           {(abas?.[a.key] ?? 0).toLocaleString('pt-BR')}
                         </span>
                       </button>
@@ -434,12 +536,10 @@ function ProdutoUnificadoIndex({
                   <ChevronDown size={12} className="opacity-60" />
                 </button>
 
-                {/* Contagem — sans 12px no alvo, nao mono. Quando o teto corta, a tela DIZ que
-                    cortou: contador que discorda da lista destroi a confianca. */}
+                {/* Contagem — sans 12px no alvo, nao mono. É o total do RECORTE (todas as
+                    páginas), não o da fatia: o intervalo da página quem diz é o rodapé. */}
                 <span className="text-[12px] leading-[12px] text-muted-foreground whitespace-nowrap">
-                  {cortou
-                    ? `${linhas.length.toLocaleString('pt-BR')} de ${total.toLocaleString('pt-BR')} registros`
-                    : `${total.toLocaleString('pt-BR')} ${total === 1 ? 'registro' : 'registros'}`}
+                  {`${total.toLocaleString('pt-BR')} ${total === 1 ? 'registro' : 'registros'}`}
                 </span>
 
                 {/* A busca fecha a linha e ocupa o que sobrar (`flex:1 1 160px` no alvo). */}
@@ -464,21 +564,61 @@ function ProdutoUnificadoIndex({
                 </label>
               </div>
 
-              {cortou && (
-                <p className="text-[11.5px] text-muted-foreground">
-                  Mostrando os {tetoLinhas.toLocaleString('pt-BR')} primeiros — refine a busca ou os filtros pra alcançar o resto.
-                </p>
+              {/* ───── BLOCO 3b · CHIPS DO RECORTE ATIVO ─────────────────────
+                  Segunda linha, e só existe quando há recorte (handoff V2 §4.3). Com o
+                  gatilho neutro, o filtro aplicado deixou de saltar da faixa — o chip é o que
+                  devolve essa visibilidade, e dá o alvo de "tira só este" que o gatilho não
+                  dá sem reabrir o popover. "Limpar filtros" zera busca, KPI e os seis. */}
+              {chipsAtivos.length > 0 && (
+                <Inline gap={1} wrap className="gap-1.5">
+                  {chipsAtivos.map((c) => (
+                    <span
+                      key={c.k}
+                      className="inline-flex items-center gap-1.5 h-7 pl-2.5 pr-1.5 rounded-md border border-primary/30 bg-primary/5 text-[11.5px] text-foreground"
+                    >
+                      <span className="text-muted-foreground">{c.label}:</span>
+                      <span className="font-medium max-w-[180px] truncate">{c.valor}</span>
+                      <button
+                        type="button"
+                        onClick={c.onRemove}
+                        aria-label={`Remover filtro ${c.label}`}
+                        className="inline-flex h-4 w-4 items-center justify-center rounded-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={limparFiltros}
+                    className="h-7 px-2 rounded-md text-[11.5px] text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                  >
+                    Limpar filtros
+                  </button>
+                </Inline>
               )}
 
-              {/* ───── BLOCO 4 · CARTÃO DA TABELA ────────────────────────────── */}
-              {/* Altura fixa + rolagem interna: é o que substitui a paginação (SPEC D-06). */}
-              {/* raio 12 (`rounded-lg` é o teto do DS) + sombra pela utilitária `shadow-sm`,
-                  a mesma do cartão da golden master — sombra crua inline quebra o dark. */}
-              <div className="mt-3 rounded-lg border border-border bg-card shadow-sm overflow-hidden">
+              {/* ───── BLOCO 4 · GRID ────────────────────────────────────────── */}
+              {/* Contêiner SEM RAIO (handoff V2 §3.1) — decisão do produto, difere do cartão
+                  `rounded-xl` do DS. Motivo: com raio, o cabeçalho sticky precisa de clipe de
+                  canto, e `backdrop-filter` no cabeçalho quebra esse clipe (achado do LAUDO).
+                  Sem raio, o cabeçalho pode ser opaco e simples, que é o que ele precisa ser
+                  pra a linha não vazar por baixo dele durante a rolagem.
+
+                  `min-w-[1000px]` num wrapper `overflow-x-auto`: abaixo disso as sete colunas
+                  não cabem sem esmagar o nome do produto. A tabela rola na horizontal em vez
+                  de truncar — a tela é de cockpit desktop declarado (≥1000px útil). */}
+              <div className="mt-3 border border-border bg-card overflow-hidden">
                 <Deferred data="produtos" fallback={<EsqueletoTabela />}>
-                  <div className="overflow-auto" style={{ height: 460 }}>
-                    <table className="w-full text-left">
-                      <thead className="sticky top-0 z-10 bg-muted/60 backdrop-blur">
+                  {/* `overflow-x-auto` SÓ na horizontal: a rolagem vertical volta a ser da
+                      página (handoff V2 §3.1). Altura fixa era o que substituía a paginação
+                      no pacote 18/08 — agora que o rodapé existe, ela só criaria duas barras
+                      de rolagem concorrentes na mesma tela. */}
+                  <div className="overflow-x-auto cw-scroll-thin">
+                    <table className="w-full min-w-[1000px] text-left">
+                      {/* Fundo OPACO, sem `backdrop-blur`: translúcido deixava o texto da
+                          linha aparecer por trás do rótulo da coluna durante a rolagem. */}
+                      <thead className="sticky top-0 z-10 bg-[var(--idx-grid-head-bg)]">
                         <tr className="border-b border-border">
                           {colunas.map((c) => (
                             <th
@@ -487,7 +627,10 @@ function ProdutoUnificadoIndex({
                               style={{ width: c.width }}
                               className={
                                 'px-4 py-2 text-[10.5px] uppercase tracking-widest text-muted-foreground font-medium ' +
-                                (c.align === 'right' ? 'text-right' : '')
+                                (c.align === 'right' ? 'text-right ' : '') +
+                                // 58 = 16 (padding) + 32 (avatar) + 10 (gap): o rótulo PRODUTO
+                                // alinha com o nome, não com o avatar (handoff V2 §3.1).
+                                (c.key === 'prod' ? '!pl-[58px]' : '')
                               }
                             >
                               {c.sortable ? (
@@ -509,7 +652,7 @@ function ProdutoUnificadoIndex({
                         </tr>
                       </thead>
                       <tbody>
-                        {ordenadas.length === 0 ? (
+                        {linhas.length === 0 ? (
                           <tr>
                             <td colSpan={colunas.length} className="text-center py-16">
                               {/* Estado vazio explícito — o protótipo não tinha (pendência §14
@@ -524,7 +667,7 @@ function ProdutoUnificadoIndex({
                             </td>
                           </tr>
                         ) : (
-                          ordenadas.map((r) => {
+                          linhas.map((r) => {
                             const cells = celulasDe(r, {
                               perm: permissoes,
                               mostraTipo,
@@ -547,7 +690,7 @@ function ProdutoUnificadoIndex({
                                 }}
                                 className={
                                   'border-b border-border/60 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ' +
-                                  (aberta ? 'bg-primary/10' : 'hover:bg-muted/40') +
+                                  (aberta ? 'bg-[var(--idx-row-sel-bg)]' : 'hover:bg-muted/40') +
                                   // Estado de linha: urgente quando zerado, arquivada quando inativa.
                                   (r.stockQty === 0 ? ' bg-destructive-soft/30' : r.active ? '' : ' opacity-60')
                                 }
@@ -564,6 +707,69 @@ function ProdutoUnificadoIndex({
                       </tbody>
                     </table>
                   </div>
+
+                  {/* ───── RODAPÉ DE PAGINAÇÃO ─────────────────────────────
+                      Faixa própria, IRMÃ do wrapper que rola — não filha (handoff V2 §4.8).
+                      Dentro do wrapper ela herdaria a rolagem horizontal e o "Por página"
+                      sumiria pra direita junto com as colunas. Fora, acompanha a largura
+                      visível.
+
+                      O DS não cobre este rodapé: o `Pagination` dele não tem primeira/última
+                      nem indicador "N / M", só lista de números — que com 1.300 itens vira
+                      uma régua inútil. Exceção AP2 registrada na ADR 0402 do pacote; quando o
+                      DS absorver os dois, esta faixa morre. */}
+                  <Inline gap={3} wrap className="border-t border-border bg-[var(--idx-grid-head-bg)] px-4 py-2">
+                    <span className="text-[11.5px] text-muted-foreground tabular-nums">
+                      {total === 0
+                        ? 'Nenhum registro'
+                        : `Mostrando ${primeiraDaPagina.toLocaleString('pt-BR')}–${ultimaDaPagina.toLocaleString('pt-BR')} de ${total.toLocaleString('pt-BR')}`}
+                    </span>
+
+                    <Inline gap={3} className="ml-auto">
+                      {/* `Select` do DS, com a MESMA anatomia do rodapé da golden master
+                          (`Pages/Cliente/Index.tsx`): trigger sm, h-7, w-fit. */}
+                      <Inline gap={1} className="gap-1.5 text-[11.5px] text-muted-foreground">
+                        <span>Por página</span>
+                        <Select
+                          value={String(porPagina)}
+                          onValueChange={(v) => {
+                            // Volta pra página 1: a página 7 de 25-em-25 não é a página 7 de
+                            // 100-em-100, e manter o número levaria o operador pra outro lugar
+                            // do catálogo sem ele ter pedido.
+                            setAbertoId(null);
+                            irPara({ porPagina: Number(v), pagina: 1 }, RECORTE);
+                          }}
+                        >
+                          <SelectTrigger variant="shadcn" size="sm" className="h-7 w-fit text-xs" aria-label="Itens por página">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {porPaginaOpcoes.map((n) => (
+                              <SelectItem key={n} value={String(n)}>{n}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </Inline>
+
+                      <Inline gap={1}>
+                        <BotaoPagina rotulo="Primeira página" desabilitado={pagina === 1} onClick={() => irParaPagina(1)}>
+                          <ChevronsLeft size={14} />
+                        </BotaoPagina>
+                        <BotaoPagina rotulo="Página anterior" desabilitado={pagina === 1} onClick={() => irParaPagina(pagina - 1)}>
+                          <ChevronLeft size={14} />
+                        </BotaoPagina>
+                        <span className="px-2 text-[11.5px] text-muted-foreground tabular-nums" aria-live="polite">
+                          {pagina} / {paginas}
+                        </span>
+                        <BotaoPagina rotulo="Próxima página" desabilitado={pagina === paginas} onClick={() => irParaPagina(pagina + 1)}>
+                          <ChevronRight size={14} />
+                        </BotaoPagina>
+                        <BotaoPagina rotulo="Última página" desabilitado={pagina === paginas} onClick={() => irParaPagina(paginas)}>
+                          <ChevronsRight size={14} />
+                        </BotaoPagina>
+                      </Inline>
+                    </Inline>
+                  </Inline>
                 </Deferred>
               </div>
             </>
@@ -597,6 +803,29 @@ export default ProdutoUnificadoIndex;
 
 /* ─── Subcomponentes locais ───────────────────────────────────────────── */
 
+/**
+ * Botão de navegação do rodapé. 28×28, desabilitado a 50% de opacidade (handoff V2 §4.8).
+ *
+ * `disabled` de verdade, não só opacidade: na primeira página o "anterior" precisa sair da
+ * ordem de tabulação, senão o teclado passa por dois alvos mortos a cada volta.
+ */
+function BotaoPagina({
+  rotulo, desabilitado, onClick, children,
+}: { rotulo: string; desabilitado: boolean; onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={desabilitado}
+      aria-label={rotulo}
+      title={rotulo}
+      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:text-foreground hover:bg-muted disabled:opacity-50 disabled:pointer-events-none"
+    >
+      {children}
+    </button>
+  );
+}
+
 function EsqueletoKpis() {
   return (
     <div className="grid gap-[9px] grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
@@ -609,7 +838,7 @@ function EsqueletoKpis() {
 
 function EsqueletoTabela() {
   return (
-    <div className="p-4 space-y-2" style={{ height: 460 }}>
+    <div className="p-4 space-y-2">
       {Array.from({ length: 8 }).map((_, i) => (
         <div key={i} className="h-9 rounded bg-muted animate-pulse" />
       ))}

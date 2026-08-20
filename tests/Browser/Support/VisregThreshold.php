@@ -495,6 +495,23 @@ final class VisregThreshold
      * Resumo da ZONA CINZA no $GITHUB_STEP_SUMMARY (markdown) — "N telas pro Wagner
      * revisar". É o que tira o [W] do gargalo: ele só olha esta lista, não 24 prints.
      *
+     * TAMBÉM ESCREVE NO STDOUT, e isso não é redundância — é o conserto de 2026-08-19.
+     * Este método roda no `afterAll`, DEPOIS do resumo do Pest. Quando ele lançava, o
+     * PHPUnit engolia o Throwable em silêncio (Framework/TestSuite.php: `catch (Throwable
+     * $t) {}` → emite `afterLastTestMethodErrored`, que só o OtrXmlLogger renderiza) e o
+     * converte em `TestResult::hasErrors()` → ShellExitCodeCalculator::EXCEPTION_EXIT.
+     * Resultado observado em 4 branches: `Tests: 12 passed (42 assertions)` seguido de
+     * `exit 2` e NENHUMA linha de causa. O $GITHUB_STEP_SUMMARY tinha a explicação, mas
+     * quem lê o log do step não a alcança. Instrumento que bloqueia sem dizer por quê é
+     * o defeito de memory/proibicoes.md §5 2026-07-29.
+     *
+     * ⚠️ O TEXTO EMITIDO AQUI É CONTRATO com scripts/tests/visreg-flake-retry.sh: ele NÃO
+     * pode casar o PIXEL_DIFF_RE (`REGRESSÃO CLARA`, `τ_alto`, `dimensões divergem`,
+     * `layout-shift`, `VisregThreshold [`) nem o FLAKE_RE daquele script. Casar o
+     * primeiro faria o retry anunciar "é REGRESSÃO DE PIXEL" para uma falha que é zona
+     * cinza — afirmar causa não medida, o mesmo defeito. Casar o segundo re-rodaria a
+     * zona cinza, mascarando o bloqueio. Coberto por tests/Unit/VisregGrayApprovalTest.
+     *
      * @param  array<int, array{screen:string,ratio:float,diffView:?string}>  $items
      */
     public static function writeGrayZoneSummary(array $items): void
@@ -535,11 +552,51 @@ final class VisregThreshold
             @file_put_contents($summaryPath, implode("\n", $lines) . "\n", FILE_APPEND);
         }
 
-        if (self::grayZoneRequiresApproval($items)) {
-            throw new \RuntimeException(
-                'Zona cinza visual pendente: revise o artifact e aplique o label visreg-gray-approved.'
-            );
+        $bloqueia = self::grayZoneRequiresApproval($items);
+
+        // Log do step: sem isto, o exit 2 do afterAll não tem causa nenhuma no log.
+        if ($items !== []) {
+            fwrite(STDOUT, self::grayZoneConsoleReport($items, $bloqueia));
         }
+
+        if ($bloqueia) {
+            throw new \RuntimeException(self::grayZoneConsoleReport($items, true));
+        }
+    }
+
+    /**
+     * Bloco de log da zona cinza — nomeia CADA tela e o ratio medido. É a mesma string
+     * usada na mensagem da exceção, pra quem lê o log e quem lê um logger estruturado
+     * verem o mesmo fato. Puro (sem I/O) pra ser exercitável no unit test.
+     *
+     * @param  array<int, array{screen:string,ratio:float,diffView:?string}>  $items
+     */
+    public static function grayZoneConsoleReport(array $items, bool $bloqueia): string
+    {
+        $n = count($items);
+        $low = number_format(self::tauLow() * 100, 4);
+        $high = number_format(self::tauHigh() * 100, 4);
+
+        $out = [];
+        $out[] = '';
+        $out[] = '  ZONA CINZA VISUAL — ' . $n . ' tela(s) entre os limiares (' . $low . '% .. ' . $high . '%).';
+        $out[] = '  Os testes PASSARAM: na banda do meio a comparação individual conclui e';
+        $out[] = '  quem bloqueia é este afterAll. Não é flake, não é regressão clara.';
+        $out[] = '';
+
+        foreach ($items as $it) {
+            $pct = number_format(((float) $it['ratio']) * 100, 4);
+            $out[] = '    - ' . $it['screen'] . '  ->  ' . $pct . '%   diff-view: ' . ($it['diffView'] ?? '—');
+        }
+
+        $out[] = '';
+        $out[] = $bloqueia
+            ? '  BLOQUEADO (VISREG_GRAY_APPROVED != 1). Baixe o artifact pixel-diff-views e abra o .html.'
+            : '  Liberado pelo label de aprovação [W] — registrado aqui só para ficar no log.';
+        $out[] = '  Mudança intencional? runner canônico no modo update + aprovação [W] (gate F1.5).';
+        $out[] = '';
+
+        return implode("\n", $out) . "\n";
     }
 
     /** @param array<int, mixed> $items */

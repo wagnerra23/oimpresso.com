@@ -31,8 +31,14 @@ F1 do MWART (ADR 0104) para a onda **SA-O1**. A tela hoje é Blade/AdminLTE
 
 ## 1. O que o backend sustenta HOJE (e o que não sustenta)
 
-O `SuperadminDashboardService` cobre 4 dos 9 blocos que o protótipo desenha. O resto **não
-tem query** — e renderizar com número inventado seria pior que não renderizar.
+O `SuperadminDashboardService` cobre **6 dos 10 blocos** que o F1 pede pra view `visao`. O resto
+**não tem query** — e renderizar com número inventado seria pior que não renderizar.
+
+> **A contagem mudou em 2026-08-20 e não é por progresso** — é porque a fonte apareceu. O "4 de 9"
+> anterior era estimativa minha lendo uma cópia do F1 colada no chat. O F1 original
+> (`cowork-inbox/SUPERADMIN-F1-2026-08-18.md` §1) lista **10** blocos, e estava invisível ao
+> repositório até [#6019](https://github.com/wagnerra23/oimpresso.com/pull/6019). O 6 entregue
+> inclui o MRR, que passou a funcionar no [#5981](https://github.com/wagnerra23/oimpresso.com/pull/5981).
 
 | Bloco do protótipo | Origem real | Onda |
 |---|---|---|
@@ -40,12 +46,14 @@ tem query** — e renderizar com número inventado seria pior que não renderiza
 | KPI sem assinatura | `countNotSubscribedBusinesses()` | SA-O1 |
 | Tendência mensal (12 m) | `buildMonthlyRevenueChart()` | SA-O1 |
 | Cadastros recentes (5 linhas) | query direta em `business` | SA-O1 |
-| KPI MRR | ❌ sem query — R1 exige só pacote recorrente com preço > 0 | SA-O1b |
+| Segmented de período (Hoje/Semana/Mês/Ano) | ✅ janela rolante dita em texto (UC-SA-001) | SA-O1 |
+| KPI MRR | ✅ `SubscriptionRepository::mrrBaselineCached` — RecurringBilling é recorrente por construção (R1). ⚠️ **não verifiquei** se ele exclui avulso | SA-O1b |
 | Funil trial→pago | ❌ sem query — depende de `subscriptions.trial_end_date` | SA-O1b |
 | Churn 30 d | ✅ `canceladas` — saídas de 30 d em `rb_subscriptions.canceled_at` | SA-O1b |
 | Motivos de churn | ❌ **a coluna certa é `rb_subscriptions.churn_reason`**, ver nota abaixo | — |
 | Receita por pacote | ❌ sem query | SA-O1b |
 | Fila "Vencendo ou vencido" | 🟡 derivável de `findOverdueApproved()` | SA-O1b |
+| "O que fazer primeiro" (3 itens navegáveis) | ❌ sem query — depende do funil e da fila | — |
 
 > **Onde o gráfico de motivos tem que ler — medido em prod 2026-08-19, contra as duas
 > tabelas.** A decisão SA-O0 de [W] pediu `cancel_reason` por migration, e ela foi entregue

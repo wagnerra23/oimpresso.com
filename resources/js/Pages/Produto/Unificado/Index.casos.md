@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela reúne, numa rota só, tudo que as outras telas do Produto gateiam separadamente — custo, preço de venda, tabelas de preço e composição. Sem casos, ela vira o caminho por onde tudo isso sai sem permissão.
 owner: wagner
-last_run: "2026-08-19"
-last_run_ci: "10/10 UC verdes na lane Estoque · MySQL (run 32246398030, workflow_dispatch sobre main d4ad0804): revalidação após o #5920 reescrever a barra de filtros da tela (161 linhas em Index.tsx). ProdutoUnificadoContratoTest 7/7 (40 assertions) + ProdutoUnificadoIndiceContratoTest 4/4 (38 assertions), 0 skipped; suíte da lane 77/77 com provou_algo=true (guard LC-13). Os 10 ids UC-PUNI-01..10 conferidos um a um no JUnit da run (artifact pest-estoque-junit), não declarados à mão. Run anterior: 32141318494 (PR #5906)."
+last_run: "2026-08-20"
+last_run_ci: "18/18 UC verdes na lane Estoque · MySQL (run 32318469674, PR temporária #6001 — a pilha inteira apontando pro main, aberta e fechada só pra a lane rodar). Suite: 85 passed, 306 assertions, 0 skipped — o contador de assertions é a prova de execução, nao o '0 failed' (guard LC-13). Cobre os 10 UC-PUNI-01..10 anteriores + os 8 novos desta leva: UC-PUNI-11/11B/11C/11D (paginação server-side) e UC-PUNI-12/12B/13/14 (revelação progressiva). POR QUE a run vive numa PR temporária: as PRs #5995/#5996/#5997 são empilhadas e os workflows de Pest declaram pull_request: branches [main], entao lane de teste NAO dispara em PR que aponta pra outra branch — medido, 126 checks na #5995 contra 55 nas empilhadas. A run tocou 2 defeitos reais nos proprios testes antes de fechar verde: UC-PUNI-11B usava porPagina=3 (fora da lista branca, o controller caiu no padrao) e UC-PUNI-13 passava a mensagem como 2o needle do toContain (que e variadico — lapide 2026-07-28). Bump de last_run apos o rebase de 2026-08-20 sobre origin/main: o G-6 mede DATA-GIT, e o rebase reescreveu a data dos commits sem mudar conteudo — conferido blob a blob, Index.tsx / Index.casos.md / ProdutoUnificadoIndiceContratoTest.php / ProdutoUnificadoController.php sao byte-identicos ao commit fb300b046 que a lane testou. Run anterior: 32246398030."
 ---
 
 # Casos de Uso & Aceite — Catálogo Unificado (`/products/unificado`)
@@ -66,6 +66,14 @@ last_run_ci: "10/10 UC verdes na lane Estoque · MySQL (run 32246398030, workflo
 | UC-PUNI-08 | A aba recorta por TIPO derivado e conta só ativos | must | handoff §4.2 + §6 exceção 6 | `ProdutoUnificadoIndiceContratoTest` | ✅ verde — run 32141318494 |
 | UC-PUNI-09 | "Não estocável" e "sem estoque" são estados diferentes | must | handoff §4.6 + §6 exceção 6 | `ProdutoUnificadoIndiceContratoTest` | ✅ verde — run 32141318494 |
 | UC-PUNI-10 | As agregações (abas · KPIs · total) não contam produto de outro business | must `[T0]` | [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ProdutoUnificadoIndiceContratoTest` | ✅ verde — run 32141318494 |
+| UC-PUNI-11 | A resposta é a FATIA da página, e o total continua sendo o do recorte | must | V2 §4.8 · §9 | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
+| UC-PUNI-11B | Página 2 não repete nenhuma linha da página 1 | must | V2 §9 | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
+| UC-PUNI-11C | Ordenar por custo é ignorado pra quem não pode ver custo | must `[V0]` | AR-PROD-015 | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
+| UC-PUNI-11D | `porPagina` e `ordem` fora da lista branca caem no padrão | must | V2 §9 | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
+| UC-PUNI-12 | Saldo por local so viaja com MAIS DE UM local, e a soma bate com o total | must | V2 §4.6 · §9 | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
+| UC-PUNI-12B | Local de outro business nao entra no saldo por local | must `[T0]` | [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
+| UC-PUNI-13 | Observacao chega sem HTML, e a chave so existe quando ha nota | must | V2 §4.7 | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
+| UC-PUNI-14 | A variacao-fantasma do UltimatePOS nao vira variacao na tela | must | V2 §3.2 | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
 
 ---
 
@@ -240,3 +248,115 @@ last_run_ci: "10/10 UC verdes na lane Estoque · MySQL (run 32246398030, workflo
   de tenant (ADR 0093). Fonte única também é o que garante que o contador não discorde da lista.
 - **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-10`.
 - **Status: ✅** — verde na run `32141318494`.
+
+## UC-PUNI-11 · A resposta é a fatia da página, e o total é o do recorte · `must`
+
+- **Persona:** Larissa no balcão, com um catálogo que não cabe numa tela.
+- **Aceite:** Dado `porPagina = 10` · Quando a listagem é servida · Então `produtos` traz **no
+  máximo 10** linhas e `totalDaAba` traz o total do **recorte inteiro**, não o da fatia.
+- **Por que os dois números têm de existir:** o rodapé escreve "Mostrando 1–10 de 1.347". O
+  "1–10" é da fatia; o "1.347" é do recorte. Se a tela contasse `produtos.length` pra os dois,
+  escreveria "Mostrando 1–10 de 10" e o operador concluiria que o catálogo tem 10 itens.
+- **O que isto substituiu:** até 18/08 a tela pedia as **500 primeiras** e avisava que tinha
+  cortado. Funcionava, mas não havia caminho pra 501ª linha sem o operador inventar um filtro.
+- **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-11`.
+- **Status: 🕐** — escrito nesta PR; veredito na primeira run da lane Estoque · MySQL.
+
+## UC-PUNI-11B · Página 2 não repete nenhuma linha da página 1 · `must`
+
+- **Persona:** quem folheia o catálogo procurando um item que não sabe nomear.
+- **Aceite:** Dado 6 itens no recorte e `porPagina = 3` · Quando as páginas 1 e 2 são servidas ·
+  Então a interseção dos ids é **vazia**.
+- **Mecanismo:** `LIMIT/OFFSET` sem ordem **total** é indeterminado. Ordenando só por preço, duas
+  linhas de mesmo preço podem sair em ordens diferentes nas duas consultas — e aí um item aparece
+  nas duas páginas enquanto outro não aparece em nenhuma. O desempate por `c.id` fecha isso.
+- **Por que é `must` e não detalhe:** o item que some não deixa rastro. O operador conclui que o
+  produto não está cadastrado e abre um segundo cadastro do mesmo item.
+- **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-11B`.
+- **Status: 🕐** — escrito nesta PR.
+
+## UC-PUNI-11C · Ordenar por custo é ignorado pra quem não pode ver custo · `must` `[V0]`
+
+- **Persona:** vendedor sem `view_purchase_price`.
+- **Aceite:** Dado um perfil sem direito a custo · Quando ele pede `ordem=custo&dir=asc` e depois
+  `ordem=custo&dir=desc` · Então as duas respostas vêm na **mesma ordem** (a padrão, por nome).
+- **Por que é vazamento:** a coluna Custo não é montada pra esse perfil — mas se a lista pudesse
+  ser ordenada por custo, a **posição** entregaria o número. "O primeiro é o mais barato" é a
+  estrutura de custo servida por ranking. É o AR-PROD-015 com um passo a mais no meio.
+- **Onde mora a regra:** `ProdutoUnificadoController::produtos()` zera `ordem` quando ela é
+  `custo`/`margem` e o perfil não tem custo **e** preço — cai no padrão, não devolve erro. Erro
+  também informa: diria "existe uma ordenação que você não pode usar".
+- **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-11C`.
+- **Status: 🕐** — escrito nesta PR.
+
+## UC-PUNI-11D · `porPagina` e `ordem` fora da lista branca caem no padrão · `must`
+
+- **Persona:** ninguém — é a URL colada à mão, e o gate contra ela.
+- **Aceite:** Dado `?porPagina=99999&ordem=c.id; DROP TABLE products` · Então `filters.porPagina`
+  volta **25** e `filters.ordem` volta **`''`**.
+- **Por que:** `porPagina` sem teto é a URL virando alavanca pra varrer o catálogo inteiro num
+  payload; `ordem` sem lista branca entra **cru** no `ORDER BY`, que é o único lugar da consulta
+  onde não dá pra usar bind de parâmetro.
+- **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-11D`.
+- **Status: 🕐** — escrito nesta PR.
+
+## UC-PUNI-12 · Saldo por local só viaja com mais de um local · `must`
+
+- **Persona:** Larissa no balcão, com o cliente na frente. "Tem 7" e "tem 7, mas 0 aqui na loja"
+  são respostas **diferentes** — a segunda muda o que ela promete de prazo.
+- **Aceite:** Dado um item com saldo em **2 locais** · Então a linha traz `locais` e a **soma** deles
+  é exatamente o `stockQty` da coluna. Dado um item com **1 local** · Então a chave `locais`
+  **não existe**.
+- **Por que a ausência importa:** a tela monta o gatilho de popover quando a chave existe. Um
+  popover que lista um local só é affordance que não cumpre — pior que ausência.
+- **Por que a soma tem que bater:** divergência entre o total da coluna e a soma do popover é a
+  primeira coisa que o operador confere, e é o que destrói a confiança na tela inteira. As duas
+  leituras saem das MESMAS variações vivas (`v.deleted_at IS NULL`).
+- **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-12`.
+- **Status: 🕐** — escrito nesta PR; veredito na primeira run da lane Estoque · MySQL.
+
+## UC-PUNI-12B · Local de outro business não entra no saldo por local · `must` `[T0]`
+
+- **Persona:** qualquer tenant.
+- **Aceite:** Dada uma linha de `variation_location_details` do MEU produto pendurada num local de
+  OUTRO business · Então ela **não** aparece no popover nem entra na soma.
+- **Por que existe o cenário:** parece impossível, mas é o resultado de restore parcial ou
+  importação mal feita — e o `product_id` sozinho não protege, porque ele já é do meu tenant. O
+  escopo tem que vir de `business_locations.business_id`.
+- **O que vazaria:** o **nome** do local do vizinho (endereço comercial dele) e um saldo que infla
+  a soma até contradizer a coluna.
+- **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-12B`.
+- **Status: 🕐** — escrito nesta PR.
+
+## UC-PUNI-13 · Observação chega sem HTML, e a chave só existe quando há nota · `must`
+
+- **Persona:** quem vende um item com pegadinha — "sob encomenda", "conferir metragem do rolo".
+- **Aceite:** Dado um produto com `product_description` preenchido · Então a linha traz `obs` em
+  **texto puro**, com os parágrafos separados por espaço. Dado um produto sem descrição · Então a
+  chave **não existe**.
+- **Por que o HTML morre no servidor:** `product_description` é editado por WYSIWYG no
+  UltimatePOS. Renderizar com `dangerouslySetInnerHTML` um campo que o usuário digita é **XSS
+  armazenado**; renderizar como texto com a tag dentro mostra `<p>` na tela.
+- **O detalhe que parece bobo:** `</p>` vira espaço **antes** do strip. Sem isso, dois parágrafos
+  colam numa palavra só (`depósito.Conferir`), e o operador lê como erro de cadastro.
+- **O que NÃO é servido, e por quê:** os badges "Sob encomenda" / "Exige aprovação" do pacote.
+  Eles não existem no cadastro — no protótipo são campo do dado de mentira. Deduzi-los do texto
+  ("se contém 'encomenda' então…") seria adivinhação exibida como fato.
+- **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-13`.
+- **Status: 🕐** — escrito nesta PR.
+
+## UC-PUNI-14 · A variação-fantasma do UltimatePOS não vira "variação" na tela · `must`
+
+- **Persona:** qualquer um lendo a lista. A terceira linha da célula Produto só pode existir
+  quando o item **tem** variação.
+- **Aceite:** Dado um produto simples · Então a chave `variacoes` **não existe**. Dado um produto
+  com 3 valores de variação reais · Então `variacoes` existe e a contagem é 3.
+- **O mecanismo:** o UltimatePOS cria uma `product_variations` com `is_dummy = 1` para **todo**
+  produto simples, só pra ele ter uma linha em `variations`. Contá-la faria cada item do catálogo
+  anunciar uma variação inexistente embaixo do próprio nome.
+- **Divergência declarada do pacote:** o protótipo imprime `4 cores · 3 tamanhos`. Aqui sai
+  `Cor (4) · Tamanho (3)` — o nome do atributo é **texto livre do tenant**
+  (`product_variations.name`), pode ser "Cor", "Cores" ou "Tonalidade", e pluralizar o que o
+  cliente digitou daria "4 Cors". O nome vai literal; a contagem entre parênteses.
+- **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-14`.
+- **Status: 🕐** — escrito nesta PR.

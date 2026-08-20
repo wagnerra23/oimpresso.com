@@ -75,6 +75,31 @@ O que a tela entrega **hoje**:
 
 ---
 
+## Contrato visual
+
+Travado por [`prototipo-ui/contrato/superadmin-negocios.contract.json`](../../../../../../../prototipo-ui/contrato/superadmin-negocios.contract.json)
+(ADR 0286), verificado no CI por `contrato-de-tela.mjs` — âncora `data-contract` + **copy literal** +
+ordem. Fonte da copy: o §3 do F1 [CC] (`cowork-inbox/SUPERADMIN-F1-2026-08-18.md`).
+
+| Seção | Copy travada |
+|---|---|
+| `superadmin.negocios.busca-filtros` | Assinatura · Status do negócio · Última venda |
+| `superadmin.negocios.tabela` | Negócio · Dono · Pacote · Assinatura · Status · Cadastro |
+| `superadmin.negocios.paginacao` | — (estrutura, sem copy fixa) |
+| `superadmin.negocios.drawer` | Assinatura · Uso contra o limite do pacote · Dono e contato · Histórico de assinaturas |
+
+⚠️ **4 das 7 seções do F1**, e duas divergências DECLARADAS em vez de escondidas:
+
+- **BulkBar + seleção múltipla** ficaram de fora — produção não tem, e dependem das ações da SA-O3.
+- **FormDrawer novo/editar** ficou de fora — o pré-flight da SA-O3 ([#6011](https://github.com/wagnerra23/oimpresso.com/pull/6011))
+  **mediu** que `edit`/`update` são andaime quebrado (view inexistente + método de corpo vazio):
+  não há comportamento a contratar.
+- **Tabela:** o F1 pede 5 colunas + seleção; produção tem **6 sem seleção**.
+- **Paginação:** o F1 pede **6/página**; produção usa **20**. Com 126 negócios reais, 6 vira 21
+  páginas — não sei se o 6 é intenção ou tamanho do mock. **Decisão [W] em aberto.**
+
+---
+
 ## Automation hooks (faz)
 
 - Busca e filtros recarregam só `negocios` + `filtros` (partial reload), sem full page load.

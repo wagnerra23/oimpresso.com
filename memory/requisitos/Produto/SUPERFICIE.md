@@ -15,7 +15,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 >
 > **O que isto é:** o módulo `Produto` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Produto/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`products`, `variations`, `product_variations`, `variation_location_details`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 96 arquivos em 9 papéis.
+**Total mapeado:** 99 arquivos em 9 papéis.
 
 ## Controllers — 8
 
@@ -104,14 +104,17 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [StockHistory.tsx](../../../resources/js/Pages/Produto/StockHistory.tsx)
 - [Index.tsx](../../../resources/js/Pages/Produto/Unificado/Index.tsx)
 
-## Componentes / apoio de tela — 7
+## Componentes / apoio de tela — 10
 
+- [AvatarProduto.tsx](../../../resources/js/Pages/Produto/Unificado/_components/AvatarProduto.tsx)
 - [Colunas.tsx](../../../resources/js/Pages/Produto/Unificado/_components/Colunas.tsx)
 - [DetalheProduto.tsx](../../../resources/js/Pages/Produto/Unificado/_components/DetalheProduto.tsx)
 - [Disponibilidade.tsx](../../../resources/js/Pages/Produto/Unificado/_components/Disponibilidade.tsx)
 - [FiltroTrigger.tsx](../../../resources/js/Pages/Produto/Unificado/_components/FiltroTrigger.tsx)
 - [KpiFiltros.tsx](../../../resources/js/Pages/Produto/Unificado/_components/KpiFiltros.tsx)
 - [Mono.tsx](../../../resources/js/Pages/Produto/Unificado/_components/Mono.tsx)
+- [Observacao.tsx](../../../resources/js/Pages/Produto/Unificado/_components/Observacao.tsx)
+- [PopoverAncorado.tsx](../../../resources/js/Pages/Produto/Unificado/_components/PopoverAncorado.tsx)
 - [SubTelas.tsx](../../../resources/js/Pages/Produto/Unificado/_components/SubTelas.tsx)
 
 ## Charters (lei da tela) — 8

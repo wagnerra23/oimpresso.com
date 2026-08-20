@@ -77,6 +77,53 @@ class ProdutoUnificadoController extends Controller
      */
     private const TETO_LINHAS = 500;
 
+    /**
+     * Paginação server-side (handoff V2 §4.8 e §9).
+     *
+     * O pacote 18/08 resolvia volume com TETO + rolagem interna: a tela pedia as 500 primeiras
+     * e avisava que tinha cortado. Funciona, mas o operador não alcança a 501ª sem inventar um
+     * filtro — e a lista real do biz=1 passa disso. O V2 troca o teto por página.
+     *
+     * `TETO_LINHAS` continua existindo como o teto duro de `porPagina`: a tela oferece
+     * 10/25/50/100, e um `?porPagina=99999` colado na URL não vira varredura do catálogo.
+     */
+    private const POR_PAGINA_OPCOES = [10, 25, 50, 100];
+
+    /**
+     * Padrão 25, não o 10 que o protótipo mostra.
+     *
+     * O 10 do pacote é artefato do dataset dele — 14 itens, e sem duas páginas não dá pra
+     * demonstrar o rodapé. Num catálogo real de milhares, 10 por página vira centenas de
+     * páginas. 25 é o menor valor que a golden master (`/contacts`) oferece, então é o mesmo
+     * ritmo de leitura que o operador já tem na outra consulta. O 10 continua na lista pra
+     * quem quiser.
+     */
+    private const POR_PAGINA_PADRAO = 25;
+
+    /**
+     * Lista branca de ordenação (handoff V2 §9: "ordenação server-side com lista branca").
+     *
+     * Chave da tela → expressão SQL. Sem a lista, `?ordem=` vira injeção no ORDER BY. E a
+     * ordenação PRECISA ser do servidor: a tela ordena o recorte inteiro, não a página
+     * carregada — ordenar só a fatia devolveria a "mais cara da página 1", não a mais cara.
+     */
+    private const ORDEM_COLUNAS = [
+        'cod' => 'c.id',
+        'prod' => 'c.nome',
+        'tipo' => 'c.tipo',
+        // Rank semântico, igual ao da tela: sem estoque < baixo < em estoque, saldo desempata.
+        // Serviço (`enable_stock = 0`) fica fora da escala — não tem saldo pra comparar.
+        'est' => "CASE
+            WHEN c.enable_stock = 0 THEN -1
+            WHEN COALESCE(c.qtd, 0) <= 0 THEN 0
+            WHEN c.minimo IS NOT NULL AND c.qtd <= c.minimo THEN 1
+            ELSE 2
+        END * 1000000000 + COALESCE(c.qtd, 0)",
+        'custo' => 'c.custo',
+        'preco' => 'c.preco',
+        'margem' => 'CASE WHEN c.preco > 0 THEN (c.preco - c.custo) / c.preco ELSE -1 END',
+    ];
+
     /** Abas por tipo. A chave `todos` é o cadastro inteiro; `inativos` é o complemento. */
     private const ABAS = ['todos', 'produtos', 'servicos', 'materia', 'kits', 'inativos'];
 
@@ -117,6 +164,17 @@ class ProdutoUnificadoController extends Controller
             'marca' => $request->integer('marca') ?: null,
             'estoque' => $request->string('estoque', '')->toString(),
             'margem' => $request->string('margem', '')->toString(),
+            // Paginação e ordenação viajam no MESMO pacote de filtros que o resto do recorte.
+            // Assim a URL descreve a tela inteira: recarregar, compartilhar ou voltar no
+            // histórico devolve a mesma página, com a mesma ordem.
+            'ordem' => array_key_exists($request->string('ordem', '')->toString(), self::ORDEM_COLUNAS)
+                ? $request->string('ordem', '')->toString()
+                : '',
+            'dir' => $request->string('dir', 'asc')->toString() === 'desc' ? 'desc' : 'asc',
+            'pagina' => max(1, $request->integer('pagina', 1)),
+            'porPagina' => in_array($request->integer('porPagina', self::POR_PAGINA_PADRAO), self::POR_PAGINA_OPCOES, true)
+                ? $request->integer('porPagina', self::POR_PAGINA_PADRAO)
+                : self::POR_PAGINA_PADRAO,
         ];
 
         return Inertia::render('Produto/Unificado/Index', [
@@ -125,6 +183,7 @@ class ProdutoUnificadoController extends Controller
             'pisoMargem' => self::PISO_MARGEM,
             'diasParado' => self::DIAS_PARADO,
             'tetoLinhas' => self::TETO_LINHAS,
+            'porPaginaOpcoes' => self::POR_PAGINA_OPCOES,
             // EAGER (não closure): são 3 booleanos já resolvidos acima — embrulhar em closure
             // não pouparia query nenhuma, que é o único ganho do defer/D-14.
             // O `only:[...]` dos partial reloads NÃO pede esta prop, e não precisa: o Inertia
@@ -445,14 +504,60 @@ class ProdutoUnificadoController extends Controller
     {
         $limite = now()->subDays(self::DIAS_PARADO)->toDateTimeString();
 
-        $linhas = $this->aplicarRecortes(
+        $q = $this->aplicarRecortes(
             $this->catalogoDaAba($business_id, $f['aba']),
             $f,
             $podeVerCusto,
             $podeVerPreco
-        )->orderBy('c.nome')->limit(self::TETO_LINHAS)->get();
+        );
 
-        return $linhas->map(function ($r) use ($podeVerCusto, $podeVerPreco, $podeVerBom, $limite) {
+        // Ordenação server-side com lista branca (V2 §9). Sem ordem escolhida, nome — que é
+        // como o balcão procura quando não sabe o código.
+        //
+        // Custo e margem só ordenam pra quem pode VER custo. Ordenar por um número invisível
+        // entrega esse número por posição: quem não vê a coluna leria "o mais caro é o
+        // primeiro" e teria a estrutura de custo de graça. Perfil sem direito cai em nome.
+        $ordem = $f['ordem'];
+        if (in_array($ordem, ['custo', 'margem'], true) && ! ($podeVerCusto && $podeVerPreco)) {
+            $ordem = '';
+        }
+
+        if ($ordem === '') {
+            $q->orderBy('c.nome');
+        } else {
+            $q->orderByRaw(self::ORDEM_COLUNAS[$ordem] . ' ' . $f['dir'])
+                // Desempate estável: sem ele, duas linhas com o mesmo preço trocam de lugar
+                // entre páginas e o operador vê o mesmo item duas vezes (ou nenhuma).
+                ->orderBy('c.id');
+        }
+
+        $porPagina = (int) $f['porPagina'];
+        $pagina = (int) $f['pagina'];
+        $linhas = $q->forPage($pagina, $porPagina)->get();
+
+        // Página fora do intervalo devolve fatia vazia, e vazio por deep-link (`?pagina=99`,
+        // ou um filtro que encolheu a lista enquanto o operador estava na página 7) é
+        // indistinguível de "não achou nada". Aqui a gente conta e volta pra última página
+        // real. A contagem extra só roda no caso raro — página > 1 que veio vazia.
+        if ($linhas->isEmpty() && $pagina > 1) {
+            $total = (int) $q->getCountForPagination();
+            $ultima = max(1, (int) ceil($total / $porPagina));
+            if ($ultima < $pagina) {
+                $linhas = $q->forPage($ultima, $porPagina)->get();
+            }
+        }
+
+        // Revelação progressiva (V2 §4.6 §4.7 §3.2) — TRÊS consultas, uma por dado, todas
+        // `whereIn` sobre os ids DESTA página. Não é N+1: a página tem no máximo 100 linhas,
+        // e cada consulta roda uma vez. Fazer isso dentro da subconsulta do catálogo exigiria
+        // agregar texto e local no mesmo GROUP BY que já agrega saldo — e aí o saldo total
+        // passaria a contar a mesma linha uma vez por local.
+        $ids = $linhas->pluck('id')->map(fn ($v) => (int) $v)->all();
+        $locais = $this->saldoPorLocal($business_id, $ids);
+        $observacoes = $this->observacoes($business_id, $ids);
+        $variacoes = $this->variacoes($business_id, $ids);
+
+        return $linhas->map(function ($r) use ($podeVerCusto, $podeVerPreco, $podeVerBom, $limite, $locais, $observacoes, $variacoes) {
             $estocavel = (bool) $r->enable_stock;
             $preco = (float) ($r->preco ?? 0);
             $custo = (float) ($r->custo ?? 0);
@@ -480,6 +585,24 @@ class ProdutoUnificadoController extends Controller
                 'active' => (int) $r->is_inactive === 0,
             ];
 
+            // Saldo por local só viaja pra item ESTOCÁVEL e com mais de um local com registro.
+            // Serviço não tem saldo; item de um local só não tem o que comparar, e a chave
+            // presente faria a tela montar um gatilho de popover que não revela nada.
+            $doItem = $locais[(int) $r->id] ?? [];
+            if ($estocavel && count($doItem) > 1) {
+                $linha['locais'] = $doItem;
+            }
+
+            // Observação: chave ausente quando não há nota. `''` faria a tela montar o ícone
+            // de recado com popover vazio — affordance que não cumpre é pior que ausência.
+            if (isset($observacoes[(int) $r->id])) {
+                $linha['obs'] = $observacoes[(int) $r->id];
+            }
+
+            if (isset($variacoes[(int) $r->id])) {
+                $linha['variacoes'] = $variacoes[(int) $r->id];
+            }
+
             // UC-PUNI-02 / UC-PUNI-01 — a chave só existe se o usuário puder ver o valor.
             if ($podeVerPreco) {
                 $linha['price'] = $preco;
@@ -500,6 +623,140 @@ class ProdutoUnificadoController extends Controller
 
             return $linha;
         })->all();
+    }
+
+    /**
+     * Saldo por local dos itens DESTA página (handoff V2 §4.6).
+     *
+     * O que o balcão ganha: "tem 128, mas 0 na Loja" é uma resposta diferente de "tem 128".
+     * Sem isso a pessoa promete entrega no ato e descobre no caminho que a peça está no
+     * depósito.
+     *
+     * ⛔ Tier 0 (ADR 0093): o escopo vem de `business_locations.business_id`, não da lista de
+     * ids. Id de produto vindo do recorte já é do tenant, mas a linha de saldo pendura num
+     * LOCAL — e local de outro business com o mesmo `product_id` (cenário de restore/importação
+     * mal feita) entraria sem esta cláusula.
+     *
+     * A soma bate com o total da coluna porque as duas leem `vld.qty_available` das MESMAS
+     * variações vivas (`v.deleted_at IS NULL`). Divergir entre o total e a soma dos locais
+     * destrói a confiança no popover — é a primeira coisa que o operador confere.
+     *
+     * @param  list<int>  $ids
+     * @return array<int, list<array{nome:string,qtd:float}>>
+     */
+    private function saldoPorLocal(int $business_id, array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        return DB::table('variation_location_details as vld')
+            ->join('variations as v', 'v.id', '=', 'vld.variation_id')
+            ->join('business_locations as bl', 'bl.id', '=', 'vld.location_id')
+            ->whereNull('v.deleted_at')
+            ->where('bl.business_id', $business_id)
+            ->whereIn('vld.product_id', $ids)
+            ->groupBy('vld.product_id', 'bl.id', 'bl.name')
+            ->orderBy('bl.name')
+            ->select([
+                'vld.product_id',
+                DB::raw('bl.name as local'),
+                DB::raw('SUM(vld.qty_available) as qtd'),
+            ])
+            ->get()
+            ->groupBy('product_id')
+            ->map(fn ($linhas) => $linhas->map(fn ($l) => [
+                'nome' => (string) $l->local,
+                'qtd' => (float) $l->qtd,
+            ])->values()->all())
+            ->all();
+    }
+
+    /**
+     * Observação livre do produto (handoff V2 §4.7).
+     *
+     * Fonte: `products.product_description`, que é o único campo de texto livre do cadastro.
+     * É editado por WYSIWYG no UltimatePOS, então vem com HTML — a tag é removida aqui, não
+     * na tela: `dangerouslySetInnerHTML` num campo que o usuário digita é XSS armazenado.
+     *
+     * ⚠️ Os badges "Sob encomenda" / "Exige aprovação" do pacote **não são servidos**. Eles
+     * não existem no cadastro — no protótipo são um campo `tag` do dado de mentira. Inventar
+     * a partir do texto ("se contém 'encomenda' então...") seria adivinhação exibida como
+     * fato. Quando houver campo, ele entra; até lá o popover mostra só o texto.
+     *
+     * @param  list<int>  $ids
+     * @return array<int, string>
+     */
+    private function observacoes(int $business_id, array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        return DB::table('products')
+            ->where('business_id', $business_id)
+            ->whereIn('id', $ids)
+            ->whereNotNull('product_description')
+            ->where('product_description', '!=', '')
+            ->pluck('product_description', 'id')
+            ->map(function ($html) {
+                // `<br>`/`</p>` viram espaço ANTES do strip, senão dois parágrafos colam numa
+                // palavra só ("...do depósito.Conferir...").
+                $texto = preg_replace('/<(br\s*\/?|\/p|\/div|\/li)>/i', ' ', (string) $html);
+                $texto = trim(preg_replace('/\s+/u', ' ', strip_tags(html_entity_decode($texto, ENT_QUOTES | ENT_HTML5, 'UTF-8'))) ?? '');
+
+                // Teto de 400: o popover é atalho de leitura, não o cadastro. Quem precisa do
+                // texto inteiro abre a ficha — e o botão pra isso está no próprio popover.
+                return mb_strlen($texto) > 400 ? mb_substr($texto, 0, 399) . '…' : $texto;
+            })
+            ->filter(fn ($t) => $t !== '')
+            ->all();
+    }
+
+    /**
+     * Resumo das variações do item (handoff V2 §3.2 — a terceira linha da célula Produto).
+     *
+     * No UltimatePOS o atributo é TEXTO LIVRE do tenant (`product_variations.name`): pode ser
+     * "Cor", "Cores", "COR" ou "Tonalidade". Por isso o resumo sai como `Cor (4) · Tamanho (3)`
+     * e não como "4 cores · 3 tamanhos" do pacote — pluralizar o que o cliente digitou daria
+     * "4 Cors". O nome vai literal; a contagem entre parênteses.
+     *
+     * `is_dummy = 1` é a variação-fantasma que o UltimatePOS cria pra TODO produto simples,
+     * só pra ele ter uma linha em `variations`. Contá-la faria todo produto do catálogo
+     * anunciar "DUMMY (1)".
+     *
+     * ⛔ Tier 0: escopo por `products.business_id` — o join existe só pra isso.
+     *
+     * @param  list<int>  $ids
+     * @return array<int, list<array{nome:string,n:int}>>
+     */
+    private function variacoes(int $business_id, array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        return DB::table('variations as v')
+            ->join('product_variations as pv', 'pv.id', '=', 'v.product_variation_id')
+            ->join('products as p', 'p.id', '=', 'v.product_id')
+            ->whereNull('v.deleted_at')
+            ->where('p.business_id', $business_id)
+            ->where('pv.is_dummy', 0)
+            ->whereIn('v.product_id', $ids)
+            ->groupBy('v.product_id', 'pv.id', 'pv.name')
+            ->orderBy('pv.id')
+            ->select([
+                'v.product_id',
+                DB::raw('pv.name as atributo'),
+                DB::raw('COUNT(DISTINCT v.id) as n'),
+            ])
+            ->get()
+            ->groupBy('product_id')
+            ->map(fn ($linhas) => $linhas->map(fn ($l) => [
+                'nome' => (string) $l->atributo,
+                'n' => (int) $l->n,
+            ])->values()->all())
+            ->all();
     }
 
     /**

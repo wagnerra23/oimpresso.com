@@ -68,7 +68,7 @@
     },
     {
       "screen": "Jana",
-      "note": "15 arquivo(s)",
+      "note": "16 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -130,17 +130,6 @@
         "probe": "na",
         "dark": "na",
         "approved": "yes"
-      }
-    },
-    {
-      "screen": "superadmin",
-      "note": "2 arquivo(s)",
-      "cells": {
-        "tokens": "yes",
-        "primitivos": "yes",
-        "probe": "na",
-        "dark": "na",
-        "approved": "no"
       }
     },
     {
@@ -266,7 +255,7 @@
     },
     {
       "screen": "Produto",
-      "note": "8 arquivo(s)",
+      "note": "16 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -342,18 +331,18 @@
       }
     }
   ],
-  "progressPct": 29,
+  "progressPct": 27,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "8b2ca41f1",
-  "generatedAt": "2026-08-18T09:59:34.495Z",
+  "measuredAgainstSha": "c01ee7615",
+  "generatedAt": "2026-08-20T10:01:15.870Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
   },
   "counts": {
-    "screens": 31,
-    "done": 9,
+    "screens": 30,
+    "done": 8,
     "references": 0
   }
 }

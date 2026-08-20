@@ -19,10 +19,15 @@ import type { MouseEvent, ReactNode } from 'react';
 import { MoreHorizontal, Star } from 'lucide-react';
 import Disponibilidade from './Disponibilidade';
 import Mono from './Mono';
+// Cópia local, não import da golden master: o charter desta tela proíbe consumir componente
+// compartilhado com a /contacts ([M] 2026-08-18). A razão está escrita no arquivo.
+import AvatarProduto from './AvatarProduto';
 import { Inline } from '@/Components/layout';
+import Observacao from './Observacao';
 import {
   brl,
   estadoEstoque,
+  resumoVariacoes,
   margemFrac,
   ordemDisponibilidade,
   pct,
@@ -55,7 +60,8 @@ export function colunasDe({ perm, mostraTipo }: { perm: Permissoes; mostraTipo: 
     ...(verCusto ? [{ key: 'custo', label: 'Custo', width: '104px', align: 'right', sortable: true } as Coluna] : []),
     ...(perm.preco ? [{ key: 'preco', label: 'Preço de venda', width: '128px', align: 'right', sortable: true } as Coluna] : []),
     ...(verCusto && perm.preco ? [{ key: 'margem', label: 'Margem', width: '84px', align: 'right', sortable: true } as Coluna] : []),
-    { key: 'act', label: '', width: '64px', align: 'right' },
+    // 72px = dois alvos de 28 + gap 4 + 6 de padding de cada lado (handoff V2 §3.1).
+    { key: 'act', label: '', width: '72px', align: 'right' },
   ];
 }
 
@@ -84,17 +90,33 @@ export function celulasDe(
   const cells: Partial<Record<ColunaKey, ReactNode>> = {
     cod: <Mono className="text-[12px] text-muted-foreground">{r.codigo}</Mono>,
     prod: (
-      <div className="min-w-0 max-w-[280px]">
-        {/* Nome em MAIÚSCULAS (exceção 5) + segunda linha com unidade e categoria — que por
-            isso não ocupam coluna própria (D-09). */}
-        <div className="font-semibold text-[13px] uppercase truncate leading-tight">{r.name}</div>
-        <div className="font-mono text-[11px] text-muted-foreground truncate leading-tight mt-0.5">
-          {r.unit}
-          {r.cat_label ? ` · ${r.cat_label}` : ''}
+      // Avatar 32 + gap 10 + nome (handoff V2 §3.2). O avatar não é enfeite: na lista densa
+      // ele é o que o balcão acha primeiro, antes de ler o texto — mesma âncora visual que a
+      // consulta de clientes usa. `seed` é o código, não o nome: renomear o produto não pode
+      // trocar a cor com que a pessoa já aprendeu a reconhecê-lo.
+      <Inline gap={2} className="min-w-0">
+        <AvatarProduto nome={r.name} seed={String(r.codigo)} tamanho={32} />
+        <div className="min-w-0 max-w-[280px]">
+          {/* Três níveis de informação, de cima pra baixo (handoff V2 §3.2): nome → resumo →
+              variações. O terceiro só existe quando o item tem variação — linha vazia reservada
+              pra ela deixaria a altura da linha desigual entre produto simples e variável. */}
+          <Inline gap={1} className="min-w-0">
+            <span className="font-semibold text-[13px] uppercase truncate leading-tight">{r.name}</span>
+            {r.obs && <Observacao produto={r} />}
+          </Inline>
+          <div className="font-mono text-[11px] text-muted-foreground truncate leading-tight mt-0.5">
+            {r.unit}
+            {r.cat_label ? ` · ${r.cat_label}` : ''}
+          </div>
+          {r.variacoes && r.variacoes.length > 0 && (
+            <div className="text-[11px] text-muted-foreground/80 truncate leading-tight mt-0.5">
+              {resumoVariacoes(r.variacoes)}
+            </div>
+          )}
         </div>
-      </div>
+      </Inline>
     ),
-    est: <Disponibilidade estado={estadoEstoque(r)} />,
+    est: <Disponibilidade estado={estadoEstoque(r)} locais={r.locais} unidade={r.unit} nome={r.name} />,
     act: (
       <Inline gap={1} justify="end">
         {/* `stopPropagation` pra ação de linha não abrir o drawer junto. */}
@@ -102,7 +124,7 @@ export function celulasDe(
           type="button"
           onClick={onAcao}
           aria-label={`Favoritar ${r.name}`}
-          className="inline-flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          className="inline-flex h-7 w-7 items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
         >
           <Star size={13} />
         </button>
@@ -110,7 +132,7 @@ export function celulasDe(
           type="button"
           onClick={onAcao}
           aria-label={`Mais ações de ${r.name}`}
-          className="inline-flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          className="inline-flex h-7 w-7 items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
         >
           <MoreHorizontal size={13} />
         </button>
