@@ -193,29 +193,25 @@ it('UC-SADASH-05 · props sem query no backend não são enviadas à tela', func
 
 // ── UC-SADASH-06 · MRR só conta recorrência vigente e paga ──────────────────
 
-it('UC-SADASH-06 · o MRR ignora vencida, avulso e pacote sem preço', function () {
+it('UC-SADASH-06 · o MRR delega ao dono do calculo, nao soma por conta propria', function () {
+    if (! class_exists(\Modules\RecurringBilling\Repositories\SubscriptionRepository::class)) {
+        $this->markTestSkipped('RecurringBilling ausente neste ambiente.');
+    }
+
     $svc = app(SuperadminDashboardService::class);
+    $resultado = $svc->calcularMrr(BIZ_DASH);
 
-    $antes = $svc->calcularMrr();
+    expect($resultado)->toHaveKeys(['mrr', 'assinaturas', 'canceladas', 'fonte'])
+        ->and($resultado['mrr'])->toBeFloat()
+        ->and($resultado['mrr'])->toBeGreaterThanOrEqual(0.0);
 
-    expect($antes)->toHaveKeys(['mrr', 'assinaturas', 'sem_preco'])
-        ->and($antes['mrr'])->toBeFloat()
-        ->and($antes['mrr'])->toBeGreaterThanOrEqual(0.0);
+    // O contrato que importa: o numero e o MESMO que o repositorio do RecurringBilling
+    // devolve. Se alguem trocar isto por uma soma local de `rb_plans.valor`, o valor
+    // diverge (o `metadata.valor` sobrepoe o do plano) e este caso cai.
+    $doDono = app(\Modules\RecurringBilling\Repositories\SubscriptionRepository::class)
+        ->mrrBaselineCached(BIZ_DASH);
 
-    // O contrato que importa: o número NUNCA cobre assinatura fora de vigência.
-    // Se alguém tirar o recorte de `end_date`, o total passa a incluir as vencidas e este
-    // caso cai — em prod são 126 approved contra 13 vigentes.
-    $vigentes = DB::table('subscriptions')
-        ->where('status', 'approved')
-        ->where(function ($q) {
-            $q->whereNull('end_date')->orWhereDate('end_date', '>=', now());
-        })
-        ->count();
-
-    $todasApproved = DB::table('subscriptions')->where('status', 'approved')->count();
-
-    expect($antes['assinaturas'] + $antes['sem_preco'])->toBeLessThanOrEqual($vigentes)
-        ->and($vigentes)->toBeLessThanOrEqual($todasApproved);
+    expect($resultado['mrr'])->toBe(round((float) $doDono, 2));
 });
 
 // ── UC-SADASH-07 · a tendência mensal não tem buraco ────────────────────────

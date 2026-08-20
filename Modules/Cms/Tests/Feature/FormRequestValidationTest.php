@@ -130,3 +130,19 @@ it('022. SubmitContactFormRequest limita message a 5000 chars (anti-flood)', fun
     ], $rules);
     expect($v->fails())->toBeTrue();
 });
+
+// ---------- Domínio de `type` (page · blog · testimonial) ----------
+
+/**
+ * O whitelist de `type` recusava o domínio REAL do módulo: validava `page,post,banner`
+ * enquanto as consultas leem `blog` (CmsController@getBlogList/viewBlog + CmsServiceProvider)
+ * e `testimonial` (CmsController@home). Salvar publicação de blog ou depoimento pelo painel
+ * caía em erro de validação. `post` e `banner` não eram lidos por consulta nenhuma.
+ */
+it('023. Store e Update aceitam os três tipos do domínio do módulo', function (string $tipo) {
+    $store = Validator::make(['title' => 'x', 'type' => $tipo], (new StoreCmsPageRequest)->rules());
+    expect($store->fails())->toBeFalse("StoreCmsPageRequest recusou o tipo {$tipo}");
+
+    $update = Validator::make(['type' => $tipo], (new UpdateCmsPageRequest)->rules());
+    expect($update->fails())->toBeFalse("UpdateCmsPageRequest recusou o tipo {$tipo}");
+})->with(['page', 'blog', 'testimonial']);
