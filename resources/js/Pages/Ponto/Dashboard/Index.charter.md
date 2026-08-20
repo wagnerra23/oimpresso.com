@@ -2,7 +2,7 @@
 id: resources-js-pages-ponto-dashboard-index-charter
 page: /ponto
 component: resources/js/Pages/Ponto/Dashboard/Index.tsx
-related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)
+related_prototype: prototipo-ui/cowork/ponto-page.jsx
 owner: wagner
 status: draft
 last_validated: "2026-07-11"
