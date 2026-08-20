@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Jobs\RunBackupJob;
 use App\Utils\Util;
+use Inertia\Inertia;
 use Storage;
 
 class BackUpController extends Controller
@@ -36,6 +37,11 @@ class BackUpController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Onda 3 — dual-render atras da flag. Desligada: segue o Blade legado.
+        if (config('mwart.backup_index.enabled')) {
+            return $this->renderInertia();
+        }
+
         $disk = Storage::disk(config('backup.backup.destination.disks')[0]);
 
         $files = $disk->files(config('backup.backup.name'));
@@ -62,6 +68,90 @@ class BackUpController extends Controller
 
         return view('backup.index')
             ->with(compact('backups', 'cron_job_command'));
+    }
+
+    /**
+     * Onda 3 — render Inertia da tela Backup/Index.
+     *
+     * `backups` vai sob Inertia::defer: listar + size() + lastModified() por arquivo custa I/O
+     * de disco, e a rule de Pages manda deferir prop cara. O resto e barato e vai eager.
+     */
+    private function renderInertia()
+    {
+        $diskName = config('backup.backup.destination.disks')[0];
+        $pasta = str_replace(chr(92), '/', (string) config('backup.backup.name'));
+        $ehRemoto = ! in_array($diskName, ['local', 'public'], true);
+        $podeEscrever = config('app.env') !== 'demo';
+
+        return Inertia::render('Backup/Index', [
+            'destino' => [
+                'disk' => $diskName,
+                'remoto' => $ehRemoto,
+                'pasta' => $ehRemoto ? $pasta : 'public/uploads/'.$pasta,
+            ],
+            'retencao' => [
+                'estrategia' => class_basename((string) config('backup.cleanup.strategy')),
+                'manter' => 5,
+            ],
+            'cron' => $podeEscrever ? $this->commonUtil->getCronJobCommand() : '',
+            'agendado_ok' => $this->agendadoRodouNaJanela(),
+            'pode' => [
+                'gerar' => $podeEscrever,
+                'baixar' => $podeEscrever,
+                'excluir' => $podeEscrever,
+                'motivo' => $podeEscrever ? null : 'Desabilitado em ambiente de demonstracao.',
+            ],
+            'backups' => Inertia::defer(fn () => $this->listarParaTela()),
+        ]);
+    }
+
+    /**
+     * Lista os .zip com o que a tela mostra, do mais novo pro mais velho.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function listarParaTela()
+    {
+        $disk = Storage::disk(config('backup.backup.destination.disks')[0]);
+        $agendado = (int) config('backup.agendado_hora', 3);
+
+        $linhas = [];
+        foreach ($this->arquivosZip() as $f) {
+            $ts = $disk->lastModified($f);
+            $bytes = $disk->size($f);
+            $linhas[] = [
+                'file_name' => basename($f),
+                'file_size' => $bytes,
+                'file_size_human' => humanFilesize($bytes),
+                'last_modified' => date('c', $ts),
+                // origem inferida do ARQUIVO (nao do config): rodou na hora do schedule = agendado.
+                'origem' => (int) date('H', $ts) === $agendado ? 'agendado' : 'manual',
+            ];
+        }
+
+        usort($linhas, fn ($a, $b) => strcmp($b['last_modified'], $a['last_modified']));
+
+        return $linhas;
+    }
+
+    /**
+     * O agendado rodou na janela recente? Derivado do ARQUIVO que apareceu, nunca do cron
+     * parseado — anti-hook do charter.
+     */
+    private function agendadoRodouNaJanela()
+    {
+        $disk = Storage::disk(config('backup.backup.destination.disks')[0]);
+        $agendado = (int) config('backup.agendado_hora', 3);
+        $limite = time() - (27 * 3600);
+
+        foreach ($this->arquivosZip() as $f) {
+            $ts = $disk->lastModified($f);
+            if ($ts >= $limite && (int) date('H', $ts) === $agendado) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
