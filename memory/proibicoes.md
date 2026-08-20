@@ -811,6 +811,14 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** não escrever **par de barra invertida** em conteúdo de arquivo transportado por heredoc, script ou tool de escrita — em nenhuma linguagem. A forma positiva é remover a barra do texto: `chr(92)` montado em variável (Python), `DIRECTORY_SEPARATOR` em vez de `str_replace` de separador (PHP), ou um placeholder substituído depois (`__BS__`). E a verificação que fecha, porque é barata e determinística: depois de escrever, **conte as barras do arquivo e olhe cada uma** — se aparecer um par onde você queria um par, ok; se aparecer uma solteira onde deveria haver duas, o conteúdo foi corrompido no caminho. Vale igual para conteúdo com `\n`, `\t` e `\u` literais.
 
+### 2026-08-19 — Painel do protocolo anunciar "sem teto get_file" num caminho cujo INSUMO passa pelo get_file
+
+- **O limite (variante também proibida):** comando de painel/skill/doc não declara "sem teto X" sobre uma rota cujo INSUMO atravessa X. Antes de anunciar que um caminho contorna um limite, medir o insumo dele, não só a saída — vale pra teto de tamanho, rate-limit, timeout e permissão. Corolário: quando o consumidor já suporta a saída (aqui, `payloads.flatMap` junta lotes desde sempre), o defeito não é falta de capacidade, é a documentação não ensinar a usá-la.
+
+### 2026-08-20 — Consertar `front_door_coverage` com README, depois de ler o regex de docs CONCORRENTES em vez do predicado da porta
+
+- **O limite (variante também proibida):** ao consertar métrica de gate, achar a linha que COMPUTA o veredito — a variável que entra na conta — e não a primeira constante de aparência compatível. E o sinal de que você leu errado é barato: **se a métrica não se mexer depois do conserto, o predicado lido estava errado** — não insista com mais do mesmo tipo de arquivo.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
