@@ -240,8 +240,11 @@ import { Deferred } from '@inertiajs/react';
 2. **A tela chamada `licenca_log/index` não lista log.** Lista **máquinas** (`licenca_computador`)
    enriquecidas com o último log. Nomear a Page de `Logs/Index` mantém a rota, mas o **título é
    "Máquinas Cadastradas"** — não "Logs". Não "consertar" isso renomeando a rota nesta onda.
-3. **`licencas_log/index.blade.php`** (plural extra) não é rota de nada. O RUNBOOK do módulo manda
-   **deletar**. Não migrar. Fora do escopo desta onda — some no F5.
+3. ~~**`licencas_log/index.blade.php`**~~ (plural extra) **não existia como rota nenhuma** e foi
+   **deletado em 2026-08-20**, antes do F5 — não dependia do cutover porque não era dual-run:
+   `route:list` no CT 100 não tinha `licencas_log` (20 rotas `licenca*`, todas singular), nenhum
+   `@include`/`@extends` o citava, e ele era irrenderizável por dois motivos independentes
+   (`@extends('layout')` — view inexistente — e `route('licencas_log.create')` — rota inexistente).
 4. **`business.bloqueado` desbloqueia a EMPRESA inteira**, não a máquina. Na coluna Ações do Blade os
    dois botões são visualmente parecidos e o de empresa é o mais destrutivo. Na React eles precisam
    ser distinguíveis sem ler o tooltip.

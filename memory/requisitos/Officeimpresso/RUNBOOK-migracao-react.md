@@ -80,7 +80,7 @@ Se faltar, criar + atribuir ao role `Admin#1` + `permission:cache-reset`. Items 
 | 5 | `licenca_computador/businessall.blade.php` | `/officeimpresso/businessall` | `Officeimpresso/Empresas/Index.tsx` | P1 — listagem 37 empresas | Wagner |
 | 6 | `licenca_computador/create.blade.php` | `/officeimpresso/licenca_computador/create` | `Officeimpresso/Licencas/Create.tsx` | P2 — pouco uso (cadastro raro) | Wagner |
 | 7 | `clients/index.blade.php` | `/officeimpresso/client` | `Officeimpresso/OauthClients/Index.tsx` | P3 — OAuth tokens (raro) | Wagner |
-| 8 | `licencas_log/index.blade.php` (typo path) | — | **DELETAR** (path com plural extra, não-rota) | — | — |
+| 8 | ~~`licencas_log/index.blade.php`~~ (typo path) | — | ✅ **DELETADO** em 2026-08-20 (path com plural extra, não-rota) | — | — |
 | 9 | `index.blade.php` | `/officeimpresso/install` (raiz módulo) | `Officeimpresso/Install/Index.tsx` | P3 | Wagner |
 | 10 | `catalogue/index.blade.php` | `/officeimpresso/catalogue/{biz}/{loc}` | `Officeimpresso/Catalogue/Index.tsx` | P2 — público QR | qualquer cliente |
 | 11 | `catalogue/show.blade.php` | `/officeimpresso/show-catalogue/{biz}/{prod}` | `Officeimpresso/Catalogue/Show.tsx` | P2 — público QR | qualquer cliente |
