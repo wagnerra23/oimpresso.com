@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela reúne, numa rota só, tudo que as outras telas do Produto gateiam separadamente — custo, preço de venda, tabelas de preço e composição. Sem casos, ela vira o caminho por onde tudo isso sai sem permissão.
 owner: wagner
-last_run: "2026-08-18"
-last_run_ci: "11/11 UC verdes na lane Estoque · MySQL (run 32141318494, PR #5906): UC-PUNI-01..06 revalidados sobre a tela nova + UC-PUNI-07..10 estreando, 0 skipped. Veredito lido do JUnit da run (artifact pest-estoque-junit → npm run casos:results), não declarado à mão — scripts/casos-test-results.json."
+last_run: "2026-08-20"
+last_run_ci: "10/10 UC verdes (UC-PUNI-01..10) na lane Estoque · MySQL, run 32318469674. Suite: 85 passed, 306 assertions, 0 skipped — o contador de assertions é a prova de execução, não o '0 failed' (guard LC-13). A run cobriu a PILHA INTEIRA do pacote V2 (ondas 1+2+3) apontando pro main; como as mudanças desta PR são subconjunto do que rodou, o verde vale pra ela. POR QUE a run vive numa PR temporária (#6001, ja fechada): as PRs #5995/#5996/#5997 sao empilhadas e os workflows de Pest declaram pull_request: branches [main] — lane de teste NAO dispara em PR que aponta pra outra branch (medido: 126 checks na #5995 contra 55 nas empilhadas). Bump de last_run em 2026-08-20 apos rebase sobre origin/main: o G-6 mede DATA-GIT, e o rebase reescreve a data do commit sem mudar conteudo — conferido blob a blob, Index.tsx e Index.casos.md sao byte-identicos ao que a lane testou. Run anterior: 32246398030."
 ---
 
 # Casos de Uso & Aceite — Catálogo Unificado (`/products/unificado`)
@@ -66,6 +66,10 @@ last_run_ci: "11/11 UC verdes na lane Estoque · MySQL (run 32141318494, PR #590
 | UC-PUNI-08 | A aba recorta por TIPO derivado e conta só ativos | must | handoff §4.2 + §6 exceção 6 | `ProdutoUnificadoIndiceContratoTest` | ✅ verde — run 32141318494 |
 | UC-PUNI-09 | "Não estocável" e "sem estoque" são estados diferentes | must | handoff §4.6 + §6 exceção 6 | `ProdutoUnificadoIndiceContratoTest` | ✅ verde — run 32141318494 |
 | UC-PUNI-10 | As agregações (abas · KPIs · total) não contam produto de outro business | must `[T0]` | [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ProdutoUnificadoIndiceContratoTest` | ✅ verde — run 32141318494 |
+| UC-PUNI-11 | A resposta é a FATIA da página, e o total continua sendo o do recorte | must | V2 §4.8 · §9 | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
+| UC-PUNI-11B | Página 2 não repete nenhuma linha da página 1 | must | V2 §9 | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
+| UC-PUNI-11C | Ordenar por custo é ignorado pra quem não pode ver custo | must `[V0]` | AR-PROD-015 | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
+| UC-PUNI-11D | `porPagina` e `ordem` fora da lista branca caem no padrão | must | V2 §9 | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
 
 ---
 
@@ -240,3 +244,54 @@ last_run_ci: "11/11 UC verdes na lane Estoque · MySQL (run 32141318494, PR #590
   de tenant (ADR 0093). Fonte única também é o que garante que o contador não discorde da lista.
 - **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-10`.
 - **Status: ✅** — verde na run `32141318494`.
+
+## UC-PUNI-11 · A resposta é a fatia da página, e o total é o do recorte · `must`
+
+- **Persona:** Larissa no balcão, com um catálogo que não cabe numa tela.
+- **Aceite:** Dado `porPagina = 10` · Quando a listagem é servida · Então `produtos` traz **no
+  máximo 10** linhas e `totalDaAba` traz o total do **recorte inteiro**, não o da fatia.
+- **Por que os dois números têm de existir:** o rodapé escreve "Mostrando 1–10 de 1.347". O
+  "1–10" é da fatia; o "1.347" é do recorte. Se a tela contasse `produtos.length` pra os dois,
+  escreveria "Mostrando 1–10 de 10" e o operador concluiria que o catálogo tem 10 itens.
+- **O que isto substituiu:** até 18/08 a tela pedia as **500 primeiras** e avisava que tinha
+  cortado. Funcionava, mas não havia caminho pra 501ª linha sem o operador inventar um filtro.
+- **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-11`.
+- **Status: 🕐** — escrito nesta PR; veredito na primeira run da lane Estoque · MySQL.
+
+## UC-PUNI-11B · Página 2 não repete nenhuma linha da página 1 · `must`
+
+- **Persona:** quem folheia o catálogo procurando um item que não sabe nomear.
+- **Aceite:** Dado 6 itens no recorte e `porPagina = 3` · Quando as páginas 1 e 2 são servidas ·
+  Então a interseção dos ids é **vazia**.
+- **Mecanismo:** `LIMIT/OFFSET` sem ordem **total** é indeterminado. Ordenando só por preço, duas
+  linhas de mesmo preço podem sair em ordens diferentes nas duas consultas — e aí um item aparece
+  nas duas páginas enquanto outro não aparece em nenhuma. O desempate por `c.id` fecha isso.
+- **Por que é `must` e não detalhe:** o item que some não deixa rastro. O operador conclui que o
+  produto não está cadastrado e abre um segundo cadastro do mesmo item.
+- **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-11B`.
+- **Status: 🕐** — escrito nesta PR.
+
+## UC-PUNI-11C · Ordenar por custo é ignorado pra quem não pode ver custo · `must` `[V0]`
+
+- **Persona:** vendedor sem `view_purchase_price`.
+- **Aceite:** Dado um perfil sem direito a custo · Quando ele pede `ordem=custo&dir=asc` e depois
+  `ordem=custo&dir=desc` · Então as duas respostas vêm na **mesma ordem** (a padrão, por nome).
+- **Por que é vazamento:** a coluna Custo não é montada pra esse perfil — mas se a lista pudesse
+  ser ordenada por custo, a **posição** entregaria o número. "O primeiro é o mais barato" é a
+  estrutura de custo servida por ranking. É o AR-PROD-015 com um passo a mais no meio.
+- **Onde mora a regra:** `ProdutoUnificadoController::produtos()` zera `ordem` quando ela é
+  `custo`/`margem` e o perfil não tem custo **e** preço — cai no padrão, não devolve erro. Erro
+  também informa: diria "existe uma ordenação que você não pode usar".
+- **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-11C`.
+- **Status: 🕐** — escrito nesta PR.
+
+## UC-PUNI-11D · `porPagina` e `ordem` fora da lista branca caem no padrão · `must`
+
+- **Persona:** ninguém — é a URL colada à mão, e o gate contra ela.
+- **Aceite:** Dado `?porPagina=99999&ordem=c.id; DROP TABLE products` · Então `filters.porPagina`
+  volta **25** e `filters.ordem` volta **`''`**.
+- **Por que:** `porPagina` sem teto é a URL virando alavanca pra varrer o catálogo inteiro num
+  payload; `ordem` sem lista branca entra **cru** no `ORDER BY`, que é o único lugar da consulta
+  onde não dá pra usar bind de parâmetro.
+- **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-11D`.
+- **Status: 🕐** — escrito nesta PR.

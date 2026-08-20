@@ -1265,6 +1265,31 @@ class Kernel extends ConsoleKernel
                 });
         }
 
+        // Worker da fila `backups` (Onda 2 da migracao do Backup): drena o
+        // RunBackupJob despachado pela tela /backup.
+        //
+        // POR QUE FILA PROPRIA, e NAO `default`: quem drena `default` e o worker de
+        // backlog logo acima, que esta atras de `queue.backlog_worker_enabled` (default
+        // FALSE, com sequencia propria de liberacao). Um backup despachado pra `default`
+        // ficaria parado na tabela `jobs` ate alguem ligar aquele gate — ou seja, o
+        // backup nao aconteceria, em silencio. A fila `backups` so recebe job recem-
+        // despachado por acao humana na tela, entao nao tem o risco de backlog stale
+        // que justifica aquele gate, e por isso este worker NAO e gated.
+        //
+        // withoutOverlapping(30) casa com o $timeout=1800 do job: enquanto um backup
+        // roda, o tick seguinte nao sobe um segundo worker. Hostinger e shared hosting
+        // sem supervisor — cron e o workaround padrao (mesmo pattern dos workers acima).
+        $schedule->command('queue:work database --queue=backups --max-time=55 --tries=1')
+            ->everyMinute()
+            ->withoutOverlapping(30)
+            ->environments(['live'])
+            ->runInBackground()
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule queue:work backups FALHOU — backup pedido na tela pode ficar parado na jobs table'
+                );
+            });
+
         // US-WA-082 — Cleanup nonces antigos (>24h) da tabela webhook_nonces.
         // Replay window é 5min, mas mantemos 24h por margem segurança vs time
         // skew + audit forense. Após 24h é seguro deletar (replay já seria

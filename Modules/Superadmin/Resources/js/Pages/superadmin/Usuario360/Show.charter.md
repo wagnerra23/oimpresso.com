@@ -4,7 +4,7 @@ page: /superadmin/usuarios/{id}/360
 owner: wagner
 status: draft
 last_updated: 2026-05-31
-component: resources/js/Pages/superadmin/Usuario360/Show.tsx
+component: Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Show.tsx
 related_prototype: n/a (herda PT-03 Detalhe; segue o Padrão de Tela)
 last_validated: "2026-05-31"
 parent_module: Superadmin

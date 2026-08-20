@@ -19,6 +19,16 @@ name: UI architecture gate
 #     required: assim o gate nasce advisory (ADR 0275/0336), e a promoção é flip [W]
 #     com mordida provada. Pôr no `multi-tenant-gate` (required) o faria bloquear no
 #     dia 1 — foi a única divergência em relação ao parecer de 2026-08-12.
+#   - TimezoneGuardTest         (H) fuso: o default nao volta a ser Europe/London, o env de
+#     exemplo declara fuso brasileiro, e date_default_timezone_set nao se espalha por app/
+#     sem restaurar. Tambem NAO e gate de UI - mesma razao do (F): esta lane e o dono dos
+#     testes de arquitetura filesystem-puros. A baseline do G2b ENCOLHE a cada correcao;
+#     somar nome nela para calar o teste e o vetor de proibicoes.md sec.5 2026-08-04.
+#   - PermissionCatalogSyncTest (I) o catalogo fechado de permissoes nao pode divergir das
+#     views de papel. PermissionCatalog::CORE e uma lista DERIVADA; lista derivada mantida a
+#     mao apodrece — checkbox novo na view + constante esquecida = permissao DESCARTADA em
+#     silencio ao salvar, que e PIOR que o buraco original porque nao faz barulho. Traz
+#     controle positivo (a extracao nao pode voltar vazia) para nao passar por nao medir.
 #
 # NOTA: NoHardcodeBusinessIdInModulesTest (guard Tier 0 business_id) NÃO está aqui
 # de propósito — hoje ele false-positiva no padrão legítimo `=== 0` (no-tenant guard).
@@ -43,6 +53,16 @@ on:
       # eixo que ele vigia (§5 2026-08-02). `app/**` já cobre o ModuleSpecGenerator;
       # estes dois cobrem o scaffold e a reintrodução de build por módulo.
       - 'config/modules.php'
+      # (H) alvos do TimezoneGuardTest. Mesmo motivo do (F)/(G): sem o arquivo SOB TESTE
+      # no trigger, mexer no fuso nao dispararia a lane e o gate nasceria mudo no eixo que
+      # ele vigia (proibicoes.md sec.5 2026-08-02). 'app/**' ja cobre os 4 sites de
+      # date_default_timezone_set; estes dois cobrem o default e o env de exemplo.
+      - 'config/app.php'
+      - '.env - Copia.example'
+      # (I) alvo do PermissionCatalogSyncTest: PermissionCatalog::CORE e DERIVADO destas
+      # views, entao mexer nelas TEM de disparar a catraca que compara as duas fontes.
+      # (app/** ja cobre o proprio PermissionCatalog.php)
+      - 'resources/views/role/**'
       - 'Modules/*/webpack.mix.js'
       - 'Modules/*/vite.config.js'
   # ⚠️ pull_request SEM paths: de propósito (2026-06-11, ADR 0271) — este check é
@@ -110,4 +130,6 @@ jobs:
             tests/Feature/Architecture/InertiaDeferredFrontendGuardTest.php \
             tests/Feature/Architecture/DependencyDirectionTest.php \
             tests/Feature/Architecture/ModuleBuildLayerAbsentTest.php \
+            tests/Feature/Architecture/TimezoneGuardTest.php \
+            tests/Feature/Architecture/PermissionCatalogSyncTest.php \
             --no-coverage

@@ -803,6 +803,26 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** escrita de doc versionado por script **nunca** abre o destino em modo que zera antes de ter o conteúdo final **pronto e codificado**. A forma positiva é uma linha: `data = s.encode('utf-8')` **antes** do `open` — assim o erro de encoding estoura com o arquivo intacto — e então `open(p,'wb').write(data)`. Vale igual pra `>` do shell, `Set-Content`, `fs.writeFileSync` com encoder custom, e qualquer pipeline `ler → transformar → gravar` no mesmo path. Corolário de vocabulário: **nunca escreva emoji como escape de surrogate** (`👍`) — em Python é `\U0001f44d`, ou o caractere literal num arquivo `.py` salvo em UTF-8; o par surrogate é uma representação UTF-16 que não sobrevive a `encode('utf-8')`. E o corolário de diagnóstico: quando uma sonda devolve **arquivo vazio / 0 bytes / 1 linha**, o primeiro suspeito é a **sua** escrita anterior, não o `cwd` — confira `git status <path>` antes de investigar o ambiente.
 
+### 2026-08-18 — Listar gap protótipo × produção por GREP DE STRING LITERAL, com 3 donos do inventário sem serem abertos
+
+- **O limite (variante também proibida):** listar gap design × produção por **casamento de string** — do protótipo no código, ou do código no protótipo. Copy adaptada **não é** ausência de capacidade. O gap se estabelece por **medida do DOM nos dois lados** (`design-diff.mjs --probe` → mesma sonda → `--compare`) **e** pela leitura do dono do inventário daquela tela (`<Tela>-visual-comparison.md`), que já traz veredito e data por item. Corolário de método, e é o que fecha: **ausência de renderização não é ausência de capacidade** — antes de dizer "falta X na tela", checar a **pré-condição** (a Memória sem fatos não desenha busca nem relevância).
+
+### 2026-08-19 — Escrever arquivo com par de barra invertida por heredoc: o par COLAPSA no transporte e o PHP recebe string aberta
+
+- **O limite (variante também proibida):** não escrever **par de barra invertida** em conteúdo de arquivo transportado por heredoc, script ou tool de escrita — em nenhuma linguagem. A forma positiva é remover a barra do texto: `chr(92)` montado em variável (Python), `DIRECTORY_SEPARATOR` em vez de `str_replace` de separador (PHP), ou um placeholder substituído depois (`__BS__`). E a verificação que fecha, porque é barata e determinística: depois de escrever, **conte as barras do arquivo e olhe cada uma** — se aparecer um par onde você queria um par, ok; se aparecer uma solteira onde deveria haver duas, o conteúdo foi corrompido no caminho. Vale igual para conteúdo com `\n`, `\t` e `\u` literais.
+
+### 2026-08-19 — Painel do protocolo anunciar "sem teto get_file" num caminho cujo INSUMO passa pelo get_file
+
+- **O limite (variante também proibida):** comando de painel/skill/doc não declara "sem teto X" sobre uma rota cujo INSUMO atravessa X. Antes de anunciar que um caminho contorna um limite, medir o insumo dele, não só a saída — vale pra teto de tamanho, rate-limit, timeout e permissão. Corolário: quando o consumidor já suporta a saída (aqui, `payloads.flatMap` junta lotes desde sempre), o defeito não é falta de capacidade, é a documentação não ensinar a usá-la.
+
+### 2026-08-20 — Consertar `front_door_coverage` com README, depois de ler o regex de docs CONCORRENTES em vez do predicado da porta
+
+- **O limite (variante também proibida):** ao consertar métrica de gate, achar a linha que COMPUTA o veredito — a variável que entra na conta — e não a primeira constante de aparência compatível. E o sinal de que você leu errado é barato: **se a métrica não se mexer depois do conserto, o predicado lido estava errado** — não insista com mais do mesmo tipo de arquivo.
+
+### 2026-08-20 — Afirmar "o PR X não toca este arquivo" contra a MINHA PRÓPRIA consulta, feita na mesma sessão
+
+- **O limite (variante também proibida):** claim de **ausência sobre conjunto enumerável** (*"o PR X não toca"*, *"só o Y usa"*, *"nenhum outro consumidor"*) não se escreve de memória — **nem da sua própria memória de ter medido**. Antes de a frase entrar num artefato publicado (PR body, ADR, handoff, comentário), **re-ler a saída da consulta** ou re-rodá-la. O custo é um scroll; o custo do erro é uma afirmação com aparência de recibo. Corolário que generaliza para além do PR: quando você fizer uma varredura ampla cedo e escrever a conclusão tarde, a conclusão cita a **saída**, não a lembrança dela — é a mesma doutrina de "derivado > lembrado" ([ADR 0256](decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md)) aplicada dentro de uma sessão só.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:

@@ -48,6 +48,11 @@ class RecurringInvoice extends Command
      */
     public function handle()
     {
+        // O fuso horário é estado GLOBAL do processo. Antes, o do último negócio processado
+        // vazava para o resto do job — e, quando time_zone vinha vazio, de um negócio para o
+        // seguinte, porque nada restaurava. Medido no main em 2026-08-19.
+        $fusoOriginal = date_default_timezone_get();
+
         try {
             ini_set('max_execution_time', 0);
             ini_set('memory_limit', '512M');
@@ -63,7 +68,9 @@ class RecurringInvoice extends Command
                                 ->get();
 
             foreach ($transactions as $transaction) {
-                date_default_timezone_set($transaction->business->time_zone);
+                // Sem fuso declarado, volta ao da aplicação — nunca herda o do negócio anterior.
+                $fusoDoNegocio = $transaction->business->time_zone ?? null;
+                date_default_timezone_set(! empty($fusoDoNegocio) ? $fusoDoNegocio : $fusoOriginal);
                 //inner try-catch block open
                 try {
                     //Check if recurring invoice is enabled
@@ -174,7 +181,10 @@ class RecurringInvoice extends Command
                 }
                 //inner try-catch block close
             }
+
+            date_default_timezone_set($fusoOriginal);
         } catch (\Exception $e) {
+            date_default_timezone_set($fusoOriginal);
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
             exit($e->getMessage());
         }

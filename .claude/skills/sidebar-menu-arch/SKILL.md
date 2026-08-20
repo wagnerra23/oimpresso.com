@@ -219,7 +219,7 @@ Em `SIDEBAR_GROUPS` (lookup label → grupo visual):
 
 ```
 - [ ] 1. DataController do módulo: modifyAdminMenu() retorna cedo? (check guards)
-- [ ] 2. Módulo está instalado? (manage-modules → toggle Enable)
+- [ ] 2. Módulo está instalado? (/modulos → toggle Ativo)
 - [ ] 3. Usuário tem a permissão correta? (Roles → editar papel)
 - [ ] 4. order() em conflito com outro item (mesmo número → undefined behavior)
 - [ ] 5. LegacyMenuAdapter: item tem href? (items sem href são ignorados)

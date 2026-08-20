@@ -1,5 +1,11 @@
 {
   "prontas": [
+    "Cliente/Create",
+    "Cliente/Edit",
+    "Cliente/Import",
+    "Cliente/Index",
+    "Cliente/Ledger",
+    "Cliente/Map",
     "Compras/Index",
     "Financeiro/Cobranca/Index",
     "Financeiro/Conciliacao/Index",
@@ -8,11 +14,21 @@
     "Financeiro/Impostos/Index",
     "Financeiro/ProvaViva",
     "Financeiro/Unificado/Index",
+    "Jana/Memoria",
     "kb/Index",
+    "Modules/Index",
     "Produto/SellingPrices",
     "Sells/Index"
   ],
   "ciclo": [
+    {
+      "tela": "Jana/Chat",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/jana-merge.jsx",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
     {
       "tela": "Jana/Index",
       "status": "1-ciclo",
@@ -46,5 +62,5 @@
       ]
     }
   ],
-  "total": 15
+  "total": 24
 }
