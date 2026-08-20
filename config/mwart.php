@@ -34,6 +34,13 @@ $parseBizIds = static function (string $envVar): array {
 
 return [
     // Sprint 2 — Listagem OS (Repair index) — entregue PR #100
+    // Backup — Onda 3 do plano de migracao (Blade `backup.index` -> Inertia `Backup/Index`).
+    // Nasce DESLIGADA: o dual-render mantem o Blade legado ate [W] ligar.
+    'backup_index' => [
+        'enabled'      => env('MWART_BACKUP_INDEX', false),
+        'business_ids' => $parseBizIds('MWART_BACKUP_INDEX_BIZ'),
+    ],
+
     'repair_index' => [
         'enabled'      => env('MWART_REPAIR_INDEX', false),
         'business_ids' => $parseBizIds('MWART_REPAIR_INDEX_BIZ'),

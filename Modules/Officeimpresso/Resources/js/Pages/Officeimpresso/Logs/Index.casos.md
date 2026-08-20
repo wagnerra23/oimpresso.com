@@ -149,6 +149,44 @@ seria testar o contrário do que o defer faz.
 
 ---
 
+## UC-LOGS-11 · Cross-empresa é POR DESIGN, não vazamento · `must [sec]`
+
+**Status:** 🧪 — teste escrito; roda na lane do módulo.
+
+**Dado** um usuário com `officeimpresso.access` na empresa A
+**Quando** ele abre a lista
+**Então** ele vê também as máquinas da empresa B.
+**Por quê:** a WR2 é a **fornecedora** do desktop e os licenciados são outros businesses — o
+suporte precisa ver a máquina do cliente, não a própria (docblock de `podeVerTodasEmpresas()`,
+relato do Luiz em 29/07). O sentido é o inverso do multi-tenant usual, e por isso é `[sec]`:
+a consulta é `DB::table` cru, **sem global scope**, então nada além deste teste avisa se alguém
+estreitar ou alargar isso sem querer.
+
+⚠️ O item 53 do parity dizia *"quem NÃO tem `podeVerTodasEmpresas()` fica preso ao próprio
+business"*. Esse caminho é **inalcançável**: `authorizeAccess()` é `abort_unless(podeVerTodasEmpresas(), 403)`
+e roda na primeira linha, então o `if (! podeVerTodasEmpresas())` do escopo nunca executa —
+é resíduo de quando a rota pedia só `auth`. Quem não tem a permissão leva 403 (UC-LOGS-01).
+
+## UC-LOGS-12 · Filtro por empresa · `must`
+
+**Status:** 🧪 — teste escrito; roda na lane do módulo.
+
+**Dado** máquinas em duas empresas
+**Quando** o suporte filtra por uma delas (link na célula Empresa)
+**Então** a lista traz as daquela empresa **e não traz** as da outra.
+**Por quê:** é o contraponto do UC-LOGS-11 — a visão nasce ampla, e o filtro é o que estreita.
+
+## UC-LOGS-13 · Os filtros compõem · `must`
+
+**Status:** 🧪 — teste escrito; roda na lane do módulo.
+
+**Dado** o mesmo HD cadastrado em duas empresas
+**Quando** o suporte aplica empresa **e** HD juntos
+**Então** sobra só a máquina daquela empresa com aquele HD
+**E** com o HD sozinho as duas voltam.
+**Por quê:** composição só está provada se o par for MAIS estreito que cada filtro sozinho —
+sem o segundo caso, um AND quebrado que ignorasse a empresa passaria despercebido.
+
 ## `[BACKLOG]` — comportamento real, ainda sem teste que o cite
 
 Sem id de propósito: UC sem teste que o cite é órfão e reprova o G-2
@@ -160,8 +198,6 @@ Viram UC quando ganharem teste — os 4 primeiros são itens de severidade **alt
 - `[BACKLOG]` Estado no Último Login é tri-estado: sem log nenhum mostra travessão, não "Liberada". *(parity 25, alta)*
 - `[BACKLOG]` Estado Atual respeita a precedência empresa > máquina > ativa. *(parity 26, alta)*
 - `[BACKLOG]` As três variantes da coluna Ações são mutuamente exclusivas, e "Desbloquear empresa" libera o cliente inteiro — visualmente distinguível de "Desbloquear máquina" sem ler tooltip. *(parity 27/32-34, alta)*
-- `[BACKLOG]` Os filtros compõem: remover um chip preserva os outros. *(parity 17, alta)*
-- `[BACKLOG]` Quem não tem `officeimpresso.access` vê só o próprio `business_id`. *(parity 53, alta — Tier 0)*
 - `[BACKLOG]` A busca livre também acha por nome/CNPJ/razão social da empresa.
 - `[BACKLOG]` Ordenação default por último login desc, com quem nunca acessou no fim.
 - `[BACKLOG]` Paginação de 25 por página.

@@ -104,12 +104,27 @@ diferente (junto da page dela, pra não criar render órfão), então precisa da
 
 ---
 
+## UC-TL-02 · O estado chega em duas flags separadas · `must`
+
+**Status:** 🧪 — teste escrito; roda na lane do módulo.
+
+**Dado** uma máquina bloqueada numa empresa também bloqueada
+**Quando** a timeline carrega
+**Então** o payload traz `business_blocked` e `machine_blocked` **separados**, nos três estados.
+**Por quê:** o Blade computava o selo no servidor; agora a precedência (empresa > máquina > ativa)
+é expressão do `Timeline.tsx`. O que o backend ainda deve garantir é a matéria-prima: se
+`business_blocked` sumir do select, a tela chama de "máquina bloqueada" um cliente inteiro
+bloqueado — e o operador desbloquearia a coisa errada.
+
+⚠️ **Cobertura parcial, declarada:** a expressão da precedência em si só um teste de browser
+alcança. Não existe spec e2e do Officeimpresso hoje (nem badge testado em e2e em nenhuma tela
+do repo), então o item 41 do parity fica com o dado provado e o render não.
+
 ## `[BACKLOG]` — comportamento real, ainda sem teste que o cite
 
 Sem id de propósito (G-2: UC sem teste que o cite é órfão). Os ids UC-TL-01 a 04 estão reservados
 pra estes quando ganharem teste.
 
-- `[BACKLOG]` O selo de estado no topo respeita a precedência empresa > máquina > ativa. *(parity 41, alta)*
 - `[BACKLOG]` O recorte é de 200 registros, `source=delphi_middleware` **e** endpoint `processa-dados-cliente`, ordem desc. *(parity 43/44 — o 44 é alta e já tem teste parcial via UC-TL-08)*
 - `[BACKLOG]` Status HTTP < 400 aparece como sucesso e ≥ 400 como falha.
 - `[BACKLOG]` Data/hora no formato `d/m/Y H:i:s`, duração em `Nms`, e travessão quando vazio.
