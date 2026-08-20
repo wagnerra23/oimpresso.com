@@ -168,6 +168,14 @@
     "baseline": "it_superadmin_Dashboard_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
+    "screen": "superadmin/Negocios",
+    "source": "superadmin/Negocios",
+    "component": "superadmin/Negocios/Index",
+    "route": "/superadmin/business",
+    "anchor": "Negócios",
+    "baseline": "it_superadmin_Negocios_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
     "screen": "Cliente/Import",
     "source": "Cliente/Import",
     "component": "Cliente/Import",

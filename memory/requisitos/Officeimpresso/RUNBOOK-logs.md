@@ -113,6 +113,34 @@ e quem não tem a permissão continua preso ao próprio `business_id`.
 10. Sem janela de aviso a cliente: o módulo é interno (WR2 + suporte), não tem cliente externo na tela.
     Flag ON → monitorar → remover Blade + a flag + o comando.
 
+11. **As duas telas entram no gate visual SÓ AQUI — antes da F5 é impossível.** O
+    `PixelBaselineTest` faz `assertInertia(component: 'Officeimpresso/Logs/Index')`, e com a flag
+    OFF a rota devolve o **Blade** — a baseline não nasce e o `visual-regression` (required) fica
+    vermelho pra todo o repo, não só pra este PR. Medido em 2026-08-20 no #5977.
+
+    O que falta, em ordem:
+
+    a. **Caminho de override no `FeatureFlagService`.** Hoje não existe: `isOn()` sem GrowthBook
+       cai em `fallback()`, que só lê o array `fallbackDefaults` (hardcoded, lista apenas
+       `useV2SellsCreate`). Sem SDK key no harness, `getFeatures()` volta vazio ⇒ a flag é `false`.
+       Precedente do que fazer: o job liga `MWART_CLIENTE_INDEX=true` no `.env` do runner pelo mesmo
+       motivo (sem ele `/cliente` cai no Blade legacy e dá 500). A doutrina está no comentário lá e
+       vale aqui — _"flag de ambiente pra tela poder ENTRAR no gate, não pra mudar o que ela mostra"_.
+    b. **Entrada no `tests/Browser/visreg-screens.json`** com os 6 campos obrigatórios
+       (`screen`/`source`/`component`/`route`/`anchor`/`baseline`). ⚠️ A **Timeline exige `{id}` na
+       rota**, então precisa de uma máquina determinística no seed do visreg — mesma classe de
+       problema do `Nfse/Show`, que por isso segue fora do manifesto.
+    c. **`.snap` e entrada no MESMO commit** — meia unidade invalida o classificador e quebra o gate
+       no repo inteiro. Gerar pelo modo update (`workflow_dispatch`), escopado às telas novas
+       (o input `screens` existe pra isso: o update completo não cabe no `timeout-minutes`).
+    d. **Aprovação visual do [W]** (gate F1.5) registrada no PR.
+
+    Enquanto (a) não existir, a resposta certa ao comentário _"Tela sem contrato visual"_ apontando
+    `Officeimpresso/Logs` é **não adicionar** ao manifesto. Nas F3 o escopo do classificador é
+    `global` (o `LicencaLogController` entra como `controller-inertia`), e em `global` a lista de
+    telas sem contrato é **informativa** — não reprova. Recibo: #5977, onde o vermelho era zona
+    cinza de 3 telas de terceiros, não esta.
+
 ## 4. Tokens CSS
 
 O Blade traz um design-system próprio (`officeimpresso::layouts.partials.design-system`) com classes

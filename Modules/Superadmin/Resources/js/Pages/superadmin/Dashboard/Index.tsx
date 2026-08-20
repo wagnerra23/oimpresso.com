@@ -118,7 +118,7 @@ function SuperadminDashboard({ periodo, janela, statsPeriodo, semAssinatura, mrr
     <div className="pb-8">
       <PageHeader title="Superadmin" subtitle="Visão geral da plataforma" />
 
-      <div className="flex flex-wrap items-center gap-3 px-6 pt-4">
+      <div className="flex flex-wrap items-center gap-3 px-6 pt-4" data-contract="superadmin.dashboard.periodo">
         <div className="flex gap-0.5 rounded-md border bg-muted p-0.5" role="group" aria-label="Período">
           {PERIODOS.map((p) => (
             <button
@@ -140,7 +140,7 @@ function SuperadminDashboard({ periodo, janela, statsPeriodo, semAssinatura, mrr
         <span className="text-[11px] text-muted-foreground">{janela.rotulo}</span>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 px-6 pt-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 px-6 pt-4 sm:grid-cols-2 lg:grid-cols-4" data-contract="superadmin.dashboard.kpis">
         <Deferred data="statsPeriodo" fallback={<><KpiEsqueleto /><KpiEsqueleto /></>}>
           <KpisDoPeriodo statsPeriodo={statsPeriodo} />
         </Deferred>
@@ -154,13 +154,13 @@ function SuperadminDashboard({ periodo, janela, statsPeriodo, semAssinatura, mrr
         </Deferred>
       </div>
 
-      <div className="px-6 pt-4">
+      <div className="px-6 pt-4" data-contract="superadmin.dashboard.tendencia">
         <Deferred data="tendencia" fallback={<Card><CardContent className="p-4"><Skeleton className="h-44 w-full" /></CardContent></Card>}>
           <Tendencia tendencia={tendencia} />
         </Deferred>
       </div>
 
-      <div className="px-6 pt-4">
+      <div className="px-6 pt-4" data-contract="superadmin.dashboard.recentes">
         <Deferred data="recentes" fallback={<Card><CardContent className="p-4"><Skeleton className="h-40 w-full" /></CardContent></Card>}>
           <Recentes recentes={recentes} />
         </Deferred>
