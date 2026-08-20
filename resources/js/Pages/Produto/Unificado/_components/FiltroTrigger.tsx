@@ -1,15 +1,21 @@
 /**
- * Gatilho de filtro da toolbar de índice — variante LEVE (handoff §4.5).
+ * Gatilho de filtro da toolbar de índice — variante NEUTRA (handoff V2 §4.3).
  *
- * Aparência de CAMPO, nunca de chip preenchido em repouso: fundo `--surface`, borda
- * `--border`, texto `--text-dim`, chevron a 60%, altura 30, raio 8. O hover só clareia. Chip
- * preenchido em repouso muda o peso visual da linha e foi reprovado na conferência de
- * regressão do handoff.
+ * Em repouso o gatilho não tem moldura: borda e fundo transparentes, texto `--text-dim`,
+ * chevron 11px. É a mudança do pacote 19/08 sobre o 18/08 — lá cada gatilho tinha cara de
+ * campo (`bg-card` + borda), e seis campos vazios lado a lado davam à faixa de filtros mais
+ * peso visual do que a lista que ela filtra. Sem moldura, a faixa vira texto até alguém
+ * mexer nela.
  *
- * Selecionado é o único estado que ganha cor — é informação (tem recorte aplicado), não
- * decoração.
+ * Três estados, nesta ordem de peso:
+ *   repouso      → transparente, `--text-dim`
+ *   hover/foco   → fundo `--bg-2` a 50%, texto `--text` (transição 150ms)
+ *   com valor    → borda accent 40%, fundo accent 10%, texto accent, rótulo `Categoria: X`
  *
- * O protótipo entrega os cinco gatilhos SEM popover (pendência §14 item 3). Aqui eles abrem de
+ * Cor só no estado COM VALOR, que é informação (tem recorte aplicado), não decoração.
+ * Altura 32 pra bater a grade 4/8 do pacote.
+ *
+ * O protótipo entrega os gatilhos SEM popover (pendência §14 item 3). Aqui eles abrem de
  * verdade, com as opções servidas pelo backend: gatilho que não abre nada é affordance
  * mentindo, e a lista de opções é dado do tenant, não decisão de design.
  */
@@ -57,14 +63,17 @@ export function FiltroTrigger({ label, value, options, onChange }: FiltroTrigger
         aria-haspopup="listbox"
         aria-expanded={aberto}
         className={
-          'inline-flex items-center gap-1.5 h-[30px] px-[11px] rounded-lg border text-xs transition-colors ' +
+          'inline-flex items-center gap-1 h-8 px-2.5 rounded-md border text-xs font-medium transition-colors ' +
           (selecionada
             ? 'border-primary/40 bg-primary/10 text-primary'
-            : 'border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted/60')
+            // Repouso SEM moldura. `border-transparent` (e não ausência de borda) mantém a
+            // altura estável entre os estados: trocar pra `border-primary/40` no selecionado
+            // não pode empurrar a linha 2px.
+            : 'border-transparent bg-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground')
         }
       >
         <span className="max-w-[180px] truncate">{texto}</span>
-        <ChevronDown size={12} className="opacity-60 shrink-0" />
+        <ChevronDown size={11} className="opacity-60 shrink-0" />
       </button>
 
       {aberto && (

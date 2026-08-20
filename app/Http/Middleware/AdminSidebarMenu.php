@@ -838,19 +838,6 @@ class AdminSidebarMenu
                 $menu->url(action([\App\Http\Controllers\Restaurant\OrderController::class, 'index']), __('restaurant.orders'), ['icon' => 'fa fas fa-list-alt', 'active' => request()->segment(1) == 'modules' && request()->segment(2) == 'orders'])->order(75);
             }
 
-            //Notification template menu
-            // US-GOV-059 classe D: o menu checava `send_notifications` (plural) e o
-            // endpoint de destino (NotificationTemplateController::index/store) exige
-            // `send_notification` (singular). Nenhuma das duas era declarada, logo o
-            // item so aparecia pra admin (Gate::before). Alinhado ao gate do endpoint.
-            if (auth()->user()->can('send_notification')) {
-                $menu->url(action([\App\Http\Controllers\NotificationTemplateController::class, 'index']), __('lang_v1.notification_templates'), ['icon' => '<svg aria-hidden="true" class="tw-size-5 tw-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                    <path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"></path>
-                    <path d="M3 7l9 6l9 -6"></path>
-                  </svg>', 'active' => request()->segment(1) == 'notification-templates'])->order(80);
-            }
 
             //Settings Dropdown
             if (auth()->user()->can('business_settings.access') ||
@@ -862,7 +849,12 @@ class AdminSidebarMenu
                 // `superadmin.access_package_subscriptions` (DataController) e gateia o
                 // SubscriptionController com esse nome; o sidebar do core ficou com o
                 // nome sem prefixo, que nao existe em lugar nenhum.
-                auth()->user()->can('superadmin.access_package_subscriptions')) {
+                auth()->user()->can('superadmin.access_package_subscriptions') ||
+                // P7 — "Modelos de notificação" saiu de item solto pra dentro deste grupo.
+                // A permissão entra AQUI também, senão quem tem só `send_notification` (e
+                // nenhuma das de configuração) perderia o acesso ao item — o dropdown
+                // inteiro não renderizaria. O patch original não previa isso.
+                auth()->user()->can('send_notification')) {
                 $menu->dropdown(
                     __('business.settings'),
                     function ($sub) use ($enabled_modules) {
@@ -890,6 +882,15 @@ class AdminSidebarMenu
                                 action([\App\Http\Controllers\BarcodeController::class, 'index']),
                                 __('barcode.barcode_settings'),
                                 ['icon' => '', 'active' => request()->segment(1) == 'barcodes']
+                            );
+                        }
+                        // P7 — o item vive no grupo de configurações, junto de Preferências
+                        // e Backup, como no protótipo. Uma lei só de navegação.
+                        if (auth()->user()->can('send_notification')) {
+                            $sub->url(
+                                action([\App\Http\Controllers\NotificationTemplateController::class, 'index']),
+                                __('lang_v1.notification_templates'),
+                                ['icon' => '', 'active' => request()->segment(1) == 'notification-templates']
                             );
                         }
                         if (auth()->user()->can('access_printers')) {
