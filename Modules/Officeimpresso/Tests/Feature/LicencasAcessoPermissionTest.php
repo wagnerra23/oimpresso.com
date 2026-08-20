@@ -27,6 +27,15 @@ uses(Tests\TestCase::class);
  *   - `officeimpresso.licencas.gerenciar` ... liberar/bloquear máquina
  *   - `superadmin` .......................... empresa inteira + exclusão
  *
+ * ⚠️ NÃO semear `session(['user.business_id' => ...])` antes da request. O
+ * `SetSessionData` só monta a sessão quando ela ainda NÃO tem `user`
+ * (SetSessionData.php:29) — semear na mão faz ele RETORNAR CEDO, e aí `currency`,
+ * `business` e `financial_year` nunca entram. A `layouts/app.blade.php:61`
+ * (`session('currency')['code']`) então estoura e a tela responde 500.
+ * Enquanto os asserts eram `->not->toBe(403)` isso passava despercebido (500 não
+ * é 403); com `assertOk()` aparece. O middleware preenche `user.business_id` a
+ * partir do `Auth::user()` — o MESMO valor que se semeava — com o resto junto.
+ *
  * NÃO usa RefreshDatabase — UltimatePOS legacy (100+ migrations/triggers não
  * rodam em sqlite). Roda contra DB real (CT 100 / dev). biz=1 (Wagner WR2) —
  * NUNCA biz=4 (ROTA LIVRE prod) — ADR 0101.
@@ -53,6 +62,20 @@ defined('LICENCA_INEXISTENTE') || define('LICENCA_INEXISTENTE', 999999999);
 defined('BUSINESS_INEXISTENTE') || define('BUSINESS_INEXISTENTE', 999999999);
 
 beforeEach(function () {
+    // `layouts/app.blade.php` lê `$_SERVER['REMOTE_ADDR']` (linha 56) e
+    // `HTTP_USER_AGENT` (via `isMobile()`, helpers.php:72) DIRETO do superglobal,
+    // não do Request — e em teste HTTP eles não existem. Sem isto a view estoura
+    // e `assertOk()` reprova.
+    //
+    // O #5989 torna a linha 56 defensiva, o que é o conserto de raiz; este arquivo
+    // não pode DEPENDER daquele merge pra ficar honesto. E não pode depender da
+    // ORDEM: o Pest roda os arquivos no mesmo processo, então o `beforeEach` do
+    // LogsBaselineTest já setava isto — quando ele calhava de rodar primeiro, este
+    // aqui passava de carona. Medido 2026-08-20: verde no CT 100 (ordem favorável)
+    // e vermelho no CI (ordem desfavorável), MESMO commit.
+    $_SERVER['REMOTE_ADDR'] ??= '127.0.0.1';
+    $_SERVER['HTTP_USER_AGENT'] ??= 'Pest/CI (X11; Linux x86_64) HeadlessChrome';
+
     if (DB::connection()->getDriverName() === 'sqlite') {
         $this->markTestSkipped('SQLite-incompatível: schema MySQL UltimatePOS necessário (ADR 0101).');
     }
@@ -94,7 +117,6 @@ it('barra usuário autenticado sem permissão nas telas de licença e log', func
 
     $user = makeOiAcessoTestUser($business->id);
     $this->actingAs($user);
-    session(['user.business_id' => $business->id]);
 
     // Regressão do buraco: antes destas guardas, um autenticado qualquer abria
     // as três telas — inclusive a visão cross-empresa.
@@ -113,7 +135,6 @@ it('libera as telas de leitura pra quem tem officeimpresso.access (caso do supor
     $user = makeOiAcessoTestUser($business->id);
     $user->givePermissionTo(PERM_OI_ACCESS);
     $this->actingAs($user);
-    session(['user.business_id' => $business->id]);
 
     // `->not->toBe(403)` era verde-que-não-prova: um 500 também não é 403.
     // Medido em 2026-08-19 (run 32290877986) — estas duas primeiras rotas
@@ -137,7 +158,6 @@ it('exige licencas.gerenciar pra liberar/bloquear máquina — ver não basta', 
     $leitor = makeOiAcessoTestUser($business->id);
     $leitor->givePermissionTo(PERM_OI_ACCESS);
     $this->actingAs($leitor);
-    session(['user.business_id' => $business->id]);
     $this->get('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE . '/toggle-block')
         ->assertForbidden();
     $leitor->forceDelete();
@@ -146,7 +166,6 @@ it('exige licencas.gerenciar pra liberar/bloquear máquina — ver não basta', 
     $suporte = makeOiAcessoTestUser($business->id);
     $suporte->givePermissionTo(PERM_OI_GERENCIAR);
     $this->actingAs($suporte);
-    session(['user.business_id' => $business->id]);
     // Atravessar o gate tem desfecho CONHECIDO: o findOrFail do id inexistente
     // estoura e o controller cai no catch → `redirect()->back()->with('error')`.
     // Exigir o redirect MAIS o flash prova que a requisição chegou ao CORPO do
@@ -168,7 +187,6 @@ it('mexer em máquina NÃO concede escopo empresa-inteira (no-leak)', function (
     $suporte = makeOiAcessoTestUser($business->id);
     $suporte->givePermissionTo(PERM_OI_GERENCIAR);
     $this->actingAs($suporte);
-    session(['user.business_id' => $business->id]);
 
     $this->get('/officeimpresso/licenca_computador/businessbloqueado/' . $business->id)
         ->assertForbidden();
@@ -184,7 +202,6 @@ it('delega escopo empresa-inteira via officeimpresso.empresa.gerenciar', functio
     $gestor = makeOiAcessoTestUser($business->id);
     $gestor->givePermissionTo(PERM_OI_EMPRESA);
     $this->actingAs($gestor);
-    session(['user.business_id' => $business->id]);
 
     // BUSINESS_INEXISTENTE de propósito: o gate roda ANTES do service, então o
     // caso "com permissão" atravessa a guarda e morre no findOrFail (catch →
@@ -208,7 +225,6 @@ it('no-leak: gerir a empresa NÃO concede EXCLUIR licença (destrutivo)', functi
     $gestor = makeOiAcessoTestUser($business->id);
     $gestor->givePermissionTo(PERM_OI_EMPRESA);
     $this->actingAs($gestor);
-    session(['user.business_id' => $business->id]);
 
     $this->delete('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE)
         ->assertForbidden();
@@ -224,7 +240,6 @@ it('delega exclusão via officeimpresso.licencas.excluir', function () {
     $user = makeOiAcessoTestUser($business->id);
     $user->givePermissionTo(PERM_OI_EXCLUIR);
     $this->actingAs($user);
-    session(['user.business_id' => $business->id]);
 
     // Atravessa o gate e morre no find() → 404 JSON. Nenhuma licença real some.
     // O corpo do JSON entra na asserção de propósito: é o que distingue "o
@@ -247,7 +262,6 @@ it('manda /officeimpresso pra primeira tela que o nível consegue abrir', functi
     $suporte = makeOiAcessoTestUser($business->id);
     $suporte->givePermissionTo(PERM_OI_ACCESS);
     $this->actingAs($suporte);
-    session(['user.business_id' => $business->id]);
     $this->get('/officeimpresso')->assertRedirect('/officeimpresso/computadores');
     $suporte->forceDelete();
 
@@ -257,7 +271,6 @@ it('manda /officeimpresso pra primeira tela que o nível consegue abrir', functi
     $atendente = makeOiAcessoTestUser($business->id);
     $atendente->givePermissionTo(PERM_OI_CLIENTES);
     $this->actingAs($atendente);
-    session(['user.business_id' => $business->id]);
     $this->get('/officeimpresso')->assertRedirect('/officeimpresso/client');
     $atendente->forceDelete();
 });
@@ -267,7 +280,6 @@ it('nega a porta de entrada pra autenticado sem permissão do módulo', function
 
     $user = makeOiAcessoTestUser($business->id);
     $this->actingAs($user);
-    session(['user.business_id' => $business->id]);
 
     // Não redireciona pra uma tela que negaria do mesmo jeito — nega aqui.
     $this->get('/officeimpresso')->assertForbidden();
@@ -283,7 +295,6 @@ it('lista os links de licença no menu Blade pra quem tem access (não só super
     $suporte = makeOiAcessoTestUser($business->id);
     $suporte->givePermissionTo(PERM_OI_ACCESS);
     $this->actingAs($suporte);
-    session(['user.business_id' => $business->id]);
 
     $html = view('officeimpresso::layouts.nav')->render();
 
@@ -307,7 +318,6 @@ it('não lista os links de licença pra quem não tem access', function () {
     // mostra tudo pra todo mundo — que é o outro lado do buraco do #5044.
     $user = makeOiAcessoTestUser($business->id);
     $this->actingAs($user);
-    session(['user.business_id' => $business->id]);
 
     $html = view('officeimpresso::layouts.nav')->render();
 
