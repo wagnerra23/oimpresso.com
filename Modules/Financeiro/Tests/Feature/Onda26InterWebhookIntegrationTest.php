@@ -2,13 +2,16 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Event;
+use Modules\Financeiro\Listeners\OnCobrancaPagaCreateFinanceiroTitulo;
 use Modules\Financeiro\Models\Titulo;
+use Modules\PaymentGateway\Events\CobrancaPaga;
 use Modules\PaymentGateway\Jobs\ProcessarWebhookPixInterJob;
 use Modules\PaymentGateway\Models\Cobranca;
 use Modules\PaymentGateway\Models\InterWebhookLog;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * US-FIN-032 (Onda 26) — Integração end-to-end.
@@ -40,6 +43,21 @@ beforeEach(function () {
             'webhook_secret' => 'integration-secret',
         ],
     ]);
+
+    // FinanceiroServiceProvider::registerPaymentGatewayListeners() guarda o registro
+    // atrás de uma flag ESTÁTICA (`private static bool $paymentgatewayListenersRegistered`).
+    // Em produção isso é inócuo — um boot por request. Na suíte NÃO: a estática sobrevive
+    // entre testes do mesmo processo PHP, enquanto o Laravel recria a aplicação (e o event
+    // dispatcher) a cada teste. Resultado: do 2º teste em diante o provider retorna cedo e
+    // CobrancaPaga fica SEM listener — o evento dispara, ninguém escuta, nenhum Titulo é
+    // criado e nenhum log aparece (o guard que retorna não loga).
+    //
+    // Por isso este teste de INTEGRAÇÃO registra o listener explicitamente: sem isso ele
+    // depende da posição na suíte, que é o que o fazia falhar de forma determinística.
+    // ⚠️ Este registro NÃO prova que o provider registra em produção — prova só o trecho
+    // job → service → event → listener → Titulo. A flag estática é um defeito à parte,
+    // reportado pra decisão [W] (mexer nela toca criação de título = REGRA MESTRE valor).
+    Event::listen(CobrancaPaga::class, [OnCobrancaPagaCreateFinanceiroTitulo::class, 'handle']);
 });
 
 it('worker → CobrancaPaga → listener Financeiro cria Titulo a receber quitado/aberto', function () {
@@ -73,7 +91,7 @@ it('worker → CobrancaPaga → listener Financeiro cria Titulo a receber quitad
     ]);
 
     // 3. Worker roda síncrono (event dispatcher real — listener Financeiro reage)
-    (new ProcessarWebhookPixInterJob($log->id, 1))->handle();
+    app()->call([new ProcessarWebhookPixInterJob($log->id, 1), 'handle']);
 
     // 4. Cobranca foi marcada paga
     $cobranca->refresh();
@@ -121,9 +139,9 @@ it('UC-COB-06 · worker NÃO duplica Titulo em re-run (idempotência cross-modul
     ]);
 
     // 1ª execução
-    (new ProcessarWebhookPixInterJob($log->id, 1))->handle();
+    app()->call([new ProcessarWebhookPixInterJob($log->id, 1), 'handle']);
     // 2ª execução (simula retry do queue worker mesma linha)
-    (new ProcessarWebhookPixInterJob($log->id, 1))->handle();
+    app()->call([new ProcessarWebhookPixInterJob($log->id, 1), 'handle']);
 
     // Apenas 1 Titulo criado (listener checa origem_id ANTES de criar)
     $count = Titulo::withoutGlobalScopes()
