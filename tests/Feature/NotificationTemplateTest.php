@@ -227,13 +227,13 @@ it('UC-NOT-27 · ignora chave de modelo desconhecida no POST', function () {
 
     expect(NotificationTemplate::where('business_id', $this->business->id)
         ->where('template_for', 'modelo_inventado')->exists())->toBeFalse();
-})->todo('P2 — o store() ainda grava qualquer template_for. Vira assert no PR da whitelist.');
+});
 
 it('UC-NOT-24 · recusa cc invalido no servidor', function () {
     ($this->entrar)($this->admin)->post(rotaStore(), ['template_data' => [
         'new_sale' => camposDoModelo(['cc' => 'nao-e-email']),
     ]])->assertSessionHasErrors('template_data.new_sale.cc');
-})->todo('P3 — hoje só o type="email" do HTML protege. Vira assert no PR da validação.');
+});
 
 it('UC-NOT-28 · semeia os modelos em portugues para negocio novo', function () {
     // Semeia num business descartável usando o MESMO caminho de produção do seed.
@@ -250,7 +250,7 @@ it('UC-NOT-28 · semeia os modelos em portugues para negocio novo', function () 
     expect($venda->email_body)->toContain('Olá {contact_name}');
     expect($venda->email_body)->not->toContain('Dear ');
     expect($venda->whatsapp_text)->not->toBeEmpty();    // o seed antigo nem tinha a coluna
-})->todo('P1 — o seed ainda está em inglês e não preenche whatsapp_text. Vira assert no PR do seed.');
+});
 
 it('UC-NOT-29 · a traducao preserva o modelo que o negocio editou', function () {
     $linha = NotificationTemplate::updateOrCreate(
@@ -258,12 +258,14 @@ it('UC-NOT-29 · a traducao preserva o modelo que o negocio editou', function ()
         ['subject' => 'Meu assunto proprio', 'email_body' => '<p>Texto meu</p>'],
     );
 
-    require_once base_path('database/migrations/2026_08_19_000000_traduzir_notification_templates_pt_br.php');
-    (require base_path('database/migrations/2026_08_19_000000_traduzir_notification_templates_pt_br.php'))->up();
+    // A migration e uma classe anonima retornada pelo arquivo — um require so, sem
+    // require_once antes (que faria o segundo require devolver true em vez do objeto).
+    $migration = require base_path('database/migrations/2026_08_19_000000_traduzir_notification_templates_pt_br.php');
+    $migration->up();
 
     expect($linha->fresh()->subject)->toBe('Meu assunto proprio');
     expect($linha->fresh()->email_body)->toBe('<p>Texto meu</p>');
-})->todo('P1 — a migration entra no mesmo PR do seed. Vira assert lá.');
+});
 
 it('UC-NOT-30 · sanitiza script no corpo do e-mail ao montar a mensagem', function () {
     $dados = [
@@ -276,7 +278,7 @@ it('UC-NOT-30 · sanitiza script no corpo do e-mail ao montar a mensagem', funct
 
     expect($corpo)->toContain('ok');
     expect($corpo)->not->toContain('<script');
-})->todo('P4 — nada sanitiza hoje. Vira assert no PR que põe HtmlSanitizer nos 2 toMail().');
+});
 
 // ── Envio: dependem de fixture de venda/contato ──────────────────────────────
 // autoSendNotification($business_id, $tipo, $transaction, $contact) precisa de uma
