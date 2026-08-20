@@ -2,7 +2,7 @@
 id: resources-js-pages-backup-index-charter
 page: /backup
 component: resources/js/Pages/Backup/Index.tsx
-related_prototype: "n/a — existe no Cowork (backup-page.jsx) mas NAO desceu pro espelho: payload 3,5 MB x teto 256 KiB do get_file (PR #6003). Ancora DECLARADA, nao resolvida."
+related_prototype: prototipo-ui/cowork/backup-page.jsx
 related_runbook: memory/requisitos/Backup/RUNBOOK-index.md
 parent_module: Backup
 owner: wagner
