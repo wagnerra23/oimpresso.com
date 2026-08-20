@@ -174,5 +174,13 @@
     "route": "/superadmin/business",
     "anchor": "Negócios",
     "baseline": "it_superadmin_Negocios_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Cliente/Import",
+    "source": "Cliente/Import",
+    "component": "Cliente/Import",
+    "route": "/contacts/import",
+    "anchor": "Passo 1 — Baixe o template",
+    "baseline": "it_Cliente_Import_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]
