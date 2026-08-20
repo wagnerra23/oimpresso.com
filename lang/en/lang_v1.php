@@ -262,6 +262,8 @@ return [
     'rack_details' => 'Rack/Row/Position Details',
     'tooltip_rack_details' => 'Enter details of where the product is kept in the store, for different business locations.',
     'updated_success' => 'Updated Successfully',
+    'test_sent_to' => 'Test sent to :destino',
+    'no_email_found' => 'Your user has no email address — add one to receive the test',
     'added_success' => 'Added Successfully',
     'deleted_success' => 'Deleted Successfully',
     'enable_disable_modules' => 'Enable/Disable Modules',

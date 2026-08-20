@@ -258,6 +258,8 @@ return [
     'tooltip_rack_details' => 'Digite os detalhes de onde o produto está armazenado na loja, para diferentes locais comerciais.',
 
     'updated_success' => 'Atualizado com sucesso',
+    'test_sent_to' => 'Teste enviado para :destino',
+    'no_email_found' => 'Seu usuário não tem e-mail cadastrado — cadastre um para receber o teste',
     'added_success' => 'Adicionado com sucesso',
     'deleted_success' => 'deletado com sucesso',
     'enable_disable_modules' => 'Ativar / desativar módulos',
