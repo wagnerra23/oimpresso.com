@@ -7,7 +7,7 @@ owner: wagner
 status: ativo
 na_justified:
   D5: "Cross-tenant intencional Wagner-only — superadmin opera FORA do multi-tenant por design (ADR 0093 §exceções + ADR 0094 Constituição Art. 6). Cliente externo biz=4 ROTA LIVRE não é alvo; gate `is_superadmin` bloqueia tudo que não seja Wagner. Penalizar D5 distorce ranking de módulo de backoffice."
-  D4.c: "Blade legacy intencional (não MWART). Herdado UltimatePOS v6, contém ~50 views Blade que serão preservadas sem migração Inertia/React — superadmin Wagner-only não precisa do investimento MWART (ADR 0104 escopo só fronts cliente). Nenhuma decisão futura prevê reescrita."
+  D4.c: "REVOGADO em 2026-08-19: o módulo ESTÁ migrando pra Inertia/React (ondas SA-O1 dashboard, SA-O2 negócios), por decisão [W]. A justificativa anterior dizia que as ~50 views Blade seriam preservadas sem migração e que nenhuma decisão futura previa reescrita — as duas afirmações deixaram de valer. Cada tela migrada nasce com o trio (charter+casos+teste) e RUNBOOK do MWART. As views ainda não migradas seguem em Blade até a onda que as cobre; a limpeza é a SA-O6."
 na_justified_v3:
   D8.b: "Superadmin não expõe rotas em `VerifyCsrfToken::except` — todas rotas passam pelo CSRF middleware UltimatePOS padrão. D8.b não aplica por design — não há route do módulo no `except`."
 related_adrs:
@@ -36,8 +36,10 @@ related_adrs:
 
 ### US-SUPER-001 — Listagem e CRUD de Businesses
 **Como** superadmin, **quero** listar/criar/editar/suspender businesses, **pra** gerenciar clientes do oimpresso multi-tenant.
-**Implementado em:** `Modules/Superadmin/Http/Controllers/BusinessController.php` · `Modules/Superadmin/Resources/views/business/index.blade.php` · `Modules/Superadmin/Notifications/NewBusinessNotification.php` · verificado@8af585a (2026-07-02)
-- Tela: `business/index.blade.php` (DataTable cross-tenant)
+**Implementado em:** `Modules/Superadmin/Http/Controllers/BusinessController.php` · `Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/Index.tsx` · `Modules/Superadmin/Notifications/NewBusinessNotification.php` · verificado@8af585a (2026-07-02)
+**Testado em:** `Modules/Superadmin/Tests/Feature/SuperadminNegociosContratoTest.php`
+- Tela: `superadmin/Negocios/Index` (Inertia desde a SA-O2; era `business/index.blade.php` + DataTables). Charter + casos ao lado do `.tsx` · RUNBOOK: `RUNBOOK-negocios.md`
+**Aceite (SA-O2, só a LISTA):** a rota responde Inertia e não DataTables (UC-SANEG-01); 1 negócio = 1 linha e o total da página bate com a contagem real (UC-SANEG-02); admin de negócio é barrado enquanto o superadmin passa (UC-SANEG-03); a lista enxerga TODOS os business, cross-tenant intencional por ADR 0093 §exceções (UC-SANEG-04); valor de filtro fora da lista é descartado (UC-SANEG-05). Criar/editar/desativar é a SA-O3 e segue no Blade.
 - Controller: `BusinessController` métodos `index/create/store/show/edit/update`
 - Aceite: criar business novo dispara `NewBusinessNotification` + `NewBusinessWelcomNotification` ao owner; permite reset de senha via `update_password_modal`
 
@@ -98,9 +100,19 @@ related_adrs:
 
 ### US-SUPER-010 — Usuario 360 (visão consolidada do cliente)
 **Como** superadmin, **quero** ver consolidado de um business (subscription ativa + uso + tickets + última atividade), **pra** preparar call de suporte/upsell.
-**Implementado em:** _parcial_ · `Modules/Superadmin/Http/Controllers/Usuario360Controller.php` · `resources/js/Pages/superadmin/Usuario360/Show.tsx` · verificado@8af585a (2026-07-02) — visão 360 Inertia lê `mcp_audit_log` pra exibir auditoria; falta gravar log de acesso do superadmin previsto no aceite (LGPD Art. 7º)
+**Implementado em:** _parcial_ · `Modules/Superadmin/Http/Controllers/Usuario360Controller.php` · `Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Show.tsx` · verificado@8af585a (2026-07-02) — visão 360 Inertia lê `mcp_audit_log` pra exibir auditoria; falta gravar log de acesso do superadmin previsto no aceite (LGPD Art. 7º)
 - Controller: `Usuario360Controller`
 - Aceite: cross-tenant explícito + logs de acesso em `audit_log` (LGPD Art. 7º)
+- 2026-08-19: a Page saiu de `resources/js/Pages/` e foi pra dentro do módulo ([W]: "vai para dentro do módulo"). O namespace Inertia **não** mudou — o path acima é o novo endereço do mesmo arquivo, e nenhum call-site do controller mudou.
+
+### US-SUPER-011 — Visão geral da plataforma (`/superadmin`)
+**Como** superadmin, **quero** ver o pulso do negócio-SaaS num período (entradas, cadastros sem assinatura e tendência), **pra** saber se a plataforma está crescendo ou vazando antes de abrir tela nenhuma.
+**Implementado em:** _parcial_ · `Modules/Superadmin/Http/Controllers/SuperadminController.php` · `Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx` · `Modules/Superadmin/Services/SuperadminDashboardService.php`
+**Testado em:** `Modules/Superadmin/Tests/Feature/SuperadminDashboardContratoTest.php`
+- Tela: `superadmin/Dashboard/Index` (Inertia desde a SA-O1; era `superadmin::superadmin.index` em Blade/AdminLTE)
+- Charter + casos: ao lado do `.tsx` · RUNBOOK: `RUNBOOK-dashboard.md`
+**Aceite:** KPIs saem do `SuperadminDashboardService`, não de query inline no controller (UC-SADASH-02) · a rota responde Inertia com o componente `superadmin/Dashboard/Index`, não Blade (UC-SADASH-01) · admin de negócio é barrado enquanto o superadmin passa (UC-SADASH-03) · as contagens enxergam TODOS os negócios, cross-tenant intencional por ADR 0093 §exceções (UC-SADASH-04) · nenhum bloco sem query no backend chega às props (UC-SADASH-05). Provado por `Modules/Superadmin/Tests/Feature/SuperadminDashboardContratoTest.php`.
+- **Parcial por escolha, não por esquecimento:** MRR, funil trial→pago, churn, receita por pacote e a fila "Vencendo ou vencido" ainda **não têm query** e por isso não são renderizados — o protótipo os desenha com mock, e mock em produção é número fabricado. Entram na SA-O1b (churn depende da migration `cancel_reason`, decisão [W] 2026-08-19)
 
 ## Anti-padrões (NÃO fazer)
 

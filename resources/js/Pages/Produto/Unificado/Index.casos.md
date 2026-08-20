@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela reúne, numa rota só, tudo que as outras telas do Produto gateiam separadamente — custo, preço de venda, tabelas de preço e composição. Sem casos, ela vira o caminho por onde tudo isso sai sem permissão.
 owner: wagner
-last_run: "2026-08-18"
-last_run_ci: "11/11 UC verdes na lane Estoque · MySQL (run 32141318494, PR #5906): UC-PUNI-01..06 revalidados sobre a tela nova + UC-PUNI-07..10 estreando, 0 skipped. Veredito lido do JUnit da run (artifact pest-estoque-junit → npm run casos:results), não declarado à mão — scripts/casos-test-results.json."
+last_run: "2026-08-20"
+last_run_ci: "10/10 UC verdes (UC-PUNI-01..10) na lane Estoque · MySQL, run 32318469674. Suite: 85 passed, 306 assertions, 0 skipped — o contador de assertions é a prova de execução, não o '0 failed' (guard LC-13). A run cobriu a PILHA INTEIRA do pacote V2 (ondas 1+2+3) apontando pro main; como as mudanças desta PR são subconjunto do que rodou, o verde vale pra ela. POR QUE a run vive numa PR temporária (#6001, ja fechada): as PRs #5995/#5996/#5997 sao empilhadas e os workflows de Pest declaram pull_request: branches [main] — lane de teste NAO dispara em PR que aponta pra outra branch (medido: 126 checks na #5995 contra 55 nas empilhadas). Bump de last_run em 2026-08-20 apos rebase sobre origin/main: o G-6 mede DATA-GIT, e o rebase reescreve a data do commit sem mudar conteudo — conferido blob a blob, Index.tsx e Index.casos.md sao byte-identicos ao que a lane testou. Run anterior: 32246398030."
 ---
 
 # Casos de Uso & Aceite — Catálogo Unificado (`/products/unificado`)

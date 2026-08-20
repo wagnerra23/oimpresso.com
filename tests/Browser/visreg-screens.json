@@ -150,5 +150,21 @@
     "route": "/forja/aprovacoes",
     "anchor": "Aprovações",
     "baseline": "it_Forja_Aprovacoes_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Modules",
+    "source": "Modules",
+    "component": "Modules/Index",
+    "route": "/modulos",
+    "anchor": "Gerenciador de Módulos",
+    "baseline": "it_Modules_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "superadmin/Dashboard",
+    "source": "superadmin/Dashboard",
+    "component": "superadmin/Dashboard/Index",
+    "route": "/superadmin",
+    "anchor": "Superadmin",
+    "baseline": "it_superadmin_Dashboard_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]

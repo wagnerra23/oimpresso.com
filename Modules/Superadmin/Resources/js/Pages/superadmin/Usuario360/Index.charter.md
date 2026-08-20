@@ -7,7 +7,7 @@ pt: PT-01-Lista
 adr: [UI-0013]
 created: 2026-05-31
 page: /superadmin/usuarios
-component: resources/js/Pages/superadmin/Usuario360/Index.tsx
+component: Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 last_validated: "2026-05-31"
 parent_module: Superadmin

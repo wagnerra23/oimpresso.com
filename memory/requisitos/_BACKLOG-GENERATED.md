@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **882 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **890 tarefas abertas** em **51 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -37,13 +37,14 @@
 | [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
 | [`PontoWr2`](#pontowr2) | 12 | 0 | 0 | 0 | 12 |
 | [`Essentials`](#essentials) | 11 | 0 | 0 | 0 | 11 |
+| [`Superadmin`](#superadmin) | 11 | 0 | 0 | 0 | 11 |
 | [`Cms`](#cms) | 10 | 0 | 0 | 0 | 10 |
-| [`Superadmin`](#superadmin) | 10 | 0 | 0 | 0 | 10 |
 | [`Cliente`](#cliente) | 9 | 1 | 0 | 0 | 8 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
 | [`KB`](#kb) | 8 | 0 | 0 | 0 | 8 |
 | [`Produto`](#produto) | 8 | 0 | 0 | 0 | 8 |
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
+| [`Officeimpresso`](#officeimpresso) | 7 | 0 | 0 | 0 | 7 |
 | [`TeamMcp`](#teammcp) | 7 | 0 | 0 | 0 | 7 |
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
 | [`Woocommerce`](#woocommerce) | 6 | 0 | 0 | 0 | 6 |
@@ -1031,22 +1032,6 @@
 - **US-ESS-010** — Isolamento multi-tenant Tier 0 IRREVOGÁVEL ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
 - **US-ESSE-001** — [TODO — título]
 
-## Cms
-
-
-### todo
-
-- **US-CMS-001** — Site home pública oimpresso.com renderiza Inertia/React sem auth
-- **US-CMS-002** — Adicionar `business_id` em `cms_pages` (multi-tenant CMS)
-- **US-CMS-003** — Adicionar `business_id` em `cms_site_details`
-- **US-CMS-004** — CRUD CmsPage migrado Blade→Inertia/React (MWART)
-- **US-CMS-005** — Páginas dinâmicas (`/p/{slug}` ou `/c/page/{slug}`)
-- **US-CMS-006** — Site Home dinâmico por tenant
-- **US-CMS-007** — Pricing dinâmico por tenant (planos custom)
-- **US-CMS-008** — Autenticação social no landing
-- **US-CMS-009** — Importer WordPress (XML/REST API)
-- **US-CMS-010** — Editor visual drag-drop (page builder)
-
 ## Superadmin
 
 
@@ -1062,6 +1047,23 @@
 - **US-SUPER-008** — Settings globais (SMTP/Pusher/Cron/Backup/Gateways)
 - **US-SUPER-009** — Pricing público (`/pricing`)
 - **US-SUPER-010** — Usuario 360 (visão consolidada do cliente)
+- **US-SUPER-011** — Visão geral da plataforma (`/superadmin`)
+
+## Cms
+
+
+### todo
+
+- **US-CMS-001** — Site home pública oimpresso.com renderiza Inertia/React sem auth
+- **US-CMS-002** — Adicionar `business_id` em `cms_pages` (multi-tenant CMS)
+- **US-CMS-003** — Adicionar `business_id` em `cms_site_details`
+- **US-CMS-004** — CRUD CmsPage migrado Blade→Inertia/React (MWART)
+- **US-CMS-005** — Páginas dinâmicas (`/p/{slug}` ou `/c/page/{slug}`)
+- **US-CMS-006** — Site Home dinâmico por tenant
+- **US-CMS-007** — Pricing dinâmico por tenant (planos custom)
+- **US-CMS-008** — Autenticação social no landing
+- **US-CMS-009** — Importer WordPress (XML/REST API)
+- **US-CMS-010** — Editor visual drag-drop (page builder)
 
 ## Cliente
 
@@ -1139,6 +1141,19 @@
 - **US-EVOL-005** — Subagent CC `evolucao.md`
 - **US-EVOL-006** — Tier-2 autonomia: comentar PR
 - **US-EVOL-007** — Tier-3 autonomia: PR-draft autônomo
+
+## Officeimpresso
+
+
+### todo
+
+- **US-OI-001** — F2: Pest baseline do comportamento atual
+- **US-OI-002** — F2: action dual + feature flag `useV2OfficeimpressoLogs`
+- **US-OI-003** — F2: mapa de paridade Blade↔React
+- **US-OI-004** — F3: tela `Logs/Index` (Máquinas Cadastradas) em PT-01
+- **US-OI-005** — F3: tela `Logs/Timeline` (acessos por máquina) em PT-07
+- **US-OI-006** — F4: QA — os itens `alta` da paridade viram teste
+- **US-OI-007** — F5: cutover e sunset do Blade
 
 ## TeamMcp
 
