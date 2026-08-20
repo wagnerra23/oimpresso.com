@@ -71,6 +71,27 @@ desativar preservando dados — sem CLI e sem AdminLTE. Escopo global, para supe
 - **A3** — 1280px sem overflow (medido, não estimado)
 - **A4** — detalhe em drawer PT-02 — **condicionado à decisão D3**; se D3 = não, vira tooltip na descrição truncada
 
+## Contrato visual
+
+Travado por [`prototipo-ui/contrato/modulos.contract.json`](../../../../prototipo-ui/contrato/modulos.contract.json)
+(ADR 0286), verificado no CI por `contrato-de-tela.mjs` — âncora `data-contract` + **copy literal** +
+ordem. Fonte da copy: `prototipo-ui/cowork/modulos-page.jsx`, a mesma âncora do `related_prototype`.
+
+| Seção | Copy travada |
+|---|---|
+| `modulos.header` | Gerenciador de Módulos |
+| `modulos.kpis` | Total · Ativos · Inativos · Com erro |
+| `modulos.filtros` | Área · Status · limpar tudo |
+| `modulos.busca` | Buscar por nome, alias, descrição ou área… |
+| `modulos.tabela` | Módulo · Área · Status · Migrations · Ativo |
+
+⚠️ **5 das 7 seções do contrato [CC].** Ficaram de fora as duas que descrevem o protótipo e não a
+tela: `vazio` (copy e botão que produção não tem — `[BACKLOG]` UC-MOD-10) e `drawer` (depende da
+decisão **D3** — `[BACKLOG]` UC-MOD-16). Contrato que nasce vermelho não trava nada, só ensina a
+ignorar o gate; estas entram quando a tela alcançar o desenho.
+
+---
+
 ## Automation hooks (faz)
 
 - Reflete `modules_statuses.json` + varredura de `Modules/`
