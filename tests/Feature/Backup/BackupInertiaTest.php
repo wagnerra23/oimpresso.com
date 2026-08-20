@@ -72,7 +72,7 @@ test('a lista vem do mais novo pro mais velho e ignora quem nao e zip', function
 
     $backups = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
         ->get('/backup?only=backups')
-        ->json('props.backups');
+        ->json('props.backups.data');
 
     expect($backups)->toHaveCount(2);
     expect($backups[0]['file_name'])->toBe('2026-08-19-03-00-04.zip');
@@ -83,7 +83,7 @@ test('a lista vem do mais novo pro mais velho e ignora quem nao e zip', function
 test('origem e derivada da hora do arquivo, nao do cron parseado', function () {
     $backups = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
         ->get('/backup?only=backups')
-        ->json('props.backups');
+        ->json('props.backups.data');
 
     $porNome = collect($backups)->keyBy('file_name');
     expect($porNome['2026-08-19-03-00-04.zip']['origem'])->toBe('agendado');

@@ -4,6 +4,8 @@ import AppShellV2 from '@/Layouts/AppShellV2'
 import { PageHeader } from '@/Components/PageHeader'
 import EmptyState from '@/Components/shared/EmptyState'
 import KpiCard from '@/Components/shared/KpiCard'
+import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable'
+import type { ColumnDef } from '@tanstack/react-table'
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert'
 import { Button } from '@/Components/ui/button'
 import { Skeleton } from '@/Components/ui/skeleton'
@@ -32,7 +34,7 @@ type Backup = {
 }
 
 type Props = {
-  backups?: Backup[]
+  backups?: PaginatorShape<Backup>
   destino: { disk: string; remoto: boolean; pasta: string }
   retencao: { estrategia: string; manter: number }
   cron: string
@@ -63,7 +65,7 @@ export default function BackupIndex({
 
   // memoizado: `backups ?? []` cru cria identidade nova a cada render e faz os useMemo
   // abaixo recalcularem sempre (react-hooks/exhaustive-deps).
-  const lista = useMemo(() => backups ?? [], [backups])
+  const lista = useMemo(() => backups?.data ?? [], [backups])
   const ultimo = lista[0]
   const total = useMemo(() => lista.reduce((a, b) => a + b.file_size, 0), [lista])
   const totalHumano = useMemo(
@@ -81,6 +83,69 @@ export default function BackupIndex({
     if (!window.confirm(`Excluir este backup?\n\n${b.file_name} (${b.file_size_human}) sai do disco na hora. Não tem lixeira e não tem volta.`)) return
     router.get(`/backup/${encodeURIComponent(b.file_name)}/delete`, {}, { preserveScroll: true })
   }
+
+  const colunas: ColumnDef<Backup, unknown>[] = [
+    {
+      id: 'arquivo',
+      header: 'Arquivo',
+      cell: ({ row }) => (
+        <>
+          <span className="font-mono text-sm">{row.original.file_name}</span>
+          <span className="block text-xs text-muted-foreground">banco + storage/app</span>
+        </>
+      ),
+    },
+    {
+      id: 'origem',
+      header: 'Origem',
+      cell: ({ row }) => <>{row.original.origem === 'manual' ? 'Manual' : 'Agendado'}</>,
+    },
+    {
+      id: 'tamanho',
+      header: 'Tamanho',
+      cell: ({ row }) => <span className="font-mono text-xs">{row.original.file_size_human}</span>,
+    },
+    {
+      id: 'data',
+      header: 'Data',
+      cell: ({ row }) => <span className="whitespace-nowrap font-mono text-xs">{fmtData(row.original.last_modified)}</span>,
+    },
+    {
+      id: 'idade',
+      header: 'Idade',
+      cell: ({ row }) => <span className="text-xs text-muted-foreground">{idade(row.original.last_modified)}</span>,
+    },
+    {
+      id: 'acoes',
+      header: 'Ações',
+      cell: ({ row }) => {
+        const b = row.original
+        const unico = lista.length <= 1
+        return (
+          <Inline gap={2} justify="end">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!pode.baixar}
+              title={pode.baixar ? undefined : pode.motivo}
+              onClick={() => { window.location.href = `/backup/download/${encodeURIComponent(b.file_name)}` }}
+            >
+              Baixar
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={unico || !pode.excluir}
+              title={unico ? 'É o único backup no disco — gere um novo antes de excluir.' : pode.motivo}
+              onClick={() => excluir(b)}
+            >
+              Excluir
+            </Button>
+          </Inline>
+        )
+      },
+    },
+  ]
 
   const sub = ultimo
     ? `${lista.length} de ${retencao.manter} arquivos guardados · último ${idade(ultimo.last_modified)} · ${totalHumano} no disco`
@@ -172,59 +237,13 @@ export default function BackupIndex({
               }
             />
           ) : (
-            <div className="overflow-x-auto rounded-lg border">
-              <table className="w-full text-sm">
-                <thead className="border-b border-border bg-muted/50">
-                  <tr className="text-left">
-                    <th className="px-4 py-2 font-semibold text-muted-foreground">Arquivo</th>
-                    <th className="px-4 py-2 font-semibold text-muted-foreground">Origem</th>
-                    <th className="px-4 py-2 font-semibold text-muted-foreground">Tamanho</th>
-                    <th className="px-4 py-2 font-semibold text-muted-foreground">Data</th>
-                    <th className="px-4 py-2 font-semibold text-muted-foreground">Idade</th>
-                    <th className="px-4 py-2 text-right font-semibold text-muted-foreground">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lista.map((b) => {
-                    const unico = lista.length <= 1
-                    return (
-                      <tr key={b.file_name} className="border-b border-border transition-colors last:border-0 hover:bg-muted/40">
-                        <td className="px-4 py-2">
-                          <span className="font-mono text-sm">{b.file_name}</span>
-                          <span className="block text-xs text-muted-foreground">banco + storage/app</span>
-                        </td>
-                        <td className="px-4 py-2">{b.origem === 'manual' ? 'Manual' : 'Agendado'}</td>
-                        <td className="px-4 py-2 font-mono text-xs">{b.file_size_human}</td>
-                        <td className="whitespace-nowrap px-4 py-2 font-mono text-xs">{fmtData(b.last_modified)}</td>
-                        <td className="px-4 py-2 text-xs text-muted-foreground">{idade(b.last_modified)}</td>
-                        <td className="px-4 py-2">
-                          <Inline gap={2} justify="end">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              disabled={!pode.baixar}
-                              title={pode.baixar ? undefined : pode.motivo}
-                              onClick={() => { window.location.href = `/backup/download/${encodeURIComponent(b.file_name)}` }}
-                            >
-                              Baixar
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              disabled={unico || !pode.excluir}
-                              title={unico ? 'É o único backup no disco — gere um novo antes de excluir.' : pode.motivo}
-                              onClick={() => excluir(b)}
-                            >
-                              Excluir
-                            </Button>
-                          </Inline>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <DataTable
+              columns={colunas}
+              data={lista}
+              pagination={backups as PaginatorShape<Backup>}
+              endpoint="/backup"
+              rowKey={(b) => b.file_name}
+            />
           )}
         </Deferred>
       </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Jobs\RunBackupJob;
 use App\Utils\Util;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Inertia\Inertia;
 use Storage;
 
@@ -108,7 +109,7 @@ class BackUpController extends Controller
     /**
      * Lista os .zip com o que a tela mostra, do mais novo pro mais velho.
      *
-     * @return array<int, array<string, mixed>>
+     * @return \Illuminate\Pagination\LengthAwarePaginator
      */
     private function listarParaTela()
     {
@@ -131,7 +132,17 @@ class BackUpController extends Controller
 
         usort($linhas, fn ($a, $b) => strcmp($b['last_modified'], $a['last_modified']));
 
-        return $linhas;
+        // Paginador de UMA pagina — nao e teatro: a retencao LIMITA a lista (config
+        // `backup.cleanup`), entao o total cabe sempre numa pagina. O DataTable shared
+        // (PT-01 slot 5) pede PaginatorShape; devolver o formato real evita que a tela
+        // invente paginacao no cliente.
+        return new LengthAwarePaginator(
+            $linhas,
+            count($linhas),
+            max(count($linhas), 1),
+            1,
+            ['path' => url('backup')]
+        );
     }
 
     /**

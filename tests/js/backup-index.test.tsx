@@ -21,15 +21,24 @@ vi.mock('@/Layouts/AppShellV2', () => ({
 import BackupIndex from '@/Pages/Backup/Index'
 
 const base = {
-  backups: [
-    {
-      file_name: '2026-08-19-03-00-04.zip',
-      file_size: 268435456,
-      file_size_human: '256 MB',
-      last_modified: '2026-08-19T03:00:04-03:00',
-      origem: 'agendado' as const,
-    },
-  ],
+  backups: {
+    // PaginatorShape: a retencao limita a lista, entao e sempre 1 pagina
+    data: [
+      {
+        file_name: '2026-08-19-03-00-04.zip',
+        file_size: 268435456,
+        file_size_human: '256 MB',
+        last_modified: '2026-08-19T03:00:04-03:00',
+        origem: 'agendado' as const,
+      },
+    ],
+    total: 1,
+    current_page: 1,
+    last_page: 1,
+    from: 1,
+    to: 1,
+    links: [],
+  },
   retencao: { estrategia: 'KeepLatestBackups', manter: 5 },
   cron: '* * * * * /usr/bin/php /var/www/artisan schedule:run',
   agendado_ok: true,
