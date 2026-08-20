@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\SellingPriceGroup;
+use App\User;
 use App\Utils\ModuleUtil;
+use App\Utils\PermissionCatalog;
+use DB;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
-use App\Utils\PermissionCatalog;
 use Spatie\Permission\Models\Role;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -317,8 +319,14 @@ class RoleController extends Controller
     /**
      * Remove the specified resource from storage.
      *
+     * Retorno heterogeneo por heranca do UltimatePOS: a rota e consumida por ajax e o
+     * caminho feliz devolve o array `$output` cru (o front le success/msg). A guarda de
+     * papel-em-uso precisa de STATUS pra ser distinguivel de um no-op, entao devolve
+     * JsonResponse 422. O tipo declarado passa a dizer a verdade em vez de mentir um
+     * Response que este metodo nunca retornou.
+     *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse|array<string, mixed>|null
      */
     public function destroy($id)
     {
@@ -331,6 +339,30 @@ class RoleController extends Controller
                 $business_id = request()->user()->business_id;
 
                 $role = Role::where('business_id', $business_id)->find($id);
+
+                if (empty($role)) {
+                    return ['success' => false,
+                        'msg' => __('messages.something_went_wrong'),
+                    ];
+                }
+
+                // GUARDA POR VINCULO: apagar um papel em uso deixa N usuarios sem as permissoes
+                // que ele carrega, de uma vez e sem aviso. A pivot do Spatie nao tem restricao que
+                // impeca — a decisao tem de ser explicita de quem administra.
+                // Contagem pela pivot (padrao vivo em Modules/Forja/Services/UserScopeService.php)
+                // em vez de $role->users(): o vendor nao esta montado neste worktree, e eu nao
+                // afirmo API que nao pude verificar.
+                $usuariosComOPapel = DB::table('model_has_roles')
+                    ->where('role_id', $role->id)
+                    ->where('model_type', User::class)
+                    ->count();
+
+                if ($usuariosComOPapel > 0) {
+                    return response()->json([
+                        'success' => false,
+                        'msg' => __('user.role_in_use', ['count' => $usuariosComOPapel]),
+                    ], 422);
+                }
 
                 if (! $role->is_default || $role->name == 'Cashier#'.$business_id) {
                     $role->delete();
@@ -352,6 +384,10 @@ class RoleController extends Controller
 
             return $output;
         }
+
+        // Requisicao nao-ajax nao tem resposta neste fluxo (a tela so chama por ajax).
+        // O return explicito existe porque o tipo declarado exige um em todo caminho.
+        return null;
     }
 
     /**
