@@ -211,6 +211,37 @@ function rodar(dir, pay, args = []) {
     !existsSync(join(dir, 'prototipo-ui/cowork/oimpresso.com.html')), r.out);
 }
 
+// -- ENVELOPE do get_file: o 3o caso, medido 2026-08-20 no artefato real -----
+// O #6003 cobriu (a) JSON cortado e (b) payload que parseia mas veio incompleto. Faltava o
+// caso que o agente MAIS encontra: o ENVELOPE do get_file persistido em disco. Ele e JSON
+// valido e nao tem `fileCount`, entao escapava das duas guardas e caia no generico
+// "payload sem `files`" -- provado rodando a versao mergeada contra o envelope de 259,5 KB.
+{
+  const dir = sandbox();
+  const env = join(dir, 'envelope.json');
+  writeFileSync(env, JSON.stringify({
+    method: 'get_file', path: 'sync/payload.json', truncated: true,
+    content: '{"schema":"cowork-payload/1","files":[{"path":"styles.css","content":"cortad',
+  }), 'utf8');
+  const r = rodar(dir, env);
+  check('BITE envelope: identifica como envelope do get_file, nao como payload ruim',
+    r.code === 2 && /ENVELOPE do DesignSync\.get_file/.test(r.out), r.out);
+  check('BITE envelope: nao repete o generico "payload sem files"',
+    !/payload sem/.test(r.out), r.out);
+  check('BITE envelope: ensina o remedio das PARTES',
+    /em PARTES de ate 256 KiB/.test(r.out), r.out);
+}
+
+// CONTROLE NEGATIVO: payload legitimo tem `files`; a guarda nova nao pode captura-lo.
+{
+  const dir = sandbox();
+  const pay = completePayload(dir, [{ path: 'oimpresso.com.html', content: '<div>ok</div>' }]);
+  const r = rodar(dir, pay, ['--require-complete-shell']);
+  check('CONTROLE: payload legitimo NAO e confundido com envelope',
+    r.code === 0 && !/ENVELOPE/.test(r.out) &&
+    existsSync(join(dir, 'prototipo-ui/cowork/oimpresso.com.html')), r.out);
+}
+
 console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ applier: fiel/atômico · shell transitivo completo · _ds persistente · recusa escopo/R1/bytes · avisa regressão');
 
 // ── 11: payload CORTADO no transporte (medido 2026-08-19) ───────────────────
