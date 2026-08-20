@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Business;
 use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -49,8 +48,19 @@ beforeEach(function () {
 /** Tenant do teste. NUNCA biz=4 (ROTA LIVRE, produção) — ADR 0358. */
 const BIZ_ASS = 98;
 
-/** Segundo tenant: sem ele, "cross-tenant" não tem o que provar. */
-const BIZ_ASS_2 = 97;
+/**
+ * Segundo tenant: sem ele, "cross-tenant" não tem o que provar.
+ *
+ * ⚠️ NÃO inventa um id novo. `business.owner_id` é `NOT NULL` com FK para `users`, então criar
+ * business do nada estoura `SQLSTATE[23000] 1452` — foi exatamente o que derrubou os 11 casos
+ * deste arquivo na primeira execução em CI (run 32419879139). O ambiente já semeia biz=1, biz=2
+ * (declarado "segundo tenant Tier 0 cross-tenant") e biz=98, todos com dono válido: a fixture
+ * ESCOLHE um que existe em vez de fabricar.
+ */
+function assSegundoTenante(): ?int
+{
+    return DB::table('business')->where('id', '!=', BIZ_ASS)->orderBy('id')->value('id');
+}
 
 const ROTA_ASS = '/superadmin/superadmin-subscription';
 
@@ -105,8 +115,9 @@ function assAdminDeNegocio(): User
  */
 function assFixtures(): void
 {
-    Business::firstOrCreate(['id' => BIZ_ASS], ['name' => 'Tenant fictício assinaturas', 'currency_id' => 1]);
-    Business::firstOrCreate(['id' => BIZ_ASS_2], ['name' => 'Segundo tenant fictício', 'currency_id' => 1]);
+    // O ambiente já semeia os business com `owner_id` válido. A fixture NÃO cria business —
+    // ver o docblock de `assSegundoTenante()`.
+    $segundo = assSegundoTenante() ?? BIZ_ASS;
 
     $pacote = DB::table('packages')->where('name', 'Pacote fictício SA-O4a')->first();
 
@@ -138,11 +149,11 @@ function assFixtures(): void
         // status, business, start, trial_end, end  — o rótulo esperado está no UC, não aqui.
         ['approved', BIZ_ASS, $hoje->copy()->subDays(10), null, $hoje->copy()->addDays(20)],
         ['approved', BIZ_ASS, $hoje->copy()->subDays(60), null, $hoje->copy()->subDays(5)],
-        ['approved', BIZ_ASS_2, $hoje->copy()->subDays(3), $hoje->copy()->addDays(7), $hoje->copy()->addDays(30)],
-        ['waiting', BIZ_ASS_2, null, null, null],
+        ['approved', $segundo, $hoje->copy()->subDays(3), $hoje->copy()->addDays(7), $hoje->copy()->addDays(30)],
+        ['waiting', $segundo, null, null, null],
         ['declined', BIZ_ASS, $hoje->copy()->subDays(40), null, $hoje->copy()->addDays(2)],
         ['cancelled', BIZ_ASS, $hoje->copy()->subDays(80), null, $hoje->copy()->subDays(20)],
-        ['expired', BIZ_ASS_2, $hoje->copy()->subDays(90), null, $hoje->copy()->subDays(30)],
+        ['expired', $segundo, $hoje->copy()->subDays(90), null, $hoje->copy()->subDays(30)],
     ];
 
     foreach ($casos as $i => [$status, $biz, $inicio, $trial, $fim]) {

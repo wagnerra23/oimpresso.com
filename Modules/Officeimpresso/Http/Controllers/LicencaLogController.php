@@ -389,6 +389,17 @@ class LicencaLogController extends Controller
             ])->first();
         if (! $maquina) abort(404);
 
+        // As duas flags vão BOOLEANAS, espelhando o que a lista já faz em
+        // `buildMaquinasPayload` — o `Timeline.tsx` declara `boolean` nas duas
+        // (interface Maquina) e a precedência do selo é `business_blocked ? ... :
+        // machine_blocked ? ...`. Sem o cast, o driver manda o valor cru: hoje `0`,
+        // que é falsy em JS e passa por sorte; com prepares emulados o mesmo campo
+        // vem como STRING `"0"`, que é TRUTHY — e a tela passaria a chamar de
+        // "empresa bloqueada" um cliente que não está bloqueado, levando o operador
+        // a desbloquear o que já estava liberado. Pego pelo UC-TL-02 (F4).
+        $maquina->business_blocked = (bool) $maquina->business_blocked;
+        $maquina->machine_blocked = (bool) $maquina->machine_blocked;
+
         if (! $this->podeVerTodasEmpresas()) {
             abort_unless($maquina->business_id === session()->get('user.business_id'), 403);
         }

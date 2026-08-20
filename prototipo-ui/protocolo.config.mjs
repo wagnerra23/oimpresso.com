@@ -140,12 +140,34 @@ export const FASES = [
   // O canônico é o pull direto (ADR 0325) escrito por `--export-from` (ADR 0374, ratificada
   // 2026-08-13). Os comandos de ZIP saem da lista de FASES — deletar os SCRIPTS é poda de
   // capacidade, decisão [W], e não se faz de lado dentro de uma reconciliação de redação.
+  // ── QUAL ROTA USAR (2026-08-20) — a lista abaixo tinha DUAS e nenhuma hierarquia ──
+  // Medido nesta data: uma sessao rodou este painel, leu a fase -1, pegou o `--export-from`
+  // (que serve pra arquivo AVULSO) e passou horas concluindo que "nao ha rota fiel" pro
+  // espelho — a conclusao que o `sync/README.md` ja nomeia, no primeiro paragrafo, como
+  // "errada como teto absoluto". As duas rotas apareciam lado a lado, como se fossem
+  // alternativas equivalentes. Nao sao:
+  //
+  //   SINCRONIZAR O ESPELHO (muitos arquivos)  -> aplicar-payload.mjs   [ROTA PRINCIPAL]
+  //   ARQUIVO AVULSO (1-3, ja medido)          -> --export-from         [caso pontual]
+  //
+  // FRONTEIRA MEDIDA do get_file (2026-08-20, testada arquivo a arquivo): conteudo acima de
+  // ~48 KB volta PERSISTIDO em disco (jana-merge.jsx 59 KB, financeiro-page.jsx 128 KB);
+  // abaixo de ~36 KB volta INLINE no contexto (chat-jana.jsx 36 KB, jana-merge.css 18 KB,
+  // jana-pro.css 7 KB). So o persistido pode alimentar `--export-from` sem transcrever.
+  // COROLARIO que abre a rota: partes de payload <=256 KiB ficam ACIMA da fronteira, entao
+  // persistem — da pra baixar as ~14 partes por get_file e aplicar, SEM URL curta.
+  //
+  // Dono da rota completa: `sync/README.md` no projeto Cowork (le com DesignSync.get_file).
   { fase: '-1', nome: 'Importar/baixar o design', comandos: [
+      '# [ROTA PRINCIPAL] sincronizar o espelho — o conteudo vira DADO, nunca texto de conversa',
       'node scripts/design-sync/aplicar-payload.mjs <p1.json> [p2.json ...] --dry --require-complete-shell  # shell TODO + deps HTML/CSS/JS (fechamento transitivo)',
       '  ^ escapa o teto do get_file POR ARQUIVO, nao o do PAYLOAD: sync/payload.json tem ~3,5 MB e o',
       '    get_file corta em 256 KiB ("truncated": true). Peca o payload em PARTES <=256 KiB — o applier junta lotes.',
+      '  ^ as PARTES (<=256 KiB) ficam acima da fronteira de persistencia (~48 KB), entao voltam em',
+      '    ARQUIVO pelo get_file — nao precisa de URL curta. Contrato completo: sync/README.md (Cowork).',
       'node scripts/design-sync/aplicar-payload.mjs <cowork.json> <ds.json> --require-complete-shell        # só após GRAFO COMPLETO + revisão do dry-run',
       'DesignSync.get_file(projectId=COWORK_PROJECT_ID, path=<âncora>)                  # pull direto, agente logado (ADR 0325)',
+      '# [caso pontual] arquivo AVULSO — NAO e a rota de sincronizar o espelho (use o applier acima)',
       'node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir-jsons>     # escreve o raw.content no espelho (ADR 0374 — transcrever à mão é PROIBIDO)',
       'node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir> --ds-runtime  # bundle/CSS/fontes → snapshot ÚNICO consumido pelo preview',
       'node scripts/governance/cowork-mirror-freshness.mjs --snapshot-from <dir> --emit-snapshot <s>  # MEDIR sem consertar (antes do export)',

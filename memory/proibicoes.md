@@ -823,6 +823,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** claim de **ausência sobre conjunto enumerável** (*"o PR X não toca"*, *"só o Y usa"*, *"nenhum outro consumidor"*) não se escreve de memória — **nem da sua própria memória de ter medido**. Antes de a frase entrar num artefato publicado (PR body, ADR, handoff, comentário), **re-ler a saída da consulta** ou re-rodá-la. O custo é um scroll; o custo do erro é uma afirmação com aparência de recibo. Corolário que generaliza para além do PR: quando você fizer uma varredura ampla cedo e escrever a conclusão tarde, a conclusão cita a **saída**, não a lembrança dela — é a mesma doutrina de "derivado > lembrado" ([ADR 0256](decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md)) aplicada dentro de uma sessão só.
 
+### 2026-08-20 — Concluir "não há rota fiel de transporte" tendo lido o painel que aponta a rota (e o aviso do FP que matou o gate óbvio)
+
+- **O limite (variante também proibida):** concluir **ausência de CAPACIDADE** (rota, mecanismo, suporte) a partir de **uma** implementação testada. Antes de dizer "não há rota", enumerar as rotas que o dono do processo lista e dizer qual foi testada e qual não — do mesmo jeito que claim de ausência de arquivo exige repo + projeto + manifesto (§5 2026-07-28). Uma rota que não fecha é dado sobre **aquela rota**, nunca sobre o problema.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
