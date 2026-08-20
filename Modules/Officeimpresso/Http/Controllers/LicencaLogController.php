@@ -155,6 +155,44 @@ class LicencaLogController extends Controller
         $filter_estado_atual = $request->query('estado_atual');
         $filter_hd           = trim((string) $request->query('hd', ''));
 
+        $filtros = [
+            'q'            => $filter_q,
+            'estado_atual' => $filter_estado_atual,
+            'business_id'  => $filter_business_id,
+            'licenca_id'   => $filter_licenca_id,
+            'hd'           => $filter_hd,
+        ];
+
+        $maquinas = $this->buildMaquinasPayload($business_id, $filtros);
+        $kpis     = $this->buildKpisPayload();
+
+        return view('officeimpresso::licenca_log.index', compact(
+            'kpis', 'filter_licenca_id', 'filter_business_id', 'filter_q',
+            'filter_estado_atual', 'filter_hd', 'maquinas'
+        ));
+    }
+
+    /**
+     * Lista de máquinas cadastradas, enriquecida com o último acesso logado.
+     *
+     * Extraído de `index()` sem mudar uma linha da consulta. É a preparação da
+     * F3: quando a Page Inertia entrar, ela consome ESTE mesmo payload — e é isso
+     * que faz o `LogsBaselineTest` continuar valendo depois do cutover, em vez de
+     * virar teste de um caminho que ninguém mais percorre.
+     *
+     * @param  mixed  $business_id  null = todas as empresas (visão do suporte).
+     *   SEM type hint de propósito: em `index()` este valor vem de
+     *   `$request->query('business_id')`, que é STRING. Tipar `?int` faria
+     *   `?business_id=abc` virar TypeError 500 — hoje a consulta só devolve
+     *   lista vazia, e migração não pode trocar "vazio" por "quebrou".
+     */
+    private function buildMaquinasPayload($business_id, array $filtros)
+    {
+        $filter_licenca_id   = $filtros['licenca_id'];
+        $filter_q            = $filtros['q'];
+        $filter_estado_atual = $filtros['estado_atual'];
+        $filter_hd           = $filtros['hd'];
+
         $query = \DB::table('licenca_computador as lc')
             ->leftJoin('business as b', 'b.id', '=', 'lc.business_id')
             ->select([
@@ -270,8 +308,16 @@ class LicencaLogController extends Controller
         // Ordena pelo ultimo acesso efetivo desc (log > cadastro; nulls no fim)
         $maquinas = $maquinas->sortByDesc(fn ($m) => $m->effective_ts ?: '0000-00-00')->values();
 
-        // KPIs gerais (nao dependem do filtro aplicado)
-        $kpis = [
+        return $maquinas;
+    }
+
+    /**
+     * Os 4 KPIs do topo. Globais de propósito — NÃO seguem o filtro aplicado
+     * (era assim no Blade e a migração não muda semântica de indicador).
+     */
+    private function buildKpisPayload(): array
+    {
+        return [
             'total_maquinas'      => \DB::table('licenca_computador')->count(),
             'maquinas_bloqueadas' => \DB::table('licenca_computador')->where('bloqueado', 1)->count(),
             'empresas_bloqueadas' => \DB::table('business')->where('officeimpresso_bloqueado', 1)->count(),
@@ -280,11 +326,6 @@ class LicencaLogController extends Controller
                 ->where('created_at', '>=', now()->subHours(24))
                 ->count(),
         ];
-
-        return view('officeimpresso::licenca_log.index', compact(
-            'kpis', 'filter_licenca_id', 'filter_business_id', 'filter_q',
-            'filter_estado_atual', 'filter_hd', 'maquinas'
-        ));
     }
 
     /**
@@ -310,12 +351,14 @@ class LicencaLogController extends Controller
             abort_unless($maquina->business_id === session()->get('user.business_id'), 403);
         }
 
-        $logs = LicencaLog::where('licenca_id', $licenca_id)
+        $carregarLogs = fn () => LicencaLog::where('licenca_id', $licenca_id)
             ->where('source', 'delphi_middleware')
             ->where('endpoint', 'like', '%processa-dados-cliente%')
             ->orderByDesc('created_at')
             ->limit(200)
             ->get();
+
+        $logs = $carregarLogs();
 
         return view('officeimpresso::licenca_log.timeline', compact('maquina', 'logs'));
     }
