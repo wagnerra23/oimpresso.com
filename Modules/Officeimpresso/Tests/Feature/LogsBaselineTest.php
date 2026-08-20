@@ -397,7 +397,15 @@ function idsDasMaquinas($resposta): array
  */
 function forcaFlagV2($test, bool $ligada): void
 {
-    $test->instance(\App\Services\FeatureFlagService::class, new class($ligada) extends \App\Services\FeatureFlagService
+    // `app()->instance()`, NÃO `$test->instance()`: o `instance()` do
+    // Illuminate\Foundation\Testing\TestCase é PROTECTED, e daqui — função no
+    // escopo global — a chamada estoura
+    // "Call to protected method ... ::instance() from global scope".
+    // Medido no CT 100 em 2026-08-19: 5 dos 5 casos de flag morriam nisso.
+    // O container é o mesmo, então o efeito é idêntico.
+    unset($test);
+
+    app()->instance(\App\Services\FeatureFlagService::class, new class($ligada) extends \App\Services\FeatureFlagService
     {
         public function __construct(private bool $ligada) {}
 
