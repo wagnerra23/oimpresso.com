@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **881 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **890 tarefas abertas** em **51 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -37,13 +37,14 @@
 | [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
 | [`PontoWr2`](#pontowr2) | 12 | 0 | 0 | 0 | 12 |
 | [`Essentials`](#essentials) | 11 | 0 | 0 | 0 | 11 |
+| [`Superadmin`](#superadmin) | 11 | 0 | 0 | 0 | 11 |
 | [`Cms`](#cms) | 10 | 0 | 0 | 0 | 10 |
-| [`Superadmin`](#superadmin) | 10 | 0 | 0 | 0 | 10 |
+| [`Cliente`](#cliente) | 9 | 1 | 0 | 0 | 8 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
-| [`Cliente`](#cliente) | 8 | 1 | 0 | 0 | 7 |
 | [`KB`](#kb) | 8 | 0 | 0 | 0 | 8 |
 | [`Produto`](#produto) | 8 | 0 | 0 | 0 | 8 |
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
+| [`Officeimpresso`](#officeimpresso) | 7 | 0 | 0 | 0 | 7 |
 | [`TeamMcp`](#teammcp) | 7 | 0 | 0 | 0 | 7 |
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
 | [`Woocommerce`](#woocommerce) | 6 | 0 | 0 | 0 | 6 |
@@ -1031,6 +1032,23 @@
 - **US-ESS-010** — Isolamento multi-tenant Tier 0 IRREVOGÁVEL ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
 - **US-ESSE-001** — [TODO — título]
 
+## Superadmin
+
+
+### todo
+
+- **US-SUPER-001** — Listagem e CRUD de Businesses
+- **US-SUPER-002** — Gestão de Packages (planos comerciais)
+- **US-SUPER-003** — Subscriptions (cobrança recorrente)
+- **US-SUPER-004** — Communicator (mensagens cross-tenant)
+- **US-SUPER-005** — Frontend Pages (site público)
+- **US-SUPER-006** — Manage Modules (instalar/desinstalar)
+- **US-SUPER-007** — System Info (saúde do sistema)
+- **US-SUPER-008** — Settings globais (SMTP/Pusher/Cron/Backup/Gateways)
+- **US-SUPER-009** — Pricing público (`/pricing`)
+- **US-SUPER-010** — Usuario 360 (visão consolidada do cliente)
+- **US-SUPER-011** — Visão geral da plataforma (`/superadmin`)
+
 ## Cms
 
 
@@ -1047,21 +1065,23 @@
 - **US-CMS-009** — Importer WordPress (XML/REST API)
 - **US-CMS-010** — Editor visual drag-drop (page builder)
 
-## Superadmin
+## Cliente
 
+
+### doing
+
+- **US-CRM-078** — Múltiplos endereços por contato + seletor de endereço na venda
 
 ### todo
 
-- **US-SUPER-001** — Listagem e CRUD de Businesses
-- **US-SUPER-002** — Gestão de Packages (planos comerciais)
-- **US-SUPER-003** — Subscriptions (cobrança recorrente)
-- **US-SUPER-004** — Communicator (mensagens cross-tenant)
-- **US-SUPER-005** — Frontend Pages (site público)
-- **US-SUPER-006** — Manage Modules (instalar/desinstalar)
-- **US-SUPER-007** — System Info (saúde do sistema)
-- **US-SUPER-008** — Settings globais (SMTP/Pusher/Cron/Backup/Gateways)
-- **US-SUPER-009** — Pricing público (`/pricing`)
-- **US-SUPER-010** — Usuario 360 (visão consolidada do cliente)
+- **US-CRM-079** — Anonimização fiscal-aware do titular (DsrService → contacts) — LGPD Art. 18
+- **US-CRM-080** — Teste cross-tenant no App\Contact pai + avaliar global scope (Tier 0)
+- **US-CRM-081** — Limite de crédito com bloqueio/aviso na venda (wirar enforcement)
+- **US-CRM-082** — Import de clientes com preview + dedupe/merge (CPF/CNPJ)
+- **US-CRM-083** — UI de consentimento (opt-in/opt-out) + base legal por finalidade
+- **US-CRM-084** — Extrato (Ledger) render inline 100% — parar de abrir Blade legacy ao filtrar
+- **US-CRM-085** — Export de portabilidade do titular (registro completo CSV/JSON) — LGPD Art. 18 V
+- **US-CRM-091** — Mapa de clientes: trocar o iframe hardcoded por provedor tokenizado
 
 ## TaskRegistry
 
@@ -1080,23 +1100,6 @@
 - **US-TR-205** — Activity feed timeline _(`p2` · @wagner)_
 - **US-TR-206** — Burndown chart _(`p2` · @wagner)_
 - **US-TR-302** — tasks-suggest-* (D2 AI-native) _(`p2` · @wagner)_
-
-## Cliente
-
-
-### doing
-
-- **US-CRM-078** — Múltiplos endereços por contato + seletor de endereço na venda
-
-### todo
-
-- **US-CRM-079** — Anonimização fiscal-aware do titular (DsrService → contacts) — LGPD Art. 18
-- **US-CRM-080** — Teste cross-tenant no App\Contact pai + avaliar global scope (Tier 0)
-- **US-CRM-081** — Limite de crédito com bloqueio/aviso na venda (wirar enforcement)
-- **US-CRM-082** — Import de clientes com preview + dedupe/merge (CPF/CNPJ)
-- **US-CRM-083** — UI de consentimento (opt-in/opt-out) + base legal por finalidade
-- **US-CRM-084** — Extrato (Ledger) render inline 100% — parar de abrir Blade legacy ao filtrar
-- **US-CRM-085** — Export de portabilidade do titular (registro completo CSV/JSON) — LGPD Art. 18 V
 
 ## KB
 
@@ -1138,6 +1141,19 @@
 - **US-EVOL-005** — Subagent CC `evolucao.md`
 - **US-EVOL-006** — Tier-2 autonomia: comentar PR
 - **US-EVOL-007** — Tier-3 autonomia: PR-draft autônomo
+
+## Officeimpresso
+
+
+### todo
+
+- **US-OI-001** — F2: Pest baseline do comportamento atual
+- **US-OI-002** — F2: action dual + feature flag `useV2OfficeimpressoLogs`
+- **US-OI-003** — F2: mapa de paridade Blade↔React
+- **US-OI-004** — F3: tela `Logs/Index` (Máquinas Cadastradas) em PT-01
+- **US-OI-005** — F3: tela `Logs/Timeline` (acessos por máquina) em PT-07
+- **US-OI-006** — F4: QA — os itens `alta` da paridade viram teste
+- **US-OI-007** — F5: cutover e sunset do Blade
 
 ## TeamMcp
 

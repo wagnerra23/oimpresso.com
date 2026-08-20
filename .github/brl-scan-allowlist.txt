@@ -129,3 +129,11 @@ virou "ajuste por eixo" (`G: +R$5`)
 # não em apagar esta entrada — e aí vale pras 19 anteriores também.
 custoHoje:"R$
 custoEst:"R$
+
+# 2026-08-19 — prosa MOCK do protótipo de design do Superadmin (prototipo-ui/cowork/).
+# Não é valor de negócio: é preço fictício num card de exemplo ("Legado 2024"), e o arquivo
+# é ESPELHO build-only do Cowork (ADR 0374) — redigir aqui à mão some no próximo --export-from,
+# e o espelho tem que continuar idêntico ao vivo pra `--compare` significar alguma coisa.
+# O que a regra Tier 0 protege é MRR/faturamento REAL do time não-sócio; mockup não é isso.
+# Se um dia o valor sair do protótipo, é no Cowork vivo que ele sai, não aqui.
+hoje eles pagam R$

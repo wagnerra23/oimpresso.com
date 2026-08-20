@@ -23,6 +23,16 @@ on:
   # classificador abaixo): a baseline antiga falha e prova a mudança visual. O dispatch serve
   # pra REGENERAR as baselines no runner canônico quando a mudança é intencional/aprovada.
   workflow_dispatch:
+    inputs:
+      screens:
+        description: >-
+          JSON array de telas do manifesto pra regenerar SÓ elas (ex: ["superadmin/Dashboard"]).
+          Vazio = comportamento de sempre (matriz inteira + estados + flows). Existe porque o
+          job tem timeout-minutes 15 e o update completo NÃO cabe nele: medido em 2026-08-19,
+          6 dispatches seguidos morreram em 15min02s marcados como `cancelled` — o que parece
+          concorrência e não é. Baseline de UMA tela nova cabe folgado.
+        required: false
+        default: ""
 
 permissions:
   # O modo update autentica push/PR exclusivamente com COWORK_BOT_PAT. O GITHUB_TOKEN
@@ -49,7 +59,11 @@ concurrency:
 jobs:
   visual-regression:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    # 15 min no caminho quente (PR) — nao mexo nele, e o custo que o gate deve pagar.
+    # 35 min so no dispatch manual: MEDIDO em 2026-08-19 que o modo update NAO cabe em 15,
+    # e o gargalo e o SETUP (composer + npm + playwright + mysql + migrate + seed), nao o
+    # numero de telas — um dispatch escopado a UMA tela morreu igual, em 15min15s.
+    timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && 35 || 15 }}
     env:
       VISREG_GRAY_APPROVED: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'visreg-gray-approved') && '1' || '0' }}
 
@@ -100,8 +114,27 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          git fetch --no-tags --depth=100 origin "$BASE_SHA"
-          node scripts/governance/ui-impact.mjs --base="$BASE_SHA" --head=HEAD --github-output="$GITHUB_OUTPUT"
+          # O `actions/checkout` faz checkout do MERGE REF (refs/pull/N/merge), não do head do
+          # PR — o log dele diz "Merge <head> into <tip de main NAQUELE momento>". Já o
+          # `pull_request.base.sha` é o tip de main de quando o PR foi ABERTO. Diferenciar um
+          # contra o outro traz junto tudo que entrou em main no meio, e o classificador acusa
+          # como "tela afetada" arquivo de PR alheio: quanto mais tempo o PR fica aberto, mais
+          # telas fantasma. (Medido 2026-08-19 no PR #5983: `changed_files: 7` no CI contra 1
+          # arquivo real; o impactado era um BusinessController de OUTRO PR, e o gate cobrou
+          # baseline de `superadmin/Negocios`, tela que o PR não tocava.)
+          #
+          # Num merge ref, o que o PR muda é exatamente HEAD^1..HEAD — o 1º pai É o tip de main
+          # que o próprio merge usou. Imune a main andar. Se não for merge commit (checkout
+          # configurado com `ref:` explícito), cai no BASE_SHA de antes.
+          if [ "$(git rev-list --count --no-walk --merges HEAD)" = "1" ]; then
+            DIFF_BASE="$(git rev-parse HEAD^1)"
+            echo "merge ref detectado — base = HEAD^1 ($DIFF_BASE), o tip de main que o merge usou"
+          else
+            DIFF_BASE="$BASE_SHA"
+            echo "HEAD não é merge commit — base = pull_request.base.sha ($DIFF_BASE)"
+            git fetch --no-tags --depth=100 origin "$DIFF_BASE"
+          fi
+          node scripts/governance/ui-impact.mjs --base="$DIFF_BASE" --head=HEAD --github-output="$GITHUB_OUTPUT"
 
       # Fonte única do "roda o pesado?": dispatch = sempre true (modo update);
       # pull_request = decisão estruturada do ui-impact.mjs.
@@ -184,6 +217,27 @@ jobs:
 
       - name: Install Playwright system dependencies
         if: steps.mode.outputs.ui == 'true'
+        # TETO DE PASSO (2026-08-20). Sem teto, um espelho apt degradado consumia o
+        # orçamento INTEIRO do job e o sintoma era `The operation was canceled` aqui,
+        # seguido de ~8 passos falhando em ~1s com `Please provide a valid cache path`
+        # (o `Setup Laravel` nunca rodou) — causa não-atribuível pra quem lê o vermelho.
+        #
+        # MEDIDO em 30 runs pesados (aqueles em que este passo executou), 2026-08-19/20:
+        #   passo  23-67s no normal (n=26, mediana ~32s);
+        #          135/348/426/683/835/837/838s numa janela (n=7) toda contida em
+        #          2026-08-19 21:20Z-22:06Z — 4 desses morreram no teto do job (915-920s).
+        #   job    total 496-762s quando verde, contra teto de 900s: a folga de rotina é
+        #          de 2-5 min, então qualquer passo que degrade estoura o orçamento.
+        # Reproduzir: gh run view <id> --json jobs --jq '.jobs[].steps[]
+        #   | select(.name=="Install Playwright system dependencies")
+        #   | (.completedAt|fromdate)-(.startedAt|fromdate)'
+        #
+        # 5 min = ~9x a mediana, acima de todo valor que já coube num job verde e abaixo
+        # dos 426s+ que sempre mataram um. SEM retry de propósito: a folga do job não paga
+        # uma segunda tentativa — ela apenas trocaria este teto pelo teto do job, voltando
+        # a esconder a causa. O teto NÃO faz o job passar num espelho degradado; ele faz o
+        # job falhar rápido, no passo certo, e devolve o runner ~9 min antes.
+        timeout-minutes: 5
         run: npx playwright install-deps chromium firefox webkit
 
       - name: Install Playwright browsers
@@ -218,6 +272,14 @@ jobs:
           SESSION_DRIVER=file
           MAIL_MAILER=array
           BCRYPT_ROUNDS=4
+          # ADMINISTRATOR_USERNAMES=visreg_admin: a rota /superadmin NAO e gateada por
+          # permissao Spatie — `App\Http\Middleware\Superadmin` compara o USERNAME com
+          # esta lista. O admin que o PixelBaselineTest autentica e o `visreg_admin` do
+          # VisregTenantSeeder; sem o nome aqui, /superadmin da 403 e a baseline nunca
+          # nasce (medido 2026-08-19: 19 telas passaram, so a do Superadmin caiu no
+          # assertOk). Mesmo espirito do MWART_CLIENTE_INDEX logo abaixo: flag de
+          # ambiente pra tela poder ENTRAR no gate, nao pra mudar o que ela mostra.
+          ADMINISTRATOR_USERNAMES=visreg_admin
           TELESCOPE_ENABLED=false
           VIEW_COMPILED_PATH=storage/framework/views
           # MWART_CLIENTE_INDEX=true: sem o flag, /cliente cai no Blade legacy e dá 500
@@ -491,12 +553,21 @@ jobs:
       # ── MODO UPDATE (dispatch): regenera as baselines e abre PR ─────────────────
       - name: Regenerar baselines (pixel + estados + fluxos) — modo update
         if: github.event_name == 'workflow_dispatch'
+        env:
+          # Escopo opcional: com `screens`, o PixelBaselineTest filtra o manifesto (ele já lê
+          # VISREG_SCREENS) e as suítes de estados/flows ficam de fora — elas cobrem OUTRAS
+          # telas e não têm o que regenerar quando o alvo é uma tela só.
+          VISREG_SCREENS: ${{ inputs.screens }}
         run: |
           npm run visreg:update
-          npm run visreg:states:update
-          npm run visreg:flows:update
-          npm run visreg:sells:update
-          npm run visreg:flows:compras:update
+          if [ -z "${{ inputs.screens }}" ]; then
+            npm run visreg:states:update
+            npm run visreg:flows:update
+            npm run visreg:sells:update
+            npm run visreg:flows:compras:update
+          else
+            echo "escopo=${{ inputs.screens }} — estados/flows pulados (cobrem outras telas)."
+          fi
 
       # COWORK_BOT_PAT, NÃO GITHUB_TOKEN (anti-recursão do Actions): o GitHub NÃO dispara
       # workflows `pull_request` em eventos causados pelo GITHUB_TOKEN → PR de baselines
@@ -561,7 +632,12 @@ jobs:
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         run: |
           if [ "${{ steps.financeiro-flows.outcome }}" = "failure" ]; then
-            echo "🔴 L2.5 ADVISORY FALHOU — fluxo ou viewport divergiu acima de τ_alto. Ver pixel-diff-views."
+            # NÃO afirma a banda: este step só enxerga o outcome, não mediu ratio nenhum.
+            # Em 2026-08-19 ele anunciou "acima de τ_alto" numa falha que era ZONA CINZA
+            # (0.1158%, τ_alto = 2%) — causa não medida. O ratio de cada tela sai do log do
+            # próprio step de fluxos (VisregThreshold) e do $GITHUB_STEP_SUMMARY.
+            echo "🔴 L2.5 Financeiro FALHOU. A causa está no log do step de fluxos acima:"
+            echo "   REGRESSÃO CLARA (> τ_alto) · ZONA CINZA (entre limiares, precisa de [W]) · dimensões divergentes · ou o fluxo não montou."
           elif [ "${{ steps.financeiro-flows.outcome }}" = "success" ]; then
             echo "✅ fluxos Financeiro OK — criar, drawer, baixa e lote capturados em compact/desktop/wide."
           fi
@@ -570,7 +646,8 @@ jobs:
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         run: |
           if [ "${{ steps.sells-flows.outcome }}" = "failure" ]; then
-            echo "🔴 L2.5 Sells/Create ADVISORY FALHOU — fluxo ou viewport divergiu acima de τ_alto (ou baseline ausente na 1ª execução). Ver pixel-diff-views."
+            echo "🔴 L2.5 Sells/Create FALHOU. A causa está no log do step de fluxos acima:"
+            echo "   REGRESSÃO CLARA (> τ_alto) · ZONA CINZA (entre limiares, precisa de [W]) · dimensões divergentes · baseline ausente na 1ª execução · ou o fluxo não montou."
           elif [ "${{ steps.sells-flows.outcome }}" = "success" ]; then
             echo "✅ fluxos Sells/Create OK — adicionar produto, abrir busca, aplicar desconto e adicionar pagamento capturados em compact/desktop/wide."
           fi
@@ -579,7 +656,8 @@ jobs:
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         run: |
           if [ "${{ steps.compras-flows.outcome }}" = "failure" ]; then
-            echo "🔴 L2.5 COMPRAS ADVISORY FALHOU — fluxo ou viewport divergiu acima de τ_alto. Ver pixel-diff-views."
+            echo "🔴 L2.5 COMPRAS FALHOU. A causa está no log do step de fluxos acima:"
+            echo "   REGRESSÃO CLARA (> τ_alto) · ZONA CINZA (entre limiares, precisa de [W]) · dimensões divergentes · ou o fluxo não montou."
             echo "   1ª execução sem baseline GERA e passa (artifact pixel-snapshots comita). Regressão? conserte. Fix aprovado? modo update (dispatch) regenera."
           elif [ "${{ steps.compras-flows.outcome }}" = "success" ]; then
             echo "✅ fluxos Compras OK — visibilidade de colunas, menu de Ações e drawer capturados em compact/desktop/wide."

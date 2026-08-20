@@ -15,38 +15,38 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 88.2,
+      "value": 88.3,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 88.2,
-        "specs_total": 51,
-        "us_total": 956,
-        "anchor_coverage_pct": 88.2,
+        "coverage_pct": 88.3,
+        "specs_total": 52,
+        "us_total": 965,
+        "anchor_coverage_pct": 88.3,
         "by_state": {
           "sem_campo": 112,
           "placeholder": 1,
-          "pendente": 402,
-          "parcial": 114,
+          "pendente": 410,
+          "parcial": 115,
           "anchored_ok": 327,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 850,
+        "fields_total": 859,
         "fields_placeholder": 1,
-        "fields_grammar_ok": 787,
+        "fields_grammar_ok": 795,
         "orphan_fields": 6,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
         "req_sem_aceite_total": 246,
-        "req_sem_covering_test_total": 350,
+        "req_sem_covering_test_total": 349,
         "req_teste_vermelho_total": 0,
         "req_sem_lane_total": 37,
         "behavior_known": false,
         "servido_total": 16,
-        "nao_servido_total": 67,
+        "nao_servido_total": 66,
         "servido_ledger": true,
         "anchor_stale_on": false,
         "anchor_stale_total": null,
@@ -74,34 +74,34 @@
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "b460314e076a5844",
+        "floor_files_hash": "50c50cf184da9cda",
         "runs": [
           {
-            "sha": "a6384167",
-            "ts": "20260816-020001",
-            "failed": 687,
-            "errors": 401,
-            "skipped": 2285,
-            "all_shards_measured": true
-          },
-          {
-            "sha": "d47a21e1",
-            "ts": "20260817-020001",
-            "failed": 668,
-            "errors": 398,
-            "skipped": 2295,
-            "all_shards_measured": true
-          },
-          {
-            "sha": null,
+            "sha": "8b2ca41f",
             "ts": "20260818-020001",
             "failed": 702,
             "errors": 397,
             "skipped": 2249,
             "all_shards_measured": true
+          },
+          {
+            "sha": "d4ad0804",
+            "ts": "20260819-020001",
+            "failed": 731,
+            "errors": 387,
+            "skipped": 2252,
+            "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260820-020001",
+            "failed": 746,
+            "errors": 417,
+            "skipped": 2311,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260818-020001",
+        "computed_at": "20260820-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -120,38 +120,38 @@
     },
     "coverage_pct": {
       "status": "measured",
-      "value": 20.1,
+      "value": 20.9,
       "unit": "%",
       "direction": "up",
       "target": "só sobe (catraca C2)",
       "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
       "detail": {
-        "covered": 47368,
-        "total": 235484,
+        "covered": 49430,
+        "total": 236078,
         "runs": [
           {
-            "sha": "a6384167",
-            "ts": "20260816-020001",
-            "coverage_pct": 20.6,
-            "covered": 48455,
-            "total": 235616
-          },
-          {
-            "sha": "d47a21e1",
-            "ts": "20260817-020001",
-            "coverage_pct": 20.5,
-            "covered": 48278,
-            "total": 235620
-          },
-          {
-            "sha": null,
+            "sha": "8b2ca41f",
             "ts": "20260818-020001",
             "coverage_pct": 20.1,
             "covered": 47368,
             "total": 235484
+          },
+          {
+            "sha": "d4ad0804",
+            "ts": "20260819-020001",
+            "coverage_pct": 20.7,
+            "covered": 48828,
+            "total": 235783
+          },
+          {
+            "sha": null,
+            "ts": "20260820-020001",
+            "coverage_pct": 20.9,
+            "covered": 49430,
+            "total": 236078
           }
         ],
-        "computed_at": "20260818-020001",
+        "computed_at": "20260820-020001",
         "measured_of": 3
       },
       "stream": "FV"
@@ -233,7 +233,7 @@
     },
     "distiller_freshness": {
       "status": "measured",
-      "value": 6,
+      "value": 7,
       "unit": "portas atrás dos eventos (>7d vs doc mais novo · ADR 0291 D-D)",
       "direction": "down",
       "target": 0,
@@ -242,7 +242,7 @@
         "portas": 78,
         "carimbadas": 14,
         "sem_carimbo": 64,
-        "stale": 6,
+        "stale": 7,
         "oldest_distilled_at": "2026-07-17"
       },
       "stream": "MEM"

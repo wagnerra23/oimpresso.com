@@ -3,86 +3,170 @@
 namespace Modules\Superadmin\Http\Controllers;
 
 use App\Business;
-use App\Charts\CommonChart;
-use App\System;
 use App\Util\OtelHelper;
 use Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 use Modules\Superadmin\Entities\Subscription;
+use Modules\Superadmin\Services\SuperadminDashboardService;
 use Illuminate\Routing\Controller;
 
 class SuperadminController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Visão geral da plataforma (`GET /superadmin`).
      *
-     * @return Response
+     * O retorno deixou de ser `Illuminate\Http\Response` (view Blade) e passou a
+     * `Inertia\Response` na SA-O1 — o docblock acompanha, senão o PHPStan acusa
+     * `return.type` com razão.
      */
-    public function index()
+    public function index(Request $request, SuperadminDashboardService $dashboard): InertiaResponse
     {
         if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
         }
 
-        // Wave 27 D9 SATURATION: span dashboard legacy blade (paridade com
-        // SuperadminDashboardService extraído em W18+W23). Attributes sem PII —
-        // apenas métrica de execução. Zero-cost com otel.enabled=false.
-        return OtelHelper::spanBiz('superadmin.legacy.index', function () {
-        $date_filters['this_yr'] = ['start' => Carbon::today()->startOfYear()->toDateString(),
-            'end' => Carbon::today()->endOfYear()->toDateString(),
-        ];
-        $date_filters['this_month']['start'] = date('Y-m-01');
-        $date_filters['this_month']['end'] = date('Y-m-t');
-        $date_filters['this_week']['start'] = date('Y-m-d', strtotime('monday this week'));
-        $date_filters['this_week']['end'] = date('Y-m-d', strtotime('sunday this week'));
+        // SA-O1 (MWART F3): a home deixa de renderizar Blade/AdminLTE e passa a Inertia.
+        // O span perdeu o sufixo `legacy` junto — ele descrevia a view, não a rota.
+        //
+        // Os números saem do SuperadminDashboardService, que já era o dono das leituras
+        // desde a W18/W23. Até aqui o `index()` refazia a query de negócios-sem-assinatura
+        // inline enquanto `countNotSubscribedBusinesses()` existia e fazia o mesmo — duas
+        // fontes para o mesmo número drifam (UC-SADASH-02).
+        //
+        // Só entram props que o banco sustenta. MRR, funil trial→pago, churn e receita por
+        // pacote NÃO têm query e ficam fora — renderizar o mock do protótipo em produção
+        // seria fabricar número (UC-SADASH-05). Entram na SA-O1b.
+        return OtelHelper::spanBiz('superadmin.dashboard.index', function () use ($request, $dashboard) {
+            $periodo = $this->periodoValido($request->input('periodo'));
+            $janela = $this->janelaDoPeriodo($periodo);
 
-        $currency = System::getCurrency();
+            return Inertia::render('superadmin/Dashboard/Index', [
+                'periodo' => $periodo,
+                'janela' => $janela,
 
-        //Count all busineses not subscribed.
-        $not_subscribed = Business::leftjoin('subscriptions AS s', 'business.id', '=', 's.business_id')
-            ->whereNull('s.id')
-            ->count();
-
-        $subscriptions = $this->_monthly_sell_data();
-
-        $monthly_sells_chart = new CommonChart;
-        $monthly_sells_chart->labels(array_keys($subscriptions))
-            ->dataset(__('superadmin::lang.total_subscriptions', ['currency' => $currency->currency]), 'column', array_values($subscriptions));
-
-        return view('superadmin::superadmin.index')
-            ->with(compact(
-                'date_filters',
-                'not_subscribed',
-                'monthly_sells_chart'
-            ));
-        }, ['component' => 'superadmin.legacy.index']);
+                // Inertia::defer: cada uma é uma query. O partial reload do segmented pede
+                // só `statsPeriodo` + `janela`, então as outras 3 não reexecutam.
+                'statsPeriodo' => Inertia::defer(
+                    fn () => $dashboard->statsForPeriod($janela['inicio'], $janela['fim'])
+                ),
+                'semAssinatura' => Inertia::defer(
+                    fn () => $dashboard->countNotSubscribedBusinesses()
+                ),
+                'mrr' => Inertia::defer(
+                    fn () => $dashboard->calcularMrr()
+                ),
+                'tendencia' => Inertia::defer(
+                    fn () => $this->tendenciaPayload($dashboard)
+                ),
+                'recentes' => Inertia::defer(
+                    fn () => $this->recentesPayload()
+                ),
+            ]);
+        }, ['component' => 'superadmin.dashboard.index']);
     }
 
     /**
-     * Returns the monthly sell data for chart
-     *
-     * @return array
+     * Períodos aceitos pelo segmented. Entrada desconhecida cai em `mes` — a tela nunca
+     * fica sem janela, e não damos ao usuário um caminho pra montar intervalo arbitrário.
      */
-    protected function _monthly_sell_data()
+    private function periodoValido(?string $periodo): string
     {
-        $start = Carbon::today()->subYear();
-        $end = Carbon::today();
-        $subscriptions = Subscription::whereRaw('DATE(created_at) BETWEEN ? AND ?', [$start, $end])
-            ->select('package_price', 'created_at')
-            ->orderBy('created_at')
-            ->get();
-        $subscription_formatted = [];
-        foreach ($subscriptions as $value) {
-            $month_year = Carbon::createFromFormat('Y-m-d H:i:s', $value->created_at)->format('M-Y');
-            if (! isset($subscription_formatted[$month_year])) {
-                $subscription_formatted[$month_year] = 0;
-            }
-            $subscription_formatted[$month_year] += (float) $value->package_price;
+        return in_array($periodo, ['hoje', 'semana', 'mes', 'ano'], true) ? $periodo : 'mes';
+    }
+
+    /**
+     * Janela ROLANTE do período (o F1 pede isso explícito na tela, não "mês corrente").
+     *
+     * @return array{inicio: string, fim: string, rotulo: string}
+     */
+    private function janelaDoPeriodo(string $periodo): array
+    {
+        $fim = Carbon::today();
+
+        $inicio = match ($periodo) {
+            'hoje' => $fim->copy(),
+            'semana' => $fim->copy()->subDays(6),
+            'ano' => $fim->copy()->subDays(364),
+            default => $fim->copy()->subDays(29),
+        };
+
+        return [
+            'inicio' => $inicio->toDateString(),
+            'fim' => $fim->toDateString(),
+            'rotulo' => 'Janela rolante — encerra em '.$fim->format('d/m/Y'),
+        ];
+    }
+
+    /**
+     * Tendência mensal (12 meses) no formato que o Chart do DS consome.
+     *
+     * @return array<int, array{label: string, value: float}>
+     */
+    private function tendenciaPayload(SuperadminDashboardService $dashboard): array
+    {
+        $serie = [];
+
+        foreach ($dashboard->buildMonthlyRevenueChart() as $mes => $valor) {
+            $serie[] = ['label' => $mes, 'value' => (float) $valor];
         }
 
-        return $subscription_formatted;
+        return $serie;
+    }
+
+    /**
+     * Cadastros recentes — 5 linhas.
+     *
+     * SUPERADMIN: cross-tenant intencional (ADR 0093 §exceções) — a home enxerga TODOS os
+     * negócios da plataforma. Aplicar escopo de tenant aqui quebraria o produto (UC-SADASH-04).
+     *
+     * @return array<int, array{id: int, nome: string, criado: string, assinatura: string}>
+     */
+    private function recentesPayload(): array
+    {
+        // DB::table, não Business::query(): as colunas do JOIN (`sub_status`, `sub_end`) não
+        // existem no model, e hidratar Eloquent só pra ler 5 linhas não paga. O PHPStan
+        // reclamava disso com razão (`property.notFound`) — aqui o retorno é stdClass mesmo.
+        return DB::table('business')
+            ->leftJoin('subscriptions AS s', function ($join) {
+                $join->on('business.id', '=', 's.business_id')
+                    ->whereRaw('s.id = (SELECT MAX(s2.id) FROM subscriptions s2 WHERE s2.business_id = business.id)');
+            })
+            ->orderByDesc('business.id')
+            ->limit(5)
+            ->get(['business.id', 'business.name', 'business.created_at', 's.status AS sub_status', 's.end_date AS sub_end'])
+            ->map(fn ($b) => [
+                'id' => (int) $b->id,
+                'nome' => (string) $b->name,
+                'criado' => $b->created_at ? Carbon::parse($b->created_at)->format('d/m/Y') : '—',
+                'assinatura' => $this->rotuloAssinatura($b->sub_status, $b->sub_end),
+            ])
+            ->all();
+    }
+
+    /**
+     * Enum do banco → PT-BR. A tela NUNCA mostra o valor cru (RUNBOOK-dashboard §2).
+     *
+     * `declined` é gravado por OnCobrancaVencidaBloqueaSubscription quando a cobrança vence;
+     * `expired`/`cancelled` só passaram a ser graváveis no #5945 (o enum não os aceitava).
+     */
+    private function rotuloAssinatura(?string $status, $fim): string
+    {
+        if ($status === null) {
+            return 'Sem assinatura';
+        }
+
+        return match ($status) {
+            'approved' => ($fim && Carbon::parse($fim)->isPast()) ? 'Vencida' : 'Ativa',
+            'waiting' => 'Pendente',
+            'declined' => 'Bloqueada',
+            'expired' => 'Vencida',
+            'cancelled' => 'Cancelada',
+            default => 'Sem assinatura',
+        };
     }
 
     /**

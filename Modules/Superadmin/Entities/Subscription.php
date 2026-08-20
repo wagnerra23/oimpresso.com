@@ -8,6 +8,16 @@ use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
+/**
+ * Assinatura de um negócio a um pacote (backoffice SaaS).
+ *
+ * As anotações abaixo cobrem as colunas que o código atribui direto — sem elas o PHPStan
+ * acusa `property.notFound` com razão, porque o model usa `$guarded` e não declara nada.
+ *
+ * @property string|null $status         approved · waiting · declined · expired · cancelled
+ * @property string|null $cancel_reason  categoria do cancelamento (2026_08_19_000002)
+ * @property string|null $cancel_note    texto livre do cancelamento (2026_08_19_000002)
+ */
 class Subscription extends Model
 {
     use LogsActivity;
