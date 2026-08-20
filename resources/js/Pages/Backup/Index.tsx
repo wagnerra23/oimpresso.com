@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { Deferred, Head, router } from '@inertiajs/react'
 import AppShellV2 from '@/Layouts/AppShellV2'
-import PageHeader from '@/Components/shared/PageHeader'
+import PageHeader from '@/Components/PageHeader'
 import EmptyState from '@/Components/shared/EmptyState'
 import KpiCard from '@/Components/shared/KpiCard'
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert'
@@ -91,8 +91,8 @@ export default function BackupIndex({
       <div data-contract="cabecalho">
         <PageHeader
           title="Backup"
-          description={sub}
-          action={
+          subtitle={sub}
+          actions={
             <Button
               disabled={!pode.gerar}
               title={pode.gerar ? undefined : pode.motivo}
