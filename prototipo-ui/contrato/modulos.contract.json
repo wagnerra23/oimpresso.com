@@ -1,0 +1,43 @@
+{
+  "_nota": "Contrato de tela do Gerenciador de Módulos (/modulos). Copy e seções derivadas do contrato escrito por [CC] em cowork-inbox/modulos/repo/prototipo-ui/contrato/modulos.contract.json, TRADUZIDAS para o schema que a máquina deste repo consome (contract.schema.json: alvo+secoes[{id,copy,estados}]) — o original usa outro formato (anchor/ordem/regra/proibicoes) e aponta pra um `_schema.json` que não existe aqui. Roda via `node scripts/contrato-de-tela.mjs --contract prototipo-ui/contrato/modulos.contract.json --contract-alvo resources/js/Pages/Modules/Index.tsx`.",
+  "_nota_recorte": "⚠️ 5 das 7 seções do contrato [CC]. As 2 que ficaram de fora descrevem o PROTÓTIPO, não a tela: (a) `vazio` pede a copy 'Nenhum módulo nesse filtro.' + botão 'Limpar busca e filtros' — produção diz 'Nenhum módulo encontrado nesse filtro.' e não tem botão (é o [BACKLOG] reservado UC-MOD-10); (b) `drawer` pede painel lateral PT-02, que produção não tem e depende da decisão D3 [W] (reservado UC-MOD-16). Entram quando a tela alcançar o desenho — contrato que já nasce vermelho não trava nada, só ensina a ignorar o gate.",
+  "tela": "Modules/Index",
+  "fonte": "prototipo-ui/cowork/modulos-page.jsx",
+  "_nota_fonte": "Protótipo Cowork versionado em 2026-08-19 (#5954) — era LIVE-ONLY, nunca tinha descido pro git. É a mesma âncora que o charter declara em `related_prototype`.",
+  "alvo": [
+    "resources/js/Pages/Modules/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "modulos.header",
+      "_papel": "identidade da tela + as contagens que resumem o estado do app",
+      "copy": ["Gerenciador de Módulos"],
+      "estados": []
+    },
+    {
+      "id": "modulos.kpis",
+      "_papel": "4 cards nesta ordem; 'Com erro' é o que ficou alcançável no P2",
+      "copy": ["Total", "Ativos", "Inativos", "Com erro"],
+      "estados": []
+    },
+    {
+      "id": "modulos.filtros",
+      "_papel": "filtro por área e por status, com chip removível e escape",
+      "copy": ["Área", "Status", "limpar tudo"],
+      "estados": []
+    },
+    {
+      "id": "modulos.busca",
+      "_papel": "busca de 4 campos (nome, alias, descrição, área) com debounce",
+      "copy": ["Buscar por nome, alias, descrição ou área…"],
+      "estados": []
+    },
+    {
+      "id": "modulos.tabela",
+      "_papel": "as colunas que o operador lê pra decidir; cabe em 1280px com sidebar aberta",
+      "copy": ["Módulo", "Área", "Status", "Migrations", "Ativo"],
+      "estados": []
+    }
+  ],
+  "ordem": ["modulos.header", "modulos.kpis", "modulos.filtros", "modulos.busca", "modulos.tabela"]
+}
