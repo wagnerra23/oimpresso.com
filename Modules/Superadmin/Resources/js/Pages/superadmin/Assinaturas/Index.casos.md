@@ -12,7 +12,7 @@ last_run_ci: "_pendente_ — o trio nasce nesta onda (SA-O4a). O veredito por UC
 # Casos de Uso & Aceite — Superadmin · Assinaturas (`/superadmin/superadmin-subscription`)
 
 > **Âncora:** UC-SA-008 e UC-SA-009 do F1 do Cowork §2 (`cowork-inbox/SUPERADMIN-F1-2026-08-18.md`)
-> — que descrevem as **ações**, entregues na SA-O4b — cruzados com as invariantes do
+> — que descrevem as **ações**, entregues na SA-O4b (UC-SAASS-11 a 16) — cruzados com as invariantes do
 > [RUNBOOK-assinaturas](../../../../../../../memory/requisitos/Superadmin/RUNBOOK-assinaturas.md)
 > §1/§6 e com a exceção de multi-tenant da
 > [ADR 0093](../../../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
@@ -136,6 +136,84 @@ Status: 🧪
 
 ---
 
+## UC-SAASS-11 · Toda escrita de status passa pelo Lifecycle Service · `must` `[T0]`
+
+**Dado** uma assinatura **pendente** (`waiting`, sem datas)
+**Quando** o superadmin aplica a ação **Aprovar**
+**Então** ela vira `approved` **com `start_date` e `end_date` preenchidos**, calculados a partir
+do `package_details`.
+
+> É o que separa a onda do legado. O legado fazia `$sub->status = $input['status']; save()` —
+> escrita direta, sem calcular vigência e sem trilha de transição. Uma assinatura aprovada sem
+> `end_date` nunca vence e nunca entra na fila de cobrança.
+
+Status: 🧪
+
+---
+
+## UC-SAASS-12 · Cancelar é append-only e não encurta a vigência (R3) · `must` `[T0]`
+
+**Dado** uma assinatura vigente
+**Quando** o superadmin cancela, escolhendo um motivo e escrevendo uma observação
+**Então** o registro **continua existindo** (`deleted_at` nulo), o `end_date` fica **igual ao que
+era**, e o motivo e a observação ficam gravados.
+
+> R3 do F1: cancelar **para de renovar**, o acesso continua até o fim já contratado. "Melhorar"
+> isso zerando `end_date` tira no ato um acesso que o cliente pagou.
+
+Status: 🧪
+
+---
+
+## UC-SAASS-13 · Transição que não se aplica não diz que salvou · `must`
+
+**Dado** uma assinatura já aprovada
+**Quando** o superadmin aplica **Aprovar** de novo
+**Então** nada muda no banco **e a tela informa que nada mudou**.
+
+> O guarda do Service devolvendo `false` não é erro — é ele funcionando. O defeito seria a tela
+> dizer "salvo" para uma escrita que não houve.
+
+Status: 🧪
+
+---
+
+## UC-SAASS-14 · Ação fora da lista não chega ao Service · `must` `[T0]`
+
+**Dado** um pedido com `acao` fora de `{aprovar, vencer, cancelar}`
+**Quando** ele chega ao controller
+**Então** a validação rejeita e **o status no banco não muda**.
+
+Status: 🧪
+
+---
+
+## UC-SAASS-15 · Vigência invertida é barrada · `should`
+
+**Dado** um pedido de edição com **fim anterior ao início**
+**Quando** ele é enviado
+**Então** nada é gravado e a tela diz o porquê.
+
+> Vigência invertida é erro de digitação, não estado válido: gravada, ela faz a assinatura nascer
+> vencida e sumir da fila de cobrança sem ninguém entender por quê.
+
+Status: 🧪
+
+---
+
+## UC-SAASS-16 · Escrita é barrada para quem não é superadmin · `must` `[T0]`
+
+**Dado** um admin de negócio
+**Quando** ele tenta mudar status **ou** vigência de qualquer assinatura
+**Então** é barrado — **e o dado no banco continua idêntico**.
+
+> A segunda metade é o que prova: `302` sozinho não distingue "barrado" de "redirect de
+> sucesso". O veredito é o dado intacto.
+
+Status: 🧪
+
+---
+
 ## Testes mínimos (do F1 §2)
 
 - **DQE:** 1 assinatura pendente · 1 vencida · 1 cancelada · 1 em trial · 1 bloqueada.
@@ -144,3 +222,6 @@ Status: 🧪
 - **Plural PT-BR:** 1 assinatura / 2 assinaturas · 1 pendente / 2 pendentes.
 - **Mono nunca quebra:** `dd/mm/aaaa`, identificador de transação, valor.
 - **Permissão:** admin de negócio 403; superadmin 200 (UC-SAASS-02).
+- **Escrita:** cada caso de ação usa fixture PRÓPRIA, recriada do zero. Reusar as fixtures de
+  leitura faria o resultado depender da ordem dos casos — e a base do CT 100 persiste entre
+  execuções, então "roda limpo" não vale lá.

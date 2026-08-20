@@ -348,3 +348,155 @@ it('UC-SAASS-10 · abrir a lista não muda status nenhum no banco', function () 
     // abrir uma tela vira escrita em massa sem trilha — e cai aqui.
     expect($depois)->toBe($antes);
 });
+
+/**
+ * Fixture EXCLUSIVA de cada caso de escrita, recriada do zero.
+ *
+ * Os casos de ESCRITA não podem reusar as fixtures de leitura (`sa-o4a-*`): cancelar a
+ * assinatura que o UC-SAASS-05 afirma estar "Ativa" faz o resultado depender da ORDEM em que os
+ * casos rodam. E a base do CT 100 PERSISTE entre execuções, então "roda limpo" não é verdade lá
+ * — sem o delete, a segunda execução herdaria o estado que a primeira deixou.
+ *
+ * Devolve o id da linha criada.
+ */
+function assFixtureEscrita(string $marca, string $status, ?int $diasInicio, ?int $diasFim): int
+{
+    DB::table('subscriptions')->where('payment_transaction_id', $marca)->delete();
+
+    $pacoteId = DB::table('packages')->where('name', 'Pacote fictício SA-O4a')->value('id');
+    $hoje = now()->startOfDay();
+
+    return (int) DB::table('subscriptions')->insertGetId([
+        'business_id' => BIZ_ASS,
+        'package_id' => $pacoteId,
+        'start_date' => $diasInicio === null ? null : $hoje->copy()->addDays($diasInicio)->toDateString(),
+        'trial_end_date' => null,
+        'end_date' => $diasFim === null ? null : $hoje->copy()->addDays($diasFim)->toDateString(),
+        'package_price' => 100,
+        'package_details' => json_encode(['interval' => 'months', 'interval_count' => 1]),
+        'created_id' => 1,
+        'paid_via' => 'fixture',
+        'payment_transaction_id' => $marca,
+        'status' => $status,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+}
+
+// ── UC-SAASS-11 · a escrita passa pelo Lifecycle Service ───────────────────
+
+it('UC-SAASS-11 · aprovar uma pendente calcula a vigência e deixa trilha', function () {
+    $id = assFixtureEscrita('sa-o4b-aprovar', 'waiting', null, null);
+
+    $this->actingAs(assSuperadmin())
+        ->put(ROTA_ASS.'/'.$id, ['acao' => 'aprovar'])
+        ->assertRedirect();
+
+    $depois = DB::table('subscriptions')->where('id', $id)->first();
+
+    // O Service é quem calcula a vigência a partir do `package_details` — escrita direta em
+    // `status` (o que o legado fazia) deixaria as datas nulas e a assinatura sem fim.
+    expect($depois->status)->toBe('approved')
+        ->and($depois->start_date)->not->toBeNull()
+        ->and($depois->end_date)->not->toBeNull();
+});
+
+// ── UC-SAASS-12 · cancelar é append-only e registra o motivo (R3) ──────────
+
+it('UC-SAASS-12 · cancelar preserva o registro, a vigência e o motivo', function () {
+    $id = assFixtureEscrita('sa-o4b-cancelar', 'approved', -10, 20);
+    $fimAntes = DB::table('subscriptions')->where('id', $id)->value('end_date');
+
+    $this->actingAs(assSuperadmin())
+        ->put(ROTA_ASS.'/'.$id, ['acao' => 'cancelar', 'motivo' => 'preco', 'nota' => 'Pediu desconto.'])
+        ->assertRedirect();
+
+    $depois = DB::table('subscriptions')->where('id', $id)->first();
+
+    // R3 do F1: cancelar NÃO apaga e NÃO encurta a vigência — para de renovar, e o acesso
+    // continua até o fim já contratado. Se alguém "melhorar" isso zerando `end_date`, o cliente
+    // perde acesso pago no ato, e cai aqui.
+    expect($depois)->not->toBeNull()
+        ->and($depois->status)->toBe('cancelled')
+        ->and($depois->end_date)->toBe($fimAntes)
+        ->and($depois->deleted_at)->toBeNull();
+
+    if (Schema::hasColumn('subscriptions', 'cancel_reason')) {
+        expect($depois->cancel_reason)->toBe('preco')
+            ->and($depois->cancel_note)->toBe('Pediu desconto.');
+    }
+});
+
+// ── UC-SAASS-13 · transição que não se aplica não mente ────────────────────
+
+it('UC-SAASS-13 · aprovar uma já aprovada não muda nada e diz que não mudou', function () {
+    $id = assFixtureEscrita('sa-o4b-noop', 'approved', -10, 20);
+    $antes = DB::table('subscriptions')->where('id', $id)->first();
+
+    $this->actingAs(assSuperadmin())
+        ->put(ROTA_ASS.'/'.$id, ['acao' => 'aprovar'])
+        ->assertRedirect();
+
+    $depois = DB::table('subscriptions')->where('id', $id)->first();
+
+    expect($depois->status)->toBe('approved')
+        ->and($depois->start_date)->toBe($antes->start_date)
+        ->and($depois->end_date)->toBe($antes->end_date);
+
+    // O guarda do Service devolve `false`, e isso NÃO é erro — é ele funcionando. O que não
+    // pode acontecer é a tela dizer "salvo" pra uma escrita que não houve.
+    expect(session('status')['success'])->toBe(0);
+});
+
+// ── UC-SAASS-14 · ação fora da lista não chega no Service ──────────────────
+
+it('UC-SAASS-14 · ação desconhecida é rejeitada pela validação', function () {
+    $id = assFixtureEscrita('sa-o4b-invalida', 'waiting', null, null);
+
+    $this->actingAs(assSuperadmin())
+        ->put(ROTA_ASS.'/'.$id, ['acao' => 'apagar'])
+        ->assertSessionHasErrors('acao');
+
+    expect(DB::table('subscriptions')->where('id', $id)->value('status'))->toBe('waiting');
+});
+
+// ── UC-SAASS-15 · vigência invertida é barrada ─────────────────────────────
+
+it('UC-SAASS-15 · fim anterior ao início não é gravado', function () {
+    $id = assFixtureEscrita('sa-o4b-datas', 'approved', -10, 20);
+    $antes = DB::table('subscriptions')->where('id', $id)->first();
+
+    $this->actingAs(assSuperadmin())
+        ->post('/superadmin/update-subscription', [
+            'subscription_id' => $id,
+            'start_date' => '10/09/2026',
+            'end_date' => '01/09/2026',
+        ])
+        ->assertRedirect();
+
+    $depois = DB::table('subscriptions')->where('id', $id)->first();
+
+    // Vigência invertida é erro de digitação, não estado válido: gravada, ela faz a assinatura
+    // nascer vencida e sumir da fila de cobrança sem ninguém entender por quê.
+    expect($depois->start_date)->toBe($antes->start_date)
+        ->and($depois->end_date)->toBe($antes->end_date)
+        ->and(session('status')['success'])->toBe(0);
+});
+
+// ── UC-SAASS-16 · escrita é barrada pra quem não é superadmin ──────────────
+
+it('UC-SAASS-16 · admin de negócio não consegue mudar status nem vigência', function () {
+    $id = assFixtureEscrita('sa-o4b-permissao', 'approved', -10, 20);
+
+    $r1 = $this->actingAs(assAdminDeNegocio())->put(ROTA_ASS.'/'.$id, ['acao' => 'cancelar']);
+    expect($r1->getStatusCode())->toBeIn([302, 403]);
+
+    $r2 = $this->actingAs(assAdminDeNegocio())->post('/superadmin/update-subscription', [
+        'subscription_id' => $id,
+        'end_date' => '31/12/2026',
+    ]);
+    expect($r2->getStatusCode())->toBeIn([302, 403]);
+
+    // 302 sozinho não prova nada (pode ser redirect de sucesso). O que prova é o DADO intacto.
+    expect(DB::table('subscriptions')->where('id', $id)->value('status'))->toBe('approved');
+});
