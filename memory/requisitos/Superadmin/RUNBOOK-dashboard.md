@@ -47,13 +47,77 @@ O `SuperadminDashboardService` cobre **6 dos 10 blocos** que o F1 pede pra view 
 | Tendência mensal (12 m) | `buildMonthlyRevenueChart()` | SA-O1 |
 | Cadastros recentes (5 linhas) | query direta em `business` | SA-O1 |
 | Segmented de período (Hoje/Semana/Mês/Ano) | ✅ janela rolante dita em texto (UC-SA-001) | SA-O1 |
-| KPI MRR | ✅ `SubscriptionRepository::mrrBaselineCached` — RecurringBilling é recorrente por construção (R1). ⚠️ **não verifiquei** se ele exclui avulso | SA-O1b |
+| KPI MRR | ✅ `SubscriptionRepository::mrrBaselineCached` — avulso fica de fora **por construção**, medido 2026-08-20 (ver nota R1 abaixo). ⚠️ ciclo não-mensal tem risco latente, mesma nota | SA-O1b |
 | Funil trial→pago | ❌ sem query — depende de `subscriptions.trial_end_date` | SA-O1b |
 | Churn 30 d | ✅ `canceladas` — saídas de 30 d em `rb_subscriptions.canceled_at` | SA-O1b |
 | Motivos de churn | ❌ **a coluna certa é `rb_subscriptions.churn_reason`**, ver nota abaixo | — |
 | Receita por pacote | ❌ sem query | SA-O1b |
 | Fila "Vencendo ou vencido" | 🟡 derivável de `findOverdueApproved()` | SA-O1b |
 | "O que fazer primeiro" (3 itens navegáveis) | ❌ sem query — depende do funil e da fila | — |
+
+> **R1 do F1 ("MRR só soma pacote recorrente com preço > 0; gratuito e avulso entram no
+> caixa do mês, nunca na recorrência") — medido em prod 2026-08-20, biz=1.** A nota anterior
+> dizia *"não verifiquei se ele exclui avulso"*. Verificado, e a resposta tem duas metades
+> que não se parecem.
+>
+> **Avulso: fica de fora por CONSTRUÇÃO, não por filtro.** No RecurringBilling avulso não é
+> uma assinatura com ciclo avulso — é uma **fatura sem `subscription_id`**
+> ([`Invoice.php:18`](../../../Modules/RecurringBilling/Models/Invoice.php) *"ou avulsa, sem
+> subscription_id quando o operador cobrar uma única vez"*; mesmo conceito em
+> [`SubscriptionCachedFieldsObserver.php:40`](../../../Modules/RecurringBilling/Observers/SubscriptionCachedFieldsObserver.php)).
+> O `mrrBaselineCached` itera `rb_subscriptions`, nunca `rb_invoices`, e
+> `rb_subscriptions.plan_id` é **NOT NULL** (`constrained` sem `nullable`, migration
+> `2026_05_06_001001`) — logo toda assinatura tem plano recorrente e uma fatura órfã não tem
+> por onde entrar na soma. Não existe filtro a auditar aqui: o avulso não está no universo.
+> Contado no mesmo dia: **4.039 faturas, 0 avulsas** (`subscription_id IS NULL`).
+>
+> **Gratuito: 0 em prod, e inerte por aritmética.** 161 planos, **161 pagos, 0 gratuitos**;
+> 109 assinaturas ativas, **109 com valor efetivo > 0** (contando o `metadata.valor`, que
+> sobrepõe o `plan.valor`). Ainda que existisse, um plano de preço 0 contribuiria 0 para uma
+> **soma** — a regra é satisfeita sem precisar de cláusula. `StorePlanRequest` aceita
+> `valor >= 0`, então cadastrar um gratuito é possível.
+>
+> ⚠️ **Risco latente encontrado no mesmo cálculo — ciclo não-mensal infla até 12×.** O
+> `match` de [`SubscriptionRepository::mrrBaselineCached`](../../../Modules/RecurringBilling/Repositories/SubscriptionRepository.php)
+> compara os ciclos em **português** (`mensal|trimestral|semestral|anual`), mas
+> `rb_plans.ciclo` é um enum em **inglês** — `['monthly','quarterly','semiannual','yearly','custom']`
+> (migration `2026_05_06_001000`, única que define a coluna). Quando a assinatura não tem
+> `metadata.ciclo`, o fallback lê `plan.ciclo` em inglês, nenhum braço casa, e o
+> `default => $valor` soma o valor **cheio** em vez de dividir. Fatores de inflação:
+> `quarterly` **3×**, `semiannual` **6×**, `yearly` **12×**.
+>
+> **Hoje o número exibido está correto, e isso é coincidência do dado, não do código:** os
+> 161 planos são **todos `monthly`**, e para mensal o valor cheio é justamente o resultado
+> certo — o caminho errado chega ao lugar certo. Das 109 ativas, 108 caem no `default`
+> (`plan.ciclo='monthly'`) e 1 casa no braço `'mensal'` (`metadata.ciclo`, gravado em PT por
+> `recurring-billing.store`). Confirmado por dois caminhos independentes no mesmo dia — o
+> `mrrBaselineCached` real × uma réplica que aplica a regra por extenso aceitando os dois
+> vocabulários: **delta exatamente zero** (e o canônico não é zero, conferido junto para não estar
+> lendo um pipeline morto).
+>
+> **O risco é alcançável sem deploy:** `StorePlanRequest:47` aceita os cinco valores do enum
+> e [`Planos/Create.tsx:31-34`](../../../resources/js/Pages/RecurringBilling/Planos/Create.tsx)
+> oferece "Trimestral / Semestral / Anual / Customizado" no combo — `monthly` é só o
+> *default* do formulário, não uma trava. No dia em que alguém cadastrar um plano anual, o
+> MRR daquela assinatura entra 12× maior. Note que
+> [`PlanController.php:366-369`](../../../Modules/RecurringBilling/Http/Controllers/PlanController.php)
+> já faz a mesma divisão **em inglês, corretamente** — os dois vocabulários convivem no
+> módulo, e é essa convivência que produz o defeito.
+>
+> Correção **não aplicada aqui**: mexe em cálculo de valor, então vale a REGRA MESTRE de
+> [`proibicoes.md`](../../proibicoes.md) — dupla confirmação + antes→depois apresentado a [W]
+> antes de aplicar. O antes→depois de **hoje** é vazio (0 registros mudam de valor, porque
+> não há plano não-mensal), o que torna esta a janela barata para consertar: corrigir agora
+> não move nenhum número existente.
+>
+> Reproduzir (SSH Hostinger, warm-up antes — [`how-trabalhar.md`](../../how-trabalhar.md)):
+> ```sql
+> SELECT business_id, ciclo, COUNT(*) FROM rb_plans WHERE deleted_at IS NULL GROUP BY 1,2;
+> SELECT COALESCE(JSON_UNQUOTE(JSON_EXTRACT(s.metadata,'$.ciclo')),'(sem)') AS meta, p.ciclo, COUNT(*)
+>   FROM rb_subscriptions s LEFT JOIN rb_plans p ON p.id=s.plan_id
+>  WHERE s.status IN ('active','trialing','past_due') AND s.deleted_at IS NULL GROUP BY 1,2;
+> SELECT COUNT(*) FROM rb_invoices WHERE subscription_id IS NULL AND deleted_at IS NULL;
+> ```
 
 > **Onde o gráfico de motivos tem que ler — medido em prod 2026-08-19, contra as duas
 > tabelas.** A decisão SA-O0 de [W] pediu `cancel_reason` por migration, e ela foi entregue
