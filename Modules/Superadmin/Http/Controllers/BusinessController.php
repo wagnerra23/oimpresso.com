@@ -21,6 +21,7 @@ use Modules\Superadmin\Entities\Package;
 use Modules\Superadmin\Http\Requests\StoreBusinessRequest;
 use Modules\Superadmin\Http\Requests\UpdateBusinessPasswordRequest;
 use Modules\Superadmin\Notifications\PasswordUpdateNotification;
+use Modules\Superadmin\Support\RotuloAssinatura;
 use Spatie\Permission\Models\Permission;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -317,23 +318,12 @@ class BusinessController extends BaseController
     /**
      * Enum do banco → PT-BR. A tela NUNCA mostra o valor cru.
      *
-     * Mesma tabela do RUNBOOK-dashboard §2 — `declined` é gravado por
-     * OnCobrancaVencidaBloqueaSubscription quando a cobrança vence.
+     * O mapa em si mora em `RotuloAssinatura` desde a SA-O4a — ver o docblock de lá para o
+     * que a tabela esconde (`trial` não é status; `approved` depende da data).
      */
     private function rotuloDeAssinatura(?string $status, $fim): string
     {
-        if ($status === null) {
-            return 'Sem assinatura';
-        }
-
-        return match ($status) {
-            'approved' => ($fim && \Carbon::parse($fim)->isPast()) ? 'Vencida' : 'Ativa',
-            'waiting' => 'Pendente',
-            'declined' => 'Bloqueada',
-            'expired' => 'Vencida',
-            'cancelled' => 'Cancelada',
-            default => 'Sem assinatura',
-        };
+        return RotuloAssinatura::de($status, $fim);
     }
 
     private function filterTransactionDate($query, $filter, $operator)

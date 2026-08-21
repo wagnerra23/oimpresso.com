@@ -27,6 +27,7 @@ import { Button } from '@/Components/ui/button';
 import { Skeleton } from '@/Components/ui/skeleton';
 import PageHeader from '@/Components/shared/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
+import { Select, plural, tomDaAssinatura } from '../_components/assinatura';
 
 interface Filtros {
   q: string;
@@ -124,41 +125,6 @@ const VENDAS = [
 ];
 
 /** Tom do badge por rótulo já traduzido — a tela nunca vê o enum cru. */
-function tomDaAssinatura(rotulo: string): 'default' | 'secondary' | 'destructive' | 'outline' {
-  if (rotulo === 'Ativa') return 'default';
-  if (rotulo === 'Vencida' || rotulo === 'Bloqueada') return 'destructive';
-  if (rotulo === 'Pendente') return 'secondary';
-  return 'outline';
-}
-
-const plural = (n: number, sing: string, plur: string) => `${n} ${n === 1 ? sing : plur}`;
-
-function Select({
-  valor,
-  opcoes,
-  onChange,
-  rotulo,
-}: {
-  valor: string;
-  opcoes: { v: string; label: string }[];
-  onChange: (v: string) => void;
-  rotulo: string;
-}) {
-  return (
-    <select
-      aria-label={rotulo}
-      value={valor}
-      onChange={(e) => onChange(e.target.value)}
-      className="h-9 rounded-md border bg-background px-3 text-xs text-foreground"
-    >
-      {opcoes.map((o) => (
-        <option key={o.v} value={o.v}>
-          {o.label}
-        </option>
-      ))}
-    </select>
-  );
-}
 
 function NegociosIndex({ filtros, aberto, pacotes, negocios, detalhe }: Props) {
   const [q, setQ] = useState(filtros.q ?? '');

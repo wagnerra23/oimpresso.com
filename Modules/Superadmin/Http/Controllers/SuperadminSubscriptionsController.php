@@ -2,14 +2,16 @@
 
 namespace Modules\Superadmin\Http\Controllers;
 
+use App\Util\OtelHelper;
 use App\Utils\BusinessUtil;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 use Modules\Superadmin\Entities\Package;
 use Modules\Superadmin\Entities\Subscription;
-use Yajra\DataTables\Facades\DataTables;
-use Illuminate\Routing\Controller;
+use Modules\Superadmin\Support\RotuloAssinatura;
 
 class SuperadminSubscriptionsController extends BaseController
 {
@@ -27,83 +29,216 @@ class SuperadminSubscriptionsController extends BaseController
     }
 
     /**
-     * Display a listing of the resource.
+     * Lista de assinaturas (`GET /superadmin/superadmin-subscription`) — onda SA-O4a.
      *
-     * @return Response
+     * Deixou de servir DataTables por AJAX e passou a Inertia com paginação SERVER-SIDE.
+     * O legado devolvia a consulta inteira ao DataTables (que ordenava e paginava no
+     * cliente) e montava HTML de botão DENTRO da query, na coluna `action` — era isso que
+     * tornava a coluna intraduzível para React.
+     *
+     * O join (`subscriptions → business → packages`) é 1-para-1 nos dois lados a partir da
+     * assinatura, então `paginate()` conta certo SEM a subquery escalar que a SA-O2 precisou.
+     *
+     * SUPERADMIN: leitura GLOBAL cross-tenant intencional (ADR 0093 §exceções) — esta tela
+     * existe justamente para enxergar a cobrança de todos os negócios.
+     *
+     * @see memory/requisitos/Superadmin/RUNBOOK-assinaturas.md
      */
-    public function index()
+    public function index(Request $request): InertiaResponse
     {
         if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            $superadmin_subscription = Subscription::join('business', 'subscriptions.business_id', '=', 'business.id')
-                ->join('packages', 'subscriptions.package_id', '=', 'packages.id')
-                ->select('business.name as business_name', 'packages.name as package_name', 'subscriptions.status',
-                 'subscriptions.created_at', 'subscriptions.start_date', 'subscriptions.trial_end_date', 'subscriptions.end_date', 'subscriptions.package_price', 'subscriptions.paid_via', 'subscriptions.payment_transaction_id', 'subscriptions.id');
+        return OtelHelper::spanBiz('superadmin.assinaturas.index', function () use ($request) {
+            $filtros = [
+                'pacote' => $request->input('pacote'),
+                'status' => $this->opcaoValida($request->input('status'), RotuloAssinatura::FILTROS),
+                'periodo' => $this->opcaoValida($request->input('periodo'), array_keys(self::PERIODOS)),
+                'ordem' => $this->opcaoValida($request->input('ordem'), array_keys(self::ORDENS)) ?? 'criado',
+                'dir' => $request->input('dir') === 'asc' ? 'asc' : 'desc',
+            ];
 
-            if(!empty(request()->input('status'))) {
-                $superadmin_subscription->where('subscriptions.status', request()->input('status'));
-            }
-            if(!empty(request()->input('package_id'))) {
-                $superadmin_subscription->where('packages.id', request()->input('package_id'));
-            }
+            return Inertia::render('superadmin/Assinaturas/Index', [
+                'filtros' => $filtros,
+                'pacotes' => Inertia::defer(fn () => $this->opcoesDePacote()),
+                'kpis' => Inertia::defer(fn () => $this->kpisPayload()),
+                'assinaturas' => Inertia::defer(fn () => $this->assinaturasPayload($filtros)),
+            ]);
+        }, ['component' => 'superadmin.assinaturas.index']);
+    }
 
-            if (!empty(request()->start_date) && !empty(request()->end_date)) {
-                $start = request()->start_date;
-                $end =  request()->end_date;
-                $superadmin_subscription->whereDate('subscriptions.created_at', '>=', $start)
-                    ->whereDate('subscriptions.created_at', '<=', $end);
-            }
-            
-            return DataTables::of($superadmin_subscription)
-                        ->addColumn(
-                            'action',
-                            '<button data-href ="{{action(\'\Modules\Superadmin\Http\Controllers\SuperadminSubscriptionsController@edit\',[$id])}}" class="btn btn-info btn-xs change_status" data-toggle="modal" data-target="#statusModal">
-                            @lang( "superadmin::lang.status")
-                            </button> <button data-href ="{{action(\'\Modules\Superadmin\Http\Controllers\SuperadminSubscriptionsController@editSubscription\',["id" => $id])}}" class="btn btn-primary btn-xs btn-modal" data-container=".view_modal">
-                            @lang( "messages.edit")
-                            </button>'
-                        )
-                        ->editColumn('created_at', '{{@format_datetime($created_at)}}')
-                        ->editColumn('trial_end_date', '@if(!empty($trial_end_date)){{@format_date($trial_end_date)}} @endif')
-                        ->editColumn('start_date', '@if(!empty($start_date)){{@format_date($start_date)}}@endif')
-                        ->editColumn('end_date', '@if(!empty($end_date)){{@format_date($end_date)}}@endif')
-                        ->editColumn(
-                            'status',
-                            '@if($status == "approved")
-                                <span class="label bg-light-green">{{__(\'superadmin::lang.\'.$status)}}
-                                </span>
-                            @elseif($status == "waiting")
-                                <span class="label bg-aqua">{{__(\'superadmin::lang.\'.$status)}}
-                                </span>
-                            @else($status == "declined")
-                                <span class="label bg-red">{{__(\'superadmin::lang.\'.$status)}}
-                                </span>
-                            @endif'
-                        )
-                        ->editColumn(
-                            'package_price',
-                            '<span class="display_currency" data-currency_symbol="true">
-                                {{$package_price}}
-                            </span>'
-                        )
-                        ->removeColumn('id')
-                        ->rawColumns([2, 7, 10])
-                        ->make(false);
+    /**
+     * Colunas ordenáveis → coluna real. É WHITELIST, não conveniência: `orderBy()` com valor
+     * de request é injeção, e o F1 pede cabeçalho clicável.
+     */
+    private const ORDENS = [
+        'criado' => 'subscriptions.created_at',
+        'negocio' => 'business.name',
+        'status' => 'subscriptions.status',
+        'inicio' => 'subscriptions.start_date',
+        'preco' => 'subscriptions.package_price',
+    ];
+
+    /** Janelas do filtro "Criada em" (F1). O valor é o número de dias, ou `mes` (mês corrente). */
+    private const PERIODOS = ['7d' => 7, '30d' => 30, 'mes' => null];
+
+    /** Opção de filtro fora da lista vira `null` — nunca chega crua na query. */
+    private function opcaoValida(?string $valor, array $aceitos): ?string
+    {
+        return in_array($valor, $aceitos, true) ? $valor : null;
+    }
+
+    /**
+     * Pacotes para o filtro. Só id + nome: a lista é combo, não catálogo.
+     *
+     * Inclui pacote inativo de propósito — assinatura antiga aponta para grade descontinuada,
+     * e filtrar por ela é exatamente o que se quer ao investigar um contrato legado.
+     *
+     * @return array<int, array{id: int, nome: string}>
+     */
+    private function opcoesDePacote(): array
+    {
+        return Package::query()
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn ($p) => ['id' => (int) $p->id, 'nome' => (string) $p->name])
+            ->all();
+    }
+
+    /**
+     * Os 4 KPI do F1 + o recorte que o F1 não previu.
+     *
+     * `bloqueadas` (`declined`) NÃO entra em nenhum dos quatro: bloqueio por inadimplência e
+     * cancelamento a pedido são eventos comerciais diferentes. Em vez de escondê-lo dentro de
+     * "canceladas", o número vai junto e a tela DIZ que ele está fora do recorte
+     * (RUNBOOK-assinaturas §1).
+     *
+     * Nenhum KPI de receita aqui: MRR tem dono (`SubscriptionRepository::mrrBaselineCached`,
+     * do RecurringBilling) e a regra R1 do F1 ainda está sendo verificada. Um segundo oráculo
+     * de receita nesta tela seria régua duplicada.
+     *
+     * @return array<string, int>
+     */
+    private function kpisPayload(): array
+    {
+        $hoje = \Carbon::today()->toDateString();
+
+        // SUPERADMIN: contagem GLOBAL cross-tenant intencional (ADR 0093 §exceções).
+        $porStatus = DB::table('subscriptions')
+            ->whereNull('deleted_at')
+            ->selectRaw('status, COUNT(*) AS total')
+            ->selectRaw('SUM(CASE WHEN end_date IS NOT NULL AND end_date < ? THEN 1 ELSE 0 END) AS vencidas', [$hoje])
+            ->selectRaw('SUM(CASE WHEN trial_end_date IS NOT NULL AND trial_end_date >= ? THEN 1 ELSE 0 END) AS em_trial', [$hoje])
+            ->groupBy('status')
+            ->get()
+            ->keyBy('status');
+
+        $de = fn (string $s, string $campo) => (int) ($porStatus[$s]->{$campo} ?? 0);
+
+        $aprovadas = $de('approved', 'total');
+        $aprovadasVencidas = $de('approved', 'vencidas');
+
+        return [
+            // "Aprovada" do F1 = aprovada E ainda dentro da vigência.
+            'ativas' => $aprovadas - $aprovadasVencidas,
+            'trial' => $de('approved', 'em_trial'),
+            'pendentes' => $de('waiting', 'total'),
+            // Vencida tem duas origens: o sweep marcou `expired`, ou a data passou e ninguém
+            // marcou nada. A fila de cobrança precisa das duas.
+            'vencidas_canceladas' => $aprovadasVencidas + $de('expired', 'total') + $de('cancelled', 'total'),
+            'bloqueadas' => $de('declined', 'total'),
+        ];
+    }
+
+    /**
+     * Página de assinaturas já filtrada e ordenada.
+     *
+     * `DB::table`, não `Subscription::query()`: as colunas do join (`negocio`, `pacote`) não
+     * existem no model, e hidratar Eloquent para montar lista de leitura não paga.
+     *
+     * @param  array<string, string|null>  $filtros
+     * @return array<string, mixed>
+     */
+    private function assinaturasPayload(array $filtros): array
+    {
+        $hoje = \Carbon::today()->toDateString();
+
+        // SUPERADMIN: leitura GLOBAL cross-tenant intencional (ADR 0093 §exceções).
+        $query = DB::table('subscriptions')
+            ->join('business', 'subscriptions.business_id', '=', 'business.id')
+            ->join('packages AS p', 'subscriptions.package_id', '=', 'p.id')
+            ->whereNull('subscriptions.deleted_at')
+            ->select([
+                'subscriptions.id',
+                'subscriptions.status',
+                'subscriptions.created_at',
+                'subscriptions.start_date',
+                'subscriptions.trial_end_date',
+                'subscriptions.end_date',
+                'subscriptions.package_price',
+                'subscriptions.paid_via',
+                'subscriptions.payment_transaction_id',
+                'business.id AS negocio_id',
+                'business.name AS negocio',
+                'p.name AS pacote',
+            ]);
+
+        if (! empty($filtros['pacote'])) {
+            $query->where('p.id', (int) $filtros['pacote']);
         }
 
-        $packages = Package::listPackages()->pluck('name', 'id');
+        if ($filtros['status'] !== null) {
+            // A tradução rótulo→enum é do MESMO dono do mapa de leitura. Separá-los é como
+            // eles divergem no primeiro status novo.
+            RotuloAssinatura::filtro($query, $filtros['status'], $hoje);
+        }
 
-        $subscription_statuses = [
-            'approved' => __('superadmin::lang.approved'),
-            'waiting' => __('superadmin::lang.waiting'),
-            'declined' => __('superadmin::lang.declined'),
+        if ($filtros['periodo'] !== null) {
+            $dias = self::PERIODOS[$filtros['periodo']];
+            $desde = $dias === null
+                ? \Carbon::today()->startOfMonth()->toDateString()
+                : \Carbon::today()->subDays($dias)->toDateString();
+
+            $query->whereDate('subscriptions.created_at', '>=', $desde);
+        }
+
+        $pagina = $query
+            ->orderBy(self::ORDENS[$filtros['ordem']], $filtros['dir'])
+            // Desempate estável: sem ele, duas assinaturas criadas no mesmo dia trocam de
+            // lugar entre páginas e a paginação parece perder linha.
+            ->orderByDesc('subscriptions.id')
+            ->paginate(20)
+            ->withQueryString();
+
+        return [
+            'linhas' => collect($pagina->items())->map(fn ($s) => [
+                'id' => (int) $s->id,
+                'negocio_id' => (int) $s->negocio_id,
+                'negocio' => (string) $s->negocio,
+                'pacote' => (string) $s->pacote,
+                // Enum cru NUNCA chega ao .tsx (RUNBOOK §1).
+                'situacao' => RotuloAssinatura::de($s->status, $s->end_date),
+                'criado' => $this->dataCurta($s->created_at),
+                'inicio' => $this->dataCurta($s->start_date),
+                'fim' => $this->dataCurta($s->end_date),
+                'trial_fim' => $this->dataCurta($s->trial_end_date),
+                // Número puro: quem formata moeda é a tela. Nenhum literal em R$ no back.
+                'preco' => (float) $s->package_price,
+                'via' => $s->paid_via ?: null,
+                'transacao' => $s->payment_transaction_id ?: null,
+            ])->all(),
+            'total' => $pagina->total(),
+            'pagina' => $pagina->currentPage(),
+            'paginas' => $pagina->lastPage(),
+            'por_pagina' => $pagina->perPage(),
         ];
+    }
 
-        return view('superadmin::superadmin_subscription.index')
-                    ->with(compact('packages', 'subscription_statuses'));
+    /** `null` continua `null` — a tela decide como desenhar ausência, o back não inventa traço. */
+    private function dataCurta($valor): ?string
+    {
+        return $valor ? \Carbon::parse($valor)->format('d/m/Y') : null;
     }
 
     /**

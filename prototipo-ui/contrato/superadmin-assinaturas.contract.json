@@ -1,0 +1,64 @@
+{
+  "_nota": "Copy e seções derivadas do contrato escrito por [CC] em cowork-inbox/SUPERADMIN-F1-2026-08-18.md §3 (view `assinaturas`), TRADUZIDAS para o schema que a máquina deste repositório consome (contract.schema.json: alvo + secoes[{id,copy,estados}]). O original descreve UMA tela `Superadmin/Index` com seis views; a migração F3 entregou telas SEPARADAS, então o contrato do F1 vira um por tela — mesmo caminho de superadmin-negocios e modulos.",
+  "_nota_recorte": "⚠️ 4 das 6 seções que o F1 §3 pede pra view `assinaturas`. De fora: `form-status` e `form-vigencia` (o FormDrawer) — são ESCRITA e vão na SA-O4b, passando pelo SubscriptionLifecycleService. Contratar copy de form que ainda não existe seria travar promessa, não comportamento.",
+  "tela": "superadmin/Assinaturas",
+  "fonte": "prototipo-ui/cowork/superadmin-page.jsx",
+  "_nota_fonte": "Mesma âncora que o charter declara em `related_prototype` — `ViewAssinaturas()` (L1044).",
+  "alvo": [
+    "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "superadmin.assinaturas.kpis",
+      "_papel": "os 4 KPI de status do F1. ⚠️ Os rótulos NÃO são os do protótipo palavra por palavra: o protótipo diz 'Aprovadas', produção diz 'Ativas', porque no banco `approved` com vigência vencida NÃO é uma assinatura aprovada valendo — é vencida. Divergência declarada, não deslize.",
+      "copy": [
+        "Ativas",
+        "Em trial",
+        "Pendentes",
+        "Vencidas ou canceladas"
+      ],
+      "estados": [
+        "carregando"
+      ]
+    },
+    {
+      "id": "superadmin.assinaturas.filtros",
+      "_papel": "os 3 filtros combináveis do F1. Os valores são vocabulário de TELA (o front não conhece `declined`); a tradução para o enum mora em RotuloAssinatura::filtro().",
+      "copy": [
+        "Status",
+        "Criada em",
+        "Pacote"
+      ],
+      "estados": []
+    },
+    {
+      "id": "superadmin.assinaturas.tabela",
+      "_papel": "6 colunas, com a VIGÊNCIA FUNDIDA numa célula (`início → fim`) — é a decisão de leitura do F1, e separá-la em duas colunas é a regressão que esta linha existe pra impedir. O F1 pede 6 + seleção; produção tem 6 sem seleção (BulkBar não tem backend).",
+      "copy": [
+        "Assinatura",
+        "Negócio",
+        "Status",
+        "Vigência",
+        "Valor",
+        "Pagamento"
+      ],
+      "estados": [
+        "vazio-filtro",
+        "carregando",
+        "lista"
+      ]
+    },
+    {
+      "id": "superadmin.assinaturas.paginacao",
+      "_papel": "paginação server-side. ⚠️ F1 pede 6/página; produção usa 20, igual à SA-O2 — decisão [W] em aberto.",
+      "copy": [],
+      "estados": []
+    }
+  ],
+  "ordem": [
+    "superadmin.assinaturas.kpis",
+    "superadmin.assinaturas.filtros",
+    "superadmin.assinaturas.tabela",
+    "superadmin.assinaturas.paginacao"
+  ]
+}
