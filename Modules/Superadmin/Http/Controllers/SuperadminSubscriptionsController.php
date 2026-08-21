@@ -382,14 +382,24 @@ class SuperadminSubscriptionsController extends BaseController
 
         $servico = app(SubscriptionLifecycleService::class);
 
-        $aplicou = OtelHelper::spanBiz('superadmin.assinaturas.acao', fn (): bool => match ($dados['acao']) {
+        // `validate()` devolve `mixed`, e a análise estática não sabe que o `in:` acima já
+        // fechou o conjunto. Estreitar para `string` aqui é o que dá ao `match` um tipo com
+        // que trabalhar — sem isso ele fica sem braço para o resto do universo.
+        $acao = (string) $dados['acao'];
+
+        $aplicou = OtelHelper::spanBiz('superadmin.assinaturas.acao', fn (): bool => match ($acao) {
             'aprovar' => $servico->approve($assinatura),
             'vencer' => $servico->expire($assinatura),
             'cancelar' => $servico->cancel($assinatura, $dados['motivo'] ?? '', $dados['nota'] ?? ''),
+            // Inalcançável hoje: o `validate()` restringe a `in:aprovar,vencer,cancelar`. O braço
+            // existe por dois motivos — `match` sem `default` sobre valor não-fechado é erro de
+            // análise estática, e se alguém afrouxar a validação amanhã a falha aparece AQUI, alta
+            // e nomeada, em vez de virar um `UnhandledMatchError` sem contexto.
+            default => throw new \LogicException('Ação de assinatura fora do contrato: '.$acao),
         }, [
             'module' => 'Superadmin',
             'component' => 'superadmin.assinaturas.acao',
-            'acao' => $dados['acao'],
+            'acao' => $acao,
             'subscription_id' => (int) $id,
             'target_biz' => $business_id,
         ]);
@@ -398,7 +408,7 @@ class SuperadminSubscriptionsController extends BaseController
         // vigente, status incompatível). Isso NÃO é erro — é o guarda funcionando. A tela
         // precisa saber a diferença, senão mostra "salvo" pra uma escrita que não houve.
         $recado = $aplicou
-            ? self::RECADO_OK[$dados['acao']]
+            ? self::RECADO_OK[$acao]
             : 'Nada mudou: a assinatura não estava num estado que permitisse essa ação.';
 
         return back()->with('status', [
