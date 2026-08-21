@@ -57,6 +57,27 @@
       "linhas": 369,
       "check_estrutural": "ok (delimitadores + IIFE fecha)",
       "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/funcoes-perms.jsx",
+      "bytes_escritos": 28366,
+      "linhas": 425,
+      "check_estrutural": "ok",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/funcoes-page.jsx",
+      "bytes_escritos": 18155,
+      "linhas": 358,
+      "check_estrutural": "ok",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/connector-page.jsx",
+      "bytes_escritos": 23487,
+      "linhas": 411,
+      "check_estrutural": "ok",
+      "fidelidade": "NAO PROVADA"
     }
   ],
   "data": "2026-08-21",
