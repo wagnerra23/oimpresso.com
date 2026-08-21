@@ -2,12 +2,49 @@
 id: requisitos-ponto-briefing
 module: Ponto
 status: parcial
-updated_at: "2026-08-07"
-distilled_at: "2026-08-07"
-distilled_by: "manual [C] — redestilação PARCIAL: só a §Cobertura de teste foi re-medida (arvore vs allowlist da lane required `ponto-pest`, origin/main 2026-08-07) e ganhou a ressalva presença≠execução. O resto do corpo NÃO foi re-lido — o retrato de 2026-07-27 (SDD + contratos de tela, PR #4865) segue valendo para as demais seções."
+updated_at: "2026-08-21"
+distilled_at: "2026-08-21"
+distilled_by: "manual [C] — redestilação PARCIAL: só a §Contratos de tela (nova, abaixo) foi escrita, a partir de medição direta do `contrato-de-tela.mjs` em 2026-08-21. O resto do corpo NÃO foi re-lido: a §Cobertura de teste segue no retrato de 2026-08-07 (com a ressalva presença≠execução) e as demais seções no de 2026-07-27 (PR #4865)."
 ---
 
 # BRIEFING — Modules/Ponto
+
+## Contratos de tela — estado em 2026-08-21
+
+Os contratos de tela do Ponto (mecanismo v1 — [RUNBOOK-contrato-de-tela](../_DesignSystem/RUNBOOK-contrato-de-tela.md),
+decidido na [ADR 0290](../../decisions/0290-fidelity-lock-v0-recusado.md); o princípio da catraca semântica vem da
+[ADR 0286 §5](../../decisions/0286-channel-health-corroborado-por-mensagem-real.md), cujo tema principal é outro) desceram em
+2026-08-21 por decisão [W] (**opção B**: entram só os contratos cujo alvo existe). `ponto-fechamento`
+e `ponto-rep-p` ficaram **retidos** — suas telas (`Fechamento.tsx`, `Conformidade.tsx`, `RepP.tsx`,
+`RepP/Validacao.tsx`) não existem e dependem de decisões [W] em aberto.
+
+Os 2 que entraram nasceram **vermelhos por desenho**, com o conserto nomeado: o F3 das duas telas.
+Medido com `node scripts/contrato-de-tela.mjs --contract <c>`:
+
+| Contrato | Alvo | Ao descer (21/08) | Natureza do F3 |
+|---|---|---|---|
+| `ponto-painel` | `Ponto/Dashboard/Index.tsx` | ❌ 12 (4 âncoras + 8 copies) | **renomear copy** — as seções existiam e as props já chegavam; só `painel-nota-fechamento` custou backend (`divergencias_mes`) |
+| `ponto-espelho` | `Espelho/Show.tsx` + `Index.tsx` | ❌ 26 (5 âncoras + 21 de 29 copies) | **construir** — as 21 copies estavam ausentes nos dois arquivos |
+
+⚠️ **Consequência operacional que vale saber:** o job `Preflight + contratos ativos` varre **todos**
+os `*.contract.json` do repo sempre que qualquer `.tsx` muda. Enquanto um contrato do Ponto estiver
+vermelho, ele aparece em **todo PR de UI do projeto**, não só nos do Ponto. Ele **não** está entre os
+required (medido em 2026-08-21 na união `classic_protection.contexts ∪ rulesets.contexts`), logo não
+bloqueia merge — mas é ruído que treina o time a ignorar gate.
+
+### RUNBOOKs (F1) — 2026-08-21
+
+O módulo não tinha nenhum RUNBOOK, e o hook `block-mwart-violation` barra `Edit`/`Write` em Page sem
+ele (único enforcement de RUNBOOK desde a ADR 0271 onda 2, **sem override**). Criados:
+
+- [`RUNBOOK-dashboard.md`](RUNBOOK-dashboard.md) — cobre `Ponto/Dashboard/Index`
+- [`RUNBOOK-espelho.md`](RUNBOOK-espelho.md) — cobre `Ponto/Espelho/Show` e `Index`
+
+O do Espelho carrega o que essa tela tem de diferente das outras do projeto: é **documento legal**
+(Portaria MTP 671/2021 Art. 85), a copy é **paridade com o Blade** que já roda (não redação nova),
+expõe **CPF e PIS** em tela, e duas strings do contrato usam **MINUS SIGN U+2212** — que o olho não
+distingue de hífen e o gate compara exato.
+
 
 > 1-pager executivo do modulo de ponto eletronico do oimpresso.
 > **Audiencia:** Wagner (dono), Eliana (advogada/LGPD-CLT), Felipe/Maiara (suporte+dev), Luiz (dev IA-pair).
