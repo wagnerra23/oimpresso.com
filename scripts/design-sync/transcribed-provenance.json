@@ -7,7 +7,75 @@
   "metodo": "DesignSync.get_file (retorno INLINE) -> transcricao pelo agente via heredoc quoted",
   "fidelidade_nota": "DUAS rotas, declaradas por arquivo. POR CONSTRUCAO = a saida do get_file passou do limiar (~47KB), o harness persistiu em disco e o cowork-mirror-freshness --export-from escreveu os bytes sem passarem pelo contexto do agente. NAO PROVADA = a saida voltou INLINE no contexto e foi transcrita; e o caso da grande maioria dos .md, que sao pequenos demais para persistir.",
   "verificacao_feita": "cowork-ssot-guard exit 0 (R1: nenhum .md em cowork/) + frontmatter YAML parseado com o pacote yaml + contagem de bytes/linhas por arquivo",
+  "frontmatter_invalido_na_FONTE": [
+    {
+      "padrao": "autor: [CC] 2026-08-19",
+      "porque": "sequencia de flow [CC] seguida de escalar — YAML invalido",
+      "arquivos": [
+        "prototipo-ui/design-docs/handoff/Backup.charter.md",
+        "prototipo-ui/design-docs/handoff/backup-migracao/charter/Index.charter.md"
+      ],
+      "decisao": "preservado como esta: e defeito do documento vivo no Cowork, nao da transcricao. Consertar aqui quebraria a fidelidade e criaria drift com a fonte."
+    }
+  ],
+  "_lotes": {
+    "_porque": "Este arquivo passou a agregar mais de um lote de transcricao. As chaves de topo acima (gerado_em/metodo/verificacao_feita/fidelidade_nota) descrevem o PRIMEIRO lote, o dos .md. Cada registro carrega o campo `lote`, e a verificacao especifica de cada lote esta abaixo — nao presuma que a prosa de topo cobre um registro de outro lote.",
+    "_merge": "Se duas PRs deste tipo abrirem juntas, o conflito neste arquivo e ESPERADO e a resolucao e UNIAO do array `arquivos` — nunca sobrescrever um lado. Merge sem conflito aqui seria o sinal de que um lote sumiu. A PR #6117 (ainda ABERTA) escreve este mesmo arquivo com um TERCEIRO esquema: quem resolver aquele conflito faz a mesma uniao e adiciona o `lote` dela nesta lista.",
+    "design-docs/handoff (.md) — PR #6120": "cowork-ssot-guard exit 0 (R1: nenhum .md em cowork/) + frontmatter YAML parseado com o pacote yaml + contagem de bytes/linhas por arquivo",
+    "espelho cowork: Essenciais + Planilhas (.jsx/.css) — PR #6121": "TRES niveis, todos rodados em 100% dos 6 arquivos. (1) PARSE REAL com esbuild (JSX e CSS), calibrado ANTES com controle positivo (prototipo-ui/cowork/venda-v3.jsx, que veio pela rota fiel: rc=0) e controle negativo (JSX quebrado de proposito: rc=1) — resultado 6/6 OK. (2) Higiene de transcricao: NFC normalizado, ZERO caracteres combinantes (a classe de drift confirmada no lote anterior), ZERO CRLF. (3) Auditoria de TODOS os backslashes do lote — 4 no total, todos esperados, e ZERO ocorrencia de '\\n' literal: sao 2x aspas-escapadas em essenciais-data.jsx:40 (a citacao \"sem resposta\" dentro da string) e 2x a regex /\\.xlsx$/i em planilhas-page.jsx:177-178.",
+    "espelho cowork: Essenciais + Planilhas (.jsx/.css) — PR #6121 · o_que_o_parse_NAO_prova": "Parse verde diz que o arquivo e JSX/CSS valido — NAO que ele e igual ao vivo. Um typo dentro de string literal, um numero trocado ou uma palavra perdida passam pelo esbuild. Por isso `fidelidade: NAO PROVADA` fica em cada registro.",
+    "espelho cowork: Essenciais + Planilhas (.jsx/.css) — PR #6121 · rota_fiel_quando_existir": "Assim que sync/payload-01.json ... NN.json (partes <=250 KiB) existirem no projeto Cowork, reaplicar por aplicar-payload.mjs e SUBSTITUIR estes arquivos. O applier confere bytes declarados vs reais por arquivo.",
+    "design-docs/docs-novos (.md) — PR #6122": "cowork-ssot-guard exit 0 + frontmatter YAML parseado com o pacote yaml (10/10 validos) + contagem de bytes/linhas/sha256 por arquivo. Fidelidade NAO PROVADA: retorno inline do get_file, abaixo do limiar de persistencia (~47KB)."
+  },
   "arquivos": [
+    {
+      "path": "prototipo-ui/cowork/essenciais-data.jsx",
+      "bytes_escritos": 16057,
+      "linhas": 169,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA",
+      "lote": "espelho cowork: Essenciais + Planilhas (.jsx/.css) — PR #6121"
+    },
+    {
+      "path": "prototipo-ui/cowork/essenciais-extras.jsx",
+      "bytes_escritos": 17340,
+      "linhas": 302,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA",
+      "lote": "espelho cowork: Essenciais + Planilhas (.jsx/.css) — PR #6121"
+    },
+    {
+      "path": "prototipo-ui/cowork/essenciais-page.css",
+      "bytes_escritos": 9641,
+      "linhas": 116,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA",
+      "lote": "espelho cowork: Essenciais + Planilhas (.jsx/.css) — PR #6121"
+    },
+    {
+      "path": "prototipo-ui/cowork/essenciais-page.jsx",
+      "bytes_escritos": 41409,
+      "linhas": 701,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA",
+      "lote": "espelho cowork: Essenciais + Planilhas (.jsx/.css) — PR #6121"
+    },
+    {
+      "path": "prototipo-ui/cowork/planilhas-page.css",
+      "bytes_escritos": 8080,
+      "linhas": 88,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA",
+      "lote": "espelho cowork: Essenciais + Planilhas (.jsx/.css) — PR #6121"
+    },
+    {
+      "path": "prototipo-ui/cowork/planilhas-page.jsx",
+      "bytes_escritos": 25018,
+      "linhas": 428,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA",
+      "lote": "espelho cowork: Essenciais + Planilhas (.jsx/.css) — PR #6121"
+    },
     {
       "path": "prototipo-ui/design-docs/CLAUDE.md",
       "bytes_escritos": 4854,
@@ -105,6 +173,7 @@
       "sha256": "e52bbf330513a632029013dbdcda2389df3d374d573b4a84e4965a092b8e3c6f",
       "frontmatter": "ok",
       "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/docs-novos (.md) — PR #6122",
       "vs_repo": "n/a"
     },
     {
@@ -114,6 +183,7 @@
       "sha256": "c1412cea0b13dd180eb34c15d767e3703e6719ee53f1244369c3b25bf76fbf22",
       "frontmatter": "ok",
       "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/docs-novos (.md) — PR #6122",
       "vs_repo": "n/a"
     },
     {
@@ -123,6 +193,7 @@
       "sha256": "5520f941d58b054079492218930ad861dd885e539dc31775905b342593adfc71",
       "frontmatter": "ok",
       "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/docs-novos (.md) — PR #6122",
       "vs_repo": "n/a"
     },
     {
@@ -132,6 +203,7 @@
       "sha256": "e0c4e143f07fa1e34886265d65b025d53f540f02b08c68389ed84661bc4e33da",
       "frontmatter": "ok",
       "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/docs-novos (.md) — PR #6122",
       "vs_repo": "n/a"
     },
     {
@@ -141,6 +213,7 @@
       "sha256": "e6b3b5d06525d0e253bf5c9aea806fb35101af75656a4a50769531bbce901c02",
       "frontmatter": "ok",
       "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/docs-novos (.md) — PR #6122",
       "vs_repo": "n/a"
     },
     {
@@ -150,6 +223,7 @@
       "sha256": "9e1e4ada4621d76f74aec6110b523005aed49ae5ff84f3407576109845751f98",
       "frontmatter": "ok",
       "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/docs-novos (.md) — PR #6122",
       "vs_repo": "n/a"
     },
     {
@@ -159,6 +233,7 @@
       "sha256": "56edf4eaf74344d122e921ab996d54d93f6de1c1b50725916d8c70bed410a0c6",
       "frontmatter": "ok",
       "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/docs-novos (.md) — PR #6122",
       "vs_repo": "n/a"
     },
     {
@@ -168,6 +243,7 @@
       "sha256": "da1c145c6dd6c2458672b83ff85bda412d2cfa091553eb150b6db220e07eb1c2",
       "frontmatter": "ok",
       "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/docs-novos (.md) — PR #6122",
       "vs_repo": "n/a"
     },
     {
@@ -177,6 +253,7 @@
       "sha256": "2321a24cf3820de5a967cc53ee09ec46fa53f4d37689b83be46b48a4e832ae29",
       "frontmatter": "ok",
       "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/docs-novos (.md) — PR #6122",
       "vs_repo": "n/a"
     },
     {
@@ -186,6 +263,7 @@
       "sha256": "8409172512446553c7a144f6c088845d7f32beeee042a10298cc0997b3066876",
       "frontmatter": "ok",
       "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/docs-novos (.md) — PR #6122",
       "vs_repo": "n/a"
     },
     {
@@ -204,6 +282,7 @@
       "sha256": "daaf514d552026914c72558224b96904ce92be04b1e10eb25c6ee0ceca6ab489",
       "frontmatter": "ok",
       "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/handoff (.md) — PR #6120",
       "vs_repo": "n/a"
     },
     {
@@ -213,6 +292,7 @@
       "sha256": "7f6b2d19f79b0d797975d01a82e6b11a2a0af6a1edde72d5f5cbb4510bf29142",
       "frontmatter": "ERRO-NA-FONTE: Unexpected scalar at node end at line 6, column 13:",
       "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/handoff (.md) — PR #6120",
       "vs_repo": "n/a"
     },
     {
@@ -222,6 +302,7 @@
       "sha256": "8422cb686705194d63276ef40e77fc3f4c8627e77bc59f327a31dada09ecb265",
       "frontmatter": "ok",
       "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/handoff (.md) — PR #6120",
       "vs_repo": "n/a"
     },
     {
@@ -231,6 +312,7 @@
       "sha256": "113bbf999bc929a5a2547118dc75f56524b9226d0f1522c2ec6b756fd6f30ad9",
       "frontmatter": "sem-frontmatter",
       "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/handoff (.md) — PR #6120",
       "vs_repo": "n/a"
     },
     {
@@ -240,6 +322,7 @@
       "sha256": "8422cb686705194d63276ef40e77fc3f4c8627e77bc59f327a31dada09ecb265",
       "frontmatter": "ok",
       "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/handoff (.md) — PR #6120",
       "vs_repo": "n/a"
     },
     {
@@ -249,6 +332,7 @@
       "sha256": "d444d5fff5a5903bdba47ad94ea0eb20cbb179d26fda8e69b73ee50df3930e47",
       "frontmatter": "sem-frontmatter",
       "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/handoff (.md) — PR #6120",
       "vs_repo": "n/a"
     },
     {
@@ -258,6 +342,7 @@
       "sha256": "ecb5d29003a6aa606df2177af06fc79a2cf233942a1218565abaac9237b55a34",
       "frontmatter": "sem-frontmatter",
       "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/handoff (.md) — PR #6120",
       "vs_repo": "n/a"
     },
     {
@@ -267,6 +352,7 @@
       "sha256": "daaf514d552026914c72558224b96904ce92be04b1e10eb25c6ee0ceca6ab489",
       "frontmatter": "ok",
       "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/handoff (.md) — PR #6120",
       "vs_repo": "n/a"
     },
     {
@@ -276,6 +362,7 @@
       "sha256": "7f6b2d19f79b0d797975d01a82e6b11a2a0af6a1edde72d5f5cbb4510bf29142",
       "frontmatter": "ERRO-NA-FONTE: Unexpected scalar at node end at line 6, column 13:",
       "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/handoff (.md) — PR #6120",
       "vs_repo": "n/a"
     },
     {
@@ -583,17 +670,6 @@
       "frontmatter": "sem-frontmatter",
       "fidelidade": "NAO PROVADA",
       "vs_repo": "n/a"
-    }
-  ],
-  "frontmatter_invalido_na_FONTE": [
-    {
-      "padrao": "autor: [CC] 2026-08-19",
-      "porque": "sequencia de flow [CC] seguida de escalar — YAML invalido",
-      "arquivos": [
-        "prototipo-ui/design-docs/handoff/Backup.charter.md",
-        "prototipo-ui/design-docs/handoff/backup-migracao/charter/Index.charter.md"
-      ],
-      "decisao": "preservado como esta: e defeito do documento vivo no Cowork, nao da transcricao. Consertar aqui quebraria a fidelidade e criaria drift com a fonte."
     }
   ],
   "vs_repo_nota": "Para os .md que espelham um path vivo de resources/js/Pages, o campo vs_repo compara sha256 do transcrito com o arquivo homonimo do repo. IDENTICO/DIVERGE/SO_COWORK e comparacao de BYTES, nao diff semantico — nao estabelece qual lado esta a frente."
