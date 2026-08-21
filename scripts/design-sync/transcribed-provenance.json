@@ -1,4 +1,5 @@
 {
+  "_duas_campanhas_neste_arquivo": "ATENCAO ao ler: este arquivo carrega DUAS campanhas de transcricao distintas, unidas em 2026-08-21 por conflito add/add no git (as duas sessoes criaram o mesmo path independentemente — PR #6117/#6119 e PR #6120). Nenhum dado foi perdido: as chaves de topo das duas eram DISJUNTAS (so \"arquivos\" colidia) e nao havia nenhum path repetido. Como saber a qual campanha uma entrada pertence: pelo PROPRIO path. (a) entradas em \"prototipo-ui/cowork/**\" = descida do espelho Cowork (.jsx/.css), governada pelas chaves _leia_isto_primeiro, por_que_nao_ha_oraculo, rotas_testadas_e_fechadas, verificacao_possivel, rota_fiel_quando_existir, decisao, o_que_o_parse_NAO_garante, comando_para_reconferir, drift_observado, achado_shell_stale, ressalva_parser_css, achado_fonte_hrm_page_css, checagem_de_cardinalidade, licao_desta_leva_backtick_em_node_e, data. (b) entradas em \"prototipo-ui/design-docs/**\" = descida dos .md de handoff, governada pelas chaves gerado_em, fonte, metodo, fidelidade_nota, verificacao_feita, frontmatter_invalido_na_FONTE. As duas campanhas concordam no essencial e e por isso que compartilham o arquivo: fidelidade byte-a-byte NAO esta provada em nenhuma das duas.",
   "_leia_isto_primeiro": "Estes arquivos do espelho Cowork NAO desceram pela rota fiel (get_file -> --export-from). Eles foram TRANSCRITOS do contexto do agente porque o conteudo voltou inline (abaixo da fronteira de persistencia do get_file, ~48 KB). A fidelidade byte-a-byte NAO esta provada e NAO existe oraculo no vivo para prova-la. Decisao [W] 2026-08-21.",
   "por_que_nao_ha_oraculo": "Varredura dos 1.726 paths do projeto Cowork por manifest/hash/bytes/checksum: o unico _ds_manifest.json e indice de cards do Design System, nao hash de conteudo. Os campos bytes+fnv64 por arquivo existem so dentro de sync/payload.json (~3,5 MB), que o get_file corta em 256 KiB com truncated:true.",
   "rotas_testadas_e_fechadas": [
@@ -8,6 +9,35 @@
   ],
   "verificacao_possivel": "DOIS niveis, ambos rodados em 100% dos arquivos: (1) estrutural — delimitadores balanceados + IIFE fecha; (2) PARSE REAL com esbuild (JSX e CSS), calibrado com controle positivo (venda-v3.jsx, que veio pela rota fiel) e controle negativo (JSX quebrado de proposito, que o parser recusa). Resultado: 12/12 parse OK.",
   "rota_fiel_quando_existir": "Assim que sync/payload-01.json ... NN.json (partes <=250 KiB) existirem no projeto Cowork, reaplicar por aplicar-payload.mjs e SUBSTITUIR estes arquivos. O applier confere bytes declarados vs reais por arquivo.",
+  "data": "2026-08-21",
+  "decisao": "[W] autorizou explicitamente apos a ressalva ser apresentada quatro vezes nesta sessao.",
+  "o_que_o_parse_NAO_garante": "Fidelidade byte-a-byte. Uma linha inteira omitida, um numero trocado ou uma string alterada CONTINUAM sendo JSX valido e passam no parse. O parse prova que o arquivo CARREGA no navegador sem erro de sintaxe — nao prova que ele e igual ao vivo.",
+  "comando_para_reconferir": "for f in <arquivos>; do D:/oimpresso.com/node_modules/.bin/esbuild prototipo-ui/cowork/$f --outfile=/dev/null; done",
+  "drift_observado": "1 caso CONFIRMADO em 17 arquivos (cms-page.jsx, slugify). Foi pego por inspecao dirigida, NAO pelo parse — o parse passou nas duas formas. E a prova concreta de que parse OK != fidelidade byte-a-byte.",
+  "achado_shell_stale": "O shell local estava desatualizado e era a ANCORA de todas as minhas medicoes. O ABSENT-LOCAL que reportei nas levas 1-11 (31->15) foi medido contra fonte velha e SUBCONTAVA. Com o shell vivo: 26 ausentes. Os arquivos que eu classifiquei como orfaos (hrm-*, produto-blade*, relatorios-*) NAO sao orfaos — o shell velho e que nao os conhecia.",
+  "ressalva_parser_css": "MEDIDO 2026-08-21, calibracao desta leva: esbuild NAO reprova CSS quebrado. Controle negativo `a { color: red;` (bloco sem fechar) sai como [WARNING] css-syntax-error com exit 0 — o mesmo controle em JSX sai [ERROR] com exit 1. Logo, para .css o rc sozinho e um gate MUDO: e preciso rodar com --log-level=warning e exigir ZERO linhas de saida. A frase de verificacao_possivel que dizia \"PARSE REAL com esbuild (JSX e CSS)\" vale integralmente para JSX; para CSS so vale com essa flag. As 12 leituras anteriores de .css que declararam parse OK apenas por rc=0 nao foram reconferidas nesta leva.",
+  "achado_fonte_hrm_page_css": "O hrm-page.css emite 4 linhas de [WARNING] do esbuild — e o defeito e DO FONTE Cowork, nao da transcricao: o comentario da linha 2 contem `(os-*/usr-*/cli-*). */`, e o `*/` dentro de `os-*/` fecha o comentario antes da hora. Reproduzido verbatim de proposito (o espelho copia a fonte, inclusive o defeito). Nao tratar esse warning como sinal de drift.",
+  "checagem_de_cardinalidade": "RODADA nesta leva (4 arquivos), como TERCEIRO nivel alem do estrutural e do parse. O parse nao pega omissao: uma entrada inteira a menos continua sendo JSX valido. Entao contei os itens de cada colecao contra o esperado da fonte. hrm-data.jsx: EMP=7 TIPOS=5 LIC=9 FER=6 TUR=3 PRE=10 GD=5 LOTES=3 FOLHA=9 ACHADOS=7, ids de LIC e FOLHA sequenciais 1..9 sem lacuna, window.HRM com 24 chaves. hrm-forms.jsx: 6 declaracoes \"function Form*\" e 6 nomes no window.HrmForms (batem entre si), DIAS com 7 pares. produto-analises.jsx: 5 entradas no array \"abas\" e 5 blocos condicionais \"aba ===\" (batem entre si). TODOS BATEM. O QUE ISSO NAO PROVA: valor alterado DENTRO de uma entrada (salario, data, percentual, copy) — cardinalidade pega item FALTANDO, nao item ERRADO. Por isso o campo \"fidelidade\" de cada entrada continua NAO PROVADA.",
+  "licao_desta_leva_backtick_em_node_e": "Registro de erro proprio (2026-08-21): a 1a gravacao deste campo passou por \"node -e\" com o argumento entre ASPAS DUPLAS e backticks no texto. O shell fez substituicao de comando: \"`fidelidade`\" virou string vazia (com \"fidelidade: command not found\" no stderr) e \"`abas'\" ficou com aspas desbalanceada. O JSON gerado era valido e o commit passou — ou seja, o defeito nao aparecia em nenhum gate, so na leitura do texto. Regra: conteudo literal nao atravessa \"node -e\"/heredoc do wrapper; escreve-se por script em ARQUIVO ou pela tool de escrita.",
+  "gerado_em": "2026-08-21",
+  "fonte": {
+    "sistema": "DesignSync",
+    "projectId": "019dcfd3-6ef2-7ee6-8512-b1b0e5544e58"
+  },
+  "metodo": "DesignSync.get_file (retorno INLINE) -> transcricao pelo agente via heredoc quoted",
+  "fidelidade_nota": "NAO PROVADA para todos: os bytes passaram pelo contexto do agente. A rota --export-from do cowork-mirror-freshness garante fidelidade POR CONSTRUCAO somente quando o harness persiste a saida do get_file (limiar medido ~47KB); nenhum destes .md atingiu o limiar, entao a rota persistida nao se aplica.",
+  "verificacao_feita": "cowork-ssot-guard exit 0 (R1: nenhum .md em cowork/) + frontmatter YAML parseado com o pacote yaml + contagem de bytes/linhas por arquivo",
+  "frontmatter_invalido_na_FONTE": [
+    {
+      "padrao": "autor: [CC] 2026-08-19",
+      "porque": "sequencia de flow [CC] seguida de escalar — YAML invalido",
+      "arquivos": [
+        "prototipo-ui/design-docs/handoff/Backup.charter.md",
+        "prototipo-ui/design-docs/handoff/backup-migracao/charter/Index.charter.md"
+      ],
+      "decisao": "preservado como esta: e defeito do documento vivo no Cowork, nao da transcricao. Consertar aqui quebraria a fidelidade e criaria drift com a fonte."
+    }
+  ],
   "arquivos": [
     {
       "path": "prototipo-ui/cowork/modulo-padrao.jsx",
@@ -251,16 +281,78 @@
       "linhas": 214,
       "parse_esbuild": "OK",
       "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/Backup.casos.md",
+      "bytes_escritos": 7605,
+      "linhas": 112,
+      "sha256": "daaf514d552026914c72558224b96904ce92be04b1e10eb25c6ee0ceca6ab489",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/Backup.charter.md",
+      "bytes_escritos": 4911,
+      "linhas": 94,
+      "sha256": "7f6b2d19f79b0d797975d01a82e6b11a2a0af6a1edde72d5f5cbb4510bf29142",
+      "frontmatter": "ERRO: Unexpected scalar at node end at line 6, column 13:",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/HANDOFF-backup-tela.md",
+      "bytes_escritos": 6147,
+      "linhas": 103,
+      "sha256": "8422cb686705194d63276ef40e77fc3f4c8627e77bc59f327a31dada09ecb265",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/HANDOFF-financeiro-contrato.md",
+      "bytes_escritos": 3198,
+      "linhas": 28,
+      "sha256": "113bbf999bc929a5a2547118dc75f56524b9226d0f1522c2ec6b756fd6f30ad9",
+      "frontmatter": "sem-frontmatter",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/backup-migracao/HANDOFF-backup-tela.md",
+      "bytes_escritos": 6147,
+      "linhas": 103,
+      "sha256": "8422cb686705194d63276ef40e77fc3f4c8627e77bc59f327a31dada09ecb265",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/backup-migracao/PLANO-ONDAS.md",
+      "bytes_escritos": 6230,
+      "linhas": 126,
+      "sha256": "d444d5fff5a5903bdba47ad94ea0eb20cbb179d26fda8e69b73ee50df3930e47",
+      "frontmatter": "sem-frontmatter",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/backup-migracao/README.md",
+      "bytes_escritos": 2963,
+      "linhas": 55,
+      "sha256": "ecb5d29003a6aa606df2177af06fc79a2cf233942a1218565abaac9237b55a34",
+      "frontmatter": "sem-frontmatter",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/backup-migracao/charter/Index.casos.md",
+      "bytes_escritos": 7605,
+      "linhas": 112,
+      "sha256": "daaf514d552026914c72558224b96904ce92be04b1e10eb25c6ee0ceca6ab489",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/backup-migracao/charter/Index.charter.md",
+      "bytes_escritos": 4911,
+      "linhas": 94,
+      "sha256": "7f6b2d19f79b0d797975d01a82e6b11a2a0af6a1edde72d5f5cbb4510bf29142",
+      "frontmatter": "ERRO: Unexpected scalar at node end at line 6, column 13:",
+      "fidelidade": "NAO PROVADA"
     }
-  ],
-  "data": "2026-08-21",
-  "decisao": "[W] autorizou explicitamente apos a ressalva ser apresentada quatro vezes nesta sessao.",
-  "o_que_o_parse_NAO_garante": "Fidelidade byte-a-byte. Uma linha inteira omitida, um numero trocado ou uma string alterada CONTINUAM sendo JSX valido e passam no parse. O parse prova que o arquivo CARREGA no navegador sem erro de sintaxe — nao prova que ele e igual ao vivo.",
-  "comando_para_reconferir": "for f in <arquivos>; do D:/oimpresso.com/node_modules/.bin/esbuild prototipo-ui/cowork/$f --outfile=/dev/null; done",
-  "drift_observado": "1 caso CONFIRMADO em 17 arquivos (cms-page.jsx, slugify). Foi pego por inspecao dirigida, NAO pelo parse — o parse passou nas duas formas. E a prova concreta de que parse OK != fidelidade byte-a-byte.",
-  "achado_shell_stale": "O shell local estava desatualizado e era a ANCORA de todas as minhas medicoes. O ABSENT-LOCAL que reportei nas levas 1-11 (31->15) foi medido contra fonte velha e SUBCONTAVA. Com o shell vivo: 26 ausentes. Os arquivos que eu classifiquei como orfaos (hrm-*, produto-blade*, relatorios-*) NAO sao orfaos — o shell velho e que nao os conhecia.",
-  "ressalva_parser_css": "MEDIDO 2026-08-21, calibracao desta leva: esbuild NAO reprova CSS quebrado. Controle negativo `a { color: red;` (bloco sem fechar) sai como [WARNING] css-syntax-error com exit 0 — o mesmo controle em JSX sai [ERROR] com exit 1. Logo, para .css o rc sozinho e um gate MUDO: e preciso rodar com --log-level=warning e exigir ZERO linhas de saida. A frase de verificacao_possivel que dizia \"PARSE REAL com esbuild (JSX e CSS)\" vale integralmente para JSX; para CSS so vale com essa flag. As 12 leituras anteriores de .css que declararam parse OK apenas por rc=0 nao foram reconferidas nesta leva.",
-  "achado_fonte_hrm_page_css": "O hrm-page.css emite 4 linhas de [WARNING] do esbuild — e o defeito e DO FONTE Cowork, nao da transcricao: o comentario da linha 2 contem `(os-*/usr-*/cli-*). */`, e o `*/` dentro de `os-*/` fecha o comentario antes da hora. Reproduzido verbatim de proposito (o espelho copia a fonte, inclusive o defeito). Nao tratar esse warning como sinal de drift.",
-  "checagem_de_cardinalidade": "RODADA nesta leva (4 arquivos), como TERCEIRO nivel alem do estrutural e do parse. O parse nao pega omissao: uma entrada inteira a menos continua sendo JSX valido. Entao contei os itens de cada colecao contra o esperado da fonte. hrm-data.jsx: EMP=7 TIPOS=5 LIC=9 FER=6 TUR=3 PRE=10 GD=5 LOTES=3 FOLHA=9 ACHADOS=7, ids de LIC e FOLHA sequenciais 1..9 sem lacuna, window.HRM com 24 chaves. hrm-forms.jsx: 6 declaracoes \"function Form*\" e 6 nomes no window.HrmForms (batem entre si), DIAS com 7 pares. produto-analises.jsx: 5 entradas no array \"abas\" e 5 blocos condicionais \"aba ===\" (batem entre si). TODOS BATEM. O QUE ISSO NAO PROVA: valor alterado DENTRO de uma entrada (salario, data, percentual, copy) — cardinalidade pega item FALTANDO, nao item ERRADO. Por isso o campo \"fidelidade\" de cada entrada continua NAO PROVADA.",
-  "licao_desta_leva_backtick_em_node_e": "Registro de erro proprio (2026-08-21): a 1a gravacao deste campo passou por \"node -e\" com o argumento entre ASPAS DUPLAS e backticks no texto. O shell fez substituicao de comando: \"`fidelidade`\" virou string vazia (com \"fidelidade: command not found\" no stderr) e \"`abas'\" ficou com aspas desbalanceada. O JSON gerado era valido e o commit passou — ou seja, o defeito nao aparecia em nenhum gate, so na leitura do texto. Regra: conteudo literal nao atravessa \"node -e\"/heredoc do wrapper; escreve-se por script em ARQUIVO ou pela tool de escrita."
+  ]
 }

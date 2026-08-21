@@ -184,13 +184,13 @@ coisas que o servidor não honra — e portá-las reintroduziria a classe que es
 
 | a âncora oferece | o que existe |
 |---|---|
-| 6 toggles de análise | a tela renderiza **4** cards (`inad`/`fat`/`conc`/`metodos`); churn, frota e cheques são a ordem 7 do mapa (*"fonte de dado que não existe"*) |
+| 6 toggles de análise | a tela renderiza **5** cards (`inad`/`fat`/`conc`/`metodos`/`churn`); frota e cheques são a ordem 7 do mapa (*"fonte de dado que não existe"*) |
 | "Enviar brief todo dia" + hora | o brief é gerado server-side (`BriefingAgent`); nenhum cron lê o `localStorage` deste navegador |
 | "Versão em áudio" (TTS) | não existe — o próprio protótipo diz que *"entra na M2"* |
 | retenção *"ela esquece sozinha"* | `jana:retention-purge` foi **descartado por [W]** (*"num ERP não se apaga PII"*) |
 
 Fica só o que é verdade **e** é de fato local: **quais análises aparecem no painel**. Esse toggle não
-mente porque não promete cálculo — o aggregator apura as quatro numa consulta só, e o drawer diz isso
+mente porque não promete cálculo — o aggregator apura as cinco numa consulta só, e o drawer diz isso
 em letra. Preferência que vale pra empresa toda aponta pro dono server-side que já existe
 (`PATCH /ia/alertas/config` → `business.essentials_settings.alertas`, per-business, Tier 0) em vez de
 ganhar um segundo dono aqui.
@@ -199,8 +199,8 @@ Persistência em `localStorage['oimpresso.jana.cfg']` — prefixo `oimpresso.jan
 irmão (`Chat.charter.md` §Goals + §Anti-hooks *"❌ sessionStorage"*). A escrita preserva as chaves que
 não são nossas (o protótipo grava `brief`/`pro`/`retencao` na mesma chave).
 
-**Pronto quando:** o botão abre o drawer; os 4 toggles escondem/mostram o card correspondente e
-sobrevivem ao reload; esconder as quatro mostra o estado que diz como voltar; e **nenhum** toggle de
+**Pronto quando:** o botão abre o drawer; os 5 toggles escondem/mostram o card correspondente e
+sobrevivem ao reload; esconder as cinco mostra o estado que diz como voltar; e **nenhum** toggle de
 brief/áudio/retenção existe.
 
 _Por que a asserção é de ARQUIVO: mesmo motivo do UC-08 — o defeito é de render/promessa e o Pest não
