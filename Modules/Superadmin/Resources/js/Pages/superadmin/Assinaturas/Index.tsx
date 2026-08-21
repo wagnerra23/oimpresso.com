@@ -164,7 +164,7 @@ function AssinaturasIndex({ filtros, pacotes, kpis, assinaturas }: Props) {
 
   return (
     <div className="pb-8">
-      <PageHeader title="Assinaturas" description="Cobrança de todos os negócios da plataforma" />
+      <PageHeader title="Assinaturas" moduleNav description="Cobrança de todos os negócios da plataforma" />
 
       {/*
         A âncora do contrato fica AQUI, na posição de render, e não dentro de `KpiLinha`: o gate

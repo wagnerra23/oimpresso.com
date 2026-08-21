@@ -214,7 +214,7 @@ function NegociosIndex({ filtros, aberto, pacotes, negocios, detalhe }: Props) {
 
   return (
     <div className="pb-8">
-      <PageHeader title="Negócios" subtitle="Todos os clientes da plataforma" />
+      <PageHeader title="Negócios" moduleNav description="Todos os clientes da plataforma" />
 
       <div className="flex flex-wrap items-center gap-2 px-6 pt-4" data-contract="superadmin.negocios.busca-filtros">
         <Input

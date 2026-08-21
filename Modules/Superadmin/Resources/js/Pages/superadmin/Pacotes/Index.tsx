@@ -95,7 +95,7 @@ function limite(n: number, sing: string, plur: string, ilimitado: string): strin
 function PacotesIndex({ pacotes }: Props) {
   return (
     <div className="pb-8">
-      <PageHeader title="Pacotes de assinatura" description="A grade comercial da plataforma" />
+      <PageHeader title="Pacotes de assinatura" moduleNav description="A grade comercial da plataforma" />
 
       <div className="px-6 pt-4" data-contract="superadmin.pacotes.grid">
         <Deferred data="pacotes" fallback={<GridEsqueleto />}>
