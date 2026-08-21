@@ -1,0 +1,44 @@
+/* modulo-padrao.css — o pouco que o padrão de módulo acrescenta às classes jc-*/jm-*.
+   Tudo em tokens do DS vivo (.cockpit) — zero cor crua, zero paleta paralela. */
+.mp-page{display:flex;flex-direction:column;min-width:0;overflow:hidden}
+/* Suspiro nas bordas: o módulo respira igual em cima, nos lados e no pé. */
+.mp-page>.mp-header{padding:20px 28px 0;margin-bottom:14px}
+.mp-page>.jm-tabs{padding:0 28px}
+.mp-body{padding:18px 28px 32px}
+@media (max-width:900px){.mp-page>.mp-header{padding:16px 16px 0}.mp-page>.jm-tabs{padding:0 16px}.mp-body{padding:14px 16px 24px}}
+/* O painel tem a sua própria região rolável — header e abas ficam fixos, como na Jana. */
+.mp-body{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column}
+.mp-body>*{flex:0 0 auto}
+.mp-body>*+.jc-h2{margin-top:16px}
+.mp-body>:last-child{margin-bottom:0}
+.mp-body .jc-acoes,.mp-body .jc-grid,.mp-body .jc-kpis{overflow:visible}
+/* Refinos de leitura: rótulo de barra numa linha só (ellipsis, nunca conjunção pendurada). */
+.mp-body .jc-bar{grid-template-columns:112px 1fr 44px}
+.mp-body .jc-bk{grid-template-columns:96px 1fr 92px}
+.mp-body .jc-bar-l,.mp-body .jc-bk-l{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mp-body .jc-bk-v{font-variant-numeric:tabular-nums}
+/* KPI de atenção: tint leve + borda no tom (canon do DS), não plate sólido. */
+.mp-body .jc-kpi.emph{background:color-mix(in oklch,var(--neg) 8%,var(--surface));border-color:color-mix(in oklch,var(--neg) 24%,var(--border))}
+.mp-body .jc-kpi.emph .jc-kpi-v{color:var(--neg)}
+/* Linha de total no fim de uma análise em lista. */
+.mp-total{display:flex;justify-content:space-between;align-items:baseline;margin-top:auto;padding-top:8px;border-top:1px solid var(--border);font-size:11.5px;color:var(--text-2)}
+.mp-total b{font-family:var(--mono);font-size:12.5px;color:var(--text);font-variant-numeric:tabular-nums}
+/* Análises da mesma linha têm alturas iguais: o rodapé/total desce pro pé do card. */
+.mp-body .jc-an{display:flex;flex-direction:column}
+.mp-body .jc-an .jc-an-foot,.mp-body .jc-an .jc-an-footnote{margin-top:auto}
+.mp-body .jc-an .mp-total+*{margin-top:8px}
+/* A dica do h2 acompanha o título, não a borda da tela. */
+.mp-body .jc-h2 .jm-h2-sub{margin-left:12px}
+.mp-header{flex-wrap:wrap;row-gap:10px}
+.mp-header .jc-header-l{min-width:280px}
+.mp-header .jc-id h1{white-space:nowrap}
+.mp-header .jc-header-r{flex-wrap:wrap;row-gap:8px}
+.mp-busca{display:flex;align-items:center;gap:6px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius,6px);padding:5px 10px;min-width:230px}
+.mp-busca input{border:none;outline:none;background:transparent;font-size:12.5px;color:var(--text);flex:1;min-width:0}
+.mp-busca span{color:var(--text-mute);font-size:13px}
+.mp-header .mp-glyph{width:40px;height:40px;border-radius:var(--r-2,8px);display:grid;place-items:center;background:color-mix(in oklch,var(--accent) 12%,transparent);border:1px solid var(--accent-line,var(--border));color:var(--accent);flex:none}
+.mp-header .mp-glyph svg{width:20px;height:20px}
+.mp-resumo p{margin:0 0 6px}
+.mp-resumo p:last-of-type{margin-bottom:0}
+.mp-skel{display:flex;flex-direction:column;gap:14px;padding:16px 20px}
+.mp-acoes-h{display:flex;align-items:center;gap:8px}

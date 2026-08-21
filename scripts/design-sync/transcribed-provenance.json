@@ -145,6 +145,20 @@
       "linhas": 612,
       "parse_esbuild": "OK",
       "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/modulo-padrao.css",
+      "bytes_escritos": 3298,
+      "linhas": 45,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/jana-pro.css",
+      "bytes_escritos": 7516,
+      "linhas": 83,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
     }
   ],
   "data": "2026-08-21",
