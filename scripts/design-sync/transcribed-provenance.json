@@ -138,6 +138,13 @@
       "parse_esbuild": "OK",
       "fidelidade": "NAO PROVADA",
       "drift_detectado_e_corrigido": "slugify: escrevi os caracteres combinantes literais U+0300-U+036F em vez da sequencia de escape ̀-ͯ. Mesmo comportamento, texto diferente. Corrigido."
+    },
+    {
+      "path": "prototipo-ui/cowork/hrm-extras.jsx",
+      "bytes_escritos": 43892,
+      "linhas": 612,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
     }
   ],
   "data": "2026-08-21",
