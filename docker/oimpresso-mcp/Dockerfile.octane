@@ -38,7 +38,15 @@ RUN install-php-extensions \
 # (storage/app/deployed_commit.txt → /api/mcp/health/auth) — drift observability
 # (ADR 0256), lido pela sentinela mcp-drift-sentinel.yml. A base FrankenPHP-alpine
 # NÃO traz git; sem isto o entrypoint grava "unknown" → /health/auth sem commit.
-RUN apk add --no-cache git
+#
+# mariadb-client: provê o /usr/bin/mysql que o `migrate`/`migrate:fresh` invoca em
+# "Loading stored database schemas" pra recarregar database/schema/mysql-schema.sql.
+# A regra JÁ existia no Dockerfile (não-octane) desde #2640 / US-GOV-018 Frente A —
+# mas é ESTE arquivo que constrói a oimpresso/mcp:latest em uso (provado pelas labels
+# FrankenPHP da imagem + `docker image history`). Sem o binário, um teste com
+# RefreshDatabase DROPA o schema e NÃO consegue recarregar: o banco fica vazio e não
+# se recupera sozinho. Benigno (client CLI; o runtime usa pdo_mysql, não o binário).
+RUN apk add --no-cache git mariadb-client
 
 # OPcache + JIT em produção pra acelerar boot inicial e código quente
 COPY php.ini /usr/local/etc/php/conf.d/zz-mcp-overrides.ini
