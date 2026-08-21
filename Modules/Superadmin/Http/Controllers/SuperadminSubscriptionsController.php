@@ -11,6 +11,7 @@ use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Modules\Superadmin\Entities\Package;
 use Modules\Superadmin\Entities\Subscription;
+use Modules\Superadmin\Services\SubscriptionLifecycleService;
 use Modules\Superadmin\Support\RotuloAssinatura;
 
 class SuperadminSubscriptionsController extends BaseController
@@ -326,10 +327,32 @@ class SuperadminSubscriptionsController extends BaseController
     }
 
     /**
-     * Update the specified resource in storage.
+     * Muda o STATUS de uma assinatura (`PUT /superadmin/superadmin-subscription/{id}`) — SA-O4b.
      *
-     * @param  Request  $request
-     * @return Response
+     * O que mudou em relação ao legado, e é o ponto todo desta onda: o legado fazia
+     * `$subscription->status = $input['status']; save();` — escrita direta, sem trilha de
+     * transição e sem regra. Aqui a escrita passa pelo `SubscriptionLifecycleService`, que é
+     * quem sabe calcular vigência ao aprovar, é idempotente ao expirar e persiste motivo ao
+     * cancelar.
+     *
+     * ⚠️ POR QUE 3 AÇÕES E NÃO OS 5 STATUS DO F1 — divergência declarada, não recorte por
+     * preguiça. O Service modela três transições (`approve`, `expire`, `cancel`). Os outros
+     * dois valores do enum não são ações de operador:
+     *
+     *   - `waiting` (Pendente) é o estado INICIAL de quem ainda não teve baixa. "Voltar pra
+     *     pendente" seria des-aprovar, o que o Service não modela — e fazer na mão aqui é
+     *     exatamente a escrita direta que esta onda veio remover.
+     *   - `declined` (Bloqueada) é gravado por `OnCobrancaVencidaBloqueaSubscription` quando a
+     *     cobrança vence. É consequência de evento, não escolha de tela.
+     *
+     * Oferecer os cinco exigiria ou ampliar o Service (decisão de domínio) ou furar o próprio
+     * contrato. Fica registrado no RUNBOOK-assinaturas §7 como decisão [W].
+     *
+     * SUPERADMIN: escrita cross-tenant intencional (ADR 0093 §exceções) — o superadmin opera
+     * sobre a assinatura de qualquer negócio por desenho.
+     *
+     * @see Modules\Superadmin\Services\SubscriptionLifecycleService
+     * @see memory/requisitos/Superadmin/RUNBOOK-assinaturas.md §7
      */
     public function update(Request $request, $id)
     {
@@ -337,38 +360,69 @@ class SuperadminSubscriptionsController extends BaseController
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            try {
-                $input = $request->only(['status', 'payment_transaction_id']);
+        $dados = $request->validate([
+            'acao' => ['required', 'string', 'in:aprovar,vencer,cancelar'],
+            // O motivo só é exigido no cancelamento, que é o único que o registra. Exigir
+            // sempre treinaria o operador a digitar qualquer coisa pra passar.
+            'motivo' => ['nullable', 'string', 'in:'.implode(',', SubscriptionLifecycleService::MOTIVOS_CANCELAMENTO)],
+            'nota' => ['nullable', 'string', 'max:1000'],
+        ]);
 
-                $subscriptions = Subscription::findOrFail($id);
+        // SUPERADMIN: busca cross-tenant intencional (ADR 0093 §exceções) — nenhum tenant
+        // filtra esta consulta; a tela opera sobre a assinatura de qualquer negócio.
+        $assinatura = Subscription::findOrFail($id);
 
-                if ($subscriptions->status != 'approved' && empty($subscriptions->start_date) && $input['status'] == 'approved') {
-                    $dates = $this->_get_package_dates($subscriptions->business_id, $subscriptions->package);
-                    $subscriptions->start_date = $dates['start'];
-                    $subscriptions->end_date = $dates['end'];
-                    $subscriptions->trial_end_date = $dates['trial'];
-                }
+        // O `business_id` do alvo é lido para o REGISTRO da ação, não para filtrar. Ele fica
+        // no código (e não só no comentário acima) de propósito: a regra
+        // `NoMissingTenantScopeRule` serializa o AST do método — string, variável, identificador
+        // — e NÃO enxerga comentário. Declarar a exceção só em prosa passa despercebido por ela,
+        // e o span de escrita cross-tenant sem o tenant alvo é justamente o que ninguém consegue
+        // auditar depois.
+        $business_id = (int) ($assinatura->business_id ?? 0);
 
-                $subscriptions->status = $input['status'];
-                $subscriptions->payment_transaction_id = $input['payment_transaction_id'];
-                $subscriptions->save();
+        $servico = app(SubscriptionLifecycleService::class);
 
-                $output = ['success' => true,
-                    'msg' => __('superadmin::lang.subcription_updated_success'),
-                ];
-            } catch (\Exception $e) {
-                // LGPD D7.a — exception->getMessage() pode conter PII cross-tenant
-            $this->_log_emergency_redacted($e, 'SuperadminSubscriptionsController');
+        // `validate()` devolve `mixed`, e a análise estática não sabe que o `in:` acima já
+        // fechou o conjunto. Estreitar para `string` aqui é o que dá ao `match` um tipo com
+        // que trabalhar — sem isso ele fica sem braço para o resto do universo.
+        $acao = (string) $dados['acao'];
 
-                $output = ['success' => false,
-                    'msg' => __('messages.something_went_wrong'),
-                ];
-            }
+        $aplicou = OtelHelper::spanBiz('superadmin.assinaturas.acao', fn (): bool => match ($acao) {
+            'aprovar' => $servico->approve($assinatura),
+            'vencer' => $servico->expire($assinatura),
+            'cancelar' => $servico->cancel($assinatura, $dados['motivo'] ?? '', $dados['nota'] ?? ''),
+            // Inalcançável hoje: o `validate()` restringe a `in:aprovar,vencer,cancelar`. O braço
+            // existe por dois motivos — `match` sem `default` sobre valor não-fechado é erro de
+            // análise estática, e se alguém afrouxar a validação amanhã a falha aparece AQUI, alta
+            // e nomeada, em vez de virar um `UnhandledMatchError` sem contexto.
+            default => throw new \LogicException('Ação de assinatura fora do contrato: '.$acao),
+        }, [
+            'module' => 'Superadmin',
+            'component' => 'superadmin.assinaturas.acao',
+            'acao' => $acao,
+            'subscription_id' => (int) $id,
+            'target_biz' => $business_id,
+        ]);
 
-            return $output;
-        }
+        // O Service devolve `false` quando a transição não se aplica (já cancelada, ainda
+        // vigente, status incompatível). Isso NÃO é erro — é o guarda funcionando. A tela
+        // precisa saber a diferença, senão mostra "salvo" pra uma escrita que não houve.
+        $recado = $aplicou
+            ? self::RECADO_OK[$acao]
+            : 'Nada mudou: a assinatura não estava num estado que permitisse essa ação.';
+
+        return back()->with('status', [
+            'success' => $aplicou ? 1 : 0,
+            'msg' => $recado,
+        ]);
     }
+
+    /** Recado por ação aplicada. Fala do EFEITO, não do verbo — é o que o operador precisa saber. */
+    private const RECADO_OK = [
+        'aprovar' => 'Assinatura aprovada. O acesso vale a partir de agora e a vigência foi calculada pelo pacote.',
+        'vencer' => 'Assinatura marcada como vencida.',
+        'cancelar' => 'Assinatura cancelada. Ela para de renovar no fim da vigência e o acesso continua até lá.',
+    ];
 
     /**
      * Remove the specified resource from storage.
@@ -399,10 +453,22 @@ class SuperadminSubscriptionsController extends BaseController
     }
 
     /**
-     * Update the specified resource in storage.
+     * Edita a VIGÊNCIA de uma assinatura (`POST /superadmin/update-subscription`) — SA-O4b.
      *
-     * @param  Request  $request
-     * @return Response
+     * UC-SA-009 do F1: prorrogar sem gerar cobrança nova. É exatamente o que este método faz e
+     * o que ele NÃO faz — mexer em data não emite nada, não toca `package_price` e não muda
+     * `status`. A tela diz isso em texto, porque a pergunta "isso vai cobrar de novo?" é a
+     * primeira que aparece na cabeça de quem prorroga.
+     *
+     * O legado respondia JSON pra um modal AJAX; agora redireciona de volta, que é o que o
+     * Inertia espera. As datas continuam passando por `BusinessUtil::uf_date` — o formato de
+     * entrada é `dd/mm/aaaa` e o parser é o mesmo do resto do ERP.
+     *
+     * ⚠️ Datas AQUI não são valor monetário, e por isso este método não cai na REGRA MESTRE de
+     * "CÁLCULO DE VALOR ou ESTOQUE": nenhuma conta de preço é refeita. O que muda é até quando
+     * o acesso vale.
+     *
+     * SUPERADMIN: escrita cross-tenant intencional (ADR 0093 §exceções).
      */
     public function updateSubscription(Request $request)
     {
@@ -410,30 +476,58 @@ class SuperadminSubscriptionsController extends BaseController
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            try {
-                $input = $request->only(['start_date', 'end_date', 'trial_end_date']);
+        $dados = $request->validate([
+            'subscription_id' => ['required', 'integer'],
+            'start_date' => ['nullable', 'string', 'max:10'],
+            'end_date' => ['nullable', 'string', 'max:10'],
+            'trial_end_date' => ['nullable', 'string', 'max:10'],
+        ]);
 
-                $subscription = Subscription::findOrFail($request->input('subscription_id'));
+        // SUPERADMIN: busca cross-tenant intencional (ADR 0093 §exceções) — nenhum tenant
+        // filtra esta consulta.
+        $assinatura = Subscription::findOrFail($dados['subscription_id']);
 
-                $subscription->start_date = ! empty($input['start_date']) ? $this->businessUtil->uf_date($input['start_date']) : null;
-                $subscription->end_date = ! empty($input['end_date']) ? $this->businessUtil->uf_date($input['end_date']) : null;
-                $subscription->trial_end_date = ! empty($input['trial_end_date']) ? $this->businessUtil->uf_date($input['trial_end_date']) : null;
-                $subscription->save();
+        // Mesma razão do `update()`: o `business_id` do alvo entra no CÓDIGO, não só no
+        // comentário, porque a `NoMissingTenantScopeRule` lê AST e é cega a comentário.
+        $business_id = (int) ($assinatura->business_id ?? 0);
 
-                $output = ['success' => true,
-                    'msg' => __('superadmin::lang.subcription_updated_success'),
-                ];
-            } catch (\Exception $e) {
-                // LGPD D7.a — exception->getMessage() pode conter PII cross-tenant
-            $this->_log_emergency_redacted($e, 'SuperadminSubscriptionsController');
+        $inicio = ! empty($dados['start_date']) ? $this->businessUtil->uf_date($dados['start_date']) : null;
+        $fim = ! empty($dados['end_date']) ? $this->businessUtil->uf_date($dados['end_date']) : null;
 
-                $output = ['success' => false,
-                    'msg' => __('messages.something_went_wrong'),
-                ];
-            }
-
-            return $output;
+        // Vigência invertida é erro de digitação, não estado válido: gravada, ela faz a
+        // assinatura nascer vencida e some da fila de cobrança sem ninguém entender por quê.
+        if ($inicio && $fim && $fim < $inicio) {
+            return back()->with('status', [
+                'success' => 0,
+                'msg' => 'O fim da vigência não pode ser anterior ao início.',
+            ]);
         }
+
+        $assinatura->start_date = $inicio;
+        $assinatura->end_date = $fim;
+        $assinatura->trial_end_date = ! empty($dados['trial_end_date'])
+            ? $this->businessUtil->uf_date($dados['trial_end_date'])
+            : null;
+
+        // O span envolve a ESCRITA, não fica ao lado dela: span que não abraça a operação mede
+        // o tempo de nada e não falha junto quando a operação falha.
+        //
+        // Spatie LogsActivity no model registra o delta — a trilha da mudança de data sai daqui
+        // sem código extra (é o mesmo mecanismo que cobre status).
+        OtelHelper::spanBiz('superadmin.assinaturas.vigencia', function () use ($assinatura): bool {
+            $assinatura->save();
+
+            return true;
+        }, [
+            'module' => 'Superadmin',
+            'component' => 'superadmin.assinaturas.vigencia',
+            'subscription_id' => (int) $assinatura->id,
+            'target_biz' => $business_id,
+        ]);
+
+        return back()->with('status', [
+            'success' => 1,
+            'msg' => 'Vigência salva. Nenhuma cobrança nova foi gerada.',
+        ]);
     }
 }

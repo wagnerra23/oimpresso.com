@@ -5,7 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a lista que enxerga TODOS os negócios da plataforma — cross-tenant por desenho, o inverso do resto do ERP. Sem casos, a próxima sessão "conserta" isso aplicando escopo de tenant e quebra o produto. E a paginação server-side tem uma armadilha silenciosa (join 1-para-N que faz o total mentir) que só um caso pega.
 owner: wagner
-last_run: "2026-08-20"
+last_run: "2026-08-21"
+revalidacao_2026_08_21: "O G-6 acusou stale porque o `.tsx` foi tocado pela SA-O4a: `Select`, `plural` e `tomDaAssinatura` saíram deste arquivo para `../_components/assinatura` — a tela de Assinaturas precisava do MESMO mapa rótulo→tom, e uma segunda cópia é como as duas divergem no primeiro status novo (§5 proibicoes 2026-08-02). A extração é MOVIMENTO, não alteração: o `Select` foi copiado byte a byte (inclusive o `aria-label`) e o render é idêntico. Nenhum UC deste arquivo muda de veredito. O bump de data é higiene do gate, não afirmação de re-execução."
 last_run_ci: "_pendente_ — o trio nasce nesta onda (SA-O2). O veredito por UC entra no manifesto quando a lane rodar; até lá o Status é 🧪, nunca ✅."
 revalidacao_2026_08_20: "O `.tsx` mudou (G-6 acusou stale), então o `last_run` sobe — mas a mudança foi ATRIBUTO PURO: 4 `data-contract` em elementos que já existiam, zero alteração de DOM, lógica ou copy (diff 4/4). Nenhum UC deste arquivo muda de veredito por causa dela; o que os UCs afirmam continua exatamente o mesmo. O que a mudança ACRESCENTA é defesa: as copy da tabela, dos filtros e das 4 seções do drawer passam a ser travadas por `prototipo-ui/contrato/superadmin-negocios.contract.json`, verificado no CI — antes elas só viviam na prosa daqui."
 ---
