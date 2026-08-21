@@ -135,7 +135,7 @@ export function FinPresentationMode({ open, onClose, kpis, lancamentos, periodLa
         <button type="button" className="fin-present-close" onClick={onClose} title="Fechar (Esc)">×</button>
       </header>
 
-      <main className="fin-present-body">
+      <div className="fin-present-body">
         {view === 'overview' && (
           <div className="fin-present-overview">
             <div className="fin-present-hero">
@@ -215,7 +215,7 @@ export function FinPresentationMode({ open, onClose, kpis, lancamentos, periodLa
             </table>
           </div>
         )}
-      </main>
+      </div>
 
       <footer className="fin-present-f">
         <small>

@@ -5,7 +5,7 @@ irmaos: StockHistory.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — a movimentação que o Kardex audita não muda quando a tela vira aba.
 owner: wagner
-last_run: "2026-07-21"
+last_run: "2026-08-21"
 ---
 
 # Casos de Uso & Aceite — Histórico de estoque (Kardex)
@@ -98,6 +98,25 @@ last_run: "2026-07-21"
 - **Append-only sob carga (GET não muta)** — `CU-PROD-11` item 2. O branch Inertia é read-only por
   construção; um teste que prove "o GET não escreve em `VariationLocationDetails`" (ao contrário do
   branch ajax legado) merece id próprio quando o path legado for aposentado.
+
+---
+
+## Revalidação 2026-08-21 — landmark do shell (G-6)
+
+O `.tsx` mudou: `<main className="px-6 py-6 max-w-5xl space-y-6">` virou `<div>` com as
+**mesmas classes**, porque o `AppShellV2` passou a emitir o próprio `<main>` e esta tela
+produzia um `<main>` aninhado dentro dele (`landmark-no-duplicate-main`).
+
+**Método da revalidação — por INSPEÇÃO, não por execução de teste.** Os 3 UCs são de
+comportamento de dados (UC-PSTK-01 partial reload · UC-PSTK-02 cross-tenant 404 ·
+UC-PSTK-03 `movements` deferido); nenhum depende da tag do wrapper de conteúdo. O diff não
+toca carregamento, escopo de `business_id` nem `Inertia::defer`.
+
+⚠️ **O que NÃO foi feito, e por quê:** o `StockHistoryContratoTest` **não rodou** neste PR.
+A lane `PHP / Pest (Estoque · MySQL)` reportou `pass` **sem executar** — o `paths:` dela não
+inclui `resources/js/Pages/Produto/**`, então mexer na tela não dispara o teste dela. É gate
+mudo com cara de cobertura (corolário do `paths:` já catalogado no §5). Consertar o filtro é
+outro intent e não entra neste PR.
 
 ---
 

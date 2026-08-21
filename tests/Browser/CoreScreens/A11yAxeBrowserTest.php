@@ -112,3 +112,68 @@ it('Financeiro/Unificado — 0 violações axe CRITICAL no browser real (auth br
     // que o jsdom da Fase 2 não enxerga.
     $page->assertNoAccessibilityIssues(level: 0);
 });
+
+/**
+ * LANDMARKS DO SHELL — contrato estrutural que o axe NÃO pega no piso atual.
+ *
+ * POR QUE NÃO BASTA O TESTE ACIMA (medido em 2026-08-21, no worktree nervous-gates-91eadf):
+ *   - A regra que cobriria isto no axe é `region` ("todo conteúdo dentro de landmark"),
+ *     de severidade MODERATE e tag best-practice — não WCAG A/AA. O gate acima roda
+ *     `assertNoAccessibilityIssues(level: 0)` = CRITICAL only, logo `region` é filtrada
+ *     fora por severidade. Só apareceria em level 2 (+moderate), dois degraus acima do
+ *     ratchet atual — e o docblock do topo já registra que nem o level 1 passa hoje.
+ *   - O outro caminho de a11y do repo tampouco vê: `a11y-ratchet.mjs` é jsx-a11y ESTÁTICO
+ *     (sem regra de landmark) e `tests/a11y-primitives.test.tsx` renderiza componentes
+ *     ISOLADOS, nunca o shell. Ambos cegos a landmark de página por construção.
+ *
+ * POR QUE A ASSERÇÃO É SOBRE O DOM RENDERIZADO, e não um grep no .tsx:
+ *   grep no fonte mediria o DISCO, não o render — o landmark nasce de JSX condicional
+ *   (o <nav> do topbar, por exemplo, vive atrás de `hideTopbar` que é `true` por default).
+ *   Só o browser real responde "existe landmark nesta página?".
+ *
+ * O QUE ESTE TESTE TRAVA (e o que NÃO trava):
+ *   ✅ o shell emite exatamente 1 <main>  — pega tanto o sumiço quanto o DUPLICADO
+ *      (a colisão real que este PR corrigiu: Produto/StockHistory e FinPresentationMode
+ *      emitiam <main> próprio DENTRO do AppShellV2).
+ *   ✅ existe ≥1 <nav>, e a navegação primária está FORA do <main> — que é o contrato
+ *      de verdade: sem isso o leitor de tela não tem como pular a sidebar.
+ *   ❌ NÃO afirma nada sobre as outras 212 telas — mede a tela deste gate. Ampliar é
+ *      PR follow-up, igual ao ratchet acima.
+ *
+ * ⚠️ HONESTIDADE (idem docblock do topo): Pest Browser não roda local (hook
+ * block-test-fora-ct100 + ADR 0108). Validado por `php -l` e por espelhar a API
+ * `$page->script()` já usada em ConformanceProbesTest. VALIDA NO CI/CT 100.
+ */
+it('AppShellV2 — landmarks: 1 <main>, nav primária fora dele (auth bridge)', function () use ($rota, $ancora) {
+    $business = Business::orderBy('id')->first();
+    if (! $business) {
+        test()->markTestSkipped('Sem business seedado (VisregTenantSeeder não rodou).');
+    }
+    $admin = User::where('business_id', $business->id)->orderBy('id')->first();
+    if (! $admin) {
+        test()->markTestSkipped('Sem user no business seedado.');
+    }
+
+    $page = visit('/_visreg-login/' . $admin->id . '?to=' . urlencode($rota));
+    $page->assertSee($ancora);
+
+    // 1) Existe exatamente UM <main>. 0 = o defeito original (AppShellV2 emitia <div
+    //    className="main-body">). >1 = landmark-no-duplicate-main (tela remontou um <main>
+    //    próprio dentro do shell).
+    expect($page->script('document.querySelectorAll("main").length'))
+        ->toBe(1, 'shell deve emitir exatamente 1 <main> (0 = landmark ausente; >1 = duplicado)');
+
+    // 2) Existe navegação com landmark.
+    expect($page->script('document.querySelectorAll("nav").length'))
+        ->toBeGreaterThanOrEqual(1, 'shell deve emitir ao menos 1 <nav> (navegação primária da sidebar)');
+
+    // 3) O CONTRATO de fato: a navegação primária está FORA do <main>. Se estivesse dentro,
+    //    o <main> existiria mas não serviria pra pular a sidebar — landmark decorativo.
+    expect($page->script(<<<'JS'
+(() => {
+  const nav = document.querySelector('nav[aria-label="Navegação principal"]');
+  if (!nav) return 'ausente';
+  return document.querySelector('main')?.contains(nav) ? 'dentro' : 'fora';
+})()
+JS))->toBe('fora', 'a nav primária deve ficar FORA do <main> (senão o landmark não permite pular a sidebar)');
+});
