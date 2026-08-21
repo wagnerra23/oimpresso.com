@@ -375,8 +375,31 @@ frase exata. Só o **texto** diverge da âncora, que diz *"Nenhuma meta ativa ne
 distingue `vazio` de `erro` (*"Não consegui apurar as metas"*, `JmMetasSecao({ vazio, erro })`) —
 distinção que produção não expõe.
 
-> Para medir a região de metas **populada** é preciso um tenant com metas cadastradas. Fica
-> registrado como o que falta, não como gap de implementação.
+##### Não existe tenant com metas — medido, não suposto (2026-08-21)
+
+A frase que estava aqui dizia que *"para medir a região populada é preciso um tenant com metas
+cadastradas"*, o que sugere que exista um. **Não existe.** Medido em produção no mesmo dia:
+
+| tabela | linhas |
+|---|---:|
+| `jana_metas` | **0** |
+| `jana_meta_periodos` | 0 |
+| `jana_meta_apuracoes` | 0 |
+
+Em **todos os 88 businesses**. Controle positivo do instrumento, na mesma sessão: `business` = 88,
+`transactions` = 75.349, `DB::connection()->getDatabaseName()` = a base de produção — o zero é do
+dado, não de uma consulta que não rodou (§5 2026-08-01).
+
+**Consequência, e ela reposiciona o achado acima:** o estado vazio não é o que *este* tenant vê — é
+o **único estado de metas que a produção já renderizou**, para qualquer usuário. Logo a divergência
+de copy contra a âncora (*"Nenhuma meta cadastrada ainda"* × *"Nenhuma meta ativa neste período"*)
+não é nota de rodapé: é a **única** UI de metas que existe em produção hoje. E os 5-6 cards
+populados da âncora nunca foram exercitados fora do mock.
+
+> ⚠️ **Armadilha paga, para quem repetir a consulta:** a tabela **não** é `copiloto_metas`. Essa
+> existe (legada, das migrations `2026_04_24_*`) e responde `0` **sem erro** — um zero plausível
+> vindo da tabela errada. O `Meta` do `IndexController` declara `protected $table = 'jana_metas'`;
+> resolva o model antes de contar (§5 2026-07-15: varredura contada, não semelhança de nome).
 
 #### Análises — 6 na âncora, 5 em produção, e nenhuma das 2 ausências é gap
 
