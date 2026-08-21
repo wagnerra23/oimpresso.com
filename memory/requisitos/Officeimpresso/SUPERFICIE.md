@@ -14,7 +14,7 @@ module: Officeimpresso
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Officeimpresso/**` + `resources/js/Pages/Officeimpresso/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 112 arquivos em 19 papéis.
+**Total mapeado:** 111 arquivos em 19 papéis.
 
 ## Controllers — 7
 
@@ -93,7 +93,7 @@ module: Officeimpresso
 - [config.php](../../../Modules/Officeimpresso/Config/config.php)
 - [retention.php](../../../Modules/Officeimpresso/Config/retention.php)
 
-## Views (Blade) — 18
+## Views (Blade) — 17
 
 - [generate_qr.blade.php](../../../Modules/Officeimpresso/Resources/views/catalogue/generate_qr.blade.php)
 - [index.blade.php](../../../Modules/Officeimpresso/Resources/views/catalogue/index.blade.php)
@@ -112,7 +112,6 @@ module: Officeimpresso
 - [index.blade.php](../../../Modules/Officeimpresso/Resources/views/licenca_computador/index.blade.php)
 - [index.blade.php](../../../Modules/Officeimpresso/Resources/views/licenca_log/index.blade.php)
 - [timeline.blade.php](../../../Modules/Officeimpresso/Resources/views/licenca_log/timeline.blade.php)
-- [index.blade.php](../../../Modules/Officeimpresso/Resources/views/licencas_log/index.blade.php)
 
 ## Telas (Inertia/React) — 2
 
