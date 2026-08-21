@@ -73,7 +73,7 @@
  *       :root / html / body / * / #app → .fin-cowork (wrapper acts as body),
  *       preserva @keyframes / @font-face (global by spec), recursa em
  *       @media / @supports / @container / @layer.
- *   (b) Pages/Financeiro/**/*.tsx envolvidas em <div className="fin-cowork">
+ *   (b) Pages/Financeiro/(…)/*.tsx envolvidas em <div className="fin-cowork">
  *       (mesmo pattern de Sells/Index linha 917 com `.sells-cowork`).
  *   (c) Build npm + smoke biz=1 (ROTA LIVRE não, ADR 0101) + biz=4 valida
  *       AppShellV2 grid 3-cols intacto.
@@ -89,7 +89,7 @@
  * Bug-report Wagner 2026-05-19: /financeiro/unificado renderizava HTML cru
  * porque imports estavam comentados + Pages sem wrap.
  *
- * Marker idempotente: primeira linha de cada CSS tem `/* SCOPED-OK */ */
+ * Marker idempotente: primeira linha de cada CSS traz o marcador SCOPED-OK
  *  (re-rodar scripts/scope-fin-cowork-css.py é no-op).
  * ============================================================================ */
 
