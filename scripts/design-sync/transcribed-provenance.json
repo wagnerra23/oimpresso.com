@@ -195,6 +195,20 @@
       "linhas": 98,
       "parse_esbuild": "OK",
       "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/manufacturing-insumos.jsx",
+      "bytes_escritos": 5340,
+      "linhas": 98,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/manufacturing-print.jsx",
+      "bytes_escritos": 6500,
+      "linhas": 123,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
     }
   ],
   "data": "2026-08-21",
