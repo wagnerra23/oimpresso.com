@@ -3,9 +3,9 @@ slug: 0285-handoff-publisher-cowork-to-repo
 number: 285
 title: "Publisher Cowork→repo — fechar o 1º hop do loop zero-paste reusando a cowork-inbox (sem [W] commitar à mão)"
 type: adr
-status: aceito
+status: deprecated
 authority: canonical
-lifecycle: ativo
+lifecycle: arquivado
 kind: decision
 decided_by: [W]
 decided_at: "2026-06-17"
@@ -15,6 +15,28 @@ supersedes: []
 ---
 
 # ADR 0285 — Publisher Cowork→repo (reusa a `cowork-inbox` · fecha o 1º hop sem [W] no transporte)
+
+> ⛔ **DEPRECADA em 2026-07-06 — o mecanismo descrito abaixo NÃO EXISTE MAIS no repo.**
+> A esteira `cowork-inbox` (dropbox `cowork-inbox/` + `.github/workflows/cowork-inbox.yml` +
+> `.github/scripts/cowork-inbox.py` + `bin/cowork-postman.sh`) foi removida por decisão [W] em
+> [#3878](https://github.com/wagnerra23/oimpresso.com/pull/3878), sob a premissa _"Cowork migrou 100% pra DesignSync/design-login"_.
+>
+> **O que SOBREVIVEU** (o transporte de handoff da [ADR 0283](0283-handoff-loop-zero-paste.md) não morreu junto):
+> `bin/submit-handoff.sh` · `.github/workflows/handoff-sign-submit.yml` · `bin/sign-handoff.php`.
+>
+> ⚠️ **A premissa da aposentadoria tinha um furo, medido só em agosto/2026.** O DesignSync dá
+> **acesso** ao vivo, mas não **transporte fiel de arquivo pequeno**: abaixo do piso de persistência
+> do harness (~48–49 KB, bisseção no [#5761](https://github.com/wagnerra23/oimpresso.com/pull/5761)) o `get_file` devolve o conteúdo no
+> contexto do agente, e materializá-lo de lá é a transcrição que a [ADR 0374](0374-emenda-0315-espelho-cowork-e-rota-prevista.md) proíbe.
+> A esteira cobria exatamente esse caso — ela não era redundante. Consequência medida em
+> 2026-08-20: **204 `.md` vivos no projeto Cowork, ZERO no repo**, incluindo os F1 que ondas
+> inteiras consumiram por cópia colada no chat.
+>
+> **[W] decidiu em 2026-08-21 MANTER a aposentadoria** e resolver pelo payload servido
+> (intake [#6060](https://github.com/wagnerra23/oimpresso.com/issues/6060) no lado do design + [#6085](https://github.com/wagnerra23/oimpresso.com/pull/6085) abrindo o destino `prototipo-ui/design-docs/` no lado
+> do Code) — **não** ressuscitar a esteira. Não re-proponha ressuscitá-la sem decisão [W] nova.
+>
+> O corpo abaixo fica **INTACTO**: é o registro do que era verdade em 2026-06-17.
 
 > **Status:** aceito por [W] em 2026-06-17 (delegou a escolha do mecanismo: _"escolha a melhor e faça"_).
 > Follow-up do **PR-6 (#2921)** / **[ADR 0283](0283-handoff-loop-zero-paste.md)** (Fase 0, "médio→norte" da §Migração).
@@ -101,3 +123,5 @@ fechando a fiação **inline**:
 |---|---|---|
 | 2026-06-17 | [CC] | discovery + proposta: relay já existe (`cowork-inbox`); furo real = `GITHUB_TOKEN` não dispara downstream |
 | 2026-06-17 | [W] | **aceito** — delegou o mecanismo ("escolha a melhor e faça"); [CL] implementa inline + `submit-handoff.sh` (PR-7) |
+| 2026-07-06 | [W] | **esteira aposentada** (#3878) — `cowork-inbox/` + workflow + script + postman removidos; premissa "Cowork migrou 100% pra DesignSync". `submit-handoff.sh`/`handoff-sign-submit.yml` preservados |
+| 2026-08-21 | [W] | **status → deprecated** — a ADR seguia `aceito`/`ativo` descrevendo mecanismo inexistente havia 46 dias. Registrado o furo da premissa (teto do `get_file`) e a decisão de manter a aposentadoria, resolvendo pelo payload servido |

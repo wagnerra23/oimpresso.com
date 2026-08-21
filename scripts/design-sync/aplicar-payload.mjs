@@ -28,8 +28,11 @@
  *   node scripts/design-sync/aplicar-payload.mjs <cowork.json> <ds.json> --require-complete-shell
  *     # exige oimpresso.com.html + fechamento transitivo HTML/CSS/JS; `_ds/` vai ao snapshot
  *
- * ⚠️ NUNCA aponte o destino pra fora de `prototipo-ui/cowork/` e nunca ponha `.md` lá dentro:
- * R1 do `cowork-ssot-guard` reprova (cowork/ é build-only; knowledge mora em canon).
+ * ⚠️ NUNCA ponha `.md` dentro de `prototipo-ui/cowork/`: R1 do `cowork-ssot-guard` reprova
+ * (cowork/ é build-only; knowledge mora em canon). Isso NÃO mudou. O que mudou (2026-08-21,
+ * decisão [W]) é o desfecho: `.md` deixou de ser DESCARTADO e passa a pousar em
+ * `prototipo-ui/design-docs/`, preservando a árvore do vivo. O descarte custava caro — 204
+ * `.md` vivos no Cowork, 0 no repo, e ondas construídas a partir de cópia colada no chat.
  */
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join, dirname, normalize, sep } from 'node:path';
@@ -38,6 +41,13 @@ import { dsRuntimeRelPath } from '../governance/cowork-mirror-freshness.mjs';
 
 const ROOT = process.cwd();
 const DESTINO = 'prototipo-ui/cowork';
+// Knowledge do Cowork (.md) NÃO pousa no espelho: R1 do cowork-ssot-guard reprova .md em
+// cowork/, que é build-only. Antes eles eram DESCARTADOS — e o efeito foi 204 .md vivos
+// invisíveis ao repo (medido 2026-08-20), incluindo os F1 que ondas inteiras precisavam.
+// Destino canônico decidido por [W] em 2026-08-21: fora de cowork/, preservando a árvore
+// do vivo. Não pode ser `prototipo-ui/cowork-*` (R2 barra) nem `prototipo-ui/handoffs/`
+// (o handoff-sign-submit.yml observa esse path e submeteria cada doc à Forja).
+const DESTINO_DOCS = 'prototipo-ui/design-docs';
 const args = process.argv.slice(2);
 const arquivos = args.filter((a) => !a.startsWith('--'));
 const dry = args.includes('--dry');
@@ -123,7 +133,7 @@ const totalDeclarado = payloads.reduce((n, p) => n + (Number(p.totalBytes) || 0)
 console.log(`\n  APLICAR PAYLOAD — ${payloads.length} lote(s) · ${files.length} arquivo(s) · ${totalDeclarado.toLocaleString('pt-BR')} bytes`);
 for (const p of payloads) console.log(`  origem: ${typeof p.source==='string'?p.source:JSON.stringify(p.source)} · gerado: ${p.generatedAt || '?'} · ${p.arquivo}`);
 console.log(`  modo: ${requireCompleteShell ? 'SHELL COMPLETO (fechamento transitivo obrigatório)' : 'lote parcial'}${dry ? ' · DRY — nada será escrito' : ''}`);
-console.log(`  destinos: ${DESTINO}/ + scripts/design-sync/mirror-snapshot/ para _ds/**\n`);
+console.log(`  destinos: ${DESTINO}/ + scripts/design-sync/mirror-snapshot/ para _ds/** + ${DESTINO_DOCS}/ para .md\n`);
 
 const tally = { NOVO: 0, ATUALIZADO: 0, inalterado: 0 };
 const corrompidos = [], forade = [], preparados = [];
@@ -142,7 +152,7 @@ for (const f of files) {
     catch (e) { forade.push(`${rel} (${e.message})`); continue; }
     destinoBase = 'scripts/design-sync/mirror-snapshot';
   } else if (rel.toLowerCase().endsWith('.md')) {
-    forade.push(rel + ' (.md — R1 do ssot-guard)'); continue;
+    destinoBase = DESTINO_DOCS;
   }
   const alvoRel = normalize(join(destinoBase, destinoPath));
   const baseRel = normalize(destinoBase);

@@ -6,9 +6,9 @@
 
 ## Resumo
 - **383** arquivos · **368** números únicos · máx **0378**
-- **ADRs ATIVOS (lifecycle ativo): 345** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 348 · superseded 16 · deprecated 12 · proposto 5 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 345 · arquivado 22 · substituido 16
+- **ADRs ATIVOS (lifecycle ativo): 344** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 347 · superseded 16 · deprecated 13 · proposto 5 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 344 · arquivado 23 · substituido 16
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -326,7 +326,7 @@ _(nenhuma)_
 | 0282 | aceito | ativo | decision | Protocolo v2 (colapso) — ratificação: 6→2 papéis · 7→3 fases · memória=git SSOT  |
 | 0283 | aceito | ativo | decision | Loop de handoff zero-paste — repo fonte única, gate de conteúdo, sem auto-merge  |
 | 0284 | aceito | ativo | decision | Pipeline de incidente graduado por confiança — porta única, redação cross-tenant |
-| 0285 | aceito | ativo | decision | Publisher Cowork→repo — fechar o 1º hop do loop zero-paste reusando a cowork-inb |
+| 0285 | deprecated | arquivado | decision | Publisher Cowork→repo — fechar o 1º hop do loop zero-paste reusando a cowork-inb |
 | 0286 | aceito | ativo | decision | channel_health de canal whatsmeow é corroborado por fluxo de mensagem real — inb |
 | 0287 | aceito | ativo | decision | probe whatsmeow trata PROVISION_PENDING em canal que estava healthy como queda ( |
 | 0288 | aceito | ativo | decision | SLO/SLI de saúde de canal WhatsApp — uptime%, time-to-detect e alerta canal-down |

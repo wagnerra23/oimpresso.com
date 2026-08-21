@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // handoff-inline.mjs — SessionStart (PORTE cross-plataforma do comando PowerShell INLINE do settings.json).
-// Imprime as últimas 40 linhas de memory/08-handoff.md (se existir) + o lembrete de estado
+// Imprime o TOPO (40 linhas) de memory/08-handoff.md (se existir) + o lembrete de estado
 // vivo de tasks/cycles (CURRENT.md/TASKS.md removidos — ADR 0070).
 //
 // ── POR QUE .mjs (US-GOV-052) ─ o comando era `powershell -Command "... Get-Content -Tail 40 ..."`
@@ -13,6 +13,16 @@
 // aponta pras tools MCP (ADR 0070). Fail-open total (exit 0 em qualquer erro) — hook decorativo
 // de injeção de contexto, NUNCA bloqueia o SessionStart.
 //
+// ── POR QUE O TOPO, e não o fim (medido 2026-08-21) ─────────────────────────
+// O porte herdou `Get-Content -Tail 40` do comando PowerShell original. O índice é
+// mais-recente-NO-TOPO (ADR 0130), então ler o FIM devolve os handoffs mais ANTIGOS.
+// Passou despercebido porque funcionava enquanto a lista cabia em 40 linhas — a regra
+// 'truncar 5º item'. Quando a truncagem foi abandonada (custo aceito e declarado no
+// .gitattributes do merge=union), o hook inverteu de sentido EM SILÊNCIO: em 2026-08-21,
+// com 391 entradas, ele servia handoffs de 2026-05-10/11 (~3 meses de atraso).
+// O teste antigo não pegava porque afirmava o MECANISMO ('pega as últimas 40'), não a
+// CAPACIDADE ('mostra o handoff mais recente'). Há caso de regressão pra isso agora.
+//
 // Selftest: node .claude/hooks/handoff-inline.mjs --selftest
 
 import { spawnSync } from 'node:child_process';
@@ -20,23 +30,24 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { existsSync, readFileSync } from 'node:fs';
 
 const HANDOFF = 'memory/08-handoff.md';
-const TAIL = 40;
+const TOPO = 40;
 
-/** últimas n linhas de um texto, tolerante a CRLF e BOM inicial. */
-export function tailLines(text, n = TAIL) {
+/** primeiras n linhas de um texto, tolerante a CRLF e BOM inicial.
+  * O índice é mais-recente-no-topo, então 'primeiras' = 'mais recentes'. */
+export function topLines(text, n = TOPO) {
   const semBom = String(text).replace(/^﻿/, '');
   const linhas = semBom.split(/\r?\n/);
-  // um trailing "\n" vira uma última linha vazia — descarta pra não contar como linha.
+  // um trailing newline vira uma última linha vazia — descarta pra não contar como linha.
   if (linhas.length && linhas[linhas.length - 1] === '') linhas.pop();
-  return linhas.slice(-n).join('\n');
+  return linhas.slice(0, n).join('\n');
 }
 
 /** monta o texto de saída — recebe o conteúdo do handoff (ou null se ausente). */
 export function buildOutput(handoffText) {
   const partes = [];
   if (handoffText != null) {
-    partes.push(`=== ${HANDOFF} (últimas ${TAIL} linhas) ===`);
-    partes.push(tailLines(handoffText));
+    partes.push(`=== ${HANDOFF} (topo — ${TOPO} linhas mais recentes) ===`);
+    partes.push(topLines(handoffText));
     partes.push('');
   }
   partes.push('=== Estado vivo de tasks/cycles ===');

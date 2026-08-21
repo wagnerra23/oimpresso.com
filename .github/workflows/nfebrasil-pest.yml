@@ -94,7 +94,7 @@ jobs:
         # ARMADO (ADR 0275): continue-on-error removido — a allowlist dos 7 arquivos (todos VERDES no MySQL, ratchet concluído) agora MORDE; skip-as-pass cobre PR fora do NfeBrasil. JUnit segue como evidência.
         #
         # CATRACA (ratchet — espelha financeiro-pest.yml / US-FIN-053): a lane roda só os
-        # arquivos comprovadamente VERDES contra o MySQL real semeado (biz=1/biz=2). Cada
+        # arquivos comprovadamente VERDES contra o MySQL real semeado pela action. Cada
         # lote de fix dos testes adiciona arquivos AQUI (ratchet up) — arming a required por
         # calendário (ADR 0275).
         #

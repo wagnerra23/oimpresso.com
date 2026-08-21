@@ -23,20 +23,20 @@
       "detail": {
         "coverage_pct": 88.4,
         "specs_total": 52,
-        "us_total": 971,
+        "us_total": 975,
         "anchor_coverage_pct": 88.4,
         "by_state": {
           "sem_campo": 112,
           "placeholder": 1,
-          "pendente": 412,
+          "pendente": 416,
           "parcial": 116,
           "anchored_ok": 330,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 865,
+        "fields_total": 869,
         "fields_placeholder": 1,
-        "fields_grammar_ok": 797,
+        "fields_grammar_ok": 800,
         "orphan_fields": 6,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
@@ -68,22 +68,14 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 356,
+      "value": 351,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "50c50cf184da9cda",
+        "floor_files_hash": "323b80110ec4815d",
         "runs": [
-          {
-            "sha": "8b2ca41f",
-            "ts": "20260818-020001",
-            "failed": 702,
-            "errors": 397,
-            "skipped": 2249,
-            "all_shards_measured": true
-          },
           {
             "sha": "d4ad0804",
             "ts": "20260819-020001",
@@ -93,15 +85,23 @@
             "all_shards_measured": true
           },
           {
-            "sha": null,
+            "sha": "c01ee761",
             "ts": "20260820-020001",
             "failed": 746,
             "errors": 417,
             "skipped": 2311,
             "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260821-020001",
+            "failed": 737,
+            "errors": 393,
+            "skipped": 2358,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260820-020001",
+        "computed_at": "20260821-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -120,22 +120,15 @@
     },
     "coverage_pct": {
       "status": "measured",
-      "value": 20.9,
+      "value": 21.2,
       "unit": "%",
       "direction": "up",
       "target": "só sobe (catraca C2)",
       "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
       "detail": {
-        "covered": 49430,
-        "total": 236078,
+        "covered": 50000,
+        "total": 236356,
         "runs": [
-          {
-            "sha": "8b2ca41f",
-            "ts": "20260818-020001",
-            "coverage_pct": 20.1,
-            "covered": 47368,
-            "total": 235484
-          },
           {
             "sha": "d4ad0804",
             "ts": "20260819-020001",
@@ -144,14 +137,21 @@
             "total": 235783
           },
           {
-            "sha": null,
+            "sha": "c01ee761",
             "ts": "20260820-020001",
             "coverage_pct": 20.9,
             "covered": 49430,
             "total": 236078
+          },
+          {
+            "sha": null,
+            "ts": "20260821-020001",
+            "coverage_pct": 21.2,
+            "covered": 50000,
+            "total": 236356
           }
         ],
-        "computed_at": "20260820-020001",
+        "computed_at": "20260821-020001",
         "measured_of": 3
       },
       "stream": "FV"
