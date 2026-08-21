@@ -41,6 +41,12 @@ O contrato declara a própria proveniência: *"Protótipo F1 [CC] importado das 
 
 ## 3. Contrato de tela — as 4 seções
 
+> **Dono do mecanismo:** [`RUNBOOK-contrato-de-tela`](../_DesignSystem/RUNBOOK-contrato-de-tela.md)
+> (v1 — determinístico, sem render, sem auth). O v0 foi recusado na
+> [ADR 0290](../../decisions/0290-fidelity-lock-v0-recusado.md); o princípio da catraca semântica
+> vem da [ADR 0286 §5](../../decisions/0286-channel-health-corroborado-por-mensagem-real.md)
+> — ⚠️ ADR cujo TÍTULO é sobre outro assunto (channel health), então cite sempre com o §5.
+
 `prototipo-ui/contrato/ponto-painel.contract.json` exige `data-contract="<id>"` no elemento que
 envolve cada seção, **na ordem do contrato**, e cada string de `copy` presente **literalmente** no
 alvo `resources/js/Pages/Ponto/Dashboard/Index.tsx`.
