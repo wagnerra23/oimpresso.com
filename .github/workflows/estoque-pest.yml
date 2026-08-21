@@ -1,7 +1,7 @@
 name: Estoque · Pest (MySQL)
 
 # Lane dedicado pra rodar a suíte Pest de MOVIMENTAÇÃO DE ESTOQUE contra MySQL REAL
-# + seed mínimo (biz=1 + biz=2 — via .github/actions/pest-mysql-setup).
+# + seed mínimo multi-tenant (via .github/actions/pest-mysql-setup — dona dos tenants).
 #
 # POR QUE existe: as demais lanes (ci.yml / modules-pest.yml) rodam SQLite :memory: SEM
 # migrate — e os testes de estoque precisam do schema UltimatePOS completo (products,
@@ -182,7 +182,7 @@ jobs:
         if: steps.changes.outputs.est == 'false'
         run: echo "✅ Sem mudanças de Estoque — skip-as-pass (required-ready, ADR 0271 onda 2)."
 
-      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
         if: steps.changes.outputs.est == 'true'
         uses: ./.github/actions/pest-mysql-setup
 
