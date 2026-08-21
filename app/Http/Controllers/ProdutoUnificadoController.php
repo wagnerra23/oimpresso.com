@@ -193,6 +193,10 @@ class ProdutoUnificadoController extends Controller
                 'custo' => $podeVerCusto,
                 'preco' => $podeVerPreco,
                 'composicao' => $podeVerBom,
+                // Mesma permissão que `ProductController::massDeactivate` exige — a tela não
+                // inventa direito nem afrouxa o do servidor; ela só evita montar um botão que
+                // a rota vai recusar com 403.
+                'inativar' => auth()->user()?->can('product.update') ?? false,
             ],
             // `Inertia::defer` (D-14 · RUNBOOK-inertia-defer-pattern): toda prop com agregação
             // ou subquery sai do caminho crítico do primeiro paint e o partial reload escolhe

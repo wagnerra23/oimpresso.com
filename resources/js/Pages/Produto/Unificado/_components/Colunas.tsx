@@ -40,7 +40,7 @@ import {
   type ProdutoRow,
 } from './catalogo';
 
-export type ColunaKey = 'cod' | 'prod' | 'tipo' | 'est' | 'custo' | 'preco' | 'margem' | 'act';
+export type ColunaKey = 'sel' | 'cod' | 'prod' | 'tipo' | 'est' | 'custo' | 'preco' | 'margem' | 'act';
 
 export type Coluna = {
   key: ColunaKey;
@@ -53,6 +53,9 @@ export type Coluna = {
 export function colunasDe({ perm, mostraTipo }: { perm: Permissoes; mostraTipo: boolean }): Coluna[] {
   const verCusto = perm.custo;
   return [
+    // Seleção primeiro, 44px (handoff 21/08 §3.1). Não é ordenável nem tem rótulo visível — a
+    // caixa do cabeçalho já é o controle, e um "SELEÇÃO" em caixa alta ali só gastaria largura.
+    { key: 'sel', label: '', width: '44px' },
     // Código antes de Produto (exceção de domínio 2).
     { key: 'cod', label: 'Código', width: '88px', sortable: true },
     { key: 'prod', label: 'Produto', sortable: true },

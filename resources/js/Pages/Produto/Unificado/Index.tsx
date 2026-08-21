@@ -62,6 +62,18 @@ import {
   DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu';
 import { toast } from 'sonner';
+import { Checkbox } from '@/Components/ui/checkbox';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/Components/ui/alert-dialog';
+import BulkBar from './_components/BulkBar';
 import { ABAS_CATALOGO, brl, type AbaKey, type KpiKey, type Permissoes, type ProdutoRow } from './_components/catalogo';
 import { celulasDe, colunasDe, larguraMinima, type ColunaKey } from './_components/Colunas';
 import KpiFiltros, { type KpisCatalogo } from './_components/KpiFiltros';
@@ -199,7 +211,7 @@ function ProdutoUnificadoIndex({
   porPaginaOpcoes,
   // Fail-closed: se a prop não chegar por qualquer caminho, esconde tudo em vez de
   // estourar `undefined.custo`. Ausência de permissão declarada nunca vira permissão.
-  permissoes = { custo: false, preco: false, composicao: false },
+  permissoes = { custo: false, preco: false, composicao: false, inativar: false },
   abas,
   kpis,
   produtos,
@@ -240,6 +252,27 @@ function ProdutoUnificadoIndex({
   const [densa, setDensa] = useState(false);
   const [colsOcultas, setColsOcultas] = useState<ColunaKey[]>([]);
 
+  /**
+   * Seleção em lote (§4.4). Guarda IDs, não índices: a lista muda de fatia a cada página, e
+   * índice guardado apontaria pra outra linha depois de qualquer navegação.
+   *
+   * A seleção ATRAVESSA páginas de propósito — marcar 10 na página 1 e mais 5 na página 2 é o
+   * caso real de quem está limpando catálogo. O que ela NÃO atravessa é mudança de recorte:
+   * trocar de aba, de filtro, de busca ou de ordem zera tudo (§4.2). Sem isso, "12 itens
+   * selecionados" sobreviveria a uma troca de aba e a pessoa inativaria doze itens que não vê.
+   */
+  const [sel, setSel] = useState<number[]>([]);
+  const [confirmarInativar, setConfirmarInativar] = useState(false);
+
+  /**
+   * Linha ATIVA — o cursor do teclado (§4.5). É índice dentro da página, não id: ela só existe
+   * enquanto a fatia está na tela, e some junto com ela. `-1` = ninguém ativo.
+   *
+   * Não se confunde com a seleção (caixas marcadas) nem com o painel aberto: uma diz "estou
+   * aqui", a outra "vou agir sobre estes", a terceira "estou lendo este".
+   */
+  const [ativa, setAtiva] = useState(-1);
+
   useEffect(() => {
     try {
       const bruto = localStorage.getItem(CHAVE_PREFS);
@@ -268,14 +301,22 @@ function ProdutoUnificadoIndex({
     );
   };
 
-  /** Navega preservando o resto do recorte. `only` diz quais props re-rodam no servidor. */
-  const irPara = (patch: Partial<Filtros>, only: string[]) =>
-    router.get(route('products.unificado.index'), { ...filters, ...patch }, {
+  /**
+   * Navega preservando o resto do recorte. `only` diz quais props re-rodam no servidor.
+   *
+   * Limpa a seleção SEMPRE (§4.2): todo caminho que muda o recorte passa por aqui, então a
+   * regra mora num lugar só em vez de em cada `onClick` — que é como ela sobreviveria em
+   * cinco lugares e seria esquecida no sexto.
+   */
+  const irPara = (patch: Partial<Filtros>, only: string[]) => {
+    setSel([]);
+    return router.get(route('products.unificado.index'), { ...filters, ...patch }, {
       preserveState: true,
       preserveScroll: true,
       replace: true,
       only,
     });
+  };
 
   const RECORTE = ['filters', 'produtos', 'kpis', 'totalDaAba', 'totaisDoRecorte'];
 
@@ -289,19 +330,6 @@ function ProdutoUnificadoIndex({
 
   useEffect(() => setBusca(filters.busca), [filters.busca]);
 
-  // `/` foca a busca — sem roubar a tecla de quem está digitando.
-  useEffect(() => {
-    const onKey = (ev: KeyboardEvent) => {
-      const alvo = ev.target as HTMLElement | null;
-      const digitando = !!alvo && /^(INPUT|TEXTAREA|SELECT)$/.test(alvo.tagName);
-      if (ev.key === '/' && !digitando) {
-        ev.preventDefault();
-        buscaRef.current?.focus();
-      }
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, []);
 
   // Memoizado porque `produtos` é prop deferida: sem isto, o `?? []` cria um array novo a cada
   // render e invalida os useMemo abaixo sempre.
@@ -355,6 +383,56 @@ function ProdutoUnificadoIndex({
     (ordemDisponivel.find((o) => o.key === ordemAtual.key)?.label ?? 'Código') +
     (ordemAtual.dir === 'asc' ? ' ↑' : ' ↓');
 
+  const idsDaPagina = useMemo(() => linhas.map((r) => r.id), [linhas]);
+  const selNaPagina = useMemo(() => idsDaPagina.filter((id) => sel.includes(id)), [idsDaPagina, sel]);
+  const paginaToda = idsDaPagina.length > 0 && selNaPagina.length === idsDaPagina.length;
+
+  /**
+   * A caixa do cabeçalho SOMA a página à seleção — não a substitui (§4.4). Substituir faria
+   * cada virada de página apagar em silêncio o que a pessoa marcou na anterior. Desmarcar tira
+   * só esta página, deixando o que veio de outras.
+   */
+  const marcarPagina = () =>
+    setSel((atual) => (paginaToda
+      ? atual.filter((id) => !idsDaPagina.includes(id))
+      : Array.from(new Set([...atual, ...idsDaPagina]))));
+
+  const marcarLinha = (id: number) =>
+    setSel((atual) => (atual.includes(id) ? atual.filter((x) => x !== id) : [...atual, id]));
+
+  /**
+   * Inativa a seleção de verdade — `POST /products/mass-deactivate`, que é o mesmo endpoint da
+   * tela legada e já escopa por `business_id` (Tier 0, ADR 0093). Não é `router.post` porque a
+   * rota devolve JSON, não uma resposta Inertia; depois do sucesso, recarrega só o recorte.
+   */
+  const inativarSelecao = async () => {
+    const csrf = document.head.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
+    const quantos = sel.length;
+    setConfirmarInativar(false);
+    try {
+      const resp = await fetch('/products/mass-deactivate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': csrf,
+        },
+        body: JSON.stringify({ selected_products: sel.join(',') }),
+      });
+      const dados = (await resp.json()) as { success?: number; msg?: string };
+      if (!resp.ok || !dados.success) throw new Error(dados.msg ?? 'Falha ao inativar');
+      toast.success(`${quantos} ${quantos === 1 ? 'item inativado' : 'itens inativados'}`);
+      setSel([]);
+      setAbertoId(null);
+      router.reload({ only: RECORTE });
+    } catch (e) {
+      // O erro do servidor vai literal pro operador: "algo deu errado" não diz se ele pode
+      // tentar de novo, se faltou permissão, ou se metade já foi inativada.
+      toast.error(e instanceof Error ? e.message : 'Não foi possível inativar');
+    }
+  };
+
   const indiceAberto = abertoId === null ? -1 : linhas.findIndex((r) => r.id === abertoId);
   const produtoAberto = indiceAberto < 0 ? null : linhas[indiceAberto]!;
 
@@ -390,6 +468,77 @@ function ProdutoUnificadoIndex({
     setAbertoId(null);
     irPara({ pagina: Math.min(Math.max(1, p), paginas) }, RECORTE);
   };
+
+  /**
+   * Teclado da lista (handoff 21/08 §4.5).
+   *
+   *   `/`      foca a busca
+   *   `↑` `↓`  move a linha ativa; com o painel aberto, anda entre produtos
+   *   `↵`      abre a linha ativa
+   *   `esc`    solta a linha ativa (o painel e a paleta fecham sozinhos)
+   *
+   * Nenhuma delas rouba a tecla de quem está digitando — a checagem de `INPUT/TEXTAREA/SELECT`
+   * vale pro conjunto todo, senão `↓` dentro da busca deixaria de mover o cursor do texto.
+   *
+   * `↑`/`↓` na borda da fatia VIRAM A PÁGINA (§4.5): quem varre um catálogo com a seta não
+   * deveria ter que largar o teclado, mirar o "próxima" com o mouse e voltar.
+   */
+  useEffect(() => {
+    const onKey = (ev: KeyboardEvent) => {
+      const alvo = ev.target as HTMLElement | null;
+      const digitando = !!alvo && /^(INPUT|TEXTAREA|SELECT)$/.test(alvo.tagName);
+      if (digitando) return;
+
+      if (ev.key === '/') {
+        ev.preventDefault();
+        buscaRef.current?.focus();
+        return;
+      }
+
+      if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+        if (linhas.length === 0) return;
+        ev.preventDefault();
+        const passo = ev.key === 'ArrowDown' ? 1 : -1;
+
+        // Painel aberto: a seta anda entre PRODUTOS, não entre linhas — quem está lendo o
+        // detalhe quer o próximo detalhe, não mover um cursor atrás do painel.
+        if (abertoId !== null) {
+          irParaVizinho(passo);
+          return;
+        }
+
+        const proxima = ativa + passo;
+        if (proxima < 0) {
+          if (pagina > 1) { setAtiva(porPagina - 1); irParaPagina(pagina - 1); }
+          return;
+        }
+        if (proxima >= linhas.length) {
+          if (pagina < paginas) { setAtiva(0); irParaPagina(pagina + 1); }
+          return;
+        }
+        setAtiva(proxima);
+        return;
+      }
+
+      if (ev.key === 'Enter' && ativa >= 0 && linhas[ativa]) {
+        ev.preventDefault();
+        setAbertoId(linhas[ativa]!.id);
+        return;
+      }
+
+      if (ev.key === 'Escape' && abertoId === null) {
+        setAtiva(-1);
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linhas, ativa, abertoId, pagina, paginas, porPagina]);
+
+  // A fatia trocou: o cursor não pode apontar pra uma linha que não existe mais.
+  useEffect(() => {
+    setAtiva((i) => (i >= linhas.length ? linhas.length - 1 : i));
+  }, [linhas.length]);
 
   const temFiltro = !!(filters.categoria || filters.unidade || filters.marca || filters.tipo || filters.estoque || filters.margem);
 
@@ -783,7 +932,14 @@ function ProdutoUnificadoIndex({
                                 (c.key === 'prod' ? '!pl-[58px]' : '')
                               }
                             >
-                              {c.sortable ? (
+                              {c.key === 'sel' ? (
+                                <Checkbox
+                                  checked={paginaToda}
+                                  onCheckedChange={marcarPagina}
+                                  disabled={linhas.length === 0}
+                                  aria-label={paginaToda ? 'Desmarcar esta página' : 'Marcar esta página'}
+                                />
+                              ) : c.sortable ? (
                                 <button
                                   type="button"
                                   onClick={() => trocarOrdem(c.key)}
@@ -817,7 +973,7 @@ function ProdutoUnificadoIndex({
                             </td>
                           </tr>
                         ) : (
-                          linhas.map((r) => {
+                          linhas.map((r, i) => {
                             const cells = celulasDe(r, {
                               perm: permissoes,
                               mostraTipo,
@@ -827,29 +983,47 @@ function ProdutoUnificadoIndex({
                               onCopiar: copiar,
                             });
                             const aberta = abertoId === r.id;
+                            // Cursor do teclado: mesmo realce da linha aberta, porque é a mesma
+                            // ideia ("é esta"). Só vale quando NÃO há painel — com o painel
+                            // aberto, "esta" é a que ele mostra.
+                            const cursor = abertoId === null && ativa === i;
                             return (
                               <tr
                                 key={r.id}
                                 role="button"
                                 tabIndex={0}
                                 aria-label={`Abrir detalhe de ${r.name}`}
-                                onClick={() => setAbertoId(r.id)}
+                                onClick={() => { setAtiva(i); setAbertoId(r.id); }}
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
+                                    setAtiva(i);
                                     setAbertoId(r.id);
                                   }
                                 }}
                                 className={
                                   'border-b border-border/60 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ' +
-                                  (aberta ? 'bg-[var(--idx-row-sel-bg)]' : 'hover:bg-muted/40') +
+                                  (aberta || cursor ? 'bg-[var(--idx-row-sel-bg)]' : 'hover:bg-muted/40') +
                                   // Estado de linha: urgente quando zerado, arquivada quando inativa.
                                   (r.stockQty === 0 ? ' bg-destructive-soft/30' : r.active ? '' : ' opacity-60')
                                 }
                               >
                                 {colunas.map((c) => (
                                   <td key={c.key} className={'px-4 ' + (densa ? 'py-1 ' : 'py-2 ') + (c.align === 'right' ? 'text-right' : '')}>
-                                    {cells[c.key] ?? null}
+                                    {c.key === 'sel' ? (
+                                      // `stopPropagation` no wrapper: marcar a caixa não pode
+                                      // abrir o painel junto — são dois gestos com intenções
+                                      // opostas ("quero agir sobre vários" vs "quero ver este").
+                                      <span onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                                        <Checkbox
+                                          checked={sel.includes(r.id)}
+                                          onCheckedChange={() => marcarLinha(r.id)}
+                                          aria-label={`Selecionar ${r.name}`}
+                                        />
+                                      </span>
+                                    ) : (
+                                      cells[c.key] ?? null
+                                    )}
                                   </td>
                                 ))}
                               </tr>
@@ -955,6 +1129,12 @@ function ProdutoUnificadoIndex({
                   </Inline>
                 </Deferred>
               </div>
+              <BulkBar
+                total={sel.length}
+                foraDaPagina={sel.length - selNaPagina.length}
+                onInativar={permissoes.inativar ? () => setConfirmarInativar(true) : undefined}
+                onLimpar={() => setSel([])}
+              />
             </>
           ) : (
             <SubTelaSecundaria
@@ -970,6 +1150,26 @@ function ProdutoUnificadoIndex({
           )}
         </div>
       </div>
+
+      {/* Confirmação da ação destrutiva (§4.4). O texto NOMEIA a quantidade e diz o efeito —
+          "Tem certeza?" sozinho não dá ao operador nada pra conferir antes de confirmar. */}
+      <AlertDialog open={confirmarInativar} onOpenChange={setConfirmarInativar}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Inativar {sel.length} {sel.length === 1 ? 'item' : 'itens'}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {sel.length === 1 ? 'O item deixa' : 'Os itens deixam'} de aparecer em venda e em orçamento.
+              O histórico e a consulta continuam disponíveis, e dá pra reativar depois pelo cadastro.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={inativarSelecao}>Inativar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <DetalheProduto
         produto={produtoAberto}
