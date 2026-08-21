@@ -102,6 +102,20 @@
       "linhas": 260,
       "fidelidade": "NAO PROVADA",
       "parse_esbuild": "OK"
+    },
+    {
+      "path": "prototipo-ui/cowork/relatorios-data.jsx",
+      "bytes_escritos": 38115,
+      "linhas": 347,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/relatorios-page.jsx",
+      "bytes_escritos": 20788,
+      "linhas": 346,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
     }
   ],
   "data": "2026-08-21",
