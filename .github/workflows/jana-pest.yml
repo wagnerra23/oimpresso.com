@@ -97,6 +97,20 @@ jobs:
               # skip-as-pass, então sem a linha aqui um PR que mexe só no `.tsx` da
               # tela concluiria verde sem ter rodado o PainelContratoTest.
               - 'resources/js/Pages/Jana/**'
+              # 2026-08-21 — as 4 entradas abaixo estavam SÓ no `paths:` do push desde
+              # 2026-08-12/2026-08-13. O comentário de lá diz "sem esta linha, mexer no
+              # scope não roda o guard dele" — mas a linha foi posta no bloco que NÃO
+              # decide: no PR o gatilho é always-run e quem resolve o skip-as-pass é
+              # ESTE filtro. Efeito medido: PR que tocasse só `app/Scopes/**` concluía
+              # VERDE sem rodar os 3 testes de isolamento que estão no run-set da lane
+              # (MultiTenantIsolationTest, MultiTenantIsolationComprehensiveTest,
+              # PeriodosControllerCrossTenantTest) — gate mudo em cima de multi-tenant
+              # Tier 0. Idem o aggregator, que o CockpitMockRemovidoTest e o
+              # PainelContratoTest exercitam (eixo VALOR).
+              - 'app/Scopes/**'
+              - 'app/Concerns/HasBusinessScope.php'
+              - 'app/Concerns/BelongsToBusinessViaParent.php'
+              - 'app/Services/Sells/SellsCockpitAggregator.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/jana-pest.yml'
               - '.github/actions/pest-mysql-setup/**'

@@ -119,6 +119,13 @@ on:
       - 'app/Http/Controllers/ProductController.php'
       - 'app/Http/Controllers/ProdutoUnificadoController.php'
       - 'app/Category.php'
+      # 2026-08-21 — as 2 entradas do BOM, que entraram só no filtro interno em
+      # 2026-08-11 (junto com o `ProdutoBomContratoTest` saindo da quarentena).
+      # Mesma divergência que o comentário acima declarou consertada — 3ª ocorrência,
+      # 3º eixo. Sem elas aqui, merge que toque só o BOM não dispara a lane no main:
+      # o teste do BOM existe, sai da quarentena, e o sinal pós-merge dele fica mudo.
+      - 'app/Http/Controllers/Inventory/ProductBomController.php'
+      - 'app/Domain/Inventory/Services/BomResolver.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/estoque-pest.yml'
       - '.github/estoque-pest-quarantine.list'
