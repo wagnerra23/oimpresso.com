@@ -1,0 +1,56 @@
+{
+  "_nota": "Contrato de Tela do Fechamento da competência + painel de Conformidade (abas `fechamento` e `conformidade` da rota /ponto). Tela NOVA — não existe no Blade; nasceu no protótipo F1 [CC] na onda 3. Schema: prototipo-ui/contrato/contract.schema.json (ADR 0286).",
+  "tela": "Ponto/Fechamento",
+  "fonte": "prototipo-ui/cowork/ponto-fechamento.jsx",
+  "_nota_fonte": "As regras vêm de Modules/Ponto/Config/config.php (clt.*, banco_horas.*, marcacao.*) e dos estados de ApuracaoDia. Nenhum número da tela é inventado: os bloqueios são apurados dos próprios dados da competência.",
+  "alvo": ["resources/js/Pages/Ponto/Fechamento.tsx", "resources/js/Pages/Ponto/Conformidade.tsx"],
+  "_nota_alvo": "DECLARAÇÃO ANTECIPADA (medido 2026-08-20): nenhum dos dois .tsx existe no repo hoje. O contrato desce ANTES da tela de propósito — declara a copy e a ordem que o F3 tem de preservar quando a tela for construída. Até lá o check `contrato-de-tela` fica pendente nesta entrada, o que é o estado honesto: não há tela pra medir. Construir depende das decisões [W] 1-4 listadas em _pendente_w.",
+
+  "secoes": [
+    {
+      "id": "fechamento-acoes",
+      "_papel": "a transição de estado da competência — o único lugar que trava o mês",
+      "copy": ["Competência", "Situação", "Consolidar apuração", "Consolidar com exceções", "Reabrir", "Fechar competência"],
+      "estados": ["aberto", "consolidado", "fechado"]
+    },
+    {
+      "id": "fechamento-passos",
+      "copy": ["Pré-checagem", "Consolidar apuração", "Fechar competência", "Gerar AFD / AEJ"]
+    },
+    {
+      "id": "fechamento-pre-checagem",
+      "_papel": "cada linha é um bloqueio apurado, com grau e atalho pra tela que resolve — nunca um aviso genérico",
+      "copy": ["Pré-checagem do fechamento", "bloqueia", "conferir", "Nada pendente — a competência pode consolidar."],
+      "estados": ["com-bloqueio-grave", "so-conferencia", "limpo"]
+    },
+    {
+      "id": "fechamento-totais",
+      "copy": ["Totais da competência", "Trabalhado", "Hora extra", "Faltas", "Banco de horas"]
+    },
+    {
+      "id": "conformidade-regras",
+      "_papel": "as seis verificações; o texto da lei fica no card porque é o que dá autoridade ao número",
+      "copy": [
+        "Jornada sem fechamento",
+        "Interjornada abaixo do mínimo",
+        "Art. 66 CLT — 11h entre jornadas",
+        "Intrajornada abaixo do mínimo",
+        "Art. 71 CLT — 60 min acima de 6h",
+        "Hora extra acima do limite diário",
+        "Art. 59 CLT — 2h/dia",
+        "NSR fora de sequência",
+        "Portaria 671/2021 Anexo I",
+        "Colaborador sem PIS"
+      ],
+      "estados": ["com-apontamento", "limpo"]
+    }
+  ],
+
+  "ordem": ["fechamento-acoes", "fechamento-passos", "fechamento-pre-checagem", "fechamento-totais"],
+
+  "_pendente_w": [
+    "ESTADO DA COMPETÊNCIA: o protótipo guarda aberto/consolidado/fechado em localStorage por competência. No vivo isso é tabela (ponto_fechamento_competencia?) ou derivado do estado das apurações do mês? Precisa de decisão antes do F3 — é o que trava edição.",
+    "EXCEÇÕES ASSINADAS: 'Consolidar com exceções' registra N bloqueios com nome e data. Onde isso persiste e quem pode fazer (permissão nova ponto.fechamento.manage?).",
+    "REABRIR: hoje reabrir é livre no estado consolidado e impossível no fechado. Confirmar se reabrir competência fechada existe (com auditoria) ou se é definitivo."
+  ]
+}
