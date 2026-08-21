@@ -10,6 +10,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import { Deferred, Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Grid } from '@/Components/layout';
@@ -37,6 +38,10 @@ interface Colaborador {
   email: string | null;
   admissao: string | null;
   escala: string | null;
+  /** Cabeçalho legal do espelho — Portaria MTP 671/2021 Art. 85. PII: tela do RH, nunca log. */
+  pis: string | null;
+  desligamento: string | null;
+  carga_diaria_minutos: number;
 }
 
 interface Totais {
@@ -67,6 +72,11 @@ interface Linha {
   falta: number;
   he: number;
   divergencia: boolean;
+  /** Colunas da apuração diária — as do Blade legado, campo a campo (paridade). */
+  previsto: number;
+  bh_credito: number;
+  bh_debito: number;
+  estado: string;
   marcacoes: Marcacao[];
 }
 
@@ -96,6 +106,8 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
   // undefined no first render.
   const t = totais ?? TOTAIS_FALLBACK;
   const rows = linhas ?? [];
+  // Tabela é o default porque ela É o documento; a grade é leitura de relance.
+  const [modo, setModo] = useState<'tabela' | 'grade'>('tabela');
 
   const onMesChange = (novo: string) => {
     // D-14: partial reload — só re-busca o que muda com o mês (totais/linhas defer).
@@ -157,6 +169,27 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
           </CardContent>
         </Card>
 
+        {/* Cabeçalho legal — 1ª seção do contrato `ponto-espelho`. NÃO é deferido:
+            vem por registro (não muda com o mês) e é o que faz a folha valer em
+            fiscalização. Sem matrícula/CPF/PIS o documento não serve. */}
+        <Card data-contract="espelho-dados-colaborador">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Dados do colaborador</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm md:grid-cols-4">
+            <Dado rotulo="Matrícula:" valor={colaborador.matricula} />
+            <Dado rotulo="CPF:" valor={colaborador.cpf} />
+            <Dado rotulo="PIS:" valor={colaborador.pis} />
+            <Dado rotulo="Escala atual:" valor={colaborador.escala} />
+            <Dado
+              rotulo="Carga diária:"
+              valor={colaborador.carga_diaria_minutos > 0 ? formatMinutes(colaborador.carga_diaria_minutos) : null}
+            />
+            <Dado rotulo="Admissão:" valor={fmtData(colaborador.admissao)} />
+            <Dado rotulo="Desligamento:" valor={fmtData(colaborador.desligamento)} />
+          </CardContent>
+        </Card>
+
         <Deferred
           data={['totais', 'linhas']}
           fallback={(
@@ -172,13 +205,17 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
           )}
         >
         {/* Totalizadores */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+        {/* Os SEIS totalizadores do contrato — os mesmos do Blade legado, campo a
+            campo. "Hora extra" soma diurna+noturna (o Blade totaliza junto); o
+            banco de horas vira DUAS colunas, crédito e débito, porque somá-las
+            esconderia compensação. */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3" data-contract="espelho-totais">
           <Totalizador label="Trabalhado" value={formatMinutes(t.trabalhado)} tone="blue" />
           <Totalizador label="Atraso" value={formatMinutes(t.atraso)} tone={t.atraso > 0 ? 'amber' : 'muted'} />
           <Totalizador label="Falta" value={formatMinutes(t.falta)} tone={t.falta > 0 ? 'red' : 'muted'} />
-          <Totalizador label="HE diurna" value={formatMinutes(t.he_diurna)} tone="violet" />
-          <Totalizador label="HE noturna" value={formatMinutes(t.he_noturna)} tone="violet" />
-          <Totalizador label="BH +/-" value={`${formatMinutes(t.bh_credito)} / ${formatMinutes(t.bh_debito)}`} tone="emerald" small />
+          <Totalizador label="Hora extra" value={formatMinutes(t.he_diurna + t.he_noturna)} tone="violet" />
+          <Totalizador label="Banco hrs (+)" value={formatMinutes(t.bh_credito)} tone="emerald" />
+          <Totalizador label="Banco hrs (−)" value={formatMinutes(t.bh_debito)} tone="emerald" />
         </div>
 
         {/* Alerta divergências */}
@@ -187,12 +224,34 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
             <AlertTriangle size={16} className="text-warning-fg" />
             <span>
               <strong>{t.divergencias}</strong> dia(s) com divergência detectada na apuração.
-              Dias destacados em âmbar abaixo (heatmap e tabela).
+              Dia divergente não consolida: veja o estado de cada um na apuração diária.
             </span>
           </div>
         )}
 
-        {/* Heatmap mensal */}
+        {/* Modo de visão — a TABELA é o documento; a GRADE é a leitura de relance.
+            As duas olham a mesma apuração, então o seletor não recarrega nada:
+            só troca o que aparece. */}
+        <div className="flex items-center gap-1 print:hidden" data-contract="espelho-modo-visao">
+          <Button
+            variant={modo === 'tabela' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setModo('tabela')}
+            aria-pressed={modo === 'tabela'}
+          >
+            Tabela
+          </Button>
+          <Button
+            variant={modo === 'grade' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setModo('grade')}
+            aria-pressed={modo === 'grade'}
+          >
+            Grade do mês
+          </Button>
+        </div>
+
+        {modo === 'grade' && (
         <MonthHeatmap
           mes={mes}
           linhas={rows}
@@ -205,11 +264,15 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
             }
           }}
         />
+        )}
 
-        {/* Tabela dia a dia */}
-        <Card>
+        {/* Apuração diária — as 7 colunas do contrato são as do Blade legado,
+            campo a campo. `Previsto` vem de prevista_carga_minutos e `Estado` do
+            estado da apuração: é o que diz se o dia consolida ou trava o mês. */}
+        {modo === 'tabela' && (
+        <Card data-contract="espelho-apuracao-diaria">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Dia a dia</CardTitle>
+            <CardTitle className="text-base">Apuração diária</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
@@ -217,11 +280,13 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
                 <thead className="border-b border-border bg-muted/30 text-muted-foreground">
                   <tr>
                     <th className="text-left p-2 font-medium">Dia</th>
+                    <th className="text-right p-2 font-medium">Previsto</th>
+                    <th className="text-right p-2 font-medium">Realizado</th>
                     <th className="text-left p-2 font-medium">Marcações</th>
-                    <th className="text-right p-2 font-medium">Trabalhado</th>
                     <th className="text-right p-2 font-medium">Atraso</th>
-                    <th className="text-right p-2 font-medium">Falta</th>
                     <th className="text-right p-2 font-medium">HE</th>
+                    <th className="text-right p-2 font-medium">BH (+/−)</th>
+                    <th className="text-left p-2 font-medium">Estado</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -239,6 +304,10 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
                         <span className="font-semibold">{String(l.dia).padStart(2, '0')}</span>
                         <span className="ml-2 text-[10px] uppercase">{l.dow}</span>
                       </td>
+                      <td className="p-2 text-right font-mono text-muted-foreground">
+                        {formatMinutes(l.previsto)}
+                      </td>
+                      <td className="p-2 text-right font-mono">{formatMinutes(l.trabalhado)}</td>
                       <td className="p-2">
                         {l.marcacoes.length === 0 ? (
                           <span className="text-muted-foreground italic text-[10px]">—</span>
@@ -257,15 +326,20 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
                           </div>
                         )}
                       </td>
-                      <td className="p-2 text-right font-mono">{formatMinutes(l.trabalhado)}</td>
                       <td className={cn('p-2 text-right font-mono', l.atraso > 0 && 'text-warning-fg')}>
                         {formatMinutes(l.atraso)}
                       </td>
-                      <td className={cn('p-2 text-right font-mono', l.falta > 0 && 'text-destructive-fg')}>
-                        {formatMinutes(l.falta)}
-                      </td>
                       <td className={cn('p-2 text-right font-mono', l.he > 0 && 'text-violet-600')}>
                         {formatMinutes(l.he)}
+                      </td>
+                      <td className="p-2 text-right font-mono whitespace-nowrap">
+                        {l.bh_credito > 0 && <span className="text-emerald-600">+{formatMinutes(l.bh_credito)}</span>}
+                        {l.bh_credito > 0 && l.bh_debito > 0 && <span className="text-muted-foreground"> / </span>}
+                        {l.bh_debito > 0 && <span className="text-destructive-fg">{'−'}{formatMinutes(l.bh_debito)}</span>}
+                        {l.bh_credito === 0 && l.bh_debito === 0 && <span className="text-muted-foreground">—</span>}
+                      </td>
+                      <td className="p-2 whitespace-nowrap">
+                        <EstadoDia estado={l.estado} isWeekend={l.is_weekend} />
                       </td>
                     </tr>
                   ))}
@@ -274,7 +348,28 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
             </div>
           </CardContent>
         </Card>
+        )}
         </Deferred>
+
+        {/* Folha de prova — SÓ no print (`hidden print:block`). É o que o
+            colaborador assina e o que a fiscalização recebe; por isso repete o
+            cabeçalho e cita a norma. Portaria MTP 671/2021 Art. 85. */}
+        <section className="hidden print:block" data-contract="espelho-folha-impressao">
+          <h2 className="text-center text-base font-semibold">Espelho de Ponto Eletrônico</h2>
+          <p className="mt-1 text-center text-xs">
+            {colaborador.nome}
+            {colaborador.matricula ? ` · mat. ${colaborador.matricula}` : ''} · {mes}
+          </p>
+          <p className="mt-4 text-xs font-semibold">Apuração diária</p>
+          <p className="mt-4 text-xs font-semibold">Totais do mês</p>
+          <div className="mt-10 flex justify-between gap-8 text-xs">
+            <div className="flex-1 border-t border-black pt-1 text-center">Colaborador</div>
+            <div className="flex-1 border-t border-black pt-1 text-center">Responsável RH</div>
+          </div>
+          <p className="mt-6 text-center text-[10px] text-muted-foreground">
+            Portaria MTP 671/2021 Art. 85
+          </p>
+        </section>
       </div>
     </>
   );
@@ -318,4 +413,36 @@ function Totalizador({
       </CardContent>
     </Card>
   );
+}
+
+/** Par rótulo/valor do cabeçalho legal. `—` quando o campo não está preenchido:
+ *  campo vazio precisa APARECER vazio no documento, não sumir da folha. */
+function Dado({ rotulo, valor }: { rotulo: string; valor: string | null }) {
+  return (
+    <div>
+      <span className="text-muted-foreground">{rotulo}</span>{' '}
+      <span className="font-medium">{valor || '—'}</span>
+    </div>
+  );
+}
+
+/** Data ISO -> pt-BR sem timezone (a string já vem 'Y-m-d' do controller;
+ *  `new Date('Y-m-d')` seria UTC e voltaria um dia em BRT). */
+function fmtData(iso: string | null): string | null {
+  if (!iso) return null;
+  const [y, m, d] = iso.split('-');
+  return y && m && d ? `${d}/${m}/${y}` : iso;
+}
+
+/** Estado da apuração do dia. Sem apuração o controller manda '' — aqui vira
+ *  folga no fim de semana e `—` nos demais, em vez de inventar um estado. */
+function EstadoDia({ estado, isWeekend }: { estado: string; isWeekend: boolean }) {
+  if (!estado) {
+    return <span className="text-[10px] uppercase text-muted-foreground">{isWeekend ? 'folga' : '—'}</span>;
+  }
+  const tom =
+    estado === 'DIVERGENCIA' ? 'text-warning-fg'
+    : estado === 'FECHADO' || estado === 'CONSOLIDADO' ? 'text-success'
+    : 'text-muted-foreground';
+  return <span className={cn('text-[10px] uppercase font-medium', tom)}>{estado.toLowerCase()}</span>;
 }

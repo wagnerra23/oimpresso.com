@@ -81,6 +81,14 @@ class EspelhoController extends Controller
                 'email'     => optional($colaborador->user)->email,
                 'admissao'  => optional($colaborador->admissao)->format('Y-m-d'),
                 'escala'    => optional($colaborador->escalaAtual)->nome,
+                // Cabecalho legal do espelho (contrato ponto-espelho, secao
+                // espelho-dados-colaborador): sem matricula/CPF/PIS o documento
+                // nao serve pra fiscalizacao (Portaria MTP 671/2021 Art. 85).
+                // PII: sai pra TELA do RH, NUNCA pra log (o Colaborador ja
+                // exclui cpf/pis do log por LGPD — nao reintroduzir).
+                'pis'          => $colaborador->pis,
+                'desligamento' => optional($colaborador->desligamento)->format('Y-m-d'),
+                'carga_diaria_minutos' => (int) optional($colaborador->escalaAtual)->carga_diaria_minutos,
             ],
             'mes'    => $mes,
             'totais' => Inertia::defer(fn () => $this->buildTotaisEspelho((int) $colaboradorId, (int) $ano, (int) $mesNum)),
@@ -176,6 +184,15 @@ class EspelhoController extends Controller
                 // US-PONTO-012 (SDD §9 D-1): idem — `tem_divergencia` não existe, então
                 // o realce da linha era `false` sempre. Fonte da verdade: `estado`.
                 'divergencia' => $a ? $a->estado === ApuracaoDia::ESTADO_DIVERGENCIA : false,
+                // Colunas da apuracao diaria do contrato (espelho-apuracao-diaria).
+                // Sao as do Blade legado, campo a campo — paridade, nao redesenho:
+                // prevista_carga_minutos, banco_horas_credito/debito, estado.
+                'previsto'   => $a ? (int) $a->prevista_carga_minutos : 0,
+                'bh_credito' => $a ? (int) $a->banco_horas_credito_minutos : 0,
+                'bh_debito'  => $a ? (int) $a->banco_horas_debito_minutos : 0,
+                // Sem apuracao no dia nao ha estado: string vazia deixa a tela
+                // decidir o rotulo (folga/–), em vez de inventar PENDENTE aqui.
+                'estado'     => $a ? (string) $a->estado : '',
                 'marcacoes' => $mgs->map(fn ($m) => [
                     'hora'   => $m->momento->format('H:i'),
                     'tipo'   => $m->tipo,
