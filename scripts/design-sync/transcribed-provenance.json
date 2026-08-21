@@ -14,7 +14,8 @@
       "linhas": 80,
       "sha256": "e52bbf330513a632029013dbdcda2389df3d374d573b4a84e4965a092b8e3c6f",
       "frontmatter": "ok",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
     },
     {
       "path": "prototipo-ui/design-docs/docs-novos/GOV-CONHECIMENTO-INDEXADO.md",
@@ -22,7 +23,8 @@
       "linhas": 51,
       "sha256": "c1412cea0b13dd180eb34c15d767e3703e6719ee53f1244369c3b25bf76fbf22",
       "frontmatter": "ok",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
     },
     {
       "path": "prototipo-ui/design-docs/docs-novos/GOV-DECISAO-VIRA-LEI.md",
@@ -30,7 +32,8 @@
       "linhas": 57,
       "sha256": "5520f941d58b054079492218930ad861dd885e539dc31775905b342593adfc71",
       "frontmatter": "ok",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
     },
     {
       "path": "prototipo-ui/design-docs/docs-novos/GOV-O-QUE-E-OBSERVADO.md",
@@ -38,7 +41,8 @@
       "linhas": 43,
       "sha256": "e0c4e143f07fa1e34886265d65b025d53f540f02b08c68389ed84661bc4e33da",
       "frontmatter": "ok",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
     },
     {
       "path": "prototipo-ui/design-docs/docs-novos/TECNICO-ARQUITETURA.md",
@@ -46,7 +50,8 @@
       "linhas": 61,
       "sha256": "e6b3b5d06525d0e253bf5c9aea806fb35101af75656a4a50769531bbce901c02",
       "frontmatter": "ok",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
     },
     {
       "path": "prototipo-ui/design-docs/docs-novos/TECNICO-CONTRATO-DE-TELA.md",
@@ -54,7 +59,8 @@
       "linhas": 57,
       "sha256": "9e1e4ada4621d76f74aec6110b523005aed49ae5ff84f3407576109845751f98",
       "frontmatter": "ok",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
     },
     {
       "path": "prototipo-ui/design-docs/docs-novos/TECNICO-DADOS-MULTITENANT.md",
@@ -62,7 +68,8 @@
       "linhas": 56,
       "sha256": "56edf4eaf74344d122e921ab996d54d93f6de1c1b50725916d8c70bed410a0c6",
       "frontmatter": "ok",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
     },
     {
       "path": "prototipo-ui/design-docs/docs-novos/TECNICO-FRONTEND-TOKENS.md",
@@ -70,7 +77,8 @@
       "linhas": 60,
       "sha256": "da1c145c6dd6c2458672b83ff85bda412d2cfa091553eb150b6db220e07eb1c2",
       "frontmatter": "ok",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
     },
     {
       "path": "prototipo-ui/design-docs/docs-novos/TECNICO-MCP-AGENTES.md",
@@ -78,7 +86,8 @@
       "linhas": 55,
       "sha256": "2321a24cf3820de5a967cc53ee09ec46fa53f4d37689b83be46b48a4e832ae29",
       "frontmatter": "ok",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
     },
     {
       "path": "prototipo-ui/design-docs/docs-novos/TECNICO-QUALIDADE-CI.md",
@@ -86,7 +95,8 @@
       "linhas": 62,
       "sha256": "8409172512446553c7a144f6c088845d7f32beeee042a10298cc0997b3066876",
       "frontmatter": "ok",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
     },
     {
       "path": "prototipo-ui/design-docs/handoff/Backup.casos.md",
@@ -94,7 +104,8 @@
       "linhas": 112,
       "sha256": "daaf514d552026914c72558224b96904ce92be04b1e10eb25c6ee0ceca6ab489",
       "frontmatter": "ok",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
     },
     {
       "path": "prototipo-ui/design-docs/handoff/Backup.charter.md",
@@ -102,7 +113,8 @@
       "linhas": 94,
       "sha256": "7f6b2d19f79b0d797975d01a82e6b11a2a0af6a1edde72d5f5cbb4510bf29142",
       "frontmatter": "ERRO-NA-FONTE: Unexpected scalar at node end at line 6, column 13:",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
     },
     {
       "path": "prototipo-ui/design-docs/handoff/HANDOFF-backup-tela.md",
@@ -110,7 +122,8 @@
       "linhas": 103,
       "sha256": "8422cb686705194d63276ef40e77fc3f4c8627e77bc59f327a31dada09ecb265",
       "frontmatter": "ok",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
     },
     {
       "path": "prototipo-ui/design-docs/handoff/HANDOFF-financeiro-contrato.md",
@@ -118,7 +131,8 @@
       "linhas": 28,
       "sha256": "113bbf999bc929a5a2547118dc75f56524b9226d0f1522c2ec6b756fd6f30ad9",
       "frontmatter": "sem-frontmatter",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
     },
     {
       "path": "prototipo-ui/design-docs/handoff/backup-migracao/HANDOFF-backup-tela.md",
@@ -126,7 +140,8 @@
       "linhas": 103,
       "sha256": "8422cb686705194d63276ef40e77fc3f4c8627e77bc59f327a31dada09ecb265",
       "frontmatter": "ok",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
     },
     {
       "path": "prototipo-ui/design-docs/handoff/backup-migracao/PLANO-ONDAS.md",
@@ -134,7 +149,8 @@
       "linhas": 126,
       "sha256": "d444d5fff5a5903bdba47ad94ea0eb20cbb179d26fda8e69b73ee50df3930e47",
       "frontmatter": "sem-frontmatter",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
     },
     {
       "path": "prototipo-ui/design-docs/handoff/backup-migracao/README.md",
@@ -142,7 +158,8 @@
       "linhas": 55,
       "sha256": "ecb5d29003a6aa606df2177af06fc79a2cf233942a1218565abaac9237b55a34",
       "frontmatter": "sem-frontmatter",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
     },
     {
       "path": "prototipo-ui/design-docs/handoff/backup-migracao/charter/Index.casos.md",
@@ -150,7 +167,8 @@
       "linhas": 112,
       "sha256": "daaf514d552026914c72558224b96904ce92be04b1e10eb25c6ee0ceca6ab489",
       "frontmatter": "ok",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
     },
     {
       "path": "prototipo-ui/design-docs/handoff/backup-migracao/charter/Index.charter.md",
@@ -158,7 +176,278 @@
       "linhas": 94,
       "sha256": "7f6b2d19f79b0d797975d01a82e6b11a2a0af6a1edde72d5f5cbb4510bf29142",
       "frontmatter": "ERRO-NA-FONTE: Unexpected scalar at node end at line 6, column 13:",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Aprovacoes/Index.casos.md",
+      "bytes_escritos": 2321,
+      "linhas": 53,
+      "sha256": "d78ba0b3da285cdff3741bd4531aadae73c5adb4b3a87c958609ae3b0dc2e308",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "DIVERGE"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Aprovacoes/Index.charter.md",
+      "bytes_escritos": 2012,
+      "linhas": 64,
+      "sha256": "62afd93015336060e04f6304c32a2ffc9d59ada36ad3d30f5ea312fc849db91e",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "DIVERGE"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/BancoHoras/Index.casos.md",
+      "bytes_escritos": 2342,
+      "linhas": 53,
+      "sha256": "4921b4e3eaea5200fdb933db561e2362badf4f70e90d732a96ee1d664a2710e5",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "DIVERGE"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/BancoHoras/Index.charter.md",
+      "bytes_escritos": 2128,
+      "linhas": 64,
+      "sha256": "253a360cf10059338fce79d967040339e327fa71ae99548176d3d62f6d695332",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "DIVERGE"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Colaboradores/Index.casos.md",
+      "bytes_escritos": 2099,
+      "linhas": 46,
+      "sha256": "3332725e0fda7d139e7120d636c3a1a6f6928bf11a364c938157a8faff3be95d",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "SO_COWORK"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Colaboradores/Index.charter.md",
+      "bytes_escritos": 2145,
+      "linhas": 63,
+      "sha256": "1b29e21f6389f8d82b1091452d968dbbbb09b7895169fb02d161cf2ece632789",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "DIVERGE"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Configuracoes/Index.casos.md",
+      "bytes_escritos": 2003,
+      "linhas": 46,
+      "sha256": "3a21d9e895330fa5008210d5d2af42e6eb6012a42526fcd28c825af19eaae394",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "SO_COWORK"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Configuracoes/Index.charter.md",
+      "bytes_escritos": 2106,
+      "linhas": 62,
+      "sha256": "b5a74412288adabe09c8cdb8a147733298cc6423837b60ebccd0e60769780ca3",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "DIVERGE"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Conformidade.casos.md",
+      "bytes_escritos": 2049,
+      "linhas": 46,
+      "sha256": "5378042e35185c32f15d67dfb733aa3bbb248650364458e118b0efb6aa5b8c18",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "SO_COWORK"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Conformidade.charter.md",
+      "bytes_escritos": 2215,
+      "linhas": 64,
+      "sha256": "98d137f5f06f4a97a22489a47d4befea9d69cb6a26980542e13f7b8d2a833c9f",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "SO_COWORK"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Escalas/Index.casos.md",
+      "bytes_escritos": 1858,
+      "linhas": 46,
+      "sha256": "25d5504b6340cdeb48bab03b35b4300be1125dc5205a541209b6f6190fd6115f",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "SO_COWORK"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Escalas/Index.charter.md",
+      "bytes_escritos": 2038,
+      "linhas": 63,
+      "sha256": "ac03ca1633a056034c89aa4963a5c4efd5f17c86fc4e7b5856c0d0ad2e0c4a41",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "DIVERGE"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Espelho/Index.casos.md",
+      "bytes_escritos": 2538,
+      "linhas": 53,
+      "sha256": "8a9118f6f67543dacd2b3cea116a251f91edc820d2b629c60abd4233c9a44039",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "DIVERGE"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Espelho/Index.charter.md",
+      "bytes_escritos": 2216,
+      "linhas": 63,
+      "sha256": "5d285f4f978e79b6a3847ab25dbb03213a6b8348c47e0bf448c930fa2b6608f9",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "DIVERGE"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Espelho/Show.casos.md",
+      "bytes_escritos": 2539,
+      "linhas": 53,
+      "sha256": "2d4e1e0bb17d186f4ad8460ef4689a7c76dc8ee2d4db3ac50c078032f5cc2216",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "DIVERGE"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Espelho/Show.charter.md",
+      "bytes_escritos": 2573,
+      "linhas": 67,
+      "sha256": "84dbda7ae95ab9f5c5af47963b03617f40180b51180266561d5c2d71730f79e1",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "DIVERGE"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Fechamento.casos.md",
+      "bytes_escritos": 5625,
+      "linhas": 92,
+      "sha256": "fba01df4af8a3f6720c149471ba363afceec61825f0349f6d9e432d37e449fdd",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "SO_COWORK"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Fechamento.charter.md",
+      "bytes_escritos": 4833,
+      "linhas": 94,
+      "sha256": "ed5ed37e21c493e9b8e3cbc1edfa8ea74d404c0b01f7b62b245d0e57ced85530",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "SO_COWORK"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Importacoes/Index.casos.md",
+      "bytes_escritos": 2317,
+      "linhas": 53,
+      "sha256": "6d4ad3b46c6d06e0706c5127cc599cf719f571af63073abb488d42bb1733df46",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "DIVERGE"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Importacoes/Index.charter.md",
+      "bytes_escritos": 2217,
+      "linhas": 64,
+      "sha256": "1973feeed7193ea4bee3a148e0bcb68eaaa61b6cd2fcac58016b09d56433a01f",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "DIVERGE"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Index.casos.md",
+      "bytes_escritos": 2401,
+      "linhas": 53,
+      "sha256": "d4631a6bdecd8d26c1aa15f57c778071e6e84eab108bd4ab9acb62d886c0aa4a",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "SO_COWORK"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Index.charter.md",
+      "bytes_escritos": 2544,
+      "linhas": 65,
+      "sha256": "28b25c8993e2d45f3ab7bd0693a573ad6f4d55dc29bc514a5c0b2b5393f2283d",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "SO_COWORK"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Intercorrencias/Index.casos.md",
+      "bytes_escritos": 2306,
+      "linhas": 53,
+      "sha256": "3a9cbed981b5d9d9cff61e9a3773d875327bca6a5395489fd29dc53f0bf043c5",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "DIVERGE"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Intercorrencias/Index.charter.md",
+      "bytes_escritos": 2380,
+      "linhas": 64,
+      "sha256": "6080b4c89a7d50f224946585ef0128ab43cee428e30f9a8df312804c52a60256",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "DIVERGE"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Relatorios/Index.casos.md",
+      "bytes_escritos": 2006,
+      "linhas": 46,
+      "sha256": "da1f16e5649a809cdb5fde4fe0e4e2a7751fda440a0c4e5fe1022e32d59c8ca3",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "DIVERGE"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/Relatorios/Index.charter.md",
+      "bytes_escritos": 2039,
+      "linhas": 63,
+      "sha256": "52598917bea93363234149a78079ec15d0f1322948c268eb3c9462a5dbb2ce10",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "DIVERGE"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/RepP.casos.md",
+      "bytes_escritos": 2704,
+      "linhas": 60,
+      "sha256": "22da7c874acb0f8f9774b10760f9d59c3af026b4cf40ed5ccf25123d516d8301",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "SO_COWORK"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Ponto/RepP.charter.md",
+      "bytes_escritos": 2398,
+      "linhas": 65,
+      "sha256": "8559deed8b9b80dad04411dba0abdcf3da93e15ac187fdb09e4e7288228c8a55",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "SO_COWORK"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Relatorios/Index.casos.md",
+      "bytes_escritos": 7608,
+      "linhas": 129,
+      "sha256": "ed84ba2c23f313b2bfc0748c6170a515fb73b8979256e3100a66421deeebc88b",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "SO_COWORK"
+    },
+    {
+      "path": "prototipo-ui/design-docs/resources/js/Pages/Relatorios/Index.charter.md",
+      "bytes_escritos": 5428,
+      "linhas": 100,
+      "sha256": "27394de38718c9641da30fe8c0bd9adbfd7842aabfb50bf4b7be4eb971d7e845",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "SO_COWORK"
     }
   ],
   "frontmatter_invalido_na_FONTE": [
@@ -171,5 +460,6 @@
       ],
       "decisao": "preservado como esta: e defeito do documento vivo no Cowork, nao da transcricao. Consertar aqui quebraria a fidelidade e criaria drift com a fonte."
     }
-  ]
+  ],
+  "vs_repo_nota": "Para os .md que espelham um path vivo de resources/js/Pages, o campo vs_repo compara sha256 do transcrito com o arquivo homonimo do repo. IDENTICO/DIVERGE/SO_COWORK e comparacao de BYTES, nao diff semantico — nao estabelece qual lado esta a frente."
 }
