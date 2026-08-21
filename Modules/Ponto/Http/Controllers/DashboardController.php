@@ -66,6 +66,16 @@ class DashboardController extends Controller
             'aprovacoes_pendentes' => Intercorrencia::where('business_id', $businessId)
                 ->pendentes()
                 ->count(),
+            // Dias em DIVERGENCIA na competencia — alimenta a nota "o que trava o
+            // fechamento" (contrato ponto-painel, secao painel-nota-fechamento).
+            // Dia divergente impede a apuracao de consolidar e faz o AFD sair com a
+            // jornada errada, entao o painel avisa antes de o mes fechar.
+            // A janela usa whereMonth como os KPIs vizinhos (he_mes_minutos) —
+            // mesma semantica de competencia, deliberadamente NAO divergente deles.
+            'divergencias_mes' => ApuracaoDia::where('business_id', $businessId)
+                ->whereMonth('data', now()->month)
+                ->where('estado', ApuracaoDia::ESTADO_DIVERGENCIA)
+                ->count(),
         ];
     }
 

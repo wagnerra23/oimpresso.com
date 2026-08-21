@@ -32,6 +32,8 @@ interface Kpis {
   faltas_hoje: number;
   he_mes_minutos: number;
   aprovacoes_pendentes: number;
+  /** Dias em DIVERGENCIA na competência — alimenta `painel-nota-fechamento`. */
+  divergencias_mes: number;
 }
 
 interface Aprovacao {
@@ -101,6 +103,68 @@ interface Props {
   server_time: string;
 }
 
+/**
+ * Nota "o que trava o fechamento" — seção `painel-nota-fechamento` do contrato.
+ *
+ * Âncora de design: `prototipo-ui/cowork/ponto-page.jsx` §`Nota contrato="painel-nota-fechamento"`
+ * (âncora de SÍMBOLO, nunca linha — re-localize com
+ * `grep -n "painel-nota-fechamento" prototipo-ui/cowork/ponto-page.jsx`).
+ *
+ * Existe porque dia em DIVERGENCIA não é detalhe de relatório: ele impede a
+ * apuração de consolidar E faz o AFD gerado sair com a jornada errada. Quem abre
+ * o painel precisa ver isso antes de tentar fechar o mês, não depois.
+ *
+ * Os 3 estados são os do contrato (`com-pendencia` · `sem-pendencia` ·
+ * `so-divergencia`) e a redação é a do protótipo, não reescrita aqui.
+ */
+function NotaFechamento({ pendentes, divergencias }: { pendentes: number; divergencias: number }) {
+  const travado = pendentes > 0 || divergencias > 0;
+  const dias = divergencias === 1 ? 'dia está' : 'dias estão';
+  const mes = new Date().toLocaleDateString('pt-BR', { month: 'long' });
+
+  return (
+    <div
+      data-contract="painel-nota-fechamento"
+      className={cn(
+        'rounded-lg border px-4 py-3 text-sm',
+        travado
+          ? 'border-warning/40 bg-warning-soft text-foreground'
+          : 'border-success/40 bg-success-soft text-foreground',
+      )}
+    >
+      <p className="flex items-center gap-1.5 font-medium">
+        {travado ? (
+          <AlertTriangle size={15} className="text-warning" aria-hidden />
+        ) : (
+          <CheckCheck size={15} className="text-success" aria-hidden />
+        )}
+        O que trava o fechamento de {mes}
+      </p>
+      <p className="mt-1 text-muted-foreground">
+        {pendentes === 0 && divergencias === 0 ? (
+          <>Nenhuma intercorrência aguardando decisão e nenhum dia em divergência — a competência pode consolidar.</>
+        ) : pendentes === 0 ? (
+          <>
+            Nenhuma intercorrência aguardando decisão, mas {divergencias} {dias} em{' '}
+            <b>DIVERGENCIA</b> na apuração — o espelho não consolida assim, e o AFD gerado sai com a
+            jornada errada.
+          </>
+        ) : (
+          <>
+            {pendentes === 1 ? 'Uma intercorrência espera' : `${pendentes} intercorrências esperam`}{' '}
+            decisão e {divergencias} {dias} em <b>DIVERGENCIA</b> na apuração. Enquanto isso, o
+            espelho do mês não consolida — e o AFD gerado sai com a jornada errada.
+          </>
+        )}
+      </p>
+    </div>
+  );
+}
+
+function NotaSkeleton() {
+  return <div className="h-16 animate-pulse rounded-lg border border-border bg-background" />;
+}
+
 export default function DashboardIndex({
   kpis,
   aprovacoes,
@@ -145,11 +209,21 @@ export default function DashboardIndex({
           </div>
         </header>
 
+        {/* Nota "o que trava o fechamento" — 1ª seção do contrato `ponto-painel`,
+            e por isso vem ANTES dos KPIs (o gate cobra a ordem das âncoras).
+            Lê da mesma prop deferida dos KPIs: são a mesma consulta. */}
+        <Deferred data="kpis" fallback={<NotaSkeleton />}>
+          <NotaFechamento
+            pendentes={kpis?.aprovacoes_pendentes ?? 0}
+            divergencias={kpis?.divergencias_mes ?? 0}
+          />
+        </Deferred>
+
         {/* KPIs — prop deferida: guarda `?.`/`?? 0` cobre o first render */}
         <Deferred data="kpis" fallback={<KpiSkeleton />}>
-          <KpiGrid cols={6}>
+          <KpiGrid cols={6} data-contract="painel-kpis">
             <KpiCard
-              label="Colaboradores"
+              label="Colaboradores ativos"
               value={kpis?.colaboradores_ativos ?? 0}
               icon="users"
               tone="info"
@@ -185,7 +259,7 @@ export default function DashboardIndex({
               size="compact"
             />
             <KpiCard
-              label="Aprovações"
+              label="Aprovações pendentes"
               value={kpis?.aprovacoes_pendentes ?? 0}
               icon="check-check"
               tone={(kpis?.aprovacoes_pendentes ?? 0) > 0 ? 'danger' : 'default'}
@@ -202,7 +276,7 @@ export default function DashboardIndex({
 
         {/* Grid 2 colunas — esquerda: gráfico + atividade | direita: alertas + aprovações */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Esquerda (2 cols): gráfico + atividade */}
+          {/* Esquerda (2 cols): gráfico + fila de aprovações + atividade */}
           <div className="lg:col-span-2 space-y-4">
             <Card>
               <CardHeader>
@@ -218,28 +292,21 @@ export default function DashboardIndex({
               </CardContent>
             </Card>
 
-            <Deferred data="atividade_recente" fallback={<CardListSkeleton />}>
-              <ActivityFeed marcacoes={atividade_recente ?? []} title="Atividade de hoje" />
-            </Deferred>
-          </div>
-
-          {/* Direita (1 col): alertas + aprovações */}
-          <div className="space-y-4">
-            <Deferred data="alertas" fallback={<CardListSkeleton />}>
-              <AlertInbox alertas={alertas ?? []} />
-            </Deferred>
-
-            <Card>
+            {/* Fila de aprovações vem ANTES da atividade, e na coluna larga — é a ordem
+                do contrato `ponto-painel` e do protótipo (`ponto-page.jsx` §pt-cols-2:
+                fila, depois atividade). A ordem das âncoras é ordem de LEITURA (DOM),
+                então não dá pra acertar com CSS `order` sem descolar leitura de visual. */}
+            <Card data-contract="painel-fila-aprovacoes">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <div>
                   <CardTitle className="text-base flex items-center gap-1.5">
-                    <CheckCheck size={16} className="text-primary" /> Aprovações
+                    <CheckCheck size={16} className="text-primary" /> Fila de aprovações
                   </CardTitle>
                   <CardDescription className="text-xs">Intercorrências pendentes</CardDescription>
                 </div>
                 <Button variant="ghost" size="sm" asChild>
                   <Link href="/ponto/aprovacoes" className="text-xs">
-                    Ver todas <ArrowRight size={12} className="ml-1" />
+                    Ver fila completa <ArrowRight size={12} className="ml-1" />
                   </Link>
                 </Button>
               </CardHeader>
@@ -247,7 +314,7 @@ export default function DashboardIndex({
                 <Deferred data="aprovacoes" fallback={<RowsSkeleton />}>
                   {(aprovacoes ?? []).length === 0 ? (
                     <p className="text-xs text-muted-foreground text-center py-6">
-                      Nenhuma pendência
+                      Nenhuma intercorrência aguardando decisão.
                     </p>
                   ) : (
                     (aprovacoes ?? []).map((a) => <ApprovalRow key={a.id} item={a} />)
@@ -255,6 +322,21 @@ export default function DashboardIndex({
                 </Deferred>
               </CardContent>
             </Card>
+
+            <div data-contract="painel-atividade">
+              <Deferred data="atividade_recente" fallback={<CardListSkeleton />}>
+                {/* "marcações de hoje" (copy do contrato) vive no subtítulo do
+                    ActivityFeed; o rótulo da seção é o título. */}
+                <ActivityFeed marcacoes={atividade_recente ?? []} title="Atividade recente" />
+              </Deferred>
+            </div>
+          </div>
+
+          {/* Direita (1 col): alertas */}
+          <div className="space-y-4">
+            <Deferred data="alertas" fallback={<CardListSkeleton />}>
+              <AlertInbox alertas={alertas ?? []} />
+            </Deferred>
           </div>
         </div>
       </div>
