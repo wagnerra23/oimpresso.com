@@ -23,6 +23,8 @@ return [
     'user.create' => 'Add user',
     'user.update' => 'Edit user',
     'user.delete' => 'Delete user',
+    'commission_agent.view' => 'View sales commission agents',
+    'commission_agent.manage' => 'Add, edit and remove sales commission agents',
 
     'supplier.view' => 'View supplier',
     'supplier.create' => 'Add supplier',

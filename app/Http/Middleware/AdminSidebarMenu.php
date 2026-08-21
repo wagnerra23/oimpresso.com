@@ -77,7 +77,8 @@ class AdminSidebarMenu
           </svg>', 'active' => request()->segment(1) == 'home'])->order(5);
 
             //User management dropdown
-            if (auth()->user()->can('user.view') || auth()->user()->can('user.create') || auth()->user()->can('roles.view')) {
+            if (auth()->user()->can('user.view') || auth()->user()->can('user.create') || auth()->user()->can('roles.view')
+                || auth()->user()->can('commission_agent.view') || auth()->user()->can('commission_agent.manage')) {
                 $menu->dropdown(
                     __('user.user_management'),
                     function ($sub) {
@@ -95,7 +96,7 @@ class AdminSidebarMenu
                                 ['icon' => '', 'active' => request()->segment(1) == 'roles']
                             );
                         }
-                        if (auth()->user()->can('user.create')) {
+                        if (auth()->user()->can('commission_agent.view') || auth()->user()->can('commission_agent.manage')) {
                             $sub->url(
                                 action([\App\Http\Controllers\SalesCommissionAgentController::class, 'index']),
                                 __('lang_v1.sales_commission_agents'),

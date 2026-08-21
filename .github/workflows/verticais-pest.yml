@@ -36,7 +36,7 @@ name: Verticais · Pest (MySQL)
 # violando ADR 0123 §8 / LGPD Art. 18. Os dois estavam escondidos atrás de skip.
 #
 # Reusa .github/actions/pest-mysql-setup (mesma de arquivos-pest / jana-pest /
-# nfebrasil-pest): PHP 8.4 + deps + .env MySQL + migrate + seed biz=1/biz=2.
+# nfebrasil-pest): PHP 8.4 + deps + .env MySQL + migrate + seed mínimo multi-tenant.
 
 on:
   workflow_dispatch: {}
@@ -106,7 +106,7 @@ jobs:
 
       # Setup canônico reusável (composite action). O service container MySQL fica
       # DECLARADO ACIMA no job — composite action não pode declarar services.
-      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
         if: steps.changes.outputs.vert == 'true'
         uses: ./.github/actions/pest-mysql-setup
 
