@@ -30,8 +30,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
   ArrowDown,
+  ArrowDownUp,
   ArrowUp,
   ArrowUpDown,
+  Check,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -59,8 +61,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu';
+import { toast } from 'sonner';
 import { ABAS_CATALOGO, type AbaKey, type KpiKey, type Permissoes, type ProdutoRow } from './_components/catalogo';
-import { celulasDe, colunasDe, type ColunaKey } from './_components/Colunas';
+import { celulasDe, colunasDe, larguraMinima, type ColunaKey } from './_components/Colunas';
 import KpiFiltros, { type KpisCatalogo } from './_components/KpiFiltros';
 import FiltroTrigger, { type OpcaoFiltro } from './_components/FiltroTrigger';
 import DetalheProduto from './_components/DetalheProduto';
@@ -136,11 +139,45 @@ const TIPO_OPCOES: OpcaoFiltro[] = [
   { value: 'kit', label: 'Kit' },
 ];
 
+/**
+ * Recorte por disponibilidade. Rótulos do handoff de 21/08 §4.2 — o gatilho passou a se
+ * chamar "Disponível" e as opções falam do que dá pra VENDER, não do que tem no depósito.
+ */
 const ESTOQUE_OPCOES: OpcaoFiltro[] = [
-  { value: 'em', label: 'Em estoque' },
-  { value: 'baixo', label: 'Estoque baixo' },
-  { value: 'sem', label: 'Sem estoque' },
+  { value: 'em', label: 'Com saldo' },
+  { value: 'baixo', label: 'Abaixo do mínimo' },
+  { value: 'sem', label: 'Sem saldo' },
   { value: 'nao', label: 'Não estocável' },
+];
+
+/**
+ * Chaves de ordenação oferecidas pelo gatilho "Ordem" (handoff 21/08 §4.2).
+ *
+ * Existir um gatilho — e não só o clique no cabeçalho — é o que torna a ordem CORRENTE
+ * explícita: o rótulo mostra "Código ↑" antes de qualquer interação, então quem abre a tela
+ * sabe por que a lista está naquela sequência em vez de supor que é aleatória.
+ */
+const ORDEM_OPCOES: ReadonlyArray<{ key: ColunaKey; label: string; precisaCusto?: boolean; precisaPreco?: boolean }> = [
+  { key: 'cod', label: 'Código' },
+  { key: 'prod', label: 'Produto' },
+  { key: 'est', label: 'Disponível' },
+  { key: 'preco', label: 'Preço', precisaPreco: true },
+  { key: 'margem', label: 'Margem', precisaCusto: true, precisaPreco: true },
+];
+
+/**
+ * Onde as preferências de apresentação moram. Versionada no nome (`.v1`): mudar o formato do
+ * que é gravado vira `.v2` em vez de tentar migrar — preferência é barata de recriar, e ler
+ * um formato antigo com código novo é como a tela quebra sem ninguém perceber.
+ */
+const CHAVE_PREFS = 'oi.produtos.prefs.v1';
+
+/** Colunas que o operador pode esconder pelo menu ⋯ (§3.1). Código e Produto nunca somem. */
+const COLUNAS_OCULTAVEIS: ReadonlyArray<{ key: ColunaKey; label: string }> = [
+  { key: 'tipo', label: 'Tipo' },
+  { key: 'custo', label: 'Custo' },
+  { key: 'preco', label: 'Preço de venda' },
+  { key: 'margem', label: 'Margem' },
 ];
 
 const MARGEM_OPCOES: OpcaoFiltro[] = [
@@ -183,6 +220,47 @@ function ProdutoUnificadoIndex({
   const [maisFiltros, setMaisFiltros] = useState(false);
   const buscaRef = useRef<HTMLInputElement>(null);
 
+  /**
+   * Preferências de APRESENTAÇÃO — densidade e colunas escondidas (handoff 21/08 §4.7).
+   *
+   * Ficam em `localStorage`, não na URL: não descrevem o recorte (que aba, que filtro), e sim
+   * como esta pessoa gosta de ler a lista nesta máquina. Mandá-las pro servidor faria um link
+   * compartilhado carregar o gosto de quem mandou.
+   *
+   * O recorte em si (aba, KPI, filtros, ordem, página) continua na URL — lá ele PRECISA
+   * viajar, porque colar o endereço no WhatsApp tem que abrir a mesma lista do outro lado.
+   */
+  const [densa, setDensa] = useState(false);
+  const [colsOcultas, setColsOcultas] = useState<ColunaKey[]>([]);
+
+  useEffect(() => {
+    try {
+      const bruto = localStorage.getItem(CHAVE_PREFS);
+      if (!bruto) return;
+      const r = JSON.parse(bruto) as { densa?: unknown; colsOcultas?: unknown };
+      setDensa(!!r.densa);
+      if (Array.isArray(r.colsOcultas)) setColsOcultas(r.colsOcultas as ColunaKey[]);
+    } catch {
+      // Preferência ilegível (JSON corrompido, cota, modo privado): a tela abre no padrão.
+      // Nada aqui vale derrubar a consulta do balcão.
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CHAVE_PREFS, JSON.stringify({ densa, colsOcultas }));
+    } catch {
+      // Cota cheia: segue sem persistir.
+    }
+  }, [densa, colsOcultas]);
+
+  const copiar = (texto: string, rotulo: string) => {
+    navigator.clipboard?.writeText(texto).then(
+      () => toast.success(`${rotulo} copiado`),
+      () => toast.error('Não foi possível copiar')
+    );
+  };
+
   /** Navega preservando o resto do recorte. `only` diz quais props re-rodam no servidor. */
   const irPara = (patch: Partial<Filtros>, only: string[]) =>
     router.get(route('products.unificado.index'), { ...filters, ...patch }, {
@@ -224,7 +302,23 @@ function ProdutoUnificadoIndex({
 
   // DERIVADOS — nunca em estado.
   const mostraTipo = useMemo(() => new Set(linhas.map((r) => r.tipo)).size > 1, [linhas]);
-  const colunas = useMemo(() => colunasDe({ perm: permissoes, mostraTipo }), [permissoes, mostraTipo]);
+  const colunasPermitidas = useMemo(() => colunasDe({ perm: permissoes, mostraTipo }), [permissoes, mostraTipo]);
+  /**
+   * Esconder coluna é PREFERÊNCIA de leitura; não montar é AUTORIZAÇÃO. As duas se aplicam em
+   * ordem: `colunasDe` decide o que o perfil pode ver, e só depois o operador tira da vista o
+   * que não quer ler agora. Uma coluna que a permissão não montou não aparece no menu.
+   */
+  const colunas = useMemo(
+    () => colunasPermitidas.filter((c) => !colsOcultas.includes(c.key)),
+    [colunasPermitidas, colsOcultas]
+  );
+  /**
+   * `min-width` CALCULADO (handoff 21/08 §3.1), não fixo em 1000px. Com o número fixo, esconder
+   * Custo e Margem não tirava a barra de rolagem — a tabela continuava reservando a largura de
+   * colunas que não estavam mais lá, e o seletor de colunas virava enfeite. Somando o que
+   * realmente está na tela, esconder coluna elimina a rolagem de verdade.
+   */
+  const minWidth = useMemo(() => larguraMinima(colunas), [colunas]);
   /**
    * Ordem vem do SERVIDOR, não de estado local (handoff V2 §9).
    *
@@ -236,6 +330,23 @@ function ProdutoUnificadoIndex({
   const ordem = filters.ordem
     ? { key: filters.ordem as ColunaKey, dir: filters.dir }
     : null;
+
+  /**
+   * Ordem CORRENTE pro rótulo do gatilho. Quando o servidor não recebeu `ordem`, ele ordena
+   * por código ascendente — e é isso que o gatilho precisa imprimir. Um rótulo genérico
+   * ("Ordenar") enquanto a lista está por código faz o operador procurar uma explicação que a
+   * tela já tem.
+   */
+  const ordemAtual = ordem ?? { key: 'cod' as ColunaKey, dir: 'asc' as const };
+  const ordemDisponivel = useMemo(
+    () => ORDEM_OPCOES.filter((o) =>
+      (!o.precisaCusto || permissoes.custo) && (!o.precisaPreco || permissoes.preco)
+    ),
+    [permissoes]
+  );
+  const rotuloOrdem =
+    (ordemDisponivel.find((o) => o.key === ordemAtual.key)?.label ?? 'Código') +
+    (ordemAtual.dir === 'asc' ? ' ↑' : ' ↓');
 
   const produtoAberto = abertoId === null ? null : linhas.find((r) => r.id === abertoId) ?? null;
 
@@ -264,46 +375,15 @@ function ProdutoUnificadoIndex({
   const temFiltro = !!(filters.categoria || filters.unidade || filters.marca || filters.tipo || filters.estoque || filters.margem);
 
   /**
-   * Chips do recorte ativo (handoff V2 §4.3).
+   * O gatilho de filtro JÁ É o estado — não há chips (handoff 21/08 §4.2).
    *
-   * O rótulo do chip mostra o VALOR LEGÍVEL, não o id: `Categoria: Insumos`, nunca
-   * `Categoria: 37`. Categoria/Unidade/Marca chegam como id numérico e o texto vive em
-   * `opcoesFiltro`, que é prop DEFERIDA — enquanto ela não chegou não dá pra rotular o chip
-   * com honestidade, então ele espera. Chip com id cru é pior que chip nenhum: o operador não
-   * reconhece o próprio filtro e clica no × por desconfiança.
-   *
-   * A busca também vira chip. Ela já tem o × dentro do campo, mas quem chegou na tela por um
-   * link com `?busca=` não olhou o campo — o chip é onde o recorte se declara por inteiro.
+   * A tela teve uma segunda linha de chips ("Categoria: Insumos ×") até o pacote de 18/08.
+   * Ela existia porque o gatilho era neutro e o filtro aplicado não saltava da faixa. Nas 27
+   * ondas o gatilho passou a imprimir o valor no próprio rótulo, e aí o chip virou o MESMO
+   * texto duas vezes na mesma tela, uma linha acima da outra — com dois "×" diferentes pra
+   * tirar o mesmo filtro. Um botão "Limpar" ao lado dos gatilhos faz o que a linha de chips
+   * fazia de útil, sem repetir nada.
    */
-  const chipsAtivos = useMemo(() => {
-    const rotulo = (lista: OpcaoFiltro[] | undefined, v: number | null) =>
-      v ? lista?.find((o) => o.value === String(v))?.label ?? null : null;
-
-    const brutos: Array<{ k: string; label: string; valor: string | null; patch: Partial<Filtros> }> = [
-      { k: 'categoria', label: 'Categoria', valor: rotulo(opcoesFiltro?.categorias, filters.categoria), patch: { categoria: null } },
-      { k: 'tipo', label: 'Tipo', valor: TIPO_OPCOES.find((o) => o.value === filters.tipo)?.label ?? null, patch: { tipo: '' } },
-      { k: 'unidade', label: 'Unidade', valor: rotulo(opcoesFiltro?.unidades, filters.unidade), patch: { unidade: null } },
-      { k: 'marca', label: 'Marca', valor: rotulo(opcoesFiltro?.marcas, filters.marca), patch: { marca: null } },
-      { k: 'estoque', label: 'Estoque', valor: ESTOQUE_OPCOES.find((o) => o.value === filters.estoque)?.label ?? null, patch: { estoque: '' } },
-      { k: 'margem', label: 'Margem', valor: MARGEM_OPCOES.find((o) => o.value === filters.margem)?.label ?? null, patch: { margem: '' } },
-      { k: 'busca', label: 'Busca', valor: filters.busca || null, patch: { busca: '' } },
-    ];
-
-    return brutos.flatMap((c) =>
-      c.valor === null
-        ? []
-        : [{
-            k: c.k,
-            label: c.label,
-            valor: c.valor,
-            onRemove: () => {
-              if (c.k === 'busca') setBusca('');
-              irPara(c.patch, RECORTE);
-            },
-          }]
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters, opcoesFiltro]);
 
   /** Zera busca, KPI e os seis gatilhos numa visita só — não seis idas ao servidor. */
   const limparFiltros = () => {
@@ -354,10 +434,39 @@ function ProdutoUnificadoIndex({
                       <MoreVertical className="h-4 w-4 shrink-0" strokeWidth={1.75} />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuContent align="end" className="w-60">
+                    {/* ───── APRESENTAÇÃO (handoff 21/08 §3.2 e §3.1) ─────────
+                        Densidade e colunas moram aqui, não numa barra própria: são ajustes
+                        que a pessoa faz UMA vez e não volta a mexer. Ocupar largura fixa na
+                        toolbar com controle de uso raro rouba espaço da busca, que é de uso
+                        constante. */}
+                    <div className="px-2 pt-2 pb-1 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Apresentação
+                    </div>
+                    <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setDensa((v) => !v); }}>
+                      <Check className={'mr-2 h-3.5 w-3.5 shrink-0 ' + (densa ? 'opacity-0' : '')} />
+                      Linhas confortáveis
+                    </DropdownMenuItem>
+                    {/* Só as colunas que a PERMISSÃO montou aparecem aqui. Listar "Custo" pra
+                        quem não pode ver custo anunciaria a existência do dado — o gate é de
+                        autorização, e ele vem antes da preferência. */}
+                    {COLUNAS_OCULTAVEIS.filter((c) => colunasPermitidas.some((p) => p.key === c.key)).map((c) => (
+                      <DropdownMenuItem
+                        key={c.key}
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          setColsOcultas((v) => (v.includes(c.key) ? v.filter((k) => k !== c.key) : [...v, c.key]));
+                        }}
+                      >
+                        <Check className={'mr-2 h-3.5 w-3.5 shrink-0 ' + (colsOcultas.includes(c.key) ? 'opacity-0' : '')} />
+                        Coluna {c.label.toLowerCase()}
+                      </DropdownMenuItem>
+                    ))}
+                    <DropdownMenuSeparator />
+
                     {/* As 4 sub-telas que antes eram abas. Continuam servidas pelo mesmo
                         controller, com os mesmos gates de permissão. */}
-                    <div className="px-2 pt-2 pb-1 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    <div className="px-2 pt-1 pb-1 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
                       Outras visões
                     </div>
                     {SUB_TELAS.map(({ key, label, icon: Icon }) => (
@@ -442,7 +551,7 @@ function ProdutoUnificadoIndex({
               {/* ───── BLOCO 2 · KPI-FILTROS ─────────────────────────────────── */}
               <Deferred data="kpis" fallback={<EsqueletoKpis />}>
                 <KpiFiltros
-                  kpis={kpis ?? { ativos: 0, min: 0, zero: 0, parado: 0, total: 0 }}
+                  kpis={kpis ?? { min: 0, zero: 0, parado: 0, total: 0 }}
                   ativo={(filters.kpi || null) as KpiKey | null}
                   // "Itens listados" é o total da aba — selecioná-lo é o mesmo que não ter
                   // recorte nenhum, então ele LIMPA em vez de aplicar um filtro que não filtra.
@@ -500,7 +609,7 @@ function ProdutoUnificadoIndex({
                 </div>
                 <div className={opcionalCls}>
                   <FiltroTrigger
-                    label="Estoque"
+                    label="Disponível"
                     value={filters.estoque}
                     options={ESTOQUE_OPCOES}
                     onChange={(v) => irPara({ estoque: v }, RECORTE)}
@@ -536,6 +645,48 @@ function ProdutoUnificadoIndex({
                   <ChevronDown size={12} className="opacity-60" />
                 </button>
 
+                {/* ───── ORDEM ─────────────────────────────────────────────
+                    Gatilho próprio, ao lado dos filtros (handoff 21/08 §4.2). O clique no
+                    cabeçalho da coluna continua ordenando — os dois escrevem no MESMO estado
+                    e o rótulo daqui reflete o que a tabela está fazendo. A diferença é que
+                    este gatilho responde ANTES de qualquer interação: sem ele, a lista abre
+                    ordenada por código e nada na tela diz isso. */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label={`Ordenar — atualmente ${rotuloOrdem}`}
+                      className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-transparent px-2.5 text-xs text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+                    >
+                      <ArrowDownUp size={12} className="opacity-60" />
+                      <span className="whitespace-nowrap">{rotuloOrdem}</span>
+                      <ChevronDown size={12} className="opacity-60" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56">
+                    {ordemDisponivel.map((o) => (
+                      <DropdownMenuItem key={o.key} onSelect={() => irPara({ ordem: o.key, dir: 'asc', pagina: 1 }, RECORTE)}>
+                        <Check className={'mr-2 h-3.5 w-3.5 shrink-0 ' + (ordemAtual.key === o.key ? '' : 'opacity-0')} />
+                        {o.label}
+                      </DropdownMenuItem>
+                    ))}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onSelect={() => irPara({ ordem: ordemAtual.key, dir: ordemAtual.dir === 'asc' ? 'desc' : 'asc', pagina: 1 }, RECORTE)}
+                    >
+                      {ordemAtual.dir === 'asc' ? 'Inverter (maior primeiro)' : 'Inverter (menor primeiro)'}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* "Limpar" só existe quando há o que limpar. Substitui a linha de chips: um
+                    alvo pra soltar o recorte inteiro, sem repetir cada filtro por escrito. */}
+                {(temFiltro || filters.kpi || filters.busca) && (
+                  <Button variant="ghost" size="sm" onClick={limparFiltros} className="h-8 px-2.5 text-xs">
+                    Limpar
+                  </Button>
+                )}
+
                 {/* Contagem — sans 12px no alvo, nao mono. É o total do RECORTE (todas as
                     páginas), não o da fatia: o intervalo da página quem diz é o rodapé. */}
                 <span className="text-[12px] leading-[12px] text-muted-foreground whitespace-nowrap">
@@ -551,52 +702,29 @@ function ProdutoUnificadoIndex({
                     value={busca}
                     onChange={(e) => setBusca(e.target.value)}
                     aria-label="Buscar produtos"
-                    placeholder="Buscar descricao, codigo, referencia, categoria…"
+                    aria-keyshortcuts="/"
+                    placeholder="Buscar descrição, código, referência…"
                     className="flex-1 min-w-0 border-0 outline-none bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground"
                   />
                   {/* So aparece com texto digitado — na tela em repouso a barra fica identica
                       ao alvo, e quem digitou ganha o atalho de limpar. */}
-                  {busca && (
+                  {busca ? (
                     <button type="button" onClick={() => setBusca('')} aria-label="Limpar busca" className="text-muted-foreground hover:text-foreground shrink-0">
                       <X className="h-4 w-4" />
                     </button>
+                  ) : (
+                    /* A tecla "/" já focava a busca desde o pacote de 17/08 — em silêncio.
+                       Atalho que ninguém descobre não existe; o `kbd` é o que o torna real
+                       (handoff 21/08 §4.2). Some assim que há texto: aí o alvo útil é o × . */
+                    <kbd
+                      aria-hidden="true"
+                      className="shrink-0 rounded border border-border bg-muted px-[5px] py-[3px] font-mono text-[10.5px] leading-none text-muted-foreground"
+                    >
+                      /
+                    </kbd>
                   )}
                 </label>
               </div>
-
-              {/* ───── BLOCO 3b · CHIPS DO RECORTE ATIVO ─────────────────────
-                  Segunda linha, e só existe quando há recorte (handoff V2 §4.3). Com o
-                  gatilho neutro, o filtro aplicado deixou de saltar da faixa — o chip é o que
-                  devolve essa visibilidade, e dá o alvo de "tira só este" que o gatilho não
-                  dá sem reabrir o popover. "Limpar filtros" zera busca, KPI e os seis. */}
-              {chipsAtivos.length > 0 && (
-                <Inline gap={1} wrap className="gap-1.5">
-                  {chipsAtivos.map((c) => (
-                    <span
-                      key={c.k}
-                      className="inline-flex items-center gap-1.5 h-7 pl-2.5 pr-1.5 rounded-md border border-primary/30 bg-primary/5 text-[11.5px] text-foreground"
-                    >
-                      <span className="text-muted-foreground">{c.label}:</span>
-                      <span className="font-medium max-w-[180px] truncate">{c.valor}</span>
-                      <button
-                        type="button"
-                        onClick={c.onRemove}
-                        aria-label={`Remover filtro ${c.label}`}
-                        className="inline-flex h-4 w-4 items-center justify-center rounded-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </span>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={limparFiltros}
-                    className="h-7 px-2 rounded-md text-[11.5px] text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-                  >
-                    Limpar filtros
-                  </button>
-                </Inline>
-              )}
 
               {/* ───── BLOCO 4 · GRID ────────────────────────────────────────── */}
               {/* Contêiner SEM RAIO (handoff V2 §3.1) — decisão do produto, difere do cartão
@@ -605,9 +733,12 @@ function ProdutoUnificadoIndex({
                   Sem raio, o cabeçalho pode ser opaco e simples, que é o que ele precisa ser
                   pra a linha não vazar por baixo dele durante a rolagem.
 
-                  `min-w-[1000px]` num wrapper `overflow-x-auto`: abaixo disso as sete colunas
-                  não cabem sem esmagar o nome do produto. A tabela rola na horizontal em vez
-                  de truncar — a tela é de cockpit desktop declarado (≥1000px útil). */}
+                  O `min-width` é CALCULADO a partir das colunas realmente montadas (§3.1):
+                  soma das larguras declaradas, com a coluna Produto contando pelo seu piso de
+                  340px. Era um 1000px fixo — e com ele, esconder Custo e Margem não tirava a
+                  barra de rolagem, porque a tabela seguia reservando largura de coluna que não
+                  estava mais lá. Abaixo da soma a tabela rola na horizontal em vez de truncar:
+                  a tela é de cockpit desktop declarado. */}
               <div className="mt-3 border border-border bg-card overflow-hidden">
                 <Deferred data="produtos" fallback={<EsqueletoTabela />}>
                   {/* `overflow-x-auto` SÓ na horizontal: a rolagem vertical volta a ser da
@@ -615,7 +746,7 @@ function ProdutoUnificadoIndex({
                       no pacote 18/08 — agora que o rodapé existe, ela só criaria duas barras
                       de rolagem concorrentes na mesma tela. */}
                   <div className="overflow-x-auto cw-scroll-thin">
-                    <table className="w-full min-w-[1000px] text-left">
+                    <table className="w-full text-left" style={{ minWidth: `${minWidth}px` }}>
                       {/* Fundo OPACO, sem `backdrop-blur`: translúcido deixava o texto da
                           linha aparecer por trás do rótulo da coluna durante a rolagem. */}
                       <thead className="sticky top-0 z-10 bg-[var(--idx-grid-head-bg)]">
@@ -672,7 +803,9 @@ function ProdutoUnificadoIndex({
                               perm: permissoes,
                               mostraTipo,
                               piso: pisoMargem,
+                              densa,
                               onAcao: (e) => e.stopPropagation(),
+                              onCopiar: copiar,
                             });
                             const aberta = abertoId === r.id;
                             return (
@@ -696,7 +829,7 @@ function ProdutoUnificadoIndex({
                                 }
                               >
                                 {colunas.map((c) => (
-                                  <td key={c.key} className={'px-4 py-2 ' + (c.align === 'right' ? 'text-right' : '')}>
+                                  <td key={c.key} className={'px-4 ' + (densa ? 'py-1 ' : 'py-2 ') + (c.align === 'right' ? 'text-right' : '')}>
                                     {cells[c.key] ?? null}
                                   </td>
                                 ))}

@@ -80,7 +80,15 @@ export const resumoVariacoes = (vs: AtributoVariacao[] | undefined): string =>
 /** Saldo com unidade, pro popover e pro drawer. */
 export const qtdComUnidade = (qtd: number, unit: string) => `${numero(qtd)} ${unit}`;
 
-/** Estado de disponibilidade — vocabulário aprovado (handoff §6 exceção 6). */
+/**
+ * Estado de disponibilidade — vocabulário do handoff de 21/08 §4.3.
+ *
+ * Mudou de nome no pacote das 27 ondas: "Em estoque" virou **Disponível**, "Estoque baixo"
+ * virou **Abaixo do mínimo** e "Sem estoque" virou **Sem saldo**. Não é sinônimo trocado por
+ * gosto — o rótulo antigo falava do DEPÓSITO ("tem no estoque"), o novo fala do que o balcão
+ * pode PROMETER ("dá pra vender"). Com saldo em local que não vende (produção, obra), as duas
+ * frases divergem, e é a segunda que responde a pergunta do atendimento.
+ */
 export type EstadoEstoque = {
   chave: 'em' | 'baixo' | 'sem' | 'nao';
   label: string;
@@ -94,19 +102,19 @@ export type EstadoEstoque = {
  * NBSP no rótulo pra ele não quebrar dentro do badge.
  *
  * A ordem dos testes importa: `null` (não estocável) vem ANTES de `=== 0`, senão um serviço
- * seria lido como "sem estoque" e apareceria bloqueando venda que não depende de saldo.
+ * seria lido como "sem saldo" e apareceria bloqueando venda que não depende de saldo.
  */
 export function estadoEstoque(r: Pick<ProdutoRow, 'stockQty' | 'minimo'>): EstadoEstoque {
   if (r.stockQty === null) {
     return { chave: 'nao', label: 'Não estocável', rel: null, rank: -1 };
   }
   if (r.stockQty === 0) {
-    return { chave: 'sem', label: 'Sem estoque', rel: '0', rank: 0 };
+    return { chave: 'sem', label: 'Sem saldo', rel: '0', rank: 0 };
   }
   if (r.minimo !== null && r.stockQty <= r.minimo) {
-    return { chave: 'baixo', label: 'Estoque baixo', rel: numero(r.stockQty), rank: 1 };
+    return { chave: 'baixo', label: 'Abaixo do mínimo', rel: numero(r.stockQty), rank: 1 };
   }
-  return { chave: 'em', label: 'Em estoque', rel: numero(r.stockQty), rank: 2 };
+  return { chave: 'em', label: 'Disponível', rel: numero(r.stockQty), rank: 2 };
 }
 
 /** Chave de ordenação da coluna Disponibilidade: rank primeiro, saldo como desempate. */
@@ -160,4 +168,9 @@ export const ABAS_CATALOGO: ReadonlyArray<{ key: AbaKey; label: string }> = [
 
 export type AbaKey = 'todos' | 'produtos' | 'servicos' | 'materia' | 'kits' | 'inativos';
 
-export type KpiKey = 'ativos' | 'min' | 'zero' | 'parado' | 'margem' | 'total';
+/**
+ * KPI-filtros do catálogo. `ativos` saiu no pacote de 21/08: ele contava o que a aba já
+ * contava (todo item listado fora de "Inativos" é ativo), então clicar nele não recortava
+ * nada. Card que não recorta ocupa o lugar de um que recorta.
+ */
+export type KpiKey = 'min' | 'zero' | 'parado' | 'margem' | 'total';
