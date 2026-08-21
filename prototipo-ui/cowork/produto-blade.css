@@ -1,0 +1,250 @@
+/* produto-blade.css — módulo Produto (importado dos blades resources/views/product/*).
+   Escopado em .pb-root. Zero paleta nova: só tokens do DS vivo (.cockpit). */
+.pb-root{ display:flex; flex-direction:column; height:100%; min-height:0; max-height:100vh; }
+.pb-body{ flex:1 1 auto; min-height:0; overflow:auto; padding:16px 20px 28px; display:flex; flex-direction:column; gap:14px; }
+
+/* ── Widget (components.widget do blade) ── */
+.pb-widget{ background:var(--surface); border:1px solid var(--border); border-radius:12px; }
+.pb-widget > h3{ margin:0; padding:12px 16px; border-bottom:1px solid var(--border-2); font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--text-mute); display:flex; align-items:center; gap:8px; }
+.pb-widget > h3 .n{ font-family:var(--font-mono); font-size:10.5px; color:var(--text-dim); }
+.pb-widget-b{ padding:14px 16px; }
+.pb-widget-b:not(.flush){ overflow-x:auto; }
+.pb-widget-b.flush{ padding:0; }
+
+/* ── Grid de campos ── */
+.pb-grid{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px 14px; }
+.pb-grid.c4{ grid-template-columns:repeat(4,minmax(0,1fr)); }
+.pb-grid.c2{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+.pb-fld{ display:flex; flex-direction:column; gap:5px; min-width:0; }
+.pb-fld.span2{ grid-column:span 2; }
+.pb-fld.span3{ grid-column:span 3; }
+.pb-fld > span{ font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-mute); display:flex; align-items:center; gap:5px; }
+.pb-fld > span .req{ color:var(--neg); }
+.pb-fld input:not([type=checkbox]):not([type=radio]), .pb-fld select, .pb-fld textarea{ font:inherit; font-size:12.5px; color:var(--text); background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:0 9px; height:30px; width:100%; }
+.pb-fld textarea{ height:auto; min-height:64px; padding:7px 9px; resize:vertical; line-height:1.45; }
+.pb-fld input:focus, .pb-fld select:focus, .pb-fld textarea:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+.pb-fld input[readonly]{ background:var(--bg-2); color:var(--text-dim); }
+.pb-fld .num{ font-family:var(--font-mono); text-align:right; }
+.pb-help{ font-size:11px; color:var(--text-mute); line-height:1.4; }
+.pb-erro{ font-style:normal; font-size:11px; color:var(--neg); }
+.pb-fld.erro input:not([type=checkbox]), .pb-fld.erro select, .pb-fld.erro textarea{ border-color:var(--neg); }
+.pb-fld.erro input:focus, .pb-fld.erro select:focus{ box-shadow:0 0 0 3px var(--neg-soft); }
+.pb-fld input:focus-visible, .pb-fld select:focus-visible, .pb-tbl input:focus-visible, .pb-tbl select:focus-visible, .os-btn:focus-visible, .pb-chip:focus-visible, .pb-sortth:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+.pb-chk{ display:flex; align-items:flex-start; gap:8px; font-size:12.5px; color:var(--text); cursor:default; }
+.pb-chk input[type=checkbox], .pb-chk input[type=radio]{ accent-color:var(--accent); margin-top:2px; width:14px; height:14px; flex:none; }
+.pb-chk b{ font-weight:600; }
+.pb-chk small{ display:block; font-size:11px; color:var(--text-mute); line-height:1.4; }
+.pb-inputgroup{ display:flex; gap:6px; }
+.pb-inputgroup .os-btn{ flex:0 0 auto; }
+.pb-tags{ display:flex; flex-wrap:wrap; gap:5px; padding:5px; border:1px solid var(--border); border-radius:6px; min-height:30px; background:var(--surface); }
+.pb-tag{ display:inline-flex; align-items:center; gap:5px; font-size:11px; padding:2px 6px; border-radius:4px; background:var(--accent-soft); color:var(--accent); font-weight:600; }
+.pb-tag button{ border:0; background:none; cursor:default; color:inherit; font-size:11px; padding:0; }
+
+/* ── Filtros (components.filters) ── */
+.pb-filters-h{ display:flex; align-items:center; gap:8px; }
+.pb-filters-h button{ margin-left:auto; }
+
+/* ── Tabela ── */
+.pb-tblwrap{ overflow:auto; border-radius:0 0 12px 12px; }
+.pb-tbl{ width:100%; border-collapse:separate; border-spacing:0; font-size:12.5px; }
+.pb-tbl thead th{ position:sticky; top:0; z-index:1; background:var(--bg-2); border-bottom:1px solid var(--border); padding:8px 10px; text-align:left; white-space:nowrap; font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-mute); }
+.pb-tbl tbody td{ padding:7px 10px; border-bottom:1px solid var(--border-2); vertical-align:middle; color:var(--text); }
+.pb-tbl tbody tr:hover{ background:var(--bg-2); }
+.pb-tbl tbody tr.sel, .pb-tbl tbody tr.sel:hover{ background:var(--accent-soft); }
+.pb-tbl tbody tr.off td{ color:var(--text-mute); }
+.pb-tbl tfoot td{ padding:8px 10px; border-top:1px solid var(--border); background:var(--bg-2); font-size:11.5px; }
+.pb-tbl .r{ text-align:right; font-family:var(--font-mono); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.pb-tbl .m{ font-family:var(--font-mono); font-size:11.5px; }
+.pb-tbl .chk{ width:30px; }
+.pb-tbl .chk input{ accent-color:var(--accent); }
+.pb-tbl td b{ font-weight:600; }
+.pb-tbl td small{ display:block; font-size:10.5px; color:var(--text-mute); }
+.pb-tbl input.cell, .pb-tbl select.cell{ font:inherit; font-size:12px; height:26px; padding:0 6px; border:1px solid var(--border); border-radius:5px; background:var(--surface); color:var(--text); width:100%; min-width:82px; }
+.pb-tbl select.cell{ min-width:124px; }
+.pb-tbl input.cell.num{ font-family:var(--font-mono); text-align:right; }
+.pb-thumb{ width:30px; height:30px; border-radius:5px; border:1px solid var(--border); background:var(--bg-2); display:grid; place-items:center; font-family:var(--font-mono); font-size:9px; color:var(--text-mute); }
+
+/* Preços por grupo: cada coluna de grupo precisa caber valor + tipo (fixo/percentual). */
+.pb-precos td, .pb-precos th{ min-width:112px; }
+.pb-precos td:first-child, .pb-precos th:first-child{ min-width:180px; }
+
+/* ── Cabeçalho ordenável (aaSorting do DataTable) ── aposentado: a grade do DS (DataTablePro)
+   é dona de sort/resize/densidade. Sobra a densidade compacta pro resto das tabelas do módulo. */
+.pb-sortth{ cursor:default; user-select:none; }
+.pb-sortth:hover{ color:var(--text-dim); }
+.pb-sortth.on{ color:var(--accent); }
+.pb-sortic{ margin-left:4px; font-size:8.5px; opacity:.55; }
+.pb-sortth.on .pb-sortic{ opacity:1; }
+
+/* ── Densidade compacta ── */
+.pb-tbl.densa tbody td{ padding:3px 8px; }
+.pb-tbl.densa tbody td small{ display:none; }
+.pb-tbl.densa .pb-thumb{ width:22px; height:22px; font-size:8px; }
+
+/* ── Toolbar da tabela ── linha própria, irmã das abas: nunca dentro do container rolável
+   das abas (senão os controles somem e o dropdown de colunas é clipado). */
+.pb-toolbar{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:8px 12px; border-bottom:1px solid var(--border-2); }
+.pb-toolbar .sp{ flex:1 1 auto; }
+.pb-busca{ display:flex; align-items:center; gap:6px; height:26px; padding:0 8px; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--text-mute); }
+.pb-busca input{ font:inherit; font-size:12px; border:0; background:none; color:var(--text); width:190px; outline:none; }
+.pb-busca kbd{ font-family:var(--font-mono); font-size:9px; color:var(--text-mute); background:var(--bg-2); border-radius:3px; padding:1px 4px; }
+.pb-seg{ display:flex; border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+.pb-seg button{ font:inherit; font-size:11px; height:26px; padding:0 9px; border:0; background:var(--surface); color:var(--text-dim); cursor:default; }
+.pb-seg button + button{ border-left:1px solid var(--border); }
+.pb-seg button.on{ background:var(--accent-soft); color:var(--accent); font-weight:600; }
+
+/* ── Chips de filtro ativo ── */
+.pb-chips{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; padding:8px 12px; border-bottom:1px solid var(--border-2); background:var(--bg-2); }
+.pb-chips-l{ font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-mute); }
+.pb-chip{ display:inline-flex; align-items:center; gap:5px; font:inherit; font-size:11.5px; padding:2px 8px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--text); cursor:default; }
+.pb-chip em{ font-style:normal; color:var(--text-mute); }
+.pb-chip span{ color:var(--text-mute); font-size:10px; }
+.pb-chip:hover{ border-color:var(--accent); color:var(--accent); }
+.pb-chip.limpar{ border-style:dashed; color:var(--text-dim); }
+
+/* ── Paginação ── */
+.pb-pag{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:9px 12px; border-top:1px solid var(--border); font-size:11.5px; color:var(--text-dim); }
+.pb-pag .sp{ flex:1 1 auto; }
+.pb-pag label{ display:flex; align-items:center; gap:5px; }
+.pb-pag select{ font:inherit; font-size:11.5px; height:24px; border:1px solid var(--border); border-radius:5px; background:var(--surface); color:var(--text); padding:0 4px; }
+.pb-pag-n{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
+
+/* ── Vazio ── */
+.pb-vazio{ padding:30px 20px; text-align:center; display:flex; flex-direction:column; gap:5px; align-items:center; }
+.pb-vazio b{ font-size:13px; }
+.pb-vazio small{ font-size:11.5px; color:var(--text-mute); max-width:440px; line-height:1.5; }
+
+/* ── Faixa de contexto: chegou de outro módulo ── */
+.pb-volta{ display:flex; align-items:center; gap:8px; padding:9px 12px; border:1px solid color-mix(in oklch, var(--accent) 26%, transparent); background:var(--accent-soft); border-radius:10px; font-size:12.5px; color:var(--text); }
+.pb-volta b{ font-weight:600; }
+
+/* ── Drawer: a casca vem do DS; o corpo mantém as abas e seções do módulo ── */
+.pb-drawer-in{ display:flex; flex-direction:column; }
+.pb-modal-f-in{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+.pb-grid-pro{ border-top:1px solid var(--border-2); }
+
+/* ── Tablet do técnico (Repair) ── alvos de toque ≥44px e uma coluna por vez.
+   Nada de tabela apertada: a grade do DS rola na horizontal com header fixo. */
+@media (pointer:coarse){
+  .pb-fld input, .pb-fld select, .pb-tbl input.cell, .pb-tbl select.cell{ height:44px; font-size:15px; }
+  .pb-fld textarea{ min-height:88px; font-size:15px; }
+  .pb-chk input, .pb-tbl .chk input{ width:22px; height:22px; }
+  .pb-seg button, .pb-busca{ height:44px; }
+  .pb-busca input{ font-size:15px; }
+  .os-btn, .os-btn.sm, .icon-btn{ min-height:44px; }
+  .pb-menu button{ min-height:44px; font-size:14px; }
+  .pb-chip{ min-height:36px; font-size:13px; padding:0 12px; }
+}
+@media (max-width:900px){
+  .pb-body{ padding:12px 12px 24px; }
+  .pb-grid, .pb-grid.c4, .pb-grid.c2{ grid-template-columns:1fr; }
+  .pb-kpis{ grid-template-columns:1fr 1fr; }
+  .pb-toolbar{ gap:6px; }
+  .pb-busca input{ width:100%; }
+  .pb-busca{ flex:1 1 160px; }
+  .pb-formactions{ position:sticky; bottom:0; background:var(--surface); padding:10px 0; border-top:1px solid var(--border); }
+  .pb-formactions .os-btn{ flex:1 1 auto; justify-content:center; }
+}
+
+/* ── Pills ── */
+.pb-pill{ display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:600; padding:2px 7px; border-radius:999px; border:1px solid var(--border); color:var(--text-dim); background:var(--bg-2); white-space:nowrap; }
+.pb-pill.single{ color:var(--accent); border-color:color-mix(in oklch, var(--accent) 30%, transparent); background:var(--accent-soft); }
+.pb-pill.variable{ color:var(--warn); border-color:color-mix(in oklch, var(--warn) 30%, transparent); background:var(--warn-soft); }
+.pb-pill.combo{ color:var(--pos); border-color:color-mix(in oklch, var(--pos) 30%, transparent); background:var(--pos-soft); }
+.pb-pill.off{ color:var(--neg); border-color:color-mix(in oklch, var(--neg) 30%, transparent); background:var(--neg-soft); }
+.pb-stock{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
+.pb-stock.low{ color:var(--neg); font-weight:600; }
+.pb-stock.na{ color:var(--text-mute); }
+
+/* ── Kebab de ação ── */
+.pb-kebab{ position:relative; }
+.pb-menu{ position:absolute; top:26px; left:0; z-index:40; min-width:236px; background:var(--surface); border:1px solid var(--border); border-radius:8px; box-shadow:0 12px 32px oklch(0 0 0 / .16); padding:4px; max-height:320px; overflow:auto; }
+.pb-menu-dir{ left:auto; right:0; }
+/* Painel em portal (dentro da grade do DS o td tem overflow:hidden). */
+.pb-menu-fixo{ position:fixed; top:auto; left:auto; z-index:90; width:254px; }
+.pb-menu button{ display:flex; align-items:center; gap:8px; width:100%; text-align:left; border:0; background:none; font:inherit; font-size:12px; color:var(--text); padding:6px 8px; border-radius:5px; cursor:default; }
+.pb-menu button:hover{ background:var(--bg-2); }
+.pb-menu button.danger{ color:var(--neg); }
+.pb-menu hr{ border:0; border-top:1px solid var(--border-2); margin:4px 0; }
+
+/* ── Barra de seleção (tfoot do blade) ── */
+.pb-bulk{ position:sticky; bottom:0; display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:10px 12px; background:var(--surface); border:1px solid var(--border); border-radius:10px; box-shadow:0 -2px 16px oklch(0 0 0 / .06); }
+.pb-bulk b{ font-size:12px; }
+.pb-bulk .sp{ flex:1 1 auto; }
+
+/* ── KPIs ── */
+.pb-kpis{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+.pb-kpi{ background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:10px 12px; }
+.pb-kpi small{ display:block; font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-mute); }
+.pb-kpi b{ display:block; font-size:20px; font-weight:600; font-variant-numeric:tabular-nums; margin-top:3px; }
+.pb-kpi .ln{ font-size:11px; color:var(--text-dim); margin-top:2px; }
+.pb-kpi.warn b{ color:var(--warn); }
+.pb-kpi.neg b{ color:var(--neg); }
+
+/* ── Modal (PT-04) ── */
+.pb-modal-back{ position:absolute; inset:0; background:oklch(0 0 0 / .38); display:grid; place-items:center; z-index:60; padding:24px; }
+.pb-modal{ width:min(720px,100%); max-height:88%; overflow:auto; background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:0 24px 64px oklch(0 0 0 / .28); }
+.pb-modal-h{ display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--border-2); }
+.pb-modal-h h3{ margin:0; font-size:14px; font-weight:600; }
+.pb-modal-h .icon-btn{ margin-left:auto; }
+.pb-modal-b{ padding:14px 16px; display:flex; flex-direction:column; gap:12px; }
+.pb-modal-f{ display:flex; gap:8px; justify-content:flex-end; padding:12px 16px; border-top:1px solid var(--border-2); }
+
+/* ── Drawer detalhe ── */
+.pb-drawer-grid{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px 16px; }
+.pb-dt{ font-size:12px; }
+.pb-dt span{ display:block; font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-mute); }
+.pb-dt b{ font-weight:500; }
+.pb-img{ width:100%; aspect-ratio:1; border:1px solid var(--border); border-radius:10px; background:var(--bg-2); display:grid; place-items:center; text-align:center; font-size:11px; color:var(--text-mute); padding:10px; }
+
+/* ── Ações de formulário ── */
+.pb-formactions{ display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; padding-top:4px; }
+
+/* ── Radio inline (formato do SKU) ── */
+.pb-radios{ display:flex; gap:16px; flex-wrap:wrap; }
+.pb-radios label{ display:flex; align-items:center; gap:6px; font-size:12.5px; }
+.pb-radios input{ accent-color:var(--accent); }
+
+/* ── Etiquetas / código de barras ── */
+.pb-etiquetas{ display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:8px; }
+.pb-etiqueta{ border:1px dashed var(--border); border-radius:6px; padding:8px 10px; display:flex; flex-direction:column; gap:4px; background:var(--surface); }
+.pb-etiqueta b{ font-size:11px; font-weight:600; line-height:1.25; }
+.pb-etiqueta .m{ font-family:var(--font-mono); font-size:9.5px; color:var(--text-mute); }
+.pb-etiqueta strong{ font-size:13px; font-variant-numeric:tabular-nums; }
+.pb-barras{ display:flex; align-items:flex-end; gap:1px; height:26px; }
+.pb-barras i{ display:block; height:100%; background:var(--text); }
+
+/* ── Análises do catálogo ── */
+.pb-an-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.pb-abc{ display:flex; align-items:flex-end; gap:3px; height:120px; padding-top:6px; }
+.pb-abc i{ flex:1 1 auto; border-radius:2px 2px 0 0; background:var(--accent); min-height:2px; }
+.pb-abc i.b{ background:oklch(from var(--accent) l calc(c * 0.55) h); }
+.pb-abc i.c{ background:var(--border); }
+.pb-abc-leg{ display:flex; gap:12px; font-size:11px; color:var(--text-dim); margin-top:8px; }
+.pb-abc-leg span{ display:flex; align-items:center; gap:5px; }
+.pb-abc-leg em{ width:9px; height:9px; border-radius:2px; display:inline-block; }
+
+/* ── Impressão: etiqueta sai no papel, o resto do app não ── */
+@media print{
+  .pb-modal-back{ position:static; background:none; padding:0; }
+  .pb-modal{ box-shadow:none; border:0; max-height:none; width:100%; }
+  .pb-modal-h .icon-btn, .pb-modal-f, .pb-modal-b .pb-grid{ display:none !important; }
+  .pb-etiquetas{ grid-template-columns:repeat(4,1fr); }
+}
+
+/* ── Tablet/touch (técnico Repair): alvo mínimo 44px, sem depender de hover ── */
+@media (pointer:coarse){
+  .pb-fld input:not([type=checkbox]):not([type=radio]), .pb-fld select, .os-btn, .pb-seg button{ min-height:44px; }
+  .pb-fld textarea{ min-height:88px; }
+  .pb-chk input[type=checkbox], .pb-chk input[type=radio]{ width:20px; height:20px; }
+  .pb-tbl tbody td{ padding:12px 10px; }
+  .pb-tbl.densa tbody td{ padding:9px 8px; }
+  .pb-tbl .chk input{ width:20px; height:20px; }
+  .pb-tbl input.cell, .pb-tbl select.cell{ height:40px; }
+  .icon-btn, .pb-chip{ min-height:44px; min-width:44px; }
+  .pb-menu button{ padding:12px 10px; }
+  .pb-busca{ height:44px; }
+  .pb-busca kbd{ display:none; }
+}
+
+@media (max-width:1180px){ .pb-grid, .pb-grid.c4{ grid-template-columns:repeat(2,minmax(0,1fr)); } .pb-kpis{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
