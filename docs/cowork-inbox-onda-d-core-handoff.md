@@ -1,5 +1,20 @@
 # Handoff [CC] → Code — Onda D-core: write-path de CÓDIGO no cowork-inbox
 
+> ⚰️ **FÓSSIL — a esteira que este documento descreve foi APOSENTADA em 2026-07-06.**
+> Commit `92ca254d3c` ([#3878](https://github.com/wagnerra23/oimpresso.com/pull/3878)):
+> *"chore(cowork): aposenta esteira cowork-inbox (migrado p/ DesignSync)"*. Em 2026-08-20
+> confirmou-se que `.github/workflows/cowork-inbox.yml` e `.github/scripts/cowork-inbox.py`
+> não existiam mais (`rg --hidden` em `.github/` = 0 · `gh workflow list --all` = 0).
+>
+> **Por que o aviso importa:** o corpo abaixo descreve o publisher em tempo PRESENTE, e ele se
+> parece com a saída para o teto de transporte do `DesignSync.get_file` (256 KiB). Não é — a
+> esteira foi migrada PARA o DesignSync, ou seja, desemboca no mesmo teto. Um agente já perdeu
+> a busca aqui; ver [handoff 2026-08-20 21:20](../memory/handoffs/2026-08-20-2120-roles-f3-transporte-e-esteira-aposentada.md).
+>
+> O texto abaixo fica **intacto** como registro datado do que era verdade em 2026-06-16.
+
+---
+
 > **Origem:** `_PROPOSTA-protocolo-v2-colapso-W.md` (Onda D). Decisão [W] 2026-06-16: **"Review-gated, sem auto-merge"**.
 > **Quem implementa:** Code, em PR. Toca `.github/**` → CODEOWNERS exige review de `@wagnerra23` no próprio PR.
 > **[CC] propõe/entrega este handoff; [CC] NÃO aplica.**
