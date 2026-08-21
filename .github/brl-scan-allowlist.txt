@@ -137,3 +137,23 @@ custoEst:"R$
 # O que a regra Tier 0 protege é MRR/faturamento REAL do time não-sócio; mockup não é isso.
 # Se um dia o valor sair do protótipo, é no Cowork vivo que ele sai, não aqui.
 hoje eles pagam R$
+
+# 2026-08-21 — `jana-merge.jsx` de novo, na leva que desceu a região de METAS.
+# Mesmo arquivo e mesma decisão da entrada de 2026-08-11 acima; estas 3 linhas são
+# do que o export trouxe agora: um FATO de memória mock (`f8`) e as duas propostas
+# do `JmPropostas` (`p1`/`p2`) — nomes de meta FICTÍCIOS do protótipo, não meta
+# financeira do negócio nem valor de cliente. Encaixa no "mock/protótipo com valor
+# ilustrativo" do cabeçalho; não encaixa no "valor real" do QUANDO-NÃO-USAR.
+#
+# Redigir segue EXCLUÍDO pela decisão [W] 2026-08-13 (registrada acima): o espelho
+# é comparado por hash contra o vivo, então trocar pelo sentinela o deixaria STALE
+# PERMANENTE e todo `--export-from` futuro re-divergiria — recriaria a doença que o
+# export conserta. O valor some quando sair do Cowork upstream, não por edição aqui.
+#
+# Âncora por CAMPO e a substring TERMINA ANTES DO NÚMERO — nenhum valor entra no git,
+# e o mock pode trocar de número na próxima rodada sem quebrar a isenção.
+# Vale o LIMITE já declarado em 2026-08-17: a isenção é por substring, logo alcança
+# outro arquivo que repita a mesma frase. É o desenho do gate, não efeito colateral.
+de recuperação de vencidos: R$
+nome: "Recuperar R$
+Ticket médio de volta em R$
