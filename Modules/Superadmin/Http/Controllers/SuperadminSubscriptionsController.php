@@ -368,16 +368,31 @@ class SuperadminSubscriptionsController extends BaseController
             'nota' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        // SUPERADMIN: busca cross-tenant intencional (ADR 0093 §exceções) — sem escopo de
-        // business_id de propósito; esta tela opera sobre a assinatura de qualquer negócio.
+        // SUPERADMIN: busca cross-tenant intencional (ADR 0093 §exceções) — nenhum tenant
+        // filtra esta consulta; a tela opera sobre a assinatura de qualquer negócio.
         $assinatura = Subscription::findOrFail($id);
+
+        // O `business_id` do alvo é lido para o REGISTRO da ação, não para filtrar. Ele fica
+        // no código (e não só no comentário acima) de propósito: a regra
+        // `NoMissingTenantScopeRule` serializa o AST do método — string, variável, identificador
+        // — e NÃO enxerga comentário. Declarar a exceção só em prosa passa despercebido por ela,
+        // e o span de escrita cross-tenant sem o tenant alvo é justamente o que ninguém consegue
+        // auditar depois.
+        $business_id = (int) ($assinatura->business_id ?? 0);
+
         $servico = app(SubscriptionLifecycleService::class);
 
-        $aplicou = match ($dados['acao']) {
+        $aplicou = OtelHelper::spanBiz('superadmin.assinaturas.acao', fn (): bool => match ($dados['acao']) {
             'aprovar' => $servico->approve($assinatura),
             'vencer' => $servico->expire($assinatura),
             'cancelar' => $servico->cancel($assinatura, $dados['motivo'] ?? '', $dados['nota'] ?? ''),
-        };
+        }, [
+            'module' => 'Superadmin',
+            'component' => 'superadmin.assinaturas.acao',
+            'acao' => $dados['acao'],
+            'subscription_id' => (int) $id,
+            'target_biz' => $business_id,
+        ]);
 
         // O Service devolve `false` quando a transição não se aplica (já cancelada, ainda
         // vigente, status incompatível). Isso NÃO é erro — é o guarda funcionando. A tela
@@ -458,8 +473,13 @@ class SuperadminSubscriptionsController extends BaseController
             'trial_end_date' => ['nullable', 'string', 'max:10'],
         ]);
 
-        // SUPERADMIN: busca cross-tenant intencional (ADR 0093 §exceções).
+        // SUPERADMIN: busca cross-tenant intencional (ADR 0093 §exceções) — nenhum tenant
+        // filtra esta consulta.
         $assinatura = Subscription::findOrFail($dados['subscription_id']);
+
+        // Mesma razão do `update()`: o `business_id` do alvo entra no CÓDIGO, não só no
+        // comentário, porque a `NoMissingTenantScopeRule` lê AST e é cega a comentário.
+        $business_id = (int) ($assinatura->business_id ?? 0);
 
         $inicio = ! empty($dados['start_date']) ? $this->businessUtil->uf_date($dados['start_date']) : null;
         $fim = ! empty($dados['end_date']) ? $this->businessUtil->uf_date($dados['end_date']) : null;
@@ -479,9 +499,21 @@ class SuperadminSubscriptionsController extends BaseController
             ? $this->businessUtil->uf_date($dados['trial_end_date'])
             : null;
 
+        // O span envolve a ESCRITA, não fica ao lado dela: span que não abraça a operação mede
+        // o tempo de nada e não falha junto quando a operação falha.
+        //
         // Spatie LogsActivity no model registra o delta — a trilha da mudança de data sai daqui
         // sem código extra (é o mesmo mecanismo que cobre status).
-        $assinatura->save();
+        OtelHelper::spanBiz('superadmin.assinaturas.vigencia', function () use ($assinatura): bool {
+            $assinatura->save();
+
+            return true;
+        }, [
+            'module' => 'Superadmin',
+            'component' => 'superadmin.assinaturas.vigencia',
+            'subscription_id' => (int) $assinatura->id,
+            'target_biz' => $business_id,
+        ]);
 
         return back()->with('status', [
             'success' => 1,
