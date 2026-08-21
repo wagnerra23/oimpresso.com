@@ -34,7 +34,7 @@
       "o_que_o_parse_NAO_garante": "Fidelidade byte-a-byte. Uma linha inteira omitida, um numero trocado ou uma string alterada CONTINUAM sendo JSX valido e passam no parse. O parse prova que o arquivo CARREGA no navegador sem erro de sintaxe — nao prova que ele e igual ao vivo.",
       "drift_observado": "1 caso CONFIRMADO em 17 arquivos (cms-page.jsx, slugify). Foi pego por inspecao dirigida, NAO pelo parse — o parse passou nas duas formas. E a prova concreta de que parse OK != fidelidade byte-a-byte.",
       "comando_para_reconferir": "for f in <arquivos>; do D:/oimpresso.com/node_modules/.bin/esbuild prototipo-ui/cowork/$f --outfile=/dev/null; done",
-      "achado_shell_stale": "O shell local estava desatualizado e era a ANCORA de todas as minhas medicoes. O ABSENT-LOCAL que reportei nas levas 1-11 (31->15) foi medido contra fonte velha e SUBCONTAVA. Com o shell vivo: 26 ausentes. Os arquivos que eu classifiquei como orfaos (hrm-*, produto-blade*, relatorios-*) NAO sao orfaos — o shell velho e que nao os conhecia."
+      "achado_shell_stale": "[MEDIDO 2026-08-20, e o fato datado se preserva] O shell local estava desatualizado e era a ANCORA de todas as minhas medicoes. O ABSENT-LOCAL que reportei nas levas 1-11 (31->15) foi medido contra fonte velha e SUBCONTAVA. Com o shell vivo: 26 ausentes. Os arquivos que eu classifiquei como orfaos (hrm-*, produto-blade*, relatorios-*) NAO sao orfaos — o shell velho e que nao os conhecia.  [EMENDA 2026-08-21] O conserto do shell foi REVERTIDO antes do merge (ver o registro de oimpresso.com.html). Os numeros acima descrevem a medicao COM o shell vivo, que nao e o estado de main: em main a ancora e a de 2026-08-20 e volta a subcontar. Nada aqui foi apagado — o que mudou foi o desfecho, nao a medicao."
     },
     "espelho cowork: telas avulsas (.jsx/.css) — PR #6123": "TRES niveis, todos rodados em 100% dos 10 arquivos. (1) PARSE REAL com esbuild, calibrado ANTES com controle positivo (prototipo-ui/cowork/acessos-ds.jsx do repo: rc=0) e controle negativo (JSX quebrado de proposito: rc=1) — 10/10 OK. ATENCAO registrada na calibracao: em CSS o esbuild trata erro de sintaxe como WARNING com rc=0, entao o exit code SOZINHO nao e veredito em CSS (o veredito e contar '▲'); e `esbuild <f> | tail` devolve o rc do TAIL, nao do esbuild. (2) Higiene de transcricao: NFC normalizado em 10/10, ZERO caracteres combinantes (a classe de drift confirmada no lote anterior), ZERO CRLF. (3) Auditoria de TODOS os 22 backslashes do lote, todos esperados: 2x /s+/ em initials (comissionados/comissoes), 2x aspas-escapadas no corpo HTML de notificacoes-page.jsx:39,64, 2x /{...}/ em notificacoes-page.jsx:133,150, e os escapes de semHtml (:134) e da classe GSM-7 (:138).",
     "espelho cowork: telas avulsas (.jsx/.css) — PR #6123 · sobre os 6 barra-n": "Este lote tem 6 ocorrencias de '\n' literal, TODAS legitimas e do proprio codigo-fonte — nao sao artefato de transcricao: sao o replace(...,\"\n\") do semHtml (notificacoes-page.jsx:134) e a classe \r\n da regex GSM7 (:138). Registrado assim de proposito: o lote #6121 pode dizer 'ZERO \n literal' porque o codigo dele nao tem nenhum; aqui zero seria falso.",
@@ -542,11 +542,12 @@
     },
     {
       "path": "prototipo-ui/cowork/oimpresso.com.html",
-      "bytes_escritos": 16172,
-      "linhas": 252,
+      "bytes_escritos": 0,
+      "linhas": 0,
       "parse_esbuild": "n/a (html)",
-      "fidelidade": "NAO PROVADA",
-      "nota": "SHELL — ancora de manifesto/ABSENT-LOCAL/preview. Estava STALE: nao referenciava HRM(5), produto-analises, relatorios(2), planilhas, nem o modulo Essenciais(4). Atualizado a partir do vivo.",
+      "fidelidade": "NAO ENTREGUE — a escrita foi REVERTIDA antes do merge",
+      "nota": "NAO DESCEU. O registro anterior dizia \"Atualizado a partir do vivo · 16172 bytes\" e ficou FALSO quando revertí a escrita no mesmo PR (#6117) — o titulo da PR (\"corrige o SHELL stale\") tambem ficou. O shell em main segue com 14397 bytes, hash 5606b09d..., identico ao que o ledger de frescor tem VERIFICADO desde 2026-08-20. Por que revertí: o gate `espelho — mexeu depois de verificar` mordeu (certo), e re-verificar exige o hash do VIVO — que exige o shell no disco pela rota fiel. O shell tem ~16 KB, abaixo da fronteira de persistencia (~48 KB), entao get_file so o entrega inline e grava-lo e transcrever de novo: circular. Transcrever a ANCORA e o pior lugar possivel pra transcrever, porque o erro nao fica no arquivo — propaga pra manifesto, ABSENT-LOCAL e preview. Remedio nomeado pelo proprio gate: reverter (o espelho e build-only, nao tem autor local legitimo). Desce pela rota fiel quando o payload existir — partes <=256 KiB ficam ACIMA da fronteira, entao o shell viaja dentro de uma parte como DADO.",
+      "consequencia_viva": "ABSENT-LOCAL=0 significa zero contra o shell de 2026-08-20, NAO contra o vivo. O shell velho nao referencia HRM, Essenciais, Relatorios nem Planilhas — os arquivos existem no espelho (lotes #6119/#6121/#6123) mas a ancora nao os enxerga. Subcontagem CONHECIDA, nao silenciosa.",
       "lote": "espelho-29 (PR #6117)"
     },
     {
