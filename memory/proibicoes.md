@@ -847,6 +847,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (o mesmo da mãe, sem reformular):** artefato **não** declara o próprio comportamento/enforcement em **presente**; fato datado em **passado** pode e não apodrece; quem precisa falar de enforcement **aponta pro dono, não restateia**.
 
+### 2026-08-21 — DUAS rotas de baixar o espelho, sem hierarquia no instrumento que a sessão lê — e escolhi a inferior um dia depois da lápide que já tinha corrigido isso
+
+- **O limite (variante também proibida):** ao escolher **como** trazer conteúdo de sistema externo pro repo, a decisão sai do **dono da hierarquia** (aqui: `protocolo.config.mjs` fase `-1`), **nunca** da lista de comandos que um instrumento imprime — instrumento lista *o que ele mesmo faz*, e isso não é o mesmo que *qual rota é a certa*. E o sintoma que fecha o diagnóstico: **se você concluiu "não há rota fiel para estes arquivos", está na rota errada** — é limite do **transporte**, não do problema.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
