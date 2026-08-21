@@ -295,7 +295,8 @@ it('UC-COPI-PAINEL-09: as 5 âncoras data-contract existem e a ordem do contrato
  * é congelá-la"). Então o teste trava a ausência das 4 promessas medidas em
  * 2026-08-17 como não-cumpríveis hoje: brief diário (gerado server-side, nenhum
  * cron lê o localStorage deste browser), TTS, retenção automática (o
- * `jana:retention-purge` foi DESCARTADO por [W]) e as 3 análises sem fonte de dado.
+ * `jana:retention-purge` foi DESCARTADO por [W]) e as análises sem fonte de dado
+ * (frota e cheques — o churn ouro ganhou fonte no UC-13 e virou o 5º card).
  */
 it('UC-COPI-PAINEL-10: Configurar abre o drawer e não promete o que o servidor não cumpre', function () {
     $tsx    = painelTsx();
@@ -309,7 +310,7 @@ it('UC-COPI-PAINEL-10: Configurar abre o drawer e não promete o que o servidor 
 
     // 2+3. Asserção de ESTRUTURA, não de prosa — e é deliberado. `not->toContain('Frota')`
     //      passaria hoje só por acidente de capitalização (o cabeçalho do drawer cita
-    //      "churn, frota e cheques" ao REGISTRAR por que eles não entraram), e quebraria
+    //      "frota e cheques" ao REGISTRAR por que eles não entraram), e quebraria
     //      no dia em que alguém reescrevesse o comentário. É o mesmo falso-positivo que o
     //      UC-08 acima documenta: proibir a prosa proibiria registrar a decisão (§5 2026-07-26).
     //

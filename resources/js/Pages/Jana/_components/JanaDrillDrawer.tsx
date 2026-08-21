@@ -42,9 +42,10 @@ interface Fonte {
 }
 
 /**
- * Fonte real de cada análise, lida de `SellsCockpitAggregator` em 2026-08-07.
+ * Fonte real de cada análise, lida de `SellsCockpitAggregator` em 2026-08-07;
+ * o `churn` entrou depois, no UC-13.
  *
- * Todas as quatro passam pelo mesmo recorte de base do aggregator
+ * Todas as cinco passam pelo mesmo recorte de base do aggregator
  * (`type=sell · status=final · sub_type NULL`) e todas são escopadas por
  * `business_id` — multi-tenant Tier 0, ADR 0093.
  */
