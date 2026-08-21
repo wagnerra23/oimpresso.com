@@ -337,7 +337,7 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
                         {formatMinutes(l.he)}
                       </td>
                       <td className="p-2 text-right font-mono whitespace-nowrap">
-                        {l.bh_credito > 0 && <span className="text-emerald-600">+{formatMinutes(l.bh_credito)}</span>}
+                        {l.bh_credito > 0 && <span className="text-success-fg">+{formatMinutes(l.bh_credito)}</span>}
                         {l.bh_credito > 0 && l.bh_debito > 0 && <span className="text-muted-foreground"> / </span>}
                         {l.bh_debito > 0 && <span className="text-destructive-fg">{'−'}{formatMinutes(l.bh_debito)}</span>}
                         {l.bh_credito === 0 && l.bh_debito === 0 && <span className="text-muted-foreground">—</span>}
