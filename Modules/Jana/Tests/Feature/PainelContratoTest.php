@@ -707,3 +707,35 @@ it('UC-COPI-PAINEL-14: a série tem 30 dias e CONTÉM o faturamento de hoje', fu
         $c->forceDelete();
     }
 });
+
+/**
+ * UC-COPI-PAINEL-15 — o card diz o PESO do vencido, não só a contagem.
+ *
+ * `overdueValue` e `totalAReceber` já chegavam no payload e ninguém os cruzava:
+ * a tela dizia "1 venda vencida" sem dizer se isso é irrelevante ou metade do
+ * caixa. A leitura é derivada, não pede backend novo.
+ *
+ * Asserção de ARQUIVO pelo mesmo motivo dos UC-08/10/12/14 — o Pest não monta
+ * React e a fórmula vive no `.tsx`. O que morde aqui é a GUARDA do arredondamento:
+ * sem ela, uma venda vencida de peso pequeno renderiza "0% do a receber" ao lado
+ * de um card que afirma que ela venceu — número que contradiz o próprio card.
+ * Medido em produção (biz=1) antes de escrever: a razão real dá < 1%.
+ */
+it('UC-COPI-PAINEL-15: o vencido declara seu peso, e nunca arredonda pra zero', function () {
+    $cockpit = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaCockpit.tsx'));
+
+    // 1. a razão é DERIVADA dos dois campos, não um número solto.
+    expect($cockpit)->toContain('overdueValue / totalAReceber');
+
+    // 2. a guarda do "<1%" existe — é ela que impede o zero enganoso.
+    expect($cockpit)->toContain("'<1% do a receber'");
+
+    // 3. e o card CONSOME a leitura (senão o derivado seria mais um campo órfão,
+    //    exatamente o defeito que este PR corrige no eixo do payload).
+    expect($cockpit)->toContain('pctVencidoTexto');
+
+    // 4. controle negativo: a linha só aparece quando HÁ vencido e HÁ base —
+    //    `totalAReceber > 0 && overdueValue > 0` é o que evita divisão por zero
+    //    e "0% do a receber" num tenant sem nada a receber.
+    expect($cockpit)->toContain('totalAReceber > 0 && overdueValue > 0');
+});

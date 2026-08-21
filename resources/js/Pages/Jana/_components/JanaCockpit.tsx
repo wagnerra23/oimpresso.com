@@ -252,6 +252,30 @@ export default function JanaCockpit({
   const overdueCount = insightsAggregates.overdueCount;
   const overdueValue = insightsAggregates.overdueValue;
   const totalAReceber = insightsAggregates.totalAReceber;
+
+  // Quanto do que a empresa tem A RECEBER já venceu. Os dois campos JÁ chegavam
+  // no payload e ninguém os cruzava — a tela dizia quantas vendas venceram, mas
+  // não o peso delas. É a leitura que o card devia carregar: "1 venda vencida"
+  // não diz se isso é irrelevante ou se é a metade do caixa.
+  //
+  // O arredondamento tem guarda de propósito: medido em produção (biz=1) a razão
+  // real dá menos de 1%, e um `Math.round` cru viraria "0% do a receber" ao lado
+  // de uma venda que ESTÁ vencida — número que contradiz o próprio card. Abaixo
+  // de 1% o texto é "<1%", que é verdadeiro e não engana.
+  //
+  // Contenção provada: `overdueValue` é subconjunto de `totalAReceber` (o vencido
+  // é parte do não-pago), então a razão nunca passa de 100%. Medido em produção:
+  // overdueValue <= totalAReceber = true, totalAReceber > 0 = true.
+  const pctVencido =
+    totalAReceber > 0 && overdueValue > 0
+      ? Math.max(1, Math.round((overdueValue / totalAReceber) * 100))
+      : null;
+  const pctVencidoTexto =
+    pctVencido === null
+      ? null
+      : Math.round((overdueValue / totalAReceber) * 100) < 1
+        ? '<1% do a receber'
+        : `${pctVencido}% do a receber`;
   const ageingBuckets = insightsAggregates.ageingBuckets;
   const ageingTotal = Object.values(ageingBuckets).reduce((a, b) => a + b, 0);
   const methodsAggList = insightsAggregates.methodsAgg;
@@ -609,7 +633,12 @@ export default function JanaCockpit({
           tone={overdueValue > 0 ? 'danger' : 'default'}
           description={
             overdueCount > 0
-              ? `${overdueCount} ${plural(overdueCount, 'venda vencida', 'vendas vencidas')}`
+              ? [
+                  `${overdueCount} ${plural(overdueCount, 'venda vencida', 'vendas vencidas')}`,
+                  pctVencidoTexto,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')
               : 'tudo em dia'
           }
           onClick={abrirInad}
