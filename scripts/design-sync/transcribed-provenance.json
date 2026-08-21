@@ -25,9 +25,49 @@
     "espelho cowork: Essenciais + Planilhas (.jsx/.css) — PR #6121": "TRES niveis, todos rodados em 100% dos 6 arquivos. (1) PARSE REAL com esbuild (JSX e CSS), calibrado ANTES com controle positivo (prototipo-ui/cowork/venda-v3.jsx, que veio pela rota fiel: rc=0) e controle negativo (JSX quebrado de proposito: rc=1) — resultado 6/6 OK. (2) Higiene de transcricao: NFC normalizado, ZERO caracteres combinantes (a classe de drift confirmada no lote anterior), ZERO CRLF. (3) Auditoria de TODOS os backslashes do lote — 4 no total, todos esperados, e ZERO ocorrencia de '\\n' literal: sao 2x aspas-escapadas em essenciais-data.jsx:40 (a citacao \"sem resposta\" dentro da string) e 2x a regex /\\.xlsx$/i em planilhas-page.jsx:177-178.",
     "espelho cowork: Essenciais + Planilhas (.jsx/.css) — PR #6121 · o_que_o_parse_NAO_prova": "Parse verde diz que o arquivo e JSX/CSS valido — NAO que ele e igual ao vivo. Um typo dentro de string literal, um numero trocado ou uma palavra perdida passam pelo esbuild. Por isso `fidelidade: NAO PROVADA` fica em cada registro.",
     "espelho cowork: Essenciais + Planilhas (.jsx/.css) — PR #6121 · rota_fiel_quando_existir": "Assim que sync/payload-01.json ... NN.json (partes <=250 KiB) existirem no projeto Cowork, reaplicar por aplicar-payload.mjs e SUBSTITUIR estes arquivos. O applier confere bytes declarados vs reais por arquivo.",
-    "design-docs/docs-novos (.md) — PR #6122": "cowork-ssot-guard exit 0 + frontmatter YAML parseado com o pacote yaml (10/10 validos) + contagem de bytes/linhas/sha256 por arquivo. Fidelidade NAO PROVADA: retorno inline do get_file, abaixo do limiar de persistencia (~47KB)."
+    "design-docs/docs-novos (.md) — PR #6122": "cowork-ssot-guard exit 0 + frontmatter YAML parseado com o pacote yaml (10/10 validos) + contagem de bytes/linhas/sha256 por arquivo. Fidelidade NAO PROVADA: retorno inline do get_file, abaixo do limiar de persistencia (~47KB).",
+    "espelho cowork: telas avulsas (.jsx/.css) — PR #6123": "TRES niveis, todos rodados em 100% dos 10 arquivos. (1) PARSE REAL com esbuild, calibrado ANTES com controle positivo (prototipo-ui/cowork/acessos-ds.jsx do repo: rc=0) e controle negativo (JSX quebrado de proposito: rc=1) — 10/10 OK. ATENCAO registrada na calibracao: em CSS o esbuild trata erro de sintaxe como WARNING com rc=0, entao o exit code SOZINHO nao e veredito em CSS (o veredito e contar '▲'); e `esbuild <f> | tail` devolve o rc do TAIL, nao do esbuild. (2) Higiene de transcricao: NFC normalizado em 10/10, ZERO caracteres combinantes (a classe de drift confirmada no lote anterior), ZERO CRLF. (3) Auditoria de TODOS os 22 backslashes do lote, todos esperados: 2x /s+/ em initials (comissionados/comissoes), 2x aspas-escapadas no corpo HTML de notificacoes-page.jsx:39,64, 2x /{...}/ em notificacoes-page.jsx:133,150, e os escapes de semHtml (:134) e da classe GSM-7 (:138).",
+    "espelho cowork: telas avulsas (.jsx/.css) — PR #6123 · sobre os 6 barra-n": "Este lote tem 6 ocorrencias de '\n' literal, TODAS legitimas e do proprio codigo-fonte — nao sao artefato de transcricao: sao o replace(...,\"\n\") do semHtml (notificacoes-page.jsx:134) e a classe \r\n da regex GSM7 (:138). Registrado assim de proposito: o lote #6121 pode dizer 'ZERO \n literal' porque o codigo dele nao tem nenhum; aqui zero seria falso.",
+    "espelho cowork: telas avulsas (.jsx/.css) — PR #6123 · o_que_o_parse_NAO_prova": "Parse verde diz que o arquivo e JSX/CSS valido — NAO que ele e igual ao vivo. Um typo dentro de string literal, um numero trocado ou uma palavra perdida passam pelo esbuild. Por isso `fidelidade: NAO PROVADA` fica em cada registro."
   },
   "arquivos": [
+    {
+      "path": "prototipo-ui/cowork/cms-page.css",
+      "bytes_escritos": 11849,
+      "linhas": 126,
+      "sha256": "e601b34d538a2fa83c74f8d15332981744f2f9c8c97ecdd0fe011a0fa00f204c",
+      "parse_esbuild": "OK (1 warning FIEL A FONTE)",
+      "fidelidade": "NAO PROVADA",
+      "lote": "espelho cowork: telas avulsas (.jsx/.css) — PR #6123",
+      "observacao": "O warning 'Unexpected \"*\"' na linha 2 vem do proprio comentario da FONTE: (os-*/usr-*) fecha o comentario cedo no */. Reproduzido verbatim de proposito — NAO corrigir sem decisao de quem edita o Cowork."
+    },
+    {
+      "path": "prototipo-ui/cowork/comissionados-page.jsx",
+      "bytes_escritos": 18222,
+      "linhas": 346,
+      "sha256": "07fc4da883d806f45fbc7ef425e6d09fc78b9af08c939dce90bac9716d6c72d1",
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA",
+      "lote": "espelho cowork: telas avulsas (.jsx/.css) — PR #6123"
+    },
+    {
+      "path": "prototipo-ui/cowork/comissoes-page.jsx",
+      "bytes_escritos": 15443,
+      "linhas": 290,
+      "sha256": "2b60b332eb81cfce8b2dba79ed1a12a00bd4f5f250ee6c007be94a53a966afde",
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA",
+      "lote": "espelho cowork: telas avulsas (.jsx/.css) — PR #6123"
+    },
+    {
+      "path": "prototipo-ui/cowork/dash-legacy-page.jsx",
+      "bytes_escritos": 25113,
+      "linhas": 364,
+      "sha256": "dcf4d23c7a95746aade08a6dbc3a631e8058e47f5c4b36215f479c90debebde7",
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA",
+      "lote": "espelho cowork: telas avulsas (.jsx/.css) — PR #6123"
+    },
     {
       "path": "prototipo-ui/cowork/essenciais-data.jsx",
       "bytes_escritos": 16057,
@@ -61,6 +101,44 @@
       "lote": "espelho cowork: Essenciais + Planilhas (.jsx/.css) — PR #6121"
     },
     {
+      "path": "prototipo-ui/cowork/financeiro-relatorios.jsx",
+      "bytes_escritos": 27081,
+      "linhas": 405,
+      "sha256": "569da242df0b6d44a9f2b27d7f733255b3de24ce98db40505ffc929af40db050",
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA",
+      "lote": "espelho cowork: telas avulsas (.jsx/.css) — PR #6123"
+    },
+    {
+      "path": "prototipo-ui/cowork/notificacoes-page.css",
+      "bytes_escritos": 11049,
+      "linhas": 124,
+      "sha256": "374160968e93f0d6fb2402bf56d336ec50ecd0520920d9399da15bda4ae6d349",
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA",
+      "lote": "espelho cowork: telas avulsas (.jsx/.css) — PR #6123"
+    },
+    {
+      "path": "prototipo-ui/cowork/notificacoes-page.jsx",
+      "bytes_escritos": 32910,
+      "linhas": 521,
+      "sha256": "7add85418e999a487beac20aeefb2790d9956eff093914c5d917e5330ce7323e",
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA",
+      "lote": "espelho cowork: telas avulsas (.jsx/.css) — PR #6123",
+      "observacao": "3 linhas do objeto AMOSTRA (dados ficticios de demo das tags {total_amount} etc.) disparam o 'BRL scan' advisory. Decisao de [W] 2026-08-21: mergear como esta — redigir quebraria a fidelidade do espelho."
+    },
+    {
+      "path": "prototipo-ui/cowork/officeimpresso-page.css",
+      "bytes_escritos": 6521,
+      "linhas": 72,
+      "sha256": "76cb0ba87f3212a638741d2d5a36b5cf6b772590dc6d11958a8c8761a459adaa",
+      "parse_esbuild": "OK (1 warning FIEL A FONTE)",
+      "fidelidade": "NAO PROVADA",
+      "lote": "espelho cowork: telas avulsas (.jsx/.css) — PR #6123",
+      "observacao": "Mesmo caso do cms-page.css: (sa-*/os-*/cli-*) no comentario do cabecalho fecha o comentario no primeiro */."
+    },
+    {
       "path": "prototipo-ui/cowork/planilhas-page.css",
       "bytes_escritos": 8080,
       "linhas": 88,
@@ -75,6 +153,24 @@
       "parse_esbuild": "OK",
       "fidelidade": "NAO PROVADA",
       "lote": "espelho cowork: Essenciais + Planilhas (.jsx/.css) — PR #6121"
+    },
+    {
+      "path": "prototipo-ui/cowork/prefs-page.jsx",
+      "bytes_escritos": 11948,
+      "linhas": 231,
+      "sha256": "fff0b0f84ac6cad495cc1dd6710eda249a9e068369d4f84ac385543e482ade10",
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA",
+      "lote": "espelho cowork: telas avulsas (.jsx/.css) — PR #6123"
+    },
+    {
+      "path": "prototipo-ui/cowork/superadmin-page.css",
+      "bytes_escritos": 29578,
+      "linhas": 354,
+      "sha256": "ddcf66be2b7eb2f615de1e107246b2ddedb3275c74f144332e5f979cb048465c",
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA",
+      "lote": "espelho cowork: telas avulsas (.jsx/.css) — PR #6123"
     },
     {
       "path": "prototipo-ui/design-docs/CLAUDE.md",
