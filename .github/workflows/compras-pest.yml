@@ -106,8 +106,8 @@ jobs:
 
       # FV-F2 (plano SDD 2026-06-12): setup extraído pra composite action reusável
       # pelas lanes de burn-down por módulo. PHP + Composer + .env + migrate
-      # (schema baseline) + seed mínimo (biz=1 fixture completa + biz=2 Tier 0
-      # cross-tenant). O service container MySQL permanece DECLARADO ACIMA no job
+      # (schema baseline) + seed mínimo multi-tenant (a action é dona dos tenants, com o
+      # 2º do Tier 0 cross-tenant). O service container MySQL permanece DECLARADO ACIMA no job
       # (composite action não pode declarar services — limitação GitHub Actions).
       - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
         if: steps.changes.outputs.compras == 'true'
