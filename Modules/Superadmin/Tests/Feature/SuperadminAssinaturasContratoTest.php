@@ -494,6 +494,31 @@ it('UC-SAASS-15 · fim anterior ao início não é gravado', function () {
         ->and(session('status')['success'])->toBe(0);
 });
 
+// ── UC-SAASS-17 · data ilegível não vira NULL em silêncio ─────────────────
+
+it('UC-SAASS-17 · data que não converte é recusada, e a vigência fica intacta', function () {
+    $id = assFixtureEscrita('sa-o4b-data-ilegivel', 'approved', -10, 20);
+    $antes = DB::table('subscriptions')->where('id', $id)->first();
+
+    // `uf_date()` devolve NULL quando `session('business.date_format')` está vazia
+    // (app/Utils/Util.php:299) — sem exceção, sem sinal. E o grupo `/superadmin` NÃO tem
+    // `SetSessionData` no middleware, que é quem popula essa sessão. Sem guarda, o texto
+    // preenchido vira NULL e a assinatura PERDE a vigência calada.
+    $this->actingAs(assSuperadmin())
+        ->post('/superadmin/update-subscription', [
+            'subscription_id' => $id,
+            'start_date' => 'nao-e-data',
+            'end_date' => '01/09/2026',
+        ])
+        ->assertRedirect();
+
+    $depois = DB::table('subscriptions')->where('id', $id)->first();
+
+    expect($depois->start_date)->toBe($antes->start_date)
+        ->and($depois->end_date)->toBe($antes->end_date)
+        ->and(session('status')['success'])->toBe(0);
+});
+
 // ── UC-SAASS-16 · escrita é barrada pra quem não é superadmin ──────────────
 
 it('UC-SAASS-16 · admin de negócio não consegue mudar status nem vigência', function () {

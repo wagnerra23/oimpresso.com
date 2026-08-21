@@ -491,8 +491,36 @@ class SuperadminSubscriptionsController extends BaseController
         // comentário, porque a `NoMissingTenantScopeRule` lê AST e é cega a comentário.
         $business_id = (int) ($assinatura->business_id ?? 0);
 
-        $inicio = ! empty($dados['start_date']) ? $this->businessUtil->uf_date($dados['start_date']) : null;
-        $fim = ! empty($dados['end_date']) ? $this->businessUtil->uf_date($dados['end_date']) : null;
+        $inicio = $this->dataDoFormulario($dados['start_date'] ?? null);
+        $fim = $this->dataDoFormulario($dados['end_date'] ?? null);
+        $trial = $this->dataDoFormulario($dados['trial_end_date'] ?? null);
+
+        // Data que veio PREENCHIDA e não converteu não pode virar NULL em silêncio.
+        //
+        // `uf_date()` devolve `null` quando `session('business.date_format')` está vazia
+        // (app/Utils/Util.php:299) — sem exceção, sem sinal. E o grupo `/superadmin` NÃO tem
+        // `SetSessionData` no middleware, que é justamente quem popula essa sessão. Sem esta
+        // checagem, `10/09/2026` vira `null`, o guard de vigência invertida abaixo nem dispara
+        // (porque compara dois nulos) e a assinatura PERDE a vigência calada — que é
+        // exatamente o dano que o UC-SAASS-15 existe pra impedir.
+        $ilegiveis = [];
+
+        foreach ([
+            'start_date' => $inicio,
+            'end_date' => $fim,
+            'trial_end_date' => $trial,
+        ] as $campo => $convertido) {
+            if (! empty($dados[$campo]) && $convertido === null) {
+                $ilegiveis[] = $campo;
+            }
+        }
+
+        if ($ilegiveis !== []) {
+            return back()->with('status', [
+                'success' => 0,
+                'msg' => 'Não consegui ler a data informada. Use dd/mm/aaaa.',
+            ]);
+        }
 
         // Vigência invertida é erro de digitação, não estado válido: gravada, ela faz a
         // assinatura nascer vencida e some da fila de cobrança sem ninguém entender por quê.
@@ -505,9 +533,7 @@ class SuperadminSubscriptionsController extends BaseController
 
         $assinatura->start_date = $inicio;
         $assinatura->end_date = $fim;
-        $assinatura->trial_end_date = ! empty($dados['trial_end_date'])
-            ? $this->businessUtil->uf_date($dados['trial_end_date'])
-            : null;
+        $assinatura->trial_end_date = $trial;
 
         // O span envolve a ESCRITA, não fica ao lado dela: span que não abraça a operação mede
         // o tempo de nada e não falha junto quando a operação falha.
@@ -529,5 +555,27 @@ class SuperadminSubscriptionsController extends BaseController
             'success' => 1,
             'msg' => 'Vigência salva. Nenhuma cobrança nova foi gerada.',
         ]);
+    }
+
+    /**
+     * Data do formulário (`dd/mm/aaaa`) → formato do banco, ou `null`.
+     *
+     * Existe pra dar UM lugar ao `uf_date`, e pra que o chamador consiga distinguir os dois
+     * `null` que ele produz: "campo veio vazio" (legítimo) e "veio preenchido e não deu pra
+     * ler" (erro). Sem essa distinção no chamador, os dois viram a mesma escrita de `null`.
+     */
+    private function dataDoFormulario(?string $bruto): ?string
+    {
+        if (empty($bruto)) {
+            return null;
+        }
+
+        try {
+            return $this->businessUtil->uf_date($bruto);
+        } catch (\Throwable $e) {
+            // `Carbon::createFromFormat` lança quando o texto não bate com o formato da sessão.
+            // Aqui isso é entrada inválida do operador, não incidente — o chamador decide.
+            return null;
+        }
     }
 }
