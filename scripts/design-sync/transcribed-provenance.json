@@ -5,7 +5,7 @@
     "projectId": "019dcfd3-6ef2-7ee6-8512-b1b0e5544e58"
   },
   "metodo": "DesignSync.get_file (retorno INLINE) -> transcricao pelo agente via heredoc quoted",
-  "fidelidade_nota": "NAO PROVADA para todos: os bytes passaram pelo contexto do agente. A rota --export-from do cowork-mirror-freshness garante fidelidade POR CONSTRUCAO somente quando o harness persiste a saida do get_file (limiar medido ~47KB); nenhum destes .md atingiu o limiar, entao a rota persistida nao se aplica.",
+  "fidelidade_nota": "DUAS rotas, declaradas por arquivo. POR CONSTRUCAO = a saida do get_file passou do limiar (~47KB), o harness persistiu em disco e o cowork-mirror-freshness --export-from escreveu os bytes sem passarem pelo contexto do agente. NAO PROVADA = a saida voltou INLINE no contexto e foi transcrita; e o caso da grande maioria dos .md, que sao pequenos demais para persistir.",
   "verificacao_feita": "cowork-ssot-guard exit 0 (R1: nenhum .md em cowork/) + frontmatter YAML parseado com o pacote yaml + contagem de bytes/linhas por arquivo",
   "frontmatter_invalido_na_FONTE": [
     {
@@ -459,6 +459,96 @@
       "lote": "espelho-29 (PR #6117)"
     },
     {
+      "path": "prototipo-ui/design-docs/CLAUDE.md",
+      "bytes_escritos": 4854,
+      "linhas": 39,
+      "sha256": "f62112ff7ff7ab2eb2835f68eb569da5d20d5c509cbc3eb4423b897af2539baa",
+      "frontmatter": "sem-frontmatter",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
+    },
+    {
+      "path": "prototipo-ui/design-docs/HANDOFF-ponto.md",
+      "bytes_escritos": 3910,
+      "linhas": 65,
+      "sha256": "a39bf68bccff7750a9a2dbafc7b559005b5abbcbec79e7885e38286128177f7f",
+      "frontmatter": "sem-frontmatter",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
+    },
+    {
+      "path": "prototipo-ui/design-docs/MEMORY_INDEX.md",
+      "bytes_escritos": 1200,
+      "linhas": 14,
+      "sha256": "829021838a0c29d7a3b8b0b07872885af468004f83bef6116725acec8b7e688b",
+      "frontmatter": "sem-frontmatter",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
+    },
+    {
+      "path": "prototipo-ui/design-docs/PEDIDO-CL-documentacao-fase2.md",
+      "bytes_escritos": 4899,
+      "linhas": 101,
+      "sha256": "7d9ef5f56061524df1c7a89897675bb65ca5bbed07fb19eb38ac75df9b040db8",
+      "frontmatter": "sem-frontmatter",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
+    },
+    {
+      "path": "prototipo-ui/design-docs/PEDIDO-CL-documentacao.md",
+      "bytes_escritos": 6030,
+      "linhas": 71,
+      "sha256": "311adbbc1312e7684a06e2511f28fa25c7d29492c3411512fce6d33848b185de",
+      "frontmatter": "sem-frontmatter",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
+    },
+    {
+      "path": "prototipo-ui/design-docs/PLANO-PR-ONDAS-ponto.md",
+      "bytes_escritos": 9646,
+      "linhas": 189,
+      "sha256": "ea26e633b2a01bd7096c8adb1194df0f9bdbfa4a93f4ec69f2f0d79d88c2d497",
+      "frontmatter": "sem-frontmatter",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
+    },
+    {
+      "path": "prototipo-ui/design-docs/PONTE_CL_cliente-paridade-2026-08-07.md",
+      "bytes_escritos": 5080,
+      "linhas": 61,
+      "sha256": "50a33d6d77bca9e78baa5ed2fefc93cd4a71f4751bb5a5840e8921bbad9afe32",
+      "frontmatter": "sem-frontmatter",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
+    },
+    {
+      "path": "prototipo-ui/design-docs/PROMPT_PARA_CODE_JANA-HITL-ACOES.md",
+      "bytes_escritos": 20750,
+      "linhas": 525,
+      "sha256": "a4f3ceb900c3d431754f1e369c8c239a2022afd5605b2d450e63fa5ee8203045",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
+    },
+    {
+      "path": "prototipo-ui/design-docs/STATUS.md",
+      "bytes_escritos": 2455,
+      "linhas": 28,
+      "sha256": "7850dd461eeae4ed9874261b5bda42e0917be5eadef126a89603b6d0b528380d",
+      "frontmatter": "sem-frontmatter",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
+    },
+    {
+      "path": "prototipo-ui/design-docs/_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/README.md",
+      "bytes_escritos": 29069,
+      "linhas": 319,
+      "sha256": "9e5cfb1e84e29adf13faaae7c022aa22d5977cc0036f4c3fdd5c1e273fa83cea",
+      "frontmatter": "sem-frontmatter",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
+    },
+    {
       "path": "prototipo-ui/design-docs/docs-novos/COMO-LER-ESTA-DOCUMENTACAO.md",
       "bytes_escritos": 3829,
       "linhas": 80,
@@ -559,6 +649,15 @@
       "vs_repo": "n/a"
     },
     {
+      "path": "prototipo-ui/design-docs/github.md",
+      "bytes_escritos": 66124,
+      "linhas": 236,
+      "sha256": "fe8eb657199261db54bd91892e3429ad1699cb54508a9432f9bbd6fcc74b3f31",
+      "frontmatter": "sem-frontmatter",
+      "fidelidade": "POR CONSTRUCAO (--export-from da saida persistida do get_file)",
+      "vs_repo": "n/a"
+    },
+    {
       "path": "prototipo-ui/design-docs/handoff/Backup.casos.md",
       "bytes_escritos": 7605,
       "linhas": 112,
@@ -646,6 +745,24 @@
       "frontmatter": "ERRO-NA-FONTE: Unexpected scalar at node end at line 6, column 13:",
       "fidelidade": "NAO PROVADA",
       "lote": "design-docs/handoff (.md) — PR #6120",
+      "vs_repo": "n/a"
+    },
+    {
+      "path": "prototipo-ui/design-docs/prototipo-ui/cowork/Produto.casos.md",
+      "bytes_escritos": 3929,
+      "linhas": 56,
+      "sha256": "7d3e32e2ce4abaf37faae429735cb475976c2360ed8e1a4ebeb2dd2a56fad417",
+      "frontmatter": "sem-frontmatter",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
+    },
+    {
+      "path": "prototipo-ui/design-docs/prototipo-ui/cowork/Produto.charter.md",
+      "bytes_escritos": 3376,
+      "linhas": 41,
+      "sha256": "8f1663ad4c752645526344ef09ab1c2dd4686aba56616bc2b7535c20ffe63560",
+      "frontmatter": "sem-frontmatter",
+      "fidelidade": "NAO PROVADA",
       "vs_repo": "n/a"
     },
     {
@@ -917,6 +1034,24 @@
       "frontmatter": "ok",
       "fidelidade": "NAO PROVADA",
       "vs_repo": "SO_COWORK"
+    },
+    {
+      "path": "prototipo-ui/design-docs/sync/README.md",
+      "bytes_escritos": 3153,
+      "linhas": 39,
+      "sha256": "6c974fcd837abd5810611ce47b8297f285a5eed6fac5efe25f6557cb71963c46",
+      "frontmatter": "sem-frontmatter",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
+    },
+    {
+      "path": "prototipo-ui/design-docs/uploads/Office_Impresso_Mobile_Design_System.md",
+      "bytes_escritos": 4234,
+      "linhas": 359,
+      "sha256": "99da690d6e43a21d34476205e92b45bda36a15a21107247fbd36c88ab3204177",
+      "frontmatter": "sem-frontmatter",
+      "fidelidade": "NAO PROVADA",
+      "vs_repo": "n/a"
     }
   ],
   "vs_repo_nota": "Para os .md que espelham um path vivo de resources/js/Pages, o campo vs_repo compara sha256 do transcrito com o arquivo homonimo do repo. IDENTICO/DIVERGE/SO_COWORK e comparacao de BYTES, nao diff semantico — nao estabelece qual lado esta a frente."
