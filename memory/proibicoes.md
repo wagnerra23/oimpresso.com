@@ -839,6 +839,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** tratar saída de sonda que lê **git** como veredito sobre o que você acabou de editar — vale pra `git diff`, `git ls-files`, `git log`, `git show` e pra todo script de governança que recebe `--base`/`--head`/`--sha`. O working tree é **invisível** pra elas. A forma positiva é barata: rodar `git status --short` antes e, havendo `M`/`A`/`??` nos paths que importam, **commitar antes de sondar** (ou declarar que a resposta é sobre outra árvore). Mesma família do §5 2026-07-28 (*"git ls-files lista o índice da branch daquele worktree"*) — lá o eixo era **branch errada**, aqui é **estado não-commitado**.
 
+### 2026-08-21 — `/tmp` não é o mesmo diretório para o Bash e para o Node no Windows: dois arquivos, mesmo caminho escrito
+
+- **O limite (variante também proibida):** não usar caminho `/tmp/...` (nem `/var/...`, nem qualquer raiz POSIX) em literal que atravesse a fronteira **Bash ↔ Node/PHP/Python nativo de Windows** — em script, em heredoc, em `--input`, em redirecionamento. Vale para os dois sentidos: arquivo escrito por um e lido pelo outro. A forma positiva é **caminho absoluto único**, derivado do próprio script (`path.dirname(new URL(import.meta.url).pathname)`) ou o diretório de scratch da sessão, nunca uma raiz que cada runtime interpreta à sua maneira. E o corolário de diagnóstico, que é o que teria economizado três rodadas: **quando uma substituição devolve 0 casamentos e outra ferramenta enxerga o alvo, o primeiro suspeito é o CAMINHO, não o padrão** — antes de reescrever o regex, imprima o tamanho do arquivo pelos dois lados e compare.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
