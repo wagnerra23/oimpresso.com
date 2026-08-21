@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-20**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-21**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **353**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **356**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -151,7 +151,7 @@ lente: [construir]
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 130 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 137 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -284,6 +284,13 @@ lente: [construir]
 - ~~2026-08-18 — Reescrever doc versionado com `io.open(p,'w')`: o encoding falhou DEPOIS do corte e o arquivo ficou VAZIO~~
 - ~~2026-08-18 — Listar gap protótipo × produção por GREP DE STRING LITERAL, com 3 donos do inventário sem serem abertos~~
 - ~~2026-08-19 — Escrever arquivo com par de barra invertida por heredoc: o par COLAPSA no transporte e o PHP recebe string aberta~~
+- ~~2026-08-19 — Painel do protocolo anunciar "sem teto get_file" num caminho cujo INSUMO passa pelo get_file~~
+- ~~2026-08-20 — Consertar `front_door_coverage` com README, depois de ler o regex de docs CONCORRENTES em vez do predicado da porta~~
+- ~~2026-08-20 — Afirmar "o PR X não toca este arquivo" contra a MINHA PRÓPRIA consulta, feita na mesma sessão~~
+- ~~2026-08-20 — Concluir "não há rota fiel de transporte" tendo lido o painel que aponta a rota (e o aviso do FP que matou o gate óbvio)~~
+- ~~2026-08-20 — Responder "precisa atualizar a branch?" com o `strict` da branch protection — a pergunta tinha OUTRO dono~~
+- ~~2026-08-20 — Gate que exige `.snap` junto quando o PR toca tela do núcleo (MEDIDO: 78%/92% de disparo; adiado pela FASE, não refutado)~~
+- ~~2026-08-20 — Sondar o git com a mudança AINDA NÃO COMMITADA (a sonda responde sobre o commitado, não sobre o seu working tree)~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -294,14 +301,14 @@ lente: [construir]
 
 ## Rastro
 
-- **463** handoffs · **636** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **466** handoffs · **639** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-08-20-visreg-narrativa-do-comentario`
+  - `2026-08-20-backup-migracao-ondas-0-a-3`
+  - `2026-08-20-acessos-roles-comissionados-backend`
   - `2026-08-18-visreg-manifesto-cobertura-vs-escalonamento`
   - `2026-08-18-design-sync-truncado-preview-fail-closed`
   - `2026-08-18-design-sync-runtime-completo-drawers`
-  - `2026-08-18-design-sync-grafo-completo-shell`
-  - `2026-08-18-design-sync-fonte-executavel-unica`
-  - `2026-08-17-visreg-relogios-divergentes-e-pedidos-cowork`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-20 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-21 · deriva das fontes canônicas, não as substitui._
