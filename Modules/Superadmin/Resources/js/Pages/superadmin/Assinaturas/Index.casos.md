@@ -215,6 +215,27 @@ Status: 🧪
 
 ---
 
+## UC-SAASS-17 · Data ilegível não vira NULL em silêncio · `must` `[T0]`
+
+**Dado** um pedido de vigência com uma data que **não converte**
+**Quando** ele é enviado
+**Então** nada é gravado e a tela diz que não conseguiu ler a data — a vigência anterior fica
+**intacta**.
+
+> Não é hipótese: `uf_date()` devolve `null` quando `session('business.date_format')` está vazia
+> (`app/Utils/Util.php:299`), **sem exceção e sem sinal** — e o grupo `/superadmin` **não tem**
+> `SetSessionData` no middleware, que é quem popula essa sessão. Sem guarda, o texto preenchido
+> vira `null`, o caso UC-SAASS-15 nem dispara (ele compara dois nulos) e a assinatura **perde a
+> vigência calada**.
+>
+> Foi o CI que provou, e só porque este PR tocou o `.yml` da lane: o filtro interno dela não
+> listava `Modules/Superadmin/**`, então PR do módulo caía em skip-as-pass e os contratos não
+> rodavam. Verde por não-execução.
+
+Status: 🧪
+
+---
+
 ## Testes mínimos (do F1 §2)
 
 - **DQE:** 1 assinatura pendente · 1 vencida · 1 cancelada · 1 em trial · 1 bloqueada.

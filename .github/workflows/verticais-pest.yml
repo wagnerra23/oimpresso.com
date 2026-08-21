@@ -96,6 +96,15 @@ jobs:
               - 'Modules/ComunicacaoVisual/**'
               - 'Modules/Repair/**'
               - 'Modules/Vestuario/**'
+              # 2026-08-21 — SA-O4c: `Modules/Superadmin/**` estava no trigger `push` (desde a
+              # SA-O1) mas NÃO aqui. O efeito é um gate MUDO: em PR que só toca o módulo, este
+              # filtro dá `vert=false`, o job cai em skip-as-pass e os 3 arquivos de contrato do
+              # Superadmin NÃO RODAM — verde por não-execução.
+              #
+              # Não é hipótese, é o que aconteceu: o #6086 (SA-O4b) mergeou com 116 checks verdes
+              # carregando um `UC-SAASS-15` VERMELHO dentro. Ele só apareceu neste PR porque este
+              # PR toca o próprio `.yml`, e aí o filtro casou pela linha de baixo.
+              - 'Modules/Superadmin/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/verticais-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -175,7 +184,8 @@ jobs:
             Modules/Superadmin/Tests/Feature/SuperadminDashboardContratoTest.php \
             Modules/Superadmin/Tests/Feature/SubscriptionLifecycleServiceTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminNegociosContratoTest.php \
-            Modules/Superadmin/Tests/Feature/SuperadminAssinaturasContratoTest.php
+            Modules/Superadmin/Tests/Feature/SuperadminAssinaturasContratoTest.php \
+            Modules/Superadmin/Tests/Feature/SuperadminPacotesContratoTest.php
 
       # O sumário conta `assertions` POR ARQUIVO — é o discriminador que separa
       # "passou" de "pulou" (LC-13). Aqui só REPORTA.
