@@ -159,6 +159,20 @@
       "linhas": 83,
       "parse_esbuild": "OK",
       "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/jana-pro.jsx",
+      "bytes_escritos": 8222,
+      "linhas": 163,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/acessos-page.css",
+      "bytes_escritos": 21060,
+      "linhas": 336,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
     }
   ],
   "data": "2026-08-21",
