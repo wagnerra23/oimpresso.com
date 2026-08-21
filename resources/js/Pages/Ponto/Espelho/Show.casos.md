@@ -12,10 +12,10 @@ last_run_ci: "0 UC executado por mim. O bump de last_run é REVALIDAÇÃO DE LEI
 # Casos de Uso & Aceite — Espelho de ponto mensal
 
 > **Âncora:** `CU-PONTO-01`, `CU-PONTO-02`, `CU-PONTO-03`, `CU-PONTO-13` do
-> [SDD §6.1](../../../../memory/requisitos/Ponto/SDD-espelho-e-jornada-v1.0.md), cruzados com a **lei**
+> [SDD §6.1](../../../../../memory/requisitos/Ponto/SDD-espelho-e-jornada-v1.0.md), cruzados com a **lei**
 > (CLT Art. 66/71/74 §2º · Portaria MTP 671/2021) e com a **Blade legada** `espelho/show.blade.php`.
 > Os UC derivam do **contrato**, nunca do `Show.tsx` — teste derivado do código é tautológico
-> ([proibicoes §5](../../../../memory/proibicoes.md) 2026-06-05).
+> ([proibicoes §5](../../../../../memory/proibicoes.md) 2026-06-05).
 >
 > **Fonte 4 (Delphi) ausente neste módulo** — declarado no SDD §0.1, não inventado. A paridade aqui é
 > **lei + Blade**, não manual legado.
@@ -101,7 +101,7 @@ last_run_ci: "0 UC executado por mim. O bump de last_run é REVALIDAÇÃO DE LEI
 - **Teste:** `EspelhoContratoTest.php` — `UC-ESPSHOW-03`.
 - **Contrato:** `CU-PONTO-13` (SDD §6.5) · US-PONTO-008 (*"para corrigir: criar marcação com
   `origem=ANULACAO`"*) · Portaria MTP 671/2021 (imutabilidade) ·
-  [proibicoes.md](../../../../memory/proibicoes.md) (*"append-only por força de lei"*).
+  [proibicoes.md](../../../../../memory/proibicoes.md) (*"append-only por força de lei"*).
 - **Regressão que defende:** remover o filtro de anulação faz o espelho somar registro corrigido **e**
   correção — inflando a jornada. É o oposto do que a lei quer.
 - **Status: 🧪 sem veredito.**
@@ -114,13 +114,18 @@ last_run_ci: "0 UC executado por mim. O bump de last_run é REVALIDAÇÃO DE LEI
 - **Aceite:** Dado um id de colaborador que **não** pertence ao meu business · Quando acesso
   `/ponto/espelho/{id}` · Então recebo **404** — nunca 200 com dado de outro empregador, nunca 500.
 - **Teste:** `EspelhoContratoTest.php` — `UC-ESPSHOW-04`.
-- **Contrato:** `CU-PONTO-12` · US-PONTO-007 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) ·
+- **Contrato:** `CU-PONTO-12` · US-PONTO-007 · [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) ·
   charter §Non-Goals (*"Não expõe colaborador de outro tenant"*).
 - **Regressão que defende:** `EspelhoController@show` escapa por `Colaborador::where('business_id')->findOrFail()`.
   Se alguém "simplificar" para `Colaborador::findOrFail()` confiando só no global scope, a defesa vira
   única — e some junto com o trait.
-- **Nota de teste:** biz=1 (WR2 interno) contra id inexistente/fictício — **nunca biz=4**
-  ([ADR 0101](../../../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)).
+- **Nota de teste:** o `EspelhoContratoTest` usa hoje **biz=1** (WR2 interno) contra id
+  inexistente/fictício, e **nunca biz=4** (ROTA LIVRE). ⚠️ A ADR que ele cita no docblock — a 0101 —
+  **não existe mais**: foi superseded pela
+  [ADR 0358](../../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md),
+  que move o tenant de teste pro fictício **98**. Ou seja: a proibição de biz=4 segue valendo
+  (a 0358 reforça, sem exceção), mas o **biz=1 do teste está na doutrina antiga**. Migrar exige
+  rodar no CT 100 e é trabalho próprio — registrado aqui pra não passar por conforme.
 - **Status: 🧪 sem veredito.**
 
 ---
@@ -134,7 +139,7 @@ last_run_ci: "0 UC executado por mim. O bump de last_run é REVALIDAÇÃO DE LEI
   e as linhas do mês chegam completos.
 - **Teste:** `EspelhoContratoTest.php` — `UC-ESPSHOW-05`.
 - **Contrato:** `CU-PONTO-01` · charter §Automation hooks (*"`Inertia::defer` nas props `totais` e
-  `linhas`"*) · [RUNBOOK-inertia-defer-pattern](../../../../memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md).
+  `linhas`"*) · [RUNBOOK-inertia-defer-pattern](../../../../../memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md).
 - **Regressão que defende:** `defer` mal aplicado degrada de duas formas opostas — ou tudo volta eager
   (perde o ganho de p95), ou a prop diferida nunca resolve (tela fica em skeleton eterno). O UC prova que
   o dado **chega** quando pedido.
@@ -152,6 +157,26 @@ Entram como `[BACKLOG]` de propósito: são comportamento que o F3 de 2026-08-21
 - **[BACKLOG]** O seletor `espelho-modo-visao` não persiste escolha entre visitas (é `useState`, não
   `localStorage`). Deliberado por ora: o documento deve abrir SEMPRE na tabela, e persistir "grade"
   faria o RH abrir o espelho numa visão que não é o documento.
-- **[BACKLOG]** `CPF` e `PIS` passaram a aparecer no cabeçalho legal. Falta decidir com [W] se a
-  tela deve mascará-los para papéis não-RH — hoje quem acessa a rota vê inteiro.
+
+## Decidido — CPF e PIS ficam à vista no cabeçalho legal
+
+**Decisão [W] em 2026-08-21** (textual: *"pode deixar os dados sim é um ERP"*), respondendo a
+pergunta que este contrato havia levantado quando o cabeçalho legal entrou.
+
+`CPF` e `PIS` aparecem **inteiros** para quem acessa a rota. **Não** há máscara por papel.
+
+**A razão é a mesma que já é canon neste projeto**, e é o que faz disto uma decisão coerente e não
+uma exceção: num ERP o controle de PII é por **permissão de acesso**, não por ocultação do dado. É
+a mesma linha pela qual o `jana:retention-purge` foi descartado por [W] — *"num ERP não se apaga
+PII"* ([proibicoes §5](../../../../../memory/proibicoes.md) 2026-07-27). Mascarar na tela protegeria
+de quem já tem a rota, e não protege de mais ninguém; quem não pode ver o espelho não deve ter
+acesso à rota.
+
+**O que esta decisão NÃO afrouxa** — segue tudo valendo:
+
+- ⛔ `CPF`/`PIS` **nunca** em log, PR, commit ou screenshot de evidência (`PiiRedactor` / `[REDACTED]`).
+- ⛔ `business_id` escopado: o espelho de colaborador de outro empregador é **404**, e isso tem teste
+  (`UC-ESPSHOW-04` `[T0]`).
+- A defesa continua sendo **quem entra na rota**, não o que a tela esconde.
+
 
