@@ -5,7 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a tela onde o vocabulário do banco e o vocabulário do negócio NÃO coincidem — `trial` não é status, `approved` significa duas coisas conforme a data, e `declined` não é cancelamento. Sem casos travando a tradução, a próxima sessão "simplifica" o mapa e a tela passa a reportar cobrança errada sem quebrar nada visivelmente.
 owner: wagner
-last_run: "2026-08-20"
+last_run: "2026-08-21"
+revalidacao_2026_08_21: "O G-6 acusou stale por efeito do MERGE, não por mudança de comportamento: o #6064 (SA-O4a) entrou por SQUASH, e o squash re-data no git todos os arquivos da onda — inclusive este `.tsx`, cujo conteúdo não mudou depois do último run. O bump é higiene do gate; nenhum UC deste arquivo muda de veredito, e a nota diz isso em vez de fingir re-execução."
 last_run_ci: "_pendente_ — o trio nasce nesta onda (SA-O4a). O veredito por UC entra no manifesto quando a lane rodar; até lá o Status é 🧪, nunca ✅."
 ---
 
