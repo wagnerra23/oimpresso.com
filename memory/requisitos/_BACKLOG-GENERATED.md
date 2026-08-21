@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **893 tarefas abertas** em **51 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **896 tarefas abertas** em **51 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -33,13 +33,13 @@
 | [`Ponto`](#ponto) | 14 | 0 | 0 | 0 | 14 |
 | [`Connector`](#connector) | 13 | 0 | 0 | 0 | 13 |
 | [`Mwart`](#mwart) | 13 | 0 | 0 | 0 | 13 |
+| [`Officeimpresso`](#officeimpresso) | 13 | 0 | 0 | 0 | 13 |
 | [`PaymentGateway`](#paymentgateway) | 13 | 0 | 0 | 0 | 13 |
 | [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
 | [`PontoWr2`](#pontowr2) | 12 | 0 | 0 | 0 | 12 |
 | [`Essentials`](#essentials) | 11 | 0 | 0 | 0 | 11 |
 | [`Superadmin`](#superadmin) | 11 | 0 | 0 | 0 | 11 |
 | [`Cms`](#cms) | 10 | 0 | 0 | 0 | 10 |
-| [`Officeimpresso`](#officeimpresso) | 10 | 0 | 0 | 0 | 10 |
 | [`Cliente`](#cliente) | 9 | 1 | 0 | 0 | 8 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
 | [`KB`](#kb) | 8 | 0 | 0 | 0 | 8 |
@@ -960,6 +960,25 @@
 - **US-MWART-010** — Onda 7 — migrar Configurações, admin & documentos e desligar Blade _(`p3`)_
 - **US-MWART-012** — Onda 9 — migrar Acesso & onboarding e remover /login/old _(`p3`)_
 
+## Officeimpresso
+
+
+### todo
+
+- **US-OI-001** — F2: Pest baseline do comportamento atual
+- **US-OI-002** — F2: action dual + feature flag `useV2OfficeimpressoLogs`
+- **US-OI-003** — F2: mapa de paridade Blade↔React
+- **US-OI-004** — F3: tela `Logs/Index` (Máquinas Cadastradas) em PT-01
+- **US-OI-005** — F3: tela `Logs/Timeline` (acessos por máquina) em PT-07
+- **US-OI-006** — F4: QA — os itens `alta` da paridade viram teste
+- **US-OI-007** — F5: cutover e sunset do Blade
+- **US-OI-008** — F2: baseline, payload seguro e flag da `Licencas/Index`
+- **US-OI-009** — F3: tela `Licencas/Index` (Computadores Cadastrados) em PT-01
+- **US-OI-010** — F4: QA da `Licencas/Index` — os itens `alta` viram teste
+- **US-OI-011** — F2: baseline, payload seguro e flag da `Empresa/Show`
+- **US-OI-012** — F3: tela `Empresa/Show` (ficha + computadores) em PT-03
+- **US-OI-013** — F4: QA da `Empresa/Show` — os itens `alta` viram teste
+
 ## PaymentGateway
 
 
@@ -1064,22 +1083,6 @@
 - **US-CMS-008** — Autenticação social no landing
 - **US-CMS-009** — Importer WordPress (XML/REST API)
 - **US-CMS-010** — Editor visual drag-drop (page builder)
-
-## Officeimpresso
-
-
-### todo
-
-- **US-OI-001** — F2: Pest baseline do comportamento atual
-- **US-OI-002** — F2: action dual + feature flag `useV2OfficeimpressoLogs`
-- **US-OI-003** — F2: mapa de paridade Blade↔React
-- **US-OI-004** — F3: tela `Logs/Index` (Máquinas Cadastradas) em PT-01
-- **US-OI-005** — F3: tela `Logs/Timeline` (acessos por máquina) em PT-07
-- **US-OI-006** — F4: QA — os itens `alta` da paridade viram teste
-- **US-OI-007** — F5: cutover e sunset do Blade
-- **US-OI-008** — F2: baseline, payload seguro e flag da `Licencas/Index`
-- **US-OI-009** — F3: tela `Licencas/Index` (Computadores Cadastrados) em PT-01
-- **US-OI-010** — F4: QA da `Licencas/Index` — os itens `alta` viram teste
 
 ## Cliente
 
