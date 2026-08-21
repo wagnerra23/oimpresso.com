@@ -78,9 +78,36 @@ const ARQUIVOS_DA_FERRAMENTA = [
   '.github/workflows/brl-scan.yml',
 ];
 
+/**
+ * `prototipo-ui/` — isento por DECISÃO [W] de 2026-08-21: "todos os BRL são
+ * permitidos no protótipo" + "remova a obrigação".
+ *
+ * ⚠️ Isto é EXCEÇÃO DE PASTA, e o bloco acima diz, com todas as letras, que a
+ * isenção da ferramenta NÃO é allowlist de pasta. A diferença é deliberada e o
+ * leitor precisa saber qual das duas está lendo: aquela é técnica (a defesa não
+ * pode acusar a própria documentação), esta é de PRODUTO — o dono da regra
+ * decidiu onde ela vale.
+ *
+ * POR QUE a linha cai aqui: `prototipo-ui/` é artefato de DESIGN — protótipo,
+ * espelho do Cowork e o knowledge descido em `design-docs/`. Número em protótipo
+ * é ilustração de layout ("como a coluna de valor se comporta"), e nas cópias de
+ * `design-docs/` mexer no texto quebraria a fidelidade, que é o contrato daquela
+ * pasta. O que a regra Tier 0 protege é valor de NEGÓCIO em `memory/`, PR body e
+ * commit message — isso segue varrido e mordendo.
+ *
+ * ⚠️ RESIDUAL HONESTO, porque exceção de pasta tem custo: protótipo às vezes
+ * nasce com número copiado de produção pra parecer real. A partir daqui o gate
+ * não pega mais esse caso dentro de `prototipo-ui/`. Quem trouxer dado de
+ * cliente pra cá está fora do alcance da defesa — é decisão consciente de [W],
+ * não descuido, e fica registrada aqui pra não virar surpresa depois.
+ */
+const PASTAS_ISENTAS = [
+  'prototipo-ui/',
+];
+
 export function ehArquivoDaFerramenta(arquivo) {
   const p = String(arquivo || '').replace(/\\/g, '/');
-  return ARQUIVOS_DA_FERRAMENTA.includes(p);
+  return ARQUIVOS_DA_FERRAMENTA.includes(p) || PASTAS_ISENTAS.some((d) => p.startsWith(d));
 }
 
 /** Extrai só as linhas ADICIONADAS de um diff unificado, com o arquivo de origem. */
@@ -421,7 +448,11 @@ function main() {
 
   const hits = acharVazamentos(adicionadas, allow);
   const nIsentas = adicionadas.filter((a) => a.isento).length;
-  console.log(`brl-scan-diff: ${adicionadas.length} linha(s) adicionada(s); ${adicionadas.length - nIsentas} varrida(s), ${nIsentas} isenta(s) (arquivos da própria ferramenta); allowlist com ${allow.length} entrada(s).`);
+  // A frase precisa dizer o motivo CERTO da isenção. Enquanto só existia a
+  // isenção da ferramenta, "arquivos da própria ferramenta" era exato; com a
+  // exceção de pasta ([W] 2026-08-21) ela passaria a atribuir 4 mil linhas de
+  // `prototipo-ui/` a "arquivos da ferramenta" — relatório afirmando o que não é.
+  console.log(`brl-scan-diff: ${adicionadas.length} linha(s) adicionada(s); ${adicionadas.length - nIsentas} varrida(s), ${nIsentas} isenta(s) (ferramenta + ${PASTAS_ISENTAS.join(', ')}); allowlist com ${allow.length} entrada(s).`);
 
   if (!hits.length) {
     console.log('OK — nenhum valor BRL não-redigido nas linhas novas.');
