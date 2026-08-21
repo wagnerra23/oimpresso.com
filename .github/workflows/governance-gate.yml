@@ -255,7 +255,7 @@ jobs:
           echo "Como resolver:"
           echo "  1. REVERTER edição (git checkout origin/${{ github.base_ref }} -- <arquivo>)"
           echo "  2. CRIAR handoff novo em memory/handoffs/YYYY-MM-DD-HHMM-slug-kebab.md"
-          echo "  3. Atualizar 1 linha no topo de memory/08-handoff.md (truncar 5º)"
+          echo "  3. Atualizar 1 linha no topo de memory/08-handoff.md (append no topo, nada mais — ADR 0167)"
           echo ""
           echo "Justificativa: handoff é snapshot temporal. Reescrever apaga o que"
           echo "outro Claude/humano leu — quebra continuidade de sessão."
