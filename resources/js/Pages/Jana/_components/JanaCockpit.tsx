@@ -556,16 +556,43 @@ export default function JanaCockpit({
           LIVRE, vestuário). Isso é decisão [W], não implementação — o Non-Goal que
           proibia a Frota saiu no charter v7, mas a AUSÊNCIA DE FONTE não saiu com
           ele. */}
+      {/* ── JANELA DO KPI: o rótulo diz o que o dado É ────────────────────
+          Este card dizia "Receita mês" e mostrava `sparkSum` — a soma da
+          SPARKLINE, que é `whereBetween(transaction_date, [hoje-29, hoje])`:
+          30 dias DESLIZANTES, não o mês corrente. No dia 21 isso cobre 23/jul
+          a 21/ago; os dois só coincidem no dia 30 ou 31.
+
+          De onde veio a palavra errada (medido 2026-08-21): a âncora oficial
+          desta tela (`jana-merge.jsx`, `related_prototype` do charter) NÃO tem
+          este KPI. O rótulo "Receita mês" veio de `chat-jana.jsx` :87 — o
+          protótipo que o §5 de 2026-08-10 declarou NÃO-âncora. E lá ele é
+          coerente, porque o delta ao lado é "vs mai/25": mês contra mês. Aqui
+          herdou-se a palavra sem a semântica — o dado é 30d e o delta é diário.
+          É a lápide §5 2026-07-16 (importar sem checar se a premissa vale).
+
+          O delta também passou a declarar sua janela: `deltaRevenueVsYesterday`
+          compara HOJE com ONTEM, e rotulá-lo só "vs ontem" ao lado de um valor
+          de 30 dias sugeria que o valor grande é que tinha variado.
+
+          E o `|| faturadoHoje` saiu: era INALCANÇÁVEL, não um fallback. As duas
+          queries têm filtros idênticos e a janela do sparkline vai até o fim de
+          hoje, então `faturadoHoje ⊆ sparkSum` — se houve venda hoje, sparkSum
+          já é > 0 e o `||` nunca dispara. Zero era zero de verdade.
+
+          ⚠️ Trocar o RÓTULO não mexe em valor. Fazer o inverso — passar o
+          cálculo a mês-calendário para casar a palavra antiga — mexeria, e aí
+          vale a regra mestre de VALOR (dupla prova + antes→depois). É decisão
+          [W], registrada no `Index.casos.md` §UC-COPI-PAINEL-14. */}
       <KpiGrid cols={4}>
         {carregandoCockpit ? (
-          <KpiCardSkeleton label="Receita mês" />
+          <KpiCardSkeleton label="Receita 30 dias" />
         ) : (
           <KpiCard
-            label="Receita mês"
-            value={fmtShort(sparkSum || faturadoHoje)}
+            label="Receita 30 dias"
+            value={fmtShort(sparkSum)}
             icon="wallet"
             tone="default"
-            delta={deltaRev !== null ? { value: deltaRev, label: 'vs ontem' } : undefined}
+            delta={deltaRev !== null ? { value: deltaRev, label: 'hoje vs ontem' } : undefined}
             onClick={abrirFat}
           />
         )}
