@@ -89,7 +89,7 @@ jobs:
         if: steps.changes.outputs.officeimpresso == 'false'
         run: echo "✅ Sem mudanças no Modules/Officeimpresso — skip-as-pass (required-ready)."
 
-      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
         if: steps.changes.outputs.officeimpresso == 'true'
         uses: ./.github/actions/pest-mysql-setup
 
@@ -107,7 +107,7 @@ jobs:
       - name: Run Pest (Officeimpresso · MySQL) — ALLOWLIST VERDE (catraca)
         if: steps.changes.outputs.officeimpresso == 'true'
         # phpunit.xml não força mysql — sobrescreve aqui pra rodar no MySQL real
-        # semeado (biz=1 + biz=2). Allowlist: só arquivos comprovadamente verdes
+        # semeado pela action (ela é a dona dos tenants). Allowlist: só arquivos comprovadamente verdes
         # MySQL-only. NÃO incluir RefreshDatabase/migrate:fresh (dropam schema +
         # limpam o seed).
         env:

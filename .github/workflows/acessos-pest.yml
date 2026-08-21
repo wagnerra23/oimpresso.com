@@ -11,8 +11,8 @@ name: Acessos · Pest (MySQL)
 #
 # MySQL e não a lista sqlite: os testes daqui autenticam usuário, montam papel Spatie e batem
 # em rota HTTP com sessão de negócio — em sqlite sem schema semeado eles pulariam, e skip sai
-# exit 0 (verde por não-execução). A action pest-mysql-setup semeia biz=1 E biz=2, que é o que
-# o teste de isolamento cross-tenant precisa para existir.
+# exit 0 (verde por não-execução). A action pest-mysql-setup é a dona de QUAIS tenants existem,
+# e semeia mais de um — que é o que o teste de isolamento cross-tenant precisa para existir.
 #
 # ⚠️ O Pest ABORTA (exit 2) se um caminho da lista nao existe — foi o que derrubou o primeiro
 # run desta lane, quando tests/Feature/Users/ ainda estava vazio. Regra pratica: diretorio so
@@ -99,7 +99,7 @@ jobs:
         if: steps.changes.outputs.acessos == 'false'
         run: echo "✅ Sem mudanças em papéis/comissionados — skip-as-pass."
 
-      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
         if: steps.changes.outputs.acessos == 'true'
         uses: ./.github/actions/pest-mysql-setup
 
@@ -117,7 +117,7 @@ jobs:
       - name: Run Pest (Acessos · MySQL) — DESCOBERTA, não allowlist
         if: steps.changes.outputs.acessos == 'true'
         # phpunit.xml aponta DB_CONNECTION=sqlite :memory: (sem force="true"), então
-        # a env daqui vence e a suíte roda no MySQL real semeado (biz=1 + biz=2).
+        # a env daqui vence e a suíte roda no MySQL real semeado pela action (ela é a dona dos tenants).
         # Nenhum dos 22 usa RefreshDatabase/migrate:fresh (medido) — o seed sobrevive.
         env:
           DB_CONNECTION: mysql

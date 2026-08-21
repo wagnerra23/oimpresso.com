@@ -1,7 +1,7 @@
 name: Financeiro · Pest (MySQL)
 
 # Lane dedicado pra rodar a suíte Pest do Modules/Financeiro contra MySQL REAL
-# + seed mínimo (biz=1 + biz=2 — via .github/actions/pest-mysql-setup, FV-F2).
+# + seed mínimo multi-tenant (via .github/actions/pest-mysql-setup, FV-F2 — dona dos tenants).
 # Existe porque ci.yml e modules-pest.yml rodam SQLite
 # :memory: SEM migrate — e os testes Feature do Financeiro dependem de schema
 # completo + business semeado (Business::first()), então lá eles dariam skip
@@ -98,7 +98,7 @@ jobs:
       # (schema baseline) + seed mínimo (biz=1 fixture completa + biz=2 Tier 0
       # cross-tenant). O service container MySQL permanece DECLARADO ACIMA no job
       # (composite action não pode declarar services — limitação GitHub Actions).
-      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
         if: steps.changes.outputs.fin == 'true'
         uses: ./.github/actions/pest-mysql-setup
 
