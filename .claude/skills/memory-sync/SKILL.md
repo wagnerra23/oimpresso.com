@@ -56,7 +56,7 @@ Triggers literais:
 
 O handoff novo **deve** ter uma seção `## Estado MCP no momento do fechamento` com snapshot dos passos 1-4. Sem essa seção = sinal de overwrite cego (problema que motivou [ADR 0130](../../../memory/decisions/0130-handoff-append-only-mcp-first.md)).
 
-**Após criar handoff novo:** editar `memory/08-handoff.md` (índice) apenas pra adicionar 1 linha no topo da lista "Últimos handoffs" + truncar 5º item se passou. Nada mais.
+**Após criar handoff novo:** editar `memory/08-handoff.md` (índice) apenas pra adicionar 1 linha no topo da lista "Últimos handoffs" . Nada mais — **sem truncamento** ([ADR 0167](../../../memory/decisions/0167-errata-0130-indice-handoff-historico-longo.md) emenda a 0130: o índice é histórico longo).
 
 **Sessão offline (sem MCP):** documentar `## Estado MCP — INDISPONÍVEL` + qual fonte alternativa usou (`git log`, leitura direta de SPEC, etc). Ainda melhor que silêncio.
 

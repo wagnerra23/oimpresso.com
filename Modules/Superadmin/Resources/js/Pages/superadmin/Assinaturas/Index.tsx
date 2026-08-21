@@ -18,14 +18,32 @@
 // são a SA-O4b e passam pelo SubscriptionLifecycleService, que é quem deixa trilha.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Deferred, router } from '@inertiajs/react';
-import { type ReactNode } from 'react';
+import { Deferred, router, useForm } from '@inertiajs/react';
+import { useState, type ReactNode } from 'react';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Skeleton } from '@/Components/ui/skeleton';
 import PageHeader from '@/Components/shared/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import { Textarea } from '@/Components/ui/textarea';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/Components/ui/sheet';
 import { Select, plural, tomDaAssinatura } from '../_components/assinatura';
 
 const ROTA = '/superadmin/superadmin-subscription';
@@ -137,6 +155,11 @@ function AssinaturasIndex({ filtros, pacotes, kpis, assinaturas }: Props) {
   const ordenarPor = (col: string) =>
     irPara({ ordem: col, dir: filtros.ordem === col && filtros.dir === 'desc' ? 'asc' : 'desc', page: undefined });
 
+  // A gaveta de acao e ESTADO LOCAL, nao rota: ela nao sobrevive a refresh de proposito.
+  // Formulario de escrita meio-preenchido restaurado por URL e convite a aplicar por engano
+  // uma acao que o operador ja tinha abandonado.
+  const [acao, setAcao] = useState<{ linha: Linha; modo: 'status' | 'vigencia' } | null>(null);
+
   const temFiltro = !!filtros.pacote || !!filtros.status || !!filtros.periodo;
 
   return (
@@ -211,9 +234,18 @@ function AssinaturasIndex({ filtros, pacotes, kpis, assinaturas }: Props) {
             temFiltro={temFiltro}
             irPara={irPara}
             ordenarPor={ordenarPor}
+            onAcao={(linha, modo) => setAcao({ linha, modo })}
           />
         </Deferred>
       </div>
+
+      {acao && (
+        <GavetaDeAcao
+          linha={acao.linha}
+          modo={acao.modo}
+          onFechar={() => setAcao(null)}
+        />
+      )}
     </div>
   );
 }
@@ -311,12 +343,14 @@ function Tabela({
   temFiltro,
   irPara,
   ordenarPor,
+  onAcao,
 }: {
   assinaturas?: Pagina;
   filtros: Filtros;
   temFiltro: boolean;
   irPara: (m: Record<string, string | number | undefined>) => void;
   ordenarPor: (col: string) => void;
+  onAcao: (linha: Linha, modo: 'status' | 'vigencia') => void;
 }) {
   const p = assinaturas;
   const linhas = p?.linhas ?? [];
@@ -351,6 +385,7 @@ function Tabela({
                 {COLUNAS.map((c) => (
                   <Cabecalho key={c.label} coluna={c} filtros={filtros} ordenarPor={ordenarPor} />
                 ))}
+                <th className="px-4 py-2" aria-label="Ações" />
               </tr>
             </thead>
             <tbody>
@@ -393,6 +428,9 @@ function Tabela({
                       {s.transacao && <span className="text-[11px] text-muted-foreground/80 tabular-nums">{s.transacao}</span>}
                     </div>
                   </td>
+                  <td className="px-4 py-2.5 text-right">
+                    <Kebab linha={s} onAcao={onAcao} />
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -429,6 +467,218 @@ function Tabela({
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+/**
+ * Kebab da linha. As ações de ESCRITA que o backend sustenta, mais o atalho de leitura.
+ *
+ * O F1 desenha 5 itens; "Baixar comprovante" não está aqui porque comprovante NÃO EXISTE no
+ * sistema — `payment_transaction_id` é uma string do gateway, não um documento (medido: zero
+ * rota, zero storage, zero geração de PDF no módulo). Botão que promete arquivo e não entrega
+ * é pior que botão ausente.
+ */
+function Kebab({ linha, onAcao }: { linha: Linha; onAcao: (l: Linha, m: 'status' | 'vigencia') => void }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" aria-label={'Ações da assinatura #' + linha.id}>
+          ⋯
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onSelect={() => router.get('/superadmin/business', { q: String(linha.negocio_id) })}>
+          Ver negócio
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => onAcao(linha, 'status')}>Mudar status</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => onAcao(linha, 'vigencia')}>Editar vigência</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+/** Categorias de cancelamento — espelham o enum de `subscriptions.cancel_reason`. */
+const MOTIVOS = [
+  { v: '', label: 'Sem motivo declarado' },
+  { v: 'preco', label: 'Preço' },
+  { v: 'sem_uso', label: 'Parou de usar' },
+  { v: 'trocou_sistema', label: 'Trocou de sistema' },
+  { v: 'fechou', label: 'Fechou' },
+  { v: 'inadimplencia', label: 'Inadimplência' },
+  { v: 'outro', label: 'Outro' },
+];
+
+/**
+ * As 3 AÇÕES que existem — e por que não são os 5 status do F1.
+ *
+ * O `SubscriptionLifecycleService` modela três transições. Os outros dois valores do enum não
+ * são escolha de operador: `waiting` é o estado inicial de quem não teve baixa (voltar pra lá
+ * seria des-aprovar, que o serviço não modela) e `declined` é gravado por evento quando a
+ * cobrança vence. Oferecer os cinco exigiria escrita direta em `status` — exatamente o que esta
+ * onda veio remover, porque é o caminho que não deixa trilha.
+ */
+const ACOES = [
+  {
+    v: 'aprovar',
+    label: 'Aprovar',
+    nota: 'Libera o acesso agora e calcula a vigência pelo pacote. Só vale para assinatura pendente.',
+  },
+  {
+    v: 'vencer',
+    label: 'Marcar como vencida',
+    nota: 'Só se aplica quando a vigência já passou.',
+  },
+  {
+    v: 'cancelar',
+    label: 'Cancelar',
+    nota: 'Para de renovar no fim da vigência. O acesso continua até lá e o registro fica.',
+  },
+];
+
+/**
+ * Gaveta de ação. Dois modos, um por pergunta — misturar status e datas num formulário só faz
+ * o operador mudar uma coisa querendo mudar a outra.
+ */
+function GavetaDeAcao({
+  linha,
+  modo,
+  onFechar,
+}: {
+  linha: Linha;
+  modo: 'status' | 'vigencia';
+  onFechar: () => void;
+}) {
+  const status = useForm({ acao: 'aprovar', motivo: '', nota: '' });
+  const vigencia = useForm({
+    subscription_id: linha.id,
+    start_date: linha.inicio ?? '',
+    end_date: linha.fim ?? '',
+    trial_end_date: linha.trial_fim ?? '',
+  });
+
+  const enviarStatus = () => status.put(ROTA + '/' + linha.id, { preserveScroll: true, onSuccess: onFechar });
+
+  const enviarVigencia = () =>
+    vigencia.post('/superadmin/update-subscription', { preserveScroll: true, onSuccess: onFechar });
+
+  const escolhida = ACOES.find((a) => a.v === status.data.acao);
+
+  return (
+    <Sheet open onOpenChange={(aberto) => !aberto && onFechar()}>
+      <SheetContent className="w-full sm:max-w-md" data-contract="superadmin.assinaturas.form">
+        <SheetHeader>
+          <SheetTitle>{modo === 'status' ? 'Mudar status da assinatura' : 'Editar vigência'}</SheetTitle>
+          <SheetDescription>
+            #{linha.id} · {linha.negocio} · {linha.pacote}
+          </SheetDescription>
+        </SheetHeader>
+
+        {modo === 'status' ? (
+          <div className="flex flex-col gap-4 px-4">
+            <div className="flex flex-col gap-1.5">
+              <Label>Ação</Label>
+              <Select
+                rotulo="Ação"
+                valor={status.data.acao}
+                opcoes={ACOES.map((a) => ({ v: a.v, label: a.label }))}
+                onChange={(v) => status.setData('acao', v)}
+              />
+              {/* O efeito é dito ANTES de aplicar, não depois — é o que o UC-SA-008 pede. */}
+              {escolhida && <p className="text-[11px] text-muted-foreground">{escolhida.nota}</p>}
+            </div>
+
+            {status.data.acao === 'cancelar' && (
+              <>
+                <div className="flex flex-col gap-1.5">
+                  <Label>Motivo</Label>
+                  <Select
+                    rotulo="Motivo"
+                    valor={status.data.motivo}
+                    opcoes={MOTIVOS}
+                    onChange={(v) => status.setData('motivo', v)}
+                  />
+                  {/*
+                    "Sem motivo declarado" é opção de verdade, não preguiça: a regra R10 do F1
+                    manda deixar a saída sem motivo FORA do gráfico de churn e dizê-la em texto.
+                    Forçar uma categoria inventaria dado que ninguém informou.
+                  */}
+                  <p className="text-[11px] text-muted-foreground">
+                    Sem motivo, o cancelamento fica fora do gráfico de churn — e isso é dito lá.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="nota">Observação</Label>
+                  <Textarea
+                    id="nota"
+                    value={status.data.nota}
+                    onChange={(e) => status.setData('nota', e.target.value)}
+                    placeholder="Fica no registro da assinatura."
+                    rows={3}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4 px-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="inicio">Início</Label>
+                <Input
+                  id="inicio"
+                  value={vigencia.data.start_date}
+                  onChange={(e) => vigencia.setData('start_date', e.target.value)}
+                  placeholder="dd/mm/aaaa"
+                  className="tabular-nums"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="fim">Fim</Label>
+                <Input
+                  id="fim"
+                  value={vigencia.data.end_date}
+                  onChange={(e) => vigencia.setData('end_date', e.target.value)}
+                  placeholder="dd/mm/aaaa"
+                  className="tabular-nums"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="trial">Fim do trial</Label>
+              <Input
+                id="trial"
+                value={vigencia.data.trial_end_date}
+                onChange={(e) => vigencia.setData('trial_end_date', e.target.value)}
+                placeholder="dd/mm/aaaa"
+                className="tabular-nums"
+              />
+              <p className="text-[11px] text-muted-foreground">Em branco = assinatura sem período de teste.</p>
+            </div>
+
+            {/* UC-SA-009: a pergunta na cabeça de quem prorroga é "isso vai cobrar de novo?". */}
+            <p className="text-[11px] text-muted-foreground">
+              Esticar o fim prorroga o acesso sem gerar cobrança nova.
+            </p>
+          </div>
+        )}
+
+        <SheetFooter>
+          <Button variant="ghost" size="sm" onClick={onFechar}>
+            Fechar
+          </Button>
+          <Button
+            size="sm"
+            disabled={modo === 'status' ? status.processing : vigencia.processing}
+            onClick={modo === 'status' ? enviarStatus : enviarVigencia}
+          >
+            {modo === 'status' ? 'Aplicar' : 'Salvar datas'}
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }
 

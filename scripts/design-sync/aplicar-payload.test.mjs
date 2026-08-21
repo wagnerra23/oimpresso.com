@@ -11,7 +11,7 @@
  *   1. escreve fiel e conta certo (NOVO / ATUALIZADO / inalterado)
  *   2. --dry não escreve
  *   3. recusa path que sai do espelho (../) — trava de escopo
- *   4. recusa .md dentro de cowork/ — R1 do cowork-ssot-guard
+ *   4. .md NUNCA em cowork/ (R1) — roteia pra design-docs/ preservando a árvore
  *   5. recusa bytes divergente — corrupção de transporte
  *   6. AVISA em perda líquida de linhas — o caso qa-conformance.js (espelho À FRENTE),
  *      que sem aviso vira regressão silenciosa
@@ -102,13 +102,25 @@ function rodar(dir, pay, args = []) {
   check('BITE escopo: nada foi escrito fora', !existsSync(join(dir, 'fora.txt')), 'escreveu fora do espelho!');
 }
 
-// ── 4: R1 do ssot-guard (.md dentro de cowork/) ──────────────────────────────
+// ── 4: R1 do ssot-guard — .md NUNCA em cowork/, mas pousa em design-docs/ ────
+//
+// A INVARIANTE não mudou e é ela que este bite protege: nenhum `.md` no espelho, nunca.
+// O que mudou (2026-08-21, decisão [W]) é o desfecho — antes o applier DESCARTAVA, e o
+// preço foi 204 `.md` vivos no Cowork contra 0 no repo. Agora ele ROTEIA.
+// A perna negativa é a que importa: se alguém reintroduzir o destino errado, o segundo
+// assert reprova mesmo com o primeiro verde.
 {
   const dir = sandbox();
-  const pay = payload(dir, [{ path: 'LEIAME.md', content: '# nao\n' }]);
+  const pay = payload(dir, [{ path: 'cowork-inbox/LEIAME.md', content: '# doc\n' }]);
   const r = rodar(dir, pay);
-  check('BITE R1: recusa .md dentro de cowork/', /R1 do ssot-guard/.test(r.out) && r.code !== 0, r.out);
-  check('BITE R1: o .md não foi escrito', !existsSync(join(dir, 'prototipo-ui/cowork/LEIAME.md')));
+  check('BITE R1: o .md NÃO pousa em cowork/ (invariante do ssot-guard)',
+    !existsSync(join(dir, 'prototipo-ui/cowork/cowork-inbox/LEIAME.md')), r.out);
+  check('.md pousa em design-docs/ preservando a árvore do vivo',
+    existsSync(join(dir, 'prototipo-ui/design-docs/cowork-inbox/LEIAME.md')), r.out);
+  check('.md roteado chega FIEL (byte a byte)',
+    existsSync(join(dir, 'prototipo-ui/design-docs/cowork-inbox/LEIAME.md')) &&
+    readFileSync(join(dir, 'prototipo-ui/design-docs/cowork-inbox/LEIAME.md'), 'utf8') === '# doc\n', r.out);
+  check('lote com .md não falha o applier', r.code === 0, r.out);
 }
 
 // ── 5: bytes divergente = corrupção de transporte ────────────────────────────
@@ -242,7 +254,7 @@ function rodar(dir, pay, args = []) {
     existsSync(join(dir, 'prototipo-ui/cowork/oimpresso.com.html')), r.out);
 }
 
-console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ applier: fiel/atômico · shell transitivo completo · _ds persistente · recusa escopo/R1/bytes · avisa regressão');
+console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ applier: fiel/atômico · shell transitivo completo · _ds persistente · recusa escopo/bytes · .md roteado p/ design-docs (nunca cowork/) · avisa regressão');
 
 // ── 11: payload CORTADO no transporte (medido 2026-08-19) ───────────────────
 // `sync/payload.json` tem ~3,5 MB e o DesignSync.get_file corta em 256 KiB. Antes da
