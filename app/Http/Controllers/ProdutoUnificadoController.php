@@ -202,6 +202,12 @@ class ProdutoUnificadoController extends Controller
             'kpis' => Inertia::defer(fn () => $this->kpis($business_id, $filters, $podeVerCusto, $podeVerPreco)),
             'produtos' => Inertia::defer(fn () => $this->produtos($business_id, $filters, $podeVerCusto, $podeVerPreco, $podeVerBom)),
             'totalDaAba' => Inertia::defer(fn () => $this->totalDaAba($business_id, $filters, $podeVerCusto, $podeVerPreco)),
+            // Totais do rodapé. `null` pra quem não pode ver custo — a chave existe no
+            // contrato, o VALOR é que não vem. É dinheiro do tenant somado; o mesmo gate da
+            // coluna Custo vale pro agregado, que revela a mesma estrutura por outro caminho.
+            'totaisDoRecorte' => Inertia::defer(fn () => $podeVerCusto
+                ? $this->totaisDoRecorte($business_id, $filters, $podeVerCusto, $podeVerPreco)
+                : null),
             'opcoesFiltro' => Inertia::defer(fn () => $this->opcoesFiltro($business_id)),
             // `categorias` é a ÚNICA que NÃO é deferida, e isso é contrato, não descuido:
             // `ProdutoUnificadoCategoriasContratoTest` (C1..C4) faz uma visita COMPLETA e exige a
@@ -505,6 +511,49 @@ class ProdutoUnificadoController extends Controller
             $podeVerCusto,
             $podeVerPreco
         )->count();
+    }
+
+    /**
+     * Totais do RECORTE inteiro — não da página (handoff 21/08 §4.6).
+     *
+     * Somar a fatia responderia a pergunta errada: "quanto vale o que está nesta tela" não é
+     * uma pergunta que alguém faz. As duas que se fazem são "quanto tenho parado em estoque" e
+     * "quanto preciso desembolsar pra voltar ao mínimo" — e as duas são sobre o recorte.
+     *
+     * `emEstoque` é o valor FÍSICO: saldo × custo, sobre o que o cadastro guarda saldo. O
+     * rótulo na tela diz "(recorte, físico)" porque, no dia em que o local tiver natureza
+     * (§6 do handoff), parte desse saldo será reservada e não vendável — e o número seguirá
+     * sendo o mesmo, mas a frase precisará distinguir. Declarar agora evita que o rótulo
+     * envelheça em silêncio.
+     *
+     * `repor` é o que falta pra chegar ao mínimo, a custo: SOMA(max(0, mínimo − saldo) × custo).
+     * Item acima do mínimo contribui zero, nunca negativo — senão um item sobrando "pagaria"
+     * pela falta de outro e o total mentiria pra menos.
+     *
+     * @return array{emEstoque: float, repor: float}
+     */
+    private function totaisDoRecorte(int $business_id, array $f, bool $podeVerCusto, bool $podeVerPreco): array
+    {
+        $linha = $this->aplicarRecortes(
+            $this->catalogoDaAba($business_id, $f['aba']),
+            $f,
+            $podeVerCusto,
+            $podeVerPreco
+        )
+            ->selectRaw('SUM(CASE WHEN c.enable_stock = 1 THEN COALESCE(c.qtd, 0) * COALESCE(c.custo, 0) ELSE 0 END) as em_estoque')
+            ->selectRaw(
+                // `CASE` em vez de `GREATEST`: a lane de Pest roda em SQLite, que não tem
+                // `GREATEST` de dois argumentos. Mesma conta, sintaxe que os dois entendem.
+                'SUM(CASE WHEN c.enable_stock = 1 AND COALESCE(c.minimo, 0) > COALESCE(c.qtd, 0)'
+                .' THEN (COALESCE(c.minimo, 0) - COALESCE(c.qtd, 0)) * COALESCE(c.custo, 0)'
+                .' ELSE 0 END) as repor'
+            )
+            ->first();
+
+        return [
+            'emEstoque' => round((float) ($linha->em_estoque ?? 0), 2),
+            'repor' => round((float) ($linha->repor ?? 0), 2),
+        ];
     }
 
     /**

@@ -62,7 +62,7 @@ import {
   DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu';
 import { toast } from 'sonner';
-import { ABAS_CATALOGO, type AbaKey, type KpiKey, type Permissoes, type ProdutoRow } from './_components/catalogo';
+import { ABAS_CATALOGO, brl, type AbaKey, type KpiKey, type Permissoes, type ProdutoRow } from './_components/catalogo';
 import { celulasDe, colunasDe, larguraMinima, type ColunaKey } from './_components/Colunas';
 import KpiFiltros, { type KpisCatalogo } from './_components/KpiFiltros';
 import FiltroTrigger, { type OpcaoFiltro } from './_components/FiltroTrigger';
@@ -118,6 +118,12 @@ type Props = {
   kpis?: KpisCatalogo;
   produtos?: ProdutoRow[];
   totalDaAba?: number;
+  /**
+   * Totais do recorte pro rodapé (§4.6). `null` quando o perfil não pode ver custo — a chave
+   * chega, o valor não. Somar dinheiro do catálogo revela a estrutura de custo por outro
+   * caminho, então o gate da coluna vale igual pro agregado.
+   */
+  totaisDoRecorte?: { emEstoque: number; repor: number } | null;
   opcoesFiltro?: { categorias: OpcaoFiltro[]; unidades: OpcaoFiltro[]; marcas: OpcaoFiltro[] };
   categorias?: CategoriaRow[];
   insumos: InsumoRow[];
@@ -198,6 +204,7 @@ function ProdutoUnificadoIndex({
   kpis,
   produtos,
   totalDaAba,
+  totaisDoRecorte,
   opcoesFiltro,
   categorias,
   insumos,
@@ -270,7 +277,7 @@ function ProdutoUnificadoIndex({
       only,
     });
 
-  const RECORTE = ['filters', 'produtos', 'kpis', 'totalDaAba'];
+  const RECORTE = ['filters', 'produtos', 'kpis', 'totalDaAba', 'totaisDoRecorte'];
 
   // Busca debounced — o filtro é resolvido no SERVIDOR, junto com aba e KPI, num único `where`.
   useEffect(() => {
@@ -348,7 +355,19 @@ function ProdutoUnificadoIndex({
     (ordemDisponivel.find((o) => o.key === ordemAtual.key)?.label ?? 'Código') +
     (ordemAtual.dir === 'asc' ? ' ↑' : ' ↓');
 
-  const produtoAberto = abertoId === null ? null : linhas.find((r) => r.id === abertoId) ?? null;
+  const indiceAberto = abertoId === null ? -1 : linhas.findIndex((r) => r.id === abertoId);
+  const produtoAberto = indiceAberto < 0 ? null : linhas[indiceAberto]!;
+
+  /**
+   * Esteira do painel (handoff 21/08 §5). Anda dentro da PÁGINA carregada, não do recorte
+   * inteiro: as linhas vizinhas são as que já estão no cliente. Ir além da fatia exigiria uma
+   * visita ao servidor no meio de uma comparação — o painel piscaria com a lista recarregando
+   * atrás dele, e quem estava comparando dois itens perderia o fio.
+   */
+  const irParaVizinho = (delta: -1 | 1) => {
+    const alvo = linhas[indiceAberto + delta];
+    if (alvo) setAbertoId(alvo.id);
+  };
 
   /**
    * Total AUTORITATIVO do recorte — vem do servidor (`totalDaAba`), não de `linhas.length`
@@ -852,6 +871,37 @@ function ProdutoUnificadoIndex({
                       uma régua inútil. Exceção AP2 registrada na ADR 0402 do pacote; quando o
                       DS absorver os dois, esta faixa morre. */}
                   <Inline gap={3} wrap className="border-t border-border bg-[var(--idx-grid-head-bg)] px-4 py-2">
+                    {/* ───── TOTAIS DO RECORTE (handoff 21/08 §4.6) ───────
+                        Do RECORTE inteiro, não da página — "quanto vale o que está nesta tela"
+                        não é pergunta que alguém faça. As duas que se fazem são "quanto tenho
+                        parado" e "quanto preciso desembolsar pra voltar ao mínimo".
+
+                        "Repor" só aparece quando é maior que zero: com o catálogo em dia, um
+                        "R$ 0,00" permanente treina o olho a ignorar a faixa justamente onde
+                        ela vai gritar no dia em que houver o que repor. */}
+                    {totaisDoRecorte && (
+                      <Inline gap={3} wrap className="gap-x-3.5 gap-y-1" align="baseline">
+                        <Inline gap={1} align="baseline" className="gap-1.5">
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            Valor em estoque (recorte, físico)
+                          </span>
+                          <span className="font-mono text-[12px] font-semibold tabular-nums text-foreground">
+                            {brl(totaisDoRecorte.emEstoque)}
+                          </span>
+                        </Inline>
+                        {totaisDoRecorte.repor > 0 && (
+                          <Inline gap={1} align="baseline" className="gap-1.5">
+                            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                              Repor até o mínimo
+                            </span>
+                            <span className="font-mono text-[12px] font-semibold tabular-nums text-destructive-fg">
+                              {brl(totaisDoRecorte.repor)}
+                            </span>
+                          </Inline>
+                        )}
+                      </Inline>
+                    )}
+
                     <span className="text-[11.5px] text-muted-foreground tabular-nums">
                       {total === 0
                         ? 'Nenhum registro'
@@ -915,13 +965,23 @@ function ProdutoUnificadoIndex({
               tabelas={tabelas}
               historico={historico}
               produtos={linhas}
-              onVoltar={() => irPara({ tela: 'produtos' }, ['tela', 'filters', 'produtos', 'kpis', 'totalDaAba'])}
+              onVoltar={() => irPara({ tela: 'produtos' }, ['tela', 'filters', 'produtos', 'kpis', 'totalDaAba', 'totaisDoRecorte'])}
             />
           )}
         </div>
       </div>
 
-      <DetalheProduto produto={produtoAberto} perm={permissoes} piso={pisoMargem} onFechar={() => setAbertoId(null)} />
+      <DetalheProduto
+        produto={produtoAberto}
+        perm={permissoes}
+        piso={pisoMargem}
+        onFechar={() => setAbertoId(null)}
+        onVizinho={irParaVizinho}
+        temAnterior={indiceAberto > 0}
+        temProximo={indiceAberto >= 0 && indiceAberto < linhas.length - 1}
+        posicao={indiceAberto >= 0 ? `${primeiraDaPagina + indiceAberto} de ${total.toLocaleString('pt-BR')}` : ''}
+        onCopiar={copiar}
+      />
     </>
   );
 }
