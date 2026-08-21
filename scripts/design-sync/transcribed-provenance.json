@@ -1,0 +1,52 @@
+{
+  "_leia_isto_primeiro": "Estes arquivos do espelho Cowork NAO desceram pela rota fiel (get_file -> --export-from). Eles foram TRANSCRITOS do contexto do agente porque o conteudo voltou inline (abaixo da fronteira de persistencia do get_file, ~48 KB). A fidelidade byte-a-byte NAO esta provada e NAO existe oraculo no vivo para prova-la. Decisao [W] 2026-08-21.",
+  "_lote": "Modulo Essenciais (4 arquivos, nenhum existia no repo) + tela Planilhas (2 arquivos). Nenhum dos 6 persistiu em disco: todos voltaram inline pelo get_file.",
+  "_merge_com_pr_6117": "A PR #6117 (branch claude/cowork-transcricao) cria este MESMO arquivo com outros 12 registros. Se as duas mergearem, o conflito e ESPERADO e a resolucao correta e UNIAO do array `arquivos` (12 + 6 = 18) — nunca sobrescrever um lado. Merge sem conflito neste arquivo seria o sinal de que um lote sumiu.",
+  "verificacao_possivel": "TRES niveis, todos rodados em 100% dos 6 arquivos. (1) PARSE REAL com esbuild (JSX e CSS), calibrado ANTES com controle positivo (prototipo-ui/cowork/venda-v3.jsx, que veio pela rota fiel: rc=0) e controle negativo (JSX quebrado de proposito: rc=1) — resultado 6/6 OK. (2) Higiene de transcricao: NFC normalizado, ZERO caracteres combinantes (a classe de drift confirmada no lote anterior), ZERO CRLF. (3) Auditoria de TODOS os backslashes do lote — 4 no total, todos esperados, e ZERO ocorrencia de '\\n' literal: sao 2x aspas-escapadas em essenciais-data.jsx:40 (a citacao \"sem resposta\" dentro da string) e 2x a regex /\\.xlsx$/i em planilhas-page.jsx:177-178.",
+  "o_que_o_parse_NAO_prova": "Parse verde diz que o arquivo e JSX/CSS valido — NAO que ele e igual ao vivo. Um typo dentro de string literal, um numero trocado ou uma palavra perdida passam pelo esbuild. Por isso `fidelidade: NAO PROVADA` fica em cada registro.",
+  "rota_fiel_quando_existir": "Assim que sync/payload-01.json ... NN.json (partes <=250 KiB) existirem no projeto Cowork, reaplicar por aplicar-payload.mjs e SUBSTITUIR estes arquivos. O applier confere bytes declarados vs reais por arquivo.",
+  "arquivos": [
+    {
+      "path": "prototipo-ui/cowork/essenciais-data.jsx",
+      "bytes_escritos": 16057,
+      "linhas": 169,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/essenciais-extras.jsx",
+      "bytes_escritos": 17340,
+      "linhas": 302,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/essenciais-page.jsx",
+      "bytes_escritos": 41409,
+      "linhas": 701,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/essenciais-page.css",
+      "bytes_escritos": 9641,
+      "linhas": 116,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/planilhas-page.jsx",
+      "bytes_escritos": 25018,
+      "linhas": 428,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/planilhas-page.css",
+      "bytes_escritos": 8080,
+      "linhas": 88,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
+    }
+  ]
+}
