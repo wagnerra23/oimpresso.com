@@ -746,6 +746,13 @@
       "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
     },
     {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/Advisor.Dashboard.casos.md",
+      "bytes_escritos": 2259,
+      "linhas": 43,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
       "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/Advisor.Login.casos.md",
       "bytes_escritos": 2035,
       "linhas": 39,
@@ -753,9 +760,65 @@
       "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
     },
     {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/AssinaturaAtualizar.casos.md",
+      "bytes_escritos": 2546,
+      "linhas": 43,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/Categorias.Index.casos.md",
+      "bytes_escritos": 2559,
+      "linhas": 48,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/Cobranca.Index.casos.md",
+      "bytes_escritos": 3684,
+      "linhas": 57,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
       "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/Conciliacao.NOTA.md",
       "bytes_escritos": 458,
       "linhas": 6,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/Configuracoes.Contador.casos.md",
+      "bytes_escritos": 2601,
+      "linhas": 47,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/ContasBancarias.Index.casos.md",
+      "bytes_escritos": 2759,
+      "linhas": 45,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/Dashboard.Index.casos.md",
+      "bytes_escritos": 2226,
+      "linhas": 34,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/Dre.Index.casos.md",
+      "bytes_escritos": 3644,
+      "linhas": 60,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/Extrato.Index.casos.md",
+      "bytes_escritos": 2934,
+      "linhas": 53,
       "fidelidade": "NAO PROVADA",
       "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
     },
@@ -772,6 +835,35 @@
       "linhas": 47,
       "fidelidade": "NAO PROVADA",
       "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/PlanoContas.Index.casos.md",
+      "bytes_escritos": 2469,
+      "linhas": 33,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/Relatorios.Index.casos.md",
+      "bytes_escritos": 2701,
+      "linhas": 50,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/Unificado.Novo.casos.md",
+      "bytes_escritos": 2398,
+      "linhas": 36,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/_CONCILIACAO-COM-O-CANON.md",
+      "bytes_escritos": 3502,
+      "linhas": 76,
+      "fidelidade": "N/A — AUTORAL, nao e espelho",
+      "lote": "conciliacao [W] 2026-08-21 (nota + medicao)",
+      "nota": "Escrito por [C] a pedido de [W]. Nao existe no projeto Cowork; nao comparar com fonte."
     },
     {
       "path": "prototipo-ui/design-docs/cowork-inbox/cms/Index.casos.md",
