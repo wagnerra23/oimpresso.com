@@ -15,7 +15,8 @@ charter_version: 1
 
 # Page Charter — /superadmin/superadmin-subscription
 
-> **Status:** criado em 2026-08-20 na onda SA-O4a (DataTables → Inertia). Nasce `draft`: o
+> **Status:** criado em 2026-08-20 na onda SA-O4a (DataTables → Inertia); as ações por linha
+> entraram na SA-O4b, no mesmo dia. Nasce `draft`: o
 > `charter-live-signal` exige **sinal de prod**, e a tela ainda não foi ao ar. Vai a `live` no
 > PR pós-deploy, com a evidência do smoke.
 >
@@ -56,6 +57,11 @@ O que a tela entrega **hoje**:
   aparece.
 - Vazio que distingue *"nenhuma assinatura cadastrada"* de *"nenhum resultado para estes
   filtros"*, citando o cruzamento aplicado.
+- **Ações por linha** (SA-O4b), num kebab: ver negócio · mudar status · editar vigência. Toda
+  escrita passa pelo `SubscriptionLifecycleService`, que calcula vigência ao aprovar, é
+  idempotente ao expirar e persiste motivo ao cancelar.
+- Cada ação **diz o efeito antes de aplicar** — aprovar libera acesso agora, cancelar para de
+  renovar no fim da vigência, prorrogar não gera cobrança nova.
 
 ## Non-Goals — Features (NÃO faz)
 
@@ -64,7 +70,7 @@ O que a tela entrega **hoje**:
 - **Não é BI** — nenhum gráfico de série longa nesta tela.
 - **Não faz cobrança** — o gateway é `Modules/PaymentGateway`; aqui só o registro e o status.
 - **Não edita dado operacional do cliente** (produto, OS, venda).
-- **Não exclui assinatura** — cancelamento é append-only (R3), e mesmo ele é da SA-O4b.
+- **Não exclui assinatura** — cancelar é append-only (R3): o registro fica, a vigência não encurta.
 
 ## Automation Anti-hooks (o que a próxima sessão NÃO pode "consertar")
 
@@ -82,6 +88,14 @@ O que a tela entrega **hoje**:
 - ❌ **Não tratar `trial` como valor de `status`.** No banco não existe; é `trial_end_date`.
   Filtrar `where status = 'trial'` devolve zero linhas para sempre e ninguém percebe.
 - ❌ **Não trocar `orderBy` whitelisted por `$request->input('ordem')` direto.** É injeção.
+- ❌ **Não escrever `status` direto** (`$sub->status = …; save()`). A escrita passa pelo
+  `SubscriptionLifecycleService` — é ele que calcula vigência, é idempotente e deixa trilha. O
+  legado fazia direto, e uma assinatura aprovada sem `end_date` nunca vence.
+- ❌ **Não zerar/encurtar `end_date` ao cancelar.** R3 do F1: cancelar **para de renovar**, e o
+  acesso continua até o fim já contratado. "Melhorar" isso tira no ato um acesso pago.
+- ❌ **Não ampliar a gaveta para os 5 status do F1.** O serviço modela três transições;
+  `waiting` é estado inicial e `declined` é gravado por evento de cobrança. Oferecer os cinco
+  exige escrita direta — ver o anti-hook acima.
 - ❌ **Não escrever literal monetário** (nem em fixture, nem em teste, nem em comentário). A
   coluna de preço formata o número que vem do payload — Tier 0,
   [proibicoes](../../../../../../../memory/proibicoes.md).
@@ -104,7 +118,8 @@ Ficam aqui porque escondê-las é como o retrato do sistema apodrece:
 |---|---|---|
 | paginação 6/página | 20/página | mesma escolha da SA-O2; decisão [W] em aberto |
 | seleção múltipla + BulkBar | ausente | as 2 ações do F1 ("baixar comprovantes", "exportar") não existem no backend |
-| kebab com 5 ações | ausente | SA-O4b — escrita passa pelo `SubscriptionLifecycleService` |
+| kebab com 5 ações | **3 ações** (aprovar · vencer · cancelar) + ver negócio | entregue na SA-O4b. O `SubscriptionLifecycleService` modela três transições; `waiting` é estado inicial e `declined` vem de evento de cobrança. Os cinco exigiriam escrita direta em `status` — decisão [W] se ampliar o serviço |
+| "Baixar comprovante" no kebab | ausente | **não há comprovante** no sistema: `payment_transaction_id` é string do gateway, não documento (medido) |
 | subtítulo com total aprovado em R$ | contagens apenas | MRR tem dono (`SubscriptionRepository`); um 2º oráculo de receita aqui seria régua duplicada |
 
 ---
