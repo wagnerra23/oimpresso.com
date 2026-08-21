@@ -23,6 +23,7 @@
 <link rel="stylesheet" href="financeiro.css?v=ph1"/>
 <link rel="stylesheet" href="financeiro-ops.css?v=ops3"/>
 <link rel="stylesheet" href="compras-page.css?v=ph1"/>
+<link rel="stylesheet" href="produto-blade.css?v=pb13"/>
 <link rel="stylesheet" href="oficina-page.css?v=tok6"/>
 <link rel="stylesheet" href="oficina-fila.css?v=tok1"/>
 <link rel="stylesheet" href="oficina-print.css?v=prn1"/>
@@ -59,7 +60,11 @@
 <link rel="stylesheet" href="cms-page.css?v=cms5"/>
 <link rel="stylesheet" href="connector-page.css?v=cnx8"/>
 <link rel="stylesheet" href="manufacturing-page.css?v=mfg13"/>
+<link rel="stylesheet" href="relatorios-page.css?v=rel9"/>
 <link rel="stylesheet" href="ponto-page.css?v=pt13"/>
+<link rel="stylesheet" href="planilhas-page.css?v=pl1"/>
+<link rel="stylesheet" href="hrm-page.css?v=hrm10"/>
+<link rel="stylesheet" href="essenciais-page.css?v=ess3"/>
 <!-- Tailwind CDN (preflight desligado pra não sobrescrever o styles.css do shell) -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -89,7 +94,7 @@
 
 <script type="text/babel" src="tweaks-panel.jsx"></script>
 <script type="text/babel" src="icons.jsx"></script>
-<script type="text/babel" src="data.jsx?v=sb10"></script>
+<script type="text/babel" src="data.jsx?v=sb14"></script>
 <script type="text/babel" src="data-os.jsx"></script>
 <script type="text/babel" src="data-clientes.jsx"></script>
 <script type="text/babel" src="data-people.jsx"></script>
@@ -127,6 +132,10 @@
 <script type="text/babel" src="vendas-flow.jsx"></script>
 <script type="text/babel" src="orc-page.jsx"></script>
 <script type="text/babel" src="produtos-page.jsx?v=cat3"></script>
+<!-- Módulo Produto importado dos blades resources/views/product/* (lista, form, histórico, preços, massa) -->
+<script type="text/babel" src="produto-blade.jsx?v=pb14"></script>
+<script type="text/babel" src="produto-blade-forms.jsx?v=pb13"></script>
+<script type="text/babel" src="produto-analises.jsx?v=pb12"></script>
 <script type="text/babel" src="producao-page.jsx"></script>
 <!-- Manufacturing · Receitas (BOM), Produção, Relatório e Configurações -->
 <script type="text/babel" src="manufacturing-data.jsx?v=mfg12"></script>
@@ -167,6 +176,9 @@
 <script type="text/babel" src="pg-vendas-integration.jsx"></script>
 <!-- Módulo Compras (migrado de Compras.html) -->
 <script type="text/babel" src="compras-page.jsx?v=mp4"></script>
+<!-- Módulo Relatórios importado dos blades resources/views/report/* (+ partials) -->
+<script type="text/babel" src="relatorios-data.jsx?v=rel9"></script>
+<script type="text/babel" src="relatorios-page.jsx?v=rel9"></script>
 <!-- Módulo Oficina Auto (migrado de Produção Oficina - Tela.html) -->
 <script type="text/babel" src="oficina-forms.jsx?v=mo1"></script>
 <script src="oficina-print.js?v=prn2"></script>
@@ -205,6 +217,8 @@
 <script type="text/babel" src="modulos-page.jsx?v=md4"></script>
 <script type="text/babel" src="officeimpresso-page.jsx?v=oi6"></script>
 <script type="text/babel" src="documentacao-page.jsx?v=doc6"></script>
+<!-- Módulo Spreadsheet — import de /spreadsheet/sheets (árvore de pastas + editor) -->
+<script type="text/babel" src="planilhas-page.jsx?v=pl1"></script>
 <script type="text/babel" src="programa-doc-page.jsx?v=pd4"></script>
 <!-- Módulo Site (CMS) — espelho do Modules/Cms do git (páginas · blog · depoimentos · detalhes) -->
 <script type="text/babel" src="cms-extras.jsx?v=cms3"></script>
@@ -220,7 +234,17 @@
 <script type="text/babel" src="ponto-fechamento.jsx?v=pt17"></script>
 <script type="text/babel" src="ponto-mobile.jsx?v=pt17"></script>
 <script type="text/babel" src="ponto-page.jsx?v=pt17"></script>
-<script type="text/babel" src="app.jsx?v=eb6"></script>
+<!-- Módulo HRM (Essentials/hrm do main): licenças · presença web · turnos · folha · feriados · metas · configurações -->
+<script type="text/babel" src="hrm-data.jsx?v=hrm8"></script>
+<script type="text/babel" src="hrm-ui.jsx?v=hrm7"></script>
+<script type="text/babel" src="hrm-forms.jsx?v=hrm8"></script>
+<script type="text/babel" src="hrm-extras.jsx?v=hrm8"></script>
+<script type="text/babel" src="hrm-page.jsx?v=hrm8"></script>
+<!-- Módulo Essenciais (Essentials/nav_essentials do main): tarefas · documentos · memorandos · lembretes · mensagens -->
+<script type="text/babel" src="essenciais-data.jsx?v=ess3"></script>
+<script type="text/babel" src="essenciais-extras.jsx?v=ess4"></script>
+<script type="text/babel" src="essenciais-page.jsx?v=ess4"></script>
+<script type="text/babel" src="app.jsx?v=eb10"></script>
 <!-- QA: probe de conformância DS (gated ?qa=1 · invisível pro cliente) — camada 2 da matriz anti-regressão -->
 <script src="qa-conformance.js"></script>
 </body>

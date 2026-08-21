@@ -173,11 +173,20 @@
       "linhas": 336,
       "parse_esbuild": "OK",
       "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/oimpresso.com.html",
+      "bytes_escritos": 16172,
+      "linhas": 252,
+      "parse_esbuild": "n/a (html)",
+      "fidelidade": "NAO PROVADA",
+      "nota": "SHELL — ancora de manifesto/ABSENT-LOCAL/preview. Estava STALE: nao referenciava HRM(5), produto-analises, relatorios(2), planilhas, nem o modulo Essenciais(4). Atualizado a partir do vivo."
     }
   ],
   "data": "2026-08-21",
   "decisao": "[W] autorizou explicitamente apos a ressalva ser apresentada quatro vezes nesta sessao.",
   "o_que_o_parse_NAO_garante": "Fidelidade byte-a-byte. Uma linha inteira omitida, um numero trocado ou uma string alterada CONTINUAM sendo JSX valido e passam no parse. O parse prova que o arquivo CARREGA no navegador sem erro de sintaxe — nao prova que ele e igual ao vivo.",
   "comando_para_reconferir": "for f in <arquivos>; do D:/oimpresso.com/node_modules/.bin/esbuild prototipo-ui/cowork/$f --outfile=/dev/null; done",
-  "drift_observado": "1 caso CONFIRMADO em 17 arquivos (cms-page.jsx, slugify). Foi pego por inspecao dirigida, NAO pelo parse — o parse passou nas duas formas. E a prova concreta de que parse OK != fidelidade byte-a-byte."
+  "drift_observado": "1 caso CONFIRMADO em 17 arquivos (cms-page.jsx, slugify). Foi pego por inspecao dirigida, NAO pelo parse — o parse passou nas duas formas. E a prova concreta de que parse OK != fidelidade byte-a-byte.",
+  "achado_shell_stale": "O shell local estava desatualizado e era a ANCORA de todas as minhas medicoes. O ABSENT-LOCAL que reportei nas levas 1-11 (31->15) foi medido contra fonte velha e SUBCONTAVA. Com o shell vivo: 26 ausentes. Os arquivos que eu classifiquei como orfaos (hrm-*, produto-blade*, relatorios-*) NAO sao orfaos — o shell velho e que nao os conhecia."
 }
