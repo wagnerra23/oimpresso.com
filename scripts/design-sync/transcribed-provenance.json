@@ -1,20 +1,192 @@
 {
-  "_nota": "Arquivos do protótipo Cowork trazidos por TRANSCRIÇÃO (get_file inline, sem persistir em disco). Decisão de [W] 2026-08-21. NÃO passaram pelo --export-from: aquela rota imprime 'fiel por construção, sem transcrição', frase que seria FALSA aqui e que a próxima sessão leria como recibo. Parse verde (esbuild) prova sintaxe, NUNCA fidelidade byte-a-byte — 1 drift já foi confirmado no lote anterior (combinantes literais vs \\u0300-\\u036f). Escapes, regex e \\n em string são onde acontece.",
-  "projectId": "019dcfd3-6ef2-7ee6-8512-b1b0e5544e58",
-  "lote": "telas-avulsas (chip 2026-08-21)",
+  "gerado_em": "2026-08-21",
+  "fonte": {
+    "sistema": "DesignSync",
+    "projectId": "019dcfd3-6ef2-7ee6-8512-b1b0e5544e58"
+  },
+  "metodo": "DesignSync.get_file (retorno INLINE) -> transcricao pelo agente via heredoc quoted",
+  "fidelidade_nota": "NAO PROVADA para todos: os bytes passaram pelo contexto do agente. A rota --export-from do cowork-mirror-freshness garante fidelidade POR CONSTRUCAO somente quando o harness persiste a saida do get_file (limiar medido ~47KB); nenhum destes .md atingiu o limiar, entao a rota persistida nao se aplica.",
+  "verificacao_feita": "cowork-ssot-guard exit 0 (R1: nenhum .md em cowork/) + frontmatter YAML parseado com o pacote yaml + contagem de bytes/linhas por arquivo",
   "arquivos": [
-    { "path": "prototipo-ui/cowork/comissionados-page.jsx", "bytes_escritos": 18222, "linhas": 346, "parse_esbuild": "OK", "fidelidade": "NAO PROVADA" },
-    { "path": "prototipo-ui/cowork/comissoes-page.jsx", "bytes_escritos": 15443, "linhas": 290, "parse_esbuild": "OK", "fidelidade": "NAO PROVADA" },
-    { "path": "prototipo-ui/cowork/prefs-page.jsx", "bytes_escritos": 11948, "linhas": 231, "parse_esbuild": "OK", "fidelidade": "NAO PROVADA" },
-    { "path": "prototipo-ui/cowork/notificacoes-page.jsx", "bytes_escritos": 32910, "linhas": 521, "parse_esbuild": "OK", "fidelidade": "NAO PROVADA" },
-    { "path": "prototipo-ui/cowork/dash-legacy-page.jsx", "bytes_escritos": 25113, "linhas": 364, "parse_esbuild": "OK", "fidelidade": "NAO PROVADA" },
-    { "path": "prototipo-ui/cowork/financeiro-relatorios.jsx", "bytes_escritos": 27081, "linhas": 405, "parse_esbuild": "OK", "fidelidade": "NAO PROVADA" },
-    { "path": "prototipo-ui/cowork/notificacoes-page.css", "bytes_escritos": 11049, "linhas": 124, "parse_esbuild": "OK", "fidelidade": "NAO PROVADA" },
-    { "path": "prototipo-ui/cowork/cms-page.css", "bytes_escritos": 11849, "linhas": 126, "parse_esbuild": "OK (1 warning FIEL A FONTE)", "fidelidade": "NAO PROVADA", "observacao": "O warning 'Unexpected \"*\"' na linha 2 vem do proprio comentario da FONTE: `(os-*/usr-*)` fecha o comentario cedo no `*/`. Reproduzido verbatim de proposito — NAO corrigir sem decisao de quem edita o Cowork." },
-    { "path": "prototipo-ui/cowork/officeimpresso-page.css", "bytes_escritos": 6521, "linhas": 72, "parse_esbuild": "OK (1 warning FIEL A FONTE)", "fidelidade": "NAO PROVADA", "observacao": "Mesmo caso do cms-page.css: `(sa-*/os-*/cli-*)` no comentario do cabecalho fecha o comentario no primeiro `*/`." },
-    { "path": "prototipo-ui/cowork/superadmin-page.css", "bytes_escritos": 29578, "linhas": 354, "parse_esbuild": "OK", "fidelidade": "NAO PROVADA" }
+    {
+      "path": "prototipo-ui/design-docs/handoff/Backup.casos.md",
+      "bytes_escritos": 7605,
+      "linhas": 112,
+      "sha256": "daaf514d552026914c72558224b96904ce92be04b1e10eb25c6ee0ceca6ab489",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/Backup.charter.md",
+      "bytes_escritos": 4911,
+      "linhas": 94,
+      "sha256": "7f6b2d19f79b0d797975d01a82e6b11a2a0af6a1edde72d5f5cbb4510bf29142",
+      "frontmatter": "ERRO: Unexpected scalar at node end at line 6, column 13:",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/HANDOFF-backup-tela.md",
+      "bytes_escritos": 6147,
+      "linhas": 103,
+      "sha256": "8422cb686705194d63276ef40e77fc3f4c8627e77bc59f327a31dada09ecb265",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/HANDOFF-financeiro-contrato.md",
+      "bytes_escritos": 3198,
+      "linhas": 28,
+      "sha256": "113bbf999bc929a5a2547118dc75f56524b9226d0f1522c2ec6b756fd6f30ad9",
+      "frontmatter": "sem-frontmatter",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/backup-migracao/HANDOFF-backup-tela.md",
+      "bytes_escritos": 6147,
+      "linhas": 103,
+      "sha256": "8422cb686705194d63276ef40e77fc3f4c8627e77bc59f327a31dada09ecb265",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/backup-migracao/PLANO-ONDAS.md",
+      "bytes_escritos": 6230,
+      "linhas": 126,
+      "sha256": "d444d5fff5a5903bdba47ad94ea0eb20cbb179d26fda8e69b73ee50df3930e47",
+      "frontmatter": "sem-frontmatter",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/backup-migracao/README.md",
+      "bytes_escritos": 2963,
+      "linhas": 55,
+      "sha256": "ecb5d29003a6aa606df2177af06fc79a2cf233942a1218565abaac9237b55a34",
+      "frontmatter": "sem-frontmatter",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/backup-migracao/charter/Index.casos.md",
+      "bytes_escritos": 7605,
+      "linhas": 112,
+      "sha256": "daaf514d552026914c72558224b96904ce92be04b1e10eb25c6ee0ceca6ab489",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/backup-migracao/charter/Index.charter.md",
+      "bytes_escritos": 4911,
+      "linhas": 94,
+      "sha256": "7f6b2d19f79b0d797975d01a82e6b11a2a0af6a1edde72d5f5cbb4510bf29142",
+      "frontmatter": "ERRO: Unexpected scalar at node end at line 6, column 13:",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/comissionados-page.jsx",
+      "bytes_escritos": 18222,
+      "linhas": 346,
+      "sha256": "07fc4da883d806f45fbc7ef425e6d09fc78b9af08c939dce90bac9716d6c72d1",
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA",
+      "lote": "telas-avulsas"
+    },
+    {
+      "path": "prototipo-ui/cowork/comissoes-page.jsx",
+      "bytes_escritos": 15443,
+      "linhas": 290,
+      "sha256": "2b60b332eb81cfce8b2dba79ed1a12a00bd4f5f250ee6c007be94a53a966afde",
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA",
+      "lote": "telas-avulsas"
+    },
+    {
+      "path": "prototipo-ui/cowork/prefs-page.jsx",
+      "bytes_escritos": 11948,
+      "linhas": 231,
+      "sha256": "fff0b0f84ac6cad495cc1dd6710eda249a9e068369d4f84ac385543e482ade10",
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA",
+      "lote": "telas-avulsas"
+    },
+    {
+      "path": "prototipo-ui/cowork/notificacoes-page.jsx",
+      "bytes_escritos": 32910,
+      "linhas": 521,
+      "sha256": "7add85418e999a487beac20aeefb2790d9956eff093914c5d917e5330ce7323e",
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA",
+      "lote": "telas-avulsas",
+      "observacao": "3 linhas do objeto AMOSTRA (dados ficticios de demo das tags {total_amount} etc.) disparam o 'BRL scan' advisory. Decisao de [W] 2026-08-21: mergear como esta — redigir quebraria a fidelidade do espelho."
+    },
+    {
+      "path": "prototipo-ui/cowork/dash-legacy-page.jsx",
+      "bytes_escritos": 25113,
+      "linhas": 364,
+      "sha256": "dcf4d23c7a95746aade08a6dbc3a631e8058e47f5c4b36215f479c90debebde7",
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA",
+      "lote": "telas-avulsas"
+    },
+    {
+      "path": "prototipo-ui/cowork/financeiro-relatorios.jsx",
+      "bytes_escritos": 27081,
+      "linhas": 405,
+      "sha256": "569da242df0b6d44a9f2b27d7f733255b3de24ce98db40505ffc929af40db050",
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA",
+      "lote": "telas-avulsas"
+    },
+    {
+      "path": "prototipo-ui/cowork/notificacoes-page.css",
+      "bytes_escritos": 11049,
+      "linhas": 124,
+      "sha256": "374160968e93f0d6fb2402bf56d336ec50ecd0520920d9399da15bda4ae6d349",
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA",
+      "lote": "telas-avulsas"
+    },
+    {
+      "path": "prototipo-ui/cowork/cms-page.css",
+      "bytes_escritos": 11849,
+      "linhas": 126,
+      "sha256": "e601b34d538a2fa83c74f8d15332981744f2f9c8c97ecdd0fe011a0fa00f204c",
+      "parse_esbuild": "OK (1 warning FIEL A FONTE)",
+      "fidelidade": "NAO PROVADA",
+      "lote": "telas-avulsas",
+      "observacao": "O warning 'Unexpected \"*\"' na linha 2 vem do proprio comentario da FONTE: `(os-*/usr-*)` fecha o comentario cedo no `*/`. Reproduzido verbatim de proposito — NAO corrigir sem decisao de quem edita o Cowork."
+    },
+    {
+      "path": "prototipo-ui/cowork/officeimpresso-page.css",
+      "bytes_escritos": 6521,
+      "linhas": 72,
+      "sha256": "76cb0ba87f3212a638741d2d5a36b5cf6b772590dc6d11958a8c8761a459adaa",
+      "parse_esbuild": "OK (1 warning FIEL A FONTE)",
+      "fidelidade": "NAO PROVADA",
+      "lote": "telas-avulsas",
+      "observacao": "Mesmo caso do cms-page.css: `(sa-*/os-*/cli-*)` no comentario do cabecalho fecha o comentario no primeiro `*/`."
+    },
+    {
+      "path": "prototipo-ui/cowork/superadmin-page.css",
+      "bytes_escritos": 29578,
+      "linhas": 354,
+      "sha256": "ddcf66be2b7eb2f615de1e107246b2ddedb3275c74f144332e5f979cb048465c",
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA",
+      "lote": "telas-avulsas"
+    }
+  ],
+  "frontmatter_invalido_na_FONTE": [
+    {
+      "padrao": "autor: [CC] 2026-08-19",
+      "porque": "sequencia de flow [CC] seguida de escalar — YAML invalido",
+      "arquivos": [
+        "prototipo-ui/design-docs/handoff/Backup.charter.md",
+        "prototipo-ui/design-docs/handoff/backup-migracao/charter/Index.charter.md"
+      ],
+      "decisao": "preservado como esta: e defeito do documento vivo no Cowork, nao da transcricao. Consertar aqui quebraria a fidelidade e criaria drift com a fonte."
+    }
   ],
   "calibracao_do_parser": {
+    "_escopo": "lote telas-avulsas (.jsx/.css). Os .md do lote handoff nao passam por esbuild — a verificacao la foi frontmatter YAML.",
     "jsx": "arquivo bom (acessos-ds.jsx do repo) -> rc=0 'Done in 3ms'; arquivo quebrado -> rc=1 'X [ERROR]'. ATENCAO: `| tail` mascara o exit code (o rc vira o do tail) — medir sem pipe ou via PIPESTATUS.",
     "css": "esbuild trata erro de sintaxe CSS como WARNING com rc=0 — o exit code SOZINHO nao e veredito em CSS. Veredito = contar linhas '▲'/'X [ERROR]'. Baseline do repo (backup-page.css) = 0 warnings."
   }
