@@ -631,3 +631,70 @@ it('UC-COPI-PAINEL-13: todo `metodo` prometido pelo JanaDrillDrawer existe no ag
 
     expect($quebrados)->toBe([]);
 });
+
+// ── UC-COPI-PAINEL-14 — a janela do KPI ──────────────────────────────────────
+
+/**
+ * UC-COPI-PAINEL-14 — o rótulo declara a janela REAL do dado.
+ *
+ * Asserção de ARQUIVO e ESTRUTURAL, pelos mesmos dois motivos dos UC-08/10/12: o
+ * Pest não monta React, e a copy É o artefato. A forma escolhida é `label="…"`
+ * (com o atributo), nunca a prosa solta — `not->toContain('Receita mês')`
+ * FALHARIA, porque a frase está viva no comentário que registra o que saiu. É o
+ * falso-positivo do §5 2026-07-26, que já mordeu esta suíte duas vezes.
+ */
+it('UC-COPI-PAINEL-14: o KPI da sparkline se chama pela janela que tem, não "mês"', function () {
+    $cockpit = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaCockpit.tsx'));
+
+    // O card e o skeleton dizem a MESMA coisa — senão o rótulo antigo pisca
+    // enquanto a prop deferida não chega, e o usuário lê "mês" por um instante.
+    expect(substr_count($cockpit, 'label="Receita 30 dias"'))->toBe(2);
+
+    // E o valor continua vindo da série de 30 dias, sem o fallback morto.
+    expect($cockpit)->toContain('value={fmtShort(sparkSum)}');
+
+    // Controle negativo: a FORMA do rótulo antigo não volta.
+    expect($cockpit)->not->toContain('label="Receita mês"');
+
+    // O delta declara a própria janela — ele compara HOJE com ONTEM, e ao lado
+    // de um valor de 30 dias o rótulo curto sugeria que o valor grande variou.
+    expect($cockpit)->toContain("label: 'hoje vs ontem'");
+});
+
+/**
+ * UC-COPI-PAINEL-14 — e a prova de que o `|| faturadoHoje` era INALCANÇÁVEL.
+ *
+ * Este caso existe porque a remoção de um fallback é exatamente o tipo de
+ * mudança que parece perda de robustez. Ele demonstra a contenção: as duas
+ * consultas têm filtros idênticos e a janela da série vai até o fim de hoje,
+ * então toda venda de hoje JÁ está dentro da série. Se alguém encurtar a janela
+ * (ex.: `endOfDay` → `startOfDay`) esta asserção quebra, e é o que se quer.
+ */
+it('UC-COPI-PAINEL-14: a série tem 30 dias e CONTÉM o faturamento de hoje', function () {
+    $user  = painelBootstrap();
+    $bizId = (int) session('user.business_id');
+    $marca = uniqid('jan');
+
+    [$c, $t] = churnSemear($bizId, (int) $user->id, "Hoje {$marca}", 1234.56, now()->toDateString());
+
+    try {
+        $agg   = app(\App\Services\Sells\SellsCockpitAggregator::class)->buildCoworkAggregates($bizId);
+        $serie = $agg['sparkline'];
+
+        expect($serie)->toHaveCount(30);
+
+        $soma        = array_sum($serie);
+        $faturadoHoje = (float) $agg['faturadoHojeTotal'];
+
+        // A contenção: a soma da série cobre o de hoje. Com isso, `sparkSum` só
+        // é 0 quando `faturadoHoje` também é — e aí o `||` devolvia o mesmo 0.
+        expect($faturadoHoje)->toBeGreaterThan(0.0);
+        expect($soma)->toBeGreaterThanOrEqual($faturadoHoje);
+
+        // E o último ponto da série é HOJE (não ontem) — é isso que fecha.
+        expect((float) $serie[29])->toBeGreaterThanOrEqual($faturadoHoje);
+    } finally {
+        $t->forceDelete();
+        $c->forceDelete();
+    }
+});

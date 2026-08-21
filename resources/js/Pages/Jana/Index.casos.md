@@ -340,6 +340,59 @@ travar só a instância de hoje deixaria a próxima entrar igual. `method_exists
 reprova. Tem controle positivo (`expect($m[1])->not->toBeEmpty()`) porque regex que para de casar
 devolveria lista vazia e o caso viraria carimbo — lápide §5 2026-08-01._
 
+## UC-COPI-PAINEL-14 — O rótulo do KPI declara a janela que o dado TEM
+Status: 🧪 (`PainelContratoTest` — 2 `it()`: 1 estrutural com controle negativo + 1 de runtime que prova a contenção; aguarda run verde)
+
+O card dizia **"Receita mês"** e mostrava `sparkSum` — a soma da **sparkline**, que é
+`whereBetween(transaction_date, [hoje-29, hoje 23:59])`: **30 dias deslizantes**, não o mês
+corrente. No dia 21, isso cobre 23/jul a 21/ago. Os dois só coincidem no dia 30 ou 31.
+
+**De onde veio a palavra errada — medido em 2026-08-21.** A âncora oficial desta tela
+(`prototipo-ui/cowork/jana-merge.jsx`, o `related_prototype` do charter) **não tem este KPI**. O
+rótulo veio de `chat-jana.jsx` :87 — o protótipo que o §5 de 2026-08-10 declarou **NÃO-âncora**
+("desenha o cockpit de cobrança, não este Painel"). E lá o rótulo é **coerente**, porque o delta ao
+lado é `"-68% vs mai/25"`: mês contra mês. Aqui herdou-se a palavra sem a semântica — o dado é de
+30 dias e o delta é diário. É a lápide §5 2026-07-16 em letra: *"que premissa do modelo DELES
+sustenta essa solução, e ela vale AQUI?"*.
+
+**Por que nenhum gate pegou.** A tela tem **6 âncoras `data-contract`, todas sobre Metas** — nenhuma
+cobre os KPIs. O `contrato-de-tela` valida copy e ordem de 1 dos 6 blocos e conclui "✅ limpo". O
+defeito morava fora do alcance dele. Fechar essa lacuna exige âncora no `KpiCard` compartilhado
+(interface fechada, 30+ telas consumindo) — **escopo separado**, não este PR.
+
+**Três correções, e só uma toca número:**
+
+| o quê | era | é | mexe em valor? |
+|---|---|---|---|
+| rótulo do card + do skeleton | `Receita mês` | `Receita 30 dias` | não |
+| rótulo do delta | `vs ontem` | `hoje vs ontem` | não |
+| fallback | `sparkSum \|\| faturadoHoje` | `sparkSum` | **não — era inalcançável** |
+
+**O fallback era código morto, não robustez.** As duas consultas têm filtros idênticos
+(`business_id · type=sell · status=final · sub_type NULL`) e a janela da série vai até o **fim de
+hoje**, então `faturadoHoje ⊆ sparkSum`. Se houve venda hoje, `sparkSum > 0` e o `||` nunca dispara;
+se não houve, ambos são 0 e o fallback devolvia o mesmo 0. O 2º `it()` prova essa contenção
+semeando venda de hoje — e quebra se alguém encurtar a janela (`endOfDay` → `startOfDay`).
+
+**Pronto quando:** card e skeleton dizem a mesma coisa (senão o rótulo antigo pisca enquanto a prop
+deferida não chega); o valor vem da série sem fallback; o delta declara a própria janela; e a FORMA
+do rótulo antigo (`label="Receita mês"`) não volta.
+
+_A asserção usa `label="…"` com o atributo, nunca a prosa: `not->toContain('Receita mês')` FALHARIA,
+porque a frase está viva no comentário que registra o que saiu — o falso-positivo do §5 2026-07-26,
+que já mordeu esta suíte duas vezes._
+
+### Decisão pendente de [W] — 30 dias ou mês-calendário?
+
+Este PR fez o **rótulo dizer a verdade sobre o dado**. O caminho inverso — passar o cálculo a
+mês-calendário para casar a palavra antiga — **mexe em valor exibido** e cai na regra mestre de
+VALOR (provar por dois caminhos + apresentar antes→depois). Também quebraria a sparkline, que é
+deslizante por natureza e alimenta o mesmo card.
+
+O protótipo resolve isso com **seletor de período** (`JM_PERIODOS`, 3 janelas) — registrado no
+inventário como `❌ precisa de backend`. Com ele, "mês" volta a ter referente. Sem ele, qualquer
+rótulo temporal fixo é escolha arbitrária, e a honesta é a que descreve o recorte real.
+
 ## Nota do conserto do UC-COPI-PAINEL-08 (2026-08-17)
 
 `_components/JanaCockpitSkeleton.tsx` (novo, ancorado em `jana-merge.jsx` §`JmPainelSkeleton`) +
