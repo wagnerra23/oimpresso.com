@@ -201,13 +201,17 @@ export function liveOnly(livePaths, manifest, { exts = ['.jsx', '.html', '.css',
 /** Plano de export a partir dos JSONs que o agente salvou do DesignSync.get_file.
  *  Puro: recebe [{path, content}] e devolve [{relPath, content, bytes}].
  *  `path` é o path NO VIVO; o espelho grava em prototipo-ui/cowork/<path>. */
-export function exportPlan(arquivosVivos, { prefixo = 'prototipo-ui/cowork/' } = {}) {
+export function exportPlan(arquivosVivos, { prefixo = 'prototipo-ui/cowork/', prefixoDocs = null } = {}) {
   return arquivosVivos.map(({ path: p, content, binary = false }) => {
     if (typeof content !== 'string' && !Buffer.isBuffer(content)) {
       throw new Error(`export: conteúdo ausente para "${p}" — o JSON do get_file precisa ter .content`);
     }
+    // `.md` NUNCA pode cair no espelho (R1 do cowork-ssot-guard: cowork/ é build-only).
+    // Roteia por EXTENSÃO, não por flag, porque a regra é do arquivo — quem chama não
+    // deveria poder errar isso. Sem `prefixoDocs` o comportamento antigo é preservado.
+    const ehDoc = prefixoDocs && p.toLowerCase().endsWith('.md');
     return {
-      relPath: prefixo + p,
+      relPath: (ehDoc ? prefixoDocs : prefixo) + p,
       content,
       binary: binary || Buffer.isBuffer(content),
       bytes: Buffer.isBuffer(content) ? content.length : Buffer.byteLength(content, 'utf8'),
@@ -1186,6 +1190,10 @@ function main() {
       cowork: 'prototipo-ui/cowork/',
       ds: 'prototipo-ui/design-system/',
       dsRuntime: 'scripts/design-sync/mirror-snapshot/',
+      // 4º destino (2026-08-21, decisão [W]): knowledge do Cowork. NÃO é escolhido por
+      // flag — é roteado por extensão dentro do exportPlan, porque `.md` em cowork/ é
+      // reprovado pelo R1 e quem chama não deveria poder errar isso.
+      docs: 'prototipo-ui/design-docs/',
     };
     const destinoNome = argv.includes('--ds-runtime') ? 'dsRuntime' : argv.includes('--ds') ? 'ds' : 'cowork';
     const prefixo = PREFIXOS[destinoNome];
@@ -1194,7 +1202,10 @@ function main() {
       try { paraExportar = vivos.map((v) => ({ ...v, path: dsRuntimeRelPath(v.path) })); }
       catch (e) { console.error(`✗ ${e.message}`); process.exit(2); }
     }
-    const plano = exportPlan(paraExportar, { prefixo });
+    // `prefixoDocs` só no destino cowork: `ds`/`dsRuntime` já pousam FORA de cowork/, onde
+    // o R1 não alcança — lá um `.md` é legítimo e desviá-lo seria mudar o que já funciona.
+    const prefixoDocs = destinoNome === 'cowork' ? PREFIXOS.docs : null;
+    const plano = exportPlan(paraExportar, { prefixo, prefixoDocs });
     // O SNAPSHOT sai daqui de graça (2026-08-13). Antes o ciclo pedia DOIS downloads
     // por arquivo: um pro --export-from, outro pro snapshot do --compare — e o agente
     // é o único que fala MCP, então esse 2º download custava contexto dele. Mas o
@@ -1221,7 +1232,11 @@ function main() {
       // chave = path RELATIVO ao espelho (o mesmo que o manifesto usa)
       // chave RELATIVA ao destino escolhido — com `--ds` o prefixo é outro, e cortar
       // o do Cowork deixaria a chave com o caminho inteiro dentro.
-      const rel = relPath.startsWith(prefixo) ? relPath.slice(prefixo.length) : relPath;
+      // ⚠️ Com roteamento por extensão o lote tem DOIS prefixos, então testar só o do
+      // destino deixaria todo `.md` com a chave `prototipo-ui/design-docs/...` inteira —
+      // e o `--compare` seguinte não casaria com o manifesto. Corta o que de fato bate.
+      const prefixoDoArquivo = [prefixo, prefixoDocs].find((p) => p && relPath.startsWith(p));
+      const rel = prefixoDoArquivo ? relPath.slice(prefixoDoArquivo.length) : relPath;
       if (nota === 'NOVO') nascidos.push(rel);
       snapshotEmitido[rel] = depois;
       console.log(`  ${nota.padEnd(11)} ${relPath}  (${bytes} bytes · ${depois.slice(0, 12)})`);
