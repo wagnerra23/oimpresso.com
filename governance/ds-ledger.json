@@ -12,6 +12,17 @@
       }
     },
     {
+      "screen": "Backup",
+      "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
       "screen": "Cliente",
       "note": "39 arquivo(s)",
       "cells": {
@@ -255,7 +266,7 @@
     },
     {
       "screen": "Produto",
-      "note": "16 arquivo(s)",
+      "note": "19 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -331,18 +342,18 @@
       }
     }
   ],
-  "progressPct": 27,
+  "progressPct": 29,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "c01ee7615",
-  "generatedAt": "2026-08-20T10:01:15.870Z",
+  "measuredAgainstSha": "54b1c8f7a",
+  "generatedAt": "2026-08-21T10:01:35.478Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
   },
   "counts": {
-    "screens": 30,
-    "done": 8,
+    "screens": 31,
+    "done": 9,
     "references": 0
   }
 }
