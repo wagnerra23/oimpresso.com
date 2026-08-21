@@ -181,6 +181,20 @@
       "parse_esbuild": "n/a (html)",
       "fidelidade": "NAO PROVADA",
       "nota": "SHELL — ancora de manifesto/ABSENT-LOCAL/preview. Estava STALE: nao referenciava HRM(5), produto-analises, relatorios(2), planilhas, nem o modulo Essenciais(4). Atualizado a partir do vivo."
+    },
+    {
+      "path": "prototipo-ui/cowork/connector-page.css",
+      "bytes_escritos": 8550,
+      "linhas": 109,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/relatorios-page.css",
+      "bytes_escritos": 9786,
+      "linhas": 98,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
     }
   ],
   "data": "2026-08-21",
