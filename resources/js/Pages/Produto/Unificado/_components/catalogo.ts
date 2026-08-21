@@ -9,7 +9,17 @@
  */
 
 /** Quem pode ver o quê. Ausência de permissão declarada nunca vira permissão. */
-export type Permissoes = { custo: boolean; preco: boolean; composicao: boolean };
+export type Permissoes = {
+  custo: boolean;
+  preco: boolean;
+  composicao: boolean;
+  /**
+   * `product.update` — o mesmo direito que a tela legada exige pra inativar. Sem ele a ação
+   * em lote não é MONTADA, e não apenas desabilitada: botão cinza anuncia um poder que a
+   * pessoa não tem e transforma cada clique numa negativa.
+   */
+  inativar: boolean;
+};
 
 /** Tipo do item. Derivado no servidor a partir de `type`/`not_for_selling`/`enable_stock`. */
 export type TipoItem = 'produto' | 'servico' | 'materia' | 'kit';
