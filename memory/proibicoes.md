@@ -831,6 +831,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** antes de responder *"X é exigido / X bloqueia / preciso de X?"*, **enumerar QUAIS mecanismos poderiam exigir X** e consultar cada um — a resposta de UM dono não cobre a pergunta inteira. Neste repo as camadas de exigência são independentes e não se conhecem: **branch protection** (clássica **e** ruleset — são dois), **workflow/step de CI** (required **ou** advisory), **hook local** (`.claude/hooks/`), **rule path-scoped** (`.claude/rules/`), **merge queue**. Vale para qualquer pergunta de exigência — base atualizada, label, aprovação, seção obrigatória no PR body, teste. Dois corolários caem juntos: **(a)** *"não bloqueia o merge"* ≠ *"não exige"* — advisory reprova, gasta run e tempo, e a pergunta do humano quase nunca é sobre o merge especificamente; **(b)** quando a sonda que você rodou responde uma pergunta **adjacente**, o defeito não aparece como número errado, aparece como resposta **confiante e verdadeira sobre outra coisa** — então o teste barato é reler a pergunta palavra por palavra contra o que a sonda mede (é a regra de §5 2026-08-13 aplicada ao eixo **dono**, não ao eixo paginação).
 
+### 2026-08-20 — Gate que exige `.snap` junto quando o PR toca tela do núcleo (MEDIDO: 78%/92% de disparo; adiado pela FASE, não refutado)
+
+- **O limite (variante também proibida):** não re-propor gate/hook/catraca que exija artefato de baseline visual junto do código — sob qualquer nome (baseline-obrigatória, snap-gate, visreg-completeness) — **sem antes re-rodar a contagem acima**. E não re-propor citando *"main está vermelha de novo"* ou *"3 ondas esqueceram"* como motivo: essa é a **evidência que já produziu esta lápide**, não sinal novo. Também proibido apresentar a taxa de disparo como taxa de FP.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
