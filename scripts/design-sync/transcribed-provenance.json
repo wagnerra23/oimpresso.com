@@ -216,6 +216,13 @@
       "linhas": 344,
       "parse_esbuild": "OK",
       "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/manufacturing-page.css",
+      "bytes_escritos": 21199,
+      "linhas": 264,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
     }
   ],
   "data": "2026-08-21",
