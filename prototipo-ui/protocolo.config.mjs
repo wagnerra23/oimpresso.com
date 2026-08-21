@@ -115,6 +115,33 @@ export const DS_RUNTIME_SNAPSHOT_DIR = join(REPO_ROOT, 'scripts', 'design-sync',
 
 // ── PRÉ-FLIGHT da Fase 4 — os gates que a tela nova zera ANTES do PR ────────────
 // ("funciona no staging ≠ passa no portão": incidente perfil 2026-06-24 tripou 6 gates no PR).
+//
+// ── RECONCILIAÇÃO 2026-08-21: a lista cobria 2 dos 5 REQUIRED do próprio domínio ──
+// Medido nesta data (união `classic_protection.contexts` ∪ `rulesets[].contexts` do
+// governance/required-checks-baseline.json — ler só a clássica SUBCONTA, §5 2026-08-08):
+// 46 required no repo, 5 no domínio design/espelho. Desses, o painel cobria `DS gate`
+// e `Casos-coverage`; os outros 3 estavam FORA — e a fase se chama "Gates antes do PR".
+//
+// Custo medido, não hipotético: uma sessão rodou os 6 gates desta lista, todos verdes,
+// e mesmo assim levou VERMELHO num required (`espelho — mexeu depois de verificar`,
+// PR #6117). Rodar a lista inteira do painel não era suficiente pra abrir PR — que é
+// exatamente o serviço que esta constante promete prestar.
+//
+// O caso do espelho é a §5 2026-07-28 em estado puro ("validar um gate rodando UM dos
+// modos que o CI roda"): o `cowork-mirror-freshness.mjs` JÁ era citado no painel em 4
+// modos (`--export-from`, `--ds-runtime`, `--snapshot-from`, `--preview-ds`) e o modo
+// que MORDE no CI não estava em nenhum. Um script com N modos é N gates.
+//
+// MAPEAMENTO PROVADO job→context→comando (cada um conferido no .yml, não inferido do
+// nome — o meu 1º palpite pro charter era `ancora-guard.mjs` e estava ERRADO):
+//   · .github/workflows/governance-script-tests.yml  job `espelho-verificado`
+//       name: espelho — mexeu depois de verificar          → --unverified --check
+//   · .github/workflows/anchor-content-required.yml  job `anchor-content`
+//       name: Ancora de design nao-shell (F2/F6 required)  → anchor-content-check --check
+//   · .github/workflows/anchor-drift.yml             job `charter-live-signal`
+//       name: charter status:live precisa de sinal de prod → charter-live-signal --check
+// O selftest `conferirCoberturaRequired()` trava esses 3 pares (comando presente aqui
+// + context ainda required no baseline). O que ele NÃO cobre está dito lá, sem inflar.
 export const PREFLIGHT_GATES = [
   'node scripts/layout-primitives-guard.mjs',
   'node scripts/casos-coverage-guard.mjs',
@@ -122,6 +149,40 @@ export const PREFLIGHT_GATES = [
   'node_modules/.bin/tsc --noEmit',
   'node prototipo-ui/ds-guard.mjs <arquivos-tocados>',
   'node scripts/governance/cowork-ssot-guard.mjs',
+  // REQUIRED do domínio que faltavam (2026-08-21) — ver mapeamento provado acima
+  'node scripts/governance/cowork-mirror-freshness.mjs --unverified --check   # espelho editado sem prova de fidelidade',
+  'node scripts/governance/anchor-content-check.mjs --check                   # âncora de design MISSING/SHELL',
+  'node scripts/governance/charter-live-signal.mjs --check <charters-tocados> # status:live sem sinal de prod',
+  // as 2 LEIs que o required `DS gate` agrega — nenhuma estava aqui (medido 2026-08-21)
+  'node scripts/conformance-gate.mjs --all                                   # cor crua NOVA vs baseline (LEI)',
+  'node scripts/foundation-guard.mjs                                         # token-def só na fundação (LEI)',
+  'php artisan ui:lint   # 2a perna do DS gate — exige PHP; ausência de env NÃO é reprovação do gate',
+];
+
+// Pares (context required ↔ comando local) que o selftest trava. Vive aqui, ao lado da
+// lista, porque é a lista que ele defende. NÃO é inventário de required do repo — é o
+// recorte do domínio design/espelho, o que este painel governa.
+export const REQUIRED_DO_DOMINIO = [
+  { context: 'espelho — mexeu depois de verificar',
+    cmd: 'node scripts/governance/cowork-mirror-freshness.mjs --unverified --check',
+    workflow: '.github/workflows/governance-script-tests.yml', job: 'espelho-verificado' },
+  { context: 'Ancora de design nao-shell (F2/F6 required)',
+    cmd: 'node scripts/governance/anchor-content-check.mjs --check',
+    workflow: '.github/workflows/anchor-content-required.yml', job: 'anchor-content' },
+  { context: 'charter status:live precisa de sinal de prod',
+    cmd: 'node scripts/governance/charter-live-signal.mjs --check',
+    workflow: '.github/workflows/anchor-drift.yml', job: 'charter-live-signal' },
+  // ⚠️ `DS gate` é job AGREGADOR (`needs: [conformance, ui-lint]`) — ele NÃO roda
+  // `ds-guard.mjs`. Confundir os dois foi o meu 2º palpite errado nesta reconciliação:
+  // `ds-guard.mjs` é o guard de design-memory (PROCESSO_MEMORIA_CC §8), outro papel.
+  // O par abaixo aponta pra LEI que de fato avermelha: cor-crua. A outra perna
+  // (`ui-lint` → `php artisan ui:lint`) exige PHP e está na lista com essa ressalva.
+  { context: 'DS gate',
+    cmd: 'node scripts/conformance-gate.mjs --all',
+    workflow: '.github/workflows/ds-gate.yml', job: 'ds-gate ← needs conformance' },
+  { context: 'Casos-coverage · ratchet (trio + rastreabilidade)',
+    cmd: 'node scripts/casos-coverage-guard.mjs',
+    workflow: '.github/workflows/casos-gate.yml', job: 'casos-gate' },
 ];
 
 // ── MAPA FASE → comando(s) reais (o "painel" executável do RUNBOOK) ─────────────
@@ -170,7 +231,9 @@ export const FASES = [
       '# [caso pontual] arquivo AVULSO — NAO e a rota de sincronizar o espelho (use o applier acima)',
       'node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir-jsons>     # escreve o raw.content no espelho (ADR 0374 — transcrever à mão é PROIBIDO)',
       'node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir> --ds-runtime  # bundle/CSS/fontes → snapshot ÚNICO consumido pelo preview',
-      'node scripts/governance/cowork-mirror-freshness.mjs --snapshot-from <dir> --emit-snapshot <s>  # MEDIR sem consertar (antes do export)',
+      '# [VALE PRAS DUAS ROTAS] medir e portão — nao sao "caso pontual" (2026-08-21: estavam',
+      '#   sob o cabecalho de avulso, e quem le um cabecalho leva os 4 comandos junto)',
+      'node scripts/governance/cowork-mirror-freshness.mjs --snapshot-from <dir> --emit-snapshot <s>  # MEDIR sem consertar (antes de aplicar/exportar)',
       'node scripts/governance/cowork-mirror-freshness.mjs --preview-ds                  # PORTÃO fail-closed: exit != 0 PROÍBE editar produto',
     ], selftest: 'node prototipo-ui/handoff-changed.mjs --selftest' },
   { fase: '0/0.5', nome: 'Detectar + manifesto', comandos: [
@@ -326,6 +389,65 @@ function conferirIdsNoRepo() {
   return { problemas, medidos, total: alvos.length, pulados, semGit: rastreados === null };
 }
 
+// ── COBERTURA DOS REQUIRED DO DOMÍNIO (2026-08-21) ──────────────────────────────
+// POR QUE EXISTE: a Fase 4 se chama "Gates antes do PR" e cobria 2 dos 5 required do
+// domínio design/espelho. Uma sessão rodou os 6 gates da lista, todos verdes, e levou
+// vermelho num required que não estava aqui (`espelho — mexeu depois de verificar`,
+// PR #6117). Lista de gate que não cobre o required do próprio domínio é pior que
+// ausente: ela PARECE cobertura. Sem esta função, a reconciliação de hoje seria
+// "escrito+lembrado" e apodreceria no próximo gate promovido (ADR 0256).
+//
+// O QUE ELE PROVA, exatamente:
+//   (a) cada `cmd` dos pares aparece em PREFLIGHT_GATES — a lista não perde um gate;
+//   (b) cada `context` ainda está required no baseline — o par não vira fóssil quando
+//       um gate é demovido (aí o conserto é TIRAR o par, não deixá-lo mentindo).
+// Lê a UNIÃO `classic_protection.contexts` ∪ `rulesets[].contexts`: ler só a clássica
+// SUBCONTA e faz concluir "não é required" sobre gate que é (§5 2026-08-08).
+//
+// O QUE ELE NÃO PROVA — e dizer isto é parte do contrato:
+//   · que o comando no .yml continua sendo ESTE. Se o workflow trocar a flag, o par
+//     fica desatualizado em silêncio. Fechar isso exigiria parsear YAML de 3 workflows,
+//     e parser frágil que reprova o legítimo é a família já morta 4× no §5. O elo
+//     humano é o `workflow`/`job` anotado em cada par: dá pra reconferir em 1 grep.
+//   · que rodar os 12 comandos garante CI verde. Eles são o piso do domínio, não o teto
+//     do repo — os outros 41 required existem e não são governados por este painel.
+function conferirCoberturaRequired() {
+  const problemas = [];
+  const listado = PREFLIGHT_GATES;
+  for (const par of REQUIRED_DO_DOMINIO) {
+    if (!listado.some((g) => g.includes(par.cmd))) {
+      problemas.push(`required '${par.context}' sem comando em PREFLIGHT_GATES (esperado: ${par.cmd} · ${par.workflow})`);
+    }
+  }
+  const baseline = join(REPO_ROOT, 'governance', 'required-checks-baseline.json');
+  if (!existsSync(baseline)) return { problemas, conferidos: 0, semBaseline: true };
+  let contexts;
+  try {
+    const j = JSON.parse(readFileSync(baseline, 'utf8'));
+    const acc = [];
+    const walk = (o) => {
+      if (!o || typeof o !== 'object') return;
+      if (Array.isArray(o)) { o.forEach(walk); return; }
+      for (const [k, v] of Object.entries(o)) {
+        if (k === 'contexts' && Array.isArray(v)) v.forEach((x) => typeof x === 'string' && acc.push(x));
+        else walk(v);
+      }
+    };
+    walk(j);
+    contexts = new Set(acc);
+  } catch (e) {
+    // ILEGÍVEL != AUSENTE: parsear pra "vazio" inventaria estado (§5 2026-07-29).
+    problemas.push(`baseline de required ilegível (${e && e.message}) — não dá pra provar cobertura`);
+    return { problemas, conferidos: 0, semBaseline: true };
+  }
+  for (const par of REQUIRED_DO_DOMINIO) {
+    if (!contexts.has(par.context)) {
+      problemas.push(`par aponta pra context que NÃO é mais required: '${par.context}' — remova o par ou reconfira o baseline`);
+    }
+  }
+  return { problemas, conferidos: REQUIRED_DO_DOMINIO.length, semBaseline: false };
+}
+
 function selftest() {
   const fails = [];
   if (!UUID.test(COWORK_PROJECT_ID)) fails.push('COWORK_PROJECT_ID não é UUID');
@@ -336,6 +458,8 @@ function selftest() {
   const ids = conferirIdsNoRepo();
   fails.push(...ids.problemas);
   fails.push(...conferirFonteUnicaExecutavel());
+  const cobReq = conferirCoberturaRequired();
+  fails.push(...cobReq.problemas);
   for (const fn of [['normalize', normalize], ['contentHash', contentHash], ['resolveAncora', resolveAncora]]) {
     if (typeof fn[1] !== 'function') fails.push(`motor re-exportado quebrou: ${fn[0]} não é função`);
   }
@@ -352,7 +476,8 @@ function selftest() {
   const cob = `conferi ${ids.medidos} de ${ids.total} alvos de ID`
     + (ids.pulados.length ? ` (${ids.pulados.length} pulado(s), não-rastreado(s): ${ids.pulados.join(', ')})` : '')
     + (ids.semGit ? ' ⚠ sem git: não deu pra separar "sumiu" de "nunca existiu"' : '');
-  console.log(`✓ protocolo.config selftest OK — 2 IDs válidos+distintos · ${cob} · ${PONTEIROS_EXECUCAO.length} ponteiros sem cópia operacional · cowork/_ds não rastreado · MIRROR_DIR presente · ${scripts.length} scripts do mapa existem · motores (normalize/contentHash/resolveAncora) vivos.`);
+  console.log(`✓ protocolo.config selftest OK — 2 IDs válidos+distintos · ${cob} · ${PONTEIROS_EXECUCAO.length} ponteiros sem cópia operacional · cowork/_ds não rastreado · MIRROR_DIR presente · ${scripts.length} scripts do mapa existem · motores (normalize/contentHash/resolveAncora) vivos · `
+    + `${cobReq.conferidos} required do domínio cobertos por comando local${cobReq.semBaseline ? ' ⚠ baseline não lido: cobertura NÃO provada contra o vivo' : ''}.`);
   process.exit(0);
 }
 
