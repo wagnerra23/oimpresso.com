@@ -689,7 +689,7 @@ function reportAbsentLocal(shellHtml, stream = process.stdout) {
   w(
     `\n  ⛔ ausentes: ${faltando.length} · ⬜ ignorados por design: ${ignorados.length}\n` +
     (faltando.length
-      ? `  Pra versionar: DesignSync.get_file de cada → salve os JSON num dir → --export-from <dir>.\n  ⚠️ .md NÃO desce por aqui — R1 do cowork-ssot-guard reprova .md em cowork/ (build-only).\n  (não muda o exit code: o --check morde só em STALE)\n`
+      ? `  Pra versionar: DesignSync.get_file de cada → salve os JSON num dir → --export-from <dir>.\n  ⚠️ .md desce em OUTRO destino: o --export-from roteia .md pra prototipo-ui/design-docs/\n  (R1 do cowork-ssot-guard reprova .md em cowork/ — build-only).\n  (não muda o exit code: o --check morde só em STALE)\n`
       : `  ✓ toda dep do shell existe no espelho.\n`),
   );
 }
@@ -972,9 +972,10 @@ function main() {
     console.log(`\n  ── outros (${outros.length}) — shell, uploads, bundle de DS, docs:`);
     for (const p of outros) console.log(`     · ${p}`);
     console.log('\n  Para versionar: DesignSync.get_file de cada → salve os JSON num dir → --export-from <dir>.');
-    console.log('  ⚠️ .md NÃO desce por aqui: R1 do cowork-ssot-guard reprova .md em cowork/ (build-only).');
-    console.log('     Knowledge do Cowork é canon (R1 aponta memory/ ou prototipo-ui root); o --export-from');
-    console.log('     não tem prefixo pra esse destino, e escolhê-lo é decisão [W] — não invente aqui.');
+    console.log('  ⚠️ .md DESCE — só não pousa em cowork/: R1 do cowork-ssot-guard reprova .md lá (build-only).');
+    console.log('     O --export-from (destino padrão cowork) roteia .md por EXTENSÃO pra');
+    console.log('     prototipo-ui/design-docs/ — decisão [W] 2026-08-21; é roteamento, não flag.');
+    console.log('     Com --ds/--ds-runtime o .md pousa no próprio prefixo (fora do alcance do R1).');
     console.log('  ⚠️ lista, não veredito: o que merece descer é decisão [W], não da máquina.\n');
     return;
   }
