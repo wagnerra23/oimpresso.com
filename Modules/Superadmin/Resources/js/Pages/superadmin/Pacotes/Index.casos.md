@@ -5,7 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a tela onde `0` significa o CONTRÁRIO do que parece — zero é "sem teto", não "nenhum". Sem caso travando isso, a próxima sessão "simplifica" a renderização e a grade comercial passa a dizer o oposto do contrato. E é a tela vizinha da vitrine pública `/pricing`: unificar as duas consultas expõe pacote privado ao mundo.
 owner: wagner
-last_run: "2026-08-20"
+last_run: "2026-08-21"
+nota_data: "O trio nasceu em 20/08, mas o PR foi RECRIADO do main fresco em 21/08 (o #6066 ficou irreconciliável depois do squash do #6064). O commit do `.tsx` é de 21/08, então o G-6 compara contra esta data — não há re-execução a declarar, o conteúdo é o mesmo do dia anterior."
 last_run_ci: "_pendente_ — o trio nasce nesta onda (SA-O4c). O veredito por UC entra no manifesto quando a lane rodar; até lá o Status é 🧪, nunca ✅."
 ---
 
