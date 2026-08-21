@@ -29,6 +29,34 @@
       "check_estrutural": "ok (delimitadores balanceados)",
       "fidelidade": "NAO PROVADA",
       "linhas": 176
+    },
+    {
+      "path": "prototipo-ui/cowork/manufacturing-recipe.jsx",
+      "bytes_escritos": 15341,
+      "linhas": 268,
+      "check_estrutural": "ok (delimitadores + IIFE fecha)",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/connector-api.jsx",
+      "bytes_escritos": 13480,
+      "linhas": 218,
+      "check_estrutural": "ok (delimitadores + IIFE fecha)",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/cms-extras.jsx",
+      "bytes_escritos": 14046,
+      "linhas": 263,
+      "check_estrutural": "ok (delimitadores + IIFE fecha)",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/manufacturing-page.jsx",
+      "bytes_escritos": 20722,
+      "linhas": 369,
+      "check_estrutural": "ok (delimitadores + IIFE fecha)",
+      "fidelidade": "NAO PROVADA"
     }
   ],
   "data": "2026-08-21",
