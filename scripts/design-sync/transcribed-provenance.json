@@ -130,10 +130,19 @@
       "linhas": 557,
       "parse_esbuild": "OK",
       "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/cms-page.jsx",
+      "bytes_escritos": 41129,
+      "linhas": 683,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA",
+      "drift_detectado_e_corrigido": "slugify: escrevi os caracteres combinantes literais U+0300-U+036F em vez da sequencia de escape ̀-ͯ. Mesmo comportamento, texto diferente. Corrigido."
     }
   ],
   "data": "2026-08-21",
   "decisao": "[W] autorizou explicitamente apos a ressalva ser apresentada quatro vezes nesta sessao.",
   "o_que_o_parse_NAO_garante": "Fidelidade byte-a-byte. Uma linha inteira omitida, um numero trocado ou uma string alterada CONTINUAM sendo JSX valido e passam no parse. O parse prova que o arquivo CARREGA no navegador sem erro de sintaxe — nao prova que ele e igual ao vivo.",
-  "comando_para_reconferir": "for f in <arquivos>; do D:/oimpresso.com/node_modules/.bin/esbuild prototipo-ui/cowork/$f --outfile=/dev/null; done"
+  "comando_para_reconferir": "for f in <arquivos>; do D:/oimpresso.com/node_modules/.bin/esbuild prototipo-ui/cowork/$f --outfile=/dev/null; done",
+  "drift_observado": "1 caso CONFIRMADO em 17 arquivos (cms-page.jsx, slugify). Foi pego por inspecao dirigida, NAO pelo parse — o parse passou nas duas formas. E a prova concreta de que parse OK != fidelidade byte-a-byte."
 }
