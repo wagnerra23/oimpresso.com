@@ -835,6 +835,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** não re-propor gate/hook/catraca que exija artefato de baseline visual junto do código — sob qualquer nome (baseline-obrigatória, snap-gate, visreg-completeness) — **sem antes re-rodar a contagem acima**. E não re-propor citando *"main está vermelha de novo"* ou *"3 ondas esqueceram"* como motivo: essa é a **evidência que já produziu esta lápide**, não sinal novo. Também proibido apresentar a taxa de disparo como taxa de FP.
 
+### 2026-08-20 — Sondar o git com a mudança AINDA NÃO COMMITADA (a sonda responde sobre o commitado, não sobre o seu working tree)
+
+- **O limite (variante também proibida):** tratar saída de sonda que lê **git** como veredito sobre o que você acabou de editar — vale pra `git diff`, `git ls-files`, `git log`, `git show` e pra todo script de governança que recebe `--base`/`--head`/`--sha`. O working tree é **invisível** pra elas. A forma positiva é barata: rodar `git status --short` antes e, havendo `M`/`A`/`??` nos paths que importam, **commitar antes de sondar** (ou declarar que a resposta é sobre outra árvore). Mesma família do §5 2026-07-28 (*"git ls-files lista o índice da branch daquele worktree"*) — lá o eixo era **branch errada**, aqui é **estado não-commitado**.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
