@@ -53,6 +53,12 @@ por gosto — se algum estiver errado, é decisão [W] com base na Portaria, nã
 
 ## 3. Contrato de tela — as 5 seções
 
+> **Dono do mecanismo:** [`RUNBOOK-contrato-de-tela`](../_DesignSystem/RUNBOOK-contrato-de-tela.md)
+> (v1 — determinístico, sem render, sem auth). O v0 foi recusado na
+> [ADR 0290](../../decisions/0290-fidelity-lock-v0-recusado.md); o princípio da catraca semântica
+> vem da [ADR 0286 §5](../../decisions/0286-channel-health-corroborado-por-mensagem-real.md)
+> — ⚠️ ADR cujo TÍTULO é sobre outro assunto (channel health), então cite sempre com o §5.
+
 Alvo: `resources/js/Pages/Ponto/Espelho/Show.tsx` **e** `Index.tsx` (o gate aceita a copy em
 qualquer um dos dois arquivos do alvo).
 
