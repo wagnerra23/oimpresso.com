@@ -13,7 +13,7 @@ import { Deferred, Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { Skeleton } from '@/Components/ui/skeleton';
-import { Grid } from '@/Components/layout';
+import { Grid, Inline } from '@/Components/layout';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -176,7 +176,10 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Dados do colaborador</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm md:grid-cols-4">
+          {/* <Grid> em vez de grid solto — ADR 0253. `cols={2}` + o breakpoint md
+              fica no className, que é o resíduo que o primitivo não cobre. */}
+          <Grid cols={2} gap={2} className="text-sm md:grid-cols-4" asChild>
+          <CardContent>
             <Dado rotulo="Matrícula:" valor={colaborador.matricula} />
             <Dado rotulo="CPF:" valor={colaborador.cpf} />
             <Dado rotulo="PIS:" valor={colaborador.pis} />
@@ -188,6 +191,7 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
             <Dado rotulo="Admissão:" valor={fmtData(colaborador.admissao)} />
             <Dado rotulo="Desligamento:" valor={fmtData(colaborador.desligamento)} />
           </CardContent>
+          </Grid>
         </Card>
 
         <Deferred
@@ -232,7 +236,7 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
         {/* Modo de visão — a TABELA é o documento; a GRADE é a leitura de relance.
             As duas olham a mesma apuração, então o seletor não recarrega nada:
             só troca o que aparece. */}
-        <div className="flex items-center gap-1 print:hidden" data-contract="espelho-modo-visao">
+        <Inline gap={1} className="print:hidden" data-contract="espelho-modo-visao">
           <Button
             variant={modo === 'tabela' ? 'default' : 'outline'}
             size="sm"
@@ -249,7 +253,7 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
           >
             Grade do mês
           </Button>
-        </div>
+        </Inline>
 
         {modo === 'grade' && (
         <MonthHeatmap
@@ -362,10 +366,10 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
           </p>
           <p className="mt-4 text-xs font-semibold">Apuração diária</p>
           <p className="mt-4 text-xs font-semibold">Totais do mês</p>
-          <div className="mt-10 flex justify-between gap-8 text-xs">
+          <Inline gap={8} justify="between" className="mt-10 text-xs">
             <div className="flex-1 border-t border-black pt-1 text-center">Colaborador</div>
             <div className="flex-1 border-t border-black pt-1 text-center">Responsável RH</div>
-          </div>
+          </Inline>
           <p className="mt-6 text-center text-[10px] text-muted-foreground">
             Portaria MTP 671/2021 Art. 85
           </p>
