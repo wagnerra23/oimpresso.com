@@ -122,8 +122,8 @@ Bridge legacy entre o ERP Delphi histórico **WR Comercial / WR Sistemas (Office
 > | # | Blade | Rota | Page alvo | Padrão de Tela | F1 PLAN |
 > |---|---|---|---|---|---|
 > | 3 | `licenca_computador/index.blade.php` | `/officeimpresso/licenca_computador` | `Officeimpresso/Licencas/Index` | PT-01 Lista | [RUNBOOK-licencas.md](RUNBOOK-licencas.md) |
-> | 4 | `licenca_computador/computadores.blade.php` | `/officeimpresso/computadores` | `Officeimpresso/Empresa/Show` | PT-03 Detalhe | `RUNBOOK-empresa.md` (chega no PR da tela #4) |
-> | 5 | `licenca_computador/businessall.blade.php` | `/officeimpresso/businessall` | `Officeimpresso/Empresas/Index` | PT-01 Lista | `RUNBOOK-empresas.md` (chega no PR da tela #5) |
+> | 4 | `licenca_computador/computadores.blade.php` | `/officeimpresso/computadores` | `Officeimpresso/Empresa/Show` | PT-03 Detalhe | [RUNBOOK-empresa.md](RUNBOOK-empresa.md) |
+> | 5 | `licenca_computador/businessall.blade.php` | `/officeimpresso/businessall` | `Officeimpresso/Empresas/Index` | PT-01 Lista | [RUNBOOK-empresas.md](RUNBOOK-empresas.md) |
 >
 > **F1 PLAN (feita):** um RUNBOOK de 11 seções por tela + um `-parity.md` por tela. Não são US: são
 > os artefatos que a [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) exige
@@ -165,6 +165,91 @@ Bridge legacy entre o ERP Delphi histórico **WR Comercial / WR Sistemas (Office
 - Os **6 itens `alta` ainda sem teste** (12, 13, 19, 22, 27, 29 do `licencas-parity.md`) com teste citando o id do UC. Os outros 3 (25, 26, 28) já são cobertos por `LicencasAcessoPermissionTest`
 - Inclui o **assert negativo** do item 29: `senha`, `contra_senha`, `serial` e `token` ausentes da prop
 - **Presença do `-parity.md` não conta**; smoke com screenshot 1280 + 1440
+
+## Onda 2 — telas P1 · US da tela #4 (`Empresa/Show`)
+
+> Continuação do **epic da Onda 2** logo acima. Esta seção traz as US da tela **#4**, cujo F1 PLAN é o [RUNBOOK-empresa.md](RUNBOOK-empresa.md)
+> e cujo contrato campo-a-campo é o [empresa-parity.md](empresa-parity.md).
+
+### US-OI-011 — F2: baseline, payload seguro e flag da `Empresa/Show`
+**Como** dono do módulo, **quero** o comportamento de hoje travado em teste e o payload extraído ANTES de mexer, **pra** que a migração não perca regra nem publique credencial.
+**Implementado em:** _pendente_
+**Aceite:**
+- `blocked_by`: **decisão [W] sobre o escopo do `viewLicencas`** (D1 do `empresa-parity.md`) — ela precede a F2 porque define o que a fixture assere
+- Pest baseline no CT 100, tenant 98 ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)): 403 sem permissão e 200 com `access` (já cobertos), os dois no-leak de escrita (já cobertos), a ficha abrindo **sem** `package` e **sem** `active` (os dois blocos são condicionais), e o escopo das **duas** rotas
+- `buildEmpresaPayload()` (10 campos) + `buildComputadoresPayload()` (9 campos) devolvendo DTO. **Nunca os models** — `Licenca_Computador` não tem `$hidden` e o `$fillable` lista `senha`, `contra_senha`, `serial` e `token`; `Business` é um model gordo do ERP inteiro
+- Flag `useV2OfficeimpressoEmpresa` default OFF, valendo para as **duas** rotas — ligar só uma faz o suporte trocar de shell ao clicar "Ver computadores desta empresa" no `businessall`
+- **Só a flag decide** o dual; o `Inertia::render` viaja com a tela (US-OI-012), não aqui
+- `empresa-parity.md` completo (45 itens, 23 de severidade `alta`) — já entregue na F1
+
+### US-OI-012 — F3: tela `Empresa/Show` (ficha + computadores) em PT-03
+**Como** suporte, **quero** a ficha da empresa licenciada no shell React, **pra** bloquear cliente, ajustar versão obrigatória e chegar no log sem sair do cockpit.
+**Implementado em:** _pendente_
+**Aceite:**
+- `blocked_by`: US-OI-011
+- PT-03 (header-identidade, resumo, seções, ações contextuais); `StatusBadge kind="empresa"` **novo** e distinto do `kind="licenca"` — o sujeito aqui é a empresa, não a máquina
+- Modal de configuração vira `<Dialog>` do DS + `useForm`. **Não** é drawer 760 ([ADR 0185](../../decisions/0185-drawer-760-canon-entidades-cadastrais.md) é pra entidade cadastral; aqui são 3 campos de config)
+- `computadores` e `assinatura` em `Inertia::defer`; `empresa` e `permissions` eager
+- Preserva o que é intencional: `@format_date` com o shift +3h ([ADR 0066](../../decisions/0066-format-date-shift-3h-preservado-legacy-clientes.md)), `limite == 0` = "Ilimitado", e os blocos condicionais **ausentes** quando não há `package`/`active`
+- Traz o `Inertia::render` + o dual das duas actions, no mesmo PR do `.tsx`
+- 1280px com sidebar aberta sem scroll horizontal — são 10 colunas, o mesmo número que estoura na `Logs/Index`
+
+### US-OI-013 — F4: QA da `Empresa/Show` — os itens `alta` viram teste
+**Como** revisor, **quero** que cada item de severidade `alta` quebre um teste se sumir, **pra** que a paridade seja enforcement de comportamento, não papel.
+**Implementado em:** _pendente_
+**Aceite:**
+- `blocked_by`: US-OI-012
+- Os **18 itens `alta` ainda sem teste** do `empresa-parity.md` com teste citando o id do UC. Os outros 5 (38, 39, 40, 41, 42) já são cobertos por `LicencasAcessoPermissionTest`
+- Inclui o **assert negativo** do item 45 (`senha`, `contra_senha`, `serial`, `token` ausentes da prop) e a fixture de escopo do item 44, conforme a decisão [W]
+- **Presença do `-parity.md` não conta**; smoke com screenshot 1280 + 1440 **nas duas rotas**
+
+## Onda 2 — telas P1 · US da tela #5 (`Empresas/Index`) e o cutover da onda
+
+> Continuação do **epic da Onda 2** acima. Esta seção traz as US da tela **#5**, cujo F1 PLAN é o [RUNBOOK-empresas.md](RUNBOOK-empresas.md) e
+> cujo contrato campo-a-campo é o [empresas-parity.md](empresas-parity.md), mais a **US-OI-017**, que
+> é o cutover das **três** telas — uma só, porque flag ligada em metade da onda faz o suporte trocar
+> de shell no meio da navegação.
+
+### US-OI-014 — F2: baseline, payload seguro e flag da `Empresas/Index`
+**Como** dono do módulo, **quero** o comportamento de hoje travado em teste e o payload extraído ANTES de mexer, **pra** que a migração não perca regra nem publique cadastro.
+**Implementado em:** _pendente_
+**Aceite:**
+- `blocked_by`: **decisão [W] sobre as 4 colunas mortas** (D1 do `empresas-parity.md`) — precede a F2 porque define o payload e o número de colunas, e o número de colunas decide se a tela cabe a 1280
+- Pest baseline no CT 100, tenant 98 ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)): 403 sem permissão e 200 com `access` (já cobertos), **empresa sem `is_officeimpresso` não aparece** (a fixture que trava a regra da tela), e os 3 KPIs
+- `buildEmpresasPayload()` devolvendo DTO. **Nunca o model `Business`** — ele carrega o cadastro inteiro do ERP, e como esta lista é **global**, mandar o model cru publicaria o cadastro completo de todas as empresas no `data-page` do HTML
+- Flag `useV2OfficeimpressoEmpresas` default OFF; **só a flag decide** o dual; o `Inertia::render` viaja com a tela (US-OI-015)
+- `empresas-parity.md` completo (28 itens, 11 de severidade `alta`) — já entregue na F1
+
+### US-OI-015 — F3: tela `Empresas/Index` (Empresas Licenciadas) em PT-01
+**Como** suporte, **quero** a lista de empresas licenciadas no shell React, **pra** chegar na ficha e no log de qualquer cliente sem sair do cockpit.
+**Implementado em:** _pendente_
+**Aceite:**
+- `blocked_by`: US-OI-014
+- PT-01 (Header, Toolbar, Table, EmptyState); `StatusBadge kind="empresa"` — o **mesmo** `kind` da tela #4
+- Os dois botões de ação ganham `aria-label` — hoje são ícone sem rótulo, com o texto só no `title`
+- Props caras (`empresas`, `kpis`) em `Inertia::defer`
+- Traz o `Inertia::render` + o dual da action, no mesmo PR do `.tsx`
+- 1280px com sidebar aberta sem scroll horizontal — é a tela com **mais colunas** do módulo (11), e a decisão D1 pode reduzi-la a 7
+
+### US-OI-016 — F4: QA da `Empresas/Index` — os itens `alta` viram teste
+**Como** revisor, **quero** que cada item de severidade `alta` quebre um teste se sumir, **pra** que a paridade seja enforcement de comportamento, não papel.
+**Implementado em:** _pendente_
+**Aceite:**
+- `blocked_by`: US-OI-015
+- Os **9 itens `alta` ainda sem teste** do `empresas-parity.md` com teste citando o id do UC. Os outros 2 (24, 25) já são cobertos por `LicencasAcessoPermissionTest`
+- Inclui o **assert negativo** do item 28 (o model `Business` cru não vai na prop)
+- **Presença do `-parity.md` não conta**; smoke com screenshot 1280 + 1440
+
+### US-OI-017 — F5: cutover das 3 telas da Onda 2 e sunset dos Blades
+**Como** dono do módulo, **quero** os Blades removidos depois da prova, **pra** não manter dois caminhos.
+**Implementado em:** _pendente_
+**Aceite:**
+- `blocked_by`: US-OI-010, US-OI-013, US-OI-016
+- **Uma US só pras três telas:** as rotas se linkam entre si (a lista leva à ficha, as duas levam ao log), então flag ligada em metade da onda faz o suporte trocar de shell no meio da navegação
+- Módulo interno (WR2 + suporte), sem cliente externo — não precisa de janela de aviso; flag ON, período de observação, então remove os 3 Blades e as 3 flags
+- **É aqui que as 3 telas entram no gate visual** — antes é impossível: com a flag OFF a rota devolve o Blade, o `assertInertia(component: ...)` não acha nada e o `visual-regression` (required) fica vermelho pro repo inteiro. Os 4 pré-requisitos estão em [RUNBOOK-logs §F5 item 11](RUNBOOK-logs.md)
+- **Débito que vence aqui:** `LicencasAcessoPermissionTest:290` assere os links de `layouts/nav.blade.php` no HTML. Não quebra antes (a flag está OFF), quebra quando o Blade sair — a asserção migra pro `Resources/menus/topnav.php` neste PR
+- **Portão:** não entra antes das 3 US de F4 verdes. Enquanto os Blades existem, eles são a rota de fuga
 
 ## N/A justificado
 

@@ -1,7 +1,7 @@
 name: Ponto · Pest (MySQL)
 
 # Lane dedicada pra rodar a suíte Pest MySQL-only do Modules/Ponto contra MySQL
-# REAL + seed mínimo (biz=1 + biz=2 — via .github/actions/pest-mysql-setup, FV-F2).
+# REAL + seed mínimo multi-tenant (via .github/actions/pest-mysql-setup — dona dos tenants).
 #
 # Por que existe: ci.yml e modules-pest.yml rodam SQLite :memory' — e os cross-
 # tenant do Ponto (Wave27CrossTenantEscalaTest) dão `w27NeedsMysql()` →
@@ -79,7 +79,7 @@ jobs:
 
       # Setup canônico reusável (composite action). O service container MySQL fica
       # DECLARADO ACIMA no job (composite action não pode declarar services).
-      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
         if: steps.changes.outputs.ponto == 'true'
         uses: ./.github/actions/pest-mysql-setup
 

@@ -17,10 +17,28 @@
     "Jana/Memoria",
     "kb/Index",
     "Modules/Index",
+    "Ponto/Aprovacoes/Index",
+    "Ponto/BancoHoras/Index",
+    "Ponto/BancoHoras/Show",
+    "Ponto/Escalas/Form",
+    "Ponto/Espelho/Index",
+    "Ponto/Importacoes/Create",
+    "Ponto/Importacoes/Index",
+    "Ponto/Intercorrencias/Create",
+    "Ponto/Intercorrencias/Index",
+    "Ponto/Relatorios/Index",
     "Produto/SellingPrices",
     "Sells/Index"
   ],
   "ciclo": [
+    {
+      "tela": "Backup/Index",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/backup-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
     {
       "tela": "Jana/Chat",
       "status": "1-ciclo",
@@ -46,6 +64,78 @@
       ]
     },
     {
+      "tela": "Ponto/Colaboradores/Edit",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "Ponto/Colaboradores/Index",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "Ponto/Configuracoes/Index",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "Ponto/Configuracoes/Reps",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "Ponto/Dashboard/Index",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/ponto-page.jsx",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "Ponto/Escalas/Index",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "Ponto/Espelho/Show",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/ponto-page.jsx",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "Ponto/Importacoes/Show",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "Ponto/Intercorrencias/Show",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
       "tela": "Sells/Caixa/Index",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/vendas-extras.jsx · função VendasCaixaPage (linhas 123-354)",
@@ -62,5 +152,5 @@
       ]
     }
   ],
-  "total": 24
+  "total": 44
 }
