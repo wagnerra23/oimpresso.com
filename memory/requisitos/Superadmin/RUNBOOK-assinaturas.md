@@ -135,10 +135,12 @@ curl -sv https://oimpresso.com/superadmin/packages 2>&1 | grep '^< HTTP'
 - **Cross-tenant é intencional** ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)
   §exceções Superadmin): a lista mostra assinaturas de TODOS os negócios por desenho. Nenhuma
   onda adiciona escopo de tenant aqui.
-- **Esta onda é LEITURA.** Nenhuma rota de escrita é adicionada ou alterada. As ações do F1
-  (mudar status, editar vigência, cancelar) são a SA-O4b e passam pelo
-  `SubscriptionLifecycleService` — **nunca** por `update(['status' => …])` direto, que é o que o
-  legado faz e o que dispensa o audit trail.
+- **Toda escrita de status passa pelo `SubscriptionLifecycleService`** (SA-O4b) — **nunca** por
+  `$sub->status = …; save()`, que é o que o legado fazia. O Service é quem calcula a vigência ao
+  aprovar, é idempotente ao expirar e persiste o motivo ao cancelar. Uma assinatura aprovada por
+  escrita direta fica sem `end_date`, nunca vence e nunca entra na fila de cobrança.
+- **Cancelar não encurta vigência** (R3). O registro fica, o `end_date` fica, o acesso continua
+  até lá. `UC-SAASS-12` trava as três coisas.
 - **Nenhum valor em R$ entra em log, PR, commit ou arquivo** — e esta tela tem uma coluna de
   preço inteira. O `.tsx` formata o número que vem do payload; não existe literal monetário no
   código nem nos fixtures.
@@ -148,7 +150,7 @@ curl -sv https://oimpresso.com/superadmin/packages 2>&1 | grep '^< HTTP'
 
 | Peça do F1 | Situação |
 |---|---|
-| **Ações do kebab** (status · datas · cancelar) | **SA-O4b** — precisam do `SubscriptionLifecycleService` no caminho de escrita, e o cancelamento carrega motivo (R3 + `cancel_reason`) |
+| **Ações do kebab** (status · datas · cancelar) | **entregue na SA-O4b** — 3 ações, não os 5 status do F1: o Service modela três transições, `waiting` é estado inicial e `declined` vem de evento de cobrança. Os cinco exigiriam escrita direta em `status`, que é o que a onda veio remover. Ampliar o Service é decisão [W] |
 | **Seleção múltipla + BulkBar** | as duas ações do F1 são "baixar comprovantes" e "exportar" — nenhuma existe no backend (linhas abaixo) |
 | **"Baixar comprovante"** | **não há comprovante** no sistema: `payment_transaction_id` é uma string do gateway, não um documento. Medido em 2026-08-20: zero rota, zero storage, zero geração de PDF em `Modules/Superadmin/` |
 | **"Exportar" / "Lançar assinatura"** | `create`/`store` existem no resource, mas `store()` exige `can('subscribe')` — permissão diferente da que guarda esta tela (`can('superadmin')`). É decisão [W], não migração |

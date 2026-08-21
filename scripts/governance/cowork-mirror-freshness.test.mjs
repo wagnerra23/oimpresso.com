@@ -358,6 +358,33 @@ check('mesmo número → mesmo veredito (independe de --check)',
     exportPlan([{ path: 'jana-merge.jsx', content: 'x\n' }])[0].relPath === 'prototipo-ui/cowork/jana-merge.jsx');
   check('exportPlan: conteúdo passa INTACTO (sem transcrição)',
     exportPlan([{ path: 'a.jsx', content: 'l1\nl2\n' }])[0].content === 'l1\nl2\n');
+
+  // ── .md fora do espelho (2026-08-21, decisão [W]) ──────────────────────────
+  // R1 do cowork-ssot-guard reprova `.md` em cowork/ (build-only). Antes o `.md` era
+  // descartado e o preço foi 204 vivos no Cowork contra 0 no repo. Agora roteia — mas o
+  // roteamento é por EXTENSÃO, não por flag, pra quem chama não conseguir errar.
+  {
+    const docs = 'prototipo-ui/design-docs/';
+    const lote = [
+      { path: 'cowork-inbox/SUPERADMIN-F1.md', content: '# f1\n' },
+      { path: 'superadmin-page.jsx', content: 'const x=1;\n' },
+    ];
+    const plano = exportPlan(lote, { prefixoDocs: docs });
+    const md = plano.find((p) => p.relPath.endsWith('.md'));
+    const jsx = plano.find((p) => p.relPath.endsWith('.jsx'));
+    check('BITE R1: .md NUNCA cai em prototipo-ui/cowork/',
+      !md.relPath.startsWith('prototipo-ui/cowork/'), md.relPath);
+    check('exportPlan: .md vai pra design-docs/ PRESERVANDO a árvore do vivo',
+      md.relPath === docs + 'cowork-inbox/SUPERADMIN-F1.md', md.relPath);
+    check('CONTROLE NEGATIVO: o não-.md do MESMO lote segue no espelho',
+      jsx.relPath === 'prototipo-ui/cowork/superadmin-page.jsx', jsx.relPath);
+    check('exportPlan: .md roteado passa INTACTO', md.content === '# f1\n');
+    // Sem `prefixoDocs` o comportamento antigo é preservado — `--ds`/`--ds-runtime`
+    // pousam FORA de cowork/, onde o R1 não alcança e um `.md` é legítimo.
+    check('CONTROLE: sem prefixoDocs, .md segue o prefixo do destino (ds/dsRuntime)',
+      exportPlan([{ path: 'x.md', content: 'a\n' }], { prefixo: 'prototipo-ui/design-system/' })[0]
+        .relPath === 'prototipo-ui/design-system/x.md');
+  }
   // ⚠️ confere a MENSAGEM, não só "lançou": medido por mutação que, com `catch → true`,
   // remover o guard AINDA passava (Buffer.byteLength(undefined) lança sozinho e mascarava).
   let msg = '';
