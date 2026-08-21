@@ -9,6 +9,22 @@ use DataTables;
 use DB;
 use Illuminate\Http\Request;
 
+/**
+ * CRUD de agente comercial (comissionado).
+ *
+ * ACESSO: `commission_agent.view` (ler a lista) e `commission_agent.manage` (criar, editar,
+ * desmarcar). ATE 2026-08-20 esta tela gateava por `user.view`/`user.create`/`user.update`/
+ * `user.delete` — quem apurava comissao precisava, junto, de acesso ao cadastro de USUARIOS
+ * do negocio. Acoplamento indevido: sao dois assuntos diferentes, e o mais sensivel vinha
+ * de carona. Decisao [W] 2026-08-19.
+ *
+ * A troca vem acompanhada de backfill
+ * (2026_08_20_120000_add_commission_agent_permissions): todo papel que ja chegava aqui pelas
+ * permissoes de usuario recebeu as novas. Sem isso, a troca TIRARIA acesso no dia do deploy.
+ *
+ * O dono do negocio nao depende de nenhuma das duas: `Gate::before` em AuthServiceProvider
+ * libera qualquer ability pra quem tem `Admin#{business_id}`.
+ */
 class SalesCommissionAgentController extends Controller
 {
     /**
@@ -29,7 +45,7 @@ class SalesCommissionAgentController extends Controller
      */
     public function index()
     {
-        if (! auth()->user()->can('user.view') && ! auth()->user()->can('user.create')) {
+        if (! auth()->user()->can('commission_agent.view') && ! auth()->user()->can('commission_agent.manage')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -45,11 +61,11 @@ class SalesCommissionAgentController extends Controller
             return Datatables::of($users)
                 ->addColumn(
                     'action',
-                    '@can("user.update")
+                    '@can("commission_agent.manage")
                     <button type="button" data-href="{{action(\'App\Http\Controllers\SalesCommissionAgentController@edit\', [$id])}}" data-container=".commission_agent_modal" class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline  btn-modal tw-dw-btn-primary"><i class="glyphicon glyphicon-edit"></i> @lang("messages.edit")</button>
                         &nbsp;
                         @endcan
-                        @can("user.delete")
+                        @can("commission_agent.manage")
                         <button data-href="{{action(\'App\Http\Controllers\SalesCommissionAgentController@destroy\', [$id])}}" class="tw-dw-btn tw-dw-btn-outline tw-dw-btn-xs tw-dw-btn-error delete_commsn_agnt_button"><i class="glyphicon glyphicon-trash"></i> @lang("messages.delete")</button>
                         @endcan'
                 )
@@ -71,7 +87,7 @@ class SalesCommissionAgentController extends Controller
      */
     public function create()
     {
-        if (! auth()->user()->can('user.create')) {
+        if (! auth()->user()->can('commission_agent.manage')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -86,7 +102,7 @@ class SalesCommissionAgentController extends Controller
      */
     public function store(Request $request)
     {
-        if (! auth()->user()->can('user.create')) {
+        if (! auth()->user()->can('commission_agent.manage')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -209,7 +225,7 @@ class SalesCommissionAgentController extends Controller
      */
     public function edit($id)
     {
-        if (! auth()->user()->can('user.update')) {
+        if (! auth()->user()->can('commission_agent.manage')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -228,7 +244,7 @@ class SalesCommissionAgentController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (! auth()->user()->can('user.update')) {
+        if (! auth()->user()->can('commission_agent.manage')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -273,7 +289,7 @@ class SalesCommissionAgentController extends Controller
      */
     public function destroy($id)
     {
-        if (! auth()->user()->can('user.delete')) {
+        if (! auth()->user()->can('commission_agent.manage')) {
             abort(403, 'Unauthorized action.');
         }
 
