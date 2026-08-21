@@ -113,11 +113,62 @@ Bridge legacy entre o ERP Delphi histórico **WR Comercial / WR Sistemas (Office
 - Flag ON, período de observação, então remove `licenca_log/*.blade.php`, a flag e o comando
 - **Portão:** não entra antes de US-OI-006 verde. Enquanto o Blade existe, ele é a rota de fuga.
 
+## Epic — Onda 2 da migração React (as 3 telas P1)
+
+> **Origem:** [W] mandou seguir da Onda 1 (telas `Logs/`, F1→F4 mergeadas) para as **3 telas P1** do
+> inventário de 14 do [RUNBOOK-migracao-react.md](RUNBOOK-migracao-react.md). Mesmo critério verde
+> que a Onda 1 satisfez (*"Wagner explicitamente prioriza"*).
+>
+> | # | Blade | Rota | Page alvo | Padrão de Tela | F1 PLAN |
+> |---|---|---|---|---|---|
+> | 3 | `licenca_computador/index.blade.php` | `/officeimpresso/licenca_computador` | `Officeimpresso/Licencas/Index` | PT-01 Lista | [RUNBOOK-licencas.md](RUNBOOK-licencas.md) |
+> | 4 | `licenca_computador/computadores.blade.php` | `/officeimpresso/computadores` | `Officeimpresso/Empresa/Show` | PT-03 Detalhe | `RUNBOOK-empresa.md` (chega no PR da tela #4) |
+> | 5 | `licenca_computador/businessall.blade.php` | `/officeimpresso/businessall` | `Officeimpresso/Empresas/Index` | PT-01 Lista | `RUNBOOK-empresas.md` (chega no PR da tela #5) |
+>
+> **F1 PLAN (feita):** um RUNBOOK de 11 seções por tela + um `-parity.md` por tela. Não são US: são
+> os artefatos que a [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) exige
+> ANTES da F2, e não têm comportamento pra testar. As US abaixo são F2→F5.
+>
+> **Escopo negativo:** as outras 9 telas do módulo NÃO entram. Nenhuma capacidade de negócio nova —
+> é troca de shell, campo a campo. As duas únicas mudanças de comportamento são de **segurança** e
+> estão declaradas como divergência deliberada em cada `-parity.md`: `GET` que muda estado vira
+> `POST` com confirmação, e o payload passa a ser DTO explícito (o model carrega `senha` e
+> `contra_senha`, e prop de Inertia é serializada no HTML da página — ver
+> [RUNBOOK-licencas §10.1](RUNBOOK-licencas.md)).
+
+### US-OI-008 — F2: baseline, payload seguro e flag da `Licencas/Index`
+**Como** dono do módulo, **quero** o comportamento de hoje travado em teste e o payload extraído ANTES de mexer, **pra** que a migração não perca regra nem publique credencial.
+**Implementado em:** _pendente_
+**Aceite:**
+- Pest baseline no CT 100, tenant 98 ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)): 403 sem permissão, 200 com `officeimpresso.access`, os 3 KPIs e — a fixture que só o teste pega — **máquina de outro `business_id` não aparece na lista**
+- `buildLicencasPayload()` devolvendo DTO de 7 campos (`id, hd, user_win, processador, memoria, versao_exe, bloqueado`). **Nunca o model:** `Licenca_Computador` não tem `$hidden` e o `$fillable` lista `senha`, `contra_senha`, `serial` e `token`
+- Flag `useV2OfficeimpressoLicencas` default OFF via `FeatureFlagService`/GrowthBook. **Não** há comando `enable-v2` — esse padrão não existe no projeto (`git grep -lE 'enable-v2|enableV2' -- '*.php'` = zero)
+- **Só a flag decide** o caminho dual — condicionar ao header `X-Inertia` quebraria o first load, que não manda esse header (medido na Onda 1)
+- O `Inertia::render` **não** entra aqui: render apontando pra page inexistente é 500 esperando a flag ligar, e o `OrphanRenderGateTest` (required) reprova. Ele viaja com a tela, na US-OI-009
+- `licencas-parity.md` completo (29 itens, 9 de severidade `alta`) — já entregue na F1
+
+### US-OI-009 — F3: tela `Licencas/Index` (Computadores Cadastrados) em PT-01
+**Como** suporte, **quero** a lista de máquinas licenciadas no shell React, **pra** operar licença sem sair do cockpit.
+**Implementado em:** _pendente_
+**Aceite:**
+- `blocked_by`: US-OI-008
+- PT-01 (Header, Toolbar, Table, EmptyState); `StatusBadge kind="licenca"`; sem cor crua
+- Props caras (`licencas`, `kpis`) em `Inertia::defer`; `permissions` eager
+- Traz o `Inertia::render` + o dual da action, no mesmo PR do `.tsx`
+- 1280px com sidebar aberta sem scroll horizontal na página
+
+### US-OI-010 — F4: QA da `Licencas/Index` — os itens `alta` viram teste
+**Como** revisor, **quero** que cada item de severidade `alta` quebre um teste se sumir, **pra** que a paridade seja enforcement de comportamento, não papel.
+**Implementado em:** _pendente_
+**Aceite:**
+- `blocked_by`: US-OI-009
+- Os **6 itens `alta` ainda sem teste** (12, 13, 19, 22, 27, 29 do `licencas-parity.md`) com teste citando o id do UC. Os outros 3 (25, 26, 28) já são cobertos por `LicencasAcessoPermissionTest`
+- Inclui o **assert negativo** do item 29: `senha`, `contra_senha`, `serial` e `token` ausentes da prop
+- **Presença do `-parity.md` não conta**; smoke com screenshot 1280 + 1440
+
 ## Onda 2 — telas P1 · US da tela #4 (`Empresa/Show`)
 
-> O **epic da Onda 2** (tabela das 3 telas + escopo negativo) é entregue no PR da tela #3
-> (`RUNBOOK-licencas.md`, US-OI-008..010) — dono único, para não duplicar.
-> Esta seção traz só as US da tela **#4**, cujo F1 PLAN é o [RUNBOOK-empresa.md](RUNBOOK-empresa.md)
+> Continuação do **epic da Onda 2** logo acima. Esta seção traz as US da tela **#4**, cujo F1 PLAN é o [RUNBOOK-empresa.md](RUNBOOK-empresa.md)
 > e cujo contrato campo-a-campo é o [empresa-parity.md](empresa-parity.md).
 
 ### US-OI-011 — F2: baseline, payload seguro e flag da `Empresa/Show`
