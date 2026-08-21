@@ -223,6 +223,34 @@
       "linhas": 264,
       "parse_esbuild": "OK",
       "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/hrm-data.jsx",
+      "bytes_escritos": 15513,
+      "linhas": 157,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/hrm-forms.jsx",
+      "bytes_escritos": 17506,
+      "linhas": 288,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/hrm-page.css",
+      "bytes_escritos": 13554,
+      "linhas": 163,
+      "parse_esbuild": "OK (rc=0) — ver ressalva_parser_css: o rc do esbuild NAO reprova CSS quebrado",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/produto-analises.jsx",
+      "bytes_escritos": 13448,
+      "linhas": 214,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
     }
   ],
   "data": "2026-08-21",
@@ -230,5 +258,7 @@
   "o_que_o_parse_NAO_garante": "Fidelidade byte-a-byte. Uma linha inteira omitida, um numero trocado ou uma string alterada CONTINUAM sendo JSX valido e passam no parse. O parse prova que o arquivo CARREGA no navegador sem erro de sintaxe — nao prova que ele e igual ao vivo.",
   "comando_para_reconferir": "for f in <arquivos>; do D:/oimpresso.com/node_modules/.bin/esbuild prototipo-ui/cowork/$f --outfile=/dev/null; done",
   "drift_observado": "1 caso CONFIRMADO em 17 arquivos (cms-page.jsx, slugify). Foi pego por inspecao dirigida, NAO pelo parse — o parse passou nas duas formas. E a prova concreta de que parse OK != fidelidade byte-a-byte.",
-  "achado_shell_stale": "O shell local estava desatualizado e era a ANCORA de todas as minhas medicoes. O ABSENT-LOCAL que reportei nas levas 1-11 (31->15) foi medido contra fonte velha e SUBCONTAVA. Com o shell vivo: 26 ausentes. Os arquivos que eu classifiquei como orfaos (hrm-*, produto-blade*, relatorios-*) NAO sao orfaos — o shell velho e que nao os conhecia."
+  "achado_shell_stale": "O shell local estava desatualizado e era a ANCORA de todas as minhas medicoes. O ABSENT-LOCAL que reportei nas levas 1-11 (31->15) foi medido contra fonte velha e SUBCONTAVA. Com o shell vivo: 26 ausentes. Os arquivos que eu classifiquei como orfaos (hrm-*, produto-blade*, relatorios-*) NAO sao orfaos — o shell velho e que nao os conhecia.",
+  "ressalva_parser_css": "MEDIDO 2026-08-21, calibracao desta leva: esbuild NAO reprova CSS quebrado. Controle negativo `a { color: red;` (bloco sem fechar) sai como [WARNING] css-syntax-error com exit 0 — o mesmo controle em JSX sai [ERROR] com exit 1. Logo, para .css o rc sozinho e um gate MUDO: e preciso rodar com --log-level=warning e exigir ZERO linhas de saida. A frase de verificacao_possivel que dizia \"PARSE REAL com esbuild (JSX e CSS)\" vale integralmente para JSX; para CSS so vale com essa flag. As 12 leituras anteriores de .css que declararam parse OK apenas por rc=0 nao foram reconferidas nesta leva.",
+  "achado_fonte_hrm_page_css": "O hrm-page.css emite 4 linhas de [WARNING] do esbuild — e o defeito e DO FONTE Cowork, nao da transcricao: o comentario da linha 2 contem `(os-*/usr-*/cli-*). */`, e o `*/` dentro de `os-*/` fecha o comentario antes da hora. Reproduzido verbatim de proposito (o espelho copia a fonte, inclusive o defeito). Nao tratar esse warning como sinal de drift."
 }
