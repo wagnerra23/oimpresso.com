@@ -556,5 +556,22 @@
       "oimpresso.com.html": "5606b09d6a6a4edc363e7860dd3464990aeaae6b9ea80a5549f8da5f9a4e3c4c"
     },
     "origin": "medicao"
+  },
+  {
+    "date": "2026-08-21T17:41:31.674Z",
+    "files": 137,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 136,
+    "staleList": [],
+    "verified": [
+      "jana-merge.jsx"
+    ],
+    "verifiedHash": {
+      "jana-merge.jsx": "a265b6e685672887c624191abbe44f625d5a89e04ac25f1161c1a17136254253"
+    },
+    "origin": "export",
+    "stalePreExport": 1
   }
 ]

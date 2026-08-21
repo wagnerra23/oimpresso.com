@@ -127,8 +127,9 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   **0×**. Aquele conserto nunca landou no protótipo.
   A **regra segue inteira**: a fonte citada no drawer vem lida do código real
   (`app/Services/Sells/SellsCockpitAggregator.php`), nunca dos nomes do protótipo. Onde o back não
-  tem método (`churn`), declara-se isso em texto, e o render só veste de `<code>` o que contém
-  `::`. Mexeu no aggregator, mexe no `JANA_DRILL_FONTES` no mesmo PR.
+  tiver método, declara-se isso em texto, e o render só veste de `<code>` o que contém `::` — hoje
+  nenhuma fonte está nesse caso (o `churn`, que estava, ganhou método no UC-13).
+  Mexeu no aggregator, mexe no `JANA_DRILL_FONTES` no mesmo PR.
   _Guard: `prototipo-ui/ancora.mjs` acusa símbolo de backend citado na âncora que não exista no
   repo — e desde 2026-08-13 enxerga também o formato `Classe::metodo` (antes ficava cego nele)._
 - ⛔ **Oferecer no drawer de configuração um controle que o servidor não honra.** É a mesma família
@@ -137,7 +138,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   `BriefingAgent` — nenhum cron lê o `localStorage` de um navegador), áudio/TTS (não existe; o
   próprio protótipo diz *"entra na M2"*), retenção *"ela esquece sozinha"*
   (`jana:retention-purge` foi **descartado por [W]** — *"num ERP não se apaga PII"*) e 6 toggles de
-  análise quando a tela renderiza **4** cards. Toggle que não muda nada é a promessa do rodapé do
+  análise quando a tela renderiza **5** cards. Toggle que não muda nada é a promessa do rodapé do
   brief com outra roupa — e foi por isso que o contrato manteve os botões "(em breve)" fora dele.
   Entra no drawer só o que é verdade **e** de fato local (quais análises aparecem); preferência que
   vale pra empresa toda aponta pro dono server-side que já existe (`PATCH /ia/alertas/config` →

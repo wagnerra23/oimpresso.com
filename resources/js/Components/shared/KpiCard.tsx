@@ -102,13 +102,20 @@ export default function KpiCard({
 }: Props) {
   const iconSize = size === 'compact' ? 14 : size === 'large' ? 22 : 18;
   // ADR 0110 §Tipografia canon: KPI value = font-semibold (NÃO font-bold).
-  // size=large 36px (text-4xl), size=default 24px (text-2xl), size=compact 20px (text-xl).
+  // size=default = o degrau "KPI médio" da type ramp → --fs-7 (22px). A ramp se declara "the
+  // single source of font sizes" (prototipo-ui/cowork/ds-v6/tokens.css), é gerada em :root por
+  // resources/css/tokens/_generated-foundations-*.css e chega via foundations.css (AppShellV2).
+  // `leading-none` anda JUNTO por obrigação, não por gosto: text-2xl trazia line-height 2rem
+  // embutido no utilitário e o arbitrary value NÃO traz — sem ele o line-height viraria herdado.
+  // Casa com a regra de acabamento da ramp ("lh 1 números") e com --fs-8/--fs-9 no Financeiro.
+  // size=large 36px (text-4xl) vem da tabela da ADR 0110; size=compact 20px (text-xl) não tem
+  // dono declarado — os dois estão FORA da ramp (…18 · 22 · 28 · 38…) e não foram tocados aqui.
   const valueClass =
     size === 'compact'
       ? 'text-xl font-semibold'
       : size === 'large'
         ? 'text-4xl font-semibold'
-        : 'text-2xl font-semibold';
+        : 'text-[length:var(--fs-7)] leading-none font-semibold';
 
   const content = (
     <>

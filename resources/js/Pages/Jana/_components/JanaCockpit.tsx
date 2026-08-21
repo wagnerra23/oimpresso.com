@@ -112,7 +112,7 @@ export interface JanaCockpitProps {
   /**
    * Quais análises renderizar (`JanaConfigDrawer`, persistido em
    * `localStorage['oimpresso.jana.cfg']`). Preferência de EXIBIÇÃO: o
-   * aggregator apura as quatro de qualquer jeito, numa consulta só — esconder
+   * aggregator apura as cinco de qualquer jeito, numa consulta só — esconder
    * card não economiza cálculo, e o drawer diz isso ao usuário.
    *
    * Opcional de propósito: `undefined` = mostra tudo. Assim o componente segue
