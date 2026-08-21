@@ -6,7 +6,7 @@
     "gerar o payload eu mesmo: escrita no Cowork e gated (ADR 0315 + hook block-design-sync-without-optin); e mesmo destravada, montar o payload exigiria ler os arquivos pelo get_file -> mesma transcricao, circular.",
     "navegador com a sessao logada do [W]: projeto abriu em claude.ai/design/p/019dcfd3..., mas o classificador de permissoes bloqueou o fetch scriptado contra a API interna. Nao contornado."
   ],
-  "verificacao_possivel": "Apenas ESTRUTURAL (delimitadores balanceados, simbolos exportados presentes, IIFE fecha). Isso NAO detecta linha perdida dentro de corpo de funcao nem espaco alterado.",
+  "verificacao_possivel": "DOIS niveis, ambos rodados em 100% dos arquivos: (1) estrutural — delimitadores balanceados + IIFE fecha; (2) PARSE REAL com esbuild (JSX e CSS), calibrado com controle positivo (venda-v3.jsx, que veio pela rota fiel) e controle negativo (JSX quebrado de proposito, que o parser recusa). Resultado: 12/12 parse OK.",
   "rota_fiel_quando_existir": "Assim que sync/payload-01.json ... NN.json (partes <=250 KiB) existirem no projeto Cowork, reaplicar por aplicar-payload.mjs e SUBSTITUIR estes arquivos. O applier confere bytes declarados vs reais por arquivo.",
   "arquivos": [
     {
@@ -14,72 +14,98 @@
       "bytes_escritos": 8219,
       "linhas": 189,
       "check_estrutural": "ok (delimitadores balanceados)",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "parse_esbuild": "OK"
     },
     {
       "path": "prototipo-ui/cowork/manufacturing-data.jsx",
       "bytes_escritos": 11524,
       "check_estrutural": "ok (delimitadores balanceados)",
       "fidelidade": "NAO PROVADA",
-      "linhas": 191
+      "linhas": 191,
+      "parse_esbuild": "OK"
     },
     {
       "path": "prototipo-ui/cowork/venda-v3.css",
       "bytes_escritos": 8113,
       "check_estrutural": "ok (delimitadores balanceados)",
       "fidelidade": "NAO PROVADA",
-      "linhas": 176
+      "linhas": 176,
+      "parse_esbuild": "OK"
     },
     {
       "path": "prototipo-ui/cowork/manufacturing-recipe.jsx",
       "bytes_escritos": 15341,
       "linhas": 268,
       "check_estrutural": "ok (delimitadores + IIFE fecha)",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "parse_esbuild": "OK"
     },
     {
       "path": "prototipo-ui/cowork/connector-api.jsx",
       "bytes_escritos": 13480,
       "linhas": 218,
       "check_estrutural": "ok (delimitadores + IIFE fecha)",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "parse_esbuild": "OK"
     },
     {
       "path": "prototipo-ui/cowork/cms-extras.jsx",
       "bytes_escritos": 14046,
       "linhas": 263,
       "check_estrutural": "ok (delimitadores + IIFE fecha)",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "parse_esbuild": "OK"
     },
     {
       "path": "prototipo-ui/cowork/manufacturing-page.jsx",
       "bytes_escritos": 20722,
       "linhas": 369,
       "check_estrutural": "ok (delimitadores + IIFE fecha)",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "parse_esbuild": "OK"
     },
     {
       "path": "prototipo-ui/cowork/funcoes-perms.jsx",
       "bytes_escritos": 28366,
       "linhas": 425,
       "check_estrutural": "ok",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "parse_esbuild": "OK"
     },
     {
       "path": "prototipo-ui/cowork/funcoes-page.jsx",
       "bytes_escritos": 18155,
       "linhas": 358,
       "check_estrutural": "ok",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "parse_esbuild": "OK"
     },
     {
       "path": "prototipo-ui/cowork/connector-page.jsx",
       "bytes_escritos": 23487,
       "linhas": 411,
       "check_estrutural": "ok",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "parse_esbuild": "OK"
+    },
+    {
+      "path": "prototipo-ui/cowork/produto-blade.css",
+      "bytes_escritos": 18175,
+      "linhas": 251,
+      "fidelidade": "NAO PROVADA",
+      "parse_esbuild": "OK"
+    },
+    {
+      "path": "prototipo-ui/cowork/hrm-ui.jsx",
+      "bytes_escritos": 13997,
+      "linhas": 260,
+      "fidelidade": "NAO PROVADA",
+      "parse_esbuild": "OK"
     }
   ],
   "data": "2026-08-21",
-  "decisao": "[W] autorizou explicitamente apos a ressalva ser apresentada quatro vezes nesta sessao."
+  "decisao": "[W] autorizou explicitamente apos a ressalva ser apresentada quatro vezes nesta sessao.",
+  "o_que_o_parse_NAO_garante": "Fidelidade byte-a-byte. Uma linha inteira omitida, um numero trocado ou uma string alterada CONTINUAM sendo JSX valido e passam no parse. O parse prova que o arquivo CARREGA no navegador sem erro de sintaxe — nao prova que ele e igual ao vivo.",
+  "comando_para_reconferir": "for f in <arquivos>; do D:/oimpresso.com/node_modules/.bin/esbuild prototipo-ui/cowork/$f --outfile=/dev/null; done"
 }
