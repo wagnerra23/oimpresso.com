@@ -689,7 +689,15 @@ function reportAbsentLocal(shellHtml, stream = process.stdout) {
   w(
     `\n  ⛔ ausentes: ${faltando.length} · ⬜ ignorados por design: ${ignorados.length}\n` +
     (faltando.length
-      ? `  Pra versionar: DesignSync.get_file de cada → salve os JSON num dir → --export-from <dir>.\n  ⚠️ .md desce em OUTRO destino: o --export-from roteia .md pra prototipo-ui/design-docs/\n  (R1 do cowork-ssot-guard reprova .md em cowork/ — build-only).\n  (não muda o exit code: o --check morde só em STALE)\n`
+      ? `  Pra versionar — DUAS rotas, e elas NÃO são equivalentes (hierarquia em prototipo-ui/protocolo.config.mjs, fase -1):\n` +
+        `  [PRINCIPAL] muitos arquivos → peça o payload em PARTES <=256 KiB, DesignSync.get_file de cada\n` +
+        `              (parte >48 KB volta PERSISTIDA em disco, não no contexto) → aplicar-payload.mjs.\n` +
+        `              O conteúdo vira DADO e o applier confere bytes por arquivo ANTES de escrever.\n` +
+        `  [pontual]   1-3 arquivos avulsos → get_file de cada → salve os JSON num dir → --export-from <dir>.\n` +
+        `              ⚠️ get_file de arquivo <~36 KB volta INLINE no contexto: aí não há JSON em disco\n` +
+        `              pra alimentar o --export-from, e escrever de lá é TRANSCRIÇÃO (fidelidade não provada).\n` +
+        `              Isso é limite do TRANSPORTE, não do problema — a rota [PRINCIPAL] não tem esse teto.\n` +
+        `  ⚠️ .md desce em OUTRO destino: o --export-from roteia .md pra prototipo-ui/design-docs/\n  (R1 do cowork-ssot-guard reprova .md em cowork/ — build-only).\n  (não muda o exit code: o --check morde só em STALE)\n`
       : `  ✓ toda dep do shell existe no espelho.\n`),
   );
 }
