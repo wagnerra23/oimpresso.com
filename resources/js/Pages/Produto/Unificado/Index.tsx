@@ -74,6 +74,15 @@ import {
   AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
 import BulkBar from './_components/BulkBar';
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from '@/Components/ui/command';
 import { ABAS_CATALOGO, brl, type AbaKey, type KpiKey, type Permissoes, type ProdutoRow } from './_components/catalogo';
 import { celulasDe, colunasDe, larguraMinima, type ColunaKey } from './_components/Colunas';
 import KpiFiltros, { type KpisCatalogo } from './_components/KpiFiltros';
@@ -273,13 +282,25 @@ function ProdutoUnificadoIndex({
    */
   const [ativa, setAtiva] = useState(-1);
 
+  /**
+   * Paleta de comandos (§4.5). Um só campo pra ir a qualquer lugar da tela sem tirar a mão do
+   * teclado: abas, recortes e — o que ela tem de próprio — os **Recentes**.
+   *
+   * Recentes é a razão de ela existir num catálogo. Quem atende passa o dia voltando aos mesmos
+   * oito ou dez itens; achá-los de novo custa digitar a busca inteira toda vez. A paleta os
+   * traz por último-aberto, sem busca nenhuma.
+   */
+  const [paleta, setPaleta] = useState(false);
+  const [recentes, setRecentes] = useState<Array<{ id: number; nome: string; codigo: number }>>([]);
+
   useEffect(() => {
     try {
       const bruto = localStorage.getItem(CHAVE_PREFS);
       if (!bruto) return;
-      const r = JSON.parse(bruto) as { densa?: unknown; colsOcultas?: unknown };
+      const r = JSON.parse(bruto) as { densa?: unknown; colsOcultas?: unknown; recentes?: unknown };
       setDensa(!!r.densa);
       if (Array.isArray(r.colsOcultas)) setColsOcultas(r.colsOcultas as ColunaKey[]);
+      if (Array.isArray(r.recentes)) setRecentes(r.recentes as typeof recentes);
     } catch {
       // Preferência ilegível (JSON corrompido, cota, modo privado): a tela abre no padrão.
       // Nada aqui vale derrubar a consulta do balcão.
@@ -288,11 +309,11 @@ function ProdutoUnificadoIndex({
 
   useEffect(() => {
     try {
-      localStorage.setItem(CHAVE_PREFS, JSON.stringify({ densa, colsOcultas }));
+      localStorage.setItem(CHAVE_PREFS, JSON.stringify({ densa, colsOcultas, recentes }));
     } catch {
       // Cota cheia: segue sem persistir.
     }
-  }, [densa, colsOcultas]);
+  }, [densa, colsOcultas, recentes]);
 
   const copiar = (texto: string, rotulo: string) => {
     navigator.clipboard?.writeText(texto).then(
@@ -444,7 +465,25 @@ function ProdutoUnificadoIndex({
    */
   const irParaVizinho = (delta: -1 | 1) => {
     const alvo = linhas[indiceAberto + delta];
-    if (alvo) setAbertoId(alvo.id);
+    if (alvo) abrirItem(alvo.id);
+  };
+
+  /**
+   * Abre o painel E registra o item nos recentes. Guarda nome e código junto do id: o item pode
+   * não estar no recorte atual quando a paleta for aberta de novo, e uma lista de ids crus não
+   * seria escolhível — a pessoa não reconhece "1042" fora de contexto.
+   *
+   * Oito é o teto do handoff §4.5. Acima disso a lista deixa de ser "os que eu estava vendo" e
+   * vira um histórico que precisa ser lido.
+   */
+  const abrirItem = (id: number) => {
+    setAbertoId(id);
+    const linha = linhas.find((r) => r.id === id);
+    if (!linha) return;
+    setRecentes((atual) => [
+      { id, nome: linha.name, codigo: linha.codigo },
+      ...atual.filter((x) => x.id !== id),
+    ].slice(0, 8));
   };
 
   /**
@@ -485,6 +524,14 @@ function ProdutoUnificadoIndex({
    */
   useEffect(() => {
     const onKey = (ev: KeyboardEvent) => {
+      // ⌘K / Ctrl+K é a ÚNICA que vale mesmo digitando: é como se sai de um campo pra ir a
+      // outro lugar, e exigir que a pessoa clique fora antes tornaria o atalho inútil.
+      if ((ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === 'k') {
+        ev.preventDefault();
+        setPaleta((v) => !v);
+        return;
+      }
+
       const alvo = ev.target as HTMLElement | null;
       const digitando = !!alvo && /^(INPUT|TEXTAREA|SELECT)$/.test(alvo.tagName);
       if (digitando) return;
@@ -522,7 +569,7 @@ function ProdutoUnificadoIndex({
 
       if (ev.key === 'Enter' && ativa >= 0 && linhas[ativa]) {
         ev.preventDefault();
-        setAbertoId(linhas[ativa]!.id);
+        abrirItem(linhas[ativa]!.id);
         return;
       }
 
@@ -993,12 +1040,12 @@ function ProdutoUnificadoIndex({
                                 role="button"
                                 tabIndex={0}
                                 aria-label={`Abrir detalhe de ${r.name}`}
-                                onClick={() => { setAtiva(i); setAbertoId(r.id); }}
+                                onClick={() => { setAtiva(i); abrirItem(r.id); }}
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
                                     setAtiva(i);
-                                    setAbertoId(r.id);
+                                    abrirItem(r.id);
                                   }
                                 }}
                                 className={
@@ -1150,6 +1197,110 @@ function ProdutoUnificadoIndex({
           )}
         </div>
       </div>
+
+      {/* ───── PALETA DE COMANDOS · ⌘K (handoff 21/08 §4.5) ─────────────
+          Um campo pra ir a qualquer lugar da tela sem tirar a mão do teclado. Os grupos são os
+          do handoff, menos os que esta base não tem: "Grade" (códigos de filho) exige saldo por
+          combinação, que o cadastro ainda não guarda.
+
+          `Recentes` vem PRIMEIRO porque é o que se usa: quem atende volta o dia todo aos mesmos
+          dez itens, e achá-los de novo custa digitar a busca inteira toda vez. */}
+      <CommandDialog open={paleta} onOpenChange={setPaleta}>
+        <CommandInput placeholder="Ir para aba, recorte ou item recente…" />
+        <CommandList>
+          <CommandEmpty>Nada encontrado.</CommandEmpty>
+
+          {recentes.length > 0 && (
+            <>
+              <CommandGroup heading="Recentes">
+                {recentes.map((r) => (
+                  <CommandItem
+                    key={r.id}
+                    value={`${r.codigo} ${r.nome}`}
+                    onSelect={() => {
+                      setPaleta(false);
+                      // O recente pode não estar no recorte atual (outra aba, outro filtro,
+                      // outra página). Abrir o painel por id nesse caso não mostraria nada —
+                      // o painel lê da fatia carregada. Então: se está na tela, abre; se não
+                      // está, BUSCA pelo código, que é o caminho que sempre traz o item.
+                      if (linhas.some((x) => x.id === r.id)) {
+                        setAbertoId(r.id);
+                        return;
+                      }
+                      setBusca(String(r.codigo));
+                      irPara({ busca: String(r.codigo), aba: 'todos', kpi: '', pagina: 1 }, RECORTE);
+                    }}
+                  >
+                    <span className="mr-2 font-mono text-[11px] tabular-nums text-muted-foreground">{r.codigo}</span>
+                    {r.nome}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+              <CommandSeparator />
+            </>
+          )}
+
+          <CommandGroup heading="Abas">
+            {ABAS_CATALOGO.map((a) => (
+              <CommandItem
+                key={a.key}
+                value={`aba ${a.label}`}
+                onSelect={() => { setPaleta(false); irPara({ aba: a.key, kpi: '', pagina: 1 }, RECORTE); }}
+              >
+                {a.label}
+                <span className="ml-auto font-mono text-[11px] tabular-nums text-muted-foreground">
+                  {(abas?.[a.key] ?? 0).toLocaleString('pt-BR')}
+                </span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+
+          <CommandSeparator />
+
+          <CommandGroup heading="Recortes">
+            <CommandItem value="recorte abaixo do minimo" onSelect={() => { setPaleta(false); irPara({ kpi: 'min', pagina: 1 }, RECORTE); }}>
+              Abaixo do mínimo
+            </CommandItem>
+            <CommandItem value="recorte sem saldo" onSelect={() => { setPaleta(false); irPara({ kpi: 'zero', pagina: 1 }, RECORTE); }}>
+              Sem saldo
+            </CommandItem>
+            {/* Os dois de gestão só entram na paleta pra quem os vê na faixa de KPI — a paleta
+                não é uma porta dos fundos pro que a permissão fechou. */}
+            {permissoes.custo && (
+              <CommandItem value="recorte sem venda parado" onSelect={() => { setPaleta(false); irPara({ kpi: 'parado', pagina: 1 }, RECORTE); }}>
+                Sem venda há {diasParado} dias
+              </CommandItem>
+            )}
+            {permissoes.custo && permissoes.preco && (
+              <CommandItem value="recorte margem baixa" onSelect={() => { setPaleta(false); irPara({ kpi: 'margem', pagina: 1 }, RECORTE); }}>
+                Margem baixa
+              </CommandItem>
+            )}
+            {(temFiltro || filters.kpi || filters.busca) && (
+              <CommandItem value="limpar recorte" onSelect={() => { setPaleta(false); limparFiltros(); }}>
+                Limpar o recorte
+              </CommandItem>
+            )}
+          </CommandGroup>
+
+          <CommandSeparator />
+
+          <CommandGroup heading="Ações">
+            <CommandItem value="novo produto" onSelect={() => { setPaleta(false); router.visit('/products/create'); }}>
+              Novo produto
+            </CommandItem>
+            <CommandItem value="importar planilha" onSelect={() => { setPaleta(false); router.visit('/import-products'); }}>
+              Importar planilha
+            </CommandItem>
+            <CommandItem value="exportar planilha" onSelect={() => { setPaleta(false); window.location.href = '/products/download-excel'; }}>
+              Exportar planilha
+            </CommandItem>
+            <CommandItem value="densidade linhas confortaveis" onSelect={() => { setPaleta(false); setDensa((v) => !v); }}>
+              {densa ? 'Voltar às linhas confortáveis' : 'Usar linhas compactas'}
+            </CommandItem>
+          </CommandGroup>
+        </CommandList>
+      </CommandDialog>
 
       {/* Confirmação da ação destrutiva (§4.4). O texto NOMEIA a quantidade e diz o efeito —
           "Tem certeza?" sozinho não dá ao operador nada pra conferir antes de confirmar. */}

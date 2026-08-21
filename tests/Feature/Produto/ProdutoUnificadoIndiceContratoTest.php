@@ -112,14 +112,18 @@ it('UC-PUNI-07 · o KPI de margem baixa não é servido a quem não pode ver cus
     $props = indiceContratoProps($this, ['kpis']);
 
     // PRÉ-CONDIÇÃO ANTI-VÁCUO: a prop chegou e traz os contadores que NÃO dependem de custo.
+    // `ativos` saiu no pacote de 21/08 §4.1 (contava a própria lista); `parado` passou a ser
+    // gateado junto com o custo, porque "o que parou de girar" é recorte de gestão.
     expect($props)->toHaveKey('kpis');
-    expect($props['kpis'])->toBeArray()->toHaveKeys(['ativos', 'min', 'zero', 'parado', 'total']);
+    expect($props['kpis'])->toBeArray()->toHaveKeys(['min', 'zero', 'total']);
 
-    expect(array_key_exists('margem', (array) $props['kpis']))->toBeFalse(
-        'O contador "Margem baixa" chegou ao navegador para usuário SEM view_purchase_price. '
-        . 'Quantos itens estão sob o piso É uma leitura da estrutura de custo — gatear a coluna e '
-        . 'deixar o KPI entrega o mesmo dado agregado (handoff §9 + AR-PROD-015).'
-    );
+    foreach (['margem', 'parado'] as $chaveDeGestao) {
+        expect(array_key_exists($chaveDeGestao, (array) $props['kpis']))->toBeFalse(
+            "O contador \"{$chaveDeGestao}\" chegou ao navegador para usuário SEM view_purchase_price. "
+            . 'Quantos itens estão sob o piso (ou parados) É uma leitura da estrutura de custo — gatear '
+            . 'a coluna e deixar o KPI entrega o mesmo dado agregado (handoff §9 + AR-PROD-015).'
+        );
+    }
 });
 
 // =============================================================================
@@ -506,4 +510,64 @@ it('UC-PUNI-14 · a variação-fantasma do UltimatePOS não vira variação na t
         3,
         'A contagem de valores da variação não bateu com o que foi semeado.'
     );
+});
+
+// =============================================================================
+// UC-PUNI-11 — os TOTAIS DO RODAPÉ são dinheiro do tenant somado (handoff 21/08 §4.6).
+//   "Valor em estoque" e "Repor até o mínimo" revelam a estrutura de custo por outro caminho
+//   que não a coluna: quem não pode ver custo não pode ver o agregado dele.
+// =============================================================================
+
+it('UC-PUNI-11 · os totais do rodapé não são servidos a quem não pode ver custo', function () {
+    if ($this->user->can('view_purchase_price')) {
+        $this->markTestSkipped('User seedado JÁ tem view_purchase_price — sem cenário pra provar o gate.');
+    }
+
+    EstoqueFixture::singleProduct((int) $this->business->id);
+
+    $props = indiceContratoProps($this, ['totaisDoRecorte', 'totalDaAba']);
+
+    // PRÉ-CONDIÇÃO ANTI-VÁCUO: a visita respondeu, o recorte tem linha, e a chave dos totais
+    // CHEGOU. Sem isto, "não veio valor" passaria só porque a prop inteira não foi pedida —
+    // mediria não-execução, não o gate.
+    expect($props)->toHaveKey('totalDaAba');
+    expect((int) $props['totalDaAba'])->toBeGreaterThan(0);
+    expect($props)->toHaveKey('totaisDoRecorte');
+
+    expect($props['totaisDoRecorte'])->toBeNull(
+        'Os totais de custo do recorte chegaram ao navegador para usuário SEM view_purchase_price. '
+        . 'Somar saldo × custo entrega a mesma estrutura de custo que a coluna gateada — quem abre '
+        . 'a aba de rede lê o número (handoff §4.6 + §9 + AR-PROD-015).'
+    );
+});
+
+// =============================================================================
+// UC-PUNI-12 — "Repor até o mínimo" nunca é negativo (handoff 21/08 §4.6).
+//   Item ACIMA do mínimo contribui zero. Se contribuísse negativo, o excedente de um item
+//   "pagaria" pela falta de outro e o total mentiria pra menos — que é o erro caro: o comprador
+//   deixaria de comprar o que falta.
+// =============================================================================
+
+it('UC-PUNI-12 · o total de reposição soma só a falta, nunca a sobra', function () {
+    if (! $this->user->can('view_purchase_price')) {
+        Permission::findOrCreate('view_purchase_price', 'web');
+        $this->user->givePermissionTo('view_purchase_price');
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    }
+
+    EstoqueFixture::singleProduct((int) $this->business->id);
+
+    $props = indiceContratoProps($this, ['totaisDoRecorte', 'totalDaAba']);
+
+    // PRÉ-CONDIÇÃO ANTI-VÁCUO: há linha no recorte e os totais vieram de verdade.
+    expect((int) $props['totalDaAba'])->toBeGreaterThan(0);
+    expect($props['totaisDoRecorte'])->toBeArray()->toHaveKeys(['emEstoque', 'repor']);
+
+    expect((float) $props['totaisDoRecorte']['repor'])->toBeGreaterThanOrEqual(
+        0.0,
+        'O total de "Repor até o mínimo" veio negativo. Item acima do mínimo está entrando na '
+        . 'soma com sinal invertido: a sobra de um produto está abatendo a falta de outro, e o '
+        . 'comprador leria uma necessidade menor do que a real.'
+    );
+    expect((float) $props['totaisDoRecorte']['emEstoque'])->toBeGreaterThanOrEqual(0.0);
 });
