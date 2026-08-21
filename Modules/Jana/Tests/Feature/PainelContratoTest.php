@@ -217,10 +217,19 @@ it('UC-COPI-PAINEL-08: o cockpit declara carregando em vez de pintar zero', func
 
     // 2. os DOIS KPIs que dependem da prop deferida trocam de card enquanto carrega.
     //    `\(` no meio não é decoração: o JSX real é `carregandoCockpit ? (\n <KpiCardSkeleton`.
-    //    Rótulo "Receita mês" desde 2026-08-17 (era "Faturamento mês") — alinhamento
-    //    de COPY com a âncora `jana-merge.jsx`. Mesmo dado, mesma prop deferida.
+    //    Rótulo "Receita 30 dias" desde 2026-08-21 (era "Receita mês", e antes
+    //    "Faturamento mês"). Mesmo dado, mesma prop deferida.
+    //
+    //    ⚠️ A versão anterior desta nota dizia que "Receita mês" era "alinhamento de
+    //    COPY com a âncora `jana-merge.jsx`". Isso é FALSO, e foi medido em
+    //    2026-08-21: a âncora oficial NÃO tem este KPI. O rótulo veio de
+    //    `chat-jana.jsx` :87 — o protótipo que o §5 de 2026-08-10 declarou
+    //    NÃO-âncora. Lá ele é coerente, porque o delta ao lado é "vs mai/25" (mês
+    //    contra mês); aqui o dado é de 30 dias deslizantes e o delta é diário.
+    //    Corrigido junto com o rótulo em UC-COPI-PAINEL-14 — comentário que afirma
+    //    proveniência errada é instrução ativa pra próxima sessão (§5 2026-08-10).
     expect($cockpit)
-        ->toMatch('/carregandoCockpit\s*\?\s*\(\s*<KpiCardSkeleton label="Receita mês"/u')
+        ->toMatch('/carregandoCockpit\s*\?\s*\(\s*<KpiCardSkeleton label="Receita 30 dias"/u')
         ->toMatch('/carregandoCockpit\s*\?\s*\(\s*<KpiCardSkeleton label="PIX hoje"/u');
 
     // 3. a série tem TRÊS arms — carregando · vazio-de-verdade · série. Asserção de

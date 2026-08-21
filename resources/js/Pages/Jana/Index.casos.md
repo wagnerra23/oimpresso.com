@@ -400,7 +400,7 @@ rótulo temporal fixo é escolha arbitrária, e a honesta é a que descreve o re
 eles que impedem o `TypeError` e mantêm válida a entrada `Jana/Index` na
 `DEFER_GUARD_ONLY_ALLOWLIST`; o que mudou é o **render**.
 
-Escopo medido: só os **2** KPIs que dependem da prop deferida (Receita mês · PIX hoje) trocam de
+Escopo medido: só os **2** KPIs que dependem da prop deferida (Receita 30 dias · PIX hoje) trocam de
 card. `A receber vencido` e `Ticket médio` vêm de `insightsAggregates` (eager) e **não** podem
 sumir — há controle negativo no teste.
 
