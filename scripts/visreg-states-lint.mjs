@@ -123,7 +123,22 @@ function lint() {
   }
 
   // Regra 4 — charter declara `states:` mas NAO ha entrada no manifesto (estado sem snapshot).
-  const allCharters = (git('ls-files -- "*.charter.md"') || '').split('\n').filter(Boolean);
+  //
+  // O universo e o charter de TELA VIVA. `prototipo-ui/design-docs/` fica de fora: e o
+  // destino declarado por [W] em 2026-08-21 pro KNOWLEDGE do projeto Cowork — copia fiel
+  // do artefato do DESIGN, nao charter de tela que renderiza. O `.md` de la nunca vai ter
+  // snapshot porque nao existe tela por tras dele; cobra-lo aqui transforma "estado sem
+  // snapshot" (defeito real) em "documento descido" (nao e defeito).
+  //
+  // Medido: sem esta linha, descer os 15 charters do Ponto/Relatorios pro espelho de docs
+  // produz 15 drifts falsos e reprova o gate — o conteudo esta correto e fiel a fonte.
+  // O eixo que o lint protege segue intacto: charter vivo em resources/js/Pages/** e
+  // Modules/**/Resources/js/** continua cobrado, e o selftest continua mordendo.
+  const DOCS_MIRROR = 'prototipo-ui/design-docs/';
+  const allCharters = (git('ls-files -- "*.charter.md"') || '')
+    .split('\n')
+    .filter(Boolean)
+    .filter((rel) => !rel.replace(/\\/g, '/').startsWith(DOCS_MIRROR));
   for (const rel of allCharters) {
     if (manifestCharters.has(rel)) continue;
     const states = parseCharterStates(readFileSync(resolve(ROOT, rel), 'utf8'));
