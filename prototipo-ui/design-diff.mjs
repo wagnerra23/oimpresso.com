@@ -72,7 +72,21 @@ export const PROBE_SOURCE = /* js */ `(() => {
     tag: kpiEls[0] ? kpiEls[0].tagName : null,
     overflowX: (() => { const p = kpiEls[0] && kpiEls[0].parentElement; return p ? p.scrollWidth > p.clientWidth + 2 : null; })(),
     items: kpiEls.map((el) => {
-      const c = cs(el); const small = el.querySelector('small,[class*="label"]'); const b = el.querySelector('b,[class*="value"]');
+      const c = cs(el); const small = el.querySelector('small,[class*="label"]');
+      // O VALOR do KPI: tenta a marcação semântica e, se ela não existir, cai no
+      // MAIOR texto-folha dentro do card. O fallback existe porque seletor de
+      // classe é cego a utility-first: o KpiCard canon marca o valor com
+      // 'text-2xl', sem "value" no nome, então [class*="value"] devolvia null e a
+      // tipografia do VALOR saía NÃO-MEDIDA — ponto cego silencioso, que é pior
+      // que divergência (o relatório fica igual ao de quem mediu e bateu).
+      // "O valor é o maior texto do card" vale por construção nos dois lados.
+      // Conservador: só roda quando o seletor falha — onde já funcionava, nada muda.
+      let b = el.querySelector('b,[class*="value"]');
+      if (!b) {
+        b = [...el.querySelectorAll("*")]
+          .filter((e) => (e.textContent || "").trim() && !e.children.length)
+          .sort((x, y) => parseFloat(cs(y).fontSize) - parseFloat(cs(x).fontSize))[0] || null;
+      }
       return {
         label: (el.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 14),
         textAlign: c.textAlign,
@@ -148,6 +162,29 @@ function dimTipografia(prod, design) { // D4
   // banda declarada (TOLERANCIAS.tituloPx): 1px = o artefato máximo do Math.round da própria sonda.
   const dT = Math.abs(a.fontPx - b.fontPx);
   if (dT > TOLERANCIAS.tituloPx.valor) rows.push({ dim: 'D4', campo: 'título font-size', prod: a.fontPx + 'px', design: b.fontPx + 'px', veredito: 'DIVERGE (bug)', detalhe: `Δ ${dT}px · banda tituloPx ±${TOLERANCIAS.tituloPx.valor}px` });
+  // O VALOR do KPI — o texto que o usuário de fato lê no card.
+  //
+  // Este bloco faltava, e a ausência era SILENCIOSA: a sonda MEDIA valueFontPx
+  // desde sempre (linha ~96) e o comparador nunca lia o campo. Dado coletado que
+  // nenhum consumidor consome não é neutro — é a mesma doutrina do CLAUDE.md
+  // ("máquina que existe e ninguém invoca é bug, não neutralidade"), aqui no eixo
+  // do CAMPO. Pior que divergir: o relatório saía com a mesma cara de quem mediu
+  // e bateu, e a dimensão D4 se apresentava como "tipografia" medindo só o título.
+  //
+  // Medido em 2026-08-21 no Painel da Jana: prod 24px × design 22px. Sem este
+  // bloco, os dois lados apareciam como IGUAL na linha de tipografia.
+  const pv = ((prod.kpi && prod.kpi.items) || []).map((i) => i.valueFontPx).filter((x) => x != null);
+  const dv = ((design.kpi && design.kpi.items) || []).map((i) => i.valueFontPx).filter((x) => x != null);
+  if (pv.length && dv.length) {
+    const dV = Math.abs(pv[0] - dv[0]);
+    if (dV > TOLERANCIAS.tipografia.valor) {
+      rows.push({ dim: 'D4', campo: 'kpi valor font-size', prod: pv[0] + 'px', design: dv[0] + 'px', veredito: 'DIVERGE (bug)', detalhe: 'Δ ' + dV + 'px · banda tipografia ±' + TOLERANCIAS.tipografia.valor + 'px' });
+    }
+  } else if (pv.length !== dv.length) {
+    // Um lado mediu e o outro não: NÃO é igual, é NÃO-MEDIDO. Dizer "IGUAL" aqui
+    // seria afirmar sobre o que não se conseguiu ler (§5 2026-07-29).
+    rows.push({ dim: 'D4', campo: 'kpi valor font-size', prod: pv.length ? pv[0] + 'px' : 'não medido', design: dv.length ? dv[0] + 'px' : 'não medido', veredito: 'SEM-DADO' });
+  }
   if (!rows.length) rows.push({ dim: 'D4', campo: 'tipografia', prod: 'ok', design: 'ok', veredito: 'IGUAL' });
   return rows;
 }
@@ -221,7 +258,7 @@ function runCompare(argv) {
 function selftest() {
   // FIXTURE HERMÉTICO — reproduz o incidente 2026-07-07 (center×left) + dark-mode.
   const prod = { theme: 'dark', roles: {
-    kpi: { count: 5, tag: 'BUTTON', overflowX: true, items: Array(5).fill(0).map((_, i) => ({ label: 'kpi' + i, textAlign: 'center', alignItems: 'normal', textColor: 'oklch(0.374 0.01 67)', smallAlign: 'center', valueFontPx: 22 })) },
+    kpi: { count: 5, tag: 'BUTTON', overflowX: true, items: Array(5).fill(0).map((_, i) => ({ label: 'kpi' + i, textAlign: 'center', alignItems: 'normal', textColor: 'oklch(0.374 0.01 67)', smallAlign: 'center', valueFontPx: 26 })) },
     title: { fontPx: 22, weight: '600', color: 'oklch(0.984 0 0)' },
     primary: { bg: 'oklch(0.55 0.15 295)', color: 'oklch(0.99 0 0)', border: 'oklch(0.45 0.15 295)' },
     filterRows: 1,
@@ -241,6 +278,7 @@ function selftest() {
     ['D2 pega filtro 1×2 linhas', has('D2', 'filtro')],
     ['D6 pega roxo escuro×roxinho (lightness)', has('D6', 'lightness')],
     ['D6 pega texto KPI escuro no dark', has('D6', 'kpi texto')],
+    ['D4 pega VALOR do KPI (campo que a sonda media e o compare ignorava)', has('D4', 'kpi valor')],
     ['--check sairia 1 (tem bug)', res.bugs > 0],
   ];
   // controle: dois lados IGUAIS não acusam bug

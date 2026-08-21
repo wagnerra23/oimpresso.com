@@ -116,7 +116,7 @@ function SuperadminDashboard({ periodo, janela, statsPeriodo, semAssinatura, mrr
 
   return (
     <div className="pb-8">
-      <PageHeader title="Superadmin" subtitle="Visão geral da plataforma" />
+      <PageHeader title="Superadmin" moduleNav description="Visão geral da plataforma" />
 
       <div className="flex flex-wrap items-center gap-3 px-6 pt-4" data-contract="superadmin.dashboard.periodo">
         <div className="flex gap-0.5 rounded-md border bg-muted p-0.5" role="group" aria-label="Período">
