@@ -223,6 +223,34 @@
       "linhas": 264,
       "parse_esbuild": "OK",
       "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/hrm-data.jsx",
+      "bytes_escritos": 15513,
+      "linhas": 157,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/hrm-forms.jsx",
+      "bytes_escritos": 17506,
+      "linhas": 288,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/hrm-page.css",
+      "bytes_escritos": 13554,
+      "linhas": 163,
+      "parse_esbuild": "OK (rc=0) — ver ressalva_parser_css: o rc do esbuild NAO reprova CSS quebrado",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/produto-analises.jsx",
+      "bytes_escritos": 13448,
+      "linhas": 214,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
     }
   ],
   "data": "2026-08-21",
@@ -230,5 +258,9 @@
   "o_que_o_parse_NAO_garante": "Fidelidade byte-a-byte. Uma linha inteira omitida, um numero trocado ou uma string alterada CONTINUAM sendo JSX valido e passam no parse. O parse prova que o arquivo CARREGA no navegador sem erro de sintaxe — nao prova que ele e igual ao vivo.",
   "comando_para_reconferir": "for f in <arquivos>; do D:/oimpresso.com/node_modules/.bin/esbuild prototipo-ui/cowork/$f --outfile=/dev/null; done",
   "drift_observado": "1 caso CONFIRMADO em 17 arquivos (cms-page.jsx, slugify). Foi pego por inspecao dirigida, NAO pelo parse — o parse passou nas duas formas. E a prova concreta de que parse OK != fidelidade byte-a-byte.",
-  "achado_shell_stale": "O shell local estava desatualizado e era a ANCORA de todas as minhas medicoes. O ABSENT-LOCAL que reportei nas levas 1-11 (31->15) foi medido contra fonte velha e SUBCONTAVA. Com o shell vivo: 26 ausentes. Os arquivos que eu classifiquei como orfaos (hrm-*, produto-blade*, relatorios-*) NAO sao orfaos — o shell velho e que nao os conhecia."
+  "achado_shell_stale": "O shell local estava desatualizado e era a ANCORA de todas as minhas medicoes. O ABSENT-LOCAL que reportei nas levas 1-11 (31->15) foi medido contra fonte velha e SUBCONTAVA. Com o shell vivo: 26 ausentes. Os arquivos que eu classifiquei como orfaos (hrm-*, produto-blade*, relatorios-*) NAO sao orfaos — o shell velho e que nao os conhecia.",
+  "ressalva_parser_css": "MEDIDO 2026-08-21, calibracao desta leva: esbuild NAO reprova CSS quebrado. Controle negativo `a { color: red;` (bloco sem fechar) sai como [WARNING] css-syntax-error com exit 0 — o mesmo controle em JSX sai [ERROR] com exit 1. Logo, para .css o rc sozinho e um gate MUDO: e preciso rodar com --log-level=warning e exigir ZERO linhas de saida. A frase de verificacao_possivel que dizia \"PARSE REAL com esbuild (JSX e CSS)\" vale integralmente para JSX; para CSS so vale com essa flag. As 12 leituras anteriores de .css que declararam parse OK apenas por rc=0 nao foram reconferidas nesta leva.",
+  "achado_fonte_hrm_page_css": "O hrm-page.css emite 4 linhas de [WARNING] do esbuild — e o defeito e DO FONTE Cowork, nao da transcricao: o comentario da linha 2 contem `(os-*/usr-*/cli-*). */`, e o `*/` dentro de `os-*/` fecha o comentario antes da hora. Reproduzido verbatim de proposito (o espelho copia a fonte, inclusive o defeito). Nao tratar esse warning como sinal de drift.",
+  "checagem_de_cardinalidade": "RODADA nesta leva (4 arquivos), como TERCEIRO nivel alem do estrutural e do parse. O parse nao pega omissao: uma entrada inteira a menos continua sendo JSX valido. Entao contei os itens de cada colecao contra o esperado da fonte. hrm-data.jsx: EMP=7 TIPOS=5 LIC=9 FER=6 TUR=3 PRE=10 GD=5 LOTES=3 FOLHA=9 ACHADOS=7, ids de LIC e FOLHA sequenciais 1..9 sem lacuna, window.HRM com 24 chaves. hrm-forms.jsx: 6 declaracoes \"function Form*\" e 6 nomes no window.HrmForms (batem entre si), DIAS com 7 pares. produto-analises.jsx: 5 entradas no array \"abas\" e 5 blocos condicionais \"aba ===\" (batem entre si). TODOS BATEM. O QUE ISSO NAO PROVA: valor alterado DENTRO de uma entrada (salario, data, percentual, copy) — cardinalidade pega item FALTANDO, nao item ERRADO. Por isso o campo \"fidelidade\" de cada entrada continua NAO PROVADA.",
+  "licao_desta_leva_backtick_em_node_e": "Registro de erro proprio (2026-08-21): a 1a gravacao deste campo passou por \"node -e\" com o argumento entre ASPAS DUPLAS e backticks no texto. O shell fez substituicao de comando: \"`fidelidade`\" virou string vazia (com \"fidelidade: command not found\" no stderr) e \"`abas'\" ficou com aspas desbalanceada. O JSON gerado era valido e o commit passou — ou seja, o defeito nao aparecia em nenhum gate, so na leitura do texto. Regra: conteudo literal nao atravessa \"node -e\"/heredoc do wrapper; escreve-se por script em ARQUIVO ou pela tool de escrita."
 }
