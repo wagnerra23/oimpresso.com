@@ -584,6 +584,13 @@
       "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
     },
     {
+      "path": "prototipo-ui/design-docs/cowork-inbox/FORJA-COCKPIT-CHARTER-V2-PROPOSTA-2026-08-08.md",
+      "bytes_escritos": 9930,
+      "linhas": 91,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
       "path": "prototipo-ui/design-docs/cowork-inbox/FORJA-TOPNAV-3GRUPOS-LEVA1-2026-08-08.md",
       "bytes_escritos": 16455,
       "linhas": 125,
@@ -594,6 +601,13 @@
       "path": "prototipo-ui/design-docs/cowork-inbox/INVENTARIO-L1-VENDAS-PDV.md",
       "bytes_escritos": 6885,
       "linhas": 74,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/JANA-CICLO-COMPLETO-PRODUCAO-2026-08-13.md",
+      "bytes_escritos": 21701,
+      "linhas": 226,
       "fidelidade": "NAO PROVADA",
       "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
     },
@@ -664,6 +678,20 @@
       "path": "prototipo-ui/design-docs/cowork-inbox/PLANO-BLADE-PARA-REACT.md",
       "bytes_escritos": 10238,
       "linhas": 135,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/PLANO-MESTRE-trilha-d-ciclo-completo.md",
+      "bytes_escritos": 12620,
+      "linhas": 176,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/SUPERADMIN-F1-2026-08-18.md",
+      "bytes_escritos": 9677,
+      "linhas": 119,
       "fidelidade": "NAO PROVADA",
       "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
     },
