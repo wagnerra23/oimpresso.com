@@ -1,52 +1,160 @@
 {
-  "_leia_isto_primeiro": "Estes arquivos do espelho Cowork NAO desceram pela rota fiel (get_file -> --export-from). Eles foram TRANSCRITOS do contexto do agente porque o conteudo voltou inline (abaixo da fronteira de persistencia do get_file, ~48 KB). A fidelidade byte-a-byte NAO esta provada e NAO existe oraculo no vivo para prova-la. Decisao [W] 2026-08-21.",
-  "_lote": "Modulo Essenciais (4 arquivos, nenhum existia no repo) + tela Planilhas (2 arquivos). Nenhum dos 6 persistiu em disco: todos voltaram inline pelo get_file.",
-  "_merge_com_pr_6117": "A PR #6117 (branch claude/cowork-transcricao) cria este MESMO arquivo com outros 12 registros. Se as duas mergearem, o conflito e ESPERADO e a resolucao correta e UNIAO do array `arquivos` (12 + 6 = 18) — nunca sobrescrever um lado. Merge sem conflito neste arquivo seria o sinal de que um lote sumiu.",
-  "verificacao_possivel": "TRES niveis, todos rodados em 100% dos 6 arquivos. (1) PARSE REAL com esbuild (JSX e CSS), calibrado ANTES com controle positivo (prototipo-ui/cowork/venda-v3.jsx, que veio pela rota fiel: rc=0) e controle negativo (JSX quebrado de proposito: rc=1) — resultado 6/6 OK. (2) Higiene de transcricao: NFC normalizado, ZERO caracteres combinantes (a classe de drift confirmada no lote anterior), ZERO CRLF. (3) Auditoria de TODOS os backslashes do lote — 4 no total, todos esperados, e ZERO ocorrencia de '\\n' literal: sao 2x aspas-escapadas em essenciais-data.jsx:40 (a citacao \"sem resposta\" dentro da string) e 2x a regex /\\.xlsx$/i em planilhas-page.jsx:177-178.",
-  "o_que_o_parse_NAO_prova": "Parse verde diz que o arquivo e JSX/CSS valido — NAO que ele e igual ao vivo. Um typo dentro de string literal, um numero trocado ou uma palavra perdida passam pelo esbuild. Por isso `fidelidade: NAO PROVADA` fica em cada registro.",
-  "rota_fiel_quando_existir": "Assim que sync/payload-01.json ... NN.json (partes <=250 KiB) existirem no projeto Cowork, reaplicar por aplicar-payload.mjs e SUBSTITUIR estes arquivos. O applier confere bytes declarados vs reais por arquivo.",
+  "gerado_em": "2026-08-21",
+  "fonte": {
+    "sistema": "DesignSync",
+    "projectId": "019dcfd3-6ef2-7ee6-8512-b1b0e5544e58"
+  },
+  "metodo": "DesignSync.get_file (retorno INLINE) -> transcricao pelo agente via heredoc quoted",
+  "fidelidade_nota": "NAO PROVADA para todos: os bytes passaram pelo contexto do agente. A rota --export-from do cowork-mirror-freshness garante fidelidade POR CONSTRUCAO somente quando o harness persiste a saida do get_file (limiar medido ~47KB); nenhum destes .md atingiu o limiar, entao a rota persistida nao se aplica.",
+  "verificacao_feita": "cowork-ssot-guard exit 0 (R1: nenhum .md em cowork/) + frontmatter YAML parseado com o pacote yaml + contagem de bytes/linhas por arquivo",
+  "frontmatter_invalido_na_FONTE": [
+    {
+      "padrao": "autor: [CC] 2026-08-19",
+      "porque": "sequencia de flow [CC] seguida de escalar — YAML invalido",
+      "arquivos": [
+        "prototipo-ui/design-docs/handoff/Backup.charter.md",
+        "prototipo-ui/design-docs/handoff/backup-migracao/charter/Index.charter.md"
+      ],
+      "decisao": "preservado como esta: e defeito do documento vivo no Cowork, nao da transcricao. Consertar aqui quebraria a fidelidade e criaria drift com a fonte."
+    }
+  ],
+  "_lotes": {
+    "_porque": "Este arquivo passou a agregar mais de um lote de transcricao. As chaves de topo acima (gerado_em/metodo/verificacao_feita/fidelidade_nota) descrevem o PRIMEIRO lote, o dos .md. Cada registro carrega o campo `lote`, e a verificacao especifica de cada lote esta abaixo — nao presuma que a prosa de topo cobre um registro de outro lote.",
+    "_merge": "Se duas PRs deste tipo abrirem juntas, o conflito neste arquivo e ESPERADO e a resolucao e UNIAO do array `arquivos` — nunca sobrescrever um lado. Merge sem conflito aqui seria o sinal de que um lote sumiu. A PR #6117 (ainda ABERTA) escreve este mesmo arquivo com um TERCEIRO esquema: quem resolver aquele conflito faz a mesma uniao e adiciona o `lote` dela nesta lista.",
+    "design-docs/handoff (.md) — PR #6120": "cowork-ssot-guard exit 0 (R1: nenhum .md em cowork/) + frontmatter YAML parseado com o pacote yaml + contagem de bytes/linhas por arquivo",
+    "espelho cowork: Essenciais + Planilhas (.jsx/.css) — PR #6121": "TRES niveis, todos rodados em 100% dos 6 arquivos. (1) PARSE REAL com esbuild (JSX e CSS), calibrado ANTES com controle positivo (prototipo-ui/cowork/venda-v3.jsx, que veio pela rota fiel: rc=0) e controle negativo (JSX quebrado de proposito: rc=1) — resultado 6/6 OK. (2) Higiene de transcricao: NFC normalizado, ZERO caracteres combinantes (a classe de drift confirmada no lote anterior), ZERO CRLF. (3) Auditoria de TODOS os backslashes do lote — 4 no total, todos esperados, e ZERO ocorrencia de '\\n' literal: sao 2x aspas-escapadas em essenciais-data.jsx:40 (a citacao \"sem resposta\" dentro da string) e 2x a regex /\\.xlsx$/i em planilhas-page.jsx:177-178.",
+    "espelho cowork: Essenciais + Planilhas (.jsx/.css) — PR #6121 · o_que_o_parse_NAO_prova": "Parse verde diz que o arquivo e JSX/CSS valido — NAO que ele e igual ao vivo. Um typo dentro de string literal, um numero trocado ou uma palavra perdida passam pelo esbuild. Por isso `fidelidade: NAO PROVADA` fica em cada registro.",
+    "espelho cowork: Essenciais + Planilhas (.jsx/.css) — PR #6121 · rota_fiel_quando_existir": "Assim que sync/payload-01.json ... NN.json (partes <=250 KiB) existirem no projeto Cowork, reaplicar por aplicar-payload.mjs e SUBSTITUIR estes arquivos. O applier confere bytes declarados vs reais por arquivo."
+  },
   "arquivos": [
+    {
+      "path": "prototipo-ui/design-docs/handoff/Backup.casos.md",
+      "bytes_escritos": 7605,
+      "linhas": 112,
+      "sha256": "daaf514d552026914c72558224b96904ce92be04b1e10eb25c6ee0ceca6ab489",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/handoff (.md) — PR #6120"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/Backup.charter.md",
+      "bytes_escritos": 4911,
+      "linhas": 94,
+      "sha256": "7f6b2d19f79b0d797975d01a82e6b11a2a0af6a1edde72d5f5cbb4510bf29142",
+      "frontmatter": "ERRO: Unexpected scalar at node end at line 6, column 13:",
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/handoff (.md) — PR #6120"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/HANDOFF-backup-tela.md",
+      "bytes_escritos": 6147,
+      "linhas": 103,
+      "sha256": "8422cb686705194d63276ef40e77fc3f4c8627e77bc59f327a31dada09ecb265",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/handoff (.md) — PR #6120"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/HANDOFF-financeiro-contrato.md",
+      "bytes_escritos": 3198,
+      "linhas": 28,
+      "sha256": "113bbf999bc929a5a2547118dc75f56524b9226d0f1522c2ec6b756fd6f30ad9",
+      "frontmatter": "sem-frontmatter",
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/handoff (.md) — PR #6120"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/backup-migracao/HANDOFF-backup-tela.md",
+      "bytes_escritos": 6147,
+      "linhas": 103,
+      "sha256": "8422cb686705194d63276ef40e77fc3f4c8627e77bc59f327a31dada09ecb265",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/handoff (.md) — PR #6120"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/backup-migracao/PLANO-ONDAS.md",
+      "bytes_escritos": 6230,
+      "linhas": 126,
+      "sha256": "d444d5fff5a5903bdba47ad94ea0eb20cbb179d26fda8e69b73ee50df3930e47",
+      "frontmatter": "sem-frontmatter",
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/handoff (.md) — PR #6120"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/backup-migracao/README.md",
+      "bytes_escritos": 2963,
+      "linhas": 55,
+      "sha256": "ecb5d29003a6aa606df2177af06fc79a2cf233942a1218565abaac9237b55a34",
+      "frontmatter": "sem-frontmatter",
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/handoff (.md) — PR #6120"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/backup-migracao/charter/Index.casos.md",
+      "bytes_escritos": 7605,
+      "linhas": 112,
+      "sha256": "daaf514d552026914c72558224b96904ce92be04b1e10eb25c6ee0ceca6ab489",
+      "frontmatter": "ok",
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/handoff (.md) — PR #6120"
+    },
+    {
+      "path": "prototipo-ui/design-docs/handoff/backup-migracao/charter/Index.charter.md",
+      "bytes_escritos": 4911,
+      "linhas": 94,
+      "sha256": "7f6b2d19f79b0d797975d01a82e6b11a2a0af6a1edde72d5f5cbb4510bf29142",
+      "frontmatter": "ERRO: Unexpected scalar at node end at line 6, column 13:",
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/handoff (.md) — PR #6120"
+    },
     {
       "path": "prototipo-ui/cowork/essenciais-data.jsx",
       "bytes_escritos": 16057,
       "linhas": 169,
       "parse_esbuild": "OK",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "lote": "espelho cowork: Essenciais + Planilhas (.jsx/.css) — PR #6121"
     },
     {
       "path": "prototipo-ui/cowork/essenciais-extras.jsx",
       "bytes_escritos": 17340,
       "linhas": 302,
       "parse_esbuild": "OK",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "lote": "espelho cowork: Essenciais + Planilhas (.jsx/.css) — PR #6121"
     },
     {
       "path": "prototipo-ui/cowork/essenciais-page.jsx",
       "bytes_escritos": 41409,
       "linhas": 701,
       "parse_esbuild": "OK",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "lote": "espelho cowork: Essenciais + Planilhas (.jsx/.css) — PR #6121"
     },
     {
       "path": "prototipo-ui/cowork/essenciais-page.css",
       "bytes_escritos": 9641,
       "linhas": 116,
       "parse_esbuild": "OK",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "lote": "espelho cowork: Essenciais + Planilhas (.jsx/.css) — PR #6121"
     },
     {
       "path": "prototipo-ui/cowork/planilhas-page.jsx",
       "bytes_escritos": 25018,
       "linhas": 428,
       "parse_esbuild": "OK",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "lote": "espelho cowork: Essenciais + Planilhas (.jsx/.css) — PR #6121"
     },
     {
       "path": "prototipo-ui/cowork/planilhas-page.css",
       "bytes_escritos": 8080,
       "linhas": 88,
       "parse_esbuild": "OK",
-      "fidelidade": "NAO PROVADA"
+      "fidelidade": "NAO PROVADA",
+      "lote": "espelho cowork: Essenciais + Planilhas (.jsx/.css) — PR #6121"
     }
   ]
 }
