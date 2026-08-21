@@ -208,6 +208,78 @@ suas de 5 regras sobre o dado real, então a contagem varia por tenant. O par:
 
 ---
 
+## Rodada MEDIDA de 2026-08-21 — design-diff + sonda escopada (as 4 telas)
+
+> **Por que esta seção existe.** As comparações anteriores deste doc foram feitas por leitura e
+> por presença de texto. Nesta rodada o veredito veio do `design-diff.mjs` (mesma sonda injetada
+> nos dois lados, computed style) e de uma sonda escopada ao container da tela. Duas coisas
+> mudaram de figura, e uma delas **derruba um achado anterior meu**.
+
+### O veredito da máquina (`design-diff --compare`, dark × dark)
+
+| dim | campo | produção | protótipo | veredito |
+|---|---|---|---|---|
+| D2 | layout (contagem/overflow) | ok | ok | ✅ IGUAL |
+| D4 | título font-size | **22px** | **19px** | ❌ DIVERGE (Δ3px · banda ±1px) |
+| D4 | kpi valor font-size | **24px** | **22px** | ❌ DIVERGE (Δ2px · banda ±0px) |
+| D6 | cor (accent/texto) | ok | ok | ✅ IGUAL |
+| D8 | kpi.tag | **BUTTON** | **DIV** | ❌ DIVERGE |
+
+O título é **22px nas 4 telas** (`/ia`, `/ia/conversa`, `/ia/memoria`, `/ia/pro`) — a divergência é
+**sistemática do shell**, não do Painel.
+
+⚠️ **A linha `kpi valor font-size` só existe a partir de hoje.** A sonda media `valueFontPx` desde
+sempre e o `--compare` **nunca lia o campo** — a dimensão D4 se anunciava como "tipografia"
+medindo só o título, e saía verde. Consertado em [#6098](https://github.com/wagnerra23/oimpresso.com/pull/6098),
+com o selftest passando a morder o campo (controle negativo: bloco desligado ⇒ `rc=1`).
+
+### Achado ANTERIOR meu que a máquina REFUTOU
+
+Eu havia reportado `text-align` inconsistente entre os KPIs de produção (`left` em dois, `start` em
+dois). **Falso como divergência visual:** o comparador normaliza `start`→`left` — são equivalentes
+em LTR e os quatro renderizam igual. A inconsistência existe no **código**, não na tela. Achado
+retirado.
+
+### Landmarks — lacuna nova, e ela NÃO é regressão da migração
+
+| landmark | protótipo | produção |
+|---|---|---|
+| `<main>` | **0** | **0** |
+| `<nav>` | 1 | **0** |
+| `<h1>` | 1 | 1 |
+
+**Sem `<main>`, leitor de tela não tem como pular a sidebar e ir ao conteúdo.** O protótipo tem o
+mesmo defeito, então isto é **lacuna de origem**, não algo que a migração quebrou. O `<nav>`, esse
+sim, produção perdeu.
+
+Medido: `SiteLayout.tsx` (site público) emite `<main>`; o **AppShell do cockpit não emite**, e
+nenhum teste trava isso. Nem o pixel-diff nem o `design-diff` olham landmark — o eixo é cego nos
+dois. ⚠️ **Consertar toca o shell de 213 telas** (visreg no parque inteiro): é decisão [W], não
+conserto de PR de tela.
+
+### Tamanho de conteúdo — MEDIDO mas INCONCLUSIVO, e o registro é este
+
+Sonda escopada ao container da tela (`.main` nos dois lados, achado subindo do `h1` até sair do
+shell — o `body` inteiro incluía a sidebar e inflava tudo):
+
+| tela | protótipo | produção |
+|---|---|---|
+| Painel | 2925 | 1685 |
+| Conversa | 1603 | 456 |
+| Memória | 1135 | 466 |
+
+**Não conclua "faltam capacidades" daqui.** O protótipo roda com dado MOCK populado (conversas,
+memórias, metas); a produção medida é `biz=1`, que está com **0 metas e sem histórico**. Ausência
+de renderização não é ausência de capacidade — é a lápide §5 2026-08-18, e ela vale exatamente
+aqui. Para o número virar veredito seria preciso medir um tenant com dado equivalente.
+
+### O que ficou fora da rodada
+
+`Jana/Pro` **não tem âncora** (`node prototipo-ui/ancora.mjs Jana/Pro` → *"charter sem
+related_prototype nem -page.jsx"*): o `jana-pro.jsx` é um dos **21 de 116** arquivos que o shell do
+espelho referencia e que nunca desceram. Sem a fonte, a tela não é comparável — e o bloqueio é o
+mesmo das partes do payload.
+
 ## Resumo — o que falta, e o que trava cada um
 
 | ordem | entrega | região | trava |
