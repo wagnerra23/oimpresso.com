@@ -16,6 +16,14 @@
         "prototipo-ui/design-docs/handoff/backup-migracao/charter/Index.charter.md"
       ],
       "decisao": "preservado como esta: e defeito do documento vivo no Cowork, nao da transcricao. Consertar aqui quebraria a fidelidade e criaria drift com a fonte."
+    },
+    {
+      "padrao": "page: /forja (rota do prototipo: `projects` / `teammcp` no app unico)",
+      "porque": "valor escalar NAO citado contendo \": \" — o YAML le como mapping aninhado e falha com \"bad indentation of a mapping entry (2:32)\". Provado com js-yaml real, nao com regex.",
+      "arquivos": [
+        "prototipo-ui/design-docs/cowork-inbox/FORJA-COCKPIT-CHARTER-V2-PROPOSTA-2026-08-08.md"
+      ],
+      "decisao": "preservado como esta: e defeito do documento vivo no Cowork, nao da transcricao. Consertar aqui quebraria a fidelidade e criaria drift com a fonte. Se o consumidor do frontmatter for parser estrito, o conserto pertence ao lado Cowork (aspas no valor)."
     }
   ],
   "_lotes": {
