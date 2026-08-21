@@ -123,6 +123,13 @@
       "linhas": 603,
       "parse_esbuild": "OK",
       "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/hrm-page.jsx",
+      "bytes_escritos": 32769,
+      "linhas": 557,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
     }
   ],
   "data": "2026-08-21",
