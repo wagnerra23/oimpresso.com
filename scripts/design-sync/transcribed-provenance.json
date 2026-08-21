@@ -591,6 +591,55 @@
       "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
     },
     {
+      "path": "prototipo-ui/design-docs/cowork-inbox/INVENTARIO-L1-VENDAS-PDV.md",
+      "bytes_escritos": 6885,
+      "linhas": 74,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/JANA-FASE2-2026-08-07.md",
+      "bytes_escritos": 9606,
+      "linhas": 112,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/JANA-FUSAO-2026-08-06.md",
+      "bytes_escritos": 6853,
+      "linhas": 87,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/JANA-MODULO-ONDAS-PR-2026-08-09.md",
+      "bytes_escritos": 25403,
+      "linhas": 273,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/JANA-PAINEL-DARK-PARIDADE-2026-08-12.md",
+      "bytes_escritos": 11226,
+      "linhas": 168,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/MODULOS-F1-2026-08-19.md",
+      "bytes_escritos": 11251,
+      "linhas": 137,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/MODULOS-F3-ONDAS-PARA-CODE.md",
+      "bytes_escritos": 5940,
+      "linhas": 80,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
       "path": "prototipo-ui/design-docs/cowork-inbox/NOTIFICACOES-F1-2026-08-19.md",
       "bytes_escritos": 10946,
       "linhas": 119,
@@ -608,6 +657,20 @@
       "path": "prototipo-ui/design-docs/cowork-inbox/PEDIDO-CL-programa-doc.md",
       "bytes_escritos": 5592,
       "linhas": 88,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/PLANO-BLADE-PARA-REACT.md",
+      "bytes_escritos": 10238,
+      "linhas": 135,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/SUPERADMIN-F3-ONDAS-PARA-CODE.md",
+      "bytes_escritos": 13412,
+      "linhas": 163,
       "fidelidade": "NAO PROVADA",
       "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
     },
