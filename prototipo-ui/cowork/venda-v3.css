@@ -1,0 +1,175 @@
+/* venda-v3.css — camadas 3 (padrões de tela) + 4 (módulo) do build v3 do git.
+   Camada 1/2 (fundações + shell) NÃO entram: o shell do app único já as tem. */
+/* ==========================================================================
+   CAMADA 3 · PADRÕES DE TELA — campo com afixo (`.dsfa`)
+   --------------------------------------------------------------------------
+   Campo numérico/monetário com prefixo (R$, %, m, kg, qt) ou sufixo.
+   Existe porque o `Input` do DS não tem slot de afixo nem repassa `onBlur`
+   (necessário para validação fiscal que só dispara ao sair do campo).
+
+   Visual copiado do `Input` do DS: mesma altura, borda, raio, foco.
+   Se o DS ganhar afixo nativo, este arquivo morre e os campos migram.
+   ========================================================================== */
+
+.dsfa { position: relative; }
+
+.dsfa > input {
+  font: 13px/1.4 var(--font-sans);
+  color: var(--text);
+  width: 100%;
+  min-width: 56px;
+  box-sizing: border-box;
+  padding: 7px 10px;
+  border-radius: var(--radius-md, 6px);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.dsfa > input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+/* espaço para o afixo — min-width evita que a coluna colapse abaixo do texto */
+.dsfa.pre > input { padding-left: 30px; min-width: 88px; }
+.dsfa.suf > input { padding-right: 32px; min-width: 74px; }
+
+.dsfa > .afx {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  font: 12.5px/1 var(--font-sans); color: var(--text-dim); pointer-events: none;
+}
+.dsfa > .afx.l { left: 10px; }
+.dsfa > .afx.r { right: 10px; }
+
+/* ==========================================================================
+   CAMADA 3 · PADRÕES DE TELA — tabela de dados editável
+   --------------------------------------------------------------------------
+   Complementa o `DataTable` do DS nos casos em que a tabela é de DIGITAÇÃO
+   (linha de itens da venda), não de consulta.
+   ========================================================================== */
+
+/* --- Coluna de ações sempre visível --------------------------------------
+   Com muitas colunas ligadas, a tabela rola na horizontal e as ações
+   (impostos, detalhes, remover) desapareceriam à direita. Grudar a coluna
+   mantém a operação alcançável sem rolar até o fim.
+   Uso: <table class="tabela-acoes-fixa"> + <td class="acoes">.            */
+.tabela-acoes-fixa td.acoes,
+.tabela-acoes-fixa th.acoes {
+  position: sticky; right: 0; z-index: 2;
+  background: var(--surface);
+  box-shadow: -8px 0 12px -8px color-mix(in oklch, var(--text) 26%, transparent);
+}
+
+/* ==========================================================================
+   CAMADA 3 · PADRÕES DE TELA — overlays (PT-02 Drawer · PT-04 Modal)
+   --------------------------------------------------------------------------
+   O DS entrega Drawer e Modal funcionais, mas com três lacunas que aparecem
+   em qualquer tela de formulário longo. Os seletores miram ATRIBUTO e
+   COMPORTAMENTO (o filho que de fato rola), não posição de filho — índice
+   quebra quando o componente ganha um nó.
+   ========================================================================== */
+
+/* --- 1 · Drawer: corpo branco chapado -----------------------------------
+   Sete seções de formulário empilhadas em branco sobre branco não têm
+   hierarquia. Corpo em `--bg-2`, cada `DrawerSection` como cartão.       */
+[role="dialog"][style*="position: absolute"] > div[style*="overflow-y: auto"] {
+  background: var(--bg-2);
+}
+[role="dialog"][style*="position: absolute"] > div[style*="overflow-y: auto"] > div[style*="border-top"] {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin: 10px 12px;
+  box-shadow: 0 1px 2px color-mix(in oklch, var(--text) 5%, transparent);
+}
+[role="dialog"][style*="position: absolute"] > div[style*="overflow-y: auto"] > div[style*="border-top"]:first-of-type {
+  margin-top: 12px;
+}
+
+/* --- 2 · Modal alto demais para a viewport -----------------------------
+   O Modal do DS cresce com o conteúdo e o rodapé de ação sai da tela.
+   Teto de altura + corpo rolável mantêm as ações sempre alcançáveis.    */
+[role="dialog"][style*="position: relative"] {
+  max-height: calc(100vh - 48px) !important;
+  display: flex; flex-direction: column;
+}
+[role="dialog"][style*="position: relative"] > div[style*="margin: 0px 0px 18px"] {
+  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+}
+
+/* --- 3 · Mobile: overlay ocupa a tela inteira -------------------------- */
+@media (max-width: 640px) {
+  [role="dialog"] {
+    width: 100% !important; max-width: 100% !important;
+    height: 100% !important; max-height: 100% !important;
+    border-radius: 0 !important; inset: 0 !important; margin: 0 !important;
+  }
+  [role="dialog"][style*="position: relative"] { max-height: 100% !important; }
+
+  /* alvo de toque dentro do overlay (a regra do shell cobre só `main`) */
+  [role="dialog"] button,
+  [role="dialog"] select,
+  [role="dialog"] input,
+  [role="dialog"] textarea { min-height: 44px !important; }
+  [role="dialog"] table button { min-height: 40px !important; min-width: 40px !important; }
+}
+
+/* ==========================================================================
+   CAMADA 4 · MÓDULO VENDAS — layout da tela de venda
+   --------------------------------------------------------------------------
+   Só o que é específico desta família de telas. Nenhuma cor, nenhum token,
+   nenhum tamanho de fonte novo: tudo vem das camadas 1–3.
+   ========================================================================== */
+
+/* --- Grade da tela: trabalho à esquerda, fechamento à direita ----------- */
+/* .venda-grid — 2 colunas no desktop, 1 abaixo de 1080px (regra no fim)   */
+
+/* --- Finalizador: total + ação da FSM, SEMPRE visível ------------------
+   Sticky no desktop (acompanha a rolagem da coluna), barra fixa no rodapé
+   quando a grade colapsa. `left: 260px` porque a sidebar segue montada na
+   faixa 641–1080px; abaixo de 640 ela sai e a barra vai a `left: 0`.     */
+.venda-finalizador {
+  position: sticky; bottom: 12px; z-index: 30;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 12px; border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid color-mix(in oklch, var(--accent) 22%, var(--border));
+  box-shadow: 0 -2px 10px color-mix(in oklch, var(--text) 7%, transparent),
+              0 10px 28px color-mix(in oklch, var(--text) 12%, transparent);
+}
+
+/* --- Par de ações secundárias (rascunho + tipo de documento) ----------- */
+.venda-acoes > div > button,
+.venda-acoes > div > select { width: 100%; }
+
+/* --- Linha de imposto do detalhe do item -------------------------------
+   Grade compartilhada por cabeçalho, linha e total, para as colunas
+   ficarem alinhadas sem tabela. Abaixo de 720px a base de cálculo sai
+   (é derivada e cabe no detalhe expandido).                             */
+.imp-linha {
+  display: grid;
+  grid-template-columns: 1fr 130px 92px 116px 32px;
+  gap: 8px; align-items: center;
+}
+@media (max-width: 720px) {
+  .imp-linha { grid-template-columns: 1fr 84px 104px 28px; }
+  .imp-linha > span:nth-child(2) { display: none; }
+  .imp-linha > span[style*="span 3"] { grid-column: span 2 !important; }
+}
+
+/* --- Colapso da grade -------------------------------------------------- */
+@media (max-width: 1080px) {
+  .venda-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    padding-bottom: 150px; /* espaço da barra fixa */
+  }
+  .venda-grid > aside { position: static !important; }
+  .venda-finalizador {
+    position: fixed; left: 260px; right: 0; bottom: 0;
+    border-radius: 0; border-left: 0; border-right: 0; border-bottom: 0;
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 640px) {
+  .venda-acoes { grid-template-columns: 1fr !important; }
+  .venda-finalizador { left: 0 !important; } /* sem sidebar nesta faixa */
+}

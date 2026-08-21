@@ -1,0 +1,36 @@
+{
+  "_leia_isto_primeiro": "Estes arquivos do espelho Cowork NAO desceram pela rota fiel (get_file -> --export-from). Eles foram TRANSCRITOS do contexto do agente porque o conteudo voltou inline (abaixo da fronteira de persistencia do get_file, ~48 KB). A fidelidade byte-a-byte NAO esta provada e NAO existe oraculo no vivo para prova-la. Decisao [W] 2026-08-21.",
+  "por_que_nao_ha_oraculo": "Varredura dos 1.726 paths do projeto Cowork por manifest/hash/bytes/checksum: o unico _ds_manifest.json e indice de cards do Design System, nao hash de conteudo. Os campos bytes+fnv64 por arquivo existem so dentro de sync/payload.json (~3,5 MB), que o get_file corta em 256 KiB com truncated:true.",
+  "rotas_testadas_e_fechadas": [
+    "get_file arquivo a arquivo: 20 de 45 telas sondadas, 2 persistiram (venda-v3.jsx 241 KB, produto-blade.jsx 69 KB). As demais voltam inline 9-35 KB.",
+    "gerar o payload eu mesmo: escrita no Cowork e gated (ADR 0315 + hook block-design-sync-without-optin); e mesmo destravada, montar o payload exigiria ler os arquivos pelo get_file -> mesma transcricao, circular.",
+    "navegador com a sessao logada do [W]: projeto abriu em claude.ai/design/p/019dcfd3..., mas o classificador de permissoes bloqueou o fetch scriptado contra a API interna. Nao contornado."
+  ],
+  "verificacao_possivel": "Apenas ESTRUTURAL (delimitadores balanceados, simbolos exportados presentes, IIFE fecha). Isso NAO detecta linha perdida dentro de corpo de funcao nem espaco alterado.",
+  "rota_fiel_quando_existir": "Assim que sync/payload-01.json ... NN.json (partes <=250 KiB) existirem no projeto Cowork, reaplicar por aplicar-payload.mjs e SUBSTITUIR estes arquivos. O applier confere bytes declarados vs reais por arquivo.",
+  "arquivos": [
+    {
+      "path": "prototipo-ui/cowork/modulo-padrao.jsx",
+      "bytes_escritos": 8219,
+      "linhas": 189,
+      "check_estrutural": "ok (delimitadores balanceados)",
+      "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/manufacturing-data.jsx",
+      "bytes_escritos": 11524,
+      "check_estrutural": "ok (delimitadores balanceados)",
+      "fidelidade": "NAO PROVADA",
+      "linhas": 191
+    },
+    {
+      "path": "prototipo-ui/cowork/venda-v3.css",
+      "bytes_escritos": 8113,
+      "check_estrutural": "ok (delimitadores balanceados)",
+      "fidelidade": "NAO PROVADA",
+      "linhas": 176
+    }
+  ],
+  "data": "2026-08-21",
+  "decisao": "[W] autorizou explicitamente apos a ressalva ser apresentada quatro vezes nesta sessao."
+}
