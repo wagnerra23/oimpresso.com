@@ -60,6 +60,7 @@ import {
   Target,
   TrendingDown,
   TrendingUp,
+  UserMinus,
   Volume2,
 } from 'lucide-react';
 import { Card, CardContent } from '@/Components/ui/card';
@@ -105,6 +106,7 @@ export interface JanaCockpitProps {
     topDevedor: { name: string; total: number } | null;
     ticketMedio: number;
     totalAReceber: number;
+    churnOuro: Array<{ name: string; ltv: number; diasInativo: number; ultimaCompra: string | null }>;
   };
   userName?: string;
   /**
@@ -256,6 +258,7 @@ export default function JanaCockpit({
   const methodsTotal = methodsAggList.reduce((a, m) => a + m.total, 0);
   const topClientesList = insightsAggregates.topClientes;
   const topClientesTotal = topClientesList.reduce((a, c) => a + c.total, 0);
+  const churnList = insightsAggregates.churnOuro;
   const ticketMedio = insightsAggregates.ticketMedio;
   const topDevedor = insightsAggregates.topDevedor;
 
@@ -379,6 +382,7 @@ export default function JanaCockpit({
   const abrirConc = () => setDrill({ id: 'conc', title: 'Top 5 clientes', sub: 'concentração' });
   const abrirMetodos = () =>
     setDrill({ id: 'metodos', title: 'Métodos de pagamento', sub: `top ${methodsAggList.length}` });
+  const abrirChurn = () => setDrill({ id: 'churn', title: 'Churn ouro', sub: 'maior LTV parado' });
 
   return (
     <div className="space-y-4">
@@ -764,6 +768,33 @@ export default function JanaCockpit({
         </AnalysisCard>
         )}
 
+        {/* Churn ouro */}
+        {mostra('churn') && (
+        <AnalysisCard
+          icon={<UserMinus size={16} />}
+          title="Churn ouro"
+          subtitle="maior LTV parado"
+          big={<span>{churnList.length}</span>}
+          onClick={abrirChurn}
+        >
+          <div className="flex flex-col gap-2">
+            {churnList.length === 0 ? (
+              <div className="py-2 text-xs text-muted-foreground">Ninguém de peso parou de comprar</div>
+            ) : (
+              churnList.map((c) => (
+                <div key={c.name} className="flex items-baseline justify-between gap-2 text-xs">
+                  <span className="min-w-0 flex-1 truncate text-muted-foreground" title={c.name}>
+                    {c.name}
+                  </span>
+                  <span className="shrink-0 tabular-nums text-muted-foreground opacity-70">{c.diasInativo}d</span>
+                  <b className="shrink-0 font-semibold tabular-nums text-foreground">{fmtShort(c.ltv)}</b>
+                </div>
+              ))
+            )}
+          </div>
+        </AnalysisCard>
+        )}
+
         {/* Todas escondidas: a seção declara o estado e diz como voltar, em vez
             de deixar um título com o vazio embaixo — o usuário que escondeu tudo
             no drawer precisa achar o caminho de volta. */}
@@ -771,7 +802,7 @@ export default function JanaCockpit({
           <div className="col-span-full rounded-lg border border-dashed border-border p-6 text-center">
             <p className="text-sm font-medium text-foreground">Nenhuma análise sendo exibida</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Você escondeu as quatro em <span className="font-medium text-foreground">Configurar</span>.
+              Você escondeu todas em <span className="font-medium text-foreground">Configurar</span>.
               Os dados continuam lá — reative quando quiser.
             </p>
           </div>

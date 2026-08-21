@@ -310,13 +310,16 @@ it('UC-COPI-PAINEL-10: Configurar abre o drawer e não promete o que o servidor 
     //      independente da copy escolhida.
     expect(substr_count($drawer, '<Switch'))->toBe(2);
 
-    //      E o conjunto de análises é fechado nos 4 ids que a tela renderiza.
+    //      E o conjunto de análises é fechado nos ids que a tela renderiza. A contagem
+    //      subiu de 4 pra 5 no PR do UC-13 (churn ouro) — o guard MORDEU como o charter
+    //      previu ("toggle novo derruba o caso"), e subir o número aqui é o ato consciente
+    //      que ele existe pra exigir, não um contorno.
     $cfg = file_get_contents(base_path('resources/js/Pages/Jana/_components/useJanaConfig.ts'));
     expect($cfg)
-        ->toContain("export type JanaAnaliseId = 'inad' | 'fat' | 'conc' | 'metodos';")
+        ->toContain("export type JanaAnaliseId = 'inad' | 'fat' | 'conc' | 'metodos' | 'churn';")
         //  `{ id: '` com a aspa: sem ela a assinatura do tipo
         //  (`ReadonlyArray<{ id: JanaAnaliseId; …`) entra na conta e vira 5.
-        ->and(substr_count($cfg, "{ id: '"))->toBe(4);
+        ->and(substr_count($cfg, "{ id: '"))->toBe(5);
 
     // 4. o que vale pra empresa toda aponta pro dono server-side que já existe,
     //    em vez de ganhar um segundo dono no localStorage deste navegador.
@@ -510,4 +513,121 @@ it('UC-COPI-PAINEL-12: a aprovação nasce com o business_id da sessão, nunca d
     // scope é o que prova o isolamento — `where` cru só provaria a coluna.
     session(['user.business_id' => 999999]);
     expect(AcaoAprovacao::where('id', $registro->id)->count())->toBe(0);
+});
+
+// ── UC-COPI-PAINEL-13 — Churn ouro ───────────────────────────────────────────
+
+/**
+ * Semeia cliente + 1 venda final na data pedida, marcada por um sufixo único.
+ *
+ * `payment_status = 'paid'` de propósito: venda paga NÃO gera `fin_titulo`
+ * (mesma razão do `TituloAutoServiceTest`), e `fin_titulos` não permite delete —
+ * o cleanup do fim do caso ficaria impossível. O churn não olha pagamento, só
+ * data e valor, então pagar não muda o que está sob teste.
+ */
+function churnSemear(int $businessId, int $userId, string $nome, float $total, string $data): array
+{
+    $contact = \App\Contact::create([
+        'business_id' => $businessId,
+        'type'        => 'customer',
+        'name'        => $nome,
+        'created_by'  => $userId,
+    ]);
+
+    $tx = \App\Transaction::create([
+        'business_id'      => $businessId,
+        'location_id'      => null,
+        'type'             => 'sell',
+        'status'           => 'final',
+        'payment_status'   => 'paid',
+        'contact_id'       => $contact->id,
+        'invoice_no'       => 'CHURN-'.uniqid(),
+        'transaction_date' => $data,
+        'total_before_tax' => $total,
+        'final_total'      => $total,
+        'created_by'       => $userId,
+    ]);
+
+    return [$contact, $tx];
+}
+
+/**
+ * UC-COPI-PAINEL-13 — o recorte é RELATIVO (maior LTV entre os parados), e o
+ * controle negativo é o que prova: quem comprou ontem NÃO entra, mesmo valendo
+ * muito mais. Sem esse caso, um bug que ignorasse a data passaria verde — o card
+ * viraria "top clientes" com outro título.
+ *
+ * ⚠️ O CT 100 PERSISTE entre runs (§5 2026-07-28), então cada caso limpa o que
+ * criou e todas as asserções são marcadas por `uniqid()` — nunca por contagem
+ * absoluta, que quebraria com resíduo de outra execução.
+ */
+it('UC-COPI-PAINEL-13: churn ouro pega o parado >90d e IGNORA quem comprou ontem', function () {
+    $user   = painelBootstrap();
+    $bizId  = (int) session('user.business_id');
+    $marca  = uniqid('chn');
+
+    // (a) alto valor, parado há 200 dias → DEVE entrar.
+    [$c1, $t1] = churnSemear($bizId, (int) $user->id, "Parado {$marca}", 90000.0, now()->subDays(200)->toDateString());
+    // (b) valor 5× MAIOR, comprou ontem → NÃO pode entrar. Este é o controle negativo.
+    [$c2, $t2] = churnSemear($bizId, (int) $user->id, "Ativo {$marca}", 450000.0, now()->subDay()->toDateString());
+
+    try {
+        $agg   = app(\App\Services\Sells\SellsCockpitAggregator::class)->buildInsightsAggregates($bizId);
+        $nomes = collect($agg['churnOuro'])->pluck('name')->all();
+
+        expect($nomes)->toContain("Parado {$marca}");
+        expect($nomes)->not->toContain("Ativo {$marca}");
+
+        $linha = collect($agg['churnOuro'])->firstWhere('name', "Parado {$marca}");
+
+        // O número que a tela mostra é MEDIDO, não estimado.
+        expect($linha['ltv'])->toBe(90000.0);
+        expect($linha['diasInativo'])->toBeGreaterThan(90);
+        expect($linha['ultimaCompra'])->toBe(now()->subDays(200)->toDateString());
+
+        // Tier 0 (ADR 0093): o recorte é do tenant pedido, e de mais nenhum.
+        $outro = app(\App\Services\Sells\SellsCockpitAggregator::class)->buildInsightsAggregates(999999);
+        expect(collect($outro['churnOuro'])->pluck('name')->all())->not->toContain("Parado {$marca}");
+    } finally {
+        $t1->forceDelete();
+        $t2->forceDelete();
+        $c1->forceDelete();
+        $c2->forceDelete();
+    }
+});
+
+/**
+ * UC-COPI-PAINEL-13 — o drill drawer promete um método por análise; todos têm de
+ * EXISTIR. O componente nasceu justamente porque o protótipo cita classes
+ * fictícias (`AnaliseChurnService` & cia., re-medido 2026-08-20: nenhuma existe),
+ * e o cabeçalho dele pede "ao mexer no aggregator, mexa aqui no mesmo PR".
+ *
+ * O teste não olha o churn em particular: varre TODAS as fontes declaradas. Assim
+ * ele defende a classe inteira do defeito, não a instância de hoje — e quebra na
+ * hora em que alguém renomear um método do aggregator sem atualizar o drawer.
+ *
+ * `method_exists` sobre a classe REAL é comportamento, não presença de string:
+ * um `metodo:` apontando pra nome inventado reprova mesmo estando bem escrito.
+ */
+it('UC-COPI-PAINEL-13: todo `metodo` prometido pelo JanaDrillDrawer existe no aggregator', function () {
+    $drawer = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaDrillDrawer.tsx'));
+
+    preg_match_all("/metodo: '([^']+)'/", $drawer, $m);
+
+    // Controle positivo: se o regex parar de casar, o caso vira carimbo verde —
+    // é a lápide §5 2026-08-01 (saída plausível de sonda que não rodou).
+    expect($m[1])->not->toBeEmpty();
+
+    $quebrados = [];
+
+    foreach (array_unique($m[1]) as $ref) {
+        [$classe, $metodo] = array_pad(explode('::', $ref), 2, null);
+        $fqcn = 'App\\Services\\Sells\\'.$classe;
+
+        if (! class_exists($fqcn) || ! method_exists($fqcn, $metodo)) {
+            $quebrados[] = $ref;
+        }
+    }
+
+    expect($quebrados)->toBe([]);
 });
