@@ -7,14 +7,18 @@
  * light/dark sozinhos. Zero cor crua (regra binária AP1).
  *
  * ⚠️ DESVIO DECLARADO do protótipo: lá "Não estocável" reusa o valor `distante` do badge de
- * frescor, que no bundle do DS cai em `fresc-cold` — o MESMO vermelho de "Sem estoque". Um
+ * frescor, que no bundle do DS cai em `fresc-cold` — o MESMO vermelho de "Sem saldo". Um
  * serviço não tem saldo por natureza; pintá-lo de vermelho afirma um problema que não existe
  * e treina o balcão a ignorar a cor. Aqui ele fica neutro (`muted`). Ratificado por [W] em
  * 2026-08-18.
  *
- * Desde o pacote V2 (§4.6), quando o item tem saldo em mais de um local o conjunto ganha uma
- * segunda linha — "N locais" — que abre o detalhe por local. É a diferença entre "tem 128" e
- * "tem 128, mas 0 na Loja": a segunda resposta muda o que o balcão promete ao cliente.
+ * Quando o item tem saldo em mais de um local o conjunto ganha uma segunda linha — "N locais"
+ * — que abre o detalhe por local. É a diferença entre "tem 128" e "tem 128, mas 0 na Loja": a
+ * segunda resposta muda o que o balcão promete ao cliente.
+ *
+ * Na densidade COMPACTA (§3.2) essa segunda linha some. Ela é redundante: o número total já
+ * está no selo, e quem precisa da quebra por local abre o painel. O que NÃO some em compacta
+ * é marcador semântico — a regra do handoff é "remove só o redundante".
  */
 
 import { AlertTriangle } from 'lucide-react';
@@ -29,7 +33,7 @@ const ESTILO: Record<EstadoEstoque['chave'], string> = {
   nao: 'bg-muted text-muted-foreground border-border',
 };
 
-function Pilula({ estado }: { estado: EstadoEstoque }) {
+function Pilula({ estado, unidade }: { estado: EstadoEstoque; unidade: string }) {
   return (
     <span
       className={
@@ -40,10 +44,14 @@ function Pilula({ estado }: { estado: EstadoEstoque }) {
     >
       <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" aria-hidden="true" />
       {estado.label}
-      {/* O saldo viaja DENTRO do badge (o `rel` do protótipo): quem lê "Estoque baixo" precisa
-          do número na mesma sacada pra decidir se dá pra vender. */}
+      {/* Rótulo e valor na MESMA linha do selo (handoff 21/08 §4.3): quem lê "Abaixo do
+          mínimo" precisa do número na mesma sacada pra decidir se dá pra vender. Com a
+          unidade junto, porque "96" e "96 m²" prometem coisas diferentes ao cliente. */}
       {estado.rel !== null && (
-        <span className="tabular-nums opacity-70">{estado.rel}</span>
+        <span className="tabular-nums opacity-70">
+          {estado.rel}
+          {unidade ? ` ${unidade}` : ''}
+        </span>
       )}
     </span>
   );
@@ -56,11 +64,13 @@ export interface DisponibilidadeProps {
   unidade?: string;
   /** Nome do item — só pro rótulo acessível do gatilho. */
   nome?: string;
+  /** Densidade compacta: esconde a linha "N locais" (redundante), nunca o selo. */
+  densa?: boolean;
 }
 
-export function Disponibilidade({ estado, locais, unidade = '', nome = '' }: DisponibilidadeProps) {
-  if (!locais || locais.length < 2) {
-    return <Pilula estado={estado} />;
+export function Disponibilidade({ estado, locais, unidade = '', nome = '', densa = false }: DisponibilidadeProps) {
+  if (!locais || locais.length < 2 || densa) {
+    return <Pilula estado={estado} unidade={unidade} />;
   }
 
   // Alerta só quando há zero em UM local E saldo em outro. Tudo zerado já é o badge vermelho;
@@ -98,7 +108,7 @@ export function Disponibilidade({ estado, locais, unidade = '', nome = '' }: Dis
         </>
       }
     >
-      <Pilula estado={estado} />
+      <Pilula estado={estado} unidade={unidade} />
       <span className="mt-0.5 block text-[11px] text-muted-foreground underline decoration-dotted underline-offset-2 group-hover/est:text-foreground">
         {locais.length} locais
       </span>
