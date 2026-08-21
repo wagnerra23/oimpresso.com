@@ -1047,6 +1047,62 @@
       "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
     },
     {
+      "path": "prototipo-ui/design-docs/cowork-inbox/produto-telas-novas/Cadastros.casos.md",
+      "bytes_escritos": 3616,
+      "linhas": 70,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/produto-telas-novas/Cadastros.charter.md",
+      "bytes_escritos": 3627,
+      "linhas": 28,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/produto-telas-novas/Etiquetas.casos.md",
+      "bytes_escritos": 2529,
+      "linhas": 48,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/produto-telas-novas/Etiquetas.charter.md",
+      "bytes_escritos": 2472,
+      "linhas": 25,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/produto-telas-novas/Importacao.casos.md",
+      "bytes_escritos": 2502,
+      "linhas": 47,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/produto-telas-novas/Importacao.charter.md",
+      "bytes_escritos": 2581,
+      "linhas": 26,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/produto-telas-novas/PEDIDO-CL-produto-telas-novas.md",
+      "bytes_escritos": 7205,
+      "linhas": 96,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/produto-telas-novas/README.md",
+      "bytes_escritos": 2218,
+      "linhas": 27,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
       "path": "prototipo-ui/design-docs/cowork-inbox/produto/PEDIDO-CL-produto-trio.md",
       "bytes_escritos": 6580,
       "linhas": 91,
