@@ -5,8 +5,8 @@ irmaos: Show.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F2 + §6.1 
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o espelho é o documento que sustenta fechamento de folha e defesa em fiscalização — o que ele deixa de mostrar vira verba trabalhista.
 owner: wagner
-last_run: "2026-07-27"
-last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Ponto · MySQL)"
+last_run: "2026-08-21"
+last_run_ci: "0 UC executado por mim. O bump de last_run é REVALIDAÇÃO DE LEITURA do F3 do contrato de tela (2026-08-21), não veredito: reli os 5 UC contra o diff e nenhum aceite mudou de sentido — 02/03/04 têm o código intocado, 05 segue com `totais`/`linhas` diferidos, e 01 ficou mais forte (o realce da linha continua E ganhou coluna `Estado` explícita). O veredito segue com a lane PHP / Pest (Ponto · MySQL), que roda no CT100/CI (ADR 0062)."
 ---
 
 # Casos de Uso & Aceite — Espelho de ponto mensal
@@ -67,6 +67,11 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   accessor `tem_divergencia` derivado de `estado`, ou (b) o controller passar a ler `estado`. Um assert
   em `toHaveKey('tem_divergencia')` reprovaria a correção (b) arbitrariamente. O contrato é *"o dia
   divergente aparece sinalizado"*, não *"a chave se chama X"*.
+- **Nota do F3 de 2026-08-21 (contrato de tela):** a tabela dia-a-dia passou a conviver com uma visão
+  em grade, atrás do seletor `espelho-modo-visao`. O aceite **não muda**: `tabela` é o default e é o
+  documento, então "marca aquele dia na tabela dia-a-dia" continua verificável no primeiro render. O
+  realce da linha (`bg-warning`, paridade com a Blade) foi **mantido** e ganhou ao lado uma coluna
+  `Estado` explícita, que mostra `divergencia` em letra em vez de só cor — cor sozinha não é acessível.
 - **Status: 🧪 vermelho ESPERADO** — **predição**, não veredito. Eu não rodei teste (CT100/CI, [ADR 0062]).
   O status real vem da lane.
 
@@ -134,3 +139,19 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   (perde o ganho de p95), ou a prop diferida nunca resolve (tela fica em skeleton eterno). O UC prova que
   o dado **chega** quando pedido.
 - **Status: 🧪 sem veredito.**
+
+## Pendências sem id (prosa — viram UC quando ganharem teste que as cite)
+
+Entram como `[BACKLOG]` de propósito: são comportamento que o F3 de 2026-08-21 introduziu e que
+**ninguém testou ainda**. Criar `## UC-XX` sem teste só avermelharia o G-2 e fabricaria cobertura.
+
+- **[BACKLOG]** A folha de impressão (`espelho-folha-impressao`) só existe em `@media print`. Nenhum
+  teste alcança papel, e **verde de gate não prova impressão**: o que precisa ser verificado por
+  humano é que a folha sai com cabeçalho, apuração, totais, as duas assinaturas e a citação da
+  Portaria MTP 671/2021 Art. 85 — e que ela cabe na página.
+- **[BACKLOG]** O seletor `espelho-modo-visao` não persiste escolha entre visitas (é `useState`, não
+  `localStorage`). Deliberado por ora: o documento deve abrir SEMPRE na tabela, e persistir "grade"
+  faria o RH abrir o espelho numa visão que não é o documento.
+- **[BACKLOG]** `CPF` e `PIS` passaram a aparecer no cabeçalho legal. Falta decidir com [W] se a
+  tela deve mascará-los para papéis não-RH — hoje quem acessa a rota vê inteiro.
+
