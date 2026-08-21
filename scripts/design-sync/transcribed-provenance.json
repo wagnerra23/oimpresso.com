@@ -116,6 +116,13 @@
       "linhas": 346,
       "parse_esbuild": "OK",
       "fidelidade": "NAO PROVADA"
+    },
+    {
+      "path": "prototipo-ui/cowork/produto-blade-forms.jsx",
+      "bytes_escritos": 42611,
+      "linhas": 603,
+      "parse_esbuild": "OK",
+      "fidelidade": "NAO PROVADA"
     }
   ],
   "data": "2026-08-21",
