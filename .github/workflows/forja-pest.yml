@@ -86,6 +86,13 @@ jobs:
           filters: |
             tmcp:
               - 'Modules/Forja/**'
+              # 2026-08-21 — a linha da fonte de design estava SÓ no `paths:` do push.
+              # O comentário de lá diz "sem este path o gate fica mudo justamente quando
+              # a fonte muda" — mas o bloco que decide o skip-as-pass no PR é ESTE.
+              # Efeito medido: PR que tocasse só `prototipo-ui/cowork/**` concluía VERDE
+              # sem rodar o PipelineParidadeTest, que está no run-set da lane e lê essa
+              # fonte. Mesmo defeito das lanes Jana e Estoque na mesma leva.
+              - 'prototipo-ui/cowork/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/forja-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
