@@ -17,7 +17,7 @@ import { cn, formatMinutes } from '@/Lib/utils';
 
 import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import { PageHeaderPrimary } from '@/Components/PageHeader';
-import { Grid } from '@/Components/layout';
+import { Grid, Inline } from '@/Components/layout';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import StatusBadge from '@/Components/shared/StatusBadge';
@@ -132,14 +132,18 @@ function NotaFechamento({ pendentes, divergencias }: { pendentes: number; diverg
           : 'border-success/40 bg-success-soft text-foreground',
       )}
     >
-      <p className="flex items-center gap-1.5 font-medium">
-        {travado ? (
-          <AlertTriangle size={15} className="text-warning" aria-hidden />
-        ) : (
-          <CheckCheck size={15} className="text-success" aria-hidden />
-        )}
-        O que trava o fechamento de {mes}
-      </p>
+      {/* <Inline> em vez de `flex items-center gap-*` solto — ADR 0253. O gap
+          vira token (2) em vez do 1.5 fora de escala que eu tinha escrito. */}
+      <Inline gap={2} asChild>
+        <p className="font-medium">
+          {travado ? (
+            <AlertTriangle size={15} className="text-warning" aria-hidden />
+          ) : (
+            <CheckCheck size={15} className="text-success" aria-hidden />
+          )}
+          O que trava o fechamento de {mes}
+        </p>
+      </Inline>
       <p className="mt-1 text-muted-foreground">
         {pendentes === 0 && divergencias === 0 ? (
           <>Nenhuma intercorrência aguardando decisão e nenhum dia em divergência — a competência pode consolidar.</>
