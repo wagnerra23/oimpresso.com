@@ -101,7 +101,7 @@ jobs:
 
       # Setup canônico reusável (composite action). O service container MySQL fica
       # DECLARADO ACIMA no job (composite action não pode declarar services).
-      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
         if: steps.changes.outputs.jana == 'true'
         uses: ./.github/actions/pest-mysql-setup
 

@@ -3,7 +3,7 @@ name: NfeBrasil · Pest (MySQL)
 # Lane MySQL pro Modules/NfeBrasil. Os testes fiscais MySQL-only (UNIQUE / lockForUpdate /
 # isolamento multi-tenant) SKIPam no lane sqlite (modules-pest.yml :memory:), então "verde"
 # lá MENTE. Aqui rodam de verdade contra MySQL + emitem JUnit, que alimenta o verde@ do gate
-# de entrada (G1b · âncora improvada). Reusa .github/actions/pest-mysql-setup (biz=1/biz=2).
+# de entrada (G1b · âncora improvada). Reusa .github/actions/pest-mysql-setup (dona dos tenants).
 #
 # POR QUE IMPORTA (risco fiscal ×150 clientes — escala-migracao-carteira-delphi.md): uma nota
 # fiscal certificada "verde" por uma suite que pulou as regras tributárias = nota errada ×150.
@@ -74,7 +74,7 @@ jobs:
         if: steps.changes.outputs.nfe == 'false'
         run: echo "✅ Sem mudanças no Modules/NfeBrasil — skip-as-pass."
 
-      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
         if: steps.changes.outputs.nfe == 'true'
         uses: ./.github/actions/pest-mysql-setup
 
