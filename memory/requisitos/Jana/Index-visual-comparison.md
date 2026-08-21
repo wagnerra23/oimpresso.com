@@ -208,6 +208,231 @@ suas de 5 regras sobre o dado real, então a contagem varia por tenant. O par:
 
 ---
 
+## Rodada MEDIDA de 2026-08-21 — design-diff + sonda escopada (as 4 telas)
+
+> **Por que esta seção existe.** As comparações anteriores deste doc foram feitas por leitura e
+> por presença de texto. Nesta rodada o veredito veio do `design-diff.mjs` (mesma sonda injetada
+> nos dois lados, computed style) e de uma sonda escopada ao container da tela. Duas coisas
+> mudaram de figura, e uma delas **derruba um achado anterior meu**.
+
+### O veredito da máquina (`design-diff --compare`, dark × dark)
+
+| dim | campo | produção | protótipo | veredito |
+|---|---|---|---|---|
+| D2 | layout (contagem/overflow) | ok | ok | ✅ IGUAL |
+| D4 | título font-size | **22px** | **19px** | ❌ DIVERGE (Δ3px · banda ±1px) |
+| D4 | kpi valor font-size | **24px** | **22px** | ❌ DIVERGE (Δ2px · banda ±0px) |
+| D6 | cor (accent/texto) | ok | ok | ✅ IGUAL |
+| D8 | kpi.tag | **BUTTON** | **DIV** | ❌ DIVERGE |
+
+O título é **22px nas 4 telas** (`/ia`, `/ia/conversa`, `/ia/memoria`, `/ia/pro`) — a divergência é
+**sistemática do shell**, não do Painel.
+
+⚠️ **A linha `kpi valor font-size` só existe a partir de hoje.** A sonda media `valueFontPx` desde
+sempre e o `--compare` **nunca lia o campo** — a dimensão D4 se anunciava como "tipografia"
+medindo só o título, e saía verde. Consertado em [#6098](https://github.com/wagnerra23/oimpresso.com/pull/6098),
+com o selftest passando a morder o campo (controle negativo: bloco desligado ⇒ `rc=1`).
+
+### Achado ANTERIOR meu que a máquina REFUTOU
+
+Eu havia reportado `text-align` inconsistente entre os KPIs de produção (`left` em dois, `start` em
+dois). **Falso como divergência visual:** o comparador normaliza `start`→`left` — são equivalentes
+em LTR e os quatro renderizam igual. A inconsistência existe no **código**, não na tela. Achado
+retirado.
+
+### Landmarks — lacuna nova, e ela NÃO é regressão da migração
+
+| landmark | protótipo | produção |
+|---|---|---|
+| `<main>` | **0** | **0** |
+| `<nav>` | 1 | **0** |
+| `<h1>` | 1 | 1 |
+
+**Sem `<main>`, leitor de tela não tem como pular a sidebar e ir ao conteúdo.** O protótipo tem o
+mesmo defeito, então isto é **lacuna de origem**, não algo que a migração quebrou. O `<nav>`, esse
+sim, produção perdeu.
+
+Medido: `SiteLayout.tsx` (site público) emite `<main>`; o **AppShell do cockpit não emite**, e
+nenhum teste trava isso. Nem o pixel-diff nem o `design-diff` olham landmark — o eixo é cego nos
+dois. ⚠️ **Consertar toca o shell de 213 telas** (visreg no parque inteiro): é decisão [W], não
+conserto de PR de tela.
+
+### Tamanho de conteúdo — MEDIDO mas INCONCLUSIVO, e o registro é este
+
+Sonda escopada ao container da tela (`.main` nos dois lados, achado subindo do `h1` até sair do
+shell — o `body` inteiro incluía a sidebar e inflava tudo):
+
+| tela | protótipo | produção |
+|---|---|---|
+| Painel | 2925 | 1685 |
+| Conversa | 1603 | 456 |
+| Memória | 1135 | 466 |
+
+**Não conclua "faltam capacidades" daqui.** O protótipo roda com dado MOCK populado (conversas,
+memórias, metas); a produção medida é `biz=1`, que está com **0 metas e sem histórico**. Ausência
+de renderização não é ausência de capacidade — é a lápide §5 2026-08-18, e ela vale exatamente
+aqui. Para o número virar veredito seria preciso medir um tenant com dado equivalente.
+
+### O que ficou fora da rodada
+
+`Jana/Pro` **não tem âncora** (`node prototipo-ui/ancora.mjs Jana/Pro` → *"charter sem
+related_prototype nem -page.jsx"*): o `jana-pro.jsx` é um dos **21 de 116** arquivos que o shell do
+espelho referencia e que nunca desceram. Sem a fonte, a tela não é comparável — e o bloqueio é o
+mesmo das partes do payload.
+### As duas regiões que faltavam — metas e análises
+
+A rodada acima mediu **brief** e **KPIs** e deixou **metas** e **análises** sem medir. A causa era o
+coletor, não as telas: a sonda por região delimitava cada bloco pelo elemento-**folha** do seu
+cabeçalho, e nenhum desses dois títulos é folha — `METAS ATIVAS` divide o `<h2>` com os chips de
+período, e `ANÁLISES PRINCIPAIS` divide com um `<span>` de subtítulo.
+
+**Controle negativo, rodado antes do conserto** (protótipo, mesma página):
+
+| alvo | nós que contêm o texto | folhas (REGRA ANTIGA) | mais-fundo (REGRA NOVA) |
+|---|---:|---:|---:|
+| `ANÁLISES PRINCIPAIS` | 8 | **0** | 1 (`h2.jc-h2`) |
+| `METAS ATIVAS` | 11 | 1 | 1 (`h2.jc-h2`) + 1 `<script>` |
+
+O `0` da linha de cima é o defeito inteiro — a regra antiga não achava o cabeçalho, então a região
+não existia pro coletor. **O mesmo defeito me fez reportar antes que a produção não tinha os
+títulos de seção. Ela tem** (`JanaCockpit.tsx:675` e `:871`).
+
+⚠️ A regra nova tem uma armadilha própria, que só aparece neste protótipo: ele compila JSX em
+runtime, então o **texto-fonte vive num `<script>`** e casa a busca. O coletor passou a exigir nó
+**renderizado** (`clientHeight > 0`, fora de `SCRIPT|STYLE|TEMPLATE`) — sem isso, mede-se o código
+em vez da tela.
+
+#### Condições da medição — e por que elas mudaram
+
+| | valor | por quê |
+|---|---|---|
+| viewport | **2560×951**, nos dois lados | a janela do Chrome em produção está maximizada e **não aceitou resize** (`outerWidth` seguiu 2561 após duas tentativas + Win32). Igualei pelo lado que eu controlo: o protótipo. |
+| coluna de conteúdo | **2300px nos dois** | é a prova de que ficou pareado — não há `max-width` na tela (`maxWidth: none`) |
+| tema | `dark` nos dois | |
+| sidebar | expandida nos dois | ela muda a largura útil (1224 → 1020 a 1280px), logo muda toda altura |
+| raiz que rola | `div.jc-page` (protótipo) · `main.main-body` (produção) | resolvida como *ancestral rolável mais próximo do cabeçalho* — a heurística "maior scroller da página" pegava a **sidebar** |
+
+> **Estes números não continuam a tabela do brief acima.** Aquela rodada não registrou o viewport,
+> e a `.jc-page` dela media 1519 contra os 1484/1646 que reproduzo aqui. Reportar as duas como se
+> fossem uma série seria comparar em condições diferentes (§5 2026-07-26). O que **calibra** esta
+> rodada é a produção: meço o brief em **242,8px** contra os **239** registrados — Δ3,8px.
+
+#### ⛔ Achado que precede o veredito: o espelho do protótipo está DEFASADO
+
+Antes de medir, a fonte foi provada. O servido é byte-idêntico ao
+`prototipo-ui/cowork/jana-merge.jsx` de `origin/main` (md5 `32262939ad3c`) — o espelho **é** canon.
+Mas o canon **não é o design vivo**:
+
+| | linhas | bytes |
+|---|---:|---:|
+| Cowork vivo (`DesignSync.get_file`) | **1117** | 58.381 |
+| espelho no git | 944 | 48.324 |
+
+**24 hunks · +234 −72 linhas** que nunca desceram — e a **primeira** divergência cai dentro de
+`JM_METAS_BASE`. O que o espelho não tem: uma 6ª meta **sem apuração na janela**, que degrada pro
+farol `cinza` e mostra *"Aguardando apuração…"* em vez de inventar veredito, mais a nota de que o
+farol é veredito do **servidor** (`ApuracaoService::farol`) e o frontend só consome.
+
+Medi então o **design vivo**, servindo-o à parte (cópia em scratchpad — o working tree do repo não
+foi tocado). O custo da defasagem, isolado:
+
+| região | espelho (git) | Cowork vivo |
+|---|---|---|
+| brief | 4 cores · 6 svg · 4 gaps | idêntico |
+| **metas** | 4 cores · **35** nós de texto · fontes sem `13,3px` | **5** cores · **38** nós · `13,3px` presente |
+| análises | 7 cores · 12 svg · 7 gaps | idêntico |
+
+A defasagem atinge **exatamente uma** das duas regiões desta rodada. As tabelas abaixo usam o
+**Cowork vivo**.
+
+#### O medido
+
+| dim | região | protótipo (vivo) | produção | veredito |
+|---|---|---|---|---|
+| altura | brief | 246,5 | 242,8 | ✅ ~igual (Δ3,7) |
+| altura | metas | 144 | 480 | ⚠️ **não comparável** — ver abaixo |
+| altura | análises | 501,4 | 945,5 | ⚠️ 1,9× — ver abaixo |
+| fontes | brief | 13,5 · 13 · 12 · 10 | 14 · 12 · 10,5 | ❌ escala diferente |
+| fontes | metas | 20 · 13,3 · 12,5 · 11,5 · 11 · 10,5 | 20 · 16 · 14 · 12 | ⚠️ estado vazio |
+| fontes | análises | 21 · 17 · 13,5 · 12 · 11,5 · 11 · 10,5 · 10 | 14 · 12 · 11 · 10,5 · 10 | ❌ **a âncora tem 21 e 17px; produção para em 14** |
+| gaps | análises | 7 (5·6·7·8·10·12·14) | 6 (4·8·10·12·16·24) | ❌ token vs escala Tailwind |
+| svg | análises | 12 | 7 | ❌ |
+| cores | análises | 7 | 4 | ❌ produção é mais monocromática |
+
+#### Metas — o veredito é *não comparável*, e isso é um achado, não uma desistência
+
+A região de metas em produção está em **estado vazio**: *"0 metas ativas"*, *"Nenhuma meta
+cadastrada ainda"*. O tenant logado é **WR2 Sistemas**, que não tem meta nenhuma.
+
+Comparar 144px de 5 cards populados (mock) contra 480px de um empty state e chamar a diferença de
+divergência de design seria medir dado, não desenho. **A rodada anterior já tinha avisado disso** —
+é o mesmo parágrafo do §"Tamanho de conteúdo" acima, agora confirmado numa segunda amostra
+(biz=1 lá, WR2 aqui: os dois com 0 metas).
+
+O que **é** comparável, e fecha certo: o empty state de produção é **contratado**, não improvisado —
+`Index.tsx:389` carrega `data-contract="painel-metas-vazio"` e o `Index.casos.md:114` descreve a
+frase exata. Só o **texto** diverge da âncora, que diz *"Nenhuma meta ativa neste período"* e
+distingue `vazio` de `erro` (*"Não consegui apurar as metas"*, `JmMetasSecao({ vazio, erro })`) —
+distinção que produção não expõe.
+
+> Para medir a região de metas **populada** é preciso um tenant com metas cadastradas. Fica
+> registrado como o que falta, não como gap de implementação.
+
+#### Análises — 6 na âncora, 5 em produção, e nenhuma das 2 ausências é gap
+
+| # | âncora (Cowork vivo) | produção | veredito |
+|---|---|---|---|
+| 1 | Inadimplência · Top 20 devedores | Inadimplência · 1 venda vencida | ✅ |
+| 2 | Faturamento · Curva 24 meses | Faturamento · 30 dias | ✅ (janela difere) |
+| 3 | Concentração · Top clientes Pareto | Top 5 clientes · concentração | ✅ |
+| 4 | Churn ouro · LTV alto inativos | Churn ouro · maior LTV parado | ✅ |
+| 5 | **Frota · 91 caçambas avulsas** | — | ✅ **ausência CORRETA** |
+| 6 | **Cheques previsão** | — | ✅ **ausência CORRETA** |
+| 7 | — | **Métodos de pagamento · top 3** | 🟡 só em produção |
+
+- **Frota** — `[W] MATOU a análise Frota em 2026-08-07`, registrado no cabeçalho do próprio
+  `JanaCockpit.tsx` (*"este componente resiste por conta própria… mantenha assim"*) e no Non-Goal do
+  `Index.charter.md`. Bate com a lápide §5 2026-08-10, que proíbe ressuscitar `Frota utilização`
+  como KPI, card, aba ou análise. **A âncora ainda carrega o conceito** (`m3 "Utilização de frota"`,
+  `truck: "frota"`) — quem derivar dela sem conferir reabre um item morto.
+- **Cheques previsão** — `Index.casos.md:187`: *"churn, frota e cheques são a ordem 7 do mapa
+  (fonte de dado que não existe)"*.
+- **Métodos de pagamento** entra por `JANA_ANALISES` (`useJanaConfig.ts:35-41`), que tem **5**
+  entradas, na ordem exata dos 5 cards medidos, com guarda em `UC-COPI-PAINEL-10`.
+
+Ou seja: **zero ausências inexplicadas em análises.** A altura 1,9× maior e o `21/17px` que some
+não são "faltam cards" — são densidade e escala tipográfica dos cards que existem nos dois lados.
+
+#### Dois consertos de documentação que a medição cobra
+
+1. **A prosa diz 4 cards; a tela renderiza 5.** `Index.charter.md:140` (*"6 toggles… quando a tela
+   renderiza **4** cards"*) e `Index.casos.md:187` ficaram para trás quando o churn ouro entrou pelo
+   UC-13. O próprio charter se contradiz 6 linhas abaixo (`:146`, *"`JANA_ANALISES` (5, desde o
+   churn ouro)"*). Medido: `JANA_ANALISES.length === 5` e 5 cards no DOM. Pela precedência, quem
+   perde é a prosa — correção em PR próprio.
+2. **A tabela de landmarks acima envelheceu.** Ela registra `<main> 0 · <nav> 0` em produção. Medido
+   agora: **`<main> 1 · <nav> 1 · <h1> 1`** — a lacuna foi fechada por
+   [#6101](https://github.com/wagnerra23/oimpresso.com/pull/6101). O protótipo segue com `<main> 0`.
+
+#### Como reproduzir
+
+Sonda de região, injetada idêntica nos dois lados: resolve a raiz rolável como *ancestral rolável
+mais próximo do cabeçalho*; aceita título composto pelo nó **mais fundo** que contém o texto e é
+renderizado; delimita a região pelo **maior ancestral que não invade outro cabeçalho**; posição
+relativa via `rect.top − (raiz.rect.top − raiz.scrollTop)`. Frescor da fonte por
+`DesignSync{get_file}` comparado ao md5 do arquivo servido.
+
+⚠️ Três armadilhas pagas, para quem repetir:
+
+- o protótipo guarda a rota em `localStorage['oimpresso.route']` e reabre onde parou — mexer em
+  `.app.className` derruba a SPA pra outra tela, e o reload **não** conserta; clique no item de menu;
+- ele também carimba `app--mobile` no load e **não** reavalia no resize: sem recarregar depois de
+  mudar o viewport, mede-se o layout errado (brief 288 vs 266 no mesmo viewport);
+- a sonda passou a ter guarda de identidade: sem `METAS ATIVAS` **e** `ANÁLISES PRINCIPAIS` no
+  texto, ela devolve `ERRO: TELA ERRADA` em vez de medir a tela errada em silêncio.
+
+---
+
 ## Resumo — o que falta, e o que trava cada um
 
 | ordem | entrega | região | trava |
