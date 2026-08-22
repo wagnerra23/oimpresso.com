@@ -49,6 +49,9 @@ const ROOT = opt('--root', process.cwd());
 const OUT = opt('--out', 'sync');
 const ENTRY = opt('--entry', 'oimpresso.com.html');
 const CAP = Number(opt('--cap', '262144'));
+// Piso de PERSISTÊNCIA do consumidor (ver o bloco do empacotamento). 60 KiB fica acima do maior
+// inline medido (41 KB) e abaixo do menor persistido (87 KB). `--piso 0` desliga o aviso.
+const PISO = Number(opt('--piso', '61440'));
 const EXCLUDES = args.reduce((acc, a, i) => (a === '--exclude' && args[i + 1] ? [...acc, args[i + 1]] : acc), []);
 
 if (!existsSync(join(ROOT, ENTRY))) {
@@ -159,19 +162,62 @@ if (grandes.length) {
 // lote de qualquer jeito (o grafo dele nao fecharia), mas pelo motivo generico "grafo local
 // incompleto", sem dizer que a ausencia foi DELIBERADA deste lado.
 const missing = [...new Set([...ausentes, ...excluidos])].sort();
-const lotes = [];
-let atual = [];
-let usado = RESERVA;
-for (const r of registros) {
-  if (atual.length && usado + r.custo > CAP) { lotes.push(atual); atual = []; usado = RESERVA; }
-  atual.push(r);
-  usado += r.custo;
+// EMPACOTAMENTO EQUILIBRADO — o teto sozinho não basta, e o motivo é o consumidor.
+//
+// O guloso puro enche cada parte até o CAP e joga o resto na ÚLTIMA, que pode sair minúscula.
+// Isso importa porque o outro lado busca as partes com `DesignSync.get_file`, e a resposta só
+// é PERSISTIDA EM DISCO acima de um piso; abaixo dele ela chega inline no contexto do agente,
+// e escrever de lá é transcrição — a classe do STALE de 2026-08-11. Ou seja: uma parte pequena
+// demais é inaplicável, mesmo estando perfeitamente dentro do teto.
+//
+// Medido em 2026-08-22 nesta harness: 2,4 KB inline · 19 KB inline · 41 KB inline · 87 KB em
+// disco. O piso real está entre 41 KB e 87 KB (o handoff de 08-17 mediu 52 KB, que cai no
+// intervalo). Não sei o valor exato, então NÃO finjo precisão: equilibro as partes (o que
+// dissolve o problema na prática) e AVISO se alguma ficar abaixo de `--piso`.
+//
+// Foi assim que o lote do Cowork de 2026-08-22 travou: 30 partes entre 157 e 250 KB, e a
+// part01 com 40.896 B — a única abaixo do piso, e o lote inteiro parou nela.
+function empacotar(limite) {
+  const out = [];
+  let atual = [], usado = RESERVA;
+  for (const r of registros) {
+    if (atual.length && usado + r.custo > limite) { out.push(atual); atual = []; usado = RESERVA; }
+    atual.push(r);
+    usado += r.custo;
+  }
+  if (atual.length) out.push(atual);
+  return out;
 }
-if (atual.length) lotes.push(atual);
+
+const custoTotal = registros.reduce((n, r) => n + r.custo, 0);
+const maiorCusto = registros.reduce((n, r) => Math.max(n, r.custo), 0);
+// N = mínimo de partes que o teto permite; depois espalho o mesmo conteúdo por N partes de
+// tamanho parecido. Se a distribuição uniforme gerar MAIS partes que o mínimo (acontece por
+// granularidade dos arquivos), fico com o guloso — ele nunca perde no número.
+let lotes = empacotar(CAP);
+const N = lotes.length;
+
+// Busca binária pelo MENOR limite que ainda cabe em N partes. A média (custoTotal/N) parece o
+// alvo óbvio, mas não é: um único arquivo pequeno na cauda empurra uma parte a mais e o
+// resultado é descartado. Medido com 6×50 KB + o shell de 250 B — a média dava 3 partes onde o
+// teto dava 2, o equilíbrio era rejeitado, e a última parte saía com 50 KB (abaixo do piso).
+// A busca acha o limite exato onde o empacotamento ainda fecha em N, e aí as partes saem
+// parecidas por construção.
+let lo = maiorCusto + RESERVA;
+let hi = CAP;
+while (lo < hi) {
+  const meio = Math.floor((lo + hi) / 2);
+  if (empacotar(meio).length <= N) hi = meio; else lo = meio + 1;
+}
+const equilibrado = empacotar(lo);
+if (equilibrado.length <= N) lotes = equilibrado;
 
 if (!existsSync(OUT)) mkdirSync(OUT, { recursive: true });
 const generatedAt = new Date().toISOString();
 const largura = Math.max(2, String(lotes.length).length);
+
+/** [nome, bytes] de cada parte escrita — alimenta o aviso de piso lá embaixo. */
+const tamanhosEscritos = [];
 
 lotes.forEach((lote, i) => {
   const envelope = {
@@ -196,11 +242,28 @@ lotes.forEach((lote, i) => {
   const texto = JSON.stringify(envelope);
   writeFileSync(nome, texto);
   const bytes = Buffer.byteLength(texto, 'utf8');
+  tamanhosEscritos.push([nome, bytes]);
   console.log(`  ok ${nome} — ${String(lote.length).padStart(3)} arquivo(s) . ${(bytes / 1024).toFixed(1)} KiB${bytes > CAP ? '  ACIMA DO CAP' : ''}`);
 });
 
 const totalBytes = registros.reduce((n, r) => n + r.rec.bytes, 0);
 console.log(`\n  PARTES: ${lotes.length} . ARQUIVOS: ${registros.length} . ${(totalBytes / 1048576).toFixed(2)} MB de conteudo`);
+
+// AVISO DE PISO — relato, não veredito. O piso exato do consumidor não é conhecido (medido
+// só o intervalo 41-87 KB), e reprovar por um número que eu não sei seria transformar
+// ignorancia em reprovacao. Com o empacotamento equilibrado acima isto quase nunca dispara;
+// quando disparar, e porque o lote e pequeno demais pra encher uma parte — ai a parte unica
+// e o lote inteiro, e o aviso e o que importa.
+if (PISO > 0) {
+  const pequenas = tamanhosEscritos.filter(([, b]) => b < PISO);
+  if (pequenas.length) {
+    console.log(`\n  AVISO ${pequenas.length} parte(s) abaixo do piso de persistencia (${PISO} bytes):`);
+    for (const [nome, b] of pequenas) console.log(`     . ${nome} — ${b} bytes`);
+    console.log(`     Parte pequena pode chegar INLINE no contexto do consumidor em vez de virar`);
+    console.log(`     arquivo em disco, e ai ela e inaplicavel (escrever de la e transcricao).`);
+    console.log(`     Medido 2026-08-22: 41 KB veio inline · 87 KB veio em disco.`);
+  }
+}
 if (excluidos.size) console.log(`  excluidos por --exclude: ${[...excluidos].join(', ')}`);
 if (missing.length) {
   console.log(`  AVISO missing (${missing.length}): ${missing.join(', ')}`);
