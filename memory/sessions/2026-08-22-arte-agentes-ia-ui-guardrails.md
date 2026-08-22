@@ -1,5 +1,7 @@
 ---
 slug: 2026-08-22-arte-agentes-ia-ui-guardrails
+date: '2026-08-22'
+topic: "Estado da arte — agentes de IA gerando UI de produção: guard-rails medidos vs teatro"
 title: "Estado da arte — agentes de IA gerando UI de produção: o que é confiável em 2026 e quais guard-rails funcionam"
 type: session
 authority: research

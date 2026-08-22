@@ -1,5 +1,11 @@
 ---
 id: sessions-2026-08-22-arte-escala-centenas-de-telas
+date: '2026-08-22'
+topic: "Estado da arte — consistência visual com centenas de telas: o problema de escala"
+type: session
+authority: research
+lifecycle: ativo
+pii: false
 ---
 
 # Estado da arte — consistência visual com CENTENAS de telas (o problema de escala)

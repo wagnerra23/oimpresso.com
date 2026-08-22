@@ -1,3 +1,12 @@
+---
+date: '2026-08-22'
+topic: "Estado da arte — fidelidade design → produção: dá pra reproduzir fiel o protótipo?"
+type: session
+authority: research
+lifecycle: ativo
+pii: false
+---
+
 # Estado da arte 2026 — fidelidade design → produção
 
 **Data:** 2026-08-22 · **Agente:** `estado-da-arte` · **Escopo:** EXTERNO (mercado, engenharia, literatura). Inventário do repo oimpresso é de outro agente — este doc **não** o duplica.
