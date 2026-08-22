@@ -16,11 +16,22 @@
  *
  * FIDELIDADE — o que este script VERIFICA de fato (ver o bloco no laço, com a medição):
  *   (a) BYTES declarado == bytes reais, por arquivo. Divergiu = NÃO escreve e sai != 0.
- *   (b) o payload traz `fnv64`, mas a convenção NÃO é reproduzível daqui — 5 variantes testadas,
- *       0/118 bateram. Ele é impresso como referência, nunca usado como veredito: bloquear por
- *       hash que eu não sei calcular seria transformar ignorância minha em falha do transporte.
- *   (c) a prova forte é EXTERNA a este script: os 21 arquivos que desceram pela rota
- *       independente `get_file` → `--export-from` são byte-idênticos aos do payload (21/21).
+ *       Arquivo SEM `bytes` não é "conferido", é NÃO MEDIDO: conta no rodapé, e em
+ *       `--require-complete-shell` recusa o lote.
+ *   (b) DIGEST — o envelope declara a convenção (`hash`) e o arquivo traz `fnv64`. Comparação
+ *       feita e REPORTADA no rodapé; nunca veredito. Medições, com data:
+ *         · 2026-08-17, [CL], 5 variantes → 0/118 · 2026-08-22, [CC], 11 variantes → 0/118
+ *         · a `fnv1a64()` daqui bate 5/5 vetores publicados de FNV-1a 64 (controle positivo)
+ *         · o envelope do payload de 2026-08-17 declara exatamente o algoritmo implementado aqui
+ *       Ou seja: os dois lados dizem rodar a mesma função e o valor não bate. Isso é
+ *       CONTRADIÇÃO EM ABERTO, não ignorância de um lado só. Vira veredito quando o gerador
+ *       emitir selftest de vetor conhecido no próprio payload.
+ *   (c) `missing` declarado pelo gerador é lido nos DOIS modos — relato em lote parcial,
+ *       bloqueio em `--require-complete-shell`.
+ *   (d) a prova cruzada dos 21 arquivos (2026-08-17, rota independente `get_file` →
+ *       `--export-from`) é INDÍCIO, não "prova forte": 21 sem falha limita a taxa a ~13% e a
+ *       amostra é enviesada para arquivos grandes (os pequenos voltam inline), com poder zero
+ *       sobre a rota que originou o STALE de 2026-08-11.
  *
  * Uso:
  *   node scripts/design-sync/aplicar-payload.mjs <payload.json> --dry   # relatório, não escreve
@@ -126,7 +137,15 @@ function lerPayload(arquivo) {
 }
 
 const payloads = arquivos.map((arquivo) => ({ arquivo, ...lerPayload(arquivo) }));
-const files = payloads.flatMap((p) => p.files || []);
+// O envelope pode declarar a convenção do digest (`hash`). O `flatMap` achata os lotes e
+// perderia essa procedência, então guardo por REFERÊNCIA do objeto — sem copiar conteúdo.
+const hashDeclarado = new WeakMap();
+const files = payloads.flatMap((p) => {
+  const lista = p.files || [];
+  const decl = typeof p.hash === 'string' && p.hash.trim() ? p.hash.trim() : null;
+  if (decl) for (const f of lista) hashDeclarado.set(f, decl);
+  return lista;
+});
 if (!Array.isArray(files) || !files.length) { console.error('✗ payload sem `files`'); process.exit(2); }
 
 const totalDeclarado = payloads.reduce((n, p) => n + (Number(p.totalBytes) || 0), 0);
@@ -137,6 +156,9 @@ console.log(`  destinos: ${DESTINO}/ + scripts/design-sync/mirror-snapshot/ para
 
 const tally = { NOVO: 0, ATUALIZADO: 0, inalterado: 0 };
 const corrompidos = [], forade = [], preparados = [];
+// Contadores do que este script NÃO verifica — o silêncio era indistinguível de "conferi".
+const digest = { comparados: 0, divergentes: 0, convencao: null };
+let semProvaDeBytes = 0;
 
 for (const f of files) {
   let rel;
@@ -158,18 +180,23 @@ for (const f of files) {
   const baseRel = normalize(destinoBase);
   if (!alvoRel.startsWith(baseRel + sep) && alvoRel !== baseRel) { forade.push(rel + ' (fora do destino)'); continue; }
 
-  // INTEGRIDADE — o que eu consigo VERIFICAR, não o que soa mais forte.
+  // INTEGRIDADE — o que eu consigo VERIFICAR, e o que eu deixo de verificar DITO EM VOZ ALTA.
   //
-  // O payload traz `fnv64` por arquivo, mas a convenção dele não é reproduzível daqui: testei
-  // 5 variantes (FNV-1a/FNV-1 × bytes-utf8/latin1/charCodeAt/codePoint) e 0 de 118 bateram.
-  // Bloquear por um hash que eu não sei calcular seria transformar minha ignorância em veredito
-  // — e o controle positivo já provou que o errado era eu, não o transporte.
+  // (a) BYTES declarado == bytes reais. Pega truncagem — o modo de falha dominante quando o
+  //     transporte fatia (o teto de 256 KiB do get_file). 118/118 ✓ em 2026-08-17.
+  //     NÃO pega o que preserva tamanho: troca de byte, reordenação, U+FFFD substituindo
+  //     sequência de exatamente 3 bytes. Para essas classes a chance de escapar é 1, não é baixa.
   //
-  // O que eu verifico de verdade, e é mais forte:
-  //   (a) BYTES declarado == bytes reais — pega truncagem/corrupção de transporte. 118/118 ✓
-  //   (b) PROVA CRUZADA — os 21 arquivos que desceram hoje pela rota INDEPENDENTE do
-  //       `get_file` → `--export-from` são byte-idênticos aos do payload. 21/21 ✓
-  // Duas rotas que não compartilham nada concordando é evidência melhor que um hash opaco.
+  // (b) DIGEST — comparado e reportado, nunca veredito. Bloquear por um valor que nenhum dos
+  //     dois lados consegue reconciliar transformaria uma contradição em aberto numa reprovação
+  //     de transporte. Ver o docblock do topo para as duas medições datadas e o controle positivo.
+  //
+  // (c) A prova cruzada dos 21 arquivos é indício com amostra enviesada — ver docblock (d).
+  //     A frase anterior aqui ("duas rotas que não compartilham nada" / "melhor que um hash
+  //     opaco") era forte demais em três frentes: as rotas COMPARTILHAM a origem (mesmo projeto,
+  //     mesmo backend — só o trecho final difere), 21/118 não sustenta "prova", e um digest de
+  //     64 bits deixa passar corrupção acidental com probabilidade ~5e-20, dezenove ordens de
+  //     grandeza abaixo do que a amostragem limita.
   if (typeof f.content !== 'string') { corrompidos.push({ rel, declarado: 'content ausente', calculado: 'esperava string' }); continue; }
   const binary = f.isBase64 === true || f.encoding === 'base64';
   const compact = binary ? f.content.replace(/\s+/g, '') : '';
@@ -180,21 +207,45 @@ for (const f of files) {
   const calc = fnv1a64(conteudo);
   const bytesReais = conteudo.length;
   if (f.bytes != null && f.bytes !== bytesReais) { corrompidos.push({ rel, declarado: f.bytes + ' bytes', calculado: bytesReais + ' bytes' }); continue; }
+  // (C2) `bytes` ausente não é "conferido" — é NÃO MEDIDO. Antes passava calado, com o mesmo
+  // texto de log de quem foi verificado. Conta pra sair no rodapé; em --require-complete-shell
+  // recusa, porque modo que promete fechamento não pode escrever conteúdo sem prova nenhuma.
+  if (f.bytes == null) semProvaDeBytes++;
+  // (C1) O envelope declara a convenção do digest e o arquivo traz o valor. Comparar é de graça
+  // — o `calc` já foi computado acima. NÃO vira veredito: bloquear por um digest que não se sabe
+  // reproduzir é transformar ignorância em reprovação. Vira CONTRADIÇÃO REPORTADA no rodapé.
+  const decl = hashDeclarado.get(f);
+  if (decl && typeof f.fnv64 === 'string' && f.fnv64) {
+    digest.convencao = decl;
+    digest.comparados++;
+    if (f.fnv64.toLowerCase() !== calc.toLowerCase()) digest.divergentes++;
+  }
 
   preparados.push({ rel, destinoBase, destinoPath, alvoRel, conteudo, binary, text: binary ? null : f.content, calc });
 }
 
 // PORTÃO DO SHELL COMPLETO — roda ANTES de qualquer write. O payload servido é a rota que
 // derruba o teto de 256 KiB do get_file; o grafo impede que "missing: []" seja aceito por fé.
+// (C3) `missing` é declaração DE QUEM SERVIU o payload — ele avisou que faltava coisa. Isso vale
+// nos DOIS modos: em lote parcial é RELATO (o applier repassa em vez de engolir), em shell
+// completo continua BLOQUEIO. Antes as duas leituras viviam dentro do `if` abaixo, então o
+// lote parcial aplicava em silêncio um payload que se declarava incompleto.
+const semDeclaracao = payloads.filter((p) => !Array.isArray(p.missing)).map((p) => p.arquivo);
+const declarados = payloads.flatMap((p) => Array.isArray(p.missing) ? p.missing : []);
+if (!requireCompleteShell && (declarados.length || semDeclaracao.length)) {
+  if (declarados.length) console.log(`  ℹ️  o gerador declarou ${declarados.length} ausente(s): ${declarados.join(', ')}`);
+  if (semDeclaracao.length) console.log(`  ℹ️  payload sem \`missing\`: ${semDeclaracao.join(', ')} — não dá pra saber se está completo`);
+  console.log('');
+}
+
 if (requireCompleteShell) {
-  const semDeclaracao = payloads.filter((p) => !Array.isArray(p.missing)).map((p) => p.arquivo);
-  const declarados = payloads.flatMap((p) => Array.isArray(p.missing) ? p.missing : []);
   const grafo = payloadDependencyGraph(preparados.map((f) => ({
     path: f.rel, content: f.text, binary: f.binary,
   })));
   console.log(`  grafo: ${grafo.reachable.length} alcançável(is) · ${grafo.edges.length} aresta(s) · ${grafo.external.length} externa(s) ignorada(s)`);
   if (semDeclaracao.length) forade.push(`payload sem \`missing: []\`: ${semDeclaracao.join(', ')}`);
   if (declarados.length) forade.push(`payload declarou ${declarados.length} ausente(s): ${declarados.join(', ')}`);
+  if (semProvaDeBytes) forade.push(`${semProvaDeBytes} arquivo(s) sem \`bytes\` — sem prova de integridade, e este modo promete fechamento`);
   if (!grafo.entryPresent) forade.push(`entry ausente: ${grafo.entry}`);
   if (grafo.missing.length) forade.push(`grafo local incompleto: ${grafo.missing.join(', ')}`);
   if (grafo.unsafe.length) forade.push(`referência insegura: ${grafo.unsafe.map((x) => `${x.from} → ${x.ref}`).join(', ')}`);
@@ -243,6 +294,21 @@ for (const f of preparados) {
 }
 
 console.log(`\n  ${tally.ATUALIZADO} atualizado(s) · ${tally.NOVO} novo(s) · ${tally.inalterado} inalterado(s)`);
+// O que NÃO foi verificado sai junto do que foi — senão "não achei divergência" e "não procurei"
+// ficam com o mesmo texto, que é a família LC-13 já catalogada no repo.
+if (semProvaDeBytes) {
+  console.log(`  ⚠ ${semProvaDeBytes} arquivo(s) escrito(s) SEM prova de bytes — o payload não declarou \`bytes\`.`);
+}
+if (digest.comparados) {
+  const ok = digest.comparados - digest.divergentes;
+  if (digest.divergentes) {
+    console.log(`  ⚠ o gerador declara "${digest.convencao}" e o digest NÃO bate em ${digest.divergentes}/${digest.comparados} arquivo(s)`);
+    console.log(`     bytes conferem em ${preparados.length - semProvaDeBytes}/${preparados.length}; o digest segue como REFERÊNCIA, não veredito.`);
+    console.log(`     Pra virar veredito, o gerador precisa emitir selftest de vetor conhecido no payload.`);
+  } else {
+    console.log(`  ✓ digest bate em ${ok}/${digest.comparados} — convenção "${digest.convencao}" reproduzível daqui.`);
+  }
+}
 // Órfãos são RELATO, não poda: o apply não apaga, e o que sobra no espelho fora deste lote
 // pode ser legítimo (bundles, origem externa). Podar é decisão [W].
 console.log(`\n  ℹ️  apply não apaga — arquivos do espelho fora deste lote seguem lá (relato, não poda).`);
