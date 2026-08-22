@@ -525,6 +525,14 @@ jobs:
       - name: aplicar-payload morde (escopo/R1/bytes/regressão · CLI de fora, sandbox por cwd)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/aplicar-payload.test.mjs
+      # Par PRODUTOR do aplicar-payload. Mutantes mortos antes de wirar (2026-08-22): guarda de
+      # tamanho removida → 3 FAIL · união do `missing` desfeita → 1 FAIL · glob voltando a
+      # escapar antes de fatiar → 16 FAIL. O 1o fixture da união SOBREVIVEU o mutante (gerava
+      # 1 parte só, onde repetir e não repetir dão a mesma união) — trocado por 12×40 KB, que
+      # força ≥2 partes. Verde que não podia ficar vermelho é carimbo (LC-13).
+      - name: gerar-payload-partes morde (cap/união-missing/glob + vetor FNV-1a-64 · hermético)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design-sync/gerar-payload-partes.test.mjs
       - name: ds-push orquestrador morde (dry-run VALOR:0 + determinismo · loop diff-first)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/ds-push.test.mjs
