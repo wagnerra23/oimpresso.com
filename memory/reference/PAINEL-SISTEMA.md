@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-21**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-22**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -44,7 +44,7 @@ lente: [construir]
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
 | OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-07-27 |
 | PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-07-23 |
-| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-08-07 |
+| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-08-21 |
 | ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
 | RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-08-05 |
 | Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-08-06 |
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **356**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **351**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -146,12 +146,12 @@ lente: [construir]
 ## Decisões (ADRs)
 
 - **383** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 348 · superseded: 16 · deprecated: 12 · proposto: 5 · rascunho: 1 · recusado: 1.
+- Por status: aceito: 347 · superseded: 16 · deprecated: 13 · proposto: 5 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 137 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 140 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -291,6 +291,9 @@ lente: [construir]
 - ~~2026-08-20 — Responder "precisa atualizar a branch?" com o `strict` da branch protection — a pergunta tinha OUTRO dono~~
 - ~~2026-08-20 — Gate que exige `.snap` junto quando o PR toca tela do núcleo (MEDIDO: 78%/92% de disparo; adiado pela FASE, não refutado)~~
 - ~~2026-08-20 — Sondar o git com a mudança AINDA NÃO COMMITADA (a sonda responde sobre o commitado, não sobre o seu working tree)~~
+- ~~2026-08-21 — `/tmp` não é o mesmo diretório para o Bash e para o Node no Windows: dois arquivos, mesmo caminho escrito~~
+- ~~2026-08-21 — A mensagem do `--live-only` dizia "`.md` NÃO desce" 11h depois de o MESMO arquivo passar a descê-los (e o PR que a tornou falsa tinha o arquivo aberto)~~
+- ~~2026-08-21 — DUAS rotas de baixar o espelho, sem hierarquia no instrumento que a sessão lê — e escolhi a inferior um dia depois da lápide que já tinha corrigido isso~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -301,7 +304,7 @@ lente: [construir]
 
 ## Rastro
 
-- **466** handoffs · **639** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **468** handoffs · **639** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
   - `2026-08-20-visreg-narrativa-do-comentario`
   - `2026-08-20-backup-migracao-ondas-0-a-3`
@@ -311,4 +314,4 @@ lente: [construir]
   - `2026-08-18-design-sync-runtime-completo-drawers`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-21 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-22 · deriva das fontes canônicas, não as substitui._
