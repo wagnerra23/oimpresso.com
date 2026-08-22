@@ -34,6 +34,22 @@ const check = (nome, ok, detalhe = '') => {
   if (!ok) fails++;
 };
 
+/**
+ * FNV-1a 64 de referência — réplica do `fnv1a64()` do applier, pra fabricar o caso CORRETO
+ * do bite de digest. Ancorado em vetor publicado (`"foobar"` → 85944171f73967e8), senão o
+ * teste mediria a si mesmo: se eu copiasse um bug daqui, o "correto" e o applier errariam junto.
+ */
+function fnvRef(texto) {
+  let h = 0xcbf29ce484222325n;
+  const prime = 0x100000001b3n, mask = 0xffffffffffffffffn;
+  for (const b of Buffer.from(texto, 'utf8')) { h = ((h ^ BigInt(b)) * prime) & mask; }
+  return h.toString(16).padStart(16, '0');
+}
+if (fnvRef('foobar') !== '85944171f73967e8') {
+  console.log('[FAIL] fnvRef não bate no vetor publicado FNV-1a 64 de "foobar" — o resto do bite de digest não vale');
+  process.exit(1);
+}
+
 /** sandbox: cwd próprio com `prototipo-ui/cowork/`, pra nunca tocar o repo real */
 function sandbox(arquivosIniciais = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'aplicar-payload-'));
@@ -295,6 +311,85 @@ console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ applier: fiel/atômico ·
     r.code === 2 && r.out.includes('payload incompleto') && r.out.includes('faltam 3'), r.out);
   check('BITE incompleto: nao escreve espelho pela metade',
     !existsSync(join(dir, 'prototipo-ui/cowork/a.jsx')), r.out);
+}
+
+// ── C1: digest declarado × calculado — contradição REPORTADA, nunca veredito ──
+{
+  const dir = sandbox();
+  const pay = payload(dir, [
+    { path: 'a.jsx', content: 'a\n', fnv64: 'deadbeefdeadbeef' },   // errado de propósito
+    { path: 'b.jsx', content: 'b\n', fnv64: 'cafecafecafecafe' },   // errado de propósito
+    { path: 'c.jsx', content: 'c\n', fnv64: fnvRef('c\n') },        // correto
+  ]);
+  const obj = JSON.parse(readFileSync(pay, 'utf8'));
+  obj.hash = 'fnv1a-64 (hex 16) sobre o conteudo UTF-8';
+  writeFileSync(pay, JSON.stringify(obj), 'utf8');
+
+  const r = rodar(dir, pay);
+  check('BITE digest: contradição sai no rodapé com 2/3',
+    /digest N[ÃA]O bate em 2\/3/.test(r.out), r.out);
+  check('BITE digest: NÃO bloqueia — rc=0 e os 3 arquivos escritos',
+    r.code === 0 && ['a.jsx', 'b.jsx', 'c.jsx'].every((f) => existsSync(join(dir, 'prototipo-ui/cowork', f))), 'rc=' + r.code + r.out);
+  check('BITE digest: diz que segue como REFERÊNCIA, não veredito',
+    /REFER[ÊE]NCIA, n[ãa]o veredito/.test(r.out), r.out);
+}
+{ // controle negativo: sem `hash` no envelope, não inventa contradição
+  const dir = sandbox();
+  const pay = payload(dir, [{ path: 'a.jsx', content: 'a\n', fnv64: 'deadbeefdeadbeef' }]);
+  const r = rodar(dir, pay);
+  check('CONTROLE digest: envelope sem `hash` → nenhuma linha de digest',
+    r.code === 0 && !/digest/i.test(r.out), r.out);
+}
+
+// ── C2: `bytes` ausente é NÃO MEDIDO, não "conferido" ────────────────────────
+{
+  const dir = sandbox();
+  const pay = payload(dir, [{ path: 'a.jsx', content: 'a\n', bytes: null }, { path: 'b.jsx', content: 'b\n' }]);
+  const r = rodar(dir, pay);
+  check('BITE sem-bytes: lote parcial escreve e AVISA 1 sem prova',
+    r.code === 0 && /1 arquivo\(s\) escrito\(s\) SEM prova de bytes/.test(r.out), r.out);
+  check('BITE sem-bytes: o arquivo sem prova foi mesmo escrito',
+    existsSync(join(dir, 'prototipo-ui/cowork/a.jsx')), r.out);
+}
+{
+  const dir = sandbox();
+  const pay = completePayload(dir, [
+    { path: 'oimpresso.com.html', content: '<html><body>x</body></html>\n' },
+    { path: 'solto.jsx', content: 'z\n', bytes: null },
+  ]);
+  const r = rodar(dir, pay, ['--require-complete-shell']);
+  check('BITE sem-bytes: --require-complete-shell RECUSA o lote',
+    r.code === 1 && /sem `bytes`/.test(r.out), 'rc=' + r.code + r.out);
+  check('BITE sem-bytes: nada escrito quando recusa',
+    !existsSync(join(dir, 'prototipo-ui/cowork/solto.jsx')), r.out);
+}
+
+// ── C3: `missing` declarado é lido nos DOIS modos ────────────────────────────
+{
+  const dir = sandbox();
+  const pay = payload(dir, [{ path: 'a.jsx', content: 'a\n' }]);
+  const obj = JSON.parse(readFileSync(pay, 'utf8'));
+  obj.missing = ['x.jsx', 'y.css'];
+  writeFileSync(pay, JSON.stringify(obj), 'utf8');
+
+  const r = rodar(dir, pay);
+  check('BITE missing: lote parcial RELATA os ausentes e aplica (rc=0)',
+    r.code === 0 && /declarou 2 ausente\(s\): x\.jsx, y\.css/.test(r.out), 'rc=' + r.code + r.out);
+  check('BITE missing: aplicou mesmo relatando', existsSync(join(dir, 'prototipo-ui/cowork/a.jsx')), r.out);
+}
+{
+  const dir = sandbox();
+  const pay = completePayload(dir, [{ path: 'oimpresso.com.html', content: '<html></html>\n' }], ['x.jsx']);
+  const r = rodar(dir, pay, ['--require-complete-shell']);
+  check('BITE missing: --require-complete-shell continua BLOQUEANDO',
+    r.code === 1 && /declarou 1 ausente/.test(r.out), 'rc=' + r.code + r.out);
+}
+{ // controle negativo: missing vazio não gera relato nenhum
+  const dir = sandbox();
+  const pay = payload(dir, [{ path: 'a.jsx', content: 'a\n' }]);
+  const r = rodar(dir, pay);
+  check('CONTROLE missing: `missing: []` → nenhum relato de ausente',
+    r.code === 0 && !/ausente\(s\)/.test(r.out), r.out);
 }
 
 process.exit(fails ? 1 : 0);
