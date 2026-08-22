@@ -9,12 +9,12 @@
     },
     "grades": {
       "path": "governance/module-grades-baseline.json",
-      "baseline": "v3.6.3",
+      "baseline": "v3.6.4",
       "rubric": "0155"
     },
     "vital_signs": {
       "path": "memory/governance/vital-signs.json",
-      "generated_at": "2026-08-21"
+      "generated_at": "2026-08-22"
     }
   },
   "stats": {
@@ -246,7 +246,7 @@
         "grade": {
           "value": 79,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": false,
@@ -346,7 +346,7 @@
         "grade": {
           "value": 82,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": false,
@@ -446,7 +446,7 @@
         "grade": {
           "value": 81,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": true,
@@ -460,7 +460,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": false,
-          "idade_max_dias": 47
+          "idade_max_dias": 48
         },
         "graph": {
           "depends_on": 4,
@@ -561,7 +561,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 47
+          "idade_max_dias": 48
         },
         "graph": {
           "depends_on": 0,
@@ -652,7 +652,7 @@
         "grade": {
           "value": 76,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": false,
@@ -752,7 +752,7 @@
         "grade": {
           "value": 73,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": true,
@@ -766,7 +766,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 47
+          "idade_max_dias": 48
         },
         "graph": {
           "depends_on": 3,
@@ -857,7 +857,7 @@
         "grade": {
           "value": 80,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": true,
@@ -871,7 +871,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 47
+          "idade_max_dias": 48
         },
         "graph": {
           "depends_on": 2,
@@ -962,7 +962,7 @@
         "grade": {
           "value": 86,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": false,
@@ -1062,7 +1062,7 @@
         "grade": {
           "value": 79,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": true,
@@ -1076,7 +1076,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": false,
-          "idade_max_dias": 47
+          "idade_max_dias": 48
         },
         "graph": {
           "depends_on": 3,
@@ -1167,7 +1167,7 @@
         "grade": {
           "value": 87,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": false,
@@ -1267,7 +1267,7 @@
         "grade": {
           "value": 86,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": true,
@@ -1281,7 +1281,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": false,
-          "idade_max_dias": 47
+          "idade_max_dias": 48
         },
         "graph": {
           "depends_on": 0,
@@ -1372,7 +1372,7 @@
         "grade": {
           "value": 82,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": true,
@@ -1386,7 +1386,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 47
+          "idade_max_dias": 48
         },
         "graph": {
           "depends_on": 3,
@@ -1477,7 +1477,7 @@
         "grade": {
           "value": 74,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": true,
@@ -1491,7 +1491,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 47
+          "idade_max_dias": 48
         },
         "graph": {
           "depends_on": 4,
@@ -1582,7 +1582,7 @@
         "grade": {
           "value": 85,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": true,
@@ -1596,7 +1596,7 @@
           "charter_pct": 100,
           "casos_pct": 47,
           "stale": true,
-          "idade_max_dias": 47
+          "idade_max_dias": 48
         },
         "graph": {
           "depends_on": 4,
@@ -1687,7 +1687,7 @@
         "grade": {
           "value": 88,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": true,
@@ -1701,7 +1701,7 @@
           "charter_pct": 100,
           "casos_pct": 11,
           "stale": false,
-          "idade_max_dias": 47
+          "idade_max_dias": 48
         },
         "graph": {
           "depends_on": 5,
@@ -1792,7 +1792,7 @@
         "grade": {
           "value": 73,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": true,
@@ -1806,7 +1806,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 47
+          "idade_max_dias": 48
         },
         "graph": {
           "depends_on": 7,
@@ -1897,7 +1897,7 @@
         "grade": {
           "value": 77,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": true,
@@ -1911,7 +1911,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 47
+          "idade_max_dias": 48
         },
         "graph": {
           "depends_on": 7,
@@ -2002,7 +2002,7 @@
         "grade": {
           "value": 80,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": true,
@@ -2016,7 +2016,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": false,
-          "idade_max_dias": 47
+          "idade_max_dias": 48
         },
         "graph": {
           "depends_on": 3,
@@ -2107,7 +2107,7 @@
         "grade": {
           "value": 79,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": true,
@@ -2121,7 +2121,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 47
+          "idade_max_dias": 48
         },
         "graph": {
           "depends_on": 3,
@@ -2212,7 +2212,7 @@
         "grade": {
           "value": 82,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": true,
@@ -2226,7 +2226,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": true,
-          "idade_max_dias": 47
+          "idade_max_dias": 48
         },
         "graph": {
           "depends_on": 3,
@@ -2317,7 +2317,7 @@
         "grade": {
           "value": 85,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": true,
@@ -2422,7 +2422,7 @@
         "grade": {
           "value": 80,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": true,
@@ -2436,7 +2436,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 3,
@@ -2527,7 +2527,7 @@
         "grade": {
           "value": 63,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": true,
@@ -2541,7 +2541,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 5,
@@ -2632,7 +2632,7 @@
         "grade": {
           "value": 76,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": true,
@@ -2646,7 +2646,7 @@
           "charter_pct": 100,
           "casos_pct": 65,
           "stale": false,
-          "idade_max_dias": 47
+          "idade_max_dias": 48
         },
         "graph": {
           "depends_on": 3,
@@ -2662,7 +2662,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-07",
+          "last_commit": "2026-08-21",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2737,7 +2737,7 @@
         "grade": {
           "value": 78,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": false,
@@ -2847,7 +2847,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 47
+          "idade_max_dias": 48
         },
         "graph": {
           "depends_on": 0,
@@ -3034,7 +3034,7 @@
         "grade": {
           "value": 82,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": true,
@@ -3048,7 +3048,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 47
+          "idade_max_dias": 48
         },
         "graph": {
           "depends_on": 3,
@@ -3139,7 +3139,7 @@
         "grade": {
           "value": 83,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": true,
@@ -3153,7 +3153,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": false,
-          "idade_max_dias": 47
+          "idade_max_dias": 48
         },
         "graph": {
           "depends_on": 3,
@@ -3254,7 +3254,7 @@
           "charter_pct": 100,
           "casos_pct": 44,
           "stale": true,
-          "idade_max_dias": 47
+          "idade_max_dias": 48
         },
         "graph": {
           "depends_on": 0,
@@ -3345,7 +3345,7 @@
         "grade": {
           "value": 80,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": false,
@@ -3539,21 +3539,21 @@
       "purpose": "Console do operador da plataforma (superadmin-only, cross-tenant por desenho). Vende e administra o produto — pacotes, assinaturas e checkout — e administra os tenants e o acesso: criar, desativar e destruir business, resetar senha, e a vista Usuário 360 com roles, permissões efetivas, tokens, sessões e lockouts. É o único módulo que fura o business_id global scope legitimamente.",
       "signals": {
         "grade": {
-          "value": 75,
+          "value": 78,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": true,
           "ns": "superadmin",
           "via": "direto",
-          "telas": 4,
+          "telas": 6,
           "com_scorecard": 0,
           "nota_media": null,
           "nota_min": null,
           "pior_tela": null,
           "charter_pct": 100,
-          "casos_pct": 50,
+          "casos_pct": 67,
           "stale": true,
           "idade_max_dias": null
         },
@@ -3646,7 +3646,7 @@
         "grade": {
           "value": 83,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": true,
@@ -3660,7 +3660,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 47
+          "idade_max_dias": 48
         },
         "graph": {
           "depends_on": 3,
@@ -3751,7 +3751,7 @@
         "grade": {
           "value": 50,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": false,
@@ -3851,7 +3851,7 @@
         "grade": {
           "value": 80,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": true,
@@ -3865,7 +3865,7 @@
           "charter_pct": 100,
           "casos_pct": 9,
           "stale": true,
-          "idade_max_dias": 47
+          "idade_max_dias": 48
         },
         "graph": {
           "depends_on": 6,
@@ -3956,7 +3956,7 @@
         "grade": {
           "value": 87,
           "ruler": "0155",
-          "baseline": "v3.6.3"
+          "baseline": "v3.6.4"
         },
         "screens": {
           "matched": false,
