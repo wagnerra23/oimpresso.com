@@ -185,5 +185,42 @@ console.log('\n=== 6) SOLTA — o empacotamento respeita o cap de verdade ===');
   ok(new Set(envs.map((e) => e.generatedAt)).size === 1, 'generatedAt único no lote (o applier recusa lote misto)');
 }
 
+console.log('\n=== 7) MORDE — nenhuma parte sai minúscula (piso de persistência do consumidor) ===');
+{
+  // O teto sozinho não basta: o guloso puro enche até o CAP e joga o resto na ÚLTIMA parte.
+  // Parte pequena demais chega INLINE no contexto do consumidor em vez de virar arquivo em
+  // disco, e aí é inaplicável. Foi como o lote do Cowork de 2026-08-22 travou (part01 = 41 KB).
+  //
+  // Fixture escolhido pra DOER no guloso: 6×50 KB (~300 KB, logo acima do teto). Guloso -> 5 na
+  // 1a parte (~250 KB) e 1 sobrando (~50 KB, ABAIXO do piso). Equilibrado -> 2 de ~150 KB.
+  const tam = {};
+  for (let i = 0; i < 6; i++) tam[`h${i}.css`] = 50000;
+  const dir = fixture(tam);
+  const out = saida();
+  const r = rodar(['--root', dir, '--out', out, '--cap', String(CAP)]);
+  ok(r.code === 0, `exit 0 (obtido ${r.code})`);
+
+  const partes = partesDe(out);
+  const tamanhos = partes.map((f) => statSync(join(out, f)).size);
+  ok(partes.length > 1, `partiu em ${partes.length} partes`);
+  ok(Math.max(...tamanhos) <= CAP, `maior ${Math.max(...tamanhos)} <= cap`);
+
+  // O CONTROLE que importa: a MENOR parte não pode ficar abaixo do piso.
+  const PISO = 61440;
+  ok(Math.min(...tamanhos) >= PISO, `menor parte ${Math.min(...tamanhos)} >= piso ${PISO}`);
+
+  // e as partes têm que estar de fato EQUILIBRADAS — senão o teste acima passaria por sorte
+  const razao = Math.max(...tamanhos) / Math.min(...tamanhos);
+  ok(razao < 2, `partes equilibradas (maior/menor = ${razao.toFixed(2)} < 2)`);
+
+  // SOLTA: o aviso existe e é RELATO, não veredito — com piso absurdo ele fala e ainda sai 0
+  const r2 = rodar(['--root', dir, '--out', saida(), '--cap', String(CAP), '--piso', '999999']);
+  ok(r2.code === 0, `piso absurdo AVISA mas não reprova (exit ${r2.code})`);
+  ok(/abaixo do piso de persistencia/.test(r2.out), 'o aviso de piso aparece');
+  // e --piso 0 desliga
+  const r3 = rodar(['--root', dir, '--out', saida(), '--cap', String(CAP), '--piso', '0']);
+  ok(!/abaixo do piso/.test(r3.out), '--piso 0 desliga o aviso');
+}
+
 console.log(falhas ? `\n✗ ${falhas} asserção(ões) falharam\n` : '\n✓ todas as asserções passaram\n');
 process.exit(falhas ? 1 : 0);
