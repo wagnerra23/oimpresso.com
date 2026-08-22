@@ -233,7 +233,7 @@
     },
     "distiller_freshness": {
       "status": "measured",
-      "value": 7,
+      "value": 8,
       "unit": "portas atrás dos eventos (>7d vs doc mais novo · ADR 0291 D-D)",
       "direction": "down",
       "target": 0,
@@ -242,7 +242,7 @@
         "portas": 79,
         "carimbadas": 14,
         "sem_carimbo": 65,
-        "stale": 7,
+        "stale": 8,
         "oldest_distilled_at": "2026-07-17"
       },
       "stream": "MEM"
@@ -262,17 +262,15 @@
     },
     "drift_alarms": {
       "status": "measured",
-      "value": 1,
+      "value": 0,
       "unit": "alarmes duros (reds do protection-drift · GT-G4)",
       "direction": "down",
       "target": "advisory perene (0 alarmes duros)",
       "source": "scripts/governance/protection-drift.mjs --json .reds.length (drift de branch protection + watchdog staleness · GT-G4 · P08)",
       "detail": {
-        "reds": [
-          "required SUMIU do vivo: \"PHP / Pest (KB · MySQL)\" — demoção exige PR editando governance/required-checks-baseline.json + ADR (ADR 0275 §5)"
-        ],
+        "reds": [],
         "warns": 0,
-        "verdict": "red"
+        "verdict": "green"
       },
       "stream": "GT"
     },
