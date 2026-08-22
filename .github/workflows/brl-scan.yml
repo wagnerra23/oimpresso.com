@@ -26,9 +26,17 @@ name: BRL scan (valor monetário em linha nova)
 #   - FP: 0 em 38.324 linhas adicionadas dos últimos 120 commits de main
 #   - selftest 12/12 (linha removida/contexto não conta, R$ 0 e redacted não acusam)
 
+# PONTO CEGO FECHADO (2026-08-22, medido no PR #6133):
+# um dos passos varre o CORPO do PR, mas `pull_request:` sem `types:` usa os defaults
+# do GitHub — `opened`, `synchronize`, `reopened`. `edited` NÃO está entre eles.
+# Consequência: corpo editado depois do último push nunca era re-varrido, então dava
+# pra (a) passar no gate e ADICIONAR valor no corpo depois, e (b) consertar o corpo sem
+# o gate reconhecer. Medido, não deduzido da doc: corpo editado 12:24Z e a última run
+# seguia sendo a de 12:18Z — zero run nova.
 on:
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, edited]
   workflow_dispatch:
 
 concurrency:

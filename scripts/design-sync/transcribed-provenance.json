@@ -24,6 +24,14 @@
         "prototipo-ui/design-docs/cowork-inbox/FORJA-COCKPIT-CHARTER-V2-PROPOSTA-2026-08-08.md"
       ],
       "decisao": "preservado como esta: e defeito do documento vivo no Cowork, nao da transcricao. Consertar aqui quebraria a fidelidade e criaria drift com a fonte. Se o consumidor do frontmatter for parser estrito, o conserto pertence ao lado Cowork (aspas no valor)."
+    },
+    {
+      "padrao": "fundamentacao: \"Oficina - Benchmark Estado da Arte.html\" (16 camadas + 2 matrizes)",
+      "porque": "escalar CITADO seguido de texto solto. Em YAML, depois de fechar a aspa nao pode vir mais conteudo na mesma linha — js-yaml falha com \"bad indentation of a mapping entry\". Terceiro padrao distinto de defeito de frontmatter NA FONTE (os outros: flow-seq \"autor: [CC] 2026-08-19\" e escalar nao-citado com \": \" dentro).",
+      "arquivos": [
+        "prototipo-ui/design-docs/prototipo-ui-patch/Oficina.charter.md"
+      ],
+      "decisao": "preservado como esta — a linha aqui e identica a da fonte. Conserto pertence ao lado Cowork (por o texto extra dentro das aspas, ou tirar as aspas)."
     }
   ],
   "_lotes": {
@@ -59,7 +67,9 @@
     "hrm+produto (PR #6119) · licao: backtick em node -e": "Registro de erro proprio. A 1a gravacao desta prosa passou por \"node -e\" com o argumento entre ASPAS DUPLAS e backticks no texto. O shell fez substituicao de comando dentro da string: \"`fidelidade`\" virou string VAZIA (com \"fidelidade: command not found\" no stderr) e uma aspa ficou desbalanceada. O JSON resultante era VALIDO e o commit passou — nenhum gate viu nada, o defeito so aparecia lendo o texto. Regra: conteudo literal nao atravessa \"node -e\" nem heredoc do wrapper; escreve-se por script em ARQUIVO. Familia LC-16 (reescrever conteudo por um canal que o reinterpreta).",
     "_por_que_transcricao_e_nao_rota_fiel": "CROSS-LOTE (nao pertence a um lote so). Nao ha oraculo de fidelidade do lado do Cowork: varredura dos ~1.726 paths do projeto por manifest/hash/bytes/checksum achou so o _ds_manifest.json, que e indice de cards do Design System e nao hash de conteudo. Os campos bytes+fnv64 por arquivo existem apenas dentro de sync/payload.json (~3,5 MB), que o get_file corta em 256 KiB com truncated:true. TRES rotas foram testadas e FECHADAS — nao re-propor sem fato novo: (a) get_file arquivo a arquivo — 20 de 45 telas sondadas, so 2 persistiram em disco (venda-v3.jsx 241 KB, produto-blade.jsx 69 KB); as demais voltam inline 9-35 KB, abaixo do limiar. (b) gerar o payload eu mesmo — escrita no Cowork e gated (ADR 0315 + hook block-design-sync-without-optin), e mesmo destravada, montar o payload exigiria ler os arquivos pelo get_file, o que e a mesma transcricao: circular. (c) navegador com a sessao logada do [W] — o projeto abre em claude.ai/design, mas o classificador de permissoes bloqueou o fetch scriptado contra a API interna; nao contornado. ROTA FIEL QUANDO EXISTIR: assim que sync/payload-01.json ... NN.json (partes <=250 KiB) existirem no projeto Cowork, reaplicar por scripts/design-sync/aplicar-payload.mjs e SUBSTITUIR estes arquivos — o applier confere bytes declarados vs reais por arquivo.",
     "hrm+produto (PR #6119) · reconferencia dos .css do espelho": "RODADA em 2026-08-21 sobre os 49 .css do espelho, com sonda calibrada (controle negativo produziu warning; controle positivo venda-v3.css — que veio pela rota fiel — saiu limpo). RESULTADO: 43 limpos, 6 com [WARNING] de sintaxe, e os SEIS saem com rc=0 — ou seja, os 6 passaram na verificacao antiga \"parse OK por rc=0\" carregando erro de sintaxe. Sao eles: cms-page.css, financeiro.css (2 warnings), hrm-page.css, modulo-padrao.css, officeimpresso-page.css, vendas.css. DIAGNOSTICO: os 6 sao o MESMO defeito, e o defeito e DO FONTE Cowork, nao drift de transcricao — um \"*/\" dentro do comentario de cabecalho (vindo de \"os-*/usr-*\", \"jc-*/jm-*\", \"sa-*/os-*\") fecha o comentario antes da hora e o resto da prosa passa a ser lido como CSS. Em financeiro.css e vendas.css o \"#1\" acusado e o texto \"REFINO #1\", ja fora do comentario pela mesma causa. NAO tratar como sinal de drift, e NAO \"consertar\" no espelho: o espelho e build-only e copia a fonte, defeito incluso. Se for pra corrigir, corrige-se no Cowork e desce de novo. COMANDO: para cada f em prototipo-ui/cowork/*.css, rodar o binario real (node_modules/@esbuild/win32-x64/esbuild.exe) com --outfile=nul --log-level=warning e contar \"[WARNING]\" em stdout+stderr; zero linhas = limpo.",
-    "design-docs/cowork-inbox (.md) — PR lote 5": "Transcricao via DesignSync get_file (retorno INLINE). .md do cowork-inbox/. Fidelidade NAO PROVADA por construcao: arquivo abaixo de ~47KB volta inline e o byte passa pelo contexto do agente; a rota fiel (--export-from sobre resultado persistido pelo harness) so existe acima desse limiar. MEDIDO 2026-08-21: o sync/payload.json do projeto Cowork NAO serve pra estes .md — a ancora dele e o shell (manifestCount 121, fileCount 118, destinoSugerido \"prototipo-ui/cowork\", zero .md) e ele estoura o cap de 256 KiB do get_file (voltou truncado em 256567 bytes). Rota fiel de docs exigiria payload NOVO gerado do lado Cowork, com manifesto = os .md, destino design-docs e partes <=256 KiB."
+    "design-docs/cowork-inbox (.md) — PR lote 5": "Transcricao via DesignSync get_file (retorno INLINE). .md do cowork-inbox/. Fidelidade NAO PROVADA por construcao: arquivo abaixo de ~47KB volta inline e o byte passa pelo contexto do agente; a rota fiel (--export-from sobre resultado persistido pelo harness) so existe acima desse limiar. MEDIDO 2026-08-21: o sync/payload.json do projeto Cowork NAO serve pra estes .md — a ancora dele e o shell (manifestCount 121, fileCount 118, destinoSugerido \"prototipo-ui/cowork\", zero .md) e ele estoura o cap de 256 KiB do get_file (voltou truncado em 256567 bytes). Rota fiel de docs exigiria payload NOVO gerado do lado Cowork, com manifesto = os .md, destino design-docs e partes <=256 KiB.",
+    "design-docs/_arquivo + charters (.md) — lote 6": "Transcricao via DesignSync get_file (inline). Pasta de ARQUIVO do projeto Cowork + charters avulsos. MEDIDO: 39 dos 138 .md restantes tem nome que ja existe no repo fora do espelho — o espelho e namespaced (nao sobrescreve nada), mas o risco e alguem ler o ARQUIVADO como canon. Ver _LEIA-FRONTEIRA.md quando existir.",
+    "design-docs/_arquivo + patch + charters (.md) — lote 6": "Transcricao via get_file (inline). Arquivo + ponte do projeto Cowork. Os 14 .md de _arquivo/repo-mirror/ ficam RETIDOS aguardando decisao [W] — ver _PEDIDO-CD-COLISOES.md balde A."
   },
   "arquivos": [
     {
@@ -562,6 +572,27 @@
       "vs_repo": "n/a"
     },
     {
+      "path": "prototipo-ui/design-docs/_arquivo/INDEX.md",
+      "bytes_escritos": 9013,
+      "linhas": 123,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/_arquivo + patch + charters (.md) — lote 6"
+    },
+    {
+      "path": "prototipo-ui/design-docs/_arquivo/INVENTARIO-REAPROVEITAMENTO.md",
+      "bytes_escritos": 9393,
+      "linhas": 111,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/_arquivo + patch + charters (.md) — lote 6"
+    },
+    {
+      "path": "prototipo-ui/design-docs/_arquivo/LAPIDE-DEDUP-2026-06-10.md",
+      "bytes_escritos": 2379,
+      "linhas": 26,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/_arquivo + patch + charters (.md) — lote 6"
+    },
+    {
       "path": "prototipo-ui/design-docs/_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/README.md",
       "bytes_escritos": 29069,
       "linhas": 319,
@@ -569,6 +600,20 @@
       "frontmatter": "sem-frontmatter",
       "fidelidade": "NAO PROVADA",
       "vs_repo": "n/a"
+    },
+    {
+      "path": "prototipo-ui/design-docs/charters/Patrimonio.casos.md",
+      "bytes_escritos": 4303,
+      "linhas": 107,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/_arquivo + patch + charters (.md) — lote 6"
+    },
+    {
+      "path": "prototipo-ui/design-docs/charters/Patrimonio.charter.md",
+      "bytes_escritos": 5594,
+      "linhas": 67,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/_arquivo + patch + charters (.md) — lote 6"
     },
     {
       "path": "prototipo-ui/design-docs/cowork-inbox/ACESSOS-F1-2026-08-19.md",
@@ -746,6 +791,13 @@
       "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
     },
     {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/Advisor.Dashboard.casos.md",
+      "bytes_escritos": 2259,
+      "linhas": 43,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
       "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/Advisor.Login.casos.md",
       "bytes_escritos": 2035,
       "linhas": 39,
@@ -753,9 +805,65 @@
       "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
     },
     {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/AssinaturaAtualizar.casos.md",
+      "bytes_escritos": 2546,
+      "linhas": 43,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/Categorias.Index.casos.md",
+      "bytes_escritos": 2559,
+      "linhas": 48,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/Cobranca.Index.casos.md",
+      "bytes_escritos": 3684,
+      "linhas": 57,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
       "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/Conciliacao.NOTA.md",
       "bytes_escritos": 458,
       "linhas": 6,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/Configuracoes.Contador.casos.md",
+      "bytes_escritos": 2601,
+      "linhas": 47,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/ContasBancarias.Index.casos.md",
+      "bytes_escritos": 2759,
+      "linhas": 45,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/Dashboard.Index.casos.md",
+      "bytes_escritos": 2226,
+      "linhas": 34,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/Dre.Index.casos.md",
+      "bytes_escritos": 3644,
+      "linhas": 60,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/Extrato.Index.casos.md",
+      "bytes_escritos": 2934,
+      "linhas": 53,
       "fidelidade": "NAO PROVADA",
       "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
     },
@@ -772,6 +880,35 @@
       "linhas": 47,
       "fidelidade": "NAO PROVADA",
       "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/PlanoContas.Index.casos.md",
+      "bytes_escritos": 2469,
+      "linhas": 33,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/Relatorios.Index.casos.md",
+      "bytes_escritos": 2701,
+      "linhas": 50,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/Unificado.Novo.casos.md",
+      "bytes_escritos": 2398,
+      "linhas": 36,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5"
+    },
+    {
+      "path": "prototipo-ui/design-docs/cowork-inbox/casos-financeiro-2026-08-17/_CONCILIACAO-COM-O-CANON.md",
+      "bytes_escritos": 3502,
+      "linhas": 76,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/cowork-inbox (.md) — PR lote 5",
+      "nota": "Escrito por [C] a pedido de [W]. Nao existe no projeto Cowork; nao comparar com fonte."
     },
     {
       "path": "prototipo-ui/design-docs/cowork-inbox/cms/Index.casos.md",
@@ -1328,6 +1465,34 @@
       "fidelidade": "NAO PROVADA",
       "lote": "design-docs/handoff (.md) — PR #6120",
       "vs_repo": "n/a"
+    },
+    {
+      "path": "prototipo-ui/design-docs/prototipo-ui-patch/COLE_NO_CODE.md",
+      "bytes_escritos": 5444,
+      "linhas": 81,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/_arquivo + patch + charters (.md) — lote 6"
+    },
+    {
+      "path": "prototipo-ui/design-docs/prototipo-ui-patch/CobrancaRecorrente.charter.md",
+      "bytes_escritos": 6190,
+      "linhas": 93,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/_arquivo + patch + charters (.md) — lote 6"
+    },
+    {
+      "path": "prototipo-ui/design-docs/prototipo-ui-patch/Oficina.charter.md",
+      "bytes_escritos": 4303,
+      "linhas": 57,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/_arquivo + patch + charters (.md) — lote 6"
+    },
+    {
+      "path": "prototipo-ui/design-docs/prototipo-ui-patch/README_F3.md",
+      "bytes_escritos": 2785,
+      "linhas": 41,
+      "fidelidade": "NAO PROVADA",
+      "lote": "design-docs/_arquivo + patch + charters (.md) — lote 6"
     },
     {
       "path": "prototipo-ui/design-docs/prototipo-ui/cowork/Produto.casos.md",
