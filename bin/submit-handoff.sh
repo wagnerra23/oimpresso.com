@@ -37,7 +37,7 @@ submit_one() {
   echo "── $f ──"
 
   local body
-  if ! body="$(php "$SIGNER" --file="$f")"; then
+  if ! body="$("${PHP_BIN:-php}" "$SIGNER" --file="$f")"; then
     echo "🔴 falha ao assinar $f"
     return 1
   fi
@@ -45,23 +45,23 @@ submit_one() {
   # POST stateless no endpoint MCP (Mcp::web é síncrono — JSON de volta).
   local resp code is_err
   resp="$(mktemp)"
-  code="$(curl -sS -o "$resp" -w '%{http_code}' -X POST "${MCP_ENDPOINT}" \
+  code="$("${CURL_BIN:-curl}" -sS -o "$resp" -w '%{http_code}' -X POST "${MCP_ENDPOINT}" \
     -H "Authorization: Bearer ${SUBMIT_TOKEN}" \
     -H 'Content-Type: application/json' \
     -H 'Accept: application/json, text/event-stream' \
     --data-binary "$body" || echo "000")"
 
   # isError no resultado JSON-RPC (tool errou: sig inválida, sem scope…).
-  is_err="$(jq -r '.result.isError // (.error != null)' "$resp" 2>/dev/null || echo "true")"
+  is_err="$("${JQ_BIN:-jq}" -r '.result.isError // (.error != null)' "$resp" 2>/dev/null || echo "true")"
 
   if [ "$code" != "200" ] || [ "$is_err" = "true" ]; then
     echo "🔴 submit falhou (HTTP $code · isError=$is_err):"
-    jq -r '.result.content[0].text // .error.message // .' "$resp" 2>/dev/null || cat "$resp"
+    "${JQ_BIN:-jq}" -r '.result.content[0].text // .error.message // .' "$resp" 2>/dev/null || cat "$resp"
     rm -f "$resp"
     return 1
   fi
   echo "🟢 submetido → pending:"
-  jq -r '.result.content[0].text // empty' "$resp" 2>/dev/null || true
+  "${JQ_BIN:-jq}" -r '.result.content[0].text // empty' "$resp" 2>/dev/null || true
   rm -f "$resp"
   return 0
 }

@@ -29,12 +29,11 @@
  */
 
 import { readFileSync, readdirSync, statSync, writeFileSync, existsSync } from 'node:fs';
-import { join, sep } from 'node:path';
+import { join, relative } from 'node:path';
 import { ucsDeclaredInCasos } from '../lib/uc-regex.mjs';
+import { pageNamespacePath, raizesDePages } from './page-path.mjs';
 
 const ROOT = process.cwd();
-const PAGES_DIR = join(ROOT, 'resources', 'js', 'Pages');
-const SCORECARD_DIR = join(ROOT, 'memory', 'governance', 'scorecards', 'screens');
 const OUT = join(ROOT, 'memory', 'governance', 'prototipo-readiness.json');
 
 /** Valor do campo `related_prototype:` no frontmatter do charter (1ª linha). */
@@ -90,19 +89,23 @@ function walk(dir, match, acc = []) {
 
 /** slug de scorecard a partir do path relativo do .tsx (mesma convenção do vital-signs/seed). */
 function scorecardSlug(relTsx) {
-  return relTsx.replace(/^resources[\\/]js[\\/]Pages[\\/]/, '').replace(/\.tsx$/, '')
+  return pageNamespacePath(relTsx).replace(/\.tsx$/, '')
     .replace(/[\\/]/g, '-').toLowerCase();
 }
 
-function coleta() {
-  const charters = walk(PAGES_DIR, (f) => f.endsWith('.charter.md'));
-  const scorecards = existsSync(SCORECARD_DIR)
-    ? new Set(readdirSync(SCORECARD_DIR).filter((f) => f.endsWith('.yaml') || f.endsWith('.yml')).map((f) => f.replace(/\.(yaml|yml)$/, '')))
+export function coleta(root = ROOT) {
+  // Desde o PR #5686 as Pages vivem em DUAS classes de raiz: núcleo e módulo nWidart.
+  // Varrer só `resources/js/Pages` fazia Superadmin/Officeimpresso desaparecerem justamente
+  // da fila que deveria dizer o que aplicar. A fonte única das raízes é `page-path.mjs`.
+  const charters = raizesDePages(root).flatMap((pagesRoot) => walk(pagesRoot, (f) => f.endsWith('.charter.md')));
+  const scorecardDir = join(root, 'memory', 'governance', 'scorecards', 'screens');
+  const scorecards = existsSync(scorecardDir)
+    ? new Set(readdirSync(scorecardDir).filter((f) => f.endsWith('.yaml') || f.endsWith('.yml')).map((f) => f.replace(/\.(yaml|yml)$/, '')))
     : new Set();
 
   const out = [];
   for (const abs of charters) {
-    const relCharter = abs.slice(ROOT.length + 1);
+    const relCharter = relative(root, abs).replace(/\\/g, '/');
     const relTsx = relCharter.replace(/\.charter\.md$/, '.tsx');
     const absTsx = abs.replace(/\.charter\.md$/, '.tsx');
     const absCasos = abs.replace(/\.charter\.md$/, '.casos.md');
@@ -113,8 +116,13 @@ function coleta() {
     const temScorecard = scorecards.has(scorecardSlug(relTsx));
     const status = classifica({ prototipoReal, temTsx, temCasosComUC, temScorecard });
     if (status === 'sem-ancora') continue; // só lista alvos de aplicação
+    const moduleMatch = relTsx.match(/^Modules\/([^/]+)\//);
     out.push({
-      tela: relTsx.replace(/^resources[\\/]js[\\/]Pages[\\/]/, '').replace(/\.tsx$/, '').replace(/\\/g, '/'),
+      // `tela` é o namespace Inertia, independente da raiz física. `arquivo` e `modulo`
+      // preservam a informação necessária para aplicar a mudança no dono correto.
+      tela: pageNamespacePath(relTsx).replace(/\.tsx$/, ''),
+      arquivo: relTsx,
+      modulo: moduleMatch ? moduleMatch[1] : 'core',
       status,
       prototipo: val,
       falta: status === '1-ciclo'
@@ -122,7 +130,9 @@ function coleta() {
         : [],
     });
   }
-  return out.sort((a, b) => (a.status === b.status ? a.tela.localeCompare(b.tela) : a.status === 'pronta' ? -1 : 1));
+  return out.sort((a, b) => (a.status === b.status
+    ? a.modulo.localeCompare(b.modulo) || a.tela.localeCompare(b.tela)
+    : a.status === 'pronta' ? -1 : 1));
 }
 
 function main() {
@@ -133,9 +143,9 @@ function main() {
 
   console.log('\n  PRONTIDÃO DE APLICAÇÃO DO PROTÓTIPO — derivado da máquina (blindagem, não score visual)\n');
   console.log(`  ✅ PRONTAS pra aplicar HOJE (trio + casos+UC + scorecard trava o comportamento): ${prontas.length}`);
-  for (const t of prontas) console.log(`       ${t.tela}`);
+  for (const t of prontas) console.log(`       [${t.modulo}] ${t.tela}`);
   console.log(`\n  🟡 PRECISAM DE 1 CICLO de blindagem antes (o metabolismo MV faz): ${ciclo.length}`);
-  for (const t of ciclo) console.log(`       ${t.tela.padEnd(40)} falta: ${t.falta.join(', ')}`);
+  for (const t of ciclo) console.log(`       [${t.modulo}] ${t.tela.padEnd(40)} falta: ${t.falta.join(', ')}`);
   console.log(`\n  Total de telas com protótipo real: ${telas.length}\n`);
 
   if (flags.has('--json')) {

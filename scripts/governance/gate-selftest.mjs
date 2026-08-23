@@ -460,6 +460,16 @@ function runDonenessBaseline(kind) {
 
 const CATRACAS = [
   {
+    // RETORNO CODE -> DESIGN (§10.2). Exercita o script REAL que o workflow pós-merge
+    // invoca: good fecha os 3 canais; bad reproduz o defeito em que só o SYNC_LOG
+    // mascarava DS_ADOCAO_INDICE + HANDOFF ausentes.
+    id: 'design-return',
+    run: (kind) => runNode(
+      script('design-return', 'scripts/governance/design-return-check.mjs'),
+      ['--changed-from', join(FIX, 'design-return', kind, 'changed.txt'), '--check'], ROOT),
+    expect: { good: /3\/3 canais atualizados/, bad: /Canais ausentes:.*DS_ADOCAO_INDICE\.md.*HANDOFF\.md/ },
+  },
+  {
     // PODA DO ESPELHO COWORK (2026-08-13). O `--check-refs` é diff-aware: só acusa quando um
     // arquivo do espelho que SOBREVIVEU aponta pra um path que o diff apaga. FP medido contra
     // os 4 commits da história que podaram o espelho (152 · 42 · 6 · 96 arquivos): 0 disparo.
