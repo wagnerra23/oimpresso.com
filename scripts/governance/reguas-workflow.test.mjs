@@ -191,7 +191,16 @@ console.log('\n[8] delta sem ANCORA aborta antes de gastar — e nao grava retra
   ok(nada.out.nada_a_medir === true && !nada.out.erro, 'sem delta material segue heartbeat (nada_a_medir), nao erro')
   // O schema tem que EXIGIR a ancora — senao a proxima rodada repete o mesmo silencio.
   const src = fs.readFileSync(ALVO, 'utf8')
-  ok(/required: \['dims_delta', 'claims_vencidas', 'fraquezas', 'ultimo_retrato'\]/.test(src), 'schema SCAN exige ultimo_retrato')
+  // ESTRUTURAL de verdade: confere PERTINÊNCIA de cada chave, não o literal do array. A versão
+  // anterior casava a string exata `required: ['dims_delta', ..., 'ultimo_retrato']` e quebrou no
+  // dia em que o array ganhou dois campos novos — assert que se diz estrutural comparando
+  // formatação é a lápide §5 2026-07-29. Ordem e itens novos não são regressão; ausência é.
+  {
+    const reqScan = (src.match(/const SCAN = \{ type: 'object', required: \[([^\]]*)\]/) || [, ''])[1]
+    for (const chave of ['dims_delta', 'claims_vencidas', 'fraquezas', 'ultimo_retrato']) {
+      ok(reqScan.includes(`'${chave}'`), `schema SCAN exige ${chave}`)
+    }
+  }
   ok(/required: \['data', 'notas'\]/.test(src), 'schema SCAN exige ultimo_retrato.notas')
 }
 
@@ -359,6 +368,85 @@ console.log('\n[14] OUTCOME entra como coluna PROPRIA (a regua "funciona?" ao la
   const notasCom = JSON.stringify(r.out.notas)
   const notasSem = JSON.stringify(semOut.out.notas)
   ok(notasCom === notasSem, `as notas sao IDENTICAS com e sem outcome (${notasCom === notasSem ? 'nao vazou' : 'VAZOU'})`)
+}
+
+
+// Defeito MEDIDO (run wf_9c1aaaaf-5e3, 2026-08-23) — TRES causas compostas numa rodada so:
+//  D1 a composicao ancorava em retratos[0].notas, e o topo era o "full-parcial" de 2026-08-11
+//     com UMA dimensao => o universo do delta colapsou de 12 pra 1 EM SILENCIO, com 9 dimensoes
+//     acima do delta_min_commits (spec-governanca sozinha tinha 186 commits na janela).
+//  D2 o delta-scan devolveu fraquezas:[] com 68 entradas no arquivo. Array vazio satisfaz o
+//     `required` — MESMA classe do defeito de 2026-08-08 (`notas` presente-e-VAZIO), cujo
+//     conserto criou guard pra um campo so. Segunda ocorrencia => ADR 0344 manda codificar.
+//  D3 montarCobertura dava completo=true com verificar 0/0, porque esperado=min(0,24)=0 nao
+//     produz falta. A rodada que nao mediu NADA se declarou COMPLETA no topo do ledger.
+console.log('\n[15] a rodada que NAO MEDIU nao se declara completa (D1+D2+D3)')
+{
+  const comTrabalho = {
+    dims_delta: { 'spec-governanca': { commits: 186 }, 'design-to-code': { commits: 81 } },
+    claims_vencidas: [{ id: 'c1', titulo: 'claim velha', dimensao: 'spec-governanca', refutador: 'ACIMA_CONFIRMADO' }],
+    fraquezas: [
+      { id: 'f1', dimensao: 'spec-governanca', titulo: 'buraco A', veredito: 'PARCIAL', nota: 4 },
+      { id: 'f2', dimensao: 'design-to-code', titulo: 'buraco B', veredito: 'PARCIAL', nota: 5 },
+    ],
+    fraquezas_no_arquivo: 2,
+    delta_min_commits: 3,
+    ultimo_retrato: { data: '2026-08-11', notas: { 'memoria-conhecimento': 7.1 }, integ_hist: { runs: 10 } },
+    notas_ancora: {
+      'memoria-conhecimento': { nota: 7.1, de_retrato: '2026-08-11' },
+      'spec-governanca': { nota: 6.5, de_retrato: '2026-07-26' },
+      'design-to-code': { nota: 7.2, de_retrato: '2026-08-08' },
+    },
+  }
+
+  // BITE D1 — a forma EXATA que aconteceu: topo parcial (1 dim) + 2 dims ativas com delta.
+  const d1 = await rodar({ base: '/base', modo: 'delta' }, { scan: comTrabalho })
+  ok(Object.keys(d1.out.notas || {}).length === 3, `ancora POR DIMENSAO: 3 dims compostas, nao 1 (veio ${Object.keys(d1.out.notas || {}).length})`)
+  ok((d1.out.notas || {})['spec-governanca'] === 6 && (d1.out.notas || {})['design-to-code'] === 6, 'as 2 dims ATIVAS foram re-medidas (nao herdaram do topo parcial)')
+  ok((d1.out.notas || {})['memoria-conhecimento'] === 7.1, 'a dim do topo parcial segue herdada, intacta')
+  ok(/2026-07-26/.test((d1.out.proveniencia || {})['memoria-conhecimento'] || '') === false, 'proveniencia nao mistura retratos')
+  ok(d1.logs.some((l) => l.includes('ancora:') || l.includes('ncora:')), 'a rodada LOGA de quantas dims a ancora veio')
+
+  // CONTROLE NEGATIVO D1 — sem notas_ancora (scanner antigo), o fallback pro topo segue vivo.
+  const semRica = await rodar({ base: '/base', modo: 'delta' }, { scan: { ...comTrabalho, notas_ancora: undefined } })
+  ok(/nenhuma dimens.o ativa tem .ncora/.test(semRica.out.erro || ''), `scanner antigo cujo topo nao cobre dim ativa nenhuma => ABORTA (era o cenario de 2026-08-23: ${semRica.out.erro})`)
+  ok(!semRica.labels.some((l) => l.startsWith('cp-')), 'e nao grava retrato — nada medido, nada gravado')
+
+  // D1 (2a metade) — dimensao ATIVA sem ancora fica SEM nota, e o retrato DIZ quais.
+  const semAnc = await rodar({ base: '/base', modo: 'delta' }, { scan: {
+    ...comTrabalho,
+    dims_delta: { ...comTrabalho.dims_delta, 'catalogo-modulo-opiniao-codigo': { commits: 12 } },
+    fraquezas: [...comTrabalho.fraquezas, { id: 'f3', dimensao: 'catalogo-modulo-opiniao-codigo', titulo: 'buraco C', veredito: 'PARCIAL', nota: null }],
+    fraquezas_no_arquivo: 3,
+  } })
+  ok(((semAnc.out.cobertura || {}).dimensoes_ativas_sem_ancora || []).includes('catalogo-modulo-opiniao-codigo'), 'dim ativa SEM ancora e declarada no retrato (nao some)')
+  ok(semAnc.logs.some((l) => /sem .ncora/.test(l)), 'e avisada no log da rodada')
+
+  // BITE D2 — lista perdida na serializacao: 0 devolvidas x N no arquivo. Aborta ANTES de gastar.
+  const d2 = await rodar({ base: '/base', modo: 'delta' }, { scan: { ...comTrabalho, fraquezas: [], fraquezas_no_arquivo: 68 } })
+  ok(/serializa/.test(d2.out.erro || ''), `lista vazia x 68 no arquivo => aborta com erro nomeado (${d2.out.erro})`)
+  ok(!d2.labels.some((l) => l.startsWith('v:') || l.startsWith('r:')), 'ZERO agentes de Verificar/Refutar — aborta ANTES de gastar')
+  ok(!d2.labels.some((l) => l.startsWith('cp-') || l.startsWith('re-')), 'ZERO persistencia — o retrato mudo nunca chega ao ledger')
+  ok(d2.out.acao === 're-rodar delta', 'diz o proximo passo, e o certo: o defeito e do scanner, nao do ledger')
+
+  // CONTROLE NEGATIVO D2 — ledger REALMENTE vazio e outro caso, com outra acao (semear com full).
+  const vazioDeVerdade = await rodar({ base: '/base', modo: 'delta' }, { scan: { ...comTrabalho, fraquezas: [], fraquezas_no_arquivo: 0 } })
+  ok(/ledger sem fraquezas/.test(vazioDeVerdade.out.erro || ''), 'ledger vazio de verdade => erro DIFERENTE (nao confunde com defeito do scanner)')
+  ok(vazioDeVerdade.out.acao === 'rodar full', 'e a acao certa pra esse caso e semear com o full')
+
+  // BITE D3 — a etapa "verificar" zerada nao pode contar como satisfeita.
+  const semNenhumAlvo = await rodar({ base: '/base', modo: 'delta' }, { scan: {
+    ...comTrabalho,
+    // fraquezas existem (D2 nao dispara), mas NENHUMA na dimensao ativa => alvo=0, esperado=0.
+    fraquezas: [{ id: 'fx', dimensao: 'custo-eficiencia', titulo: 'outra dim', veredito: 'PARCIAL', nota: 5 }],
+    fraquezas_no_arquivo: 1,
+  } })
+  ok((semNenhumAlvo.out.cobertura || {}).completo === false, 'verificar 0/0 com dims-alvo => cobertura NAO completa (era o bug)')
+  ok(/etapa zerada/.test((semNenhumAlvo.out.cobertura || {}).motivo_parcial || ''), `o motivo NOMEIA o que houve (${(semNenhumAlvo.out.cobertura || {}).motivo_parcial})`)
+  ok(semNenhumAlvo.out.modo === 'delta-parcial', 'e o modo do retrato vira delta-parcial, nao delta')
+
+  // CONTROLE NEGATIVO D3 — rodada que mediu de verdade segue completa (o guard nao virou carimbo).
+  ok((d1.out.cobertura || {}).completo === true && d1.out.modo === 'delta', 'CONTROLE: rodada que MEDIU segue completa (o guard discrimina)')
 }
 
 fs.rmSync(TMP, { recursive: true, force: true })

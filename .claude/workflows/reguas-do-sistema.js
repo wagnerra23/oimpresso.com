@@ -320,12 +320,20 @@ const RETENTAR = (p) => `RETENTATIVA — o checkpoint desta MESMA rodada não co
 // entre marcadores, pro selftest extrair e testar o código REAL do arquivo — mesma convenção do
 // CAP-ESTRAT acima.
 const montarCobertura = ({ modo, etapas = [], notas = {}, dimsAlvo = [], eixoDe = {}, eixosTodos = [], extra = {} }) => {
-  const faltas = etapas.filter((e) => e.obtido < e.esperado)
+  // `exigida: true` = etapa SEM a qual a rodada não mediu nada (hoje: `verificar`). Defeito
+  // MEDIDO (run wf_9c1aaaaf-5e3, 2026-08-23): com `esperado = min(alvo.length=0, 24) = 0` não
+  // existe falta, então uma rodada que NÃO mediu nada saía com `completo: true` — a lápide §5
+  // 2026-07-29 ("instrumento AFIRMAR verde quando não conseguiu MEDIR") reincidindo DENTRO da
+  // máquina de medir. Etapa zerada ≠ etapa satisfeita: 0/0 numa etapa exigida é o oposto de OK.
+  const faltas = etapas.filter((e) => e.obtido < e.esperado || (e.exigida && e.esperado === 0))
+  const zeradaExigida = (e) => e.exigida && e.esperado === 0
   const semNota = dimsAlvo.filter((k) => notas[k] === null || notas[k] === undefined)
   const eixosMedidos = [...new Set(dimsAlvo.map((k) => eixoDe[k] || '(sem-eixo)'))]
   return {
     completo: faltas.length === 0 && dimsAlvo.length > 0,
-    motivo_parcial: faltas.length ? faltas.map((e) => `${e.nome} ${e.obtido}/${e.esperado} (perdidas ${e.esperado - e.obtido})`).join(' · ') : null,
+    motivo_parcial: faltas.length ? faltas.map((e) => (zeradaExigida(e)
+      ? `${e.nome} 0/0 — a rodada tinha dimensões-alvo mas NENHUMA medição foi sequer tentada (etapa zerada NÃO é etapa satisfeita)`
+      : `${e.nome} ${e.obtido}/${e.esperado} (perdidas ${e.esperado - e.obtido})`)).join(' · ') : null,
     etapas: Object.fromEntries(etapas.map((e) => [e.nome, `${e.obtido}/${e.esperado}`])),
     dimensoes_alvo: dimsAlvo,
     dimensoes_sem_nota: semNota,
@@ -449,23 +457,40 @@ if (MODO === 'delta') {
   phase('Delta-scan')
   // `ultimo_retrato` é REQUIRED desde 2026-08-08 (era opcional; ver o guard de âncora abaixo):
   // ele é a ÂNCORA da composição determinística, não um enfeite. Sem `notas` a grade sai {}.
-  const SCAN = { type: 'object', required: ['dims_delta', 'claims_vencidas', 'fraquezas', 'ultimo_retrato'], properties: {
+  const SCAN = { type: 'object', required: ['dims_delta', 'claims_vencidas', 'fraquezas', 'fraquezas_no_arquivo', 'ultimo_retrato', 'notas_ancora'], properties: {
     erro: { type: 'string', description: 'preencher SÓ se o ledger estiver ausente/ilegível' },
-    ultimo_retrato: { type: 'object', required: ['data', 'notas'], description: 'ÂNCORA da composição — retratos[0]. `notas` NÃO pode vir vazio: a nota de cada dimensão é calculada iterando as chaves dele.', properties: { data: { type: 'string' }, notas: { type: 'object', additionalProperties: { type: 'number' } }, integ_hist: { type: 'object' } } },
-    dims_delta: { type: 'object', additionalProperties: { type: 'object', required: ['commits'], properties: { commits: { type: 'number' }, resumo: { type: 'string' } } } },
+    ultimo_retrato: { type: 'object', required: ['data', 'notas'], description: 'retratos[0] — usado pra DATA da janela de commits e pro integ_hist herdado. NÃO é mais a âncora sozinho (ver notas_ancora).', properties: { data: { type: 'string' }, notas: { type: 'object', additionalProperties: { type: 'number' } }, integ_hist: { type: 'object' } } },
+    // D1 (defeito MEDIDO no run wf_9c1aaaaf-5e3, 2026-08-23): a composição ancorava em
+    // retratos[0].notas. O retrato do topo era o `full-parcial` de 2026-08-11, de UMA dimensão —
+    // e o universo do delta colapsou de 12 pra 1 EM SILÊNCIO, com 9 dimensões acima do
+    // delta_min_commits. Retrato parcial no topo é o fluxo NORMAL (a skill recomenda rodada por
+    // eixo!), então a âncora não pode ser o topo cego: é a nota mais recente POR DIMENSÃO.
+    notas_ancora: { type: 'object', description: 'ÂNCORA REAL da composição, por DIMENSÃO: varra retratos[] do topo pro fim e, pra CADA dimensão, pegue a PRIMEIRA ocorrência dela em `notas` (= a mais recente). retratos[0] sozinho NÃO serve — um retrato parcial no topo apagaria as outras dimensões.', additionalProperties: { type: 'object', required: ['nota', 'de_retrato'], properties: { nota: { type: 'number' }, de_retrato: { type: 'string', description: 'data do retrato de onde a nota veio' } } } },
+    // D2 (mesmo run): o scanner devolveu `fraquezas: []` com 68 entradas no arquivo. Array vazio
+    // satisfaz `required` — é a MESMA classe do defeito de 2026-08-08 (`notas` presente-e-vazio),
+    // cujo conserto criou guard pra um campo só. Esta contagem é INDEPENDENTE da serialização da
+    // lista: se ela é > 0 e a lista vem vazia, está PROVADO que o scanner falhou (≠ ledger vazio).
+    fraquezas_no_arquivo: { type: 'number', description: 'quantas entradas fraquezas.json tem NO ARQUIVO (conte, não estime). Serve de controle contra serialização perdida — deve bater com fraquezas.length.' },
+    dims_delta: { type: 'object', additionalProperties: { type: 'object', required: ['commits', 'desde'], properties: { commits: { type: 'number' }, desde: { type: 'string', description: 'a DATA-BASE usada na janela desta dimensão — normalmente notas_ancora[key].de_retrato. Declarada pra a janela ser auditável: sem ela ninguém sabe se o "0 commits" é calmaria ou janela zerada por um retrato recente que não mediu esta dimensão.' }, resumo: { type: 'string' } } } },
     claims_vencidas: { type: 'array', items: { type: 'object', required: ['id', 'titulo', 'dimensao'], properties: { id: { type: 'string' }, titulo: { type: 'string' }, dimensao: { type: 'string' }, refutador: { type: 'string' }, peer: { type: 'string' }, correcao_obrigatoria: { type: 'string' } } } },
-    fraquezas: { type: 'array', items: { type: 'object', required: ['id', 'dimensao', 'titulo'], properties: { id: { type: 'string' }, dimensao: { type: 'string' }, titulo: { type: 'string' }, veredito: { type: 'string' }, nota: { type: ['number', 'null'] }, evidencia: { type: 'string' }, degrau: { type: 'string' } } } },
+    // ÍNDICE LEVE, não cópia do arquivo. MEDIDO (2 runs, 2026-08-23): transcrever as 68 entradas
+    // COM `evidencia` são 25,8 KB — e a lista voltou VAZIA as duas vezes, silenciosamente. Sem
+    // evidencia/degrau caem pra 10,1 KB. A evidência anterior não precisa passar por aqui: o
+    // verificador lê a dele no próprio ledger, pelo id. Regra geral — conteúdo de arquivo é lido
+    // pela máquina, nunca transcrito pelo contexto; o que atravessa o agente é o que ele DERIVOU.
+    fraquezas: { type: 'array', description: 'ÍNDICE das fraquezas (id/dimensao/titulo/veredito/nota). NÃO inclua evidencia nem degrau.', items: { type: 'object', required: ['id', 'dimensao', 'titulo'], properties: { id: { type: 'string' }, dimensao: { type: 'string' }, titulo: { type: 'string' }, veredito: { type: 'string' }, nota: { type: ['number', 'null'] } } } },
     delta_min_commits: { type: 'number' },
   } }
   const scan = await agent(
     `SCANNER do modo delta da grade de réguas. Tarefas EXATAS (sem interpretar além):\n` +
     `1. Leia ${BASE}/${LEDGER_DIR}/config.json, retratos.json, claims.json, fraquezas.json. Algum ausente/ilegível → retorne só {erro:"..."}.\n` +
     `2. ultimo_retrato = retratos[0] (data + notas + integ_hist).\n` +
-    `3. Pra CADA dimensão de config.paths_por_dimensao rode: git -C ${BASE} log --oneline --since="<data do ultimo retrato>" -- <paths da dimensão> | conte as linhas (comando rodado, não estimativa; liste os paths literalmente no comando). dims_delta[key] = {commits: N, resumo: "1 linha do tema dos commits, se N>0"}.\n` +
+    `2b. notas_ancora = a ÂNCORA POR DIMENSÃO. Varra retratos[] DO TOPO PRO FIM e, pra CADA chave que aparecer em algum \`notas\`, registre notas_ancora[chave] = {nota: <a nota da PRIMEIRA ocorrência, ou seja a mais recente>, de_retrato: <a data desse retrato>}. NÃO use só retratos[0]: retrato parcial no topo (1 dimensão) apagaria as outras 11 em silêncio — foi o defeito de 2026-08-23.\n` +
+    `3. Pra CADA dimensão de config.paths_por_dimensao rode: git -C ${BASE} log --oneline --since="<DATA-BASE DAQUELA DIMENSÃO>" -- <paths da dimensão> | conte as linhas (comando rodado, não estimativa; liste os paths literalmente no comando). A DATA-BASE é POR DIMENSÃO: use notas_ancora[key].de_retrato (a data do retrato de onde veio a nota dela); só se a dimensão não tiver âncora nenhuma use a data de retratos[0]. NÃO use retratos[0] pra todas: um retrato recente que NÃO mediu aquela dimensão zeraria a janela dela e o delta diria "nada a re-medir" sobre commits nunca medidos — é a mesma falha do defeito de 2026-08-23, no eixo da JANELA em vez do eixo da nota. dims_delta[key] = {commits: N, desde: "<a data-base que você usou>", resumo: "1 linha do tema dos commits, se N>0"}.\n` +
     `4. claims_vencidas = claims onde data_veredito + ttl_dias <= hoje (compare datas ISO; inclua correcao_obrigatoria quando houver).\n` +
-    `5. fraquezas = o array INTEIRO de fraquezas.json (campos id/dimensao/titulo/veredito/nota/evidencia/degrau — condense evidencia a ≤200 chars).\n` +
+    `5. fraquezas = ÍNDICE de TODAS as entradas de fraquezas.json, com SOMENTE 5 campos: id, dimensao, titulo, veredito, nota. NÃO transcreva evidencia nem degrau (medido: com evidencia o payload vai a 25,8 KB e a lista voltou VAZIA 2×; sem, cai pra ~10 KB). A evidência anterior NÃO se perde — o verificador lê a dele no próprio arquivo, pelo id. fraquezas_no_arquivo = quantas entradas o arquivo tem (CONTE, ex.: rodando node -e com JSON.parse). Os dois têm que bater: devolver a lista vazia com o arquivo cheio ABORTA a rodada antes de gastar agente.\n` +
     `6. delta_min_commits = config.delta_min_commits.\nRetorne SÓ o JSON.`,
-    { label: 'delta-scan', phase: 'Delta-scan', schema: SCAN, effort: 'low', model: MODELO_MECANICO, agentType: 'general-purpose' },
+    { label: 'delta-scan', phase: 'Delta-scan', schema: SCAN, effort: 'medium', model: MODELO_MECANICO, agentType: 'general-purpose' },
   )
   if (!scan || scan.erro) {
     log(`⚠️ delta abortado: ${(scan && scan.erro) || 'scan falhou'} — rode o modo full pra semear o ledger`)
@@ -481,7 +506,18 @@ if (MODO === 'delta') {
   // este guard cobre o caso que o schema não pega — vir PRESENTE e VAZIO (`notas:{}`).
   // Aborta ANTES da fase Verificar: instrumento sem âncora não mede, e o que não mede não grava
   // (§5 2026-07-29 — "instrumento AFIRMAR verde quando não conseguiu MEDIR").
-  const notasAncora = (scan.ultimo_retrato && scan.ultimo_retrato.notas) || {}
+  // D1 — a âncora é a nota mais recente POR DIMENSÃO (`notas_ancora`), não `retratos[0].notas`.
+  // O fallback pro topo existe só pra scanner antigo, e é ADITIVO: nunca sobrescreve a âncora rica.
+  const notasAncora = {}
+  const ancoraOrigem = {}
+  for (const [k, v] of Object.entries(scan.notas_ancora || {})) {
+    if (v && typeof v.nota === 'number') { notasAncora[k] = v.nota; ancoraOrigem[k] = v.de_retrato || '?' }
+  }
+  const notasTopo = (scan.ultimo_retrato && scan.ultimo_retrato.notas) || {}
+  for (const [k, n] of Object.entries(notasTopo)) {
+    if (!(k in notasAncora) && typeof n === 'number') { notasAncora[k] = n; ancoraOrigem[k] = (scan.ultimo_retrato || {}).data || '?' }
+  }
+  log(`âncora: ${Object.keys(notasAncora).length} dimensões (topo ${(scan.ultimo_retrato || {}).data} trazia ${Object.keys(notasTopo).length})`)
   if (!Object.keys(notasAncora).length) {
     log(`⚠️ delta ABORTADO antes de gastar agentes: o scan não trouxe \`ultimo_retrato.notas\` — sem essa âncora a composição sairia {} em SILÊNCIO. Chaves recebidas: [${Object.keys(scan).join(', ')}]. Rode o full, ou conserte o scanner.`)
     return { modo: 'delta', erro: 'âncora ausente: ultimo_retrato.notas vazio ou ausente', acao: 'rodar full', scan_retornou: Object.keys(scan) }
@@ -497,10 +533,36 @@ if (MODO === 'delta') {
     return { modo: 'delta', nada_a_medir: true, ultimo_retrato: scan.ultimo_retrato && scan.ultimo_retrato.data }
   }
 
+  // D2 — GUARD DE LISTA PERDIDA (defeito MEDIDO, run wf_9c1aaaaf-5e3): o scan devolveu
+  // `fraquezas: []` com 68 entradas no arquivo. Array vazio passa pelo `required`, `alvo` vira 0
+  // e a fase Verificar não roda — a rodada gasta agentes e grava retrato SEM ter medido. A
+  // contagem independente separa os dois casos que o array vazio confunde: ledger REALMENTE vazio
+  // (legítimo: rode o full pra semear) × serialização perdida (defeito do scanner). Aborta ANTES
+  // de gastar, como o guard de âncora — instrumento que não mede, não grava (§5 2026-07-29).
+  const nArq = typeof scan.fraquezas_no_arquivo === 'number' ? scan.fraquezas_no_arquivo : null
+  const nLista = (scan.fraquezas || []).length
+  if (ativas.length && nArq !== null && nArq > 0 && nLista === 0) {
+    log(`⚠️ delta ABORTADO antes de gastar agentes: o scan devolveu fraquezas VAZIA mas contou ${nArq} no arquivo — a fase Verificar mediria ZERO e o retrato sairia dizendo COMPLETO em SILÊNCIO. Defeito do scanner, não do ledger. Re-rode (ou conserte o scanner).`)
+    return { modo: 'delta', erro: `lista de fraquezas perdida na serialização: 0 devolvidas × ${nArq} no arquivo`, acao: 're-rodar delta', dims_ativas: ativas }
+  }
+  if (ativas.length && nLista === 0) {
+    log(`⚠️ delta ABORTADO: ${ativas.length} dimensão(ões) ativa(s) e NENHUMA fraqueza no ledger pra re-medir — não há o que verificar. Rode o full pra semear o ledger.`)
+    return { modo: 'delta', erro: 'ledger sem fraquezas: nada a re-medir apesar de dimensões ativas', acao: 'rodar full', dims_ativas: ativas }
+  }
+
+  // D1 (2ª metade) — dimensão ATIVA sem âncora não pode receber nota. Não aborta (dimensão nova
+  // nunca medida é legítima — ex.: `catalogo-modulo-opiniao-codigo`), mas NUNCA cai em silêncio.
+  const semAncora = ativas.filter((k) => !(k in notasAncora))
+  if (semAncora.length) log(`⚠️ ${semAncora.length} dimensão(ões) ATIVA(S) sem âncora no ledger — ficam SEM nota nesta rodada: ${semAncora.join(', ')}`)
+  if (ativas.length && !ativas.some((k) => k in notasAncora)) {
+    log('⚠️ delta ABORTADO: NENHUMA das dimensões ativas tem âncora no ledger — a composição não teria o que comparar. Rode o full.')
+    return { modo: 'delta', erro: 'nenhuma dimensão ativa tem âncora no ledger', acao: 'rodar full', dims_ativas: ativas, sem_ancora: semAncora }
+  }
+
   phase('Verificar')
   const alvo = (scan.fraquezas || []).filter((f) => ativas.includes(f.dimensao))
   const verificadas = alvo.length ? (await parallel(capEstratificado('Verificar', alvo, CAP_AGENTES_POR_FASE, log).map((f) => () => agent(
-    `RE-VERIFICAÇÃO delta. Fraqueza CONHECIDA do ledger: "${f.titulo}" (dimensão ${f.dimensao}; nota anterior ${f.nota == null ? 's/nota' : f.nota}; veredito anterior ${f.veredito}; evidência anterior: ${(f.evidencia || '').slice(0, 250)}). A dimensão teve commits novos desde o último retrato — re-meça no repo VIVO (paths ABSOLUTOS a partir de ${BASE}): fechou? avançou? regrediu? Dê o veredito e a nota SÓ com evidência NOVA (file:line ou PR — recibo, não memória) e diga onde indexar se existia-mas-invisível.\n\nRUBRICA DA NOTA (obrigatória — a escala tem degraus definidos, não é impressão):\n${RUBRICA_NOTA}`,
+    `RE-VERIFICAÇÃO delta. Fraqueza CONHECIDA do ledger: "${f.titulo}" (dimensão ${f.dimensao}; nota anterior ${f.nota == null ? 's/nota' : f.nota}; veredito anterior ${f.veredito}). LEIA a evidência anterior você mesmo em ${BASE}/${LEDGER_DIR}/fraquezas.json, na entrada de id "${f.id}" — ela NAO viaja no indice de propósito (transcrever as 68 evidencias fez a lista sumir 2x em 2026-08-23). A dimensão teve commits novos desde a última medição dela — re-meça no repo VIVO (paths ABSOLUTOS a partir de ${BASE}): fechou? avançou? regrediu? Dê o veredito e a nota SÓ com evidência NOVA (file:line ou PR — recibo, não memória) e diga onde indexar se existia-mas-invisível.\n\nRUBRICA DA NOTA (obrigatória — a escala tem degraus definidos, não é impressão):\n${RUBRICA_NOTA}`,
     { label: `v:${f.titulo}`.slice(0, 48), phase: 'Verificar', schema: EXISTE, effort: 'high', agentType: 'general-purpose' },
   ).then((v) => (v ? { ...f, check: v } : null))))).filter(Boolean) : []
   log(`delta-verificação: ${verificadas.length}/${alvo.length} fraquezas re-medidas`)
@@ -539,7 +601,13 @@ if (MODO === 'delta') {
       denominadorDelta[k] = medidos
       proveniencia[k] = `re-medida (${rows.length} fraquezas, média determinística)${cav ? ' ' + cav : ''}`
       if (cav) log(`⚠️ ${k}: ${cav}`)
-    } else { notasNovas[k] = notasAntigas[k]; proveniencia[k] = ativas.includes(k) ? 'herdada (dim ativa mas 0 fraquezas com nota)' : 'herdada (sem Δ material)' }
+    } else {
+      notasNovas[k] = notasAntigas[k]
+      // A ORIGEM da âncora entra na proveniência: sem isso, "herdada" não diz DE QUANDO — e uma
+      // nota de 3 retratos atrás lê igual a uma de ontem (regra 12: Δ exige saber a referência).
+      const de = ancoraOrigem[k] ? ` do retrato ${ancoraOrigem[k]}` : ''
+      proveniencia[k] = ativas.includes(k) ? `herdada${de} (dim ativa mas 0 fraquezas com nota)` : `herdada${de} (sem Δ material)`
+    }
   }
   const integHist = (scan.ultimo_retrato && scan.ultimo_retrato.integ_hist) || {}
 
@@ -550,7 +618,7 @@ if (MODO === 'delta') {
   const coberturaDelta = montarCobertura({
     modo: 'delta',
     etapas: [
-      { nome: 'verificar', esperado: Math.min(alvo.length, CAP_AGENTES_POR_FASE), obtido: verificadas.length },
+      { nome: 'verificar', esperado: Math.min(alvo.length, CAP_AGENTES_POR_FASE), obtido: verificadas.length, exigida: true },
       { nome: 'refutar', esperado: Math.min(scan.claims_vencidas.length, CAP_AGENTES_POR_FASE), obtido: reRefutadas.length },
     ],
     notas: notasNovas, dimsAlvo: dimsAlvoDelta, eixoDe: EIXO_DE, eixosTodos: EIXOS,
@@ -558,6 +626,10 @@ if (MODO === 'delta') {
       dimensoes_re_medidas: reMedidas,
       dimensoes_herdadas: dimsAlvoDelta.filter((k) => !reMedidas.includes(k)),
       dims_ativas: ativas,
+      // Honestidade da âncora: DE ONDE veio cada nota herdada, e quais dimensões ativas ficaram
+      // sem âncora (logo, sem nota). Sem isso o retrato não distingue "medi" de "copiei de julho".
+      ancora_origem: ancoraOrigem,
+      dimensoes_ativas_sem_ancora: semAncora,
       // FORWARD-ONLY: grava QUAIS ids compuseram cada nota. O retrato antigo não tem este campo
       // (append-only — não se reescreve), então a comparação por id só fica plena da próxima
       // rodada em diante; hoje a referência do delta vem do `nota` do ledger, que já basta.
@@ -600,7 +672,10 @@ if (MODO === 'delta') {
     }))), true)))
   }
   return {
-    modo: 'delta',
+    // MESMA expressão que decide o `modoRetrato` gravado no ledger. Antes era 'delta' HARDCODED:
+    // o retrato ia pro disco como 'delta-parcial' e o retorno da rodada dizia 'delta' — quem lê o
+    // resultado do run não via a parcialidade que o ledger via. O full já fazia certo (full-parcial).
+    modo: coberturaDelta.completo ? 'delta' : 'delta-parcial',
     dims_ativas: ativas,
     fraquezas_re_medidas: verificadas.length,
     claims_re_vereditadas: reRefutadas.length,
@@ -750,7 +825,7 @@ const cobertura = montarCobertura({
     { nome: 'pesquisar', esperado: DIMS.length, obtido: pesquisas.length },
     { nome: 'refutar', esperado: Math.min(claims.length, CAP_AGENTES_POR_FASE), obtido: refutados.length },
     { nome: 'integracao', esperado: Math.min(derrubadas.length, CAP_AGENTES_POR_FASE), obtido: integrados.length },
-    { nome: 'verificar', esperado: Math.min(fraquezas.length, CAP_AGENTES_POR_FASE), obtido: verificadas.length },
+    { nome: 'verificar', esperado: Math.min(fraquezas.length, CAP_AGENTES_POR_FASE), obtido: verificadas.length, exigida: true },
   ],
   notas: notasPorDim, dimsAlvo, eixoDe: EIXO_DE, eixosTodos: EIXOS,
   extra: {
