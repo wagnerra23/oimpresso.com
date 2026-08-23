@@ -138,6 +138,29 @@ jobs:
       - name: System-map path morto (transcricao de lapide libera, ponteiro inventado morde)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/system-map-deadlinks.test.mjs
+      # ── uc-lane-coverage (pedido [CC] 2026-08-23) ─────────────────────────────────
+      # A lane `ponto-pest.yml` roda 11 arquivos de uma allowlist; o modulo tem 37. Os 26
+      # de fora sao "verde impossivel": existem, podem estar vermelhos ha meses, e nenhum
+      # PR os acorda. Rodados a mao no CT100 em 2026-08-23, cinco deles deram
+      # `2 failed · 13 skipped · 8 passed` — incluindo DashboardTest x
+      # DashboardDeferredContractTest se contradizendo (um exige `kpis` no payload
+      # inicial, o outro prova que a prop e DEFERIDA) e MultiTenantIsolationTest, cujo
+      # `@dataProvider` foi REMOVIDO no PHPUnit 12 (o repo esta no 12.5.23).
+      #
+      # NAO duplica o `anchor-lint --check-lane`: aquele e do eixo US->teste e resolve
+      # lane por PREFIXO DE PASTA, entao diz que os tres acima estao "em lane" (medido,
+      # replicando `inLane()` linha a linha). Este trabalha em granularidade de ARQUIVO
+      # (allowlist, matriz, lista .list e QUARENTENA) e no eixo UC->teste.
+      #
+      # Medido no corpus: 481 citacoes UC->teste, 224 na lane, 56 ORFAS, 0 indeterminadas.
+      # Regra dura: lane cuja selecao o parser NAO deriva sai como `indeterminada` e NUNCA
+      # como "nao cobre" — colapsar "nao medi" em "nao coberto" fabrica achado.
+      - name: uc-lane-coverage bite-test (morde orfao e quarentena, e prova que INDETERMINADO nao vira orfao)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/qa/uc-lane-coverage.test.mjs
+      - name: uc-lane-coverage · UC NOVO citando teste que lane nenhuma roda (no-new-lie)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/qa/uc-lane-coverage.mjs --check --baseline governance/uc-lane-baseline.json
       - name: Grupo de memoria por modulo (case-trap Pages/kb x requisitos/KB + token no nome do arquivo)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/module-group-resolve.test.mjs
