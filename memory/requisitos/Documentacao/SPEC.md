@@ -25,6 +25,16 @@ anchor_format: v1
 > **Contrato de paridade:** [ANTI-REGRESSAO-documentacao-blade.md](ANTI-REGRESSAO-documentacao-blade.md) ·
 > **Operação:** [RUNBOOK-documentacao.md](RUNBOOK-documentacao.md)
 
+## User stories
+
+| US | Título | Status | Onde está |
+|---|---|---|---|
+| `US-DOC-001` | Migrar a superfície `/documentacao` de Blade para Inertia/React | `doing` — F1 feita, F2/F3 não | [↓](#us-doc-001--migrar-a-superfície-documentacao-de-blade-para-inertiareact) |
+| `US-DOC-002` | Tela do Programa (Trilha D) cruzando plano em git e tasks MCP | `todo` | [↓](#us-doc-002--tela-do-programa-trilha-d-cruzando-plano-em-git-e-tasks-mcp) |
+
+> A tabela é índice, não fonte: o corpo de cada US abaixo é que carrega `**Implementado em:**`,
+> owner, priority e DoD. Status aqui repete o do corpo — se divergirem, o corpo vence.
+
 ## US-DOC-001 · Migrar a superfície `/documentacao` de Blade para Inertia/React
 
 **Implementado em:** _pendente_ — F1 (plano, RUNBOOK, paridade, trio das 4 telas) concluída em 2026-08-06; F2/F3 ainda não
@@ -47,7 +57,7 @@ Blade↔React — a superfície migra inteira.
 - [ ] remoção das views Blade no cutover
 
 **Acceptance criteria:**
-- [ ] as 26 asserções `AR-DOC-NNN` verificadas, com a coluna de verificação preenchida — desvio vira Non-Goal aprovado por [W] ou defeito corrigido antes do cutover
+- [ ] **todas** as asserções `AR-DOC-NNN` verificadas, com a coluna de verificação preenchida — desvio vira Non-Goal aprovado por [W] ou defeito corrigido antes do cutover. A contagem vive no [próprio contrato](ANTI-REGRESSAO-documentacao-blade.md), não aqui: número restateado em dois docs drifa (§5 2026-07-17)
 - [ ] UCs de `Index.casos.md`, `Doc.casos.md` e `Busca.casos.md` com teste executando e passando
 - [ ] smoke real das 4 rotas com status literal por rota
 - [ ] screenshot 1280 e 1440 aprovado por [W] antes de o charter sair de `draft`
@@ -83,4 +93,13 @@ markdown sozinho não cruza — a § Trilha D do plano em git e o estado de exec
 
 ## Trilha do tempo
 
-- 2026-08-06 · [CC] SPEC nasce com a decisão de [W] de migrar a superfície inteira para React. F1 do MWART concluída: RUNBOOK, contrato de paridade (26 asserções) e trio das 4 telas.
+- 2026-08-06 · [CC] SPEC nasce com a decisão de [W] de migrar a superfície inteira para React. F1 do MWART concluída: RUNBOOK, contrato de paridade e trio das 4 telas.
+- 2026-08-23 · [CC] **Resgate.** Tudo acima existia só no working tree de um worktree parado desde 06/08 — nunca commitado. Trazido para `main` a camada de contrato (este SPEC + 5 RUNBOOKs + o contrato de paridade). ⚠️ **O trio das 4 telas NÃO está em `main`**: as Pages, charters, `casos.md` e specs e2e ficaram na branch `claude/documentacao-trio-pages-f1`, porque entram junto com a F3 (precisam de baseline de regressão visual gerada no runner canônico + aprovação visual de [W], gate F1.5). Enquanto isso, `/documentacao` segue Blade em produção.
+- 2026-08-23 · [CC] Contrato de paridade ganhou a seção 6 (`AR-DOC-060..068`) cobrindo `/documentacao/programa`, rota que entrou em `main` **depois** do sha de origem do contrato e por isso faltava. Uma divergência fica aberta e declarada em `AR-DOC-068` — decisão de [W].
+
+## Referências
+
+- Contrato de paridade: [ANTI-REGRESSAO-documentacao-blade.md](ANTI-REGRESSAO-documentacao-blade.md)
+- Operação: [RUNBOOK-documentacao.md](RUNBOOK-documentacao.md) · [RUNBOOK-index.md](RUNBOOK-index.md) · [RUNBOOK-busca.md](RUNBOOK-busca.md) · [RUNBOOK-doc.md](RUNBOOK-doc.md) · [RUNBOOK-programa.md](RUNBOOK-programa.md)
+- Programa (Trilha D): [PLANO-MESTRE.md](../_Governanca/programa-ondas/PLANO-MESTRE.md) — rastreado por `US-INFRA-048`
+- [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) processo MWART · [ADR 0264](../../decisions/0264-governanca-executavel-trio-dominio-e2e.md) trio executável · [ADR 0329](../../decisions/0329-doutrina-documentacao-de-processo-executavel.md) doutrina de documentação

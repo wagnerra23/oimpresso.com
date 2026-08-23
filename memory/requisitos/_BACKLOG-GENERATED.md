@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **900 tarefas abertas** em **51 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **902 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -53,6 +53,7 @@
 | [`ConsultaOs`](#consultaos) | 3 | 0 | 0 | 0 | 3 |
 | [`Dashboard`](#dashboard) | 3 | 0 | 0 | 0 | 3 |
 | [`ADS`](#ads) | 2 | 0 | 0 | 0 | 2 |
+| [`Documentacao`](#documentacao) | 2 | 0 | 0 | 0 | 2 |
 | [`MemoriaAutonoma`](#memoriaautonoma) | 2 | 0 | 0 | 0 | 2 |
 | [`Repair`](#repair) | 2 | 0 | 0 | 0 | 2 |
 | [`Admin`](#admin) | 1 | 0 | 0 | 0 | 1 |
@@ -1249,6 +1250,14 @@
 
 - **US-ADS-001** — Audit Tier 0 — escopar os ~85 DB::table('mcp_*') crus por business_id _(`p1`)_
 - **US-ADS-002** — Elevar tela Admin/Graph a ≥70 (extrair HEX inline p/ tokens + a11y) _(`p3`)_
+
+## Documentacao
+
+
+### todo
+
+- **US-DOC-001** — Migrar a superfície `/documentacao` de Blade para Inertia/React
+- **US-DOC-002** — Tela do Programa (Trilha D) cruzando plano em git e tasks MCP
 
 ## MemoriaAutonoma
 
