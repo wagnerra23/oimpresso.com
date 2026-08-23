@@ -1,0 +1,5 @@
+{
+  "_meta": { "schema": "route-hits/v1", "fixture": "gate-selftest — hit DENTRO da janela declarada" },
+  "janela_dias": 30,
+  "pages": { "Selftest/Frescor": { "hits": 12, "ultima_data": "2099-01-01" } }
+}

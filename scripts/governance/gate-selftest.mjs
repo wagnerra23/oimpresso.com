@@ -723,6 +723,21 @@ const CATRACAS = [
     expect: { good: /carrega sinal de prod/, bad: /SEM sinal de prod/ },
   },
   {
+    // FRESCOR DO LEDGER (2026-08-23). O route-hits.json declara `janela_dias` (30) e o gate
+    // sempre ignorou: bastava `hits > 0`, pra sempre. Medido no dia: a ultima_data mais nova
+    // tinha 29 dias — expirava no dia seguinte, e 4 charters seguiriam live_ok pra sempre.
+    // O cron-watchdog vigia o arquivo, mas com limite GENERICO de 60d (o dobro da janela que
+    // o proprio ledger declara), entao entre o dia 30 e o 60 ninguem diz nada.
+    //
+    // Exercita `--check-frescor`, que e OPT-IN: a fixture `bad` sai 0 no `--check` normal.
+    // Mudar o veredito de um gate que ja roda e flip [W], nao efeito colateral (§Sempre-fazer #6).
+    // `good` usa data no FUTURO de proposito — fixture com data recente apodrece e avermelha
+    // sozinha ao passar do 30o dia (ver README da fixture).
+    id: 'charter-live-frescor',
+    run: (kind) => runNode(script('charter-live-signal', 'scripts/governance/charter-live-signal.mjs'), ['--check-frescor'], join(FIX, 'charter-live-frescor', kind)),
+    expect: { good: /carrega sinal de prod/, bad: /VENCIDO/ },
+  },
+  {
     // G1c (item b · proposta 2026-06-24): teste-que-cobre FORA das lanes de JUnit → verde impossível.
     // sandbox por cwd (igual anchor-lint): good = .github/ci-sqlite-pest.list lista o teste → req_sem_lane
     // 0 (exit 0); bad = lista vazia → req_sem_lane 1 → exit 1 ("NENHUM numa lane de JUnit"). A linha-resumo
