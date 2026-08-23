@@ -87,11 +87,10 @@
 // BITE-TEST: node scripts/qa/uc-lane-coverage.test.mjs (irmão) — exercita o CLI de fora,
 // com controle negativo e com o caso "lane indeterminada não vira órfão".
 
-import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import yaml from 'js-yaml';
 import { ucBlocksInCasos } from '../lib/uc-regex.mjs';
 
 const argv = process.argv.slice(2);
@@ -111,6 +110,82 @@ const abs = (p) => join(ROOT, p);
 // ═════════════════════════════════════════════════════════════════════════════════════
 // 1. RUN-SET POR LANE — derivado do workflow
 // ═════════════════════════════════════════════════════════════════════════════════════
+
+// ═════════════════════════════════════════════════════════════════════════════════════
+// PARSER DE WORKFLOW — por LINHA, sem dependência (e o porquê disso não ser preguiça)
+// ═════════════════════════════════════════════════════════════════════════════════════
+//
+// A 1ª versão usava `js-yaml`. Passou verde na minha máquina e QUEBROU no CI: o job
+// `governance script tests` roda `node` puro, sem `npm ci` — o cabeçalho dele diz
+// "Node puro, sem deps/DB/rede -- segundos", e ZERO dos ~90 scripts de governança importa
+// um pacote. O meu era o único. Verde local não é verde no CI quando o ambiente difere
+// (§5 2026-08-07: validar em UMA plataforma e concluir que passa).
+//
+// O parser abaixo lê só o que este script precisa — fronteira de job, `strategy.matrix` e
+// blocos `run:` — e é o mesmo formato line-based do `junit-lanes.mjs` e do
+// `anchor-lint::junitModuleLanes()`. Linha de comentário é descartada de propósito: menção
+// a um comando dentro de `#` não é invocação (a mesma regra que o anchor-lint aplica).
+
+/** Fronteiras dos jobs de um workflow: `[{ nome, linhas: string[] }]`. */
+export function jobsDoWorkflow(src) {
+  const linhas = String(src).split(/\r?\n/);
+  const jobs = [];
+  let emJobs = false;
+  for (let i = 0; i < linhas.length; i++) {
+    const l = linhas[i];
+    if (/^jobs:\s*$/.test(l)) { emJobs = true; continue; }
+    if (!emJobs) continue;
+    // chave de topo (coluna 0, não-comentário) encerra o bloco `jobs:`
+    if (/^[A-Za-z_"']/.test(l)) { emJobs = false; continue; }
+    const m = /^ {2}([A-Za-z0-9_-]+):\s*$/.exec(l);
+    if (m) { jobs.push({ nome: m[1], inicio: i + 1, linhas: [] }); continue; }
+    if (jobs.length) jobs[jobs.length - 1].linhas.push(l);
+  }
+  return jobs;
+}
+
+/** `strategy.matrix` de um job: `{ chave: [valores] }`. */
+export function matrizDoJob(linhas) {
+  const out = {};
+  let emMatrix = false;
+  let indentMatrix = 0;
+  let chave = null;
+  for (const l of linhas) {
+    if (/^\s*#/.test(l)) continue;
+    const mM = /^(\s*)matrix:\s*$/.exec(l);
+    if (mM) { emMatrix = true; indentMatrix = mM[1].length; chave = null; continue; }
+    if (!emMatrix) continue;
+    if (l.trim() && /^\s*/.exec(l)[0].length <= indentMatrix) { emMatrix = false; continue; }
+    const mK = /^\s*([A-Za-z0-9_-]+):\s*$/.exec(l);
+    if (mK) { chave = mK[1]; out[chave] = []; continue; }
+    const mI = /^\s*-\s*(.+?)\s*$/.exec(l);
+    if (mI && chave) out[chave].push(mI[1].replace(/^["']|["']$/g, ''));
+  }
+  return out;
+}
+
+/** Blocos `run:` de um job (escalar literal `|` ou inline), como strings. */
+export function runsDoJob(linhas) {
+  const out = [];
+  for (let i = 0; i < linhas.length; i++) {
+    const l = linhas[i];
+    if (/^\s*#/.test(l)) continue;
+    const m = /^(\s*)(?:-\s+)?run:\s*(\|[-+]?|>[-+]?)?\s*(.*)$/.exec(l);
+    if (!m) continue;
+    const indent = m[1].length + (/^\s*-\s+run:/.test(l) ? 2 : 0);
+    if (!m[2]) { out.push(m[3]); continue; } // inline
+    const corpo = [];
+    for (let j = i + 1; j < linhas.length; j++) {
+      const b = linhas[j];
+      if (b.trim() === '') { corpo.push(''); continue; }
+      if (/^\s*/.exec(b)[0].length <= indent) break;
+      corpo.push(b);
+      i = j;
+    }
+    out.push(corpo.join('\n'));
+  }
+  return out;
+}
 
 // Forma (d) do run-set: `find <dir...> -name '*Test.php'`. FONTE ÚNICA porque o padrão é
 // consultado em DOIS lugares (o guard do `${VAR[@]}` e a coleta dos dirs) e a 1ª versão
@@ -238,14 +313,12 @@ export function derivaCobertura(lerArquivo, listarWorkflows) {
   for (const wf of listarWorkflows()) {
     const src = lerArquivo(wf);
     if (src == null) continue;
-    let doc;
-    try { doc = yaml.load(src); } catch (e) { indeterminadas.push({ lane: wf, motivo: `YAML não parseia (${e.message})` }); continue; }
-    if (!doc || !doc.jobs) continue;
 
-    for (const [nomeJob, job] of Object.entries(doc.jobs)) {
-      const matriz = job?.strategy?.matrix || {};
-      for (const step of job?.steps || []) {
-        const r = alvosDoRun(step?.run);
+    for (const job of jobsDoWorkflow(src)) {
+      const nomeJob = job.nome;
+      const matriz = matrizDoJob(job.linhas);
+      for (const run of runsDoJob(job.linhas)) {
+        const r = alvosDoRun(run);
         if (!r) continue;
 
         if (r.ignorada && !r.alvos.length && !r.listas.length && !r.finds.length) continue;
@@ -275,7 +348,7 @@ export function derivaCobertura(lerArquivo, listarWorkflows) {
           for (const v of valores) expandidos.push(alvo.replace(mm[0], String(v)));
         }
 
-        const fora = new Set(quarentenaDoRun(step.run, lerArquivo));
+        const fora = new Set(quarentenaDoRun(run, lerArquivo));
         const finais = expandidos.filter((p) => !fora.has(p));
         for (const p of finais) cobertos.add(p.replace(/\/$/, ''));
         lanes.push({ lane: `${wf}:${nomeJob}`, alvos: finais.length, quarentena: fora.size });

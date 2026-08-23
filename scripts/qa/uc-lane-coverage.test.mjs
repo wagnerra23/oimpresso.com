@@ -16,7 +16,10 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { alvosDoRun, quarentenaDoRun, cobertoPor, citacoesEm, derivaCobertura } from './uc-lane-coverage.mjs';
+import {
+  alvosDoRun, quarentenaDoRun, cobertoPor, citacoesEm, derivaCobertura,
+  jobsDoWorkflow, matrizDoJob, runsDoJob,
+} from './uc-lane-coverage.mjs';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const SCRIPT = join(AQUI, 'uc-lane-coverage.mjs');
@@ -25,6 +28,66 @@ const check = (n, c, extra = '') => {
   console.log(`${c ? '[OK]' : '[FAIL]'} ${n}${c ? '' : `  → ${extra}`}`);
   if (!c) fails++;
 };
+
+// ═════════════════════════════════════════════════════════════════════════════════════
+// (0) PARSER DE WORKFLOW — line-based, ZERO dependência
+// ═════════════════════════════════════════════════════════════════════════════════════
+//
+// A 1ª versão usava `js-yaml`, passou verde local e QUEBROU no CI: o job
+// `governance script tests` roda node puro, sem `npm ci` (`Cannot find package 'js-yaml'`).
+// Estes casos existem pra que a reescrita sem dependência não pague o preço em precisão —
+// e o controle negativo aqui é o COMENTÁRIO, porque menção dentro de `#` não é invocação.
+const WF = [
+  'name: x',
+  'on:',
+  '  pull_request:',
+  'jobs:',
+  '  a:',
+  '    strategy:',
+  '      matrix:',
+  '        module:',
+  '          - Alpha',
+  '          - Beta',
+  '    steps:',
+  '      - name: roda',
+  '        run: |',
+  '          vendor/bin/pest Modules/${{ matrix.module }}/Tests',
+  '      # - run: vendor/bin/pest Modules/Fantasma/Tests',
+  '  b:',
+  '    steps:',
+  '      - run: vendor/bin/pest tests/Feature/B.php',
+  'permissions:',
+  '  contents: read',
+].join('\n');
+
+{
+  const jobs = jobsDoWorkflow(WF);
+  check('parser: 2 jobs delimitados', jobs.length === 2, JSON.stringify(jobs.map((j) => j.nome)));
+  check('parser: chave de topo depois de jobs encerra o bloco',
+    !jobs.some((j) => j.nome === 'permissions'), JSON.stringify(jobs.map((j) => j.nome)));
+
+  const mat = matrizDoJob(jobs[0].linhas);
+  check('parser: matrix do job A tem os 2 valores', JSON.stringify(mat.module) === '["Alpha","Beta"]', JSON.stringify(mat));
+  check('parser: job B NÃO herda a matrix do A', Object.keys(matrizDoJob(jobs[1].linhas)).length === 0, JSON.stringify(matrizDoJob(jobs[1].linhas)));
+
+  const runsA = runsDoJob(jobs[0].linhas);
+  check('parser: bloco `run: |` é capturado', runsA.length === 1 && /matrix\.module/.test(runsA[0]), JSON.stringify(runsA));
+  // CONTROLE NEGATIVO: linha comentada NÃO é invocação (mesma regra do anchor-lint).
+  check('parser: `# - run:` comentado NÃO vira run', !runsA.join('\n').includes('Fantasma'), JSON.stringify(runsA));
+  check('parser: `run:` inline é capturado', runsDoJob(jobs[1].linhas)[0] === 'vendor/bin/pest tests/Feature/B.php', JSON.stringify(runsDoJob(jobs[1].linhas)));
+}
+
+// Integração: o workflow acima tem que render 2 alvos do A (matriz) + 1 do B.
+{
+  const { cobertos, indeterminadas } = derivaCobertura(
+    (p) => (p === '.github/workflows/x.yml' ? WF : null),
+    () => ['.github/workflows/x.yml'],
+  );
+  check('parser+derivação: matriz expande em 2 alvos', cobertos.has('Modules/Alpha/Tests') && cobertos.has('Modules/Beta/Tests'), JSON.stringify([...cobertos]));
+  check('parser+derivação: alvo do job B entra', cobertos.has('tests/Feature/B.php'), JSON.stringify([...cobertos]));
+  check('parser+derivação: o run comentado NÃO entra', !cobertos.has('Modules/Fantasma/Tests'), JSON.stringify([...cobertos]));
+  check('parser+derivação: nada indeterminado', indeterminadas.length === 0, JSON.stringify(indeterminadas));
+}
 
 // ═════════════════════════════════════════════════════════════════════════════════════
 // (A) DERIVAÇÃO DO RUN-SET — as 4 formas medidas no repo, uma a uma
