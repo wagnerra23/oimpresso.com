@@ -9,19 +9,21 @@
  * Cada caso tem par morde/solta — controle-negativo junto, senão a guarda pode estar sempre
  * dizendo "sim" e o teste passa por não-execução (LC-13).
  *
- * Os 3 defeitos que os casos 3, 4 e 5 travam foram REAIS, achados rodando o gerador em
- * 2026-08-22 — não são hipóteses:
+ * Além das regressões reais do envelope legado, cobre o contrato v2: manifesto-alvo,
+ * SHA-256 por chunk, arquivo maior que o cap, parte 01 de controle e delta exato.
+ * Defeitos históricos travados:
  *   · a 1a versão escapava o glob ANTES de fatiar em `**`, e `--exclude` estourava o RegExp;
  *   · a mensagem da guarda de tamanho prometia que excluir joga o arquivo em `missing[]`, e o
  *     código não fazia isso (LC-15 — anunciar saída que não se honra);
  *   · `missing` ia repetido em toda parte, e o applier faz `flatMap` — 1 ausente virava "23
  *     ausentes" no relatório.
  */
-import { mkdtempSync, writeFileSync, mkdirSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, mkdtempSync, writeFileSync, mkdirSync, readdirSync, readFileSync, statSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 
 const GERADOR = fileURLToPath(new URL('./gerar-payload-partes.mjs', import.meta.url));
 const CAP = 262144;
@@ -61,20 +63,10 @@ function fixture(tamanhos) {
 const partesDe = (out) => readdirSync(out).filter((f) => /^payload\.part\d+\.json$/.test(f)).sort();
 const saida = () => mkdtempSync(join(tmpdir(), 'gpp-out-'));
 
-console.log('\n=== 1) CONTROLE POSITIVO — fnv1a64 bate vetor publicado de FNV-1a-64 ===');
+console.log('\n=== 1) CONTROLE POSITIVO — SHA-256 bate vetor publicado ===');
 {
-  // O gerador não exporta a função, então reimplemento o contrato aqui e comparo com os vetores
-  // canônicos. É o controle que separa "meu hash" de "hash com nome de FNV" — a confusão que
-  // custou a contradição 0/118 do lado do produtor manual (docblock do aplicar-payload).
-  const fnv1a64 = (s) => {
-    let h = 0xcbf29ce484222325n;
-    const p = 0x100000001b3n, m = 0xffffffffffffffffn;
-    for (const b of Buffer.from(s, 'utf8')) { h = ((h ^ BigInt(b)) * p) & m; }
-    return h.toString(16).padStart(16, '0');
-  };
-  ok(fnv1a64('') === 'cbf29ce484222325', 'vetor "" = cbf29ce484222325');
-  ok(fnv1a64('a') === 'af63dc4c8601ec8c', 'vetor "a" = af63dc4c8601ec8c');
-  ok(fnv1a64('foobar') === '85944171f73967e8', 'vetor "foobar" = 85944171f73967e8');
+  const digest = createHash('sha256').update('abc').digest('hex');
+  ok(digest === 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad', 'vetor SHA-256 de "abc"');
 }
 
 console.log('\n=== 2) SOLTA — shell que cabe gera partes válidas ===');
@@ -87,37 +79,31 @@ console.log('\n=== 2) SOLTA — shell que cabe gera partes válidas ===');
   ok(partes.length >= 1, `gerou ${partes.length} parte(s)`);
 
   const envs = partes.map((f) => JSON.parse(readFileSync(join(out, f), 'utf8')));
-  // CONTRATO DO APPLIER (armadilha 1): fileCount é conferido POR PARTE contra files.length
-  // DAQUELA parte. Declarar o total do lote reprova todas menos a última.
-  ok(envs.every((e) => e.fileCount === e.files.length), 'fileCount == files.length em TODA parte');
-  ok(envs.every((e) => Array.isArray(e.missing)), 'missing é array em TODA parte (armadilha 2)');
-  ok(envs.every((e) => e.files.every((f) => typeof f.bytes === 'number')), 'todo arquivo traz bytes (armadilha 3)');
-  ok(envs.every((e) => e.schema === 'cowork-payload/1' && e.hash === 'fnv1a64'), 'envelope declara schema + convenção do digest');
-
-  // bytes declarado == bytes reais do conteúdo (é a prova que o applier consegue verificar)
-  const errados = envs.flatMap((e) => e.files).filter((f) => Buffer.byteLength(f.content, 'utf8') !== f.bytes);
-  ok(errados.length === 0, `bytes declarado bate com o real em ${envs.flatMap((e) => e.files).length}/${envs.flatMap((e) => e.files).length} arquivos`);
+  ok(envs.every((e) => e.fileCount === new Set(e.chunks.map((chunk) => chunk.path)).size), 'fileCount conta paths únicos em TODA parte');
+  ok(envs.every((e) => Array.isArray(e.missing)), 'missing é repetido em TODA parte');
+  ok(envs.every((e) => e.chunks.every((chunk) => typeof chunk.bytes === 'number' && /^[a-f0-9]{64}$/.test(chunk.sha256))), 'todo chunk traz bytes + SHA-256');
+  ok(envs.every((e) => e.schema === 'oimpresso-design-bundle/2'), 'envelope declara schema v2');
+  ok(envs[0].targetManifest && envs.slice(1).every((e) => !e.targetManifest), 'manifesto-alvo existe somente na part01');
+  ok(existsSync(join(out, 'bundle.manifest.json')), 'manifesto durável foi emitido para o próximo delta');
 
   // o shell entra no próprio payload, e o fechamento pega os 3 refs
-  const paths = envs.flatMap((e) => e.files.map((f) => f.path));
+  const paths = envs[0].targetManifest.files.map((f) => f.path);
   ok(paths.includes('oimpresso.com.html'), 'o shell entra no payload');
   ok(['a.css', 'b.jsx', 'c.css'].every((f) => paths.includes(f)), 'fechamento transitivo pegou os 3 refs (query ?v= normalizada)');
   ok(new Set(paths).size === paths.length, 'nenhum path duplicado entre as partes');
 }
 
-console.log('\n=== 3) MORDE/SOLTA — arquivo maior que o cap não cabe em parte nenhuma ===');
+console.log('\n=== 3) SOLTA — arquivo maior que o cap é remontável por chunks ===');
 {
-  // MORDE: arquivo é atômico dentro da parte e o applier não remonta fatia. Emitir assim
-  // produziria parte que o consumidor não baixa (get_file corta em 256 KiB).
   const dir = fixture({ 'gigante.css': CAP + 50000 });
-  const r = rodar(['--root', dir, '--out', saida()]);
-  ok(r.code === 2, `morde: exit 2 (obtido ${r.code})`);
-  ok(/NAO CABEM/.test(r.out), 'morde: diz que não cabe');
-  ok(/gigante\.css/.test(r.out), 'morde: nomeia o arquivo culpado');
-
-  // SOLTA: o mesmo arquivo com cap folgado passa — prova que a guarda olha o cap, não o nome
-  const r2 = rodar(['--root', dir, '--out', saida(), '--cap', String(CAP * 3)]);
-  ok(r2.code === 0, `solta com cap maior: exit 0 (obtido ${r2.code})`);
+  const out = saida();
+  const r = rodar(['--root', dir, '--out', out, '--chunk-bytes', '65536']);
+  ok(r.code === 0, `arquivo grande gera bundle v2 (exit ${r.code})`);
+  const envs = partesDe(out).map((file) => JSON.parse(readFileSync(join(out, file), 'utf8')));
+  const chunks = envs.flatMap((env) => env.chunks).filter((chunk) => chunk.path === 'gigante.css');
+  ok(chunks.length > 1, `gigante.css foi dividido em ${chunks.length} chunks`);
+  const rebuilt = Buffer.concat(chunks.sort((a, b) => a.index - b.index).map((chunk) => Buffer.from(chunk.content, 'base64')));
+  ok(rebuilt.equals(readFileSync(join(dir, 'gigante.css'))), 'chunks remontam bytes idênticos ao arquivo grande');
 }
 
 console.log('\n=== 4) SOLTA — --exclude funciona (o glob fatia antes de escapar) ===');
@@ -151,19 +137,17 @@ console.log('\n=== 5) MORDE — excluído REFERENCIADO cai em missing[], UMA vez
 
   const envs = partesDe(out).map((f) => JSON.parse(readFileSync(join(out, f), 'utf8')));
   ok(envs.length > 1, `fixture gerou ${envs.length} partes (>1 — senão o caso não discrimina)`);
-  const uniao = envs.flatMap((e) => e.missing);           // <- exatamente o que o applier faz
-  ok(uniao.length === 1, `missing na UNIÃO do lote = 1 (obtido ${uniao.length})`);
-  ok(uniao[0] === 'fora.css', 'missing nomeia o excluído');
-  ok(envs.every((e) => Array.isArray(e.missing)), 'ainda assim toda parte tem o campo (armadilha 2)');
+  ok(envs.every((e) => e.missing.length === 1 && e.missing[0] === 'fora.css'), 'cada parte repete o missing do contrato');
+  ok(envs[0].targetManifest.missing.length === 1, 'manifesto-alvo registra o excluído uma vez');
 
-  const paths = envs.flatMap((e) => e.files.map((f) => f.path));
+  const paths = envs.flatMap((e) => e.chunks.map((f) => f.path));
   ok(!paths.includes('fora.css'), 'o excluído não foi escrito no payload');
 
   // CONTROLE NEGATIVO: sem --exclude, o mesmo shell fecha com missing vazio
   const out2 = saida();
   rodar(['--root', dir, '--out', out2]);
   const envs2 = partesDe(out2).map((f) => JSON.parse(readFileSync(join(out2, f), 'utf8')));
-  ok(envs2.flatMap((e) => e.missing).length === 0, 'solta: sem --exclude, missing é vazio');
+  ok(envs2.every((e) => e.missing.length === 0), 'solta: sem --exclude, missing é vazio');
 }
 
 console.log('\n=== 6) SOLTA — o empacotamento respeita o cap de verdade ===');
@@ -182,7 +166,7 @@ console.log('\n=== 6) SOLTA — o empacotamento respeita o cap de verdade ===');
   const envs = partes.map((f) => JSON.parse(readFileSync(join(out, f), 'utf8')));
   ok(envs.every((e) => e.parts === partes.length), 'toda parte declara o total correto em `parts`');
   ok(envs.map((e) => e.part).sort((a, b) => a - b).join(',') === partes.map((_, i) => i + 1).join(','), '`part` numera 1..N sem buraco');
-  ok(new Set(envs.map((e) => e.generatedAt)).size === 1, 'generatedAt único no lote (o applier recusa lote misto)');
+  ok(new Set(envs.map((e) => e.bundle.generatedAt)).size === 1, 'generatedAt único no lote (o applier recusa lote misto)');
 }
 
 console.log('\n=== 7) MORDE — nenhuma parte sai minúscula (piso de persistência do consumidor) ===');
@@ -216,10 +200,61 @@ console.log('\n=== 7) MORDE — nenhuma parte sai minúscula (piso de persistên
   // SOLTA: o aviso existe e é RELATO, não veredito — com piso absurdo ele fala e ainda sai 0
   const r2 = rodar(['--root', dir, '--out', saida(), '--cap', String(CAP), '--piso', '999999']);
   ok(r2.code === 0, `piso absurdo AVISA mas não reprova (exit ${r2.code})`);
-  ok(/abaixo do piso de persistencia/.test(r2.out), 'o aviso de piso aparece');
+  ok(/piso 999999 > cap/.test(r2.out), 'o aviso de piso impossível aparece');
   // e --piso 0 desliga
   const r3 = rodar(['--root', dir, '--out', saida(), '--cap', String(CAP), '--piso', '0']);
   ok(!/abaixo do piso/.test(r3.out), '--piso 0 desliga o aviso');
+}
+
+console.log('\n=== 8) DELTA — baixa somente added/modified e declara deleted ===');
+{
+  const dir = fixture({ 'a.css': 1000, 'b.css': 1000, 'd.css': 1000 });
+  const first = saida();
+  const initial = rodar(['--root', dir, '--out', first]);
+  ok(initial.code === 0, `snapshot inicial gerado (exit ${initial.code})`);
+
+  writeFileSync(join(dir, 'a.css'), '/* alterado */\n' + 'z'.repeat(1500));
+  writeFileSync(join(dir, 'c.css'), '/* novo */\n' + 'c'.repeat(700));
+  rmSync(join(dir, 'b.css'));
+  writeFileSync(join(dir, 'oimpresso.com.html'), [
+    '<link rel="stylesheet" href="a.css">',
+    '<link rel="stylesheet" href="c.css">',
+    '<link rel="stylesheet" href="d.css">',
+  ].join('\n'));
+
+  const second = saida();
+  const delta = rodar(['--root', dir, '--out', second, '--previous', join(first, 'bundle.manifest.json')]);
+  ok(delta.code === 0, `delta gerado (exit ${delta.code})`);
+  const manifest = JSON.parse(readFileSync(join(second, 'bundle.manifest.json'), 'utf8'));
+  ok(manifest.mode === 'delta' && manifest.baseBundleId, 'manifesto delta aponta para bundle-base');
+  ok(manifest.changes.added.join(',') === 'c.css', `added exato: ${manifest.changes.added.join(',')}`);
+  ok(manifest.changes.deleted.join(',') === 'b.css', `deleted exato: ${manifest.changes.deleted.join(',')}`);
+  ok(manifest.changes.modified.includes('a.css') && manifest.changes.modified.includes('oimpresso.com.html'), 'modified inclui conteúdo + shell');
+  ok(manifest.changes.unchanged === 1, `unchanged=1 (d.css), obtido ${manifest.changes.unchanged}`);
+  const transported = partesDe(second)
+    .flatMap((file) => JSON.parse(readFileSync(join(second, file), 'utf8')).chunks)
+    .map((chunk) => chunk.path);
+  ok(!transported.includes('d.css') && !transported.includes('b.css'), 'delta não baixa unchanged nem deleted');
+  ok(['a.css', 'c.css', 'oimpresso.com.html'].every((path) => transported.includes(path)), 'delta baixa somente os bytes added/modified');
+}
+
+console.log('\n=== 9) SOLTA — part01 pode carregar só o manifesto quando o primeiro chunk não cabe ===');
+{
+  // Muitos paths aumentam o manifesto; o chunk individual ainda cabe numa parte comum. A
+  // regressão punha esse chunk na part01 e só descobria o excesso depois de empacotar tudo.
+  const capControle = 50000;
+  const tamanhos = { '000-grande.css': 30000 };
+  for (let i = 0; i < 110; i++) tamanhos[`folha-${String(i).padStart(3, '0')}.css`] = 8;
+  const dir = fixture(tamanhos);
+  const out = saida();
+  const r = rodar(['--root', dir, '--out', out, '--cap', String(capControle), '--chunk-bytes', '25000', '--piso', '0']);
+  ok(r.code === 0, `manifesto grande + chunk gera bundle (exit ${r.code})`);
+  const files = partesDe(out);
+  const envs = files.map((file) => JSON.parse(readFileSync(join(out, file), 'utf8')));
+  ok(files.length > 1, `gerou ${files.length} partes`);
+  ok(envs[0].targetManifest && envs[0].chunks.length === 0, 'part01 é controle-only quando necessário');
+  ok(files.every((file) => statSync(join(out, file)).size <= capControle), 'todas as partes respeitam o cap');
+  ok(envs.slice(1).flatMap((env) => env.chunks).some((chunk) => chunk.path === '000-grande.css'), 'chunk grande seguiu nas partes de dados');
 }
 
 console.log(falhas ? `\n✗ ${falhas} asserção(ões) falharam\n` : '\n✓ todas as asserções passaram\n');

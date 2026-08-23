@@ -317,6 +317,24 @@ O Claude Design oficial empacota o design num **bundle estruturado** (spec machi
 segue o mapa de fases emitido por [`protocolo.config.mjs`](protocolo.config.mjs); os paths antigos
 de F3 e do runbook de orquestração são apenas pontes de compatibilidade.
 
+#### Bundle transacional v2 (ratificação proposta em 2026-08-23)
+
+O payload transportado passou a declarar um **manifesto do estado-alvo completo**, identidade
+SHA-256, bundle-base e sequência exata de partes. A primeira recepção é `snapshot`; as seguintes
+são `delta`: somente `added/modified` carregam bytes, enquanto `deleted` e `unchanged` são
+decisões do manifesto. Arquivo grande é remontado por chunks verificados.
+
+Receber o bundle não equivale a aplicar o produto. O consumidor primeiro monta quatro destinos
+em staging (espelho Cowork, design-docs, runtime `_ds` e estado), valida o grafo e todos os hashes,
+e só então promove os diretórios. Falta de parte, base divergente, corrupção ou falha de swap
+mantêm o estado anterior. O inventário pós-recepção lista fonte, Page React, módulo, mapeamento
+1:N e ação. Evidência de aplicação/teste é ligada aos hashes atuais; mudança posterior a invalida.
+
+`_ds` permanece **cache derivado do preview**, não estado nem histórico. A base do próximo delta,
+o relatório do que mudou e as provas de aplicação ficam fora dele, em `scripts/design-sync/state/`.
+Comandos e destinos executáveis continuam tendo [`protocolo.config.mjs`](protocolo.config.mjs)
+como fonte única.
+
 ## 11. Links
 
 - [ADR 0114](../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md) — mãe

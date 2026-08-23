@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @ts-check
 /**
- * aplicar-payload.mjs — escreve o espelho Cowork a partir de um PAYLOAD servido, não de `get_file`.
+ * aplicar-payload.mjs — consome bundle Design v2 (ou payload legado) sem transcrição.
  *
  * POR QUE EXISTE: o caminho `DesignSync.get_file` entrega o conteúdo no CONTEXTO do agente, e
  * escrever de lá é transcrição — a classe que causou o STALE de 2026-08-11. Isso criava um teto
@@ -9,10 +9,10 @@
  * problema. Aqui o conteúdo entra como DADO: fetch → JSON.parse → writeFile. Nenhum byte passa
  * por prosa de agente, em nenhuma das duas pontas.
  *
- * Os payloads são gerados do lado do design: Cowork (shell + arquivos da aplicação) e DS
- * (bundle/CSS/assets). Em `--require-complete-shell`, este lado NÃO confia na lista do gerador:
- * recalcula e fecha transitivamente `src/link` + `@import/url` + imports JS. Manifesto DERIVADO,
- * não lista curada; query `?v=` é normalizada.
+ * No schema v2, o manifesto descreve o estado-alvo completo e as partes carregam somente chunks
+ * added/modified. O consumidor exige sequência 1..N, base ativa, SHA-256 e grafo completo;
+ * aplica em staging e promove os quatro destinos atomicamente, com rollback. O modo legado
+ * completo também é promovido por transação; lote legado parcial fica como compatibilidade.
  *
  * FIDELIDADE — o que este script VERIFICA de fato (ver o bloco no laço, com a medição):
  *   (a) BYTES declarado == bytes reais, por arquivo. Divergiu = NÃO escreve e sai != 0.
@@ -34,10 +34,9 @@
  *       sobre a rota que originou o STALE de 2026-08-11.
  *
  * Uso:
- *   node scripts/design-sync/aplicar-payload.mjs <payload.json> --dry   # relatório, não escreve
- *   node scripts/design-sync/aplicar-payload.mjs <payload.json>         # aplica lote parcial
- *   node scripts/design-sync/aplicar-payload.mjs <cowork.json> <ds.json> --require-complete-shell
- *     # exige oimpresso.com.html + fechamento transitivo HTML/CSS/JS; `_ds/` vai ao snapshot
+ *   node scripts/design-sync/aplicar-payload.mjs payload.part*.json --dry --require-complete-shell
+ *   node scripts/design-sync/aplicar-payload.mjs payload.part*.json --require-complete-shell
+ *   node scripts/design-sync/aplicar-payload.mjs <legado.json>         # compatibilidade parcial
  *
  * ⚠️ NUNCA ponha `.md` dentro de `prototipo-ui/cowork/`: R1 do `cowork-ssot-guard` reprova
  * (cowork/ é build-only; knowledge mora em canon). Isso NÃO mudou. O que mudou (2026-08-21,
@@ -49,6 +48,8 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join, dirname, normalize, sep } from 'node:path';
 import { payloadDependencyGraph, normalizePayloadPath } from './payload-dependency-graph.mjs';
 import { dsRuntimeRelPath } from '../governance/cowork-mirror-freshness.mjs';
+import { BUNDLE_SCHEMA } from './bundle-contract.mjs';
+import { applyBundleTransaction, applyLegacySnapshotTransaction } from './bundle-transaction.mjs';
 
 const ROOT = process.cwd();
 const DESTINO = 'prototipo-ui/cowork';
@@ -125,6 +126,7 @@ function lerPayload(arquivo) {
     process.exit(2);
   }
 
+  if (obj?.schema === BUNDLE_SCHEMA) return obj;
   const declarado = Number(obj && obj.fileCount);
   const real = Array.isArray(obj && obj.files) ? obj.files.length : 0;
   if (Number.isFinite(declarado) && declarado !== real) {
@@ -137,6 +139,27 @@ function lerPayload(arquivo) {
 }
 
 const payloads = arquivos.map((arquivo) => ({ arquivo, ...lerPayload(arquivo) }));
+const v2 = payloads.filter((payload) => payload.schema === BUNDLE_SCHEMA);
+if (v2.length) {
+  if (v2.length !== payloads.length) {
+    console.error('✗ lote mistura bundle v2 com payload legado; aplique contratos separados.');
+    process.exit(2);
+  }
+  try {
+    const result = await applyBundleTransaction({ root: ROOT, parts: v2, dry });
+    const summary = result.report.summary;
+    console.log(`\n  ✓ BUNDLE v2 ${dry ? 'VALIDADO (dry-run)' : 'PROMOVIDO ATOMICAMENTE'}`);
+    console.log(`  id: ${result.manifest.bundleId} · modo ${result.manifest.mode} · ${result.manifest.totals.files} arquivo(s)`);
+    console.log(`  transporte: ${summary.transportChanges} mudança(s) · telas: ${summary.screens} · pendentes: ${summary.pending || 0} · bloqueadas: ${summary.blocked || 0}`);
+    console.log(`  estado: scripts/design-sync/state/active-bundle.json`);
+    console.log(`  lista operacional: scripts/design-sync/state/application-report.json\n`);
+    process.exit(0);
+  } catch (error) {
+    console.error(`\n✗ BUNDLE v2 RECUSADO: ${error.message}`);
+    console.error('  Nada foi promovido; o estado anterior permanece ativo.\n');
+    process.exit(1);
+  }
+}
 // O envelope pode declarar a convenção do digest (`hash`). O `flatMap` achata os lotes e
 // perderia essa procedência, então guardo por REFERÊNCIA do objeto — sem copiar conteúdo.
 const hashDeclarado = new WeakMap();
@@ -263,6 +286,48 @@ if (forade.length || corrompidos.length) {
   }
   console.log('\n  Nada foi escrito deste lote.');
   process.exit(1);
+}
+
+// Payload legado completo também ganha promoção transacional. Se o produtor declarou part/parts,
+// a sequência vira contrato: `part01` ausente não pode mais passar só porque o grafo restante fecha.
+if (requireCompleteShell) {
+  const grupos = new Map();
+  for (const payload of payloads.filter((item) => item.part != null || item.parts != null)) {
+    if (!Number.isInteger(payload.part) || !Number.isInteger(payload.parts) || payload.parts < 1) {
+      console.error('✗ metadados part/parts inválidos no payload legado. Nada foi escrito.');
+      process.exit(1);
+    }
+    const key = `${typeof payload.source === 'string' ? payload.source : JSON.stringify(payload.source)}|${payload.generatedAt || '?'}`;
+    const group = grupos.get(key) || [];
+    group.push(payload);
+    grupos.set(key, group);
+  }
+  for (const [key, group] of grupos) {
+    const totals = new Set(group.map((item) => item.parts));
+    const total = group[0].parts;
+    const indices = group.map((item) => item.part).sort((a, b) => a - b);
+    const expected = Array.from({ length: total }, (_, index) => index + 1);
+    if (totals.size !== 1 || indices.length !== total || indices.some((value, index) => value !== expected[index])) {
+      console.error(`✗ lote legado incompleto (${key}): recebeu [${indices.join(',')}], esperava [${expected.join(',')}].`);
+      console.error('  Nada foi escrito; baixe todas as partes, inclusive a part01.');
+      process.exit(1);
+    }
+  }
+  try {
+    const result = await applyLegacySnapshotTransaction({
+      root: ROOT,
+      prepared: preparados,
+      source: `legacy:${payloads.map((item) => item.source || item.arquivo).join('+')}`,
+      dry,
+    });
+    console.log(`\n  ✓ PAYLOAD LEGADO ${dry ? 'VALIDADO em staging' : 'PROMOVIDO ATOMICAMENTE'} como snapshot ${result.manifest.bundleId}`);
+    console.log('  Próxima exportação deve usar o bundle v2 para SHA-256, delta e estado-base verificável.\n');
+    process.exit(0);
+  } catch (error) {
+    console.error(`\n✗ SNAPSHOT LEGADO RECUSADO: ${error.message}`);
+    console.error('  Nada foi promovido; o estado anterior permanece ativo.\n');
+    process.exit(1);
+  }
 }
 
 for (const f of preparados) {
