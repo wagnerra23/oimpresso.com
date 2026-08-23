@@ -31,6 +31,20 @@ class DashboardController extends Controller
             'presenca_agora'    => Inertia::defer(fn () => $this->calcularPresenca($businessId, $hoje)),
             'alertas'           => Inertia::defer(fn () => $this->coletarAlertas($businessId, $hoje)),
             'server_time'       => now()->format('H:i'),
+
+            // EAGER de propósito: são 2 leituras de config (zero query), e o
+            // RUNBOOK-inertia-defer-pattern lista "config static" entre as exceções
+            // que NÃO se defere. Também não entra no `only` do polling de 30s —
+            // config não muda a cada meio minuto, e a lista do polling é travada
+            // pelo UC-PAINEL-05 contra o charter §Automation hooks.
+            'config_clt'        => [
+                // O KPI "Atrasos hoje" filtra por `atraso_minutos > tolerancia_maxima_diaria`.
+                // A legenda tem de citar ESSA chave, não a `tolerancia_minutos_por_marcacao`
+                // (5 min, por marcação) que o protótipo usa no rótulo — senão o texto
+                // descreve um número que não é o que a contagem aplicou.
+                'tolerancia_diaria_minutos' => (int) config('pontowr2.clt.tolerancia_maxima_diaria_minutos', 10),
+                'limite_he_diaria_horas'    => (int) config('pontowr2.clt.limite_he_diaria_horas', 2),
+            ],
         ]);
     }
 
@@ -66,6 +80,16 @@ class DashboardController extends Controller
             'aprovacoes_pendentes' => Intercorrencia::where('business_id', $businessId)
                 ->pendentes()
                 ->count(),
+            // Legenda do KPI "Aprovações pendentes" no protótipo: "N urgentes" /
+            // "nada urgente". Sem este número a legenda teria de ser inventada.
+            'aprovacoes_urgentes' => Intercorrencia::where('business_id', $businessId)
+                ->pendentes()
+                ->where('prioridade', 'URGENTE')
+                ->count(),
+            // Legenda do KPI "Presentes agora": o protótipo mostra a hora da última
+            // marcação do dia. É `max(momento)`, não `now()` — quem olha quer saber
+            // há quanto tempo o painel tem dado novo, não que horas são.
+            'ultima_marcacao' => $this->horaUltimaMarcacao($businessId, $hoje),
             // Dias em DIVERGENCIA na competencia — alimenta a nota "o que trava o
             // fechamento" (contrato ponto-painel, secao painel-nota-fechamento).
             // Dia divergente impede a apuracao de consolidar e faz o AFD sair com a
@@ -77,6 +101,21 @@ class DashboardController extends Controller
                 ->where('estado', ApuracaoDia::ESTADO_DIVERGENCIA)
                 ->count(),
         ];
+    }
+
+    /**
+     * Hora (H:i) da última marcação registrada hoje neste empregador, ou null.
+     *
+     * UMA query (`max`), não duas: a 1ª redação chamava o `max()` no teste do
+     * ternário E de novo pra formatar, dobrando o custo dentro do ciclo de 30s.
+     */
+    private function horaUltimaMarcacao(int $businessId, string $hoje): ?string
+    {
+        $momento = Marcacao::where('business_id', $businessId)
+            ->whereDate('momento', $hoje)
+            ->max('momento');
+
+        return $momento ? Carbon::parse($momento)->format('H:i') : null;
     }
 
     /**
@@ -148,6 +187,13 @@ class DashboardController extends Controller
                 // (repetir `data`, somar intervalo) seria criar semântica que o domínio
                 // não define. Remover a chave é decisão de front, não deste fix.
                 'data_fim'       => null,
+                // O recorte de HORA da intercorrência — é isto que o protótipo mostra
+                // na coluna "Data / intervalo", e o que faltava pra dizer se o pedido
+                // é do dia inteiro ou de uma janela. `dia_todo` decide qual dos dois
+                // a tela escreve; sem ele o front teria de adivinhar por `null`.
+                'dia_todo'         => (bool) $i->dia_todo,
+                'intervalo_inicio' => $i->intervalo_inicio,
+                'intervalo_fim'    => $i->intervalo_fim,
                 'justificativa'  => $i->justificativa,
                 'estado'         => $i->estado,
                 'created_at'     => $i->created_at?->diffForHumans(),
@@ -175,6 +221,11 @@ class DashboardController extends Controller
             ->get()
             ->map(fn ($m) => [
                 'id'         => $m->id,
+                // NSR — Número Sequencial de Registro por REP (Portaria MTP 671/2021).
+                // É o identificador legal da marcação: é por ele que o fiscal amarra a
+                // linha do AFD ao evento. O protótipo o mostra no feed; o payload não
+                // o expunha, então a tela não tinha como.
+                'nsr'        => $m->nsr,
                 'tipo'       => $m->tipo,
                 'momento'    => $m->momento?->format('H:i'),
                 'momento_completo' => $m->momento?->format('Y-m-d H:i:s'),

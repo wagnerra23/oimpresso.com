@@ -112,6 +112,42 @@ last_run_ci: "NÃO EXECUTADO NA LANE. Os 6 UC rodaram no CT 100 (container oimpr
 
 ---
 
+**[BACKLOG] — aplicado do protótipo em 2026-08-23, ainda SEM UC que o cubra.**
+Entra como prosa de propósito: criar `## UC-XX` sem teste que o cite só avermelharia o
+G-2 e fabricaria cobertura. O que a lane cobre hoje são os 6 UC do contrato; os itens
+abaixo estão **fora** do que o contrato declara, e por isso não têm gate.
+
+- `[BACKLOG]` **Legenda dos 6 KPIs** (`description`): "com controle de ponto", "última
+  marcação H:i", "além da tolerância de N min", "sem marcação e sem intercorrência",
+  "limite Nh/dia (Art. 59)", "N urgentes"/"nada urgente". ⚠️ A tolerância citada é a
+  `tolerancia_maxima_diaria_minutos` (10) — a chave que o KPI "Atrasos hoje" realmente
+  filtra — e **não** a `tolerancia_minutos_por_marcacao` (5) que o protótipo escreve no
+  rótulo. Copiar o rótulo do protótipo faria a legenda descrever um número que a
+  contagem não aplicou.
+- `[BACKLOG]` **Os 6 KPIs navegam** (eram 2). Presentes/Atrasos/Faltas → `/ponto/espelho`,
+  HE → `/ponto/banco-horas`, como no protótipo.
+- `[BACKLOG]` **NSR no feed de atividade** — identificador legal da marcação (Portaria
+  MTP 671/2021); é por ele que se amarra a linha do AFD ao evento. Exigiu expor `nsr` no
+  payload de `buildAtividadeRecente`, que não o entregava.
+- `[BACKLOG]` **Estado da intercorrência na fila** — o protótipo tem coluna própria; a
+  tela mostrava só prioridade, então dava pra ver o que era urgente mas não em que ponto
+  da decisão cada item estava. Também entrou o recorte de hora (`dia_todo` /
+  `intervalo_inicio`–`intervalo_fim`), que o payload não expunha.
+- `[BACKLOG]` **Subtítulo da fila `(N pendentes)`** — vem de `kpis.aprovacoes_pendentes`,
+  NÃO de `aprovacoes.length`: a fila é limitada a 5 no controller, então o length mentiria
+  a partir da 6ª pendência.
+- `[BACKLOG]` **Rodapé legal** — "Registros protegidos pela Portaria MTP 671/2021 —
+  marcações são imutáveis (append-only)", o `<Legal />` do protótipo.
+
+**Não aplicado, e é decisão [W]:** o protótipo desenha a fila como TABELA de 5 colunas.
+A tela mantém a lista compacta. O contrato **não** declara as colunas (só as 3 frases),
+então converter seria mudança de layout sem âncora de contrato — e o que faltava de
+informação (Estado + intervalo) foi aplicado dentro da lista. Se você quiser a tabela,
+é ato seu no contrato.
+
+**Custo medido do polling:** o ciclo de 30s foi de **13 → 15 queries** (+2: contagem de
+urgentes e `max(momento)` do dia, ambas em `buildKpis`). Segue sem teto declarado.
+
 ## UC-PAINEL-01 · Os seis KPIs aparecem com a copy e na ordem que o contrato manda · `must`
 
 - **Persona:** gestor de RH/DP abrindo o painel de manhã para saber, de um olhar, o estado do dia.
