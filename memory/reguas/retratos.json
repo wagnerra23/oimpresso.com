@@ -1,5 +1,219 @@
 [
   {
+    "data": "2026-08-23",
+    "modo": "delta",
+    "regra_nota": "media-deterministica-v1",
+    "notas": {
+      "memoria-conhecimento": 7.1,
+      "spec-governanca": 4.7,
+      "design-to-code": 8,
+      "catalogo-modulo-opiniao-codigo": 7.5,
+      "orquestracao-adversarial": 7.3,
+      "evals-outcome": 5.7,
+      "erp-ia-produto": 4.5,
+      "observabilidade-agente": 5.5,
+      "qualidade-drift-ia-producao": 4.3,
+      "seguranca-do-agente": 4.8,
+      "custo-eficiencia": 3.5,
+      "inteligencia-de-negocio": 4.5
+    },
+    "proveniencia_notas": {
+      "memoria-conhecimento": "herdada do retrato 2026-08-23 (sem Δ material)",
+      "spec-governanca": "re-medida (3 fraquezas, média determinística) [ATENÇÃO] DENOMINADOR MUDOU: saíram (tinham nota e NÃO foram re-medidas) spec-testes-assertions+spec-enforcement-geracao+spec-hooks-desarmados+spec-auto-remediacao+spec-advisory-sem-criterio-saida+spec-gates-design-zero-mordida+spec-hooks-zero-entrega — o Δ vs 2026-08-23 NÃO é mudança de capacidade, é amostragem (regra 12)",
+      "design-to-code": "re-medida (3 fraquezas, média determinística) [ATENÇÃO] DENOMINADOR MUDOU: saíram (tinham nota e NÃO foram re-medidas) dtc-proto-prod-manual+dtc-taxa-reuso — o Δ vs 2026-08-23 NÃO é mudança de capacidade, é amostragem (regra 12)",
+      "catalogo-modulo-opiniao-codigo": "herdada do retrato 2026-08-08 (sem Δ material)",
+      "orquestracao-adversarial": "re-medida (3 fraquezas, média determinística) [ATENÇÃO] DENOMINADOR MUDOU: saíram (tinham nota e NÃO foram re-medidas) orq-retorno-comprimido+orq-sgv+orq-mission-control+orq-debate-fase-nao-invocada+orq-cross-model-same-vendor — o Δ vs 2026-08-23 NÃO é mudança de capacidade, é amostragem (regra 12)",
+      "evals-outcome": "re-medida (3 fraquezas, média determinística) [ATENÇÃO] DENOMINADOR MUDOU: saíram (tinham nota e NÃO foram re-medidas) ev-goal-based+ev-coorte-trend+ev-medidores-consolidados — o Δ vs 2026-08-23 NÃO é mudança de capacidade, é amostragem (regra 12)",
+      "erp-ia-produto": "re-medida (2 fraquezas, média determinística) [ATENÇÃO] DENOMINADOR MUDOU: saíram (tinham nota e NÃO foram re-medidas) erp-whatsapp-ia+erp-ibscbs-via-entrada+erp-agente-processo+erp-ar-sem-ia+erp-preditivo+erp-extensibilidade-ia+erp-ia-formulario+erp-loop-qualidade-prod — o Δ vs 2026-08-23 NÃO é mudança de capacidade, é amostragem (regra 12)",
+      "observabilidade-agente": "re-medida (2 fraquezas, média determinística)",
+      "qualidade-drift-ia-producao": "re-medida (3 fraquezas, média determinística)",
+      "seguranca-do-agente": "re-medida (3 fraquezas, média determinística) [ATENÇÃO] DENOMINADOR MUDOU: saíram (tinham nota e NÃO foram re-medidas) seg-modelo-permissao-nao-versionado — o Δ vs 2026-08-23 NÃO é mudança de capacidade, é amostragem (regra 12)",
+      "custo-eficiencia": "re-medida (2 fraquezas, média determinística)",
+      "inteligencia-de-negocio": "herdada do retrato 2026-08-08 (sem Δ material)"
+    },
+    "cobertura": {
+      "completo": true,
+      "motivo_parcial": null,
+      "etapas": {
+        "verificar": "24/24",
+        "refutar": "0/0"
+      },
+      "dimensoes_alvo": [
+        "memoria-conhecimento",
+        "spec-governanca",
+        "design-to-code",
+        "catalogo-modulo-opiniao-codigo",
+        "orquestracao-adversarial",
+        "evals-outcome",
+        "erp-ia-produto",
+        "observabilidade-agente",
+        "qualidade-drift-ia-producao",
+        "seguranca-do-agente",
+        "custo-eficiencia",
+        "inteligencia-de-negocio"
+      ],
+      "dimensoes_sem_nota": [],
+      "eixos_medidos": [
+        "construir-e-governar",
+        "rodar-e-observar",
+        "servir-o-negocio"
+      ],
+      "eixos_nao_medidos": [],
+      "cap_agentes_por_fase": 24,
+      "assinatura": "delta|12d|verificar:24/24,refutar:0/0",
+      "dimensoes_re_medidas": [
+        "spec-governanca",
+        "design-to-code",
+        "orquestracao-adversarial",
+        "evals-outcome",
+        "erp-ia-produto",
+        "observabilidade-agente",
+        "qualidade-drift-ia-producao",
+        "seguranca-do-agente",
+        "custo-eficiencia"
+      ],
+      "dimensoes_herdadas": [
+        "memoria-conhecimento",
+        "catalogo-modulo-opiniao-codigo",
+        "inteligencia-de-negocio"
+      ],
+      "dims_ativas": [
+        "spec-governanca",
+        "design-to-code",
+        "orquestracao-adversarial",
+        "evals-outcome",
+        "observabilidade-agente",
+        "qualidade-drift-ia-producao",
+        "seguranca-do-agente",
+        "custo-eficiencia",
+        "erp-ia-produto"
+      ],
+      "ancora_origem": {
+        "memoria-conhecimento": "2026-08-23",
+        "spec-governanca": "2026-08-08",
+        "design-to-code": "2026-08-08",
+        "catalogo-modulo-opiniao-codigo": "2026-08-08",
+        "orquestracao-adversarial": "2026-08-08",
+        "evals-outcome": "2026-08-08",
+        "erp-ia-produto": "2026-08-08",
+        "observabilidade-agente": "2026-08-08",
+        "qualidade-drift-ia-producao": "2026-08-08",
+        "seguranca-do-agente": "2026-08-08",
+        "custo-eficiencia": "2026-08-08",
+        "inteligencia-de-negocio": "2026-08-08"
+      },
+      "dimensoes_ativas_sem_ancora": [],
+      "denominador": {
+        "spec-governanca": [
+          "spec-crosswalk-aiact",
+          "spec-registry-libs",
+          "spec-agentsmd-port"
+        ],
+        "design-to-code": [
+          "dtc-code-connect-geracao",
+          "dtc-visreg-pixel-only",
+          "dtc-tokens-dtcg"
+        ],
+        "orquestracao-adversarial": [
+          "orq-same-model",
+          "orq-anti-goodhart",
+          "orq-adversarial-demanda"
+        ],
+        "evals-outcome": [
+          "ev-juiz-nao-calibrado",
+          "ev-trajectory",
+          "ev-loop-revert-case"
+        ],
+        "erp-ia-produto": [
+          "erp-captura-documental",
+          "erp-extracao-sem-ciclo"
+        ],
+        "observabilidade-agente": [
+          "obs-online-eval-parado",
+          "obs-p50-p95"
+        ],
+        "qualidade-drift-ia-producao": [
+          "drift-eval-trafego-real",
+          "drift-juiz-calibracao",
+          "drift-sentinel-tautologico"
+        ],
+        "seguranca-do-agente": [
+          "seg-fronteira-instrucao-dado",
+          "seg-egresso-unguarded",
+          "seg-zero-controle-ambiente"
+        ],
+        "custo-eficiencia": [
+          "custo-denominador-outcome",
+          "custo-forecast-cap"
+        ]
+      },
+      "integracao_nao_rodada": true
+    },
+    "links": [],
+    "integ_hist": {
+      "vereditos_acumulados": 108,
+      "refutado_tb_acumulado": 2,
+      "runs": 10
+    }
+  },
+  {
+    "data": "2026-08-23",
+    "modo": "delta-parcial",
+    "regra_nota": "media-deterministica-v1",
+    "notas": {
+      "memoria-conhecimento": 7.1
+    },
+    "proveniencia_notas": {
+      "memoria-conhecimento": "herdada (dim ativa mas 0 fraquezas com nota)"
+    },
+    "cobertura": {
+      "completo": false,
+      "motivo_parcial": "NAO MEDIU: verificar 0/0 porque o delta-scan devolveu fraquezas vazio (o ledger tem 68 entradas) E a ancora retratos[0].notas so cobria 1 das 12 dimensoes. 9 dimensoes tinham delta material de commits (spec-governanca 186, design-to-code 81, memoria-conhecimento 53, erp-ia-produto 41, orquestracao-adversarial 19, seguranca-do-agente 18, qualidade-drift-ia-producao 9, observabilidade-agente 7, evals-outcome 4) e NENHUMA foi re-medida.",
+      "etapas": {
+        "verificar": "0/0",
+        "refutar": "2/2"
+      },
+      "dimensoes_alvo": [
+        "memoria-conhecimento"
+      ],
+      "dimensoes_sem_nota": [],
+      "eixos_medidos": [
+        "construir-e-governar"
+      ],
+      "eixos_nao_medidos": [
+        "rodar-e-observar",
+        "servir-o-negocio"
+      ],
+      "cap_agentes_por_fase": 24,
+      "assinatura": "delta|1d|verificar:0/0,refutar:2/2",
+      "dimensoes_re_medidas": [],
+      "dimensoes_herdadas": [
+        "memoria-conhecimento"
+      ],
+      "dims_ativas": [
+        "spec-governanca",
+        "design-to-code",
+        "memoria-conhecimento",
+        "orquestracao-adversarial",
+        "evals-outcome",
+        "observabilidade-agente",
+        "qualidade-drift-ia-producao",
+        "seguranca-do-agente",
+        "erp-ia-produto"
+      ],
+      "denominador": {},
+      "integracao_nao_rodada": true
+    },
+    "integ_hist": {
+      "vereditos_acumulados": 108,
+      "refutado_tb_acumulado": 2,
+      "runs": 10
+    },
+    "links": [],
+    "errata": "CORRIGIDO A MAO no mesmo dia, apos defeito MEDIDO no run wf_9c1aaaaf-5e3 (journal.jsonl, 12 linhas, 6 agentes). O retrato nasceu com modo \"delta\" e cobertura.completo=true, declarando rodada COMPLETA sobre uma rodada que nao mediu NADA no eixo das notas. TRES defeitos compostos, cada um com recibo no journal: (D1) ANCORA EMPOBRECIDA — a composicao itera Object.keys(scan.ultimo_retrato.notas), e retratos[0] era o \"full-parcial\" de 2026-08-11, que mediu 1 dimensao. O universo do delta colapsou de 12 para 1 em SILENCIO, apesar de 9 dimensoes estarem acima do delta_min_commits=3. O guard de ancora existente so exige que notas seja NAO-VAZIO; nao exige que cubra as dimensoes ativas. (D2) SCANNER DEVOLVEU LISTA VAZIA — o delta-scan retornou fraquezas=[] enquanto fraquezas.json tem 68 entradas. Array vazio satisfaz o \"required\" do schema. E exatamente a classe do defeito de 2026-08-08 (ultimo_retrato.notas presente-e-VAZIO), cujo conserto criou guard para o campo notas e para nenhum outro. Segunda ocorrencia da mesma classe, ambas chegando ao ledger. (D3) COMPLETO=TRUE SEM MEDICAO — montarCobertura calcula completo = (faltas.length===0 && dimsAlvo.length>0); com esperado=min(alvo.length=0, 24)=0 nao existe falta, entao a rodada que nao mediu se declarou completa. E a lapide §5 2026-07-29 (\"instrumento AFIRMAR verde quando nao conseguiu MEDIR\") reincidindo DENTRO da propria maquina de medir. ESTA ERRATA NAO RECOMPOE NOTA NENHUMA — nao ha o que recompor, porque nada foi medido. Difere do precedente de 2026-08-08, onde as 24 verificacoes existiam e so a composicao falhou. A nota 7.1 de memoria-conhecimento e HERDADA do retrato de 2026-08-11 e ja estava rotulada como tal na proveniencia. O trabalho REAL desta rodada esta em claims.json: 2 claims com TTL vencido re-vereditadas (governanca-ia-embarcada-pme e medidor-outcome-gaps-json, ambas ACIMA_CONFIRMADO para EMPATADO, com peer publicado). Essas sao validas e esta errata nao as toca. fraquezas.json permaneceu intocado (68 entradas).",
+    "errata_notas": "[ATENCAO] Este NAO e um retrato do sistema: cobre 1 dimensao de 12, com 0 verificacoes. Quem o usar como ancora do proximo delta propaga o colapso D1 — a ancora precisa vir do retrato mais recente que COBRE cada dimensao, nao de retratos[0] cego."
+  },
+  {
     "data": "2026-08-11",
     "modo": "full-parcial",
     "regra_nota": "media-deterministica-v1",
