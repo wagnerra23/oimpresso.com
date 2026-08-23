@@ -1,7 +1,7 @@
 [
   {
     "data": "2026-08-23",
-    "modo": "delta",
+    "modo": "delta-parcial",
     "regra_nota": "media-deterministica-v1",
     "notas": {
       "memoria-conhecimento": 7.1,
@@ -18,24 +18,25 @@
       "inteligencia-de-negocio": 4.5
     },
     "proveniencia_notas": {
-      "memoria-conhecimento": "herdada do retrato 2026-08-23 (sem Δ material)",
-      "spec-governanca": "re-medida (3 fraquezas, média determinística) [ATENÇÃO] DENOMINADOR MUDOU: saíram (tinham nota e NÃO foram re-medidas) spec-testes-assertions+spec-enforcement-geracao+spec-hooks-desarmados+spec-auto-remediacao+spec-advisory-sem-criterio-saida+spec-gates-design-zero-mordida+spec-hooks-zero-entrega — o Δ vs 2026-08-23 NÃO é mudança de capacidade, é amostragem (regra 12)",
-      "design-to-code": "re-medida (3 fraquezas, média determinística) [ATENÇÃO] DENOMINADOR MUDOU: saíram (tinham nota e NÃO foram re-medidas) dtc-proto-prod-manual+dtc-taxa-reuso — o Δ vs 2026-08-23 NÃO é mudança de capacidade, é amostragem (regra 12)",
+      "memoria-conhecimento": "herdada do retrato 2026-08-11 (dimensão ativa no primeiro scan de 2026-08-23, mas não re-medida)",
+      "spec-governanca": "re-medida (3 fraquezas, média determinística) [ATENÇÃO] DENOMINADOR MUDOU: saíram (tinham nota e NÃO foram re-medidas) spec-testes-assertions+spec-enforcement-geracao+spec-hooks-desarmados+spec-auto-remediacao+spec-advisory-sem-criterio-saida+spec-gates-design-zero-mordida+spec-hooks-zero-entrega — o Δ vs 2026-08-08 NÃO é mudança de capacidade, é amostragem (regra 12)",
+      "design-to-code": "re-medida (3 fraquezas, média determinística) [ATENÇÃO] DENOMINADOR MUDOU: saíram (tinham nota e NÃO foram re-medidas) dtc-proto-prod-manual+dtc-taxa-reuso — o Δ vs 2026-08-08 NÃO é mudança de capacidade, é amostragem (regra 12)",
       "catalogo-modulo-opiniao-codigo": "herdada do retrato 2026-08-08 (sem Δ material)",
-      "orquestracao-adversarial": "re-medida (3 fraquezas, média determinística) [ATENÇÃO] DENOMINADOR MUDOU: saíram (tinham nota e NÃO foram re-medidas) orq-retorno-comprimido+orq-sgv+orq-mission-control+orq-debate-fase-nao-invocada+orq-cross-model-same-vendor — o Δ vs 2026-08-23 NÃO é mudança de capacidade, é amostragem (regra 12)",
-      "evals-outcome": "re-medida (3 fraquezas, média determinística) [ATENÇÃO] DENOMINADOR MUDOU: saíram (tinham nota e NÃO foram re-medidas) ev-goal-based+ev-coorte-trend+ev-medidores-consolidados — o Δ vs 2026-08-23 NÃO é mudança de capacidade, é amostragem (regra 12)",
-      "erp-ia-produto": "re-medida (2 fraquezas, média determinística) [ATENÇÃO] DENOMINADOR MUDOU: saíram (tinham nota e NÃO foram re-medidas) erp-whatsapp-ia+erp-ibscbs-via-entrada+erp-agente-processo+erp-ar-sem-ia+erp-preditivo+erp-extensibilidade-ia+erp-ia-formulario+erp-loop-qualidade-prod — o Δ vs 2026-08-23 NÃO é mudança de capacidade, é amostragem (regra 12)",
+      "orquestracao-adversarial": "re-medida (3 fraquezas, média determinística) [ATENÇÃO] DENOMINADOR MUDOU: saíram (tinham nota e NÃO foram re-medidas) orq-retorno-comprimido+orq-sgv+orq-mission-control+orq-debate-fase-nao-invocada+orq-cross-model-same-vendor — o Δ vs 2026-08-08 NÃO é mudança de capacidade, é amostragem (regra 12)",
+      "evals-outcome": "re-medida (3 fraquezas, média determinística) [ATENÇÃO] DENOMINADOR MUDOU: saíram (tinham nota e NÃO foram re-medidas) ev-goal-based+ev-coorte-trend+ev-medidores-consolidados — o Δ vs 2026-08-08 NÃO é mudança de capacidade, é amostragem (regra 12)",
+      "erp-ia-produto": "re-medida (2 fraquezas, média determinística) [ATENÇÃO] DENOMINADOR MUDOU: saíram (tinham nota e NÃO foram re-medidas) erp-whatsapp-ia+erp-ibscbs-via-entrada+erp-agente-processo+erp-ar-sem-ia+erp-preditivo+erp-extensibilidade-ia+erp-ia-formulario+erp-loop-qualidade-prod — o Δ vs 2026-08-08 NÃO é mudança de capacidade, é amostragem (regra 12)",
       "observabilidade-agente": "re-medida (2 fraquezas, média determinística)",
       "qualidade-drift-ia-producao": "re-medida (3 fraquezas, média determinística)",
-      "seguranca-do-agente": "re-medida (3 fraquezas, média determinística) [ATENÇÃO] DENOMINADOR MUDOU: saíram (tinham nota e NÃO foram re-medidas) seg-modelo-permissao-nao-versionado — o Δ vs 2026-08-23 NÃO é mudança de capacidade, é amostragem (regra 12)",
+      "seguranca-do-agente": "re-medida (3 fraquezas, média determinística) [ATENÇÃO] DENOMINADOR MUDOU: saíram (tinham nota e NÃO foram re-medidas) seg-modelo-permissao-nao-versionado — o Δ vs 2026-08-08 NÃO é mudança de capacidade, é amostragem (regra 12)",
       "custo-eficiencia": "re-medida (2 fraquezas, média determinística)",
       "inteligencia-de-negocio": "herdada do retrato 2026-08-08 (sem Δ material)"
     },
     "cobertura": {
-      "completo": true,
-      "motivo_parcial": null,
+      "completo": false,
+      "motivo_parcial": "ERRATA pós-merge #6151: memoria-conhecimento tinha 53 commits desde sua medição efetiva de 2026-08-11, mas a rodada boa herdou a cópia do retrato defeituoso de 2026-08-23 e não re-mediu a dimensão. As 24 verificações e as 9 dimensões re-medidas permanecem válidas; o retrato do sistema é parcial até nova medição de memoria-conhecimento.",
       "etapas": {
         "verificar": "24/24",
+        "dimensoes_ativas": "9/10",
         "refutar": "0/0"
       },
       "dimensoes_alvo": [
@@ -80,6 +81,7 @@
       "dims_ativas": [
         "spec-governanca",
         "design-to-code",
+        "memoria-conhecimento",
         "orquestracao-adversarial",
         "evals-outcome",
         "observabilidade-agente",
@@ -89,7 +91,7 @@
         "erp-ia-produto"
       ],
       "ancora_origem": {
-        "memoria-conhecimento": "2026-08-23",
+        "memoria-conhecimento": "2026-08-11",
         "spec-governanca": "2026-08-08",
         "design-to-code": "2026-08-08",
         "catalogo-modulo-opiniao-codigo": "2026-08-08",
@@ -103,6 +105,9 @@
         "inteligencia-de-negocio": "2026-08-08"
       },
       "dimensoes_ativas_sem_ancora": [],
+      "dimensoes_ativas_nao_medidas": [
+        "memoria-conhecimento"
+      ],
       "denominador": {
         "spec-governanca": [
           "spec-crosswalk-aiact",
@@ -149,6 +154,7 @@
       },
       "integracao_nao_rodada": true
     },
+    "errata": "Invalidado como retrato completo após revisão pós-merge do PR #6151. A assinatura original delta|12d|verificar:24/24,refutar:0/0 identifica a rodada afetada e foi preservada como recibo; não houve recomposição manual de nota. A nota 7.1 de memoria-conhecimento continua sendo a medição de 2026-08-11, mas os 53 commits detectados no primeiro scan de 2026-08-23 ficaram sem re-medição. Correção do mecanismo: a âncora passa a ser derivada deterministicamente da última medição efetiva, nunca da primeira ocorrência herdada em notas; a próxima rodada deve re-medir memoria-conhecimento desde 2026-08-11.",
     "links": [],
     "integ_hist": {
       "vereditos_acumulados": 108,
