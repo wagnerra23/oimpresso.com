@@ -1,39 +1,73 @@
-# Sync automática Cowork → git (payload + applier)
+# Sync transacional Cowork → git
 
-**Problema que isso resolve:** baixar arquivo-por-arquivo via `get_file` faz o conteúdo passar pelo contexto do agente. Escrever de dentro do contexto é transcrição — a causa-raiz do STALE de 2026-08-11. Daí a conclusão (errada como teto absoluto) de que "94 dos 121 não têm rota fiel".
+O conteúdo do design vira dado transportável; nenhum byte é copiado do contexto do agente.
+O bundle v2 separa duas coisas que antes eram confundidas:
 
-**A rota fiel:** o conteúdo vira dado, não texto de conversa.
+- **receber o design**: manifesto, delta, staging, validação integral e promoção atômica;
+- **aplicar no produto**: inventário por tela/módulo com evidência e testes ligados a hashes.
 
-```
-Cowork  ──gera──▶ sync/payload.json  ──URL curta──▶  curl/fetch  ──▶ aplicar-payload.mjs ──▶ prototipo-ui/cowork/
-                  (118 arquivos, hash por arquivo)                    verifica hash antes de escrever
-```
+## Produzir no lado que possui os arquivos do Cowork
 
-Nenhum byte de conteúdo entra no contexto de agente nenhum, em nenhuma ponta.
-
-## Aplicar
-
-**O applier mora em `scripts/design-sync/`, NUNCA em `prototipo-ui/cowork/`.** R1 do `cowork-ssot-guard` reprova qualquer `.md` dentro de `cowork/` — o `README.md` deste pacote também fica fora (canon = `memory/` ou raiz de `prototipo-ui/`).
+Primeira rodada (snapshot completo):
 
 ```bash
-curl -sL "<URL do payload>" -o /tmp/payload.json
-node scripts/design-sync/aplicar-payload.mjs /tmp/payload.json --dry   # relatório, não escreve
-node scripts/design-sync/aplicar-payload.mjs /tmp/payload.json         # escreve
-node scripts/governance/cowork-ssot-guard.mjs                          # o guard de sempre
+node scripts/design-sync/gerar-payload-partes.mjs --root . --out sync
 ```
 
-Saída: `+` novo, `~` mudado, contagem de idênticos, e `?` órfão (existe no dest e o shell não carrega). Hash divergente = não escreve aquele arquivo e sai 1.
+Rodadas seguintes (delta):
 
-**O applier não apaga nada.** Órfão é relatado, nunca podado — poda é decisão de [W]. Isso importa: hoje o `cowork/` do git tem ~198 arquivos e o shell carrega 121. `venda-v3/`, `produto-preco-especial/`, `prototipo-ui-patch/`, `ds-v6/` sobrevivem ao apply e vão aparecer na lista `?`.
+```bash
+node scripts/design-sync/gerar-payload-partes.mjs \
+  --root . --out sync-novo \
+  --previous sync-anterior/bundle.manifest.json
+```
 
-## Contrato do payload
+O manifesto sempre descreve o estado-alvo inteiro. No delta, somente `added/modified` carregam
+bytes; `deleted` é declarado e `unchanged` não é baixado. Arquivo grande é dividido em chunks
+SHA-256. Todas as partes repetem identidade, base e total; a `part01` carrega o manifesto.
 
-- **Âncora = o shell.** O manifesto é `oimpresso.com.html` **mais** seus `src`/`href` locais, query `?v=` removida. Não é lista curada à mão — regenera junto com o shell, então não envelhece. O shell entra no payload: sem ele o git aplicaria os módulos e ficaria com o host stale, que é o próprio drift que isso combate.
-- `fnv1a-64` (16 hex) sobre o conteúdo UTF-8. Mesma função nas duas pontas — é a verificação, não identidade criptográfica.
-- **`_ds/` fica fora** (3 refs). O espelho DS é *linkado*, e o git é SSOT dele (ADR 0239) — quem espelha token é o `design-sync-push`, não isto.
-- **`?v=` dupes nunca entram** — o manifesto normaliza a query, então os arquivos literais `app.jsx?v=eb2` do projeto são invisíveis pra ele. Alinhado com o `cowork-ssot-guard`.
-- `missing: []` — os 3 arquivos 404 da lista anterior (`venda-v3/sells-create.jsx`, `produto-preco-especial`, `cobranca-page.jsx`) não aparecem porque **o shell não os carrega**. Origem externa (`FORA_DESTA_CONTA`), não drift.
+## Consumir no git
 
-## Limite honesto
+Baixe exatamente todas as `payload.partNN.json` emitidas e rode:
 
-A URL do payload é **curta (~1h, poucos fetches)** e eu preciso gerá-la a cada rodada. Então "automático" = *um comando seu, sem transcrição* — não *cron sem humano*. Pra cron de verdade, o git precisa de credencial própria pro projeto Cowork; hoje não tem.
+```bash
+node scripts/design-sync/aplicar-payload.mjs sync/payload.part*.json --dry --require-complete-shell
+node scripts/design-sync/aplicar-payload.mjs sync/payload.part*.json --require-complete-shell
+node scripts/design-sync/status.mjs --check-mapping
+```
+
+O applier valida sequência 1..N, base ativa, digests, chunks, estado-alvo e grafo inteiro em
+staging. Só depois troca os destinos. Falha durante a promoção restaura o estado anterior.
+
+Destino por papel:
+
+- fonte do Cowork → `prototipo-ui/cowork/`;
+- documentação `.md` → `prototipo-ui/design-docs/`;
+- `_ds/**` → snapshot de runtime do preview;
+- estado/provas → `scripts/design-sync/state/`.
+
+## Registrar aplicação no React
+
+O relatório lista cada fonte, alvo React e módulo — inclusive mapeamentos 1:N de Superadmin e
+Officeimpresso. Após aplicar e testar uma tela:
+
+```bash
+node scripts/design-sync/status.mjs \
+  --mark-applied officeimpresso-page.jsx \
+  --target Modules/Officeimpresso/Resources/js/Pages/officeimpresso/Logs/Index.tsx \
+  --evidence PR-1234 \
+  --test "pest Officeimpresso"
+```
+
+Depois, `node scripts/design-sync/status.mjs --refresh --check-mapping`. A evidência vale apenas
+enquanto os hashes atuais da fonte e do alvo forem os mesmos; qualquer nova mudança retorna a
+tela para pendente. Fonte sem destino inequívoco fica bloqueada. Remoção no Design nunca apaga
+automaticamente a Page React.
+
+## Por que `_ds` continua em cache
+
+Porque ele é saída derivada para executar o preview (tokens, CSS, fontes e bundle), não a fonte
+do design nem a memória do protocolo. Rebaixá-lo do cache para “estado oficial” criaria uma
+segunda fonte, misturaria histórico com artefato reconstruível e faria o delta depender de
+bytes de build. O que precisa sobreviver está no manifesto, no relatório e no ledger fora de
+`_ds`; o cache pode ser apagado e refeito a partir dessas fontes.

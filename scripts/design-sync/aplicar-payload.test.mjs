@@ -22,12 +22,13 @@
  *
  * Uso: node scripts/design-sync/aplicar-payload.test.mjs
  */
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
 const APPLIER = resolve('scripts/design-sync/aplicar-payload.mjs');
+const GENERATOR = resolve('scripts/design-sync/gerar-payload-partes.mjs');
 let fails = 0;
 const check = (nome, ok, detalhe = '') => {
   console.log(`[${ok ? 'OK' : 'FAIL'}] ${nome}${ok ? '' : '  → ' + detalhe}`);
@@ -390,6 +391,28 @@ console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ applier: fiel/atômico ·
   const r = rodar(dir, pay);
   check('CONTROLE missing: `missing: []` → nenhum relato de ausente',
     r.code === 0 && !/ausente\(s\)/.test(r.out), r.out);
+}
+
+// ── 13: integração real produtor v2 → consumidor transacional ────────────────
+{
+  const producer = mkdtempSync(join(tmpdir(), 'design-v2-producer-'));
+  const out = join(producer, 'sync');
+  writeFileSync(join(producer, 'oimpresso.com.html'), '<link rel="stylesheet" href="grande.css">\n');
+  writeFileSync(join(producer, 'grande.css'), ':root{}\n' + 'x'.repeat(80000));
+  execFileSync(process.execPath, [GENERATOR, '--root', producer, '--out', out, '--cap', '70000', '--chunk-bytes', '30000', '--piso', '0'], { encoding: 'utf8' });
+  const parts = readdirSync(out).filter((name) => /^payload\.part\d+\.json$/.test(name)).sort().map((name) => join(out, name));
+  check('v2 E2E: gerador produziu múltiplas partes', parts.length > 1, String(parts.length));
+
+  const consumer = sandbox();
+  const dry = rodar(consumer, parts, ['--dry', '--require-complete-shell']);
+  check('v2 E2E: dry-run valida o lote sem escrever', dry.code === 0 && !existsSync(join(consumer, 'prototipo-ui/cowork/grande.css')), dry.out);
+  const applied = rodar(consumer, parts, ['--require-complete-shell']);
+  check('v2 E2E: applier promove bytes idênticos', applied.code === 0 && readFileSync(join(consumer, 'prototipo-ui/cowork/grande.css')).equals(readFileSync(join(producer, 'grande.css'))), applied.out);
+  check('v2 E2E: estado ativo foi persistido fora de _ds', existsSync(join(consumer, 'scripts/design-sync/state/active-bundle.json')), applied.out);
+
+  const incomplete = sandbox();
+  const missingPart01 = rodar(incomplete, parts.slice(1), ['--require-complete-shell']);
+  check('v2 E2E: ausência da part01 reprova antes de escrever', missingPart01.code !== 0 && !existsSync(join(incomplete, 'prototipo-ui/cowork/grande.css')), missingPart01.out);
 }
 
 process.exit(fails ? 1 : 0);

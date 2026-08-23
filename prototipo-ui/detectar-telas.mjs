@@ -141,7 +141,7 @@ function isScreenSource(relPath) {
 }
 
 // ---- núcleo: monta o manifesto (usado por run E selftest, sem drift) ------
-async function buildManifest({ staging, repoRoot }) {
+export async function buildManifest({ staging, repoRoot }) {
   const stagingFiles = await walk(staging);
   // Mesmas duas classes de raiz que o resolver Inertia: núcleo + módulos. Sem isto,
   // um protótipo do Superadmin/Officeimpresso não encontrava nem o charter nem o .tsx alvo.
@@ -388,13 +388,15 @@ async function selftest() {
 }
 
 // ---- main -----------------------------------------------------------------
-const argv = process.argv.slice(2);
-const has = (f) => argv.includes(f);
-const val = (f, d) => { const i = argv.indexOf(f); return i >= 0 && argv[i + 1] ? argv[i + 1] : d; };
-if (has('--selftest')) await selftest();
-else process.exit(await run({
-  stagingArg: val('--staging', null),
-  repoRoot: resolve(val('--repo', REPO_DEFAULT)),
-  json: has('--json'),
-  strict: has('--strict'),
-}));
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const argv = process.argv.slice(2);
+  const has = (f) => argv.includes(f);
+  const val = (f, d) => { const i = argv.indexOf(f); return i >= 0 && argv[i + 1] ? argv[i + 1] : d; };
+  if (has('--selftest')) await selftest();
+  else process.exit(await run({
+    stagingArg: val('--staging', null),
+    repoRoot: resolve(val('--repo', REPO_DEFAULT)),
+    json: has('--json'),
+    strict: has('--strict'),
+  }));
+}

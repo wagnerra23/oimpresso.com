@@ -220,13 +220,14 @@ export const FASES = [
   //
   // Dono da rota completa: `sync/README.md` no projeto Cowork (le com DesignSync.get_file).
   { fase: '-1', nome: 'Importar/baixar o design', comandos: [
-      '# [ROTA PRINCIPAL] sincronizar o espelho — o conteudo vira DADO, nunca texto de conversa',
-      'node scripts/design-sync/aplicar-payload.mjs <p1.json> [p2.json ...] --dry --require-complete-shell  # shell TODO + deps HTML/CSS/JS (fechamento transitivo)',
-      '  ^ escapa o teto do get_file POR ARQUIVO, nao o do PAYLOAD: sync/payload.json tem ~3,5 MB e o',
-      '    get_file corta em 256 KiB ("truncated": true). Peca o payload em PARTES <=256 KiB — o applier junta lotes.',
-      '  ^ as PARTES (<=256 KiB) ficam acima da fronteira de persistencia (~48 KB), entao voltam em',
-      '    ARQUIVO pelo get_file — nao precisa de URL curta. Contrato completo: sync/README.md (Cowork).',
-      'node scripts/design-sync/aplicar-payload.mjs <cowork.json> <ds.json> --require-complete-shell        # só após GRAFO COMPLETO + revisão do dry-run',
+      '# [ROTA PRINCIPAL] bundle v2 — snapshot inicial; depois delta por manifesto anterior',
+      'node scripts/design-sync/gerar-payload-partes.mjs --root <design-vivo> --out <sync> [--previous <bundle.manifest.json>]',
+      'node scripts/design-sync/aplicar-payload.mjs <payload.part*.json> --dry --require-complete-shell  # valida lote + estado-alvo em staging',
+      'node scripts/design-sync/aplicar-payload.mjs <payload.part*.json> --require-complete-shell        # promove atomicamente ou restaura tudo',
+      'node scripts/design-sync/status.mjs --check-mapping                                             # lista mudanças + tela/alvo/módulo/ação',
+      '  ^ snapshot baixa tudo uma vez; delta baixa só added/modified. deleted/unchanged não carregam bytes.',
+      '  ^ `_ds` e cache derivado do preview. Manifesto, relatório e evidências ficam em scripts/design-sync/state/.',
+      '  ^ partes <=256 KiB voltam em ARQUIVO pelo get_file; parte ausente/base/hash divergente bloqueiam antes do swap.',
       'DesignSync.get_file(projectId=COWORK_PROJECT_ID, path=<âncora>)                  # pull direto, agente logado (ADR 0325)',
       '# [caso pontual] arquivo AVULSO — NAO e a rota de sincronizar o espelho (use o applier acima)',
       'node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir-jsons>     # escreve o raw.content no espelho (ADR 0374 — transcrever à mão é PROIBIDO)',
@@ -253,6 +254,7 @@ export const FASES = [
     ], selftest: 'node prototipo-ui/gerar-contrato.mjs --selftest' },
   { fase: '4-preflight', nome: 'Gates antes do PR', comandos: PREFLIGHT_GATES },
   { fase: '5', nome: 'Fechar o loop', comandos: [
+      'node scripts/design-sync/status.mjs --refresh --check-mapping   # evidência stale volta a pendente pelos hashes',
       'node scripts/governance/anchor-lint.mjs --check memory/requisitos/<Mod>/SPEC.md',
       'node scripts/governance/design-code-map-check.mjs --check --strict   # % telas mapeadas + invalida map.json com sha stale',
     ], selftest: 'node prototipo-ui/integrity-check.mjs' },
