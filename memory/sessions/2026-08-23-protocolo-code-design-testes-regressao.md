@@ -1,16 +1,18 @@
 ---
 date: "2026-08-23"
 hour: "10:51 BRT"
-duration: "~2h"
+duration: "2h"
 topic: "Testes de regressão do protocolo Code ↔ Design e cache _ds"
 authors: [W, C]
 outcomes:
   - "Retorno §10.2 passou a exigir e validar os três canais canônicos"
   - "Preview _ds ganhou validação de path e materialização atômica"
   - "Assinatura, seleção e transporte HTTP de handoffs ganharam cobertura hermética"
-prs: []
+prs: [6147]
 us: []
-related_adrs: [0315, 0336]
+related_adrs:
+  - "0315-design-sync-claude-design-vs-cowork-charter"
+  - "0336-gates-design-promocao-por-mordida-provada-emenda-0314"
 ---
 
 # Sessão — regressões do protocolo Code ↔ Design
@@ -70,7 +72,6 @@ o lote inteiro.
 
 ## Estado
 
-Alterações estão sem commit na branch local `codex/design-protocol-regressions`, worktree
-`D:/oimpresso.com/.worktrees/codex-design-protocol-regressions`. Nenhum PR foi aberto e nenhum
+Alterações foram publicadas na PR #6147 pela branch `codex/design-protocol-regressions`. Nenhum
 check foi promovido a required. MCP de memória não estava disponível nesta sessão; foi usado o
 fallback versionado do repositório.
