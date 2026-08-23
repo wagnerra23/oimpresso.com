@@ -2,24 +2,26 @@
 // Self-test uc-lane-coverage — bite-test com CONTROLE NEGATIVO.
 // Roda: node scripts/qa/uc-lane-coverage.test.mjs
 //
-// A asserção mais importante deste arquivo NÃO é "acha órfão". É a inversa:
-// **lane indeterminada NÃO vira órfão**. Um parser que não entende a forma de seleção de
-// uma lane e conclui "então ela não cobre nada" FABRICA achado — e achado fabricado em
-// massa é como um instrumento perde a confiança de quem lê. É o §5 2026-07-29 pelo avesso
-// (lá o instrumento afirmava saúde sem medir; aqui afirmaria doença sem medir).
+// ENCOLHEU em 2026-08-23, e o encolhimento é o ponto. A versão anterior testava um parser
+// de workflow PRÓPRIO (fronteira de job, matriz, `.list`, `find`, quarentena) que duplicava
+// `scripts/governance/test-lane-coverage.mjs`. Aquela derivação foi deletada e os testes
+// dela foram junto — testar a cópia é como a cópia sobrevive.
 //
-// Duas camadas, mesma razão do irmão uc-id-lint: helper puro é legível, mas só o CLI de
-// fora prova o que o CI executa (§5 2026-07-30 · 2026-08-14).
+// O que sobra é o que este script de fato decide:
+//   (1) ler a coluna `Teste` da tabela de Rastreabilidade de um `casos.md`;
+//   (2) classificar em TRÊS estados — `na-lane` · `quarentena` · `órfão`;
+//   (3) o CLI de fora: exit codes, baseline no-new-lie, `--baseline` ausente = 2.
+//
+// A asserção mais importante é a negativa da (2): **quarentena declarada NÃO vira órfão**.
+// Misturar as duas apaga a diferença entre "alguém decidiu" e "ninguém sabe" — que é a
+// única coisa que torna o número acionável.
 
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync, spawnSync } from 'node:child_process';
-import {
-  alvosDoRun, quarentenaDoRun, cobertoPor, citacoesEm, derivaCobertura,
-  jobsDoWorkflow, matrizDoJob, runsDoJob,
-} from './uc-lane-coverage.mjs';
+import { citacoesEm } from './uc-lane-coverage.mjs';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const SCRIPT = join(AQUI, 'uc-lane-coverage.mjs');
@@ -30,131 +32,8 @@ const check = (n, c, extra = '') => {
 };
 
 // ═════════════════════════════════════════════════════════════════════════════════════
-// (0) PARSER DE WORKFLOW — line-based, ZERO dependência
+// (A) LEITURA DA TABELA DE RASTREABILIDADE — o único parser que é DESTE script
 // ═════════════════════════════════════════════════════════════════════════════════════
-//
-// A 1ª versão usava `js-yaml`, passou verde local e QUEBROU no CI: o job
-// `governance script tests` roda node puro, sem `npm ci` (`Cannot find package 'js-yaml'`).
-// Estes casos existem pra que a reescrita sem dependência não pague o preço em precisão —
-// e o controle negativo aqui é o COMENTÁRIO, porque menção dentro de `#` não é invocação.
-const WF = [
-  'name: x',
-  'on:',
-  '  pull_request:',
-  'jobs:',
-  '  a:',
-  '    strategy:',
-  '      matrix:',
-  '        module:',
-  '          - Alpha',
-  '          - Beta',
-  '    steps:',
-  '      - name: roda',
-  '        run: |',
-  '          vendor/bin/pest Modules/${{ matrix.module }}/Tests',
-  '      # - run: vendor/bin/pest Modules/Fantasma/Tests',
-  '  b:',
-  '    steps:',
-  '      - run: vendor/bin/pest tests/Feature/B.php',
-  'permissions:',
-  '  contents: read',
-].join('\n');
-
-{
-  const jobs = jobsDoWorkflow(WF);
-  check('parser: 2 jobs delimitados', jobs.length === 2, JSON.stringify(jobs.map((j) => j.nome)));
-  check('parser: chave de topo depois de jobs encerra o bloco',
-    !jobs.some((j) => j.nome === 'permissions'), JSON.stringify(jobs.map((j) => j.nome)));
-
-  const mat = matrizDoJob(jobs[0].linhas);
-  check('parser: matrix do job A tem os 2 valores', JSON.stringify(mat.module) === '["Alpha","Beta"]', JSON.stringify(mat));
-  check('parser: job B NÃO herda a matrix do A', Object.keys(matrizDoJob(jobs[1].linhas)).length === 0, JSON.stringify(matrizDoJob(jobs[1].linhas)));
-
-  const runsA = runsDoJob(jobs[0].linhas);
-  check('parser: bloco `run: |` é capturado', runsA.length === 1 && /matrix\.module/.test(runsA[0]), JSON.stringify(runsA));
-  // CONTROLE NEGATIVO: linha comentada NÃO é invocação (mesma regra do anchor-lint).
-  check('parser: `# - run:` comentado NÃO vira run', !runsA.join('\n').includes('Fantasma'), JSON.stringify(runsA));
-  check('parser: `run:` inline é capturado', runsDoJob(jobs[1].linhas)[0] === 'vendor/bin/pest tests/Feature/B.php', JSON.stringify(runsDoJob(jobs[1].linhas)));
-}
-
-// Integração: o workflow acima tem que render 2 alvos do A (matriz) + 1 do B.
-{
-  const { cobertos, indeterminadas } = derivaCobertura(
-    (p) => (p === '.github/workflows/x.yml' ? WF : null),
-    () => ['.github/workflows/x.yml'],
-  );
-  check('parser+derivação: matriz expande em 2 alvos', cobertos.has('Modules/Alpha/Tests') && cobertos.has('Modules/Beta/Tests'), JSON.stringify([...cobertos]));
-  check('parser+derivação: alvo do job B entra', cobertos.has('tests/Feature/B.php'), JSON.stringify([...cobertos]));
-  check('parser+derivação: o run comentado NÃO entra', !cobertos.has('Modules/Fantasma/Tests'), JSON.stringify([...cobertos]));
-  check('parser+derivação: nada indeterminado', indeterminadas.length === 0, JSON.stringify(indeterminadas));
-}
-
-// ═════════════════════════════════════════════════════════════════════════════════════
-// (A) DERIVAÇÃO DO RUN-SET — as 4 formas medidas no repo, uma a uma
-// ═════════════════════════════════════════════════════════════════════════════════════
-
-// A.1 · forma (a): alvos literais com continuação de linha `\`
-{
-  const r = alvosDoRun('vendor/bin/pest --no-coverage \\\n  Modules/Ponto/Tests/Feature/A.php \\\n  Modules/Ponto/Tests/Feature/B.php\n');
-  check('(a) alvos literais atravessam a continuação `\\`', r.alvos.length === 2, JSON.stringify(r.alvos));
-  check('(a) flags não viram alvo', !r.alvos.includes('--no-coverage'), JSON.stringify(r.alvos));
-  check('(a) sem indeterminado', r.indeterminado === null, String(r.indeterminado));
-}
-
-// A.2 · forma (b): `${{ matrix.module }}` tem ESPAÇOS dentro. Este é o caso que derrubou a
-//       1a versão (modules-pest derivava 1 alvo em vez de 6) — o split por espaço quebrava
-//       o token em três. Se esta asserção cair, a matriz voltou a ser invisível.
-{
-  const r = alvosDoRun('vendor/bin/pest Modules/${{ matrix.module }}/Tests --no-coverage\n');
-  check('(b) `${{ matrix.x }}` com espaços continua UM alvo', r.alvos.length === 1, JSON.stringify(r.alvos));
-  check('(b) … e preserva o placeholder pra expansão', /matrix\.module/.test(r.alvos[0] || ''), r.alvos[0]);
-}
-
-// A.3 · forma (c): array de shell alimentado por uma `.list`
-{
-  const r = alvosDoRun('mapfile -t PEST_TARGETS < <(grep -v "^#" .github/ci-sqlite-pest.list)\nvendor/bin/pest "${PEST_TARGETS[@]}" --no-coverage\n');
-  check('(c) array + .list é reconhecido como lista', r.listas.includes('.github/ci-sqlite-pest.list'), JSON.stringify(r));
-  check('(c) … e NÃO vira indeterminado', r.indeterminado === null, String(r.indeterminado));
-}
-
-// A.4 · forma (d): `find` com N diretórios. O estoque-pest passa DOIS; a 1a versão só
-//       aceitava um e mandava a lane inteira pra `indeterminado`.
-{
-  const r = alvosDoRun("find tests/Feature/Estoque tests/Feature/Produto -name '*Test.php' | sort > /tmp/all.txt\nmapfile -t TARGETS < /tmp/run.txt\nvendor/bin/pest \"${TARGETS[@]}\"\n");
-  check('(d) find com DOIS diretórios captura os dois', r.finds.length === 2, JSON.stringify(r.finds));
-  check('(d) … e a lane não fica indeterminada', r.indeterminado === null, String(r.indeterminado));
-}
-
-// A.5 · o lado SUBTRATIVO (§5 2026-08-12): quarentena remove do run-set.
-{
-  const fora = quarentenaDoRun('QUAR_FILE=.github/estoque-pest-quarantine.list\n', (p) => (
-    p === '.github/estoque-pest-quarantine.list' ? 'tests/Feature/X.php  # instável\n# comentário\n\ntests/Feature/Y.php\n' : null
-  ));
-  check('quarentena lida, comentário inline e linha-comentário fora', fora.length === 2, JSON.stringify(fora));
-}
-
-// A.6 · `--mutate` é IGNORADO de propósito, nunca indeterminado (não poluir o alarme).
-{
-  const r = alvosDoRun('vendor/bin/pest --mutate --covered-only\n');
-  check('mutation-gate sai como ignorada, não indeterminada', r.ignorada !== null && r.indeterminado === null, JSON.stringify(r));
-}
-
-// A.7 · CONTROLE NEGATIVO DA DERIVAÇÃO — forma desconhecida TEM que virar indeterminado.
-//       Sem esta, o parser poderia silenciosamente devolver "cobre nada" e fabricar órfãos.
-{
-  const r = alvosDoRun('vendor/bin/pest "${MISTERIO[@]}"\n');
-  check('forma desconhecida vira INDETERMINADO (não "cobre nada")', r.indeterminado !== null, JSON.stringify(r));
-}
-
-// A.8 · cobertura por pasta ancestral (uma lane que roda `Modules/X/Tests` cobre os filhos).
-{
-  const cob = new Set(['Modules/Ponto/Tests', 'tests/Feature/A.php']);
-  check('pasta ancestral cobre o arquivo', cobertoPor('Modules/Ponto/Tests/Feature/Z.php', cob));
-  check('arquivo exato cobre', cobertoPor('tests/Feature/A.php', cob));
-  check('irmão não coberto continua descoberto', !cobertoPor('Modules/Sells/Tests/Feature/Z.php', cob));
-}
-
-// A.9 · leitura da tabela de Rastreabilidade.
 {
   const md = [
     '## UC-AB-01 · caso',
@@ -170,21 +49,15 @@ const WF = [
   check('tabela: status lido da penúltima coluna', c[0].status === '✅', c[0].status);
   check('tabela: linha sem teste não inventa nome', c[1].nomes.length === 0, JSON.stringify(c[1].nomes));
   check('tabela: separadora |---| ignorada', !c.some((x) => /^-+$/.test(x.status)));
-}
-
-// A.10 · INDETERMINADO NÃO VIRA ÓRFÃO — a asserção-chave deste arquivo.
-{
-  const wf = 'name: x\njobs:\n  j:\n    steps:\n      - run: vendor/bin/pest "${MISTERIO[@]}"\n';
-  const { cobertos, indeterminadas } = derivaCobertura(
-    (p) => (p === '.github/workflows/x.yml' ? wf : null),
-    () => ['.github/workflows/x.yml'],
-  );
-  check('lane indeterminada é CONTADA', indeterminadas.length === 1, JSON.stringify(indeterminadas));
-  check('lane indeterminada NÃO adiciona cobertura falsa', cobertos.size === 0, JSON.stringify([...cobertos]));
+  check('tabela: prosa fora de tabela não vira citação',
+    citacoesEm('## UC-AB-01 · caso\n\nO `MeuTest` cobre isso.\n').length === 0);
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════
-// (B) CLI DE FORA — repo git hermético em temp
+// (B) CLI DE FORA — repo git hermético em temp.
+//     `coletarAlvos()`/`emQuarentena()` do dono resolvem contra `process.cwd()`, e o spawn
+//     abaixo usa `cwd: raiz` — por isso o fixture é hermético de verdade, sem tocar o corpus
+//     vivo (que mudaria o veredito conforme o dia).
 // ═════════════════════════════════════════════════════════════════════════════════════
 const raiz = mkdtempSync(join(tmpdir(), 'uc-lane-'));
 const put = (rel, body) => {
@@ -194,6 +67,7 @@ const put = (rel, body) => {
 };
 const git = (...a) => execFileSync('git', a, { cwd: raiz, stdio: 'pipe' });
 const rodar = (...args) => spawnSync(process.execPath, [SCRIPT, '--root', raiz, ...args], { cwd: raiz, encoding: 'utf8' });
+const resumoDe = (r) => { try { return JSON.parse(r.stdout).resumo; } catch { return null; } };
 
 const tabela = (uc, teste) => [
   `## ${uc} · caso`, '',
@@ -207,7 +81,10 @@ try {
   git('config', 'user.email', 'selftest@local');
   git('config', 'user.name', 'selftest');
 
-  put('.github/workflows/lane.yml', 'name: lane\njobs:\n  pest:\n    steps:\n      - run: |\n          vendor/bin/pest Modules/M/Tests/Feature/NaLaneTest.php --no-coverage\n');
+  put('.github/workflows/lane.yml', [
+    'jobs:', '  pest:', '    steps:', '      - run: |',
+    '          vendor/bin/pest Modules/M/Tests/Feature/NaLaneTest.php --no-coverage', '',
+  ].join('\n'));
   put('Modules/M/Tests/Feature/NaLaneTest.php', '<?php\n');
   put('Modules/M/Tests/Feature/OrfaoTest.php', '<?php\n');
   put('resources/js/Pages/M/Coberto.casos.md', tabela('UC-M-01', 'NaLaneTest'));
@@ -217,46 +94,72 @@ try {
 
   const rep = rodar();
   check('CLI: report sai 0 (relato, não gate)', rep.status === 0, `status=${rep.status}`);
-  check('CLI: acha o órfão', /UC-M-02/.test(rep.stdout), rep.stdout.slice(-400));
-  check('CLI: NÃO acusa o que está na lane', !/UC-M-01\s+⛔/.test(rep.stdout), rep.stdout.slice(-400));
+  check('CLI: acha o órfão', /UC-M-02/.test(rep.stdout), rep.stdout.slice(-300));
+  check('CLI: NÃO acusa o que está na lane', !/UC-M-01\s+⛔/.test(rep.stdout), rep.stdout.slice(-300));
 
-  // B.2 · CONTROLE NEGATIVO DO PIPELINE
+  // B.2 · CONTROLE NEGATIVO DO PIPELINE — sem isto, tudo o mais é decorativo.
   check('CLI: --check MORDE com UC órfão', rodar('--check').status === 1);
 
-  // B.3 · CONTROLE POSITIVO — pondo o órfão na lane, o --check libera.
-  put('.github/workflows/lane.yml', 'name: lane\njobs:\n  pest:\n    steps:\n      - run: |\n          vendor/bin/pest Modules/M/Tests/Feature/NaLaneTest.php Modules/M/Tests/Feature/OrfaoTest.php\n');
+  // B.3 · controle POSITIVO — o teste entra na lane e o --check libera.
+  put('.github/workflows/lane.yml', [
+    'jobs:', '  pest:', '    steps:', '      - run: |',
+    '          vendor/bin/pest Modules/M/Tests/Feature/NaLaneTest.php Modules/M/Tests/Feature/OrfaoTest.php', '',
+  ].join('\n'));
   git('add', '-A');
   git('commit', '-qm', 'entra na lane');
   const ok = rodar('--check');
   check('CLI: --check LIBERA quando o teste entra na lane', ok.status === 0, `status=${ok.status}\n${ok.stdout}`);
 
-  // B.4 · QUARENTENA — o teste está no run-set do `find` mas a quarentena o remove.
-  //       É o gêmeo subtrativo: registro e trigger certos, arquivo fora mesmo assim.
-  put('.github/q.list', 'Modules/M/Tests/Feature/OrfaoTest.php  # instável\n');
+  // ═══════════════════════════════════════════════════════════════════════════════════
+  // B.4 · A ASSERÇÃO-CHAVE: quarentena declarada NÃO é órfã.
+  //   A lane cobre o DIRETÓRIO inteiro via `find`, e o arquivo está na quarentena. Se a
+  //   ordem dos estados estiver errada (cobertura antes de quarentena), ele sai `na-lane`
+  //   — carimbo de "roda" num teste parado. Se a quarentena for SUBTRAÍDA do run-set (o
+  //   erro da 1ª versão), ele sai `órfão` — acusa quem decidiu conscientemente.
+  //   Há um único veredito certo, e é o terceiro.
+  // ═══════════════════════════════════════════════════════════════════════════════════
+  put('.github/m-quarantine.list', 'Modules/M/Tests/Feature/OrfaoTest.php  # instável\n');
   put('.github/workflows/lane.yml', [
-    'name: lane', 'jobs:', '  pest:', '    steps:', '      - run: |',
-    '          QUAR_FILE=.github/q.list',
+    'jobs:', '  pest:', '    steps:', '      - run: |',
+    '          QUAR_FILE=.github/m-quarantine.list',
     "          find Modules/M/Tests -name '*Test.php' > /tmp/all.txt",
     '          mapfile -t TARGETS < /tmp/run.txt',
     '          vendor/bin/pest "${TARGETS[@]}"', '',
   ].join('\n'));
   git('add', '-A');
   git('commit', '-qm', 'quarentena');
-  const quar = rodar('--check');
-  check('CLI: quarentena TIRA o teste do run-set (--check volta a morder)', quar.status === 1, `status=${quar.status}\n${quar.stdout.slice(-500)}`);
 
-  // B.5 · baseline: grandfathera o legado, segue mordendo o novo.
+  const q = resumoDe(rodar('--json'));
+  check('CLI: quarentena é contada como QUARENTENA', q && q.quarentena === 1, JSON.stringify(q));
+  check('CLI: … e NÃO como órfã', q && q.orfao === 0, JSON.stringify(q));
+  check('CLI: … e NÃO como na-lane (o teste não roda)', q && q.na_lane === 1, JSON.stringify(q));
+  check('CLI: --check NÃO morde por quarentena', rodar('--check').status === 0);
+  check('CLI: soma dos estados == citações (nenhuma linha some na classificação)',
+    q && (q.na_lane + q.orfao + q.quarentena + q.arquivo_ausente + q.sem_teste) === q.citacoes, JSON.stringify(q));
+
+  // B.5 · teste citado que não existe no disco é `arquivo-ausente`, não órfão.
+  put('resources/js/Pages/M/Fantasma.casos.md', tabela('UC-M-04', 'NaoExisteTest'));
+  git('add', '-A');
+  git('commit', '-qm', 'teste fantasma');
+  const f = resumoDe(rodar('--json'));
+  check('CLI: teste inexistente vira arquivo-ausente', f && f.arquivo_ausente === 1, JSON.stringify(f));
+
+  // B.6 · baseline no-new-lie.
   check('CLI: --write-baseline sai 0', rodar('--write-baseline', 'b.json').status === 0);
   const b = JSON.parse(readFileSync(join(raiz, 'b.json'), 'utf8'));
-  check('CLI: baseline tem a chave casos.md::UC', b.grandfathered.some((k) => /UC-M-02$/.test(k)), JSON.stringify(b.grandfathered));
+  check('CLI: baseline tem chave casos.md::UC', b.grandfathered.length > 0, JSON.stringify(b.grandfathered));
   check('CLI: --check --baseline LIBERA o legado', rodar('--check', '--baseline', 'b.json').status === 0);
 
-  put('resources/js/Pages/M/Novo.casos.md', tabela('UC-M-03', 'OrfaoTest'));
+  // FORA da árvore que o `find Modules/M/Tests` cobre — senão o "órfão novo" nasce na lane
+  // e a asserção passaria a medir a fixture, não o baseline. (A 1ª versão punha em
+  // `Modules/M/Tests/Feature/` e o próprio teste denunciou.)
+  put('tests/Feature/Solto/NovoOrfaoTest.php', '<?php\n');
+  put('resources/js/Pages/M/Novo.casos.md', tabela('UC-M-03', 'NovoOrfaoTest'));
   git('add', '-A');
-  git('commit', '-qm', 'uc novo citando teste em quarentena');
-  check('CLI: --check --baseline MORDE citação NOVA', rodar('--check', '--baseline', 'b.json').status === 1);
+  git('commit', '-qm', 'orfao novo');
+  check('CLI: --check --baseline MORDE órfão NOVO', rodar('--check', '--baseline', 'b.json').status === 1);
 
-  // B.6 · não-medi != tudo-ok.
+  // B.7 · não-medi != tudo-ok (fail-open é a classe LC-13).
   check('CLI: --baseline ausente sai 2', rodar('--check', '--baseline', 'nao-existe.json').status === 2);
 } finally {
   rmSync(raiz, { recursive: true, force: true });

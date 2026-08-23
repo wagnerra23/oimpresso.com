@@ -36,45 +36,39 @@
 // medido (13 de 23 casos), e porque skip sai com exit 0 (LC-13).
 //
 // =====================================================================================
-// POR QUE NÃO É DUPLICATA DO `anchor-lint --check-lane` (medido, não afirmado)
+// OS DOIS DONOS VIZINHOS — e a duplicação que eu cometi aqui (2026-08-23)
 // =====================================================================================
-// O `anchor-lint` já tem um check "teste-que-cobre FORA das lanes de JUnit" (G1c). Ele é
-// dono do eixo **US → teste** e resolve lane por PREFIXO DE DIRETÓRIO: `junitModuleLanes()`
-// varre os workflows com `--log-junit` e guarda `Modules/<X>/Tests` / `tests/Feature/<X>`.
+// `scripts/governance/test-lane-coverage.mjs` (desde 2026-08-07) é o DONO da derivação do
+// run-set: "quais testes EXISTEM × quais o CI realmente EXECUTA". A 1ª versão deste arquivo
+// REIMPLEMENTOU aquilo — parser de workflow, matriz, `.list`, `find`, quarentena — e ainda
+// trazia uma seção provando que não duplicava o `anchor-lint --check-lane`. Eu conferi UM
+// dono e escrevi como se tivesse conferido o campo. A §5 2026-07-28 exige varredura no repo
+// inteiro E o dono do inventário; parei no primeiro. LC-19, dentro do PR que se gabava dele.
 //
-// Isso o torna CEGO a allowlist dentro da pasta — e a cegueira foi medida em 2026-08-23,
-// replicando `inLane()` linha a linha:
+// Hoje a derivação é IMPORTADA. O que resta aqui é o join que ninguém faz: a coluna `Teste`
+// da tabela de Rastreabilidade de um `casos.md` × esse run-set. O dono responde "que
+// ARQUIVOS ficam fora do PR"; este responde "que UC aponta pra um deles" — o que torna o
+// número acionável por tela.
 //
-//   Modules/Ponto/Tests/Feature/DashboardTest.php             → anchor-lint: em-lane ✔
-//   Modules/Ponto/Tests/Feature/MultiTenantIsolationTest.php  → anchor-lint: em-lane ✔
-//   Modules/Ponto/Tests/Feature/CrossTenantMarcacaoTest.php   → anchor-lint: em-lane ✔
-//   …e a `ponto-pest.yml` roda ONZE dos 37 arquivos daquela pasta.
-//
-// Os três estão fora do run-set e o dono do eixo diz que estão dentro. Não é defeito dele:
-// a granularidade de pasta basta pro que ele mede. Este script trabalha em granularidade de
-// ARQUIVO (allowlist, matriz, lista `.list` e quarentena) e no eixo **UC → teste**. Dois
-// eixos, duas granularidades — estender o anchor-lint pra cá mudaria o veredito de um gate
-// required por um caminho que ninguém pediu, e é por isso que isto nasce separado e advisory.
+// `anchor-lint --check-lane` (G1c) é o TERCEIRO vizinho, no eixo **US → teste**, e resolve
+// lane por PREFIXO DE DIRETÓRIO. Medido replicando `inLane()` linha a linha: ele diz que
+// `DashboardTest`, `MultiTenantIsolationTest` e `CrossTenantMarcacaoTest` estão "em lane" —
+// e a `ponto-pest.yml` roda 12 dos 39 arquivos daquela pasta. Não é defeito dele: a
+// granularidade de pasta basta pro que ele mede.
 //
 // =====================================================================================
-// COMO A COBERTURA É DERIVADA (nunca presumida — e o que não dá pra derivar é declarado)
+// TRÊS ESTADOS, NÃO DOIS — a semântica é do dono
 // =====================================================================================
-// O run-set de cada lane sai do próprio workflow, em 4 formas medidas no repo:
-//   (a) alvos LITERAIS depois de `vendor/bin/pest` (a maioria das lanes);
-//   (b) `Modules/${{ matrix.module }}/Tests` — expandido pela `strategy.matrix` do job;
-//   (c) `"${VAR[@]}"` alimentado por `mapfile ... < <(... .github/<algo>.list)` — lê a lista;
-//   (d) `find <dir> -name '*Test.php'` MENOS um `*-quarantine.list` — o lado SUBTRATIVO.
+// `na-lane` · `quarentena` · `órfão`. A quarentena declarada (`.github/*-quarantine.list`)
+// NÃO é órfã, e a razão está no dono, literal:
 //
-// (d) existe porque inclusão tem um gêmeo (§5 2026-08-12): registro e trigger certos, e o
-// arquivo continua fora porque a quarentena o remove. Ignorar isso mediria a diligência de
-// quem escreveu o workflow, não o run-set real.
+//   "Alguém decidiu conscientemente que não rodam, e a lane imprime a lista. Órfão é o que
+//    ninguém decidiu — some sem ninguém saber. Misturar os dois apagaria justamente a
+//    diferença que este script existe pra mostrar."
 //
-// ⚠️ REGRA DURA — `INDETERMINADO` nunca vira `NÃO COBRE`. Se o script não entende a forma
-// de seleção de uma lane, ele NÃO conclui que a lane não cobre nada: marca a lane como
-// indeterminada, conta quantas são, e os testes que só ela poderia cobrir saem como
-// `indeterminado`, não como órfãos. Colapsar "não consegui medir" em "não coberto" é
-// fabricar achado — a doença do §5 2026-07-29 (fail-open que vira frase falsa), aqui pelo
-// avesso. `--check` NUNCA morde por indeterminado.
+// A 1ª versão daqui SUBTRAÍA a quarentena do run-set, o que faz teste conscientemente parado
+// aparecer como órfão. Medido: 19 dos 56 "órfãos" que este script reportava eram quarentena.
+// O número honesto é 37.
 //
 // USO (na raiz do repo):
 //   node scripts/qa/uc-lane-coverage.mjs                 # tabela + resumo (exit 0)
@@ -82,10 +76,10 @@
 //   node scripts/qa/uc-lane-coverage.mjs --check --baseline governance/uc-lane-baseline.json
 //   node scripts/qa/uc-lane-coverage.mjs --write-baseline governance/uc-lane-baseline.json
 //   node scripts/qa/uc-lane-coverage.mjs --json          # determinístico
-//   node scripts/qa/uc-lane-coverage.mjs --lanes         # só o run-set derivado por lane
+//   node scripts/qa/uc-lane-coverage.mjs --lanes         # resumo do run-set (detalhe é no dono)
 //
-// BITE-TEST: node scripts/qa/uc-lane-coverage.test.mjs (irmão) — exercita o CLI de fora,
-// com controle negativo e com o caso "lane indeterminada não vira órfão".
+// BITE-TEST: node scripts/qa/uc-lane-coverage.test.mjs (irmão) — exercita o CLI de fora, com
+// controle negativo, incluindo "quarentena não vira órfão".
 
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -112,261 +106,33 @@ const abs = (p) => join(ROOT, p);
 // ═════════════════════════════════════════════════════════════════════════════════════
 
 // ═════════════════════════════════════════════════════════════════════════════════════
-// PARSER DE WORKFLOW — por LINHA, sem dependência (e o porquê disso não ser preguiça)
+// 1. RUN-SET POR LANE — CONSUMIDO do dono, não reimplementado
 // ═════════════════════════════════════════════════════════════════════════════════════
 //
-// A 1ª versão usava `js-yaml`. Passou verde na minha máquina e QUEBROU no CI: o job
-// `governance script tests` roda `node` puro, sem `npm ci` — o cabeçalho dele diz
-// "Node puro, sem deps/DB/rede -- segundos", e ZERO dos ~90 scripts de governança importa
-// um pacote. O meu era o único. Verde local não é verde no CI quando o ambiente difere
-// (§5 2026-08-07: validar em UMA plataforma e concluir que passa).
+// A 1ª versão deste script REIMPLEMENTOU a derivação do run-set: parser de workflow,
+// expansão de `strategy.matrix`, leitura de `.list`, `find -name` e quarentena. ~150 linhas
+// que já existiam em `scripts/governance/test-lane-coverage.mjs` desde 2026-08-07, cujo
+// próprio cabeçalho diz: "quais testes EXISTEM × quais o CI realmente EXECUTA".
 //
-// O parser abaixo lê só o que este script precisa — fronteira de job, `strategy.matrix` e
-// blocos `run:` — e é o mesmo formato line-based do `junit-lanes.mjs` e do
-// `anchor-lint::junitModuleLanes()`. Linha de comentário é descartada de propósito: menção
-// a um comando dentro de `#` não é invocação (a mesma regra que o anchor-lint aplica).
-
-/** Fronteiras dos jobs de um workflow: `[{ nome, linhas: string[] }]`. */
-export function jobsDoWorkflow(src) {
-  const linhas = String(src).split(/\r?\n/);
-  const jobs = [];
-  let emJobs = false;
-  for (let i = 0; i < linhas.length; i++) {
-    const l = linhas[i];
-    if (/^jobs:\s*$/.test(l)) { emJobs = true; continue; }
-    if (!emJobs) continue;
-    // chave de topo (coluna 0, não-comentário) encerra o bloco `jobs:`
-    if (/^[A-Za-z_"']/.test(l)) { emJobs = false; continue; }
-    const m = /^ {2}([A-Za-z0-9_-]+):\s*$/.exec(l);
-    if (m) { jobs.push({ nome: m[1], inicio: i + 1, linhas: [] }); continue; }
-    if (jobs.length) jobs[jobs.length - 1].linhas.push(l);
-  }
-  return jobs;
-}
-
-/** `strategy.matrix` de um job: `{ chave: [valores] }`. */
-export function matrizDoJob(linhas) {
-  const out = {};
-  let emMatrix = false;
-  let indentMatrix = 0;
-  let chave = null;
-  for (const l of linhas) {
-    if (/^\s*#/.test(l)) continue;
-    const mM = /^(\s*)matrix:\s*$/.exec(l);
-    if (mM) { emMatrix = true; indentMatrix = mM[1].length; chave = null; continue; }
-    if (!emMatrix) continue;
-    if (l.trim() && /^\s*/.exec(l)[0].length <= indentMatrix) { emMatrix = false; continue; }
-    const mK = /^\s*([A-Za-z0-9_-]+):\s*$/.exec(l);
-    if (mK) { chave = mK[1]; out[chave] = []; continue; }
-    const mI = /^\s*-\s*(.+?)\s*$/.exec(l);
-    if (mI && chave) out[chave].push(mI[1].replace(/^["']|["']$/g, ''));
-  }
-  return out;
-}
-
-/** Blocos `run:` de um job (escalar literal `|` ou inline), como strings. */
-export function runsDoJob(linhas) {
-  const out = [];
-  for (let i = 0; i < linhas.length; i++) {
-    const l = linhas[i];
-    if (/^\s*#/.test(l)) continue;
-    const m = /^(\s*)(?:-\s+)?run:\s*(\|[-+]?|>[-+]?)?\s*(.*)$/.exec(l);
-    if (!m) continue;
-    const indent = m[1].length + (/^\s*-\s+run:/.test(l) ? 2 : 0);
-    if (!m[2]) { out.push(m[3]); continue; } // inline
-    const corpo = [];
-    for (let j = i + 1; j < linhas.length; j++) {
-      const b = linhas[j];
-      if (b.trim() === '') { corpo.push(''); continue; }
-      if (/^\s*/.exec(b)[0].length <= indent) break;
-      corpo.push(b);
-      i = j;
-    }
-    out.push(corpo.join('\n'));
-  }
-  return out;
-}
-
-// Forma (d) do run-set: `find <dir...> -name '*Test.php'`. FONTE ÚNICA porque o padrão é
-// consultado em DOIS lugares (o guard do `${VAR[@]}` e a coleta dos dirs) e a 1ª versão
-// tinha duas cópias que já divergiam — a do guard só aceitava UM diretório, então o
-// estoque-pest (que passa dois) caía em `indeterminado` mesmo com o find bem ali.
-// É `() =>` porque regex /g é stateful: instância compartilhada com matchAll é footgun.
-const FIND_TESTES = () => /\bfind\s+((?:[\w./-]+\s+)+)-name\s+'?\*Test\.php'?/g;
-
-/** Um token do shell é alvo de teste? (path de arquivo/pasta, não flag nem env) */
-function pareceAlvo(tok) {
-  if (!tok || tok.startsWith('-')) return false;
-  if (/^[A-Z_]+=/.test(tok)) return false;
-  return /^(tests|Modules|app|database|scripts)\//.test(tok);
-}
-
-/**
- * Alvos de UM bloco `run:` que invoca o Pest.
- *
- * Devolve `{ alvos, listas, finds, indeterminado }`. `indeterminado` é uma STRING com o
- * motivo quando a invocação usa uma forma que este parser não sabe resolver — e nesse caso
- * o chamador NÃO pode tratar a lane como "cobre nada".
- */
-export function alvosDoRun(run) {
-  const texto = String(run || '');
-  if (!/vendor\/bin\/pest|artisan test/.test(texto)) return null;
-
-  // 1º junta continuações `\` e 2º COLAPSA os espaços DENTRO de `${{ ... }}` — sem isso
-  // `Modules/${{ matrix.module }}/Tests` vira TRÊS tokens no split e a expansão de matriz
-  // nunca acontece (medido: modules-pest derivava 1 alvo em vez dos 6 da matriz).
-  const juntado = texto
-    .replace(/\\\r?\n\s*/g, ' ')
-    .replace(/\$\{\{\s*([\w.]+)\s*\}\}/g, '${{$1}}');
-  const linhas = juntado.split('\n').filter((l) => /vendor\/bin\/pest|artisan test/.test(l));
-
-  const alvos = new Set();
-  const listas = new Set();
-  const finds = new Set();
-  let indeterminado = null;
-
-  let ignorada = null;
-  for (const l of linhas) {
-    // `--mutate` (mutation-gate) mede QUALIDADE de assert, não cobertura de arquivo. Sai
-    // como `ignorada`, NUNCA como `indeterminada`: misturar decisão deliberada com limite
-    // do parser polui o alarme e ensina o leitor a ignorá-lo.
-    if (/--mutate/.test(l)) { ignorada = 'mutation testing (--mutate) não é lane de cobertura'; continue; }
-    const toks = l.trim().split(/\s+/);
-    let viuBinario = false;
-    for (const tok of toks) {
-      if (/vendor\/bin\/pest|artisan$/.test(tok) || tok === 'test') { viuBinario = true; continue; }
-      if (!viuBinario) continue;
-      if (pareceAlvo(tok)) { alvos.add(tok.replace(/^["']|["']$/g, '')); continue; }
-      // expansão de array bash: `"${PEST_TARGETS[@]}"` / `"${TARGETS[@]}"`
-      const arr = /^"?\$\{([A-Z_]+)\[@\]\}"?$/.exec(tok);
-      if (arr) {
-        const lista = /<\s*\(\s*[^)]*?(\.github\/[\w.-]+\.list)/.exec(texto)
-          || /mapfile\s+-t\s+\w+\s*<\s*[^\n]*?(\.github\/[\w.-]+\.list)/.exec(texto);
-        if (lista) { listas.add(lista[1]); continue; }
-        // o run-set veio de um pipeline shell (find/comm) — tratado abaixo pelos `finds`
-        if (FIND_TESTES().test(texto)) continue;
-        indeterminado = `array de shell \`${arr[1]}\` sem lista .list nem find reconhecível`;
-      }
-    }
-  }
-
-  // forma (d): `find <dir...> -name '*Test.php'` (+ quarentena, resolvida pelo chamador).
-  // N diretórios antes do `-name` — o estoque-pest passa DOIS (`tests/Feature/Estoque
-  // tests/Feature/Produto`); capturar só o primeiro perderia metade do run-set da lane.
-  for (const m of texto.matchAll(FIND_TESTES())) {
-    for (const d of m[1].trim().split(/\s+/)) finds.add(d);
-  }
-  // extras nomeados à mão no shell (`echo 'tests/...' >> /tmp/run.txt`)
-  for (const m of texto.matchAll(/echo\s+'((?:tests|Modules)\/[^']+\.php)'/g)) alvos.add(m[1]);
-
-  if (!alvos.size && !listas.size && !finds.size && !indeterminado && !ignorada) {
-    indeterminado = 'invoca o Pest mas nenhum alvo foi reconhecido';
-  }
-  return { alvos: [...alvos], listas: [...listas], finds: [...finds], indeterminado, ignorada };
-}
-
-/**
- * Paths em quarentena citados por um bloco `run:` (o lado SUBTRATIVO — §5 2026-08-12).
- *
- * DOIS detectores, e a ordem importa. O primeiro é a atribuição `QUAR_FILE=<path>`: é a
- * variável que o workflow de fato USA pra montar a exclusão (`comm -23 all quar`), então
- * é o mecanismo, não o rótulo. O segundo — nome de arquivo contendo "quarantine" — é
- * critério SINTÁTICO, da família que o §5 já matou 4 vezes; fica só como rede pra lane que
- * cite a lista sem passar pela variável, nunca como detector principal.
- */
-export function quarentenaDoRun(run, lerArquivo) {
-  const fora = new Set();
-  const listas = new Set();
-  for (const m of String(run || '').matchAll(/\bQUAR_FILE=([\w./-]+)/g)) listas.add(m[1]);
-  for (const m of String(run || '').matchAll(/([\w./-]*\.github\/[\w.-]*quarantine[\w.-]*\.list)/g)) listas.add(m[1]);
-  for (const lista of listas) {
-    const conteudo = lerArquivo(lista);
-    if (conteudo == null) continue;
-    for (const linha of conteudo.split('\n')) {
-      const p = linha.replace(/#.*/, '').trim();
-      if (p) fora.add(p);
-    }
-  }
-  return [...fora];
-}
-
-function arquivosDeTeste(dir) {
-  const out = [];
-  const walk = (d) => {
-    if (!existsSync(abs(d))) return;
-    for (const e of readdirSync(abs(d), { withFileTypes: true })) {
-      const p = `${d}/${e.name}`;
-      if (e.isDirectory()) walk(p);
-      else if (e.name.endsWith('Test.php')) out.push(p);
-    }
-  };
-  walk(dir.replace(/\/$/, ''));
-  return out;
-}
-
-/** Cobertura de CI derivada: `{ cobertos:Set<path>, lanes:[], indeterminadas:[] }`. */
-export function derivaCobertura(lerArquivo, listarWorkflows) {
-  const cobertos = new Set();
-  const lanes = [];
-  const indeterminadas = [];
-
-  for (const wf of listarWorkflows()) {
-    const src = lerArquivo(wf);
-    if (src == null) continue;
-
-    for (const job of jobsDoWorkflow(src)) {
-      const nomeJob = job.nome;
-      const matriz = matrizDoJob(job.linhas);
-      for (const run of runsDoJob(job.linhas)) {
-        const r = alvosDoRun(run);
-        if (!r) continue;
-
-        if (r.ignorada && !r.alvos.length && !r.listas.length && !r.finds.length) continue;
-        if (r.indeterminado) {
-          indeterminadas.push({ lane: `${wf}:${nomeJob}`, motivo: r.indeterminado });
-          continue;
-        }
-
-        const brutos = [...r.alvos];
-        for (const l of r.listas) {
-          const c = lerArquivo(l);
-          if (c == null) { indeterminadas.push({ lane: `${wf}:${nomeJob}`, motivo: `lista ${l} ausente` }); continue; }
-          for (const ln of c.split('\n')) {
-            const p = ln.replace(/#.*/, '').trim();
-            if (p) brutos.push(p);
-          }
-        }
-        for (const d of r.finds) brutos.push(...arquivosDeTeste(d));
-
-        // expande `${{ matrix.X }}` — sem isso o modules-pest cobriria zero
-        const expandidos = [];
-        for (const alvo of brutos) {
-          const mm = /\$\{\{\s*matrix\.(\w+)\s*\}\}/.exec(alvo);
-          if (!mm) { expandidos.push(alvo); continue; }
-          const valores = matriz[mm[1]];
-          if (!Array.isArray(valores)) { indeterminadas.push({ lane: `${wf}:${nomeJob}`, motivo: `matrix.${mm[1]} não é lista` }); continue; }
-          for (const v of valores) expandidos.push(alvo.replace(mm[0], String(v)));
-        }
-
-        const fora = new Set(quarentenaDoRun(run, lerArquivo));
-        const finais = expandidos.filter((p) => !fora.has(p));
-        for (const p of finais) cobertos.add(p.replace(/\/$/, ''));
-        lanes.push({ lane: `${wf}:${nomeJob}`, alvos: finais.length, quarentena: fora.size });
-      }
-    }
-  }
-  return { cobertos, lanes, indeterminadas };
-}
-
-/** Um arquivo de teste é coberto? (alvo exato OU pasta ancestral entre os alvos) */
-export function cobertoPor(arquivo, cobertos) {
-  if (cobertos.has(arquivo)) return true;
-  const partes = arquivo.split('/');
-  for (let i = partes.length - 1; i > 0; i--) {
-    if (cobertos.has(partes.slice(0, i).join('/'))) return true;
-  }
-  return false;
-}
+// Foi LC-19 (máquina paralela a um tema que já tem dono) cometido dentro de um PR que
+// trazia uma seção provando não duplicar o `anchor-lint --check-lane`. Eu conferi UM dono
+// e escrevi como se tivesse conferido o campo — a §5 2026-07-28 exige varredura no repo
+// inteiro E o dono do inventário, e eu parei no primeiro.
+//
+// E a cópia não era só redundante: era PIOR num ponto que importa. Eu SUBTRAÍA a quarentena
+// do run-set, o que faz teste conscientemente parado aparecer como órfão. O dono trata
+// quarentena como TERCEIRA CATEGORIA, e explica por quê:
+//
+//   "NÃO são órfãos: alguém decidiu conscientemente que não rodam, e a lane imprime a
+//    lista. Órfão é o que ninguém decidiu — some sem ninguém saber."
+//
+// Medido: 19 dos 56 "órfãos" que eu reportava estavam em quarentena declarada. O número
+// honesto é 37.
+//
+// O que sobra aqui, e é o que ninguém mede: o JOIN entre a coluna `Teste` da tabela de
+// Rastreabilidade de um `casos.md` e esse run-set. O dono responde "que ARQUIVOS ficam fora
+// do PR"; este responde "que UC aponta pra um deles" — que é o que torna acionável por tela.
+import { coletarAlvos, estaCoberto, emQuarentena } from '../governance/test-lane-coverage.mjs';
 
 // ═════════════════════════════════════════════════════════════════════════════════════
 // 2. UC → TESTE CITADO (tabela de Rastreabilidade do casos.md)
@@ -433,17 +199,14 @@ function carregaBaseline(p) {
 }
 
 function main() {
-  const { cobertos, lanes, indeterminadas } = derivaCobertura(lerArquivo, listarWorkflows);
+  // Run-set e quarentena vêm do DONO (test-lane-coverage.mjs), nunca recalculados aqui.
+  const { alvos, lanesLidas } = coletarAlvos();
+  const quarentena = new Set(emQuarentena());
 
   if (LANES_ONLY) {
-    console.log(`\n  run-set derivado — ${lanes.length} invocação(ões) de Pest, ${cobertos.size} alvo(s)\n`);
-    for (const l of lanes.sort((a, b) => a.lane.localeCompare(b.lane))) {
-      console.log(`   ${String(l.alvos).padStart(4)} alvo(s)  ${l.lane}${l.quarentena ? `   (−${l.quarentena} em quarentena)` : ''}`);
-    }
-    if (indeterminadas.length) {
-      console.log(`\n  ⚠️  ${indeterminadas.length} invocação(ões) INDETERMINADA(S) — não viram "não cobre":`);
-      for (const i of indeterminadas) console.log(`      ${i.lane} — ${i.motivo}`);
-    }
+    console.log('\n  run-set derivado pelo DONO — scripts/governance/test-lane-coverage.mjs\n');
+    console.log(`   lanes com pest: ${lanesLidas} · alvos: ${alvos.length} · em quarentena declarada: ${quarentena.size}\n`);
+    console.log('   Detalhe por lane/módulo: node scripts/governance/test-lane-coverage.mjs\n');
     return 0;
   }
 
@@ -461,9 +224,18 @@ function main() {
       }
       const paths = c.nomes.flatMap((n) => testesPorNome.get(n) || []);
       const ausentes = c.nomes.filter((n) => !testesPorNome.has(n));
+      // TRÊS estados, não dois — e a semântica é do dono: quarentena declarada NÃO é órfã.
+      // "Alguém decidiu conscientemente que não roda, e a lane imprime a lista. Órfão é o
+      // que ninguém decidiu — some sem ninguém saber." Misturar os dois apaga a diferença
+      // que torna o número acionável (medido: 19 dos 56 que eu reportava eram quarentena).
+      // ORDEM IMPORTA, e ela custou uma rodada. A quarentena é checada ANTES de `na-lane`
+      // porque o run-set do dono guarda DIRETÓRIOS (`find tests/Feature/Estoque`) — um
+      // arquivo em quarentena mora dentro de um diretório coberto, então `estaCoberto` diz
+      // sim e ele NÃO roda. Checar cobertura primeiro carimbaria `na-lane` num teste parado.
       let estado;
       if (ausentes.length) estado = 'arquivo-ausente';
-      else if (paths.some((p) => cobertoPor(p, cobertos))) estado = 'na-lane';
+      else if (paths.length && paths.every((p) => quarentena.has(p))) estado = 'quarentena';
+      else if (paths.some((p) => estaCoberto(p, alvos) && !quarentena.has(p))) estado = 'na-lane';
       else estado = 'orfao';
       linhas.push({ ...c, arquivo: posix(f), estado, paths, ausentes, verdict: manifesto[c.uc]?.verdict || null });
     }
@@ -497,25 +269,25 @@ function main() {
     orfao: linhas.filter((l) => l.estado === 'orfao').length,
     arquivo_ausente: linhas.filter((l) => l.estado === 'arquivo-ausente').length,
     sem_teste: linhas.filter((l) => l.estado === 'sem-teste' || l.estado === 'sem-nome-de-teste').length,
-    lanes_derivadas: lanes.length,
-    lanes_indeterminadas: indeterminadas.length,
+    quarentena: linhas.filter((l) => l.estado === 'quarentena').length,
+    lanes_lidas: lanesLidas,
+    alvos: alvos.length,
     ativos: ativos.length,
   };
 
   if (JSON_OUT) {
-    console.log(JSON.stringify({ _meta: { schema: 'uc-lane-coverage/v1' }, resumo, indeterminadas, violacoes: ativos }, null, 2));
+    console.log(JSON.stringify({ _meta: { schema: 'uc-lane-coverage/v1' }, resumo, violacoes: ativos }, null, 2));
     return CHECK && ativos.length ? 1 : 0;
   }
 
   console.log('\n  uc-lane-coverage — o teste citado pelo casos.md roda em alguma lane?\n');
   console.log(`  casos.md: ${resumo.casos_md} · citações UC→teste: ${resumo.citacoes}`);
-  console.log(`  na lane: ${resumo.na_lane} · ÓRFÃO: ${resumo.orfao} · arquivo ausente: ${resumo.arquivo_ausente} · sem teste citado: ${resumo.sem_teste}`);
-  console.log(`  run-set derivado de ${resumo.lanes_derivadas} invocação(ões) de Pest · ${resumo.lanes_indeterminadas} indeterminada(s)\n`);
+  console.log(`  na lane: ${resumo.na_lane} · ÓRFÃO: ${resumo.orfao} · em QUARENTENA declarada: ${resumo.quarentena} · arquivo ausente: ${resumo.arquivo_ausente} · sem teste citado: ${resumo.sem_teste}`);
+  console.log(`  run-set: ${resumo.alvos} alvo(s) de ${resumo.lanes_lidas} lane(s) — derivado por scripts/governance/test-lane-coverage.mjs\n`);
 
-  if (indeterminadas.length) {
-    console.log('  ⚠️  lanes cuja seleção este parser NÃO derivou — NÃO contam como "não cobre":');
-    for (const i of indeterminadas) console.log(`      ${i.lane} — ${i.motivo}`);
-    console.log('');
+  if (resumo.quarentena) {
+    console.log(`  ℹ️  ${resumo.quarentena} citação(ões) apontam pra teste em QUARENTENA declarada — não são órfãs.`);
+    console.log('      Alguém decidiu que não rodam e a lane imprime a lista; órfão é o que ninguém decidiu.\n');
   }
 
   if (!ativos.length) {
