@@ -14,40 +14,180 @@
     "sample_rate": 1,
     "rotas": {
         "/": {
-            "hits": 34,
-            "ultima_data": "2026-07-25"
+            "hits": 92,
+            "ultima_data": "2026-08-22"
+        },
+        "ads.admin.graph.index": {
+            "hits": 3,
+            "ultima_data": "2026-08-22"
+        },
+        "ads.admin.projects.index": {
+            "hits": 1,
+            "ultima_data": "2026-08-06"
+        },
+        "ads.admin.teamscopes.index": {
+            "hits": 1,
+            "ultima_data": "2026-07-31"
+        },
+        "ads.admin.tools.index": {
+            "hits": 1,
+            "ultima_data": "2026-07-31"
+        },
+        "auditoria.index": {
+            "hits": 2,
+            "ultima_data": "2026-08-21"
+        },
+        "backup.index": {
+            "hits": 3,
+            "ultima_data": "2026-08-17"
+        },
+        "bookings.index": {
+            "hits": 1,
+            "ultima_data": "2026-08-07"
         },
         "business.getRegister": {
+            "hits": 5,
+            "ultima_data": "2026-08-15"
+        },
+        "client.index": {
+            "hits": 1,
+            "ultima_data": "2026-08-13"
+        },
+        "cliente.autosave.identificacao": {
             "hits": 3,
-            "ultima_data": "2026-07-25"
+            "ultima_data": "2026-08-22"
+        },
+        "cliente.enderecos.index": {
+            "hits": 1,
+            "ultima_data": "2026-08-22"
+        },
+        "cliente.veiculos.index": {
+            "hits": 3,
+            "ultima_data": "2026-08-14"
         },
         "cms.contact.us": {
             "hits": 2,
-            "ultima_data": "2026-07-25"
+            "ultima_data": "2026-07-31"
+        },
+        "computadores": {
+            "hits": 1,
+            "ultima_data": "2026-08-13"
         },
         "consent.store": {
-            "hits": 1,
-            "ultima_data": "2026-07-25"
+            "hits": 4,
+            "ultima_data": "2026-08-22"
+        },
+        "consulta-os.index": {
+            "hits": 4,
+            "ultima_data": "2026-08-20"
+        },
+        "contacts.index": {
+            "hits": 2,
+            "ultima_data": "2026-08-22"
         },
         "contacts.store": {
-            "hits": 3,
-            "ultima_data": "2026-07-25"
+            "hits": 8,
+            "ultima_data": "2026-08-22"
         },
         "contacts/customers": {
-            "hits": 44,
-            "ultima_data": "2026-07-25"
+            "hits": 115,
+            "ultima_data": "2026-08-22"
+        },
+        "documentacao": {
+            "hits": 11,
+            "ultima_data": "2026-08-02"
+        },
+        "empresa.licencas": {
+            "hits": 2,
+            "ultima_data": "2026-08-13"
+        },
+        "fiscal.dfe.index": {
+            "hits": 4,
+            "ultima_data": "2026-08-22"
+        },
+        "forja.aprovacoes.index": {
+            "hits": 3,
+            "ultima_data": "2026-08-22"
+        },
+        "forja.backlog": {
+            "hits": 1,
+            "ultima_data": "2026-08-09"
+        },
+        "forja.handoffs": {
+            "hits": 3,
+            "ultima_data": "2026-08-09"
+        },
+        "forja.mcp": {
+            "hits": 2,
+            "ultima_data": "2026-08-09"
+        },
+        "forja.quadro": {
+            "hits": 3,
+            "ultima_data": "2026-08-22"
+        },
+        "forja.roadmap-gantt.index": {
+            "hits": 3,
+            "ultima_data": "2026-08-22"
+        },
+        "forja.trabalho": {
+            "hits": 2,
+            "ultima_data": "2026-08-22"
         },
         "get-total-unread": {
-            "hits": 2372,
-            "ultima_data": "2026-07-26"
+            "hits": 5504,
+            "ultima_data": "2026-08-22"
+        },
+        "governance.admin.dashboard.legacy": {
+            "hits": 6,
+            "ultima_data": "2026-08-22"
+        },
+        "governance.module-grades.show": {
+            "hits": 3,
+            "ultima_data": "2026-08-22"
+        },
+        "governance.policies.index": {
+            "hits": 6,
+            "ultima_data": "2026-08-22"
         },
         "home": {
+            "hits": 9,
+            "ultima_data": "2026-08-22"
+        },
+        "jana.acoes.previa": {
+            "hits": 3,
+            "ultima_data": "2026-08-18"
+        },
+        "jana.alertas.config": {
+            "hits": 3,
+            "ultima_data": "2026-08-18"
+        },
+        "jana.chat.index": {
+            "hits": 7,
+            "ultima_data": "2026-08-18"
+        },
+        "jana.conversas.nova": {
+            "hits": 2,
+            "ultima_data": "2026-08-18"
+        },
+        "jana.conversas.show": {
+            "hits": 1,
+            "ultima_data": "2026-08-18"
+        },
+        "jana.dashboard.index": {
             "hits": 4,
             "ultima_data": "2026-07-25"
         },
         "jana.index": {
-            "hits": 4,
-            "ultima_data": "2026-07-25"
+            "hits": 19,
+            "ultima_data": "2026-08-22"
+        },
+        "jana.memoria.index": {
+            "hits": 3,
+            "ultima_data": "2026-08-18"
+        },
+        "jana.pro.index": {
+            "hits": 1,
+            "ultima_data": "2026-08-18"
         },
         "kb.index": {
             "hits": 1,
@@ -57,127 +197,379 @@
             "hits": 1,
             "ultima_data": "2026-07-24"
         },
+        "leads.index": {
+            "hits": 3,
+            "ultima_data": "2026-08-13"
+        },
+        "licenca_computador.businessall": {
+            "hits": 1,
+            "ultima_data": "2026-08-13"
+        },
+        "licenca_log.index": {
+            "hits": 4,
+            "ultima_data": "2026-08-13"
+        },
         "login": {
-            "hits": 37,
-            "ultima_data": "2026-07-25"
+            "hits": 328,
+            "ultima_data": "2026-08-22"
         },
         "modules/data/get-pos-details": {
-            "hits": 1,
-            "ultima_data": "2026-07-25"
+            "hits": 10,
+            "ultima_data": "2026-08-22"
+        },
+        "modules/kitchen": {
+            "hits": 2,
+            "ultima_data": "2026-08-07"
+        },
+        "modules/orders": {
+            "hits": 3,
+            "ultima_data": "2026-08-07"
         },
         "nfe-brasil.api.transactions.emissoes": {
-            "hits": 5,
-            "ultima_data": "2026-07-25"
+            "hits": 10,
+            "ultima_data": "2026-08-22"
+        },
+        "officeimpresso/licenca_computador/businessupdate/{id}": {
+            "hits": 1,
+            "ultima_data": "2026-08-13"
+        },
+        "oficinaauto.orders.board": {
+            "hits": 2,
+            "ultima_data": "2026-08-22"
+        },
+        "old": {
+            "hits": 3,
+            "ultima_data": "2026-08-17"
+        },
+        "password.request": {
+            "hits": 2,
+            "ultima_data": "2026-08-05"
         },
         "pos.destroy": {
-            "hits": 1,
-            "ultima_data": "2026-07-25"
+            "hits": 2,
+            "ultima_data": "2026-08-22"
         },
         "pos.store": {
-            "hits": 12,
-            "ultima_data": "2026-07-25"
+            "hits": 31,
+            "ultima_data": "2026-08-22"
         },
         "pos.update": {
-            "hits": 1,
-            "ultima_data": "2026-07-25"
+            "hits": 5,
+            "ultima_data": "2026-08-22"
+        },
+        "pricing": {
+            "hits": 2,
+            "ultima_data": "2026-08-17"
         },
         "products.index": {
-            "hits": 20,
-            "ultima_data": "2026-07-25"
+            "hits": 186,
+            "ultima_data": "2026-08-22"
+        },
+        "products.show": {
+            "hits": 1,
+            "ultima_data": "2026-08-22"
+        },
+        "products.unificado.index": {
+            "hits": 1,
+            "ultima_data": "2026-08-21"
         },
         "products/list": {
-            "hits": 25,
-            "ultima_data": "2026-07-25"
+            "hits": 100,
+            "ultima_data": "2026-08-22"
         },
         "products/view/{id}": {
-            "hits": 7,
-            "ultima_data": "2026-07-25"
+            "hits": 57,
+            "ultima_data": "2026-08-22"
+        },
+        "project-mgmt.backlog.index": {
+            "hits": 3,
+            "ultima_data": "2026-08-22"
+        },
+        "project-mgmt.board.index": {
+            "hits": 1,
+            "ultima_data": "2026-08-02"
+        },
+        "project-mgmt.index": {
+            "hits": 3,
+            "ultima_data": "2026-08-21"
+        },
+        "project-mgmt.install.index": {
+            "hits": 2,
+            "ultima_data": "2026-08-20"
+        },
+        "project-mgmt.my-work.index": {
+            "hits": 1,
+            "ultima_data": "2026-08-02"
+        },
+        "project-mgmt.roadmap.index": {
+            "hits": 1,
+            "ultima_data": "2026-08-02"
+        },
+        "project-mgmt.triage.index": {
+            "hits": 1,
+            "ultima_data": "2026-08-02"
+        },
+        "repair-status": {
+            "hits": 3,
+            "ultima_data": "2026-08-21"
+        },
+        "reports/get-profit/{by?}": {
+            "hits": 2,
+            "ultima_data": "2026-08-22"
+        },
+        "reports/get-stock-by-sell-price": {
+            "hits": 2,
+            "ultima_data": "2026-08-22"
+        },
+        "reports/product-sell-grouped-report": {
+            "hits": 4,
+            "ultima_data": "2026-08-22"
+        },
+        "reports/product-sell-report": {
+            "hits": 11,
+            "ultima_data": "2026-08-22"
+        },
+        "reports/product-sell-report-with-purchase": {
+            "hits": 4,
+            "ultima_data": "2026-08-22"
+        },
+        "reports/profit-loss": {
+            "hits": 4,
+            "ultima_data": "2026-08-22"
         },
         "reports/stock-report": {
-            "hits": 7,
-            "ultima_data": "2026-07-25"
+            "hits": 57,
+            "ultima_data": "2026-08-22"
+        },
+        "roles.create": {
+            "hits": 9,
+            "ultima_data": "2026-08-21"
+        },
+        "sales-commission-agents.index": {
+            "hits": 12,
+            "ultima_data": "2026-08-22"
         },
         "sells-list-json": {
-            "hits": 14,
-            "ultima_data": "2026-07-25"
+            "hits": 47,
+            "ultima_data": "2026-08-22"
         },
         "sells.audit": {
-            "hits": 5,
-            "ultima_data": "2026-07-25"
+            "hits": 10,
+            "ultima_data": "2026-08-22"
         },
         "sells.create": {
-            "hits": 11,
-            "ultima_data": "2026-07-25"
+            "hits": 28,
+            "ultima_data": "2026-08-22"
         },
         "sells.edit": {
-            "hits": 1,
-            "ultima_data": "2026-07-25"
+            "hits": 14,
+            "ultima_data": "2026-08-22"
         },
         "sells.fsm-actions": {
-            "hits": 5,
-            "ultima_data": "2026-07-25"
+            "hits": 10,
+            "ultima_data": "2026-08-22"
         },
         "sells.index": {
-            "hits": 28,
-            "ultima_data": "2026-07-25"
+            "hits": 92,
+            "ultima_data": "2026-08-22"
         },
         "sells.timeline-unified": {
-            "hits": 5,
-            "ultima_data": "2026-07-25"
+            "hits": 10,
+            "ultima_data": "2026-08-22"
         },
         "sells/draft-dt": {
-            "hits": 2,
-            "ultima_data": "2026-07-25"
+            "hits": 7,
+            "ultima_data": "2026-08-22"
         },
         "sells/drafts": {
-            "hits": 1,
-            "ultima_data": "2026-07-25"
+            "hits": 5,
+            "ultima_data": "2026-08-22"
         },
         "sells/{id}": {
-            "hits": 1,
-            "ultima_data": "2026-07-25"
+            "hits": 2,
+            "ultima_data": "2026-08-22"
         },
         "sells/{id}/sheet-data": {
-            "hits": 5,
-            "ultima_data": "2026-07-25"
+            "hits": 10,
+            "ultima_data": "2026-08-22"
+        },
+        "sheets.index": {
+            "hits": 2,
+            "ultima_data": "2026-08-22"
+        },
+        "show_invoice": {
+            "hits": 6,
+            "ultima_data": "2026-08-22"
+        },
+        "stock-adjustments.create": {
+            "hits": 1,
+            "ultima_data": "2026-08-21"
+        },
+        "stock-adjustments.index": {
+            "hits": 2,
+            "ultima_data": "2026-08-21"
+        },
+        "tables.index": {
+            "hits": 3,
+            "ultima_data": "2026-08-07"
+        },
+        "team-mcp.cc.index": {
+            "hits": 1,
+            "ultima_data": "2026-07-31"
+        },
+        "team-mcp.tasks.index": {
+            "hits": 2,
+            "ultima_data": "2026-08-08"
+        },
+        "team-mcp.team.index": {
+            "hits": 4,
+            "ultima_data": "2026-08-21"
+        },
+        "users.index": {
+            "hits": 11,
+            "ultima_data": "2026-08-22"
         }
     },
     "pages": {
-        "Jana/Index": {
+        "Auditoria/Index": {
+            "hits": 2,
+            "ultima_data": "2026-08-21"
+        },
+        "Cliente/Index": {
+            "hits": 2,
+            "ultima_data": "2026-08-22"
+        },
+        "ConsultaOs/Index": {
             "hits": 4,
-            "ultima_data": "2026-07-25"
+            "ultima_data": "2026-08-20"
+        },
+        "Fiscal/Dfe": {
+            "hits": 4,
+            "ultima_data": "2026-08-22"
+        },
+        "Forja/Aprovacoes/Index": {
+            "hits": 3,
+            "ultima_data": "2026-08-22"
+        },
+        "Forja/Backlog/Index": {
+            "hits": 3,
+            "ultima_data": "2026-08-22"
+        },
+        "Forja/Board/Index": {
+            "hits": 1,
+            "ultima_data": "2026-08-02"
+        },
+        "Forja/MyWork/Index": {
+            "hits": 1,
+            "ultima_data": "2026-08-02"
+        },
+        "Forja/Roadmap/Gantt": {
+            "hits": 3,
+            "ultima_data": "2026-08-22"
+        },
+        "Forja/Roadmap/Index": {
+            "hits": 1,
+            "ultima_data": "2026-08-02"
+        },
+        "Forja/Trabalho/Index": {
+            "hits": 2,
+            "ultima_data": "2026-08-22"
+        },
+        "Forja/Triage/Index": {
+            "hits": 1,
+            "ultima_data": "2026-08-02"
+        },
+        "Jana/Index": {
+            "hits": 19,
+            "ultima_data": "2026-08-22"
+        },
+        "Jana/Memoria": {
+            "hits": 3,
+            "ultima_data": "2026-08-18"
+        },
+        "Jana/Pro": {
+            "hits": 1,
+            "ultima_data": "2026-08-18"
+        },
+        "Officeimpresso/Logs/Index": {
+            "hits": 4,
+            "ultima_data": "2026-08-13"
+        },
+        "OficinaAuto/ServiceOrders/Board": {
+            "hits": 2,
+            "ultima_data": "2026-08-22"
         },
         "Produto/Index": {
-            "hits": 20,
-            "ultima_data": "2026-07-25"
+            "hits": 186,
+            "ultima_data": "2026-08-22"
+        },
+        "Produto/Show": {
+            "hits": 1,
+            "ultima_data": "2026-08-22"
+        },
+        "Produto/Unificado/Index": {
+            "hits": 1,
+            "ultima_data": "2026-08-21"
         },
         "Sells/Create": {
-            "hits": 11,
-            "ultima_data": "2026-07-25"
+            "hits": 28,
+            "ultima_data": "2026-08-22"
         },
         "Sells/Drafts": {
-            "hits": 1,
-            "ultima_data": "2026-07-25"
+            "hits": 5,
+            "ultima_data": "2026-08-22"
         },
         "Sells/Edit": {
-            "hits": 1,
-            "ultima_data": "2026-07-25"
+            "hits": 14,
+            "ultima_data": "2026-08-22"
         },
         "Sells/Index": {
-            "hits": 28,
-            "ultima_data": "2026-07-25"
+            "hits": 92,
+            "ultima_data": "2026-08-22"
         },
         "Sells/Show": {
-            "hits": 1,
-            "ultima_data": "2026-07-25"
+            "hits": 2,
+            "ultima_data": "2026-08-22"
         },
         "Site/Home": {
-            "hits": 34,
-            "ultima_data": "2026-07-25"
+            "hits": 92,
+            "ultima_data": "2026-08-22"
         },
         "Site/Login": {
-            "hits": 74,
-            "ultima_data": "2026-07-25"
+            "hits": 656,
+            "ultima_data": "2026-08-22"
+        },
+        "Site/Pricing": {
+            "hits": 2,
+            "ultima_data": "2026-08-17"
+        },
+        "ads/Admin/Graph": {
+            "hits": 3,
+            "ultima_data": "2026-08-22"
+        },
+        "ads/Admin/Projects": {
+            "hits": 1,
+            "ultima_data": "2026-08-06"
+        },
+        "ads/Admin/TeamScopes": {
+            "hits": 1,
+            "ultima_data": "2026-07-31"
+        },
+        "ads/Admin/Tools": {
+            "hits": 1,
+            "ultima_data": "2026-07-31"
+        },
+        "governance/Dashboard": {
+            "hits": 6,
+            "ultima_data": "2026-08-22"
+        },
+        "governance/ModuleGrades/Show": {
+            "hits": 3,
+            "ultima_data": "2026-08-22"
+        },
+        "governance/Policies": {
+            "hits": 6,
+            "ultima_data": "2026-08-22"
         },
         "kb/Index": {
             "hits": 1,
@@ -186,6 +578,22 @@
         "kb/Index.v2": {
             "hits": 1,
             "ultima_data": "2026-07-24"
+        },
+        "team-mcp/CcSessions/Index": {
+            "hits": 1,
+            "ultima_data": "2026-07-31"
+        },
+        "team-mcp/Forja/Cockpit": {
+            "hits": 9,
+            "ultima_data": "2026-08-22"
+        },
+        "team-mcp/Tasks/Index": {
+            "hits": 2,
+            "ultima_data": "2026-08-08"
+        },
+        "team-mcp/Team/Index": {
+            "hits": 4,
+            "ultima_data": "2026-08-21"
         }
     }
 }

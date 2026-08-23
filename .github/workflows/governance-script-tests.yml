@@ -138,6 +138,25 @@ jobs:
       - name: System-map path morto (transcricao de lapide libera, ponteiro inventado morde)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/system-map-deadlinks.test.mjs
+      # ── uc-id-lint (pedido [CC] 2026-08-23) ────────────────────────────────────────
+      # Id de UC fora do formato canonico nao falha na escrita: ele fica INVISIVEL pro
+      # ucBlocksInCasos(), o UC some do casos-gate (G-2 passa por VACUIDADE) e a tela
+      # reaparece como "falta: casos.md-com-UC" no prototipo-readiness. Medido em
+      # 2026-08-23: 42 blocos fora do formato, ZERO falso-positivo, 37 deles em 5 telas
+      # cujo casos.md inteiro esta invisivel (Jana/Chat 11, Jana/Index 14, e 3 do Ponto).
+      #
+      # DUAS pernas, e as duas sao necessarias:
+      #  (1) bite-test — prova que o lint SABE reprovar (Lei C). Exercita o CLI de fora,
+      #      nao so o helper exportado (§5 2026-07-30 / 2026-08-14).
+      #  (2) --check --baseline — no-new-lie: grandfathera os 42 legados e morde id NOVO.
+      #      Sem --baseline daria exit 1 hoje; renomear os 42 em lote esta proibido por
+      #      §5 2026-07-12 (acordaria o G-6 de frescor em 8 arquivos).
+      - name: uc-id-lint bite-test (morde prefixo longo/2-segmentos/digito, libera UC-KBV2-01 e prosa)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/qa/uc-id-lint.test.mjs
+      - name: uc-id-lint · id NOVO fora do formato (no-new-lie · legado grandfatherado)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/qa/uc-id-lint.mjs --check --baseline governance/uc-id-baseline.json
       # ── uc-lane-coverage (pedido [CC] 2026-08-23) ─────────────────────────────────
       # A lane `ponto-pest.yml` roda 11 arquivos de uma allowlist; o modulo tem 37. Os 26
       # de fora sao "verde impossivel": existem, podem estar vermelhos ha meses, e nenhum
