@@ -67,6 +67,13 @@ jobs:
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/fact-anchor.test.mjs
 
+      - name: Retorno Code -> Design §10.2 (3 canais · advisory + bite/release)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/design-return-check.test.mjs
+      - name: Seleção de handoffs (push/dispatch · multi-commit · zero-base)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/handoff-select.test.mjs
+
       # Bridge DXT (incidente 2026-08-12): o Desktop pede tools/list várias vezes
       # por handshake e cada ida custava ~2,2s. O cache tem um modo de falha
       # silencioso — devolver a resposta com o id ERRADO faz o cliente descartá-la

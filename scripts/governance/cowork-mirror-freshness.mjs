@@ -71,7 +71,7 @@
  * apagar o espelho inteiro passa vazio no primeiro e é pego pelo segundo.
  */
 
-import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdirSync, mkdtempSync, renameSync, rmSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { join, dirname, resolve } from 'node:path';
@@ -631,7 +631,29 @@ export function previewDsPlan(shellHtml, root = ROOT) {
   const ids = [...new Set([...String(shellHtml).matchAll(/_ds\/([^/"]+)\//g)].map((m) => m[1]))];
   if (ids.length !== 1) return { erro: `esperava 1 design system no shell, achei ${ids.length}`, arquivos: [] };
   const id = ids[0];
-  const querUsar = [...new Set([...String(shellHtml).matchAll(/_ds\/[^/"]+\/([^"?]+)/g)].map((m) => m[1]))];
+  if (!/^[a-z0-9][a-z0-9._-]*$/i.test(id) || id === '.' || id === '..') {
+    return { erro: `id inseguro do design system no shell: "${id}"`, arquivos: [] };
+  }
+  const seguro = (valor, base = '') => {
+    let decodificado;
+    try { decodificado = decodeURIComponent(String(valor)); } catch { return null; }
+    const limpo = decodificado.replaceAll('\\', '/').split(/[?#]/)[0].replace(/^\.\//, '');
+    if (!limpo || limpo.includes('\0') || /^(?:[a-z]:|\/)/i.test(limpo)) return null;
+    const partes = `${base ? `${base}/` : ''}${limpo}`.split('/');
+    const normalizadas = [];
+    for (const parte of partes) {
+      if (!parte || parte === '.') continue;
+      if (parte === '..') {
+        if (!normalizadas.length) return null;
+        normalizadas.pop();
+      } else normalizadas.push(parte);
+    }
+    return normalizadas.join('/') || null;
+  };
+  const refsShell = [...new Set([...String(shellHtml).matchAll(/_ds\/[^/"]+\/([^"?]+)/g)].map((m) => m[1]))];
+  const querUsar = refsShell.map((ref) => seguro(ref));
+  const inseguraShell = refsShell.find((_, index) => !querUsar[index]);
+  if (inseguraShell) return { erro: `referência insegura no shell do preview: "${inseguraShell}"`, arquivos: [] };
   const origem = join(root, 'scripts', 'design-sync', 'mirror-snapshot');
   // ── 2ª CAMADA: o que os CSS repostos pedem POR DENTRO (2026-08-14) ───────────
   // Derivar o plano só do SHELL deixa de fora tudo que está a uma indireção: o
@@ -644,20 +666,35 @@ export function previewDsPlan(shellHtml, root = ROOT) {
   // não são arquivo do espelho). Isto não inventa origem: o que não existir no
   // mirror-snapshot sai como "SEM FONTE", igual ao `_ds_bundle.js`.
   const deCss = new Set();
-  for (const f of querUsar) {
-    if (!/\.css$/i.test(f)) continue;
+  const filaCss = querUsar.filter((f) => /\.css$/i.test(f));
+  const cssLidos = new Set();
+  while (filaCss.length) {
+    const f = filaCss.shift();
+    if (cssLidos.has(f)) continue;
+    cssLidos.add(f);
     const src = join(origem, f);
     if (!existsSync(src)) continue;
-    for (const m of String(readFileSync(src, 'utf8')).matchAll(/url\(\s*['"]?([^)'"]+?)['"]?\s*\)/g)) {
-      const ref = String(m[1]).trim();
+    const css = String(readFileSync(src, 'utf8'));
+    const refs = [
+      ...[...css.matchAll(/url\(\s*['"]?([^)'"]+?)['"]?\s*\)/g)].map((m) => ({ ref: m[1], isImport: false })),
+      ...[...css.matchAll(/@import\s+(?:url\(\s*)?['"]([^'"]+)['"]\s*\)?/g)].map((m) => ({ ref: m[1], isImport: true })),
+    ];
+    for (const item of refs) {
+      const ref = String(item.ref).trim();
       if (!ref || /^(data:|https?:|\/\/|#)/i.test(ref)) continue;
-      deCss.add(ref.replace(/^\.\//, '').split(/[?#]/)[0]);
+      const normalizado = seguro(ref, dirname(f).replaceAll('\\', '/'));
+      if (!normalizado) {
+        return { erro: `referência CSS insegura em "${f}": "${ref}"`, arquivos: [] };
+      }
+      deCss.add(normalizado);
+      if (item.isImport && /\.css$/i.test(normalizado)) filaCss.push(normalizado);
     }
   }
   const todos = [...new Set([...querUsar, ...deCss])];
   return {
     id,
     destino: `prototipo-ui/cowork/_ds/${id}`,
+    destinoAbs: join(root, 'prototipo-ui', 'cowork', '_ds', id),
     arquivos: todos.map((f) => ({
       nome: f,
       de: join(origem, f),
@@ -665,6 +702,49 @@ export function previewDsPlan(shellHtml, root = ROOT) {
       temNoRepo: existsSync(join(origem, f)),
     })),
   };
+}
+
+// Materializa como TROCA DE DIRETÓRIO, não como sequência de writes no cache vivo.
+// Além de impedir estado parcial, a troca remove órfãos de uma versão anterior.
+export function materializePreviewDs(plano) {
+  if (plano.erro) throw new Error(plano.erro);
+  const faltando = plano.arquivos.filter((a) => !a.temNoRepo).map((a) => a.nome);
+  if (faltando.length) throw new Error(`preview incompleto; sem fonte: ${faltando.join(', ')}`);
+
+  const bundle = plano.arquivos.find((a) => a.nome === '_ds_bundle.js');
+  if (bundle) {
+    try { execFileSync(process.execPath, ['--check', bundle.de], { stdio: 'ignore' }); }
+    catch { throw new Error('_ds_bundle.js inválido'); }
+  }
+
+  const destino = plano.destinoAbs;
+  const parent = dirname(destino);
+  mkdirSync(parent, { recursive: true });
+  const stage = mkdtempSync(join(parent, `.${plano.id}.staging-`));
+  const backup = join(parent, `.${plano.id}.backup-${process.pid}-${Date.now()}`);
+  let moveuAnterior = false;
+  try {
+    for (const a of plano.arquivos) {
+      const para = join(stage, a.nome);
+      mkdirSync(dirname(para), { recursive: true });
+      writeFileSync(para, readFileSync(a.de));
+    }
+    if (existsSync(destino)) {
+      renameSync(destino, backup);
+      moveuAnterior = true;
+    }
+    renameSync(stage, destino);
+    if (moveuAnterior) rmSync(backup, { recursive: true, force: true });
+    return { escritos: plano.arquivos.length, destino };
+  } catch (error) {
+    // Se a publicação falhar depois de mover o cache bom, restaura-o.
+    if (!existsSync(destino) && moveuAnterior && existsSync(backup)) renameSync(backup, destino);
+    throw error;
+  } finally {
+    rmSync(stage, { recursive: true, force: true });
+    // Só sobra backup se a publicação terminou e a limpeza intermediária falhou.
+    if (existsSync(destino)) rmSync(backup, { recursive: true, force: true });
+  }
 }
 
 /** Imprime o ABSENT-LOCAL. Não afeta o exit code: `shouldFail()` morde SÓ em STALE, que é o
@@ -1082,24 +1162,19 @@ function main() {
     console.log(`\n  PREVIEW-DS — repondo o _ds/ do espelho (id derivado do shell, não hardcode)\n`);
     console.log(`  design system: ${plano.id}`);
     let ok = 0, faltando = [], invalidos = [];
+    // Fase 1: valida o lote INTEIRO antes da primeira escrita. Assim uma fonte ausente,
+    // traversal ou bundle truncado não deixa um cache híbrido (parte nova + parte velha).
     for (const a of plano.arquivos) {
       if (!a.temNoRepo) { faltando.push(a.nome); console.log(`  ⚠ SEM FONTE   ${a.nome}  (não existe em scripts/design-sync/mirror-snapshot/)`); continue; }
-      mkdirSync(dirname(a.para), { recursive: true });
-      writeFileSync(a.para, readFileSync(a.de));
       if (a.nome === '_ds_bundle.js') {
         try {
-          execFileSync(process.execPath, ['--check', a.para], { stdio: 'ignore' });
+          execFileSync(process.execPath, ['--check', a.de], { stdio: 'ignore' });
         } catch {
           invalidos.push(a.nome);
           console.log(`  ⛔ INVÁLIDO    ${a.nome}  (JavaScript incompleto ou com erro de sintaxe)`);
-          continue;
         }
       }
-      ok++;
-      console.log(`  ✓ reposto     ${a.nome}`);
     }
-    console.log(`\n  ${ok} reposto(s) · ${faltando.length} sem fonte no repo${faltando.length ? ` (${faltando.join(', ')})` : ''} · ${invalidos.length} inválido(s)`);
-    console.log(`  destino: ${plano.destino}/ — segue gitignored (build de preview, não versionamento).`);
     // A frase precisa distinguir os dois tipos, mas AMBOS bloqueiam fidelidade. Sem o
     // `_ds_bundle.js`, Drawer/Skeleton/DropdownMenu ficam undefined e partes inteiras
     // somem (`if (!Drawer || !meta) return null`). Fonte ausente muda a tipografia.
@@ -1110,9 +1185,22 @@ function main() {
       if (fontes.length) console.log(`  ⚠ o repo NÃO TEM ${fontes.length} FONTE(s) — elas NÃO têm fallback equivalente: o preview renderiza com a fonte do sistema, então a tipografia diverge do Cowork vivo. Não é cosmético.`);
     }
     if (faltando.length || invalidos.length) {
+      console.log(`\n  0 reposto(s) · ${faltando.length} sem fonte no repo${faltando.length ? ` (${faltando.join(', ')})` : ''} · ${invalidos.length} inválido(s)`);
+      console.log(`  destino preservado sem escrita parcial: ${plano.destino}/`);
       console.error('\n✗ PREVIEW INCOMPLETO — PARE antes de editar Pages/Modules. Recupere todos os artefatos e rode --preview-ds novamente.');
       process.exit(1);
     }
+    // Fase 2: só um lote completamente validado pode materializar o cache. A função
+    // publica por troca de diretório, removendo órfãos e sem expor estado intermediário.
+    try {
+      materializePreviewDs(plano);
+    } catch (error) {
+      console.error(`\n✗ PREVIEW NÃO MATERIALIZADO — cache anterior preservado: ${error.message}`);
+      process.exit(2);
+    }
+    for (const a of plano.arquivos) { ok++; console.log(`  ✓ reposto     ${a.nome}`); }
+    console.log(`\n  ${ok} reposto(s) · 0 sem fonte no repo · 0 inválido(s)`);
+    console.log(`  destino: ${plano.destino}/ — segue gitignored (build de preview, não versionamento).`);
     console.log('\n✓ PREVIEW COMPLETO — todas as dependências do DS existem e o bundle passa no parser.');
     console.log('');
     return;

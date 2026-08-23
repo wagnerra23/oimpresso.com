@@ -17,10 +17,10 @@
 //   FASE 0.5— por arquivo: resolve alvo no repo → classifica → diffa o diffável → MANIFESTO
 //
 // Resolução do alvo (em ordem, primeira que casa vence):
-//   (1) path-espelhado: o staging-path já contém `resources/js/Pages/...` (caso prototipo-ui-patch)
+//   (1) path-espelhado: staging contém a raiz de Pages do core OU de `Modules/<X>`
 //   (2) format-2 `<dir>/Index.tsx` → `component:`/`page:` do `<dir>/Index.charter.md` irmão (path de repo)
 //   (3) format-2 sem charter → lookup por sufixo no repo (`/<dir>/Index.tsx` único)
-//   (4) mockup → charter cujo `component:` cita o basename .jsx → o `repo_alvo:` daquele charter
+//   (4) mockup → TODOS os charters que o citam → um alvo por tela (relação 1:N)
 //   (5) ALIAS map (dicionário de código) — mockups sem charter (ex: vendas-create)
 //   (6) nada casou → ORFAO  → **gate falha**
 // Correção de charter STALE: se o alvo resolvido NÃO existe mas um ALIAS aponta pra um que
@@ -38,6 +38,7 @@ import { join, resolve, dirname, basename, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { read, frontmatter, walk } from './_lib-charter.mjs';
+import { pageNamespacePath, raizesDePages } from '../scripts/qa/page-path.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)); // prototipo-ui/
 const REPO_DEFAULT = resolve(HERE, '..');             // raiz do repo
@@ -83,7 +84,7 @@ export function acriarStem(b) { return basename(b).replace(/-page\.jsx$/i, '').t
 export function liveDirNames(repoFiles, repoRoot) {
   const names = new Set();
   for (const f of repoFiles) {
-    const rel = relative(join(repoRoot, 'resources', 'js', 'Pages'), f).replace(/\\/g, '/');
+    const rel = pageNamespacePath(relative(repoRoot, f).replace(/\\/g, '/'));
     for (const seg of rel.split('/').slice(0, -1)) names.add(seg.toLowerCase());
   }
   return names;
@@ -100,9 +101,12 @@ function resolveStaging(p) {
 // extrai o token de path-de-repo de um texto livre (component:/page:/repo_alvo:)
 function extractRepoPath(text) {
   if (!text) return null;
-  let m = text.match(/resources\/js\/Pages\/[\w./-]+\.tsx/);
+  const normalized = text.replace(/\\/g, '/');
+  // A Page pode morar no núcleo OU no módulo nWidart. O parser antigo só aceitava
+  // `resources/js/Pages` e mutilava `Modules/Superadmin/Resources/...` no fallback.
+  let m = normalized.match(/(?:Modules\/[^/\s]+\/[Rr]esources|resources)\/js\/Pages\/[\w./-]+\.tsx/);
   if (m) return m[0];
-  m = text.match(/\b([A-Z][\w]+(?:\/[A-Z][\w]+)+)\b/); // "Sells/Index", "Purchases/Index"
+  m = normalized.match(/\b([A-Z][\w]+(?:\/[A-Z][\w]+)+)\b/); // "Sells/Index", "Purchases/Index"
   if (m) return `resources/js/Pages/${m[1]}.tsx`;
   return null;
 }
@@ -110,7 +114,7 @@ function extractRepoPath(text) {
 // nem .jsx que faça parte de um path de repo (por isso removo os paths antes).
 function extractMockupFiles(text) {
   if (!text) return [];
-  const cleaned = text.replace(/resources\/js\/Pages\/[\w./-]+/g, ' ');
+  const cleaned = text.replace(/(?:Modules\/[^/\s]+\/[Rr]esources|resources)\/js\/Pages\/[\w./-]+/g, ' ');
   return [...cleaned.matchAll(/[\w.-]+\.jsx/g)].map((m) => m[0]).filter((t) => !/^index\.jsx$/i.test(t));
 }
 // frontmatter() — ver _lib-charter.mjs (importado acima, fonte única)
@@ -139,8 +143,9 @@ function isScreenSource(relPath) {
 // ---- núcleo: monta o manifesto (usado por run E selftest, sem drift) ------
 async function buildManifest({ staging, repoRoot }) {
   const stagingFiles = await walk(staging);
-  const pagesRoot = join(repoRoot, 'resources', 'js', 'Pages');
-  const repoFiles = await walk(pagesRoot);
+  // Mesmas duas classes de raiz que o resolver Inertia: núcleo + módulos. Sem isto,
+  // um protótipo do Superadmin/Officeimpresso não encontrava nem o charter nem o .tsx alvo.
+  const repoFiles = (await Promise.all(raizesDePages(repoRoot).map((pagesRoot) => walk(pagesRoot)))).flat();
 
   // índice de charters dos DOIS universos (mockup .jsx → repo_alvo)
   // 2026-06-30 (musing-elion): o link mockup↔tela mora no CHARTER, mas vinha sendo lido só de
@@ -151,7 +156,7 @@ async function buildManifest({ staging, repoRoot }) {
   // (que é o design APROVADO). related_prototype apontando -page.jsx (convenção compras/oficina)
   // também conta. Charter-first de verdade — ALIAS vira só fallback pra mockup SEM charter.
   const repoCharters = repoFiles.filter((f) => f.endsWith('.charter.md'));
-  const byMockup = new Map();
+  const byMockup = new Map(); // mockup .jsx → list<repo target>; Superadmin/Officeimpresso são 1:N
   for (const cf of [...stagingFiles.filter((f) => f.endsWith('.charter.md')), ...repoCharters]) {
     const fm = frontmatter(await read(cf));
     const alvo = extractRepoPath(fm.repo_alvo) || extractRepoPath(fm.component) || extractRepoPath(fm.page);
@@ -165,15 +170,17 @@ async function buildManifest({ staging, repoRoot }) {
       ...extractMockupFiles(fm.visual_source),
       ...extractMockupFiles(fm.related_prototype),
     ];
-    // ALVO QUE EXISTE GANHA (musing-elion 2026-06-30): um charter STALE (ex: repo_alvo Purchases/Index,
-    // nome antigo de Compras) não pode vencer a corrida e mascarar o alvo vivo. Sem isso o compras-page
-    // caía em ALVO-PENDENTE pra uma tela que não existe. Entre dois que existem, first-wins.
-    const novoExiste = existsSync(join(repoRoot, alvo));
     for (const mk of mockupsDeclarados) {
-      const atual = byMockup.get(mk);
-      const atualExiste = atual && existsSync(join(repoRoot, atual));
-      if (!atual || (novoExiste && !atualExiste)) byMockup.set(mk, alvo);
+      const atuais = byMockup.get(mk) || [];
+      if (!atuais.includes(alvo)) atuais.push(alvo);
+      byMockup.set(mk, atuais);
     }
+  }
+  // ALVO QUE EXISTE GANHA (musing-elion 2026-06-30), sem destruir o 1:N legítimo:
+  // se há alvos vivos, descarta só os stale; se nenhum existe, mantém os pendentes para reportar.
+  for (const [mk, alvos] of byMockup) {
+    const vivos = alvos.filter((alvo) => existsSync(join(repoRoot, alvo)));
+    byMockup.set(mk, vivos.length ? vivos : alvos);
   }
 
   // índice de sufixo do repo: "<dir>/index.tsx" (lower) → [rel paths]
@@ -193,10 +200,10 @@ async function buildManifest({ staging, repoRoot }) {
     const kind = isScreenSource(relStaging);
     if (!kind) continue;
     const b = basename(f);
-    let alvo = null, via = null, ambiguo = false;
+    let alvo = null, alvos = null, via = null, ambiguo = false;
 
-    // (1) path-espelhado (prototipo-ui-patch/resources/js/Pages/...)
-    const mIdx = relStaging.match(/resources\/js\/Pages\/[\w./-]+\.tsx$/);
+    // (1) path-espelhado (núcleo OU Modules/<X>/Resources/js/Pages/...)
+    const mIdx = relStaging.match(/(?:Modules\/[^/]+\/[Rr]esources|resources)\/js\/Pages\/[\w./-]+\.tsx$/);
     if (mIdx) { alvo = mIdx[0]; via = 'path-espelhado'; }
 
     // (2)/(3) format-2
@@ -222,9 +229,9 @@ async function buildManifest({ staging, repoRoot }) {
     }
 
     // (4) mockup via charter.component
-    if (!alvo && kind === 'mockup' && byMockup.has(b)) { alvo = byMockup.get(b); via = 'charter.component'; }
+    if (!alvo && kind === 'mockup' && byMockup.has(b)) { alvos = byMockup.get(b); via = 'charter.component'; }
     // (5) ALIAS
-    if (!alvo) { const a = aliasFor(b); if (a) { alvo = a.alvo; via = 'alias'; } }
+    if (!alvo && !alvos?.length) { const a = aliasFor(b); if (a) { alvo = a.alvo; via = 'alias'; } }
 
     // correção de charter STALE: alvo não existe mas o ALIAS aponta pra um que existe
     if (alvo && !existsSync(join(repoRoot, alvo))) {
@@ -232,38 +239,42 @@ async function buildManifest({ staging, repoRoot }) {
       if (a && existsSync(join(repoRoot, a.alvo))) { alvo = a.alvo; via = (via || '') + '→alias(corrige stale)'; }
     }
 
-    // status + classe + tarefa
-    let status, classe = '—', tarefa, diff = '';
-    if (ambiguo) {
-      status = 'AMBIGUO';
-      tarefa = 'desambiguar: >1 alvo `/<dir>/Index.tsx` no repo — fixe via charter component/repo_alvo';
-    } else if (!alvo && isACriar(b)) {
-      status = 'A-CRIAR'; via = 'registro a-criar';
-      tarefa = 'tela nascente registrada (sem tela viva ainda) — vira SEMANTICO quando criada via MWART';
-    } else if (!alvo) {
-      status = 'ORFAO'; via = 'nenhum';
-      tarefa = 'RESOLVER: adicionar ALIAS ou charter com repo_alvo (gate falha até resolver)';
-    } else {
-      const alvoAbs = join(repoRoot, alvo);
-      classe = /\.jsx$/i.test(b) ? 'semântico' : 'diffável';
-      if (!existsSync(alvoAbs)) {
-        status = 'ALVO-PENDENTE';
-        tarefa = 'criar via MWART (alvo declarado não existe — ex: "a criar na F3" / nome errado)';
-      } else if (classe === 'semântico') {
-        status = 'SEMANTICO';
-        tarefa = 'Fase 1 → <tela>.map.json (mockup .jsx ≠ .tsx, diff textual = ruído)';
+    // Um único mockup pode representar várias views internas. Emite UMA linha por alvo,
+    // preservando a lista completa do que precisa receber aplicação semântica.
+    const candidatos = alvos?.length ? alvos : [alvo];
+    for (const alvoCandidato of candidatos) {
+      let status, classe = '—', tarefa, diff = '', viaCandidato = via;
+      if (ambiguo) {
+        status = 'AMBIGUO';
+        tarefa = 'desambiguar: >1 alvo `/<dir>/Index.tsx` no repo — fixe via charter component/repo_alvo';
+      } else if (!alvoCandidato && isACriar(b)) {
+        status = 'A-CRIAR'; viaCandidato = 'registro a-criar';
+        tarefa = 'tela nascente registrada (sem tela viva ainda) — vira SEMANTICO quando criada via MWART';
+      } else if (!alvoCandidato) {
+        status = 'ORFAO'; viaCandidato = 'nenhum';
+        tarefa = 'RESOLVER: adicionar ALIAS ou charter com repo_alvo (gate falha até resolver)';
       } else {
-        const A = ((await read(alvoAbs)) ?? '').replace(/\r/g, '');
-        const C = ((await read(f)) ?? '').replace(/\r/g, '');
-        if (A === C) { status = 'IDENTICO'; diff = '+0 -0'; tarefa = 'no-op'; }
-        else {
-          diff = numstat(alvoAbs, f);
-          status = 'ALTERADO';
-          tarefa = 'inspecionar delta — pode ser REGRIDE-SE-APLICAR (delta piora o vivo)';
+        const alvoAbs = join(repoRoot, alvoCandidato);
+        classe = /\.jsx$/i.test(b) ? 'semântico' : 'diffável';
+        if (!existsSync(alvoAbs)) {
+          status = 'ALVO-PENDENTE';
+          tarefa = 'criar via MWART (alvo declarado não existe — ex: "a criar na F3" / nome errado)';
+        } else if (classe === 'semântico') {
+          status = 'SEMANTICO';
+          tarefa = 'Fase 1 → <tela>.map.json (mockup .jsx ≠ .tsx, diff textual = ruído)';
+        } else {
+          const A = ((await read(alvoAbs)) ?? '').replace(/\r/g, '');
+          const C = ((await read(f)) ?? '').replace(/\r/g, '');
+          if (A === C) { status = 'IDENTICO'; diff = '+0 -0'; tarefa = 'no-op'; }
+          else {
+            diff = numstat(alvoAbs, f);
+            status = 'ALTERADO';
+            tarefa = 'inspecionar delta — pode ser REGRIDE-SE-APLICAR (delta piora o vivo)';
+          }
         }
       }
+      rows.push({ arquivo: relStaging, alvo: alvoCandidato || '—', via: viaCandidato, classe, status, diff, tarefa });
     }
-    rows.push({ arquivo: relStaging, alvo: alvo || '—', via, classe, status, diff, tarefa });
   }
   rows.sort((a, b) => a.status.localeCompare(b.status) || a.arquivo.localeCompare(b.arquivo));
   return rows;
@@ -289,7 +300,8 @@ async function run({ stagingArg, repoRoot, json, strict }) {
   const pendentes = rows.filter((r) => r.status === 'ALVO-PENDENTE');
 
   // ADVISORY estrutural: A-CRIAR com diretório vivo homônimo → suspeito de mapeamento perdido
-  const liveDirs = liveDirNames(await walk(join(repoRoot, 'resources', 'js', 'Pages')), repoRoot);
+  const repoPageFiles = (await Promise.all(raizesDePages(repoRoot).map((root) => walk(root)))).flat();
+  const liveDirs = liveDirNames(repoPageFiles, repoRoot);
   const suspeitos = rows
     .filter((r) => r.status === 'A-CRIAR' && liveDirs.has(acriarStem(r.arquivo)))
     .map((r) => ({ arquivo: r.arquivo, stem: acriarStem(r.arquivo) }));
@@ -333,10 +345,16 @@ async function selftest() {
     ['vendas-create (charter-less → ALIAS, P0 LOCK)', by(/vendas-create-page\.jsx$/), 'SEMANTICO'],
     ['vendas-page (via charter.component)',            by(/(^|\/)vendas-page\.jsx$/),  'SEMANTICO'],
     ['financeiro-page (via charter bundle_source, SEM alias)', by(/financeiro-page\.jsx$/), 'SEMANTICO'],
+    ['superadmin-page (charter em Modules/**/Pages)', by(/superadmin-page\.jsx$/), 'SEMANTICO'],
     ['mistero (sem charter nem alias → não some)',     by(/mistero-page\.jsx$/),       'ORFAO'],
     ['Conciliacao format-2 idêntico',                  by(/Conciliacao\/Index\.tsx$/), 'IDENTICO'],
     ['Caixa format-2 alterado',                        by(/Caixa\/Index\.tsx$/),       'ALTERADO'],
   ];
+  const superadminTargets = rows.filter((r) => /superadmin-page\.jsx$/.test(r.arquivo)).map((r) => r.alvo).sort();
+  const superadmin1nOk = superadminTargets.length === 2
+    && superadminTargets.includes('Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx')
+    && superadminTargets.includes('Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/Index.tsx');
+  if (!superadmin1nOk) console.log(`  [FAIL] superadmin-page 1:N perdeu alvo: ${JSON.stringify(superadminTargets)}`);
   // Q5: registro a-criar é não-cego (forja registrado ≠ mistero desconhecido)
   if (isACriar('forja-page.jsx') !== true) { console.log('  [FAIL] forja-page.jsx deveria ser A-CRIAR registrado'); }
   if (isACriar('mistero-page.jsx') !== false) { console.log('  [FAIL] mistero-page.jsx NÃO pode ser A-CRIAR (segue órfão-cego)'); }
@@ -358,6 +376,7 @@ async function selftest() {
             && memcofreModule('sem header') === null;
   if (!mcOk) console.log('  [FAIL] memcofreModule deveria extrair module de `:` E `=` (Caixa era falso AMBIGUO)');
   let fails = (isACriar('forja-page.jsx') ? 0 : 1) + (isACriar('mistero-page.jsx') ? 1 : 0) + (mcOk ? 0 : 1)
+            + (superadmin1nOk ? 0 : 1)
             + (finOutOfACriar ? 0 : 1) + (finSemAlias ? 0 : 1) + (guardOk ? 0 : 1);
   for (const [label, row, exp] of checks) {
     const got = row ? row.status : '(ausente)';

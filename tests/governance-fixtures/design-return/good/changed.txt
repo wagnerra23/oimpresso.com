@@ -1,0 +1,4 @@
+resources/js/Pages/Financeiro/Index.tsx
+prototipo-ui/DS_ADOCAO_INDICE.md
+prototipo-ui/SYNC_LOG.md
+prototipo-ui/HANDOFF.md

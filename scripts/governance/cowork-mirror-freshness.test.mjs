@@ -6,7 +6,7 @@
 // arte 2026-07-06-arte-design-code-sync-frescor (hash(normalizado) por PATH COMPLETO).
 // Os asserts de EOL/BOM e colisão-por-path existem porque a v1 NÃO os tinha e morreu por isso.
 // Roda: node scripts/governance/cowork-mirror-freshness.test.mjs
-import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync } from 'node:fs';
+import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
@@ -31,6 +31,7 @@ import {
   dsRuntimeRelPath,
   absentLocal,
   previewDsPlan,
+  materializePreviewDs,
   nasceSemMedicao,
   refsParaDeletado,
   unverifiedSince,
@@ -490,6 +491,12 @@ check('mesmo número → mesmo veredito (independe de --check)',
   check('previewDs: sem shell não inventa plano', previewDsPlan(null).arquivos.length === 0);
   check('previewDs: 2 design systems no shell = erro explícito, não escolha silenciosa',
     !!previewDsPlan('<link href="_ds/a/x.css"/><link href="_ds/b/y.css"/>').erro);
+  check('BITE previewDs: id `..` é recusado antes de montar paths',
+    /id inseguro/.test(previewDsPlan('<link href="_ds/../x.css"/>').erro || ''));
+  check('BITE previewDs: traversal no path do shell é recusado',
+    /referência insegura/.test(previewDsPlan('<link href="_ds/ds-ok/../../fora.css"/>').erro || ''));
+  check('BITE previewDs: traversal percent-encoded também é recusado',
+    /referência insegura/.test(previewDsPlan('<link href="_ds/ds-ok/%2e%2e/%2e%2e/fora.css"/>').erro || ''));
 }
 
 // 2ª CAMADA — o que os CSS pedem POR DENTRO (2026-08-14). Derivar o plano só do SHELL
@@ -671,6 +678,93 @@ check('mesmo número → mesmo veredito (independe de --check)',
   const fontOut = join(tmp, 'scripts', 'design-sync', 'mirror-snapshot', 'assets', 'fonts', 'x.woff2');
   check('FLUXO ds-runtime: base64 pousa no snapshot consumido pelo preview, byte-idêntico',
     expBin.code === 0 && existsSync(fontOut) && readFileSync(fontOut).equals(fontBytes), expBin.out);
+
+  rmSync(tmp, { recursive: true, force: true });
+}
+
+// ── MATERIALIZAÇÃO ATÔMICA DO CACHE `_ds` ────────────────────────────────────
+// Prova o contrato completo: sucesso reproduz bytes e remove órfãos; repetição é
+// idempotente; qualquer falha preserva integralmente o último cache bom.
+{
+  const tmp = mkdtempSync(join(tmpdir(), 'preview-ds-atomic-'));
+  const mirror = join(tmp, 'prototipo-ui', 'cowork');
+  const snap = join(tmp, 'scripts', 'design-sync', 'mirror-snapshot');
+  const dest = join(mirror, '_ds', 'ds-atomic');
+  mkdirSync(snap, { recursive: true });
+  mkdirSync(dest, { recursive: true });
+  writeFileSync(join(mirror, 'oimpresso.com.html'),
+    '<link href="_ds/ds-atomic/colors.css"><script src="_ds/ds-atomic/_ds_bundle.js"></script>');
+  writeFileSync(join(snap, 'colors.css'), "@font-face{src:url('assets/font.woff2')}\n:root{--ok:1}\n");
+  mkdirSync(join(snap, 'assets'), { recursive: true });
+  const fontV1 = Buffer.concat([Buffer.from('wOF2'), Buffer.from([0, 1, 2, 3])]);
+  writeFileSync(join(snap, 'assets', 'font.woff2'), fontV1);
+  writeFileSync(join(snap, '_ds_bundle.js'), 'globalThis.DesignSystem = { version: 1 };\n');
+  writeFileSync(join(dest, 'orfao-antigo.js'), 'não pode sobreviver');
+
+  const tree = (root) => {
+    const rows = [];
+    const walk = (dir, rel = '') => {
+      for (const name of readdirSync(dir).sort()) {
+        const abs = join(dir, name); const key = rel ? `${rel}/${name}` : name;
+        if (existsSync(abs) && readdirSyncSafe(abs)) walk(abs, key);
+        else rows.push([key, readFileSync(abs).toString('base64')]);
+      }
+    };
+    const readdirSyncSafe = (path) => { try { readdirSync(path); return true; } catch { return false; } };
+    if (existsSync(root)) walk(root);
+    return JSON.stringify(rows);
+  };
+  const cli = fileURLToPath(new URL('./cowork-mirror-freshness.mjs', import.meta.url));
+  const run = () => {
+    try { return { code: 0, out: execFileSync(process.execPath, [cli, '--preview-ds'], { cwd: tmp, encoding: 'utf8' }) }; }
+    catch (e) { return { code: e.status, out: String(e.stdout || '') + String(e.stderr || '') }; }
+  };
+
+  const first = run();
+  check('preview-ds sucesso materializa o grafo completo',
+    first.code === 0 && /PREVIEW COMPLETO/.test(first.out)
+      && readFileSync(join(dest, 'colors.css'), 'utf8').includes('--ok:1')
+      && readFileSync(join(dest, 'assets', 'font.woff2')).equals(fontV1), first.out);
+  check('fonte WOFF2 preserva magic e bytes do snapshot',
+    readFileSync(join(dest, 'assets', 'font.woff2')).subarray(0, 4).toString() === 'wOF2');
+  check('troca de diretório remove órfão do cache anterior', !existsSync(join(dest, 'orfao-antigo.js')));
+
+  const once = tree(dest);
+  const second = run();
+  check('segunda materialização é idempotente em conteúdo', second.code === 0 && tree(dest) === once);
+
+  writeFileSync(join(snap, 'colors.css'), "@font-face{src:url('assets/font.woff2')}\n:root{--ok:2}\n");
+  const updated = run();
+  check('snapshot novo substitui cache velho por inteiro',
+    updated.code === 0 && readFileSync(join(dest, 'colors.css'), 'utf8').includes('--ok:2'));
+
+  const goodCache = tree(dest);
+  writeFileSync(join(snap, 'colors.css'), "@font-face{src:url('assets/ausente.woff2')}\n:root{--quebrado:1}\n");
+  const missing = run();
+  check('dependência ausente sai 1 e preserva byte a byte o cache bom',
+    missing.code === 1 && tree(dest) === goodCache && /0 reposto/.test(missing.out), missing.out);
+
+  writeFileSync(join(snap, 'colors.css'), "@font-face{src:url('assets/font.woff2')}\n:root{--quebrado:2}\n");
+  writeFileSync(join(snap, '_ds_bundle.js'), 'const QUEBRADO = [{');
+  const invalid = run();
+  check('bundle inválido sai 1 sem substituir o bundle/cache bons',
+    invalid.code === 1 && tree(dest) === goodCache && /INVÁLIDO/.test(invalid.out), invalid.out);
+
+  writeFileSync(join(snap, 'colors.css'), "@import '../../../canario.css';\n");
+  check('BITE CSS: traversal via @import é recusado antes de I/O',
+    /referência CSS insegura/.test(previewDsPlan('<link href="_ds/ds-atomic/colors.css">', tmp).erro || ''));
+  writeFileSync(join(snap, 'colors.css'), ".x{src:url('../../../canario.woff2')}\n");
+  check('BITE CSS: traversal indireto via url() é recusado antes de I/O',
+    /referência CSS insegura/.test(previewDsPlan('<link href="_ds/ds-atomic/colors.css">', tmp).erro || ''));
+  writeFileSync(join(snap, 'colors.css'), "@import 'nested/more.css';\n");
+  mkdirSync(join(snap, 'nested'), { recursive: true });
+  writeFileSync(join(snap, 'nested', 'more.css'), "@import '../colors.css';\n.x{src:url('../assets/font.woff2')}\n");
+  const recursive = previewDsPlan('<link href="_ds/ds-atomic/colors.css">', tmp);
+  check('@import recursivo entra no grafo e ciclo termina sem duplicar',
+    recursive.arquivos.some((a) => a.nome === 'nested/more.css')
+      && recursive.arquivos.filter((a) => a.nome === 'colors.css').length === 1
+      && recursive.arquivos.filter((a) => a.nome === 'assets/font.woff2').length === 1);
+  check('materializador exportado é o dono único da publicação atômica', typeof materializePreviewDs === 'function');
 
   rmSync(tmp, { recursive: true, force: true });
 }

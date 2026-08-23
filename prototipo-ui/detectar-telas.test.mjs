@@ -32,6 +32,7 @@ import { readFileSync, existsSync, mkdtempSync, mkdirSync, writeFileSync } from 
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve, basename, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { raizesDePages } from '../scripts/qa/page-path.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)); // prototipo-ui/
 const REPO_ROOT = resolve(HERE, '..');
@@ -61,15 +62,16 @@ function frontmatter(src) {
 }
 function extractRepoPath(text) {
   if (!text) return null;
-  let m = text.match(/resources\/js\/Pages\/[\w./-]+\.tsx/);
+  const normalized = text.replace(/\\/g, '/');
+  let m = normalized.match(/(?:Modules\/[^/\s]+\/[Rr]esources|resources)\/js\/Pages\/[\w./-]+\.tsx/);
   if (m) return m[0];
-  m = text.match(/\b([A-Z][\w]+(?:\/[A-Z][\w]+)+)\b/);
+  m = normalized.match(/\b([A-Z][\w]+(?:\/[A-Z][\w]+)+)\b/);
   if (m) return `resources/js/Pages/${m[1]}.tsx`;
   return null;
 }
 function extractMockupFiles(text) {
   if (!text) return [];
-  const cleaned = text.replace(/resources\/js\/Pages\/[\w./-]+/g, ' ');
+  const cleaned = text.replace(/(?:Modules\/[^/\s]+\/[Rr]esources|resources)\/js\/Pages\/[\w./-]+/g, ' ');
   return [...cleaned.matchAll(/[\w.-]+\.jsx/g)].map((m) => m[0]).filter((t) => !/^index\.jsx$/i.test(t));
 }
 // alvo que o charter declara (mesma precedência do script: repo_alvo → component → page)
@@ -112,7 +114,7 @@ function parseAliasFromSource(srcPath) {
 
 // ── índice mockup→alvo a partir dos charters (mesma lógica do byMockup do script) ──
 function buildByMockup(roots) {
-  const byMockup = new Map(); // mockup .jsx → { alvo, charter }
+  const byMockup = new Map(); // mockup .jsx → list<{ alvo, charter }>
   for (const root of roots) {
     if (!existsSync(root)) continue;
     for (const cf of walk(root)) {
@@ -120,8 +122,15 @@ function buildByMockup(roots) {
       const fm = frontmatter(readFileSync(cf, 'utf8'));
       const alvo = charterAlvo(fm);
       if (!alvo) continue;
-      for (const mk of extractMockupFiles(fm.component)) {
-        if (!byMockup.has(mk)) byMockup.set(mk, { alvo, charter: cf });
+      for (const mk of [
+        ...extractMockupFiles(fm.component),
+        ...extractMockupFiles(fm.bundle_source),
+        ...extractMockupFiles(fm.visual_source),
+        ...extractMockupFiles(fm.related_prototype),
+      ]) {
+        const atuais = byMockup.get(mk) || [];
+        if (!atuais.some((x) => x.alvo === alvo)) atuais.push({ alvo, charter: cf });
+        byMockup.set(mk, atuais);
       }
     }
   }
@@ -134,13 +143,18 @@ function buildByMockup(roots) {
 // ─────────────────────────────────────────────────────────────────────────────
 {
   const fxStaging = join(HERE, 'fixtures', 'detectar-telas', 'staging');
-  const fxRepoPages = join(HERE, 'fixtures', 'detectar-telas', 'repo', 'resources', 'js', 'Pages');
-  const by = buildByMockup([fxStaging, fxRepoPages]);
-  const v = by.get('vendas-page.jsx');
+  const fxRepo = join(HERE, 'fixtures', 'detectar-telas', 'repo');
+  const by = buildByMockup([fxStaging, ...raizesDePages(fxRepo)]);
+  const v = by.get('vendas-page.jsx')?.[0];
   check('âncora: fixture Vendas.charter.md → vendas-page.jsx resolve Sells/Index',
     v && v.alvo === 'resources/js/Pages/Sells/Index.tsx', JSON.stringify(v));
   check('âncora: vendas-create-page.jsx NÃO tem charter (fica pro ALIAS, P0 lock)',
     !by.has('vendas-create-page.jsx'), JSON.stringify([...by.keys()]));
+  const sa = by.get('superadmin-page.jsx') || [];
+  check('âncora modular: charter em Modules/Superadmin resolve o alvo físico modular',
+    sa.length === 2
+      && sa.some((x) => x.alvo === 'Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx')
+      && sa.some((x) => x.alvo === 'Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/Index.tsx'), JSON.stringify(sa));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -151,7 +165,7 @@ check('source: ALIAS parseado (≥1 entry)', ALIAS.length >= 1, `len=${ALIAS.len
 
 // roots de charter pra cruzar: repo Pages sempre; staging só se passado por flag (bundle vive fora do repo).
 const stagingArg = (() => { const i = process.argv.indexOf('--staging'); return i >= 0 ? process.argv[i + 1] : null; })();
-const charterRoots = [join(REPO_ROOT, 'resources', 'js', 'Pages')];
+const charterRoots = raizesDePages(REPO_ROOT);
 if (stagingArg) {
   const st = existsSync(join(stagingArg, 'project')) ? join(stagingArg, 'project') : stagingArg;
   if (existsSync(st)) charterRoots.push(st);
@@ -166,13 +180,15 @@ for (const a of ALIAS) {
 }
 
 // B) nenhum charter contradiz o ALIAS no mesmo mockup
-for (const [mockup, { alvo: charterTarget, charter }] of byMockupReal) {
+for (const [mockup, declaracoes] of byMockupReal) {
   const a = ALIAS.find((x) => x.re.test(mockup));
   if (!a) continue; // mockup não-aliasado: charter é a única fonte, sem conflito possível
-  const charterRel = relative(REPO_ROOT, charter).replace(/\\/g, '/');
-  check(`B · charter concorda com ALIAS p/ ${mockup}`,
-    charterTarget === a.alvo,
-    `ALIAS diz ${a.alvo}, mas ${charterRel} (component:) resolve ${charterTarget} — DRIFT: as duas fontes do mesmo par discordam`);
+  for (const { alvo: charterTarget, charter } of declaracoes) {
+    const charterRel = relative(REPO_ROOT, charter).replace(/\\/g, '/');
+    check(`B · charter concorda com ALIAS p/ ${mockup}`,
+      charterTarget === a.alvo,
+      `ALIAS diz ${a.alvo}, mas ${charterRel} (component:) resolve ${charterTarget} — DRIFT: as duas fontes do mesmo par discordam`);
+  }
 }
 
 // C) FONTE ÚNICA (endurece B): o ALIAS é fallback SÓ pra mockup que NENHUM charter mapeia.
@@ -219,8 +235,10 @@ function mkRepo(charters) {
 // reproduz a regra B isolada contra 1 ALIAS sintético e 1 conjunto de charters
 function crossCheckB(repoRoot, aliasEntry) {
   const by = buildByMockup([join(repoRoot, 'resources', 'js', 'Pages')]);
-  for (const [mockup, { alvo }] of by) {
-    if (aliasEntry.re.test(mockup) && alvo !== aliasEntry.alvo) return { drift: true, mockup, alvo };
+  for (const [mockup, declaracoes] of by) {
+    for (const { alvo } of declaracoes) {
+      if (aliasEntry.re.test(mockup) && alvo !== aliasEntry.alvo) return { drift: true, mockup, alvo };
+    }
   }
   return { drift: false };
 }
