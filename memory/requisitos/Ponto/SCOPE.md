@@ -22,13 +22,15 @@ not_contains:
   - "MCP server admin → Modules/Forja"
 trust_required: L3
 owner: wagner
-permission_prefix: pontowr2.*
+permission_prefix: ponto.*
 charter_adr: 0080
 related_adrs:
   - 0079-constituicao-oimpresso-7-camadas-governanca
   - 0080-trust-tiers-operacional-audit-findings
 url_prefixes:
-  - /pontowr2/* (legacy preservada na Fase 3.7 PR-2 — rename PHP-only)
+  - /ponto/* (web · Modules/Ponto/Http/routes.php)
+  - /ponto/api/* (API Passport)
+  - /ponto/install/* (rotas de instalação do módulo)
 drift_alerts: []
 ---
 
@@ -36,7 +38,7 @@ drift_alerts: []
 
 ## Missão
 
-Ponto eletrônico Portaria 671/2021. Renomeado de PontoWr2 em Fase 3.7 PR-2 (2026-05-06) — rename PHP-only. URLs `/pontowr2/*`, permissions `pontowr2.*`, config keys e lang dir mantidas legacy.
+Ponto eletrônico Portaria 671/2021. Renomeado de PontoWr2 em Fase 3.7 PR-2 (2026-05-06) — rename PHP-only. **Config keys** (`config/pontowr2.php`, `pontowr2.ai.*`, `pontowr2.afd.*`) e **lang dir** (`pontowr2::ponto.*`) seguem legacy; as **URLs** são `/ponto/*` e as **permissions** são `ponto.*` — medido 2026-08-23 em `Http/routes.php` (3 prefixos) e `DataController::user_permissions()` (6 permissões); zero rota `/pontowr2/` e zero permission `pontowr2.` no módulo.
 
 ## Trust level
 
