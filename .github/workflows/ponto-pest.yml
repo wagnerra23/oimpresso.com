@@ -157,6 +157,16 @@ jobs:
         # isso nunca chegam ao manifesto G-7 (`casos-results-collect` lê o `name` do
         # `<testcase>`; método PHP não aceita hífen). Rodam verdes valendo 0 no painel.
         # Conversão deles é oportunística, não varredura em lote.
+        #
+        # PontoDashboardContratoTest (2026-08-23): trio da tela `Ponto/Dashboard/Index`
+        # (contrato de tela `ponto-painel`). Entra AQUI pela mesma razão do parágrafo do
+        # trio acima — arquivo fora desta lista existe e nunca roda por PR. Nasce em Pest
+        # `it()` com o UC no título, então conta no manifesto G-7 desde o 1º run.
+        # ⚠️ Os 2 testes de Dashboard PRÉ-EXISTENTES (DashboardTest ·
+        # DashboardDeferredContractTest) seguem FORA, e de propósito: `DashboardTest`
+        # afirma 6 chaves de KPI com assertEqualsCanonicalizing e o Controller passou a
+        # devolver 7 (`divergencias_mes`), logo entraria vermelho por dívida
+        # pré-existente. Conserto é chip à parte — mesma política do `ModuleManagerTest`.
         run: |
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
@@ -171,6 +181,7 @@ jobs:
             Modules/Ponto/Tests/Feature/ImportacaoIndexContratoTest.php \
             Modules/Ponto/Tests/Feature/ImportacaoCreateContratoTest.php \
             Modules/Ponto/Tests/Feature/IntercorrenciaContratoTest.php \
+            Modules/Ponto/Tests/Feature/PontoDashboardContratoTest.php \
             Modules/Ponto/Tests/Feature/ModuleSpecBranchPresenceTest.php
 
 
