@@ -42,6 +42,17 @@ uses(PontoTestCase::class);
  * real — ADR 0358 mantém a proibição sem exceção). Sem `RefreshDatabase`: a lane
  * `ponto-pest` proíbe (dropa o schema e limpa o seed).
  *
+ * ── Por que asserção do PHPUnit onde há MENSAGEM ───────────────────────────
+ * `toContain()` do Pest é VARIÁDICO (todo argumento é mais um needle) e
+ * `toHaveKey($k, $v)` toma o 2º argumento como VALOR esperado — em nenhum dos
+ * dois o 2º argumento é mensagem. Passar mensagem ali não dá erro de sintaxe:
+ * ela vira needle/valor e o assert reprova por um motivo que não é o do caso.
+ * Custou 4 vermelhos na run 32654078783 (UC-PTDASH-02/03/05/06), com o `.tsx`
+ * inteiro no diff da falha. Onde a asserção carrega mensagem, usamos
+ * `assertStringContainsString` / `assertArrayHasKey` / `assertContains`, cuja
+ * mensagem-por-último é contrato estável. Os `expect()` que ficaram usam só
+ * matchers cuja aceitação de mensagem está PROVADA por run verde nesta lane.
+ *
  * ── Limite honesto de alcance ──────────────────────────────────────────────
  * UC-PTDASH-01, -03 e -06 medem a apresentação por LEITURA ESTÁTICA do `.tsx`
  * (a resposta Inertia é JSON — a copy vive no componente, não no payload). Isso
@@ -130,8 +141,14 @@ function ptPainelCriarColaborador(int $businessId, int $userBusinessId): Colabor
     return $colab;
 }
 
-/** Marcação de ENTRADA hoje — alimenta `presentes_agora`, `presenca_agora` e o feed. */
-function ptPainelCriarMarcacaoHoje(Colaborador $colab, int $businessId): void
+/**
+ * Marcação de ENTRADA hoje — alimenta `presentes_agora`, `presenca_agora` e o feed.
+ *
+ * O id do autor entra por PARÂMETRO: `PontoTestCase::$admin` é `protected`, e
+ * função global não está no escopo da classe — `test()->admin` estoura
+ * "Cannot access protected property" (medido na run 32654078783, UC-PTDASH-02).
+ */
+function ptPainelCriarMarcacaoHoje(Colaborador $colab, int $businessId, int $autorId): void
 {
     $m = new Marcacao();
     $m->forceFill([
@@ -140,12 +157,12 @@ function ptPainelCriarMarcacaoHoje(Colaborador $colab, int $businessId): void
         'momento'               => now()->format('Y-m-d') . ' 08:00:00',
         'origem'                => Marcacao::ORIGEM_REP_P,
         'tipo'                  => Marcacao::TIPO_ENTRADA,
-        'usuario_criador_id'    => test()->admin->id,
+        'usuario_criador_id'    => $autorId,
     ])->save();
 }
 
 /** Intercorrência PENDENTE — alimenta `aprovacoes_pendentes` e a fila. */
-function ptPainelCriarIntercorrenciaPendente(Colaborador $colab, int $businessId): Intercorrencia
+function ptPainelCriarIntercorrenciaPendente(Colaborador $colab, int $businessId, int $autorId): Intercorrencia
 {
     $i = new Intercorrencia();
     $i->forceFill([
@@ -157,7 +174,7 @@ function ptPainelCriarIntercorrenciaPendente(Colaborador $colab, int $businessId
         'justificativa'         => PTPAINEL_MARCADOR . ' fixture',
         'estado'                => Intercorrencia::ESTADO_PENDENTE,
         'prioridade'            => 1,
-        'solicitante_id'        => test()->admin->id,
+        'solicitante_id'        => $autorId,
     ])->save();
 
     return $i;
@@ -241,19 +258,21 @@ it('UC-PTDASH-02 · nenhum dado de outro empregador entra no painel', function (
 
     // O MEU dado primeiro — sem ele, "o alheio não está" seria verdade por lista
     // vazia, não por isolamento (LC-13).
+    $autorId = $this->admin->id;
+
     $meu = ptPainelCriarColaborador($this->business->id, $this->business->id);
-    ptPainelCriarMarcacaoHoje($meu, $this->business->id);
-    ptPainelCriarIntercorrenciaPendente($meu, $this->business->id);
+    ptPainelCriarMarcacaoHoje($meu, $this->business->id, $autorId);
+    ptPainelCriarIntercorrenciaPendente($meu, $this->business->id, $autorId);
 
     $antes = ptPainelPartial(['kpis']);
     $antes->assertStatus(200);
     $kpisAntes = $antes->json('props.kpis');
-    expect($kpisAntes)->toBeArray('Os KPIs precisam chegar na passada partial — sem eles o caso não mede nada.');
+    $this->assertIsArray($kpisAntes, 'Os KPIs precisam chegar na passada partial — sem eles o caso não mede nada.');
 
     // Agora nasce o adversário: mesmo dia, mesmas superfícies, OUTRO empregador.
     $alheio = ptPainelCriarColaborador($bizAlheio, $this->business->id);
-    ptPainelCriarMarcacaoHoje($alheio, $bizAlheio);
-    ptPainelCriarIntercorrenciaPendente($alheio, $bizAlheio);
+    ptPainelCriarMarcacaoHoje($alheio, $bizAlheio, $autorId);
+    ptPainelCriarIntercorrenciaPendente($alheio, $bizAlheio, $autorId);
 
     $depois = ptPainelPartial(['kpis', 'presenca_agora', 'atividade_recente', 'aprovacoes']);
     $depois->assertStatus(200);
@@ -266,18 +285,18 @@ it('UC-PTDASH-02 · nenhum dado de outro empregador entra no painel', function (
 
     // (b) Presença ao vivo.
     $presenca = collect($depois->json('props.presenca_agora') ?? [])->pluck('id')->all();
-    expect($presenca)->toContain($meu->id, 'O meu colaborador tem de estar na presença — senão o caso não exerceu isolamento.');
-    expect($presenca)->not->toContain($alheio->id, 'Colaborador de OUTRO empregador não pode aparecer na presença ao vivo.');
+    $this->assertContains($meu->id, $presenca, 'O meu colaborador tem de estar na presença — senão o caso não exerceu isolamento.');
+    $this->assertNotContains($alheio->id, $presenca, 'Colaborador de OUTRO empregador não pode aparecer na presença ao vivo.');
 
     // (c) Feed de atividade.
     $feed = collect($depois->json('props.atividade_recente') ?? [])->pluck('colaborador.id')->all();
-    expect($feed)->toContain($meu->id, 'A marcação do meu colaborador tem de estar no feed — pré-condição do caso.');
-    expect($feed)->not->toContain($alheio->id, 'Marcação de OUTRO empregador não pode aparecer no feed de atividade.');
+    $this->assertContains($meu->id, $feed, 'A marcação do meu colaborador tem de estar no feed — pré-condição do caso.');
+    $this->assertNotContains($alheio->id, $feed, 'Marcação de OUTRO empregador não pode aparecer no feed de atividade.');
 
     // (d) Fila de aprovações.
     $fila = collect($depois->json('props.aprovacoes') ?? [])->pluck('colaborador.id')->all();
-    expect($fila)->toContain($meu->id, 'A intercorrência do meu colaborador tem de estar na fila — pré-condição do caso.');
-    expect($fila)->not->toContain($alheio->id, 'Intercorrência de OUTRO empregador não pode aparecer na fila de aprovações.');
+    $this->assertContains($meu->id, $fila, 'A intercorrência do meu colaborador tem de estar na fila — pré-condição do caso.');
+    $this->assertNotContains($alheio->id, $fila, 'Intercorrência de OUTRO empregador não pode aparecer na fila de aprovações.');
 });
 
 it('UC-PTDASH-03 · fila vazia continua visível, com a frase de vazio', function () {
@@ -298,13 +317,13 @@ it('UC-PTDASH-03 · fila vazia continua visível, com a frase de vazio', functio
     $src  = ptPainelFonteDaPage();
 
     foreach ($copy as $frase) {
-        expect($src)->toContain($frase,
+        $this->assertStringContainsString($frase, $src,
             "A copy \"{$frase}\" está no contrato §painel-fila-aprovacoes e sumiu da tela. "
             . 'O empty state é estado declarado (`vazio`), não ausência — "lista vazia devolve nada" apaga o aviso junto.'
         );
     }
 
-    expect($src)->toContain('data-contract="painel-fila-aprovacoes"',
+    $this->assertStringContainsString('data-contract="painel-fila-aprovacoes"', $src,
         'A âncora da fila precisa existir mesmo no estado vazio — é ela que o gate `contrato-de-tela` vigia.'
     );
 });
@@ -349,7 +368,7 @@ it('UC-PTDASH-05 · o polling recarrega só props de leitura', function () {
     $props = $resp->json('props') ?? [];
 
     foreach (PTPAINEL_PROPS_POLLING as $prop) {
-        expect($props)->toHaveKey($prop,
+        $this->assertArrayHasKey($prop, $props,
             "A prop '{$prop}' está no `only` do polling e não chegou. Prop pedida que não resolve "
             . 'deixa a tela em skeleton eterno (RUNBOOK-inertia-defer-pattern §3).'
         );
@@ -357,7 +376,7 @@ it('UC-PTDASH-05 · o polling recarrega só props de leitura', function () {
 
     // Aqui a AUSÊNCIA É o contrato (`Inertia::defer`), não proxy de valor: a prop
     // fora do `only` não pode viajar, senão o ciclo de 30s vira carga cheia.
-    expect($props)->not->toHaveKey('serie_7dias',
+    $this->assertArrayNotHasKey('serie_7dias', $props,
         'O polling trouxe `serie_7dias`, que não está no `only`. O defer parou de pular a closure '
         . 'não pedida — 120 requisições/hora passam a pagar o groupBy de 7 dias à toa.'
     );
@@ -366,7 +385,7 @@ it('UC-PTDASH-05 · o polling recarrega só props de leitura', function () {
     // passaria com a rota quebrada devolvendo props vazio.
     $comSerie = ptPainelPartial(['serie_7dias']);
     $comSerie->assertStatus(200);
-    expect($comSerie->json('props'))->toHaveKey('serie_7dias',
+    $this->assertArrayHasKey('serie_7dias', $comSerie->json('props') ?? [],
         '`serie_7dias` não chega nem quando pedida — aí a ausência acima não provava defer, provava rota quebrada.'
     );
 });
@@ -401,7 +420,7 @@ it('UC-PTDASH-06 · a nota de fechamento fica acima dos KPIs, nos 3 estados', fu
     // O estado `sem-pendencia` é DECLARADO: no dia limpo a nota informa que pode
     // consolidar — ela não desaparece. Sem este assert, uma tela que só renderiza
     // a nota quando há pendência passaria nos asserts de ordem acima.
-    expect($src)->toContain('consolidar',
+    $this->assertStringContainsString('consolidar', $src,
         'O contrato declara o estado `sem-pendencia`. A nota tem de falar também quando NÃO há nada '
         . 'travando ("a competência pode consolidar") — sumir no dia limpo é regressão, não conformidade.'
     );

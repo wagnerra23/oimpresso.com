@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: o painel é a porta do módulo — o que ele deixa de mostrar (divergência, fila parada) vira mês fechado errado; o que ele mostra a mais vira vazamento entre empregadores.
 owner: wagner
 last_run: "2026-08-23"
-last_run_ci: "6 UC escritos e ligados à lane nesta data; veredito por UC NÃO coletado — status segue 🧪. Pest não roda local (proibicoes.md §Ambiente · ADR 0062) e o CT 100 foi MEDIDO e recusado como oráculo: o checkout do container `oimpresso-staging` está em c01ee7615, 146 commits atrás do HEAD deste PR (`git rev-list --left-right --count` = 0 exclusivos do lado dele), e `grep -c divergencias_mes DashboardController.php` lá devolve 0 — ou seja, o Dashboard de lá é anterior ao F3 do contrato (#6114), sem as âncoras que UC-PTDASH-01/03/06 leem. Rodar ali daria vermelho sobre OUTRO código; adiantar o container exigiria git pull sobre trabalho não-commitado de outra sessão, o que não é meu ato. O veredito é da lane `PHP / Pest (Ponto · MySQL)`, que faz checkout fresco."
+last_run_ci: "Run 32654078783 (lane `PHP / Pest (Ponto · MySQL)`, 2026-08-23): a lane inteira deu **4 failed · 56 passed (241 assertions)**, e as 4 falhas eram TODAS deste arquivo novo — os 11 arquivos pré-existentes passaram. UC-PTDASH-01 e -04 passaram e ficam ✅ (não foram tocados depois). As outras 4 reprovaram por DEFEITO DO TESTE, não do produto: (a) `test()->admin` acessa propriedade `protected` de PontoTestCase a partir de função global → Error em UC-PTDASH-02; (b) `toContain()` do Pest é variádico e `toHaveKey($k,$v)` toma o 2º argumento como VALOR — passei mensagem nos dois, então a mensagem virou needle/valor e o assert reprovou por motivo alheio ao caso (UC-PTDASH-03/05/06). Corrigido no mesmo PR trocando por assertStringContainsString/assertArrayHasKey/assertContains (mensagem-por-último é contrato estável) e passando o id do autor por parâmetro. Os 4 voltam a 🧪 até a próxima run publicar."
 ---
 
 # Casos de Uso & Aceite — Painel do Ponto
@@ -31,10 +31,10 @@ last_run_ci: "6 UC escritos e ligados à lane nesta data; veredito por UC NÃO c
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-PTDASH-01 | Os 6 KPIs aparecem na ordem e com a copy do contrato | must | contrato §`painel-kpis` | `PontoDashboardContratoTest` | 🧪 sem veredito |
+| UC-PTDASH-01 | Os 6 KPIs aparecem na ordem e com a copy do contrato | must | contrato §`painel-kpis` | `PontoDashboardContratoTest` | ✅ verde (run 32654078783) |
 | UC-PTDASH-02 | Nenhum dado de outro empregador entra no painel | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `PontoDashboardContratoTest` | 🧪 sem veredito |
 | UC-PTDASH-03 | Fila vazia continua visível, com a frase de vazio | must | contrato §`painel-fila-aprovacoes` estado `vazio` | `PontoDashboardContratoTest` | 🧪 sem veredito |
-| UC-PTDASH-04 | O painel é read-only — nenhuma escrita parte dele | must `[T0]` | charter §Anti-hooks + `CU-PONTO-13` | `PontoDashboardContratoTest` | 🧪 sem veredito |
+| UC-PTDASH-04 | O painel é read-only — nenhuma escrita parte dele | must `[T0]` | charter §Anti-hooks + `CU-PONTO-13` | `PontoDashboardContratoTest` | ✅ verde (run 32654078783) |
 | UC-PTDASH-05 | O polling recarrega só props de leitura | must | charter §Automation hooks | `PontoDashboardContratoTest` | 🧪 sem veredito |
 | UC-PTDASH-06 | A nota de fechamento fica acima dos KPIs, nos 3 estados | must | contrato §`painel-nota-fechamento` + `ordem` | `PontoDashboardContratoTest` | 🧪 sem veredito |
 
@@ -65,7 +65,7 @@ last_run_ci: "6 UC escritos e ligados à lane nesta data; veredito por UC NÃO c
 - **Nota de método:** este UC é medido no `.tsx` de propósito — é o único dos 6 cujo objeto **é** a
   camada de apresentação (copy e ordem visual). Não é derivar do código: o oráculo é o contrato, e o
   `.tsx` é o material sob teste. Os outros 5 se medem por comportamento HTTP.
-- **Status: 🧪 sem veredito.**
+- **Status: ✅ verde** na run 32654078783 da lane `PHP / Pest (Ponto · MySQL)`.
 
 ---
 
@@ -127,7 +127,7 @@ last_run_ci: "6 UC escritos e ligados à lane nesta data; veredito por UC NÃO c
 - **Regressão que defende:** um "atalho de conveniência" (bater ponto direto do painel, aprovar inline)
   é exatamente o tipo de feature que parece boa e viola o Non-Goal. O caso mede **efeito**
   (contagem antes→depois) além do verbo, porque rota `GET` também pode escrever.
-- **Status: 🧪 sem veredito.**
+- **Status: ✅ verde** na run 32654078783 — o painel não escreveu e recusou os 4 verbos de escrita.
 
 ---
 
