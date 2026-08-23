@@ -159,14 +159,21 @@ jobs:
         # Conversão deles é oportunística, não varredura em lote.
         #
         # PontoDashboardContratoTest (2026-08-23): trio da tela `Ponto/Dashboard/Index`
-        # (contrato de tela `ponto-painel`). Entra AQUI pela mesma razão do parágrafo do
-        # trio acima — arquivo fora desta lista existe e nunca roda por PR. Nasce em Pest
-        # `it()` com o UC no título, então conta no manifesto G-7 desde o 1º run.
+        # (contrato `ponto-painel`, UC-PAINEL-01..06), landado pelo #6154. Aquele PR
+        # escreveu o trio mas NÃO pôde ligá-lo aqui — editar este arquivo estava fora do
+        # prefixo dele, e o próprio casos.md registra a pendência. Sem esta linha o teste
+        # é "verde impossível": existe em main e nunca roda por PR. É só isso que este PR
+        # acrescenta ao #6154.
+        # Recibo de que ele passa (medição do #6154, não afirmação): 6 passed · 76
+        # assertions · 0 skipped no CT 100, mais bite-test do guard Tier 0 — com o filtro
+        # `business_id` removido de `buildAprovacoes`, SÓ o UC-PAINEL-02 reprovou.
         # ⚠️ Os 2 testes de Dashboard PRÉ-EXISTENTES (DashboardTest ·
         # DashboardDeferredContractTest) seguem FORA, e de propósito: `DashboardTest`
         # afirma 6 chaves de KPI com assertEqualsCanonicalizing e o Controller passou a
-        # devolver 7 (`divergencias_mes`), logo entraria vermelho por dívida
-        # pré-existente. Conserto é chip à parte — mesma política do `ModuleManagerTest`.
+        # devolver 7 (`divergencias_mes` entrou no #6114), logo entraria vermelho por
+        # dívida pré-existente — medido 2026-08-23, nunca executado por lane nenhuma
+        # (`modules-pest.yml` não cobre Ponto). Conserto é chip à parte, mesma política
+        # do `ModuleManagerTest`.
         run: |
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
