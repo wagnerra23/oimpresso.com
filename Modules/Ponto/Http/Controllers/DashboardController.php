@@ -49,10 +49,14 @@ class DashboardController extends Controller
     }
 
     /**
-     * KPIs cards — 6 queries aggregate (count/sum). Wave 25 extraído pra closure
+     * KPIs cards — queries aggregate (count/sum). Wave 25 extraído pra closure
      * `Inertia::defer` (RUNBOOK-inertia-defer-pattern.md).
      *
-     * @return array<string,int>
+     * O tipo deixou de ser `array<string,int>` quando `ultima_marcacao` entrou: ela é
+     * `?string` (H:i, ou null se ainda não houve marcação hoje). Alargar o docblock é o
+     * conserto — o contrário seria fingir que o retorno é homogêneo pra calar o analisador.
+     *
+     * @return array<string,int|string|null>
      */
     private function buildKpis(int $businessId, string $hoje): array
     {
