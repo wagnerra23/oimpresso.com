@@ -1162,3 +1162,49 @@
 - **⚠️ NÃO virar gate:** o predicado é *"você escolheu a rota certa para este caso?"* — semântico por construção ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md)), e a família sintática já tem 4 lápides medidas neste §5. A defesa é o ponteiro no instrumento + esta lápide.
 - **Dívida em aberto (decisão [W]):** os 10 arquivos de #6123 seguem `NAO PROVADA` em `main`. O `_lotes` do PR irmão #6121 já prescreve o caminho — *"reaplicar por `aplicar-payload.mjs` e SUBSTITUIR"* —, o que converteria os 10 para verificado. Não feito nesta sessão.
 - **Origem:** sessão 2026-08-21, [W]: *"não pode ter dois protocolo em conflito documente por favor"*.
+
+### 2026-08-23 — `git cat-file -e <ref>:<path>` responde "não existe" para todo path que começa com `.` — e o diagnóstico que eu ia registrar ("clone parcial") era FALSO
+
+> **Recibo-instância de [LC-08]** (*derivar/medir a partir da FONTE ou MEDIDA errada*), não regra nova. O que esta acrescenta ao dado da classe: **a lápide quase nasceu com a causa errada**. O sintoma foi medido certo, o mecanismo foi adivinhado — e a redação adivinhada teria ensinado o reflexo **oposto** ao que salva.
+
+- **O que foi tentado (near-miss, sessão de limpeza de worktrees):** decidir *"este worktree tem conteúdo único ou é redundante?"* testando existência de cada arquivo em `origin/main` com `git cat-file -e "origin/main:$P"`. Um dos 9 paths — [`.claude/agents/documentacao-sistema.md`](../.claude/agents/documentacao-sistema.md) — deu rc≠0, e eu concluí *"só existe no worktree"*. O `git ls-tree origin/main -- "$P"` devolveu **1 linha**: existe em `main` desde `fbf618d2` (2026-08-03). Dois instrumentos, o **mesmo** ref, o **mesmo** checkout, vereditos opostos.
+
+- **A causa que eu ia escrever, e por que ela é falsa** — a 1ª redação dizia *"num clone parcial o blob não foi baixado, então `cat-file` sai != 0 e o script lê como ausência"*, com a checagem barata sendo `git rev-parse --is-shallow-repository`. **Medido antes de escrever, e as três pernas derrubam:**
+
+  | sonda | resultado |
+  |---|---|
+  | `git rev-parse --is-shallow-repository` (worktree **e** repo principal) | **`false`** |
+  | `.git/shallow` · `extensions.partialclone` · `remote.origin.promisor` | **inexistentes** |
+  | `git cat-file -s c1df1b93…` (o blob "que não teria descido") | **`14658`** — está local |
+
+  Se eu tivesse registrado aquilo, a próxima sessão rodaria `--is-shallow-repository`, leria **`false`**, concluiria *"não é raso, logo o `cat-file` é confiável"* e bateria na **mesma** parede — com a lápide dando cobertura. Anti-padrão inventado é pior que ausente, porque parece canon (§5 2026-07-16).
+
+- **A causa REAL, e ela é seletiva — que é exatamente por que passa despercebida:** **MSYS path mangling** no Git Bash/Windows. O `:` vira `;` e as `/` viram `\`, então o git recebe um nome de objeto que não existe e sai **rc=128**:
+
+  ```
+  fatal: Not a valid object name origin\main;.claude\agents\documentacao-sistema.md
+  ```
+
+  O gatilho é **o path começar com ponto**. Medido, mesma sessão, mesmo checkout:
+
+  | path | `cat-file -e` | `ls-tree` |
+  |---|---|---|
+  | `memory/proibicoes.md` · `CLAUDE.md` · `scripts/governance/sec5-derive.mjs` · `prototipo-ui/PROTOCOL.md` | **rc=0** ✓ | 1 |
+  | `.claude/agents/documentacao-sistema.md` · `.github/workflows/governance-gate.yml` · `.mcp.json` | **rc=128** ✗ | 1 |
+  | `nao-existe-mesmo.md` (controle negativo) | rc=128 | **0** |
+
+  Prova de que é transporte e não ausência: `MSYS_NO_PATHCONV=1 git cat-file -e "origin/main:.claude/agents/documentacao-sistema.md"` → **rc=0**. O `ls-tree` escapa porque sua sintaxe é `<ref> -- <path>` — **ref e path são argumentos separados**, não há `:` pra mangler.
+
+- **Por que o instrumento é confiável o bastante pra enganar:** ele acerta em **97,5%** do repo. Sob dot-dir vivem **419 de 16.706** arquivos versionados (2,5%) — e, per §5 2026-07-30, essa fatia é ~toda a população de máquina do projeto (workflows, hooks, skills, agents). **O `cat-file` mente exatamente sobre a superfície de governança.** É a mesma cegueira do `rg` sem `--hidden` daquela lápide, por outro instrumento.
+
+- **O mecanismo fino (e é o que generaliza):** `cat-file -e` **usa o exit code como resposta** — rc=1 significa, legitimamente, *"não existe"*. Um rc=**128** (erro de execução) entra no mesmo `if` e vira a mesma conclusão. É a família de §5 2026-07-31 (`git grep -F` com `\E`: rc=128 + zero linhas lido como "sem ocorrências") e de §5 2026-08-01 (saída plausível de comando que não rodou): **erro de execução travestido de evidência negativa**, agora num comando cuja API *é* o exit code, o que apaga a distinção por construção.
+
+- **O sintoma real, contado com honestidade:** dos 9 paths testados, **1 inverteu**. Mas a taxa engana pra menos — o `cat-file` deu falso-negativo em **todos** os paths dotados que testei; só *importou* naquele que de fato existia. Nos demais, os dois instrumentos concordavam em "não existe" **por motivos diferentes**, e a concordância acidental é o que fez o instrumento parecer são.
+
+- **O limite (variante também proibida):** não usar a forma `<ref>:<path>` do git — `cat-file -e|-p|-s`, `show`, `grep <ref>:<path>` — em Git Bash/MSYS **quando o path começa com ponto**; ali ela devolve **falso "não existe"**, não o conteúdo. Para existência-no-ref o instrumento é **`git ls-tree <ref> -- <path>`** (ref e path separados, imune); para conteúdo, `git show` com **`MSYS_NO_PATHCONV=1`** ou `git checkout <ref> -- <path>`. E a regra que vale além do `:` — **comando cuja API é o exit code precisa distinguir rc-de-ausência de rc-de-erro antes de virar veredito**: `cat-file -e` responde ausência com **1**; qualquer outro rc é falha de execução e não pode ser lido como resposta.
+
+- **Corolário barato, e é o que teria pego:** quando dois instrumentos discordam sobre o **mesmo** ref no **mesmo** checkout, o suspeito é o **transporte do argumento**, não o estado do repositório — rode o controle positivo (`MSYS_NO_PATHCONV=1`, ou o hash cru) antes de formular teoria sobre clone, fetch ou history. Custou dois comandos; a teoria errada teria custado uma lápide invertida.
+
+- **Sobre virar máquina (MEDIDO, registrado, NÃO armado — [ADR 0344](decisions/0344-two-strikes-cobre-processo.md) two-strikes: 1ª ocorrência conserta e registra):** o dono natural **não** é o `block-instrumento-sem-porta-viva` (que trata "existe porta viva melhor?"), e sim [**`block-sonda-que-mente`**](../.claude/hooks/block-sonda-que-mente.mjs), cuja carta é literalmente *"comando que RODA, devolve saída PLAUSÍVEL, e a saída está errada"* — esta instância é isso. Par candidato **P5**: morder `git (cat-file|show) <ref>:.<dotpath>` **sem** `MSYS_NO_PATHCONV`, e só em plataforma MSYS — **duas pernas determinísticas**, FP 0 por construção (no Linux do CI nunca morde; com o escape nunca morde). **População medida no corpus real** (894 transcripts, 67.025 comandos `tool_use` de Bash/PowerShell, nunca prosa): **471 brutos**, dos quais **278 já usam o escape corretamente** → **193 líquidos = 0,288%**, a mesma banda dos pares já instalados no hook (P3 0,072% · P4 0,296%). Fica no `Gate:` do LC-08 pra a 2ª ocorrência nascer com o trabalho pronto.
+
+- **Origem:** sessão 2026-08-23, limpeza de worktrees. Achado meu, near-miss — a decisão que dependia dele era preservar/descartar conteúdo de worktree, então o instrumento errado teria feito eu **preservar lixo** (benigno) ou **descartar conteúdo único** (não). O registro do ledger é do agente; [W] decide só soberania (merge).

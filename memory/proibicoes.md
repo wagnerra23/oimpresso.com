@@ -851,6 +851,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** ao escolher **como** trazer conteúdo de sistema externo pro repo, a decisão sai do **dono da hierarquia** (aqui: `protocolo.config.mjs` fase `-1`), **nunca** da lista de comandos que um instrumento imprime — instrumento lista *o que ele mesmo faz*, e isso não é o mesmo que *qual rota é a certa*. E o sintoma que fecha o diagnóstico: **se você concluiu "não há rota fiel para estes arquivos", está na rota errada** — é limite do **transporte**, não do problema.
 
+### 2026-08-23 — `git cat-file -e <ref>:<path>` responde "não existe" para todo path que começa com `.` — e o diagnóstico que eu ia registrar ("clone parcial") era FALSO
+
+- **O limite (variante também proibida):** não usar a forma `<ref>:<path>` do git — `cat-file -e|-p|-s`, `show`, `grep <ref>:<path>` — em Git Bash/MSYS **quando o path começa com ponto**; ali ela devolve **falso "não existe"**, não o conteúdo. Para existência-no-ref o instrumento é **`git ls-tree <ref> -- <path>`** (ref e path separados, imune); para conteúdo, `git show` com **`MSYS_NO_PATHCONV=1`** ou `git checkout <ref> -- <path>`. E a regra que vale além do `:` — **comando cuja API é o exit code precisa distinguir rc-de-ausência de rc-de-erro antes de virar veredito**: `cat-file -e` responde ausência com **1**; qualquer outro rc é falha de execução e não pode ser lido como resposta.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
