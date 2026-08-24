@@ -1102,8 +1102,14 @@ function ProdutoUnificadoIndex({
 
                         "Repor" só aparece quando é maior que zero: com o catálogo em dia, um
                         "R$ 0,00" permanente treina o olho a ignorar a faixa justamente onde
-                        ela vai gritar no dia em que houver o que repor. */}
-                    {totaisDoRecorte && (
+                        ela vai gritar no dia em que houver o que repor.
+
+                        E a faixa INTEIRA some quando o recorte não tem linha — visto no diff de
+                        pixel do PR #6171, que fotografou a tela vazia imprimindo
+                        "Valor em estoque R$ 0,00" ao lado de "Nenhum registro". Somar dinheiro de
+                        zero produtos não responde pergunta nenhuma; é a mesma razão do parágrafo
+                        acima, que eu tinha aplicado só ao "Repor". */}
+                    {totaisDoRecorte && total > 0 && (
                       <Inline gap={3} wrap className="gap-x-3.5 gap-y-1" align="baseline">
                         <Inline gap={1} align="baseline" className="gap-1.5">
                           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
