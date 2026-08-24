@@ -82,10 +82,26 @@ rota. Resultado por fila, nunca no request. Nada é escrito.
   **só** para `bucket = sensitive` **com titular identificado**.
 - Avisar **não apaga nada** — cumpre o prazo de aviso e grava a linha na trilha.
 
-**PR-10 — purge atrás de portão.** Só se [W] responder que a UI pode purgar. Exige,
-cumulativamente: `purge = true` + `dry_run = false` + `motivo` ≥ 10 caracteres (a Request já
-cobra) + confirmação dupla na UI + permissão de governança + registro `hard_delete` na trilha +
-onda 2 mergeada + lane verde + screenshot aprovado por [W].
+**PR-10 — purge atrás de portão. É o ÚNICO dos três que apaga.**
+[W] escolheu em 2026-08-24 a *"onda 3 inteira"*, então o purge está **dentro do escopo** — o
+que esta ADR fixa não é *se* pode, é *sob que portão*. Exige, cumulativamente: `purge = true`
++ `dry_run = false` + `motivo` ≥ 10 caracteres (a Request já cobra) + confirmação dupla na UI
++ permissão de governança + registro `hard_delete` na trilha + onda 2 mergeada + lane verde +
+screenshot aprovado por [W].
+
+> Recuar disso na cunhagem continua sendo prerrogativa de [W] — mas o default escrito aqui é
+> o que ele já respondeu, não uma pergunta reaberta.
+
+### Resumo de quem apaga o quê (pra não restar dúvida)
+
+| | Apaga o arquivo? | Recuperável? |
+|---|---|---|
+| PR-8 simular (`dry_run` forçado) | não | — |
+| PR-9 aviso ao titular | não | — |
+| PR-10 purge | **sim** | não |
+| soft-delete da onda 2 (PR-7) | não — marca `deleted_at` | sim, no grace de 30d |
+| `RetentionCleanupCommand` (hoje, manual) | **sim** (`strategy = hard_delete`) | não |
+| `arquivos_audit_log` (a trilha) | **nunca**, em cenário nenhum | — |
 
 ## As guardas que valem em qualquer cenário aprovado
 
@@ -103,7 +119,8 @@ onda 2 mergeada + lane verde + screenshot aprovado por [W].
 ## Decisões que [W] fecha ao cunhar (ou rejeitar)
 
 1. **A distinção acima vale?** Arquivos sai do alcance da lápide de 2026-07-27, ou não?
-2. **A UI pode purgar (PR-10)?** Ou hard-delete continua exclusivo do comando?
+2. ~~A UI pode purgar (PR-10)?~~ — **já respondido em 2026-08-24: sim, onda 3 inteira.** Fica
+   aqui só como registro. O que a cunhagem fixa é o portão (ver PR-10 acima), não o *se*.
 3. **Papel de governança:** `arquivos.access` basta para retenção/cofre/trilha, ou purge e aviso
    exigem uma segunda permissão (`arquivos.governanca`)? — medido: `arquivos.access` tem hoje
    **1 ocorrência no repo inteiro**, que é a própria declaração em `DataController:36`; zero
