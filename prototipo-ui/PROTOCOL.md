@@ -53,6 +53,27 @@ Na **v2** ([ADR 0282](../memory/decisions/0282-protocolo-v2-colapso-ratificacao.
 
 `[CD]` e `[CA]` podem ser a mesma instância de Claude Code rodando skills do plugin Anthropic. `[CC]` é separado (Cowork web app).
 
+### 1.1 Contrato de entrega do handoff — o que o Design manda e ONDE cada peça pousa
+
+> **Inserido 2026-08-24.** [W]: *"padronize o que o Design tem que criar pra ter melhor comunicação — estrutura de pastas e arquivos, como devem ser os PRs, e quem faz isso"*. O §1 acima é v2-morto no eixo "quem gera" (ver §0.1); esta subseção fecha o eixo que faltava: **qual artefato, em qual path**. Derivada do que o handoff de fato entregou (export 2026-08-24, 16 pastas de módulo medidas), não de preferência.
+
+**Quem abre o PR: `[CC]`, sempre.** Não é escolha — é o §0.1. O Design é **fonte**, nunca executor de merge; `[W]` aprova o merge (Tier 0). Pedir ao Design que "abra o PR" reintroduz o anti-padrão de tratar design como dependência externa.
+
+**As 4 peças, e onde cada uma pousa:**
+
+| # | peça | destino no repo | regra dura |
+|---|---|---|---|
+| 1 | protótipo `.jsx` / `.css` / `.html` | `prototipo-ui/cowork/<arquivo>` — **RAIZ, plano** | o shell referencia plano (`src="fiscal-page.jsx"`): 236 de 247 deps sem `/`. Pasta de módulo **quebra o render** e gera divergência falsa na próxima sync |
+| 2 | `<Tela>.charter.md` + `<Tela>.casos.md` | staging `prototipo-ui/design-docs/`, aplicado depois **ao lado do `.tsx`** | é o par mais consistente do handoff (todos os 16 módulos medidos entregam) |
+| 3 | `<tela>.contract.json` | `prototipo-ui/contrato/` | entregue por 7 dos 16 — o elo mais fraco |
+| 4 | `PEDIDO-CL-*.md` / `PEDIDO-CODE.md` | `prototipo-ui/design-docs/` | é o que dispara a leitura; sem ele o pacote fica parado no staging |
+
+**A âncora é PLANA — esta é a regra que mais falhou.** No `related_prototype` do charter, o valor é `prototipo-ui/cowork/<arquivo>`, **nunca** `prototipo-ui/cowork/<módulo>/<arquivo>`. Medido em 2026-08-24: **30 charters do staging** apontavam com pasta de módulo (`cowork/ponto/ponto-telas.jsx`) e o arquivo está plano (`cowork/ponto-telas.jsx`) — 23 quebradas, 13 delas só do Ponto. As pastas `cowork/ponto/`, `cowork/venda-menu/`, `cowork/modulos/`, `cowork/relatorios/` **não existem no espelho e nunca existiram**. O espelho é plano porque o export do Cowork é plano.
+
+**Lacunas medidas no handoff atual** (o que "melhor comunicação" significa em número): `fiscal` e `venda-menu` entregam charter+casos e **zero contrato**; `essenciais`, `venda-menu` e `produto-telas-novas` entregam **zero teste**; `casos-financeiro-2026-08-17` entrega 14 casos e **zero charter**. Um pacote sem `PEDIDO-*` não é lido — 15 charters já entregues seguem parados no staging por isso.
+
+**PR:** um por intenção, ≤300 linhas ([`commit-discipline`](../.claude/skills/commit-discipline/SKILL.md) Tier A), conventional + sufixo `[C]`. Handoff de módulo inteiro **não vira um PR só** — vira um por tela ou por onda. O corpo cita o `PEDIDO-*` de origem.
+
 ## 2. As 5 fases (na verdade 7 com 1.5 e 3.5)
 
 ```
