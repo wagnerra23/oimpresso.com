@@ -186,14 +186,37 @@ export function veredictoFinal(nStale, cobertura = null) {
  *  `.png` segue FORA: imagem não é fonte de construção e o `block-ancora-no-olho` já trata
  *  o eixo dela. E os filtros de `_arquivo/` (morto declarado upstream) e `prototipo-ui/`
  *  (cópia do próprio espelho) continuam — são de PROVENIÊNCIA, não de extensão. */
-export function liveOnly(livePaths, manifest, { exts = ['.jsx', '.html', '.css', '.js', '.md'] } = {}) {
+export function liveOnly(livePaths, manifest, { exts = null } = {}) {
   const noEspelho = new Set(manifest.map((f) => f.cowork));
-  return livePaths
-    .filter((p) => exts.some((e) => p.toLowerCase().endsWith(e)))
-    .filter((p) => !p.startsWith('_arquivo/'))     // arquivo morto declarado upstream
-    .filter((p) => !p.startsWith('prototipo-ui/')) // cópia do próprio espelho dentro do vivo
-    .filter((p) => !noEspelho.has(p))
-    .sort();
+  // [W] 2026-08-24: "remova os filtros isso esta gerando muito problemas". MEDIDO no dia:
+  // de 428 arquivos do vivo ausentes do espelho, o filtro de EXTENSAO escondia 76 — entre
+  // eles 27 .json de CONTRATO de tela, 18 .php de TESTE da ponte e 2 .tsx de codigo. Nao era
+  // ruido: era entregavel sumindo calado. O filtro de extensao MORREU (exts=null = tudo).
+  // Os dois de PROVENIENCIA continuam, mas agora RETORNAM em `ignorados` — reportado, nunca
+  // escondido (mesmo contrato do absentLocal). `liveOnly()` segue devolvendo ARRAY pra nao
+  // quebrar chamador; use liveOnlyDetalhado() pra ver o que foi ignorado e por que.
+  return liveOnlyDetalhado(livePaths, manifest, { exts }).faltando;
+}
+
+/** Igual ao liveOnly, mas devolve tambem o que foi ignorado por PROVENIENCIA e o motivo.
+ *  `exts = null` (default) = nenhum filtro de extensao: conta .json, .php, .tsx, .png, tudo. */
+export function liveOnlyDetalhado(livePaths, manifest, { exts = null } = {}) {
+  const noEspelho = new Set(manifest.map((f) => f.cowork));
+  const temExtensao = (p) => /\.[a-z0-9]+$/i.test(p);   // diretorio nao e arquivo faltando
+  const faltando = [];
+  const ignorados = [];
+  for (const p of livePaths) {
+    if (!temExtensao(p) || noEspelho.has(p)) continue;
+    if (exts && !exts.some((e) => p.toLowerCase().endsWith(e))) { ignorados.push({ path: p, motivo: 'extensao' }); continue; }
+    // IMAGEM fica fora da lista de FALTANDO por decisao datada (imagem nao e fonte de
+    // construcao; o eixo dela e do block-ancora-no-olho) — mas vai pra `ignorados`, VISIVEL.
+    // A diferenca com o filtro antigo: aquele sumia calado junto com .json/.php/.tsx.
+    if (/\.(png|jpe?g|gif|webp|svg|ico)$/i.test(p)) { ignorados.push({ path: p, motivo: 'imagem (nao e fonte de construcao — block-ancora-no-olho)' }); continue; }
+    if (p.startsWith('_arquivo/')) { ignorados.push({ path: p, motivo: 'proveniencia: _arquivo/ (morto declarado upstream)' }); continue; }
+    if (p.startsWith('prototipo-ui/')) { ignorados.push({ path: p, motivo: 'proveniencia: prototipo-ui/ (copia do proprio espelho)' }); continue; }
+    faltando.push(p);
+  }
+  return { faltando: faltando.sort(), ignorados: ignorados.sort((a, b) => a.path.localeCompare(b.path)) };
 }
 
 // ── EXPORT FIEL: o erro que transcrição manual causa, eliminado na raiz ───────────
