@@ -377,7 +377,16 @@ function checkOmission(base = 'origin/main', alvos, notesFile) {
 //                   sem `<!-- design-deviation -->` no alvo.
 function listContracts() {
   const out = git('ls-files "*.contract.json"');
-  return out ? out.split('\n').filter(p => p && !/EXEMPLO/i.test(p)) : [];
+  // `design-docs/cowork-inbox/` é CAIXA DE ENTRADA do Cowork (pedidos/propostas pro Code), não
+  // contrato VIGENTE: o contrato só passa a valer quando alguém o aplica a uma tela real. Varrer
+  // o inbox como ativo reprova POR CONSTRUÇÃO — os que chegaram em 2026-08-24 apontam pra
+  // `Pages/NotificationTemplate` e `Pages/Documentacao/Programa`, telas que ainda não existem
+  // (criá-las É o pedido). Medido no dia: 15 no inbox × 10 ativos de verdade.
+  // Filtro mora AQUI, não no workflow: `--map`/`--map --check` varrem por este mesmo coletor,
+  // então filtrar só no step de "contratos ativos" deixaria os outros modos reprovando (§5
+  // 2026-07-28 — validar um gate rodando UM dos modos que o CI roda).
+  const ativo = (p) => p && !/EXEMPLO/i.test(p) && !p.includes('design-docs/cowork-inbox/');
+  return out ? out.split('\n').filter(ativo) : [];
 }
 function listIntentContracts() {
   const dir = resolve(ROOT, 'prototipo-ui/contrato');

@@ -102,12 +102,7 @@ jobs:
         if: steps.detect.outputs.relevant == 'true'
         run: |
           set -euo pipefail
-          # `cowork-inbox/` e CAIXA DE ENTRADA do Cowork (pedidos/propostas), nao contrato VIGENTE:
-          # o contrato so passa a valer quando alguem o aplica a uma tela real. Varrer o inbox como
-          # ativo reprova por construcao — um dos que chegaram em 2026-08-24 aponta pra
-          # `Pages/NotificationTemplate`, tela que ainda nao existe (e esse e exatamente o pedido).
-          # Medido no dia: 15 no inbox x 10 ativos de verdade.
-          mapfile -t contratos < <(git ls-files '*.contract.json' | grep -v EXEMPLO | grep -v 'design-docs/cowork-inbox/' || true)
+          mapfile -t contratos < <(git ls-files '*.contract.json' | grep -v EXEMPLO || true)
           if [ "${#contratos[@]}" -eq 0 ]; then
             echo "Nenhum contrato de tela ativo ainda (fase de adoção — ver RUNBOOK §5)."
             exit 0
