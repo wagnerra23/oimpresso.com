@@ -472,6 +472,15 @@ jobs:
           set -euo pipefail
           chmod +x .github/scripts/pii-scan.sh
           # Lista arquivos AM (Added|Modified) do PR — exclui deletados
+          #
+          # `prototipo-ui/` INTEIRO sai do scan, não só `cowork/` ([W] 2026-08-24: "no
+          # protótipo pode"). Protótipo é mockup/design: não roda em produção, não serve
+          # dado a ninguém, e CPF de exemplo ali é como CPF num Figma. A exclusão anterior
+          # cobria só `cowork/`, então mockup em `_arquivo/`, `prototipos/`, `fixtures/`
+          # reprovava por dado sintético DE TELA. NÃO afrouxa o que importa: Modules/,
+          # resources/js|css/, app/, memory/ e tests/ seguem escaneados.
+          # (comentário AQUI, fora do pipeline: `#` entre linhas continuadas por `\`
+          #  quebra o shell — `syntax error near unexpected token '|'`.)
           mapfile -t arquivos < <(
             git diff --name-only --diff-filter=AM "$BASE_SHA"...HEAD \
               | grep -vE '^(vendor|node_modules|public|storage|bootstrap/cache)/' \
@@ -479,12 +488,6 @@ jobs:
               | grep -vE '\.github/scripts/pii-scan\.sh$' \
               | grep -vE '\.github/pii-scan-allowlist\.txt$' \
               | grep -vE '\.github/workflows/governance-gate\.yml$' \
-              # `prototipo-ui/` INTEIRO, não só `cowork/` ([W] 2026-08-24: "no protótipo
-              # pode"). Protótipo é mockup/design — não roda em produção, não serve dado a
-              # ninguém, e CPF de exemplo ali é como CPF num Figma. A exclusão anterior
-              # cobria só `cowork/`, então mockup em `_arquivo/`, `prototipos/`, `fixtures/`
-              # etc. reprovava por dado sintético de tela. NÃO afrouxa o que importa:
-              # Modules/, resources/js|css/, app/, memory/ e tests/ seguem escaneados.
               | grep -vE '^prototipo-ui/' \
               || true
           )
