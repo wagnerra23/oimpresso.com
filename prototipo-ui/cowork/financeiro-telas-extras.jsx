@@ -3,7 +3,7 @@
 // Tokens: BRIEFING §4 (emerald/amber/rose, rounded-md, shadow-sm, num tabular).
 // IIFE para não vazar `const I`/helpers no escopo global.
 (() => {
-const { useState, useMemo } = React;
+const { useState, useMemo, useEffect } = React;
 const I = window.FIN_I; // ícones do módulo Financeiro
 
 const fmtBRL2 = (n) =>
@@ -46,9 +46,15 @@ const useFinBackEsc = (onBack) => {
 /* ═════════════════════════════════════════════════════════════════════════
  * 1. FLUXO DE CAIXA — projeção dia-a-dia
  * ═════════════════════════════════════════════════════════════════════════ */
-const TelaFluxo = () => {
+const TelaFluxo = ({ onBack }) => {
+  useFinBackEsc(onBack);
   const rows = window.FIN_ROWS;
   const today = window.FIN_TODAY;
+  // Sync git 2026-08-17 (charter Fluxo v2 · US-FIN-014c): 2 óticas em tabs —
+  // Projetado dia-a-dia (35d) e Realizado mês-a-mês (12m). Deep-link no vivo é ?tab=.
+  const [tab, setTab] = useState("projetado");
+  // Contas do caixa — o KPI "Saldo hoje" nomeia a principal e conta as outras (canon do vivo).
+  const CONTAS_CX = ["Itaú PJ · ag 0438 cc 4521-7", "Caixa Econ. · cc 1102-3", "Dinheiro · caixa interno"];
 
   // Build day-by-day projection for next 30 days
   const days = useMemo(() => {
@@ -77,12 +83,21 @@ const TelaFluxo = () => {
 
   return (
     <>
+      <FinBcrumb here="Fluxo de caixa" onBack={onBack} />
+      {window.FinTabPill &&
+      <window.FinTabPill value={tab} onChange={setTab} tabs={[
+      { id: "projetado", label: "Projetado", hint: "próx 35 dias" },
+      { id: "realizado", label: "Realizado", hint: "últ 12 meses" }]
+      } />}
+      {tab === "realizado" ?
+      window.FinFluxoRealizado ? <window.FinFluxoRealizado /> : null :
+      <>
       <div className="px-6 pt-4">
         <div className="fin-card flex divide-x divide-[var(--border)] overflow-hidden">
           <div className="flex-1 px-5 py-4 fin-ink">
             <div className="text-[length:var(--fs-1)] uppercase tracking-widest font-medium text-[var(--text-3)]">Saldo hoje · 09 mai</div>
             <div className="mt-1 text-[length:var(--fs-8)] leading-none font-semibold tracking-tight num">{fmtBRL2(saldoHoje)}</div>
-            <div className="mt-2 text-[length:var(--fs-2)] text-[var(--text-3)]">Itaú PJ · ag 0438 cc 4521-7</div>
+            <div className="mt-2 text-[length:var(--fs-2)] text-[var(--text-3)]">{CONTAS_CX[0]} · outras {CONTAS_CX.length - 1}</div>
           </div>
           <div className="flex-1 px-5 py-4">
             <div className="text-[length:var(--fs-1)] uppercase tracking-widest text-[var(--text-2)] font-medium">Projeção 30 dias</div>
@@ -168,6 +183,9 @@ const TelaFluxo = () => {
           </div>
           <table className="w-full text-[length:var(--fs-3)] num">
             <tbody>
+              {days.filter((d) => !d.isPast && d.dayRows.length > 0).length === 0 &&
+                <tr><td className="px-6 py-10 text-center text-[length:var(--fs-3)] text-[var(--text-2)]">Nenhum evento programado nos próximos 7 dias.</td></tr>
+              }
               {days.filter((d) => !d.isPast && d.dayRows.length > 0).slice(0, 7).flatMap((d) =>
                 d.dayRows.map((r, j) => (
                   <tr key={r.id} className={`border-b border-[var(--hairline)] row-hover ${j === 0 ? "border-t-2 border-t-[var(--hairline)]" : ""}`}>
@@ -195,6 +213,8 @@ const TelaFluxo = () => {
           </table>
         </div>
       </div>
+      </>
+      }
     </>
   );
 };
@@ -202,49 +222,82 @@ const TelaFluxo = () => {
 /* ═════════════════════════════════════════════════════════════════════════
  * 2. CONCILIAÇÃO — extrato OFX × lançamentos sistema
  * ═════════════════════════════════════════════════════════════════════════ */
+// ADR 0236 (sync git 2026-08-17): a lista viva reúne DUAS origens — upload OFX e
+// sync API do banco — normalizadas no mesmo shape, com chip de origem por linha.
 const EXTRATO = [
-  { id: "OFX-04388", date: "2026-05-02", desc: "TED IMOBILIARIA CENTRO LTDA", amount: -4500.00, match: "P-1884" },
-  { id: "OFX-04389", date: "2026-05-03", desc: "DEB AUT VIVO EMPRESAS", amount: -320.00, match: "P-1885" },
-  { id: "OFX-04390", date: "2026-05-04", desc: "PIX RECEBIDO STUDIO FOCO", amount: 380.00, match: "R-2647" },
-  { id: "OFX-04391", date: "2026-05-05", desc: "TED FOLHA LARISSA", amount: -2800.00, match: "P-1890" },
-  { id: "OFX-04392", date: "2026-05-05", desc: "PIX ALPHAGRAF", amount: -1120.00, match: "P-1888" },
-  { id: "OFX-04393", date: "2026-05-06", desc: "PIX FARMACIA SAUDE TOTAL", amount: 720.00, match: "R-2645" },
-  { id: "OFX-04394", date: "2026-05-07", desc: "PIX CLINICA VIDA PLENA LTDA", amount: 880.00, match: "R-2651" },
-  { id: "OFX-04395", date: "2026-05-08", desc: "PIX PADARIA PAO QUENTE", amount: 480.00, match: null, suggest: "R-2641" },
-  { id: "OFX-04396", date: "2026-05-08", desc: "TARIFA CESTA CONTA PJ", amount: -89.90, match: null, suggest: null },
-  { id: "OFX-04397", date: "2026-05-09", desc: "PIX MARIA APARECIDA", amount: 120.00, match: null, suggest: "R-2652" },
+  { id: "OFX-04388", date: "2026-05-02", desc: "TED IMOBILIARIA CENTRO LTDA", amount: -4500.00, match: "P-1884", origem: "ofx" },
+  { id: "OFX-04389", date: "2026-05-03", desc: "DEB AUT VIVO EMPRESAS", amount: -320.00, match: "P-1885", origem: "ofx" },
+  { id: "API-88120", date: "2026-05-04", desc: "PIX RECEBIDO STUDIO FOCO", amount: 380.00, match: "R-2647", origem: "banco" },
+  { id: "OFX-04391", date: "2026-05-05", desc: "TED FOLHA LARISSA", amount: -2800.00, match: "P-1890", origem: "ofx" },
+  { id: "API-88124", date: "2026-05-05", desc: "PIX ALPHAGRAF", amount: -1120.00, match: "P-1888", origem: "banco" },
+  { id: "OFX-04393", date: "2026-05-06", desc: "PIX FARMACIA SAUDE TOTAL", amount: 720.00, match: "R-2645", origem: "ofx" },
+  { id: "API-88131", date: "2026-05-07", desc: "PIX CLINICA VIDA PLENA LTDA", amount: 880.00, match: "R-2651", origem: "banco" },
+  { id: "OFX-04395", date: "2026-05-08", desc: "PIX PADARIA PAO QUENTE", amount: 480.00, match: null, suggest: "R-2641", origem: "ofx" },
+  { id: "OFX-04396", date: "2026-05-08", desc: "TARIFA CESTA CONTA PJ", amount: -89.90, match: null, suggest: null, origem: "ofx" },
+  { id: "API-88140", date: "2026-05-09", desc: "PIX MARIA APARECIDA", amount: 120.00, match: null, suggest: "R-2652", origem: "banco" },
 ];
+
+// Score do vivo (ADR 0236 · ConciliacaoMatchScoreTest): 0,7·proximidade-de-valor +
+// 0,3·proximidade-de-data (janela ±3 dias). Nunca constante chumbada.
+const matchScore = (linha, titulo) => {
+  if (!titulo) return 0;
+  const v = Math.abs(linha.amount), tv = titulo.amount || 0;
+  const pv = tv > 0 ? Math.max(0, 1 - Math.abs(v - tv) / Math.max(v, tv)) : 0;
+  const dias = titulo.due ? Math.abs(new Date(linha.date + "T12:00:00") - titulo.due) / 864e5 : 3;
+  const pd = Math.max(0, 1 - Math.min(dias, 3) / 3);
+  return Math.round((0.7 * pv + 0.3 * pd) * 100);
+};
+
+const ORIGEM = {
+  banco: { label: "Banco", title: "Extrato sincronizado pela API do banco" },
+  ofx: { label: "OFX", title: "Linha importada de arquivo OFX" }
+};
 
 const TelaConciliacao = ({ onBack }) => {
   useFinBackEsc(onBack);
   const [selected, setSelected] = useState(null);
-  const matched = EXTRATO.filter((e) => e.match).length;
-  const pending = EXTRATO.filter((e) => !e.match).length;
+  const [busca, setBusca] = useState("");
+  const [ignorados, setIgnorados] = useState(() => new Set());
+  const [aceitos, setAceitos] = useState(() => new Set());
+  const estado = (e) => ignorados.has(e.id) ? "ignorada" : e.match || aceitos.has(e.id) ? "matched" : e.suggest ? "suggest" : "none";
+  const linhas = useMemo(() => {
+    const q = busca.trim().toLowerCase();
+    return q ? EXTRATO.filter((e) => e.desc.toLowerCase().includes(q) || e.id.toLowerCase().includes(q)) : EXTRATO;
+  }, [busca]);
+  const matched = EXTRATO.filter((e) => estado(e) === "matched").length;
+  const sugeridos = EXTRATO.filter((e) => estado(e) === "suggest").length;
+  const pending = EXTRATO.filter((e) => estado(e) === "none").length;
   const totalIn = EXTRATO.filter((e) => e.amount > 0).reduce((s, e) => s + e.amount, 0);
   const totalOut = EXTRATO.filter((e) => e.amount < 0).reduce((s, e) => s + e.amount, 0);
 
   return (
     <>
+      <FinBcrumb here="Conciliação" onBack={onBack} />
       <div className="px-6 pt-4">
         <div className="fin-card flex divide-x divide-[var(--border)] overflow-hidden">
           <div className="flex-1 px-5 py-4">
             <div className="text-[length:var(--fs-1)] uppercase tracking-widest text-[var(--text-2)] font-medium">Período</div>
             <div className="mt-1 text-[length:var(--fs-5)] font-semibold tracking-tight">02 → 09 mai 2026</div>
-            <div className="mt-2 text-[length:var(--fs-2)] text-[var(--text-2)]">Itaú PJ · OFX importado 09/05 14:32</div>
+            <div className="mt-2 text-[length:var(--fs-2)] text-[var(--text-2)]">Itaú PJ · sync API 09/05 14:32 + OFX importado</div>
           </div>
           <div className="flex-1 px-5 py-4">
             <div className="text-[length:var(--fs-1)] uppercase tracking-widest text-[var(--text-2)] font-medium">Conciliados</div>
             <div className="mt-1 text-[length:var(--fs-8)] leading-none font-semibold tracking-tight num text-[var(--pos)]">{matched}<span className="text-[var(--text-3)] text-[length:var(--fs-6)]">/{EXTRATO.length}</span></div>
             <div className="mt-2">
               <div className="h-1 bg-[var(--sunken)] rounded-full overflow-hidden">
-                <div className="h-full bg-[var(--pos-soft)]0" style={{ width: `${(matched / EXTRATO.length) * 100}%` }} />
+                <div className="h-full bg-[var(--pos)]" style={{ width: `${(matched / EXTRATO.length) * 100}%` }} />
               </div>
             </div>
           </div>
           <div className="flex-1 px-5 py-4">
             <div className="text-[length:var(--fs-1)] uppercase tracking-widest text-[var(--text-2)] font-medium">Pendente revisão</div>
             <div className="mt-1 text-[length:var(--fs-8)] leading-none font-semibold tracking-tight num text-[var(--warn)]">{pending}</div>
-            <div className="mt-2 text-[length:var(--fs-2)] text-[var(--text-2)]">com sugestão automática: {EXTRATO.filter((e) => !e.match && e.suggest).length}</div>
+            <div className="mt-2 text-[length:var(--fs-2)] text-[var(--text-2)]">com sugestão automática: {sugeridos}</div>
+          </div>
+          <div className="flex-1 px-5 py-4">
+            <div className="text-[length:var(--fs-1)] uppercase tracking-widest text-[var(--text-2)] font-medium">Ignoradas</div>
+            <div className="mt-1 text-[length:var(--fs-8)] leading-none font-semibold tracking-tight num text-[var(--text-2)]">{ignorados.size}</div>
+            <div className="mt-2 text-[length:var(--fs-2)] text-[var(--text-2)]">fora da fila de conciliação</div>
           </div>
           <div className="flex-1 px-5 py-4">
             <div className="text-[length:var(--fs-1)] uppercase tracking-widest text-[var(--text-2)] font-medium">Total no extrato</div>
@@ -259,25 +312,33 @@ const TelaConciliacao = ({ onBack }) => {
           <div className="grid grid-cols-2 border-b border-[var(--border)] text-[length:var(--fs-1)] uppercase tracking-widest text-[var(--text-2)] font-medium">
             <div className="px-5 py-2.5 border-r border-[var(--border)] flex items-center gap-2">
               Extrato Itaú PJ
-              <span className="text-[var(--text-3)] normal-case tracking-normal text-[length:var(--fs-2)]">· {EXTRATO.length} lançamentos</span>
+              <span className="text-[var(--text-3)] normal-case tracking-normal text-[length:var(--fs-2)]">· {linhas.length} de {EXTRATO.length} · banco + OFX</span>
+              <input value={busca} onChange={(ev) => setBusca(ev.target.value)} placeholder="Buscar descrição…"
+                className="ml-auto h-7 px-2.5 w-[180px] rounded-md border border-[var(--border)] bg-[var(--surface)] text-[length:var(--fs-2)] normal-case tracking-normal text-[var(--text)] placeholder:text-[var(--text-3)] outline-none focus:border-[var(--accent)]" />
             </div>
             <div className="px-5 py-2.5 flex items-center gap-2">
               Sistema oimpresso
-              <span className="text-[var(--text-3)] normal-case tracking-normal text-[length:var(--fs-2)]">· match sugerido</span>
+              <span className="text-[var(--text-3)] normal-case tracking-normal text-[length:var(--fs-2)]">· match sugerido (0,7·valor + 0,3·data)</span>
             </div>
           </div>
 
-          {EXTRATO.map((e) => {
+          {linhas.length === 0 &&
+            <div className="px-6 py-12 text-center text-[length:var(--fs-3)] text-[var(--text-2)]">Nenhuma linha para "{busca}".</div>
+          }
+          {linhas.map((e) => {
             const sysRow = window.FIN_ROWS.find((r) => r.id === (e.match || e.suggest));
-            const status = e.match ? "matched" : e.suggest ? "suggest" : "none";
+            const status = estado(e);
             return (
-              <div key={e.id} className={`grid grid-cols-2 border-b border-[var(--hairline)] text-[length:var(--fs-3)] num ${selected === e.id ? "bg-[var(--sunken)]" : "row-hover"}`} onClick={() => setSelected(e.id)}>
+              <div key={e.id} className={`grid grid-cols-2 border-b border-[var(--hairline)] text-[length:var(--fs-3)] num ${selected === e.id ? "bg-[var(--sunken)]" : "row-hover"} ${status === "ignorada" ? "opacity-55" : ""}`} onClick={() => setSelected(e.id)}>
                 {/* Left: extrato */}
                 <div className="px-5 py-3 border-r border-[var(--border)] flex items-center gap-3 cursor-pointer">
                   <div className="text-[var(--text)] w-[60px]">{fmtDate2(new Date(e.date + "T12:00:00"))}</div>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-[var(--text)] truncate">{e.desc}</div>
-                    <div className="text-[length:var(--fs-1)] text-[var(--text-3)] font-mono">{e.id}</div>
+                    <div className="text-[length:var(--fs-1)] text-[var(--text-3)] font-mono flex items-center gap-1.5">
+                      {e.id}
+                      <span className="fin-origem-chip" data-origem={e.origem} title={ORIGEM[e.origem].title}>{ORIGEM[e.origem].label}</span>
+                    </div>
                   </div>
                   <div className={`font-semibold ${e.amount > 0 ? "text-[var(--pos)]" : "text-[var(--text)]"}`}>
                     {e.amount > 0 ? "+" : "−"} {fmtBRL2(Math.abs(e.amount)).replace("R$", "").trim()}
@@ -296,7 +357,6 @@ const TelaConciliacao = ({ onBack }) => {
                         <div className="font-medium text-[var(--text)] truncate">{sysRow.desc}</div>
                         <div className="text-[length:var(--fs-1)] text-[var(--text-3)] font-mono">{sysRow.id} · {sysRow.invoice}</div>
                       </div>
-                      <button className="fin-iconbtn" title="Desfazer conciliação"><I.X size={14}/></button>
                     </>
                   )}
                   {status === "suggest" && sysRow && (
@@ -307,9 +367,20 @@ const TelaConciliacao = ({ onBack }) => {
                       </span>
                       <div className="flex-1 min-w-0">
                         <div className="font-medium text-[var(--text)] truncate">{sysRow.desc}</div>
-                        <div className="text-[length:var(--fs-1)] text-[var(--text-3)] font-mono">{sysRow.id} · {sysRow.invoice} · 95% match</div>
+                        <div className="text-[length:var(--fs-1)] text-[var(--text-3)] font-mono">{sysRow.id} · {sysRow.invoice} · {matchScore(e, sysRow)}% match</div>
                       </div>
-                      <button className="fin-sysbtn fin-sysbtn--accent"><I.Check size={13}/> Aceitar</button>
+                      <button className="fin-sysbtn fin-sysbtn--accent" onClick={(ev) => {ev.stopPropagation();setAceitos((s) => new Set(s).add(e.id));}}><I.Check size={13}/> Aceitar</button>
+                      <button className="fin-sysbtn fin-sysbtn--ghost" onClick={(ev) => {ev.stopPropagation();setIgnorados((s) => new Set(s).add(e.id));}}>Ignorar</button>
+                    </>
+                  )}
+                  {status === "ignorada" && (
+                    <>
+                      <span className="inline-flex items-center gap-1 text-[var(--text-2)] text-[length:var(--fs-2)] font-medium px-2 py-0.5 rounded-full bg-[var(--sunken)] whitespace-nowrap">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-3)]" />
+                        Ignorada
+                      </span>
+                      <div className="flex-1 text-[var(--text-2)]">Fora da fila — não entra nos pendentes.</div>
+                      <button className="fin-sysbtn fin-sysbtn--ghost" onClick={(ev) => {ev.stopPropagation();setIgnorados((s) => {const n = new Set(s);n.delete(e.id);return n;});}}>Reabrir</button>
                     </>
                   )}
                   {status === "none" && (
@@ -320,7 +391,7 @@ const TelaConciliacao = ({ onBack }) => {
                       </span>
                       <div className="flex-1 text-[var(--text-2)] italic">Provável tarifa bancária — criar lançamento?</div>
                       <button className="fin-sysbtn"><I.Plus size={13}/> Criar</button>
-                      <button className="fin-sysbtn fin-sysbtn--ghost"><I.Search size={13}/> Buscar</button>
+                      <button className="fin-sysbtn fin-sysbtn--ghost" onClick={(ev) => {ev.stopPropagation();setIgnorados((s) => new Set(s).add(e.id));}}>Ignorar</button>
                     </>
                   )}
                 </div>
@@ -357,10 +428,30 @@ const DRE_LINES = [
   { type: "subtotal", label: "Resultado operacional", v: 1378, prev: 460, highlight: true },
 ];
 
-const TelaDRE = () => {
+const DRE_ABAS = [
+{ id: "demonstrativo", label: "Demonstrativo", hint: "DRE" },
+{ id: "balanco", label: "Balanço", hint: "patrimonial" },
+{ id: "balancete", label: "Balancete", hint: "verificação" }];
+
+const TelaDRE = ({ onBack }) => {
+  useFinBackEsc(onBack);
   const [period, setPeriod] = useState("Maio 2026");
+  // Fase 4 do vivo (2026-05-21 · US-FIN-014d/e): as telas legacy de Balanço e
+  // Balancete foram absorvidas como abas desta tela.
+  const [aba, setAba] = useState("demonstrativo");
+  if (aba !== "demonstrativo") {
+    return (
+      <>
+        <FinBcrumb here={aba === "balanco" ? "Balanço patrimonial" : "Balancete de verificação"} onBack={onBack} />
+        {window.FinTabPill && <window.FinTabPill value={aba} onChange={setAba} tabs={DRE_ABAS} />}
+        {aba === "balanco" ? window.FinBalanco && <window.FinBalanco /> : window.FinBalancete && <window.FinBalancete />}
+      </>);
+
+  }
   return (
     <>
+      <FinBcrumb here="DRE / Relatórios" onBack={onBack} />
+      {window.FinTabPill && <window.FinTabPill value={aba} onChange={setAba} tabs={DRE_ABAS} />}
       <div className="px-6 pt-4">
         <div className="fin-card overflow-hidden">
           <div className="px-5 py-3 border-b border-[var(--border)] flex items-center gap-3">
@@ -471,7 +562,7 @@ const TelaDRE = () => {
                   <span className="num font-medium">{fmtBRL2(c.v)} <span className="text-[var(--text-3)]">· {c.pct}%</span></span>
                 </div>
                 <div className="mt-1 h-1 bg-[var(--sunken)] rounded-full overflow-hidden">
-                  <div className="h-full bg-[var(--pos-soft)]0" style={{ width: `${c.pct}%` }} />
+                  <div className="h-full bg-[var(--pos)]" style={{ width: `${c.pct}%` }} />
                 </div>
               </div>
             ))}
@@ -549,7 +640,7 @@ const TelaPContas = ({ onBack }) => {
                     <span className={`inline-flex items-center gap-1 text-[length:var(--fs-2)] font-medium px-2 py-0.5 rounded-full ${
                       c.type === "rec" ? "bg-[var(--pos-soft)] text-[var(--pos)]" : "bg-[var(--neg-soft)] text-[var(--neg)]"
                     }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${c.type === "rec" ? "bg-[var(--pos-soft)]0" : "bg-[var(--neg-soft)]0"}`} />
+                      <span className={`w-1.5 h-1.5 rounded-full ${c.type === "rec" ? "bg-[var(--pos)]" : "bg-[var(--neg)]"}`} />
                       {c.type === "rec" ? "Receita" : "Despesa"}
                     </span>
                   </td>

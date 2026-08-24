@@ -15,19 +15,51 @@ const COMPANIES = [
 // Auditoria: AUDITORIA_MODULOS.md. Cada item.id casa com a chave em MIGRATION_INFO (app.jsx).
 const MENU = [
   // ── Shortcuts de topo (não-grupos) — [W] 2026-08: IA · Forja · Atendimento (Equipe → MAIS) ──
-  { id: "chat",     icon: "chat",  label: "IA",          badge: 3, shortcut: true },
-  { id: "projects", icon: "bot",   label: "Forja",                 shortcut: true },
-  { id: "inbox",    icon: "inbox", label: "Atendimento", badge: 6, shortcut: true },
+  { id: "chat",     icon: "chat",  label: "IA",          shortcut: true },
+  { id: "dash-legacy", icon: "chart", label: "Visão geral", shortcut: true },
+  { id: "inbox",    icon: "inbox", label: "Atendimento", shortcut: true },
 
   // ── 8 grupos canon (ADR 0180 / Sidebar.tsx v3) em ordem fixa ──
   { group: "CADASTRO", items: [
     { id: "clientes",      icon: "clients", label: "Clientes" },
-    { id: "produtos",      icon: "product", label: "Produtos" },
-    { id: "manufacturing", icon: "factory", label: "Manufacturing" },
+    { id: "produtos",      icon: "product", label: "Produtos", ghosts: [
+      { id: "prod-lista",     icon: "list",    label: "Todos os produtos" },
+      { id: "prod-novo",      icon: "plus",    label: "Novo produto" },
+      { id: "prod-estoque",   icon: "chart",   label: "Relatório de estoque" },
+      { id: "prod-historico", icon: "clock",   label: "Histórico de estoque" },
+      { id: "prod-precos",    icon: "cash",    label: "Preços por grupo" },
+      { id: "prod-massa",     icon: "pencil",  label: "Edição em massa" },
+      { id: "prod-analises",  icon: "chart",   label: "Análises do catálogo" },
+      { id: "prod-etiquetas", icon: "print",   label: "Imprimir etiquetas" },
+      { id: "prod-atualizar-preco", icon: "cash", label: "Atualizar preço" },
+      { id: "prod-importar",  icon: "upload",  label: "Importar produtos" },
+      { id: "prod-importar-estoque", icon: "archive", label: "Importar estoque inicial" },
+      { id: "prod-cadastros", icon: "grid",    label: "Cadastros de apoio" },
+    ]},
+    { id: "manufacturing", icon: "factory", label: "Manufacturing", ghosts: [
+      { id: "mfg-producao",  icon: "orders", label: "Ordens de produção" },
+      { id: "mfg-relatorio", icon: "chart",  label: "Relatório de produção" },
+      { id: "mfg-config",    icon: "cog",    label: "Configurações" },
+    ]},
   ]},
   { group: "COMERCIAL", items: [
     { id: "crm",         icon: "clients", label: "CRM" },
     { id: "vendas",      icon: "cash",    label: "Vendas", ghosts: [
+      { id: "venda-pedidos",     icon: "orders", label: "Pedido de venda" },
+      { id: "venda-todas",       icon: "list",   label: "Todas as vendas" },
+      { id: "venda-nova",        icon: "plus",   label: "Adicionar venda" },
+      { id: "venda-pos",         icon: "cash",   label: "lista de POS" },
+      { id: "venda-pdv",         icon: "cash",   label: "POS" },
+      { id: "venda-nova-rascunho", icon: "plus", label: "Adicionar rascunho" },
+      { id: "venda-rascunhos",   icon: "quote",  label: "Lista de rascunhos" },
+      { id: "venda-nova-cotacao", icon: "plus",  label: "Adicionar cotação" },
+      { id: "venda-cotacoes",    icon: "quote",  label: "Lista de compromissos" },
+      { id: "venda-devolucoes",  icon: "list",   label: "lista de devolução" },
+      { id: "venda-remessas",    icon: "truck",  label: "Remessas" },
+      { id: "venda-descontos",   icon: "cash",   label: "Descontos" },
+      { id: "venda-assinaturas", icon: "clock",  label: "Assinaturas" },
+      { id: "venda-devolver",    icon: "list",   label: "Devolver venda" },
+      { id: "venda-importar",    icon: "upload", label: "Importação de vendas" },
       { id: "orcamentos",  icon: "quote", label: "Orçamentos" },
       { id: "woocommerce", icon: "plug",  label: "WooCommerce" },
       { id: "portalos",    icon: "globe", label: "Portal Consulta OS" },
@@ -37,71 +69,220 @@ const MENU = [
     ]},
   ]},
   { group: "FINANÇAS", items: [
+    { id: "venda-caixa", icon: "cash", label: "Caixa" },
     { id: "financeiro", icon: "cash",    label: "Financeiro", ghosts: [
       { id: "fin-fluxo",   icon: "chart",  label: "Fluxo de caixa" },
       { id: "fin-concil",  icon: "doc",    label: "Conciliação" },
       { id: "fin-dre",     icon: "doc",    label: "DRE / Relatórios" },
       { id: "fin-pcontas", icon: "folder", label: "Plano de contas" },
-      { id: "fin-impostos", icon: "receipt", label: "Impostos & obrigações" },
+      { id: "fin-impostos", icon: "receipt", label: "Impostos e obrigações" },
+      { id: "fin-receber",  icon: "cash",    label: "Contas a receber" },
+      { id: "fin-pagar",    icon: "cash",    label: "Contas a pagar" },
+      { id: "fin-despesas", icon: "receipt", label: "Despesas" },
+      { id: "fin-categorias", icon: "folder", label: "Categorias de despesa" },
+      { id: "fin-bancos",   icon: "cash",    label: "Contas bancárias" },
+      { id: "fin-extrato",  icon: "list",    label: "Extrato" },
     ]},
-    { id: "cobranca",   icon: "receipt", label: "Cobrança", badge: "F1", ghosts: [
+    { id: "cobranca",   icon: "receipt", label: "Cobrança", ghosts: [
       { id: "payment-gateways", icon: "shield", label: "Gateways de Pagamento" },
     ]},
     // Cobrança Recorrente — hub JÁ é a lista de assinaturas; ghosts = só Planos/Faturas/Config.
-    { id: "recurring",  icon: "refresh", label: "Assinaturas", ghosts: [
+    { id: "recurring",  icon: "refresh", label: "Cobrança Recorrente", ghosts: [
       { id: "rb-planos",  icon: "folder",  label: "Planos" },
       { id: "rb-faturas", icon: "receipt", label: "Faturas" },
       { id: "rb-config",  icon: "cog",     label: "Configurações" },
     ]},
   ]},
   { group: "FISCAL", items: [
-    { id: "nfe",  icon: "receipt", label: "NF-e Brasil" },
-    { id: "nfse", icon: "receipt", label: "NFS-e" },
+    // Cockpit unificado (Modules/Fiscal @main): hub /fiscal + 6 sub-páginas
+    { id: "fiscal", icon: "receipt", label: "Fiscal", ghosts: [
+      { id: "fiscal-nfe",     icon: "receipt", label: "NF-e · NFC-e" },
+      { id: "fiscal-nfse",    icon: "doc",     label: "NFS-e" },
+      { id: "fiscal-eventos", icon: "refresh", label: "Eventos" },
+      { id: "fiscal-dfe",     icon: "archive", label: "Manifesto DF-e" },
+      { id: "fiscal-config",  icon: "shield",  label: "Certificado e configuração" },
+      { id: "fiscal-sped",    icon: "grid",    label: "SPED e livros" },
+    ]},
   ]},
   { group: "PRODUÇÃO", items: [
     { id: "os",     icon: "orders", label: "Ordens de Serviço" },
-    { id: "cv",     icon: "layers", label: "Comunicação Visual" },
-    { id: "repair", icon: "wrench", label: "Repair" },
+    { id: "repair", icon: "wrench", label: "Assistência técnica", ghosts: [
+      { id: "rep-producao", icon: "grid",    label: "Produção · oficina" },
+      { id: "rep-folhas",   icon: "orders",  label: "Folhas de OS" },
+      { id: "rep-reparos",  icon: "cash",    label: "Reparos faturados" },
+      { id: "rep-status",   icon: "list",    label: "Status do reparo" },
+      { id: "rep-modelos",  icon: "product", label: "Modelos de equipamento" },
+      { id: "rep-portal",   icon: "globe",   label: "Portal do cliente" },
+      { id: "rep-config",   icon: "cog",     label: "Configurações" },
+    ]},
   ]},
   { group: "ESTOQUE", items: [
-    { id: "compras", icon: "archive", label: "Compras" },
-    { id: "assets",  icon: "archive", label: "Patrimônio" },
+    { id: "compras", icon: "archive", label: "Compras", ghosts: [
+      { id: "cmp-pedidos",     icon: "orders", label: "Pedidos de compra" },
+      { id: "cmp-requisicoes", icon: "doc",    label: "Requisições de compra" },
+      { id: "cmp-devolucoes",  icon: "truck",  label: "Devoluções de compra" },
+      { id: "cmp-grade",       icon: "grid",   label: "Grade matrix (tam × cor)" },
+    ]},
+    { id: "estoque", icon: "refresh", label: "Movimentações", ghosts: [
+      { id: "est-ajustes",            icon: "list",  label: "Ajustes de estoque" },
+      { id: "est-ajuste-novo",        icon: "plus",  label: "Novo ajuste" },
+      { id: "est-transferencias",     icon: "truck", label: "Transferências" },
+      { id: "est-transferencia-nova", icon: "plus",  label: "Nova transferência" },
+      { id: "est-vencimentos",        icon: "clock", label: "Vencimentos" },
+      { id: "est-contagem",           icon: "check", label: "Contagem cíclica" },
+    ]},
+    { id: "assets",  icon: "archive", label: "Patrimônio", ghosts: [
+      { id: "pat-bens",       icon: "grid",    label: "Bens" },
+      { id: "pat-alocacoes",  icon: "user",    label: "Alocações" },
+      { id: "pat-manutencao", icon: "wrench",  label: "Manutenções" },
+      { id: "pat-config",     icon: "cog",     label: "Configurações" },
+    ]},
   ]},
   { group: "RH", items: [
-    { id: "ponto",   icon: "user",    label: "Ponto WR2" },
+    { id: "ponto",   icon: "user",    label: "Ponto" },
+    { id: "hrm",     icon: "users",   label: "HRM", ghosts: [
+      { id: "hrm-licencas", icon: "doc",     label: "Licenças" },
+      { id: "hrm-presenca", icon: "clock",   label: "Presença" },
+      { id: "hrm-turnos",   icon: "refresh", label: "Turnos" },
+      { id: "hrm-folha",    icon: "cash",    label: "Folha de pagamento" },
+      { id: "hrm-feriados", icon: "clock",   label: "Feriados" },
+      { id: "hrm-metas",    icon: "chart",   label: "Metas de venda" },
+      { id: "hrm-config",   icon: "cog",     label: "Configurações" },
+    ]},
+    { id: "essenciais", icon: "check", label: "Essenciais", ghosts: [
+      { id: "ess-documentos", icon: "folder", label: "Documentos" },
+      { id: "ess-memorandos", icon: "doc",    label: "Memorandos" },
+      { id: "ess-lembretes",  icon: "clock",  label: "Lembretes" },
+      { id: "ess-mensagens",  icon: "chat",   label: "Mensagens" },
+      { id: "ess-kb",         icon: "book",   label: "Base de conhecimento" },
+      { id: "ess-config",     icon: "cog",    label: "Configurações" },
+    ]},
   ]},
   { group: "SISTEMA", items: [
     { id: "auditoria",   icon: "audit", label: "Auditoria" },
-    { id: "usuarios",    icon: "user",  label: "Usuários" },
-    { id: "relatorios",  icon: "chart", label: "Relatórios" },
+    { id: "usuarios",    icon: "user",  label: "Usuários", ghosts: [
+      { id: "funcoes",       icon: "shield", label: "Funções e permissões" },
+      { id: "comissionados", icon: "cash",   label: "Comissionados" },
+      { id: "comissoes",     icon: "chart",  label: "Apuração de comissão" },
+    ]},
+    { id: "prefs",       icon: "cog",   label: "Preferências" },
+    // Grupo "Configurações" do menu legado (AdminLTE) — importado do blade business/settings + cadastros
+    { id: "cfg-empresa", icon: "cog", label: "Configurações", ghosts: [
+      { id: "cfg-locais",        icon: "globe",  label: "Locais comerciais" },
+      { id: "cfg-fatura",        icon: "receipt", label: "Configurações da fatura" },
+      { id: "cfg-barras",        icon: "grid",   label: "Código de barras" },
+      { id: "notificacoes",      icon: "bell",   label: "Modelos de notificação" },
+      { id: "cfg-impressoras",   icon: "print",  label: "Impressoras de recibos" },
+      { id: "cfg-impostos",      icon: "cash",   label: "Taxas de imposto" },
+      { id: "cfg-modificadores", icon: "wrench", label: "Modificadores" },
+      { id: "cfg-servicos",      icon: "check",  label: "Tipos de serviço" },
+      { id: "cfg-mesas",         icon: "grid",   label: "Mesas" },
+      { id: "cfg-atendentes",    icon: "users",  label: "Atendentes" },
+      { id: "cfg-pacote",        icon: "refresh", label: "Assinatura de pacote" },
+    ]},
+    { id: "relatorios",  icon: "chart", label: "Relatórios", ghosts: [
+      { id: "rel-financeiro", icon: "cash",    label: "Financeiro" },
+      { id: "rel-comercial",  icon: "chart",   label: "Comercial" },
+      { id: "rel-estoque",    icon: "archive", label: "Estoque" },
+      { id: "rel-fiscal",     icon: "receipt", label: "Fiscal" },
+    ]},
     { id: "kb",          icon: "book",  label: "Base de Conhecimento" },
-    { id: "documentacao", icon: "book", label: "Documentação" },
+    { id: "planilhas",   icon: "grid",  label: "Planilhas", ghosts: [
+      { id: "planilha-nova", icon: "plus", label: "Criar planilha" },
+    ]},
+    // [W] 2026-08: Forja saiu dos shortcuts de topo → SISTEMA (uso só p/ programação)
+    { id: "projects",    icon: "bot",   label: "Forja" },
   ]},
 
   // ── MAIS — fallback (fechado por default): páginas soltas sem casa canônica ──
   { group: "MAIS", items: [
     { id: "tarefas",    icon: "inbox",     label: "Tarefas" },
-    { id: "ads",        icon: "megaphone", label: "ADS" },
-    { id: "fila",       icon: "print",     label: "Fila de impressão" },
-    { id: "acabamento", icon: "scissor",   label: "Acabamento" },
-    { id: "expedicao",  icon: "truck",     label: "Expedição" },
-    { id: "brief",      icon: "doc",       label: "Briefings" },
     { id: "equipe",     icon: "users",     label: "Equipe" },
-    { id: "governance", icon: "scale",     label: "Governança" },
-    { id: "site",       icon: "globe",     label: "Site (CMS)" },
+    { id: "governance", icon: "scale",     label: "Governança", ghosts: [
+      { id: "gov-politicas",  icon: "shield", label: "Políticas" },
+      { id: "gov-auditoria",  icon: "audit",  label: "Auditoria" },
+      { id: "gov-drift",      icon: "search", label: "Drift de escopo" },
+      { id: "gov-notas",      icon: "chart",  label: "Notas dos módulos" },
+    ]},
     // [W] 2026-06-16: removidos da nav (Copiloto · MemCofre · Arquivos · Connector · Team MCP · SRS)
-    // “Não sei o que fazer ainda” — [W] 2026-06-12 mandou Frotas 360 pro fim do slider
-    { id: "crm-ficha",  icon: "clients",   label: "Frotas 360" },
+    // [W] 2026-08: removidos da nav também — Briefings · Frotas 360 (não serão usados)
   ]},
 ];
 
-// ── Itens de usuário/sistema → user dropdown do rodapé (canon repo: fora do corpo) ──
+// ── Contadores do sidebar — no vivo são 3 e vêm de shell.sidebar_counts ──
+// (HandleInertiaRequests::sidebarCounts). Nada de badge inventado por item.
+const SIDEBAR_COUNTS = { chat: 3, atendimento: 6, tarefas: 6 };
+
+// ── Itens de usuário → user dropdown do rodapé (canon repo: fora do corpo) ──
 const USER_MENU = [
-  { id: "prefs",      icon: "cog",    label: "Preferências" },
-  { id: "users",      icon: "shield", label: "Usuários & Permissões" },
-  { id: "admin",      icon: "cog",    label: "Admin (UltimatePOS)" },
-  { id: "superadmin", icon: "shield", label: "Superadmin" },
+  { id: "prefs",    icon: "cog",    label: "Preferências" },
+  { id: "usuarios", icon: "shield", label: "Usuários & permissões" },
+  { id: "funcoes",  icon: "shield", label: "Funções e permissões" },
 ];
+
+// ── Cascata "Superadmin" do rodapé (SUPERADMIN_LABELS do Sidebar.tsx vivo):
+// admin de plataforma sai do menu principal — Módulos · Backup · CMS · Conector ·
+// Office Impresso · Superadmin. Os ghosts de cada um seguem alcançáveis por ⌘K.
+const SUPERADMIN_MENU = [
+  { id: "superadmin",     icon: "shield",  label: "Superadmin", ghosts: [
+    { id: "sa-negocios",    icon: "users",   label: "Negócios" },
+    { id: "sa-assinaturas", icon: "refresh", label: "Assinaturas SaaS" },
+    { id: "sa-pacotes",     icon: "folder",  label: "Pacotes" },
+    { id: "sa-comunicador", icon: "inbox",   label: "Comunicador" },
+    { id: "sa-config",      icon: "cog",     label: "Configurações" },
+  ]},
+  { id: "modulos",        icon: "grid",    label: "Módulos" },
+  { id: "backup",         icon: "archive", label: "Backup" },
+  { id: "site",           icon: "globe",   label: "Site (CMS)", ghosts: [
+    { id: "cms-blog",        icon: "doc",   label: "Blog" },
+    { id: "cms-depoimentos", icon: "users", label: "Depoimentos" },
+    { id: "cms-leads",       icon: "inbox", label: "Leads do site" },
+    { id: "cms-detalhes",    icon: "cog",   label: "Detalhes do site" },
+    { id: "cms-modulo",      icon: "plug",  label: "Módulo" },
+  ]},
+  { id: "connector",      icon: "plug",    label: "Conector (API)", ghosts: [
+    { id: "conn-docs",   icon: "book",   label: "Documentação da API" },
+    { id: "conn-saude",  icon: "shield", label: "Saúde" },
+    { id: "conn-modulo", icon: "cog",    label: "Módulo" },
+  ]},
+  { id: "officeimpresso", icon: "plug",    label: "Office Impresso", ghosts: [
+    { id: "oi-licencas", icon: "keyboard", label: "Licenças" },
+    { id: "oi-clientes", icon: "shield",   label: "Clientes OAuth" },
+    { id: "oi-importar", icon: "archive",  label: "Importar do Firebird" },
+    { id: "oi-log",      icon: "audit",    label: "Log de acesso" },
+  ]},
+];
+
+// Rodapé fixo (fora do shell.menu, como no vivo): Documentação é o único ponto de entrada.
+const FOOTER_LINKS = [
+  { id: "documentacao", icon: "book", label: "Documentação" },
+];
+
+// ── Papel simulado: no vivo o item some quando o can() falha. Lista = ids visíveis;
+// null = tudo. Afordância de protótipo — não vai pro F3.
+const SIDEBAR_PAPEIS = {
+  "wagner (admin)": null,
+  "larissa (balcão)": ["chat","inbox","dash-legacy","tarefas","clientes","produtos","orcamentos","crm","vendas","oficinaauto","os","brief"],
+  "eliana (financeiro)": ["chat","dash-legacy","clientes","venda-caixa","financeiro","cobranca","recurring","nfe","nfse","compras","relatorios","auditoria"],
+  "técnico (produção)": ["chat","tarefas","os","repair","estoque","assets","ponto","kb"],
+};
+
+// ─── ATALHOS — padrão "G X" do contrato do vivo. Só os hubs de uso diário levam atalho. ───
+const MENU_SHORTCUTS = {
+  chat: "I", inbox: "A", tarefas: "T", "dash-legacy": "D",
+  clientes: "C", produtos: "P", crm: "R", vendas: "V",
+  orcamentos: "O", financeiro: "F", "venda-caixa": "X", estoque: "E",
+};
+const SHORTCUT_TO_ROUTE = Object.keys(MENU_SHORTCUTS).reduce((a, k) => (a[MENU_SHORTCUTS[k]] = k, a), {});
+
+// ─── ROUTE_STATE — auditoria de destino (validada contra o if/else de app.jsx) ───
+// Ausente = tela desenhada. "mock" = MockupPage (esqueleto genérico). "stub" = ModuleStub (só ficha de migração).
+const ROUTE_STATE = {
+  cv: "mock", nfe: "mock", nfse: "mock", auditoria: "mock",
+  ads: "mock", brief: "mock", portalos: "mock",
+  governance: "stub",
+};
+const ROUTE_STATE_LABEL = { mock: "Esqueleto — tela ainda não desenhada", stub: "Sem tela — só ficha de migração" };
 
 // Flatten p/ roteamento: grupos + ghosts + shortcuts topo + user-menu (tudo resolvível)
 function flattenMenu() {
@@ -116,7 +297,11 @@ function flattenMenu() {
       out.push({ ...e, group: null });
     }
   });
-  USER_MENU.forEach(it => out.push({ ...it, group: "__user__" }));
+  [...USER_MENU, ...FOOTER_LINKS].forEach(it => out.push({ ...it, group: "__user__" }));
+  SUPERADMIN_MENU.forEach(it => {
+    out.push({ ...it, group: "__super__" });
+    (it.ghosts || []).forEach(g => out.push({ ...g, group: "__super__", ghostOf: it.id }));
+  });
   return out;
 }
 const MENU_FLAT = flattenMenu();
@@ -342,17 +527,47 @@ const ORIGIN_COLORS = {
   MFG: { bg:"oklch(0.93 0.05 30)",  fg:"oklch(0.40 0.10 30)",  bgD:"oklch(0.30 0.07 30)",  fgD:"oklch(0.85 0.07 30)" },
 };
 
+// ─── FIN_SUBNAV — barra de abas UNIFICADA do Financeiro (puxada do vivo 2026-08-17)
+// Fonte: resources/js/Pages/Financeiro/_shared/financeiroMenu.ts → FINANCEIRO_SUBNAV_GHOSTS
+// (ADR 0313, supersede parcial da 0180: a subnav NÃO é mais os ghosts da entry ativa —
+// toda tela do Financeiro renderiza a MESMA barra; 8 visíveis, resto no overflow ⋯).
+// Ícones = os do vivo (banknote/receipt/refresh-cw/chart/file/file/folder/receipt).
+const FIN_SUBNAV = [
+  { id: "financeiro",  icon: "cash",    label: "Financeiro" },
+  { id: "cobranca",    icon: "receipt", label: "Cobrança" },
+  { id: "recurring",   icon: "refresh", label: "Assinaturas" },
+  { id: "fin-fluxo",   icon: "chart",   label: "Fluxo de caixa" },
+  { id: "fin-concil",  icon: "doc",     label: "Conciliação" },
+  { id: "fin-dre",     icon: "doc",     label: "DRE / Relatórios" },
+  { id: "fin-pcontas", icon: "folder",  label: "Plano de contas" },
+  { id: "fin-impostos",icon: "receipt", label: "Impostos e obrigações" },
+];
+// Destinos legacy do vivo — vão pro ⋯ (nada se perde). `route` só onde o Cowork tem tela.
+const FIN_SUBNAV_OVERFLOW = [
+  { label: "Contas a Pagar",    path: "/financeiro/contas-pagar" },
+  { label: "Contas a Receber",  path: "/financeiro/contas-receber" },
+  { label: "Relatórios",        path: "/financeiro/relatorios", route: "relatorios" },
+  { label: "Categorias",        path: "/financeiro/categorias" },
+  { label: "Caixa",             path: "/financeiro/caixa" },
+  { label: "Extrato",           path: "/financeiro/extrato" },
+  { label: "Contas Bancárias",  path: "/financeiro/contas-bancarias" },
+  { label: "Contador",          path: "/financeiro/configuracoes/contador" },
+  { label: "Gateway",           path: "/settings/payment-gateways", route: "payment-gateways" },
+];
+
 // ─── GROUP_META: ícone/label/descrição/cor de cada grupo ───
+// hue = SIDEBAR_GROUP_HUE do vivo (resources/js/Components/cockpit/shared.ts):
+// escala canon espaçada ≥25° no círculo cromático. MAIS é neutro (sem hue).
 const GROUP_META = {
-  "CADASTRO":  { icon:"book",    label:"Cadastro",  hue: 250, desc:"Clientes, produtos, catálogo, fabricação" },
-  "COMERCIAL": { icon:"cash",    label:"Comercial", hue: 155, desc:"CRM, vendas, oficina auto" },
-  "FINANÇAS":  { icon:"cash",    label:"Finanças",  hue: 160, desc:"Caixa, cobrança, financeiro, recorrente" },
-  "FISCAL":    { icon:"receipt", label:"Fiscal",    hue: 25,  desc:"NF-e, NFS-e, certificado" },
-  "PRODUÇÃO":  { icon:"factory", label:"Produção",  hue: 60,  desc:"OS, comunicação visual, repair" },
-  "ESTOQUE":   { icon:"archive", label:"Estoque",   hue: 80,  desc:"Compras, transferências, patrimônio" },
-  "RH":        { icon:"users",   label:"RH",        hue: 290, desc:"Ponto, colaboradores" },
-  "SISTEMA":   { icon:"cog",     label:"Sistema",   hue: 270, desc:"Auditoria, relatórios, planilhas, KB" },
-  "MAIS":      { icon:"folder",  label:"Mais",      hue: 240, desc:"Páginas soltas sem grupo canônico" },
+  "CADASTRO":  { icon:"book",    label:"Cadastro",  hue: 202,  key:"cadastro",  desc:"Clientes, produtos, catálogo, fabricação" },
+  "COMERCIAL": { icon:"cash",    label:"Comercial", hue: 55,   key:"comercial", desc:"CRM, vendas, oficina auto" },
+  "FINANÇAS":  { icon:"cash",    label:"Finanças",  hue: 145,  key:"financas",  desc:"Caixa, cobrança, financeiro, recorrente" },
+  "FISCAL":    { icon:"receipt", label:"Fiscal",    hue: 175,  key:"fiscal",    desc:"NF-e, NFS-e, certificado" },
+  "PRODUÇÃO":  { icon:"factory", label:"Produção",  hue: 8,    key:"producao",  desc:"OS, assistência técnica" },
+  "ESTOQUE":   { icon:"archive", label:"Estoque",   hue: 315,  key:"estoque",   desc:"Compras, transferências, patrimônio" },
+  "RH":        { icon:"users",   label:"RH",        hue: 88,   key:"pessoas",   desc:"Ponto, colaboradores" },
+  "SISTEMA":   { icon:"cog",     label:"Sistema",   hue: 245,  key:"sistema",   desc:"Auditoria, relatórios, planilhas, KB" },
+  "MAIS":      { icon:"folder",  label:"Mais",      hue: null, key:"mais",      desc:"Páginas soltas sem grupo canônico" },
 };
 
-window.MOCK = { COMPANIES, MENU, MENU_FLAT, USER_MENU, CONV, ROUTINES, TASKS, ORIGIN_COLORS, GROUP_META };
+window.MOCK = { COMPANIES, MENU, MENU_FLAT, USER_MENU, MENU_SHORTCUTS, SHORTCUT_TO_ROUTE, SUPERADMIN_MENU, FOOTER_LINKS, SIDEBAR_COUNTS, SIDEBAR_PAPEIS, ROUTE_STATE, ROUTE_STATE_LABEL, CONV, ROUTINES, TASKS, ORIGIN_COLORS, GROUP_META, FIN_SUBNAV, FIN_SUBNAV_OVERFLOW };

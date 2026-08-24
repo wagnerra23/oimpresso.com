@@ -36,6 +36,11 @@ function JcIcon({ name, className }) {
     sparkles:  <path d="M12 4l1.6 4.4L18 10l-4.4 1.6L12 16l-1.6-4.4L6 10l4.4-1.6z"/>,
     refresh:   <><path d="M4 11a8 8 0 0 1 14-4l2 2M20 13a8 8 0 0 1-14 4l-2-2"/><path d="M18 4v5h-5M6 20v-5h5"/></>,
     plus:      <path d="M12 5v14M5 12h14"/>,
+    lock:      <><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></>,
+    wrench:    <><path d="M14.7 6.3a4 4 0 0 0 5.4 5.4L21 12l-9 9-2-2 9-9-1.7-1.7a4 4 0 0 0-5.4-5.4L13 5l-9 9 2 2 9-9-.3-.7z"/></>,
+    grid:      <><rect x="3.5" y="3.5" width="7" height="7" rx="1"/><rect x="13.5" y="3.5" width="7" height="7" rx="1"/><rect x="3.5" y="13.5" width="7" height="7" rx="1"/><rect x="13.5" y="13.5" width="7" height="7" rx="1"/></>,
+    orders:    <><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></>,
+    product:   <><path d="M12 3l8 4v10l-8 4-8-4V7z"/><path d="M4 7l8 4 8-4M12 11v10"/></>,
   };
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor"
