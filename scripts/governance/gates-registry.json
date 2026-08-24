@@ -656,6 +656,14 @@
       "promote_by": "2026-11-19",
       "anchor": "tests/Feature/Roles/ e tests/Feature/Users/ nao rodavam em lane NENHUMA — varredura contada 2026-08-19 sobre as 17 lanes *-pest.yml: nenhuma referencia esses diretorios. Sem lane o teste nasce mudo (registro no phpunit.xml nao e execucao — sec.5 2026-08-02; skip sai exit 0 — LC-13). Provado na mesma sessao: o TimezoneGuardTest passou VERDE no CI sem ser executado, e so o wiring numa lane revelou um ParseError real. Cobre hoje o RoleTenantIsolationTest, que trava o furo Tier 0 (ADR 0093) do RoleController::update() — carregava o papel com findOrFail sem filtrar business_id, sendo o unico dos 7 acessos a Role no controller sem o filtro. MySQL e nao sqlite porque os casos autenticam usuario, montam papel Spatie e batem em rota HTTP com sessao de negocio; a action pest-mysql-setup semeia biz=1 E biz=2, sem o que o caso cross-tenant nao existe.",
       "promote_by_razao": "Nasce advisory (ADR 0275) porque a area nunca teve execucao conhecida — promocao so com mordida provada (ADR 0336). O conteudo e Tier 0 e o candidato natural a required assim que a lane acumular mordida; o flip e de [W]. Sem continue-on-error de proposito: advisory = nao bloqueia merge, nunca = nao pode ficar vermelha (lapide 2026-07-09)."
+    },
+    "typecheck-gate.yml": {
+      "nome": "TypeScript (ratchet vs baseline) — catraca de erros do `tsc --noEmit` por par arquivo|codigoTS vs config/typecheck-baseline.json. Congela o debito atual e reprova so REGRESSAO (par novo ou contagem que sobe); melhoria passa e o --write recolhe o ganho. Irma de eslint-gate.yml (2095) e stylelint-gate.yml (419). Tem bite-test do comparador no proprio job (par novo e contagem que sobe reprovam). Quem e required no vivo: governance/required-checks-baseline.json.",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-09-07",
+      "anchor": "sinal de custo: a checagem de tipos estava VERMELHA no main com 298 erros em 145 pares arquivo|codigo (medido 2026-08-24, PR da catraca) e NUNCA teve gate — varredura com rc conferido (rc=1) nao achou typecheck/noEmit em scripts/ nem em .github/workflows/, e este registry nao a listava. Sem catraca, 298 nao e teto. Descoberto ao cumprir o DoD §5 do HANDOFF do espelho DS (#6205/#6207), onde o item de tipos falhava sem ninguem medir o tamanho. Advisory por ADR 0314 (divida de tipos e quality, nao dinheiro/PII/multi-tenant/fiscal) + ADR 0275 (forward-only: legado grandfathered, so o novo reprova); promote_by forca a decisao de promocao em 14d em vez de advisory eterno. Flip do vivo na branch protection = ato [W] (R10 / ADR 0275 §5).",
+      "promote_by_razao": "nasce agora (2026-08-24) — 0 runs. Promover exige amostra + decisao [W]."
     }
   }
 }
