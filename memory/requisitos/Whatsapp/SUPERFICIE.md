@@ -14,7 +14,7 @@ module: Whatsapp
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Whatsapp/**` + `resources/js/Pages/Whatsapp/**` + `resources/js/Pages/Atendimento/**` (namespaces Inertia `Whatsapp`, `Atendimento`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `Whatsapp` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 421 arquivos em 20 papéis.
+**Total mapeado:** 422 arquivos em 20 papéis.
 
 ## Controllers — 23
 
@@ -348,8 +348,9 @@ module: Whatsapp
 - [Settings.charter.md](../../../resources/js/Pages/Whatsapp/Settings.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Whatsapp/Templates/Index.charter.md)
 
-## Casos (contrato UC) — 1
+## Casos (contrato UC) — 2
 
+- [Index.casos.md](../../../Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.casos.md)
 - [FeedbackPublico.casos.md](../../../resources/js/Pages/Whatsapp/FeedbackPublico.casos.md)
 
 ## Testes (Pest) — 121
