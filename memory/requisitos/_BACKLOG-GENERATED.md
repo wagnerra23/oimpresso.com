@@ -22,7 +22,7 @@
 | [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
 | [`Crm`](#crm) | 23 | 0 | 0 | 0 | 23 |
 | [`Fiscal`](#fiscal) | 23 | 0 | 0 | 0 | 23 |
-| [`Connector`](#connector) | 20 | 0 | 0 | 0 | 20 |
+| [`Connector`](#connector) | 20 | 0 | 0 | 0 | 19 |
 | [`Pcp`](#pcp) | 20 | 0 | 0 | 0 | 20 |
 | [`Vestuario`](#vestuario) | 19 | 0 | 0 | 0 | 19 |
 | [`Compras`](#compras) | 18 | 0 | 0 | 0 | 17 |
@@ -715,7 +715,6 @@
 
 - **US-CONN-013** — Documentar a API Connector em OpenAPI 3.0 sem expor dados reais _(`p0` · @[F])_
 - **US-CONN-014** — [EPIC] Migrar a tela Conector (API) de Blade para Inertia (MWART) _(`p2` · @[W])_
-- **US-CONN-015** — F2 — Pest baseline do ClientController antes de tocar _(`p2` · @[F])_
 - **US-CONN-016** — F2 — Dual render + feature flag + comando artisan _(`p2` · @[F])_
 - **US-CONN-017** — F2 — Mapa de paridade campo-a-campo _(`p2` · @[F])_
 - **US-CONN-018** — F3 — Tela Pages/Connector/Index.tsx _(`p2` · @[F])_
@@ -733,6 +732,10 @@
 - **US-CONN-010** — REST `/user`
 - **US-CONN-011** — Sync `salvar-cliente` + `salvar-equipamento/{business_id}`
 - **US-CONN-012** — CRM API (`crm/follow-ups`, `crm/leads`)
+
+### in_progress
+
+- **US-CONN-015** — F2 — Pest baseline do ClientController antes de tocar _(`p2` · @[F])_
 
 ## Pcp
 

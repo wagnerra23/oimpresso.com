@@ -487,3 +487,45 @@ Descoberta-chave que mudou a abordagem do brief: o repo ativa dark via **`<html 
 Verificacao: probe token-flip standalone (tokens REAIS do inertia.css inlinados + markup pos-fix → headless-chrome screenshot LIGHT|DARK lado-a-lado) confirma flip correto e light intacto; ds-canon/conformance/foundation locais PASS; DS-GUARD limpo. Pest de unidade novo dispensado (dark e CSS/visual — guidance do proprio brief). Smoke vivo em prod fica pro pos-merge (`tela-smoke-pos-merge`).
 
 PARTE 4 (chips de canal) saiu em PR backend proprio **#2822** (branch `fix/caixa-unif-canal-chips-whatsmeow`, off origin/main pos-#2818): `buildAvailableChannelsPayload` cataloga `whatsapp_whatsmeow` (LIVE, ADR 0204) no lugar da row morta `whatsapp_baileys` (ADR 0202) — o chip do canal vivo volta a 'ativo' com count real e `?channel=whatsapp_whatsmeow` filtra via whereHas channel.type. Raiz do mascaramento: o helper Pest `cuctMakeChannel` e o R-WA-CAIXA-UNIF-001 seedavam o type morto, deixando o teste verde contra um type que nunca existe em dado real — migrados pro LIVE; novo R-WA-CAIXA-UNIF-013 (regressao). Charter v12. Fecha as 4 partes do brief (PARTEs 1-3 dark via #2818).
+
+## HANDOFF 2026-08-24 · Clientes/CRM · espelho DS v6 — AUDITORIA (leitura, sem código)
+
+- **fonte visual:** projeto DS `019dd02f-d2d0-7ba6-a57f-24b3ddd073ac` → `templates/clientes-crm/ClientesCrm.dc.html` (lido via `DesignSync.get_file`, modo leitura — ADR 0315 Eixo B).
+- **tokens:** `ds-token-diff` → **divergências de VALOR: 0** nos 4 escopos (light/dark/cockpit-light/cockpit-dark); `ds-mirror-drift` 0 vs baseline 0. ⚠️ **medido contra `scripts/design-sync/mirror-snapshot/*.css`, não contra o arquivo vivo** — ver "teto de transporte" abaixo.
+- **alvo:** `resources/js/Pages/Cliente/Index.tsx` (charter `Index.charter.md:8` — `status: live`).
+- **⚠️ conflito de âncora (decisão [W]):** `node prototipo-ui/ancora.mjs Cliente/Index` resolve `related_prototype` = `prototipo-ui/cowork/clientes-page.jsx` (112 KB, projeto Cowork 019dcfd3), **não** o `ClientesCrm.dc.html` do DS. `git ls-files | grep -c ClientesCrm` = **0** — a fonte DS não está versionada. Duas fontes concorrentes para a mesma tela; a âncora canônica é a do charter (§5 2026-06-30: proveniência = o que o charter declara). Qual vale é decisão [W], não minha.
+
+### Auditoria do `main` contra o §3 — 5 linhas do mapa estão ERRADAS
+
+| § 3 diz | `main` real | Veredito |
+|---|---|---|
+| `TaskCard`·`BoardColumn` → **criar** | `Components/board/TaskCard.tsx:44` · `board/BoardColumn.tsx:20` (+`board/badges.ts`) | ❌ **já existem** → é **reusar** |
+| `KpiFilterCard` → **estender** (`selected`+`onClick`) | `shared/KpiCard.tsx:84,86` (`onClick`,`selected`) · `:152` ring `border-primary ring-1 ring-primary/40` · `:161` `aria-pressed` · `tone`/`icon` em `:33,53` | ❌ **já estendido** → é **reusar** |
+| `Logo` → criar wrapper, "**ativos já existem**" | `git ls-files \| grep -cE 'logo-full\|logo-mark\|brand-bg'` = **0** | ❌ ativos existem **no espelho**, não no `main` — criar exige **trazer os ativos antes** |
+| `PageHeader` → `shared/PageHeader.tsx` (reusar) | **dois** vivos: `shared/PageHeader.tsx` (47 Pages) e `Components/PageHeader/` (28 Pages, ADR 0189 v3.2 + 0190) | ⚠️ ambíguo — o §3 aponta o **não-canon**; seguir cego regride |
+| §3 mapeia só `ui/` e `shared/` | `Components/` tem **8** pastas: +`board/`(3) `cockpit/`(6) `layout/`(7) `PageHeader/`(3) `Site/`(12) `NfeBrasil/`(3) | ⚠️ foi **essa lacuna** que produziu o erro do `TaskCard` |
+
+**Confirmados corretos** (auditados, não lembrados): `ui/` 32 · `shared/` 16 arquivos (errata do HANDOFF bate) · `StatusBadge` **não** tem `frescor`/`tipo`/`sla`/`atendimento` (0 ocorrências; os 16 kinds reais são outros) → estender ✓ · `Avatar` sem `--av-c1..c8`/hash → estender ✓ · `MercosulPlate.tsx:37` props `{plate,size,className}`, sem `padrao`/`categoria`/`uf` → estender ✓ · `ui/badge.tsx` sem paleta lowercase (0 de varejo/atacado/…) → `TagChip` estender ✓ · `EmptyState.tsx:26` `default|search|error|success` → faltam `no-perm`/`offline`/`filtered` ✓ · `DataTable.tsx:8` já usa `@tanstack/react-table` → `DataTablePro` estender ✓ · `ui/sheet.tsx:96` tem `SheetFooter`, falta badge no header + `DrawerSection` ✓ · `Progress`/`DatePicker`/`PeriodBar`/`Breadcrumb`/`Pagination`/`FsmStepper`/`Chart` ausentes (varredura `--hidden` no repo inteiro) → criar ✓ · deps `sonner`·`date-fns`·`@tanstack/react-table`·`@dnd-kit/*` todas presentes ✓.
+
+### DoD §5 — saída real
+
+✓ `ds:canon:check` · `foundation:check` · `conformance:check` · `pt:conformance:check` (91 PT, 0 mismatch) · `design:coverage:check` (173 ≥ 93) · `contrato:preflight` · `a11y:check` (246 = baseline) · `dominio:check` (−1 vs baseline) · `no-mock:check` · `lint:baseline:check` (2095, −5) · `stylelint:baseline:check` (419, Δ0) · `integrity-check` · `cowork-ssot-guard` · `mirror-freshness --unverified` (0 mexidos).
+
+**3 itens do DoD FALHAM — todos pré-existentes no `main`** (working tree limpo, `git diff origin/main...HEAD` vazio). Reportados, **não corrigidos** (§5: "item que falha → comunica o Wagner"):
+
+1. **`npm run contrato:check` está quebrado.** O script é `node scripts/contrato-de-tela.mjs --contract` **sem argumento**, e `--contract` exige um path (`scripts/contrato-de-tela.mjs:114` `loadContract`). Crash `ERR_INVALID_ARG_TYPE`, exit 1 — **erro de execução, não veredito**. Como o §5 encadeia `contrato:check && contrato:preflight`, esse item do DoD **nunca pode passar**.
+2. **`npm run typecheck` exit 2** — `Pages/Whatsapp/_components/CustomerMemoryBlock.tsx:30:22` (TS6133 `MessageSquare` não usado) e `resources/js/ssr.tsx:31:24` (TS2769 overload).
+3. **`npm run test` (vitest) exit 1** — 4 failed / 474 passed (2 de 35 arquivos).
+
+`visreg:pixel` **não rodado**: é `./vendor/bin/pest` → Tier 0, Pest só no CT 100, nunca local.
+
+### Teto de transporte (o que esta auditoria NÃO prova)
+
+`get_file` devolveu os 4 arquivos **inline no contexto** (`truncated:false`), nenhum persistido em disco — medido: `HANDOFF.md`, `README.md`, `cockpit_domains.css` (5,7 KB), `colors_and_type.css` (19,9 KB). O piso de persistência do consumidor é **60 KiB** (`gerar-payload-partes.mjs --piso 61440`; medido: maior inline 41 KB, menor persistido 87 KB). Logo **não há JSON em disco** para alimentar `--export-from`, e escrever de lá seria **transcrição** (ADR 0374; §5 2026-08-11). A rota [PRINCIPAL] (bundle em partes) roda **do lado do design**, não do consumidor. Consequência honesta: o **VALOR:0 acima cobre o eixo git-interno** (snapshot commitado × tokens recém-compilados por `tokens:build`) e **não** o eixo espelho-remoto. Evidência lateral de que batem: o header do `cockpit_domains.css` vivo declara "62 tokens light + 60 dark" e o snapshot local tem exatamente 122 linhas de token. Isso é o teto registrado em §5 2026-08-14 / PR #5757 — **decisão [W]**, não conserto meu.
+
+### Pendências pra [W]
+
+1. Qual fonte vale para `Cliente/Index`: `ClientesCrm.dc.html` (DS, não versionado) ou `clientes-page.jsx` (Cowork, âncora do charter)?
+2. `PageHeader`: consolidar no canon ADR 0189/0190 ou manter os dois? O §3 precisa dizer qual.
+3. Corrigir o §3: `TaskCard`/`BoardColumn` → reusar; `KpiFilterCard` → reusar; `Logo` → ativos ausentes no `main`; mapear as 6 pastas faltantes de `Components/`.
+4. `contrato:check` quebrado, typecheck e vitest vermelhos no `main` — abrir tarefa própria (fora do escopo desta leitura).
