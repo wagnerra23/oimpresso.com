@@ -165,10 +165,14 @@ nova, não migração. Entram por US própria se [W] decidir.
 
 ### US-CONN-015 · F2 — Pest baseline do ClientController antes de tocar
 
-> owner: [F] · priority: p2 · estimate: 1h · status: todo · type: story
+> owner: [F] · priority: p2 · estimate: 1h · status: in_progress · type: story
 > blocked_by: US-CONN-014
 
-**Implementado em:** _pendente_
+**Implementado em:** _pendente_ — o arquivo de teste foi criado
+(`Modules/Connector/Tests/Feature/ClientControllerBaselineTest.php`, 5 casos com
+`@covers-us US-CONN-015`), mas **nenhum deles foi executado**: o CT 100 estava fora do ar
+nesta sessão (502) e Pest não roda local (proibição Tier 0). Enquanto a lane do CI não der
+o veredito, a US segue pendente — arquivo existir não é teste passar (LC-13).
 
 **DoD:**
 - ≥5 fixtures cobrindo `index` e `store`.

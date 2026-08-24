@@ -34,9 +34,18 @@ class CharterAuditCommand extends Command
 
     private const STALE_DAYS = ['A' => 30, 'B' => 60, 'C' => 90];
 
+    /**
+     * `last_validated` NÃO entra aqui. O schema canônico (scripts/memory-schemas/charter.schema.json,
+     * gate required desde 2026-07-17 — ADR 0341) o declara OPCIONAL, e a decisão [W] aceita em
+     * 2026-08-11 (proposal `templates-8-artefatos-ANEXO`) o põe entre os campos que ficam AUSENTES
+     * até alguém validar de fato — a data é escrita pela skill `charter-write` no draft→live.
+     * Medido em 2026-08-24: 29 dos 171 charters de resources/js/Pages já não tinham o campo e
+     * caíam aqui como `invalid_frontmatter`. Staleness não depende desta lista: detectStale()
+     * já ignora charter sem a data (`continue` no null).
+     */
     private const REQUIRED_FRONTMATTER = [
         'page', 'component', 'owner', 'status',
-        'last_validated', 'parent_module', 'tier', 'charter_version',
+        'parent_module', 'tier', 'charter_version',
     ];
 
     private const REQUIRED_SECTIONS = [
