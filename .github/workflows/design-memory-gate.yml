@@ -259,6 +259,16 @@ jobs:
         if: always()
         continue-on-error: true
         run: node scripts/governance/anchor-content-check.mjs --check
+      # STAGING — o universo que o job REQUIRED não varre, e não pode varrer: medido em
+      # 2026-08-24, o vivo tem 0 âncoras podres e `prototipo-ui/design-docs/` tem 15. Ampliar
+      # o required levaria de 0 → 15 num job que roda em TODO PR, travando o merge do repo por
+      # dívida herdada (§5 2026-08-24, duas vezes: predicado absoluto onde cabia delta, e gate
+      # reprovando fora do raio do PR). Aqui é advisory de propósito — mede o passivo e avisa
+      # se a normalização do `aplicar-payload.mjs` (conserto de raiz, forward-only) regredir.
+      - name: anchor-content-check --check-staging (âncora do Cowork em design-docs · advisory)
+        if: always()
+        continue-on-error: true
+        run: node scripts/governance/anchor-content-check.mjs --check-staging
       # Frescor do espelho (INDEX §0.2 "diffar antes de concluir" · session 2026-07-06-arte):
       # o CI headless NÃO lê o Cowork vivo (auth interativa, sem webhook/service-token na
       # plataforma) — então AQUI não se mede frescor. Mede-se (a) que o comparador classifica

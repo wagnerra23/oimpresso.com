@@ -48,6 +48,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join, dirname, normalize, sep } from 'node:path';
 import { payloadDependencyGraph, normalizePayloadPath } from './payload-dependency-graph.mjs';
 import { dsRuntimeRelPath } from '../governance/cowork-mirror-freshness.mjs';
+import { anchorRelPath } from '../governance/anchor-content-check.mjs'; // fonte unica do parse da ancora
 import { BUNDLE_SCHEMA } from './bundle-contract.mjs';
 import { applyBundleTransaction, applyLegacySnapshotTransaction } from './bundle-transaction.mjs';
 
@@ -77,6 +78,73 @@ function fnv1a64(value) {
   const prime = 0x100000001b3n, mask = 0xffffffffffffffffn;
   for (const b of bytes) { h = ((h ^ BigInt(b)) * prime) & mask; }
   return h.toString(16).padStart(16, '0');
+}
+
+// ── ÂNCORA DE DESIGN: normalização na ENTRADA, porque o Cowork escreve com pasta de módulo ──
+//
+// O QUE FOI MEDIDO (2026-08-24, corpus real deste repo, 292 charters):
+//   O Cowork emite `related_prototype: prototipo-ui/cowork/ponto/ponto-telas.jsx`, mas o
+//   arquivo pousa em `prototipo-ui/cowork/ponto-telas.jsx` — a pasta `ponto/` não existe no
+//   espelho. Resultado: 15 charters do staging com âncora apontando pra lugar nenhum
+//   (13 Ponto · 1 Relatorios · 1 Modules), todos com o arquivo PRESENTE na forma plana.
+//
+// POR QUE A NORMALIZAÇÃO É AQUI: este é o chokepoint onde todo `.md` do Cowork entra no repo.
+// Corrigir o arquivo já pousado seria editar ESPELHO — some no próximo `--export-from`
+// (§5 2026-08-13). O conserto tem que ser no mecanismo, e é forward-only: charter que chega
+// daqui pra frente nasce com a âncora resolvível.
+//
+// ⚠️ O ESPELHO **NÃO** É PLANO — e essa era a premissa errada que quase virou código. Medido:
+// 244 arquivos na raiz de `cowork/` MAIS 74 em 5 subdirs REAIS (`ds-v6/`, `venda-v3/`,
+// `produto-preco-especial/`, `prototipos/`, `prototipo-ui-patch/`). Três charters VIVOS
+// dependem desses subdirs (Financeiro/Cobranca, Produto/SellingPrices, Sells/CreateV3).
+// Colapsar tudo pra basename quebraria os três. Por isso a guarda é ORDENADA e a primeira
+// perna é a que protege: **path original existe ⇒ NÃO TOCA, ponto final** — determinístico,
+// não depende de o basename coincidir (que é o que os salvaria por sorte, não por desenho).
+//
+// FP medido no corpus: 0. As 3 legítimas passam na 1ª guarda; 15 das 16 quebradas colapsam
+// pra um arquivo que existe; a 16ª (`public/cowork-preview/Chat.html`) não tem forma plana e
+// por isso é DEIXADA COMO ESTÁ e reportada — nunca inventada.
+
+// "Como extrair o path de um `related_prototype`" JÁ TEM DONO: `anchorRelPath` do
+// `anchor-content-check.mjs`, que o `cowork-mirror-freshness.mjs` importa declarando-o "fonte
+// única". Reescrevi o regex aqui na 1ª versão — duplicata que ficaria drifando em silêncio
+// (§5 2026-08-03: autorar máquina paralela a um tema que já tem dono). Importa, não reimplementa.
+
+/**
+ * Normaliza UMA âncora. Puro: recebe o valor e um predicado `existe(relPath)`.
+ * Devolve `{ valor, mudou, motivo }` — `motivo` alimenta o relato (silêncio seria pior que
+ * o defeito: quem não colapsa precisa aparecer).
+ *
+ * Ordem das guardas — a ordem É o desenho, não estilo:
+ *   1. não resolve a path (prosa / n/a)      → intocado
+ *   2. path SEM `/` (já plano)               → intocado
+ *   3. path original EXISTE no espelho       → intocado  ← protege subdir legítimo
+ *   4. basename existe no espelho            → COLAPSA
+ *   5. nenhum dos dois existe                → intocado + reportado (nunca inventa)
+ */
+export function normalizarAncora(valor, existe) {
+  const rel = anchorRelPath(valor);
+  if (!rel) return { valor, mudou: false, motivo: 'prosa' };
+  if (!rel.includes('/')) return { valor, mudou: false, motivo: 'ja-plano' };
+  if (existe(rel)) return { valor, mudou: false, motivo: 'subdir-real' };
+  const base = rel.slice(rel.lastIndexOf('/') + 1);
+  if (!existe(base)) return { valor, mudou: false, motivo: 'sem-alvo' };
+  // Substitui SÓ o trecho de diretório, preservando prefixo (`prototipo-ui/cowork/`), a seção
+  // no parêntese e toda a prosa em volta — reescrever a linha inteira comeria informação
+  // vizinha (§5 2026-08-02). Âncora ao redor do path pra não casar dentro de forma maior.
+  const alvo = rel.slice(0, rel.lastIndexOf('/') + 1);
+  return { valor: valor.replace(alvo + base, base), mudou: true, motivo: 'colapsado' };
+}
+
+/** Aplica a normalização ao FRONTMATTER de um charter. Toca exclusivamente a linha
+ *  `related_prototype:` — nenhum outro byte do documento é reescrito. */
+export function normalizarCharter(texto, existe) {
+  const m = texto.match(/^related_prototype:[ \t]*(.+)$/m);
+  if (!m) return { texto, mudou: false, motivo: 'sem-campo' };
+  const r = normalizarAncora(m[1].trim(), existe);
+  if (!r.mudou) return { texto, mudou: false, motivo: r.motivo, de: m[1].trim() };
+  const linha = m[0].replace(m[1], r.valor);
+  return { texto: texto.replace(m[0], linha), mudou: true, motivo: r.motivo, de: m[1].trim(), para: r.valor };
 }
 
 /**
@@ -245,6 +313,40 @@ for (const f of files) {
   }
 
   preparados.push({ rel, destinoBase, destinoPath, alvoRel, conteudo, binary, text: binary ? null : f.content, calc });
+}
+
+// ── NORMALIZAÇÃO DA ÂNCORA — depois da prova de transporte, antes de qualquer transação ─────
+//
+// A ORDEM importa e é deliberada: a conferência de `bytes`/digest acima mede FIDELIDADE DO
+// TRANSPORTE (o payload chegou inteiro?). Normalizar antes dela invalidaria essa prova — o
+// conteúdo deixaria de bater com o que o produtor declarou. Aqui, o transporte já foi provado
+// e o que muda é a SEMÂNTICA do ponteiro, que é responsabilidade deste consumidor.
+//
+// Fica FORA do laço porque o predicado `existe()` precisa enxergar o LOTE INTEIRO: um charter
+// e o `.jsx` que ele aponta podem chegar no mesmo payload, e nesse caso o alvo ainda não está
+// em disco. Perguntar só ao disco marcaria como `sem-alvo` uma âncora que o próprio lote
+// resolve.
+const noLote = new Set(preparados.filter((p) => p.destinoBase === DESTINO).map((p) => p.destinoPath.split(sep).join('/')));
+const existeNoEspelho = (relPath) => noLote.has(relPath) || existsSync(join(ROOT, DESTINO, relPath));
+const ancoras = { colapsado: [], semAlvo: [], subdirReal: 0 };
+for (const p of preparados) {
+  if (p.binary || !p.rel.toLowerCase().endsWith('.charter.md')) continue;
+  const r = normalizarCharter(p.text, existeNoEspelho);
+  if (r.motivo === 'subdir-real') ancoras.subdirReal++;
+  if (r.motivo === 'sem-alvo') ancoras.semAlvo.push(`${p.rel} → ${r.de}`);
+  if (!r.mudou) continue;
+  p.text = r.texto;
+  p.conteudo = Buffer.from(r.texto, 'utf8');
+  p.calc = fnv1a64(p.conteudo);
+  ancoras.colapsado.push(`${p.rel}: ${r.de} → ${r.para}`);
+}
+if (ancoras.colapsado.length || ancoras.semAlvo.length || ancoras.subdirReal) {
+  console.log(`  ÂNCORA DE DESIGN — ${ancoras.colapsado.length} normalizada(s) · ${ancoras.subdirReal} subdir real preservado(s) · ${ancoras.semAlvo.length} sem alvo`);
+  for (const x of ancoras.colapsado) console.log(`     ✓ ${x}`);
+  // `sem-alvo` NÃO é bloqueio: o alvo pode chegar num lote posterior, e inventar um path que
+  // não existe seria pior que o ponteiro podre (o gate do anchor-content-check é quem cobra).
+  for (const x of ancoras.semAlvo) console.log(`     ⚠ sem alvo no espelho, mantido como veio — ${x}`);
+  console.log('');
 }
 
 // PORTÃO DO SHELL COMPLETO — roda ANTES de qualquer write. O payload servido é a rota que

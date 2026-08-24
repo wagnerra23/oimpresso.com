@@ -19,6 +19,8 @@
  *   8. --require-complete-shell fecha HTML→CSS/JS→imports/assets transitivos
  *   9. `_ds/**` pousa no snapshot canônico (bundle/CSS/base64 byte-idêntico)
  *  10. dependência transitiva ausente cancela o lote inteiro antes do 1º write
+ *  11. NORMALIZA a âncora de design do charter (pasta de módulo → forma plana), preservando
+ *      subdir REAL e sem inventar alvo — as 3 guardas provadas por sabotagem, uma a uma
  *
  * Uso: node scripts/design-sync/aplicar-payload.test.mjs
  */
@@ -413,6 +415,95 @@ console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ applier: fiel/atômico ·
   const incomplete = sandbox();
   const missingPart01 = rodar(incomplete, parts.slice(1), ['--require-complete-shell']);
   check('v2 E2E: ausência da part01 reprova antes de escrever', missingPart01.code !== 0 && !existsSync(join(incomplete, 'prototipo-ui/cowork/grande.css')), missingPart01.out);
+}
+
+// ── 11: ÂNCORA DE DESIGN — normalização da pasta de módulo que o Cowork emite ────────
+//
+// BITE-TEST PAREADO (§5: "sem o par, 'nunca disparou' é indistinguível de cego"). Roda o CLI
+// DE FORA — o docblock do topo já registra que assert sobre helper exportado fica verde
+// enquanto o pipeline regride (§5 2026-07-30). Aqui é o pipeline que tem que normalizar.
+{
+  const ancora = (v) => `---\nrelated_prototype: ${v}\nstatus: draft\n---\n\n# Tela\n`;
+  const lerDoc = (dir, rel) => readFileSync(join(dir, 'prototipo-ui/design-docs', rel), 'utf8');
+
+  // (a) RUIM → normaliza: o caso medido (13 Ponto + 1 Relatorios + 1 Modules).
+  //     `ponto/ponto-telas.jsx` não existe; `ponto-telas.jsx` existe → colapsa.
+  const d1 = sandbox({ 'ponto-telas.jsx': 'export const T=1\n' });
+  const p1 = payload(d1, [{ path: 'x/Index.charter.md', content: ancora('prototipo-ui/cowork/ponto/ponto-telas.jsx') }]);
+  const r1 = rodar(d1, p1);
+  check('âncora: pasta de módulo inexistente → COLAPSA pro plano',
+    r1.code === 0 && lerDoc(d1, 'x/Index.charter.md').includes('related_prototype: prototipo-ui/cowork/ponto-telas.jsx'), r1.out);
+  check('âncora: o colapso é RELATADO (silêncio seria pior que o defeito)',
+    /✓ x\/Index\.charter\.md: \S*ponto\/ponto-telas\.jsx → \S*cowork\/ponto-telas\.jsx/.test(r1.out), r1.out);
+
+  // (b) BOA/plana → passa intocada. Controle negativo do caso (a).
+  const d2 = sandbox({ 'ponto-telas.jsx': 'export const T=1\n' });
+  const p2 = payload(d2, [{ path: 'y/Index.charter.md', content: ancora('prototipo-ui/cowork/ponto-telas.jsx') }]);
+  const r2 = rodar(d2, p2);
+  check('âncora: forma plana válida passa INTOCADA',
+    r2.code === 0 && lerDoc(d2, 'y/Index.charter.md') === ancora('prototipo-ui/cowork/ponto-telas.jsx'), r2.out);
+
+  // (c) SUBDIR REAL → intocado. O FP que quase virou código: o espelho NÃO é plano (medido
+  //     2026-08-24: 74 arquivos em 5 subdirs), e 3 charters vivos dependem disso.
+  const d3 = sandbox({});
+  mkdirSync(join(d3, 'prototipo-ui/cowork/venda-v3'), { recursive: true });
+  writeFileSync(join(d3, 'prototipo-ui/cowork/venda-v3/sells-create.jsx'), 'export const S=1\n', 'utf8');
+  const p3 = payload(d3, [{ path: 'z/Index.charter.md', content: ancora('prototipo-ui/cowork/venda-v3/sells-create.jsx') }]);
+  const r3 = rodar(d3, p3);
+  check('âncora: SUBDIR QUE EXISTE não é colapsado (protege Sells/CreateV3 & irmãs)',
+    r3.code === 0 && lerDoc(d3, 'z/Index.charter.md').includes('venda-v3/sells-create.jsx'), r3.out);
+
+  // (c2) O CASO QUE TRAVA A ORDEM DAS GUARDAS — subdir real E homônimo na raiz, os DOIS.
+  //      Sem este, o (c) acima passa por DOIS caminhos (guarda `subdir-real` OU `sem-alvo`) e
+  //      não discrimina: medi removendo a guarda e o teste seguiu VERDE — cego. Aqui só a
+  //      ORDEM salva, que é exatamente a propriedade que o comentário do applier promete
+  //      ("por desenho, não porque o basename coincide").
+  //      ⚠️ E o arquivo TEM que ser .jsx/.html: a 1ª versão deste caso usou `.css`, que o
+  //      `anchorRelPath` nem reconhece — passava por 'prosa', sem tocar guarda nenhuma. Verde
+  //      por não-execução, a mesma doença que ele existe pra impedir.
+  const d3b = sandbox({ 'sells-create.jsx': 'export const RAIZ=1\n' });
+  mkdirSync(join(d3b, 'prototipo-ui/cowork/venda-v3'), { recursive: true });
+  writeFileSync(join(d3b, 'prototipo-ui/cowork/venda-v3/sells-create.jsx'), 'export const SUB=1\n', 'utf8');
+  const p3b = payload(d3b, [{ path: 'zz/Index.charter.md', content: ancora('prototipo-ui/cowork/venda-v3/sells-create.jsx') }]);
+  const r3b = rodar(d3b, p3b);
+  check('âncora: subdir real vence o homônimo da raiz (a ORDEM das guardas, não a sorte)',
+    r3b.code === 0 && lerDoc(d3b, 'zz/Index.charter.md').includes('venda-v3/sells-create.jsx'), r3b.out);
+
+  // (d) SEM ALVO → mantido + reportado. Nunca inventa (o caso `public/cowork-preview/Chat.html`).
+  const d4 = sandbox({});
+  const p4 = payload(d4, [{ path: 'w/Index.charter.md', content: ancora('prototipo-ui/cowork/nada/fantasma.jsx') }]);
+  const r4 = rodar(d4, p4);
+  check('âncora: sem alvo no espelho → MANTIDA como veio (não inventa)',
+    r4.code === 0 && lerDoc(d4, 'w/Index.charter.md').includes('nada/fantasma.jsx'), r4.out);
+  check('âncora: sem alvo é REPORTADO', /⚠ sem alvo no espelho, mantido como veio — w\/Index\.charter\.md/.test(r4.out), r4.out);
+
+  // (e) alvo que chega NO MESMO LOTE — o predicado enxerga o lote, não só o disco.
+  const d5 = sandbox({});
+  const p5 = payload(d5, [
+    { path: 'v/Index.charter.md', content: ancora('prototipo-ui/cowork/ponto/ponto-page.jsx') },
+    { path: 'ponto-page.jsx', content: 'export const P=1\n' },
+  ]);
+  const r5 = rodar(d5, p5);
+  check('âncora: alvo que chega no MESMO lote resolve (não marca sem-alvo)',
+    r5.code === 0 && lerDoc(d5, 'v/Index.charter.md').includes('cowork/ponto-page.jsx') && !/⚠ sem alvo/.test(r5.out), r5.out);
+
+  // (f) só a linha da âncora muda — reescrita ancorada, nada de comer o vizinho (§5 2026-08-02).
+  const d6 = sandbox({ 'ponto-telas.jsx': 'x\n' });
+  const doc = `---\ntitulo: Nao me toque\nrelated_prototype: prototipo-ui/cowork/ponto/ponto-telas.jsx (TelaX) — prosa\noutro: ponto/ponto-telas.jsx\n---\n\n# Corpo cita ponto/ponto-telas.jsx tambem\n`;
+  const p6 = payload(d6, [{ path: 'u/Index.charter.md', content: doc }]);
+  const r6 = rodar(d6, p6);
+  const saiu = lerDoc(d6, 'u/Index.charter.md');
+  check('âncora: preserva seção (TelaX) e prosa da própria linha',
+    saiu.includes('related_prototype: prototipo-ui/cowork/ponto-telas.jsx (TelaX) — prosa'), saiu);
+  check('âncora: NÃO toca outras linhas que citam o mesmo path (teste de identidade)',
+    saiu.includes('outro: ponto/ponto-telas.jsx') && saiu.includes('# Corpo cita ponto/ponto-telas.jsx tambem') && saiu.includes('titulo: Nao me toque'), saiu);
+
+  // (g) `.md` que NÃO é charter fica fora do escopo — o normalizador é cirúrgico.
+  const d7 = sandbox({ 'ponto-telas.jsx': 'x\n' });
+  const p7 = payload(d7, [{ path: 't/NOTAS.md', content: ancora('prototipo-ui/cowork/ponto/ponto-telas.jsx') }]);
+  const r7 = rodar(d7, p7);
+  check('âncora: .md que não é charter fica INTOCADO',
+    r7.code === 0 && lerDoc(d7, 't/NOTAS.md').includes('ponto/ponto-telas.jsx'), r7.out);
 }
 
 process.exit(fails ? 1 : 0);
