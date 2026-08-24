@@ -1,6 +1,7 @@
 ---
 page: /repair/dashboard
 component: resources/js/Pages/Repair/Dashboard/Index.tsx
+bundle_source: repair-page.jsx
 owner: wagner
 status: live
 last_validated: "2026-05-07"
