@@ -20,7 +20,6 @@ import DataTable from '@/Components/shared/DataTable'
 import EmptyState from '@/Components/shared/EmptyState'
 import { Stack, Inline } from '@/Components/layout'
 import { Badge } from '@/Components/ui/badge'
-import { Input } from '@/Components/ui/input'
 import { Skeleton } from '@/Components/ui/skeleton'
 import type { ColumnDef } from '@tanstack/react-table'
 
@@ -61,7 +60,12 @@ interface Filtros {
 
 interface Paginator {
   data: LinhaAcervo[]
-  [k: string]: unknown
+  total: number
+  current_page: number
+  last_page: number
+  from: number | null
+  to: number | null
+  links: Array<{ url: string | null; label: string; active: boolean }>
 }
 
 interface Props {
@@ -82,6 +86,21 @@ function tamanho(bytes: number): string {
 function leiDe(sub: string | null, politica: Politica[]): string | null {
   if (!sub) return null
   return politica.find((p) => p.sub === sub)?.lei ?? null
+}
+
+/** `filters` do DataTable aceita string|number|null|undefined — `with_trashed` e boolean,
+ *  entao vira 1/undefined (o mesmo que a ListArquivosRequest ja aceita como boolean). */
+function paraQuery(f: Filtros): Record<string, string | number | null | undefined> {
+  return {
+    bucket: f.bucket,
+    owner_type: f.owner_type,
+    mime: f.mime,
+    from: f.from,
+    to: f.to,
+    q: f.q,
+    per_page: f.per_page,
+    with_trashed: f.with_trashed ? 1 : undefined,
+  }
 }
 
 const chip = (ativo: boolean) =>
@@ -205,7 +224,7 @@ function TabelaSkeleton() {
   )
 }
 
-function Acervo({ acervo, politica }: { acervo?: Paginator; politica: Politica[] }) {
+function Acervo({ acervo, politica, filtros }: { acervo?: Paginator; politica: Politica[]; filtros: Filtros }) {
   if (!acervo || acervo.data.length === 0) {
     return (
       <EmptyState
@@ -214,12 +233,21 @@ function Acervo({ acervo, politica }: { acervo?: Paginator; politica: Politica[]
       />
     )
   }
-  return <DataTable columns={colunas(politica)} data={acervo.data} pagination={acervo as never} />
+  return (
+    <DataTable
+      columns={colunas(politica)}
+      data={acervo.data}
+      pagination={acervo}
+      endpoint="/arquivos"
+      filters={paraQuery(filtros)}
+      searchPlaceholder="Buscar por nome, dono ou contexto…"
+      initialSearch={filtros.q ?? ''}
+      rowKey={(a) => a.id}
+    />
+  )
 }
 
 export default function Index({ filtros, politica, acervo }: Props) {
-  const [busca, setBusca] = React.useState(filtros.q ?? '')
-
   const irPara = (patch: Record<string, unknown>) =>
     router.get('/arquivos', { ...filtros, ...patch }, { preserveState: true, replace: true })
 
@@ -253,21 +281,11 @@ export default function Index({ filtros, politica, acervo }: Props) {
             </button>
           ))}
         </Inline>
-        <Input
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') irPara({ q: busca || null })
-          }}
-          placeholder="Buscar por nome, dono ou contexto…"
-          aria-label="Buscar arquivo"
-          className="max-w-xs"
-        />
       </Inline>
 
       <div data-contract="acervo">
         <Deferred data="acervo" fallback={<TabelaSkeleton />}>
-          <Acervo acervo={acervo} politica={politica} />
+          <Acervo acervo={acervo} politica={politica} filtros={filtros} />
         </Deferred>
       </div>
 
