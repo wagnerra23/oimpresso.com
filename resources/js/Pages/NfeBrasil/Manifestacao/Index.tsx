@@ -18,7 +18,6 @@ import {
   Loader2,
 } from 'lucide-react'
 import { Button } from '@/Components/ui/button'
-import { Badge } from '@/Components/ui/badge'
 import { Checkbox } from '@/Components/ui/checkbox'
 import { Input } from '@/Components/ui/input'
 import { toast } from 'sonner'

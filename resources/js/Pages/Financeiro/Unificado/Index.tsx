@@ -17,7 +17,7 @@ import React, { useState, useMemo, useCallback, useEffect, type ReactNode } from
 // Onda 12 (2026-05-19) — paridade 100% canon REAL (/cowork-preview/Oimpresso ERP - Chat.html):
 // emoji → lucide-react nos 8 botões + Download icon adicional + remoção FinMonthDigest
 // (não-canon) + summary numérica footer + KPI hero dark.
-import { Search, Plus, Sparkles, CheckSquare, Check, Play, Printer, RefreshCw, FolderOpen, Download, ChevronDown, TrendingUp, TrendingDown, Camera, Landmark, Eye, FileText, Percent, Link2, ShoppingBag, Wrench, Package, Receipt, Send, Archive, type LucideIcon } from 'lucide-react';
+import { Search, Plus, Sparkles, CheckSquare, Check, Play, Printer, Download, ChevronDown, TrendingUp, TrendingDown, Camera, Landmark, Eye, FileText, Percent, Link2, ShoppingBag, Wrench, Package, Receipt, Send, Archive, type LucideIcon } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,7 +27,6 @@ import {
 } from '@/Components/ui/dropdown-menu';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
-import { Input } from '@/Components/ui/input';
 import { Checkbox } from '@/Components/ui/checkbox';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,

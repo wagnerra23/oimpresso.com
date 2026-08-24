@@ -11,7 +11,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { useForm } from '@inertiajs/react';
 import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
-import { ArrowLeft, FileUp, Info, Upload } from 'lucide-react';
+import { ArrowLeft, Info, Upload } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';

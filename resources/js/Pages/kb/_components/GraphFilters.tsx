@@ -15,8 +15,7 @@
  * Agent E (ONDA 5) — 2026-05-15
  */
 
-import * as React from 'react';
-import { Search, Eye, EyeOff, Compass, X } from 'lucide-react';
+import { Search, Compass, X } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Button } from '@/Components/ui/button';

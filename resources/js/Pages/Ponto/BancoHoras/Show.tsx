@@ -11,7 +11,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, router, useForm } from '@inertiajs/react';
 import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
-import { ArrowLeft, Info, PiggyBank, Save } from 'lucide-react';
+import { ArrowLeft, Info, Save } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
@@ -19,7 +19,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Com
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Skeleton } from '@/Components/ui/skeleton';
-import { Textarea } from '@/Components/ui/textarea';
 import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import { cn, formatMinutes } from '@/Lib/utils';
 

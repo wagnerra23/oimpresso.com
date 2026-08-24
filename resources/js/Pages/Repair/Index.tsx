@@ -5,7 +5,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router, Link } from '@inertiajs/react';
 import { useState, useMemo, type ReactNode } from 'react';
-import { Wrench, Plus, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';

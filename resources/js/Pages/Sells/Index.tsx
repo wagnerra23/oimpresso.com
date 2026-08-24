@@ -32,7 +32,6 @@ import {
   SlidersHorizontal,
 } from 'lucide-react';
 import SaleSheet from './_components/SaleSheet';
-import QuickPaymentPopover from './_components/QuickPaymentPopover';
 import VdBulkEmitModal, { type BulkEmitItem } from './_components/VdBulkEmitModal';
 import { toast } from 'sonner';
 // PR follow-up Cowork — filtros legacy reintegrados via barra colapsável "Filtros avançados ▾".

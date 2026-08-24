@@ -8,7 +8,7 @@
 
 import { useState, type FormEvent } from 'react';
 import { Head } from '@inertiajs/react';
-import { Download, Printer, Plus, Trash2, FileText, QrCode } from 'lucide-react';
+import { Printer, Plus, Trash2, FileText, QrCode } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';

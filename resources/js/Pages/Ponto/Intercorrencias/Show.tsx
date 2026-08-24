@@ -11,7 +11,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import { Head, Link, router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import { AlertTriangle, ArrowLeft, Check, Send, X, XCircle } from 'lucide-react';
+import { ArrowLeft, Check, Send, X, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Badge } from '@/Components/ui/badge';

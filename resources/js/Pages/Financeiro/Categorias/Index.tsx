@@ -5,7 +5,7 @@ import { router } from '@inertiajs/react';
 import { useState } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
-import { Tag, Plus, Pencil, Trash2, Power, PowerOff } from 'lucide-react';
+import { Pencil, Trash2, Power, PowerOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { CategoriaSheet } from './components/CategoriaSheet';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
