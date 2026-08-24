@@ -116,13 +116,17 @@ export function KpiFiltros({ kpis, ativo, onToggle, perm, diasParado }: KpiFiltr
             title={`Recortar por ${card.label} (${card.sub})`}
             onClick={() => onToggle(on ? null : card.key)}
             className={
-              'group flex items-center gap-3 p-3 rounded-xl border bg-card text-left transition-all hover:shadow-sm ' +
+              // `rounded-lg`, não o `rounded-xl` que o patch §1 pede: a regra `ds/no-rounded-xl`
+              // do `eslint.config.js` cravou o teto em `rounded-lg` citando o CLAUDE_DESIGN_BRIEFING
+              // §4, e o cânone do projeto ganha do patch. A placa desce pra `rounded-md` junto, pra
+              // preservar a RELAÇÃO que o patch encoda (placa menos redonda que o card) dentro do teto.
+              'group flex items-center gap-3 p-3 rounded-lg border bg-card text-left transition-all hover:shadow-sm ' +
               // Selecionado é ANEL, não tinta de fundo: o card é neutro e continua neutro, senão
               // a faixa ganha uma segunda cor competindo com a placa, que é quem carrega o tom.
               (on ? 'border-primary ring-1 ring-primary/40' : 'border-border')
             }
           >
-            <Inline justify="center" className={'h-9 w-9 rounded-lg border flex-shrink-0 ' + PLACA[card.tone]}>
+            <Inline justify="center" className={'h-9 w-9 rounded-md border flex-shrink-0 ' + PLACA[card.tone]}>
               {/* Sem `color` próprio: o glyph herda o `text-*` da placa (currentColor). */}
               <Icon className="h-4 w-4" />
             </Inline>
