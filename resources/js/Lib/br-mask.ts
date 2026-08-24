@@ -11,7 +11,7 @@
 // arquivo é Wave C-FE específico do drawer paradigma 760 (PT-BR-only, sem
 // indicador_ie/regime tributário). Não duplica; reusa internamente.
 
-import { unmaskDigits, formatCpfCnpj, formatCep, formatPhone } from './format-br';
+import { unmaskDigits, formatCpfCnpj, formatCep } from './format-br';
 
 /**
  * Apenas dígitos. Atalho mantido pro código que ainda usa BRMask.onlyDigits.
