@@ -96,5 +96,9 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
 - ADRs: [0123](../../../../memory/decisions/0123-modules-arquivos-backbone.md) (módulo mãe) ·
   [0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) (multi-tenant Tier 0) ·
   [0360](../../../../memory/decisions/0360-deprecacao-admin-center-supersede-0122.md) (Admin Center deprecado)
-- Contrato de tela: `prototipo-ui/contrato/arquivos.contract.json`
+- Contrato de tela: **entra na onda 1**, junto com a instrumentação de cada vista. Não pode
+  nascer no PR-0 porque o job `Preflight + contratos ativos` roda `git ls-files '*.contract.json'`
+  e exige que **todos** passem (só o `EXEMPLO` é isento) — um contrato apontando pro stub
+  reprova por construção. Conteúdo preservado no rascunho do Cowork
+  (`cowork-inbox/modulos-faltantes/arquivos.contract.json`) e no histórico do PR.
 - Casos: [Index.casos.md](Index.casos.md)
