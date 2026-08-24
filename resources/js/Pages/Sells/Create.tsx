@@ -17,7 +17,7 @@ import { router, useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useAuth, useBusiness } from '@/Hooks/usePageProps';
-import { AlertTriangle, CreditCard, FileText, Loader2, Package, Plus, Printer, Receipt, Search, Settings2, Trash2, Truck } from 'lucide-react';
+import { AlertTriangle, CreditCard, FileText, Loader2, Package, Plus, Printer, Receipt, Settings2, Trash2, Truck } from 'lucide-react';
 import EmptyState from '@/Components/shared/EmptyState';
 import MercosulPlate from '@/Components/shared/MercosulPlate';
 import { Button } from '@/Components/ui/button';

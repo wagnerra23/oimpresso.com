@@ -12,8 +12,8 @@
 //   - sem session-Storage (usar localStorage com prefixo oimpresso.produto.)
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Deferred, Head, Link, router } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { Deferred, Head, Link } from '@inertiajs/react';
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { Plus, Upload, Search, Package } from 'lucide-react';
 import { Input } from '@/Components/ui/input';

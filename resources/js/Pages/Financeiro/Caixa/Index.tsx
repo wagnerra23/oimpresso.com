@@ -4,7 +4,7 @@
 // continua na header POS — esta tela é descoberta + histórico no Financeiro.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { router, usePage } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { ReactNode, useMemo } from 'react';
 import { Lightbulb } from 'lucide-react';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';

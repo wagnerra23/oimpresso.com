@@ -15,7 +15,6 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
 import { Camera } from 'lucide-react';
-import { toast } from 'sonner';
 import VendaDerivadaCard, {
   type VendaDerivada,
 } from '@/Components/shared/VendaDerivadaCard';

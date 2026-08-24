@@ -12,7 +12,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, Link, router } from '@inertiajs/react';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import { ArrowLeft, Pause, Play, Plus, Receipt, Repeat, Search } from 'lucide-react';
+import { ArrowLeft, Pause, Play, Plus, Search } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import KpiCard from '@/Components/shared/KpiCard';

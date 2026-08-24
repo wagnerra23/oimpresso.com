@@ -29,7 +29,7 @@ import {
 import Sparkline from '../_components/Sparkline';
 import CheatSheet from '../_components/CheatSheet';
 import TourOnboarding, { TOUR_DONE_KEY } from '../_components/TourOnboarding';
-import { printSubDetail, installPrintStyles } from '../_components/printExtractStyles';
+import { installPrintStyles } from '../_components/printExtractStyles';
 
 // ────────────────────────────────────────────────────────────────
 // TIPOS — espelham InvoiceController@index payload

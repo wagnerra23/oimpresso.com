@@ -4,7 +4,7 @@
 // Agent W2-C paralelo · 2026-05-15
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import type { ReactNode, FormEvent } from 'react';
 import { Save, X } from 'lucide-react';

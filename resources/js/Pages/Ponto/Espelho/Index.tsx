@@ -11,7 +11,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import { Deferred, Link, router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import { ClipboardList, Search, ArrowRight } from 'lucide-react';
+import { Search, ArrowRight } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';

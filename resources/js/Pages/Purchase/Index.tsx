@@ -19,7 +19,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { Plus, Eye, Edit, Trash2, Printer, RotateCcw, FileText, Barcode } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, Printer, FileText, Barcode } from 'lucide-react';
 
 // ---------- Tipos ----------
 
