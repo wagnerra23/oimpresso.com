@@ -31,9 +31,9 @@ class SpatiePermissionsTest extends PontoTestCase
         ];
     }
 
-    /**
-     * @dataProvider permissionRoutes
-     */
+    // `@dataProvider` foi REMOVIDA no PHPUnit 12 — este metodo saia em ArgumentCountError,
+    // com ZERO assercoes. Medido no CT100 2026-08-23: o arquivo dava 0 pass / 2 fail / 0 assert.
+    #[\PHPUnit\Framework\Attributes\DataProvider('permissionRoutes')]
     public function test_user_sem_permissao_nao_passa(string $permission, string $url): void
     {
         // Garante que a permission existe no DB
@@ -82,9 +82,8 @@ class SpatiePermissionsTest extends PontoTestCase
     /**
      * Verifica que admin COM a permissão consegue acessar.
      * (Complemento simétrico do teste acima.)
-     *
-     * @dataProvider permissionRoutes
      */
+    #[\PHPUnit\Framework\Attributes\DataProvider('permissionRoutes')]
     public function test_admin_com_permissao_acessa(string $permission, string $url): void
     {
         $this->actAsAdmin();

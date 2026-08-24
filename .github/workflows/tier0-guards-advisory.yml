@@ -23,6 +23,14 @@ name: Tier-0 guards
 # Guards são varredura estática + unit (Symfony Finder sobre o filesystem): NÃO
 # precisam de MySQL/migrate. Por isso o setup mais leve disponível (sqlite :memory:),
 # idêntico ao de multi-tenant-gate.yml.
+#   - tests/Unit/Guards/PhpunitTestAnnotationGuardTest.php   (plugado 2026-08-23)
+#       varredura estatica: `@test` E `@dataProvider` em doc-comment. As duas foram
+#       REMOVIDAS no PHPUnit 12 (o repo esta no 12.5.23). O `@test` some em SILENCIO;
+#       o `@dataProvider` chama o metodo com ZERO argumentos e mata em ArgumentCountError.
+#       TERCEIRA instancia do 'armado mas nao plugado' que este workflow existe pra curar:
+#       o guard foi endurecido 3x (PR #393 6 tests, #437 35 tests, jun/2026 39 tests) e
+#       NENHUMA lane o executava — medido pelo test-lane-coverage em 2026-08-23.
+#       Medicao ANTES de plugar: 0 violacoes das DUAS regras em 1.490 arquivos varridos.
 
 on:
   push:
@@ -82,5 +90,6 @@ jobs:
           vendor/bin/pest \
             tests/Unit/Guards/WithoutGlobalScopesCommentGuardTest.php \
             tests/Unit/BusinessIdGuardTest.php \
+            tests/Unit/Guards/PhpunitTestAnnotationGuardTest.php \
             --no-coverage \
             --colors=always

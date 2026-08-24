@@ -40,9 +40,11 @@ class MultiTenantIsolationTest extends PontoTestCase
         ];
     }
 
-    /**
-     * @dataProvider scopedRoutes
-     */
+    // Atributo, NAO doc-comment: a annotation `@dataProvider` foi REMOVIDA no PHPUnit 12
+    // (o repo esta no 12.5.23). Com ela, o PHPUnit chamava este metodo com ZERO argumentos
+    // e ele morria em ArgumentCountError — as 10 rotas do Ponto NUNCA foram varridas.
+    // Medido no CT100 em 2026-08-23. Idioma FQCN igual ao TelasNavegacaoTest deste modulo.
+    #[\PHPUnit\Framework\Attributes\DataProvider('scopedRoutes')]
     public function test_admin_acessa_rotas_com_scope_do_proprio_business(string $url): void
     {
         $this->actAsAdmin();

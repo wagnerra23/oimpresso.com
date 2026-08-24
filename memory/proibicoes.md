@@ -855,6 +855,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** não usar a forma `<ref>:<path>` do git — `cat-file -e|-p|-s`, `show`, `grep <ref>:<path>` — em Git Bash/MSYS **quando o path começa com ponto**; ali ela devolve **falso "não existe"**, não o conteúdo. Para existência-no-ref o instrumento é **`git ls-tree <ref> -- <path>`** (ref e path separados, imune); para conteúdo, `git show` com **`MSYS_NO_PATHCONV=1`** ou `git checkout <ref> -- <path>`. E a regra que vale além do `:` — **comando cuja API é o exit code precisa distinguir rc-de-ausência de rc-de-erro antes de virar veredito**: `cat-file -e` responde ausência com **1**; qualquer outro rc é falha de execução e não pode ser lido como resposta.
 
+### 2026-08-23 — Estender o P4 do `block-sonda-que-mente` pra pegar o pattern vindo de VARIÁVEL de shell (MEDIDO: 93,7% de falso-positivo)
+
+- **O limite (variante também proibida):** não estender o P4 — nem criar par novo — que decida a **qual invocação** um metacaractere pertence por **proximidade no texto do comando**. Vale pra `\|` (BRE×ERE), pra `\+`/`\?`/`\{}` (mesma divisão), e pra `-P` (PCRE) no meio de comando composto. O predicado exige análise de shell; sem ela é guard sintático, a família com 4 lápides medidas neste mesmo §5 (allowlist-de-pasta 2026-06-30 · guard `@scope` 2026-07-09 · vocabulário 130 FP 2026-07-16 · `toHaveKey` 100% FP 2026-07-26). **Reabrir** só com critério que resolva a **invocação dona** do padrão — por exemplo tokenizando o comando e atribuindo cada string ao `grep` que a consome.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:

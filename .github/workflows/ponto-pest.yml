@@ -100,6 +100,31 @@ jobs:
         # testes MySQL-only (w27NeedsMysql) SKIPam (a falsa cobertura). Exportar
         # aqui faz rodar no MySQL real semeado.
         #
+        # ── RATCHET UP 2026-08-23 — 16 arquivos, medidos antes de entrar ────────────
+        # O test-lane-coverage mediu 25 arquivos do Ponto FORA de qualquer lane. Rodei
+        # os 25 no CT100 (MySQL real): 173 passed · 16 failed · 2 skipped (518 assertions).
+        # Entram aqui os que deram VERDE INTEIRO — 0 fail E 0 skip E assertions > 0.
+        # Skip nao conta como verde (LC-13: zero-failed sem assercao nao prova execucao).
+        #
+        # DOIS deles so ficaram verdes porque foram CONSERTADOS neste mesmo PR:
+        #   MultiTenantIsolationTest  — era 1 pass / 1 fail / 1 skip
+        #   SpatiePermissionsTest     — era 0 pass / 2 fail / ZERO assertions
+        # Causa unica: a annotation dataProvider em doc-comment, REMOVIDA no PHPUnit 12 (repo em
+        # 12.5.23) — o metodo era chamado com 0 argumentos e morria em ArgumentCountError.
+        # Depois de trocar pelo atributo: 22 passed (28 assertions). Vinte casos que nunca
+        # tinham executado, incluindo a varredura das 10 rotas do Ponto contra 5xx.
+        #
+        # ⚠️ CT100 != CI (proibicoes.md §Ambiente): la o banco PERSISTE entre runs, aqui
+        # cada run semeia do zero. Verde no CT100 e CANDIDATURA, nao veredito — quem decide
+        # e esta lane. Se algum destes avermelhar, ele SAI daqui e o vermelho vira achado.
+        #
+        # NAO entraram (medidos, e o vermelho e o ACHADO — correcao e decisao [W]):
+        #   AprovacaoTest 1F · BancoHorasTest 1F · DashboardTest 1F · ModuleManagerTest 4F
+        #   MultiTenantAppendOnlyTest 2F · ObservabilityTest 1F · TelasNavegacaoTest 1F
+        #   Wave26SaturationTest 2F · CrossTenantMarcacaoTest (2 SKIP — fixture biz=99)
+        # DashboardTest merece nota: ele exige a prop kpis no payload inicial enquanto o irmao
+        # DashboardDeferredContractTest prova que a prop e DEFERIDA. Os dois no mesmo
+        # modulo, contradizendo-se. Isso e achado de PRODUTO, nao de lane.
         # CATRACA: a lane roda só os arquivos comprovadamente verdes (MySQL-only do
         # Ponto). Cada novo teste MySQL-only do Ponto é adicionado AQUI (ratchet up).
         # NÃO incluir arquivos com RefreshDatabase/migrate:fresh — eles dropam o
@@ -189,6 +214,22 @@ jobs:
             Modules/Ponto/Tests/Feature/ImportacaoCreateContratoTest.php \
             Modules/Ponto/Tests/Feature/IntercorrenciaContratoTest.php \
             Modules/Ponto/Tests/Feature/PontoDashboardContratoTest.php \
+            Modules/Ponto/Tests/Feature/CustomerJourneyTest.php \
+            Modules/Ponto/Tests/Feature/DashboardDeferredContractTest.php \
+            Modules/Ponto/Tests/Feature/EspelhoTest.php \
+            Modules/Ponto/Tests/Feature/ImportacaoTest.php \
+            Modules/Ponto/Tests/Feature/IntercorrenciaAIClassifierTest.php \
+            Modules/Ponto/Tests/Feature/MarcacaoServiceTest.php \
+            Modules/Ponto/Tests/Feature/MultiTenantIsolationTest.php \
+            Modules/Ponto/Tests/Feature/SpatiePermissionsTest.php \
+            Modules/Ponto/Tests/Feature/Wave11LgpdComplianceTest.php \
+            Modules/Ponto/Tests/Feature/Wave18BusinessScopeTest.php \
+            Modules/Ponto/Tests/Feature/Wave18RetryEscalaTurnoTest.php \
+            Modules/Ponto/Tests/Feature/Wave18RetryFormRequestTest.php \
+            Modules/Ponto/Tests/Feature/Wave23MarcacaoServiceReuseContractTest.php \
+            Modules/Ponto/Tests/Feature/Wave25SaturationTest.php \
+            Modules/Ponto/Tests/Feature/Wave28MobileMarcacaoTest.php \
+            Modules/Ponto/Tests/Feature/Wave28SaturationTest.php \
             Modules/Ponto/Tests/Feature/ModuleSpecBranchPresenceTest.php
 
 
