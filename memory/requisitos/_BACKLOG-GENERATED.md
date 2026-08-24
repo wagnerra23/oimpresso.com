@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **902 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **903 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -41,9 +41,9 @@
 | [`Superadmin`](#superadmin) | 11 | 0 | 0 | 0 | 11 |
 | [`Cms`](#cms) | 10 | 0 | 0 | 0 | 10 |
 | [`Cliente`](#cliente) | 9 | 1 | 0 | 0 | 8 |
+| [`Produto`](#produto) | 9 | 0 | 0 | 0 | 9 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
 | [`KB`](#kb) | 8 | 0 | 0 | 0 | 8 |
-| [`Produto`](#produto) | 8 | 0 | 0 | 0 | 8 |
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
 | [`TeamMcp`](#teammcp) | 7 | 0 | 0 | 0 | 7 |
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
@@ -1107,6 +1107,21 @@
 - **US-CRM-085** — Export de portabilidade do titular (registro completo CSV/JSON) — LGPD Art. 18 V
 - **US-CRM-091** — Mapa de clientes: trocar o iframe hardcoded por provedor tokenizado
 
+## Produto
+
+
+### todo
+
+- **US-PROD-020** — [G-04] Governança do Produto: casos.md + revisar SPEC _(`p0` · @wagner)_
+- **US-PROD-021** — [G-01] Kardex real na tela React StockHistory (deixar de linkar Blade) _(`p0` · @wagner)_
+- **US-PROD-022** — [G-02] ⚠️Tier0 · Multiplicador/markup por tabela de preço (SellingPriceGroup.mult) _(`p1` · @wagner)_
+- **US-PROD-023** — [G-05] Finalizar + promover as 8 telas React do Produto (draft→live) + `can:product.view` _(`p1` · @wagner)_
+- **US-PROD-027** — [V0] Travar o acidente do 0-row: preço zero em tabela é inerte só por sorte do PHP _(`p1` · @wagner)_
+- **US-PROD-024** — [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta primeiro _(`p2` · @wagner)_
+- **US-PROD-025** — [G-06] UI de BOM drag-drop + baixa-de-componente do kit no PDV _(`p2` · @wagner)_
+- **US-PROD-029** — Cadastro de produto em ROTA PARALELA (o `ProductController` da Larissa não é tocado) _(`p2` · @felipe)_
+- **US-PROD-026** — Fornecedores/cotação por produto (melhor preço no drawer) _(`p3` · @wagner)_
+
 ## TaskRegistry
 
 
@@ -1138,20 +1153,6 @@
 - **US-KB-006** — Visualização-grafo (ONDA 5) — 🔴 **FACHADA: front sem backend**
 - **US-KB-007** — Imprimir SOP balcão físico (ONDA 5) — ⬜ **não começou**
 - **US-KB-008** — `KbController@index` pagina 2000 nós de uma vez — revisar antes de virar dor — ⬜ **não começou**
-
-## Produto
-
-
-### todo
-
-- **US-PROD-020** — [G-04] Governança do Produto: casos.md + revisar SPEC _(`p0` · @wagner)_
-- **US-PROD-021** — [G-01] Kardex real na tela React StockHistory (deixar de linkar Blade) _(`p0` · @wagner)_
-- **US-PROD-022** — [G-02] ⚠️Tier0 · Multiplicador/markup por tabela de preço (SellingPriceGroup.mult) _(`p1` · @wagner)_
-- **US-PROD-023** — [G-05] Finalizar + promover as 8 telas React do Produto (draft→live) + `can:product.view` _(`p1` · @wagner)_
-- **US-PROD-027** — [V0] Travar o acidente do 0-row: preço zero em tabela é inerte só por sorte do PHP _(`p1` · @wagner)_
-- **US-PROD-024** — [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta primeiro _(`p2` · @wagner)_
-- **US-PROD-025** — [G-06] UI de BOM drag-drop + baixa-de-componente do kit no PDV _(`p2` · @wagner)_
-- **US-PROD-026** — Fornecedores/cotação por produto (melhor preço no drawer) _(`p3` · @wagner)_
 
 ## EvolutionAgent
 
