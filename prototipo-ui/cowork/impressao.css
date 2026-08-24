@@ -1,0 +1,15 @@
+/* ONDA 13 · impressão transversal: qualquer rota sai numa folha legível sem CSS próprio.
+   Oficina e Fiscal já têm folha dedicada — esta é o piso, não substituto. Só media="print". */
+html.cockpit,body{background:#fff !important;color:#000 !important}
+/* Cromo do app não vai pro papel: navegação, painel de tweaks, scrims e barras de ação. */
+[class*="sidebar"],[class*="tweaks"],[class*="cmdk"],[class*="-toolbar"],[class*="-bulk"],
+.os-drawer-back,.os-modal-back,.rota-carregando,button,[role="tab"]{display:none !important}
+/* O drawer de detalhe, quando aberto, É o documento — vira folha inteira. */
+.os-drawer,[class*="drawer"]:not([class*="back"]){position:static !important;width:auto !important;box-shadow:none !important;border:0 !important}
+#app,.main-body,[class*="-page"]{display:block !important;overflow:visible !important;height:auto !important}
+table{width:100% !important;border-collapse:collapse !important}
+thead{display:table-header-group}
+tr,.os-row{break-inside:avoid;page-break-inside:avoid}
+th,td{border-bottom:1px solid #ccc !important;background:transparent !important;color:#000 !important}
+a{color:#000 !important;text-decoration:none !important}
+h1,h2,h3{break-after:avoid;page-break-after:avoid}
