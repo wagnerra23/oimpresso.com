@@ -358,7 +358,7 @@ Corte/Acabamento · Instalação) · `Equipamentos` · `Pré-impressão` · `Ate
 
 > **Errata:** a v2.0 mandava **contratar a tela no visreg PRIMEIRO**, alegando que o gate reprovaria
 > o Controller. **Falso, e medido errado** — rodei `classifyFile`, não `validateExecution`. O gate
-> só morde em diff **Page-only**: um PR com Controller vira `scope: global` (`ui-impact.mjs:283 (verificado@d4afe95)`
+> só morde em diff **Page-only**: um PR com Controller vira `scope: global` (`ui-impact.mjs:327 (verificado@01c20fa)`
 > não cobra `uncovered` no global). Consequência: eu ia te pedir **3 aprovações F1.5** (baseline do
 > mock → re-aprovar com dado real → re-aprovar pós-cores) onde **1 basta** — e a primeira congelaria
 > em pixel a tela **mock**, virando lixo por construção.

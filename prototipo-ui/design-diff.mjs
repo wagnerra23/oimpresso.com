@@ -46,8 +46,19 @@
  *   node prototipo-ui/design-diff.mjs --selftest                    # fixture hermético (reproduz 07/07)
  */
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { TOLERANCIAS } from './style-fingerprint.mjs';
+
+/**
+ * Ledger de frescor do espelho — MESMO caminho que o `cowork-mirror-freshness`
+ * exporta em `LEDGER_REL`. Não importo o módulo dele de propósito: ele é pesado
+ * (varre a árvore no import) e aqui só preciso ler um JSON. O acoplamento fica
+ * no PATH, e o selftest trava que os dois continuam apontando pro mesmo arquivo.
+ */
+export const LEDGER_FRESCOR_REL = 'scripts/governance/.cowork-freshness-ledger.json';
 
 /* ─────────────────────────────────────────────────────────────────────────────
  * A SONDA CANÔNICA (roda no browser via Chrome MCP javascript_tool).
@@ -240,6 +251,54 @@ function fmt(rows) {
   }).join('\n');
 }
 
+/**
+ * O lado "design" veio de um render do ESPELHO LOCAL?
+ *
+ * O probe grava `url: location.href`. Espelho local roda por `file:` ou por um
+ * http server em localhost; prod é https num domínio real. Só o caso local
+ * depende da fidelidade do espelho — comparar prod×prod (dois ambientes) não
+ * depende, e por isso não é gateado.
+ */
+export function ehEspelhoLocal(url) {
+  return /^(?:file:|https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\])(?::\d+)?(?:[/?#]|$))/i.test(String(url || ''));
+}
+
+/**
+ * A última rodada de frescor cobriu o espelho INTEIRO?
+ *
+ * `sync > 0` sozinho não basta — é a armadilha que o `--sla` já nomeia: "0 stale"
+ * só fala do que foi medido, e o denominador é que conta o resto. Rodada que
+ * mediu 1 de 137 não é prova de nada sobre os outros 136.
+ *
+ * Devolve `{ completa, motivo }` — nunca lança: ledger ausente/ilegível é
+ * "não medido", jamais "está tudo bem" (§5 2026-07-29).
+ */
+export function rodadaDeFrescorCompleta(ledgerPath) {
+  let entradas;
+  try {
+    if (!existsSync(ledgerPath)) return { completa: false, motivo: 'ledger de frescor ausente — nenhuma rodada registrada' };
+    entradas = JSON.parse(readFileSync(ledgerPath, 'utf8'));
+  } catch (e) {
+    return { completa: false, motivo: `ledger de frescor ilegível (${e.message}) — não consegui medir` };
+  }
+  if (!Array.isArray(entradas) || entradas.length === 0) return { completa: false, motivo: 'ledger de frescor vazio' };
+
+  const u = entradas[entradas.length - 1];
+  const total = Number(u.files || 0);
+  const semVeredito = Number(u.unchecked || 0);
+  if (!total) return { completa: false, motivo: 'última rodada não declara denominador (`files`)' };
+  if (semVeredito > 0) {
+    return {
+      completa: false,
+      motivo: `última rodada é PARCIAL (${u.date}): ${total - semVeredito}/${total} medidos · ${semVeredito} sem veredito`,
+    };
+  }
+  if (Number(u.stale || 0) > 0) {
+    return { completa: false, motivo: `última rodada acusou ${u.stale} arquivo(s) STALE em ${u.date}` };
+  }
+  return { completa: true, motivo: `rodada completa em ${u.date} (${total} arquivos)` };
+}
+
 function runCompare(argv) {
   const files = argv.filter((a) => !a.startsWith('--'));
   if (files.length < 2) { console.error('uso: --compare <prod.json> <design.json>'); process.exit(2); }
@@ -253,6 +312,32 @@ function runCompare(argv) {
     console.log(`\n  ✗ DIVERGE(bug): ${res.bugs}\n`);
   }
   if (argv.includes('--check') && res.bugs > 0) process.exit(1);
+
+  // ── PROVENIÊNCIA: "igual" exige saber DE ONDE veio o lado design ───────────
+  // Sem isto o `--check` saía 0 (= igual) mesmo com o design vindo de espelho
+  // que ninguém verificou — e 0 é o código que um script lê como "pode seguir".
+  // Aconteceu em 2026-08-23/24: o espelho tinha `app.jsx` 18k chars atrás do
+  // vivo (stub em vez da tela) e a comparação teria carimbado conformidade
+  // contra uma fonte velha. Aqui o veredito passa a sair 2 = NÃO MEDI, que é o
+  // mesmo vocabulário do `cowork-mirror-freshness` (0 sync · 1 stale · 2 não-medi).
+  //
+  // Só morde quando o design veio do ESPELHO LOCAL. prod×prod (dois ambientes)
+  // não depende da fidelidade do espelho e segue livre — por isso zero FP.
+  if (argv.includes('--check') && ehEspelhoLocal(designSnap.url)) {
+    const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+    const { completa, motivo } = rodadaDeFrescorCompleta(join(ROOT, LEDGER_FRESCOR_REL));
+    if (!completa) {
+      console.error(
+        `\n  ⛔ NÃO MEDI — o lado design veio do espelho local (${designSnap.url}) e a fidelidade dele não está provada.` +
+        `\n     ${motivo}` +
+        `\n\n  "0 divergências" aqui não significa "igual ao design": significa "igual a uma cópia de frescor desconhecido".` +
+        `\n  Feche a rodada antes de concluir:` +
+        `\n     node scripts/governance/cowork-mirror-freshness.mjs --ledger        # o que falta buscar` +
+        `\n     node scripts/governance/cowork-mirror-freshness.mjs --compare <snap.json> --check\n`,
+      );
+      process.exit(2);
+    }
+  }
 }
 
 function selftest() {
@@ -313,9 +398,48 @@ function selftest() {
     ['fronteira D6: luminância Δ0.09 (na banda) → não acusa', !acusa(accent('oklch(0.55 0.15 295)'), accent('oklch(0.64 0.15 295)'), 'lightness')],
     ['fronteira D6: luminância Δ0.11 → acusa', acusa(accent('oklch(0.55 0.15 295)'), accent('oklch(0.66 0.15 295)'), 'lightness')],
   );
+
+  // ── PROVENIÊNCIA (2026-08-24) — o guarda tem de MORDER e de LIBERAR ────────
+  // Guarda que nunca reprova é carimbo; guarda que reprova sempre trava o certo.
+  // Os dois lados abaixo são o bite-test.
+  const L = (url) => ehEspelhoLocal(url);
+  let seqLedger = 0;
+  const tmpLedger = (conteudo) => {
+    const p = join(tmpdir(), `dd-ledger-${process.pid}-${++seqLedger}.json`);
+    writeFileSync(p, conteudo);
+    return p;
+  };
+  const semLedger = join(tmpdir(), `dd-ledger-inexistente-${process.pid}.json`);
+  const parcial = tmpLedger(JSON.stringify([{ date: '2026-08-21T00:00:00Z', files: 137, unchecked: 136, stale: 0 }]));
+  const completa = tmpLedger(JSON.stringify([{ date: '2026-08-24T00:00:00Z', files: 137, unchecked: 0, stale: 0 }]));
+  const comStale = tmpLedger(JSON.stringify([{ date: '2026-08-24T00:00:00Z', files: 137, unchecked: 0, stale: 3 }]));
+  const quebrado = tmpLedger('{ nao é json');
+
+  checks.push(
+    // (a) QUEM é espelho local — o gatilho do guarda
+    ['proveniência: file: é espelho local', L('file:///C:/x/oimpresso.com.html')],
+    ['proveniência: localhost:5588 é espelho local', L('http://localhost:5588/oimpresso.com.html')],
+    ['proveniência: 127.0.0.1 é espelho local', L('http://127.0.0.1:8080/x.html')],
+    ['CONTROLE: prod https NÃO é espelho local (prod×prod segue livre)', !L('https://oimpresso.com/ponto')],
+    ['CONTROLE: domínio que só CONTÉM "localhost" não conta', !L('https://localhost.evil.com/x')],
+    // (b) MORDE — rodada que não prova nada não pode virar "igual"
+    ['MORDE: rodada PARCIAL (136/137 sem veredito) → não completa', rodadaDeFrescorCompleta(parcial).completa === false],
+    ['MORDE: ledger AUSENTE → não completa (ausência ≠ tudo bem)', rodadaDeFrescorCompleta(semLedger).completa === false],
+    ['MORDE: ledger ILEGÍVEL → não completa (não medi ≠ sync)', rodadaDeFrescorCompleta(quebrado).completa === false],
+    ['MORDE: rodada completa mas com STALE → não completa', rodadaDeFrescorCompleta(comStale).completa === false],
+    // (c) LIBERA — senão o guarda trava o caminho certo pra sempre
+    ['LIBERA: rodada completa e sem stale → completa', rodadaDeFrescorCompleta(completa).completa === true],
+    // (d) o motivo CHEGA a quem lê (verdict mudo é o mesmo defeito de outro jeito)
+    ['motivo é específico, não genérico', /PARCIAL/.test(rodadaDeFrescorCompleta(parcial).motivo)],
+    // (e) o PATH do ledger é o mesmo que o dono exporta — se um mudar, isto quebra
+    ['path do ledger casa o LEDGER_REL do cowork-mirror-freshness',
+      LEDGER_FRESCOR_REL === 'scripts/governance/.cowork-freshness-ledger.json'],
+  );
+  for (const p of [parcial, completa, comStale, quebrado]) { try { rmSync(p, { force: true }); } catch { /* best-effort */ } }
+
   let ok = true;
   for (const [label, pass] of checks) { console.log(`  [${pass ? 'PASS' : 'FAIL'}] ${label}`); if (!pass) ok = false; }
-  console.log(ok ? '\nSELFTEST OK — mede o que o olho perdeu em 07/07 (D8 align + D2 overflow + D6 dark).' : '\nSELFTEST FALHOU');
+  console.log(ok ? '\nSELFTEST OK — mede o que o olho perdeu em 07/07 (D8 align + D2 overflow + D6 dark) + recusa veredito de fonte não provada.' : '\nSELFTEST FALHOU');
   process.exit(ok ? 0 : 1);
 }
 
