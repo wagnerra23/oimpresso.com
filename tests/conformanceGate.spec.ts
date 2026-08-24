@@ -158,9 +158,13 @@ describe('fontramp guard — ESPECIFICIDADE (não acusa inocente)', () => {
   });
 });
 
-describe('fontramp guard — foundations.css define o ramp completo', () => {
+// O Type RAMP migrou de `foundations.css` (escrito à mão) pro DTCG + Style Dictionary:
+// hoje ele é EMITIDO em `tokens/_generated-foundations-light.css` (fonte: *.tokens.json).
+// O guard seguia lendo o arquivo antigo, que hoje tem 0 dos 9 tokens — media a fonte
+// errada e falhava sem que nada de produto estivesse quebrado.
+describe('fontramp guard — o ramp completo é emitido pelo DTCG', () => {
   it('os 9 tokens --fs-1..9 existem com os valores canônicos', () => {
-    const css = readFileSync('resources/css/foundations.css', 'utf8');
+    const css = readFileSync('resources/css/tokens/_generated-foundations-light.css', 'utf8');
     FS_RAMP.forEach((v: number, i: number) => {
       expect(css).toMatch(new RegExp(`--fs-${i + 1}:\\s*${String(v).replace('.', '\\.')}px`));
     });

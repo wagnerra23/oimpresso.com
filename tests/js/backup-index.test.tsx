@@ -50,19 +50,19 @@ describe('Backup/Index', () => {
   it('declara que o arquivo contem os dados de TODOS os negocios', () => {
     render(<BackupIndex {...base} destino={{ disk: 'local', remoto: false, pasta: 'public/uploads/UltimatePOS' }} />)
 
-    expect(screen.getByText(/todos os neg[óo]cios/i)).toBeInTheDocument()
+    expect(screen.getByText(/todos os neg[óo]cios/i)).not.toBeNull()
   })
 
   // UC-BKP-02 — destino local avisa; destino remoto NAO avisa (controle negativo)
   it('avisa quando o destino e o disco local', () => {
     render(<BackupIndex {...base} destino={{ disk: 'local', remoto: false, pasta: 'public/uploads/UltimatePOS' }} />)
 
-    expect(screen.getByText(/Backup no mesmo servidor n[ãa]o [ée] backup/i)).toBeInTheDocument()
+    expect(screen.getByText(/Backup no mesmo servidor n[ãa]o [ée] backup/i)).not.toBeNull()
   })
 
   it('NAO avisa quando o destino e remoto — controle negativo', () => {
     render(<BackupIndex {...base} destino={{ disk: 's3', remoto: true, pasta: 'UltimatePOS' }} />)
 
-    expect(screen.queryByText(/Backup no mesmo servidor/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Backup no mesmo servidor/i)).toBeNull()
   })
 })
