@@ -57,15 +57,28 @@ function Busca({ value, onChange, placeholder, inputRef }) {
   );
 }
 function Drawer({ title, sub, onClose, children, footer, largo }) {
+  const painel = useRef(null);
+  // A11y (onda E8): foco entra no painel, Tab fica preso dentro e volta pra quem abriu.
   useEffect(() => {
-    const k = (e) => { if (e.key === "Escape") { e.stopPropagation(); onClose(); } };
+    const antes = document.activeElement;
+    const foco = () => painel.current ? [...painel.current.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')].filter((el) => !el.disabled && el.offsetParent !== null) : [];
+    const t = setTimeout(() => { const f = foco(); (f[0] || painel.current).focus(); }, 30);
+    const k = (e) => {
+      if (e.key === "Escape") { e.stopPropagation(); onClose(); return; }
+      if (e.key !== "Tab") return;
+      const f = foco();
+      if (!f.length) return;
+      const ini = f[0], fim = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === ini) { e.preventDefault(); fim.focus(); }
+      else if (!e.shiftKey && document.activeElement === fim) { e.preventDefault(); ini.focus(); }
+    };
     document.addEventListener("keydown", k);
-    return () => document.removeEventListener("keydown", k);
+    return () => { clearTimeout(t); document.removeEventListener("keydown", k); if (antes && antes.focus) antes.focus(); };
   }, [onClose]);
   return (
     <>
       <div className="os-drawer-back" onClick={onClose}></div>
-      <aside className={`os-drawer hrm-drawer ${largo ? "largo" : ""}`} role="dialog" aria-label={title}>
+      <aside ref={painel} tabIndex={-1} className={`os-drawer hrm-drawer ${largo ? "largo" : ""}`} role="dialog" aria-modal="true" aria-label={title}>
         <header className="os-drawer-h hrm-drawer-h">
           <div><h2>{title}</h2>{sub && <p>{sub}</p>}</div>
           <button className="hrm-drawer-x" onClick={onClose} aria-label="Fechar">×</button>
@@ -135,7 +148,7 @@ function Tabela({ cols, rows, altura = 460, densidade = "comfortable", seleciona
     : v;
   return (
     <div className="os-table-wrap"><table className="os-table">
-      <thead><tr>{cols.map((c) => <th key={c.key} className={c.align === "right" ? "hrm-num" : ""}>{c.label}</th>)}</tr></thead>
+      <thead><tr>{cols.map((c) => <th key={c.key} scope="col" className={c.align === "right" ? "hrm-num" : ""}>{c.label}</th>)}</tr></thead>
       <tbody>{rows.map((r) => (
         <tr key={r.id} onClick={onLinha ? () => onLinha(r) : undefined} style={onLinha ? { cursor:"pointer" } : null}>
           {cols.map((c) => <td key={c.key} className={c.align === "right" ? "hrm-num" : ""}>{cell(r.cells ? r.cells[c.key] : r[c.key])}</td>)}
@@ -159,7 +172,7 @@ function Paginacao({ pagina, paginas, onMudar, total, porPagina }) {
 function Bulk({ n, acoes, onFechar, rotulo }) {
   const { BulkBar } = ds();
   if (!n) return null;
-  if (BulkBar) return <BulkBar count={n} label={rotulo || "selecionadas"} actions={acoes} onClose={onFechar} />;
+  if (BulkBar) return <div role="status" aria-live="polite" aria-label={`${n} ${rotulo || "selecionadas"}`}><BulkBar count={n} label={rotulo || "selecionadas"} actions={acoes} onClose={onFechar} /></div>;
   return (
     <div className="hrm-bulk">
       <b>{n}</b> {rotulo || "selecionadas"}
@@ -180,9 +193,12 @@ function Vazio({ variante = "no-results", titulo, desc, acao }) {
 }
 function Aviso({ msg, tone }) {
   const { Toast } = ds();
-  if (!msg) return null;
-  if (Toast) return <div className="hrm-toast-host"><Toast tone={tone || "default"}>{msg}</Toast></div>;
-  return <div className="hrm-toast">{msg}</div>;
+  // A11y (E8): a região vive sempre no DOM pra o leitor de tela anunciar a mudança.
+  return (
+    <div className="hrm-toast-host" role="status" aria-live="polite" aria-atomic="true">
+      {msg ? (Toast ? <Toast tone={tone || "default"}>{msg}</Toast> : <div className="hrm-toast">{msg}</div>) : null}
+    </div>
+  );
 }
 
 // ── Hooks de mecânica (onda HRM-O1) ──

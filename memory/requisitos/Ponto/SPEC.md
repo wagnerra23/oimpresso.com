@@ -223,10 +223,10 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 **preciso** que a tela mostre o que esta gravado no banco,
 **para que** eu nao decida sobre numero que a interface inventou.
 **Aceitacao:**
-- `EspelhoController` le `tem_divergencia` — nao e coluna nem accessor (a verdade e `estado === DIVERGENCIA`). O RH fecha folha sem ver violacao de Art. 66/71 → `UC-ESPSHOW-01`
+- `EspelhoController` le `tem_divergencia` — nao e coluna nem accessor (a verdade e `estado === DIVERGENCIA`). O RH fecha folha sem ver violacao de Art. 66/71 → `UC-ESPSH-01`
 - `EscalaController@edit` le `entrada`/`saida`/`almoco_inicio`/`almoco_fim` — as colunas sao `hora_*`. A edicao de escala mostra TODOS os horarios vazios, sempre → `UC-ESCF-01`
-- `ImportacaoController` le `linhas_criadas`/`linhas_ignoradas` (reais: `linhas_sucesso`/`linhas_erro`) em `index` E `show` → `UC-IMPIDX-03` e `UC-IMPSHOW-04`
-- `ImportacaoController` le `erro_mensagem` (reais: `log`/`erros_amostra`); o `Show.tsx:82` faz `{i.erro_mensagem && <Alert>}`, logo o alerta de erro NUNCA renderiza → vira `UC-IMPSHOW-05`
+- `ImportacaoController` le `linhas_criadas`/`linhas_ignoradas` (reais: `linhas_sucesso`/`linhas_erro`) em `index` E `show` → `UC-IMPIDX-03` e `UC-IMPSH-04`
+- `ImportacaoController` le `erro_mensagem` (reais: `log`/`erros_amostra`); o `Show.tsx:82` faz `{i.erro_mensagem && <Alert>}`, logo o alerta de erro NUNCA renderiza → vira `UC-IMPSH-05`
 - Os testes assertam COMPORTAMENTO, nao a chave literal — ha mais de uma correcao legitima (renomear a leitura, accessor, ou `$appends`), e assert por chave reprovaria as outras
 - DoD: os 4 UCs verdes na lane `ponto-pest`
 - **Status:** todo

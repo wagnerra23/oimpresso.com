@@ -1,12 +1,20 @@
 # PEDIDO PRO [CL] — Forja completa: Mesa de Aprovações + fusão "Trabalho" (Lista·Quadro·Gantt) + topnav 10→3
 
+> ⚠️ **HISTÓRICO — não colar nem executar como fila atual.** O núcleo deste pedido aterrissou
+> entre 2026-08-08 e 2026-08-18 nos PRs #5456, #5469, #5479, #5486, #5492, #5493 e #5931.
+> O estado vivo passou a ser descrito por [`Cockpit.casos.md`](../../../Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.casos.md),
+> [`Aprovacoes/Index.casos.md`](../../../Modules/Forja/Resources/js/Pages/Forja/Aprovacoes/Index.casos.md)
+> e [`Trabalho/Index.casos.md`](../../../Modules/Forja/Resources/js/Pages/Forja/Trabalho/Index.casos.md).
+> Itens que não aterrissaram devem ser confrontados com esses contratos e com a task MCP dona;
+> este retrato preserva somente a decisão e a sequência propostas em 2026-08-08.
+
 > **Versão consolidada 2026-08-08 (fim da sessão).** Este é O documento — supersede as versões parciais do mesmo dia.
 
-> **Cole isto UMA vez no Claude Code.** Repo `wagnerra23/oimpresso.com` · branch base `main`.
+> **Instrução original (2026-08-08):** “Cole isto UMA vez no Claude Code.” Repo `wagnerra23/oimpresso.com` · branch base `main`.
 > Origem do design (F1, Cowork — build exportado em `prototipo-ui/cowork/forja/`): `forja-page.jsx` (shell, Lista, Quadro 2 eixos, Gantt, drawer único) · `forja-aprova.jsx` (mesa + placar) · `forja-data.jsx` (modelo unificado mock) · `forja-page.css` · `forja-mcp.jsx` · `forja-integra.jsx`. Ler como referência visual/gramática, NÃO copiar CSS cru.
 > **Soberania:** NÃO editar constituição (ADR/PROTOCOL/BRIEFING). Merge só [W2]. Token raw nunca persistido/logado (Tier 0 ADR 0081).
 
-## 0) Premissa (✓ lido @main 2026-08-08, ~16:13Z)
+## 0) Premissa histórica (medida no `main` em 2026-08-08, ~16:13Z)
 
 - `Pages/team-mcp/Forja/Cockpit.tsx` — shell com 5 abas próprias (Triagem/Backlog/Quadro/Changelog/MCP) via prop `tab`, header compartilhado `ForjaHub`, dados via `Inertia::defer`, layout `AppShellV2`.
 - `Cockpit.charter.md` (errata 2026-07-27) — **9 itens** de topnav em `config/core_topnavs.php['Forja']` (5 próprios + Tarefas/Equipe/CC Sessions/Saúde absorvidos) — **atualização 2026-08-08 19:54Z: são 10** — entrou **Roadmap (Gantt)** (`/forja/roadmap-gantt`, 2026-08-06 via #5310/ADR 0366, `can` próprio `jana.mcp.tasks.read`, com nota no config de que abriu VAZIA em produção: ghost não alimenta a tela); **Saúde fundida no `/team-mcp/scorecard`** (sem rota `/forja/saude`); permissão `jana.mcp.usage.all`; badge da Triagem **estático** (`'badge' => 3` no config, contador vivo só via prop deferida).

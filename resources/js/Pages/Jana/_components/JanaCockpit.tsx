@@ -305,7 +305,7 @@ export default function JanaCockpit({
   // no botão o que a rota não entrega") vale igual pros dois.
   //
   // Paridade com `AcaoHitlService::ACOES` (o backend valida a chave e devolve 404
-  // pro que não conhece) é amarrada por teste — UC-COPI-PAINEL-12.
+  // pro que não conhece) é amarrada por teste — UC-JPAIN-12.
   type AcaoTone = 'rose' | 'violet' | 'peach' | 'grey';
   interface Acao {
     id: string;
@@ -606,7 +606,7 @@ export default function JanaCockpit({
           ⚠️ Trocar o RÓTULO não mexe em valor. Fazer o inverso — passar o
           cálculo a mês-calendário para casar a palavra antiga — mexeria, e aí
           vale a regra mestre de VALOR (dupla prova + antes→depois). É decisão
-          [W], registrada no `Index.casos.md` §UC-COPI-PAINEL-14. */}
+          [W], registrada no `Index.casos.md` §UC-JPAIN-14. */}
       <KpiGrid cols={4}>
         {carregandoCockpit ? (
           <KpiCardSkeleton label="Receita 30 dias" />

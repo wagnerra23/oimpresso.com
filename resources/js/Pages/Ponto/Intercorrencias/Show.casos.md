@@ -23,9 +23,9 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-INTSHOW-01 | Só rascunho pode ser editado | must | `CU-PONTO-05` + US-PONTO-003 | `JornadaWorkflowContratoTest` | 🧪 sem veredito |
-| UC-INTSHOW-02 | Intercorrência de outro empregador → 404 | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `JornadaWorkflowContratoTest` | 🧪 sem veredito |
-| UC-INTSHOW-03 | O detalhe mostra quem decidiu e por quê | must | `CU-PONTO-06` + US-PONTO-003 | `JornadaWorkflowContratoTest` | 🧪 sem veredito |
+| UC-INTSH-01 | Só rascunho pode ser editado | must | `CU-PONTO-05` + US-PONTO-003 | `JornadaWorkflowContratoTest` | 🧪 sem veredito |
+| UC-INTSH-02 | Intercorrência de outro empregador → 404 | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `JornadaWorkflowContratoTest` | 🧪 sem veredito |
+| UC-INTSH-03 | O detalhe mostra quem decidiu e por quê | must | `CU-PONTO-06` + US-PONTO-003 | `JornadaWorkflowContratoTest` | 🧪 sem veredito |
 
 **[BACKLOG]:**
 
@@ -39,14 +39,14 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ---
 
-## UC-INTSHOW-01 · Só rascunho pode ser editado · `must`
+## UC-INTSH-01 · Só rascunho pode ser editado · `must`
 
 - **Persona:** colaborador que registrou um atestado e quer corrigir a data. Enquanto é rascunho, é dele.
   Depois de submetido, virou peça de um processo de decisão — mexer nele por fora quebra a trilha.
 - **Aceite:** Dado uma intercorrência que **já saiu** do estado de rascunho (pendente, aprovada ou
   rejeitada) · Quando tento abrir a edição dela · Então o acesso é **negado** (403), não uma tela de
   edição.
-- **Teste:** `Modules/Ponto/Tests/Feature/JornadaWorkflowContratoTest.php` — `UC-INTSHOW-01`.
+- **Teste:** `Modules/Ponto/Tests/Feature/JornadaWorkflowContratoTest.php` — `UC-INTSH-01`.
 - **Contrato:** `CU-PONTO-05` (SDD §6.2) · US-PONTO-003 (ciclo
   `RASCUNHO → PENDENTE → APROVADA|REJEITADA → APLICADA`) · `IntercorrenciaController@edit`
   (`abort_unless($estado === ESTADO_RASCUNHO, 403)`).
@@ -58,13 +58,13 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ---
 
-## UC-INTSHOW-02 · Intercorrência de outro empregador → 404 · `must` `[T0]`
+## UC-INTSH-02 · Intercorrência de outro empregador → 404 · `must` `[T0]`
 
 - **Persona:** plataforma multi-tenant. A intercorrência carrega motivo médico e justificativa em texto
   livre — é o dado mais sensível do módulo depois da biometria.
 - **Aceite:** Dado o id de uma intercorrência de **outro** business · Quando acesso
   `/ponto/intercorrencias/{id}` · Então recebo **404** — nunca 200 com o conteúdo.
-- **Teste:** `JornadaWorkflowContratoTest.php` — `UC-INTSHOW-02`.
+- **Teste:** `JornadaWorkflowContratoTest.php` — `UC-INTSH-02`.
 - **Contrato:** `CU-PONTO-12` · US-PONTO-007 ·
   [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) · LGPD Art. 7º II.
 - **Regressão que defende:** `IntercorrenciaController@show` usa `Intercorrencia::with(...)->findOrFail($id)`
@@ -75,13 +75,13 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ---
 
-## UC-INTSHOW-03 · O detalhe mostra quem decidiu e por quê · `must`
+## UC-INTSH-03 · O detalhe mostra quem decidiu e por quê · `must`
 
 - **Persona:** RH montando defesa em reclamatória, ou o próprio colaborador conferindo por que a falta
   não foi abonada. A resposta tem que estar no documento, não na memória de alguém.
 - **Aceite:** Dado uma intercorrência **rejeitada** · Quando abro o detalhe · Então vejo o estado, **quem
   decidiu** e o **motivo da rejeição** registrado.
-- **Teste:** `JornadaWorkflowContratoTest.php` — `UC-INTSHOW-03`.
+- **Teste:** `JornadaWorkflowContratoTest.php` — `UC-INTSH-03`.
 - **Contrato:** `CU-PONTO-06` (SDD §6.2) · US-PONTO-003 (aceitação nomeia `aprovador_id`, `aprovado_em`,
   `motivo_rejeicao`) · pareia com `UC-APROV-01` (que garante que o motivo **existe**); este garante que
   ele **aparece**.

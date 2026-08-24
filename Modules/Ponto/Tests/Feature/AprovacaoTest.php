@@ -21,16 +21,37 @@ class AprovacaoTest extends PontoTestCase
 
         $this->assertInertiaComponent($response, 'Ponto/Aprovacoes/Index');
 
+        // ── CONTRATO DEFER (corrigido 2026-08-24) ────────────────────────────────
+        // Este caso afirmava que as props caras vinham no PRIMEIRO render. Elas NAO
+        // vem: o Controller as entrega via `Inertia::defer` (RUNBOOK-inertia-defer-pattern
+        // + proibicoes.md §Sempre-fazer), e prop deferida ausente do payload inicial E o
+        // ponto do padrao. O irmao `DashboardDeferredContractTest (do Dashboard)` PROVA o defer e passava
+        // verde ao lado deste — os dois no mesmo modulo, contradizendo-se, porque NENHUM
+        // rodava em lane. Medido no CT100 em 2026-08-23.
+        //
+        // Agora o caso prova o contrato de verdade, nos DOIS lados: ausente no eager,
+        // presente e bem-formado no partial reload.
         $props = $response->json('props');
-        $this->assertArrayHasKey('aprovacoes', $props);
+        // `aprovacoes` e `contagens` sao Inertia::defer no AprovacaoController
+        $this->assertArrayNotHasKey('aprovacoes', $props);
+        $this->assertArrayNotHasKey('contagens', $props);
+        // eager continua vindo
         $this->assertArrayHasKey('filtros', $props);
-        $this->assertArrayHasKey('contagens', $props);
         $this->assertArrayHasKey('tipos', $props);
+
+        $partial = $this->inertiaPartialGet(
+            '/ponto/aprovacoes',
+            ['aprovacoes', 'contagens'],
+            'Ponto/Aprovacoes/Index'
+        );
+        $partial->assertStatus(200);
+        $resolvidas = $partial->json('props');
+        $this->assertArrayHasKey('aprovacoes', $resolvidas);
 
         // Contagens tem 6 estados esperados
         $this->assertEqualsCanonicalizing(
             ['RASCUNHO', 'PENDENTE', 'APROVADA', 'REJEITADA', 'APLICADA', 'CANCELADA'],
-            array_keys($props['contagens'])
+            array_keys($resolvidas['contagens'])
         );
 
         // Tipos é array de {value, label}

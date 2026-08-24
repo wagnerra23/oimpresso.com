@@ -100,6 +100,26 @@ jobs:
         # testes MySQL-only (w27NeedsMysql) SKIPam (a falsa cobertura). Exportar
         # aqui faz rodar no MySQL real semeado.
         #
+        # ── RATCHET UP 2026-08-24 — os 9 que faltavam, CONSERTADOS ─────────────────
+        # Os 9 arquivos que sobraram fora da lane em 2026-08-23 eram os que REPROVAVAM.
+        # Rodados no CT100, as 16 falhas agrupavam em SEIS causas, nenhuma delas do
+        # produto — todas de teste que envelheceu fora de lane, sem ninguem ver:
+        #
+        #   1. prop DEFERIDA assertada como eager (Dashboard/BancoHoras/Aprovacao):
+        #      `Inertia::defer` NAO entrega no primeiro render; era o oposto do canon.
+        #      O DashboardDeferredContractTest PROVAVA o defer e passava ao lado.
+        #   2. modulo renomeado PontoWr2 -> Ponto (module.json), teste no nome antigo.
+        #   3. README movido pro memory/requisitos pelo PR #5548, path nao seguiu.
+        #   4. `toHaveKey(chave, msg)` — o 2o argumento e o VALOR esperado, nao mensagem.
+        #   5. helper devolvia stdClass: o teste de append-only da Portaria 671/2021
+        #      chamava ->update() num stdClass e NUNCA tocava o guard que diz exercer.
+        #   6. `/modulos` dando 403 pra admin-de-negocio e a REGRA (decisao D2 2026-08-19),
+        #      nao defeito — o teste codificava o furo que a D2 fechou. Foi invertido.
+        #
+        # Depois dos consertos: 2 skipped, 81 passed (291 assertions) — 16 vermelhos -> 0.
+        # Os 2 skips eram fixture biz=99 ausente no CrossTenantMarcacaoTest; o helper
+        # passou a CRIAR o tenant ficticio (padrao do Wave27) e agora sao 5 passed / 0 skip.
+
         # ── RATCHET UP 2026-08-23 — 16 arquivos, medidos antes de entrar ────────────
         # O test-lane-coverage mediu 25 arquivos do Ponto FORA de qualquer lane. Rodei
         # os 25 no CT100 (MySQL real): 173 passed · 16 failed · 2 skipped (518 assertions).
@@ -143,8 +163,8 @@ jobs:
         # nunca roda por PR (achado #7 do piloto Produto).
         #
         # ⚠️ QUATRO UC nascem FAILING-FIRST por desenho, denunciando regressão medida:
-        #   UC-ESPSHOW-01  → SDD §9 D-1 (espelho lê `tem_divergencia`, campo inexistente)
-        #   UC-IMPSHOW-04  → SDD §9 D-8 (importação lê `linhas_criadas`, campo inexistente)
+        #   UC-ESPSH-01  → SDD §9 D-1 (espelho lê `tem_divergencia`, campo inexistente)
+        #   UC-IMPSH-04  → SDD §9 D-8 (importação lê `linhas_criadas`, campo inexistente)
         #   UC-ESCF-01  → 3ª instância do MESMO padrão, achada em 2026-08-02 pela
         #                    varredura que o SDD §10 Onda 1 pediu: EscalaController@edit lê
         #                    `entrada`/`saida`/`almoco_inicio`/`almoco_fim`; as colunas são
@@ -230,6 +250,15 @@ jobs:
             Modules/Ponto/Tests/Feature/Wave25SaturationTest.php \
             Modules/Ponto/Tests/Feature/Wave28MobileMarcacaoTest.php \
             Modules/Ponto/Tests/Feature/Wave28SaturationTest.php \
+            Modules/Ponto/Tests/Feature/AprovacaoTest.php \
+            Modules/Ponto/Tests/Feature/BancoHorasTest.php \
+            Modules/Ponto/Tests/Feature/CrossTenantMarcacaoTest.php \
+            Modules/Ponto/Tests/Feature/DashboardTest.php \
+            Modules/Ponto/Tests/Feature/ModuleManagerTest.php \
+            Modules/Ponto/Tests/Feature/MultiTenantAppendOnlyTest.php \
+            Modules/Ponto/Tests/Feature/ObservabilityTest.php \
+            Modules/Ponto/Tests/Feature/TelasNavegacaoTest.php \
+            Modules/Ponto/Tests/Feature/Wave26SaturationTest.php \
             Modules/Ponto/Tests/Feature/ModuleSpecBranchPresenceTest.php
 
 

@@ -1618,6 +1618,38 @@
 /* Datas personalizadas (period === custom) — inputs início/fim no lugar do nav */
 .fin-pb-custom{ display: inline-flex; align-items: center; gap: 7px; }
 .fin-pb-date-sep{ font-size: var(--fs-2); color: var(--text-mute); user-select: none; }
+/* Limpar intervalo (paridade FinPeriodBar do vivo) */
+.fin-pb-date-clear{
+  width: 22px; height: 26px; display: grid; place-items: center; border: 1px solid var(--border);
+  border-radius: 6px; background: var(--surface); color: var(--text-3); font-size: 14px; line-height: 1; cursor: pointer;
+}
+.fin-pb-date-clear:hover{ color: var(--text); border-color: var(--text-4); }
+/* delta_pct dos KPIs (US-FIN-023 do vivo) — ↑+12% verde / ↓-5% rose / → 0% neutro */
+.fin-delta-pct{ font-size: 10px; font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: 0; }
+/* Geometria do KPI strip = a do vivo (FinStatStrip.tsx + fin-cowork.css:117-227):
+   5 col `minmax(260px,1.6fr) repeat(4,1fr)` com reflow por CONTAINER do conteúdo real
+   (≤1100px → 4 col + hero full-width; ≤600px → 2 col). Sem isso as colunas ficam
+   estreitas e o valor de 22px vaza o card. */
+.fin-root .fin-body{ container: finbody / inline-size; }
+.fin-root .fin-stats{ grid-template-columns: minmax(260px, 1.6fr) repeat(4, 1fr); }
+@container finbody (max-width: 1100px){
+  .fin-root .fin-stats{ grid-template-columns: repeat(4, 1fr); }
+  .fin-root .fin-stats .fin-stat-hero{ grid-column: 1 / -1; }
+}
+@container finbody (max-width: 600px){
+  .fin-root .fin-stats{ grid-template-columns: repeat(2, 1fr); }
+}
+/* Container muito estreito (preview/janela pequena): 4 col de ~140px não cabem 22px de BRL
+   — o valor cede 4px em vez de vazar o card. Nada muda em 1280/1440 (personas). */
+@container finbody (max-width: 780px){
+  .fin-root .fin-stats .os-stat:not(.fin-stat-hero) > b{ font-size: 18px; }
+}
+/* o valor é uma linha que ACOMODA o badge (coluna estreita → badge desce), nunca vaza o card */
+.fin-stats .os-stat, .fin-stats .fin-stat{ min-width: 0; overflow: hidden; }
+.fin-stats .os-stat > b, .fin-stats .fin-stat > b{ display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 6px; min-width: 0; }
+.fin-delta-pct.pos{ color: var(--pos); }
+.fin-delta-pct.neg{ color: var(--neg); }
+.fin-delta-pct.mut{ color: var(--text-3); }
 .fin-root .fin-pb-date, .cr-root .fin-pb-date{
   -webkit-appearance: none; appearance: none;
   height: 28px; padding: 4px 9px; box-sizing: border-box;
@@ -1838,6 +1870,22 @@
 .ph-nav .topbar-tab.active{ font-weight: 600; }
 .ph-nav .topbar-tab.active svg{ opacity: 1; }
 .ph-nav-sep{ color: var(--text-3); opacity: 0.5; padding: 0 4px; }
+/* ⋯ do FIN_SUBNAV (ADR 0313 — destinos legacy do vivo) */
+.ph-nav-more{ position: sticky; right: 0; display: inline-flex; flex: 0 0 auto; margin-left: auto; background: var(--bg); box-shadow: -8px 0 8px -6px var(--bg); }
+.ph-nav-more .topbar-tab{ font-size: 15px; line-height: 1; padding: 0 10px; color: var(--text-3); }
+.ph-nav-more-menu{
+  position: fixed; z-index: 60; min-width: 268px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  box-shadow: var(--sh-2, 0 8px 24px rgb(0 0 0 / 0.12)); padding: 4px; display: flex; flex-direction: column;
+}
+.ph-nav-more-item{
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  height: 30px; padding: 0 8px; border: 0; background: none; border-radius: 6px;
+  font-size: var(--fs-3); color: var(--text); text-align: left; cursor: pointer;
+}
+.ph-nav-more-item:hover:not(:disabled){ background: var(--sunken); }
+.ph-nav-more-item:disabled{ cursor: default; color: var(--text-2); }
+.ph-nav-more-item code{ font-family: var(--mono); font-size: var(--fs-1); color: var(--text-3); }
 
 /* ═══════════════════════════════════════════════════════════════════
    BOTÕES DAS SUB-TELAS — sistema polido (segmented · secundário · ícone)

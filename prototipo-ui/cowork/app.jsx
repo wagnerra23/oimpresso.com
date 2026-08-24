@@ -4,10 +4,32 @@ const { useState: useStateA, useEffect: useEffectA } = React;
 // Error boundary por rota — um erro numa tela não derruba o app inteiro.
 // key={route} reseta o boundary ao trocar de rota (uma tela consertada se recupera).
 class RouteErrorBoundary extends React.Component {
-  constructor(props) {super(props);this.state = { err: null };}
-  static getDerivedStateFromError(err) {return { err };}
-  componentDidCatch(err, info) {console.error("Route crash:", err, info);}
+  constructor(props) {super(props);this.state = { err: null, esperando: false };this._t0 = Date.now();}
+  static getDerivedStateFromError(err) {return { err, esperando: true };}
+  componentDidCatch(err, info) {
+    // Os módulos entram em segundo plano. Enquanto a janela de carga não fecha, a falha
+    // "componente indefinido" é só uma tela que ainda não chegou: tenta de novo em vez de acusar erro.
+    const indefinido = /Element type is invalid/.test(String(err && err.message));
+    // Espera enquanto a fila de módulos não fechou (+3 tentativas de folga depois dela).
+    this._pos = (this._pos || 0) + 1;
+    const janela = Date.now() - this._t0 < 180000 && (!window.__oiLazyDone || this._pos <= 3);
+    if (janela && indefinido) {
+      this._timer = setTimeout(() => this.setState({ err: null, esperando: false }), 500);
+      return;
+    }
+    this.setState({ esperando: false });
+    console.error("Route crash:", err, info);
+  }
+  componentWillUnmount() {clearTimeout(this._timer);}
   render() {
+    if (this.state.esperando) {
+      return (
+        <div className="rota-carregando">
+          <span className="rota-carregando-b" />
+          <span>Carregando módulo…</span>
+        </div>);
+
+    }
     if (this.state.err) {
       return (
         <div style={{ padding: "48px 32px", maxWidth: "60ch" }}>
@@ -18,6 +40,26 @@ class RouteErrorBoundary extends React.Component {
     }
     return this.props.children;
   }
+}
+
+// Camada intermediária: garante que a falha de um módulo ainda não carregado seja
+// atribuída a ELA (e capturada pelo boundary acima), não ao próprio boundary.
+// Guard: enquanto o global do módulo não existir, `content` é um elemento cujo `type`
+// é undefined. Renderizar isso lança "Element type is invalid" DENTRO do dispatch do
+// tick do carregador — e o throw escapando do listener matava a fila de módulos inteira
+// (tudo abaixo nunca era definido). Aqui devolvemos o placeholder em vez de estourar.
+function RouteSlot({ children }) {
+  if (!children) return null;
+  var t = children.type;
+  var pronto = typeof t === "function" || typeof t === "string" || t && typeof t === "object";
+  if (React.isValidElement(children) && !pronto) {
+    return (
+      <div className="rota-carregando">
+        <span className="rota-carregando-b" />
+        <span>Carregando módulo…</span>
+      </div>);
+  }
+  return children;
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -347,20 +389,9 @@ function Header({ company, route, onSelectRoute, prodType, onProdType, chatTab, 
 
         })}
           {ghosts.length > 0 && <span aria-hidden="true" style={{ alignSelf: "center", color: "var(--text-mute)", opacity: 0.5, padding: "0 2px" }}>·</span>}
-          {ghosts.map((g) => {
-          const Icon = I[g.icon];
-          const isActive = route === g.id;
-          return (
-            <button key={g.id}
-            className={"topbar-tab topbar-tab--ghost" + (isActive ? " active" : "")}
-            onClick={() => onSelectRoute(g.id)}
-            title={`${hubItem?.label || ""} · ${g.label}`}
-            style={{ opacity: isActive ? 1 : 0.66, ...(isActive ? { borderBottomColor: `oklch(0.55 0.14 ${hue})`, color: `oklch(0.42 0.10 ${hue})` } : {}) }}>
-                {Icon && <Icon size={12} />}
-                <span>{g.label}</span>
-              </button>);
-
-        })}
+          <GhostTabs ghosts={ghosts} route={route} go={onSelectRoute}
+          onBorder={`oklch(0.55 0.14 ${hue})`} onColor={`oklch(0.42 0.10 ${hue})`}
+          hubLabel={hubItem?.label} />
         </nav> :
 
       <div className="topbar-tabs topbar-tabs-empty" />
@@ -380,6 +411,26 @@ function PageHeaderNav({ route }) {
   const ghosts = hubItem && hubItem.ghosts || [];
   const go = (id) => window.__selectRoute && window.__selectRoute(id);
   const onColor = "var(--accent)",onBorder = "var(--accent)";
+  // FINANÇAS — barra UNIFICADA do vivo (ADR 0313): a mesma em toda tela do Financeiro,
+  // 8 abas visíveis + ⋯ com os destinos legacy. Substitui o acoplamento "ghosts da entry ativa".
+  if (group.group === "FINANÇAS" && (MOCK.FIN_SUBNAV || []).length) {
+    return (
+      <nav className="ph-nav ph-nav--fin" aria-label="Financeiro">
+        {MOCK.FIN_SUBNAV.map((t) => {
+          const Icon = I[t.icon];
+          const isActive = route === t.id;
+          return (
+            <button key={t.id} className={"topbar-tab" + (isActive ? " active" : "")}
+            onClick={() => go(t.id)}
+            style={isActive ? { borderBottomColor: onBorder, color: onColor } : null}>
+              {Icon && <Icon size={12} />}<span>{t.label}</span>
+            </button>);
+
+        })}
+        <FinNavOverflow go={go} />
+      </nav>);
+
+  }
   return (
     <nav className="ph-nav" aria-label={meta?.label || group.group}>
       {group.items.map((it) => {
@@ -394,21 +445,99 @@ function PageHeaderNav({ route }) {
 
       })}
       {ghosts.length > 0 && <span className="ph-nav-sep" aria-hidden="true">·</span>}
-      {ghosts.map((g) => {
-        const Icon = I[g.icon];
-        const isActive = route === g.id;
-        return (
-          <button key={g.id} className={"topbar-tab topbar-tab--ghost" + (isActive ? " active" : "")}
-          onClick={() => go(g.id)}
-          style={{ opacity: isActive ? 1 : 0.66, ...(isActive ? { borderBottomColor: onBorder, color: onColor } : {}) }}>
-            {Icon && <Icon size={12} />}<span>{g.label}</span>
-          </button>);
-
-      })}
+      <GhostTabs ghosts={ghosts} route={route} go={go} onBorder={onBorder} onColor={onColor} />
     </nav>);
 
 }
 window.PageHeaderNav = PageHeaderNav;
+
+// Teto canon: 5 ghosts visíveis, o resto vai pro ⋯ (Vendas tem 18, Financeiro 11).
+// A tela ativa é sempre promovida pra faixa visível — nunca escondida atrás do ⋯.
+function GhostTabs({ ghosts, route, go, onBorder, onColor, hubLabel }) {
+  const [open, setOpen] = useStateA(false);
+  const [pos, setPos] = useStateA(null);
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    if (!open) return;
+    const h = (e) => {if (!ref.current || !ref.current.contains(e.target)) setOpen(false);};
+    const esc = (e) => {if (e.key === "Escape") setOpen(false);};
+    document.addEventListener("mousedown", h);
+    document.addEventListener("keydown", esc);
+    return () => {document.removeEventListener("mousedown", h);document.removeEventListener("keydown", esc);};
+  }, [open]);
+  if (!ghosts.length) return null;
+  const TETO = 5;
+  let visiveis = ghosts.slice(0, TETO), extras = ghosts.slice(TETO);
+  const iAtivo = extras.findIndex((g) => g.id === route);
+  if (iAtivo >= 0) {visiveis = visiveis.slice(0, TETO - 1).concat(extras[iAtivo]);extras = ghosts.slice(TETO - 1).filter((g) => g.id !== route);}
+  const tab = (g) => {
+    const Icon = I[g.icon];
+    const isActive = route === g.id;
+    return (
+      <button key={g.id} className={"topbar-tab topbar-tab--ghost" + (isActive ? " active" : "")}
+      onClick={() => go(g.id)} title={hubLabel ? `${hubLabel} · ${g.label}` : undefined}
+      style={{ opacity: isActive ? 1 : 0.66, ...(isActive ? { borderBottomColor: onBorder, color: onColor } : {}) }}>
+        {Icon && <Icon size={12} />}<span>{g.label}</span>
+      </button>);
+  };
+  return (
+    <div className="ph-nav-of" ref={ref}>
+      {visiveis.map(tab)}
+      {extras.length > 0 &&
+      <button className={"topbar-tab topbar-tab--ghost" + (open ? " active" : "")}
+      aria-haspopup="menu" aria-expanded={open} aria-label={`Mais ${extras.length} telas`}
+      onClick={(e) => {const r = e.currentTarget.getBoundingClientRect();setPos({ top: r.bottom + 4, left: r.left });setOpen(!open);}}>
+        <span>⋯</span><span className="ph-nav-of-n">{extras.length}</span>
+      </button>}
+      {open && pos &&
+      <div className="ph-nav-of-menu" role="menu" style={{ top: pos.top, left: pos.left }}>
+        {extras.map((g) => {
+          const Icon = I[g.icon];
+          return (
+            <button key={g.id} role="menuitem" className="ph-nav-of-i" onClick={() => {setOpen(false);go(g.id);}}>
+              {Icon && <Icon size={13} />}<span>{g.label}</span>
+            </button>);
+        })}
+      </div>}
+    </div>);
+}
+
+// ⋯ do FIN_SUBNAV — destinos legacy do vivo (nada se perde). Sem rota no Cowork = item
+// inerte que declara o caminho do vivo, em vez de fingir uma tela que não existe aqui.
+function FinNavOverflow({ go }) {
+  const [open, setOpen] = useStateA(false);
+  const [pos, setPos] = useStateA(null);
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    if (!open) return;
+    const btn = ref.current && ref.current.querySelector("button");
+    if (btn) {const r = btn.getBoundingClientRect();setPos({ top: r.bottom + 4, right: Math.max(8, window.innerWidth - r.right) });}
+    const onDoc = (e) => {if (ref.current && !ref.current.contains(e.target)) setOpen(false);};
+    const onKey = (e) => {if (e.key === "Escape") setOpen(false);};
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {document.removeEventListener("mousedown", onDoc);document.removeEventListener("keydown", onKey);};
+  }, [open]);
+  const items = MOCK.FIN_SUBNAV_OVERFLOW || [];
+  if (!items.length) return null;
+  return (
+    <div className="ph-nav-more" ref={ref}>
+      <button className={"topbar-tab" + (open ? " active" : "")} onClick={() => setOpen((o) => !o)}
+      aria-haspopup="menu" aria-expanded={open} title="Mais destinos do Financeiro">⋯</button>
+      {open &&
+      <div className="ph-nav-more-menu" role="menu" style={pos ? { top: pos.top, right: pos.right } : null}>
+          {items.map((it) =>
+        <button key={it.label} role="menuitem" className="ph-nav-more-item"
+        disabled={!it.route} title={it.path}
+        onClick={() => {setOpen(false);if (it.route) go(it.route);}}>
+              <span>{it.label}</span><code>{it.path}</code>
+            </button>
+        )}
+        </div>
+      }
+    </div>);
+
+}
 
 function App() {
   const [company, setCompany] = useStateA(() => {
@@ -421,6 +550,14 @@ function App() {
     try {return localStorage.getItem("oimpresso.sidebar.tab") || "menu";}
     catch (e) {return "menu";}
   });
+  const [tick, setTick] = useStateA(0);
+  React.useEffect(() => {
+    if (window.__oiLazyDone) return;
+    const h = () => setTick((n) => n + 1);
+    document.addEventListener("oi:lazy-tick", h);
+    document.addEventListener("oi:lazy-done", h);
+    return () => {document.removeEventListener("oi:lazy-tick", h);document.removeEventListener("oi:lazy-done", h);};
+  }, []);
   const [route, setRoute] = useStateA(() => {
     try {return localStorage.getItem("oimpresso.route") || "chat";}
     catch (e) {return "chat";}
@@ -457,6 +594,20 @@ function App() {
   useEffectA(() => {
     try {localStorage.setItem("oimpresso.linked.collapsed", linkedCollapsed ? "1" : "0");} catch (e) {}
   }, [linkedCollapsed]);
+
+  // ─── ⌘K: paleta de destinos (ADR 0180 — power-user pula direto) ───
+  const [cmdOpen, setCmdOpen] = useStateA(false);
+  window.__openCmdK = () => setCmdOpen(true);
+  useEffectA(() => {
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K")) {
+        e.preventDefault();
+        setCmdOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   // ─── Sidebar: modo expanded | rail | hidden ───
   const [sbMode, setSbMode] = useStateA(() => {
@@ -528,7 +679,25 @@ function App() {
     "accentHue": 295,
     "showLaravel": false,
     "janaMetas": "seção",
-    "janaEstado": "dados"
+    "janaEstado": "dados",
+    "bkpDestino": "local",
+    "bkpEstado": "dados",
+    "bkpPermissao": "total",
+    "prodDensidade": "confortável",
+    "prodEstado": "dados",
+    "prodPapel": "administrador",
+    "patDensidade": "confortável",
+    "repDensidade": "confortável",
+    "repEstado": "dados",
+    "repPapel": "administrador",
+    "patEstado": "dados",
+    "patToque": "mouse",
+    "patPapel": "gestor",
+    "estDensidade": "confortável",
+    "estPapel": "gestor",
+    "estLote": true,
+    "sbPapel": "wagner (admin)",
+    "sbGhosts": true
   } /*EDITMODE-END*/;
   const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
 
@@ -590,21 +759,48 @@ function App() {
 
   let content;
   if (route === "chat") content = <window.JanaPage company={company} tab={janaTab} metasMode={tweaks.janaMetas === "aba" ? "aba" : "secao"} estado={tweaks.janaEstado} onGoTab={setChatTab} />;else
-  if (route === "tarefas") content = <TasksPage />;else
+  if (route === "tarefas") content = <window.TasksPage />;else
+  if (route === "dash-legacy") content = <window.DashLegacyPage />;else
   if (route === "perfil") content = <window.PerfilPage />;else
   if (route === "usuarios") content = <window.UsuariosPage />;else
-  if (route === "os") content = <OsListPage />;else
-  if (route === "clientes") content = <CliListPage />;else
+  if (route === "funcoes") content = <window.FuncoesPage />;else
+  if (route === "comissionados") content = <window.ComissionadosPage />;else
+  if (route === "comissoes") content = <window.ComissoesPage />;else
+  if (route === "prefs") content = <window.PrefsPage />;else
+  if (route === "notificacoes") content = <window.NotificacoesPage />;else
+  if (route === "backup") content = <window.BackupPage destino={tweaks.bkpDestino} estado={tweaks.bkpEstado} permissao={tweaks.bkpPermissao} />;else
+  if (route === "modulos") content = <window.ModulosPage />;else
+  if (route === "os") content = <window.OsListPage />;else
+  if (route === "clientes") content = <window.CliListPage />;else
   if (route === "cli-import") content = <window.ClienteImportPage />;else
   if (route === "cli-novo") content = <window.ClienteFormPage modo="novo" />;else
   if (route === "cli-editar") content = <window.ClienteFormPage modo="editar" />;else
   if (route === "cli-extrato") content = <window.ClienteExtratoPage clientId={window.__CLI_EXTRATO_ID} />;else
   if (route === "cli-mapa") content = <window.ClienteMapaPage />;else
   if (route === "cli-grupos") content = <window.ClienteGruposPage />;else
-  if (route === "orcamentos") content = <OrcListPage />;else
-  if (route === "produtos") content = <ProdListPage typeFilter={prodType} onTypeFilter={setProdType} />;else
-  if (route === "vendas") content = <VendasModule />;else
-  if (route === "fila" || route === "acabamento" || route === "expedicao") content = <ProducaoPage />;else
+  if (route === "orcamentos") content = <window.OrcListPage />;else
+  if (route === "produtos") content = <window.ProdListPage typeFilter={prodType} onTypeFilter={setProdType} />;else
+  if (route.startsWith("prod-")) {
+    const PROD_VIEW = { "prod-lista": "lista", "prod-novo": "form", "prod-estoque": "estoque", "prod-historico": "historico", "prod-precos": "precos", "prod-massa": "massa", "prod-analises": "analises", "prod-etiquetas": "etiquetas", "prod-atualizar-preco": "atualizar-preco", "prod-importar": "importar-produtos", "prod-importar-estoque": "importar-estoque", "prod-cadastros": "cadastros" };
+    content = <window.ProdutoBladePage view={PROD_VIEW[route] || "lista"} estado={tweaks.prodEstado} dense={tweaks.prodDensidade === "compacto"} papel={tweaks.prodPapel} />;
+  }else
+  if (route === "vendas") content = <window.VendasModule />;else
+  if (route === "venda-todas") content = <window.VendaTodasPage />;else
+  if (route === "venda-pdv") content = <window.VendaBladePage view="pdv" />;else
+  if (route === "venda-nova") content = <window.VendaBladePage view="nova" status="final" />;else
+  if (route === "venda-nova-rascunho") content = <window.VendaBladePage view="nova" status="draft" />;else
+  if (route === "venda-nova-cotacao") content = <window.VendaBladePage view="nova" status="quotation" />;else
+  if (route === "venda-devolucoes") content = <window.VendasModule initialSub="devolucoes" />;else
+  if (route.startsWith("venda-")) {
+    // Blades do menu Vendas que ainda não existiam no Cockpit (venda-blade.jsx)
+    const VENDA_VIEW = { "venda-pos": "pos", "venda-rascunhos": "rascunhos", "venda-cotacoes": "cotacoes", "venda-remessas": "remessas", "venda-descontos": "descontos", "venda-assinaturas": "assinaturas", "venda-importar": "importar", "venda-pedidos": "pedidos", "venda-caixa": "caixa", "venda-devolver": "devolver" };
+    content = <window.VendaBladePage view={VENDA_VIEW[route] || "pos"} />;
+  }else
+  if (route === "manufacturing") content = <window.ManufacturingPage />;else
+  if (route === "mfg-producao") content = <window.ManufacturingPage initialView="producao" />;else
+  if (route === "mfg-relatorio") content = <window.ManufacturingPage initialView="relatorio" />;else
+  if (route === "mfg-config") content = <window.ManufacturingPage initialView="config" />;else
+  if (route === "fila" || route === "acabamento" || route === "expedicao") content = <window.ProducaoPage />;else
   if (route === "financeiro") content = <window.FinanceiroPage initialTela="unified" />;else
   if (route === "fin-fluxo") content = <window.FinanceiroPage initialTela="fluxo" />;else
   if (route === "fin-concil") content = <window.FinanceiroPage initialTela="concil" />;else
@@ -616,6 +812,18 @@ function App() {
   if (route === "payment-gateways") content = <window.PaymentGatewaysPage />;else
   if (route === "sells-pg-preview") content = <window.SellsCobrancaPreviewPage />;else
   if (route === "compras") content = <window.ComprasPage />;else
+  if (route === "cmp-grade") content = <window.ComprasGradeMatrixPage />;else
+  if (typeof route === "string" && route.indexOf("cmp-") === 0) content = <window.ComprasExtrasPage view={route} />;else
+  if (typeof route === "string" && ["fin-receber", "fin-pagar", "fin-despesas", "fin-categorias", "fin-bancos", "fin-extrato"].indexOf(route) >= 0) content = <window.FinanceiroLegadoPage view={route} />;else
+  if (route === "woocommerce") content = <window.WooCommercePage />;else
+  if (route === "cfg-mesas" || route === "cfg-atendentes") content = <window.RestauranteExtrasPage view={route} />;else
+  if (route === "estoque" || (typeof route === "string" && route.indexOf("est-") === 0)) content = <window.EstoquePage view={route} papel={tweaks.estPapel} dense={tweaks.estDensidade === "compacto"} lote={tweaks.estLote} />;else
+  if (route === "assets" || (typeof route === "string" && route.indexOf("pat-") === 0)) content = <window.PatrimonioPage view={route} dense={tweaks.patDensidade === "compacto"} estado={tweaks.patEstado} toque={tweaks.patToque} papel={tweaks.patPapel} />;else
+  if (route === "repair" || (typeof route === "string" && route.indexOf("rep-") === 0)) content = <window.RepairPage view={route} dense={tweaks.repDensidade === "compacto"} estado={tweaks.repEstado} papel={tweaks.repPapel} />;else
+  if (route === "ponto") content = <window.PontoPage />;else
+  if (route === "hrm" || (typeof route === "string" && route.indexOf("hrm-") === 0)) content = <window.HrmPage view={route} />;else
+  if (route === "essenciais" || (typeof route === "string" && route.indexOf("ess-") === 0)) content = <window.EssenciaisPage view={route} />;else
+  if (typeof route === "string" && route.indexOf("cfg-") === 0) content = <window.ConfiguracoesPage view={route} />;else
   if (route === "oficinaauto") content = <window.OficinaPage />;else
   if (route === "oficina-os") content = <window.OficinaOSPage />;else
   if (route === "crm") content = <window.CrmPage />;else
@@ -624,19 +832,57 @@ function App() {
   if (route === "equipe") content = <window.EquipePage />;else
   if (route === "kb") content = <window.KBPage />;else
   if (route === "documentacao") content = <window.DocumentacaoPage />;else
+  if (route === "planilhas") content = <window.PlanilhasPage view="lista" />;else
+  if (route === "planilha-nova") content = <window.PlanilhasPage view="nova" />;else
   if (route === "programa-doc") content = <window.ProgramaDocPage />;else
+  if (route === "site") content = <window.CmsPage view="paginas" />;else
+  if (route === "cms-blog") content = <window.CmsPage view="blog" />;else
+  if (route === "cms-depoimentos") content = <window.CmsPage view="depoimentos" />;else
+  if (route === "cms-detalhes") content = <window.CmsPage view="site" />;else
+  if (route === "cms-leads") content = <window.CmsPage view="leads" />;else
+  if (route === "cms-modulo") content = <window.CmsPage view="modulo" />;else
+  if (route === "governance") content = <window.GovernancePage view="painel" />;else
+  if (route === "gov-politicas") content = <window.GovernancePage view="politicas" />;else
+  if (route === "gov-auditoria") content = <window.GovernancePage view="auditoria" />;else
+  if (route === "gov-drift") content = <window.GovernancePage view="drift" />;else
+  if (route === "gov-notas") content = <window.GovernancePage view="notas" />;else
+  if (route === "connector") content = <window.ConnectorPage view="clients" />;else
+  if (route === "conn-docs") content = <window.ConnectorPage view="docs" />;else
+  if (route === "conn-saude") content = <window.ConnectorPage view="saude" />;else
+  if (route === "conn-modulo") content = <window.ConnectorPage view="modulo" />;else
   if (route === "projects" || route === "teammcp") content = <window.ForjaPage />;
+  else if (route === "superadmin") content = <window.SuperadminPage view="visao" />;else
+  if (route === "sa-negocios") content = <window.SuperadminPage view="negocios" />;else
+  if (route === "sa-assinaturas") content = <window.SuperadminPage view="assinaturas" />;else
+  if (route === "sa-pacotes") content = <window.SuperadminPage view="pacotes" />;else
+  if (route === "sa-comunicador") content = <window.SuperadminPage view="comunicador" />;else
+  if (route === "sa-config") content = <window.SuperadminPage view="config" />;
+  // Office Impresso (licenciamento desktop Delphi) — espelha topnav.php do módulo
+  else if (route === "officeimpresso") content = <window.OfficeimpressoPage view="empresas" />;else
+  if (route === "oi-licencas") content = <window.OfficeimpressoPage view="licencas" />;else
+  if (route === "oi-clientes") content = <window.OfficeimpressoPage view="clientes" />;else
+  if (route === "oi-importar") content = <window.OfficeimpressoPage view="importar" />;else
+  if (route === "oi-log") content = <window.OfficeimpressoPage view="log" />;
   // Cobrança Recorrente (F1) — sub-nav espelha git RecurringBilling (Assinaturas/Planos/Faturas/Configurações)
   else if (route === "recurring") content = <window.CobrancaRecorrentePage view="assinaturas" />;else
   if (route === "rb-assinaturas") content = <window.CobrancaRecorrentePage view="assinaturas" />;else
   if (route === "rb-planos") content = <window.CobrancaRecorrentePage view="planos" />;else
   if (route === "rb-faturas") content = <window.CobrancaRecorrentePage view="faturas" />;else
   if (route === "rb-config") content = <window.CobrancaRecorrentePage view="config" />;else
+  if (route === "fiscal") content = <window.FiscalPage view="notas" />;else
+  if (route === "fiscal-nfe" || route === "nfe") content = <window.FiscalPage view="nfe" />;else
+  if (route === "fiscal-nfse" || route === "nfse") content = <window.FiscalPage view="nfse" />;else
+  if (route === "fiscal-eventos") content = <window.FiscalPage view="eventos" />;else
+  if (route === "fiscal-dfe") content = <window.FiscalPage view="dfe" />;else
+  if (route === "fiscal-config") content = <window.FiscalPage view="config" />;else
+  if (route === "fiscal-sped") content = <window.FiscalPage view="sped" />;else
+  if (route === "relatorios") content = <window.RelatoriosPage />;else
+  if (typeof route === "string" && route.indexOf("rel-") === 0) content = <window.RelatoriosPage grupo={{ "rel-financeiro": "Financeiro", "rel-comercial": "Comercial", "rel-estoque": "Estoque", "rel-fiscal": "Fiscal" }[route]} />;else
   if ([
-  "crm", "inbox", "equipe", "cv", "relatorios", "fiscal", "nfe", "nfse", "assets",
-  "catalogue", "brief", "repair", "manufacturing", "ads", "vestuario",
+  "crm", "inbox", "equipe", "cv",
+  "catalogue", "brief", "manufacturing", "ads", "vestuario",
   "portalos", "auditoria"].
-  includes(route)) content = <window.MockupPage route={route === "nfe" || route === "nfse" ? "fiscal" : route} />;else
+  includes(route)) content = <window.MockupPage route={route} />;else
   content = <ModuleStub routeId={route} />;
 
   return (
@@ -647,7 +893,8 @@ function App() {
         tab={tab} onTab={setTab}
         activeConvId={activeConvId} onSelectConv={handleSelectConv}
         activeRoute={route} onSelectRoute={handleSelectRoute}
-        mode={isMobile ? "expanded" : sbMode} onModeChange={setSbMode} />
+        mode={isMobile ? "expanded" : sbMode} onModeChange={setSbMode}
+        papel={tweaks.sbPapel} showGhosts={tweaks.sbGhosts} />
       }
       {!isMobile && sbMode === "hidden" &&
       <window.SidebarReopenHandle onOpen={() => setSbMode("expanded")} />
@@ -672,9 +919,13 @@ function App() {
         <Header company={company} route={route} onSelectRoute={handleSelectRoute}
         prodType={prodType} onProdType={setProdType}
         chatTab={janaTab} onChatTab={setChatTab} />
-        <div className="main-body"><RouteErrorBoundary key={route}>{content}</RouteErrorBoundary></div>
+        <div className="main-body"><RouteErrorBoundary key={route + ":" + tick}><RouteSlot>{content}</RouteSlot></RouteErrorBoundary></div>
       </div>
       {showLaravel && <LaravelPanel onClose={() => setShowLaravel(false)} />}
+      {window.CommandPalette &&
+      <window.CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)}
+        onSelect={handleSelectRoute} papel={tweaks.sbPapel} />
+      }
       <TweaksPanel title="Tweaks">
         <TweakSection label="Vibe" />
         <TweakRadio
@@ -717,7 +968,116 @@ function App() {
           options={["dados", "vazio", "erro"]}
           onChange={(v) => setTweak("janaEstado", v)} />
 
+        {(route === "produtos" || route.startsWith("prod-")) && <>
+          <TweakSection label="Produtos" />
+          <TweakRadio
+            label="Densidade da tela"
+            value={tweaks.prodDensidade}
+            options={["confortável", "compacto"]}
+            onChange={(v) => setTweak("prodDensidade", v)} />
+          <TweakRadio
+            label="Estado dos dados"
+            value={tweaks.prodEstado}
+            options={["dados", "vazio", "carregando", "erro"]}
+            onChange={(v) => setTweak("prodEstado", v)} />
+          <TweakSelect
+            label="Papel simulado"
+            value={tweaks.prodPapel}
+            options={["administrador", "gerente", "balcao", "sem-acesso"]}
+            onChange={(v) => setTweak("prodPapel", v)} />
+        </>}
+
+        {(route === "repair" || route.indexOf("rep-") === 0) && <>
+          <TweakSection label="Assistência técnica" />
+          <TweakRadio
+            label="Densidade da tela"
+            value={tweaks.repDensidade}
+            options={["confortável", "compacto"]}
+            onChange={(v) => setTweak("repDensidade", v)} />
+          <TweakRadio
+            label="Estado dos dados"
+            value={tweaks.repEstado}
+            options={["dados", "vazio", "carregando", "erro"]}
+            onChange={(v) => setTweak("repEstado", v)} />
+          <TweakSelect
+            label="Papel simulado"
+            value={tweaks.repPapel}
+            options={["administrador", "tecnico", "balcao"]}
+            onChange={(v) => setTweak("repPapel", v)} />
+        </>}
+
+        {(route === "assets" || route.indexOf("pat-") === 0) && <>
+          <TweakSection label="Patrimônio" />
+          <TweakRadio
+            label="Densidade da tela"
+            value={tweaks.patDensidade}
+            options={["confortável", "compacto"]}
+            onChange={(v) => setTweak("patDensidade", v)} />
+          <TweakRadio
+            label="Estado dos dados"
+            value={tweaks.patEstado}
+            options={["dados", "vazio", "carregando", "erro"]}
+            onChange={(v) => setTweak("patEstado", v)} />
+          <TweakRadio
+            label="Alvo de toque"
+            value={tweaks.patToque}
+            options={["mouse", "tablet"]}
+            onChange={(v) => setTweak("patToque", v)} />
+          <TweakSelect
+            label="Papel simulado"
+            value={tweaks.patPapel}
+            options={["gestor", "operador", "financeiro"]}
+            onChange={(v) => setTweak("patPapel", v)} />
+        </>}
+
+        {(route === "estoque" || route.indexOf("est-") === 0) && <>
+          <TweakSection label="Estoque" />
+          <TweakRadio
+            label="Densidade da tela"
+            value={tweaks.estDensidade}
+            options={["confortável", "compacto"]}
+            onChange={(v) => setTweak("estDensidade", v)} />
+          <TweakSelect
+            label="Papel simulado"
+            value={tweaks.estPapel}
+            options={["gestor", "deposito", "balcao", "financeiro"]}
+            onChange={(v) => setTweak("estPapel", v)} />
+          <TweakToggle
+            label="Lote e validade"
+            value={tweaks.estLote}
+            onChange={(v) => setTweak("estLote", v)} />
+        </>}
+
+        {route === "backup" && <>
+          <TweakSection label="Backup" />
+          <TweakRadio
+            label="Destino"
+            value={tweaks.bkpDestino}
+            options={["local", "s3"]}
+            onChange={(v) => setTweak("bkpDestino", v)} />
+          <TweakRadio
+            label="Estado"
+            value={tweaks.bkpEstado}
+            options={["dados", "vazio", "erro", "demo"]}
+            onChange={(v) => setTweak("bkpEstado", v)} />
+          <TweakRadio
+            label="Permissão"
+            value={tweaks.bkpPermissao}
+            options={["total", "leitura"]}
+            onChange={(v) => setTweak("bkpPermissao", v)} />
+        </>}
+
         <TweakSection label="Sistema" />
+        <TweakSection label="Sidebar" />
+        <TweakSelect
+          label="Papel simulado"
+          value={tweaks.sbPapel}
+          options={Object.keys(window.MOCK.SIDEBAR_PAPEIS || { "wagner (admin)": null })}
+          onChange={(v) => setTweak("sbPapel", v)} />
+        <TweakToggle
+          label="Ghosts no sidebar"
+          value={tweaks.sbGhosts}
+          onChange={(v) => setTweak("sbGhosts", v)} />
         <TweakToggle
           label="Painel Laravel"
           value={tweaks.showLaravel}

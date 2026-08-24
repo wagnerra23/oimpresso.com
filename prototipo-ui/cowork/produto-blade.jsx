@@ -750,7 +750,9 @@ function exportarCsv(lista) {
 
 // ─────────── Tela lista (index.blade.php) ───────────
 function TelaLista({ aba, setAba, onIr, avisar }) {
-  const [f, setF] = useState({ type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false });
+  const VAZIO_F = { type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false };
+  // Chegou filtrada de outro lugar? (contagem clicada em Cadastros de apoio → window.__PBFiltro)
+  const [f, setF] = useState(() => { const x = window.__PBFiltro; window.__PBFiltro = null; return x ? { ...VAZIO_F, ...x } : VAZIO_F; });
   const [busca, setBusca] = useState("");
   const [sel, setSel] = useState([]);
   const [ver, setVer] = useState(null);
@@ -758,7 +760,6 @@ function TelaLista({ aba, setAba, onIr, avisar }) {
   const [locModal, setLocModal] = useState(null);
   const [rapido, setRapido] = useState(false);
   const [confirmar, setConfirmar] = useState(null);
-  const [etiquetas, setEtiquetas] = useState(null);
   const [cols, setCols] = useState(() => {
     try { return { ...PB_COLS_PADRAO, ...JSON.parse(localStorage.getItem("oimpresso.prod.cols") || "{}") }; } catch (e) { return { ...PB_COLS_PADRAO }; }
   });
@@ -830,7 +831,7 @@ function TelaLista({ aba, setAba, onIr, avisar }) {
     if (a === "inicial") return setInicial(p);
     if (a === "editar" || a === "historico" || a === "precos") return onIr(a, p);
     if (a === "duplicar") return onIr("editar", { ...p, name: p.name + " (cópia)", sku: "" });
-    if (a === "barras") return setEtiquetas([p]);
+    if (a === "barras") { window.__PBEtiquetas = [p]; return onIr("etiquetas", p); }
     if (a === "comprar") { irPara("compras", { produto: p.sku, nome: p.name, acao: "novo-item" }); return avisar("Abrindo Compras com “" + p.name + "” no item novo.", "ok"); }
     if (a === "transferir") { irPara("compras", { produto: p.sku, nome: p.name, acao: "transferencia" }); return avisar("Transferência entre locais: " + p.name + ".", "ok"); }
     if (a === "os") { irPara("os", { produto: p.sku, nome: p.name, acao: "novo-item" }); return avisar("Abrindo Ordens de Serviço com o produto no orçamento.", "ok"); }
@@ -914,7 +915,7 @@ function TelaLista({ aba, setAba, onIr, avisar }) {
           <button className="os-btn sm" disabled={!sel.length} onClick={() => onIr("massa")}><Ic name="pencil" size={12} /> Edição em massa</button>
           <button className="os-btn sm" disabled={!sel.length} onClick={() => setLocModal("add")}>Adicionar ao local</button>
           <button className="os-btn sm" disabled={!sel.length} onClick={() => setLocModal("remove")}>Remover do local</button>
-          <button className="os-btn sm" onClick={() => setEtiquetas(PRODUCTS.filter((p) => sel.includes(p.id)))}><Ic name="print" size={12} /> Etiquetas</button>
+          <button className="os-btn sm" onClick={() => { window.__PBEtiquetas = PRODUCTS.filter((p) => sel.includes(p.id)); onIr("etiquetas"); }}><Ic name="print" size={12} /> Etiquetas</button>
           <button className="os-btn sm" onClick={() => setConfirmar({ titulo: "Desativar selecionados", perigo: true, cta: "Desativar " + sel.length, corpo: sel.length + " produto(s) saem da venda e do orçamento novo, mantendo histórico e estoque.", on: () => { avisar(sel.length + " produto(s) desativados.", "warn"); limparSel(); } })}>Desativar selecionados</button>
           <button className="os-btn sm ghost danger" onClick={() => setConfirmar({ titulo: "Excluir selecionados", perigo: true, cta: "Excluir " + sel.length, corpo: "Vai apagar " + sel.length + " cadastro(s), com variações e preços por grupo.", aviso: "Produtos com movimento de estoque serão recusados pelo servidor.", on: () => { avisar("Exclusão enviada — itens com movimento foram recusados.", "danger"); limparSel(); } })}>Excluir selecionados</button>
           <div className="sp" />
@@ -926,13 +927,33 @@ function TelaLista({ aba, setAba, onIr, avisar }) {
       {locModal && <ModalLocalizacao modo={locModal} n={sel.length} onClose={() => setLocModal(null)} avisar={avisar} />}
       {rapido && <ModalCadastroRapido onClose={() => setRapido(false)} avisar={avisar} />}
       {confirmar && <ModalConfirmar pedido={confirmar} onClose={() => setConfirmar(null)} />}
-      {etiquetas && <ModalEtiquetas produtos={etiquetas} onClose={() => setEtiquetas(null)} />}
     </>
   );
 }
 
 // ─────────── Página do módulo ───────────
-function ProdutoBladePage({ view = "lista" }) {
+// ⌘K do módulo (DS Command): telas do Produto + ir direto num produto.
+function PaletaProduto({ aberta, onClose, onIr }) {
+  const { Command } = DS();
+  if (!Command) return null;
+  const telas = [
+    { id: "t-lista", label: "Todos os produtos", hint: "índice", onSelect: () => onIr("lista") },
+    { id: "t-novo", label: "Novo produto", hint: "cadastro", onSelect: () => onIr("form") },
+    { id: "t-hist", label: "Histórico de estoque", onSelect: () => onIr("historico") },
+    { id: "t-precos", label: "Preços por grupo de venda", onSelect: () => onIr("precos") },
+    { id: "t-massa", label: "Edição em massa", onSelect: () => onIr("massa") },
+    { id: "t-analises", label: "Análises do catálogo", onSelect: () => onIr("analises") },
+    { id: "t-etiq", label: "Imprimir etiquetas", onSelect: () => onIr("etiquetas") },
+    { id: "t-preco", label: "Atualizar preço por planilha", onSelect: () => onIr("atualizar-preco") },
+    { id: "t-imp", label: "Importar produtos", onSelect: () => onIr("importar-produtos") },
+    { id: "t-impe", label: "Importar estoque inicial", onSelect: () => onIr("importar-estoque") },
+    { id: "t-cad", label: "Cadastros de apoio", hint: "unidades, categorias, marcas…", onSelect: () => onIr("cadastros") },
+  ];
+  const prods = PRODUCTS.slice(0, 8).map((p) => ({ id: "p-" + p.id, label: p.name, hint: p.sku, onSelect: () => onIr("editar", p) }));
+  return <Command open={aberta} onClose={onClose} groups={[{ label: "Telas do módulo", items: telas }, { label: "Produtos", items: prods }]} />;
+}
+
+function ProdutoBladePage({ view = "lista", estado = "dados", dense = false, papel = "administrador" }) {
   const M = MP();
   const [tela, setTela] = useState(view === "estoque" ? "lista" : view);
   const [aba, setAba] = useState(view === "estoque" ? "estoque" : "lista");
@@ -941,6 +962,16 @@ function ProdutoBladePage({ view = "lista" }) {
   // Chegou de outro módulo? (OS/orçamento pedindo um produto — window.__PBCtx)
   const [entrada, setEntrada] = useState(() => { const c = window.__PBCtx; return c && c.origem && c.origem !== "produto" && Date.now() - c.em < 60000 ? c : null; });
   const [avisoNode, avisar] = M.useAviso ? M.useAviso() : [null, () => {}];
+  const [paleta, setPaleta] = useState(false);
+  // Permissões com os nomes reais do legado (unit.* · brand.* · category.* · barcode_settings.access).
+  const perms = (window.ProdutoPerms || { criar: () => ({ can: () => true, semGate: () => null, label: "Administrador" }) }).criar(papel);
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K")) { e.preventDefault(); setPaleta((v) => !v); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   useEffect(() => { setTela(view === "estoque" ? "lista" : view); setAba(view === "estoque" ? "estoque" : "lista"); }, [view]);
 
   const CROSS = {
@@ -950,20 +981,26 @@ function ProdutoBladePage({ view = "lista" }) {
     os:             { rota: "os",      acao: "novo-item",     msg: (p) => "OS aberta com “" + p.name + "” no orçamento." },
     "fiscal-modulo":{ rota: "fiscal",  acao: "produto",       msg: (p) => "Dados fiscais de “" + p.name + "” no módulo Fiscal." },
   };
+  // Navegação interna reflete na rota do shell — senão a sidebar marca uma tela e o corpo mostra outra.
+  const ROTA_DE = { lista: "prod-lista", form: "prod-novo", historico: "prod-historico", precos: "prod-precos", massa: "prod-massa", analises: "prod-analises", etiquetas: "prod-etiquetas", "atualizar-preco": "prod-atualizar-preco", "importar-produtos": "prod-importar", "importar-estoque": "prod-importar-estoque", cadastros: "prod-cadastros" };
   const onIr = (destino, p) => {
     const x = CROSS[destino];
     if (x) { avisar(x.msg(p || { name: "produto" }), "ok"); return irPara(x.rota, { produto: (p || {}).sku, nome: (p || {}).name, acao: x.acao }); }
     setAlvo(p || null);
-    setTela(destino === "editar" ? "form" : destino);
+    const t = destino === "editar" ? "form" : destino;
+    setTela(t);
+    const rota = ROTA_DE[t];
+    if (rota && window.__route !== rota && window.__selectRoute) window.__selectRoute(rota);
   };
   const F = window.ProdutoBladeForms || {};
-  const TITULOS = { lista: "Produtos", form: "Produto — cadastro", historico: "Histórico de estoque", precos: "Preços por grupo de venda", massa: "Edição em massa", analises: "Análises do catálogo" };
+  const A = window.ProdutoAcoes || {};
+  const TITULOS = { lista: "Produtos", form: "Produto — cadastro", historico: "Histórico de estoque", precos: "Preços por grupo de venda", massa: "Edição em massa", analises: "Análises do catálogo", etiquetas: "Imprimir etiquetas", "atualizar-preco": "Atualizar preço", "importar-produtos": "Importar produtos", "importar-estoque": "Importar estoque inicial", cadastros: "Cadastros de apoio" };
 
   return (
-    <div className="pb-root" data-screen-label={"01 Produto · " + (TITULOS[tela] || tela)}>
+    <div className={"pb-root" + (dense ? " pb-dense" : "")} data-screen-label={"01 Produto · " + (TITULOS[tela] || tela)}>
       {M.Header &&
         <M.Header modulo="Produtos" papel={tela === "lista" ? "Catálogo" : TITULOS[tela]}
-          contexto={["OFFICEIMPRESSO", "matriz", PRODUCTS.length + " produtos · " + PRICE_GROUPS.length + " grupos de preço"]}
+          contexto={["OFFICEIMPRESSO", "matriz", PRODUCTS.length + " produtos · " + PRICE_GROUPS.length + " grupos de preço", "papel: " + perms.label]}
           atualizadoAs={hora}
           onRefresh={() => { setHora(new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })); avisar("Catálogo reapurado agora.", "ok"); }}
           glyph={<Ic name="product" />}
@@ -988,7 +1025,13 @@ function ProdutoBladePage({ view = "lista" }) {
         {tela === "precos" && (F.Precos ? <F.Precos produto={alvo || PRODUCTS[0]} onSair={() => setTela("lista")} avisar={avisar} /> : null)}
         {tela === "massa" && (F.Massa ? <F.Massa onSair={() => setTela("lista")} avisar={avisar} /> : null)}
         {tela === "analises" && (window.ProdutoAnalises ? <window.ProdutoAnalises onIr={onIr} avisar={avisar} /> : null)}
+        {tela === "etiquetas" && (A.Etiquetas ? <A.Etiquetas avisar={avisar} estado={estado} produtosIniciais={window.__PBEtiquetas && window.__PBEtiquetas.length ? window.__PBEtiquetas : (alvo ? [alvo] : null)} /> : null)}
+        {tela === "atualizar-preco" && (A.AtualizarPreco ? <A.AtualizarPreco avisar={avisar} onIr={onIr} estado={estado} /> : null)}
+        {tela === "importar-produtos" && (A.ImportarProdutos ? <A.ImportarProdutos avisar={avisar} estado={estado} /> : null)}
+        {tela === "importar-estoque" && (A.ImportarEstoque ? <A.ImportarEstoque avisar={avisar} estado={estado} /> : null)}
+        {tela === "cadastros" && (window.ProdutoCadastros ? <window.ProdutoCadastros onIr={onIr} avisar={avisar} estado={estado} perms={perms} /> : null)}
       </div>
+      <PaletaProduto aberta={paleta} onClose={() => setPaleta(false)} onIr={(d, p) => { setPaleta(false); onIr(d, p); }} />
       {avisoNode}
     </div>
   );

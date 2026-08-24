@@ -58,7 +58,7 @@ Nenhum `Status:` mudou. Os `🧪` continuam `🧪` e o `✅` do UC-04 continua �
 `last_run` diz *"o diff foi conferido contra os UCs"*, **não** *"os UCs foram provados"* — quem prova
 é o CI. Subir o número calado é o que o G-6 existe pra impedir.
 
-## UC-COPI-PAINEL-01 — A rota `/ia` abre o Painel (200 + componente)
+## UC-JPAIN-01 — A rota `/ia` abre o Painel (200 + componente)
 Status: 🧪 (`Modules/Jana/Tests/Feature/PainelContratoTest.php` — cita o UC; aguarda run verde na lane MySQL)
 
 Usuário autenticado do business abre `GET /ia`. O grupo `/ia` garante auth; o Controller renderiza
@@ -67,7 +67,7 @@ responde 301 pra cá).
 
 **Pronto quando:** GET `/ia` autenticado → 200 e `assertInertia(component 'Jana/Index')`.
 
-## UC-COPI-PAINEL-02 — Contrato de props: 4 eager + 1 deferida
+## UC-JPAIN-02 — Contrato de props: 4 eager + 1 deferida
 Status: 🧪 (`PainelContratoTest` — `missing(coworkAggregates)` + as 4 eager; aguarda run verde)
 
 A tela recebe `metas`, `sellKpis`, `insightsAggregates` e `janaContext` de forma **eager**, e
@@ -78,7 +78,7 @@ A tela recebe `metas`, `sellKpis`, `insightsAggregates` e `janaContext` de forma
 
 **Pronto quando:** as 4 props eager chegam no first render e `coworkAggregates` **não** está entre elas.
 
-## UC-COPI-PAINEL-03 — Escopo `business_id`, incluindo o `orWhereNull` intencional (Tier 0)
+## UC-JPAIN-03 — Escopo `business_id`, incluindo o `orWhereNull` intencional (Tier 0)
 Status: 🧪 (`PainelContratoTest` — `?business_id=999` ignorado; aguarda run verde)
 
 As metas listadas são do business da sessão **ou** repo-wide (`business_id IS NULL`). Um business
@@ -90,8 +90,8 @@ teste é o fictício **98** ([ADR 0358](../../../../memory/decisions/0358-doutri
 
 **Pronto quando:** com meta em `biz=A` e sessão em `biz=B`, o payload de B não contém a meta de A.
 
-## UC-COPI-PAINEL-04 — O farol é do SERVIDOR, e "sem base pra julgar" é `cinza`, nunca vermelho
-Status: ✅ (`Modules/Jana/Tests/Feature/FarolServerSideTest.php` — 2 casos citam este UC no título)
+## UC-JPAIN-04 — O farol é do SERVIDOR, e "sem base pra julgar" é `cinza`, nunca vermelho
+Status: 🧪 (`Modules/Jana/Tests/Feature/FarolServerSideTest.php` — 2 casos citam este UC no título) — o verde volta quando o manifesto G-7 capturar o veredito (a lane passou a emitir JUnit em 2026-08-24); ate la, "teste cita o UC, sem veredito" e o status honesto
 
 O Painel pinta cada meta com um farol. Quem decide a cor é `ApuracaoService::farol()`; a Page só
 **consome** o campo que chega no payload. Quando não há base pra julgar — sem período, sem apuração,
@@ -108,7 +108,7 @@ não é "meta indo mal".
 **Pronto quando:** os quatro casos devolvem `cinza`; as fronteiras `-5%` e `-15%` seguem verde/amarelo/
 vermelho; e `Index.tsx` **não** contém `function calcularFarol` (só o leitor `farolDaMeta`).
 
-## UC-COPI-PAINEL-05 — Empty state declara ausência (o estado real de 100% dos tenants)
+## UC-JPAIN-05 — Empty state declara ausência (o estado real de 100% dos tenants)
 Status: 🧪 (`PainelContratoTest` — copy lida do contrato, não do `.tsx`; aguarda run verde)
 
 Sem metas cadastradas, o Painel diz **"Nenhuma meta cadastrada ainda"** e oferece **"Conversar com
@@ -120,7 +120,7 @@ tenants**, então não é borda, é o caminho principal.
 
 **Pronto quando:** 0 metas → as duas strings aparecem sob `data-contract="painel-metas-vazio"`.
 
-## UC-COPI-PAINEL-06 — Meta sem apuração não vira zero
+## UC-JPAIN-06 — Meta sem apuração não vira zero
 Status: 🧪 (`PainelContratoTest` — idem; aguarda run verde)
 
 Meta cadastrada e ainda **não apurada** mostra **"Aguardando apuração…"**. Âncora: contrato
@@ -128,7 +128,7 @@ Meta cadastrada e ainda **não apurada** mostra **"Aguardando apuração…"**. 
 
 **Pronto quando:** meta sem `MetaApuracao` → a copy aparece e nenhum valor numérico a substitui.
 
-## UC-COPI-PAINEL-07 — Série curta declara ausência em vez de desenhar zero
+## UC-JPAIN-07 — Série curta declara ausência em vez de desenhar zero
 Status: 🧪 (`PainelContratoTest` — idem; aguarda run verde)
 
 Meta sem série temporal mostra **"Sem histórico"** em vez de desenhar uma linha no zero. Âncora:
@@ -136,7 +136,7 @@ contrato `painel-meta-sem-historico` — *"ausência de dado se declara, não se
 
 **Pronto quando:** meta com 0 apurações → a copy aparece e nenhum gráfico é renderizado.
 
-## UC-COPI-PAINEL-08 — Enquanto o cockpit não chega, a tela NÃO mostra zero
+## UC-JPAIN-08 — Enquanto o cockpit não chega, a tela NÃO mostra zero
 Status: 🧪 (`PainelContratoTest` — 4 asserções + 2 controles negativos; bite provado: remover o skeleton do Faturamento reprova o caso. Aguarda run verde **e** o screenshot F1.5)
 
 `coworkAggregates` é deferida (`IndexController:47`). Até resolver, o Painel deve declarar
@@ -150,7 +150,7 @@ símbolo) e 6 classes `.jm-sk-*`.
 **Pronto quando:** com `coworkAggregates` ausente no first render, o Painel mostra estado de
 carregamento e **nenhum** `R$ 0`/`0%` derivado de `?? 0`; e ao chegar a prop, os valores reais aparecem.
 
-## UC-COPI-PAINEL-09 — As 5 âncoras do contrato existem, e a ordem é respeitada
+## UC-JPAIN-09 — As 5 âncoras do contrato existem, e a ordem é respeitada
 Status: 🧪 (`PainelContratoTest` — 5 âncoras + ordem como subsequência; aguarda run verde)
 
 As 5 âncoras `data-contract` existem no `Index.tsx` e a ordem declarada
@@ -169,7 +169,7 @@ texto o cita._
 **Pronto quando:** `npm run contrato:check -- prototipo-ui/contrato/jana-painel.contract.json` sai 0.
 
 
-## UC-COPI-PAINEL-10 — "Configurar" abre drawer, e o drawer não promete o que o servidor não cumpre
+## UC-JPAIN-10 — "Configurar" abre drawer, e o drawer não promete o que o servidor não cumpre
 Status: 🧪 (`PainelContratoTest` — 6 asserções + 2 controles negativos; bite provado em 4 vetores. Aguarda run verde **e** o screenshot F1.5)
 
 O botão **Configurar** do `JanaAreaHeader` era clicável, sem rota e sem `disabled` — uma das duas
@@ -210,7 +210,7 @@ passaria só por acidente de capitalização e quebraria quando o comentário fo
 falso-positivo que o §5 2026-07-26 cataloga. Medido antes de fechar: `<Switch` 2→3 com um toggle novo;
 entradas 4→5 com uma análise sem fonte._
 
-## UC-COPI-PAINEL-11 — A meta abre na própria tela, e o drawer não projeta o futuro
+## UC-JPAIN-11 — A meta abre na própria tela, e o drawer não projeta o futuro
 Status: 🧪 (`PainelContratoTest` — 5 blocos de asserção + 1 controle negativo; aguarda run verde **e** o screenshot F1.5)
 
 Clicar num card de meta abria `/ia/metas/{id}` — um `<Link>` que **tirava o usuário do Painel** rumo
@@ -240,7 +240,7 @@ asserções minhas caíram exatamente nessa armadilha **na escrita** (`Ver detal
 classe, ambos vivos em comentário) e foram trocadas por estruturais antes de rodar: contagem de
 `<Numero rotulo=` (3) e ausência do literal do link._
 
-## UC-COPI-PAINEL-12 — a ação sugerida vira decisão registrada, e a prévia é do SERVIDOR
+## UC-JPAIN-12 — a ação sugerida vira decisão registrada, e a prévia é do SERVIDOR
 Status: 🧪 (`PainelContratoTest` — 4 `it()`: 1 de arquivo + 3 de runtime, com 2 controles negativos; aguarda run verde **e** o screenshot F1.5)
 
 Todo CTA da seção "Ações que … sugere" era **decorativo** — `title="(HITL — em breve V2)"`, zero
@@ -293,7 +293,7 @@ escrita). O que morde é a FORMA do botão morto (`title={\`${a.cta.label}…\`}
 `cta: { label: '` batendo com `count(ACOES)`. As outras três são de RUNTIME porque o defeito que
 importa é de comportamento — prévia forjada e vazamento de tenant não se veem no `.tsx`._
 
-## UC-COPI-PAINEL-13 — Churn ouro: o recorte é RELATIVO, porque o piso do protótipo é premissa de outro tenant
+## UC-JPAIN-13 — Churn ouro: o recorte é RELATIVO, porque o piso do protótipo é premissa de outro tenant
 Status: 🧪 (`PainelContratoTest` — 2 `it()`: 1 de runtime com controle negativo + 1 estrutural sobre TODAS as fontes do drill; aguarda run verde **e** o screenshot F1.5)
 
 Quinta análise do Painel, e a primeira depois das quatro que nasceram juntas. Mostra os **5
@@ -340,7 +340,7 @@ travar só a instância de hoje deixaria a próxima entrar igual. `method_exists
 reprova. Tem controle positivo (`expect($m[1])->not->toBeEmpty()`) porque regex que para de casar
 devolveria lista vazia e o caso viraria carimbo — lápide §5 2026-08-01._
 
-## UC-COPI-PAINEL-14 — O rótulo do KPI declara a janela que o dado TEM
+## UC-JPAIN-14 — O rótulo do KPI declara a janela que o dado TEM
 Status: 🧪 (`PainelContratoTest` — 2 `it()`: 1 estrutural com controle negativo + 1 de runtime que prova a contenção; aguarda run verde)
 
 O card dizia **"Receita mês"** e mostrava `sparkSum` — a soma da **sparkline**, que é
@@ -393,7 +393,7 @@ O protótipo resolve isso com **seletor de período** (`JM_PERIODOS`, 3 janelas)
 inventário como `❌ precisa de backend`. Com ele, "mês" volta a ter referente. Sem ele, qualquer
 rótulo temporal fixo é escolha arbitrária, e a honesta é a que descreve o recorte real.
 
-## Nota do conserto do UC-COPI-PAINEL-08 (2026-08-17)
+## Nota do conserto do UC-JPAIN-08 (2026-08-17)
 
 `_components/JanaCockpitSkeleton.tsx` (novo, ancorado em `jana-merge.jsx` §`JmPainelSkeleton`) +
 `carregandoCockpit = coworkAggregates === undefined` no `JanaCockpit`. Os `?? 0` **ficaram** — são
