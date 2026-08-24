@@ -49,6 +49,9 @@ const DESCRICOES = ["Impressão digital solvente", "Vinil monomérico brilho", "
 const MAQUINAS = ["Plotter Roland 540", "Plotter Mimaki JV300", "Router CNC 1200", "Laser CO2 100W", "Offset Heidelberg GTO"];
 const TURNOS = ["Manhã", "Tarde", "Noite"];
 const OS_ETAPAS = ["Arte", "Impressão", "Acabamento", "Instalação", "Entregue"];
+// Só material que vem em rolo — bobina não é caixa de cartão nem hora técnica.
+const MATERIAL_BOBINA = ["Lona 380g brilho", "Lona 440g blackout", "Vinil adesivo brilho", "Vinil adesivo fosco", "Adesivo de recorte — vinil colorido", "Papel fotográfico brilho", "Tecido para banner"];
+const LARGURA_BOBINA = [100, 127, 160];
 const MOTIVO_RETRABALHO = ["Arte reprovada pelo cliente", "Cor fora do padrão", "Medida errada na OS", "Falha de recorte", "Material com defeito"];
 
 // ─────────── Formatação (canon PT-BR do DS) ───────────
@@ -69,11 +72,30 @@ const kk = (k, l, o) => ({ k, l, t: "k", opt: o });
 const d = (k, l, o) => ({ k, l, t: "d", opt: o });
 const m = (k, l, b, o) => ({ k, l, t: "m", b: b || 2400, opt: o });
 const q = (k, l, b, o) => ({ k, l, t: "q", b: b || 90, opt: o });
+// mu/qu = unitário ou dimensional — entra na tabela, fica fora do rodapé de total
+const mu = (k, l, b) => ({ k, l, t: "m", b: b || 2400, noTotal: 1 });
+const qu = (k, l, b) => ({ k, l, t: "q", b: b || 90, noTotal: 1 });
 const p = (k, l, b, o) => ({ k, l, t: "p", b: b || 20, opt: o });
 const s = (k, l) => ({ k, l, t: "s" });
 // Os 4 custom fields do produto + estoque de manufatura (colunas condicionais do vivo).
 const CUSTOM_PROD = [t("cf1", "Campo personalizado 1", 1), t("cf2", "Campo personalizado 2", 1), t("cf3", "Campo personalizado 3", 1), t("cf4", "Campo personalizado 4", 1)];
 const MFG_STOCK = q("estoqueMfg", "Estoque atual (Manufatura)", 60, 1);
+
+const CATALOGO = [
+  { produto: "Lona 380g brilho impressa", sku: "PRD-0001", categoria: "Comunicação visual", subcategoria: "Lonas", marca: "Vinilcor", unidade: "m²", variacao: "Acabamento - Bastão + ilhós" },
+  { produto: "Vinil adesivo brilho", sku: "PRD-0002", categoria: "Adesivos", subcategoria: "Vinil", marca: "3M", unidade: "m²", variacao: "Padrão" },
+  { produto: "Placa ACM 3mm recortada", sku: "PRD-0003", categoria: "Comunicação visual", subcategoria: "Placas", marca: "Sem marca", unidade: "m²", variacao: "Padrão" },
+  { produto: "Cartão de visita 4x4 — 1.000 un", sku: "PRD-0004", categoria: "Impressos", subcategoria: "Offset", marca: "Suprema", unidade: "cx", variacao: "Padrão" },
+  { produto: "Kit fachada completa 3x1m", sku: "PRD-0005", categoria: "Comunicação visual", subcategoria: "Fachadas", marca: "Sem marca", unidade: "Un", variacao: "Padrão" },
+  { produto: "Tinta solvente CMYK 5L", sku: "PRD-0006", categoria: "Insumos", subcategoria: "Tintas", marca: "Coral", unidade: "Un", variacao: "Cor - Ciano" },
+  { produto: "Ilhós metálico nº 12 (mil)", sku: "PRD-0007", categoria: "Acabamento", subcategoria: "Ilhós", marca: "Sem marca", unidade: "cx", variacao: "Padrão" },
+  { produto: "Perfil de alumínio 30x30", sku: "PRD-0008", categoria: "Insumos", subcategoria: "Mídias", marca: "Sem marca", unidade: "m", variacao: "Padrão" },
+  { produto: "Adesivo de recorte — vinil colorido", sku: "PRD-0009", categoria: "Adesivos", subcategoria: "Recorte", marca: "Avery", unidade: "m²", variacao: "Cor - Branco" },
+  { produto: "Banner 440g com bastão", sku: "PRD-0010", categoria: "Comunicação visual", subcategoria: "Lonas", marca: "Vinilcor", unidade: "m²", variacao: "Padrão" },
+  { produto: "Instalação em fachada (hora técnica)", sku: "PRD-0011", categoria: "Serviços", subcategoria: "Instalação", marca: "Sem marca", unidade: "Un", variacao: "Padrão" },
+  { produto: "Criação de arte final", sku: "PRD-0012", categoria: "Serviços", subcategoria: "Arte", marca: "Sem marca", unidade: "Un", variacao: "Padrão" },
+];
+const CHAVES_PRODUTO = ["produto", "sku", "categoria", "subcategoria", "marca", "unidade", "variacao"];
 
 const POOL = { cliente: CLIENTES, contato: CLIENTES.concat(FORNECEDORES), fornecedor: FORNECEDORES, produto: PRODUTOS, categoria: CATEGORIAS, subcategoria: SUBCATEGORIAS, catDespesa: CAT_DESPESA, marca: MARCAS, unidade: UNIDADES, local: LOCAIS, grupo: GRUPOS, usuario: USUARIOS, forma: FORMAS, motivo: MOTIVOS, tipoAjuste: TIPO_AJUSTE, acao: ACOES, tipoReg: TIPO_REG, nota: NOTAS, variacao: VARIACOES, atendente: USUARIOS, agente: USUARIOS, descricao: DESCRICOES, despesaPara: CLIENTES, maquina: MAQUINAS, turno: TURNOS, operador: USUARIOS, etapa: OS_ETAPAS, motivoRet: MOTIVO_RETRABALHO, cf1: ["Cliente final", "Uso interno", "Amostra"], cf2: ["Lote piloto", "Padrão", "—"], cf3: ["Sim", "Não"], cf4: ["A", "B", "C"], dia: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"] };
 
@@ -105,15 +127,62 @@ const cell = (col, i, r) => {
   return "—";
 };
 
+const cru = (col, r) => {
+  const v = col.b * (col.t === "q" ? 0.2 + r() * 1.5 : 0.35 + r() * 1.6);
+  if (col.t === "q") return Math.round(v);
+  if (col.t === "p") return col.b * (0.3 + r() * 1.5);
+  return col.k.indexOf("dev") === 0 || col.k === "desconto" ? v / 6 : v;
+};
+
 const gerar = (rep, cols, n) => {
   const r = rng(rep.id + "|" + cols.map((c) => c.k).join(","));
+  const chavesProduto = CHAVES_PRODUTO.filter((k) => cols.some((c) => c.k === k));
   const rows = [];
   for (let i = 0; i < n; i++) {
+    const num = {}, txt = {};
+    cols.forEach((c) => { if (c.t === "m" || c.t === "q" || c.t === "p") num[c.k] = cru(c, r); else txt[c.k] = cell(c, i, r); });
+    // Identidade de produto: um item do catálogo por linha — SKU, categoria, subcategoria,
+    // marca e unidade são atributos DELE, nunca sorteios paralelos.
+    if (chavesProduto.length) {
+      const item = CATALOGO[Math.floor(r() * CATALOGO.length)];
+      chavesProduto.forEach((k) => { txt[k] = item[k]; });
+    }
+    if (rep.calc) rep.calc(num, txt, i);
     const cells = {};
-    cols.forEach((c) => { cells[c.k] = cell(c, i, r); });
+    cols.forEach((c) => { cells[c.k] = c.t === "m" ? BRL(num[c.k]) : c.t === "q" ? QTD(num[c.k]) : c.t === "p" ? PCT(num[c.k]) : txt[c.k]; });
     rows.push({ id: rep.id + "-" + i, cells });
   }
   return rows;
+};
+
+// Cálculo de linha por relatório — o que é conta NÃO é sorteado.
+const CALC = {
+  // m² vendido = produzido − perda · perda% = perda / produzido
+  cv_m2: (n) => { n.m2Perda = Math.min(n.m2Perda, Math.round(n.m2Prod * 0.18)); n.m2Vend = n.m2Prod - n.m2Perda; n.perdaPct = n.m2Prod ? n.m2Perda / n.m2Prod * 100 : 0; n.receita = n.m2Vend * 42; },
+  // lucro = receita − material − hora de máquina − instalação · margem = lucro / receita
+  cv_lucro_os: (n) => { n.lucro = n.receita - n.custoMaterial - n.custoMaquina - n.custoInstal; n.margem = n.receita ? n.lucro / n.receita * 100 : 0; },
+  // sobra% = sobra / metros iniciais · valor = sobra × custo do metro linear
+  cv_bobina: (n, txt, i) => {
+    txt.produto = MATERIAL_BOBINA[i % MATERIAL_BOBINA.length];
+    n.larguraCm = LARGURA_BOBINA[i % LARGURA_BOBINA.length];
+    n.metrosIni = [25, 50, 50, 30][i % 4];
+    n.metrosRest = Math.max(1, Math.min(n.metrosRest, Math.round(n.metrosIni * 0.35)));
+    n.sobraPct = n.metrosIni ? n.metrosRest / n.metrosIni * 100 : 0;
+    n.valorSobra = n.metrosRest * (n.larguraCm / 100) * 26;
+    txt.aproveita = n.metrosRest >= 3 ? "Sim" : "Retalho";
+  },
+  // valor de estoque a venda = estoque × preço · custo = 62% da venda · lucro potencial = diferença
+  stock_report: (n) => { n.estoqueVenda = n.estoque * n.precoVenda; n.estoqueCusto = n.estoqueVenda * 0.62; n.lucroPot = n.estoqueVenda - n.estoqueCusto; },
+  product_purchase_report: (n) => { n.subtotal = n.qtd * n.precoCompra; },
+  items_report: (n) => { n.subtotal = n.qtd * n.precoVenda; },
+  sale_report: (n) => { n.totalInc = n.totalExc - n.desconto + n.imposto; },
+  purchase_report: (n) => { n.totalInc = n.totalExc - n.desconto + n.imposto; },
+  register_report: (n) => { n.total = n.cartao + n.cheque + n.dinheiro + n.transferencia + n.adiantamento + n.outros; },
+  sales_representative: (n) => { if (n.pago != null) { n.pago = Math.min(n.pago, n.total); n.saldo = n.total - n.pago; } if (n.comissao != null) n.comissao = n.total * 0.05; },
+  service_staff_report: (n) => { if (n.subtotal != null && n.qtd == null) n.total = n.subtotal - n.desconto + n.imposto; if (n.precoLiquido != null) { n.precoLiquido = n.precoUnit - n.desconto + n.imposto; n.total = n.qtd * n.precoLiquido; } },
+  product_sell_report: (n) => { if (n.precoIncImposto != null) { n.imposto = n.precoUnit * n.qtd * 0.18; n.precoIncImposto = n.precoUnit * 1.18; n.total = n.qtd * n.precoUnit - n.desconto + n.imposto; } },
+  stock_adjustment_report: (n) => { n.recuperado = Math.min(n.recuperado, n.total * 0.55); },
+  cv_retrabalho: (n) => { n.custoRet = n.m2Perda * 46 + 180; },
 };
 
 // Totais do rodapé (<tfoot> do blade) — só colunas de moeda/quantidade visíveis.
@@ -122,7 +191,7 @@ const soma = (rows, k) => rows.reduce((a, r) => a + num(r.cells[k]), 0);
 const somaSe = (rows, k, campo, valor) => rows.reduce((a, r) => a + (r.cells[campo] === valor ? num(r.cells[k]) : 0), 0);
 const totais = (cols, rows) => {
   const out = {};
-  cols.forEach((c) => { if (c.t === "m" || c.t === "q") { const soma = rows.reduce((a, row) => a + num(row.cells[c.k]), 0); out[c.k] = c.t === "m" ? BRL(soma) : QTD(soma); } });
+  cols.forEach((c) => { if (!c.noTotal && (c.t === "m" || c.t === "q")) { const soma = rows.reduce((a, row) => a + num(row.cells[c.k]), 0); out[c.k] = c.t === "m" ? BRL(soma) : QTD(soma); } });
   return out;
 };
 
@@ -239,7 +308,7 @@ const REPORTS = [
 
   { id: "stock_report", label: "Estoque", legado: "relatório de estoque", blade: "report/partials/stock_report_table.blade.php", grupo: "Estoque", desc: "Estoque atual por produto e local, com valor a custo e a venda, lucro potencial e o que já saiu.", filtros: ["local", "categoria", "subcategoria", "marca", "unidade"], kind: "tabela",
     acoes: [A.verProduto, A.imprimirLinha], n: 24,
-    cols: [kk("sku", "SKU"), t("produto", "Produto"), t("variacao", "Variação"), t("categoria", "Categoria"), t("local", "Local"), m("precoVenda", "Preço de venda unit.", 90), q("estoque", "Estoque atual", 240), m("estoqueCusto", "Valor de estoque (custo)", 4800), m("estoqueVenda", "Valor de estoque (venda)", 7600), m("lucroPot", "Lucro potencial", 2800), q("vendido", "Total vendido", 160), q("transferido", "Transferido", 40), q("ajustado", "Ajustado", 18)].concat(CUSTOM_PROD).concat([MFG_STOCK]) },
+    cols: [kk("sku", "SKU"), t("produto", "Produto"), t("variacao", "Variação"), t("categoria", "Categoria"), t("local", "Local"), mu("precoVenda", "Preço de venda unit.", 90), q("estoque", "Estoque atual", 240), m("estoqueCusto", "Valor de estoque (custo)", 4800), m("estoqueVenda", "Valor de estoque (venda)", 7600), m("lucroPot", "Lucro potencial", 2800), q("vendido", "Total vendido", 160), q("transferido", "Transferido", 40), q("ajustado", "Ajustado", 18)].concat(CUSTOM_PROD).concat([MFG_STOCK]) },
 
   { id: "product_stock_details", label: "Detalhes de estoque do produto", legado: "Detalhes de estoque", blade: "report/product_stock_details.blade.php", grupo: "Estoque", desc: "A conta completa de um produto num local: de onde veio cada unidade e por que o saldo é esse.", filtros: ["produto", "local"], kind: "resumo",
     resumo: { esq: { titulo: "Entradas", linhas: [["Estoque inicial", 420], ["Total comprado", 1860], ["Devoluções de venda", 24], ["Transferido para o local", 180], ["Ajuste de estoque (entrada)", 36]] },
@@ -260,17 +329,17 @@ const REPORTS = [
 
   { id: "product_purchase_report", label: "Compras por produto", legado: "Relatório de compra do produto", blade: "report/product_purchase_report.blade.php", grupo: "Estoque", desc: "Quanto de cada produto entrou, de qual fornecedor e a que preço unitário.", filtros: ["produto", "fornecedor", "local", "marca"], kind: "tabela",
     acoes: [A.verCompra, A.verProduto], n: 20,
-    cols: [t("produto", "Produto"), kk("sku", "SKU"), t("fornecedor", "Fornecedor"), kk("ref", "Ref."), d("data", "Data"), q("qtd", "Qtd.", 60), q("ajustado", "Ajustado", 8), m("precoCompra", "Preço unit. de compra", 70), m("subtotal", "Subtotal", 1800)] },
+    cols: [t("produto", "Produto"), kk("sku", "SKU"), t("fornecedor", "Fornecedor"), kk("ref", "Ref."), d("data", "Data"), q("qtd", "Qtd.", 60), q("ajustado", "Ajustado", 8), mu("precoCompra", "Preço unit. de compra", 70), m("subtotal", "Subtotal", 1800)] },
 
   { id: "product_sell_report", label: "Vendas por produto", legado: "Relatório de venda do produto", blade: "report/product_sell_report.blade.php", grupo: "Estoque", desc: "A saída por produto em três leituras: linha a linha da venda, por lote de origem e o total por produto.", filtros: ["produto", "cliente", "grupo", "local", "categoria", "marca", "hora"], kind: "abas",
     tabs: [
-      { key: "venda", label: "Por venda", cols: [t("produto", "Produto"), kk("sku", "SKU")].concat(CUSTOM_PROD.slice(0, 2)).concat([t("cliente", "Cliente"), kk("contatoId", "ID do contato"), kk("fatura", "Nº da fatura"), d("data", "Data"), q("qtd", "Qtd.", 40), m("precoUnit", "Preço unit.", 80), m("desconto", "Desconto", 30), m("imposto", "Imposto", 60), m("precoIncImposto", "Preço c/ imposto", 140), m("total", "Total", 1600), t("forma", "Forma de pgto.")]), acoes: [A.verVenda, A.verProduto], n: 20 },
+      { key: "venda", label: "Por venda", cols: [t("produto", "Produto"), kk("sku", "SKU")].concat(CUSTOM_PROD.slice(0, 2)).concat([t("cliente", "Cliente"), kk("contatoId", "ID do contato"), kk("fatura", "Nº da fatura"), d("data", "Data"), q("qtd", "Qtd.", 40), mu("precoUnit", "Preço unit.", 80), m("desconto", "Desconto", 30), m("imposto", "Imposto", 60), mu("precoIncImposto", "Preço c/ imposto", 140), m("total", "Total", 1600), t("forma", "Forma de pgto.")]), acoes: [A.verVenda, A.verProduto], n: 20 },
       { key: "lote", label: "Por lote", cols: [t("produto", "Produto"), kk("sku", "SKU"), t("cliente", "Cliente"), kk("fatura", "Nº da fatura"), d("data", "Data"), kk("refCompra", "Ref. da compra"), kk("lote", "Nº do lote"), t("fornecedor", "Fornecedor"), q("qtd", "Qtd.", 40)], acoes: [A.verVenda, A.verCompra], n: 18 },
       { key: "produto", label: "Por produto", cols: [t("produto", "Produto"), kk("sku", "SKU"), d("data", "Última venda"), q("estoque", "Estoque atual", 200), q("vendido", "Total vendido", 150), m("total", "Total", 6800)], acoes: [A.verProduto] }] },
 
   { id: "items_report", label: "Itens", legado: "Relatório de Itens", blade: "report/items_report.blade.php", grupo: "Estoque", desc: "A vida de cada item da compra até a venda numa linha só — a rastreabilidade que a auditoria pede.", filtros: ["fornecedor", "cliente", "local"], periodos: ["Data da compra", "Data da venda"], kind: "tabela",
     acoes: [A.verCompra, A.verVenda, A.verProduto], n: 20,
-    cols: [t("produto", "Produto"), kk("sku", "SKU"), t("descricao", "Descrição"), d("data", "Data da compra"), kk("compra", "Compra"), kk("lote", "Nº do lote"), t("fornecedor", "Fornecedor"), m("precoCompra", "Preço de compra", 70), d("dataVenda", "Data da venda"), kk("venda", "Venda"), t("cliente", "Cliente"), t("local", "Local"), q("qtd", "Qtd. vendida", 30), m("precoVenda", "Preço de venda", 120), m("subtotal", "Subtotal", 1400)] },
+    cols: [t("produto", "Produto"), kk("sku", "SKU"), t("descricao", "Descrição"), d("data", "Data da compra"), kk("compra", "Compra"), kk("lote", "Nº do lote"), t("fornecedor", "Fornecedor"), m("precoCompra", "Preço de compra", 70) /* footer_total_pp — o blade soma */, d("dataVenda", "Data da venda"), kk("venda", "Venda"), t("cliente", "Cliente"), t("local", "Local"), q("qtd", "Qtd. vendida", 30), m("precoVenda", "Preço de venda", 120) /* footer_total_sp — o blade soma */, m("subtotal", "Subtotal", 1400)] },
 
   { id: "trending_products", label: "Produtos em tendência", legado: "Produtos de tendência", blade: "report/trending_products.blade.php", grupo: "Estoque", desc: "O ranking do que está saindo mais no período — filtra por categoria, marca, unidade e tipo.", filtros: ["local", "categoria", "subcategoria", "marca", "unidade", "limite", "tipoProduto"], kind: "grafico",
     acoes: [A.verProduto],
@@ -279,7 +348,7 @@ const REPORTS = [
   { id: "service_staff_report", label: "Atendentes", legado: "Informe del personal de servicio", blade: "report/service_staff_report.blade.php", grupo: "Comercial", modulo: "Restaurante", desc: "Pedidos por atendente — do módulo Restaurante, ativo só quando a operação usa mesas.", filtros: ["local", "atendente"], kind: "abas",
     tabs: [
       { key: "pedidos", label: "Pedidos", cols: [d("data", "Data"), kk("fatura", "Nº da fatura"), t("atendente", "Atendente"), t("local", "Local"), m("subtotal", "Subtotal", 800), m("desconto", "Desconto total", 90), m("imposto", "Imposto total", 140), m("total", "Valor total", 950)], acoes: [A.verVenda] },
-      { key: "itens", label: "Itens do pedido", cols: [d("data", "Data"), kk("fatura", "Nº da fatura"), t("atendente", "Atendente"), t("produto", "Produto"), q("qtd", "Qtd.", 12), m("precoUnit", "Preço unit.", 70), m("desconto", "Desconto", 20), m("imposto", "Imposto", 30), m("precoLiquido", "Preço líquido", 90), m("total", "Total", 420)], acoes: [A.verVenda] }] },
+      { key: "itens", label: "Itens do pedido", cols: [d("data", "Data"), kk("fatura", "Nº da fatura"), t("atendente", "Atendente"), t("produto", "Produto"), q("qtd", "Qtd.", 12), mu("precoUnit", "Preço unit.", 70), m("desconto", "Desconto", 20), m("imposto", "Imposto", 30), mu("precoLiquido", "Preço líquido", 90), m("total", "Total", 420)], acoes: [A.verVenda] }] },
 
   { id: "activity_log", label: "Registro de atividade", legado: "Registro de atividade", blade: "report/activity_log.blade.php", grupo: "Sistema", desc: "Quem mexeu em quê e quando — a trilha que resolve discussão de balcão.", filtros: ["usuario", "tipoReg"], kind: "tabela", n: 28,
     cols: [d("data", "Data"), t("tipoReg", "Tipo de registro"), t("acao", "Ação"), t("usuario", "Por"), t("nota", "Observação")] },
@@ -291,7 +360,7 @@ const REPORTS = [
 
   { id: "cv_bobina", label: "Sobra de bobina por lote", legado: null, blade: null, novo: true, grupo: "Gráfica", desc: "Quanto sobrou em cada bobina e se a sobra ainda é aproveitável — o dinheiro que fica no rolo em pé no canto.", filtros: ["local", "categoria", "marca", "verEstoque"], kind: "tabela",
     acoes: [A.verProduto, A.editarAjuste], n: 16,
-    cols: [kk("lote", "Nº do lote"), t("produto", "Material"), t("marca", "Marca"), t("local", "Local"), q("larguraCm", "Largura (cm)", 100), q("metrosIni", "Metros iniciais", 50), q("metrosRest", "Sobra (m)", 9), p("sobraPct", "Sobra", 14), m("valorSobra", "Valor da sobra", 320), t("aproveita", "Aproveitável")] },
+    cols: [kk("lote", "Nº do lote"), t("produto", "Material"), t("marca", "Marca"), t("local", "Local"), qu("larguraCm", "Largura (cm)", 100), q("metrosIni", "Metros iniciais", 50), q("metrosRest", "Sobra (m)", 9), p("sobraPct", "Sobra", 14), m("valorSobra", "Valor da sobra", 320), t("aproveita", "Aproveitável")] },
 
   { id: "cv_lucro_os", label: "Lucro por OS", legado: null, blade: null, novo: true, grupo: "Gráfica", desc: "Receita menos material, hora de máquina e instalação, OS por OS — onde o orçamento errou o preço.", filtros: ["local", "cliente", "etapa"], kind: "tabela",
     acoes: [A.verOS, A.verContato, A.imprimirLinha], n: 18,
@@ -342,5 +411,36 @@ const derivar = (rep, rows, tab) => {
   return null;
 };
 
-window.RELD = { REPORTS, FORA, F, A, GRUPOS_ORDEM, gerar, totais, derivar, soma, num, BRL, QTD, PCT, dia, menos, hoje, LOCAIS, USUARIOS, PRODUTOS };
+REPORTS.forEach((r) => { if (CALC[r.id]) r.calc = CALC[r.id]; });
+
+// Filtro → coluna que ele estreita. O que o filtro promete, a tabela cumpre.
+const FILTRO_COL = { local: "local", cliente: "cliente", fornecedor: "fornecedor", contatoUm: "contato", categoria: "categoria", subcategoria: "subcategoria", marca: "marca", unidade: "unidade", grupo: "grupo", usuario: "usuario", atendente: "atendente", operador: "operador", maquina: "maquina", turno: "turno", etapa: "etapa", produto: "produto", forma: "forma", catDespesa: "catDespesa", tipoAjuste: "tipoAjuste", statusPgto: "status", tipoReg: "tipoReg" };
+const TODOS = ["Todos", "Todas"];
+// Filtros que o blade tem mas que não estreitam coluna nenhuma (recorte de período/limite/servidor).
+const SEM_COLUNA = ["hora", "limite", "verEstoque", "tipoProduto", "statusCompra", "statusCaixa", "contatoTipo", "agente"];
+
+const aplicar = (rows, valores, cols) => {
+  const chaves = cols.map((c) => c.k);
+  let out = rows;
+  Object.keys(valores || {}).forEach((f) => {
+    const v = valores[f];
+    if (!v || TODOS.indexOf(v) >= 0) return;
+    const k = FILTRO_COL[f];
+    if (!k || chaves.indexOf(k) < 0) return;
+    out = out.filter((r) => String(r.cells[k]) === v);
+  });
+  if (valores && valores.limite) out = out.slice(0, Number(valores.limite));
+  return out;
+};
+
+// Chips do que está filtrando agora (o "Filtrando por" do canon PT-01).
+const chips = (rep, valores, cols) => {
+  const chaves = cols ? cols.map((c) => c.k) : [];
+  return Object.keys(valores || {}).filter((f) => {
+    const v = valores[f];
+    return v && TODOS.indexOf(v) < 0 && F[f];
+  }).map((f) => ({ id: f, label: F[f].label, valor: valores[f], inerte: SEM_COLUNA.indexOf(f) >= 0 || chaves.indexOf(FILTRO_COL[f]) < 0 }));
+};
+
+window.RELD = { REPORTS, FORA, F, A, GRUPOS_ORDEM, gerar, totais, derivar, aplicar, chips, soma, num, BRL, QTD, PCT, dia, menos, hoje, LOCAIS, USUARIOS, PRODUTOS };
 })();
