@@ -57,6 +57,8 @@
  *   node scripts/governance/cowork-mirror-freshness.mjs --compare snap.json --check    # exit 1 se STALE
  *   node scripts/governance/cowork-mirror-freshness.mjs --compare snap.json --check --ledger  # + registra a rodada
  *   node scripts/governance/cowork-mirror-freshness.mjs --sla               # headless: rotina rodou ≤14d? última limpa?
+ *   node scripts/governance/cowork-mirror-freshness.mjs --live-only <lista.json> --ledger  # + registra a medição
+ *   node scripts/governance/cowork-mirror-freshness.mjs --sla-live-only     # headless: live-only foi MEDIDO ≤7d? cresceu?
  *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs        # a poda deste PR quebrou o grafo do espelho? (exit 1 = sim)
  *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs --range <a>..<b>
  *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs --deleted-from <lista.txt>   # fixture/manual
@@ -273,6 +275,64 @@ export function dsRuntimeRelPath(path) {
 // append-only, commitado: prova > promessa (session 2026-07-06-arte-design-code-sync-frescor).
 export const LEDGER_REL = 'scripts/governance/.cowork-freshness-ledger.json';
 export const SLA_DAYS = 14;
+export const LIVE_ONLY_SLA_DAYS = 7;
+
+// ── LIVE-ONLY NO LEDGER: a medição que o CI NÃO PODE fazer, mas PODE cobrar ──────
+// O `--live-only` precisa da saída do DesignSync.list_files → auth interativa (ADR 0315),
+// então CI headless nunca vai conseguir MEDIR. É a mesma divisão que o `--sla` já usa pro
+// `--compare`: o agente logado mede e REGISTRA; o CI audita o REGISTRO. Sem isso o flanco
+// ficava mudo — em 2026-08-24 a medição achou 47 protótipos de tela que nunca desceram
+// (fiscal, repair, estoque, configuracoes, patrimonio, governance, venda-blade), e ninguém
+// tinha sido avisado porque nada perguntava periodicamente.
+//
+// ⚠️ Entrada de live-only NÃO é rodada de `--compare`. Elas moram no MESMO array, e o
+// `slaVerdict` lê `entries[entries.length-1]` — sem o filtro por `kind`, uma medição de
+// live-only empurrada por último faria o SLA do compare responder FRESH sobre um objeto que
+// ele não mediu. Alarme silenciado por adição vizinha é pior que alarme ausente.
+// Entrada SEM `kind` = rodada de compare (todo o ledger anterior a 2026-08-24).
+export const KIND_LIVE_ONLY = 'live-only';
+export const ehRodadaCompare = (e) => !e.kind || e.kind === 'compare';
+
+/** Entrada de ledger para uma medição de live-only (pura, testável).
+ *  `denom` é o tamanho da lista do vivo que ALIMENTOU a medição. Guardar o denominador é o
+ *  que separa "cresceu" de "olhei mais coisa desta vez" — §5 2026-07-27 (denominador
+ *  inventado) e §5 2026-07-29 (não afirmar sobre o que não se percorreu). */
+export function liveOnlyEntry(faltando, denom, dateIso) {
+  return {
+    date: dateIso,
+    kind: KIND_LIVE_ONLY,
+    liveOnly: faltando.length,
+    denom,
+    liveOnlyList: [...faltando].sort(),
+  };
+}
+
+/** Veredito de live-only (puro): foi MEDIDO há ≤ days? E APARECEU path novo desde a medição
+ *  anterior? O predicado é DELTA, nunca absoluto: um piso herdado (hoje 47) faria um
+ *  `liveOnly === 0` reprovar pra sempre e o guard virar parede — §5 2026-08-24, o
+ *  auto-merge que ficou 9 dias travado por comparar contra zero em vez de contra a
+ *  referência. O que é notícia é o que ENTROU depois da última medição.
+ *
+ *  Vereditos: NEVER-RAN / OVERDUE = cadência · GREW = resultado · SCOPE-CHANGED = NÃO
+ *  comparável (denominador diferente) · BASELINE = primeira medição · OK.
+ *  SCOPE-CHANGED existe pra não colapsar "não consegui comparar" em "está tudo bem"
+ *  (§5 2026-07-29) nem em "cresceu" — são três estados, não dois. */
+export function liveOnlyVerdict(entries, nowIso, days = LIVE_ONLY_SLA_DAYS) {
+  const meds = (Array.isArray(entries) ? entries : []).filter((e) => e && e.kind === KIND_LIVE_ONLY);
+  if (meds.length === 0) return { veredito: 'NEVER-RAN', last: null, ageDays: null, novos: [] };
+  const last = meds[meds.length - 1];
+  const ageDays = Math.floor((Date.parse(nowIso) - Date.parse(last.date)) / 86400000);
+  if (ageDays > days) return { veredito: 'OVERDUE', last, ageDays, novos: [] };
+  const prev = meds[meds.length - 2] || null;
+  if (!prev) return { veredito: 'BASELINE', last, ageDays, novos: [] };
+  if (prev.denom !== last.denom) {
+    return { veredito: 'SCOPE-CHANGED', last, prev, ageDays, novos: [] };
+  }
+  const antes = new Set(prev.liveOnlyList || []);
+  const novos = (last.liveOnlyList || []).filter((p) => !antes.has(p));
+  if (novos.length > 0) return { veredito: 'GREW', last, prev, ageDays, novos };
+  return { veredito: 'OK', last, prev, ageDays, novos: [] };
+}
 
 /** Entrada de ledger (pura, testável) a partir das rows do --compare. */
 export function ledgerEntry(rows, dateIso, meta = {}) {
@@ -403,8 +463,12 @@ export function unverifiedSince(entries, arquivos, provaBundle = null) {
 }
 
 export function slaVerdict(entries, nowIso, days = SLA_DAYS) {
-  if (!Array.isArray(entries) || entries.length === 0) return { veredito: 'NEVER-RAN', last: null, ageDays: null };
-  const last = entries[entries.length - 1];
+  // SÓ rodadas de --compare. Entrada de live-only vive no MESMO ledger e, se caísse por
+  // último, responderia aqui por um objeto que esta função não mediu — `stale`/`unchecked`
+  // ausentes viram 0 e o veredito sai FRESH. Ver KIND_LIVE_ONLY.
+  const rodadas = (Array.isArray(entries) ? entries : []).filter(ehRodadaCompare);
+  if (rodadas.length === 0) return { veredito: 'NEVER-RAN', last: null, ageDays: null };
+  const last = rodadas[rodadas.length - 1];
   const ageDays = Math.floor((Date.parse(nowIso) - Date.parse(last.date)) / 86400000);
   const medidos = (last.files || 0) - (last.unchecked || 0);
   const cobertura = { medidos, total: last.files || 0 };
@@ -1088,6 +1152,16 @@ function main() {
     console.log('     prototipo-ui/design-docs/ — decisão [W] 2026-08-21; é roteamento, não flag.');
     console.log('     Com --ds/--ds-runtime o .md pousa no próprio prefixo (fora do alcance do R1).');
     console.log('  ⚠️ lista, não veredito: o que merece descer é decisão [W], não da máquina.\n');
+    if (argv.includes('--ledger')) {
+      const lp = join(ROOT, LEDGER_REL);
+      let entries = [];
+      try { entries = existsSync(lp) ? JSON.parse(readFileSync(lp, 'utf8')) : []; } catch { entries = []; }
+      if (!Array.isArray(entries)) entries = entries.runs || [];
+      entries.push(liveOnlyEntry(faltando, paths.length, new Date().toISOString()));
+      writeFileSync(lp, JSON.stringify(entries, null, 2) + '\n');
+      console.log(`  ledger: medição registrada em ${LEDGER_REL} (${faltando.length} live-only de ${paths.length} paths). Commite o ledger.`);
+      console.log(`  O CI headless não mede isto (auth ADR 0315) — ele audita ESTE registro via --sla-live-only.\n`);
+    }
     return;
   }
 
@@ -1462,6 +1536,49 @@ function main() {
         console.log(`\n✓ nasce-sem-medição: os ${nascidos.length} arquivo(s) novos entram no manifesto.`);
       }
     }
+    return;
+  }
+
+  // --sla-live-only: headless-safe (lê SÓ o ledger). Audita o REGISTRO da medição de
+  // live-only — nunca a medição, que exige auth (ADR 0315). Verdict SEPARADO do --sla de
+  // propósito: os dois medem objetos distintos (o que ATRASOU × o que NUNCA DESCEU) e
+  // fundir num número só seria agregar veredito não-comensurável (§5 2026-07-17).
+  if (argv.includes('--sla-live-only')) {
+    const lp = join(ROOT, LEDGER_REL);
+    let entries = [];
+    try { entries = existsSync(lp) ? JSON.parse(readFileSync(lp, 'utf8')) : []; } catch { entries = []; }
+    if (!Array.isArray(entries)) entries = entries.runs || [];
+    const r = liveOnlyVerdict(entries, new Date().toISOString());
+    const receita = 'DesignSync.list_files → salve o JSON → --live-only <lista.json> --ledger';
+    console.log(`\n  LIVE-ONLY SLA — o "nunca desceu" foi medido nos últimos ${LIVE_ONLY_SLA_DAYS}d?\n`);
+    if (r.veredito === 'NEVER-RAN') {
+      console.error(`  ✗ NUNCA MEDIDO — nenhuma entrada de live-only no ledger. Rode: ${receita}`);
+      process.exit(1);
+    }
+    const idade = `medido em ${r.last.date.slice(0, 10)} (há ${r.ageDays}d): ${r.last.liveOnly} live-only de ${r.last.denom} paths`;
+    if (r.veredito === 'OVERDUE') {
+      console.error(`  ✗ VENCIDO — ${idade}. SLA é ${LIVE_ONLY_SLA_DAYS}d. Rode: ${receita}`);
+      process.exit(1);
+    }
+    if (r.veredito === 'GREW') {
+      console.error(`  ✗ CRESCEU — ${idade}; ${r.novos.length} path(s) novo(s) desde ${r.prev.date.slice(0, 10)}:`);
+      for (const p of r.novos) console.error(`     + ${p}`);
+      console.error('  Advisory: descer ou não é decisão [W]. A máquina só deixa de esconder.');
+      process.exit(1);
+    }
+    if (r.veredito === 'SCOPE-CHANGED') {
+      // NÃO é verde nem vermelho de resultado: é ausência de comparação. O denominador mudou
+      // (a lista do vivo que alimentou as duas medições tem tamanhos diferentes), então
+      // "cresceu" seria uma afirmação sobre algo que não foi percorrido igual nas duas vezes.
+      console.log(`  ⬜ SEM COMPARAÇÃO — ${idade}, mas o denominador mudou (${r.prev.denom} → ${r.last.denom}).`);
+      console.log('     Delta não é comparável entre escopos diferentes; medição registrada, crescimento NÃO avaliado.');
+      return;
+    }
+    if (r.veredito === 'BASELINE') {
+      console.log(`  ⬜ BASELINE — ${idade}. Primeira medição registrada; não há anterior pra comparar.`);
+      return;
+    }
+    console.log(`  ✓ ${idade} — nenhum path novo desde ${r.prev.date.slice(0, 10)}.`);
     return;
   }
 

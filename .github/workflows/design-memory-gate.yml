@@ -304,6 +304,42 @@ jobs:
             echo "_Cobertura parcial significa que \`0 stale\` cobre **só o que foi medido** — o resto segue sem veredito._"
           } >> "$GITHUB_STEP_SUMMARY"
           exit $rc
+      # LIVE-ONLY SLA — o 2º flanco que o CI headless pode COBRAR sem poder MEDIR. A medição
+      # exige a saída do DesignSync.list_files (auth interativa, ADR 0315), então quem mede é
+      # o agente logado; aqui só se audita o REGISTRO no ledger. Mesma divisão do --sla acima.
+      # Por que nasceu: em 2026-08-24 a medição achou 47 protótipos de tela vivos no Cowork que
+      # nunca desceram (fiscal 5, repair 7, estoque 5, configuracoes 4, patrimonio 4,
+      # governance 4, venda-blade 6, venda-index 2, compras 3, produto 3, catchup 2, +3) — e
+      # nada tinha perguntado, porque os 4 modos que rodavam aqui olham só o que JÁ desceu.
+      # Predicado é DELTA (path que ENTROU desde a medição anterior), nunca absoluto: com
+      # `liveOnly === 0` o piso herdado de 47 travaria o gate pra sempre — §5 2026-08-24.
+      # Denominador diferente entre duas medições sai como SEM COMPARAÇÃO (rc=0), não como
+      # crescimento: escopo distinto não é delta (§5 2026-07-27).
+      # Advisory, como os vizinhos; dono de `required` é governance/required-checks-baseline.json.
+      - name: cowork live-only SLA (o "nunca desceu" foi medido? cresceu? · ledger · advisory)
+        if: always()
+        continue-on-error: true
+        run: |
+          OUT="${RUNNER_TEMP:-.}/cowork-live-only.txt"
+          node scripts/governance/cowork-mirror-freshness.mjs --sla-live-only > "$OUT" 2>&1
+          rc=$?
+          cat "$OUT"
+          {
+            echo "### Espelho Cowork — live-only (advisory)"
+            echo ""
+            if [ "$rc" -eq 0 ]; then
+              echo "✅ medição de live-only registrada e sem path novo."
+            else
+              echo "⚠️ **live-only sem medição recente, ou cresceu** — \`rc=$rc\`"
+            fi
+            echo ""
+            echo '```'
+            sed -n '1,20p' "$OUT"
+            echo '```'
+            echo ""
+            echo "_O CI não mede live-only (exige auth do DesignSync — ADR 0315); ele audita o registro no ledger._"
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit $rc
       # Poda do espelho (PR #5763, 96 arquivos): ao contrário do --compare acima, ESTE é 100%
       # local — não precisa da auth interativa do DesignSync, então roda headless no CI. Só
       # olha o que o PR APAGA sob prototipo-ui/cowork/ e pergunta se sobrou alguém apontando
