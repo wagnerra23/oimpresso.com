@@ -464,6 +464,28 @@ Declarei "no ar/funcionando" **2× em cima de prova PARCIAL** (1º `curl 302`; d
 
 ---
 
+## R16 — IGUAL É IGUAL. A missão se cumpre, não se pergunta
+
+**Origem:** Wagner palavras textuais 2026-08-24, sessão `competent-visvesvaraya-6c4c14`:
+
+> *"eu ter que ficar repetindo a missão é um erro grosseiro, não me pergunte mais revise e crie a regra"* · *"muito chato ter que ficar repetindo a missão"* · *"igual é igual caralho"* · *"resolva não pergunte"* · *"crie o hook de bloqueio, não me chateie mais"*
+
+**As duas metades, e as duas são duras:**
+
+**1. A missão é IGUALDADE, não instrumentação.** Quando design e produção divergem — ou vivo e espelho — o trabalho é **igualar**. Medir, relatar, abrir gate, gravar ledger são **meios**; entregar o meio e apresentar como resultado é trocar a missão pelo instrumento. *"Advisory"*, *"nudge"*, *"medido e registrado"* **não são estados de igualdade**. E "igual" é byte, DOM medido ou hash — nunca "parecido", nunca screenshot no olho (R2 + skill `comparar-design-prod`).
+
+**2. A missão não se pergunta.** Ela já está escrita (este doc, [`proibicoes.md`](../proibicoes.md), o charter da tela). Fazer o Wagner **repetir** o que é canon é o erro grosseiro que ele nomeou — não é diligência, é transferir pra ele o custo de lembrar. Sobrando leituras possíveis: **(a)** rode o comando que decide (R15); **(b)** se ainda sobrar, **escolha a mais consequente, diga qual escolheu e por quê, e execute** (R13); **(c)** escale só o que é soberania/irreversível/gosto.
+
+**Quando dispara:** o turno vai terminar devolvendo escolha pro Wagner.
+
+**Sinal de violação:** Wagner responde *"resolva não pergunte"*, *"não me pergunte"*, *"que chato"*, *"não minta"* — ou simplesmente **repete a missão**.
+
+**Ativação:** hook **BLOQUEADOR** [`block-pergunta-que-eu-resolvo.mjs`](../../.claude/hooks/block-pergunta-que-eu-resolvo.mjs) (`Stop`, `exit 2` — não é nudge; o R13 já tinha um advisory e ele **não pegou** o caso real de 2026-08-24, porque o regex testava `qual (deles|...)` e a devolução foi *"Qual delas?"*). Guarda anti-loop por `stop_hook_active`. FP medido no corpus real **antes** de ligar.
+
+**O que ele NÃO bloqueia** (e não pode, sob pena de empurrar pra violar Tier 0): merge · push · PR · deploy · promover gate a required · podar capacidade — **R10 EXIGE perguntar**; o irreversível; e gosto/preferência, que o R13 libera explicitamente.
+
+---
+
 ## Como Claude detecta violação no meio da sessão (auto-check)
 
 Após cada turno, Claude se pergunta:

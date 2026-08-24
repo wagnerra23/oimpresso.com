@@ -309,6 +309,10 @@
           {
             "type": "command",
             "command": "node .claude/hooks/nudge-auditoria-resposta.mjs"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/block-pergunta-que-eu-resolvo.mjs"
           }
         ]
       }
