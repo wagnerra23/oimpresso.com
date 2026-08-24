@@ -2,10 +2,21 @@
  * Badge de disponibilidade — o "tem?" da linha e do drawer, com o mesmo componente nos dois
  * lugares (handoff §4.6 e §7).
  *
- * Cor pela receita ÚNICA da tela (patch de cor 2026-08-24 §2): fundo do tom a 6%, borda a
- * 22%, texto no 700. Os tons saem de TOKEN semântico do DS — `success` / `warning` /
- * `destructive`, que é como o sistema chama o emerald / amber / rose do patch — então
- * trocam light/dark sozinhos. Zero cor crua (regra binária AP1).
+ * Cor MEDIDA no componente do DS, não inferida. O protótipo não desenha este selo — ele chama
+ * `DS.StatusBadge` com os tons `fresc-hot`/`fresc-warm`/`fresc-cold`, e a receita de lá é:
+ *
+ *   bg: color-mix(in oklch, var(--color-<tom>) 16%, transparent)
+ *   border: color-mix(in oklch, var(--color-<tom>) 30%, transparent)
+ *   fg: var(--color-<tom>)   ·   dot: true
+ *
+ * ⚠️ O patch de cor §2 pede 6%/22% AFIRMANDO ser "a mesma receita do guia do DS para Alert e
+ * StatusBadge". Medido, não é: o StatusBadge usa 16%/30%. [W] escolheu o DS (2026-08-24).
+ *
+ * ⚠️ ÚNICO desvio do componente, declarado: o texto usa `-fg` e não o tom cheio. O `--color-warning`
+ * é oklch(0.70 0.13 75) — sobre o fundo a 16% dá ~1,9:1 de contraste, ilegível em 12px. O par
+ * `-fg` do próprio DS (oklch(0.55 0.12 75)) sobe pra ~3,1:1. O `fresc-cold` do bundle ainda traz
+ * um `fg` LITERAL oklch(0.74 0.14 18), que é valor de tema escuro e além disso viola o §6 do
+ * patch (zero literal na tela) — por isso `destructive-fg`.
  *
  * ⚠️ DESVIO DECLARADO do protótipo: lá "Não estocável" reusa o valor `distante` do badge de
  * frescor, que no bundle do DS cai em `fresc-cold` — o MESMO vermelho de "Sem saldo". Um
@@ -28,9 +39,9 @@ import { Inline } from '@/Components/layout';
 import { qtdComUnidade, type EstadoEstoque, type LocalSaldo } from './catalogo';
 
 const ESTILO: Record<EstadoEstoque['chave'], string> = {
-  em: 'bg-success/6 border-success/22 text-success-fg',
-  baixo: 'bg-warning/6 border-warning/22 text-warning-fg',
-  sem: 'bg-destructive/6 border-destructive/22 text-destructive-fg',
+  em: 'bg-success/16 border-success/30 text-success-fg',
+  baixo: 'bg-warning/16 border-warning/30 text-warning-fg',
+  sem: 'bg-destructive/16 border-destructive/30 text-destructive-fg',
   // Não estocável é AUSÊNCIA de saldo por natureza, não problema: fundo transparente e
   // texto apagado, sem ponto. Ele é o único dos quatro que não afirma um estado de estoque.
   nao: 'bg-transparent border-border text-muted-foreground',
@@ -40,7 +51,10 @@ function Pilula({ estado, unidade }: { estado: EstadoEstoque; unidade: string })
   return (
     <span
       className={
-        'inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium whitespace-nowrap ' +
+        // `rounded-full`: a raiz do StatusBadge é `borderRadius: c.mono ? var(--radius-sm) : 9999`,
+        // e com rótulo de texto cai no 9999. Cheguei a trocar por `rounded-md` contando raios no
+        // bundle INTEIRO em vez de medir o componente — erro corrigido em 2026-08-24.
+        'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11.5px] font-medium whitespace-nowrap ' +
         ESTILO[estado.chave]
       }
       title={estado.rel === null ? estado.label : `${estado.label} · saldo ${estado.rel}`}

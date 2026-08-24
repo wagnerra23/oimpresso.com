@@ -733,11 +733,10 @@ function ProdutoUnificadoIndex({
                           'inline-flex h-9 items-center gap-1.5 px-3.5 -mb-px text-[13px] whitespace-nowrap ' +
                           'border-0 border-b-2 transition-[color,background-color,border-color] duration-150 ' +
                           (ativa
-                            // `--accent`, NÃO `primary`: o acento é definido POR EMPRESA (a WR2
-                            // usa hue 220), enquanto `primary` é o roxo 295 fixo do sistema. Com
-                            // o fundo saindo de `--accent-soft`, deixar o sublinhado em `primary`
-                            // entregaria fundo azul com traço roxo. Patch de cor §3.
-                            ? 'border-[var(--accent)] text-foreground font-semibold bg-[var(--idx-tab-ativa-bg)]'
+                            // `primary` (roxo 295 do DS), NÃO `--accent`: este último é reescrito
+                            // em runtime pelo seletor de matiz do AppShellV2 (localStorage), e usá-lo
+                            // fazia a preferência do navegador mandar no design system.
+                            ? 'border-primary text-foreground font-semibold bg-[var(--idx-tab-ativa-bg)]'
                             : 'border-transparent text-muted-foreground font-medium hover:text-foreground hover:bg-[var(--idx-tab-hover-bg)]')
                         }
                       >
@@ -749,7 +748,7 @@ function ProdutoUnificadoIndex({
                           className={
                             'inline-block min-w-[18px] rounded-full px-1.5 text-center font-mono text-[10.5px] font-semibold tabular-nums leading-[1.4] ' +
                             (ativa
-                              ? 'bg-[var(--accent)] text-[var(--accent-fg)]'
+                              ? 'bg-primary text-primary-foreground'
                               : 'bg-[var(--idx-badge-cont-bg)] text-[var(--idx-badge-cont-fg)]')
                           }
                         >

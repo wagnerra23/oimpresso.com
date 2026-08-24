@@ -40,13 +40,20 @@
      pelo lado do sistema: o ciano da aba ativa era desvio da tela em produção, não um
      segundo acento — o canônico é o roxo hue 295 (ADR 0190). Trocado AQUI, num lugar só,
      como a nota do fim deste arquivo previa. O par escuro sai de graça: todo token de
-     origem já tem override de tema, então não há mais bloco `[data-theme="dark"]`. */
-  --idx-tab-ativa-bg:   color-mix(in oklab, var(--accent-soft) 50%, transparent);
+     origem já tem override de tema, então não há mais bloco `[data-theme="dark"]`.
+
+     ⚠️ A fonte do roxo é `--color-primary`, NÃO `--accent`. Parece o token errado e não é:
+     `AppShellV2.tsx:406-408` reescreve `--accent`/`--accent-2`/`--accent-soft` em runtime a
+     partir de `accentHue`, que é um SELETOR DE MATIZ guardado no `localStorage` do navegador
+     (`LS.TW_HUE`). Amarrar a faixa de abas nele faz a preferência de um navegador mandar no
+     design system — foi como esta tela virou azul (hue 220) em 2026-08-24. `--color-primary`
+     é oklch(0.55 0.15 295) e nenhum código reescreve. */
+  --idx-tab-ativa-bg:   color-mix(in oklab, var(--color-primary) 10%, transparent);
   --idx-tab-hover-bg:   color-mix(in oklab, var(--border-2) 60%, transparent);
   --idx-badge-cont-bg:  var(--bg-2);
   --idx-badge-cont-fg:  var(--text-dim);
   --idx-grid-head-bg:   var(--bg-2);
-  --idx-row-sel-bg:     color-mix(in oklab, var(--accent-soft) 40%, transparent);
+  --idx-row-sel-bg:     color-mix(in oklab, var(--color-primary) 7%, transparent);
 }
 .cockpit[data-linked="off"] { grid-template-columns: 260px 1fr 0; }
 /* Sidebar rail (56px) — Wagner 2026-05-16, espelha prototipo Cowork. */
