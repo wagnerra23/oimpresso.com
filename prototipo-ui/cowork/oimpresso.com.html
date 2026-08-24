@@ -35,7 +35,7 @@
 <link rel="stylesheet" href="cobranca-recorrente-page.css?v=ph3" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="mockup-pages.css?v=dark1" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="crm-ficha.css?v=crmf1" media="print" onload="this.media='all'"/>
-<link rel="stylesheet" href="crm-blade.css?v=cb3" media="print" onload="this.media='all'"/>
+<link rel="stylesheet" href="crm-blade.css?v=cb3b" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="inbox-page.css?v=roxo4" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="equipe-page.css?v=dark1" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="kb-page.css?v=dark1" media="print" onload="this.media='all'"/>
@@ -74,6 +74,7 @@
 <link rel="stylesheet" href="essenciais-page.css?v=ess6" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="configuracoes-page.css?v=cfg3" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="patrimonio-page.css?v=ds12" media="print" onload="this.media='all'"/>
+<link rel="stylesheet" href="modulos-faltantes.css?v=mf11" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="repair-page.css?v=rp3" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="repair-print.css?v=rp4" media="print" onload="this.media='all'"/>
 <!-- Camada transversal de otimização (ondas 1-7): sticky thead, tabular-nums, foco visível,
@@ -124,7 +125,7 @@
 
 <script type="text/babel" src="tweaks-panel.jsx"></script>
 <script type="text/babel" src="icons.jsx"></script>
-<script type="text/babel" src="data.jsx?v=sb18"></script>
+<script type="text/babel" src="data.jsx?v=sb19"></script>
 <script type="text/babel" src="data-os.jsx"></script>
 <script type="text/babel" src="data-clientes.jsx"></script>
 <script type="text/babel" src="data-people.jsx"></script>
@@ -325,8 +326,17 @@
 <script type="text/oi-lazy" data-src="configuracoes-fatura.jsx?v=cfg3"></script>
 <script type="text/oi-lazy" data-src="configuracoes-cadastros.jsx?v=cfg5"></script>
 <script type="text/oi-lazy" data-src="configuracoes-page.jsx?v=cfg5"></script>
+<!-- Telas que existiam no vivo e faltavam no Cowork: Comunicação Visual · Voz do Cliente · Suporte · Vestuário · Catálogo QR -->
+<script type="text/oi-lazy" data-src="comunicacao-visual-page.jsx?v=mf10"></script>
+<script type="text/oi-lazy" data-src="voz-do-cliente-page.jsx?v=mf4"></script>
+<script type="text/oi-lazy" data-src="suporte-page.jsx?v=mf4"></script>
+<script type="text/oi-lazy" data-src="vestuario-page.jsx?v=mf10"></script>
+<script type="text/oi-lazy" data-src="catalogo-qr-page.jsx?v=mf4"></script>
+<!-- Arquivos · DMS backbone (ADR 0123 · US-ARQ-013) — proposta F1 da tela que o módulo não tem -->
+<script type="text/oi-lazy" data-src="arquivos-data.jsx?v=arq5"></script>
+<script type="text/oi-lazy" data-src="arquivos-page.jsx?v=arq5"></script>
 <script type="text/babel" src="command-palette.jsx?v=cmdk2"></script>
-<script type="text/babel" src="app.jsx?v=eb21"></script>
+<script type="text/babel" src="app.jsx?v=eb24"></script>
 <!-- QA: probe de conformância DS (gated ?qa=1 · invisível pro cliente) — camada 2 da matriz anti-regressão -->
 <!-- Carga diferida dos módulos: o shell (sidebar + rota inicial) pinta primeiro; os ~130
      arquivos de módulo entram em segundo plano, na mesma ordem, sem mudar 1 arquivo = 1 tela. -->
@@ -357,7 +367,9 @@ window.__oiLazyDone = false;
       relatorios: /relatorios/, assets: /patrimonio/, pat: /patrimonio/, essenciais: /essenciais/,
       cfg: /configuracoes/, configuracoes: /configuracoes/, governance: /governance/, kb: /kb-/,
       site: /cms-/, cms: /cms-/, connector: /connector/, conn: /connector/, superadmin: /superadmin/,
-      sa: /superadmin/, modulos: /modulos-/, tarefas: /tasks/, equipe: /equipe/, planilhas: /planilhas/
+      sa: /superadmin/, modulos: /modulos-/, tarefas: /tasks/, equipe: /equipe/, planilhas: /planilhas/,
+      arquivos: /arquivos-/, arq: /arquivos-/, cv: /comunicacao-visual/, voz: /voz-do-cliente/, suporte: /suporte-/, vestuario: /vestuario-/,
+      vest: /vestuario-/, "catalogo": /catalogo-qr/
     };
     var alvo = FAMILIAS[rota] || FAMILIAS[rota.split("-")[0]];
     if (alvo) {
