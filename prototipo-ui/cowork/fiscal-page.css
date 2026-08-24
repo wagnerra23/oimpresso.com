@@ -21,7 +21,7 @@
 .fx-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:6px;padding:5px 10px;font:inherit;font-size:var(--fs-3);cursor:pointer}
 .fx-btn:hover{color:var(--text);border-color:color-mix(in oklch,var(--accent) 30%,var(--border))}
 .fx-btn:disabled{opacity:.45;cursor:not-allowed}
-.fx-btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg,#fff)}
+.fx-btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
 .fx-btn.primary:hover{filter:brightness(1.06)}
 .fx-btn.danger{color:var(--fx-bad);border-color:color-mix(in oklch,var(--fx-bad) 35%,var(--border))}
 .fx-pop{position:relative}

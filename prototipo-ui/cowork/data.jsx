@@ -36,14 +36,29 @@ const MENU = [
       { id: "prod-importar-estoque", icon: "archive", label: "Importar estoque inicial" },
       { id: "prod-cadastros", icon: "grid",    label: "Cadastros de apoio" },
     ]},
-    { id: "manufacturing", icon: "factory", label: "Manufacturing", ghosts: [
+    { id: "manufacturing", icon: "factory", label: "Fabricação", ghosts: [
       { id: "mfg-producao",  icon: "orders", label: "Ordens de produção" },
       { id: "mfg-relatorio", icon: "chart",  label: "Relatório de produção" },
       { id: "mfg-config",    icon: "cog",    label: "Configurações" },
     ]},
   ]},
   { group: "COMERCIAL", items: [
-    { id: "crm",         icon: "clients", label: "CRM" },
+    { id: "crm",         icon: "clients", label: "CRM", ghosts: [
+      { id: "crm-leads",       icon: "clients", label: "Leads" },
+      { id: "crm-followups",   icon: "clock",   label: "Acompanhamentos" },
+      { id: "crm-campanhas",   icon: "send",    label: "Campanhas" },
+      { id: "crm-logins",      icon: "users",   label: "Login de contatos" },
+      { id: "crm-comissoes",   icon: "cash",    label: "Comissões" },
+      { id: "crm-chamadas",    icon: "phone",   label: "Registro de chamadas" },
+      { id: "crm-relatorios",  icon: "chart",   label: "Relatórios do CRM" },
+      { id: "crm-modelo",      icon: "quote",   label: "Modelo de proposta" },
+      { id: "crm-propostas",   icon: "quote",   label: "Propostas" },
+      { id: "crm-marketplace", icon: "plug",    label: "Marketplace B2B" },
+      { id: "crm-pedidos",     icon: "orders",  label: "Pedido de ordem" },
+      { id: "crm-taxonomias",  icon: "folder",  label: "Fontes e estágios" },
+      { id: "crm-config",      icon: "cog",     label: "Configurações do CRM" },
+      { id: "crm-portal",      icon: "globe",   label: "Portal do contato" },
+    ]},
     { id: "vendas",      icon: "cash",    label: "Vendas", ghosts: [
       { id: "venda-pedidos",     icon: "orders", label: "Pedido de venda" },
       { id: "venda-todas",       icon: "list",   label: "Todas as vendas" },
@@ -190,12 +205,10 @@ const MENU = [
     { id: "planilhas",   icon: "grid",  label: "Planilhas", ghosts: [
       { id: "planilha-nova", icon: "plus", label: "Criar planilha" },
     ]},
-    // [W] 2026-08: Forja saiu dos shortcuts de topo → SISTEMA (uso só p/ programação)
-    { id: "projects",    icon: "bot",   label: "Forja" },
   ]},
 
-  // ── MAIS — fallback (fechado por default): páginas soltas sem casa canônica ──
-  { group: "MAIS", items: [
+  // ── PLATAFORMA ([W] 2026-08: era "MAIS") — fechado por default ──
+  { group: "PLATAFORMA", items: [
     { id: "tarefas",    icon: "inbox",     label: "Tarefas" },
     { id: "equipe",     icon: "users",     label: "Equipe" },
     { id: "governance", icon: "scale",     label: "Governança", ghosts: [
@@ -204,6 +217,8 @@ const MENU = [
       { id: "gov-drift",      icon: "search", label: "Drift de escopo" },
       { id: "gov-notas",      icon: "chart",  label: "Notas dos módulos" },
     ]},
+    // [W] 2026-08: Forja saiu de SISTEMA → PLATAFORMA (uso só p/ programação)
+    { id: "projects",   icon: "bot",       label: "Forja" },
     // [W] 2026-06-16: removidos da nav (Copiloto · MemCofre · Arquivos · Connector · Team MCP · SRS)
     // [W] 2026-08: removidos da nav também — Briefings · Frotas 360 (não serão usados)
   ]},
@@ -557,7 +572,7 @@ const FIN_SUBNAV_OVERFLOW = [
 
 // ─── GROUP_META: ícone/label/descrição/cor de cada grupo ───
 // hue = SIDEBAR_GROUP_HUE do vivo (resources/js/Components/cockpit/shared.ts):
-// escala canon espaçada ≥25° no círculo cromático. MAIS é neutro (sem hue).
+// escala canon espaçada ≥25° no círculo cromático. PLATAFORMA é neutro (sem hue).
 const GROUP_META = {
   "CADASTRO":  { icon:"book",    label:"Cadastro",  hue: 202,  key:"cadastro",  desc:"Clientes, produtos, catálogo, fabricação" },
   "COMERCIAL": { icon:"cash",    label:"Comercial", hue: 55,   key:"comercial", desc:"CRM, vendas, oficina auto" },
@@ -567,7 +582,7 @@ const GROUP_META = {
   "ESTOQUE":   { icon:"archive", label:"Estoque",   hue: 315,  key:"estoque",   desc:"Compras, transferências, patrimônio" },
   "RH":        { icon:"users",   label:"RH",        hue: 88,   key:"pessoas",   desc:"Ponto, colaboradores" },
   "SISTEMA":   { icon:"cog",     label:"Sistema",   hue: 245,  key:"sistema",   desc:"Auditoria, relatórios, planilhas, KB" },
-  "MAIS":      { icon:"folder",  label:"Mais",      hue: null, key:"mais",      desc:"Páginas soltas sem grupo canônico" },
+  "PLATAFORMA":{ icon:"folder",  label:"Plataforma", hue: null, key:"plataforma", desc:"Tarefas, equipe, governança e Forja" },
 };
 
 window.MOCK = { COMPANIES, MENU, MENU_FLAT, USER_MENU, MENU_SHORTCUTS, SHORTCUT_TO_ROUTE, SUPERADMIN_MENU, FOOTER_LINKS, SIDEBAR_COUNTS, SIDEBAR_PAPEIS, ROUTE_STATE, ROUTE_STATE_LABEL, CONV, ROUTINES, TASKS, ORIGIN_COLORS, GROUP_META, FIN_SUBNAV, FIN_SUBNAV_OVERFLOW };

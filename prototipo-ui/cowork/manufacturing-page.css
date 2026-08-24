@@ -15,7 +15,7 @@
 .mfg-kpi-l{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-mute)}
 .mfg-kpi-v{font:600 21px/1.1 var(--font-sans,inherit);font-variant-numeric:tabular-nums;color:var(--text)}
 .mfg-kpi-s{font-size:11px;color:var(--text-dim)}
-.mfg-kpi-v.warn{color:var(--warn)}.mfg-kpi-v.neg{color:var(--neg,#e5484d)}
+.mfg-kpi-v.warn{color:var(--warn)}.mfg-kpi-v.neg{color:var(--neg)}
 
 .mfg-bar{display:flex;align-items:center;gap:10px;padding:12px 20px}
 .mfg-s{position:relative;flex:1;max-width:460px;display:flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:6px;background:var(--surface);padding:0 10px;height:32px}
@@ -47,7 +47,7 @@
 .mfg-pill{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 8px;font-size:10.5px;font-weight:500;border:1px solid}
 .mfg-pill.ok{color:var(--pos);border-color:color-mix(in oklch,var(--pos) 30%,transparent);background:color-mix(in oklch,var(--pos) 8%,transparent)}
 .mfg-pill.warn{color:var(--warn);border-color:color-mix(in oklch,var(--warn) 30%,transparent);background:color-mix(in oklch,var(--warn) 8%,transparent)}
-.mfg-pill.bad{color:var(--neg,#e5484d);border-color:color-mix(in oklch,var(--neg,#e5484d) 30%,transparent);background:color-mix(in oklch,var(--neg,#e5484d) 8%,transparent)}
+.mfg-pill.bad{color:var(--neg);border-color:color-mix(in oklch,var(--neg) 30%,transparent);background:color-mix(in oklch,var(--neg) 8%,transparent)}
 .mfg-empty{padding:56px 20px;text-align:center;color:var(--text-dim);display:flex;flex-direction:column;gap:6px;align-items:center}
 .mfg-empty b{color:var(--text);font-size:13.5px}
 
@@ -109,7 +109,7 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 .mfg-inp.sel{height:26px;font-size:11px;padding:0 4px;background:var(--surface)}
 .mfg-inp.num{width:82px;height:26px;text-align:right;font-family:var(--font-mono,ui-monospace,monospace);font-size:11.5px;padding:0 6px}
 .mfg-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.mfg-err{margin:8px 0 0;font-size:11.5px;color:var(--neg,#e5484d)}
+.mfg-err{margin:8px 0 0;font-size:11.5px;color:var(--neg)}
 .mfg-link{background:none;border:0;padding:0;color:var(--accent);cursor:pointer;font:inherit;text-decoration:underline;text-underline-offset:2px}
 .mfg-check{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text-dim);cursor:pointer}
 .mfg-check.big{display:grid;grid-template-columns:16px 1fr;gap:4px 8px;align-items:start;margin-top:12px;font-size:12.5px;color:var(--text)}
@@ -140,7 +140,7 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 .mfg-ed-f{display:flex;gap:8px;align-items:center;padding:12px 20px;border-top:1px solid var(--border);background:var(--surface)}
 .mfg-ed-f.mfg-inline{border-top:0;padding:14px 0 0}
 .mfg-ed-f .sp{flex:1}
-.os-btn.ghost.danger{color:var(--neg,#e5484d);border-color:color-mix(in oklch,var(--neg,#e5484d) 35%,transparent)}
+.os-btn.ghost.danger{color:var(--neg);border-color:color-mix(in oklch,var(--neg) 35%,transparent)}
 .mfg-ing.mfg-ing5{grid-template-columns:minmax(180px,1fr) 130px 92px 100px 76px}
 .mfg-ing.mfg-ing6{grid-template-columns:minmax(200px,1fr) 92px 132px 104px 96px 34px}
 .mfg-ed-main{overflow-x:auto}
@@ -148,11 +148,11 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 .mfg-ing-h{background:var(--bg-2);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-mute)}
 .mfg-ing-h .m{text-align:right}
 .mfg-ing.falta{background:color-mix(in oklch,var(--warn) 7%,transparent)}
-.mfg-ing .m.bad{color:var(--neg,#e5484d)}
+.mfg-ing .m.bad{color:var(--neg)}
 .mfg-ing .m em{font-style:normal}
 .mfg-grp-h .mfg-mini{margin-left:8px}
 .mfg-mini{background:none;border:1px solid var(--border);border-radius:5px;width:22px;height:22px;color:var(--text-mute);cursor:pointer;font-size:11px;line-height:1}
-.mfg-mini.danger:hover{color:var(--neg,#e5484d);border-color:color-mix(in oklch,var(--neg,#e5484d) 40%,transparent)}
+.mfg-mini.danger:hover{color:var(--neg);border-color:color-mix(in oklch,var(--neg) 40%,transparent)}
 .mfg-add{display:inline-flex;align-items:center;gap:6px;margin:8px 12px 10px;background:none;border:1px dashed var(--border);border-radius:6px;padding:5px 11px;color:var(--text-dim);font-size:11.5px;cursor:pointer}
 .mfg-add:hover{color:var(--accent);border-color:var(--accent)}
 .mfg-add.mfg-block{display:flex;justify-content:center;width:calc(100% - 0px);margin:12px 0 0}

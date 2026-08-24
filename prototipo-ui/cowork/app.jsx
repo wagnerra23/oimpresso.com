@@ -692,6 +692,7 @@ function App() {
     "repPapel": "administrador",
     "patEstado": "dados",
     "patToque": "mouse",
+    "toque": "mouse",
     "patPapel": "gestor",
     "estDensidade": "confortável",
     "estPapel": "gestor",
@@ -711,6 +712,12 @@ function App() {
     // claro segue disponível pelo toggle → sem regressão. Roxo canon intacto.
     root.dataset.theme = tweaks.theme;
 
+    // ONDA 2 · alvo de toque como estado do SHELL, não prop por módulo. O CSS transversal
+    // já dá >=44px em "pointer: coarse" (tablet/celular de verdade); este atributo deixa
+    // [W] ver o mesmo no desktop, e vale pra Oficina/Produção/Repair/Ponto de uma vez —
+    // sem plumbing em 4 páginas nem paleta paralela.
+    root.dataset.toque = tweaks.toque;
+
     // Density: 0 = skim (28px row), 50 = normal (32), 100 = briefing (40)
     const rowH = 26 + tweaks.density / 100 * 16;
     root.style.setProperty("--row-h", `${rowH}px`);
@@ -725,7 +732,7 @@ function App() {
     const h = tweaks.accentHue;
     root.style.setProperty("--accent-h", `${h}`);
     root.style.setProperty("--bubble-me", `oklch(0.55 0.15 ${h})`);
-  }, [tweaks.vibe, tweaks.theme, tweaks.density, tweaks.accentHue]);
+  }, [tweaks.vibe, tweaks.theme, tweaks.density, tweaks.accentHue, tweaks.toque]);
 
   useEffectA(() => {setShowLaravel(tweaks.showLaravel);}, [tweaks.showLaravel]);
 
@@ -826,8 +833,13 @@ function App() {
   if (typeof route === "string" && route.indexOf("cfg-") === 0) content = <window.ConfiguracoesPage view={route} />;else
   if (route === "oficinaauto") content = <window.OficinaPage />;else
   if (route === "oficina-os") content = <window.OficinaOSPage />;else
-  if (route === "crm") content = <window.CrmPage />;else
   if (route === "crm-ficha") content = <window.CrmFicha />;else
+  if (route === "crm-portal" && window.CrmPortalPage) content = <window.CrmPortalPage />;else
+  if ((route === "crm" || route.indexOf("crm-") === 0) && window.CrmBladePage) {
+    // Módulo Crm do legado (crm::layouts.nav) traduzido em crm-blade.jsx.
+    const CRM_VIEW = { "crm": "painel", "crm-painel": "painel", "crm-leads": "leads", "crm-followups": "acompanhamentos", "crm-campanhas": "campanhas", "crm-logins": "logins", "crm-comissoes": "comissoes", "crm-chamadas": "chamadas", "crm-relatorios": "relatorios", "crm-modelo": "modelo", "crm-propostas": "propostas", "crm-marketplace": "marketplace", "crm-pedidos": "pedidos", "crm-taxonomias": "taxonomias", "crm-config": "config" };
+    content = CRM_VIEW[route] ? <window.CrmBladePage view={CRM_VIEW[route]} /> : <ModuleStub routeId={route} />;
+  }else
   if (route === "inbox") content = <window.InboxPage data-comment-anchor="0aa4565a1c-small-841-23" />;else
   if (route === "equipe") content = <window.EquipePage />;else
   if (route === "kb") content = <window.KBPage />;else
@@ -879,7 +891,7 @@ function App() {
   if (route === "relatorios") content = <window.RelatoriosPage />;else
   if (typeof route === "string" && route.indexOf("rel-") === 0) content = <window.RelatoriosPage grupo={{ "rel-financeiro": "Financeiro", "rel-comercial": "Comercial", "rel-estoque": "Estoque", "rel-fiscal": "Fiscal" }[route]} />;else
   if ([
-  "crm", "inbox", "equipe", "cv",
+  "inbox", "equipe", "cv",
   "catalogue", "brief", "manufacturing", "ads", "vestuario",
   "portalos", "auditoria"].
   includes(route)) content = <window.MockupPage route={route} />;else
@@ -1068,6 +1080,12 @@ function App() {
         </>}
 
         <TweakSection label="Sistema" />
+        <TweakRadio
+          label="Alvo de toque"
+          value={tweaks.toque}
+          options={["mouse", "tablet"]}
+          onChange={(v) => setTweak("toque", v)} />
+
         <TweakSection label="Sidebar" />
         <TweakSelect
           label="Papel simulado"
@@ -1086,5 +1104,34 @@ function App() {
     </div>);
 
 }
+
+// Rota lazy que ainda não chegou: `React.createElement(window.XPage)` com XPage `undefined`
+// derruba o React ANTES do RouteSlot enxergar o elemento — era 1 erro de console em todo
+// load (pior na rota restaurada do localStorage, ex. `fin-concil`). Aqui todo global usado
+// como TIPO de elemento dentro de App ganha um par get/set: enquanto o chunk não executa,
+// devolve o placeholder do carregador; quando executa, o valor real entra pelo setter.
+// Deriva os nomes do próprio App compilado → rota nova está coberta sem manutenção.
+(function () {
+  function RotaCarregando() {
+    return (
+      <div className="rota-carregando">
+        <span className="rota-carregando-b" />
+        <span>Carregando módulo…</span>
+      </div>);
+  }
+  var achados = String(App).match(/createElement\(\s*window\.(\w+)/g) || [];
+  achados.forEach(function (m) {
+    var nome = m.replace(/[\s\S]*window\./, "");
+    if (window[nome] !== undefined) return;
+    var real;
+    try {
+      Object.defineProperty(window, nome, {
+        configurable: true,
+        get: function () { return real || RotaCarregando; },
+        set: function (v) { real = v; },
+      });
+    } catch (e) {}
+  });
+})();
 
 ReactDOM.createRoot(document.getElementById("app")).render(<App />);

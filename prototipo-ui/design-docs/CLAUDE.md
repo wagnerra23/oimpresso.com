@@ -21,6 +21,8 @@
 - **Intake novo** = GitHub Issue (form `cowork-intake`) ou drop em `cowork-inbox/`. `COWORK_NOTES.md` está **congelada** pra itens novos.
 - **Prontidão de aplicação** = máquina (`scripts/qa/prototipo-readiness.mjs`), não fila manual. ✅ pronta = trio (.tsx + charter + casos.md com UC) + scorecard.
 - **Contrato de Tela** (`prototipo-ui/contrato/*.contract.json`, ADR 0286): declara seções + copy literal + estados; trava o comportamento no CI.
+- **Nada DERIVADO do build vira arquivo aqui** (L-42 com nome novo). Manifesto de export, mapa tela↔arquivo, inventário, contagem de rotas/telas: **gero na hora** lendo o host + `app.jsx` e respondo no chat — nunca salvo `.md`/`.json` de retrato, nem se [W] pedir "só pra guardar" (aí digo por quê e ofereço o gerador). Arquivo aqui só pra **fonte** (o build) ou **ponte** (pedido/script pro Code).
+- **Paridade = máquina no git, não lista.** `scripts/cowork-paridade.mjs` (gerar + `--check` no CI + `--manifesto`): o host `oimpresso.com.html` É o manifesto do export (todo arquivo declarado em `<link>`/`src`/`data-src`) e o `app.jsx` É a tabela de rotas. Ninguém mantém lista à mão; tela nova entra sozinha. Ao exportar, mando os dois juntos (build + script) e lembro do R1 do `cowork-ssot-guard` (precisa exceção pros 2 `.md` gerados dentro de `cowork/`).
 
 ## 🔒 App único neste projeto — `oimpresso.com.html`
 Todas as telas/módulos do ERP vivem DENTRO de `oimpresso.com.html` como rotas do shell Cockpit V2. **Proibido criar `.html` novo** pra módulo/tela/variação. Para evoluir uma tela: editar `<modulo>-page.jsx` (`window.<Modulo>Page`) + registrar `<script>` no host + rota no `app.jsx` + entrada no `data.jsx`. **Variações/explorações = Tweaks (`useTweaks`)** no mesmo componente, NUNCA arquivo novo.

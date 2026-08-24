@@ -54,7 +54,7 @@
   background: var(--sunken); color: var(--text-3);
   font-size: var(--fs-2); font-weight: 600;
 }
-.fin-edit-btn.has-edits .fin-edit-ic{ background: var(--warn); color: var(--accent-fg, #fff); }
+.fin-edit-btn.has-edits .fin-edit-ic{ background: var(--warn); color: var(--accent-fg); }
 .fin-edit-tag{
   margin-left: 2px;
   width: 6px; height: 6px; border-radius: 50%;
@@ -265,7 +265,7 @@
 .fin-fsm-done b{ color: var(--text); font-weight: 600; }
 .fin-fsm-done-ic{
   display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%;
-  background: var(--pos); color: var(--accent-fg, #fff); flex-shrink: 0;
+  background: var(--pos); color: var(--accent-fg); flex-shrink: 0;
 }
 
 /* ONDA 2 P1 · comparação "vs média" (cadeira Tufte) — neutra, sem cor de valor */
@@ -293,11 +293,11 @@
   flex-shrink: 0; font-weight: 700; font-size: var(--fs-3); margin-top: 1px;
 }
 .fin-verdict-pos{ background: color-mix(in oklab, var(--pos) 9%, var(--surface)); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--pos) 24%, transparent); }
-.fin-verdict-pos .fin-verdict-ic{ background: var(--pos); color: var(--accent-fg, #fff); }
+.fin-verdict-pos .fin-verdict-ic{ background: var(--pos); color: var(--accent-fg); }
 .fin-verdict-warn{ background: color-mix(in oklab, var(--warn) 11%, var(--surface)); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--warn) 28%, transparent); }
 .fin-verdict-warn .fin-verdict-ic{ background: var(--warn); color: oklch(0.28 0.05 75); }
 .fin-verdict-neg{ background: color-mix(in oklab, var(--neg) 10%, var(--surface)); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neg) 26%, transparent); }
-.fin-verdict-neg .fin-verdict-ic{ background: var(--neg); color: var(--accent-fg, #fff); }
+.fin-verdict-neg .fin-verdict-ic{ background: var(--neg); color: var(--accent-fg); }
 .fin-verdict-neg b{ color: var(--neg); }
 .fin-verdict-muted{ background: var(--sunken); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--text-3) 18%, transparent); }
 .fin-verdict-muted .fin-verdict-ic{ background: var(--text-3); color: var(--surface); }
@@ -724,7 +724,7 @@
 }
 .fin-conferido-toggle:hover{ background: var(--sunken); color: var(--text); border-color: var(--text-3); }
 .fin-conferido-toggle.on{
-  background: var(--accent); color: var(--accent-fg, #fff);
+  background: var(--accent); color: var(--accent-fg);
   border-color: var(--accent);
 }
 .fin-conferido-toggle .fin-conf-check{
@@ -758,7 +758,7 @@
   font-family: inherit; font-size: var(--fs-3); font-weight: 500;
   cursor: pointer; transition: all var(--t-1) var(--ease); border: 1px solid transparent;
 }
-.fin-cob-btn--primary{ background: var(--accent); color: var(--accent-fg, #fff); }
+.fin-cob-btn--primary{ background: var(--accent); color: var(--accent-fg); }
 .fin-cob-btn--primary:hover{ background: var(--accent-hi); }
 .fin-cob-btn--ghost{ background: var(--surface); color: var(--text); border-color: var(--border); }
 .fin-cob-btn--ghost:hover{ background: var(--sunken); border-color: var(--text-3); }
@@ -1586,7 +1586,7 @@
 }
 .fin-contas-opt.on .fin-contas-box{ background: var(--accent); border-color: var(--accent); }
 .fin-contas-opt.on .fin-contas-box::after{
-  content: "\2713"; color: var(--accent-fg, #fff); font-size: 10px; font-weight: 700; line-height: 1;
+  content: "\2713"; color: var(--accent-fg); font-size: 10px; font-weight: 700; line-height: 1;
 }
 .fin-contas-clear{
   margin-top: 3px; padding: 6px 9px; border: 0; border-top: 1px solid var(--border);
@@ -1673,7 +1673,7 @@
 }
 .fin-root .fin-pb-preset:hover, .cr-root .fin-pb-preset:hover{ color: var(--text); border-color: var(--text-3); }
 .fin-root .fin-pb-preset.on, .cr-root .fin-pb-preset.on{
-  background-color: var(--accent) !important; color: var(--accent-fg, #fff) !important;
+  background-color: var(--accent) !important; color: var(--accent-fg) !important;
   border-color: var(--accent) !important; font-weight: 600;
 }
 
