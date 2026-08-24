@@ -14,7 +14,7 @@
     },
     "vital_signs": {
       "path": "memory/governance/vital-signs.json",
-      "generated_at": "2026-08-23"
+      "generated_at": "2026-08-24"
     }
   },
   "stats": {
@@ -460,7 +460,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": false,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 4,
@@ -561,7 +561,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 0,
@@ -766,7 +766,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 3,
@@ -871,7 +871,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 2,
@@ -1076,7 +1076,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": false,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 3,
@@ -1281,7 +1281,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": false,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 0,
@@ -1386,7 +1386,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 3,
@@ -1491,7 +1491,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 4,
@@ -1596,7 +1596,7 @@
           "charter_pct": 100,
           "casos_pct": 47,
           "stale": true,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 4,
@@ -1701,7 +1701,7 @@
           "charter_pct": 100,
           "casos_pct": 11,
           "stale": false,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 5,
@@ -1806,7 +1806,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 7,
@@ -1911,7 +1911,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 7,
@@ -2016,7 +2016,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": false,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 3,
@@ -2121,7 +2121,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 3,
@@ -2226,7 +2226,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": true,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 3,
@@ -2436,7 +2436,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 51
+          "idade_max_dias": 52
         },
         "graph": {
           "depends_on": 3,
@@ -2541,7 +2541,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 51
+          "idade_max_dias": 52
         },
         "graph": {
           "depends_on": 5,
@@ -2624,7 +2624,7 @@
       "id": "Ponto",
       "trust": "L3",
       "owner": "wagner",
-      "permission_prefix": "pontowr2.*",
+      "permission_prefix": "ponto.*",
       "charter_adr": "0080",
       "scope": "memory/requisitos/Ponto/SCOPE.md",
       "purpose": "Ponto eletrônico CLT sob Portaria MTP 671/2021 — marcação append-only imutável (trigger MySQL mais override no Model; correção só por anulação) com NSR sequencial por REP e importação de AFD. Sobre isso: apuração de jornada, banco de horas, intercorrências com aprovação e espelho. Multi-tenant Tier 0.",
@@ -2644,14 +2644,14 @@
           "nota_min": 71,
           "pior_tela": "Ponto/Espelho/Index",
           "charter_pct": 100,
-          "casos_pct": 65,
+          "casos_pct": 70,
           "stale": false,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 3,
           "dependents": 0,
-          "provides_api": 1,
+          "provides_api": 3,
           "owns_tables": 0,
           "owns_legacy_views": 0,
           "consumes_tables": 0,
@@ -2847,7 +2847,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 0,
@@ -3048,7 +3048,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 3,
@@ -3153,7 +3153,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": false,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 3,
@@ -3254,7 +3254,7 @@
           "charter_pct": 100,
           "casos_pct": 44,
           "stale": true,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 0,
@@ -3660,7 +3660,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 3,
@@ -3865,7 +3865,7 @@
           "charter_pct": 100,
           "casos_pct": 9,
           "stale": true,
-          "idade_max_dias": 49
+          "idade_max_dias": 50
         },
         "graph": {
           "depends_on": 6,
