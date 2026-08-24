@@ -40,7 +40,7 @@ grupo "Outras visões" saiu do menu `⋯` (handoff V6 §15.1 nº 11 · aceite §
 > navegue para outra tela" em critério de aceite. Decisão humana de 2026-08-24, tomada ciente de
 > que **Insumos·BOM e Histórico de uso ficam sem nenhum acesso** (a sidebar cobre só Categorias e
 > Grupo de preços de venda, nas telas legadas). Dar-lhes acesso é trabalho da **sidebar do módulo**
-> e decisão de fora deste handoff. Achado levantado pelo `pr-critic` na [PR #6204]; a divergência é
+> e decisão de fora deste handoff. Achado levantado pelo `pr-critic` na [PR #6204](https://github.com/wagnerra23/oimpresso.com/pull/6204); a divergência é
 > real e fica registrada aqui em vez de o charter seguir prometendo paridade que não existe.
 
 ---
