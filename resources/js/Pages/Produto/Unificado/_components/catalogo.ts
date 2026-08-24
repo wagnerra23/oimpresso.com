@@ -68,6 +68,11 @@ export type ProdutoRow = {
   obs?: string;
   /** Atributos de variação com a contagem de valores de cada um. Ausente quando não há (§3.2). */
   variacoes?: AtributoVariacao[];
+  /**
+   * Cobertura de saldo da grade — o que a 2ª linha da célula Produto exibe (V3 §3.2).
+   * Ausente quando o item não tem combinação.
+   */
+  grade?: GradeSaldo;
 };
 
 /** Uma linha do popover de estoque por local. */
@@ -83,9 +88,37 @@ export type LocalSaldo = { nome: string; qtd: number };
  */
 export type AtributoVariacao = { nome: string; n: number };
 
+/**
+ * Cobertura de saldo da grade: quantas combinações vendem, de quantas existem.
+ *
+ * Chave AUSENTE quando o item não tem grade — o marcador só faz sentido pra produto com
+ * combinação, e `{com:0,total:0}` faria a linha montar um marcador que não afirma nada.
+ */
+export type GradeSaldo = { com: number; total: number };
+
 /** `Cor (4) · Tamanho (3)` — a terceira linha da célula Produto (handoff V2 §3.2). */
 export const resumoVariacoes = (vs: AtributoVariacao[] | undefined): string =>
   !vs || vs.length === 0 ? '' : vs.map((v) => `${v.nome} (${v.n})`).join(' · ');
+
+/**
+ * `4 de 6 com saldo` — o marcador de grade da 2ª linha (handoff V3 §3.2).
+ *
+ * SUBSTITUI o resumo de atributo (`resumoVariacoes`) nessa posição. O nome do atributo vem do
+ * cadastro do tenant e sai como a pessoa digitou — em produção a linha imprimia
+ * "Tamnha p-m-g (4)", gastando a largura pra repetir um rótulo com erro de digitação em vez
+ * de responder a pergunta do balcão: *quanto dessa grade eu consigo vender?*.
+ *
+ * `resumoVariacoes` continua vivo — é o painel que o usa, onde o nome do atributo é o assunto.
+ */
+export const marcadorGrade = (g: GradeSaldo | undefined): string =>
+  !g || g.total === 0 ? '' : `${g.com} de ${g.total} com saldo`;
+
+/**
+ * Furo na grade: existe combinação sem saldo. É o que pinta o marcador de vermelho (§3.2).
+ * Grade inteira zerada também é furo — e nesse caso o selo já está vermelho junto.
+ */
+export const gradeComFuro = (g: GradeSaldo | undefined): boolean =>
+  !!g && g.total > 0 && g.com < g.total;
 
 /** Saldo com unidade, pro popover e pro drawer. */
 export const qtdComUnidade = (qtd: number, unit: string) => `${numero(qtd)} ${unit}`;
@@ -146,6 +179,21 @@ export function margemFrac(r: ProdutoRow): number | undefined {
 export function sobOPiso(r: ProdutoRow, piso: number): boolean {
   const m = margemFrac(r);
   return m !== undefined && m < piso;
+}
+
+/**
+ * Linha que pede ação — o que recebe o trilho vermelho de 3px na borda esquerda (V3 §10.1).
+ *
+ * TRÊS motivos, não um: sem saldo, abaixo do mínimo e margem sob o piso. Até 24/08 a tela
+ * marcava só o item zerado, e com um lavado de fundo a 30% de opacidade que não sobrevive ao
+ * olhar de relance. O trilho existe justamente pra varrer a lista SEM ler — se só aparece no
+ * caso que o selo já grita ("Sem saldo"), não paga o próprio custo.
+ *
+ * `piso` é parâmetro de negócio e vem do servidor; a tela nunca o redeclara.
+ */
+export function linhaUrgente(r: ProdutoRow, piso: number): boolean {
+  const chave = estadoEstoque(r).chave;
+  return chave === 'sem' || chave === 'baixo' || sobOPiso(r, piso);
 }
 
 const numero = (n: number) =>

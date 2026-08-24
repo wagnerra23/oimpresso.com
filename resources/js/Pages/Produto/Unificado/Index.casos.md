@@ -394,3 +394,24 @@ last_run_ci: "NAO RODEI a suite nesta leva — o bump de last_run e por REVALIDA
   que não tem `GREATEST` de dois argumentos. Mesma conta, sintaxe que os dois entendem.
 - **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-16`.
 - **Status: 🕐 aguarda run** — mesma razão do UC-PUNI-15.
+
+## UC-PUNI-17 · O marcador de grade é cobertura de saldo, não nome de atributo · `must`
+
+- **Persona:** Larissa, balcão — varre a lista durante o atendimento e precisa saber, sem abrir o
+  painel, quanto de uma grade ela consegue prometer.
+- **Aceite:** Dado um produto com 3 combinações vivas, 2 com saldo · Quando a prop `produtos` chega
+  · Então a linha traz `grade = {com: 2, total: 3}`. Dado um produto simples (só a variação DUMMY)
+  · Então a chave `grade` **não existe**.
+- **Por que mudou (handoff V3, divergência #4):** até 24/08 a 2ª linha imprimia o resumo de atributo
+  (`resumoVariacoes`) — o nome do eixo como o tenant digitou. Em produção isso saiu como
+  **"Tamnha p-m-g (4)"**, erro de digitação incluso: a linha gastava largura repetindo um rótulo do
+  cadastro em vez de responder à pergunta do balcão. O marcador derivado responde, e o vermelho
+  avisa que há furo. O `resumoVariacoes` **continua vivo no painel**, onde o nome do eixo é o assunto.
+- **`[S1]` subconjunto se declara:** "2 de 3" é exatamente a frase que impede o número de virar
+  subconjunto silencioso — sem ela, "tem saldo" esconde que um terço da grade não vende.
+- **`[T0]` o escopo vale no LOCAL:** a linha de saldo pendura num `business_locations`, então a
+  contagem de "com saldo" tem **duas** cláusulas de tenant (`products.business_id` **e**
+  `business_locations.business_id`) — mesma razão do UC-PUNI-12B.
+- **Teste:** [`ProdutoUnificadoGradeContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoGradeContratoTest.php) — `UC-PUNI-17`.
+- **Status: 🕐 aguarda run** — mesma razão do UC-PUNI-15: estes contratos pulam sem o schema
+  UltimatePOS, então o veredito é da lane MySQL (`estoque-pest`).
