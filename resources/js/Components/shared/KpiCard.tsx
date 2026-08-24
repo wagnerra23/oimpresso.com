@@ -120,8 +120,13 @@ export default function KpiCard({
   const content = (
     <>
       <div className="flex items-center justify-between gap-2">
-        {/* ADR 0110 §Tipografia canon: KPI label = text-[11px] font-semibold uppercase tracking-widest */}
-        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest truncate">
+        {/* ADR 0110 §Tipografia canon: KPI label = text-[11px] font-semibold uppercase tracking-widest.
+            `min-w-0 break-words` (e NÃO `truncate`): o rótulo é copy de contrato — tem de aparecer
+            inteiro, quebrando em 2 linhas quando o card é estreito. Com `truncate` ele sumia
+            (medido em prod 2026-08-24: 4 de 6 rótulos cortados a 1280 em /ponto, 6 de 6 em
+            /governance/dashboard). `min-w-0` é obrigatório: sem ele o flex não encolhe abaixo do
+            min-content e a palavra longa vaza pra fora do card (medi 8px de vazamento a 1280). */}
+        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest min-w-0 break-words">
           {label}
         </span>
         {icon && (
@@ -135,7 +140,7 @@ export default function KpiCard({
         {delta && <Delta {...delta} isGood={deltaIsGood} />}
       </div>
       {description && (
-        <p className="text-xs text-muted-foreground leading-snug">{description}</p>
+        <p className="text-xs text-muted-foreground leading-snug break-words">{description}</p>
       )}
       {action && <div className="mt-1">{action}</div>}
     </>

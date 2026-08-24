@@ -495,7 +495,7 @@ it('mantém os rótulos do CTA em paridade com AcaoHitlService::ACOES', function
 });
 ```
 
-`UC-COPI-PAINEL-11` (contrato de tela, `prototipo-ui/contrato/*.contract.json`): a seção de ações
+`UC-JPAIN-11` (contrato de tela, `prototipo-ui/contrato/*.contract.json`): a seção de ações
 tem **N linhas com `onClick`** e **zero** `title` contendo "em breve" — asserção estrutural, pela
 mesma razão que o UC-10 conta `<Switch` em vez de buscar a palavra "Frota".
 
@@ -504,7 +504,7 @@ mesma razão que o UC-10 conta `<Switch` em vez de buscar a palavra "Frota".
 - `resources/js/Pages/Jana/Index.charter.md` → **v10**: §Goals ganha o HITL; o §Anti-hooks de
   "prometer no botão" ganha o recibo de que o CTA foi RENOMEADO (não silenciado); registrar que
   prévia é server-side pelo mesmo motivo do farol.
-- `Index.casos.md` → UC-COPI-PAINEL-11.
+- `Index.casos.md` → UC-JPAIN-11.
 - `memory/requisitos/Jana/Index-visual-comparison.md` → R7/R8 de ❌ para ✅ **parcial** (modal sim,
   disparo não) e §Resumo ordem 1 vira "PR-B: sender + fila `/ia/acoes`". Re-medir o lado vivo antes
   de escrever cada linha — o próprio documento cataloga a reincidência de derivado citado fora do

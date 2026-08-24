@@ -94,7 +94,7 @@ it('acima do projetado é verde (superar a meta não é anomalia)', function () 
     expect($svc->farol($meta, $agora))->toBe('verde');
 });
 
-it("UC-COPI-PAINEL-04 — 'cinza' cobre os quatro casos de SEM BASE pra julgar, e não vira vermelho", function () {
+it("UC-JPAIN-04 — 'cinza' cobre os quatro casos de SEM BASE pra julgar, e não vira vermelho", function () {
     $svc = app(ApuracaoService::class);
 
     // 1. sem período
@@ -127,7 +127,7 @@ it("UC-COPI-PAINEL-04 — 'cinza' cobre os quatro casos de SEM BASE pra julgar, 
     expect($svc->farol($m4))->toBe('cinza');
 });
 
-it('UC-COPI-PAINEL-04 — o frontend não calcula mais farol: a regra saiu do Index.tsx', function () {
+it('UC-JPAIN-04 — o frontend não calcula mais farol: a regra saiu do Index.tsx', function () {
     $src = (string) file_get_contents(base_path('resources/js/Pages/Jana/Index.tsx'));
 
     // 2026-08-17: `farolDaMeta` MUDOU DE ARQUIVO. Ele foi pro

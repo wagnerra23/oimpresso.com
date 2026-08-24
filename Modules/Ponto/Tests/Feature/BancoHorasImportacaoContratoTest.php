@@ -16,12 +16,12 @@ use Modules\Ponto\Entities\Importacao;
  *
  * Cada teste cita o UC do `casos.md` da tela (G-2 do casos-gate, ADR 0264):
  *   BancoHoras/Show.casos.md   → UC-BHSHOW-01..03
- *   Importacoes/Show.casos.md  → UC-IMPSHOW-01..04
+ *   Importacoes/Show.casos.md  → UC-IMPSH-01..04
  *
  * Os UC derivam do SDD §6.3/§6.4 (CU-PONTO-08..11) + CU-PONTO-12, ancorados em
  * US-PONTO-002/004/007/008 e CLT Art. 59 §5º.
  *
- * ⚠️ UC-IMPSHOW-04 é FAILING-FIRST por desenho: denuncia a regressão D-8 do SDD §9
+ * ⚠️ UC-IMPSH-04 é FAILING-FIRST por desenho: denuncia a regressão D-8 do SDD §9
  * (o controller lê `linhas_criadas`/`linhas_ignoradas`, campos que NÃO existem —
  * a migration tem `linhas_sucesso`/`linhas_erro`). Vermelho aqui é o ACHADO.
  *
@@ -272,7 +272,7 @@ class BancoHorasImportacaoContratoTest extends PontoTestCase
     }
 
     /**
-     * UC-IMPSHOW-01 · Reimportar o mesmo arquivo não duplica marcação. [must]
+     * UC-IMPSH-01 · Reimportar o mesmo arquivo não duplica marcação. [must]
      *
      * Contrato: CU-PONTO-10 + US-PONTO-002 ("Importação idempotente — mesma AFD pode
      * ser re-uploadada sem duplicar marcacoes") + ImportacaoController@store (dedup
@@ -316,7 +316,7 @@ class BancoHorasImportacaoContratoTest extends PontoTestCase
     }
 
     /**
-     * UC-IMPSHOW-02 · A dedup é do meu empregador, não global. [must][T0]
+     * UC-IMPSH-02 · A dedup é do meu empregador, não global. [must][T0]
      *
      * Contrato: CU-PONTO-10 + ADR 0093. Vetor INVERSO do vazamento: aqui o risco é
      * negação de serviço cross-tenant — o arquivo de um empregador bloqueando a
@@ -381,7 +381,7 @@ class BancoHorasImportacaoContratoTest extends PontoTestCase
     }
 
     /**
-     * UC-IMPSHOW-03 · Importação de outro empregador → 404. [must][T0]
+     * UC-IMPSH-03 · Importação de outro empregador → 404. [must][T0]
      *
      * Contrato: CU-PONTO-12 + US-PONTO-007 + LGPD Art. 7º II.
      * A rota irmã (baixarOriginal) entrega o ARQUIVO BRUTO com as marcações do
@@ -420,7 +420,7 @@ class BancoHorasImportacaoContratoTest extends PontoTestCase
     }
 
     /**
-     * UC-IMPSHOW-04 · As contagens exibidas refletem o que a importação processou. [must]
+     * UC-IMPSH-04 · As contagens exibidas refletem o que a importação processou. [must]
      *
      * Contrato: CU-PONTO-11 (SDD §6.4) + US-PONTO-002 (aceitação: "Importacao registra
      * arquivo + checksum + linhas processadas + erros") + Portaria MTP 671/2021 Anexo I

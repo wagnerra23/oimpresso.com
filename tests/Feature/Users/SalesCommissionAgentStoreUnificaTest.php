@@ -82,8 +82,24 @@ function caStoreOperador(int $businessId): User
         'business_id' => $businessId,
         'guard_name' => 'web',
     ]);
-    \Spatie\Permission\Models\Permission::findOrCreate('user.create', 'web');
-    $papel->syncPermissions(['user.create']);
+    // `commission_agent.manage`, nao `user.create` (corrigido 2026-08-24).
+    //
+    // Este helper nasceu com `user.create` no #6069, que landou em 2026-08-21 01:05. Seis horas
+    // depois, o #6072 tirou a tela de agente comercial de cima do `user.*` e a pos sob
+    // `commission_agent.view`/`commission_agent.manage` (decisao [W] 2026-08-19, migration
+    // 2026_08_20_120000_add_commission_agent_permissions). Aquele PR atualizou o irmao
+    // `SalesCommissionAgentGuardTest` e NAO alcancou este arquivo — ele ainda nem existia
+    // quando o #6072 foi escrito. Desde entao os 6 casos daqui morriam em 403 antes de
+    // exercer o store(), e a lane `PHP / Pest (Acessos · MySQL)` ficou vermelha no main.
+    //
+    // A permissao concedida e EXATAMENTE a que o controller exige hoje
+    // (`SalesCommissionAgentController@store` -> `can('commission_agent.manage')`), e so ela:
+    // somar `user.create` de volta faria o caso passar mascarando um gate futuro que voltasse
+    // a exigir cadastro de usuario. O controle NEGATIVO desse contrato — papel com o conjunto
+    // `user.*` inteiro NAO entra na tela — ja tem dono no `SalesCommissionAgentGuardTest`, e
+    // nao se duplica aqui.
+    \Spatie\Permission\Models\Permission::findOrCreate('commission_agent.manage', 'web');
+    $papel->syncPermissions(['commission_agent.manage']);
     $user->assignRole($papel);
 
     // Mesma correcao do RoleTenantIsolationTest e do GuardTest ao lado: sem limpar o cache de
@@ -136,7 +152,10 @@ it('marca o usuario que JA existe em vez de criar uma segunda linha', function (
     expect((int) $existente->allow_login)->toBe(1);
 
     $operador = caStoreOperador(CA_STORE_TENANT);
-    expect($operador->can('user.create'))->toBeTrue();
+    // SANIDADE do operador: a permissao afirmada aqui tem de ser a que ABRE a tela, senao um
+    // 403 mais adiante seria lido como defeito do store(). Desde o #6072 (2026-08-21) essa
+    // permissao e `commission_agent.manage` — ver o helper acima.
+    expect($operador->can('commission_agent.manage'))->toBeTrue();
 
     $this->actingAs($operador);
     session(['user.business_id' => CA_STORE_TENANT]);

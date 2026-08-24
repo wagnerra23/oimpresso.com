@@ -60,7 +60,7 @@ function chatTier0Conversa(int $businessId, int $userId): Conversa
     ]);
 }
 
-it('UC-COPI-CHAT-05 — não devolve thread de OUTRO business (anti-hook Tier 0 · ADR 0093)', function () {
+it('UC-JCHAT-05 — não devolve thread de OUTRO business (anti-hook Tier 0 · ADR 0093)', function () {
     $vizinho = \App\User::query()->where('business_id', '!=', 98)->first();
     $dono = \App\User::query()->where('business_id', 98)->first();
 
@@ -81,7 +81,7 @@ it('UC-COPI-CHAT-05 — não devolve thread de OUTRO business (anti-hook Tier 0 
     expect([403, 404])->toContain($status);
 });
 
-it('UC-COPI-CHAT-06 — abrir a thread é leitura PURA: zero e-mail, zero notificação', function () {
+it('UC-JCHAT-06 — abrir a thread é leitura PURA: zero e-mail, zero notificação', function () {
     $dono = \App\User::query()->where('business_id', 98)->first();
 
     if (! $dono) {
@@ -102,7 +102,7 @@ it('UC-COPI-CHAT-06 — abrir a thread é leitura PURA: zero e-mail, zero notifi
     Notification::assertNothingSent();
 });
 
-it('UC-COPI-CHAT-07 — o render inicial NÃO escreve no banco de mensagens', function () {
+it('UC-JCHAT-07 — o render inicial NÃO escreve no banco de mensagens', function () {
     $dono = \App\User::query()->where('business_id', 98)->first();
 
     if (! $dono) {
@@ -125,7 +125,7 @@ it('UC-COPI-CHAT-07 — o render inicial NÃO escreve no banco de mensagens', fu
     expect($depois)->toBe($antes);
 });
 
-it('UC-COPI-CHAT-08 — o render NÃO chama o Brain B, e NÃO vaza credencial pro client', function () {
+it('UC-JCHAT-08 — o render NÃO chama o Brain B, e NÃO vaza credencial pro client', function () {
     $dono = \App\User::query()->where('business_id', 98)->first();
 
     if (! $dono) {

@@ -151,7 +151,12 @@ it('comando ponto:health --json produz JSON valido com 5 checks', function () {
         ]);
 
     foreach ($decoded['checks'] as $name => $check) {
-        expect($check)->toHaveKey('status', "Check {$name} sem status");
+        // `toHaveKey($chave, $valor)` — o 2o argumento e o VALOR ESPERADO, nao mensagem.
+        // Como estava, o assert exigia `status === 'Check trigger_imutabilidade sem status'`
+        // e reprovava contra o valor real ('OK'). Mesma familia da lapide §5 2026-08-04
+        // (mensagem passada como needle), sobrevivendo aqui porque o arquivo esta fora de
+        // qualquer lane — nao havia quem visse o vermelho. Medido no CT100 em 2026-08-23.
+        expect(array_key_exists('status', $check))->toBeTrue("Check {$name} sem status");
         expect($check['status'])->toBeIn(['OK', 'WARN', 'FAIL']);
     }
 });

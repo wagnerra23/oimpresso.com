@@ -311,7 +311,19 @@ function createTestMarcacao(int $businessId, int $colabId): object
         'created_at' => now(),
     ]);
 
-    return (object) ['id' => $id, 'business_id' => $businessId];
+    // Devolve o MODEL, nao um stdClass (corrigido 2026-08-24).
+    //
+    // Antes: `return (object) [...]`. Os dois casos de imutabilidade chamavam
+    // `$marcacao->update()` / `->delete()` num stdClass e recebiam
+    // `Error: Call to undefined method stdClass::update()` — nunca chegavam aos
+    // overrides do Marcacao que lancam a RuntimeException. Ou seja: o teste da
+    // Portaria 671/2021 NAO exercia o guard que diz exercer, e ficou assim porque
+    // o arquivo esta fora de qualquer lane. Medido no CT100 em 2026-08-23.
+    //
+    // `newFromBuilder` hidrata como registro EXISTENTE sem ler o banco — basta,
+    // porque os overrides lancam antes de tocar em persistencia. Os demais usos
+    // deste helper so leem `->id`, que o model expoe igual.
+    return (new Marcacao)->newFromBuilder(['id' => $id, 'business_id' => $businessId]);
 }
 
 /**

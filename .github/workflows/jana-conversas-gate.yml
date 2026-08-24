@@ -69,5 +69,27 @@ jobs:
           node-version: '24'
       - name: Install deps
         run: npm ci
+      # JUnit + artifact adicionados em 2026-08-24. A lane rodava e o veredito dela NAO
+      # chegava ao manifesto por-UC (G-7): sem `--reporter=junit` + upload-artifact, os UCs
+      # provados aqui valiam ZERO no painel. O sintoma apareceu quando os ids de UC deste
+      # casos.md sairam do formato invalido e ficaram VISIVEIS: 5 UCs do Chat + 1 do Painel
+      # cairam em `status:unverified` — declaravam ✅ com teste real, sem prova capturada.
+      # Mesma correcao que a sells-v3-dominio-gate ja tinha; o `junit-lanes` deriva sozinho
+      # (nao ha lista a manter), entao o proximo `casos-results-publish` carimba o ✅.
       - name: histórico de conversas da Jana (vitest/jsdom)
-        run: npx vitest run tests/jana-chat-conversas.test.tsx
+        run: |
+          npx vitest run tests/jana-chat-conversas.test.tsx \
+            --reporter=default \
+            --reporter=junit \
+            --outputFile=test-results/vitest-jana-conversas-junit.xml
+
+      # `!cancelled()` e nao `success()`: veredito VERMELHO e exatamente o que o G-7
+      # precisa registrar — `Status: ✅` com teste vermelho e a mentira que ele pega.
+      - name: Upload JUnit (veredito por-UC — casos:results)
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-jana-conversas-junit
+          path: test-results/vitest-jana-conversas-junit.xml
+          retention-days: 14
+          if-no-files-found: error

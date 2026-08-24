@@ -31,6 +31,10 @@
 //   node scripts/casos-results-collect.mjs --results <dir> # diretório de results alternativo
 //   node scripts/casos-results-collect.mjs --no-merge      # sobrescreve o manifesto inteiro (reset consciente)
 //   node scripts/casos-results-collect.mjs --seed-empty    # cria manifesto vazio (bootstrap F1)
+//   node scripts/casos-results-collect.mjs --new-reds-vs <ref.json>  # consulta: quais UCs
+//        ficaram `fail` que a referência NÃO tinha. Não coleta, não escreve.
+//        exit 0 = nenhum novo · 1 = há novo (nomeado) · 2 = não consegui medir.
+//        Usado pelo casos-results-publish.yml pra decidir auto-merge.
 //
 // Refs: ADR 0264 (G-5/G-7) · ADR 0261 (enforcement faseado, não-deadlock) · ADR 0256 (catraca).
 
@@ -49,6 +53,24 @@ const SEED_EMPTY = argv.includes('--seed-empty');
 const NO_MERGE = argv.includes('--no-merge');
 const resultsIdx = argv.indexOf('--results');
 const RESULTS_DIR = resolve(ROOT, resultsIdx >= 0 ? argv[resultsIdx + 1] : 'test-results');
+// --new-reds-vs <ref.json>: NÃO coleta nada, NÃO escreve nada. Responde UMA pergunta —
+// "o manifesto atual INTRODUZ vermelho novo em relação ao de referência?" — e imprime o
+// conjunto. Mesmo idioma do `--check-baseline-shrink <ref.json>` do casos-coverage-guard:
+// modo de consulta contra uma referência, no script que já é dono do artefato.
+//
+// POR QUE EXISTE (medido 2026-08-24): o auto-merge do casos-results-publish.yml condicionava
+// em `fail == '0'` — vermelho ABSOLUTO. Como 9 UCs do Produto estavam vermelhos E JÁ
+// ESTAVAM ASSIM EM MAIN, a condição virou permanentemente falsa: o PR #5813 ficou 9 dias
+// aberto carregando 320 UCs (incl. os 6 UC-PAINEL verdes do ponto-pest) sem nunca aterrissar,
+// e o G-7 seguia adjudicando esses UCs como `status:unverified`. O guard tinha a intenção
+// certa ("veredito ruim novo exige olho humano") e o predicado errado (qualquer vermelho,
+// inclusive o que o PR não causou) — a mesma forma do pedágio anônimo que o próprio
+// casos-coverage-guard consertou em 2026-08-20 separando dívida PRÓPRIA de HERDADA.
+//
+// FAIL-CLOSED: referência ausente/ilegível ⇒ todo vermelho conta como NOVO (o chamador não
+// auto-mergeia). Não medir nunca vira "nada novo" (§5 2026-07-29).
+const NEW_REDS_IDX = argv.indexOf('--new-reds-vs');
+const NEW_REDS_REF = NEW_REDS_IDX >= 0 ? (argv[NEW_REDS_IDX + 1] || '') : null;
 
 const norm = (p) => relative(ROOT, p).replace(/\\/g, '/');
 
@@ -144,7 +166,55 @@ function writeManifest(ucs, sources) {
   return stats;
 }
 
+/** Conjunto de UCs com veredito `fail` num manifesto. Manifesto ilegível ⇒ null (≠ vazio). */
+function failSet(path) {
+  try {
+    const ucs = JSON.parse(readFileSync(path, 'utf8'))?.ucs || {};
+    return new Set(Object.entries(ucs).filter(([, e]) => e?.verdict === 'fail').map(([uc]) => uc));
+  } catch {
+    return null;
+  }
+}
+
+// EXIT CODES (o contrato — é por eles que o chamador decide, não por parse de texto):
+//   0 = nenhum vermelho NOVO           → pode aterrissar
+//   1 = há vermelho novo (nomeado)     → segura pra olho humano
+//   2 = NÃO CONSEGUI MEDIR             → segura também, mas por outra razão
+// O 2 separado é exigência do §5 2026-08-14 (`ds-mirror-drift`): colapsar "não medi" em
+// "regrediu" faz o chamador afirmar sobre um caminho que ele não mediu. `new_reds=N`
+// continua impresso pro summary — o número é relato, o exit code é a decisão.
+function reportNewReds() {
+  const atual = failSet(MANIFEST_PATH);
+  if (atual === null) {
+    console.error(`⚠️  Manifesto atual ilegível (${norm(MANIFEST_PATH)}) — NÃO MEDIDO.`);
+    console.log('new_reds=-1');
+    return 2;
+  }
+  const ref = NEW_REDS_REF ? failSet(resolve(ROOT, NEW_REDS_REF)) : null;
+  if (ref === null) {
+    console.error(
+      `⚠️  Referência ausente/ilegível (${NEW_REDS_REF || '(vazio)'}) — NÃO MEDIDO. ` +
+        `Isto não é "0 vermelhos novos": é ausência de medição.`,
+    );
+    console.log('new_reds=-1');
+    return 2;
+  }
+  const novos = [...atual].filter((uc) => !ref.has(uc)).sort();
+  const sumiram = [...ref].filter((uc) => !atual.has(uc)).sort();
+  console.log(`herdados=${[...atual].filter((uc) => ref.has(uc)).length} (vermelhos que a referência já tinha)`);
+  if (sumiram.length) console.log(`consertados=${sumiram.length}: ${sumiram.join(' ')}`);
+  console.log(`new_reds=${novos.length}`);
+  if (novos.length) {
+    console.error(`❌ VERMELHO NOVO vs referência: ${novos.join(' ')}`);
+    return 1;
+  }
+  console.log('✅ nenhum vermelho novo vs a referência.');
+  return 0;
+}
+
 function main() {
+  if (NEW_REDS_IDX >= 0) process.exit(reportNewReds());
+
   if (SEED_EMPTY) {
     const stats = writeManifest({}, []);
     console.log(`✅ Manifesto SEMENTE (vazio) gravado → ${norm(MANIFEST_PATH)} (${stats.ucs} UCs).`);
