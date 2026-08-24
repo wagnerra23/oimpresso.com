@@ -14,10 +14,11 @@ module: Arquivos
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Arquivos/**` + `resources/js/Pages/Arquivos/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 65 arquivos em 13 papéis.
+**Total mapeado:** 68 arquivos em 14 papéis.
 
-## Controllers — 3
+## Controllers — 4
 
+- [ArquivosAdminController.php](../../../Modules/Arquivos/Http/Controllers/ArquivosAdminController.php)
 - [DataController.php](../../../Modules/Arquivos/Http/Controllers/DataController.php)
 - [DownloadController.php](../../../Modules/Arquivos/Http/Controllers/DownloadController.php)
 - [InstallController.php](../../../Modules/Arquivos/Http/Controllers/InstallController.php)
@@ -78,6 +79,10 @@ module: Arquivos
 - [config.php](../../../Modules/Arquivos/Config/config.php)
 - [retention.php](../../../Modules/Arquivos/Config/retention.php)
 
+## Telas (Inertia/React) — 1
+
+- [Index.tsx](../../../resources/js/Pages/Arquivos/Index.tsx)
+
 ## Charters (lei da tela) — 1
 
 - [Index.charter.md](../../../resources/js/Pages/Arquivos/Index.charter.md)
@@ -86,9 +91,9 @@ module: Arquivos
 
 - [Index.casos.md](../../../resources/js/Pages/Arquivos/Index.casos.md)
 
-## Testes (Pest) — 25
+## Testes (Pest) — 26
 
-- 25 em [Modules/Arquivos/Tests/Feature/](../../../Modules/Arquivos/Tests/Feature)
+- 26 em [Modules/Arquivos/Tests/Feature/](../../../Modules/Arquivos/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 3

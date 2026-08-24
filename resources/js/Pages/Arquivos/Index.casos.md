@@ -26,11 +26,14 @@ last_run: "2026-08-24"
   com a permissão `arquivos.access` · Então vê a lista do **próprio** business com nome do
   arquivo, dono (`arquivable`), bucket, disco, tamanho e data de vencimento — e nenhum arquivo
   de outro `business_id`.
-- **Teste:** `e2e/arquivos-index.spec.ts` — stub `test.fixme` citando `UC-INDEX-01` (vira
-  asserção real no PR-1, junto com o Pest de isolamento que espelha `MultiTenantTest`).
+- **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — 3 asserções
+  citando `UC-INDEX-01` (scope não quebrado · sem `storage_path`/md5 na linha · leitura pura)
+  + `e2e/arquivos-index.spec.ts` (stub `test.fixme`, vira asserção quando a rota subir em prod).
 - **Regressão que defende:** vazamento cross-tenant no acervo (ADR 0093, Tier 0) e prazo
   exibido sem a lei que o sustenta.
-- **Status: ⬜** — stub; vira 🧪/✅ quando a rota existir e o teste executar.
+- **Status: ⬜** — o Pest existe e cita o UC, mas **não rodou** (Pest é CT 100, nunca local:
+  proibicoes §Ambiente). Vira 🧪/✅ quando a lane executar e o manifesto aterrissar — status
+  vem do veredito, não da minha leitura (G-7).
 
 ---
 
@@ -41,7 +44,7 @@ e promove o item a `UC-INDEX-NN`.
 
 **Onda 1 — ler**
 
-- **[BACKLOG]** Acervo com 10 arquivos → 4 abas; subtítulo com contagem, tamanho total e quantos estão cifrados.
+- **[BACKLOG]** Acervo com 10 arquivos → subtítulo com contagem e quantos estão cifrados (as 4 abas chegam com as vistas: PR-2 trilha · PR-3 retenção · PR-4 cofre).
 - **[BACKLOG]** Filtrar bucket `sensitive` → só os do cofre; o contador do chip bate com a lista.
 - **[BACKLOG]** Arquivo em disco `vault` → selo com cadeado; baixar avisa que o link assinado vale 60 min e passa pelo `DownloadController`.
 - **[BACKLOG]** Arquivo sem `arquivable` → linha marcada como urgente + selo "órfão" com o motivo em tooltip (órfão é achado, não item).
