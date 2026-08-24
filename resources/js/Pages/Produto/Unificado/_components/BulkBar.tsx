@@ -37,7 +37,7 @@ export function BulkBar({ total, foraDaPagina, onInativar, onLimpar }: BulkBarPr
   if (total === 0) return null;
 
   return (
-    <div className="sticky bottom-4 z-20 mt-3 flex justify-center pointer-events-none">
+    <Inline justify="center" className="sticky bottom-4 z-20 mt-3 pointer-events-none">
       <Inline
         gap={3}
         className="pointer-events-auto rounded-lg border border-border bg-card px-3 py-2 shadow-lg"
@@ -67,7 +67,7 @@ export function BulkBar({ total, foraDaPagina, onInativar, onLimpar }: BulkBarPr
           <X size={14} />
         </button>
       </Inline>
-    </div>
+    </Inline>
   );
 }
 

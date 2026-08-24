@@ -33,7 +33,7 @@ export function MiniaturaProduto({ nome, url, tamanho = 30 }: MiniaturaProdutoPr
   if (url) {
     return (
       <span
-        className="grid flex-shrink-0 place-items-center overflow-hidden rounded border border-border bg-muted"
+        className="grid place-items-center flex-shrink-0 overflow-hidden rounded border border-border bg-muted"
         style={lado}
       >
         <img src={url} alt={nome} className="h-full w-full object-cover" />
@@ -43,7 +43,7 @@ export function MiniaturaProduto({ nome, url, tamanho = 30 }: MiniaturaProdutoPr
 
   return (
     <span
-      className="grid flex-shrink-0 place-items-center rounded border border-dashed border-muted-foreground/45 bg-muted text-muted-foreground"
+      className="grid place-items-center flex-shrink-0 rounded border border-dashed border-muted-foreground/45 bg-muted text-muted-foreground"
       style={lado}
       // `role="img"` + rótulo porque o tracejado sozinho não se explica a quem não vê a tela
       // (handoff §11): o leitor anuncia a AUSÊNCIA da foto em vez de pular a célula.
