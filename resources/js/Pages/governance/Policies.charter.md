@@ -1,6 +1,7 @@
 ---
 page: /governance/policies
 component: resources/js/Pages/governance/Policies.tsx
+bundle_source: governance-page.jsx
 owner: wagner
 status: live
 last_validated: "2026-05-16"
