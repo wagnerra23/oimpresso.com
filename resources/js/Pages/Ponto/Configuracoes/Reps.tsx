@@ -11,7 +11,7 @@ import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import { Link, useForm } from '@inertiajs/react';
 import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
-import { ArrowLeft, Plus, Server } from 'lucide-react';
+import { ArrowLeft, Plus } from 'lucide-react';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';

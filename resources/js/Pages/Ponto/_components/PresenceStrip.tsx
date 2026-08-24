@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { Link } from '@inertiajs/react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/Components/ui/tooltip';
 import { cn } from '@/Lib/utils';
