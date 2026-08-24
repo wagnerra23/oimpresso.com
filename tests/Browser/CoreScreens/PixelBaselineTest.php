@@ -119,13 +119,17 @@ afterAll(function () use ($execution, $grayZone) {
         // sem ele o comentário não distingue ZONA CINZA de REGRESSÃO CLARA. JSON numa linha só
         // (GITHUB_OUTPUT é key=value por linha), escrito ANTES do writeGrayZoneSummary(), que
         // lança quando a zona cinza bloqueia.
+        // So a divida PROPRIA (tela dentro do raio do PR) alimenta a narrativa do comentario:
+        // e ela que bloqueia. Listar tela ja divergente na main faria o comentario cobrar do
+        // autor um drift que nao e dele — o defeito medido em 2026-08-24. A herdada continua
+        // visivel no step summary e no log do step.
         $gray = json_encode(
             array_map(
                 static fn (array $item): array => [
                     'screen' => $item['screen'],
                     'ratio' => round((float) $item['ratio'], 6),
                 ],
-                $grayZone->getArrayCopy(),
+                \Tests\Browser\Support\VisregThreshold::particionaDoAmbiente($grayZone->getArrayCopy())['propria'],
             ),
             JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE,
         );
@@ -151,12 +155,13 @@ foreach ($screens as $screen) {
     }
 
     $nome = $screen['screen'];
+    $source = $screen['source'];
     $component = $screen['component'];
     $rota = $screen['route'];
     $ancora = $screen['anchor'];
     $baseline = $screen['baseline'];
 
-    it("{$nome} bate com a baseline de pixel (núcleo-6)", function () use ($nome, $component, $rota, $ancora, $baseline, $grayZone, $execution) {
+    it("{$nome} bate com a baseline de pixel (núcleo-6)", function () use ($nome, $source, $component, $rota, $ancora, $baseline, $grayZone, $execution) {
         // orderBy('id') = biz 1 determinístico: o gate também seeda 98 (VisregEmptyTenantSeeder)
         // e 99 (VisregTenantBLeakSeeder) — sem ordem explícita o "first" é o que o MySQL devolver.
         $business = Business::orderBy('id')->first();
@@ -241,6 +246,9 @@ foreach ($screens as $screen) {
             screenName: $nome,
             grayZone: $grayZone,
             baselineFile: $baseline,
+            // `source` (chave do manifesto) e o que casa com VISREG_SCREENS — sem ela, uma
+            // tela ja divergente na main reprova PR que nao a tocou (2026-08-24).
+            screenSource: $source,
         );
         $execution['compared'] = (int) $execution['compared'] + 1;
     });

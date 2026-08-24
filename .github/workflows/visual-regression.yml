@@ -442,6 +442,15 @@ jobs:
         env:
           VISREG_SCOPE: ${{ steps.impact.outputs.scope }}
           VISREG_SCREENS: ${{ steps.impact.outputs.screens }}
+          # Diz se `VISREG_SCREENS` cobre TUDO o que o PR pode ter mexido. Em `global` a lista
+          # tambem vem preenchida, mas so como raio informativo — quando algum item do diff
+          # nao declara proveniencia (tokens, CSS de fundacao, toolchain), ela e incompleta e
+          # este valor sai `false`, mantendo o bloqueio absoluto de sempre. Com `true`, a zona
+          # cinza de tela FORA do raio vira divida herdada: reportada, nunca bloqueante.
+          # Sem isto, `Governance/DsRollout` (drift da main vindo do #6175, que mergeou com o
+          # label sem regenerar a baseline) reprovava PRs que nao a tocaram — medido em 3
+          # branches independentes com o MESMO ratio 0.1226% em 2026-08-24.
+          VISREG_RAIO_CONFIAVEL: ${{ steps.impact.outputs.raio_confiavel }}
         # DOUBLE-THRESHOLD (L7): o teste roteia cada tela por 3 bandas (PixelBaselineTest
         # + Tests\Browser\Support\VisregThreshold) — auto-aprova < τ_baixo (VISREG_TAU_LOW,
         # default 0.1%), auto-falha > τ_alto (VISREG_TAU_HIGH, default 2%), e o MEIO é a
