@@ -17,8 +17,16 @@
       "componente_react": "Button",
       "import_path": "@/Components/ui/button",
       "file": "resources/js/Components/ui/button.tsx",
-      "exports": ["Button", "buttonVariants"],
-      "props": ["variant", "size", "asChild", "disabled"],
+      "exports": [
+        "Button",
+        "buttonVariants"
+      ],
+      "props": [
+        "variant",
+        "size",
+        "asChild",
+        "disabled"
+      ],
       "variant_map": {
         ".cw-btn-primary": "variant=cowork-primary",
         ".cw-btn-ghost": "variant=cowork-ghost",
@@ -37,8 +45,14 @@
       "componente_react": "Badge",
       "import_path": "@/Components/ui/badge",
       "file": "resources/js/Components/ui/badge.tsx",
-      "exports": ["Badge", "badgeVariants"],
-      "props": ["variant", "asChild"],
+      "exports": [
+        "Badge",
+        "badgeVariants"
+      ],
+      "props": [
+        "variant",
+        "asChild"
+      ],
       "variant_map": {
         "default (marca)": "variant=default",
         "secundário": "variant=secondary",
@@ -56,8 +70,17 @@
       "componente_react": "Input",
       "import_path": "@/Components/ui/input",
       "file": "resources/js/Components/ui/input.tsx",
-      "exports": ["Input"],
-      "props": ["variant", "type", "placeholder", "value", "onChange", "disabled"],
+      "exports": [
+        "Input"
+      ],
+      "props": [
+        "variant",
+        "type",
+        "placeholder",
+        "value",
+        "onChange",
+        "disabled"
+      ],
       "variant_map": {
         ".cw-input (default Cowork)": "variant=cowork",
         "shadcn legacy (container escuro)": "variant=shadcn"
@@ -69,8 +92,16 @@
       "componente_react": "Textarea",
       "import_path": "@/Components/ui/textarea",
       "file": "resources/js/Components/ui/textarea.tsx",
-      "exports": ["Textarea"],
-      "props": ["variant", "placeholder", "value", "onChange", "rows"],
+      "exports": [
+        "Textarea"
+      ],
+      "props": [
+        "variant",
+        "placeholder",
+        "value",
+        "onChange",
+        "rows"
+      ],
       "variant_map": {
         ".cw-input.cw-textarea (default)": "variant=cowork",
         "shadcn legacy": "variant=shadcn"
@@ -82,8 +113,24 @@
       "componente_react": "Select",
       "import_path": "@/Components/ui/select",
       "file": "resources/js/Components/ui/select.tsx",
-      "exports": ["Select", "SelectContent", "SelectGroup", "SelectItem", "SelectLabel", "SelectScrollDownButton", "SelectScrollUpButton", "SelectSeparator", "SelectTrigger", "SelectValue"],
-      "props": ["value", "onValueChange", "size (no SelectTrigger)", "variant (no SelectTrigger)"],
+      "exports": [
+        "Select",
+        "SelectContent",
+        "SelectGroup",
+        "SelectItem",
+        "SelectLabel",
+        "SelectScrollDownButton",
+        "SelectScrollUpButton",
+        "SelectSeparator",
+        "SelectTrigger",
+        "SelectValue"
+      ],
+      "props": [
+        "value",
+        "onValueChange",
+        "size (no SelectTrigger)",
+        "variant (no SelectTrigger)"
+      ],
       "variant_map": {
         ".cw-input (default no SelectTrigger)": "variant=cowork",
         "shadcn legacy": "variant=shadcn"
@@ -95,8 +142,15 @@
       "componente_react": "RadioGroup",
       "import_path": "@/Components/ui/radio-group",
       "file": "resources/js/Components/ui/radio-group.tsx",
-      "exports": ["RadioGroup", "RadioGroupItem"],
-      "props": ["value", "onValueChange", "disabled"],
+      "exports": [
+        "RadioGroup",
+        "RadioGroupItem"
+      ],
+      "props": [
+        "value",
+        "onValueChange",
+        "disabled"
+      ],
       "variant_map": {},
       "status": "mapped"
     },
@@ -105,8 +159,14 @@
       "componente_react": "Checkbox",
       "import_path": "@/Components/ui/checkbox",
       "file": "resources/js/Components/ui/checkbox.tsx",
-      "exports": ["Checkbox"],
-      "props": ["checked", "onCheckedChange", "disabled"],
+      "exports": [
+        "Checkbox"
+      ],
+      "props": [
+        "checked",
+        "onCheckedChange",
+        "disabled"
+      ],
       "variant_map": {},
       "status": "mapped"
     },
@@ -115,8 +175,16 @@
       "componente_react": "Switch",
       "import_path": "@/Components/ui/switch",
       "file": "resources/js/Components/ui/switch.tsx",
-      "exports": ["Switch"],
-      "props": ["checked", "onCheckedChange", "size", "variant", "disabled"],
+      "exports": [
+        "Switch"
+      ],
+      "props": [
+        "checked",
+        "onCheckedChange",
+        "size",
+        "variant",
+        "disabled"
+      ],
       "variant_map": {
         ".cw-switch (Cowork)": "variant=cowork",
         "shadcn (default legacy)": "variant=shadcn"
@@ -128,8 +196,13 @@
       "componente_react": "Label",
       "import_path": "@/Components/ui/label",
       "file": "resources/js/Components/ui/label.tsx",
-      "exports": ["Label"],
-      "props": ["variant", "htmlFor"],
+      "exports": [
+        "Label"
+      ],
+      "props": [
+        "variant",
+        "htmlFor"
+      ],
       "variant_map": {
         ".cw-label (default Cowork)": "variant=cowork",
         "shadcn (preto principal)": "variant=shadcn"
@@ -141,8 +214,14 @@
       "componente_react": "NumericInputPtBR",
       "import_path": "@/Components/ui/numeric-input-ptbr",
       "file": "resources/js/Components/ui/numeric-input-ptbr.tsx",
-      "exports": ["NumericInputPtBR", "default"],
-      "props": ["value", "onValueChange"],
+      "exports": [
+        "NumericInputPtBR",
+        "default"
+      ],
+      "props": [
+        "value",
+        "onValueChange"
+      ],
       "variant_map": {},
       "status": "mapped"
     },
@@ -151,8 +230,14 @@
       "componente_react": "DocumentInput",
       "import_path": "@/Components/ui/document-input",
       "file": "resources/js/Components/ui/document-input.tsx",
-      "exports": ["DocumentInput"],
-      "props": ["value", "onValueChange", "tipo"],
+      "exports": [
+        "DocumentInput"
+      ],
+      "props": [
+        "value",
+        "onValueChange",
+        "tipo"
+      ],
       "variant_map": {
         "auto (detecta CPF vs CNPJ)": "tipo=auto",
         "CPF fixo": "tipo=cpf",
@@ -165,8 +250,13 @@
       "componente_react": "PhoneInput",
       "import_path": "@/Components/ui/phone-input",
       "file": "resources/js/Components/ui/phone-input.tsx",
-      "exports": ["PhoneInput"],
-      "props": ["value", "onValueChange"],
+      "exports": [
+        "PhoneInput"
+      ],
+      "props": [
+        "value",
+        "onValueChange"
+      ],
       "variant_map": {},
       "status": "mapped"
     },
@@ -175,8 +265,22 @@
       "componente_react": "Dialog",
       "import_path": "@/Components/ui/dialog",
       "file": "resources/js/Components/ui/dialog.tsx",
-      "exports": ["Dialog", "DialogClose", "DialogContent", "DialogDescription", "DialogFooter", "DialogHeader", "DialogOverlay", "DialogPortal", "DialogTitle", "DialogTrigger"],
-      "props": ["open", "onOpenChange"],
+      "exports": [
+        "Dialog",
+        "DialogClose",
+        "DialogContent",
+        "DialogDescription",
+        "DialogFooter",
+        "DialogHeader",
+        "DialogOverlay",
+        "DialogPortal",
+        "DialogTitle",
+        "DialogTrigger"
+      ],
+      "props": [
+        "open",
+        "onOpenChange"
+      ],
       "variant_map": {},
       "status": "mapped"
     },
@@ -185,8 +289,24 @@
       "componente_react": "AlertDialog",
       "import_path": "@/Components/ui/alert-dialog",
       "file": "resources/js/Components/ui/alert-dialog.tsx",
-      "exports": ["AlertDialog", "AlertDialogAction", "AlertDialogCancel", "AlertDialogContent", "AlertDialogDescription", "AlertDialogFooter", "AlertDialogHeader", "AlertDialogMedia", "AlertDialogOverlay", "AlertDialogPortal", "AlertDialogTitle", "AlertDialogTrigger"],
-      "props": ["open", "onOpenChange"],
+      "exports": [
+        "AlertDialog",
+        "AlertDialogAction",
+        "AlertDialogCancel",
+        "AlertDialogContent",
+        "AlertDialogDescription",
+        "AlertDialogFooter",
+        "AlertDialogHeader",
+        "AlertDialogMedia",
+        "AlertDialogOverlay",
+        "AlertDialogPortal",
+        "AlertDialogTitle",
+        "AlertDialogTrigger"
+      ],
+      "props": [
+        "open",
+        "onOpenChange"
+      ],
       "variant_map": {},
       "status": "mapped"
     },
@@ -195,8 +315,21 @@
       "componente_react": "Sheet",
       "import_path": "@/Components/ui/sheet",
       "file": "resources/js/Components/ui/sheet.tsx",
-      "exports": ["Sheet", "SheetTrigger", "SheetClose", "SheetContent", "SheetHeader", "SheetFooter", "SheetTitle", "SheetDescription"],
-      "props": ["open", "onOpenChange", "side (no SheetContent)"],
+      "exports": [
+        "Sheet",
+        "SheetTrigger",
+        "SheetClose",
+        "SheetContent",
+        "SheetHeader",
+        "SheetFooter",
+        "SheetTitle",
+        "SheetDescription"
+      ],
+      "props": [
+        "open",
+        "onOpenChange",
+        "side (no SheetContent)"
+      ],
       "variant_map": {
         "drawer direito": "side=right",
         "drawer esquerdo": "side=left"
@@ -208,8 +341,16 @@
       "componente_react": "Popover",
       "import_path": "@/Components/ui/popover",
       "file": "resources/js/Components/ui/popover.tsx",
-      "exports": ["Popover", "PopoverTrigger", "PopoverContent", "PopoverAnchor"],
-      "props": ["open", "onOpenChange"],
+      "exports": [
+        "Popover",
+        "PopoverTrigger",
+        "PopoverContent",
+        "PopoverAnchor"
+      ],
+      "props": [
+        "open",
+        "onOpenChange"
+      ],
       "variant_map": {},
       "status": "mapped"
     },
@@ -218,8 +359,27 @@
       "componente_react": "DropdownMenu",
       "import_path": "@/Components/ui/dropdown-menu",
       "file": "resources/js/Components/ui/dropdown-menu.tsx",
-      "exports": ["DropdownMenu", "DropdownMenuPortal", "DropdownMenuTrigger", "DropdownMenuContent", "DropdownMenuGroup", "DropdownMenuLabel", "DropdownMenuItem", "DropdownMenuCheckboxItem", "DropdownMenuRadioGroup", "DropdownMenuRadioItem", "DropdownMenuSeparator", "DropdownMenuShortcut", "DropdownMenuSub", "DropdownMenuSubTrigger", "DropdownMenuSubContent"],
-      "props": ["open", "onOpenChange"],
+      "exports": [
+        "DropdownMenu",
+        "DropdownMenuPortal",
+        "DropdownMenuTrigger",
+        "DropdownMenuContent",
+        "DropdownMenuGroup",
+        "DropdownMenuLabel",
+        "DropdownMenuItem",
+        "DropdownMenuCheckboxItem",
+        "DropdownMenuRadioGroup",
+        "DropdownMenuRadioItem",
+        "DropdownMenuSeparator",
+        "DropdownMenuShortcut",
+        "DropdownMenuSub",
+        "DropdownMenuSubTrigger",
+        "DropdownMenuSubContent"
+      ],
+      "props": [
+        "open",
+        "onOpenChange"
+      ],
       "variant_map": {},
       "status": "mapped"
     },
@@ -228,7 +388,12 @@
       "componente_react": "Tooltip",
       "import_path": "@/Components/ui/tooltip",
       "file": "resources/js/Components/ui/tooltip.tsx",
-      "exports": ["Tooltip", "TooltipTrigger", "TooltipContent", "TooltipProvider"],
+      "exports": [
+        "Tooltip",
+        "TooltipTrigger",
+        "TooltipContent",
+        "TooltipProvider"
+      ],
       "props": [],
       "variant_map": {},
       "status": "mapped"
@@ -238,7 +403,17 @@
       "componente_react": "Command",
       "import_path": "@/Components/ui/command",
       "file": "resources/js/Components/ui/command.tsx",
-      "exports": ["Command", "CommandDialog", "CommandInput", "CommandList", "CommandEmpty", "CommandGroup", "CommandItem", "CommandShortcut", "CommandSeparator"],
+      "exports": [
+        "Command",
+        "CommandDialog",
+        "CommandInput",
+        "CommandList",
+        "CommandEmpty",
+        "CommandGroup",
+        "CommandItem",
+        "CommandShortcut",
+        "CommandSeparator"
+      ],
       "props": [],
       "variant_map": {},
       "status": "mapped"
@@ -248,8 +423,14 @@
       "componente_react": "Alert",
       "import_path": "@/Components/ui/alert",
       "file": "resources/js/Components/ui/alert.tsx",
-      "exports": ["Alert", "AlertTitle", "AlertDescription"],
-      "props": ["variant"],
+      "exports": [
+        "Alert",
+        "AlertTitle",
+        "AlertDescription"
+      ],
+      "props": [
+        "variant"
+      ],
       "variant_map": {
         "neutro / info": "variant=default",
         "erro / perigo": "variant=destructive"
@@ -261,7 +442,14 @@
       "componente_react": "Avatar",
       "import_path": "@/Components/ui/avatar",
       "file": "resources/js/Components/ui/avatar.tsx",
-      "exports": ["Avatar", "AvatarImage", "AvatarFallback", "AvatarBadge", "AvatarGroup", "AvatarGroupCount"],
+      "exports": [
+        "Avatar",
+        "AvatarImage",
+        "AvatarFallback",
+        "AvatarBadge",
+        "AvatarGroup",
+        "AvatarGroupCount"
+      ],
       "props": [],
       "variant_map": {},
       "status": "mapped"
@@ -271,7 +459,15 @@
       "componente_react": "Card",
       "import_path": "@/Components/ui/card",
       "file": "resources/js/Components/ui/card.tsx",
-      "exports": ["Card", "CardHeader", "CardFooter", "CardTitle", "CardAction", "CardDescription", "CardContent"],
+      "exports": [
+        "Card",
+        "CardHeader",
+        "CardFooter",
+        "CardTitle",
+        "CardAction",
+        "CardDescription",
+        "CardContent"
+      ],
       "props": [],
       "variant_map": {},
       "status": "mapped"
@@ -281,7 +477,9 @@
       "componente_react": "Skeleton",
       "import_path": "@/Components/ui/skeleton",
       "file": "resources/js/Components/ui/skeleton.tsx",
-      "exports": ["Skeleton"],
+      "exports": [
+        "Skeleton"
+      ],
       "props": [],
       "variant_map": {},
       "status": "mapped"
@@ -291,8 +489,12 @@
       "componente_react": "Separator",
       "import_path": "@/Components/ui/separator",
       "file": "resources/js/Components/ui/separator.tsx",
-      "exports": ["Separator"],
-      "props": ["orientation"],
+      "exports": [
+        "Separator"
+      ],
+      "props": [
+        "orientation"
+      ],
       "variant_map": {
         "horizontal": "orientation=horizontal",
         "vertical": "orientation=vertical"
@@ -304,7 +506,9 @@
       "componente_react": "ScrollArea",
       "import_path": "@/Components/ui/scroll-area",
       "file": "resources/js/Components/ui/scroll-area.tsx",
-      "exports": ["ScrollArea"],
+      "exports": [
+        "ScrollArea"
+      ],
       "props": [],
       "variant_map": {},
       "status": "mapped"
@@ -314,8 +518,14 @@
       "componente_react": "ResizablePanelGroup",
       "import_path": "@/Components/ui/resizable",
       "file": "resources/js/Components/ui/resizable.tsx",
-      "exports": ["ResizablePanelGroup", "ResizablePanel", "ResizableHandle"],
-      "props": ["direction (no ResizablePanelGroup)"],
+      "exports": [
+        "ResizablePanelGroup",
+        "ResizablePanel",
+        "ResizableHandle"
+      ],
+      "props": [
+        "direction (no ResizablePanelGroup)"
+      ],
       "variant_map": {},
       "status": "mapped"
     },
@@ -335,8 +545,15 @@
       "componente_react": "Segmented",
       "import_path": "@/Components/ui/segmented",
       "file": "resources/js/Components/ui/segmented.tsx",
-      "exports": ["Segmented"],
-      "props": ["value", "onValueChange", "options", "accent"],
+      "exports": [
+        "Segmented"
+      ],
+      "props": [
+        "value",
+        "onValueChange",
+        "options",
+        "accent"
+      ],
       "variant_map": {
         ".cw-segmented (neutro)": "accent=false",
         ".cw-segmented.cw-accent (roxo de marca)": "accent=true"
@@ -348,7 +565,10 @@
       "componente_react": "FormSection",
       "import_path": "@/Components/ui/form-section",
       "file": "resources/js/Components/ui/form-section.tsx",
-      "exports": ["FormSection", "FormGrid"],
+      "exports": [
+        "FormSection",
+        "FormGrid"
+      ],
       "props": [],
       "variant_map": {
         ".form-section": "FormSection",
@@ -361,7 +581,11 @@
       "componente_react": "InputGroup",
       "import_path": "@/Components/ui/input-group",
       "file": "resources/js/Components/ui/input-group.tsx",
-      "exports": ["InputGroup", "InputGroupButton", "InputGroupAddon"],
+      "exports": [
+        "InputGroup",
+        "InputGroupButton",
+        "InputGroupAddon"
+      ],
       "props": [],
       "variant_map": {
         ".input-group": "InputGroup",
@@ -375,7 +599,12 @@
       "componente_react": "FieldError",
       "import_path": "@/Components/ui/field-state",
       "file": "resources/js/Components/ui/field-state.tsx",
-      "exports": ["FieldError", "FieldSuccess", "FieldValidating", "RequiredMark"],
+      "exports": [
+        "FieldError",
+        "FieldSuccess",
+        "FieldValidating",
+        "RequiredMark"
+      ],
       "props": [],
       "variant_map": {
         ".field-error (erro)": "FieldError",
@@ -390,8 +619,14 @@
       "componente_react": "Box",
       "import_path": "@/Components/layout",
       "file": "resources/js/Components/layout/index.ts",
-      "exports": ["Box"],
-      "props": ["p", "bg", "rounded"],
+      "exports": [
+        "Box"
+      ],
+      "props": [
+        "p",
+        "bg",
+        "rounded"
+      ],
       "variant_map": {},
       "status": "mapped"
     },
@@ -400,8 +635,13 @@
       "componente_react": "Stack",
       "import_path": "@/Components/layout",
       "file": "resources/js/Components/layout/index.ts",
-      "exports": ["Stack"],
-      "props": ["gap", "align"],
+      "exports": [
+        "Stack"
+      ],
+      "props": [
+        "gap",
+        "align"
+      ],
       "variant_map": {},
       "status": "mapped"
     },
@@ -410,8 +650,14 @@
       "componente_react": "Inline",
       "import_path": "@/Components/layout",
       "file": "resources/js/Components/layout/index.ts",
-      "exports": ["Inline"],
-      "props": ["gap", "align", "wrap"],
+      "exports": [
+        "Inline"
+      ],
+      "props": [
+        "gap",
+        "align",
+        "wrap"
+      ],
       "variant_map": {},
       "status": "mapped"
     },
@@ -420,8 +666,13 @@
       "componente_react": "Grid",
       "import_path": "@/Components/layout",
       "file": "resources/js/Components/layout/index.ts",
-      "exports": ["Grid"],
-      "props": ["cols", "gap"],
+      "exports": [
+        "Grid"
+      ],
+      "props": [
+        "cols",
+        "gap"
+      ],
       "variant_map": {},
       "status": "mapped"
     },
@@ -430,8 +681,12 @@
       "componente_react": "Container",
       "import_path": "@/Components/layout",
       "file": "resources/js/Components/layout/index.ts",
-      "exports": ["Container"],
-      "props": ["size"],
+      "exports": [
+        "Container"
+      ],
+      "props": [
+        "size"
+      ],
       "variant_map": {},
       "status": "mapped"
     },
@@ -440,8 +695,14 @@
       "componente_react": "Text",
       "import_path": "@/Components/layout",
       "file": "resources/js/Components/layout/index.ts",
-      "exports": ["Text"],
-      "props": ["size", "weight", "color"],
+      "exports": [
+        "Text"
+      ],
+      "props": [
+        "size",
+        "weight",
+        "color"
+      ],
       "variant_map": {},
       "status": "mapped"
     },
@@ -477,6 +738,413 @@
       "variant_map": {},
       "status": "gap",
       "_nota": "Buraco do DS (Tier-0) — sem impl React. Nasce na 1ª tela consumidora. NÃO fabricar."
+    },
+    {
+      "bloco_prototipo": "Modal (DS v6 kit) — diálogo centrado de confirmação (PT-04)",
+      "componente_react": "Dialog",
+      "import_path": "@/Components/ui/dialog",
+      "file": "resources/js/Components/ui/dialog.tsx",
+      "exports": [
+        "Dialog",
+        "DialogClose",
+        "DialogContent",
+        "DialogDescription",
+        "DialogFooter",
+        "DialogHeader",
+        "DialogOverlay",
+        "DialogPortal",
+        "DialogTitle",
+        "DialogTrigger"
+      ],
+      "props": [],
+      "variant_map": {
+        "destrutivo": "usar ui/alert-dialog.tsx"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "Drawer + DrawerSection (DS v6 kit) — painel lateral de detalhe (PT-02)",
+      "componente_react": "Sheet",
+      "import_path": "@/Components/ui/sheet",
+      "file": "resources/js/Components/ui/sheet.tsx",
+      "exports": [
+        "Sheet",
+        "SheetTrigger",
+        "SheetClose",
+        "SheetContent",
+        "SheetHeader",
+        "SheetFooter",
+        "SheetTitle",
+        "SheetDescription"
+      ],
+      "props": [],
+      "variant_map": {
+        "footer sticky": "SheetFooter (sheet.tsx:96)",
+        "badge no header": "FALTA — estender",
+        "DrawerSection": "FALTA — estender"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "TagChip (DS v6 kit) — chip de categoria lowercase",
+      "componente_react": "Badge",
+      "import_path": "@/Components/ui/badge",
+      "file": "resources/js/Components/ui/badge.tsx",
+      "exports": [
+        "Badge",
+        "badgeVariants"
+      ],
+      "props": [],
+      "variant_map": {
+        "paleta semântica lowercase": "FALTA — estender (0 ocorrências de varejo/atacado/…)"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "StatusBadge (DS v6 kit) — pílula de status por domínio",
+      "componente_react": "StatusBadge",
+      "import_path": "@/Components/shared/StatusBadge",
+      "file": "resources/js/Components/shared/StatusBadge.tsx",
+      "exports": [
+        "default"
+      ],
+      "props": [],
+      "variant_map": {
+        "kinds atuais": "16 (intercorrencia, aprovacao, payment, …)",
+        "kind=frescor/tipo/sla/atendimento": "FALTA — estender (0 ocorrências)"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "KpiCard (DS v6 kit) — tile de KPI",
+      "componente_react": "KpiCard",
+      "import_path": "@/Components/shared/KpiCard",
+      "file": "resources/js/Components/shared/KpiCard.tsx",
+      "exports": [
+        "default"
+      ],
+      "props": [],
+      "variant_map": {
+        "tone": "prop tone (KpiCard.tsx:33)",
+        "icon": "prop icon (KpiCard.tsx:53)"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "KpiFilterCard (DS v6 kit) — KPI clicável como filtro",
+      "componente_react": "KpiCard",
+      "import_path": "@/Components/shared/KpiCard",
+      "file": "resources/js/Components/shared/KpiCard.tsx",
+      "exports": [
+        "default"
+      ],
+      "props": [],
+      "variant_map": {
+        "selected": "prop selected (KpiCard.tsx:86)",
+        "onClick": "prop onClick (KpiCard.tsx:84)",
+        "ring de seleção": "KpiCard.tsx:152",
+        "aria-pressed": "KpiCard.tsx:161"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "PageHeader (DS v6 kit) — cabeçalho flat 3 zonas (slot 1 do PT-01)",
+      "componente_react": "PageHeader",
+      "import_path": "@/Components/PageHeader",
+      "file": "resources/js/Components/PageHeader/index.ts",
+      "exports": [
+        "PageHeader",
+        "PageHeaderProps",
+        "PageHeaderPrimary"
+      ],
+      "props": [],
+      "variant_map": {
+        "CANON": "ADR 0189 v3.2 + 0190 (impl em PageHeader/PageHeader.tsx; o barril index.ts é a API pública)",
+        "ATENÇÃO": "NÃO usar shared/PageHeader.tsx — @deprecated CONGELADO (shared/PageHeader.tsx:9), ratchet pageheader-gate.yml"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "TabBar (DS v6 kit) — sub-abas de módulo com contadores",
+      "componente_react": "PageHeaderTabs",
+      "import_path": "@/Components/shared/PageHeaderTabs",
+      "file": "resources/js/Components/shared/PageHeaderTabs.tsx",
+      "exports": [
+        "PageHeaderPrimary",
+        "PageHeaderGhost",
+        "PageHeaderOverflowItem",
+        "default"
+      ],
+      "props": [],
+      "variant_map": {
+        "subnav": "shared/SubNav.tsx",
+        "module nav": "shared/PageHeaderModuleNav.tsx"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "DataTable (DS v6 kit) — tabela densa de balcão",
+      "componente_react": "DataTable",
+      "import_path": "@/Components/shared/DataTable",
+      "file": "resources/js/Components/shared/DataTable.tsx",
+      "exports": [
+        "PaginatorShape",
+        "default"
+      ],
+      "props": [],
+      "variant_map": {
+        "base": "@tanstack/react-table (DataTable.tsx:8)"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "DataTablePro (DS v6 kit) — grid com sticky/resize/densidade",
+      "componente_react": "DataTable",
+      "import_path": "@/Components/shared/DataTable",
+      "file": "resources/js/Components/shared/DataTable.tsx",
+      "exports": [
+        "PaginatorShape",
+        "default"
+      ],
+      "props": [],
+      "variant_map": {
+        "sticky/resize/densidade": "FALTA — estender"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "BulkBar (DS v6 kit) — barra flutuante de multi-seleção",
+      "componente_react": "BulkActionBar",
+      "import_path": "@/Components/shared/BulkActionBar",
+      "file": "resources/js/Components/shared/BulkActionBar.tsx",
+      "exports": [
+        "default"
+      ],
+      "props": [],
+      "variant_map": {},
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "EmptyState (DS v6 kit) — estado zero/erro contextual",
+      "componente_react": "EmptyState",
+      "import_path": "@/Components/shared/EmptyState",
+      "file": "resources/js/Components/shared/EmptyState.tsx",
+      "exports": [
+        "default"
+      ],
+      "props": [],
+      "variant_map": {
+        "variants atuais": "default|search|error|success (EmptyState.tsx:26)",
+        "no-perm/offline/filtered": "FALTA — estender"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "PlacaVeiculo (DS v6 kit) — placa veicular BR",
+      "componente_react": "MercosulPlate",
+      "import_path": "@/Components/shared/MercosulPlate",
+      "file": "resources/js/Components/shared/MercosulPlate.tsx",
+      "exports": [
+        "default"
+      ],
+      "props": [],
+      "variant_map": {
+        "props atuais": "plate/size/className (MercosulPlate.tsx:37)",
+        "padrao antigo + categoria + uf": "FALTA — estender"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "FilterChip (DS v6 kit) — pílula de filtro ativo removível",
+      "componente_react": "FilterChip",
+      "import_path": "@/Components/shared/PageFilters",
+      "file": "resources/js/Components/shared/PageFilters.tsx",
+      "exports": [
+        "FilterChip",
+        "default"
+      ],
+      "props": [],
+      "variant_map": {
+        "pílula": "ui/badge.tsx",
+        "_errata": "o §3 do HANDOFF marca \"estender\" — o símbolo FilterChip JÁ É exportado por PageFilters.tsx"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "AppSidebar (DS v6 kit) — rail de navegação do shell",
+      "componente_react": "AppShellV2",
+      "import_path": "@/Layouts/AppShellV2",
+      "file": "resources/js/Layouts/AppShellV2.tsx",
+      "exports": [
+        "default"
+      ],
+      "props": [],
+      "variant_map": {
+        "sidebar": "PRETA dark-fixo (UI-0023) — vive no shell, não é componente solto"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "TaskCard (DS v6 kit) — card de Board/Kanban",
+      "componente_react": "TaskCard",
+      "import_path": "@/Components/board/TaskCard",
+      "file": "resources/js/Components/board/TaskCard.tsx",
+      "exports": [
+        "BoardTask",
+        "default"
+      ],
+      "props": [],
+      "variant_map": {
+        "drag": "@dnd-kit/*",
+        "_errata": "o §3 do HANDOFF marca \"criar\" — JÁ EXISTE (TaskCard.tsx:44)"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "BoardColumn (DS v6 kit) — coluna de Kanban",
+      "componente_react": "BoardColumn",
+      "import_path": "@/Components/board/BoardColumn",
+      "file": "resources/js/Components/board/BoardColumn.tsx",
+      "exports": [
+        "default"
+      ],
+      "props": [],
+      "variant_map": {
+        "_errata": "o §3 do HANDOFF marca \"criar\" — JÁ EXISTE (BoardColumn.tsx:20)"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "Progress (DS v6 kit) — barra + anel SVG de progresso",
+      "componente_react": null,
+      "import_path": null,
+      "file": null,
+      "exports": [],
+      "props": [],
+      "variant_map": {},
+      "status": "gap",
+      "_nota": "Buraco do DS v6 kit, declarado no §3 do HANDOFF do espelho. ui/progress.tsx não existe. Varredura contada no repo inteiro (rg --hidden): 0 ocorrências. NÃO fabricar componente (M-AP-6) — nasce na 1ª tela que o consumir."
+    },
+    {
+      "bloco_prototipo": "DatePicker (DS v6 kit) — campo de data PT-BR dd/mm/aaaa",
+      "componente_react": null,
+      "import_path": null,
+      "file": null,
+      "exports": [],
+      "props": [],
+      "variant_map": {},
+      "status": "gap",
+      "_nota": "Buraco do DS v6 kit, declarado no §3 do HANDOFF do espelho. base disponível: ui/popover.tsx + date-fns. Varredura contada no repo inteiro (rg --hidden): 0 ocorrências. NÃO fabricar componente (M-AP-6) — nasce na 1ª tela que o consumir."
+    },
+    {
+      "bloco_prototipo": "PeriodBar (DS v6 kit) — barra de período com presets",
+      "componente_react": null,
+      "import_path": null,
+      "file": null,
+      "exports": [],
+      "props": [],
+      "variant_map": {},
+      "status": "gap",
+      "_nota": "Buraco do DS v6 kit, declarado no §3 do HANDOFF do espelho. base: ui/segmented.tsx + DatePicker (que também falta). Varredura contada no repo inteiro (rg --hidden): 0 ocorrências. NÃO fabricar componente (M-AP-6) — nasce na 1ª tela que o consumir."
+    },
+    {
+      "bloco_prototipo": "Breadcrumb (DS v6 kit) — trilha de hierarquia",
+      "componente_react": null,
+      "import_path": null,
+      "file": null,
+      "exports": [],
+      "props": [],
+      "variant_map": {},
+      "status": "gap",
+      "_nota": "Buraco do DS v6 kit, declarado no §3 do HANDOFF do espelho. sem equivalente. Varredura contada no repo inteiro (rg --hidden): 0 ocorrências. NÃO fabricar componente (M-AP-6) — nasce na 1ª tela que o consumir."
+    },
+    {
+      "bloco_prototipo": "Pagination (DS v6 kit) — paginação numerada",
+      "componente_react": null,
+      "import_path": null,
+      "file": null,
+      "exports": [],
+      "props": [],
+      "variant_map": {},
+      "status": "gap",
+      "_nota": "Buraco do DS v6 kit, declarado no §3 do HANDOFF do espelho. DataTable usa manualPagination server-side (DataTable.tsx:99). Varredura contada no repo inteiro (rg --hidden): 0 ocorrências. NÃO fabricar componente (M-AP-6) — nasce na 1ª tela que o consumir."
+    },
+    {
+      "bloco_prototipo": "FsmStepper (DS v6 kit) — indicador de pipeline FSM",
+      "componente_react": null,
+      "import_path": null,
+      "file": null,
+      "exports": [],
+      "props": [],
+      "variant_map": {},
+      "status": "gap",
+      "_nota": "Buraco do DS v6 kit, declarado no §3 do HANDOFF do espelho. sem equivalente; FSM canon = ADR 0143. Varredura contada no repo inteiro (rg --hidden): 0 ocorrências. NÃO fabricar componente (M-AP-6) — nasce na 1ª tela que o consumir."
+    },
+    {
+      "bloco_prototipo": "Chart (DS v6 kit) — data-viz compacto (area/line/bar)",
+      "componente_react": null,
+      "import_path": null,
+      "file": null,
+      "exports": [],
+      "props": [],
+      "variant_map": {},
+      "status": "gap",
+      "_nota": "Buraco do DS v6 kit, declarado no §3 do HANDOFF do espelho. sem lib de chart nas dependências. Varredura contada no repo inteiro (rg --hidden): 0 ocorrências. NÃO fabricar componente (M-AP-6) — nasce na 1ª tela que o consumir."
+    },
+    {
+      "bloco_prototipo": "Logo (DS v6 kit) — cubo CMYK + wordmark",
+      "componente_react": null,
+      "import_path": null,
+      "file": null,
+      "exports": [],
+      "props": [],
+      "variant_map": {},
+      "status": "gap",
+      "_nota": "Buraco do DS v6 kit, declarado no §3 do HANDOFF do espelho. ATIVOS ausentes no main: git ls-files logo-full/logo-mark/brand-bg = 0 (o §3 afirma \"ativos já existem\" — existem no ESPELHO, não aqui). Varredura contada no repo inteiro (rg --hidden): 0 ocorrências. NÃO fabricar componente (M-AP-6) — nasce na 1ª tela que o consumir."
+    },
+    {
+      "bloco_prototipo": "ProofFrame (DS v6 kit · print-craft) — moldura de folha de prova",
+      "componente_react": null,
+      "import_path": null,
+      "file": null,
+      "exports": [],
+      "props": [],
+      "variant_map": {},
+      "status": "gap",
+      "_nota": "Buraco do DS v6 kit, declarado no §3 do HANDOFF do espelho. sem equivalente. Varredura contada no repo inteiro (rg --hidden): 0 ocorrências. NÃO fabricar componente (M-AP-6) — nasce na 1ª tela que o consumir."
+    },
+    {
+      "bloco_prototipo": "Dimension (DS v6 kit · print-craft) — cota técnica",
+      "componente_react": null,
+      "import_path": null,
+      "file": null,
+      "exports": [],
+      "props": [],
+      "variant_map": {},
+      "status": "gap",
+      "_nota": "Buraco do DS v6 kit, declarado no §3 do HANDOFF do espelho. sem equivalente. Varredura contada no repo inteiro (rg --hidden): 0 ocorrências. NÃO fabricar componente (M-AP-6) — nasce na 1ª tela que o consumir."
+    },
+    {
+      "bloco_prototipo": "ProofStrip (DS v6 kit · print-craft) — tira de controle de prova",
+      "componente_react": null,
+      "import_path": null,
+      "file": null,
+      "exports": [],
+      "props": [],
+      "variant_map": {},
+      "status": "gap",
+      "_nota": "Buraco do DS v6 kit, declarado no §3 do HANDOFF do espelho. sem equivalente. Varredura contada no repo inteiro (rg --hidden): 0 ocorrências. NÃO fabricar componente (M-AP-6) — nasce na 1ª tela que o consumir."
+    },
+    {
+      "bloco_prototipo": "RegistrationMark (DS v6 kit · print-craft) — mira de registro",
+      "componente_react": null,
+      "import_path": null,
+      "file": null,
+      "exports": [],
+      "props": [],
+      "variant_map": {},
+      "status": "gap",
+      "_nota": "Buraco do DS v6 kit, declarado no §3 do HANDOFF do espelho. sem equivalente. Varredura contada no repo inteiro (rg --hidden): 0 ocorrências. NÃO fabricar componente (M-AP-6) — nasce na 1ª tela que o consumir."
     }
   ]
 }
