@@ -916,6 +916,41 @@ check('mesmo número → mesmo veredito (independe de --check)',
       [{ cowork: 'a.jsx', lastCommitIso: '2026-08-17T12:10:47.000Z', hashAtual: 'HASH_A' }]);
     check('unverifiedSince: sem hash no ledger cai no conservador (acusa por data, nao inventa verde)',
       rVelhoHash.mexidoDepois.length === 1 && /sem hash/.test(rVelhoHash.mexidoDepois[0].motivo || ''), JSON.stringify(rVelhoHash.mexidoDepois));
+
+    // ── PROVA POR BUNDLE (v5 · 2026-08-24) ──────────────────────────────────────
+    // O gate nasceu quando `--export-from` era a unica rota de escrita no espelho. O bundle v2
+    // (`aplicar-payload --require-complete-shell`) e a ROTA PRINCIPAL da fase -1 e escreve com
+    // fidelidade provada por construcao. Sem isto o required reprova o caminho oficial: no
+    // #6178, 71 arquivos com 232/232 hashes conferidos foram marcados "sem prova".
+    // O criterio e DURO: so libera com sha256 batendo byte-a-byte.
+    {
+      const Lb = [{ date: '2026-08-20T12:00:00.000Z', verified: ['app.jsx', 'styles.css', 'sidebar.jsx'],
+        verifiedHash: { 'app.jsx': 'H_VELHO', 'styles.css': 'H_VELHO', 'sidebar.jsx': 'H_VELHO' } }];
+      const commit = '2026-08-24T12:00:00.000Z'; // commitado DEPOIS da verificacao, conteudo MUDOU
+      const bundle = { 'app.jsx': 'SHA_BUNDLE_APP', 'styles.css': 'SHA_BUNDLE_STYLES' };
+      const rb = unverifiedSince(Lb, [
+        // promovido pelo bundle: sha do disco == sha do manifesto => PROVADO
+        { cowork: 'app.jsx',    lastCommitIso: commit, hashAtual: 'H_NOVO', rawSha: 'SHA_BUNDLE_APP' },
+        // consta no bundle MAS o byte no disco divergiu (remendo a mao pos-promocao) => MORDE
+        { cowork: 'styles.css', lastCommitIso: commit, hashAtual: 'H_NOVO', rawSha: 'SHA_REMENDADO' },
+        // nem consta no bundle => comportamento antigo, MORDE
+        { cowork: 'sidebar.jsx', lastCommitIso: commit, hashAtual: 'H_NOVO', rawSha: 'SHA_QUALQUER' },
+      ], bundle);
+      check('unverifiedSince: bundle promovido com sha conferido LIBERA (a rota canonica nao e acusada)',
+        !rb.mexidoDepois.some((m) => m.cowork === 'app.jsx'), JSON.stringify(rb.mexidoDepois));
+      check('BITE unverifiedSince: no bundle mas byte DIVERGENTE ainda MORDE (prova, nao isencao)',
+        rb.mexidoDepois.some((m) => m.cowork === 'styles.css'), JSON.stringify(rb.mexidoDepois));
+      check('BITE unverifiedSince: fora do bundle segue mordendo (nao virou passe livre)',
+        rb.mexidoDepois.some((m) => m.cowork === 'sidebar.jsx'), JSON.stringify(rb.mexidoDepois));
+      check('unverifiedSince: prova por bundle acusa exatamente 2 de 3',
+        rb.mexidoDepois.length === 2 && rb.ok === 1, JSON.stringify(rb));
+      // provaBundle ausente => comportamento IDENTICO ao de antes (nao-medir nao vira verde)
+      const rSem = unverifiedSince(Lb, [
+        { cowork: 'app.jsx', lastCommitIso: commit, hashAtual: 'H_NOVO', rawSha: 'SHA_BUNDLE_APP' },
+      ], null);
+      check('BITE unverifiedSince: SEM bundle o mesmo arquivo volta a morder (ausencia != prova)',
+        rSem.mexidoDepois.length === 1 && rSem.mexidoDepois[0].cowork === 'app.jsx', JSON.stringify(rSem.mexidoDepois));
+    }
     const e2 = ledgerEntry([{ cowork: 'a.css', veredito: 'SYNC', repoHash: 'H1' }], '2026-08-17T00:00:00.000Z');
     check('ledgerEntry: grava `verifiedHash` path->hash (insumo do desempate)',
       e2.verifiedHash && e2.verifiedHash['a.css'] === 'H1', JSON.stringify(e2.verifiedHash));

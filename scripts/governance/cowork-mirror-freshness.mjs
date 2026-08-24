@@ -348,9 +348,12 @@ export function ledgerEntry(rows, dateIso, meta = {}) {
  * que o §5 2026-07-12 mata. Só `MEXIDO-DEPOIS` morde, e ele nasce em 0.
  *
  * @param entries  ledger (array de ledgerEntry)
- * @param arquivos [{ cowork, lastCommitIso }] — data do último commit de cada arquivo
+ * @param arquivos [{ cowork, lastCommitIso, hashAtual, rawSha }] — data do último commit,
+ *                 hash normalizado e sha256 CRU de cada arquivo
+ * @param provaBundle {relPath: sha256} do bundle promovido (state/active-bundle.json) — 2ª
+ *                 prova de fidelidade, ver bloco PROVA POR BUNDLE no corpo. null = só ledger.
  */
-export function unverifiedSince(entries, arquivos) {
+export function unverifiedSince(entries, arquivos, provaBundle = null) {
   const runs = (Array.isArray(entries) ? entries : []).filter((e) => Array.isArray(e.verified));
   const ultimaVerificacaoDe = (cowork) => {
     let melhor = null, hash = null;
@@ -362,6 +365,26 @@ export function unverifiedSince(entries, arquivos) {
   const mexidoDepois = [], nuncaVerificado = [];
   let ok = 0;
   for (const a of arquivos) {
+    // ── PROVA POR BUNDLE (v5 · 2026-08-24) ────────────────────────────────────
+    // O docblock acima diz que o espelho "só deveria mudar por `--export-from`". Isso era
+    // verdade quando este gate nasceu e deixou de ser: o bundle v2 (`aplicar-payload
+    // --require-complete-shell`) é a ROTA PRINCIPAL da fase -1 do painel, e escreve o espelho
+    // com fidelidade provada POR CONSTRUÇÃO — o manifesto carrega o sha256 do estado-alvo lido
+    // do design vivo, e a promoção é atômica contra ele.
+    //
+    // Sem isto o gate acusa a rota canônica: em 2026-08-24 o #6178 sincronizou 71 arquivos
+    // (23 stale + 48 ausentes) com 232/232 hashes conferidos, e o gate marcou 17 como "sem
+    // prova" — porque a única prova que ele conhecia vinha do `get_file`. Um required que
+    // reprova o caminho oficial não é defesa, é parede.
+    //
+    // NÃO AFROUXA — é o mesmo conserto do falso-positivo de merge/squash (2026-08-17): admite
+    // uma 2ª prova de CONTEÚDO, nunca uma isenção. O sha do bundle tem que bater com o byte
+    // no disco; remendo à mão depois da promoção muda o sha e volta a morder. Comparação em
+    // sha256 CRU dos dois lados (é a identidade do bundle) — nunca contra o `hashAtual`, que é
+    // normalizado e mediria outra propriedade.
+    const shaBundle = provaBundle ? provaBundle[a.cowork] : null;
+    if (shaBundle && a.rawSha && shaBundle === a.rawSha) { ok++; continue; }
+
     const { data: verificadoEm, hash: hashVerificado } = ultimaVerificacaoDe(a.cowork);
     if (!verificadoEm) { nuncaVerificado.push(a.cowork); continue; }
     // sem data de commit não se afirma nada (arquivo novo não-commitado): não é achado
@@ -1130,13 +1153,37 @@ function main() {
       cowork: p.replace(`${MIRROR_REL}/`, ''),
       lastCommitIso: dataDe.get(p) || null,
       hashAtual: existsSync(join(ROOT, p)) ? contentHash(readFileSync(join(ROOT, p), 'utf8')) : null,
+      // sha256 dos BYTES (sem encoding): é a identidade que o manifesto do bundle usa.
+      rawSha: existsSync(join(ROOT, p))
+        ? createHash('sha256').update(readFileSync(join(ROOT, p))).digest('hex') : null,
     }));
 
+    // Bundle promovido = 2ª prova de fidelidade (ver PROVA POR BUNDLE em unverifiedSince).
+    // Ausente/ilegível vira `null`, e null cai no comportamento antigo (só ledger) — nunca
+    // em "verde por omissão": não-conseguir-ler não é prova (§5 2026-07-29).
+    let provaBundle = null;
+    const bundleRel = 'scripts/design-sync/state/active-bundle.json';
+    if (existsSync(join(ROOT, bundleRel))) {
+      try {
+        const b = JSON.parse(readFileSync(join(ROOT, bundleRel), 'utf8'));
+        if (Array.isArray(b.files)) {
+          provaBundle = {};
+          for (const f of b.files) if (f && f.path && f.sha256) provaBundle[f.path] = f.sha256;
+        }
+      } catch { provaBundle = null; }
+    }
+
     const ledger = existsSync(join(ROOT, LEDGER_REL)) ? JSON.parse(readFileSync(join(ROOT, LEDGER_REL), 'utf8')) : [];
-    const r = unverifiedSince(Array.isArray(ledger) ? ledger : (ledger.runs || []), arquivos);
+    const r = unverifiedSince(Array.isArray(ledger) ? ledger : (ledger.runs || []), arquivos, provaBundle);
 
     console.log(`\n  MEXEU-DEPOIS-DE-VERIFICAR — espelho vs ledger (${arquivos.length} arquivo(s) versionado(s))\n`);
     if (raso) console.log('  ⚠ clone RASO — as datas de commit medem o piso da história, não a história (§5 2026-07-24).\n');
+    // Liberação por bundle é DECLARADA: gate que libera calado é indistinguível de gate que não olhou.
+    if (provaBundle) {
+      const cobertos = arquivos.filter((a) => provaBundle[a.cowork] && a.rawSha === provaBundle[a.cowork]).length;
+      console.log(`  📦 bundle promovido cobre ${cobertos} arquivo(s) com sha256 conferido — esses contam como PROVADOS.`);
+      console.log(`     (prova de conteúdo, não isenção: byte que não bate com o manifesto volta a morder)\n`);
+    }
     if (!r.comLedger) {
       console.log('  ⬜ nenhuma rodada do ledger registra QUAIS arquivos mediu (campo `verified` nasceu em 2026-08-17).');
       console.log('     Este modo só tem sinal a partir da próxima `--compare --ledger`. Não é verde: é SEM DADO.\n');
