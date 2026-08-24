@@ -30,7 +30,8 @@ import Observacao from './Observacao';
 import {
   brl,
   estadoEstoque,
-  resumoVariacoes,
+  gradeComFuro,
+  marcadorGrade,
   margemFrac,
   ordemDisponibilidade,
   pct,
@@ -147,9 +148,22 @@ export function celulasDe(
             {/* Marcadores semânticos ficam MESMO na densidade compacta: a observação e o
                 resumo de variação mudam o que o balcão promete ao cliente. */}
             {r.obs && <Observacao produto={r} />}
-            {r.variacoes && r.variacoes.length > 0 && (
-              <span className="truncate text-[11px] leading-tight text-muted-foreground/80">
-                {resumoVariacoes(r.variacoes)}
+            {/* Marcador DERIVADO da grade (V3 §3.2), não o nome do atributo do cadastro: o
+                que o balcão precisa saber é quanto da grade vende, não como o tenant batizou
+                o eixo. Vermelho quando há furo — parte das combinações não tem saldo. */}
+            {r.grade && (
+              <span
+                className={
+                  'truncate text-[11px] leading-tight ' +
+                  (gradeComFuro(r.grade) ? 'font-medium text-destructive-fg' : 'text-muted-foreground/80')
+                }
+                title={
+                  gradeComFuro(r.grade)
+                    ? `${r.grade.total - r.grade.com} de ${r.grade.total} combinações sem saldo`
+                    : 'Todas as combinações têm saldo'
+                }
+              >
+                {marcadorGrade(r.grade)}
               </span>
             )}
           </Inline>

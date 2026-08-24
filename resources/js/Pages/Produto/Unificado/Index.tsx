@@ -83,7 +83,7 @@ import {
   CommandList,
   CommandSeparator,
 } from '@/Components/ui/command';
-import { ABAS_CATALOGO, brl, type AbaKey, type KpiKey, type Permissoes, type ProdutoRow } from './_components/catalogo';
+import { ABAS_CATALOGO, brl, linhaUrgente, type AbaKey, type KpiKey, type Permissoes, type ProdutoRow } from './_components/catalogo';
 import { celulasDe, colunasDe, larguraMinima, type ColunaKey } from './_components/Colunas';
 import KpiFiltros, { type KpisCatalogo } from './_components/KpiFiltros';
 import FiltroTrigger, { type OpcaoFiltro } from './_components/FiltroTrigger';
@@ -1034,6 +1034,8 @@ function ProdutoUnificadoIndex({
                             // ideia ("é esta"). Só vale quando NÃO há painel — com o painel
                             // aberto, "esta" é a que ele mostra.
                             const cursor = abertoId === null && ativa === i;
+                            // Derivado, nunca em estado (§13). O piso vem do servidor.
+                            const urgente = linhaUrgente(r, pisoMargem);
                             return (
                               <tr
                                 key={r.id}
@@ -1049,10 +1051,22 @@ function ProdutoUnificadoIndex({
                                   }
                                 }}
                                 className={
-                                  'border-b border-border/60 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ' +
+                                  // O trilho de 3px é PERMANENTE e transparente quando a linha
+                                  // está em ordem: reservar a largura sempre evita que a lista
+                                  // "pule" 3px conforme o recorte muda de composição.
+                                  'border-b border-border/60 border-l-[3px] cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ' +
                                   (aberta || cursor ? 'bg-[var(--idx-row-sel-bg)]' : 'hover:bg-muted/40') +
-                                  // Estado de linha: urgente quando zerado, arquivada quando inativa.
-                                  (r.stockQty === 0 ? ' bg-destructive-soft/30' : r.active ? '' : ' opacity-60')
+                                  // Trilho vermelho na borda esquerda (V3 §10.1) — é o que permite
+                                  // VARRER a lista sem ler. Cobre os TRÊS motivos de ação (sem
+                                  // saldo · abaixo do mínimo · margem sob o piso), não só o zerado.
+                                  //
+                                  // SUBSTITUI o lavado `bg-destructive-soft/30` que existia até
+                                  // 24/08: a 30% de opacidade ele não sobrevivia ao olhar de
+                                  // relance, e ainda brigava com o realce da linha aberta, que
+                                  // pinta o mesmo fundo.
+                                  (urgente ? ' border-l-destructive' : ' border-l-transparent') +
+                                  // Inativa continua esmaecida — é arquivo, não urgência.
+                                  (r.active ? '' : ' opacity-60')
                                 }
                               >
                                 {colunas.map((c) => (

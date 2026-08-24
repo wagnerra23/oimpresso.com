@@ -617,17 +617,18 @@ class ProdutoUnificadoController extends Controller
             }
         }
 
-        // Revelação progressiva (V2 §4.6 §4.7 §3.2) — TRÊS consultas, uma por dado, todas
-        // `whereIn` sobre os ids DESTA página. Não é N+1: a página tem no máximo 100 linhas,
-        // e cada consulta roda uma vez. Fazer isso dentro da subconsulta do catálogo exigiria
-        // agregar texto e local no mesmo GROUP BY que já agrega saldo — e aí o saldo total
-        // passaria a contar a mesma linha uma vez por local.
+        // Revelação progressiva (V2 §4.6 §4.7 §3.2 · V3 §3.2) — QUATRO consultas, uma por dado,
+        // todas `whereIn` sobre os ids DESTA página. Não é N+1: a página tem no máximo 100
+        // linhas, e cada consulta roda uma vez. Fazer isso dentro da subconsulta do catálogo
+        // exigiria agregar texto e local no mesmo GROUP BY que já agrega saldo — e aí o saldo
+        // total passaria a contar a mesma linha uma vez por local.
         $ids = $linhas->pluck('id')->map(fn ($v) => (int) $v)->all();
         $locais = $this->saldoPorLocal($business_id, $ids);
         $observacoes = $this->observacoes($business_id, $ids);
         $variacoes = $this->variacoes($business_id, $ids);
+        $grades = $this->gradeComSaldo($business_id, $ids);
 
-        return $linhas->map(function ($r) use ($podeVerCusto, $podeVerPreco, $podeVerBom, $limite, $locais, $observacoes, $variacoes) {
+        return $linhas->map(function ($r) use ($podeVerCusto, $podeVerPreco, $podeVerBom, $limite, $locais, $observacoes, $variacoes, $grades) {
             $estocavel = (bool) $r->enable_stock;
             $preco = (float) ($r->preco ?? 0);
             $custo = (float) ($r->custo ?? 0);
@@ -671,6 +672,12 @@ class ProdutoUnificadoController extends Controller
 
             if (isset($variacoes[(int) $r->id])) {
                 $linha['variacoes'] = $variacoes[(int) $r->id];
+            }
+
+            // Cobertura da grade (V3 §3.2). Chave ausente quando o item não tem combinação —
+            // `{com:0,total:0}` faria a linha montar um marcador que não afirma nada.
+            if (isset($grades[(int) $r->id]) && $grades[(int) $r->id]['total'] > 0) {
+                $linha['grade'] = $grades[(int) $r->id];
             }
 
             // UC-PUNI-02 / UC-PUNI-01 — a chave só existe se o usuário puder ver o valor.
@@ -826,6 +833,63 @@ class ProdutoUnificadoController extends Controller
                 'nome' => (string) $l->atributo,
                 'n' => (int) $l->n,
             ])->values()->all())
+            ->all();
+    }
+
+    /**
+     * Cobertura de saldo da grade — quantas combinações vendem, de quantas existem (V3 §3.2).
+     *
+     * É o marcador que SUBSTITUI o resumo de atributo na 2ª linha da célula Produto. O motivo
+     * está na divergência #4 do handoff V3: em produção a linha imprimia "Tamnha p-m-g (4)" —
+     * o nome do eixo como o tenant digitou, erro de digitação incluso. Repetir o rótulo do
+     * cadastro gasta a largura sem responder a pergunta do balcão, que é *quanto dessa grade eu
+     * consigo vender?*. "4 de 6 com saldo" responde, e o vermelho avisa que há furo.
+     *
+     * Uma consulta só, com o saldo por variação em subconsulta: agregá-lo no mesmo GROUP BY das
+     * combinações contaria a mesma variação uma vez por local, e o `total` sairia inflado.
+     *
+     * ⛔ Tier 0 (ADR 0093): DUAS cláusulas de escopo, não uma. `p.business_id` prende o produto;
+     * `bl.business_id` prende o saldo — pela mesma razão do `saldoPorLocal`, a linha de saldo
+     * pendura num LOCAL, e local de outro business com o mesmo `variation_id` (restore ou
+     * importação mal feita) entraria pela porta de trás e mudaria o `com`.
+     *
+     * `is_dummy = 0` mantém a definição de "tem grade" idêntica à do `variacoes()`: produto
+     * simples no UltimatePOS carrega uma variação DUMMY, e contá-la faria todo item virar
+     * "1 de 1 com saldo" — marcador em 100% das linhas não marca nada.
+     *
+     * @param  list<int>  $ids
+     * @return array<int, array{com:int,total:int}>
+     */
+    private function gradeComSaldo(int $business_id, array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $saldoPorVariacao = DB::table('variation_location_details as vld')
+            ->join('business_locations as bl', 'bl.id', '=', 'vld.location_id')
+            ->where('bl.business_id', $business_id)
+            ->groupBy('vld.variation_id')
+            ->select(['vld.variation_id', DB::raw('SUM(vld.qty_available) as qtd')]);
+
+        return DB::table('variations as v')
+            ->join('products as p', 'p.id', '=', 'v.product_id')
+            ->join('product_variations as pv', 'pv.id', '=', 'v.product_variation_id')
+            ->leftJoinSub($saldoPorVariacao, 'saldo', fn ($join) => $join->on('saldo.variation_id', '=', 'v.id'))
+            ->whereNull('v.deleted_at')
+            ->where('p.business_id', $business_id)
+            ->where('pv.is_dummy', 0)
+            ->whereIn('v.product_id', $ids)
+            ->groupBy('v.product_id')
+            ->select([
+                'v.product_id',
+                DB::raw('COUNT(DISTINCT v.id) as total'),
+                DB::raw('COUNT(DISTINCT CASE WHEN saldo.qtd > 0 THEN v.id END) as com'),
+            ])
+            ->get()
+            ->mapWithKeys(fn ($r) => [
+                (int) $r->product_id => ['com' => (int) $r->com, 'total' => (int) $r->total],
+            ])
             ->all();
     }
 

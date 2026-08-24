@@ -28,7 +28,7 @@
  */
 
 import type { ComponentType, CSSProperties } from 'react';
-import { CircleSlash, Clock, Percent, TriangleAlert } from 'lucide-react';
+import { Ban, Clock, Percent, TriangleAlert } from 'lucide-react';
 import { Inline } from '@/Components/layout';
 import type { KpiKey, Permissoes } from './catalogo';
 
@@ -75,7 +75,7 @@ export function KpiFiltros({ kpis, ativo, onToggle, perm, diasParado }: KpiFiltr
   // "Abaixo do mínimo" e "Sem saldo" valem pra TODO perfil: são a pergunta do balcão.
   const cards: Card[] = [
     { key: 'min', label: 'Abaixo do mínimo', sub: 'repor', tone: 'amber', icon: TriangleAlert, valor: kpis.min },
-    { key: 'zero', label: 'Sem saldo', sub: 'bloqueado', tone: 'rose', icon: CircleSlash, valor: kpis.zero },
+    { key: 'zero', label: 'Sem saldo', sub: 'bloqueado', tone: 'rose', icon: Ban, valor: kpis.zero },
   ];
 
   // Montado ou não montado — nunca escondido por CSS.
