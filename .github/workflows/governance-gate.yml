@@ -479,7 +479,13 @@ jobs:
               | grep -vE '\.github/scripts/pii-scan\.sh$' \
               | grep -vE '\.github/pii-scan-allowlist\.txt$' \
               | grep -vE '\.github/workflows/governance-gate\.yml$' \
-              | grep -vE '^prototipo-ui/cowork/' \
+              # `prototipo-ui/` INTEIRO, não só `cowork/` ([W] 2026-08-24: "no protótipo
+              # pode"). Protótipo é mockup/design — não roda em produção, não serve dado a
+              # ninguém, e CPF de exemplo ali é como CPF num Figma. A exclusão anterior
+              # cobria só `cowork/`, então mockup em `_arquivo/`, `prototipos/`, `fixtures/`
+              # etc. reprovava por dado sintético de tela. NÃO afrouxa o que importa:
+              # Modules/, resources/js|css/, app/, memory/ e tests/ seguem escaneados.
+              | grep -vE '^prototipo-ui/' \
               || true
           )
 
