@@ -1,6 +1,7 @@
 ---
 page: /essentials/knowledge-base
 component: resources/js/Pages/Essentials/Knowledge/Index.tsx
+bundle_source: essenciais-page.jsx
 owner: wagner
 status: draft
 last_validated: "2026-06-17"

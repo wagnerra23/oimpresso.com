@@ -3,6 +3,7 @@ id: resources-js-pages-repair-producao-oficina-index-charter
 page: /repair/producao-oficina
 component: resources/js/Pages/Repair/ProducaoOficina/Index.tsx
 related_prototype: n/a (herda PT-05 Kanban; segue o Padrão de Tela)
+bundle_source: repair-page.jsx
 owner: wagner
 status: draft
 status_detail: rascunho

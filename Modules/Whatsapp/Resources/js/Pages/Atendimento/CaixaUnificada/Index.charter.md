@@ -4,7 +4,7 @@ page: /atendimento/caixa-unificada
 component: Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx
 owner: wagner
 status: live
-last_validated: "2026-06-18"
+last_validated: "2026-08-24"
 cutover_at: "2026-05-15"
 supersedes: resources/js/Pages/Atendimento/Inbox/Index.charter.md
 parent_module: Whatsapp
@@ -20,7 +20,7 @@ related_adrs:
   - 0135-omnichannel-inbox-arquitetura
 related_charters: [resources/js/Pages/Atendimento/Inbox/Index.charter.md]
 tier: A
-charter_version: 20
+charter_version: 21
 permissao: whatsapp.access
 states: [default, dark]  # gate L2 — sync com tests/Browser/visreg-states.json (hotspot: 15 fixes visuais jun-jul/2026, 2º maior re-trabalho do mês)
 smoke: "2026-07-10 — render prod OK biz=1 (Chrome MCP, sessão WR2 Sistemas; https://oimpresso.com/atendimento/caixa-unificada: header 'Atendimento · 2 contas ativas · 2 filas · 475 abertas', lista 477 conversas reais, ChannelHealthBanner vivo 'WhatsApp — Jana está fora do ar + Reconectar canal' (US-WA-308), topnav Templates/Filas/Canais/Broadcast/Guia/+Nova conversa; 0 erro console pós-reload com tracking ativo)."
@@ -297,22 +297,38 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 
 ## Métricas vivas (Pest GUARD)
 
-| Status | Test | Arquivo |
+> **Contrato executável ao lado:** [`Index.casos.md`](Index.casos.md) — 16 UCs (`UC-CXU-01..16`)
+> derivados DESTE charter e das US do SPEC, cada um citado pelo título de um teste abaixo
+> (G-2 da [ADR 0264](../../../../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md)).
+>
+> **Onde esta suíte roda — leia antes de citar "verde".** É lane **sqlite** do CI
+> (`.github/ci-sqlite-pest.list:110`). O `beforeEach` pula por desenho fora do sqlite
+> (`era-sqlite`, quarentena Onda 2 SDD floor), então rodá-la no CT 100 em MySQL dá
+> **16 skipped (0 assertions)** — ausência de medição, não verde (LC-13). Medido 2026-08-24:
+> MySQL `16 skipped (0 assertions)` · sqlite `16 passed (129 assertions)`.
+>
+> ⚠️ **Dívida preexistente:** o id `R-WA-CAIXA-UNIF-013` está **duplicado** no arquivo de teste
+> (linhas 401 e 977, títulos distintos). Os UCs desambiguam (`UC-CXU-13` × `UC-CXU-14`);
+> renumerar o R-WA é conserto próprio, fora deste PR.
+
+| UC | Test | Arquivo |
 |---|---|---|
-| ✅ | `R-WA-CAIXA-UNIF-001 — happy path render com props básicas + queue derivada` | `Modules/Whatsapp/Tests/Feature/CaixaUnificadaControllerTest.php` |
-| ✅ | `R-WA-CAIXA-UNIF-002 — cross-tenant biz=99 invisível pra biz=1 (Tier 0)` | mesmo arquivo |
-| ✅ | `R-WA-CAIXA-UNIF-003 — user sem ACL no canal NÃO vê convs daquele canal` | mesmo arquivo |
-| ✅ | `R-WA-CAIXA-UNIF-004 — availableAssignees só lista operadores do business atual (Tier 0)` | mesmo arquivo |
-| ✅ | `R-WA-CAIXA-UNIF-005 — assign atribui/remove operador + bloqueia cross-tenant (Tier 0)` | mesmo arquivo |
-| ✅ | `R-WA-CAIXA-UNIF-006 — availableTemplates só ready (LOCAL/APPROVED) do business atual (Tier 0)` | mesmo arquivo |
-| ✅ | `R-WA-CAIXA-UNIF-007 — filas: seed lazy idempotente do config + payload lê DB + Tier 0` | mesmo arquivo |
-| ✅ | `R-WA-CAIXA-UNIF-008 — CRUD filas: store/update/destroy + default protegida + Tier 0` | mesmo arquivo |
-| ✅ | `R-WA-CAIXA-UNIF-009 — moveQueue: override vence heurística, null volta, slug inválido 422` | mesmo arquivo |
-| ✅ | `R-WA-CAIXA-UNIF-010 — startConversation: cria, reabre (não duplica) + guards canal/phone` | mesmo arquivo |
-| ✅ | `R-WA-CAIXA-UNIF-011 — broadcast pre-flight: opt-in LGPD + janela 24h + draft auditável` | mesmo arquivo |
-| ✅ | `R-WA-CAIXA-UNIF-012 — inbox AI: dry_run devolve fixture sem LLM + ACL canal fail-loud` | mesmo arquivo |
-| ✅ | `R-WA-CAIXA-UNIF-015 — canal caído entra business-wide (sem grant) + saudável fora + Tier 0` | mesmo arquivo |
-| ✅ | `R-WA-CAIXA-UNIF-013 — canal whatsmeow ativo vira chip ativo com count real (PARTE 4)` | mesmo arquivo |
+| UC-CXU-01 | `UC-CXU-01 · R-WA-CAIXA-UNIF-001 — happy path render com props básicas + queue derivada` | `Modules/Whatsapp/Tests/Feature/CaixaUnificadaControllerTest.php` |
+| UC-CXU-02 | `UC-CXU-02 · R-WA-CAIXA-UNIF-002 — cross-tenant biz=99 invisível pra biz=1 (Tier 0)` | mesmo arquivo |
+| UC-CXU-03 | `UC-CXU-03 · R-WA-CAIXA-UNIF-003 — user sem ACL no canal NÃO vê convs daquele canal` | mesmo arquivo |
+| UC-CXU-04 | `UC-CXU-04 · R-WA-CAIXA-UNIF-004 — availableAssignees só lista operadores do business atual (Tier 0)` | mesmo arquivo |
+| UC-CXU-05 | `UC-CXU-05 · R-WA-CAIXA-UNIF-005 — assign atribui/remove operador + bloqueia cross-tenant (Tier 0)` | mesmo arquivo |
+| UC-CXU-06 | `UC-CXU-06 · R-WA-CAIXA-UNIF-006 — availableTemplates só ready (LOCAL/APPROVED) do business atual (Tier 0)` | mesmo arquivo |
+| UC-CXU-07 | `UC-CXU-07 · R-WA-CAIXA-UNIF-007 — filas: seed lazy idempotente do config + payload lê DB + Tier 0` | mesmo arquivo |
+| UC-CXU-08 | `UC-CXU-08 · R-WA-CAIXA-UNIF-008 — CRUD filas: store/update/destroy + default protegida + Tier 0` | mesmo arquivo |
+| UC-CXU-09 | `UC-CXU-09 · R-WA-CAIXA-UNIF-009 — moveQueue: override vence heurística, null volta, slug inválido 422` | mesmo arquivo |
+| UC-CXU-10 | `UC-CXU-10 · R-WA-CAIXA-UNIF-010 — startConversation: cria, reabre (não duplica) + guards canal/phone` | mesmo arquivo |
+| UC-CXU-11 | `UC-CXU-11 · R-WA-CAIXA-UNIF-011 — broadcast pre-flight: opt-in LGPD + janela 24h + draft auditável` | mesmo arquivo |
+| UC-CXU-12 | `UC-CXU-12 · R-WA-CAIXA-UNIF-012 — inbox AI: dry_run devolve fixture sem LLM + ACL canal fail-loud` | mesmo arquivo |
+| UC-CXU-13 | `UC-CXU-13 · R-WA-CAIXA-UNIF-013 — canal whatsmeow ativo vira chip ativo com count real (PARTE 4)` | mesmo arquivo |
+| UC-CXU-14 | `UC-CXU-14 · R-WA-CAIXA-UNIF-013 — customerContext agrega Saldo+Histórico do contact (Tier 0) + fallback sem contact` | mesmo arquivo |
+| UC-CXU-15 | `UC-CXU-15 · R-WA-CAIXA-UNIF-014 — media_inbound_24h filtra pela relação messages (schema novo), não whatsapp_messages legacy` | mesmo arquivo |
+| UC-CXU-16 | `UC-CXU-16 · R-WA-CAIXA-UNIF-015 — canal caído entra business-wide (sem grant) + saudável fora + Tier 0` | mesmo arquivo |
 
 ---
 
@@ -357,6 +373,7 @@ Após Wagner aprovar canary 7d:
 
 | Data | Autor | Mudança |
 |---|---|---|
+| 2026-08-24 | Claude Code [C] (frente 4 — pendências de charter) | **Trio fechado: nasce o `Index.casos.md`.** A tela era a única do módulo com `.tsx` + charter e **sem** contrato executável. 16 UCs (`UC-CXU-01..16`) derivados DESTE charter (Goals · Non-Goals · Tier 0 · Anti-hooks) e das US do SPEC — **não** do `.tsx` (§5 2026-06-05, teste tautológico). Cada UC citado pelo TÍTULO de um teste (G-2 alcançável pelo manifesto, conforme recomenda o `casos:report`); os ids `R-WA-CAIXA-UNIF-*` foram **preservados** nos títulos, então nenhuma referência externa quebra. Medido: `casos:check` 110→109 violações, UCs declarados 703→719 (+16), **órfãos 12→12** (nenhum novo), metadata/STALE/G-7 = 0; os 3 modos do CI verdes. **Achado registrado:** rodar esta suíte no CT 100 em MySQL dá `16 skipped (0 assertions)` — a suíte é da lane **sqlite** (`ci-sqlite-pest.list:110`), onde dá `16 passed (129 assertions)`; a tabela abaixo trocou o `✅` atemporal por essa medição datada (LC-13 · LC-10). Charter v21. |
 | 2026-06-19 | Claude Code [CL] (rebase de #2964 · direção [W] "qualquer conta pode ver") | **Banner de saúde business-wide.** `buildUnhealthyChannelsPayload` perde o filtro ACL-de-canal (assinatura cai pra `(int $businessId)`): o alerta "seu WhatsApp caiu" aparece pra QUALQUER conta com `whatsapp.access`, não só admin `view-all-phones` — o business pode não ter grants de canal e ninguém via o banner. Tier 0 preservado por `business_id`. Pest renomeado `R-WA-CAIXA-UNIF-014 (health) → 015` (business-wide; resolve a colisão com o `014 media_inbound_24h` pré-existente no main). A parte "probe detecta provision_pending" do #2964 original foi **descartada**: o main já cobre via ADR 0287 (`decideAction` com guard `healthBefore==healthy` + supressão por inbound recente) — superior. Charter v19. |
 | 2026-06-18 | Claude Code [CL] (follow-up de #2963 · direção [W]) | **Banner de saúde movido pro topo da LISTA + layout via primitivos.** Após [W] apontar o screenshot do protótipo ("esse seria o lugar correto? mantenha íntegro"), o `ChannelHealthBanner` saiu do `Index.tsx` (full-width no topo da tela) e foi pro topo da **coluna de conversas** (renderizado por `ConversationListV4`, logo após a busca — fiel ao protótipo). Prop eager `unhealthyChannels` desce `Index → ConversationListV4 → banner`. **Também conserta o `main`:** o #2963 mergeou só o 1º commit (versão com `<div className="flex/grid">` cru) e o **layout-primitives ratchet (ADR 0253)** ficou vermelho no `main` — refeito 100% com `<Stack>`/`<Inline>` (centragem de ícone via idioma permitido `grid place-items-center`); `node scripts/layout-primitives-guard.mjs` verde. `R-WA-CAIXA-UNIF-014` (payload) intacto. Charter v18. |
 | 2026-06-18 | Claude Code [CL] (handoff Cowork [CC]→[CL] · escolha [W]) | **Redesign visual do `ChannelHealthBanner` (Cowork).** O handoff `PROMPT_PARA_CODE_CHANNEL-HEALTH-BANNER` chegou com premissa stale ("a tela não avisa") — validei vs `main` (§10.4) e o banner US-WA-308 já estava live no topo (`Index.tsx:422`), e o agregado backend (`unhealthyChannels` + `last_health_check_at`) já existia (a "Onda 4" do prompt). [W] escolheu **trocar o visual** pelo design Cowork mantendo a arquitetura: tom graduado warn/err, dispensável, resumo multi-canal e CTA Reconectar. Adaptado aos estados REAIS do `whatsmeow:health-probe` — `disconnected`/`banned` (err) + `degraded` (warn); o prompt assumia um estado `down` que o backend **nunca emite** (seria dead-code). Único arquivo de produção: `_components/ChannelHealthBanner.tsx` (mesmo prop `channels: UnhealthyChannel[]` → `Index.tsx` intocado). Cor 100% semântica (tokens `warning`/`destructive`, R1 + ADR 0281). `R-WA-CAIXA-UNIF-014` (payload) intacto. Charter v17. |

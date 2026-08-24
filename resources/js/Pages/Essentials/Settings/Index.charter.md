@@ -3,6 +3,7 @@ id: resources-js-pages-essentials-settings-index-charter
 page: /hrm/settings
 component: resources/js/Pages/Essentials/Settings/Index.tsx
 related_prototype: n/a (herda PT-02 Formulário; segue o Padrão de Tela)
+bundle_source: hrm-page.jsx
 owner: wagner
 status: draft
 last_validated: "2026-07-11"

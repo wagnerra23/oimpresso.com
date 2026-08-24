@@ -1,10 +1,11 @@
 ---
 id: requisitos-compras-compras-grade-matrix-gap
 tela: GradeMatrixInput (bloco "Adicionar item à compra" — NÃO é tela completa)
-prototipo: prototipo-ui/prototipos/compras-grade-matrix/ (page.jsx · page.css · NOTES.md)
+prototipo: prototipo-ui/cowork/compras-grade-matrix.jsx # ponteiro corrigido 2026-08-24 — ver "Atualização" no corpo
+tela_viva: resources/js/Pages/Purchase/_components/GradeMatrixInput.tsx # caller e backend por parte no .map.json
 tela_viva_alvo_no_prompt: resources/js/Pages/Compras/Index.tsx
-tela_viva_real_equivalente: resources/js/Pages/Compras/components/GradeMatrixInput.tsx (componente órfão) + resources/js/Pages/Purchase/Create.tsx (form real, ainda linha-a-linha)
-paridade_atual: "componente 80% · integração viva 0%"
+tela_viva_real_equivalente: resources/js/Pages/Purchase/_components/GradeMatrixInput.tsx # path corrigido 2026-08-24 — o de Pages/Compras/components/ não existe no HEAD, e o componente deixou de ser órfão (ver Atualização abaixo)
+paridade_atual: "componente 80% · integração viva 0% — MEDIDO EM 2026-06-23; a integração foi entregue depois (ver Atualização abaixo). Número vivo: memory/requisitos/Compras/compras-grade-matrix.map.json"
 gerado_em: 2026-06-23
 governanca: READ-ONLY map (Fase 1 aplicar-prototipo). Nenhum código tocado. Charter /compras v2 declara GradeMatrixInput inline COMO ANTI-HOOK no cockpit (vive em Purchase/Create ou futuro Compras/Create).
 related_adrs: [104, 107, 114, 93, 149]
@@ -12,6 +13,37 @@ related_us: [US-COM-005]
 ---
 
 # GAP-SPEC — GradeMatrixInput (compra matricial tam × cor)
+
+> ## ⚠️ Atualização 2026-08-24 — os 2 bloqueantes "G" deste gap FORAM ENTREGUES
+>
+> **A análise abaixo é de 2026-06-23 e fica preservada como registro datado** — mas dois
+> vereditos dela ("componente órfão", "integração viva 0%", "backend inexistente") **não
+> descrevem mais o HEAD**. Medido hoje, com o arquivo e a linha:
+>
+> | O que o gap dizia faltar | Onde está hoje |
+> |---|---|
+> | caller (nenhuma tela importa o componente) | `resources/js/Pages/Purchase/Create.tsx:26` importa e monta em `:459-466` — é o caller C1 que a própria charter mandava |
+> | seletor de modelo + custo + botão adicionar | `Purchase/Create.tsx`: `GradeProductCombobox` (`:430`), custo unitário (`:440-448`), "Adicionar à compra (N un)" (`:454-457`) |
+> | endpoint de grade de variações | `GET /purchases/grade-matrix` (`routes/web.php:574`) → `PurchaseController@gradeMatrix` (`:1490`) → `app/Services/Purchase/GradeLayoutBuilder.php` |
+> | isolamento Tier 0 no endpoint | `PurchaseController.php:1496-1502` — `business_id` da sessão + `firstOrFail()` (cross-tenant → 404) |
+> | Pest da grade | `Modules/Compras/Tests/Feature/PurchaseCalculoValorEstoqueE2ETest.php:243-278` |
+>
+> **Continua aberto** (conferido no código, não deduzido): swatch HEX da cor e highlight
+> verde de célula preenchida (o `GradeCol` vivo, `GradeMatrixInput.tsx:27-32`, nem tem
+> campo `hex`), quick-fill de coluna, e a semântica de `Esc` (protótipo limpa a grade,
+> vivo chama `onCancel`). O estado por parte, com âncora dos dois lados, está em
+> [`compras-grade-matrix.map.json`](compras-grade-matrix.map.json) — que é a fonte viva;
+> esta tabela é o resumo datado de hoje.
+>
+> **Duas pegadinhas do frontmatter, anotadas pra quem editar depois:** (1) o valor de
+> `prototipo:` é varrido INTEIRO por `resolverArquivosPrototipo` (regex global de token com
+> extensão), então **um path citado no comentário entra no `prototipo_sha`** — a 1ª versão
+> desta correção citava o `prototipos/…/page.jsx` na explicação e o map nasceu STALE por isso.
+> Comentário nessa chave não menciona arquivo. (2) o sha do GERADOR sai do `prototipo:`, mas o
+> do VERIFICADOR (`design-code-map-check` / `consumir-map`) sai dos `partes[].prototipo.arquivo`
+> — listar na chave um arquivo que **nenhuma parte ancora** (era o caso do `.css`) faz os dois
+> discordarem e o map nasce STALE sem nada ter mudado. Os dois conjuntos têm que bater.
+
 
 ## Correção de alvo (importante)
 

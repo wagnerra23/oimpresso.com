@@ -3,6 +3,7 @@ id: resources-js-pages-essentials-messages-index-charter
 page: /essentials/messages
 component: resources/js/Pages/Essentials/Messages/Index.tsx
 related_prototype: n/a (mural de chat bespoke — bolhas de mensagem + composer com polling; não segue um dos 5 Padrões de Tela)
+bundle_source: essenciais-page.jsx
 owner: wagner
 status: draft
 last_validated: "2026-07-11"

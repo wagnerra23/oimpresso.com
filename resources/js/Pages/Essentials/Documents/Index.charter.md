@@ -3,6 +3,7 @@ id: resources-js-pages-essentials-documents-index-charter
 page: /essentials/document
 component: resources/js/Pages/Essentials/Documents/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
+bundle_source: essenciais-page.jsx
 owner: wagner
 status: draft
 last_validated: "2026-07-11"

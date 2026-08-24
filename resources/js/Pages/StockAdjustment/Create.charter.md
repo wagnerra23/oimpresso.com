@@ -3,6 +3,7 @@ id: resources-js-pages-stock-adjustment-create-charter
 page: /stock-adjustments/create
 component: resources/js/Pages/StockAdjustment/Create.tsx
 related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)
+bundle_source: estoque-page.jsx
 tela: stock_adjustment/create
 tipo: FORM CREATE
 modulo: Inventory / StockAdjustment
