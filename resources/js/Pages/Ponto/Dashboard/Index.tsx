@@ -10,7 +10,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Link, router } from '@inertiajs/react';
 import { useEffect, type ReactNode } from 'react';
-import { ArrowRight, AlertTriangle, CheckCheck } from 'lucide-react';
+import { ArrowRight, AlertTriangle, CheckCheck, ShieldCheck } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { cn, formatMinutes } from '@/Lib/utils';
@@ -34,6 +34,10 @@ interface Kpis {
   aprovacoes_pendentes: number;
   /** Dias em DIVERGENCIA na competência — alimenta `painel-nota-fechamento`. */
   divergencias_mes: number;
+  /** Pendentes com prioridade URGENTE — legenda do KPI de aprovações. */
+  aprovacoes_urgentes: number;
+  /** H:i da última marcação de hoje (null se ainda não houve). */
+  ultima_marcacao: string | null;
 }
 
 interface Aprovacao {
@@ -42,6 +46,9 @@ interface Aprovacao {
   prioridade: string;
   data_inicio: string | null;
   data_fim: string | null;
+  dia_todo: boolean;
+  intervalo_inicio: string | null;
+  intervalo_fim: string | null;
   justificativa: string;
   estado: string;
   created_at: string | null;
@@ -50,6 +57,8 @@ interface Aprovacao {
 
 interface Marcacao {
   id: number;
+  /** Numero Sequencial de Registro por REP (Portaria MTP 671/2021). */
+  nsr: number | null;
   tipo: string;
   momento: string | null;
   momento_completo?: string | null;
@@ -95,6 +104,8 @@ interface Props {
    * `<Deferred data="..." fallback={skeleton}>`.
    */
   kpis?: Kpis;
+  /** EAGER (config, zero query) — fora do `only` do polling. */
+  config_clt: { tolerancia_diaria_minutos: number; limite_he_diaria_horas: number };
   aprovacoes?: Aprovacao[];
   atividade_recente?: Marcacao[];
   serie_7dias?: SeriePonto[];
@@ -171,6 +182,7 @@ function NotaSkeleton() {
 
 export default function DashboardIndex({
   kpis,
+  config_clt,
   aprovacoes,
   atividade_recente,
   serie_7dias,
@@ -229,6 +241,7 @@ export default function DashboardIndex({
             <KpiCard
               label="Colaboradores ativos"
               value={kpis?.colaboradores_ativos ?? 0}
+              description="com controle de ponto"
               icon="users"
               tone="info"
               size="compact"
@@ -237,34 +250,51 @@ export default function DashboardIndex({
             <KpiCard
               label="Presentes agora"
               value={kpis?.presentes_agora ?? 0}
+              description={
+                kpis?.ultima_marcacao
+                  ? `última marcação ${kpis.ultima_marcacao}`
+                  : 'nenhuma marcação hoje'
+              }
               icon="user-check"
               tone="success"
               size="compact"
+              onClick={() => router.visit('/ponto/espelho')}
             />
             <KpiCard
               label="Atrasos hoje"
               value={kpis?.atrasos_hoje ?? 0}
+              description={`além da tolerância de ${config_clt.tolerancia_diaria_minutos} min`}
               icon="clock-alert"
               tone={(kpis?.atrasos_hoje ?? 0) > 0 ? 'warning' : 'default'}
               size="compact"
+              onClick={() => router.visit('/ponto/espelho')}
             />
             <KpiCard
               label="Faltas hoje"
               value={kpis?.faltas_hoje ?? 0}
+              description="sem marcação e sem intercorrência"
               icon="user-x"
               tone={(kpis?.faltas_hoje ?? 0) > 0 ? 'danger' : 'default'}
               size="compact"
+              onClick={() => router.visit('/ponto/espelho')}
             />
             <KpiCard
               label="HE do mês"
               value={formatMinutes(kpis?.he_mes_minutos ?? 0)}
+              description={`limite ${config_clt.limite_he_diaria_horas}h/dia (Art. 59)`}
               icon="trending-up"
               tone="info"
               size="compact"
+              onClick={() => router.visit('/ponto/banco-horas')}
             />
             <KpiCard
               label="Aprovações pendentes"
               value={kpis?.aprovacoes_pendentes ?? 0}
+              description={
+                (kpis?.aprovacoes_urgentes ?? 0) > 0
+                  ? `${kpis?.aprovacoes_urgentes} urgente${(kpis?.aprovacoes_urgentes ?? 0) > 1 ? 's' : ''}`
+                  : 'nada urgente'
+              }
               icon="check-check"
               tone={(kpis?.aprovacoes_pendentes ?? 0) > 0 ? 'danger' : 'default'}
               size="compact"
@@ -306,7 +336,12 @@ export default function DashboardIndex({
                   <CardTitle className="text-base flex items-center gap-1.5">
                     <CheckCheck size={16} className="text-primary" /> Fila de aprovações
                   </CardTitle>
-                  <CardDescription className="text-xs">Intercorrências pendentes</CardDescription>
+                  {/* Contagem vem de `kpis.aprovacoes_pendentes`, NAO de `aprovacoes.length`:
+                      a fila e limitada a 5 no controller, entao o length mentiria a partir
+                      da 6a pendencia. */}
+                  <CardDescription className="text-xs">
+                    ({kpis?.aprovacoes_pendentes ?? 0} pendentes)
+                  </CardDescription>
                 </div>
                 <Button variant="ghost" size="sm" asChild>
                   <Link href="/ponto/aprovacoes" className="text-xs">
@@ -343,6 +378,19 @@ export default function DashboardIndex({
             </Deferred>
           </div>
         </div>
+
+        {/* Rodapé legal — `<Legal />` do protótipo (`prototipo-ui/cowork/ponto-ui.jsx`).
+            Não é decoração: o painel é a home de um módulo cujo dado é regido pela
+            Portaria MTP 671/2021, e a imutabilidade append-only é a razão de várias
+            coisas da tela não serem editáveis. Dizer isso onde o gestor olha evita a
+            pergunta "por que não dá pra corrigir a marcação aqui?". */}
+        <Inline gap={2} asChild>
+          <p className="text-xs text-muted-foreground pt-1">
+            <ShieldCheck size={13} aria-hidden />
+            Registros protegidos pela Portaria MTP 671/2021 — marcações são imutáveis
+            (append-only).
+          </p>
+        </Inline>
       </div>
     </>
   );
@@ -447,9 +495,18 @@ function ApprovalRow({ item }: { item: Aprovacao }) {
         <div className="flex items-center gap-1.5">
           <span className="text-sm font-medium truncate">{item.colaborador.nome}</span>
           <StatusBadge kind="prioridade" value={item.prioridade} />
+          {/* ESTADO — o protótipo tem coluna própria pra ele. Sem isto a fila mostra
+              o que é urgente mas não em que ponto da decisão cada item está. */}
+          <StatusBadge kind="intercorrencia" value={item.estado} />
         </div>
         <p className="text-xs text-muted-foreground truncate">
           {item.tipo.replace(/_/g, ' ').toLowerCase()} · {item.data_inicio}
+          {' · '}
+          {item.dia_todo
+            ? 'dia todo'
+            : item.intervalo_inicio
+              ? `${item.intervalo_inicio}–${item.intervalo_fim ?? '??'}`
+              : '—'}
         </p>
         <p className="text-[10px] text-muted-foreground">{item.created_at}</p>
       </div>

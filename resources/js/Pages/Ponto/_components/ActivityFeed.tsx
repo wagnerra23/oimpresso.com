@@ -16,6 +16,8 @@ import { cn } from '@/Lib/utils';
  */
 interface Marcacao {
   id: number;
+  /** NSR — Numero Sequencial de Registro por REP (Portaria MTP 671/2021). */
+  nsr?: number | null;
   tipo: string;
   momento: string | null; // H:i
   momento_completo?: string | null;
@@ -124,6 +126,14 @@ export default function ActivityFeed({ marcacoes, title = 'Atividade de hoje', e
                   <div className="flex items-baseline justify-between gap-2 text-xs text-muted-foreground">
                     <span className="truncate">
                       <span className={cfg.colorClass}>{cfg.label}</span>
+                      {/* NSR — identificador legal da marcacao (Portaria MTP 671/2021).
+                          E por ele que se amarra a linha do AFD ao evento; o prototipo
+                          o mostra aqui, entre o tipo e a origem. */}
+                      {m.nsr != null && (
+                        <span className="ml-1.5 opacity-70 font-mono tabular-nums">
+                          · NSR {m.nsr}
+                        </span>
+                      )}
                       {m.rep.identificador && (
                         <span className="ml-1.5 opacity-70">· {m.rep.identificador}</span>
                       )}
