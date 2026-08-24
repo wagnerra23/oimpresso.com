@@ -5,6 +5,8 @@ owner: wagner
 status: draft
 last_validated: "2026-07-11"
 parent_module: Arquivos
+related_us: [US-ARQ-013]
+related_adrs: [0123-modules-arquivos-backbone, 0093-multi-tenant-isolation-tier-0, 0360-deprecacao-admin-center-supersede-0122]
 related_prototype: prototipo-ui/cowork/arquivos-page.jsx
 tier: B
 charter_version: 1
