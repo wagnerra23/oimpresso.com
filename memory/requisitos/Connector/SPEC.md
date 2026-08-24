@@ -6,7 +6,7 @@ last_updated: "2026-08-03"
 status: ativo
 owner: wagner
 na_justified:
-  D4.c: "Connector é REST API externa pra clientes Delphi consumirem (zero UI Inertia/Blade próprias por design). CHARTER-rest-api-external.md documenta o contrato. Penalizar por 0 tsx não faz sentido — é módulo backend-only."
+  D4.c: "Connector é REST API externa pra clientes Delphi consumirem — zero UI Inertia própria (0 tsx). Existe UMA tela Blade de admin (clients/index.blade.php — OAuth clients), cuja migração é a US-CONN-014; enquanto ela não fecha, penalizar por 0 tsx não faz sentido. CHARTER-rest-api-external.md documenta o contrato."
   D6.a: "Connector é REST API JSON-only — Inertia::defer N/A por design."
   D7.a: "PII em payloads REST passa via Passport auth — PiiRedactor aplicado em logs HTTP errors do TrustedDevicesMiddleware."
 related_adrs: [0153-module-grade-rubrica-v1, 0154-module-grade-v2-na-justificado]
@@ -141,6 +141,101 @@ mergulhar no código, e os clientes em migração dependem do Connector. O próp
 - Payloads, responses e ordem dos middlewares legados permanecem byte/semanticamente compatíveis.
 - Audiência e URL são decididas explicitamente antes de qualquer publicação.
 - Felipe/Maiara completam uma jornada de suporte usando a documentação, com evidência de smoke.
+
+### US-CONN-014 · [EPIC] Migrar a tela Conector (API) de Blade para Inertia (MWART)
+
+> owner: [W] · priority: p2 · estimate: 2h · status: todo · type: epic
+> blocked_by: —
+
+**Implementado em:** _pendente_ — F1 PLAN entregue ([RUNBOOK-connector-index.md](RUNBOOK-connector-index.md));
+nenhuma linha de runtime foi alterada.
+
+**Escopo:** a ÚNICA tela viva do módulo — `clients/index.blade.php` (96 linhas), servida por
+`ClientController@index` em `/connector/client`. Medido 2026-08-24: das 5 views referenciadas
+pelos controllers, só essa existe em disco (ver RUNBOOK §10.3).
+
+**Fora de escopo:** as 3 vistas novas do protótipo (`docs`, `saude`, `modulo`) — são capacidade
+nova, não migração. Entram por US própria se [W] decidir.
+
+**Sinal (ADR 0105):** o sidebar novo ([W] 2026-08) declara `connector` como item do
+`SUPERADMIN_MENU` com 3 ghosts, o que pressupõe a tela em Inertia. O
+[CHARTER](CHARTER-rest-api-external.md) já previa "futuro UI admin".
+
+**DoD:** as 6 subtasks abaixo fechadas, nesta ordem.
+
+### US-CONN-015 · F2 — Pest baseline do ClientController antes de tocar
+
+> owner: [F] · priority: p2 · estimate: 1h · status: todo · type: story
+> blocked_by: US-CONN-014
+
+**Implementado em:** _pendente_
+
+**DoD:**
+- ≥5 fixtures cobrindo `index` e `store`.
+- Cross-tenant: client de outro `business_id` NÃO aparece (o filtro é `LEFT JOIN users` — `oauth_clients` não tem `business_id` próprio).
+- Sem `superadmin` → 403.
+- `APP_ENV=demo` → tabela some.
+- Token Passport nunca real (Regra Tier 0 do módulo).
+
+### US-CONN-016 · F2 — Dual render + feature flag + comando artisan
+
+> owner: [F] · priority: p2 · estimate: 1h · status: todo · type: story
+> blocked_by: US-CONN-015
+
+**Implementado em:** _pendente_
+
+**DoD:**
+- `ClientController@index` devolve `Inertia::render('Connector/Index')` só com header `X-Inertia` E flag ligada; senão Blade.
+- Flag default OFF em `pos_settings`.
+- `connector:enable-v2 <biz>` liga/desliga em menos de 30s.
+
+### US-CONN-017 · F2 — Mapa de paridade campo-a-campo
+
+> owner: [F] · priority: p2 · estimate: 30min · status: todo · type: story
+> blocked_by: US-CONN-016
+
+**Implementado em:** _pendente_
+
+**DoD:**
+- `index-parity.md` pelo [template](../_DesignSystem/PARITY-TEMPLATE.md), toda coluna do Blade com linha e severidade.
+- Divergências propostas registradas como proposta, NÃO aplicadas: mascarar `secret` e confirmar antes de excluir (RUNBOOK §10.2 e §10.5) são decisão [W].
+
+### US-CONN-018 · F3 — Tela Pages/Connector/Index.tsx
+
+> owner: [F] · priority: p2 · estimate: 2h · status: todo · type: story
+> blocked_by: US-CONN-017
+
+**Implementado em:** _pendente_
+
+**DoD:**
+- PT-01 Lista, 6 slots canônicos; ≤300 LOC; audit ≥70.
+- Persistent layout AppShellV2; tokens semânticos (zero cor crua).
+- Criação por modal/drawer — a rota `create` não é usada hoje (RUNBOOK §10.4).
+- Estados `default`/`empty`/`demo`/`loading` conforme RUNBOOK §5.
+
+### US-CONN-019 · F4 — QA hardening + smoke real
+
+> owner: [W] · priority: p2 · estimate: 1h · status: todo · type: story
+> blocked_by: US-CONN-018
+
+**Implementado em:** _pendente_
+
+**DoD:**
+- Audit ≥80, CRITICAL=0, WARN=0.
+- Cada item de severidade `alta` da paridade com teste de comportamento citando o UC.
+- Smoke real com status HTTP colado (R1) — narração não conta.
+
+### US-CONN-020 · F5 — Cutover e sunset do Blade
+
+> owner: [W] · priority: p3 · estimate: 30min · status: todo · type: story
+> blocked_by: US-CONN-019
+
+**Implementado em:** _pendente_
+
+**DoD:**
+- Flag ON — sem janela de aviso (admin de plataforma, sem cliente externo; MWART F0).
+- 30 dias sem incidente antes de remover `clients/index.blade.php` e o dual render.
+- Ao remover, reavaliar `na_justified.D4.c` no frontmatter: com tela Inertia viva a justificativa de N/A por "0 tsx" deixa de valer, e isso MUDA a nota do módulo — decisão [W].
 
 ## Pegadinhas catalogadas
 
