@@ -172,6 +172,25 @@ runs:
             DB::table('users')->where('id', \$uid2)->update(['business_id'=>2]);
             echo 'seed biz2=2 user='.\$uid2.PHP_EOL;
           }
+          // ponto_colaborador_config pro tenant 1 (2026-08-24). Sem esta linha, os testes
+          // do Ponto que precisam de um colaborador chamam markTestSkipped — e skip sai
+          // com exit 0. Medido no run 32675937702 da ponto-pest: 2 casos de imutabilidade
+          // append-only (Portaria 671/2021) SKIPAVAM em CI enquanto passavam no CT100, que
+          // tem a linha. Guard Tier 0 que nao roda e protecao anunciada, nao exercida.
+          //
+          // Guardado por hasTable: a tabela so existe depois das migrations do Modules/Ponto.
+          // As 3 colunas obrigatorias (NOT NULL sem default) sao business_id, user_id e
+          // admissao — verificadas contra o schema real antes de escrever isto, porque um
+          // insert malformado aqui quebraria as 16 lanes que compartilham este seed.
+          // Aditivo: nenhum teste do repo assume esta tabela vazia (varredura contada).
+          if (Illuminate\\Support\\Facades\\Schema::hasTable('ponto_colaborador_config')
+              && ! DB::table('ponto_colaborador_config')->where('business_id', 1)->exists()) {
+            \$u1 = optional(DB::table('users')->where('business_id', 1)->first())->id;
+            if (\$u1) {
+              DB::table('ponto_colaborador_config')->insert(['business_id'=>1,'user_id'=>\$u1,'admissao'=>now()->toDateString(),'created_at'=>now(),'updated_at'=>now()]);
+              echo 'seed ponto_colaborador_config biz=1 user='.\$u1.PHP_EOL;
+            }
+          }
           DB::statement('SET FOREIGN_KEY_CHECKS=0'); // conta usa account_id fake (sem row em accounts)
           \$bizId = optional(DB::table('business')->where('id', 98)->first())->id ?: optional(DB::table('business')->first())->id;
           if (\$bizId && ! \Modules\Financeiro\Models\ContaBancaria::query()->where('business_id',\$bizId)->exists()) {

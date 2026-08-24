@@ -30,11 +30,11 @@ last_run_ci: "0 UC executado por mim. O bump de last_run é REVALIDAÇÃO DE LEI
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-ESPSHOW-01 | Dia com divergência de apuração aparece sinalizado | must `[V0]` | `CU-PONTO-02` + CLT Art. 66/71 | `EspelhoContratoTest` | 🧪 **vermelho ESPERADO** (predição) |
-| UC-ESPSHOW-02 | Espelho cobre todos os dias do mês, não só os com marcação | must | `CU-PONTO-01` + Blade | `EspelhoContratoTest` | 🧪 sem veredito |
-| UC-ESPSHOW-03 | Marcação anulada não conta como jornada | must | `CU-PONTO-13` + Portaria 671/2021 | `EspelhoContratoTest` | 🧪 sem veredito |
-| UC-ESPSHOW-04 | Espelho de colaborador de outro empregador → 404 | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `EspelhoContratoTest` | 🧪 sem veredito |
-| UC-ESPSHOW-05 | Totais e linhas chegam sob demanda, sem quebrar o contrato | should | `CU-PONTO-01` + charter §Automation hooks | `EspelhoContratoTest` | 🧪 sem veredito |
+| UC-ESPSH-01 | Dia com divergência de apuração aparece sinalizado | must `[V0]` | `CU-PONTO-02` + CLT Art. 66/71 | `EspelhoContratoTest` | 🧪 **vermelho ESPERADO** (predição) |
+| UC-ESPSH-02 | Espelho cobre todos os dias do mês, não só os com marcação | must | `CU-PONTO-01` + Blade | `EspelhoContratoTest` | 🧪 sem veredito |
+| UC-ESPSH-03 | Marcação anulada não conta como jornada | must | `CU-PONTO-13` + Portaria 671/2021 | `EspelhoContratoTest` | 🧪 sem veredito |
+| UC-ESPSH-04 | Espelho de colaborador de outro empregador → 404 | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `EspelhoContratoTest` | 🧪 sem veredito |
+| UC-ESPSH-05 | Totais e linhas chegam sob demanda, sem quebrar o contrato | should | `CU-PONTO-01` + charter §Automation hooks | `EspelhoContratoTest` | 🧪 sem veredito |
 
 **[BACKLOG]** (contrato em 1 fonte só — vira UC quando ganhar 2ª âncora e teste):
 
@@ -46,7 +46,7 @@ last_run_ci: "0 UC executado por mim. O bump de last_run é REVALIDAÇÃO DE LEI
 
 ---
 
-## UC-ESPSHOW-01 · Dia com divergência de apuração aparece sinalizado · `must` `[V0]`
+## UC-ESPSH-01 · Dia com divergência de apuração aparece sinalizado · `must` `[V0]`
 
 - **Persona:** RH/DP (P2) fechando a folha do mês. Se um dia violou a interjornada de 11h (Art. 66) ou
   não concedeu a intrajornada (Art. 71 §4º), o RH **precisa ver** antes de fechar — depois vira passivo.
@@ -54,7 +54,7 @@ last_run_ci: "0 UC executado por mim. O bump de last_run é REVALIDAÇÃO DE LEI
   registrou pelo menos uma entrada em `divergencias[]`) · Quando abro o espelho daquele colaborador
   naquele mês · Então o espelho **informa que existe pelo menos 1 dia divergente** e **marca aquele dia**
   na tabela dia-a-dia.
-- **Teste:** `Modules/Ponto/Tests/Feature/EspelhoContratoTest.php` — `UC-ESPSHOW-01`.
+- **Teste:** `Modules/Ponto/Tests/Feature/EspelhoContratoTest.php` — `UC-ESPSH-01`.
 - **Contrato:** `CU-PONTO-02` (SDD §6.1) · US-PONTO-005 (aceitação cita Art. 66 e Art. 71 §4º) ·
   `ApuracaoService::addDivergencia()` → `estado = ESTADO_DIVERGENCIA` · Blade legada
   `espelho/show.blade.php` contava por `$ap->estado === 'DIVERGENCIA'` e pintava a linha `bg-warning`.
@@ -77,13 +77,13 @@ last_run_ci: "0 UC executado por mim. O bump de last_run é REVALIDAÇÃO DE LEI
 
 ---
 
-## UC-ESPSHOW-02 · Espelho cobre todos os dias do mês, não só os com marcação · `must`
+## UC-ESPSH-02 · Espelho cobre todos os dias do mês, não só os com marcação · `must`
 
 - **Persona:** RH conferindo ausências. Um dia **sem** marcação é informação — é falta, folga ou feriado.
   Se a tabela pula o dia vazio, a ausência fica invisível.
 - **Aceite:** Dado um mês de referência · Quando abro o espelho · Então a tabela dia-a-dia traz **uma
   linha para cada dia do mês** (28/29/30/31 conforme o mês), inclusive dias sem marcação e sem apuração.
-- **Teste:** `EspelhoContratoTest.php` — `UC-ESPSHOW-02`.
+- **Teste:** `EspelhoContratoTest.php` — `UC-ESPSH-02`.
 - **Contrato:** `CU-PONTO-01` · charter §Goals (*"Tabela dia-a-dia (todos os dias do mês)"*) ·
   paridade Blade (a legada iterava o mês inteiro).
 - **Regressão que defende:** trocar o loop de calendário por um `foreach` sobre as apurações existentes
@@ -92,13 +92,13 @@ last_run_ci: "0 UC executado por mim. O bump de last_run é REVALIDAÇÃO DE LEI
 
 ---
 
-## UC-ESPSHOW-03 · Marcação anulada não conta como jornada · `must`
+## UC-ESPSH-03 · Marcação anulada não conta como jornada · `must`
 
 - **Persona:** auditor MTE (P4) / RH. A correção legal de uma marcação errada **não apaga** o registro —
   cria uma marcação de anulação. Mas a anulada não pode continuar contando como se fosse jornada.
 - **Aceite:** Dado um colaborador com marcação de origem de **anulação** no mês · Quando abro o espelho ·
   Então essa marcação **não** aparece entre as marcações do dia.
-- **Teste:** `EspelhoContratoTest.php` — `UC-ESPSHOW-03`.
+- **Teste:** `EspelhoContratoTest.php` — `UC-ESPSH-03`.
 - **Contrato:** `CU-PONTO-13` (SDD §6.5) · US-PONTO-008 (*"para corrigir: criar marcação com
   `origem=ANULACAO`"*) · Portaria MTP 671/2021 (imutabilidade) ·
   [proibicoes.md](../../../../../memory/proibicoes.md) (*"append-only por força de lei"*).
@@ -108,12 +108,12 @@ last_run_ci: "0 UC executado por mim. O bump de last_run é REVALIDAÇÃO DE LEI
 
 ---
 
-## UC-ESPSHOW-04 · Espelho de colaborador de outro empregador → 404 · `must` `[T0]`
+## UC-ESPSH-04 · Espelho de colaborador de outro empregador → 404 · `must` `[T0]`
 
 - **Persona:** plataforma multi-tenant. Jornada é dado sensível (LGPD Art. 7º II + sigilo trabalhista).
 - **Aceite:** Dado um id de colaborador que **não** pertence ao meu business · Quando acesso
   `/ponto/espelho/{id}` · Então recebo **404** — nunca 200 com dado de outro empregador, nunca 500.
-- **Teste:** `EspelhoContratoTest.php` — `UC-ESPSHOW-04`.
+- **Teste:** `EspelhoContratoTest.php` — `UC-ESPSH-04`.
 - **Contrato:** `CU-PONTO-12` · US-PONTO-007 · [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) ·
   charter §Non-Goals (*"Não expõe colaborador de outro tenant"*).
 - **Regressão que defende:** `EspelhoController@show` escapa por `Colaborador::where('business_id')->findOrFail()`.
@@ -130,14 +130,14 @@ last_run_ci: "0 UC executado por mim. O bump de last_run é REVALIDAÇÃO DE LEI
 
 ---
 
-## UC-ESPSHOW-05 · Totais e linhas chegam sob demanda, sem quebrar o contrato · `should`
+## UC-ESPSH-05 · Totais e linhas chegam sob demanda, sem quebrar o contrato · `should`
 
 - **Persona:** RH em conexão lenta. O cabeçalho do colaborador aparece na hora; os números pesados
   (9 agregações + até 31 linhas) chegam logo depois — mas **chegam**.
 - **Aceite:** Dado o espelho de um colaborador · Quando faço a primeira requisição · Então o cabeçalho do
   colaborador já vem resolvido; e quando peço explicitamente os dados diferidos · Então os totalizadores
   e as linhas do mês chegam completos.
-- **Teste:** `EspelhoContratoTest.php` — `UC-ESPSHOW-05`.
+- **Teste:** `EspelhoContratoTest.php` — `UC-ESPSH-05`.
 - **Contrato:** `CU-PONTO-01` · charter §Automation hooks (*"`Inertia::defer` nas props `totais` e
   `linhas`"*) · [RUNBOOK-inertia-defer-pattern](../../../../../memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md).
 - **Regressão que defende:** `defer` mal aplicado degrada de duas formas opostas — ou tudo volta eager
@@ -176,7 +176,7 @@ acesso à rota.
 
 - ⛔ `CPF`/`PIS` **nunca** em log, PR, commit ou screenshot de evidência (`PiiRedactor` / `[REDACTED]`).
 - ⛔ `business_id` escopado: o espelho de colaborador de outro empregador é **404**, e isso tem teste
-  (`UC-ESPSHOW-04` `[T0]`).
+  (`UC-ESPSH-04` `[T0]`).
 - A defesa continua sendo **quem entra na rota**, não o que a tela esconde.
 
 

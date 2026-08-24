@@ -14,7 +14,7 @@ use Modules\Jana\Entities\Mensagem;
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
- * UC-COPI-CHAT-12 — o card da conversa recebe `preview` e `ultima_em`.
+ * UC-JCHAT-12 — o card da conversa recebe `preview` e `ultima_em`.
  *
  * ── DE ONDE VEM O CONTRATO ──────────────────────────────────────────────────
  * Do protótipo `prototipo-ui/cowork/jana-merge.jsx` §`JmConversa`, que desenha o
@@ -103,7 +103,7 @@ function chatPreviewConversas($teste, $user): array
     return json_decode($resposta->getContent(), true)['props']['conversas'] ?? [];
 }
 
-it('UC-COPI-CHAT-12 — `preview` traz a ÚLTIMA mensagem, não a primeira', function () {
+it('UC-JCHAT-12 — `preview` traz a ÚLTIMA mensagem, não a primeira', function () {
     $dono = \App\User::query()->where('business_id', 98)->first();
 
     if (! $dono) {
@@ -131,7 +131,7 @@ it('UC-COPI-CHAT-12 — `preview` traz a ÚLTIMA mensagem, não a primeira', fun
     expect($card['ultima_em'])->not->toBeNull();
 });
 
-it('UC-COPI-CHAT-12 — conversa SEM mensagem devolve preview nulo, não string vazia nem erro', function () {
+it('UC-JCHAT-12 — conversa SEM mensagem devolve preview nulo, não string vazia nem erro', function () {
     $dono = \App\User::query()->where('business_id', 98)->first();
 
     if (! $dono) {
@@ -156,7 +156,7 @@ it('UC-COPI-CHAT-12 — conversa SEM mensagem devolve preview nulo, não string 
     expect($card['ultima_em'])->toBeNull();
 });
 
-it('UC-COPI-CHAT-12 — o preview colapsa quebra de linha e corta em uma linha', function () {
+it('UC-JCHAT-12 — o preview colapsa quebra de linha e corta em uma linha', function () {
     $dono = \App\User::query()->where('business_id', 98)->first();
 
     if (! $dono) {

@@ -64,6 +64,31 @@ const copiarLibGovernanca = (sb) => {
   if (existsSync(src)) cpSync(src, join(sb, 'scripts', 'governance', 'lib'), { recursive: true });
 };
 
+// casos-results-collect --new-reds-vs resolve o manifesto por cwd → sandbox temp, igual aos
+// irmãos. Carrega a dep scripts/lib/uc-regex.mjs (import module-relative do coletor).
+//
+// CONTROLE DO 3º ESTADO: além de good/bad, este runner exige que referência ausente saia
+// exit 2 (NÃO MEDI) e nunca 0/1 — o §5 2026-08-14 (`ds-mirror-drift`) proíbe colapsar
+// "não consegui medir" em "regrediu". Sem esta asserção, um refactor poderia transformar
+// não-medição em "0 vermelhos novos" e o auto-merge passaria a aterrissar às cegas.
+function runCasosNewReds(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-casos-new-reds-${kind}-`));
+  try {
+    cpSync(join(FIX, 'casos-new-reds', kind), sb, { recursive: true });
+    mkdirSync(join(sb, 'scripts', 'lib'), { recursive: true });
+    cpSync(join(ROOT, 'scripts', 'lib', 'uc-regex.mjs'), join(sb, 'scripts', 'lib', 'uc-regex.mjs'));
+    const alvo = join(sb, 'scripts', 'casos-results-collect.mjs');
+    cpSync(script('casos-results-collect', 'scripts/casos-results-collect.mjs'), alvo);
+
+    // 3º estado, sempre: referência que não existe TEM que dar 2.
+    const semRef = runNode(alvo, ['--new-reds-vs', join(sb, 'nao-existe.json')], sb);
+    if (semRef.status !== 2) {
+      return { status: 99, stdout: '', stderr: `controle do 3º estado FALHOU: ref ausente saiu ${semRef.status}, esperado 2 (NÃO MEDI)` };
+    }
+    return runNode(alvo, ['--new-reds-vs', join(sb, 'ref-main.json')], sb);
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
 // sdd-scorecard mede via cwd (e exec'a knowledge-drift relativo a ele) → sandbox temp
 // com a fixture + os scripts REAIS copiados. Fixture em git fica só dados.
 function runScorecard(kind) {
@@ -535,6 +560,17 @@ const CATRACAS = [
     run: (kind) => runNode(script('refuter-canary-check', 'scripts/governance/refuter-canary-check.mjs'),
       ['--check', join(FIX, 'refuter-canary', kind, 'refutacao.json')], ROOT),
     expect: { good: /sem Goodhart/, bad: /GOODHART|APROVOU/ },
+  },
+  {
+    // Decide o auto-merge do casos-results-publish.yml: só segura o manifesto quando o
+    // veredito traz vermelho NOVO. Antes o predicado era vermelho ABSOLUTO (`fail == 0`) e,
+    // com 9 UCs do Produto herdados de main, ficou permanentemente falso — PR #5813 passou
+    // 9 dias sem aterrissar 320 UCs (medido 2026-08-24). good = vermelho só herdado (exit 0,
+    // aterrissa); bad = UC que era verde virou vermelho (exit 1, segura). O terceiro estado
+    // (exit 2 = não medi) tem controle próprio no runner abaixo.
+    id: 'casos-new-reds',
+    run: runCasosNewReds,
+    expect: { good: /nenhum vermelho novo/, bad: /VERMELHO NOVO vs referência: UC-FIX-01/ },
   },
   {
     id: 'sdd-scorecard',

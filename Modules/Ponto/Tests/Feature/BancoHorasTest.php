@@ -16,13 +16,33 @@ class BancoHorasTest extends PontoTestCase
 
         $this->assertInertiaComponent($response, 'Ponto/BancoHoras/Index');
 
+        // ── CONTRATO DEFER (corrigido 2026-08-24) ────────────────────────────────
+        // Este caso afirmava que as props caras vinham no PRIMEIRO render. Elas NAO
+        // vem: o Controller as entrega via `Inertia::defer` (RUNBOOK-inertia-defer-pattern
+        // + proibicoes.md §Sempre-fazer), e prop deferida ausente do payload inicial E o
+        // ponto do padrao. O irmao `DashboardDeferredContractTest (do Dashboard)` PROVA o defer e passava
+        // verde ao lado deste — os dois no mesmo modulo, contradizendo-se, porque NENHUM
+        // rodava em lane. Medido no CT100 em 2026-08-23.
+        //
+        // Agora o caso prova o contrato de verdade, nos DOIS lados: ausente no eager,
+        // presente e bem-formado no partial reload.
         $props = $response->json('props');
-        $this->assertArrayHasKey('saldos', $props);
-        $this->assertArrayHasKey('totais', $props);
+        // `saldos` e `totais` sao Inertia::defer no BancoHorasController
+        $this->assertArrayNotHasKey('saldos', $props);
+        $this->assertArrayNotHasKey('totais', $props);
+
+        $partial = $this->inertiaPartialGet(
+            '/ponto/banco-horas',
+            ['saldos', 'totais'],
+            'Ponto/BancoHoras/Index'
+        );
+        $partial->assertStatus(200);
+        $resolvidas = $partial->json('props');
+        $this->assertArrayHasKey('saldos', $resolvidas);
 
         $this->assertEqualsCanonicalizing(
             ['credito_total', 'debito_total', 'colaboradores_credito', 'colaboradores_debito'],
-            array_keys($props['totais'])
+            array_keys($resolvidas['totais'])
         );
     }
 

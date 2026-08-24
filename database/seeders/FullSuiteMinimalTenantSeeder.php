@@ -63,6 +63,31 @@ class FullSuiteMinimalTenantSeeder extends Seeder
             DB::table('users')->where('id', $uid)->update(['business_id' => $bid]);
         }
 
+        // biz=98 — TENANT CANONICO DE TESTE (decisao [W] 2026-07-28 · ADR 0358). Empresa
+        // FICTICIA: biz=1 e WR2 Sistemas (empresa REAL) e o CT100 persiste entre runs, entao
+        // semear teste em biz=1 suja o espelho dela.
+        //
+        // POR QUE ESTE BLOCO EXISTE (medido 2026-08-24): este seeder e o UNICO caminho do
+        // self-healing (TestCase::healCanonicalTenantIfWiped) e criava so biz=1/biz=2, enquanto
+        // o write-side (.github/actions/pest-mysql-setup + scripts/tests/ct100-fullsuite.sh)
+        // passou a semear 98 em 2026-07-28. Com a divergencia, o migrate:fresh do primeiro
+        // RefreshDatabase apaga 98 e ele NAO volta — 23 falhas FK "Cannot add or update a child
+        // row" nos arquivos do floor da nightly 20260824, crescendo por shard (1,8,8,10,17,27,29,5
+        // = degradacao progressiva do DB compartilhado). O docblock desta classe promete
+        // "espelha ct100-fullsuite.sh"; de 2026-07-28 ate aqui, nao espelhava.
+        if (! DB::table('business')->where('id', 98)->exists()) {
+            $uid98 = DB::table('users')->insertGetId([
+                'first_name' => 'CI Tenant98', 'username' => 'ci_admin_t98', 'password' => bcrypt('ci'),
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            DB::table('business')->insert([
+                'id' => 98, 'name' => 'CI Tenant 98 (ficticio)', 'currency_id' => $curId, 'owner_id' => $uid98,
+                'stop_selling_before' => 0, 'weighing_scale_setting' => '', 'certificado' => '',
+                'officeimpresso_numerodemaquinas' => 0, 'created_at' => now(), 'updated_at' => now(),
+            ]);
+            DB::table('users')->where('id', $uid98)->update(['business_id' => 98]);
+        }
+
         if (! DB::table('business')->where('id', 2)->exists()) {
             $uid2 = DB::table('users')->insertGetId([
                 'first_name' => 'CI Biz2', 'username' => 'ci_admin_b2', 'password' => bcrypt('ci'),
