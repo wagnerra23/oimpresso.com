@@ -1,6 +1,7 @@
 ---
 page: /essentials/reminder
 component: resources/js/Pages/Essentials/Reminders/Index.tsx
+bundle_source: essenciais-page.jsx
 owner: wagner
 status: draft
 last_validated: "2026-05-17"

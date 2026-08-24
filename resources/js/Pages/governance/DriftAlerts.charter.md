@@ -1,6 +1,7 @@
 ---
 page: /governance/drift
 component: resources/js/Pages/governance/DriftAlerts.tsx
+bundle_source: governance-page.jsx
 owner: wagner
 status: live
 last_validated: "2026-05-16"
