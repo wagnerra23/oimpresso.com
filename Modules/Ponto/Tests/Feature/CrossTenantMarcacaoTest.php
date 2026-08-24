@@ -88,6 +88,22 @@ it('marcacao biz=99 nao retorna em SELECT scoped biz=1', function () {
 it('count agregado biz=99 nao soma marcacoes de biz=1', function () {
     $colab = ctmEnsureColab(CTM_BIZ_WAGNER);
 
+    // DELTA, nao valor absoluto (corrigido 2026-08-24).
+    //
+    // O assert era `expect($totalBiz99)->toBe(0)`. Ele passava por ACIDENTE: os casos
+    // biz=99 deste arquivo skipavam (fixture ausente), entao ninguem nunca inseria la com
+    // este marcador. Ao criar a fixture do tenant ficticio, o caso do bulk passou a inserir
+    // 4 — e como o marcador e COMPARTILHADO entre os casos do arquivo, este aqui passou a
+    // enxergar sobra dependendo da ORDEM (Pest roda em ordem aleatoria). Reprovou no CI
+    // com `4 is identical to 0` e passou no CT100 na mesma rodada: a marca de flaky.
+    //
+    // O que a isolacao de fato afirma nao e "biz=99 esta zerado" — e "inserir em biz=1 nao
+    // aumenta biz=99". Medir o DELTA diz exatamente isso, e e imune a ordem e a sobra.
+    $biz99Antes = DB::table('ponto_marcacoes')
+        ->where('business_id', CTM_BIZ_FICTICIO)
+        ->where('ip', CTM_MARCADOR)
+        ->count();
+
     // Insere 5 marcacoes biz=1
     for ($i = 0; $i < 5; $i++) {
         ctmInsertMarcacao(CTM_BIZ_WAGNER, $colab);
@@ -98,7 +114,7 @@ it('count agregado biz=99 nao soma marcacoes de biz=1', function () {
         ->where('ip', CTM_MARCADOR)
         ->count();
 
-    expect($totalBiz99)->toBe(0);
+    expect($totalBiz99)->toBe($biz99Antes);
 
     $totalBiz1 = DB::table('ponto_marcacoes')
         ->where('business_id', CTM_BIZ_WAGNER)

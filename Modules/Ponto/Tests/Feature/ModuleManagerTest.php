@@ -108,13 +108,36 @@ class ModuleManagerTest extends TestCase
         $spec = $gen->inspect('Boleto');
 
         $this->assertFalse($spec['exists_in_current'], 'Boleto não existe em 6.7-react');
-        // Mas deve estar presente em alguma branch antiga (se o git estiver acessível)
-        if (!empty($spec['branch_presence'])) {
-            $this->assertTrue(
-                $spec['branch_presence']['main-wip-2026-04-22'] ?? false ||
-                $spec['branch_presence']['origin/3.7-com-nfe'] ?? false,
-                'Boleto deve estar em main-wip ou 3.7-com-nfe'
+
+        // A guarda `!empty(...)` NAO bastava (corrigido 2026-08-24). O CI faz checkout RASO:
+        // as branches historicas nao existem, entao `branch_presence` vem preenchido com
+        // `false`/`null` pra todas — nao-vazio, mas sem informacao. O assert entao exigia
+        // presenca numa branch que o ambiente nao tem, e reprovava por AUSENCIA DE MEDICAO,
+        // nao por ausencia do modulo. Medido no run 32719806595.
+        //
+        // O irmao `ModuleSpecBranchPresenceTest` ja resolveu isso do jeito certo: afirma a
+        // INVARIANTE (`null` ⟺ branch ausente) via `branchesAusentes()`, que vale nos dois
+        // ambientes. Mesmo idioma aqui — se nenhuma das duas branches esta acessivel, nao ha
+        // o que afirmar, e dizer isso e mais honesto que inventar um veredito.
+        $ausentes = $gen->branchesAusentes();
+        $candidatas = ['main-wip-2026-04-22', 'origin/3.7-com-nfe'];
+        $medidas = array_values(array_diff($candidatas, $ausentes));
+
+        if ($medidas === []) {
+            $this->markTestSkipped(
+                'Nenhuma das branches historicas esta acessivel (checkout raso) — '
+                .'sem medicao nao ha veredito sobre onde o Boleto ficou.'
             );
         }
+
+        $achouEmAlguma = false;
+        foreach ($medidas as $branch) {
+            $achouEmAlguma = $achouEmAlguma || (bool) ($spec['branch_presence'][$branch] ?? false);
+        }
+
+        $this->assertTrue(
+            $achouEmAlguma,
+            'Boleto deveria estar em ao menos uma das branches MEDIDAS: '.implode(', ', $medidas)
+        );
     }
 }
