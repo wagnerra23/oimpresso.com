@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **902 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **909 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -22,6 +22,7 @@
 | [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
 | [`Crm`](#crm) | 23 | 0 | 0 | 0 | 23 |
 | [`Fiscal`](#fiscal) | 23 | 0 | 0 | 0 | 23 |
+| [`Connector`](#connector) | 20 | 0 | 0 | 0 | 20 |
 | [`Pcp`](#pcp) | 20 | 0 | 0 | 0 | 20 |
 | [`Vestuario`](#vestuario) | 19 | 0 | 0 | 0 | 19 |
 | [`Compras`](#compras) | 18 | 0 | 0 | 0 | 17 |
@@ -32,7 +33,6 @@
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
 | [`Comissao`](#comissao) | 14 | 0 | 0 | 0 | 14 |
 | [`Ponto`](#ponto) | 14 | 0 | 0 | 0 | 14 |
-| [`Connector`](#connector) | 13 | 0 | 0 | 0 | 13 |
 | [`Mwart`](#mwart) | 13 | 0 | 0 | 0 | 13 |
 | [`PaymentGateway`](#paymentgateway) | 13 | 0 | 0 | 0 | 13 |
 | [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
@@ -708,6 +708,32 @@
 - **US-FISCAL-019** — Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
 - **US-FISCAL-020** — Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
 
+## Connector
+
+
+### todo
+
+- **US-CONN-013** — Documentar a API Connector em OpenAPI 3.0 sem expor dados reais _(`p0` · @[F])_
+- **US-CONN-014** — [EPIC] Migrar a tela Conector (API) de Blade para Inertia (MWART) _(`p2` · @[W])_
+- **US-CONN-015** — F2 — Pest baseline do ClientController antes de tocar _(`p2` · @[F])_
+- **US-CONN-016** — F2 — Dual render + feature flag + comando artisan _(`p2` · @[F])_
+- **US-CONN-017** — F2 — Mapa de paridade campo-a-campo _(`p2` · @[F])_
+- **US-CONN-018** — F3 — Tela Pages/Connector/Index.tsx _(`p2` · @[F])_
+- **US-CONN-019** — F4 — QA hardening + smoke real _(`p2` · @[W])_
+- **US-CONN-020** — F5 — Cutover e sunset do Blade _(`p3` · @[W])_
+- **US-CONN-001** — Auth Passport `auth:api` bloqueia anônimo
+- **US-CONN-002** — Sync Delphi via `/processa-dados-cliente`
+- **US-CONN-003** — Registrar WR Comercial via `/oimpresso/registrar`
+- **US-CONN-004** — Check-update via `/check-update`
+- **US-CONN-005** — REST CRUD `/contactapi`
+- **US-CONN-006** — REST CRUD `/product`
+- **US-CONN-007** — REST CRUD `/sell` (vendas)
+- **US-CONN-008** — REST `/business-location` (filiais)
+- **US-CONN-009** — REST `/taxonomy` + `/brand`
+- **US-CONN-010** — REST `/user`
+- **US-CONN-011** — Sync `salvar-cliente` + `salvar-equipamento/{business_id}`
+- **US-CONN-012** — CRM API (`crm/follow-ups`, `crm/leads`)
+
 ## Pcp
 
 
@@ -945,25 +971,6 @@
 - **US-PONTO-011** — Fechar o append-only do ledger de banco de horas
 - **US-PONTO-012** — Corrigir os atributos fantasma do modulo (4 instancias)
 - **US-PONTO-013** — Consertar as duas telas que nao persistem
-
-## Connector
-
-
-### todo
-
-- **US-CONN-013** — Documentar a API Connector em OpenAPI 3.0 sem expor dados reais _(`p0` · @[F])_
-- **US-CONN-001** — Auth Passport `auth:api` bloqueia anônimo
-- **US-CONN-002** — Sync Delphi via `/processa-dados-cliente`
-- **US-CONN-003** — Registrar WR Comercial via `/oimpresso/registrar`
-- **US-CONN-004** — Check-update via `/check-update`
-- **US-CONN-005** — REST CRUD `/contactapi`
-- **US-CONN-006** — REST CRUD `/product`
-- **US-CONN-007** — REST CRUD `/sell` (vendas)
-- **US-CONN-008** — REST `/business-location` (filiais)
-- **US-CONN-009** — REST `/taxonomy` + `/brand`
-- **US-CONN-010** — REST `/user`
-- **US-CONN-011** — Sync `salvar-cliente` + `salvar-equipamento/{business_id}`
-- **US-CONN-012** — CRM API (`crm/follow-ups`, `crm/leads`)
 
 ## Mwart
 
