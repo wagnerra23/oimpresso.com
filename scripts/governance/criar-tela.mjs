@@ -38,7 +38,14 @@ import { detectSignals, REQUIRED } from './lib/pt-signatures.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..', '..');
-const HOJE = '2026-07-11'; // sem Date.now() (determinismo/resume); bumpe ao reusar o gerador.
+
+// Data de GERAÇÃO em BRT (o fuso do time e o mesmo do `git log %cs` das máquinas daqui).
+// NÃO é "quando o teste rodou": é quando o trio foi carimbado — que é exatamente o evento
+// que o G-6 do casos-gate compara contra a data de commit do .tsx (scripts/casos-coverage-guard.mjs).
+// Até 2026-08-24 isto era `const HOJE = '2026-07-11'` fixo, nunca bumpado desde #4111: todo
+// trio nascia com `last_run` 44+ dias no passado e, pelo G-6, STALE no PR que o criou.
+// O selftest não asserta sobre a data, então a geração dinâmica não o torna instável.
+const hojeBRT = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
 
 const PT_META = {
   'PT-01': { nome: 'Lista', arquetipo: 'DataTable + PageHeader + filtros' },
@@ -296,6 +303,18 @@ function detectarPrototipoDoModulo(mod, root = ROOT) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TEMPLATE do charter (herda o PT — related_prototype "n/a (herda PT-0X…)")
+//
+// SEM `last_validated:` de propósito. A tela nasce `status: draft` — ninguém validou nada
+// ainda, e campo que o gerador não sabe preencher fica AUSENTE, nunca com placeholder
+// (decisão [W] aceita em 2026-08-11 · proposal `templates-8-artefatos-ANEXO`, que nomeia
+// `last_validated` entre os 7 campos). O campo é opcional no schema canônico
+// (scripts/memory-schemas/charter.schema.json — só page/component/status são required), e quem
+// escreve a data é a skill `charter-write` quando o charter sobe draft→live.
+//
+// Fato datado: até 2026-08-24 este arquivo carimbava `last_validated: "2026-07-11"` fixo —
+// nascido junto com o gerador (#4111, 2026-07-11) e nunca bumpado nos 3 commits seguintes que
+// o tocaram (#4875, #5512, #5777), de modo que toda tela nova afirmava uma validação que não
+// houve. A ausência também preserva o determinismo que motivou a constante.
 // ─────────────────────────────────────────────────────────────────────────────
 function charterTemplate(pt, mod, tela, componentRel, protoDecl) {
   return `---
@@ -303,7 +322,6 @@ page: /TODO-rota
 component: ${componentRel}
 owner: wagner
 status: draft
-last_validated: "${HOJE}"
 parent_module: ${mod}
 related_prototype: ${protoDecl ?? `n/a (herda ${pt} ${PT_META[pt].nome}; segue o Padrão de Tela)`}
 tier: B
@@ -362,7 +380,7 @@ irmaos: ${tela}.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "${HOJE}"
+last_run: "${hojeBRT()}"
 ---
 
 # Casos de Uso & Aceite — ${mod}/${tela}
@@ -386,7 +404,7 @@ last_run: "${HOJE}"
 - **[BACKLOG]** TODO: próximo caso.
 
 ## Trilha do tempo
-- ${HOJE} · [CC] carimbado por criar-tela.mjs — trio nascido junto (charter + casos + teste). Refs: UI-0013 · ADR 0264 G-1/G-2.
+- ${hojeBRT()} · [CC] carimbado por criar-tela.mjs — trio nascido junto (charter + casos + teste). Refs: UI-0013 · ADR 0264 G-1/G-2.
 `;
 }
 
@@ -469,11 +487,21 @@ if (process.argv.includes('--selftest')) {
     t(REQUIRED[pt](sig), `${pt}: tsx carimbado PASSA no pt-conformance (assinatura ${PT_META[pt].nome})`);
     t(/related_prototype:.*PT-0[1-5]/.test(conj.charter), `${pt}: charter declara o Padrão de Tela`);
     t(/status:\s*draft/.test(conj.charter), `${pt}: charter nasce draft (exige screenshot Wagner)`);
+    t(!/^last_validated:/m.test(conj.charter), `${pt}: charter NÃO afirma validação (draft nasce SEM last_validated)`);
     t(/^## UC-[A-Z]+-01/m.test(conj.casos), `${pt}: casos.md tem UC stub (contrato de teste)`);
     const ucMatch = conj.casos.match(/## (UC-[A-Z]+-01)/);
     t(ucMatch && conj.teste.includes(ucMatch[1]), `${pt}: stub de teste cita o UC (G-2 rastreabilidade)`);
     t(/test\.fixme/.test(conj.teste), `${pt}: stub de teste é fixme (não quebra CI)`);
   }
+  // Controle positivo da sonda acima: um `!regex` verde também fica verde se o regex for cego.
+  // Aqui provo que ele CASA quando o campo EXISTE (proibicoes §5 2026-08-01).
+  const charterComCampo = `---
+status: draft
+last_validated: "2026-01-01"
+---`;
+  t(/^last_validated:/m.test(charterComCampo),
+    'controle-positivo: a sonda de `last_validated` CASA quando o campo existe');
+
   // ── CODE CONNECT em tempo de geração (degrau dtc-code-connect-geracao) ──────
   // BITE: o registry VENCE o path declarado no template. Passo um declarado sabidamente
   // errado — se o retorno ainda for o do registry, a injeção é real (e não decoração).
