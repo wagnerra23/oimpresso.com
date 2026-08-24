@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-22**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-24**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **351**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **356**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -145,13 +145,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **383** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 347 · superseded: 16 · deprecated: 13 · proposto: 5 · rascunho: 1 · recusado: 1.
+- **384** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 347 · superseded: 16 · deprecated: 13 · proposto: 6 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 140 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 142 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -294,6 +294,8 @@ lente: [construir]
 - ~~2026-08-21 — `/tmp` não é o mesmo diretório para o Bash e para o Node no Windows: dois arquivos, mesmo caminho escrito~~
 - ~~2026-08-21 — A mensagem do `--live-only` dizia "`.md` NÃO desce" 11h depois de o MESMO arquivo passar a descê-los (e o PR que a tornou falsa tinha o arquivo aberto)~~
 - ~~2026-08-21 — DUAS rotas de baixar o espelho, sem hierarquia no instrumento que a sessão lê — e escolhi a inferior um dia depois da lápide que já tinha corrigido isso~~
+- ~~2026-08-23 — `git cat-file -e <ref>:<path>` responde "não existe" para todo path que começa com `.` — e o diagnóstico que eu ia registrar ("clone parcial") era FALSO~~
+- ~~2026-08-23 — Estender o P4 do `block-sonda-que-mente` pra pegar o pattern vindo de VARIÁVEL de shell (MEDIDO: 93,7% de falso-positivo)~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -304,14 +306,14 @@ lente: [construir]
 
 ## Rastro
 
-- **468** handoffs · **639** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **471** handoffs · **644** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-08-23-protocolo-code-design-testes-regressao`
+  - `2026-08-23-bundle-design-transacional-manifesto-delta`
+  - `2026-08-22-arte-fidelidade-prototipo-producao`
+  - `2026-08-22-arte-escala-centenas-de-telas`
+  - `2026-08-22-arte-agentes-ia-ui-guardrails`
   - `2026-08-20-visreg-narrativa-do-comentario`
-  - `2026-08-20-backup-migracao-ondas-0-a-3`
-  - `2026-08-20-acessos-roles-comissionados-backend`
-  - `2026-08-18-visreg-manifesto-cobertura-vs-escalonamento`
-  - `2026-08-18-design-sync-truncado-preview-fail-closed`
-  - `2026-08-18-design-sync-runtime-completo-drawers`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-22 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-24 · deriva das fontes canônicas, não as substitui._
