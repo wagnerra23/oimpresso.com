@@ -260,7 +260,13 @@ export function ledgerCitacoesSecao5(text) {
       // Ocorrências (excluir Ref/corpo) evita contaminar o frontier com data de METADATA —
       // ex.: o Ref do LC-08 diz "raio-X 2026-07-20", que NÃO é recibo e falseava o frontier
       // pra 07-20 (bug pego pelo dry-run contado — a razão de o dry-run ser obrigatório).
-      if (!/\*\*Ocorr/i.test(ln)) continue;
+      // `**rec**` = recibo em LINHA PRÓPRIA (2026-08-24). O formato antigo empilhava todos os
+      // recibos DENTRO da linha `**Ocorrências:**`, e ela chegou a 359.699 bytes no LC-08 —
+      // 70% do arquivo numa linha só, ilegível por qualquer leitor (humano, `sed`, agente).
+      // Os dois formatos são aceitos: `**Ocorr…` (legado, não se reescreve em massa) e `**rec**`
+      // (novo, 1 por linha). A CONTAGEM segue só na linha `**Ocorrências:** N` — `**rec**` não
+      // casa `/\*\*Ocorr/`, então não interfere no parser de count acima.
+      if (!/\*\*Ocorr/i.test(ln) && !/^\s*-\s+\*\*rec\*\*/i.test(ln)) continue;
       if (!/§5|proibicoes/i.test(ln)) continue;
       const s = saneiaLinhaRecibo(ln);
       for (const m of s.matchAll(/(?:\d{4}-)?(\d{2})-(\d{2})\b/g)) {

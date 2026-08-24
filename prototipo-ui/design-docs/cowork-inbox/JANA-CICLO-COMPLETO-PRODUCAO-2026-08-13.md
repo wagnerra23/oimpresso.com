@@ -146,11 +146,11 @@ git diff config/eslint-baseline.json   # confirmar que SÓ a linha 234 mudou pra
 **3. `Chat.tsx:90-92` → token** — `facil/realista/ambicioso` são status de domínio: `success`/`warning`/`destructive`. Depois destes dois passos o teste `rg … → rc=1` fecha o módulo inteiro.
 
 **4. Criar `Jana/Index.casos.md`** (destrava #4 e #5 do ciclo). O `TESTE_RE` do gate exige ref a `tests/` · `Modules/**/Tests/` · `e2e/` · `*.spec.ts` · `*Test.php` em qualquer linha. Os UCs saem prontos do contrato — cada seção já é um caso com estado declarado:
-   - `UC-JPAIN-01` empty state (**hoje é o estado real de 100% dos tenants** — 0 metas em qualquer business, medido 2026-08-09)
-   - `UC-JPAIN-02` meta sem apuração → "Aguardando apuração…" (nunca zero como resultado)
-   - `UC-JPAIN-03` sparkline sem série → "Sem histórico"
-   - `UC-JPAIN-04` farol vem do servidor; payload sem `farol` degrada pra `cinza` (o `farolDaMeta()` já é isso — teste **de contrato**, o fallback está no charter §Anti-hooks)
-   - `UC-JPAIN-05` escopo `business_id` (Tier 0, ADR 0093)
+   - `UC-COPI-PAINEL-01` empty state (**hoje é o estado real de 100% dos tenants** — 0 metas em qualquer business, medido 2026-08-09)
+   - `UC-COPI-PAINEL-02` meta sem apuração → "Aguardando apuração…" (nunca zero como resultado)
+   - `UC-COPI-PAINEL-03` sparkline sem série → "Sem histórico"
+   - `UC-COPI-PAINEL-04` farol vem do servidor; payload sem `farol` degrada pra `cinza` (o `farolDaMeta()` já é isso — teste **de contrato**, o fallback está no charter §Anti-hooks)
+   - `UC-COPI-PAINEL-05` escopo `business_id` (Tier 0, ADR 0093)
    > ⚠️ O `nudge-test-contract-anchor` só dispara em `*Test.php` — se o teste for `.spec.ts`, **não há nudge**. A regra vale igual: ancore a assertiva no contrato (contrato de tela / charter / ADR), não no que o componente já faz. Teste tautológico trava o drift em vez de pegá-lo.
 
 **5. `related_prototype` — decisão, não wiring** ⚖️ **[W]**

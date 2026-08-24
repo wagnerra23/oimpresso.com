@@ -872,6 +872,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** não re-propor **nenhuma** forma de "fazer caber em 1 linha ganhando espaço horizontal" pra rótulo de KPI em grid densa — fonte menor, tracking menor, padding menor, ícone menor, ícone realocado. A aritmética não fecha em **nenhuma** viewport: mesmo a 2560 o container tem `max-width` ~1232px, o card fica com 195px e o rótulo com 133px < 157px. O que resolve é **deixar quebrar** (`min-w-0 break-words`, rótulo em 2 linhas) + a grid **respeitar a largura** (6 colunas só em `2xl`). Corolário de método, e é o que o `truncate` escondia: **`min-w-0` não é enfeite** — sem ele o flex não encolhe abaixo do min-content e a palavra longa **vaza pra fora do card** (medi 8px de vazamento). Segundo corolário: `truncate` em texto que é **contrato** é defeito por construção — esconder a violação não é acomodá-la.
 
+### 2026-08-24 — Declarar "a tela nao renderiza" medindo o DOM durante o lazy-load (li 552, o real era 2218)
+
+- **O limite (variante tambem proibida):** nao afirmar estado de UI a partir de UMA leitura sincrona logo apos `reload`/`navigate`/`click`. Vale pra `innerText`, `querySelector`, contagem de elementos, `getComputedStyle` e screenshot. Antes de qualquer veredito: **esperar o sinal de fim que a propria app publica** (aqui `oi:lazy-done`; noutras, `load`, `networkidle`, um `data-ready`), **ou** ler DUAS vezes com intervalo e so concluir se o numero **nao mudou**. Numero que ainda esta subindo nao e medida, e retrato de meio-caminho — mesma familia do §5 2026-08-13 (uma leitura de fonte que serve retrato atrasado): la a fonte estava atrasada, aqui a PAGINA estava, e nos dois casos a defesa e a mesma, reler antes de cravar.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
