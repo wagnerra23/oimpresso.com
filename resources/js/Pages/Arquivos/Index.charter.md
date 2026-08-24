@@ -22,6 +22,13 @@ charter_version: 1
 > deprecou o Admin Center. O docblock de `DataController` e o protótipo F1 ainda dizem
 > "Admin Center" — são a fonte **stale**, e o PR-1 corrige o docblock.
 
+> **O `.tsx` ainda NAO existe — e isso e proposital.** O `component:` acima e o DESTINO,
+> nao um arquivo presente. A tela nasce na onda 1, derivada do protótipo
+> `prototipo-ui/cowork/arquivos-page.jsx` (580 linhas, 4 vistas completas, ja no `main`),
+> com rota, conteudo real e baseline de pixel fotografada do app rodando. Um stub com TODO
+> no PR-0 forcaria uma baseline de placeholder — e baseline e a referencia contra a qual todo
+> PR futuro e comparado, entao uma falsa e pior que nenhuma.
+
 ## Mission
 
 Arquivos guarda coisa que a lei manda guardar (XML de NF-e por 5 anos) junto com coisa que a
