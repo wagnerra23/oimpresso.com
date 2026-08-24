@@ -1,0 +1,79 @@
+{
+  "_nota": "Contrato de Tela de Arquivos/Index (4 vistas: acervo · retenção · cofre · trilha). A tela AINDA NÃO EXISTE em produção — a rota /arquivos entra no PR-1 (onda 1, US-ARQ-013). Até lá este contrato FALHA por construção (o alvo é o stub do criar-tela.mjs, sem âncoras data-contract), igual ao EXEMPLO.contract.json. Ele vira verde conforme as ondas instrumentam cada seção. Os ids abaixo são os data-contract REAIS declarados na fonte (13 dos 14): 'onde-mora' foi omitido de propósito — é andaime de protótipo sobre onde a tela mora, decisão já tomada por [W] em 2026-07-29 (ADR 0360, tela em resources/js/Pages/Arquivos/), e não deve chegar em produção. O rascunho do Cowork (cowork-inbox/modulos-faltantes/arquivos.contract.json) listava uma seção 'confirmar-exclusao' que não tem âncora na fonte; ela saiu, e a confirmação de exclusão é coberta pelos casos de uso da onda 2.",
+  "tela": "Arquivos/Index",
+  "fonte": "prototipo-ui/cowork/arquivos-page.jsx",
+  "alvo": ["resources/js/Pages/Arquivos/Index.tsx"],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": ["Arquivos", "arquivos", "no cofre cifrado", "Auditoria"]
+    },
+    {
+      "id": "abas",
+      "copy": ["Acervo", "Retenção", "Cofre", "Trilha"]
+    },
+    {
+      "id": "acervo-filtros",
+      "copy": ["Todos", "sensitive", "common", "public", "Buscar por nome, dono ou contexto…"],
+      "estados": ["todos", "filtrado"]
+    },
+    {
+      "id": "acervo",
+      "copy": ["Arquivo", "Onde está preso", "Classificação", "Disco", "Tamanho", "Vence em", "Baixar", "Excluir", "órfão", "vault", "prazo vencido"],
+      "estados": ["normal", "vazio", "filtrado-vazio", "orfao", "vence-em-30d"]
+    },
+    {
+      "id": "retencao-kpis",
+      "copy": ["Vence em 30 dias", "Vence em 90 dias", "No grace period", "Passou do prazo", "e não foi deletado"]
+    },
+    {
+      "id": "avisos-titular",
+      "copy": ["Aviso ao titular pendente", "LGPD Art. 18 §VI", "Avisar titular"],
+      "estados": ["com-pendencia", "sem-pendencia"]
+    },
+    {
+      "id": "grace",
+      "copy": ["No grace period", "Restaurar", "Apagar agora"],
+      "estados": ["vazio", "com-item", "quente"]
+    },
+    {
+      "id": "retencao-politica",
+      "copy": ["Contexto", "Prazo", "Base legal", "Arquivos", "XML de NF-e", "XML de NFS-e", "Documentos fiscais", "Contratos", "Foto de reparo", "Anexo de OS", "Anexo de ticket", "Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8", "CTN Art. 173 — prescrição tributária", "CDC Art. 27 (cíveis decenais por override)", "LGPD Art. 15-16 — eliminação tempestiva"]
+    },
+    {
+      "id": "retencao-regras",
+      "copy": ["Grace period", "Aviso ao titular", "Estratégia", "Escopo do job", "business_id", "nunca cross-tenant (ADR 0093)"]
+    },
+    {
+      "id": "cofre-discos",
+      "copy": ["Cofre (cifrado)", "AES-256 via Crypt::encryptString", "Disco comum", "servido por Storage::url"]
+    },
+    {
+      "id": "cofre-achados",
+      "copy": ["Achados", "VaultEncryptionService", "OOM", "recusada", "Chunked encryption é Sprint 2 (ADR 0126).", "órfão (sem ", "grupo com MD5 repetido"],
+      "estados": ["com-achado", "limpo"]
+    },
+    {
+      "id": "dry-run",
+      "copy": ["Dry-run · nada foi apagado", "nada foi escrito. rode sem --dry-run pelo agendado, não pela tela."],
+      "estados": ["oculto", "executado"]
+    },
+    {
+      "id": "trilha",
+      "copy": ["Quando", "Ação", "Arquivo", "Quem", "Payload", "upload", "download", "signed_url", "soft_delete", "restore", "hard_delete", "append-only", "nunca purgado"]
+    }
+  ],
+  "ordem": ["cabecalho", "abas", "acervo-filtros", "acervo"],
+  "estados_tela": ["dados", "vazio", "carregando", "erro", "sem-permissao (arquivos.access default off)"],
+  "proibicoes": [
+    "Upload por esta tela — arquivo entra pelos módulos via trait HasArquivos (cap 50 MB).",
+    "Servir arquivo do vault por Storage::url — sempre DownloadController; signed URL expira em 60 min (ADR 0123 §6).",
+    "Renderizar filename/storage_path/MD5 em vista de governança (PII fica só em arquivos_audit_log, LGPD Art. 37).",
+    "Qualquer purge ou listagem cross-tenant — global scope business_id (ADR 0093, Tier 0).",
+    "Editar, apagar ou corrigir linha de arquivos_audit_log — append-only e nunca purgado, mesmo quando o arquivo é.",
+    "Hard-delete direto pela UI: a tela faz soft-delete e o grace de 30 dias é do job, não do operador.",
+    "Divergir os prazos entre Config/config.php e Config/retention.php (os dois são espelho declarado).",
+    "Cifrar acima de vault_max_file_size_mb — recusar é o comportamento correto (OOM), não tentar."
+  ],
+  "casos_ligados": "resources/js/Pages/Arquivos/Index.casos.md"
+}
