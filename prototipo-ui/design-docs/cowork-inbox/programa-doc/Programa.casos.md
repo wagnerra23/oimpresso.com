@@ -20,15 +20,15 @@ last_run: null
 
 | UC | Caso de uso | Prio | Contrato | Teste | Status |
 |----|-------------|------|----------|-------|--------|
-| UC-PROGD-01 | Estado de execução vem do MCP, nunca do markdown | must | Trilha D §D.3 | — | ❌ |
-| UC-PROGD-02 | O texto é do dono no git — a tela não guarda cópia | must | ADR 0239 · Trilha D §D.3 | — | ❌ |
-| UC-PROGD-03 | Tela é read-only: nada na UI altera plano, onda ou task | must | charter §Non-Goals | — | ❌ |
-| UC-PROGD-04 | A vista é linkável e a navegação é underline, não pill | should | ADR 0286 · DS | — | ❌ |
-| UC-PROGD-05 | Rota autenticada, sem segredo e sem dado de tenant | must `[T0]` | ADR 0093 | — | ❌ |
+| UC-PROGDOC-01 | Estado de execução vem do MCP, nunca do markdown | must | Trilha D §D.3 | — | ❌ |
+| UC-PROGDOC-02 | O texto é do dono no git — a tela não guarda cópia | must | ADR 0239 · Trilha D §D.3 | — | ❌ |
+| UC-PROGDOC-03 | Tela é read-only: nada na UI altera plano, onda ou task | must | charter §Non-Goals | — | ❌ |
+| UC-PROGDOC-04 | A vista é linkável e a navegação é underline, não pill | should | ADR 0286 · DS | — | ❌ |
+| UC-PROGDOC-05 | Rota autenticada, sem segredo e sem dado de tenant | must `[T0]` | ADR 0093 | — | ❌ |
 
 ---
 
-## UC-PROGD-01 · Estado de execução vem do MCP, nunca do markdown · `must`
+## UC-PROGDOC-01 · Estado de execução vem do MCP, nunca do markdown · `must`
 
 - **Persona:** [W] abre a tela pra saber em que onda a trilha está. Se a resposta vier de um markdown
   editado à mão, ela estará errada no dia seguinte — e ninguém saberá.
@@ -43,7 +43,7 @@ last_run: null
 
 ---
 
-## UC-PROGD-02 · O texto é do dono no git — a tela não guarda cópia · `must`
+## UC-PROGDOC-02 · O texto é do dono no git — a tela não guarda cópia · `must`
 
 - **Persona:** alguém corrige a § Trilha D num PR. A tela precisa mudar junto, sem segundo PR.
 - **Aceite:** Dado um merge que altera `PLANO-MESTRE.md` § Trilha D · Quando o sync acontece e eu
@@ -55,7 +55,7 @@ last_run: null
 
 ---
 
-## UC-PROGD-03 · Tela é read-only · `must`
+## UC-PROGDOC-03 · Tela é read-only · `must`
 
 - **Aceite:** Dado qualquer vista aberta · Quando percorro a página inteira por teclado · Então não
   existe controle que grave (sem checkbox de DoD clicável, sem "marcar onda", sem editar) · E as
@@ -67,7 +67,7 @@ last_run: null
 
 ---
 
-## UC-PROGD-04 · A vista é linkável e underline · `should`
+## UC-PROGDOC-04 · A vista é linkável e underline · `should`
 
 - **Aceite:** Dado que escolho a vista **Ondas** · Então a URL vira `?vista=ondas` e o link colado num
   handoff abre exatamente ali · E as abas usam underline-active em accent (`TabBar` do DS), nunca pill.
@@ -79,7 +79,7 @@ last_run: null
 
 ---
 
-## UC-PROGD-05 · Rota autenticada, sem segredo, sem tenant · `must` `[T0]`
+## UC-PROGDOC-05 · Rota autenticada, sem segredo, sem tenant · `must` `[T0]`
 
 - **Aceite:** Dado um visitante não autenticado · Quando pede `/documentacao/programa` · Então é
   barrado pelo mesmo middleware de `/documentacao` · E o HTML servido não contém host, credencial,

@@ -49,7 +49,7 @@ markdown do `memory/`. Então há dois caminhos, e eles não custam o mesmo:
 
 Recomendação [CC]: **A agora, B quando as tasks MCP forem a fonte do estado de onda** (é o que dá à
 tela algo que o markdown não dá). Fazer B com estado estático seria criar a cópia que a própria
-Trilha D proíbe — ver `UC-PROGD-01`.
+Trilha D proíbe — ver `UC-PROGDOC-01`.
 
 ### 2. O trio (para a opção B)
 
@@ -66,11 +66,11 @@ O contrato exige âncora `data-contract="<id>"` em cada seção declarada — 13
 
 ### 3. Invariantes que a tradução não pode perder
 
-1. **Estado de onda vem do MCP** (`parent_plan=programa-ondas`), não de literal no `.tsx` nem do markdown — `UC-PROGD-01`, ADR 0294. O protótipo marca D0 "em execução" **como texto**; isso é F1, não canon.
-2. **Ponteiro > cópia**: o texto renderiza do dono; parágrafo do plano não vira string de código — `UC-PROGD-02`, ADR 0239.
-3. **Read-only**: nenhum controle que grave. Sem checkbox de DoD clicável — `UC-PROGD-03`.
-4. **Tabs underline-active em accent**, nunca pill (guia do DS). Vista na URL (`?vista=…`) — `UC-PROGD-04`.
-5. **Sem segredo, sem tenant**: máquinas por nome + ponteiro pro Vaultwarden — `UC-PROGD-05`, ADR 0093.
+1. **Estado de onda vem do MCP** (`parent_plan=programa-ondas`), não de literal no `.tsx` nem do markdown — `UC-PROGDOC-01`, ADR 0294. O protótipo marca D0 "em execução" **como texto**; isso é F1, não canon.
+2. **Ponteiro > cópia**: o texto renderiza do dono; parágrafo do plano não vira string de código — `UC-PROGDOC-02`, ADR 0239.
+3. **Read-only**: nenhum controle que grave. Sem checkbox de DoD clicável — `UC-PROGDOC-03`.
+4. **Tabs underline-active em accent**, nunca pill (guia do DS). Vista na URL (`?vista=…`) — `UC-PROGDOC-04`.
+5. **Sem segredo, sem tenant**: máquinas por nome + ponteiro pro Vaultwarden — `UC-PROGDOC-05`, ADR 0093.
 
 ### 4. Referência visual (não é código pra portar)
 

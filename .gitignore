@@ -121,3 +121,8 @@ prototipo-ui/_inbox-onda2/
 
 # ds-push: bundle montado (colors_and_type + cockpit_domains) — efêmero, validado in-loco
 scripts/design-sync/.push-bundle/
+
+# Export local do projeto Cowork vivo (fonte do bundle da fase -1, ADR 0374).
+# Fica FORA do git de proposito: e insumo volatil de transporte, nao artefato versionado —
+# o que o repo guarda e o ESPELHO (prototipo-ui/cowork/) e o manifesto do bundle.
+/oimpresso-erp-conunica-o-visual/

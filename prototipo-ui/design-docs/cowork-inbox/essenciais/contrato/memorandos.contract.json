@@ -1,0 +1,27 @@
+{
+  "schema": "contrato-de-tela/1",
+  "modulo": "Essentials",
+  "tela": "Memorandos",
+  "rota": "ess-memorandos",
+  "secoes": [
+    "card-cabecalho",
+    "form",
+    "tabela",
+    "drawer"
+  ],
+  "copy": {
+    "titulo": "Todas as notas",
+    "botao_novo": "Adicionar"
+  },
+  "colunas": [
+    "Título",
+    "Descrição",
+    "Data de criação",
+    "Ações"
+  ],
+  "estados": [
+    "normal",
+    "primeira",
+    "demo"
+  ]
+}

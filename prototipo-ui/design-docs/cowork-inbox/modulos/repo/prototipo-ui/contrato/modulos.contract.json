@@ -1,0 +1,96 @@
+{
+  "$schema": "../contrato/_schema.json",
+  "id": "modulos",
+  "page": "/modulos",
+  "component": "resources/js/Pages/Modules/Index.tsx",
+  "charter": "resources/js/Pages/Modules/Index.charter.md",
+  "casos": "resources/js/Pages/Modules/Index.casos.md",
+  "adr": 286,
+  "escopo": "app-wide (cross-tenant intencional — ADR 0093 §exceções superadmin)",
+  "secoes": [
+    {
+      "anchor": "modulos.header",
+      "ordem": 1,
+      "copy": [
+        "Gerenciador de Módulos"
+      ],
+      "regra": "subtítulo cita total, ativos e inativos; 'com erro' só quando > 0"
+    },
+    {
+      "anchor": "modulos.kpis",
+      "ordem": 2,
+      "copy": [
+        "Total",
+        "Ativos",
+        "Inativos",
+        "Com erro"
+      ],
+      "regra": "4 cards nesta ordem; números tabulares"
+    },
+    {
+      "anchor": "modulos.filtros",
+      "ordem": 3,
+      "copy": [
+        "Área",
+        "Status",
+        "limpar tudo"
+      ],
+      "regra": "opções de área = áreas presentes com contador; chip removível por filtro ativo"
+    },
+    {
+      "anchor": "modulos.busca",
+      "ordem": 4,
+      "copy": [
+        "Buscar por nome, alias, descrição ou área…"
+      ],
+      "regra": "debounce 300ms; '/' foca; Esc limpa"
+    },
+    {
+      "anchor": "modulos.tabela",
+      "ordem": 5,
+      "copy": [
+        "Módulo",
+        "Área",
+        "Status",
+        "Migrations",
+        "Ativo"
+      ],
+      "regra": "cabe em 1280px com sidebar aberta, sem scroll horizontal"
+    },
+    {
+      "anchor": "modulos.vazio",
+      "ordem": 6,
+      "copy": [
+        "Nenhum módulo nesse filtro.",
+        "Limpar busca e filtros"
+      ],
+      "regra": "sempre declara o motivo (termo + filtros)"
+    },
+    {
+      "anchor": "modulos.drawer",
+      "ordem": 7,
+      "copy": [
+        "Desativar preserva as tabelas do banco"
+      ],
+      "regra": "drawer lateral PT-02; nunca modal full-screen"
+    }
+  ],
+  "estados": [
+    "loading",
+    "vazio-filtrado",
+    "com-erro",
+    "sem-permissao"
+  ],
+  "status_labels": {
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "errored": "Com erro",
+    "unregistered": "Não registrado"
+  },
+  "proibicoes": [
+    "enum cru na UI (active/inactive/errored/unregistered como texto)",
+    "modal full-screen para detalhe",
+    "ação destrutiva sem dizer a consequência",
+    "business_id scope nesta tela"
+  ]
+}

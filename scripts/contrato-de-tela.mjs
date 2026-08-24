@@ -122,7 +122,26 @@ function loadContract(file) {
   return c;
 }
 
+// `design-docs/cowork-inbox/` e CAIXA DE ENTRADA do Cowork (pedidos/propostas pro Code), nao
+// contrato VIGENTE: ele so passa a valer quando alguem o APLICA a uma tela real. Os que
+// chegaram em 2026-08-24 apontam pra `Pages/NotificationTemplate` e `Pages/Documentacao/
+// Programa` — telas que ainda nao existem, e cria-las E o pedido. Medido: 15 no inbox x 10
+// ativos. Normaliza `\` do Windows antes de comparar.
+// Ampliado de `cowork-inbox/` para `design-docs/` inteiro (2026-08-24, mesma sessão): a pasta
+// TODA é documentação vinda do lado do design — pedido, proposta, patch, contrato em formato do
+// Cowork. Ao descer os 103 arquivos que faltavam, 3 `.contract.json` do vivo pousaram em
+// `design-docs/contrato-cowork/` e reprovaram por não terem `alvo`/`secoes`: são de OUTRO schema,
+// legítimos como proposta e inválidos como contrato do repo. Filtrar só o `cowork-inbox` deixaria
+// cada subpasta nova de design-docs reabrir o mesmo buraco.
+const ehDocDesign = (p) => String(p || '').split(String.fromCharCode(92)).join('/').includes('prototipo-ui/design-docs/');
+
 function checkContract(file) {
+  // Chokepoint ÚNICO do filtro de inbox (2026-08-24). A 1ª tentativa filtrou no workflow e a 2ª
+  // no coletor — as duas falharam porque o job entra por DUAS rotas: o step "Contratos ativos"
+  // monta a lista no bash e chama `--contract <path>` um a um, enquanto `--map` coleta por dentro.
+  // Filtrar numa rota só deixa a outra reprovando (§5 2026-07-28 — validar UM dos modos que o CI
+  // roda). Aqui embaixo passam AS DUAS.
+  if (ehDocDesign(file)) { console.log(`  (pulado: ${file} — documentação de design (design-docs/), não contrato vigente)`); return 0; }
   const c = loadContract(file);
   const files = c.alvo.flatMap(collectTargets);
   if (!files.length) { err(`nenhum .tsx/.ts no alvo do contrato (${c.alvo.join(', ')})`); return 1; }
@@ -377,7 +396,16 @@ function checkOmission(base = 'origin/main', alvos, notesFile) {
 //                   sem `<!-- design-deviation -->` no alvo.
 function listContracts() {
   const out = git('ls-files "*.contract.json"');
-  return out ? out.split('\n').filter(p => p && !/EXEMPLO/i.test(p)) : [];
+  // `design-docs/cowork-inbox/` é CAIXA DE ENTRADA do Cowork (pedidos/propostas pro Code), não
+  // contrato VIGENTE: o contrato só passa a valer quando alguém o aplica a uma tela real. Varrer
+  // o inbox como ativo reprova POR CONSTRUÇÃO — os que chegaram em 2026-08-24 apontam pra
+  // `Pages/NotificationTemplate` e `Pages/Documentacao/Programa`, telas que ainda não existem
+  // (criá-las É o pedido). Medido no dia: 15 no inbox × 10 ativos de verdade.
+  // Filtro mora AQUI, não no workflow: `--map`/`--map --check` varrem por este mesmo coletor,
+  // então filtrar só no step de "contratos ativos" deixaria os outros modos reprovando (§5
+  // 2026-07-28 — validar um gate rodando UM dos modos que o CI roda).
+  const ativo = (p) => p && !/EXEMPLO/i.test(p) && !ehDocDesign(p);
+  return out ? out.split('\n').filter(ativo) : [];
 }
 function listIntentContracts() {
   const dir = resolve(ROOT, 'prototipo-ui/contrato');

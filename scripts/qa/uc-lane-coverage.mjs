@@ -173,6 +173,13 @@ const listarWorkflows = () => {
   return readdirSync(d).filter((f) => /\.ya?ml$/.test(f)).map((f) => `.github/workflows/${f}`).sort();
 };
 
+// `design-docs/cowork-inbox/` é CAIXA DE ENTRADA do Cowork (pedido que o Code ainda NÃO adotou),
+// não artefato ativo do repo. Um `Test.php` que chega no inbox está fora de lane POR DEFINIÇÃO —
+// pôr em lane é trabalho de quem ADOTA o pedido, e cobrar isso do inbox reprova o mensageiro.
+// Medido 2026-08-24: o inbox era 93 arquivos 100% `.md` e passava; ao descer 87 novos do vivo veio
+// `FiscalOndasF1Test.php`, legítimo COMO PEDIDO e sem lane alguma que o rode.
+const foraDoInbox = (p) => !String(p).split(String.fromCharCode(92)).join('/').includes('design-docs/cowork-inbox/');
+
 function indiceDeTestes() {
   // git ls-files: o universo é o VERSIONADO (não uma travessia que pega worktree alheio).
   const raw = execFileSync('git', ['ls-files', '--', '*Test.php'], { cwd: ROOT, encoding: 'utf8' });
@@ -213,7 +220,7 @@ function main() {
   const testesPorNome = indiceDeTestes();
   const manifesto = manifestoG7();
   const arquivosCasos = execFileSync('git', ['ls-files', '--', '*.casos.md'], { cwd: ROOT, encoding: 'utf8' })
-    .split('\n').map((s) => s.trim()).filter(Boolean).sort();
+    .split('\n').map((s) => s.trim()).filter(Boolean).filter(foraDoInbox).sort();
 
   const linhas = [];
   for (const f of arquivosCasos) {

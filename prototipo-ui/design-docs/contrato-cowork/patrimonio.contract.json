@@ -1,0 +1,380 @@
+{
+  "$schema": "prototipo-ui/contrato/contrato-tela.schema.json",
+  "id": "patrimonio",
+  "titulo": "Patrimônio",
+  "modulo": "AssetManagement",
+  "rota": "assets",
+  "build": [
+    "patrimonio-page.jsx",
+    "patrimonio-forms.jsx",
+    "patrimonio-data.jsx",
+    "patrimonio-page.css"
+  ],
+  "charter": "resources/js/Pages/AssetManagement/Patrimonio.charter.md",
+  "adr": [
+    "0286 Contrato de Tela",
+    "0190 primary roxo",
+    "0239 DS git SSOT"
+  ],
+  "raiz": ".ptr-root",
+  "screenLabel": "01 Patrimônio",
+  "secoes": [
+    {
+      "id": "header",
+      "seletor": ".ptr-root .mp-header",
+      "obrigatoria": true,
+      "copy": {
+        "modulo": "Patrimônio",
+        "glyph": "database"
+      },
+      "elementos": [
+        {
+          "id": "busca",
+          "seletor": ".mp-busca input",
+          "placeholder": "Buscar bem, código, série..."
+        },
+        {
+          "id": "alocar",
+          "copy": "Alocar recurso",
+          "perm": "allocate",
+          "componente": "Button variant=ghost"
+        },
+        {
+          "id": "novo",
+          "copy": "Adicionar recurso",
+          "perm": "create",
+          "componente": "Button variant=primary"
+        }
+      ],
+      "nota": "O papel simulado é tweak do host (patPapel), não controle da tela."
+    },
+    {
+      "id": "abas",
+      "seletor": ".ptr-root .cli-moduletopnav",
+      "obrigatoria": true,
+      "copy": [
+        "Painel",
+        "Bens",
+        "Alocações",
+        "Manutenções",
+        "Garantias",
+        "Auditoria",
+        "Configurações"
+      ]
+    },
+    {
+      "id": "painel",
+      "seletor": ".ptr-root .mp-body .jc-kpis",
+      "obrigatoria": true,
+      "kpis": [
+        "Patrimônio bruto",
+        "Valor residual",
+        "Alocados",
+        "Garantia vencida ou vencendo"
+      ],
+      "analises": [
+        "Patrimônio por categoria",
+        "Situação da garantia",
+        "Manutenção em aberto"
+      ]
+    },
+    {
+      "id": "bens",
+      "seletor": ".ptr-grid",
+      "obrigatoria": true,
+      "componente": "DataTablePro",
+      "colunas": [
+        "Ações",
+        "Código",
+        "Imagem",
+        "Bem",
+        "Categoria",
+        "Local",
+        "Qtd",
+        "Alocado",
+        "Valor",
+        "Garantia",
+        "Situação"
+      ],
+      "colunasObrigatorias": [
+        "Ações",
+        "Código",
+        "Bem"
+      ],
+      "ordem": "A coluna de ação é sempre a primeira — a tabela é mais larga que a janela.",
+      "subAbas": [
+        "Todos",
+        "Alocáveis",
+        "Garantia crítica",
+        "Em manutenção"
+      ],
+      "acoesLinha": [
+        {
+          "id": "aloc",
+          "icone": "plus",
+          "nome": "Alocar recurso",
+          "perm": "allocate",
+          "condicao": "bem atribuível com saldo > 0"
+        },
+        {
+          "id": "man",
+          "icone": "wrench",
+          "nome": "Enviar pra manutenção",
+          "perm": "maintenance.create"
+        },
+        {
+          "id": "edit",
+          "icone": "pencil",
+          "nome": "Editar bem",
+          "perm": "update"
+        },
+        {
+          "id": "del",
+          "icone": "trash",
+          "nome": "Excluir bem",
+          "perm": "delete",
+          "tone": "danger"
+        }
+      ],
+      "filtrosVisiveis": {
+        "componente": "FilterChip",
+        "seletor": ".ptr-chips",
+        "regra": "todo filtro ativo aparece como chip removível"
+      },
+      "lote": {
+        "componente": "BulkBar",
+        "acoes": [
+          "Exportar seleção",
+          "Enviar pra manutenção"
+        ],
+        "regra": "excluir NÃO entra em lote"
+      }
+    },
+    {
+      "id": "alocacoes",
+      "seletor": ".ptr-grid",
+      "obrigatoria": true,
+      "componente": "DataTablePro",
+      "colunas": [
+        "Ação",
+        "Código",
+        "Bem",
+        "Alocado a",
+        "Alocado em",
+        "Alocado até",
+        "Qtd",
+        "Situação"
+      ],
+      "pessoa": "Avatar + TagChip do papel do colaborador"
+    },
+    {
+      "id": "manutencoes",
+      "seletor": ".ptr-grid",
+      "obrigatoria": true,
+      "componente": "DataTablePro",
+      "colunas": [
+        "Ação",
+        "Código",
+        "Bem",
+        "Prestador",
+        "Enviado",
+        "Devolvido",
+        "Custo",
+        "Situação"
+      ],
+      "kpis": [
+        "Em aberto",
+        "Custo no ano",
+        "Maior conserto"
+      ]
+    },
+    {
+      "id": "drawer",
+      "seletor": "[role=dialog][aria-modal=true]",
+      "obrigatoria": true,
+      "componente": "Drawer",
+      "trilha": "Breadcrumb Patrimônio › Bens › <código>",
+      "copy": [
+        "Resumo",
+        "Garantia",
+        "Alocações",
+        "Manutenção",
+        "Depreciação",
+        "Histórico"
+      ],
+      "depreciacao": "Progress + Chart (valor residual ano a ano)"
+    },
+    {
+      "id": "auditoria",
+      "seletor": ".ptr-log",
+      "obrigatoria": true,
+      "periodo": {
+        "componente": "PeriodBar",
+        "label": "Período do evento",
+        "campo": "log.dia (ISO) — filtro nunca por regex em string de exibição",
+        "presets": "ancorados no HOJE do módulo, não no hoje do navegador"
+      }
+    },
+    {
+      "id": "config",
+      "seletor": ".ptr-cfg-switches",
+      "obrigatoria": true,
+      "copy": [
+        "Prefixo do código do ativo",
+        "Prefixo do código de alocação",
+        "Prefixo do código de revogação",
+        "Garantia expirando em 30 dias",
+        "Bem enviado ou devolvido de manutenção",
+        "Alocação registrada pro colaborador"
+      ]
+    }
+  ],
+  "estados": {
+    "dados": {
+      "descricao": "operação normal"
+    },
+    "carregando": {
+      "seletor": ".mp-skel",
+      "descricao": "skeleton enquanto a consulta não volta"
+    },
+    "vazio": {
+      "copy": "Nenhum bem cadastrado ainda",
+      "acao": "Adicionar o primeiro recurso"
+    },
+    "erro": {
+      "copy": "Não consegui carregar o patrimônio",
+      "acao": "Tentar de novo",
+      "regra": "nunca sugerir que o dado foi perdido"
+    },
+    "sem-permissao": {
+      "copy": "Configuração é do gestor do patrimônio",
+      "perm": "settings"
+    }
+  },
+  "permissoes": {
+    "gestor": [
+      "view",
+      "create",
+      "update",
+      "delete",
+      "allocate",
+      "revoke",
+      "maintenance.create",
+      "view_all_maintenance",
+      "settings",
+      "export"
+    ],
+    "operador": [
+      "view",
+      "allocate",
+      "maintenance.create",
+      "view_own_maintenance",
+      "export"
+    ],
+    "financeiro": [
+      "view",
+      "view_all_maintenance",
+      "export"
+    ]
+  },
+  "regras": [
+    {
+      "id": "R1",
+      "texto": "Só bem atribuível com saldo > 0 entra na alocação (Asset::forDropdown)."
+    },
+    {
+      "id": "R2",
+      "texto": "Revogar devolve ao saldo e gera REV-; a alocação original permanece."
+    },
+    {
+      "id": "R3",
+      "texto": "Garantia é janela início/fim; sem registro é 'sem garantia', não 'vencida'."
+    },
+    {
+      "id": "R4",
+      "texto": "permitted_locations filtra lista, contadores e KPIs."
+    },
+    {
+      "id": "R5",
+      "texto": "view_own_maintenance limita a manutenção ao responsável."
+    },
+    {
+      "id": "R6",
+      "texto": "Auditoria só da whitelist; description nunca é logada (LGPD)."
+    },
+    {
+      "id": "R7",
+      "texto": "Excluir bloqueado enquanto houver alocação ativa."
+    },
+    {
+      "id": "R8",
+      "texto": "Custo de manutenção vira título a pagar no fechamento."
+    },
+    {
+      "id": "R9",
+      "texto": "Data é calendário, não instante: dataLocal()/iso() locais — nunca new Date(iso) + toISOString()."
+    },
+    {
+      "id": "R10",
+      "texto": "Evento de log guarda dia (ISO) + hora em campos próprios; a exibição formata com d2(). Nunca extrair data de string de exibição."
+    }
+  ],
+  "a11y": {
+    "focoPreso": [
+      "Drawer e Modal do DS (nativo do componente)"
+    ],
+    "nomeAcessivel": "Botão-ícone via BotaoIcone: texto recortado (.ptr-sr) + Tooltip do DS. O Button do DS não repassa aria-label.",
+    "live": ".ptr-aviso-live[role=status]",
+    "alvoToqueMin": 44,
+    "icones": "Lucide 24-grid stroke 1.75 (PTR_ICONES cobre o que o Icon do DS ainda não traz)",
+    "dica": "title nativo nos botões-ícone: o Tooltip do DS é DOM posicionado e a célula do DataTablePro tem overflow:hidden (mesma causa do DropdownMenu)."
+  },
+  "proibicoes": [
+    "cor crua fora dos tokens",
+    "inglês em UI cliente-facing",
+    "emoji",
+    "modal full-screen para detalhe",
+    "rounded-xl+"
+  ],
+  "decisoesPendentes": [
+    "Regra de depreciação (fiscal/linear/por categoria) — sem ADR",
+    "Etiqueta/QR do bem e termo de responsabilidade na alocação — não existem no módulo real",
+    "Multi-empresa (business_id) e InstallController",
+    "DS: Button não repassa aria-label/title; TabBar sem min-height no nav (barra parasita) — corrigir no DS, não por tela",
+    "Excluir em lote: fora de escopo até haver confirmação em lote desenhada"
+  ],
+  "ds": {
+    "bundle": "_ds/office-impresso-design-system-…/_ds_bundle.js",
+    "namespace": "window.OfficeImpressoPontoWR2DesignSystem_019dd0",
+    "componentes": [
+      "DataTablePro",
+      "Drawer",
+      "DrawerSection",
+      "Modal",
+      "TabBar",
+      "StatusBadge",
+      "Button",
+      "Input",
+      "Select",
+      "Textarea",
+      "Switch",
+      "DatePicker",
+      "PeriodBar",
+      "DropdownMenu",
+      "Pagination",
+      "KpiCard",
+      "Alert",
+      "Progress",
+      "Chart",
+      "FilterChip",
+      "BulkBar",
+      "Avatar",
+      "TagChip",
+      "Breadcrumb",
+      "Tooltip",
+      "EmptyState",
+      "PlacaVeiculo"
+    ],
+    "regra": "Chrome de tabela, formulário, overlay e pill vêm do bundle. CSS local só layout de área (namespace .ptr-)."
+  }
+}
