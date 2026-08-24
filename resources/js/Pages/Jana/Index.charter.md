@@ -143,7 +143,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   Entra no drawer só o que é verdade **e** de fato local (quais análises aparecem); preferência que
   vale pra empresa toda aponta pro dono server-side que já existe (`PATCH /ia/alertas/config` →
   `business.essentials_settings.alertas`, per-business), em vez de ganhar um segundo dono.
-  _Guard: `UC-COPI-PAINEL-10` conta os `<Switch` do drawer (2: análises + HITL travado) e as
+  _Guard: `UC-JPAIN-10` conta os `<Switch` do drawer (2: análises + HITL travado) e as
   entradas de `JANA_ANALISES` (5, desde o churn ouro do UC-13) — toggle novo derruba o caso.
   A asserção é estrutural de
   propósito: buscar a palavra "Frota" proibiria o próprio comentário que registra a decisão
@@ -169,7 +169,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   este passo registra a aprovação e **não envia**. "Disparar" abrindo um modal que não dispara
   trocaria um botão morto por um botão que MENTE, e esta regra vale igual pros dois. O rodapé da
   seção perdeu junto a frase "Próximas ondas: ações HITL real …": metade dela deixou de ser futuro.
-  A paridade rótulo↔chave de backend é amarrada por teste (UC-COPI-PAINEL-12) — regra que nasce só
+  A paridade rótulo↔chave de backend é amarrada por teste (UC-JPAIN-12) — regra que nasce só
   no `.tsx` viraria botão que abre modal e morre em 404, que é botão morto com um passo a mais._
 
 - ⛔ **Deixar a prévia da ação nascer no cliente.** É o §Anti-hooks da FONTE (drill) e o da PROJEÇÃO
@@ -204,7 +204,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   "Revisar …" e o rodapé da seção deixou de prometer — ver o recibo no §Anti-hooks.
 
   **Três divergências do pedido [CC] que a medição corrigiu, e ficam registradas:**
-  - o pedido numerava o caso como **UC-COPI-PAINEL-11**. Esse número já é da v9 (drawer
+  - o pedido numerava o caso como **UC-JPAIN-11**. Esse número já é da v9 (drawer
     de meta) — o caso nasceu **12**. Numerar por cima teria apagado um contrato vivo.
   - o pedido mandava montar `usePage().props.flash.sucesso` + `toast()` na Page (a
     "ordem 6 de carona"). **A chave `sucesso` não existe** — `HandleInertiaRequests`

@@ -22,8 +22,8 @@ last_run: "2026-08-18"
 > (`tests/jana-chat-conversas.test.tsx`), rodados nesta data — `15 passed`. O que faltava era o
 > contrato por cima deles.
 
-## UC-COPI-CHAT-01 — O filtro filtra de verdade, e são DUAS abas de propósito
-Status: ✅ (`tests/jana-chat-conversas.test.tsx` — 4 casos sob o describe que cita este UC)
+## UC-JCHAT-01 — O filtro filtra de verdade, e são DUAS abas de propósito
+Status: 🧪 (`tests/jana-chat-conversas.test.tsx` — 4 casos sob o describe que cita este UC) — ✅ volta quando o manifesto G-7 capturar o veredito (a lane passou a emitir JUnit em 2026-08-24); enquanto nao capturar, 🧪 e o status honesto
 
 A lista de conversas tem **duas** abas: **Todas** (tudo que não está arquivado) e **Arquivadas**.
 "Todas" **esconde** a arquivada; "Arquivadas" mostra **só** ela.
@@ -36,8 +36,8 @@ que abriam um empty state "Em breve" — e ela foi removida. Outro teste guarda 
 
 **Pronto quando:** cada aba mostra exatamente o seu conjunto, existem 2 abas, e nenhuma exibe "Em breve".
 
-## UC-COPI-CHAT-02 — `J`/`K` andam entre CONVERSAS, respeitando o filtro
-Status: ✅ (mesmo arquivo — 3 casos; o describe cita este UC)
+## UC-JCHAT-02 — `J`/`K` andam entre CONVERSAS, respeitando o filtro
+Status: 🧪 (mesmo arquivo — 3 casos; o describe cita este UC) — ✅ volta quando o manifesto G-7 capturar o veredito (a lane passou a emitir JUnit em 2026-08-24); enquanto nao capturar, 🧪 e o status honesto
 
 `J` desce e `K` sobe **na lista de conversas** — não entre mensagens da thread. O charter registra a
 correção de rota da v3 (*"era 'entre mensagens'"*) e o motivo, que é de negócio e não de estilo:
@@ -47,8 +47,8 @@ A navegação **respeita o filtro ativo**: na aba Arquivadas, `J`/`K` não pulam
 
 **Pronto quando:** `J`/`K` percorrem a ordem visual da lista e nunca saem do conjunto filtrado.
 
-## UC-COPI-CHAT-03 — Os atalhos não sequestram o teclado de quem está digitando
-Status: ✅ (mesmo arquivo — 3 casos sob o UC-02 + 4 sob o UC-03)
+## UC-JCHAT-03 — Os atalhos não sequestram o teclado de quem está digitando
+Status: 🧪 (mesmo arquivo — 3 casos sob o UC-02 + 4 sob o UC-03) — ✅ volta quando o manifesto G-7 capturar o veredito (a lane passou a emitir JUnit em 2026-08-24); enquanto nao capturar, 🧪 e o status honesto
 
 Três recusas explícitas, cada uma com teste:
 
@@ -64,8 +64,8 @@ mantém o atalho** — a lista nunca fica inalcançável.
 **Pronto quando:** os três casos de recusa são inertes, as duas teclas recolhem, e a dica é visível
 tanto expandido quanto recolhido.
 
-## UC-COPI-CHAT-04 — Trocar de conversa é anunciado a leitor de tela
-Status: ✅ (mesmo arquivo — 1 caso; o describe cita este UC)
+## UC-JCHAT-04 — Trocar de conversa é anunciado a leitor de tela
+Status: 🧪 (mesmo arquivo — 1 caso; o describe cita este UC) — ✅ volta quando o manifesto G-7 capturar o veredito (a lane passou a emitir JUnit em 2026-08-24); enquanto nao capturar, 🧪 e o status honesto
 
 Uma região `aria-live="polite"` anuncia `Conversa: <título>` quando a conversa ativa muda — por
 clique **ou** por `J`/`K`. O anúncio é guardado por id, então re-render não re-anuncia a mesma
@@ -73,7 +73,7 @@ conversa.
 
 **Pronto quando:** mudar a conversa ativa escreve o título na região viva; re-render sem troca não escreve.
 
-## UC-COPI-CHAT-05 — Thread de outro business NUNCA é devolvida (Tier 0)
+## UC-JCHAT-05 — Thread de outro business NUNCA é devolvida (Tier 0)
 Status: 🧪 (`Modules/Jana/Tests/Feature/Chat/ChatAntiHooksTier0Test.php` — cita o UC no título; aguarda run verde na lane MySQL)
 
 Um usuário de outro business pede a conversa pelo id e **não recebe 200**. Vale 403 (negado) ou 404
@@ -91,7 +91,7 @@ o teste achou o buraco que o anti-hook descreve. Os dois desfechos são informa�
 **Pronto quando:** o status não é 200 **nem 302** (anti-vácuo: redirect de login faria o assert
 passar sem provar isolamento nenhum) e está em `[403, 404]`.
 
-## UC-COPI-CHAT-06 — Abrir a thread é leitura PURA
+## UC-JCHAT-06 — Abrir a thread é leitura PURA
 Status: 🧪 (mesmo arquivo — cita o UC no título; aguarda run verde)
 
 Abrir uma conversa **não dispara e-mail nem notificação**. Efeito colateral pertence ao POST de
@@ -102,7 +102,7 @@ mensagem, não à consulta.
 
 **Pronto quando:** `Mail::assertNothingSent()` e `Notification::assertNothingSent()` após o GET.
 
-## UC-COPI-CHAT-07 — O render inicial não escreve no banco
+## UC-JCHAT-07 — O render inicial não escreve no banco
 Status: 🧪 (`ChatAntiHooksTier0Test` — cita o UC no título; aguarda run verde)
 
 Abrir a conversa **não acrescenta linha** em `jana_mensagens`. Escrita pertence ao POST.
@@ -115,7 +115,7 @@ zero passaria a depender de um detalhe de seed, não do comportamento.
 
 **Pronto quando:** a contagem depois do GET é idêntica à de antes.
 
-## UC-COPI-CHAT-08 — O render não chama o Brain B nem vaza credencial
+## UC-JCHAT-08 — O render não chama o Brain B nem vaza credencial
 Status: 🧪 (`ChatAntiHooksTier0Test` — cita o UC no título; aguarda run verde)
 
 Abrir a conversa **não faz chamada HTTP de saída** (`Http::preventStrayRequests()`), e o corpo
@@ -130,7 +130,7 @@ passaria batido.
 
 **Pronto quando:** a resposta é 200 sem request de saída, e nenhuma das duas strings aparece no corpo.
 
-## UC-COPI-CHAT-09 — Toda tool exposta ao LLM declara a permissão que exige
+## UC-JCHAT-09 — Toda tool exposta ao LLM declara a permissão que exige
 Status: 🧪 (`Modules/Jana/Tests/Feature/Chat/ChatAntiHooksAcaoTest.php` — cita o UC no título; aguarda run verde)
 
 Cada ferramenta que a Jana pode acionar declara **qual permissão ela exige**. O charter é literal:
@@ -157,7 +157,7 @@ código.
 **Pronto quando:** com a flag ligada (anti-vácuo: com ela OFF são zero tools, e "todas as zero estão
 corretas" passaria sem examinar nada), as 5 tools existem **e** cada uma declara permissão não-vazia.
 
-## UC-COPI-CHAT-10 — O turno não manda PII em plain text pro sink de log
+## UC-JCHAT-10 — O turno não manda PII em plain text pro sink de log
 Status: 🧪 (mesmo arquivo — cita o UC no título; aguarda run verde)
 
 Mandar uma mensagem contendo CPF **não** faz o CPF cru chegar ao sink de observabilidade. O sanitizer
@@ -187,8 +187,8 @@ persistida), o sink foi acionado (senão não há payload pra examinar), o CPF d
 pelo `PiiRedactor` (senão o contrato não está sendo exercitado) — e nenhum payload de `startTrace`
 ou `endTrace` contém o CPF cru.
 
-## UC-COPI-CHAT-11 — O histórico diz QUANTAS conversas, expandido e recolhido
-Status: ✅ (`tests/jana-chat-conversas.test.tsx` — 3 casos sob o describe que cita este UC)
+## UC-JCHAT-11 — O histórico diz QUANTAS conversas, expandido e recolhido
+Status: 🧪 (`tests/jana-chat-conversas.test.tsx` — 3 casos sob o describe que cita este UC) — ✅ volta quando o manifesto G-7 capturar o veredito (a lane passou a emitir JUnit em 2026-08-24); enquanto nao capturar, 🧪 e o status honesto
 
 O cabeçalho do histórico mostra o número de conversas **visíveis**, e esse número **respeita o
 filtro ativo** — na aba `Arquivadas` ele cai para o tamanho daquele conjunto, não do total.

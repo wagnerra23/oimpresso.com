@@ -51,7 +51,7 @@ function tecla(key: string, init: KeyboardEventInit = {}) {
 beforeEach(() => cleanup());
 afterEach(() => cleanup());
 
-describe('UC-COPI-CHAT-01 — filtro Todas | Arquivadas (o filtro filtra de verdade)', () => {
+describe('UC-JCHAT-01 — filtro Todas | Arquivadas (o filtro filtra de verdade)', () => {
   it('"Todas" mostra as ativas e ESCONDE a arquivada', () => {
     montar();
     expect(screen.getByText('Top devedores ativos')).toBeTruthy();
@@ -79,7 +79,7 @@ describe('UC-COPI-CHAT-01 — filtro Todas | Arquivadas (o filtro filtra de verd
   });
 });
 
-describe('UC-COPI-CHAT-02 — J/K navega entre CONVERSAS (não entre mensagens)', () => {
+describe('UC-JCHAT-02 — J/K navega entre CONVERSAS (não entre mensagens)', () => {
   it('J desce pra próxima conversa da lista visível', () => {
     const { onSelectConv } = montar({ activeConvId: '2' });
     tecla('j');
@@ -127,7 +127,7 @@ describe('UC-COPI-CHAT-02 — J/K navega entre CONVERSAS (não entre mensagens)'
   });
 });
 
-describe('UC-COPI-CHAT-03 — ⌘⇧H recolhe o histórico + a dica é visível', () => {
+describe('UC-JCHAT-03 — ⌘⇧H recolhe o histórico + a dica é visível', () => {
   it('⌘⇧H chama o toggle', () => {
     const { onToggle } = montar();
     tecla('H', { metaKey: true, shiftKey: true });
@@ -157,7 +157,7 @@ describe('UC-COPI-CHAT-03 — ⌘⇧H recolhe o histórico + a dica é visível'
   });
 });
 
-describe('UC-COPI-CHAT-04 — aria-live anuncia a troca de conversa', () => {
+describe('UC-JCHAT-04 — aria-live anuncia a troca de conversa', () => {
   it('anuncia o título quando a conversa ativa muda', () => {
     const onSelectConv = vi.fn();
     const onToggle = vi.fn();
@@ -181,7 +181,7 @@ describe('UC-COPI-CHAT-04 — aria-live anuncia a troca de conversa', () => {
   });
 });
 
-describe('UC-COPI-CHAT-11 — o histórico diz QUANTAS conversas, expandido e recolhido', () => {
+describe('UC-JCHAT-11 — o histórico diz QUANTAS conversas, expandido e recolhido', () => {
   // Por que estes casos nasceram DEPOIS da feature: o contador e o peek existem
   // desde 61c770ec0 (2026-08-07, PR #5405) e ficaram 10 dias sem contrato. O
   // `Chat.casos.md` chegou a listá-los como AUSENTES — a comparação com o

@@ -863,6 +863,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** guard/catraca cujo predicado decide sobre um artefato **agregado** (manifesto, baseline, censo, scorecard) não compara contra ABSOLUTO — compara contra o **DELTA vs a referência**. Vale pra `fail == 0`, `violations == 0`, `count == 0` em qualquer coisa que acumule dívida de terceiros: o estado herdado não é notícia, já está na referência, e tratá-lo como novidade tranca o mecanismo pra sempre. Teste barato de que você caiu nisto: **o guard já deixou passar alguma vez?** Se a resposta é "não desde <data antiga>", o predicado é o suspeito, não o mundo. É a mesma separação **dívida PRÓPRIA × HERDADA** que o `casos-coverage-guard` adotou em 2026-08-20 ("não pode reprovar por isso") — a lição existia no repo, num mecanismo vizinho, e não atravessou pro irmão.
 
+### 2026-08-24 — Fabricar `ponto_colaborador_config` no tenant REAL dentro do teste, pra destravar 2 skips (o dono é o SEED)
+
+- **O limite (variante também proibida):** teste **não fabrica fixture no tenant que ele trata como real** para escapar de um skip. Vale para `ponto_colaborador_config`, `business`, `users`, `contacts` e qualquer tabela de negócio. O tenant **fictício** (criado pelo próprio teste, com marcador e limpeza) é livre; o real, não. Quando falta fixture no tenant real, o dono é o **seed** — no CI, `.github/actions/pest-mysql-setup` — porque é ele que responde *"o que existe neste ambiente"*, e a resposta vale para as **16 lanes** que o compartilham, não só para o teste que doeu.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
