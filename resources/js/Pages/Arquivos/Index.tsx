@@ -12,7 +12,6 @@
 // Layout por PRIMITIVOS (ADR 0253): nada de `<div className="flex gap-4">` solto — o
 // layout-primitives-guard é catraca e reprova adotante novo.
 
-import React from 'react'
 import { Deferred, router } from '@inertiajs/react'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { PageHeader } from '@/Components/PageHeader'
