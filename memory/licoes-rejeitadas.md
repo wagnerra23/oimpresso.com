@@ -1208,3 +1208,28 @@
 - **Sobre virar máquina (MEDIDO, registrado, NÃO armado — [ADR 0344](decisions/0344-two-strikes-cobre-processo.md) two-strikes: 1ª ocorrência conserta e registra):** o dono natural **não** é o `block-instrumento-sem-porta-viva` (que trata "existe porta viva melhor?"), e sim [**`block-sonda-que-mente`**](../.claude/hooks/block-sonda-que-mente.mjs), cuja carta é literalmente *"comando que RODA, devolve saída PLAUSÍVEL, e a saída está errada"* — esta instância é isso. Par candidato **P5**: morder `git (cat-file|show) <ref>:.<dotpath>` **sem** `MSYS_NO_PATHCONV`, e só em plataforma MSYS — **duas pernas determinísticas**, FP 0 por construção (no Linux do CI nunca morde; com o escape nunca morde). **População medida no corpus real** (894 transcripts, 67.025 comandos `tool_use` de Bash/PowerShell, nunca prosa): **471 brutos**, dos quais **278 já usam o escape corretamente** → **193 líquidos = 0,288%**, a mesma banda dos pares já instalados no hook (P3 0,072% · P4 0,296%). Fica no `Gate:` do LC-08 pra a 2ª ocorrência nascer com o trabalho pronto.
 
 - **Origem:** sessão 2026-08-23, limpeza de worktrees. Achado meu, near-miss — a decisão que dependia dele era preservar/descartar conteúdo de worktree, então o instrumento errado teria feito eu **preservar lixo** (benigno) ou **descartar conteúdo único** (não). O registro do ledger é do agente; [W] decide só soberania (merge).
+
+### 2026-08-23 — Estender o P4 do `block-sonda-que-mente` pra pegar o pattern vindo de VARIÁVEL de shell (MEDIDO: 93,7% de falso-positivo)
+
+- **O que foi tentado:** o par **P4** do [`block-sonda-que-mente`](../.claude/hooks/block-sonda-que-mente.mjs) morde `grep -E` cujo padrão **inline** traz `\|` — em ERE a alternância é o pipe PURO, então `\|` casa um pipe LITERAL, o padrão inteiro deixa de casar e devolve **0 sem erro nenhum**. Em 2026-08-23 eu caí nesse erro **pela segunda vez na mesma sessão**, e na segunda o hook não disparou: o padrão vinha de uma VARIÁVEL — `for p in "quarantine\|QUAR"; do grep -cE "$p" arquivo; done`. O `\|` estava no texto do comando, alguns tokens antes, na lista do `for`. Proposta: casar `grep -E` em QUALQUER lugar do comando **+** `\|` dentro de aspas em QUALQUER lugar.
+
+- **Por que caiu — e a razão é SEMÂNTICA, não de implementação:** em `grep` **BÁSICO** (BRE, o default do GNU grep) o `\|` **É a alternância correta**. Um comando composto legitimamente tem os dois lados: `W=$(grep -rl "handoff.schema\|memory-schema" .github/); grep -nE "run:" "$W"` — o `\|` pertence ao `grep -rl` (certo) e o `-E` é outra invocação. Decidir a qual invocação o metacaractere pertence exige **parsear o shell**, não medir proximidade no texto.
+
+- **A medição** (corpus real: 937 transcripts · 68.565 comandos `tool_use` de Bash/PowerShell — nunca prosa):
+
+  | | disparos | % |
+  |---|---:|---:|
+  | P4 **atual** (padrão inline) | 198 | 0,289% |
+  | P4 **proposto** (padrão em variável) | 787 | 1,148% |
+  | **delta** (casos novos) | **589** | |
+  | …destes, com `grep` BÁSICO no mesmo comando | **552** | **93,7%** |
+
+  O controle positivo validou a réplica **antes** de eu confiar no número: o P4 atual mediu **0,289%** contra os **0,296%** que o docblock do próprio hook declara — bate. Na primeira tentativa, feita por `node -e` via shell, o par de barras colapsou no transporte e o "P4 atual" mediu **100,000%** — número impossível, que denunciou o transporte antes de virar conclusão (§5 2026-08-19).
+
+- **O limite (variante também proibida):** não estender o P4 — nem criar par novo — que decida a **qual invocação** um metacaractere pertence por **proximidade no texto do comando**. Vale pra `\|` (BRE×ERE), pra `\+`/`\?`/`\{}` (mesma divisão), e pra `-P` (PCRE) no meio de comando composto. O predicado exige análise de shell; sem ela é guard sintático, a família com 4 lápides medidas neste mesmo §5 (allowlist-de-pasta 2026-06-30 · guard `@scope` 2026-07-09 · vocabulário 130 FP 2026-07-16 · `toHaveKey` 100% FP 2026-07-26). **Reabrir** só com critério que resolva a **invocação dona** do padrão — por exemplo tokenizando o comando e atribuindo cada string ao `grep` que a consome.
+
+- **O que SOBREVIVE, e é barato:** o **controle positivo antes de confiar num zero**. Rodar um padrão que você SABE que casa, com as MESMAS flags, custa cinco segundos: `grep -cE "quarentena"` devolveu **10** no mesmo arquivo em que `grep -cE "quarantine\|QUAR"` devolvia **0**. É a doutrina de §5 2026-08-01 (*"contagem plausível não é prova de execução"*) aplicada do lado do zero.
+
+- **Nota de honestidade sobre o gap:** o P4 **continua sem cobrir** o caso do padrão em variável. Isso agora é um limite **declarado e medido**, não um esquecimento — está registrado no campo `Gate:` do LC-08.
+
+- **Origem:** sessão 2026-08-23. Eu afirmei ao [W] que *"o dono ignora a quarentena, os números dele são otimistas"* — **falso**, produzido pela sonda quebrada. O `emQuarentena()` existia desde sempre e trata o tema melhor que a minha versão (terceira categoria, não subtração). Afirmação publicada com confiança e sem controle positivo; o conserto veio de rodar, não de reler.
