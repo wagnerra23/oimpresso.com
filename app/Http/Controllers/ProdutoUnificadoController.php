@@ -193,6 +193,10 @@ class ProdutoUnificadoController extends Controller
                 'custo' => $podeVerCusto,
                 'preco' => $podeVerPreco,
                 'composicao' => $podeVerBom,
+                // Mesma permissão que `ProductController::massDeactivate` exige — a tela não
+                // inventa direito nem afrouxa o do servidor; ela só evita montar um botão que
+                // a rota vai recusar com 403.
+                'inativar' => auth()->user()?->can('product.update') ?? false,
             ],
             // `Inertia::defer` (D-14 · RUNBOOK-inertia-defer-pattern): toda prop com agregação
             // ou subquery sai do caminho crítico do primeiro paint e o partial reload escolhe
@@ -202,6 +206,12 @@ class ProdutoUnificadoController extends Controller
             'kpis' => Inertia::defer(fn () => $this->kpis($business_id, $filters, $podeVerCusto, $podeVerPreco)),
             'produtos' => Inertia::defer(fn () => $this->produtos($business_id, $filters, $podeVerCusto, $podeVerPreco, $podeVerBom)),
             'totalDaAba' => Inertia::defer(fn () => $this->totalDaAba($business_id, $filters, $podeVerCusto, $podeVerPreco)),
+            // Totais do rodapé. `null` pra quem não pode ver custo — a chave existe no
+            // contrato, o VALOR é que não vem. É dinheiro do tenant somado; o mesmo gate da
+            // coluna Custo vale pro agregado, que revela a mesma estrutura por outro caminho.
+            'totaisDoRecorte' => Inertia::defer(fn () => $podeVerCusto
+                ? $this->totaisDoRecorte($business_id, $filters, $podeVerCusto, $podeVerPreco)
+                : null),
             'opcoesFiltro' => Inertia::defer(fn () => $this->opcoesFiltro($business_id)),
             // `categorias` é a ÚNICA que NÃO é deferida, e isso é contrato, não descuido:
             // `ProdutoUnificadoCategoriasContratoTest` (C1..C4) faz uma visita COMPLETA e exige a
@@ -394,10 +404,17 @@ class ProdutoUnificadoController extends Controller
         // KPI-filtro (toggle): recorte operacional sobre a aba já aplicada.
         $limite = now()->subDays(self::DIAS_PARADO)->toDateTimeString();
         match ($f['kpi']) {
-            'ativos' => $q->where('c.is_inactive', 0),
+            // `ativos` saiu no pacote de 21/08 — contava a própria lista. Um link antigo com
+            // `?kpi=ativos` cai no `default` e simplesmente não recorta, que é o comportamento
+            // correto: o recorte que ele pedia já é o padrão da aba.
             'min' => $q->where('c.enable_stock', 1)->whereRaw('COALESCE(c.qtd, 0) > 0')->whereRaw('COALESCE(c.qtd, 0) <= COALESCE(c.minimo, 0)'),
             'zero' => $q->where('c.enable_stock', 1)->whereRaw('COALESCE(c.qtd, 0) = 0'),
-            'parado' => $q->where(fn ($qq) => $qq->whereNull('c.ultima_venda')->orWhere('c.ultima_venda', '<', $limite)),
+            // "Sem venda Nd" e "Margem baixa" são recortes de GESTÃO: o handoff de 21/08 §4.1
+            // os gateia junto do custo. Sem o gate aqui, um link montado à mão daria ao balcão
+            // um recorte que a faixa de KPI não lhe oferece.
+            'parado' => $podeVerCusto
+                ? $q->where(fn ($qq) => $qq->whereNull('c.ultima_venda')->orWhere('c.ultima_venda', '<', $limite))
+                : $q,
             'margem' => $podeVerCusto && $podeVerPreco
                 ? $q->whereRaw('c.preco > 0 AND (c.preco - c.custo) / c.preco < ?', [self::PISO_MARGEM])
                 : $q,
@@ -435,9 +452,16 @@ class ProdutoUnificadoController extends Controller
     }
 
     /**
-     * Os seis KPI-filtros, contados SOBRE A ABA ATIVA (handoff §4.3) e pela MESMA subconsulta
-     * da listagem. O card "Margem baixa" só é contado pra quem pode ver custo E preço — a
-     * contagem é leitura da estrutura de custo, e o gate da coluna vale igual pro contador.
+     * Os KPI-filtros, contados SOBRE A ABA ATIVA (handoff §4.3) e pela MESMA subconsulta da
+     * listagem — contador que discorda da lista destrói a confiança na tela.
+     *
+     * São no máximo QUATRO desde o pacote de 21/08 §4.1. `ativos` saiu: fora da aba "Inativos"
+     * todo item listado já é ativo, então o card contava a lista inteira e clicar nele não
+     * recortava nada.
+     *
+     * "Sem venda Nd" e "Margem baixa" são leitura da estrutura de custo — a chave só é emitida
+     * pra quem pode vê-la, mesmo gate da coluna aplicado ao contador. Chave ausente, e não
+     * zero: zero é uma afirmação sobre o catálogo.
      *
      * @return array<string,int>
      */
@@ -447,10 +471,12 @@ class ProdutoUnificadoController extends Controller
 
         $q = $this->catalogoDaAba($business_id, $f['aba'])
             ->selectRaw('COUNT(*) as total')
-            ->selectRaw('SUM(CASE WHEN c.is_inactive = 0 THEN 1 ELSE 0 END) as ativos')
             ->selectRaw('SUM(CASE WHEN c.enable_stock = 1 AND COALESCE(c.qtd, 0) > 0 AND COALESCE(c.qtd, 0) <= COALESCE(c.minimo, 0) THEN 1 ELSE 0 END) as baixo')
-            ->selectRaw('SUM(CASE WHEN c.enable_stock = 1 AND COALESCE(c.qtd, 0) = 0 THEN 1 ELSE 0 END) as zero')
-            ->selectRaw('SUM(CASE WHEN c.ultima_venda IS NULL OR c.ultima_venda < ? THEN 1 ELSE 0 END) as parado', [$limite]);
+            ->selectRaw('SUM(CASE WHEN c.enable_stock = 1 AND COALESCE(c.qtd, 0) = 0 THEN 1 ELSE 0 END) as zero');
+
+        if ($podeVerCusto) {
+            $q->selectRaw('SUM(CASE WHEN c.ultima_venda IS NULL OR c.ultima_venda < ? THEN 1 ELSE 0 END) as parado', [$limite]);
+        }
 
         if ($podeVerCusto && $podeVerPreco) {
             $q->selectRaw('SUM(CASE WHEN c.preco > 0 AND (c.preco - c.custo) / c.preco < ? THEN 1 ELSE 0 END) as margem', [self::PISO_MARGEM]);
@@ -459,15 +485,16 @@ class ProdutoUnificadoController extends Controller
         $linha = $q->first();
 
         $kpis = [
-            'ativos' => (int) ($linha->ativos ?? 0),
             'min' => (int) ($linha->baixo ?? 0),
             'zero' => (int) ($linha->zero ?? 0),
-            'parado' => (int) ($linha->parado ?? 0),
             'total' => (int) ($linha->total ?? 0),
         ];
 
-        // UC-PUNI-01 — a chave só existe se o usuário puder ver o valor. Sem custo não há
-        // card de margem: mesma regra da coluna, aplicada ao contador.
+        // UC-PUNI-01 — a chave só existe se o usuário puder ver o valor.
+        if ($podeVerCusto) {
+            $kpis['parado'] = (int) ($linha->parado ?? 0);
+        }
+
         if ($podeVerCusto && $podeVerPreco) {
             $kpis['margem'] = (int) ($linha->margem ?? 0);
         }
@@ -488,6 +515,49 @@ class ProdutoUnificadoController extends Controller
             $podeVerCusto,
             $podeVerPreco
         )->count();
+    }
+
+    /**
+     * Totais do RECORTE inteiro — não da página (handoff 21/08 §4.6).
+     *
+     * Somar a fatia responderia a pergunta errada: "quanto vale o que está nesta tela" não é
+     * uma pergunta que alguém faz. As duas que se fazem são "quanto tenho parado em estoque" e
+     * "quanto preciso desembolsar pra voltar ao mínimo" — e as duas são sobre o recorte.
+     *
+     * `emEstoque` é o valor FÍSICO: saldo × custo, sobre o que o cadastro guarda saldo. O
+     * rótulo na tela diz "(recorte, físico)" porque, no dia em que o local tiver natureza
+     * (§6 do handoff), parte desse saldo será reservada e não vendável — e o número seguirá
+     * sendo o mesmo, mas a frase precisará distinguir. Declarar agora evita que o rótulo
+     * envelheça em silêncio.
+     *
+     * `repor` é o que falta pra chegar ao mínimo, a custo: SOMA(max(0, mínimo − saldo) × custo).
+     * Item acima do mínimo contribui zero, nunca negativo — senão um item sobrando "pagaria"
+     * pela falta de outro e o total mentiria pra menos.
+     *
+     * @return array{emEstoque: float, repor: float}
+     */
+    private function totaisDoRecorte(int $business_id, array $f, bool $podeVerCusto, bool $podeVerPreco): array
+    {
+        $linha = $this->aplicarRecortes(
+            $this->catalogoDaAba($business_id, $f['aba']),
+            $f,
+            $podeVerCusto,
+            $podeVerPreco
+        )
+            ->selectRaw('SUM(CASE WHEN c.enable_stock = 1 THEN COALESCE(c.qtd, 0) * COALESCE(c.custo, 0) ELSE 0 END) as em_estoque')
+            ->selectRaw(
+                // `CASE` em vez de `GREATEST`: a lane de Pest roda em SQLite, que não tem
+                // `GREATEST` de dois argumentos. Mesma conta, sintaxe que os dois entendem.
+                'SUM(CASE WHEN c.enable_stock = 1 AND COALESCE(c.minimo, 0) > COALESCE(c.qtd, 0)'
+                .' THEN (COALESCE(c.minimo, 0) - COALESCE(c.qtd, 0)) * COALESCE(c.custo, 0)'
+                .' ELSE 0 END) as repor'
+            )
+            ->first();
+
+        return [
+            'emEstoque' => round((float) ($linha->em_estoque ?? 0), 2),
+            'repor' => round((float) ($linha->repor ?? 0), 2),
+        ];
     }
 
     /**
