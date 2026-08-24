@@ -70,6 +70,25 @@ check('LIBERA: relatorio sem pergunta nenhuma',
 check('LIBERA: texto vazio / ausente (fail-open)',
   !deveBloquear('') && !deveBloquear(null) && !deveBloquear(undefined));
 
+// ── FALSO-POSITIVO REAL da 1ª execução (2026-08-24) ──────────────────────────
+// O hook bloqueou o turno em que eu EXPLICAVA por que ele existe, porque a explicação
+// citava a devolução entre aspas. Citar o padrão não é cometê-lo — sem o `despirCitacao`
+// o hook é presence-gate (LC-11) e ainda se auto-dispara (§5 2026-07-26: "a própria
+// mensagem do mecanismo contém o texto que ele procura"). Estes 3 asserts são o bite:
+// revertendo o strip de citação, o primeiro reprova.
+const explicandoOHook = `- Selftest **15/15**; R13 não regrediu.
+
+Por que um hook novo e não o do R13: o do R13 é advisory e o regex dele testa \`qual (deles|...)\`; eu terminei com *"Qual delas?"*. Regra escrita com detector furado é regra que não morde.
+
+CI rodando; te aviso quando assentar.`;
+check('LIBERA: turno que CITA a devolucao entre aspas (FP real da 1a execucao)',
+  !deveBloquear(explicandoOHook));
+check('LIBERA: padrao dentro de crase (codigo/identificador), nao e fala',
+  !deveBloquear('Rodei tudo.\n\nO regex antigo era \`qual (voce|deles|opcao)\` e por isso furava.'));
+// Controle POSITIVO do mesmo par: sem aspas, a devolucao real continua mordendo.
+check('BLOQUEIA: mesma frase SEM aspas segue sendo devolucao (o strip nao cegou o hook)',
+  deveBloquear('Tres leituras possiveis:\n\n1. um\n2. dois\n3. tres\n\nQual delas?'));
+
 // ── contrato da mensagem ─────────────────────────────────────────────────────
 check('MOTIVO cita R16, manda RODAR a porta viva e preserva a escalacao legitima',
   /R16/.test(MOTIVO) && /RODE/.test(MOTIVO) && /soberania/i.test(MOTIVO));

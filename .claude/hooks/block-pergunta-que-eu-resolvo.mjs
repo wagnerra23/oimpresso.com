@@ -80,13 +80,30 @@ const IMPERATIVO = new RegExp(
   '\\b(me diga qual|me diz qual|me informe qual|me fala qual' +
   '|escolha (qual|entre|uma)|decida (qual|entre)|voc[eê] (decide|escolhe|que sabe))\\b', 'i');
 
+/** Remove do texto o que é CITAÇÃO, não fala: conteúdo em crase (código/identificador) e
+ *  entre aspas (retas ou curvas). Sem isto o hook vira presence-gate — mede a string em
+ *  prosa, não o comportamento (LC-11).
+ *
+ *  MEDIDO na 1ª execução real (2026-08-24): o hook bloqueou o turno em que eu EXPLICAVA
+ *  por que ele existe, porque a explicação continha *"Qual delas?"* entre aspas. É o
+ *  auto-disparo da lápide §5 2026-07-26 — "a própria mensagem do mecanismo contém o texto
+ *  que ele procura". Citar o padrão não é cometê-lo. */
+export function despirCitacao(s) {
+  return String(s)
+    .replace(/```[\s\S]*?```/g, ' ')      // bloco de código
+    .replace(/`[^`\n]*`/g, ' ')           // código inline
+    .replace(/"[^"\n]*"/g, ' ')           // aspas curvas
+    .replace(/"[^"\n]*"/g, ' ')           // aspas retas
+    .replace(/'[^'\n]*'/g, ' ');          // aspas simples curvas
+}
+
 /** Classificador PURO: este texto final devolve decisão que eu deveria ter resolvido? */
 export function deveBloquear(text) {
   if (!text) return false;
   // Só olha o FECHO: é onde a devolução acontece. Pergunta no meio de um relatório
   // que termina em execução não é devolução — é contexto.
   const linhas = String(text).trim().split('\n').filter((l) => l.trim());
-  const fecho = linhas.slice(-8).join('\n');
+  const fecho = despirCitacao(linhas.slice(-8).join('\n'));
   const imperativo = IMPERATIVO.test(fecho);
   if (!fecho.includes('?') && !imperativo) return false;
   if (!DEVOLVE.test(fecho) && !imperativo) return false;
