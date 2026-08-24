@@ -1475,7 +1475,7 @@
 .ofc-lightbox figure {
   margin: 0; max-width: min(860px, 92vw); max-height: 86vh;
   display: flex; flex-direction: column;
-  background: var(--surface, #fff); border-radius: 10px; overflow: hidden;
+  background: var(--surface); border-radius: 10px; overflow: hidden;
   box-shadow: 0 24px 64px rgba(0, 0, 0, .45);
 }
 .ofc-lightbox figure img { max-width: 100%; max-height: calc(86vh - 64px); object-fit: contain; display: block; background: #0a0c10; }

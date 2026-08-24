@@ -214,7 +214,7 @@ function MenuGroup({ entry, meta, items, activeRoute, onSelectRoute, showGhosts 
       const v = localStorage.getItem(lsKey);
       if (v !== null) return v === "1";
     } catch (e) {}
-    return entry.group !== "MAIS";
+    return entry.group !== "PLATAFORMA";
   });
   useEffect(() => {
     try {localStorage.setItem(lsKey, open ? "1" : "0");} catch (e) {}

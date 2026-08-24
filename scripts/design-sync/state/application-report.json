@@ -1,18 +1,18 @@
 {
   "schema": "oimpresso-design-application-report/2",
-  "generatedAt": "2026-08-24T12:09:21.068Z",
+  "generatedAt": "2026-08-24T17:28:34.763Z",
   "bundle": {
-    "id": "6ee10269c32ccc556d53321e7e38cb5ca9db861f03c66a2c10485926913cfb39",
+    "id": "290d25a40f6c5c0e0b9ee05fb86f4a5f585c83c5ec847aaca1cd25f1d2710449",
     "baseId": null,
     "mode": "snapshot",
     "source": "cowork:oimpresso.com.html",
     "transportComplete": true
   },
   "summary": {
-    "transportChanges": 242,
-    "screens": 69,
+    "transportChanges": 247,
+    "screens": 68,
     "tested": 0,
-    "pending": 39,
+    "pending": 38,
     "to-create": 9,
     "blocked": 21
   },
@@ -111,8 +111,8 @@
     {
       "path": "app.jsx",
       "change": "added",
-      "bytes": 64406,
-      "sha256": "85cf55298a74efe9e65d7a80c816f7e34efd2567b5f7d228c72f06d16da82750",
+      "bytes": 66937,
+      "sha256": "8d666f0cc853aee37ea354b8daba3aa74478bb718962fcf9229df03c52139379",
       "role": "cowork-source"
     },
     {
@@ -174,8 +174,8 @@
     {
       "path": "cliente-drawer760.css",
       "change": "added",
-      "bytes": 16750,
-      "sha256": "ab7704b099549ccd8739f697efa08e52a7456ff2c401873d3d69aaca5e05a548",
+      "bytes": 16745,
+      "sha256": "2684448d84cc7baf7beaaebe6a04abd63a84b8d2abb316471d04e071a65141e2",
       "role": "cowork-source"
     },
     {
@@ -382,6 +382,34 @@
       "role": "cowork-source"
     },
     {
+      "path": "crm-blade-forms.jsx",
+      "change": "added",
+      "bytes": 33323,
+      "sha256": "0585979baf218dd270a47fd2765441d5c29400951eac5c6eef2bc63dcbe70441",
+      "role": "cowork-source"
+    },
+    {
+      "path": "crm-blade-telas.jsx",
+      "change": "added",
+      "bytes": 31281,
+      "sha256": "a0b317127c0a652f395a2cf754ce474943b3717b8cf9c4669bcaea0e5c76fd3c",
+      "role": "cowork-source"
+    },
+    {
+      "path": "crm-blade.css",
+      "change": "added",
+      "bytes": 2358,
+      "sha256": "9d44a31665f4ef079c6062c4c5c53487411d49c3b6c0af629b0a2374b61b474d",
+      "role": "cowork-source"
+    },
+    {
+      "path": "crm-blade.jsx",
+      "change": "added",
+      "bytes": 61593,
+      "sha256": "eb0d0c1f8ecfac5644767d4f024a6c16287e689aa852f789b92a53838823b1c7",
+      "role": "cowork-source"
+    },
+    {
       "path": "crm-ficha.css",
       "change": "added",
       "bytes": 11011,
@@ -396,17 +424,10 @@
       "role": "cowork-source"
     },
     {
-      "path": "crm-page.css",
+      "path": "crm-portal.jsx",
       "change": "added",
-      "bytes": 8677,
-      "sha256": "86d6de695b2c1470c1432b81711fa1f099a2cd1233f439255488b463c5ad4c92",
-      "role": "cowork-source"
-    },
-    {
-      "path": "crm-page.jsx",
-      "change": "added",
-      "bytes": 12913,
-      "sha256": "48e3acd68c9a9fcd94f4f98ca67317d93aafe67b153bd6b46693035664394310",
+      "bytes": 21721,
+      "sha256": "3e9d09379191030ce42065d3f7a2d4d9daed0fb18db2b7b4155998a7758c803d",
       "role": "cowork-source"
     },
     {
@@ -454,8 +475,8 @@
     {
       "path": "data.jsx",
       "change": "added",
-      "bytes": 32451,
-      "sha256": "c3476ebf9a38464b09b652e26360f05c807107a1faa5c7f8ef418ca5c76cab30",
+      "bytes": 33523,
+      "sha256": "48f46054e980bc52f2e8c99738960d59d58798c9ebdfc5676a0f1afeca8e8781",
       "role": "cowork-source"
     },
     {
@@ -636,8 +657,8 @@
     {
       "path": "financeiro.css",
       "change": "added",
-      "bytes": 88245,
-      "sha256": "c4a4a7304fec7de7d78e565bacc04fbbe09cc91f4f5997e163b6774e63ee86c8",
+      "bytes": 88197,
+      "sha256": "a1dd9372f2c182ccf6c52777e9978b4c2ca69217f7c21169480f6d9160d07ab8",
       "role": "cowork-source"
     },
     {
@@ -657,8 +678,8 @@
     {
       "path": "fiscal-page.css",
       "change": "added",
-      "bytes": 22853,
-      "sha256": "19604aeceac81d3e290149e9cb18a77c3751e3e3e88a46a1cdf47f0a555eff1a",
+      "bytes": 22848,
+      "sha256": "6a36fc70fcada391b3f31e7d789b7cef446575e578cef8d404cd7d9ad0ae684d",
       "role": "cowork-source"
     },
     {
@@ -823,6 +844,13 @@
       "role": "cowork-source"
     },
     {
+      "path": "impressao.css",
+      "change": "added",
+      "bytes": 1249,
+      "sha256": "c1bd9cbee38862ed7780842d912e0ad9db3087001f502a2780eb677dec414341",
+      "role": "cowork-source"
+    },
+    {
       "path": "inbox-ai.jsx",
       "change": "added",
       "bytes": 13287,
@@ -979,8 +1007,8 @@
     {
       "path": "manufacturing-page.css",
       "change": "added",
-      "bytes": 21199,
-      "sha256": "86e15317ddf3e6e8788b239b956bd293e7237953e047866b0ad1dc28727fbe1a",
+      "bytes": 21119,
+      "sha256": "c5e8fdc311b53a2ee613f1ff78199625041d1810a99caf8a6e78ff034ea9d0a6",
       "role": "cowork-source"
     },
     {
@@ -1126,8 +1154,8 @@
     {
       "path": "oficina-page.css",
       "change": "added",
-      "bytes": 59785,
-      "sha256": "6ee8def144097c22cc256f234fe49a4a5e216c22749cafcc7ad56c7634f0cdc6",
+      "bytes": 59779,
+      "sha256": "262709cec7b3fcf91ffb970c0f60d140ec5959d94143943a6dc973f0f8150547",
       "role": "cowork-source"
     },
     {
@@ -1154,8 +1182,8 @@
     {
       "path": "oimpresso.com.html",
       "change": "added",
-      "bytes": 24060,
-      "sha256": "c1dfb73b6fd8bb74f3c4f1d493b0acccc7bc3d42b7210d9f8002434e9b2ec562",
+      "bytes": 30725,
+      "sha256": "279a08368ca39d2b6655036aecca1410bc9f35da2dd028266090acb6bb9ae161",
       "role": "cowork-source"
     },
     {
@@ -1170,6 +1198,13 @@
       "change": "added",
       "bytes": 45274,
       "sha256": "7cbc155eace614e818d6904e04f4e66ae41a4c74330cb70e202f81a7f096a194",
+      "role": "cowork-source"
+    },
+    {
+      "path": "otimiza-ondas.css",
+      "change": "added",
+      "bytes": 2662,
+      "sha256": "8b7278c99a14c89f5bc7c92328f20d86efeee05b247792fc7dcf8ca70665d729",
       "role": "cowork-source"
     },
     {
@@ -1301,8 +1336,8 @@
     {
       "path": "ponto-page.css",
       "change": "added",
-      "bytes": 25994,
-      "sha256": "3b2668bcd28e55b40cae3ed86246a4e3179c5400ca4188582b10ef8acb7447a4",
+      "bytes": 25974,
+      "sha256": "21b49078e1d85873ccbc666eb8a256ef13f1ba2756a606ba4c90b08573ec40ac",
       "role": "cowork-source"
     },
     {
@@ -1441,8 +1476,8 @@
     {
       "path": "relatorios-page.css",
       "change": "added",
-      "bytes": 9786,
-      "sha256": "4a36662f84d4eef0145ac2a101205f3ed76c2d5b85b36f9e215c303b59c4e8b6",
+      "bytes": 9776,
+      "sha256": "b2b1cef450b17e8d64fbb5c4dab9c889b7d6b62be53134751599c699f4908661",
       "role": "cowork-source"
     },
     {
@@ -1504,15 +1539,15 @@
     {
       "path": "sidebar.jsx",
       "change": "added",
-      "bytes": 26296,
-      "sha256": "6733dec328511d98704211fcd4d6d277f344fcf90a9ff48f0dbdd5a0275500ed",
+      "bytes": 26302,
+      "sha256": "ec018f63f5f6dcf9899d8ca41b525b6fd9f15b3fd0e559cb1c8867fc690f9fa8",
       "role": "cowork-source"
     },
     {
       "path": "styles.css",
       "change": "added",
-      "bytes": 219917,
-      "sha256": "02c10a1076e7a03fb0ca067cdcb3f088c85cddd9f3ce702dd80b228752046db3",
+      "bytes": 219650,
+      "sha256": "065edc1ec5e0ddbbf98c047b4cc257c83784ffd0334436de5c9942003f1ad3f5",
       "role": "cowork-source"
     },
     {
@@ -1868,18 +1903,6 @@
       "tested": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
-    },
-    {
-      "source": "crm-page.jsx",
-      "bundleChange": "added",
-      "target": "resources/js/Pages/Cliente/Index.tsx",
-      "module": "Cliente",
-      "mapping": "alias",
-      "comparison": "SEMANTICO",
-      "applicationState": "pending",
-      "tested": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
     },
     {
       "source": "dash-legacy-page.jsx",
@@ -2623,8 +2646,8 @@
     },
     {
       "path": "app.jsx",
-      "bytes": 64406,
-      "sha256": "85cf55298a74efe9e65d7a80c816f7e34efd2567b5f7d228c72f06d16da82750",
+      "bytes": 66937,
+      "sha256": "8d666f0cc853aee37ea354b8daba3aa74478bb718962fcf9229df03c52139379",
       "role": "cowork-source"
     },
     {
@@ -2677,8 +2700,8 @@
     },
     {
       "path": "cliente-drawer760.css",
-      "bytes": 16750,
-      "sha256": "ab7704b099549ccd8739f697efa08e52a7456ff2c401873d3d69aaca5e05a548",
+      "bytes": 16745,
+      "sha256": "2684448d84cc7baf7beaaebe6a04abd63a84b8d2abb316471d04e071a65141e2",
       "role": "cowork-source"
     },
     {
@@ -2856,6 +2879,30 @@
       "role": "cowork-source"
     },
     {
+      "path": "crm-blade-forms.jsx",
+      "bytes": 33323,
+      "sha256": "0585979baf218dd270a47fd2765441d5c29400951eac5c6eef2bc63dcbe70441",
+      "role": "cowork-source"
+    },
+    {
+      "path": "crm-blade-telas.jsx",
+      "bytes": 31281,
+      "sha256": "a0b317127c0a652f395a2cf754ce474943b3717b8cf9c4669bcaea0e5c76fd3c",
+      "role": "cowork-source"
+    },
+    {
+      "path": "crm-blade.css",
+      "bytes": 2358,
+      "sha256": "9d44a31665f4ef079c6062c4c5c53487411d49c3b6c0af629b0a2374b61b474d",
+      "role": "cowork-source"
+    },
+    {
+      "path": "crm-blade.jsx",
+      "bytes": 61593,
+      "sha256": "eb0d0c1f8ecfac5644767d4f024a6c16287e689aa852f789b92a53838823b1c7",
+      "role": "cowork-source"
+    },
+    {
       "path": "crm-ficha.css",
       "bytes": 11011,
       "sha256": "aeabe0884f8756144104174b53605bdcff74fe32431513e3625d4919f0e75817",
@@ -2868,15 +2915,9 @@
       "role": "cowork-source"
     },
     {
-      "path": "crm-page.css",
-      "bytes": 8677,
-      "sha256": "86d6de695b2c1470c1432b81711fa1f099a2cd1233f439255488b463c5ad4c92",
-      "role": "cowork-source"
-    },
-    {
-      "path": "crm-page.jsx",
-      "bytes": 12913,
-      "sha256": "48e3acd68c9a9fcd94f4f98ca67317d93aafe67b153bd6b46693035664394310",
+      "path": "crm-portal.jsx",
+      "bytes": 21721,
+      "sha256": "3e9d09379191030ce42065d3f7a2d4d9daed0fb18db2b7b4155998a7758c803d",
       "role": "cowork-source"
     },
     {
@@ -2917,8 +2958,8 @@
     },
     {
       "path": "data.jsx",
-      "bytes": 32451,
-      "sha256": "c3476ebf9a38464b09b652e26360f05c807107a1faa5c7f8ef418ca5c76cab30",
+      "bytes": 33523,
+      "sha256": "48f46054e980bc52f2e8c99738960d59d58798c9ebdfc5676a0f1afeca8e8781",
       "role": "cowork-source"
     },
     {
@@ -3073,8 +3114,8 @@
     },
     {
       "path": "financeiro.css",
-      "bytes": 88245,
-      "sha256": "c4a4a7304fec7de7d78e565bacc04fbbe09cc91f4f5997e163b6774e63ee86c8",
+      "bytes": 88197,
+      "sha256": "a1dd9372f2c182ccf6c52777e9978b4c2ca69217f7c21169480f6d9160d07ab8",
       "role": "cowork-source"
     },
     {
@@ -3091,8 +3132,8 @@
     },
     {
       "path": "fiscal-page.css",
-      "bytes": 22853,
-      "sha256": "19604aeceac81d3e290149e9cb18a77c3751e3e3e88a46a1cdf47f0a555eff1a",
+      "bytes": 22848,
+      "sha256": "6a36fc70fcada391b3f31e7d789b7cef446575e578cef8d404cd7d9ad0ae684d",
       "role": "cowork-source"
     },
     {
@@ -3234,6 +3275,12 @@
       "role": "cowork-source"
     },
     {
+      "path": "impressao.css",
+      "bytes": 1249,
+      "sha256": "c1bd9cbee38862ed7780842d912e0ad9db3087001f502a2780eb677dec414341",
+      "role": "cowork-source"
+    },
+    {
       "path": "inbox-ai.jsx",
       "bytes": 13287,
       "sha256": "9db44140ccfd061d9e15b44e79012524f40640e80f8a1b2d0968a0100899d2d5",
@@ -3367,8 +3414,8 @@
     },
     {
       "path": "manufacturing-page.css",
-      "bytes": 21199,
-      "sha256": "86e15317ddf3e6e8788b239b956bd293e7237953e047866b0ad1dc28727fbe1a",
+      "bytes": 21119,
+      "sha256": "c5e8fdc311b53a2ee613f1ff78199625041d1810a99caf8a6e78ff034ea9d0a6",
       "role": "cowork-source"
     },
     {
@@ -3493,8 +3540,8 @@
     },
     {
       "path": "oficina-page.css",
-      "bytes": 59785,
-      "sha256": "6ee8def144097c22cc256f234fe49a4a5e216c22749cafcc7ad56c7634f0cdc6",
+      "bytes": 59779,
+      "sha256": "262709cec7b3fcf91ffb970c0f60d140ec5959d94143943a6dc973f0f8150547",
       "role": "cowork-source"
     },
     {
@@ -3517,8 +3564,8 @@
     },
     {
       "path": "oimpresso.com.html",
-      "bytes": 24060,
-      "sha256": "c1dfb73b6fd8bb74f3c4f1d493b0acccc7bc3d42b7210d9f8002434e9b2ec562",
+      "bytes": 30725,
+      "sha256": "279a08368ca39d2b6655036aecca1410bc9f35da2dd028266090acb6bb9ae161",
       "role": "cowork-source"
     },
     {
@@ -3531,6 +3578,12 @@
       "path": "os-page.jsx",
       "bytes": 45274,
       "sha256": "7cbc155eace614e818d6904e04f4e66ae41a4c74330cb70e202f81a7f096a194",
+      "role": "cowork-source"
+    },
+    {
+      "path": "otimiza-ondas.css",
+      "bytes": 2662,
+      "sha256": "8b7278c99a14c89f5bc7c92328f20d86efeee05b247792fc7dcf8ca70665d729",
       "role": "cowork-source"
     },
     {
@@ -3643,8 +3696,8 @@
     },
     {
       "path": "ponto-page.css",
-      "bytes": 25994,
-      "sha256": "3b2668bcd28e55b40cae3ed86246a4e3179c5400ca4188582b10ef8acb7447a4",
+      "bytes": 25974,
+      "sha256": "21b49078e1d85873ccbc666eb8a256ef13f1ba2756a606ba4c90b08573ec40ac",
       "role": "cowork-source"
     },
     {
@@ -3763,8 +3816,8 @@
     },
     {
       "path": "relatorios-page.css",
-      "bytes": 9786,
-      "sha256": "4a36662f84d4eef0145ac2a101205f3ed76c2d5b85b36f9e215c303b59c4e8b6",
+      "bytes": 9776,
+      "sha256": "b2b1cef450b17e8d64fbb5c4dab9c889b7d6b62be53134751599c699f4908661",
       "role": "cowork-source"
     },
     {
@@ -3817,14 +3870,14 @@
     },
     {
       "path": "sidebar.jsx",
-      "bytes": 26296,
-      "sha256": "6733dec328511d98704211fcd4d6d277f344fcf90a9ff48f0dbdd5a0275500ed",
+      "bytes": 26302,
+      "sha256": "ec018f63f5f6dcf9899d8ca41b525b6fd9f15b3fd0e559cb1c8867fc690f9fa8",
       "role": "cowork-source"
     },
     {
       "path": "styles.css",
-      "bytes": 219917,
-      "sha256": "02c10a1076e7a03fb0ca067cdcb3f088c85cddd9f3ce702dd80b228752046db3",
+      "bytes": 219650,
+      "sha256": "065edc1ec5e0ddbbf98c047b4cc257c83784ffd0334436de5c9942003f1ad3f5",
       "role": "cowork-source"
     },
     {
