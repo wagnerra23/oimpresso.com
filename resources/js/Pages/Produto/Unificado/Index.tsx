@@ -733,7 +733,11 @@ function ProdutoUnificadoIndex({
                           'inline-flex h-9 items-center gap-1.5 px-3.5 -mb-px text-[13px] whitespace-nowrap ' +
                           'border-0 border-b-2 transition-[color,background-color,border-color] duration-150 ' +
                           (ativa
-                            ? 'border-primary text-foreground font-semibold bg-[var(--idx-tab-ativa-bg)]'
+                            // `--accent`, NÃO `primary`: o acento é definido POR EMPRESA (a WR2
+                            // usa hue 220), enquanto `primary` é o roxo 295 fixo do sistema. Com
+                            // o fundo saindo de `--accent-soft`, deixar o sublinhado em `primary`
+                            // entregaria fundo azul com traço roxo. Patch de cor §3.
+                            ? 'border-[var(--accent)] text-foreground font-semibold bg-[var(--idx-tab-ativa-bg)]'
                             : 'border-transparent text-muted-foreground font-medium hover:text-foreground hover:bg-[var(--idx-tab-hover-bg)]')
                         }
                       >
@@ -745,7 +749,7 @@ function ProdutoUnificadoIndex({
                           className={
                             'inline-block min-w-[18px] rounded-full px-1.5 text-center font-mono text-[10.5px] font-semibold tabular-nums leading-[1.4] ' +
                             (ativa
-                              ? 'bg-primary text-primary-foreground'
+                              ? 'bg-[var(--accent)] text-[var(--accent-fg)]'
                               : 'bg-[var(--idx-badge-cont-bg)] text-[var(--idx-badge-cont-fg)]')
                           }
                         >
@@ -1053,7 +1057,7 @@ function ProdutoUnificadoIndex({
                                   // está em ordem: reservar a largura sempre evita que a lista
                                   // "pule" 3px conforme o recorte muda de composição.
                                   'border-b border-border/60 border-l-[3px] cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ' +
-                                  (aberta || cursor ? 'bg-[var(--idx-row-sel-bg)]' : 'hover:bg-muted') +
+                                  (aberta || cursor ? 'bg-[var(--idx-row-sel-bg)]' : 'hover:bg-[var(--bg-2)]') +
                                   // Trilho vermelho na borda esquerda (V3 §10.1) — é o que permite
                                   // VARRER a lista sem ler. Cobre os TRÊS motivos de ação (sem
                                   // saldo · abaixo do mínimo · margem sob o piso), não só o zerado.
