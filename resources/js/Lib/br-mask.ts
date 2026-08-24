@@ -11,7 +11,7 @@
 // arquivo é Wave C-FE específico do drawer paradigma 760 (PT-BR-only, sem
 // indicador_ie/regime tributário). Não duplica; reusa internamente.
 
-import { unmaskDigits, formatCpfCnpj, formatCep, formatPhone } from './format-br';
+import { unmaskDigits, formatCpfCnpj, formatCep } from './format-br';
 
 /**
  * Apenas dígitos. Atalho mantido pro código que ainda usa BRMask.onlyDigits.
@@ -22,11 +22,11 @@ export function onlyDigits(value: string | null | undefined): string {
 }
 
 /**
- * Máscara CPF — `000.000.000-00` (progressiva conforme digitação).
+ * Máscara CPF — `000.000.000-00` (progressiva conforme digitação).   // pii-allowlist (placeholder de formato)
  * Trunca em 11 dígitos.
  *
  *   "123456789" → "123.456.789"
- *   "12345678909" → "123.456.789-09"
+ *   "12345678909" → "123.456.789-09"   // pii-allowlist (exemplo sintético de docblock, não é dado de cliente)
  */
 export function maskCPF(value: string | null | undefined): string {
   const d = unmaskDigits(value).slice(0, 11);
@@ -38,11 +38,11 @@ export function maskCPF(value: string | null | undefined): string {
 }
 
 /**
- * Máscara CNPJ — `00.000.000/0000-00`.
+ * Máscara CNPJ — `00.000.000/0000-00`.   // pii-allowlist (placeholder de formato)
  * Trunca em 14 dígitos.
  *
  *   "12345678" → "12.345.678"
- *   "12345678000195" → "12.345.678/0001-95"
+ *   "12345678000195" → "12.345.678/0001-95"   // pii-allowlist (exemplo sintético de docblock, não é dado de cliente)
  */
 export function maskCNPJ(value: string | null | undefined): string {
   const d = unmaskDigits(value).slice(0, 14);

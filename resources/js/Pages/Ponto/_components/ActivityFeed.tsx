@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Link } from '@inertiajs/react';
 import { LogIn, LogOut, Coffee, Clock } from 'lucide-react';
 import { cn } from '@/Lib/utils';
 

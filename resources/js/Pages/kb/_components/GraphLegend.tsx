@@ -11,7 +11,6 @@
  * Agent E (ONDA 5) — 2026-05-15
  */
 
-import * as React from 'react';
 import { NODE_COLORS, EDGE_STYLES } from '../_lib/graphLayout';
 import type { KbNodeType, KbEdgeType } from '../_lib/graphTypes';
 
