@@ -3,6 +3,7 @@ id: resources-js-pages-stock-adjustment-index-charter
 page: /stock-adjustments
 component: resources/js/Pages/StockAdjustment/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
+bundle_source: estoque-page.jsx
 tela: stock_adjustment/index
 tipo: LIST
 modulo: Inventory / StockAdjustment
