@@ -5,8 +5,9 @@ irmaos: Index.charter.md (lei) · prototipo-ui/contrato/ponto-painel.contract.js
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a home do módulo e o único lugar onde o gestor vê, antes de tentar fechar a competência, o que a impede de consolidar.
 owner: wagner
-last_run: "2026-08-23"
+last_run: "2026-08-24"
 last_run_ci: "NÃO EXECUTADO NA LANE. Os 6 UC rodaram no CT 100 (container oimpresso-staging, MySQL oimpresso_staging) em 2026-08-23: 6 passed, 76 assertions, 0 skipped — assertions>0 prova execução, não `0 failed` (LC-13). Mas a lane `PHP / Pest (Ponto · MySQL)` roda uma ALLOWLIST explícita e este arquivo não está nela: teste fora da allowlist é verde impossível — existe e nunca roda por PR. Adicioná-lo exige editar .github/workflows/ponto-pest.yml, fora do prefixo deste PR. Veredito oficial vem do manifesto G-7, não desta linha nem da run manual."
+smoke_prod: "2026-08-24, apos o deploy de 8e7583e05b (PR #6160), Chrome MCP em https://oimpresso.com/ponto, biz=1 WR2 Sistemas. CONFIRMADO no ar: as 6 legendas de KPI, o subtitulo '(0 pendentes)' da fila, a frase de vazio e o rodape da Portaria MTP 671/2021. NAO verificaveis nesta janela: NSR no feed e Estado na fila — nao havia marcacao nem intercorrencia no dia, entao nao ha linha pra exibir. DOIS DEFEITOS MEDIDOS no DOM, ambos anteriores a este PR: (1) so 3 das 4 ancoras do contrato existem na pagina — `painel-kpis` nunca chegou ao DOM porque o KpiGrid nao repassava a prop; (2) rotulo de KPI truncado (scrollWidth 157 > clientWidth 114 em 'Colaboradores ativos', com text-overflow: ellipsis) a 1440px de viewport."
 ---
 
 # Casos de Uso & Aceite — Painel do Ponto

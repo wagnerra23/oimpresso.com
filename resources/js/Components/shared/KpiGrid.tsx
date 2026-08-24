@@ -22,6 +22,19 @@ interface Props {
   cols?: 2 | 3 | 4 | 5 | 6;
   children: React.ReactNode;
   className?: string;
+  /**
+   * Âncora de Contrato de Tela (ADR 0286) — e ela precisa CHEGAR AO DOM.
+   *
+   * Sem esta prop declarada, o React descarta `data-contract` em silêncio: num
+   * componente (não num elemento DOM) prop desconhecida não vira atributo. O
+   * `Ponto/Dashboard/Index.tsx` passava `data-contract="painel-kpis"` desde o F3
+   * e a seção NUNCA teve âncora na página — medido em prod 2026-08-24, onde só 3
+   * das 4 âncoras do contrato `ponto-painel` existiam no DOM.
+   *
+   * O gate `contrato-de-tela` não pega isso por construção: ele lê o `.tsx` e
+   * encontra a string, que de fato está lá. Presença na fonte ≠ presença no DOM.
+   */
+  'data-contract'?: string;
 }
 
 const colsMap: Record<NonNullable<Props['cols']>, string> = {
@@ -32,9 +45,13 @@ const colsMap: Record<NonNullable<Props['cols']>, string> = {
   6: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6',
 };
 
-export default function KpiGrid({ cols = 4, children, className }: Props) {
+export default function KpiGrid({ cols = 4, children, className, ...rest }: Props) {
   return (
-    <div data-slot="kpi-grid" className={cn('grid gap-3', colsMap[cols], className)}>
+    <div
+      data-slot="kpi-grid"
+      className={cn('grid gap-3', colsMap[cols], className)}
+      {...rest}
+    >
       {children}
     </div>
   );
