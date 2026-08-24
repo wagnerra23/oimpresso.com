@@ -15,7 +15,7 @@ uses(Tests\TestCase::class);
  * BASELINE F2 do MWART para a tela Conector (API) — US-CONN-015.
  *
  * Por que existe: a F3 vai trocar `view('connector::clients.index')` por
- * `Inertia::render('Connector/Index')`. Sem baseline, a troca pode perder
+ * um render Inertia da page `Connector/Index`. Sem baseline, a troca pode perder
  * comportamento em silêncio — que é a pior dimensão da régua de migração
  * (proibicoes.md §"Migração Blade→React sem parity").
  *
