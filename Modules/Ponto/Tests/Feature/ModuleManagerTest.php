@@ -37,9 +37,9 @@ class ModuleManagerTest extends TestCase
         $manager = app(ModuleManagerService::class);
         $list = $manager->list();
 
-        $ponto = collect($list)->firstWhere('name', 'PontoWr2');
-        $this->assertNotNull($ponto, 'PontoWr2 deve estar na lista');
-        $this->assertTrue($ponto['active'], 'PontoWr2 deve estar ativo');
+        $ponto = collect($list)->firstWhere('name', 'Ponto');
+        $this->assertNotNull($ponto, 'Ponto deve estar na lista');
+        $this->assertTrue($ponto['active'], 'Ponto deve estar ativo');
         $this->assertTrue($ponto['has_migrations']);
     }
 
@@ -47,7 +47,7 @@ class ModuleManagerTest extends TestCase
     public function module_exists_funciona(): void
     {
         $manager = app(ModuleManagerService::class);
-        $this->assertTrue($manager->moduleExists('PontoWr2'));
+        $this->assertTrue($manager->moduleExists('Ponto'));
         $this->assertFalse($manager->moduleExists('ModuloInexistente123'));
     }
 
@@ -63,7 +63,7 @@ class ModuleManagerTest extends TestCase
     public function spec_generator_inspeciona_ponto_wr2(): void
     {
         $gen = app(ModuleSpecGenerator::class);
-        $spec = $gen->inspect('PontoWr2');
+        $spec = $gen->inspect('Ponto');
 
         $this->assertTrue($spec['exists_in_current']);
         $this->assertArrayHasKey('module_json', $spec);
@@ -74,7 +74,7 @@ class ModuleManagerTest extends TestCase
         $this->assertArrayHasKey('permissions', $spec);
         $this->assertArrayHasKey('upos_hooks', $spec);
 
-        // PontoWr2 tem pelo menos 10 controllers
+        // Ponto tem pelo menos 10 controllers
         $this->assertGreaterThanOrEqual(10, count($spec['controllers']));
         // 8 migrations
         $this->assertGreaterThanOrEqual(8, count($spec['migrations']));
@@ -86,10 +86,13 @@ class ModuleManagerTest extends TestCase
     public function spec_markdown_render_tem_secoes_importantes(): void
     {
         $gen = app(ModuleSpecGenerator::class);
-        $spec = $gen->inspect('PontoWr2');
+        $spec = $gen->inspect('Ponto');
         $md = $gen->renderMarkdown($spec);
 
-        $this->assertStringContainsString('# Módulo: PontoWr2', $md);
+        // Modulo renomeado PontoWr2 -> Ponto (module.json `"name": "Ponto"`). O teste
+        // seguia cobrando o nome antigo e reprovava em 4 casos; ficou parado porque o
+        // arquivo esta fora de qualquer lane. Medido no CT100 em 2026-08-23.
+        $this->assertStringContainsString('# Módulo: Ponto', $md);
         $this->assertStringContainsString('## Rotas', $md);
         $this->assertStringContainsString('## Controllers', $md);
         $this->assertStringContainsString('## Migrations', $md);

@@ -859,6 +859,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** não estender o P4 — nem criar par novo — que decida a **qual invocação** um metacaractere pertence por **proximidade no texto do comando**. Vale pra `\|` (BRE×ERE), pra `\+`/`\?`/`\{}` (mesma divisão), e pra `-P` (PCRE) no meio de comando composto. O predicado exige análise de shell; sem ela é guard sintático, a família com 4 lápides medidas neste mesmo §5 (allowlist-de-pasta 2026-06-30 · guard `@scope` 2026-07-09 · vocabulário 130 FP 2026-07-16 · `toHaveKey` 100% FP 2026-07-26). **Reabrir** só com critério que resolva a **invocação dona** do padrão — por exemplo tokenizando o comando e atribuindo cada string ao `grep` que a consome.
 
+### 2026-08-24 — Fabricar `ponto_colaborador_config` no tenant REAL dentro do teste, pra destravar 2 skips (o dono é o SEED)
+
+- **O limite (variante também proibida):** teste **não fabrica fixture no tenant que ele trata como real** para escapar de um skip. Vale para `ponto_colaborador_config`, `business`, `users`, `contacts` e qualquer tabela de negócio. O tenant **fictício** (criado pelo próprio teste, com marcador e limpeza) é livre; o real, não. Quando falta fixture no tenant real, o dono é o **seed** — no CI, `.github/actions/pest-mysql-setup` — porque é ele que responde *"o que existe neste ambiente"*, e a resposta vale para as **16 lanes** que o compartilham, não só para o teste que doeu.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:

@@ -157,7 +157,7 @@ class EspelhoController extends Controller
         // tabela dia-a-dia, que é o coração do espelho.
         //
         // A linha logo acima já fazia certo para marcações (`->toDateString()`); só
-        // esta divergia. Isso é o que fazia o UC-ESPSHOW-01 seguir vermelho mesmo
+        // esta divergia. Isso é o que fazia o UC-ESPSH-01 seguir vermelho mesmo
         // depois de corrigir o `tem_divergencia` dos totais: eram DOIS defeitos
         // empilhados no mesmo caso, e o de cima escondia o de baixo.
         $apuracoesPorData = $apuracoes->keyBy(fn ($a) => optional($a->data)->toDateString());

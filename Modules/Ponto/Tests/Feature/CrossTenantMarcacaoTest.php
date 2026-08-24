@@ -184,6 +184,23 @@ it('marcacao ANULACAO biz=1 nao vaza em listing biz=99 via marcacao_anulada_id',
 // Helpers
 // ------------------------------------------------------------------
 
+/**
+ * Colaborador do tenant — CRIA a fixture quando falta, em vez de skipar.
+ *
+ * ── POR QUE MUDOU (2026-08-24) ──────────────────────────────────────────────
+ * Antes este helper so LIA. Sem linha pra biz=99, os dois cenarios reversos
+ * (`biz=99 nao vaza pra biz=1` e o bulk bidirecional) chamavam markTestSkipped —
+ * e skip sai com exit 0. Ou seja: DOIS guards cross-tenant Tier 0 (ADR 0093)
+ * anunciavam protecao que nunca foi exercida. Medido no CT100 em 2026-08-23:
+ * `2 skipped` num arquivo que ja estava fora de qualquer lane — invisivel duas vezes.
+ *
+ * Criar a fixture e o mesmo padrao do irmao `Wave27CrossTenantEscalaTest`, que RODA
+ * na lane e passa. As FKs de `ponto_colaborador_config` sao `business_id → business`
+ * e `user_id → users`, entao o stub sobe os tres na ordem. `forceCreate` guardado por
+ * existencia — nunca sobrescreve dado real.
+ *
+ * biz=99 e a convencao de tenant ficticio deste arquivo (nunca biz=4, que e cliente).
+ */
 function ctmEnsureColab(int $businessId, bool $optional = false): ?int
 {
     $row = DB::table('ponto_colaborador_config')
@@ -194,11 +211,59 @@ function ctmEnsureColab(int $businessId, bool $optional = false): ?int
         return (int) $row->id;
     }
 
-    if ($optional) {
-        return null;
+    // So fabricamos o tenant FICTICIO. Ausencia de colaborador no tenant REAL e
+    // ambiente mal semeado — ali skipar continua sendo a resposta honesta.
+    if ($businessId !== CTM_BIZ_FICTICIO) {
+        if ($optional) {
+            return null;
+        }
+        test()->markTestSkipped("Sem ponto_colaborador_config seedado pra biz={$businessId}.");
     }
 
-    test()->markTestSkipped("Sem ponto_colaborador_config seedado pra biz={$businessId}.");
+    return ctmStubColabFicticio();
+}
+
+/** Sobe business + user + colaborador do tenant ficticio, na ordem das FKs. Idempotente. */
+function ctmStubColabFicticio(): int
+{
+    if (! App\Business::find(CTM_BIZ_FICTICIO)) {
+        App\Business::forceCreate([
+            'id' => CTM_BIZ_FICTICIO,
+            'name' => 'CTM Test Biz Adversario#99',
+            'currency_id' => 1,
+            'start_date' => now()->toDateString(),
+            'default_profit_percent' => 0,
+            'owner_id' => 1,
+            'stop_selling_before' => 0,
+            'weighing_scale_setting' => '',
+            'certificado' => '',
+            'officeimpresso_numerodemaquinas' => 0,
+        ]);
+    }
+
+    $user = App\User::where('business_id', CTM_BIZ_FICTICIO)->first();
+    if (! $user) {
+        $user = App\User::forceCreate([
+            'business_id' => CTM_BIZ_FICTICIO,
+            'surname'     => 'CTM',
+            'first_name'  => 'Adversario99',
+            'username'    => 'ctm_adversario_99',
+            'email'       => 'ctm-adversario-99@example.invalid',
+            'password'    => bcrypt(Str::uuid()->toString()),
+            'language'    => 'pt_BR',
+            'user_type'   => 'user',
+        ]);
+    }
+
+    return (int) DB::table('ponto_colaborador_config')->insertGetId([
+        'business_id'     => CTM_BIZ_FICTICIO,
+        'user_id'         => $user->id,
+        'controla_ponto'  => 1,
+        'usa_banco_horas' => 0,
+        'admissao'        => now()->toDateString(),
+        'created_at'      => now(),
+        'updated_at'      => now(),
+    ]);
 }
 
 function ctmInsertMarcacao(int $businessId, int $colabId): string

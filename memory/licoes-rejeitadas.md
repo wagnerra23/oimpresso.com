@@ -1233,3 +1233,17 @@
 - **Nota de honestidade sobre o gap:** o P4 **continua sem cobrir** o caso do padrão em variável. Isso agora é um limite **declarado e medido**, não um esquecimento — está registrado no campo `Gate:` do LC-08.
 
 - **Origem:** sessão 2026-08-23. Eu afirmei ao [W] que *"o dono ignora a quarentena, os números dele são otimistas"* — **falso**, produzido pela sonda quebrada. O `emQuarentena()` existia desde sempre e trata o tema melhor que a minha versão (terceira categoria, não subtração). Afirmação publicada com confiança e sem controle positivo; o conserto veio de rodar, não de reler.
+
+### 2026-08-24 — Fabricar `ponto_colaborador_config` no tenant REAL dentro do teste, pra destravar 2 skips (o dono é o SEED)
+
+- **O que foi tentado:** dois casos de imutabilidade append-only (Portaria 671/2021) do `MarcacaoServiceTest` **skipam no CI** — o helper chama `markTestSkipped("Sem ponto_colaborador_config seedado pra biz=1")`, e skip sai com **exit 0**. A tentação, já que eu acabara de fazer o `CrossTenantMarcacaoTest` **criar** a fixture do tenant fictício biz=99, era estender a mesma solução para biz=1 e ver os dois casos verdes.
+
+- **Por que caiu:** o tenant fictício e o tenant real não são o mesmo caso. Fabricar linha em biz=99 é montar o adversário do teste — ele existe **para** o teste. Fabricar em biz=1 é o teste **semeando dado dentro do tenant que a suíte usa como "real"** — e no CT 100 a base **persiste entre runs** e é clone de prod (`proibicoes.md` §Ambiente diz isso literalmente). O helper não tem como saber se está num CI efêmero ou num espelho de produção, então a regra tem que valer nos dois. Foi o que ficou escrito no próprio código: *"ausência de colaborador no tenant REAL é ambiente mal semeado — ali skipar continua sendo a resposta honesta"*.
+
+- **O limite (variante também proibida):** teste **não fabrica fixture no tenant que ele trata como real** para escapar de um skip. Vale para `ponto_colaborador_config`, `business`, `users`, `contacts` e qualquer tabela de negócio. O tenant **fictício** (criado pelo próprio teste, com marcador e limpeza) é livre; o real, não. Quando falta fixture no tenant real, o dono é o **seed** — no CI, `.github/actions/pest-mysql-setup` — porque é ele que responde *"o que existe neste ambiente"*, e a resposta vale para as **16 lanes** que o compartilham, não só para o teste que doeu.
+
+- **O que foi feito no lugar:** a linha entrou no seed compartilhado, guardada por `Schema::hasTable` (a tabela só existe depois das migrations do Ponto) e com as **3 colunas obrigatórias verificadas contra o schema real antes de escrever** — `business_id`, `user_id`, `admissao` — porque um insert malformado ali quebraria as 16 lanes de uma vez. Varredura contada antes: **nenhum** teste do repo assume essa tabela vazia.
+
+- **Corolário que generaliza:** quando um skip aparece só num ambiente, o defeito quase nunca é do teste — é do **inventário daquele ambiente**. Consertar no teste move o problema para dentro do arquivo e o esconde melhor; consertar no seed conserta para todos os consumidores e deixa o teste dizendo a verdade sobre o que ele exige.
+
+- **Origem:** sessão 2026-08-24, refino dos 9 arquivos do Ponto que estavam fora da lane. Os 2 skips eram os últimos vermelhos-por-omissão do módulo.

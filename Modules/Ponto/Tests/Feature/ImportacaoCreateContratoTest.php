@@ -20,7 +20,7 @@ uses(PontoTestCase::class);
  * Anexo I + ADR 0093 (storage segregado). NÃO do `.tsx`.
  *
  * ── Não duplica as telas irmãs ─────────────────────────────────────────────
- * UC-IMPSHOW-01 prova o EFEITO da dedup (não duplicou marcação); UC-IMPSHOW-02, a
+ * UC-IMPSH-01 prova o EFEITO da dedup (não duplicou marcação); UC-IMPSH-02, a
  * dedup escopada ao business. Aqui: o FEEDBACK ao operador (foi recusado e ele acha
  * o original) e ONDE o arquivo é guardado. Uma dedup silenciosa que aceita o upload
  * e não faz nada passaria naqueles e falharia aqui.
