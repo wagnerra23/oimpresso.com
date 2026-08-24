@@ -34,7 +34,12 @@ related_adrs:
 
 ## 1. O que a tela é
 
-Cockpit denso com **5 sub-telas numa rota só**, trocadas por partial reload (`setSubTela`):
+Cockpit denso com **5 sub-telas numa rota só**, trocadas por partial reload (`setSubTela`).
+
+> ⚠️ **Desde 2026-08-24 só a primeira tem entrada na tela.** O grupo "Outras visões" saiu do menu
+> `⋯` (handoff V6 §15.1 nº 11 · aceite §16 nº 4). As outras quatro continuam servidas pelo mesmo
+> controller, com os mesmos gates, e são alcançadas **apenas por `?tela=`**. Dar-lhes acesso é
+> trabalho da sidebar do módulo — decisão de fora deste handoff. Ver §"Antes/Agora" abaixo.
 
 | Sub-tela | Prop | Origem |
 |---|---|---|
@@ -95,7 +100,7 @@ verde por construção.
 
 | Perfil | Como montar | O que tem que acontecer |
 |---|---|---|
-| Admin (tem tudo) | usuário padrão do business | as 5 sub-telas iguais a antes — **nenhuma diferença visual** |
+| Admin (tem tudo) | usuário padrão do business | catálogo completo; as outras 4 sub-telas iguais a antes **quando abertas por `?tela=`** — desde 24/08 não há link pra elas na tela |
 | Sem custo | revogar `view_purchase_price` no papel (`/roles/{id}/edit`) | coluna "Custo · margem" some da tabela; o switch "Mostrar custo" some do painel Ajustes; coluna Margem some de Tabelas de preço |
 | Sem preço | revogar `access_default_selling_price` | coluna "Preço" some; sub-tela "Tabelas de preço" fica vazia com aviso; coluna "Valor" some do Histórico |
 | Sem nada de Produto | revogar `product.view` e `product.create` | a rota devolve **403** |
@@ -155,15 +160,24 @@ O layout passou a ser o do handoff **"Consulta de Produtos"**, em paridade com a
 **Smoke — o que conferir, nesta ordem:**
 
 1. Abrir `/products/unificado`. Título "Produtos" + `N cadastrados` batendo com o cadastro inteiro.
-2. Trocar de aba: tabela, contagem **e** os seis KPIs mudam juntos. `Todos` é sempre o maior número.
-3. Clicar num KPI: a lista recorta; clicar de novo: solta. "Itens listados" limpa o recorte.
+2. Trocar de aba: tabela, contagem **e** os KPIs mudam juntos. `Todos` é sempre o maior número.
+   A faixa tem **no máximo 4** cards (2 sem permissão de custo) — os de "Itens listados" e "Ativos"
+   foram removidos nos pacotes de 19 e 21/08 por não recortarem nada.
+3. Clicar num KPI: a lista recorta; clicar de novo: solta.
 4. Digitar na busca: recorte no servidor (350ms), combinando com a aba e o KPI ativos.
 5. Perfil **sem** `view_purchase_price`: não existem as colunas Custo/Margem, **nem** o card
    "Margem baixa", **nem** o filtro Margem — e o drawer também não os mostra.
 6. Perfil **sem** `access_default_selling_price`: sem coluna Preço; a sub-tela Tabelas de preço
    diz por que está vazia, em vez de parecer "nada cadastrado".
 7. Serviço (item sem controle de estoque) aparece como **Não estocável**, nunca "Sem estoque".
-8. Menu ⋯: as quatro visões antigas abrem e voltam ao catálogo.
+8. Menu ⋯: **2 grupos, 7 itens** (Apresentação + Dados) e **zero link** que navegue pra outra
+   tela — é o critério de aceite §16 nº 4 do handoff V6. As quatro visões antigas continuam
+   respondendo por `?tela=categorias|insumos|tabelas|historico`, digitado na barra de endereço.
+9. Faixa de abas: a aba aberta usa o **roxo do DS** (hue 295), nunca o ciano `rgb(231,248,253)`
+   que existia até 24/08 nem o matiz do seletor pessoal do `AppShellV2` — ver a nota das
+   superfícies `--idx-*` em `resources/css/cockpit.css`.
+10. Selo da coluna Disponível: **pílula redonda** (o `StatusBadge` do DS é `borderRadius: 9999`
+   com rótulo de texto), fundo do tom a 16% e borda a 30%.
 
 **Dívidas herdadas do handoff, ainda abertas** — nenhuma é decisão desta tela:
 
