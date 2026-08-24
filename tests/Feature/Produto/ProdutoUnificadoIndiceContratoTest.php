@@ -513,12 +513,12 @@ it('UC-PUNI-14 · a variação-fantasma do UltimatePOS não vira variação na t
 });
 
 // =============================================================================
-// UC-PUNI-11 — os TOTAIS DO RODAPÉ são dinheiro do tenant somado (handoff 21/08 §4.6).
+// UC-PUNI-15 — os TOTAIS DO RODAPÉ são dinheiro do tenant somado (handoff 21/08 §4.6).
 //   "Valor em estoque" e "Repor até o mínimo" revelam a estrutura de custo por outro caminho
 //   que não a coluna: quem não pode ver custo não pode ver o agregado dele.
 // =============================================================================
 
-it('UC-PUNI-11 · os totais do rodapé não são servidos a quem não pode ver custo', function () {
+it('UC-PUNI-15 · os totais do rodapé não são servidos a quem não pode ver custo', function () {
     if ($this->user->can('view_purchase_price')) {
         $this->markTestSkipped('User seedado JÁ tem view_purchase_price — sem cenário pra provar o gate.');
     }
@@ -542,13 +542,13 @@ it('UC-PUNI-11 · os totais do rodapé não são servidos a quem não pode ver c
 });
 
 // =============================================================================
-// UC-PUNI-12 — "Repor até o mínimo" nunca é negativo (handoff 21/08 §4.6).
+// UC-PUNI-16 — "Repor até o mínimo" nunca é negativo (handoff 21/08 §4.6).
 //   Item ACIMA do mínimo contribui zero. Se contribuísse negativo, o excedente de um item
 //   "pagaria" pela falta de outro e o total mentiria pra menos — que é o erro caro: o comprador
 //   deixaria de comprar o que falta.
 // =============================================================================
 
-it('UC-PUNI-12 · o total de reposição soma só a falta, nunca a sobra', function () {
+it('UC-PUNI-16 · o total de reposição soma só a falta, nunca a sobra', function () {
     if (! $this->user->can('view_purchase_price')) {
         Permission::findOrCreate('view_purchase_price', 'web');
         $this->user->givePermissionTo('view_purchase_price');

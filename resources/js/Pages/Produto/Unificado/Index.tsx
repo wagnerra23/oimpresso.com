@@ -1058,16 +1058,19 @@ function ProdutoUnificadoIndex({
                                 {colunas.map((c) => (
                                   <td key={c.key} className={'px-4 ' + (densa ? 'py-1 ' : 'py-2 ') + (c.align === 'right' ? 'text-right' : '')}>
                                     {c.key === 'sel' ? (
-                                      // `stopPropagation` no wrapper: marcar a caixa não pode
-                                      // abrir o painel junto — são dois gestos com intenções
-                                      // opostas ("quero agir sobre vários" vs "quero ver este").
-                                      <span onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
-                                        <Checkbox
-                                          checked={sel.includes(r.id)}
-                                          onCheckedChange={() => marcarLinha(r.id)}
-                                          aria-label={`Selecionar ${r.name}`}
-                                        />
-                                      </span>
+                                      // `stopPropagation` no PRÓPRIO Checkbox, não num `<span>`
+                                      // em volta: marcar a caixa não pode abrir o painel junto —
+                                      // são dois gestos com intenções opostas ("quero agir sobre
+                                      // vários" vs "quero ver este") — e handler de clique em
+                                      // elemento não-interativo é alvo invisível pro teclado e
+                                      // pro leitor de tela (`jsx-a11y/no-static-element-interactions`).
+                                      <Checkbox
+                                        checked={sel.includes(r.id)}
+                                        onCheckedChange={() => marcarLinha(r.id)}
+                                        onClick={(e) => e.stopPropagation()}
+                                        onKeyDown={(e) => e.stopPropagation()}
+                                        aria-label={`Selecionar ${r.name}`}
+                                      />
                                     ) : (
                                       cells[c.key] ?? null
                                     )}
