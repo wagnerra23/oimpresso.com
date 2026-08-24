@@ -145,7 +145,7 @@ O layout passou a ser o do handoff **"Consulta de Produtos"**, em paridade com a
 | Antes | Agora |
 |---|---|
 | Barra de abas = 5 **sub-telas** | Barra de abas = **tipo do item** (Todos · Produtos · Serviços · Matéria-prima · Kits · Inativos), com contagem |
-| 4 sub-telas secundárias na barra | Menu **⋯** do cabeçalho (`?tela=categorias\|insumos\|tabelas\|historico`) — mesmos gates |
+| 4 sub-telas secundárias na barra | **Sem entrada na tela desde 24/08.** Passaram pela barra de abas e depois pelo menu **⋯**; o pacote V6 §15.1 nº 11 tirou o grupo "Outras visões" de lá — este menu é lista fechada de apresentação + dados, e navegar pra outra tela não é visão desta. As quatro continuam servidas pelo mesmo controller, com os mesmos gates, alcançáveis por `?tela=categorias\|insumos\|tabelas\|historico`. Dar-lhes acesso é trabalho da **sidebar do módulo** e decisão de fora do handoff — hoje a sidebar cobre Categorias e Grupo de preços de venda (telas legadas), e **não** cobre Insumos · BOM nem Histórico de uso |
 | Faixa de 5 KPIs de leitura | **6 KPI-filtros** clicáveis, contados sobre a aba ativa |
 | Sem busca | Busca em linha própria (`/` foca) — descrição, código, referência, categoria |
 | Sem filtros | Categoria · Tipo · Marca · Estoque · Margem + contagem à direita |

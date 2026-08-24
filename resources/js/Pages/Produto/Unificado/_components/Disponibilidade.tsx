@@ -2,9 +2,10 @@
  * Badge de disponibilidade — o "tem?" da linha e do drawer, com o mesmo componente nos dois
  * lugares (handoff §4.6 e §7).
  *
- * Cor por TOKEN semântico do DS elevado (`*-soft` / `*-fg`), a mesma família que a
- * `FrescorPill` da golden master (`Pages/Cliente/_components/Pills.tsx`) usa — trocam
- * light/dark sozinhos. Zero cor crua (regra binária AP1).
+ * Cor pela receita ÚNICA da tela (patch de cor 2026-08-24 §2): fundo do tom a 6%, borda a
+ * 22%, texto no 700. Os tons saem de TOKEN semântico do DS — `success` / `warning` /
+ * `destructive`, que é como o sistema chama o emerald / amber / rose do patch — então
+ * trocam light/dark sozinhos. Zero cor crua (regra binária AP1).
  *
  * ⚠️ DESVIO DECLARADO do protótipo: lá "Não estocável" reusa o valor `distante` do badge de
  * frescor, que no bundle do DS cai em `fresc-cold` — o MESMO vermelho de "Sem saldo". Um
@@ -27,22 +28,26 @@ import { Inline } from '@/Components/layout';
 import { qtdComUnidade, type EstadoEstoque, type LocalSaldo } from './catalogo';
 
 const ESTILO: Record<EstadoEstoque['chave'], string> = {
-  em: 'bg-success-soft text-success-fg border-success/20',
-  baixo: 'bg-warning-soft text-warning-fg border-warning/20',
-  sem: 'bg-destructive-soft text-destructive-fg border-destructive/20',
-  nao: 'bg-muted text-muted-foreground border-border',
+  em: 'bg-success/6 border-success/22 text-success-fg',
+  baixo: 'bg-warning/6 border-warning/22 text-warning-fg',
+  sem: 'bg-destructive/6 border-destructive/22 text-destructive-fg',
+  // Não estocável é AUSÊNCIA de saldo por natureza, não problema: fundo transparente e
+  // texto apagado, sem ponto. Ele é o único dos quatro que não afirma um estado de estoque.
+  nao: 'bg-transparent border-border text-muted-foreground',
 };
 
 function Pilula({ estado, unidade }: { estado: EstadoEstoque; unidade: string }) {
   return (
     <span
       className={
-        'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium whitespace-nowrap ' +
+        'inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium whitespace-nowrap ' +
         ESTILO[estado.chave]
       }
       title={estado.rel === null ? estado.label : `${estado.label} · saldo ${estado.rel}`}
     >
-      <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" aria-hidden="true" />
+      {estado.chave !== 'nao' && (
+        <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" aria-hidden="true" />
+      )}
       {estado.label}
       {/* Rótulo e valor na MESMA linha do selo (handoff 21/08 §4.3): quem lê "Abaixo do
           mínimo" precisa do número na mesma sacada pra decidir se dá pra vender. Com a

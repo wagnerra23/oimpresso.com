@@ -18,9 +18,10 @@
  * (`Pages/Cliente/_components/KpiStripClickable.tsx`) — tile de ícone 36px, rótulo 10px
  * uppercase, valor tabular, sub em 10px. O que muda é o domínio, não o estilo.
  *
- * ⚠️ Os tons `oklch` inline são cópia literal dos da golden master, INCLUSIVE a limitação
- * dela: os valores de card ativo são claros demais pro tema escuro. Corrigir só aqui quebraria
- * a paridade que a catraca protege — a correção pertence às duas telas de uma vez.
+ * ⚠️ Os tons deixaram de ser `oklch` inline em 2026-08-24. Eram cópia literal da golden
+ * master, e a paridade com ela era o motivo de não corrigir aqui — [W]/Maiara desfizeram esse
+ * empate: a Consulta de Clientes é outra tela e se resolve depois. Agora a placa segue a
+ * receita ÚNICA do patch de cor (§1): fundo do tom a 6%, borda a 22%, glyph no 600.
  *
  * ⚠️ "Margem baixa" só é montado pra quem pode ver custo E preço. A contagem de itens sob o
  * piso É uma leitura da estrutura de custo; gatear a coluna e deixar o contador entrega o
@@ -32,15 +33,22 @@ import { Ban, Clock, Percent, TriangleAlert } from 'lucide-react';
 import { Inline } from '@/Components/layout';
 import type { KpiKey, Permissoes } from './catalogo';
 
-const TONE_STYLES = {
-  primary: { border: 'oklch(0.62 0.18 250)', bgActive: 'oklch(0.95 0.04 250)', iconBg: 'oklch(0.92 0.05 250)', iconFg: 'oklch(0.45 0.18 250)' },
-  amber: { border: 'oklch(0.72 0.15 70)', bgActive: 'oklch(0.96 0.05 70)', iconBg: 'oklch(0.93 0.07 70)', iconFg: 'oklch(0.50 0.15 70)' },
-  rose: { border: 'oklch(0.65 0.20 20)', bgActive: 'oklch(0.96 0.04 20)', iconBg: 'oklch(0.93 0.06 20)', iconFg: 'oklch(0.50 0.20 20)' },
-  emerald: { border: 'oklch(0.65 0.14 155)', bgActive: 'oklch(0.95 0.04 155)', iconBg: 'oklch(0.92 0.06 155)', iconFg: 'oklch(0.45 0.14 155)' },
-  violet: { border: 'oklch(0.60 0.18 295)', bgActive: 'oklch(0.96 0.04 295)', iconBg: 'oklch(0.93 0.06 295)', iconFg: 'oklch(0.50 0.18 295)' },
+/**
+ * A placa do ícone, e só ela, é tintada — o card fica neutro.
+ *
+ * O patch nomeia os tons pela paleta do Tailwind (`amber-500`, `rose-500`, `violet-500`), que
+ * não é o vocabulário daqui. O equivalente registrado no DS é `warning` / `destructive` /
+ * `primary` — o roxo hue 295 do acento canônico ([ADR 0190]). Usar o nome do DS é o que o §6
+ * do patch manda quando o valor parece faltar: procurar com o outro nome, nunca criar token.
+ * De quebra, o par claro/escuro vem junto, então o §5 (mesmas frações no escuro) sai de graça.
+ */
+const PLACA = {
+  warning: 'bg-warning/6 border-warning/22 text-warning-fg',
+  destructive: 'bg-destructive/6 border-destructive/22 text-destructive-fg',
+  primary: 'bg-primary/6 border-primary/22 text-primary',
 } as const;
 
-type ToneKey = keyof typeof TONE_STYLES;
+type ToneKey = keyof typeof PLACA;
 
 export type KpisCatalogo = {
   min: number;
@@ -74,8 +82,8 @@ export interface KpiFiltrosProps {
 export function KpiFiltros({ kpis, ativo, onToggle, perm, diasParado }: KpiFiltrosProps) {
   // "Abaixo do mínimo" e "Sem saldo" valem pra TODO perfil: são a pergunta do balcão.
   const cards: Card[] = [
-    { key: 'min', label: 'Abaixo do mínimo', sub: 'repor', tone: 'amber', icon: TriangleAlert, valor: kpis.min },
-    { key: 'zero', label: 'Sem saldo', sub: 'bloqueado', tone: 'rose', icon: Ban, valor: kpis.zero },
+    { key: 'min', label: 'Abaixo do mínimo', sub: 'repor', tone: 'warning', icon: TriangleAlert, valor: kpis.min },
+    { key: 'zero', label: 'Sem saldo', sub: 'bloqueado', tone: 'destructive', icon: Ban, valor: kpis.zero },
   ];
 
   // Montado ou não montado — nunca escondido por CSS.
@@ -84,10 +92,10 @@ export function KpiFiltros({ kpis, ativo, onToggle, perm, diasParado }: KpiFiltr
   // gateia junto com o custo: quem atende no balcão não decide o que sai de linha nem o que
   // vende sem margem, e o card ocuparia espaço com uma pergunta que não é dele.
   if (perm.custo) {
-    cards.push({ key: 'parado', label: `Sem venda ${diasParado}d`, sub: 'sem giro', tone: 'violet', icon: Clock, valor: kpis.parado });
+    cards.push({ key: 'parado', label: `Sem venda ${diasParado}d`, sub: 'sem giro', tone: 'primary', icon: Clock, valor: kpis.parado });
   }
   if (perm.custo && perm.preco && kpis.margem !== undefined) {
-    cards.push({ key: 'margem', label: 'Margem baixa', sub: 'sob o piso', tone: 'amber', icon: Percent, valor: kpis.margem });
+    cards.push({ key: 'margem', label: 'Margem baixa', sub: 'sob o piso', tone: 'warning', icon: Percent, valor: kpis.margem });
   }
 
   // `auto-fit` com piso de 170px é a grade do handoff de 21/08 §3.1: com dois cards (balcão)
@@ -99,7 +107,6 @@ export function KpiFiltros({ kpis, ativo, onToggle, perm, diasParado }: KpiFiltr
     <div className="grid gap-[9px] [grid-template-columns:repeat(auto-fit,minmax(170px,1fr))]">
       {cards.map((card) => {
         const Icon = card.icon;
-        const tone = TONE_STYLES[card.tone];
         const on = ativo === card.key;
         return (
           <button
@@ -109,13 +116,15 @@ export function KpiFiltros({ kpis, ativo, onToggle, perm, diasParado }: KpiFiltr
             title={`Recortar por ${card.label} (${card.sub})`}
             onClick={() => onToggle(on ? null : card.key)}
             className={
-              'group flex items-center gap-3 p-3 rounded-md border text-left transition-all ' +
-              (on ? 'shadow-sm' : 'bg-card hover:shadow-sm')
+              'group flex items-center gap-3 p-3 rounded-xl border bg-card text-left transition-all hover:shadow-sm ' +
+              // Selecionado é ANEL, não tinta de fundo: o card é neutro e continua neutro, senão
+              // a faixa ganha uma segunda cor competindo com a placa, que é quem carrega o tom.
+              (on ? 'border-primary ring-1 ring-primary/40' : 'border-border')
             }
-            style={on ? { borderColor: tone.border, backgroundColor: tone.bgActive } : { borderColor: 'var(--border)' }}
           >
-            <Inline justify="center" className="h-9 w-9 rounded-md flex-shrink-0" style={{ backgroundColor: tone.iconBg }}>
-              <Icon className="h-4 w-4" style={{ color: tone.iconFg }} />
+            <Inline justify="center" className={'h-9 w-9 rounded-lg border flex-shrink-0 ' + PLACA[card.tone]}>
+              {/* Sem `color` próprio: o glyph herda o `text-*` da placa (currentColor). */}
+              <Icon className="h-4 w-4" />
             </Inline>
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground truncate leading-none">{card.label}</p>

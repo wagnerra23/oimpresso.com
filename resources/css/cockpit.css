@@ -35,13 +35,18 @@
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 
-  /* Superfícies do PADRÃO DE TELA "índice" — ver nota no fim deste arquivo. */
-  --idx-tab-ativa-bg:   rgb(231, 248, 253);
-  --idx-tab-hover-bg:   rgb(241, 245, 249);
-  --idx-badge-cont-bg:  rgb(46, 52, 55);
-  --idx-badge-cont-fg:  oklch(0.72 0.01 240);
-  --idx-grid-head-bg:   rgb(250, 249, 248);
-  --idx-row-sel-bg:     rgb(248, 247, 252);
+  /* Superfícies do PADRÃO DE TELA "índice" — ver nota no fim deste arquivo.
+     Derivadas de TOKEN, nunca literais. O patch de cor de 2026-08-24 fechou a ADR 0401
+     pelo lado do sistema: o ciano da aba ativa era desvio da tela em produção, não um
+     segundo acento — o canônico é o roxo hue 295 (ADR 0190). Trocado AQUI, num lugar só,
+     como a nota do fim deste arquivo previa. O par escuro sai de graça: todo token de
+     origem já tem override de tema, então não há mais bloco `[data-theme="dark"]`. */
+  --idx-tab-ativa-bg:   color-mix(in oklab, var(--accent-soft) 50%, transparent);
+  --idx-tab-hover-bg:   color-mix(in oklab, var(--border-2) 60%, transparent);
+  --idx-badge-cont-bg:  var(--bg-2);
+  --idx-badge-cont-fg:  var(--text-dim);
+  --idx-grid-head-bg:   var(--bg-2);
+  --idx-row-sel-bg:     color-mix(in oklab, var(--accent-soft) 40%, transparent);
 }
 .cockpit[data-linked="off"] { grid-template-columns: 260px 1fr 0; }
 /* Sidebar rail (56px) — Wagner 2026-05-16, espelha prototipo Cowork. */
@@ -2345,26 +2350,17 @@
 }
 .cw-scroll-thin::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
 
-/* ── Superfícies do PADRÃO DE TELA "índice" — par escuro ─────────────────
-   O claro está no bloco `.cockpit` no topo deste arquivo, byte-a-byte como o produto
-   pediu (RGB copiado da tela em produção — handoff "Consulta de Produtos" V2, ADR 0401
-   do pacote). Entram como TOKEN e não como literal de tela porque são superfícies
-   CLARAS: no escuro elas invertem o contraste do texto que carregam, e cor crua em
-   tela viola AP1. Aqui mora o par que faltava — mesma hierarquia (ativa destaca, hover
-   insinua, cabeçalho recua), luminâncias invertidas.
+/* ── Superfícies do PADRÃO DE TELA "índice" ──────────────────────────────
+   O par escuro que morava aqui FOI EMBORA em 2026-08-24, e a ausência é a correção.
+   Os seis valores eram RGB copiado da tela em produção (ADR 0401 do pacote "Consulta
+   de Produtos"), e cor crua não acompanha tema — por isso precisavam de um par escrito
+   à mão. Agora saem de `--accent-soft`, `--border-2`, `--bg-2` e `--text-dim`, que já
+   têm override de tema no bundle de tokens: um bloco a menos para manter em sincronia.
 
-   Dois não têm equivalente na paleta: o ciano da aba ativa (o acento canônico é roxo
-   hue 295 — ADR 0190) e o badge escuro de contagem. Se o ciano for desvio da tela em
-   produção e não um segundo acento legítimo, troca-se o valor AQUI, num lugar só.
+   Isso decidiu a pergunta que a nota antiga deixava aberta — o ciano da aba ativa era
+   desvio da tela em produção, não um segundo acento legítimo. O canônico é o roxo hue
+   295 (ADR 0190). O badge escuro de contagem, idem: voltou a ser claro (`--bg-2`).
 
    Mora no shell porque o padrão de índice é do Shell: /contacts, /products/unificado e
    as próximas listagens consomem os mesmos. Racional completo na linha 2026-08-19 do
    `resources/js/Pages/Produto/Unificado/Index.charter.md`. */
-.cockpit[data-theme="dark"] {
-  --idx-tab-ativa-bg:   oklch(0.30 0.035 230);
-  --idx-tab-hover-bg:   oklch(0.28 0.008 240);
-  --idx-badge-cont-bg:  oklch(0.38 0.010 240);
-  --idx-badge-cont-fg:  oklch(0.86 0.008 240);
-  --idx-grid-head-bg:   oklch(0.28 0.006 240);
-  --idx-row-sel-bg:     oklch(0.31 0.020 295);
-}
