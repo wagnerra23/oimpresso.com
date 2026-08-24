@@ -27,7 +27,7 @@
  * Do outro lado:
  *   node scripts/design-sync/aplicar-payload.mjs sync/payload.part*.json --require-complete-shell
  */
-import { readFileSync, writeFileSync, existsSync, mkdirSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, statSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { payloadDependencyGraph, normalizePayloadPath } from './payload-dependency-graph.mjs';
 import {
@@ -162,14 +162,23 @@ const coreBase = {
   manifestSha256: manifestDigest(manifest),
   changesSha256: changesDigest(manifest.changes),
 };
+// A reserva TEM de espelhar o envelope REAL montado lá embaixo, campo por campo. A versão
+// anterior omitia `chunkCount`, `fileCount`, `totalBytes` e `missing` — ~60 bytes contra uma
+// margem de +32. Resultado medido em 2026-08-24: `✗ parte 5 excede o cap depois do envelope:
+// 262165 > 262144` — estouro de 21 bytes, e o gerador saía rc=2 DEPOIS de já ter escrito o
+// `bundle.manifest.json`. Quem não conferisse o exit code (foi o meu caso) aplicava um bundle
+// TRUNCADO: 242 de 247 arquivos, com os 7 do CRM/impressão fora do espelho e o manifesto
+// declarando `missing: []`. Os placeholders são propositalmente largos (99999) — reserva a
+// mais custa bytes, reserva a menos custa um bundle incompleto que se apresenta como completo.
+const RESERVA_CAMPOS = { chunkCount: 99999, fileCount: 99999, totalBytes: 9999999999, missing };
 const firstReserve = Buffer.byteLength(JSON.stringify({
   schema: BUNDLE_SCHEMA, bundle: { ...coreBase, parts: 9999 }, part: 1, parts: 9999,
-  targetManifest: manifest, chunks: [],
-}), 'utf8') + 32;
+  ...RESERVA_CAMPOS, targetManifest: manifest, chunks: [],
+}), 'utf8') + 64;
 const otherReserve = Buffer.byteLength(JSON.stringify({
   schema: BUNDLE_SCHEMA, bundle: { ...coreBase, parts: 9999 }, part: 9999, parts: 9999,
-  chunks: [],
-}), 'utf8') + 32;
+  ...RESERVA_CAMPOS, chunks: [],
+}), 'utf8') + 64;
 if (firstReserve > CAP) {
   console.error(`✗ targetManifest sozinho excede o cap: ${firstReserve} > ${CAP} bytes`);
   process.exit(2);
@@ -229,6 +238,13 @@ lotes.forEach((lote, index) => {
   const { text, bytes } = padForTransport(envelope);
   if (bytes > CAP) {
     console.error(`✗ parte ${index + 1} excede o cap depois do envelope: ${bytes} > ${CAP}`);
+    // O manifesto já foi escrito ANTES deste loop. Abortar deixando-o no disco entrega um
+    // artefato que PARECE um bundle pronto — e o consumidor seguinte aplica um estado-alvo
+    // truncado sem saber. Foi exatamente assim que 7 arquivos ficaram fora do espelho em
+    // 2026-08-24. Falha não deixa recibo: limpa o que escreveu.
+    for (const [arq] of tamanhosEscritos) { try { unlinkSync(arq); } catch { /* já não existe */ } }
+    try { unlinkSync(join(OUT, 'bundle.manifest.json')); } catch { /* idem */ }
+    console.error('  (manifesto e partes parciais REMOVIDOS — bundle incompleto não vira artefato)');
     process.exit(2);
   }
   const nome = join(OUT, `payload.part${String(index + 1).padStart(largura, '0')}.json`);
