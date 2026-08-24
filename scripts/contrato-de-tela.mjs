@@ -122,7 +122,20 @@ function loadContract(file) {
   return c;
 }
 
+// `design-docs/cowork-inbox/` e CAIXA DE ENTRADA do Cowork (pedidos/propostas pro Code), nao
+// contrato VIGENTE: ele so passa a valer quando alguem o APLICA a uma tela real. Os que
+// chegaram em 2026-08-24 apontam pra `Pages/NotificationTemplate` e `Pages/Documentacao/
+// Programa` — telas que ainda nao existem, e cria-las E o pedido. Medido: 15 no inbox x 10
+// ativos. Normaliza `\` do Windows antes de comparar.
+const ehInbox = (p) => String(p || '').split(String.fromCharCode(92)).join('/').includes('design-docs/cowork-inbox/');
+
 function checkContract(file) {
+  // Chokepoint ÚNICO do filtro de inbox (2026-08-24). A 1ª tentativa filtrou no workflow e a 2ª
+  // no coletor — as duas falharam porque o job entra por DUAS rotas: o step "Contratos ativos"
+  // monta a lista no bash e chama `--contract <path>` um a um, enquanto `--map` coleta por dentro.
+  // Filtrar numa rota só deixa a outra reprovando (§5 2026-07-28 — validar UM dos modos que o CI
+  // roda). Aqui embaixo passam AS DUAS.
+  if (ehInbox(file)) { console.log(`  (pulado: ${file} — caixa de entrada do Cowork, não contrato vigente)`); return 0; }
   const c = loadContract(file);
   const files = c.alvo.flatMap(collectTargets);
   if (!files.length) { err(`nenhum .tsx/.ts no alvo do contrato (${c.alvo.join(', ')})`); return 1; }
@@ -385,7 +398,7 @@ function listContracts() {
   // Filtro mora AQUI, não no workflow: `--map`/`--map --check` varrem por este mesmo coletor,
   // então filtrar só no step de "contratos ativos" deixaria os outros modos reprovando (§5
   // 2026-07-28 — validar um gate rodando UM dos modos que o CI roda).
-  const ativo = (p) => p && !/EXEMPLO/i.test(p) && !p.includes('design-docs/cowork-inbox/');
+  const ativo = (p) => p && !/EXEMPLO/i.test(p) && !ehInbox(p);
   return out ? out.split('\n').filter(ativo) : [];
 }
 function listIntentContracts() {
