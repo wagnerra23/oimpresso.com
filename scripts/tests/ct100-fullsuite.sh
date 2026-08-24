@@ -92,6 +92,36 @@ docker run --rm --network "$NET" -v "$CODE":/app -w /app \
   -v "$BASE/.composer-cache":/tmp/composer-cache -e COMPOSER_CACHE_DIR=/tmp/composer-cache \
   composer:2 composer install --no-interaction --prefer-dist --no-progress --no-scripts --ignore-platform-reqs
 
+echo "--- [2b/7] build do bundle Inertia (manifest que a tela e o middleware exigem)"
+# POR QUE (medido 2026-08-24): sem `public/build-inertia/manifest.json` no clone,
+# TODA tela Inertia que renderiza de verdade quebra de tres jeitos distintos, e os
+# tres apareciam no floor da nightly como se fossem bugs de produto:
+#   1. ViteManifestNotFoundException -> 500 (layouts/inertia.blade.php pede
+#      @vite([...], 'build-inertia'));
+#   2. "Not a valid Inertia response" / "Invalid JSON was returned from the route";
+#   3. 409 — HandleInertiaRequests::version() cai no fallback `parent::version()`
+#      (mix-manifest) enquanto o teste calcula '1' pelo manifest ausente; version
+#      mismatch vira 409 e o assertStatus(200) falha.
+# O CI ja fazia isso (.github/workflows/ci.yml job "Frontend / Vite build":
+# `npm ci` + `npm run build:inertia`); so o harness da noite nao fazia. Medido no
+# CT100: `npm ci` 10s + build 36s = ~46s numa noite de ~2h.
+#
+# NAO derruba a noite se falhar: os testes que nao renderizam Inertia seguem
+# valendo. Mas o aviso e ALTO e o marcador fica no run dir — "nao consegui buildar"
+# NUNCA pode ser lido como "esta tudo bem" (o floor daquela noite carrega a divida
+# do Vite de volta, e quem for triar precisa saber).
+if command -v npm >/dev/null 2>&1; then
+  ( cd "$CODE" && npm ci --no-audit --no-fund >/dev/null 2>&1 && npm run build:inertia >/dev/null 2>&1 )
+else
+  echo "AVISO: npm ausente no host — pulando build do Inertia"
+fi
+if [ -f "$CODE/public/build-inertia/manifest.json" ]; then
+  echo "[2b/7] manifest Inertia OK ($(wc -c < "$CODE/public/build-inertia/manifest.json") bytes)"
+else
+  echo "AVISO [2b/7]: manifest Inertia AUSENTE — as telas Inertia vao dar 500/409 nesta noite"
+  echo "manifest-inertia-ausente" > "$RUN_DIR/build-inertia-FALHOU.txt"
+fi
+
 echo "--- [3/7] recria DB de teste dedicada ($DB_DATABASE)"
 docker exec -i "$MYSQL_CONTAINER" sh -c 'MYSQL_PWD=$(cat /run/secrets/mysql_root) exec mysql -uroot' <<SQL
 DROP DATABASE IF EXISTS \`$DB_DATABASE\`;
