@@ -876,6 +876,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante tambem proibida):** nao afirmar estado de UI a partir de UMA leitura sincrona logo apos `reload`/`navigate`/`click`. Vale pra `innerText`, `querySelector`, contagem de elementos, `getComputedStyle` e screenshot. Antes de qualquer veredito: **esperar o sinal de fim que a propria app publica** (aqui `oi:lazy-done`; noutras, `load`, `networkidle`, um `data-ready`), **ou** ler DUAS vezes com intervalo e so concluir se o numero **nao mudou**. Numero que ainda esta subindo nao e medida, e retrato de meio-caminho — mesma familia do §5 2026-08-13 (uma leitura de fonte que serve retrato atrasado): la a fonte estava atrasada, aqui a PAGINA estava, e nos dois casos a defesa e a mesma, reler antes de cravar.
 
+### 2026-08-24 — Gate visual bloqueando por tela FORA do raio do PR: predicado absoluto + o label que aprova o PR mas não a baseline (2ª instância da classe, 3º mecanismo)
+
+- **O limite (variante também proibida):** predicado de gate que cobra do autor um estado **agregado** que ele não pode ter causado — vale para zona cinza de pixel, cobertura, lint, nota e catraca. A pergunta é sempre *"este PR INTRODUZ?"*, nunca *"existe?"*. E o corolário específico, que é o que faltava: **aprovação por label é por-PR e não deixa rastro no artefato de referência** — se o mecanismo aceita "aprovado", ele tem que dizer, no mesmo lugar, que a **baseline segue divergente**, senão o débito vira invisível e reaparece como vermelho de terceiro. Quando o raio não é confiável (fundação visual, tokens, toolchain, `contrato-visual`), o bloqueio absoluto continua **certo** — a defesa nova é fail-closed em todo caminho de dúvida.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
