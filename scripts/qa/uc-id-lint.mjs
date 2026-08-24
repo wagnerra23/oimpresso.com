@@ -161,8 +161,14 @@ function arquivosDoRepo() {
   if (posicionais.length) return posicionais.map(posix).filter((p) => p.endsWith('.casos.md') && existsSync(p));
   // git ls-files (não walk do fs): o universo é o que está VERSIONADO, e quem responde isso
   // é o git — não uma travessia de diretório que pode pegar arquivo ignorado ou de worktree.
+  // `design-docs/cowork-inbox/` é CAIXA DE ENTRADA do Cowork (pedido que o Code ainda NÃO adotou),
+  // não artefato ativo do repo. Corrigir id de UC é trabalho de quem ADOTA o pedido — cobrar isso
+  // do inbox reprova o mensageiro. Medido 2026-08-24: o inbox era 93 arquivos 100% `.md` e passava;
+  // ao descer 87 novos do vivo, o `Programa.casos.md` veio com prefixo de 7 chars (`UC-PROGDOC-*`),
+  // legítimo COMO PEDIDO e inválido como UC do repo.
+  const foraDoInbox = (p) => !String(p).split(String.fromCharCode(92)).join('/').includes('design-docs/cowork-inbox/');
   const raw = execFileSync('git', ['ls-files', '--', '*.casos.md'], { encoding: 'utf8' });
-  return raw.split('\n').map((s) => s.trim()).filter(Boolean);
+  return raw.split('\n').map((s) => s.trim()).filter(Boolean).filter(foraDoInbox);
 }
 
 function carregaBaseline(p) {

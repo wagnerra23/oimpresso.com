@@ -1,0 +1,74 @@
+{
+  "$schema": "../../prototipo-ui/contrato/schema.json",
+  "id": "comissoes",
+  "rota": "/comissoes",
+  "legado": null,
+  "adr": "0286",
+  "origem": "prototipo-ui/cowork/acessos/comissoes-page.jsx",
+  "secoes": [
+    {
+      "id": "header",
+      "titulo": "Apuração de comissão",
+      "obrigatoria": true
+    },
+    {
+      "id": "kpis",
+      "itens": [
+        "Base de cálculo",
+        "Comissão apurada",
+        "Já pago",
+        "A pagar"
+      ],
+      "obrigatoria": true
+    },
+    {
+      "id": "aviso-origem",
+      "descricao": "Alert declarando que a apuração não existe no backend (D6)",
+      "obrigatoria": true
+    },
+    {
+      "id": "tabela",
+      "colunas": [
+        "Comissionado",
+        "Regra",
+        "Faturado",
+        "Meta",
+        "Comissão",
+        "Situação"
+      ],
+      "obrigatoria": true
+    },
+    {
+      "id": "extrato",
+      "descricao": "drawer com a conta aberta por venda + bloco de pagamento",
+      "obrigatoria": true
+    }
+  ],
+  "copy_literal": [
+    "Apuração de comissão",
+    "Total do período",
+    "Como este número foi feito",
+    "Vendas que entraram",
+    "Em aberto",
+    "Fechar período",
+    "a pagar"
+  ],
+  "estados": [
+    "periodo-aberto",
+    "periodo-fechado",
+    "so-faturadas",
+    "incluindo-a-receber",
+    "selecao-multipla",
+    "agente-pago"
+  ],
+  "proibicoes": [
+    "baixar caixa direto no lançamento",
+    "número sem origem declarada",
+    "enum cru",
+    "inglês em rótulo de UI",
+    "emoji"
+  ],
+  "densidade": {
+    "linha_max_px": 62
+  }
+}

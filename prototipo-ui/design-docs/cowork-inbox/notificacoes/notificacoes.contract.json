@@ -1,0 +1,15 @@
+{
+  "tela": "NotificationTemplate/Index",
+  "fonte": "prototipo-ui/cowork/notificacoes/notificacoes-page.jsx",
+  "alvo": ["resources/js/Pages/NotificationTemplate"],
+  "secoes": [
+    { "id": "lista-modelos", "copy": ["Notificações", "Cliente", "Fornecedor", "Buscar modelo"], "estados": ["empty", "filtered", "selected"] },
+    { "id": "cabecalho-modelo", "copy": ["E-mail", "SMS", "WhatsApp"], "estados": ["disabled"] },
+    { "id": "editor-canal", "copy": ["Corpo do e-mail", "Visual", "HTML"], "estados": ["empty", "error"] },
+    { "id": "tags-disponiveis", "copy": ["Tags disponíveis"], "estados": ["expanded"] },
+    { "id": "envio-automatico", "copy": ["Envio automático"], "estados": ["selected"] },
+    { "id": "previa", "copy": ["Prévia", "Enviar teste pra mim"], "estados": ["empty"] },
+    { "id": "aviso-logo", "copy": ["O {business_logo} só é impresso no e-mail"], "estados": [] }
+  ],
+  "ordem": ["lista-modelos", "cabecalho-modelo", "editor-canal", "tags-disponiveis", "envio-automatico", "previa"]
+}

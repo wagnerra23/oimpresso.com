@@ -1,0 +1,89 @@
+{
+  "_nota": "Contrato de Tela do painel do Conector (ADR 0286). Trava as seções, a copy literal e os estados da tradução Blade → Inertia. Rodar advisory no contrato-de-tela.yml antes de promover a required.",
+  "tela": "Connector/Api",
+  "fonte": "prototipo-ui/cowork/connector/connector-page.jsx + connector-api.jsx",
+  "alvo": ["Modules/Connector/Resources/js/Pages/Api"],
+  "secoes": [
+    { "id": "page-header", "copy": ["Conector — API clients", "Conector — documentação da API", "Conector — saúde", "Conector — módulo", "superadmin · cross-tenant"] },
+    { "id": "tabs", "copy": ["API clients", "Documentação", "Saúde", "Módulo"] },
+    { "id": "aviso-permissao", "copy": ["Só superadmin emite credencial de API"], "estados": ["superadmin"] },
+    { "id": "aviso-demo", "copy": ["Desligado na demonstração"], "estados": ["demo"] },
+    { "id": "vazio", "copy": ["Nenhuma credencial emitida ainda", "Criar o primeiro API client", "Credenciais desligadas na demonstração"], "estados": ["primeira-vez", "sem-resultado", "demo"] },
+    { "id": "kpis", "copy": ["Clients ativos", "Tokens ativos em 24 h", "Endpoints publicados", "Limite por token"] },
+    { "id": "toolbar", "copy": ["Buscar client por nome ou id…", "Criar API client"] },
+    { "id": "clients-table", "copy": ["ID", "Nome", "Segredo", "Tokens 24 h", "Criado", "guardado", "não é exibível", "Emitir credencial nova"], "estados": ["normal", "vazio"] },
+    { "id": "novo-client-form", "copy": ["Criar API client", "Nome", "Onde essa credencial vai rodar", "O nome do client OAuth é obrigatório.", "O nome do client não pode ultrapassar 191 caracteres.", "Redirecionamento", "Tipo"], "estados": ["vazio", "ok", "excedido", "duplicado"] },
+    { "id": "credencial-criada", "copy": ["client_id", "client_secret", "Esta é a única vez que o segredo aparece"], "estados": ["oculto", "exibido"] },
+    { "id": "confirm-excluir", "copy": ["Excluir este API client?", "Excluir client"], "estados": ["idle", "aberto"] },
+    { "id": "docs-como-entra", "copy": ["Como um app externo entra", "Regras que valem em todo endpoint", "Limite", "Autenticação", "Registro", "Fuso"] },
+    { "id": "docs-catalogo", "copy": ["Método", "Rota", "Controller", "Observação", "Delphi · WR Comercial", "Cadastros e catálogo", "Vendas e caixa", "Financeiro e relatórios", "Pessoas, ponto e conta", "CRM", "Field Force"], "estados": ["completo", "filtrado", "vazio"] },
+    { "id": "docs-formatos", "copy": ["Formatos de corpo que o desktop manda", "array_tabelas", "json_flat", "pipe"] },
+    { "id": "saude-checks", "copy": ["Tokens ativos em 24 h", "Licenças com acesso em 24 h", "Rotas registradas", "Dentro do limiar", "Abaixo do limiar"], "estados": ["ok", "abaixo"] },
+    { "id": "modulo-estado", "copy": ["Estado", "Módulo", "Versão", "Migrações", "Situação", "Endpoints", "Área", "Instalar", "Atualizar", "Desinstalar", "Instalado", "Não instalado"], "estados": ["instalado", "nao-instalado"] },
+    { "id": "modulo-achados", "copy": ["Achados da leitura do módulo"] }
+  ],
+  "ordem": ["page-header", "tabs", "aviso-permissao", "kpis", "toolbar", "clients-table"],
+  "proibicoes": [
+    "Segredo (client_secret) renderizado sem ação do usuário — nem no HTML inicial, nem na coluna da tabela.",
+    "Coluna/enum crua na interface: password_client, personal_access_client, revoked, client_secret como rótulo.",
+    "Rótulo 'regenerar documentação' para a ação que roda passport:install --force.",
+    "Ação destrutiva em GET (regenerate, install, uninstall, update).",
+    "Inglês em copy cliente-facing (Clients, Client Secret, Create Client, Regenerate doc).",
+    "Emoji na tela.",
+    "Modal full-screen para detalhe do client (PT-04 é só confirmação).",
+    "Qualquer ação de regenerar chaves do Passport na interface ([W] D4).",
+    "Qualquer ação de rotar/editar o segredo de um client existente ([W] D3).",
+    "Sugerir delegação por permissão: connector.access sai do catálogo ([W] D1).",
+    "Qualquer caminho de leitura do segredo de um client existente — revelar, copiar, exportar, log ([W] D6).",
+    "makeVisible('secret') em rota de listagem ou detalhe ([W] D6).",
+    "Hash de client_secret, rotação compulsória, validade de client ou troca de grant — invalidaria o Delphi já instalado nos clientes ([W] 2026-08-19, restrição dura)."
+  ],
+  "_nota_acordos": "Catraca semântica (ADR 0286 §5): coluna do Passport nunca aparece crua — o vocabulário abaixo é o mapeamento acordado entre backend e frontend.",
+  "acordos_estado": [
+    {
+      "id": "tipo-de-client",
+      "verdict": "proposto",
+      "escopo": "global",
+      "descricao": "`password_client=1` + `personal_access_client=0` é o único tipo emitido; a interface diz 'client de senha (o app troca usuário e senha por token)' e nunca mostra as colunas.",
+      "valores": ["password_client", "personal_access_client"],
+      "backend": "Modules/Connector/Http/Controllers/ClientController.php",
+      "frontend": ["Modules/Connector/Resources/js/Pages/Api/Index.tsx"]
+    },
+    {
+      "id": "visibilidade-do-segredo",
+      "verdict": "ratificado_[W]_2026-08-19",
+      "escopo": "global",
+      "descricao": "Ninguém vê segredo de client — nem o administrador. Fecha o CAMINHO DE LEITURA: `makeVisible('secret')` removido, nenhuma rota devolve `secret`, valor exibido só na resposta do POST de criação. `Passport::hashClientSecrets()` NÃO é ligado e a coluna não é migrada — credencial instalada no Delphi tem de autenticar pra sempre. Pedido de DS: selo de valor guardado com copiar-uma-vez no ato da criação.",
+      "valores": ["guardado_nao_exibivel", "exibido_uma_vez_na_criacao"],
+      "backend": "Modules/Connector/Http/Controllers/ClientController.php",
+      "frontend": ["Modules/Connector/Resources/js/Pages/Api/Index.tsx"]
+    },
+    {
+      "id": "autorizacao-do-painel",
+      "verdict": "ratificado_[W]_2026-08-19",
+      "escopo": "global",
+      "descricao": "Fica em superadmin nos dois verbos que sobram (criar, excluir). A permissão `connector.access` é removida do catálogo do DataController — não existe delegação. Regenerar chaves saiu da tela (D4).",
+      "valores": ["superadmin"],
+      "backend": "Modules/Connector/Http/Controllers/ClientController.php + Http/Requests/StoreOauthClientRequest.php + Http/Controllers/DataController.php",
+      "frontend": ["Modules/Connector/Resources/js/Pages/Api/Index.tsx"]
+    },
+    {
+      "id": "revogacao-em-cadeia",
+      "verdict": "ratificado_[W]_2026-08-19",
+      "escopo": "global",
+      "descricao": "Excluir revoga os `oauth_access_tokens` do client na mesma transação, com a contagem exibida na confirmação. Sem rotação de segredo (D3): credencial comprometida é excluída e emitida de novo.",
+      "valores": ["apenas_client", "client_e_tokens"],
+      "backend": "Modules/Connector/Http/Controllers/ClientController.php",
+      "frontend": ["Modules/Connector/Resources/js/Pages/Api/Index.tsx"]
+    },
+    {
+      "id": "contrato-delphi",
+      "verdict": "congelado",
+      "escopo": "api",
+      "descricao": "Respostas literais que o desktop parseia: `S;msg` / `N;motivo` (ProcessaDadosCliente), `VersaoNova;VersaoMinObrigatoria` / `N;VersaoMinObrigatoria` (check-update), JSON `{autorizado, licenca_id, dias_restantes, data_expiracao}` (oimpresso/registrar). Mudar formato quebra cliente em campo (ADR 0021).",
+      "valores": ["array_tabelas", "json_flat", "pipe"],
+      "backend": "Modules/Connector/Services/DelphiSyncService.php + Routes/api.php",
+      "frontend": ["Modules/Connector/Resources/js/Pages/Api/Docs.tsx"]
+    }
+  ]
+}

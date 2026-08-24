@@ -1,0 +1,55 @@
+{
+  "_nota": "Contrato de Tela do painel de conteúdo do CMS (ADR 0286). Trava as seções e a copy literal da tradução Blade → Inertia. Rodar advisory no contrato-de-tela.yml antes de promover a required.",
+  "tela": "Cms/Content",
+  "fonte": "prototipo-ui/cowork/cms/cms-page.jsx",
+  "alvo": ["Modules/Cms/Resources/js/Pages/Admin/Content"],
+  "secoes": [
+    { "id": "page-header", "copy": ["Site", "Ver o site", "Nova página", "Nova publicação", "Novo depoimento"] },
+    { "id": "kpis", "copy": ["Conteúdos", "No ar", "Rascunhos", "Sem descrição de busca"] },
+    { "id": "tabs", "copy": ["Páginas", "Blog", "Depoimentos", "Leads", "Detalhes do site", "Módulo"] },
+    { "id": "toolbar", "copy": ["Buscar por título, endereço ou palavra-chave…", "Todas", "No ar", "Rascunhos", "Todo layout", "De sistema", "Livres", "Limpar"] },
+    { "id": "table", "copy": ["Página", "Publicação", "Endereço", "Layout", "Busca", "Situação", "Atualizada", "Descrição pronta", "Sem descrição", "Publicada", "Rascunho"] },
+    { "id": "reorder", "copy": ["A ordem só pode ser mudada com a lista inteira à vista — limpe a busca e os filtros para arrastar."], "estados": ["idle", "dragging", "dropzone", "blocked"] },
+    { "id": "bulk", "copy": ["Publicar", "Tirar do ar", "Excluir", "selecionada", "selecionadas"] },
+    { "id": "drawer-sistema", "copy": ["O layout vem do tema do site — aqui você troca o texto, não a estrutura. Páginas de sistema não podem ser excluídas."] },
+    { "id": "drawer-conteudo", "copy": ["Conteúdo", "Título", "Prévia", "HTML", "Computador", "Celular"], "estados": ["visual", "codigo"] },
+    { "id": "drawer-sanitizacao", "copy": ["Isto não vai pro site", "A publicação remove:"], "estados": ["limpo", "com-risco"] },
+    { "id": "drawer-seo", "copy": ["Busca e compartilhamento", "Descrição para busca (meta description)", "Palavras-chave (tags)"], "estados": ["vazio", "curto", "ok", "excedido"] },
+    { "id": "drawer-blocos", "copy": ["Blocos da home", "Editar itens", "Recolher", "Acrescentar item"] },
+    { "id": "drawer-publicacao", "copy": ["Publicação", "Ordem de exibição", "Imagem de destaque", "Visível no site", "Fora do ar"] },
+    { "id": "drawer-historico", "copy": ["Histórico"] },
+    { "id": "drawer-acoes", "copy": ["Excluir", "Ver no site", "Salvar"] },
+    { "id": "vazio", "copy": ["Nada encontrado com esse termo."] }
+  ],
+  "ordem": ["page-header", "kpis", "tabs", "toolbar", "table"],
+  "_nota_acordos": "Catraca semântica (ADR 0286 §5): os enums do banco NUNCA aparecem crus na UI — o vocabulário abaixo é o mapeamento acordado entre backend e frontend.",
+  "acordos_estado": [
+    {
+      "id": "tipo-de-conteudo",
+      "verdict": "proposto",
+      "escopo": "global",
+      "descricao": "`type` do cms_pages é enum de banco (page|blog|testimonial) e só pode chegar à interface traduzido: Páginas · Blog · Depoimentos. O F1 já respeita.",
+      "valores": ["page", "blog", "testimonial"],
+      "backend": "Modules/Cms/Http/Controllers/CmsPageController.php",
+      "frontend": ["Modules/Cms/Resources/js/Pages/Admin/Content/Index.tsx"]
+    },
+    {
+      "id": "pagina-de-sistema",
+      "verdict": "proposto",
+      "escopo": "global",
+      "descricao": "`layout` preenchido (home|contact) significa página de sistema: sem exclusão, rótulo do corpo vira Descrição e só home traz os blocos feature/industry. Hoje o bloqueio é apenas visual no Blade — a tradução precisa recusar no servidor (UC-CMS-09).",
+      "valores": ["home", "contact"],
+      "backend": "Modules/Cms/Http/Controllers/CmsPageController.php",
+      "frontend": ["Modules/Cms/Resources/js/Pages/Admin/Content/Index.tsx", "Modules/Cms/Resources/js/Pages/Admin/Content/_components/Editor.tsx"]
+    },
+    {
+      "id": "situacao-publicacao",
+      "verdict": "proposto",
+      "escopo": "global",
+      "descricao": "`is_enabled` booleano aparece como Publicada · Rascunho. Pedido de DS: StatusBadge kind=\"cms\" com publicada|rascunho|pagina-sistema|sem-descricao.",
+      "valores": ["0", "1"],
+      "backend": "Modules/Cms/Entities/CmsPage.php",
+      "frontend": ["Modules/Cms/Resources/js/Pages/Admin/Content/Index.tsx"]
+    }
+  ]
+}

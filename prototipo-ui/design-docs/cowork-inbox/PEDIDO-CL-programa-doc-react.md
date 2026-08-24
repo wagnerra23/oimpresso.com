@@ -80,7 +80,7 @@ cima da superfície já migrada.
 ## 2. O que falta do lado do servidor — é aqui que mora o trabalho
 
 O `.tsx` é **100% props-driven de propósito**: sem esses dois serviços a tela não deve subir, porque
-subir com conteúdo estático viola `UC-PROGD-01` e `UC-PROGD-02`.
+subir com conteúdo estático viola `UC-PROGDOC-01` e `UC-PROGDOC-02`.
 
 **a) `App\Support\Documentacao\TrilhaDParser`** — lê a § Trilha D do
 `memory/requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md` e devolve:
@@ -138,6 +138,6 @@ Contrato de tela roda **advisory** no `contrato-de-tela.yml` antes de promover �
 ## Fora de escopo
 
 - Portar `programa-doc-page.jsx` / `documentacao-page.jsx` (Cowork) linha a linha — são referência visual; o que atravessa é o contrato.
-- Marcar DoD/onda pela UI: a tela é read-only (`UC-PROGD-03`).
+- Marcar DoD/onda pela UI: a tela é read-only (`UC-PROGDOC-03`).
 - Trocar a fonte do rail ou do conteúdo: continua disco (frontmatter) + corpus, com o fallback de disco intacto.
 - Promover os hues de fase (220/295/155/75) a token: só quando a tela sair de `proposta`.
