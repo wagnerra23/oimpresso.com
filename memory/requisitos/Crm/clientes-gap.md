@@ -1,9 +1,9 @@
 ---
 id: requisitos-crm-clientes-gap
 tela: Clientes (Index + Drawer 760px)
-prototipo: prototipo-ui/prototipos/clientes/ (HTML + 13 .jsx · KB-9.75 9,4/10 · 2026-05-22)
+prototipo: prototipo-ui/prototipos/clientes/ # ⚠️ PATH APAGADO em 2026-06-23 (e8b49f4b63, consolidação SSOT em prototipo-ui/cowork/) — é o artefato de 2026-05-22 que ESTA análise leu, preservado aqui como registro do que foi medido. NÃO trocar pelo espelho de hoje sem reler: ver "Por que ainda não há .map.json" abaixo
 tela_viva: resources/js/Pages/Cliente/ (Index.tsx 114KB + Show.tsx + _drawer/* + _show/* + _components/*)
-paridade_atual: 100% (tela viva À FRENTE do protótipo)
+paridade_atual: 100% (tela viva À FRENTE do protótipo) # MEDIDO EM 2026-06-23 contra o protótipo daquela data — ver ressalva abaixo
 veredito: À FRENTE — protótipo é catch-up backlog, NUNCA fonte
 gerado_em: '2026-06-23'
 governanca:
@@ -16,6 +16,39 @@ governanca:
 ---
 
 # GAP-SPEC · Clientes — protótipo Cowork vs tela viva
+
+> ## ⚠️ 2026-08-24 — por que ainda NÃO há `clientes.map.json` (e por que gerar um hoje seria pior que não ter)
+>
+> Este gap **parseia** no `prototipo-ui/gerar-map.mjs` (11 partes, coluna `Ação` presente), então
+> ele aparece na fila de "candidatos a map" do `design-code-map-check`. Ficou de fora de propósito:
+> o protótipo que esta análise leu **não é** o protótipo que está no espelho hoje, e um map ancora
+> os dois lados por arquivo+linha — ancorar o veredito de junho no artefato de agosto seria afirmar
+> correspondência que ninguém verificou.
+>
+> Medido hoje, com commit e número:
+>
+> - `prototipo-ui/prototipos/clientes/` (a chave `prototipo:` acima) tem **0 arquivos versionados**.
+>   Foi apagado em **2026-06-23** por `e8b49f4b63` — *"protótipo Cowork = 1 SSOT com histórico
+>   (prototipo-ui/cowork/) + apaga recortes"*, no MESMO dia em que este gap foi escrito.
+> - O sucessor no espelho, `prototipo-ui/cowork/clientes-page.jsx` (o que a charter declara em
+>   `related_prototype`, confirmado por `node prototipo-ui/ancora.mjs Cliente/Index`), **dobrou
+>   de tamanho depois**: `+1075/−133` em **2026-08-13** ([#5743](https://github.com/wagnerra23/oimpresso.com/pull/5743)), cujo próprio corpo diz que
+>   o espelho tinha *"METADE do arquivo vivo (58.331 vs 112.096 bytes)"*.
+> - No mesmo commit desceram **8 arquivos de Cliente que nunca tinham existido no espelho**, entre
+>   eles `cliente-drawer760.jsx` (834 linhas, adição pura). E o cabeçalho dele inverte a direção
+>   que esta análise assumiu: *"drawer 760px do Cliente, **paridade com PRODUÇÃO**. Fonte lida no
+>   repo: resources/js/Pages/Cliente/Index.tsx (ClienteSheet, DRAWER_TABS) + _drawer/*"*. Ou seja,
+>   o protótipo de hoje foi derivado **da tela viva** — enquanto a tabela abaixo compara a tela viva
+>   contra um mock de 540px que o espelho não tem mais.
+>
+> **O que isso NÃO significa:** a tabela abaixo não fica inválida — ela é um registro datado
+> honesto do que era verdade em 2026-06-23, e o veredito operacional dela ("não aplicar o
+> protótipo") segue de pé, agora com um motivo a mais.
+>
+> **O que falta pra existir um map:** reler a Fase 1 contra o espelho atual
+> (`clientes-page.jsx` + `cliente-drawer760.jsx` + `cliente-form/extrato/mapa/grupos/import`),
+> não converter esta tabela. É trabalho de análise, não de geração.
+
 
 > **Veredito de uma linha:** a tela viva está **decisivamente à frente** do protótipo.
 > O protótipo (`clientes-975.jsx` & cia, 2026-05-22) já foi inteiramente portado
