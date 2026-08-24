@@ -52,8 +52,14 @@ abstract class TestCase extends BaseTestCase
             if ($conn->transactionLevel() > 0) {
                 return; // teste RefreshDatabase — gerencia o próprio DB, não tocar
             }
-            if (DB::table('business')->where('id', 1)->exists()) {
-                return; // seed intacto — nada a curar
+            // O predicado olha os DOIS tenants que o write-side semeia (biz=1 e o canonico
+            // biz=98 · ADR 0358), nao so o 1: se um teste RefreshDatabase recompoe biz=1 mas
+            // nao biz=98, checar so o 1 devolve "seed intacto" com 98 ainda ausente — e todo
+            // teste que usa o tenant canonico quebra em FK. Foi o que aconteceu entre 07-28
+            // (quando o write-side adotou o 98) e 08-24. `whereIn(...)->count() === 2` e
+            // idempotente e continua rodando ~1x por suite.
+            if (DB::table('business')->whereIn('id', [1, 98])->count() === 2) {
+                return; // ambos os tenants semeados presentes — nada a curar
             }
             (new FullSuiteMinimalTenantSeeder())->run();
         } catch (\Throwable $e) {
