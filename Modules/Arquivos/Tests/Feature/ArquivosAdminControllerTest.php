@@ -183,3 +183,30 @@ it('UC-INDEX-01 · todo bucket que a Request aceita EXISTE no enum do banco', fu
         expect($doBanco)->toContain($aceito);
     }
 })->group('arquivos');
+it('UC-INDEX-01 · a tela tem entrada no sidebar, com as 3 camadas de habilitação', function () {
+    // Nasceu de defeito real: `modifyAdminMenu()` era `no-op` até 2026-08-25, com um
+    // comentário dizendo que o módulo "não tem tela própria". A rota respondia 200 em
+    // produção e NINGUÉM a alcançava pelo menu — só por URL direta. Nenhum gate pegaria:
+    // um método vazio é sintaticamente perfeito.
+    //
+    // ⚠️ LIMITE DESTE ASSERT: ele lê o CÓDIGO, não o menu renderizado. Prova que as 3
+    // camadas continuam no caminho; NÃO prova que o item aparece pro usuário. Essa prova é
+    // o smoke com olho humano — foi assim que o defeito foi achado, e não há substituto.
+    $codigo = arquivosCodigoSemComentarios(
+        base_path('Modules/Arquivos/Http/Controllers/DataController.php')
+    );
+
+    // Deixou de ser no-op.
+    expect($codigo)->toContain('Menu::modify');
+    expect($codigo)->toContain("url('/arquivos')");
+
+    // Camada 1 — módulo no pacote do business.
+    expect($codigo)->toContain('arquivos_module');
+    expect($codigo)->toContain('hasThePermissionInSubscription');
+
+    // Camada 3 — permission por função.
+    expect($codigo)->toContain("can('arquivos.access')");
+
+    // Proibição Tier 0: habilitar módulo por business NUNCA é hardcode de id.
+    expect($codigo)->not->toMatch('/business_id\s*===?\s*\d+/');
+})->group('arquivos', 'multi-tenant');
