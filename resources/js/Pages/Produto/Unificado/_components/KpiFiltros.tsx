@@ -36,16 +36,24 @@ import type { KpiKey, Permissoes } from './catalogo';
 /**
  * A placa do ícone, e só ela, é tintada — o card fica neutro.
  *
- * O patch nomeia os tons pela paleta do Tailwind (`amber-500`, `rose-500`, `violet-500`), que
- * não é o vocabulário daqui. O equivalente registrado no DS é `warning` / `destructive` /
- * `primary` — o roxo hue 295 do acento canônico ([ADR 0190]). Usar o nome do DS é o que o §6
- * do patch manda quando o valor parece faltar: procurar com o outro nome, nunca criar token.
- * De quebra, o par claro/escuro vem junto, então o §5 (mesmas frações no escuro) sai de graça.
+ * RECEITA MEDIDA no `Alert` do bundle do DS, que é onde mora a única placa de ícone do sistema:
+ *
+ *   span: { width: 22, height: 22, borderRadius: 6, background: mix('14%'), color: tk.c }
+ *
+ * — 14% de fundo, SEM borda, glyph no TOM CHEIO. O patch §1 pede 6%/22%/600 alegando ser a
+ * receita do `Alert`, e ele acertou o componente e errou a peça: 6%/22% são os números do
+ * CONTAINER do alerta (`background: mix('6%')`, `border: 1px solid mix('22%')`), não os da
+ * placa dentro dele. Placa de ícone segue placa de ícone — [W] 2026-08-25, "o DS sempre ganha".
+ *
+ * Os tons vêm por TOKEN (`warning`/`destructive`/`primary` — o roxo hue 295 do acento canônico,
+ * ADR 0190), não pela paleta Tailwind que o patch nomeia: é o que o §6 manda quando o valor
+ * parece faltar — procurar com o outro nome, nunca criar. De quebra o par claro/escuro vem
+ * junto, então o §5 (mesmas frações no escuro) sai de graça.
  */
 const PLACA = {
-  warning: 'bg-warning/6 border-warning/22 text-warning-fg',
-  destructive: 'bg-destructive/6 border-destructive/22 text-destructive-fg',
-  primary: 'bg-primary/6 border-primary/22 text-primary',
+  warning: 'bg-warning/14 text-warning',
+  destructive: 'bg-destructive/14 text-destructive',
+  primary: 'bg-primary/14 text-primary',
 } as const;
 
 type ToneKey = keyof typeof PLACA;
@@ -126,7 +134,7 @@ export function KpiFiltros({ kpis, ativo, onToggle, perm, diasParado }: KpiFiltr
               (on ? 'border-primary ring-1 ring-primary/40' : 'border-border')
             }
           >
-            <Inline justify="center" className={'h-9 w-9 rounded-md border flex-shrink-0 ' + PLACA[card.tone]}>
+            <Inline justify="center" className={'h-9 w-9 rounded-md flex-shrink-0 ' + PLACA[card.tone]}>
               {/* Sem `color` próprio: o glyph herda o `text-*` da placa (currentColor). */}
               <Icon className="h-4 w-4" />
             </Inline>
