@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Modules\Arquivos\Http\Controllers\ArquivosAdminController;
 
 uses(Tests\TestCase::class);
@@ -38,6 +40,46 @@ if (! function_exists('arquivosCodigoSemComentarios')) {
 }
 
 /**
+ * O corpo de UM método, sem comentários.
+ *
+ * Existe porque a partir do PR-2 o controller tem DOIS caminhos de leitura com regras
+ * OPOSTAS de multi-tenant — acervo (model com global scope: `where` manual proibido) e
+ * trilha (`DB::table` sem scope: `where` manual OBRIGATÓRIO). Um assert sobre o arquivo
+ * inteiro não consegue dizer as duas coisas; escopado por método, consegue.
+ *
+ * `RuntimeException` quando o método some, em vez de string vazia: assert sobre vazio
+ * PASSA, e um gate que se desliga sozinho quando o alvo é renomeado é o defeito que este
+ * arquivo inteiro existe pra não cometer.
+ */
+if (! function_exists('arquivosCorpoDoMetodo')) {
+    function arquivosCorpoDoMetodo(string $caminho, string $metodo): string
+    {
+        $codigo = arquivosCodigoSemComentarios($caminho);
+        $ini = strpos($codigo, 'function ' . $metodo . '(');
+
+        if ($ini === false) {
+            throw new RuntimeException(
+                "Método {$metodo}() não existe mais em {$caminho} — o assert que dependia dele "
+                . 'ficaria verde sem medir nada. Aponte-o pro novo nome ou remova o teste.'
+            );
+        }
+
+        // Fim = próxima declaração de método no mesmo nível de indentação, ou fim do arquivo.
+        $resto = substr($codigo, $ini + 1);
+        $fim = false;
+
+        foreach (["\n    private function ", "\n    public function ", "\n    protected function "] as $marca) {
+            $p = strpos($resto, $marca);
+            if ($p !== false && ($fim === false || $p < $fim)) {
+                $fim = $p;
+            }
+        }
+
+        return $fim === false ? substr($codigo, $ini) : substr($codigo, $ini, $fim + 1);
+    }
+}
+
+/**
  * Contrato da tela do acervo — US-ARQ-013 (onda 1 · PR-1).
  *
  * Defende o que o `Index.casos.md` declara em UC-INDEX-01 e na seção anti-regressão,
@@ -66,26 +108,48 @@ if (! function_exists('arquivosCodigoSemComentarios')) {
  * @see memory/requisitos/Arquivos/RUNBOOK-index.md
  */
 
-it('UC-INDEX-01 · o controller NAO quebra o global scope multi-tenant', function () {
+it('UC-INDEX-01 · o ACERVO nao quebra o global scope multi-tenant', function () {
     // Tier 0 (ADR 0093): o business_id vem da SESSÃO. Se alguém puser um
     // `withoutGlobalScopes` aqui, este teste é quem avisa.
-    $codigo = arquivosCodigoSemComentarios(base_path('Modules/Arquivos/Http/Controllers/ArquivosAdminController.php'));
+    $arquivo = base_path('Modules/Arquivos/Http/Controllers/ArquivosAdminController.php');
 
-    expect($codigo)->not->toContain('withoutGlobalScopes');
-    expect($codigo)->not->toContain("where('business_id'");
+    expect(arquivosCodigoSemComentarios($arquivo))->not->toContain('withoutGlobalScopes');
+
+    // O `where` manual segue proibido — mas SÓ no caminho do acervo, que lê pelo model
+    // `Arquivo` (global scope). Ali repeti-lo esconderia uma quebra do scope.
+    //
+    // ⚠️ Este assert valia pro ARQUIVO INTEIRO até o PR-2 e teve de ser escopado, porque
+    // a trilha lê `arquivos_audit_log` — tabela SEM model, logo SEM global scope. Aplicado
+    // ao arquivo todo, ele passaria a proibir a única defesa Tier 0 que aquela vista tem,
+    // e obedecê-lo seria vazamento cross-tenant. É o caso da precedência de 2026-07-06:
+    // gate que, cumprido ao pé da letra, produz o dano que ele existe pra impedir.
+    // A contrapartida está no teste seguinte, que EXIGE o filtro na trilha.
+    $acervo = arquivosCorpoDoMetodo($arquivo, 'buildAcervoPayload');
+
+    expect($acervo)->not->toContain("where('business_id'");
+    expect($acervo)->not->toContain("where('arquivos.business_id'");
 })->group('arquivos', 'multi-tenant');
 
-it('UC-INDEX-01 · a linha do acervo NAO carrega storage_path nem md5 (LGPD Art. 37)', function () {
-    // Non-Goal do charter: PII e caminho vivem só em `arquivos_audit_log`. Uma vista de
-    // governança que os renderize é vazamento — e o `casos.md` declara isso.
-    $r = new ReflectionMethod(ArquivosAdminController::class, 'linha');
-    $r->setAccessible(true);
+it('UC-INDEX-02 · a TRILHA filtra por business_id — a tabela nao tem global scope', function () {
+    // O espelho do assert acima. `arquivos_audit_log` não tem model: nenhum scope roda
+    // sozinho. Se o filtro sumir daqui, a trilha passa a listar evento de outro tenant —
+    // e a prova comportamental está mais abaixo, com dois businesses de verdade.
+    $arquivo = base_path('Modules/Arquivos/Http/Controllers/ArquivosAdminController.php');
+    $trilha = arquivosCorpoDoMetodo($arquivo, 'buildTrilhaPayload');
 
+    expect($trilha)->toContain('business_id');
+    expect($trilha)->toContain('businessIdDaSessao');
+})->group('arquivos', 'multi-tenant');
+
+it('UC-INDEX-01 · o controller NAO carrega storage_path nem md5 (LGPD Art. 37)', function () {
+    // Non-Goal do charter: caminho de disco e hash não saem pra tela. Antes do PR-2 este
+    // assert cobria do método `linha()` até o fim do arquivo; agora cobre o arquivo
+    // INTEIRO — a superfície cresceu (trilha) e o corte por posição deixaria de fora
+    // qualquer método escrito acima. Apertar, não afrouxar.
     $codigo = arquivosCodigoSemComentarios(base_path('Modules/Arquivos/Http/Controllers/ArquivosAdminController.php'));
-    $corpo = substr($codigo, (int) strpos($codigo, 'private function linha('));
 
-    expect($corpo)->not->toContain('storage_path');
-    expect($corpo)->not->toContain('md5');
+    expect($codigo)->not->toContain('storage_path');
+    expect($codigo)->not->toContain('md5');
 })->group('arquivos', 'lgpd');
 
 it('UC-INDEX-01 · a tela e LEITURA PURA — nenhum caminho escreve, apaga ou enfileira', function () {
@@ -177,3 +241,169 @@ it('UC-INDEX-01 · a tela tem entrada no sidebar, com as 3 camadas de habilitaç
     // Proibição Tier 0: habilitar módulo por business NUNCA é hardcode de id.
     expect($codigo)->not->toMatch('/business_id\s*===?\s*\d+/');
 })->group('arquivos', 'multi-tenant');
+// =============================================================================
+// Trilha (onda 1 · PR-2) — `arquivos_audit_log`, read-only.
+//
+// Os três primeiros testes daqui DISPENSAM banco (invocam método puro), então valem
+// nas duas lanes. Os dois últimos precisam de MySQL semeado e pulam na lane sqlite —
+// o lar deles é o `arquivos-pest.yml`, onde este arquivo já está na allowlist.
+// =============================================================================
+
+/**
+ * id de arquivo fictício pras fixtures da trilha.
+ *
+ * Alto de propósito: `arquivos_audit_log.arquivo_id` NÃO tem FK (comentada na migration
+ * 2026_05_10_000002) e a trilha não faz join com `arquivos` — então a linha existe sem
+ * arquivo por trás, e o cleanup acha as fixtures por este id sem tocar dado de ninguém.
+ */
+if (! function_exists('arquivosTrilhaFixtureId')) {
+    function arquivosTrilhaFixtureId(int $businessId): int
+    {
+        return 987654000 + $businessId;
+    }
+}
+
+if (! function_exists('arquivosTrilhaPayloadDe')) {
+    function arquivosTrilhaPayloadDe(array $filtros = []): array
+    {
+        $c = new ArquivosAdminController();
+        $m = new ReflectionMethod($c, 'buildTrilhaPayload');
+        $m->setAccessible(true);
+
+        return $m->invoke($c, array_merge([
+            'tab' => 'trilha', 'from' => null, 'to' => null, 'acao' => null, 'per_page' => 25,
+        ], $filtros));
+    }
+}
+
+it('UC-INDEX-02 · sem business_id na sessao a trilha devolve VAZIO — nunca tudo', function () {
+    // Fail-closed, e é onde a trilha diverge do model de propósito: o global scope do
+    // `Arquivo` faz `if ($businessId !== null)` e, sem sessão, deixa a query passar SEM
+    // filtro. Repetir essa aposta numa tabela sem scope seria servir o log inteiro do
+    // sistema. Este teste não toca o banco: o método retorna antes disso.
+    session()->forget('user');
+    session()->forget('business');
+
+    $payload = arquivosTrilhaPayloadDe();
+
+    expect($payload['eventos']['data'])->toBe([]);
+    expect($payload['eventos']['total'])->toBe(0);
+    expect($payload['acoes'])->toBe([]);
+})->group('arquivos', 'multi-tenant');
+
+it('UC-INDEX-02 · a linha da trilha expoe id do arquivo, NUNCA o nome', function () {
+    // Comportamental e sem banco: alimenta o formatador com uma linha crua e olha o que
+    // sai. O charter proíbe filename em vista de governança, e o protótipo desenha a
+    // coluna como `#id` — o contrato é o conjunto de chaves, não a intenção do docblock.
+    $c = new ArquivosAdminController();
+    $m = new ReflectionMethod($c, 'linhaTrilha');
+    $m->setAccessible(true);
+
+    $linha = $m->invoke($c, (object) [
+        'id'         => 42,
+        'created_at' => '2026-08-25 14:07:33',
+        'action'     => 'signed_url_consumed',
+        'arquivo_id' => 7,
+        'quem'       => 'Wagner Rodrigues',
+        'payload'    => '{"ip":"10.0.0.7","agent":"Mozilla"}',
+    ]);
+
+    expect(array_keys($linha))->toBe(['id', 'quando', 'acao', 'arquivo', 'quem', 'detalhe']);
+    expect($linha['arquivo'])->toBe(7);
+    expect($linha['quando'])->toBe('2026-08-25 14:07');
+    expect($linha['detalhe'])->toBe('ip=10.0.0.7 · agent=Mozilla');
+})->group('arquivos', 'lgpd');
+
+it('UC-INDEX-02 · o detalhe resume o payload — bool vira palavra e lixo nao quebra a tela', function () {
+    // `payload` é campo livre: cada gravador escreve o seu. O formatador precisa aguentar
+    // o que os 4 call-sites de hoje escrevem E o que o quinto vier a escrever.
+    $c = new ArquivosAdminController();
+    $m = new ReflectionMethod($c, 'resumoPayload');
+    $m->setAccessible(true);
+
+    expect($m->invoke($c, null))->toBeNull();
+    expect($m->invoke($c, ''))->toBeNull();
+    // `false` é informação (o arquivo NÃO saiu do disco) — sumir com ela seria mentir.
+    expect($m->invoke($c, '{"file_removed_from_disk":false,"retention_days":90}'))
+        ->toBe('file_removed_from_disk=não · retention_days=90');
+    // JSON quebrado não derruba a linha: vira texto truncado.
+    expect($m->invoke($c, 'isto nao e json'))->toBe('isto nao e json');
+})->group('arquivos');
+
+it('UC-INDEX-02 · a trilha do tenant 98 NUNCA mostra evento do 99 (Tier 0, cross-tenant)', function () {
+    if (! Schema::hasTable('arquivos_audit_log')) {
+        $this->markTestSkipped('arquivos_audit_log ausente — a prova cross-tenant roda na lane MySQL.');
+    }
+
+    $proprio    = Tests\Support\WithSeededTenant::SEEDED_TENANT_ID;         // 98 — fictício
+    $adversario = Tests\Support\WithSeededTenant::SUPPORT_CLIENT_TENANT_ID; // 99 — o outro
+
+    foreach ([$proprio, $adversario] as $biz) {
+        DB::table('arquivos_audit_log')->insert([
+            'arquivo_id'  => arquivosTrilhaFixtureId($biz),
+            'business_id' => $biz,
+            'user_id'     => null,
+            'action'      => 'upload',
+            'payload'     => json_encode(['fixture' => 'trilha-tier0']),
+            'created_at'  => now(),
+        ]);
+    }
+
+    session(['user' => ['business_id' => $proprio]]);
+
+    $payload  = arquivosTrilhaPayloadDe();
+    $arquivos = array_column($payload['eventos']['data'], 'arquivo');
+
+    // O evento do adversário não pode aparecer — e o do próprio TEM de aparecer, senão um
+    // filtro quebrado (que zera tudo) passaria por isolamento.
+    expect($arquivos)->toContain(arquivosTrilhaFixtureId($proprio));
+    expect($arquivos)->not->toContain(arquivosTrilhaFixtureId($adversario));
+
+    // As FACETAS também são query: se o `where` faltar só nelas, o vazamento vira um
+    // número no chip. Sem filtro de ação, a soma delas tem de bater com o total da lista.
+    $somaFacetas = array_sum(array_column($payload['acoes'], 'total'));
+    expect($somaFacetas)->toBe($payload['eventos']['total']);
+})->group('arquivos', 'multi-tenant');
+
+it('UC-INDEX-02 · o filtro de acao restringe a lista sem apagar os outros chips', function () {
+    if (! Schema::hasTable('arquivos_audit_log')) {
+        $this->markTestSkipped('arquivos_audit_log ausente — roda na lane MySQL.');
+    }
+
+    $biz = Tests\Support\WithSeededTenant::SEEDED_TENANT_ID;
+
+    foreach (['upload', 'restore'] as $acao) {
+        DB::table('arquivos_audit_log')->insert([
+            'arquivo_id'  => arquivosTrilhaFixtureId($biz),
+            'business_id' => $biz,
+            'user_id'     => null,
+            'action'      => $acao,
+            'payload'     => null,
+            'created_at'  => now(),
+        ]);
+    }
+
+    session(['user' => ['business_id' => $biz]]);
+
+    $payload = arquivosTrilhaPayloadDe(['acao' => 'restore']);
+
+    // Toda linha listada é da ação pedida.
+    expect(array_unique(array_column($payload['eventos']['data'], 'acao')))->toBe(['restore']);
+
+    // E os chips seguem mostrando as OUTRAS ações: faceta que só conta a si mesma deixa
+    // de ser filtro — vira beco sem saída.
+    expect(array_column($payload['acoes'], 'acao'))->toContain('upload');
+})->group('arquivos');
+
+afterEach(function () {
+    // Cleanup por id sentinela — sem RefreshDatabase, que dropa o schema e limparia o
+    // seed compartilhado da lane (o próprio workflow veta arquivos que fazem isso).
+    if (Schema::hasTable('arquivos_audit_log')) {
+        DB::table('arquivos_audit_log')
+            ->whereIn('arquivo_id', [
+                arquivosTrilhaFixtureId(Tests\Support\WithSeededTenant::SEEDED_TENANT_ID),
+                arquivosTrilhaFixtureId(Tests\Support\WithSeededTenant::SUPPORT_CLIENT_TENANT_ID),
+            ])
+            ->delete();
+    }
+});
