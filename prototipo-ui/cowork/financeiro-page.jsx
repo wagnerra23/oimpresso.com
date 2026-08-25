@@ -112,7 +112,9 @@
     pago: { bg: "bg-[var(--pos-soft)]", fg: "text-[var(--pos)]", dot: "bg-[var(--pos)]", c: "var(--pos)", label: "Pago" },
     pendente: { bg: "bg-[var(--sunken)]", fg: "text-[var(--text-2)]", dot: "bg-[var(--text-3)]", c: "var(--text-3)", label: "Pendente" },
     vencendo: { bg: "bg-[var(--warn-soft)]", fg: "text-[var(--warn)]", dot: "bg-[var(--warn)]", c: "var(--warn)", label: "Vencendo" },
-    atrasado: { bg: "bg-[var(--neg-soft)]", fg: "text-[var(--neg)]", dot: "bg-[var(--neg)]", c: "var(--neg)", label: "Atrasado" }
+    atrasado: { bg: "bg-[var(--neg-soft)]", fg: "text-[var(--neg)]", dot: "bg-[var(--neg)]", c: "var(--neg)", label: "Atrasado" },
+    // US-FIN-031 (git v17): cancelamento em lote é append-only — título fica no ledger, tom neutro.
+    cancelado: { bg: "bg-[var(--sunken)]", fg: "text-[var(--text-3)]", dot: "bg-[var(--text-4)]", c: "var(--text-4)", label: "Cancelado" }
   };
   const StatusBadge = ({ status, compact }) => {
     // Blindagem ([W] fluxo 2026-06-10): status desconhecido NUNCA derruba a tela — cai em tom muted.
@@ -144,7 +146,7 @@
   { id: "concil", label: "Conciliação" },
   { id: "dre", label: "DRE / Relatórios" },
   { id: "pcontas", label: "Plano de contas" },
-  { id: "impostos", label: "Impostos & obrigações" }];
+  { id: "impostos", label: "Impostos e obrigações" }];
 
   // US-FIN-029 — 3 lentes do header (direção [W] 2026-05-31): dirigem o filtro; chips refinam DENTRO da lente.
   const FIN_LENTES = [
@@ -158,7 +160,7 @@
     concil: "Conciliação",
     dre: "DRE / Relatórios",
     pcontas: "Plano de contas",
-    impostos: "Impostos & obrigações"
+    impostos: "Impostos e obrigações"
   };
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -202,6 +204,39 @@
 
   };
 
+  // Sync git 2026-08-17 (charter v14 §Opção A + v21): o tipo é escolhido ANTES do
+  // formulário — "Novo título" abre menu (Novo recebimento · Novo pagamento) e todo
+  // ponto de entrada (CmdK, empty-state) cai na MESMA sheet, nunca em rota legada.
+  const FinNovoMenu = ({ onNew }) => {
+    const [open, setOpen] = useState(false);
+    const ref = useRef(null);
+    useEffect(() => {
+      if (!open) return;
+      const onDoc = (e) => {if (ref.current && !ref.current.contains(e.target)) setOpen(false);};
+      const onKey = (e) => {if (e.key === "Escape") setOpen(false);};
+      document.addEventListener("mousedown", onDoc);
+      document.addEventListener("keydown", onKey);
+      return () => {document.removeEventListener("mousedown", onDoc);document.removeEventListener("keydown", onKey);};
+    }, [open]);
+    return (
+      <div className="fin-overflow" ref={ref}>
+      <button className="os-btn primary" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open}>
+        <I.Plus size={12} /> Novo título
+      </button>
+      {open &&
+        <div className="fin-overflow-menu" role="menu">
+          <button className="fin-overflow-item" role="menuitem" onClick={() => {setOpen(false);onNew("receivable");}}>
+            <span className="fin-novo-dot" style={{ ["--h"]: 145 }} /><span>Novo recebimento</span>
+          </button>
+          <button className="fin-overflow-item" role="menuitem" onClick={() => {setOpen(false);onNew("payable");}}>
+            <span className="fin-novo-dot" style={{ ["--h"]: 25 }} /><span>Novo pagamento</span>
+          </button>
+        </div>
+        }
+    </div>);
+
+  };
+
   // ──────────────────────────────────────────────────────────────────────────
   // FinHero — header enxuto (Wagner 2026-05-31): título + 3 lentes
   // (Caixa · A receber · A pagar) + "Novo lançamento" + menu ···.
@@ -224,7 +259,7 @@
         )}
         </div>
       }
-      <button className="os-btn primary" onClick={onNew}><I.Plus size={12} /> Novo título</button>
+      <FinNovoMenu onNew={onNew} />
       <FinOverflowMenu items={[
       { icon: I.Search, label: "Buscar", kbd: "⌘K", onClick: onCmdK },
       { icon: I.Receipt, label: "Ler boleto (OCR)", onClick: onOcr },
@@ -372,7 +407,14 @@
    * ─────────────────────────────────────────────────────────────────────── */
   // KPIStrip refeito no padrão `.os-stats` do shell.
   // US-FIN-029: KPI-click seta a lente (hero→caixa · recebíveis→receber · pagáveis→pagar).
-  const KPIStrip = ({ rows, periodText, lente, onLente }) => {
+  const KPIStrip = ({ rows, prevRows = [], periodText, lente, onLente }) => {
+    const agg = (src) => {
+      const recebido = src.filter((r) => r.kind === "receivable" && r.paid_at).reduce((s, r) => s + r.amount, 0);
+      const pago = src.filter((r) => r.kind === "payable" && r.paid_at).reduce((s, r) => s + r.amount, 0);
+      const aReceber = src.filter((r) => r.kind === "receivable" && !r.paid_at).reduce((s, r) => s + r.amount, 0);
+      const aPagar = src.filter((r) => r.kind === "payable" && !r.paid_at).reduce((s, r) => s + r.amount, 0);
+      return { recebido, pago, aReceber, aPagar, saldoPrevisto: recebido - pago + aReceber - aPagar };
+    };
     const k = useMemo(() => {
       const recebido = rows.filter((r) => r.kind === "receivable" && r.paid_at).reduce((s, r) => s + r.amount, 0);
       const pago = rows.filter((r) => r.kind === "payable" && r.paid_at).reduce((s, r) => s + r.amount, 0);
@@ -397,11 +439,30 @@
     });
     const on = (lid) => lente === lid ? " fin-stat-on" : "";
 
+    // US-FIN-023 (vivo, Index.tsx:950) — delta_pct vs período anterior: ↑+12% verde /
+    // ↓-5% rose / → 0% neutro. Aqui o "anterior" vem da MESMA base mock deslocada um
+    // período (o vivo recebe do backend). null quando o anterior é 0 — nada inventado.
+    const prev = useMemo(() => agg(prevRows || []), [prevRows]);
+    const pctOf = (cur, before) => {
+      if (!before) return null;
+      return Math.round((cur - before) / Math.abs(before) * 100);
+    };
+    const DeltaBadge = ({ pct }) => {
+      if (pct == null) return null;
+      const cls = pct > 0 ? "pos" : pct < 0 ? "neg" : "mut";
+      const glyph = pct > 0 ? "↑" : pct < 0 ? "↓" : "→";
+      return (
+        <span className={"fin-delta-pct " + cls} title={`vs período anterior (${pct > 0 ? "subiu" : pct < 0 ? "caiu" : "estável"} ${Math.abs(pct)}%)`}>
+          {glyph}{pct > 0 ? "+" : ""}{pct}%
+        </span>);
+
+    };
+
     return (
       <div className="os-stats fin-stats">
       <div className={"os-stat fin-stat-hero fin-stat-click" + on("caixa")} {...statBtn("caixa")} title="Lente Caixa — tudo">
         <small>Saldo previsto · {periodText}{k.saldoPrevisto < 0 && <span className="fin-hero-alarm">projeção negativa</span>}</small>
-        <b className={"mono" + (k.saldoPrevisto < 0 ? " fin-num-neg" : "")}>{fmtBRL(k.saldoPrevisto)}</b>
+        <b className={"mono" + (k.saldoPrevisto < 0 ? " fin-num-neg" : "")}>{fmtBRL(k.saldoPrevisto)}<DeltaBadge pct={pctOf(k.saldoPrevisto, prev.saldoPrevisto)} /></b>
         <span className="fin-stat-hint">
           <b className="mono">{fmtBRL(k.saldoAtual)}</b> realizado · {fmtBRLshort(k.aReceber - k.aPagar)} pendente
         </span>
@@ -427,24 +488,24 @@
       </div>
       <div className={"os-stat fin-stat-click fin-stat-in" + on("receber")} {...statBtn("receber")} title="Lente A receber">
         <small>Recebido</small>
-        <b className="mono fin-num-pos">{fmtBRL(k.recebido)}</b>
+        <b className="mono fin-num-pos">{fmtBRL(k.recebido)}<DeltaBadge pct={pctOf(k.recebido, prev.recebido)} /></b>
         <span className="fin-stat-hint">{rows.filter((r) => r.kind === "receivable" && r.paid_at).length} entradas confirmadas</span>
       </div>
       <div className={"os-stat fin-stat-click fin-stat-in" + on("receber")} {...statBtn("receber")} title="Lente A receber">
         <small>A receber</small>
-        <b className="mono">{fmtBRL(k.aReceber)}</b>
+        <b className="mono">{fmtBRL(k.aReceber)}<DeltaBadge pct={pctOf(k.aReceber, prev.aReceber)} /></b>
         <span className="fin-stat-hint">{k.atrasadoRec > 0 ?
             <><span className="fin-num-neg mono">{fmtBRL(k.atrasadoRec)}</span> em atraso</> :
             `${k.nReceberAberto} ${k.nReceberAberto === 1 ? "título" : "títulos"}`}</span>
       </div>
       <div className={"os-stat fin-stat-click fin-stat-out" + on("pagar")} {...statBtn("pagar")} title="Lente A pagar">
         <small>Pago</small>
-        <b className="mono fin-num-neg">{fmtBRL(k.pago)}</b>
+        <b className="mono fin-num-neg">{fmtBRL(k.pago)}<DeltaBadge pct={pctOf(k.pago, prev.pago)} /></b>
         <span className="fin-stat-hint">{rows.filter((r) => r.kind === "payable" && r.paid_at).length} saídas liquidadas</span>
       </div>
       <div className={"os-stat fin-stat-click fin-stat-out" + on("pagar")} {...statBtn("pagar")} title="Lente A pagar">
         <small>A pagar</small>
-        <b className="mono">{fmtBRL(k.aPagar)}</b>
+        <b className="mono">{fmtBRL(k.aPagar)}<DeltaBadge pct={pctOf(k.aPagar, prev.aPagar)} /></b>
         <span className="fin-stat-hint">{(() => {
               // FX-3 — “próx.” só para obrigação FUTURA; vencida fala a verdade em tom destructive.
               if (!k.proxPagar) return "nada em aberto";
@@ -535,6 +596,15 @@
   { id: "caixa", label: "Caixa", detail: "Caixa Econ. · ag 0042 · cc 1102-3" },
   { id: "dinheiro", label: "Dinheiro", detail: "Caixa interno · dinheiro" }];
   const contaOf = (r) => CONTAS[[...(r && r.id || "x")].reduce((a, c) => a + c.charCodeAt(0), 0) % CONTAS.length];
+  // US-FIN-038 / charter v22 (sync git 2026-08-17 · ADR 0175): baixa registrada SEM
+  // vinculação bancária (conta_bancaria_id NULL) mostra o pill "Conta indefinida" no
+  // lugar do "—" — warning leve (não erro) e o próprio pill é o CTA de cadastro.
+  const contaIndefinida = (r) => !!(r && r.paid_at) && [...String(r.id)].reduce((a, c) => a + c.charCodeAt(0), 0) % 7 === 0;
+  const PillContaIndefinida = () =>
+  <a href="#contas-bancarias" onClick={(e) => e.stopPropagation()} className="fin-pill-indef"
+    title="Pagamento registrado sem vinculação bancária. Cadastre conta pra organizar caixa.">
+    <I.Alert size={11} /> Conta indefinida
+  </a>;
   // Forma de pagamento (coluna FORMA, paridade produção). Usa cobrança quando há; senão determinístico.
   const formaOf = (r) => {
     if (r && r.cobranca && r.cobranca.tipo) return r.cobranca.tipo === "pix" ? "PIX" : "Boleto";
@@ -587,7 +657,7 @@
 
   };
 
-  const FilterBar = ({ lente = "caixa", states, setStates, late, setLate, query, setQuery, period, setPeriod, density, setDensity, counts, planoConta = "all", setPlanoConta = () => {}, contas = new Set(), setContas = () => {} }) => {
+  const FilterBar = ({ lente = "caixa", states, setStates, late, setLate, query, setQuery, period, setPeriod, density, setDensity, counts, planoConta = "all", setPlanoConta = () => {}, arquivados = false, setArquivados = () => {}, contas = new Set(), setContas = () => {} }) => {
     // US-FIN-029: chips refinam DENTRO da lente — fora da lente Caixa só os 2 chips do lado ativo.
     const FILTER_LIFECYCLE = [
     { id: "rec", label: "A receber", hue: 145 },
@@ -633,6 +703,14 @@
       <input type="checkbox" checked={late} onChange={(e) => setLate(e.target.checked)} />
       <span>Só atrasados</span>
       {counts.late != null && counts.late > 0 && <span className="fin-filter-ct">{counts.late}</span>}
+    </label>
+
+    {/* Arquivados — paridade com o vivo: mostra SÓ os cancelados (fora da lista por padrão) */}
+    <label className={"fin-filter-toggle" + (arquivados ? " on" : "")} style={{ ["--cb-hue"]: 282 }}
+    title="Mostrar somente os títulos cancelados (append-only, fora da lista por padrão)">
+      <input type="checkbox" checked={arquivados} onChange={(e) => setArquivados(e.target.checked)} />
+      <span>Arquivados</span>
+      {counts.arquivados != null && counts.arquivados > 0 && <span className="fin-filter-ct">{counts.arquivados}</span>}
     </label>
 
     <span className="fin-filter-sep" />
@@ -693,6 +771,9 @@
         <span className="fin-pb-date-sep">até</span>
         <input type="date" className="fin-pb-date" value={customRange.to} min={customRange.from || undefined}
         onChange={(e) => setCustomRange((r) => ({ ...r, to: e.target.value }))} aria-label="Data final" />
+        {/* Limpar intervalo — paridade FinPeriodBar do vivo (volta ao mês atual) */}
+        <button className="fin-pb-date-clear" onClick={() => {setCustomRange({ from: "", to: "" });setPeriod("mes");}}
+        title="Limpar intervalo (volta ao mês atual)" aria-label="Limpar intervalo">×</button>
       </div> :
       <>
         <button className="fin-pb-arrow" disabled={period === "tudo"}
@@ -805,7 +886,7 @@
         </span>
       </td>
       <td className={`px-2 ${dens.py} ${dens.text} text-[var(--text-2)] truncate max-w-[150px]`}>
-        <span title={contaOf(row).detail}>{contaOf(row).label}</span>
+        {contaIndefinida(row) ? <PillContaIndefinida /> : <span title={contaOf(row).detail}>{contaOf(row).label}</span>}
       </td>
       <td className={`px-2 ${dens.py} ${dens.text} num text-[var(--text-3)] whitespace-nowrap`}>
         {settled ? fmtDate(row.paid_at) : "—"}
@@ -955,10 +1036,13 @@
   /* ─────────────────────────────────────────────────────────────────────────
    * Footer (sticky) — batch actions + summary
    * ─────────────────────────────────────────────────────────────────────── */
-  const FooterBar = ({ rows, selected, onClearSelected, onMarkAll }) => {
+  const FooterBar = ({ rows, selected, onClearSelected, onMarkAll, onBulkCategoria, onBulkPlano, onBulkCancelar, onBulkExport }) => {
     const selRows = rows.filter((r) => selected.has(r.id));
     const totalIn = selRows.filter((r) => r.kind === "receivable").reduce((s, r) => s + r.amount, 0);
     const totalOut = selRows.filter((r) => r.kind === "payable").reduce((s, r) => s + r.amount, 0);
+    // Limite de 500 por chamada — mesmo teto do endpoint POST /unificado/bulk (git v17).
+    const over = selRows.length > 500;
+    const bulkBtn = "h-8 px-3 rounded-md border border-[var(--border)] text-[var(--text)] hover:bg-[var(--sunken)] transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed";
 
     return (
       <div className="fin-footbar sticky bottom-0 z-20 mx-6 mb-4 mt-3 rounded-[12px] border border-[var(--border)] bg-[var(--surface)] flex items-center px-4 h-12 text-[length:var(--fs-3)]">
@@ -989,14 +1073,17 @@
             <span className="h-3 w-px bg-[var(--border)]" />
             {totalIn > 0 && <span className="text-[var(--pos)] num">+ {fmtBRL(totalIn)}</span>}
             {totalOut > 0 && <span className="text-[var(--text)] num">− {fmtBRL(totalOut)}</span>}
+            {over && <span className="text-[var(--neg)]">limite de 500 por lote</span>}
           </div>
           <div className="ml-auto flex items-center gap-2">
             <button onClick={onClearSelected} className="h-8 px-3 rounded-md border border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--sunken)] transition-colors duration-150">Limpar</button>
-            <button className="h-8 px-3 rounded-md border border-[var(--border)] text-[var(--text)] hover:bg-[var(--sunken)] transition-colors duration-150">Editar em lote</button>
-            <button className="h-8 px-3 rounded-md border border-[var(--border)] text-[var(--text)] hover:bg-[var(--sunken)] transition-colors duration-150 inline-flex items-center gap-1.5"><I.Download size={13} />Exportar</button>
-            <button onClick={onMarkAll} className="h-8 px-3 rounded-md bg-[var(--accent)] hover:bg-[var(--accent-hi)] text-white transition-colors duration-150 inline-flex items-center gap-1.5">
+            <button disabled={over} onClick={onBulkCategoria} className={bulkBtn}>Categoria</button>
+            <button disabled={over} onClick={onBulkPlano} className={bulkBtn}>Plano de contas</button>
+            <button disabled={over} onClick={onBulkCancelar} className="h-8 px-3 rounded-md border border-[var(--border)] text-[var(--neg)] hover:bg-[var(--neg-soft)] transition-colors duration-150 disabled:opacity-50">Cancelar</button>
+            <button onClick={onBulkExport} className={bulkBtn + " inline-flex items-center gap-1.5"}><I.Download size={13} />Exportar CSV</button>
+            <button disabled={over} onClick={onMarkAll} className="h-8 px-3 rounded-md bg-[var(--accent)] hover:bg-[var(--accent-hi)] text-white transition-colors duration-150 inline-flex items-center gap-1.5 disabled:opacity-50">
               <I.Check size={13} />
-              Liquidar selecionados
+              Baixar selecionados
             </button>
           </div>
         </>
@@ -1250,8 +1337,10 @@
    * Novo lançamento — CTA primário REAL ([W] "roda o fluxo" 2026-06-10: era stub).
    * Mínimo honesto: tipo · descrição · contraparte · valor · vencimento → entra no ledger.
    * ───────────────────────────────────────────────────────────────────────── */
-  const FinNovoLancamento = ({ open, onClose, onCreate }) => {
-    const [kind, setKind] = useState("receivable");
+  const FinNovoLancamento = ({ open, tipo = "receivable", onClose, onCreate }) => {
+    // Opção A [W] (charter v14, reforçada v21): o tipo chega PRÉ-FIXADO do ponto de
+    // entrada (menu do primary, CmdK, empty-state) e não é editável aqui.
+    const kind = tipo;
     const [desc, setDesc] = useState("");
     const [party, setParty] = useState("");
     const [valor, setValor] = useState("");
@@ -1268,14 +1357,13 @@
     return (
       <div className="fixed inset-0 z-[60] bg-black/30 grid place-items-start pt-24" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} className="fin-cmdk-card w-[480px] mx-auto bg-[var(--surface)] rounded-lg border border-[var(--border)] overflow-hidden"
-        role="dialog" aria-label="Novo lançamento"
+        role="dialog" aria-label={kind === "receivable" ? "Novo recebimento" : "Novo pagamento"}
         onKeyDown={(e) => {if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit();}}>
         <div className="px-4 h-12 flex items-center gap-2 border-b border-[var(--border)]">
-          <b className="text-[length:var(--fs-4)] font-semibold">Novo título</b>
-          <div className="fin-lens-seg ml-auto" role="group" aria-label="Tipo">
-            <button className={"fin-lens-btn" + (kind === "receivable" ? " on" : "")} onClick={() => setKind("receivable")}>A receber</button>
-            <button className={"fin-lens-btn" + (kind === "payable" ? " on" : "")} onClick={() => setKind("payable")}>A pagar</button>
-          </div>
+          <b className="text-[length:var(--fs-4)] font-semibold">{kind === "receivable" ? "Novo recebimento" : "Novo pagamento"}</b>
+          <span className="fin-novo-tipo ml-auto" style={{ ["--h"]: kind === "receivable" ? 145 : 25 }}>
+            {kind === "receivable" ? "A receber" : "A pagar"}
+          </span>
         </div>
         <div className="p-4 grid grid-cols-2 gap-x-4 gap-y-3">
           <label className="col-span-2 grid gap-1">
@@ -1304,6 +1392,75 @@
         <div className="px-4 h-14 border-t border-[var(--border)] flex items-center justify-end gap-2">
           <button className="os-btn ghost" onClick={onClose}>Cancelar</button>
           <button className="os-btn primary" disabled={!can} onClick={submit}>Adicionar ao caixa</button>
+        </div>
+      </div>
+    </div>);
+
+  };
+
+  /* ─────────────────────────────────────────────────────────────────────────
+   * Ações em lote (US-FIN-031 · charter v17 · sync git 2026-08-17)
+   * Classificação (categoria/plano) + cancelamento com confirmação DESTRUTIVA
+   * que mostra "N títulos totalizando R$ X" ANTES de aplicar.
+   * ─────────────────────────────────────────────────────────────────────── */
+  const FinBulkClassSheet = ({ open, modo, count, onClose, onApply }) => {
+    const [valor, setValor] = useState("");
+    useEffect(() => {if (open) setValor("");}, [open, modo]);
+    if (!open) return null;
+    const isPlano = modo === "plano";
+    return (
+      <div className="fixed inset-0 z-[60] bg-black/30 grid place-items-start pt-24" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="fin-cmdk-card w-[440px] mx-auto bg-[var(--surface)] rounded-lg border border-[var(--border)] overflow-hidden" role="dialog"
+        aria-label={isPlano ? "Plano de contas em lote" : "Categoria em lote"}>
+        <div className="px-4 h-12 flex items-center border-b border-[var(--border)]">
+          <b className="text-[length:var(--fs-4)] font-semibold">{isPlano ? "Plano de contas em lote" : "Categoria em lote"}</b>
+          <span className="ml-auto text-[length:var(--fs-2)] text-[var(--text-2)] num">{count} selecionado{count === 1 ? "" : "s"}</span>
+        </div>
+        <div className="p-4 grid gap-2">
+          <span className="text-[length:var(--fs-1)] uppercase tracking-[0.08em] text-[var(--text-3)]">{isPlano ? "Conta do plano (árvore DCASP)" : "Categoria"}</span>
+          <select value={valor} onChange={(e) => setValor(e.target.value)} autoFocus
+            className="h-9 px-3 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[length:var(--fs-4)] outline-none focus:border-[var(--accent)]">
+            <option value="">— escolha —</option>
+            {isPlano ?
+            PLANO_CONTAS.map((g) =>
+            <optgroup key={g.code} label={g.code + " · " + g.label}>
+                {g.subs.map((sub) => sub.leaves.map((lf) => <option key={sub.code + lf} value={lf}>{sub.code} · {lf}</option>))}
+              </optgroup>
+            ) :
+            CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <p className="text-[length:var(--fs-2)] text-[var(--text-3)]">Reclassifica só os títulos selecionados. Valor e status não mudam.</p>
+        </div>
+        <div className="px-4 h-14 border-t border-[var(--border)] flex items-center justify-end gap-2">
+          <button className="os-btn ghost" onClick={onClose}>Cancelar</button>
+          <button className="os-btn primary" disabled={!valor} onClick={() => onApply(valor)}>Aplicar em {count}</button>
+        </div>
+      </div>
+    </div>);
+
+  };
+
+  const FinBulkCancelSheet = ({ open, elegiveis, pulados, total, onClose, onConfirm }) => {
+    if (!open) return null;
+    return (
+      <div className="fixed inset-0 z-[60] bg-black/30 grid place-items-start pt-24" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="fin-cmdk-card w-[460px] mx-auto bg-[var(--surface)] rounded-lg border border-[var(--border)] overflow-hidden" role="dialog" aria-label="Cancelar títulos em lote">
+        <div className="px-4 h-12 flex items-center gap-2 border-b border-[var(--border)]">
+          <I.Alert size={14} className="text-[var(--neg)]" />
+          <b className="text-[length:var(--fs-4)] font-semibold">Cancelar títulos</b>
+        </div>
+        <div className="p-4 grid gap-2 text-[length:var(--fs-4)] text-[var(--text)]">
+          <p>Você está cancelando <b className="num">{elegiveis}</b> título{elegiveis === 1 ? "" : "s"} totalizando <b className="num">{fmtBRL(total)}</b>.</p>
+          <p className="text-[length:var(--fs-3)] text-[var(--text-2)]">
+            Cancelamento é append-only: o título fica no ledger com status <b>Cancelado</b> e sai dos totais.
+            {pulados > 0 && <> {pulados} já liquidado{pulados === 1 ? "" : "s"} {pulados === 1 ? "será pulado" : "serão pulados"} (estorno não vive nesta tela).</>}
+          </p>
+        </div>
+        <div className="px-4 h-14 border-t border-[var(--border)] flex items-center justify-end gap-2">
+          <button className="os-btn ghost" onClick={onClose}>Voltar</button>
+          <button className="h-8 px-3 rounded-md bg-[var(--neg)] text-white text-[length:var(--fs-3)] hover:opacity-90 transition-opacity disabled:opacity-50" disabled={!elegiveis} onClick={onConfirm}>
+            Cancelar {elegiveis} título{elegiveis === 1 ? "" : "s"}
+          </button>
         </div>
       </div>
     </div>);
@@ -1555,7 +1712,9 @@
                   <KVEdit label="Canal" value={eff.channel} was={row.channel} options={window.FIN_EDIT_OPTIONS.channels} onChange={(v) => edits.set(row.id, { channel: v })} /> :
                   <KV label="Canal">{eff.channel}</KV>}
               <KV label="Competência">{eff.competencia ? eff.competencia.toLocaleDateString("pt-BR", { month: "short", year: "numeric" }) : "—"}</KV>
-              <KV label="Conta" copy={contaOf(row).detail}>{contaOf(row).detail}</KV>
+              {contaIndefinida(row) ?
+              <KV label="Conta"><PillContaIndefinida /></KV> :
+              <KV label="Conta" copy={contaOf(row).detail}>{contaOf(row).detail}</KV>}
             </div>
           </div>
 
@@ -1656,7 +1815,7 @@
   /* ─────────────────────────────────────────────────────────────────────────
    * Cmd+K palette
    * ─────────────────────────────────────────────────────────────────────── */
-  const CmdK = ({ open, onClose, rows, onPick }) => {
+  const CmdK = ({ open, onClose, rows, onPick, onNew }) => {
     const [q, setQ] = useState("");
     const inputRef = useRef(null);
     useEffect(() => {if (open) {setQ("");setTimeout(() => inputRef.current?.focus(), 0);}}, [open]);
@@ -1671,6 +1830,12 @@
     ).slice(0, 10);
 
     if (!open) return null;
+    // Sync git (charter v21): CmdK oferece as MESMAS entradas de criação da tela —
+    // tipo escolhido antes do form, nunca rota legada /unificado/novo.
+    const acts = [
+    { id: "new-rec", label: "Novo recebimento", hint: "título a receber", kind: "receivable" },
+    { id: "new-pay", label: "Novo pagamento", hint: "título a pagar", kind: "payable" }].
+    filter((a) => !ql || a.label.toLowerCase().includes(ql) || "novo titulo lancamento".includes(ql));
     return (
       <div className="fixed inset-0 z-[60] cp-backdrop bg-black/30 grid place-items-start pt-24" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} className="fin-cmdk-card w-[560px] bg-[var(--surface)] rounded-lg border border-[var(--border)] overflow-hidden">
@@ -1686,7 +1851,20 @@
           <kbd className="px-1.5 py-0.5 rounded border border-[var(--border)] bg-[var(--sunken)] text-[length:var(--fs-1)] text-[var(--text-2)] font-mono">Esc</kbd>
         </div>
         <div className="max-h-[360px] overflow-y-auto nice-scroll py-1.5">
-          {matches.length === 0 &&
+          {acts.length > 0 &&
+            <div className="border-b border-[var(--border)] pb-1.5 mb-1.5">
+              <div className="px-4 py-1 text-[length:var(--fs-1)] uppercase tracking-[0.08em] text-[var(--text-3)]">Ações</div>
+              {acts.map((a) =>
+              <button key={a.id} onClick={() => {onNew(a.kind);onClose();}}
+              className="w-full px-4 py-2 flex items-center gap-3 hover:bg-[var(--sunken)] text-left transition-colors duration-150">
+                  <span className="fin-novo-dot" style={{ ["--h"]: a.kind === "receivable" ? 145 : 25 }} />
+                  <div className="flex-1 text-[length:var(--fs-4)] font-medium text-[var(--text)]">{a.label}</div>
+                  <span className="text-[length:var(--fs-2)] text-[var(--text-3)]">{a.hint}</span>
+                </button>
+              )}
+            </div>
+            }
+          {matches.length === 0 && acts.length === 0 &&
             <div className="px-4 py-8 text-center text-[length:var(--fs-4)] text-[var(--text-2)]">Nada encontrado para "{q}".</div>
             }
           {matches.map((r) =>
@@ -1775,6 +1953,8 @@
     const [cmdkOpen, setCmdkOpen] = useState(false);
     // CTA primário REAL ([W] "roda o fluxo"): novo lançamento entra no ledger + persiste no mock global
     const [novoOpen, setNovoOpen] = useState(false);
+    const [novoTipo, setNovoTipo] = useState("receivable");
+    const openNovo = useCallback((kind) => {setNovoTipo(kind === "payable" ? "payable" : "receivable");setNovoOpen(true);}, []);
     const handleCreate = useCallback(({ kind, desc, party, amount, due }) => {
       const seq = window.__finNovoSeq = (window.__finNovoSeq || 0) + 1;
       const row = {
@@ -1805,6 +1985,9 @@
     useEffect(() => {setTela(initialTela);}, [initialTela]);
     // US-FIN-029 — lente ativa (clamp caixa). Trocar de lente re-arma os chips do lado.
     const [lente, setLente] = useState("caixa");
+    // Arquivados (paridade vivo — Archive em Index.tsx): mostra SÓ os cancelados,
+    // que por padrão ficam fora da lista (append-only, charter v13/v17).
+    const [arquivados, setArquivados] = useState(false);
     const applyLente = useCallback((id) => {
       const safe = id === "receber" || id === "pagar" ? id : "caixa";
       setLente(safe);
@@ -1822,6 +2005,15 @@
       return rows.filter((x) => {const dv = dateFieldGet(x, dateField);return dv && dv >= start && dv < end;});
     }, [rows, periodMode, anchor, dateField, customRange]);
 
+    // Período ANTERIOR — base do delta_pct dos KPIs (US-FIN-023 do vivo).
+    const prevPeriodRows = useMemo(() => {
+      if (periodMode === "tudo" || periodMode === "custom") return [];
+      const win = periodWindow(periodMode, shiftAnchor(anchor, periodMode, -1), customRange);
+      if (!win) return [];
+      const [start, end] = win;
+      return rows.filter((x) => {const dv = dateFieldGet(x, dateField);return dv && dv >= start && dv < end;});
+    }, [rows, periodMode, anchor, dateField, customRange]);
+
     // counts per tab
     const counts = useMemo(() => ({
       all: periodRows.length,
@@ -1830,7 +2022,8 @@
       pay: periodRows.filter((r) => r.kind === "payable" && !r.paid_at).length,
       received: periodRows.filter((r) => r.kind === "receivable" && r.paid_at).length,
       paid: periodRows.filter((r) => r.kind === "payable" && r.paid_at).length,
-      late: periodRows.filter((r) => !r.paid_at && r.status === "atrasado").length
+      late: periodRows.filter((r) => !r.paid_at && r.status === "atrasado").length,
+      arquivados: periodRows.filter((r) => r.status === "cancelado").length
     }), [periodRows]);
 
     const agingCounts = useMemo(() => {
@@ -1839,6 +2032,10 @@
 
     const filtered = useMemo(() => {
       let r = periodRows;
+      // Cancelado não aparece nem soma (charter v13/v17): append-only, mas fora da lista
+      // por padrão. O toggle "Arquivados" (paridade vivo) inverte: mostra SÓ os cancelados.
+      if (arquivados) return r.filter((x) => x.status === "cancelado");
+      r = r.filter((x) => x.status !== "cancelado");
       // US-FIN-029 — a lente restringe o lado ANTES dos chips
       if (lente === "receber") r = r.filter((x) => x.kind === "receivable");else
       if (lente === "pagar") r = r.filter((x) => x.kind === "payable");
@@ -1872,20 +2069,42 @@
         );
       }
       return r;
-    }, [periodRows, tab, query, states, late, lente, planoConta, contas]);
+    }, [periodRows, tab, query, states, late, lente, planoConta, contas, arquivados]);
 
-    // Exportar CSV REAL — linhas filtradas viram arquivo (era stub; definido APÓS `filtered` — gotcha Babel var-hoisting)
-    const handleExport = useCallback(() => {
+    // Exportar CSV REAL — linhas filtradas (ou a seleção, no lote) viram arquivo
+    // (definido APÓS `filtered` — gotcha Babel var-hoisting)
+    const exportCsv = useCallback((list, sufixo) => {
       const esc = (s) => '"' + String(s == null ? "" : s).replace(/"/g, '""') + '"';
       const head = ["id", "tipo", "descricao", "contraparte", "categoria", "valor", "vencimento", "pago_em", "status"];
-      const lines = filtered.map((r) => [r.id, r.kind === "receivable" ? "receber" : "pagar", r.descClean || r.desc, r.party, r.category, String(r.amount).replace(".", ","), r.due ? r.due.toLocaleDateString("pt-BR") : "", r.paid_at ? r.paid_at.toLocaleDateString("pt-BR") : "", r.status].map(esc).join(";"));
+      const lines = list.map((r) => [r.id, r.kind === "receivable" ? "receber" : "pagar", r.descClean || r.desc, r.party, r.category, String(r.amount).replace(".", ","), r.due ? r.due.toLocaleDateString("pt-BR") : "", r.paid_at ? r.paid_at.toLocaleDateString("pt-BR") : "", r.status].map(esc).join(";"));
       const blob = new Blob(["\uFEFF" + [head.join(";"), ...lines].join("\n")], { type: "text/csv;charset=utf-8" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = "financeiro-" + new Date().toISOString().slice(0, 10) + ".csv";
+      a.download = "financeiro-" + (sufixo ? sufixo + "-" : "") + new Date().toISOString().slice(0, 10) + ".csv";
       a.click();setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-      window.vdToast?.(filtered.length + " lançamento(s) exportados em CSV", "ok", 3000);
-    }, [filtered]);
+      window.vdToast?.(list.length + " lançamento(s) exportados em CSV", "ok", 3000);
+    }, []);
+    const handleExport = useCallback(() => exportCsv(filtered), [filtered, exportCsv]);
+
+    /* Ações em lote (US-FIN-031 · git v17): baixar · categoria · plano de contas ·
+       cancelar (append-only, quitado é pulado) · exportar CSV da seleção. Teto 500.
+       No mock a folha do plano É a categoria da linha (o filtro de plano prova isso),
+       então as duas sheets escrevem o mesmo campo — mudam só a forma de escolher. */
+    const [bulkModo, setBulkModo] = useState(null);
+    const selRowsBulk = useMemo(() => filtered.filter((r) => selected.has(r.id)), [filtered, selected]);
+    const cancelaveis = useMemo(() => selRowsBulk.filter((r) => !r.paid_at && r.status !== "cancelado"), [selRowsBulk]);
+    const applyBulkClass = useCallback((valor) => {
+      setRows((rs) => rs.map((r) => selected.has(r.id) ? { ...r, category: valor } : r));
+      window.vdToast?.(selected.size + " título(s) reclassificados em " + valor, "ok", 3000);
+      setBulkModo(null);setSelected(new Set());
+    }, [selected]);
+    const applyBulkCancel = useCallback(() => {
+      const ids = new Set(cancelaveis.map((r) => r.id));
+      const total = cancelaveis.reduce((s, r) => s + r.amount, 0);
+      setRows((rs) => rs.map((r) => ids.has(r.id) ? { ...r, status: "cancelado" } : r));
+      window.vdToast?.(ids.size + " título(s) cancelados · " + fmtBRL(total), "ok", 3600);
+      setBulkModo(null);setSelected(new Set());
+    }, [cancelaveis]);
 
     const handleMark = useCallback((id) => {
       setRows((rs) => rs.map((r) => r.id === id ? {
@@ -1957,7 +2176,7 @@
         lente={lente}
         onLente={applyLente}
         onCmdK={() => setCmdkOpen(true)}
-        onNew={() => setNovoOpen(true)}
+        onNew={openNovo}
         onExport={handleExport}
         onDigest={() => setDigestOpen(true)}
         onFechamento={() => setFechamentoOpen(true)}
@@ -1967,11 +2186,13 @@
 
       <div className="fin-body">
         {tela === "unified" && <>
-          <KPIStrip rows={periodRows} periodText={periodLabelShort(periodMode, anchor)} lente={lente} onLente={applyLente} />
+          <KPIStrip rows={periodRows} prevRows={prevPeriodRows} periodText={periodLabelShort(periodMode, anchor)} lente={lente} onLente={applyLente} />
           <PeriodBar dateField={dateField} setDateField={setDateField} period={periodMode} setPeriod={setPeriodMode} anchor={anchor} setAnchor={setAnchor} count={filtered.length} customRange={customRange} setCustomRange={setCustomRange} />
-          <FilterBar lente={lente} states={states} setStates={setStates} late={late} setLate={setLate} counts={counts} query={query} setQuery={setQuery} density={density} setDensity={setDensity} planoConta={planoConta} setPlanoConta={setPlanoConta} contas={contas} setContas={setContas} />
+          <FilterBar lente={lente} states={states} setStates={setStates} late={late} setLate={setLate} counts={counts} query={query} setQuery={setQuery} density={density} setDensity={setDensity} planoConta={planoConta} setPlanoConta={setPlanoConta} contas={contas} setContas={setContas} arquivados={arquivados} setArquivados={setArquivados} />
           <Table rows={filtered} density={tableRowsDensity} selected={selected} setSelected={setSelected} onOpen={setDrawerRow} onMark={openBaixa} dateField={dateField} emptyPeriod={periodLabel(periodMode, anchor)} onShowAll={periodMode === "tudo" ? null : () => setPeriodMode("tudo")} />
-          <FooterBar rows={filtered} selected={selected} onClearSelected={() => setSelected(new Set())} onMarkAll={handleMarkAll} />
+          <FooterBar rows={filtered} selected={selected} onClearSelected={() => setSelected(new Set())} onMarkAll={handleMarkAll}
+          onBulkCategoria={() => setBulkModo("categoria")} onBulkPlano={() => setBulkModo("plano")}
+          onBulkCancelar={() => setBulkModo("cancelar")} onBulkExport={() => exportCsv(selRowsBulk, "selecao")} />
         </>}
         {tela === "fluxo" && <window.TelaFluxo onBack={() => setTela("unified")} />}
         {tela === "concil" && <window.TelaConciliacao onBack={() => setTela("unified")} />}
@@ -1988,10 +2209,13 @@
           const n = filtered[i + d];
           if (n) setDrawerRow(n);
         }} />
-      <FinNovoLancamento open={novoOpen} onClose={() => setNovoOpen(false)} onCreate={handleCreate} />
+      <FinNovoLancamento open={novoOpen} tipo={novoTipo} onClose={() => setNovoOpen(false)} onCreate={handleCreate} />
+      <FinBulkClassSheet open={bulkModo === "categoria" || bulkModo === "plano"} modo={bulkModo} count={selected.size} onClose={() => setBulkModo(null)} onApply={applyBulkClass} />
+      <FinBulkCancelSheet open={bulkModo === "cancelar"} elegiveis={cancelaveis.length} pulados={selRowsBulk.length - cancelaveis.length}
+        total={cancelaveis.reduce((s, r) => s + r.amount, 0)} onClose={() => setBulkModo(null)} onConfirm={applyBulkCancel} />
       {window.FinBaixaSheet && <window.FinBaixaSheet row={baixaRow} open={!!baixaRow} aberto={baixaRow ? window.finValorAberto(baixaRow, baixas) : 0} onClose={() => setBaixaRow(null)} onConfirm={handleBaixa} />}
       {window.FinOcrBoletoSheet && <window.FinOcrBoletoSheet open={ocrOpen} onClose={() => setOcrOpen(false)} onCreate={handleCreate} />}
-      <CmdK open={cmdkOpen} onClose={() => setCmdkOpen(false)} rows={rows} onPick={setDrawerRow} />
+      <CmdK open={cmdkOpen} onClose={() => setCmdkOpen(false)} rows={rows} onPick={setDrawerRow} onNew={openNovo} />
       {window.FinAiMonthDigest && <window.FinAiMonthDigest open={digestOpen} onClose={() => setDigestOpen(false)} />}
       {window.FinFechamentoTrilha && <window.FinFechamentoTrilha open={fechamentoOpen} onClose={() => setFechamentoOpen(false)} onNavigate={setTela} />}
       {window.FinPresentationMode && <window.FinPresentationMode open={presentOpen} onClose={() => setPresentOpen(false)} />}

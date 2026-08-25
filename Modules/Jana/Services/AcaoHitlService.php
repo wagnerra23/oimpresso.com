@@ -37,7 +37,7 @@ class AcaoHitlService
      * um botão morto por um botão que mente seria a mesma classe que o charter já
      * barra em §Anti-hooks ("prometer no botão o que a rota não entrega").
      *
-     * A paridade com os rótulos do `.tsx` é amarrada por teste (UC-COPI-PAINEL-12).
+     * A paridade com os rótulos do `.tsx` é amarrada por teste (UC-JPAIN-12).
      */
     public const ACOES = [
         'regua-whatsapp'       => 'Revisar régua',

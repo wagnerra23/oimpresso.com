@@ -57,6 +57,8 @@
  *   node scripts/governance/cowork-mirror-freshness.mjs --compare snap.json --check    # exit 1 se STALE
  *   node scripts/governance/cowork-mirror-freshness.mjs --compare snap.json --check --ledger  # + registra a rodada
  *   node scripts/governance/cowork-mirror-freshness.mjs --sla               # headless: rotina rodou ≤14d? última limpa?
+ *   node scripts/governance/cowork-mirror-freshness.mjs --live-only <lista.json> --ledger  # + registra a medição
+ *   node scripts/governance/cowork-mirror-freshness.mjs --sla-live-only     # headless: live-only foi MEDIDO ≤7d? cresceu?
  *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs        # a poda deste PR quebrou o grafo do espelho? (exit 1 = sim)
  *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs --range <a>..<b>
  *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs --deleted-from <lista.txt>   # fixture/manual
@@ -184,14 +186,37 @@ export function veredictoFinal(nStale, cobertura = null) {
  *  `.png` segue FORA: imagem não é fonte de construção e o `block-ancora-no-olho` já trata
  *  o eixo dela. E os filtros de `_arquivo/` (morto declarado upstream) e `prototipo-ui/`
  *  (cópia do próprio espelho) continuam — são de PROVENIÊNCIA, não de extensão. */
-export function liveOnly(livePaths, manifest, { exts = ['.jsx', '.html', '.css', '.js', '.md'] } = {}) {
+export function liveOnly(livePaths, manifest, { exts = null } = {}) {
   const noEspelho = new Set(manifest.map((f) => f.cowork));
-  return livePaths
-    .filter((p) => exts.some((e) => p.toLowerCase().endsWith(e)))
-    .filter((p) => !p.startsWith('_arquivo/'))     // arquivo morto declarado upstream
-    .filter((p) => !p.startsWith('prototipo-ui/')) // cópia do próprio espelho dentro do vivo
-    .filter((p) => !noEspelho.has(p))
-    .sort();
+  // [W] 2026-08-24: "remova os filtros isso esta gerando muito problemas". MEDIDO no dia:
+  // de 428 arquivos do vivo ausentes do espelho, o filtro de EXTENSAO escondia 76 — entre
+  // eles 27 .json de CONTRATO de tela, 18 .php de TESTE da ponte e 2 .tsx de codigo. Nao era
+  // ruido: era entregavel sumindo calado. O filtro de extensao MORREU (exts=null = tudo).
+  // Os dois de PROVENIENCIA continuam, mas agora RETORNAM em `ignorados` — reportado, nunca
+  // escondido (mesmo contrato do absentLocal). `liveOnly()` segue devolvendo ARRAY pra nao
+  // quebrar chamador; use liveOnlyDetalhado() pra ver o que foi ignorado e por que.
+  return liveOnlyDetalhado(livePaths, manifest, { exts }).faltando;
+}
+
+/** Igual ao liveOnly, mas devolve tambem o que foi ignorado por PROVENIENCIA e o motivo.
+ *  `exts = null` (default) = nenhum filtro de extensao: conta .json, .php, .tsx, .png, tudo. */
+export function liveOnlyDetalhado(livePaths, manifest, { exts = null } = {}) {
+  const noEspelho = new Set(manifest.map((f) => f.cowork));
+  const temExtensao = (p) => /\.[a-z0-9]+$/i.test(p);   // diretorio nao e arquivo faltando
+  const faltando = [];
+  const ignorados = [];
+  for (const p of livePaths) {
+    if (!temExtensao(p) || noEspelho.has(p)) continue;
+    if (exts && !exts.some((e) => p.toLowerCase().endsWith(e))) { ignorados.push({ path: p, motivo: 'extensao' }); continue; }
+    // IMAGEM fica fora da lista de FALTANDO por decisao datada (imagem nao e fonte de
+    // construcao; o eixo dela e do block-ancora-no-olho) — mas vai pra `ignorados`, VISIVEL.
+    // A diferenca com o filtro antigo: aquele sumia calado junto com .json/.php/.tsx.
+    if (/\.(png|jpe?g|gif|webp|svg|ico)$/i.test(p)) { ignorados.push({ path: p, motivo: 'imagem (nao e fonte de construcao — block-ancora-no-olho)' }); continue; }
+    if (p.startsWith('_arquivo/')) { ignorados.push({ path: p, motivo: 'proveniencia: _arquivo/ (morto declarado upstream)' }); continue; }
+    if (p.startsWith('prototipo-ui/')) { ignorados.push({ path: p, motivo: 'proveniencia: prototipo-ui/ (copia do proprio espelho)' }); continue; }
+    faltando.push(p);
+  }
+  return { faltando: faltando.sort(), ignorados: ignorados.sort((a, b) => a.path.localeCompare(b.path)) };
 }
 
 // ── EXPORT FIEL: o erro que transcrição manual causa, eliminado na raiz ───────────
@@ -273,6 +298,64 @@ export function dsRuntimeRelPath(path) {
 // append-only, commitado: prova > promessa (session 2026-07-06-arte-design-code-sync-frescor).
 export const LEDGER_REL = 'scripts/governance/.cowork-freshness-ledger.json';
 export const SLA_DAYS = 14;
+export const LIVE_ONLY_SLA_DAYS = 7;
+
+// ── LIVE-ONLY NO LEDGER: a medição que o CI NÃO PODE fazer, mas PODE cobrar ──────
+// O `--live-only` precisa da saída do DesignSync.list_files → auth interativa (ADR 0315),
+// então CI headless nunca vai conseguir MEDIR. É a mesma divisão que o `--sla` já usa pro
+// `--compare`: o agente logado mede e REGISTRA; o CI audita o REGISTRO. Sem isso o flanco
+// ficava mudo — em 2026-08-24 a medição achou 47 protótipos de tela que nunca desceram
+// (fiscal, repair, estoque, configuracoes, patrimonio, governance, venda-blade), e ninguém
+// tinha sido avisado porque nada perguntava periodicamente.
+//
+// ⚠️ Entrada de live-only NÃO é rodada de `--compare`. Elas moram no MESMO array, e o
+// `slaVerdict` lê `entries[entries.length-1]` — sem o filtro por `kind`, uma medição de
+// live-only empurrada por último faria o SLA do compare responder FRESH sobre um objeto que
+// ele não mediu. Alarme silenciado por adição vizinha é pior que alarme ausente.
+// Entrada SEM `kind` = rodada de compare (todo o ledger anterior a 2026-08-24).
+export const KIND_LIVE_ONLY = 'live-only';
+export const ehRodadaCompare = (e) => !e.kind || e.kind === 'compare';
+
+/** Entrada de ledger para uma medição de live-only (pura, testável).
+ *  `denom` é o tamanho da lista do vivo que ALIMENTOU a medição. Guardar o denominador é o
+ *  que separa "cresceu" de "olhei mais coisa desta vez" — §5 2026-07-27 (denominador
+ *  inventado) e §5 2026-07-29 (não afirmar sobre o que não se percorreu). */
+export function liveOnlyEntry(faltando, denom, dateIso) {
+  return {
+    date: dateIso,
+    kind: KIND_LIVE_ONLY,
+    liveOnly: faltando.length,
+    denom,
+    liveOnlyList: [...faltando].sort(),
+  };
+}
+
+/** Veredito de live-only (puro): foi MEDIDO há ≤ days? E APARECEU path novo desde a medição
+ *  anterior? O predicado é DELTA, nunca absoluto: um piso herdado (hoje 47) faria um
+ *  `liveOnly === 0` reprovar pra sempre e o guard virar parede — §5 2026-08-24, o
+ *  auto-merge que ficou 9 dias travado por comparar contra zero em vez de contra a
+ *  referência. O que é notícia é o que ENTROU depois da última medição.
+ *
+ *  Vereditos: NEVER-RAN / OVERDUE = cadência · GREW = resultado · SCOPE-CHANGED = NÃO
+ *  comparável (denominador diferente) · BASELINE = primeira medição · OK.
+ *  SCOPE-CHANGED existe pra não colapsar "não consegui comparar" em "está tudo bem"
+ *  (§5 2026-07-29) nem em "cresceu" — são três estados, não dois. */
+export function liveOnlyVerdict(entries, nowIso, days = LIVE_ONLY_SLA_DAYS) {
+  const meds = (Array.isArray(entries) ? entries : []).filter((e) => e && e.kind === KIND_LIVE_ONLY);
+  if (meds.length === 0) return { veredito: 'NEVER-RAN', last: null, ageDays: null, novos: [] };
+  const last = meds[meds.length - 1];
+  const ageDays = Math.floor((Date.parse(nowIso) - Date.parse(last.date)) / 86400000);
+  if (ageDays > days) return { veredito: 'OVERDUE', last, ageDays, novos: [] };
+  const prev = meds[meds.length - 2] || null;
+  if (!prev) return { veredito: 'BASELINE', last, ageDays, novos: [] };
+  if (prev.denom !== last.denom) {
+    return { veredito: 'SCOPE-CHANGED', last, prev, ageDays, novos: [] };
+  }
+  const antes = new Set(prev.liveOnlyList || []);
+  const novos = (last.liveOnlyList || []).filter((p) => !antes.has(p));
+  if (novos.length > 0) return { veredito: 'GREW', last, prev, ageDays, novos };
+  return { veredito: 'OK', last, prev, ageDays, novos: [] };
+}
 
 /** Entrada de ledger (pura, testável) a partir das rows do --compare. */
 export function ledgerEntry(rows, dateIso, meta = {}) {
@@ -348,9 +431,12 @@ export function ledgerEntry(rows, dateIso, meta = {}) {
  * que o §5 2026-07-12 mata. Só `MEXIDO-DEPOIS` morde, e ele nasce em 0.
  *
  * @param entries  ledger (array de ledgerEntry)
- * @param arquivos [{ cowork, lastCommitIso }] — data do último commit de cada arquivo
+ * @param arquivos [{ cowork, lastCommitIso, hashAtual, rawSha }] — data do último commit,
+ *                 hash normalizado e sha256 CRU de cada arquivo
+ * @param provaBundle {relPath: sha256} do bundle promovido (state/active-bundle.json) — 2ª
+ *                 prova de fidelidade, ver bloco PROVA POR BUNDLE no corpo. null = só ledger.
  */
-export function unverifiedSince(entries, arquivos) {
+export function unverifiedSince(entries, arquivos, provaBundle = null) {
   const runs = (Array.isArray(entries) ? entries : []).filter((e) => Array.isArray(e.verified));
   const ultimaVerificacaoDe = (cowork) => {
     let melhor = null, hash = null;
@@ -362,6 +448,26 @@ export function unverifiedSince(entries, arquivos) {
   const mexidoDepois = [], nuncaVerificado = [];
   let ok = 0;
   for (const a of arquivos) {
+    // ── PROVA POR BUNDLE (v5 · 2026-08-24) ────────────────────────────────────
+    // O docblock acima diz que o espelho "só deveria mudar por `--export-from`". Isso era
+    // verdade quando este gate nasceu e deixou de ser: o bundle v2 (`aplicar-payload
+    // --require-complete-shell`) é a ROTA PRINCIPAL da fase -1 do painel, e escreve o espelho
+    // com fidelidade provada POR CONSTRUÇÃO — o manifesto carrega o sha256 do estado-alvo lido
+    // do design vivo, e a promoção é atômica contra ele.
+    //
+    // Sem isto o gate acusa a rota canônica: em 2026-08-24 o #6178 sincronizou 71 arquivos
+    // (23 stale + 48 ausentes) com 232/232 hashes conferidos, e o gate marcou 17 como "sem
+    // prova" — porque a única prova que ele conhecia vinha do `get_file`. Um required que
+    // reprova o caminho oficial não é defesa, é parede.
+    //
+    // NÃO AFROUXA — é o mesmo conserto do falso-positivo de merge/squash (2026-08-17): admite
+    // uma 2ª prova de CONTEÚDO, nunca uma isenção. O sha do bundle tem que bater com o byte
+    // no disco; remendo à mão depois da promoção muda o sha e volta a morder. Comparação em
+    // sha256 CRU dos dois lados (é a identidade do bundle) — nunca contra o `hashAtual`, que é
+    // normalizado e mediria outra propriedade.
+    const shaBundle = provaBundle ? provaBundle[a.cowork] : null;
+    if (shaBundle && a.rawSha && shaBundle === a.rawSha) { ok++; continue; }
+
     const { data: verificadoEm, hash: hashVerificado } = ultimaVerificacaoDe(a.cowork);
     if (!verificadoEm) { nuncaVerificado.push(a.cowork); continue; }
     // sem data de commit não se afirma nada (arquivo novo não-commitado): não é achado
@@ -380,8 +486,12 @@ export function unverifiedSince(entries, arquivos) {
 }
 
 export function slaVerdict(entries, nowIso, days = SLA_DAYS) {
-  if (!Array.isArray(entries) || entries.length === 0) return { veredito: 'NEVER-RAN', last: null, ageDays: null };
-  const last = entries[entries.length - 1];
+  // SÓ rodadas de --compare. Entrada de live-only vive no MESMO ledger e, se caísse por
+  // último, responderia aqui por um objeto que esta função não mediu — `stale`/`unchecked`
+  // ausentes viram 0 e o veredito sai FRESH. Ver KIND_LIVE_ONLY.
+  const rodadas = (Array.isArray(entries) ? entries : []).filter(ehRodadaCompare);
+  if (rodadas.length === 0) return { veredito: 'NEVER-RAN', last: null, ageDays: null };
+  const last = rodadas[rodadas.length - 1];
   const ageDays = Math.floor((Date.parse(nowIso) - Date.parse(last.date)) / 86400000);
   const medidos = (last.files || 0) - (last.unchecked || 0);
   const cobertura = { medidos, total: last.files || 0 };
@@ -1065,6 +1175,16 @@ function main() {
     console.log('     prototipo-ui/design-docs/ — decisão [W] 2026-08-21; é roteamento, não flag.');
     console.log('     Com --ds/--ds-runtime o .md pousa no próprio prefixo (fora do alcance do R1).');
     console.log('  ⚠️ lista, não veredito: o que merece descer é decisão [W], não da máquina.\n');
+    if (argv.includes('--ledger')) {
+      const lp = join(ROOT, LEDGER_REL);
+      let entries = [];
+      try { entries = existsSync(lp) ? JSON.parse(readFileSync(lp, 'utf8')) : []; } catch { entries = []; }
+      if (!Array.isArray(entries)) entries = entries.runs || [];
+      entries.push(liveOnlyEntry(faltando, paths.length, new Date().toISOString()));
+      writeFileSync(lp, JSON.stringify(entries, null, 2) + '\n');
+      console.log(`  ledger: medição registrada em ${LEDGER_REL} (${faltando.length} live-only de ${paths.length} paths). Commite o ledger.`);
+      console.log(`  O CI headless não mede isto (auth ADR 0315) — ele audita ESTE registro via --sla-live-only.\n`);
+    }
     return;
   }
 
@@ -1130,13 +1250,37 @@ function main() {
       cowork: p.replace(`${MIRROR_REL}/`, ''),
       lastCommitIso: dataDe.get(p) || null,
       hashAtual: existsSync(join(ROOT, p)) ? contentHash(readFileSync(join(ROOT, p), 'utf8')) : null,
+      // sha256 dos BYTES (sem encoding): é a identidade que o manifesto do bundle usa.
+      rawSha: existsSync(join(ROOT, p))
+        ? createHash('sha256').update(readFileSync(join(ROOT, p))).digest('hex') : null,
     }));
 
+    // Bundle promovido = 2ª prova de fidelidade (ver PROVA POR BUNDLE em unverifiedSince).
+    // Ausente/ilegível vira `null`, e null cai no comportamento antigo (só ledger) — nunca
+    // em "verde por omissão": não-conseguir-ler não é prova (§5 2026-07-29).
+    let provaBundle = null;
+    const bundleRel = 'scripts/design-sync/state/active-bundle.json';
+    if (existsSync(join(ROOT, bundleRel))) {
+      try {
+        const b = JSON.parse(readFileSync(join(ROOT, bundleRel), 'utf8'));
+        if (Array.isArray(b.files)) {
+          provaBundle = {};
+          for (const f of b.files) if (f && f.path && f.sha256) provaBundle[f.path] = f.sha256;
+        }
+      } catch { provaBundle = null; }
+    }
+
     const ledger = existsSync(join(ROOT, LEDGER_REL)) ? JSON.parse(readFileSync(join(ROOT, LEDGER_REL), 'utf8')) : [];
-    const r = unverifiedSince(Array.isArray(ledger) ? ledger : (ledger.runs || []), arquivos);
+    const r = unverifiedSince(Array.isArray(ledger) ? ledger : (ledger.runs || []), arquivos, provaBundle);
 
     console.log(`\n  MEXEU-DEPOIS-DE-VERIFICAR — espelho vs ledger (${arquivos.length} arquivo(s) versionado(s))\n`);
     if (raso) console.log('  ⚠ clone RASO — as datas de commit medem o piso da história, não a história (§5 2026-07-24).\n');
+    // Liberação por bundle é DECLARADA: gate que libera calado é indistinguível de gate que não olhou.
+    if (provaBundle) {
+      const cobertos = arquivos.filter((a) => provaBundle[a.cowork] && a.rawSha === provaBundle[a.cowork]).length;
+      console.log(`  📦 bundle promovido cobre ${cobertos} arquivo(s) com sha256 conferido — esses contam como PROVADOS.`);
+      console.log(`     (prova de conteúdo, não isenção: byte que não bate com o manifesto volta a morder)\n`);
+    }
     if (!r.comLedger) {
       console.log('  ⬜ nenhuma rodada do ledger registra QUAIS arquivos mediu (campo `verified` nasceu em 2026-08-17).');
       console.log('     Este modo só tem sinal a partir da próxima `--compare --ledger`. Não é verde: é SEM DADO.\n');
@@ -1415,6 +1559,49 @@ function main() {
         console.log(`\n✓ nasce-sem-medição: os ${nascidos.length} arquivo(s) novos entram no manifesto.`);
       }
     }
+    return;
+  }
+
+  // --sla-live-only: headless-safe (lê SÓ o ledger). Audita o REGISTRO da medição de
+  // live-only — nunca a medição, que exige auth (ADR 0315). Verdict SEPARADO do --sla de
+  // propósito: os dois medem objetos distintos (o que ATRASOU × o que NUNCA DESCEU) e
+  // fundir num número só seria agregar veredito não-comensurável (§5 2026-07-17).
+  if (argv.includes('--sla-live-only')) {
+    const lp = join(ROOT, LEDGER_REL);
+    let entries = [];
+    try { entries = existsSync(lp) ? JSON.parse(readFileSync(lp, 'utf8')) : []; } catch { entries = []; }
+    if (!Array.isArray(entries)) entries = entries.runs || [];
+    const r = liveOnlyVerdict(entries, new Date().toISOString());
+    const receita = 'DesignSync.list_files → salve o JSON → --live-only <lista.json> --ledger';
+    console.log(`\n  LIVE-ONLY SLA — o "nunca desceu" foi medido nos últimos ${LIVE_ONLY_SLA_DAYS}d?\n`);
+    if (r.veredito === 'NEVER-RAN') {
+      console.error(`  ✗ NUNCA MEDIDO — nenhuma entrada de live-only no ledger. Rode: ${receita}`);
+      process.exit(1);
+    }
+    const idade = `medido em ${r.last.date.slice(0, 10)} (há ${r.ageDays}d): ${r.last.liveOnly} live-only de ${r.last.denom} paths`;
+    if (r.veredito === 'OVERDUE') {
+      console.error(`  ✗ VENCIDO — ${idade}. SLA é ${LIVE_ONLY_SLA_DAYS}d. Rode: ${receita}`);
+      process.exit(1);
+    }
+    if (r.veredito === 'GREW') {
+      console.error(`  ✗ CRESCEU — ${idade}; ${r.novos.length} path(s) novo(s) desde ${r.prev.date.slice(0, 10)}:`);
+      for (const p of r.novos) console.error(`     + ${p}`);
+      console.error('  Advisory: descer ou não é decisão [W]. A máquina só deixa de esconder.');
+      process.exit(1);
+    }
+    if (r.veredito === 'SCOPE-CHANGED') {
+      // NÃO é verde nem vermelho de resultado: é ausência de comparação. O denominador mudou
+      // (a lista do vivo que alimentou as duas medições tem tamanhos diferentes), então
+      // "cresceu" seria uma afirmação sobre algo que não foi percorrido igual nas duas vezes.
+      console.log(`  ⬜ SEM COMPARAÇÃO — ${idade}, mas o denominador mudou (${r.prev.denom} → ${r.last.denom}).`);
+      console.log('     Delta não é comparável entre escopos diferentes; medição registrada, crescimento NÃO avaliado.');
+      return;
+    }
+    if (r.veredito === 'BASELINE') {
+      console.log(`  ⬜ BASELINE — ${idade}. Primeira medição registrada; não há anterior pra comparar.`);
+      return;
+    }
+    console.log(`  ✓ ${idade} — nenhum path novo desde ${r.prev.date.slice(0, 10)}.`);
     return;
   }
 

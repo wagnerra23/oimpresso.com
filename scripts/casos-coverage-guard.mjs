@@ -740,7 +740,13 @@ function main() {
         `\n         e cada \`## UC-XX\` precisa de uma linha \`Status:\` (se está ativa/passa) — ADR 0264 G-5.` +
         `\nstale:* → a tela (.tsx) mudou DEPOIS do \`last_run\` — revalide os casos e bumpe o \`last_run\` (ADR 0264 G-6).` +
         `\nstatus:lies:* → o UC declara \`Status: ✅\` mas o teste FALHOU (manifesto). Conserte o teste ou seja honesto (❌). G-7.` +
-        `\nstatus:unverified:* → \`Status: ✅\` sem teste verde que prove. Rode a suíte + \`npm run casos:results\`, ou baixe pra 🧪/⬜. G-7.` +
+        `\nstatus:unverified:* → \`Status: ✅\` sem teste verde que prove NO MANIFESTO. G-7.` +
+        `\n         A lane já rodou VERDE no CI? Então o teste existe e o que falta é o manifesto ATERRISSAR:` +
+        `\n         ele é publicado pelo workflow \`casos-results-publish\` (cron 07:30 BRT) via PR próprio.` +
+        `\n         Pra não esperar o cron: \`gh workflow run casos-results-publish.yml\`. Colar o run id na prosa` +
+        `\n         do casos.md NÃO conta — o G-7 lê o manifesto commitado, nunca o texto.` +
+        `\n         A lane ainda não rodou? Rode a suíte (Pest = CT 100, nunca local) + \`npm run casos:results\`,` +
+        `\n         ou seja honesto e baixe pra 🧪/⬜ até haver prova.` +
         `\nstatus:stale-results:* → ✅ provado, mas a tela mudou depois do teste — re-rode + \`npm run casos:results\`. G-7.` +
         `\nSe for legado movido/refatorado conscientemente: npm run casos:baseline:write`,
     );

@@ -193,4 +193,31 @@ abstract class PontoTestCase extends TestCase
             'Accept'            => 'text/html',
         ])->get($url);
     }
+
+    /**
+     * GET Inertia com PARTIAL RELOAD — resolve props entregues via `Inertia::defer`.
+     *
+     * Prop deferida NAO existe no payload do primeiro render: e o ponto do padrao
+     * (RUNBOOK-inertia-defer-pattern.md, proibicoes.md §Sempre-fazer). Pra ver o valor
+     * dela o cliente faz um segundo request declarando quais props quer — e e isso que
+     * este helper reproduz.
+     *
+     * Existe porque a alternativa era copiar os 3 headers em cada teste, e o idioma ja
+     * estava copiado em outros modulos (ComprasContratoFiltrosTest). Um lugar, um jeito.
+     *
+     * @param  array<int,string>  $props  nomes das props deferidas a resolver
+     */
+    protected function inertiaPartialGet(string $url, array $props, string $component)
+    {
+        $manifestPath = public_path('build-inertia/manifest.json');
+        $version = file_exists($manifestPath) ? md5_file($manifestPath) : '1';
+
+        return $this->withHeaders([
+            'X-Inertia'                   => 'true',
+            'X-Inertia-Version'           => $version,
+            'X-Inertia-Partial-Data'      => implode(',', $props),
+            'X-Inertia-Partial-Component' => $component,
+            'Accept'                      => 'text/html',
+        ])->get($url);
+    }
 }

@@ -15,7 +15,7 @@ use Modules\Ponto\Entities\Intercorrencia;
  *
  * Cada teste cita o UC do `casos.md` da tela (G-2 do casos-gate, ADR 0264):
  *   Aprovacoes/Index.casos.md      → UC-APROV-01..04
- *   Intercorrencias/Show.casos.md  → UC-INTSHOW-01..03
+ *   Intercorrencias/Show.casos.md  → UC-INTSH-01..03
  *
  * Os UC derivam do SDD §6.2 (CU-PONTO-05..07) + CU-PONTO-12, ancorados em
  * US-PONTO-003 (estados canon + trilha de aprovação) e US-PONTO-007 (Tier 0).
@@ -315,7 +315,7 @@ class JornadaWorkflowContratoTest extends PontoTestCase
     // =====================================================================
 
     /**
-     * UC-INTSHOW-01 · Só rascunho pode ser editado. [must]
+     * UC-INTSH-01 · Só rascunho pode ser editado. [must]
      *
      * Contrato: CU-PONTO-05 + US-PONTO-003 (ciclo RASCUNHO → PENDENTE → ...)
      * + IntercorrenciaController@edit (abort_unless RASCUNHO, 403).
@@ -340,7 +340,7 @@ class JornadaWorkflowContratoTest extends PontoTestCase
     }
 
     /**
-     * UC-INTSHOW-02 · Intercorrência de outro empregador → 404. [must][T0]
+     * UC-INTSH-02 · Intercorrência de outro empregador → 404. [must][T0]
      *
      * Contrato: CU-PONTO-12 + US-PONTO-007 + ADR 0093 + LGPD Art. 7º II.
      * O detalhe expõe motivo médico e justificativa em texto livre.
@@ -369,7 +369,7 @@ class JornadaWorkflowContratoTest extends PontoTestCase
     }
 
     /**
-     * UC-INTSHOW-03 · O detalhe mostra quem decidiu e por quê. [must]
+     * UC-INTSH-03 · O detalhe mostra quem decidiu e por quê. [must]
      *
      * Contrato: CU-PONTO-06 + US-PONTO-003 (aprovador_id, aprovado_em, motivo_rejeicao).
      * Pareia com UC-APROV-01: aquele garante que o motivo EXISTE, este que ele APARECE.

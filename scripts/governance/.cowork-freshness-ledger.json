@@ -573,5 +573,90 @@
     },
     "origin": "export",
     "stalePreExport": 1
+  },
+  {
+    "date": "2026-08-24T12:56:43.988Z",
+    "kind": "live-only",
+    "liveOnly": 50,
+    "denom": 237,
+    "liveOnlyList": [
+      "CLAUDE.md",
+      "catchup-shared.jsx",
+      "catchup.css",
+      "command-palette.jsx",
+      "compras-extras.jsx",
+      "compras-grade-matrix.css",
+      "compras-grade-matrix.jsx",
+      "configuracoes-cadastros.jsx",
+      "configuracoes-fatura.jsx",
+      "configuracoes-page.css",
+      "configuracoes-page.jsx",
+      "estoque-contagem.jsx",
+      "estoque-data.jsx",
+      "estoque-forms.jsx",
+      "estoque-page.css",
+      "estoque-page.jsx",
+      "financeiro-legado.jsx",
+      "fiscal-actions.jsx",
+      "fiscal-data.jsx",
+      "fiscal-page.css",
+      "fiscal-page.jsx",
+      "fiscal-subpages.jsx",
+      "github.md",
+      "governance-data.jsx",
+      "governance-page.css",
+      "governance-page.jsx",
+      "governance-telas.jsx",
+      "integra-extras.jsx",
+      "patrimonio-data.jsx",
+      "patrimonio-forms.jsx",
+      "patrimonio-page.css",
+      "patrimonio-page.jsx",
+      "produto-acoes.jsx",
+      "produto-cadastros.jsx",
+      "produto-perms.jsx",
+      "repair-data.jsx",
+      "repair-forms.jsx",
+      "repair-page.css",
+      "repair-page.jsx",
+      "repair-portal.jsx",
+      "repair-print.css",
+      "repair-print.js",
+      "venda-blade-caixa.jsx",
+      "venda-blade-pos.jsx",
+      "venda-blade-recibos.jsx",
+      "venda-blade-telas.jsx",
+      "venda-blade.css",
+      "venda-blade.jsx",
+      "venda-index.css",
+      "venda-index.jsx"
+    ]
+  },
+  {
+    "date": "2026-08-24T13:02:38.864Z",
+    "kind": "live-only",
+    "liveOnly": 2,
+    "denom": 237,
+    "liveOnlyList": [
+      "CLAUDE.md",
+      "github.md"
+    ]
+  },
+  {
+    "date": "2026-08-24T21:57:19.692Z",
+    "files": 242,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 241,
+    "staleList": [],
+    "verified": [
+      "oimpresso.com.html"
+    ],
+    "verifiedHash": {
+      "oimpresso.com.html": "5df05ae9679536f84030fef8af695abbf68fe1b758906cc43dde38d480e85845"
+    },
+    "origin": "export",
+    "stalePreExport": 0
   }
 ]

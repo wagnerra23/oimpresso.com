@@ -421,7 +421,7 @@ populados da âncora nunca foram exercitados fora do mock.
 - **Cheques previsão** — `Index.casos.md:187`: *"churn, frota e cheques são a ordem 7 do mapa
   (fonte de dado que não existe)"*.
 - **Métodos de pagamento** entra por `JANA_ANALISES` (`useJanaConfig.ts:35-41`), que tem **5**
-  entradas, na ordem exata dos 5 cards medidos, com guarda em `UC-COPI-PAINEL-10`.
+  entradas, na ordem exata dos 5 cards medidos, com guarda em `UC-JPAIN-10`.
 
 Ou seja: **zero ausências inexplicadas em análises.** A altura 1,9× maior e o `21/17px` que some
 não são "faltam cards" — são densidade e escala tipográfica dos cards que existem nos dois lados.
@@ -460,7 +460,7 @@ relativa via `rect.top − (raiz.rect.top − raiz.scrollTop)`. Frescor da fonte
 
 | ordem | entrega | região | trava |
 |---|---|---|---|
-| ~~1~~ | ~~Modal de ação HITL~~ — **entregue**: prévia do servidor + aprovação registrada | R7/R8 | ✅ charter v10 · UC-COPI-PAINEL-12. **Sucessora:** o DISPARO (WhatsApp/e-mail) + a fila `/ia/acoes` |
+| ~~1~~ | ~~Modal de ação HITL~~ — **entregue**: prévia do servidor + aprovação registrada | R7/R8 | ✅ charter v10 · UC-JPAIN-12. **Sucessora:** o DISPARO (WhatsApp/e-mail) + a fila `/ia/acoes` |
 | 2 | Seletor de período + projeção | R5 | **backend** — payload só traz `periodo_atual`; projeção é veredito de servidor |
 | 3 | Chips do brief que semeiam a conversa | R3 | **backend + Page** — `novaConversa` não aceita pergunta |
 | 4 | Contador nas abas | R2 | **backend** — nasce no `DataController` (⚠️ afeta as 4 telas da área) |

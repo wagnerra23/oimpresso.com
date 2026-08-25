@@ -53,9 +53,18 @@ class DocumentacaoController extends Controller
      * datado: é contrato vivo de UMA feature (acceptance EARS + plug-points + DoD), a
      * mesma natureza do `spec`, um nível abaixo.
      *
-     * Fora AINDA (decisão pendente [W], não esquecimento): `charter` e `casos` — entram no
-     * ÍNDICE desde 2026-08-02 (B3) mas não neste filtro, de propósito. Estar na TABELA não
-     * é estar no ACERVO; adicioná-los é decisão, não conserto.
+     * `charter` e `casos` entraram em 2026-08-25 (decisão [W] — a que este docblock
+     * registrava como pendente desde 2026-08-02). São o TRIO DE TELA colado ao `.tsx`:
+     * `<Tela>.charter.md` (a lei — mission, non-goals, anti-hooks, UX targets) e
+     * `<Tela>.casos.md` (o contrato UC + aceite). Indexados desde 2026-08-02 (B3), com
+     * slug `charter:<Mod>/<Tela>`; a PII já é redigida na entrada pelo indexador.
+     * Escala medida na data: 293 charters + 189 casos, contra ~855 docs do acervo —
+     * a busca cresce ~56%, o que era o custo declarado da decisão.
+     *
+     * ⚠️ O slug deles tem `:` E `/`, e a rota `/documentacao/{slug}` precisou aceitar
+     * ambos — ver o `where()` em routes/web.php. Sem isso o documento aparece na busca
+     * e o link dá 404: foi exatamente o que aconteceu com `briefing` (slug
+     * `briefing:<mod>`) entre 2026-08-05 e 2026-08-25, medido em produção.
      *
      * `briefing` entrou em 2026-08-05 (autorização [W]: *"pode incluir"*). Era o único tipo
      * que não estava nem na lista nem entre as exclusões justificadas acima — assinatura de
@@ -65,7 +74,7 @@ class DocumentacaoController extends Controller
      * humana não o enxergava. Não é retrato datado: é estado vivo do módulo, mantido por
      * PR (skill `brief-update`) e vigiado por `briefing-code-staleness.mjs`.
      */
-    private const TIPOS_DOC = ['adr', 'reference', 'spec', 'runbook', 'feature', 'briefing'];
+    private const TIPOS_DOC = ['adr', 'reference', 'spec', 'runbook', 'feature', 'briefing', 'charter', 'casos'];
 
     /**
      * Rótulo humano de cada tipo — para a PROSA das views ("cobre decisões, referências…").
@@ -87,6 +96,8 @@ class DocumentacaoController extends Controller
         'runbook' => 'runbooks',
         'feature' => 'features',
         'briefing' => 'briefings de módulo',
+        'charter' => 'charters de tela',
+        'casos' => 'casos de uso de tela',
     ];
 
     private const POR_PAGINA = 25;

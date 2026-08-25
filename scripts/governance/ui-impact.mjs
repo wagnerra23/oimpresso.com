@@ -199,10 +199,40 @@ export function classifyFile(rawPath, content = '') {
   return null;
 }
 
+/**
+ * O RAIO DE IMPACTO E CONFIAVEL? (isto e: `screens` cobre TUDO o que o PR pode ter mexido?)
+ *
+ * Existe porque `scope` responde OUTRA pergunta — "que telas o pixel-diff RODA". Em `global`
+ * ele roda o manifesto inteiro, e ai uma tela ja DIVERGENTE NA MAIN reprova um PR que nao a
+ * tocou. Medido em 2026-08-24: `Governance/DsRollout -> 0.1226%` reprovou 3 branches
+ * independentes (runs 32727277038 / 32731270402 / 32744800768), entre elas o #6184, cujo raio
+ * real era UMA tela (`Produto/Unificado`). Ratio IDENTICO em branches distintas e a prova de
+ * que a divergencia vinha da main, nao do PR.
+ *
+ * `raio_confiavel` responde "da pra confiar em `screens` pra separar divida PROPRIA de
+ * HERDADA". So e true quando TODO item global declarou proveniencia REAL — import resolvido
+ * (`componente-de-page-compartilhado`, `frontend-compartilhado`) ou `Inertia::render` extraido
+ * (`controller-inertia`, `rota-inertia`). Item sem proveniencia (fundacao-visual, tokens,
+ * toolchain, contrato-visual, asset publico, ui-desconhecida) pode mexer em QUALQUER tela: la
+ * o raio nao cobre nada e o bloqueio segue absoluto, como sempre foi.
+ *
+ * Medido nos 100 commits mais recentes de origin/main (--first-parent): 20 viram `global`, e
+ * em 12 deles a proveniencia cobre todos os itens — mediana de UMA tela do manifesto contra
+ * as 26 que o gate compara hoje.
+ *
+ * Doutrina: proveniencia e o que o artefato declara, nao a string do path — a mesma que ja
+ * governa o bloco de consumidores em classifyChanges().
+ */
+export function raioConfiavel(impacted) {
+  const globais = impacted.filter((item) => item.scope === 'global');
+  if (globais.length === 0) return impacted.length > 0; // targeted: a propria lista E o raio
+  return globais.every((item) => Boolean(item.screen) || (item.screens?.length ?? 0) > 0);
+}
+
 function summarizeImpact(impacted) {
   const screens = [...new Set(impacted.flatMap((item) => [item.screen, ...(item.screens ?? [])]).filter(Boolean))].sort();
   const scope = impacted.some((item) => item.scope === 'global') ? 'global' : impacted.length ? 'targeted' : 'none';
-  return { visual_required: impacted.length > 0, scope, screens, impacted };
+  return { visual_required: impacted.length > 0, scope, screens, raio_confiavel: raioConfiavel(impacted), impacted };
 }
 
 export function classifyChanges(changes, { readContent = () => '', consumerScreens = () => [], manifestoSoAdiciona = () => false } = {}) {
@@ -528,6 +558,7 @@ function run(argv) {
     appendFileSync(githubOutput, `visual_required=${result.visual_required}\n`);
     appendFileSync(githubOutput, `scope=${result.scope}\n`);
     appendFileSync(githubOutput, `screens=${JSON.stringify(result.screens)}\n`);
+    appendFileSync(githubOutput, `raio_confiavel=${result.raio_confiavel}\n`);
     appendFileSync(githubOutput, `uncovered_screens=${JSON.stringify(result.uncovered_screens)}\n`);
     appendFileSync(githubOutput, `impacted_count=${result.impacted.length}\n`);
   }
@@ -636,6 +667,29 @@ function selfTest() {
   assert.deepEqual([orfao.scope, orfao.screens], ['global', ['Mod/Orfao']], 'sem consumidor, mantém o palpite de path');
   assert.equal(classifyFiles(['resources/css/inertia.css']).scope, 'global');
   assert.equal(classifyFiles(['docs/arquitetura.md']).visual_required, false);
+
+  // ── raio_confiavel: DISCRIMINA (senao e carimbo — §5 2026-07-17 drift-sentinel) ──────
+  // Fixture BOA: global com proveniencia em TODOS os itens -> raio confiavel.
+  const provResolvida = createConsumerResolver(new Map([
+    ['resources/js/Lib/fmt.ts', 'export const fmt = 1;'],
+    ['resources/js/Pages/Produto/Unificado/Index.tsx', "import { fmt } from '@/Lib/fmt';"],
+  ]));
+  const comProv = classifyFiles(['resources/js/Lib/fmt.ts'], { consumerScreens: provResolvida });
+  assert.deepEqual(
+    [comProv.scope, comProv.raio_confiavel, comProv.screens],
+    ['global', true, ['Produto/Unificado']],
+    'import resolvido é proveniência: o raio cobre o que o PR pode ter mexido',
+  );
+  // Fixture RUIM: fundação visual (CSS/token) pode mexer em QUALQUER tela -> NAO confiavel.
+  const semProv = classifyFiles(['resources/css/tokens/cores.css']);
+  assert.deepEqual([semProv.scope, semProv.raio_confiavel], ['global', false], 'fundação visual não tem raio');
+  // Mistura: UM item sem proveniência contamina o lote inteiro (conservador por desenho).
+  const misto = classifyFiles(['resources/js/Lib/fmt.ts', 'package-lock.json'], { consumerScreens: provResolvida });
+  assert.equal(misto.raio_confiavel, false, 'um item sem proveniência derruba a confiança do raio');
+  // targeted: a própria lista É o raio.
+  assert.equal(classifyFiles(['resources/js/Pages/Sells/Create.tsx']).raio_confiavel, true);
+  // Sem impacto nenhum não há raio a confiar.
+  assert.equal(classifyFiles(['docs/arquitetura.md']).raio_confiavel, false);
 
   const contract = [{ screen: 'Venda', source: 'Sells/Create', component: 'Sells/Create', route: '/sells/create', anchor: 'Venda', baseline: 'venda.snap' }];
   assert.deepEqual(validateScreenManifest(contract), []);

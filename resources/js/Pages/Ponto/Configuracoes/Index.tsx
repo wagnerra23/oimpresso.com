@@ -10,7 +10,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import { Link } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import { Clock, FileSpreadsheet, PiggyBank, Settings, ShieldCheck } from 'lucide-react';
+import { Clock, FileSpreadsheet, PiggyBank, ShieldCheck } from 'lucide-react';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';

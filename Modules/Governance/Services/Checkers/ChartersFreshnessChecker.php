@@ -23,7 +23,7 @@ use Modules\Governance\Services\DriftFinding;
  *
  * Categorias detectadas:
  *   1. stale — last_validated > TTL (severity medium)
- *   2. invalid_frontmatter — falta 1+ dos 8 campos (severity medium)
+ *   2. invalid_frontmatter — falta 1+ dos campos exigidos pelo CharterAuditCommand (severity medium)
  *   3. missing_sections — falta 1+ das 8 seções (severity low)
  *   4. tsx_without_charter — gap de cobertura (severity low, advisory)
  *

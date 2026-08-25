@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela reúne, numa rota só, tudo que as outras telas do Produto gateiam separadamente — custo, preço de venda, tabelas de preço e composição. Sem casos, ela vira o caminho por onde tudo isso sai sem permissão.
 owner: wagner
-last_run: "2026-08-20"
-last_run_ci: "18/18 UC verdes na lane Estoque · MySQL (run 32318469674, PR temporária #6001 — a pilha inteira apontando pro main, aberta e fechada só pra a lane rodar). Suite: 85 passed, 306 assertions, 0 skipped — o contador de assertions é a prova de execução, nao o '0 failed' (guard LC-13). Cobre os 10 UC-PUNI-01..10 anteriores + os 8 novos desta leva: UC-PUNI-11/11B/11C/11D (paginação server-side) e UC-PUNI-12/12B/13/14 (revelação progressiva). POR QUE a run vive numa PR temporária: as PRs #5995/#5996/#5997 são empilhadas e os workflows de Pest declaram pull_request: branches [main], entao lane de teste NAO dispara em PR que aponta pra outra branch — medido, 126 checks na #5995 contra 55 nas empilhadas. A run tocou 2 defeitos reais nos proprios testes antes de fechar verde: UC-PUNI-11B usava porPagina=3 (fora da lista branca, o controller caiu no padrao) e UC-PUNI-13 passava a mensagem como 2o needle do toContain (que e variadico — lapide 2026-07-28). Bump de last_run apos o rebase de 2026-08-20 sobre origin/main: o G-6 mede DATA-GIT, e o rebase reescreveu a data dos commits sem mudar conteudo — conferido blob a blob, Index.tsx / Index.casos.md / ProdutoUnificadoIndiceContratoTest.php / ProdutoUnificadoController.php sao byte-identicos ao commit fb300b046 que a lane testou. Run anterior: 32246398030."
+last_run: "2026-08-24"
+last_run_ci: "NAO RODEI a suite nesta leva — o bump de last_run e por REVALIDACAO DE CONTRATO, nao por run nova, e digo isso porque o G-6 aceita a data e so o leitor percebe a diferenca. O que mudou: pacote V2 de 21/08 (PR #6171) alterou a faixa de KPI, a toolbar, a linha, o painel e o rodape da tela. Revalidacao UC a UC: UC-PUNI-01..06 (gates de custo/preco/tabelas/BOM/tenant/403) intactos — nenhum toca o caminho de permissao; UC-PUNI-08..14 idem (aba por tipo, estados de estoque, agregacoes cross-tenant, paginacao, saldo por local, observacao, variacao-fantasma). UC-PUNI-07 FOI ALTERADO: passou a cobrir a chave `parado` junto de `margem`, porque o KPI de item parado virou recorte de gestao e agora e gateado por custo no servidor; o assert de chaves presentes tambem mudou (`ativos` saiu do payload). DOIS UC NOVOS: UC-PUNI-15 e UC-PUNI-16, ambos 🕐 aguarda run. ATENCAO ao renumero: os dois nasceram como UC-PUNI-11 e UC-PUNI-12 e COLIDIAM com os ids ja usados aqui (paginacao e saldo por local) — dois `it()` com o mesmo id significando coisas diferentes; corrigido antes do merge. Quem executa e a lane MySQL / a nightly CT 100 — nenhum Status subiu pra ✅ nesta leva. Run anterior: 32318469674."
 ---
 
 # Casos de Uso & Aceite — Catálogo Unificado (`/products/unificado`)
@@ -74,6 +74,8 @@ last_run_ci: "18/18 UC verdes na lane Estoque · MySQL (run 32318469674, PR temp
 | UC-PUNI-12B | Local de outro business nao entra no saldo por local | must `[T0]` | [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
 | UC-PUNI-13 | Observacao chega sem HTML, e a chave so existe quando ha nota | must | V2 §4.7 | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
 | UC-PUNI-14 | A variacao-fantasma do UltimatePOS nao vira variacao na tela | must | V2 §3.2 | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
+| UC-PUNI-15 | Os totais do rodapé não são servidos a quem não pode ver custo | must `[V0]` | V2 21/08 §4.6 + `AR-PROD-015` | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
+| UC-PUNI-16 | "Repor até o mínimo" soma só a falta, nunca a sobra | must | V2 21/08 §4.6 | `ProdutoUnificadoIndiceContratoTest` | 🕐 aguarda run |
 
 ---
 
@@ -360,3 +362,56 @@ last_run_ci: "18/18 UC verdes na lane Estoque · MySQL (run 32318469674, PR temp
   cliente digitou daria "4 Cors". O nome vai literal; a contagem entre parênteses.
 - **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-14`.
 - **Status: 🕐** — escrito nesta PR.
+
+## UC-PUNI-15 · Os totais do rodapé não são servidos a quem não pode ver custo · `must` `[V0]`
+
+- **Persona:** a mesma do UC-PUNI-01 e do UC-PUNI-07 — balconista sem direito de ver custo.
+- **Aceite:** Dado um usuário sem `view_purchase_price` · Quando a prop `totaisDoRecorte` é pedida
+  no recorte · Então ela chega **`null`**, e o rodapé não monta a faixa de totais.
+- **Por que é o mesmo dado:** "valor em estoque" é `saldo × custo` **somado sobre o recorte**. É a
+  estrutura de custo por outro caminho — quem abre a aba de rede lê o número, e quem sabe estreitar
+  o recorte por aba/filtro consegue reduzir a soma até ela virar o custo de UM item. Mesma regra do
+  §5 do handoff (coluna montada ou não montada), aplicada ao agregado — e o irmão exato do
+  UC-PUNI-07, que fez isso pro contador de margem.
+- **A chave existe, o VALOR é que não:** o contrato mantém `totaisDoRecorte` na resposta (`null`),
+  em vez de omitir a chave. É deliberado e diferente do `kpis.margem`: aqui a tela precisa saber
+  que perguntou e não tem direito, pra não confundir com "ainda não chegou" (a prop é `defer`).
+- **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-15`.
+- **Status: 🕐 aguarda run** — o teste está escrito com pré-condição anti-vácuo (prova que a visita
+  respondeu, que o recorte tem linha e que a chave chegou, antes de exigir o `null`), mas **não foi
+  executado**: estes contratos pulam sem o schema UltimatePOS, então o veredito é da lane MySQL.
+
+## UC-PUNI-16 · "Repor até o mínimo" soma só a falta, nunca a sobra · `must`
+
+- **Persona:** Rafael, compras — usa o número pra decidir quanto desembolsar na próxima reposição.
+- **Aceite:** Dado um recorte com itens acima **e** abaixo do mínimo · Quando `totaisDoRecorte` é
+  calculado · Então `repor` é `SOMA(max(0, mínimo − saldo) × custo)` e **nunca** vem negativo.
+- **Por que importa, e por que o erro seria caro:** item acima do mínimo tem que contribuir **zero**.
+  Contribuindo negativo, a sobra de um produto abateria a falta de outro e o total mentiria **pra
+  menos** — o comprador leria uma necessidade menor que a real e deixaria de comprar o que falta.
+  É o erro que não se denuncia: o número continua plausível.
+- **Nota de portabilidade:** o agregado usa `CASE`, não `GREATEST` — a lane de Pest roda em SQLite,
+  que não tem `GREATEST` de dois argumentos. Mesma conta, sintaxe que os dois entendem.
+- **Teste:** [`ProdutoUnificadoIndiceContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoIndiceContratoTest.php) — `UC-PUNI-16`.
+- **Status: 🕐 aguarda run** — mesma razão do UC-PUNI-15.
+
+## UC-PUNI-17 · O marcador de grade é cobertura de saldo, não nome de atributo · `must`
+
+- **Persona:** Larissa, balcão — varre a lista durante o atendimento e precisa saber, sem abrir o
+  painel, quanto de uma grade ela consegue prometer.
+- **Aceite:** Dado um produto com 3 combinações vivas, 2 com saldo · Quando a prop `produtos` chega
+  · Então a linha traz `grade = {com: 2, total: 3}`. Dado um produto simples (só a variação DUMMY)
+  · Então a chave `grade` **não existe**.
+- **Por que mudou (handoff V3, divergência #4):** até 24/08 a 2ª linha imprimia o resumo de atributo
+  (`resumoVariacoes`) — o nome do eixo como o tenant digitou. Em produção isso saiu como
+  **"Tamnha p-m-g (4)"**, erro de digitação incluso: a linha gastava largura repetindo um rótulo do
+  cadastro em vez de responder à pergunta do balcão. O marcador derivado responde, e o vermelho
+  avisa que há furo. O `resumoVariacoes` **continua vivo no painel**, onde o nome do eixo é o assunto.
+- **`[S1]` subconjunto se declara:** "2 de 3" é exatamente a frase que impede o número de virar
+  subconjunto silencioso — sem ela, "tem saldo" esconde que um terço da grade não vende.
+- **`[T0]` o escopo vale no LOCAL:** a linha de saldo pendura num `business_locations`, então a
+  contagem de "com saldo" tem **duas** cláusulas de tenant (`products.business_id` **e**
+  `business_locations.business_id`) — mesma razão do UC-PUNI-12B.
+- **Teste:** [`ProdutoUnificadoGradeContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoGradeContratoTest.php) — `UC-PUNI-17`.
+- **Status: 🕐 aguarda run** — mesma razão do UC-PUNI-15: estes contratos pulam sem o schema
+  UltimatePOS, então o veredito é da lane MySQL (`estoque-pest`).

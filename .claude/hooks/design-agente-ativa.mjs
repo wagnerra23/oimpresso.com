@@ -124,6 +124,36 @@ if (process.argv.includes('--selftest')) {
 - Grafo ou preview incompleto bloqueia qualquer edição em \`Pages/\` e \`Modules/\`.
 
 Não copie comandos deste lembrete para outro documento. O painel executável é a única fonte.`);
+
+    // LIVE-ONLY — a única pergunta do frescor que o CI headless NÃO consegue fazer: medir
+    // "o que existe no Cowork vivo e nunca desceu" exige a saída do DesignSync.list_files,
+    // que só o agente logado tem (ADR 0315). Então o lembrete mora AQUI, no momento em que
+    // existe um agente com DesignSync na mão. O CI audita o registro depois (--sla-live-only).
+    //
+    // Travado por CADÊNCIA, não por prompt. Medido no corpus real (946 transcripts,
+    // 3.279 prompts de usuário): `dispara()` casa 554 vezes — cutucar em todo disparo seria
+    // ruído. Com a trava de 7d o teto cai pra 5 nudges em 34 dias (−99,1%), ~1/semana.
+    // Silencioso em OK/BASELINE/SCOPE-CHANGED: só fala quando há o que fazer.
+    try {
+      const { liveOnlyVerdict, LEDGER_REL } = await import('../../scripts/governance/cowork-mirror-freshness.mjs');
+      const { readFileSync } = await import('node:fs');
+      const { join, dirname } = await import('node:path');
+      const { fileURLToPath } = await import('node:url');
+      const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+      let entries = [];
+      try { entries = JSON.parse(readFileSync(join(root, LEDGER_REL), 'utf8')); } catch { entries = []; }
+      if (!Array.isArray(entries)) entries = entries.runs || [];
+      const v = liveOnlyVerdict(entries, new Date().toISOString());
+      const receita = '`DesignSync.list_files` → salve o JSON → `node scripts/governance/cowork-mirror-freshness.mjs --live-only <lista.json> --ledger`';
+      if (v.veredito === 'NEVER-RAN') {
+        console.log(`\n[design-agente-ativa] 📥 **live-only NUNCA foi medido** — o espelho pode estar sem telas que existem no Cowork.\n\nMeça agora (só você consegue: exige auth do DesignSync): ${receita}`);
+      } else if (v.veredito === 'OVERDUE') {
+        console.log(`\n[design-agente-ativa] 📥 **live-only vencido** — última medição em ${v.last.date.slice(0, 10)} (há ${v.ageDays}d), achou ${v.last.liveOnly} de ${v.last.denom} paths.\n\nRemeça: ${receita}`);
+      } else if (v.veredito === 'GREW') {
+        console.log(`\n[design-agente-ativa] 📥 **live-only CRESCEU** — ${v.novos.length} path(s) novo(s) no Cowork desde ${v.prev.date.slice(0, 10)} que nunca desceram:\n${v.novos.map((p) => `  + ${p}`).join('\n')}\n\nDescer ou não é decisão [W]; a máquina só deixa de esconder.`);
+      }
+    } catch { /* nudge é advisory: ledger ausente ou módulo movido não pode quebrar o hook */ }
+
     process.exit(0);
   } catch {
     process.exit(0); // hook advisory nunca quebra o fluxo

@@ -1,6 +1,7 @@
 ---
 page: /governance/module-grades
 component: resources/js/Pages/governance/ModuleGrades/Index.tsx
+bundle_source: governance-page.jsx
 route: /governance/module-grades
 status: live
 owner: wagner

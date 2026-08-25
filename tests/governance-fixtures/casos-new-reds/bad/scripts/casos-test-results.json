@@ -1,0 +1,16 @@
+{
+  "_meta": {
+    "gate": "fixture casos-new-reds (gate-selftest)"
+  },
+  "ucs": {
+    "UC-FIX-01": {
+      "verdict": "fail"
+    },
+    "UC-FIX-02": {
+      "verdict": "fail"
+    },
+    "UC-FIX-03": {
+      "verdict": "pass"
+    }
+  }
+}

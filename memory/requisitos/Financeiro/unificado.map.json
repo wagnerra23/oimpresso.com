@@ -3,33 +3,34 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Financeiro/Unificado (/financeiro/unificado)",
   "gap_fonte": "memory/requisitos/Financeiro/unificado-gap.md",
-  "prototipo_sha": "sha256:3c66ba0f55fe",
-  "gerado_em": "2026-07-10",
+  "prototipo_sha": "sha256:03393570ea19",
+  "gerado_em": "2026-08-24",
   "partes": [
     {
       "id": "header-acoes",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/financeiro-page.jsx",
-        "linhas": "208-240"
+        "linhas": "243-275"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Financeiro/Unificado/Index.tsx",
-        "linhas": "1402-1488",
+        "linhas": "1407-1493",
         "ancora": false
       },
       "status": "vivo-a-frente-com-residuo",
-      "acao": "aplicar-delta-residuo: CmdK (Index.tsx 2536-2567) e empty-state CTA (Index.tsx 1772-1787) viram 'Novo título' abrindo TituloCreateSheet; resto no-op",
-      "_acionavel": true
+      "acao": "aplicar-delta-residuo: CmdK (Index.tsx 2548-2579) e empty-state CTA (Index.tsx 1777-1792) viram 'Novo título' abrindo TituloCreateSheet; resto no-op",
+      "_acionavel": true,
+      "_nota": "Re-ancorado 2026-08-24: o protótipo trocou o botão único \"Novo título\" por `<FinNovoMenu onNew={onNew} />` (financeiro-page.jsx:262) na sincronização #6178 — o vivo segue com botão único."
     },
     {
       "id": "kpis",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/financeiro-page.jsx",
-        "linhas": "380-520"
+        "linhas": "422-581"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Financeiro/Unificado/Index.tsx",
-        "linhas": "829-956",
+        "linhas": "831-958",
         "ancora": false
       },
       "status": "vivo-a-frente",
@@ -40,7 +41,7 @@
       "id": "periodbar-personalizado",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/financeiro-page.jsx",
-        "linhas": "46-95,676-710,1770"
+        "linhas": "46-95,754-791,1948"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Financeiro/Unificado/_components/FinPeriodBar.tsx",
@@ -48,33 +49,33 @@
         "ancora": false
       },
       "status": "paridade",
-      "acao": "no-op (entregue #3418, aprovado [W] 2026-06-29; wiring Index.tsx 1634-1645)",
+      "acao": "no-op (entregue #3418, aprovado [W] 2026-06-29; wiring Index.tsx 1639-1650)",
       "_acionavel": true
     },
     {
       "id": "filter-pills-toolbar",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/financeiro-page.jsx",
-        "linhas": "519-673"
+        "linhas": "580-751"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Financeiro/Unificado/Index.tsx",
-        "linhas": "1504-1706",
+        "linhas": "1509-1711",
         "ancora": false
       },
       "status": "vivo-a-frente",
-      "acao": "no-op (FinMultiSelectContas Index.tsx 365-449; plano DCASP real 1658-1674)",
+      "acao": "no-op (FinMultiSelectContas Index.tsx 367-451; plano DCASP real 1658-1674)",
       "_acionavel": true
     },
     {
       "id": "tabela-linhas",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/financeiro-page.jsx",
-        "linhas": "108-130,723-742,793-905"
+        "linhas": "108-132,804-823,874-986"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Financeiro/Unificado/Index.tsx",
-        "linhas": "451-495,1006-1152,1708-1789",
+        "linhas": "453-497,1008-1154,1713-1794",
         "ancora": false
       },
       "status": "paridade",
@@ -85,7 +86,7 @@
       "id": "dialogo-de-baixa",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/financeiro-ops.jsx",
-        "linhas": "64-158"
+        "linhas": "64-181"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Financeiro/Unificado/_components/FinBaixaSheet.tsx",
@@ -100,7 +101,7 @@
       "id": "anexos-no-drawer",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/financeiro-ops.jsx",
-        "linhas": "165-235"
+        "linhas": "188-276"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Financeiro/Unificado/_components/FinAnexosPanel.tsx",
@@ -108,29 +109,30 @@
         "ancora": false
       },
       "status": "gap-parcial",
-      "acao": "aplicar-delta: drag&drop + multiple no upload (frontend-only); seeds 'do sistema' (ops.jsx 165-176) = virar-US-ADR (backend NfeBrasil)",
+      "acao": "aplicar-delta: drag&drop + multiple no upload (frontend-only); seeds 'do sistema' (ops.jsx 188-199) = virar-US-ADR (backend NfeBrasil)",
       "_acionavel": true
     },
     {
       "id": "aprovacao-de-pagamento",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/financeiro-ops.jsx",
-        "linhas": "241-308"
+        "linhas": "282-349"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Financeiro/Unificado/Index.tsx",
-        "linhas": "2353-2415",
+        "linhas": "2358-2427",
         "ancora": false
       },
       "status": "gap-parcial",
-      "acao": "aplicar-delta: motivo de rejeição inline (substitui window.prompt Index.tsx 2388); desfazer/reenviar (ops.jsx 291-305) = virar-US-ADR (backend workflow)",
-      "_acionavel": true
+      "acao": "aplicar-delta: motivo de rejeição inline (ENTREGUE — ver _nota); desfazer/reenviar (ops.jsx 332-346) = virar-US-ADR (backend workflow)",
+      "_acionavel": true,
+      "_nota": "Re-ancorado 2026-08-24: o sub-item \"motivo de rejeição inline\" ESTÁ ENTREGUE no vivo — `RejeitarInline` definido em Index.tsx:518-552 (o comentário 514-515 cita o protótipo e diz que substitui o window.prompt) e RENDERIZADO em Index.tsx:2588; `grep window.prompt` no arquivo devolve só o comentário. Resta do acao só \"desfazer/reenviar\" (ops.jsx 332-346) = virar-US-ADR."
     },
     {
       "id": "ocr-boleto",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/financeiro-ops.jsx",
-        "linhas": "314-394"
+        "linhas": "355-435"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Financeiro/Unificado/_components/FinOcrBoletoSheet.tsx",
@@ -138,14 +140,14 @@
         "ancora": false
       },
       "status": "vivo-a-frente",
-      "acao": "PERGUNTA [W]: fallback 'colar linha digitável' manual (parse Febraban local, ops.jsx 314-327) vale? Senão no-op",
+      "acao": "PERGUNTA [W]: fallback 'colar linha digitável' manual (parse Febraban local, ops.jsx 355-368) vale? Senão no-op",
       "_acionavel": true
     },
     {
       "id": "combobox-contraparte-no-novo-titulo",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/financeiro-ops.jsx",
-        "linhas": "400-451"
+        "linhas": "441-492"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Financeiro/Unificado/_components/TituloCreateSheet.tsx",
@@ -153,29 +155,29 @@
         "ancora": false
       },
       "status": "gap",
-      "acao": "aplicar-delta (GAP nº1, US-FIN-024): wire ClienteCombobox.tsx (1-175, órfão) no campo cliente_descricao do TituloCreateSheet (wiring do protótipo: financeiro-page.jsx 1285-1291); bump charter v17 + UC no casos.md",
+      "acao": "aplicar-delta (GAP nº1, US-FIN-024): wire ClienteCombobox.tsx (1-175, órfão) no campo cliente_descricao do TituloCreateSheet (wiring do protótipo: financeiro-page.jsx 1373-1379); bump charter v17 + UC no casos.md",
       "_acionavel": true
     },
     {
       "id": "drawer-detalhe",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/financeiro-page.jsx",
-        "linhas": "1351-1660"
+        "linhas": "1508-1819"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Financeiro/Unificado/Index.tsx",
-        "linhas": "1838-2533",
+        "linhas": "1843-2545",
         "ancora": false
       },
       "status": "vivo-a-frente",
-      "acao": "no-op (opcional P: Aprovação/Anexos com visual DrawerLens, Index.tsx 624-664)",
+      "acao": "no-op (opcional P: Aprovação/Anexos com visual DrawerLens, Index.tsx 626-666)",
       "_acionavel": true
     },
     {
       "id": "artefatos-do-prototipo",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/financeiro-page.jsx",
-        "linhas": "537-545,612,677,1836"
+        "linhas": "598-615,682,755,2029"
       },
       "vivo": {
         "arquivo": "n/a",
@@ -184,7 +186,8 @@
       },
       "status": "artefato",
       "acao": "rejeitar (data-comment-anchor, contaOf/formaOf mock, agingCounts — aging revertido por [W] 2026-06-29)",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota": "Re-ancorado 2026-08-24: o bloco cresceu de 9 pra 18 linhas porque o protótipo ABSORVEU do git o pill \"Conta indefinida\" (US-FIN-038 / ADR 0175, financeiro-page.jsx:599-607) — é o protótipo alcançando produção (#4263, 2026-07-14), não gap novo."
     }
   ]
 }

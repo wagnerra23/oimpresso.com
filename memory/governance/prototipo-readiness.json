@@ -14,6 +14,8 @@
     "Financeiro/Impostos/Index",
     "Financeiro/ProvaViva",
     "Financeiro/Unificado/Index",
+    "Jana/Chat",
+    "Jana/Index",
     "Jana/Memoria",
     "kb/Index",
     "Modules/Index",
@@ -23,15 +25,28 @@
     "Ponto/Dashboard/Index",
     "Ponto/Escalas/Form",
     "Ponto/Espelho/Index",
+    "Ponto/Espelho/Show",
     "Ponto/Importacoes/Create",
     "Ponto/Importacoes/Index",
+    "Ponto/Importacoes/Show",
     "Ponto/Intercorrencias/Create",
     "Ponto/Intercorrencias/Index",
+    "Ponto/Intercorrencias/Show",
     "Ponto/Relatorios/Index",
     "Produto/SellingPrices",
     "Sells/Index"
   ],
   "ciclo": [
+    {
+      "tela": "Arquivos/Index",
+      "arquivo": "resources/js/Pages/Arquivos/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/arquivos-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
     {
       "tela": "Backup/Index",
       "arquivo": "resources/js/Pages/Backup/Index.tsx",
@@ -40,26 +55,6 @@
       "prototipo": "prototipo-ui/cowork/backup-page.jsx",
       "falta": [
         "scorecard"
-      ]
-    },
-    {
-      "tela": "Jana/Chat",
-      "arquivo": "resources/js/Pages/Jana/Chat.tsx",
-      "modulo": "core",
-      "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/jana-merge.jsx",
-      "falta": [
-        "casos.md-com-UC"
-      ]
-    },
-    {
-      "tela": "Jana/Index",
-      "arquivo": "resources/js/Pages/Jana/Index.tsx",
-      "modulo": "core",
-      "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/jana-merge.jsx",
-      "falta": [
-        "casos.md-com-UC"
       ]
     },
     {
@@ -115,36 +110,6 @@
     {
       "tela": "Ponto/Escalas/Index",
       "arquivo": "resources/js/Pages/Ponto/Escalas/Index.tsx",
-      "modulo": "core",
-      "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
-      "falta": [
-        "casos.md-com-UC"
-      ]
-    },
-    {
-      "tela": "Ponto/Espelho/Show",
-      "arquivo": "resources/js/Pages/Ponto/Espelho/Show.tsx",
-      "modulo": "core",
-      "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/ponto-page.jsx",
-      "falta": [
-        "casos.md-com-UC"
-      ]
-    },
-    {
-      "tela": "Ponto/Importacoes/Show",
-      "arquivo": "resources/js/Pages/Ponto/Importacoes/Show.tsx",
-      "modulo": "core",
-      "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
-      "falta": [
-        "casos.md-com-UC"
-      ]
-    },
-    {
-      "tela": "Ponto/Intercorrencias/Show",
-      "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Show.tsx",
       "modulo": "core",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
@@ -273,5 +238,5 @@
       ]
     }
   ],
-  "total": 54
+  "total": 55
 }

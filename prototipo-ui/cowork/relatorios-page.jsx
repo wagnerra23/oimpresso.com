@@ -21,6 +21,11 @@ function Indice({ onAbrir, grupo }) {
   const { REPORTS, FORA } = window.RELD;
   const ORDEM = grupo ? [grupo] : window.RELD.GRUPOS_ORDEM;
   const [busca, setBusca] = useState("");
+  const campo = useRef(null);
+  useEffect(() => {
+    const k = (e) => { if (e.key === "/" && document.activeElement !== campo.current) { e.preventDefault(); campo.current && campo.current.focus(); } };
+    document.addEventListener("keydown", k); return () => document.removeEventListener("keydown", k);
+  }, []);
   const filtrados = useMemo(() => {
     const b = busca.trim().toLowerCase();
     if (!b) return REPORTS;
@@ -31,7 +36,8 @@ function Indice({ onAbrir, grupo }) {
     <>
       <div className="rel-busca">
         <Ic name="search" size={14} />
-        <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar relatório — nome, blade ou o que ele responde" aria-label="Buscar relatório" />
+        <input ref={campo} value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar relatório — nome, blade ou o que ele responde" aria-label="Buscar relatório" />
+        <kbd className="rel-kbd">/</kbd>
       </div>
       {filtrados.length === 0 && EmptyState &&
         <EmptyState variant="no-results" title="Nenhum relatório com esse termo" description="Tente pelo nome do blade (ex: stock_report) ou pelo nome do menu antigo." />}
@@ -121,13 +127,15 @@ function Colunas({ cols, ocultas, setOcultas }) {
 }
 
 // ─────────── Tabela + ações + seleção + paginação + rodapé de totais ───────────
-function Tabela({ rep, cols, acoes, nota, apurado, todas, onAviso, onDetalhe, onValidade }) {
-  const { DataTablePro, Pagination, BulkBar, DropdownMenu } = DS();
+function Tabela({ rep, cols, acoes, nota, apurado, todas, carregando, onLimpar, onAviso, onDetalhe, onValidade }) {
+  const { DataTablePro, Pagination, BulkBar, DropdownMenu, EmptyState, Skeleton } = DS();
   const { totais } = window.RELD;
   const chave = "oimpresso.rel.cols." + rep.id + "." + cols.map((c) => c.k).join("");
   const [ocultas, setOcultas] = useState(() => { const o = {}; cols.forEach((c) => { if (c.opt) o[c.k] = true; }); try { const j = localStorage.getItem(chave); if (j) return JSON.parse(j); } catch (e) {} return o; });
   const [pagina, setPagina] = useState(1);
   const [sel, setSel] = useState([]);
+  const [densidade, setDensidade] = useState(() => { try { return localStorage.getItem("oimpresso.rel.densidade") || "compact"; } catch (e) { return "compact"; } });
+  useEffect(() => { try { localStorage.setItem("oimpresso.rel.densidade", densidade); } catch (e) {} }, [densidade]);
   useEffect(() => { try { localStorage.setItem(chave, JSON.stringify(ocultas)); } catch (e) {} }, [chave, ocultas]);
   useEffect(() => { setPagina(1); setSel([]); }, [rep.id, cols, apurado]);
   const visiveis = useMemo(() => cols.filter((c) => !ocultas[c.k]), [cols, ocultas]);
@@ -136,7 +144,7 @@ function Tabela({ rep, cols, acoes, nota, apurado, todas, onAviso, onDetalhe, on
   const fatia = todas.slice((pagina - 1) * PAGINA, pagina * PAGINA);
   const { StatusBadge } = DS();
   const colunas = visiveis.map((c) => ({ key: c.k, label: c.l, sortable: true, align: c.t === "m" || c.t === "q" || c.t === "p" ? "right" : undefined, width: c.t === "m" || c.t === "q" || c.t === "p" ? 148 : undefined }));
-  if ((acoes || []).length) colunas.push({ key: "__acao", label: "Ação", width: 60, sortable: false, resizable: false });
+  if ((acoes || []).length) colunas.push({ key: "__acao", label: "Ação", width: 84, sortable: false, resizable: false });
   const linhas = fatia.map((r) => {
     const cells = {};
     visiveis.forEach((c) => { cells[c.k] = c.t === "s" && StatusBadge ? <StatusBadge kind="payment" value={r.cells[c.k]} /> : r.cells[c.k]; });
@@ -158,15 +166,27 @@ function Tabela({ rep, cols, acoes, nota, apurado, todas, onAviso, onDetalhe, on
       <div className="rel-tabela-h">
         <span className="rel-cont">{todas.length} linhas apuradas · página {pagina} de {pageCount}</span>
         <span className="rel-acoes">
+          <span className="rel-dens" role="group" aria-label="Densidade">
+            <button className={"rel-dens-b" + (densidade === "comfortable" ? " on" : "")} onClick={() => setDensidade("comfortable")}>Confortável</button>
+            <button className={"rel-dens-b" + (densidade === "compact" ? " on" : "")} onClick={() => setDensidade("compact")}>Compacto</button>
+          </span>
           <Colunas cols={cols} ocultas={ocultas} setOcultas={setOcultas} />
           <button className="rel-btn" onClick={() => onAviso("CSV gerado — o download real sai no Inertia (F3).")}><Ic name="sheet" size={12} /> CSV</button>
           <button className="rel-btn" onClick={() => onAviso("PDF gerado — o download real sai no Inertia (F3).")}><Ic name="doc" size={12} /> PDF</button>
           <button className="rel-btn" onClick={() => window.print()}><Ic name="printer" size={12} /> Imprimir</button>
         </span>
       </div>
-      <DataTablePro columns={colunas} rows={linhas} height={Math.min(520, 92 + fatia.length * 41)} density="compact"
-        selectable onSelectionChange={setSel} onRowClick={(row) => { const l = linhas.find((x) => x.id === row.id); if (l) onDetalhe({ rep, cols: visiveis, row: l.__raw }); }} />
-      {chavesTot.length > 0 &&
+      {carregando && Skeleton && <div className="rel-skel"><Skeleton variant="row" count={6} /></div>}
+      {!carregando && todas.length === 0 && EmptyState &&
+        <div className="rel-vazio">
+          <EmptyState variant="filtered" title="Nenhuma linha nesse recorte"
+            description="Os filtros aplicados não encontraram movimento no período. Amplie o período ou limpe um filtro pra ver o que existe."
+            action={<button className="rel-btn" data-primary onClick={onLimpar}>Limpar filtros</button>} />
+        </div>}
+      {!carregando && todas.length > 0 &&
+        <DataTablePro columns={colunas} rows={linhas} height={Math.min(520, 92 + fatia.length * (densidade === "compact" ? 41 : 49))} density={densidade}
+          selectable onSelectionChange={setSel} onRowClick={(row) => { const l = linhas.find((x) => x.id === row.id); if (l) onDetalhe({ rep, cols: visiveis, row: l.__raw }); }} />}
+      {!carregando && chavesTot.length > 0 &&
         <div className="rel-totais">
           {chavesTot.map((k) => {
             const col = visiveis.find((c) => c.k === k);
@@ -175,7 +195,7 @@ function Tabela({ rep, cols, acoes, nota, apurado, todas, onAviso, onDetalhe, on
         </div>}
       <div className="rel-rodape">
         <span className="rel-nota">{nota}</span>
-        {Pagination && <Pagination page={pagina} pageCount={pageCount} total={todas.length} pageSize={PAGINA} onChange={setPagina} />}
+        {Pagination && todas.length > 0 && <Pagination page={pagina} pageCount={pageCount} total={todas.length} pageSize={PAGINA} onChange={setPagina} />}
       </div>
       {sel.length > 0 && BulkBar &&
         <BulkBar count={sel.length} label={sel.length === 1 ? "linha selecionada" : "linhas selecionadas"} onClose={() => setSel([])}
@@ -228,17 +248,24 @@ function Relatorio({ rep, onVoltar }) {
   const [periodo2, setPeriodo2] = useState({ from: menos(29), to: hoje(), preset: "Mês" });
   const [aba, setAba] = useState((rep.tabs || [])[0] ? rep.tabs[0].key : null);
   const [apurado, setApurado] = useState(0);
+  const [aplicados, setAplicados] = useState({});
+  const [carregando, setCarregando] = useState(false);
   const [aviso, setAviso] = useState(null);
   const [detalhe, setDetalhe] = useState(null);
   const [validade, setValidade] = useState(null);
-  useEffect(() => { setAba((rep.tabs || [])[0] ? rep.tabs[0].key : null); setValores({}); setApurado(0); }, [rep.id]);
+  useEffect(() => { setAba((rep.tabs || [])[0] ? rep.tabs[0].key : null); setValores({}); setAplicados({}); setApurado(0); }, [rep.id]);
+  useEffect(() => { const esc = (e) => { if (e.key === "Escape" && !document.querySelector("[role=dialog]")) onVoltar(); }; document.addEventListener("keydown", esc); return () => document.removeEventListener("keydown", esc); }, [onVoltar]);
+  useEffect(() => { if (!carregando) return; const t = setTimeout(() => setCarregando(false), 360); return () => clearTimeout(t); }, [carregando]);
+  const reapurar = (msg, filtros) => { setAplicados(filtros !== undefined ? filtros : aplicados); setApurado((n) => n + 1); setCarregando(true); setAviso(msg); };
   useEffect(() => { if (!aviso) return; const t = setTimeout(() => setAviso(null), 2600); return () => clearTimeout(t); }, [aviso]);
   const setValor = (k, v) => setValores((o) => ({ ...o, [k]: v }));
   const tab = (rep.tabs || []).find((t) => t.key === aba);
   const cols = tab ? tab.cols : rep.cols;
   const acoes = (tab && tab.acoes) || rep.acoes || [];
   const repEfetivo = tab && tab.n ? { ...rep, n: tab.n } : rep;
-  const linhas = useMemo(() => cols ? gerar(repEfetivo, cols, repEfetivo.n || 12) : [], [repEfetivo, cols, apurado]);
+  const brutas = useMemo(() => cols ? gerar(repEfetivo, cols, repEfetivo.n || 12) : [], [repEfetivo, cols, apurado]);
+  const linhas = useMemo(() => cols ? window.RELD.aplicar(brutas, aplicados, cols) : [], [brutas, aplicados, cols]);
+  const fichas = useMemo(() => cols ? window.RELD.chips(rep, aplicados, cols) : [], [rep, aplicados, cols]);
   const derivado = useMemo(() => window.RELD.derivar(rep, linhas, tab), [rep, linhas, tab]);
   const kpis = (derivado && derivado.kpis) || rep.kpis;
   const grafico = useMemo(() => {
@@ -254,7 +281,7 @@ function Relatorio({ rep, onVoltar }) {
           <span className="rel-nota">{rep.blade || "tela nova — sem blade de origem"}</span>
         </span>
         <span className="rel-acoes">
-          <button className="rel-btn" onClick={() => { setApurado((n) => n + 1); setAviso("Reapurado com os filtros atuais."); }}><Ic name="refresh" size={12} /> Reapurar</button>
+          <button className="rel-btn" onClick={() => reapurar("Reapurado com os filtros atuais.")}><Ic name="refresh" size={12} /> Reapurar</button>
         </span>
       </div>
 
@@ -263,7 +290,18 @@ function Relatorio({ rep, onVoltar }) {
           Esta leitura não vem de nenhum blade: é proposta de gráfica (m², bobina, OS, retrabalho) e depende de aprovação [W] antes de virar tela no Inertia.
         </Alert>}
 
-      <Filtros rep={rep} valores={valores} setValor={setValor} periodo={periodo} setPeriodo={setPeriodo} periodo2={periodo2} setPeriodo2={setPeriodo2} onAplicar={() => { setApurado((n) => n + 1); setAviso("Filtros aplicados."); }} />
+      <Filtros rep={rep} valores={valores} setValor={setValor} periodo={periodo} setPeriodo={setPeriodo} periodo2={periodo2} setPeriodo2={setPeriodo2} onAplicar={() => reapurar("Filtros aplicados.", valores)} />
+
+      {fichas.length > 0 &&
+        <div className="rel-chips">
+          <span className="rel-chips-l">Filtrando por</span>
+          {fichas.map((f) =>
+            <span className={"rel-chip" + (f.inerte ? " inerte" : "")} key={f.id} title={f.inerte ? "Filtro do blade que não estreita coluna nesta tabela — no vivo ele recorta no servidor" : null}>
+              {f.label}: <strong>{f.valor}</strong>
+              <button aria-label={"Remover filtro " + f.label} onClick={() => { const v = { ...valores }; delete v[f.id]; setValores(v); reapurar("Filtro removido.", v); }}><Ic name="x" size={10} /></button>
+            </span>)}
+          <button className="rel-chips-x" onClick={() => { setValores({}); reapurar("Filtros limpos.", {}); }}>Limpar tudo</button>
+        </div>}
 
       {kpis && KpiCard &&
         <div className="rel-kpis">
@@ -283,7 +321,8 @@ function Relatorio({ rep, onVoltar }) {
       {(rep.tabs || []).length > 0 && TabBar &&
         <TabBar tabs={rep.tabs.map((t) => ({ key: t.key, label: t.label }))} active={aba} onChange={setAba} />}
 
-      {cols && <Tabela rep={repEfetivo} cols={cols} acoes={acoes} apurado={apurado} todas={linhas}
+      {cols && <Tabela rep={repEfetivo} cols={cols} acoes={acoes} apurado={apurado} todas={linhas} carregando={carregando}
+        onLimpar={() => { setValores({}); reapurar("Filtros limpos.", {}); }}
         nota={(rep.blade || "tela nova") + (tab ? " · aba " + tab.label.toLowerCase() : "")}
         onAviso={setAviso} onDetalhe={setDetalhe} onValidade={(row) => setValidade(row)} />}
 

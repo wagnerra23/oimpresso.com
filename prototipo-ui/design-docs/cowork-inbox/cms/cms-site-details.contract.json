@@ -1,0 +1,40 @@
+{
+  "_nota": "Contrato de Tela dos Detalhes do site (ADR 0286). As chaves de `cms_site_details` são o contrato real com o site público — a copy trava a tradução das 8 seções do settings/index.blade.",
+  "tela": "Cms/SiteDetails",
+  "fonte": "prototipo-ui/cowork/cms/cms-page.jsx",
+  "alvo": ["Modules/Cms/Resources/js/Pages/Admin/SiteDetails"],
+  "secoes": [
+    { "id": "rail", "copy": ["Aplicação", "Contato", "Redes sociais", "Estatísticas", "Perguntas frequentes", "Atendimento por chat", "Integrações", "Botões do site"] },
+    { "id": "aplicacao", "copy": ["Logo do site", "Trocar logo", "E-mail que recebe os contatos do site", "Todo formulário enviado em /c/contact-us cai nesta caixa e gera um lead no CRM."] },
+    { "id": "contato", "copy": ["Rótulo", "Telefone", "E-mail"] },
+    { "id": "redes", "copy": ["Facebook", "Instagram", "LinkedIn", "YouTube", "X (Twitter)", "Deixe em branco a rede que você não usa — o ícone some do rodapé."] },
+    { "id": "estatisticas", "copy": ["Chamada", "Descrição", "Número", "Legenda"] },
+    { "id": "faq", "copy": ["Pergunta", "Resposta", "Seis pares de pergunta e resposta. Deixar em branco esconde o item."] },
+    { "id": "chat", "copy": ["Canal de chat", "Chat do próprio sistema (cai na caixa de entrada)", "Outro serviço (código incorporado)", "Link do Messenger", "Link do Telegram", "Código do widget"], "estados": ["in_app", "other"] },
+    { "id": "integracoes", "copy": ["Google Analytics", "Pixel do Facebook", "JavaScript extra", "CSS extra", "Metatags"] },
+    { "id": "botoes", "copy": ["Topo do site", "Chamada principal", "Bloco de segmentos", "Chamada final", "texto", "destino"] },
+    { "id": "savebar", "copy": ["As mudanças valem pro site público, não pro sistema.", "Ver o site", "Salvar detalhes", "Detalhes do site salvos."] }
+  ],
+  "ordem": ["rail", "aplicacao", "savebar"],
+  "_nota_acordos": "As chaves precisam bater literalmente nos dois lados: o site público lê `follow_us`, `faqs`, `statistics`, `btns`, `contact_us`, `mail_us` de `CmsSiteDetail::getSiteDetails()`.",
+  "acordos_estado": [
+    {
+      "id": "chaves-site-details",
+      "verdict": "proposto",
+      "escopo": "global",
+      "descricao": "Nomes de chave são contrato com o site público — renomear no painel quebra a home sem erro visível. A tradução Inertia deve manter os nomes verbatim.",
+      "valores": ["logo", "notifiable_email", "contact_us", "mail_us", "follow_us", "statistics", "faqs", "chat", "chat_widget", "google_analytics", "fb_pixel", "custom_js", "custom_css", "meta_tags", "btns"],
+      "backend": "Modules/Cms/Entities/CmsSiteDetail.php",
+      "frontend": ["Modules/Cms/Resources/js/Pages/Admin/SiteDetails/Index.tsx", "Modules/Cms/Resources/js/Pages/Site/Home.tsx"]
+    },
+    {
+      "id": "canal-de-chat",
+      "verdict": "proposto",
+      "escopo": "global",
+      "descricao": "`chat.enable` só admite in_app_chat (cai na caixa unificada) ou other (código de terceiro). O legado grava default 'in_app' (sem sufixo) — divergência a corrigir na tradução.",
+      "valores": ["in_app_chat", "other"],
+      "backend": "Modules/Cms/Http/Controllers/SettingsController.php",
+      "frontend": ["Modules/Cms/Resources/js/Pages/Admin/SiteDetails/Index.tsx"]
+    }
+  ]
+}

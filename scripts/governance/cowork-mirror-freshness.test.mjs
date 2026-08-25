@@ -25,6 +25,9 @@ import {
   lerShellHtml,
   slaVerdict,
   liveOnly,
+  liveOnlyEntry,
+  liveOnlyVerdict,
+  LIVE_ONLY_SLA_DAYS,
   exportPlan,
   decodeDesignSyncPayload,
   artifactHash,
@@ -916,6 +919,41 @@ check('mesmo número → mesmo veredito (independe de --check)',
       [{ cowork: 'a.jsx', lastCommitIso: '2026-08-17T12:10:47.000Z', hashAtual: 'HASH_A' }]);
     check('unverifiedSince: sem hash no ledger cai no conservador (acusa por data, nao inventa verde)',
       rVelhoHash.mexidoDepois.length === 1 && /sem hash/.test(rVelhoHash.mexidoDepois[0].motivo || ''), JSON.stringify(rVelhoHash.mexidoDepois));
+
+    // ── PROVA POR BUNDLE (v5 · 2026-08-24) ──────────────────────────────────────
+    // O gate nasceu quando `--export-from` era a unica rota de escrita no espelho. O bundle v2
+    // (`aplicar-payload --require-complete-shell`) e a ROTA PRINCIPAL da fase -1 e escreve com
+    // fidelidade provada por construcao. Sem isto o required reprova o caminho oficial: no
+    // #6178, 71 arquivos com 232/232 hashes conferidos foram marcados "sem prova".
+    // O criterio e DURO: so libera com sha256 batendo byte-a-byte.
+    {
+      const Lb = [{ date: '2026-08-20T12:00:00.000Z', verified: ['app.jsx', 'styles.css', 'sidebar.jsx'],
+        verifiedHash: { 'app.jsx': 'H_VELHO', 'styles.css': 'H_VELHO', 'sidebar.jsx': 'H_VELHO' } }];
+      const commit = '2026-08-24T12:00:00.000Z'; // commitado DEPOIS da verificacao, conteudo MUDOU
+      const bundle = { 'app.jsx': 'SHA_BUNDLE_APP', 'styles.css': 'SHA_BUNDLE_STYLES' };
+      const rb = unverifiedSince(Lb, [
+        // promovido pelo bundle: sha do disco == sha do manifesto => PROVADO
+        { cowork: 'app.jsx',    lastCommitIso: commit, hashAtual: 'H_NOVO', rawSha: 'SHA_BUNDLE_APP' },
+        // consta no bundle MAS o byte no disco divergiu (remendo a mao pos-promocao) => MORDE
+        { cowork: 'styles.css', lastCommitIso: commit, hashAtual: 'H_NOVO', rawSha: 'SHA_REMENDADO' },
+        // nem consta no bundle => comportamento antigo, MORDE
+        { cowork: 'sidebar.jsx', lastCommitIso: commit, hashAtual: 'H_NOVO', rawSha: 'SHA_QUALQUER' },
+      ], bundle);
+      check('unverifiedSince: bundle promovido com sha conferido LIBERA (a rota canonica nao e acusada)',
+        !rb.mexidoDepois.some((m) => m.cowork === 'app.jsx'), JSON.stringify(rb.mexidoDepois));
+      check('BITE unverifiedSince: no bundle mas byte DIVERGENTE ainda MORDE (prova, nao isencao)',
+        rb.mexidoDepois.some((m) => m.cowork === 'styles.css'), JSON.stringify(rb.mexidoDepois));
+      check('BITE unverifiedSince: fora do bundle segue mordendo (nao virou passe livre)',
+        rb.mexidoDepois.some((m) => m.cowork === 'sidebar.jsx'), JSON.stringify(rb.mexidoDepois));
+      check('unverifiedSince: prova por bundle acusa exatamente 2 de 3',
+        rb.mexidoDepois.length === 2 && rb.ok === 1, JSON.stringify(rb));
+      // provaBundle ausente => comportamento IDENTICO ao de antes (nao-medir nao vira verde)
+      const rSem = unverifiedSince(Lb, [
+        { cowork: 'app.jsx', lastCommitIso: commit, hashAtual: 'H_NOVO', rawSha: 'SHA_BUNDLE_APP' },
+      ], null);
+      check('BITE unverifiedSince: SEM bundle o mesmo arquivo volta a morder (ausencia != prova)',
+        rSem.mexidoDepois.length === 1 && rSem.mexidoDepois[0].cowork === 'app.jsx', JSON.stringify(rSem.mexidoDepois));
+    }
     const e2 = ledgerEntry([{ cowork: 'a.css', veredito: 'SYNC', repoHash: 'H1' }], '2026-08-17T00:00:00.000Z');
     check('ledgerEntry: grava `verifiedHash` path->hash (insumo do desempate)',
       e2.verifiedHash && e2.verifiedHash['a.css'] === 'H1', JSON.stringify(e2.verifiedHash));
@@ -930,6 +968,66 @@ check('mesmo número → mesmo veredito (independe de --check)',
   const e = ledgerEntry([{ cowork: 'a.css', veredito: 'SYNC' }, { cowork: 'b.css', veredito: 'STALE' }], '2026-08-17T00:00:00.000Z');
   check('ledgerEntry: grava `verified` so com os SYNC (insumo do --unverified)',
     Array.isArray(e.verified) && e.verified.length === 1 && e.verified[0] === 'a.css', JSON.stringify(e.verified));
+}
+
+// ── LIVE-ONLY NO LEDGER (2026-08-24) ────────────────────────────────────────────
+// O flanco `--live-only` era medido a mão e esquecido: em 24/08 a medição achou 47
+// protótipos de tela que nunca desceram e NADA tinha perguntado. Agora a medição vai pro
+// ledger e o CI headless audita o REGISTRO (a medição em si exige auth — ADR 0315).
+// O 1º assert é o BITE do perigo que a própria adição criou: as entradas de live-only
+// moram no MESMO array que as rodadas de --compare, e o slaVerdict lê o ÚLTIMO elemento.
+{
+  const parcial = { date: '2026-08-21T00:00:00.000Z', files: 137, sync: 1, stale: 0, unchecked: 136 };
+  const lo = liveOnlyEntry(['a.jsx'], 237, '2026-08-24T00:00:00.000Z');
+
+  // BITE: sem o filtro por `kind`, o slaVerdict leria a entrada de live-only (sem `stale`
+  // nem `unchecked`) e responderia FRESH — alarme vivo silenciado por adição vizinha.
+  check('slaVerdict: entrada live-only NAO vira veredito do compare (segue LAST-PARTIAL)',
+    slaVerdict([parcial, lo], '2026-08-22T00:00:00.000Z').veredito === 'LAST-PARTIAL',
+    slaVerdict([parcial, lo], '2026-08-22T00:00:00.000Z').veredito);
+  // Controle negativo do mesmo assert: sem a entrada live-only o veredito é o mesmo.
+  check('slaVerdict: veredito identico com e sem a entrada live-only (nao mudei o compare)',
+    slaVerdict([parcial], '2026-08-22T00:00:00.000Z').veredito
+      === slaVerdict([parcial, lo], '2026-08-22T00:00:00.000Z').veredito, 'divergiu');
+
+  // Ledger que só tem rodada de compare não é "live-only OK": é live-only NUNCA MEDIDO.
+  // Colapsar os dois seria afirmar verde sobre o que não se percorreu (§5 2026-07-29).
+  check('liveOnlyVerdict: ledger so de compare => NEVER-RAN (nao OK)',
+    liveOnlyVerdict([parcial], '2026-08-24T00:00:00.000Z').veredito === 'NEVER-RAN');
+
+  check('liveOnlyVerdict: primeira medicao => BASELINE (nao ha anterior pra comparar)',
+    liveOnlyVerdict([lo], '2026-08-24T00:00:00.000Z').veredito === 'BASELINE');
+
+  const velha = liveOnlyEntry(['a.jsx'], 237, '2026-08-01T00:00:00.000Z');
+  check(`liveOnlyVerdict: medicao com mais de ${LIVE_ONLY_SLA_DAYS}d => OVERDUE`,
+    liveOnlyVerdict([velha], '2026-08-24T00:00:00.000Z').veredito === 'OVERDUE');
+
+  // GREW é DELTA: o que entrou desde a medição anterior, com o MESMO denominador.
+  const l1 = liveOnlyEntry(['a.jsx', 'b.css'], 237, '2026-08-22T00:00:00.000Z');
+  const l2 = liveOnlyEntry(['a.jsx', 'b.css', 'c.jsx'], 237, '2026-08-24T00:00:00.000Z');
+  const g = liveOnlyVerdict([l1, l2], '2026-08-24T00:00:00.000Z');
+  check('liveOnlyVerdict: path novo com mesmo denominador => GREW + nomeia o novo',
+    g.veredito === 'GREW' && g.novos.length === 1 && g.novos[0] === 'c.jsx', JSON.stringify(g.novos));
+
+  // CONTROLE NEGATIVO — o piso herdado NÃO pode reprovar pra sempre. Um predicado
+  // absoluto (`liveOnly === 0`) deixaria os 47 de hoje travando o gate eternamente, que é
+  // exatamente o auto-merge parado 9 dias de §5 2026-08-24.
+  const est1 = liveOnlyEntry(['a.jsx', 'b.css'], 237, '2026-08-22T00:00:00.000Z');
+  const est2 = liveOnlyEntry(['b.css', 'a.jsx'], 237, '2026-08-24T00:00:00.000Z');
+  check('liveOnlyVerdict: mesmo conjunto (ordem trocada) => OK, nao GREW (delta, nao absoluto)',
+    liveOnlyVerdict([est1, est2], '2026-08-24T00:00:00.000Z').veredito === 'OK');
+
+  // ANTI-FP: denominador diferente = escopo diferente. `c.jsx` "apareceu", mas pode ter
+  // aparecido porque a 2ª medição olhou mais coisa. Isso é AUSÊNCIA de comparação, não
+  // crescimento — e não pode virar vermelho (§5 2026-07-27, denominador inventado).
+  const s2 = liveOnlyEntry(['a.jsx', 'b.css', 'c.jsx'], 560, '2026-08-24T00:00:00.000Z');
+  const sc = liveOnlyVerdict([l1, s2], '2026-08-24T00:00:00.000Z');
+  check('liveOnlyVerdict: denominador diferente => SCOPE-CHANGED e novos=[] (nao acusa GREW)',
+    sc.veredito === 'SCOPE-CHANGED' && sc.novos.length === 0, sc.veredito);
+
+  check('liveOnlyEntry: grava denominador e lista ordenada (insumo do delta)',
+    l2.kind === 'live-only' && l2.denom === 237 && l2.liveOnly === 3
+      && l2.liveOnlyList.join(',') === 'a.jsx,b.css,c.jsx', JSON.stringify(l2));
 }
 
 console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel + absent-local que MORDE + refs-da-poda + fluxo e2e)');

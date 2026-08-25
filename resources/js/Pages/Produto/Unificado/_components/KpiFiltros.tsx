@@ -1,9 +1,14 @@
 /**
- * Faixa de KPI-filtros do catálogo — CINCO cards em UMA linha (handoff V2 §4.2).
+ * Faixa de KPI-filtros do catálogo — QUATRO cards, no máximo (handoff 21/08 §4.1).
  *
- * Eram seis até o pacote 18/08. O 19/08 removeu "Itens listados": ele não recortava nada
- * (o total da aba já É a lista sem recorte) e agora a contagem vive no rodapé de paginação,
- * onde ela responde a pergunta certa — "de quantos?" — junto do intervalo mostrado.
+ * Eram seis até o pacote 18/08. O 19/08 removeu "Itens listados" — ele não recortava nada (o
+ * total da aba já É a lista sem recorte) e a contagem passou pro rodapé de paginação, onde
+ * responde a pergunta certa ("de quantos?") junto do intervalo mostrado. O 21/08 removeu
+ * "Ativos" pelo mesmo motivo, um passo adiante: fora da aba "Inativos" todo item listado já
+ * é ativo, então o card contava a própria lista e clicar nele não mudava nada.
+ *
+ * Os quatro que sobraram são recortes de AÇÃO — cada um responde "o que eu preciso resolver
+ * hoje?": repor, o que trava venda, o que parou de girar, o que vende sem margem.
  *
  * São TOGGLES, não placar: clicar recorta a lista, clicar de novo solta. Os valores são
  * contados sobre a ABA ATIVA, no servidor, pela mesma subconsulta da listagem — contador que
@@ -23,7 +28,7 @@
  */
 
 import type { ComponentType, CSSProperties } from 'react';
-import { Boxes, CircleSlash, Clock, Percent, TriangleAlert } from 'lucide-react';
+import { Ban, Clock, Percent, TriangleAlert } from 'lucide-react';
 import { Inline } from '@/Components/layout';
 import type { KpiKey, Permissoes } from './catalogo';
 
@@ -38,7 +43,6 @@ const TONE_STYLES = {
 type ToneKey = keyof typeof TONE_STYLES;
 
 export type KpisCatalogo = {
-  ativos: number;
   min: number;
   zero: number;
   parado: number;
@@ -68,27 +72,31 @@ export interface KpiFiltrosProps {
 }
 
 export function KpiFiltros({ kpis, ativo, onToggle, perm, diasParado }: KpiFiltrosProps) {
+  // "Abaixo do mínimo" e "Sem saldo" valem pra TODO perfil: são a pergunta do balcão.
   const cards: Card[] = [
-    { key: 'ativos', label: 'Ativos', sub: 'em uso', tone: 'primary', icon: Boxes, valor: kpis.ativos },
-    { key: 'min', label: 'Estoque baixo', sub: 'repor', tone: 'amber', icon: TriangleAlert, valor: kpis.min },
-    { key: 'zero', label: 'Sem estoque', sub: 'bloqueado', tone: 'rose', icon: CircleSlash, valor: kpis.zero },
-    { key: 'parado', label: `Sem venda ${diasParado}d`, sub: `${diasParado} dias`, tone: 'violet', icon: Clock, valor: kpis.parado },
+    { key: 'min', label: 'Abaixo do mínimo', sub: 'repor', tone: 'amber', icon: TriangleAlert, valor: kpis.min },
+    { key: 'zero', label: 'Sem saldo', sub: 'bloqueado', tone: 'rose', icon: Ban, valor: kpis.zero },
   ];
 
   // Montado ou não montado — nunca escondido por CSS.
+  //
+  // "Sem venda Nd" e "Margem baixa" são recortes de GESTÃO, e o handoff de 21/08 §4.1 os
+  // gateia junto com o custo: quem atende no balcão não decide o que sai de linha nem o que
+  // vende sem margem, e o card ocuparia espaço com uma pergunta que não é dele.
+  if (perm.custo) {
+    cards.push({ key: 'parado', label: `Sem venda ${diasParado}d`, sub: 'sem giro', tone: 'violet', icon: Clock, valor: kpis.parado });
+  }
   if (perm.custo && perm.preco && kpis.margem !== undefined) {
-    cards.push({ key: 'margem', label: 'Margem baixa', sub: 'sob o piso', tone: 'emerald', icon: Percent, valor: kpis.margem });
+    cards.push({ key: 'margem', label: 'Margem baixa', sub: 'sob o piso', tone: 'amber', icon: Percent, valor: kpis.margem });
   }
 
-  // Cinco cards em UMA linha no desktop declarado (exceção de domínio 1). Abaixo dele a grade
-  // quebra em 3/2 colunas em vez de transbordar na horizontal como o protótipo: aqui a tela
-  // vive dentro do AppShellV2, e rolagem horizontal do conteúdo esconderia os KPIs da direita
-  // sem nenhum affordance. `gap: 9px` é herdado da golden master.
+  // `auto-fit` com piso de 170px é a grade do handoff de 21/08 §3.1: com dois cards (balcão)
+  // eles se esticam; com quatro (autorizado) cabem na linha. Sem contagem fixa no código, a
+  // faixa acompanha a permissão sem ninguém lembrar de ajustar o `grid-cols-N`.
   //
-  // `lg:grid-cols-5` acompanha a contagem real: com 4 cards (perfil sem custo) a grade cai
-  // pra 4 e nenhum fica órfão numa segunda linha.
+  // `gap: 9px` é herdado da golden master.
   return (
-    <div className={'grid gap-[9px] grid-cols-2 sm:grid-cols-3 ' + (cards.length === 5 ? 'lg:grid-cols-5' : 'lg:grid-cols-4')}>
+    <div className="grid gap-[9px] [grid-template-columns:repeat(auto-fit,minmax(170px,1fr))]">
       {cards.map((card) => {
         const Icon = card.icon;
         const tone = TONE_STYLES[card.tone];

@@ -1,0 +1,31 @@
+{
+  "schema": "contrato-de-tela/1",
+  "modulo": "Essentials",
+  "tela": "Documentos",
+  "rota": "ess-documentos",
+  "secoes": [
+    "card-cabecalho",
+    "form-upload",
+    "tabela",
+    "drawer",
+    "drawer-compartilhar"
+  ],
+  "copy": {
+    "titulo": "Todos os documentos",
+    "botao_novo": "Adicionar",
+    "acao_baixar": "Baixar",
+    "acao_compartilhar": "Compartilhar"
+  },
+  "colunas": [
+    "Nome",
+    "Descrição",
+    "Data do upload",
+    "Ações"
+  ],
+  "estados": [
+    "normal",
+    "primeira",
+    "tipo-recusado",
+    "demo"
+  ]
+}

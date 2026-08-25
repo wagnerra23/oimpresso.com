@@ -121,7 +121,7 @@
 .cd-btn:hover{border-color:color-mix(in oklch,var(--accent) 40%,var(--border))}
 .cd-btn.ghost{background:transparent;color:var(--text-dim)}
 .cd-btn.ghost:hover{color:var(--text)}
-.cd-btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg,#fff);font-weight:600}
+.cd-btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);font-weight:600}
 .cd-btn:disabled{opacity:.5;cursor:not-allowed}
 
 .cd-foot{display:flex;align-items:center;gap:8px;padding:12px 18px;border-top:1px solid var(--border);background:var(--bg-2,var(--sunken))}

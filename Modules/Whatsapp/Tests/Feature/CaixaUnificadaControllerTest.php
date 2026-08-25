@@ -340,7 +340,7 @@ function cuctResolveDefer($prop): array
 // 1. Happy path — render com payload válido
 // ============================================================================
 
-it('R-WA-CAIXA-UNIF-001 — happy path render com props básicas + queue derivada', function () {
+it('UC-CXU-01 · R-WA-CAIXA-UNIF-001 — happy path render com props básicas + queue derivada', function () {
     $ch = cuctMakeChannel(1, 'caixa-unif-001-uuid');
     cuctMakeConv(1, $ch->id, ['financeiro']);  // tag financeiro → fila financeiro
     cuctSetUserAndGrant(1, 10, [$ch->id]);
@@ -398,7 +398,7 @@ it('R-WA-CAIXA-UNIF-001 — happy path render com props básicas + queue derivad
  * red-first: contra o catálogo antigo (row whatsapp_baileys) este teste FALHA — o chip
  * whatsmeow inexistente → null no firstWhere; é o discriminador do bug, não tautológico.
  */
-it('R-WA-CAIXA-UNIF-013 — canal whatsmeow ativo vira chip ativo com count real (PARTE 4)', function () {
+it('UC-CXU-13 · R-WA-CAIXA-UNIF-013 — canal whatsmeow ativo vira chip ativo com count real (PARTE 4)', function () {
     $ch = cuctMakeChannel(1, 'caixa-unif-013-uuid'); // type whatsmeow, status active
     cuctMakeConv(1, $ch->id, ['vendas']);
     cuctMakeConv(1, $ch->id, ['suporte']);
@@ -440,7 +440,7 @@ it('R-WA-CAIXA-UNIF-013 — canal whatsmeow ativo vira chip ativo com count real
  * filtro ACL antigo o canal caído sumiria (0 rows); business-wide mantém ele. É o
  * discriminador da mudança, não tautológico.
  */
-it('R-WA-CAIXA-UNIF-015 — canal caído entra business-wide (sem grant) + saudável fora + Tier 0', function () {
+it('UC-CXU-16 · R-WA-CAIXA-UNIF-015 — canal caído entra business-wide (sem grant) + saudável fora + Tier 0', function () {
     // biz=1 caído, SEM grant pro user — DEVE aparecer (business-wide)
     $down = cuctMakeChannel(1, 'caixa-unif-015-down');
     $down->forceFill(['channel_health' => 'disconnected', 'last_health_message' => 'whatsmeow disconnected: provision_pending'])->save();
@@ -473,7 +473,7 @@ it('R-WA-CAIXA-UNIF-015 — canal caído entra business-wide (sem grant) + saud�
 // 2. Cross-tenant Tier 0 (ADR 0093) — biz=99 NUNCA vaza pra biz=1
 // ============================================================================
 
-it('R-WA-CAIXA-UNIF-002 — cross-tenant biz=99 invisível pra biz=1 (Tier 0)', function () {
+it('UC-CXU-02 · R-WA-CAIXA-UNIF-002 — cross-tenant biz=99 invisível pra biz=1 (Tier 0)', function () {
     // biz=99 (outro tenant) cria canal + conv
     $ch99 = cuctMakeChannel(99, 'caixa-unif-002-other-uuid');
     cuctMakeConv(99, $ch99->id, ['vendas']);
@@ -505,7 +505,7 @@ it('R-WA-CAIXA-UNIF-002 — cross-tenant biz=99 invisível pra biz=1 (Tier 0)', 
 // 3. Permission ACL canal=fila — user sem ACL não vê conversas do canal
 // ============================================================================
 
-it('R-WA-CAIXA-UNIF-003 — user sem ACL no canal NÃO vê convs daquele canal', function () {
+it('UC-CXU-03 · R-WA-CAIXA-UNIF-003 — user sem ACL no canal NÃO vê convs daquele canal', function () {
     // 2 canais no mesmo business
     $chAllowed = cuctMakeChannel(1, 'caixa-unif-003-allowed-uuid');
     $chForbidden = cuctMakeChannel(1, 'caixa-unif-003-forbidden-uuid');
@@ -553,7 +553,7 @@ function cuctPatchRequest(string $uri, array $body = []): Request
     return $request;
 }
 
-it('R-WA-CAIXA-UNIF-004 — availableAssignees só lista operadores do business atual (Tier 0)', function () {
+it('UC-CXU-04 · R-WA-CAIXA-UNIF-004 — availableAssignees só lista operadores do business atual (Tier 0)', function () {
     $ch = cuctMakeChannel(1, 'caixa-unif-004-uuid');
     cuctMakeConv(1, $ch->id);
 
@@ -580,7 +580,7 @@ it('R-WA-CAIXA-UNIF-004 — availableAssignees só lista operadores do business 
     expect($maiara['name'])->toBe('Maiara Silva');
 });
 
-it('R-WA-CAIXA-UNIF-005 — assign atribui/remove operador + bloqueia cross-tenant (Tier 0)', function () {
+it('UC-CXU-05 · R-WA-CAIXA-UNIF-005 — assign atribui/remove operador + bloqueia cross-tenant (Tier 0)', function () {
     $ch = cuctMakeChannel(1, 'caixa-unif-005-uuid');
     $conv = cuctMakeConv(1, $ch->id);
 
@@ -631,7 +631,7 @@ function cuctMakeTemplate(int $businessId, string $name, string $provider, strin
     ]);
 }
 
-it('R-WA-CAIXA-UNIF-006 — availableTemplates só ready (LOCAL/APPROVED) do business atual (Tier 0)', function () {
+it('UC-CXU-06 · R-WA-CAIXA-UNIF-006 — availableTemplates só ready (LOCAL/APPROVED) do business atual (Tier 0)', function () {
     $ch = cuctMakeChannel(1, 'caixa-unif-006-uuid');
     cuctSetUserAndGrant(1, 10, [$ch->id]);
 
@@ -661,7 +661,7 @@ it('R-WA-CAIXA-UNIF-006 — availableTemplates só ready (LOCAL/APPROVED) do bus
 // 6. US-WA-301 (ADR 0267) — filas em DB: seed lazy + leitura DB + Tier 0 + CRUD
 // ============================================================================
 
-it('R-WA-CAIXA-UNIF-007 — filas: seed lazy idempotente do config + payload lê DB + Tier 0', function () {
+it('UC-CXU-07 · R-WA-CAIXA-UNIF-007 — filas: seed lazy idempotente do config + payload lê DB + Tier 0', function () {
     $ch = cuctMakeChannel(1, 'caixa-unif-007-uuid');
     cuctMakeConv(1, $ch->id, ['financeiro']);
     cuctSetUserAndGrant(1, 10, [$ch->id]);
@@ -704,7 +704,7 @@ it('R-WA-CAIXA-UNIF-007 — filas: seed lazy idempotente do config + payload lê
         ->and(collect($admin)->pluck('slug')->all())->not->toContain('intrusa');
 });
 
-it('R-WA-CAIXA-UNIF-008 — CRUD filas: store/update/destroy + default protegida + Tier 0', function () {
+it('UC-CXU-08 · R-WA-CAIXA-UNIF-008 — CRUD filas: store/update/destroy + default protegida + Tier 0', function () {
     $ch = cuctMakeChannel(1, 'caixa-unif-008-uuid');
     cuctSetUserAndGrant(1, 10, [$ch->id]);
     // Seed inicial
@@ -767,7 +767,7 @@ it('R-WA-CAIXA-UNIF-008 — CRUD filas: store/update/destroy + default protegida
 // 7. US-WA-305 — queue_override: mover entre filas vence heurística
 // ============================================================================
 
-it('R-WA-CAIXA-UNIF-009 — moveQueue: override vence heurística, null volta, slug inválido 422', function () {
+it('UC-CXU-09 · R-WA-CAIXA-UNIF-009 — moveQueue: override vence heurística, null volta, slug inválido 422', function () {
     $ch = cuctMakeChannel(1, 'caixa-unif-009-uuid');
     $conv = cuctMakeConv(1, $ch->id, ['financeiro']); // heurística → fila financeiro
     cuctSetUserAndGrant(1, 10, [$ch->id]);
@@ -817,7 +817,7 @@ function cuctPostRequest(string $uri, array $body = []): Request
     return $request;
 }
 
-it('R-WA-CAIXA-UNIF-010 — startConversation: cria, reabre (não duplica) + guards canal/phone', function () {
+it('UC-CXU-10 · R-WA-CAIXA-UNIF-010 — startConversation: cria, reabre (não duplica) + guards canal/phone', function () {
     $chActive = cuctMakeChannel(1, 'caixa-unif-010-active-uuid');           // status=active
     $chSetup = cuctMakeChannel(1, 'caixa-unif-010-setup-uuid', 'setup');    // não-ativo
     $chNoAcl = cuctMakeChannel(1, 'caixa-unif-010-noacl-uuid');             // sem grant
@@ -871,7 +871,7 @@ it('R-WA-CAIXA-UNIF-010 — startConversation: cria, reabre (não duplica) + gua
 // 9. US-WA-306 (ADR 0268) — broadcast fase 1: pre-flight LGPD/janela + draft
 // ============================================================================
 
-it('R-WA-CAIXA-UNIF-011 — broadcast pre-flight: opt-in LGPD + janela 24h + draft auditável', function () {
+it('UC-CXU-11 · R-WA-CAIXA-UNIF-011 — broadcast pre-flight: opt-in LGPD + janela 24h + draft auditável', function () {
     $ch = cuctMakeChannel(1, 'caixa-unif-011-uuid');
     cuctSetUserAndGrant(1, 10, [$ch->id]);
 
@@ -928,7 +928,7 @@ it('R-WA-CAIXA-UNIF-011 — broadcast pre-flight: opt-in LGPD + janela 24h + dra
 // 10. PR-9 brief [CC] — IA na thread: dry_run gateia custo + Tier 0/ACL
 // ============================================================================
 
-it('R-WA-CAIXA-UNIF-012 — inbox AI: dry_run devolve fixture sem LLM + ACL canal fail-loud', function () {
+it('UC-CXU-12 · R-WA-CAIXA-UNIF-012 — inbox AI: dry_run devolve fixture sem LLM + ACL canal fail-loud', function () {
     config(['copiloto.dry_run' => true]); // NUNCA toca provider em teste
 
     $ch = cuctMakeChannel(1, 'caixa-unif-012-uuid');
@@ -974,7 +974,7 @@ it('R-WA-CAIXA-UNIF-012 — inbox AI: dry_run devolve fixture sem LLM + ACL cana
 // 13. Onda 3 — customerContext (Saldo + Histórico) agregado do contact, Tier 0
 // ============================================================================
 
-it('R-WA-CAIXA-UNIF-013 — customerContext agrega Saldo+Histórico do contact (Tier 0) + fallback sem contact', function () {
+it('UC-CXU-14 · R-WA-CAIXA-UNIF-013 — customerContext agrega Saldo+Histórico do contact (Tier 0) + fallback sem contact', function () {
     $ch = cuctMakeChannel(1, 'caixa-unif-013-uuid');
     cuctSetUserAndGrant(1, 10, [$ch->id]);
 
@@ -1061,7 +1061,7 @@ function cuctMakeInboundMsg(int $businessId, int $convId, string $type, ?string 
     ]);
 }
 
-it('R-WA-CAIXA-UNIF-014 — media_inbound_24h filtra pela relação messages (schema novo), não whatsapp_messages legacy', function () {
+it('UC-CXU-15 · R-WA-CAIXA-UNIF-014 — media_inbound_24h filtra pela relação messages (schema novo), não whatsapp_messages legacy', function () {
     $ch = cuctMakeChannel(1, 'caixa-unif-014-uuid');
     cuctSetUserAndGrant(1, 10, [$ch->id]);
 

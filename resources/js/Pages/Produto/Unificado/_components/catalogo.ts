@@ -9,7 +9,17 @@
  */
 
 /** Quem pode ver o quê. Ausência de permissão declarada nunca vira permissão. */
-export type Permissoes = { custo: boolean; preco: boolean; composicao: boolean };
+export type Permissoes = {
+  custo: boolean;
+  preco: boolean;
+  composicao: boolean;
+  /**
+   * `product.update` — o mesmo direito que a tela legada exige pra inativar. Sem ele a ação
+   * em lote não é MONTADA, e não apenas desabilitada: botão cinza anuncia um poder que a
+   * pessoa não tem e transforma cada clique numa negativa.
+   */
+  inativar: boolean;
+};
 
 /** Tipo do item. Derivado no servidor a partir de `type`/`not_for_selling`/`enable_stock`. */
 export type TipoItem = 'produto' | 'servico' | 'materia' | 'kit';
@@ -58,6 +68,11 @@ export type ProdutoRow = {
   obs?: string;
   /** Atributos de variação com a contagem de valores de cada um. Ausente quando não há (§3.2). */
   variacoes?: AtributoVariacao[];
+  /**
+   * Cobertura de saldo da grade — o que a 2ª linha da célula Produto exibe (V3 §3.2).
+   * Ausente quando o item não tem combinação.
+   */
+  grade?: GradeSaldo;
 };
 
 /** Uma linha do popover de estoque por local. */
@@ -73,14 +88,50 @@ export type LocalSaldo = { nome: string; qtd: number };
  */
 export type AtributoVariacao = { nome: string; n: number };
 
+/**
+ * Cobertura de saldo da grade: quantas combinações vendem, de quantas existem.
+ *
+ * Chave AUSENTE quando o item não tem grade — o marcador só faz sentido pra produto com
+ * combinação, e `{com:0,total:0}` faria a linha montar um marcador que não afirma nada.
+ */
+export type GradeSaldo = { com: number; total: number };
+
 /** `Cor (4) · Tamanho (3)` — a terceira linha da célula Produto (handoff V2 §3.2). */
 export const resumoVariacoes = (vs: AtributoVariacao[] | undefined): string =>
   !vs || vs.length === 0 ? '' : vs.map((v) => `${v.nome} (${v.n})`).join(' · ');
 
+/**
+ * `4 de 6 com saldo` — o marcador de grade da 2ª linha (handoff V3 §3.2).
+ *
+ * SUBSTITUI o resumo de atributo (`resumoVariacoes`) nessa posição. O nome do atributo vem do
+ * cadastro do tenant e sai como a pessoa digitou — em produção a linha imprimia
+ * "Tamnha p-m-g (4)", gastando a largura pra repetir um rótulo com erro de digitação em vez
+ * de responder a pergunta do balcão: *quanto dessa grade eu consigo vender?*.
+ *
+ * `resumoVariacoes` continua vivo — é o painel que o usa, onde o nome do atributo é o assunto.
+ */
+export const marcadorGrade = (g: GradeSaldo | undefined): string =>
+  !g || g.total === 0 ? '' : `${g.com} de ${g.total} com saldo`;
+
+/**
+ * Furo na grade: existe combinação sem saldo. É o que pinta o marcador de vermelho (§3.2).
+ * Grade inteira zerada também é furo — e nesse caso o selo já está vermelho junto.
+ */
+export const gradeComFuro = (g: GradeSaldo | undefined): boolean =>
+  !!g && g.total > 0 && g.com < g.total;
+
 /** Saldo com unidade, pro popover e pro drawer. */
 export const qtdComUnidade = (qtd: number, unit: string) => `${numero(qtd)} ${unit}`;
 
-/** Estado de disponibilidade — vocabulário aprovado (handoff §6 exceção 6). */
+/**
+ * Estado de disponibilidade — vocabulário do handoff de 21/08 §4.3.
+ *
+ * Mudou de nome no pacote das 27 ondas: "Em estoque" virou **Disponível**, "Estoque baixo"
+ * virou **Abaixo do mínimo** e "Sem estoque" virou **Sem saldo**. Não é sinônimo trocado por
+ * gosto — o rótulo antigo falava do DEPÓSITO ("tem no estoque"), o novo fala do que o balcão
+ * pode PROMETER ("dá pra vender"). Com saldo em local que não vende (produção, obra), as duas
+ * frases divergem, e é a segunda que responde a pergunta do atendimento.
+ */
 export type EstadoEstoque = {
   chave: 'em' | 'baixo' | 'sem' | 'nao';
   label: string;
@@ -94,19 +145,19 @@ export type EstadoEstoque = {
  * NBSP no rótulo pra ele não quebrar dentro do badge.
  *
  * A ordem dos testes importa: `null` (não estocável) vem ANTES de `=== 0`, senão um serviço
- * seria lido como "sem estoque" e apareceria bloqueando venda que não depende de saldo.
+ * seria lido como "sem saldo" e apareceria bloqueando venda que não depende de saldo.
  */
 export function estadoEstoque(r: Pick<ProdutoRow, 'stockQty' | 'minimo'>): EstadoEstoque {
   if (r.stockQty === null) {
     return { chave: 'nao', label: 'Não estocável', rel: null, rank: -1 };
   }
   if (r.stockQty === 0) {
-    return { chave: 'sem', label: 'Sem estoque', rel: '0', rank: 0 };
+    return { chave: 'sem', label: 'Sem saldo', rel: '0', rank: 0 };
   }
   if (r.minimo !== null && r.stockQty <= r.minimo) {
-    return { chave: 'baixo', label: 'Estoque baixo', rel: numero(r.stockQty), rank: 1 };
+    return { chave: 'baixo', label: 'Abaixo do mínimo', rel: numero(r.stockQty), rank: 1 };
   }
-  return { chave: 'em', label: 'Em estoque', rel: numero(r.stockQty), rank: 2 };
+  return { chave: 'em', label: 'Disponível', rel: numero(r.stockQty), rank: 2 };
 }
 
 /** Chave de ordenação da coluna Disponibilidade: rank primeiro, saldo como desempate. */
@@ -128,6 +179,21 @@ export function margemFrac(r: ProdutoRow): number | undefined {
 export function sobOPiso(r: ProdutoRow, piso: number): boolean {
   const m = margemFrac(r);
   return m !== undefined && m < piso;
+}
+
+/**
+ * Linha que pede ação — o que recebe o trilho vermelho de 3px na borda esquerda (V3 §10.1).
+ *
+ * TRÊS motivos, não um: sem saldo, abaixo do mínimo e margem sob o piso. Até 24/08 a tela
+ * marcava só o item zerado, e com um lavado de fundo a 30% de opacidade que não sobrevive ao
+ * olhar de relance. O trilho existe justamente pra varrer a lista SEM ler — se só aparece no
+ * caso que o selo já grita ("Sem saldo"), não paga o próprio custo.
+ *
+ * `piso` é parâmetro de negócio e vem do servidor; a tela nunca o redeclara.
+ */
+export function linhaUrgente(r: ProdutoRow, piso: number): boolean {
+  const chave = estadoEstoque(r).chave;
+  return chave === 'sem' || chave === 'baixo' || sobOPiso(r, piso);
 }
 
 const numero = (n: number) =>
@@ -160,4 +226,9 @@ export const ABAS_CATALOGO: ReadonlyArray<{ key: AbaKey; label: string }> = [
 
 export type AbaKey = 'todos' | 'produtos' | 'servicos' | 'materia' | 'kits' | 'inativos';
 
-export type KpiKey = 'ativos' | 'min' | 'zero' | 'parado' | 'margem' | 'total';
+/**
+ * KPI-filtros do catálogo. `ativos` saiu no pacote de 21/08: ele contava o que a aba já
+ * contava (todo item listado fora de "Inativos" é ativo), então clicar nele não recortava
+ * nada. Card que não recorta ocupa o lugar de um que recorta.
+ */
+export type KpiKey = 'min' | 'zero' | 'parado' | 'margem' | 'total';

@@ -26,6 +26,8 @@
     "stylelint": "stylelint \"resources/css/**/*.css\"",
     "stylelint:baseline:write": "node scripts/stylelint-baseline.mjs --write",
     "stylelint:baseline:check": "node scripts/stylelint-baseline.mjs",
+    "typecheck:baseline:write": "node scripts/typecheck-baseline.mjs --write",
+    "typecheck:baseline:check": "node scripts/typecheck-baseline.mjs",
     "css:size:write": "node scripts/css-size-baseline.mjs --write",
     "css:size:check": "node scripts/css-size-baseline.mjs",
     "pageheader:guard": "node scripts/pageheader-migration-guard.mjs",

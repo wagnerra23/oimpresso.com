@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 680,
-    "edges": 957,
+    "nodes": 681,
+    "edges": 958,
     "by_node_type": {
       "module": 39,
       "table": 101,
       "adr": 105,
-      "component": 390,
+      "component": 391,
       "api": 45
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 45,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 390,
+      "hasComponent": 391,
       "dependsOn": 115,
       "delegatesTo": 107,
       "migratesTo": 1,
@@ -1148,6 +1148,13 @@
       "providers": [
         "Woocommerce"
       ]
+    },
+    {
+      "id": "component:Arquivos/ArquivosAdminController",
+      "type": "component",
+      "module": "Arquivos",
+      "name": "ArquivosAdminController",
+      "desc": ""
     },
     {
       "id": "component:Arquivos/DataController",
@@ -6050,6 +6057,12 @@
       "to": "adr:0123",
       "type": "governedByAdr",
       "source": "related_adrs"
+    },
+    {
+      "from": "module:Arquivos",
+      "to": "component:Arquivos/ArquivosAdminController",
+      "type": "hasComponent",
+      "source": "contains"
     },
     {
       "from": "module:Arquivos",

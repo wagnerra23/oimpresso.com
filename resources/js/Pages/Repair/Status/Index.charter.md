@@ -1,6 +1,7 @@
 ---
 page: /repair/status
 component: resources/js/Pages/Repair/Status/Index.tsx
+bundle_source: repair-page.jsx
 owner: wagner
 status: live
 last_validated: "2026-05-07"
