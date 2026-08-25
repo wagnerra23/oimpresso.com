@@ -29,3 +29,9 @@
   .cb-root .jc-header-r{ flex:1 1 100%; justify-content:flex-start; margin-left:0; }
   .cb-nav{ gap:2px; }
 }
+
+/* Respiro do header do portal ([W] 2026-08-24): o portal usa .pb-root (não .mp-page), então a
+   regra .mp-page>.mp-header{padding:20px 28px 0} do modulo-padrao.css não pega e o header ficava
+   colado nas bordas — o corpo (.pb-body) já respirava. */
+.pb-root>.mp-header,.cb-root>.mp-header{padding:18px 20px 0}
+@media (max-width:900px){.pb-root>.mp-header,.cb-root>.mp-header{padding:14px 14px 0}}

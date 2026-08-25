@@ -76,11 +76,16 @@ const MENU = [
       { id: "venda-devolver",    icon: "list",   label: "Devolver venda" },
       { id: "venda-importar",    icon: "upload", label: "Importação de vendas" },
       { id: "orcamentos",  icon: "quote", label: "Orçamentos" },
+      { id: "catalogo-qr", icon: "grid",  label: "Catálogo QR" },
       { id: "woocommerce", icon: "plug",  label: "WooCommerce" },
       { id: "portalos",    icon: "globe", label: "Portal Consulta OS" },
     ]},
     { id: "oficinaauto", icon: "car",     label: "Oficina Auto", ghosts: [
       { id: "oficina-os", icon: "orders", label: "Nova OS" },
+    ]},
+    // Vestuário (Modules/Vestuario · group 'vender' no vivo, order 35) — entry top-level, ghost Etiquetas
+    { id: "vestuario",   icon: "product", label: "Vestuário", ghosts: [
+      { id: "vest-etiquetas", icon: "print", label: "Etiquetas" },
     ]},
   ]},
   { group: "FINANÇAS", items: [
@@ -121,6 +126,8 @@ const MENU = [
   ]},
   { group: "PRODUÇÃO", items: [
     { id: "os",     icon: "orders", label: "Ordens de Serviço" },
+    // Comunicação Visual (Modules/ComunicacaoVisual · group 'producao' no vivo, order 55)
+    { id: "cv",     icon: "print",  label: "Comunicação Visual" },
     { id: "repair", icon: "wrench", label: "Assistência técnica", ghosts: [
       { id: "rep-producao", icon: "grid",    label: "Produção · oficina" },
       { id: "rep-folhas",   icon: "orders",  label: "Folhas de OS" },
@@ -175,6 +182,12 @@ const MENU = [
   ]},
   { group: "SISTEMA", items: [
     { id: "auditoria",   icon: "audit", label: "Auditoria" },
+    // Voz do Cliente (Modules/VozDoCliente · entry sem group no vivo → default)
+    { id: "voz",         icon: "chat",  label: "Voz do Cliente" },
+    // Modo Suporte (ADR 0305/0309 · nasce no core, group 'sistema', order 90)
+    { id: "suporte",     icon: "shield", label: "Suporte", ghosts: [
+      { id: "suporte-visao", icon: "users", label: "Visão do cliente" },
+    ]},
     { id: "usuarios",    icon: "user",  label: "Usuários", ghosts: [
       { id: "funcoes",       icon: "shield", label: "Funções e permissões" },
       { id: "comissionados", icon: "cash",   label: "Comissionados" },
@@ -200,6 +213,13 @@ const MENU = [
       { id: "rel-comercial",  icon: "chart",   label: "Comercial" },
       { id: "rel-estoque",    icon: "archive", label: "Estoque" },
       { id: "rel-fiscal",     icon: "receipt", label: "Fiscal" },
+    ]},
+    // Arquivos (Modules/Arquivos · DMS backbone ADR 0123). No vivo o DataController é NO-OP e a
+    // UI nasce em Pages/Arquivos dentro do Admin Center (US-ARQ-013) — aqui entra como destino próprio.
+    { id: "arquivos",    icon: "archive", label: "Arquivos", ghosts: [
+      { id: "arq-retencao", icon: "clock",  label: "Retenção" },
+      { id: "arq-cofre",    icon: "shield", label: "Cofre" },
+      { id: "arq-trilha",   icon: "audit",  label: "Trilha de acesso" },
     ]},
     { id: "kb",          icon: "book",  label: "Base de Conhecimento" },
     { id: "planilhas",   icon: "grid",  label: "Planilhas", ghosts: [
