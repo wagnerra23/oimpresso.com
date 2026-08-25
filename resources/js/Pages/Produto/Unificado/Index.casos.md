@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela reúne, numa rota só, tudo que as outras telas do Produto gateiam separadamente — custo, preço de venda, tabelas de preço e composição. Sem casos, ela vira o caminho por onde tudo isso sai sem permissão.
 owner: wagner
-last_run: "2026-08-24"
-last_run_ci: "NAO RODEI a suite nesta leva — o bump de last_run e por REVALIDACAO DE CONTRATO, nao por run nova, e digo isso porque o G-6 aceita a data e so o leitor percebe a diferenca. O que mudou: pacote V2 de 21/08 (PR #6171) alterou a faixa de KPI, a toolbar, a linha, o painel e o rodape da tela. Revalidacao UC a UC: UC-PUNI-01..06 (gates de custo/preco/tabelas/BOM/tenant/403) intactos — nenhum toca o caminho de permissao; UC-PUNI-08..14 idem (aba por tipo, estados de estoque, agregacoes cross-tenant, paginacao, saldo por local, observacao, variacao-fantasma). UC-PUNI-07 FOI ALTERADO: passou a cobrir a chave `parado` junto de `margem`, porque o KPI de item parado virou recorte de gestao e agora e gateado por custo no servidor; o assert de chaves presentes tambem mudou (`ativos` saiu do payload). DOIS UC NOVOS: UC-PUNI-15 e UC-PUNI-16, ambos 🕐 aguarda run. ATENCAO ao renumero: os dois nasceram como UC-PUNI-11 e UC-PUNI-12 e COLIDIAM com os ids ja usados aqui (paginacao e saldo por local) — dois `it()` com o mesmo id significando coisas diferentes; corrigido antes do merge. Quem executa e a lane MySQL / a nightly CT 100 — nenhum Status subiu pra ✅ nesta leva. Run anterior: 32318469674."
+last_run: "2026-08-25"
+last_run_ci: "NAO RODEI a suite nesta leva - o bump de last_run e por REVALIDACAO DE CONTRATO, nao por run nova. O que mudou (PR #6204, handoff V6, entrou no main em 25/08): o glyph do gatilho do menu virou MoreHorizontal (mesmo simbolo do menu da linha), o rotulo passou de 'Outras visoes do catalogo' para 'Apresentacao e dados', as abas trocaram --accent por primary (o accent e reescrito em runtime pelo seletor de matiz) e - a unica mudanca de COMPORTAMENTO - o grupo 'Outras visoes' saiu do menu, levando os links das 4 sub-telas. Revalidacao UC a UC: os 21 seguem intactos, porque todos contratam SERVIDOR (gate de permissao, escopo de tenant, forma do payload, paginacao, agregacao) e nenhum contrata caminho de navegacao. As 4 sub-telas continuam servidas pelo mesmo controller e alcancaveis por ?tela=; o que sumiu foi o link. Nenhum Status mudou. Detalhe e o achado que sobra (elas ficaram sem porta de UI) na secao Revalidacao de 2026-08-25."
 ---
 
 # Casos de Uso & Aceite — Catálogo Unificado (`/products/unificado`)
@@ -183,7 +183,11 @@ last_run_ci: "NAO RODEI a suite nesta leva — o bump de last_run e por REVALIDA
 > própria, filtros com contagem, cartão de tabela com rolagem interna e drawer de detalhe. As 4
 > sub-telas anteriores (Categorias · Insumos·BOM · Tabelas de preço · Histórico) saíram da barra
 > de abas e foram pro **menu de ações do cabeçalho** — mesmos gates, mesmo controller, nenhuma
-> capacidade removida.
+> capacidade removida. _(**Fato de 08-18, que deixou de valer em 08-25:** o
+> [#6204](https://github.com/wagnerra23/oimpresso.com/pull/6204) removeu o grupo "Outras visões"
+> também do menu de ações. As quatro seguem servidas pelo mesmo controller e alcançáveis por
+> `?tela=`, mas hoje **não têm entrada de UI nesta tela** — ver a Revalidação de 2026-08-25 no
+> fim do arquivo.)_
 >
 > Os UCs abaixo contratam o que a mudança introduziu. Os UC-PUNI-01..06 continuam valendo
 > inteiros: eles contratam **visibilidade**, que o layout não toca — e foram **revalidados sobre
@@ -415,3 +419,44 @@ last_run_ci: "NAO RODEI a suite nesta leva — o bump de last_run e por REVALIDA
 - **Teste:** [`ProdutoUnificadoGradeContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoGradeContratoTest.php) — `UC-PUNI-17`.
 - **Status: 🕐 aguarda run** — mesma razão do UC-PUNI-15: estes contratos pulam sem o schema
   UltimatePOS, então o veredito é da lane MySQL (`estoque-pest`).
+
+## Revalidação de 2026-08-24 — registro preservado do campo `last_run_ci`
+
+O `last_run_ci` do frontmatter descreve **uma** leva por vez. Quando ele foi reescrito para a leva
+de 25/08, o texto abaixo — que era o conteúdo do campo e o único registro daquela revalidação —
+desceu pra cá em vez de ser apagado. Preservado literal:
+
+> NAO RODEI a suite nesta leva — o bump de last_run e por REVALIDACAO DE CONTRATO, nao por run nova, e digo isso porque o G-6 aceita a data e so o leitor percebe a diferenca. O que mudou: pacote V2 de 21/08 (PR #6171) alterou a faixa de KPI, a toolbar, a linha, o painel e o rodape da tela. Revalidacao UC a UC: UC-PUNI-01..06 (gates de custo/preco/tabelas/BOM/tenant/403) intactos — nenhum toca o caminho de permissao; UC-PUNI-08..14 idem (aba por tipo, estados de estoque, agregacoes cross-tenant, paginacao, saldo por local, observacao, variacao-fantasma). UC-PUNI-07 FOI ALTERADO: passou a cobrir a chave `parado` junto de `margem`, porque o KPI de item parado virou recorte de gestao e agora e gateado por custo no servidor; o assert de chaves presentes tambem mudou (`ativos` saiu do payload). DOIS UC NOVOS: UC-PUNI-15 e UC-PUNI-16, ambos 🕐 aguarda run. ATENCAO ao renumero: os dois nasceram como UC-PUNI-11 e UC-PUNI-12 e COLIDIAM com os ids ja usados aqui (paginacao e saldo por local) — dois `it()` com o mesmo id significando coisas diferentes; corrigido antes do merge. Quem executa e a lane MySQL / a nightly CT 100 — nenhum Status subiu pra ✅ nesta leva. Run anterior: 32318469674.
+
+
+## Revalidação de 2026-08-25 — a única mudança de comportamento foi um link que sumiu
+
+O `casos-gate` acusou `stale:` porque o `Index.tsx` mudou depois do `last_run` de 08-24. Mudou
+mesmo: o [#6204](https://github.com/wagnerra23/oimpresso.com/pull/6204) (handoff V6) entrou no
+`main` em 25/08. Ao contrário da revalidação anterior, **esta não é inerte** — e por isso a
+interseção foi conferida item a item, não declarada.
+
+**O diff, lido do git (`git show e5bbff922f -- …/Unificado/Index.tsx`), tem quatro coisas:**
+
+| # | Mudança | Natureza |
+|---|---|---|
+| 1 | `MoreVertical` → `MoreHorizontal` no gatilho do menu | cosmética — passa a usar o mesmo símbolo do menu da linha |
+| 2 | rótulo `"Outras visões do catálogo"` → `"Apresentação e dados"` | cosmética (atributo `title`) |
+| 3 | abas: `--accent` → `primary`, altura e corpo do texto | cosmética — o `--accent` é reescrito em runtime pelo seletor de matiz do shell |
+| 4 | **o grupo "Outras visões" saiu do menu, com os links das 4 sub-telas** | **comportamento** |
+
+**Interseção com os 21 UCs: nenhuma** (contados com `grep -c '^## UC-'`). O motivo é estrutural,
+não sorte: os UC-PUNI-01..17 contratam **servidor** — gate de permissão (custo, preço, tabelas,
+BOM), escopo de tenant `[T0]`, forma do payload, paginação, ordenação, agregação, saldo por local,
+observação sem HTML, variação-fantasma. **Nenhum contrata caminho de navegação.** Onde eles citam
+uma sub-tela (UC-PUNI-03 e 04) o objeto é a **prop** que chega ou não chega, não como se chega
+até ela — e as quatro continuam servidas pelo mesmo controller, com os mesmos gates, alcançáveis
+por `?tela=`. Nenhum `Status:` mudou.
+
+**O achado que sobra, e que não é meu pra consertar:** as 4 sub-telas ficaram **sem porta de UI**.
+O comentário que o #6204 deixou no lugar do grupo removido declara a decisão e o dono — *"dar
+acesso a elas é trabalho da sidebar do módulo, decisão de FORA deste handoff"*, e *"não recolocar
+em outro lugar desta tela"*. Registro aqui porque um leitor que confie na frase de 08-18 vai
+procurar no menu de ações e não achar; a frase foi corrigida com a data em que deixou de valer.
+
+**Não rodei a suíte nesta leva.** O bump é por revalidação de contrato, não por run nova.
