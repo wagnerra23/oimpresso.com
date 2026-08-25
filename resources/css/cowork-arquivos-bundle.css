@@ -25,7 +25,7 @@
  */
 
 /* ── Arquivos · DMS backbone (.arq-) ── */
-.arq-page{display:flex;flex-direction:column;gap:14px}
+.arq-page{display:flex;flex-direction:column;gap:16px;padding:6px 14px 24px}
 .arq-lista{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px;overflow-x:auto}
 .arq-lista table{min-width:1020px}
 .arq-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
@@ -69,7 +69,7 @@
 .arq-nota{margin:0}
 .arq-modal-alt{font-size:12px;color:var(--text-mute)}
 .arq-toast{position:fixed;right:20px;bottom:20px;z-index:40;max-width:440px;padding:10px 14px;font-size:12px;line-height:1.45;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgb(0 0 0/.18)}
-.dense.arq-page{gap:10px}
+.dense.arq-page{gap:11px;padding:4px 18px 24px}
 .dense .arq-lista,.dense .arq-achados{padding:8px}
 .dense .arq-card{padding:9px 11px}
 .dense .arq-card b{font-size:17px}
@@ -116,8 +116,10 @@
 .arq-page [data-contract=abas]+*{margin-top:2px}
 .arq-page .arq-casa{margin-top:-6px}
 
-/* ── regras compartilhadas da origem, reescritas escopadas ao módulo ── */
-.arq-page{gap:16px;padding:6px 24px 32px}
-.dense.arq-page{gap:11px;padding:4px 18px 24px}
+/* ── regras compartilhadas da origem (L295/296/305), MESCLADAS ── */
+/* Elas listavam `.arq-page` junto com 5 módulos alheios. Reescrever escopado criava
+   seletor duplicado (stylelint `no-duplicate-selectors`), então as declarações foram
+   mescladas na regra base RESPEITANDO a cascata da origem: base → dense → L295 → L305.
+   Valor computado final é idêntico ao do protótipo. Só `[data-contract=cabecalho]`
+   sobrou como regra própria — seletor distinto, não duplica. */
 .arq-page [data-contract=cabecalho]{padding-top:8px}
-.arq-page{padding:6px 14px 24px}
