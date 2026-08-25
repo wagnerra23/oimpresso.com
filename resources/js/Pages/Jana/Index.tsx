@@ -203,11 +203,27 @@ function MetaCard({ meta, onOpen }: { meta: Meta; onOpen: (meta: Meta, periodo: 
           </div>
         )}
 
+        {/* Rodapé do card — `jm-meta-f` da âncora: "% do alvo" à esquerda e a
+            PROJEÇÃO empurrada pro canto direito (`.jm-meta-proj{margin-left:auto}`,
+            `font-mono`, 10.5px). O protótipo CALCULA essa projeção no frontend
+            (`jmMeta()`: `atualN * 1.3`) — aqui NÃO: consome-se `meta.projecao`, que
+            o servidor manda (`ApuracaoService::projecao`), pela mesma porta do farol.
+            Copia-se a APRESENTAÇÃO da âncora, nunca o cálculo dela — é o princípio
+            que o `JanaMetaDrawer` §Situação já fixou.
+            `null` = sem base pra projetar; não se desenha nada, porque ausência de
+            projeção não é projeção de zero. */}
         {alvo !== null && (
-          <div className="text-xs text-muted-foreground">
-            Alvo: {formatValue(alvo, meta.unidade)}
-            {progresso !== null && (
-              <span className="ml-2 font-medium text-foreground">{progresso.toFixed(0)}%</span>
+          <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
+            <span>
+              Alvo: {formatValue(alvo, meta.unidade)}
+              {progresso !== null && (
+                <span className="ml-2 font-medium text-foreground">{progresso.toFixed(0)}%</span>
+              )}
+            </span>
+            {meta.projecao && (
+              <span className="ml-auto shrink-0 font-mono text-[10.5px] tabular-nums">
+                {formatValue(meta.projecao.projetado, meta.unidade)} no fechamento
+              </span>
             )}
           </div>
         )}
