@@ -621,15 +621,23 @@ function ProdutoUnificadoIndex({
       RECORTE
     );
 
+  /**
+   * `--d-cpad-x` do template PT-01, em todo slot da página (handoff §15.3 nº 15/18, aceite §16
+   * nº 22e) — "Linhas confortáveis" desmarcada muda a altura da linha (§3.2, já no `celulasDe`)
+   * E o padding lateral, junto; até 25/08 só a primeira metade estava ligada, e o padding ficava
+   * cravado em 24px mesmo em modo compacto.
+   */
+  const padX = densa ? 'px-3.5' : 'px-6';
+
   return (
     <>
       <Head title="Produtos · Catálogo" />
 
       <div className="flex-1 bg-page-cream py-4">
-        <div className="w-full px-6 space-y-2">
+        <div className={'w-full space-y-2 ' + padX}>
           {/* ───── BLOCO 1 · CABEÇALHO ───────────────────────────────────────── */}
           <header className="border-b overflow-visible" role="banner" style={{ borderBottomColor: 'var(--border)' }}>
-            <div className="flex items-center gap-4 pt-6 px-6 pb-3.5 min-h-[60px]">
+            <div className={'flex items-center gap-4 pt-6 pb-3.5 min-h-[60px] ' + padX}>
               <div className="flex-1 min-w-0">
                 <h1 className="text-[22px] font-bold tracking-tight text-foreground leading-snug">Produtos</h1>
                 {/* Subtítulo conta o CADASTRO INTEIRO, não a aba (handoff §4.1). */}
@@ -718,7 +726,7 @@ function ProdutoUnificadoIndex({
 
             {/* Abas por TIPO — trocam tabela, contagem E os KPIs (handoff §4.2). */}
             {tela === 'produtos' && (
-              <div className="px-6">
+              <div className={padX}>
                 <nav className="flex items-center gap-1 -mb-px overflow-x-auto" aria-label="Recorte por tipo de item">
                   {ABAS_CATALOGO.map((a) => {
                     const ativa = filters.aba === a.key;
@@ -943,11 +951,13 @@ function ProdutoUnificadoIndex({
               </div>
 
               {/* ───── BLOCO 4 · GRID ────────────────────────────────────────── */}
-              {/* Contêiner SEM RAIO (handoff V2 §3.1) — decisão do produto, difere do cartão
-                  `rounded-xl` do DS. Motivo: com raio, o cabeçalho sticky precisa de clipe de
-                  canto, e `backdrop-filter` no cabeçalho quebra esse clipe (achado do LAUDO).
-                  Sem raio, o cabeçalho pode ser opaco e simples, que é o que ele precisa ser
-                  pra a linha não vazar por baixo dele durante a rolagem.
+              {/* Moldura canônica do template PT-01 (handoff §15.3 nº 14, aceite §16 nº 22c):
+                  `rounded-lg` + sombra de 1px + `bg-card`. Até 25/08 o contêiner era sem raio —
+                  decisão registrada aqui pra evitar que o cabeçalho sticky vazasse por baixo de
+                  um canto arredondado quando ele tinha `backdrop-filter` (achado do LAUDO). O
+                  cabeçalho abaixo já é opaco (`bg-[var(--idx-grid-head-bg)]`, sem blur) desde a
+                  correção do próprio achado, e o `overflow-hidden` que já existia aqui é quem
+                  recorta o canto sem reabrir o bug antigo — não precisou de mudança adicional.
 
                   O `min-width` é CALCULADO a partir das colunas realmente montadas (§3.1):
                   soma das larguras declaradas, com a coluna Produto contando pelo seu piso de
@@ -955,7 +965,7 @@ function ProdutoUnificadoIndex({
                   barra de rolagem, porque a tabela seguia reservando largura de coluna que não
                   estava mais lá. Abaixo da soma a tabela rola na horizontal em vez de truncar:
                   a tela é de cockpit desktop declarado. */}
-              <div className="mt-3 border border-border bg-card overflow-hidden">
+              <div className="mt-3 rounded-lg border border-border bg-card shadow-[0_1px_2px_rgba(0,0,0,.04)] overflow-hidden">
                 <Deferred data="produtos" fallback={<EsqueletoTabela />}>
                   {/* `overflow-x-auto` SÓ na horizontal: a rolagem vertical volta a ser da
                       página (handoff V2 §3.1). Altura fixa era o que substituía a paginação
