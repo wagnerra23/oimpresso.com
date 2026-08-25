@@ -50,9 +50,12 @@ const ESTILO: Record<EstadoEstoque['chave'], string> = {
   em: 'bg-success/16 border-success/30 text-success',
   baixo: 'bg-warning/16 border-warning/30 text-warning',
   sem: 'bg-destructive/16 border-destructive/30 text-destructive',
-  // Não estocável é AUSÊNCIA de saldo por natureza, não problema: fundo transparente e
-  // texto apagado, sem ponto. Ele é o único dos quatro que não afirma um estado de estoque.
-  nao: 'bg-transparent border-border text-muted-foreground',
+  // Não estocável = tom `outline` do DS, ao pé da letra: transparent + border + FOREGROUND,
+  // sem ponto. O cinza (`text-muted-foreground`) que estava aqui era ratificação [W] de
+  // 2026-08-18 (na época a discussão era cinza vs VERMELHO, e o cinza ganhou do vermelho).
+  // [W] 2026-08-25 desfez: "aqui é o design system quem manda". Ele é o único dos quatro que
+  // não afirma um estado de estoque — por isso não tem tinta nem ponto, só o texto.
+  nao: 'bg-transparent border-border text-foreground',
 };
 
 function Pilula({ estado, unidade }: { estado: EstadoEstoque; unidade: string }) {
