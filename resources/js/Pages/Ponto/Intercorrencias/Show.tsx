@@ -77,7 +77,7 @@ export default function IntercorrenciasShow({ intercorrencia: i }: Props) {
             <h1>Intercorrência <span className="text-stone-400 font-normal">· {i.codigo}</span></h1>
             <p className="flex items-center gap-2">
               <Badge variant={estadoVariant[i.estado]} className="text-[10px]">{i.estado}</Badge>
-              {i.prioridade === 'URGENTE' && <Badge variant="destructive" className="text-[10px]">Urgente</Badge>}
+              {i.prioridade === 'URGENTE' && <Badge variant="danger" className="text-[10px]">Urgente</Badge>}
               <span>Criada em {i.created_at}</span>
             </p>
           </div>

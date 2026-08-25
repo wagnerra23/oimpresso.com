@@ -246,7 +246,7 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
         // Órfão é ACHADO, não item de lista — o charter trata assim e o casos.md defende.
         if (a.orfao) {
           return (
-            <Badge variant="destructive" title="Sem arquivable — ninguém alcança pela tela do dono.">
+            <Badge variant="danger" title="Sem arquivable — ninguém alcança pela tela do dono.">
               órfão
             </Badge>
           )
