@@ -458,12 +458,18 @@ export default function Index({ filtros, politica, acervo, trilha }: Props) {
 
   return (
     <AppShellV2>
-      {/* Fundo cream warm (hue 90) + respiro no rodapé da página.
-          `.main-body` do AppShellV2 NÃO tem padding nem cor de fundo próprios (medido em
-          `cockpit.css`: só min-height/overflow/flex) — cada tela paga o seu. Sem isto a
-          tela nascia branca e apertada contra a sidebar. Mesmo par das telas maduras
-          (Cliente/Index · Financeiro/ProvaViva · Jana/Pro · Produto/Unificado). */}
-      <div className="flex-1 bg-page-cream pb-8">
+      {/* SEM cor de fundo aqui — de propósito, e isto foi MEDIDO (2026-08-25).
+          Minha primeira versão punha `bg-page-cream`, com a justificativa de que "a tela
+          nascia branca". Era falso: amostrando o pixel do render (GD, o mesmo motor do
+          PixelBaselineTest), o fundo já era rgb(251,250,248) ANTES da mudança — porque o
+          `.cockpit` pinta `background-color: var(--bg)`, e `--bg` é o MESMO
+          `oklch(0.985 0.003 90)` do `--color-page-cream`.
+          Pior que redundante: o `.cockpit` também pinta `background-image: var(--atmo)`,
+          a atmosfera do ERP (dois gradientes radiais), e o comentário dele diz textual que
+          "telas por cima ficam transparentes pra deixar passar". Um fundo OPACO aqui
+          apagaria justamente o frescor que se queria. `.main-body` segue sem padding
+          próprio — esse, sim, cada tela paga, e é o que o wrapper abaixo faz. */}
+      <div className="flex-1 pb-8">
         <div data-contract="cabecalho">
           {/* O PageHeader canon já traz `pt-6 px-6 pb-3.5` por dentro — por isso ele fica
               FORA do wrapper de padding abaixo, senão o título ganharia 48px e desalinharia
