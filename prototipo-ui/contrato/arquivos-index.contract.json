@@ -3,7 +3,7 @@
   "tela": "Arquivos/Index",
   "fonte": "prototipo-ui/cowork/arquivos-page.jsx",
   "_nota_fonte": "Mesma âncora que o charter declara em `related_prototype` e que `node prototipo-ui/ancora.mjs Arquivos/Index` resolve. A tela do PR-1 foi derivada dela.",
-  "_nota_limite": "MEDIDO ao escrever este contrato (2026-08-25): o gate casa a copy por SUBSTRING (`blob.includes`), não por literal delimitado. Prova: pinar \"Payload\" (a copy do protótipo que a tela NÃO tem) passou verde, porque casa dentro de `TrilhaPayload` — o nome da interface TS na linha 93. Consequência honesta: copy curta que seja pedaço de um identificador do arquivo é protegida de menos. As 19 strings abaixo foram conferidas uma a uma contra esse risco. Endurecer o casamento é assunto do gate (scripts/contrato-de-tela.mjs), não deste contrato — e mexer nele mudaria os 10 contratos vigentes de uma vez, então é decisão [W], não conserto de passagem.",
+  "_nota_limite": "MEDIDO ao escrever este contrato (2026-08-25): o gate casa a copy por SUBSTRING (`blob.includes`), não por literal delimitado. Prova: pinar \"Payload\" (a copy do protótipo que a tela NÃO tem) passou verde, porque casa dentro de `TrilhaPayload` — o nome da interface TS na linha 93. Consequência honesta: copy curta que seja pedaço de um identificador do arquivo é protegida de menos. As 19 strings abaixo foram conferidas uma a uma contra esse risco. Endurecer o casamento é assunto do gate (scripts/contrato-de-tela.mjs), não deste contrato — e mexer nele mudaria os 10 contratos vigentes de uma vez, então é decisão [W], não conserto de passagem. SEGUNDA PORTA DO MESMO DEFEITO, medida em 2026-08-25: o blob inclui COMENTARIO. Enquanto um comentario meu citava o rotulo antigo (\"Onde esta preso\"), o gate passou verde com a tela ja renomeada; tirar a string do comentario fez ele reprovar (canario rodado). Consequencia pratica pra quem edita esta tela: nao cite copy antiga em comentario — o gate a le como se fosse render.",
   "alvo": [
     "resources/js/Pages/Arquivos/Index.tsx"
   ],
@@ -18,26 +18,53 @@
       "id": "abas",
       "copy": [
         "Acervo",
+        "Cofre",
         "Trilha"
       ]
     },
     {
       "id": "acervo-filtros",
       "copy": [
-        "Todos"
+        "Todos",
+        "Sensível",
+        "Em uso",
+        "Histórico",
+        "Descartar"
       ]
     },
     {
       "id": "acervo",
       "copy": [
         "Arquivo",
-        "Onde está preso",
+        "Vinculado a",
         "Classificação",
         "Disco",
         "Tamanho",
         "Vence em",
         "Buscar por nome, dono ou contexto…",
         "Nenhum arquivo guardado ainda."
+      ]
+    },
+    {
+      "id": "cofre-discos",
+      "copy": [
+        "Cofre (cifrado)",
+        "AES-256 via Crypt::encryptString",
+        "Disco comum",
+        "servido por Storage::url"
+      ]
+    },
+    {
+      "id": "cofre-achados",
+      "copy": [
+        "Achados",
+        "do cap de",
+        "VaultEncryptionService",
+        "OOM",
+        "recusada",
+        "Sprint 2 (ADR 0126)",
+        "órfão",
+        "MD5 repetido"
       ]
     },
     {
@@ -70,6 +97,8 @@
     "ABAS — o protótipo tem QUATRO vistas (Acervo · Retenção · Cofre · Trilha); a tela tem DUAS. `abas` pina só \"Acervo\" e \"Trilha\" porque são as que existem: pinar \"Retenção\"/\"Cofre\" faria o contrato reprovar por construção, e contrato que já nasce vermelho ensina a ignorar o gate. Entram aqui quando as vistas entrarem (PR-3 retenção, PR-4 cofre).",
     "DIVERGÊNCIA DE COPY MEDIDA — a última coluna da Trilha: o protótipo diz \"Payload\", a tela diz \"Detalhe\". O contrato pina \"Detalhe\" porque é o que o alvo tem HOJE (pinar \"Payload\" deixaria o gate vermelho sem ninguém ter regredido). Qual das duas é a palavra certa é decisão [W]: se for \"Payload\", muda-se a tela E esta linha no MESMO PR (regra de precedência — o perdedor se corrige junto).",
     "SUBTÍTULO do PageHeader não é pinável: é template string derivada do paginador (\"N nesta página · N no cofre cifrado\" / \"N eventos registrados\"). Contrato pina literal, e o literal aqui é composto em runtime.",
-    "CHIPS DE BUCKET (`sensitive`/`active`/`memory`/`discard`) ficam fora da copy de propósito: são chaves de DOMÍNIO renderizadas como valor, não copy de design. Se virarem rótulo traduzido em PT-BR, aí sim entram — e a decisão do rótulo é [W]."
+    "CHIPS DE BUCKET (`sensitive`/`active`/`memory`/`discard`) ficam fora da copy de propósito: são chaves de DOMÍNIO renderizadas como valor, não copy de design. Se virarem rótulo traduzido em PT-BR, aí sim entram — e a decisão do rótulo é [W].",
+    "ORDEM das secoes do COFRE fora da lista — MEDIDO em 2026-08-25: o gate verifica a ordem por APARICAO NO ARQUIVO, e as ancoras \"cofre-discos\" e \"cofre-achados\" vivem no componente \"Cofre\", que e DECLARADO acima do \"Index\". No fonte elas aparecem primeiro; no render, no meio. Pinar a ordem delas reprovaria por construcao, e afrouxar o gate pra acomodar seria pior. A COPY delas segue pinada — so a ORDEM fica de fora.",
+    "COPY LONGA em JSX quebra em varias linhas (prettier), e o gate casa substring CONTIGUA. Por isso \"cofre-achados\" pina fragmentos (\"do cap de\", \"Sprint 2 (ADR 0126)\") em vez da frase inteira: pinar a frase completa deixaria o contrato refem da largura de linha do formatador. Tambem por isso \"do cap de\" e nao \"acima do cap de\" — ha interpolacao no meio."
   ]
 }

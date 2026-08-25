@@ -41,7 +41,62 @@ As 6 colunas do Acervo batem, **na mesma ordem**, extraidas de cada lado:
 | 5 | Tamanho | Tamanho |
 | 6 | Vence em | Vence em |
 
-## D4 — Escala do badge de vencimento: **DIVERGE (bug)**
+## Emenda de 2026-08-25 · **paridade EXECUTADA contra o protótipo VIVO** (não o espelho)
+
+> Pedido do [W]: *"confira com protótipo atualizado e compare com espelho a paridade, liste e
+> execute"*. As duas partes foram feitas, e a primeira mudou o entendimento da segunda.
+
+**O espelho NÃO está infiel ao bundle — o bundle é que está atrás do projeto.** Medido com hash,
+não com impressão:
+
+| | sha256 | bytes |
+|---|---|---|
+| `arquivos-page.jsx` no bundle `5023b274` (gerado 2026-08-24T22:49Z) | `08a8bebe…` | 35 842 |
+| `arquivos-page.jsx` no espelho local | `08a8bebe…` | 35 842 |
+
+São o mesmo arquivo. Mas o `arquivos-page.jsx` **do projeto Cowork vivo** (lido por
+`DesignSync.get_file` em 2026-08-25) traz comentários datados de 25/08 e **0 de 7** marcadores
+dele existem no espelho. Conclusão: o [CC] editou a fonte em 25/08 e **não regerou o payload**;
+o [#6260](https://github.com/wagnerra23/oimpresso.com/pull/6260), que sincronizou por esse mesmo
+bundle, não tinha como trazer esta tela.
+
+**Atualizar o espelho não foi possível nesta sessão, e o motivo é de transporte, não de vontade.**
+O próprio `cowork-mirror-freshness` declara: a rota avulsa (`get_file` → `--export-from`) só serve
+para arquivo que volte PERSISTIDO, e abaixo de ~36 KB ele volta INLINE no contexto — escrever dali
+é transcrição, com fidelidade não provada. O `arquivos-page.jsx` tem 35 842 bytes, exatamente
+abaixo do teto. A rota boa (payload em partes) depende de o payload ser regerado no lado Cowork.
+É o mesmo teto que a decisão [W] aberta no [#5757](https://github.com/wagnerra23/oimpresso.com/pull/5757)
+registra.
+
+**A paridade foi executada mesmo assim** — contra a fonte viva que foi LIDA, que é o que o
+protocolo PAR-1 §1 manda (*"proibido usar espelho como fonte"*). O que entrou:
+
+| Eixo | Antes | Agora |
+|---|---|---|
+| Rótulo de bucket | `sensitive`, `active`… (enum cru) | **Sensível · Em uso · Histórico · Descartar** (enum no `title`) |
+| Visibilidade | `private`, `business` | **Restrito · Equipe · Aberto** |
+| Ação da trilha | `upload`, `signed_url_consumed`… | **Envio · Link consumido…** (com fallback pro valor cru) |
+| Coluna do dono | "Onde está preso" | **"Vinculado a"** |
+| Prazo | texto `em N dias`, vermelho ≤30 | **badge `No prazo`/`Vencendo`/`Vencido`** + contagem só quando ≤90d |
+| Cabeçalho | sem ação | **botão "Auditoria"** → `auditoria.index` |
+| Subtítulo | "N nesta página · N cifrados" | **"N arquivos · TAMANHO · N no cofre cifrado"** (acervo, não página) |
+| Abas | sem contagem | **pill de contagem** (Acervo e Trilha; Cofre não leva, como no protótipo) |
+| Chips de bucket | sem contagem | **contagem por bucket** |
+| Cofre · achados | sem título; copy reescrita | **"Achados"** + copy do protótipo |
+| Disco comum | `Disco {nome}` | **"Disco comum"** (nome técnico no `title`) |
+
+**Fica FORA, e é decisão [W]:** a vista **Retenção** (PR-3) e as **ações por linha** (baixar,
+classificar, excluir, avisar) — a onda 1 é leitura pura por contrato.
+
+**Defeito do gate achado no caminho, com canário rodado.** O `contrato-de-tela` casa a copy como
+substring no arquivo INTEIRO, **comentário incluído**. Enquanto um comentário meu citava o rótulo
+antigo, o gate passou verde com a tela já renomeada; ao tirar a string do comentário ele reprovou
+(`rc=1`, "copy ausente em acervo"). É a segunda porta do mesmo defeito que o contrato já
+registrava (a primeira: `"Payload"` casando dentro de `TrilhaPayload`). Está anotado no
+`_nota_limite` do contrato — endurecer o casamento mexeria nos 29 contratos vigentes e é decisão
+[W], não conserto de passagem.
+
+## D4 — Escala do badge de vencimento: **DIVERGE (bug)** — _fechado em 2026-08-25, ver emenda acima_
 
 O prototipo tem **4 faixas**; a producao tem **2**.
 

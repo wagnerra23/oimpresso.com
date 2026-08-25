@@ -582,12 +582,14 @@ it('UC-INDEX-03 · o controller registra a prop de UMA vista so — a que esta a
         return array_keys($p->getValue($response));
     };
 
-    expect($props('cofre'))->toBe(['filtros', 'politica', 'cofre']);
-    expect($props('trilha'))->toBe(['filtros', 'politica', 'trilha']);
-    expect($props('acervo'))->toBe(['filtros', 'politica', 'acervo']);
+    // `filtros`, `politica` e `resumo` são EAGER e vão em toda vista: os três são baratos
+    // e o cabeçalho depende deles pra pintar no primeiro render. A prop CARA é que muda.
+    expect($props('cofre'))->toBe(['filtros', 'politica', 'resumo', 'cofre']);
+    expect($props('trilha'))->toBe(['filtros', 'politica', 'resumo', 'trilha']);
+    expect($props('acervo'))->toBe(['filtros', 'politica', 'resumo', 'acervo']);
     // `tab` ausente ou desconhecido cai no acervo por DECISÃO (o `match` tem default),
     // não por acidente de `if/else`.
-    expect($props(null))->toBe(['filtros', 'politica', 'acervo']);
+    expect($props(null))->toBe(['filtros', 'politica', 'resumo', 'acervo']);
 })->group('arquivos');
 
 it('UC-INDEX-03 · o cofre do tenant 98 NUNCA conta arquivo do 99 (Tier 0, cross-tenant)', function () {
@@ -686,6 +688,58 @@ it('UC-INDEX-03 · o payload do cofre NAO carrega hash nem caminho de disco (LGP
     // provaria nada — o nome do arquivo TEM de estar lá (o acervo já o mostra).
     expect($json)->toContain('visivel.xml');
 })->group('arquivos', 'lgpd');
+
+// =============================================================================
+// Paridade com o protótipo (2026-08-25) — resumo eager que alimenta subtítulo,
+// contadores das abas e a contagem dos chips.
+// =============================================================================
+
+it('UC-INDEX-01 · o resumo conta o ACERVO do business, nunca a pagina', function () {
+    if (! Schema::hasTable('arquivos')) {
+        $this->markTestSkipped('tabela arquivos ausente — roda na lane MySQL.');
+    }
+
+    // O subtítulo dizia "N nesta página", que é outro número: com `per_page` menor que o
+    // acervo, os dois divergem — e era o da página que aparecia no cabeçalho. Este teste
+    // fixa que o resumo fala do acervo inteiro.
+    $biz = Tests\TestCase::SEEDED_TENANT_ID;
+    session(['user' => ['business_id' => $biz]]);
+
+    $antes = arquivosResumoDe();
+
+    arquivosCofreInsere($biz, ['bucket' => 'sensitive', 'size_bytes' => 100, 'md5' => str_repeat('e', 32), 'storage_path' => 'r/1']);
+    arquivosCofreInsere($biz, ['bucket' => 'discard', 'size_bytes' => 300, 'md5' => str_repeat('f', 32), 'storage_path' => 'r/2']);
+
+    $depois = arquivosResumoDe();
+
+    expect($depois['arquivos'])->toBe($antes['arquivos'] + 2);
+    expect($depois['bytes'])->toBe($antes['bytes'] + 400);
+    // O `por_bucket` alimenta a contagem de cada chip — sem ele o chip mostraria número
+    // do bucket errado, que é pior que não mostrar número nenhum.
+    expect($depois['por_bucket']['sensitive'] ?? 0)->toBe(($antes['por_bucket']['sensitive'] ?? 0) + 1);
+    expect($depois['por_bucket']['discard'] ?? 0)->toBe(($antes['por_bucket']['discard'] ?? 0) + 1);
+})->group('arquivos');
+
+it('UC-INDEX-02 · sem business na sessao o contador de eventos e 0, nunca o total do sistema', function () {
+    // Mesmo fail-closed da trilha, agora no contador da aba: `arquivos_audit_log` não tem
+    // model, então sem `business_id` na sessão o `count()` traria o log de TODOS os
+    // tenants — e o número apareceria no pill da aba, que é onde ninguém desconfia.
+    session()->forget('user');
+    session()->forget('business');
+
+    expect(arquivosResumoDe()['eventos'])->toBe(0);
+})->group('arquivos', 'multi-tenant');
+
+if (! function_exists('arquivosResumoDe')) {
+    function arquivosResumoDe(): array
+    {
+        $c = new ArquivosAdminController();
+        $m = new ReflectionMethod($c, 'resumo');
+        $m->setAccessible(true);
+
+        return $m->invoke($c);
+    }
+}
 
 afterEach(function () {
     // Cleanup por id sentinela — sem RefreshDatabase, que dropa o schema e limparia o
