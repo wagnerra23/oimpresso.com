@@ -1,5 +1,10 @@
 ---
 id: requisitos-arquivos-briefing
+module: Arquivos
+status: shared-infra
+status_nota: "DMS backbone consumido por trait `HasArquivos` (NfeBrasil · Consumidores · Repair) — mesma classificação do Repair, o outro backbone compartilhado. Tela própria desde 2026-08-24 (`/arquivos`), com 2 das 4 vistas do charter: acervo (PR-1) e trilha (PR-2); retenção e cofre pendentes."
+updated_at: "2026-08-25"
+owner: W
 ---
 
 # BRIEFING — Modules/Arquivos
