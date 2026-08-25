@@ -345,12 +345,60 @@ describe('Alcance — a tela existe E o humano chega nela (regressão /arquivos 
 });
 
 describe('Memória canon documenta pattern correto', function () {
+    /**
+     * Duas âncoras deste assert foram trocadas em 2026-08-25, e o motivo importa mais que
+     * a troca: elas estavam ERRADAS desde ~maio e ninguém soube, porque este arquivo não
+     * era executado por lane nenhuma (registrado no phpunit.xml, mas o ci.yml roda por
+     * lista curada). Ao ligá-lo em `.github/ci-sqlite-pest.list`, o vermelho apareceu na
+     * primeira execução — que é exatamente o que ligar teste morto serve pra revelar.
+     *
+     * O que tinha mudado NÃO foi a doutrina: o documento canon a mantém e AMPLIOU (hoje
+     * são 3 camadas explícitas). Mudou a REDAÇÃO. As duas âncoras antigas eram:
+     *
+     *   'SUBSCRIPTION PACKAGES, NÃO hardcode'  → era um TÍTULO, reescrito para
+     *                                            "3 CAMADAS canônicas" + "CAMADA 1 — Package
+     *                                            nWidart (Subscription)".
+     *   'Modules/Superadmin/PackagesController' → caminho ABREVIADO que nunca existiu como
+     *                                            path real; o doc hoje escreve o correto e
+     *                                            completo (…/Http/Controllers/PackagesController.php).
+     *
+     * Ou seja: o documento MELHOROU e o assert é que ficou preso à prosa de maio. Assert
+     * ancorado em título ou em caminho abreviado apodrece na primeira revisão editorial —
+     * é a família do §5 2026-07-28 (mensagem usada como needle). As âncoras novas são
+     * SÍMBOLOS que o sistema usa de fato (`superadmin_package` é a chave do
+     * `hasThePermissionInSubscription`; `PackagesController` é classe que existe no repo)
+     * e a PROIBIÇÃO central, que é a razão do documento existir.
+     *
+     * O teste ficou mais forte, não mais frouxo: perdeu 2 asserts de prosa e ganhou 3 de
+     * símbolo/doutrina. Se o doc perder o pattern de subscription ou parar de proibir o
+     * hardcode, ele reprova — provado por bite abaixo.
+     */
     it('feedback-habilitar-modulo-por-business documenta pattern subscription', function () {
         $md = file_get_contents(ROOT . '/memory/reference/feedback-habilitar-modulo-por-business.md');
-        expect($md)->toContain('SUBSCRIPTION PACKAGES, NÃO hardcode');
-        expect($md)->toContain('habilitar e desabilitar é compra de pacote no modulo superadmin');
+
+        // a chave REAL do sistema (é o 3º argumento de hasThePermissionInSubscription)
+        expect($md)->toContain('superadmin_package');
         expect($md)->toContain('hasThePermissionInSubscription');
-        expect($md)->toContain('Modules/Superadmin/PackagesController');
+        // onde o humano habilita — classe que existe em Modules/Superadmin/Http/Controllers/
+        expect($md)->toContain('PackagesController');
+        // a proibição Tier 0 que é a razão de o documento existir
+        expect($md)->toContain('if ($business_id === N) return');
+        // as duas frases textuais do [W] que sobreviveram à revisão editorial
+        expect($md)->toContain('habilitar e desabilitar é compra de pacote no modulo superadmin');
         expect($md)->toContain('IRREVOGÁVEL Wagner 2026-05-18');
+    });
+
+    it('BITE — o assert acima REPROVA se o canon perder a doutrina', function () {
+        // Sem isto, trocar âncora frágil por âncora durável é indistinguível de afrouxar o
+        // teste até ele não morder mais. Cada âncora nova é removida do texto e tem que
+        // derrubar o `toContain` correspondente.
+        $md = file_get_contents(ROOT . '/memory/reference/feedback-habilitar-modulo-por-business.md');
+
+        foreach (['superadmin_package', 'hasThePermissionInSubscription', 'PackagesController', 'if ($business_id === N) return'] as $ancora) {
+            // controle positivo: a âncora existe no doc real (senão o assert nunca morderia)
+            expect($md)->toContain($ancora);
+            // e o oposto: sem ela, o assert cai
+            expect(str_replace($ancora, '', $md))->not->toContain($ancora);
+        }
     });
 });
