@@ -3,13 +3,12 @@ page: /arquivos
 component: resources/js/Pages/Arquivos/Index.tsx
 owner: wagner
 status: draft
-last_validated: "2026-07-11"
 parent_module: Arquivos
 related_us: [US-ARQ-013]
 related_adrs: [0123-modules-arquivos-backbone, 0093-multi-tenant-isolation-tier-0, 0360-deprecacao-admin-center-supersede-0122]
 related_prototype: prototipo-ui/cowork/arquivos-page.jsx
 tier: B
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — Arquivos/Index (DRAFT · carimbado do PT-01)
@@ -22,14 +21,23 @@ charter_version: 1
 > decisão [W] de 2026-07-29 registrada no [SPEC §US-ARQ-013](../../../../memory/requisitos/Arquivos/SPEC.md)
 > (*"pode ser dentro do arquivo mesmo"*), depois que a [ADR 0360](../../../../memory/decisions/0360-deprecacao-admin-center-supersede-0122.md)
 > deprecou o Admin Center. O docblock de `DataController` e o protótipo F1 ainda dizem
-> "Admin Center" — são a fonte **stale**, e o PR-1 corrige o docblock.
+> "Admin Center" — são a fonte **stale**. O PR-1 prometeu corrigir o docblock e **não
+> corrigiu**: medido em 2026-08-25, `Modules/Arquivos/Http/Controllers/DataController.php`
+> segue com "Admin Center" na L15 e no `label` da permission `arquivos.access` (L37, texto
+> que aparece na tela de papéis). Fica como pendência abaixo — mexer no label é mudança de
+> UI visível, não reconciliação de doc.
 
-> **O `.tsx` ainda NAO existe — e isso e proposital.** O `component:` acima e o DESTINO,
-> nao um arquivo presente. A tela nasce na onda 1, derivada do protótipo
-> `prototipo-ui/cowork/arquivos-page.jsx` (580 linhas, 4 vistas completas, ja no `main`),
-> com rota, conteudo real e baseline de pixel fotografada do app rodando. Um stub com TODO
-> no PR-0 forcaria uma baseline de placeholder — e baseline e a referencia contra a qual todo
-> PR futuro e comparado, entao uma falsa e pior que nenhuma.
+> **O `.tsx` existe desde 2026-08-24** ([PR #6216](https://github.com/wagnerra23/oimpresso.com/pull/6216),
+> commit `8c30820`), com rota `GET /arquivos` → `arquivos.index` (`can:arquivos.access`),
+> `ArquivosAdminController@index` e o acervo real — não stub. Escopo do que nasceu: **só a
+> vista Acervo**; trilha (PR-2), retenção (PR-3) e cofre (PR-4) seguem pendentes, e a barra
+> de abas nasce com elas.
+>
+> _Fato datado — por que o PR-0 não trouxe um stub:_ em 2026-08-24 o stub de 23 linhas foi
+> removido (`c85bfa7`) porque forçaria uma baseline de pixel de placeholder, e baseline é a
+> referência contra a qual todo PR futuro é comparado — uma falsa é pior que nenhuma. A tela
+> nasceu depois, no PR-1, derivada do protótipo `prototipo-ui/cowork/arquivos-page.jsx`
+> (4 vistas completas, já no `main`).
 
 ## Mission
 
@@ -92,10 +100,15 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
 ## Pendências antes de `status: live`
 
 - [ ] [W] aprova Non-Goals + Anti-hooks acima.
-- [ ] Onda 1 mergeada (a rota `/arquivos` ainda não existe — o `page:` acima é o destino).
+- [x] **PR-1 (acervo) mergeado** — rota `GET /arquivos` viva, `.tsx` real ([#6216](https://github.com/wagnerra23/oimpresso.com/pull/6216), 2026-08-24).
+- [ ] Onda 1 **completa**: faltam PR-2 (trilha) · PR-3 (retenção) · PR-4 (cofre) — a
+      tabela de escopo está no [RUNBOOK-index §5](../../../../memory/requisitos/Arquivos/RUNBOOK-index.md).
 - [ ] Screenshot 1280/1440 aprovado por [W].
 - [ ] Definir se reclassificar bucket/visibility fica nesta tela ou só no dono do arquivo
       (a onda 2 esbarra nisso — ver PR-6).
+- [ ] Reconciliar `DataController`: docblock L15 e o `label` de `arquivos.access` (L37) ainda
+      dizem "Admin Center" (deprecado pela ADR 0360) e `modifyAdminMenu()` ainda afirma que o
+      módulo "não tem tela própria". É mudança de texto de UI — decisão [W], não faxina de doc.
 
 ## Refs
 
@@ -105,9 +118,15 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
 - ADRs: [0123](../../../../memory/decisions/0123-modules-arquivos-backbone.md) (módulo mãe) ·
   [0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) (multi-tenant Tier 0) ·
   [0360](../../../../memory/decisions/0360-deprecacao-admin-center-supersede-0122.md) (Admin Center deprecado)
-- Contrato de tela: **entra na onda 1**, junto com a instrumentação de cada vista. Não pode
-  nascer no PR-0 porque o job `Preflight + contratos ativos` roda `git ls-files '*.contract.json'`
-  e exige que **todos** passem (só o `EXEMPLO` é isento) — um contrato apontando pro stub
-  reprova por construção. Conteúdo preservado no rascunho do Cowork
-  (`cowork-inbox/modulos-faltantes/arquivos.contract.json`) e no histórico do PR.
+- Contrato de tela: **ainda não existe** — medido em 2026-08-25, nenhum
+  `arquivos*.contract.json` no repositório (varredura do índice inteiro, com controle
+  positivo em `backup.contract.json`). _A razão original caducou:_ ele saiu do PR-0
+  (`d738bdc`) porque o job `Preflight + contratos ativos` roda `git ls-files '*.contract.json'`
+  e exige que **todos** passem (só o `EXEMPLO` é isento), e um contrato apontando pro stub
+  reprovaria por construção — mas o stub acabou, e o `.tsx` já carrega as âncoras
+  `data-contract` de `cabecalho`, `acervo-filtros` e `acervo`. O que falta agora é escrever o
+  contrato contra a tela real, com a copy literal — e `acervo-filtros`/`acervo` só ficam
+  completos quando as 3 vistas restantes entrarem. Conteúdo do rascunho original preservado
+  no commit `943cc23` (o ponteiro anterior, `cowork-inbox/modulos-faltantes/arquivos.contract.json`,
+  nunca existiu no repositório nem no espelho do Cowork — era ponteiro podre).
 - Casos: [Index.casos.md](Index.casos.md)

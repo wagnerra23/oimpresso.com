@@ -12,10 +12,12 @@ last_run: "2026-08-24"
 > Nascido de `criar-tela.mjs`. **Status:** ✅ passa · 🧪 teste cita o UC e passa · ⬜ não verificado · ❌ quebrou.
 > Regra G-2: UC declarado sem teste citando o id = órfão. O stub `e2e/arquivos-index.spec.ts` já cita `UC-INDEX-01`.
 
-> **Por que só 1 UC com id aqui.** A tela ainda não existe: a rota `/arquivos` entra no PR-1
-> (onda 1). Declarar os 14 cenários do protótipo F1 como UC agora criaria 13 órfãos e quebraria
-> o G-2. Eles ficam abaixo como `[BACKLOG]` — prosa honesta, sem id — e **viram UC na onda que
-> traz o teste que os defende**. Fonte: `prototipo-ui/cowork/arquivos-page.jsx`.
+> **Por que só 1 UC com id aqui.** A tela existe desde o PR-1 ([#6216](https://github.com/wagnerra23/oimpresso.com/pull/6216),
+> 2026-08-24: rota `GET /arquivos` viva), mas só com a vista **Acervo** — trilha, retenção e
+> cofre chegam nos PR-2/3/4. Declarar os 14 cenários do protótipo F1 como UC agora criaria 13
+> órfãos e quebraria o G-2, porque o teste que os defende ainda não existe. Eles ficam abaixo
+> como `[BACKLOG]` — prosa honesta, sem id — e **viram UC na onda que traz o teste que os
+> defende**. Fonte: `prototipo-ui/cowork/arquivos-page.jsx`.
 
 ---
 
