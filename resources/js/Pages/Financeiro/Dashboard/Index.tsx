@@ -382,7 +382,7 @@ function FinanceiroDashboard({
                       <td className="py-2 px-2">
                         {t.vencimento_label}
                         {t.aging_bucket !== 'em_dia' && t.status !== 'quitado' && (
-                          <Badge variant="danger" className="ml-2 text-xs">
+                          <Badge variant="destructive" className="ml-2 text-xs">
                             {t.aging_bucket}
                           </Badge>
                         )}

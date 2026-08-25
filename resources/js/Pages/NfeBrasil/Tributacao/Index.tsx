@@ -217,7 +217,7 @@ function Index({ regras, config, templates }: Props) {
               <span className="flex items-center gap-2 flex-wrap">
                 <Settings className="h-4 w-4" />
                 Configuração padrão
-                {!config && <Badge variant="danger">Pendente</Badge>}
+                {!config && <Badge variant="destructive">Pendente</Badge>}
               </span>
               <Button asChild variant={config ? 'outline' : 'default'} size="sm">
                 <Link href="/nfe-brasil/tributacao/config-default">

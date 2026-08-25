@@ -338,7 +338,7 @@ function ResumoPanel({ resumo }: { resumo: Resumo }) {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               Atenção: títulos vencidos
-              <Badge variant="danger">
+              <Badge variant="destructive">
                 {resumo.a_receber.vencidos_qtd + resumo.a_pagar.vencidos_qtd}
               </Badge>
             </CardTitle>

@@ -113,7 +113,7 @@ export default function ConfiguracoesIndex({ config }: Props) {
                 {config.rep?.imutabilidade_mysql ? (
                   <Badge className="text-[10px]">ativada (triggers)</Badge>
                 ) : (
-                  <Badge variant="danger" className="text-[10px]">desligada</Badge>
+                  <Badge variant="destructive" className="text-[10px]">desligada</Badge>
                 )}
               </Row>
               <Row label="Hash encadeado">{config.rep?.hash_algoritmo ?? '—'}</Row>

@@ -122,7 +122,7 @@ function Dashboard({ advisor, clientes, total_clientes }: Props) {
                       {c.has_consent ? (
                         <Badge variant="outline">LGPD ok</Badge>
                       ) : (
-                        <Badge variant="danger">Sem consentimento</Badge>
+                        <Badge variant="destructive">Sem consentimento</Badge>
                       )}
                     </CardTitle>
                     <p className="text-xs text-muted-foreground">
