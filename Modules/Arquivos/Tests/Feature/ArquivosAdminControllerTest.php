@@ -149,3 +149,37 @@ it('a policy de retencao e ALCANCAVEL — o config do modulo esta registrado', f
     expect(config('arquivos.retention_days_policy'))->toBeArray()->not->toBeEmpty();
     expect(config('arquivos.retention_days_policy.nfe-xml'))->toBe(1825);
 })->group('arquivos');
+
+it('UC-INDEX-01 · todo bucket que a Request aceita EXISTE no enum do banco', function () {
+    // Comportamental, e nasceu de bug real. Ate 2026-08-25 havia QUATRO listas de bucket que
+    // nao batiam: o enum do banco (7 valores, default `active`), o que o CuradorEngine grava
+    // (4), o que a Request aceitava (`public`/`internal`/`sensitive`/`vault`) e os chips da
+    // tela (`sensitive`/`common`/`public`). So `sensitive` existia nas quatro.
+    //
+    // Efeito medido no smoke de producao: arquivo real com `bucket=active` era REJEITADO pela
+    // Request com 422, e os chips filtravam por valores que o banco nao tem — lista sempre
+    // vazia. So o chip "Todos" funcionava. Nenhum gate pegaria: e divergencia entre camadas,
+    // nao erro de sintaxe.
+    $migration = file_get_contents(base_path(
+        'Modules/Arquivos/Database/Migrations/2026_05_10_000001_create_arquivos_table.php'
+    ));
+
+    // O bloco `$table->enum('bucket', [...])` da migration e a fonte FISICA: o MySQL recusa
+    // qualquer valor fora dele.
+    preg_match("/enum\('bucket',\s*\[(.*?)\]/s", $migration, $m);
+    expect($m)->not->toBeEmpty();
+
+    preg_match_all("/'([a-z_]+)'/", $m[1], $mm);
+    $doBanco = $mm[1];
+    expect($doBanco)->toContain('active');
+
+    $request = file_get_contents(base_path('Modules/Arquivos/Http/Requests/ListArquivosRequest.php'));
+    preg_match("/Rule::in\(\[(.*?)\]\)/s", $request, $r);
+    expect($r)->not->toBeEmpty();
+
+    preg_match_all("/'([a-z_]+)'/", $r[1], $rr);
+
+    foreach ($rr[1] as $aceito) {
+        expect($doBanco)->toContain($aceito);
+    }
+})->group('arquivos');

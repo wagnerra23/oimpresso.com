@@ -34,7 +34,15 @@ class ListArquivosRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'bucket'       => ['nullable', 'string', Rule::in(['public', 'internal', 'sensitive', 'vault'])],
+            // Os 7 do ENUM de `arquivos.bucket` (migration 2026_05_10_000001:36-39), que e a
+            // fonte FISICA — o banco recusa qualquer outro valor. A lista anterior
+            // (`public`/`internal`/`vault`) nao existia em lugar nenhum: a Request nasceu orfa
+            // na Sprint 1 e so ganhou consumidor com a tela do acervo (US-ARQ-013), entao a
+            // divergencia nunca doeu. Medido em 2026-08-25 no smoke de producao: os arquivos
+            // reais tem `bucket=active` (o default) e a validacao os REJEITAVA com 422.
+            'bucket'       => ['nullable', 'string', Rule::in([
+                'sensitive', 'memory', 'user', 'spec', 'ambiguous', 'discard', 'active',
+            ])],
             'owner_type'   => ['nullable', 'string', 'max:120'],
             'mime'         => ['nullable', 'string', 'max:120', 'regex:/^[a-zA-Z0-9\.\-\/\+]+$/'],
             'from'         => ['nullable', 'date_format:Y-m-d'],

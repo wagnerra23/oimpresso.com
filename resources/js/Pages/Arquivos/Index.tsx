@@ -73,7 +73,12 @@ interface Props {
   acervo?: Paginator
 }
 
-const BUCKETS = ['sensitive', 'common', 'public'] as const
+/** Os buckets que o Curador de fato grava (`CuradorEngine`), na ordem em que interessam a
+ *  quem responde por conformidade. `common` e `public` NAO existem — vieram de um palpite meu
+ *  e filtravam por valor que o banco nao tem, entao a lista voltava sempre vazia (medido no
+ *  smoke de producao, 2026-08-25). O enum do banco tem 7; `user`/`spec`/`ambiguous` nao sao
+ *  escritos por nenhum caminho vivo, entao ficam de fora do filtro ate que sejam. */
+const BUCKETS = ['sensitive', 'active', 'memory', 'discard'] as const
 
 function tamanho(bytes: number): string {
   if (bytes >= 1_073_741_824) return `${(bytes / 1_073_741_824).toFixed(2).replace('.', ',')} GB`
@@ -121,7 +126,10 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
             <span className="text-xs text-muted-foreground">
               <code>{a.sub_destination ?? 'sem contexto'}</code>
               {lei ? <> · {lei}</> : null}
-              {a.classified_by ? (
+              {/* `no_rule_matched` e o fallback do CuradorEngine quando nenhuma regra casa
+                  (CuradorEngine:248) — nao e um classificador, e a ausencia de um. Mostrar o
+                  identificador tecnico na tela foi o que o smoke de producao pegou. */}
+              {a.classified_by && a.classified_by !== 'no_rule_matched' ? (
                 <> · classificado por {a.classified_by}</>
               ) : (
                 <> · sem classificação humana</>
