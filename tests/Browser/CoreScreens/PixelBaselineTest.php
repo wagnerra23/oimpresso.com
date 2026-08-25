@@ -67,6 +67,7 @@ declare(strict_types=1);
 use App\Business;
 use App\User;
 use Inertia\Testing\AssertableInertia;
+use Spatie\Permission\Models\Role;
 
 beforeEach(function () {
     config([
@@ -171,6 +172,25 @@ foreach ($screens as $screen) {
         $admin = User::where('business_id', $business->id)->orderBy('id')->first();
         if (! $admin) {
             throw new RuntimeException('Sem user no business seedado: o gate visual não pode autenticar.');
+        }
+
+        // `Arquivos` é a PRIMEIRA tela do manifesto atrás de `can:` (Modules/Arquivos/Routes/web.php
+        // — medido 2026-08-25: das 26 rotas do manifesto, nenhuma outra passa por permission).
+        // O `Gate::before` do UPos (app/Providers/AuthServiceProvider.php:42-46) libera QUALQUER
+        // ability pra quem tem a role `Admin#{business_id}`; sem ela, `can()` nega. E o seed do CI
+        // cria o user por `DB::table('users')->insertGetId(...)`, sem role nenhuma — conferido no
+        // .github/actions/pest-mysql-setup. Sem esta linha o `assertOk()` logo abaixo pega 403 e a
+        // tela nunca ganha baseline.
+        //
+        // Sufixo `#{biz}` obrigatório: `roles.business_id` é NOT NULL com FK no UPos, e role global
+        // viola a FK (proibicoes.md §FSM). Idempotente — só cria/atribui se faltar.
+        $roleName = 'Admin#' . $business->id;
+        if (! $admin->hasRole($roleName)) {
+            $admin->assignRole(Role::firstOrCreate([
+                'name'        => $roleName,
+                'business_id' => $business->id,
+                'guard_name'  => 'web',
+            ]));
         }
 
         $this->actingAs($admin)
