@@ -122,9 +122,11 @@ screenshot aprovado por [W].
 2. ~~A UI pode purgar (PR-10)?~~ — **já respondido em 2026-08-24: sim, onda 3 inteira.** Fica
    aqui só como registro. O que a cunhagem fixa é o portão (ver PR-10 acima), não o *se*.
 3. **Papel de governança:** `arquivos.access` basta para retenção/cofre/trilha, ou purge e aviso
-   exigem uma segunda permissão (`arquivos.governanca`)? — medido: `arquivos.access` tem hoje
-   **1 ocorrência no repo inteiro**, que é a própria declaração em `DataController:36`; zero
-   consumidores.
+   exigem uma segunda permissão (`arquivos.governanca`)? — **medido em 2026-08-24, antes da tela**:
+   `arquivos.access` tinha 1 ocorrência no repo, a própria declaração em `DataController:36`, e
+   **zero consumidores**. A rota do acervo (#6216) passou a ser o primeiro a exercê-la — o número
+   acima é fato datado, não estado atual. A pergunta segue aberta: uma permissão só para ver
+   não é obviamente a mesma que autoriza apagar.
 4. **O `RetentionCleanupCommand` deve passar a ser agendado?** Está fora do escopo das ondas,
    mas a resposta muda o sentido da tela: uma tela que mostra "o que o agendado faria hoje"
    quando não há agendado é uma tela que descreve um futuro que ninguém marcou.

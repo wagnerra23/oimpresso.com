@@ -56,14 +56,20 @@ class ArquivosAdminController extends Controller
     /**
      * Política de retenção por contexto, com a BASE LEGAL ao lado do prazo.
      *
-     * Vem de `Config/retention.php` — número solto não ensina o domínio, e o charter
-     * declara isso como Goal ("prazo sempre acompanhado da lei").
+     * O PRAZO vem de `config('arquivos.retention_days_policy')` — a chave operacional do
+     * módulo (`Config/config.php`), que o próprio shim `Config/retention.php` aponta como
+     * fonte da verdade. **Não** leia do shim: ele não é registrado.
+     *
+     * A LEI vive aqui porque no config ela só existe como comentário PHP (docblock de
+     * `retention_days_policy`), formato que `config()` não alcança. As 8 chaves abaixo são
+     * exatamente as 8 da policy — número solto não ensina o domínio, e o charter declara
+     * "prazo sempre acompanhado da lei" como Goal.
      *
      * @return array<int, array{sub:string, dias:int, lei:string}>
      */
     private function politica(): array
     {
-        $entities = (array) config('retention.entities', []);
+        $entities = (array) config('arquivos.retention_days_policy', []);
         $leis = [
             'nfe-xml'            => 'Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8',
             'nfse-xml'           => 'idem NF-e',
@@ -136,8 +142,8 @@ class ArquivosAdminController extends Controller
      */
     private function linha(Arquivo $a): array
     {
-        $dias = $a->retention_days ?: (int) (config('retention.entities.' . $a->sub_destination)
-            ?: config('retention.entities.default', 90));
+        $dias = $a->retention_days ?: (int) (config('arquivos.retention_days_policy.' . $a->sub_destination)
+            ?: config('arquivos.retention_days_default', 90));
 
         $vence = $a->created_at?->copy()->addDays($dias);
 
