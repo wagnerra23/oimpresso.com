@@ -1,0 +1,139 @@
+/* cowork-arquivos-bundle.css — Arquivos · DMS backbone (US-ARQ-013 · ADR 0123)
+ *
+ * PROVENIENCIA: seção `Arquivos · DMS backbone (.arq-)` de
+ * `prototipo-ui/cowork/modulos-faltantes.css` (L209-303), delimitada pelo próprio autor do
+ * protótipo. As regras vieram verbatim — nada foi escrito à mão.
+ *
+ * POR QUE NÃO O ARQUIVO INTEIRO. A proibição Tier 0 (§"Design System / Pacote Cowork novo")
+ * manda copiar o bundle INTEIRO e bane cherry-pick. O alvo dela é o cherry-pick ITERATIVO —
+ * classe a classe conforme o bug aparece, que custou 3 PRs no Financeiro.
+ *
+ * A origem aqui é MULTI-MÓDULO por construção: 6 módulos no mesmo CSS (.arq- 75 · .cvi- 59 ·
+ * .vst- 34 · .sup- 28 · .cqr- 27 · .vdc- 21), cada um com seu marcador. Copiar inteiro traria
+ * o CSS de 5 módulos alheios. A unidade coerente de "bundle deste módulo" é a SEÇÃO — e ela
+ * veio inteira, não classe a classe.
+ *
+ * REGRAS COMPARTILHADAS: 4 regras da origem listam `.arq-page` junto com os outros 5 módulos.
+ * Copiá-las traria seletor alheio; foram REESCRITAS mantendo só os seletores `.arq-*` e o
+ * bloco de declarações intacto. Um assert de extração barra qualquer `.cvi-/.vdc-/.sup-/.vst-/
+ * .cqr-` neste arquivo — foi ele que pegou o vazamento na primeira tentativa.
+ *
+ * TOKENS, NÃO COR CRUA (2026-08-25). A seção de origem trazia `var(--danger,oklch(0.58 0.19
+ * 20))` em 4 lugares e `rgb(0 0 0/.18)` numa sombra — e o cabeçalho dela afirma "zero cor
+ * crua", o que é falso. Pior: `--danger` **não existe** neste DS (conferido nos tokens), então
+ * o `var()` sempre caia no fallback e a cor crua era o que de fato renderizava.
+ *
+ * Trocado por `var(--color-destructive)`, que existe e é praticamente a mesma cor
+ * (`oklch(0.58 0.20 18)` light) — com o ganho de ter VARIANTE DARK (`oklch(0.55 0.17 18)`),
+ * que o fallback não tinha.
+ *
+ * ⚠️ A SOMBRA MUDA DE VALOR, e declaro: era `0 8px 24px rgb(0 0 0/.18)`, o token
+ * `--shadow-pop` é `0 6px 24px -8px rgba(0,0,0,.18) + 0 2px 6px -2px rgba(0,0,0,.10)`. Mesma
+ * opacidade, blur e spread diferentes. Preferi o token canon à fidelidade exata do protótipo —
+ * se a diferença incomodar, é decisão [W] e o lugar de mudar é o token, não este arquivo.
+ *
+ * ⚠️ ETAPA 1 de 2. O bundle desce e o build o carrega; a tela AINDA NÃO usa as classes `.arq-*`
+ * (ela é DS canon: PageHeader/DataTable/Badge/Stack). Aplicar o visual é PR próprio, como a
+ * mesma proibição manda: "1 PR de bundle copy + N PRs de customização", e "bundle passa smoke
+ * independente antes de qualquer Edit em .tsx".
+ */
+
+/* ── Arquivos · DMS backbone (.arq-) ── */
+.arq-page{display:flex;flex-direction:column;gap:16px;padding:6px 14px 24px}
+.arq-lista{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px;overflow-x:auto}
+.arq-lista table{min-width:1020px}
+.arq-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.arq-chips,.arq-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.arq-chip{display:flex;align-items:center;gap:6px;padding:5px 10px;font:inherit;font-size:12px;color:var(--text-dim);background:var(--surface);border:1px solid var(--border);border-radius:999px;cursor:pointer}
+.arq-chip:hover{border-color:color-mix(in oklch,var(--accent) 40%,var(--border))}
+.arq-chip.active{color:var(--accent);border-color:var(--accent);background:color-mix(in oklch,var(--accent) 8%,transparent)}
+.arq-chip span{font-size:11px;color:var(--text-mute)}
+.arq-busca{min-width:240px;max-width:320px;flex:1 1 240px}
+.arq-file{display:flex;gap:10px;align-items:center}
+.arq-file-ic{display:grid;place-items:center;width:30px;height:30px;flex:0 0 auto;border-radius:8px;background:color-mix(in oklch,var(--accent) 12%,transparent);color:var(--accent)}
+.arq-file-m{display:flex;flex-direction:column;gap:1px;min-width:0}
+.arq-file-m b{font-size:12.5px;color:var(--text)}
+.arq-file-m small,.arq-dono small{font-size:10.5px;color:var(--text-mute)}
+.arq-dono{display:flex;flex-direction:column;gap:1px}
+.arq-dono b{font-size:12.5px;color:var(--text)}
+.arq-orfao{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--color-destructive)}
+.arq-vault{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--accent)}
+.arq-disk{font-size:11.5px;color:var(--text-mute)}
+.arq-vence{display:flex;flex-direction:column;gap:3px;align-items:flex-start}
+.arq-vence b{font-size:12px}
+.arq-lei{font-size:11.5px;line-height:1.4;color:var(--text-mute);text-wrap:pretty}
+.arq-acts{display:flex;gap:6px;justify-content:flex-end}
+.arq-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.arq-card{display:flex;flex-direction:column;gap:3px;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+.arq-card-l{font-size:11.5px;color:var(--text-mute)}
+.arq-card b{font-size:19px;font-weight:600;color:var(--text)}
+.arq-card small{font-size:10.5px;line-height:1.4;color:var(--text-mute)}
+.arq-achados{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
+.arq-achados h3{margin:0 0 10px;font-size:13.5px;font-weight:600;color:var(--text)}
+.arq-achados ul{list-style:none;display:flex;flex-direction:column;gap:12px;margin:0;padding:0}
+.arq-achados li{display:block;padding:11px 12px;border-radius:9px;background:var(--bg-2)}
+.arq-achados li>b{font-size:12.5px;color:var(--text)}
+.arq-achados li>b+span{display:block;margin-top:4px}
+.arq-ach-file{display:block;margin-top:4px}
+.arq-achados li>span{font-size:11.5px;line-height:1.5;color:var(--text-mute);text-wrap:pretty}
+.arq-achados li>code{font-size:11px;color:var(--text-dim)}
+.arq-fine{margin:0;font-size:11px;line-height:1.6;color:var(--text-mute);text-wrap:pretty}
+.arq-fine svg{vertical-align:-2px;margin-right:4px}
+.arq-fine code,.arq-achados code{padding:1px 4px;border-radius:4px;background:var(--bg-2)}
+.arq-nota{margin:0}
+.arq-modal-alt{font-size:12px;color:var(--text-mute)}
+.arq-toast{position:fixed;right:20px;bottom:20px;z-index:40;max-width:440px;padding:10px 14px;font-size:12px;line-height:1.45;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow-pop)}
+.dense.arq-page{gap:11px;padding:4px 18px 24px}
+.dense .arq-lista,.dense .arq-achados{padding:8px}
+.dense .arq-card{padding:9px 11px}
+.dense .arq-card b{font-size:17px}
+
+/* Arquivos · ondas de refino (classificar · grace · avisos · dry-run · onde mora) */
+.arq-casa{margin:-4px 0 0;font-size:11.5px;line-height:1.5;color:var(--text-mute);text-wrap:pretty}
+.arq-cls{display:flex;flex-direction:column;gap:3px;align-items:flex-start}
+.arq-cls small{font-size:10.5px;color:var(--text-mute)}
+.arq-dono-lk{padding:0;font:inherit;font-size:12.5px;font-weight:600;color:var(--accent);background:none;border:0;border-bottom:1px dashed color-mix(in oklch,var(--accent) 45%,transparent);cursor:pointer;text-align:left}
+.arq-dono-lk:hover{border-bottom-style:solid}
+.arq-bloco{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
+.arq-bloco-h{display:flex;flex-direction:column;gap:2px;margin-bottom:10px}
+.arq-bloco-h h3{margin:0;font-size:13.5px;font-weight:600;color:var(--text)}
+.arq-bloco-h small{font-size:11.5px;color:var(--text-mute)}
+.arq-rows{list-style:none;display:flex;flex-direction:column;gap:8px;margin:0;padding:0}
+.arq-rows li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px;border-radius:9px;background:var(--bg-2);flex-wrap:wrap}
+.arq-rows li.quente{border-left:3px solid var(--color-destructive)}
+.arq-row-m{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 260px}
+.arq-row-m b{font-size:12.5px;color:var(--text)}
+.arq-row-m small{font-size:11px;line-height:1.45;color:var(--text-mute)}
+.arq-vazio-in{margin:0;font-size:12px;color:var(--text-mute)}
+.arq-achados-h{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
+.arq-achados-h h3{margin:0;font-size:13.5px;font-weight:600;color:var(--text)}
+.arq-dry{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
+.arq-pre{margin:0;padding:12px;border-radius:9px;background:var(--bg-2);font-family:var(--font-mono,"IBM Plex Mono",monospace);font-size:11px;line-height:1.7;color:var(--text-dim);white-space:pre-wrap;overflow-x:auto}
+.arq-modal-f{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+.arq-modal-warn{margin:0;padding:9px 11px;border-radius:8px;font-size:11.5px;line-height:1.5;color:var(--text);background:color-mix(in oklch,var(--color-destructive) 9%,transparent);border:1px solid color-mix(in oklch,var(--color-destructive) 26%,var(--border))}
+.arq-radios{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.arq-radios label{display:flex;gap:9px;align-items:flex-start;padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:var(--bg-2);cursor:pointer}
+.arq-radios label.on{border-color:var(--accent);background:color-mix(in oklch,var(--accent) 7%,transparent)}
+.arq-radios label span{font-size:11.5px;line-height:1.5;color:var(--text-mute)}
+.arq-radios label span b{color:var(--text);font-family:var(--font-mono,"IBM Plex Mono",monospace);font-size:11.5px}
+.arq-radios input{width:auto;height:auto;margin-top:2px}
+.dense .arq-bloco,.dense .arq-dry{padding:11px}
+.toque .arq-rows li{padding:14px}
+
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* ── Respiro ([W] 2026-08-24): as telas desta leva nasceram coladas na sidebar — o corpo
+   agora respira igual em cima, nos lados e no pé, como .mp-body/.pb-body já fazem. ── */
+/* PageHeader do DS traz padding inline 14px 0: o respiro de cima vem do container. */
+/* Dentro das abas: a barra não encosta no conteúdo nem no header. */
+.arq-page [data-contract=abas]{margin:2px 0 2px}
+.arq-page [data-contract=abas]+*{margin-top:2px}
+.arq-page .arq-casa{margin-top:-6px}
+
+/* ── regras compartilhadas da origem (L295/296/305), MESCLADAS ── */
+/* Elas listavam `.arq-page` junto com 5 módulos alheios. Reescrever escopado criava
+   seletor duplicado (stylelint `no-duplicate-selectors`), então as declarações foram
+   mescladas na regra base RESPEITANDO a cascata da origem: base → dense → L295 → L305.
+   Valor computado final é idêntico ao do protótipo. Só `[data-contract=cabecalho]`
+   sobrou como regra própria — seletor distinto, não duplica. */
+.arq-page [data-contract=cabecalho]{padding-top:8px}
