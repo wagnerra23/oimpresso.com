@@ -102,7 +102,7 @@ const DriftAlerts: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = 
         <CardHeader className="flex-row items-center justify-between gap-2 space-y-0">
           <CardTitle className="text-lg">Drift detectado em runtime</CardTitle>
           {report.length > 0 && (
-            <Badge variant="danger">{report.length} módulos</Badge>
+            <Badge variant="warning">{report.length} módulos</Badge>
           )}
         </CardHeader>
         <CardContent>
@@ -114,7 +114,7 @@ const DriftAlerts: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = 
                 <Alert key={item.module} variant="destructive">
                   <AlertTitle className="flex items-center justify-between gap-2">
                     <span className="font-mono">Modules/{item.module}</span>
-                    <Badge variant="danger">
+                    <Badge variant="warning">
                       {item.undeclared_count} de {item.total_actual} controllers
                     </Badge>
                   </AlertTitle>
