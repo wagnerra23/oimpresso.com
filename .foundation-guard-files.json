@@ -1,6 +1,7 @@
 [
   "cockpit.css",
   "cowork-canon-financeiro-bundle.css",
+  "cowork-arquivos-bundle.css",
   "cowork-compras-bundle.css",
   "cowork-fields.css",
   "cowork-payment-gateway-bundle.css",
