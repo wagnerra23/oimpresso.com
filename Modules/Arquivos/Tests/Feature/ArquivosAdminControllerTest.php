@@ -335,8 +335,12 @@ it('UC-INDEX-02 · a trilha do tenant 98 NUNCA mostra evento do 99 (Tier 0, cros
         $this->markTestSkipped('arquivos_audit_log ausente — a prova cross-tenant roda na lane MySQL.');
     }
 
-    $proprio    = Tests\Support\WithSeededTenant::SEEDED_TENANT_ID;         // 98 — fictício
-    $adversario = Tests\Support\WithSeededTenant::SUPPORT_CLIENT_TENANT_ID; // 99 — o outro
+    // Pela CLASSE, nunca pelo trait. `WithSeededTenant::SEEDED_TENANT_ID` é fatal em PHP 8.2+
+    // ("Cannot access trait constant ... directly") — medido em 8.4. A primeira versão deste
+    // arquivo fez isso no `afterEach` e derrubou os 13 testes da suíte, inclusive os antigos:
+    // o teardown roda depois de CADA teste, então um Error ali reprova o arquivo inteiro.
+    $proprio    = Tests\TestCase::SEEDED_TENANT_ID;         // 98 — fictício
+    $adversario = Tests\TestCase::SUPPORT_CLIENT_TENANT_ID; // 99 — o outro
 
     foreach ([$proprio, $adversario] as $biz) {
         DB::table('arquivos_audit_log')->insert([
@@ -370,7 +374,7 @@ it('UC-INDEX-02 · o filtro de acao restringe a lista sem apagar os outros chips
         $this->markTestSkipped('arquivos_audit_log ausente — roda na lane MySQL.');
     }
 
-    $biz = Tests\Support\WithSeededTenant::SEEDED_TENANT_ID;
+    $biz = Tests\TestCase::SEEDED_TENANT_ID;
 
     foreach (['upload', 'restore'] as $acao) {
         DB::table('arquivos_audit_log')->insert([
@@ -401,8 +405,8 @@ afterEach(function () {
     if (Schema::hasTable('arquivos_audit_log')) {
         DB::table('arquivos_audit_log')
             ->whereIn('arquivo_id', [
-                arquivosTrilhaFixtureId(Tests\Support\WithSeededTenant::SEEDED_TENANT_ID),
-                arquivosTrilhaFixtureId(Tests\Support\WithSeededTenant::SUPPORT_CLIENT_TENANT_ID),
+                arquivosTrilhaFixtureId(Tests\TestCase::SEEDED_TENANT_ID),
+                arquivosTrilhaFixtureId(Tests\TestCase::SUPPORT_CLIENT_TENANT_ID),
             ])
             ->delete();
     }
