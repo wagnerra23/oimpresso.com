@@ -84,6 +84,13 @@ e promove o item a `UC-INDEX-NN`.
 
 - **[BACKLOG]** Acervo com 10 arquivos → subtítulo com contagem e quantos estão cifrados (a barra de abas nasceu no PR-2 com 2 das 4 vistas; retenção chega no PR-3 e cofre no PR-4).
 - **[BACKLOG]** Filtrar bucket `sensitive` → só os do cofre; o contador do chip bate com a lista.
+- **[BACKLOG]** Filtrar por `active` (o **default** do enum, logo o caso comum) → lista os arquivos
+  daquele bucket. Vale como caso porque já falhou de verdade: até 2026-08-25 havia QUATRO listas
+  de bucket em desacordo — enum do banco (7), o que o `CuradorEngine` grava (4), o que a
+  `ListArquivosRequest` aceitava (`public`/`internal`/`sensitive`/`vault`) e os chips da tela
+  (`sensitive`/`common`/`public`). Só `sensitive` existia nas quatro; `active` era rejeitado com
+  **422** e `common`/`public` filtravam por valor inexistente (lista sempre vazia). Achado pelo
+  [W] no smoke de produção, com dado real — nenhum gate estrutural pegaria.
 - **[BACKLOG]** Arquivo em disco `vault` → selo com cadeado; baixar avisa que o link assinado vale 60 min e passa pelo `DownloadController`.
 - **[BACKLOG]** Arquivo sem `arquivable` → linha marcada como urgente + selo "órfão" com o motivo em tooltip (órfão é achado, não item).
 - **[BACKLOG]** Arquivo a ≤30 dias do prazo → coluna "Vence em" em vermelho + linha urgente.
