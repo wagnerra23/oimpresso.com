@@ -884,6 +884,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** não congelar em assert de igualdade um número **derivado de artefato vivo** (registry, manifesto, censo, baseline de terceiro) — nem "corrigindo" pro valor novo, que só adia o mesmo vermelho, nem virando piso decorativo (`>= 3` não pegaria uma queda de 7 pra 4). Antes de escolher a forma, perguntar **que consequência tem a mudança desse número**: se nenhuma, ele é pra **REPORTAR** (§5 2026-07-17 — não restatear número que outro sistema sabe melhor) e o assert vai pro que TEM consequência. E o corolário técnico, válido pra todo consumidor de registry: **`import_path` não descreve a API** — trocar o path sem conferir a FORMA (`default` × nomeado) que o `exports` declara troca um defeito por outro. O dado estava no registry; o consumidor é que lia metade dele.
 
+### 2026-08-25 — Consertar o `NÃO MEDIDO` da âncora de bundle passando o staging como `repoRoot` (o buraco só muda de perna)
+
+- **O limite (variante também proibida):** não consertar instrumento que reporta "não medi" **reapontando-o pra outra raiz/fonte** sem antes provar que a nova raiz responde **todas** as perguntas que a antiga respondia. Vale pra qualquer parâmetro consumido por mais de um ponto dentro da mesma função — raiz de leitura × `cwd` de subprocesso, conexão de leitura × de escrita, base de path × base de URL, tenant de query × de log. A pergunta que separa, e é barata: *"esse argumento é lido em quantos lugares, e todos querem o mesmo valor?"* Se a resposta for "não", são **dois** parâmetros; passar um só **troca a cegueira de perna** em vez de removê-la — e o resultado é indistinguível do conserto certo enquanto ninguém medir o outro lado.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
