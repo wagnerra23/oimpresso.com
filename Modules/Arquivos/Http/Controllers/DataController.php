@@ -12,9 +12,13 @@ use Menu;
  * Hooks UltimatePOS pra Manage Modules (superadmin_package, user_permissions,
  * modifyAdminMenu).
  *
- * Arquivos é módulo backbone — outros módulos consumem via trait HasArquivos.
- * UI admin própria virá em Sprint 2 (US-ARQ-013 Pages/Arquivos integrada
- * no Admin Center).
+ * Arquivos e modulo backbone — outros modulos consomem via trait HasArquivos — E TEM
+ * tela propria desde a Sprint 2: `resources/js/Pages/Arquivos/Index.tsx` (US-ARQ-013),
+ * servida por `ArquivosAdminController` em `/arquivos`.
+ *
+ * Ate 2026-08-25 este bloco dizia que a UI viria "integrada no Admin Center". Ficou falso
+ * duas vezes: o Admin Center foi deprecado pela ADR 0360, e [W] decidiu em 2026-07-29 que
+ * a tela mora no proprio modulo (`SPEC.md:97` — "pode ser dentro do arquivo mesmo").
  *
  * @see memory/decisions/0123-modules-arquivos-backbone.md
  */
@@ -36,7 +40,9 @@ class DataController extends Controller
         return [
             [
                 'value'   => 'arquivos.access',
-                'label'   => 'Arquivos: gerenciar anexos via Admin Center (Sprint 2)',
+                // Texto que o humano LE em `/roles/{id}/edit` ao marcar. Dizia "via Admin
+                // Center", deprecado pela ADR 0360 — descreve o PODER, nao o lugar.
+                'label'   => 'Arquivos: ver o acervo administrativo (/arquivos) — prazo de retencao, base legal e cofre',
                 'default' => false,
             ],
         ];
