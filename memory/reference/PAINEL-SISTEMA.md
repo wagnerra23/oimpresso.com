@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-24**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-25**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **356**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **362**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -130,13 +130,13 @@ lente: [construir]
 - espelho — mexeu depois de verificar
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 125 workflows por classe
+### Censo — 126 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 93 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
+| gate (bloqueia/valida PR) | 94 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 21 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, casos-results-publish, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
@@ -151,7 +151,7 @@ lente: [construir]
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 142 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 148 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -296,6 +296,12 @@ lente: [construir]
 - ~~2026-08-21 — DUAS rotas de baixar o espelho, sem hierarquia no instrumento que a sessão lê — e escolhi a inferior um dia depois da lápide que já tinha corrigido isso~~
 - ~~2026-08-23 — `git cat-file -e <ref>:<path>` responde "não existe" para todo path que começa com `.` — e o diagnóstico que eu ia registrar ("clone parcial") era FALSO~~
 - ~~2026-08-23 — Estender o P4 do `block-sonda-que-mente` pra pegar o pattern vindo de VARIÁVEL de shell (MEDIDO: 93,7% de falso-positivo)~~
+- ~~2026-08-24 — Guard de auto-merge com predicado ABSOLUTO (`fail == 0`) em vez de DELTA — estado herdado o trancou por 9 dias~~
+- ~~2026-08-24 — Fabricar `ponto_colaborador_config` no tenant REAL dentro do teste, pra destravar 2 skips (o dono é o SEED)~~
+- ~~2026-08-24 — Fazer o rótulo do KPI caber a 1280 por ESPAÇO HORIZONTAL (5 colunas · fonte menor · tracking menor · ícone na linha do valor) — 4 variantes MEDIDAS e refutadas~~
+- ~~2026-08-24 — Declarar "a tela nao renderiza" medindo o DOM durante o lazy-load (li 552, o real era 2218)~~
+- ~~2026-08-24 — Gate visual bloqueando por tela FORA do raio do PR: predicado absoluto + o label que aprova o PR mas não a baseline (2ª instância da classe, 3º mecanismo)~~
+- ~~2026-08-24 — Congelar num assert a COBERTURA derivada de um registry VIVO (reprovou por GANHO — 3ª ocorrência da classe, 4º mecanismo)~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -316,4 +322,4 @@ lente: [construir]
   - `2026-08-20-visreg-narrativa-do-comentario`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-24 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-25 · deriva das fontes canônicas, não as substitui._
