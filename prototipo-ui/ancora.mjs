@@ -103,9 +103,14 @@ export async function resolveAncora(query, { repoRoot = REPO_DEFAULT, stagingDir
   if (!hit) return { ok: false, query, motivo: 'sem charter pra essa tela — NÃO invente âncora; registre ou pergunte' };
 
   const fm = hit.fm;
+  // `raiz` = onde o VALOR da âncora resolve em ARQUIVO, e ela NÃO é a mesma pras duas pernas:
+  // a do charter é relativa ao repo, a do bundle é relativa ao staging (linha do `relative`
+  // logo abaixo). Antes deste campo o consumidor não tinha como saber, resolvia tudo contra o
+  // repo e a perna do bundle nunca era lida — ver o bloco de `defeitosDaAncora`.
+  const raizRepo = resolve(repoRoot);
   const ancoras = [];
   // 1) protótipo aprovado declarado no charter (related_prototype)
-  if (fm.related_prototype) ancoras.push({ tipo: 'related_prototype (charter)', valor: fm.related_prototype });
+  if (fm.related_prototype) ancoras.push({ tipo: 'related_prototype (charter)', valor: fm.related_prototype, raiz: raizRepo });
   // 2) -page.jsx do bundle (se staging dado).
   // PREFERE o campo estruturado `bundle_source:` do charter (determinístico) — musing-elion 2026-06-30:
   // a heurística startsWith(dir) falhava quando o bundle nomeia o mockup pela RAIZ do módulo
@@ -120,12 +125,12 @@ export async function resolveAncora(query, { repoRoot = REPO_DEFAULT, stagingDir
       cand = stFiles.find((f) => /-page\.jsx$/i.test(f) && basename(f).toLowerCase().startsWith(wanted));
       if (cand) via = 'heurística startsWith(dir)';
     }
-    if (cand) ancoras.push({ tipo: `-page.jsx (bundle · ${via})`, valor: relative(stagingDir, cand).replace(/\\/g, '/') });
+    if (cand) ancoras.push({ tipo: `-page.jsx (bundle · ${via})`, valor: relative(stagingDir, cand).replace(/\\/g, '/'), raiz: resolve(stagingDir) });
   }
   const liveTsx = repoTsx(fm.component);
   return {
     ok: true, query, charter: hit.charter,
-    telaViva: liveTsx, ancoras,
+    telaViva: liveTsx, ancoras, repoRoot: raizRepo,
     aviso: 'ÂNCORA = um dos itens acima. audit-*.png / critique / screenshot NUNCA é âncora.',
   };
 }
@@ -172,20 +177,39 @@ async function classeExiste(nome, repoRoot) {
   return r.status === 0;
 }
 
-/** Devolve { fantasmas[], naoMedidos[] } para o arquivo de âncora. */
-export async function defeitosDaAncora(ancoraRel, repoRoot = REPO_DEFAULT) {
-  const abs = resolve(repoRoot, ancoraRel);
+/** Devolve { fantasmas[], naoMedidos[], lido, raiz } para o arquivo de âncora.
+ *
+ *  DUAS raízes — e conflacioná-las APAGA a medição (defeito de 2026-08-25):
+ *    • `raizLeitura` — onde o ARQUIVO da âncora resolve. A âncora de charter é relativa ao
+ *      repo; a de bundle (`--staging`) é gravada relativa AO STAGING (`relative(stagingDir,…)`).
+ *    • `repoRoot`    — onde o `git grep` procura a classe. É SEMPRE o repo, nunca o staging.
+ *
+ *  O defeito: o printer chamava com UM argumento só, o default caía em REPO_DEFAULT, e a
+ *  âncora de bundle virava `<repo>/<caminho-relativo-ao-staging>` — path que nunca existe.
+ *  Toda âncora vinda de bundle saía `⚠️ NÃO MEDIDO` e o P-1 (símbolo fantasma) nunca rodava
+ *  nessa perna: o selo era honesto, mas estruturalmente inalcançável — LC-11 no eixo do
+ *  CONSUMIDOR, a mesma família do fail-open que o `lido` já tinha matado dentro da função.
+ *
+ *  E o conserto INGÊNUO (passar o staging como `repoRoot`) só TROCA o buraco de lugar.
+ *  Medido 2026-08-25, com controle positivo, mesmo símbolo nas duas raízes:
+ *      cwd=<repo>     → status 0   → classeExiste = true
+ *      cwd=<staging>  → status 128 `fatal: not a git repository` → classeExiste = null
+ *  Ou seja: o P-1 apagaria do mesmo jeito, agora pelo lado do símbolo em vez do da leitura.
+ *  Por isso as duas raízes andam SEPARADAS, e não como um parâmetro só.
+ */
+export async function defeitosDaAncora(ancoraRel, repoRoot = REPO_DEFAULT, raizLeitura = repoRoot) {
+  const abs = resolve(raizLeitura, ancoraRel);
   // ⚠️ `read` do _lib-charter devolve NULL em vez de lançar — `try/catch` aqui
   // nunca dispararia, e o "arquivo ausente" viraria "0 fantasmas" (fail-open).
   // Pego no próprio selftest. Vazio só é evidência quando a leitura aconteceu.
   const txt = await read(abs);
-  if (txt === null || txt === undefined) return { fantasmas: [], naoMedidos: [], lido: false };
+  if (txt === null || txt === undefined) return { fantasmas: [], naoMedidos: [], lido: false, raiz: raizLeitura };
   const fantasmas = [], naoMedidos = [];
   for (const s of simbolosCitados(txt)) {
     const ex = await classeExiste(s, repoRoot);
     if (ex === null) naoMedidos.push(s); else if (!ex) fantasmas.push(s);
   }
-  return { fantasmas, naoMedidos, lido: true };
+  return { fantasmas, naoMedidos, lido: true, raiz: raizLeitura };
 }
 
 async function printResolve(r) {
@@ -204,7 +228,10 @@ async function printResolve(r) {
       console.log(`  sem âncora: ${a.valor}`);
       console.log('              (declaração legítima — a tela nasce do DS. NÃO entra no anchor-content-check.)');
     } else {
-      const d = await defeitosDaAncora(a.valor);
+      // DUAS raízes: o `git grep` sempre no repo; a LEITURA na raiz da própria âncora
+      // (staging pra âncora de bundle). Passar só uma era o defeito de 2026-08-25.
+      const raizGit = r.repoRoot || REPO_DEFAULT;
+      const d = await defeitosDaAncora(a.valor, raizGit, a.raiz || raizGit);
       // `✓` exige LEITURA. `lido:false` = não consegui abrir o arquivo da âncora (path que
       // não resolve — p.ex. `arquivo.jsx (PT-04 Dashboard)`, onde o parêntese entra no path).
       // Sem esta perna o printer imprimia `✓` com 0 fantasmas por AUSÊNCIA de medição — o
@@ -215,6 +242,9 @@ async function printResolve(r) {
       if (!d.lido) {
         console.log('              ⚠️ NÃO MEDIDO — o arquivo da âncora não pôde ser LIDO neste path.');
         console.log('                 Zero fantasma aqui é AUSÊNCIA DE MEDIÇÃO, não saúde.');
+        // Sem dizer QUAL raiz foi tentada, o ⚠️ é honesto mas cego — foi o que fez o defeito
+        // da raiz de staging sobreviver: a mensagem só sugeria a causa dos parênteses.
+        console.log(`                 raiz tentada: ${d.raiz}`);
         console.log('                 Causa comum: sufixo entre parênteses entrando no path.');
       }
       if (d.fantasmas.length) {
@@ -314,6 +344,51 @@ async function selftest() {
     dSufixo.lido === false && dSufixo.fantasmas.length === 0);
   t('CONTROLE printer: o MESMO arquivo sem o sufixo É lido (o defeito era o path, não o arquivo)',
     (await defeitosDaAncora('prototipo-ui/cowork/jana-merge.jsx')).lido === true);
+
+  // ── BITE da RAIZ DE LEITURA da âncora de bundle (--staging) — 2026-08-25 ───
+  // A perna `--staging` grava o valor RELATIVO ao staging, mas o printer media contra o
+  // repo: TODA âncora de bundle saía `⚠️ NÃO MEDIDO` e o P-1 nunca rodava ali. O selftest
+  // até então só exercitava âncora relativa ao repo — cego justamente nessa perna.
+  // HERMÉTICO de propósito: o bundle real vive fora do git e `Downloads/`/`_cowork-handoff-
+  // staging` é LUGAR PROIBIDO pro ancora-guard — o teste monta o próprio staging em tmp.
+  const { mkdtemp, mkdir, writeFile, rm: apagar } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const fx = await mkdtemp(join(tmpdir(), 'ancora-fx-'));
+  const fxRepo = join(fx, 'repo');
+  const fxStaging = join(fx, 'staging');
+  await mkdir(join(fxRepo, 'resources', 'js', 'Pages', 'Fixture'), { recursive: true });
+  await mkdir(join(fxStaging, 'projeto'), { recursive: true });
+  await writeFile(join(fxRepo, 'resources', 'js', 'Pages', 'Fixture', 'Index.charter.md'),
+    ['---', 'page: /fixture', 'component: resources/js/Pages/Fixture/Index.tsx',
+      'bundle_source: fixture-page.jsx', '---', '# fixture'].join('\n'), 'utf8');
+  // Cita UM símbolo que NÃO existe no repo e UM que existe — o detector tem que separar.
+  await writeFile(join(fxStaging, 'projeto', 'fixture-page.jsx'),
+    'const FONTES = { a: "NaoExisteNoRepoService", b: "SellsCockpitAggregator::build" };\n', 'utf8');
+
+  const rb = await resolveAncora('Fixture/Index', { repoRoot: fxRepo, stagingDir: fxStaging });
+  const ab = rb.ok ? rb.ancoras.find((a) => a.tipo.startsWith('-page.jsx')) : null;
+  t('BITE staging: a âncora de bundle é resolvida do charter da fixture',
+    !!ab && ab.valor === 'projeto/fixture-page.jsx');
+  // `!!ab.raiz` antes do `resolve`: sem a guarda, remover o campo faz o selftest ESTOURAR
+  // em vez de falhar — vermelho igual, mas engole as asserções seguintes e não diz o que quebrou.
+  t('BITE staging: a âncora carrega a RAIZ de leitura (staging), não o repo',
+    !!ab && !!ab.raiz && resolve(ab.raiz) === resolve(fxStaging));
+  const dOk = ab ? await defeitosDaAncora(ab.valor, REPO_DEFAULT, ab.raiz) : { lido: false, fantasmas: [] };
+  t('BITE staging: com a raiz certa o arquivo do bundle É LIDO (antes: NÃO MEDIDO sempre)',
+    dOk.lido === true);
+  t('BITE staging: o P-1 roda nessa perna e ACUSA o símbolo fantasma',
+    dOk.fantasmas.includes('NaoExisteNoRepoService'));
+  // Este é o controle que impede o conserto ingênuo (staging como repoRoot): se o `git grep`
+  // rodasse no staging, ele sairia 128 → `naoMedidos`, e o símbolo real viraria não-medido.
+  t('CONTROLE staging: o git grep segue no REPO — símbolo REAL não vira fantasma nem não-medido',
+    dOk.lido === true && !dOk.fantasmas.includes('SellsCockpitAggregator')
+      && !dOk.naoMedidos.includes('SellsCockpitAggregator'));
+  // CONTROLE NEGATIVO — reproduz o defeito. Sem ele, o BITE acima passaria mesmo se o
+  // conserto não fizesse nada (verde que não pode ficar vermelho = carimbo).
+  const dRuim = ab ? await defeitosDaAncora(ab.valor, REPO_DEFAULT, REPO_DEFAULT) : { lido: true };
+  t('CONTROLE staging: com a raiz do REPO o MESMO valor não é lido (é o defeito de 2026-08-25)',
+    dRuim.lido === false);
+  await apagar(fx, { recursive: true, force: true });
 
   console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — âncora = charter, png de auditoria barrado, âncora defeituosa acusada.');
   process.exit(fails ? 1 : 0);
