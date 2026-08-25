@@ -129,7 +129,7 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
 - [x] **PR-2 (trilha) + barra de abas** — 2026-08-25. `?tab=trilha`, leitura pura de
       `arquivos_audit_log`, UC-INDEX-02 com 6 asserções.
 - [x] **PR-4 (cofre)** — 2026-08-25. `?tab=cofre`, espaço por disco + 3 achados, UC-INDEX-03
-      com 7 asserções (contadas com `grep -c`, não de memória).
+      com 8 asserções (contadas com `grep -c`, não de memória).
 - [ ] Onda 1 **completa**: falta o PR-3 (retenção). **Não está bloqueado por decisão [W]** —
       apurado em 2026-08-25 na fonte: a proposta `arquivos-retencao-ui-aviso-titular` diz duas
       vezes que as ondas 0-2 não dependem dela, e o que estava escrito no RUNBOOK era um

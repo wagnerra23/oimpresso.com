@@ -516,6 +516,38 @@ it('UC-INDEX-03 · o COFRE le pelo model e NAO repete o where de business_id', f
     expect($codigo)->not->toContain('withoutGlobalScopes');
 })->group('arquivos', 'multi-tenant');
 
+it('UC-INDEX-03 · `toBase()` NAO derruba o global scope — o recorte por business sobrevive', function () {
+    // O leitor agrega com `->toBase()->get()` porque agregação hidratada em model devolve
+    // `Arquivo` com aliases que a classe não declara (o PHPStan reprova, e com razão: alias
+    // de agregação não é atributo). Mas o nome `toBase` sugere "desce pro query builder cru",
+    // e se fosse isso o recorte Tier 0 iria junto — vazamento cross-tenant.
+    //
+    // Não é: `Eloquent\Builder::toBase()` é `applyScopes()->getQuery()`. Este teste prova a
+    // propriedade em vez de confiar na leitura do vendor, e prova SEM banco (o `toSql()` não
+    // executa nada), então vale nas duas lanes — inclusive na sqlite, onde a prova
+    // comportamental cross-tenant pula.
+    session(['user' => ['business_id' => Tests\TestCase::SEEDED_TENANT_ID]]);
+
+    $sql = Modules\Arquivos\Entities\Arquivo::query()
+        ->select('disk')
+        ->groupBy('disk')
+        ->toBase()
+        ->toSql();
+
+    expect($sql)->toContain('business_id');
+
+    // Controle negativo: sem sessão o scope não filtra (é `if ($businessId !== null)`), e é
+    // por isso que o leitor tem portão fail-closed ANTES de perguntar. Se este assert um dia
+    // falhar, o scope passou a ser fail-closed sozinho e o portão virou redundante — o que é
+    // notícia boa, mas precisa ser lida, não herdada.
+    session()->forget('user');
+    session()->forget('business');
+
+    $semSessao = Modules\Arquivos\Entities\Arquivo::query()->select('disk')->toBase()->toSql();
+
+    expect($semSessao)->not->toContain('business_id');
+})->group('arquivos', 'multi-tenant');
+
 it('UC-INDEX-03 · o cap do cofre vem da CONFIG que o vault cobra, nunca de um 50 escrito na tela', function () {
     // Se o cap virar literal aqui, a tela passa a mentir no dia em que alguém ajustar
     // ARQUIVOS_VAULT_MAX_FILE_SIZE_MB no .env — e o `VaultEncryptionService` seguiria

@@ -90,13 +90,19 @@ last_run: "2026-08-25"
   `arquivable`, e mesmo conteúdo repetido — tudo do **próprio** business, com no máximo 5
   arquivos citados por achado, **nenhum hash**, **nenhum caminho de disco** e **nenhum botão que
   aja sobre eles**.
-- **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **7** asserções
+- **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **8** asserções
   citando `UC-INDEX-03` no título do `it()` (contadas com `grep -c "^it('UC-INDEX-03"`, não de
   memória): fail-closed sem sessão devolve `disponivel: false` e não "0 achados" · o leitor usa
-  o model e **não** repete o `where` · o cap vem da config que o vault cobra · o controller
-  registra a prop de **uma** vista só · **cross-tenant 98 vs 99** · duplicado separa registro
-  repetido de disco ocupado 2× · o payload não carrega hash nem caminho (com controle positivo).
-  As 4 primeiras dispensam banco (valem nas duas lanes); as 3 últimas rodam na lane MySQL.
+  o model e **não** repete o `where` · **`toBase()` não derruba o global scope** · o cap vem da
+  config que o vault cobra · o controller registra a prop de **uma** vista só · **cross-tenant
+  98 vs 99** · duplicado separa registro repetido de disco ocupado 2× · o payload não carrega
+  hash nem caminho (com controle positivo).
+  As 5 primeiras dispensam banco (valem nas duas lanes); as 3 últimas rodam na lane MySQL.
+  _A do `toBase()` nasceu de um vermelho de PHPStan (`Access to an undefined property
+  Arquivo::$qtd_arquivos`, ×6): agregação hidratada em model carrega aliases que a classe não
+  declara. A saída foi mudar a FORMA — `->toBase()->get()` —, não suprimir no baseline; e como
+  isso passou a depender de `toBase()` preservar o scope, a propriedade virou teste em vez de
+  leitura do vendor._
 - **Regressão que defende:** **vazamento cross-tenant** — `arquivos` tem model e global scope, e
   aqui o erro caro é o simétrico ao da trilha: *repetir* o `where` esconderia uma quebra do
   scope. Defende também: (a) "não medi" virar "0 achados", que faz uma tela de governança

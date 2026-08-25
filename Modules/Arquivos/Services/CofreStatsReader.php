@@ -98,6 +98,18 @@ class CofreStatsReader
      * `cifrados` acompanha porque é o que distingue os dois cards: vault com cifrado
      * abaixo do total é o mesmo sinal do check #5 do `arquivos:health-check`.
      *
+     * ⚠️ **`toBase()` no fim da cadeia, e ele NÃO afrouxa o Tier 0** — é o contrário do que
+     * o nome sugere, então vale o recibo: `Eloquent\Builder::toBase()` é
+     * `return $this->applyScopes()->getQuery()` (`Builder.php:2037`), ou seja aplica os
+     * global scopes ANTES de descer pro query builder. O recorte por `business_id`
+     * continua valendo; o que muda é só o tipo do resultado.
+     *
+     * Por que mudar o tipo: agregação hidratada em model devolve `Arquivo` carregando
+     * `qtd_arquivos`/`soma_bytes`, que a classe não declara. Roda (o Eloquent guarda em
+     * `$attributes`), mas o PHPStan reprova com `Access to an undefined property` — e a
+     * saída certa é a FORMA, não a supressão: um alias de agregação não é atributo do
+     * model, e fingir que é atravessa o baseline com dívida em vez de resolver.
+     *
      * @return array<int, array{disco: string, arquivos: int, bytes: int, cifrados: int}>
      */
     private function discos(): array
@@ -111,6 +123,7 @@ class CofreStatsReader
             ])
             ->groupBy('disk')
             ->orderByDesc('soma_bytes')
+            ->toBase()
             ->get()
             ->map(fn ($r) => [
                 'disco'    => (string) $r->disk,
@@ -220,6 +233,9 @@ class CofreStatsReader
             ->havingRaw('COUNT(*) > 1')
             ->orderByDesc('copias')
             ->limit(self::CAP_GRUPOS + 1)
+            // `toBase()` pelo mesmo motivo de `discos()` — e com o mesmo recibo: ele
+            // aplica os global scopes antes de descer (`Builder.php:2037`).
+            ->toBase()
             ->get();
 
         $truncado = $grupos->count() > self::CAP_GRUPOS;
