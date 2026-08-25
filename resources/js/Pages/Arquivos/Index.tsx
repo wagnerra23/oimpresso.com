@@ -5,13 +5,15 @@
 //   runbook: memory/requisitos/Arquivos/RUNBOOK-index.md
 //   charter: ./Index.charter.md · casos: ./Index.casos.md
 //
-// ONDA 1 · PR-1 ACERVO + PR-2 TRILHA. Leitura pura: nenhum caminho aqui escreve, apaga
-// ou dispara job. As outras duas vistas do charter (retenção · cofre) chegam nos PR-3/4.
+// ONDA 1 · PR-1 ACERVO + PR-2 TRILHA + PR-4 COFRE. Leitura pura: nenhum caminho aqui
+// escreve, apaga ou dispara job. Falta a Retenção (PR-3) pra fechar as 4 vistas do
+// charter — ela depende da decisão [W] na proposta `arquivos-retencao-ui-aviso-titular`.
 //
-// A BARRA DE ABAS NASCE AQUI, com a segunda vista — não antes: aba que não leva a lugar
-// nenhum é promessa, não navegação. Ela navega por rota (`?tab=`), como Financeiro,
+// A BARRA DE ABAS nasceu no PR-2, com a segunda vista — não antes: aba que não leva a
+// lugar nenhum é promessa, não navegação. Ela navega por rota (`?tab=`), como Financeiro,
 // Fiscal/Dfe e Cliente — não por estado local, senão o link não é compartilhável e o
-// botão voltar do navegador mente.
+// botão voltar do navegador mente. A ordem das abas é a do protótipo (acervo · retenção ·
+// cofre · trilha), com o buraco da retenção guardado no lugar em vez de emendado no fim.
 //
 // Layout por PRIMITIVOS (ADR 0253): nada de `<div className="flex gap-4">` solto — o
 // layout-primitives-guard é catraca e reprova adotante novo.
@@ -22,10 +24,11 @@ import { PageHeader } from '@/Components/PageHeader'
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs'
 import DataTable from '@/Components/shared/DataTable'
 import EmptyState from '@/Components/shared/EmptyState'
-import { Stack, Inline } from '@/Components/layout'
+import { Stack, Inline, Grid, Box } from '@/Components/layout'
 import { Badge } from '@/Components/ui/badge'
 import { Skeleton } from '@/Components/ui/skeleton'
 import type { ColumnDef } from '@tanstack/react-table'
+import type { ReactNode } from 'react'
 
 interface LinhaAcervo {
   id: number
@@ -68,7 +71,7 @@ interface Politica {
 }
 
 interface Filtros {
-  tab: 'acervo' | 'trilha'
+  tab: 'acervo' | 'trilha' | 'cofre'
   bucket: string | null
   owner_type: string | null
   mime: string | null
@@ -95,6 +98,38 @@ interface TrilhaPayload {
   acoes: FacetaAcao[]
 }
 
+/** Um disco do acervo. Os discos saem de `GROUP BY` — não há lista escrita no servidor. */
+interface Disco {
+  disco: string
+  arquivos: number
+  bytes: number
+  cifrados: number
+}
+
+/** Um achado do cofre. `exemplos` é amostra (5), nunca a lista inteira — a lista é o acervo. */
+interface AchadoPayload<T> {
+  total: number
+  exemplos: T[]
+}
+
+interface GrupoDuplicado {
+  copias: number
+  /** Caminhos de storage distintos no grupo. 1 = registro repetido; >1 = disco ocupado 2×. */
+  caminhos: number
+  bytes: number
+  nomes: string[]
+}
+
+interface CofrePayload {
+  /** `false` = não foi possível medir (sem tenant na sessão, ou módulo sem migrate). */
+  disponivel: boolean
+  cap_mb: number
+  discos: Disco[]
+  acima_do_cap: AchadoPayload<{ id: number; nome: string; bytes: number; disco: string | null; cifrado: boolean }>
+  orfaos: AchadoPayload<{ id: number; nome: string; bytes: number }>
+  duplicados: { grupos: number; registros: number; truncado: boolean; exemplos: GrupoDuplicado[] }
+}
+
 interface Props {
   filtros: Filtros
   politica: Politica[]
@@ -102,6 +137,8 @@ interface Props {
   acervo?: Paginator<LinhaAcervo>
   /** Só chega quando `tab=trilha`. */
   trilha?: TrilhaPayload
+  /** Só chega quando `tab=cofre`. */
+  cofre?: CofrePayload
 }
 
 /** Os buckets que o Curador de fato grava (`CuradorEngine`), na ordem em que interessam a
@@ -434,8 +471,142 @@ function Trilha({ trilha, filtros }: { trilha?: TrilhaPayload; filtros: Filtros 
   )
 }
 
-export default function Index({ filtros, politica, acervo, trilha }: Props) {
-  const vista = filtros.tab === 'trilha' ? 'trilha' : 'acervo'
+/**
+ * Rótulo do disco. Só o `vault` tem nome próprio — o outro varia por ambiente
+ * (`local` em dev, `arquivos` no CT 100, via `config('arquivos.disk_default')`), então
+ * cai no nome cru em vez de num apelido que estaria errado em metade das instalações.
+ */
+function rotuloDisco(disco: string): { titulo: string; nota: string } {
+  return disco === 'vault'
+    ? { titulo: 'Cofre (cifrado)', nota: 'AES-256 via Crypt::encryptString — baixa pelo DownloadController' }
+    : { titulo: `Disco ${disco}`, nota: 'servido por Storage::url' }
+}
+
+/** Um achado do cofre: título, o que ele significa, e a amostra de arquivos. */
+function Achado({ titulo, children, exemplos }: { titulo: string; children: ReactNode; exemplos: string[] }) {
+  return (
+    <Stack gap={2} className="border-t border-border pt-4 first:border-t-0 first:pt-0">
+      <span className="text-sm font-medium text-foreground">{titulo}</span>
+      <p className="max-w-[72ch] text-xs leading-relaxed text-muted-foreground">{children}</p>
+      {exemplos.length > 0 && (
+        <Inline gap={2} wrap>
+          {exemplos.map((e, i) => (
+            <code key={i} className="rounded bg-muted px-2 py-1 text-xs text-muted-foreground">
+              {e}
+            </code>
+          ))}
+        </Inline>
+      )}
+    </Stack>
+  )
+}
+
+function Cofre({ cofre }: { cofre?: CofrePayload }) {
+  if (!cofre) return null
+
+  // "Não medi" nunca vira "0 achados": zero com `disponivel` é acervo limpo; sem ele é
+  // ausência de resposta, e afirmar saúde sem ter medido é o defeito clássico do gênero.
+  if (!cofre.disponivel) {
+    return (
+      <EmptyState
+        title="Não foi possível medir o cofre."
+        description="Falta o business na sessão ou o módulo não foi migrado neste ambiente. Isto não quer dizer que não há achados — quer dizer que ninguém olhou."
+      />
+    )
+  }
+
+  if (cofre.discos.length === 0) {
+    return (
+      <EmptyState
+        title="Nenhum arquivo guardado ainda."
+        description="Sem acervo não há o que medir. O cofre enche junto com os módulos — e esta tela não envia arquivo."
+      />
+    )
+  }
+
+  const { acima_do_cap: acima, orfaos, duplicados } = cofre
+
+  return (
+    <Stack gap={4}>
+      {/* `min="sm"` (auto-fit) e não `cols` fixo: a grade se reflowa entre o 1280 da
+          Larissa e o 1440 do Wagner sem media-query na tela (ADR 0253). */}
+      <Grid min="sm" gap={4} data-contract="cofre-discos">
+        {cofre.discos.map((d) => {
+          const { titulo, nota } = rotuloDisco(d.disco)
+          return (
+            <Box key={d.disco} bg="card" border rounded="lg" p={4}>
+              <Stack gap={1}>
+                <span className="text-xs text-muted-foreground">{titulo}</span>
+                <span className="text-xl font-medium tabular-nums text-foreground">{tamanho(d.bytes)}</span>
+                <span className="text-xs text-muted-foreground">
+                  {d.arquivos} {d.arquivos === 1 ? 'arquivo' : 'arquivos'} ·{' '}
+                  {/* No vault, cifrado abaixo do total é o mesmo sinal do check #5 do
+                      `arquivos:health-check` — por isso o número aparece marcado. */}
+                  {d.disco === 'vault' && d.cifrados < d.arquivos ? (
+                    <span className="font-medium text-destructive">{d.cifrados} cifrados</span>
+                  ) : (
+                    <>{d.cifrados} cifrados</>
+                  )}
+                </span>
+                <span className="text-xs text-muted-foreground">{nota}</span>
+              </Stack>
+            </Box>
+          )
+        })}
+      </Grid>
+
+      {/* SEM barra de progresso, ao contrário do protótipo — e a razão é medida, não
+          gosto: lá a barra é `bytes / 5 GB`, e 5 GB é número do mock. Não existe quota
+          por disco em `Config/config.php` (conferido), então a barra não teria
+          denominador — ela sugeriria um teto que ninguém definiu. Se um dia houver
+          quota configurada, a barra volta com significado. */}
+
+      <Box bg="card" border rounded="lg" p={4} data-contract="cofre-achados">
+        <Stack gap={4}>
+          <Achado
+            titulo={`${acima.total} ${acima.total === 1 ? 'arquivo acima' : 'arquivos acima'} do cap de ${cofre.cap_mb} MB`}
+            exemplos={acima.exemplos.map(
+              (a) => `${a.nome} · ${tamanho(a.bytes)}${a.disco === 'vault' && !a.cifrado ? ' · no cofre SEM cifra' : ''}`,
+            )}
+          >
+            O <code>VaultEncryptionService</code> carrega o arquivo inteiro em memória pra cifrar: acima do
+            cap ele <strong>recusa</strong>, em vez de arriscar OOM — a recusa é o comportamento correto, não
+            uma falha. Cifragem em blocos é a ADR 0126. Vale pra qualquer disco: o cap morde na hora em que o
+            arquivo vai pro cofre, então um arquivo comum grande é o que quebra a próxima reclassificação
+            para <code>sensitive</code>.
+          </Achado>
+
+          <Achado
+            titulo={`${orfaos.total} ${orfaos.total === 1 ? 'órfão' : 'órfãos'} (sem dono)`}
+            exemplos={orfaos.exemplos.map((a) => `${a.nome} · ${tamanho(a.bytes)}`)}
+          >
+            Sem <code>arquivable</code>, ninguém alcança o arquivo pela tela do dono — ou se vincula, ou se
+            apaga. Órfão que ninguém apaga é custo de disco com risco de PII junto.
+          </Achado>
+
+          <Achado
+            titulo={`${duplicados.grupos}${duplicados.truncado ? '+' : ''} ${duplicados.grupos === 1 ? 'grupo' : 'grupos'} com o mesmo conteúdo`}
+            exemplos={duplicados.exemplos.map(
+              (g) =>
+                `${g.nomes.join(' = ')} · ${g.copias} registros · ${
+                  g.caminhos > 1 ? `${g.caminhos} cópias em disco` : 'mesmo arquivo em disco'
+                }`,
+            )}
+          >
+            O upload já deduplica por hash dentro do business — <code>attach()</code> devolve o registro que
+            existe em vez de gravar de novo. Então repetição aqui veio de outro caminho (o backfill de NF-e
+            insere direto) ou de um dedupe que não pegou, e nem sempre é erro. <strong>Só ocupa disco duas
+            vezes quando os caminhos diferem</strong>: o caminho é derivado do hash, então cópias do mesmo mês
+            apontam para o mesmo arquivo físico — {duplicados.registros} registros envolvidos ao todo.
+          </Achado>
+        </Stack>
+      </Box>
+    </Stack>
+  )
+}
+
+export default function Index({ filtros, politica, acervo, trilha, cofre }: Props) {
+  const vista = filtros.tab === 'trilha' || filtros.tab === 'cofre' ? filtros.tab : 'acervo'
 
   const irPara = (patch: Record<string, ValorDeQuery>) =>
     router.get('/arquivos', paraNavegacao(filtros, patch), { preserveState: true, replace: true })
@@ -447,14 +618,27 @@ export default function Index({ filtros, politica, acervo, trilha }: Props) {
   // memória; aqui custaria um COUNT na tabela inteira, eager, pra pintar um número na
   // aba que o usuário nem abriu. O número da vista aberta vai no subtítulo, de graça,
   // vindo do paginador que já veio.
+  // O cofre já vem agregado: o subtítulo dele soma os discos, sem query extra. Quando
+  // `disponivel` é falso a frase diz isso — não inventa "0 arquivos", que seria a
+  // resposta de um acervo vazio, e é outra coisa.
+  const subtituloCofre = !cofre
+    ? 'medindo o cofre…'
+    : !cofre.disponivel
+      ? 'não foi possível medir'
+      : `${cofre.discos.reduce((s, d) => s + d.arquivos, 0)} arquivos · ${tamanho(
+          cofre.discos.reduce((s, d) => s + d.bytes, 0),
+        )} em ${cofre.discos.length} ${cofre.discos.length === 1 ? 'disco' : 'discos'}`
+
   const subtitulo =
-    vista === 'trilha'
-      ? trilha
-        ? `${trilha.eventos.total} eventos registrados`
-        : 'carregando a trilha…'
-      : acervo
-        ? `${total} nesta página · ${cifrados} no cofre cifrado`
-        : 'carregando o acervo…'
+    vista === 'cofre'
+      ? subtituloCofre
+      : vista === 'trilha'
+        ? trilha
+          ? `${trilha.eventos.total} eventos registrados`
+          : 'carregando a trilha…'
+        : acervo
+          ? `${total} nesta página · ${cifrados} no cofre cifrado`
+          : 'carregando o acervo…'
 
   return (
     <AppShellV2>
@@ -486,6 +670,7 @@ export default function Index({ filtros, politica, acervo, trilha }: Props) {
             <PageHeaderTabs
               ghosts={[
                 { key: 'acervo', label: 'Acervo', href: '/arquivos?tab=acervo' },
+                { key: 'cofre', label: 'Cofre', href: '/arquivos?tab=cofre' },
                 { key: 'trilha', label: 'Trilha', href: '/arquivos?tab=trilha' },
               ]}
               activeGhostKey={vista}
@@ -531,6 +716,29 @@ export default function Index({ filtros, politica, acervo, trilha }: Props) {
                 cofre passa sempre pelo <code>DownloadController</code> — <code>Storage::url</code> direto
                 não serve arquivo cifrado (ADR 0123 §6), e o link assinado expira em 60 min. Esta tela não
                 envia arquivo: upload entra pelos módulos, via trait <code>HasArquivos</code>.
+              </p>
+            </div>
+          )}
+
+          {vista === 'cofre' && (
+            <div className="space-y-4">
+              {/* Sem filtros nesta vista, de propósito: o cofre é o retrato do acervo
+                  inteiro do business. "Achados que sobram depois do filtro" responderia
+                  outra pergunta — e a que interessa aqui é quanto está guardado e o que
+                  está errado, não o recorte. */}
+              <div data-contract="cofre">
+                <Deferred data="cofre" fallback={<TabelaSkeleton />}>
+                  <Cofre cofre={cofre} />
+                </Deferred>
+              </div>
+
+              <p className="max-w-[72ch] text-xs leading-relaxed text-muted-foreground">
+                Os três achados são <strong>sinal, não fila de trabalho</strong>: esta tela não apaga, não
+                vincula e não recifra nada. Quem apaga é o comando, com política —{' '}
+                <code>arquivos:retention-cleanup</code>; quem recifra é{' '}
+                <code>arquivos:reencrypt-vault</code>; e o retrato completo de saúde, com os 5 sinais de
+                integridade, é <code>arquivos:health-check</code>. Cada achado mostra no máximo 5 arquivos:
+                a lista inteira é o Acervo, na aba ao lado.
               </p>
             </div>
           )}

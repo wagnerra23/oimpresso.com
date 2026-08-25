@@ -11,6 +11,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Arquivos\Entities\Arquivo;
 use Modules\Arquivos\Http\Requests\ListArquivosRequest;
+use Modules\Arquivos\Services\CofreStatsReader;
 
 /**
  * ArquivosAdminController — a tela administrativa do acervo (US-ARQ-013).
@@ -18,9 +19,10 @@ use Modules\Arquivos\Http\Requests\ListArquivosRequest;
  * Liga a `ListArquivosRequest`, que já existia órfã desde a Sprint 1, à Page Inertia
  * `Arquivos/Index`. Nenhum endpoint novo foi inventado: o contrato de entrada (bucket,
  * owner_type, mime, from/to, per_page, q, with_trashed) é o que a Request já valida —
- * a onda 1 · PR-2 acrescentou só `tab` e `acao`, pra escolher a vista e filtrar a trilha.
+ * a onda 1 · PR-2 acrescentou `tab` e `acao`, e o PR-4 só ampliou o vocabulário de `tab`
+ * com `cofre`. Nenhuma vista abriu rota.
  *
- * Multi-tenant Tier 0 IRREVOGÁVEL ([ADR 0093]) — e as duas vistas se defendem de formas
+ * Multi-tenant Tier 0 IRREVOGÁVEL ([ADR 0093]) — e as vistas se defendem de formas
  * DIFERENTES, o que é a única sutileza real deste arquivo:
  *
  *   - **acervo** lê pelo model `Arquivo`, que tem global scope por business. Aqui NÃO
@@ -29,8 +31,12 @@ use Modules\Arquivos\Http\Requests\ListArquivosRequest;
  *     nenhum. Ali o `where` explícito não é redundância: é a ÚNICA defesa Tier 0, e a
  *     ausência dele seria vazamento cross-tenant. O teste de contrato foi refinado pra
  *     cobrar exatamente isso de cada caminho (ver `ArquivosAdminControllerTest`).
+ *   - **cofre** lê pelo model, como o acervo, mas fora daqui: o `CofreStatsReader`
+ *     agrega, e acrescenta um portão fail-closed antes de perguntar (sem business na
+ *     sessão, retrato vazio). O motivo de a agregação não morar neste arquivo está no
+ *     docblock de `buildCofrePayload()`, e é o assert de LGPD, não estilo.
  *
- * Nenhum dos dois usa `withoutGlobalScopes`.
+ * Nenhum dos três usa `withoutGlobalScopes`.
  *
  * LEITURA PURA: nenhum caminho aqui escreve, apaga ou dispara job. Classificar, excluir e
  * restaurar entram na onda 2; retenção/purge dependem de decisão [W] (proposta de ADR
@@ -43,15 +49,17 @@ use Modules\Arquivos\Http\Requests\ListArquivosRequest;
 class ArquivosAdminController extends Controller
 {
     /**
-     * A tela — duas vistas hoje: acervo (PR-1) e trilha (PR-2).
+     * A tela — três vistas hoje: acervo (PR-1), trilha (PR-2) e cofre (PR-4).
      *
      * A vista ativa vem de `?tab=`, o vocabulário de URL que o projeto já usa
-     * (Financeiro, Fiscal/Dfe, Cliente). A barra de abas nasce AGORA, com a
-     * segunda vista: aba que não leva a lugar nenhum é promessa, não navegação.
+     * (Financeiro, Fiscal/Dfe, Cliente). Retenção (PR-3) fecha as 4 do charter e
+     * depende da decisão [W] na proposta `arquivos-retencao-ui-aviso-titular`.
      */
     public function index(ListArquivosRequest $request): Response
     {
-        $tab = $request->input('tab') === 'trilha' ? 'trilha' : 'acervo';
+        $tab = in_array($request->input('tab'), ['trilha', 'cofre'], true)
+            ? (string) $request->input('tab')
+            : 'acervo';
 
         $filtros = [
             'tab'          => $tab,
@@ -74,14 +82,18 @@ class ArquivosAdminController extends Controller
 
         // Só a prop da vista ABERTA é registrada. `Inertia::defer` adia a execução,
         // mas o cliente busca TODAS as props deferidas no segundo request — registrar
-        // as duas faria a tela pagar `paginate` do acervo pra quem está na trilha.
+        // duas faria a tela pagar `paginate` do acervo pra quem está na trilha.
         // A vista fechada chega no front como `undefined`, e a Page não a renderiza.
-        if ($tab === 'trilha') {
-            $props['trilha'] = Inertia::defer(fn () => $this->buildTrilhaPayload($filtros));
-        } else {
+        //
+        // Com 3 vistas isto deixa de ser um `if/else` e vira `match`: a forma antiga
+        // tinha o acervo no `else`, então qualquer valor novo de `tab` cairia nele por
+        // acidente em vez de por decisão.
+        $props += match ($tab) {
+            'trilha' => ['trilha' => Inertia::defer(fn () => $this->buildTrilhaPayload($filtros))],
+            'cofre'  => ['cofre' => Inertia::defer(fn () => $this->buildCofrePayload())],
             // Prop cara (paginate + eager load do arquivable): defer é o DEFAULT do projeto.
-            $props['acervo'] = Inertia::defer(fn () => $this->buildAcervoPayload($filtros));
-        }
+            default  => ['acervo' => Inertia::defer(fn () => $this->buildAcervoPayload($filtros))],
+        };
 
         return Inertia::render('Arquivos/Index', $props);
     }
@@ -388,5 +400,32 @@ class ArquivosAdminController extends Controller
         return (new LengthAwarePaginator([], 0, max(1, $perPage), 1, [
             'path' => LengthAwarePaginator::resolveCurrentPath(),
         ]))->toArray();
+    }
+
+    // -------------------------------------------------------------------------
+    // Cofre (onda 1 · PR-4) — saúde do armazenamento, READ-ONLY.
+    // -------------------------------------------------------------------------
+
+    /**
+     * Espaço por disco + os 3 achados do charter (acima do cap · órfão · duplicado).
+     *
+     * Delega ao `CofreStatsReader` em vez de montar as queries aqui, e não é estilo:
+     * o achado de duplicado agrupa por hash, e este arquivo tem um assert que reprova
+     * a menção a hash ou a caminho de disco em QUALQUER método seu (LGPD Art. 37 — o
+     * charter proíbe os dois na vista de governança). Escrever a agregação aqui o faria
+     * ficar vermelho, e afrouxá-lo pra caber seria trocar a defesa pela conveniência.
+     *
+     * O que o gate protege de verdade — hash e caminho não chegarem à tela — segue
+     * defendido do outro lado, por assert COMPORTAMENTAL sobre o payload que sai do
+     * leitor. Presence-gate no controller, comportamento no payload.
+     *
+     * Sem filtro de propósito: o cofre é o retrato do acervo inteiro do business. Filtrar
+     * "os achados que sobram depois do filtro" responderia outra pergunta.
+     *
+     * @return array<string, mixed>
+     */
+    private function buildCofrePayload(): array
+    {
+        return app(CofreStatsReader::class)->fetch();
     }
 }

@@ -37,8 +37,17 @@ charter_version: 2
 >
 > **Em 2026-08-25 o PR-2 acrescentou a vista Trilha** (`arquivos_audit_log`, read-only) e,
 > com ela, **a barra de abas** — que era o combinado: ela nasce com a segunda vista, não
-> antes. Navega por rota (`?tab=`), sem rota nova no backend. Retenção (PR-3) e cofre (PR-4)
-> seguem pendentes. O contrato de teste da trilha é o **UC-INDEX-02** do `casos.md`.
+> antes. Navega por rota (`?tab=`), sem rota nova no backend. O contrato de teste da trilha é
+> o **UC-INDEX-02** do `casos.md`.
+>
+> **O PR-4 acrescentou a vista Cofre** — espaço por disco + os 3 achados —, também sem rota
+> nova: só um valor a mais no vocabulário de `tab`. São **3 das 4** vistas; falta a Retenção
+> (PR-3). Contrato: **UC-INDEX-03**. Duas coisas que valem ler antes de mexer: a agregação mora
+> num leitor próprio ([`CofreStatsReader`](../../../../Modules/Arquivos/Services/CofreStatsReader.php))
+> porque o assert de LGPD do controller proíbe hash em qualquer método dele — e o que o gate
+> protege passou a ser cobrado por assert comportamental sobre o payload; e o Tier 0 aqui é o
+> **oposto** do da trilha: `arquivos` tem model e global scope, então repetir o `where` é que
+> seria o defeito. Detalhe no [RUNBOOK §5.2](../../../../memory/requisitos/Arquivos/RUNBOOK-index.md).
 >
 > _Fato datado — por que o PR-0 não trouxe um stub:_ em 2026-08-24 o stub de 23 linhas foi
 > removido (`c85bfa7`) porque forçaria uma baseline de pixel de placeholder, e baseline é a
@@ -110,8 +119,14 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
 - [x] **PR-1 (acervo) mergeado** — rota `GET /arquivos` viva, `.tsx` real ([#6216](https://github.com/wagnerra23/oimpresso.com/pull/6216), 2026-08-24).
 - [x] **PR-2 (trilha) + barra de abas** — 2026-08-25. `?tab=trilha`, leitura pura de
       `arquivos_audit_log`, UC-INDEX-02 com 6 asserções.
-- [ ] Onda 1 **completa**: faltam PR-3 (retenção) · PR-4 (cofre) — a tabela de escopo está
-      no [RUNBOOK-index §5](../../../../memory/requisitos/Arquivos/RUNBOOK-index.md).
+- [x] **PR-4 (cofre)** — 2026-08-25. `?tab=cofre`, espaço por disco + 3 achados, UC-INDEX-03
+      com 7 asserções (contadas com `grep -c`, não de memória).
+- [ ] Onda 1 **completa**: falta o PR-3 (retenção) — a tabela de escopo está no
+      [RUNBOOK-index §5](../../../../memory/requisitos/Arquivos/RUNBOOK-index.md), **e ela
+      carrega uma discordância que é decisão [W]**: o RUNBOOK diz que a vista depende da
+      proposta `arquivos-retencao-ui-aviso-titular`; a proposta diz duas vezes que as ondas 0-2
+      **não** dependem dela, inclusive listando "retenção em leitura pura" no cenário de
+      rejeição. O que ela decide é a onda 3 (executar, avisar, purgar).
 - [ ] Screenshot 1280/1440 aprovado por [W].
 - [ ] Definir se reclassificar bucket/visibility fica nesta tela ou só no dono do arquivo
       (a onda 2 esbarra nisso — ver PR-6).
@@ -134,9 +149,9 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
   e exige que **todos** passem (só o `EXEMPLO` é isento), e um contrato apontando pro stub
   reprovaria por construção — mas o stub acabou, e o `.tsx` já carrega as âncoras
   `data-contract` de `cabecalho`, `acervo-filtros` e `acervo`, mais `abas`, `trilha-filtros`
-  e `trilha` desde o PR-2 (2026-08-25). O que falta agora é escrever o contrato contra a tela
-  real, com a copy literal — e `abas` só fica completa quando as 2 vistas restantes entrarem
-  (hoje são 2 de 4). Conteúdo do rascunho original preservado
+  e `trilha` desde o PR-2 (2026-08-25), e `cofre`, `cofre-discos` e `cofre-achados` desde o
+  PR-4. O que falta agora é escrever o contrato contra a tela real, com a copy literal — e
+  `abas` só fica completa quando a vista restante entrar (hoje são 3 de 4). Conteúdo do rascunho original preservado
   no commit `943cc23` (o ponteiro anterior, `cowork-inbox/modulos-faltantes/arquivos.contract.json`,
   nunca existiu no repositório nem no espelho do Cowork — era ponteiro podre).
 - Casos: [Index.casos.md](Index.casos.md)

@@ -125,6 +125,38 @@ nao leva a lugar nenhum e promessa, nao navegacao"*.
 > na tabela inteira pra pintar numero em aba que ninguem abriu. O numero da vista aberta vai no
 > subtitulo, de graca, vindo do paginador que ja veio.
 
+> **Emenda — PR-4 (onda 1 · vista Cofre).** Producao passou de 2 pra **3 de 4** vistas
+> (`acervo` · `cofre` · `trilha`). A ordem das abas segue a do prototipo (linhas 19-22), com o
+> lugar da `retencao` guardado entre Acervo e Cofre em vez de a nova ser emendada no fim.
+> `PROD-A-FRENTE` segue valendo pela que falta, pelo mesmo motivo declarado.
+>
+> Tres divergencias deliberadas nesta vista, registradas aqui pra nao virarem "bug" na proxima
+> leitura — as duas primeiras sao **medidas**, nao gosto:
+>
+> - **Sem barra de progresso nos cards de disco.** No prototipo ela e `Progress value={bytes /
+>   (5 * 1073741824)}` (linha 297) — 5 GB e numero do mock. Conferido em
+>   `Modules/Arquivos/Config/config.php`: **nao existe quota por disco** (as chaves sao
+>   `disk_default`, `disk_vault`, `upload_max_mb`, `vault_max_file_size_mb`, retencao e signed
+>   URL). Barra sem denominador sugere um teto que ninguem definiu. Volta com significado no dia
+>   em que houver quota configurada.
+> - **Sem o botao "Rodar dry-run do cleanup"** (prototipo, linha 305) e sem a secao
+>   `data-contract="dry-run"` que ele revela. E a **onda 3** — PR-8 da proposta
+>   `arquivos-retencao-ui-aviso-titular` —, e a onda 1 inteira e leitura pura. Escopo declarado,
+>   como as acoes por linha do acervo.
+> - **O duplicado nao afirma economia de disco.** O prototipo agrupa por MD5 e para ai; aqui o
+>   grupo carrega tambem `caminhos` (caminhos de storage distintos), porque o caminho de gravacao
+>   e derivado do proprio hash — copias do mesmo mes apontam pro MESMO arquivo fisico. Sem esse
+>   numero, somar bytes e chamar de economia seria inventar. **Producao a frente do prototipo
+>   aqui**, nao atras.
+>
+> O que **bate** com o prototipo: os 2 blocos (`cofre-discos` cards + `cofre-achados` lista) e os
+> 3 achados na mesma ordem — acima do cap · orfao · conteudo repetido —, com a mesma explicacao
+> de dominio ao lado de cada um (OOM/ADR 0126 · "ou vincula ou apaga" · "o MD5 so aponta").
+>
+> **D6 continua NAO medida** pelo mesmo bloqueio de sempre: `arquivos.access` nasce `false`, a
+> producao devolve 403, e nao ha render pra injetar a sonda. Comparacao estrutural, contada dos
+> dois fontes — nao veredito de pixel.
+
 ## D6-parcial — CSS: **DIVERGE (decisao NAO declarada)** ⚠️
 
 Este e o achado que o [W] pediu ao dizer "compare com css".
