@@ -36,7 +36,7 @@ last_run_ci: "NAO RODEI a suite nesta leva — o bump de last_run e por REVALIDA
 
 | Fato | Onde |
 |---|---|
-| Nada gateia a tela. O TODO pede middleware, mas o padrão canônico do módulo **não é middleware**: a lista irmã aborta 403 **dentro do controller** (`product.view` **ou** `product.create`) | `routes/web.php:449-451` + `ProductController@index:66` |
+| Nada gateia a tela. O TODO pede middleware, mas o padrão canônico do módulo **não é middleware**: a lista irmã aborta 403 **dentro do controller** (`product.view` **ou** `product.create`) | `routes/web.php:449-451 (verificado@70c36b4)` + `ProductController@index:66` |
 | `produtos()` monta `price`, `cost` e `margin` para **toda** linha, sem consultar permissão | `:122-124` |
 | Varredura contada de `view_purchase_price\|access_default_selling_price` no controller | **0 ocorrências** |
 | `historico()` devolve `value` = qty × `unit_price_inc_tax` — preço de venda por linha, sem gate | `:249`, `:260` |
@@ -61,7 +61,7 @@ last_run_ci: "NAO RODEI a suite nesta leva — o bump de last_run e por REVALIDA
 | UC-PUNI-03 | Tabelas de preço seguem o **mesmo** gate do preço de venda | must | decisão 2026-08-11 (abaixo) | `ProdutoUnificadoContratoTest` | ✅ verde — a prop `tabelas` nasce `[]` sem o direito |
 | UC-PUNI-04 | Composição (BOM) só aparece com módulo Manufacturing **e** `manufacturing.access_recipe` | must | permissões `Modules/Manufacturing` + camada 1/3 ([feedback-habilitar-modulo-por-business](../../../../../memory/reference/feedback-habilitar-modulo-por-business.md)) | `ProdutoUnificadoContratoTest` | ✅ verde — `insumos` vazio e `bomCount` ausente sem as camadas 1+3 |
 | UC-PUNI-05 | Nenhuma prop enxerga outro business | must `[T0]` | `CU-PROD-10.2` + [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ProdutoUnificadoContratoTest` | ✅ verde — guard cross-tenant confirmado |
-| UC-PUNI-06 | A tela exige `product.view` **ou** `product.create` | should | `ProductController@index:66` (a lista irmã) + `routes/web.php:449` (TODO) | `ProdutoUnificadoContratoTest` | ✅ verde — 403 sem `product.view` nem `product.create` |
+| UC-PUNI-06 | A tela exige `product.view` **ou** `product.create` | should | `ProductController@index:66` (a lista irmã) + `routes/web.php:449 (verificado@70c36b4)` (TODO) | `ProdutoUnificadoContratoTest` | ✅ verde — 403 sem `product.view` nem `product.create` |
 | UC-PUNI-07 | O contador "Margem baixa" segue o gate do custo | must | handoff §9 + `AR-PROD-015` | `ProdutoUnificadoIndiceContratoTest` | ✅ verde — run 32141318494 |
 | UC-PUNI-08 | A aba recorta por TIPO derivado e conta só ativos | must | handoff §4.2 + §6 exceção 6 | `ProdutoUnificadoIndiceContratoTest` | ✅ verde — run 32141318494 |
 | UC-PUNI-09 | "Não estocável" e "sem estoque" são estados diferentes | must | handoff §4.6 + §6 exceção 6 | `ProdutoUnificadoIndiceContratoTest` | ✅ verde — run 32141318494 |
@@ -140,11 +140,11 @@ last_run_ci: "NAO RODEI a suite nesta leva — o bump de last_run e por REVALIDA
 - **Estado hoje:** preventivo. O controller ainda não serve BOM (`bomCount` é literal `0`, `:130`).
   O caso existe para que a composição **nasça gated** — não para que alguém a ligue e descubra depois.
 - **Insumo é produto:** o ingrediente da receita é `variation_id`
-  (`Modules/Manufacturing/Database/Migrations/2019_08_08_110035_create_mfg_recipe_ingredients_table.php:23`),
+  (`Modules/Manufacturing/Database/Migrations/2019_08_08_110035_create_mfg_recipe_ingredients_table.php:23 (verificado@70c36b4)`),
   ou seja, uma **variação de produto**. Não existe tipo "matéria-prima" no schema: varredura de
   `materia.?prima|uso e consumo|raw_material` em `database/migrations/`, `app/` e
   `Modules/Manufacturing/` devolveu **0**. O `products.type` nasce `enum('single','variable')`
-  (`database/migrations/2017_08_08_115903_create_products_table.php:21`). Quem classifica insumo hoje
+  (`database/migrations/2017_08_08_115903_create_products_table.php:21 (verificado@70c36b4)`). Quem classifica insumo hoje
   é a flag `not_for_selling` (`ProdutoUnificadoController:196`), com TODO de confirmação. A decisão
   sobre migrar (ou não) a "natureza do item" do Delphi está em
   [proposta 2026-08-11](../../../../../memory/decisions/proposals/2026-08-11-natureza-do-item-tipo-de-produto.md).
@@ -167,7 +167,7 @@ last_run_ci: "NAO RODEI a suite nesta leva — o bump de last_run e por REVALIDA
 
 - **Aceite:** Dado um usuário autenticado **sem** `product.view` **nem** `product.create` · Quando pede `/products/unificado` ·
   Então recebe 403 — não a página.
-- **Estado hoje:** nada gateia a tela. O TODO em `routes/web.php:449` pede middleware, mas o padrão
+- **Estado hoje:** nada gateia a tela. O TODO em `routes/web.php:449 (verificado@70c36b4)` pede middleware, mas o padrão
   canônico do módulo **não é middleware**: a lista irmã aborta dentro do controller
   (`ProductController@index:66`). Vermelho esperado.
 - **Teste:** [`ProdutoUnificadoContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoContratoTest.php) — `UC-PUNI-06`.

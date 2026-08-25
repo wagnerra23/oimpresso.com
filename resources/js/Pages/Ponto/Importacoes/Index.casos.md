@@ -37,7 +37,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 - `[BACKLOG]` **Ampliação medida do D-8 (2026-08-02), pertence à tela `Show`:** além de
   `linhas_criadas`/`linhas_ignoradas`, o controller lê **`erro_mensagem`** — que também não é
-  coluna nem está no `$fillable` (as reais são `log` e `erros_amostra`). O `Show.tsx:82` faz
+  coluna nem está no `$fillable` (as reais são `log` e `erros_amostra`). O `Show.tsx:82 (verificado@70c36b4)` faz
   `{i.erro_mensagem && <Alert>…}`, logo **o alerta de erro nunca renderiza**: uma importação
   que falhou não mostra o motivo. É consequência mais séria que "exibe 0", e o SDD §5.3 F7
   lista `erro_mensagem` entre os campos acompanhados **sem notar que é fantasma**. Vira
@@ -96,7 +96,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Regressão que defende:** é o **D-8 na superfície da lista**. `ImportacaoController@index`
   monta `'linhas_criadas' => (int) ($i->linhas_criadas ?? 0)` — atributo que não é coluna nem
   está no `$fillable` (as reais são `linhas_sucesso`/`linhas_erro`), e o `?? 0` **esconde** a
-  ausência. O `Index.tsx:118` renderiza `{i.linhas_criadas}/{i.linhas_processadas}`, então a
+  ausência. O `Index.tsx:118 (verificado@70c36b4)` renderiza `{i.linhas_criadas}/{i.linhas_processadas}`, então a
   lista mostra `0/N` para toda importação, inclusive as 100% bem-sucedidas.
 - **Por que um UC separado do `UC-IMPSH-04`:** é a **mesma raiz em duas superfícies**. Se a
   correção for no modelo (accessor/`$appends`), os dois ficam verdes juntos; se for só no
