@@ -171,6 +171,18 @@ jobs:
         #     provider do modulo nunca teve mergeConfigFrom, e o unico teste que morde
         #     isso e o que invoca o metodo de verdade.
         #
+        #     ATUALIZADO 2026-08-25 (PR-2, vista Trilha): o arquivo DEIXOU de dispensar
+        #     banco por inteiro. Dos testes de trilha, 3 seguem puros (metodo invocado
+        #     direto, valem nas 2 lanes) e 2 precisam de MySQL: inserem em
+        #     arquivos_audit_log pra provar o isolamento cross-tenant 98 vs 99 — que e
+        #     justamente o Tier 0 daquela vista, porque a tabela NAO tem model e portanto
+        #     NAO tem global scope. Na lane sqlite eles pulam por Schema::hasTable.
+        #     Continua sem envenenar o seed: zero RefreshDatabase/migrate:fresh, insert
+        #     via DB::table() com arquivo_id sentinela (987654098/987654099) e cleanup
+        #     no afterEach por esse id. A tabela nao tem FK de arquivo_id (comentada na
+        #     migration 2026_05_10_000002), entao a fixture nao depende de linha em
+        #     `arquivos` nem a suja.
+        #
         # Se algum dos dois vier VERMELHO: ou o defeito e real e se conserta, ou sai
         # daqui com a divida datada. Vermelho permanente em lane advisory so ensina o
         # time a ignora-la — foi o que este bloco decidiu em 2026-08-10.

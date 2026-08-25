@@ -1,10 +1,15 @@
 ---
 id: requisitos-arquivos-briefing
+module: Arquivos
+status: shared-infra
+status_nota: "DMS backbone consumido por trait `HasArquivos` (NfeBrasil · Consumidores · Repair) — mesma classificação do Repair, o outro backbone compartilhado. Tela própria desde 2026-08-24 (`/arquivos`), com 2 das 4 vistas do charter: acervo (PR-1) e trilha (PR-2); retenção e cofre pendentes."
+updated_at: "2026-08-25"
+owner: W
 ---
 
 # BRIEFING — Modules/Arquivos
 
-> **Estado consolidado** — 1 página executiva. Atualizado por PR mergeado (skill `brief-update` Tier B). Última revisão: 2026-05-16 (Wave M Capterra boost 71→80).
+> **Estado consolidado** — 1 página executiva. Atualizado por PR mergeado (skill `brief-update` Tier B). Última revisão: 2026-08-25 (onda 1 da tela · PR-2 vista Trilha; a seção Frontend estava desatualizada desde 2026-08-24).
 
 ## Missão
 
@@ -41,7 +46,26 @@ Sistema canônico de arquivos do oimpresso — **vault encryption multi-tenant**
 
 ## Frontend
 
-**Backend-only no momento.** Zero `resources/js/Pages/Arquivos/*.tsx` — exposição via trait `HasArquivos` em UIs dos módulos consumidores (NfeBrasil/Consumidores/Repair). Charters consolidados em `CHARTERS-vault-curador.md` documentam contratos de uso. Quando Wagner decidir expor UI dedicada (admin vault browser), criar Pages Inertia seguindo skill `mwart-process` (ADR 0104).
+**Tem tela desde 2026-08-24** — `resources/js/Pages/Arquivos/Index.tsx`, rota `GET /arquivos`
+(`can:arquivos.access`, permission que nasce `false`). _(A redação anterior — "backend-only,
+zero Pages/Arquivos" — descrevia o módulo até o [PR #6216](https://github.com/wagnerra23/oimpresso.com/pull/6216)
+e virou afirmação falsa naquele dia; corrigida em 2026-08-25.)_
+
+Estado da tela: **2 das 4 vistas** do charter, leitura pura, nenhuma escreve nem dispara job.
+
+| Vista | Entregue | O que mostra |
+|---|---|---|
+| **Acervo** | 2026-08-24 (PR-1) | o que está guardado, de quem é, e o prazo **com a base legal ao lado** |
+| **Trilha** | 2026-08-25 (PR-2) | `arquivos_audit_log` read-only — quem tocou em quê. Primeiro leitor de UI dessa tabela |
+| Retenção | PR-3 | pendente — depende de decisão [W] |
+| Cofre | PR-4 | pendente |
+
+A barra de abas nasceu com a Trilha, não antes. Segue valendo que o arquivo é alcançado pela
+tela do dono (trait `HasArquivos` nos módulos consumidores — NfeBrasil/Consumidores/Repair):
+esta tela é administrativa, **não** é de balcão e **não** faz upload. Charters consolidados em
+`CHARTERS-vault-curador.md`; o contrato da tela vive no trio ao lado do `.tsx`
+(`Index.charter.md` + `Index.casos.md`) e o passo a passo no
+[`RUNBOOK-index.md`](RUNBOOK-index.md).
 
 ## Métricas de saúde
 
@@ -70,4 +94,4 @@ Sistema canônico de arquivos do oimpresso — **vault encryption multi-tenant**
 
 ---
 
-**Quem manteve:** Wave M agent 2026-05-16 (Capterra boost 71→meta 80). Próxima revisão: após próximo PR mergeado que toque `Modules/Arquivos/` ou `resources/js/Pages/Arquivos/`.
+**Quem manteve:** Wave M agent 2026-05-16 (Capterra boost 71→meta 80) · [CC] 2026-08-25 (seção Frontend reconciliada + onda 1 da tela). Próxima revisão: após próximo PR mergeado que toque `Modules/Arquivos/` ou `resources/js/Pages/Arquivos/`.

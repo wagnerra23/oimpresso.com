@@ -6,6 +6,65 @@ id: requisitos-arquivos-changelog
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · [Semver](https://semver.org/).
 
+## [0.5.0] - 2026-08-25 — Onda 1 da tela · PR-2 (vista Trilha + barra de abas)
+
+> Contexto datado: a tela `/arquivos` (US-ARQ-013) nasceu em **2026-08-24** com a vista
+> **Acervo** ([PR #6216](https://github.com/wagnerra23/oimpresso.com/pull/6216) + fix #6217),
+> e aquele PR não deixou entrada aqui. Esta registra a onda seguinte.
+
+### Added — vista Trilha (`arquivos_audit_log`, read-only)
+
+- `ArquivosAdminController::buildTrilhaPayload()` — trilha paginada do próprio business:
+  quando · ação · `#id` do arquivo · quem · resumo do payload. **Nenhuma rota nova**: é
+  `?tab=trilha` na `GET /arquivos` que já existia.
+- **Barra de abas** (`PageHeaderTabs` canon, navegação por rota) — nasce agora, com a
+  segunda vista. Eram 4 vistas planejadas; hoje 2 (retenção e cofre nos PR-3/4).
+- Filtro por ação com contagem, derivado de `GROUP BY` do próprio log — **sem lista de
+  ações escrita em PHP**: o dono do vocabulário é o ENUM da coluna, que já mudou 2× por
+  migration (`signed_url_consumed` 2026-07-02, `exported` 2026-08-10).
+- `arquivos_audit_log` ganhou seu **primeiro leitor de UI**. Até aqui só o comando
+  `arquivos:audit-log` a lia — a tabela existia desde a Sprint 1 sem superfície.
+
+### Added — contrato de entrada (`ListArquivosRequest`)
+
+- `tab` (`acervo|trilha`) e `acao` (validada por FORMA, `regex:/^[a-z_]+$/`, não por lista).
+  São os 2 únicos campos acrescentados.
+
+### Security — multi-tenant Tier 0 (ADR 0093) numa tabela SEM model
+
+- A trilha lê por `DB::table`: **não há global scope**. O `where` por `business_id` ali é a
+  ÚNICA defesa, o oposto da regra do acervo (que lê pelo model e onde repetir o `where`
+  esconderia uma quebra do scope).
+- **Fail-closed**: sem `business_id` na sessão a trilha devolve vazio. O global scope do
+  model faz `if ($businessId !== null)` e, sem sessão, deixa passar sem filtro — aposta que
+  não se repete aqui.
+- O assert de contrato que proibia `where('business_id'` foi **escopado ao acervo**: aplicado
+  ao arquivo inteiro, ele passaria a proibir a própria defesa da trilha (regra de precedência
+  de 2026-07-06 — gate que, cumprido ao pé da letra, produz o dano que existe pra impedir).
+  Em troca entrou um assert que **exige** o filtro na trilha, mais a prova comportamental
+  cross-tenant 98 vs 99.
+- Assert LGPD (`storage_path`/`md5`) **apertado**: cobria do método `linha()` até o fim do
+  arquivo, passa a cobrir o arquivo inteiro.
+
+### Fixed — chip de filtro voltava com erro de validação em vez de filtrar (vinha do PR-1)
+
+- `irPara` espalhava `with_trashed: false` cru na query. `qs.stringify` (serializador do
+  Inertia) produz `with_trashed=false`, e a regra `boolean` do Laravel **reprova a string
+  `"false"`** — aceita só os nativos e `0|1|"0"|"1"`. O `paraQuery` do DataTable já
+  normalizava pra `1|undefined`; o caminho dos chips, não. Achado ao estender o mesmo
+  `irPara` pros chips da trilha, e **medido** antes de consertar (Validator standalone +
+  `qs.stringify`), não deduzido da doc.
+
+### Added — tests (`ArquivosAdminControllerTest`, UC-INDEX-02)
+
+- 6 asserções novas: o caminho da trilha filtra por `business_id` · fail-closed sem sessão ·
+  linha expõe `#id` e nunca o nome · payload vira resumo legível (bool vira palavra, JSON
+  quebrado não derruba a tela) · **cross-tenant 98 vs 99** · filtro de ação não apaga os
+  outros chips.
+- 4 dispensam banco (valem nas 2 lanes); 2 rodam na lane MySQL `arquivos-pest.yml`, onde este
+  arquivo já estava na allowlist. Sem `RefreshDatabase`: fixture por `arquivo_id` sentinela +
+  cleanup no `afterEach`.
+
 ## [0.4.0] - 2026-05-16 — Wave 18 RETRY SATURATION
 
 ### Added (D9 — Service novo com 4 spans OTel)

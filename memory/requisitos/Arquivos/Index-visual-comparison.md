@@ -70,6 +70,32 @@ O prototipo mostra o numero ao lado de cada chip (linha 130):
 A producao renderiza os mesmos 4 chips (`Todos` / `sensitive` / `common` / `public`) **sem
 contagem**. E informacao barata que o payload ja carrega.
 
+> **Emenda — PR-2.** O gap segue aberto **no acervo**. Na **trilha**, que nasceu no PR-2, os
+> chips ja saem **com contagem** (`upload 12`), e ela nao e cosmetica: vem de um `GROUP BY` do
+> proprio log, entao so existe chip pra acao que aquele business registrou de fato — filtro
+> nenhum leva a beco sem saida. Fechar o do acervo e barato pelo mesmo caminho.
+
+## D4 — Vocabulario dos chips de bucket: **DIVERGE (achado novo, medido no PR-2)** ⚠️
+
+Os 3 buckets que o prototipo (e a producao) oferecem **nao batem com o backend**. Contado dos
+tres lados:
+
+| Fonte | Valores |
+|---|---|
+| coluna `arquivos.bucket` (migration `2026_05_10_000001`) | `sensitive` · `memory` · `user` · `spec` · `ambiguous` · `discard` · `active` |
+| `ListArquivosRequest` (`Rule::in`) | `public` · `internal` · `sensitive` · `vault` |
+| chips da tela (= prototipo) | `sensitive` · `common` · `public` |
+
+So **`sensitive`** existe nos tres. Consequencia hoje, na tela viva: **`common` reprova a
+validacao** (nao esta no `Rule::in`) e **`public` passa e devolve sempre zero linhas** (nenhuma
+linha pode ter esse valor — nao esta no ENUM da coluna). `common` nao existe em lugar nenhum do
+codigo alem do chip e do shim `Config/retention.php` (varredura contada: 2 ocorrencias).
+
+**Nao consertado no PR-2, e de proposito:** a correcao e escolher **qual vocabulario de bucket a
+UI oferece** — decisao de dominio, nao typo, e fora do intento daquele PR (trilha). As 3 saidas
+possiveis (alinhar a UI ao ENUM · alinhar o `Rule::in` ao ENUM · renomear o dominio) mexem em
+coisas diferentes e so uma delas e cosmetica.
+
 ## D7 — Acoes por linha: **PROD-A-FRENTE por decisao declarada**
 
 O prototipo tem 5 (`onBaixar` · `onExcluir` · `onClassificar` · `onAvisar` · `onRestaurar`);
@@ -86,6 +112,18 @@ Prototipo: 4 (`acervo` · `retencao` · `cofre` · `trilha`, linhas 19-22). Prod
 
 Mesmo motivo, e o RUNBOOK e explicito: *"a barra de abas nasce com elas, nao antes — aba que
 nao leva a lugar nenhum e promessa, nao navegacao"*.
+
+> **Emenda — PR-2 (onda 1 · vista Trilha).** O retrato acima e o de antes do PR-2 e fica como
+> registro. **Producao passou de 1 pra 2 vistas** (`acervo` + `trilha`) e **a barra de abas
+> existe**, montada com `PageHeaderTabs` canon e navegando por rota (`?tab=`), como Financeiro
+> / Fiscal/Dfe / Cliente. Faltam `retencao` (PR-3, depende de decisao [W] na proposta
+> `arquivos-retencao-ui-aviso-titular`) e `cofre` (PR-4) — logo **2 de 4**, e o `PROD-A-FRENTE`
+> segue valendo pelas duas que faltam, pelo mesmo motivo declarado.
+>
+> Divergencia deliberada, pra nao virar "bug" na proxima leitura: **as abas nao tem badge de
+> contagem**. O prototipo mostra uma porque tem tudo em memoria; aqui custaria um `COUNT` eager
+> na tabela inteira pra pintar numero em aba que ninguem abriu. O numero da vista aberta vai no
+> subtitulo, de graca, vindo do paginador que ja veio.
 
 ## D6-parcial — CSS: **DIVERGE (decisao NAO declarada)** ⚠️
 
