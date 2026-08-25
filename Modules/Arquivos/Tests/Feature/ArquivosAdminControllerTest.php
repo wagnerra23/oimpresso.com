@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Facades\Schema;
 use Modules\Arquivos\Http\Controllers\ArquivosAdminController;
 
 uses(Tests\TestCase::class);
@@ -23,12 +22,6 @@ uses(Tests\TestCase::class);
  * @see resources/js/Pages/Arquivos/Index.casos.md
  * @see memory/requisitos/Arquivos/RUNBOOK-index.md
  */
-
-beforeEach(function () {
-    if (! Schema::hasTable('arquivos')) {
-        $this->markTestSkipped('arquivos table missing — rode migrate primeiro');
-    }
-});
 
 it('UC-INDEX-01 · o controller NAO quebra o global scope multi-tenant', function () {
     // Tier 0 (ADR 0093): o business_id vem da SESSÃO. Se alguém puser um
@@ -85,4 +78,37 @@ it('a rota assinada de download e as 3 do Install seguem intactas', function () 
     expect($rotas)->toContain("'signed'");
     expect($rotas)->toContain('throttle:60,1');
     expect(substr_count($rotas, 'InstallController::class'))->toBe(3);
+})->group('arquivos');
+
+it('UC-INDEX-01 · politica() devolve PRAZO e BASE LEGAL — nunca lista vazia', function () {
+    // Este e o unico teste COMPORTAMENTAL do arquivo: ele invoca o metodo. Os outros
+    // leem o fonte (presence-gate) e, por construcao, nao pegam defeito de runtime.
+    //
+    // Ele existe porque um pegou: o controller lia `config('retention.entities')`, um
+    // namespace que NAO existe em lugar nenhum do repo. `politica()` devolvia `[]` e a
+    // tela renderizava prazo SEM a lei ao lado — violando o Goal do charter ("prazo
+    // sempre acompanhado da lei") em silencio, com todos os gates verdes.
+    //
+    // Morde duas coisas de uma vez: o namespace errado E o config nao registrado.
+    $c = new ArquivosAdminController();
+    $m = new ReflectionMethod($c, 'politica');
+    $m->setAccessible(true);
+
+    $politica = $m->invoke($c);
+
+    expect($politica)->not->toBeEmpty();
+
+    foreach ($politica as $item) {
+        expect($item['dias'])->toBeGreaterThan(0);
+        // Toda chave da policy tem lei mapeada — '—' significa contexto novo no
+        // config sem a base legal correspondente, que e achado, nao detalhe.
+        expect($item['lei'])->not->toBe('—');
+    }
+})->group('arquivos', 'lgpd');
+
+it('a policy de retencao e ALCANCAVEL — o config do modulo esta registrado', function () {
+    // O provider nao tinha `mergeConfigFrom` nenhum (medido 2026-08-24). Todo o resto do
+    // modulo sobrevivia por default inline; so a policy, que nao tem default, ficava nula.
+    expect(config('arquivos.retention_days_policy'))->toBeArray()->not->toBeEmpty();
+    expect(config('arquivos.retention_days_policy.nfe-xml'))->toBe(1825);
 })->group('arquivos');
