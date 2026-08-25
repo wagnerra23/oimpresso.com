@@ -24,7 +24,7 @@ export function Observacao({ produto }: { produto: ProdutoRow }) {
       rotulo={`Observação de ${produto.name}`}
       largura={244}
       alinhar="start"
-      className="inline-flex min-w-0 max-w-[160px] shrink items-center gap-1 rounded border border-border bg-muted px-1.5 py-0.5 text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+      className="inline-flex min-w-0 max-w-[160px] shrink items-center gap-1 rounded border border-border bg-transparent px-1.5 py-0.5 text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
       conteudo={
         <>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">

@@ -42,7 +42,7 @@ import {
   Download,
   History,
   Layers,
-  MoreVertical,
+  MoreHorizontal,
   PackageSearch,
   Search,
   Tags,
@@ -645,8 +645,11 @@ function ProdutoUnificadoIndex({
               <div className="flex-shrink-0 flex items-center gap-1.5">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" aria-label="Mais ações" title="Outras visões do catálogo" className="h-8 w-8 border-0">
-                      <MoreVertical className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+                    <Button variant="ghost" size="icon" aria-label="Mais ações" title="Apresentação e dados" className="h-8 w-8 border-0">
+                      {/* MESMO glyph do ⋯ da linha (`Colunas.tsx`), e horizontal nos dois: dois
+                          gatilhos com o mesmo papel e desenhos diferentes fazem a pessoa
+                          procurar duas vezes. Divergência #6 do handoff V6. */}
+                      <MoreHorizontal className="h-4 w-4 shrink-0" strokeWidth={1.75} />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-60">
@@ -677,22 +680,17 @@ function ProdutoUnificadoIndex({
                         Coluna {c.label.toLowerCase()}
                       </DropdownMenuItem>
                     ))}
-                    <DropdownMenuSeparator />
+                    {/* ⚠️ AQUI morava o grupo "Outras visões" (Categorias · Insumos·BOM ·
+                        Tabelas de preço · Histórico de uso). Removido em 2026-08-24 pela
+                        divergência #11 do handoff V6: este menu é lista FECHADA de
+                        apresentação + dados, e ir a OUTRA tela não é visão desta. Um menu com
+                        três naturezas obriga a abrir o seletor de colunas pra descobrir pra
+                        onde ir.
 
-                    {/* As 4 sub-telas que antes eram abas. Continuam servidas pelo mesmo
-                        controller, com os mesmos gates de permissão. */}
-                    <div className="px-2 pt-1 pb-1 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      Outras visões
-                    </div>
-                    {SUB_TELAS.map(({ key, label, icon: Icon }) => (
-                      <DropdownMenuItem
-                        key={key}
-                        onSelect={() => irPara({ tela: key }, ['tela', 'filters', 'categorias', 'insumos', 'tabelas', 'historico'])}
-                      >
-                        <Icon className="mr-2 h-4 w-4 shrink-0" strokeWidth={1.75} />
-                        {label}
-                      </DropdownMenuItem>
-                    ))}
+                        As quatro telas continuam servidas pelo mesmo controller e alcançáveis
+                        por `?tela=`; o que sumiu foi o link. Dar acesso a elas é trabalho da
+                        sidebar do módulo, decisão de FORA deste handoff — e o handoff é
+                        explícito: não recolocar em outro lugar desta tela. */}
                     <DropdownMenuSeparator />
                     <div className="px-2 pt-1 pb-1 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
                       Dados
@@ -732,9 +730,12 @@ function ProdutoUnificadoIndex({
                         aria-selected={ativa}
                         onClick={() => irPara({ aba: a.key, kpi: '' }, RECORTE)}
                         className={
-                          'inline-flex items-center gap-1.5 py-[7px] px-3 -mb-px text-[13.5px] whitespace-nowrap ' +
+                          'inline-flex h-9 items-center gap-1.5 px-3.5 -mb-px text-[13px] whitespace-nowrap ' +
                           'border-0 border-b-2 transition-[color,background-color,border-color] duration-150 ' +
                           (ativa
+                            // `primary` (roxo 295 do DS), NÃO `--accent`: este último é reescrito
+                            // em runtime pelo seletor de matiz do AppShellV2 (localStorage), e usá-lo
+                            // fazia a preferência do navegador mandar no design system.
                             ? 'border-primary text-foreground font-semibold bg-[var(--idx-tab-ativa-bg)]'
                             : 'border-transparent text-muted-foreground font-medium hover:text-foreground hover:bg-[var(--idx-tab-hover-bg)]')
                         }
@@ -1055,7 +1056,7 @@ function ProdutoUnificadoIndex({
                                   // está em ordem: reservar a largura sempre evita que a lista
                                   // "pule" 3px conforme o recorte muda de composição.
                                   'border-b border-border/60 border-l-[3px] cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ' +
-                                  (aberta || cursor ? 'bg-[var(--idx-row-sel-bg)]' : 'hover:bg-muted/40') +
+                                  (aberta || cursor ? 'bg-[var(--idx-row-sel-bg)]' : 'hover:bg-[var(--bg-2)]') +
                                   // Trilho vermelho na borda esquerda (V3 §10.1) — é o que permite
                                   // VARRER a lista sem ler. Cobre os TRÊS motivos de ação (sem
                                   // saldo · abaixo do mínimo · margem sob o piso), não só o zerado.

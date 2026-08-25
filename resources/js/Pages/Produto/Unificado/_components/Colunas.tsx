@@ -155,7 +155,7 @@ export function celulasDe(
               <span
                 className={
                   'truncate text-[11px] leading-tight ' +
-                  (gradeComFuro(r.grade) ? 'font-medium text-destructive-fg' : 'text-muted-foreground/80')
+                  (gradeComFuro(r.grade) ? 'font-medium text-destructive' : 'text-muted-foreground/80')
                 }
                 title={
                   gradeComFuro(r.grade)
@@ -209,7 +209,7 @@ export function celulasDe(
     if (m !== undefined) {
       const abaixo = sobOPiso(r, piso);
       cells.margem = (
-        <Mono className={'text-[12.5px] ' + (abaixo ? 'font-semibold text-destructive-fg' : 'text-muted-foreground')}>
+        <Mono className={'text-[12.5px] ' + (abaixo ? 'font-semibold text-destructive' : 'text-muted-foreground')}>
           {pct(m)}
         </Mono>
       );

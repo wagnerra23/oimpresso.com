@@ -2,9 +2,29 @@
  * Badge de disponibilidade — o "tem?" da linha e do drawer, com o mesmo componente nos dois
  * lugares (handoff §4.6 e §7).
  *
- * Cor por TOKEN semântico do DS elevado (`*-soft` / `*-fg`), a mesma família que a
- * `FrescorPill` da golden master (`Pages/Cliente/_components/Pills.tsx`) usa — trocam
- * light/dark sozinhos. Zero cor crua (regra binária AP1).
+ * Cor MEDIDA no componente do DS, não inferida. O protótipo não desenha este selo — ele chama
+ * `DS.StatusBadge` com os tons `fresc-hot`/`fresc-warm`/`fresc-cold`, e a receita de lá é:
+ *
+ *   bg: color-mix(in oklch, var(--color-<tom>) 16%, transparent)
+ *   border: color-mix(in oklch, var(--color-<tom>) 30%, transparent)
+ *   fg: var(--color-<tom>)   ·   dot: true
+ *
+ * ⚠️ O patch de cor §2 pede 6%/22% AFIRMANDO ser "a mesma receita do guia do DS para Alert e
+ * StatusBadge". Medido, não é: o StatusBadge usa 16%/30%. [W] escolheu o DS (2026-08-24).
+ *
+ * TEXTO no tom cheio, como o componente manda — [W] 2026-08-25: "design system SEMPRE ganha".
+ * Custa contraste, e o número fica registrado em vez de escondido (medido sobre o fundo a 16%
+ * em branco; WCAG AA pra texto pequeno pede 4,5:1):
+ *
+ *   Disponível  var(--color-success)     2,86:1
+ *   Abaixo mín. var(--color-warning)     2,36:1
+ *   Sem saldo   var(--color-destructive) 3,75:1
+ *
+ * ⚠️ O `fresc-cold` do bundle é o ÚNICO dos três que NÃO usa token: traz `fg` LITERAL
+ * oklch(0.74 0.14 18) — valor de tema ESCURO vazado no tom claro, que sobre este fundo dá
+ * **1,94:1** (praticamente invisível) e ainda viola o §6 do patch e a regra AP1 do projeto,
+ * que proíbem cor crua nesta tela. Não propago o literal: uso `text-destructive`, que é o
+ * MESMO padrão dos dois irmãos (`var(--color-<tom>)`). O literal é a anomalia, não a regra.
  *
  * ⚠️ DESVIO DECLARADO do protótipo: lá "Não estocável" reusa o valor `distante` do badge de
  * frescor, que no bundle do DS cai em `fresc-cold` — o MESMO vermelho de "Sem saldo". Um
@@ -27,22 +47,32 @@ import { Inline } from '@/Components/layout';
 import { qtdComUnidade, type EstadoEstoque, type LocalSaldo } from './catalogo';
 
 const ESTILO: Record<EstadoEstoque['chave'], string> = {
-  em: 'bg-success-soft text-success-fg border-success/20',
-  baixo: 'bg-warning-soft text-warning-fg border-warning/20',
-  sem: 'bg-destructive-soft text-destructive-fg border-destructive/20',
-  nao: 'bg-muted text-muted-foreground border-border',
+  em: 'bg-success/16 border-success/30 text-success',
+  baixo: 'bg-warning/16 border-warning/30 text-warning',
+  sem: 'bg-destructive/16 border-destructive/30 text-destructive',
+  // Não estocável = tom `outline` do DS, ao pé da letra: transparent + border + FOREGROUND,
+  // sem ponto. O cinza (`text-muted-foreground`) que estava aqui era ratificação [W] de
+  // 2026-08-18 (na época a discussão era cinza vs VERMELHO, e o cinza ganhou do vermelho).
+  // [W] 2026-08-25 desfez: "aqui é o design system quem manda". Ele é o único dos quatro que
+  // não afirma um estado de estoque — por isso não tem tinta nem ponto, só o texto.
+  nao: 'bg-transparent border-border text-foreground',
 };
 
 function Pilula({ estado, unidade }: { estado: EstadoEstoque; unidade: string }) {
   return (
     <span
       className={
-        'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium whitespace-nowrap ' +
+        // `rounded-full`: a raiz do StatusBadge é `borderRadius: c.mono ? var(--radius-sm) : 9999`,
+        // e com rótulo de texto cai no 9999. Cheguei a trocar por `rounded-md` contando raios no
+        // bundle INTEIRO em vez de medir o componente — erro corrigido em 2026-08-24.
+        'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11.5px] font-medium whitespace-nowrap ' +
         ESTILO[estado.chave]
       }
       title={estado.rel === null ? estado.label : `${estado.label} · saldo ${estado.rel}`}
     >
-      <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" aria-hidden="true" />
+      {estado.chave !== 'nao' && (
+        <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" aria-hidden="true" />
+      )}
       {estado.label}
       {/* Rótulo e valor na MESMA linha do selo (handoff 21/08 §4.3): quem lê "Abaixo do
           mínimo" precisa do número na mesma sacada pra decidir se dá pra vender. Com a
