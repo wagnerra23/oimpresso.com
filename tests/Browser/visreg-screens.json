@@ -200,6 +200,14 @@
     "baseline": "it_Cliente_Import_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
+    "screen": "Arquivos",
+    "source": "Arquivos",
+    "component": "Arquivos/Index",
+    "route": "/arquivos",
+    "anchor": "Arquivos",
+    "baseline": "it_Arquivos_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
     "screen": "Backup",
     "source": "Backup",
     "component": "Backup/Index",
