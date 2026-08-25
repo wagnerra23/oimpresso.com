@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://oimpresso.com/schemas/design-bundle-v2.json",
+  "title": "OImpressO Design bundle v2",
+  "oneOf": [
+    { "$ref": "#/$defs/manifest" },
+    { "$ref": "#/$defs/part" },
+    { "$ref": "#/$defs/applicationReport" },
+    { "$ref": "#/$defs/applications" }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "path": { "type": "string", "minLength": 1, "not": { "pattern": "(^|/)\\.\\.(/|$)|^/|^[A-Za-z]:" } },
+    "file": {
+      "type": "object",
+      "required": ["path", "bytes", "sha256", "role"],
+      "properties": {
+        "path": { "$ref": "#/$defs/path" },
+        "bytes": { "type": "integer", "minimum": 0 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "role": { "enum": ["cowork-source", "design-doc", "preview-cache"] }
+      },
+      "additionalProperties": false
+    },
+    "changes": {
+      "type": "object",
+      "required": ["added", "modified", "deleted", "unchanged"],
+      "properties": {
+        "added": { "type": "array", "items": { "$ref": "#/$defs/path" }, "uniqueItems": true },
+        "modified": { "type": "array", "items": { "$ref": "#/$defs/path" }, "uniqueItems": true },
+        "deleted": { "type": "array", "items": { "$ref": "#/$defs/path" }, "uniqueItems": true },
+        "unchanged": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "manifest": {
+      "type": "object",
+      "required": ["schema", "bundleId", "baseBundleId", "mode", "source", "entry", "generatedAt", "files", "missing", "changes", "totals"],
+      "properties": {
+        "schema": { "const": "oimpresso-design-manifest/2" },
+        "bundleId": { "$ref": "#/$defs/sha256" },
+        "baseBundleId": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] },
+        "mode": { "enum": ["snapshot", "delta"] },
+        "source": { "type": "string", "minLength": 1 },
+        "entry": { "$ref": "#/$defs/path" },
+        "generatedAt": { "type": "string", "format": "date-time" },
+        "files": { "type": "array", "items": { "$ref": "#/$defs/file" } },
+        "missing": { "type": "array", "items": { "$ref": "#/$defs/path" }, "uniqueItems": true },
+        "changes": { "$ref": "#/$defs/changes" },
+        "totals": {
+          "type": "object",
+          "required": ["files", "bytes"],
+          "properties": { "files": { "type": "integer", "minimum": 0 }, "bytes": { "type": "integer", "minimum": 0 } },
+          "additionalProperties": false
+        }
+      }
+    },
+    "chunk": {
+      "type": "object",
+      "required": ["path", "index", "count", "offset", "bytes", "sha256", "content"],
+      "properties": {
+        "path": { "$ref": "#/$defs/path" },
+        "index": { "type": "integer", "minimum": 1 },
+        "count": { "type": "integer", "minimum": 1 },
+        "offset": { "type": "integer", "minimum": 0 },
+        "bytes": { "type": "integer", "minimum": 0 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "content": { "type": "string", "contentEncoding": "base64" }
+      }
+    },
+    "part": {
+      "type": "object",
+      "required": ["schema", "bundle", "part", "parts", "chunks"],
+      "properties": {
+        "schema": { "const": "oimpresso-design-bundle/2" },
+        "bundle": { "type": "object", "required": ["id", "baseId", "mode", "parts", "manifestSha256", "changesSha256"] },
+        "part": { "type": "integer", "minimum": 1 },
+        "parts": { "type": "integer", "minimum": 1 },
+        "targetManifest": { "$ref": "#/$defs/manifest" },
+        "chunks": { "type": "array", "items": { "$ref": "#/$defs/chunk" } }
+      }
+    },
+    "applicationReport": {
+      "type": "object",
+      "required": ["schema", "bundle", "summary", "transportChanges", "screens"],
+      "properties": { "schema": { "const": "oimpresso-design-application-report/2" } }
+    },
+    "applications": {
+      "type": "object",
+      "required": ["schema", "applications"],
+      "properties": {
+        "schema": { "const": "oimpresso-design-applications/1" },
+        "applications": { "type": "array" }
+      }
+    }
+  }
+}

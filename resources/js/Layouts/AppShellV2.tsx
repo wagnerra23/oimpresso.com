@@ -506,9 +506,9 @@ export default function AppShellV2({
               em estados críticos via shared prop shell.nfe_cert_status. Silencioso
               quando OK ou business não emite NFe. */}
           <NfeCertBadge />
-          <div className="sb-body">
+          <nav className="sb-body" aria-label="Navegação principal">
             <SidebarMenu items={shellMenu} mode={renderSidebarMode} />
-          </div>
+          </nav>
           <SidebarFooter
             nome={user.nome}
             nomeCurto={user.nomeCurto}
@@ -652,9 +652,9 @@ export default function AppShellV2({
           </header>
           )}
 
-          <div className="main-body">
+          <main className="main-body">
             {children}
-          </div>
+          </main>
         </div>
 
         {/* APPS VINCULADOS (opcional, só aparece se tem conversaFoco) */}

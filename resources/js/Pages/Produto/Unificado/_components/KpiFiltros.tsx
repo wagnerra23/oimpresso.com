@@ -1,9 +1,14 @@
 /**
- * Faixa de KPI-filtros do catálogo — CINCO cards em UMA linha (handoff V2 §4.2).
+ * Faixa de KPI-filtros do catálogo — QUATRO cards, no máximo (handoff 21/08 §4.1).
  *
- * Eram seis até o pacote 18/08. O 19/08 removeu "Itens listados": ele não recortava nada
- * (o total da aba já É a lista sem recorte) e agora a contagem vive no rodapé de paginação,
- * onde ela responde a pergunta certa — "de quantos?" — junto do intervalo mostrado.
+ * Eram seis até o pacote 18/08. O 19/08 removeu "Itens listados" — ele não recortava nada (o
+ * total da aba já É a lista sem recorte) e a contagem passou pro rodapé de paginação, onde
+ * responde a pergunta certa ("de quantos?") junto do intervalo mostrado. O 21/08 removeu
+ * "Ativos" pelo mesmo motivo, um passo adiante: fora da aba "Inativos" todo item listado já
+ * é ativo, então o card contava a própria lista e clicar nele não mudava nada.
+ *
+ * Os quatro que sobraram são recortes de AÇÃO — cada um responde "o que eu preciso resolver
+ * hoje?": repor, o que trava venda, o que parou de girar, o que vende sem margem.
  *
  * São TOGGLES, não placar: clicar recorta a lista, clicar de novo solta. Os valores são
  * contados sobre a ABA ATIVA, no servidor, pela mesma subconsulta da listagem — contador que
@@ -13,9 +18,10 @@
  * (`Pages/Cliente/_components/KpiStripClickable.tsx`) — tile de ícone 36px, rótulo 10px
  * uppercase, valor tabular, sub em 10px. O que muda é o domínio, não o estilo.
  *
- * ⚠️ Os tons `oklch` inline são cópia literal dos da golden master, INCLUSIVE a limitação
- * dela: os valores de card ativo são claros demais pro tema escuro. Corrigir só aqui quebraria
- * a paridade que a catraca protege — a correção pertence às duas telas de uma vez.
+ * ⚠️ Os tons deixaram de ser `oklch` inline em 2026-08-24. Eram cópia literal da golden
+ * master, e a paridade com ela era o motivo de não corrigir aqui — [W]/Maiara desfizeram esse
+ * empate: a Consulta de Clientes é outra tela e se resolve depois. Agora a placa segue a
+ * receita ÚNICA do patch de cor (§1): fundo do tom a 6%, borda a 22%, glyph no 600.
  *
  * ⚠️ "Margem baixa" só é montado pra quem pode ver custo E preço. A contagem de itens sob o
  * piso É uma leitura da estrutura de custo; gatear a coluna e deixar o contador entrega o
@@ -23,22 +29,36 @@
  */
 
 import type { ComponentType, CSSProperties } from 'react';
-import { Boxes, CircleSlash, Clock, Percent, TriangleAlert } from 'lucide-react';
+import { Ban, Clock, Percent, TriangleAlert } from 'lucide-react';
 import { Inline } from '@/Components/layout';
 import type { KpiKey, Permissoes } from './catalogo';
 
-const TONE_STYLES = {
-  primary: { border: 'oklch(0.62 0.18 250)', bgActive: 'oklch(0.95 0.04 250)', iconBg: 'oklch(0.92 0.05 250)', iconFg: 'oklch(0.45 0.18 250)' },
-  amber: { border: 'oklch(0.72 0.15 70)', bgActive: 'oklch(0.96 0.05 70)', iconBg: 'oklch(0.93 0.07 70)', iconFg: 'oklch(0.50 0.15 70)' },
-  rose: { border: 'oklch(0.65 0.20 20)', bgActive: 'oklch(0.96 0.04 20)', iconBg: 'oklch(0.93 0.06 20)', iconFg: 'oklch(0.50 0.20 20)' },
-  emerald: { border: 'oklch(0.65 0.14 155)', bgActive: 'oklch(0.95 0.04 155)', iconBg: 'oklch(0.92 0.06 155)', iconFg: 'oklch(0.45 0.14 155)' },
-  violet: { border: 'oklch(0.60 0.18 295)', bgActive: 'oklch(0.96 0.04 295)', iconBg: 'oklch(0.93 0.06 295)', iconFg: 'oklch(0.50 0.18 295)' },
+/**
+ * A placa do ícone, e só ela, é tintada — o card fica neutro.
+ *
+ * RECEITA MEDIDA no `Alert` do bundle do DS, que é onde mora a única placa de ícone do sistema:
+ *
+ *   span: { width: 22, height: 22, borderRadius: 6, background: mix('14%'), color: tk.c }
+ *
+ * — 14% de fundo, SEM borda, glyph no TOM CHEIO. O patch §1 pede 6%/22%/600 alegando ser a
+ * receita do `Alert`, e ele acertou o componente e errou a peça: 6%/22% são os números do
+ * CONTAINER do alerta (`background: mix('6%')`, `border: 1px solid mix('22%')`), não os da
+ * placa dentro dele. Placa de ícone segue placa de ícone — [W] 2026-08-25, "o DS sempre ganha".
+ *
+ * Os tons vêm por TOKEN (`warning`/`destructive`/`primary` — o roxo hue 295 do acento canônico,
+ * ADR 0190), não pela paleta Tailwind que o patch nomeia: é o que o §6 manda quando o valor
+ * parece faltar — procurar com o outro nome, nunca criar. De quebra o par claro/escuro vem
+ * junto, então o §5 (mesmas frações no escuro) sai de graça.
+ */
+const PLACA = {
+  warning: 'bg-warning/14 text-warning',
+  destructive: 'bg-destructive/14 text-destructive',
+  primary: 'bg-primary/14 text-primary',
 } as const;
 
-type ToneKey = keyof typeof TONE_STYLES;
+type ToneKey = keyof typeof PLACA;
 
 export type KpisCatalogo = {
-  ativos: number;
   min: number;
   zero: number;
   parado: number;
@@ -68,30 +88,33 @@ export interface KpiFiltrosProps {
 }
 
 export function KpiFiltros({ kpis, ativo, onToggle, perm, diasParado }: KpiFiltrosProps) {
+  // "Abaixo do mínimo" e "Sem saldo" valem pra TODO perfil: são a pergunta do balcão.
   const cards: Card[] = [
-    { key: 'ativos', label: 'Ativos', sub: 'em uso', tone: 'primary', icon: Boxes, valor: kpis.ativos },
-    { key: 'min', label: 'Estoque baixo', sub: 'repor', tone: 'amber', icon: TriangleAlert, valor: kpis.min },
-    { key: 'zero', label: 'Sem estoque', sub: 'bloqueado', tone: 'rose', icon: CircleSlash, valor: kpis.zero },
-    { key: 'parado', label: `Sem venda ${diasParado}d`, sub: `${diasParado} dias`, tone: 'violet', icon: Clock, valor: kpis.parado },
+    { key: 'min', label: 'Abaixo do mínimo', sub: 'repor', tone: 'warning', icon: TriangleAlert, valor: kpis.min },
+    { key: 'zero', label: 'Sem saldo', sub: 'bloqueado', tone: 'destructive', icon: Ban, valor: kpis.zero },
   ];
 
   // Montado ou não montado — nunca escondido por CSS.
+  //
+  // "Sem venda Nd" e "Margem baixa" são recortes de GESTÃO, e o handoff de 21/08 §4.1 os
+  // gateia junto com o custo: quem atende no balcão não decide o que sai de linha nem o que
+  // vende sem margem, e o card ocuparia espaço com uma pergunta que não é dele.
+  if (perm.custo) {
+    cards.push({ key: 'parado', label: `Sem venda ${diasParado}d`, sub: 'sem giro', tone: 'primary', icon: Clock, valor: kpis.parado });
+  }
   if (perm.custo && perm.preco && kpis.margem !== undefined) {
-    cards.push({ key: 'margem', label: 'Margem baixa', sub: 'sob o piso', tone: 'emerald', icon: Percent, valor: kpis.margem });
+    cards.push({ key: 'margem', label: 'Margem baixa', sub: 'sob o piso', tone: 'warning', icon: Percent, valor: kpis.margem });
   }
 
-  // Cinco cards em UMA linha no desktop declarado (exceção de domínio 1). Abaixo dele a grade
-  // quebra em 3/2 colunas em vez de transbordar na horizontal como o protótipo: aqui a tela
-  // vive dentro do AppShellV2, e rolagem horizontal do conteúdo esconderia os KPIs da direita
-  // sem nenhum affordance. `gap: 9px` é herdado da golden master.
+  // `auto-fit` com piso de 170px é a grade do handoff de 21/08 §3.1: com dois cards (balcão)
+  // eles se esticam; com quatro (autorizado) cabem na linha. Sem contagem fixa no código, a
+  // faixa acompanha a permissão sem ninguém lembrar de ajustar o `grid-cols-N`.
   //
-  // `lg:grid-cols-5` acompanha a contagem real: com 4 cards (perfil sem custo) a grade cai
-  // pra 4 e nenhum fica órfão numa segunda linha.
+  // `gap: 9px` é herdado da golden master.
   return (
-    <div className={'grid gap-[9px] grid-cols-2 sm:grid-cols-3 ' + (cards.length === 5 ? 'lg:grid-cols-5' : 'lg:grid-cols-4')}>
+    <div className="grid gap-[9px] [grid-template-columns:repeat(auto-fit,minmax(170px,1fr))]">
       {cards.map((card) => {
         const Icon = card.icon;
-        const tone = TONE_STYLES[card.tone];
         const on = ativo === card.key;
         return (
           <button
@@ -101,13 +124,19 @@ export function KpiFiltros({ kpis, ativo, onToggle, perm, diasParado }: KpiFiltr
             title={`Recortar por ${card.label} (${card.sub})`}
             onClick={() => onToggle(on ? null : card.key)}
             className={
-              'group flex items-center gap-3 p-3 rounded-md border text-left transition-all ' +
-              (on ? 'shadow-sm' : 'bg-card hover:shadow-sm')
+              // `rounded-lg`, não o `rounded-xl` que o patch §1 pede: a regra `ds/no-rounded-xl`
+              // do `eslint.config.js` cravou o teto em `rounded-lg` citando o CLAUDE_DESIGN_BRIEFING
+              // §4, e o cânone do projeto ganha do patch. A placa desce pra `rounded-md` junto, pra
+              // preservar a RELAÇÃO que o patch encoda (placa menos redonda que o card) dentro do teto.
+              'group flex items-center gap-3 p-3 rounded-lg border bg-card text-left transition-all hover:shadow-sm ' +
+              // Selecionado é ANEL, não tinta de fundo: o card é neutro e continua neutro, senão
+              // a faixa ganha uma segunda cor competindo com a placa, que é quem carrega o tom.
+              (on ? 'border-primary ring-1 ring-primary/40' : 'border-border')
             }
-            style={on ? { borderColor: tone.border, backgroundColor: tone.bgActive } : { borderColor: 'var(--border)' }}
           >
-            <Inline justify="center" className="h-9 w-9 rounded-md flex-shrink-0" style={{ backgroundColor: tone.iconBg }}>
-              <Icon className="h-4 w-4" style={{ color: tone.iconFg }} />
+            <Inline justify="center" className={'h-9 w-9 rounded-md flex-shrink-0 ' + PLACA[card.tone]}>
+              {/* Sem `color` próprio: o glyph herda o `text-*` da placa (currentColor). */}
+              <Icon className="h-4 w-4" />
             </Inline>
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground truncate leading-none">{card.label}</p>

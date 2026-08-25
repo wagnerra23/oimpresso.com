@@ -3,6 +3,7 @@ id: resources-js-pages-repair-index-charter
 page: /repair/repair
 component: resources/js/Pages/Repair/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
+bundle_source: repair-page.jsx
 owner: wagner
 status: draft
 last_validated: "2026-07-11"

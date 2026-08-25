@@ -2,7 +2,7 @@
 id: resources-js-pages-ponto-relatorios-index-charter
 page: /ponto/relatorios
 component: resources/js/Pages/Ponto/Relatorios/Index.tsx
-related_prototype: n/a (herda PT-01 Lista; grade de cards de relatórios — segue o Padrão de Tela)
+related_prototype: prototipo-ui/cowork/ponto-telas.jsx
 owner: wagner
 status: draft
 last_validated: "2026-07-11"

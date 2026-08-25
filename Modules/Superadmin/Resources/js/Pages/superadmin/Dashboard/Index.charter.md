@@ -91,6 +91,33 @@ Alvo do F1 ainda **não** entregue — está aqui pra não se perder, não como 
 
 ---
 
+## Contrato visual
+
+Travado por [`prototipo-ui/contrato/superadmin-dashboard.contract.json`](../../../../../../../prototipo-ui/contrato/superadmin-dashboard.contract.json)
+(ADR 0286), verificado no CI por `contrato-de-tela.mjs` — âncora `data-contract` + **copy literal** +
+ordem. Fonte da copy: o §3 do F1 [CC] (`cowork-inbox/SUPERADMIN-F1-2026-08-18.md`), ancorado em
+`prototipo-ui/cowork/superadmin-page.jsx` — a mesma âncora do `related_prototype`.
+
+| Seção | Copy travada |
+|---|---|
+| `superadmin.dashboard.periodo` | Hoje · Semana · Mês · Ano |
+| `superadmin.dashboard.kpis` | Novas assinaturas · Novos cadastros · Sem assinatura · Receita recorrente (MRR) |
+| `superadmin.dashboard.tendencia` | Tendência mensal de assinaturas |
+| `superadmin.dashboard.recentes` | Cadastros recentes |
+
+⚠️ **4 das 10 seções que o F1 pede pra view `visao`.** Ficaram de fora as 6 que produção não tem
+e que o §1 do [RUNBOOK-dashboard](../../../../../../../memory/requisitos/Superadmin/RUNBOOK-dashboard.md)
+já registra como gap: funil trial→pago, churn 30 d com motivos, receita por pacote, fila
+"Vencendo ou vencido" e "O que fazer primeiro". Contrato que nasce vermelho não trava nada, só
+ensina a ignorar o gate.
+
+> **Por que só agora:** o F1 estava no Cowork desde 2026-08-18 e era **invisível** ao repositório
+> — o detector de frescor do espelho só olhava `.jsx/.html/.css/.js` ([#6019](https://github.com/wagnerra23/oimpresso.com/pull/6019)).
+> A onda foi construída de uma cópia colada no chat: as copy acima bateram por acerto, não por
+> contrato. Agora batem por contrato.
+
+---
+
 ## Automation hooks (faz)
 
 - Recalcula os KPIs ao trocar o período, por partial reload (`only:`), sem full page load.

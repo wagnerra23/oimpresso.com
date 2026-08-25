@@ -67,6 +67,13 @@ jobs:
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/fact-anchor.test.mjs
 
+      - name: Retorno Code -> Design §10.2 (3 canais · advisory + bite/release)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/design-return-check.test.mjs
+      - name: Seleção de handoffs (push/dispatch · multi-commit · zero-base)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/handoff-select.test.mjs
+
       # Bridge DXT (incidente 2026-08-12): o Desktop pede tools/list várias vezes
       # por handshake e cada ida custava ~2,2s. O cache tem um modo de falha
       # silencioso — devolver a resposta com o id ERRADO faz o cliente descartá-la
@@ -131,6 +138,48 @@ jobs:
       - name: System-map path morto (transcricao de lapide libera, ponteiro inventado morde)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/system-map-deadlinks.test.mjs
+      # ── uc-id-lint (pedido [CC] 2026-08-23) ────────────────────────────────────────
+      # Id de UC fora do formato canonico nao falha na escrita: ele fica INVISIVEL pro
+      # ucBlocksInCasos(), o UC some do casos-gate (G-2 passa por VACUIDADE) e a tela
+      # reaparece como "falta: casos.md-com-UC" no prototipo-readiness. Medido em
+      # 2026-08-23: 42 blocos fora do formato, ZERO falso-positivo, 37 deles em 5 telas
+      # cujo casos.md inteiro esta invisivel (Jana/Chat 11, Jana/Index 14, e 3 do Ponto).
+      #
+      # DUAS pernas, e as duas sao necessarias:
+      #  (1) bite-test — prova que o lint SABE reprovar (Lei C). Exercita o CLI de fora,
+      #      nao so o helper exportado (§5 2026-07-30 / 2026-08-14).
+      #  (2) --check --baseline — no-new-lie: grandfathera os 42 legados e morde id NOVO.
+      #      Sem --baseline daria exit 1 hoje; renomear os 42 em lote esta proibido por
+      #      §5 2026-07-12 (acordaria o G-6 de frescor em 8 arquivos).
+      - name: uc-id-lint bite-test (morde prefixo longo/2-segmentos/digito, libera UC-KBV2-01 e prosa)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/qa/uc-id-lint.test.mjs
+      - name: uc-id-lint · id NOVO fora do formato (no-new-lie · legado grandfatherado)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/qa/uc-id-lint.mjs --check --baseline governance/uc-id-baseline.json
+      # ── uc-lane-coverage (pedido [CC] 2026-08-23) ─────────────────────────────────
+      # A lane `ponto-pest.yml` roda 11 arquivos de uma allowlist; o modulo tem 37. Os 26
+      # de fora sao "verde impossivel": existem, podem estar vermelhos ha meses, e nenhum
+      # PR os acorda. Rodados a mao no CT100 em 2026-08-23, cinco deles deram
+      # `2 failed · 13 skipped · 8 passed` — incluindo DashboardTest x
+      # DashboardDeferredContractTest se contradizendo (um exige `kpis` no payload
+      # inicial, o outro prova que a prop e DEFERIDA) e MultiTenantIsolationTest, cujo
+      # `@dataProvider` foi REMOVIDO no PHPUnit 12 (o repo esta no 12.5.23).
+      #
+      # NAO duplica o `anchor-lint --check-lane`: aquele e do eixo US->teste e resolve
+      # lane por PREFIXO DE PASTA, entao diz que os tres acima estao "em lane" (medido,
+      # replicando `inLane()` linha a linha). Este trabalha em granularidade de ARQUIVO
+      # (allowlist, matriz, lista .list e QUARENTENA) e no eixo UC->teste.
+      #
+      # Medido no corpus: 481 citacoes UC->teste, 224 na lane, 56 ORFAS, 0 indeterminadas.
+      # Regra dura: lane cuja selecao o parser NAO deriva sai como `indeterminada` e NUNCA
+      # como "nao cobre" — colapsar "nao medi" em "nao coberto" fabrica achado.
+      - name: uc-lane-coverage bite-test (morde orfao e quarentena, e prova que INDETERMINADO nao vira orfao)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/qa/uc-lane-coverage.test.mjs
+      - name: uc-lane-coverage · UC NOVO citando teste que lane nenhuma roda (no-new-lie)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/qa/uc-lane-coverage.mjs --check --baseline governance/uc-lane-baseline.json
       - name: Grupo de memoria por modulo (case-trap Pages/kb x requisitos/KB + token no nome do arquivo)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/module-group-resolve.test.mjs
@@ -525,6 +574,17 @@ jobs:
       - name: aplicar-payload morde (escopo/R1/bytes/regressão · CLI de fora, sandbox por cwd)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/aplicar-payload.test.mjs
+      # Par PRODUTOR do aplicar-payload. Mutantes mortos antes de wirar (2026-08-22): guarda de
+      # tamanho removida → 3 FAIL · união do `missing` desfeita → 1 FAIL · glob voltando a
+      # escapar antes de fatiar → 16 FAIL. O 1o fixture da união SOBREVIVEU o mutante (gerava
+      # 1 parte só, onde repetir e não repetir dão a mesma união) — trocado por 12×40 KB, que
+      # força ≥2 partes. Verde que não podia ficar vermelho é carimbo (LC-13).
+      - name: gerar-payload-partes morde (manifesto/delta/chunks/cap/glob · hermético)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design-sync/gerar-payload-partes.test.mjs
+      - name: bundle transacional morde (sequência/SHA/staging/rollback/módulos/evidências)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design-sync/bundle-transaction.test.mjs
       - name: ds-push orquestrador morde (dry-run VALOR:0 + determinismo · loop diff-first)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/ds-push.test.mjs
@@ -901,6 +961,9 @@ jobs:
       - name: Réguas workflow (persistência incremental · checkpoint antes da prosa · retrato parcial declarado)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/reguas-workflow.test.mjs
+      - name: Migração visual em ondas (duplo aceite · uma onda · Tier 0)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/migracao-layout-workflow.test.mjs
       # O rc que decide um alarme NÃO pode vir de um pipe. Incidente 2026-08-14: o
       # protection-drift.yml fazia `node ... | tee` seguido de `rc=$?` — rc do TEE, não do
       # node → o `::warning::` NUNCA disparava e o `exit $rc` sempre saía 0, com um 🔴 REAL

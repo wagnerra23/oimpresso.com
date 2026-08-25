@@ -87,7 +87,7 @@ export function formatBanner(itens) {
   if (!itens.length) return '';
   // descartado NÃO entra na fila (nada a fazer) e NÃO conta como feito (nada entregue).
   const pendentes = itens.filter((i) => !i.done && !i.descartado);
-  const out = ['', '=== ROTINA: FECHAR O LOOP DO IA-OS (audit 2026-05-29) ==='];
+  const out = ['', '[loop-fechar-check] === ROTINA: FECHAR O LOOP DO IA-OS (audit 2026-05-29) ==='];
   for (const i of itens) {
     const marca = i.descartado ? '[XX]' : i.done ? '[OK]' : '[--]';
     out.push(`  ${marca} #${i.gap} ${i.prio} - ${i.titulo}`);

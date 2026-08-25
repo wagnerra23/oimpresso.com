@@ -45,15 +45,15 @@ related_adrs:
 
 ### US-SUPER-002 — Gestão de Packages (planos comerciais)
 **Como** superadmin, **quero** criar e configurar packages (Free/Starter/Pro/etc) com custom_permissions + limites de location/user/product, **pra** definir SKUs comerciais.
-**Implementado em:** `Modules/Superadmin/Http/Controllers/PackagesController.php` · `Modules/Superadmin/Entities/Package.php` · `Modules/Superadmin/Resources/views/packages/index.blade.php` · verificado@8af585a (2026-07-02)
-- Tela: `packages/index|create|edit.blade.php`
+**Implementado em:** `Modules/Superadmin/Http/Controllers/PackagesController.php` · `Modules/Superadmin/Entities/Package.php` · `Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx` · verificado@d5406be3e6 (2026-08-21)
+- Tela: `superadmin/Pacotes/Index.tsx` (Inertia desde a SA-O4c, 2026-08-21) — grid de cards, LEITURA. O FormDrawer novo/editar/duplicar (UC-SA-010/011) é a SA-O4d: escreve `price`, então depende da REGRA MESTRE de `memory/proibicoes.md` e da decisão [W] sobre a assimetria medida no [RUNBOOK-pacotes §5.1](RUNBOOK-pacotes.md) (`store()` interpreta o preço em pt-BR; `update()` grava cru). `packages/create|edit.blade.php` seguem servindo o form até lá
 - Entity: `Package` com JSON `custom_permissions`
 - Aceite: package marcado `enable_custom_link` aparece em `/pricing` público; campos `min_termination_alert_days` controlam alertas
 
 ### US-SUPER-003 — Subscriptions (cobrança recorrente)
 **Como** superadmin, **quero** consultar e ativar subscriptions, incluindo confirmar pagamentos offline, **pra** controlar acesso pago dos clientes.
-**Implementado em:** `Modules/Superadmin/Http/Controllers/SubscriptionController.php` · `Modules/Superadmin/Http/Controllers/SuperadminSubscriptionsController.php` · `Modules/Superadmin/Console/SubscriptionExpiryAlert.php` · verificado@8af585a (2026-07-02)
-- Tela: `subscription/index.blade.php` + `pay.blade.php`
+**Implementado em:** `Modules/Superadmin/Http/Controllers/SubscriptionController.php` · `Modules/Superadmin/Http/Controllers/SuperadminSubscriptionsController.php` · `Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx` · `Modules/Superadmin/Support/RotuloAssinatura.php` · `Modules/Superadmin/Console/SubscriptionExpiryAlert.php` · verificado@58d46213a0 (2026-08-20)
+- Tela: `superadmin/Assinaturas/Index.tsx` (Inertia desde a SA-O4a, 2026-08-20) — lista + ações por linha (SA-O4b, mesmo dia): mudar status e editar vigência, com toda escrita passando pelo `SubscriptionLifecycleService`. São **3 ações** (aprovar · vencer · cancelar), não os 5 status do F1 — o Service modela três transições, e os outros dois valores do enum não são escolha de operador. `subscription/index.blade.php` deixou de ser a tela do superadmin; `subscription/pay.blade.php` é a tela do CLIENTE e não foi tocada
 - Controller: `SubscriptionController`, `SuperadminSubscriptionsController`
 - Aceite: gateways suportados PayPal/Stripe/Razorpay/PesaPal/Paystack/Flutterwave/offline; cron `SubscriptionExpiryAlert` envia `SendSubscriptionExpiryAlert` D-N antes do término
 

@@ -1,0 +1,135 @@
+name: TypeScript (ratchet vs baseline)
+
+# Catraca de erros do `tsc --noEmit`, irmã de eslint-gate.yml / stylelint-gate.yml.
+#
+# POR QUE EXISTE: a checagem de tipos estava VERMELHA no main com 298 erros em 145 pares
+# arquivo|código (medido 2026-08-24) e NUNCA teve gate — varredura com rc conferido não achou
+# `typecheck`/`noEmit` em scripts/ nem em .github/workflows/, e o gates-registry não listava.
+# Sem catraca, 298 não é teto: nada impede virar 320. Corrigir tudo de uma vez é backfill de
+# legado em massa, que morre no CI (proibicoes §5 2026-07-12) — então congela o débito e falha
+# só em REGRESSÃO, deixando a dívida cair quando o arquivo for tocado.
+#
+# Comando manual local: npm run typecheck:baseline:check
+# Quem é required no vivo: governance/required-checks-baseline.json (não restatear aqui).
+#
+# REQUIRED-READINESS (padrão ADR 0271 onda 2, idêntico ao eslint-gate.yml): `pull_request` SEM
+# `paths:` (always-run) pra ser promovível a required sem deadlock "Expected — waiting for
+# status" em PR que não toca os paths. O custo é evitado por skip-as-pass interno.
+
+on:
+  push:
+    branches: [main, 6.7-react]
+    paths:
+      - 'resources/js/**'
+      - 'tsconfig.json'
+      - 'config/typecheck-baseline.json'
+      - 'scripts/typecheck-baseline.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/typecheck-gate.yml'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: typecheck-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck:
+    name: TypeScript · ratchet vs baseline
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças relevantes (skip-as-pass — required-readiness)
+        id: changes
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            relevant:
+              - 'resources/js/**'
+              - 'tsconfig.json'
+              - 'config/typecheck-baseline.json'
+              - 'scripts/typecheck-baseline.mjs'
+              - 'package.json'
+              - 'package-lock.json'
+              - '.github/workflows/typecheck-gate.yml'
+
+      - name: Decidir execução
+        id: decide
+        run: echo "run=${{ github.event_name != 'pull_request' || steps.changes.outputs.relevant == 'true' }}" >> "$GITHUB_OUTPUT"
+
+      - name: Skip-as-pass (nada de TS mudou)
+        if: steps.decide.outputs.run != 'true'
+        run: echo "✅ Sem mudanças de TS — skip-as-pass (required-ready, padrão ADR 0271 onda 2)."
+
+      - name: Setup Node.js
+        if: steps.decide.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install npm deps
+        if: steps.decide.outputs.run == 'true'
+        run: npm ci --no-audit --no-fund
+
+      - name: TypeScript ratchet (falha só em regressão vs baseline)
+        id: analise
+        if: steps.decide.outputs.run == 'true'
+        run: node scripts/typecheck-baseline.mjs
+
+      # O comparador é o que pode apodrecer (o tsc é a lib). Prova que a catraca MORDE:
+      # par novo e contagem que sobe reprovam; igual e melhoria passam. Sem isso, um gate
+      # que virasse mudo contaria 0 pra sempre e ninguém notaria (proibicoes §5 2026-08-04).
+      - name: Bite-test do comparador (a catraca morde)
+        if: steps.decide.outputs.run == 'true'
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          node -e "
+            const b=require('./config/typecheck-baseline.json'); const fs=require('fs');
+            const c={...b.counts}; const k=Object.keys(c)[0];
+            fs.writeFileSync('$tmp/igual.json', JSON.stringify(c));
+            fs.writeFileSync('$tmp/novo.json', JSON.stringify({...c,'resources/js/__FIXTURE__.tsx|TS9999':1}));
+            fs.writeFileSync('$tmp/subiu.json', JSON.stringify({...c,[k]:c[k]+5}));
+          "
+          node scripts/typecheck-baseline.mjs --counts-from "$tmp/igual.json" >/dev/null \
+            || { echo '✗ BITE-TEST: fixture IGUAL deveria passar'; exit 1; }
+          if node scripts/typecheck-baseline.mjs --counts-from "$tmp/novo.json" >/dev/null 2>&1; then
+            echo '✗ BITE-TEST: par NOVO deveria reprovar — a catraca está muda'; exit 1
+          fi
+          if node scripts/typecheck-baseline.mjs --counts-from "$tmp/subiu.json" >/dev/null 2>&1; then
+            echo '✗ BITE-TEST: contagem que SOBE deveria reprovar — a catraca está muda'; exit 1
+          fi
+          echo '✓ bite-test: igual passa · par novo reprova · contagem que sobe reprova'
+
+      # `if: failure()` sozinho dispara com QUALQUER passo anterior falhando — inclusive o
+      # `npm ci`. Colapsar "não consegui medir" num estado do objeto medido é a classe do
+      # §5 2026-07-29, e regenerar baseline por regressão fantasma aceita dívida real em
+      # silêncio. Por isso os dois diagnósticos abaixo são mutuamente exclusivos.
+      - name: O gate NÃO mediu (falha antes da análise)
+        if: failure() && steps.analise.outcome != 'failure'
+        run: |
+          echo ""
+          echo "⚠️  A checagem de tipos NÃO RODOU — o job caiu ANTES da análise (setup, dependência, rede)."
+          echo "   Isto NÃO é regressão do seu PR, e o baseline NÃO deve ser regenerado."
+          echo "   Ache o passo vermelho acima; se for host de terceiro (503/timeout), re-rode."
+
+      - name: Diagnóstico em caso de regressão
+        if: failure() && steps.analise.outcome == 'failure'
+        run: |
+          echo ""
+          echo "❌ REGRESSÃO de tipos vs config/typecheck-baseline.json"
+          echo ""
+          echo "Próximos passos:"
+          echo "  1. Local: npm run typecheck · vê os erros (o log acima já lista os pares que subiram)"
+          echo "  2. Corrigir os erros NOVOS do PR — a dívida antiga está grandfathered, só a nova reprova"
+          echo "  3. Se a regressão for intencional/aceita, atualizar baseline em commit separado:"
+          echo "       npm run typecheck:baseline:write"
+          echo "     (commit + justificativa no PR — vai aparecer no diff do JSON)"
+          echo ""
+          echo "Refs: ADR 0209 (ratchet gêmeo) · ADR 0271/0275 (forward-only)"

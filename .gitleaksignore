@@ -40,3 +40,18 @@ d9d4f846b984d6ece9445fc96d723d88c3710979:resources/js/Pages/governance/Qualidade
 d9d4f846b984d6ece9445fc96d723d88c3710979:resources/js/Pages/governance/QualidadeIa.tsx:generic-api-key:170
 2a5b2bec47efe821dfac03d7dc412467871f3200:resources/js/Pages/governance/QualidadeIa.tsx:generic-api-key:167
 2a5b2bec47efe821dfac03d7dc412467871f3200:resources/js/Pages/governance/QualidadeIa.tsx:generic-api-key:170
+
+# officeimpresso-page.jsx — mock de credencial OAuth no PROTOTIPO Cowork (2026-08-20).
+# NAO sao credenciais: verificado por comparacao de SHA-256 contra os 106
+# `oauth_clients.secret` de PRODUCAO — 0 de 5 bateram. Os hashes foram computados
+# DENTRO do banco (SHA2 no SQL), entao nenhum valor trafegou. A verificacao levou
+# controle positivo (um hash conhecido de prod cruzado consigo mesmo: bateu), sem o
+# qual o "0 coincidencias" nao distinguiria ausencia de metodo quebrado.
+# Autorizado por [W] em 2026-08-20; evidencia no PR #5975.
+# Sinal de apoio: 4 dos 5 valores tem 38 caracteres, e Str::random(40) do Passport
+# gera sempre 40 — comprimento irregular e assinatura de valor escrito a mao.
+8480e6d6025f9142247968135037f792b37d51a7:prototipo-ui/cowork/officeimpresso-page.jsx:generic-api-key:761
+8480e6d6025f9142247968135037f792b37d51a7:prototipo-ui/cowork/officeimpresso-page.jsx:generic-api-key:762
+8480e6d6025f9142247968135037f792b37d51a7:prototipo-ui/cowork/officeimpresso-page.jsx:generic-api-key:763
+8480e6d6025f9142247968135037f792b37d51a7:prototipo-ui/cowork/officeimpresso-page.jsx:generic-api-key:764
+8480e6d6025f9142247968135037f792b37d51a7:prototipo-ui/cowork/officeimpresso-page.jsx:generic-api-key:765

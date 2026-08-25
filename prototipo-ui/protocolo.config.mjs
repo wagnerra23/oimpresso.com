@@ -115,6 +115,33 @@ export const DS_RUNTIME_SNAPSHOT_DIR = join(REPO_ROOT, 'scripts', 'design-sync',
 
 // ── PRÉ-FLIGHT da Fase 4 — os gates que a tela nova zera ANTES do PR ────────────
 // ("funciona no staging ≠ passa no portão": incidente perfil 2026-06-24 tripou 6 gates no PR).
+//
+// ── RECONCILIAÇÃO 2026-08-21: a lista cobria 2 dos 5 REQUIRED do próprio domínio ──
+// Medido nesta data (união `classic_protection.contexts` ∪ `rulesets[].contexts` do
+// governance/required-checks-baseline.json — ler só a clássica SUBCONTA, §5 2026-08-08):
+// 46 required no repo, 5 no domínio design/espelho. Desses, o painel cobria `DS gate`
+// e `Casos-coverage`; os outros 3 estavam FORA — e a fase se chama "Gates antes do PR".
+//
+// Custo medido, não hipotético: uma sessão rodou os 6 gates desta lista, todos verdes,
+// e mesmo assim levou VERMELHO num required (`espelho — mexeu depois de verificar`,
+// PR #6117). Rodar a lista inteira do painel não era suficiente pra abrir PR — que é
+// exatamente o serviço que esta constante promete prestar.
+//
+// O caso do espelho é a §5 2026-07-28 em estado puro ("validar um gate rodando UM dos
+// modos que o CI roda"): o `cowork-mirror-freshness.mjs` JÁ era citado no painel em 4
+// modos (`--export-from`, `--ds-runtime`, `--snapshot-from`, `--preview-ds`) e o modo
+// que MORDE no CI não estava em nenhum. Um script com N modos é N gates.
+//
+// MAPEAMENTO PROVADO job→context→comando (cada um conferido no .yml, não inferido do
+// nome — o meu 1º palpite pro charter era `ancora-guard.mjs` e estava ERRADO):
+//   · .github/workflows/governance-script-tests.yml  job `espelho-verificado`
+//       name: espelho — mexeu depois de verificar          → --unverified --check
+//   · .github/workflows/anchor-content-required.yml  job `anchor-content`
+//       name: Ancora de design nao-shell (F2/F6 required)  → anchor-content-check --check
+//   · .github/workflows/anchor-drift.yml             job `charter-live-signal`
+//       name: charter status:live precisa de sinal de prod → charter-live-signal --check
+// O selftest `conferirCoberturaRequired()` trava esses 3 pares (comando presente aqui
+// + context ainda required no baseline). O que ele NÃO cobre está dito lá, sem inflar.
 export const PREFLIGHT_GATES = [
   'node scripts/layout-primitives-guard.mjs',
   'node scripts/casos-coverage-guard.mjs',
@@ -122,6 +149,40 @@ export const PREFLIGHT_GATES = [
   'node_modules/.bin/tsc --noEmit',
   'node prototipo-ui/ds-guard.mjs <arquivos-tocados>',
   'node scripts/governance/cowork-ssot-guard.mjs',
+  // REQUIRED do domínio que faltavam (2026-08-21) — ver mapeamento provado acima
+  'node scripts/governance/cowork-mirror-freshness.mjs --unverified --check   # espelho editado sem prova de fidelidade',
+  'node scripts/governance/anchor-content-check.mjs --check                   # âncora de design MISSING/SHELL',
+  'node scripts/governance/charter-live-signal.mjs --check <charters-tocados> # status:live sem sinal de prod',
+  // as 2 LEIs que o required `DS gate` agrega — nenhuma estava aqui (medido 2026-08-21)
+  'node scripts/conformance-gate.mjs --all                                   # cor crua NOVA vs baseline (LEI)',
+  'node scripts/foundation-guard.mjs                                         # token-def só na fundação (LEI)',
+  'php artisan ui:lint   # 2a perna do DS gate — exige PHP; ausência de env NÃO é reprovação do gate',
+];
+
+// Pares (context required ↔ comando local) que o selftest trava. Vive aqui, ao lado da
+// lista, porque é a lista que ele defende. NÃO é inventário de required do repo — é o
+// recorte do domínio design/espelho, o que este painel governa.
+export const REQUIRED_DO_DOMINIO = [
+  { context: 'espelho — mexeu depois de verificar',
+    cmd: 'node scripts/governance/cowork-mirror-freshness.mjs --unverified --check',
+    workflow: '.github/workflows/governance-script-tests.yml', job: 'espelho-verificado' },
+  { context: 'Ancora de design nao-shell (F2/F6 required)',
+    cmd: 'node scripts/governance/anchor-content-check.mjs --check',
+    workflow: '.github/workflows/anchor-content-required.yml', job: 'anchor-content' },
+  { context: 'charter status:live precisa de sinal de prod',
+    cmd: 'node scripts/governance/charter-live-signal.mjs --check',
+    workflow: '.github/workflows/anchor-drift.yml', job: 'charter-live-signal' },
+  // ⚠️ `DS gate` é job AGREGADOR (`needs: [conformance, ui-lint]`) — ele NÃO roda
+  // `ds-guard.mjs`. Confundir os dois foi o meu 2º palpite errado nesta reconciliação:
+  // `ds-guard.mjs` é o guard de design-memory (PROCESSO_MEMORIA_CC §8), outro papel.
+  // O par abaixo aponta pra LEI que de fato avermelha: cor-crua. A outra perna
+  // (`ui-lint` → `php artisan ui:lint`) exige PHP e está na lista com essa ressalva.
+  { context: 'DS gate',
+    cmd: 'node scripts/conformance-gate.mjs --all',
+    workflow: '.github/workflows/ds-gate.yml', job: 'ds-gate ← needs conformance' },
+  { context: 'Casos-coverage · ratchet (trio + rastreabilidade)',
+    cmd: 'node scripts/casos-coverage-guard.mjs',
+    workflow: '.github/workflows/casos-gate.yml', job: 'casos-gate' },
 ];
 
 // ── MAPA FASE → comando(s) reais (o "painel" executável do RUNBOOK) ─────────────
@@ -140,16 +201,67 @@ export const FASES = [
   // O canônico é o pull direto (ADR 0325) escrito por `--export-from` (ADR 0374, ratificada
   // 2026-08-13). Os comandos de ZIP saem da lista de FASES — deletar os SCRIPTS é poda de
   // capacidade, decisão [W], e não se faz de lado dentro de uma reconciliação de redação.
+  // ── QUAL ROTA USAR (2026-08-20) — a lista abaixo tinha DUAS e nenhuma hierarquia ──
+  // Medido nesta data: uma sessao rodou este painel, leu a fase -1, pegou o `--export-from`
+  // (que serve pra arquivo AVULSO) e passou horas concluindo que "nao ha rota fiel" pro
+  // espelho — a conclusao que o `sync/README.md` ja nomeia, no primeiro paragrafo, como
+  // "errada como teto absoluto". As duas rotas apareciam lado a lado, como se fossem
+  // alternativas equivalentes. Nao sao:
+  //
+  //   SINCRONIZAR O ESPELHO (muitos arquivos)  -> aplicar-payload.mjs   [ROTA PRINCIPAL]
+  //   ARQUIVO AVULSO (1-3, ja medido)          -> --export-from         [caso pontual]
+  //
+  // FRONTEIRA MEDIDA do get_file (2026-08-20, testada arquivo a arquivo): conteudo acima de
+  // ~48 KB volta PERSISTIDO em disco (jana-merge.jsx 59 KB, financeiro-page.jsx 128 KB);
+  // abaixo de ~36 KB volta INLINE no contexto (chat-jana.jsx 36 KB, jana-merge.css 18 KB,
+  // jana-pro.css 7 KB). So o persistido pode alimentar `--export-from` sem transcrever.
+  // COROLARIO que abre a rota: partes de payload <=256 KiB ficam ACIMA da fronteira, entao
+  // persistem — da pra baixar as ~14 partes por get_file e aplicar, SEM URL curta.
+  //
+  // Dono da rota completa: `sync/README.md` no projeto Cowork (le com DesignSync.get_file).
   { fase: '-1', nome: 'Importar/baixar o design', comandos: [
-      'node scripts/design-sync/aplicar-payload.mjs <p1.json> [p2.json ...] --dry --require-complete-shell  # shell TODO + deps HTML/CSS/JS (fechamento transitivo)',
-      '  ^ escapa o teto do get_file POR ARQUIVO, nao o do PAYLOAD: sync/payload.json tem ~3,5 MB e o',
-      '    get_file corta em 256 KiB ("truncated": true). Peca o payload em PARTES <=256 KiB — o applier junta lotes.',
-      'node scripts/design-sync/aplicar-payload.mjs <cowork.json> <ds.json> --require-complete-shell        # só após GRAFO COMPLETO + revisão do dry-run',
+      '# [ROTA PRINCIPAL] bundle v2 — snapshot inicial; depois delta por manifesto anterior',
+      'node scripts/design-sync/gerar-payload-partes.mjs --root <design-vivo> --out <sync> [--previous <bundle.manifest.json>]',
+      'node scripts/design-sync/aplicar-payload.mjs <payload.part*.json> --dry --require-complete-shell  # valida lote + estado-alvo em staging',
+      'node scripts/design-sync/aplicar-payload.mjs <payload.part*.json> --require-complete-shell        # promove atomicamente ou restaura tudo',
+      'node scripts/design-sync/status.mjs --check-mapping                                             # lista mudanças + tela/alvo/módulo/ação',
+      '  ^ snapshot baixa tudo uma vez; delta baixa só added/modified. deleted/unchanged não carregam bytes.',
+      '  ^ `_ds` e cache derivado do preview. Manifesto, relatório e evidências ficam em scripts/design-sync/state/.',
+      '  ^ partes <=256 KiB voltam em ARQUIVO pelo get_file; parte ausente/base/hash divergente bloqueiam antes do swap.',
       'DesignSync.get_file(projectId=COWORK_PROJECT_ID, path=<âncora>)                  # pull direto, agente logado (ADR 0325)',
+      '# [caso pontual] arquivo AVULSO — NAO e a rota de sincronizar o espelho (use o applier acima)',
       'node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir-jsons>     # escreve o raw.content no espelho (ADR 0374 — transcrever à mão é PROIBIDO)',
       'node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir> --ds-runtime  # bundle/CSS/fontes → snapshot ÚNICO consumido pelo preview',
-      'node scripts/governance/cowork-mirror-freshness.mjs --snapshot-from <dir> --emit-snapshot <s>  # MEDIR sem consertar (antes do export)',
+      '# [VALE PRAS DUAS ROTAS] medir e portão — nao sao "caso pontual" (2026-08-21: estavam',
+      '#   sob o cabecalho de avulso, e quem le um cabecalho leva os 4 comandos junto)',
+      'node scripts/governance/cowork-mirror-freshness.mjs --snapshot-from <dir> --emit-snapshot <s>  # MEDIR sem consertar (antes de aplicar/exportar)',
       'node scripts/governance/cowork-mirror-freshness.mjs --preview-ds                  # PORTÃO fail-closed: exit != 0 PROÍBE editar produto',
+      '# [ORDEM DE OPERACOES] NAO adivinhe o que falta — a maquina enumera. Rode NESTA ordem:',
+      '#  1. --sla                      o espelho esta sendo medido? (2026-08-24 respondeu: mediu 1 de 137)',
+      '#  2. --manifest -> get_file de cada -> --compare snap.json --check      acha o que esta STALE',
+      '#  3. refresque o STALE COMECANDO PELO SHELL (oimpresso.com.html): dele saem as DEPS DE RENDER',
+      '#  4. --manifest de novo -> a secao ABSENT-LOCAL lista TODO arquivo que o shell carrega e o espelho nao tem',
+      '#  5. baixe essa lista — mas ela e SO O 1o NIVEL: deps DIRETAS do shell.',
+      '#  6. --preview-ds               2o NIVEL: grafo CSS recursivo (@import) + fonte por url().',
+      '#     ABSENT-LOCAL le so parseShellDeps (link/script do shell). Quem anda no CSS e o',
+      '#     previewDsPlan(), e ele so roda no --preview-ds. CSS que importa CSS, ou que puxa',
+      '#     .woff2, NAO aparece no passo 4. Medido 2026-08-24: o --preview-ds repos 10 deps',
+      '#     (colors_and_type.css, cockpit_domains.css, _ds_bundle.js e 7 fontes) invisiveis ao 4.',
+      '#  7. o que os passos 4+6 nao cobrem, POR CONSTRUCAO: o que o shell e o CSS nao declaram.',
+      '#     A ponte (cowork-inbox) e um desses — por isso ela tem bloco proprio logo abaixo.',
+      '#  POR QUE a ordem importa (medido 2026-08-24): o ABSENT-LOCAL disse "ausentes: 0" e estava',
+      '#  CERTO sobre o shell que leu — o do espelho, velho, que nao citava arquivos-*. O shell VIVO',
+      '#  cita arquivos-page.jsx, arquivos-data.jsx e modulos-faltantes.css. Shell velho = detector cego,',
+      '#  e o cego responde 0 com confianca. Refresque o shell ANTES de confiar no ABSENT-LOCAL.',
+      '# [PONTE / INTAKE] o PEDIDO vive em cowork-inbox/<modulo>/ — nao e o design, e o QUE fazer com ele.',
+      '#   Medido 2026-08-24: este painel nao citava cowork-inbox nem design-docs em lugar nenhum, entao a',
+      '#   intake so existia em prosa (PROTOCOL 87-88) e a sessao trouxe o .jsx e deixou o pedido pra tras.',
+      'DesignSync.list_files(projectId=COWORK_PROJECT_ID)                              # ache cowork-inbox/<mod>/ e modulos-faltantes/<mod>.*',
+      'DesignSync.get_file(projectId=COWORK_PROJECT_ID, path=cowork-inbox/<mod>/<PEDIDO|PROMPT>.md)',
+      'node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir-jsons>   # .md ROTEIA pra prototipo-ui/design-docs/ (R1 do ssot-guard proibe .md em cowork/)',
+      '  ^ TRAGA o pedido/handoff (PEDIDO-*, PROMPT-*): sem ele a proveniencia do charter fica so no corpo do PR.',
+      '  ^ NAO traga rascunho de charter/casos/contract: PROTOCOL 10.4 = nao trazer rascunho pro canon.',
+      '    O canon nasce em resources/js/Pages/<Mod>/ via criar-tela.mjs, reconciliado contra SPEC/ADR.',
     ], selftest: 'node prototipo-ui/handoff-changed.mjs --selftest' },
   { fase: '0/0.5', nome: 'Detectar + manifesto', comandos: [
       'node prototipo-ui/detectar-telas.mjs --staging <dir> --json --strict',
@@ -168,6 +280,7 @@ export const FASES = [
     ], selftest: 'node prototipo-ui/gerar-contrato.mjs --selftest' },
   { fase: '4-preflight', nome: 'Gates antes do PR', comandos: PREFLIGHT_GATES },
   { fase: '5', nome: 'Fechar o loop', comandos: [
+      'node scripts/design-sync/status.mjs --refresh --check-mapping   # evidência stale volta a pendente pelos hashes',
       'node scripts/governance/anchor-lint.mjs --check memory/requisitos/<Mod>/SPEC.md',
       'node scripts/governance/design-code-map-check.mjs --check --strict   # % telas mapeadas + invalida map.json com sha stale',
     ], selftest: 'node prototipo-ui/integrity-check.mjs' },
@@ -304,6 +417,65 @@ function conferirIdsNoRepo() {
   return { problemas, medidos, total: alvos.length, pulados, semGit: rastreados === null };
 }
 
+// ── COBERTURA DOS REQUIRED DO DOMÍNIO (2026-08-21) ──────────────────────────────
+// POR QUE EXISTE: a Fase 4 se chama "Gates antes do PR" e cobria 2 dos 5 required do
+// domínio design/espelho. Uma sessão rodou os 6 gates da lista, todos verdes, e levou
+// vermelho num required que não estava aqui (`espelho — mexeu depois de verificar`,
+// PR #6117). Lista de gate que não cobre o required do próprio domínio é pior que
+// ausente: ela PARECE cobertura. Sem esta função, a reconciliação de hoje seria
+// "escrito+lembrado" e apodreceria no próximo gate promovido (ADR 0256).
+//
+// O QUE ELE PROVA, exatamente:
+//   (a) cada `cmd` dos pares aparece em PREFLIGHT_GATES — a lista não perde um gate;
+//   (b) cada `context` ainda está required no baseline — o par não vira fóssil quando
+//       um gate é demovido (aí o conserto é TIRAR o par, não deixá-lo mentindo).
+// Lê a UNIÃO `classic_protection.contexts` ∪ `rulesets[].contexts`: ler só a clássica
+// SUBCONTA e faz concluir "não é required" sobre gate que é (§5 2026-08-08).
+//
+// O QUE ELE NÃO PROVA — e dizer isto é parte do contrato:
+//   · que o comando no .yml continua sendo ESTE. Se o workflow trocar a flag, o par
+//     fica desatualizado em silêncio. Fechar isso exigiria parsear YAML de 3 workflows,
+//     e parser frágil que reprova o legítimo é a família já morta 4× no §5. O elo
+//     humano é o `workflow`/`job` anotado em cada par: dá pra reconferir em 1 grep.
+//   · que rodar os 12 comandos garante CI verde. Eles são o piso do domínio, não o teto
+//     do repo — os outros 41 required existem e não são governados por este painel.
+function conferirCoberturaRequired() {
+  const problemas = [];
+  const listado = PREFLIGHT_GATES;
+  for (const par of REQUIRED_DO_DOMINIO) {
+    if (!listado.some((g) => g.includes(par.cmd))) {
+      problemas.push(`required '${par.context}' sem comando em PREFLIGHT_GATES (esperado: ${par.cmd} · ${par.workflow})`);
+    }
+  }
+  const baseline = join(REPO_ROOT, 'governance', 'required-checks-baseline.json');
+  if (!existsSync(baseline)) return { problemas, conferidos: 0, semBaseline: true };
+  let contexts;
+  try {
+    const j = JSON.parse(readFileSync(baseline, 'utf8'));
+    const acc = [];
+    const walk = (o) => {
+      if (!o || typeof o !== 'object') return;
+      if (Array.isArray(o)) { o.forEach(walk); return; }
+      for (const [k, v] of Object.entries(o)) {
+        if (k === 'contexts' && Array.isArray(v)) v.forEach((x) => typeof x === 'string' && acc.push(x));
+        else walk(v);
+      }
+    };
+    walk(j);
+    contexts = new Set(acc);
+  } catch (e) {
+    // ILEGÍVEL != AUSENTE: parsear pra "vazio" inventaria estado (§5 2026-07-29).
+    problemas.push(`baseline de required ilegível (${e && e.message}) — não dá pra provar cobertura`);
+    return { problemas, conferidos: 0, semBaseline: true };
+  }
+  for (const par of REQUIRED_DO_DOMINIO) {
+    if (!contexts.has(par.context)) {
+      problemas.push(`par aponta pra context que NÃO é mais required: '${par.context}' — remova o par ou reconfira o baseline`);
+    }
+  }
+  return { problemas, conferidos: REQUIRED_DO_DOMINIO.length, semBaseline: false };
+}
+
 function selftest() {
   const fails = [];
   if (!UUID.test(COWORK_PROJECT_ID)) fails.push('COWORK_PROJECT_ID não é UUID');
@@ -314,6 +486,8 @@ function selftest() {
   const ids = conferirIdsNoRepo();
   fails.push(...ids.problemas);
   fails.push(...conferirFonteUnicaExecutavel());
+  const cobReq = conferirCoberturaRequired();
+  fails.push(...cobReq.problemas);
   for (const fn of [['normalize', normalize], ['contentHash', contentHash], ['resolveAncora', resolveAncora]]) {
     if (typeof fn[1] !== 'function') fails.push(`motor re-exportado quebrou: ${fn[0]} não é função`);
   }
@@ -330,7 +504,8 @@ function selftest() {
   const cob = `conferi ${ids.medidos} de ${ids.total} alvos de ID`
     + (ids.pulados.length ? ` (${ids.pulados.length} pulado(s), não-rastreado(s): ${ids.pulados.join(', ')})` : '')
     + (ids.semGit ? ' ⚠ sem git: não deu pra separar "sumiu" de "nunca existiu"' : '');
-  console.log(`✓ protocolo.config selftest OK — 2 IDs válidos+distintos · ${cob} · ${PONTEIROS_EXECUCAO.length} ponteiros sem cópia operacional · cowork/_ds não rastreado · MIRROR_DIR presente · ${scripts.length} scripts do mapa existem · motores (normalize/contentHash/resolveAncora) vivos.`);
+  console.log(`✓ protocolo.config selftest OK — 2 IDs válidos+distintos · ${cob} · ${PONTEIROS_EXECUCAO.length} ponteiros sem cópia operacional · cowork/_ds não rastreado · MIRROR_DIR presente · ${scripts.length} scripts do mapa existem · motores (normalize/contentHash/resolveAncora) vivos · `
+    + `${cobReq.conferidos} required do domínio cobertos por comando local${cobReq.semBaseline ? ' ⚠ baseline não lido: cobertura NÃO provada contra o vivo' : ''}.`);
   process.exit(0);
 }
 

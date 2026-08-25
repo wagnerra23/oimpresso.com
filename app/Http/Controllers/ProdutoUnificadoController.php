@@ -77,6 +77,53 @@ class ProdutoUnificadoController extends Controller
      */
     private const TETO_LINHAS = 500;
 
+    /**
+     * Paginação server-side (handoff V2 §4.8 e §9).
+     *
+     * O pacote 18/08 resolvia volume com TETO + rolagem interna: a tela pedia as 500 primeiras
+     * e avisava que tinha cortado. Funciona, mas o operador não alcança a 501ª sem inventar um
+     * filtro — e a lista real do biz=1 passa disso. O V2 troca o teto por página.
+     *
+     * `TETO_LINHAS` continua existindo como o teto duro de `porPagina`: a tela oferece
+     * 10/25/50/100, e um `?porPagina=99999` colado na URL não vira varredura do catálogo.
+     */
+    private const POR_PAGINA_OPCOES = [10, 25, 50, 100];
+
+    /**
+     * Padrão 25, não o 10 que o protótipo mostra.
+     *
+     * O 10 do pacote é artefato do dataset dele — 14 itens, e sem duas páginas não dá pra
+     * demonstrar o rodapé. Num catálogo real de milhares, 10 por página vira centenas de
+     * páginas. 25 é o menor valor que a golden master (`/contacts`) oferece, então é o mesmo
+     * ritmo de leitura que o operador já tem na outra consulta. O 10 continua na lista pra
+     * quem quiser.
+     */
+    private const POR_PAGINA_PADRAO = 25;
+
+    /**
+     * Lista branca de ordenação (handoff V2 §9: "ordenação server-side com lista branca").
+     *
+     * Chave da tela → expressão SQL. Sem a lista, `?ordem=` vira injeção no ORDER BY. E a
+     * ordenação PRECISA ser do servidor: a tela ordena o recorte inteiro, não a página
+     * carregada — ordenar só a fatia devolveria a "mais cara da página 1", não a mais cara.
+     */
+    private const ORDEM_COLUNAS = [
+        'cod' => 'c.id',
+        'prod' => 'c.nome',
+        'tipo' => 'c.tipo',
+        // Rank semântico, igual ao da tela: sem estoque < baixo < em estoque, saldo desempata.
+        // Serviço (`enable_stock = 0`) fica fora da escala — não tem saldo pra comparar.
+        'est' => "CASE
+            WHEN c.enable_stock = 0 THEN -1
+            WHEN COALESCE(c.qtd, 0) <= 0 THEN 0
+            WHEN c.minimo IS NOT NULL AND c.qtd <= c.minimo THEN 1
+            ELSE 2
+        END * 1000000000 + COALESCE(c.qtd, 0)",
+        'custo' => 'c.custo',
+        'preco' => 'c.preco',
+        'margem' => 'CASE WHEN c.preco > 0 THEN (c.preco - c.custo) / c.preco ELSE -1 END',
+    ];
+
     /** Abas por tipo. A chave `todos` é o cadastro inteiro; `inativos` é o complemento. */
     private const ABAS = ['todos', 'produtos', 'servicos', 'materia', 'kits', 'inativos'];
 
@@ -117,6 +164,17 @@ class ProdutoUnificadoController extends Controller
             'marca' => $request->integer('marca') ?: null,
             'estoque' => $request->string('estoque', '')->toString(),
             'margem' => $request->string('margem', '')->toString(),
+            // Paginação e ordenação viajam no MESMO pacote de filtros que o resto do recorte.
+            // Assim a URL descreve a tela inteira: recarregar, compartilhar ou voltar no
+            // histórico devolve a mesma página, com a mesma ordem.
+            'ordem' => array_key_exists($request->string('ordem', '')->toString(), self::ORDEM_COLUNAS)
+                ? $request->string('ordem', '')->toString()
+                : '',
+            'dir' => $request->string('dir', 'asc')->toString() === 'desc' ? 'desc' : 'asc',
+            'pagina' => max(1, $request->integer('pagina', 1)),
+            'porPagina' => in_array($request->integer('porPagina', self::POR_PAGINA_PADRAO), self::POR_PAGINA_OPCOES, true)
+                ? $request->integer('porPagina', self::POR_PAGINA_PADRAO)
+                : self::POR_PAGINA_PADRAO,
         ];
 
         return Inertia::render('Produto/Unificado/Index', [
@@ -125,6 +183,7 @@ class ProdutoUnificadoController extends Controller
             'pisoMargem' => self::PISO_MARGEM,
             'diasParado' => self::DIAS_PARADO,
             'tetoLinhas' => self::TETO_LINHAS,
+            'porPaginaOpcoes' => self::POR_PAGINA_OPCOES,
             // EAGER (não closure): são 3 booleanos já resolvidos acima — embrulhar em closure
             // não pouparia query nenhuma, que é o único ganho do defer/D-14.
             // O `only:[...]` dos partial reloads NÃO pede esta prop, e não precisa: o Inertia
@@ -134,6 +193,10 @@ class ProdutoUnificadoController extends Controller
                 'custo' => $podeVerCusto,
                 'preco' => $podeVerPreco,
                 'composicao' => $podeVerBom,
+                // Mesma permissão que `ProductController::massDeactivate` exige — a tela não
+                // inventa direito nem afrouxa o do servidor; ela só evita montar um botão que
+                // a rota vai recusar com 403.
+                'inativar' => auth()->user()?->can('product.update') ?? false,
             ],
             // `Inertia::defer` (D-14 · RUNBOOK-inertia-defer-pattern): toda prop com agregação
             // ou subquery sai do caminho crítico do primeiro paint e o partial reload escolhe
@@ -143,6 +206,12 @@ class ProdutoUnificadoController extends Controller
             'kpis' => Inertia::defer(fn () => $this->kpis($business_id, $filters, $podeVerCusto, $podeVerPreco)),
             'produtos' => Inertia::defer(fn () => $this->produtos($business_id, $filters, $podeVerCusto, $podeVerPreco, $podeVerBom)),
             'totalDaAba' => Inertia::defer(fn () => $this->totalDaAba($business_id, $filters, $podeVerCusto, $podeVerPreco)),
+            // Totais do rodapé. `null` pra quem não pode ver custo — a chave existe no
+            // contrato, o VALOR é que não vem. É dinheiro do tenant somado; o mesmo gate da
+            // coluna Custo vale pro agregado, que revela a mesma estrutura por outro caminho.
+            'totaisDoRecorte' => Inertia::defer(fn () => $podeVerCusto
+                ? $this->totaisDoRecorte($business_id, $filters, $podeVerCusto, $podeVerPreco)
+                : null),
             'opcoesFiltro' => Inertia::defer(fn () => $this->opcoesFiltro($business_id)),
             // `categorias` é a ÚNICA que NÃO é deferida, e isso é contrato, não descuido:
             // `ProdutoUnificadoCategoriasContratoTest` (C1..C4) faz uma visita COMPLETA e exige a
@@ -335,10 +404,17 @@ class ProdutoUnificadoController extends Controller
         // KPI-filtro (toggle): recorte operacional sobre a aba já aplicada.
         $limite = now()->subDays(self::DIAS_PARADO)->toDateTimeString();
         match ($f['kpi']) {
-            'ativos' => $q->where('c.is_inactive', 0),
+            // `ativos` saiu no pacote de 21/08 — contava a própria lista. Um link antigo com
+            // `?kpi=ativos` cai no `default` e simplesmente não recorta, que é o comportamento
+            // correto: o recorte que ele pedia já é o padrão da aba.
             'min' => $q->where('c.enable_stock', 1)->whereRaw('COALESCE(c.qtd, 0) > 0')->whereRaw('COALESCE(c.qtd, 0) <= COALESCE(c.minimo, 0)'),
             'zero' => $q->where('c.enable_stock', 1)->whereRaw('COALESCE(c.qtd, 0) = 0'),
-            'parado' => $q->where(fn ($qq) => $qq->whereNull('c.ultima_venda')->orWhere('c.ultima_venda', '<', $limite)),
+            // "Sem venda Nd" e "Margem baixa" são recortes de GESTÃO: o handoff de 21/08 §4.1
+            // os gateia junto do custo. Sem o gate aqui, um link montado à mão daria ao balcão
+            // um recorte que a faixa de KPI não lhe oferece.
+            'parado' => $podeVerCusto
+                ? $q->where(fn ($qq) => $qq->whereNull('c.ultima_venda')->orWhere('c.ultima_venda', '<', $limite))
+                : $q,
             'margem' => $podeVerCusto && $podeVerPreco
                 ? $q->whereRaw('c.preco > 0 AND (c.preco - c.custo) / c.preco < ?', [self::PISO_MARGEM])
                 : $q,
@@ -376,9 +452,16 @@ class ProdutoUnificadoController extends Controller
     }
 
     /**
-     * Os seis KPI-filtros, contados SOBRE A ABA ATIVA (handoff §4.3) e pela MESMA subconsulta
-     * da listagem. O card "Margem baixa" só é contado pra quem pode ver custo E preço — a
-     * contagem é leitura da estrutura de custo, e o gate da coluna vale igual pro contador.
+     * Os KPI-filtros, contados SOBRE A ABA ATIVA (handoff §4.3) e pela MESMA subconsulta da
+     * listagem — contador que discorda da lista destrói a confiança na tela.
+     *
+     * São no máximo QUATRO desde o pacote de 21/08 §4.1. `ativos` saiu: fora da aba "Inativos"
+     * todo item listado já é ativo, então o card contava a lista inteira e clicar nele não
+     * recortava nada.
+     *
+     * "Sem venda Nd" e "Margem baixa" são leitura da estrutura de custo — a chave só é emitida
+     * pra quem pode vê-la, mesmo gate da coluna aplicado ao contador. Chave ausente, e não
+     * zero: zero é uma afirmação sobre o catálogo.
      *
      * @return array<string,int>
      */
@@ -388,10 +471,12 @@ class ProdutoUnificadoController extends Controller
 
         $q = $this->catalogoDaAba($business_id, $f['aba'])
             ->selectRaw('COUNT(*) as total')
-            ->selectRaw('SUM(CASE WHEN c.is_inactive = 0 THEN 1 ELSE 0 END) as ativos')
             ->selectRaw('SUM(CASE WHEN c.enable_stock = 1 AND COALESCE(c.qtd, 0) > 0 AND COALESCE(c.qtd, 0) <= COALESCE(c.minimo, 0) THEN 1 ELSE 0 END) as baixo')
-            ->selectRaw('SUM(CASE WHEN c.enable_stock = 1 AND COALESCE(c.qtd, 0) = 0 THEN 1 ELSE 0 END) as zero')
-            ->selectRaw('SUM(CASE WHEN c.ultima_venda IS NULL OR c.ultima_venda < ? THEN 1 ELSE 0 END) as parado', [$limite]);
+            ->selectRaw('SUM(CASE WHEN c.enable_stock = 1 AND COALESCE(c.qtd, 0) = 0 THEN 1 ELSE 0 END) as zero');
+
+        if ($podeVerCusto) {
+            $q->selectRaw('SUM(CASE WHEN c.ultima_venda IS NULL OR c.ultima_venda < ? THEN 1 ELSE 0 END) as parado', [$limite]);
+        }
 
         if ($podeVerCusto && $podeVerPreco) {
             $q->selectRaw('SUM(CASE WHEN c.preco > 0 AND (c.preco - c.custo) / c.preco < ? THEN 1 ELSE 0 END) as margem', [self::PISO_MARGEM]);
@@ -400,15 +485,16 @@ class ProdutoUnificadoController extends Controller
         $linha = $q->first();
 
         $kpis = [
-            'ativos' => (int) ($linha->ativos ?? 0),
             'min' => (int) ($linha->baixo ?? 0),
             'zero' => (int) ($linha->zero ?? 0),
-            'parado' => (int) ($linha->parado ?? 0),
             'total' => (int) ($linha->total ?? 0),
         ];
 
-        // UC-PUNI-01 — a chave só existe se o usuário puder ver o valor. Sem custo não há
-        // card de margem: mesma regra da coluna, aplicada ao contador.
+        // UC-PUNI-01 — a chave só existe se o usuário puder ver o valor.
+        if ($podeVerCusto) {
+            $kpis['parado'] = (int) ($linha->parado ?? 0);
+        }
+
         if ($podeVerCusto && $podeVerPreco) {
             $kpis['margem'] = (int) ($linha->margem ?? 0);
         }
@@ -432,6 +518,49 @@ class ProdutoUnificadoController extends Controller
     }
 
     /**
+     * Totais do RECORTE inteiro — não da página (handoff 21/08 §4.6).
+     *
+     * Somar a fatia responderia a pergunta errada: "quanto vale o que está nesta tela" não é
+     * uma pergunta que alguém faz. As duas que se fazem são "quanto tenho parado em estoque" e
+     * "quanto preciso desembolsar pra voltar ao mínimo" — e as duas são sobre o recorte.
+     *
+     * `emEstoque` é o valor FÍSICO: saldo × custo, sobre o que o cadastro guarda saldo. O
+     * rótulo na tela diz "(recorte, físico)" porque, no dia em que o local tiver natureza
+     * (§6 do handoff), parte desse saldo será reservada e não vendável — e o número seguirá
+     * sendo o mesmo, mas a frase precisará distinguir. Declarar agora evita que o rótulo
+     * envelheça em silêncio.
+     *
+     * `repor` é o que falta pra chegar ao mínimo, a custo: SOMA(max(0, mínimo − saldo) × custo).
+     * Item acima do mínimo contribui zero, nunca negativo — senão um item sobrando "pagaria"
+     * pela falta de outro e o total mentiria pra menos.
+     *
+     * @return array{emEstoque: float, repor: float}
+     */
+    private function totaisDoRecorte(int $business_id, array $f, bool $podeVerCusto, bool $podeVerPreco): array
+    {
+        $linha = $this->aplicarRecortes(
+            $this->catalogoDaAba($business_id, $f['aba']),
+            $f,
+            $podeVerCusto,
+            $podeVerPreco
+        )
+            ->selectRaw('SUM(CASE WHEN c.enable_stock = 1 THEN COALESCE(c.qtd, 0) * COALESCE(c.custo, 0) ELSE 0 END) as em_estoque')
+            ->selectRaw(
+                // `CASE` em vez de `GREATEST`: a lane de Pest roda em SQLite, que não tem
+                // `GREATEST` de dois argumentos. Mesma conta, sintaxe que os dois entendem.
+                'SUM(CASE WHEN c.enable_stock = 1 AND COALESCE(c.minimo, 0) > COALESCE(c.qtd, 0)'
+                .' THEN (COALESCE(c.minimo, 0) - COALESCE(c.qtd, 0)) * COALESCE(c.custo, 0)'
+                .' ELSE 0 END) as repor'
+            )
+            ->first();
+
+        return [
+            'emEstoque' => round((float) ($linha->em_estoque ?? 0), 2),
+            'repor' => round((float) ($linha->repor ?? 0), 2),
+        ];
+    }
+
+    /**
      * As linhas da tabela.
      *
      * `stockQty` distingue TRÊS estados que a tela precisa separar:
@@ -445,14 +574,61 @@ class ProdutoUnificadoController extends Controller
     {
         $limite = now()->subDays(self::DIAS_PARADO)->toDateTimeString();
 
-        $linhas = $this->aplicarRecortes(
+        $q = $this->aplicarRecortes(
             $this->catalogoDaAba($business_id, $f['aba']),
             $f,
             $podeVerCusto,
             $podeVerPreco
-        )->orderBy('c.nome')->limit(self::TETO_LINHAS)->get();
+        );
 
-        return $linhas->map(function ($r) use ($podeVerCusto, $podeVerPreco, $podeVerBom, $limite) {
+        // Ordenação server-side com lista branca (V2 §9). Sem ordem escolhida, nome — que é
+        // como o balcão procura quando não sabe o código.
+        //
+        // Custo e margem só ordenam pra quem pode VER custo. Ordenar por um número invisível
+        // entrega esse número por posição: quem não vê a coluna leria "o mais caro é o
+        // primeiro" e teria a estrutura de custo de graça. Perfil sem direito cai em nome.
+        $ordem = $f['ordem'];
+        if (in_array($ordem, ['custo', 'margem'], true) && ! ($podeVerCusto && $podeVerPreco)) {
+            $ordem = '';
+        }
+
+        if ($ordem === '') {
+            $q->orderBy('c.nome');
+        } else {
+            $q->orderByRaw(self::ORDEM_COLUNAS[$ordem] . ' ' . $f['dir'])
+                // Desempate estável: sem ele, duas linhas com o mesmo preço trocam de lugar
+                // entre páginas e o operador vê o mesmo item duas vezes (ou nenhuma).
+                ->orderBy('c.id');
+        }
+
+        $porPagina = (int) $f['porPagina'];
+        $pagina = (int) $f['pagina'];
+        $linhas = $q->forPage($pagina, $porPagina)->get();
+
+        // Página fora do intervalo devolve fatia vazia, e vazio por deep-link (`?pagina=99`,
+        // ou um filtro que encolheu a lista enquanto o operador estava na página 7) é
+        // indistinguível de "não achou nada". Aqui a gente conta e volta pra última página
+        // real. A contagem extra só roda no caso raro — página > 1 que veio vazia.
+        if ($linhas->isEmpty() && $pagina > 1) {
+            $total = (int) $q->getCountForPagination();
+            $ultima = max(1, (int) ceil($total / $porPagina));
+            if ($ultima < $pagina) {
+                $linhas = $q->forPage($ultima, $porPagina)->get();
+            }
+        }
+
+        // Revelação progressiva (V2 §4.6 §4.7 §3.2 · V3 §3.2) — QUATRO consultas, uma por dado,
+        // todas `whereIn` sobre os ids DESTA página. Não é N+1: a página tem no máximo 100
+        // linhas, e cada consulta roda uma vez. Fazer isso dentro da subconsulta do catálogo
+        // exigiria agregar texto e local no mesmo GROUP BY que já agrega saldo — e aí o saldo
+        // total passaria a contar a mesma linha uma vez por local.
+        $ids = $linhas->pluck('id')->map(fn ($v) => (int) $v)->all();
+        $locais = $this->saldoPorLocal($business_id, $ids);
+        $observacoes = $this->observacoes($business_id, $ids);
+        $variacoes = $this->variacoes($business_id, $ids);
+        $grades = $this->gradeComSaldo($business_id, $ids);
+
+        return $linhas->map(function ($r) use ($podeVerCusto, $podeVerPreco, $podeVerBom, $limite, $locais, $observacoes, $variacoes, $grades) {
             $estocavel = (bool) $r->enable_stock;
             $preco = (float) ($r->preco ?? 0);
             $custo = (float) ($r->custo ?? 0);
@@ -480,6 +656,30 @@ class ProdutoUnificadoController extends Controller
                 'active' => (int) $r->is_inactive === 0,
             ];
 
+            // Saldo por local só viaja pra item ESTOCÁVEL e com mais de um local com registro.
+            // Serviço não tem saldo; item de um local só não tem o que comparar, e a chave
+            // presente faria a tela montar um gatilho de popover que não revela nada.
+            $doItem = $locais[(int) $r->id] ?? [];
+            if ($estocavel && count($doItem) > 1) {
+                $linha['locais'] = $doItem;
+            }
+
+            // Observação: chave ausente quando não há nota. `''` faria a tela montar o ícone
+            // de recado com popover vazio — affordance que não cumpre é pior que ausência.
+            if (isset($observacoes[(int) $r->id])) {
+                $linha['obs'] = $observacoes[(int) $r->id];
+            }
+
+            if (isset($variacoes[(int) $r->id])) {
+                $linha['variacoes'] = $variacoes[(int) $r->id];
+            }
+
+            // Cobertura da grade (V3 §3.2). Chave ausente quando o item não tem combinação —
+            // `{com:0,total:0}` faria a linha montar um marcador que não afirma nada.
+            if (isset($grades[(int) $r->id]) && $grades[(int) $r->id]['total'] > 0) {
+                $linha['grade'] = $grades[(int) $r->id];
+            }
+
             // UC-PUNI-02 / UC-PUNI-01 — a chave só existe se o usuário puder ver o valor.
             if ($podeVerPreco) {
                 $linha['price'] = $preco;
@@ -500,6 +700,197 @@ class ProdutoUnificadoController extends Controller
 
             return $linha;
         })->all();
+    }
+
+    /**
+     * Saldo por local dos itens DESTA página (handoff V2 §4.6).
+     *
+     * O que o balcão ganha: "tem 128, mas 0 na Loja" é uma resposta diferente de "tem 128".
+     * Sem isso a pessoa promete entrega no ato e descobre no caminho que a peça está no
+     * depósito.
+     *
+     * ⛔ Tier 0 (ADR 0093): o escopo vem de `business_locations.business_id`, não da lista de
+     * ids. Id de produto vindo do recorte já é do tenant, mas a linha de saldo pendura num
+     * LOCAL — e local de outro business com o mesmo `product_id` (cenário de restore/importação
+     * mal feita) entraria sem esta cláusula.
+     *
+     * A soma bate com o total da coluna porque as duas leem `vld.qty_available` das MESMAS
+     * variações vivas (`v.deleted_at IS NULL`). Divergir entre o total e a soma dos locais
+     * destrói a confiança no popover — é a primeira coisa que o operador confere.
+     *
+     * @param  list<int>  $ids
+     * @return array<int, list<array{nome:string,qtd:float}>>
+     */
+    private function saldoPorLocal(int $business_id, array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        return DB::table('variation_location_details as vld')
+            ->join('variations as v', 'v.id', '=', 'vld.variation_id')
+            ->join('business_locations as bl', 'bl.id', '=', 'vld.location_id')
+            ->whereNull('v.deleted_at')
+            ->where('bl.business_id', $business_id)
+            ->whereIn('vld.product_id', $ids)
+            ->groupBy('vld.product_id', 'bl.id', 'bl.name')
+            ->orderBy('bl.name')
+            ->select([
+                'vld.product_id',
+                DB::raw('bl.name as local'),
+                DB::raw('SUM(vld.qty_available) as qtd'),
+            ])
+            ->get()
+            ->groupBy('product_id')
+            ->map(fn ($linhas) => $linhas->map(fn ($l) => [
+                'nome' => (string) $l->local,
+                'qtd' => (float) $l->qtd,
+            ])->values()->all())
+            ->all();
+    }
+
+    /**
+     * Observação livre do produto (handoff V2 §4.7).
+     *
+     * Fonte: `products.product_description`, que é o único campo de texto livre do cadastro.
+     * É editado por WYSIWYG no UltimatePOS, então vem com HTML — a tag é removida aqui, não
+     * na tela: `dangerouslySetInnerHTML` num campo que o usuário digita é XSS armazenado.
+     *
+     * ⚠️ Os badges "Sob encomenda" / "Exige aprovação" do pacote **não são servidos**. Eles
+     * não existem no cadastro — no protótipo são um campo `tag` do dado de mentira. Inventar
+     * a partir do texto ("se contém 'encomenda' então...") seria adivinhação exibida como
+     * fato. Quando houver campo, ele entra; até lá o popover mostra só o texto.
+     *
+     * @param  list<int>  $ids
+     * @return array<int, string>
+     */
+    private function observacoes(int $business_id, array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        return DB::table('products')
+            ->where('business_id', $business_id)
+            ->whereIn('id', $ids)
+            ->whereNotNull('product_description')
+            ->where('product_description', '!=', '')
+            ->pluck('product_description', 'id')
+            ->map(function ($html) {
+                // `<br>`/`</p>` viram espaço ANTES do strip, senão dois parágrafos colam numa
+                // palavra só ("...do depósito.Conferir...").
+                $texto = preg_replace('/<(br\s*\/?|\/p|\/div|\/li)>/i', ' ', (string) $html);
+                $texto = trim(preg_replace('/\s+/u', ' ', strip_tags(html_entity_decode($texto, ENT_QUOTES | ENT_HTML5, 'UTF-8'))) ?? '');
+
+                // Teto de 400: o popover é atalho de leitura, não o cadastro. Quem precisa do
+                // texto inteiro abre a ficha — e o botão pra isso está no próprio popover.
+                return mb_strlen($texto) > 400 ? mb_substr($texto, 0, 399) . '…' : $texto;
+            })
+            ->filter(fn ($t) => $t !== '')
+            ->all();
+    }
+
+    /**
+     * Resumo das variações do item (handoff V2 §3.2 — a terceira linha da célula Produto).
+     *
+     * No UltimatePOS o atributo é TEXTO LIVRE do tenant (`product_variations.name`): pode ser
+     * "Cor", "Cores", "COR" ou "Tonalidade". Por isso o resumo sai como `Cor (4) · Tamanho (3)`
+     * e não como "4 cores · 3 tamanhos" do pacote — pluralizar o que o cliente digitou daria
+     * "4 Cors". O nome vai literal; a contagem entre parênteses.
+     *
+     * `is_dummy = 1` é a variação-fantasma que o UltimatePOS cria pra TODO produto simples,
+     * só pra ele ter uma linha em `variations`. Contá-la faria todo produto do catálogo
+     * anunciar "DUMMY (1)".
+     *
+     * ⛔ Tier 0: escopo por `products.business_id` — o join existe só pra isso.
+     *
+     * @param  list<int>  $ids
+     * @return array<int, list<array{nome:string,n:int}>>
+     */
+    private function variacoes(int $business_id, array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        return DB::table('variations as v')
+            ->join('product_variations as pv', 'pv.id', '=', 'v.product_variation_id')
+            ->join('products as p', 'p.id', '=', 'v.product_id')
+            ->whereNull('v.deleted_at')
+            ->where('p.business_id', $business_id)
+            ->where('pv.is_dummy', 0)
+            ->whereIn('v.product_id', $ids)
+            ->groupBy('v.product_id', 'pv.id', 'pv.name')
+            ->orderBy('pv.id')
+            ->select([
+                'v.product_id',
+                DB::raw('pv.name as atributo'),
+                DB::raw('COUNT(DISTINCT v.id) as n'),
+            ])
+            ->get()
+            ->groupBy('product_id')
+            ->map(fn ($linhas) => $linhas->map(fn ($l) => [
+                'nome' => (string) $l->atributo,
+                'n' => (int) $l->n,
+            ])->values()->all())
+            ->all();
+    }
+
+    /**
+     * Cobertura de saldo da grade — quantas combinações vendem, de quantas existem (V3 §3.2).
+     *
+     * É o marcador que SUBSTITUI o resumo de atributo na 2ª linha da célula Produto. O motivo
+     * está na divergência #4 do handoff V3: em produção a linha imprimia "Tamnha p-m-g (4)" —
+     * o nome do eixo como o tenant digitou, erro de digitação incluso. Repetir o rótulo do
+     * cadastro gasta a largura sem responder a pergunta do balcão, que é *quanto dessa grade eu
+     * consigo vender?*. "4 de 6 com saldo" responde, e o vermelho avisa que há furo.
+     *
+     * Uma consulta só, com o saldo por variação em subconsulta: agregá-lo no mesmo GROUP BY das
+     * combinações contaria a mesma variação uma vez por local, e o `total` sairia inflado.
+     *
+     * ⛔ Tier 0 (ADR 0093): DUAS cláusulas de escopo, não uma. `p.business_id` prende o produto;
+     * `bl.business_id` prende o saldo — pela mesma razão do `saldoPorLocal`, a linha de saldo
+     * pendura num LOCAL, e local de outro business com o mesmo `variation_id` (restore ou
+     * importação mal feita) entraria pela porta de trás e mudaria o `com`.
+     *
+     * `is_dummy = 0` mantém a definição de "tem grade" idêntica à do `variacoes()`: produto
+     * simples no UltimatePOS carrega uma variação DUMMY, e contá-la faria todo item virar
+     * "1 de 1 com saldo" — marcador em 100% das linhas não marca nada.
+     *
+     * @param  list<int>  $ids
+     * @return array<int, array{com:int,total:int}>
+     */
+    private function gradeComSaldo(int $business_id, array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $saldoPorVariacao = DB::table('variation_location_details as vld')
+            ->join('business_locations as bl', 'bl.id', '=', 'vld.location_id')
+            ->where('bl.business_id', $business_id)
+            ->groupBy('vld.variation_id')
+            ->select(['vld.variation_id', DB::raw('SUM(vld.qty_available) as qtd')]);
+
+        return DB::table('variations as v')
+            ->join('products as p', 'p.id', '=', 'v.product_id')
+            ->join('product_variations as pv', 'pv.id', '=', 'v.product_variation_id')
+            ->leftJoinSub($saldoPorVariacao, 'saldo', fn ($join) => $join->on('saldo.variation_id', '=', 'v.id'))
+            ->whereNull('v.deleted_at')
+            ->where('p.business_id', $business_id)
+            ->where('pv.is_dummy', 0)
+            ->whereIn('v.product_id', $ids)
+            ->groupBy('v.product_id')
+            ->select([
+                'v.product_id',
+                DB::raw('COUNT(DISTINCT v.id) as total'),
+                DB::raw('COUNT(DISTINCT CASE WHEN saldo.qtd > 0 THEN v.id END) as com'),
+            ])
+            ->get()
+            ->mapWithKeys(fn ($r) => [
+                (int) $r->product_id => ['com' => (int) $r->com, 'total' => (int) $r->total],
+            ])
+            ->all();
     }
 
     /**

@@ -58,7 +58,7 @@ Nenhum `Status:` mudou. Os `🧪` continuam `🧪` e o `✅` do UC-04 continua �
 `last_run` diz *"o diff foi conferido contra os UCs"*, **não** *"os UCs foram provados"* — quem prova
 é o CI. Subir o número calado é o que o G-6 existe pra impedir.
 
-## UC-COPI-PAINEL-01 — A rota `/ia` abre o Painel (200 + componente)
+## UC-JPAIN-01 — A rota `/ia` abre o Painel (200 + componente)
 Status: 🧪 (`Modules/Jana/Tests/Feature/PainelContratoTest.php` — cita o UC; aguarda run verde na lane MySQL)
 
 Usuário autenticado do business abre `GET /ia`. O grupo `/ia` garante auth; o Controller renderiza
@@ -67,7 +67,7 @@ responde 301 pra cá).
 
 **Pronto quando:** GET `/ia` autenticado → 200 e `assertInertia(component 'Jana/Index')`.
 
-## UC-COPI-PAINEL-02 — Contrato de props: 4 eager + 1 deferida
+## UC-JPAIN-02 — Contrato de props: 4 eager + 1 deferida
 Status: 🧪 (`PainelContratoTest` — `missing(coworkAggregates)` + as 4 eager; aguarda run verde)
 
 A tela recebe `metas`, `sellKpis`, `insightsAggregates` e `janaContext` de forma **eager**, e
@@ -78,7 +78,7 @@ A tela recebe `metas`, `sellKpis`, `insightsAggregates` e `janaContext` de forma
 
 **Pronto quando:** as 4 props eager chegam no first render e `coworkAggregates` **não** está entre elas.
 
-## UC-COPI-PAINEL-03 — Escopo `business_id`, incluindo o `orWhereNull` intencional (Tier 0)
+## UC-JPAIN-03 — Escopo `business_id`, incluindo o `orWhereNull` intencional (Tier 0)
 Status: 🧪 (`PainelContratoTest` — `?business_id=999` ignorado; aguarda run verde)
 
 As metas listadas são do business da sessão **ou** repo-wide (`business_id IS NULL`). Um business
@@ -90,8 +90,8 @@ teste é o fictício **98** ([ADR 0358](../../../../memory/decisions/0358-doutri
 
 **Pronto quando:** com meta em `biz=A` e sessão em `biz=B`, o payload de B não contém a meta de A.
 
-## UC-COPI-PAINEL-04 — O farol é do SERVIDOR, e "sem base pra julgar" é `cinza`, nunca vermelho
-Status: ✅ (`Modules/Jana/Tests/Feature/FarolServerSideTest.php` — 2 casos citam este UC no título)
+## UC-JPAIN-04 — O farol é do SERVIDOR, e "sem base pra julgar" é `cinza`, nunca vermelho
+Status: 🧪 (`Modules/Jana/Tests/Feature/FarolServerSideTest.php` — 2 casos citam este UC no título) — o verde volta quando o manifesto G-7 capturar o veredito (a lane passou a emitir JUnit em 2026-08-24); ate la, "teste cita o UC, sem veredito" e o status honesto
 
 O Painel pinta cada meta com um farol. Quem decide a cor é `ApuracaoService::farol()`; a Page só
 **consome** o campo que chega no payload. Quando não há base pra julgar — sem período, sem apuração,
@@ -108,7 +108,7 @@ não é "meta indo mal".
 **Pronto quando:** os quatro casos devolvem `cinza`; as fronteiras `-5%` e `-15%` seguem verde/amarelo/
 vermelho; e `Index.tsx` **não** contém `function calcularFarol` (só o leitor `farolDaMeta`).
 
-## UC-COPI-PAINEL-05 — Empty state declara ausência (o estado real de 100% dos tenants)
+## UC-JPAIN-05 — Empty state declara ausência (o estado real de 100% dos tenants)
 Status: 🧪 (`PainelContratoTest` — copy lida do contrato, não do `.tsx`; aguarda run verde)
 
 Sem metas cadastradas, o Painel diz **"Nenhuma meta cadastrada ainda"** e oferece **"Conversar com
@@ -120,7 +120,7 @@ tenants**, então não é borda, é o caminho principal.
 
 **Pronto quando:** 0 metas → as duas strings aparecem sob `data-contract="painel-metas-vazio"`.
 
-## UC-COPI-PAINEL-06 — Meta sem apuração não vira zero
+## UC-JPAIN-06 — Meta sem apuração não vira zero
 Status: 🧪 (`PainelContratoTest` — idem; aguarda run verde)
 
 Meta cadastrada e ainda **não apurada** mostra **"Aguardando apuração…"**. Âncora: contrato
@@ -128,7 +128,7 @@ Meta cadastrada e ainda **não apurada** mostra **"Aguardando apuração…"**. 
 
 **Pronto quando:** meta sem `MetaApuracao` → a copy aparece e nenhum valor numérico a substitui.
 
-## UC-COPI-PAINEL-07 — Série curta declara ausência em vez de desenhar zero
+## UC-JPAIN-07 — Série curta declara ausência em vez de desenhar zero
 Status: 🧪 (`PainelContratoTest` — idem; aguarda run verde)
 
 Meta sem série temporal mostra **"Sem histórico"** em vez de desenhar uma linha no zero. Âncora:
@@ -136,7 +136,7 @@ contrato `painel-meta-sem-historico` — *"ausência de dado se declara, não se
 
 **Pronto quando:** meta com 0 apurações → a copy aparece e nenhum gráfico é renderizado.
 
-## UC-COPI-PAINEL-08 — Enquanto o cockpit não chega, a tela NÃO mostra zero
+## UC-JPAIN-08 — Enquanto o cockpit não chega, a tela NÃO mostra zero
 Status: 🧪 (`PainelContratoTest` — 4 asserções + 2 controles negativos; bite provado: remover o skeleton do Faturamento reprova o caso. Aguarda run verde **e** o screenshot F1.5)
 
 `coworkAggregates` é deferida (`IndexController:47`). Até resolver, o Painel deve declarar
@@ -150,7 +150,7 @@ símbolo) e 6 classes `.jm-sk-*`.
 **Pronto quando:** com `coworkAggregates` ausente no first render, o Painel mostra estado de
 carregamento e **nenhum** `R$ 0`/`0%` derivado de `?? 0`; e ao chegar a prop, os valores reais aparecem.
 
-## UC-COPI-PAINEL-09 — As 5 âncoras do contrato existem, e a ordem é respeitada
+## UC-JPAIN-09 — As 5 âncoras do contrato existem, e a ordem é respeitada
 Status: 🧪 (`PainelContratoTest` — 5 âncoras + ordem como subsequência; aguarda run verde)
 
 As 5 âncoras `data-contract` existem no `Index.tsx` e a ordem declarada
@@ -169,7 +169,7 @@ texto o cita._
 **Pronto quando:** `npm run contrato:check -- prototipo-ui/contrato/jana-painel.contract.json` sai 0.
 
 
-## UC-COPI-PAINEL-10 — "Configurar" abre drawer, e o drawer não promete o que o servidor não cumpre
+## UC-JPAIN-10 — "Configurar" abre drawer, e o drawer não promete o que o servidor não cumpre
 Status: 🧪 (`PainelContratoTest` — 6 asserções + 2 controles negativos; bite provado em 4 vetores. Aguarda run verde **e** o screenshot F1.5)
 
 O botão **Configurar** do `JanaAreaHeader` era clicável, sem rota e sem `disabled` — uma das duas
@@ -184,13 +184,13 @@ coisas que o servidor não honra — e portá-las reintroduziria a classe que es
 
 | a âncora oferece | o que existe |
 |---|---|
-| 6 toggles de análise | a tela renderiza **4** cards (`inad`/`fat`/`conc`/`metodos`); churn, frota e cheques são a ordem 7 do mapa (*"fonte de dado que não existe"*) |
+| 6 toggles de análise | a tela renderiza **5** cards (`inad`/`fat`/`conc`/`metodos`/`churn`); frota e cheques são a ordem 7 do mapa (*"fonte de dado que não existe"*) |
 | "Enviar brief todo dia" + hora | o brief é gerado server-side (`BriefingAgent`); nenhum cron lê o `localStorage` deste navegador |
 | "Versão em áudio" (TTS) | não existe — o próprio protótipo diz que *"entra na M2"* |
 | retenção *"ela esquece sozinha"* | `jana:retention-purge` foi **descartado por [W]** (*"num ERP não se apaga PII"*) |
 
 Fica só o que é verdade **e** é de fato local: **quais análises aparecem no painel**. Esse toggle não
-mente porque não promete cálculo — o aggregator apura as quatro numa consulta só, e o drawer diz isso
+mente porque não promete cálculo — o aggregator apura as cinco numa consulta só, e o drawer diz isso
 em letra. Preferência que vale pra empresa toda aponta pro dono server-side que já existe
 (`PATCH /ia/alertas/config` → `business.essentials_settings.alertas`, per-business, Tier 0) em vez de
 ganhar um segundo dono aqui.
@@ -199,8 +199,8 @@ Persistência em `localStorage['oimpresso.jana.cfg']` — prefixo `oimpresso.jan
 irmão (`Chat.charter.md` §Goals + §Anti-hooks *"❌ sessionStorage"*). A escrita preserva as chaves que
 não são nossas (o protótipo grava `brief`/`pro`/`retencao` na mesma chave).
 
-**Pronto quando:** o botão abre o drawer; os 4 toggles escondem/mostram o card correspondente e
-sobrevivem ao reload; esconder as quatro mostra o estado que diz como voltar; e **nenhum** toggle de
+**Pronto quando:** o botão abre o drawer; os 5 toggles escondem/mostram o card correspondente e
+sobrevivem ao reload; esconder as cinco mostra o estado que diz como voltar; e **nenhum** toggle de
 brief/áudio/retenção existe.
 
 _Por que a asserção é de ARQUIVO: mesmo motivo do UC-08 — o defeito é de render/promessa e o Pest não
@@ -210,7 +210,7 @@ passaria só por acidente de capitalização e quebraria quando o comentário fo
 falso-positivo que o §5 2026-07-26 cataloga. Medido antes de fechar: `<Switch` 2→3 com um toggle novo;
 entradas 4→5 com uma análise sem fonte._
 
-## UC-COPI-PAINEL-11 — A meta abre na própria tela, e o drawer não projeta o futuro
+## UC-JPAIN-11 — A meta abre na própria tela, e o drawer não projeta o futuro
 Status: 🧪 (`PainelContratoTest` — 5 blocos de asserção + 1 controle negativo; aguarda run verde **e** o screenshot F1.5)
 
 Clicar num card de meta abria `/ia/metas/{id}` — um `<Link>` que **tirava o usuário do Painel** rumo
@@ -240,7 +240,7 @@ asserções minhas caíram exatamente nessa armadilha **na escrita** (`Ver detal
 classe, ambos vivos em comentário) e foram trocadas por estruturais antes de rodar: contagem de
 `<Numero rotulo=` (3) e ausência do literal do link._
 
-## UC-COPI-PAINEL-12 — a ação sugerida vira decisão registrada, e a prévia é do SERVIDOR
+## UC-JPAIN-12 — a ação sugerida vira decisão registrada, e a prévia é do SERVIDOR
 Status: 🧪 (`PainelContratoTest` — 4 `it()`: 1 de arquivo + 3 de runtime, com 2 controles negativos; aguarda run verde **e** o screenshot F1.5)
 
 Todo CTA da seção "Ações que … sugere" era **decorativo** — `title="(HITL — em breve V2)"`, zero
@@ -293,14 +293,114 @@ escrita). O que morde é a FORMA do botão morto (`title={\`${a.cta.label}…\`}
 `cta: { label: '` batendo com `count(ACOES)`. As outras três são de RUNTIME porque o defeito que
 importa é de comportamento — prévia forjada e vazamento de tenant não se veem no `.tsx`._
 
-## Nota do conserto do UC-COPI-PAINEL-08 (2026-08-17)
+## UC-JPAIN-13 — Churn ouro: o recorte é RELATIVO, porque o piso do protótipo é premissa de outro tenant
+Status: 🧪 (`PainelContratoTest` — 2 `it()`: 1 de runtime com controle negativo + 1 estrutural sobre TODAS as fontes do drill; aguarda run verde **e** o screenshot F1.5)
+
+Quinta análise do Painel, e a primeira depois das quatro que nasceram juntas. Mostra os **5
+clientes de maior valor acumulado entre os que não compram há mais de 90 dias** — a lista pra
+quem alguém deveria ligar hoje.
+
+Âncora: `prototipo-ui/cowork/jana-merge.jsx` §`JmDrillDrawer` (`grep -n "churn:" prototipo-ui/cowork/jana-merge.jsx`
+→ :559 o toggle, :648 a fonte).
+
+**A divergência vs a âncora é o ponto do caso, pela quarta vez — e agora no eixo do RECORTE.** O
+protótipo define churn ouro por um **piso absoluto em reais** (o valor literal está em
+`jana-merge.jsx` :648 — aqui não se repete: BRL não entra no git, Tier 0). Esse número não
+é errado — ele é **de outro tenant**. O protótipo foi desenhado sobre o movimento do Martinho
+(`biz=164`, mecânica pesada de caminhão: ticket alto, poucos clientes). Aplicado à ROTA LIVRE
+(`biz=4`, vestuário) o mesmo piso devolveria lista vazia todos os dias, e **card que nunca tem
+linha é indistinguível de card quebrado** — o usuário não sabe se ninguém sumiu ou se a tela
+parou. Importar o número seria a lápide §5 2026-07-16 em letra: *"que premissa do modelo DELES
+sustenta essa solução, e ela vale AQUI?"*.
+
+O recorte aqui é **relativo**: os 5 maiores LTV **entre** os inativos, sem piso. Funciona em
+qualquer vertical sem número mágico por tenant, e é exatamente o que o `JanaDrillDrawer` diz ao
+usuário em "De onde vem esse número" — sem prometer uma `AnaliseChurnService` que não existe.
+
+**Venda sem cliente identificado fica de fora, e isso também é decisão.** No card de concentração
+(UC anterior) o balde `Cliente padrão` informa — ele mostra quanto da receita não tem nome. Aqui
+não: a lista existe pra **alguém ligar**, e balde anônimo não vira telefonema. Por isso o `join` é
+INNER e o nome vazio é filtrado no SQL.
+
+**Pronto quando:** um cliente parado há 200 dias aparece; um cliente que comprou ontem **não**
+aparece nem valendo 5× mais (é o controle negativo — sem ele, um bug que ignorasse a data passaria
+verde e o card viraria "top clientes" com outro título); `ltv`, `diasInativo` e `ultimaCompra` são
+medidos, não estimados; o recorte é do tenant pedido e de mais nenhum (ADR 0093); e **todo**
+`metodo:` declarado pelo drill drawer existe de fato no aggregator.
+
+⚠️ **O gate de pixel não defende este caso — pela mesma razão medida no UC-12.** O
+`VisregTenantSeeder` semeia zero `transactions`; sem venda não há inativo, o card renderiza o
+empty state e o pixel-diff fica verde e cego. As asserções são de runtime + estrutura, não "o
+screenshot bateu".
+
+_Por que a 2ª asserção varre TODAS as fontes e não só a do churn: o defeito que o
+`JanaDrillDrawer` existe pra evitar é de CLASSE — "o drawer promete um método que não existe" —, e
+travar só a instância de hoje deixaria a próxima entrar igual. `method_exists` sobre a classe real
+é comportamento, não presença de string: um `metodo:` bem escrito apontando pra nome inventado
+reprova. Tem controle positivo (`expect($m[1])->not->toBeEmpty()`) porque regex que para de casar
+devolveria lista vazia e o caso viraria carimbo — lápide §5 2026-08-01._
+
+## UC-JPAIN-14 — O rótulo do KPI declara a janela que o dado TEM
+Status: 🧪 (`PainelContratoTest` — 2 `it()`: 1 estrutural com controle negativo + 1 de runtime que prova a contenção; aguarda run verde)
+
+O card dizia **"Receita mês"** e mostrava `sparkSum` — a soma da **sparkline**, que é
+`whereBetween(transaction_date, [hoje-29, hoje 23:59])`: **30 dias deslizantes**, não o mês
+corrente. No dia 21, isso cobre 23/jul a 21/ago. Os dois só coincidem no dia 30 ou 31.
+
+**De onde veio a palavra errada — medido em 2026-08-21.** A âncora oficial desta tela
+(`prototipo-ui/cowork/jana-merge.jsx`, o `related_prototype` do charter) **não tem este KPI**. O
+rótulo veio de `chat-jana.jsx` :87 — o protótipo que o §5 de 2026-08-10 declarou **NÃO-âncora**
+("desenha o cockpit de cobrança, não este Painel"). E lá o rótulo é **coerente**, porque o delta ao
+lado é `"-68% vs mai/25"`: mês contra mês. Aqui herdou-se a palavra sem a semântica — o dado é de
+30 dias e o delta é diário. É a lápide §5 2026-07-16 em letra: *"que premissa do modelo DELES
+sustenta essa solução, e ela vale AQUI?"*.
+
+**Por que nenhum gate pegou.** A tela tem **6 âncoras `data-contract`, todas sobre Metas** — nenhuma
+cobre os KPIs. O `contrato-de-tela` valida copy e ordem de 1 dos 6 blocos e conclui "✅ limpo". O
+defeito morava fora do alcance dele. Fechar essa lacuna exige âncora no `KpiCard` compartilhado
+(interface fechada, 30+ telas consumindo) — **escopo separado**, não este PR.
+
+**Três correções, e só uma toca número:**
+
+| o quê | era | é | mexe em valor? |
+|---|---|---|---|
+| rótulo do card + do skeleton | `Receita mês` | `Receita 30 dias` | não |
+| rótulo do delta | `vs ontem` | `hoje vs ontem` | não |
+| fallback | `sparkSum \|\| faturadoHoje` | `sparkSum` | **não — era inalcançável** |
+
+**O fallback era código morto, não robustez.** As duas consultas têm filtros idênticos
+(`business_id · type=sell · status=final · sub_type NULL`) e a janela da série vai até o **fim de
+hoje**, então `faturadoHoje ⊆ sparkSum`. Se houve venda hoje, `sparkSum > 0` e o `||` nunca dispara;
+se não houve, ambos são 0 e o fallback devolvia o mesmo 0. O 2º `it()` prova essa contenção
+semeando venda de hoje — e quebra se alguém encurtar a janela (`endOfDay` → `startOfDay`).
+
+**Pronto quando:** card e skeleton dizem a mesma coisa (senão o rótulo antigo pisca enquanto a prop
+deferida não chega); o valor vem da série sem fallback; o delta declara a própria janela; e a FORMA
+do rótulo antigo (`label="Receita mês"`) não volta.
+
+_A asserção usa `label="…"` com o atributo, nunca a prosa: `not->toContain('Receita mês')` FALHARIA,
+porque a frase está viva no comentário que registra o que saiu — o falso-positivo do §5 2026-07-26,
+que já mordeu esta suíte duas vezes._
+
+### Decisão pendente de [W] — 30 dias ou mês-calendário?
+
+Este PR fez o **rótulo dizer a verdade sobre o dado**. O caminho inverso — passar o cálculo a
+mês-calendário para casar a palavra antiga — **mexe em valor exibido** e cai na regra mestre de
+VALOR (provar por dois caminhos + apresentar antes→depois). Também quebraria a sparkline, que é
+deslizante por natureza e alimenta o mesmo card.
+
+O protótipo resolve isso com **seletor de período** (`JM_PERIODOS`, 3 janelas) — registrado no
+inventário como `❌ precisa de backend`. Com ele, "mês" volta a ter referente. Sem ele, qualquer
+rótulo temporal fixo é escolha arbitrária, e a honesta é a que descreve o recorte real.
+
+## Nota do conserto do UC-JPAIN-08 (2026-08-17)
 
 `_components/JanaCockpitSkeleton.tsx` (novo, ancorado em `jana-merge.jsx` §`JmPainelSkeleton`) +
 `carregandoCockpit = coworkAggregates === undefined` no `JanaCockpit`. Os `?? 0` **ficaram** — são
 eles que impedem o `TypeError` e mantêm válida a entrada `Jana/Index` na
 `DEFER_GUARD_ONLY_ALLOWLIST`; o que mudou é o **render**.
 
-Escopo medido: só os **2** KPIs que dependem da prop deferida (Receita mês · PIX hoje) trocam de
+Escopo medido: só os **2** KPIs que dependem da prop deferida (Receita 30 dias · PIX hoje) trocam de
 card. `A receber vencido` e `Ticket médio` vêm de `insightsAggregates` (eager) e **não** podem
 sumir — há controle negativo no teste.
 

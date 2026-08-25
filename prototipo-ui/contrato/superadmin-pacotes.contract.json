@@ -1,0 +1,35 @@
+{
+  "_nota": "Copy e seções derivadas do contrato escrito por [CC] em cowork-inbox/SUPERADMIN-F1-2026-08-18.md §3 (view `pacotes`), TRADUZIDAS para o schema que a máquina deste repositório consome (contract.schema.json: alvo + secoes[{id,copy,estados}]). O original descreve UMA tela `Superadmin/Index` com seis views; a migração F3 entregou telas SEPARADAS, então o contrato do F1 vira um por tela — mesmo caminho de superadmin-negocios, superadmin-assinaturas e modulos.",
+  "_nota_recorte": "⚠️ 1 das 2 seções que o F1 §3 pede pra view `pacotes`. De fora: `form-pacote` (o FormDrawer novo/editar/duplicar, UC-SA-010/011) — é ESCRITA e escreve `price`, então depende da REGRA MESTRE de memory/proibicoes.md (prova por 2 caminhos + antes→depois com [W]) e da decisão sobre a assimetria medida no RUNBOOK-pacotes §5.1. Vai na SA-O4d.",
+  "tela": "superadmin/Pacotes",
+  "fonte": "prototipo-ui/cowork/superadmin-page.jsx",
+  "_nota_fonte": "Mesma âncora que o charter declara em `related_prototype` — `ViewPacotes()` (L1176).",
+  "alvo": [
+    "Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "superadmin.pacotes.grid",
+      "_papel": "o grid de cards do F1. A copy travada aqui é a que carrega REGRA, não decoração: as 4 frases de limite existem pra impedir que `0` seja desenhado como zero (a convenção do UltimatePOS é `0` = sem teto), e as 3 tags são o vocabulário de visibilidade que separa esta tela da vitrine pública /pricing (R6 e R7 do F1).",
+      "copy": [
+        "locais ilimitados",
+        "usuários ilimitados",
+        "produtos ilimitados",
+        "faturas ilimitadas",
+        "privado",
+        "avulso",
+        "ativo",
+        "inativo",
+        "Grátis"
+      ],
+      "estados": [
+        "carregando",
+        "vazio",
+        "lista"
+      ]
+    }
+  ],
+  "ordem": [
+    "superadmin.pacotes.grid"
+  ]
+}

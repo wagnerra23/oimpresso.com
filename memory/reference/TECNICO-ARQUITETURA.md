@@ -42,7 +42,7 @@ auto-contido:
 | `Entities/` | Models Eloquent, com `business_id` no global scope |
 | `Http/Controllers/` | finos: recebem e delegam |
 | `Services/` | onde a regra vive (ex: o serviço que executa ação de estágio) |
-| `Resources/views/` | Blade legado; as páginas Inertia ficam em `resources/js/Pages/` |
+| `Resources/views/` | Blade legado; as páginas Inertia ficam em `resources/js/Pages/`, com o charter e os casos da tela **colados ao `.tsx`** — ver [Fluxo — Design](FLUXO-DESIGN.md) |
 | `Tests/` | Pest, contra o tenant fictício — ver [testes Pest canônicos](tests-pest-canon.md) |
 
 ## Os limites que a máquina cobra
@@ -52,6 +52,9 @@ auto-contido:
 - Estágio só muda pelo serviço da FSM — ver [Domínio — Estágio](DOMINIO-ESTAGIO.md).
 - Runtime é separado por decisão irrevogável ([ADR 0062](../decisions/0062-separacao-runtime-hostinger-ct100.md)):
   daemon, fila pesada e teste **não** rodam no shared. Ver [Fluxo — Deploy](FLUXO-DEPLOY.md).
+- Tela nova não nasce só do `.tsx`: sem o runbook da migração o hook **bloqueia a edição**, e sem o
+  trio (charter, casos, teste citando o caso) a catraca de cobertura reprova. Ver
+  [Fluxo — Design](FLUXO-DESIGN.md).
 
 ## O que **não** documentar aqui
 

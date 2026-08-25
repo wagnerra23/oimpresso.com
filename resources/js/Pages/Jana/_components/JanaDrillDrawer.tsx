@@ -30,7 +30,7 @@ export interface DrillAnalise {
   leitura?: string;
 }
 
-export type DrillId = 'inad' | 'fat' | 'conc' | 'metodos';
+export type DrillId = 'inad' | 'fat' | 'conc' | 'metodos' | 'churn';
 
 interface Fonte {
   /** Tabelas que o número atravessa. */
@@ -42,9 +42,10 @@ interface Fonte {
 }
 
 /**
- * Fonte real de cada análise, lida de `SellsCockpitAggregator` em 2026-08-07.
+ * Fonte real de cada análise, lida de `SellsCockpitAggregator` em 2026-08-07;
+ * o `churn` entrou depois, no UC-13.
  *
- * Todas as quatro passam pelo mesmo recorte de base do aggregator
+ * Todas as cinco passam pelo mesmo recorte de base do aggregator
  * (`type=sell · status=final · sub_type NULL`) e todas são escopadas por
  * `business_id` — multi-tenant Tier 0, ADR 0093.
  */
@@ -71,6 +72,12 @@ const JANA_DRILL_FONTES: Record<DrillId, Fonte> = {
     tabelas: 'transaction_payments + transactions',
     regra:
       'Soma dos pagamentos registrados por forma de pagamento, as 5 maiores. Uma venda paga em duas formas aparece nas duas.',
+    metodo: 'SellsCockpitAggregator::buildInsightsAggregates',
+  },
+  churn: {
+    tabelas: 'transactions + contacts',
+    regra:
+      'Os 5 clientes de maior valor acumulado entre os que não compram há mais de 90 dias. "Maior valor" é relativo ao seu movimento — não há piso fixo em reais, senão a lista viria vazia em quem vende ticket pequeno. Venda sem cliente identificado fica de fora: a lista existe pra ligar pra alguém.',
     metodo: 'SellsCockpitAggregator::buildInsightsAggregates',
   },
 };

@@ -67,6 +67,7 @@ declare(strict_types=1);
 use App\Business;
 use App\User;
 use Inertia\Testing\AssertableInertia;
+use Spatie\Permission\Models\Role;
 
 beforeEach(function () {
     config([
@@ -115,11 +116,31 @@ $execution = new ArrayObject([
 afterAll(function () use ($execution, $grayZone) {
     $githubOutput = getenv('GITHUB_OUTPUT');
     if ($githubOutput !== false && $githubOutput !== '') {
+        // `gray` alimenta a narrativa do comentário de falha (ui-impact.mjs --explain-failure):
+        // sem ele o comentário não distingue ZONA CINZA de REGRESSÃO CLARA. JSON numa linha só
+        // (GITHUB_OUTPUT é key=value por linha), escrito ANTES do writeGrayZoneSummary(), que
+        // lança quando a zona cinza bloqueia.
+        // So a divida PROPRIA (tela dentro do raio do PR) alimenta a narrativa do comentario:
+        // e ela que bloqueia. Listar tela ja divergente na main faria o comentario cobrar do
+        // autor um drift que nao e dele — o defeito medido em 2026-08-24. A herdada continua
+        // visivel no step summary e no log do step.
+        $gray = json_encode(
+            array_map(
+                static fn (array $item): array => [
+                    'screen' => $item['screen'],
+                    'ratio' => round((float) $item['ratio'], 6),
+                ],
+                \Tests\Browser\Support\VisregThreshold::particionaDoAmbiente($grayZone->getArrayCopy())['propria'],
+            ),
+            JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE,
+        );
+
         $lines = sprintf(
-            "expected=%d\nexecuted=%d\ncompared=%d\n",
+            "expected=%d\nexecuted=%d\ncompared=%d\ngray=%s\n",
             $execution['expected'],
             $execution['executed'],
             $execution['compared'],
+            $gray === false ? '[]' : $gray,
         );
         file_put_contents($githubOutput, $lines, FILE_APPEND | LOCK_EX);
     }
@@ -135,12 +156,13 @@ foreach ($screens as $screen) {
     }
 
     $nome = $screen['screen'];
+    $source = $screen['source'];
     $component = $screen['component'];
     $rota = $screen['route'];
     $ancora = $screen['anchor'];
     $baseline = $screen['baseline'];
 
-    it("{$nome} bate com a baseline de pixel (núcleo-6)", function () use ($nome, $component, $rota, $ancora, $baseline, $grayZone, $execution) {
+    it("{$nome} bate com a baseline de pixel (núcleo-6)", function () use ($nome, $source, $component, $rota, $ancora, $baseline, $grayZone, $execution) {
         // orderBy('id') = biz 1 determinístico: o gate também seeda 98 (VisregEmptyTenantSeeder)
         // e 99 (VisregTenantBLeakSeeder) — sem ordem explícita o "first" é o que o MySQL devolver.
         $business = Business::orderBy('id')->first();
@@ -150,6 +172,25 @@ foreach ($screens as $screen) {
         $admin = User::where('business_id', $business->id)->orderBy('id')->first();
         if (! $admin) {
             throw new RuntimeException('Sem user no business seedado: o gate visual não pode autenticar.');
+        }
+
+        // `Arquivos` é a PRIMEIRA tela do manifesto atrás de `can:` (Modules/Arquivos/Routes/web.php
+        // — medido 2026-08-25: das 26 rotas do manifesto, nenhuma outra passa por permission).
+        // O `Gate::before` do UPos (app/Providers/AuthServiceProvider.php:42-46) libera QUALQUER
+        // ability pra quem tem a role `Admin#{business_id}`; sem ela, `can()` nega. E o seed do CI
+        // cria o user por `DB::table('users')->insertGetId(...)`, sem role nenhuma — conferido no
+        // .github/actions/pest-mysql-setup. Sem esta linha o `assertOk()` logo abaixo pega 403 e a
+        // tela nunca ganha baseline.
+        //
+        // Sufixo `#{biz}` obrigatório: `roles.business_id` é NOT NULL com FK no UPos, e role global
+        // viola a FK (proibicoes.md §FSM). Idempotente — só cria/atribui se faltar.
+        $roleName = 'Admin#' . $business->id;
+        if (! $admin->hasRole($roleName)) {
+            $admin->assignRole(Role::firstOrCreate([
+                'name'        => $roleName,
+                'business_id' => $business->id,
+                'guard_name'  => 'web',
+            ]));
         }
 
         $this->actingAs($admin)
@@ -225,6 +266,9 @@ foreach ($screens as $screen) {
             screenName: $nome,
             grayZone: $grayZone,
             baselineFile: $baseline,
+            // `source` (chave do manifesto) e o que casa com VISREG_SCREENS — sem ela, uma
+            // tela ja divergente na main reprova PR que nao a tocou (2026-08-24).
+            screenSource: $source,
         );
         $execution['compared'] = (int) $execution['compared'] + 1;
     });

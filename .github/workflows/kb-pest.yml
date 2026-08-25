@@ -1,7 +1,7 @@
 name: KB · Pest (MySQL)
 
 # Lane dedicada pra rodar a suíte Pest MySQL-only do Modules/KB contra MySQL REAL
-# + seed mínimo multi-tenant (biz=1 + biz=2 — via .github/actions/pest-mysql-setup).
+# + seed mínimo multi-tenant (via .github/actions/pest-mysql-setup — dona dos tenants).
 #
 # POR QUE existe (descoberto 2026-07-23, Fase A1 do trilho doc↔código na KB):
 # NENHUM teste do Modules/KB rodava no CI por-PR. O modules-pest.yml matrix NÃO
@@ -84,7 +84,7 @@ jobs:
         if: steps.changes.outputs.kb == 'false'
         run: echo "✅ Sem mudanças no Modules/KB — skip-as-pass (required-ready, ADR 0271 onda 2)."
 
-      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
         if: steps.changes.outputs.kb == 'true'
         uses: ./.github/actions/pest-mysql-setup
 

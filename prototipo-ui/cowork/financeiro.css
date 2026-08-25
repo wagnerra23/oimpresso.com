@@ -54,7 +54,7 @@
   background: var(--sunken); color: var(--text-3);
   font-size: var(--fs-2); font-weight: 600;
 }
-.fin-edit-btn.has-edits .fin-edit-ic{ background: var(--warn); color: var(--accent-fg, #fff); }
+.fin-edit-btn.has-edits .fin-edit-ic{ background: var(--warn); color: var(--accent-fg); }
 .fin-edit-tag{
   margin-left: 2px;
   width: 6px; height: 6px; border-radius: 50%;
@@ -265,7 +265,7 @@
 .fin-fsm-done b{ color: var(--text); font-weight: 600; }
 .fin-fsm-done-ic{
   display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%;
-  background: var(--pos); color: var(--accent-fg, #fff); flex-shrink: 0;
+  background: var(--pos); color: var(--accent-fg); flex-shrink: 0;
 }
 
 /* ONDA 2 P1 · comparação "vs média" (cadeira Tufte) — neutra, sem cor de valor */
@@ -293,11 +293,11 @@
   flex-shrink: 0; font-weight: 700; font-size: var(--fs-3); margin-top: 1px;
 }
 .fin-verdict-pos{ background: color-mix(in oklab, var(--pos) 9%, var(--surface)); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--pos) 24%, transparent); }
-.fin-verdict-pos .fin-verdict-ic{ background: var(--pos); color: var(--accent-fg, #fff); }
+.fin-verdict-pos .fin-verdict-ic{ background: var(--pos); color: var(--accent-fg); }
 .fin-verdict-warn{ background: color-mix(in oklab, var(--warn) 11%, var(--surface)); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--warn) 28%, transparent); }
 .fin-verdict-warn .fin-verdict-ic{ background: var(--warn); color: oklch(0.28 0.05 75); }
 .fin-verdict-neg{ background: color-mix(in oklab, var(--neg) 10%, var(--surface)); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neg) 26%, transparent); }
-.fin-verdict-neg .fin-verdict-ic{ background: var(--neg); color: var(--accent-fg, #fff); }
+.fin-verdict-neg .fin-verdict-ic{ background: var(--neg); color: var(--accent-fg); }
 .fin-verdict-neg b{ color: var(--neg); }
 .fin-verdict-muted{ background: var(--sunken); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--text-3) 18%, transparent); }
 .fin-verdict-muted .fin-verdict-ic{ background: var(--text-3); color: var(--surface); }
@@ -724,7 +724,7 @@
 }
 .fin-conferido-toggle:hover{ background: var(--sunken); color: var(--text); border-color: var(--text-3); }
 .fin-conferido-toggle.on{
-  background: var(--accent); color: var(--accent-fg, #fff);
+  background: var(--accent); color: var(--accent-fg);
   border-color: var(--accent);
 }
 .fin-conferido-toggle .fin-conf-check{
@@ -758,7 +758,7 @@
   font-family: inherit; font-size: var(--fs-3); font-weight: 500;
   cursor: pointer; transition: all var(--t-1) var(--ease); border: 1px solid transparent;
 }
-.fin-cob-btn--primary{ background: var(--accent); color: var(--accent-fg, #fff); }
+.fin-cob-btn--primary{ background: var(--accent); color: var(--accent-fg); }
 .fin-cob-btn--primary:hover{ background: var(--accent-hi); }
 .fin-cob-btn--ghost{ background: var(--surface); color: var(--text); border-color: var(--border); }
 .fin-cob-btn--ghost:hover{ background: var(--sunken); border-color: var(--text-3); }
@@ -1586,7 +1586,7 @@
 }
 .fin-contas-opt.on .fin-contas-box{ background: var(--accent); border-color: var(--accent); }
 .fin-contas-opt.on .fin-contas-box::after{
-  content: "\2713"; color: var(--accent-fg, #fff); font-size: 10px; font-weight: 700; line-height: 1;
+  content: "\2713"; color: var(--accent-fg); font-size: 10px; font-weight: 700; line-height: 1;
 }
 .fin-contas-clear{
   margin-top: 3px; padding: 6px 9px; border: 0; border-top: 1px solid var(--border);
@@ -1618,6 +1618,38 @@
 /* Datas personalizadas (period === custom) — inputs início/fim no lugar do nav */
 .fin-pb-custom{ display: inline-flex; align-items: center; gap: 7px; }
 .fin-pb-date-sep{ font-size: var(--fs-2); color: var(--text-mute); user-select: none; }
+/* Limpar intervalo (paridade FinPeriodBar do vivo) */
+.fin-pb-date-clear{
+  width: 22px; height: 26px; display: grid; place-items: center; border: 1px solid var(--border);
+  border-radius: 6px; background: var(--surface); color: var(--text-3); font-size: 14px; line-height: 1; cursor: pointer;
+}
+.fin-pb-date-clear:hover{ color: var(--text); border-color: var(--text-4); }
+/* delta_pct dos KPIs (US-FIN-023 do vivo) — ↑+12% verde / ↓-5% rose / → 0% neutro */
+.fin-delta-pct{ font-size: 10px; font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: 0; }
+/* Geometria do KPI strip = a do vivo (FinStatStrip.tsx + fin-cowork.css:117-227):
+   5 col `minmax(260px,1.6fr) repeat(4,1fr)` com reflow por CONTAINER do conteúdo real
+   (≤1100px → 4 col + hero full-width; ≤600px → 2 col). Sem isso as colunas ficam
+   estreitas e o valor de 22px vaza o card. */
+.fin-root .fin-body{ container: finbody / inline-size; }
+.fin-root .fin-stats{ grid-template-columns: minmax(260px, 1.6fr) repeat(4, 1fr); }
+@container finbody (max-width: 1100px){
+  .fin-root .fin-stats{ grid-template-columns: repeat(4, 1fr); }
+  .fin-root .fin-stats .fin-stat-hero{ grid-column: 1 / -1; }
+}
+@container finbody (max-width: 600px){
+  .fin-root .fin-stats{ grid-template-columns: repeat(2, 1fr); }
+}
+/* Container muito estreito (preview/janela pequena): 4 col de ~140px não cabem 22px de BRL
+   — o valor cede 4px em vez de vazar o card. Nada muda em 1280/1440 (personas). */
+@container finbody (max-width: 780px){
+  .fin-root .fin-stats .os-stat:not(.fin-stat-hero) > b{ font-size: 18px; }
+}
+/* o valor é uma linha que ACOMODA o badge (coluna estreita → badge desce), nunca vaza o card */
+.fin-stats .os-stat, .fin-stats .fin-stat{ min-width: 0; overflow: hidden; }
+.fin-stats .os-stat > b, .fin-stats .fin-stat > b{ display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 6px; min-width: 0; }
+.fin-delta-pct.pos{ color: var(--pos); }
+.fin-delta-pct.neg{ color: var(--neg); }
+.fin-delta-pct.mut{ color: var(--text-3); }
 .fin-root .fin-pb-date, .cr-root .fin-pb-date{
   -webkit-appearance: none; appearance: none;
   height: 28px; padding: 4px 9px; box-sizing: border-box;
@@ -1641,7 +1673,7 @@
 }
 .fin-root .fin-pb-preset:hover, .cr-root .fin-pb-preset:hover{ color: var(--text); border-color: var(--text-3); }
 .fin-root .fin-pb-preset.on, .cr-root .fin-pb-preset.on{
-  background-color: var(--accent) !important; color: var(--accent-fg, #fff) !important;
+  background-color: var(--accent) !important; color: var(--accent-fg) !important;
   border-color: var(--accent) !important; font-weight: 600;
 }
 
@@ -1838,6 +1870,22 @@
 .ph-nav .topbar-tab.active{ font-weight: 600; }
 .ph-nav .topbar-tab.active svg{ opacity: 1; }
 .ph-nav-sep{ color: var(--text-3); opacity: 0.5; padding: 0 4px; }
+/* ⋯ do FIN_SUBNAV (ADR 0313 — destinos legacy do vivo) */
+.ph-nav-more{ position: sticky; right: 0; display: inline-flex; flex: 0 0 auto; margin-left: auto; background: var(--bg); box-shadow: -8px 0 8px -6px var(--bg); }
+.ph-nav-more .topbar-tab{ font-size: 15px; line-height: 1; padding: 0 10px; color: var(--text-3); }
+.ph-nav-more-menu{
+  position: fixed; z-index: 60; min-width: 268px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  box-shadow: var(--sh-2, 0 8px 24px rgb(0 0 0 / 0.12)); padding: 4px; display: flex; flex-direction: column;
+}
+.ph-nav-more-item{
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  height: 30px; padding: 0 8px; border: 0; background: none; border-radius: 6px;
+  font-size: var(--fs-3); color: var(--text); text-align: left; cursor: pointer;
+}
+.ph-nav-more-item:hover:not(:disabled){ background: var(--sunken); }
+.ph-nav-more-item:disabled{ cursor: default; color: var(--text-2); }
+.ph-nav-more-item code{ font-family: var(--mono); font-size: var(--fs-1); color: var(--text-3); }
 
 /* ═══════════════════════════════════════════════════════════════════
    BOTÕES DAS SUB-TELAS — sistema polido (segmented · secundário · ícone)

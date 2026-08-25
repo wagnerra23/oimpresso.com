@@ -85,6 +85,7 @@ function Usuario360Index({ users, filters }: Props) {
       <PageHeader
         icon="users"
         title="Usuário 360°"
+        moduleNav
         description="Vista única de tudo sobre um usuário — roles, permissions, tokens, sessions, auditoria."
       />
 

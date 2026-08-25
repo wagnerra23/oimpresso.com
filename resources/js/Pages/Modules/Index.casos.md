@@ -139,7 +139,7 @@ last_run: "2026-08-20"
   Ecommerce, FieldForce, Hms, InboxReport — e **5 delas marcadas `true`**: módulo inexistente
   "habilitado". Ruído de merge que a tela não mostrava e ninguém via.
 - **Removidas.** Verificado antes que a remoção é **inerte** para os 4 consumidores do arquivo: o
-  file activator do nWidart (`config/modules.php:269`) consulta por módulo descoberto no disco; o
+  file activator do nWidart (`config/modules.php:269 (verificado@70c36b4)`) consulta por módulo descoberto no disco; o
   `LegacyMenuAdapter` pula com `if (!file_exists($path)) continue`; o `ModuleSpecGenerator` busca por
   nome; e o `ModuleManagerService` lista pastas, não chaves.
 - **Efeito colateral desejável:** se algum desses módulos voltar a existir, ele nasce **Não

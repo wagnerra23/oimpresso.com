@@ -1,0 +1,84 @@
+{
+  "_nota": "Copy e seções derivadas do contrato escrito por [CC] em cowork-inbox/SUPERADMIN-F1-2026-08-18.md §3 (view `assinaturas`), TRADUZIDAS para o schema que a máquina deste repositório consome (contract.schema.json: alvo + secoes[{id,copy,estados}]). O original descreve UMA tela `Superadmin/Index` com seis views; a migração F3 entregou telas SEPARADAS, então o contrato do F1 vira um por tela — mesmo caminho de superadmin-negocios e modulos.",
+  "_nota_recorte": "⚠️ 5 das 6 seções que o F1 §3 pede pra view `assinaturas`. A SA-O4b acrescentou o FormDrawer (`form-status` + `form-vigencia`), que o F1 conta como DUAS seções e produção entrega como UMA gaveta de dois modos — misturar status e datas num formulário só faz o operador mudar uma coisa querendo mudar a outra. ⚠️ A gaveta de status oferece 3 AÇÕES, não os 5 status do F1: o SubscriptionLifecycleService modela três transições, e `waiting`/`declined` não são escolha de operador (um é estado inicial, o outro é gravado por evento de cobrança). Oferecer os cinco exigiria escrita direta em `status`, que é o que a onda veio remover.",
+  "tela": "superadmin/Assinaturas",
+  "fonte": "prototipo-ui/cowork/superadmin-page.jsx",
+  "_nota_fonte": "Mesma âncora que o charter declara em `related_prototype` — `ViewAssinaturas()` (L1044).",
+  "alvo": [
+    "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "superadmin.assinaturas.kpis",
+      "_papel": "os 4 KPI de status do F1. ⚠️ Os rótulos NÃO são os do protótipo palavra por palavra: o protótipo diz 'Aprovadas', produção diz 'Ativas', porque no banco `approved` com vigência vencida NÃO é uma assinatura aprovada valendo — é vencida. Divergência declarada, não deslize.",
+      "copy": [
+        "Ativas",
+        "Em trial",
+        "Pendentes",
+        "Vencidas ou canceladas"
+      ],
+      "estados": [
+        "carregando"
+      ]
+    },
+    {
+      "id": "superadmin.assinaturas.filtros",
+      "_papel": "os 3 filtros combináveis do F1. Os valores são vocabulário de TELA (o front não conhece `declined`); a tradução para o enum mora em RotuloAssinatura::filtro().",
+      "copy": [
+        "Status",
+        "Criada em",
+        "Pacote"
+      ],
+      "estados": []
+    },
+    {
+      "id": "superadmin.assinaturas.tabela",
+      "_papel": "6 colunas, com a VIGÊNCIA FUNDIDA numa célula (`início → fim`) — é a decisão de leitura do F1, e separá-la em duas colunas é a regressão que esta linha existe pra impedir. O F1 pede 6 + seleção; produção tem 6 sem seleção (BulkBar não tem backend).",
+      "copy": [
+        "Assinatura",
+        "Negócio",
+        "Status",
+        "Vigência",
+        "Valor",
+        "Pagamento"
+      ],
+      "estados": [
+        "vazio-filtro",
+        "carregando",
+        "lista"
+      ]
+    },
+    {
+      "id": "superadmin.assinaturas.paginacao",
+      "_papel": "paginação server-side. ⚠️ F1 pede 6/página; produção usa 20, igual à SA-O2 — decisão [W] em aberto.",
+      "copy": [],
+      "estados": []
+    },
+    {
+      "id": "superadmin.assinaturas.form",
+      "_papel": "a gaveta de ação (UC-SA-008 e UC-SA-009). A copy travada aqui é a que carrega CONSEQUÊNCIA: cada frase diz o efeito ANTES de aplicar — é a diferença entre um form de administração e um botão que o operador aperta sem saber o que acontece.",
+      "copy": [
+        "Mudar status da assinatura",
+        "Editar vigência",
+        "Aprovar",
+        "Marcar como vencida",
+        "Cancelar",
+        "Para de renovar no fim da vigência. O acesso continua até lá e o registro fica.",
+        "Esticar o fim prorroga o acesso sem gerar cobrança nova.",
+        "Sem motivo declarado",
+        "Em branco = assinatura sem período de teste."
+      ],
+      "estados": [
+        "status",
+        "vigencia"
+      ]
+    }
+  ],
+  "ordem": [
+    "superadmin.assinaturas.kpis",
+    "superadmin.assinaturas.filtros",
+    "superadmin.assinaturas.tabela",
+    "superadmin.assinaturas.paginacao",
+    "superadmin.assinaturas.form"
+  ]
+}

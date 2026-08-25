@@ -1,0 +1,10 @@
+{
+  "_meta": {
+    "schema": "uc-id-baseline/v1",
+    "purpose": "Grandfathera id de UC fora do formato canônico que JÁ existia. `--check --baseline` morde só id NOVO (no-new-lie).",
+    "contrato": "grandfathered[] = \"<arquivo>::<id>\". CRESCER esta lista = grandfatherar id novo, o oposto do propósito. DIMINUIR (id consertado) é livre.",
+    "regenerar": "node scripts/qa/uc-id-lint.mjs --write-baseline governance/uc-id-baseline.json",
+    "nao_e": "NÃO é lista de exceção permanente — é dívida datada. Pagar (renomear o id + os testes que o citam) é decisão [W], por tela."
+  },
+  "grandfathered": []
+}

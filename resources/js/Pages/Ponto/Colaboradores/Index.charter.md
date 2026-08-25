@@ -2,7 +2,7 @@
 id: resources-js-pages-ponto-colaboradores-index-charter
 page: /ponto/colaboradores
 component: resources/js/Pages/Ponto/Colaboradores/Index.tsx
-related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
+related_prototype: prototipo-ui/cowork/ponto-telas.jsx
 owner: wagner
 status: draft
 last_validated: "2026-07-11"

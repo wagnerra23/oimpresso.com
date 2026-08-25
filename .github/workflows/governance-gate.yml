@@ -255,7 +255,7 @@ jobs:
           echo "Como resolver:"
           echo "  1. REVERTER edição (git checkout origin/${{ github.base_ref }} -- <arquivo>)"
           echo "  2. CRIAR handoff novo em memory/handoffs/YYYY-MM-DD-HHMM-slug-kebab.md"
-          echo "  3. Atualizar 1 linha no topo de memory/08-handoff.md (truncar 5º)"
+          echo "  3. Atualizar 1 linha no topo de memory/08-handoff.md (append no topo, nada mais — ADR 0167)"
           echo ""
           echo "Justificativa: handoff é snapshot temporal. Reescrever apaga o que"
           echo "outro Claude/humano leu — quebra continuidade de sessão."
@@ -472,6 +472,15 @@ jobs:
           set -euo pipefail
           chmod +x .github/scripts/pii-scan.sh
           # Lista arquivos AM (Added|Modified) do PR — exclui deletados
+          #
+          # `prototipo-ui/` INTEIRO sai do scan, não só `cowork/` ([W] 2026-08-24: "no
+          # protótipo pode"). Protótipo é mockup/design: não roda em produção, não serve
+          # dado a ninguém, e CPF de exemplo ali é como CPF num Figma. A exclusão anterior
+          # cobria só `cowork/`, então mockup em `_arquivo/`, `prototipos/`, `fixtures/`
+          # reprovava por dado sintético DE TELA. NÃO afrouxa o que importa: Modules/,
+          # resources/js|css/, app/, memory/ e tests/ seguem escaneados.
+          # (comentário AQUI, fora do pipeline: `#` entre linhas continuadas por `\`
+          #  quebra o shell — `syntax error near unexpected token '|'`.)
           mapfile -t arquivos < <(
             git diff --name-only --diff-filter=AM "$BASE_SHA"...HEAD \
               | grep -vE '^(vendor|node_modules|public|storage|bootstrap/cache)/' \
@@ -479,7 +488,7 @@ jobs:
               | grep -vE '\.github/scripts/pii-scan\.sh$' \
               | grep -vE '\.github/pii-scan-allowlist\.txt$' \
               | grep -vE '\.github/workflows/governance-gate\.yml$' \
-              | grep -vE '^prototipo-ui/cowork/' \
+              | grep -vE '^prototipo-ui/' \
               || true
           )
 

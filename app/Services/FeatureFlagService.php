@@ -47,6 +47,16 @@ class FeatureFlagService
 
     public function isOn(string $flag, array $attrs = []): bool
     {
+        // Override de ambiente (harness de teste / CI) — consultado ANTES do
+        // GrowthBook DE PROPOSITO: o harness precisa ser deterministico mesmo
+        // quando o SDK esta acessivel e responde outra coisa.
+        //
+        // Inerte em producao (guarda dentro de forcedOn) e inerte sem a env.
+        // Ver config/feature-flags.php pro porque.
+        if ($this->forcedOn($flag)) {
+            return true;
+        }
+
         try {
             $features = $this->getFeatures();
 
@@ -108,6 +118,41 @@ class FeatureFlagService
 
             return (array) $response->json('features', []);
         });
+    }
+
+    /**
+     * Override por ambiente — permite que uma tela atras de flag ENTRE num
+     * gate automatizado (visual-regression, e2e) sem depender do GrowthBook,
+     * que nao existe no runner.
+     *
+     * FAIL-CLOSED EM PRODUCAO: mesmo com a env preenchida, retorna false la.
+     * Mesma guarda dupla do VISREG_FREEZE_CLOCK (AppServiceProvider:66 +
+     * layouts/inertia.blade.php:34 + VisregStateMiddleware:69) — "nunca em
+     * producao E so com a env, que so existe no .env do job".
+     *
+     * NAO substitui $fallbackDefaults: aquele array liga a flag pra TODOS os
+     * business em producao (decisao de cutover do [W]); este caminho e inerte
+     * la. Sao alavancas diferentes de proposito.
+     */
+    private function forcedOn(string $flag): bool
+    {
+        if (app()->isProduction()) {
+            return false;
+        }
+
+        $raw = config('feature-flags.forced_on', '');
+
+        if (! is_string($raw) || trim($raw) === '') {
+            return false;
+        }
+
+        foreach (explode(',', $raw) as $forced) {
+            if (trim($forced) === $flag) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function fallback(string $flag): bool

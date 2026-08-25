@@ -1,8 +1,8 @@
 name: Whatsapp · Pest (MySQL)
 
 # Lane dedicada pra rodar a suíte Pest MySQL-only do Modules/Whatsapp contra MySQL
-# REAL + seed mínimo multi-tenant (via .github/actions/pest-mysql-setup: biz=1, biz=98
-# e biz=2). Espelha kb-pest.yml, que nasceu do MESMO problema.
+# REAL + seed mínimo multi-tenant (via .github/actions/pest-mysql-setup — dona dos tenants).
+# Espelha kb-pest.yml, que nasceu do MESMO problema.
 #
 # POR QUE existe (medido 2026-08-07, ao tirar o 1º arquivo da quarentena era-sqlite):
 # NENHUM teste do Modules/Whatsapp roda contra MySQL no CI por-PR. O modules-pest.yml
@@ -86,7 +86,7 @@ jobs:
         if: steps.changes.outputs.whatsapp == 'false'
         run: echo "✅ Sem mudanças no Modules/Whatsapp — skip-as-pass (required-ready, ADR 0271 onda 2)."
 
-      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=98/biz=2)
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
         if: steps.changes.outputs.whatsapp == 'true'
         uses: ./.github/actions/pest-mysql-setup
 

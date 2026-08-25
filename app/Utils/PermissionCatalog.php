@@ -14,7 +14,9 @@ namespace App\Utils;
  *
  * A fonte do CORE são as views role/create.blade.php e role/edit.blade.php: o backend passa a
  * aceitar exatamente o que o formulário oferece, que é a definição operacional de "fechado".
- * As duas views foram medidas e são idênticas neste ponto (122 checkbox + 29 radio = 151).
+ * As duas views foram medidas e são idênticas neste ponto: 122 checkbox + 29 radio = 151 em
+ * 2026-08-19; 124 + 29 = 153 depois que `commission_agent.view|manage` entraram em 2026-08-20.
+ * Quem quiser conferir hoje não lê este número: roda o PermissionCatalogSyncTest.
  *
  * Esta lista é DERIVADA. Se você adicionar um checkbox de permissão nas views, adicione a chave
  * aqui — o RolePermissionCatalogTest compara as duas fontes e QUEBRA no drift, então o
@@ -50,6 +52,8 @@ class PermissionCatalog
         'category.update',
         'category.view',
         'close_cash_register',
+        'commission_agent.manage',
+        'commission_agent.view',
         'configure_dashboard',
         'contacts_report.view',
         'crud_all_bookings',

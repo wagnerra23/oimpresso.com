@@ -9084,13 +9084,13 @@ parameters:
 			path: Modules/Ponto/Http/Controllers/DashboardController.php
 
 		-
-			message: '#^Method Modules\\Ponto\\Http\\Controllers\\DashboardController\:\:buildAprovacoes\(\) should return Illuminate\\Support\\Collection\<int, array\<string, mixed\>\> but returns Illuminate\\Support\\Collection\<int, array\{id\: mixed, tipo\: mixed, prioridade\: mixed, data_inicio\: mixed, data_fim\: null, justificativa\: mixed, estado\: mixed, created_at\: mixed, \.\.\.\}\>\.$#'
+			message: '#^Method Modules\\Ponto\\Http\\Controllers\\DashboardController\:\:buildAprovacoes\(\) should return Illuminate\\Support\\Collection\<int, array\<string, mixed\>\> but returns Illuminate\\Support\\Collection\<int, array\{id\: mixed, tipo\: mixed, prioridade\: mixed, data_inicio\: mixed, data_fim\: null, dia_todo\: bool, intervalo_inicio\: mixed, intervalo_fim\: mixed, \.\.\.\}\>\.$#'
 			identifier: return.type
 			count: 1
 			path: Modules/Ponto/Http/Controllers/DashboardController.php
 
 		-
-			message: '#^Method Modules\\Ponto\\Http\\Controllers\\DashboardController\:\:buildAtividadeRecente\(\) should return Illuminate\\Support\\Collection\<int, array\<string, mixed\>\> but returns Illuminate\\Support\\Collection\<int, array\{id\: mixed, tipo\: mixed, momento\: mixed, momento_completo\: mixed, origem\: mixed, tempo\: mixed, colaborador\: array\{id\: mixed, nome\: mixed, matricula\: mixed\}, rep\: array\{identificador\: mixed, tipo\: mixed\}\}\>\.$#'
+			message: '#^Method Modules\\Ponto\\Http\\Controllers\\DashboardController\:\:buildAtividadeRecente\(\) should return Illuminate\\Support\\Collection\<int, array\<string, mixed\>\> but returns Illuminate\\Support\\Collection\<int, array\{id\: mixed, nsr\: mixed, tipo\: mixed, momento\: mixed, momento_completo\: mixed, origem\: mixed, tempo\: mixed, colaborador\: array\{id\: mixed, nome\: mixed, matricula\: mixed\}, \.\.\.\}\>\.$#'
 			identifier: return.type
 			count: 1
 			path: Modules/Ponto/Http/Controllers/DashboardController.php

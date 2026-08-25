@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// @covers-us UC-BKP-03 UC-BKP-04 UC-BKP-10
+
 use App\Jobs\RunBackupJob;
 use App\User;
 use Illuminate\Console\Scheduling\Schedule;
@@ -50,6 +52,7 @@ beforeEach(function () {
     session(['user.business_id' => $this->biz->id, 'business.id' => $this->biz->id]);
 });
 
+// UC-BKP-03 — gerar backup sem travar a tela
 test('gerar backup despacha o job em vez de rodar na requisicao', function () {
     Queue::fake();
 
@@ -76,6 +79,7 @@ test('o job vai para a fila backups, nunca para a default', function () {
     });
 });
 
+// UC-BKP-04 — o backup despachado tem quem o execute
 test('existe worker agendado drenando a fila backups', function () {
     $comandos = collect(app(Schedule::class)->events())
         ->map(fn ($evento) => (string) $evento->command);
@@ -97,6 +101,7 @@ test('o job nao repete: um backup pela metade e pior que nenhum', function () {
     expect($job->timeout)->toBeGreaterThanOrEqual(1800);
 });
 
+// UC-BKP-10 — em demo, nada dispara
 test('em demo nao despacha job nenhum', function () {
     config(['app.env' => 'demo']);
     Queue::fake();

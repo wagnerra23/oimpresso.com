@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// @covers-us UC-BKP-05 UC-BKP-06 UC-BKP-07 UC-BKP-10
+
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Schema;
@@ -69,7 +71,7 @@ beforeEach(function () {
     session(['user.business_id' => $this->biz->id, 'business.id' => $this->biz->id]);
 });
 
-// permissao
+// UC-BKP-07 — sem permissao, a tela nao existe
 test('as quatro rotas devolvem 403 sem a permissao backup', function () {
     $this->actingAs($this->semPermissao);
 
@@ -79,7 +81,7 @@ test('as quatro rotas devolvem 403 sem a permissao backup', function () {
     $this->get('/backup/2026-08-19-03-00-04.zip/delete')->assertForbidden();
 });
 
-// travessia de caminho
+// UC-BKP-06 — nome de arquivo nao sai da pasta de backup (Tier 0)
 dataset('nomes recusados', [
     'sobe um nivel (alcanca public/uploads)' => '../vizinho.png',
     'sobe varios niveis' => '../../../.env',
@@ -102,7 +104,7 @@ test('delete recusa nome fora do padrao e nao apaga arquivo vizinho', function (
     expect(Storage::disk('local')->files($this->pasta))->toHaveCount(2);
 })->with('nomes recusados');
 
-// nunca deixar o disco sem backup
+// UC-BKP-05 — nao conseguir apagar o unico backup
 test('nao exclui quando e o unico backup do disco', function () {
     Storage::disk('local')->delete($this->pasta.'/2026-08-18-03-00-04.zip');
 
@@ -121,7 +123,7 @@ test('exclui quando ha mais de um backup', function () {
     expect(Storage::disk('local')->exists($this->pasta.'/2026-08-19-03-00-04.zip'))->toBeTrue();
 });
 
-// download legitimo
+// UC-BKP-10 (demo) + download legitimo
 test('download entrega o zip como attachment', function () {
     $r = $this->get('/backup/download/2026-08-19-03-00-04.zip');
 

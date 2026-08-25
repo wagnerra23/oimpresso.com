@@ -24,7 +24,7 @@ charter_version: 2
 > Rotas `web.php:911-929` (`modules.index|toggle|install|uninstall`), grupo
 > `web · setData · auth · SetSessionData · language · timezone · AdminSidebarMenu`.
 > Substitui `/manage-modules` do UltimatePOS (AdminLTE quebrado).
-> [`LegacyMenuAdapter.php:287`](../../../../app/Services/LegacyMenuAdapter.php) **reescreve o item de
+> [`LegacyMenuAdapter.php:287 (verificado@70c36b4)`](../../../../app/Services/LegacyMenuAdapter.php) **reescreve o item de
 > menu** (`$rewrites` dentro de `convertItem`) — **não** é redirect HTTP: URL antiga digitada ou salva
 > nos favoritos continua batendo na rota Blade. Medido 2026-08-19.
 >

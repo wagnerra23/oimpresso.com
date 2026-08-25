@@ -61,7 +61,15 @@ function agenteDoNegocio(int $businessId): User
     ]);
 }
 
-function operadorQuePodeExcluir(int $businessId): User
+/**
+ * Operador com papel PROPRIO do negocio e SO as permissoes pedidas.
+ *
+ * O papel NAO pode ser `Admin#{business_id}`: `Gate::before` (AuthServiceProvider) libera
+ * qualquer ability pra admin, e todo 403 esperado aqui viraria falso-verde.
+ *
+ * @param  array<int,string>  $permissoes
+ */
+function operadorComPermissoes(int $businessId, array $permissoes): User
 {
     $user = User::factory()->create(['business_id' => $businessId]);
 
@@ -70,8 +78,10 @@ function operadorQuePodeExcluir(int $businessId): User
         'business_id' => $businessId,
         'guard_name' => 'web',
     ]);
-    \Spatie\Permission\Models\Permission::findOrCreate('user.delete', 'web');
-    $papel->syncPermissions(['user.delete']);
+    foreach ($permissoes as $permissao) {
+        \Spatie\Permission\Models\Permission::findOrCreate($permissao, 'web');
+    }
+    $papel->syncPermissions($permissoes);
     $user->assignRole($papel);
 
     // Mesma correcao do RoleTenantIsolationTest (ja em main): sem limpar o cache de
@@ -81,6 +91,12 @@ function operadorQuePodeExcluir(int $businessId): User
     app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
     return User::findOrFail($user->id);
+}
+
+/** Quem administra comissionado. Desde 2026-08-20 isto NAO e mais `user.delete`. */
+function operadorQuePodeExcluir(int $businessId): User
+{
+    return operadorComPermissoes($businessId, ['commission_agent.manage']);
 }
 
 function vendaDoAgente(int $businessId, User $agente): Transaction
@@ -118,7 +134,7 @@ it('BLOQUEIA a exclusão de comissionado com venda vinculada, e diz quantas', fu
         ->where('business_id', TENANT_TESTE)
         ->where('is_cmmsn_agnt', 1)
         ->exists())->toBeTrue();
-    expect($operador->can('user.delete'))->toBeTrue();
+    expect($operador->can('commission_agent.manage'))->toBeTrue();
 
     $this->actingAs($operador);
     session(['user.business_id' => TENANT_TESTE]);
@@ -146,7 +162,7 @@ it('sem venda vinculada, DESMARCA o papel em vez de excluir o usuário', functio
         ->where('business_id', TENANT_TESTE)
         ->where('is_cmmsn_agnt', 1)
         ->exists())->toBeTrue();
-    expect($operador->can('user.delete'))->toBeTrue();
+    expect($operador->can('commission_agent.manage'))->toBeTrue();
 
     $this->actingAs($operador);
     session(['user.business_id' => TENANT_TESTE]);
@@ -173,4 +189,56 @@ it('comissionado de outro negócio não é alcançado', function () {
     $depois = User::withTrashed()->findOrFail($alheio->id);
     expect((bool) $depois->is_cmmsn_agnt)->toBeTrue();
     expect($depois->deleted_at)->toBeNull();
+});
+
+/**
+ * ---------------------------------------------------------------------------------------
+ * DESACOPLAMENTO de `user.*` (decisao [W] 2026-08-19, aplicado em 2026-08-20).
+ *
+ * Ate aqui, apurar comissao exigia permissao sobre o cadastro de USUARIOS do negocio. Os dois
+ * casos abaixo sao as duas metades da mesma prova, e nenhum sozinho basta:
+ *   - o POSITIVO (acima, via operadorQuePodeExcluir) mostra que `commission_agent.manage` BASTA;
+ *   - o NEGATIVO (aqui) mostra que `user.*` NAO basta mais — sem ele, "funciona" tambem seria
+ *     verdade se o controller tivesse ficado aceitando as duas familias.
+ * ---------------------------------------------------------------------------------------
+ */
+it('quem só tem user.* NÃO alcança mais a tela de comissionados', function () {
+    $agente = agenteDoNegocio(TENANT_TESTE);
+
+    // O conjunto INTEIRO que abria a tela antes da troca — nao so `user.delete`.
+    $operador = operadorComPermissoes(TENANT_TESTE, ['user.view', 'user.create', 'user.update', 'user.delete']);
+
+    // SANIDADE dos dois lados: se a segunda expect falhasse, o 403 abaixo poderia vir de o
+    // papel ter ganho `commission_agent.manage` sem querer — e o caso passaria sem provar nada.
+    expect($operador->can('user.delete'))->toBeTrue();
+    expect($operador->can('commission_agent.manage'))->toBeFalse();
+    expect($operador->can('commission_agent.view'))->toBeFalse();
+
+    $this->actingAs($operador);
+    session(['user.business_id' => TENANT_TESTE]);
+
+    $this->withHeaders(ajaxDeleteHeaders())->getJson('/sales-commission-agents')->assertForbidden();
+    $this->withHeaders(ajaxDeleteHeaders())->deleteJson('/sales-commission-agents/'.$agente->id)->assertForbidden();
+
+    $agente->refresh();
+    expect((bool) $agente->is_cmmsn_agnt)->toBeTrue();
+});
+
+it('commission_agent.view LÊ a lista mas não desmarca ninguém', function () {
+    $agente = agenteDoNegocio(TENANT_TESTE);
+
+    $leitor = operadorComPermissoes(TENANT_TESTE, ['commission_agent.view']);
+    expect($leitor->can('commission_agent.manage'))->toBeFalse();
+
+    $this->actingAs($leitor);
+    session(['user.business_id' => TENANT_TESTE]);
+
+    // Header ajax de proposito: o index() so devolve JSON nesse ramo. Sem ele a rota
+    // renderizaria a blade e um erro de view viraria falha por motivo errado.
+    $this->withHeaders(ajaxDeleteHeaders())->getJson('/sales-commission-agents')->assertOk();
+
+    $this->withHeaders(ajaxDeleteHeaders())->deleteJson('/sales-commission-agents/'.$agente->id)->assertForbidden();
+
+    $agente->refresh();
+    expect((bool) $agente->is_cmmsn_agnt)->toBeTrue();
 });

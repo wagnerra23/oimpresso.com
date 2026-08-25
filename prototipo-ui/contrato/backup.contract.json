@@ -1,0 +1,86 @@
+{
+  "tela": "Backup/Index",
+  "fonte": "prototipo-ui/cowork/backup-page.jsx",
+  "alvo": [
+    "resources/js/Pages/Backup"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Backup",
+        "Gerar backup agora"
+      ],
+      "estados": [
+        "default",
+        "sem-permissao",
+        "demo"
+      ]
+    },
+    {
+      "id": "kpis",
+      "copy": [
+        "Último backup",
+        "Backups guardados",
+        "Espaço ocupado",
+        "Agendamento diário"
+      ],
+      "estados": [
+        "default",
+        "sem-backup",
+        "agendado-parado"
+      ]
+    },
+    {
+      "id": "alerta-destino",
+      "copy": [
+        "O arquivo contém os dados de todos os negócios",
+        "Backup no mesmo servidor não é backup"
+      ],
+      "estados": [
+        "local",
+        "remoto",
+        "agendado-parado"
+      ]
+    },
+    {
+      "id": "lista",
+      "copy": [
+        "Arquivo",
+        "Origem",
+        "Tamanho",
+        "Data",
+        "Idade",
+        "Ações",
+        "Baixar",
+        "Excluir"
+      ],
+      "estados": [
+        "default",
+        "empty",
+        "unico"
+      ]
+    },
+    {
+      "id": "cron",
+      "copy": [
+        "Backup automático",
+        "Copiar",
+        "Pasta",
+        "Retenção",
+        "Permissão"
+      ],
+      "estados": [
+        "default",
+        "demo"
+      ]
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "kpis",
+    "alerta-destino",
+    "lista",
+    "cron"
+  ]
+}

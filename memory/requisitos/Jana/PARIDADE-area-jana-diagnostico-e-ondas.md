@@ -383,6 +383,77 @@ O conserto **estende o dono** (`cowork-mirror-freshness`, que já é o dono do p
 
 ---
 
+## 7.7 · ADENDO 2026-08-21 — o §7.6 concluiu "nenhum item de backlog"; a re-medição produziu UM (e não é o título de 22px)
+
+> **Não corrige o §7.6 — ANEXA.** O que está acima segue verdadeiro na data em que foi medido
+> (2026-08-18) e nos eixos que o `design-diff` cobre. Este adendo registra o que uma sonda
+> mais funda achou no MESMO eixo D6 (cor), que o §7.6 deu como `IGUAL` porque a banda absorveu.
+
+### O que NÃO mudou (e fecha o assunto do título)
+
+O eixo **D4 (título 22px × 19px)** segue exatamente como o §7.6 julgou — **não é item de
+backlog**. Re-medido em runtime nesta data (`/ia`, `biz=1`, dark, `getComputedStyle`):
+`fontSize: 22px` · `fontWeight: 700`, que é o canon.
+
+Duas confirmações que o §7.6 não tinha:
+
+1. **O protótipo comparado é âncora BANIDA.** O lado "design" do `--compare` é o
+   `.jc-header` de `prototipo-ui/cowork/chat-jana.jsx:220` (+ `chat-jana.css:24`) — e a
+   lápide **§5 2026-08-10** (com a emenda de **08-11**) proíbe `chat-jana.jsx` como âncora
+   de design de qualquer tela da Jana. Os 3px são contra uma régua que o canon já rejeitou.
+2. **A âncora citada no §7.6 está errada** (ponteiro podre, decisão válida). Aquela linha
+   credita o 22px a *"`text-[22px]`, ADR 0189 v3.2"*. Medido com controle positivo — a ADR
+   0189 tem 10.588 bytes, o grep casa 7× em `PageHeader` e **0×** em `22px`, `font-size` e
+   `v3.2`. O dono real do 22px é
+   [`PageHeader-LEARNINGS.md` §"Decisão canon #3"](../_DesignSystem/templates/PageHeader-LEARNINGS.md),
+   onde [W] mediu `/sells` via browser MCP e decidiu 22/700 (PR #1477).
+
+### O item que apareceu — a cor do título, e a direção é OUTRA
+
+O §7.6 leu a matiz como *prod × protótipo*. A sonda de runtime mostra que é **prod contra si
+mesma** — dois sistemas de token vivendo na mesma tela:
+
+| o que | valor medido (`/ia`, dark) | via |
+|---|---|---|
+| `h1` do PageHeader | `oklch(0.965 0.004 **240**)` — branco FRIO | `text-foreground` (shadcn) |
+| `--text` do cockpit | `oklch(0.94 0.005 **90**)` — branco WARM | `.cockpit[data-theme="dark"]` |
+| `--bg` · `--border` · `--surface` | hue **240** | idem |
+
+Alcance na mesma tela, contado por `getComputedStyle` sobre os elementos visíveis:
+**706** com cor em `oklch` — **339 em hue 90** (warm) × **284 em hue 240** (frio) × 16 em 295
+(o roxo primary da ADR 0190, correto).
+
+Corolário que inverte a leitura do §7.6: o `oklch(0.94 0.005 90)` que aparece lá como "o valor
+do design" **é o token que roda em produção**. O protótipo estava alinhado com um dos dois
+sistemas; quem destoava era o `h1`.
+
+### O conserto aplicado — e o que ele deliberadamente NÃO decide
+
+`PageHeader.tsx` passa a pedir `color: var(--text, var(--foreground))`. O título era o **único**
+ponto do header preso ao shadcn (a borda já usava `var(--border)` desde o *dark-aware* da v3.4).
+
+- **Não escolhe cor.** Consome o token gerado (`resources/css/tokens/_generated-cockpit-dark.css`,
+  saída do build DTCG). Retunar o valor segue sendo decisão do DS.
+- **O fallback é obrigatório, não estética.** `PageHeader` também renderiza em **portal** —
+  `ServiceOrderItemFormSheet.tsx` monta um Sheet Radix no `<body>`, fora do `.cockpit`, onde
+  `--text` não existe. É a lápide **§5 2026-07-10**, verificada antes de mexer (varredura das
+  36 telas que importam `Components/PageHeader`: 3 fora do `AppShellV2`, das quais 1 é portal
+  real, 1 é componente-filho e 1 é `.casos.md`).
+
+### O que fica ABERTO (medido, não concluído)
+
+A [ADR UI-0020](../_DesignSystem/adr/ui/0020-dark-warm-ds-v6-tokens.md) — `accepted` em
+2026-07-07, [W] *"autorizo tudo"*, **sem supersede** — manda o dark warm em **hue 282**
+(`text 0.965 0.004 282`, `bg 0.165 0.008 282`) e nomeia explicitamente o drift *"hue 240 vs
+282"*. Em produção **nenhum dos dois grupos está em 282**: o cockpit gera 90 e o shadcn 240.
+
+⚠️ **Isto é medição de UMA tela, não veredito de DS.** O delta está provado; a *causa* não —
+build DTCG defasado × decisão posterior não registrada × duas fontes por desenho são hipóteses
+concorrentes, e separá-las exige varredura contada dos consumidores do token (§5 2026-07-15).
+Registrado aqui como achado, **não** como item fechado.
+
+---
+
 ## 8 · Ondas de correção
 
 | onda | o quê | toca pixel? | estado |

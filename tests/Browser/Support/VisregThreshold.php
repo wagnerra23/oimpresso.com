@@ -134,6 +134,7 @@ final class VisregThreshold
         ArrayObject $grayZone,
         string $baselineSuite = 'PixelBaselineTest',
         ?string $baselineFile = null,
+        ?string $screenSource = null,
     ): void
     {
         $tauLow = self::tauLow();
@@ -271,6 +272,11 @@ final class VisregThreshold
         $diffView = self::writeDiffView($screenName, $baselineBlob, $actualBlob, $diffBlob);
         $grayZone->append([
             'screen' => $screenName,
+            // `source` e a CHAVE do manifesto (visreg-screens.json), a mesma que o
+            // classificador emite em `screens`. Sem ela nao da pra dizer se esta tela esta
+            // no raio do PR — e ai a divida herdada da main volta a reprovar quem nao a
+            // causou. Suites de estados/fluxos nao tem source: caem no ramo conservador.
+            'source' => $screenSource,
             'ratio' => $ratio,
             'diffView' => $diffView,
         ]);
@@ -547,20 +553,43 @@ final class VisregThreshold
                 . 'Regressão? conserte antes do enforcing (L1).';
         }
 
+        // Divida PROPRIA (o PR pode ter causado) x HERDADA (ja divergia na main).
+        $particao = self::particionaDoAmbiente($items);
+        $propria = $particao['propria'];
+        $herdada = $particao['herdada'];
+
+        if ($herdada !== []) {
+            $n = count($herdada);
+            $lines[] = '';
+            $lines[] = "### 🧾 Fora do raio deste PR — {$n} tela(s) que **ja divergiam** na main";
+            $lines[] = '';
+            $lines[] = 'Nao entram no bloqueio: o raio de impacto medido pelo classificador nao alcanca estas '
+                . 'telas, entao este PR nao pode te-las causado. Elas seguem divergentes na main e alguem '
+                . 'precisa absorver a baseline delas.';
+            $lines[] = '';
+            $lines[] = '| Tela | Diff ratio | Diff-view |';
+            $lines[] = '|---|---|---|';
+            foreach ($herdada as $it) {
+                $pct = number_format(((float) $it['ratio']) * 100, 4);
+                $view = $it['diffView'] ?? '—';
+                $lines[] = "| {$it['screen']} | {$pct}% | `{$view}` |";
+            }
+        }
+
         $lines[] = '';
         if ($summaryPath !== false && $summaryPath !== '') {
             @file_put_contents($summaryPath, implode("\n", $lines) . "\n", FILE_APPEND);
         }
 
-        $bloqueia = self::grayZoneRequiresApproval($items);
+        $bloqueia = self::grayZoneRequiresApproval($propria);
 
         // Log do step: sem isto, o exit 2 do afterAll não tem causa nenhuma no log.
         if ($items !== []) {
-            fwrite(STDOUT, self::grayZoneConsoleReport($items, $bloqueia));
+            fwrite(STDOUT, self::grayZoneConsoleReport($propria, $bloqueia, $herdada));
         }
 
         if ($bloqueia) {
-            throw new \RuntimeException(self::grayZoneConsoleReport($items, true));
+            throw new \RuntimeException(self::grayZoneConsoleReport($propria, true, $herdada));
         }
     }
 
@@ -571,7 +600,7 @@ final class VisregThreshold
      *
      * @param  array<int, array{screen:string,ratio:float,diffView:?string}>  $items
      */
-    public static function grayZoneConsoleReport(array $items, bool $bloqueia): string
+    public static function grayZoneConsoleReport(array $items, bool $bloqueia, array $herdada = []): string
     {
         $n = count($items);
         $low = number_format(self::tauLow() * 100, 4);
@@ -579,9 +608,13 @@ final class VisregThreshold
 
         $out = [];
         $out[] = '';
-        $out[] = '  ZONA CINZA VISUAL — ' . $n . ' tela(s) entre os limiares (' . $low . '% .. ' . $high . '%).';
-        $out[] = '  Os testes PASSARAM: na banda do meio a comparação individual conclui e';
-        $out[] = '  quem bloqueia é este afterAll. Não é flake, não é regressão clara.';
+        if ($n > 0) {
+            $out[] = '  ZONA CINZA VISUAL — ' . $n . ' tela(s) entre os limiares (' . $low . '% .. ' . $high . '%).';
+            $out[] = '  Os testes PASSARAM: na banda do meio a comparação individual conclui e';
+            $out[] = '  quem bloqueia é este afterAll. Não é flake, não é regressão clara.';
+        } else {
+            $out[] = '  Nenhuma tela DENTRO do raio deste PR na zona cinza (' . $low . '% .. ' . $high . '%).';
+        }
         $out[] = '';
 
         foreach ($items as $it) {
@@ -589,10 +622,25 @@ final class VisregThreshold
             $out[] = '    - ' . $it['screen'] . '  ->  ' . $pct . '%   diff-view: ' . ($it['diffView'] ?? '—');
         }
 
+        if ($herdada !== []) {
+            $out[] = '';
+            $out[] = '  FORA DO RAIO DESTE PR — ' . count($herdada) . ' tela(s) que ja divergiam na main.';
+            $out[] = '  Nao bloqueiam: o raio de impacto medido nao alcanca estas telas, entao este PR';
+            $out[] = '  nao pode te-las causado. Seguem divergentes na main — alguem precisa absorver.';
+            foreach ($herdada as $it) {
+                $pct = number_format(((float) $it['ratio']) * 100, 4);
+                $out[] = '    - ' . $it['screen'] . '  ->  ' . $pct . '%   (herdada)';
+            }
+        }
+
         $out[] = '';
-        $out[] = $bloqueia
-            ? '  BLOQUEADO (VISREG_GRAY_APPROVED != 1). Baixe o artifact pixel-diff-views e abra o .html.'
-            : '  Liberado pelo label de aprovação [W] — registrado aqui só para ficar no log.';
+        if ($bloqueia) {
+            $out[] = '  BLOQUEADO (VISREG_GRAY_APPROVED != 1). Baixe o artifact pixel-diff-views e abra o .html.';
+        } elseif ($n === 0) {
+            $out[] = '  Nada a aprovar neste PR: a zona cinza acima e herdada da main.';
+        } else {
+            $out[] = '  Liberado pelo label de aprovação [W] — registrado aqui só para ficar no log.';
+        }
         $out[] = '  Mudança intencional? runner canônico no modo update + aprovação [W] (gate F1.5).';
         $out[] = '';
 
@@ -605,6 +653,108 @@ final class VisregThreshold
         $approval ??= (string) (getenv('VISREG_GRAY_APPROVED') ?: '0');
 
         return $items !== [] && $approval !== '1';
+    }
+
+    /**
+     * DIVIDA PROPRIA x HERDADA — separa o que ESTE PR pode ter causado do que ja divergia.
+     *
+     * O defeito que isto conserta (medido 2026-08-24): o predicado era ABSOLUTO — QUALQUER
+     * tela na zona cinza bloqueava. Como o pixel-diff roda o manifesto inteiro quando o
+     * escopo e `global` (100% dos PRs com impacto visual nos 100 commits medidos), uma tela
+     * que ja divergia na main reprovava PRs que nao a tocaram. Recibo: `Governance/DsRollout
+     * -> 0.1226%` reprovou 3 branches independentes; o #6184 tinha raio de UMA tela
+     * (`Produto/Unificado`) e levou o vermelho de uma tela de Governance. A divergencia
+     * nasceu do #6175, mergeado com o label `visreg-gray-approved` SEM regenerar a baseline
+     * — o label aprova o PR, nunca a referencia, entao o drift fica orfao na main.
+     *
+     * Mesma doutrina do `casos-coverage-guard` (2026-08-20) e da lapide de 2026-08-24 sobre
+     * guard com predicado absoluto: divida herdada nao e noticia do PR, ja esta na main.
+     *
+     * FAIL-CLOSED em todo caminho de duvida: raio ausente, nao confiavel, ou item sem
+     * `source` -> tudo conta como PROPRIA, que e exatamente o comportamento de antes.
+     *
+     * @param  array<int, array{screen:string,source?:?string,ratio:float,diffView:?string}>  $items
+     * @param  array<int, string>|null  $raio  telas (chave `source`) que o PR pode ter mexido
+     * @return array{propria: array<int, mixed>, herdada: array<int, mixed>}
+     */
+    public static function particionaGrayZone(array $items, ?array $raio, bool $raioConfiavel): array
+    {
+        if ($raio === null || $raioConfiavel !== true) {
+            return ['propria' => $items, 'herdada' => []];
+        }
+
+        $propria = [];
+        $herdada = [];
+
+        foreach ($items as $item) {
+            $source = $item['source'] ?? null;
+
+            // Sem `source` nao da pra decidir — conservador: trata como propria.
+            if (! is_string($source) || $source === '') {
+                $propria[] = $item;
+
+                continue;
+            }
+
+            if (in_array($source, $raio, true)) {
+                $propria[] = $item;
+            } else {
+                $herdada[] = $item;
+            }
+        }
+
+        return ['propria' => $propria, 'herdada' => $herdada];
+    }
+
+    /**
+     * Particao a partir do AMBIENTE — dono unico da regra, pra o afterAll do
+     * PixelBaselineTest e o writeGrayZoneSummary decidirem pelo MESMO criterio. Duas
+     * leituras independentes do env divergiriam em silencio.
+     *
+     * @param  array<int, array{screen:string,source?:?string,ratio:float,diffView:?string}>  $items
+     * @return array{propria: array<int, mixed>, herdada: array<int, mixed>}
+     */
+    public static function particionaDoAmbiente(array $items): array
+    {
+        [$raio, $raioConfiavel] = self::raioDoAmbiente();
+
+        return self::particionaGrayZone($items, $raio, $raioConfiavel);
+    }
+
+    /**
+     * Le o raio de impacto que o classificador (scripts/governance/ui-impact.mjs) publicou.
+     *
+     * `VISREG_SCREENS` sozinho NAO basta: em escopo `global` ele tambem e preenchido, mas
+     * como RAIO INFORMATIVO — pode estar incompleto (fundacao visual, tokens, toolchain
+     * mexem em tela que import nenhum revela). Quem responde "da pra confiar nessa lista" e
+     * `VISREG_RAIO_CONFIAVEL`, que o classificador so emite `true` quando TODO item global
+     * declarou proveniencia real. Sem ele, este metodo devolve [null, false] e o bloqueio
+     * segue absoluto.
+     *
+     * @return array{0: array<int, string>|null, 1: bool}
+     */
+    private static function raioDoAmbiente(): array
+    {
+        if ((string) (getenv('VISREG_RAIO_CONFIAVEL') ?: '') !== 'true') {
+            return [null, false];
+        }
+
+        $raw = getenv('VISREG_SCREENS');
+        if ($raw === false || $raw === '') {
+            return [null, false];
+        }
+
+        try {
+            $decoded = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException) {
+            return [null, false];
+        }
+
+        if (! is_array($decoded)) {
+            return [null, false];
+        }
+
+        return [array_values(array_filter($decoded, 'is_string')), true];
     }
 
     /**

@@ -69,6 +69,22 @@ class NotificationTemplateController extends Controller
     private function __grupos()
     {
         $customer = NotificationTemplate::customerNotifications();
+
+        // P8 — `new_booking` só existe se a agenda estiver ligada PARA ESTE NEGÓCIO.
+        //
+        // O patch original mandava usar `moduleUtil->isModuleInstalled('Booking')`. Medido:
+        // não existe `Modules/Booking` — agenda é feature CORE do UltimatePOS, gateada por
+        // `enabled_modules` (a Camada 2 de memory/proibicoes.md), não módulo nWidart. O
+        // `isModuleInstalled` retornaria sempre false e esconderia o modelo de TODO negócio,
+        // inclusive de quem tem a agenda ligada.
+        //
+        // O critério abaixo é o MESMO que o resto do sistema usa (3 call-sites contados:
+        // AdminSidebarMenu.php:820, role/create.blade.php:1632, role/edit.blade.php:1627).
+        $enabled_modules = request()->session()->get('business.enabled_modules') ?: [];
+        if (! in_array('booking', (array) $enabled_modules)) {
+            unset($customer['new_booking']);
+        }
+
         foreach ($this->moduleUtil->getModuleData('notification_list', ['notification_for' => 'customer']) ?: [] as $extra) {
             $customer = array_merge($customer, $extra);
         }

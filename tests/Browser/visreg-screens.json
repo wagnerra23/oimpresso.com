@@ -166,5 +166,53 @@
     "route": "/superadmin",
     "anchor": "Superadmin",
     "baseline": "it_superadmin_Dashboard_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "superadmin/Negocios",
+    "source": "superadmin/Negocios",
+    "component": "superadmin/Negocios/Index",
+    "route": "/superadmin/business",
+    "anchor": "Negócios",
+    "baseline": "it_superadmin_Negocios_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "superadmin/Assinaturas",
+    "source": "superadmin/Assinaturas",
+    "component": "superadmin/Assinaturas/Index",
+    "route": "/superadmin/superadmin-subscription",
+    "anchor": "Assinaturas",
+    "baseline": "it_superadmin_Assinaturas_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "superadmin/Pacotes",
+    "source": "superadmin/Pacotes",
+    "component": "superadmin/Pacotes/Index",
+    "route": "/superadmin/packages",
+    "anchor": "Pacotes",
+    "baseline": "it_superadmin_Pacotes_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Cliente/Import",
+    "source": "Cliente/Import",
+    "component": "Cliente/Import",
+    "route": "/contacts/import",
+    "anchor": "Passo 1 — Baixe o template",
+    "baseline": "it_Cliente_Import_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Arquivos",
+    "source": "Arquivos",
+    "component": "Arquivos/Index",
+    "route": "/arquivos",
+    "anchor": "Arquivos",
+    "baseline": "it_Arquivos_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Backup",
+    "source": "Backup",
+    "component": "Backup/Index",
+    "route": "/backup",
+    "anchor": "Backups guardados",
+    "baseline": "it_Backup_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]

@@ -250,7 +250,7 @@ Wagner pode autorizar exceção via comentário PR: `/mwart-override <razão>`. 
 
 ⚠️ **O comentário não destrava máquina nenhuma** — é **registro humano** que sustenta uma decisão de merge. Duas razões independentes, ambas medidas: (1) **nenhum workflow processa `issue_comment`** — caso real [PR #2544](https://github.com/wagnerra23/oimpresso.com/pull/2544), 2026-06-11: Wagner comentou o override e o check `visual-regression` seguiu vermelho; (2) o hook `block-mwart-violation` é **`PreToolUse`** — dispara no Edit **local**, antes de existir PR pra comentar, e não tem bypass (zero `process.env`; `exit 2` é o único veto). Os caminhos reais: pra `visual-regression` verde, atualizar a baseline (`--update-snapshots` + commit dos screenshots); pro bloqueio de RUNBOOK, fazer a F1 e criar o RUNBOOK. Mesma ressalva que a skill irmã [`mwart-process`](../mwart-process/SKILL.md) carrega desde 2026-06-11; lápide em `memory/proibicoes.md` §5 2026-08-08 (classe LC-15 — mecanismo que anuncia saída que não implementa).
 
-Sem `/mwart-override`, gates não cedem. Iniciante (`[L]`), esposa (`[E]`), Maíra, Felipe, Wagner — todos passam pelo MESMO caminho.
+Sem `/mwart-override`, gates de processo não cedem. Iniciante (`[L]`), esposa (`[E]`), Maíra, Felipe, Wagner — todos passam pelo MESMO caminho.
 
 ## Refs
 

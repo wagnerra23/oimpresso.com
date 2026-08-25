@@ -123,7 +123,7 @@ editar um arquivo dela volta a vazar pra ROTA LIVRE — que é o que este UC exi
 - **Quando** o operador escolhe uma delas,
 - **Então** o drawer abre na aba **daquela** ação: a lupa em *Geral*, o Impostos direto em *Tributação*.
 
-Derivado da âncora (`prototipo-ui/cowork/venda-v3/sells-create.jsx:63-65`), onde a aba viaja
+Derivado da âncora (`prototipo-ui/cowork/venda-v3/sells-create.jsx:63-65 (verificado@70c36b4)`), onde a aba viaja
 no próprio `abrirItem(i, aba)` — não do `.tsx`. O defeito que isto guarda é concreto: a aba
 inicial estava **fixa** no render, então os dois botões caíam em Tributação e o de detalhe
 não tinha o que fazer de diferente.
@@ -524,7 +524,7 @@ uma implementação que simplesmente **não faz nada**.
 > e `ClienteConsulta` não carrega campo de preço nenhum (a ausência é a defesa).
 > É deliberadamente o caminho oposto ao da lápide de 2026-07-15, em que o
 > `CustomerSearchAutocomplete` **entrega** `selling_price_group_id` no `onSelect` e o parent
-> `Sells/Create.tsx:500` reaplica via `handlePriceGroupChange`. A distinção importa: quem
+> `Sells/Create.tsx:500 (verificado@70c36b4)` reaplica via `handlePriceGroupChange`. A distinção importa: quem
 > reprecifica é o **consumidor**, não o componente — medido em 2026-08-12, quando a leitura
 > abreviada ("o componente reaplica") fabricou um Tier-0 fantasma no import do `Repair`,
 > que consome o mesmo componente e **ignora** esse campo.

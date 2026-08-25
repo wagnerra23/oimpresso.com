@@ -27,6 +27,7 @@ import { Button } from '@/Components/ui/button';
 import { Skeleton } from '@/Components/ui/skeleton';
 import PageHeader from '@/Components/shared/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
+import { Select, plural, tomDaAssinatura } from '../_components/assinatura';
 
 interface Filtros {
   q: string;
@@ -124,41 +125,6 @@ const VENDAS = [
 ];
 
 /** Tom do badge por rótulo já traduzido — a tela nunca vê o enum cru. */
-function tomDaAssinatura(rotulo: string): 'default' | 'secondary' | 'destructive' | 'outline' {
-  if (rotulo === 'Ativa') return 'default';
-  if (rotulo === 'Vencida' || rotulo === 'Bloqueada') return 'destructive';
-  if (rotulo === 'Pendente') return 'secondary';
-  return 'outline';
-}
-
-const plural = (n: number, sing: string, plur: string) => `${n} ${n === 1 ? sing : plur}`;
-
-function Select({
-  valor,
-  opcoes,
-  onChange,
-  rotulo,
-}: {
-  valor: string;
-  opcoes: { v: string; label: string }[];
-  onChange: (v: string) => void;
-  rotulo: string;
-}) {
-  return (
-    <select
-      aria-label={rotulo}
-      value={valor}
-      onChange={(e) => onChange(e.target.value)}
-      className="h-9 rounded-md border bg-background px-3 text-xs text-foreground"
-    >
-      {opcoes.map((o) => (
-        <option key={o.v} value={o.v}>
-          {o.label}
-        </option>
-      ))}
-    </select>
-  );
-}
 
 function NegociosIndex({ filtros, aberto, pacotes, negocios, detalhe }: Props) {
   const [q, setQ] = useState(filtros.q ?? '');
@@ -248,9 +214,9 @@ function NegociosIndex({ filtros, aberto, pacotes, negocios, detalhe }: Props) {
 
   return (
     <div className="pb-8">
-      <PageHeader title="Negócios" subtitle="Todos os clientes da plataforma" />
+      <PageHeader title="Negócios" moduleNav description="Todos os clientes da plataforma" />
 
-      <div className="flex flex-wrap items-center gap-2 px-6 pt-4">
+      <div className="flex flex-wrap items-center gap-2 px-6 pt-4" data-contract="superadmin.negocios.busca-filtros">
         <Input
           ref={buscaRef}
           value={q}
@@ -355,7 +321,7 @@ function Tabela({
     <Card>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm" data-contract="superadmin.negocios.tabela">
             <thead>
               <tr className="border-b text-left text-xs text-muted-foreground">
                 <th className="px-4 py-2 font-medium">Negócio</th>
@@ -400,7 +366,7 @@ function Tabela({
           </table>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t px-4 py-3" data-contract="superadmin.negocios.paginacao">
           <span className="text-[11px] text-muted-foreground">
             {inicio}–{fim} de {plural(p!.total, 'negócio', 'negócios')}
           </span>
@@ -525,7 +491,7 @@ function Drawer({ detalhe, onFechar }: { detalhe?: Detalhe | null; onFechar: () 
         </Button>
       </header>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto" data-contract="superadmin.negocios.drawer">
         <Secao titulo="Assinatura">
           <div className="flex flex-col gap-2">
             <Linha rotulo="Situação" valor={vigente ? <Badge variant={tomDaAssinatura(vigente.situacao)}>{vigente.situacao}</Badge> : 'Sem assinatura'} />

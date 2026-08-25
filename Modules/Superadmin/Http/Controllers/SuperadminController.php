@@ -12,6 +12,7 @@ use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Modules\Superadmin\Entities\Subscription;
 use Modules\Superadmin\Services\SuperadminDashboardService;
+use Modules\Superadmin\Support\RotuloAssinatura;
 use Illuminate\Routing\Controller;
 
 class SuperadminController extends Controller
@@ -150,23 +151,13 @@ class SuperadminController extends Controller
     /**
      * Enum do banco → PT-BR. A tela NUNCA mostra o valor cru (RUNBOOK-dashboard §2).
      *
-     * `declined` é gravado por OnCobrancaVencidaBloqueaSubscription quando a cobrança vence;
-     * `expired`/`cancelled` só passaram a ser graváveis no #5945 (o enum não os aceitava).
+     * O mapa em si mora em `RotuloAssinatura` desde a SA-O4a: ele estava copiado aqui e em
+     * `BusinessController`, e a terceira tela (Assinaturas) precisava dele. Este método fica
+     * como fachada porque é o nome que o resto do controller já chama.
      */
     private function rotuloAssinatura(?string $status, $fim): string
     {
-        if ($status === null) {
-            return 'Sem assinatura';
-        }
-
-        return match ($status) {
-            'approved' => ($fim && Carbon::parse($fim)->isPast()) ? 'Vencida' : 'Ativa',
-            'waiting' => 'Pendente',
-            'declined' => 'Bloqueada',
-            'expired' => 'Vencida',
-            'cancelled' => 'Cancelada',
-            default => 'Sem assinatura',
-        };
+        return RotuloAssinatura::de($status, $fim);
     }
 
     /**

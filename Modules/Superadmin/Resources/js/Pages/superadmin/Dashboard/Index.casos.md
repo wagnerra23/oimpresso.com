@@ -5,7 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a única tela do ERP cujas queries são cross-tenant POR DESENHO (ADR 0093 §exceções). Sem casos, a próxima sessão "conserta" isso aplicando escopo de tenant e quebra o produto — ou renderiza número inventado onde não há query.
 owner: wagner
-last_run: "2026-08-20"
+last_run: "2026-08-21"
+revalidacao_2026_08_21: "O `.tsx` mudou: entrou `moduleNav` (o dropdown do menu do módulo ao lado do título) e a prop do subtítulo foi corrigida de `subtitle` para `description` — a errada era descartada pelo React, então o subtítulo NUNCA renderizou nesta tela. As duas são de CABEÇALHO: nenhum UC deste arquivo fala do header, e nenhum muda de veredito. O que muda é o pixel, e a baseline vem regerada no mesmo PR."
 last_run_ci: "_pendente_ — o trio nasce nesta onda (SA-O1). O veredito por UC entra no manifesto quando a lane rodar no CI; até lá o Status é 🧪, nunca ✅."
 ---
 

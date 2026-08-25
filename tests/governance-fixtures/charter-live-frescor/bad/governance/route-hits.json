@@ -1,0 +1,5 @@
+{
+  "_meta": { "schema": "route-hits/v1", "fixture": "gate-selftest — hit FORA da janela que o PRÓPRIO ledger declara" },
+  "janela_dias": 30,
+  "pages": { "Selftest/Frescor": { "hits": 12, "ultima_data": "2020-01-01" } }
+}

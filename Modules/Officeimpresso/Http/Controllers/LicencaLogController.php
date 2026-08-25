@@ -2,13 +2,32 @@
 
 namespace Modules\Officeimpresso\Http\Controllers;
 
+use App\Services\FeatureFlagService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Modules\Officeimpresso\Entities\LicencaLog;
 use Yajra\DataTables\Facades\DataTables;
 
 class LicencaLogController extends Controller
 {
+    /**
+     * Flag do caminho React destas telas.
+     *
+     * Convenção de nome copiada da única em produção (`useV2SellsCreate`, em
+     * SellController/SellPosController): `useV2<Modulo><Tela>`. Enquanto o
+     * GrowthBook não conhecer a chave, o FeatureFlagService cai no
+     * `fallbackDefaults` — que NÃO a lista, então o default é `false` e o Blade
+     * continua servindo. Ligar é toggle no GrowthBook, não deploy.
+     *
+     * A const entra NESTE PR, e não na F2, porque ela só faz sentido junto do
+     * `Inertia::render` — e o render só pode existir depois que a page existe
+     * (`OrphanRenderGateTest`). Ver RUNBOOK-logs §F2.
+     *
+     * @see memory/requisitos/Officeimpresso/RUNBOOK-logs.md
+     */
+    private const FLAG_V2 = 'useV2OfficeimpressoLogs';
+
     /**
      * Autoriza a leitura do log de acesso das máquinas. Aceita `superadmin`
      * (acesso histórico) OU a permissão delegável `officeimpresso.access`,
@@ -162,6 +181,29 @@ class LicencaLogController extends Controller
             'licenca_id'   => $filter_licenca_id,
             'hd'           => $filter_hd,
         ];
+
+        // ── Caminho dual — a tela React desta rota ───────────────────────────
+        // Só a flag decide. NÃO condicionar também ao header `X-Inertia`: o
+        // primeiro carregamento do Inertia é um GET de HTML comum e NÃO manda
+        // esse header — exigi-lo faria a tela React nunca abrir por navegação
+        // direta. Mesmo desenho do único dual em produção
+        // (SellController::create + SellPosController::create).
+        //
+        // As props caras vão em `Inertia::defer` (Tier 0 desde 2026-05-15): a
+        // lista faz JOIN + enriquecimento por log e os KPIs são 4 count(), e
+        // partial reload de filtro não deve pagar os KPIs de novo.
+        if (app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+            return Inertia::render('Officeimpresso/Logs/Index', [
+                'filters'     => $filtros,
+                'permissions' => [
+                    'pode_ver_todas_empresas' => $this->podeVerTodasEmpresas(),
+                    'pode_bloquear'           => auth()->user()->can('superadmin')
+                        || auth()->user()->can('officeimpresso.licencas.gerenciar'),
+                ],
+                'maquinas' => Inertia::defer(fn () => $this->buildMaquinasPayload($business_id, $filtros)),
+                'kpis'     => Inertia::defer(fn () => $this->buildKpisPayload()),
+            ]);
+        }
 
         $maquinas = $this->buildMaquinasPayload($business_id, $filtros);
         $kpis     = $this->buildKpisPayload();
@@ -347,6 +389,17 @@ class LicencaLogController extends Controller
             ])->first();
         if (! $maquina) abort(404);
 
+        // As duas flags vão BOOLEANAS, espelhando o que a lista já faz em
+        // `buildMaquinasPayload` — o `Timeline.tsx` declara `boolean` nas duas
+        // (interface Maquina) e a precedência do selo é `business_blocked ? ... :
+        // machine_blocked ? ...`. Sem o cast, o driver manda o valor cru: hoje `0`,
+        // que é falsy em JS e passa por sorte; com prepares emulados o mesmo campo
+        // vem como STRING `"0"`, que é TRUTHY — e a tela passaria a chamar de
+        // "empresa bloqueada" um cliente que não está bloqueado, levando o operador
+        // a desbloquear o que já estava liberado. Pego pelo UC-TL-02 (F4).
+        $maquina->business_blocked = (bool) $maquina->business_blocked;
+        $maquina->machine_blocked = (bool) $maquina->machine_blocked;
+
         if (! $this->podeVerTodasEmpresas()) {
             abort_unless($maquina->business_id === session()->get('user.business_id'), 403);
         }
@@ -357,6 +410,20 @@ class LicencaLogController extends Controller
             ->orderByDesc('created_at')
             ->limit(200)
             ->get();
+
+        // Caminho dual da timeline — entra com a page dela, pela mesma razão que
+        // tirou o render da F2 (ver a const FLAG_V2 e o RUNBOOK-logs §F2).
+        if (app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $maquina->business_id])) {
+            return Inertia::render('Officeimpresso/Logs/Timeline', [
+                // `maquina` é 1 linha já carregada pela guarda — eager, não vale defer.
+                'maquina'     => $maquina,
+                'permissions' => [
+                    'pode_bloquear' => auth()->user()->can('superadmin')
+                        || auth()->user()->can('officeimpresso.licencas.gerenciar'),
+                ],
+                'logs' => Inertia::defer($carregarLogs),
+            ]);
+        }
 
         $logs = $carregarLogs();
 

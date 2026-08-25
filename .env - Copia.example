@@ -186,6 +186,12 @@ GROWTHBOOK_API_HOST=https://growthbook-api.oimpresso.com   # SDK proxy (read)
 # /admin/feature-flags + tools MCP flag-* + artisan flag:* retornam "não configurado".
 GROWTHBOOK_ADMIN_API_HOST=https://growthbook.oimpresso.com/api/v1
 GROWTHBOOK_ADMIN_API_TOKEN=            # secret_admin_xxxxxxxxxxxxx
+# Override de ambiente (harness de teste / CI) — App\Services\FeatureFlagService:
+# Lista de flags forcadas em ON, separada por virgula. Consultada ANTES do GrowthBook,
+# pra uma tela atras de flag poder ENTRAR num gate automatizado (visual-regression)
+# sem depender do SDK, que nao existe no runner. IGNORADO EM PRODUCAO (fail-closed).
+# Nao e cutover: ligar flag pra business real segue no GrowthBook / fallbackDefaults.
+FEATURE_FLAGS_FORCED_ON=                # ex: useV2OfficeimpressoLogs,outraFlag
 
 # === Inter PJ — PIX cobrança imediata + webhook (US-RB-050 + US-RB-051) ===
 # Módulo: Modules/RecurringBilling/Services/Inter  |  owner: wagner

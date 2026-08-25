@@ -1,0 +1,170 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "GradeMatrixInput (bloco \"Adicionar item à compra\" — NÃO é tela completa)",
+  "gap_fonte": "memory/requisitos/Compras/compras-grade-matrix-gap.md",
+  "prototipo_sha": "sha256:6a589136a274",
+  "gerado_em": "2026-08-24",
+  "partes": [
+    {
+      "id": "header-selecao-de-modelo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/compras-grade-matrix.jsx",
+        "linhas": "110-131"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Purchase/Create.tsx",
+        "linhas": "420-458",
+        "ancora": false
+      },
+      "status": "mapeado",
+      "acao": "no-op — ENTREGUE: o caller existe e é o Purchase/Create que a charter mandava (C1). Nada a aplicar.",
+      "_acionavel": true,
+      "_nota": "Proto: gmi-card com <select> Modelo (114-119) + custo unitário (120-124) + \"Limpar grade\" (126) + \"Adicionar à compra\" com badge \"N un · R$\" (127-129). Vivo — no CALLER, não no componente (headless de propósito): GradeProductCombobox em Create.tsx:430, custo unitário 440-448, \"Cancelar\" 451, \"Adicionar à compra (N un)\" 454-457. O gap de 2026-06-23 dizia \"hoje NÃO existe caller\"; hoje existe e importa em Create.tsx:26."
+    },
+    {
+      "id": "grade-matriz",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/compras-grade-matrix.jsx",
+        "linhas": "133-178"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Purchase/_components/GradeMatrixInput.tsx",
+        "linhas": "268-380",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "aplicar-delta (visual): swatch HEX da cor no header + highlight da célula preenchida. Custo real medido: exige campo `hex` em GradeCol (hoje não existe) e o backend emitindo a cor — não é só CSS.",
+      "_acionavel": true,
+      "_nota": "Proto: table gmi-grid com thead (137-151), tbody (152-176), Σ linha/col e grand. Vivo: table em 271-379 (thead 272-293 · tbody 294-352 · tfoot 353-378). CONFERIDO no código, não deduzido: (a) o swatch HEX segue AUSENTE — o header da coluna (277-288) renderiza só `c.label` + Σ, e a interface `GradeCol` (27-32) tem apenas {id,label}, sem `hex`; (b) o highlight de célula preenchida segue AUSENTE — o className da célula (326-330) chaveia em `hasVariation`, nunca no valor. O delta visual do gap continua aberto, mas o esforço \"P\" que ele estimou está subestimado: mexe no tipo + no payload do GradeLayoutBuilder, não só na folha de estilo."
+    },
+    {
+      "id": "celulas-edicao-inline",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/compras-grade-matrix.jsx",
+        "linhas": "53-72,156-167"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Purchase/_components/GradeMatrixInput.tsx",
+        "linhas": "153-233,304-345",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "PERGUNTA [W]/Larissa: semântica do Esc. Protótipo Esc = LIMPA a grade (jsx:63, e o rodapé anuncia \"Esc limpar grade\" em :191); vivo Esc = CANCELA (chama onCancel — cabeçalho :15 e dep :232). Resto: manter o vivo (o lock de célula é melhoria real).",
+      "_acionavel": true,
+      "_nota": "Vivo à frente em 2 pontos que o gap não previa: (a) modo matrix-1d — produto com 1 eixo só, caso biz=4 confirmado em prod 2026-06-23 — troca a cópia \"Tam / Cor\" por \"Tamanho\" (78-91, 275, 331-341); (b) célula sem SKU cadastrado fica travada (`hasVariation` → disabled, 305/321) com title explicando. Autofocus na 1ª célula VAZIA em 243-257."
+    },
+    {
+      "id": "quick-fill",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/compras-grade-matrix.jsx",
+        "linhas": "74-79,141-148"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Purchase/_components/GradeMatrixInput.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "no-op (backlog V1.1) — a região NÃO existe no vivo, não há o que abrir.",
+      "_acionavel": true,
+      "_nota": "TODO no vivo porque a REGIÃO não existe: grep por DoubleClick|fillCol|quick em GradeMatrixInput.tsx devolve 0 ocorrências. O protótipo, por outro lado, JÁ resolveu a ressalva que o gap levantou (\"implementar com UI própria, não `prompt()` nativo\"): o espelho cowork/ substituiu o prompt() por preenchimento inline — duplo-clique no header abre um input na própria coluna (jsx:141-148 + applyFill 74-79) — e o cabeçalho do arquivo registra a troca na ln 5. O desenho da V1.1 já existe pronto pra portar."
+    },
+    {
+      "id": "totais-on-the-fly",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/compras-grade-matrix.jsx",
+        "linhas": "41-51,168-175"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Purchase/_components/GradeMatrixInput.tsx",
+        "linhas": "236-241,353-378",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "no-op (paridade confirmada).",
+      "_acionavel": true,
+      "_nota": "Proto: useMemo totals 41-49 + totalValue 51; render Σ linha 168, Σ col 173, grand+valor 174. Vivo: useMemo 236-241; tfoot com Σ col 358-365 e grand 366-376 — o valor em BRL só aparece com `unitCost > 0` (368), igual ao protótipo."
+    },
+    {
+      "id": "empty-state",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/compras-grade-matrix.jsx",
+        "linhas": "180-184"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Purchase/_components/GradeMatrixInput.tsx",
+        "linhas": "259-266",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "no-op — divergência INTENCIONAL, já aceita no gap (o componente delega o caso single ao form).",
+      "_acionavel": true,
+      "_nota": "Proto renderiza input gigante \"Quantidade\" (gmi-single 180-184). Vivo devolve o texto \"Este produto não tem variações configuradas. Use a quantidade simples no formulário acima.\" (260-266). O caller fecha o caso de verdade: quando o layout vem `single`, Create.tsx:265-266 já adiciona a linha usando cellVariationMap[\"single__qtd\"] sem nem abrir a grade."
+    },
+    {
+      "id": "footer-barra-de-atalhos",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/compras-grade-matrix.jsx",
+        "linhas": "186-196,198-213"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Purchase/_components/GradeMatrixInput.tsx",
+        "linhas": "88-91,382-390",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "no-op — o batch é responsabilidade do caller, como o gap previu.",
+      "_acionavel": true,
+      "_nota": "Proto: barra de <kbd> 187-192 (6 atalhos) + batch hint 194 + tabela \"Linhas adicionadas\" 198-213. Vivo: a lista de atalhos é DERIVADA do modo (88-91 — 3 teclas em single-axis, 4 em 2d) e renderizada em 382-390; o batch vive no caller (adicionarLinhasGrade acumula em `linhas`, Create.tsx:216-238). A divergência de contagem que o gap notou (6 vs 4) é consequência das features ausentes (Esc=limpar, 2× clique), não descuido."
+    },
+    {
+      "id": "integracao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/compras-grade-matrix.jsx",
+        "linhas": "81-91"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Purchase/Create.tsx",
+        "linhas": "212-289,459-466",
+        "ancora": false
+      },
+      "status": "mapeado",
+      "acao": "no-op — ENTREGUE: era o gap \"G\" nº 1 e está fechado. Nada a aplicar.",
+      "_acionavel": true,
+      "_nota": "O gap dizia \"GradeMatrixInput.tsx não é importado por nenhuma tela\" e \"produto vivo vs protótipo ~0%\". FALSO no HEAD: `git grep -n GradeMatrixInput -- resources/js Modules` devolve o import em Create.tsx:26 e o mount em :459-466. O bloco inteiro do modo grade vive em Create.tsx:212-289 (adicionarLinhasGrade 216-238 · fecharGrade 240-244 · fetch do layout 246-275 · totalGrade 277 · adicionarGradeACompra 279-289) e alimenta o MESMO array `linhas` que o POST já enviava (comentário :119) — sem rota de save nova."
+    },
+    {
+      "id": "backend-grade-de-variacoes",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/compras-grade-matrix.jsx",
+        "linhas": "11-25"
+      },
+      "vivo": {
+        "arquivo": "app/Services/Purchase/GradeLayoutBuilder.php",
+        "linhas": "28-122",
+        "ancora": false
+      },
+      "status": "mapeado",
+      "acao": "no-op — ENTREGUE com Tier 0 conferido: era o 2º bloqueante \"G\". Nada a aplicar.",
+      "_acionavel": true,
+      "_nota": "Do lado do protótipo não há backend: as linhas 11-25 são o MOCK (MODELS + SINGLE_MODEL). Do lado vivo: GET /purchases/grade-matrix (routes/web.php:574) → PurchaseController@gradeMatrix (:1490-1512) → GradeLayoutBuilder::build (28-122), que emite {mode, rows, cols, cellVariationMap} keyed `${rowId}__${colId}` — o mesmo cellKey do componente (:64-65). Multi-tenant Tier 0 (ADR 0093) CONFERIDO na linha: PurchaseController.php:1496-1502 resolve o produto por business_id da sessão com firstOrFail() (cross-tenant → 404), e a permissão purchase.create é checada em :1492. O builder auto-detecta 2 eixos por nome composto e cai pra 1 eixo quando não dá, logando o modo (sem fallback silencioso). Coberto por Pest em Modules/Compras/Tests/Feature/PurchaseCalculoValorEstoqueE2ETest.php:243-278."
+    },
+    {
+      "id": "governanca",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/compras-grade-matrix.jsx",
+        "linhas": "1-6"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "artefato",
+      "acao": "no-op — o bloqueante de governança se resolveu sozinho: o caller escolhido FOI o Purchase/Create (default C1 da charter).",
+      "_acionavel": true,
+      "_nota": "O anti-hook da charter continua valendo e continua respeitado: Compras/Index.charter.md:62 (\"NÃO renderiza GradeMatrixInput inline\") e :84 (aparecer inline no cockpit = drift). Conferido: `git grep GradeMatrixInput -- resources/js` não devolve nenhum import em Pages/Compras/. Lado protótipo: 1-6 é o cabeçalho do espelho, que declara a portabilidade e cita o par vivo (componente + GradeLayoutBuilder) — é metadado, não região de UI."
+    }
+  ]
+}

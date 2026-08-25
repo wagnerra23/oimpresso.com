@@ -12,6 +12,8 @@
      'user.create' => 'Adicionar usuário',
      'user.update' => 'Editar usuário',
      'user.delete' => 'Excluir usuário',
+     'commission_agent.view' => 'Ver agentes comerciais',
+     'commission_agent.manage' => 'Adicionar, editar e remover agentes comerciais',
      'supplier.view' => 'Ver provedor',
      'supplier.create' => 'Adicionar provedor',
      'supplier.update' => 'Editar provedor',

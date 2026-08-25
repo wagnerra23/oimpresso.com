@@ -175,7 +175,7 @@ Lista completa + decisões em [memory/sprints/s3-constituicao/03-skills-audit.md
    - **ANTES** de escrever, rodar checklist MCP-first OBRIGATÓRIO: `cycles-active` + `my-work` + `sessions-recent limit:3` + `decisions-search since:<data-último-handoff>` (+ `whats-active` se suspeita paralela — [ADR 0119](decisions/0119-paralelismo-sessoes-whats-active-tier-1.md))
    - Criar **arquivo novo** em `memory/handoffs/YYYY-MM-DD-HHMM-<slug-kebab>.md` (NUNCA sobrescrever existente nem editar handoff antigo — append-only)
    - Incluir seção `## Estado MCP no momento do fechamento` com snapshot da consulta (prova, não promessa)
-   - Atualizar índice em `memory/08-handoff.md` adicionando 1 linha no topo da lista "Últimos handoffs" (truncar 5º)
+   - Atualizar índice em `memory/08-handoff.md` adicionando 1 linha no topo da lista "Últimos handoffs" (append no topo, **nada mais** — sem truncamento, [ADR 0167](decisions/0167-errata-0130-indice-handoff-historico-longo.md))
 3. **Criar session log** em `memory/sessions/YYYY-MM-DD-*.md` descrevendo o que foi feito (sessions/ ≠ handoffs/ — session log conta o trabalho, handoff conta o estado pro próximo)
 4. **Se decisão arquitetural nova**, criar ADR em `memory/decisions/NNNN-slug.md`
 

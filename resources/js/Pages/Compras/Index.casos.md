@@ -182,7 +182,7 @@ last_run_ci: "UC-CMP-06/07 reconciliados em 2026-08-11 ([W]: 'pague a dívida, e
   Fazer a aba "emitir o status core" exigiria inventar semântica de domínio para "A pagar" —
   decisão de produto, não de implementação.
   **O que foi feito preserva o princípio que a decisão protegia** (um só vocabulário na fronteira):
-  o defeito real era `Index.tsx:256`, onde a **busca** mandava `stage: localFilter` — rótulo de
+  o defeito real era `Index.tsx:256 (verificado@70c36b4)`, onde a **busca** mandava `stage: localFilter` — rótulo de
   exibição no lugar do filtro de servidor. Passou a mandar `filters.stage`, alinhando com as outras
   três chamadas do arquivo (154/196/211). A fronteira carrega só o vocabulário CORE; as abas seguem
   filtrando client-side, e o rótulo visível para a Larissa não muda.

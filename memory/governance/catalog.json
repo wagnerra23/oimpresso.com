@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 678,
-    "edges": 955,
+    "nodes": 681,
+    "edges": 958,
     "by_node_type": {
       "module": 39,
       "table": 101,
       "adr": 105,
-      "component": 390,
-      "api": 43
+      "component": 391,
+      "api": 45
     },
     "by_edge_type": {
       "ownsTable": 90,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 43,
+      "providesApi": 45,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 390,
+      "hasComponent": 391,
       "dependsOn": 115,
       "delegatesTo": 107,
       "migratesTo": 1,
@@ -1006,9 +1006,25 @@
       ]
     },
     {
-      "id": "api:/pontowr2/*",
+      "id": "api:/ponto/*",
       "type": "api",
-      "prefix": "/pontowr2/*",
+      "prefix": "/ponto/*",
+      "providers": [
+        "Ponto"
+      ]
+    },
+    {
+      "id": "api:/ponto/api/*",
+      "type": "api",
+      "prefix": "/ponto/api/*",
+      "providers": [
+        "Ponto"
+      ]
+    },
+    {
+      "id": "api:/ponto/install/*",
+      "type": "api",
+      "prefix": "/ponto/install/*",
       "providers": [
         "Ponto"
       ]
@@ -1132,6 +1148,13 @@
       "providers": [
         "Woocommerce"
       ]
+    },
+    {
+      "id": "component:Arquivos/ArquivosAdminController",
+      "type": "component",
+      "module": "Arquivos",
+      "name": "ArquivosAdminController",
+      "desc": ""
     },
     {
       "id": "component:Arquivos/DataController",
@@ -4195,7 +4218,7 @@
       "purpose": "Ponto eletrônico CLT sob Portaria MTP 671/2021 — marcação append-only imutável (trigger MySQL mais override no Model; correção só por anulação) com NSR sequencial por REP e importação de AFD. Sobre isso: apuração de jornada, banco de horas, intercorrências com aprovação e espelho. Multi-tenant Tier 0.",
       "trust": "L3",
       "owner": "wagner",
-      "permission_prefix": "pontowr2.*",
+      "permission_prefix": "ponto.*",
       "charter_adr": "0080",
       "path": "memory/requisitos/Ponto/SCOPE.md",
       "catalog_kind": "scope",
@@ -6034,6 +6057,12 @@
       "to": "adr:0123",
       "type": "governedByAdr",
       "source": "related_adrs"
+    },
+    {
+      "from": "module:Arquivos",
+      "to": "component:Arquivos/ArquivosAdminController",
+      "type": "hasComponent",
+      "source": "contains"
     },
     {
       "from": "module:Arquivos",
@@ -10330,7 +10359,19 @@
     },
     {
       "from": "module:Ponto",
-      "to": "api:/pontowr2/*",
+      "to": "api:/ponto/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Ponto",
+      "to": "api:/ponto/api/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Ponto",
+      "to": "api:/ponto/install/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },

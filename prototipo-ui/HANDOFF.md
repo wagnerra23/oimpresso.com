@@ -5,7 +5,31 @@
 
 ---
 
-## Estado atual: 2026-06-01 — `design:review` por tela MERGED (#2078)
+## Estado atual: 2026-08-20 — protótipo do Ponto desce pro espelho + 19 telas ancoradas (#6046)
+
+**Mergeado em `main`** (`f02102261d` · 122 pass · 0 falha). Os 8 arquivos do protótipo do Ponto eram
+**LIVE-ONLY** — só existiam no projeto Cowork. Desceram por `get_file` → `cowork-mirror-freshness
+--export-from` (escrita pela máquina, ADR 0374), com o **shell** junto: o manifesto do frescor deriva
+dele, e sem o shell os 8 nasceriam fora de qualquer medição. Manifesto: 133 entradas, os 8 dentro.
+As 19 telas do Ponto trocaram `n/a (herda PT-0X)` por `related_prototype` real — `ancora.mjs` **19/19 ✓**.
+
+**Agora:** aguardando decisão [W] sobre o que mais desce do Cowork — os 4 `.contract.json` e o trio do
+Fechamento (`Fechamento.charter.md` + `.casos.md`). Medido: **5 dos 7 `alvo`** declarados nos contratos
+não existem no repo, e o charter do Fechamento chega com **Non-Goals e Anti-hooks pré-preenchidos** —
+canon diz que só [W] preenche esses dois campos, porque cada item vira Pest GUARD.
+
+**Achado que muda o plano do Ponto:** o `PLANO-PR-ONDAS-ponto.md` do Cowork descreve como "a fazer"
+**12 telas que já existem** em Inertia (20 telas · 5.349 linhas · charter 100% · scorecard 100%). O
+próprio `HANDOFF-ponto.md` declara ter lido `Modules/Ponto/**` e **não** `resources/js/Pages/Ponto/**`.
+O que resta de verdade: Fechamento · Conformidade · REP-P (Service e Controller escritos, rotas em
+`abort(501)`) · os contratos · e **E2E 0/20** num módulo com apuração de CLT.
+
+**Decisões [W] abertas (7):** estado da competência · permissão do fechamento · exceções assinadas ·
+reabrir competência · REP-P com GPS ruim · copy da selfie (LGPD Art. 9º) · ordem dos relatórios legais.
+
+---
+
+## Estado anterior: 2026-06-01 — `design:review` por tela MERGED (#2078)
 
 **Charter page viva entregue** (fila COWORK #2 · PR #2078 · main `98566bfb4`): `npm run design:review <tela>` gera `<Tela>.review.md` (Fase 1 mecanizada, do `score-mechanized.mjs`) ao lado do `.charter.md`, ancorado por `measured_against_sha`. Gate de frescor `review-freshness.mjs` (`npm run design:review:check`) + Pest `DesignReviewFreshnessTest` + `PROTOCOL §6` (`design_review_missing`/`_stale`) + ratchet `review-freshness-baseline.json` (espelha `eslint-baseline`). 1ª exec = `Jana/Pro.review.md` (nota 88). ADR = **proposta sem número** (`memory/decisions/proposals/design-review-por-tela-charter-page.md`, [W] cunha). **Fase 2 (juiz-LLM)** = custo [W].
 

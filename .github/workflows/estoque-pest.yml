@@ -1,7 +1,7 @@
 name: Estoque · Pest (MySQL)
 
 # Lane dedicado pra rodar a suíte Pest de MOVIMENTAÇÃO DE ESTOQUE contra MySQL REAL
-# + seed mínimo (biz=1 + biz=2 — via .github/actions/pest-mysql-setup).
+# + seed mínimo multi-tenant (via .github/actions/pest-mysql-setup — dona dos tenants).
 #
 # POR QUE existe: as demais lanes (ci.yml / modules-pest.yml) rodam SQLite :memory: SEM
 # migrate — e os testes de estoque precisam do schema UltimatePOS completo (products,
@@ -119,6 +119,13 @@ on:
       - 'app/Http/Controllers/ProductController.php'
       - 'app/Http/Controllers/ProdutoUnificadoController.php'
       - 'app/Category.php'
+      # 2026-08-21 — as 2 entradas do BOM, que entraram só no filtro interno em
+      # 2026-08-11 (junto com o `ProdutoBomContratoTest` saindo da quarentena).
+      # Mesma divergência que o comentário acima declarou consertada — 3ª ocorrência,
+      # 3º eixo. Sem elas aqui, merge que toque só o BOM não dispara a lane no main:
+      # o teste do BOM existe, sai da quarentena, e o sinal pós-merge dele fica mudo.
+      - 'app/Http/Controllers/Inventory/ProductBomController.php'
+      - 'app/Domain/Inventory/Services/BomResolver.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/estoque-pest.yml'
       - '.github/estoque-pest-quarantine.list'
@@ -182,7 +189,7 @@ jobs:
         if: steps.changes.outputs.est == 'false'
         run: echo "✅ Sem mudanças de Estoque — skip-as-pass (required-ready, ADR 0271 onda 2)."
 
-      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
         if: steps.changes.outputs.est == 'true'
         uses: ./.github/actions/pest-mysql-setup
 

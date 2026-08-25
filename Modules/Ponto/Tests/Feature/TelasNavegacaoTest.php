@@ -56,17 +56,28 @@ class TelasNavegacaoTest extends PontoTestCase
         ];
     }
 
+    /**
+     * `/modulos` NEGA admin-de-negocio — e isso e a REGRA, nao um defeito.
+     *
+     * O caso antes se chamava `modulos_admin_tambem_renderiza` e exigia 200 pro admin
+     * do business. Isso e exatamente o furo que a decisao D2 (2026-08-19) FECHOU: o
+     * `ModuleManagementController` passou a exigir a ability de superadmin
+     * `manage_modules` e excluiu `Admin#<biz>` de proposito, porque a tela desliga
+     * modulo do APP INTEIRO, pra todos os tenants — o comentario la registra o furo
+     * como "medido: um user so com Admin#1 entrava".
+     *
+     * O teste seguia codificando o comportamento PRE-D2 e reprovava com 403. Ficou
+     * assim porque o arquivo esta fora de qualquer lane; ninguem viu. Medido no CT100
+     * em 2026-08-23. Agora ele prova a regra em vez de negar: admin de negocio NAO
+     * entra. O caso positivo (superadmin entra) exige fixture de superadmin e fica
+     * como decisao [W] — meio teste honesto vale mais que um inteiro que mente.
+     */
     #[\PHPUnit\Framework\Attributes\Test]
-    public function modulos_admin_tambem_renderiza(): void
+    public function modulos_nega_admin_de_negocio_regra_d2(): void
     {
         $this->actAsAdmin();
         $response = $this->inertiaGet('/modulos');
 
-        $response->assertStatus(200);
-        $this->assertEquals('Modules/Index', $response->json('component'));
-
-        $modules = $response->json('props.modules');
-        $this->assertIsArray($modules);
-        $this->assertGreaterThan(10, count($modules));
+        $response->assertStatus(403);
     }
 }

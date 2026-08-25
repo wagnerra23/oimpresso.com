@@ -11,7 +11,7 @@
  *   1. escreve fiel e conta certo (NOVO / ATUALIZADO / inalterado)
  *   2. --dry não escreve
  *   3. recusa path que sai do espelho (../) — trava de escopo
- *   4. recusa .md dentro de cowork/ — R1 do cowork-ssot-guard
+ *   4. .md NUNCA em cowork/ (R1) — roteia pra design-docs/ preservando a árvore
  *   5. recusa bytes divergente — corrupção de transporte
  *   6. AVISA em perda líquida de linhas — o caso qa-conformance.js (espelho À FRENTE),
  *      que sem aviso vira regressão silenciosa
@@ -19,20 +19,39 @@
  *   8. --require-complete-shell fecha HTML→CSS/JS→imports/assets transitivos
  *   9. `_ds/**` pousa no snapshot canônico (bundle/CSS/base64 byte-idêntico)
  *  10. dependência transitiva ausente cancela o lote inteiro antes do 1º write
+ *  11. NORMALIZA a âncora de design do charter (pasta de módulo → forma plana), preservando
+ *      subdir REAL e sem inventar alvo — as 3 guardas provadas por sabotagem, uma a uma
  *
  * Uso: node scripts/design-sync/aplicar-payload.test.mjs
  */
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
 const APPLIER = resolve('scripts/design-sync/aplicar-payload.mjs');
+const GENERATOR = resolve('scripts/design-sync/gerar-payload-partes.mjs');
 let fails = 0;
 const check = (nome, ok, detalhe = '') => {
   console.log(`[${ok ? 'OK' : 'FAIL'}] ${nome}${ok ? '' : '  → ' + detalhe}`);
   if (!ok) fails++;
 };
+
+/**
+ * FNV-1a 64 de referência — réplica do `fnv1a64()` do applier, pra fabricar o caso CORRETO
+ * do bite de digest. Ancorado em vetor publicado (`"foobar"` → 85944171f73967e8), senão o
+ * teste mediria a si mesmo: se eu copiasse um bug daqui, o "correto" e o applier errariam junto.
+ */
+function fnvRef(texto) {
+  let h = 0xcbf29ce484222325n;
+  const prime = 0x100000001b3n, mask = 0xffffffffffffffffn;
+  for (const b of Buffer.from(texto, 'utf8')) { h = ((h ^ BigInt(b)) * prime) & mask; }
+  return h.toString(16).padStart(16, '0');
+}
+if (fnvRef('foobar') !== '85944171f73967e8') {
+  console.log('[FAIL] fnvRef não bate no vetor publicado FNV-1a 64 de "foobar" — o resto do bite de digest não vale');
+  process.exit(1);
+}
 
 /** sandbox: cwd próprio com `prototipo-ui/cowork/`, pra nunca tocar o repo real */
 function sandbox(arquivosIniciais = {}) {
@@ -102,13 +121,25 @@ function rodar(dir, pay, args = []) {
   check('BITE escopo: nada foi escrito fora', !existsSync(join(dir, 'fora.txt')), 'escreveu fora do espelho!');
 }
 
-// ── 4: R1 do ssot-guard (.md dentro de cowork/) ──────────────────────────────
+// ── 4: R1 do ssot-guard — .md NUNCA em cowork/, mas pousa em design-docs/ ────
+//
+// A INVARIANTE não mudou e é ela que este bite protege: nenhum `.md` no espelho, nunca.
+// O que mudou (2026-08-21, decisão [W]) é o desfecho — antes o applier DESCARTAVA, e o
+// preço foi 204 `.md` vivos no Cowork contra 0 no repo. Agora ele ROTEIA.
+// A perna negativa é a que importa: se alguém reintroduzir o destino errado, o segundo
+// assert reprova mesmo com o primeiro verde.
 {
   const dir = sandbox();
-  const pay = payload(dir, [{ path: 'LEIAME.md', content: '# nao\n' }]);
+  const pay = payload(dir, [{ path: 'cowork-inbox/LEIAME.md', content: '# doc\n' }]);
   const r = rodar(dir, pay);
-  check('BITE R1: recusa .md dentro de cowork/', /R1 do ssot-guard/.test(r.out) && r.code !== 0, r.out);
-  check('BITE R1: o .md não foi escrito', !existsSync(join(dir, 'prototipo-ui/cowork/LEIAME.md')));
+  check('BITE R1: o .md NÃO pousa em cowork/ (invariante do ssot-guard)',
+    !existsSync(join(dir, 'prototipo-ui/cowork/cowork-inbox/LEIAME.md')), r.out);
+  check('.md pousa em design-docs/ preservando a árvore do vivo',
+    existsSync(join(dir, 'prototipo-ui/design-docs/cowork-inbox/LEIAME.md')), r.out);
+  check('.md roteado chega FIEL (byte a byte)',
+    existsSync(join(dir, 'prototipo-ui/design-docs/cowork-inbox/LEIAME.md')) &&
+    readFileSync(join(dir, 'prototipo-ui/design-docs/cowork-inbox/LEIAME.md'), 'utf8') === '# doc\n', r.out);
+  check('lote com .md não falha o applier', r.code === 0, r.out);
 }
 
 // ── 5: bytes divergente = corrupção de transporte ────────────────────────────
@@ -242,7 +273,7 @@ function rodar(dir, pay, args = []) {
     existsSync(join(dir, 'prototipo-ui/cowork/oimpresso.com.html')), r.out);
 }
 
-console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ applier: fiel/atômico · shell transitivo completo · _ds persistente · recusa escopo/R1/bytes · avisa regressão');
+console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ applier: fiel/atômico · shell transitivo completo · _ds persistente · recusa escopo/bytes · .md roteado p/ design-docs (nunca cowork/) · avisa regressão');
 
 // ── 11: payload CORTADO no transporte (medido 2026-08-19) ───────────────────
 // `sync/payload.json` tem ~3,5 MB e o DesignSync.get_file corta em 256 KiB. Antes da
@@ -283,6 +314,196 @@ console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ applier: fiel/atômico ·
     r.code === 2 && r.out.includes('payload incompleto') && r.out.includes('faltam 3'), r.out);
   check('BITE incompleto: nao escreve espelho pela metade',
     !existsSync(join(dir, 'prototipo-ui/cowork/a.jsx')), r.out);
+}
+
+// ── C1: digest declarado × calculado — contradição REPORTADA, nunca veredito ──
+{
+  const dir = sandbox();
+  const pay = payload(dir, [
+    { path: 'a.jsx', content: 'a\n', fnv64: 'deadbeefdeadbeef' },   // errado de propósito
+    { path: 'b.jsx', content: 'b\n', fnv64: 'cafecafecafecafe' },   // errado de propósito
+    { path: 'c.jsx', content: 'c\n', fnv64: fnvRef('c\n') },        // correto
+  ]);
+  const obj = JSON.parse(readFileSync(pay, 'utf8'));
+  obj.hash = 'fnv1a-64 (hex 16) sobre o conteudo UTF-8';
+  writeFileSync(pay, JSON.stringify(obj), 'utf8');
+
+  const r = rodar(dir, pay);
+  check('BITE digest: contradição sai no rodapé com 2/3',
+    /digest N[ÃA]O bate em 2\/3/.test(r.out), r.out);
+  check('BITE digest: NÃO bloqueia — rc=0 e os 3 arquivos escritos',
+    r.code === 0 && ['a.jsx', 'b.jsx', 'c.jsx'].every((f) => existsSync(join(dir, 'prototipo-ui/cowork', f))), 'rc=' + r.code + r.out);
+  check('BITE digest: diz que segue como REFERÊNCIA, não veredito',
+    /REFER[ÊE]NCIA, n[ãa]o veredito/.test(r.out), r.out);
+}
+{ // controle negativo: sem `hash` no envelope, não inventa contradição
+  const dir = sandbox();
+  const pay = payload(dir, [{ path: 'a.jsx', content: 'a\n', fnv64: 'deadbeefdeadbeef' }]);
+  const r = rodar(dir, pay);
+  check('CONTROLE digest: envelope sem `hash` → nenhuma linha de digest',
+    r.code === 0 && !/digest/i.test(r.out), r.out);
+}
+
+// ── C2: `bytes` ausente é NÃO MEDIDO, não "conferido" ────────────────────────
+{
+  const dir = sandbox();
+  const pay = payload(dir, [{ path: 'a.jsx', content: 'a\n', bytes: null }, { path: 'b.jsx', content: 'b\n' }]);
+  const r = rodar(dir, pay);
+  check('BITE sem-bytes: lote parcial escreve e AVISA 1 sem prova',
+    r.code === 0 && /1 arquivo\(s\) escrito\(s\) SEM prova de bytes/.test(r.out), r.out);
+  check('BITE sem-bytes: o arquivo sem prova foi mesmo escrito',
+    existsSync(join(dir, 'prototipo-ui/cowork/a.jsx')), r.out);
+}
+{
+  const dir = sandbox();
+  const pay = completePayload(dir, [
+    { path: 'oimpresso.com.html', content: '<html><body>x</body></html>\n' },
+    { path: 'solto.jsx', content: 'z\n', bytes: null },
+  ]);
+  const r = rodar(dir, pay, ['--require-complete-shell']);
+  check('BITE sem-bytes: --require-complete-shell RECUSA o lote',
+    r.code === 1 && /sem `bytes`/.test(r.out), 'rc=' + r.code + r.out);
+  check('BITE sem-bytes: nada escrito quando recusa',
+    !existsSync(join(dir, 'prototipo-ui/cowork/solto.jsx')), r.out);
+}
+
+// ── C3: `missing` declarado é lido nos DOIS modos ────────────────────────────
+{
+  const dir = sandbox();
+  const pay = payload(dir, [{ path: 'a.jsx', content: 'a\n' }]);
+  const obj = JSON.parse(readFileSync(pay, 'utf8'));
+  obj.missing = ['x.jsx', 'y.css'];
+  writeFileSync(pay, JSON.stringify(obj), 'utf8');
+
+  const r = rodar(dir, pay);
+  check('BITE missing: lote parcial RELATA os ausentes e aplica (rc=0)',
+    r.code === 0 && /declarou 2 ausente\(s\): x\.jsx, y\.css/.test(r.out), 'rc=' + r.code + r.out);
+  check('BITE missing: aplicou mesmo relatando', existsSync(join(dir, 'prototipo-ui/cowork/a.jsx')), r.out);
+}
+{
+  const dir = sandbox();
+  const pay = completePayload(dir, [{ path: 'oimpresso.com.html', content: '<html></html>\n' }], ['x.jsx']);
+  const r = rodar(dir, pay, ['--require-complete-shell']);
+  check('BITE missing: --require-complete-shell continua BLOQUEANDO',
+    r.code === 1 && /declarou 1 ausente/.test(r.out), 'rc=' + r.code + r.out);
+}
+{ // controle negativo: missing vazio não gera relato nenhum
+  const dir = sandbox();
+  const pay = payload(dir, [{ path: 'a.jsx', content: 'a\n' }]);
+  const r = rodar(dir, pay);
+  check('CONTROLE missing: `missing: []` → nenhum relato de ausente',
+    r.code === 0 && !/ausente\(s\)/.test(r.out), r.out);
+}
+
+// ── 13: integração real produtor v2 → consumidor transacional ────────────────
+{
+  const producer = mkdtempSync(join(tmpdir(), 'design-v2-producer-'));
+  const out = join(producer, 'sync');
+  writeFileSync(join(producer, 'oimpresso.com.html'), '<link rel="stylesheet" href="grande.css">\n');
+  writeFileSync(join(producer, 'grande.css'), ':root{}\n' + 'x'.repeat(80000));
+  execFileSync(process.execPath, [GENERATOR, '--root', producer, '--out', out, '--cap', '70000', '--chunk-bytes', '30000', '--piso', '0'], { encoding: 'utf8' });
+  const parts = readdirSync(out).filter((name) => /^payload\.part\d+\.json$/.test(name)).sort().map((name) => join(out, name));
+  check('v2 E2E: gerador produziu múltiplas partes', parts.length > 1, String(parts.length));
+
+  const consumer = sandbox();
+  const dry = rodar(consumer, parts, ['--dry', '--require-complete-shell']);
+  check('v2 E2E: dry-run valida o lote sem escrever', dry.code === 0 && !existsSync(join(consumer, 'prototipo-ui/cowork/grande.css')), dry.out);
+  const applied = rodar(consumer, parts, ['--require-complete-shell']);
+  check('v2 E2E: applier promove bytes idênticos', applied.code === 0 && readFileSync(join(consumer, 'prototipo-ui/cowork/grande.css')).equals(readFileSync(join(producer, 'grande.css'))), applied.out);
+  check('v2 E2E: estado ativo foi persistido fora de _ds', existsSync(join(consumer, 'scripts/design-sync/state/active-bundle.json')), applied.out);
+
+  const incomplete = sandbox();
+  const missingPart01 = rodar(incomplete, parts.slice(1), ['--require-complete-shell']);
+  check('v2 E2E: ausência da part01 reprova antes de escrever', missingPart01.code !== 0 && !existsSync(join(incomplete, 'prototipo-ui/cowork/grande.css')), missingPart01.out);
+}
+
+// ── 11: ÂNCORA DE DESIGN — normalização da pasta de módulo que o Cowork emite ────────
+//
+// BITE-TEST PAREADO (§5: "sem o par, 'nunca disparou' é indistinguível de cego"). Roda o CLI
+// DE FORA — o docblock do topo já registra que assert sobre helper exportado fica verde
+// enquanto o pipeline regride (§5 2026-07-30). Aqui é o pipeline que tem que normalizar.
+{
+  const ancora = (v) => `---\nrelated_prototype: ${v}\nstatus: draft\n---\n\n# Tela\n`;
+  const lerDoc = (dir, rel) => readFileSync(join(dir, 'prototipo-ui/design-docs', rel), 'utf8');
+
+  // (a) RUIM → normaliza: o caso medido (13 Ponto + 1 Relatorios + 1 Modules).
+  //     `ponto/ponto-telas.jsx` não existe; `ponto-telas.jsx` existe → colapsa.
+  const d1 = sandbox({ 'ponto-telas.jsx': 'export const T=1\n' });
+  const p1 = payload(d1, [{ path: 'x/Index.charter.md', content: ancora('prototipo-ui/cowork/ponto/ponto-telas.jsx') }]);
+  const r1 = rodar(d1, p1);
+  check('âncora: pasta de módulo inexistente → COLAPSA pro plano',
+    r1.code === 0 && lerDoc(d1, 'x/Index.charter.md').includes('related_prototype: prototipo-ui/cowork/ponto-telas.jsx'), r1.out);
+  check('âncora: o colapso é RELATADO (silêncio seria pior que o defeito)',
+    /✓ x\/Index\.charter\.md: \S*ponto\/ponto-telas\.jsx → \S*cowork\/ponto-telas\.jsx/.test(r1.out), r1.out);
+
+  // (b) BOA/plana → passa intocada. Controle negativo do caso (a).
+  const d2 = sandbox({ 'ponto-telas.jsx': 'export const T=1\n' });
+  const p2 = payload(d2, [{ path: 'y/Index.charter.md', content: ancora('prototipo-ui/cowork/ponto-telas.jsx') }]);
+  const r2 = rodar(d2, p2);
+  check('âncora: forma plana válida passa INTOCADA',
+    r2.code === 0 && lerDoc(d2, 'y/Index.charter.md') === ancora('prototipo-ui/cowork/ponto-telas.jsx'), r2.out);
+
+  // (c) SUBDIR REAL → intocado. O FP que quase virou código: o espelho NÃO é plano (medido
+  //     2026-08-24: 74 arquivos em 5 subdirs), e 3 charters vivos dependem disso.
+  const d3 = sandbox({});
+  mkdirSync(join(d3, 'prototipo-ui/cowork/venda-v3'), { recursive: true });
+  writeFileSync(join(d3, 'prototipo-ui/cowork/venda-v3/sells-create.jsx'), 'export const S=1\n', 'utf8');
+  const p3 = payload(d3, [{ path: 'z/Index.charter.md', content: ancora('prototipo-ui/cowork/venda-v3/sells-create.jsx') }]);
+  const r3 = rodar(d3, p3);
+  check('âncora: SUBDIR QUE EXISTE não é colapsado (protege Sells/CreateV3 & irmãs)',
+    r3.code === 0 && lerDoc(d3, 'z/Index.charter.md').includes('venda-v3/sells-create.jsx'), r3.out);
+
+  // (c2) O CASO QUE TRAVA A ORDEM DAS GUARDAS — subdir real E homônimo na raiz, os DOIS.
+  //      Sem este, o (c) acima passa por DOIS caminhos (guarda `subdir-real` OU `sem-alvo`) e
+  //      não discrimina: medi removendo a guarda e o teste seguiu VERDE — cego. Aqui só a
+  //      ORDEM salva, que é exatamente a propriedade que o comentário do applier promete
+  //      ("por desenho, não porque o basename coincide").
+  //      ⚠️ E o arquivo TEM que ser .jsx/.html: a 1ª versão deste caso usou `.css`, que o
+  //      `anchorRelPath` nem reconhece — passava por 'prosa', sem tocar guarda nenhuma. Verde
+  //      por não-execução, a mesma doença que ele existe pra impedir.
+  const d3b = sandbox({ 'sells-create.jsx': 'export const RAIZ=1\n' });
+  mkdirSync(join(d3b, 'prototipo-ui/cowork/venda-v3'), { recursive: true });
+  writeFileSync(join(d3b, 'prototipo-ui/cowork/venda-v3/sells-create.jsx'), 'export const SUB=1\n', 'utf8');
+  const p3b = payload(d3b, [{ path: 'zz/Index.charter.md', content: ancora('prototipo-ui/cowork/venda-v3/sells-create.jsx') }]);
+  const r3b = rodar(d3b, p3b);
+  check('âncora: subdir real vence o homônimo da raiz (a ORDEM das guardas, não a sorte)',
+    r3b.code === 0 && lerDoc(d3b, 'zz/Index.charter.md').includes('venda-v3/sells-create.jsx'), r3b.out);
+
+  // (d) SEM ALVO → mantido + reportado. Nunca inventa (o caso `public/cowork-preview/Chat.html`).
+  const d4 = sandbox({});
+  const p4 = payload(d4, [{ path: 'w/Index.charter.md', content: ancora('prototipo-ui/cowork/nada/fantasma.jsx') }]);
+  const r4 = rodar(d4, p4);
+  check('âncora: sem alvo no espelho → MANTIDA como veio (não inventa)',
+    r4.code === 0 && lerDoc(d4, 'w/Index.charter.md').includes('nada/fantasma.jsx'), r4.out);
+  check('âncora: sem alvo é REPORTADO', /⚠ sem alvo no espelho, mantido como veio — w\/Index\.charter\.md/.test(r4.out), r4.out);
+
+  // (e) alvo que chega NO MESMO LOTE — o predicado enxerga o lote, não só o disco.
+  const d5 = sandbox({});
+  const p5 = payload(d5, [
+    { path: 'v/Index.charter.md', content: ancora('prototipo-ui/cowork/ponto/ponto-page.jsx') },
+    { path: 'ponto-page.jsx', content: 'export const P=1\n' },
+  ]);
+  const r5 = rodar(d5, p5);
+  check('âncora: alvo que chega no MESMO lote resolve (não marca sem-alvo)',
+    r5.code === 0 && lerDoc(d5, 'v/Index.charter.md').includes('cowork/ponto-page.jsx') && !/⚠ sem alvo/.test(r5.out), r5.out);
+
+  // (f) só a linha da âncora muda — reescrita ancorada, nada de comer o vizinho (§5 2026-08-02).
+  const d6 = sandbox({ 'ponto-telas.jsx': 'x\n' });
+  const doc = `---\ntitulo: Nao me toque\nrelated_prototype: prototipo-ui/cowork/ponto/ponto-telas.jsx (TelaX) — prosa\noutro: ponto/ponto-telas.jsx\n---\n\n# Corpo cita ponto/ponto-telas.jsx tambem\n`;
+  const p6 = payload(d6, [{ path: 'u/Index.charter.md', content: doc }]);
+  const r6 = rodar(d6, p6);
+  const saiu = lerDoc(d6, 'u/Index.charter.md');
+  check('âncora: preserva seção (TelaX) e prosa da própria linha',
+    saiu.includes('related_prototype: prototipo-ui/cowork/ponto-telas.jsx (TelaX) — prosa'), saiu);
+  check('âncora: NÃO toca outras linhas que citam o mesmo path (teste de identidade)',
+    saiu.includes('outro: ponto/ponto-telas.jsx') && saiu.includes('# Corpo cita ponto/ponto-telas.jsx tambem') && saiu.includes('titulo: Nao me toque'), saiu);
+
+  // (g) `.md` que NÃO é charter fica fora do escopo — o normalizador é cirúrgico.
+  const d7 = sandbox({ 'ponto-telas.jsx': 'x\n' });
+  const p7 = payload(d7, [{ path: 't/NOTAS.md', content: ancora('prototipo-ui/cowork/ponto/ponto-telas.jsx') }]);
+  const r7 = rodar(d7, p7);
+  check('âncora: .md que não é charter fica INTOCADO',
+    r7.code === 0 && lerDoc(d7, 't/NOTAS.md').includes('ponto/ponto-telas.jsx'), r7.out);
 }
 
 process.exit(fails ? 1 : 0);

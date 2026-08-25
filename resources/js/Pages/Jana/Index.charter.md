@@ -64,7 +64,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   **conferem**. Ficam como símbolo, não linha, porque o número é que é frágil, não a citação._
 
 - **Configurar (v8 — 2026-08-17):** a ação "Configurar" do `JanaAreaHeader` abre
-  `_components/JanaConfigDrawer.tsx` — quais das 4 análises aparecem no painel, persistido em
+  `_components/JanaConfigDrawer.tsx` — quais das 5 análises aparecem no painel, persistido em
   `localStorage['oimpresso.jana.cfg']` (prefixo `oimpresso.jana.*`, canon do `Chat.charter.md`).
   Âncora: `jana-merge.jsx` §`JmConfigDrawer` — âncora de SÍMBOLO
   (`grep -n "JmConfigDrawer" prototipo-ui/cowork/jana-merge.jsx`).
@@ -127,8 +127,9 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   **0×**. Aquele conserto nunca landou no protótipo.
   A **regra segue inteira**: a fonte citada no drawer vem lida do código real
   (`app/Services/Sells/SellsCockpitAggregator.php`), nunca dos nomes do protótipo. Onde o back não
-  tem método (`churn`), declara-se isso em texto, e o render só veste de `<code>` o que contém
-  `::`. Mexeu no aggregator, mexe no `JANA_DRILL_FONTES` no mesmo PR.
+  tiver método, declara-se isso em texto, e o render só veste de `<code>` o que contém `::` — hoje
+  nenhuma fonte está nesse caso (o `churn`, que estava, ganhou método no UC-13).
+  Mexeu no aggregator, mexe no `JANA_DRILL_FONTES` no mesmo PR.
   _Guard: `prototipo-ui/ancora.mjs` acusa símbolo de backend citado na âncora que não exista no
   repo — e desde 2026-08-13 enxerga também o formato `Classe::metodo` (antes ficava cego nele)._
 - ⛔ **Oferecer no drawer de configuração um controle que o servidor não honra.** É a mesma família
@@ -137,13 +138,14 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   `BriefingAgent` — nenhum cron lê o `localStorage` de um navegador), áudio/TTS (não existe; o
   próprio protótipo diz *"entra na M2"*), retenção *"ela esquece sozinha"*
   (`jana:retention-purge` foi **descartado por [W]** — *"num ERP não se apaga PII"*) e 6 toggles de
-  análise quando a tela renderiza **4** cards. Toggle que não muda nada é a promessa do rodapé do
+  análise quando a tela renderiza **5** cards. Toggle que não muda nada é a promessa do rodapé do
   brief com outra roupa — e foi por isso que o contrato manteve os botões "(em breve)" fora dele.
   Entra no drawer só o que é verdade **e** de fato local (quais análises aparecem); preferência que
   vale pra empresa toda aponta pro dono server-side que já existe (`PATCH /ia/alertas/config` →
   `business.essentials_settings.alertas`, per-business), em vez de ganhar um segundo dono.
-  _Guard: `UC-COPI-PAINEL-10` conta os `<Switch` do drawer (2: análises + HITL travado) e as
-  entradas de `JANA_ANALISES` (4) — toggle novo derruba o caso. A asserção é estrutural de
+  _Guard: `UC-JPAIN-10` conta os `<Switch` do drawer (2: análises + HITL travado) e as
+  entradas de `JANA_ANALISES` (5, desde o churn ouro do UC-13) — toggle novo derruba o caso.
+  A asserção é estrutural de
   propósito: buscar a palavra "Frota" proibiria o próprio comentário que registra a decisão
   (§5 2026-07-26)._
 - ⛔ **Projetar o fechamento de meta no frontend.** É o §Anti-hooks do farol no eixo da PROJEÇÃO,
@@ -167,7 +169,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   este passo registra a aprovação e **não envia**. "Disparar" abrindo um modal que não dispara
   trocaria um botão morto por um botão que MENTE, e esta regra vale igual pros dois. O rodapé da
   seção perdeu junto a frase "Próximas ondas: ações HITL real …": metade dela deixou de ser futuro.
-  A paridade rótulo↔chave de backend é amarrada por teste (UC-COPI-PAINEL-12) — regra que nasce só
+  A paridade rótulo↔chave de backend é amarrada por teste (UC-JPAIN-12) — regra que nasce só
   no `.tsx` viraria botão que abre modal e morre em 404, que é botão morto com um passo a mais._
 
 - ⛔ **Deixar a prévia da ação nascer no cliente.** É o §Anti-hooks da FONTE (drill) e o da PROJEÇÃO
@@ -202,7 +204,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   "Revisar …" e o rodapé da seção deixou de prometer — ver o recibo no §Anti-hooks.
 
   **Três divergências do pedido [CC] que a medição corrigiu, e ficam registradas:**
-  - o pedido numerava o caso como **UC-COPI-PAINEL-11**. Esse número já é da v9 (drawer
+  - o pedido numerava o caso como **UC-JPAIN-11**. Esse número já é da v9 (drawer
     de meta) — o caso nasceu **12**. Numerar por cima teria apagado um contrato vivo.
   - o pedido mandava montar `usePage().props.flash.sucesso` + `toast()` na Page (a
     "ordem 6 de carona"). **A chave `sucesso` não existe** — `HandleInertiaRequests`
@@ -257,7 +259,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 
   **O drawer é menor que a âncora, e isso é o conteúdo da decisão** — as 4 promessas do
   `JmConfigDrawer` que o servidor não honra ficaram de fora, com a medição registrada no anti-hook
-  novo acima. Sobrou o que é verdade e é local: quais das 4 análises aparecem no painel, persistido
+  novo acima. Sobrou o que é verdade e é local: quais das 5 análises aparecem no painel, persistido
   sob o prefixo canon `oimpresso.jana.*`.
 
   **Uma correção de fato, no mesmo PR (regra de precedência):** este charter e o `casos.md` diziam

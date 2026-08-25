@@ -116,7 +116,7 @@ export function gateJaReprovado(l) {
 
 export function formatBanner(alarme, watch, th) {
   if (alarme.length === 0 && watch.length === 0) return '';
-  const out = ['', '=== LICOES [CODE] - gatilho two-strikes (audit loop de aprendizado) ==='];
+  const out = ['', '[licoes-code-two-strikes] === LICOES [CODE] - gatilho two-strikes (audit loop de aprendizado) ==='];
   if (alarme.length) {
     out.push(`  [!] ${alarme.length} classe(s) repetiram (>= ${th}x) e NAO tem gate. PROMOVER A DEFESA MECANICA:`);
     for (const a of alarme) {
@@ -260,7 +260,13 @@ export function ledgerCitacoesSecao5(text) {
       // Ocorrências (excluir Ref/corpo) evita contaminar o frontier com data de METADATA —
       // ex.: o Ref do LC-08 diz "raio-X 2026-07-20", que NÃO é recibo e falseava o frontier
       // pra 07-20 (bug pego pelo dry-run contado — a razão de o dry-run ser obrigatório).
-      if (!/\*\*Ocorr/i.test(ln)) continue;
+      // `**rec**` = recibo em LINHA PRÓPRIA (2026-08-24). O formato antigo empilhava todos os
+      // recibos DENTRO da linha `**Ocorrências:**`, e ela chegou a 359.699 bytes no LC-08 —
+      // 70% do arquivo numa linha só, ilegível por qualquer leitor (humano, `sed`, agente).
+      // Os dois formatos são aceitos: `**Ocorr…` (legado, não se reescreve em massa) e `**rec**`
+      // (novo, 1 por linha). A CONTAGEM segue só na linha `**Ocorrências:** N` — `**rec**` não
+      // casa `/\*\*Ocorr/`, então não interfere no parser de count acima.
+      if (!/\*\*Ocorr/i.test(ln) && !/^\s*-\s+\*\*rec\*\*/i.test(ln)) continue;
       if (!/§5|proibicoes/i.test(ln)) continue;
       const s = saneiaLinhaRecibo(ln);
       for (const m of s.matchAll(/(?:\d{4}-)?(\d{2})-(\d{2})\b/g)) {
@@ -334,7 +340,7 @@ export function reconcile(ledgerText, proibicoesText, { cap = 5 } = {}) {
 export function formatReconcile(recon) {
   if (!recon) return '';
   if (recon.surfaced.length === 0 && recon.dangling.length === 0) return '';
-  const out = ['', '=== LICOES [CODE] - reconciliacao proibicoes-sec5 <-> ledger (advisory - auto-feed) ==='];
+  const out = ['', '[licoes-code-two-strikes] === LICOES [CODE] - reconciliacao proibicoes-sec5 <-> ledger (advisory - auto-feed) ==='];
   if (recon.frontier) {
     const cego = recon.naoConferidos ? ` - ${recon.naoConferidos} data(s) de prosa NAO conferida(s) (sem marcador de recibo)` : '';
     out.push(`  frontier ${recon.frontier} (data mais recente da sec5 que o ledger cita) - recibos ${recon.recibosOk}/${recon.recibosTotal} resolvem${cego}`);
