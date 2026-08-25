@@ -506,6 +506,17 @@ jobs:
         # REGRESSÃO DE PIXEL real (double-threshold "REGRESSÃO CLARA" > τ_alto) NUNCA re-roda —
         # o wrapper falha com o código original, preservando o que o gate enforcing existe p/ pegar.
         # Sem --filter: a matriz inteira (todas as telas do manifesto) é enforcing.
+        env:
+          # A partição própria × herdada do `VisregThreshold` depende do RAIO do PR, e este
+          # step nascia sem ele: sem `VISREG_SCREENS`/`SCOPE`/`RAIO_CONFIAVEL` toda tela em zona
+          # cinza vira PRÓPRIA, e a dívida herdada da main reprova quem não a causou. O conserto
+          # do #6188 chegou ao `Pixel-diff afetadas` e não aos 4 irmãos ENFORCING (medido: 1 de 5
+          # steps tinha as envs). Reprodução em 2026-08-25, PR #6269: `raio_confiavel: true`, o PR
+          # toca 2 arquivos de `Jana/Index`, e o bloqueio veio de 3 telas `financeiro-unificado`
+          # (0.1199% cada) — fora do raio, com os 20 testes PASSANDO.
+          VISREG_SCOPE: ${{ steps.impact.outputs.scope }}
+          VISREG_SCREENS: ${{ steps.impact.outputs.screens }}
+          VISREG_RAIO_CONFIAVEL: ${{ steps.impact.outputs.raio_confiavel }}
         run: bash scripts/tests/visreg-flake-retry.sh tests/Browser/CoreScreens/IsolatedStatesBaselineTest.php
 
       - name: Fluxos visuais Financeiro (ENFORCING — L2.5 · interação × viewport)
@@ -519,6 +530,17 @@ jobs:
         # RETRY-ONCE anti-flake (mesma política do financeiro-states): re-roda UMA vez só na
         # assinatura de execução (o fluxo levou 11 patches por relógio cross-processo → o
         # residual é flake de timing/browser, não pixel). Diff de pixel real NUNCA re-roda.
+        env:
+          # A partição própria × herdada do `VisregThreshold` depende do RAIO do PR, e este
+          # step nascia sem ele: sem `VISREG_SCREENS`/`SCOPE`/`RAIO_CONFIAVEL` toda tela em zona
+          # cinza vira PRÓPRIA, e a dívida herdada da main reprova quem não a causou. O conserto
+          # do #6188 chegou ao `Pixel-diff afetadas` e não aos 4 irmãos ENFORCING (medido: 1 de 5
+          # steps tinha as envs). Reprodução em 2026-08-25, PR #6269: `raio_confiavel: true`, o PR
+          # toca 2 arquivos de `Jana/Index`, e o bloqueio veio de 3 telas `financeiro-unificado`
+          # (0.1199% cada) — fora do raio, com os 20 testes PASSANDO.
+          VISREG_SCOPE: ${{ steps.impact.outputs.scope }}
+          VISREG_SCREENS: ${{ steps.impact.outputs.screens }}
+          VISREG_RAIO_CONFIAVEL: ${{ steps.impact.outputs.raio_confiavel }}
         run: bash scripts/tests/visreg-flake-retry.sh tests/Browser/CoreScreens/FinanceiroFlowBaselineTest.php
 
       - name: Fluxos visuais Compras (ENFORCING — L2.5 · interação × viewport)
@@ -536,6 +558,17 @@ jobs:
         # RETRY-ONCE anti-flake (scripts/tests/visreg-flake-retry.sh, mesmo do Sells/Financeiro):
         # re-roda só em FLAKE de execução (browser/socket/timeout), NUNCA em regressão de pixel
         # (double-threshold é veredito duro). Sem ele, um flake de browser travaria o merge do time.
+        env:
+          # A partição própria × herdada do `VisregThreshold` depende do RAIO do PR, e este
+          # step nascia sem ele: sem `VISREG_SCREENS`/`SCOPE`/`RAIO_CONFIAVEL` toda tela em zona
+          # cinza vira PRÓPRIA, e a dívida herdada da main reprova quem não a causou. O conserto
+          # do #6188 chegou ao `Pixel-diff afetadas` e não aos 4 irmãos ENFORCING (medido: 1 de 5
+          # steps tinha as envs). Reprodução em 2026-08-25, PR #6269: `raio_confiavel: true`, o PR
+          # toca 2 arquivos de `Jana/Index`, e o bloqueio veio de 3 telas `financeiro-unificado`
+          # (0.1199% cada) — fora do raio, com os 20 testes PASSANDO.
+          VISREG_SCOPE: ${{ steps.impact.outputs.scope }}
+          VISREG_SCREENS: ${{ steps.impact.outputs.screens }}
+          VISREG_RAIO_CONFIAVEL: ${{ steps.impact.outputs.raio_confiavel }}
         run: bash scripts/tests/visreg-flake-retry.sh tests/Browser/CoreScreens/ComprasFlowBaselineTest.php
 
       - name: Fluxos visuais Sells/Create (ENFORCING — L2.5 · interação × viewport)
@@ -552,6 +585,17 @@ jobs:
         # Retry-once guard (mesmo do Financeiro/Compras): re-roda só em FLAKE de execução
         # (browser/socket/timeout), NUNCA em regressão de pixel (double-threshold é veredito
         # duro). O motor VisregThreshold segue intocado.
+        env:
+          # A partição própria × herdada do `VisregThreshold` depende do RAIO do PR, e este
+          # step nascia sem ele: sem `VISREG_SCREENS`/`SCOPE`/`RAIO_CONFIAVEL` toda tela em zona
+          # cinza vira PRÓPRIA, e a dívida herdada da main reprova quem não a causou. O conserto
+          # do #6188 chegou ao `Pixel-diff afetadas` e não aos 4 irmãos ENFORCING (medido: 1 de 5
+          # steps tinha as envs). Reprodução em 2026-08-25, PR #6269: `raio_confiavel: true`, o PR
+          # toca 2 arquivos de `Jana/Index`, e o bloqueio veio de 3 telas `financeiro-unificado`
+          # (0.1199% cada) — fora do raio, com os 20 testes PASSANDO.
+          VISREG_SCOPE: ${{ steps.impact.outputs.scope }}
+          VISREG_SCREENS: ${{ steps.impact.outputs.screens }}
+          VISREG_RAIO_CONFIAVEL: ${{ steps.impact.outputs.raio_confiavel }}
         run: bash scripts/tests/visreg-flake-retry.sh tests/Browser/CoreScreens/SellsCreateFlowBaselineTest.php
 
       # ── MODO UPDATE (dispatch): PROVA o relógio congelado ANTES de assar baseline ──
