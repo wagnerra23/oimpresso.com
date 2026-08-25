@@ -116,7 +116,7 @@ export function gateJaReprovado(l) {
 
 export function formatBanner(alarme, watch, th) {
   if (alarme.length === 0 && watch.length === 0) return '';
-  const out = ['', '=== LICOES [CODE] - gatilho two-strikes (audit loop de aprendizado) ==='];
+  const out = ['', '[licoes-code-two-strikes] === LICOES [CODE] - gatilho two-strikes (audit loop de aprendizado) ==='];
   if (alarme.length) {
     out.push(`  [!] ${alarme.length} classe(s) repetiram (>= ${th}x) e NAO tem gate. PROMOVER A DEFESA MECANICA:`);
     for (const a of alarme) {
@@ -340,7 +340,7 @@ export function reconcile(ledgerText, proibicoesText, { cap = 5 } = {}) {
 export function formatReconcile(recon) {
   if (!recon) return '';
   if (recon.surfaced.length === 0 && recon.dangling.length === 0) return '';
-  const out = ['', '=== LICOES [CODE] - reconciliacao proibicoes-sec5 <-> ledger (advisory - auto-feed) ==='];
+  const out = ['', '[licoes-code-two-strikes] === LICOES [CODE] - reconciliacao proibicoes-sec5 <-> ledger (advisory - auto-feed) ==='];
   if (recon.frontier) {
     const cego = recon.naoConferidos ? ` - ${recon.naoConferidos} data(s) de prosa NAO conferida(s) (sem marcador de recibo)` : '';
     out.push(`  frontier ${recon.frontier} (data mais recente da sec5 que o ledger cita) - recibos ${recon.recibosOk}/${recon.recibosTotal} resolvem${cego}`);

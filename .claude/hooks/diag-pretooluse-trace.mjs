@@ -58,8 +58,13 @@ async function main() {
 
   // ISO sem Date.now()/new Date() proibidos? aqui é runtime de hook real (não workflow),
   // então new Date() é permitido — é o instante real do tool call, parte do dado.
+  // ATENCAO (2026-08-25): a tag `[diag-pretooluse-trace]` abaixo segue a convencao do
+  // `hook-bites`, mas o canal desta sonda e ARQUIVO (.claude/run/pretooluse-trace.log),
+  // nao o transcript. O medidor le so o transcript, entao a contagem dele fica 0 por
+  // construcao — cai em 'wired com ZERO entrega', nao em 'nao-observavel'.
   const line =
     [
+      '[diag-pretooluse-trace]',
       new Date().toISOString(),
       p.hook_event_name || '?event',
       p.tool_name || '?tool',

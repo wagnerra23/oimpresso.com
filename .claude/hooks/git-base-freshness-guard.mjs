@@ -43,7 +43,7 @@ import { fileURLToPath } from 'node:url';
 export function buildBanner({ behind, ahead, branch }) {
   if (!Number.isFinite(behind) || behind <= 0) return ''; // fresca → silêncio
   const aheadTxt = Number.isFinite(ahead) && ahead > 0 ? ` (e ${ahead} à frente)` : '';
-  return `⚠️ **BASE STALE — guard \`git-base-freshness-guard.mjs\` (SessionStart)**
+  return `[git-base-freshness-guard] ⚠️ **BASE STALE — guard \`git-base-freshness-guard.mjs\` (SessionStart)**
 
 Seu checkout (\`${branch}\`) está **${behind} commit(s) ATRÁS de \`origin/main\`**${aheadTxt}. Você **NÃO está no main** — o working tree NÃO é canon.
 
