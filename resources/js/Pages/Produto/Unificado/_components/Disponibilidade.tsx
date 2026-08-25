@@ -12,11 +12,19 @@
  * ⚠️ O patch de cor §2 pede 6%/22% AFIRMANDO ser "a mesma receita do guia do DS para Alert e
  * StatusBadge". Medido, não é: o StatusBadge usa 16%/30%. [W] escolheu o DS (2026-08-24).
  *
- * ⚠️ ÚNICO desvio do componente, declarado: o texto usa `-fg` e não o tom cheio. O `--color-warning`
- * é oklch(0.70 0.13 75) — sobre o fundo a 16% dá ~1,9:1 de contraste, ilegível em 12px. O par
- * `-fg` do próprio DS (oklch(0.55 0.12 75)) sobe pra ~3,1:1. O `fresc-cold` do bundle ainda traz
- * um `fg` LITERAL oklch(0.74 0.14 18), que é valor de tema escuro e além disso viola o §6 do
- * patch (zero literal na tela) — por isso `destructive-fg`.
+ * TEXTO no tom cheio, como o componente manda — [W] 2026-08-25: "design system SEMPRE ganha".
+ * Custa contraste, e o número fica registrado em vez de escondido (medido sobre o fundo a 16%
+ * em branco; WCAG AA pra texto pequeno pede 4,5:1):
+ *
+ *   Disponível  var(--color-success)     2,86:1
+ *   Abaixo mín. var(--color-warning)     2,36:1
+ *   Sem saldo   var(--color-destructive) 3,75:1
+ *
+ * ⚠️ O `fresc-cold` do bundle é o ÚNICO dos três que NÃO usa token: traz `fg` LITERAL
+ * oklch(0.74 0.14 18) — valor de tema ESCURO vazado no tom claro, que sobre este fundo dá
+ * **1,94:1** (praticamente invisível) e ainda viola o §6 do patch e a regra AP1 do projeto,
+ * que proíbem cor crua nesta tela. Não propago o literal: uso `text-destructive`, que é o
+ * MESMO padrão dos dois irmãos (`var(--color-<tom>)`). O literal é a anomalia, não a regra.
  *
  * ⚠️ DESVIO DECLARADO do protótipo: lá "Não estocável" reusa o valor `distante` do badge de
  * frescor, que no bundle do DS cai em `fresc-cold` — o MESMO vermelho de "Sem saldo". Um
@@ -39,9 +47,9 @@ import { Inline } from '@/Components/layout';
 import { qtdComUnidade, type EstadoEstoque, type LocalSaldo } from './catalogo';
 
 const ESTILO: Record<EstadoEstoque['chave'], string> = {
-  em: 'bg-success/16 border-success/30 text-success-fg',
-  baixo: 'bg-warning/16 border-warning/30 text-warning-fg',
-  sem: 'bg-destructive/16 border-destructive/30 text-destructive-fg',
+  em: 'bg-success/16 border-success/30 text-success',
+  baixo: 'bg-warning/16 border-warning/30 text-warning',
+  sem: 'bg-destructive/16 border-destructive/30 text-destructive',
   // Não estocável é AUSÊNCIA de saldo por natureza, não problema: fundo transparente e
   // texto apagado, sem ponto. Ele é o único dos quatro que não afirma um estado de estoque.
   nao: 'bg-transparent border-border text-muted-foreground',
