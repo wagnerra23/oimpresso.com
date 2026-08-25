@@ -1,7 +1,7 @@
 ---
 id: reference-fluxo-design
 name: Fluxo — Design, do Cowork à tela
-description: Como o design entra no repo, vira tela e é provado — as 9 etapas com seus subprocessos, o que cada uma grava, como conferir que foi feita, e onde ainda não há prova.
+description: Como o design entra no repo, vira tela e é provado — E0 de ativação mais 9 etapas operacionais, com fluxos internos, decisões, armadilhas, provas existentes e testes ainda necessários.
 type: reference
 authority: canonical
 lifecycle: ativo
@@ -83,7 +83,26 @@ persistido pela máquina, jamais transcrito pelo contexto do agente. Transcrever
 
 ---
 
-# As 9 etapas
+# E0 de ativação + 9 etapas operacionais
+
+## Como ler cada etapa
+
+Cada etapa responde às mesmas sete perguntas, mesmo quando a máquina que a executa muda:
+
+1. **Qual é a entrada confiável?** Arquivo, estado, URL, hash ou decisão humana que inicia o passo.
+2. **Quem transforma?** Hook, script, workflow, navegador ou agente.
+3. **Onde há decisão?** Ponto em que o fluxo continua, recusa ou volta para corrigir a fonte.
+4. **O que é gravado?** Artefato durável; saída apenas no terminal não fecha o ciclo.
+5. **Qual é a armadilha?** Caminho plausível que produz um resultado errado.
+6. **Qual falso-verde ela gera?** Mensagem de sucesso que não prova a pergunta feita.
+7. **Como provar?** Controle positivo, controle negativo e limite explícito da prova.
+
+O vocabulário abaixo é deliberado:
+
+- **prova existente**: teste ou selftest localizado e ligado a um workflow;
+- **cobertura parcial**: a prova morde uma classe do erro, mas não a semântica inteira;
+- **lacuna residual**: cenário relevante para o qual não foi localizada prova automatizada;
+- **advisory/required**: nível de enforcement, nunca sinônimo de “tem teste” ou “não tem teste”.
 
 ## E0 · Ativação — antes do primeiro passo
 
@@ -100,6 +119,37 @@ que ativa é o registro em `.claude/settings.json`, e cada registro tem um teste
 | E0.4 | injeta o protocolo de comparação (camada 2, defesa em profundidade) | nada |
 | E0.5 | reprocessa handoff de design quando detecta o cabeçalho de memórias novas | nada |
 | E0.6–E0.9 | opt-in de publicação, bloqueio de escrita no DesignSync, bloqueio da skill, bloqueio de Figma | flag temporária com TTL |
+
+### Fluxo interno e pontos de decisão
+
+```text
+prompt do usuário
+  -> hooks UserPromptSubmit registrados em settings.json
+  -> [há intenção de design?]
+       não -> sessão segue sem injetar o protocolo
+       sim -> [é comparação design x produção?]
+                sim -> injeta protocolo de medição e proveniência
+                não -> injeta painel do designer-agente
+  -> [a ação pede escrita/publicação externa?]
+       sim, sem opt-in válido -> bloqueia e explica a autorização faltante
+       sim, com flag dentro do TTL -> permite uma ação no escopo autorizado
+       não -> segue
+  -> contador de mordidas registra qual defesa realmente apareceu na sessão
+```
+
+**Entrada:** texto do prompt + registros em `.claude/settings.json` + flags temporárias. **Saída:**
+contexto injetado, bloqueio objetivo ou passagem silenciosa. E0 não modifica tela; ele decide qual
+protocolo será carregado antes de alguém começar a agir.
+
+### Armadilhas e falsos verdes
+
+| Armadilha | Por que parece correta | Falso-verde produzido | Defesa necessária |
+|---|---|---|---|
+| arquivo de hook existe, mas não está registrado | o código está no disco e passa revisão visual | “o protocolo existe”, embora nunca execute | teste do wiring + manifesto órfão/fantasma |
+| regex ampla demais | captura todos os prompts de design da fixture | interrompe comparações de preço, módulo e texto comum | corpus positivo **e negativo** |
+| regex estreita demais | os exemplos felizes continuam verdes | linguagem real de divergência não ativa a máquina | corpus retirado de prompts reais + contador de mordidas |
+| flag sem TTL ou sem escopo | o primeiro uso autorizado funciona | autorização antiga libera ação posterior diferente | expiração, consumo único e escopo explícito |
+| zero mordidas interpretado como saúde | nenhum erro aparece | hook morto e hook nunca necessário têm o mesmo número | cruzar oportunidades elegíveis × ativações |
 
 **Verbo isolado não dispara** — é decisão medida, não descuido: `compare` sozinho casaria
 "compara módulo", "compara preço". A cadência do cutucão idem: o gatilho casa 554 vezes em 3.279
@@ -126,12 +176,21 @@ Medido em 30 dias, sobre 868 sessões locais: ativação de design **350 entrega
 comparação **116**, bloqueio de DesignSync **6**, âncora **1**, Figma **0**. O próprio contador
 avisa que zero é ambíguo — pode ser "ninguém usou Figma" (legítimo) ou "o hook não morde mais".
 
-### Prova hoje
+### Prova existente e limite residual
 
-Dos seis hooks, **dois não têm teste ao lado**: o de ativação (tem autoteste, 27/27) e o
-**protocolo de comparação, que não tem prova nenhuma e nenhum invocador em CI** — entregou 116
-vezes em 30 dias e nada garante que o regex ainda casa o que deveria. **Nenhum hook de E0 roda
-em job required.**
+- `design-agente-ativa.mjs --selftest` tem corpus próprio e é invocado por
+  `governance-script-tests.yml`.
+- `observabilidade-tags.test.mjs` prova um caminho feliz do `design-compare-protocol`: um prompt de
+  comparação emite a tag esperada.
+- o manifesto e os testes de registro provam arquivo ↔ `settings.json`; isso não prova a qualidade
+  semântica do matcher.
+- **lacuna residual:** o protocolo de comparação não tem um corpus dedicado com positivos,
+  negativos, typos e frases reais de divergência. O teste de observabilidade prova que **um**
+  exemplo dispara, não que exemplos inocentes sejam ignorados nem que a linguagem real continue
+  coberta.
+
+Nenhuma dessas provas transforma E0 em required: enforcement e qualidade do teste são eixos
+separados.
 
 ---
 
@@ -149,6 +208,42 @@ A etapa mais densa, e a única que já regrediu de verdade.
 | E1.4 | **inventariar** | estado → tela por tela: pendente / bloqueada / a criar | relatório de aplicação |
 | E1.5 | **rota pontual** (1–3 arquivos) | JSON do arquivo → escrita pela máquina | espelho ou design-docs, roteado **por extensão** |
 | E1.6 | **o pedido** (intake) | `cowork-inbox/` → o que fazer com o design | design-docs |
+
+### Fluxo interno e pontos de decisão
+
+```text
+Design/Cowork vivo
+  -> listagem do universo vivo
+  -> gerador produz manifesto + partes + SHA por arquivo
+  -> receptor reconstrói em staging
+  -> [sequência completa? hashes batem? paths seguros? grafo fechado?]
+       não -> recusa; destinos atuais permanecem byte-idênticos
+       sim -> dry-run monta o resultado e descarta
+  -> [base do delta ainda é a base ativa?]
+       não -> BASE_DIVERGENTE; exigir snapshot ou novo delta
+       sim -> promoção atômica dos destinos
+  -> [alguma troca falhou?]
+       sim -> rollback em ordem reversa
+       não -> grava bundle ativo, estado e inventário
+  -> detector compara universo vivo com o que desceu
+       -> faltante vira pendência explícita, nunca “SYNC”
+```
+
+As decisões de segurança acontecem **antes** de tocar o destino. O inventário acontece depois da
+promoção porque precisa descrever o estado que realmente ficou ativo, não o staging que quase foi
+aplicado.
+
+### Armadilhas e falsos verdes
+
+| Armadilha | Por que engana | Falso-verde | Como evitar |
+|---|---|---|---|
+| shell local antigo define o universo | todas as referências conhecidas estão presentes | `ausentes: 0` enquanto arquivos novos existem no vivo | listar o vivo primeiro; refrescar shell; registrar denominador |
+| transportar só o `.jsx` | o componente chegou e o hash bate | tela quebra sem CSS, fonte ou asset transitivo | fechar grafo CSS/import/url até ponto fixo |
+| comparar apenas arquivos já espelhados | tudo que foi comparado está SYNC | cobertura parcial parece cobertura total | separar `SYNC` de “vivo não inventariado” |
+| aplicar delta sobre base diferente | cada parte e cada SHA são válidos isoladamente | mistura coerente de duas versões incoerentes | conferir `base_bundle_id` antes da promoção |
+| copiar payload pelo chat | o conteúdo parece textual e completo | truncamento ou normalização invisível | persistência pela máquina; comparar bytes e SHA |
+| promover quatro destinos sem transação | três renomes passam e o quarto falha | estado híbrido entre espelho, docs, preview e ledger | staging único + pilha de rollback reversa |
+| tratar `.md` como código do espelho | arquivo foi “importado” | pedido fica no lugar errado e nunca chega ao consumidor | roteamento determinístico por extensão e destino |
 
 O transporte é **em partes** porque a leitura corta em 256 KiB: um payload único de ~3,5 MB volta
 inútil. A primeira recepção é **snapshot** (tudo); as seguintes são **delta** — só adicionados e
@@ -220,12 +315,26 @@ espelho**. Quem responde a outra pergunta é o modo que lista o vivo.
 Generalizando, e vale para muito além do design: **régua cujo universo vem do lado que você
 controla mede a sua diligência, não a realidade.**
 
-### Prova hoje
+### Prova existente e limite residual
 
-O transporte tem teste (aplicação, geração de partes, transação). **Não têm**: o contrato do
-bundle, o grafo de dependências, a detecção de colisão, o construtor do espelho e o inventário de
-estado. O vigia-dos-vigias tem **uma única** entrada neste eixo, e ela cobre só a checagem de
-referências.
+O transporte já tem uma bateria forte; não deve ser descrito como “sem teste”:
+
+- `gerar-payload-partes.test.mjs` cobre manifesto, reconstrução de partes, teto/piso, glob,
+  exclusão, arquivo ausente e delta exato;
+- `aplicar-payload.test.mjs` cobre fidelidade de bytes, idempotência, dry-run, escopo, roteamento
+  de `.md`, truncamento, envelope incompleto, grafo transitivo e cancelamento atômico por
+  dependência ausente;
+- `bundle-transaction.test.mjs` cobre sequência, SHA, mapping, parte faltante, corrupção, path
+  traversal, base divergente, promoção, rollback e invalidação da evidência quando a fonte muda;
+- `cowork-mirror-freshness.test.mjs` cobre `SYNC/STALE/LIVE-ABSENT/UNCHECKED`, cobertura parcial,
+  dependências CSS/fontes, arquivo live-only, SLA, preview e rollback.
+
+Essas baterias estão ligadas aos workflows de governança/design. **Limite residual:** uma fixture
+local só conhece o universo que a fixture entrega. O risco operacional que sobra é a aquisição do
+universo vivo autenticado: se a listagem não rodar, estiver paginada ou usar shell velho como
+denominador, todos os hashes podem passar e ainda assim faltar uma tela inteira. O teste novo deve
+provar o contrato “sem listagem viva válida não existe veredito de cobertura”, não repetir hash ou
+rollback já cobertos.
 
 ---
 
@@ -240,6 +349,39 @@ referências.
 | E2.3 | **computa** a âncora do que o charter declara | é o campo do charter, nunca a string do caminho |
 | E2.4 | trata `n/a` como **declaração**, não como pendência | 135 de 158 charters declaram `n/a` legitimamente |
 | E2.5 | classifica o conteúdo da âncora | ausente ou apontando pro shell reprova; sem módulo é aviso |
+
+### Fluxo interno e pontos de decisão
+
+```text
+consulta por Tela/Modulo
+  -> varre charters nas raízes de Pages do núcleo e dos módulos
+  -> [quantos charters casam?]
+       0 -> recusa: não inventar; registrar ou perguntar
+       >1 -> recusa: consulta ambígua; exigir identidade completa
+       1 -> lê related_prototype
+  -> [valor é n/a declarado?]
+       sim -> encerra como “sem protótipo por decisão”, não como pendência
+       não -> normaliza o caminho declarado
+  -> [arquivo abre?]
+       não -> NÃO MEDIDO; não imprimir ✓
+       sim -> [conteúdo é fonte de tela ou shell genérico?]
+                shell/ausente -> reprova
+                fonte plausível -> devolve âncora + proveniência
+```
+
+**Entrada:** identidade da tela e charter versionado. **Saída:** uma âncora única, `n/a` explícito
+ou recusa. Caminho existente é condição necessária, não suficiente: a pergunta final é se aquele
+arquivo representa **esta** tela.
+
+### Armadilhas e falsos verdes
+
+| Armadilha | Falso-verde | Por que acontece | Defesa |
+|---|---|---|---|
+| varrer só `resources/js/Pages` | módulo parece não ter charter | raízes modulares ficam fora do universo | usar `raizesDePages`, fonte única |
+| limpar prosa do campo “no olho” | abre um arquivo diferente do declarado | normalização vira adivinhação | schema do campo + erro que mostra valor bruto e normalizado |
+| arquivo existe, mas pertence a outra tela | âncora ✓ e comparação coerente da tela errada | guardas atuais provam existência/shell, não identidade semântica | vínculo Tela↔protótipo verificável ou revisão explícita |
+| `n/a` contado como falta | dívida cresce artificialmente | ausência deliberada colapsa com pendência | estado separado e motivo versionado |
+| erro de leitura sai exit 0 com selo verde | ausência de medição parece saúde | relatório confunde resolução com inspeção de conteúdo | estado `NÃO MEDIDO` visível e não promovível |
 
 Medido: **217 charters**, âncoras no lugar fixo e vivas.
 
@@ -279,11 +421,18 @@ que o charter declara — não a string do caminho.
 
 `⛔ podre: 0 · 🟡 sem módulo: 3 · ✓ ok: 51`
 
-### Prova hoje
+### Prova existente e limite residual
 
-O detector de telas está no vigia-dos-vigias. **O resolvedor de âncora — do qual três outras
-máquinas derivam — não tem teste, está fora do registro, e seu único passo de CI é
-`continue-on-error`.** Se ele regredir, nada fica vermelho.
+- `ancora.mjs --selftest` existe e é invocado em `design-memory-gate.yml`;
+- `block-ancora-no-olho.test.mjs` prova o bloqueio de print semântico não declarado;
+- `anchor-content-check.test.mjs` tem controles de conteúdo e alimenta também um context required;
+- `settings-ancora-registration.test.mjs` cobre o wiring do hook;
+- `design-code-map-check.test.mjs` cobre staleness e vínculo derivado do mapa.
+
+**Limite residual:** essas provas detectam ausência, shell, registro e staleness; não demonstram
+que um arquivo real e plausível pertence semanticamente à tela consultada. A fixture adversarial
+correta é “charter de A aponta para protótipo real de B”: tudo existe, nada é shell, mas a âncora
+continua errada.
 
 ---
 
@@ -303,6 +452,38 @@ A etapa com a lição mais cara do ciclo.
 | E3.5 | emitir veredito de vocabulário fechado |
 | E3.6 | persistir a ponte design↔código |
 | E3.7 | rotear a análise por **região**, não pela tela inteira |
+
+### Fluxo interno e pontos de decisão
+
+```text
+âncora resolvida + URL de produção + viewport/tema/estado
+  -> prova de frescor da fonte
+  -> [fonte SYNC e âncora válida?]
+       não -> recusa a comparação; não produzir lista de gaps
+       sim -> estabiliza os dois renders
+  -> injeta a mesma sonda em DESIGN e PROD
+  -> snapshots declaram lado, URL, tela, tema, viewport e hash de origem
+  -> [identidades e matriz coincidem?]
+       não -> recusa antes de calcular delta
+       sim -> compara propriedades computadas por papel
+  -> classifica cada divergência: bug / prod à frente / ruído / não medido
+  -> agrupa por região e persiste a ponte design↔código
+```
+
+Um relatório só nasce depois de provar **fonte, lado, estado e estabilidade**. Se qualquer um
+desses quatro falta, a saída correta é “não medido”, nunca uma tabela parcial com aparência final.
+
+### Armadilhas e falsos verdes
+
+| Armadilha | Número convincente | O erro escondido | Defesa |
+|---|---|---|---|
+| comparar logo após reload | `552 caracteres` | página ainda carregava | sinal de pronto ou N leituras consecutivas estáveis |
+| inverter os dois JSON | deltas corretos com sinais trocados | conserta o lado que estava certo | identidade embutida + validação antes do compare |
+| medir card agregado | contraste `8,75:1` | textos internos têm `1,92:1` | medir o elemento que carrega o papel semântico |
+| screenshot “parecido” | cards e larguras batem | alinhamento/tag/comportamento divergem | computed style + D1 comportamental |
+| baseline visual já nasceu com bug | pixel diff zero | fidelidade com o design é zero | comparar com fonte de design, não só com baseline anterior |
+| somar tudo em uma nota | “78% fiel” | mistura bug, prod à frente e ruído | veredito por propriedade e direção |
+| comparar matriz incompleta | desktop light verde | mobile/dark não foi medido | declarar denominador viewport×tema×estado |
 
 A sonda mapeia **papel**, não classe, porque as classes diferem entre os lados. E grava `url` e
 `theme` dentro do próprio snapshot — não é decoração: são os campos que alimentam os portões de
@@ -393,12 +574,17 @@ publica o sinal de fim; a defesa é esperá-lo, ou ler duas vezes e só concluir
 O pior detalhe: a prova estava no próprio output do agente enquanto ele afirmava o contrário —
 a sonda já devolvia conteúdo real da tela. *Não havia bug: havia pressa.*
 
-### Prova hoje
+### Prova existente e limite residual
 
-**Seis de seis máquinas têm autoteste; zero têm teste unitário; nenhuma está no
-vigia-dos-vigias.** O portão de proveniência é sólido e tem controles nos dois sentidos. Mas
-**o canário por rodada não é máquina** — vive só em skill e hook, ambos advisory — e a armadilha
-de tempo também não. São as duas pré-condições mais frágeis.
+`design-diff.mjs` e `style-fingerprint.mjs` têm selftests ligados ao
+`design-memory-gate.yml`; as bandas incluem controles abaixo/acima do limiar, e o portão de
+proveniência tem controles nos dois sentidos. Isso prova o comparador **depois que recebeu dois
+snapshots corretos**.
+
+**Lacunas residuais:** a captura não está mecanicamente obrigada a esperar estabilidade; o canário
+por rodada vive no protocolo; e os comparadores não validam semanticamente qual arquivo é design e
+qual é produção. Portanto, a prova algorítmica pode estar verde enquanto a coleta alimenta o par
+errado ou um estado intermediário.
 
 ⚠️ **Armadilha ativa:** os dois comparadores desta fase têm **ordem de argumentos invertida** —
 um espera produção-depois-design, o outro protótipo-depois-produção — e **nenhum valida
@@ -421,6 +607,42 @@ Onde o agente novo mais erra.
 | E4.4 | **verificar** o contrato | âncora presente, copy literal, **ordem** das âncoras |
 | E4.5 | aceite **por região**, não pela tela toda | região sem âncora no DOM vira ausente explícito — nunca recorta a tela inteira em silêncio |
 | E4.6 | o **trio** | charter, casos, teste |
+
+### Fluxo interno e pontos de decisão
+
+```text
+gap medido por região
+  -> portão de frescor revalida hash do protótipo
+  -> [hash mudou desde a medição?]
+       sim -> invalida plano e volta a E3
+       não -> gera esqueleto do contrato
+  -> humano/agente completa copy, ordem e critérios sem inventar regra de negócio
+  -> aplica uma região no .tsx
+  -> verificador procura data-contract + copy + ordem
+  -> [região passa?]
+       não -> corrige a mesma região; não avança
+       sim -> valida comportamento e estados daquela região
+  -> atualiza charter + casos + testes pelo mesmo UC-ID
+  -> [fonte funcional discorda do visual?]
+       sim -> preserva comportamento; registra decisão ou backend necessário
+       não -> conclui a região
+```
+
+O contrato é uma **ponte verificável**, não uma especificação completa do produto. Ele ancora
+estrutura e copy; permissões, estados, validações, rotas e efeitos colaterais continuam vindo do
+comportamento funcional e dos casos de uso.
+
+### Armadilhas e falsos verdes
+
+| Armadilha | Falso-verde | Dano | Defesa |
+|---|---|---|---|
+| aplicar a tela inteira de uma vez | screenshot final parece próximo | não se sabe qual região quebrou | onda de no máximo duas telas e aceite região a região |
+| derivar caso do `.tsx` atual | teste confirma exatamente o código | bug atual vira requisito | documentação/legado primeiro; código só confirma |
+| preservar visual e remover estado “vazio/erro/sem permissão” | caminho feliz passa | regressão operacional | matriz de estados no contrato funcional |
+| UC-ID só em comentário | busca manual encontra | coletor não liga resultado ao caso | ID no título do teste |
+| copy existe fora da região | verificador textual encontra | região continua incompleta | busca delimitada pela âncora, não arquivo inteiro |
+| ordem visual correta por CSS, DOM incorreto | desktop parece certo | teclado/leitor de tela quebram | validar ordem do DOM e navegação por teclado |
+| acomodar layout mudando regra | interação fica “mais fácil” | regra de negócio é alterada sem decisão | classificar como dependência/backend e parar |
 
 Separação de papéis, e ela é deliberada: uma máquina **deriva** o esqueleto, outra **verifica** —
 um papel por script.
@@ -491,18 +713,59 @@ mentindo **0**. Cobertura de teste ponta-a-ponta **13,6%**, acessibilidade **1,9
 **Responder isso por busca manual é a classe de erro que mais reincide neste projeto.** O mapa é
 comando, não `grep`.
 
-### Prova hoje
+### Prova existente e limite residual
 
-**Nenhuma das treze máquinas de E4 está no vigia-dos-vigias** — o núcleo do contrato de região
-não é vigiado. E o guarda do trio, com mais de setecentas linhas, **não tem par bom/ruim
-provando que morde**; o registro cobre os vizinhos dele, não ele. Buraco puro: o lint que define
-o campo canônico de vínculo com a história de usuário **não tem prova de tipo nenhum**.
+- `gerar-contrato.mjs --selftest` cobre a derivação região a região;
+- `contrato-de-tela.test.mjs`, ligado a `contrato-de-tela.yml`, injeta âncora ausente, copy
+  ausente, ordem trocada e remoção sem justificativa, além do controle positivo;
+- `casosGuard.spec.ts` e `casosResultsCollect.spec.ts`, ligados a `guards-meta-gate.yml`, provam
+  o guarda do trio e o coletor;
+- `casos-gate.yml` executa o guard de cobertura e o ratchet;
+- `design-code-map-check.test.mjs` cobre a ponte derivada design↔código.
+
+**Limite residual:** a prova estrutural não substitui paridade funcional. Ela não sabe, sozinha,
+se uma permissão Blade sumiu, se o filtro virou recarga completa, se o modal perdeu validação ou
+se o estado de erro deixou de existir. Esse inventário precisa virar casos por tela e testes de
+comportamento, não mais uma regex de contrato.
 
 ---
 
 ## E5 · Preflight local — antes de abrir o PR
 
-Doze verificações locais.
+O painel reúne verificações locais por classe de arquivo. A tabela abaixo mostra as famílias
+principais; a lista executável e a quantidade corrente pertencem a `protocolo.config.mjs`.
+
+### Fluxo interno e pontos de decisão
+
+```text
+diff da onda atual
+  -> classifica arquivos tocados (tela, charter, casos, contrato, espelho, tokens)
+  -> painel seleciona verificações aplicáveis
+  -> roda guardas baratos e determinísticos primeiro
+  -> [algum hard gate falhou?]
+       sim -> interrompe; corrigir a causa, não baixar baseline
+       não -> roda build/tipos e provas de comportamento da tela
+  -> [houve alteração no espelho?]
+       sim -> exige transporte verificável e carimbo compatível
+       não -> segue
+  -> produz recibo: comando, escopo, exit code, contagem e teto
+  -> só então abre PR
+```
+
+O preflight é **diff-aware**: dívida herdada pode permanecer congelada, mas a onda não pode
+aumentá-la. “Passou local” sem registrar comando, escopo e denominador não é recibo reproduzível.
+
+### Armadilhas e falsos verdes
+
+| Armadilha | Falso-verde | O que fazer |
+|---|---|---|
+| rodar só o teste do arquivo alterado | unidade passa, integração e gate de contrato não nasceram | usar o painel para derivar a bateria da classe de arquivo |
+| reduzir baseline para fazer o ratchet passar | contagem volta ao teto | baseline é evidência; mudança exige fluxo próprio e antes/depois |
+| `continue-on-error` confundido com “teste passou” | job verde contém step vermelho | ler o exit real e a política do context |
+| regex não vê media query/nesting | zero cor crua reportada | declarar limite do analisador e complementar com parser/browser |
+| espelho editado à mão passa lint | código sintaticamente perfeito | freshness/hash deve reprovar autoria local |
+| build verde usada como prova funcional | bundle compila | executar casos, permissões, validações e estados da tela |
+| teste skipped/fixme contado como cobertura | arquivo de teste existe | status vem do resultado coletado, não da presença do texto |
 
 ### O que cada uma reprova
 
@@ -519,9 +782,9 @@ Doze verificações locais.
 | charter vivo | declarado vivo sem sinal de produção | **sim** |
 | guarda do DS · fonte única · tipos | paleta inventada, dupla fonte, erro de tipo | **não** — só local |
 
-**Nove dos doze bloqueiam merge**, não quatro: seis são required diretos e três chegam lá pelo
-**agregador**, que depende dos jobs de cor e de lint de UI. Um vermelho em qualquer um deles
-derruba o agregador, que é required.
+O campo “bloqueia merge?” precisa ser conferido contra a baseline antes de cada execução: há jobs
+required diretos e verificações que chegam à proteção por um agregador. Um step vermelho dentro de
+job advisory ou embrulhado não equivale a bloqueio; um context required vermelho, sim.
 
 ### Na prática
 
@@ -541,17 +804,18 @@ E um vermelho, da fixture versionada:
         L6: <div className="flex items-center gap-2">
 ```
 
-### Prova hoje
+### Prova existente e limite residual
 
-**Duas de nove** máquinas sem prova efetiva — não quatro de sete, como uma medição estreita
-sugeriria: os meta-testes não moram ao lado do script, moram no diretório de testes, e vários
-estão ligados ao CI.
+Há controles negativos ligados para casos, coletor, fundação, contrato, espelho, âncora, layout e
+várias catracas do DS. O `cowork-mirror-freshness.test.mjs`, em especial, já prova edição manual,
+staleness, cobertura parcial, live-only, grafo CSS/fontes e rollback — não há motivo para propor
+outro teste genérico “espelho bom/ruim”.
 
-Mas há um buraco grave, e ele é do tipo pior: **o meta-teste do gate de cor crua existe e não é
-invocado em lugar nenhum.** Ele é lei do agregador required, o script está sem commit desde
-**10/06/2026**, e a prova de que ainda morde **não roda desde que foi escrita**. Os dois irmãos
-dele estão ligados; esse ficou de fora. Ele passa verde todo PR, e ninguém sabe se é porque o CSS
-está limpo ou porque o comparador apodreceu.
+O buraco localizado durante esta auditoria era mais específico: `tests/conformanceGate.spec.ts`
+já tinha sensibilidade, especificidade e não-vacuidade, mas não tinha invocador. Ele foi fechado
+em **2026-08-25 pelo PR #6232**: `guards-meta-gate.yml` passou a executar
+`npm run test:conformance`, e seus filtros passaram a incluir o script, os baselines e o teste.
+Não foi criado gate novo nem alterado enforcement; a prova existente deixou de ficar órfã.
 
 Os limites auto-declarados são honestos e valem conhecer: o gate de cor avisa que *"regex não é
 parser CSS"* — cor crua dentro de media query escapa; e o guarda de fonte única declara que varre
@@ -562,43 +826,59 @@ aconteceu: ele saiu verde enquanto treze duplicatas existiam, sete delas defasad
 
 ## E6 · Gates de CI
 
-Medido em 25/08/2026, cruzando o **nome do job** (ou o id do job, quando ele não tem nome) com
-`governance/required-checks-baseline.json`, que é o dono único da resposta. O nome do *workflow*
-não serve — cruzar por ele dá resposta errada.
+O dono único da resposta é `governance/required-checks-baseline.json`. O cruzamento usa o **nome
+do job** — ou o id, quando não há nome — porque branch protection enxerga contexts, não nomes de
+workflow. Contagens e listas copiadas para este texto envelhecem a cada promoção; por isso devem
+ser recalculadas, nunca usadas daqui como estado atual.
 
-**33 workflows no eixo · 8 com pelo menos um context required · 25 advisory.** Em *contexts* são
-**11**, porque um workflow carrega quatro sozinho.
+### Fluxo interno e pontos de decisão
 
-### Os required
+```text
+PR aberto/atualizado
+  -> cada workflow aplicável cria seus jobs
+  -> job executa a máquina e preserva o exit code real
+  -> GitHub publica um context pelo nome do job
+  -> protection-drift cruza contexts vivos × baseline versionado
+  -> [context required nasceu?]
+       não -> deadlock/PENDING; falha de wiring, não do produto
+       sim -> [conclusão success?]
+                não -> merge bloqueado
+                sim -> segue
+  -> advisory vermelho informa, mas não bloqueia
+  -> promoção/demissão só pelo processo versionado e autorização humana
+```
 
-Regressão visual (isolamento entre clientes no render) · cobertura de tela · casos · agregador do
-DS · primitivas de layout · nota de tela que não desce · âncora não-shell · e o pacote de âncora
-entre especificação e código. Mais um context de schema do charter, servido por outro workflow.
+Required inclui invariantes Tier-0 **e exceções explicitamente decididas em ADR**: schema,
+integridade, superfície e qualidade podem estar na baseline quando houve promoção formal. Portanto
+“required = somente Tier-0” não descreve corretamente a história viva; a baseline e suas emendas
+são a autoridade.
 
-**Os oito passam no teste do gate mudo**: nenhum tem filtro de caminho no gatilho de PR, logo
-todos nascem em **todo** PR. Isso é vigiado por um required próprio — criado depois que uma
-promoção mexeu no filtro e travou o repositório inteiro por dois dias com checks que nunca
-nasciam.
+### Armadilhas e falsos verdes
 
-### Por que required é só oito
-
-A política é deliberada: **required = só o que evita catástrofe de primeira ordem** — dinheiro,
-dados pessoais, isolamento entre clientes, fiscal. O resto continua rodando e mostrando vermelho,
-sem bloquear. Demover não é apagar.
+| Armadilha | Sintoma | Falso-verde ou deadlock | Defesa |
+|---|---|---|---|
+| contar workflows em vez de contexts | números não batem | um workflow com vários jobs é contado uma vez | cruzar nome/id do job |
+| required com `paths:` no gatilho | PR fora do path nunca cria job | `Expected — waiting` permanente | required always-run + skip-as-pass interno |
+| `cmd || echo warning` | step encontra regressão | exit vira zero e job sempre passa | capturar rc, publicar aviso e re-levantar rc quando aplicável |
+| nome do job muda sem dança de proteção | job novo verde | protection espera nome antigo para sempre | rename coordenado com baseline/protection |
+| advisory tratado como irrelevante | vermelho recorrente não bloqueia | dívida fica eterna | prazo, razão, mordidas e decisão explícita |
+| promover sem controles negativos | gate verde no corpus atual | não se sabe se ele consegue falhar | bite test antes de enforcement |
+| cachear contagem em documentação | página parece precisa | informação fica falsa no próximo flip | ponteiro para baseline + retrato datado quando necessário |
 
 Promoção exige **mordida provada**: pelo menos dois PRs distintos em que o gate teria bloqueado
 uma violação que **mergeou**. E promover não é virar uma chave — o mesmo PR tem que desembrulhar
 o código de saída, anexar o registro de mordidas, atualizar os inventários, rodar verde antes, e
 passar por janela e ratificação.
 
-**Estado hoje: nenhum gate de design tem as duas mordidas.** O registro tem uma única entrada, e
-ela sem PR associado. Por dado, nenhum é candidato.
+O critério geral de promoção exige mordida provada, mas a própria baseline registra exceções
+soberanas e desvios conscientes. Antes de sugerir promoção, leia o histórico do context: não
+inferir elegibilidade apenas pela cor recente.
 
 ### O advisory eterno
 
-Todo gate advisory tem prazo com razão escrita. **Um vencido no repositório hoje, e ele não é do
-eixo design.** Mas a armadilha real é outra: **nove advisory do eixo estão isentos por
-grandfather** — sem prazo, sem relógio nenhum. Advisory eterno por isenção, não por vencimento.
+Gates advisory sujeitos ao calendário têm prazo e razão escrita; outros carregam isenção
+grandfather registrada. A armadilha é tratar a isenção como validade técnica permanente: ela
+retira o relógio, não prova que o gate continua útil nem que o exit code ainda morde.
 
 E os prazos que existem são **renovações**: cada uma exige razão escrita e preserva o prazo
 anterior. O mecanismo não matou o advisory eterno — tornou-o caro e datado.
@@ -631,6 +911,34 @@ nem branch com PR aberto, porque o webhook é no merge.
 | log de sincronização | **o que aconteceu, quando, em qual PR?** | append, imutável | é o único com **história**; sobrescrever mata a auditoria |
 | handoff | **onde estamos agora e o que trava?** | sobrescrito | é o único de **uma página**; se fosse append ninguém acharia o estado |
 
+### Fluxo interno e pontos de decisão
+
+```text
+resultado da onda + hashes do protótipo e da tela
+  -> ds-report deriva placar do código
+  -> SYNC_LOG recebe evento append-only com PR/data/veredito
+  -> HANDOFF sobrescreve estado atual, próximo passo e bloqueios
+  -> merge em main dispara webhook da memória
+  -> Cowork consulta o conteúdo indexado
+  -> [hash atual do design == hash provado? e hash atual da tela == hash provado?]
+       sim -> evidência válida para aquele par
+       não -> estado volta a pendente automaticamente
+```
+
+Branch local, conversa ou screenshot não atravessam esse fluxo. A unidade de retorno é um artefato
+versionado e mergeado, ligado aos hashes que ele afirma representar.
+
+### Armadilhas e falsos verdes
+
+| Armadilha | Falso-verde | Defesa |
+|---|---|---|
+| marcar “aplicado” com checkbox | selo sobrevive à mudança da fonte | recalcular pelo par de hashes |
+| atualizar só o handoff | estado atual parece certo | história e métrica ficam sem prova | escrever nos três canais conforme o papel |
+| sobrescrever SYNC_LOG | arquivo fica limpo | auditoria do antes/depois desaparece | append-only |
+| placar gerado com erro e `continue-on-error` | workflow diário fica verde | validar JSON/contagens e testar o produtor |
+| PR aberto tratado como retorno | código está no remoto | Cowork ainda não recebe webhook de merge | distinguir branch, PR e main indexado |
+| hash de apenas um lado | uma metade permanece igual | evidência sobrevive à mudança do outro lado | vincular design SHA **e** product SHA |
+
 Quantidade × história × estado. Os três modos de escrita são incompatíveis num arquivo só.
 
 O log preserva até o que envelheceu: uma previsão errada de julho está lá **riscada**, com o
@@ -646,15 +954,16 @@ e é fail-closed: na dúvida, pendente.
 **Estado hoje: zero de 68 telas com evidência; o ledger nem existe; 21 telas bloqueadas.** O
 mecanismo é sólido e o uso é zero.
 
-### Prova hoje
+### Prova existente e limite residual
 
-O ponto de *auditoria* tem contrato codificado, teste e catraca. O ponto de *produção do dado*
-não tem prova nenhuma: o placar roda diariamente com `continue-on-error`, sem teste e sem
-autoteste — se o parse quebrar, ele mente e nada morde. Já ficou congelado dois meses servindo
-número velho; ao religar, saltou de 148 para 1604. Foi pego por auditoria humana, não por gate.
+`bundle-transaction.test.mjs` já prova que evidência aplicada/testada é durável e se invalida
+quando a fonte muda. A catraca de auditoria e os contratos dos canais também têm cobertura. Não se
+deve propor novamente “teste de hash velho” como se estivesse ausente.
 
-E a lógica de hash acima **não tem teste**: uma inversão de comparação passaria no CI e
-transformaria evidência velha em "aplicado".
+O ponto mais fraco é o **produtor do placar**: `ds-report.mjs` roda no metabolismo e pode escrever
+o índice, mas não foi localizado um teste hermético do parser/agrupamento/`--worklist` equivalente
+às baterias do transporte. A lacuna útil é injetar saída ESLint válida, malformada e parcial e
+provar que erro de coleta nunca sobrescreve um placar bom com zero ou número incompleto.
 
 ---
 
@@ -673,6 +982,44 @@ O smoke de CI que capturaria a tela em produção depende de uma variável de re
 residual declarado: sem uma conta de teste dedicada, os screenshots capturariam dados reais.
 Enquanto isso, E8 depende do hook local.
 
+### Fluxo interno e pontos de decisão
+
+```text
+comando `gh pr merge --admin <PR>`
+  -> hook consulta arquivos do PR
+  -> [tocou .tsx/.css/.blade.php e não há escape no corpo?]
+       não -> não cria flag
+       sim -> grava `timestamp|PR` com TTL de 5 minutos
+  -> agente usa uma ferramenta reconhecida de navegador
+       -> implementação atual apaga a flag imediatamente
+  -> agente tenta declarar “pronto” via comando
+       flag fresca -> bloqueia e pede navegação + screenshot
+       flag ausente/expirada -> deixa seguir
+```
+
+Esse é o fluxo **implementado**. URL, rota, tenant, screenshot e SHA implantado aparecem na regra
+operacional, mas não são gravados nem conferidos pela flag atual. Portanto, a ação de navegador é
+um sinal de que alguém olhou; ainda não é um recibo que prove **o que** foi olhado.
+
+### Armadilhas e falsos verdes
+
+| Armadilha | Falso-verde | Defesa |
+|---|---|---|
+| visitar `/login` e chamar de smoke da tela | servidor responde 200 | abrir rota-alvo autenticada e executar o caso |
+| screenshot antigo | imagem parece correta | recibo com SHA, URL, horário e hash da captura |
+| navegador antes do merge | interação ocorreu | evento precisa ser posterior à flag do merge |
+| tenant errado | tela funciona com outro conjunto de permissões/dados | declarar business/usuário de teste sem expor PII |
+| olhar só o caminho feliz | tela abre | testar permissão negada, vazio, erro e ação mutável aplicável |
+| terminal “simulando navegador” | comando retorna 200 | hook só aceita classe real de ferramenta de navegador |
+| produção ainda não contém o SHA | UI antiga passa | confirmar versão implantada antes do veredito; a flag atual não faz essa conferência |
+
+### Prova existente e limite residual
+
+`post-merge-ui-smoke-required.test.mjs` cobre mordida, liberação, TTL e escapes; o teste de
+registro confirma os pontos de wiring. Ele prova a **máquina de cobrança**, não a fidelidade do
+smoke executado. A lacuna residual é identidade da evidência: ação de navegador em URL/tenant/SHA
+errado pode satisfazer o evento técnico sem provar a tela modificada.
+
 ---
 
 ## E9 · Meta — quem vigia os vigias
@@ -684,6 +1031,32 @@ distintas**. Ele não é decorativo: pegou a introdução de uma dependência no
 Uma catraca vai além e testa o **terceiro estado**: referência ausente tem que sair "não medi",
 nunca "regrediu" — porque colapsar "não consegui medir" em um estado do objeto medido é proibido.
 
+### Fluxo interno e pontos de decisão
+
+```text
+registro de catracas
+  -> para cada máquina, monta fixture boa e ruim
+  -> roda boa -> deve sair 0
+  -> roda ruim -> deve sair não-zero
+  -> [falhou pelo motivo/assinatura esperada?]
+       não -> erro de execução; não conta como mordida
+       sim -> bite comprovado na fixture
+  -> quando aplicável, roda terceiro estado “não medido”
+  -> compara inventário registrado × scripts vivos
+  -> publica total e lacunas; required só passa com todos os bites esperados
+```
+
+### Armadilhas e falsos verdes
+
+| Armadilha | Falso-verde | Defesa |
+|---|---|---|
+| fixture ruim falha porque o script não iniciou | exit 1 parece mordida | conferir mensagem/código do motivo esperado |
+| fixture boa nunca roda | só se prova sensibilidade | exigir especificidade: inocente passa |
+| teste chama função reimplementada | teste verde, CLI real quebrada | invocar entrypoint produtivo sempre que possível |
+| máquina viva fora do registro | placar 100% | comparar inventário com descoberta do disco/workflows |
+| current-tree-only | repositório atual passa | não prova que uma corrupção seria detectada | sandbox boa/ruim |
+| bite na fixture interpretado como uso real | 80/80 | hook pode ter zero ativações no mundo | telemetria de oportunidades × mordidas |
+
 ### O limite que o próprio E9 declara sobre si
 
 *"O vigia prova que a defesa morde **na fixture**. Não prova que ela mordeu **no mundo**."*
@@ -693,12 +1066,16 @@ enquanto ficava silencioso em **116 de 116** oportunidades reais. Descoberto por
 conversa. Nenhum gate poderia ter pegado: o oráculo são os transcripts locais, fora do
 repositório e invisíveis ao CI.
 
-### Prova hoje
+### Prova existente e limite residual
 
-O verificador de integridade da espinha — que afirma que os 217 charters têm tela viva — **não
-tem prova de tipo nenhum** e roda com `continue-on-error`: se parar de morder, o sinal é
-indistinguível de "está tudo bem". E o próprio vigia-dos-vigias, que é required, **não tem
-meta-vigia**: a prova de que ele pega uma catraca que parou de morder é um procedimento manual.
+`design-memory-gate.test.mjs` prova que o workflow invoca `integrity-check.mjs` e que a árvore
+corrente sai verde. Isso é prova de wiring + controle positivo, não um controle negativo isolado.
+O teste que falta deve montar uma espinha temporária quebrada — arquivo canônico ausente, charter
+sem `.tsx`, L-NN duplicado ou link-alvo morto — e exigir o IT exato e exit não-zero.
+
+O vigia required continua tendo um limite inevitável: ele prova fixtures registradas. Cobertura do
+mundo exige o contador de mordidas e auditoria das oportunidades elegíveis; nenhum meta-teste
+local deduz sozinho que um hook deveria ter aparecido numa conversa real.
 
 ---
 
@@ -721,24 +1098,154 @@ A frase da própria máquina resume a família inteira: *"'0 stale' só cobre o 
 
 # Testes propostos
 
-**Nada abaixo está armado.** São propostas de **prova de máquina existente** (fixture boa passa,
-fixture ruim falha pelo motivo certo) — não gates novos. Gate novo exige medir falso-positivo no
-corpus real antes de instalar, e este projeto já enterrou quatro tentativas de guarda sintático
-que reprovava o legítimo.
+As propostas abaixo foram filtradas contra os testes já existentes. Não repetem bundle, rollback,
+grafo, live-only, mirror freshness, contrato de região, casos ou invalidação de hash — esses já têm
+controles positivos e negativos. O T6 aparece como **fechado durante a elaboração**, porque o
+`main` avançou com a correção antes da publicação deste playbook. **“Proposto” também não significa
+“novo required”**: primeiro se prova a máquina localmente; promoção de enforcement é outra decisão.
 
-| # | Alvo | Teste proposto | Por que |
+## Anatomia obrigatória de um teste deste fluxo
+
+Todo teste novo deve declarar:
+
+```text
+fixture boa        -> o inocente passa                         (especificidade)
+fixture ruim       -> o bug injetado falha                     (sensibilidade)
+assinatura esperada-> falha pelo motivo certo, não por crash   (mordida)
+terceiro estado    -> quando não mediu, não inventa veredito   (honestidade)
+entrypoint real    -> testa a CLI/hook usado, não uma cópia    (fidelidade)
+```
+
+### T1 · Matcher de comparação: corpus positivo e negativo — E0 · prioridade P1
+
+- **Alvo:** `.claude/hooks/design-compare-protocol.mjs` e seu registro em `settings.json`.
+- **Fixture boa:** prompts como “compare o design com a produção”, frases reais de divergência sem
+  verbo explícito e typos já observados.
+- **Fixture inocente:** “compare preços”, “compare módulos”, “design do relatório” sem intenção de
+  comparar interfaces.
+- **Bug injetado:** estreitar o matcher retirando linguagem de divergência; em outro caso, ampliar
+  para aceitar `compare` isolado.
+- **Oráculo:** positivos começam com a tag do protocolo; inocentes têm stdout vazio; o teste de
+  registro confirma o comando exatamente uma vez no evento correto.
+- **Falso-verde evitado:** o teste atual prova um único caminho feliz; não mede falso-negativo nem
+  falso-positivo.
+- **Limite:** fixture ainda não prova uso real; contador de oportunidades × mordidas continua
+  necessário.
+
+### T2 · Cobertura viva fail-closed — E1 · prioridade P0
+
+- **Alvo:** fronteira entre listagem autenticada do Cowork e `cowork-mirror-freshness`.
+- **Fixture boa:** inventário vivo completo, paginado, com denominador e cursor final; espelho
+  contém todos os itens.
+- **Fixture ruim A:** listagem falha antes da última página. **Ruim B:** shell velho conhece 20
+  entradas, mas a listagem viva contém uma 21ª. **Ruim C:** resposta vazia sem prova de que o
+  projeto realmente está vazio.
+- **Oráculo:** A/C saem `UNCHECKED`/não-zero para cobertura; B enumera `LIVE-ABSENT`. Nenhuma pode
+  imprimir “ausentes: 0” ou `SYNC` global.
+- **Falso-verde evitado:** hashes, grafo e rollback perfeitos sobre um universo incompleto.
+- **Armadilha do próprio teste:** não mockar a listagem com dados derivados do espelho; isso faria
+  os dois lados compartilharem o mesmo ponto cego.
+
+### T3 · Âncora existente, porém da tela errada — E2 · prioridade P1
+
+- **Alvo:** resolvedor/proveniência da âncora.
+- **Fixture boa:** charter `TelaA` aponta para protótipo `TelaA`, com identidade verificável.
+- **Fixture ruim:** charter `TelaA` aponta para um arquivo real, legível e não-shell de `TelaB`.
+- **Controle:** um `n/a` legítimo permanece declaração válida e não é acusado.
+- **Oráculo:** ruim resulta `ANCHOR_MISMATCH` ou `NÃO MEDIDO`, nunca `✓`; mensagem mostra as duas
+  identidades sem tentar escolher por semelhança de nome.
+- **Falso-verde evitado:** todos os guards de existência passam enquanto E3 mede a fonte errada.
+- **Pré-requisito:** definir um sinal determinístico de identidade. Se ele não existir, manter a
+  decisão humana explícita; não criar heurística por pasta, abordagem já reprovada.
+
+### T4 · Identidade e ordem dos snapshots — E3 · prioridade P0
+
+- **Alvo:** `style-fingerprint.mjs` e `design-diff.mjs`.
+- **Fixture boa:** snapshot declara `side`, `screen`, `url`, `theme`, `viewport` e `sourceSha`
+  coerentes com a posição esperada pelo comparador.
+- **Fixtures ruins:** arquivos invertidos; `side=prod` com URL do preview; temas diferentes;
+  telas diferentes; SHA ausente.
+- **Oráculo:** recusa antes de calcular qualquer delta, com erro específico por campo. O stdout
+  não pode conter tabela de divergências parcial.
+- **Falso-verde evitado:** relatório matematicamente correto e semanticamente espelhado.
+- **Compatibilidade:** se snapshots legados não têm os campos, classificá-los `NÃO MEDIDO` ou
+  migrá-los explicitamente; inferir o lado pelo nome do arquivo recria a armadilha.
+
+### T5 · Estabilização do render — E3 · prioridade P1
+
+- **Alvo:** harness de captura, não o comparador puro.
+- **Fixture boa:** página publica sinal de pronta e mantém assinatura igual por leituras
+  consecutivas.
+- **Fixture ruim A:** contagem de caracteres/âncoras cresce entre leituras. **Ruim B:** timeout sem
+  sinal de pronta. **Ruim C:** DOM estabiliza, mas fonte ainda carrega e altera métricas.
+- **Oráculo:** só captura após estabilidade de DOM **e** fontes; timeout sai `NÃO MEDIDO`, nunca
+  “tela vazia” ou “divergente”.
+- **Falso-verde evitado:** snapshot legítimo de um estado intermediário.
+- **Armadilha do teste:** `sleep` fixo não é oráculo; máquina rápida passa e lenta flaka. Esperar
+  condição observável.
+
+### T6 · Meta-teste de conformidade ligado ao CI — E5 · FECHADO em 2026-08-25
+
+- **Alvo:** `npm run test:conformance` já existente.
+- **Implementação:** o PR #6232 o adicionou ao `guards-meta-gate.yml`, ao lado dos meta-testes de
+  casos, domínio e fundação, reutilizando o mesmo `npm ci`.
+- **Wiring:** os filtros de PR/push passaram a incluir `conformance-gate.mjs`,
+  `conformanceGate.spec.ts` e seus baselines; tocar a máquina ou sua prova cria o job.
+- **Prova:** a suíte executa os controles de sensibilidade, especificidade e não-vacuidade já
+  versionados.
+- **Falso-verde evitado:** suíte excelente no disco que nunca roda.
+- **Escopo preservado:** ligar a prova não mudou o status required de nenhum context.
+
+### T7 · Produtor do placar não sobrescreve saúde com coleta inválida — E7 · prioridade P1
+
+- **Alvo:** `scripts/ds-report.mjs`, especialmente JSON, agrupamento, `--worklist` e `--write`.
+- **Fixture boa:** saída ESLint conhecida com violações em dois módulos e duas regras; totals e
+  agrupamentos esperados são assertados.
+- **Fixture ruim A:** JSON truncado. **Ruim B:** arquivo referenciado desaparece durante a leitura.
+  **Ruim C:** subprocesso termina não-zero após produzir stdout parcial.
+- **Oráculo:** a execução ruim sai não-zero e preserva byte a byte o índice anterior; nunca grava
+  zero, total parcial ou data nova.
+- **Controle de não-vacuidade:** fixture com uma violação deve gerar total maior que zero e item na
+  worklist.
+- **Falso-verde evitado:** rotina diária verde servindo número congelado ou parcial.
+
+### T8 · Integridade com árvore temporária quebrada — E9 · prioridade P1
+
+- **Alvo:** `prototipo-ui/integrity-check.mjs`.
+- **Pré-requisito técnico:** aceitar `--root` ou separar as funções puras; o teste não deve editar a
+  árvore real.
+- **Fixtures ruins independentes:** IT1 sem uma peça da espinha; IT2 charter sem `.tsx`; IT4 L-NN
+  duplicado/com buraco; IT7 alvo documentado inexistente.
+- **Fixture boa:** miniárvore completa e mínima.
+- **Oráculo:** cada ruim sai não-zero e cita **somente o IT esperado**; a boa sai zero. IT6 advisory
+  continua aviso e não vira hard por acidente.
+- **Falso-verde evitado:** wiring verde + árvore atual saudável sendo confundidos com prova de que
+  a máquina detecta corrupção.
+
+### T9 · Recibo de smoke pertence ao merge e à tela — E8 · prioridade P2
+
+- **Alvo:** evidência consumida pelo hook pós-merge.
+- **Fixture boa:** evento de navegador posterior ao merge contém URL-alvo, screen id, SHA
+  implantado, horário, tenant de teste e hash da captura.
+- **Fixtures ruins:** navegador antes do merge; URL `/login`; SHA anterior; tela diferente; recibo
+  fora do TTL.
+- **Oráculo:** só a fixture boa limpa a flag. A ruim mantém o bloqueio e informa qual identidade não
+  confere.
+- **Falso-verde evitado:** “usei o navegador” em qualquer página ser aceito como prova da mudança.
+- **Risco:** recibo não deve armazenar cookie, token, PII ou dados reais; apenas identificadores
+  técnicos e hashes.
+
+## Ordem sugerida de implementação dos testes
+
+| Onda | Testes | Motivo | Critério de pronto |
 |---|---|---|---|
-| T1 | meta-teste do gate de cor crua (E5) | **ligá-lo** ao CI, ao lado dos dois irmãos que já estão | ele existe, é lei de um required, e não roda desde que foi escrito |
-| T2 | detector de faltantes (E1) | **controle negativo**: shell velho com arquivo novo no vivo tem de acusar, não responder zero | é a regressão real de 24/08, e nada impede que volte |
-| T3 | guarda do espelho (E5) | espelho editado à mão falha; intacto passa | é a defesa contra a edição que some no próximo transporte |
-| T4 | contrato do bundle (E1) | parte faltando, base divergente e hash torto — cada uma falha por motivo distinto | o rollback é a promessa central do transporte |
-| T5 | lógica de hash da evidência (E7) | evidência velha não pode virar "aplicado" | uma inversão de comparação passaria no CI |
-| T6 | resolvedor de âncora (E2) | par bom/ruim no vigia-dos-vigias | três máquinas derivam dele e seu passo de CI não morde |
-| T7 | verificador de integridade (E9) | espinha quebrada tem de reprovar | zero prova, e afirma que 217 charters têm tela viva |
-| T8 | ordem dos comparadores (E3) | recusar snapshot cujo `url` não corresponde ao lado declarado | hoje trocar a ordem produz relatório plausível espelhado |
+| **A** | T2 + T4 | fecham os falsos-verdes de maior dano: universo incompleto e lados invertidos | controles bons/ruins verdes no CI advisory, sem mudar produção |
+| **B** | T1 + T5 | endurecem ativação e aquisição da medida | corpus positivo/negativo + timeout `NÃO MEDIDO` |
+| **C** | T7 + T8 | protegem memória derivada e o meta-verificador | escrita atômica preservada + ITs mordendo isoladamente |
+| **D** | T3 + T9 | exigem contrato novo de identidade, portanto mais decisão | identidade definida sem heurística de pasta e sem persistir segredo |
 
-T1 e T2 são os de maior retorno: fecham falhas **já observadas**, e T1 é uma linha de
-configuração.
+Cada onda deve nascer advisory, provar a mordida e ser apresentada separadamente. Nenhuma promoção
+a required, mudança de branch protection ou ação de merge está implícita nesta ordem.
 
 ---
 
