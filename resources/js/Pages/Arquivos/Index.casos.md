@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-08-24"
+last_run: "2026-08-25"
 ---
 
 # Casos de Uso & Aceite — Arquivos/Index
@@ -52,6 +52,13 @@ e promove o item a `UC-INDEX-NN`.
 
 - **[BACKLOG]** Acervo com 10 arquivos → subtítulo com contagem e quantos estão cifrados (as 4 abas chegam com as vistas: PR-2 trilha · PR-3 retenção · PR-4 cofre).
 - **[BACKLOG]** Filtrar bucket `sensitive` → só os do cofre; o contador do chip bate com a lista.
+- **[BACKLOG]** Filtrar por `active` (o **default** do enum, logo o caso comum) → lista os arquivos
+  daquele bucket. Vale como caso porque já falhou de verdade: até 2026-08-25 havia QUATRO listas
+  de bucket em desacordo — enum do banco (7), o que o `CuradorEngine` grava (4), o que a
+  `ListArquivosRequest` aceitava (`public`/`internal`/`sensitive`/`vault`) e os chips da tela
+  (`sensitive`/`common`/`public`). Só `sensitive` existia nas quatro; `active` era rejeitado com
+  **422** e `common`/`public` filtravam por valor inexistente (lista sempre vazia). Achado pelo
+  [W] no smoke de produção, com dado real — nenhum gate estrutural pegaria.
 - **[BACKLOG]** Arquivo em disco `vault` → selo com cadeado; baixar avisa que o link assinado vale 60 min e passa pelo `DownloadController`.
 - **[BACKLOG]** Arquivo sem `arquivable` → linha marcada como urgente + selo "órfão" com o motivo em tooltip (órfão é achado, não item).
 - **[BACKLOG]** Arquivo a ≤30 dias do prazo → coluna "Vence em" em vermelho + linha urgente.
