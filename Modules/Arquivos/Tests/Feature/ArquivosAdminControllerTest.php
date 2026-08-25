@@ -432,6 +432,261 @@ it('UC-INDEX-02 · o filtro de acao restringe a lista sem apagar os outros chips
     expect(array_column($payload['acoes'], 'acao'))->toContain('upload');
 })->group('arquivos');
 
+// =============================================================================
+// Cofre (onda 1 · PR-4) — saúde do armazenamento, read-only.
+//
+// A agregação NÃO mora no controller, e a razão é este arquivo: o achado de
+// duplicado agrupa por hash, e o assert de LGPD acima reprova a menção a hash em
+// QUALQUER método do controller. Afrouxá-lo pra caber seria trocar a defesa pela
+// conveniência — então a query foi pro `CofreStatsReader` e o que o gate protege de
+// verdade (hash e caminho não chegarem à tela) passou a ser defendido por assert
+// COMPORTAMENTAL sobre o payload, mais abaixo. Presence-gate no controller,
+// comportamento no payload: aperta, não afrouxa.
+// =============================================================================
+
+/**
+ * Disco sentinela das fixtures do cofre.
+ *
+ * O cofre agrega o acervo INTEIRO do business, e a lane roda contra um banco que
+ * persiste entre testes. Asserir sobre o total do tenant amarraria o teste ao que
+ * outra suíte deixou pra trás; asserir sobre o card de um disco que só existe aqui
+ * dá número exato — e mantém a prova cross-tenant afiada, porque o adversário grava
+ * no MESMO disco: se vazar, o número deste card muda.
+ */
+if (! function_exists('arquivosCofreDisco')) {
+    function arquivosCofreDisco(): string
+    {
+        return 'fixture-cofre';
+    }
+}
+
+if (! function_exists('arquivosCofreInsere')) {
+    function arquivosCofreInsere(int $businessId, array $over = []): void
+    {
+        DB::table('arquivos')->insert(array_merge([
+            'business_id'     => $businessId,
+            'disk'            => arquivosCofreDisco(),
+            'storage_path'    => "biz-{$businessId}/fixture/padrao.xml",
+            'original_name'   => 'fixture-padrao.xml',
+            'mime_type'       => 'application/xml',
+            'size_bytes'      => 1024,
+            'md5'             => str_repeat('c', 32),
+            'bucket'          => 'active',
+            'sub_destination' => '__fixture-cofre',
+            'created_at'      => now(),
+            'updated_at'      => now(),
+        ], $over));
+    }
+}
+
+if (! function_exists('arquivosCofrePayload')) {
+    function arquivosCofrePayload(): array
+    {
+        return (new Modules\Arquivos\Services\CofreStatsReader())->fetch();
+    }
+}
+
+it('UC-INDEX-03 · sem business_id na sessao o cofre nao diz "0 achados" — diz que NAO MEDIU', function () {
+    // Portão fail-closed. O global scope do `Arquivo` faz `if ($businessId !== null)`,
+    // logo sem sessão a query passaria SEM filtro e o cofre somaria o acervo de todos
+    // os tenants. Devolver zeros também seria errado por outro motivo: zero é a
+    // resposta de um acervo limpo, e afirmar saúde sem ter medido é o defeito que a
+    // flag `disponivel` existe pra impedir. Não toca o banco: retorna antes.
+    session()->forget('user');
+    session()->forget('business');
+
+    $payload = arquivosCofrePayload();
+
+    expect($payload['disponivel'])->toBeFalse();
+    expect($payload['discos'])->toBe([]);
+    expect($payload['orfaos']['total'])->toBe(0);
+    expect($payload['duplicados']['grupos'])->toBe(0);
+})->group('arquivos', 'multi-tenant');
+
+it('UC-INDEX-03 · o COFRE le pelo model e NAO repete o where de business_id', function () {
+    // Espelho do assert do acervo, um arquivo adiante: `arquivos` TEM model, logo TEM
+    // global scope, logo repetir o filtro esconderia uma quebra dele. É o oposto da
+    // trilha — e é por isso que os três asserts existem separados.
+    $reader = base_path('Modules/Arquivos/Services/CofreStatsReader.php');
+    $codigo = arquivosCodigoSemComentarios($reader);
+
+    expect($codigo)->toContain('Arquivo::query()');
+    expect($codigo)->not->toContain("where('business_id'");
+    expect($codigo)->not->toContain("where('arquivos.business_id'");
+    expect($codigo)->not->toContain('withoutGlobalScopes');
+})->group('arquivos', 'multi-tenant');
+
+it('UC-INDEX-03 · `toBase()` NAO derruba o global scope — o recorte por business sobrevive', function () {
+    // O leitor agrega com `->toBase()->get()` porque agregação hidratada em model devolve
+    // `Arquivo` com aliases que a classe não declara (o PHPStan reprova, e com razão: alias
+    // de agregação não é atributo). Mas o nome `toBase` sugere "desce pro query builder cru",
+    // e se fosse isso o recorte Tier 0 iria junto — vazamento cross-tenant.
+    //
+    // Não é: `Eloquent\Builder::toBase()` é `applyScopes()->getQuery()`. Este teste prova a
+    // propriedade em vez de confiar na leitura do vendor, e prova SEM banco (o `toSql()` não
+    // executa nada), então vale nas duas lanes — inclusive na sqlite, onde a prova
+    // comportamental cross-tenant pula.
+    session(['user' => ['business_id' => Tests\TestCase::SEEDED_TENANT_ID]]);
+
+    $sql = Modules\Arquivos\Entities\Arquivo::query()
+        ->select('disk')
+        ->groupBy('disk')
+        ->toBase()
+        ->toSql();
+
+    expect($sql)->toContain('business_id');
+
+    // Controle negativo: sem sessão o scope não filtra (é `if ($businessId !== null)`), e é
+    // por isso que o leitor tem portão fail-closed ANTES de perguntar. Se este assert um dia
+    // falhar, o scope passou a ser fail-closed sozinho e o portão virou redundante — o que é
+    // notícia boa, mas precisa ser lida, não herdada.
+    session()->forget('user');
+    session()->forget('business');
+
+    $semSessao = Modules\Arquivos\Entities\Arquivo::query()->select('disk')->toBase()->toSql();
+
+    expect($semSessao)->not->toContain('business_id');
+})->group('arquivos', 'multi-tenant');
+
+it('UC-INDEX-03 · o cap do cofre vem da CONFIG que o vault cobra, nunca de um 50 escrito na tela', function () {
+    // Se o cap virar literal aqui, a tela passa a mentir no dia em que alguém ajustar
+    // ARQUIVOS_VAULT_MAX_FILE_SIZE_MB no .env — e o `VaultEncryptionService` seguiria
+    // recusando por outro número. Comportamental: muda a config e olha o que sai.
+    $m = new ReflectionMethod(Modules\Arquivos\Services\CofreStatsReader::class, 'capMb');
+    $m->setAccessible(true);
+    $reader = new Modules\Arquivos\Services\CofreStatsReader();
+
+    config(['arquivos.vault_max_file_size_mb' => 7]);
+    expect($m->invoke($reader))->toBe(7);
+
+    // `<= 0` é RuntimeException no serviço (o cap não pode ser desligado). Numa vista
+    // de leitura isso vira default: derrubar a página não é o jeito de noticiar .env torto.
+    config(['arquivos.vault_max_file_size_mb' => 0]);
+    expect($m->invoke($reader))->toBe(50);
+})->group('arquivos');
+
+it('UC-INDEX-03 · o controller registra a prop de UMA vista so — a que esta aberta', function () {
+    // O RUNBOOK declara isto e nada defendia: `Inertia::defer` adia a execução, mas o
+    // cliente busca TODAS as props deferidas no segundo request — registrar duas faria
+    // quem está no cofre pagar o `paginate` do acervo. Comportamental sem banco: o
+    // defer não executa, então só as CHAVES são observadas.
+    $props = function (?string $tab): array {
+        $request = Modules\Arquivos\Http\Requests\ListArquivosRequest::create(
+            '/arquivos', 'GET', $tab === null ? [] : ['tab' => $tab]
+        );
+        $response = (new ArquivosAdminController())->index($request);
+
+        $p = new ReflectionProperty($response, 'props');
+        $p->setAccessible(true);
+
+        return array_keys($p->getValue($response));
+    };
+
+    expect($props('cofre'))->toBe(['filtros', 'politica', 'cofre']);
+    expect($props('trilha'))->toBe(['filtros', 'politica', 'trilha']);
+    expect($props('acervo'))->toBe(['filtros', 'politica', 'acervo']);
+    // `tab` ausente ou desconhecido cai no acervo por DECISÃO (o `match` tem default),
+    // não por acidente de `if/else`.
+    expect($props(null))->toBe(['filtros', 'politica', 'acervo']);
+})->group('arquivos');
+
+it('UC-INDEX-03 · o cofre do tenant 98 NUNCA conta arquivo do 99 (Tier 0, cross-tenant)', function () {
+    if (! Schema::hasTable('arquivos')) {
+        $this->markTestSkipped('tabela arquivos ausente — a prova cross-tenant roda na lane MySQL.');
+    }
+
+    $proprio    = Tests\TestCase::SEEDED_TENANT_ID;         // 98 — fictício
+    $adversario = Tests\TestCase::SUPPORT_CLIENT_TENANT_ID; // 99 — o outro
+
+    arquivosCofreInsere($proprio, ['size_bytes' => 1000, 'md5' => str_repeat('1', 32)]);
+    arquivosCofreInsere($adversario, ['size_bytes' => 9000, 'md5' => str_repeat('9', 32)]);
+    arquivosCofreInsere($adversario, ['size_bytes' => 9000, 'md5' => str_repeat('8', 32)]);
+
+    session(['user' => ['business_id' => $proprio]]);
+
+    $card = collect(arquivosCofrePayload()['discos'])
+        ->firstWhere('disco', arquivosCofreDisco());
+
+    // 1 arquivo e 1000 bytes: os 2 do adversário, no MESMO disco, não podem somar.
+    expect($card)->not->toBeNull();
+    expect($card['arquivos'])->toBe(1);
+    expect($card['bytes'])->toBe(1000);
+})->group('arquivos', 'multi-tenant');
+
+it('UC-INDEX-03 · o duplicado separa registro repetido de disco ocupado duas vezes', function () {
+    if (! Schema::hasTable('arquivos')) {
+        $this->markTestSkipped('tabela arquivos ausente — roda na lane MySQL.');
+    }
+
+    $biz = Tests\TestCase::SEEDED_TENANT_ID;
+    session(['user' => ['business_id' => $biz]]);
+
+    // PRÉ-CONDIÇÃO EXPLÍCITA, e não é zelo: os exemplos são os 5 grupos com mais
+    // cópias, e a lane roda contra um banco que PERSISTE entre execuções. Se outra
+    // suíte deixar duplicados no tenant fictício, os meus grupos (2 cópias cada) podem
+    // simplesmente não estar no topo — e o teste falharia longe da causa. Aferido aqui,
+    // a falha diz o que é: o ambiente, não o código.
+    expect(arquivosCofrePayload()['duplicados']['grupos'])
+        ->toBe(0, 'tenant ficticio ja tem duplicado de outra suite — o top-5 deixaria de ser deterministico');
+
+    // Mesmo conteúdo, MESMO caminho — o caminho é derivado do hash, então isto é o
+    // caso comum: registro repetido, um arquivo só no disco.
+    $hashJunto = str_repeat('a', 32);
+    arquivosCofreInsere($biz, ['md5' => $hashJunto, 'original_name' => 'junto-1.xml', 'storage_path' => 'biz/2026/08/junto.xml']);
+    arquivosCofreInsere($biz, ['md5' => $hashJunto, 'original_name' => 'junto-2.xml', 'storage_path' => 'biz/2026/08/junto.xml']);
+
+    // Mesmo conteúdo, caminhos DIFERENTES (meses diferentes) — aí sim ocupa 2×.
+    $hashSeparado = str_repeat('b', 32);
+    arquivosCofreInsere($biz, ['md5' => $hashSeparado, 'original_name' => 'sep-1.xml', 'storage_path' => 'biz/2026/07/sep.xml']);
+    arquivosCofreInsere($biz, ['md5' => $hashSeparado, 'original_name' => 'sep-2.xml', 'storage_path' => 'biz/2026/08/sep.xml']);
+
+    $exemplos = collect(arquivosCofrePayload()['duplicados']['exemplos']);
+
+    $junto = $exemplos->first(fn ($g) => in_array('junto-1.xml', $g['nomes'], true));
+    $sep   = $exemplos->first(fn ($g) => in_array('sep-1.xml', $g['nomes'], true));
+
+    expect($junto)->not->toBeNull();
+    expect($junto['copias'])->toBe(2);
+    expect($junto['caminhos'])->toBe(1);   // registro repetido, NÃO desperdício de disco
+
+    expect($sep)->not->toBeNull();
+    expect($sep['copias'])->toBe(2);
+    expect($sep['caminhos'])->toBe(2);     // aí sim: dois arquivos físicos
+})->group('arquivos');
+
+it('UC-INDEX-03 · o payload do cofre NAO carrega hash nem caminho de disco (LGPD Art. 37)', function () {
+    if (! Schema::hasTable('arquivos')) {
+        $this->markTestSkipped('tabela arquivos ausente — roda na lane MySQL.');
+    }
+
+    // A contrapartida comportamental do presence-gate do controller: lá se lê o fonte,
+    // aqui se olha o que de fato SAI. O leitor precisa do hash pra agrupar — o que o
+    // charter proíbe é ele chegar à tela.
+    $biz  = Tests\TestCase::SEEDED_TENANT_ID;
+    $hash = str_repeat('d', 32);
+    $caminho = 'biz-98/2026/08/segredo-no-caminho.xml';
+
+    session(['user' => ['business_id' => $biz]]);
+
+    // Mesma pré-condição do teste acima, e pelo mesmo motivo: o controle positivo lá
+    // embaixo (`visivel.xml` PRECISA aparecer) só é confiável se o grupo estiver entre
+    // os 5 exibidos.
+    expect(arquivosCofrePayload()['duplicados']['grupos'])
+        ->toBe(0, 'tenant ficticio ja tem duplicado de outra suite — o controle positivo deixaria de valer');
+
+    arquivosCofreInsere($biz, ['md5' => $hash, 'storage_path' => $caminho, 'original_name' => 'visivel.xml']);
+    arquivosCofreInsere($biz, ['md5' => $hash, 'storage_path' => $caminho, 'original_name' => 'visivel-2.xml']);
+
+    $json = json_encode(arquivosCofrePayload(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+    expect($json)->not->toContain($hash);
+    expect($json)->not->toContain($caminho);
+    expect($json)->not->toContain('segredo-no-caminho');
+    // Controle positivo: se a asserção acima passasse com payload vazio, ela não
+    // provaria nada — o nome do arquivo TEM de estar lá (o acervo já o mostra).
+    expect($json)->toContain('visivel.xml');
+})->group('arquivos', 'lgpd');
+
 afterEach(function () {
     // Cleanup por id sentinela — sem RefreshDatabase, que dropa o schema e limparia o
     // seed compartilhado da lane (o próprio workflow veta arquivos que fazem isso).
@@ -442,5 +697,12 @@ afterEach(function () {
                 arquivosTrilhaFixtureId(Tests\TestCase::SUPPORT_CLIENT_TENANT_ID),
             ])
             ->delete();
+    }
+
+    // Fixtures do cofre — marcadas por `sub_destination`, que nenhum caminho de
+    // produção escreve. `delete()` direto na tabela porque o model tem SoftDeletes:
+    // um soft-delete deixaria a linha lá, e o próximo teste contaria o lixo do anterior.
+    if (Schema::hasTable('arquivos')) {
+        DB::table('arquivos')->where('sub_destination', '__fixture-cofre')->delete();
     }
 });
