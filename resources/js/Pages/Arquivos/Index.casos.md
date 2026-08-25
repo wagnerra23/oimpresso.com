@@ -14,10 +14,11 @@ last_run: "2026-08-25"
 
 > **Por que poucos UC com id aqui.** A tela nasceu no PR-1 ([#6216](https://github.com/wagnerra23/oimpresso.com/pull/6216),
 > 2026-08-24: rota `GET /arquivos` viva) só com a vista **Acervo**; o PR-2 acrescentou a
-> **Trilha** e, com ela, a barra de abas. Retenção e cofre chegam nos PR-3/4. Declarar os 14
-> cenários do protótipo F1 como UC de uma vez criaria órfãos e quebraria o G-2, porque o teste
-> que os defende ainda não existe. Eles ficam abaixo como `[BACKLOG]` — prosa honesta, sem id —
-> e **viram UC na onda que traz o teste que os defende**. Fonte: `prototipo-ui/cowork/arquivos-page.jsx`.
+> **Trilha** e, com ela, a barra de abas; o PR-4 acrescentou o **Cofre**. Falta a retenção
+> (PR-3). Declarar os 14 cenários do protótipo F1 como UC de uma vez criaria órfãos e quebraria
+> o G-2, porque o teste que os defende ainda não existe. Eles ficam abaixo como `[BACKLOG]` —
+> prosa honesta, sem id — e **viram UC na onda que traz o teste que os defende**.
+> Fonte: `prototipo-ui/cowork/arquivos-page.jsx`.
 
 ---
 
@@ -28,10 +29,14 @@ last_run: "2026-08-25"
   com a permissão `arquivos.access` · Então vê a lista do **próprio** business com nome do
   arquivo, dono (`arquivable`), bucket, disco, tamanho e data de vencimento — e nenhum arquivo
   de outro `business_id`.
-- **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **5** asserções
-  citando `UC-INDEX-01` no título do `it()` (scope não quebrado · sem `storage_path`/md5 ·
-  leitura pura · `politica()` devolve prazo E base legal · entrada no sidebar com as 3 camadas)
+- **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **6** asserções
+  citando `UC-INDEX-01` no título do `it()` (scope não quebrado · sem `storage_path`/hash ·
+  leitura pura · `politica()` devolve prazo E base legal · todo bucket da Request existe no enum
+  do banco · entrada no sidebar com as 3 camadas)
   + `e2e/arquivos-index.spec.ts` (stub `test.fixme`, vira asserção quando a rota subir em prod).
+  _Este número dizia **5** e estava stale desde 2026-08-25: a asserção do bucket entrou com o fix
+  do filtro ([#6244](https://github.com/wagnerra23/oimpresso.com/pull/6244)) e a enumeração aqui
+  não acompanhou. Recontado com `grep -c "^it('UC-INDEX-01"` — 6 —, não de memória._
 - **Regressão que defende:** vazamento cross-tenant no acervo (ADR 0093, Tier 0) e prazo
   exibido sem a lei que o sustenta.
 - **Status: 🧪** — a lane executou e o manifesto aterrissou: `scripts/casos-test-results.json`
@@ -75,6 +80,38 @@ last_run: "2026-08-25"
 
 ---
 
+## UC-INDEX-03 · O cofre diz quanto está guardado e o que está errado — sem apagar nada
+- **Persona:** Wagner (escritório, custo de disco e conformidade) — quer saber *"quanto o
+  sistema está guardando, onde, e o que está fora do lugar"* sem abrir terminal, e precisa que
+  a resposta não seja uma lista pra ele varrer à mão.
+- **Aceite:** Dado um business com arquivos anexados · Quando abre `/arquivos?tab=cofre` com a
+  permissão `arquivos.access` · Então vê o espaço **por disco** (contagem, tamanho, quantos
+  cifrados) e os **3 achados** contados — arquivo acima do cap que o vault recusa, órfão sem
+  `arquivable`, e mesmo conteúdo repetido — tudo do **próprio** business, com no máximo 5
+  arquivos citados por achado, **nenhum hash**, **nenhum caminho de disco** e **nenhum botão que
+  aja sobre eles**.
+- **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **7** asserções
+  citando `UC-INDEX-03` no título do `it()` (contadas com `grep -c "^it('UC-INDEX-03"`, não de
+  memória): fail-closed sem sessão devolve `disponivel: false` e não "0 achados" · o leitor usa
+  o model e **não** repete o `where` · o cap vem da config que o vault cobra · o controller
+  registra a prop de **uma** vista só · **cross-tenant 98 vs 99** · duplicado separa registro
+  repetido de disco ocupado 2× · o payload não carrega hash nem caminho (com controle positivo).
+  As 4 primeiras dispensam banco (valem nas duas lanes); as 3 últimas rodam na lane MySQL.
+- **Regressão que defende:** **vazamento cross-tenant** — `arquivos` tem model e global scope, e
+  aqui o erro caro é o simétrico ao da trilha: *repetir* o `where` esconderia uma quebra do
+  scope. Defende também: (a) "não medi" virar "0 achados", que faz uma tela de governança
+  afirmar saúde sem ter olhado; (b) hash e caminho de disco chegarem à vista de governança
+  (LGPD Art. 37) — e este é o assert que **substituiu** o presence-gate no ponto em que ele
+  deixou de caber, porque o leitor precisa do hash pra agrupar; (c) o cap virar `50` escrito na
+  tela, divergindo do que o `VaultEncryptionService` recusa em runtime; (d) mais de uma prop
+  deferida registrada de uma vez, que faria a vista fechada custar.
+- **Status: ⬜** — os testes existem e as asserções puras foram medidas fora do CI, mas ⬜ é o
+  que o cabeçalho manda enquanto o veredito não veio da lane: 🧪 exige o manifesto
+  (`scripts/casos-test-results.json`), não a minha leitura (G-7). Vira 🧪 com o run da
+  `Arquivos · Pest (MySQL)` deste PR.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 Derivados do protótipo F1 (`arquivos-page.jsx`). A onda que implementar cada vista traz o teste
@@ -97,10 +134,11 @@ e promove o item a `UC-INDEX-NN`.
 - **[BACKLOG]** Arquivo com prazo vencido → rótulo "prazo vencido", nunca contagem negativa.
 - **[BACKLOG]** Aba Retenção → tabela com os 8 contextos, prazo em anos/dias e a base legal literal.
 - **[BACKLOG]** Existe arquivo além do prazo + grace → banner citando `HealthCheckCommand` check #4 e LGPD Art. 16.
-- **[BACKLOG]** Aba Cofre → espaço por disco (vault × local) + os 3 achados com contagem.
-- **[BACKLOG]** Arquivo de 65 MB → listado como acima do cap de 50 MB, com a razão (OOM) e ADR 0126.
-- **[BACKLOG]** Dois arquivos com o mesmo MD5 → agrupados como duplicado, com a ressalva de que nem sempre é erro.
 - **[BACKLOG]** Papel sem `arquivos.access` → sem-permissão explicando que o anexo da OS continua acessível por quem vê a OS.
+- **[BACKLOG]** Arquivo sem file físico no disco → hoje só o check #1 do `arquivos:health-check`
+  vê isso, e o cofre **não** cobre: exige uma chamada de filesystem por linha (amostrada em 1000
+  no comando), custo que não cabe num request web. Vira UC quando houver caminho barato — um
+  campo materializado ou um resumo que o comando grave.
 - **[BACKLOG]** Trilha de um arquivo específico → abrir a linha do acervo e ver só os eventos dele (hoje o filtro é por ação, não por arquivo: sem caminho de UI que leve até lá, o parâmetro nasceria órfão).
 
 **Onda 2 — mutar o reversível**
@@ -122,6 +160,15 @@ e promove o item a `UC-INDEX-NN`.
 
 - Nenhum caminho de upload nesta tela.
 - Nenhum botão de editar/apagar linha da trilha.
+- Nenhum botão no cofre — nem o "Rodar dry-run do cleanup" que o protótipo desenha: é onda 3, e
+  a onda 1 inteira é leitura.
+- O cofre lê pelo model e **não** repete o `where` por `business_id` — ali repetir esconde a
+  quebra do scope, ao contrário da trilha. O que ele acrescenta é o portão fail-closed.
+- O cofre nunca responde "0 achados" quando não conseguiu medir: o payload marca `disponivel`.
+- Hash e caminho de disco não saem no payload de nenhuma vista, nem quando o leitor precisa do
+  hash pra agrupar duplicado.
+- Só uma prop deferida é registrada por request — a da vista aberta.
+- Prazo, cap e base legal vêm de config, nunca de número escrito na tela.
 - A trilha filtra por `business_id` explicitamente — a tabela não tem model nem global
   scope, então aqui o `where` **é** a defesa Tier 0, não redundância dela.
 - Sem `business_id` na sessão, a trilha devolve vazio (fail-closed) — nunca o log inteiro.
@@ -134,3 +181,4 @@ e promove o item a `UC-INDEX-NN`.
 - 2026-07-11 · [CC] carimbado por criar-tela.mjs — trio nascido junto (charter + casos + teste). Refs: UI-0013 · ADR 0264 G-1/G-2.
 - 2026-08-24 · [CL] preenchido a partir do protótipo F1 exportado do Cowork (`arquivos-page.jsx`) + do rascunho `cowork-inbox/modulos-faltantes/arquivos.casos.md`. Os 14 cenários entraram como `[BACKLOG]` (sem id) pra não nascer órfão no G-2; o item de reclassificar foi marcado `[BLOQUEADO]` porque o Service não suporta o contrato da Request. Refs: US-ARQ-013 · ADR 0360.
 - 2026-08-25 · [CC] **UC-INDEX-02 (trilha) promovido de `[BACKLOG]` a UC** — a onda PR-2 trouxe o teste que o defende, que é a condição do G-2. Nasce `⬜`: o veredito é da lane, não da leitura. Refs: US-ARQ-013 · ADR 0093 (o `where` explícito numa tabela sem model) · ADR 0123 §8.
+- 2026-08-25 · [CC] **UC-INDEX-03 (cofre) promovido de `[BACKLOG]` a UC** — a onda PR-4 trouxe os testes. Os 3 itens de backlog que ele cobre (aba Cofre · acima do cap · MD5 repetido) saíram da lista, e um item NOVO entrou no lugar, honesto sobre o que a vista **não** cobre: arquivo sem file físico no disco, que exige chamada de filesystem por linha. Nasce `⬜` pelo mesmo motivo do UC-INDEX-02. Refs: US-ARQ-013 · ADR 0093 (aqui o `where` repetido é que seria o defeito) · ADR 0126 (cap do vault) · LGPD Art. 37.
