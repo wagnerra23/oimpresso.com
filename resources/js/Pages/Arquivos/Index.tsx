@@ -16,6 +16,11 @@
 // Layout por PRIMITIVOS (ADR 0253): nada de `<div className="flex gap-4">` solto — o
 // layout-primitives-guard é catraca e reprova adotante novo.
 
+// Bundle Cowork do modulo (ETAPA 1 — proibicoes.md Tier 0 "Design System / Pacote Cowork
+// novo"): o CSS desce e o build o carrega ANTES de qualquer classe ser usada. A tela
+// segue DS canon; aplicar o visual `.arq-*` e PR proprio, com smoke separado.
+import '../../../css/cowork-arquivos-bundle.css'
+
 import { Deferred, router } from '@inertiajs/react'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { PageHeader } from '@/Components/PageHeader'

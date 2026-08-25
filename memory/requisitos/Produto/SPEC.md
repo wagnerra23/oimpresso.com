@@ -180,6 +180,37 @@ E há zeros gravados: a UI (React **e** Blade) pré-preenche célula sem preço 
 
 **Origem:** full-sweep funcao-scorecard de `ProductUtil` ([app-utils-productutil.yaml](../../governance/scorecards/funcoes/app-utils-productutil.yaml), fixVariationStockMisMatch C2), PR #4628.
 
+### US-PROD-029 · Cadastro de produto em ROTA PARALELA (o `ProductController` da Larissa não é tocado)
+
+> owner: felipe · priority: p2 · status: todo · type: epic · estimate: 24h · origin: decisao-felipe-2026-08-24 · blocked_by: US-PROD-023
+
+**Implementado em:** _pendente_ — decisão tomada em 2026-08-24, execução adiada para sessão própria. Nada foi construído: `/products/create` e `/products/{id}/edit` seguem no `Route::resource('products', ProductController::class)` ([routes/web.php:482](../../../routes/web.php)).
+
+**A decisão (Felipe 2026-08-24).** O cadastro de produto ganha **endereço próprio e controller próprio**, como a Consulta já tem (`/products/unificado` → `ProdutoUnificadoController`). Motivo: a tela e o caminho de gravação da Larissa (ROTA LIVRE, biz=4, 99% do volume) **não podem ser tocados de forma alguma** — e hoje não há como acrescentar um campo ao cadastro sem editar o código por onde ela salva.
+
+**O que foi MEDIDO antes de decidir (não presumir de novo):**
+
+- A separação hoje é por **header, não por endereço**. `ProductController` bifurca em `request()->header('X-Inertia')`: presente → `Inertia::render('Produto/Create'|'Produto/Edit')`; ausente → `view('product.create'|'product.edit')` (linhas 574/613 e 914/960). A Larissa navega sem o header e cai no Blade — as telas `.tsx` **não são as dela**.
+- Mas o **controller é compartilhado**: `Route::resource` dá **um** `store()` e **um** `update()`, e o formulário Blade dela posta exatamente ali. Acrescentar campo ao cadastro encosta no caminho de gravação dela, ainda que a tela não mude um pixel.
+- Tamanho do que seria duplicado: `ProductController` tem **2.906 linhas**; `store()` 174, `update()` 252, `create()` 126, `edit()` 110 — e essas ~660 se apoiam no resto (variações, estoque inicial, tabelas de preço, imagens, campos personalizados, combos). Para comparar: o `ProdutoUnificadoController` da Consulta tem 1.088 linhas e é **só leitura**.
+
+**⚠️ O risco que esta US assume, de olhos abertos.** Passam a existir **dois códigos que gravam a mesma tabela**. Enquanto os dois viverem, toda regra nova (validação, arredondamento, trava) precisa entrar nos dois; no dia em que entrar em um só, o mesmo produto passa a ser salvo de dois jeitos conforme a porta usada — defeito que não dá erro e aparece meses depois. Já mordeu neste repositório ([§5 2026-08-02](../../proibicoes.md) — "corrigir UMA de N implementações duplicadas: o fix pousou na cópia que o consumidor não usa"). Mitigação obrigatória no aceite.
+
+**Aceite:**
+
+- [ ] Rota e controller próprios, fora do `Route::resource('products')`. **Zero linhas** alteradas em `ProductController@store`/`@update` — provado por `git diff --stat` no PR.
+- [ ] Teste de não-regressão que posta **como o Blade posta** (sem header `X-Inertia`) e prova que o caminho da Larissa continua idêntico.
+- [ ] Contra a duplicação: extrair a gravação para um Service compartilhado **ou** declarar no código por que as duas existem e o que sincroniza. Não deixar duas cópias mudas.
+- [ ] Multi-tenant Tier 0 ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) + REGRA MESTRE de valor/estoque ([proibicoes.md](../../proibicoes.md)) — o cadastro escreve preço e estoque inicial.
+- [ ] Charter + `casos.md` + testes da tela nova (trio), como manda a governança do módulo.
+
+**Pega carona nesta US (não vale sozinha):** coluna `products.observacao_critica` + caixa de seleção ao lado da observação, para o chip de recado da Consulta ficar **vermelho quando a nota é crítica** — §3.2 do handoff V3, hoje impossível porque `products` não tem campo de severidade (só `product_description`, texto livre, e os `product_custom_field1..13`, que servem a outra coisa). Sem lugar para marcar, a flag nasce sempre falsa; por isso ela espera o cadastro novo em vez de virar US própria.
+
+**Relação com a US-PROD-023.** Aquela US promove as 8 telas React `draft→live` assumindo o controller compartilhado de hoje. Esta decisão **muda o desenho dela** para o cadastro: se o endereço passa a ser próprio, a promoção do Create/Edit acontece na rota nova, não na bifurcação por header. Reconciliar as duas quando esta entrar em execução.
+
+**Ficou de fora, e é de outra tela.** O `+N reservado` na coluna Disponível (§6 do handoff V3) precisa da **natureza do local** (venda / bloqueado / custódia) em `business_locations`. Felipe 2026-08-24: é decisão do fluxo de estoque, responsabilidade de outra tela — não entra aqui nem vira US do Produto.
+
+
 ## 4. Backlog fora do batch (sem sinal ainda — ADR 0105)
 
 Viram US quando houver cliente/sinal ou drift de métrica:
@@ -198,5 +229,6 @@ Viram US quando houver cliente/sinal ou drift de métrica:
 
 ## 6. Histórico
 
+- **2026-08-24** — US-PROD-029 registrada: o cadastro de produto ganha rota paralela, decisão de Felipe, execução adiada para sessão própria. Origem: ao fechar as divergências §15 do pacote V3 na Consulta ([PR #6184](https://github.com/wagnerra23/oimpresso.com/pull/6184)), duas do handoff ficaram sem como ser feitas por falta de campo no cadastro. A investigação mediu que a separação Blade↔React é por header `X-Inertia` e que `store()`/`update()` são compartilhados com o caminho da Larissa — daí a rota paralela. O `+N reservado` foi declarado fora do módulo (fluxo de estoque). [M+C]
 - **2026-07-27** — Campo `**Implementado em:**` declarado nas 8 US que não o tinham (anchor coverage do módulo 11,1% → 100%). Estado verificado US a US contra o código em `b6b5fac`, não presumido — **8 `_pendente_`**, cada uma com a evidência da não-implementação na razão. Duas delas (US-020 e US-021) têm **código pré-existente entregue por fora da US** (os `casos.md`+testes das corridas `sdd-from-source`; o `movements` por `Inertia::defer` do PR #4658) — isso está **dito na razão**, não convertido em `_parcial_`: pela [ADR 0302](../../decisions/0302-fonte-unica-doneness-anchor-aposenta-status-spec.md), US com `status:` aberto e âncora `parcial` é conflito, e a US em si continua aberta. O 1º parágrafo do "Por quê" da US-021 estava superado pelo #4658 e foi corrigido no mesmo PR (regra de precedência — código provado > SPEC). [CC]
 - **2026-07-03** — SPEC criado (G-04 da onda Produto, Passo 2). Registra as capacidades já em prod (§2, prose) + 7 US de backlog do batch aprovado por Wagner ("ok pode fazer"). Fonte: [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md). [CC]

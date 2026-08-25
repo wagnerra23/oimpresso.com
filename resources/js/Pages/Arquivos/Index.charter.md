@@ -30,6 +30,15 @@ charter_version: 2
 > vez de um lugar que deixou de existir. O que sobrou no arquivo é **errata datada em passado**,
 > que é a forma que não apodrece.
 
+> **CSS do protótipo — decidido em 2026-08-25, etapa 1 de 2.** O protótipo carrega 11 classes
+> próprias `.arq-*`, e não existia `cowork-arquivos-bundle.css` no repo: a tela nasceu em DS
+> canon. A proibição Tier 0 manda copiar o bundle INTEIRO na 1ª aplicação. A origem
+> (`modulos-faltantes.css`) é **multi-módulo**: 6 módulos no mesmo CSS, cada um com marcador de
+> seção — copiar inteiro traria 5 módulos alheios. Desceu a **seção inteira** do Arquivos
+> (L209-303), com as 4 regras multi-módulo **reescritas escopadas** e um assert que barra
+> seletor alheio. **A tela ainda NÃO usa as classes** — aplicar o visual é PR próprio, como a
+> mesma proibição manda ("1 PR de bundle copy + N PRs de customização").
+
 > **O `.tsx` existe desde 2026-08-24** ([PR #6216](https://github.com/wagnerra23/oimpresso.com/pull/6216),
 > commit `8c30820`), com rota `GET /arquivos` → `arquivos.index` (`can:arquivos.access`),
 > `ArquivosAdminController@index` e o acervo real — não stub. Escopo do que nasceu: **só a
