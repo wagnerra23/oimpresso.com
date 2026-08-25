@@ -254,7 +254,9 @@ export async function runBrief(opts = {}) {
 async function main() {
   let out = '';
   try { out = await runBrief({}); } catch { out = ''; }
-  try { if (out) process.stdout.write(out + '\n'); } catch { /* ignore */ }
+  // [brief-fetch-curl] no INICIO: o transcript grava `content` com o whitespace inicial
+  // removido, e as sondas do hook-bites exigem a tag como 1o caractere do valor.
+  try { if (out) process.stdout.write('[brief-fetch-curl] ' + out.replace(/^\s+/, '') + '\n'); } catch { /* ignore */ }
   process.exit(0);
 }
 

@@ -52,7 +52,7 @@ export function buildOutput(handoffText) {
   }
   partes.push('=== Estado vivo de tasks/cycles ===');
   partes.push('Use tools MCP: cycles-active + my-work + my-inbox (CURRENT.md/TASKS.md removidos em 2026-05-04, ADR 0070)');
-  return partes.join('\n');
+  return '[handoff-inline] ' + partes.join('\n');
 }
 
 function main() {

@@ -34,7 +34,7 @@ export function extractSlugs(touchedLines) {
 
 export function formatMessage(slugs) {
   if (!slugs.length) return '';
-  const out = ['', `[skills] ${slugs.length} skill(s) modificada(s) desde sua ultima sessao:`];
+  const out = ['', `[check-skills-fresh] ${slugs.length} skill(s) modificada(s) desde sua ultima sessao:`];
   for (const s of slugs.slice(0, 8)) out.push(`    - ${s}`);
   if (slugs.length > 8) out.push(`    ... +${slugs.length - 8} outras`);
   out.push('', '-> Rode /sync-skills pra ver o que mudou e ler conteudo novo.',
