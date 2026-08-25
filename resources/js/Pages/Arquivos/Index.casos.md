@@ -28,14 +28,18 @@ last_run: "2026-08-24"
   com a permissão `arquivos.access` · Então vê a lista do **próprio** business com nome do
   arquivo, dono (`arquivable`), bucket, disco, tamanho e data de vencimento — e nenhum arquivo
   de outro `business_id`.
-- **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — 3 asserções
-  citando `UC-INDEX-01` (scope não quebrado · sem `storage_path`/md5 na linha · leitura pura)
+- **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **4** asserções
+  citando `UC-INDEX-01` no título do `it()` (scope não quebrado · sem `storage_path`/md5 na
+  linha · leitura pura · `politica()` devolve prazo E base legal)
   + `e2e/arquivos-index.spec.ts` (stub `test.fixme`, vira asserção quando a rota subir em prod).
 - **Regressão que defende:** vazamento cross-tenant no acervo (ADR 0093, Tier 0) e prazo
   exibido sem a lei que o sustenta.
-- **Status: ⬜** — o Pest existe e cita o UC, mas **não rodou** (Pest é CT 100, nunca local:
-  proibicoes §Ambiente). Vira 🧪/✅ quando a lane executar e o manifesto aterrissar — status
-  vem do veredito, não da minha leitura (G-7).
+- **Status: 🧪** — a lane executou e o manifesto aterrissou: `scripts/casos-test-results.json`
+  (gerado 2026-08-25, fonte `test-results/pest-arquivos-junit.xml`) traz
+  `UC-INDEX-01 → verdict pass · tests 4`. Bate com as 4 asserções acima. Não é ✅ porque, pelo
+  cabeçalho deste arquivo, 🧪 é exatamente isto — *teste cita o UC e passa*; o status veio do
+  veredito, não da minha leitura (G-7). `ran_at` vem `null`, como em 314 dos 361 UCs do
+  manifesto — é o normal do parser de JUnit, não sinal de que não rodou.
 
 ---
 
