@@ -892,6 +892,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** não classificar *"pill de estado com severidade"* pela **variante sintática** do componente. A mesma variante é chip neutro ou selo de severidade conforme o **conteúdo**, e isso não é decidível pelo atributo — é a **5ª** lápide da família de guard sintático (allowlist-de-pasta 2026-06-30 · guard `@scope` 2026-07-09 · vocabulário 130 FP 2026-07-16 · `toHaveKey` 100% FP 2026-07-26). Também proibido "resolver" com denylist de rótulo. E o corolário novo, que vale pra **qualquer** gate de conformidade: **o showcase/catálogo do DS não entra no denominador** — por construção ele é o lugar onde toda variante aparece, inclusive as que o gate proíbe.
 
+### 2026-08-25 — EMENDA da lápide acima (`ds-anchor-check`): o corolário do showcase foi CORTADO por [W], e o alcance das regras de paridade estava por medir
+
+- **O limite (a correção que importa):** **não rejeitar instrumento pela regra menos relevante ao objetivo declarado.** Antes de reprovar um gate multi-regra, dizer **qual regra serve ao objetivo** e medir **aquela** — e medir **alcance** (em quantos alvos ela consegue rodar), não só falso-positivo. FP alto reprova a regra; **alcance ~0 reprova o instrumento pra aquele fim**, e é um veredito diferente, que se apresenta diferente. E o corolário de escopo: **denominador é decisão do dono** — a régua pode marcar exceção no relatório, jamais encolher a população por conta própria.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
