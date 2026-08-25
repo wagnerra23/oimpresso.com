@@ -22,6 +22,18 @@
 > instrumento que não pode ficar vermelho (a doutrina do §5 sobre o drift-sentinel tautológico). A
 > defesa contra regressão visual desta tela é o visreg, que já existe.
 
+> ℹ️ **O `jana-pro.jsx` NÃO sumiu — e isso não muda o veredito.** Registro porque a confusão já
+> aconteceu uma vez: o que está **404** é a fonte original do gate F1.5 (`Jana Pro - Paywall CC.html`),
+> **não** o `jana-pro.jsx`. Este está íntegro e ligado, e foi conferido no Cowork **vivo** nesta data —
+> 162 linhas idênticas ao espelho, expõe `JanaProPage` por `Object.assign(window, …)` na última linha,
+> é carregado pelo shell (`jana-pro.jsx?v=jp2` + `jana-pro.css?v=jp2`) e o `jana-merge.jsx` o renderiza
+> na aba `pro` (`if (tab === "pro")`, em modo FOCO com `onVoltar`, como o `/ia/pro` do vivo).
+>
+> **Ainda assim ele não é âncora** — e a prova não é do espelho, é do **próprio arquivo vivo**, cuja
+> linha 2 declara: *"Espelho do vivo `resources/js/Pages/Jana/Pro.tsx` (lido no `main` neste turno)"*.
+> Proveniência de retrato não muda por o arquivo estar íntegro, exposto e roteado. Quem **desenha** a
+> Pro é ele; quem o **chama** é o `jana-merge` (`const Pro = window.JanaProPage`) — chamar não é desenhar.
+
 > **Como ler:** ✅ existe e equivale · 🟡 existe mas diverge · ❌ não existe na tela viva · 🟢 **só na viva** (o protótipo não tem — apagar seria regressão) · ⛔ existe e **não deve** ser copiado.
 
 > 💰 **Valores monetários deste documento saem como `R$ [redacted Tier 0]`** — regra Tier 0 de `proibicoes.md`, enforçada pelo hook `block-brl-values-in-memory` (que **bloqueou a 1ª gravação deste arquivo**, corretamente). Nenhum veredito abaixo depende do número em si: o que se compara é *"o protótipo e a viva dizem a mesma coisa?"*.
