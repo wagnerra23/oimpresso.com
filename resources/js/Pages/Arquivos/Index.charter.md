@@ -20,12 +20,15 @@ charter_version: 2
 > **Onde a tela mora — decidido, não em aberto.** `resources/js/Pages/Arquivos/`, por
 > decisão [W] de 2026-07-29 registrada no [SPEC §US-ARQ-013](../../../../memory/requisitos/Arquivos/SPEC.md)
 > (*"pode ser dentro do arquivo mesmo"*), depois que a [ADR 0360](../../../../memory/decisions/0360-deprecacao-admin-center-supersede-0122.md)
-> deprecou o Admin Center. O docblock de `DataController` e o protótipo F1 ainda dizem
-> "Admin Center" — são a fonte **stale**. O PR-1 prometeu corrigir o docblock e **não
-> corrigiu**: medido em 2026-08-25, `Modules/Arquivos/Http/Controllers/DataController.php`
-> segue com "Admin Center" na L15 e no `label` da permission `arquivos.access` (L37, texto
-> que aparece na tela de papéis). Fica como pendência abaixo — mexer no label é mudança de
-> UI visível, não reconciliação de doc.
+> deprecou o Admin Center.
+>
+> **A fonte stale foi reconciliada em 2026-08-25.** Até então o `DataController` dizia "Admin
+> Center" em dois lugares, e este charter registrava a dívida: *"o PR-1 prometeu corrigir o
+> docblock e não corrigiu"*. Os dois foram corrigidos — o docblock da classe e, o que pesa
+> mais, o `label` da permission `arquivos.access`, **texto que o [W] lê em `/roles/{id}/edit`
+> ao marcar**. O label passa a descrever o PODER (ver o acervo, prazo, base legal, cofre) em
+> vez de um lugar que deixou de existir. O que sobrou no arquivo é **errata datada em passado**,
+> que é a forma que não apodrece.
 
 > **CSS do protótipo — decidido em 2026-08-25, etapa 1 de 2.** O protótipo carrega 11 classes
 > próprias `.arq-*`, e não existia `cowork-arquivos-bundle.css` no repo: a tela nasceu em DS

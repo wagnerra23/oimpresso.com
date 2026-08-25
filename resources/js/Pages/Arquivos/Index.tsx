@@ -194,10 +194,22 @@ function paraQueryTrilha(f: Filtros): Record<string, string | number | null | un
   }
 }
 
+/**
+ * Chip de filtro.
+ *
+ * Antes, ativo e inativo diferiam só por `font-medium` — no render de 1728px do visreg
+ * o chip selecionado era quase indistinguível dos outros. Agora o ativo carrega o mesmo
+ * roxo do `--primary` que a aba ativa usa (ADR 0190), e o inativo ganha `hover`: o
+ * elemento passa a dizer que é clicável antes do clique.
+ *
+ * Tokens do DS (`primary`/`muted`), nunca cor crua — a camada canônica é vigiada por
+ * lint pra isso.
+ */
 const chip = (ativo: boolean) =>
-  ativo
-    ? 'rounded-full border px-3 py-1 text-xs font-medium'
-    : 'rounded-full border px-3 py-1 text-xs text-muted-foreground'
+  'rounded-full border px-3.5 py-1.5 text-xs transition-colors ' +
+  (ativo
+    ? 'border-primary/30 bg-primary/10 font-medium text-primary'
+    : 'text-muted-foreground hover:bg-muted hover:text-foreground')
 
 function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
   return [
@@ -451,92 +463,122 @@ export default function Index({ filtros, politica, acervo, trilha }: Props) {
 
   return (
     <AppShellV2>
-      <div data-contract="cabecalho">
-        <PageHeader title="Arquivos" subtitle={subtitulo} />
-      </div>
+      {/* SEM cor de fundo aqui — de propósito, e isto foi MEDIDO (2026-08-25).
+          Minha primeira versão punha `bg-page-cream`, com a justificativa de que "a tela
+          nascia branca". Era falso: amostrando o pixel do render (GD, o mesmo motor do
+          PixelBaselineTest), o fundo já era rgb(251,250,248) ANTES da mudança — porque o
+          `.cockpit` pinta `background-color: var(--bg)`, e `--bg` é o MESMO
+          `oklch(0.985 0.003 90)` do `--color-page-cream`.
+          Pior que redundante: o `.cockpit` também pinta `background-image: var(--atmo)`,
+          a atmosfera do ERP (dois gradientes radiais), e o comentário dele diz textual que
+          "telas por cima ficam transparentes pra deixar passar". Um fundo OPACO aqui
+          apagaria justamente o frescor que se queria. `.main-body` segue sem padding
+          próprio — esse, sim, cada tela paga, e é o que o wrapper abaixo faz. */}
+      <div className="flex-1 pb-8">
+        <div data-contract="cabecalho">
+          {/* O PageHeader canon já traz `pt-6 px-6 pb-3.5` por dentro — por isso ele fica
+              FORA do wrapper de padding abaixo, senão o título ganharia 48px e desalinharia
+              ao contrário. */}
+          <PageHeader title="Arquivos" subtitle={subtitulo} />
+        </div>
 
-      <div className="py-3" data-contract="abas">
-        <PageHeaderTabs
-          ghosts={[
-            { key: 'acervo', label: 'Acervo', href: '/arquivos?tab=acervo' },
-            { key: 'trilha', label: 'Trilha', href: '/arquivos?tab=trilha' },
-          ]}
-          activeGhostKey={vista}
-        />
-      </div>
-
-      {vista === 'acervo' && (
-        <>
-          <Inline gap={3} justify="between" wrap className="pb-3" data-contract="acervo-filtros">
-            <Inline gap={2} wrap>
-              <button type="button" onClick={() => irPara({ bucket: null })} className={chip(!filtros.bucket)}>
-                Todos
-              </button>
-              {BUCKETS.map((b) => (
-                <button
-                  key={b}
-                  type="button"
-                  onClick={() => irPara({ bucket: b })}
-                  className={chip(filtros.bucket === b)}
-                >
-                  {b}
-                </button>
-              ))}
-            </Inline>
-          </Inline>
-
-          <div data-contract="acervo">
-            <Deferred data="acervo" fallback={<TabelaSkeleton />}>
-              <Acervo acervo={acervo} politica={politica} filtros={filtros} />
-            </Deferred>
+        {/* `px-6` casa com o px-6 interno do header: sem ele o header ficava recuado 24px e
+            TODO o resto (abas, chips, tabela, rodapé) colava na borda da sidebar — visível
+            no render do visreg. `space-y-6` dá o ritmo entre os blocos, no lugar dos
+            `py-3`/`pb-3`/`pt-4` soltos que cada bloco carregava. */}
+        <div className="w-full px-6 pt-5 space-y-6">
+          <div data-contract="abas">
+            <PageHeaderTabs
+              ghosts={[
+                { key: 'acervo', label: 'Acervo', href: '/arquivos?tab=acervo' },
+                { key: 'trilha', label: 'Trilha', href: '/arquivos?tab=trilha' },
+              ]}
+              activeGhostKey={vista}
+            />
           </div>
 
-          <p className="pt-4 text-xs leading-relaxed text-muted-foreground">
-            O acervo é administrativo: o arquivo continua sendo alcançado pela tela do dono. Baixar do
-            cofre passa sempre pelo <code>DownloadController</code> — <code>Storage::url</code> direto
-            não serve arquivo cifrado (ADR 0123 §6), e o link assinado expira em 60 min. Esta tela não
-            envia arquivo: upload entra pelos módulos, via trait <code>HasArquivos</code>.
-          </p>
-        </>
-      )}
+          {vista === 'acervo' && (
+            /* Ritmo interno da vista (16px) menor que o do wrapper (24px): abas e vista são
+               blocos distintos; filtro, tabela e nota são a MESMA conversa. */
+            <div className="space-y-4">
+              <Inline gap={3} justify="between" wrap data-contract="acervo-filtros">
+                <Inline gap={2} wrap>
+                  <button type="button" onClick={() => irPara({ bucket: null })} className={chip(!filtros.bucket)}>
+                    Todos
+                  </button>
+                  {BUCKETS.map((b) => (
+                    <button
+                      key={b}
+                      type="button"
+                      onClick={() => irPara({ bucket: b })}
+                      className={chip(filtros.bucket === b)}
+                    >
+                      {b}
+                    </button>
+                  ))}
+                </Inline>
+              </Inline>
 
-      {vista === 'trilha' && (
-        <>
-          {/* Os chips saem do próprio log (GROUP BY), então só existe filtro pra ação que
-              este business registrou de fato — nunca um chip que leva a lista vazia. */}
-          <Inline gap={3} justify="between" wrap className="pb-3" data-contract="trilha-filtros">
-            <Inline gap={2} wrap>
-              <button type="button" onClick={() => irPara({ acao: null })} className={chip(!filtros.acao)}>
-                Todas
-              </button>
-              {(trilha?.acoes ?? []).map((f) => (
-                <button
-                  key={f.acao}
-                  type="button"
-                  onClick={() => irPara({ acao: f.acao })}
-                  className={chip(filtros.acao === f.acao)}
-                >
-                  {f.acao} <span className="tabular-nums">{f.total}</span>
-                </button>
-              ))}
-            </Inline>
-          </Inline>
+              <div data-contract="acervo">
+                <Deferred data="acervo" fallback={<TabelaSkeleton />}>
+                  <Acervo acervo={acervo} politica={politica} filtros={filtros} />
+                </Deferred>
+              </div>
 
-          <div data-contract="trilha">
-            <Deferred data="trilha" fallback={<TabelaSkeleton />}>
-              <Trilha trilha={trilha} filtros={filtros} />
-            </Deferred>
-          </div>
+              {/* Largura de leitura: sem ela a nota virava uma linha de ponta a ponta do
+                  monitor — no render de 1728px do visreg media ~1400px (~230 caracteres).
+                  `ch` e não `max-w-3xl` porque o critério é caractere por linha, e 72ch cai
+                  na faixa legível; o repo já tem precedente da forma (`max-w-[76ch]`,
+                  `max-w-[80ch]`). NÃO usar `max-w-prose`: não há `prose` no theme deste
+                  projeto (conferido), então a classe seria ignorada em silêncio. */}
+              <p className="max-w-[72ch] text-xs leading-relaxed text-muted-foreground">
+                O acervo é administrativo: o arquivo continua sendo alcançado pela tela do dono. Baixar do
+                cofre passa sempre pelo <code>DownloadController</code> — <code>Storage::url</code> direto
+                não serve arquivo cifrado (ADR 0123 §6), e o link assinado expira em 60 min. Esta tela não
+                envia arquivo: upload entra pelos módulos, via trait <code>HasArquivos</code>.
+              </p>
+            </div>
+          )}
 
-          <p className="pt-4 text-xs leading-relaxed text-muted-foreground">
-            <code>arquivos_audit_log</code> é append-only e <strong>nunca purgado</strong> — nem quando o
-            arquivo é apagado. Esta tela não oferece editar nem apagar linha: alterar auditoria é
-            incidente, não conserto. Para varredura de padrão suspeito (link assinado sem usuário,
-            exclusão em série, download repetido do mesmo IP), quem responde é o comando{' '}
-            <code>arquivos:audit-log --suspicious</code>.
-          </p>
-        </>
-      )}
+          {vista === 'trilha' && (
+            <div className="space-y-4">
+              {/* Os chips saem do próprio log (GROUP BY), então só existe filtro pra ação que
+                  este business registrou de fato — nunca um chip que leva a lista vazia. */}
+              <Inline gap={3} justify="between" wrap data-contract="trilha-filtros">
+                <Inline gap={2} wrap>
+                  <button type="button" onClick={() => irPara({ acao: null })} className={chip(!filtros.acao)}>
+                    Todas
+                  </button>
+                  {(trilha?.acoes ?? []).map((f) => (
+                    <button
+                      key={f.acao}
+                      type="button"
+                      onClick={() => irPara({ acao: f.acao })}
+                      className={chip(filtros.acao === f.acao)}
+                    >
+                      {f.acao} <span className="tabular-nums opacity-70">{f.total}</span>
+                    </button>
+                  ))}
+                </Inline>
+              </Inline>
+
+              <div data-contract="trilha">
+                <Deferred data="trilha" fallback={<TabelaSkeleton />}>
+                  <Trilha trilha={trilha} filtros={filtros} />
+                </Deferred>
+              </div>
+
+              <p className="max-w-[72ch] text-xs leading-relaxed text-muted-foreground">
+                <code>arquivos_audit_log</code> é append-only e <strong>nunca purgado</strong> — nem quando o
+                arquivo é apagado. Esta tela não oferece editar nem apagar linha: alterar auditoria é
+                incidente, não conserto. Para varredura de padrão suspeito (link assinado sem usuário,
+                exclusão em série, download repetido do mesmo IP), quem responde é o comando{' '}
+                <code>arquivos:audit-log --suspicious</code>.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
     </AppShellV2>
   )
 }
