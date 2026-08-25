@@ -46,19 +46,21 @@ if (! function_exists('arquivosCodigoSemComentarios')) {
  * O alvo aqui é o CONTROLLER — que ele não quebre o scope e não vaze o que o charter
  * proíbe.
  *
- * ⚠️ **O que estes testes NÃO provam, e não é detalhe:** na lane `Pest Arquivos` a
- * tabela `arquivos` **não existe** — medido em 2026-08-25 no run 32799606614: de 192
- * testes do módulo, **107 pulam**, 88 deles por "arquivos table missing" ou
- * "SQLite-incompatível". O `MultiTenantTest`, que seria o dono do isolamento
- * cross-tenant, está entre os que pulam. Logo o isolamento **não tem prova no CI hoje**
- * — só os testes que dispensam banco rodam de verdade, e são os daqui.
+ * ⚠️ **Onde estes testes rodam — são DUAS lanes, e elas não são equivalentes:**
  *
- * Isso é buraco de LANE, não deste arquivo: enquanto ela não semear o schema (a receita
- * existe em `.github/actions/pest-mysql-setup`), escrever aqui um teste cross-tenant com
- * dado real só acrescentaria mais um skip — e skip sai exit 0.
+ * | lane | banco | o que roda |
+ * |---|---|---|
+ * | `Pest Arquivos` (`modules-pest.yml`) | sqlite `:memory:`, **sem migrate** | tudo — mas 107 de 192 PULAM ("arquivos table missing") |
+ * | `PHP / Pest (Arquivos · MySQL)` (`arquivos-pest.yml`) | MySQL semeado (biz=1 + biz=2) | **allowlist** de arquivos comprovadamente verdes |
  *
- * Tenant: fictício 98 ([ADR 0358](memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)).
- * `biz=4` (ROTA LIVRE) é PROIBIDO em teste, sem exceção.
+ * Medido em 2026-08-25 (run 32799606614). Os testes daqui dispensam banco de propósito:
+ * lêem o código do controller e invocam `politica()`, que só toca config. Por isso valem
+ * nas duas lanes.
+ *
+ * O que **não** valia até hoje: o `MultiTenantTest`, dono do isolamento cross-tenant,
+ * pulava na lane sqlite e **não estava na allowlist MySQL** — logo o Tier 0 do módulo não
+ * tinha prova em lugar nenhum do CI. Este PR o adiciona à allowlist, que é o mecanismo que
+ * o próprio workflow instrui ("cada novo teste MySQL-only é adicionado AQUI — ratchet up").
  *
  * @see resources/js/Pages/Arquivos/Index.casos.md
  * @see memory/requisitos/Arquivos/RUNBOOK-index.md
