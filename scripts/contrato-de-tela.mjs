@@ -135,6 +135,36 @@ function loadContract(file) {
 // cada subpasta nova de design-docs reabrir o mesmo buraco.
 const ehDocDesign = (p) => String(p || '').split(String.fromCharCode(92)).join('/').includes('prototipo-ui/design-docs/');
 
+// ── Casamento de COPY: fronteira de identificador (endurecimento medido · 2026-08-25) ──
+//
+// ANTES: `blob.includes(str)` — substring cru. Pega a copy, mas também pega qualquer
+// pedaço de identificador do arquivo. Descoberto ao escrever o contrato de Arquivos/Index:
+// pinar "Payload" (a copy do PROTÓTIPO que a tela NÃO tem) passava VERDE, porque casa
+// dentro de `TrilhaPayload`, o nome de uma interface TS. Copy curta que seja pedaço de um
+// identificador ficava protegida de MENOS — o gate dizia "presente" sem estar.
+//
+// AGORA: a ocorrência não pode estar colada a caractere de identificador ([A-Za-z0-9_$]),
+// e só nas pontas em que a própria copy começa/termina com um. Copy é texto de UI; ela não
+// nasce grudada num nome de variável.
+//
+// FALSO-POSITIVO MEDIDO ANTES DE LIGAR (regra do projeto — proibicoes §"Sempre fazer" 4):
+// 163 strings de copy dos 11 contratos ativos, todas as que HOJE passam → **0** passariam a
+// reprovar (0,0%). Mais 14 casos-limite sintéticos: 14/14, divergindo de `includes` em 3
+// (TrilhaPayload · Todososdias · classificacaoDisco) — ou seja, discrimina, não carimba.
+//
+// LIMITE DECLARADO (não é omissão): copy colada a HÍFEN ainda passa — `btn-Todos-ativo`
+// casa "Todos", porque hífen não é caractere de identificador. Fechar isso exigiria casar
+// só dentro de literal/texto JSX (medido também: 0% de FP), o que depende de um extrator de
+// literais mais frágil que esta regra. Fica como o próximo degrau, se um caso real aparecer.
+const IDENT = /[A-Za-z0-9_$]/;
+export function copyPresente(blob, str) {
+  if (!str) return true;
+  const e = String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const ini = IDENT.test(str[0]) ? '(?<![A-Za-z0-9_$])' : '';
+  const fim = IDENT.test(str[str.length - 1]) ? '(?![A-Za-z0-9_$])' : '';
+  return new RegExp(ini + e + fim).test(blob);
+}
+
 function checkContract(file) {
   // Chokepoint ÚNICO do filtro de inbox (2026-08-24). A 1ª tentativa filtrou no workflow e a 2ª
   // no coletor — as duas falharam porque o job entra por DUAS rotas: o step "Contratos ativos"
@@ -161,9 +191,9 @@ function checkContract(file) {
     const hasAnchor = seq.includes(s.id);
     if (!hasAnchor) { err(`seção "${s.id}" sem âncora data-contract no alvo`); fail++; }
     for (const str of (s.copy ?? [])) {
-      if (!blob.includes(str)) { err(`copy ausente em "${s.id}": ${JSON.stringify(str)}`); fail++; }
+      if (!copyPresente(blob, str)) { err(`copy ausente em "${s.id}": ${JSON.stringify(str)}`); fail++; }
     }
-    if (hasAnchor && !s.copy?.some(x => !blob.includes(x))) ok(`seção "${s.id}" — âncora + copy presentes`);
+    if (hasAnchor && !s.copy?.some(x => !copyPresente(blob, x))) ok(`seção "${s.id}" — âncora + copy presentes`);
   }
 
   // ordem: a `ordem` declarada deve ser subsequência da sequência de âncoras no fonte
