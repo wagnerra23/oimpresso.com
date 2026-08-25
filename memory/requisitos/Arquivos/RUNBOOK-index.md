@@ -84,7 +84,8 @@ Nenhum nesta onda. A tela não está no `MENU_SHORTCUTS` do shell e não reivind
 |---|---|---|
 | `ListArquivosRequest` | `Modules/Arquivos/Http/Requests/` | **já existia** (Sprint 1) |
 | `Arquivo` (global scope + SoftDeletes) | `Modules/Arquivos/Entities/` | já existia |
-| `Config/retention.php` (prazo + base legal) | `Modules/Arquivos/Config/` | já existia |
+| `Config/config.php` → `retention_days_policy` (prazo por contexto) | `Modules/Arquivos/Config/` | já existia — **sem nenhum leitor** até esta tela |
+| `mergeConfigFrom` no provider | `Modules/Arquivos/Providers/` | **novo** — o módulo nunca registrou o próprio config |
 | `ArquivosAdminController` | `Modules/Arquivos/Http/Controllers/` | **novo nesta onda** |
 | rota `GET /arquivos` → `arquivos.index` | `Modules/Arquivos/Routes/web.php` | **nova nesta onda** |
 
@@ -125,7 +126,7 @@ Nenhum endpoint novo foi inventado — a regra 3 do pedido zero-toque é ligar o
 | 403 com usuário admin | `arquivos.access` não marcada na função (Camada 3, `/roles/{id}/edit`) |
 | Tela vazia com dados no banco | `business_id` da sessão diferente do dono das linhas — global scope funcionando |
 | Skeleton eterno | a prop `acervo` é `defer`; conferir se o partial reload não está pedindo `only:[]` sem ela |
-| Prazo sem a lei ao lado | `sub_destination` fora de `Config/retention.php` — cai no `default` (90d) |
+| Prazo sem a lei ao lado | `sub_destination` fora de `retention_days_policy` — cai no `default` (90d). Se a coluna inteira vier vazia, o suspeito é o `mergeConfigFrom`: sem ele `config('arquivos.*')` é `null` e a política some (foi o bug de 2026-08-24) |
 
 ## 13. Refs
 
