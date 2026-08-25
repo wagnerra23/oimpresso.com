@@ -81,6 +81,74 @@ const GOOD_CONTRACT = {
   drop(root);
 }
 
+// ── Casamento de copy por FRONTEIRA DE IDENTIFICADOR (endurecimento 2026-08-25) ──
+// O furo real: `blob.includes` dizia "presente" pra copy que só existe DENTRO de um
+// identificador. Achado escrevendo o contrato de Arquivos/Index — pinar "Payload" passava
+// verde por casar em `TrilhaPayload`. Estes 4 casos travam o comportamento nos dois sentidos.
+
+// 4b. NEGATIVO — copy que só existe dentro de um identificador → exit 1 (era o furo).
+{
+  const tsx = `interface TrilhaPayload { x: number }
+export default function I(){return(<>
+  <section data-contract="lista"><h2>Conversas</h2></section>
+</>);}`;
+  const root = makeContractRoot({
+    tsx,
+    contract: { tela: 'F', alvo: ['tela'], secoes: [{ id: 'lista', copy: ['Conversas', 'Payload'] }] },
+  });
+  const r = node(root, ['--contract', 'contrato.json']);
+  check('copy só dentro de identificador (TrilhaPayload) → exit 1',
+    r.status === 1 && /copy ausente/.test(out(r)), out(r));
+  drop(root);
+}
+
+// 4c. POSITIVO — a MESMA palavra, agora como copy de verdade em texto JSX → exit 0.
+// Sem este par, o caso acima passaria por um gate que simplesmente rejeitasse "Payload".
+{
+  const tsx = `interface TrilhaPayload { x: number }
+export default function I(){return(<>
+  <section data-contract="lista"><th>Payload</th></section>
+</>);}`;
+  const root = makeContractRoot({
+    tsx,
+    contract: { tela: 'F', alvo: ['tela'], secoes: [{ id: 'lista', copy: ['Payload'] }] },
+  });
+  const r = node(root, ['--contract', 'contrato.json']);
+  check('mesma palavra como copy REAL em texto JSX → exit 0', r.status === 0, out(r));
+  drop(root);
+}
+
+// 4d. POSITIVO — copy legítima colada a pontuação/acento não pode ser derrubada pelo
+// endurecimento (é o falso-positivo que mataria o gate na prática).
+{
+  const tsx = `export default function I(){return(<>
+  <section data-contract="lista">
+    <th>Ação</th><p>Nenhum evento registrado ainda.</p><span>Onde está preso</span>
+  </section>
+</>);}`;
+  const root = makeContractRoot({
+    tsx,
+    contract: { tela: 'F', alvo: ['tela'], secoes: [{ id: 'lista', copy: ['Ação', 'Nenhum evento registrado ainda.', 'Onde está preso'] }] },
+  });
+  const r = node(root, ['--contract', 'contrato.json']);
+  check('copy com acento / ponto final / espaços continua passando → exit 0', r.status === 0, out(r));
+  drop(root);
+}
+
+// 4e. NEGATIVO — prefixo/sufixo de identificador maior também não conta como copy.
+{
+  const tsx = `const Todososdias = 1; const classificacaoDisco = 2;
+export default function I(){return(<section data-contract="lista">x</section>);}`;
+  const root = makeContractRoot({
+    tsx,
+    contract: { tela: 'F', alvo: ['tela'], secoes: [{ id: 'lista', copy: ['Todos'] }] },
+  });
+  const r = node(root, ['--contract', 'contrato.json']);
+  check('copy que é só prefixo de identificador (Todososdias) → exit 1',
+    r.status === 1 && /copy ausente/.test(out(r)), out(r));
+  drop(root);
+}
+
 // ── Acordo de estado backend↔frontend (catraca SEMÂNTICA · ADR 0286 §5) ───────
 // Reproduz o bug 2026-06-18: o `connect` emite state:'paired', o `status` emite state:'connected';
 // o ReconnectModal só tratava 'connected' → "Canal já pareado — sessão ativa" caía no ramo de ERRO.
