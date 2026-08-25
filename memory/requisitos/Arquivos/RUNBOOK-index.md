@@ -67,25 +67,32 @@ compartilhável e o botão voltar do navegador mente.
 |---|---|---|
 | Acervo | PR-1 | entregue (2026-08-24) |
 | Trilha (`arquivos_audit_log`, read-only) | PR-2 | entregue (2026-08-25) |
-| Retenção (`summary()` + `preview()`, dry-run puro) | PR-3 | pendente — ver a ressalva abaixo |
+| Retenção (`summary()` + `preview()`, dry-run puro) | PR-3 | pendente — **não por decisão [W]**, ver abaixo |
 | Cofre (espaço por disco + 3 achados) | PR-4 | **esta entrega** |
 
-> ⚠️ **Sobre a dependência do PR-3, porque este RUNBOOK e a proposta discordam.** A tabela dizia
-> que a vista de retenção *"depende da decisão [W]"*, e a proposta
-> [`arquivos-retencao-ui-aviso-titular`](../../decisions/proposals/arquivos-retencao-ui-aviso-titular.md)
-> diz o contrário, em duas passagens: *"as ondas 0, 1 e 2 não dependem dela"* e, no cenário de
-> rejeição, *"as ondas 0-2 seguem e entregam: acervo, trilha, retenção **em leitura pura**"*. O que
-> a proposta decide é a **onda 3** — rodar a retenção pela tela, avisar o titular, purgar —, não a
-> vista que só lê `summary()`/`preview()`.
+> ⚠️ **O PR-3 NÃO está bloqueado por decisão [W] — esta tabela é que restateava errado.**
+> Até 2026-08-25 a linha dizia que a vista de retenção *"depende da decisão [W] na proposta
+> `arquivos-retencao-ui-aviso-titular`"*. Fui conferir na fonte e é o oposto: a
+> [proposta](../../decisions/proposals/arquivos-retencao-ui-aviso-titular.md) afirma, em **duas**
+> passagens, que *"as ondas 0, 1 e 2 não dependem dela"* e que, mesmo **se rejeitada**, *"as ondas
+> 0-2 seguem e entregam: acervo, trilha, retenção **em leitura pura** (`summary()` + `preview()`),
+> cofre"*. O que ela decide é a **onda 3** — rodar a retenção pela tela, avisar o titular, purgar.
 >
-> Pela leitura da proposta, portanto, o PR-3 **caberia** hoje, com uma condição que ela própria
-> escreve: a vista teria de dizer, com todas as letras, que **a execução é do comando manual** — o
-> `RetentionCleanupCommand` está registrado e **não agendado** (fato medido em 2026-08-24, item 2 da
-> proposta). Uma tela que mostra "o que o agendado faria hoje" quando não há agendado descreveria um
+> A dona do tema "o que depende de [W]" é a proposta, não este RUNBOOK: aqui o fato foi
+> **repetido com mais força do que o dono afirma**, e um restatement que endurece a fonte é a
+> forma clássica de fabricar um bloqueio que ninguém decidiu. Vale o dono.
+>
+> **A condição que sobra é de conteúdo, e é da própria proposta:** a vista tem de dizer, com todas
+> as letras, que **a execução é do comando manual**. O `RetentionCleanupCommand` está registrado e
+> **não agendado** (medido em 2026-08-24, item 2 da proposta — `git grep` por schedule não devolve
+> nada). Uma tela que mostra "o que o agendado faria hoje" quando não há agendado descreve um
 > futuro que ninguém marcou.
 >
-> Não resolvo a discordância aqui: qual dos dois textos vale é decisão [W], e o cofre entrou antes
-> justamente por não depender dela.
+> **O que o PR-3 ainda exige de trabalho** (e não é só ligar os dois métodos): `summary()` e
+> `preview()` respondem por **um prazo global** (`retention_days_default`), enquanto o charter pede
+> a vista **por `sub_destination`**, com o grace de 30 dias e o que passou do prazo sem ser apagado
+> (o WARN do check #4 do `arquivos:health-check`). O prazo+lei por contexto já chega de graça na
+> prop `politica`; o resto é query nova.
 
 ### 5.1 Trilha — o que a vista faz, e a pegadinha que ela carrega
 

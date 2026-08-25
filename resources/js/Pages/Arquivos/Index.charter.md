@@ -121,12 +121,14 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
       `arquivos_audit_log`, UC-INDEX-02 com 6 asserções.
 - [x] **PR-4 (cofre)** — 2026-08-25. `?tab=cofre`, espaço por disco + 3 achados, UC-INDEX-03
       com 7 asserções (contadas com `grep -c`, não de memória).
-- [ ] Onda 1 **completa**: falta o PR-3 (retenção) — a tabela de escopo está no
-      [RUNBOOK-index §5](../../../../memory/requisitos/Arquivos/RUNBOOK-index.md), **e ela
-      carrega uma discordância que é decisão [W]**: o RUNBOOK diz que a vista depende da
-      proposta `arquivos-retencao-ui-aviso-titular`; a proposta diz duas vezes que as ondas 0-2
-      **não** dependem dela, inclusive listando "retenção em leitura pura" no cenário de
-      rejeição. O que ela decide é a onda 3 (executar, avisar, purgar).
+- [ ] Onda 1 **completa**: falta o PR-3 (retenção). **Não está bloqueado por decisão [W]** —
+      apurado em 2026-08-25 na fonte: a proposta `arquivos-retencao-ui-aviso-titular` diz duas
+      vezes que as ondas 0-2 não dependem dela, e o que estava escrito no RUNBOOK era um
+      restatement mais forte do que o dono do tema afirma. O que sobra é conteúdo: a vista tem
+      de dizer que a execução é do comando manual (o `RetentionCleanupCommand` não está
+      agendado), e `summary()`/`preview()` respondem por prazo global — a vista por
+      `sub_destination` + grace exige query nova. Detalhe no
+      [RUNBOOK-index §5](../../../../memory/requisitos/Arquivos/RUNBOOK-index.md).
 - [ ] Screenshot 1280/1440 aprovado por [W].
 - [ ] Definir se reclassificar bucket/visibility fica nesta tela ou só no dono do arquivo
       (a onda 2 esbarra nisso — ver PR-6).
