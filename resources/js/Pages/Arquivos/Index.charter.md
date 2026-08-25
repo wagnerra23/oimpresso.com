@@ -46,8 +46,17 @@ charter_version: 2
 >
 > **Em 2026-08-25 o PR-2 acrescentou a vista Trilha** (`arquivos_audit_log`, read-only) e,
 > com ela, **a barra de abas** — que era o combinado: ela nasce com a segunda vista, não
-> antes. Navega por rota (`?tab=`), sem rota nova no backend. Retenção (PR-3) e cofre (PR-4)
-> seguem pendentes. O contrato de teste da trilha é o **UC-INDEX-02** do `casos.md`.
+> antes. Navega por rota (`?tab=`), sem rota nova no backend. O contrato de teste da trilha é
+> o **UC-INDEX-02** do `casos.md`.
+>
+> **O PR-4 acrescentou a vista Cofre** — espaço por disco + os 3 achados —, também sem rota
+> nova: só um valor a mais no vocabulário de `tab`. São **3 das 4** vistas; falta a Retenção
+> (PR-3). Contrato: **UC-INDEX-03**. Duas coisas que valem ler antes de mexer: a agregação mora
+> num leitor próprio ([`CofreStatsReader`](../../../../Modules/Arquivos/Services/CofreStatsReader.php))
+> porque o assert de LGPD do controller proíbe hash em qualquer método dele — e o que o gate
+> protege passou a ser cobrado por assert comportamental sobre o payload; e o Tier 0 aqui é o
+> **oposto** do da trilha: `arquivos` tem model e global scope, então repetir o `where` é que
+> seria o defeito. Detalhe no [RUNBOOK §5.2](../../../../memory/requisitos/Arquivos/RUNBOOK-index.md).
 >
 > _Fato datado — por que o PR-0 não trouxe um stub:_ em 2026-08-24 o stub de 23 linhas foi
 > removido (`c85bfa7`) porque forçaria uma baseline de pixel de placeholder, e baseline é a
@@ -119,8 +128,16 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
 - [x] **PR-1 (acervo) mergeado** — rota `GET /arquivos` viva, `.tsx` real ([#6216](https://github.com/wagnerra23/oimpresso.com/pull/6216), 2026-08-24).
 - [x] **PR-2 (trilha) + barra de abas** — 2026-08-25. `?tab=trilha`, leitura pura de
       `arquivos_audit_log`, UC-INDEX-02 com 6 asserções.
-- [ ] Onda 1 **completa**: faltam PR-3 (retenção) · PR-4 (cofre) — a tabela de escopo está
-      no [RUNBOOK-index §5](../../../../memory/requisitos/Arquivos/RUNBOOK-index.md).
+- [x] **PR-4 (cofre)** — 2026-08-25. `?tab=cofre`, espaço por disco + 3 achados, UC-INDEX-03
+      com 8 asserções (contadas com `grep -c`, não de memória).
+- [ ] Onda 1 **completa**: falta o PR-3 (retenção). **Não está bloqueado por decisão [W]** —
+      apurado em 2026-08-25 na fonte: a proposta `arquivos-retencao-ui-aviso-titular` diz duas
+      vezes que as ondas 0-2 não dependem dela, e o que estava escrito no RUNBOOK era um
+      restatement mais forte do que o dono do tema afirma. O que sobra é conteúdo: a vista tem
+      de dizer que a execução é do comando manual (o `RetentionCleanupCommand` não está
+      agendado), e `summary()`/`preview()` respondem por prazo global — a vista por
+      `sub_destination` + grace exige query nova. Detalhe no
+      [RUNBOOK-index §5](../../../../memory/requisitos/Arquivos/RUNBOOK-index.md).
 - [ ] Screenshot 1280/1440 aprovado por [W].
 - [ ] Definir se reclassificar bucket/visibility fica nesta tela ou só no dono do arquivo
       (a onda 2 esbarra nisso — ver PR-6).
@@ -137,17 +154,26 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
   [0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) (multi-tenant Tier 0) ·
   [0360](../../../../memory/decisions/0360-deprecacao-admin-center-supersede-0122.md) (Admin Center deprecado)
 - Contrato de tela: [`prototipo-ui/contrato/arquivos-index.contract.json`](../../../../prototipo-ui/contrato/arquivos-index.contract.json)
-  — 6 seções, copy DERIVADA da tela por script (nunca transcrita) e provada presente no alvo.
+  — copy DERIVADA da tela por script (nunca transcrita) e provada presente no alvo.
   O veredito de hoje é do gate, não desta linha: `npm run contrato:check -- <o arquivo>` e
   `npm run contrato:map:check`. _Fatos datados, preservados:_ ele saiu do PR-0 (`d738bdc`)
   porque o job `Preflight + contratos ativos` roda `git ls-files '*.contract.json'` e exige
   que **todos** passem (só o `EXEMPLO` é isento), e um contrato apontando pro stub reprovaria
-  por construção; em 2026-08-25 essa razão caducou — o stub acabou e o `.tsx` ganhou as 6
+  por construção; em 2026-08-25 essa razão caducou — o stub acabou e o `.tsx` ganhou as
   âncoras (`cabecalho`, `acervo-filtros`, `acervo` no PR-1; `abas`, `trilha-filtros`, `trilha`
-  no PR-2). `abas` pina só "Acervo" e "Trilha": as 2 vistas restantes (retenção, cofre) entram
-  quando existirem — o contrato registra isso em `_pendente_w`, junto da divergência de copy
+  no PR-2). **O PR-4 acrescentou `cofre`, `cofre-discos` e `cofre-achados`, e a aba "Cofre"
+  entre Acervo e Trilha** — logo o contrato nasceu descrevendo 2 vistas e a tela já tem 3;
+  fechar essa defasagem é trabalho do PR que reconciliar os dois, não desta linha. Falta só a
+  retenção. O contrato registra as pendências em `_pendente_w`, junto da divergência de copy
   medida contra o protótipo (`Payload` × `Detalhe`), que é decisão [W]. Conteúdo do rascunho
-  original preservado no commit `943cc23` (o ponteiro anterior,
-  `cowork-inbox/modulos-faltantes/arquivos.contract.json`, nunca existiu no repositório nem no
-  espelho do Cowork — era ponteiro podre).
+  original preservado no commit `943cc23`.
+
+  ⚠️ _Correção de fato (2026-08-25, medido com `DesignSync.list_files` no projeto Cowork
+  `019dcfd3`): a nota anterior dizia que `cowork-inbox/modulos-faltantes/arquivos.contract.json`
+  **"nunca existiu no repositório nem no espelho do Cowork"**. A primeira metade continua
+  verdadeira; a segunda induz a erro — **o arquivo existe no projeto Cowork vivo** e foi lido
+  neste dia. Ele é o contrato F1 das 4 vistas, e não deve ser aplicado literalmente: os chips
+  que ele lista para o acervo incluem `common` e `public`, os dois valores que o
+  [#6244](https://github.com/wagnerra23/oimpresso.com/pull/6244) provou não existirem no enum
+  do banco. Portá-lo ao pé da letra reintroduziria aquele bug._
 - Casos: [Index.casos.md](Index.casos.md)
