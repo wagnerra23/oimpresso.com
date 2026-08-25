@@ -906,12 +906,30 @@ Route::middleware(['auth'])->group(function () {
         [\App\Http\Controllers\DocumentacaoController::class, 'programa']
     )->name('documentacao.programa');
 
-    // Documento do acervo. Declarada DEPOIS de /buscar e com regex restrita no
-    // slug — sem as duas coisas, /documentacao/buscar casaria aqui primeiro e a
-    // busca viraria um 404 de "documento 'buscar' não encontrado".
+    // Documento do acervo. Declarada DEPOIS de /buscar e /programa — sem essa ordem,
+    // ambas casariam aqui primeiro e virariam 404 de "documento não encontrado".
+    //
+    // O regex aceita `:` e `/` porque o SLUG do indexador os usa: `briefing:<mod>`,
+    // `charter:<Mod>/<Tela>`, `casos:<Mod>/<Tela>` (IndexarMemoryGitParaDb — o `:`
+    // separa o tipo e a `/` preserva o caminho da tela, que não pode virar `-` porque
+    // há 438 `.tsx` em Pages e muitos se chamam `Index`).
+    //
+    // Fato datado: até 2026-08-25 o regex era `[A-Za-z0-9._-]+`, que rejeita os dois.
+    // Consequência medida em produção nesse dia, com a rota exigindo login (302 = a
+    // rota casou; 404 = o regex recusou antes do auth):
+    //     /documentacao/qualquer-slug        302   ← controle positivo
+    //     /documentacao/buscar               302   ← controle positivo
+    //     /documentacao/briefing:Arquivos    404   ← o `:` derrubava
+    // Ou seja: os briefings entraram no acervo em 2026-08-05 e ficaram 20 dias
+    // aparecendo na BUSCA com link que dava 404. Ninguém viu porque nenhum caso de
+    // teste exercia slug com `:` — o `DocumentacaoRouteTest` cobria só a ORDEM das
+    // rotas. Agora cobre os dois (ver "slug com : e / casa a rota").
+    //
+    // A `/` fazer o {slug} casar mais de um segmento é intencional e contido: quem
+    // precisa de precedência (/buscar, /programa) está declarado ACIMA e casa antes.
     Route::get('/documentacao/{slug}',
         [\App\Http\Controllers\DocumentacaoController::class, 'documento']
-    )->where('slug', '[A-Za-z0-9._-]+')->name('documentacao.documento');
+    )->where('slug', '[A-Za-z0-9._:/-]+')->name('documentacao.documento');
 });
 
 // Gerenciador de Módulos — substituto React do /manage-modules (AdminLTE quebrado).
