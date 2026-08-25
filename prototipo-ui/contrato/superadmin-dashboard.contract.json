@@ -1,0 +1,63 @@
+{
+  "_nota": "Copy e seções derivadas do contrato escrito por [CC] em cowork-inbox/SUPERADMIN-F1-2026-08-18.md §3, TRADUZIDAS para o schema que a máquina deste repositório consome (contract.schema.json: alvo + secoes[{id,copy,estados}]). O original usa outro formato (screen/views/copy-plana/states/forbidden) e descreve UMA tela `Superadmin/Index` com seis views; a migração F3 entregou telas SEPARADAS, então o contrato do F1 vira DOIS. Mesmo caminho que o modulos.contract.json seguiu.",
+  "_nota_invisivel": "Por que só agora: o F1 estava no projeto Cowork desde 2026-08-18 e era INVISÍVEL ao repositório — o detector de frescor do espelho só olhava .jsx/.html/.css/.js (consertado em #6019). A onda inteira foi construída de uma cópia colada no chat, e as copy abaixo bateram por acerto, não por contrato. Agora batem por contrato.",
+  "_nota_recorte": "⚠️ 4 das 10 seções que o F1 §1 pede pra view `visao`. As 6 de fora NÃO existem em produção e estão documentadas como gap no RUNBOOK-dashboard §1: funil trial→pago, churn 30d com motivos, receita por pacote, fila 'Vencendo ou vencido', 'O que fazer primeiro'. Entram quando a tela alcançar o desenho — contrato que já nasce vermelho não trava nada, só ensina a ignorar o gate (doutrina do modulos.contract.json).",
+  "tela": "superadmin/Dashboard",
+  "fonte": "prototipo-ui/cowork/superadmin-page.jsx",
+  "_nota_fonte": "Mesma âncora que o charter declara em `related_prototype`.",
+  "alvo": [
+    "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "superadmin.dashboard.periodo",
+      "_papel": "segmented de período + a janela rolante dita em texto (UC-SA-001)",
+      "copy": [
+        "Hoje",
+        "Semana",
+        "Mês",
+        "Ano"
+      ],
+      "estados": []
+    },
+    {
+      "id": "superadmin.dashboard.kpis",
+      "_papel": "os 4 KPI do F1, nesta ordem. `Receita recorrente (MRR)` e `Sem assinatura` são copy literal do contrato [CC].",
+      "copy": [
+        "Novas assinaturas",
+        "Novos cadastros",
+        "Sem assinatura",
+        "Receita recorrente (MRR)"
+      ],
+      "estados": [
+        "carregando"
+      ]
+    },
+    {
+      "id": "superadmin.dashboard.tendencia",
+      "_papel": "Chart bar de 12 meses — o Non-goal do F1 proíbe série mais longa",
+      "copy": [
+        "Tendência mensal de assinaturas"
+      ],
+      "estados": [
+        "carregando"
+      ]
+    },
+    {
+      "id": "superadmin.dashboard.recentes",
+      "_papel": "5 linhas de cadastro recente",
+      "copy": [
+        "Cadastros recentes"
+      ],
+      "estados": [
+        "carregando"
+      ]
+    }
+  ],
+  "ordem": [
+    "superadmin.dashboard.periodo",
+    "superadmin.dashboard.kpis",
+    "superadmin.dashboard.tendencia",
+    "superadmin.dashboard.recentes"
+  ]
+}

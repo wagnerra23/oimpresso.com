@@ -23,7 +23,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 /** Análises que a tela REALMENTE renderiza — casa 1:1 com os `AnalysisCard`
  *  de `JanaCockpit` e com os `DrillId` de `JanaDrillDrawer`. */
-export type JanaAnaliseId = 'inad' | 'fat' | 'conc' | 'metodos';
+export type JanaAnaliseId = 'inad' | 'fat' | 'conc' | 'metodos' | 'churn';
 
 export interface JanaConfig {
   /** Quais análises aparecem no painel. */
@@ -37,10 +37,11 @@ export const JANA_ANALISES: ReadonlyArray<{ id: JanaAnaliseId; label: string; su
   { id: 'fat', label: 'Faturamento', sub: 'Curva dos últimos 30 dias' },
   { id: 'conc', label: 'Top 5 clientes', sub: 'Concentração da receita' },
   { id: 'metodos', label: 'Métodos de pagamento', sub: 'Participação de cada forma' },
+  { id: 'churn', label: 'Churn ouro', sub: 'Maior LTV sem comprar há 90 dias' },
 ];
 
 const CFG_PADRAO: JanaConfig = {
-  analises: { inad: true, fat: true, conc: true, metodos: true },
+  analises: { inad: true, fat: true, conc: true, metodos: true, churn: true },
 };
 
 /** Lê do storage. Mesmo padrão do `Chat.tsx` §lerHistAberto: o try/catch cobre

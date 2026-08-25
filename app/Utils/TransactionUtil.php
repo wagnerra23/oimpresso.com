@@ -6098,6 +6098,43 @@ class TransactionUtil extends Util
                         ->with(['sell_lines', 'sell_lines.sub_unit'])
                         ->findOrFail($input['transaction_id']);
 
+        // LASTRO DA DEVOLUÇÃO (CU-DEV-08) — devolver mais do que foi vendido creditava estoque
+        // sem lastro: medido em 2026-08-18, POST de 100 numa venda de 10 levava qty_available
+        // de 10 para 110. A trava fica AQUI, no serviço, e não no controller, porque há DOIS
+        // chamadores (varredura contada): SellReturnController@store e a API pública
+        // Modules/Connector .../Api/SellController@addSellReturn. Travar só no web deixaria a
+        // API — a superfície mais exposta — aberta.
+        // Nada é gravado antes desta checagem: ela roda antes do create/update do sell_return.
+        $linhas_da_venda = $sell->sell_lines->keyBy('id');
+        foreach ($input['products'] ?? [] as $linha_devolvida) {
+            $sell_line_id = $linha_devolvida['sell_line_id'] ?? null;
+            if (empty($sell_line_id) || ! $linhas_da_venda->has($sell_line_id)) {
+                continue;
+            }
+
+            $sell_line = $linhas_da_venda->get($sell_line_id);
+            $qtd_devolvida = $uf_number ? $this->num_uf($linha_devolvida['quantity']) : $linha_devolvida['quantity'];
+
+            // Mesma conversão de unidade que o gravador aplica adiante (sub-unidade → base).
+            $multiplicador = ! empty($sell_line->sub_unit) ? $sell_line->sub_unit->base_unit_multiplier : 1;
+            $qtd_em_unidade_base = $qtd_devolvida * $multiplicador;
+
+            // Comparação em FLOAT — `num_f` devolve string formatada pra exibição, e comparar
+            // "100,00" > "10,00" é comparação lexicográfica (erra). Epsilon evita bloqueio
+            // falso por arredondamento de ponto flutuante na conversão de sub-unidade.
+            if (((float) $qtd_em_unidade_base) > ((float) $sell_line->quantity) + 0.00001) {
+                // Formatação SEM `num_f`: ele lê `session('currency')` sem fallback (Util.php:116)
+                // e estoura fora de request — a API do Connector e qualquer job cairiam num
+                // ErrorException genérico em vez desta regra de negócio. Medido em 2026-08-18.
+                $legivel = fn ($n) => rtrim(rtrim(number_format((float) $n, 4, ',', '.'), '0'), ',');
+
+                throw new \App\Exceptions\SellReturnExceedsSold(
+                    'A quantidade devolvida ('.$legivel($qtd_em_unidade_base).') não pode ser maior '
+                    .'que a vendida ('.$legivel($sell_line->quantity).') nesta linha da venda.'
+                );
+            }
+        }
+
         //Check if any sell return exists for the sale
         $sell_return = Transaction::where('business_id', $business_id)
                 ->where('type', 'sell_return')
@@ -6168,7 +6205,10 @@ class TransactionUtil extends Util
         foreach ($product_lines as $product_line) {
             $returns[$product_line['sell_line_id']] = $uf_number ? $this->num_uf($product_line['quantity']) : $product_line['quantity'];
         }
-        foreach ($sell->sell_lines as $sell_line) {
+        // Reusa a coleção montada na checagem de lastro acima (mesmas linhas, indexadas por id):
+        // evita um acesso a mais a `$sell->sell_lines`, que estouraria o `count` do padrão
+        // ignorado no phpstan-baseline.neon. Iterar a coleção keyBy percorre os mesmos objetos.
+        foreach ($linhas_da_venda as $sell_line) {
             if (array_key_exists($sell_line->id, $returns)) {
                 $multiplier = 1;
                 if (! empty($sell_line->sub_unit)) {

@@ -57,6 +57,27 @@ uses(Tests\TestCase::class);
 // D2 — Resilience: append-only defesa em camadas (Eloquent + retention policy)
 // ============================================================================
 
+/**
+ * Caminho do README do Ponto — MOVIDO em 2026 pelo PR #5548 ("move os 30 docs
+ * restantes de Modules/ pra memory/requisitos"). O teste seguia lendo
+ * `Modules/Ponto/README.md` e morria em `file_get_contents(): No such file`.
+ *
+ * Nao morreu barulhento: o arquivo esta FORA de qualquer lane, entao o vermelho
+ * ficou parado desde a mudanca. Medido no CT100 em 2026-08-23.
+ *
+ * Resolve em tempo de execucao (nao constante) pra que a falha, se o doc mudar de
+ * casa de novo, diga QUAL caminho faltou em vez de um "no such file" cru.
+ */
+function pontoReadmePath(): string
+{
+    $p = __DIR__ . '/../../../../memory/requisitos/Ponto/README.md';
+    if (! is_file($p)) {
+        throw new RuntimeException("README do Ponto nao encontrado em {$p} — moveu de novo?");
+    }
+
+    return $p;
+}
+
 it('D2 BancoHorasMovimento::update() bloqueia (defesa Eloquent — append-only ledger)', function () {
     $ref = new ReflectionMethod(BancoHorasMovimento::class, 'update');
     expect($ref->getDeclaringClass()->getName())->toBe(BancoHorasMovimento::class);
@@ -95,7 +116,7 @@ it('D2 retention.php declara reps com hard_delete=false (FK marcações + hash c
 // ============================================================================
 
 it('D5 README cobre jornada estendida (BH credito + ajuste manual + AFD + cross-tenant)', function () {
-    $readme = file_get_contents(__DIR__ . '/../../README.md');
+    $readme = file_get_contents(pontoReadmePath());
 
     // 4 novas etapas Wave 26 — jornada Larissa biz=4 vs Wagner biz=1
     expect($readme)->toContain('Banco de Horas (HE compensáveis');
@@ -108,7 +129,7 @@ it('D5 README cobre jornada estendida (BH credito + ajuste manual + AFD + cross-
 });
 
 it('D5 README cita marcos governance v4 (Waves 11/18/23/25/26 + descritivo)', function () {
-    $readme = file_get_contents(__DIR__ . '/../../README.md');
+    $readme = file_get_contents(pontoReadmePath());
 
     expect($readme)->toContain('Marcos governance v4');
     // Conteúdo descritivo de cada wave canônica (mais robusto que linha exata)

@@ -15,18 +15,24 @@ const _parseBRL = (s) => {
 // ═══════════════════════════════════════════════════════════════════
 // VENDAS MODULE — wrapper com sub-rotas
 // ═══════════════════════════════════════════════════════════════════
-function VendasModule() {
+// initialSub/pdv: rotas do menu Venda do legado (Adicionar venda, POS, lista de devolução)
+// entram direto na visão certa sem duplicar tela — a persistência segue valendo pra rota "vendas".
+function VendasModule({ initialSub, pdv }) {
   const [sub, setSub] = useStateVE(() => {
-    const ALLOWED = ["lista", "create", "caixa", "devolucoes", "comissoes", "relatorios"];
+    if (initialSub) return initialSub;
+    // "create" NÃO entra: Nova venda é AÇÃO, não visão persistida (senão o módulo abre preso no form)
+    const ALLOWED = ["lista", "caixa", "devolucoes", "comissoes", "relatorios"];
     try {
       const saved = localStorage.getItem("oimpresso.vendas.sub");
       return ALLOWED.includes(saved) ? saved : "lista";
     } catch (e) {return "lista";}
   });
-  const [pdvOpen, setPdvOpen] = useStateVE(false);
+  const [pdvOpen, setPdvOpen] = useStateVE(!!pdv);
+  useEffectVE(() => { if (initialSub) setSub(initialSub); }, [initialSub]);
+  useEffectVE(() => { if (pdv) setPdvOpen(true); }, [pdv]);
 
   useEffectVE(() => {
-    try {localStorage.setItem("oimpresso.vendas.sub", sub);} catch (e) {}
+    try {if (sub !== "create") localStorage.setItem("oimpresso.vendas.sub", sub);} catch (e) {}
   }, [sub]);
 
   // Expor setter pra header dropdown "Visões ▾" (vendas-page.jsx)
@@ -53,7 +59,7 @@ function VendasModule() {
 
   let body;
   if (sub === "lista") body = <VendasListPage />;else
-  if (sub === "create") body = <window.VendasCreatePage onDone={() => setSub("lista")} />;else
+  if (sub === "create") body = window.VendaV3Create ? <window.VendaV3Create onVoltar={() => setSub("lista")} /> : <window.VendasCreatePage onDone={() => setSub("lista")} />;else
   if (sub === "caixa") body = <VendasCaixaPage />;else
   if (sub === "devolucoes") body = <VendasDevolucoesPage />;else
   if (sub === "comissoes") body = <VendasComissoesPage />;else

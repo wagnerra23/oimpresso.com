@@ -1,0 +1,120 @@
+{
+  "_nota": "Contrato de Tela do módulo Governança (ADR 0286). Trava seções, copy literal e estados das cinco vistas. Rodar advisory no contrato-de-tela.yml antes de promover a required.",
+  "tela": "Governance/Index",
+  "fonte": "prototipo-ui/cowork/governance/governance-page.jsx + governance-telas.jsx + governance-data.jsx",
+  "alvo": [
+    "resources/js/Pages/governance/Dashboard.tsx",
+    "resources/js/Pages/governance/Policies.tsx",
+    "resources/js/Pages/governance/Audit.tsx",
+    "resources/js/Pages/governance/DriftAlerts.tsx",
+    "resources/js/Pages/governance/ModuleGrades/Index.tsx"
+  ],
+  "secoes": [
+    { "id": "page-header", "copy": ["Governança — painel", "Governança — políticas", "Governança — auditoria", "Governança — drift de escopo", "Governança — notas dos módulos", "superadmin · cross-tenant"] },
+    { "id": "tabs", "copy": ["Painel", "Políticas", "Auditoria", "Drift", "Notas dos módulos"] },
+    { "id": "aviso-rota", "copy": ["A raiz /governance redireciona para /ia", "O painel vive em /governance/dashboard"] },
+    { "id": "kpis-constituicao", "copy": ["ADRs aguardando decisão", "Políticas ativas", "Aprovações de skill", "Atores registrados", "Ocorrências em 24 h", "Conformidade"], "estados": ["normal", "fonte-ausente"] },
+    { "id": "conformidade-regua", "copy": ["auto-declarado", "7 artigos plenos", "2 parciais", "1 pendente", "O número é escrito à mão no controller, não apurado"], "estados": ["auto-declarado"] },
+    { "id": "card-sdd", "copy": ["Scorecard SDD", "composta", "métricas vivas", "sem snapshot ainda"], "estados": ["carregando", "normal", "vazio"] },
+    { "id": "saude-ecossistema", "copy": ["Saúde do ecossistema", "Jobs falhos em 24 h", "Custo de IA em 24 h", "Última narrativa"], "estados": ["normal", "fonte-ausente"] },
+    { "id": "aguardando-decisao", "copy": ["Aguardando decisão", "proposto", "Nada aguardando decisão"], "estados": ["normal", "vazio"] },
+    { "id": "mcp-secao", "copy": ["Governança MCP", "Chamadas", "Taxa de sucesso", "Latência p95", "Custo", "Consumo", "Acesso e permissões", "Usuários e ferramentas"], "estados": ["carregando", "normal", "sem-permissao", "tabela-ausente"] },
+    { "id": "mcp-periodo", "copy": ["Hoje", "Ontem", "7 dias", "30 dias", "Mês anterior"], "estados": ["30d", "custom-invalido"] },
+    { "id": "politicas-kpis", "copy": ["Regras no total", "Ativas", "Disparos", "Categorias"] },
+    { "id": "politicas-lista", "copy": ["disparos", "versão", "Ativa", "Desligada"], "estados": ["normal", "vazio"] },
+    { "id": "politicas-aviso-historico", "copy": ["Alternar não deixa rastro", "mcp_governance_rule_history ainda não existe"], "estados": ["sem-historico"] },
+    { "id": "auditoria-filtros", "copy": ["Período", "Ator", "Endpoint", "Resultado", "1 h", "24 h", "7 dias", "30 dias", "Limpar filtros"], "estados": ["padrao", "filtrado"] },
+    { "id": "auditoria-kpis", "copy": ["Registros na janela", "Com erro", "Atores distintos"] },
+    { "id": "auditoria-selo", "copy": ["Registro imutável", "append-only por trigger", "alterar uma linha é incidente P0"], "estados": ["sempre"] },
+    { "id": "auditoria-tabela", "copy": ["Quando", "Ator", "Endpoint", "Ferramenta / recurso", "Resultado", "Duração"], "estados": ["normal", "vazio", "tabela-ausente"] },
+    { "id": "auditoria-teto", "copy": ["Teto de 200 registros por consulta", "refine os filtros para ver mais"], "estados": ["sempre"] },
+    { "id": "drift-kpis", "copy": ["Controllers em drift", "Módulos com drift", "Sem SCOPE.md", "Módulos no total"], "estados": ["com-drift", "zero-drift"] },
+    { "id": "drift-lista", "copy": ["Divergência detectada em runtime", "não declarado", "Declare em SCOPE.md contains[]", "mova o arquivo", "registre em drift_alerts[]"], "estados": ["com-drift", "zero-drift", "yaml-ilegivel"] },
+    { "id": "drift-sem-scope", "copy": ["Módulos sem SCOPE.md"], "estados": ["normal", "vazio"] },
+    { "id": "drift-historico", "copy": ["Histórico (últimos 30 dias)", "O cron de detecção ainda não roda", "mcp_alertas não aceita a categoria module_drift"], "estados": ["sem-cron"] },
+    { "id": "notas-kpis", "copy": ["Média do projeto", "Módulos avaliados", "Abaixo da linha de base"] },
+    { "id": "notas-faixas", "copy": ["Excelente", "Bom", "Médio", "Crítico", "Embrião"], "estados": ["todas", "filtrada"] },
+    { "id": "notas-tabela", "copy": ["Módulo", "Nota", "Faixa", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "não avaliado na v3"], "estados": ["carregando", "normal", "vazio"] },
+    { "id": "notas-gate-ci", "copy": ["Gate de CI", "nota que cai bloqueia o merge", "module-grades-allowed-regression"], "estados": ["sempre"] }
+  ],
+  "ordem": ["page-header", "tabs", "kpis-constituicao", "conformidade-regua", "card-sdd", "saude-ecossistema", "aguardando-decisao", "mcp-secao"],
+  "proibicoes": [
+    "Qualquer caminho de escrita sobre mcp_audit_log — editar, apagar, corrigir linha (append-only, ADR 0084).",
+    "Consultar mcp_audit_log quando o usuário não tem jana.mcp.usage.all.",
+    "Somar governance.dashboard.view ao gate da seção MCP (seria mais restritivo que o estado anterior, ADR 0366 §D-B).",
+    "Consumir a prop `mcp` fora do <Deferred> — incidente de 2026-05-25, TypeError undefined.find em produção.",
+    "Inventar business_id ou filtro de negócio nas tabelas mcp_* (não têm a coluna, por design).",
+    "Publicar a conformidade como percentual apurado enquanto for a soma literal (7*10)+(2*5)+0 do controller.",
+    "Prometer histórico de alternância de política antes de mcp_governance_rule_history existir.",
+    "Modal de confirmação para alternar política (ação reversível — atrito proibido pelo charter vivo).",
+    "Alternar políticas em lote.",
+    "Botão de ignorar, adiar ou silenciar drift; auto-correção de SCOPE.md pela interface.",
+    "Edição de nota, peso de rubrica ou disparo de avaliação na tela de notas.",
+    "Contar travessão como zero na média das dimensões D6–D9.",
+    "Período de auditoria maior que 30 dias; consulta sem o teto de 200.",
+    "Esconder política desligada por padrão.",
+    "localStorage/sessionStorage de filtro em qualquer das cinco vistas.",
+    "Cor crua de paleta (bg-red-100, emerald-500, amber-400) — só tom semântico do DS.",
+    "href no KpiCard (a prop não existe).",
+    "Inglês em copy cliente-facing. Emoji na tela.",
+    "Modal em tela cheia para detalhe (PT-04 é só confirmação).",
+    "Duplicar a lista de ghosts do módulo dentro da tela — a fonte é DataController::modifyAdminMenu."
+  ],
+  "_nota_acordos": "Catraca semântica (ADR 0286 §5): enum e coluna do banco nunca aparecem crus — o vocabulário abaixo é o mapeamento acordado entre backend e frontend.",
+  "acordos_estado": [
+    {
+      "id": "resultado-de-auditoria",
+      "verdict": "proposto",
+      "escopo": "global",
+      "descricao": "O enum `status` de mcp_audit_log (ok · denied · error · quota_exceeded) aparece como palavra em português com tom semântico: concluído · negado · erro · cota excedida. A coluna crua nunca é rótulo.",
+      "valores": ["ok", "denied", "error", "quota_exceeded"],
+      "backend": "Modules/Governance/Services/AuditDrillDownService.php",
+      "frontend": ["resources/js/Pages/governance/Audit.tsx"]
+    },
+    {
+      "id": "conformidade-auto-declarada",
+      "verdict": "proposto",
+      "escopo": "global",
+      "descricao": "Enquanto `compliancePct` for a soma literal do controller, a interface o rotula como auto-declarado e mostra a régua (7 plenos · 2 parciais · 1 pendente). Promover a métrica apurada exige a fonte de apuração antes.",
+      "valores": ["auto_declarado", "apurado"],
+      "backend": "Modules/Governance/Http/Controllers/DashboardController.php",
+      "frontend": ["resources/js/Pages/governance/Dashboard.tsx"]
+    },
+    {
+      "id": "rastro-de-politica",
+      "verdict": "proposto",
+      "escopo": "global",
+      "descricao": "Alternar política altera enforcement em runtime e hoje não gera registro — `mcp_governance_rule_history` está prometido para a Fase 5+1 e não existe. Até existir, a vista declara a cegueira em texto; quando existir, o aviso sai e a linha do histórico entra.",
+      "valores": ["sem_historico", "com_historico"],
+      "backend": "Modules/Governance/Services/PolicyToggleService.php",
+      "frontend": ["resources/js/Pages/governance/Policies.tsx"]
+    },
+    {
+      "id": "categoria-de-alerta-de-drift",
+      "verdict": "proposto",
+      "escopo": "global",
+      "descricao": "O enum de `mcp_alertas` (cota_excedida · tool_destrutiva · ip_suspeito · taxa_errors · cliente_externo) não tem `module_drift`. O histórico de drift fica vazio com motivo até migração + ADR acrescentarem o valor — a tela não finge persistência.",
+      "valores": ["sem_categoria", "module_drift"],
+      "backend": "Modules/Governance/Services/DriftAlertService.php",
+      "frontend": ["resources/js/Pages/governance/DriftAlerts.tsx"]
+    },
+    {
+      "id": "dimensao-nao-avaliada",
+      "verdict": "proposto",
+      "escopo": "global",
+      "descricao": "Nas dimensões D6–D9 da rubrica v3, módulo ainda não avaliado mostra travessão — estado distinto de nota zero, e excluído da média daquela dimensão. Compatibilidade retroativa é requisito, não cortesia.",
+      "valores": ["nao_avaliado", "avaliado"],
+      "backend": "Modules/Governance/Services/ModuleGradeService.php",
+      "frontend": ["resources/js/Pages/governance/ModuleGrades/Index.tsx"]
+    },
+    {
+      "id": "escopo-das-tabelas-mcp",
+      "verdict": "ratificado_ADR_0094",
+      "escopo": "global",
+      "descricao": "As tabelas mcp_* são cross-tenant por design — exceção formal ao Tier 0, justificada pela Constituição Art. 6+8 e coberta por CrossTenantPolicyTest. Nenhuma tela oferece filtro por negócio nelas.",
+      "valores": ["cross_tenant"],
+      "backend": "Modules/Governance/Http/Controllers/DashboardController.php",
+      "frontend": ["resources/js/Pages/governance/Dashboard.tsx", "resources/js/Pages/governance/Audit.tsx"]
+    }
+  ]
+}

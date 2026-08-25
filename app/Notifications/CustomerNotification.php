@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Util\HtmlSanitizer;
 use App\Utils\NotificationUtil;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -54,11 +55,17 @@ class CustomerNotification extends Notification
     {
         $data = $this->notificationInfo;
 
+        // P4 — o corpo do modelo é HTML livre (o operador digita, e o store() aceita
+        // qualquer markup). Sanitizar na SAÍDA, não na gravação: sanitizar ao gravar
+        // comeria conteúdo legítimo que o operador escreveu e não dá pra recuperar.
+        // Aqui é o chokepoint: os 4 produtores de e-mail (NotificationUtil,
+        // NotificationController, ContactController, AutoSendPaymentReminder) convergem
+        // nesta classe e na SupplierNotification — patchear um produtor deixaria 3 abertos.
         $mail = (new MailMessage)
                     ->subject($data['subject'])
                     ->view(
                         'emails.plain_html',
-                        ['content' => $data['email_body']]
+                        ['content' => HtmlSanitizer::clean($data['email_body'] ?? '')]
                     );
         if (! empty($this->cc)) {
             $mail->cc($this->cc);

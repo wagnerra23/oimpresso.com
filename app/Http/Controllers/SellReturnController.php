@@ -298,7 +298,9 @@ class SellReturnController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            if (get_class($e) == \App\Exceptions\PurchaseSellMismatch::class) {
+            if (get_class($e) == \App\Exceptions\PurchaseSellMismatch::class
+                || $e instanceof \App\Exceptions\SellReturnExceedsSold) {
+                // Regra de negócio, não falha: a mensagem é pro operador (CU-DEV-08).
                 $msg = $e->getMessage();
             } else {
                 \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());

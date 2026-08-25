@@ -177,144 +177,100 @@ class NotificationTemplate extends Model
             [
                 'business_id' => $business_id,
                 'template_for' => 'new_sale',
-                'email_body' => '<p>Dear {contact_name},</p>
-
-                    <p>Your invoice number is {invoice_number}<br />
-                    Total amount: {total_amount}<br />
-                    Paid amount: {received_amount}</p>
-
-                    <p>Thank you for shopping with us.</p>
-
-                    <p>{business_logo}</p>
-
-                    <p>&nbsp;</p>',
-                'sms_body' => 'Dear {contact_name}, Thank you for shopping with us. {business_name}',
-                'subject' => 'Thank you from {business_name}',
+                'email_body' => '<p>Olá {contact_name},</p><p>Sua venda <strong>{invoice_number}</strong> foi registrada.</p><ul><li>Total: {total_amount}</li><li>Pago: {paid_amount}</li><li>Em aberto: {due_amount}</li></ul><p>Documento: <a href="{invoice_url}">{invoice_url}</a></p><p>Obrigado por comprar com a gente.</p><p>{business_name}</p>',
+                'sms_body' => '{contact_name}, sua venda {invoice_number} foi registrada. Total {total_amount}. Obrigado! {business_name}',
+                'whatsapp_text' => 'Olá {contact_name}! Sua venda {invoice_number} foi registrada — total {total_amount}, em aberto {due_amount}. Documento: {invoice_url}',
+                'subject' => 'Obrigado pela compra — {business_name}',
                 'auto_send' => '0',
             ],
 
             [
                 'business_id' => $business_id,
                 'template_for' => 'payment_received',
-                'email_body' => '<p>Dear {contact_name},</p>
-
-                <p>We have received a payment of {received_amount}</p>
-
-                <p>{business_logo}</p>',
-                'sms_body' => 'Dear {contact_name}, We have received a payment of {received_amount}. {business_name}',
-                'subject' => 'Payment Received, from {business_name}',
+                'email_body' => '<p>Olá {contact_name},</p><p>Recebemos seu pagamento de <strong>{received_amount}</strong> (ref. {payment_ref_number}) referente ao documento {invoice_number}.</p><p>Obrigado.</p><p>{business_name}</p>',
+                'sms_body' => '{contact_name}, recebemos seu pagamento de {received_amount}. Obrigado! {business_name}',
+                'whatsapp_text' => 'Olá {contact_name}! Recebemos seu pagamento de {received_amount} (ref. {payment_ref_number}). Obrigado!',
+                'subject' => 'Pagamento recebido — {business_name}',
                 'auto_send' => '0',
             ],
+
             [
                 'business_id' => $business_id,
                 'template_for' => 'payment_reminder',
-                'email_body' => '<p>Dear {contact_name},</p>
-
-                    <p>This is to remind you that you have pending payment of {due_amount}. Kindly pay it as soon as possible.</p>
-
-                    <p>{business_logo}</p>',
-                'sms_body' => 'Dear {contact_name}, You have pending payment of {due_amount}. Kindly pay it as soon as possible. {business_name}',
-                'subject' => 'Payment Reminder, from {business_name}',
+                'email_body' => '<p>Olá {contact_name},</p><p>Consta em aberto o valor de <strong>{due_amount}</strong> do documento {invoice_number}, com vencimento em {due_date}.</p><p>Total em aberto na sua conta: {cumulative_due_amount}.</p><p>Se já pagou, desconsidere e nos avise.</p><p>{business_name}</p>',
+                'sms_body' => '{contact_name}, consta em aberto {due_amount} (venc. {due_date}). {business_name}',
+                'whatsapp_text' => 'Olá {contact_name}! Consta em aberto {due_amount} do documento {invoice_number}, venc. {due_date}. Se já pagou, nos avise.',
+                'subject' => 'Lembrete de pagamento — {business_name}',
                 'auto_send' => '0',
             ],
+
             [
                 'business_id' => $business_id,
                 'template_for' => 'new_booking',
-                'email_body' => '<p>Dear {contact_name},</p>
-
-                    <p>Your booking is confirmed</p>
-
-                    <p>Date: {start_time} to {end_time}</p>
-
-                    <p>Table: {table}</p>
-
-                    <p>Location: {location}</p>
-
-                    <p>{business_logo}</p>',
-                'sms_body' => 'Dear {contact_name}, Your booking is confirmed. Date: {start_time} to {end_time}, Table: {table}, Location: {location}', 'subject' => 'Booking Confirmed - {business_name}',
+                'email_body' => '<p>Olá {contact_name},</p><p>Sua reserva está confirmada.</p><ul><li>Quando: {start_time} até {end_time}</li><li>Onde: {location_name}</li><li>Atendimento: {service_staff}</li></ul><p>{business_name}</p>',
+                'sms_body' => '{contact_name}, reserva confirmada: {start_time} até {end_time} em {location_name}.',
+                'whatsapp_text' => 'Olá {contact_name}! Reserva confirmada: {start_time} até {end_time} em {location_name}.',
+                'subject' => 'Reserva confirmada — {business_name}',
                 'auto_send' => '0',
             ],
+
             [
                 'business_id' => $business_id,
                 'template_for' => 'new_order',
-                'email_body' => '<p>Dear {contact_name},</p>
-
-                    <p>We have a new order with reference number {order_ref_number}. Kindly process the products as soon as possible.</p>
-
-                    <p>{business_name}<br />
-                    {business_logo}</p>',
-                'sms_body' => 'Dear {contact_name}, We have a new order with reference number {order_ref_number}. Kindly process the products as soon as possible. {business_name}',
-                'subject' => 'New Order, from {business_name}',
+                'email_body' => '<p>Olá {contact_name},</p><p>Temos um novo pedido, referência <strong>{order_ref_number}</strong>, no valor de {total_amount}.</p><p>Por favor, confirme o prazo de entrega.</p><p>{business_name}</p>',
+                'sms_body' => 'Novo pedido {order_ref_number} — {total_amount}. Confirme o prazo. {business_name}',
+                'whatsapp_text' => 'Olá {contact_name}! Novo pedido {order_ref_number} no valor de {total_amount}. Consegue confirmar o prazo?',
+                'subject' => 'Novo pedido — {business_name}',
                 'auto_send' => '0',
             ],
+
             [
                 'business_id' => $business_id,
                 'template_for' => 'payment_paid',
-                'email_body' => '<p>Dear {contact_name},</p>
-
-                    <p>We have paid amount {paid_amount} again invoice number {order_ref_number}.<br />
-                    Kindly note it down.</p>
-
-                    <p>{business_name}<br />
-                    {business_logo}</p>',
-                'sms_body' => 'We have paid amount {paid_amount} again invoice number {order_ref_number}.
-                    Kindly note it down. {business_name}',
-                'subject' => 'Payment Paid, from {business_name}',
+                'email_body' => '<p>Olá {contact_name},</p><p>Pagamos <strong>{paid_amount}</strong> referente ao pedido {order_ref_number} (ref. {payment_ref_number}).</p><p>{business_name}</p>',
+                'sms_body' => 'Pagamos {paid_amount} do pedido {order_ref_number}. {business_name}',
+                'whatsapp_text' => 'Olá {contact_name}! Pagamos {paid_amount} referente ao pedido {order_ref_number}.',
+                'subject' => 'Pagamento efetuado — {business_name}',
                 'auto_send' => '0',
             ],
+
             [
                 'business_id' => $business_id,
                 'template_for' => 'items_received',
-                'email_body' => '<p>Dear {contact_name},</p>
-
-                    <p>We have received all items from invoice reference number {order_ref_number}. Thank you for processing it.</p>
-
-                    <p>{business_name}<br />
-                    {business_logo}</p>',
-                'sms_body' => 'We have received all items from invoice reference number {order_ref_number}. Thank you for processing it. {business_name}',
-                'subject' => 'Items received, from {business_name}',
+                'email_body' => '<p>Olá {contact_name},</p><p>Recebemos todos os itens do pedido {order_ref_number}. Obrigado pelo atendimento.</p><p>{business_name}</p>',
+                'sms_body' => 'Recebemos todos os itens do pedido {order_ref_number}. Obrigado! {business_name}',
+                'whatsapp_text' => 'Olá {contact_name}! Recebemos todos os itens do pedido {order_ref_number}. Obrigado!',
+                'subject' => 'Itens recebidos — {business_name}',
                 'auto_send' => '0',
             ],
+
             [
                 'business_id' => $business_id,
                 'template_for' => 'items_pending',
-                'email_body' => '<p>Dear {contact_name},<br />
-                    This is to remind you that we have not yet received some items from invoice reference number {order_ref_number}. Please process it as soon as possible.</p>
-
-                    <p>{business_name}<br />
-                    {business_logo}</p>',
-                'sms_body' => 'This is to remind you that we have not yet received some items from invoice reference number {order_ref_number} . Please process it as soon as possible.{business_name}',
-                'subject' => 'Items Pending, from {business_name}',
+                'email_body' => '<p>Olá {contact_name},</p><p>Ainda faltam itens do pedido {order_ref_number}. Pode nos dar uma previsão?</p><p>{business_name}</p>',
+                'sms_body' => 'Faltam itens do pedido {order_ref_number}. Pode dar uma previsão? {business_name}',
+                'whatsapp_text' => 'Olá {contact_name}! Ainda faltam itens do pedido {order_ref_number}. Consegue nos dar uma previsão?',
+                'subject' => 'Itens pendentes — {business_name}',
                 'auto_send' => '0',
             ],
 
             [
                 'business_id' => $business_id,
                 'template_for' => 'new_quotation',
-                'email_body' => '<p>Dear {contact_name},</p>
-
-                    <p>Your quotation number is {invoice_number}<br />
-                    Total amount: {total_amount}</p>
-
-                    <p>Thank you for shopping with us.</p>
-
-                    <p>{business_logo}</p>
-
-                    <p>&nbsp;</p>',
-                'sms_body' => 'Dear {contact_name}, Thank you for shopping with us. {business_name}',
-                'subject' => 'Thank you from {business_name}',
+                'email_body' => '<p>Olá {contact_name},</p><p>Seu orçamento <strong>{invoice_number}</strong> está pronto. Total: {total_amount}</p><p>Ver o orçamento: <a href="{quote_url}">{quote_url}</a></p><p>Qualquer ajuste, é só responder.</p><p>{business_name}</p>',
+                'sms_body' => '{contact_name}, seu orçamento {invoice_number} está pronto. Total {total_amount}. {business_name}',
+                'whatsapp_text' => 'Olá {contact_name}! Orçamento {invoice_number} pronto — total {total_amount}. Ver: {quote_url}',
+                'subject' => 'Seu orçamento — {business_name}',
                 'auto_send' => '0',
             ],
+
             [
                 'business_id' => $business_id,
                 'template_for' => 'purchase_order',
-                'email_body' => '<p>Dear {contact_name},</p>
-
-                    <p>We have a new purchase order with reference number {order_ref_number}. The respective invoice is attached here with.</p>
-
-                    <p>{business_logo}</p>',
-                'sms_body' => 'We have a new purchase order with reference number {order_ref_number}. {business_name}',
-                'subject' => 'New Purchase Order, from {business_name}',
+                'email_body' => '<p>Olá {contact_name},</p><p>Segue a ordem de compra <strong>{order_ref_number}</strong> em anexo.</p><p>{business_name}</p>',
+                'sms_body' => 'Nova ordem de compra {order_ref_number}. {business_name}',
+                'whatsapp_text' => 'Olá {contact_name}! Segue a ordem de compra {order_ref_number}.',
+                'subject' => 'Nova ordem de compra — {business_name}',
                 'auto_send' => '0',
             ],
         ];

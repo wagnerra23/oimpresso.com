@@ -704,3 +704,48 @@ public function aceitar(Request $request, $id) {
 ---
 
 **Update meta 2026-05-28:** após batch Larissa (PRs #1824/#1828/#1830/#1832) + Ondas 1-2 prevenção (PRs #1850/#1852/#1854/#1862/#1866/#1868), 3 anti-padrões antes só documentados (AP-18, T-AP-2, T-AP-13) agora têm **enforcement passivo PHPStan**. Esquecer = CI bloqueia.
+
+---
+
+## Rebaixamento 2026-08-22 — "Models e Services inventados" é fato DATADO, não retrato de hoje
+
+> **Não revoga T-AP-1 nem T-AP-7.** A regra deles (`Glob` antes de referenciar) segue valendo integralmente e é o que este documento existe para ensinar. O que se rebaixa aqui é o **exemplo**, que passou a descrever um repo que não existe mais — e que, lido em tempo presente, ensina uma coisa errada sobre o Financeiro atual.
+
+### O que este doc afirma, e quando era verdade
+
+Em 2026-05-09 o documento registrou que o batch Cowork referenciou dez nomes que **não existiam** — entre eles `Modules/Financeiro/Services/`, descrito como pasta que *"sequer existe"*. Era verdade naquele dia. A rejeição do batch foi correta.
+
+### O que está no repo hoje (medido 2026-08-22, com controle positivo)
+
+`rg 'class <Nome>' --type php` no repo inteiro, mais `ls` dos dois diretórios:
+
+| Nome que o protótipo pediu | Hoje | Onde |
+|---|---|---|
+| `BankStatementLine` | **existe, literal** | `Modules/Financeiro/Models/BankStatementLine.php:34` |
+| `FluxoCaixaService` | **existe, literal** | `Modules/Financeiro/Services/FluxoCaixaService.php:33` |
+| `DREService` | existe com outra grafia | `Modules/Financeiro/Services/DreService.php:36` |
+| `ChartOfAccount` | conceito chegou em pt-BR | `Modules/Financeiro/Models/PlanoConta.php:14` |
+| `FinancialEntry` | — | canônico segue `Titulo` |
+| `BaixaService` | — | a baixa vive em `TituloBaixa` + `TituloAutoService` |
+| `ConciliacaoService` · `DREExportService` · `OfxImporter` | — | ausentes |
+| `BankAccount` | **falso positivo** | a classe existente é do vendor Stripe (`doc/application/libraries/`), não do Financeiro; o canônico segue `ContaBancaria` |
+
+E `Modules/Financeiro/Services/` — a pasta que o doc diz não existir — tem **nove arquivos**. `Entities/` é que está vazia.
+
+Controle positivo da varredura: `rg -q 'class Titulo\b'` → `rc=0`. A busca funciona; os `—` são ausência real, não falha de comando.
+
+### O que se rebaixa, e o que NÃO se rebaixa
+
+**Rebaixado a fato datado:** a lista dos dez como "inventados". Ela descreve 09/05/2026, não hoje. Quem ler em tempo presente conclui que `FluxoCaixaService` é alucinação — e vai reprovar um serviço que está em produção.
+
+**Preservado inteiro:** T-AP-1 e T-AP-7. Referenciar símbolo sem `Glob`/`Grep` antes continua sendo o erro, e continua sendo o que rejeitou o batch. A regra não dependia de quais nomes faltavam.
+
+**Rebaixado de "invenção" para "vocabulário":** a lição durável não é *"o protótipo sonhou"* — é que ele **pediu em inglês o que o canon nomeia em pt-BR**. Três dos quatro que chegaram vieram com o nome do protótipo ou quase (`BankStatementLine` literal, inclusive dentro de um módulo cuja regra é pt-BR); o quarto chegou traduzido (`PlanoConta`). Isso reforça a Parte 4 deste documento, não a contradiz.
+
+**NÃO afirmado:** causalidade. Não digo que o protótipo influenciou o repo. O clone desta sessão é **shallow** (`git rev-parse --is-shallow-repository` = true), então data de `git log` aqui é o piso do clone, não a história — e sem data não há ordem, sem ordem não há causa. Quem quiser fechar isso usa `mcp__github__list_commits(path:)`, que tem a história inteira.
+
+### Por que isso entra aqui e não num arquivo novo
+
+Este doc se declara append-only no rodapé de 2026-05-09: *"críticas posteriores viram seção nova, não revisão das anteriores"*. Editar a Parte 2 apagaria o registro de que a rejeição foi certa. O fato de 09/05 fica; o que muda é o leitor saber que ele é de 09/05.
+
+**Origem:** sessão 2026-08-22 (pesquisa "dá pra reproduzir fiel o protótipo?"), [PR #6137](https://github.com/wagnerra23/oimpresso.com/pull/6137).

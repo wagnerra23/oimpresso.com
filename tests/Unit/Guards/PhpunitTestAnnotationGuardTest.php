@@ -132,3 +132,96 @@ it('guard: nenhum *Test.php usa /** @test */ doc-comment (PHPUnit 12 silent skip
 
     expect($violations)->toBeEmpty();
 })->group('guard');
+
+/**
+ * Procura `@dataProvider` em doc-comment — a IRMÃ do `@test`, removida no MESMO PHPUnit 12.
+ *
+ * **Por que existe (medido no CT 100 em 2026-08-23):** o `@test` some em SILÊNCIO (o teste
+ * simplesmente não roda). O `@dataProvider` é pior de outro jeito — o método roda, o PHPUnit
+ * o chama com ZERO argumentos, e ele morre em `ArgumentCountError`. Vermelho, sim, mas
+ * vermelho numa lane que ninguém olhava:
+ *
+ *   Modules/Ponto/Tests/Feature/SpatiePermissionsTest    0 pass ·  2 fail ·  0 assertions
+ *   Modules/Ponto/Tests/Feature/MultiTenantIsolationTest 1 pass ·  1 fail ·  1 skip
+ *
+ * Depois de trocar por `#[\PHPUnit\Framework\Attributes\DataProvider('nome')]`, os DOIS
+ * juntos: **22 passed (28 assertions)**. Vinte casos que nunca tinham executado — incluindo
+ * a varredura das 10 rotas do Ponto contra 5xx.
+ *
+ * Eram 3 ocorrências em 2 arquivos, ambos fora da allowlist da lane. O guard do `@test` já
+ * existia e é o dono desta classe (annotation removida no PHPUnit 12); ele só não cobria a
+ * irmã. Estender o dono, não abrir um segundo (ADR 0298).
+ *
+ * Mesmo pattern tempered-dot do irmão. O lookahead `(?=\s|\*)` evita casar `@dataProviders`
+ * ou texto colado; a menção dentro de comentário de LINHA (`// \@dataProvider …`) não casa
+ * porque o pattern exige abertura de doc-comment `/**`.
+ *
+ * @param  array<int, array{path: string, relpath: string, content: string}>  $files
+ * @return array<int, string>
+ */
+function phpunitGuardScanDataProvider(array $files): array
+{
+    $violations = [];
+    $pattern = '/\/\*\*(?:(?!\*\/).)*?@dataProvider(?=\s|\*)/s';
+
+    foreach ($files as $file) {
+        $count = preg_match_all($pattern, $file['content']);
+
+        if ($count) {
+            $violations[] = sprintf('%s: %d ocorrência(s) de tag @dataProvider em doc-comment', $file['relpath'], $count);
+        }
+    }
+
+    return $violations;
+}
+
+it('guard: nenhum *Test.php usa @dataProvider doc-comment (removida no PHPUnit 12)', function () {
+    $files = phpunitGuardCollectFiles();
+    expect($files)->not->toBeEmpty('Nenhum arquivo *Test.php encontrado — guard test inerte');
+
+    $violations = phpunitGuardScanDataProvider($files);
+
+    if (! empty($violations)) {
+        $msg = "VIOLAÇÃO: `@dataProvider` doc-comment foi REMOVIDA no PHPUnit 12.\n\n"
+            ."O método é chamado com ZERO argumentos e morre em ArgumentCountError —\n"
+            ."vermelho de verdade, mas invisível se o arquivo não estiver numa lane.\n\n"
+            ."Trocar por: #[\PHPUnit\Framework\Attributes\DataProvider('nomeDoProvider')]\n\n"
+            ."Origem: 3 ocorrências em 2 arquivos do Ponto, medidas no CT 100 em 2026-08-23.\n"
+            ."Depois do conserto: 22 passed (28 assertions) — 20 casos que nunca rodaram.\n\n"
+            ."Violações encontradas:\n  - "
+            .implode("\n  - ", $violations);
+
+        expect($violations)->toBeEmpty($msg);
+    }
+
+    expect($violations)->toBeEmpty();
+})->group('guard');
+
+/**
+ * CONTROLE NEGATIVO do guard acima — sem isto ele é decorativo (Lei C).
+ *
+ * Prova as duas direções contra fixtures em memória, sem tocar disco: o doc-comment MORDE
+ * (nas 3 formas que o corpus tinha), e o atributo + a menção em comentário de linha LIBERAM.
+ * A 3ª asserção é a que impede o guard de acusar a própria prosa que explica o defeito —
+ * foi exatamente o que meus comentários de conserto viraram nos 2 arquivos consertados.
+ */
+it('guard: o scan de @dataProvider morde o doc-comment e libera o atributo', function () {
+    $morde = [
+        'single-line'          => ['relpath' => 'a', 'path' => 'a', 'content' => "<?php\n/** @dataProvider rotas */\npublic function t(\$u) {}"],
+        'multi-line limpo'     => ['relpath' => 'b', 'path' => 'b', 'content' => "<?php\n/**\n * @dataProvider rotas\n */\npublic function t(\$u) {}"],
+        'multi com descricao'  => ['relpath' => 'c', 'path' => 'c', 'content' => "<?php\n/**\n * Verifica X.\n *\n * @dataProvider rotas\n */\npublic function t(\$u) {}"],
+    ];
+    foreach ($morde as $nome => $f) {
+        expect(phpunitGuardScanDataProvider([$f]))->not->toBeEmpty("MORDE esperado: {$nome}");
+    }
+
+    $libera = [
+        'atributo FQCN'        => ['relpath' => 'd', 'path' => 'd', 'content' => "<?php\n#[\PHPUnit\Framework\Attributes\DataProvider('rotas')]\npublic function t(\$u) {}"],
+        'atributo importado'   => ['relpath' => 'e', 'path' => 'e', 'content' => "<?php\n#[DataProvider('rotas')]\npublic function t(\$u) {}"],
+        'mencao em // comment' => ['relpath' => 'f', 'path' => 'f', 'content' => "<?php\n// a annotation @dataProvider foi removida no PHPUnit 12\n#[DataProvider('rotas')]\npublic function t(\$u) {}"],
+        'metodo provider'      => ['relpath' => 'g', 'path' => 'g', 'content' => "<?php\n/**\n * Rotas cobertas.\n */\npublic static function rotas(): array { return []; }"],
+    ];
+    foreach ($libera as $nome => $f) {
+        expect(phpunitGuardScanDataProvider([$f]))->toBeEmpty("LIBERA esperado: {$nome}");
+    }
+})->group('guard');

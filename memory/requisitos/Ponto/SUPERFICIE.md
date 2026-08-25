@@ -14,7 +14,7 @@ module: Ponto
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Ponto/**` + `resources/js/Pages/Ponto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 197 arquivos em 18 papéis.
+**Total mapeado:** 199 arquivos em 18 papéis.
 
 ## Controllers — 13
 
@@ -191,11 +191,12 @@ module: Ponto
 - [Index.charter.md](../../../resources/js/Pages/Ponto/Relatorios/Index.charter.md)
 - [Welcome.charter.md](../../../resources/js/Pages/Ponto/Welcome.charter.md)
 
-## Casos (contrato UC) — 13
+## Casos (contrato UC) — 14
 
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Aprovacoes/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Ponto/BancoHoras/Index.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Ponto/BancoHoras/Show.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Ponto/Dashboard/Index.casos.md)
 - [Form.casos.md](../../../resources/js/Pages/Ponto/Escalas/Form.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Espelho/Index.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Ponto/Espelho/Show.casos.md)
@@ -207,9 +208,9 @@ module: Ponto
 - [Show.casos.md](../../../resources/js/Pages/Ponto/Intercorrencias/Show.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Relatorios/Index.casos.md)
 
-## Testes (Pest) — 39
+## Testes (Pest) — 40
 
-- 37 em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature)
+- 38 em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature)
 - 2 em [Modules/Ponto/Tests/Unit/](../../../Modules/Ponto/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 

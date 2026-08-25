@@ -198,7 +198,7 @@ function acaoAntiHookAchatar(array $payload): string
     return (string) json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
 
-it('UC-COPI-CHAT-09 — toda tool exposta ao LLM declara a permissão que exige (anti-hook do tool registry)', function () {
+it('UC-JCHAT-09 — toda tool exposta ao LLM declara a permissão que exige (anti-hook do tool registry)', function () {
     // A flag é o único jeito de as tools existirem (ADR 0245 — default OFF em
     // prod). Sem ligar, `toolsAtivas()` devolve [] e o laço abaixo passaria sem
     // examinar NADA: o vácuo clássico de "todas as zero tools estão corretas".
@@ -258,7 +258,7 @@ it('UC-COPI-CHAT-09 — toda tool exposta ao LLM declara a permissão que exige 
     ));
 });
 
-it('UC-COPI-CHAT-10 — o turno NÃO manda PII em plain text pro sink de log (anti-hook do sanitizer)', function () {
+it('UC-JCHAT-10 — o turno NÃO manda PII em plain text pro sink de log (anti-hook do sanitizer)', function () {
     $tenant = $this->seededTenant();
     $user = User::factory()->create(['business_id' => $tenant->id]);
 

@@ -143,9 +143,18 @@ export function extrairAlvos(yamlText, entradasDaLista = []) {
   // (4) DENYLIST — `find <dir> -name '*Test.php'` roda a ÁRVORE INTEIRA menos a
   // quarentena (padrão do financeiro-pest.yml, estritamente melhor que allowlist:
   // teste novo entra sozinho). Sem isto o módulo aparecia 100% órfão — falso.
-  const reFind = /find\s+((?:Modules|tests)\/[A-Za-z0-9_\-./]+)\s+-name\s+'\*Test\.php'/g;
+  // `find` aceita N diretórios antes do `-name`, e o estoque-pest passa DOIS:
+  //   find tests/Feature/Estoque tests/Feature/Produto -name '*Test.php'
+  // A versão anterior capturava UM (`<dir>\s+-name`). Com dois, o engine falhava no 1º
+  // (depois dele não vem `-name`, vem outro path), avançava, e casava só o ÚLTIMO — então
+  // `tests/Feature/Estoque` sumia do run-set INTEIRO, em silêncio, e toda a árvore de testes
+  // do Estoque era contada como "fora do PR". Falso-negativo de cobertura, não de forma.
+  // Medido 2026-08-23: alvos citando tests/Feature/Estoque = 0 antes, > 0 depois.
+  const reFind = /find\s+((?:(?:Modules|tests)\/[A-Za-z0-9_\-./]+\s+)+)-name\s+'\*Test\.php'/g;
   let mf;
-  while ((mf = reFind.exec(yamlText)) !== null) alvos.add(mf[1]);
+  while ((mf = reFind.exec(yamlText)) !== null) {
+    for (const dir of mf[1].trim().split(/\s+/)) alvos.add(dir);
+  }
 
   // (5) extras nomeados fora da árvore do módulo (`echo 'path' >> run.txt`)
   const reEcho = /echo\s+'((?:Modules|tests)\/[A-Za-z0-9_\-./]+Test\.php)'\s*>>/g;
@@ -234,7 +243,12 @@ function entradasDaListaCurada() {
  * Órfão é o que ninguém decidiu — some sem ninguém saber. Misturar os dois
  * apagaria justamente a diferença que este script existe pra mostrar.
  */
-function emQuarentena() {
+// EXPORTADA em 2026-08-23: o `scripts/qa/uc-lane-coverage.mjs` (eixo UC->teste) precisa
+// da MESMA nocao de quarentena, e a 1a versao dele reimplementou — pior, tratando quarentena
+// como SUBTRACAO do run-set em vez de terceira categoria, o que fazia teste conscientemente
+// parado aparecer como orfao (19 dos 56 que ele reportava). Exportar e o conserto: um dono,
+// uma semantica. Nao muda comportamento aqui.
+export function emQuarentena() {
   const dir = join(ROOT, '.github');
   if (!existsSync(dir)) return [];
   const out = new Set();
@@ -244,7 +258,10 @@ function emQuarentena() {
   return [...out];
 }
 
-function coletarAlvos() {
+// EXPORTADA em 2026-08-23 pelo mesmo motivo de `emQuarentena` — o consumidor do eixo
+// UC->teste tinha uma copia da varredura (fronteira de job, matriz, .list, find). Uma copia
+// que "deveria ser igual" e a doenca que este repo ja catalogou 4 vezes (scripts/lib/uc-regex.mjs).
+export function coletarAlvos() {
   const lista = entradasDaListaCurada();
   const alvos = new Set();
   let lanesLidas = 0;
@@ -399,6 +416,25 @@ function selftest() {
   // BITE: o órfão real é detectado
   ok('BITE: teste fora dos alvos é órfão',
     !estaCoberto('Modules/X/Tests/Unit/AlvoTest.php', aSoPaths));
+
+  // `find` com N diretórios — defeito medido em 2026-08-23. O regex antigo capturava UM
+  // dir; com dois, ele falhava no 1º (depois dele vem outro path, não `-name`), avançava, e
+  // casava só o ÚLTIMO. `tests/Feature/Estoque` sumia do run-set inteiro, em silêncio, e as
+  // 25 provas daquela árvore eram contadas como "fora do PR" (920 → 895 depois do conserto).
+  // Sem esta asserção o defeito volta calado: nenhum erro denuncia um regex que casa a menos.
+  const wfFindMulti = [
+    'jobs:', '  pest:', '    steps:', '      - run: |',
+    "          find tests/Feature/Estoque tests/Feature/Produto -name '*Test.php' > /tmp/all.txt",
+    '          mapfile -t TARGETS < /tmp/run.txt',
+    '          vendor/bin/pest "${TARGETS[@]}"',
+  ].join('\n');
+  const aFindMulti = extrairAlvos(wfFindMulti);
+  ok('BITE: `find` com DOIS diretórios captura o PRIMEIRO (o que sumia)',
+    aFindMulti.includes('tests/Feature/Estoque'));
+  ok('LIBERA: … e o segundo continua capturado',
+    aFindMulti.includes('tests/Feature/Produto'));
+  // O caso de UM diretório já tem controle logo abaixo ("DENYLIST: find <dir> cobre a
+  // árvore inteira") — não duplico aqui; se a mudança do regex o quebrasse, aquele reprovaria.
 
   // matriz expandida
   const wfMatriz = [

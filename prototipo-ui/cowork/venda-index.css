@@ -1,0 +1,83 @@
+/* venda-index.css — "Todas as vendas" espelhando Sells/Index vivo. Escopado em .vi-root.
+   Zero paleta nova: tudo por token do DS vivo. */
+.vi-root .pb-body{ gap:12px; }
+.vi-kpis{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+.vi-kpi{ display:flex; flex-direction:column; gap:2px; padding:10px 12px; background:var(--surface); border:1px solid var(--border); border-radius:10px; }
+.vi-kpi span{ font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-mute); }
+.vi-kpi b{ font-size:19px; font-family:var(--font-mono); }
+.vi-kpi em{ font-style:normal; font-size:11px; color:var(--text-mute); }
+.vi-kpi.hero{ background:var(--bg-2); border-color:color-mix(in oklch, var(--accent) 34%, var(--border)); }
+.vi-kpi.hero b{ color:var(--accent); }
+.vi-faixas{ display:flex; flex-direction:column; gap:1px; margin-top:2px; }
+.vi-faixas span{ display:flex; justify-content:space-between; font-size:10.5px; text-transform:none; letter-spacing:0; font-weight:400; }
+.vi-faixas i{ font-style:normal; font-family:var(--font-mono); color:var(--text-dim); }
+
+/* ── Toolbar: pills de situação + visões + busca + visões salvas ── */
+.vi-toolbar{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:8px 12px; border-bottom:1px solid var(--border-2); }
+.vi-toolbar .sp{ flex:1 1 auto; }
+.vi-pills, .vi-seg{ display:flex; gap:2px; padding:2px; background:var(--bg-2); border:1px solid var(--border); border-radius:8px; }
+.vi-pills button, .vi-seg button{ border:0; background:none; font:inherit; font-size:11.5px; color:var(--text-dim); padding:3px 9px; border-radius:6px; cursor:pointer; }
+.vi-pills button:hover, .vi-seg button:hover{ color:var(--text); }
+.vi-pills button.on, .vi-seg button.on{ background:var(--surface); color:var(--text); box-shadow:0 1px 2px oklch(0 0 0 / .18); }
+.vi-salvas{ position:relative; display:flex; gap:6px; }
+.vi-salvas > button{ border:1px solid var(--border); background:var(--surface); font:inherit; font-size:11.5px; color:var(--text-dim); padding:3px 9px; border-radius:6px; cursor:pointer; }
+.vi-salvas > button.on{ border-color:var(--accent); color:var(--accent); }
+.vi-origem{ position:absolute; top:30px; right:0; z-index:30; display:flex; flex-direction:column; min-width:170px; padding:4px; background:var(--surface); border:1px solid var(--border); border-radius:8px; box-shadow:0 12px 32px oklch(0 0 0 / .18); }
+.vi-origem button{ display:flex; justify-content:space-between; gap:10px; border:0; background:none; font:inherit; font-size:12px; color:var(--text); padding:5px 8px; border-radius:5px; cursor:pointer; text-align:left; }
+.vi-origem button:hover{ background:var(--bg-2); }
+.vi-origem button.on{ color:var(--accent); }
+.vi-origem i{ font-style:normal; font-family:var(--font-mono); font-size:10.5px; color:var(--text-mute); }
+
+/* ── Tabela ── */
+.vi-tabela-wrap{ overflow:auto; max-height:60vh; }
+.vi-tabela{ width:100%; border-collapse:collapse; font-size:12px; }
+.vi-tabela th{ position:sticky; top:0; z-index:2; background:var(--bg-2); text-align:left; padding:7px 8px; font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-mute); border-bottom:1px solid var(--border); white-space:nowrap; }
+.vi-tabela td{ padding:8px; border-bottom:1px solid var(--border-2); vertical-align:top; }
+.vi-th-check, .vi-chk{ width:26px; padding-left:12px !important; }
+.vi-th-total, .vi-th-paid, .vi-th-due{ text-align:right; }
+.vi-row{ cursor:pointer; }
+.vi-row:hover{ background:var(--bg-2); }
+.vi-row.sel{ background:color-mix(in oklch, var(--accent) 8%, transparent); }
+.vi-row.urgent td:first-child{ box-shadow:inset 3px 0 0 var(--neg); }
+.vi-row.oficina td:first-child{ box-shadow:inset 3px 0 0 color-mix(in oklch, var(--accent) 60%, transparent); }
+.vi-tabela input[type=checkbox]{ accent-color:var(--accent); width:13px; height:13px; }
+.vi-id{ font-family:var(--font-mono); font-size:11.5px; white-space:nowrap; }
+.vi-fav{ color:var(--warn); margin-right:3px; }
+.vi-ret{ margin-left:4px; color:var(--text-mute); }
+.vi-date{ font-family:var(--font-mono); font-size:11.5px; white-space:nowrap; }
+.vi-date em{ display:block; font-style:normal; font-size:10px; color:var(--text-mute); }
+.vi-cli b{ font-weight:600; display:block; }
+.vi-cli em{ font-style:normal; font-size:10.5px; color:var(--text-mute); display:block; margin-top:1px; }
+.vi-placa{ display:inline-block; margin-top:3px; padding:1px 6px; border:1px solid var(--border); border-radius:4px; font-family:var(--font-mono); font-size:10px; letter-spacing:.06em; }
+.vi-sel{ display:flex; align-items:center; gap:6px; }
+.vi-sel i{ font-style:normal; display:grid; place-items:center; width:22px; height:22px; border-radius:50%; background:color-mix(in oklch, var(--accent) 18%, transparent); color:var(--accent); font-size:10px; font-weight:700; flex:none; }
+.vi-sel b{ display:block; font-weight:600; font-size:11.5px; }
+.vi-sel small{ display:block; font-size:10px; color:var(--text-mute); }
+.vi-src{ display:inline-flex; align-items:center; gap:5px; padding:2px 7px; border-radius:999px; font-size:10.5px; border:1px solid; }
+.vi-src.balcao{ color:var(--text-dim); border-color:var(--border); }
+.vi-src.oficina{ color:var(--accent); border-color:color-mix(in oklch, var(--accent) 34%, transparent); background:color-mix(in oklch, var(--accent) 8%, transparent); }
+.vi-src.online{ color:var(--pos); border-color:color-mix(in oklch, var(--pos) 34%, transparent); background:color-mix(in oklch, var(--pos) 8%, transparent); }
+.vi-os{ border:0; background:none; font:inherit; font-family:var(--font-mono); font-size:10px; color:inherit; cursor:pointer; text-decoration:underline; padding:0; }
+.vi-dots{ display:inline-flex; align-items:center; gap:3px; }
+.vi-dots i{ width:6px; height:6px; border-radius:50%; background:var(--border); }
+.vi-dots i.on{ background:var(--accent); }
+.vi-dots b{ margin-left:4px; font-family:var(--font-mono); font-size:10px; font-weight:500; color:var(--text-mute); }
+.vi-fiscal{ display:flex; flex-direction:column; gap:2px; }
+.vi-fiscal em{ font-style:normal; font-size:10px; color:var(--text-mute); }
+.vi-pay b{ display:block; font-weight:500; font-size:11.5px; }
+.vi-inst{ margin-left:4px; font-family:var(--font-mono); font-size:10px; color:var(--text-mute); }
+.vi-sla{ display:inline-block; margin-top:2px; padding:1px 6px; border-radius:999px; font-size:10px; border:1px solid; }
+.vi-sla.paid{ color:var(--pos); border-color:color-mix(in oklch, var(--pos) 30%, transparent); }
+.vi-sla.fresh{ color:var(--text-mute); border-color:var(--border); }
+.vi-sla.warning{ color:var(--warn); border-color:color-mix(in oklch, var(--warn) 30%, transparent); }
+.vi-sla.overdue{ color:var(--neg); border-color:color-mix(in oklch, var(--neg) 30%, transparent); background:color-mix(in oklch, var(--neg) 8%, transparent); }
+.vi-num{ text-align:right; font-family:var(--font-mono); font-size:11.5px; white-space:nowrap; }
+.vi-num.strong{ font-weight:600; }
+.vi-num.neg{ color:var(--neg); }
+.vi-mute{ color:var(--text-mute); }
+.vi-status{ display:flex; align-items:center; gap:6px; position:relative; padding-right:2px; }
+.vi-acts{ position:absolute; right:0; top:50%; transform:translateY(-50%); display:flex; gap:2px; padding:2px; background:var(--surface); border:1px solid var(--border); border-radius:7px; box-shadow:0 4px 12px oklch(0 0 0 / .18); opacity:0; pointer-events:none; transition:opacity .12s; }
+.vi-row:hover .vi-acts, .vi-row.sel .vi-acts{ opacity:1; pointer-events:auto; }
+.vi-act{ display:grid; place-items:center; width:22px; height:22px; border:1px solid var(--border); border-radius:5px; background:var(--surface); color:var(--text-dim); cursor:pointer; }
+.vi-act:hover{ color:var(--accent); border-color:var(--accent); }
+@media (max-width:1200px){ .vi-kpis{ grid-template-columns:repeat(2,minmax(0,1fr)); } }

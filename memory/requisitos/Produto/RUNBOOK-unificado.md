@@ -4,13 +4,13 @@ module: Produto
 tela: Produto/Unificado/Index
 owner: W
 status: ativo
-last_validated: "2026-08-13"
+last_validated: "2026-08-18"
 preconditions:
   - "Usuário autenticado com product.view OU product.create no business ativo"
   - "Lane de teste: Estoque · MySQL (tests/Feature/Produto/) — nunca local, nunca biz=4"
 steps:
-  - "Conferir o contrato de visibilidade em Index.casos.md (UC-PUNI-01..06)"
-  - "Rodar ProdutoUnificadoContratoTest no CT 100"
+  - "Conferir o contrato de visibilidade em Index.casos.md (UC-PUNI-01..06) e o do índice (UC-PUNI-07..10)"
+  - "Rodar ProdutoUnificadoContratoTest e ProdutoUnificadoIndiceContratoTest na lane Estoque · MySQL"
   - "Smoke da tela nos 3 perfis de permissão"
 related_adrs:
   - 0104-processo-mwart-canonico-unico-caminho
@@ -34,7 +34,12 @@ related_adrs:
 
 ## 1. O que a tela é
 
-Cockpit denso com **5 sub-telas numa rota só**, trocadas por partial reload (`setSubTela`):
+Cockpit denso com **5 sub-telas numa rota só**, trocadas por partial reload (`setSubTela`).
+
+> ⚠️ **Desde 2026-08-24 só a primeira tem entrada na tela.** O grupo "Outras visões" saiu do menu
+> `⋯` (handoff V6 §15.1 nº 11 · aceite §16 nº 4). As outras quatro continuam servidas pelo mesmo
+> controller, com os mesmos gates, e são alcançadas **apenas por `?tela=`**. Dar-lhes acesso é
+> trabalho da sidebar do módulo — decisão de fora deste handoff. Ver §"Antes/Agora" abaixo.
 
 | Sub-tela | Prop | Origem |
 |---|---|---|
@@ -95,7 +100,7 @@ verde por construção.
 
 | Perfil | Como montar | O que tem que acontecer |
 |---|---|---|
-| Admin (tem tudo) | usuário padrão do business | as 5 sub-telas iguais a antes — **nenhuma diferença visual** |
+| Admin (tem tudo) | usuário padrão do business | catálogo completo; as outras 4 sub-telas iguais a antes **quando abertas por `?tela=`** — desde 24/08 não há link pra elas na tela |
 | Sem custo | revogar `view_purchase_price` no papel (`/roles/{id}/edit`) | coluna "Custo · margem" some da tabela; o switch "Mostrar custo" some do painel Ajustes; coluna Margem some de Tabelas de preço |
 | Sem preço | revogar `access_default_selling_price` | coluna "Preço" some; sub-tela "Tabelas de preço" fica vazia com aviso; coluna "Valor" some do Histórico |
 | Sem nada de Produto | revogar `product.view` e `product.create` | a rota devolve **403** |
@@ -134,3 +139,54 @@ Declarar "funcionando" sem isso viola a R1 do [PROTOCOLO-WAGNER-SEMPRE](../../re
 - **Sem `Inertia::defer`** — a tela é a exceção citada no SPEC §Dívidas.
 - **Charter segue `status: draft`** — promover pra `live` exige [W] aprovar Non-Goals +
   Anti-hooks (US-PROD-023).
+
+---
+
+## 2026-08-18 — a tela vira a **Consulta de Produtos** (handoff)
+
+O layout passou a ser o do handoff **"Consulta de Produtos"**, em paridade com a `/contacts`
+(golden master do padrão de índice). O que isso muda pra quem opera esta tela:
+
+| Antes | Agora |
+|---|---|
+| Barra de abas = 5 **sub-telas** | Barra de abas = **tipo do item** (Todos · Produtos · Serviços · Matéria-prima · Kits · Inativos), com contagem |
+| 4 sub-telas secundárias na barra | **Sem entrada na tela desde 24/08.** Passaram pela barra de abas e depois pelo menu **⋯**; o pacote V6 §15.1 nº 11 tirou o grupo "Outras visões" de lá — este menu é lista fechada de apresentação + dados, e navegar pra outra tela não é visão desta. As quatro continuam servidas pelo mesmo controller, com os mesmos gates, alcançáveis por `?tela=categorias\|insumos\|tabelas\|historico`. Dar-lhes acesso é trabalho da **sidebar do módulo** e decisão de fora do handoff — hoje a sidebar cobre Categorias e Grupo de preços de venda (telas legadas), e **não** cobre Insumos · BOM nem Histórico de uso |
+| Faixa de 5 KPIs de leitura | **6 KPI-filtros** clicáveis, contados sobre a aba ativa |
+| Sem busca | Busca em linha própria (`/` foca) — descrição, código, referência, categoria |
+| Sem filtros | Categoria · Tipo · Marca · Estoque · Margem + contagem à direita |
+| Saldo `null` fixo, KPIs zerados | Saldo real (`SUM(vld.qty_available)`), mínimo (`alert_quantity`), tipo derivado, última venda |
+| Clique na linha → sai da tela | Clique na linha → **drawer** de 2 seções; o rodapé leva ao cadastro |
+
+**Smoke — o que conferir, nesta ordem:**
+
+1. Abrir `/products/unificado`. Título "Produtos" + `N cadastrados` batendo com o cadastro inteiro.
+2. Trocar de aba: tabela, contagem **e** os KPIs mudam juntos. `Todos` é sempre o maior número.
+   A faixa tem **no máximo 4** cards (2 sem permissão de custo) — os de "Itens listados" e "Ativos"
+   foram removidos nos pacotes de 19 e 21/08 por não recortarem nada.
+3. Clicar num KPI: a lista recorta; clicar de novo: solta.
+4. Digitar na busca: recorte no servidor (350ms), combinando com a aba e o KPI ativos.
+5. Perfil **sem** `view_purchase_price`: não existem as colunas Custo/Margem, **nem** o card
+   "Margem baixa", **nem** o filtro Margem — e o drawer também não os mostra.
+6. Perfil **sem** `access_default_selling_price`: sem coluna Preço; a sub-tela Tabelas de preço
+   diz por que está vazia, em vez de parecer "nada cadastrado".
+7. Serviço (item sem controle de estoque) aparece como **Não estocável**, nunca "Sem estoque".
+8. Menu ⋯: **2 grupos, 7 itens** (Apresentação + Dados) e **zero link** que navegue pra outra
+   tela — é o critério de aceite §16 nº 4 do handoff V6. As quatro visões antigas continuam
+   respondendo por `?tela=categorias|insumos|tabelas|historico`, digitado na barra de endereço.
+9. Faixa de abas: a aba aberta usa o **roxo do DS** (hue 295), nunca o ciano `rgb(231,248,253)`
+   que existia até 24/08 nem o matiz do seletor pessoal do `AppShellV2` — ver a nota das
+   superfícies `--idx-*` em `resources/css/cockpit.css`.
+10. Selo da coluna Disponível: **pílula redonda** (o `StatusBadge` do DS é `borderRadius: 9999`
+   com rótulo de texto), fundo do tom a 16% e borda a 30%.
+
+**Dívidas herdadas do handoff, ainda abertas** — nenhuma é decisão desta tela:
+
+- **Viewport estreito** — a composição de 6 KPIs foi desenhada pro cockpit desktop. Aqui a grade
+  quebra em 3/2 colunas abaixo do desktop em vez de rolar na horizontal como o protótipo; o
+  comportamento canônico do padrão continua não decidido.
+- **Volume de catálogo real** — sem rodapé de paginação (o padrão de índice não tem) o servidor
+  corta em 500 linhas e a tela **declara** o corte. A resposta definitiva é a ADR 0402 (proposta):
+  carga incremental × virtualização × rodapé canônico.
+- **Dois desvios declarados** aguardando aprovação: filtro **Marca** no lugar de "Fornecedor" (o
+  UltimatePOS não guarda fornecedor no produto) e **"Não estocável" neutro** em vez do vermelho
+  que o protótipo herda do badge de frescor.

@@ -1,0 +1,43 @@
+{
+  "_nota": "Contrato de Tela do Painel do Ponto (aba `painel` da rota /ponto). Declara copy + ordem que o F3 tem de preservar ao traduzir pra Inertia. Schema: prototipo-ui/contrato/contract.schema.json (ADR 0286). Âncoras `data-contract` já existem no protótipo.",
+  "tela": "Ponto/Dashboard/Index",
+  "fonte": "prototipo-ui/cowork/ponto-page.jsx",
+  "_nota_fonte": "Protótipo F1 [CC] importado das telas Blade do módulo (Modules/Ponto/Resources/views/dashboard/index.blade.php) — os KPIs e a fila de aprovações são os mesmos do small-box/widget AdminLTE, traduzidos pro DS vivo.",
+  "alvo": ["resources/js/Pages/Ponto/Dashboard/Index.tsx"],
+  "_nota_alvo": "CORRIGIDO na descida (2026-08-20). O contrato chegou do Cowork declarando `resources/js/Pages/Ponto/Index.tsx`, que NÃO existe: o protótipo assume uma rota /ponto única com abas de área, e o repo tem rotas separadas por tela desde a migração Inertia. O alvo real da aba `painel` é Ponto/Dashboard/Index.tsx (DashboardController@index, rota ponto.dashboard). Ponteiro podre atualiza; o resto do contrato veio verbatim.",
+
+  "secoes": [
+    {
+      "id": "painel-nota-fechamento",
+      "copy": ["DIVERGENCIA"],
+      "estados": ["com-pendencia", "sem-pendencia", "so-divergencia"]
+    },
+    {
+      "id": "painel-kpis",
+      "copy": [
+        "Colaboradores ativos",
+        "Presentes agora",
+        "Atrasos hoje",
+        "Faltas hoje",
+        "HE do mês",
+        "Aprovações pendentes"
+      ]
+    },
+    {
+      "id": "painel-fila-aprovacoes",
+      "copy": ["Fila de aprovações", "Ver fila completa", "Nenhuma intercorrência aguardando decisão."],
+      "estados": ["com-pendentes", "vazio"]
+    },
+    {
+      "id": "painel-atividade",
+      "copy": ["Atividade recente", "marcações de hoje"]
+    }
+  ],
+
+  "ordem": ["painel-nota-fechamento", "painel-kpis", "painel-fila-aprovacoes", "painel-atividade"],
+
+  "_pendente_w": [
+    "KPI 'Presentes agora' hoje é número apurado do mock; no vivo depende de marcação aberta em tempo real (última marcação sem par). Confirmar se o Painel consulta isso a cada carga ou se aceita defer com refresh manual.",
+    "A frase da nota nomeia o mês corrente ('o que trava o fechamento de agosto'). Se [W] quiser copy fixa, entra como string literal aqui."
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "_nota": "Contrato de Tela do Espelho de Ponto (aba `espelho` da rota /ponto — lista + espelho individual + folha de impressão). Schema: prototipo-ui/contrato/contract.schema.json (ADR 0286).",
+  "tela": "Ponto/Espelho/Show",
+  "fonte": "prototipo-ui/cowork/ponto-page.jsx",
+  "_nota_fonte": "Importado de Modules/Ponto/Resources/views/espelho/show.blade.php + reports/espelho-pdf.blade.php. As colunas da apuração diária e os seis totalizadores são os do Blade, campo a campo (realizada_trabalhada_minutos, atraso_minutos, he_diurna/noturna, banco_horas_credito/debito, estado).",
+  "alvo": ["resources/js/Pages/Ponto/Espelho/Show.tsx", "resources/js/Pages/Ponto/Espelho/Index.tsx"],
+
+  "secoes": [
+    {
+      "id": "espelho-dados-colaborador",
+      "_papel": "cabeçalho legal do espelho — sem matrícula/CPF/PIS o documento não serve pra fiscalização",
+      "copy": ["Dados do colaborador", "Matrícula:", "CPF:", "PIS:", "Escala atual:", "Carga diária:", "Admissão:", "Desligamento:"]
+    },
+    {
+      "id": "espelho-totais",
+      "copy": ["Trabalhado", "Atraso", "Falta", "Hora extra", "Banco hrs (+)", "Banco hrs (−)"]
+    },
+    {
+      "id": "espelho-modo-visao",
+      "_papel": "tabela é o documento; grade é a leitura de relance — as duas visões olham a mesma apuração",
+      "copy": ["Tabela", "Grade do mês"],
+      "estados": ["tabela", "grade"]
+    },
+    {
+      "id": "espelho-apuracao-diaria",
+      "copy": ["Previsto", "Realizado", "Marcações", "Atraso", "HE", "BH (+/−)", "Estado"],
+      "estados": ["consolidado", "calculado", "divergencia", "fechado", "folga"]
+    },
+    {
+      "id": "espelho-folha-impressao",
+      "_papel": "folha de prova do espelho (só no print) — o que o colaborador assina",
+      "copy": [
+        "Espelho de Ponto Eletrônico",
+        "Apuração diária",
+        "Totais do mês",
+        "Colaborador",
+        "Responsável RH",
+        "Portaria MTP 671/2021 Art. 85"
+      ]
+    }
+  ],
+
+  "ordem": ["espelho-dados-colaborador", "espelho-totais", "espelho-modo-visao", "espelho-apuracao-diaria", "espelho-folha-impressao"],
+
+  "_pendente_w": [
+    "DSR na folha: hoje a repercussão sobre HE é calculada no protótipo a partir de adicional_dsr_percentual. O Blade recebe `totais['dsr_repercussao']` do ReportService — confirmar de quem é a conta no vivo (Service, não tela).",
+    "Navegação de mês: o protótipo só tem jul/26 e ago/26. No vivo, quantos meses ficam navegáveis antes de exigir o relatório? (limite de retenção em Config/retention.php)."
+  ]
+}

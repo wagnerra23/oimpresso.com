@@ -2,6 +2,7 @@
 id: resources-js-pages-cliente-import-charter
 page: /contacts/import
 component: resources/js/Pages/Cliente/Import.tsx
+related_prototype: prototipo-ui/cowork/cliente-import.jsx
 owner: wagner
 status: live
 last_validated: "2026-06-24"

@@ -19,6 +19,7 @@
      'edit_role' => 'Editar papel',
      'role_updated' => 'Função atualizada com sucesso',
      'role_deleted' => 'Função removida com sucesso',
+    'role_in_use' => 'Nao e possivel excluir: :count usuario(s) usam esta funcao.',
      'manage_users' => 'Gerenciar usuários',
      'all_users' => 'Todos os usuários',
      'name' => 'Nome',

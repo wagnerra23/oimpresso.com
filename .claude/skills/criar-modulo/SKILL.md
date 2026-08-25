@@ -23,7 +23,7 @@ parent_adr: 0095
 
 ## Checklist mínimo (não pular nenhum)
 
-Módulo aparecer em `/manage-modules` com botão Install funcional + opcionalmente sidebar exige **8 peças**:
+Módulo aparecer em `/modulos` (tela viva; o legado `/manage-modules` redireciona pra ela) com botão Install funcional + opcionalmente sidebar exige **8 peças**:
 
 | # | Arquivo | Por quê |
 |---|---|---|
@@ -71,7 +71,7 @@ Se o módulo expõe rota pública (ex: `/consulta-os`, `/repair-status`) que dev
 @endif
 ```
 
-**Inertia:** adicionar flag em [HandleInertiaRequests::share() chave `publicRoutes`](../../app/Http/Middleware/HandleInertiaRequests.php) e ler em `SiteHeader.tsx` via `usePage().props.publicRoutes`. Quando módulo é desativado em `/manage-modules`, a rota some, `Route::has()` vira false, link some.
+**Inertia:** adicionar flag em [HandleInertiaRequests::share() chave `publicRoutes`](../../app/Http/Middleware/HandleInertiaRequests.php) e ler em `SiteHeader.tsx` via `usePage().props.publicRoutes`. Quando módulo é desativado em `/modulos`, a rota some, `Route::has()` vira false, link some.
 
 ## Referências canônicas pra imitar
 
@@ -249,7 +249,7 @@ ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115 \
   'cd ~/domains/oimpresso.com/public_html && git pull && composer dump-autoload --no-scripts && php artisan cache:clear && php artisan view:clear'
 ```
 
-Depois login superadmin → `/manage-modules` → clicar **Install** no card do módulo.
+Depois login superadmin → `/modulos` → clicar **Install** no card do módulo.
 
 ## Refs
 

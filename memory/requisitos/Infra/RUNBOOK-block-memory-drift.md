@@ -128,7 +128,7 @@ $env:OIMPRESSO_MEMORY_OVERRIDE=$null
 # Sempre permitido (arquivo novo)
 # memory/handoffs/YYYY-MM-DD-HHMM-<slug-kebab>.md
 # Snapshot "Estado MCP no momento do fechamento" obrigatório (ADR 0130)
-# Atualizar memory/08-handoff.md adicionando 1 linha no topo (truncar 5º)
+# Atualizar memory/08-handoff.md adicionando 1 linha no topo (append no topo, nada mais — ADR 0167)
 ```
 
 ### Editar handoff existente

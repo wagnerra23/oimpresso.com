@@ -89,7 +89,7 @@ function handoffFiles(string $fm): array
     if (preg_match('/^files:\s*\n((?:[ \t]+-[ \t]*.+\n?)+)/m', $fm, $bm)) {
         foreach (preg_split('/\n/', $bm[1]) as $line) {
             if (preg_match('/^[ \t]+-[ \t]*"?(.+?)"?[ \t]*$/', $line, $lm)) {
-                $files[] = trim($lm[1]);
+                $files[] = trim($lm[1], " \t\"'");
             }
         }
     }
@@ -186,7 +186,39 @@ if (in_array('--self-test', $args, true)) {
         $fails[] = 'PARSE body falhou: sig inline != bloco (body divergiu).';
     }
 
-    // 5) ENVELOPE: forma JSON-RPC do tools/call.
+    // 5) FRONTEIRAS DO CONTRATO: ausência/má formação, fallback, Unicode, campos
+    // opcionais e HMAC cobrindo SOMENTE o corpo.
+    [$fmAusente, $bodyAusente] = handoffSplit("corpo sem frontmatter\n");
+    if ($fmAusente !== '' || $bodyAusente !== "corpo sem frontmatter\n") {
+        $fails[] = 'SEM FRONTMATTER falhou: conteúdo não foi preservado.';
+    }
+    [$fmMal, $bodyMal] = handoffSplit("---\nslug: sem-fecho\ncorpo\n");
+    if ($fmMal !== '' || $bodyMal !== "---\nslug: sem-fecho\ncorpo\n") {
+        $fails[] = 'FRONTMATTER MALFORMADO falhou: não devia ser parcialmente interpretado.';
+    }
+    $fallback = handoffArguments("---\nslug: fallback\nfiles: []\n---\n", $secret);
+    if ($fallback['slug'] !== 'fallback' || $fallback['created_by'] !== 'CC' || $fallback['audited_against'] !== null || $fallback['body_md'] !== '') {
+        $fails[] = 'FALLBACK/DEFAULTS falhou: ' . json_encode($fallback, JSON_UNESCAPED_UNICODE);
+    }
+    $unicode = handoffArguments("---\nhandoff_id: ação-ç\ncreated_by: Wagner\naudited_against: PR #42\nfiles: ['pasta com espaço/a.tsx', \"ç.css\"]\n---\nOlá, café ☕\n", $secret);
+    if ($unicode['slug'] !== 'ação-ç' || $unicode['created_by'] !== 'Wagner'
+        || $unicode['audited_against'] !== 'PR #42'
+        || $unicode['files_json'] !== ['pasta com espaço/a.tsx', 'ç.css']
+        || $unicode['body_md'] !== "Olá, café ☕\n") {
+        $fails[] = 'UNICODE/ASPAS/CAMPOS falhou: ' . json_encode($unicode, JSON_UNESCAPED_UNICODE);
+    }
+    $sigBody1 = handoffArguments("---\nhandoff_id: a\n---\nmesmo corpo", $secret)['sig'];
+    $sigBody2 = handoffArguments("---\nhandoff_id: b\ncreated_by: X\n---\nmesmo corpo", $secret)['sig'];
+    $sigBody3 = handoffArguments("---\nhandoff_id: a\n---\ncorpo alterado", $secret)['sig'];
+    if ($sigBody1 !== $sigBody2 || $sigBody1 === $sigBody3) {
+        $fails[] = 'ESCOPO HMAC falhou: frontmatter não deve alterar sig; corpo deve alterar.';
+    }
+    $blocoAspas = handoffFiles("files:\n  - 'a com espaço.tsx'\n  - \"b.css\"\n");
+    if ($blocoAspas !== ['a com espaço.tsx', 'b.css'] || handoffFiles("files: []\n") !== []) {
+        $fails[] = 'FILES aspas/vazio falhou: ' . json_encode($blocoAspas, JSON_UNESCAPED_UNICODE);
+    }
+
+    // 6) ENVELOPE: forma JSON-RPC do tools/call.
     $env = handoffRpcEnvelope($ai);
     if (($env['method'] ?? null) !== 'tools/call' || ($env['params']['name'] ?? null) !== 'handoff-submit') {
         $fails[] = 'ENVELOPE falhou: ' . json_encode($env);
@@ -196,7 +228,7 @@ if (in_array('--self-test', $args, true)) {
         fwrite(STDERR, "sign-handoff SELF-TEST 🔴\n" . implode("\n", $fails) . "\n");
         exit(1);
     }
-    echo "sign-handoff SELF-TEST 🟢 (determinismo · CRLF→LF · sig-bate · parse inline+bloco · envelope)\n";
+    echo "sign-handoff SELF-TEST 🟢 (HMAC · CRLF/LF · frontmatter · defaults · Unicode · files · envelope)\n";
     exit(0);
 }
 

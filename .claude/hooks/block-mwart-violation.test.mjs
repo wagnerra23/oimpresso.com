@@ -147,6 +147,21 @@ check('charterRunbookExists: related_runbook: FANTASMA → false (ampliar leitur
   charterRunbookExists('resources/js/Pages/Kb/CanonicoFantasma/Index.tsx', root) === false);
 check('charterRunbookExists: sem charter ao lado → false',
   charterRunbookExists('resources/js/Pages/Sells/Create.tsx', root) === false);
+// ── PATH ABSOLUTO (2026-08-18): o PreToolUse entrega ABSOLUTO, não relativo ──────────
+// Até aqui as fixtures só passavam path RELATIVO, e o resgate por charter respondia
+// `false` pra toda tela no Windows — `join(root, absoluto)` concatena e dá caminho
+// inexistente. Suíte verde, mecanismo morto na plataforma do repo. Medido no caso real
+// Cliente/Import (related_runbook válido, Edit bloqueado assim mesmo).
+// O absoluto é CONSTRUÍDO com join() — literal 'D:/…' é absoluto no Windows e RELATIVO
+// no POSIX, então um literal testaria coisas diferentes em cada lane (§5 2026-08-07).
+check('charterRunbookExists: path ABSOLUTO da plataforma → true (resgata igual ao relativo)',
+  charterRunbookExists(join(root, 'resources/js/Pages/Kb/Artigos/Index.tsx'), root) === true);
+check('charterRunbookExists: ABSOLUTO com separadores normalizados → true',
+  charterRunbookExists(join(root, 'resources/js/Pages/Kb/Artigos/Index.tsx').replace(/\\/g, '/'), root) === true);
+check('charterRunbookExists: ABSOLUTO com runbook FANTASMA → false (absoluto não afrouxa)',
+  charterRunbookExists(join(root, 'resources/js/Pages/Kb/Fantasma/Index.tsx'), root) === false);
+check('charterRunbookExists: absoluto FORA da raiz → false (não inventa alvo fora do repo)',
+  charterRunbookExists('/tmp/qualquer/Outro.tsx', root) === false);
 // ── CONTROLE NEGATIVO (LC-15): a mensagem não pode OFERECER saída que o hook não implementa ─
 // Até 2026-08-12 este assert EXIGIA a oferta ('/mwart-override' na mensagem) — ou seja, fixava
 // em contrato de teste uma promessa falsa: o hook tem zero process.env e só sai por exit 2, e o

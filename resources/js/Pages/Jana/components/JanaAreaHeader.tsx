@@ -125,16 +125,39 @@ export function JanaAreaHeader({
       // não traz isso por default, então preservamos via className pra não
       // regredir o comportamento de scroll das 3 telas.
       className="sticky top-0 z-10 bg-card/95 backdrop-blur"
-      // Dot da área (hue 220 = SIDEBAR_GROUP_HUE.ia). Estava no header antigo,
-      // sumiu na 1ª versão desta onda porque o PageHeader canon não tinha slot
-      // — [W] pediu de volta ao ver a tela em prod (2026-08-08). Voltou pelo
-      // slot `leading` opt-in, não por header hand-rolado fora do padrão.
+      // AVATAR da área — `JanaAvatar` quadrado mono "J", o que a âncora tem
+      // (`jana-merge.jsx` §`JanaHeader` → `.jc-avatar`, medido no preview:
+      // 40×40, radius 8px, `bg` accent, peso 700) e o que o `SPEC.md`
+      // (US-COPI-105) descreve como *"JanaAvatar quadrado mono 'J' bg-primary"*.
+      //
+      // SUBSTITUI o dot de 8px que estava aqui desde 2026-08-08. O dot nasceu
+      // como o possível na época: [W] pediu a identidade de volta, o `leading`
+      // acabava de ganhar o slot, e um ponto era o que cabia dentro do `<h1>`.
+      // Medido em prod em 2026-08-18, com [W] apontando o header: um dot de 8px
+      // não é a marca de identidade que a âncora desenha — o avatar é.
+      //
+      // POR QUE cabe no `leading` (e por que isso importa): o slot vive DENTRO
+      // do `<h1>`, então trocar 8px por 40px cresce a linha do título (medido:
+      // header 88 → 98px). Testado ao vivo antes de escrever este código, e o
+      // resultado é fiel. A alternativa — slot novo no `PageHeader` pra pôr o
+      // avatar ao LADO do bloco título+subtítulo, como a âncora faz — tornaria
+      // o diff `frontend-compartilhado` → 37 telas no visreg, 29 sem baseline.
+      // Foi o mesmo preço que tirou o `titleBadge` da onda 1.
+      //
+      // DIVERGÊNCIA declarada: na âncora o subtítulo alinha com o TÍTULO (à
+      // direita do avatar); aqui ele alinha com o AVATAR, porque o `<p>` do
+      // canon é irmão do `<h1>`, não filho. É a única diferença de posição.
+      //
+      // Cor por TOKEN, nunca crua: `bg-primary` é o que o SPEC pede, e cor crua
+      // em `style` inline reprova no `ds/no-inline-raw-color` — foi o que pegou
+      // a 1ª versão da onda 1 (`Pro.tsx` 3 → 4 no ratchet).
       leading={
         <span
           aria-hidden
-          className="mr-2 inline-block size-2 shrink-0 rounded-full align-middle"
-          style={{ background: 'oklch(0.62 0.13 220)' }}
-        />
+          className="mr-3 inline-grid size-10 shrink-0 place-items-center rounded-lg bg-primary align-middle text-[17px] font-bold text-primary-foreground"
+        >
+          J
+        </span>
       }
       title="Jana"
       suffix=" · Analista IA"

@@ -11,14 +11,22 @@
 //
 // DUAS DIVERGÊNCIAS DELIBERADAS vs a âncora, e as duas são o mesmo princípio:
 //
-//   1. SEM "Projeção". O protótipo projeta o fechamento derivando da série no
-//      FRONTEND (`jmMeta()`: extrapola o ritmo se a meta acumula, projeta a
-//      tendência se é média/taxa). Fazer isso aqui repetiria letra por letra o
-//      defeito que o charter já catalogou no farol — §Anti-hooks "⛔ Cálculo de
-//      farol no frontend — fonte autoritativa `ApuracaoService::farol`". Uma
-//      projeção é veredito sobre o futuro; ela nasce no servidor ou não nasce.
-//      No lugar dela vai "% do alvo", que é aritmética sobre os dois números que
-//      já estão na tela.
+//   1. ~~SEM "Projeção"~~ — **RESOLVIDO em 2026-08-18 (onda 5)**. O texto abaixo
+//      fica como registro do que era verdade quando foi escrito:
+//
+//        > O protótipo projeta o fechamento derivando a série no FRONTEND
+//        > (`jmMeta()`). Fazer isso aqui repetiria o defeito que o charter já
+//        > catalogou no farol — §Anti-hooks "⛔ Cálculo de farol no frontend".
+//        > Uma projeção é veredito sobre o futuro; ela nasce no servidor ou não
+//        > nasce.
+//
+//      O princípio segue INTEIRO — e é justamente ele que destrava: o servidor
+//      JÁ calcula (`ApuracaoService::projecao`) e JÁ manda no payload de `/ia`
+//      (`IndexController`: `'projecao' => $apuracao->projecao($meta)`), pela mesma
+//      porta do `farol`. O campo estava chegando e NINGUÉM lia — `rg projecao
+//      resources/js/Pages/Jana/` não devolvia consumidor nenhum. A razão de 08-17
+//      argumentava contra CALCULAR no frontend; aqui não se calcula nada, só se
+//      consome. "% do alvo" continua onde estava.
 //
 //   2. SEM a "nota" do card. No protótipo cada meta traz uma frase explicando o
 //      movimento ("mix de produto puxando pra baixo"). O payload de `/ia` não
@@ -45,6 +53,18 @@ function Secao({ titulo, children }: { titulo: string; children: React.ReactNode
         <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{titulo}</h3>
         {children}
       </section>
+    </Stack>
+  );
+}
+
+/** Par rótulo/valor em coluna — o formato de "Origem do número" (mesmo do JanaDrillDrawer). */
+function Linha({ rotulo, valor }: { rotulo: string; valor: string }) {
+  return (
+    <Stack gap={0}>
+      <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+        {rotulo}
+      </span>
+      <span className="text-sm leading-snug text-foreground">{valor}</span>
     </Stack>
   );
 }
@@ -109,6 +129,8 @@ export default function JanaMetaDrawer({
   // mostram "% do alvo" e divergir aqui seria a tela contradizendo a si mesma.
   const progresso = alvo && realizado !== null ? Math.min(100, (realizado / alvo) * 100) : null;
   const serie = meta.apuracoes_recentes;
+  // Vem do servidor; a Page só consome (mesma porta do `farol`).
+  const projecao = meta.projecao ?? null;
 
   // Delta contra a janela anterior — subtração entre dois valores APURADOS, não
   // previsão. Só aparece com duas janelas; com uma só não há "anterior".
@@ -148,6 +170,43 @@ export default function JanaMetaDrawer({
                 {formatValue(Math.abs(delta), meta.unidade)} vs a janela anterior
               </p>
             )}
+            {/* Projeção — SERVIDOR (`ApuracaoService::projecao`), nunca derivada aqui.
+                `null` = sem base pra projetar; nesse caso não se desenha nada, porque
+                ausência de projeção não é projeção de zero. */}
+            {projecao && (
+              <p className="text-sm text-muted-foreground">
+                No ritmo atual fecha em{' '}
+                <strong className="font-semibold text-foreground tabular-nums">
+                  {formatValue(projecao.projetado, meta.unidade)}
+                </strong>{' '}
+                <span className="tabular-nums">
+                  ({projecao.desvio_pct >= 0 ? '+' : '−'}
+                  {Math.abs(projecao.desvio_pct).toFixed(0)}% vs o ritmo necessário)
+                </span>
+              </p>
+            )}
+          </Secao>
+
+          {/* Origem do número — mesmo contrato do `JanaDrillDrawer` (tabela · regra ·
+              método), que é o padrão já validado desta área. Onda 5 da paridade:
+              a âncora (§`JmMetaDrawer`) tem "Origem do número" e "Escopo", e o drawer
+              vivo não tinha nenhum dos dois.
+
+              ⚠️ Os valores abaixo são LIDOS do código, não inferidos do protótipo: a
+              própria âncora cita 6 `Analise*Service` que NÃO existem no repo (o
+              `ancora.mjs` acusa), então o que ela diz sobre FONTE DE DADO não vale —
+              só o que ela diz sobre forma visual. */}
+          <Secao titulo="Origem do número">
+            <Stack gap={1}>
+              <Linha rotulo="Tabelas" valor="jana_metas · jana_meta_periodos · jana_meta_apuracoes · jana_meta_fontes" />
+              <Linha
+                rotulo="Regra"
+                valor="Apuração do período vigente da meta; o driver de cada meta vive em jana_meta_fontes."
+              />
+              <Linha rotulo="Método" valor="ApuracaoService::apurar · ::farol · ::projecao" />
+              {/* Escopo — Tier 0 visível ao operador, como no JanaDrillDrawer. */}
+              <Linha rotulo="Escopo" valor="Somente a empresa da sessão (business_id) — ADR 0093." />
+            </Stack>
           </Secao>
 
           <Secao titulo={`Série · ${serie.length} ${serie.length === 1 ? 'janela' : 'janelas'}`}>

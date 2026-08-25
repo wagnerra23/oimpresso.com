@@ -10,10 +10,35 @@ declare(strict_types=1);
  * unificada aqui pra consumo pelo `RetentionCleanupCommand`, jobs de purge e auditoria
  * compliance LGPD Art. 16.
  *
- * NOTA: este arquivo é UM SHIM canônico de retenção. A fonte da verdade operacional
- * é `config.php` chave `retention_days_policy` (consultada pelo Service ao fazer upload
- * — preenche `arquivos.retention_days` per-row). Este shim agrupa todos prazos em
- * formato D7.c-compliant pra rubrica governance + facilita auditoria estado-arte.
+ * NOTA: este arquivo é UM SHIM de retenção — agrupa os prazos em formato D7.c-compliant
+ * pra rubrica governance. Ele **não é registrado** em config: o provider do módulo faz
+ * `mergeConfigFrom` só de `config.php` (namespace `arquivos.*`). Ler `config('retention.*')`
+ * devolve `null` — foi o bug de 2026-08-24 na tela do acervo.
+ *
+ * ⚠️ **ERRATA (medido em 2026-08-25).** Até esta data este bloco afirmava, em presente, que
+ * `retention_days_policy` era *"consultada pelo Service ao fazer upload — preenche
+ * `arquivos.retention_days` per-row"*. **Não era, e não é** — nos dois lados:
+ *
+ *   - **Ninguém consulta a policy.** Varredura contada: das 5 ocorrências da string
+ *     `retention_days_policy` no repo, 1 é a definição em `config.php` e 4 são docs falando
+ *     dela. O único leitor de código é o `ArquivosAdminController` (tela do acervo,
+ *     US-ARQ-013), que a lê pra mostrar a base legal ao lado do prazo.
+ *   - **Ninguém preenche `arquivos.retention_days`.** As ocorrências em `Arquivo.php` são
+ *     `$fillable`/`$casts` — declaração, não escrita. A coluna nasce NULL.
+ *
+ * O que existe de fato, pra quem vier depois não repetir o diagnóstico:
+ *
+ *   - `RetentionCleanupCommand` — VIVO (manual, sem schedule). Purga **lixeira**:
+ *     `whereNotNull('deleted_at')` + prazo sobre `deleted_at`, com UM número
+ *     (`retention_days_default`, 90). Não toca arquivo vivo e não lê esta policy.
+ *   - `ArquivosRetentionService` — tem o default correto (1825 = 5 anos fiscal) e separa
+ *     scan/expire/purge com spans OTel, mas está **órfão**: sem rota, sem comando, só
+ *     testes (o `RetentionRunRequest` que o invocaria não tem endpoint).
+ *
+ * Ligar o Service é a onda 3 do RUNBOOK (Retenção — `summary()` + `preview()`, dry-run puro)
+ * e depende da decisão [W] em `memory/decisions/proposals/arquivos-retencao-ui-aviso-titular.md`.
+ * Fato datado em passado de propósito: afirmação em presente sobre comportamento apodrece —
+ * foi o que aconteceu com a frase que esta errata substitui.
  *
  * Bases legais (Brasil):
  *  - **Lei 8.846/94 Art. 23** — XMLs NFe/NFSe autorizados: 5 anos (1825d).

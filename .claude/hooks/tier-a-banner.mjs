@@ -27,7 +27,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 export function banner() {
   return [
     '',
-    '=== CONSTITUICAO v2 - SKILLS TIER A (nucleo) + AUTO-TRIGGER (ADR 0225) ===',
+    '[tier-a-banner] === CONSTITUICAO v2 - SKILLS TIER A (nucleo) + AUTO-TRIGGER (ADR 0225) ===',
     '',
     '  TIER A (seguranca/LGPD/disciplina - sempre relevantes):',
     '  - multi-tenant-patterns      - business_id global scope Tier 0 IRREVOGAVEL',

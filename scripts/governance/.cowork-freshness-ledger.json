@@ -540,5 +540,123 @@
     "verifiedHash": {},
     "origin": "export",
     "stalePreExport": 0
+  },
+  {
+    "date": "2026-08-20T20:23:43.911Z",
+    "files": 133,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 132,
+    "staleList": [],
+    "verified": [
+      "oimpresso.com.html"
+    ],
+    "verifiedHash": {
+      "oimpresso.com.html": "5606b09d6a6a4edc363e7860dd3464990aeaae6b9ea80a5549f8da5f9a4e3c4c"
+    },
+    "origin": "medicao"
+  },
+  {
+    "date": "2026-08-21T17:41:31.674Z",
+    "files": 137,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 136,
+    "staleList": [],
+    "verified": [
+      "jana-merge.jsx"
+    ],
+    "verifiedHash": {
+      "jana-merge.jsx": "a265b6e685672887c624191abbe44f625d5a89e04ac25f1161c1a17136254253"
+    },
+    "origin": "export",
+    "stalePreExport": 1
+  },
+  {
+    "date": "2026-08-24T12:56:43.988Z",
+    "kind": "live-only",
+    "liveOnly": 50,
+    "denom": 237,
+    "liveOnlyList": [
+      "CLAUDE.md",
+      "catchup-shared.jsx",
+      "catchup.css",
+      "command-palette.jsx",
+      "compras-extras.jsx",
+      "compras-grade-matrix.css",
+      "compras-grade-matrix.jsx",
+      "configuracoes-cadastros.jsx",
+      "configuracoes-fatura.jsx",
+      "configuracoes-page.css",
+      "configuracoes-page.jsx",
+      "estoque-contagem.jsx",
+      "estoque-data.jsx",
+      "estoque-forms.jsx",
+      "estoque-page.css",
+      "estoque-page.jsx",
+      "financeiro-legado.jsx",
+      "fiscal-actions.jsx",
+      "fiscal-data.jsx",
+      "fiscal-page.css",
+      "fiscal-page.jsx",
+      "fiscal-subpages.jsx",
+      "github.md",
+      "governance-data.jsx",
+      "governance-page.css",
+      "governance-page.jsx",
+      "governance-telas.jsx",
+      "integra-extras.jsx",
+      "patrimonio-data.jsx",
+      "patrimonio-forms.jsx",
+      "patrimonio-page.css",
+      "patrimonio-page.jsx",
+      "produto-acoes.jsx",
+      "produto-cadastros.jsx",
+      "produto-perms.jsx",
+      "repair-data.jsx",
+      "repair-forms.jsx",
+      "repair-page.css",
+      "repair-page.jsx",
+      "repair-portal.jsx",
+      "repair-print.css",
+      "repair-print.js",
+      "venda-blade-caixa.jsx",
+      "venda-blade-pos.jsx",
+      "venda-blade-recibos.jsx",
+      "venda-blade-telas.jsx",
+      "venda-blade.css",
+      "venda-blade.jsx",
+      "venda-index.css",
+      "venda-index.jsx"
+    ]
+  },
+  {
+    "date": "2026-08-24T13:02:38.864Z",
+    "kind": "live-only",
+    "liveOnly": 2,
+    "denom": 237,
+    "liveOnlyList": [
+      "CLAUDE.md",
+      "github.md"
+    ]
+  },
+  {
+    "date": "2026-08-24T21:57:19.692Z",
+    "files": 242,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 241,
+    "staleList": [],
+    "verified": [
+      "oimpresso.com.html"
+    ],
+    "verifiedHash": {
+      "oimpresso.com.html": "5df05ae9679536f84030fef8af695abbf68fe1b758906cc43dde38d480e85845"
+    },
+    "origin": "export",
+    "stalePreExport": 0
   }
 ]

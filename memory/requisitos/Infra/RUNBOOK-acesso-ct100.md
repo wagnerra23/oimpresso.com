@@ -233,6 +233,36 @@ tailscale ssh root@ct100-mcp 'docker exec oimpresso-staging sh -c "
 2. **`storage/` + `bootstrap/cache` não vêm no checkout** → boot morre com
    `InvalidArgumentException: Please provide a valid cache path`. Criar + `chmod 777`.
 3. **Copiar o `.env`** do staging.
+4. **Se a tela for Inertia, criar o stub do manifest do Vite** — senão a *root view* do Inertia
+   não renderiza, a resposta vira página de erro e `assertInertia` reprova com
+   `Not a valid Inertia response`. **Falso-negativo perfeito:** o código está certo e o teste
+   acusa. É o mesmo passo que a lane do CI faz ("Stub Vite manifest — root view sem build do front"):
+
+   ```bash
+   mkdir -p /tmp/wt-X/public/build-inertia
+   cat > /tmp/wt-X/public/build-inertia/manifest.json <<'EOF'
+   {"resources/css/inertia.css":{"file":"assets/inertia.css","src":"resources/css/inertia.css","isEntry":true},
+    "resources/js/app.tsx":{"file":"assets/app.js","src":"resources/js/app.tsx","isEntry":true}}
+   EOF
+   ```
+
+5. **Escolher o BANCO — o `oimpresso_staging` não serve por default.** Medido 2026-08-19: ele
+   estava com **13 tabelas e sem `business`** (zerado por outra sessão — é o incidente que a
+   [proibicoes §Ambiente](../../proibicoes.md) já registra). Com ele, `seededTenant()` faz
+   `markTestSkipped` e a suíte sai **exit 0 sem provar nada** (LC-13). Conferir antes:
+
+   ```bash
+   docker exec oimpresso-staging-db mariadb -u<user> -p<pass> -N -e \
+     "SELECT table_schema, COUNT(*) FROM information_schema.tables
+      WHERE table_schema NOT IN ('mysql','information_schema','performance_schema','sys')
+      GROUP BY table_schema;"
+   ```
+
+   O cliente do container é **`mariadb`**, não `mysql` (o binário `mysql` não existe no PATH).
+   Em 2026-08-19 o schema provisionado e com o tenant canônico era **`oimpresso_qa`**
+   (379 tabelas · business 1, 2 e **98** · 141 currencies · 65 permissions) — aponte o
+   `DB_DATABASE` pra ele. **Não decore este nome:** rode a consulta acima e escolha o que
+   tiver `business` com o 98.
 
 ⚠️ Outra sessão rodando `git worktree prune`/`add` no mesmo container pode **despejar o
 registro do seu worktree** (o `.git` do worktree vira "not a git repository"). Pra
@@ -241,6 +271,17 @@ alheia): `git -C /var/www/html show origin/<branch>:<path> > /tmp/wt-X/<path>`.
 
 Provado 2026-07-17 (US-INFRA-002): o controle-negativo do teste Tier 0 só ficou honesto
 depois de trocar o symlink pela cópia — com symlink, 6/6 "passava" contra o staging.
+
+Reincidido 2026-08-19 (Officeimpresso Onda 1), e vale como recibo do custo: usei symlink sem
+ler esta seção. O veredito veio **plausível e errado** — `5 failed, 23 passed`, com as 2 falhas
+de Inertia apontando pra um controller que, no código da branch, tinha os 3 `Inertia::render`
+no lugar. Estava medindo o `LicencaLogController` do staging (main de #5728, sem render nenhum).
+Com `cp -a` + as pegadinhas 4 e 5 acima: **28 passed (81 assertions)**.
+A prova barata de que você está medindo a branch certa, antes de rodar qualquer coisa:
+
+```bash
+grep -c "<simbolo que SÓ existe na sua branch>" <arquivo>   # 0 = você está no repo errado
+```
 
 ---
 

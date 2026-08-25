@@ -8,6 +8,8 @@ use App\Business;
 use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Modules\RecurringBilling\Models\Subscription as AssinaturaRecorrente;
+use Modules\RecurringBilling\Repositories\SubscriptionRepository;
 use Modules\Superadmin\Entities\Subscription;
 
 /**
@@ -70,7 +72,20 @@ class SuperadminDashboardService
                 ->orderBy('created_at')
                 ->get();
 
+            // Série CONTÍNUA: os 12 meses nascem com 0.0 ANTES de somar. Sem isso o mês sem
+            // nenhuma assinatura simplesmente não vira chave, e o gráfico ganha um buraco —
+            // medido no smoke de 2026-08-19, que trouxe 11 pontos (faltava Oct-2025) num
+            // eixo que se anuncia como 12 meses. Buraco em série temporal engana o olho:
+            // o leitor lê "sem queda" onde havia mês zerado.
             $formatted = [];
+            $cursor = $start->copy()->startOfMonth();
+            $ultimo = $end->copy()->startOfMonth();
+
+            while ($cursor->lessThanOrEqualTo($ultimo)) {
+                $formatted[$cursor->format('M-Y')] = 0.0;
+                $cursor->addMonth();
+            }
+
             foreach ($subscriptions as $sub) {
                 $monthYear = Carbon::parse($sub->created_at)->format('M-Y');
                 if (! isset($formatted[$monthYear])) {
@@ -126,6 +141,82 @@ class SuperadminDashboardService
                 'active'   => $active,
                 'inactive' => $inactive,
                 'total'    => $active + $inactive,
+            ];
+        }, ['module' => 'Superadmin', 'service' => self::class]);
+    }
+
+    /**
+     * MRR — receita recorrente mensal (SA-O1b, fonte corrigida em 2026-08-19).
+     *
+     * O número vem da COBRANÇA RECORRENTE (`Modules/RecurringBilling`), não do
+     * licenciamento legado do UltimatePOS. Medido em prod: `packages`/`subscriptions`
+     * têm 75 pacotes ativos TODOS com preço 0 — não cobram ninguém —, enquanto
+     * `rb_plans`/`rb_subscriptions` têm 161 planos com valor e 109 assinaturas ativas.
+     * A primeira versão deste método lia a fonte errada e devolvia zero.
+     *
+     * E o CÁLCULO é delegado ao dono (`SubscriptionRepository::mrrBaselineCached`), não
+     * refeito aqui. Ele respeita duas regras que uma soma crua de `rb_plans.valor` erra:
+     * o `metadata.valor` da assinatura SOBREPÕE o valor do plano (é onde mora o preço
+     * negociado por empresa), e o ciclo normaliza pro mês. Medido no mesmo dia: canônico
+     * R$ [redacted Tier 0] × soma crua R$ [redacted Tier 0] — ~4% de diferença por UMA assinatura com
+     * preço próprio. Um segundo dono do mesmo número seria um segundo número.
+     *
+     * `canceladas` conta as saídas dos últimos 30 dias (`canceled_at`), que é o insumo do
+     * churn — `rb_subscriptions` já traz `churn_reason` de fábrica.
+     *
+     * @param  int|null  $businessId  business dono da carteira; null usa o do usuário logado
+     * @return array{mrr: float, assinaturas: int, canceladas: int, fonte: string}
+     */
+    public function calcularMrr(?int $businessId = null): array
+    {
+        return OtelHelper::spanBiz('superadmin.dashboard.mrr', function () use ($businessId): array {
+            $biz = $businessId ?? (int) (auth()->user()->business_id ?? 0);
+
+            if ($biz <= 0 || ! class_exists(SubscriptionRepository::class)) {
+                return ['mrr' => 0.0, 'assinaturas' => 0, 'canceladas' => 0, 'fonte' => 'indisponivel'];
+            }
+
+            // O CÁLCULO é do RecurringBilling, não daqui. `mrrBaselineCached` respeita duas
+            // coisas que uma soma crua de `rb_plans.valor` erra:
+            //   · `metadata.valor` da assinatura SOBREPÕE o valor do plano (é onde mora o
+            //     preço negociado por empresa);
+            //   · o ciclo normaliza pro mês (trimestral/3, semestral/6, anual/12).
+            // Medido em prod 2026-08-19: canônico R$ [redacted Tier 0] × soma crua R$ [redacted Tier 0] —
+            // ~4% de diferença por UMA assinatura com preço próprio. Reimplementar aqui seria
+            // um segundo dono do mesmo número, e o segundo dono estava errado.
+            $repo = app(SubscriptionRepository::class);
+            $mrr = $repo->mrrBaselineCached($biz);
+
+            // A CONTAGEM também é do dono — mesma razão do MRR logo acima. A primeira versão
+            // deste método consultava a tabela do RecurringBilling por query builder cru, o
+            // que criou um par de acoplamento NOVO `Superadmin>RecurringBilling` no eixo
+            // tabela e deixou a catraca de acoplamento vermelha em TODO PR do repositório —
+            // inclusive nos que só mexem em documentação.
+            //
+            // ⚠️ `contarAtivas` conta `active|trialing|past_due` — MAIS amplo que o
+            // `status = 'active'` que estava aqui. Medido em prod 2026-08-19 antes de trocar:
+            // `active:109 · paused:1 · canceled:52`, ZERO linhas em `trialing`/`past_due`. Logo
+            // o número exibido é idêntico hoje, e passa a seguir a definição do dono quando
+            // esses status aparecerem — que é o comportamento correto pra um KPI de "ativas".
+            $ativas = $repo->contarAtivas($biz);
+
+            // Churn: canceladas nos últimos 30 dias. Não há método no repositório pra isso,
+            // então uso o MODEL do dono (não `DB::table`): preserva SoftDeletes e qualquer
+            // scope que o RecurringBilling aplique — o `whereNull('deleted_at')` que estava
+            // aqui à mão vira implícito. `rb_subscriptions` já tem `canceled_at` e
+            // `churn_reason`; não precisou de coluna nova.
+            $canceladas = AssinaturaRecorrente::query()
+                ->where('business_id', $biz)
+                ->where('status', 'canceled')
+                ->whereNotNull('canceled_at')
+                ->where('canceled_at', '>=', Carbon::today()->subDays(30))
+                ->count();
+
+            return [
+                'mrr' => round((float) $mrr, 2),
+                'assinaturas' => $ativas,
+                'canceladas' => $canceladas,
+                'fonte' => 'recurring_billing',
             ];
         }, ['module' => 'Superadmin', 'service' => self::class]);
     }

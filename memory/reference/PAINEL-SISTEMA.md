@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-18**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-25**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -32,7 +32,7 @@ lente: [construir]
 | ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-08-12 |
 | Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-07-30 |
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-07-23 |
-| Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-08-05 |
+| Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-08-18 |
 | Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-08-11 |
 | Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-08-12 |
 | Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-08-13 |
@@ -44,7 +44,7 @@ lente: [construir]
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
 | OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-07-27 |
 | PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-07-23 |
-| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-08-07 |
+| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-08-21 |
 | ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
 | RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-08-05 |
 | Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-08-06 |
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **360**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **362**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -130,13 +130,13 @@ lente: [construir]
 - espelho — mexeu depois de verificar
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 124 workflows por classe
+### Censo — 126 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 92 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
+| gate (bloqueia/valida PR) | 94 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 21 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, casos-results-publish, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
@@ -145,13 +145,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **383** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 347 · superseded: 16 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
+- **384** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 347 · superseded: 16 · deprecated: 13 · proposto: 6 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 127 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 148 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -281,6 +281,27 @@ lente: [construir]
 - ~~2026-08-16 — Restringir a extração de recibo à convenção `§5:` PURA pra zerar os "recibos pendurados" (medido: cega metade dos recibos legítimos)~~
 - ~~2026-08-17 — Comentário de código que se AUTODEFENDE com medição obsoleta (o remendo à mão do espelho sobreviveu 4 dias por causa dele)~~
 - ~~2026-08-17 — Tratar PRESENÇA de protótipo no espelho como DEMANDA de tela (3 propostas, 3 evaporaram sob medição)~~
+- ~~2026-08-18 — Reescrever doc versionado com `io.open(p,'w')`: o encoding falhou DEPOIS do corte e o arquivo ficou VAZIO~~
+- ~~2026-08-18 — Listar gap protótipo × produção por GREP DE STRING LITERAL, com 3 donos do inventário sem serem abertos~~
+- ~~2026-08-19 — Escrever arquivo com par de barra invertida por heredoc: o par COLAPSA no transporte e o PHP recebe string aberta~~
+- ~~2026-08-19 — Painel do protocolo anunciar "sem teto get_file" num caminho cujo INSUMO passa pelo get_file~~
+- ~~2026-08-20 — Consertar `front_door_coverage` com README, depois de ler o regex de docs CONCORRENTES em vez do predicado da porta~~
+- ~~2026-08-20 — Afirmar "o PR X não toca este arquivo" contra a MINHA PRÓPRIA consulta, feita na mesma sessão~~
+- ~~2026-08-20 — Concluir "não há rota fiel de transporte" tendo lido o painel que aponta a rota (e o aviso do FP que matou o gate óbvio)~~
+- ~~2026-08-20 — Responder "precisa atualizar a branch?" com o `strict` da branch protection — a pergunta tinha OUTRO dono~~
+- ~~2026-08-20 — Gate que exige `.snap` junto quando o PR toca tela do núcleo (MEDIDO: 78%/92% de disparo; adiado pela FASE, não refutado)~~
+- ~~2026-08-20 — Sondar o git com a mudança AINDA NÃO COMMITADA (a sonda responde sobre o commitado, não sobre o seu working tree)~~
+- ~~2026-08-21 — `/tmp` não é o mesmo diretório para o Bash e para o Node no Windows: dois arquivos, mesmo caminho escrito~~
+- ~~2026-08-21 — A mensagem do `--live-only` dizia "`.md` NÃO desce" 11h depois de o MESMO arquivo passar a descê-los (e o PR que a tornou falsa tinha o arquivo aberto)~~
+- ~~2026-08-21 — DUAS rotas de baixar o espelho, sem hierarquia no instrumento que a sessão lê — e escolhi a inferior um dia depois da lápide que já tinha corrigido isso~~
+- ~~2026-08-23 — `git cat-file -e <ref>:<path>` responde "não existe" para todo path que começa com `.` — e o diagnóstico que eu ia registrar ("clone parcial") era FALSO~~
+- ~~2026-08-23 — Estender o P4 do `block-sonda-que-mente` pra pegar o pattern vindo de VARIÁVEL de shell (MEDIDO: 93,7% de falso-positivo)~~
+- ~~2026-08-24 — Guard de auto-merge com predicado ABSOLUTO (`fail == 0`) em vez de DELTA — estado herdado o trancou por 9 dias~~
+- ~~2026-08-24 — Fabricar `ponto_colaborador_config` no tenant REAL dentro do teste, pra destravar 2 skips (o dono é o SEED)~~
+- ~~2026-08-24 — Fazer o rótulo do KPI caber a 1280 por ESPAÇO HORIZONTAL (5 colunas · fonte menor · tracking menor · ícone na linha do valor) — 4 variantes MEDIDAS e refutadas~~
+- ~~2026-08-24 — Declarar "a tela nao renderiza" medindo o DOM durante o lazy-load (li 552, o real era 2218)~~
+- ~~2026-08-24 — Gate visual bloqueando por tela FORA do raio do PR: predicado absoluto + o label que aprova o PR mas não a baseline (2ª instância da classe, 3º mecanismo)~~
+- ~~2026-08-24 — Congelar num assert a COBERTURA derivada de um registry VIVO (reprovou por GANHO — 3ª ocorrência da classe, 4º mecanismo)~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -291,14 +312,14 @@ lente: [construir]
 
 ## Rastro
 
-- **459** handoffs · **631** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **471** handoffs · **644** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
-  - `2026-08-17-visreg-relogios-divergentes-e-pedidos-cowork`
-  - `2026-08-17-jana-chat-gaps-do-card-tres-ja-existiam`
-  - `2026-08-17-financeiro-prototipo-medido-e-o-boletos-aposentado`
-  - `2026-08-16-trilha-d-d0-placar-medido-e-a-celula-que-e-maquina`
-  - `2026-08-15-espelho-jana-baixar-nao-e-converter`
-  - `2026-08-14-censo-redacao-brl-em-codigo`
+  - `2026-08-23-protocolo-code-design-testes-regressao`
+  - `2026-08-23-bundle-design-transacional-manifesto-delta`
+  - `2026-08-22-arte-fidelidade-prototipo-producao`
+  - `2026-08-22-arte-escala-centenas-de-telas`
+  - `2026-08-22-arte-agentes-ia-ui-guardrails`
+  - `2026-08-20-visreg-narrativa-do-comentario`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-18 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-25 · deriva das fontes canônicas, não as substitui._

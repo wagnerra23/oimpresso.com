@@ -88,3 +88,4 @@ tests/Feature/Produto/Wave2StockHistoryInertiaTest.php     # nunca rodou em lane
 # ─────────────────────────────────────────────────────────────────────────────
 
 tests/Feature/Produto/FormacaoPrecoParidadeLegadoTest.php  # roda na lane sqlite (.github/ci-sqlite-pest.list linha 211) — não duplicar aqui
+tests/Feature/Estoque/DevolucaoGuardaContratoTest.php   # CU-DEV-07: controle positivo (GET /sell-return com access_own_sell_return) responde 403 — setup do harness, SEM veredito sobre a hipotese do $sells. CU-DEV-08 ja VERDE (trava de lastro landada no mesmo PR); sai da quarentena quando o 07 for exercitavel

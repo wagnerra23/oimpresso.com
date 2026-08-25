@@ -155,7 +155,12 @@ it('UC-PUNI-01 · catálogo unificado não entrega custo a quem não pode vê-lo
             'sell_price_inc_tax' => $vendaSentinela,
         ]);
 
-    $props = unificadoContratoProps($this, ['produtos']);
+    $props = // Recorte pela busca + página cheia: desde a paginação server-side (V2 §4.8) a resposta é
+    // uma FATIA, e pescar a linha semeada na página 1 de um tenant com centenas de produtos é
+    // loteria. O recorte não enfraquece o que o caso mede — a forma da linha e o recorte da
+    // aba são os mesmos com ou sem busca; o que ele garante é que a linha ESTEJA na resposta,
+    // que é a pré-condição anti-vácuo deste arquivo.
+    unificadoContratoProps($this, ['produtos'], ['busca' => 'Produto Estoque Fix', 'porPagina' => 100]);
 
     // PRÉ-CONDIÇÃO ANTI-VÁCUO: a prop chegou E a linha do produto está nela.
     expect($props)->toHaveKey('produtos');
@@ -200,7 +205,12 @@ it('UC-PUNI-02 · catálogo unificado não entrega preço de venda a quem não p
             'sell_price_inc_tax' => $vendaSentinela,
         ]);
 
-    $props = unificadoContratoProps($this, ['produtos']);
+    $props = // Recorte pela busca + página cheia: desde a paginação server-side (V2 §4.8) a resposta é
+    // uma FATIA, e pescar a linha semeada na página 1 de um tenant com centenas de produtos é
+    // loteria. O recorte não enfraquece o que o caso mede — a forma da linha e o recorte da
+    // aba são os mesmos com ou sem busca; o que ele garante é que a linha ESTEJA na resposta,
+    // que é a pré-condição anti-vácuo deste arquivo.
+    unificadoContratoProps($this, ['produtos'], ['busca' => 'Produto Estoque Fix', 'porPagina' => 100]);
 
     expect($props)->toHaveKey('produtos');
     $linha = collect($props['produtos'])->firstWhere('id', $produto->productId);
@@ -266,7 +276,12 @@ it('UC-PUNI-04 · composição (BOM) não chega sem manufacturing.access_recipe'
     $bizId = (int) $this->business->id;
     $produto = EstoqueFixture::singleProduct($bizId);
 
-    $props = unificadoContratoProps($this, ['produtos']);
+    $props = // Recorte pela busca + página cheia: desde a paginação server-side (V2 §4.8) a resposta é
+    // uma FATIA, e pescar a linha semeada na página 1 de um tenant com centenas de produtos é
+    // loteria. O recorte não enfraquece o que o caso mede — a forma da linha e o recorte da
+    // aba são os mesmos com ou sem busca; o que ele garante é que a linha ESTEJA na resposta,
+    // que é a pré-condição anti-vácuo deste arquivo.
+    unificadoContratoProps($this, ['produtos'], ['busca' => 'Produto Estoque Fix', 'porPagina' => 100]);
     $linha = (array) collect($props['produtos'])->firstWhere('id', $produto->productId);
     expect($linha)->not->toBeEmpty();
 
@@ -300,7 +315,7 @@ it('UC-PUNI-05 · nenhuma prop do unificado enxerga produto de outro business', 
 
     $intruso = EstoqueFixture::singleProduct($outroBiz);
 
-    $props = unificadoContratoProps($this, ['produtos', 'kpis', 'categorias']);
+    $props = unificadoContratoProps($this, ['produtos', 'kpis', 'categorias'], ['busca' => 'Produto Estoque Fix', 'porPagina' => 100]);
 
     $idsVisiveis = collect($props['produtos'])->pluck('id')->all();
     expect(in_array($intruso->productId, $idsVisiveis, true))->toBeFalse(

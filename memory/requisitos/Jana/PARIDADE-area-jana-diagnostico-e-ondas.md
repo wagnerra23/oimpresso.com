@@ -45,11 +45,11 @@ Wrapper da área: `Pages/Jana/components/JanaAreaHeader.tsx` (usa o canon) + `Pa
 | Index | `JanaAreaHeader` | `dashboard` | **sim** | Configurar + Exportar |
 | Chat | `JanaAreaHeader` | `chat` | **não** | — |
 | Memoria | `JanaAreaHeader` | `memoria` | **não** | — |
-| **Pro** | **`<header>` hand-rolled** | — | — | Voltar ao chat |
+| **Pro** | `PageHeader` canon (sem `subnav`) — ✅ **corrigido 2026-08-18, onda 1** | — | — | Voltar ao chat |
 
-O Pro é a única fora do header do sistema. O charter justifica com "modo FOCO" — mas modo FOCO é *sem SubNav*, não *sem PageHeader*: um `<PageHeader>` sem a prop `subnav` daria o mesmo resultado dentro do canon.
+O Pro era a única fora do header do sistema. O charter justificava com "modo FOCO" — mas modo FOCO é *sem SubNav*, não *sem PageHeader*: um `<PageHeader>` sem a prop `subnav` dá o mesmo resultado dentro do canon. **Feito na onda 1 (2026-08-18)**: a tag `UPGRADE` entrou pelo slot opt-in `titleBadge`, criado no mesmo PR porque `suffix` é `string` e não renderiza pill — sem ele a migração custaria a tag, que é literal do protótipo PASS 90. Era exatamente esse custo que mantinha a tela fora do canon.
 
-`janaContext` tem **0 hits** em `ChatController` e `MemoriaController`; o `IndexController` tem. Por isso só o Painel mostra empresa e `biz=`.
+`janaContext` tinha **0 hits** em `ChatController` e `MemoriaController`; o `IndexController` tinha. Por isso só o Painel mostrava empresa e `biz=`. ✅ **Corrigido na onda 2 (2026-08-18)** — o `JanaAreaHeader` já aceitava `businessName`/`businessId` e até documentava a lacuna no próprio JSDoc; faltava o controller mandar.
 
 ## 5 · Colunas e títulos
 
@@ -78,10 +78,25 @@ O Pro é a única fora do header do sistema. O charter justifica com "modo FOCO"
 | seção | vivo |
 |---|---|
 | Situação · Realizado · Projeção · Série · Fechar | ✅ |
-| **Origem do número** | ❌ 0 |
-| **Escopo** | ❌ 0 |
-| **Editar meta** | ❌ 0 |
-| **Falar com a Jana** (`onFalarComJana`) | ❌ 0 |
+| **Origem do número** | ❌ 0 → ✅ **onda 5 (2026-08-18)** |
+| **Escopo** | ❌ 0 → ✅ **onda 5 (2026-08-18)** |
+| **Editar meta** | ⚠️ **o `❌ 0` era FALSO** — ver errata abaixo |
+| **Falar com a Jana** (`onFalarComJana`) | ⚠️ **o `❌ 0` era FALSO** — ver errata abaixo |
+| **Projeção** (não estava nesta tabela) | ❌ → ✅ **onda 5** — o servidor já mandava e ninguém lia |
+
+> **Errata desta tabela (2026-08-18, onda 5).** Dois dos quatro `❌ 0` estavam **errados**, e o
+> defeito é meu método, não o código: medi por `grep` do **rótulo literal do protótipo**. Os dois
+> existem no `JanaMetaDrawer` desde 2026-08-17, com rótulos **deliberadamente diferentes** e a
+> razão escrita ao lado no próprio arquivo:
+>
+> | protótipo | vivo | por quê (comentário no código) |
+> |---|---|---|
+> | *Editar meta* | **`Abrir a meta`** | *"o destino é a tela de leitura (`show`) (…) prometer 'editar' mandaria o usuário pra um lugar que não é o formulário"* |
+> | *Falar com a Jana* | **`Conversar com a Jana`** | mesma copy do contrato `painel-cta-conversar`, sem semear a pergunta porque `ChatController@novaConversa` não aceita pergunta inicial |
+>
+> É a classe LC-08 (**medir a partir da fonte errada**): rótulo de protótipo não é chave de
+> busca em código que renomeou o rótulo de propósito. O que a onda 5 de fato entregou são os
+> **outros três** — Origem do número, Escopo e Projeção.
 
 ---
 
@@ -191,11 +206,251 @@ O **default** do `--export-from` (prefixo `cowork`) escreve em `prototipo-ui/cow
 
 **Regra que falta escrever (decisão [W]):** um destino único e versionado pro DS do espelho, com os outros apontando pra ele — e o `launch.json` deixando de carregar path de worktree efêmero. Enquanto houver 4 locais, "está no git" e "o protótipo enxerga" continuam sendo perguntas diferentes.
 
+### ✅ ERRATA — a Onda E FECHOU em 2026-08-18, e o teto do `get_file` foi contornado
+
+> Medido nesta mesma data, em `d4d7b7308`, **depois** do texto acima ser escrito. O §7.4 fica
+> preservado como registro do que era verdade quando foi medido; o que muda é o **estado**.
+
+O [PR #5915](https://github.com/wagnerra23/oimpresso.com/pull/5915) (`fix(design-sync): restaurar
+runtime completo dos drawers`) versionou o que faltava em `scripts/design-sync/mirror-snapshot/`:
+**`_ds_bundle.js` (289.864 bytes)** + as **3 fontes mono** — os dois itens que o §7.4 dava como
+`❌ IMPOSSÍVEL hoje` e `❌ binário`. O caminho **não** foi ampliar o `get_file`: foi trocar o
+transporte, que é a saída **(b)** das três que o §7.4 listou como decisão [W].
+
+E o **destino instável** (4 locais para o mesmo conteúdo) fechou junto: o
+`cowork-mirror-freshness --preview-ds` materializa o snapshot versionado **no slug que o host
+pede**, derivando o id do próprio shell em vez de hardcode — é o elo (1) → (2) que a tabela dos
+4 locais dizia nunca ter sido ligado. O `README.md` do `mirror-snapshot/` agora declara
+`prototipo-ui/cowork/_ds/` como **cache derivado, gitignored**, encerrando a ambiguidade.
+
+**Recibos (dois oráculos independentes, nesta ordem):**
+
+| prova | resultado |
+|---|---|
+| `node scripts/governance/cowork-mirror-freshness.mjs --preview-ds` | `10 reposto(s) · 0 sem fonte · 0 inválido(s)` → `✓ PREVIEW COMPLETO` (exit 0) |
+| runtime, `localhost:5577` — `window.OfficeImpressoPontoWR2DesignSystem_019dd0` | **`true`** (era `false`) · 14+ componentes reais (`Alert`, `Button`, `Command`, `DataTablePro`…) |
+| runtime — `performance.getEntriesByType('resource').filter(r => r.responseStatus >= 400)` | **`[]`** — zero 4xx em qualquer profundidade do grafo |
+
+A sonda de runtime é a **mesma** que o §7.4 prescreveu como oráculo completo — e ela agora volta
+vazia. **Consequência prática:** a suspensão que o §7.4 impôs sobre leitura visual do espelho
+está **levantada**. Comparação visual volta a medir o lado certo.
+
+---
+
+## 7.5 · O espelho está ATRASADO em relação ao Cowork VIVO — eixo que o §7.4 não cobre
+
+> ⚠️ **Não é o mesmo defeito do §7.4, e por isso ele passou.** O §7.4 mede *completude*
+> (o que nunca desceu). Este mede *frescor* (o que desceu e ficou pra trás). O cabeçalho deste
+> documento diz que o `sha256` do `jana-merge.jsx` *"bate com `origin/main` nos 3 worktrees"* —
+> verdade, e **irrelevante para esta pergunta**: prova que os worktrees concordam entre si,
+> nunca que concordam com o **vivo**. São dois inventários diferentes (§5 2026-07-28).
+
+Medido em 2026-08-18 pelo caminho canônico — `DesignSync.get_file` → `--snapshot-from`
+(mede **sem** escrever no espelho, conforme a lápide de 2026-08-14):
+
+```
+DIVERGE  jana-merge.jsx  (a265b6e68567)
+```
+
+| | espelho `prototipo-ui/cowork/` | Cowork vivo |
+|---|---|---|
+| `jana-merge.jsx` | **943 linhas** | **1.117 linhas** (`truncated: false`) |
+| símbolos exportados | 8 | **10** — ganha `JmPropostas` · `JmThreadItem` |
+| filtros do histórico | `todas · minhas · compartilhadas · arquivadas` | `todas · arquivadas` + **busca** + seções Fixadas/Recentes |
+| categorias da Memória | `JM_CATS` (lista fixa) | `JM_CAT_LABELS` + **relevância /10** |
+
+Confirmado também por runtime, no protótipo servido: `typeof window.JmPropostas` → **`undefined`**.
+
+### A direção do delta é o achado — e ela é o INVERSO do esperado
+
+O `--compare` diz que os hashes divergem; **não** diz quem avançou (é a ressalva do próprio
+`cowork-mirror-freshness`, e a lápide de 2026-07-17 sobre agregar veredito de fingerprint).
+Medida a direção, item a item, ela aponta para a **produção**:
+
+| o que o protótipo vivo GANHOU | já existe em produção? |
+|---|---|
+| `JmPropostas` (propostas de meta na conversa) | ✅ `Chat.tsx:167` `PropostaCard` + `:355` "Propostas de metas" |
+| `JmThreadItem` — busca + Fixadas/Recentes | ✅ `Chat.tsx:423-456` `ConvSidePanel` (`fixadas`/`recentes`/`query`) |
+| categorias + relevância na Memória | ✅ `Memoria.tsx:89-94` `CATEGORIA_LABELS` + `relevancia` |
+| farol cinza / meta sem apuração | ✅ `Index.tsx:190` `data-contract="painel-meta-apurando"` |
+
+O próprio `jana-merge.css` vivo rotula o bloco: **`/* ── Leva "produção à frente" (2026-08-17) ── */`**.
+Ou seja: **o protótipo foi atualizado para alcançar a produção**, não o contrário. Some-se a isso
+que `/ia/painel`, `/ia/cockpit` e `/ia/dashboard` já são **301 → `/ia`** em
+`Modules/Jana/Http/routes.php` — a fusão que o cabeçalho do `jana-merge.jsx` ainda descreve como
+proposta (*"/ia/cockpit morre"*) **já está feita em produção**.
+
+**Por que isto importa para quem for executar as ondas.** A leitura natural de "aplicar o
+protótipo em produção" pressupõe que o protótipo lidera. Na área Jana, hoje, ele **não lidera na
+maior parte** — e tratar cada `DIVERGE` como trabalho a fazer produziria ondas que **desfariam**
+o que já está entregue. O que sobra de delta real está no §6, e ele foi **reconferido**: os itens
+das ondas 4 e 5 (`jm-plano`, `Configurar`, `Exportar`, `JmPainelSkeleton`, `Origem do número`,
+`Escopo`, `Editar meta`) existem **tanto no espelho quanto no vivo** — logo a defasagem **não**
+invalida nenhuma onda já desenhada. Ela invalida a *narrativa*, não o *backlog*.
+
+### O que fica pendente aqui
+
+Ressincronizar o espelho é **Onda S** (abaixo) e **não** foi feita nesta sessão. Motivo, medido:
+`jana-merge.jsx` tem JSON persistido em disco e é exportável, mas `jana-merge.css` e
+`chat-jana.jsx` voltaram **inline no contexto** do agente — e escrever de lá é a transcrição que
+a lápide de 2026-08-11 proíbe (foi ela que produziu o `STALE` daquele dia). Exportar **só** o
+`.jsx` seria pior que não exportar: o `.jsx` novo usa classes (`jm-hist-busca`, `jm-props`,
+`jm-meta-apurando`, `jm-rel-n`, `jm-hist-sec`) que o `.css` do espelho **não tem** — medido,
+0 ocorrências das 5. Render quebrado com cara de atualizado.
+
+---
+
+## 7.6 · TESTE DE PARIDADE RODADO — o primeiro `design-diff` medido desta área
+
+> Autorizado por [W] em 2026-08-18: *"pode fazer no modo autonomo e testar a paridade.
+> permitido 2% de desvio"*. Este é o primeiro `--compare` medido da área Jana — o cabeçalho
+> deste documento registrava, até aqui, que *"nenhum dos dois rodou"*. **Um dos dois rodou.**
+
+**Método** — o dono do tema (`prototipo-ui/design-diff.mjs`), com a **mesma sonda** injetada nos
+dois lados, nunca no olho:
+
+| lado | onde | como |
+|---|---|---|
+| produção | `https://oimpresso.com/ia` · **`biz=1`** (R6: nunca `biz=4`) | Chrome autenticado |
+| design | `localhost:5576/oimpresso.com.html` · `.jc-page` | preview do espelho, DS carregado, 0 falhas 4xx |
+
+Ambos em **tema `dark`** (`sameTheme: true`) — comparar temas diferentes mediria o lado errado.
+
+### Resultado bruto (`--check` → **exit 1**)
+
+```
+✓ [D2] layout: prod=ok · design=ok → IGUAL
+✗ [D4] título font-size: prod=22px · design=19px → DIVERGE (bug) (Δ 3px · banda tituloPx ±1px)
+✓ [D6] cor: prod=ok · design=ok → IGUAL
+✗ [D8] kpi.tag: prod=BUTTON · design=DIV → DIVERGE (bug)
+```
+
+### Os 2% aplicados — e onde a régua percentual NÃO se aplica
+
+| eixo | prod | design | Δ | dentro de 2%? |
+|---|---|---|---|---|
+| D2 · contagem de KPI | 4 | 4 | **0%** | ✅ |
+| D2 · overflow-x | `false` | `false` | — | ✅ |
+| D6 · `bg` do accent | `oklch(0.7 0.15 295)` | `oklch(0.7 0.15 295)` | **0%** — string idêntica | ✅ |
+| D4 · título | 22px | 19px | **13,6%** | ❌ |
+| — · valor do KPI | 24px | 22px | **8,3%** | ❌ |
+| D8 · tag do KPI | `BUTTON` | `DIV` | **categórico** | ⚠️ não admite % |
+
+⚠️ **Duas ressalvas de método, para não vender o número por mais do que ele é.** (a) O
+`valueFontPx` **não** é medido pelo `design-diff` — ele saiu do snapshot bruto; está aqui como
+medição minha, não como veredito do gate. (b) **Não existe "paridade = N%"** e ela não será
+calculada: agregar `IGUAL` com `DIVERGE` de direções opostas numa nota única é exatamente o que
+a lápide de 2026-07-17 proíbe. Os eixos ficam **separados, com a direção de cada um**.
+
+### A direção das 2 divergências — e ela decide se há trabalho
+
+Um `DIVERGE` diz que os lados diferem; **não** diz quem está errado. Medida a direção, **nenhuma
+das duas é trabalho de "aplicar o protótipo"**:
+
+| divergência | por quê | veredito |
+|---|---|---|
+| título **22px** (prod) × **19px** (design) | prod usa `JanaAreaHeader` → **`PageHeader` canon** (`text-[22px]`, ADR 0189 v3.2). O protótipo usa o header **próprio do mockup** (`.jc-header`), que nunca foi o shell do sistema | **prod está no canon.** Aplicar 19px seria **regressão** contra a ADR |
+| valor do KPI **24px** × **22px** | prod usa `Components/shared/KpiCard` — o KPI canônico do DS, compartilhado com as outras telas | idem — o protótipo tem tipografia própria |
+| KPI `BUTTON` × `DIV` | prod tornou o **card inteiro** clicável (drill-down, charter v10 §Goals). O protótipo mantém `DIV` com um botão interno *"Ver origem de X"* | **prod está À FRENTE** — alvo de clique maior e semântica de botão correta |
+
+**Conclusão do teste:** dos 4 eixos que o comparador cobre, **2 batem exatamente** (layout e cor
+do accent — este último com string idêntica, `Δ 0%`, bem dentro dos 2%) e **2 divergem por
+produção estar no canon do DS ou à frente**. O teste **não produziu nenhum item de backlog**.
+Ele confirma, por medição independente, o que o §7.5 concluiu por leitura de código.
+
+### Cobertura honesta deste teste
+
+O `design-diff` cobre **D2 · D4 · D6 · D8** — computed-style puro. Ele **não** cobre D1
+(comportamento/rede), D3 (ícones), D5 (footer) nem D7 (densidade), que seguem no protocolo
+manual, e **não** mede os itens do §6 (selo de plano, Exportar, drawer) — aqueles são de
+**presença**, não de estilo, e o dono deles é o `contrato-de-tela --contract`. Rodado no mesmo
+dia, esse outro gate deu **5/5 seções OK, exit 0** — mas o §7.2 já explica por que esse verde não
+é paridade: o contrato declara 5 seções e **nenhuma** é header, actions ou drawer.
+
+**Sobre a defasagem do §7.5 contaminar este teste:** os eixos medidos (header, KPI, accent) vivem
+em `chat-jana.jsx`/`.css`, e a leva que o espelho perdeu (`JmPropostas`, `JmThreadItem`, busca,
+categorias) é de **Conversa e Memória**. Logo o Painel medido aqui é o mesmo nos dois. ⚠️ Dito
+isso, `chat-jana.jsx` **não foi medido** contra o vivo nesta sessão — fica **`UNCHECKED`**, não
+`SYNC`.
+
+---
+
 ### Onde isto se encaixa no canon
 
 É uma instância da lápide de **2026-08-11** (*"o manifesto é CEGO pro que nunca desceu — LIVE-ONLY"*): o `--compare` prova que o que **está** no espelho acompanha o vivo, nunca que o espelho **cobre** o vivo. Este caso é a prova concreta da classe.
 
 O conserto **estende o dono** (`cowork-mirror-freshness`, que já é o dono do papel "baixar fonte com fidelidade de byte" via `--export-from`) — não nasce script novo. O predicado é determinístico (o arquivo existe ou não), então não há FP a medir; o que falta é decidir se a lista de alvos vem do parse (barato, incompleto) ou de uma sonda de runtime (completa, exige abrir o protótipo).
+
+---
+
+## 7.7 · ADENDO 2026-08-21 — o §7.6 concluiu "nenhum item de backlog"; a re-medição produziu UM (e não é o título de 22px)
+
+> **Não corrige o §7.6 — ANEXA.** O que está acima segue verdadeiro na data em que foi medido
+> (2026-08-18) e nos eixos que o `design-diff` cobre. Este adendo registra o que uma sonda
+> mais funda achou no MESMO eixo D6 (cor), que o §7.6 deu como `IGUAL` porque a banda absorveu.
+
+### O que NÃO mudou (e fecha o assunto do título)
+
+O eixo **D4 (título 22px × 19px)** segue exatamente como o §7.6 julgou — **não é item de
+backlog**. Re-medido em runtime nesta data (`/ia`, `biz=1`, dark, `getComputedStyle`):
+`fontSize: 22px` · `fontWeight: 700`, que é o canon.
+
+Duas confirmações que o §7.6 não tinha:
+
+1. **O protótipo comparado é âncora BANIDA.** O lado "design" do `--compare` é o
+   `.jc-header` de `prototipo-ui/cowork/chat-jana.jsx:220` (+ `chat-jana.css:24`) — e a
+   lápide **§5 2026-08-10** (com a emenda de **08-11**) proíbe `chat-jana.jsx` como âncora
+   de design de qualquer tela da Jana. Os 3px são contra uma régua que o canon já rejeitou.
+2. **A âncora citada no §7.6 está errada** (ponteiro podre, decisão válida). Aquela linha
+   credita o 22px a *"`text-[22px]`, ADR 0189 v3.2"*. Medido com controle positivo — a ADR
+   0189 tem 10.588 bytes, o grep casa 7× em `PageHeader` e **0×** em `22px`, `font-size` e
+   `v3.2`. O dono real do 22px é
+   [`PageHeader-LEARNINGS.md` §"Decisão canon #3"](../_DesignSystem/templates/PageHeader-LEARNINGS.md),
+   onde [W] mediu `/sells` via browser MCP e decidiu 22/700 (PR #1477).
+
+### O item que apareceu — a cor do título, e a direção é OUTRA
+
+O §7.6 leu a matiz como *prod × protótipo*. A sonda de runtime mostra que é **prod contra si
+mesma** — dois sistemas de token vivendo na mesma tela:
+
+| o que | valor medido (`/ia`, dark) | via |
+|---|---|---|
+| `h1` do PageHeader | `oklch(0.965 0.004 **240**)` — branco FRIO | `text-foreground` (shadcn) |
+| `--text` do cockpit | `oklch(0.94 0.005 **90**)` — branco WARM | `.cockpit[data-theme="dark"]` |
+| `--bg` · `--border` · `--surface` | hue **240** | idem |
+
+Alcance na mesma tela, contado por `getComputedStyle` sobre os elementos visíveis:
+**706** com cor em `oklch` — **339 em hue 90** (warm) × **284 em hue 240** (frio) × 16 em 295
+(o roxo primary da ADR 0190, correto).
+
+Corolário que inverte a leitura do §7.6: o `oklch(0.94 0.005 90)` que aparece lá como "o valor
+do design" **é o token que roda em produção**. O protótipo estava alinhado com um dos dois
+sistemas; quem destoava era o `h1`.
+
+### O conserto aplicado — e o que ele deliberadamente NÃO decide
+
+`PageHeader.tsx` passa a pedir `color: var(--text, var(--foreground))`. O título era o **único**
+ponto do header preso ao shadcn (a borda já usava `var(--border)` desde o *dark-aware* da v3.4).
+
+- **Não escolhe cor.** Consome o token gerado (`resources/css/tokens/_generated-cockpit-dark.css`,
+  saída do build DTCG). Retunar o valor segue sendo decisão do DS.
+- **O fallback é obrigatório, não estética.** `PageHeader` também renderiza em **portal** —
+  `ServiceOrderItemFormSheet.tsx` monta um Sheet Radix no `<body>`, fora do `.cockpit`, onde
+  `--text` não existe. É a lápide **§5 2026-07-10**, verificada antes de mexer (varredura das
+  36 telas que importam `Components/PageHeader`: 3 fora do `AppShellV2`, das quais 1 é portal
+  real, 1 é componente-filho e 1 é `.casos.md`).
+
+### O que fica ABERTO (medido, não concluído)
+
+A [ADR UI-0020](../_DesignSystem/adr/ui/0020-dark-warm-ds-v6-tokens.md) — `accepted` em
+2026-07-07, [W] *"autorizo tudo"*, **sem supersede** — manda o dark warm em **hue 282**
+(`text 0.965 0.004 282`, `bg 0.165 0.008 282`) e nomeia explicitamente o drift *"hue 240 vs
+282"*. Em produção **nenhum dos dois grupos está em 282**: o cockpit gera 90 e o shadcn 240.
+
+⚠️ **Isto é medição de UMA tela, não veredito de DS.** O delta está provado; a *causa* não —
+build DTCG defasado × decisão posterior não registrada × duas fontes por desenho são hipóteses
+concorrentes, e separá-las exige varredura contada dos consumidores do token (§5 2026-07-15).
+Registrado aqui como achado, **não** como item fechado.
 
 ---
 
@@ -205,15 +460,44 @@ O conserto **estende o dono** (`cowork-mirror-freshness`, que já é o dono do p
 |---|---|---|---|
 | **0** | RUNBOOK do Pro + declarações + fix do "Voltar ao chat" + UC-PRO-07 + `Jana/Pro` no visreg + baseline + smoke | sim | **[#5891](https://github.com/wagnerra23/oimpresso.com/pull/5891)** — aguarda merge + F1.5 |
 | **3** | breadcrumb morto removido (Index, Memoria) + separador do Chat | **não** | **[#5907](https://github.com/wagnerra23/oimpresso.com/pull/5907)** |
-| **E** | **descer os 10 arquivos do DS pro espelho** (§7.4) — sem eles o protótipo local é degradado e toda leitura visual dele é suspeita | não | proposta — **primeira** |
+| **E** | **descer os 10 arquivos do DS pro espelho** (§7.4) — sem eles o protótipo local é degradado e toda leitura visual dele é suspeita | não | ✅ **FECHADA 2026-08-18** — [#5915](https://github.com/wagnerra23/oimpresso.com/pull/5915) + `--preview-ds`; `DS_carregado: true`, 0 falhas 4xx (ver errata §7.4) |
+| **S** | **ressincronizar o espelho com o Cowork vivo** (§7.5) — `jana-merge.jsx` 943 → 1.117 ln. **Bloqueada por transporte**, não por trabalho: o `.css` e o `chat-jana.jsx` voltam inline do `get_file` e transcrever é proibido | não | proposta — **primeira** |
 | **P** | **ligar `--omission` no CI** — a catraca que pega omissão sem declarar item a item | não | proposta |
-| **1** | Pro entra no `PageHeader` canon (sem `subnav`, preserva modo FOCO) | sim → F1.5 | proposta |
-| **2** | `janaContext` no Chat e na Memória (empresa + `biz=` no header) | sim → F1.5 | proposta |
-| **4** | selo de plano + Configurar + Exportar + skeleton nas 3 telas | sim → F1.5 | proposta |
-| **5** | drawer de metas: Origem do número · Escopo · Editar meta · Falar com a Jana | sim → F1.5 | proposta |
+| **T** | **primeiro `design-diff` medido** (§7.6) — D2/D6 batem, D4/D8 divergem **a favor da produção** | não | ✅ **RODADO 2026-08-18** — 0 itens de backlog gerados |
+| **1** | Pro entra no `PageHeader` canon (sem `subnav`, preserva modo FOCO) | sim → F1.5 | ✅ **FEITA 2026-08-18** — a tag `UPGRADE` foi pro `leading` (slot que já existia); o `titleBadge` novo saiu por PREÇO, não por mérito — tocar o canon escalava o visreg pra 37 telas, 29 sem baseline. F1.5 aprovado por [W]; baseline da `Jana/Pro` atualizada no PR [#5918](https://github.com/wagnerra23/oimpresso.com/pull/5918). Smoke pós-merge pendente |
+| **2** | `janaContext` no Chat e na Memória (empresa + `biz=` no header) | sim → F1.5 | ✅ **FEITA 2026-08-18** — o header já aceitava as props; faltava o controller mandar. [#5919](https://github.com/wagnerra23/oimpresso.com/pull/5919) **mergeado**. Smoke pós-merge pendente |
+| **4** | selo de plano + Configurar + Exportar + skeleton nas 3 telas | sim → F1.5 | 🟡 **PARCIAL 2026-08-18** — **Configurar** entregue nas 3; **selo de plano BLOQUEADO** (sem fonte de dado — ver §8.1); **Exportar** virou US própria (decisão [W]); **skeleton** só onde há `defer` (§8.1). [#5922](https://github.com/wagnerra23/oimpresso.com/pull/5922) **mergeado** |
+| **5** | drawer de metas: Origem do número · Escopo · ~~Editar meta~~ · ~~Falar com a Jana~~ + **Projeção** | sim → F1.5 | ✅ **FEITA 2026-08-18** — 2 dos 4 itens originais já existiam com outro rótulo (errata §6); entrou Projeção, que o servidor mandava sem consumidor. [#5923](https://github.com/wagnerra23/oimpresso.com/pull/5923) **mergeado** |
 | **6** | Dashboard × Painel (título, breadcrumb, componente exportado) | sim → F1.5 | decisão [W] |
 | **7** | as 4 telas Blade da área — uma onda por tela, F1 (RUNBOOK) antes de qualquer `.tsx` | sim | proposta |
 
-**Ordem sugerida:** `E` primeiro (sem o DS, comparar é medir o lado errado), depois `P`. Ligada a catraca de omissão, as ondas 1/2/4/5 param de depender de alguém lembrar do que faltou — o gate passa a dizer.
+### 8.1 · O que a onda 4 NÃO entregou, e por quê (medido)
+
+**Selo de plano — BLOQUEADO por ausência de fonte, não por trabalho.** O protótipo mostra
+`plano Pro` / `Jana Grátis` no header. Em produção **não existe de onde ler isso**: o billing é
+Sprint JANA-B ([ADR 0140](../../decisions/0140-jana-pro-produto-comercial-saas.md)), o
+`JanaProController` se declara *"Sprint A foundation"* e só expõe `preview`, e não há coluna nem
+tabela de plano — `rg` por `jana_pro|plano_pro|isPro` no `Modules/` e `app/` não devolve nenhuma
+fonte de estado. O próprio `useJanaConfig.ts` **já documentava** a mesma conclusão por outro
+caminho: o protótipo grava `pro` no `localStorage` e o hook recusa, *"porque o servidor não as
+honra"*. No protótipo o selo é `cfg.pro`, um **toggle de simulação** — a legenda do
+`JmConfigDrawer` diz literalmente *"aqui o Pro é simulação pra ver o gating"*.
+
+Pintar `plano Pro` no header seria afirmar um estado que o sistema não sabe. Fica para quando o
+JANA-B existir — aí o selo é consequência, não enfeite.
+
+**Skeleton — só onde há `defer`.** `ChatController` tem 3 `Inertia::defer`; `MemoriaController`
+tem **0**. Skeleton numa tela que renderiza tudo no primeiro paint é animação sem espera. Entra
+no Chat quando alguém medir qual dos 3 defers o usuário percebe; na Memória, não entra.
+
+**Exportar — US própria.** Decisão [W] nesta sessão. Hoje é placeholder
+(`title="Exportar relatório (em breve)"`, sem handler). As três saídas do protótipo — Painel em
+PDF · Metas em CSV · Fatos da memória (LGPD) — são feature com backend e, no caso dos fatos,
+superfície LGPD. Junto com a paridade de UI, a onda estouraria as 300 linhas do
+`commit-discipline`.
+
+---
+
+**Ordem sugerida (revista em 2026-08-18):** `E` está **feita**. Agora `S` primeiro — enquanto o espelho estiver 174 linhas atrás do vivo, toda comparação nova mede uma fonte velha —, depois `P`. Ligada a catraca de omissão, as ondas 1/2/4/5 param de depender de alguém lembrar do que faltou — o gate passa a dizer.
 
 **Bloqueadas por decisão [W], não por trabalho:** os preços do paywall (restaurar × remover a frase) e o rastro da edição na Memória (DTO da Camada C × prop irmã — ver errata no `Memoria-visual-comparison.md`).

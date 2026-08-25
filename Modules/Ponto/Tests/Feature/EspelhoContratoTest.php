@@ -14,14 +14,14 @@ use Modules\Ponto\Entities\Marcacao;
  *
  * Cada teste cita o UC do `casos.md` da tela (G-2 do casos-gate, ADR 0264):
  *   Espelho/Index.casos.md → UC-ESPIDX-01..03
- *   Espelho/Show.casos.md  → UC-ESPSHOW-01..05
+ *   Espelho/Show.casos.md  → UC-ESPSH-01..05
  *
  * Os UC derivam do SDD §6.1 (CU-PONTO-01..04) + CU-PONTO-12/13, ancorados em
  * LEI (CLT Art. 66/71/74 §2º · Portaria MTP 671/2021) e na Blade legada
  * `Modules/Ponto/Resources/views/espelho/*.blade.php` — NUNCA no `Show.tsx`
  * (teste derivado do código é tautológico — proibicoes §5 2026-06-05).
  *
- * ⚠️ UC-ESPSHOW-01 é FAILING-FIRST por desenho: ele denuncia a regressão D-1 do
+ * ⚠️ UC-ESPSH-01 é FAILING-FIRST por desenho: ele denuncia a regressão D-1 do
  * SDD §9 (o espelho lê `tem_divergencia`, atributo que NÃO existe — varredura
  * contada: 2 ocorrências no repo, ambas no EspelhoController; não é coluna, não é
  * accessor). Vermelho aqui é o ACHADO, não bug do teste. Correção é decisão [W].
@@ -119,7 +119,7 @@ class EspelhoContratoTest extends PontoTestCase
     // =====================================================================
 
     /**
-     * UC-ESPSHOW-01 · Dia com divergência de apuração aparece sinalizado. [must][V0]
+     * UC-ESPSH-01 · Dia com divergência de apuração aparece sinalizado. [must][V0]
      *
      * Contrato: CU-PONTO-02 (SDD §6.1) + US-PONTO-005 (aceitação cita Art. 66 e
      * Art. 71 §4º) + Blade legada, que contava por `estado === 'DIVERGENCIA'`.
@@ -185,7 +185,7 @@ class EspelhoContratoTest extends PontoTestCase
     }
 
     /**
-     * UC-ESPSHOW-02 · Espelho cobre todos os dias do mês, não só os com marcação. [must]
+     * UC-ESPSH-02 · Espelho cobre todos os dias do mês, não só os com marcação. [must]
      *
      * Contrato: CU-PONTO-01 + charter §Goals ("todos os dias do mês") + Blade legada.
      */
@@ -221,7 +221,7 @@ class EspelhoContratoTest extends PontoTestCase
     }
 
     /**
-     * UC-ESPSHOW-03 · Marcação anulada não conta como jornada. [must]
+     * UC-ESPSH-03 · Marcação anulada não conta como jornada. [must]
      *
      * Contrato: CU-PONTO-13 + US-PONTO-008 ("para corrigir: criar marcação com
      * origem=ANULACAO") + Portaria MTP 671/2021 (append-only).
@@ -286,7 +286,7 @@ class EspelhoContratoTest extends PontoTestCase
     }
 
     /**
-     * UC-ESPSHOW-04 · Espelho de colaborador de outro empregador → 404. [must][T0]
+     * UC-ESPSH-04 · Espelho de colaborador de outro empregador → 404. [must][T0]
      *
      * Contrato: CU-PONTO-12 + US-PONTO-007 + ADR 0093 + LGPD Art. 7º II.
      * biz=1 contra id fora do tenant — NUNCA biz=4 (ADR 0101).
@@ -321,7 +321,7 @@ class EspelhoContratoTest extends PontoTestCase
     }
 
     /**
-     * UC-ESPSHOW-05 · Totais e linhas chegam sob demanda, sem quebrar o contrato. [should]
+     * UC-ESPSH-05 · Totais e linhas chegam sob demanda, sem quebrar o contrato. [should]
      *
      * Contrato: CU-PONTO-01 + charter §Automation hooks (Inertia::defer em totais/linhas)
      * + RUNBOOK-inertia-defer-pattern.

@@ -111,14 +111,29 @@ jobs:
           php artisan key:generate
 
       - name: ui:lint ratchet (falha só em regressão vs baseline)
+        id: analise
         run: |
           php artisan ui:lint \
             --path=resources/js \
             --baseline=config/ui-lint-baseline.json \
             --strict
 
+      - name: O gate NÃO mediu (falha antes da análise)
+        if: failure() && steps.analise.outcome != 'failure'
+        run: |
+          echo ""
+          echo "⚠️  ui:lint NÃO RODOU — o job caiu ANTES da análise (setup, dependência, rede)."
+          echo "   Isto NÃO é regressão do seu PR, e o baseline NÃO deve ser regenerado."
+          echo "   Ache o passo vermelho acima; se for host de terceiro (503/timeout), re-rode."
+
+      # `if: failure()` sozinho dispara com QUALQUER passo anterior falhando — inclusive
+      # `composer install`/`npm ci`. Em 2026-08-20 um 503 de host VCS de terceiro derrubou o
+      # `composer install` e este bloco anunciou "detectou REGRESSAO vs baseline", mandando o
+      # autor refatorar o PR ou REGENERAR O BASELINE. Regenerar por regressao fantasma aceita
+      # divida real em silencio. E a classe do §5 2026-07-29: colapsar "nao consegui medir"
+      # num estado do objeto medido.
       - name: Diagnóstico em caso de falha
-        if: failure()
+        if: failure() && steps.analise.outcome == 'failure'
         run: |
           echo ""
           echo "❌ ui:lint detectou REGRESSÃO vs config/ui-lint-baseline.json"

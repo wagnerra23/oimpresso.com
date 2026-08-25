@@ -7,7 +7,7 @@ owners: [W]
 last_updated: "2026-07-03"
 anchor_format: "v1"
 us_count: 22
-us_list: [US-CRM-063, US-CRM-064, US-CRM-065, US-CRM-066, US-CRM-067, US-CRM-068, US-CRM-069, US-CRM-070, US-CRM-071, US-CRM-072, US-CRM-073, US-CRM-074, US-CRM-075, US-CRM-076, US-CRM-078, US-CRM-079, US-CRM-080, US-CRM-081, US-CRM-082, US-CRM-083, US-CRM-084, US-CRM-085]
+us_list: [US-CRM-063, US-CRM-064, US-CRM-065, US-CRM-066, US-CRM-067, US-CRM-068, US-CRM-069, US-CRM-070, US-CRM-071, US-CRM-072, US-CRM-073, US-CRM-074, US-CRM-075, US-CRM-076, US-CRM-078, US-CRM-079, US-CRM-080, US-CRM-081, US-CRM-082, US-CRM-083, US-CRM-084, US-CRM-085, US-CRM-091]
 related_adrs: [0093-multi-tenant-isolation-tier-0, 0104-processo-mwart-canonico-unico-caminho, 0107-emendation-0104-visual-comparison-gate-f3, 0110-cockpit-pattern-v2-canon-list-detail, 0114-prototipo-ui-cowork-loop-formalizado, 0149-mwart-screen-pattern-reuse-cowork, 0179-cliente-drawer-760px-substitui-show-fullpage, 0273-anchor-spec-codigo-formato-canonico-fluxo-novo, 0301-separar-cliente-deprecar-crm-pipeline, 0303-anchor-lint-wired-testado-sa-a2-bis]
 ---
 
@@ -287,6 +287,16 @@ Obrigação LGPD Art. 18 §VI + lane de mercado vazia (erasure fiscal-aware — 
 
 **Implementado em:** _pendente_ — backlog Capterra (G-06), a criar
 **DoD:** export do registro completo (cadastro + endereços + transações + documentos + consentimento) CSV/JSON, scoped `business_id`, com permissão + log de auditoria. Par natural do G-01 (US-CRM-079). Hoje portabilidade = só PDF do extrato.
+
+### US-CRM-091 — Mapa de clientes: trocar o iframe hardcoded por provedor tokenizado
+> status: todo · **Prioridade:** P2 · **Estimate:** 3h
+
+**Implementado em:** _pendente_ — destrava a Onda 3 da paridade, a criar
+**DoD:** `Cliente/Map.tsx` renderiza o mapa **sem URL de provedor hardcoded** no `.tsx`; a fonte é o protótipo `prototipo-ui/cowork/cliente-mapa.jsx`, que usa **OpenStreetMap embed sem chave de API** (hoje é `maps.google.com/maps?q=…&output=embed` cravado na linha 146). Não muda o dado: a coordenada segue vindo do campo `position` (`"lat,lng"`). Fecha o gap nomeado no scorecard e destrava o `related_prototype` do charter.
+
+> **Sinal (ADR 0105), declarado:** não é pedido de cliente — é **métrica**. O scorecard [`cliente-map.yaml`](../../governance/scorecards/screens/cliente-map.yaml) (medido 2026-07-05) dá ao Map a **menor nota das 7 telas** (72), o menor `a11y_wcag` do módulo (64) e `preflight_conformance` 66 (empatado com Create/Edit no piso), com o gap escrito: *"Trocar iframe maps.google.com hardcoded (e gradiente stone cru do fundo) por componente de mapa tokenizado"*.
+>
+> O item estava **segurado** pela ADR 0105 desde 2026-07-03 (§ changelog: *"Segurados ⏸️ ADR 0105: … Map lib …"*). **[W] destravou explicitamente em 2026-08-18.** O que mudou desde então é que o **desenho deixou de ser incógnita**: o protótipo de 13/ago já resolve a questão, então o custo caiu de "escolher e integrar uma lib de mapa" para "trocar a URL do embed". Registrado assim para que a exceção seja auditável — a 0105 continua valendo para os outros itens segurados (RFM, campos custom, merge dup, header DS).
 
 ## §4 — Não-objetivos
 

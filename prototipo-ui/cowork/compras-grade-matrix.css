@@ -1,0 +1,77 @@
+/* compras-grade-matrix.css — Grade Matrix (tam × cor) para entrada de compra vestuário.
+   Portado de prototipo-ui/prototipos/compras-grade-matrix/page.css @main.
+   Paleta bespoke (--gmi-*) do original TROCADA por tokens .cockpit do DS vivo (sem cor crua). */
+.gmi-root{display:flex;flex-direction:column;gap:14px;padding:20px 24px 28px}
+.gmi-card{background:var(--surface);border:1px solid var(--border);border-radius:12px}
+
+/* LINHA 1 — modelo + custo + ações */
+.gmi-row{padding:14px 16px;display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap}
+.gmi-fld{display:flex;flex-direction:column;gap:4px}
+.gmi-fld label{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-mute);font-weight:600}
+.gmi-fld small{font-size:10.5px;color:var(--text-mute);margin-top:2px}
+.gmi-fld-model{flex:1;min-width:340px}
+.gmi-fld-cost{width:170px}
+.gmi-fld select,.gmi-fld input{border:1px solid var(--border);background:var(--bg-2);padding:7px 10px;border-radius:6px;font:inherit;font-size:12.5px;color:var(--text);outline:none}
+.gmi-fld select:focus,.gmi-fld input:focus{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px color-mix(in oklch,var(--accent) 22%,transparent)}
+.gmi-sp{flex:1}
+.gmi-btn{padding:7px 14px;border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:6px;cursor:pointer;font:inherit;font-size:12px;font-weight:500}
+.gmi-btn:hover:not(:disabled){border-color:var(--text-mute);color:var(--text)}
+.gmi-btn:disabled{opacity:.4;cursor:not-allowed}
+.gmi-btn-primary{padding:7px 14px;background:var(--accent);color:var(--accent-fg);border:1px solid var(--accent);border-radius:6px;cursor:pointer;font:inherit;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:8px}
+.gmi-btn-primary:hover:not(:disabled){background:color-mix(in oklch,var(--accent) 88%,black)}
+.gmi-btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.gmi-btn-primary .gmi-badge{background:color-mix(in oklch,var(--accent-fg) 14%,transparent);padding:1px 7px;border-radius:99px;font-size:10.5px;font-family:var(--mono,'IBM Plex Mono',monospace);font-variant-numeric:tabular-nums}
+
+/* GRADE */
+.gmi-grid-wrap{overflow:auto;padding:16px}
+.gmi-grid{border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.gmi-grid th,.gmi-grid td{border:1px solid var(--border);padding:0;text-align:center;vertical-align:middle}
+.gmi-grid .gmi-corner{background:var(--bg-2);padding:8px 12px;text-align:left;min-width:118px}
+.gmi-grid .gmi-corner small{display:block;font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.06em}
+.gmi-grid .gmi-corner span{font-size:10.5px;color:var(--text-dim)}
+.gmi-grid .gmi-colhead{background:var(--bg-2);padding:8px 10px;font-size:11.5px;color:var(--text);font-weight:600;min-width:76px;cursor:pointer}
+.gmi-grid .gmi-colhead:hover{background:color-mix(in oklch,var(--accent) 8%,var(--bg-2))}
+.gmi-grid .gmi-swatch{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;border:1px solid var(--border);vertical-align:middle}
+.gmi-grid .gmi-colhead small{display:block;margin-top:3px;font-size:10px;color:var(--text-mute);font-family:var(--mono,'IBM Plex Mono',monospace);font-variant-numeric:tabular-nums}
+.gmi-grid .gmi-rowhead{background:var(--bg-2);padding:0 14px;font-size:12.5px;color:var(--text);font-weight:600;min-width:58px}
+.gmi-grid .gmi-cell{min-width:76px;height:38px;background:var(--surface);transition:background .15s}
+.gmi-grid .gmi-cell.has-val{background:color-mix(in oklch,var(--pos,oklch(.62 .13 150)) 10%,var(--surface))}
+.gmi-grid .gmi-cell input{width:100%;height:100%;border:none;background:transparent;text-align:center;font-family:var(--mono,'IBM Plex Mono',monospace);font-variant-numeric:tabular-nums;font-size:13.5px;color:var(--text);outline:none;padding:0 6px}
+.gmi-grid .gmi-cell input::placeholder{color:var(--text-mute);opacity:.4}
+.gmi-grid .gmi-cell input:focus{background:color-mix(in oklch,var(--accent) 10%,transparent);box-shadow:inset 0 0 0 2px var(--accent)}
+.gmi-grid .gmi-cell.has-val input{color:var(--pos,oklch(.55 .13 150));font-weight:600}
+.gmi-grid .gmi-rowtotal-head{background:var(--bg-2);padding:8px 10px;font-size:10.5px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.06em;min-width:72px}
+.gmi-grid .gmi-rowtotal{background:var(--bg-2);padding:0 14px;font-family:var(--mono,'IBM Plex Mono',monospace);font-variant-numeric:tabular-nums;font-size:13px;color:var(--text-dim);font-weight:600}
+.gmi-grid .gmi-totals-row{border-top:2px solid var(--border)}
+.gmi-grid .gmi-coltotal{background:var(--bg-2);padding:10px;font-family:var(--mono,'IBM Plex Mono',monospace);font-variant-numeric:tabular-nums;font-size:13px;color:var(--text-dim);font-weight:600}
+.gmi-grid .gmi-grand{background:var(--accent);color:var(--accent-fg);padding:10px 12px;font-family:var(--mono,'IBM Plex Mono',monospace);font-variant-numeric:tabular-nums}
+.gmi-grid .gmi-grand b{display:block;font-size:16px;font-weight:700}
+.gmi-grid .gmi-grand small{display:block;font-size:10.5px;opacity:.85;margin-top:2px}
+
+/* item simples (sem grade) */
+.gmi-single{padding:40px 20px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.gmi-single label{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-mute);font-weight:600}
+.gmi-single input{border:1px solid var(--border);background:var(--bg-2);padding:10px 14px;border-radius:6px;font-size:22px;font-family:var(--mono,'IBM Plex Mono',monospace);font-variant-numeric:tabular-nums;width:200px;text-align:center;color:var(--text);outline:none}
+.gmi-single input:focus{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px color-mix(in oklch,var(--accent) 22%,transparent)}
+.gmi-single small{font-size:11.5px;color:var(--text-mute)}
+
+/* rodapé de atalhos */
+.gmi-ft{padding:10px 16px;display:flex;gap:14px;align-items:center;font-size:11px;color:var(--text-mute);flex-wrap:wrap}
+.gmi-ft .gmi-kb{display:inline-flex;align-items:center;gap:5px}
+.gmi-ft kbd{font-family:var(--mono,'IBM Plex Mono',monospace);font-size:10px;background:var(--bg-2);color:var(--text-dim);padding:1px 6px;border-radius:4px;border:1px solid var(--border)}
+.gmi-ft .gmi-batch{font-size:11.5px;color:var(--pos,oklch(.55 .13 150));font-weight:600}
+.gmi-lines{padding:12px 16px;border-top:1px solid var(--border)}
+.gmi-lines summary{cursor:pointer;color:var(--text-dim);font-weight:500;font-size:11.5px}
+.gmi-lines table{width:100%;border-collapse:collapse;margin-top:10px;font-size:11.5px}
+.gmi-lines th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-mute);padding:6px 8px;border-bottom:1px solid var(--border)}
+.gmi-lines td{padding:6px 8px;border-bottom:1px solid var(--border);color:var(--text-dim)}
+.gmi-lines td.num{text-align:right;font-family:var(--mono,'IBM Plex Mono',monospace);font-variant-numeric:tabular-nums}
+
+/* page header (canon Cockpit V2: título abaixo do header do shell) */
+.gmi-hd{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;padding:0 24px;margin-top:18px}
+.gmi-hd h1{margin:0;font-size:22px;font-weight:600;letter-spacing:-.01em;color:var(--text)}
+.gmi-hd .gmi-crumbs{font-size:10.5px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.06em;font-family:var(--mono,'IBM Plex Mono',monospace);margin-bottom:4px}
+.gmi-hd .gmi-stats{display:flex;gap:20px;margin-left:auto}
+.gmi-hd .gmi-stat{display:flex;flex-direction:column;gap:2px;text-align:right}
+.gmi-hd .gmi-stat small{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-mute)}
+.gmi-hd .gmi-stat b{font-family:var(--mono,'IBM Plex Mono',monospace);font-variant-numeric:tabular-nums;font-size:15px;font-weight:600;color:var(--text)}

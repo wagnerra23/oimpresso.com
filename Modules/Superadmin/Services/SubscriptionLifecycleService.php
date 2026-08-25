@@ -7,6 +7,7 @@ namespace Modules\Superadmin\Services;
 use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Modules\Superadmin\Entities\Subscription;
 
 /**
@@ -107,20 +108,53 @@ class SubscriptionLifecycleService
     }
 
     /**
+     * Categorias aceitas em `subscriptions.cancel_reason` (2026_08_19_000002).
+     *
+     * Espelha o enum da migration. Motivo fora desta lista cai em `outro` e o texto original
+     * é preservado em `cancel_note` — perder o que a pessoa escreveu é pior que categorizar
+     * errado, e é o que acontecia até aqui: o motivo só virava `reason_len` num span.
+     */
+    public const MOTIVOS_CANCELAMENTO = ['preco', 'sem_uso', 'trocou_sistema', 'fechou', 'inadimplencia', 'outro'];
+
+    /**
      * Cancela subscription (admin force; mantém audit + soft-delete).
      *
-     * @param  string  $reason  motivo (vai pra log via Spatie LogsActivity properties).
+     * @param  string  $reason  categoria (uma de MOTIVOS_CANCELAMENTO) ou texto livre.
+     *                          Texto que não bate com a lista vira `outro` + `cancel_note`.
+     * @param  string  $nota    observação livre, sempre preservada como escrita.
      */
-    public function cancel(Subscription $subscription, string $reason = ''): bool
+    public function cancel(Subscription $subscription, string $reason = '', string $nota = ''): bool
     {
-        return OtelHelper::spanBiz('superadmin.subscription.cancel', function () use ($subscription, $reason): bool {
+        return OtelHelper::spanBiz('superadmin.subscription.cancel', function () use ($subscription, $reason, $nota): bool {
             if (in_array($subscription->status, ['cancelled', 'expired'], true)) {
                 return false;
             }
 
-            return DB::transaction(function () use ($subscription, $reason) {
-                // Properties extra Spatie via activity()->withProperties() — fora do escopo Service.
+            return DB::transaction(function () use ($subscription, $reason, $nota) {
                 $subscription->status = 'cancelled';
+
+                // O motivo passa a ser PERSISTIDO (SA-O1b, decisão [W] 2026-08-19). Antes ele
+                // era recebido e descartado — o gráfico de motivos do F1 não tinha de onde sair.
+                // Guarda de coluna: a migration pode não ter rodado no ambiente (lane reduzida),
+                // e o cancelamento não pode falhar por causa da anotação.
+                if (Schema::hasColumn('subscriptions', 'cancel_reason')) {
+                    $categoria = in_array($reason, self::MOTIVOS_CANCELAMENTO, true) ? $reason : null;
+
+                    // Sem motivo declarado fica NULL, não `outro`: a regra R10 do F1 manda deixar
+                    // a saída sem motivo FORA do gráfico e dita em texto. Carimbar `outro` num
+                    // cancelamento silencioso inventaria um dado que ninguém informou.
+                    if ($categoria === null && $reason !== '') {
+                        $categoria = 'outro';
+                    }
+
+                    $subscription->cancel_reason = $categoria;
+
+                    // A nota preserva o texto original mesmo quando ele virou categoria — se
+                    // alguém mandar texto livre, ele não se perde na tradução.
+                    $livre = trim($nota !== '' ? $nota : ($categoria === 'outro' ? $reason : ''));
+                    $subscription->cancel_note = $livre !== '' ? $livre : null;
+                }
+
                 $subscription->save();
 
                 return true;

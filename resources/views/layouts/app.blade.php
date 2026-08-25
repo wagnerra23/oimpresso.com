@@ -53,7 +53,17 @@
             @include('layouts.partials.sidebar')
         @endif
 
-        @if (in_array($_SERVER['REMOTE_ADDR'], $whitelist))
+        {{-- Lê o SUPERGLOBAL, não o Request: fora de uma requisição HTTP real
+             (feature test, artisan, job que renderize esta layout) a chave não
+             existe e o `@if` estourava ErrorException → ViewException → 500.
+             Com a chave presente o resultado é idêntico ao de antes; sem ela,
+             "não é localhost" é justamente a resposta certa.
+             Medido em 2026-08-19 (run 32290877986): era o que fazia
+             /officeimpresso/licenca_computador e /officeimpresso/licenca_log
+             devolverem 500 em teste de feature. Pra reproduzir o estado
+             anterior, remova o `?? ''` e rode qualquer teste que dê
+             `$this->get()` numa tela Blade que estenda esta layout. --}}
+        @if (in_array($_SERVER['REMOTE_ADDR'] ?? '', $whitelist))
             <input type="hidden" id="__is_localhost" value="true">
         @endif
 

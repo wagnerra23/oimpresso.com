@@ -13,10 +13,27 @@ namespace Modules\Repair\Tests\Feature;
  * Tests biz=99 / pure assertion (ADR 0101 — NUNCA biz=4 ROTA LIVRE em test).
  */
 
+/**
+ * Raiz do módulo, derivada do PRÓPRIO arquivo.
+ *
+ * Este teste declara no docblock acima que roda "sem booting Laravel" — e era justamente
+ * isso que o `base_path()` quebrava: ele chama `app()->basePath()`, e sem o app bootado o
+ * `app()` devolve o Container puro, que não tem esse método. Sintoma em 2026-08-25:
+ * `Call to undefined method Illuminate\Container\Container::basePath()`, 3 testes em erro.
+ *
+ * A saída NÃO é `uses(Tests\TestCase::class)` (que os irmãos Auditoria/Connector usam):
+ * bootar o Laravel aqui contradiz a intenção declarada e troca um smoke rápido por um teste
+ * de integração. O arquivo vive em `Modules/Repair/Tests/Feature/`, então `dirname(__DIR__, 2)`
+ * é a raiz do módulo sem depender de nada do framework.
+ */
+if (! defined('MODULO_REPAIR')) {
+    define('MODULO_REPAIR', dirname(__DIR__, 2));
+}
+
 describe('Wave 18 Repair — D2 Code Quality FormRequests', function () {
 
     it('StartFsmActionRequest existe e tem rules', function () {
-        $path = base_path('Modules/Repair/Http/Requests/StartFsmActionRequest.php');
+        $path = MODULO_REPAIR . '/Http/Requests/StartFsmActionRequest.php';
         expect(file_exists($path))->toBeTrue();
 
         $class = 'Modules\\Repair\\Http\\Requests\\StartFsmActionRequest';
@@ -44,14 +61,14 @@ describe('Wave 18 Repair — D2 Code Quality FormRequests', function () {
 describe('Wave 18 Repair — D7 retention canonica', function () {
 
     it('Config/retention.php declara repair_job_sheets', function () {
-        $config = require base_path('Modules/Repair/Config/retention.php');
+        $config = require MODULO_REPAIR . '/Config/retention.php';
         expect($config)->toHaveKeys(['enabled', 'tabelas', 'strategy', 'notice_period_days']);
         expect($config['tabelas'])->toHaveKey('repair_job_sheets');
         expect($config['tabelas']['repair_job_sheets'])->toBeGreaterThanOrEqual(1825);
     });
 
     it('default enabled=false (gate manual ADR 0105)', function () {
-        $config = require base_path('Modules/Repair/Config/retention.php');
+        $config = require MODULO_REPAIR . '/Config/retention.php';
         expect($config['enabled'])->toBeFalse();
     });
 

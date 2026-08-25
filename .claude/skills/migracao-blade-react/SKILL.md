@@ -1,13 +1,23 @@
 ---
 name: migracao-blade-react
-description: ATIVAR quando user pedir "migrar tela X", "migrar Blade pra React", "migração massiva", "/migracao-blade-react <modulo>/<tela>", OU em Edit/Write em `resources/views/**/*.blade.php` que ainda tem rota ativa apontando pra ela. Skill ORQUESTRADORA do pipeline Cowork→Inertia preservando paridade Blade legacy. Carrega 6-step workflow (SNAPSHOT → TRADUÇÃO VISUAL → ADAPTAÇÃO CONTROLLER → GATE VISUAL → PEST + SMOKE → PR) + 5 templates de runbook por tipo (LIST/DETAIL/FORM/DASHBOARD/REPORT). Usa output do Claude Design plugin (`prototipo-ui/prototipos/<modulo>/`) como fonte visual canônica. Não substitui Controller (Tier 0 IRREVOGÁVEL ADR 0093). Chama skills existentes (`mwart-process`, `mwart-comparative`, `mwart-quality`, `cockpit-runbook`, `multi-tenant-patterns`, `module-completeness-audit`, `commit-discipline`) em sequência. Sequencial obrigatório (worktree filha mata subagents). Piloto: Crm/Compras (16 views Blade + Compras.html 38KB Cowork). ADR 0141.
+description: ATIVAR quando user pedir "migrar tela X", "migrar Blade pra React", "substituir o layout React pelo Claude Design", "planejar a migração visual em ondas", "migração massiva", "/migracao-blade-react <modulo>/<tela>", OU em Edit/Write em Blade com rota ativa. Porta única do pipeline Blade↔React↔Claude Design. Para programa multi-tela, dispara `.claude/workflows/migracao-layout-em-ondas.js`: plano mestre read-only → dossiê read-only de UMA onda → execução somente após dois aceites explícitos. A implementação continua pertencendo ao processo `aplicar-prototipo` + MWART; não substitui Controller nem regra de negócio (ADR 0093/0141/0277).
 tier: B
 status: active
-version: 0.1.0
+version: 0.2.0
 authority: canonical
 ---
 
 # Skill: migracao-blade-react — Orquestrador Cowork→Inertia (Tier B)
+
+> **Programa multi-tela (v0.2 · 2026-08-24):** use o workflow versionado
+> `.claude/workflows/migracao-layout-em-ondas.js`. Ele separa obrigatoriamente
+> `plano` → `dossie` → `executar`, exige duas aprovações estruturadas antes de escrever e encerra
+> após uma única onda. O pipeline histórico abaixo continua valendo para a mecânica de uma tela,
+> reconciliado pelas emendas posteriores do MWART e do `aplicar-prototipo`.
+
+```text
+Workflow({ scriptPath: ".claude/workflows/migracao-layout-em-ondas.js", args: { modo: "plano", escopo: "<módulo ou programa>" } })
+```
 
 > **Documento mãe:** [ADR 0141](../../memory/decisions/0141-skill-migracao-blade-react.md).
 > Esta skill orquestra migração massiva Blade→Inertia preservando paridade legacy + aplicando "novo estilo" (shared components canônicos) automaticamente.
@@ -95,7 +105,7 @@ authority: canonical
 ║                                                                      ║
 ║ Output: Modules/<X>/Http/Controllers/<X>Controller.php (delta)       ║
 ╠══════════════════════════════════════════════════════════════════════╣
-║ STEP 4 — GATE VISUAL (Wagner aprova SCREENSHOT antes do PR)          ║
+║ STEP 4 — GATE VISUAL VIGENTE (CI + review humano no merge)           ║
 ║                                                                      ║
 ║ Chama skill: mwart-comparative                                       ║
 ║                                                                      ║
@@ -105,25 +115,21 @@ authority: canonical
 ║         + screenshot Cowork source                                   ║
 ║         + screenshot Blade legacy (do STEP 1)                        ║
 ║                                                                      ║
-║ Skill PARA aqui aguardando aprovação Wagner. Sem aprovação:          ║
-║   • Não roda STEP 5                                                  ║
-║   • Não abre PR                                                      ║
-║   • Não toca em main                                                 ║
+║ Gate objetivo: critique ≥80 + WCAG AA + UI Judge/visual-regression.  ║
+║ Review síncrono de screenshot só quando Wagner solicitar; o merge    ║
+║ de .tsx continua humano (ADRs 0241, 0282 e 0283).                    ║
 ╠══════════════════════════════════════════════════════════════════════╣
 ║ STEP 5 — PEST + SMOKE                                                ║
 ║                                                                      ║
 ║ Output: tests/Feature/<Mod>/<Tela>Test.php (Pest)                    ║
 ║         contendo:                                                    ║
-║         • biz=1 happy path ([ADR 0101](../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)) ║
-║         • biz=99 cross-tenant guard (não vê dados de outro tenant)   ║
+║         • tenant 98 happy path (fixtures de teste)                   ║
+║         • tenant 99 cross-tenant guard (não vê dados de outro tenant)║
 ║         • Cada campo/validação do snapshot tem teste                 ║
 ║         • Cada permissão do snapshot tem teste                       ║
 ║                                                                      ║
-║ Smoke local (Herd) ANTES do PR:                                      ║
-║   1. php artisan migrate (se aplicável)                              ║
-║   2. npm run build                                                   ║
-║   3. Acessar http://oimpresso.test/<rota> com user biz=1             ║
-║   4. Validar paridade visual com STEP 4 approved                     ║
+║ Validação: PHP/Pest/PHPStan somente no CT 100 (ADR 0062); Node pode  ║
+║ rodar local. Smoke manual usa biz=1 e valida a paridade do STEP 4.   ║
 ╠══════════════════════════════════════════════════════════════════════╣
 ║ STEP 6 — PR ≤300 LOC (commit-discipline Tier A)                      ║
 ║                                                                      ║
@@ -163,9 +169,9 @@ Cada template tem checklist específico do tipo + shared components obrigatório
 | STEP 2 | `mwart-quality` (auto-trigger) | B |
 | STEP 2 | `ui-component-creator` (auto-trigger) | B |
 | STEP 3 | `multi-tenant-patterns` (always-on) | A |
-| STEP 4 | `mwart-comparative` (always-on) | A |
+| STEP 4 | `mwart-comparative` (auto-trigger por path) | B |
 | STEP 4 | `charter-write` (auto-trigger) | B |
-| STEP 5 | `mwart-process` (always-on F4 QA) | A |
+| STEP 5 | `mwart-process` (auto-trigger por path, F4 QA) | B |
 | STEP 6 | `commit-discipline` (always-on) | A |
 | STEP 6 | `module-completeness-audit` (auto-trigger) | B |
 
@@ -175,7 +181,7 @@ Cada template tem checklist específico do tipo + shared components obrigatório
 - ❌ Não toca `vendor/`
 - ❌ Não migra sem Cowork output disponível (ou fallback explícito)
 - ❌ Não paraleliza em worktree filha (subagents mortos)
-- ❌ Não pula STEP 4 (gate visual screenshot Wagner)
+- ❌ Não pula STEP 4 (gate visual vigente + review humano de merge)
 
 ## Piloto
 
@@ -183,10 +189,11 @@ Cada template tem checklist específico do tipo + shared components obrigatório
 **Views Blade legacy:** 16
 **Mockup Cowork disponível:** `prototipo-ui/prototipos/compras/visual-source.html` (37,9 KB)
 **Cadência piloto:** 1 tela por dia (sequencial). 16 telas ≈ 16 dias úteis com fator 10x IA-pair.
-**Critério liberação geral:** ≥4/5 primeiras telas aprovadas por Wagner em screenshot + zero regressão funcional em smoke biz=4 ROTA LIVRE.
+**Critério liberação geral:** ≥4/5 primeiras telas aprovadas pelo gate visual vigente + zero regressão funcional em smoke manual biz=1. **Nunca usar biz=4.**
 
 ## Versionamento
 
+- **v0.2.0 (2026-08-24):** workflow multi-tela em três gates; tenants 98/99; smoke biz=1; gate visual reconciliado com ADRs 0241/0282/0283.
 - **v0.1.0 (2026-05-11):** spec inicial, 6 steps, 5 templates, piloto Crm/Compras
 - **v0.2 (planejado pós-piloto):** refinamentos templates baseados em ≥5 telas reais
 - **v1.0 (planejado pós-50 telas):** publicar como guia oficial do projeto

@@ -1,0 +1,72 @@
+/* officeimpresso-page.css — extras do módulo Office Impresso (licenciamento desktop Delphi).
+   Só o que as classes sa-*/os-*/cli-* do shell não cobrem. Tokens do DS vivo, nada de cor crua. */
+.oi-card{margin:0 24px 16px}
+.oi-card .sa-card-h h3{margin:0;font:600 13.5px/1.3 var(--font-sans);color:var(--text)}
+.oi-card .sa-card-h p{margin:3px 0 0;font:400 11.5px/1.4 var(--font-sans);color:var(--text-mute)}
+.oi-seg{display:flex;gap:2px;padding:2px;border:1px solid var(--border);border-radius:8px;background:var(--bg-2)}
+.oi-seg button{font:500 12.5px/1 var(--font-sans);color:var(--text-dim);background:transparent;border:0;border-radius:6px;padding:7px 12px;cursor:pointer}
+.oi-seg button:hover{color:var(--text)}
+.oi-seg button.active{background:var(--surface);color:var(--text);box-shadow:0 1px 2px rgb(0 0 0/.06)}
+.oi-ver{display:flex;align-items:center;gap:6px;font:500 12.5px/1 var(--font-mono);color:var(--text)}
+.oi-ver svg{color:var(--text-mute);flex:none}
+.oi-ver.atras{color:var(--color-warning)}
+.oi-ver.ok{color:var(--text-dim)}
+.oi-maq{display:flex;align-items:center;gap:8px}
+.oi-bar{width:54px;height:5px;border-radius:3px;background:color-mix(in oklch,var(--text) 12%,transparent);overflow:hidden;flex:none}
+.oi-bar i{display:block;height:100%;border-radius:3px;background:var(--accent)}
+.oi-bar.cheio i{background:var(--color-warning)}
+.oi-bar.estourado i{background:var(--danger-fg)}
+.oi-ev{display:inline-flex;align-items:center;gap:6px;font:500 11.5px/1 var(--font-mono);padding:4px 8px;border-radius:5px;border:1px solid;white-space:nowrap}
+.oi-ev i{width:5px;height:5px;border-radius:50%;background:currentColor;flex:none}
+.oi-ev--api{color:var(--text-dim);border-color:var(--border);background:var(--bg-2)}
+.oi-ev--login_success{color:var(--color-success);border-color:color-mix(in oklch,var(--color-success) 22%,transparent);background:color-mix(in oklch,var(--color-success) 6%,transparent)}
+.oi-ev--login_error{color:var(--danger-fg);border-color:color-mix(in oklch,var(--danger-fg) 22%,transparent);background:color-mix(in oklch,var(--danger-fg) 6%,transparent)}
+.oi-ev--admin_action{color:var(--accent);border-color:color-mix(in oklch,var(--accent) 22%,transparent);background:color-mix(in oklch,var(--accent) 6%,transparent)}
+.oi-ev--error_log{color:var(--color-warning);border-color:color-mix(in oklch,var(--color-warning) 22%,transparent);background:color-mix(in oklch,var(--color-warning) 6%,transparent)}
+.oi-lat{font:500 12.5px/1 var(--font-mono);color:var(--text-dim)}
+.oi-lat.alta{color:var(--color-warning)}
+.oi-kv{display:grid;grid-template-columns:132px 1fr;gap:8px 14px;margin:0}
+.oi-kv dt{font:500 11px/1.4 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--text-mute);padding-top:2px}
+.oi-kv dd{margin:0;font:400 13px/1.5 var(--font-sans);color:var(--text)}
+.oi-kv dd.mono{font-family:var(--font-mono);font-size:12.5px}
+.oi-tl{display:flex;flex-direction:column;gap:0;margin:0;padding:0;list-style:none}
+.oi-tl li{display:grid;grid-template-columns:14px 1fr;gap:10px;padding:0 0 14px}
+.oi-tl-dot{position:relative;display:block;width:9px;height:9px;margin:5px 0 0 2px;border-radius:50%;background:var(--accent)}
+.oi-tl li:not(:last-child) .oi-tl-dot::after{content:"";position:absolute;left:4px;top:11px;width:1px;height:calc(100% + 14px);background:var(--border)}
+.oi-tl-b{display:flex;flex-direction:column;gap:3px;min-width:0}
+.oi-tl-b b{font:500 13px/1.4 var(--font-sans);color:var(--text)}
+.oi-tl-b small{font:400 11.5px/1.4 var(--font-mono);color:var(--text-mute)}
+.oi-grupo{display:inline-flex;align-items:center;gap:5px;font:500 10.5px/1 var(--font-sans);letter-spacing:.05em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);border-radius:4px;padding:3px 6px}
+.oi-filial{padding-left:16px;position:relative}
+.oi-filial::before{content:"";position:absolute;left:4px;top:2px;width:7px;height:9px;border-left:1px solid var(--border);border-bottom:1px solid var(--border)}
+.oi-host{display:flex;flex-direction:column;gap:2px;min-width:0}
+.oi-host b{font:500 13px/1.3 var(--font-mono);color:var(--text)}
+.oi-host small{font:400 11.5px/1.3 var(--font-mono);color:var(--text-mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.oi-note{margin:0 24px 12px}.oi-note .sa-mono,.oi-note code{font-family:var(--font-mono)}
+.oi-aviso{margin-top:8px;color:var(--color-warning)}
+.oi-motivo{margin-top:14px}
+.oi-secret{display:inline-flex;align-items:center;gap:8px}
+.oi-secret code{font:400 12px/1 var(--font-mono);color:var(--text-dim);letter-spacing:.02em;max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.oi-secret-b{font:500 11px/1 var(--font-sans);color:var(--text-mute);background:var(--bg-2);border:1px solid var(--border);border-radius:4px;padding:4px 7px;cursor:pointer}
+.oi-secret-b:hover{color:var(--text);border-color:var(--accent)}
+.oi-health{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 24px 14px;padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg-2)}
+.oi-health-t{display:flex;flex-direction:column;gap:2px;font:600 11px/1.2 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim)}
+.oi-health-t small{font:400 11px/1.2 var(--font-mono);letter-spacing:0;text-transform:none;color:var(--text-mute)}
+.oi-health-sig{display:flex;gap:8px;flex-wrap:wrap;flex:1 1 auto}
+.oi-health-r{font:500 11.5px/1 var(--font-mono);color:var(--text-mute)}
+.oi-sig{display:inline-flex;align-items:center;gap:7px;padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--surface);white-space:nowrap}
+.oi-sig i{width:6px;height:6px;border-radius:50%;flex:none;background:var(--text-mute)}
+.oi-sig b{font:500 11px/1 var(--font-mono);color:var(--text)}
+.oi-sig span{font:400 11px/1 var(--font-sans);color:var(--text-mute)}
+.oi-sig--ok i{background:var(--color-success)}
+.oi-sig--warn i{background:var(--color-warning)}
+.oi-sig--warn{border-color:color-mix(in oklch,var(--color-warning) 26%,transparent)}
+.oi-sig--fail i{background:var(--danger-fg)}
+.oi-sig--fail{border-color:color-mix(in oklch,var(--danger-fg) 26%,transparent)}
+.oi-periodo{margin:16px 24px 0}
+.oi-orig{font:400 11.5px/1 var(--font-mono);color:var(--text-mute);white-space:nowrap}
+.oi-form{display:flex;flex-direction:column;gap:12px;padding:14px 16px}
+.oi-form-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.oi-form .oi-note{margin:2px 0 0}
+.oi-skip{color:var(--color-warning)}
+.oi-ok-txt{color:var(--text-mute)}

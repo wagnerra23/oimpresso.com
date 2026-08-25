@@ -23,12 +23,12 @@ uses(PontoTestCase::class);
  *                  `(int) ($i->linhas_criadas ?? 0)`; a coluna real é
  *                  `linhas_sucesso` e o `?? 0` esconde a ausência, então a lista
  *                  mostra `0/N` para toda importação. É a mesma raiz do
- *                  UC-IMPSHOW-04 em OUTRA superfície: correção no modelo deixa os
+ *                  UC-IMPSH-04 em OUTRA superfície: correção no modelo deixa os
  *                  dois verdes; correção só no Show deixa este vermelho — e esse
  *                  é o sinal que se quer.
  *
  * Não duplica a tela irmã: dedup por hash, dedup escopada e 404 cross-tenant já
- * são UC-IMPSHOW-01..03 no `BancoHorasImportacaoContratoTest`.
+ * são UC-IMPSH-01..03 no `BancoHorasImportacaoContratoTest`.
  *
  * Tier 0: biz=1 (WR2 interno) — NUNCA biz=4 (ROTA LIVRE, ADR 0101). Sem
  * RefreshDatabase: a lane ponto-pest proíbe.

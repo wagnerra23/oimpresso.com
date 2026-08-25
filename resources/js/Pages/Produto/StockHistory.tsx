@@ -155,7 +155,7 @@ function ProdutoStockHistory(props: ProdutoStockHistoryPageProps) {
     <>
       <Head title={`Histórico de estoque · ${product.name}`} />
 
-      <main className="px-6 py-6 max-w-5xl space-y-6">
+      <div className="px-6 py-6 max-w-5xl space-y-6">
         <PageHeader
           icon="history"
           title="Histórico de estoque"
@@ -284,7 +284,7 @@ function ProdutoStockHistory(props: ProdutoStockHistoryPageProps) {
             Abrir relatório completo no sistema legado
           </a>
         </p>
-      </main>
+      </div>
     </>
   );
 }

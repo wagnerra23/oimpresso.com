@@ -33,11 +33,23 @@ tier: B
    `STALE` — e, se você medir um charter contra ele, "corrige" refs que estavam certas
    (aconteceu em 2026-08-11).
 
-1b. **Exportar é `--export-from`, NUNCA transcrever.**
-   `DesignSync.get_file` de cada path → salve os JSON num diretório → 
-   `node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir>`
-   O script escreve `raw.content` direto: fiel por construção. Transcrever à mão produziu um
-   arquivo com 20 linhas a menos que passou despercebido até o `--compare`.
+1b. **Baixar é por MÁQUINA, NUNCA transcrever — e há DUAS rotas, com hierarquia.**
+   A hierarquia canônica vive em [`prototipo-ui/protocolo.config.mjs`](../../../prototipo-ui/protocolo.config.mjs)
+   (fase `-1`); esta skill **aponta**, não restateia:
+   - **[PRINCIPAL] sincronizar o espelho (muitos arquivos)** → `aplicar-payload.mjs`. Peça o
+     payload em **partes <=256 KiB**, `DesignSync.get_file` de cada (parte >48 KB volta
+     **persistida em disco**, fora do contexto) → `node scripts/design-sync/aplicar-payload.mjs`.
+     O conteúdo vira **dado**; o applier confere bytes por arquivo **antes** de escrever.
+   - **[pontual] 1-3 arquivos avulsos** → `get_file` de cada → salve os JSON num dir →
+     `node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir>`.
+   ⚠️ **A armadilha que fecha a rota pontual:** `get_file` de arquivo **<~36 KB volta INLINE
+   no contexto** — não há JSON em disco pra alimentar o `--export-from`, e escrever dali é
+   **transcrição** (`fidelidade: NÃO PROVADA`). Isso é limite do **transporte**, não do
+   problema: a rota [PRINCIPAL] não tem esse teto. Se você concluir "não há rota fiel para
+   estes arquivos", **está na rota errada** — o `sync/README.md` do Cowork nomeia essa
+   conclusão, no 1º parágrafo, como *"errada como teto absoluto"*.
+   Transcrever à mão produziu um arquivo com 20 linhas a menos que passou despercebido até o
+   `--compare` (2026-08-11), e 10 arquivos com fidelidade não provada em 2026-08-21 (PR #6123).
 2. **Mesmo tema nos dois lados.** O tema é o que o Wagner usa (hoje: dark). Comparar light×dark
    invalida D6 inteira.
 3. **Mesma sonda, medida:** `node prototipo-ui/design-diff.mjs --probe` → injetar a sonda IGUAL

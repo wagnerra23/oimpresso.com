@@ -153,7 +153,7 @@ export default function ModulesIndex({ modules }: Props) {
     <div className="flex-1 bg-muted/30">
       <div className="border-b border-border bg-background">
         <div className="container mx-auto px-8 pt-6 pb-4 max-w-7xl">
-          <div className="flex items-start gap-4">
+          <div className="flex items-start gap-4" data-contract="modulos.header">
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl font-semibold tracking-tight text-foreground flex items-center gap-2">
                 <Settings2 size={22} /> Gerenciador de Módulos
@@ -176,14 +176,14 @@ export default function ModulesIndex({ modules }: Props) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6" data-contract="modulos.kpis">
             <StatCard label="Total" value={counts.total} icon="Package" tone="muted" />
             <StatCard label="Ativos" value={counts.active} icon="CheckCircle2" tone="success" />
             <StatCard label="Inativos" value={counts.inactive} icon="Power" tone="muted" />
             <StatCard label="Com erro" value={counts.errored} icon="AlertTriangle" tone="destructive" />
           </div>
 
-          <nav className="flex items-center gap-2 mt-6 flex-wrap" aria-label="Filtros de módulo">
+          <nav className="flex items-center gap-2 mt-6 flex-wrap" aria-label="Filtros de módulo" data-contract="modulos.filtros">
             <FilterDropdown
               label="Área"
               value={areaFilter}
@@ -237,7 +237,7 @@ export default function ModulesIndex({ modules }: Props) {
 
       <div className="container mx-auto px-8 py-6 max-w-7xl">
         <div className="mb-4 flex items-center gap-2">
-          <div className="relative flex-1 max-w-md">
+          <div className="relative flex-1 max-w-md" data-contract="modulos.busca">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             <Input
               type="search"
@@ -262,7 +262,7 @@ export default function ModulesIndex({ modules }: Props) {
 
         <div className="rounded-lg border border-border bg-background overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm" data-contract="modulos.tabela">
               <thead className="bg-muted/50">
                 <tr className="border-b border-border">
                   <Th className="w-10">&nbsp;</Th>
@@ -302,6 +302,23 @@ export default function ModulesIndex({ modules }: Props) {
                           <div className="text-foreground font-medium leading-tight">{m.name}</div>
                           <div className="text-[11px] text-muted-foreground/70 leading-tight mt-0.5">
                             {m.alias} · v{m.version}
+                            {/* `has_datacontroller` chegava na prop e a tela ignorava. E o
+                                DataController e quem monta o item na sidebar: sem ele, o modulo
+                                fica ativo e INVISIVEL no menu -- o sintoma classico de "instalei
+                                e nao apareceu". Marcador so aparece quando ha o que dizer
+                                (medido 2026-08-19: 32/32 tem DataController, entao hoje ele
+                                nasce escuro). */}
+                            {m.active && !m.has_datacontroller && (
+                              <span
+                                className={
+                                  'ml-2 inline-flex items-center rounded-full border px-2 py-0.5 ' +
+                                  'text-[10px] font-medium ' + STATUS_STYLE.unregistered
+                                }
+                                title="Sem DataController — o módulo está ativo mas não monta item na sidebar"
+                              >
+                                sem menu
+                              </span>
+                            )}
                           </div>
                           {m.description && (
                             <div className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">

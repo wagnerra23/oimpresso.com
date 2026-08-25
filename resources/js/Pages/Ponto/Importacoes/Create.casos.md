@@ -18,7 +18,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 > segregado por tenant). Fonte 4 (Delphi) **ausente** — SDD §0.1.
 >
 > 🔗 **Não duplica as telas irmãs.** `Importacoes/Show.casos.md` cobre a **não-duplicação de
-> marcação** (`UC-IMPSHOW-01`) e a **dedup escopada** (`UC-IMPSHOW-02`); `Importacoes/Index.casos.md`
+> marcação** (`UC-IMPSH-01`) e a **dedup escopada** (`UC-IMPSH-02`); `Importacoes/Index.casos.md`
 > cobre a **lista**. Aqui entra o que é do **envio**: o que o operador vê ao reenviar, e onde o
 > arquivo é guardado.
 >
@@ -55,7 +55,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Teste:** `Modules/Ponto/Tests/Feature/ImportacaoCreateContratoTest.php` — `UC-IMPCRE-01`.
 - **Contrato:** `CU-PONTO-10` (SDD §6.4, *"importar o mesmo arquivo 2× não duplica marcação"*) ·
   US-PONTO-002 (*"importação idempotente"*) · F7 (§5.3, dedup por `sha256` **antes** de gravar).
-- **Complementa, não duplica, o `UC-IMPSHOW-01`:** aquele prova o **efeito** (não duplicou
+- **Complementa, não duplica, o `UC-IMPSH-01`:** aquele prova o **efeito** (não duplicou
   marcação); este prova o **feedback ao operador** (foi recusado, e ele consegue achar a
   importação original). São coisas diferentes: uma dedup silenciosa que aceita o upload e não faz
   nada passaria no primeiro e falharia neste — e é justamente o comportamento que deixa o RH sem

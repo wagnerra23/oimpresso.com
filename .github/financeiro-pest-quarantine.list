@@ -81,7 +81,6 @@ Modules/Financeiro/Tests/Unit/FinanceiroAuditLoggerTest.php  # 4 failed, 1 passe
 Modules/Financeiro/Tests/Feature/CobrancaControllerTest.php  # 4 failed, 11 passed (51 assertions)
 Modules/Financeiro/Tests/Feature/DreControllerTest.php  # 4 failed, 7 passed (103 assertions)
 Modules/Financeiro/Tests/Feature/FluxoRealizadoControllerTest.php  # 6 failed, 4 passed (42 assertions)
-Modules/Financeiro/Tests/Feature/Onda26InterWebhookIntegrationTest.php  # 2 failed (0 assertions)
 Modules/Financeiro/Tests/Feature/ResyncFromCoreCommandTest.php  # 4 failed, 1 passed (1 assertions)
 Modules/Financeiro/Tests/Feature/TituloAutoServiceExpenseTest.php  # 2 failed, 5 passed (27 assertions) — motivo MEDIDO no rodape (decisao [W] pendente)
 Modules/Financeiro/Tests/Feature/UnificadoControllerTest.php  # 2 failed, 1 skipped, 10 passed (75 assertions)

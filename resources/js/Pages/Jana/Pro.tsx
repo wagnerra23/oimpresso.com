@@ -13,6 +13,7 @@
 import { type ReactNode, useEffect, useState } from 'react'
 import { router } from '@inertiajs/react'
 import AppShellV2 from '@/Layouts/AppShellV2'
+import { PageHeader } from '@/Components/PageHeader'
 import {
   ArrowLeft,
   ArrowRight,
@@ -140,24 +141,60 @@ function ProPage({ plan, pricing, proof }: Props) {
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-page-cream text-foreground">
-      {/* ── Header (modo FOCO) ── */}
-      <header className="flex shrink-0 items-center gap-4 border-b border-border bg-card/80 px-7 py-3.5 backdrop-blur">
-        <div>
-          <div className="text-xs text-muted-foreground">
+      {/* ── Header (modo FOCO) ──
+          Onda 1 da paridade da área Jana: era um <header> hand-rolled — a ÚNICA das 4
+          telas fora do header do sistema. O charter justificava com "modo FOCO", mas
+          modo FOCO é SEM SubNav, não SEM PageHeader: o canon sem a prop `subnav` dá
+          exatamente o mesmo resultado. Ver `PARIDADE-area-jana-diagnostico-e-ondas.md`
+          §4 (diagnóstico) e §8 (onda 1).
+
+          O que a migração PRESERVA, item a item do `Pro.charter.md` §Goals:
+            · "Jana · Plano"  → `subtitle` (era eyebrow ACIMA do h1; o canon põe o
+                                subtítulo ABAIXO — é a única mudança de posição, e ela
+                                vai ao gate F1.5 declarada, não de contrabando);
+            · "Jana Pro"      → `title`;
+            · tag UPGRADE     → `leading` (ANTES do título, não depois como no
+                                protótipo) — a ÚNICA divergência visual desta onda, e
+                                ela é de custo, não de gosto: ver o comentário no
+                                `leading` abaixo;
+            · "Voltar ao chat" → `actions`, copy e destino intactos (`/ia/conversa`).
+          SEM o dot da área (hue 220) que as outras 3 telas põem no `leading`: ele não
+          está no charter do Pro, e a 1ª versão deste PR o adicionava "por consistência"
+          — o que era escopo extra e custou uma REGRESSÃO real de lint
+          (`ds/no-inline-raw-color`, Pro.tsx 3 → 4, pego pelo ratchet do CI). A cor vinha
+          crua no `style` inline, copiada do `JanaAreaHeader`, onde ela já é dívida
+          registrada no baseline. Corrigir era ou duplicar a dívida, ou tokenizar o dot —
+          e nenhum dos dois é assunto de um PR de header. Se o dot for desejado aqui, é
+          onda própria: extrai o dot pra um componente da área, tokeniza a cor e troca
+          nas 4 telas de uma vez. */}
+      <PageHeader
+        // A tag vai no `leading` (ANTES do título), não depois como no protótipo.
+        // Motivo medido, não estético: pôr um slot novo no `PageHeader` faz o
+        // `ui-impact.mjs` classificar o diff como `frontend-compartilhado` →
+        // escopo GLOBAL → 37 telas afetadas, das quais 29 não têm entrada em
+        // `visreg-screens.json` → `visual-regression` fail-closed. Gerar aquelas
+        // baselines aqui seria criar contrato visual pra telas de Financeiro,
+        // Ponto, Forja e team-mcp que este PR não toca — o próprio gate avisa que
+        // isso "muda em silêncio a referência de telas que seu PR não toca".
+        // O `leading` já existe no canon desde 2026-08-08, então usá-lo mantém o
+        // diff em `targeted` na Jana/Pro, que TEM baseline.
+        leading={
+          <span className="mr-2 rounded-full border border-primary/25 bg-primary/5 px-[7px] py-0.5 align-middle text-[10px] font-bold tracking-wider text-primary">
+            UPGRADE
+          </span>
+        }
+        title="Jana Pro"
+        subtitle={
+          <>
             <b className="font-medium text-foreground/70">Jana</b> · Plano
-          </div>
-          <h1 className="m-0 flex items-center gap-2 text-lg font-semibold tracking-tight">
-            Jana Pro
-            <span className="rounded-full border border-primary/25 bg-primary/5 px-[7px] py-0.5 text-[10px] font-bold tracking-wider text-primary">
-              UPGRADE
-            </span>
-          </h1>
-        </div>
-        <div className="flex-1" />
-        <button type="button" onClick={voltar} className={btnGhost}>
-          <ArrowLeft className="size-3.5" /> Voltar ao chat
-        </button>
-      </header>
+          </>
+        }
+        actions={
+          <button type="button" onClick={voltar} className={btnGhost}>
+            <ArrowLeft className="size-3.5" /> Voltar ao chat
+          </button>
+        }
+      />
 
       {/* ── Body (scroll) ── */}
       <div className="flex-1 overflow-y-auto p-7">

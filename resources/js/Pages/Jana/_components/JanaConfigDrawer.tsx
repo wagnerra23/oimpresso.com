@@ -14,8 +14,8 @@
 //
 //   protótipo                     | estado real
 //   ------------------------------|--------------------------------------------
-//   6 toggles de análise          | a tela tem 4 cards (inad/fat/conc/metodos).
-//                                 | churn, frota e cheques NÃO existem — o mapa
+//   6 toggles de análise          | a tela tem 5 cards (inad/fat/conc/metodos/
+//                                 | churn); frota e cheques NÃO existem — o mapa
 //                                 | põe isso na ordem 7 ("fonte de dado que não
 //                                 | existe"), Index-visual-comparison.md.
 //   "Enviar brief todo dia" +hora | o brief é gerado server-side (BriefingAgent);
@@ -120,7 +120,7 @@ export default function JanaConfigDrawer({
                 />
               </Linha>
             ))}
-            {/* O rótulo diz MOSTRAR, não "rodar". A Jana apura as quatro de
+            {/* O rótulo diz MOSTRAR, não "rodar". A Jana apura as cinco de
                 qualquer jeito (SellsCockpitAggregator, uma consulta só) — dizer
                 "análises que ela roda", como o protótipo diz, prometeria uma
                 economia de processamento que desligar o card não entrega. */}

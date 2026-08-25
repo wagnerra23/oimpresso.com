@@ -70,6 +70,125 @@ const CMP_COLUMNS = [
 ];
 const DEFAULT_COLS = CMP_COLUMNS.reduce((o, c) => (o[c.id] = true, o), {});
 
+// ─── PAINEL (padrão Jana · modulo-padrao.jsx) ───
+// Abertura do módulo: leitura do dia → KPIs → análises com drill → ações sugeridas.
+// Tudo apurado do próprio PURCHASES — nenhum número inventado fora do mock da tela.
+const pct = (v, t) => t ? Math.round(v / t * 100) : 0;
+
+function comprasPainelData() {
+  const total = PURCHASES.reduce((s, p) => s + p.total, 0);
+  const aberto = PURCHASES.filter(p => p.due > 0);
+  const abertoV = aberto.reduce((s, p) => s + p.due, 0);
+  const transito = PURCHASES.filter(p => p.stage === "transito");
+  const rascunhos = PURCHASES.filter(p => p.stage === "rascunho");
+  const receb = PURCHASES.filter(p => p.stage === "recebido");
+  // Nome curto legível: corta em palavra inteira, nunca em conjunção pendurada.
+  const nomeCurto = (nome) => {
+    const limpo = nome.split(/\s+[-–]\s+/)[0].replace(/\s+(Ltda|S\.A\.|ME|EIRELI)\.?$/i, "").trim();
+    const ws = limpo.split(" ");
+    let out = [];
+    for (const w of ws) {
+      if (out.join(" ").length + w.length + 1 > 20 && out.length) break;
+      out.push(w);
+    }
+    while (out.length > 1 && /^(&|e|de|da|do)$/i.test(out[out.length - 1])) out.pop();
+    return out.join(" ");
+  };
+  const porFornec = Object.keys(SUPPLIERS).map(k => ({
+    label: nomeCurto(SUPPLIERS[k].name),
+    v: PURCHASES.filter(p => p.supplier === k).reduce((s, p) => s + p.total, 0)
+  })).sort((a, b) => b.v - a.v);
+
+  // Vencimento = emissão da NF-e + primeiro prazo da condição de pagamento.
+  const prazoDias = (t) => { const m = String(t || "").match(/\d+/); return m ? +m[0] : 0; };
+  const vencimentos = aberto.map(p => {
+    const d = new Date(p.date);
+    d.setDate(d.getDate() + prazoDias(p.payTerm));
+    return { p, quando: d, dia: fmtDate(d) };
+  }).sort((a, b) => a.quando - b.quando);
+
+  return {
+    vencPrimeiro: vencimentos[0] ? vencimentos[0].dia : "—",
+    kpis: [
+      { label: "A pagar", value: fmt(abertoV), icon: "coins", sub: aberto.length + " compras · 1º venc. " + (vencimentos[0] ? vencimentos[0].dia : "—"), emphasize: true },
+      { label: "Em trânsito", value: String(transito.length), icon: "truck", sub: fmt(transito.reduce((s, p) => s + p.total, 0)) + " a caminho" },
+      { label: "Volume do mês", value: fmt(total), icon: "chart", delta: "+12,4% vs. abr/26", deltaCls: "green" },
+      { label: "A conferir", value: String(receb.length), icon: "receipt", sub: receb.length ? "recebido sem conferência" : "nada pendente" }
+    ],
+    analises: [
+      { id: "concentracao", kind: "bars", icon: "chart", title: "Concentração por fornecedor",
+        sub: "volume do mês · " + porFornec.length + " fornecedores",
+        pill: { tone: "warn", label: pct(porFornec[0].v, total) + "% num só" },
+        bars: porFornec.map(f => ({ label: f.label, bar: pct(f.v, total), pct: pct(f.v, total) + "%" })),
+        footer: "Dependência alta de " + porFornec[0].label + " — vale segunda cotação antes do próximo pedido.",
+        origem: ["Soma de " + fmt(total) + " em 7 notas do mês, agrupada por fornecedor.", "Rascunho não entra no volume (total R$ 0)."] },
+      { id: "estagios", kind: "buckets", icon: "list", title: "Onde as compras estão paradas",
+        sub: "pipeline de " + PURCHASES.length + " compras",
+        buckets: STAGES.map(s => {
+          const nas = PURCHASES.filter(p => p.stage === s.id);
+          const cor = s.id === "pago" ? "var(--pos)" : s.id === "rascunho" || s.id === "transito" ? "var(--warn)" : "var(--accent)";
+          const v = nas.reduce((a, p) => a + p.total, 0);
+          return { label: s.l, bar: pct(nas.length, PURCHASES.length), val: nas.length + (v ? " · " + (v / 1000).toFixed(1).replace(".", ",") + "k" : ""), color: cor };
+        }),
+        footer: "Antes de pagar: " + fmt(PURCHASES.filter(p => p.stage === "transito" || p.stage === "recebido").reduce((s, p) => s + p.total, 0)) + " ainda esperam entrega ou conferência.",
+        origem: ["Contagem e valor por estágio da FSM de compras (rascunho → pago)."] },
+      { id: "vencimentos", kind: "list", icon: "clock", title: "Próximos vencimentos",
+        sub: "o que sai do caixa primeiro",
+        list: vencimentos.map(v => ({
+          left: v.dia + " · " + nomeCurto(SUPPLIERS[v.p.supplier].name),
+          right: fmt(v.p.due)
+        })),
+        footer: <span className="mp-total">soma dos vencidos e a vencer <b>{fmt(abertoV)}</b></span>,
+        footnote: "Prazo contado da emissão da NF-e, não do recebimento.",
+        origem: ["Emissão da NF-e + primeiro prazo do campo `condição de pagamento` de cada compra com saldo.", "Cruzar com o Financeiro antes de programar o pagamento."] }
+    ],
+    acoes: [
+      { id: "conferir", tone: "peach", icon: "receipt", title: "Conferir a NF-e 4521 recebida ontem",
+        sub: "COMP-2847 · 5 itens · " + fmt(8420) + " — sem conferência o estoque fica errado.",
+        cta: { label: "Abrir compra", tone: "" }, ir: "COMP-2847" },
+      { id: "rascunho", tone: "grey", icon: "list", title: rascunhos.length === 1 ? "Um rascunho parado desde 04/05" : rascunhos.length + " rascunhos parados desde 04/05",
+        sub: "Fechar ou descartar — rascunho não reserva estoque nem preço.",
+        cta: { label: "Ver rascunhos", tone: "ghost" }, filtro: "rascunhos" },
+      { id: "grade", tone: "violet", icon: "target", title: "Compra de vestuário ainda sem grade tam×cor",
+        sub: "Hoje a matriz é digitada item a item — a grade entra pelo Purchase/Create (gap conhecido).",
+        cta: { label: "Ver pedidos", tone: "ghost" }, filtro: "all" }
+    ]
+  };
+}
+
+function ComprasPainel({ onFiltro, onAbrir }) {
+  const MP = window.ModuloPadrao;
+  const [drill, setDrill] = useState(null);
+  const d = useMemo(comprasPainelData, []);
+  const vencPrimeiro = d.vencPrimeiro;
+  if (!MP) return null;
+  return (
+    <>
+      <MP.Resumo
+        quando="08/05, 09:42"
+        linhas={[
+          <>Sete compras em mai/26, <b>{fmt(PURCHASES.reduce((s, p) => s + p.total, 0))}</b> em volume. O que pesa hoje é o <b>a pagar</b>: {fmt(PURCHASES.reduce((s, p) => s + p.due, 0))} em {PURCHASES.filter(p => p.due > 0).length} notas, o primeiro vencendo em {vencPrimeiro}.</>,
+          <>Uma carga em trânsito e uma nota recebida ontem <b>ainda sem conferência</b> — enquanto ela não fecha, o custo médio do estoque está desatualizado.</>
+        ]}
+        destaque={<>Comece pela conferência da NF-e 4521: ela destrava custo, margem e o pagamento de 30 dias.</>}
+        chips={[
+          { label: "Conferir NF-e 4521", icon: "receipt", tone: "warn", ir: "COMP-2847" },
+          { label: "A pagar", icon: "coins", filtro: "abertas" },
+          { label: "Em trânsito", icon: "truck", filtro: "transito" },
+          { label: "Rascunhos", icon: "list", filtro: "rascunhos" }
+        ]}
+        onChip={(c) => c.ir ? onAbrir(c.ir) : onFiltro(c.filtro)} />
+
+      <MP.Kpis kpis={d.kpis} />
+      <MP.Secao titulo="ANÁLISES DO MÓDULO" sub="clique num card pra ver de onde vem o número" />
+      <MP.Analises analises={d.analises} onDrill={setDrill} />
+      <MP.Secao titulo="O QUE FAZER PRIMEIRO" icon="bulb" />
+      <MP.Acoes acoes={d.acoes} onCta={(a) => a.ir ? onAbrir(a.ir) : onFiltro(a.filtro)} />
+      <MP.Drill item={drill} onClose={() => setDrill(null)} />
+    </>
+  );
+}
+
 // ─── Dropdown "Ações" por linha (paridade Blade /purchases · 9 opções) ───
 function AcoesDropdown({ p, onView, onPagamentos }) {
   const [open, setOpen] = useState(false);
@@ -205,9 +324,15 @@ function CmpSummary({ rows, page, perPage, setPage }) {
 }
 
 function ComprasPage() {
-  const [sel, setSel] = useState("COMP-2847");
+  const MP = window.ModuloPadrao || {};
+  const [sel, setSel] = useState(null);
   const [tab, setTab] = useState("resumo");
   const [filter, setFilter] = useState("all");
+  const [aba, setAba] = (MP.useAba || (() => useState("painel")))("oimpresso.compras.aba", "painel");
+  const [avisoNode, avisar] = (MP.useAviso || (() => [null, () => {}]))();
+  const [hora, setHora] = useState("09:42");
+  const irPara = (f) => { setFilter(f || "all"); setAba("pedidos"); };
+  const abrirCompra = (id) => { setSel(id); setTab("resumo"); setAba("pedidos"); };
 
   const filtered = useMemo(() => {
     if (filter === "all") return PURCHASES;
@@ -266,25 +391,40 @@ function ComprasPage() {
   const onExport = (fmtKind) => { if (fmtKind === "print") window.print(); else console.log("export", fmtKind); };
 
   return (
-    <div className="compras-root" data-screen-label="01 Compras">
-      <div className="cmp-main">
-        {/* HEAD */}
-        <header className="os-page-h">
-          <div className="os-page-h-l">
-            <h1>Compras</h1>
-            <p>{filtered.length} de {PURCHASES.length} notas</p>
-          </div>
-          <div className="os-page-h-r">
-            <div className="search">
+    <div className="compras-root mp-page" data-screen-label="01 Compras">
+      {MP.Header &&
+        <MP.Header modulo="Compras" papel="Suprimentos"
+          contexto={["OFFICEIMPRESSO", "matriz", PURCHASES.length + " notas em mai/26"]}
+          atualizadoAs={hora}
+          onRefresh={() => { setHora(new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })); avisar("Reapurado agora — painel e lista deste período.", "ok"); }}
+          glyph={<window.JcIcon name="truck" />}
+          acoes={<>
+            <div className="mp-busca">
               <span>⌕</span>
-              <input placeholder="Buscar NF-e, fornecedor, ref, chave..." />
-              <kbd style={{ fontSize: 9, fontFamily: "var(--cmp-mono)", color: "var(--cmp-ink-3)", background: "var(--cmp-line-2)", padding: "1px 5px", borderRadius: 3 }}>/</kbd>
+              <input placeholder="Buscar NF-e, fornecedor, chave..." />
+              <kbd style={{ fontSize: 9, fontFamily: "var(--mono)", color: "var(--text-mute)", background: "var(--sunken)", padding: "1px 5px", borderRadius: 3 }}>/</kbd>
             </div>
-            <button className="btn">↓ Importar XML</button>
-            <button className="btn primary">+ Nova compra</button>
-          </div>
-        </header>
+            <button className="jc-btn ghost" onClick={() => avisar("Importar XML abre o seletor de arquivo — fora deste protótipo.")}><window.JcIcon name="download" className="ic" /><span>Importar XML</span></button>
+            <button className="jc-btn dark" onClick={() => avisar("Nova compra abre o formulário em modo foco — fora deste protótipo.")}><window.JcIcon name="plus" className="ic" /><span>Nova compra</span></button>
+          </>} />}
+      {MP.Tabs &&
+        <MP.Tabs tab={aba} onTab={setAba} aria="Áreas de Compras"
+          tabs={[
+            { key: "painel", label: "Painel", icon: "chart" },
+            { key: "pedidos", label: "Pedidos", icon: "list", n: PURCHASES.length },
+            { key: "fornecedores", label: "Fornecedores", icon: "database", n: Object.keys(SUPPLIERS).length }
+          ]} />}
 
+      {aba === "painel" && <div className="mp-body"><ComprasPainel onFiltro={irPara} onAbrir={abrirCompra} /></div>}
+
+      {aba === "fornecedores" && MP.Estado &&
+        <div className="mp-body">
+          <MP.Estado titulo="A ficha do fornecedor ainda não existe aqui"
+            descricao="Hoje o fornecedor só aparece dentro da compra. A ficha (histórico, prazo médio, ruptura) é tela própria e ainda não foi desenhada — o Painel já mostra a concentração por fornecedor."
+            acao={<button className="jc-btn ghost" onClick={() => setAba("painel")}>Ver a concentração no Painel</button>} />
+        </div>}
+
+      <div className="cmp-main" style={{ display: aba === "pedidos" ? undefined : "none" }}>
         {/* TABS */}
         <nav className="tbs">
           <a className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>Todas <span className="ct">{PURCHASES.length}</span></a>
@@ -390,6 +530,7 @@ function ComprasPage() {
 
       {/* DRAWER — overlay lateral (padrão venda) */}
       {selected && <DrawerView p={selected} tab={tab} setTab={setTab} stageIdx={stageIdx} close={() => setSel(null)} />}
+      {avisoNode}
     </div>
   );
 }
@@ -637,4 +778,7 @@ function DrawerView({ p, tab, setTab, stageIdx, close }) {
 }
 
 window.ComprasPage = ComprasPage;
+// Catálogo e compras do módulo ficam disponíveis pras telas irmãs (pedido, requisição,
+// devolução) — um fornecedor só por código, em vez de cada tela inventar o seu.
+window.COMPRAS_MOCK = { SUPPLIERS, PURCHASES };
 })();

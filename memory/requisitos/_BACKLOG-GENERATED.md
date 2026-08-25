@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **881 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **909 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -22,25 +22,26 @@
 | [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
 | [`Crm`](#crm) | 23 | 0 | 0 | 0 | 23 |
 | [`Fiscal`](#fiscal) | 23 | 0 | 0 | 0 | 23 |
+| [`Connector`](#connector) | 20 | 0 | 0 | 0 | 19 |
 | [`Pcp`](#pcp) | 20 | 0 | 0 | 0 | 20 |
 | [`Vestuario`](#vestuario) | 19 | 0 | 0 | 0 | 19 |
 | [`Compras`](#compras) | 18 | 0 | 0 | 0 | 17 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 18 | 0 | 0 | 0 | 18 |
 | [`Forja`](#forja) | 18 | 0 | 1 | 0 | 7 |
+| [`Officeimpresso`](#officeimpresso) | 17 | 0 | 0 | 0 | 17 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
 | [`Comissao`](#comissao) | 14 | 0 | 0 | 0 | 14 |
 | [`Ponto`](#ponto) | 14 | 0 | 0 | 0 | 14 |
-| [`Connector`](#connector) | 13 | 0 | 0 | 0 | 13 |
 | [`Mwart`](#mwart) | 13 | 0 | 0 | 0 | 13 |
 | [`PaymentGateway`](#paymentgateway) | 13 | 0 | 0 | 0 | 13 |
 | [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
 | [`PontoWr2`](#pontowr2) | 12 | 0 | 0 | 0 | 12 |
 | [`Essentials`](#essentials) | 11 | 0 | 0 | 0 | 11 |
+| [`Superadmin`](#superadmin) | 11 | 0 | 0 | 0 | 11 |
 | [`Cms`](#cms) | 10 | 0 | 0 | 0 | 10 |
-| [`Superadmin`](#superadmin) | 10 | 0 | 0 | 0 | 10 |
+| [`Cliente`](#cliente) | 9 | 1 | 0 | 0 | 8 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
-| [`Cliente`](#cliente) | 8 | 1 | 0 | 0 | 7 |
 | [`KB`](#kb) | 8 | 0 | 0 | 0 | 8 |
 | [`Produto`](#produto) | 8 | 0 | 0 | 0 | 8 |
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
@@ -52,6 +53,7 @@
 | [`ConsultaOs`](#consultaos) | 3 | 0 | 0 | 0 | 3 |
 | [`Dashboard`](#dashboard) | 3 | 0 | 0 | 0 | 3 |
 | [`ADS`](#ads) | 2 | 0 | 0 | 0 | 2 |
+| [`Documentacao`](#documentacao) | 2 | 0 | 0 | 0 | 2 |
 | [`MemoriaAutonoma`](#memoriaautonoma) | 2 | 0 | 0 | 0 | 2 |
 | [`Repair`](#repair) | 2 | 0 | 0 | 0 | 2 |
 | [`Admin`](#admin) | 1 | 0 | 0 | 0 | 1 |
@@ -706,6 +708,35 @@
 - **US-FISCAL-019** — Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
 - **US-FISCAL-020** — Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
 
+## Connector
+
+
+### todo
+
+- **US-CONN-013** — Documentar a API Connector em OpenAPI 3.0 sem expor dados reais _(`p0` · @[F])_
+- **US-CONN-014** — [EPIC] Migrar a tela Conector (API) de Blade para Inertia (MWART) _(`p2` · @[W])_
+- **US-CONN-016** — F2 — Dual render + feature flag + comando artisan _(`p2` · @[F])_
+- **US-CONN-017** — F2 — Mapa de paridade campo-a-campo _(`p2` · @[F])_
+- **US-CONN-018** — F3 — Tela Pages/Connector/Index.tsx _(`p2` · @[F])_
+- **US-CONN-019** — F4 — QA hardening + smoke real _(`p2` · @[W])_
+- **US-CONN-020** — F5 — Cutover e sunset do Blade _(`p3` · @[W])_
+- **US-CONN-001** — Auth Passport `auth:api` bloqueia anônimo
+- **US-CONN-002** — Sync Delphi via `/processa-dados-cliente`
+- **US-CONN-003** — Registrar WR Comercial via `/oimpresso/registrar`
+- **US-CONN-004** — Check-update via `/check-update`
+- **US-CONN-005** — REST CRUD `/contactapi`
+- **US-CONN-006** — REST CRUD `/product`
+- **US-CONN-007** — REST CRUD `/sell` (vendas)
+- **US-CONN-008** — REST `/business-location` (filiais)
+- **US-CONN-009** — REST `/taxonomy` + `/brand`
+- **US-CONN-010** — REST `/user`
+- **US-CONN-011** — Sync `salvar-cliente` + `salvar-equipamento/{business_id}`
+- **US-CONN-012** — CRM API (`crm/follow-ups`, `crm/leads`)
+
+### in_progress
+
+- **US-CONN-015** — F2 — Pest baseline do ClientController antes de tocar _(`p2` · @[F])_
+
 ## Pcp
 
 
@@ -838,6 +869,29 @@
 - **US-FORJA-008** — Requisitos da Forja no formato atual — **oportunístico** _(`p1` · @[W])_
 - **US-FORJA-007** — WIP por pessoa vs máximo declarado _(`p2` · @[W])_
 
+## Officeimpresso
+
+
+### todo
+
+- **US-OI-001** — F2: Pest baseline do comportamento atual
+- **US-OI-002** — F2: action dual + feature flag `useV2OfficeimpressoLogs`
+- **US-OI-003** — F2: mapa de paridade Blade↔React
+- **US-OI-004** — F3: tela `Logs/Index` (Máquinas Cadastradas) em PT-01
+- **US-OI-005** — F3: tela `Logs/Timeline` (acessos por máquina) em PT-07
+- **US-OI-006** — F4: QA — os itens `alta` da paridade viram teste
+- **US-OI-007** — F5: cutover e sunset do Blade
+- **US-OI-008** — F2: baseline, payload seguro e flag da `Licencas/Index`
+- **US-OI-009** — F3: tela `Licencas/Index` (Computadores Cadastrados) em PT-01
+- **US-OI-010** — F4: QA da `Licencas/Index` — os itens `alta` viram teste
+- **US-OI-011** — F2: baseline, payload seguro e flag da `Empresa/Show`
+- **US-OI-012** — F3: tela `Empresa/Show` (ficha + computadores) em PT-03
+- **US-OI-013** — F4: QA da `Empresa/Show` — os itens `alta` viram teste
+- **US-OI-014** — F2: baseline, payload seguro e flag da `Empresas/Index`
+- **US-OI-015** — F3: tela `Empresas/Index` (Empresas Licenciadas) em PT-01
+- **US-OI-016** — F4: QA da `Empresas/Index` — os itens `alta` viram teste
+- **US-OI-017** — F5: cutover das 3 telas da Onda 2 e sunset dos Blades
+
 ## Accounting
 
 
@@ -920,25 +974,6 @@
 - **US-PONTO-011** — Fechar o append-only do ledger de banco de horas
 - **US-PONTO-012** — Corrigir os atributos fantasma do modulo (4 instancias)
 - **US-PONTO-013** — Consertar as duas telas que nao persistem
-
-## Connector
-
-
-### todo
-
-- **US-CONN-013** — Documentar a API Connector em OpenAPI 3.0 sem expor dados reais _(`p0` · @[F])_
-- **US-CONN-001** — Auth Passport `auth:api` bloqueia anônimo
-- **US-CONN-002** — Sync Delphi via `/processa-dados-cliente`
-- **US-CONN-003** — Registrar WR Comercial via `/oimpresso/registrar`
-- **US-CONN-004** — Check-update via `/check-update`
-- **US-CONN-005** — REST CRUD `/contactapi`
-- **US-CONN-006** — REST CRUD `/product`
-- **US-CONN-007** — REST CRUD `/sell` (vendas)
-- **US-CONN-008** — REST `/business-location` (filiais)
-- **US-CONN-009** — REST `/taxonomy` + `/brand`
-- **US-CONN-010** — REST `/user`
-- **US-CONN-011** — Sync `salvar-cliente` + `salvar-equipamento/{business_id}`
-- **US-CONN-012** — CRM API (`crm/follow-ups`, `crm/leads`)
 
 ## Mwart
 
@@ -1031,6 +1066,23 @@
 - **US-ESS-010** — Isolamento multi-tenant Tier 0 IRREVOGÁVEL ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
 - **US-ESSE-001** — [TODO — título]
 
+## Superadmin
+
+
+### todo
+
+- **US-SUPER-001** — Listagem e CRUD de Businesses
+- **US-SUPER-002** — Gestão de Packages (planos comerciais)
+- **US-SUPER-003** — Subscriptions (cobrança recorrente)
+- **US-SUPER-004** — Communicator (mensagens cross-tenant)
+- **US-SUPER-005** — Frontend Pages (site público)
+- **US-SUPER-006** — Manage Modules (instalar/desinstalar)
+- **US-SUPER-007** — System Info (saúde do sistema)
+- **US-SUPER-008** — Settings globais (SMTP/Pusher/Cron/Backup/Gateways)
+- **US-SUPER-009** — Pricing público (`/pricing`)
+- **US-SUPER-010** — Usuario 360 (visão consolidada do cliente)
+- **US-SUPER-011** — Visão geral da plataforma (`/superadmin`)
+
 ## Cms
 
 
@@ -1047,21 +1099,23 @@
 - **US-CMS-009** — Importer WordPress (XML/REST API)
 - **US-CMS-010** — Editor visual drag-drop (page builder)
 
-## Superadmin
+## Cliente
 
+
+### doing
+
+- **US-CRM-078** — Múltiplos endereços por contato + seletor de endereço na venda
 
 ### todo
 
-- **US-SUPER-001** — Listagem e CRUD de Businesses
-- **US-SUPER-002** — Gestão de Packages (planos comerciais)
-- **US-SUPER-003** — Subscriptions (cobrança recorrente)
-- **US-SUPER-004** — Communicator (mensagens cross-tenant)
-- **US-SUPER-005** — Frontend Pages (site público)
-- **US-SUPER-006** — Manage Modules (instalar/desinstalar)
-- **US-SUPER-007** — System Info (saúde do sistema)
-- **US-SUPER-008** — Settings globais (SMTP/Pusher/Cron/Backup/Gateways)
-- **US-SUPER-009** — Pricing público (`/pricing`)
-- **US-SUPER-010** — Usuario 360 (visão consolidada do cliente)
+- **US-CRM-079** — Anonimização fiscal-aware do titular (DsrService → contacts) — LGPD Art. 18
+- **US-CRM-080** — Teste cross-tenant no App\Contact pai + avaliar global scope (Tier 0)
+- **US-CRM-081** — Limite de crédito com bloqueio/aviso na venda (wirar enforcement)
+- **US-CRM-082** — Import de clientes com preview + dedupe/merge (CPF/CNPJ)
+- **US-CRM-083** — UI de consentimento (opt-in/opt-out) + base legal por finalidade
+- **US-CRM-084** — Extrato (Ledger) render inline 100% — parar de abrir Blade legacy ao filtrar
+- **US-CRM-085** — Export de portabilidade do titular (registro completo CSV/JSON) — LGPD Art. 18 V
+- **US-CRM-091** — Mapa de clientes: trocar o iframe hardcoded por provedor tokenizado
 
 ## TaskRegistry
 
@@ -1080,23 +1134,6 @@
 - **US-TR-205** — Activity feed timeline _(`p2` · @wagner)_
 - **US-TR-206** — Burndown chart _(`p2` · @wagner)_
 - **US-TR-302** — tasks-suggest-* (D2 AI-native) _(`p2` · @wagner)_
-
-## Cliente
-
-
-### doing
-
-- **US-CRM-078** — Múltiplos endereços por contato + seletor de endereço na venda
-
-### todo
-
-- **US-CRM-079** — Anonimização fiscal-aware do titular (DsrService → contacts) — LGPD Art. 18
-- **US-CRM-080** — Teste cross-tenant no App\Contact pai + avaliar global scope (Tier 0)
-- **US-CRM-081** — Limite de crédito com bloqueio/aviso na venda (wirar enforcement)
-- **US-CRM-082** — Import de clientes com preview + dedupe/merge (CPF/CNPJ)
-- **US-CRM-083** — UI de consentimento (opt-in/opt-out) + base legal por finalidade
-- **US-CRM-084** — Extrato (Ledger) render inline 100% — parar de abrir Blade legacy ao filtrar
-- **US-CRM-085** — Export de portabilidade do titular (registro completo CSV/JSON) — LGPD Art. 18 V
 
 ## KB
 
@@ -1223,6 +1260,14 @@
 
 - **US-ADS-001** — Audit Tier 0 — escopar os ~85 DB::table('mcp_*') crus por business_id _(`p1`)_
 - **US-ADS-002** — Elevar tela Admin/Graph a ≥70 (extrair HEX inline p/ tokens + a11y) _(`p3`)_
+
+## Documentacao
+
+
+### todo
+
+- **US-DOC-001** — Migrar a superfície `/documentacao` de Blade para Inertia/React
+- **US-DOC-002** — Tela do Programa (Trilha D) cruzando plano em git e tasks MCP
 
 ## MemoriaAutonoma
 

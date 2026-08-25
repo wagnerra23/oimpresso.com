@@ -43,6 +43,32 @@ export interface Meta {
    * rótulo de "não dá pra dizer" na própria regra.
    */
   farol?: Farol;
+  /**
+   * Projeção de fechamento, calculada pelo SERVIDOR (`ApuracaoService::projecao`)
+   * e já presente no payload de `/ia` desde a extração do farol
+   * (`IndexController` — `'projecao' => $apuracao->projecao($meta)`).
+   *
+   * Estava chegando e NINGUÉM lia: `rg projecao resources/js/Pages/Jana/` não
+   * devolvia um consumidor. O `JanaMetaDrawer` recusava mostrá-la com a razão
+   * certa para 2026-08-17 — *"uma projeção é veredito sobre o futuro; ela nasce
+   * no servidor ou não nasce"* — mas essa razão argumenta contra **calcular no
+   * frontend**, e aqui não se calcula nada: consome-se o número que o servidor
+   * já manda, pela mesma porta do `farol`.
+   *
+   * `null` = não há base pra projetar (período sem apuração ou de duração ≤ 0) —
+   * exatamente os casos em que o farol é 'cinza'.
+   */
+  projecao?: Projecao | null;
+}
+
+/** Shape de `ApuracaoService::projecao()`. */
+export interface Projecao {
+  /** Fração do período já decorrida (0–1). */
+  progresso: number;
+  /** Valor projetado para o fechamento, no ritmo atual. */
+  projetado: number;
+  /** Desvio do realizado vs o projetado, em %. Negativo = abaixo do ritmo. */
+  desvio_pct: number;
 }
 
 export type Farol = 'verde' | 'amarelo' | 'vermelho' | 'cinza';

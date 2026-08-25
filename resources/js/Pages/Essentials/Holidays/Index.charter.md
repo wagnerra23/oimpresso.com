@@ -1,6 +1,7 @@
 ---
 page: /hrm/holiday
 component: resources/js/Pages/Essentials/Holidays/Index.tsx
+bundle_source: hrm-page.jsx
 owner: wagner
 status: draft
 last_validated: "2026-05-17"

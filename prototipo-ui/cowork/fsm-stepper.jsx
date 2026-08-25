@@ -34,6 +34,16 @@
         cancelado: { hue: 240, ic: "⊘", lbl: "cancelado" },
       },
     },
+    repair: {
+      // Assistência técnica (Modules/Repair) — colunas do KanbanProductionService
+      // (recepcao → diagnostico → aguardando-pecas → em-execucao → pronto).
+      steps: ["Recepção", "Diagnóstico", "Aguardando peça", "Em reparo", "Pronto"],
+      lbls:  ["recep", "diag", "peça", "reparo", "pronto"],
+      hue: 295,
+      terminals: {
+        devolvido: { hue: 240, ic: "⊘", lbl: "sem reparo" },
+      },
+    },
     financeiro: {
       steps: ["Emitido", "Conferido", "Conciliado", "Liquidado"],
       lbls:  ["emit", "conf", "conc", "liq"],

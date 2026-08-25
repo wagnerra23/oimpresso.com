@@ -8,7 +8,8 @@ parent_module: Financeiro
 sister_module: PaymentGateway
 related_adrs: [93, 94, 104, 114, 144, 170]
 related_us: [US-PG-F3-COBRANCA]
-related_prototype: prototipo-ui/cowork/prototipos/payment-gateway-ui/cobranca-page.jsx (Cowork "payment-gateway-ui" F1+F1.5, aprovado [W] 2026-05-19)
+related_prototype: prototipo-ui/cowork/prototipos/payment-gateway-ui/cobranca-page.jsx
+related_prototype_nota: '(Cowork "payment-gateway-ui" F1+F1.5, aprovado [W] 2026-05-19)'
 related_decisions: COWORK_HANDOFF.paymentgateway-ui.md (F1 score 96/93/93)
 tier: A
 charter_version: 1

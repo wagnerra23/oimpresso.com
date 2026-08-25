@@ -39,7 +39,7 @@ last_validated: "<YYYY-MM-DD>"  # obrigatório, STRING quoted — data crua vira
 
 ## 2. Pré-condições
 
-- [ ] Módulo `<Mod>` instalado em `/manage-modules`
+- [ ] Módulo `<Mod>` instalado em `/modulos`
 - [ ] Permissão `<alias>.access` atribuída ao role do usuário
 - [ ] Rotas registradas em [`Modules/<Mod>/Routes/web.php`](../../../Modules/<Mod>/Routes/web.php)
 - [ ] Page Inertia em [`resources/js/Pages/<Mod>/<Tela>.tsx`](../../../resources/js/Pages/<Mod>/<Tela>.tsx) — módulo em **PascalCase** (`Copiloto`, não `copiloto`)

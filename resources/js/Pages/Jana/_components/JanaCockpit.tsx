@@ -60,6 +60,7 @@ import {
   Target,
   TrendingDown,
   TrendingUp,
+  UserMinus,
   Volume2,
 } from 'lucide-react';
 import { Card, CardContent } from '@/Components/ui/card';
@@ -105,12 +106,13 @@ export interface JanaCockpitProps {
     topDevedor: { name: string; total: number } | null;
     ticketMedio: number;
     totalAReceber: number;
+    churnOuro: Array<{ name: string; ltv: number; diasInativo: number; ultimaCompra: string | null }>;
   };
   userName?: string;
   /**
    * Quais análises renderizar (`JanaConfigDrawer`, persistido em
    * `localStorage['oimpresso.jana.cfg']`). Preferência de EXIBIÇÃO: o
-   * aggregator apura as quatro de qualquer jeito, numa consulta só — esconder
+   * aggregator apura as cinco de qualquer jeito, numa consulta só — esconder
    * card não economiza cálculo, e o drawer diz isso ao usuário.
    *
    * Opcional de propósito: `undefined` = mostra tudo. Assim o componente segue
@@ -250,12 +252,37 @@ export default function JanaCockpit({
   const overdueCount = insightsAggregates.overdueCount;
   const overdueValue = insightsAggregates.overdueValue;
   const totalAReceber = insightsAggregates.totalAReceber;
+
+  // Quanto do que a empresa tem A RECEBER já venceu. Os dois campos JÁ chegavam
+  // no payload e ninguém os cruzava — a tela dizia quantas vendas venceram, mas
+  // não o peso delas. É a leitura que o card devia carregar: "1 venda vencida"
+  // não diz se isso é irrelevante ou se é a metade do caixa.
+  //
+  // O arredondamento tem guarda de propósito: medido em produção (biz=1) a razão
+  // real dá menos de 1%, e um `Math.round` cru viraria "0% do a receber" ao lado
+  // de uma venda que ESTÁ vencida — número que contradiz o próprio card. Abaixo
+  // de 1% o texto é "<1%", que é verdadeiro e não engana.
+  //
+  // Contenção provada: `overdueValue` é subconjunto de `totalAReceber` (o vencido
+  // é parte do não-pago), então a razão nunca passa de 100%. Medido em produção:
+  // overdueValue <= totalAReceber = true, totalAReceber > 0 = true.
+  const pctVencido =
+    totalAReceber > 0 && overdueValue > 0
+      ? Math.max(1, Math.round((overdueValue / totalAReceber) * 100))
+      : null;
+  const pctVencidoTexto =
+    pctVencido === null
+      ? null
+      : Math.round((overdueValue / totalAReceber) * 100) < 1
+        ? '<1% do a receber'
+        : `${pctVencido}% do a receber`;
   const ageingBuckets = insightsAggregates.ageingBuckets;
   const ageingTotal = Object.values(ageingBuckets).reduce((a, b) => a + b, 0);
   const methodsAggList = insightsAggregates.methodsAgg;
   const methodsTotal = methodsAggList.reduce((a, m) => a + m.total, 0);
   const topClientesList = insightsAggregates.topClientes;
   const topClientesTotal = topClientesList.reduce((a, c) => a + c.total, 0);
+  const churnList = insightsAggregates.churnOuro;
   const ticketMedio = insightsAggregates.ticketMedio;
   const topDevedor = insightsAggregates.topDevedor;
 
@@ -278,7 +305,7 @@ export default function JanaCockpit({
   // no botão o que a rota não entrega") vale igual pros dois.
   //
   // Paridade com `AcaoHitlService::ACOES` (o backend valida a chave e devolve 404
-  // pro que não conhece) é amarrada por teste — UC-COPI-PAINEL-12.
+  // pro que não conhece) é amarrada por teste — UC-JPAIN-12.
   type AcaoTone = 'rose' | 'violet' | 'peach' | 'grey';
   interface Acao {
     id: string;
@@ -379,6 +406,7 @@ export default function JanaCockpit({
   const abrirConc = () => setDrill({ id: 'conc', title: 'Top 5 clientes', sub: 'concentração' });
   const abrirMetodos = () =>
     setDrill({ id: 'metodos', title: 'Métodos de pagamento', sub: `top ${methodsAggList.length}` });
+  const abrirChurn = () => setDrill({ id: 'churn', title: 'Churn ouro', sub: 'maior LTV parado' });
 
   return (
     <div className="space-y-4">
@@ -552,16 +580,43 @@ export default function JanaCockpit({
           LIVRE, vestuário). Isso é decisão [W], não implementação — o Non-Goal que
           proibia a Frota saiu no charter v7, mas a AUSÊNCIA DE FONTE não saiu com
           ele. */}
+      {/* ── JANELA DO KPI: o rótulo diz o que o dado É ────────────────────
+          Este card dizia "Receita mês" e mostrava `sparkSum` — a soma da
+          SPARKLINE, que é `whereBetween(transaction_date, [hoje-29, hoje])`:
+          30 dias DESLIZANTES, não o mês corrente. No dia 21 isso cobre 23/jul
+          a 21/ago; os dois só coincidem no dia 30 ou 31.
+
+          De onde veio a palavra errada (medido 2026-08-21): a âncora oficial
+          desta tela (`jana-merge.jsx`, `related_prototype` do charter) NÃO tem
+          este KPI. O rótulo "Receita mês" veio de `chat-jana.jsx` :87 — o
+          protótipo que o §5 de 2026-08-10 declarou NÃO-âncora. E lá ele é
+          coerente, porque o delta ao lado é "vs mai/25": mês contra mês. Aqui
+          herdou-se a palavra sem a semântica — o dado é 30d e o delta é diário.
+          É a lápide §5 2026-07-16 (importar sem checar se a premissa vale).
+
+          O delta também passou a declarar sua janela: `deltaRevenueVsYesterday`
+          compara HOJE com ONTEM, e rotulá-lo só "vs ontem" ao lado de um valor
+          de 30 dias sugeria que o valor grande é que tinha variado.
+
+          E o `|| faturadoHoje` saiu: era INALCANÇÁVEL, não um fallback. As duas
+          queries têm filtros idênticos e a janela do sparkline vai até o fim de
+          hoje, então `faturadoHoje ⊆ sparkSum` — se houve venda hoje, sparkSum
+          já é > 0 e o `||` nunca dispara. Zero era zero de verdade.
+
+          ⚠️ Trocar o RÓTULO não mexe em valor. Fazer o inverso — passar o
+          cálculo a mês-calendário para casar a palavra antiga — mexeria, e aí
+          vale a regra mestre de VALOR (dupla prova + antes→depois). É decisão
+          [W], registrada no `Index.casos.md` §UC-JPAIN-14. */}
       <KpiGrid cols={4}>
         {carregandoCockpit ? (
-          <KpiCardSkeleton label="Receita mês" />
+          <KpiCardSkeleton label="Receita 30 dias" />
         ) : (
           <KpiCard
-            label="Receita mês"
-            value={fmtShort(sparkSum || faturadoHoje)}
+            label="Receita 30 dias"
+            value={fmtShort(sparkSum)}
             icon="wallet"
             tone="default"
-            delta={deltaRev !== null ? { value: deltaRev, label: 'vs ontem' } : undefined}
+            delta={deltaRev !== null ? { value: deltaRev, label: 'hoje vs ontem' } : undefined}
             onClick={abrirFat}
           />
         )}
@@ -578,7 +633,12 @@ export default function JanaCockpit({
           tone={overdueValue > 0 ? 'danger' : 'default'}
           description={
             overdueCount > 0
-              ? `${overdueCount} ${plural(overdueCount, 'venda vencida', 'vendas vencidas')}`
+              ? [
+                  `${overdueCount} ${plural(overdueCount, 'venda vencida', 'vendas vencidas')}`,
+                  pctVencidoTexto,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')
               : 'tudo em dia'
           }
           onClick={abrirInad}
@@ -764,6 +824,33 @@ export default function JanaCockpit({
         </AnalysisCard>
         )}
 
+        {/* Churn ouro */}
+        {mostra('churn') && (
+        <AnalysisCard
+          icon={<UserMinus size={16} />}
+          title="Churn ouro"
+          subtitle="maior LTV parado"
+          big={<span>{churnList.length}</span>}
+          onClick={abrirChurn}
+        >
+          <div className="flex flex-col gap-2">
+            {churnList.length === 0 ? (
+              <div className="py-2 text-xs text-muted-foreground">Ninguém de peso parou de comprar</div>
+            ) : (
+              churnList.map((c) => (
+                <div key={c.name} className="flex items-baseline justify-between gap-2 text-xs">
+                  <span className="min-w-0 flex-1 truncate text-muted-foreground" title={c.name}>
+                    {c.name}
+                  </span>
+                  <span className="shrink-0 tabular-nums text-muted-foreground opacity-70">{c.diasInativo}d</span>
+                  <b className="shrink-0 font-semibold tabular-nums text-foreground">{fmtShort(c.ltv)}</b>
+                </div>
+              ))
+            )}
+          </div>
+        </AnalysisCard>
+        )}
+
         {/* Todas escondidas: a seção declara o estado e diz como voltar, em vez
             de deixar um título com o vazio embaixo — o usuário que escondeu tudo
             no drawer precisa achar o caminho de volta. */}
@@ -771,7 +858,7 @@ export default function JanaCockpit({
           <div className="col-span-full rounded-lg border border-dashed border-border p-6 text-center">
             <p className="text-sm font-medium text-foreground">Nenhuma análise sendo exibida</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Você escondeu as quatro em <span className="font-medium text-foreground">Configurar</span>.
+              Você escondeu todas em <span className="font-medium text-foreground">Configurar</span>.
               Os dados continuam lá — reative quando quiser.
             </p>
           </div>

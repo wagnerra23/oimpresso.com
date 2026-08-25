@@ -26,9 +26,17 @@ name: BRL scan (valor monetário em linha nova)
 #   - FP: 0 em 38.324 linhas adicionadas dos últimos 120 commits de main
 #   - selftest 12/12 (linha removida/contexto não conta, R$ 0 e redacted não acusam)
 
+# PONTO CEGO FECHADO (2026-08-22, medido no PR #6133):
+# um dos passos varre o CORPO do PR, mas `pull_request:` sem `types:` usa os defaults
+# do GitHub — `opened`, `synchronize`, `reopened`. `edited` NÃO está entre eles.
+# Consequência: corpo editado depois do último push nunca era re-varrido, então dava
+# pra (a) passar no gate e ADICIONAR valor no corpo depois, e (b) consertar o corpo sem
+# o gate reconhecer. Medido, não deduzido da doc: corpo editado 12:24Z e a última run
+# seguia sendo a de 12:18Z — zero run nova.
 on:
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, edited]
   workflow_dispatch:
 
 concurrency:
@@ -75,7 +83,14 @@ jobs:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: printf '%s' "$PR_BODY" | node scripts/governance/brl-scan-diff.mjs --stdin
 
-      - name: Varre os subjects dos commits do PR
+      # `%B` (mensagem INTEIRA), nao `%s` (so o assunto). MEDIDO em 2026-08-20 sobre os
+      # 400 commits mais recentes de main, rodando o proprio scanner (nao um grep): 9 commits
+      # seriam reprovados pelo corpo e apenas 1 pelo assunto — ou seja, o `%s` cobria 1/9 da
+      # superficie real. O caso que motivou: o #5981 vazou dois valores de MRR pro historico
+      # de main porque o repo tem `squash_merge_commit_message: COMMIT_MESSAGES` (o squash
+      # CONCATENA os corpos) e o assunto estava limpo. Segue forward-only: varre so
+      # BASE_SHA..HEAD, entao o passivo de main fica intocado (§5 proibicoes 2026-07-12).
+      - name: Varre as mensagens INTEIRAS dos commits do PR
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: git log --format='%s' "$BASE_SHA"..HEAD | node scripts/governance/brl-scan-diff.mjs --stdin
+        run: git log --format='%B' "$BASE_SHA"..HEAD | node scripts/governance/brl-scan-diff.mjs --stdin

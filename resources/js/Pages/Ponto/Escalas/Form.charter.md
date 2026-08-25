@@ -2,7 +2,7 @@
 id: resources-js-pages-ponto-escalas-form-charter
 page: /ponto/escalas/create
 component: resources/js/Pages/Ponto/Escalas/Form.tsx
-related_prototype: n/a (herda PT-02 Formulário; segue o Padrão de Tela)
+related_prototype: prototipo-ui/cowork/ponto-telas.jsx
 owner: wagner
 status: draft
 last_validated: "2026-07-11"

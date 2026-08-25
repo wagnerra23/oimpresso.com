@@ -10,14 +10,14 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Link, router } from '@inertiajs/react';
 import { useEffect, type ReactNode } from 'react';
-import { ArrowRight, AlertTriangle, CheckCheck } from 'lucide-react';
+import { ArrowRight, AlertTriangle, CheckCheck, ShieldCheck } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { cn, formatMinutes } from '@/Lib/utils';
 
 import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import { PageHeaderPrimary } from '@/Components/PageHeader';
-import { Grid } from '@/Components/layout';
+import { Grid, Inline } from '@/Components/layout';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import StatusBadge from '@/Components/shared/StatusBadge';
@@ -32,6 +32,12 @@ interface Kpis {
   faltas_hoje: number;
   he_mes_minutos: number;
   aprovacoes_pendentes: number;
+  /** Dias em DIVERGENCIA na competência — alimenta `painel-nota-fechamento`. */
+  divergencias_mes: number;
+  /** Pendentes com prioridade URGENTE — legenda do KPI de aprovações. */
+  aprovacoes_urgentes: number;
+  /** H:i da última marcação de hoje (null se ainda não houve). */
+  ultima_marcacao: string | null;
 }
 
 interface Aprovacao {
@@ -40,6 +46,9 @@ interface Aprovacao {
   prioridade: string;
   data_inicio: string | null;
   data_fim: string | null;
+  dia_todo: boolean;
+  intervalo_inicio: string | null;
+  intervalo_fim: string | null;
   justificativa: string;
   estado: string;
   created_at: string | null;
@@ -48,6 +57,8 @@ interface Aprovacao {
 
 interface Marcacao {
   id: number;
+  /** Numero Sequencial de Registro por REP (Portaria MTP 671/2021). */
+  nsr: number | null;
   tipo: string;
   momento: string | null;
   momento_completo?: string | null;
@@ -93,6 +104,8 @@ interface Props {
    * `<Deferred data="..." fallback={skeleton}>`.
    */
   kpis?: Kpis;
+  /** EAGER (config, zero query) — fora do `only` do polling. */
+  config_clt: { tolerancia_diaria_minutos: number; limite_he_diaria_horas: number };
   aprovacoes?: Aprovacao[];
   atividade_recente?: Marcacao[];
   serie_7dias?: SeriePonto[];
@@ -101,8 +114,75 @@ interface Props {
   server_time: string;
 }
 
+/**
+ * Nota "o que trava o fechamento" — seção `painel-nota-fechamento` do contrato.
+ *
+ * Âncora de design: `prototipo-ui/cowork/ponto-page.jsx` §`Nota contrato="painel-nota-fechamento"`
+ * (âncora de SÍMBOLO, nunca linha — re-localize com
+ * `grep -n "painel-nota-fechamento" prototipo-ui/cowork/ponto-page.jsx`).
+ *
+ * Existe porque dia em DIVERGENCIA não é detalhe de relatório: ele impede a
+ * apuração de consolidar E faz o AFD gerado sair com a jornada errada. Quem abre
+ * o painel precisa ver isso antes de tentar fechar o mês, não depois.
+ *
+ * Os 3 estados são os do contrato (`com-pendencia` · `sem-pendencia` ·
+ * `so-divergencia`) e a redação é a do protótipo, não reescrita aqui.
+ */
+function NotaFechamento({ pendentes, divergencias }: { pendentes: number; divergencias: number }) {
+  const travado = pendentes > 0 || divergencias > 0;
+  const dias = divergencias === 1 ? 'dia está' : 'dias estão';
+  const mes = new Date().toLocaleDateString('pt-BR', { month: 'long' });
+
+  return (
+    <div
+      data-contract="painel-nota-fechamento"
+      className={cn(
+        'rounded-lg border px-4 py-3 text-sm',
+        travado
+          ? 'border-warning/40 bg-warning-soft text-foreground'
+          : 'border-success/40 bg-success-soft text-foreground',
+      )}
+    >
+      {/* <Inline> em vez de `flex items-center gap-*` solto — ADR 0253. O gap
+          vira token (2) em vez do 1.5 fora de escala que eu tinha escrito. */}
+      <Inline gap={2} asChild>
+        <p className="font-medium">
+          {travado ? (
+            <AlertTriangle size={15} className="text-warning" aria-hidden />
+          ) : (
+            <CheckCheck size={15} className="text-success" aria-hidden />
+          )}
+          O que trava o fechamento de {mes}
+        </p>
+      </Inline>
+      <p className="mt-1 text-muted-foreground">
+        {pendentes === 0 && divergencias === 0 ? (
+          <>Nenhuma intercorrência aguardando decisão e nenhum dia em divergência — a competência pode consolidar.</>
+        ) : pendentes === 0 ? (
+          <>
+            Nenhuma intercorrência aguardando decisão, mas {divergencias} {dias} em{' '}
+            <b>DIVERGENCIA</b> na apuração — o espelho não consolida assim, e o AFD gerado sai com a
+            jornada errada.
+          </>
+        ) : (
+          <>
+            {pendentes === 1 ? 'Uma intercorrência espera' : `${pendentes} intercorrências esperam`}{' '}
+            decisão e {divergencias} {dias} em <b>DIVERGENCIA</b> na apuração. Enquanto isso, o
+            espelho do mês não consolida — e o AFD gerado sai com a jornada errada.
+          </>
+        )}
+      </p>
+    </div>
+  );
+}
+
+function NotaSkeleton() {
+  return <div className="h-16 animate-pulse rounded-lg border border-border bg-background" />;
+}
+
 export default function DashboardIndex({
   kpis,
+  config_clt,
   aprovacoes,
   atividade_recente,
   serie_7dias,
@@ -145,12 +225,23 @@ export default function DashboardIndex({
           </div>
         </header>
 
+        {/* Nota "o que trava o fechamento" — 1ª seção do contrato `ponto-painel`,
+            e por isso vem ANTES dos KPIs (o gate cobra a ordem das âncoras).
+            Lê da mesma prop deferida dos KPIs: são a mesma consulta. */}
+        <Deferred data="kpis" fallback={<NotaSkeleton />}>
+          <NotaFechamento
+            pendentes={kpis?.aprovacoes_pendentes ?? 0}
+            divergencias={kpis?.divergencias_mes ?? 0}
+          />
+        </Deferred>
+
         {/* KPIs — prop deferida: guarda `?.`/`?? 0` cobre o first render */}
         <Deferred data="kpis" fallback={<KpiSkeleton />}>
-          <KpiGrid cols={6}>
+          <KpiGrid cols={6} data-contract="painel-kpis">
             <KpiCard
-              label="Colaboradores"
+              label="Colaboradores ativos"
               value={kpis?.colaboradores_ativos ?? 0}
+              description="com controle de ponto"
               icon="users"
               tone="info"
               size="compact"
@@ -159,34 +250,51 @@ export default function DashboardIndex({
             <KpiCard
               label="Presentes agora"
               value={kpis?.presentes_agora ?? 0}
+              description={
+                kpis?.ultima_marcacao
+                  ? `última marcação ${kpis.ultima_marcacao}`
+                  : 'nenhuma marcação hoje'
+              }
               icon="user-check"
               tone="success"
               size="compact"
+              onClick={() => router.visit('/ponto/espelho')}
             />
             <KpiCard
               label="Atrasos hoje"
               value={kpis?.atrasos_hoje ?? 0}
+              description={`além da tolerância de ${config_clt.tolerancia_diaria_minutos} min`}
               icon="clock-alert"
               tone={(kpis?.atrasos_hoje ?? 0) > 0 ? 'warning' : 'default'}
               size="compact"
+              onClick={() => router.visit('/ponto/espelho')}
             />
             <KpiCard
               label="Faltas hoje"
               value={kpis?.faltas_hoje ?? 0}
+              description="sem marcação e sem intercorrência"
               icon="user-x"
               tone={(kpis?.faltas_hoje ?? 0) > 0 ? 'danger' : 'default'}
               size="compact"
+              onClick={() => router.visit('/ponto/espelho')}
             />
             <KpiCard
               label="HE do mês"
               value={formatMinutes(kpis?.he_mes_minutos ?? 0)}
+              description={`limite ${config_clt.limite_he_diaria_horas}h/dia (Art. 59)`}
               icon="trending-up"
               tone="info"
               size="compact"
+              onClick={() => router.visit('/ponto/banco-horas')}
             />
             <KpiCard
-              label="Aprovações"
+              label="Aprovações pendentes"
               value={kpis?.aprovacoes_pendentes ?? 0}
+              description={
+                (kpis?.aprovacoes_urgentes ?? 0) > 0
+                  ? `${kpis?.aprovacoes_urgentes} urgente${(kpis?.aprovacoes_urgentes ?? 0) > 1 ? 's' : ''}`
+                  : 'nada urgente'
+              }
               icon="check-check"
               tone={(kpis?.aprovacoes_pendentes ?? 0) > 0 ? 'danger' : 'default'}
               size="compact"
@@ -202,7 +310,7 @@ export default function DashboardIndex({
 
         {/* Grid 2 colunas — esquerda: gráfico + atividade | direita: alertas + aprovações */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Esquerda (2 cols): gráfico + atividade */}
+          {/* Esquerda (2 cols): gráfico + fila de aprovações + atividade */}
           <div className="lg:col-span-2 space-y-4">
             <Card>
               <CardHeader>
@@ -218,28 +326,26 @@ export default function DashboardIndex({
               </CardContent>
             </Card>
 
-            <Deferred data="atividade_recente" fallback={<CardListSkeleton />}>
-              <ActivityFeed marcacoes={atividade_recente ?? []} title="Atividade de hoje" />
-            </Deferred>
-          </div>
-
-          {/* Direita (1 col): alertas + aprovações */}
-          <div className="space-y-4">
-            <Deferred data="alertas" fallback={<CardListSkeleton />}>
-              <AlertInbox alertas={alertas ?? []} />
-            </Deferred>
-
-            <Card>
+            {/* Fila de aprovações vem ANTES da atividade, e na coluna larga — é a ordem
+                do contrato `ponto-painel` e do protótipo (`ponto-page.jsx` §pt-cols-2:
+                fila, depois atividade). A ordem das âncoras é ordem de LEITURA (DOM),
+                então não dá pra acertar com CSS `order` sem descolar leitura de visual. */}
+            <Card data-contract="painel-fila-aprovacoes">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <div>
                   <CardTitle className="text-base flex items-center gap-1.5">
-                    <CheckCheck size={16} className="text-primary" /> Aprovações
+                    <CheckCheck size={16} className="text-primary" /> Fila de aprovações
                   </CardTitle>
-                  <CardDescription className="text-xs">Intercorrências pendentes</CardDescription>
+                  {/* Contagem vem de `kpis.aprovacoes_pendentes`, NAO de `aprovacoes.length`:
+                      a fila e limitada a 5 no controller, entao o length mentiria a partir
+                      da 6a pendencia. */}
+                  <CardDescription className="text-xs">
+                    ({kpis?.aprovacoes_pendentes ?? 0} pendentes)
+                  </CardDescription>
                 </div>
                 <Button variant="ghost" size="sm" asChild>
                   <Link href="/ponto/aprovacoes" className="text-xs">
-                    Ver todas <ArrowRight size={12} className="ml-1" />
+                    Ver fila completa <ArrowRight size={12} className="ml-1" />
                   </Link>
                 </Button>
               </CardHeader>
@@ -247,7 +353,7 @@ export default function DashboardIndex({
                 <Deferred data="aprovacoes" fallback={<RowsSkeleton />}>
                   {(aprovacoes ?? []).length === 0 ? (
                     <p className="text-xs text-muted-foreground text-center py-6">
-                      Nenhuma pendência
+                      Nenhuma intercorrência aguardando decisão.
                     </p>
                   ) : (
                     (aprovacoes ?? []).map((a) => <ApprovalRow key={a.id} item={a} />)
@@ -255,8 +361,36 @@ export default function DashboardIndex({
                 </Deferred>
               </CardContent>
             </Card>
+
+            <div data-contract="painel-atividade">
+              <Deferred data="atividade_recente" fallback={<CardListSkeleton />}>
+                {/* "marcações de hoje" (copy do contrato) vive no subtítulo do
+                    ActivityFeed; o rótulo da seção é o título. */}
+                <ActivityFeed marcacoes={atividade_recente ?? []} title="Atividade recente" />
+              </Deferred>
+            </div>
+          </div>
+
+          {/* Direita (1 col): alertas */}
+          <div className="space-y-4">
+            <Deferred data="alertas" fallback={<CardListSkeleton />}>
+              <AlertInbox alertas={alertas ?? []} />
+            </Deferred>
           </div>
         </div>
+
+        {/* Rodapé legal — `<Legal />` do protótipo (`prototipo-ui/cowork/ponto-ui.jsx`).
+            Não é decoração: o painel é a home de um módulo cujo dado é regido pela
+            Portaria MTP 671/2021, e a imutabilidade append-only é a razão de várias
+            coisas da tela não serem editáveis. Dizer isso onde o gestor olha evita a
+            pergunta "por que não dá pra corrigir a marcação aqui?". */}
+        <Inline gap={2} asChild>
+          <p className="text-xs text-muted-foreground pt-1">
+            <ShieldCheck size={13} aria-hidden />
+            Registros protegidos pela Portaria MTP 671/2021 — marcações são imutáveis
+            (append-only).
+          </p>
+        </Inline>
       </div>
     </>
   );
@@ -361,9 +495,18 @@ function ApprovalRow({ item }: { item: Aprovacao }) {
         <div className="flex items-center gap-1.5">
           <span className="text-sm font-medium truncate">{item.colaborador.nome}</span>
           <StatusBadge kind="prioridade" value={item.prioridade} />
+          {/* ESTADO — o protótipo tem coluna própria pra ele. Sem isto a fila mostra
+              o que é urgente mas não em que ponto da decisão cada item está. */}
+          <StatusBadge kind="intercorrencia" value={item.estado} />
         </div>
         <p className="text-xs text-muted-foreground truncate">
           {item.tipo.replace(/_/g, ' ').toLowerCase()} · {item.data_inicio}
+          {' · '}
+          {item.dia_todo
+            ? 'dia todo'
+            : item.intervalo_inicio
+              ? `${item.intervalo_inicio}–${item.intervalo_fim ?? '??'}`
+              : '—'}
         </p>
         <p className="text-[10px] text-muted-foreground">{item.created_at}</p>
       </div>

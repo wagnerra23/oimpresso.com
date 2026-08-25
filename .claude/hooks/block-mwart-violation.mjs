@@ -51,7 +51,7 @@
 // Exit: 0 = continua | 2 = bloqueia (stderr vira a razão pro Claude).
 
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 
@@ -139,8 +139,18 @@ function parseRunbookField(text) {
  *  Validamos EXISTÊNCIA, não semântica — a confiança termina no charter (lápide 2026-06-30). */
 export function charterRunbookExists(filePath, root = process.cwd()) {
   try {
-    const fwd = String(filePath || '').replace(/\\/g, '/');
+    let fwd = String(filePath || '').replace(/\\/g, '/');
     if (!fwd.endsWith('.tsx')) return false;
+    // O PreToolUse entrega o path ABSOLUTO ('D:/…/Import.tsx'); `join(root, absoluto)`
+    // concatena e devolve caminho inexistente → o resgate por charter respondia `false`
+    // pra TODA tela no Windows. Fixtures só usavam path relativo, então a suíte ficava
+    // verde enquanto o resgate estava morto na plataforma do repo. Testar `/` sozinho não
+    // basta: 'D:/x' é absoluto no Windows e relativo no POSIX (§5 2026-08-07).
+    if (/^([A-Za-z]:)?\//.test(fwd)) {
+      const rel = relative(String(root).replace(/\\/g, '/'), fwd).replace(/\\/g, '/');
+      // fora da raiz (`..`) fica como veio — não inventamos alvo fora do repo.
+      if (rel && !rel.startsWith('..')) fwd = rel;
+    }
     const charterAbs = join(root, fwd.replace(/\.tsx$/, '.charter.md'));
     if (!existsSync(charterAbs)) return false;
     const declared = parseRunbookField(readFileSync(charterAbs, 'utf8'));

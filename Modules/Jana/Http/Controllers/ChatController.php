@@ -98,6 +98,25 @@ class ChatController extends Controller
                 'conversa'           => $conversa,
                 'mensagens'          => $this->buildMensagensPayload($conversa),
                 'sugestoesPendentes' => $this->buildSugestoesPendentesPayload($conversa),
+
+                // Onda 2 da paridade da área Jana: o `JanaAreaHeader` já aceitava
+                // `businessName`/`businessId` — só o Painel os mandava, então empresa e
+                // `biz=` sumiam ao trocar de aba. O próprio componente documentava a
+                // lacuna ("Conversa/Memória não recebem `janaContext` do controller
+                // delas"). Mesmo shape do `IndexController`, pra não abrir 2ª convenção.
+                // Multi-tenant Tier 0 (ADR 0093): sai da SESSÃO, nunca do request.
+                //
+                // ⚠️ `businessName` aqui e o `businessNome` do `shellPropsForDeferred`
+                // saem da MESMA fonte — `session('business.name')`. A sobreposição é
+                // declarada, não acidental: `businessNome` serve o RESTO da tela (o
+                // seletor de business), e `janaContext` é a convenção do HEADER, já
+                // usada pelo Painel. Unificar as duas é outra onda — fazer aqui
+                // arrastaria o seletor pra dentro de um PR de header.
+                'janaContext' => [
+                    'businessId'   => (int) $businessId,
+                    'businessName' => (string) (session('business.name') ?? ''),
+                    'userName'     => optional(auth()->user())->name,
+                ],
             ]
         ));
     }

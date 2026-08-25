@@ -109,6 +109,12 @@ coisa ("a capacidade existe no sistema"), e dois sentidos lado a lado é ambigui
   O ✅ vem do manifesto derivado do JUnit, nunca escrito à mão.
 - **Não verificado localmente:** `route:list` e `tsc` — esta worktree não tem `vendor/` nem
   `node_modules/`. Os dois são checados no CI.
+- **Fila lateral (`mesa-fila`), 2026-08-18 — paridade com o `ap-fila` do protótipo.** Antes a mesa
+  mostrava só o mais antigo e um contador "N na fila": dava o número e não deixava olhar. A fila
+  navegável usa o prop `fila` que **já vinha** do service (teto 200); nenhum campo novo, nenhum
+  backend. Trocar o foco é estado de front (`selId`) e **não** decide nem reordena — a ordem
+  continua sendo a espera, do backend (anti-hook de prioridade preservado). Sem teste que a
+  exercite (a tela tem 0 E2E), então está no `[BACKLOG]` do `casos.md`, **não** como UC.
 - **Sem smoke visual ainda** — screenshot pós-deploy é obrigatório antes de declarar pronto (R1 do
   PROTOCOLO-WAGNER-SEMPRE).
 - O `hitl_pending` do Daily Brief **não** é esta fila: a procedure mede `status='blocked' AND

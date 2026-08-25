@@ -62,6 +62,45 @@ it('/documentacao/programa resolve pra programa, nao pra documento de slug "prog
     expect($rota->getActionMethod())->toBe('programa');
 });
 
+it('slug com ":" e com "/" casa a rota do documento — o caso cuja ausencia deixou o briefing quebrado 20 dias', function () {
+    // POR QUE ESTE CASO EXISTE (2026-08-25).
+    // O indexador (IndexarMemoryGitParaDb) gera slug com dois-pontos e barra:
+    //   briefing:<mod>  ·  charter:<Mod>/<Tela>  ·  casos:<Mod>/<Tela>
+    // O regex da rota era `[A-Za-z0-9._-]+`, que rejeita ambos. Resultado: o tipo
+    // `briefing` entrou no TIPOS_DOC em 2026-08-05 e por 20 dias apareceu na BUSCA
+    // com um link que dava 404 — medido em producao (302 = rota casou e pediu login;
+    // 404 = o regex recusou antes do auth):
+    //     /documentacao/qualquer-slug     302   (controle positivo)
+    //     /documentacao/briefing:Arquivos 404   (o `:` derrubava)
+    // Os casos de ORDEM acima nao pegavam isso: exercem so slug ASCII simples.
+    $casos = [
+        'briefing:arquivos'      => 'so dois-pontos (o formato que quebrou em 2026-08-05)',
+        'charter:Arquivos/Index' => 'dois-pontos + barra (trio de tela)',
+        'casos:Arquivos/Index'   => 'dois-pontos + barra (trio de tela)',
+    ];
+
+    foreach ($casos as $slug => $porque) {
+        $rota = app('router')->getRoutes()->match(
+            Illuminate\Http\Request::create('/documentacao/' . $slug, 'GET')
+        );
+
+        expect($rota->getName())->toBe('documentacao.documento', $porque);
+        expect($rota->parameter('slug'))->toBe($slug, $porque);
+    }
+});
+
+it('CONTROLE NEGATIVO: /buscar e /programa continuam ganhando do {slug} mesmo com o regex ampliado', function () {
+    // Ampliar o regex pra aceitar `/` faz o {slug} casar mais de um segmento. A
+    // precedencia continua vindo da ORDEM de declaracao — este caso prova que
+    // ampliar nao engoliu as rotas irmas, que e o unico risco real da mudanca.
+    foreach (['buscar' => 'documentacao.buscar', 'programa' => 'documentacao.programa'] as $seg => $nome) {
+        $rota = app('router')->getRoutes()->match(
+            Illuminate\Http\Request::create('/documentacao/' . $seg, 'GET')
+        );
+        expect($rota->getName())->toBe($nome);
+    }
+});
+
 it('o plano que a tela do programa renderiza existe e tem a estrutura que o controller parseia', function () {
     // Espelha a const PLANO do DocumentacaoController. Sem qualquer uma destas
     // subseções o controller aborta 503 — melhor descobrir aqui que em produção.

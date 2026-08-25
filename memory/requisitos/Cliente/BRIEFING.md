@@ -2,9 +2,9 @@
 id: requisitos-cliente-briefing
 module: Cliente
 status: producao
-updated_at: "2026-07-27"
-distilled_at: "2026-07-27"
-distilled_by: "manual [C] — redestilação PARCIAL: o módulo ganhou SDD + contratos de tela no chip do passo 5 (PR #4870). O resto do corpo NÃO foi re-lido."
+updated_at: "2026-08-18"
+distilled_at: "2026-08-18"
+distilled_by: "manual [C] — redestilação PARCIAL: só a seção 'Âncora de design' (Onda 0 da paridade, PR #5924). O resto do corpo NÃO foi re-lido; a redestilação de 2026-07-27 (SDD + contratos de tela, PR #4870) segue valendo para as demais seções."
 ---
 
 # BRIEFING — Cliente (cadastro de clientes / contatos)
@@ -45,3 +45,11 @@ gerados pelo chip `sdd-from-source` ([ADR 0351](../../decisions/0351-sdd-from-so
 >
 > O painel derivado fica em [`_STATUS-GENERATED.md`](_STATUS-GENERATED.md). Número escrito à mão apodrece —
 > este doc aponta para o dono, não restateia (proibições §5, 2026-07-17).
+
+## Âncora de design (protótipo)
+
+As telas passaram a declarar `related_prototype` no charter — antes a ligação vivia em `bundle_source`/`mwart_pattern_reuse`, campos que o resolvedor só lê com `--staging`. `Show` declara `n/a` (herda PT-03; o drawer 760 substituiu o fullpage). **`Map` fica sem âncora por decisão:** "Map lib" está segurado pela [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) e não tem US — declarar exigiria inventar uma.
+
+> **Estado vivo — não copiado aqui:** `node prototipo-ui/ancora.mjs Cliente/<Tela>`
+>
+> Diagnóstico medido, pareamento protótipo↔tela e ondas: [`PARIDADE-area-cliente-diagnostico-e-ondas.md`](PARIDADE-area-cliente-diagnostico-e-ondas.md).

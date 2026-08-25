@@ -1,5 +1,11 @@
 {
   "prontas": [
+    "Cliente/Create",
+    "Cliente/Edit",
+    "Cliente/Import",
+    "Cliente/Index",
+    "Cliente/Ledger",
+    "Cliente/Map",
     "Compras/Index",
     "Financeiro/Cobranca/Index",
     "Financeiro/Conciliacao/Index",
@@ -8,21 +14,53 @@
     "Financeiro/Impostos/Index",
     "Financeiro/ProvaViva",
     "Financeiro/Unificado/Index",
+    "Jana/Chat",
+    "Jana/Index",
+    "Jana/Memoria",
     "kb/Index",
+    "Modules/Index",
+    "Ponto/Aprovacoes/Index",
+    "Ponto/BancoHoras/Index",
+    "Ponto/BancoHoras/Show",
+    "Ponto/Dashboard/Index",
+    "Ponto/Escalas/Form",
+    "Ponto/Espelho/Index",
+    "Ponto/Espelho/Show",
+    "Ponto/Importacoes/Create",
+    "Ponto/Importacoes/Index",
+    "Ponto/Importacoes/Show",
+    "Ponto/Intercorrencias/Create",
+    "Ponto/Intercorrencias/Index",
+    "Ponto/Intercorrencias/Show",
+    "Ponto/Relatorios/Index",
     "Produto/SellingPrices",
     "Sells/Index"
   ],
   "ciclo": [
     {
-      "tela": "Jana/Index",
+      "tela": "Arquivos/Index",
+      "arquivo": "resources/js/Pages/Arquivos/Index.tsx",
+      "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/jana-merge.jsx",
+      "prototipo": "prototipo-ui/cowork/arquivos-page.jsx",
       "falta": [
-        "casos.md-com-UC"
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Backup/Index",
+      "arquivo": "resources/js/Pages/Backup/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/backup-page.jsx",
+      "falta": [
+        "scorecard"
       ]
     },
     {
       "tela": "kb/Index.v2",
+      "arquivo": "resources/js/Pages/kb/Index.v2.tsx",
+      "modulo": "core",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/kb-page.jsx",
       "falta": [
@@ -30,7 +68,59 @@
       ]
     },
     {
+      "tela": "Ponto/Colaboradores/Edit",
+      "arquivo": "resources/js/Pages/Ponto/Colaboradores/Edit.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "Ponto/Colaboradores/Index",
+      "arquivo": "resources/js/Pages/Ponto/Colaboradores/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "Ponto/Configuracoes/Index",
+      "arquivo": "resources/js/Pages/Ponto/Configuracoes/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "Ponto/Configuracoes/Reps",
+      "arquivo": "resources/js/Pages/Ponto/Configuracoes/Reps.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "Ponto/Escalas/Index",
+      "arquivo": "resources/js/Pages/Ponto/Escalas/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
       "tela": "Sells/Caixa/Index",
+      "arquivo": "resources/js/Pages/Sells/Caixa/Index.tsx",
+      "modulo": "core",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/vendas-extras.jsx · função VendasCaixaPage (linhas 123-354)",
       "falta": [
@@ -39,12 +129,114 @@
     },
     {
       "tela": "Sells/CreateV3",
+      "arquivo": "resources/js/Pages/Sells/CreateV3.tsx",
+      "modulo": "core",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/venda-v3/sells-create.jsx",
       "falta": [
         "scorecard"
       ]
+    },
+    {
+      "tela": "Forja/Aprovacoes/Index",
+      "arquivo": "Modules/Forja/Resources/js/Pages/Forja/Aprovacoes/Index.tsx",
+      "modulo": "Forja",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/forja-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Forja/Trabalho/Index",
+      "arquivo": "Modules/Forja/Resources/js/Pages/Forja/Trabalho/Index.tsx",
+      "modulo": "Forja",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/forja-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "team-mcp/Forja/Cockpit",
+      "arquivo": "Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.tsx",
+      "modulo": "Forja",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/forja-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Officeimpresso/Logs/Index",
+      "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx",
+      "modulo": "Officeimpresso",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Officeimpresso/Logs/Timeline",
+      "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx",
+      "modulo": "Officeimpresso",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Settings/PaymentGateways/Index",
+      "arquivo": "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.tsx",
+      "modulo": "PaymentGateway",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/pg-payment-gateways-page.jsx (Cowork \"payment-gateway-ui\" F1+F1.5, aprovado [W] 2026-05-19)",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "superadmin/Assinaturas/Index",
+      "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
+      "modulo": "Superadmin",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/superadmin-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "superadmin/Dashboard/Index",
+      "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx",
+      "modulo": "Superadmin",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/superadmin-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "superadmin/Negocios/Index",
+      "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/Index.tsx",
+      "modulo": "Superadmin",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/superadmin-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "superadmin/Pacotes/Index",
+      "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx",
+      "modulo": "Superadmin",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/superadmin-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
     }
   ],
-  "total": 15
+  "total": 55
 }

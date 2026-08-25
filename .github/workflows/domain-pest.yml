@@ -139,7 +139,7 @@ jobs:
         if: steps.changes.outputs.domain == 'false'
         run: echo "✅ Sem mudanças em app/Domain ou tests/Feature/Domain — skip-as-pass."
 
-      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
         if: steps.changes.outputs.domain == 'true'
         uses: ./.github/actions/pest-mysql-setup
 
@@ -157,7 +157,7 @@ jobs:
       - name: Run Pest (Domain · MySQL) — DESCOBERTA, não allowlist
         if: steps.changes.outputs.domain == 'true'
         # phpunit.xml aponta DB_CONNECTION=sqlite :memory: (sem force="true"), então
-        # a env daqui vence e a suíte roda no MySQL real semeado (biz=1 + biz=2).
+        # a env daqui vence e a suíte roda no MySQL real semeado pela action (ela é a dona dos tenants).
         # Nenhum dos 22 usa RefreshDatabase/migrate:fresh (medido) — o seed sobrevive.
         env:
           DB_CONNECTION: mysql

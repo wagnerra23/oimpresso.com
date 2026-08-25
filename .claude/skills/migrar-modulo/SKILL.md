@@ -223,7 +223,7 @@ Antes de fechar PR, audit cada camada:
 - [ ] **URLs hardcoded em `Menu::modify` / `$sub->url(...)` revisadas** (não pode apontar pra rota legacy/inexistente)
 - [ ] ADR sub-decisão criada se desviou do plano
 - [ ] `php bin/check-scope.php`: 0 drift / 29 módulos
-- [ ] PR description tem checklist pós-merge: `composer dump-autoload` + smoke URLs + smoke /manage-modules (nenhum botão Instalar pra módulo renomeado já instalado)
+- [ ] PR description tem checklist pós-merge: `composer dump-autoload` + smoke URLs + smoke /modulos (nenhum botão Instalar pra módulo renomeado já instalado)
 
 ## Substitui
 

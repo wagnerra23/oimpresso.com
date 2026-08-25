@@ -83,7 +83,7 @@ jobs:
 
       # Setup canônico reusável (composite action). O service container MySQL fica
       # DECLARADO ACIMA no job (composite action não pode declarar services).
-      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
         if: steps.changes.outputs.arq == 'true'
         uses: ./.github/actions/pest-mysql-setup
 
@@ -154,6 +154,38 @@ jobs:
           DB_DATABASE: oimpresso_test
           DB_USERNAME: root
           DB_PASSWORD: root
+        # +2 em 2026-08-25. MEDIDO antes de entrar, contra o veto deste bloco:
+        #
+        #   MultiTenantTest — e o buraco que ele fecha. Ele e o dono do isolamento
+        #     Tier 0 do modulo (ADR 0093) e ate hoje NAO rodava em lugar nenhum: na
+        #     lane sqlite (modules-pest.yml) pulava por "arquivos table missing", e
+        #     aqui nao estava listado. O Tier 0 do Arquivos nao tinha prova no CI.
+        #     Nao usa RefreshDatabase/migrate:fresh; insere via DB::table() com biz=1
+        #     (semeado) e biz=99 (adversario). O biz=99 nao quebra o INSERT: a FK de
+        #     arquivos.business_id esta COMENTADA na migration 2026_05_10_000001:59.
+        #
+        #   ArquivosAdminControllerTest — contrato da tela do acervo (US-ARQ-013).
+        #     Dispensa banco (le o codigo do controller e invoca politica(), que so
+        #     toca config), entao nao envenena o seed. Entra aqui porque foi um config
+        #     NAO REGISTRADO que passou batido por todos os gates ate 2026-08-25: o
+        #     provider do modulo nunca teve mergeConfigFrom, e o unico teste que morde
+        #     isso e o que invoca o metodo de verdade.
+        #
+        #     ATUALIZADO 2026-08-25 (PR-2, vista Trilha): o arquivo DEIXOU de dispensar
+        #     banco por inteiro. Dos testes de trilha, 3 seguem puros (metodo invocado
+        #     direto, valem nas 2 lanes) e 2 precisam de MySQL: inserem em
+        #     arquivos_audit_log pra provar o isolamento cross-tenant 98 vs 99 — que e
+        #     justamente o Tier 0 daquela vista, porque a tabela NAO tem model e portanto
+        #     NAO tem global scope. Na lane sqlite eles pulam por Schema::hasTable.
+        #     Continua sem envenenar o seed: zero RefreshDatabase/migrate:fresh, insert
+        #     via DB::table() com arquivo_id sentinela (987654098/987654099) e cleanup
+        #     no afterEach por esse id. A tabela nao tem FK de arquivo_id (comentada na
+        #     migration 2026_05_10_000002), entao a fixture nao depende de linha em
+        #     `arquivos` nem a suja.
+        #
+        # Se algum dos dois vier VERMELHO: ou o defeito e real e se conserta, ou sai
+        # daqui com a divida datada. Vermelho permanente em lane advisory so ensina o
+        # time a ignora-la — foi o que este bloco decidiu em 2026-08-10.
         run: |
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
@@ -166,7 +198,9 @@ jobs:
             Modules/Arquivos/Tests/Feature/DedupeStatsCommandTest.php \
             Modules/Arquivos/Tests/Feature/HealthCheckCommandTest.php \
             Modules/Arquivos/Tests/Feature/RetentionCleanupCommandTest.php \
-            Modules/Arquivos/Tests/Feature/ExportZipCommandTest.php
+            Modules/Arquivos/Tests/Feature/ExportZipCommandTest.php \
+            Modules/Arquivos/Tests/Feature/MultiTenantTest.php \
+            Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

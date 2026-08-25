@@ -2,6 +2,7 @@
 id: resources-js-pages-cliente-create-charter
 page: /contacts/create
 component: resources/js/Pages/Cliente/Create.tsx
+related_prototype: prototipo-ui/cowork/cliente-form.jsx
 owner: wagner
 status: live
 last_validated: "2026-06-24"

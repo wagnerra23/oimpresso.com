@@ -9,8 +9,8 @@
 > - O dono de "o que é required no merge" é `governance/required-checks-baseline.json` (vigiado por `protection-drift.mjs`) — a seção de gates abaixo é CÓPIA GERADA dele, re-derivada a cada `--write` e conferida pelo `--check`.
 
 ## Resumo
-- **54** wirings em `settings.json` (5 eventos) · **49** arquivos de hook distintos wired
-- **49** arquivos de hook no disco (+42 `*.test.*` — testes, fora da conta de órfãos)
+- **55** wirings em `settings.json` (5 eventos) · **50** arquivos de hook distintos wired
+- **50** arquivos de hook no disco (+42 `*.test.*` — testes, fora da conta de órfãos)
 - Órfãos (arquivo sem wiring): **0** · Fantasmas (wiring sem arquivo): **0**
 - Gates CI no baseline: **45** classic + **1** ruleset → ponto-de-corte merge
 
@@ -55,6 +55,7 @@
 | PreToolUse | `DesignSync` | block-design-sync-without-optin.mjs | node | ferramenta (pré-uso do matcher) | exit-2 |
 | PreToolUse | `Skill` | block-skill-design-sync-without-optin.mjs | node | ferramenta (pré-uso do matcher) | exit-2 |
 | PreToolUse | `Bash/PowerShell` | block-test-fora-ct100.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
+| PreToolUse | `Bash/PowerShell` | block-sonda-que-mente.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
 | PreToolUse | `Glob/Grep/Bash` | block-instrumento-sem-porta-viva.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
 | PreToolUse | `Artifact` | vista-publicada-padrao.mjs | node | ferramenta (pré-uso do matcher) | — |
 | PreToolUse | `Write` | doc-fora-do-rag.mjs | node | geração (pré-Write/Edit) | — |

@@ -29,7 +29,7 @@ uses(Tests\TestCase::class);
  * artefato, e o `contrato-de-tela` que a vigia é ADVISORY — não bloqueia merge.
  * Este teste dá a ela um dente que morde na lane que roda de verdade.
  *
- * UC-COPI-PAINEL-08 (skeleton) ganhou caso quando o conserto nasceu — nunca antes.
+ * UC-JPAIN-08 (skeleton) ganhou caso quando o conserto nasceu — nunca antes.
  *
  * Tenant: `seededTenant()` (trait WithSeededTenant) — nunca resolução crua.
  * Skip acionável se o seed não rodou (UPos não migra em SQLite; a lane real é
@@ -101,8 +101,8 @@ function painelTsx(): string
 
 // ── RUNTIME ──────────────────────────────────────────────────────────────────
 
-/** UC-COPI-PAINEL-01 — rota abre o Painel (SPEC US-COPI-148: `/ia` é a rota viva). */
-it('UC-COPI-PAINEL-01: GET /ia retorna 200 com Inertia component Jana/Index', function () {
+/** UC-JPAIN-01 — rota abre o Painel (SPEC US-COPI-148: `/ia` é a rota viva). */
+it('UC-JPAIN-01: GET /ia retorna 200 com Inertia component Jana/Index', function () {
     painelBootstrap();
 
     $this->get('/ia')
@@ -111,12 +111,12 @@ it('UC-COPI-PAINEL-01: GET /ia retorna 200 com Inertia component Jana/Index', fu
 });
 
 /**
- * UC-COPI-PAINEL-02 — contrato de props.
+ * UC-JPAIN-02 — contrato de props.
  * As 4 eager chegam no first render; `coworkAggregates` NÃO — ela é deferida
  * (charter §Goals + HOTFIX [W] 2026-05-25: `metas` não pode ser deferida porque
  * a Page lê `metas.length` direto).
  */
-it('UC-COPI-PAINEL-02: as 4 props eager chegam e coworkAggregates NÃO vem no first render', function () {
+it('UC-JPAIN-02: as 4 props eager chegam e coworkAggregates NÃO vem no first render', function () {
     painelBootstrap();
 
     $this->get('/ia')->assertInertia(fn ($page) => $page
@@ -129,8 +129,8 @@ it('UC-COPI-PAINEL-02: as 4 props eager chegam e coworkAggregates NÃO vem no fi
     );
 });
 
-/** UC-COPI-PAINEL-03 — Tier 0: escopo da sessão, nunca de input (ADR 0093). */
-it('UC-COPI-PAINEL-03: janaContext.businessId vem da sessão e ignora ?business_id (Tier 0)', function () {
+/** UC-JPAIN-03 — Tier 0: escopo da sessão, nunca de input (ADR 0093). */
+it('UC-JPAIN-03: janaContext.businessId vem da sessão e ignora ?business_id (Tier 0)', function () {
     $user = painelBootstrap();
 
     $this->get('/ia?business_id=999')->assertInertia(fn ($page) => $page
@@ -139,11 +139,11 @@ it('UC-COPI-PAINEL-03: janaContext.businessId vem da sessão e ignora ?business_
 });
 
 /**
- * UC-COPI-PAINEL-04 — farol é do servidor.
+ * UC-JPAIN-04 — farol é do servidor.
  * Duas metades: o payload ENTREGA farol, e a regra NÃO voltou pro frontend.
  * (`FarolServerSideTest` cobre as fronteiras −5%/−15%; aqui é o contrato da tela.)
  */
-it('UC-COPI-PAINEL-04: cada meta traz farol do servidor e o Index.tsx não recalcula', function () {
+it('UC-JPAIN-04: cada meta traz farol do servidor e o Index.tsx não recalcula', function () {
     painelBootstrap();
 
     $this->get('/ia')->assertInertia(function ($page) {
@@ -163,8 +163,8 @@ it('UC-COPI-PAINEL-04: cada meta traz farol do servidor e o Index.tsx não recal
 
 // ── ARQUIVO (copy e vocabulário) ─────────────────────────────────────────────
 
-/** UC-COPI-PAINEL-05 — o empty state declara ausência (estado real de 100% dos tenants). */
-it('UC-COPI-PAINEL-05: a copy do empty state do contrato está na tela', function () {
+/** UC-JPAIN-05 — o empty state declara ausência (estado real de 100% dos tenants). */
+it('UC-JPAIN-05: a copy do empty state do contrato está na tela', function () {
     $tsx = painelTsx();
 
     foreach (painelCopyDoContrato('painel-metas-vazio') as $copy) {
@@ -174,8 +174,8 @@ it('UC-COPI-PAINEL-05: a copy do empty state do contrato está na tela', functio
     expect($tsx)->toContain('data-contract="painel-metas-vazio"');
 });
 
-/** UC-COPI-PAINEL-06 — meta sem apuração não vira zero. */
-it('UC-COPI-PAINEL-06: meta sem apuração declara "Aguardando apuração…" em vez de zero', function () {
+/** UC-JPAIN-06 — meta sem apuração não vira zero. */
+it('UC-JPAIN-06: meta sem apuração declara "Aguardando apuração…" em vez de zero', function () {
     $tsx = painelTsx();
 
     foreach (painelCopyDoContrato('painel-meta-apurando') as $copy) {
@@ -185,8 +185,8 @@ it('UC-COPI-PAINEL-06: meta sem apuração declara "Aguardando apuração…" em
     expect($tsx)->toContain('data-contract="painel-meta-apurando"');
 });
 
-/** UC-COPI-PAINEL-07 — sparkline sem série declara ausência. */
-it('UC-COPI-PAINEL-07: sparkline sem série declara "Sem histórico" em vez de desenhar zero', function () {
+/** UC-JPAIN-07 — sparkline sem série declara ausência. */
+it('UC-JPAIN-07: sparkline sem série declara "Sem histórico" em vez de desenhar zero', function () {
     $tsx = painelTsx();
 
     foreach (painelCopyDoContrato('painel-meta-sem-historico') as $copy) {
@@ -197,7 +197,7 @@ it('UC-COPI-PAINEL-07: sparkline sem série declara "Sem histórico" em vez de d
 });
 
 /**
- * UC-COPI-PAINEL-08 — enquanto o cockpit não chega, a tela NÃO mostra zero.
+ * UC-JPAIN-08 — enquanto o cockpit não chega, a tela NÃO mostra zero.
  *
  * O `?? 0` do `JanaCockpit` FICA (é ele que impede o TypeError e mantém válida a
  * entrada na `DEFER_GUARD_ONLY_ALLOWLIST`); o que este caso trava é o RENDER:
@@ -209,7 +209,7 @@ it('UC-COPI-PAINEL-07: sparkline sem série declara "Sem histórico" em vez de d
  * `<KpiCard>` direto, derruba o caso. O par visual (screenshot 1280/1440) é o
  * portão F1.5 e vive fora daqui.
  */
-it('UC-COPI-PAINEL-08: o cockpit declara carregando em vez de pintar zero', function () {
+it('UC-JPAIN-08: o cockpit declara carregando em vez de pintar zero', function () {
     $cockpit = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaCockpit.tsx'));
 
     // 1. o sinal existe e é `undefined` (ausência), não falsy — `?? 0` já virou 0
@@ -217,10 +217,19 @@ it('UC-COPI-PAINEL-08: o cockpit declara carregando em vez de pintar zero', func
 
     // 2. os DOIS KPIs que dependem da prop deferida trocam de card enquanto carrega.
     //    `\(` no meio não é decoração: o JSX real é `carregandoCockpit ? (\n <KpiCardSkeleton`.
-    //    Rótulo "Receita mês" desde 2026-08-17 (era "Faturamento mês") — alinhamento
-    //    de COPY com a âncora `jana-merge.jsx`. Mesmo dado, mesma prop deferida.
+    //    Rótulo "Receita 30 dias" desde 2026-08-21 (era "Receita mês", e antes
+    //    "Faturamento mês"). Mesmo dado, mesma prop deferida.
+    //
+    //    ⚠️ A versão anterior desta nota dizia que "Receita mês" era "alinhamento de
+    //    COPY com a âncora `jana-merge.jsx`". Isso é FALSO, e foi medido em
+    //    2026-08-21: a âncora oficial NÃO tem este KPI. O rótulo veio de
+    //    `chat-jana.jsx` :87 — o protótipo que o §5 de 2026-08-10 declarou
+    //    NÃO-âncora. Lá ele é coerente, porque o delta ao lado é "vs mai/25" (mês
+    //    contra mês); aqui o dado é de 30 dias deslizantes e o delta é diário.
+    //    Corrigido junto com o rótulo em UC-JPAIN-14 — comentário que afirma
+    //    proveniência errada é instrução ativa pra próxima sessão (§5 2026-08-10).
     expect($cockpit)
-        ->toMatch('/carregandoCockpit\s*\?\s*\(\s*<KpiCardSkeleton label="Receita mês"/u')
+        ->toMatch('/carregandoCockpit\s*\?\s*\(\s*<KpiCardSkeleton label="Receita 30 dias"/u')
         ->toMatch('/carregandoCockpit\s*\?\s*\(\s*<KpiCardSkeleton label="PIX hoje"/u');
 
     // 3. a série tem TRÊS arms — carregando · vazio-de-verdade · série. Asserção de
@@ -254,8 +263,8 @@ it('UC-COPI-PAINEL-08: o cockpit declara carregando em vez de pintar zero', func
         ->toContain('label="Ticket médio"');
 });
 
-/** UC-COPI-PAINEL-09 — as 5 âncoras existem e a ordem declarada é subsequência da ordem de arquivo. */
-it('UC-COPI-PAINEL-09: as 5 âncoras data-contract existem e a ordem do contrato é respeitada', function () {
+/** UC-JPAIN-09 — as 5 âncoras existem e a ordem declarada é subsequência da ordem de arquivo. */
+it('UC-JPAIN-09: as 5 âncoras data-contract existem e a ordem do contrato é respeitada', function () {
     $j   = json_decode(file_get_contents(base_path(PAINEL_CONTRATO)), true);
     $tsx = painelTsx();
 
@@ -275,7 +284,7 @@ it('UC-COPI-PAINEL-09: as 5 âncoras data-contract existem e a ordem do contrato
 });
 
 /**
- * UC-COPI-PAINEL-10 — "Configurar" abre drawer e não promete o que o servidor não cumpre.
+ * UC-JPAIN-10 — "Configurar" abre drawer e não promete o que o servidor não cumpre.
  *
  * Asserção de ARQUIVO pelo mesmo motivo do UC-08: o defeito é de render/promessa,
  * e Pest não monta React. O par visual é o portão F1.5 e vive fora daqui.
@@ -286,9 +295,10 @@ it('UC-COPI-PAINEL-09: as 5 âncoras data-contract existem e a ordem do contrato
  * é congelá-la"). Então o teste trava a ausência das 4 promessas medidas em
  * 2026-08-17 como não-cumpríveis hoje: brief diário (gerado server-side, nenhum
  * cron lê o localStorage deste browser), TTS, retenção automática (o
- * `jana:retention-purge` foi DESCARTADO por [W]) e as 3 análises sem fonte de dado.
+ * `jana:retention-purge` foi DESCARTADO por [W]) e as análises sem fonte de dado
+ * (frota e cheques — o churn ouro ganhou fonte no UC-13 e virou o 5º card).
  */
-it('UC-COPI-PAINEL-10: Configurar abre o drawer e não promete o que o servidor não cumpre', function () {
+it('UC-JPAIN-10: Configurar abre o drawer e não promete o que o servidor não cumpre', function () {
     $tsx    = painelTsx();
     $drawer = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaConfigDrawer.tsx'));
 
@@ -300,7 +310,7 @@ it('UC-COPI-PAINEL-10: Configurar abre o drawer e não promete o que o servidor 
 
     // 2+3. Asserção de ESTRUTURA, não de prosa — e é deliberado. `not->toContain('Frota')`
     //      passaria hoje só por acidente de capitalização (o cabeçalho do drawer cita
-    //      "churn, frota e cheques" ao REGISTRAR por que eles não entraram), e quebraria
+    //      "frota e cheques" ao REGISTRAR por que eles não entraram), e quebraria
     //      no dia em que alguém reescrevesse o comentário. É o mesmo falso-positivo que o
     //      UC-08 acima documenta: proibir a prosa proibiria registrar a decisão (§5 2026-07-26).
     //
@@ -310,13 +320,16 @@ it('UC-COPI-PAINEL-10: Configurar abre o drawer e não promete o que o servidor 
     //      independente da copy escolhida.
     expect(substr_count($drawer, '<Switch'))->toBe(2);
 
-    //      E o conjunto de análises é fechado nos 4 ids que a tela renderiza.
+    //      E o conjunto de análises é fechado nos ids que a tela renderiza. A contagem
+    //      subiu de 4 pra 5 no PR do UC-13 (churn ouro) — o guard MORDEU como o charter
+    //      previu ("toggle novo derruba o caso"), e subir o número aqui é o ato consciente
+    //      que ele existe pra exigir, não um contorno.
     $cfg = file_get_contents(base_path('resources/js/Pages/Jana/_components/useJanaConfig.ts'));
     expect($cfg)
-        ->toContain("export type JanaAnaliseId = 'inad' | 'fat' | 'conc' | 'metodos';")
+        ->toContain("export type JanaAnaliseId = 'inad' | 'fat' | 'conc' | 'metodos' | 'churn';")
         //  `{ id: '` com a aspa: sem ela a assinatura do tipo
         //  (`ReadonlyArray<{ id: JanaAnaliseId; …`) entra na conta e vira 5.
-        ->and(substr_count($cfg, "{ id: '"))->toBe(4);
+        ->and(substr_count($cfg, "{ id: '"))->toBe(5);
 
     // 4. o que vale pra empresa toda aponta pro dono server-side que já existe,
     //    em vez de ganhar um segundo dono no localStorage deste navegador.
@@ -335,7 +348,7 @@ it('UC-COPI-PAINEL-10: Configurar abre o drawer e não promete o que o servidor 
 
 
 /**
- * UC-COPI-PAINEL-11 — a meta abre NA PRÓPRIA TELA, e o drawer não projeta o futuro.
+ * UC-JPAIN-11 — a meta abre NA PRÓPRIA TELA, e o drawer não projeta o futuro.
  *
  * Asserção de ARQUIVO pelo mesmo motivo dos UC-08 e UC-10: o defeito é de
  * navegação/promessa, e o Pest não monta React. O par visual é o portão F1.5.
@@ -347,7 +360,7 @@ it('UC-COPI-PAINEL-10: Configurar abre o drawer e não promete o que o servidor 
  * média/taxa. Portar isso seria o §Anti-hooks do farol de novo, no eixo da
  * projeção.
  */
-it('UC-COPI-PAINEL-11: a meta abre em drawer na própria tela, sem projetar o fechamento', function () {
+it('UC-JPAIN-11: a meta abre em drawer na própria tela, sem projetar o fechamento', function () {
     $tsx    = painelTsx();
     $drawer = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaMetaDrawer.tsx'));
 
@@ -396,7 +409,7 @@ it('UC-COPI-PAINEL-11: a meta abre em drawer na própria tela, sem projetar o fe
 });
 
 /**
- * UC-COPI-PAINEL-12 — a ação sugerida vira decisão registrada, e a prévia é do SERVIDOR.
+ * UC-JPAIN-12 — a ação sugerida vira decisão registrada, e a prévia é do SERVIDOR.
  *
  * Quatro `it()` porque são quatro perguntas independentes; um só bloco esconderia
  * qual metade quebrou.
@@ -412,8 +425,8 @@ function acaoCockpitTsx(): string
     return file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaCockpit.tsx'));
 }
 
-/** UC-COPI-PAINEL-12 — o CTA deixou de ser decorativo e os rótulos casam com o backend. */
-it('UC-COPI-PAINEL-12: o CTA abre o modal HITL e cada rótulo tem chave no AcaoHitlService', function () {
+/** UC-JPAIN-12 — o CTA deixou de ser decorativo e os rótulos casam com o backend. */
+it('UC-JPAIN-12: o CTA abre o modal HITL e cada rótulo tem chave no AcaoHitlService', function () {
     $cockpit = acaoCockpitTsx();
     $modal   = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaAcaoModal.tsx'));
 
@@ -449,8 +462,8 @@ it('UC-COPI-PAINEL-12: o CTA abre o modal HITL e cada rótulo tem chave no AcaoH
     expect($modal)->toContain('O envio entra quando o disparo for ligado.');
 });
 
-/** UC-COPI-PAINEL-12 — a prévia é gerada no servidor, e só pras chaves conhecidas. */
-it('UC-COPI-PAINEL-12: a prévia vem do servidor com alcance, e ação desconhecida é 404', function () {
+/** UC-JPAIN-12 — a prévia é gerada no servidor, e só pras chaves conhecidas. */
+it('UC-JPAIN-12: a prévia vem do servidor com alcance, e ação desconhecida é 404', function () {
     painelBootstrap();
 
     $this->get('/ia/acoes/regua-whatsapp/previa')
@@ -469,12 +482,12 @@ it('UC-COPI-PAINEL-12: a prévia vem do servidor com alcance, e ação desconhec
 });
 
 /**
- * UC-COPI-PAINEL-12 — o que fica gravado é o recibo do SERVIDOR.
+ * UC-JPAIN-12 — o que fica gravado é o recibo do SERVIDOR.
  *
  * O vetor que este caso fecha: se `previa` viesse do request, o cliente
  * reescreveria o que "foi aprovado" — e o ledger deixaria de ser recibo.
  */
-it('UC-COPI-PAINEL-12: aprovar grava a prévia do servidor e ignora o texto do cliente', function () {
+it('UC-JPAIN-12: aprovar grava a prévia do servidor e ignora o texto do cliente', function () {
     painelBootstrap();
 
     $this->post('/ia/acoes/regua-whatsapp/aprovar', [
@@ -494,8 +507,8 @@ it('UC-COPI-PAINEL-12: aprovar grava a prévia do servidor e ignora o texto do c
     expect($registro->previa)->toContain('cobrança');
 });
 
-/** UC-COPI-PAINEL-12 — Tier 0: o registro nasce escopado pela SESSÃO (ADR 0093). */
-it('UC-COPI-PAINEL-12: a aprovação nasce com o business_id da sessão, nunca do request', function () {
+/** UC-JPAIN-12 — Tier 0: o registro nasce escopado pela SESSÃO (ADR 0093). */
+it('UC-JPAIN-12: a aprovação nasce com o business_id da sessão, nunca do request', function () {
     $user = painelBootstrap();
 
     $this->post('/ia/acoes/preventivo-pendentes/aprovar', ['business_id' => 999999])
@@ -510,4 +523,220 @@ it('UC-COPI-PAINEL-12: a aprovação nasce com o business_id da sessão, nunca d
     // scope é o que prova o isolamento — `where` cru só provaria a coluna.
     session(['user.business_id' => 999999]);
     expect(AcaoAprovacao::where('id', $registro->id)->count())->toBe(0);
+});
+
+// ── UC-JPAIN-13 — Churn ouro ───────────────────────────────────────────
+
+/**
+ * Semeia cliente + 1 venda final na data pedida, marcada por um sufixo único.
+ *
+ * `payment_status = 'paid'` de propósito: venda paga NÃO gera `fin_titulo`
+ * (mesma razão do `TituloAutoServiceTest`), e `fin_titulos` não permite delete —
+ * o cleanup do fim do caso ficaria impossível. O churn não olha pagamento, só
+ * data e valor, então pagar não muda o que está sob teste.
+ */
+function churnSemear(int $businessId, int $userId, string $nome, float $total, string $data): array
+{
+    $contact = \App\Contact::create([
+        'business_id' => $businessId,
+        'type'        => 'customer',
+        'name'        => $nome,
+        'created_by'  => $userId,
+    ]);
+
+    $tx = \App\Transaction::create([
+        'business_id'      => $businessId,
+        'location_id'      => null,
+        'type'             => 'sell',
+        'status'           => 'final',
+        'payment_status'   => 'paid',
+        'contact_id'       => $contact->id,
+        'invoice_no'       => 'CHURN-'.uniqid(),
+        'transaction_date' => $data,
+        'total_before_tax' => $total,
+        'final_total'      => $total,
+        'created_by'       => $userId,
+    ]);
+
+    return [$contact, $tx];
+}
+
+/**
+ * UC-JPAIN-13 — o recorte é RELATIVO (maior LTV entre os parados), e o
+ * controle negativo é o que prova: quem comprou ontem NÃO entra, mesmo valendo
+ * muito mais. Sem esse caso, um bug que ignorasse a data passaria verde — o card
+ * viraria "top clientes" com outro título.
+ *
+ * ⚠️ O CT 100 PERSISTE entre runs (§5 2026-07-28), então cada caso limpa o que
+ * criou e todas as asserções são marcadas por `uniqid()` — nunca por contagem
+ * absoluta, que quebraria com resíduo de outra execução.
+ */
+it('UC-JPAIN-13: churn ouro pega o parado >90d e IGNORA quem comprou ontem', function () {
+    $user   = painelBootstrap();
+    $bizId  = (int) session('user.business_id');
+    $marca  = uniqid('chn');
+
+    // (a) alto valor, parado há 200 dias → DEVE entrar.
+    [$c1, $t1] = churnSemear($bizId, (int) $user->id, "Parado {$marca}", 90000.0, now()->subDays(200)->toDateString());
+    // (b) valor 5× MAIOR, comprou ontem → NÃO pode entrar. Este é o controle negativo.
+    [$c2, $t2] = churnSemear($bizId, (int) $user->id, "Ativo {$marca}", 450000.0, now()->subDay()->toDateString());
+
+    try {
+        $agg   = app(\App\Services\Sells\SellsCockpitAggregator::class)->buildInsightsAggregates($bizId);
+        $nomes = collect($agg['churnOuro'])->pluck('name')->all();
+
+        expect($nomes)->toContain("Parado {$marca}");
+        expect($nomes)->not->toContain("Ativo {$marca}");
+
+        $linha = collect($agg['churnOuro'])->firstWhere('name', "Parado {$marca}");
+
+        // O número que a tela mostra é MEDIDO, não estimado.
+        expect($linha['ltv'])->toBe(90000.0);
+        expect($linha['diasInativo'])->toBeGreaterThan(90);
+        expect($linha['ultimaCompra'])->toBe(now()->subDays(200)->toDateString());
+
+        // Tier 0 (ADR 0093): o recorte é do tenant pedido, e de mais nenhum.
+        $outro = app(\App\Services\Sells\SellsCockpitAggregator::class)->buildInsightsAggregates(999999);
+        expect(collect($outro['churnOuro'])->pluck('name')->all())->not->toContain("Parado {$marca}");
+    } finally {
+        $t1->forceDelete();
+        $t2->forceDelete();
+        $c1->forceDelete();
+        $c2->forceDelete();
+    }
+});
+
+/**
+ * UC-JPAIN-13 — o drill drawer promete um método por análise; todos têm de
+ * EXISTIR. O componente nasceu justamente porque o protótipo cita classes
+ * fictícias (`AnaliseChurnService` & cia., re-medido 2026-08-20: nenhuma existe),
+ * e o cabeçalho dele pede "ao mexer no aggregator, mexa aqui no mesmo PR".
+ *
+ * O teste não olha o churn em particular: varre TODAS as fontes declaradas. Assim
+ * ele defende a classe inteira do defeito, não a instância de hoje — e quebra na
+ * hora em que alguém renomear um método do aggregator sem atualizar o drawer.
+ *
+ * `method_exists` sobre a classe REAL é comportamento, não presença de string:
+ * um `metodo:` apontando pra nome inventado reprova mesmo estando bem escrito.
+ */
+it('UC-JPAIN-13: todo `metodo` prometido pelo JanaDrillDrawer existe no aggregator', function () {
+    $drawer = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaDrillDrawer.tsx'));
+
+    preg_match_all("/metodo: '([^']+)'/", $drawer, $m);
+
+    // Controle positivo: se o regex parar de casar, o caso vira carimbo verde —
+    // é a lápide §5 2026-08-01 (saída plausível de sonda que não rodou).
+    expect($m[1])->not->toBeEmpty();
+
+    $quebrados = [];
+
+    foreach (array_unique($m[1]) as $ref) {
+        [$classe, $metodo] = array_pad(explode('::', $ref), 2, null);
+        $fqcn = 'App\\Services\\Sells\\'.$classe;
+
+        if (! class_exists($fqcn) || ! method_exists($fqcn, $metodo)) {
+            $quebrados[] = $ref;
+        }
+    }
+
+    expect($quebrados)->toBe([]);
+});
+
+// ── UC-JPAIN-14 — a janela do KPI ──────────────────────────────────────
+
+/**
+ * UC-JPAIN-14 — o rótulo declara a janela REAL do dado.
+ *
+ * Asserção de ARQUIVO e ESTRUTURAL, pelos mesmos dois motivos dos UC-08/10/12: o
+ * Pest não monta React, e a copy É o artefato. A forma escolhida é `label="…"`
+ * (com o atributo), nunca a prosa solta — `not->toContain('Receita mês')`
+ * FALHARIA, porque a frase está viva no comentário que registra o que saiu. É o
+ * falso-positivo do §5 2026-07-26, que já mordeu esta suíte duas vezes.
+ */
+it('UC-JPAIN-14: o KPI da sparkline se chama pela janela que tem, não "mês"', function () {
+    $cockpit = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaCockpit.tsx'));
+
+    // O card e o skeleton dizem a MESMA coisa — senão o rótulo antigo pisca
+    // enquanto a prop deferida não chega, e o usuário lê "mês" por um instante.
+    expect(substr_count($cockpit, 'label="Receita 30 dias"'))->toBe(2);
+
+    // E o valor continua vindo da série de 30 dias, sem o fallback morto.
+    expect($cockpit)->toContain('value={fmtShort(sparkSum)}');
+
+    // Controle negativo: a FORMA do rótulo antigo não volta.
+    expect($cockpit)->not->toContain('label="Receita mês"');
+
+    // O delta declara a própria janela — ele compara HOJE com ONTEM, e ao lado
+    // de um valor de 30 dias o rótulo curto sugeria que o valor grande variou.
+    expect($cockpit)->toContain("label: 'hoje vs ontem'");
+});
+
+/**
+ * UC-JPAIN-14 — e a prova de que o `|| faturadoHoje` era INALCANÇÁVEL.
+ *
+ * Este caso existe porque a remoção de um fallback é exatamente o tipo de
+ * mudança que parece perda de robustez. Ele demonstra a contenção: as duas
+ * consultas têm filtros idênticos e a janela da série vai até o fim de hoje,
+ * então toda venda de hoje JÁ está dentro da série. Se alguém encurtar a janela
+ * (ex.: `endOfDay` → `startOfDay`) esta asserção quebra, e é o que se quer.
+ */
+it('UC-JPAIN-14: a série tem 30 dias e CONTÉM o faturamento de hoje', function () {
+    $user  = painelBootstrap();
+    $bizId = (int) session('user.business_id');
+    $marca = uniqid('jan');
+
+    [$c, $t] = churnSemear($bizId, (int) $user->id, "Hoje {$marca}", 1234.56, now()->toDateString());
+
+    try {
+        $agg   = app(\App\Services\Sells\SellsCockpitAggregator::class)->buildCoworkAggregates($bizId);
+        $serie = $agg['sparkline'];
+
+        expect($serie)->toHaveCount(30);
+
+        $soma        = array_sum($serie);
+        $faturadoHoje = (float) $agg['faturadoHojeTotal'];
+
+        // A contenção: a soma da série cobre o de hoje. Com isso, `sparkSum` só
+        // é 0 quando `faturadoHoje` também é — e aí o `||` devolvia o mesmo 0.
+        expect($faturadoHoje)->toBeGreaterThan(0.0);
+        expect($soma)->toBeGreaterThanOrEqual($faturadoHoje);
+
+        // E o último ponto da série é HOJE (não ontem) — é isso que fecha.
+        expect((float) $serie[29])->toBeGreaterThanOrEqual($faturadoHoje);
+    } finally {
+        $t->forceDelete();
+        $c->forceDelete();
+    }
+});
+
+/**
+ * UC-JPAIN-15 — o card diz o PESO do vencido, não só a contagem.
+ *
+ * `overdueValue` e `totalAReceber` já chegavam no payload e ninguém os cruzava:
+ * a tela dizia "1 venda vencida" sem dizer se isso é irrelevante ou metade do
+ * caixa. A leitura é derivada, não pede backend novo.
+ *
+ * Asserção de ARQUIVO pelo mesmo motivo dos UC-08/10/12/14 — o Pest não monta
+ * React e a fórmula vive no `.tsx`. O que morde aqui é a GUARDA do arredondamento:
+ * sem ela, uma venda vencida de peso pequeno renderiza "0% do a receber" ao lado
+ * de um card que afirma que ela venceu — número que contradiz o próprio card.
+ * Medido em produção (biz=1) antes de escrever: a razão real dá < 1%.
+ */
+it('UC-JPAIN-15: o vencido declara seu peso, e nunca arredonda pra zero', function () {
+    $cockpit = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaCockpit.tsx'));
+
+    // 1. a razão é DERIVADA dos dois campos, não um número solto.
+    expect($cockpit)->toContain('overdueValue / totalAReceber');
+
+    // 2. a guarda do "<1%" existe — é ela que impede o zero enganoso.
+    expect($cockpit)->toContain("'<1% do a receber'");
+
+    // 3. e o card CONSOME a leitura (senão o derivado seria mais um campo órfão,
+    //    exatamente o defeito que este PR corrige no eixo do payload).
+    expect($cockpit)->toContain('pctVencidoTexto');
+
+    // 4. controle negativo: a linha só aparece quando HÁ vencido e HÁ base —
+    //    `totalAReceber > 0 && overdueValue > 0` é o que evita divisão por zero
+    //    e "0% do a receber" num tenant sem nada a receber.
+    expect($cockpit)->toContain('totalAReceber > 0 && overdueValue > 0');
 });

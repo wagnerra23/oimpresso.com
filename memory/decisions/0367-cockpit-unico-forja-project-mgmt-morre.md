@@ -3,7 +3,7 @@ slug: 0367-cockpit-unico-forja-project-mgmt-morre
 number: 367
 title: "Cockpit único do time: /project-mgmt morre, /forja e /team-mcp/tasks ficam — cinco vitrines sobre a mesma tabela viram duas"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision

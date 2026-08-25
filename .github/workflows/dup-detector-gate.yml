@@ -10,7 +10,21 @@ name: Dup detector (advisory)
 # + 0 falso-positivo. Meta-teste: dup-detector.test.mjs no governance-script-tests.yml.
 
 on:
+  # `types:` EXPLÍCITO por causa do escape valve deste gate (2026-08-23). Sem ele o default
+  # do GitHub é [opened, synchronize, reopened] — `edited` NÃO entra. E a acusação do
+  # dup-detector manda, literalmente, "adicione ao corpo do PR: Dedup-ack: <razão>". Editar
+  # o corpo é `edited`; sem o tipo, a re-avaliação nunca acontece e o vermelho fica até
+  # alguém empurrar commit ou re-rodar à mão.
+  #
+  # Medido no #6157/#6158: os dois acusaram por tocarem o mesmo arquivo de wiring; o ack foi
+  # escrito nos dois corpos ao mesmo tempo. O #6158 ficou verde sozinho — porque recebeu um
+  # commit depois. O #6157 só ficou verde após `gh run rerun` manual, e o rerun provou que o
+  # ack SEMPRE foi aceito. Ou seja: o mecanismo funcionava e o caminho que ele ensina não.
+  #
+  # É a família LC-15 (mecanismo anuncia saída que ele não honra) na variante branda: a saída
+  # existe, mas não se aplica pelo caminho documentado.
   pull_request:
+    types: [opened, synchronize, reopened, edited]
     branches: [main]
   workflow_dispatch:
     inputs:

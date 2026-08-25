@@ -2,6 +2,7 @@
 id: resources-js-pages-cliente-index-charter
 page: /cliente (canon) · /contacts (legacy dual-render via config('mwart.cliente_index.enabled'))
 component: resources/js/Pages/Cliente/Index.tsx
+related_prototype: prototipo-ui/cowork/clientes-page.jsx
 bundle_source: clientes-page.jsx
 owner: wagner
 status: live

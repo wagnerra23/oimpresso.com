@@ -136,7 +136,21 @@
 .fin-combo-name{ flex:1; font-size:var(--fs-3); color:var(--text); }
 .fin-combo-n{ flex:none; font-size:var(--fs-1); color:var(--text-3); font-variant-numeric:tabular-nums; }
 
+/* ── Sync git 2026-08-17 ─────────────────────────────────────────────────── */
+/* US-FIN-038 (charter v22 · ADR 0175) — pill "Conta indefinida": warning LEVE
+   (nunca vermelho de erro), dark-aware por token, o próprio pill é o CTA. */
+.fin-pill-indef{ display:inline-flex; align-items:center; gap:4px; padding:1px 8px; border-radius:999px; font-size:var(--fs-1); font-weight:500; text-decoration:none; color:var(--warn); background:color-mix(in oklch, var(--warn) 8%, transparent); border:1px solid color-mix(in oklch, var(--warn) 20%, transparent); transition:background .15s, border-color .15s; }
+.fin-pill-indef:hover{ background:color-mix(in oklch, var(--warn) 14%, transparent); border-color:color-mix(in oklch, var(--warn) 32%, transparent); }
+/* Tipo escolhido ANTES do formulário (Opção A [W], charter v14/v21) */
+.fin-novo-dot{ flex:none; width:7px; height:7px; border-radius:999px; background:oklch(0.55 0.13 var(--h, 145)); }
+.fin-novo-tipo{ font-size:var(--fs-1); font-weight:600; padding:2px 9px; border-radius:999px; color:oklch(0.45 0.12 var(--h, 145)); background:color-mix(in oklch, oklch(0.55 0.13 var(--h, 145)) 12%, transparent); }
+[data-theme="dark"] .fin-novo-tipo{ color:oklch(0.80 0.12 var(--h, 145)); }
+
 @media (max-width:520px){
   .fin-baixa-body,.fin-ocr-body{ grid-template-columns:1fr; }
   .fin-ocr-grid,.fin-ocr-edit{ grid-template-columns:1fr; }
 }
+
+/* Conciliação · chip de origem (ADR 0236 — banco API × arquivo OFX) */
+.fin-origem-chip{ display:inline-flex; align-items:center; padding:0 6px; height:15px; border-radius:4px; font:600 9.5px/1 var(--mono, ui-monospace); letter-spacing:.04em; text-transform:uppercase; border:1px solid var(--border); color:var(--text-2); background:var(--sunken); }
+.fin-origem-chip[data-origem="banco"]{ color:var(--accent); border-color:color-mix(in oklch, var(--accent) 26%, transparent); background:color-mix(in oklch, var(--accent) 9%, transparent); }

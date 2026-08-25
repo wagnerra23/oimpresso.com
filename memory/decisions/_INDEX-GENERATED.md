@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **383** arquivos · **368** números únicos · máx **0378**
+- **384** arquivos · **369** números únicos · máx **0379**
 - **ADRs ATIVOS (lifecycle ativo): 345** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 347 · superseded 16 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 345 · arquivado 22 · substituido 16
+- Por status: aceito 347 · superseded 16 · deprecated 13 · proposto 6 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 345 · arquivado 23 · substituido 16
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (383)
+## Todas as ADRs (384)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -326,7 +326,7 @@ _(nenhuma)_
 | 0282 | aceito | ativo | decision | Protocolo v2 (colapso) — ratificação: 6→2 papéis · 7→3 fases · memória=git SSOT  |
 | 0283 | aceito | ativo | decision | Loop de handoff zero-paste — repo fonte única, gate de conteúdo, sem auto-merge  |
 | 0284 | aceito | ativo | decision | Pipeline de incidente graduado por confiança — porta única, redação cross-tenant |
-| 0285 | aceito | ativo | decision | Publisher Cowork→repo — fechar o 1º hop do loop zero-paste reusando a cowork-inb |
+| 0285 | deprecated | arquivado | decision | Publisher Cowork→repo — fechar o 1º hop do loop zero-paste reusando a cowork-inb |
 | 0286 | aceito | ativo | decision | channel_health de canal whatsmeow é corroborado por fluxo de mensagem real — inb |
 | 0287 | aceito | ativo | decision | probe whatsmeow trata PROVISION_PENDING em canal que estava healthy como queda ( |
 | 0288 | aceito | ativo | decision | SLO/SLI de saúde de canal WhatsApp — uptime%, time-to-detect e alerta canal-down |
@@ -409,7 +409,7 @@ _(nenhuma)_
 | 0364 | aceito | ativo | decision | O trio de tela (charter + casos) muda de casa para memory/requisitos/<Modulo>/_t |
 | 0365 | aceito | ativo | decision | O trio de tela (charter + casos) FICA colocado ao lado do .tsx; a doc espelha o  |
 | 0366 | aceito | ativo | decision | Fronteira dos 4 módulos emaranhados — Jana (IA) · Forja (trabalho + MCP) · Gover |
-| 0367 | proposto | ativo | decision | Cockpit único do time: /project-mgmt morre, /forja e /team-mcp/tasks ficam — cin |
+| 0367 | aceito | ativo | decision | Cockpit único do time: /project-mgmt morre, /forja e /team-mcp/tasks ficam — cin |
 | 0368 | aceito | ativo | decision | Funil de admissão de feature — a pesquisa de mercado propõe, [W] admite ou recus |
 | 0369 | aceito | ativo | decision | Emenda à 0314 — Compras, Estoque e Ponto (Pest MySQL) promovidos a REQUIRED (val |
 | 0370 | aceito | ativo | decision | Emenda à 0314 — module-surface e catalog-graph promovidos a REQUIRED (índice der |
@@ -421,3 +421,4 @@ _(nenhuma)_
 | 0376 | aceito | ativo | decision | §5 vira DERIVADO — o limite fica no contexto, a arqueologia sai para memory/lico |
 | 0377 | aceito | ativo | decision | Emenda à 0094 — append-only de ADR canon admite exceção por label `adr-body-edit |
 | 0378 | aceito | ativo | decision | Execução do item 4 da 0366 — a plataforma MCP sai da Jana para a Forja em ondas, |
+| 0379 | proposto | ativo | decision | Bundle Design vira transação com manifesto, delta, staging e inventário de aplic |
