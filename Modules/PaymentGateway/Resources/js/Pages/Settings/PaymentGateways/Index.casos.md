@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-08-12"
+last_run: "2026-08-25"
 ---
 
 # Casos de Uso & Aceite — Gateways de Pagamento
@@ -17,6 +17,13 @@ last_run: "2026-08-12"
 >
 > ⚠️ **Débito real desta tela = rastreabilidade, não ausência de teste.** O comportamento já é defendido por `PaymentGatewaysControllerTest` + `PaymentGatewaysControllerStoreTest` (Feature/MySQL, verdes no CT100). O que falta é a G-2 ([ADR 0264]): nenhum teste **cita** um `UC-PG-NN`, então nenhum caso está no manifesto. Cada item vira `UC-PG-NN` **no mesmo PR** que adicionar o id ao teste que já existe (edição de 1 linha) — [ADR 0062] CT100.
 
+> ℹ️ **`last_run` 2026-08-12 → 2026-08-25 (G-6), e o que mudou na tela NÃO foi comportamento.**
+> O único toque em `Index.tsx` foi **comentário de ponteiro de design**: a linha citava um
+> caminho de protótipo que não existe mais no repo, e passou a citar o vivo (ou a declarar a
+> ausência com data). Zero JSX, zero handler, zero prop, zero copy alterada — `git diff --numstat`
+> do PR não tem uma linha sequer fora de comentário. **Nenhum UC desta tela foi reexecutado nem
+> revalidado**; o bump é o que o campo significa na prática (*trio reconciliado com a tela nesta
+> data*), não afirmação de re-run.
 ---
 
 ## Backlog de casos (sem id — entram quando um teste citar o UC-id)

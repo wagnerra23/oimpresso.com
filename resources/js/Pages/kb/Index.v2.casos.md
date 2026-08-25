@@ -5,7 +5,7 @@ irmaos: Index.v2.charter.md (lei · v4) · Index.charter.md (V3 atual, coexiste)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
 status_tela: viva-dado-real (roteada /kb/v2 + /sops via KbController@indexV2; serve kb_nodes reais; leitor do corpo ligado em 2026-07-29 via GET /kb/nodes/{slug} — JOIN mcp_memory_documents, read-only)
-last_run: "2026-07-29"
+last_run: "2026-08-25"
 ---
 
 # Casos de uso — /kb/v2 (KB Unificado tri-pane · DADO REAL)
@@ -18,6 +18,13 @@ last_run: "2026-07-29"
 
 > **Contexto de maturidade (âncora honesta, 2026-07-17):** `/kb/v2` (`kb.v2`) e o alias `/sops` (`sops.index`) roteiam pra `KbController@indexV2` (`Modules/KB/Http/routes.php`), que serve **kb_nodes reais** classificados (`usingMock = !props.nodes` → **false**). UC-01..05 blindam o contrato da rota (auth+permissão · render · read-only · sem side-effects · **Tier 0 forte** — V5 serve nodes e isola biz=99). UC-06 (fallback mock) **revogado** com o Controller. UC-07/08 travam client-side (localStorage · atalhos). **UC-13** surface o drift doc↔código (5º quadrante + badge, Fase #5) — backend contratado (V7), lados visuais em smoke/visual. UC-09/10/11/12 = dívida/backlog (cor crua · toasts · indicador de empresa · categoria vazia). **UC-14** liga o **leitor do corpo** (2026-07-29): o corpo vem por **JOIN** em `GET /kb/nodes/{slug}` (endpoint que já existia — faltava o consumidor no `.tsx`), renderizado como markdown e **read-only por construção** (`body_blocks` segue NULL; `PUT` em bridge devolve 422).
 
+> ℹ️ **`last_run` 2026-07-29 → 2026-08-25 (G-6), e o que mudou na tela NÃO foi comportamento.**
+> O único toque em `Index.v2.tsx` foi **comentário de ponteiro de design**: a linha citava um
+> caminho de protótipo que não existe mais no repo, e passou a citar o vivo (ou a declarar a
+> ausência com data). Zero JSX, zero handler, zero prop, zero copy alterada — `git diff --numstat`
+> do PR não tem uma linha sequer fora de comentário. **Nenhum UC desta tela foi reexecutado nem
+> revalidado**; o bump é o que o campo significa na prática (*trio reconciliado com a tela nesta
+> data*), não afirmação de re-run.
 ---
 
 ## UC-KBV2-01 — Rota viva exige autenticação
