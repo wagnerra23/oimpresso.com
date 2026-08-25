@@ -888,6 +888,18 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** não consertar instrumento que reporta "não medi" **reapontando-o pra outra raiz/fonte** sem antes provar que a nova raiz responde **todas** as perguntas que a antiga respondia. Vale pra qualquer parâmetro consumido por mais de um ponto dentro da mesma função — raiz de leitura × `cwd` de subprocesso, conexão de leitura × de escrita, base de path × base de URL, tenant de query × de log. A pergunta que separa, e é barata: *"esse argumento é lido em quantos lugares, e todos querem o mesmo valor?"* Se a resposta for "não", são **dois** parâmetros; passar um só **troca a cegueira de perna** em vez de removê-la — e o resultado é indistinguível do conserto certo enquanto ninguém medir o outro lado.
 
+### 2026-08-25 — Instalar o `ds-anchor-check.mjs` do Cowork COMO VEIO (R1: `default`/`secondary`/`destructive` = pill de estado sólido) — MEDIDO 73,7% de falso-positivo
+
+- **O limite (variante também proibida):** não classificar *"pill de estado com severidade"* pela **variante sintática** do componente. A mesma variante é chip neutro ou selo de severidade conforme o **conteúdo**, e isso não é decidível pelo atributo — é a **5ª** lápide da família de guard sintático (allowlist-de-pasta 2026-06-30 · guard `@scope` 2026-07-09 · vocabulário 130 FP 2026-07-16 · `toHaveKey` 100% FP 2026-07-26). Também proibido "resolver" com denylist de rótulo. E o corolário novo, que vale pra **qualquer** gate de conformidade: **o showcase/catálogo do DS não entra no denominador** — por construção ele é o lugar onde toda variante aparece, inclusive as que o gate proíbe.
+
+### 2026-08-25 — EMENDA da lápide acima (`ds-anchor-check`): o corolário do showcase foi CORTADO por [W], e o alcance das regras de paridade estava por medir
+
+- **O limite (a correção que importa):** **não rejeitar instrumento pela regra menos relevante ao objetivo declarado.** Antes de reprovar um gate multi-regra, dizer **qual regra serve ao objetivo** e medir **aquela** — e medir **alcance** (em quantos alvos ela consegue rodar), não só falso-positivo. FP alto reprova a regra; **alcance ~0 reprova o instrumento pra aquele fim**, e é um veredito diferente, que se apresenta diferente. E o corolário de escopo: **denominador é decisão do dono** — a régua pode marcar exceção no relatório, jamais encolher a população por conta própria.
+
+### 2026-08-25 — Medir frescor do espelho Cowork contra o `sync/bundle.manifest.json` (ele CONFIRMA um estado que já não existe — verde falso)
+
+- **O limite (variante também proibida):** não medir frescor de um espelho contra **artefato derivado do próprio espelho** — manifesto de bundle, lockfile, snapshot commitado, índice gerado no mesmo ciclo. A pergunta antes de comparar: *"este lado de referência é produzido pela FONTE, ou pelo lado que estou auditando?"* Se é pelo lado auditado, a comparação mede consistência interna, nunca frescor — e o resultado é **pior que ausência de medição**, porque um `0 stale` cala o alarme que o `--sla` estava dando corretamente. Corolário operacional: **aplicar o bundle NÃO sincroniza** o espelho com o vivo; repõe o que já está lá. A única rota que trouxe o estado real foi `get_file` por arquivo.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
