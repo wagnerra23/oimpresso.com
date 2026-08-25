@@ -5,6 +5,26 @@
 - **Charter:** `resources/js/Pages/Jana/Index.charter.md` **v10**
 - **Gate F1.5:** esta tela está no manifesto `tests/Browser/visreg-screens.json` como `Jana`; toda mudança aqui gera diff de pixel e precisa de aprovação [W]
 
+> 🔬 **Re-medido no DOM em 2026-08-25 (protótipo servido em localhost, sonda de `design-diff`).**
+> [W] pediu **paridade máxima** — "tudo deve entrar no denominador". Duas coisas saíram da medição:
+>
+> **1. O protótipo NÃO mudou.** `h1` = **19px**, o mesmo valor da medição de 08-17. As 3 divergências
+> de D4/D8 registradas abaixo seguem válidas do lado do protótipo. (Contraste medido no mesmo turno:
+> o `h1` do protótipo de **Arquivos** mede **22px** — ou seja, os 19px são particulares da Jana,
+> não do shell do protótipo. Isso reposiciona a nota "divergência sistemática do shell": o shell de
+> PRODUÇÃO é 22 nas 4 telas, e é o protótipo da Jana que destoa do próprio espelho.)
+>
+> **2. A projeção da meta fechou no DRAWER, não no CARD — a divergência R4 §card continua ABERTA.**
+> Medido nos dois lados: o protótipo renderiza `jm-meta-proj` **5×** dentro do `JmMetaCard`
+> (`jana-merge.jsx:215`); em produção `projecao` só existe em `_components/JanaMetaDrawer.tsx` e
+> `metaFormat.ts` — `JanaCockpit.tsx`, que desenha os cards, **não tem nenhuma ocorrência**. A onda 5
+> (#5923) entregou a projeção, e entregou no lugar certo pelo argumento dela (projeção é veredito do
+> servidor); mas quem lê a linha 94 desta tabela como "resolvido" erra: **no card, segue ausente**.
+>
+> ⚠️ **O lado PRODUÇÃO não foi re-medido neste turno** — exige sessão autenticada em `oimpresso.com`,
+> e o navegador usado aqui não a tem. Os números de produção abaixo continuam sendo os de **08-17**.
+> Onde este bloco fala de produção, a fonte é `grep` no código do `main` de hoje, não DOM renderizado.
+
 > **Como ler:** ✅ existe e equivale · 🟡 existe mas diverge · ❌ não existe na tela viva · ⛔ existe e **não deve** ser copiado · 🟢 só na viva.
 
 ---

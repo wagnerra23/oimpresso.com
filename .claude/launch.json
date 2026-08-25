@@ -60,6 +60,18 @@
         "D:/oimpresso.com/.claude/worktrees/nice-lamarr-fdc982/prototipo-ui/cowork"
       ],
       "port": 5575
+    },
+    {
+      "name": "cowork-jana-paridade",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5591",
+        "--directory",
+        "D:/oimpresso.com/.claude/worktrees/arquivos-zero-toque-sprint2-6c9b50/prototipo-ui/cowork"
+      ],
+      "port": 5591
     }
   ]
 }
