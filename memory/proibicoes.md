@@ -880,6 +880,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** predicado de gate que cobra do autor um estado **agregado** que ele não pode ter causado — vale para zona cinza de pixel, cobertura, lint, nota e catraca. A pergunta é sempre *"este PR INTRODUZ?"*, nunca *"existe?"*. E o corolário específico, que é o que faltava: **aprovação por label é por-PR e não deixa rastro no artefato de referência** — se o mecanismo aceita "aprovado", ele tem que dizer, no mesmo lugar, que a **baseline segue divergente**, senão o débito vira invisível e reaparece como vermelho de terceiro. Quando o raio não é confiável (fundação visual, tokens, toolchain, `contrato-visual`), o bloqueio absoluto continua **certo** — a defesa nova é fail-closed em todo caminho de dúvida.
 
+### 2026-08-24 — Congelar num assert a COBERTURA derivada de um registry VIVO (reprovou por GANHO — 3ª ocorrência da classe, 4º mecanismo)
+
+- **O limite (variante também proibida):** não congelar em assert de igualdade um número **derivado de artefato vivo** (registry, manifesto, censo, baseline de terceiro) — nem "corrigindo" pro valor novo, que só adia o mesmo vermelho, nem virando piso decorativo (`>= 3` não pegaria uma queda de 7 pra 4). Antes de escolher a forma, perguntar **que consequência tem a mudança desse número**: se nenhuma, ele é pra **REPORTAR** (§5 2026-07-17 — não restatear número que outro sistema sabe melhor) e o assert vai pro que TEM consequência. E o corolário técnico, válido pra todo consumidor de registry: **`import_path` não descreve a API** — trocar o path sem conferir a FORMA (`default` × nomeado) que o `exports` declara troca um defeito por outro. O dado estava no registry; o consumidor é que lia metade dele.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
