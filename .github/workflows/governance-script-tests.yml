@@ -961,6 +961,9 @@ jobs:
       - name: Réguas workflow (persistência incremental · checkpoint antes da prosa · retrato parcial declarado)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/reguas-workflow.test.mjs
+      - name: Migração visual em ondas (duplo aceite · uma onda · Tier 0)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/migracao-layout-workflow.test.mjs
       # O rc que decide um alarme NÃO pode vir de um pipe. Incidente 2026-08-14: o
       # protection-drift.yml fazia `node ... | tee` seguido de `rc=$?` — rc do TEE, não do
       # node → o `::warning::` NUNCA disparava e o `exit $rc` sempre saía 0, com um 🔴 REAL
