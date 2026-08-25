@@ -262,15 +262,22 @@
     },
     "drift_alarms": {
       "status": "measured",
-      "value": 0,
+      "value": 6,
       "unit": "alarmes duros (reds do protection-drift · GT-G4)",
       "direction": "down",
       "target": "advisory perene (0 alarmes duros)",
       "source": "scripts/governance/protection-drift.mjs --json .reds.length (drift de branch protection + watchdog staleness · GT-G4 · P08)",
       "detail": {
-        "reds": [],
+        "reds": [
+          "anchor_coverage: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-08-20T14:47:23Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)",
+          "n_quarantine: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-08-20T14:47:23Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)",
+          "sqlite_corruptors: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-08-20T14:47:23Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)",
+          "ghost_count: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-08-20T14:47:23Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)",
+          "front_door_coverage: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-08-20T14:47:23Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)",
+          "distiller_freshness: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-08-20T14:47:23Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)"
+        ],
         "warns": 0,
-        "verdict": "green"
+        "verdict": "red"
       },
       "stream": "GT"
     },
