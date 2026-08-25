@@ -1,20 +1,20 @@
 {
   "schema": "oimpresso-design-application-report/2",
-  "generatedAt": "2026-08-24T17:28:34.763Z",
+  "generatedAt": "2026-08-25T18:24:04.249Z",
   "bundle": {
-    "id": "290d25a40f6c5c0e0b9ee05fb86f4a5f585c83c5ec847aaca1cd25f1d2710449",
+    "id": "5023b274183d849dcc925eae85cef61a991c3541ca1daeb680267c1afda99e4d",
     "baseId": null,
     "mode": "snapshot",
     "source": "cowork:oimpresso.com.html",
     "transportComplete": true
   },
   "summary": {
-    "transportChanges": 247,
-    "screens": 68,
+    "transportChanges": 255,
+    "screens": 91,
     "tested": 0,
-    "pending": 38,
+    "pending": 62,
     "to-create": 9,
-    "blocked": 21
+    "blocked": 20
   },
   "transportChanges": [
     {
@@ -111,8 +111,22 @@
     {
       "path": "app.jsx",
       "change": "added",
-      "bytes": 66937,
-      "sha256": "8d666f0cc853aee37ea354b8daba3aa74478bb718962fcf9229df03c52139379",
+      "bytes": 74348,
+      "sha256": "afa9663c6c4fd54c3a04525ccafda7c5ba3fdcec85b70139c3efc27003468a75",
+      "role": "cowork-source"
+    },
+    {
+      "path": "arquivos-data.jsx",
+      "change": "added",
+      "bytes": 7270,
+      "sha256": "28037303d6a05e22da0fd2923e06c4cdeb88bcf06fc7dd9c8ec45d8744b16fc0",
+      "role": "cowork-source"
+    },
+    {
+      "path": "arquivos-page.jsx",
+      "change": "added",
+      "bytes": 35842,
+      "sha256": "08a8bebe9e4fd8ed3b950a0fc245780f653fec495078f83bc3a328f794e71a89",
       "role": "cowork-source"
     },
     {
@@ -134,6 +148,13 @@
       "change": "added",
       "bytes": 58763,
       "sha256": "cf6f97880df3abdf1393e5c5c3699b00b84f0d7ddec9e3ca7165d668399b2a53",
+      "role": "cowork-source"
+    },
+    {
+      "path": "catalogo-qr-page.jsx",
+      "change": "added",
+      "bytes": 11955,
+      "sha256": "0d44c40492244555861e5919137b05e647de70e562dccb39b06f8bce79d848b1",
       "role": "cowork-source"
     },
     {
@@ -333,6 +354,13 @@
       "role": "cowork-source"
     },
     {
+      "path": "comunicacao-visual-page.jsx",
+      "change": "added",
+      "bytes": 17731,
+      "sha256": "872bbc1e8b95c09e94c964108ebec19ee915cdf2386eae88ea98b50ff1781798",
+      "role": "cowork-source"
+    },
+    {
       "path": "configuracoes-cadastros.jsx",
       "change": "added",
       "bytes": 51669,
@@ -398,8 +426,8 @@
     {
       "path": "crm-blade.css",
       "change": "added",
-      "bytes": 2358,
-      "sha256": "9d44a31665f4ef079c6062c4c5c53487411d49c3b6c0af629b0a2374b61b474d",
+      "bytes": 2765,
+      "sha256": "324740998c4015f80e830a04a10535e6cfc7f263acdb0173002add0045550bed",
       "role": "cowork-source"
     },
     {
@@ -475,8 +503,8 @@
     {
       "path": "data.jsx",
       "change": "added",
-      "bytes": 33523,
-      "sha256": "48f46054e980bc52f2e8c99738960d59d58798c9ebdfc5676a0f1afeca8e8781",
+      "bytes": 34882,
+      "sha256": "3551732e5d8060101ba60d180b35e248ad23095e7835977733fa506a96282ecf",
       "role": "cowork-source"
     },
     {
@@ -1075,6 +1103,13 @@
       "role": "cowork-source"
     },
     {
+      "path": "modulos-faltantes.css",
+      "change": "added",
+      "bytes": 24547,
+      "sha256": "83c09b1c49f7fc29df9e9976209d0cc1f80fc7788023214e9cceab13c776840e",
+      "role": "cowork-source"
+    },
+    {
       "path": "modulos-page.css",
       "change": "added",
       "bytes": 7334,
@@ -1182,8 +1217,8 @@
     {
       "path": "oimpresso.com.html",
       "change": "added",
-      "bytes": 30725,
-      "sha256": "279a08368ca39d2b6655036aecca1410bc9f35da2dd028266090acb6bb9ae161",
+      "bytes": 31800,
+      "sha256": "5df05ae9679536f84030fef8af695abbf68fe1b758906cc43dde38d480e85845",
       "role": "cowork-source"
     },
     {
@@ -1565,6 +1600,13 @@
       "role": "cowork-source"
     },
     {
+      "path": "suporte-page.jsx",
+      "change": "added",
+      "bytes": 18195,
+      "sha256": "db51d80606ec789421ae426f799b97a4b7c2848f2ebac8bd635dc9d2899156ad",
+      "role": "cowork-source"
+    },
+    {
       "path": "tasks.jsx",
       "change": "added",
       "bytes": 9157,
@@ -1740,14 +1782,40 @@
       "role": "cowork-source"
     },
     {
+      "path": "vestuario-page.jsx",
+      "change": "added",
+      "bytes": 15955,
+      "sha256": "78c0a8606f120e4f4a030245fc8cb8b55618a6865bcd18b71653d55e22c5be6b",
+      "role": "cowork-source"
+    },
+    {
       "path": "viewers.jsx",
       "change": "added",
       "bytes": 8698,
       "sha256": "167db416825acf5d7f4446c314f388c6d5a9b72740fb0e02bdb422aad5b2f1cc",
       "role": "cowork-source"
+    },
+    {
+      "path": "voz-do-cliente-page.jsx",
+      "change": "added",
+      "bytes": 12451,
+      "sha256": "cc69e438ed3dda67401383654ddf2225cdbebbd1f31f1fc5b9e6ba4b38d8e2a1",
+      "role": "cowork-source"
     }
   ],
   "screens": [
+    {
+      "source": "arquivos-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/Arquivos/Index.tsx",
+      "module": "Arquivos",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
+      "tested": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+    },
     {
       "source": "backup-page.jsx",
       "bundleChange": "added",
@@ -1771,6 +1839,18 @@
       "tested": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
+    },
+    {
+      "source": "catalogo-qr-page.jsx",
+      "bundleChange": "added",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "applicationState": "blocked",
+      "tested": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
     {
       "source": "clientes-page.jsx",
@@ -1881,6 +1961,18 @@
       "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
     },
     {
+      "source": "comunicacao-visual-page.jsx",
+      "bundleChange": "added",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "applicationState": "blocked",
+      "tested": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+    },
+    {
       "source": "configuracoes-page.jsx",
       "bundleChange": "added",
       "target": "—",
@@ -1943,26 +2035,110 @@
     {
       "source": "essenciais-page.jsx",
       "bundleChange": "added",
-      "target": "—",
-      "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "applicationState": "blocked",
+      "target": "resources/js/Pages/Essentials/Documents/Index.tsx",
+      "module": "Essentials",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
       "tested": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+    },
+    {
+      "source": "essenciais-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/Essentials/Knowledge/Index.tsx",
+      "module": "Essentials",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
+      "tested": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+    },
+    {
+      "source": "essenciais-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/Essentials/Messages/Index.tsx",
+      "module": "Essentials",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
+      "tested": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+    },
+    {
+      "source": "essenciais-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/Essentials/Reminders/Index.tsx",
+      "module": "Essentials",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
+      "tested": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+    },
+    {
+      "source": "essenciais-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/Essentials/Todo/Index.tsx",
+      "module": "Essentials",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
+      "tested": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
     },
     {
       "source": "estoque-page.jsx",
       "bundleChange": "added",
-      "target": "—",
-      "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "applicationState": "blocked",
+      "target": "resources/js/Pages/StockAdjustment/Create.tsx",
+      "module": "StockAdjustment",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
       "tested": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+    },
+    {
+      "source": "estoque-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/StockAdjustment/Index.tsx",
+      "module": "StockAdjustment",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
+      "tested": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+    },
+    {
+      "source": "estoque-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/StockTransfer/Create.tsx",
+      "module": "StockTransfer",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
+      "tested": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+    },
+    {
+      "source": "estoque-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/StockTransfer/Index.tsx",
+      "module": "StockTransfer",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
+      "tested": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
     },
     {
       "source": "financeiro-page.jsx",
@@ -2039,26 +2215,86 @@
     {
       "source": "governance-page.jsx",
       "bundleChange": "added",
-      "target": "—",
-      "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "applicationState": "blocked",
+      "target": "resources/js/Pages/governance/Audit.tsx",
+      "module": "governance",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
       "tested": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+    },
+    {
+      "source": "governance-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/governance/Dashboard.tsx",
+      "module": "governance",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
+      "tested": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+    },
+    {
+      "source": "governance-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/governance/DriftAlerts.tsx",
+      "module": "governance",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
+      "tested": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+    },
+    {
+      "source": "governance-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/governance/ModuleGrades/Index.tsx",
+      "module": "governance",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
+      "tested": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+    },
+    {
+      "source": "governance-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/governance/Policies.tsx",
+      "module": "governance",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
+      "tested": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
     },
     {
       "source": "hrm-page.jsx",
       "bundleChange": "added",
-      "target": "—",
-      "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "applicationState": "blocked",
+      "target": "resources/js/Pages/Essentials/Holidays/Index.tsx",
+      "module": "Essentials",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
       "tested": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+    },
+    {
+      "source": "hrm-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/Essentials/Settings/Index.tsx",
+      "module": "Essentials",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
+      "tested": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
     },
     {
       "source": "inbox-page.jsx",
@@ -2099,14 +2335,14 @@
     {
       "source": "manufacturing-page.jsx",
       "bundleChange": "added",
-      "target": "—",
-      "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "applicationState": "blocked",
+      "target": "resources/js/Pages/Manufacturing/Index.tsx",
+      "module": "Manufacturing",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
       "tested": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
     },
     {
       "source": "modulos-page.jsx",
@@ -2471,14 +2707,74 @@
     {
       "source": "repair-page.jsx",
       "bundleChange": "added",
-      "target": "—",
-      "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "applicationState": "blocked",
+      "target": "resources/js/Pages/Repair/Dashboard/Index.tsx",
+      "module": "Repair",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
       "tested": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+    },
+    {
+      "source": "repair-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/Repair/DeviceModels/Index.tsx",
+      "module": "Repair",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
+      "tested": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+    },
+    {
+      "source": "repair-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/Repair/Index.tsx",
+      "module": "Repair",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
+      "tested": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+    },
+    {
+      "source": "repair-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/Repair/JobSheet/Index.tsx",
+      "module": "Repair",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
+      "tested": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+    },
+    {
+      "source": "repair-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/Repair/ProducaoOficina/Index.tsx",
+      "module": "Repair",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
+      "tested": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+    },
+    {
+      "source": "repair-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/Repair/Status/Index.tsx",
+      "module": "Repair",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "applicationState": "pending",
+      "tested": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
     },
     {
       "source": "superadmin-page.jsx",
@@ -2529,6 +2825,18 @@
       "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
     },
     {
+      "source": "suporte-page.jsx",
+      "bundleChange": "added",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "applicationState": "blocked",
+      "tested": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+    },
+    {
       "source": "usuarios-page.jsx",
       "bundleChange": "added",
       "target": "—",
@@ -2563,6 +2871,30 @@
       "tested": false,
       "applicationEvidence": null,
       "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+    },
+    {
+      "source": "vestuario-page.jsx",
+      "bundleChange": "added",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "applicationState": "blocked",
+      "tested": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+    },
+    {
+      "source": "voz-do-cliente-page.jsx",
+      "bundleChange": "added",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "applicationState": "blocked",
+      "tested": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     }
   ],
   "manifestFiles": [
@@ -2646,8 +2978,20 @@
     },
     {
       "path": "app.jsx",
-      "bytes": 66937,
-      "sha256": "8d666f0cc853aee37ea354b8daba3aa74478bb718962fcf9229df03c52139379",
+      "bytes": 74348,
+      "sha256": "afa9663c6c4fd54c3a04525ccafda7c5ba3fdcec85b70139c3efc27003468a75",
+      "role": "cowork-source"
+    },
+    {
+      "path": "arquivos-data.jsx",
+      "bytes": 7270,
+      "sha256": "28037303d6a05e22da0fd2923e06c4cdeb88bcf06fc7dd9c8ec45d8744b16fc0",
+      "role": "cowork-source"
+    },
+    {
+      "path": "arquivos-page.jsx",
+      "bytes": 35842,
+      "sha256": "08a8bebe9e4fd8ed3b950a0fc245780f653fec495078f83bc3a328f794e71a89",
       "role": "cowork-source"
     },
     {
@@ -2666,6 +3010,12 @@
       "path": "boletos-page.jsx",
       "bytes": 58763,
       "sha256": "cf6f97880df3abdf1393e5c5c3699b00b84f0d7ddec9e3ca7165d668399b2a53",
+      "role": "cowork-source"
+    },
+    {
+      "path": "catalogo-qr-page.jsx",
+      "bytes": 11955,
+      "sha256": "0d44c40492244555861e5919137b05e647de70e562dccb39b06f8bce79d848b1",
       "role": "cowork-source"
     },
     {
@@ -2837,6 +3187,12 @@
       "role": "cowork-source"
     },
     {
+      "path": "comunicacao-visual-page.jsx",
+      "bytes": 17731,
+      "sha256": "872bbc1e8b95c09e94c964108ebec19ee915cdf2386eae88ea98b50ff1781798",
+      "role": "cowork-source"
+    },
+    {
       "path": "configuracoes-cadastros.jsx",
       "bytes": 51669,
       "sha256": "83843866dc0e8624a7fc37eece65da2c6c155510ee67aca7380b77275cd55d0e",
@@ -2892,8 +3248,8 @@
     },
     {
       "path": "crm-blade.css",
-      "bytes": 2358,
-      "sha256": "9d44a31665f4ef079c6062c4c5c53487411d49c3b6c0af629b0a2374b61b474d",
+      "bytes": 2765,
+      "sha256": "324740998c4015f80e830a04a10535e6cfc7f263acdb0173002add0045550bed",
       "role": "cowork-source"
     },
     {
@@ -2958,8 +3314,8 @@
     },
     {
       "path": "data.jsx",
-      "bytes": 33523,
-      "sha256": "48f46054e980bc52f2e8c99738960d59d58798c9ebdfc5676a0f1afeca8e8781",
+      "bytes": 34882,
+      "sha256": "3551732e5d8060101ba60d180b35e248ad23095e7835977733fa506a96282ecf",
       "role": "cowork-source"
     },
     {
@@ -3473,6 +3829,12 @@
       "role": "cowork-source"
     },
     {
+      "path": "modulos-faltantes.css",
+      "bytes": 24547,
+      "sha256": "83c09b1c49f7fc29df9e9976209d0cc1f80fc7788023214e9cceab13c776840e",
+      "role": "cowork-source"
+    },
+    {
       "path": "modulos-page.css",
       "bytes": 7334,
       "sha256": "4e427d46b4837a195fc04fb22e9fbad99a80ebf5cfbd32a509d05b4559713bd9",
@@ -3564,8 +3926,8 @@
     },
     {
       "path": "oimpresso.com.html",
-      "bytes": 30725,
-      "sha256": "279a08368ca39d2b6655036aecca1410bc9f35da2dd028266090acb6bb9ae161",
+      "bytes": 31800,
+      "sha256": "5df05ae9679536f84030fef8af695abbf68fe1b758906cc43dde38d480e85845",
       "role": "cowork-source"
     },
     {
@@ -3893,6 +4255,12 @@
       "role": "cowork-source"
     },
     {
+      "path": "suporte-page.jsx",
+      "bytes": 18195,
+      "sha256": "db51d80606ec789421ae426f799b97a4b7c2848f2ebac8bd635dc9d2899156ad",
+      "role": "cowork-source"
+    },
+    {
       "path": "tasks.jsx",
       "bytes": 9157,
       "sha256": "cd572eae7d84f7f7a252dbc576315f96cb0f01f7d4f71b4bc1b4dc8fd87cc3af",
@@ -4043,9 +4411,21 @@
       "role": "cowork-source"
     },
     {
+      "path": "vestuario-page.jsx",
+      "bytes": 15955,
+      "sha256": "78c0a8606f120e4f4a030245fc8cb8b55618a6865bcd18b71653d55e22c5be6b",
+      "role": "cowork-source"
+    },
+    {
       "path": "viewers.jsx",
       "bytes": 8698,
       "sha256": "167db416825acf5d7f4446c314f388c6d5a9b72740fb0e02bdb422aad5b2f1cc",
+      "role": "cowork-source"
+    },
+    {
+      "path": "voz-do-cliente-page.jsx",
+      "bytes": 12451,
+      "sha256": "cc69e438ed3dda67401383654ddf2225cdbebbd1f31f1fc5b9e6ba4b38d8e2a1",
       "role": "cowork-source"
     }
   ]

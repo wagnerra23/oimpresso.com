@@ -136,16 +136,18 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
 - ADRs: [0123](../../../../memory/decisions/0123-modules-arquivos-backbone.md) (módulo mãe) ·
   [0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) (multi-tenant Tier 0) ·
   [0360](../../../../memory/decisions/0360-deprecacao-admin-center-supersede-0122.md) (Admin Center deprecado)
-- Contrato de tela: **ainda não existe** — medido em 2026-08-25, nenhum
-  `arquivos*.contract.json` no repositório (varredura do índice inteiro, com controle
-  positivo em `backup.contract.json`). _A razão original caducou:_ ele saiu do PR-0
-  (`d738bdc`) porque o job `Preflight + contratos ativos` roda `git ls-files '*.contract.json'`
-  e exige que **todos** passem (só o `EXEMPLO` é isento), e um contrato apontando pro stub
-  reprovaria por construção — mas o stub acabou, e o `.tsx` já carrega as âncoras
-  `data-contract` de `cabecalho`, `acervo-filtros` e `acervo`, mais `abas`, `trilha-filtros`
-  e `trilha` desde o PR-2 (2026-08-25). O que falta agora é escrever o contrato contra a tela
-  real, com a copy literal — e `abas` só fica completa quando as 2 vistas restantes entrarem
-  (hoje são 2 de 4). Conteúdo do rascunho original preservado
-  no commit `943cc23` (o ponteiro anterior, `cowork-inbox/modulos-faltantes/arquivos.contract.json`,
-  nunca existiu no repositório nem no espelho do Cowork — era ponteiro podre).
+- Contrato de tela: [`prototipo-ui/contrato/arquivos-index.contract.json`](../../../../prototipo-ui/contrato/arquivos-index.contract.json)
+  — 6 seções, copy DERIVADA da tela por script (nunca transcrita) e provada presente no alvo.
+  O veredito de hoje é do gate, não desta linha: `npm run contrato:check -- <o arquivo>` e
+  `npm run contrato:map:check`. _Fatos datados, preservados:_ ele saiu do PR-0 (`d738bdc`)
+  porque o job `Preflight + contratos ativos` roda `git ls-files '*.contract.json'` e exige
+  que **todos** passem (só o `EXEMPLO` é isento), e um contrato apontando pro stub reprovaria
+  por construção; em 2026-08-25 essa razão caducou — o stub acabou e o `.tsx` ganhou as 6
+  âncoras (`cabecalho`, `acervo-filtros`, `acervo` no PR-1; `abas`, `trilha-filtros`, `trilha`
+  no PR-2). `abas` pina só "Acervo" e "Trilha": as 2 vistas restantes (retenção, cofre) entram
+  quando existirem — o contrato registra isso em `_pendente_w`, junto da divergência de copy
+  medida contra o protótipo (`Payload` × `Detalhe`), que é decisão [W]. Conteúdo do rascunho
+  original preservado no commit `943cc23` (o ponteiro anterior,
+  `cowork-inbox/modulos-faltantes/arquivos.contract.json`, nunca existiu no repositório nem no
+  espelho do Cowork — era ponteiro podre).
 - Casos: [Index.casos.md](Index.casos.md)

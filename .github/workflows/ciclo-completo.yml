@@ -7,6 +7,17 @@ name: Ciclo-completo por tela (advisory)
 # nunca bloqueia merge. Fix = nascer a tela com `node scripts/governance/criar-tela.mjs` (conjunto
 # completo por construção) + `--json` pra subir o piso. A "máquina de nascimento de tela" (Wagner
 # 2026-07-11: "fazer na mão é sorteio").
+#
+# ITEM 7 — ALCANCE (adicionado em 2026-08-25): a tela existe E o humano CHEGA nela
+# (rota nomeada → permission → entrada de menu → pacote). Nasceu do caso `/arquivos`:
+# trio no main, rota registrada, 26 testes verdes, e o `modifyAdminMenu()` do módulo era
+# NO-OP — ninguém chegava na tela pelo sidebar, e gate nenhum reclamou (pego a olho pelo
+# [W] no smoke). Corrigido no PR #6245, hoje o golden das 3 camadas de habilitação.
+# Escopo forward-only: só a tela cujo charter declara o bloco `alcance:` (carimbado pelo
+# criar-tela.mjs desde a emenda A, PR #6254). Severidade por `status:` do charter —
+# `draft` avisa, `live` derruba o passo. A prova de RUNTIME (Laravel bootado) mora no
+# Pest irmão tests/Feature/Sidebar/Biz4RotaLivreSidebarTest.php, ligado na lane sqlite
+# do ci.yml via .github/ci-sqlite-pest.list.
 
 on:
   pull_request:
@@ -15,6 +26,16 @@ on:
       - 'resources/js/Pages/**/*.tsx'
       - 'resources/js/Pages/**/*.charter.md'
       - 'resources/js/Pages/**/*.casos.md'
+      # DUAS RAÍZES: a tela pode morar no módulo dono (scripts/qa/page-path.mjs).
+      # Sem estas, mexer numa tela de módulo não dispara o gate que a mede.
+      - 'Modules/*/Resources/js/Pages/**'
+      - 'Modules/*/resources/js/Pages/**'
+      # ITEM 7 (alcance) — o CÓDIGO SOB TESTE do elo de rota/permission/menu. Sem ele no
+      # gatilho, esvaziar um `modifyAdminMenu` (o defeito do /arquivos) não dispararia o
+      # gate que existe pra pegar isso: gate mudo com cara de cobertura.
+      - 'Modules/*/Routes/*.php'
+      - 'routes/*.php'
+      - 'Modules/*/Http/Controllers/DataController.php'
       - 'memory/requisitos/_DesignSystem/padroes-tela/**'
       - 'memory/governance/ciclo-completo-baseline.json'
       - 'scripts/governance/ciclo-completo.mjs'
