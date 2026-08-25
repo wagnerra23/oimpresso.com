@@ -496,3 +496,4 @@ tests/Feature/Console/BackupMonitorScheduleTest.php
 # e o CONTADOR da lane no run deste PR — nao este comentario.
 Modules/PaymentGateway/Tests/Feature/ProcessarWebhookPixInterJobContratoTest.php
 tests/Feature/Architecture/QueueablePropertyCollisionTest.php
+tests/Feature/Sidebar/Biz4RotaLivreSidebarTest.php

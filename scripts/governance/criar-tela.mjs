@@ -16,6 +16,11 @@
 //   (b) <Tela>.charter.md   component + related_prototype "herda PT-0X" + Mission/Goals/Non-Goals
 //   (c) <Tela>.casos.md     stub de UC (o contrato de teste · ADR 0264 G-1/G-2)
 //   (d) stub de teste E2E   e2e/<mod>-<tela>.spec.ts citando o UC (satisfaz G-2 rastreabilidade)
+//   (e) .contract.json      contrato de tela em prototipo-ui/contrato/ — a perna de FIDELIDADE
+//                           VISUAL do trio (contract.schema.json). Nasce com as seções do
+//                           arquétipo + as âncoras `data-contract` correspondentes já no .tsx,
+//                           e `copy` VAZIA (a copy literal é decisão [W] — ver contratoTemplate).
+//                           Consumido pelo `contrato:check` que já existe; nenhum gate novo.
 //
 // Arquétipos (assinatura mínima carimbada, verificada por pt-conformance):
 //   PT-01 Lista      → DataTable + PageHeader + filtros
@@ -53,6 +58,43 @@ const PT_META = {
   'PT-03': { nome: 'Detalhe', arquetipo: 'seções detalhe + FsmActionPanel' },
   'PT-04': { nome: 'Dashboard', arquetipo: 'KpiGrid + KpiCard' },
   'PT-05': { nome: 'Kanban', arquetipo: 'KanbanDndProvider/BoardColumn (dnd-kit)' },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SEÇÕES DO ARQUÉTIPO — fonte única do 5º artefato (contrato de tela).
+//
+// Um `id` aqui significa DUAS coisas que TÊM de casar, senão o contrato nasce vermelho:
+//   (a) uma âncora `data-contract="<id>"` no .tsx carimbado;
+//   (b) uma entrada em `secoes[]` do `.contract.json`.
+// Escrever as duas listas à mão faria elas driftarem no primeiro arquétipo alterado. Aqui
+// a (b) é DERIVADA desta tabela, a (a) é literal no template (a estrutura JSX de cada PT é
+// diferente demais pra gerar genericamente) — e o `--selftest` prova a inclusão nos 5
+// arquétipos (`conferirAncorasDoArquetipo`), então o drift vira vermelho em vez de silêncio.
+//
+// `id` respeita `^[a-z0-9-]+$` do contract.schema.json. Os `_papel` NÃO vão pro JSON: o
+// schema declara `additionalProperties: false` dentro de `secoes[]` (medido 2026-08-25 —
+// contratos escritos à mão violam isso hoje; o gerado não vai violar).
+const PT_SECOES = {
+  'PT-01': [
+    { id: 'cabecalho', _papel: 'PageHeader — identidade da tela' },
+    { id: 'filtros', _papel: 'faixa de filtros/busca acima da tabela' },
+    { id: 'lista', _papel: 'a DataTable em si (colunas + paginação)' },
+  ],
+  'PT-02': [
+    { id: 'formulario', _papel: 'as FormSection/FormGrid com os campos' },
+    { id: 'acoes', _papel: 'barra de submit/cancelar' },
+  ],
+  'PT-03': [
+    { id: 'detalhe', _papel: 'seções de dados + histórico auditável' },
+    { id: 'acoes-fsm', _papel: 'painel de próxima ação (FSM/RBAC) — o que distingue o PT-03' },
+  ],
+  'PT-04': [
+    { id: 'cabecalho', _papel: 'PageHeader — identidade do painel' },
+    { id: 'kpis', _papel: 'a KpiGrid com os agregados' },
+  ],
+  'PT-05': [
+    { id: 'quadro', _papel: 'as colunas arrastáveis do board' },
+  ],
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -168,10 +210,18 @@ export default function ${tela}({ paginator }: Props) {
   ];
   return (
     <AppShellV2>
-      <PageHeader title="${tela}" subtitle="TODO: descrição da lista" />
-      {/* TODO: filtros da lista (SellsDateFilter / busca / status) acima da tabela */}
+      {/* \`data-contract\` = âncora do contrato de tela (prototipo-ui/contrato/). NÃO remova o
+          atributo sem tirar a seção do .contract.json — o gate contrato-de-tela cobra os dois. */}
+      <div data-contract="cabecalho">
+        <PageHeader title="${tela}" subtitle="TODO: descrição da lista" />
+      </div>
+      <div data-contract="filtros">
+        {/* TODO: filtros da lista (SellsDateFilter / busca / status) acima da tabela */}
+      </div>
       {/* \`endpoint\` é OBRIGATÓRIO no DataTable (shared/DataTable.tsx:56) — troque pela rota real. */}
-      <DataTable columns={columns} data={paginator.data} pagination={paginator as never} endpoint="/TODO-rota-da-lista" />
+      <div data-contract="lista">
+        <DataTable columns={columns} data={paginator.data} pagination={paginator as never} endpoint="/TODO-rota-da-lista" />
+      </div>
     </AppShellV2>
   );
 }
@@ -197,17 +247,21 @@ export default function ${tela}(_props: Props) {
     <AppShellV2>
       <form onSubmit={handleSubmit} className="cw-form-layout">
         <div>
-          <FormSection title="Identificação">
-            <FormGrid>
-              <Input
-                value={data.nome}
-                onChange={(e) => setData('nome', e.target.value)}
-                placeholder="TODO"
-              />
-              {errors.nome && <p role="alert">{errors.nome}</p>}
-            </FormGrid>
-          </FormSection>
-          <div className="flex justify-end gap-2">
+          {/* \`data-contract\` = âncora do contrato de tela (prototipo-ui/contrato/). NÃO remova o
+              atributo sem tirar a seção do .contract.json — o gate contrato-de-tela cobra os dois. */}
+          <div data-contract="formulario">
+            <FormSection title="Identificação">
+              <FormGrid>
+                <Input
+                  value={data.nome}
+                  onChange={(e) => setData('nome', e.target.value)}
+                  placeholder="TODO"
+                />
+                {errors.nome && <p role="alert">{errors.nome}</p>}
+              </FormGrid>
+            </FormSection>
+          </div>
+          <div data-contract="acoes" className="flex justify-end gap-2">
             <Button type="submit" disabled={processing}>
               {processing ? 'Salvando…' : 'Salvar'}
             </Button>
@@ -227,8 +281,10 @@ interface Props { registro: Record<string, unknown> /* TODO: entidade em detalhe
 export default function ${tela}({ registro }: Props) {
   return (
     <AppShellV2>
+      {/* \`data-contract\` = âncora do contrato de tela (prototipo-ui/contrato/). NÃO remova o
+          atributo sem tirar a seção do .contract.json — o gate contrato-de-tela cobra os dois. */}
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-        <div>
+        <div data-contract="detalhe">
           {/* TODO: seções de detalhe (dados + Histórico/Timeline auditável) */}
           <dl className="grid grid-cols-2 gap-2">
             <dt>Campo</dt>
@@ -236,7 +292,9 @@ export default function ${tela}({ registro }: Props) {
           </dl>
         </div>
         {/* Painel de próxima ação (FSM/RBAC) — o que distingue Detalhe (PT-03) de Dashboard */}
-        <FsmActionPanel /* TODO: subject, actions, user */ />
+        <div data-contract="acoes-fsm">
+          <FsmActionPanel /* TODO: subject, actions, user */ />
+        </div>
       </div>
     </AppShellV2>
   );
@@ -252,11 +310,17 @@ interface Props { kpis?: Record<string, number> /* TODO: agregados do dashboard 
 export default function ${tela}({ kpis }: Props) {
   return (
     <AppShellV2>
-      <PageHeader title="${tela}" subtitle="TODO: descrição do painel" />
-      <KpiGrid cols={4}>
-        {/* TODO: KPIs reais do módulo */}
-        <KpiCard label="TODO" value={kpis?.total ?? 0} />
-      </KpiGrid>
+      {/* \`data-contract\` = âncora do contrato de tela (prototipo-ui/contrato/). NÃO remova o
+          atributo sem tirar a seção do .contract.json — o gate contrato-de-tela cobra os dois. */}
+      <div data-contract="cabecalho">
+        <PageHeader title="${tela}" subtitle="TODO: descrição do painel" />
+      </div>
+      <div data-contract="kpis">
+        <KpiGrid cols={4}>
+          {/* TODO: KPIs reais do módulo */}
+          <KpiCard label="TODO" value={kpis?.total ?? 0} />
+        </KpiGrid>
+      </div>
       {/* TODO: gráficos/tabelas de apoio abaixo dos KPIs */}
     </AppShellV2>
   );
@@ -273,8 +337,10 @@ export default function ${tela}({ colunas }: Props) {
   return (
     <AppShellV2>
       {/* Kanban com drag-and-drop (dnd-kit) — o que distingue o PT-05 */}
+      {/* \`data-contract\` = âncora do contrato de tela (prototipo-ui/contrato/). NÃO remova o
+          atributo sem tirar a seção do .contract.json — o gate contrato-de-tela cobra os dois. */}
       <KanbanDndProvider /* TODO: onDragEnd que persiste a transição via FSM */>
-        <div className="flex gap-4 overflow-x-auto">
+        <div data-contract="quadro" className="flex gap-4 overflow-x-auto">
           {colunas.map((c) => (
             <BoardColumn key={c.key} /* TODO: header + cards arrastáveis */>
               {c.titulo}
@@ -356,14 +422,68 @@ function detectarPrototipoDoModulo(mod, root = ROOT) {
 // o tocaram (#4875, #5512, #5777), de modo que toda tela nova afirmava uma validação que não
 // houve. A ausência também preserva o determinismo que motivou a constante.
 // ─────────────────────────────────────────────────────────────────────────────
-function charterTemplate(pt, mod, tela, componentRel, protoDecl) {
+/**
+ * ALCANCE — a camada que nenhum gate de código vê: como o HUMANO chega na tela.
+ *
+ * Rota nomeada → permission → entrada de menu → pacote do business. Não é código React,
+ * então `pt-conformance`, `casos-gate` e `ciclo-completo` passam por cima dela.
+ *
+ * Nasceu do caso `/arquivos` (2026-08-25): trio completo no main, rota respondendo 200,
+ * 26 testes Feature — e `modifyAdminMenu()` era NO-OP, com um comentário afirmando que o
+ * módulo "não tem tela própria". Ninguém alcançava a tela pelo menu. Quem pegou foi o [W]
+ * a olho, no smoke do sidebar; gate nenhum reclamou.
+ *
+ * Os valores abaixo são DERIVADOS como sugestão — o autor corrige no charter se a
+ * convenção do módulo for outra. O golden vivo é
+ * `Modules/Arquivos/Http/Controllers/DataController.php` (as 3 camadas de habilitação:
+ * pacote → permission → menu), que é o que este bloco descreve.
+ */
+function derivarAlcance(mod, tela, rota) {
+  const slug = kebab(mod);
+  return {
+    rota,
+    rota_nome: tela.toLowerCase() === 'index' ? `${slug}.index` : `${slug}.${kebab(tela)}`,
+    permission: `${slug}.access`,
+    menu_hook: `Modules/${mod}/Http/Controllers/DataController.php::modifyAdminMenu`,
+    pacote: `${slug}_module`,
+  };
+}
+
+/** Bloco YAML do alcance — some quando a tela declara `--sem-rota`. */
+function alcanceYaml(alcance, semRotaRazao) {
+  if (!alcance) {
+    // `page:` acima ficou com a área do módulo (o schema exige path). A verdade precisa —
+    // "esta tela não tem URL própria" — é ESTA linha, e é ela que o guard de alcance lê.
+    return `alcance:\n  rota: n/a (${semRotaRazao})`;
+  }
+  return [
+    'alcance:',
+    `  rota: ${alcance.rota}`,
+    `  rota_nome: ${alcance.rota_nome}        # name() da rota — é o que o guard procura`,
+    `  permission: ${alcance.permission}      # declarada em DataController::user_permissions`,
+    `  menu_hook: ${alcance.menu_hook}`,
+    `  pacote: ${alcance.pacote}              # superadmin_package`,
+  ].join('\n');
+}
+
+function charterTemplate(pt, mod, tela, componentRel, protoDecl, alcance, semRotaRazao) {
+  // `page:` é REQUIRED no charter.schema.json com pattern `^/.*$`, e os 293 charters do
+  // repo respeitam isso — medido em 2026-08-25. Então `--sem-rota` NÃO pode escrever
+  // "n/a" aqui: nasceria o primeiro charter inválido do projeto.
+  //
+  // A separação que resolve: `page` responde "sob qual URL esta tela é VISTA" (a área do
+  // módulo, quando ela é sub-tela de drawer/modal); `alcance.rota` responde "ela tem URL
+  // PRÓPRIA?" — e é lá que o n/a mora, com a razão do autor.
+  const pageValor = alcance ? alcance.rota : `/${kebab(mod)}`;
+
   return `---
-page: /TODO-rota
+page: ${pageValor}
 component: ${componentRel}
 owner: wagner
 status: draft
 parent_module: ${mod}
 related_prototype: ${protoDecl ?? `n/a (herda ${pt} ${PT_META[pt].nome}; segue o Padrão de Tela)`}
+${alcanceYaml(alcance, semRotaRazao)}
 tier: B
 charter_version: 1
 ---
@@ -412,8 +532,26 @@ function ptFile(pt) {
 // TEMPLATE do casos.md (contrato de teste · ADR 0264 G-1/G-5). Status ⬜ = não-afirmação
 // honesta (G-7 só cobra prova de ✅). O UC é citado pelo stub de teste (satisfaz G-2).
 // ─────────────────────────────────────────────────────────────────────────────
-function casosTemplate(mod, tela) {
+function casosTemplate(mod, tela, alcance) {
   const uc = `UC-${ucPrefix(tela)}-01`;
+  const uc00 = `UC-${ucPrefix(tela)}-00`;
+
+  // O UC de ALCANCE só nasce quando a tela TEM rota própria. Com `--sem-rota` a decisão
+  // já está registrada no charter e cobrar "chegue pelo menu" seria inventar defeito.
+  const blocoAlcance = alcance
+    ? `## ${uc00} · Chego na tela pelo menu, sem digitar URL
+- **Persona:** Larissa — abre o sistema e encontra a tela pelo sidebar.
+- **Aceite:** Dado usuário com a permission \`${alcance.permission}\` · Quando abre o sistema ·
+  Então o item existe no sidebar e leva a \`${alcance.rota}\` (200, sem digitar URL).
+- **Regressão que defende:** a tela responder 200 e ninguém alcançar — \`modifyAdminMenu()\`
+  no-op passa por todo gate de código, porque um método vazio é sintaticamente perfeito.
+- **Status: ⬜**
+
+---
+
+`
+    : '';
+
   return `---
 casos: ${mod}/${tela} — carimbado do Padrão de Tela
 irmaos: ${tela}.charter.md (lei)
@@ -430,7 +568,7 @@ last_run: "${hojeBRT()}"
 
 ---
 
-## ${uc} · TODO: o caminho feliz da tela
+${blocoAlcance}## ${uc} · TODO: o caminho feliz da tela
 - **Persona:** Larissa (ROTA LIVRE) — TODO: o que ela quer fazer nesta tela.
 - **Aceite:** Dado TODO · Quando TODO · Então TODO (resultado verificável).
 - **Teste:** \`e2e/${kebab(mod)}-${kebab(tela)}.spec.ts\` — stub \`test.fixme\` citando \`${uc}\` (troque por asserção real).
@@ -452,8 +590,10 @@ last_run: "${hojeBRT()}"
 // TEMPLATE do stub de teste E2E (Playwright). test.fixme = pendente (não roda/não quebra CI).
 // Cita o UC-id no título → casos-guard G-2 encontra a rastreabilidade caso↔teste.
 // ─────────────────────────────────────────────────────────────────────────────
-function testeTemplate(mod, tela) {
+function testeTemplate(mod, tela, alcance) {
   const uc = `UC-${ucPrefix(tela)}-01`;
+  // A rota real, não `/TODO-rota`: o stub nasce apontando pra onde a tela vai morar.
+  const destino = alcance ? alcance.rota : '/TODO-rota (tela sem URL própria — ver charter)';
   return `import { test, expect } from '@playwright/test';
 
 // Stub E2E carimbado por criar-tela.mjs — contrato em resources/js/Pages/${mod}/${tela}.casos.md.
@@ -462,7 +602,7 @@ function testeTemplate(mod, tela) {
 // classe CSS (L-24). NÃO edite a tela viva sem charter + gate visual.
 
 test.fixme('${uc}: TODO caminho feliz de ${mod}/${tela}', async ({ page }) => {
-  await page.goto('/TODO-rota');
+  await page.goto('${destino}');
   await expect(page.getByRole('heading', { name: '${tela}' })).toBeVisible();
   // TODO: Dado/Quando/Então do ${uc}.
 });
@@ -470,16 +610,110 @@ test.fixme('${uc}: TODO caminho feliz de ${mod}/${tela}', async ({ page }) => {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// CONTRATO DE TELA — o 5º artefato (prototipo-ui/contrato/<mod>-<tela>.contract.json).
+//
+// O buraco que fecha: `prototipo-ui/contrato/` tem contrato de tela e NENHUM do módulo
+// Arquivos — porque o gerador carimbava 4 artefatos e o contrato ficava pra "depois", que
+// nunca chega. Agora nasce junto, já consumido pelo `contrato:check` que existe (nenhum
+// gate novo — o job "Preflight + contratos ativos" roda `git ls-files '*.contract.json'`
+// e exige que TODOS passem, só o EXEMPLO é isento).
+//
+// POR QUE A `copy` NASCE VAZIA (é decisão, não esquecimento):
+// o gate exige match LITERAL de cada string de `copy` no alvo. As únicas strings que o .tsx
+// carimbado tem são placeholders ("TODO: descrição da lista", o nome da tela como título).
+// Pinar placeholder faria o gate ficar vermelho no dia em que o autor escrevesse a copy DE
+// VERDADE — reprovar por acertar. Pior: congelaria o TODO como se fosse lei, que é o mesmo
+// erro que o `jana-painel.contract.json` recusou ao NÃO pinar o botão "(em breve)".
+// Então o gerado carimba o que É wiring do agente — ÂNCORA + ORDEM, derivadas do arquétipo —
+// e deixa a COPY pro [W], registrada em `_pendente_w` (a convenção que jana-painel e
+// ponto-painel já usam). Seção com `copy: []` passa no gate e não afirma nada de falso.
+//
+// `estados` fica FORA de propósito: quais estados esta tela terá é pergunta do domínio, não
+// do arquétipo. Inventar "empty/loading" aqui seria anti-padrão inventado com cara de canon.
+function contratoTemplate(pt, mod, tela, protoDecl, outRoot) {
+  const componentRel = `resources/js/Pages/${mod}/${tela}.tsx`;
+  const secoes = PT_SECOES[pt];
+
+  // `fonte` TEM de apontar pra arquivo existente: `--map --check` (required no mesmo job)
+  // falha com "fonte aponta arquivo inexistente". Duas origens honestas, nesta ordem:
+  //   1. o protótipo que o autor declarou em `--prototipo` — se existir NO DISCO;
+  //   2. o próprio .tsx carimbado — quando não há protótipo (`--sem-prototipo`/módulo sem
+  //      fonte), porque aí a estrutura vem MESMO do arquétipo PT materializado no .tsx.
+  // O caso 2 tem precedente vivo: `jana-painel.contract.json` aponta `fonte` pra tela viva
+  // e explica no próprio contrato. Resolve contra `outRoot` — é o root em que o contrato vai
+  // viver, e é contra ele que o gate resolve o path.
+  const protoPath = protoDecl && !protoDecl.startsWith('n/a') ? protoDecl : null;
+  const protoExiste = protoPath ? existsSync(resolve(outRoot, protoPath)) : false;
+
+  const contrato = {
+    _nota: `Contrato de tela GERADO por criar-tela.mjs junto com o ${pt} ${PT_META[pt].nome} de `
+      + `${mod}/${tela} (${hojeBRT()}). Roda em `
+      + `\`node scripts/contrato-de-tela.mjs --contract <este-arquivo>\`, no mesmo job que já `
+      + `varre todos os *.contract.json. As seções são as do ARQUÉTIPO e as âncoras `
+      + `data-contract correspondentes já nascem no .tsx — âncora e ordem são wiring do agente. `
+      + `A COPY não: veja _pendente_w.`,
+    tela: `${mod}/${tela}`,
+    fonte: protoExiste ? protoPath : componentRel,
+  };
+
+  if (!protoExiste) {
+    contrato._nota_fonte = protoPath
+      ? `\`fonte\` aponta pro .tsx e NÃO pro protótipo declarado (\`${protoPath}\`) porque esse `
+        + `caminho não existe no disco no momento da geração. Ponteiro quebrado deixaria o `
+        + `contrato nascer vermelho no --map --check. Corrija o path e aponte \`fonte\` pra ele.`
+      : `\`fonte\` aponta pra própria tela porque esta não tem protótipo Cowork: a estrutura `
+        + `vem do arquétipo ${pt} materializado no .tsx. Mesma situação (e mesma redação) do `
+        + `jana-painel.contract.json. Quando a tela ganhar protótipo versionado, aponte aqui.`;
+  }
+
+  contrato.alvo = [componentRel];
+  // `copy: []` — ver o bloco POR QUE A `copy` NASCE VAZIA acima. NÃO preencher por palpite.
+  contrato.secoes = secoes.map((s) => ({ id: s.id, copy: [] }));
+  contrato.ordem = secoes.map((s) => s.id);
+  contrato._pendente_w = [
+    `COPY DE CADA SEÇÃO — hoje todas as \`copy\` estão vazias, e o gate passa sem exigir string `
+      + `nenhuma. A copy literal que o design exige é decisão [W] (how-trabalhar.md §Pedido de `
+      + `tela: "\`## Contrato visual\` (copy literal + ordem)"). Preencha seção a seção conforme `
+      + `os TODO do .tsx forem virando texto real — cada string vira match exato no alvo.`,
+    `ESTADOS — \`estados\` foi omitido de propósito (empty/loading/erro dependem do domínio, `
+      + `não do arquétipo). Declare quando a tela tiver os estados de verdade.`,
+    ...secoes.map((s) => `seção \`${s.id}\` — ${s._papel}. Copy pendente.`),
+  ];
+
+  return JSON.stringify(contrato, null, 2) + '\n';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Motor de geração
 // ─────────────────────────────────────────────────────────────────────────────
-export function renderConjunto(pt, mod, tela, protoDecl) {
+export function renderConjunto(pt, mod, tela, protoDecl, alcance = null, semRotaRazao = null, outRoot = ROOT) {
   const componentRel = `resources/js/Pages/${mod}/${tela}.tsx`;
   return {
     tsx: tsxTemplate(pt, mod, tela),
-    charter: charterTemplate(pt, mod, tela, componentRel, protoDecl),
-    casos: casosTemplate(mod, tela),
-    teste: testeTemplate(mod, tela),
+    charter: charterTemplate(pt, mod, tela, componentRel, protoDecl, alcance, semRotaRazao),
+    casos: casosTemplate(mod, tela, alcance),
+    teste: testeTemplate(mod, tela, alcance),
+    contrato: contratoTemplate(pt, mod, tela, protoDecl, outRoot),
   };
+}
+
+// Wrapper `<div data-contract>` desbalanceado = .tsx que NÃO COMPILA — e o gerador já emitiu
+// .tsx quebrado antes (#6210, TS2613, medido com tsc). Aqui não dá pra chamar o tsc: o parser
+// vive em node_modules e o --selftest roda sem `npm ci` (node puro, como o resto). LIMITE
+// DECLARADO: isto prova BALANCEAMENTO de tag, não tipagem — a forma dos imports é coberta por
+// `conferirFormaDosImports`, e o tsc de verdade roda na lane que compila o repo.
+export function balancoDeTags(tsx, tag = 'div') {
+  const abre = (tsx.match(new RegExp(`<${tag}(?=[\\s>])(?![^>]*/>)`, 'g')) || []).length;
+  const fecha = (tsx.match(new RegExp(`</${tag}>`, 'g')) || []).length;
+  return abre - fecha;
+}
+
+// Toda seção do arquétipo TEM âncora `data-contract` no .tsx? (o par (a)↔(b) do PT_SECOES).
+// Exportada porque o --selftest a exerce nos 5 arquétipos: sem isto, mexer num template e
+// esquecer a âncora faria a tela nascer com contrato vermelho — silenciosamente.
+export function conferirAncorasDoArquetipo(pt, tsx) {
+  const presentes = new Set([...tsx.matchAll(/data-contract\s*=\s*["'`]([^"'`]+)["'`]/g)].map((m) => m[1]));
+  return PT_SECOES[pt].filter((s) => !presentes.has(s.id)).map((s) => s.id);
 }
 
 function planPaths(mod, tela, outRoot) {
@@ -489,12 +723,16 @@ function planPaths(mod, tela, outRoot) {
     charter: join(base, `${tela}.charter.md`),
     casos: join(base, `${tela}.casos.md`),
     teste: join(outRoot, 'e2e', `${kebab(mod)}-${kebab(tela)}.spec.ts`),
+    // Nome = `<kebab(mod)>-<kebab(tela)>.contract.json`, o padrão dos contratos que já existem
+    // (`superadmin-dashboard`, `ponto-painel`). O diretório é fixo: é o que `listContracts()`
+    // e o step "Contratos ativos" varrem.
+    contrato: join(outRoot, 'prototipo-ui', 'contrato', `${kebab(mod)}-${kebab(tela)}.contract.json`),
   };
 }
 
-function gerar({ mod, tela, pt, force, outRoot, protoDecl }) {
+function gerar({ mod, tela, pt, force, outRoot, protoDecl, alcance, semRotaRazao }) {
   const paths = planPaths(mod, tela, outRoot);
-  const conj = renderConjunto(pt, mod, tela, protoDecl);
+  const conj = renderConjunto(pt, mod, tela, protoDecl, alcance, semRotaRazao, outRoot);
   const existentes = Object.values(paths).filter((p) => existsSync(p));
   if (existentes.length && !force) {
     console.error(`❌ Já existe(m) (use --force pra sobrescrever):`);
@@ -504,6 +742,7 @@ function gerar({ mod, tela, pt, force, outRoot, protoDecl }) {
   const writes = [
     [paths.tsx, conj.tsx], [paths.charter, conj.charter],
     [paths.casos, conj.casos], [paths.teste, conj.teste],
+    [paths.contrato, conj.contrato],
   ];
   for (const [p, content] of writes) {
     mkdirSync(dirname(p), { recursive: true });
@@ -532,7 +771,33 @@ if (process.argv.includes('--selftest')) {
     const ucMatch = conj.casos.match(/## (UC-[A-Z]+-01)/);
     t(ucMatch && conj.teste.includes(ucMatch[1]), `${pt}: stub de teste cita o UC (G-2 rastreabilidade)`);
     t(/test\.fixme/.test(conj.teste), `${pt}: stub de teste é fixme (não quebra CI)`);
+    // 5º artefato: o par (a) âncora no .tsx ↔ (b) seção no contrato NÃO pode drifar.
+    const semAncora = conferirAncorasDoArquetipo(pt, conj.tsx);
+    t(semAncora.length === 0,
+      `${pt}: toda seção do arquétipo tem âncora data-contract no .tsx${semAncora.length ? ` — falta ${semAncora.join(', ')}` : ''}`);
+    const ctr = JSON.parse(conj.contrato);
+    t(ctr.secoes.length === PT_SECOES[pt].length && ctr.secoes.every((s, i) => s.id === PT_SECOES[pt][i].id),
+      `${pt}: as seções do contrato são as do arquétipo (derivadas de PT_SECOES, não escritas 2×)`);
+    t(ctr.secoes.every((s) => Array.isArray(s.copy) && s.copy.length === 0),
+      `${pt}: a copy nasce VAZIA (pinar placeholder reprovaria quem escrevesse a copy real)`);
+    // O schema declara `additionalProperties: false` dentro de secoes[] — o gerado respeita.
+    t(ctr.secoes.every((s) => Object.keys(s).every((k) => ['id', 'copy', 'estados'].includes(k))),
+      `${pt}: seção só tem chaves do contract.schema.json (id/copy/estados)`);
+    t(ctr.secoes.every((s) => /^[a-z0-9-]+$/.test(s.id)),
+      `${pt}: todo id de seção casa o pattern ^[a-z0-9-]+$ do schema`);
+    t(Array.isArray(ctr.alvo) && ctr.alvo.length > 0 && !!ctr.fonte,
+      `${pt}: contrato tem os campos obrigatórios do schema (alvo + secoes) e a fonte`);
+    t(balancoDeTags(conj.tsx) === 0,
+      `${pt}: os wrappers <div data-contract> fecham (delta ${balancoDeTags(conj.tsx)}) — .tsx não nasce quebrado`);
   }
+  // Controle-positivo da sonda de âncoras: um `=== 0` verde também fica verde se ela for cega.
+  t(conferirAncorasDoArquetipo('PT-01', '<div>sem ancora nenhuma</div>').length === PT_SECOES['PT-01'].length,
+    'controle-positivo: conferirAncorasDoArquetipo ACUSA .tsx sem nenhuma âncora');
+  // Controles da sonda de balanceamento: ela acusa o desbalanceado e não acusa o self-closing.
+  t(balancoDeTags('<div data-contract="x"><span/>') === 1,
+    'controle-positivo: balancoDeTags ACUSA <div> sem fechamento');
+  t(balancoDeTags('<div className="a" /><div>ok</div>') === 0,
+    'controle-negativo: <div /> self-closing não é contado como aberto');
   // Controle positivo da sonda acima: um `!regex` verde também fica verde se o regex for cego.
   // Aqui provo que ele CASA quando o campo EXISTE (proibicoes §5 2026-08-01).
   const charterComCampo = `---
@@ -625,9 +890,12 @@ last_validated: "2026-01-01"
   t(bite.status === 2, 'BITE: módulo COM protótipo sem --prototipo/--sem-prototipo → exit 2');
   t(/TEM protótipo/.test(bite.stderr || ''), 'BITE: a recusa NOMEIA o candidato encontrado');
 
+  // A partir de 2026-08-25 o gerador também exige a decisão de ROTA, então as chamadas
+  // abaixo levam `--rota`: sem ela sairiam 2 por ALCANCE e os CN da âncora mediriam
+  // outra coisa (verde/vermelho pelo motivo errado é pior que vermelho).
   // CN-1: módulo SEM protótipo segue exatamente como antes (não virou gate hostil).
   const cn1 = tmp();
-  const semProto = rodar(['ModuloSemPrototipoXyz/Tela', 'PT-01', '--out', cn1]);
+  const semProto = rodar(['ModuloSemPrototipoXyz/Tela', 'PT-01', '--out', cn1, '--rota', 'fixtura-sem-proto']);
   t(semProto.status === 0, 'CN-1: módulo SEM protótipo continua gerando (exit 0)');
   t(/related_prototype:\s*n\/a \(herda PT-01/.test(
       readFileSync(join(cn1, 'resources/js/Pages/ModuloSemPrototipoXyz/Tela.charter.md'), 'utf8')),
@@ -635,16 +903,131 @@ last_validated: "2026-01-01"
 
   // CN-2/CN-3: as DUAS saídas explícitas funcionam e escrevem o que prometem.
   const cn2 = tmp();
-  rodar(['Forja/FixturaAncora', 'PT-01', '--out', cn2, '--prototipo', 'prototipo-ui/cowork/forja-page.jsx']);
+  rodar(['Forja/FixturaAncora', 'PT-01', '--out', cn2, '--prototipo', 'prototipo-ui/cowork/forja-page.jsx', '--rota', 'fixtura-ancora']);
   t(/related_prototype:\s*prototipo-ui\/cowork\/forja-page\.jsx/.test(
       readFileSync(join(cn2, 'resources/js/Pages/Forja/FixturaAncora.charter.md'), 'utf8')),
     'CN-2: --prototipo escreve o path declarado');
 
   const cn3 = tmp();
-  rodar(['Forja/FixturaAncora', 'PT-01', '--out', cn3, '--sem-prototipo', 'motivo de fixtura']);
+  rodar(['Forja/FixturaAncora', 'PT-01', '--out', cn3, '--sem-prototipo', 'motivo de fixtura', '--rota', 'fixtura-ancora']);
   t(/related_prototype:\s*n\/a \(motivo de fixtura\)/.test(
       readFileSync(join(cn3, 'resources/js/Pages/Forja/FixturaAncora.charter.md'), 'utf8')),
     'CN-3: --sem-prototipo escreve n/a COM a razão (decisão fica registrada)');
+
+  // ── ALCANCE (2026-08-25) — mesmo rigor: bite pelo CLI + os dois controles ───────
+  // O defeito de origem: /arquivos nasceu com `page: /TODO-rota`, respondeu 200 em prod e
+  // ninguém chegava nela pelo menu. Nenhum gate viu, porque alcance não é código React.
+  const biteRota = rodar(['ModuloSemPrototipoXyz/Tela', 'PT-01', '--out', tmp()]);
+  t(biteRota.status === 2, 'BITE-ALCANCE: sem --rota/--sem-rota → exit 2');
+  t(/sem rota declarada/.test(biteRota.stderr || ''),
+    'BITE-ALCANCE: a recusa NOMEIA que o que falta é a rota');
+  t(/TODO-rota/.test(biteRota.stderr || ''),
+    'BITE-ALCANCE: a recusa cita o placeholder que ela existe pra impedir');
+
+  // CN-4: com --rota, o charter nasce com a rota REAL e o bloco de alcance.
+  const cn4 = tmp();
+  const comRota = rodar(['ModuloSemPrototipoXyz/Tela', 'PT-01', '--out', cn4, '--rota', 'minha-tela']);
+  t(comRota.status === 0, 'CN-4: com --rota gera (exit 0)');
+  const chCn4 = readFileSync(join(cn4, 'resources/js/Pages/ModuloSemPrototipoXyz/Tela.charter.md'), 'utf8');
+  t(/^page: \/minha-tela$/m.test(chCn4), 'CN-4: `page:` é a rota real, nunca /TODO-rota');
+  t(/^alcance:$/m.test(chCn4) && /^\s+rota_nome: /m.test(chCn4),
+    'CN-4: o charter carimba o contrato de alcance (rota_nome/permission/menu_hook/pacote)');
+  t(/UC-TELA-00/.test(readFileSync(join(cn4, 'resources/js/Pages/ModuloSemPrototipoXyz/Tela.casos.md'), 'utf8')),
+    'CN-4: o casos.md ganha o UC-00 de alcance ("chego pelo menu")');
+  t(/page\.goto\('\/minha-tela'\)/.test(readFileSync(join(cn4, 'e2e/modulo-sem-prototipo-xyz-tela.spec.ts'), 'utf8')),
+    'CN-4: o stub e2e aponta pra rota real, não pro placeholder');
+
+  // CN-5: --sem-rota registra a decisão e NÃO inventa o UC-00.
+  const cn5 = tmp();
+  const semRota = rodar(['ModuloSemPrototipoXyz/Tela', 'PT-01', '--out', cn5, '--sem-rota', 'sub-tela de drawer']);
+  t(semRota.status === 0, 'CN-5: com --sem-rota gera (exit 0)');
+  const chCn5 = readFileSync(join(cn5, 'resources/js/Pages/ModuloSemPrototipoXyz/Tela.charter.md'), 'utf8');
+  t(/rota: n\/a \(sub-tela de drawer\)/.test(chCn5), 'CN-5: alcance.rota vira n/a COM a razão');
+  // `page:` NÃO pode virar "n/a": é required com pattern `^/.*$` no charter.schema.json,
+  // e os 293 charters do repo respeitam (medido). Nasceria o 1º charter inválido.
+  t(/^page: \/[\w-]/m.test(chCn5), 'CN-5: `page:` continua path válido (schema exige `^/.*$`)');
+  t(!/UC-TELA-00/.test(readFileSync(join(cn5, 'resources/js/Pages/ModuloSemPrototipoXyz/Tela.casos.md'), 'utf8')),
+    'CN-5: sem rota própria, o UC-00 NÃO é carimbado (não se inventa defeito)');
+
+  // CN-6: MSYS path mangling do Git Bash — `--rota /x` chega como "C:/Program Files/Git/x".
+  // Medido de verdade em 2026-08-25, no primeiro bite deste bloco. Ensinar a saída vale
+  // mais que "rota inválida", que manda o autor investigar o lugar errado.
+  const cn6 = rodar(['ModuloSemPrototipoXyz/Tela', 'PT-01', '--out', tmp(), '--rota', 'C:/Program Files/Git/minha-tela']);
+  t(cn6.status === 2, 'CN-6: rota manglada pelo MSYS → exit 2');
+  t(/MSYS path mangling/.test(cn6.stderr || ''), 'CN-6: a recusa explica que é o Git Bash, não erro do autor');
+  t(/--rota minha-tela/.test(cn6.stderr || ''), 'CN-6: a recusa dá a forma que atravessa o shell');
+  // ── CONTRATO DE TELA (5º artefato) — provado contra o GATE REAL, não contra a minha ideia ──
+  // Asserir a forma do JSON aqui em cima prova que o gerador escreve o que eu quis escrever.
+  // NÃO prova que o `contrato:check` aceita — e um .contract.json que o gate reprova é PIOR que
+  // nenhum: o job "Preflight + contratos ativos" varre TODOS os *.contract.json (só EXEMPLO é
+  // isento), então um contrato vermelho quebra o CI de quem nem tocou naquela tela.
+  // Por isso o bite roda o gate DE FORA, nos DOIS modos que o job roda (§5 2026-07-28 — validar
+  // um gate rodando UM dos modos que o CI roda): `--contract` (step "Contratos ativos") e
+  // `--map --check` (step "Mapa protótipo→prod"). E com controle positivo: sonda que só sabe
+  // dizer "passou" é cega.
+  const gate = (args, cwdRoot) => spawnSync(process.execPath,
+    [join(ROOT, 'scripts', 'contrato-de-tela.mjs'), '--root', cwdRoot, ...args],
+    { cwd: ROOT, encoding: 'utf8' });
+  // `--map` lista os contratos por `git ls-files`, que lê o ÍNDICE — `git add` basta, sem commit.
+  const indexar = (dir) => {
+    spawnSync('git', ['init', '-q'], { cwd: dir, encoding: 'utf8' });
+    spawnSync('git', ['add', '-A'], { cwd: dir, encoding: 'utf8' });
+  };
+
+  // Ramo 1 — tela COM protótipo: `fonte` aponta pro protótipo declarado.
+  const c1 = tmp();
+  mkdirSync(join(c1, 'prototipo-ui', 'cowork'), { recursive: true });
+  writeFileSync(join(c1, 'prototipo-ui', 'cowork', 'fixtura-page.jsx'), '// protótipo de fixtura\n');
+  const g1 = rodar(['Fixtura/MinhaTela', 'PT-01', '--out', c1,
+    '--prototipo', 'prototipo-ui/cowork/fixtura-page.jsx', '--rota', 'fixtura']);
+  t(g1.status === 0, 'CONTRATO CN-1: geração com protótipo sai limpa (exit 0)');
+  const p1 = 'prototipo-ui/contrato/fixtura-minha-tela.contract.json';
+  t(existsSync(join(c1, p1)), 'CONTRATO CN-1: o 5º artefato foi escrito no lugar que o gate varre');
+  t(JSON.parse(readFileSync(join(c1, p1), 'utf8')).fonte === 'prototipo-ui/cowork/fixtura-page.jsx',
+    'CONTRATO CN-1: `fonte` é o protótipo declarado (a mesma âncora que o charter registra)');
+  indexar(c1);
+  const chk1 = gate(['--contract', p1], c1);
+  t(chk1.status === 0, `MORDE(inverso) CN-1: o contrato gerado PASSA no contrato:check — ${(chk1.stdout || '').trim().split('\n').pop()}`);
+  const map1 = gate(['--map', '--check'], c1);
+  t(map1.status === 0, 'CONTRATO CN-1: passa também no `--map --check` (fonte existe + toda seção ancorada)');
+
+  // Ramo 2 — tela SEM protótipo: `fonte` cai no .tsx (precedente jana-painel), e ainda passa.
+  const c2 = tmp();
+  rodar(['SemProtoXyz/Painel', 'PT-04', '--out', c2, '--sem-prototipo', 'fixtura', '--rota', 'sem-proto']);
+  const p2 = 'prototipo-ui/contrato/sem-proto-xyz-painel.contract.json';
+  t(JSON.parse(readFileSync(join(c2, p2), 'utf8')).fonte === 'resources/js/Pages/SemProtoXyz/Painel.tsx',
+    'CONTRATO CN-2: sem protótipo, `fonte` cai no .tsx (nunca aponta pra arquivo inexistente)');
+  indexar(c2);
+  t(gate(['--contract', p2], c2).status === 0, 'CONTRATO CN-2: PT-04 sem protótipo também passa no contrato:check');
+  t(gate(['--map', '--check'], c2).status === 0, 'CONTRATO CN-2: e no `--map --check`');
+
+  // CONTROLE POSITIVO 1 — âncora: seção que o .tsx NÃO tem TEM de reprovar.
+  // Sem isto, "passou" não distingue gate-que-mede de gate-que-carimba.
+  const mau = JSON.parse(readFileSync(join(c1, p1), 'utf8'));
+  mau.secoes.push({ id: 'secao-que-nao-existe', copy: [] });
+  writeFileSync(join(c1, p1), JSON.stringify(mau, null, 2));
+  const bad1 = gate(['--contract', p1], c1);
+  t(bad1.status !== 0, 'CONTROLE-POSITIVO: contrato com seção sem âncora REPROVA (exit ≠ 0)');
+  t(/sem âncora data-contract/.test(bad1.stdout || ''), 'CONTROLE-POSITIVO: e a recusa NOMEIA a seção órfã');
+
+  // CONTROLE POSITIVO 2 — copy: string que o alvo não tem TEM de reprovar.
+  // É o que provaria que pinar placeholder faz o gate morder — a razão de `copy` nascer vazia.
+  const mau2 = JSON.parse(readFileSync(join(c2, p2), 'utf8'));
+  mau2.secoes[0].copy = ['ESTA COPY NAO EXISTE NO TSX'];
+  writeFileSync(join(c2, p2), JSON.stringify(mau2, null, 2));
+  const bad2 = gate(['--contract', p2], c2);
+  t(bad2.status !== 0 && /copy ausente/.test(bad2.stdout || ''),
+    'CONTROLE-POSITIVO: copy que o alvo não tem REPROVA (por isso `copy: []`, não placeholder)');
+
+  // CONTROLE POSITIVO 3 — fonte quebrada: é o modo que só o `--map --check` pega.
+  const mau3 = JSON.parse(readFileSync(join(c2, p2), 'utf8'));
+  mau3.secoes[0].copy = [];
+  mau3.fonte = 'prototipo-ui/cowork/nao-existe.jsx';
+  writeFileSync(join(c2, p2), JSON.stringify(mau3, null, 2));
+  const bad3 = gate(['--map', '--check'], c2);
+  t(bad3.status !== 0 && /fonte aponta arquivo inexistente/.test(bad3.stdout || ''),
+    'CONTROLE-POSITIVO: `fonte` inexistente REPROVA no --map --check (o modo que o --contract não vê)');
+
   console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — todo arquétipo nasce conforme ao seu PT.');
   process.exit(fails ? 1 : 0);
 }
@@ -710,7 +1093,64 @@ else {
   // Módulo sem protótipo: segue como antes — `n/a (herda PT-0X)`.
 }
 
-const paths = gerar({ mod, tela, pt, force, outRoot, protoDecl });
+// ── ALCANCE: rota é decisão do AUTOR, não `/TODO-rota` cego ──────────────────
+// Mesmo desenho da ÂNCORA acima: falhar aqui é barato (o autor está no terminal).
+// Deixar `page: /TODO-rota` nascer custa uma tela que responde 200 e ninguém alcança —
+// foi o caso de /arquivos em 2026-08-25, pego a olho pelo [W] no smoke do sidebar.
+const rotaIdx = process.argv.indexOf('--rota');
+const semRotaIdx = process.argv.indexOf('--sem-rota');
+const rotaFlag = rotaIdx >= 0 ? process.argv[rotaIdx + 1] : null;
+const semRotaFlag = semRotaIdx >= 0 ? process.argv[semRotaIdx + 1] : null;
+
+let alcance = null;
+let semRotaRazao = null;
+
+if (rotaFlag) {
+  // ⚠️ MSYS path mangling (Git Bash no Windows): `--rota /arquivos` chega aqui como
+  // "C:/Program Files/Git/arquivos". Medido em 2026-08-25 no primeiro bite-test deste
+  // bloco — o autor no Windows tropeçaria nisso, não é hipótese. Detectar e ensinar a
+  // saída vale mais que recusar com "rota inválida", que manda investigar o lugar errado.
+  const manglado = /^[A-Za-z]:[/\\]/.test(rotaFlag) || rotaFlag.includes('Program Files');
+  if (manglado) {
+    const chute = '/' + rotaFlag.split(/[/\\]/).pop();
+    console.error(`❌ A rota chegou como caminho de disco: "${rotaFlag}".`);
+    console.error('');
+    console.error('   Isto é o MSYS path mangling do Git Bash no Windows, não erro seu: ele');
+    console.error('   converte um argumento que começa com "/" em caminho absoluto do sistema.');
+    console.error('');
+    console.error('   Duas saídas, ambas funcionam:');
+    console.error(`     --rota ${chute.slice(1)}          (sem a barra — o gerador normaliza)`);
+    console.error(`     MSYS_NO_PATHCONV=1 node ... --rota ${chute}`);
+    process.exit(2);
+  }
+
+  // Aceita com ou sem barra inicial e normaliza. Sem barra é a forma que atravessa o
+  // Git Bash intacta, então é a que o autor no Windows vai usar.
+  const rotaNormalizada = rotaFlag.startsWith('/') ? rotaFlag : `/${rotaFlag}`;
+  if (!/^\/[\w\-/]*$/.test(rotaNormalizada)) {
+    console.error(`❌ Rota inválida "${rotaFlag}" — use um path simples (ex: --rota ${kebab(mod)}).`);
+    process.exit(2);
+  }
+  alcance = derivarAlcance(mod, tela, rotaNormalizada);
+} else if (semRotaFlag) {
+  semRotaRazao = semRotaFlag;
+} else {
+  const sugestao = `/${kebab(mod)}`;
+  console.error('❌ Tela nova sem rota declarada — `page:` não pode nascer como "/TODO-rota".');
+  console.error('');
+  console.error('   Escolha explicitamente (a decisão é sua, não do gerador):');
+  console.error(`     --rota ${sugestao}`);
+  console.error('     --sem-rota "<por que esta tela não tem URL própria>"');
+  console.error('');
+  console.error('   Por quê: nenhum gate lê `page: /TODO-rota`. Tela nasce, responde 200, e');
+  console.error('   ninguém a alcança pelo menu — foi o caso de /arquivos (DataController');
+  console.error('   com modifyAdminMenu no-op, pego a olho pelo [W] no smoke em 2026-08-25,');
+  console.error('   não por gate). A camada de ALCANCE (rota → permission → menu → pacote)');
+  console.error('   é a única do ciclo que não é código React, e por isso é invisível.');
+  process.exit(2);
+}
+
+const paths = gerar({ mod, tela, pt, force, outRoot, protoDecl, alcance, semRotaRazao });
 
 // Aviso GOLDEN-LIVE: se o golden do PT ainda é draft, a tela não FECHA o ciclo (ciclo-completo
 // cobra golden live). Não bloqueia a geração — só avisa (o lado Design precisa terminar o golden).
@@ -721,12 +1161,37 @@ try {
 } catch { /* ignore */ }
 
 console.log(`✅ Tela carimbada do ${pt} ${PT_META[pt].nome} — conjunto do ciclo nasceu completo:`);
-for (const k of ['tsx', 'charter', 'casos', 'teste']) console.log(`   • ${relOut(paths[k], outRoot)}`);
+for (const k of ['tsx', 'charter', 'casos', 'teste', 'contrato']) console.log(`   • ${relOut(paths[k], outRoot)}`);
 console.log(`\nPróximos passos:`);
 console.log(`   1. Preencha os {/* TODO */} do .tsx (o arquétipo já passa no pt-conformance).`);
-console.log(`   2. Complete Mission/Goals/Non-Goals no charter + a rota (page:).`);
+console.log(`   2. Complete Mission/Goals/Non-Goals no charter.`);
 console.log(`   3. Escreva o UC real no casos.md + troque o test.fixme por asserção.`);
-console.log(`   4. Wagner aprova o screenshot → charter sai de draft → live.`);
+console.log(`   4. Preencha a \`copy\` do .contract.json conforme os TODO virarem texto real —`);
+console.log(`      ela nasce VAZIA de propósito (copy literal é decisão [W]); as âncoras`);
+console.log(`      \`data-contract\` já estão no .tsx. Confira: npm run contrato:check -- \\`);
+console.log(`        ${relOut(paths.contrato, outRoot)}`);
+console.log(`   5. Wagner aprova o screenshot → charter sai de draft → live.`);
+
+// ── ALCANCE: as 4 linhas que o gerador NÃO escreve, e sem as quais ninguém chega ──
+// Não são geradas de propósito: mexem em arquivo vivo do módulo (rotas + DataController),
+// que o gerador não tem licença pra reescrever. Mas ficam ditas em voz alta, senão a
+// próxima tela repete o "abri o sistema e não tem nada".
+if (alcance) {
+  console.log(`\n🚪 ALCANCE — escreva estas 4 à mão (o charter já declara o contrato):`);
+  console.log(`   a. rota    → Modules/${mod}/Routes/web.php:  Route::get('${alcance.rota}', ...)->name('${alcance.rota_nome}')`);
+  console.log(`   b. gate    → a mesma rota com ->middleware('can:${alcance.permission}')`);
+  console.log(`   c. perm    → '${alcance.permission}' em DataController::user_permissions (nasce default false)`);
+  console.log(`   d. menu    → DataController::modifyAdminMenu com Menu::modify + url('${alcance.rota}')`);
+  console.log(`\n   Golden copiável (as 3 camadas de habilitação, pacote → permission → menu):`);
+  console.log(`     Modules/Arquivos/Http/Controllers/DataController.php`);
+  console.log(`\n   ⚠️  '${alcance.permission}' nasce FALSE. Mesmo com as 4 linhas acima, o item só`);
+  console.log(`      aparece depois de ligar a permission numa função em /roles/{id}/edit — isso é`);
+  console.log(`      dado de runtime, nenhum gate cobra, e é onde o "abri e não tem nada" nasce.`);
+} else {
+  console.log(`\n🚪 ALCANCE — declarado como n/a: "${semRotaRazao}".`);
+  console.log(`   O charter registra a decisão e o casos.md NÃO carimba o UC-00 (cobrar "chegue`);
+  console.log(`   pelo menu" numa tela sem URL própria seria inventar defeito).`);
+}
 if (goldenStatus !== 'live') {
   console.log(`\n⚠️  O golden do ${pt} está "${goldenStatus}" (não live): esta tela NÃO fecha o ciclo-completo`);
   console.log(`   até o Design terminar o golden do ${pt} (GOLDEN-LIVE enforcement).`);

@@ -52,19 +52,29 @@ import {
   type ProdutoRow,
 } from './catalogo';
 
+/**
+ * Rótulo em 12px, não 12.5 — o padrão do template canônico
+ * (`Pt01Lista.dc.html` L101-104), não decisão desta tela (handoff §18.5).
+ */
 function Linha({ rotulo, children }: { rotulo: string; children: ReactNode }) {
   return (
     <Inline gap={4} align="baseline" justify="between">
-      <span className="text-[12.5px] text-muted-foreground">{rotulo}</span>
+      <span className="text-[12px] text-muted-foreground">{rotulo}</span>
       {children}
     </Inline>
   );
 }
 
+/**
+ * 10.5px / tracking .05em — os valores do `h4` do `DrawerSection` do bundle
+ * (`_ds_bundle.js` L3916-3922), não um nível tipográfico inventado na tela
+ * (handoff §18.3). Mesmos valores do subtítulo "Por local" abaixo — os dois
+ * eram divergentes por acidente, não por intenção.
+ */
 function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
     <section className="px-6 py-4 border-b border-border">
-      <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-3">{titulo}</h3>
+      <h3 className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">{titulo}</h3>
       <Stack gap={2}>{children}</Stack>
     </section>
   );
@@ -187,7 +197,7 @@ export function DetalheProduto({
                     gesto pra revelar. */}
                 {locais.length > 0 && (
                   <div className="pt-2 mt-1 border-t border-border">
-                    <p role="heading" aria-level={5} className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
+                    <p role="heading" aria-level={5} className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
                       Por local
                     </p>
                     {locais.map((l) => (

@@ -4,7 +4,7 @@ casos: Jana Memória · fatos aprendidos · LGPD Art. 18 · /ia/memoria
 irmaos: Memoria.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-memoria.md (runbook)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-18"
+last_run: "2026-08-25"
 ---
 
 # Casos de uso — /ia/memoria (Memória da Jana)
@@ -118,7 +118,22 @@ motivo escrito ao lado; subir o número calado é o que ele existe pra impedir.
   resto do módulo já é "Jana" (`RUNBOOK-chat.md`: *"Em texto novo sempre Jana"*). Mexer no título
   toca o breadcrumb do shell, então não é edição de 1 linha.
 
-## Revalidação de 2026-08-18 — por que o `last_run` subiu
+## Revalidação de 2026-08-18 — por que o `last_run` subiu (2ª vez)
+
+O G-6 acusou `stale:` de novo, agora porque o `Memoria.tsx` mudou depois do `last_run` de 08-17.
+**O que mudou:** o `breadcrumbItems` foi removido do `AppShellV2` — **dado morto**, pela mesma razão
+registrada no `Index.casos.md` (o shell só renderiza breadcrumb sob `!hideTopbar`, e o default é `true`).
+
+**Interseção com os UCs desta tela: nenhuma.** Os cinco tratam de comportamento de servidor (motivo
+obrigatório, trilha em `activity_log`, redação de PII, trilha no esquecer). O que saiu nunca renderizou.
+Os cinco seguem `🧪`.
+
+É a segunda revalidação inerte seguida deste arquivo — e as duas pelo mesmo motivo estrutural: o G-6
+mede **data de git**. Continua correto que ele meça assim; o preço é esta nota, e o preço é barato.
+
+**E depois, na onda 2 da paridade:**
+
+## Revalidação de 2026-08-18 — o mesmo dia, pela onda 2 da paridade
 
 O G-6 acusou `stale:` porque o `Memoria.tsx` mudou depois do `last_run` de 08-17. O que mudou, na
 onda 2 da paridade da área Jana ([#5919](https://github.com/wagnerra23/oimpresso.com/pull/5919)):
@@ -142,3 +157,17 @@ com o motivo escrito ao lado; subir o número calado é o que ele existe pra imp
 mudança está só no working tree ela é invisível pro gate. Rode-o **depois** do commit, ou
 espere o CI dizer. Foi o que aconteceu aqui: o gate local passou, o do CI reprovou, e o certo
 era o do CI.
+
+## Revalidação de 2026-08-25 — por que o `last_run` subiu
+
+O G-6 acusou `stale:` de novo, agora porque este PR foi rebaseado sobre o `main` depois de
+**299 commits** — o `Memoria.tsx` mudou nesse intervalo, e a data de git é o que o gate mede.
+
+**O que este PR muda na tela:** o breadcrumb do shell. **Interseção com os UCs: nenhuma** —
+medido, não presumido: `grep -i breadcrumb` nos UCs deste arquivo devolve **zero**. Os casos
+tratam de filtro, navegação por teclado, ARIA, isolamento Tier 0, leitura pura, PII e
+contagem de histórico. Breadcrumb é chrome do shell; não toca nenhum deles.
+
+**Nenhum `Status:` mudou.** O bump é só do `last_run`, com o motivo escrito ao lado — que é a
+condição que o §5 de 2026-07-27 impõe: mudança semanticamente inerte **não é inerte pro
+gate**, e o `last_run` só sobe acompanhado da razão.

@@ -697,6 +697,33 @@ function App() {
     "estDensidade": "confortável",
     "estPapel": "gestor",
     "estLote": true,
+    "cvEstado": "dados",
+    "cvPapel": "balcao",
+    "cvDensidade": "confortável",
+    "cvToque": "mouse",
+    "cvPcp": true,
+    "cvSalvar": true,
+    "vozEstado": "dados",
+    "vozPapel": "produto",
+    "vozDensidade": "confortável",
+    "supEstado": "dados",
+    "supPapel": "agente",
+    "supDensidade": "confortável",
+    "vstEstado": "dados",
+    "vstPapel": "operador",
+    "vstDensidade": "confortável",
+    "vstToque": "mouse",
+    "vstPrevia": true,
+    "vstHardBlock": false,
+    "arqEstado": "dados",
+    "arqPapel": "gestor",
+    "arqDensidade": "confortável",
+    "arqToque": "mouse",
+    "arqCasa": "sistema",
+    "cqrEstado": "dados",
+    "cqrDensidade": "confortável",
+    "cqrPapel": "gerente",
+    "cqrLogo": true,
     "sbPapel": "wagner (admin)",
     "sbGhosts": true
   } /*EDITMODE-END*/;
@@ -888,11 +915,18 @@ function App() {
   if (route === "fiscal-dfe") content = <window.FiscalPage view="dfe" />;else
   if (route === "fiscal-config") content = <window.FiscalPage view="config" />;else
   if (route === "fiscal-sped") content = <window.FiscalPage view="sped" />;else
+  if (route === "cv") content = <window.ComunicacaoVisualPage estado={tweaks.cvEstado} papel={tweaks.cvPapel} dense={tweaks.cvDensidade === "compacto"} toque={tweaks.cvToque} pcp={tweaks.cvPcp} salvar={tweaks.cvSalvar} />;else
+  if (route === "arquivos" || (typeof route === "string" && route.indexOf("arq-") === 0)) content = <window.ArquivosPage view={{ "arquivos": "acervo", "arq-retencao": "retencao", "arq-cofre": "cofre", "arq-trilha": "trilha" }[route]} estado={tweaks.arqEstado} papel={tweaks.arqPapel} dense={tweaks.arqDensidade === "compacto"} toque={tweaks.arqToque} casa={tweaks.arqCasa} />;else
+  if (route === "voz") content = <window.VozDoClientePage estado={tweaks.vozEstado} papel={tweaks.vozPapel} dense={tweaks.vozDensidade === "compacto"} />;else
+  if (route === "suporte") content = <window.SuportePage view="empresas" estado={tweaks.supEstado} papel={tweaks.supPapel} dense={tweaks.supDensidade === "compacto"} />;else
+  if (route === "suporte-visao") content = <window.SuportePage view="visao" estado={tweaks.supEstado} papel={tweaks.supPapel} dense={tweaks.supDensidade === "compacto"} />;else
+  if (route === "vestuario" || route === "vest-etiquetas") content = <window.VestuarioPage estado={tweaks.vstEstado} papel={tweaks.vstPapel} dense={tweaks.vstDensidade === "compacto"} toque={tweaks.vstToque} previa={tweaks.vstPrevia} hardBlock={tweaks.vstHardBlock} />;else
+  if (route === "catalogo-qr") content = <window.CatalogoQrPage estado={tweaks.cqrEstado} papel={tweaks.cqrPapel} dense={tweaks.cqrDensidade === "compacto"} logoCadastrado={tweaks.cqrLogo} />;else
   if (route === "relatorios") content = <window.RelatoriosPage />;else
   if (typeof route === "string" && route.indexOf("rel-") === 0) content = <window.RelatoriosPage grupo={{ "rel-financeiro": "Financeiro", "rel-comercial": "Comercial", "rel-estoque": "Estoque", "rel-fiscal": "Fiscal" }[route]} />;else
   if ([
-  "inbox", "equipe", "cv",
-  "catalogue", "brief", "manufacturing", "ads", "vestuario",
+  "inbox", "equipe",
+  "catalogue", "brief", "manufacturing", "ads",
   "portalos", "auditoria"].
   includes(route)) content = <window.MockupPage route={route} />;else
   content = <ModuleStub routeId={route} />;
@@ -1040,6 +1074,79 @@ function App() {
             value={tweaks.patPapel}
             options={["gestor", "operador", "financeiro"]}
             onChange={(v) => setTweak("patPapel", v)} />
+        </>}
+
+        {route === "cv" && <>
+          <TweakSection label="Comunicação Visual" />
+          <TweakRadio label="Densidade da tela" value={tweaks.cvDensidade}
+            options={["confortável", "compacto"]} onChange={(v) => setTweak("cvDensidade", v)} />
+          <TweakRadio label="Estado dos dados" value={tweaks.cvEstado}
+            options={["dados", "vazio", "carregando", "erro"]} onChange={(v) => setTweak("cvEstado", v)} />
+          <TweakRadio label="Alvo de toque" value={tweaks.cvToque}
+            options={["mouse", "tablet"]} onChange={(v) => setTweak("cvToque", v)} />
+          <TweakSelect label="Papel simulado" value={tweaks.cvPapel}
+            options={["balcao", "gerente", "consulta", "sem-acesso"]} onChange={(v) => setTweak("cvPapel", v)} />
+          <TweakToggle label="PCP na tela" value={tweaks.cvPcp} onChange={(v) => setTweak("cvPcp", v)} />
+          <TweakToggle label="Salvar orçamento + PDF" value={tweaks.cvSalvar} onChange={(v) => setTweak("cvSalvar", v)} />
+        </>}
+
+        {(route === "arquivos" || route.indexOf("arq-") === 0) && <>
+          <TweakSection label="Arquivos (DMS)" />
+          <TweakRadio label="Densidade da tela" value={tweaks.arqDensidade}
+            options={["confortável", "compacto"]} onChange={(v) => setTweak("arqDensidade", v)} />
+          <TweakRadio label="Estado dos dados" value={tweaks.arqEstado}
+            options={["dados", "vazio", "carregando", "erro"]} onChange={(v) => setTweak("arqEstado", v)} />
+          <TweakRadio label="Alvo de toque" value={tweaks.arqToque}
+            options={["mouse", "tablet"]} onChange={(v) => setTweak("arqToque", v)} />
+          <TweakSelect label="Papel simulado" value={tweaks.arqPapel}
+            options={["gestor", "leitura", "sem-acesso"]} onChange={(v) => setTweak("arqPapel", v)} />
+          <TweakRadio label="Onde mora" value={tweaks.arqCasa}
+            options={["sistema", "admin-center"]} onChange={(v) => setTweak("arqCasa", v)} />
+        </>}
+
+        {route === "voz" && <>
+          <TweakSection label="Voz do Cliente" />
+          <TweakRadio label="Densidade da tela" value={tweaks.vozDensidade}
+            options={["confortável", "compacto"]} onChange={(v) => setTweak("vozDensidade", v)} />
+          <TweakRadio label="Estado dos dados" value={tweaks.vozEstado}
+            options={["dados", "vazio", "carregando", "erro"]} onChange={(v) => setTweak("vozEstado", v)} />
+          <TweakSelect label="Papel simulado" value={tweaks.vozPapel}
+            options={["produto", "leitura", "sem-acesso"]} onChange={(v) => setTweak("vozPapel", v)} />
+        </>}
+
+        {(route === "suporte" || route === "suporte-visao") && <>
+          <TweakSection label="Modo Suporte" />
+          <TweakRadio label="Densidade da tela" value={tweaks.supDensidade}
+            options={["confortável", "compacto"]} onChange={(v) => setTweak("supDensidade", v)} />
+          <TweakRadio label="Estado dos dados" value={tweaks.supEstado}
+            options={["dados", "vazio", "carregando", "erro"]} onChange={(v) => setTweak("supEstado", v)} />
+          <TweakSelect label="Papel simulado" value={tweaks.supPapel}
+            options={["agente", "sem-acesso"]} onChange={(v) => setTweak("supPapel", v)} />
+        </>}
+
+        {(route === "vestuario" || route === "vest-etiquetas") && <>
+          <TweakSection label="Vestuário · etiquetas" />
+          <TweakRadio label="Densidade da tela" value={tweaks.vstDensidade}
+            options={["confortável", "compacto"]} onChange={(v) => setTweak("vstDensidade", v)} />
+          <TweakRadio label="Estado dos dados" value={tweaks.vstEstado}
+            options={["dados", "vazio", "carregando", "erro"]} onChange={(v) => setTweak("vstEstado", v)} />
+          <TweakRadio label="Alvo de toque" value={tweaks.vstToque}
+            options={["mouse", "tablet"]} onChange={(v) => setTweak("vstToque", v)} />
+          <TweakSelect label="Papel simulado" value={tweaks.vstPapel}
+            options={["operador", "gerente", "sem-acesso"]} onChange={(v) => setTweak("vstPapel", v)} />
+          <TweakToggle label="Prévia da etiqueta (D-2)" value={tweaks.vstPrevia} onChange={(v) => setTweak("vstPrevia", v)} />
+          <TweakToggle label="Hard-block de permissão (D-1)" value={tweaks.vstHardBlock} onChange={(v) => setTweak("vstHardBlock", v)} />
+        </>}
+
+        {route === "catalogo-qr" && <>
+          <TweakSection label="Catálogo QR" />
+          <TweakRadio label="Densidade da tela" value={tweaks.cqrDensidade}
+            options={["confortável", "compacto"]} onChange={(v) => setTweak("cqrDensidade", v)} />
+          <TweakRadio label="Estado dos dados" value={tweaks.cqrEstado}
+            options={["dados", "vazio", "carregando", "erro"]} onChange={(v) => setTweak("cqrEstado", v)} />
+          <TweakSelect label="Papel simulado" value={tweaks.cqrPapel}
+            options={["gerente", "sem-acesso"]} onChange={(v) => setTweak("cqrPapel", v)} />
+          <TweakToggle label="Negócio tem logo" value={tweaks.cqrLogo} onChange={(v) => setTweak("cqrLogo", v)} />
         </>}
 
         {(route === "estoque" || route.indexOf("est-") === 0) && <>
