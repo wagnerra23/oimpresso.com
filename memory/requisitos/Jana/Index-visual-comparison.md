@@ -25,6 +25,40 @@
 > e o navegador usado aqui não a tem. Os números de produção abaixo continuam sendo os de **08-17**.
 > Onde este bloco fala de produção, a fonte é `grep` no código do `main` de hoje, não DOM renderizado.
 
+> ## 🔬 Paridade MEDIDA nos DOIS lados — 2026-08-25 (prod logada × protótipo em localhost)
+>
+> [W]: *"QUERO PARIDADE MÁXIMA"*. Desta vez os dois lados foram medidos no **DOM renderizado**,
+> no mesmo turno e **no mesmo tema (dark nos dois)** — não por leitura de arquivo, não por olho.
+> Produção: `https://oimpresso.com/ia`, sessão WR2 Sistemas (biz=1), componente `Jana/Index`,
+> 1014 nós, DOM estabilizado por releitura até parar de crescer. Protótipo: `jana-merge.jsx`
+> servido em localhost, aba Painel, 1056 nós, idem.
+>
+> | dimensão | produção | protótipo | veredito |
+> |---|---|---|---|
+> | tema | `dark` | `dark` | ✅ comparável |
+> | `h1` da tela | **22px** (classe `text-[22px]` literal) | **19px** | ❌ **DIVERGE Δ3px** |
+> | projeção no **card** de meta | **0** — `/proje[çc]ão/` não casa em nenhum nó do `<main>` | **5×** `.jm-meta-proj` | ❌ **DIVERGE** |
+> | abas na subnav | **4** — Painel · Conversa · Memória · **Jana Pro** | **3** — Painel · Conversa · Memória | ❌ **DIVERGE** |
+> | barras de progresso | 12 | 5 | ⚪ **não-conclusivo** — os dois lados têm conjuntos de metas diferentes; contagem aqui mede o DADO, não o layout |
+>
+> **O que isto acrescenta às 3 linhas de D4/D8 medidas em 08-17:** a divergência de título **persiste**
+> (e agora se sabe de que lado está o desvio — ver o bloco de re-medição acima: o protótipo de
+> *Arquivos* mede 22px, então os 19px são particulares da Jana). E aparecem **duas divergências que
+> nenhuma medição anterior tinha**: a projeção ausente do card, e a **aba `Jana Pro`**, que **produção
+> tem e o protótipo não** — no protótipo a Pro só é alcançável por botão (`onGoTab("pro")` em
+> `jana-merge.jsx:728` e `:947`), nunca pela barra de abas do `JmTabs`.
+>
+> ⚠️ **Nesta última linha a produção está À FRENTE do protótipo** — o que torna "igualar" uma decisão
+> de produto, não um conserto: copiar o protótipo aqui seria **remover** uma entrada de navegação que
+> existe e funciona. Decisão [W].
+>
+> **O que NÃO foi medido, e por quê:** KPI (tipografia/alinhamento do valor) ficou de fora porque o
+> papel não é resolvível por seletor nos dois lados — em produção os cards são `<Card>`/`<CardContent>`
+> do shadcn, com utilitárias Tailwind e **sem classe semântica**; no protótipo são `.jm-meta*`. O
+> seletor `[class*="kpi"]` que a sonda usaria casa **`cockpit`** por substring e devolveu 3 falsos
+> (`cockpit`, `cockpit-tweaks`, `cockpit-tweaks-fab`) — registrado porque o número parecia medido e
+> não era. Fechar essa dimensão pede um `data-` de papel nos dois lados.
+
 > **Como ler:** ✅ existe e equivale · 🟡 existe mas diverge · ❌ não existe na tela viva · ⛔ existe e **não deve** ser copiado · 🟢 só na viva.
 
 ---
