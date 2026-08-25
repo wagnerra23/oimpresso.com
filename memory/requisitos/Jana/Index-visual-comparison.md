@@ -5,6 +5,60 @@
 - **Charter:** `resources/js/Pages/Jana/Index.charter.md` **v10**
 - **Gate F1.5:** esta tela está no manifesto `tests/Browser/visreg-screens.json` como `Jana`; toda mudança aqui gera diff de pixel e precisa de aprovação [W]
 
+> 🔬 **Re-medido no DOM em 2026-08-25 (protótipo servido em localhost, sonda de `design-diff`).**
+> [W] pediu **paridade máxima** — "tudo deve entrar no denominador". Duas coisas saíram da medição:
+>
+> **1. O protótipo NÃO mudou.** `h1` = **19px**, o mesmo valor da medição de 08-17. As 3 divergências
+> de D4/D8 registradas abaixo seguem válidas do lado do protótipo. (Contraste medido no mesmo turno:
+> o `h1` do protótipo de **Arquivos** mede **22px** — ou seja, os 19px são particulares da Jana,
+> não do shell do protótipo. Isso reposiciona a nota "divergência sistemática do shell": o shell de
+> PRODUÇÃO é 22 nas 4 telas, e é o protótipo da Jana que destoa do próprio espelho.)
+>
+> **2. A projeção da meta fechou no DRAWER, não no CARD — a divergência R4 §card continua ABERTA.**
+> Medido nos dois lados: o protótipo renderiza `jm-meta-proj` **5×** dentro do `JmMetaCard`
+> (`jana-merge.jsx:215`); em produção `projecao` só existe em `_components/JanaMetaDrawer.tsx` e
+> `metaFormat.ts` — `JanaCockpit.tsx`, que desenha os cards, **não tem nenhuma ocorrência**. A onda 5
+> (#5923) entregou a projeção, e entregou no lugar certo pelo argumento dela (projeção é veredito do
+> servidor); mas quem lê a linha 94 desta tabela como "resolvido" erra: **no card, segue ausente**.
+>
+> ⚠️ **O lado PRODUÇÃO não foi re-medido neste turno** — exige sessão autenticada em `oimpresso.com`,
+> e o navegador usado aqui não a tem. Os números de produção abaixo continuam sendo os de **08-17**.
+> Onde este bloco fala de produção, a fonte é `grep` no código do `main` de hoje, não DOM renderizado.
+
+> ## 🔬 Paridade MEDIDA nos DOIS lados — 2026-08-25 (prod logada × protótipo em localhost)
+>
+> [W]: *"QUERO PARIDADE MÁXIMA"*. Desta vez os dois lados foram medidos no **DOM renderizado**,
+> no mesmo turno e **no mesmo tema (dark nos dois)** — não por leitura de arquivo, não por olho.
+> Produção: `https://oimpresso.com/ia`, sessão WR2 Sistemas (biz=1), componente `Jana/Index`,
+> 1014 nós, DOM estabilizado por releitura até parar de crescer. Protótipo: `jana-merge.jsx`
+> servido em localhost, aba Painel, 1056 nós, idem.
+>
+> | dimensão | produção | protótipo | veredito |
+> |---|---|---|---|
+> | tema | `dark` | `dark` | ✅ comparável |
+> | `h1` da tela | **22px** (classe `text-[22px]` literal) | **19px** | ❌ **DIVERGE Δ3px** |
+> | projeção no **card** de meta | **0** — `/proje[çc]ão/` não casa em nenhum nó do `<main>` | **5×** `.jm-meta-proj` | ❌ **DIVERGE** |
+> | abas na subnav | **4** — Painel · Conversa · Memória · **Jana Pro** | **3** — Painel · Conversa · Memória | ❌ **DIVERGE** |
+> | barras de progresso | 12 | 5 | ⚪ **não-conclusivo** — os dois lados têm conjuntos de metas diferentes; contagem aqui mede o DADO, não o layout |
+>
+> **O que isto acrescenta às 3 linhas de D4/D8 medidas em 08-17:** a divergência de título **persiste**
+> (e agora se sabe de que lado está o desvio — ver o bloco de re-medição acima: o protótipo de
+> *Arquivos* mede 22px, então os 19px são particulares da Jana). E aparecem **duas divergências que
+> nenhuma medição anterior tinha**: a projeção ausente do card, e a **aba `Jana Pro`**, que **produção
+> tem e o protótipo não** — no protótipo a Pro só é alcançável por botão (`onGoTab("pro")` em
+> `jana-merge.jsx:728` e `:947`), nunca pela barra de abas do `JmTabs`.
+>
+> ⚠️ **Nesta última linha a produção está À FRENTE do protótipo** — o que torna "igualar" uma decisão
+> de produto, não um conserto: copiar o protótipo aqui seria **remover** uma entrada de navegação que
+> existe e funciona. Decisão [W].
+>
+> **O que NÃO foi medido, e por quê:** KPI (tipografia/alinhamento do valor) ficou de fora porque o
+> papel não é resolvível por seletor nos dois lados — em produção os cards são `<Card>`/`<CardContent>`
+> do shadcn, com utilitárias Tailwind e **sem classe semântica**; no protótipo são `.jm-meta*`. O
+> seletor `[class*="kpi"]` que a sonda usaria casa **`cockpit`** por substring e devolveu 3 falsos
+> (`cockpit`, `cockpit-tweaks`, `cockpit-tweaks-fab`) — registrado porque o número parecia medido e
+> não era. Fechar essa dimensão pede um `data-` de papel nos dois lados.
+
 > **Como ler:** ✅ existe e equivale · 🟡 existe mas diverge · ❌ não existe na tela viva · ⛔ existe e **não deve** ser copiado · 🟢 só na viva.
 
 ---
