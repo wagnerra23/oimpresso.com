@@ -4,7 +4,7 @@ casos: Jana Conversa · histórico · teclado · acessibilidade · /ia/conversa
 irmaos: Chat.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-chat.md (runbook)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-18"
+last_run: "2026-08-25"
 ---
 
 # Casos de uso — /ia/conversa (Chat da Jana)
@@ -411,3 +411,17 @@ com o motivo escrito ao lado; subir o número calado é o que ele existe pra imp
 mudança está só no working tree ela é invisível pro gate. Rode-o **depois** do commit, ou
 espere o CI dizer. Foi o que aconteceu aqui: o gate local passou, o do CI reprovou, e o certo
 era o do CI.
+
+## Revalidação de 2026-08-25 — por que o `last_run` subiu
+
+O G-6 acusou `stale:` de novo, agora porque este PR foi rebaseado sobre o `main` depois de
+**299 commits** — o `Chat.tsx` mudou nesse intervalo, e a data de git é o que o gate mede.
+
+**O que este PR muda na tela:** o breadcrumb do shell. **Interseção com os UCs: nenhuma** —
+medido, não presumido: `grep -i breadcrumb` nos UCs deste arquivo devolve **zero**. Os casos
+tratam de filtro, navegação por teclado, ARIA, isolamento Tier 0, leitura pura, PII e
+contagem de histórico. Breadcrumb é chrome do shell; não toca nenhum deles.
+
+**Nenhum `Status:` mudou.** O bump é só do `last_run`, com o motivo escrito ao lado — que é a
+condição que o §5 de 2026-07-27 impõe: mudança semanticamente inerte **não é inerte pro
+gate**, e o `last_run` só sobe acompanhado da razão.
