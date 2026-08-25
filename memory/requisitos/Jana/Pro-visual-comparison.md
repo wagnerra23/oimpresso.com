@@ -7,6 +7,21 @@
 - **Contrato:** `resources/js/Pages/Jana/Pro.casos.md` — UC-PRO-01..06, `ProContractTest`, lane `jana-pest.yml`
 - **Gate F1.5:** esta tela **NÃO** está em `tests/Browser/visreg-screens.json` (`Jana/Pro` → **0 ocorrências**). Sem baseline de pixel, mudança visual aqui passa sem diff — ao contrário da Memória e do Painel
 
+> ⚠️ **Errata de 2026-08-25 — três afirmações deste cabeçalho caducaram.** Registro sem apagar o que
+> estava escrito: em 2026-08-17 elas eram verdadeiras, e a data é o que lhes dá sentido.
+>
+> | o cabeçalho diz | o que a medição de 2026-08-25 mostra |
+> |---|---|
+> | âncora = `Jana Pro - Paywall CC.html`, lida no Cowork vivo | **sumiu do Cowork** — `get_file` devolve **404** e o path não aparece no `list_files`. A tela ficou **sem fonte de design viva** |
+> | `Jana/Pro` → **0 ocorrências** no `visreg-screens.json` | **entrou** — hoje tem baseline própria. A frase *"mudança visual aqui passa sem diff"* **não vale mais** |
+> | charter **v1** | **v3** — ganhou `related_prototype` declarado nesta data |
+>
+> **Por que a âncora virou `n/a` e não `jana-pro.jsx`:** o `prototipo-ui/cowork/jana-pro.jsx` existe e
+> desenha esta tela — mas o cabeçalho dele declara ser *espelho do vivo `Pro.tsx`, lido no `main`*. É
+> **retrato do código**, não fonte. Ancorar nele faria a comparação bater sempre, por construção: um
+> instrumento que não pode ficar vermelho (a doutrina do §5 sobre o drift-sentinel tautológico). A
+> defesa contra regressão visual desta tela é o visreg, que já existe.
+
 > **Como ler:** ✅ existe e equivale · 🟡 existe mas diverge · ❌ não existe na tela viva · 🟢 **só na viva** (o protótipo não tem — apagar seria regressão) · ⛔ existe e **não deve** ser copiado.
 
 > 💰 **Valores monetários deste documento saem como `R$ [redacted Tier 0]`** — regra Tier 0 de `proibicoes.md`, enforçada pelo hook `block-brl-values-in-memory` (que **bloqueou a 1ª gravação deste arquivo**, corretamente). Nenhum veredito abaixo depende do número em si: o que se compara é *"o protótipo e a viva dizem a mesma coisa?"*.
