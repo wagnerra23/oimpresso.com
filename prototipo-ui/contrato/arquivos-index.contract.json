@@ -1,0 +1,75 @@
+{
+  "_nota": "Contrato de tela de Arquivos/Index (/arquivos). PRIMEIRO consumidor da regra que o gerador passou a carimbar sozinho — esta tela nasceu ANTES dela, então o contrato é escrito contra a tela REAL. Roda no job \"Preflight + contratos ativos\" junto com os outros. A copy abaixo foi DERIVADA do .tsx por script (headers de coluna, labels de aba, empty states, placeholder), nunca transcrita: cada string foi provada presente no alvo antes de o arquivo ser escrito.",
+  "tela": "Arquivos/Index",
+  "fonte": "prototipo-ui/cowork/arquivos-page.jsx",
+  "_nota_fonte": "Mesma âncora que o charter declara em `related_prototype` e que `node prototipo-ui/ancora.mjs Arquivos/Index` resolve. A tela do PR-1 foi derivada dela.",
+  "_nota_limite": "MEDIDO ao escrever este contrato (2026-08-25): o gate casa a copy por SUBSTRING (`blob.includes`), não por literal delimitado. Prova: pinar \"Payload\" (a copy do protótipo que a tela NÃO tem) passou verde, porque casa dentro de `TrilhaPayload` — o nome da interface TS na linha 93. Consequência honesta: copy curta que seja pedaço de um identificador do arquivo é protegida de menos. As 19 strings abaixo foram conferidas uma a uma contra esse risco. Endurecer o casamento é assunto do gate (scripts/contrato-de-tela.mjs), não deste contrato — e mexer nele mudaria os 10 contratos vigentes de uma vez, então é decisão [W], não conserto de passagem.",
+  "alvo": [
+    "resources/js/Pages/Arquivos/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Arquivos"
+      ]
+    },
+    {
+      "id": "abas",
+      "copy": [
+        "Acervo",
+        "Trilha"
+      ]
+    },
+    {
+      "id": "acervo-filtros",
+      "copy": [
+        "Todos"
+      ]
+    },
+    {
+      "id": "acervo",
+      "copy": [
+        "Arquivo",
+        "Onde está preso",
+        "Classificação",
+        "Disco",
+        "Tamanho",
+        "Vence em",
+        "Buscar por nome, dono ou contexto…",
+        "Nenhum arquivo guardado ainda."
+      ]
+    },
+    {
+      "id": "trilha-filtros",
+      "copy": [
+        "Todas"
+      ]
+    },
+    {
+      "id": "trilha",
+      "copy": [
+        "Quando",
+        "Ação",
+        "Arquivo",
+        "Quem",
+        "Detalhe",
+        "Nenhum evento registrado ainda."
+      ]
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "abas",
+    "acervo-filtros",
+    "acervo",
+    "trilha-filtros",
+    "trilha"
+  ],
+  "_pendente_w": [
+    "ABAS — o protótipo tem QUATRO vistas (Acervo · Retenção · Cofre · Trilha); a tela tem DUAS. `abas` pina só \"Acervo\" e \"Trilha\" porque são as que existem: pinar \"Retenção\"/\"Cofre\" faria o contrato reprovar por construção, e contrato que já nasce vermelho ensina a ignorar o gate. Entram aqui quando as vistas entrarem (PR-3 retenção, PR-4 cofre).",
+    "DIVERGÊNCIA DE COPY MEDIDA — a última coluna da Trilha: o protótipo diz \"Payload\", a tela diz \"Detalhe\". O contrato pina \"Detalhe\" porque é o que o alvo tem HOJE (pinar \"Payload\" deixaria o gate vermelho sem ninguém ter regredido). Qual das duas é a palavra certa é decisão [W]: se for \"Payload\", muda-se a tela E esta linha no MESMO PR (regra de precedência — o perdedor se corrige junto).",
+    "SUBTÍTULO do PageHeader não é pinável: é template string derivada do paginador (\"N nesta página · N no cofre cifrado\" / \"N eventos registrados\"). Contrato pina literal, e o literal aqui é composto em runtime.",
+    "CHIPS DE BUCKET (`sensitive`/`active`/`memory`/`discard`) ficam fora da copy de propósito: são chaves de DOMÍNIO renderizadas como valor, não copy de design. Se virarem rótulo traduzido em PT-BR, aí sim entram — e a decisão do rótulo é [W]."
+  ]
+}

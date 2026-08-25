@@ -153,16 +153,27 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
 - ADRs: [0123](../../../../memory/decisions/0123-modules-arquivos-backbone.md) (módulo mãe) ·
   [0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) (multi-tenant Tier 0) ·
   [0360](../../../../memory/decisions/0360-deprecacao-admin-center-supersede-0122.md) (Admin Center deprecado)
-- Contrato de tela: **ainda não existe** — medido em 2026-08-25, nenhum
-  `arquivos*.contract.json` no repositório (varredura do índice inteiro, com controle
-  positivo em `backup.contract.json`). _A razão original caducou:_ ele saiu do PR-0
-  (`d738bdc`) porque o job `Preflight + contratos ativos` roda `git ls-files '*.contract.json'`
-  e exige que **todos** passem (só o `EXEMPLO` é isento), e um contrato apontando pro stub
-  reprovaria por construção — mas o stub acabou, e o `.tsx` já carrega as âncoras
-  `data-contract` de `cabecalho`, `acervo-filtros` e `acervo`, mais `abas`, `trilha-filtros`
-  e `trilha` desde o PR-2 (2026-08-25), e `cofre`, `cofre-discos` e `cofre-achados` desde o
-  PR-4. O que falta agora é escrever o contrato contra a tela real, com a copy literal — e
-  `abas` só fica completa quando a vista restante entrar (hoje são 3 de 4). Conteúdo do rascunho original preservado
-  no commit `943cc23` (o ponteiro anterior, `cowork-inbox/modulos-faltantes/arquivos.contract.json`,
-  nunca existiu no repositório nem no espelho do Cowork — era ponteiro podre).
+- Contrato de tela: [`prototipo-ui/contrato/arquivos-index.contract.json`](../../../../prototipo-ui/contrato/arquivos-index.contract.json)
+  — copy DERIVADA da tela por script (nunca transcrita) e provada presente no alvo.
+  O veredito de hoje é do gate, não desta linha: `npm run contrato:check -- <o arquivo>` e
+  `npm run contrato:map:check`. _Fatos datados, preservados:_ ele saiu do PR-0 (`d738bdc`)
+  porque o job `Preflight + contratos ativos` roda `git ls-files '*.contract.json'` e exige
+  que **todos** passem (só o `EXEMPLO` é isento), e um contrato apontando pro stub reprovaria
+  por construção; em 2026-08-25 essa razão caducou — o stub acabou e o `.tsx` ganhou as
+  âncoras (`cabecalho`, `acervo-filtros`, `acervo` no PR-1; `abas`, `trilha-filtros`, `trilha`
+  no PR-2). **O PR-4 acrescentou `cofre`, `cofre-discos` e `cofre-achados`, e a aba "Cofre"
+  entre Acervo e Trilha** — logo o contrato nasceu descrevendo 2 vistas e a tela já tem 3;
+  fechar essa defasagem é trabalho do PR que reconciliar os dois, não desta linha. Falta só a
+  retenção. O contrato registra as pendências em `_pendente_w`, junto da divergência de copy
+  medida contra o protótipo (`Payload` × `Detalhe`), que é decisão [W]. Conteúdo do rascunho
+  original preservado no commit `943cc23`.
+
+  ⚠️ _Correção de fato (2026-08-25, medido com `DesignSync.list_files` no projeto Cowork
+  `019dcfd3`): a nota anterior dizia que `cowork-inbox/modulos-faltantes/arquivos.contract.json`
+  **"nunca existiu no repositório nem no espelho do Cowork"**. A primeira metade continua
+  verdadeira; a segunda induz a erro — **o arquivo existe no projeto Cowork vivo** e foi lido
+  neste dia. Ele é o contrato F1 das 4 vistas, e não deve ser aplicado literalmente: os chips
+  que ele lista para o acervo incluem `common` e `public`, os dois valores que o
+  [#6244](https://github.com/wagnerra23/oimpresso.com/pull/6244) provou não existirem no enum
+  do banco. Portá-lo ao pé da letra reintroduziria aquele bug._
 - Casos: [Index.casos.md](Index.casos.md)
