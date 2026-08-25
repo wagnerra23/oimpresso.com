@@ -4,7 +4,7 @@ casos: Jana Painel · metas ativas · farol server-side · cockpit deferido · /
 irmaos: Index.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-index.md (runbook) · prototipo-ui/contrato/jana-painel.contract.json (contrato visual)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-18"
+last_run: "2026-08-25"
 ---
 
 # Casos de uso — /ia (Painel da Jana)
@@ -470,3 +470,31 @@ observável para um UC cobrir. Nenhum `Status:` mudou.
 
 Registrado porque o §5 de 2026-07-27 cataloga esta classe: mudança semanticamente inerte **não é inerte
 pro gate** — o G-6 mede data de git, não semântica.
+
+## Revalidação de 2026-08-25 — a data acima não era a que o git viu
+
+O `casos-gate` voltou a acusar `stale:` nesta tela, e a causa **não é uma mudança nova**: é a MESMA
+remoção do `breadcrumbItems` que a seção acima descreve. A seção foi escrita em 08-18, e o
+[#5907](https://github.com/wagnerra23/oimpresso.com/pull/5907) só entrou no `main` em **2026-08-25**,
+depois de um rebase de 299 commits. O G-6 compara o `last_run` com a **data de git do `.tsx`**, e o
+squash-merge carimba a data da entrada, não a do trabalho — então o frontmatter nasceu 7 dias atrás
+do próprio arquivo que descreve. Não é engano de quem revalidou: é o efeito de PR que demora a
+mergear, e ele reaparece em toda tela que revalide antes de entrar.
+
+**Re-verifiquei a premissa por conta própria** em vez de herdar a afirmação do commit — o relato de
+outra sessão é hipótese a testar, não fato:
+
+| O que a seção de 08-18 afirma | Como conferi | Resultado |
+|---|---|---|
+| o shell só renderiza breadcrumb sob `!hideTopbar` | `grep -n hideTopbar` em `AppShellV2.tsx` | `:559` → `{!hideTopbar && (` ✓ |
+| `hideTopbar` é `true` por default | idem | `:243` → `hideTopbar = true,` ✓ |
+| nenhuma tela da Jana passa `hideTopbar={false}` | `grep -rn hideTopbar resources/js/Pages/Jana/` | só comentários e este `.casos.md`; zero uso da prop ✓ |
+| o diff foi só isso | `git show 4de9d46bcb -- …/Jana/Index.tsx` | 1 prop removida + 4 linhas de comentário ✓ |
+
+**Interseção com os 14 UCs: nenhuma** (contados com `grep -c '^## UC-'`). Os UC-JPAIN-01..14 são
+rota, contrato de props, escopo `business_id`, farol de servidor, empty state, meta, série, skeleton,
+âncoras do contrato, drawer, decisão registrada, churn e rótulo de KPI — nada toca topbar, breadcrumb
+ou `<title>`. Nenhum `Status:` muda; os `🧪` seguem `🧪`.
+
+**Não rodei a suíte nesta leva.** O bump é por revalidação de contrato, e digo isso porque o G-6
+aceita a data e só o leitor percebe a diferença.
