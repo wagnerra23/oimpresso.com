@@ -73,24 +73,35 @@ const ucPrefix = (tela) => (tela.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0
 // COMPONENTE (estável, reusável entre telas), não na cópia dentro de cada template.
 // Componente `mapped` que mude de `import_path` passa a chegar sozinho na tela nova.
 //
-// LIMITE DECLARADO (medido 2026-08-14, não é omissão): o registry é **protótipo-first**
-// — a chave dele é `bloco_prototipo` (bloco Cowork → React), e ele NÃO cataloga todo
-// componente do repo. Dos 8 imports usados pelos templates, 3 têm entrada `mapped`
-// (Button/Input/FormSection) e 5 não têm (PageHeader, DataTable, KpiGrid, KpiCard,
-// BoardColumn — existem em disco, `export default function`, sem bloco de protótipo
-// mapeado). Criar entrada pra eles exigiria INVENTAR o `bloco_prototipo`, que as
-// entradas `status: gap` proíbem em nota literal ("NÃO fabricar"). Então esses 5 caem
-// no path declarado aqui — e migram sozinhos no dia em que ganharem entrada real.
+// LIMITE DECLARADO (não é omissão): o registry é **protótipo-first** — a chave dele é
+// `bloco_prototipo` (bloco Cowork → React) e ele NÃO cataloga todo componente do repo.
+// QUANTOS dos imports dos templates ele cobre HOJE é pergunta pro registry, não pra este
+// comentário (§5 2026-07-17 — doc não restateia número que outro sistema sabe melhor):
+// o oráculo é `component-registry-check.mjs --check --strict`, e o `--selftest` daqui
+// REPORTA a cobertura derivada. Componente sem entrada cai no path declarado abaixo e
+// migra sozinho no dia em que ganhar uma.
+//
+// ⚠️ PEGADINHA MEDIDA (2026-08-24): o `import_path` do registry pode apontar pra um
+// BARRIL cuja API pública é NOMEADA — `@/Components/PageHeader` resolve pro `index.ts`,
+// que exporta `{ PageHeader }` e NÃO tem `default`. Trocar o path sem trocar a FORMA do
+// import emite `TS2613: Module has no default export`. Foi o que aconteceu quando o
+// #6210 mapeou o PageHeader canon: o gerador passou a produzir .tsx que não compila.
+// Por isso o template usa a forma que o registry declara em `exports`, e o selftest
+// confere isso em todos os arquétipos (`conferirFormaDosImports`).
 const REGISTRY = join(ROOT, 'prototipo-ui', 'component-registry.json');
 let _regCache = null;
+/** Entradas `mapped` do registry — uma leitura só, dois índices (por componente e por path). */
 function registryMapped() {
   if (_regCache) return _regCache;
-  _regCache = new Map();
+  _regCache = { porComponente: new Map(), porPath: new Map() };
   try {
     const j = JSON.parse(readFileSync(REGISTRY, 'utf8'));
     const arr = Array.isArray(j.entries) ? j.entries : Object.values(j.entries || {});
     for (const e of arr) {
-      if (e && e.status === 'mapped' && e.componente_react && e.import_path) _regCache.set(e.componente_react, e.import_path);
+      if (e && e.status === 'mapped' && e.componente_react && e.import_path) {
+        _regCache.porComponente.set(e.componente_react, e.import_path);
+        _regCache.porPath.set(e.import_path, e);
+      }
     }
   } catch { /* registry ausente/ilegível → templates seguem com o path declarado (nunca crasha) */ }
   return _regCache;
@@ -98,13 +109,41 @@ function registryMapped() {
 
 /** import_path do registry (entrada `mapped`) ou o declarado. Exportado pro selftest. */
 export function importPath(componente, declarado) {
-  return registryMapped().get(componente) || declarado;
+  return registryMapped().porComponente.get(componente) || declarado;
 }
 
 /** Quem está amarrado ao registry vs. quem segue no path declarado — visibilidade honesta. */
 export function provenienciaImports(pares) {
-  const reg = registryMapped();
+  const reg = registryMapped().porComponente;
   return pares.map(([c, d]) => ({ componente: c, declarado: d, registry: reg.get(c) || null, fonte: reg.has(c) ? 'registry' : 'declarado' }));
+}
+
+/**
+ * A FORMA do import gerado (default × nomeado) bate com os `exports` que o registry
+ * DECLARA pra aquele `import_path`? Devolve as divergências (vazio = conforme).
+ *
+ * Existe porque o path sozinho não descreve a API: barril com `export { X }` não aceita
+ * `import X from` (TS2613). Só olha path que o registry mapeia — import de fora dele
+ * (`@inertiajs/react`, `./_components/...`) não é assunto daqui.
+ *
+ * `porPath` é parâmetro pra que o controle da sonda rode a MESMA função da produção com
+ * um registry sintético, em vez de uma cópia paralela (§5 2026-08-14).
+ */
+export function conferirFormaDosImports(tsx, porPath = registryMapped().porPath) {
+  const divergencias = [];
+  const re = /import\s+(?:(\{[^}]*\})|([A-Za-z_$][\w$]*))\s+from\s+'([^']+)'/g;
+  for (const [, chaves, padrao, path] of tsx.matchAll(re)) {
+    const e = porPath.get(path);
+    if (!e) continue;
+    const exports = Array.isArray(e.exports) ? e.exports : [];
+    if (padrao && !exports.includes('default')) {
+      divergencias.push(`${path}: import default de \`${padrao}\`, mas o registry declara exports=[${exports}] (sem 'default') → TS2613`);
+    }
+    for (const s of (chaves || '').replace(/[{}]/g, '').split(',').map((x) => x.trim().split(/\s+as\s+/)[0]).filter(Boolean)) {
+      if (!exports.includes(s)) divergencias.push(`${path}: import nomeado \`{${s}}\` fora de exports=[${exports}]`);
+    }
+  }
+  return divergencias;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -115,7 +154,7 @@ function tsxTemplate(pt, mod, tela) {
   const head = `// ${mod}/${tela} — carimbado do ${pt} ${PT_META[pt].nome} por criar-tela.mjs (UI-0013).\n// Herda o Padrão de Tela: NÃO reinvente a estrutura — preencha os {/* TODO */}.\n`;
   const bodies = {
     'PT-01': `import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '${importPath('PageHeader', '@/Components/shared/PageHeader')}';
+import { PageHeader } from '${importPath('PageHeader', '@/Components/PageHeader')}';
 import DataTable from '${importPath('DataTable', '@/Components/shared/DataTable')}';
 import type { ColumnDef } from '@tanstack/react-table';
 
@@ -129,9 +168,10 @@ export default function ${tela}({ paginator }: Props) {
   ];
   return (
     <AppShellV2>
-      <PageHeader title="${tela}" description="TODO: descrição da lista" />
+      <PageHeader title="${tela}" subtitle="TODO: descrição da lista" />
       {/* TODO: filtros da lista (SellsDateFilter / busca / status) acima da tabela */}
-      <DataTable columns={columns} data={paginator.data} pagination={paginator as never} />
+      {/* \`endpoint\` é OBRIGATÓRIO no DataTable (shared/DataTable.tsx:56) — troque pela rota real. */}
+      <DataTable columns={columns} data={paginator.data} pagination={paginator as never} endpoint="/TODO-rota-da-lista" />
     </AppShellV2>
   );
 }
@@ -203,7 +243,7 @@ export default function ${tela}({ registro }: Props) {
 }
 `,
     'PT-04': `import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '${importPath('PageHeader', '@/Components/shared/PageHeader')}';
+import { PageHeader } from '${importPath('PageHeader', '@/Components/PageHeader')}';
 import KpiGrid from '${importPath('KpiGrid', '@/Components/shared/KpiGrid')}';
 import KpiCard from '${importPath('KpiCard', '@/Components/shared/KpiCard')}';
 
@@ -212,7 +252,7 @@ interface Props { kpis?: Record<string, number> /* TODO: agregados do dashboard 
 export default function ${tela}({ kpis }: Props) {
   return (
     <AppShellV2>
-      <PageHeader title="${tela}" description="TODO: descrição do painel" />
+      <PageHeader title="${tela}" subtitle="TODO: descrição do painel" />
       <KpiGrid cols={4}>
         {/* TODO: KPIs reais do módulo */}
         <KpiCard label="TODO" value={kpis?.total ?? 0} />
@@ -512,14 +552,48 @@ last_validated: "2026-01-01"
     'controle-negativo: componente fora do registry cai no declarado (não crasha, não inventa)');
   t(renderConjunto('PT-02', 'X', 'Y').tsx.includes("from '@/Components/ui/button'"),
     'PT-02 gerado carrega o import_path vindo do registry');
-  // Proveniência honesta: 3 dos 8 imports dos templates são registry-backed; os 5 restantes
-  // não têm `bloco_prototipo` e criar um seria fabricar proveniência (entradas `gap`: "NÃO fabricar").
+  // Proveniência: a COBERTURA é DERIVADA do registry vivo e só REPORTADA — não asserida.
+  // Aqui morava `=== 3 registry && === 5 declarado`, congelado em 2026-08-14. Em 2026-08-24 o
+  // #6210 subiu o registry de 40 pra 69 entradas e a cobertura foi a 7/8: o assert reprovou
+  // por GANHO, e a lane ficou vermelha em todo PR por ter MELHORADO (§5 2026-08-24 — predicado
+  // ABSOLUTO onde cabia DELTA). Congelar de novo (`=== 7`) só adia o mesmo defeito; um piso
+  // (`>= 3`) seria decorativo, porque não pegaria uma queda de 7 pra 4.
+  //
+  // O que fica ASSERTADO abaixo é o que tem consequência de verdade quando muda — a FORMA do
+  // import e o header @deprecated — e nenhum dos dois apodrece com o crescimento do registry.
   const prov = provenienciaImports([['Button', '@/Components/ui/button'], ['Input', '@/Components/ui/input'],
-    ['FormSection', '@/Components/ui/form-section'], ['PageHeader', '@/Components/shared/PageHeader'],
+    ['FormSection', '@/Components/ui/form-section'], ['PageHeader', '@/Components/PageHeader'],
     ['DataTable', '@/Components/shared/DataTable'], ['KpiGrid', '@/Components/shared/KpiGrid'],
     ['KpiCard', '@/Components/shared/KpiCard'], ['BoardColumn', '@/Components/board/BoardColumn']]);
-  t(prov.filter((p) => p.fonte === 'registry').length === 3 && prov.filter((p) => p.fonte === 'declarado').length === 5,
-    `cobertura declarada do Code Connect: ${prov.filter((p) => p.fonte === 'registry').length}/8 registry-backed (o resto sem bloco de protótipo)`);
+  const nReg = prov.filter((p) => p.fonte === 'registry').length;
+  console.log(`  · cobertura do Code Connect (derivada, não asserida): ${nReg}/${prov.length} imports vêm do registry`
+    + ` — sem entrada: ${prov.filter((p) => p.fonte === 'declarado').map((p) => p.componente).join(', ') || 'nenhum'}`);
+
+  // BITE (o defeito que o número congelado escondia): trocar o `import_path` NÃO troca a
+  // FORMA do import. O #6210 mapeou PageHeader pro barril `@/Components/PageHeader`, que
+  // exporta `{ PageHeader }` e não tem `default` — o gerador passou a emitir
+  // `import PageHeader from …`, ou seja .tsx que NÃO COMPILA (TS2613, medido com tsc).
+  for (const pt of Object.keys(PT_META)) {
+    const d = conferirFormaDosImports(renderConjunto(pt, 'Fixtura', 'MinhaTela').tsx);
+    t(d.length === 0, `${pt}: forma do import bate com os \`exports\` do registry${d.length ? ` — ${d.join(' · ')}` : ''}`);
+  }
+  // Controle da sonda acima, com registry SINTÉTICO (mesma função da produção, §5 2026-08-14):
+  // um `=== 0` verde também fica verde se a sonda for cega.
+  const regFake = new Map([['@/Fake/barril', { import_path: '@/Fake/barril', exports: ['Coisa'], status: 'mapped' }]]);
+  t(conferirFormaDosImports("import Coisa from '@/Fake/barril';", regFake).length === 1,
+    'controle-positivo: a sonda ACUSA default import de barril que só exporta nomeado (TS2613)');
+  t(conferirFormaDosImports("import { Coisa } from '@/Fake/barril';", regFake).length === 0,
+    'controle-negativo: import nomeado conforme não é acusado');
+  t(conferirFormaDosImports("import Qualquer from '@/Path/ForaDoRegistry';", regFake).length === 0,
+    'controle-negativo: path fora do registry não é assunto da sonda (não inventa divergência)');
+
+  // Ratchet com consequência: o fallback declarado do PageHeader era o `shared/PageHeader`,
+  // @deprecated CONGELADO — tela NOVA que o importe reprova no `pageheader-gate.yml`. O
+  // gerador não pode semear isso, com ou sem entrada no registry.
+  const comHeaderCongelado = Object.keys(PT_META)
+    .filter((pt) => renderConjunto(pt, 'X', 'Y').tsx.includes("'@/Components/shared/PageHeader'"));
+  t(comHeaderCongelado.length === 0,
+    `nenhum arquétipo nasce com o PageHeader @deprecated (ratchet pageheader-gate)${comHeaderCongelado.length ? ` — ${comHeaderCongelado.join(', ')}` : ''}`);
 
   // cross-check: PT-02 NÃO deve passar como se fosse PT-05 (assinaturas distintas)
   const pt02 = detectSignals(renderConjunto('PT-02', 'X', 'Y').tsx);
