@@ -62,8 +62,22 @@ interface Props {
 // então não se escreve `dark:` — é o que o próprio componente exige das Pages.
 // O mapeamento é por SEMÂNTICA, não por hue: `restricao` restringe (danger),
 // `acao_pendente` pende (warning), `meta` informa (info). `preferencia` e `contexto` não
-// têm carga semântica — ficam nos dois tons neutros distintos que o DS oferece, o que
-// preserva as 5 pills distinguíveis.
+// têm carga semântica — ficam nos dois neutros, o que preserva as 5 pills distinguíveis.
+//
+// COMO os dois neutros se distinguem (medido 2026-08-26, OKLab, tokens de inertia.css):
+//   `neutral`   = bg-muted + `border-border` (borda VISÍVEL) + texto muted-foreground
+//   `secondary` = bg-secondary + `border-transparent` (herda o cva base) + texto near-fg
+// No tema escuro os dois FUNDOS são o mesmo valor (ΔE 0.0000): quem separa é a BORDA e o
+// brilho do texto (ΔE 0.2250), não o fundo. No claro os fundos ficam a ΔE 0.0110.
+// A distinção existe, mas é sutil — registrado aqui pra ninguém "consertar" no escuro
+// achando que é bug de fundo: não é, é o desenho dos tokens.
+//
+// Por que `preferencia` NÃO migra pras alternativas óbvias:
+//   `success`  → carrega tom positivo, e preferir não é dar certo (contraria a regra acima).
+//   `outline`  → JÁ É o fallback de categoria desconhecida (linha ~98): "Preferência" ficaria
+//                visualmente idêntica a "sem categoria".
+//   `neutral`  → colide com `contexto`, some uma das 5.
+// Um segundo neutro soft próprio no DS resolveria melhor, mas token novo é Tier 0 [W].
 const CATEGORIA_LABELS: Record<string, { label: string; variant: BadgeVariant }> = {
   meta:           { label: 'Meta',           variant: 'info' },
   preferencia:    { label: 'Preferência',    variant: 'secondary' },

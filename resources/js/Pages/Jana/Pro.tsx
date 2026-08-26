@@ -40,24 +40,22 @@ interface Props {
 }
 
 // ── Cores do card de prova — "ilha" dark dentro de página que pode estar clara ──
-// MEDIDO 2026-08-26: os tokens `--sb-*` (sidebar) são os únicos IDÊNTICOS nos dois temas
-// (`_generated-cockpit-light.css` == `_generated-cockpit-dark.css`), então são os corretos
-// para uma ilha dark-fixo. Os semânticos (`--pos`, `--accent-soft`, `--bubble-them`,
-// `--color-*`) TÊM par de tema e quebrariam aqui: no claro o verde vira escuro sobre fundo
-// escuro e a bolha vira branca. Por isso o mapa abaixo usa `--sb-*`, não os semânticos.
+// O namespace `--sb-*` é o dos tokens DARK-FIXOS do cockpit: mesmo valor nos dois temas.
+// A sidebar é a instancia original (preta nos 2 modos, UI-0023); esta ilha é a segunda.
+// Os semânticos (`--pos`, `--accent-soft`, `--bubble-them`, `--color-*`) têm par de tema e
+// não servem aqui: no claro o verde escurece sobre fundo escuro e a bolha embranquece.
+// Fonte dos valores: resources/css/tokens/semantic.tokens.json → cockpit.surface.
 const PROOF_BG = 'var(--sb-bg)'
 const PROOF_INK = 'var(--sb-text-hi)'
 const PROOF_MUTE = 'var(--sb-text-dim)'
 const BUB_THEM = 'var(--sb-active)'
-// ⚠️ AINDA CRUAS — não há token dark-fixo equivalente no DS (medido: verde e accent-soft
-// só existem com par de tema). Criar token novo é decisão [W] (Tier 0), então ficam
-// literais e DECLARADAS aqui em vez de escondidas:
-//   BUB_JANA  → falta um accent-soft dark-fixo
-//   NUM_POS   → falta um success dark-fixo
-//   PROOF_OVERLAY → falta o accent dark-fixo do gradiente
-const PROOF_OVERLAY = 'radial-gradient(120% 80% at 100% 0%, oklch(0.4 0.12 295 / 0.35), transparent 60%)'
-const BUB_JANA = 'oklch(0.31 0.02 295)'
-const NUM_POS = 'oklch(0.74 0.13 150)'
+const PROOF_OVERLAY = 'radial-gradient(120% 80% at 100% 0%, var(--sb-accent-glow), transparent 60%)'
+const BUB_JANA = 'var(--sb-accent-soft)'
+const NUM_POS = 'var(--sb-pos)'
+// Gradiente do avatar e halo do marcador — mesmos tokens dark-fixos, extraídos aqui em vez
+// de literais no JSX (lá eles escapam do lint `ds/no-inline-raw-color`, que casa Literal).
+const AVATAR_BG = 'linear-gradient(135deg, var(--sb-accent), var(--sb-accent-2))'
+const NUM_POS_RING = '0 0 0 3px var(--sb-pos-glow)'
 
 const fmtBRL = (n: number) =>
   new Intl.NumberFormat('pt-BR', {
@@ -244,7 +242,7 @@ function ProPage({ plan, pricing, proof }: Props) {
               <div className="relative flex items-center gap-[9px]">
                 <span
                   className="grid size-[26px] flex-none place-items-center rounded-full text-xs font-bold text-white"
-                  style={{ background: 'linear-gradient(135deg, oklch(0.55 0.15 295), oklch(0.64 0.15 300))' }}
+                  style={{ background: AVATAR_BG }}
                 >
                   J
                 </span>
@@ -252,7 +250,7 @@ function ProPage({ plan, pricing, proof }: Props) {
                 <small className="ml-auto flex items-center gap-[5px] text-[11px]" style={{ color: PROOF_MUTE }}>
                   <span
                     className="size-1.5 rounded-full"
-                    style={{ background: NUM_POS, boxShadow: '0 0 0 3px oklch(0.55 0.13 150 / 0.25)' }}
+                    style={{ background: NUM_POS, boxShadow: NUM_POS_RING }}
                   />
                   lendo seu ERP
                 </small>
