@@ -4,7 +4,7 @@ casos: Jana Conversa · histórico · teclado · acessibilidade · /ia/conversa
 irmaos: Chat.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-chat.md (runbook)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-25"
+last_run: "2026-08-26"
 ---
 
 # Casos de uso — /ia/conversa (Chat da Jana)
@@ -74,7 +74,7 @@ conversa.
 **Pronto quando:** mudar a conversa ativa escreve o título na região viva; re-render sem troca não escreve.
 
 ## UC-JCHAT-05 — Thread de outro business NUNCA é devolvida (Tier 0)
-Status: 🧪 (`Modules/Jana/Tests/Feature/Chat/ChatAntiHooksTier0Test.php` — cita o UC no título; aguarda run verde na lane MySQL)
+Status: ✅ (`Modules/Jana/Tests/Feature/Chat/ChatAntiHooksTier0Test.php` — verde no CT 100 em 2026-08-26; recibo no fim do arquivo)
 
 Um usuário de outro business pede a conversa pelo id e **não recebe 200**. Vale 403 (negado) ou 404
 (nem existe pra ele); o que não pode é conteúdo alheio na tela.
@@ -83,16 +83,17 @@ Um usuário de outro business pede a conversa pelo id e **não recebe 200**. Val
 [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md). Tenant fictício 98 e
 um vizinho ([ADR 0358](../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)) — **nunca biz=4**.
 
-⚠️ **Este UC pode nascer vermelho, e isso é o achado.** O `ChatController::show()` guarda por
+✅ **A dúvida que este bloco levantava foi RESOLVIDA em 2026-08-26: passou.** O `ChatController::show()` guarda por
 `user_id` (`abort_unless($conversa->user_id === auth()->id(), 403)`), **não** por `business_id` — o
-charter promete isolamento por BUSINESS. Se passar, o `user_id` cobre o caso na prática; se falhar,
-o teste achou o buraco que o anti-hook descreve. Os dois desfechos são informação.
+charter promete isolamento por BUSINESS. Passou — logo o `user_id` **cobre o caso na prática**, e o vizinho recebe 403.
+A divergência entre o texto do charter (business) e a guarda do código (user) segue existindo no
+papel; o que o teste prova é que ela não abre buraco de isolamento hoje.
 
 **Pronto quando:** o status não é 200 **nem 302** (anti-vácuo: redirect de login faria o assert
 passar sem provar isolamento nenhum) e está em `[403, 404]`.
 
 ## UC-JCHAT-06 — Abrir a thread é leitura PURA
-Status: 🧪 (mesmo arquivo — cita o UC no título; aguarda run verde)
+Status: ✅ (mesmo arquivo — verde no CT 100 em 2026-08-26; recibo no fim do arquivo)
 
 Abrir uma conversa **não dispara e-mail nem notificação**. Efeito colateral pertence ao POST de
 mensagem, não à consulta.
@@ -103,7 +104,7 @@ mensagem, não à consulta.
 **Pronto quando:** `Mail::assertNothingSent()` e `Notification::assertNothingSent()` após o GET.
 
 ## UC-JCHAT-07 — O render inicial não escreve no banco
-Status: 🧪 (`ChatAntiHooksTier0Test` — cita o UC no título; aguarda run verde)
+Status: ✅ (`ChatAntiHooksTier0Test` — verde no CT 100 em 2026-08-26; recibo no fim do arquivo)
 
 Abrir a conversa **não acrescenta linha** em `jana_mensagens`. Escrita pertence ao POST.
 
@@ -116,7 +117,7 @@ zero passaria a depender de um detalhe de seed, não do comportamento.
 **Pronto quando:** a contagem depois do GET é idêntica à de antes.
 
 ## UC-JCHAT-08 — O render não chama o Brain B nem vaza credencial
-Status: 🧪 (`ChatAntiHooksTier0Test` — cita o UC no título; aguarda run verde)
+Status: ❌ (`ChatAntiHooksTier0Test` — vermelho no CT 100 em 2026-08-26, mas **o defeito é do medidor, não do sistema**; recibo no fim do arquivo)
 
 Abrir a conversa **não faz chamada HTTP de saída** (`Http::preventStrayRequests()`), e o corpo
 servido **não contém** o nome nem o valor da credencial do Brain B.
@@ -129,6 +130,16 @@ configurado (que é o vazamento de fato). Só o nome não bastaria — um token 
 passaria batido.
 
 **Pronto quando:** a resposta é 200 sem request de saída, e nenhuma das duas strings aparece no corpo.
+
+❌ **Medido em 2026-08-26 — e o vermelho NÃO é vazamento.** O `preventStrayRequests()` é uma sonda
+mais **larga** que o contrato que ele guarda: ele barra *qualquer* HTTP de saída, e o que ele pegou
+foi o **SSR do Inertia** (`http://127.0.0.1:13714/render` — `config/inertia.php:30`, `INERTIA_SSR_URL`),
+nunca o Brain B. Pior: o estouro acontece no `assertOk()`, **antes** das duas asserts de credencial,
+então elas nem chegavam a rodar. Controle que separa as duas coisas: com `INERTIA_SSR_ENABLED=false`
+e **nada mais** mudado, o arquivo fecha **4 passed (8 assertions)** — as asserts de credencial rodam
+e passam (7→8 assertions). Ou seja: **o anti-hook está satisfeito; quem reprova é o medidor.**
+Corrigir isso mexe no que o anti-hook guarda (contrato do charter), então é decisão [W] — não
+afrouxamento silencioso da minha parte.
 
 ## UC-JCHAT-09 — Toda tool exposta ao LLM declara a permissão que exige
 Status: 🧪 (`Modules/Jana/Tests/Feature/Chat/ChatAntiHooksAcaoTest.php` — cita o UC no título; aguarda run verde)
@@ -425,3 +436,39 @@ contagem de histórico. Breadcrumb é chrome do shell; não toca nenhum deles.
 **Nenhum `Status:` mudou.** O bump é só do `last_run`, com o motivo escrito ao lado — que é a
 condição que o §5 de 2026-07-27 impõe: mudança semanticamente inerte **não é inerte pro
 gate**, e o `last_run` só sobe acompanhado da razão.
+
+## Revalidação de 2026-08-26 — os 4 UCs Tier 0 foram MEDIDOS pela primeira vez
+
+Até esta data os quatro nasceram e permaneceram 🧪. O motivo não era fila de CI: o
+`ChatAntiHooksTier0Test.php` declarava só `uses(DatabaseTransactions::class)`, **sem**
+`TestsTestCase::class`. O `tests/Pest.php:5` vincula o TestCase em `->in('Feature')`, que é a pasta
+**raiz** `tests/Feature` — não alcança `Modules/*/Tests/Feature` (módulo só entra por bind explícito,
+como o KB tem nas linhas 19-20; a Jana não tem nenhum). Sem TestCase o app Laravel nunca subia e o
+resolver do Eloquent ficava `null`. Os três irmãos do mesmo diretório já traziam o TestCase — o
+`ChatConversasPreviewTest` até **documenta a armadilha em comentário** (PR #5901). Este arquivo, da
+mesma leva, ficou de fora.
+
+**Recibo (CT 100, container `oimpresso-staging`, checkout `c01ee7615`):**
+
+```
+vendor/bin/pest --no-coverage Modules/Jana/Tests/Feature/Chat/ChatAntiHooksTier0Test.php
+
+ANTES  4 failed  (0 assertions)   Call to a member function connection() on null
+                                  Model.php:2233, frames :85 e :106
+DEPOIS 1 failed, 3 passed (7 assertions)
+
+controle (única variável trocada: INERTIA_SSR_ENABLED=false)
+       4 passed  (8 assertions)
+```
+
+`0 assertions` no ANTES é o ponto: não era “reprovou”, era **nunca mediu**. Ler *assertions* e não
+“0 failed” é o que separa as duas coisas (LC-13).
+
+**Vereditos:** UC-05 ✅ · UC-06 ✅ · UC-07 ✅ · UC-08 ❌ (medidor largo — ver o bloco do próprio UC).
+
+**O teste segue ÓRFÃO DE LANE, de propósito.** Medido pelo dono do inventário
+(`node scripts/governance/test-lane-coverage.mjs --json`, 2026-08-26): ele está entre os **100
+órfãos de 168 testes** da Jana — fora do `jana-pest.yml`, fora do `ci-sqlite-pest.list`, e `Jana`
+não está na matrix do `modules-pest.yml`. Ligá-lo na lane agora deixaria o `main` vermelho pelo
+UC-08, então a ligação espera a decisão [W] sobre o medidor. Teste fora de lane não defende nada —
+esta linha existe pra que a dívida fique visível, não pra normalizá-la.
