@@ -610,4 +610,38 @@ class DataController extends Controller
             'additional_views' => $additional_views,
         ];
     }
+
+    /**
+     * Checkbox do `crm_module` no formulario de pacote do superadmin.
+     *
+     * SEM este metodo o Crm nao aparecia em `/superadmin/packages/{id}/edit`:
+     * `Modules/Superadmin/Resources/views/packages/edit.blade.php` itera SO o que
+     * `ModuleUtil::getModuleData('superadmin_package')` devolve, e
+     * `PackagesController::update` faz `$request->only(['custom_permissions'])`, que
+     * SUBSTITUI o array inteiro em vez de mesclar.
+     *
+     * Consequencia MEDIDA em 2026-08-26 no pacote 1 de producao: das 13 chaves gravadas,
+     * 8 eram marcaveis na tela e 5 sumiriam ao salvar — `crm_module` entre elas. Bastava
+     * abrir a tela e clicar em Salvar, SEM tocar em "Atualizar inscricoes existentes",
+     * para o pacote perder o CRM em silencio; o clique seguinte levaria a perda para a
+     * assinatura, e ai o modulo cai de verdade.
+     *
+     * `crm_module` e lido em 91 pontos fora de teste — todos os controllers e FormRequests
+     * do modulo, mais `app/Http/Controllers/Auth/LoginController.php:133`, que gateia o
+     * login de `user_customer`. Perder a chave desliga o modulo inteiro, nao uma tela.
+     *
+     * `default => false` de proposito: pacote novo NAO nasce com CRM. Este metodo so torna
+     * a chave VISIVEL e PRESERVAVEL no formulario — nao liga nada para ninguem, e nao muda
+     * `subscriptions.package_details`, que e o que o gate le.
+     */
+    public function superadmin_package(): array
+    {
+        return [
+            [
+                'name' => 'crm_module',
+                'label' => __('crm::lang.crm_module'),
+                'default' => false,
+            ],
+        ];
+    }
 }

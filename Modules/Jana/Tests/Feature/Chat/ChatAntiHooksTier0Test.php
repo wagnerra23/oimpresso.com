@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Modules\Jana\Entities\Conversa;
 
-uses(DatabaseTransactions::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * Os DOIS anti-hooks Tier 0 do `Chat.charter.md`, virando Pest GUARD.
