@@ -174,26 +174,214 @@ jobs:
             Modules/Jana/Tests/Feature/FarolServerSideTest.php \
             Modules/Jana/Tests/Feature/PainelContratoTest.php \
             Modules/Jana/Tests/Feature/Chat/ChatConversasPreviewTest.php \
+            Modules/Jana/Tests/Feature/Chat/ChatAntiHooksAcaoTest.php \
             Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitShaPreservaTest.php \
             Modules/Jana/Tests/Feature/Mcp/McpTokenUsoThrottleTest.php \
             Modules/Jana/Tests/Feature/Mcp/QuotaEnforcerFastPathTest.php \
-            Modules/Jana/Tests/Feature/Mcp/McpTokenMemoTest.php
+            Modules/Jana/Tests/Feature/Mcp/McpTokenMemoTest.php \
+            Modules/Jana/Tests/Feature/Ai/Advisor/ProximaPerguntaAgentTest.php \
+            Modules/Jana/Tests/Feature/Ai/Advisor/ProximaPerguntaServiceTest.php \
+            Modules/Jana/Tests/Feature/Ai/ChatCopilotoAgentModelTest.php \
+            Modules/Jana/Tests/Feature/Ai/ChatCopilotoAgentToolsTest.php \
+            Modules/Jana/Tests/Feature/Ai/Clarify/ClarificadorAgentTest.php \
+            Modules/Jana/Tests/Feature/Ai/JanaDriftSentinelTest.php \
+            Modules/Jana/Tests/Feature/Ai/PromptCacheConfigTest.php \
+            Modules/Jana/Tests/Feature/Ai/RagasEvalCITest.php \
+            Modules/Jana/Tests/Feature/Ai/RagasRealEvalGateTest.php \
+            Modules/Jana/Tests/Feature/Ai/UiDeterministicScorerTest.php \
+            Modules/Jana/Tests/Feature/AiScorecardJudgeTest.php \
+            Modules/Jana/Tests/Feature/Backlinks/AdrGraphBuilderTest.php \
+            Modules/Jana/Tests/Feature/Backlinks/JanaBacklinksSweepCommandTest.php \
+            Modules/Jana/Tests/Feature/Chat/ChatAntiHooksTier0Test.php \
+            Modules/Jana/Tests/Feature/Chat/ChatTokensTurnoTest.php \
+            Modules/Jana/Tests/Feature/Console/JanaRagasCiCommandTest.php \
+            Modules/Jana/Tests/Feature/Console/MeilisearchIndexSetupTest.php \
+            Modules/Jana/Tests/Feature/FsmCanonicalTest.php \
+            Modules/Jana/Tests/Feature/Kb/KbAnswerServiceTest.php \
+            Modules/Jana/Tests/Feature/Kb/KbRetrievalStatusTest.php \
+            Modules/Jana/Tests/Feature/LgpdComplianceTest.php \
+            Modules/Jana/Tests/Feature/Mcp/CharterFetchToolTest.php \
+            Modules/Jana/Tests/Feature/Mcp/DecisionsSearchResumoTest.php \
+            Modules/Jana/Tests/Feature/Mcp/JanaRecallEvalGateTest.php \
+            Modules/Jana/Tests/Feature/Mcp/McpDocsHybridSearchTest.php \
+            Modules/Jana/Tests/Feature/Mcp/McpIndexSyncGapSentinelaTest.php \
+            Modules/Jana/Tests/Feature/Mcp/MemoriaSearchBusinessPipelineTest.php \
+            Modules/Jana/Tests/Feature/Mcp/RetrievalDegradacaoToolsTest.php \
+            Modules/Jana/Tests/Feature/McpTaskOpenBlockersTest.php \
+            Modules/Jana/Tests/Feature/Memoria/ContextualizerServiceTest.php \
+            Modules/Jana/Tests/Feature/Memoria/DesignIngestZipCommandTest.php \
+            Modules/Jana/Tests/Feature/Memoria/DistillModuleTruthCommandTest.php \
+            Modules/Jana/Tests/Feature/Memoria/DistillerModuloVerdadeTest.php \
+            Modules/Jana/Tests/Feature/Memoria/PesoRealRetrievalTest.php \
+            Modules/Jana/Tests/Feature/Memoria/RawChatMinerTest.php \
+            Modules/Jana/Tests/Feature/Memoria/RecallDegradationTest.php \
+            Modules/Jana/Tests/Feature/Memoria/SeedAdrsMetadataTest.php \
+            Modules/Jana/Tests/Feature/Memoria/TemporalScoringTest.php \
+            Modules/Jana/Tests/Feature/Memoria/TimeDecayTest.php \
+            Modules/Jana/Tests/Feature/Peso/PesoRealServiceTest.php \
+            Modules/Jana/Tests/Feature/Peso/RelevanciaMetaInfererTest.php \
+            Modules/Jana/Tests/Feature/Reconcile/ContentReconcilerTest.php \
+            Modules/Jana/Tests/Feature/Reconcile/DeployReconcilerTest.php \
+            Modules/Jana/Tests/Feature/Reconcile/EvalReconcilerTest.php \
+            Modules/Jana/Tests/Feature/Reconcile/IndexReconcilerTest.php \
+            Modules/Jana/Tests/Feature/Reconcile/ReconcileCommandTest.php \
+            Modules/Jana/Tests/Feature/Reconcile/SettingsReconcilerTest.php \
+            Modules/Jana/Tests/Feature/Retrieval/BgeRerankerTest.php \
+            Modules/Jana/Tests/Feature/Retrieval/RerankerTest.php \
+            Modules/Jana/Tests/Feature/SinteseSemanalCommandTest.php \
+            Modules/Jana/Tests/Feature/Smoke/JanaHealthCheckTest.php \
+            Modules/Jana/Tests/Feature/Smoke/SentinelBiteTest.php \
+            Modules/Jana/Tests/Feature/Smoke/WhatsappInboundFlowCheckTest.php \
+            Modules/Jana/Tests/Feature/TaskRegistry/GitTaskLinkerRegexTest.php \
+            Modules/Jana/Tests/Feature/TaskRegistry/HitlEscalationServiceTest.php \
+            Modules/Jana/Tests/Feature/TaskRegistry/McpTasksUnassignedCommandTest.php \
+            Modules/Jana/Tests/Feature/TaskRegistry/SyncMemoryWebhookTasksTest.php \
+            Modules/Jana/Tests/Feature/TaskRegistry/TaskParserServiceTest.php \
+            Modules/Jana/Tests/Feature/Telemetry/LangfuseClientTest.php \
+            Modules/Jana/Tests/Feature/Telemetry/LlmHttpCallSitesLangfuseTest.php
+          #
+          # ══ LEVA 2026-08-26 — 59 órfãos da Jana entram de uma vez ═══════════
+          #
+          # Medido com o dono do inventário (`node scripts/governance/test-lane-
+          # coverage.mjs --json`): a Jana tinha 168 testes e 100 ÓRFÃOS — arquivo
+          # que não está em lane NENHUMA: nem aqui, nem em .github/ci-sqlite-
+          # pest.list, e `Jana` não está na matrix do modules-pest.yml. 60% do
+          # módulo fora do CI (no repo inteiro, 860 de 1486 em 27 lanes).
+          #
+          # Os 59 abaixo são a fatia que a REGRA desta allowlist já admitia, e
+          # ela foi medida arquivo a arquivo, não presumida: zero RefreshDatabase,
+          # zero migrate:fresh, zero dropIfExists. ⚠️ Essa varredura tem um FP que
+          # custou caro e vale registrar: em 5 arquivos o construto aparecia só em
+          # COMENTÁRIO — prosa explicando por que NÃO se usa — e barrá-los teria
+          # deixado 3 testes verdes de fora. Hit em comentário não é evidência.
+          #
+          # Cada um foi EXECUTADO antes de entrar (CT 100, MySQL real) e o critério
+          # de aceite foi `assertions > 0` com zero failure/error: `0 failed` não
+          # prova execução (LC-13), e arquivo que não boota sai com 0 assertions —
+          # que é "nunca mediu", não "passou".
+          #
+          # A prova de que passaram a rodar é o CONTADOR desta lane subir, e o
+          # número que vale é o DESTA LANE no CI — não o do CT 100.
+          #
+          # ⚠️ A diferença entre os dois ambientes NÃO é teórica, e custou um round:
+          # o `ProContractTest` passava no CT 100 com 65 assertions e reprovou aqui
+          # com 6 falhas, todas `GET /ia/pro` devolvendo 403 em vez de 200. Não é
+          # código: a DB do CT 100 é PERSISTENTE e tem o módulo/permissões da Jana
+          # provisionados de runs antigos, enquanto esta lane semeia o mínimo
+          # (biz=1/biz=2) num banco FRESCO. Ele saiu desta lista — voltar exige
+          # provisionar a permissão no seed, e o `pest-mysql-setup` é compartilhado
+          # por 16 lanes, então isso é PR próprio, não emenda desta leva.
+          #
+          # A lição que fica pra quem for repetir a receita: rodar no CT 100 prova
+          # que o teste EXECUTA e que não envenena os vizinhos; não prova que ele
+          # passa com o seed do CI. Teste que depende de permissão, módulo ligado ou
+          # assinatura precisa do veredito desta lane antes de entrar.
+          #
+          # NÃO ENTRARAM 41, e cada motivo tem recibo no relatório da leva:
+          #  · 11 NASCEM VERMELHOS — rodam e acusam defeito REAL (10 medidos no
+          #    CT 100 + o ProContractTest, que só o CI reprovou). Entre eles o
+          #    Chat/ChatAntiHooksAcaoTest, que fecha os 2 vermelhos datados de
+          #    2026-08-17 já anotados no comentário acima (tool sem declaração de
+          #    permissão; CPF em plain text no startTrace do ChatController).
+          #    Ligá-los deixaria o main vermelho — decisão [W], não efeito
+          #    colateral desta leva.
+          #  · 29 montam schema sintético (dropIfExists / RefreshDatabase), o que
+          #    esta allowlist proíbe. O lar deles é a lane sqlite
+          #    (.github/ci-sqlite-pest.list, marcada merge=union), pelo precedente
+          #    do BriefDiarioAgentTest movido pra lá em 2026-08-10.
+          #  · 1 não bootava no main desta medição: Chat/ChatAntiHooksTier0Test deu
+          #    4 errors e 0 assertions porque declarava só o DatabaseTransactions,
+          #    sem o `TestCase::class` do namespace `Tests` — e o
+          #    `uses(TestCase::class)->in('Feature')` do tests/Pest.php:5 é a pasta
+          #    RAIZ tests/Feature, que não alcança Modules/*/Tests/Feature (o KB tem
+          #    bind explícito em Pest.php:19-20; a Jana não tem nenhum). Esse
+          #    conserto é o PR #6310, aberto em paralelo por outra sessão: ele
+          #    também mediu que, com o bind, o arquivo segue fora da lista por OUTRO
+          #    motivo (o UC-JCHAT-08 reprova porque preventStrayRequests barra o SSR
+          #    do Inertia, não o Brain B). Quem quiser o estado corrente deste
+          #    arquivo lê o #6310 e o Chat.casos.md, não esta nota.
+          #
           # ChatConversasPreviewTest ENTROU junto com o payload que ele mede, no MESMO
           # PR e de proposito: registrar o teste no repo NAO e a lane executa-lo — a
           # licao do PainelContratoTest logo abaixo tem UM dia. Elegivel pela regra
           # acima: usa DatabaseTransactions, zero RefreshDatabase/migrate:fresh/
           # dropIfExists. A prova de que passou a rodar e o CONTADOR desta lane subir.
           #
-          # ACHADO NAO CONSERTADO AQUI (medido 2026-08-17): os OUTROS tres testes do
-          # Chat — Chat/ChatAntiHooksTier0Test, Chat/ChatAntiHooksAcaoTest e
-          # Chat/ChatTokensTurnoTest — nao estao em lane NENHUMA. Nem aqui, nem em
-          # .github/ci-sqlite-pest.list, e `Jana` nao esta na matrix do
-          # modules-pest.yml. Logo os UC-05..UC-10 do Chat.casos.md, marcados
-          # `aguarda run verde`, nunca podem virar verdes — e dois deles sao Tier 0
-          # (cross-tenant e PII). NAO os inclui junto porque o AcaoTest (UC-09/UC-10)
-          # nasce VERMELHO por desenho: acusa tool sem declaracao de permissao e PII
-          # crua no log. Liga-lo aqui deixaria o main vermelho ate os defeitos serem
-          # corrigidos, e isso e decisao [W] — nao efeito colateral de um PR de payload.
+          # ChatAntiHooksAcaoTest ENTROU em 2026-08-26, fechando metade do achado que
+          # a redacao anterior deste bloco (2026-08-17) deixou em aberto. Ele estava
+          # de fora porque nascia VERMELHO nos dois UCs; os dois foram medidos no
+          # CT 100 e deram desfechos DIFERENTES:
+          #
+          #   UC-09 (tool declara permissao) — achado REAL. As 5 tools do chat nao
+          #   declaravam nada. Fechado implementando `Modules/Jana/Contracts/
+          #   DeclaraPermissao` + `permission()` nas 5, cada uma citando a TABELA que
+          #   le. DECLARA, nao enforca: as mesmas tools sao instanciadas pelo
+          #   BriefDiarioAgent, que roda no cron `brief:generate` SEM auth()->user(),
+          #   entao um can() no handle() estouraria headless (medido).
+          #
+          #   UC-10 (PII no sink de log) — FALSO POSITIVO do MEDIDOR, nao vazamento.
+          #   O espiao antigo sobrescrevia `startTrace()` e lia `$attrs` na ENTRADA,
+          #   uma camada ANTES da redacao: o LangfuseClient redige dentro, no
+          #   `traceEvent()` (`maybeRedact`), idem `endTrace`/`generationEvent`.
+          #   Probe de egresso no CT 100 provou o CPF saindo com placeholder. A sonda
+          #   passou a interceptar `dispatch()` — o egresso real. Mesma familia do
+          #   UC-08 no PR #6310 (la o preventStrayRequests pegava o SSR do Inertia).
+          #   Nao foi afrouxamento: o assert ficou mais LARGO (cobre o `metadata`,
+          #   que o traceEvent mescla CRU). Bite-test dos dois lados, no CT 100:
+          #   redacao neutralizada -> VERMELHO; PII em metadata -> VERMELHO.
+          #
+          # CORRIGIDO 2026-08-26 (esta linha ja errou 2x — LC-10): os TRES testes do Chat
+          # que estavam orfaos em 2026-08-17 ENTRARAM, todos na mesma data. ChatTokensTurnoTest
+          # pelo #6312; ChatAntiHooksAcaoTest pelo #6319; ChatAntiHooksTier0Test pelo #6321.
+          # Quem sabe o estado e a ALLOWLIST acima, nao este comentario — se divergirem, ela
+          # ganha. O historico datado de cada entrada fica nos blocos abaixo.
+          #
+          # ChatAntiHooksTier0Test ENTROU em 2026-08-26, fechando a metade Tier 0 do
+          # ACHADO acima. Eram DUAS causas, medidas em sequencia no CT 100 (MySQL real,
+          # arquivo inteiro, sem --filter):
+          #  (1) o arquivo NAO BOOTAVA: declarava so o DatabaseTransactions, sem o
+          #      `TestCase::class` do namespace `Tests`. Deu 4 failed com 0 assertions —
+          #      que e "nunca mediu", nao "reprovou" (LC-13). Consertado no PR #6310.
+          #  (2) com o bind, sobrava 1 vermelho, e ele era do MEDIDOR: o UC-JCHAT-08 usa
+          #      `Http::preventStrayRequests()`, sonda mais LARGA que o contrato que ela
+          #      guarda — barra QUALQUER saida HTTP. O que ela pegava era o POST de SSR
+          #      do Inertia (`HttpGateway::dispatch`, que RE-LANCA o StrayRequestException),
+          #      nunca o Brain B. E nao e peculiaridade do CT 100: `inertia.ssr.enabled` e
+          #      true por default e o `BundleDetector` aceita `public/js/app.js` — asset
+          #      legado do UltimatePOS, VERSIONADO no repo — como bundle de SSR, logo
+          #      `bundleExists()` e true nesta lane tambem. O conserto ESTREITOU a sonda
+          #      ate o contrato (stub so da URL do SSR, lida da config), sem afrouxar:
+          #      qualquer outra saida HTTP segue reprovando, Brain B incluido.
+          #  (3) e a que quase passou batido: 3 dos 4 UCs ficariam VERDES SEM MEDIR NADA
+          #      nesta lane. O grupo /ia exige `can:jana.access`, e medido em 2026-08-26
+          #      (com controle positivo) NENHUM seeder do repo cria essa permission e o
+          #      `pest-mysql-setup` nao concede papel nem permissao a usuario nenhum — logo
+          #      num banco FRESCO todo GET em /ia volta 403 (o `JanaAccessGateTest`, que ja
+          #      roda aqui, crava isso no 1o caso). Efeito: UC-05 passaria pelo 403 do GATE
+          #      e nao pelo isolamento de tenant; UC-06/07 nao veriam efeito colateral por
+          #      nao ter havido render. O CT 100 e CEGO pra isso (base persistente, os dois
+          #      usuarios ja tinham a permissao) — a MESMA armadilha do ProContractTest.
+          #      Consertado concedendo a permissao pela receita do JanaAccessGateTest e
+          #      armando os guards que faltavam (assertOk no 06/07 + controle positivo no
+          #      05). Contrafactual medido, revogando a permissao: SEM guards 1 failed/3
+          #      passed (os 3 sao vacuo) · COM guards 3 failed/1 passed (eles mordem).
+          # Medicao final: 4 passed (12 assertions) — as 2 asserts de credencial, que
+          # estouravam no `assertOk()` ANTES de rodar, passaram a rodar, e os 3 guards
+          # anti-vacuo entraram. Elegivel pela regra desta allowlist, medido na LINHA e nao
+          # no hit: usa DatabaseTransactions, zero RefreshDatabase/migrate:fresh/dropIfExists.
+          # CONTADOR DESTA LANE, MEDIDO (nao esperado):
+          #   ANTES  run 32994290635 (sha 0c5454b2, tip de main)  9 skipped, 808 passed (2715 assertions)
+          #   DEPOIS run 32996972060 (sha 08327a01d5, este PR)    9 skipped, 812 passed (2727 assertions)
+          # Delta +4 testes / +12 assertions, e `9 skipped` INALTERADO — nao entrou skip novo.
+          # Os 4 UCs aparecem PELO NOME no log (contador batendo nao basta) e o step
+          # `--check-assertions` (LC-13) passou: nao foi verde por nao-execucao.
+          #
+          # O IRMAO ENTROU pelo #6319, mergeado 2026-08-26 19:59 — este bloco dizia que ele
+          # continuava fora, e a afirmacao morreu no merge. Dos 2 defeitos que o AcaoTest
+          # acusava, o UC-09 era real (tools sem declarar permissao, resolvido la com
+          # DeclaraPermissao) e o UC-10 era SONDA MAL POSICIONADA, nao defeito: espionava uma
+          # camada antes do egresso. A redacao anterior deste bloco afirmava o contrario e
+          # estava ERRADA; fica registrada aqui em vez de apagada.
           #
           # PainelContratoTest ENTROU em 2026-08-17. Ele nasceu no PR #5862 (UC-08) e
           # ficou 1 dia FORA desta lista — logo os nove UCs do Painel nunca rodaram no

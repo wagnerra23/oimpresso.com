@@ -66,6 +66,37 @@ const H_LIMITE = /^- \*\*O limite/;
 const BULLET_TOPO = /^- \*\*/;
 
 /**
+ * Bullet de AVISO do autor — `- **⚠️ …`. Desce junto com "O limite".
+ *
+ * ── POR QUE (dois defeitos medidos no MESMO dia, 2026-08-26) ──────────────────
+ * O recorte original — só "O limite" — assume que toda regra preventiva mora nesse
+ * campo. Não mora, e custou duas vezes num dia:
+ *
+ *  1. Uma sessão irmã declarou a linhagem de uma lápide num blockquote no topo. O
+ *     derive não carrega blockquote, o `licoes-code-two-strikes` lê o DERIVADO, e o
+ *     CI acusou "lápide sem marcador" sobre uma lápide que TINHA o marcador.
+ *  2. O [W] pediu pra trancar duplicação de protótipo. A recusa existia — lápide de
+ *     2026-08-17, bullet `⚠️ NÃO virar gate sintático`, com 24 hits e ~5 FP medidos.
+ *     Ela não está no `proibicoes.md`: `grep duplicat` dá 2 hits, nenhum do tema.
+ *     Nada me barrou, e gastei três adversários pra redescobrir uma decisão tomada.
+ *
+ * ── POR QUE ESTE PREDICADO, E NÃO "CARREGAR MAIS" ────────────────────────────
+ * Carregar o corpo inteiro desfaria a decisão medida que criou este script: os corpos
+ * somam 349.215 chars em TODA sessão. O `⚠️` no INÍCIO do bullet é o marcador que o
+ * autor escreve quando a frase é uma proibição, não arqueologia — author-declared,
+ * como os `RECUR_MARKERS`, e não inferência minha.
+ *
+ * Custo medido antes de escrever a regra: **41 bullets em 39 de 153 lápides = 26,8 KB
+ * = +17,8%** no §5 derivado. Amostra do que passa a descer: *"NÃO vire presence-gate"*,
+ * *"a resposta NÃO é índice novo"*, *"o que esta lápide NÃO autoriza"*.
+ *
+ * O predicado é ESTREITO de propósito: exige o `⚠️` abrindo o rótulo do bullet. Um
+ * `⚠️` no meio da prosa não conta — medi as duas formas, e a larga (54 bullets) puxa
+ * junto `**Por que caiu:**`, que é arqueologia e é justamente o que fica na fonte.
+ */
+const H_AVISO = /^- \*\*⚠/;
+
+/**
  * Recorta a região §5 de um texto: [inicio, fim) em índices de linha.
  * Fim = próximo cabeçalho `## ` (nunca `###`), ou EOF.
  * @returns {{ start: number, end: number } | null}
@@ -115,7 +146,11 @@ export function partir(linhas) {
 export function extrairLimite(body) {
   const blocos = [];
   for (let i = 0; i < body.length; i++) {
-    if (!H_LIMITE.test(body[i])) continue;
+    // "O limite" E os bullets de AVISO do autor (ver H_AVISO). Os dois são regra
+    // preventiva; o que fica na fonte é a arqueologia. A ORDEM ORIGINAL é preservada
+    // porque o `i` avança linearmente — aviso antes do limite desce antes, e o autor
+    // escreveu nessa ordem por alguma razão.
+    if (!H_LIMITE.test(body[i]) && !H_AVISO.test(body[i])) continue;
     let e = body.length;
     for (let j = i + 1; j < body.length; j++) if (BULLET_TOPO.test(body[j])) { e = j; break; }
     const bloco = body.slice(i, e);

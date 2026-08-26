@@ -14,7 +14,7 @@ use Spatie\Permission\Models\Role;
  * Faz:
  *  1. Cria/garante 13 permissões Spatie 'financeiro.*'
  *  2. Atribui todas as permissões ao role Admin#{business_id}
- *  3. Ativa financeiro_module nos packages com subscription ativa
+ *  3. Ativa financeiro_module no PACOTE e na ASSINATURA ATIVA (o gate le a assinatura)
  *  4. Seedpa plano de contas BR (49 entries hierárquicas)
  *  5. Limpa cache de permissões
  *
@@ -61,14 +61,32 @@ class InstallCommand extends Command
             return self::FAILURE;
         }
 
+        $abertos = 0;
+
         foreach ($businessIds as $businessId) {
-            $this->installForBusiness((int) $businessId);
+            if ($this->installForBusiness((int) $businessId)) {
+                $abertos++;
+            }
         }
 
         $this->flushCache();
 
-        $this->info("\n✅ Instalação concluída em " . count($businessIds) . ' business(es).');
-        $this->line('   Acesse /financeiro no navegador (logout/login pode ser necessário).');
+        // O veredito e o ESTADO, nao o fato de ter rodado. Ate 2026-08-26 este comando
+        // dizia "concluida" mesmo tendo escrito so no pacote, com o gate fechado — comando
+        // que reporta sucesso sem entregar e pior que comando ausente.
+        $total = count($businessIds);
+        $fechados = $total - $abertos;
+
+        if ($fechados > 0) {
+            $this->warn("\nGate ABERTO em $abertos de $total business(es).");
+            $this->warn("  $fechados sem assinatura ativa — o modulo segue invisivel pra usuario comum neles.");
+            $this->line('  Camada 3: sem `financeiro.access` num papel, o menu tambem nao aparece.');
+
+            return self::FAILURE;
+        }
+
+        $this->info("\nGate aberto em $total business(es).");
+        $this->line('   Acesse /financeiro no navegador (logout/login pode ser necessario).');
 
         return self::SUCCESS;
     }
@@ -103,7 +121,7 @@ class InstallCommand extends Command
         return [];
     }
 
-    private function installForBusiness(int $businessId): void
+    private function installForBusiness(int $businessId): bool
     {
         $this->newLine();
         $this->info("=== Business #$businessId ===");
@@ -160,6 +178,50 @@ class InstallCommand extends Command
             }
         }
 
+        // 2b. ONDE O GATE DE FATO LE.
+        //
+        // `ModuleUtil::hasThePermissionInSubscription` (app/Utils/ModuleUtil.php:154) le
+        // `subscriptions.package_details` — NAO le `packages.custom_permissions`. O passo 2
+        // acima escreve so no PACOTE, entao ate 2026-08-26 este comando terminava dizendo
+        // "concluida" com o portao FECHADO. Medido em producao: o biz=164 tinha o modulo no
+        // pacote 11 e ausente nas assinaturas 111/116.
+        //
+        // A assinatura alvo sai do MESMO oraculo que o LEITOR usa
+        // (`Subscription::active_subscription`), nunca de um predicado paralelo — escrever
+        // numa assinatura que o gate nao le e exatamente o defeito que este passo conserta.
+        //
+        // MERGE, nunca rebuild: `$details[...] = 1` sobre o array decodificado preserva as
+        // chaves que existem SO na assinatura (ex.: `nfebrasil_module` do biz=164, que
+        // nenhum pacote grava).
+        $gateAberto = false;
+
+        if (! class_exists(\Modules\Superadmin\Entities\Subscription::class)) {
+            $this->warn('[sub]   Modulo Superadmin ausente — sem assinatura onde escrever.');
+        } else {
+            $sub = \Modules\Superadmin\Entities\Subscription::active_subscription($businessId);
+
+            if ($sub === null) {
+                $this->warn("[sub]   Sem assinatura ATIVA pro business $businessId — o gate SEGUE FECHADO.");
+                $this->warn('        Atribua um pacote em /superadmin/packages e rode de novo.');
+            } else {
+                $details = is_array($sub->package_details)
+                    ? $sub->package_details
+                    : (json_decode((string) $sub->package_details, true) ?: []);
+
+                if (! empty($details['financeiro_module'])) {
+                    $this->line("[sub]   sub #{$sub->id}: ja tinha financeiro_module");
+                } else {
+                    $details['financeiro_module'] = 1;
+                    DB::table('subscriptions')->where('id', $sub->id)->update([
+                        'package_details' => json_encode($details),
+                    ]);
+                    $this->line("[sub]   sub #{$sub->id}: + financeiro_module (merge — nada removido)");
+                }
+
+                $gateAberto = true;
+            }
+        }
+
         // 3. Seed plano de contas BR
         if (! $this->option('no-seed')) {
             $existing = DB::table('fin_planos_conta')->where('business_id', $businessId)->count();
@@ -171,6 +233,8 @@ class InstallCommand extends Command
                 $this->line("[seed]  Plano de contas BR seedado ($count entries)");
             }
         }
+
+        return $gateAberto;
     }
 
     private function flushCache(): void

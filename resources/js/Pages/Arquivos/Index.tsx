@@ -208,6 +208,32 @@ const VIS_PT: Record<string, string> = {
 }
 
 /**
+ * Rótulo PT-BR do contexto de retenção (`sub_destination`).
+ *
+ * A lei aqui é o **charter** (L88 — "PT-BR em todo label/placeholder/mensagem") e o protótipo,
+ * que desenha rótulo + `sub` em mono na sub-linha. Mesmo tratamento de bucket, visibilidade e
+ * disco: negócio na tela, técnico ao lado.
+ *
+ * ⚠️ **NÃO conte com a `ds/no-db-jargon-in-ui` pra defender isto.** Medido em 2026-08-26: o
+ * seletor dela casa `JSXText` LITERAL e exclui `<code>`/`<pre>`/`<kbd>` por opção declarada — e
+ * o valor aqui é data-driven dentro de `<code>`. Ela não pegava o jargão cru que existia antes
+ * desta linha e não vai pegar a regressão. A defesa deste rótulo é humana, não mecânica.
+ *
+ * As chaves são as do `entities` de `Modules/Arquivos/Config/retention.php`, que é o dono do
+ * vocabulário: contexto novo cadastrado lá aparece com o valor cru, nunca some.
+ */
+const CONTEXTO_PT: Record<string, string> = {
+  'nfe-xml': 'XML de NF-e',
+  'nfse-xml': 'XML de NFS-e',
+  'documentos-fiscais': 'Documentos fiscais',
+  contratos: 'Contratos',
+  'repair-foto': 'Foto de reparo',
+  'os-anexo': 'Anexo de OS',
+  'ticket-anexo': 'Anexo de ticket',
+  default: 'Sem contexto mapeado',
+}
+
+/**
  * Rótulo PT-BR da ação da trilha.
  *
  * ⚠️ **O fallback não é detalhe: é o que mantém a regra do vocabulário.** O dono das ações é
@@ -406,10 +432,13 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
         const a = row.original
         // PT-BR na tela, valor do enum no `title`: quem opera lê a palavra, quem depura
         // passa o mouse. Bucket desconhecido cai no valor cru — nunca vira "—" mudo.
+        // `danger` (par SOFT), não `destructive` (fill sólido), pelo mesmo motivo do órfão acima:
+        // sensível é ESTADO do arquivo, não ação destrutiva — e numa lista onde a maioria das
+        // linhas de NF-e/contrato é `sensitive`, o fill pintaria metade da coluna de vermelho cheio.
         return (
           <Stack gap={1} align="start">
             <Badge
-              variant={a.bucket === 'sensitive' ? 'destructive' : 'secondary'}
+              variant={a.bucket === 'sensitive' ? 'danger' : 'secondary'}
               title={a.bucket ?? undefined}
             >
               {a.bucket ? (BUCKET_PT[a.bucket] ?? a.bucket) : '—'}
@@ -566,7 +595,7 @@ function Trilha({ trilha, filtros }: { trilha?: TrilhaPayload; filtros: Filtros 
     // quem explica o vazio é o filtro; sem chip, é o módulo que ainda não registrou nada.
     return filtros.acao ? (
       <EmptyState
-        title={`Nenhum evento de ${filtros.acao} no período.`}
+        title={`Nenhum evento de ${(ACAO_PT[filtros.acao] ?? filtros.acao).toLowerCase()} no período.`}
         description="A trilha guarda o que aconteceu — se não aconteceu, não há linha. Tire o filtro pra ver as outras ações."
       />
     ) : (
@@ -723,7 +752,10 @@ function Retencao({ retencao, politica }: { retencao?: RetencaoPayload; politica
             {politica.map((p) => (
               <tr key={p.sub} className="border-b border-border last:border-b-0">
                 <td className="px-4 py-3">
-                  <code className="text-xs">{p.sub}</code>
+                  <Stack gap={1} className="min-w-0">
+                    <span className="font-medium text-foreground">{CONTEXTO_PT[p.sub] ?? p.sub}</span>
+                    <code className="text-xs text-muted-foreground">{p.sub}</code>
+                  </Stack>
                 </td>
                 <td className="px-4 py-3 text-right tabular-nums">
                   {p.dias >= 365 ? `${Math.round(p.dias / 365)} anos` : `${p.dias} dias`}
@@ -1104,10 +1136,11 @@ export default function Index({ filtros, politica, resumo, acervo, trilha, cofre
                     <button
                       key={f.acao}
                       type="button"
+                      title={f.acao}
                       onClick={() => irPara({ acao: f.acao })}
                       className={chip(filtros.acao === f.acao)}
                     >
-                      {f.acao} <span className="tabular-nums opacity-70">{f.total}</span>
+                      {ACAO_PT[f.acao] ?? f.acao} <span className="tabular-nums opacity-70">{f.total}</span>
                     </button>
                   ))}
                 </Inline>

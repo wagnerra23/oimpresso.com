@@ -206,7 +206,27 @@ function buildTestCorpus() {
 // modos (G-1/G-2 e --check-baseline-shrink). É a mesma natureza da linha exec-backed.
 // Não é gate novo (§5: não duplicar régua consolidada) — é o dono do tema informando o teto
 // da métrica que ele já publica.
-/** Corpus só dos TÍTULOS de it()/test() — o que o coletor do manifesto consegue enxergar. */
+//
+// SUITE-FOLDING, medido 2026-08-26 (por que `describe` conta, e só no vitest): o reporter
+// JUnit do vitest DOBRA o caminho do suite no atributo `name` do <testcase> — um UC-id que
+// vive só no `describe()` CHEGA ao coletor. Reprodução: `npx vitest run <2 arquivos>
+// --reporter=junit` produziu names `UC-JCHAT-01 … &gt; …`, e o `casos-results-collect.mjs`
+// rodado num cwd isolado colheu os 6 UCs, todos `verdict: pass`. Sem esta perna, esses UCs
+// saíam na lista `⛓` com a instrução "converta pra it()" — trabalho que dissolveria o
+// describe que agrupa os casos e não mudaria nada no painel, porque eles JÁ são colhidos.
+// População medida no corpus inteiro (1537 arquivos): 10 UCs vêm só de describe, 10/10 em
+// `tests/**` (vitest). Zero em PHP, zero em `e2e/`.
+//
+// POR QUE O ESCOPO É SÓ VITEST (fail-closed no que não foi medido): o folding é comportamento
+// do reporter, não da sintaxe. Do vitest eu tenho reprodução; dos outros dois runners, NÃO —
+// então eles ficam de fora e um `describe` deles segue sendo reportado como inalcançável.
+// Errar pra esse lado só pede conversão pra `it()` (barato); errar pro outro esconderia buraco
+// real. Pest: 93 arquivos .php usam `describe(`, ZERO com UC-id no título — e o vendor não
+// existe neste worktree pra medir. Playwright: `e2e/**` tem 7 specs e ZERO `describe`.
+// Quem for incluir um deles: MEÇA primeiro (rode o runner com --log-junit/--reporter=junit e
+// olhe o `name`), não deduza da sintaxe.
+const VITEST_SCOPE_RE = /\.(?:test|spec)\.tsx?$/; // espelha vitest.config.ts:29 `tests/**/*.{test,spec}.{ts,tsx}`
+/** Corpus só dos TÍTULOS que o coletor do manifesto consegue enxergar (it/test + describe no vitest). */
 function buildTestTitleCorpus() {
   let corpus = '';
   for (const d of TEST_DIRS) {
@@ -217,7 +237,11 @@ function buildTestTitleCorpus() {
     );
     for (const f of files) {
       let c; try { c = readFileSync(f, 'utf8'); } catch { continue; }
-      const re = /\b(?:it|test)\s*\(\s*(['"`])([\s\S]*?)\1/g;
+      // `describe` só entra no corpus do vitest (dir `tests/` + extensão do include dele).
+      const vitest = d === 'tests' && VITEST_SCOPE_RE.test(f);
+      const re = vitest
+        ? /\b(?:it|test|describe)\s*\(\s*(['"`])([\s\S]*?)\1/g
+        : /\b(?:it|test)\s*\(\s*(['"`])([\s\S]*?)\1/g;
       let m;
       while ((m = re.exec(c)) !== null) corpus += '\n' + m[2];
     }
@@ -712,7 +736,8 @@ function main() {
     // chega ao manifesto (o coletor lê o UC do `name` do <testcase> = TÍTULO do teste).
     console.log(
       `TETO de prova: ${stats.teto_no_titulo} de ${stats.teto_distintos} UCs têm o id no TÍTULO de um ` +
-        `it()/test() (alcançáveis pelo manifesto) · ${stats.teto_so_docblock} citados SÓ em ` +
+        `it()/test() — ou de um describe() do vitest, que o reporter dobra no name do <testcase> ` +
+        `(alcançáveis pelo manifesto) · ${stats.teto_so_docblock} citados SÓ em ` +
         `docblock/comentário — esses NUNCA viram ✅ como estão [advisory, não é violação]`,
     );
     console.log(

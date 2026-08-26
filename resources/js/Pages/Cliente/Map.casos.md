@@ -38,7 +38,7 @@ last_run: "2026-07-08"
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG] Buscar no aside filtra por nome/cidade** — spec e2e do filtro client-side.
-- **[BACKLOG] Clicar num item seleciona e renderiza o iframe Google Maps** — e2e (iframe embed).
+- **[BACKLOG] Clicar num item seleciona e renderiza o iframe OpenStreetMap** — e2e (iframe embed; provedor trocado de Google em 2026-08-26).
 - **[BACKLOG] Badge "Sem posição" nos contatos sem `position`** — render test.
 
 ## Rastreabilidade (UC → CU do SDD → US do SPEC)

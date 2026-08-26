@@ -51,7 +51,7 @@
 
 > **Estimates 2026-05-08+:** todos novos SPECs nascem recalibrados ([ADR 0106](memory/decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md)) — fator 10x em tarefas codáveis com IA-pair + margem 2x; tarefas humano-limitadas (canary 7d, monitor 30d, smoke real) mantém relógio do mundo real.
 
-> **Cliente como sinal qualificado** ([ADR 0105](memory/decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)): backlog só recebe item se cliente paga + reporta OU métrica detecta drift. Hipótese sem sinal vira ADR de feature wish, não US ativa.
+> **Cliente como sinal qualificado** ([ADR 0105](memory/decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)): backlog só recebe item se cliente paga + reporta OU métrica detecta drift. Hipótese sem sinal vira ADR de feature wish, não US ativa. ⚠️ **Vale pro AGENTE, nunca pro [W]** ([ADR 0382](memory/decisions/0382-remove-trava-de-sinal-para-trabalho-dirigido-por-w.md)): pedido do dono é decisão, não proposta — nenhum agente opõe 0105, lápide §5, `route-hits` ou contagem de uso **como motivo para não fazer**. Informar o número **uma vez** é serviço; repetir depois que [W] ouviu é recusa disfarçada.
 
 Tier de cada skill no índice GERADO [.claude/skills/_SKILLS-INDEX.md](.claude/skills/_SKILLS-INDEX.md) (fonte única = frontmatter; `skills-index-generate.mjs --write`). Convenção interna formalizada em [ADR 0095](memory/decisions/0095-skills-tiers-convencao-interna.md); histórico da auditoria S3 em [03-skills-audit.md](memory/sprints/s3-constituicao/03-skills-audit.md).
 
