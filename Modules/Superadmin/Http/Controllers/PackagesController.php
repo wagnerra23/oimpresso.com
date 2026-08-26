@@ -251,6 +251,25 @@ class PackagesController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // TIER 0 / ADR 0093 — por que NAO ha filtro de `business_id` aqui.
+        //
+        // Este endpoint e CROSS-TENANT POR DESENHO: `Package` e a grade comercial do SaaS,
+        // compartilhada por N businesses, e `Subscription` liga pacote a business — filtrar
+        // por tenant aqui tornaria a tela de pacotes do superadmin incapaz de fazer o que
+        // ela existe pra fazer.
+        //
+        // Nenhum dos dois models tem `BusinessScope` global (`Package` nao menciona
+        // `business_id`; `Subscription` carrega a COLUNA `business_id`, que e o vinculo, nao
+        // um escopo). Logo nao ha `withoutGlobalScope` a declarar — nao existe escopo pra
+        // remover.
+        //
+        // A defesa e o `can('superadmin')` acima, que aborta 403 antes de qualquer query.
+        //
+        // O `NoMissingTenantScopeRule` pedia exatamente isto: "confirme `BusinessScope`
+        // global no Model + comentario explicito". Ate hoje a violacao vivia no
+        // `phpstan-baseline.neon` como divida; este PR a RESOLVE e remove a entrada, em vez
+        // de re-baselinar a contagem de queries.
+
         try {
             $packages_details = $request->only(['name', 'id', 'description', 'location_count', 'user_count', 'product_count', 'invoice_count', 'interval', 'interval_count', 'trial_days', 'price', 'sort_order', 'is_active', 'custom_permissions', 'is_private', 'is_one_time', 'enable_custom_link', 'custom_link', 'custom_link_text']);
 
