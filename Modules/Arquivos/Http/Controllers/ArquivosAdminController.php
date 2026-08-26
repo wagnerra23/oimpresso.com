@@ -78,6 +78,7 @@ class ArquivosAdminController extends Controller
             // Estado de UI — barato, vai eager (RUNBOOK-inertia-defer-pattern §Exceções).
             'filtros'  => $filtros,
             'politica' => $this->politica(),
+            'resumo'   => $this->resumo(),
         ];
 
         // Só a prop da vista ABERTA é registrada. `Inertia::defer` adia a execução,
@@ -96,6 +97,88 @@ class ArquivosAdminController extends Controller
         };
 
         return Inertia::render('Arquivos/Index', $props);
+    }
+
+    /**
+     * Resumo do business — o que o subtítulo e os contadores das abas mostram.
+     *
+     * **Reverte uma decisão minha, e o motivo importa mais que o número.** O RUNBOOK dizia
+     * que as abas NÃO teriam contagem porque "custaria um COUNT eager na tabela inteira pra
+     * pintar número em aba que ninguém abriu". Isso media o custo e ignorava o valor: o
+     * protótipo mostra `Acervo 10 · Retenção 2 · Trilha 6`, o [W] perguntou por eles, e o
+     * `PageHeaderTabs` já traz o pill pronto (prop `badge`, opt-in). O custo real é DUAS
+     * queries de agregado com índice em `business_id` — não é o `paginate` que o defer existe
+     * pra adiar. Fica eager de propósito: o cabeçalho pinta antes da vista.
+     *
+     * `bytes` alimenta o subtítulo `N arquivos · TAMANHO · N no cofre cifrado`, que é a copy
+     * do protótipo. A produção mostrava "N nesta página", que é outro número — o da página,
+     * não o do acervo.
+     *
+     * Tier 0: `arquivos` vai pelo model (global scope, sem `where` manual, igual ao acervo);
+     * `arquivos_audit_log` NÃO tem model, então ali o `where` explícito é a defesa — a mesma
+     * assimetria que o docblock da classe descreve.
+     *
+     * UMA query pro acervo, não quatro: o `GROUP BY bucket` já devolve a contagem de cada
+     * chip, e o total, o tamanho e os cifrados saem de somar as linhas em PHP. Pedir
+     * `COUNT(*)` geral + um `COUNT` por bucket seria varrer a mesma tabela cinco vezes pra
+     * chegar no mesmo lugar.
+     *
+     * @return array{arquivos:int, bytes:int, cifrados:int, eventos:int, por_bucket:array<string,int>}
+     */
+    private function resumo(): array
+    {
+        $businessId = $this->businessIdDaSessao();
+
+        // PORTÃO, e ele cobre DOIS buracos que o CI achou de uma vez:
+        //
+        // 1. **Tabela ausente.** Esta prop é EAGER — diferente das deferidas, ela executa
+        //    dentro do `index()`. Num ambiente sem o módulo migrado (a lane sqlite é
+        //    exatamente isso) a query estourava `QueryException` e derrubava a tela inteira,
+        //    não só o número. As outras leituras deste arquivo já degradavam; esta nasceu
+        //    sem o guard porque eu a escrevi olhando o caminho feliz.
+        // 2. **Fail-open do scope.** Sem `business_id` na sessão o global scope do `Arquivo`
+        //    não filtra (`if ($businessId !== null)`), então o resumo contaria o acervo de
+        //    TODOS os tenants — e o número apareceria no subtítulo e no pill da aba, que é
+        //    onde ninguém desconfia. Mesmo portão que o `CofreStatsReader` já tem.
+        if ($businessId === null || ! Schema::hasTable('arquivos')) {
+            return ['arquivos' => 0, 'bytes' => 0, 'cifrados' => 0, 'eventos' => 0, 'por_bucket' => []];
+        }
+
+        $linhas = Arquivo::query()
+            ->select([
+                'bucket',
+                DB::raw('COUNT(*) as qtd'),
+                DB::raw('COALESCE(SUM(size_bytes), 0) as soma'),
+                DB::raw('COALESCE(SUM(encrypted), 0) as cifrados'),
+            ])
+            ->groupBy('bucket')
+            ->toBase()
+            ->get();
+
+        $porBucket = [];
+        $arquivos = $bytes = $cifrados = 0;
+
+        foreach ($linhas as $l) {
+            $porBucket[(string) $l->bucket] = (int) $l->qtd;
+            $arquivos += (int) $l->qtd;
+            $bytes    += (int) $l->soma;
+            $cifrados += (int) $l->cifrados;
+        }
+
+        // `arquivos_audit_log` não tem model: aqui o `where` explícito É a defesa Tier 0.
+        // O business já foi resolvido no portão acima — o que falta checar é a tabela, que
+        // pode não existir mesmo com `arquivos` existindo (migrations são independentes).
+        $eventos = Schema::hasTable('arquivos_audit_log')
+            ? DB::table('arquivos_audit_log')->where('business_id', $businessId)->count()
+            : 0;
+
+        return [
+            'arquivos'   => $arquivos,
+            'bytes'      => $bytes,
+            'cifrados'   => $cifrados,
+            'eventos'    => $eventos,
+            'por_bucket' => $porBucket,
+        ];
     }
 
     /**
