@@ -1,172 +1,32 @@
 parameters:
 	ignoreErrors:
-		-
-			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
-			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 1
-			path: Modules/ADS/Config/config.php
 
-		-
-			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
-			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 2
-			path: Modules/ADS/Config/retention.php
 
-		-
-			message: '#^Expression on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.expr
-			count: 2
-			path: Modules/ADS/Http/Controllers/Admin/MetricasController.php
 
-		-
-			message: '#^Offset 0 on non\-empty\-list\<string\> on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: Modules/ADS/Http/Controllers/Admin/PolicyController.php
 
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$auto_publish_to_git\.$#'
-			identifier: property.notFound
-			count: 1
-			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
 
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$current_version_id\.$#'
-			identifier: property.notFound
-			count: 2
-			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
 
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 3
-			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
 
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$slug\.$#'
-			identifier: property.notFound
-			count: 4
-			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
 
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
-			identifier: property.notFound
-			count: 1
-			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
 
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$version\.$#'
-			identifier: property.notFound
-			count: 2
-			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
 
-		-
-			message: '#^Método `Modules\\ADS\\Http\\Controllers\\Admin\\SkillsController\:\:approve\(\)` faz Eloquent query \(5\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
-			identifier: oimpresso.missingTenantScope
-			count: 1
-			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
 
-		-
-			message: '#^Método `Modules\\ADS\\Http\\Controllers\\Admin\\SkillsController\:\:edit\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
-			identifier: oimpresso.missingTenantScope
-			count: 1
-			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
 
-		-
-			message: '#^Método `Modules\\ADS\\Http\\Controllers\\Admin\\SkillsController\:\:moveLabel\(\)` faz Eloquent query \(4\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
-			identifier: oimpresso.missingTenantScope
-			count: 1
-			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
 
-		-
-			message: '#^Método `Modules\\ADS\\Http\\Controllers\\Admin\\SkillsController\:\:reject\(\)` faz Eloquent query \(3\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
-			identifier: oimpresso.missingTenantScope
-			count: 1
-			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
 
-		-
-			message: '#^Método `Modules\\ADS\\Http\\Controllers\\Admin\\SkillsController\:\:review\(\)` faz Eloquent query \(2\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
-			identifier: oimpresso.missingTenantScope
-			count: 1
-			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
 
-		-
-			message: '#^Método `Modules\\ADS\\Http\\Controllers\\Admin\\SkillsController\:\:show\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
-			identifier: oimpresso.missingTenantScope
-			count: 1
-			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
 
-		-
-			message: '#^Método `Modules\\ADS\\Http\\Controllers\\Admin\\SkillsController\:\:store\(\)` faz Eloquent query \(2\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
-			identifier: oimpresso.missingTenantScope
-			count: 1
-			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
 
-		-
-			message: '#^Método `Modules\\ADS\\Http\\Controllers\\Admin\\SkillsController\:\:test\(\)` faz Eloquent query \(2\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
-			identifier: oimpresso.missingTenantScope
-			count: 1
-			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
 
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: int, version\: int\<0, max\>, origin\: ''git_drift''\|''git_seed''\|''ui'', status\: ''archived''\|''draft''\|''drift_pending''\|''published''\|''review'', created_at\: non\-falsy\-string\|null, is_current\: bool\}, Closure\(Modules\\Jana\\Entities\\Mcp\\McpSkillVersion\)\: array\{id\: int, version\: int\<0, max\>, origin\: ''git_drift''\|''git_seed''\|''ui'', status\: ''archived''\|''draft''\|''drift_pending''\|''published''\|''review'', created_at\: non\-falsy\-string\|null, is_current\: bool\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
 
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Modules\\Jana\\Entities\\Mcp\\McpSkillVersion\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
 
-		-
-			message: '#^Relation ''conversa'' is not found in Modules\\Jana\\Entities\\Mensagem model\.$#'
-			identifier: larastan.relationExistence
-			count: 1
-			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
 
-		-
-			message: '#^Unreachable statement \- code above always terminates\.$#'
-			identifier: deadCode.unreachable
-			count: 1
-			path: Modules/ADS/Http/Controllers/DataController.php
 
-		-
-			message: '#^Offset 1 on array\{list\<string\>, list\<non\-empty\-string\>\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: Modules/ADS/Services/AutoTaskGeneratorService.php
 
-		-
-			message: '#^Property Modules\\ADS\\Services\\AutoTaskGeneratorService\:\:\$patterns is never read, only written\.$#'
-			identifier: property.onlyWritten
-			count: 1
-			path: Modules/ADS/Services/AutoTaskGeneratorService.php
 
-		-
-			message: '#^Call to function is_object\(\) with Laravel\\Ai\\Responses\\AgentResponse will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: Modules/ADS/Services/BrainBService.php
 
-		-
-			message: '#^Offset ''intent'' on array\{user_id\?\: int, intent\: string, domain\?\: string\|null, files_planned\?\: array, event_type\?\: string\|null\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: Modules/ADS/Services/ContextForTaskService.php
 
-		-
-			message: '#^Property Modules\\ADS\\Services\\ContextForTaskService\:\:\$links is never read, only written\.$#'
-			identifier: property.onlyWritten
-			count: 1
-			path: Modules/ADS/Services/ContextForTaskService.php
 
-		-
-			message: '#^Instanceof between Laravel\\Ai\\Responses\\AgentResponse and Stringable will always evaluate to true\.$#'
-			identifier: instanceof.alwaysTrue
-			count: 1
-			path: Modules/ADS/Services/PlannerService.php
 
 		-
 			message: '#^Anonymous function has an unused use \$mission\.$#'
@@ -210,101 +70,21 @@ parameters:
 			count: 1
 			path: Modules/Forja/Tools/BoostToolAdapter.php
 
-		-
-			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
-			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 7
-			path: Modules/Admin/Config/config.php
 
-		-
-			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
-			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 3
-			path: Modules/Admin/Config/retention.php
 
-		-
-			message: '#^Método `Modules\\Admin\\Http\\Controllers\\FeatureFlagsController\:\:index\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
-			identifier: oimpresso.missingTenantScope
-			count: 1
-			path: Modules/Admin/Http/Controllers/FeatureFlagsController.php
 
-		-
-			message: '#^Método `Modules\\Admin\\Http\\Controllers\\FeatureFlagsController\:\:show\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
-			identifier: oimpresso.missingTenantScope
-			count: 1
-			path: Modules/Admin/Http/Controllers/FeatureFlagsController.php
 
-		-
-			message: '#^Comparison operation "\>" between int\<1, max\> and 0 is always true\.$#'
-			identifier: greater.alwaysTrue
-			count: 1
-			path: Modules/Admin/Http/Controllers/GovernanceV4DashboardController.php
 
-		-
-			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
-			identifier: oimpresso.silentFallback
-			count: 1
-			path: Modules/Admin/Http/Controllers/GovernanceV4DashboardController.php
 
-		-
-			message: '#^Strict comparison using \!\=\= between int and null will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
-			count: 1
-			path: Modules/Admin/Http/Controllers/MutationsController.php
 
-		-
-			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
-			identifier: oimpresso.silentFallback
-			count: 2
-			path: Modules/Admin/Http/Controllers/RagQualityDashboardController.php
 
-		-
-			message: '#^Parameter \#1 \$array \(list\<array\{query_hash\: string, span_name\: string, max_duration_ms\: int\<0, max\>, count\: int\<1, max\>\}\>\) of array_values is already a list, call has no effect\.$#'
-			identifier: arrayValues.list
-			count: 1
-			path: Modules/Admin/Http/Controllers/RagQualityDashboardController.php
 
-		-
-			message: '#^Offset 0 on non\-empty\-list\<string\> on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 2
-			path: Modules/Admin/Http/Controllers/ScreenReviewController.php
 
-		-
-			message: '#^Offset 1 on array\{list\<string\>, list\<non\-empty\-string\>\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: Modules/Admin/Http/Controllers/ScreenReviewController.php
 
-		-
-			message: '#^Offset 1 on array\{list\<string\>, list\<numeric\-string\>\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: Modules/Admin/Http/Controllers/ScreenReviewController.php
 
-		-
-			message: '#^Offset 1 on array\{list\<string\>, list\<string\>\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: Modules/Admin/Http/Controllers/ScreenReviewController.php
 
-		-
-			message: '#^Parameter \#1 \$array of function array_values contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: Modules/Admin/Http/Controllers/ScreenReviewController.php
 
-		-
-			message: '#^Parameter \#1 \$array of function usort contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: Modules/Admin/Http/Controllers/ScreenReviewController.php
 
-		-
-			message: '#^Parameter \#2 \$callback of function usort contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: Modules/Admin/Http/Controllers/ScreenReviewController.php
 
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
@@ -11499,101 +11279,21 @@ parameters:
 			count: 2
 			path: Modules/Repair/Utils/RepairUtil.php
 
-		-
-			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
-			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 3
-			path: Modules/SRS/Config/config.php
 
-		-
-			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
-			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 6
-			path: Modules/SRS/Config/retention.php
 
-		-
-			message: '#^Access to an undefined property Modules\\SRS\\Entities\\DocChatMessage\:\:\$first_msg\.$#'
-			identifier: property.notFound
-			count: 1
-			path: Modules/SRS/Http/Controllers/ChatController.php
 
-		-
-			message: '#^Access to an undefined property Modules\\SRS\\Entities\\DocChatMessage\:\:\$last_at\.$#'
-			identifier: property.notFound
-			count: 1
-			path: Modules/SRS/Http/Controllers/ChatController.php
 
-		-
-			message: '#^Access to an undefined property Modules\\SRS\\Entities\\DocChatMessage\:\:\$msg_count\.$#'
-			identifier: property.notFound
-			count: 1
-			path: Modules/SRS/Http/Controllers/ChatController.php
 
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Modules\\SRS\\Entities\\DocChatMessage\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: Modules/SRS/Http/Controllers/ChatController.php
 
-		-
-			message: '#^Access to an undefined property Modules\\SRS\\Entities\\DocEvidence\:\:\$source\.$#'
-			identifier: property.notFound
-			count: 6
-			path: Modules/SRS/Http/Controllers/InboxController.php
 
-		-
-			message: '#^Call to an undefined method Illuminate\\Contracts\\Pagination\\LengthAwarePaginator\:\:getCollection\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: Modules/SRS/Http/Controllers/InboxController.php
 
-		-
-			message: '#^Relation ''source'' is not found in Modules\\SRS\\Entities\\DocEvidence model\.$#'
-			identifier: larastan.relationExistence
-			count: 1
-			path: Modules/SRS/Http/Controllers/InboxController.php
 
-		-
-			message: '#^Call to static method chat\(\) on an unknown class OpenAI\\Laravel\\Facades\\OpenAI\.$#'
-			identifier: class.notFound
-			count: 1
-			path: Modules/SRS/Services/ChatAssistant.php
 
-		-
-			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
-			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 1
-			path: Modules/SRS/Services/ChatAssistant.php
 
-		-
-			message: '#^Parameter \#2 \$replace of function str_replace expects array\<string\>\|string, array\<int, int\<0, max\>\|string\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: Modules/SRS/Services/ChatAssistant.php
 
-		-
-			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
-			identifier: oimpresso.silentFallback
-			count: 1
-			path: Modules/SRS/Services/DocRetentionCleaner.php
 
-		-
-			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
-			identifier: oimpresso.silentFallback
-			count: 2
-			path: Modules/SRS/Services/DocValidator.php
 
-		-
-			message: '#^Comparison operation "\>" between 100 and 0 is always true\.$#'
-			identifier: greater.alwaysTrue
-			count: 1
-			path: Modules/SRS/Services/ModuleAuditor.php
 
-		-
-			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
-			identifier: oimpresso.silentFallback
-			count: 1
-			path: Modules/SRS/Services/ModuleAuditor.php
 
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
@@ -12170,12 +11870,12 @@ parameters:
 			identifier: oimpresso.missingTenantScope
 			count: 1
 			path: Modules/Superadmin/Http/Controllers/PackagesController.php
-
 		-
-			message: '#^Método `Modules\\Superadmin\\Http\\Controllers\\PackagesController\:\:update\(\)` faz Eloquent query \(2\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			message: '#^Método `Modules\\Superadmin\\Http\\Controllers\\PackagesController\:\:update\(\)` faz Eloquent query \(3\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
 			identifier: oimpresso.missingTenantScope
 			count: 1
 			path: Modules/Superadmin/Http/Controllers/PackagesController.php
+
 
 		-
 			message: '#^PHPDoc tag @param references unknown parameter\: \$product$#'

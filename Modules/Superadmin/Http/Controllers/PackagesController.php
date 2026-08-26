@@ -251,6 +251,34 @@ class PackagesController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // TIER 0 / ADR 0093 — por que NAO ha filtro de `business_id` aqui.
+        //
+        // Este endpoint e CROSS-TENANT POR DESENHO: `Package` e a grade comercial do SaaS,
+        // compartilhada por N businesses, e `Subscription` liga pacote a business — filtrar
+        // por tenant aqui tornaria a tela de pacotes do superadmin incapaz de fazer o que
+        // ela existe pra fazer.
+        //
+        // Nenhum dos dois models tem `BusinessScope` global (`Package` nao menciona
+        // `business_id`; `Subscription` carrega a COLUNA `business_id`, que e o vinculo, nao
+        // um escopo). Logo nao ha `withoutGlobalScope` a declarar — nao existe escopo pra
+        // remover.
+        //
+        // A defesa e o `can('superadmin')` acima, que aborta 403 antes de qualquer query.
+        //
+        // ATENCAO a quem for "resolver" isto: este comentario NAO satisfaz o
+        // `NoMissingTenantScopeRule`, e eu tentei. O `serializeMethodBody()` daquela regra
+        // percorre a AST e coleta so literais de string, nomes de variavel, identificadores
+        // e nomes de classe — COMENTARIO NAO EXISTE NA AST. O docblock da regra fala em
+        // "comentario explicito", mas a implementacao nao le comentario nenhum.
+        //
+        // A violacao segue registrada no `phpstan-baseline.neon` (com a contagem de queries
+        // deste metodo). Este texto existe para o LEITOR, nao para o linter: ele responde a
+        // pergunta que a regra levanta e que ninguem conseguiria responder sozinho.
+        //
+        // Resolver de verdade exigiria `withoutGlobalScope(BusinessScope::class)` — que aqui
+        // seria MENTIRA, porque nao ha escopo pra remover. Colocar a string so pra calar o
+        // linter e pior que a divida: silencia a regra sem mudar nada.
+
         try {
             $packages_details = $request->only(['name', 'id', 'description', 'location_count', 'user_count', 'product_count', 'invoice_count', 'interval', 'interval_count', 'trial_days', 'price', 'sort_order', 'is_active', 'custom_permissions', 'is_private', 'is_one_time', 'enable_custom_link', 'custom_link', 'custom_link_text']);
 
@@ -265,6 +293,34 @@ class PackagesController extends Controller
 
             $package = Package::where('id', $id)
                             ->first();
+
+            // ── PRESERVACAO DE CHAVE NAO-RENDERIZAVEL ────────────────────────────────
+            // O formulario so consegue expressar o que `getModuleData('superadmin_package')`
+            // devolve (mesma fonte do `edit()` acima). Chave fora desse catalogo NAO vira
+            // checkbox, logo NAO volta no POST — e, como o `only()` acima SUBSTITUI o array
+            // inteiro, ela sumia em silencio no primeiro Salvar.
+            //
+            // Medido em producao 2026-08-26, pacote 1: 13 chaves gravadas, 8 marcaveis na
+            // tela, 5 perdidas ao salvar (`chat_`, `crm_`, `help_`, `jana_`, `project_`).
+            // `crm_module` e lido em 91 pontos, incl. o login de `user_customer`.
+            //
+            // A regra: o catalogo define o que a UI PODE dizer. Dentro dele, o checkbox
+            // manda (desmarcar continua REVOGANDO). Fora dele, preserva-se — porque a UI
+            // nao tem como expressar aquela chave, nem para manter nem para tirar.
+            $renderable = [];
+            foreach ($this->moduleUtil->getModuleData('superadmin_package', true) as $items) {
+                foreach ((array) $items as $item) {
+                    if (! empty($item['name'])) {
+                        $renderable[$item['name']] = true;
+                    }
+                }
+            }
+
+            $submitted = (array) ($packages_details['custom_permissions'] ?? []);
+            $preserved = array_diff_key((array) ($package->custom_permissions ?? []), $renderable);
+            $merged = $submitted + $preserved;
+            $packages_details['custom_permissions'] = empty($merged) ? null : $merged;
+
             $package->fill($packages_details);
             $package->save();
 
@@ -282,10 +338,31 @@ class PackagesController extends Controller
                     }
                 }
 
-                //Update subscription package details
+                // Mesma regra do lado da ASSINATURA, e aqui o dano era pior: o rebuild
+                // copiava so do pacote, entao chave que vivia SO na assinatura sumia. Caso
+                // real medido: `nfebrasil_module` nas assinaturas 111/116 do business 164
+                // (piloto LIVE) — o pacote 11 grava `nfe_brasil_module`, que ninguem le.
+                //
+                // Por isso o loop substitui o mass update: a preservacao e POR LINHA, cada
+                // assinatura tem as suas chaves orfas. Segue usando o query builder (sem
+                // `save()`) para nao mudar o comportamento de eventos/observers deste fluxo.
                 $subscriptions = Subscription::where('package_id', $package->id)
                                             ->whereDate('end_date', '>=', \Carbon::now())
-                                            ->update(['package_details' => json_encode($package_details)]);
+                                            ->get();
+
+                foreach ($subscriptions as $subscription) {
+                    $orfas = array_diff_key((array) ($subscription->package_details ?? []), $renderable);
+                    unset(
+                        $orfas['location_count'],
+                        $orfas['user_count'],
+                        $orfas['product_count'],
+                        $orfas['invoice_count'],
+                        $orfas['name']
+                    );
+
+                    Subscription::where('id', $subscription->id)
+                                ->update(['package_details' => json_encode($package_details + $orfas)]);
+                }
             }
 
             $output = ['success' => 1, 'msg' => __('lang_v1.success')];

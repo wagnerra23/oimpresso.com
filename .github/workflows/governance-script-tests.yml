@@ -171,7 +171,13 @@ jobs:
       # replicando `inLane()` linha a linha). Este trabalha em granularidade de ARQUIVO
       # (allowlist, matriz, lista .list e QUARENTENA) e no eixo UC->teste.
       #
-      # Medido no corpus: 481 citacoes UC->teste, 224 na lane, 56 ORFAS, 0 indeterminadas.
+      # Medido em 2026-08-23: 481 citacoes UC->teste, 224 na lane, 56 ORFAS, 0 indeterminadas.
+      # Medido em 2026-08-26, ao passar a ler o 2o formato de citacao (cabecalho `## UC-XX`
+      # + campo dedicado, alem da tabela): 844 citacoes, 379 na lane, 117 orfas (113 orfao
+      # + 4 arquivo-ausente), 30 em quarentena declarada. O salto NAO e divida nova — sao
+      # 57 arquivos com 386 cabecalhos que a ferramenta simplesmente nao enxergava, mais 27
+      # UCs de cabecalho dentro de arquivos que tem tabela e nao os listam. A baseline foi
+      # regenerada 37 -> 117 por isso (o `_meta.salto_legitimo` dela registra o motivo).
       # Regra dura: lane cuja selecao o parser NAO deriva sai como `indeterminada` e NUNCA
       # como "nao cobre" — colapsar "nao medi" em "nao coberto" fabrica achado.
       - name: uc-lane-coverage bite-test (morde orfao e quarentena, e prova que INDETERMINADO nao vira orfao)
