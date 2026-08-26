@@ -3,14 +3,20 @@
 /**
  * verify-classmap.php — gate de deploy (emenda ADR 0269; incidentes 2026-06-18 + 2026-06-23).
  *
- * Roda no SERVIDOR (Hostinger LSPHP) logo após `composer dump-autoload -o
- * --classmap-authoritative`, AINDA em maintenance ON e ANTES de tirar o site do
+ * Roda no SERVIDOR (Hostinger LSPHP) logo após `composer dump-autoload -o`,
+ * AINDA em maintenance ON e ANTES de tirar o site do
  * ar. Verifica que as classes do namespace App\ referenciadas nos pontos que
  * bootam ANTES (ou muito cedo) do logger — exception Handler, HTTP Kernel
  * (middleware web/global), Console Kernel e bootstrap/app.php — estão presentes
  * no CLASSMAP AUTORITATIVO recém-gerado.
  *
- * Por que isso derruba prod: com `--classmap-authoritative` o Composer DESLIGA o
+ * NOTA 2026-08-26: a flag `--classmap-authoritative` SAIU do deploy. O parágrafo
+ * abaixo descreve por que ela derrubava prod — é história, não o estado atual. Hoje
+ * classe fora do classmap resolve por PSR-4, então este gate deixou de ser a última
+ * linha entre um deploy interrompido e um 500; ele segue como DETECTOR de classmap
+ * atrasado (útil), não como prevenção de catástrofe.
+ *
+ * Por que isso derrubava prod ATÉ 2026-08-26: com `--classmap-authoritative` o Composer DESLIGA o
  * fallback de scan PSR-4 do filesystem. Uma classe nova que ficou FORA do classmap
  * (deploy interrompido/cancelado entre `git reset --hard` e o `dump-autoload`, ou
  * source à frente do classmap num flurry de merges) vira "Target class [X] does
@@ -137,7 +143,7 @@ if ($missing !== []) {
     fwrite(STDERR, "BindingResolutionException (Target class does not exist) → 500 site-wide.\n");
     fwrite(STDERR, "Causa típica: deploy interrompido/cancelado entre 'git reset --hard' e\n");
     fwrite(STDERR, "'composer dump-autoload', ou source à frente do classmap. Re-rodar o\n");
-    fwrite(STDERR, "dump-autoload (-o --classmap-authoritative) contra o source final corrige.\n");
+    fwrite(STDERR, "dump-autoload (-o) contra o source final corrige.\n");
     exit(1);
 }
 

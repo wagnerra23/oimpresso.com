@@ -7,6 +7,7 @@ namespace Modules\Jana\Ai\Tools\BriefDiario;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
+use Modules\Jana\Contracts\DeclaraPermissao;
 use Modules\Jana\Services\BriefDiarioService;
 use Stringable;
 
@@ -20,7 +21,7 @@ use Stringable;
  *
  * @see memory/decisions/0141-agents-tool-use-pattern-claude-code.md
  */
-class InadimplenciaTool implements Tool
+class InadimplenciaTool implements Tool, DeclaraPermissao
 {
     public function __construct(
         private readonly int $businessId,
@@ -40,6 +41,18 @@ class InadimplenciaTool implements Tool
         $data = $service->inadimplenciaBuckets();
 
         return json_encode($data, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Permissão Spatie que o dado desta tool exige (UC-JCHAT-09).
+     *
+     * Gateia a TABELA lida: `transactions` — contas a receber vencidas (BriefDiarioService::inadimplenciaBuckets).
+     * DECLARA, não enforça — o porquê está em DeclaraPermissao (o brief
+     * diário roda headless e um can() aqui estouraria no cron).
+     */
+    public function permission(): string
+    {
+        return 'financeiro.access';
     }
 
     public function schema(JsonSchema $schema): array

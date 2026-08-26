@@ -16,8 +16,29 @@
 //     no 12.5.23), então o teste que varre as 10 rotas do Ponto nunca executou nenhuma.
 //   · os 5 casos cross-tenant do `CrossTenantMarcacaoTest`: 100% SKIP por fixture ausente.
 //
-// Um `casos.md` que cite qualquer um desses na coluna `Teste` está apontando pra uma prova
-// que o CI não colhe. O UC parece coberto e não está.
+// Um `casos.md` que cite qualquer um desses está apontando pra uma prova que o CI não
+// colhe. O UC parece coberto e não está.
+//
+// =====================================================================================
+// DOIS FORMATOS DE CITAÇÃO (o 2º entrou em 2026-08-26 — antes era um ponto CEGO)
+// =====================================================================================
+// A 1ª versão lia SÓ a tabela de Rastreabilidade (`| UC-XX | … | <Teste> | <Status> |`).
+// O corpus tem um segundo formato igualmente vivo — cabeçalho `## UC-XX` com o teste num
+// campo dedicado do bloco (`- **Teste:** …` ou `Status: 🧪 (FooTest …)`) — e ele não
+// produzia par NENHUM: o UC não virava `órfão` nem `na-lane`, simplesmente não existia
+// pra esta ferramenta. Silêncio, aqui, é indistinguível de "está tudo bem".
+//
+// Medido em 2026-08-26 nos 143 `.casos.md` que o script varre: 57 arquivos, com 386
+// cabeçalhos `## UC-`, eram invisíveis; mais 27 UCs de cabeçalho viviam dentro de
+// arquivos que TÊM tabela mas não os listam. Ler os dois formatos levou as citações de
+// 481 pra 844 e os órfãos de 37 pra 117 — dívida que sempre existiu e só ficou visível.
+//
+// O caso que originou: `Jana/Pro.casos.md` cita `ProContractTest` nos 6 UCs; o arquivo
+// não está em lane alguma (confirmado no DONO, `test-lane-coverage --json`). O eixo
+// vizinho `uc-sem-lane.mjs` também não o via, por razão INDEPENDENTE — lá a chave é o
+// UC-id no TÍTULO do `it()`, e nenhum dos 6 `it()` daquele arquivo cita UC. Dois donos
+// cegos por motivos diferentes é o que torna este conserto necessário AQUI, e não um
+// "o outro já cobre". O detalhe do FP medido está no docblock de `citacoesEm`.
 //
 // =====================================================================================
 // ESCOPO — DUAS perguntas, não quatro (o resto JÁ TEM DONO)
@@ -79,7 +100,12 @@
 //   node scripts/qa/uc-lane-coverage.mjs --lanes         # resumo do run-set (detalhe é no dono)
 //
 // BITE-TEST: node scripts/qa/uc-lane-coverage.test.mjs (irmão) — exercita o CLI de fora, com
-// controle negativo, incluindo "quarentena não vira órfão".
+// controle negativo, incluindo "quarentena não vira órfão" e, desde 2026-08-26, o par
+// mínimo do FORMATO 2: cabeçalho citando teste EM LANE não acrescenta órfão · cabeçalho
+// citando teste ÓRFÃO morde o no-new-lie. Os asserts do formato novo são de DELTA, não
+// absolutos — a fixture já carrega dívida deliberada das seções anteriores, e assert que o
+// estado herdado satisfaz sozinho não discrimina (§5 2026-08-24). Aferido rodando este
+// bite-test contra o parser ANTIGO: 8 asserções caem; com o novo, 0.
 
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -138,15 +164,61 @@ import { coletarAlvos, estaCoberto, emQuarentena } from '../governance/test-lane
 // 2. UC → TESTE CITADO (tabela de Rastreabilidade do casos.md)
 // ═════════════════════════════════════════════════════════════════════════════════════
 
+// Instância FRESCA por chamada: regex /g é stateful (lastIndex) e compartilhar uma global
+// entre chamadas é footgun — mesma disciplina de `ucScanRe()` em scripts/lib/uc-regex.mjs.
+const nomeDeTesteRe = () => /`?\b(\w*Test)\b`?/g;
+
+// Campos DEDICADOS de um bloco `## UC-XX` — o bullet `- **Teste:** …` e a linha `Status: …`.
+// A restrição a estes dois é MEDIDA, não gosto (ver "POR QUE SÓ OS CAMPOS DEDICADOS").
+const campoDedicadoRe = /\*\*\s*Testes?\s*[:：]|Status\s*[:：]/i;
+
 /**
- * Linhas `| UC-XX | … | <Teste> | <Status> |` de um casos.md.
- * As duas últimas colunas são Teste e Status por contrato do template.
+ * Pares UC→teste citados por um `casos.md`, nos DOIS formatos vivos do corpus.
+ *
+ * FORMATO 1 — TABELA: `| UC-XX | … | <Teste> | <Status> |`. As duas últimas colunas são
+ * Teste e Status por contrato do template.
+ *
+ * FORMATO 2 — CABEÇALHO: `## UC-XX — título` + campos no bloco (`- **Teste:** …` e/ou
+ * `Status: 🧪 (FooTest …)`). É tão vivo quanto o primeiro e ficava INVISÍVEL: não virava
+ * `órfão` nem `na-lane` — simplesmente não existia pra esta ferramenta, e silêncio aqui é
+ * indistinguível de "está tudo bem". Medido em 2026-08-26 sobre os 143 `.casos.md` que o
+ * script varre (o corpus bruto tem 189; 46 vivem em `design-docs/cowork-inbox/`, que
+ * `foraDoInbox` exclui por design): 57 arquivos com 386 cabeçalhos `## UC-` não
+ * contribuíam UM par sequer.
+ *
+ * O caso que originou: `Jana/Pro.casos.md` declara nos 6 UCs `Status: 🧪 (ProContractTest
+ * …)` e o `ProContractTest` não está em lane nenhuma — confirmado no DONO
+ * (`test-lane-coverage --json` → `arquivos_orfaos`). O eixo vizinho `uc-sem-lane.mjs`
+ * também não o vê, por razão INDEPENDENTE: lá a chave é o UC-id no TÍTULO do `it()`, e
+ * nenhum dos 6 `it()` daquele arquivo cita UC. Dois donos cegos por motivos diferentes —
+ * por isso o conserto é aqui, e não "o outro já cobre".
+ *
+ * POR QUE SÓ OS CAMPOS DEDICADOS, e não o bloco inteiro — FP medido ANTES (o §5 de
+ * `memory/proibicoes.md` tem 5 lápides de guard sintático que reprovava o legítimo):
+ * varrendo o BLOCO todo saem 254 nomes; restrito aos dedicados, 243 (95,7%). Os 11
+ * descartados vinham de prosa solta — inclusive comentário META sobre lane
+ * ("`ScorecardContratoTest.php` **não está** em …"), que nomeia um teste sem que aquele UC
+ * o reivindique como prova. Atribuir prosa a UC seria inventar citação. Nos 254 e nos 243,
+ * ZERO nome deixou de resolver pra arquivo real — o `\w*Test` é conservador (controle
+ * negativo: `test.tsx` minúsculo e `TestKit` não casam).
+ *
+ * LIMITE HONESTO: o run-set desta ferramenta é de lane PHP, então citação de teste
+ * front-end (`tests/jana-pro-voltar.test.tsx`, em UC-PRO-07) não casa `\w*Test`. Com o
+ * bullet `**Teste:**` preenchido isso sai como `sem-nome-de-teste` (citou algo que este
+ * eixo não resolve); sem bullet, como `sem-teste`. Nos dois casos NÃO é órfão e NÃO é
+ * prova. Fechar o eixo front-end é outro trabalho, com outro run-set.
+ *
+ * DEDUPE: o bloco só é lido pro UC que a TABELA não cobriu. Num arquivo com os dois
+ * formatos, contar duas vezes inflaria `citacoes` e quebraria a invariante
+ * "soma dos estados == citações" que o bite-test trava.
  */
 export function citacoesEm(content) {
   const out = [];
-  const declarados = new Set();
-  for (const { uc } of ucBlocksInCasos(content)) declarados.add(uc);
+  const blocos = [...ucBlocksInCasos(content)];
+  const declarados = new Set(blocos.map((b) => b.uc));
+  const naTabela = new Set();
 
+  // ── FORMATO 1: tabela de Rastreabilidade ─────────────────────────────────────────
   for (const linha of String(content).split('\n')) {
     if (!linha.trim().startsWith('|')) continue;
     const cols = linha.split('|').map((c) => c.trim());
@@ -156,8 +228,27 @@ export function citacoesEm(content) {
     const status = cols[cols.length - 2];
     const teste = cols[cols.length - 3];
     if (/^-+$/.test(status)) continue;                       // linha separadora
-    const nomes = [...String(teste).matchAll(/`?\b(\w*Test)\b`?/g)].map((m) => m[1]);
-    out.push({ uc, teste: teste.replace(/`/g, '').trim(), nomes, status, declarado: declarados.has(uc) });
+    const nomes = [...String(teste).matchAll(nomeDeTesteRe())].map((m) => m[1]);
+    naTabela.add(uc);
+    out.push({ uc, teste: teste.replace(/`/g, '').trim(), nomes, status, declarado: declarados.has(uc), origem: 'tabela' });
+  }
+
+  // ── FORMATO 2: cabeçalho `## UC-XX` + campos dedicados do bloco ──────────────────
+  for (const { uc, block } of blocos) {
+    if (naTabela.has(uc)) continue;                          // dedupe — a tabela já falou por ele
+    const nomes = new Set();
+    let linhaTeste = '';
+    let status = '';
+    for (const l of block.split(/\r?\n/)) {
+      if (!campoDedicadoRe.test(l)) continue;
+      const limpa = l.replace(/^[\s>\-*]+/, '').trim();
+      if (!linhaTeste && /\*\*\s*Testes?\s*[:：]/i.test(l)) linhaTeste = limpa;
+      if (!status && /Status\s*[:：]/i.test(l)) status = limpa;
+      for (const m of l.matchAll(nomeDeTesteRe())) nomes.add(m[1]);
+    }
+    const lista = [...nomes];
+    const teste = lista.length ? lista.join(', ') : linhaTeste.replace(/`/g, '').trim();
+    out.push({ uc, teste, nomes: lista, status, declarado: true, origem: 'bloco' });
   }
   return out;
 }
@@ -257,6 +348,7 @@ function main() {
         schema: 'uc-lane-baseline/v1',
         purpose: 'Grandfathera UC cujo teste citado já era órfão de lane. `--check --baseline` morde só citação NOVA (no-new-lie).',
         contrato: 'grandfathered[] = "<casos.md>::<UC>". CRESCER = grandfatherar órfão novo, o oposto do propósito. DIMINUIR (teste entrou na lane) é livre.',
+        salto_legitimo: 'Há UM caso em que crescer NÃO é violação: quando o PARSER passa a enxergar formato que antes era invisível. A dívida não é nova — sempre existiu e só ficou visível. Em 2026-08-26 o corpo foi de 37 pra 117 assim, e a decomposição foi MEDIDA (não estimada): dos 37 commitados, 12 eram entradas STALE de `design-docs/cowork-inbox/` que o filtro `foraDoInbox` (2026-08-24) já excluía — regenerar com o parser ANTIGO naquele dia dava 25, não 37. Os 92 que entraram vêm de ler o FORMATO 2 (cabeçalho `## UC-XX` + campo dedicado): 57 arquivos com 386 cabeçalhos que não produziam par nenhum, mais 27 UCs de cabeçalho dentro de arquivos que TÊM tabela e não os listam. Quem crescer por esse motivo DIZ isso no PR e mostra o antes→depois medido; quem crescer sem essa justificativa está grandfatherando dívida nova.',
         regenerar: `node scripts/qa/uc-lane-coverage.mjs --write-baseline ${WRITE_BASELINE}`,
         nao_e: 'NÃO é permissão pra deixar teste fora da lane — é dívida datada. Por que a allowlist existe (custo de CI? teste instável escondido?) é decisão [W].',
       },
@@ -306,7 +398,12 @@ function main() {
   for (const l of ativos) {
     if (l.arquivo !== ultimo) { console.log(`  ${l.arquivo.replace(/^resources\/js\/Pages\//, '')}`); ultimo = l.arquivo; }
     const marca = l.estado === 'arquivo-ausente' ? '∅ arquivo não existe' : '⛔ existe e NENHUMA lane roda';
-    console.log(`     ${l.uc.padEnd(16)} ${marca}   teste: ${l.teste || '—'}   status declarado: ${l.status || '—'}`);
+    // O `status` do FORMATO 2 é a linha `Status:` INTEIRA, e no corpus ela chega a um
+    // parágrafo (o `UC-BOARD-01` do Forja tem ~380 chars). Sem encurtar, uma citação
+    // empurra o relatório pra fora da tela e esconde as outras — o relatório existe pra
+    // ser lido. O `--json` continua servindo o valor íntegro pra quem consome por máquina.
+    const statusCurto = (l.status || '—').replace(/^Status\s*[:：]\s*/i, '').replace(/\s+/g, ' ');
+    console.log(`     ${l.uc.padEnd(16)} ${marca}   teste: ${l.teste || '—'}   status declarado: ${statusCurto.length > 72 ? `${statusCurto.slice(0, 69)}…` : statusCurto}`);
     for (const p of l.paths) console.log(`        ${p}`);
   }
   console.log('\n  Teste fora de toda lane é "verde impossível": existe, pode estar vermelho');

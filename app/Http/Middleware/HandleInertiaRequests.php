@@ -470,11 +470,16 @@ class HandleInertiaRequests extends Middleware
         $moduleUtil = new \App\Utils\ModuleUtil();
 
         try {
-            // IA: módulo Jana (Copiloto) habilitado pra este business.
+            // IA: módulo Jana habilitado pra este business.
             // Superadmin sempre vê; usuário comum precisa do package.
+            //
+            // A chave é `jana_module` desde 2026-08-26 (decisão [W]: *"copiloto_module é
+            // erro"*). Tem de ser a MESMA que o `Modules\Jana\...\DataController` lê — se
+            // as duas divergirem, o atalho do sidebar e o item do menu discordam sobre o
+            // mesmo módulo, e o usuário vê um sem o outro.
             $shortcuts['ia'] = (bool) $moduleUtil->hasThePermissionInSubscription(
                 $businessId,
-                'copiloto_module',
+                'jana_module',
                 'superadmin_package'
             );
         } catch (\Throwable $e) {
