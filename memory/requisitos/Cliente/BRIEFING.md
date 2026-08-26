@@ -2,9 +2,9 @@
 id: requisitos-cliente-briefing
 module: Cliente
 status: producao
-updated_at: "2026-08-18"
-distilled_at: "2026-08-18"
-distilled_by: "manual [C] — redestilação PARCIAL: só a seção 'Âncora de design' (Onda 0 da paridade, PR #5924). O resto do corpo NÃO foi re-lido; a redestilação de 2026-07-27 (SDD + contratos de tela, PR #4870) segue valendo para as demais seções."
+updated_at: "2026-08-26"
+distilled_at: "2026-08-26"
+distilled_by: "manual [C] — redestilação PARCIAL: só a seção 'Âncora de design' (revisão do veredito de paridade + correção da âncora do Map, que o texto dava como ausente). O resto do corpo NÃO foi re-lido; valem a redestilação de 2026-08-18 (Onda 0, PR #5924) e a de 2026-07-27 (SDD + contratos, PR #4870)."
 ---
 
 # BRIEFING — Cliente (cadastro de clientes / contatos)
@@ -48,7 +48,9 @@ gerados pelo chip `sdd-from-source` ([ADR 0351](../../decisions/0351-sdd-from-so
 
 ## Âncora de design (protótipo)
 
-As telas passaram a declarar `related_prototype` no charter — antes a ligação vivia em `bundle_source`/`mwart_pattern_reuse`, campos que o resolvedor só lê com `--staging`. `Show` declara `n/a` (herda PT-03; o drawer 760 substituiu o fullpage). **`Map` fica sem âncora por decisão:** "Map lib" está segurado pela [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) e não tem US — declarar exigiria inventar uma.
+As telas passaram a declarar `related_prototype` no charter — antes a ligação vivia em `bundle_source`/`mwart_pattern_reuse`, campos que o resolvedor só lê com `--staging`. `Show` declara `n/a` (herda PT-03; o drawer 760 substituiu o fullpage). **`Map` TEM âncora** (`prototipo-ui/cowork/cliente-mapa.jsx`, religada em [#5938](https://github.com/wagnerra23/oimpresso.com/pull/5938) 2026-08-18) — a frase anterior, que dizia ficar sem âncora por decisão da [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md), apodreceu no mesmo mês; verificado 2026-08-26 por `node prototipo-ui/ancora.mjs Cliente/Map`.
+
+**Revisão de 2026-08-26 — o veredito "tela viva À FRENTE" era de 23/06 e tinha 3 donos.** Ele foi medido contra `prototipo-ui/prototipos/clientes/` (hoje com **0 arquivos versionados**) e numa janela em que o espelho tinha metade do arquivo vivo (58.331 vs 112.096 bytes, corpo do [#5743](https://github.com/wagnerra23/oimpresso.com/pull/5743)). Segue verdade para o **drawer 760** — cujo protótipo foi derivado *da produção*. **Não vale** para listagem/Import/Map. Os 3 donos foram datados e reapontados: `Crm/clientes-gap.md` ([#6294](https://github.com/wagnerra23/oimpresso.com/pull/6294)), `Cliente/clientes-gap.md` e `prototipo-ui/FRESCOR-PRODUCAO-vs-PROTOTIPO.md`. **Fidelidade visual segue NÃO MEDIDA** (Onda 6): nenhum comparador roda sem browser, e Cliente não tem baseline visual.
 
 > **Estado vivo — não copiado aqui:** `node prototipo-ui/ancora.mjs Cliente/<Tela>`
 >
