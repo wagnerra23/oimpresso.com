@@ -74,7 +74,7 @@ conversa.
 **Pronto quando:** mudar a conversa ativa escreve o título na região viva; re-render sem troca não escreve.
 
 ## UC-JCHAT-05 — Thread de outro business NUNCA é devolvida (Tier 0)
-Status: 🧪 (`Modules/Jana/Tests/Feature/Chat/ChatAntiHooksTier0Test.php` — verde no CT 100 em 2026-08-26, mas o teste está FORA da lane, então não há manifesto: G-7 exige prova de máquina, e prosa não conta)
+Status: 🧪 (`Modules/Jana/Tests/Feature/Chat/ChatAntiHooksTier0Test.php` — verde no CT 100 em 2026-08-26 e o teste ENTROU na lane `jana-pest`. Segue 🧪 porque o G-7 exige o veredito no manifesto, e o coletor só lê runs de `main`: o ✅ é do dia seguinte ao merge)
 
 Um usuário de outro business pede a conversa pelo id e **não recebe 200**. Vale 403 (negado) ou 404
 (nem existe pra ele); o que não pode é conteúdo alheio na tela.
@@ -89,11 +89,17 @@ charter promete isolamento por BUSINESS. Passou — logo o `user_id` **cobre o c
 A divergência entre o texto do charter (business) e a guarda do código (user) segue existindo no
 papel; o que o teste prova é que ela não abre buraco de isolamento hoje.
 
-**Pronto quando:** o status não é 200 **nem 302** (anti-vácuo: redirect de login faria o assert
-passar sem provar isolamento nenhum) e está em `[403, 404]`.
+**Pronto quando:** o vizinho **alcança a PRÓPRIA conversa (200)** — controle positivo, sem o qual
+tudo abaixo é vácuo — e então o status da conversa alheia não é 200 **nem 302** (redirect de login
+faria o assert passar sem provar isolamento nenhum) e está em `[403, 404]`.
+
+⚠️ **O controle positivo entrou em 2026-08-26 porque a ausência dele era um buraco REAL, não
+teórico.** A rota exige `can:jana.access`, e nenhum seeder do repo cria essa permission: num banco
+fresco o vizinho leva 403 do **gate de acesso**, e este UC ficava verde sem que isolamento de tenant
+nenhum tivesse sido exercitado. Ver o recibo do contrafactual no fim do arquivo.
 
 ## UC-JCHAT-06 — Abrir a thread é leitura PURA
-Status: 🧪 (mesmo arquivo — verde no CT 100 em 2026-08-26; sem manifesto enquanto o teste estiver fora da lane)
+Status: 🧪 (mesmo arquivo — verde no CT 100 em 2026-08-26, já na lane; sem manifesto até um run de `main` publicar)
 
 Abrir uma conversa **não dispara e-mail nem notificação**. Efeito colateral pertence ao POST de
 mensagem, não à consulta.
@@ -101,10 +107,12 @@ mensagem, não à consulta.
 Âncora: charter §Automation Anti-hooks *"⛔ Não dispara emails ao abrir (read da thread é puro)"* +
 *"⛔ Não dispara SMS"*.
 
-**Pronto quando:** `Mail::assertNothingSent()` e `Notification::assertNothingSent()` após o GET.
+**Pronto quando:** o GET responde **200** (anti-vácuo — sem render não há efeito colateral possível,
+e "nenhum e-mail" seria verdade por nada ter acontecido) e então `Mail::assertNothingSent()` e
+`Notification::assertNothingSent()`.
 
 ## UC-JCHAT-07 — O render inicial não escreve no banco
-Status: 🧪 (`ChatAntiHooksTier0Test` — verde no CT 100 em 2026-08-26; sem manifesto enquanto o teste estiver fora da lane)
+Status: 🧪 (`ChatAntiHooksTier0Test` — verde no CT 100 em 2026-08-26, já na lane; sem manifesto até um run de `main` publicar)
 
 Abrir a conversa **não acrescenta linha** em `jana_mensagens`. Escrita pertence ao POST.
 
@@ -114,10 +122,11 @@ O teste conta **antes e depois** em vez de assertar zero: a conversa pode nascer
 sistema, e o contrato é sobre o GET **não acrescentar** — não sobre a thread estar vazia. Assertar
 zero passaria a depender de um detalhe de seed, não do comportamento.
 
-**Pronto quando:** a contagem depois do GET é idêntica à de antes.
+**Pronto quando:** o GET responde **200** (mesmo anti-vácuo do UC-06) e a contagem depois é idêntica
+à de antes.
 
 ## UC-JCHAT-08 — O render não chama o Brain B nem vaza credencial
-Status: ❌ (`ChatAntiHooksTier0Test` — vermelho no CT 100 em 2026-08-26, mas **o defeito é do medidor, não do sistema**; recibo no fim do arquivo)
+Status: 🧪 (`ChatAntiHooksTier0Test` — o ❌ anterior era do MEDIDOR e foi consertado; verde no CT 100 em 2026-08-26 e o teste entrou na lane. Segue 🧪 até o manifesto G-7 capturar — ver o recibo no fim do arquivo)
 
 Abrir a conversa **não faz chamada HTTP de saída** (`Http::preventStrayRequests()`), e o corpo
 servido **não contém** o nome nem o valor da credencial do Brain B.
@@ -131,15 +140,28 @@ passaria batido.
 
 **Pronto quando:** a resposta é 200 sem request de saída, e nenhuma das duas strings aparece no corpo.
 
-❌ **Medido em 2026-08-26 — e o vermelho NÃO é vazamento.** O `preventStrayRequests()` é uma sonda
-mais **larga** que o contrato que ele guarda: ele barra *qualquer* HTTP de saída, e o que ele pegou
-foi o **SSR do Inertia** (`http://127.0.0.1:13714/render` — `config/inertia.php:30`, `INERTIA_SSR_URL`),
-nunca o Brain B. Pior: o estouro acontece no `assertOk()`, **antes** das duas asserts de credencial,
-então elas nem chegavam a rodar. Controle que separa as duas coisas: com `INERTIA_SSR_ENABLED=false`
-e **nada mais** mudado, o arquivo fecha **4 passed (8 assertions)** — as asserts de credencial rodam
-e passam (7→8 assertions). Ou seja: **o anti-hook está satisfeito; quem reprova é o medidor.**
-Corrigir isso mexe no que o anti-hook guarda (contrato do charter), então é decisão [W] — não
-afrouxamento silencioso da minha parte.
+✅ **O ❌ de 2026-08-26 foi RESOLVIDO no mesmo dia — e o vermelho nunca foi vazamento.** O
+`preventStrayRequests()` é uma sonda mais **larga** que o contrato que ele guarda: barra *qualquer*
+HTTP de saída, e o que ele pegava era o **SSR do Inertia** — `Inertia\Ssr\HttpGateway::dispatch()`
+chama `Http::post(config('inertia.ssr.url').'/render')` e **re-lança** o `StrayRequestException` em
+vez de engolir — nunca o Brain B. Pior: o estouro caía no `assertOk()`, **antes** das duas asserts de
+credencial, que por isso nem rodavam.
+
+**E não era peculiaridade de ambiente.** A primeira análise concluiu "vale no CI igual" por não achar
+`INERTIA_SSR` em env/workflow/`phpunit.xml` — verdade, mas incompleta: o `HttpGateway` tem uma
+**segunda perna**, `bundleExists()`, e sem ela o SSR seria pulado em silêncio. Medido: dos 6
+candidatos do `Inertia\Ssr\BundleDetector`, `public/js/app.js` está **versionado no repo** (asset
+legado do UltimatePOS), então `bundleExists()` é true em qualquer checkout.
+
+**O conserto ESTREITA a sonda até o contrato, não a afrouxa:** stub só da URL do SSR, lida da config.
+Qualquer outra saída HTTP segue reprovando, Brain B incluído. O corpo vazio do stub é deliberado — o
+gateway faz `->json()`, recebe null, devolve null, e o Inertia cai no render client-side, entregando
+o `data-page` com os props **reais** que as asserts de credencial examinam; um stub com JSON de SSR
+válido faria essas asserts passarem **vacuamente**. Por isso entrou junto o assert anti-vácuo
+`expect($corpo)->toContain('data-page')`.
+
+**Pronto quando** ganha uma linha: além de 200 sem request de saída e sem as duas strings, o corpo
+tem de conter o payload — senão o UC declara "não vaza" sobre uma página em branco.
 
 ## UC-JCHAT-09 — Toda tool exposta ao LLM declara a permissão que exige
 Status: 🧪 (`Modules/Jana/Tests/Feature/Chat/ChatAntiHooksAcaoTest.php` — cita o UC no título; **defeito corrigido e verde no CT 100 em 2026-08-26**, e o arquivo entrou na lane neste mesmo PR. Segue 🧪, não ✅, porque o G-7 lê o **manifesto** commitado e ele só aterrissa depois de a lane rodar no CI — `casos-results-publish`, cron 07:30 BRT. Prosa não vira prova)
@@ -529,6 +551,108 @@ teste **capaz** de medir; o ✅ é do dia em que a lane rodar.
 não está na matrix do `modules-pest.yml`. Ligá-lo na lane agora deixaria o `main` vermelho pelo
 UC-08, então a ligação espera a decisão [W] sobre o medidor. Teste fora de lane não defende nada —
 esta linha existe pra que a dívida fique visível, não pra normalizá-la.
+
+> ⏭ **Esta seção é um retrato do início de 2026-08-26 e as duas frases em presente acima
+> ("o teste segue ÓRFÃO DE LANE" e o ❌ do UC-08) deixaram de valer NO MESMO DIA** — o
+> arquivo entrou na allowlist do `jana-pest.yml` e o UC-08 ficou verde. O texto fica
+> como está porque era verdade quando foi escrito; o estado corrente está na seção
+> seguinte.
+## Revalidação de 2026-08-26 (2) — os 4 UCs passaram a DEFENDER, e o caminho teve DUAS surpresas
+
+A revalidação anterior (logo acima) deixou o UC-08 em ❌ e o arquivo fora de lane. As duas coisas
+fecharam nesta rodada — mas o que se aprendeu no meio vale mais que o desfecho.
+
+### Surpresa 1 — o ❌ do UC-08 era do MEDIDOR, e a primeira análise parou cedo demais
+
+O `preventStrayRequests()` barra *qualquer* saída HTTP; o contrato do charter é estreito (*"não chama
+Brain B no render"*). Quem a sonda pegava era o POST de SSR do Inertia — `Inertia\Ssr\HttpGateway::dispatch()`
+chama `Http::post(config('inertia.ssr.url').'/render')` e **re-lança** o `StrayRequestException`.
+
+A primeira análise concluiu *"vale no CI igual"* por não achar `INERTIA_SSR` em env/workflow/`phpunit.xml`.
+Verdade — e **insuficiente**: o `HttpGateway` tem uma segunda perna, `bundleExists()`, e sem ela o
+SSR seria pulado em silêncio, fazendo o teste passar no CI *pelo motivo errado*. O que fecha a
+conclusão é outro número:
+
+```
+git ls-files nos 6 candidatos do Inertia\Ssr\BundleDetector
+  public/js/app.js -> tracked=1        (asset legado do UltimatePOS, versionado no repo)
+```
+
+Com o bundle presente, `bundleExists()` é true em qualquer checkout — CI incluído. A conclusão
+anterior estava certa; a evidência que ela deu não a sustentava sozinha.
+
+### Surpresa 2 — três dos quatro UCs iriam para o CI VERDES E VAZIOS
+
+Esta é a que quase passou batido, e é a mais cara. O grupo `/ia` exige `can:jana.access`. Medido,
+com controle positivo para provar que a busca funciona (14 hits no próprio `JanaAccessGateTest`):
+
+```
+jana.access criado por algum seeder do repo   -> 0 hits   (git grep em *Seeder*)
+pest-mysql-setup concede papel ou permissão   -> 0 hits   (assignRole / givePermissionTo)
+```
+
+Num banco fresco todo GET em `/ia` volta **403** — é o que o `JanaAccessGateTest` crava no 1º caso.
+Efeito sobre estes UCs: o UC-05 passaria pelo 403 do **gate de acesso** e não pelo isolamento de
+tenant; o UC-06 não veria e-mail e o UC-07 não veria escrita porque **não houve render**. Só o UC-08
+denunciaria, reprovando no `assertOk()`.
+
+**E o CT 100 é CEGO para isso** — a base é persistente e os dois usuários já tinham
+`can('jana.access') === true` (medido). É a mesma armadilha que tirou o `ProContractTest` desta lane,
+e o próprio #6312 avisou: *"rodar no CT 100 prova que o teste EXECUTA; não prova que ele passa com o
+seed do CI"*.
+
+**Contrafactual medido** (revogando a permissão — única variável trocada — com os dois arquivos
+rodados lado a lado no CT 100):
+
+```
+SEM os guards   1 failed, 3 passed   <- os 3 verdes são VÁCUO
+COM os guards   3 failed, 1 passed   <- eles mordem
+```
+
+O UC-05 passa nos dois porque o vizinho do CT 100 é Admin e o `Gate::before` o isenta; no CI, sem
+papel, ele também reprovaria alto.
+
+### O desfecho
+
+```
+ANTES do #6310                  4 failed           (0 assertions)   nunca mediu
+DEPOIS do #6310                 1 failed, 3 passed (7 assertions)
++ conserto do medidor           4 passed           (9 assertions)
++ guards anti-vácuo             4 passed          (12 assertions)   <- estado atual
+```
+
+O arquivo entrou na allowlist do `jana-pest.yml`. **Contador da lane — MEDIDO, não esperado:**
+
+```
+ANTES   run 32994290635 (sha 0c5454b2, tip de main)   9 skipped, 808 passed (2715 assertions)
+DEPOIS  run 32996972060 (sha 08327a01d5, este PR)     9 skipped, 812 passed (2727 assertions)
+```
+
+Delta **+4 testes / +12 assertions**, e `9 skipped` **inalterado** — não entrou skip novo. Contador
+batendo não basta: os 4 UCs aparecem **pelo nome** no log da lane, e o step `--check-assertions`
+(LC-13) passou — logo o verde não veio de não-execução.
+
+### Por que os quatro seguem 🧪 e não ✅ — e desta vez o motivo é de ORDEM
+
+O G-7 exige o veredito no **manifesto**, e o `casos-results-publish` colhe o JUnit **só de runs de
+`main`** (`gh run list --branch main`). Logo o manifesto **não tem como** aterrissar antes do merge —
+nem por `workflow_dispatch`, que leria os mesmos runs de `main`. O ✅ é do primeiro run de `main` com
+o arquivo na lane, colhido pelo cron das 07:30 BRT. Antecipá-lo aqui seria exatamente a prosa que o
+G-7 recusa.
+
+### O irmão — resolvido pelo #6319, mergeado no mesmo dia
+
+`ChatAntiHooksAcaoTest` (UC-09/UC-10) não entrou por este PR. Outra sessão fez o trabalho em
+paralelo e mergeou às 19:59 de 2026-08-26 (#6319). O veredito daquele lado está na seção
+“Revalidação de 2026-08-26 (b)” abaixo, escrita por quem mediu.
+
+⚠️ **A versão anterior desta seção afirmava “UC-10 FAIL”. Estava ERRADA**, e fica registrada em vez
+de apagada: aquela medição olhou o `ChatController`, não achou o redator ali e concluiu que não
+havia redação — mas ela é da camada de telemetria, não do controller. Ler o arquivo errado e
+concluir do lugar errado é a classe LC-08.
+
+**Nenhum `last_run` foi bumpado:** a revalidação anterior já é de 2026-08-26, e subir um campo de
+data para o mesmo dia seria ruído.
 ## Revalidação de 2026-08-26 (b) — UC-09 e UC-10: um defeito REAL e uma sonda mal posicionada
 
 > Irmã da seção acima, do mesmo dia e **outro arquivo**: lá é o `ChatAntiHooksTier0Test`
