@@ -248,6 +248,66 @@ if (typeof window !== 'undefined') {
     });
 }
 
+// ── 503 do deploy: avisar sem tirar o operador da tela ────────────────────
+// Durante a janela de manutenção do deploy o servidor responde 503 a tudo. Numa
+// visita Inertia isso é uma resposta não-Inertia: sem handler, o comportamento
+// padrão tira o operador de onde ele estava — e leva junto o que estava digitado
+// em memória. Foi o que fez a ROTA LIVRE (biz=4) anotar código de produto no
+// papel: 76 janelas de 503 em 7 dias, mediana de 78s.
+//
+// Aqui o 503 vira aviso, a tela CONTINUA como está, e uma sonda diz quando voltou.
+// O operador só clica "Salvar" de novo — nada precisa ser redigitado. Complementa
+// (não substitui) o auto-save de rascunho em localStorage do Sells/Create.
+//
+// Cast pontual: o nome do evento e o shape do `detail` variam entre versões do
+// Inertia. Com o cast, uma versão que não emita `httpException` simplesmente não
+// dispara o handler — degrada para o comportamento atual em vez de quebrar o build.
+if (typeof window !== 'undefined') {
+    const ID_TOAST_503 = 'oi-deploy-503';
+    let emManutencao = false;
+
+    const sondarVolta = (tentativa: number): void => {
+        // 4s no começo, afrouxando depois; jitter evita que todas as abas
+        // voltem no mesmo instante e batam no servidor recém-levantado.
+        const espera = (tentativa < 10 ? 4000 : 8000) + Math.floor(Math.random() * 1500);
+        window.setTimeout(() => {
+            fetch(window.location.href, { method: 'HEAD', cache: 'no-store' })
+                .then((resposta) => {
+                    if (resposta.status === 503) {
+                        sondarVolta(tentativa + 1);
+                        return;
+                    }
+                    emManutencao = false;
+                    toast.dismiss(ID_TOAST_503);
+                    toast.success('Sistema no ar de novo — pode salvar.', { duration: 8000 });
+                })
+                .catch(() => sondarVolta(tentativa + 1)); // rede oscilando no deploy é esperado
+        }, espera);
+    };
+
+    type EventoHttpInertia = {
+        detail?: { response?: { status?: number } };
+        preventDefault?: () => void;
+    };
+
+    const aoReceber503 = (evento: EventoHttpInertia): void => {
+        if (evento?.detail?.response?.status !== 503) return;
+        evento.preventDefault?.(); // não navega pra fora nem abre o modal de erro cru
+        if (emManutencao) return;  // já avisado nesta janela — não empilha toast
+        emManutencao = true;
+        toast(
+            'Sistema em atualização — costuma levar cerca de 1 minuto. O que você preencheu continua aqui; é só salvar de novo quando voltar.',
+            { id: ID_TOAST_503, duration: Infinity },
+        );
+        sondarVolta(1);
+    };
+
+    (router.on as unknown as (nome: string, cb: (e: EventoHttpInertia) => void) => void)(
+        'httpException',
+        aoReceber503,
+    );
+}
+
 // ── PWA Service Worker registration (US-FIN-036, Onda 30) ─────────────────
 // Registra sw-financeiro.js APENAS quando o usuário está em /financeiro/*.
 // Lazy load no DOMContentLoaded pra não bloquear hydration. Falha silenciosa

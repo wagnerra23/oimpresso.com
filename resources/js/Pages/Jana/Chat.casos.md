@@ -164,7 +164,7 @@ válido faria essas asserts passarem **vacuamente**. Por isso entrou junto o ass
 tem de conter o payload — senão o UC declara "não vaza" sobre uma página em branco.
 
 ## UC-JCHAT-09 — Toda tool exposta ao LLM declara a permissão que exige
-Status: 🧪 (`Modules/Jana/Tests/Feature/Chat/ChatAntiHooksAcaoTest.php` — cita o UC no título; aguarda run verde)
+Status: 🧪 (`Modules/Jana/Tests/Feature/Chat/ChatAntiHooksAcaoTest.php` — cita o UC no título; **defeito corrigido e verde no CT 100 em 2026-08-26**, e o arquivo entrou na lane neste mesmo PR. Segue 🧪, não ✅, porque o G-7 lê o **manifesto** commitado e ele só aterrissa depois de a lane rodar no CI — `casos-results-publish`, cron 07:30 BRT. Prosa não vira prova)
 
 Cada ferramenta que a Jana pode acionar declara **qual permissão ela exige**. O charter é literal:
 *"cada tool declara permission required"*.
@@ -183,15 +183,37 @@ O gate que **de fato** existe hoje é outro: a flag `copiloto.chat_tools.enabled
 `business_id` da conversa. Os dois já têm dono — `ChatCopilotoAgentToolsTest` (R-COPI-141) — e **não
 são re-assertados aqui**; este UC cobre só o eixo que ninguém cobre.
 
-Fechar isto é decisão [W], não conserto silencioso: ou implementa permissão por tool, ou revoga a
-linha do charter. Enquanto não decidir, o vermelho é o registro honesto da distância entre a lei e o
-código.
+✅ **FECHADO em 2026-08-26 pelo caminho "implementa a permissão" — decisão [W].** O parágrafo acima
+segue verdadeiro como retrato de 2026-08-17; o que mudou desde então:
+`Modules/Jana/Contracts/DeclaraPermissao` passou a ser o contrato, e as 5 tools o implementam. A
+permissão de cada uma gateia a **tabela que ela lê** — não o módulo que dá nome a ela, que é o que se
+pode defender sem inventar:
+
+| Tool | Lê | Declara |
+|---|---|---|
+| `VendasPeriodoTool` | `transactions` (totais por período) | `sell.view` |
+| `InadimplenciaTool` | `transactions` (a receber vencido) | `financeiro.access` |
+| `TicketsTopTool` | `conversations` (fila de atendimento) | `whatsapp.access` |
+| `NfeStatusTool` | `nfe_emissoes` | `nfebrasil.consult.view` |
+| `OportunidadesTool` | `transaction_sell_lines` (upsell) | `sell.view` |
+
+As 4 permissões são Spatie **reais**, verificadas em `can()` vivo antes de escolher —
+`SellController:379`, `Financeiro/DataController:94`, `Whatsapp/DataController:73`,
+`NfeBrasil/DataController:135`. Nenhuma foi inventada pra fazer o teste passar.
+
+⚠️ **DECLARA, não ENFORÇA — e a metade que falta está nomeada, não escondida.** Um `permission()` que
+ninguém consulta seria presence-gate (LC-11), então fica escrito de quem é cada metade. Enforçar
+exigiria `can()` dentro do `handle()`, e isso **quebraria o brief diário**: medido em 2026-08-26, as
+mesmas 5 tools são instanciadas por DOIS agentes — `ChatCopilotoAgent` (request HTTP, tem
+`auth()->user()`) e `BriefDiarioAgent` (cron `brief:generate`, headless, sem usuário). Separar
+contexto-de-usuário de contexto-de-sistema é mudança de desenho e segue decisão [W]. O isolamento
+Tier 0 real continua sendo o `business_id` do constructor ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)), que isto **não** substitui.
 
 **Pronto quando:** com a flag ligada (anti-vácuo: com ela OFF são zero tools, e "todas as zero estão
 corretas" passaria sem examinar nada), as 5 tools existem **e** cada uma declara permissão não-vazia.
 
 ## UC-JCHAT-10 — O turno não manda PII em plain text pro sink de log
-Status: 🧪 (mesmo arquivo — cita o UC no título; aguarda run verde)
+Status: 🧪 (mesmo arquivo — **o vermelho anterior era do MEDIDOR, não do sistema**; sonda corrigida e verde no CT 100 em 2026-08-26, recibo no fim do bloco. Segue 🧪 pelo mesmo motivo do UC-09: o manifesto do G-7 só aterrissa depois da lane rodar no CI)
 
 Mandar uma mensagem contendo CPF **não** faz o CPF cru chegar ao sink de observabilidade. O sanitizer
 (`PiiRedactor`) roda antes.
@@ -207,18 +229,45 @@ no arquivo inteiro. Um teste escrito contra o nome do charter passaria **vacuame
 tabela onde o chat não escreve linha nenhuma. Guarda muda é pior que guarda ausente: parece
 cobertura.
 
-O sink que o chat **realmente** alimenta é o **Langfuse** — `ChatController:395` (`startTrace`) e
-`:550` (`endTrace`) — e é lá que este UC mede.
+O sink que o chat **realmente** alimenta é o **Langfuse** — `ChatController:476` (`startTrace`) e
+`:631` (`endTrace`) — e é lá que este UC mede.
 
-⚠️ **Este UC também nasce vermelho.** `ChatController:401` passa `'input' => $userInput` **cru**, sem
-`PiiRedactor` no caminho; o `endTrace` faz o mesmo com o `output`. Se o teste falhar, ele achou
-**vazamento real de PII para observabilidade** — e o conserto é redigir antes de montar o payload,
-nunca afrouxar o assert.
+❌ **A previsão de 2026-08-17 — "este UC nasce vermelho porque o `input` vai cru" — estava ERRADA, e
+medir provou.** Fica registrada porque é história, mas não descreve o sistema. O que ela não viu: o
+`ChatController` de fato passa `'input' => $userInput` cru, **mas o cru nunca sai do processo**. O
+`LangfuseClient` redige **dentro** do `startTrace`, no `traceEvent()`
+(`'input' => $this->maybeRedact(...)`), e o mesmo vale pro `output` do `endTrace()` e pro par
+input/output do `generationEvent()`. Passar cru pro cliente não é vazar; vazar é o dado atravessar o
+`dispatch()`.
+
+O espião da 1ª versão sobrescrevia `startTrace()` e capturava `$attrs` **na entrada** — uma camada
+antes da redação. Ele media o argumento do chamador e chamava isso de egresso. **Medido no CT 100
+(probe de egresso descartável, 2026-08-26):** o turno dispatcha 2 lotes, o adapter recebe a mensagem,
+e o CPF **não** aparece no payload — sai como `[REDACTED:CPF]`. O sistema cumpre o anti-hook.
+
+Mesma família do que o [PR #6310](https://github.com/wagnerra23/oimpresso.com/pull/6310) achou no
+irmão UC-08 no mesmo dia: lá o `preventStrayRequests()` acusava o **SSR do Inertia**, não o Brain B.
+Dois UCs Tier 0 seguidos onde o vermelho era da sonda — a lição é a mesma, e é LC-08: **medir a
+fronteira errada produz achado convincente e falso.**
+
+✅ **Conserto: a sonda passou a interceptar `dispatch()`** — o último ponto antes do HTTP/fila. Isso
+**não afrouxa** o assert; deixa-o mais **largo**, porque passa a cobrir todo o corpo do evento,
+inclusive o `metadata`, que o `traceEvent()` mescla **cru** (`array_merge` sem `maybeRedact`) e que
+seria vazamento de verdade.
+
+**Bite-test dos dois lados (CT 100, 2026-08-26)** — verde não basta, o guard tem que morder:
+
+| Controle | Esperado | Medido |
+|---|---|---|
+| Redação neutralizada em `maybeRedact` | vermelho | ⨯ vermelho, no assert do CPF |
+| CPF injetado no `metadata` do trace | vermelho | ⨯ vermelho |
+| Código íntegro | verde | ✓ `2 passed (13 assertions)` |
 
 **Pronto quando:** o turno rodou de verdade (o adapter recebeu a mensagem e a mensagem `user` foi
-persistida), o sink foi acionado (senão não há payload pra examinar), o CPF da fixture é reconhecido
-pelo `PiiRedactor` (senão o contrato não está sendo exercitado) — e nenhum payload de `startTrace`
-ou `endTrace` contém o CPF cru.
+persistida), o sink foi **acionado de fato** (`langfuse.enabled` ligado no teste — senão `shouldEmit()`
+é false, `dispatch()` nunca roda e "nenhum payload tem CPF" seria vácuo), o corpo do egresso carrega
+o turno (`jana-chat-stream` + o eco do dublê), o CPF da fixture é reconhecido pelo `PiiRedactor` — e
+o CPF cru **não** aparece no que saiu, com o `[REDACTED:CPF]` presente no lugar.
 
 ## UC-JCHAT-11 — O histórico diz QUANTAS conversas, expandido e recolhido
 Status: 🧪 (`tests/jana-chat-conversas.test.tsx` — 3 casos sob o describe que cita este UC) — ✅ volta quando o manifesto G-7 capturar o veredito (a lane passou a emitir JUnit em 2026-08-24); enquanto nao capturar, 🧪 e o status honesto
@@ -591,19 +640,86 @@ nem por `workflow_dispatch`, que leria os mesmos runs de `main`. O ✅ é do pri
 o arquivo na lane, colhido pelo cron das 07:30 BRT. Antecipá-lo aqui seria exatamente a prosa que o
 G-7 recusa.
 
-### O irmão segue fora, com os 2 defeitos RE-MEDIDOS contra `main`
+### O irmão — resolvido pelo #6319, mergeado no mesmo dia
 
-`ChatAntiHooksAcaoTest` (UC-09/UC-10) não entrou. Contra o código de `main`, nesta data:
+`ChatAntiHooksAcaoTest` (UC-09/UC-10) não entrou por este PR. Outra sessão fez o trabalho em
+paralelo e mergeou às 19:59 de 2026-08-26 (#6319). O veredito daquele lado está na seção
+“Revalidação de 2026-08-26 (b)” abaixo, escrita por quem mediu.
 
-- **UC-09** — as 5 tools do chat seguem sem declarar permissão: 0 hits para as 4 formas de método +
-  3 de constante que o UC aceita, nos 5 arquivos.
-- **UC-10** — `ChatController::startTrace` segue levando o input do usuário **cru** para o Langfuse;
-  `PiiRedactor` tem **zero** ocorrência no controller inteiro, e o `endTrace` faz o mesmo com o
-  output. Veredito por execução (CT 100, rodado fora da árvore de testes para não tocar arquivo de
-  outra sessão): **UC-10 FAIL**.
-
-O UC-10 é vazamento de PII para observabilidade. Ligar o arquivo na lane deixaria o `main` vermelho —
-decisão [W], não efeito colateral de um PR de medidor.
+⚠️ **A versão anterior desta seção afirmava “UC-10 FAIL”. Estava ERRADA**, e fica registrada em vez
+de apagada: aquela medição olhou o `ChatController`, não achou o redator ali e concluiu que não
+havia redação — mas ela é da camada de telemetria, não do controller. Ler o arquivo errado e
+concluir do lugar errado é a classe LC-08.
 
 **Nenhum `last_run` foi bumpado:** a revalidação anterior já é de 2026-08-26, e subir um campo de
 data para o mesmo dia seria ruído.
+## Revalidação de 2026-08-26 (b) — UC-09 e UC-10: um defeito REAL e uma sonda mal posicionada
+
+> Irmã da seção acima, do mesmo dia e **outro arquivo**: lá é o `ChatAntiHooksTier0Test`
+> (UC-05..08, [#6310](https://github.com/wagnerra23/oimpresso.com/pull/6310)); aqui é o
+> `ChatAntiHooksAcaoTest` (UC-09/10). As duas nasceram em sessões paralelas e se cruzaram no
+> merge — o que elas contam junto é que **dois dos quatro vermelhos daquele dia eram do medidor**,
+> não do sistema.
+
+Os dois estavam `🧪 aguarda run verde` desde 2026-08-17, e não por fila de CI: o
+`ChatAntiHooksAcaoTest` **não estava em lane nenhuma**. O `jana-pest.yml` dizia por quê, em
+comentário — o arquivo nascia vermelho nos dois UCs, e ligá-lo deixaria o main vermelho até os
+defeitos serem tratados, o que é decisão [W]. Com a decisão tomada, os dois foram medidos no CT 100
+(MySQL real) e deram desfechos **diferentes**:
+
+| UC | Veredito | O que era |
+|---|---|---|
+| UC-09 | achado **REAL** | nenhuma das 5 tools declarava permissão; o controle não existia |
+| UC-10 | **falso positivo do medidor** | a sonda lia `startTrace()` (entrada), não `dispatch()` (egresso) |
+
+**Recibo (CT 100, container `oimpresso-staging`, MySQL `oimpresso_staging`),** rodando o arquivo
+`Modules/Jana/Tests/Feature/Chat/ChatAntiHooksAcaoTest.php`:
+
+```
+ANTES   2 failed  (9 assertions)
+        UC-09: "Sem declaração: VendasPeriodoTool, InadimplenciaTool,
+                TicketsTopTool, NfeStatusTool, OportunidadesTool"
+        UC-10: "startTrace #0 levou o CPF em plain text"   <- falso: media a entrada
+
+DEPOIS  2 passed (13 assertions)
+
+bite-test (controle negativo, um de cada vez, no CT 100)
+        redação neutralizada em maybeRedact   -> 1 failed  (o guard morde)
+        CPF injetado no metadata do trace     -> 1 failed  (cobertura nova)
+
+regressão (donos das mesmas 5 tools)
+        BriefDiarioAgentTest + ChatCopilotoAgentToolsTest + ChatCopilotoAgentModelTest
+        + PromptCacheConfigTest + BriefDiarioChatTriggerTest
+        -> 10 skipped, 19 passed (51 assertions), 0 failed
+```
+
+**Por que os dois seguem `🧪` e não viraram `✅` neste PR.** O arquivo entrou na allowlist do
+`.github/workflows/jana-pest.yml` aqui, mas registrar o teste no repo não é a lane executá-lo
+(§5 2026-08-02 + emenda 08-12): a prova é o **CONTADOR** da lane, e isso é fato de CI, que só existe
+depois deste PR rodar.
+
+⚠️ **O número absoluto de referência mudou no meio do caminho, e por isso a prova aqui é o DELTA.**
+Quando esta sessão começou, a lane fechava `6 skipped, 268 passed` (run
+[32986918160](https://github.com/wagnerra23/oimpresso.com/actions/runs/32986918160)). Durante o
+trabalho, o [#6312](https://github.com/wagnerra23/oimpresso.com/pull/6312) ligou **60 órfãos** da
+Jana na mesma lane e o [#6310](https://github.com/wagnerra23/oimpresso.com/pull/6310) mergeou — o
+`268` virou fóssil datado antes de este PR abrir. Citar um absoluto medido às 16h como se valesse às
+18h é a armadilha de sempre (§5 2026-07-27: *antes de consertar um medidor, RODE-O ao vivo*). Então o
+critério é: **+2 passed e +13 assertions vs a run imediatamente anterior a este PR**, seja qual for o
+absoluto dela.
+
+O `✅` foi tentado e **revertido de propósito**, e o registro fica porque a tentação vai se repetir:
+o G-7 lê o **manifesto** (`scripts/casos-test-results.json`), nunca a prosa. Dava pra gerar o
+manifesto à mão — rodar o JUnit no CT 100 e passar pelo `casos-results-collect`, caminho que a
+própria mensagem do gate oferece. Foi feito, medido e desfeito: o merge per-UC funciona
+(363 verdicts preservados), mas o coletor **sobrescreve o `sources`/`generated_at`** com o único
+relatório da mão, e o manifesto passaria a declarar que seus 365 vereditos vieram de um arquivo
+avulso. Trocar provenance correta por um selo verde adiantado é hand-feed de oráculo, não prova.
+
+Quem produz o manifesto é o `casos-results-publish` (cron 07:30 BRT), depois das lanes, com todos os
+relatórios em mãos — e é ele que deve virar os dois pra `✅`. Se depois do merge a lane fechar verde
+e o manifesto não aterrissar, aí sim há o que investigar: o problema é do publish, não destes UCs.
+
+⚠️ **Os UC-05..UC-08 continuam sem manifesto de lane** — o `ChatAntiHooksTier0Test` segue fora de
+lane nenhuma (dono: [PR #6310](https://github.com/wagnerra23/oimpresso.com/pull/6310)), e não foi
+tocado aqui pra não colidir com ele.

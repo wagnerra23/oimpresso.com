@@ -297,6 +297,14 @@ jobs:
           # reprova — a tela ficaria fora do gate por configuração, não por decisão.
           # Escopo: ambiente do runner do visreg. Não toca produção.
           MWART_CLIENTE_IMPORT=true
+          # MWART_CLIENTE_MAP=true: mesma razão do IMPORT acima, medida em 2026-08-26 —
+          # `config/mwart.php` traz `'enabled' => env('MWART_CLIENTE_MAP', false)` e o
+          # `ContactController::contactMap()` (routes/web.php:359 → /contacts/map) só
+          # renderiza a Page Inertia sob esse flag. Sem ele o assertInertia do
+          # PixelBaselineTest:199 reprova com "Not a valid Inertia response" — a resposta
+          # é 200, mas é o Blade `contact.contact_map`. Provado no dispatch 32981167404.
+          # Escopo: ambiente do runner do visreg. Não toca produção.
+          MWART_CLIENTE_MAP=true
           # VISREG_FREEZE_CLOCK: congela `new Date()`/`Date.now()` DO NAVEGADOR no mesmo
           # instante que as suítes passam pro Carbon::setTestNow (PixelBaselineTest:78 e
           # irmãs). Sem isso, tela que renderiza "agora" no browser (JanaAreaHeader.tsx:80,

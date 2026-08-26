@@ -305,3 +305,82 @@ it('UC-SAPAC-08 · abrir a grade não muda nenhuma linha de packages', function 
 
     expect($depois)->toBe($antes);
 });
+/**
+ * GUARD de perda silenciosa de dado no formulario de pacote.
+ *
+ * `PackagesController::update` monta `custom_permissions` a partir do POST, e o POST so
+ * carrega o que virou checkbox — ou seja, o que `getModuleData('superadmin_package')`
+ * declara. Chave fora desse catalogo nao volta, e o `only()` SUBSTITUI o array inteiro:
+ * ela sumia no primeiro Salvar, sem erro e sem aviso.
+ *
+ * Medido em producao 2026-08-26 (pacote 1): 13 chaves gravadas, 8 marcaveis na tela, 5
+ * perdidas ao salvar — `crm_module` entre elas, lida em 91 pontos incl. o login de
+ * `user_customer`.
+ *
+ * As DUAS metades da regra estao neste caso de proposito: preservar sem revogar viraria um
+ * pacote que so cresce, e o botao perderia a unica forma de TIRAR modulo que existe.
+ *   - chave FORA do catalogo        -> preservada (a UI nao consegue expressa-la, nem pra tirar)
+ *   - chave DO catalogo nao marcada -> REVOGADA (desmarcar continua significando desmarcar)
+ */
+it('UC-PAC-08 - chave fora do catalogo sobrevive ao salvar, e o checkbox do catalogo segue revogando', function () {
+    $orfa = 'zz_orfa_contrato_module';
+
+    $renderaveis = [];
+    foreach (app(\App\Utils\ModuleUtil::class)->getModuleData('superadmin_package', true) as $itens) {
+        foreach ((array) $itens as $item) {
+            if (! empty($item['name'])) {
+                $renderaveis[] = $item['name'];
+            }
+        }
+    }
+
+    if ($renderaveis === []) {
+        $this->markTestSkipped('Nenhum modulo instalado declara superadmin_package neste ambiente.');
+    }
+
+    $doCatalogo = $renderaveis[0];
+
+    $id = DB::table('packages')->insertGetId([
+        'name' => 'Pacote ficticio orfa SA-O4c',
+        'description' => 'So para o guard de perda silenciosa.',
+        'location_count' => 0,
+        'user_count' => 0,
+        'product_count' => 0,
+        'invoice_count' => 0,
+        'interval' => 'months',
+        'interval_count' => 1,
+        'trial_days' => 0,
+        'price' => 100,
+        'custom_permissions' => json_encode([$orfa => '1', $doCatalogo => '1']),
+        'created_by' => 1,
+        'sort_order' => 900,
+        'is_active' => 1,
+        'is_private' => 0,
+        'is_one_time' => 0,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    // O formulario envia SO os checkboxes marcados. Aqui nenhum foi marcado.
+    $this->actingAs(pacSuperadmin())->put(ROTA_PAC.'/'.$id, [
+        'name' => 'Pacote ficticio orfa SA-O4c',
+        'description' => 'So para o guard de perda silenciosa.',
+        'location_count' => 0,
+        'user_count' => 0,
+        'product_count' => 0,
+        'invoice_count' => 0,
+        'interval' => 'months',
+        'interval_count' => 1,
+        'trial_days' => 0,
+        'price' => 100,
+        'sort_order' => 900,
+        'is_active' => 1,
+    ]);
+
+    $depois = json_decode((string) DB::table('packages')->where('id', $id)->value('custom_permissions'), true) ?: [];
+
+    DB::table('packages')->where('id', $id)->delete();
+
+    expect($depois)->toHaveKey($orfa, '1');
+    expect(array_key_exists($doCatalogo, $depois))->toBeFalse();
+});

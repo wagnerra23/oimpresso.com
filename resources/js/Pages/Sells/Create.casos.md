@@ -5,7 +5,7 @@ irmaos: Create.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-08-17"
+last_run: "2026-08-26"
 ---
 
 <!-- REVALIDAÇÃO 2026-08-17 (G-6: o .tsx mudou depois do last_run anterior).
@@ -26,6 +26,36 @@ last_run: "2026-08-17"
 
      O que este bump NÃO afirma: que a suíte inteira de Sells foi re-rodada. Ele
      afirma o que foi medido acima, nos dois UCs deste arquivo. -->
+
+<!-- REVALIDAÇÃO 2026-08-26 (G-6: o .tsx mudou depois do last_run de 17/08).
+     A mudança na tela foi UMA linha de comportamento: o `onOpenChange` do
+     AlertDialog de recuperação de rascunho deixou de chamar `handleDraftDiscard()`
+     (que faz `localStorage.removeItem()`, irreversível) e passou a apenas fechar o
+     diálogo. Antes, Esc / clique fora / qualquer fechamento que não fosse o botão
+     "Recuperar" apagava a venda montada em silêncio — vetor real relatado pela
+     ROTA LIVRE durante as janelas de 503 do deploy.
+
+     Como cada UC foi revalidado — por MEDIÇÃO do alcance do diff, não por leitura:
+
+     UC-S01 · e2e/sells-index.spec.ts + e2e/sells-venda-balcao.spec.ts — grep
+              contado por `rascunho|Recuperar|Descartar|draftRecover|AlertDialog`:
+              **0 ocorrências em cada um**. Nenhum dos dois specs interage com o
+              diálogo de rascunho, logo a mudança não os alcança.
+
+     UC-S02 · tests/Feature/Calculo/CalculoValorSellsTest.php — mesmo padrão:
+              **0 ocorrências**. É teste de totalizador (`calculateInvoiceTotal` /
+              `Util::num_uf`); o diff não toca nenhuma linha de cálculo.
+
+     Controle positivo do padrão de busca: o mesmo grep em `Sells/Create.tsx`
+     devolve **55** ocorrências — ou seja, o padrão acha o alvo quando ele existe,
+     e o 0 acima é ausência real, não regex quebrada.
+
+     NÃO rodei Pest nem e2e nesta revalidação: `vendor/` e `node_modules/` não
+     existem neste worktree e a suíte só roda no CT 100 (`proibicoes.md` §Ambiente).
+     O que está afirmado aqui é o ALCANCE do diff — medido — não um veredito de
+     execução. O comportamento novo em si ainda não tem teste: está no Backlog
+     abaixo, sem id, conforme G-2. -->
+
 
 
 # Casos de Uso & Aceite — Venda balcão (Sells/Create)
@@ -67,6 +97,7 @@ last_run: "2026-08-17"
 - **[BACKLOG] Venda paga no ato (dinheiro/PIX) fecha sem saldo devedor** — caminho feliz com pagamento integral; exige modelar o bloco de pagamentos no harness.
 - **[BACKLOG] Bloqueio por limite de crédito** — backend devolve `errors.venda` e o carrinho fica intacto (toast 8s) — exige fixture de limite no seed.
 - **[BACKLOG] Emissão NF-e da venda (homolog/stub SEFAZ)** — wire já existe (suítes NfeBrasil); espelhar como UC quando o fluxo de emissão entrar no harness e2e.
+- **[BACKLOG] Fechar o diálogo de rascunho preserva a venda montada** — Dado um rascunho salvo · Quando o operador fecha o diálogo de recuperação SEM escolher (Esc, clique fora) · Então o rascunho **continua** no `localStorage` e a pergunta volta na próxima montagem; só o botão "Descartar" apaga. Exige exercitar `AlertDialog` do Radix no harness e2e (incluindo se `Esc` de fato fecha nesta versão, que não foi verificado). Origem: ROTA LIVRE perdeu venda montada durante janela de 503 do deploy, 2026-08-26.
 
 ## Como rodar a suíte
 1. **E2E:** `npm run e2e:check` no harness do CI (e2e-gate, gate de PR desde Onda Q1) — vereditos viram manifesto via `npm run casos:results`.
@@ -75,4 +106,5 @@ last_run: "2026-08-17"
 ## Trilha do tempo
 - 2026-06-11 · [CL] criado na Onda Q2 (mandato ONDAS-QUALIDADE) com UC-S01 venda a prazo + spec Playwright `sells-venda-balcao.spec.ts`; produto E2E-0001 entrou no VisregTenantSeeder (enable_stock=0).
 - 2026-06-18 · [CC] refactor só-de-layout (Wagner): total de itens no rodapé do card Produtos + card de desconto (Resumo) movido pra antes do Pagamento. Sem mudança de comportamento — UC-S01 baixado pra 🧪 até re-rodar o e2e (G-7 frescor).
+- 2026-08-26 · [CC] Fechar o diálogo de recuperação parou de apagar o rascunho (o `onOpenChange` chamava `handleDraftDiscard()` → `localStorage.removeItem()`, irreversível; agora só o botão "Descartar" apaga). Mudança de COMPORTAMENTO, não de layout. UC-S01 e UC-S02 revalidados por medição de alcance (0 ocorrências do diálogo nos testes de ambos; controle positivo 55 no `.tsx`) — nenhum dos dois é atingido, então nenhum foi rebaixado. Comportamento novo entrou no Backlog sem id (G-2) até haver teste que o exercite. Origem: ROTA LIVRE perdendo venda montada nas janelas de 503 do deploy.
 - 2026-07-02 · [CC] Onda 1.4 (dente de cálculo): UC-S02 declarado com teste no MESMO PR (coordenação 1.3 ↔ 1.4, regra "declarar UC + teste = 1 PR"). Property `num_uf(num_f(x))==x` + golden no totalizador real `calculateInvoiceTotal` (227,90 − 10,05% = 204.99605, não infla) + discriminação RED vs strip-do-ponto + caracterização da divergência `getTotalPaid`(líquido) ≠ `getTotalAmountPaid`(bruto). TEST-ONLY — nenhum método de cálculo alterado.

@@ -581,3 +581,43 @@ describe('casos:check — só-desce do baseline (Onda Q2, físico)', () => {
     expect(run('--check-baseline-shrink ref/nao-existe.json')).toMatch(/bootstrap/);
   });
 });
+
+// ---------------------------------------------------------------------------
+// TETO DE PROVA — suite-folding do vitest (advisory, modo --report)
+// ---------------------------------------------------------------------------
+// O `--report` publica quais UCs NUNCA chegam ao manifesto G-7 porque o coletor lê o id do
+// atributo `name` do <testcase>. O reporter JUnit do vitest DOBRA o describe nesse `name`, o
+// do Pest/Playwright não foi medido — então `describe` só conta em `tests/**` (vitest).
+// Os 3 casos abaixo travam exatamente essa fronteira: morde onde não foi medido, libera onde
+// foi, e o ⛓ continua acusando quem só cita em comentário (controle negativo).
+describe('casos:check — TETO de prova: describe() do vitest conta, dos outros não', () => {
+  const seed = (dir: string, uc: string) => {
+    write(page(dir), `export default function ${dir}() { return null }`);
+    write(`resources/js/Pages/${dir}/Index.charter.md`, '# c');
+    write(
+      `resources/js/Pages/${dir}/Index.casos.md`,
+      `---\nowner: w\nlast_run: "2026-08-26"\n---\n## ${uc} · x\n- **Status: 🧪**`,
+    );
+  };
+
+  it('SENSIBILIDADE: UC no describe() de um .test.tsx do vitest NÃO é reportado como preso', () => {
+    seed('TA', 'UC-ZZT01');
+    write('tests/ta.test.tsx', "describe('UC-ZZT01 · agrupa', () => { it('faz', () => {}) })");
+    const out = run('--report');
+    expect(out).not.toMatch(/UC-ZZT01/); // chega ao manifesto via name dobrado → não é teto
+  });
+
+  it('CONTROLE NEGATIVO: UC citado SÓ em comentário CONTINUA acusado (⛓)', () => {
+    seed('TB', 'UC-ZZT02');
+    write('tests/tb.test.tsx', "// UC-ZZT02 coberto aqui\nit('sem o id no titulo', () => {})");
+    const out = run('--report');
+    expect(out).toMatch(/⛓[\s\S]*UC-ZZT02/); // satisfaz G-2, mas nunca vira ✅
+  });
+
+  it('ESCOPO: describe() de Pest (.php) NÃO conta — folding não medido, fail-closed', () => {
+    seed('TC', 'UC-ZZT03');
+    write('Modules/Zz/Tests/TcTest.php', "<?php describe('UC-ZZT03 · agrupa', function () {});");
+    const out = run('--report');
+    expect(out).toMatch(/⛓[\s\S]*UC-ZZT03/);
+  });
+});
