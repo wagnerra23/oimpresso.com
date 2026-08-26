@@ -7,6 +7,7 @@ lifecycle: ativo
 status: ativo
 owner: W
 created: '2026-08-26'
+last_validated: "2026-08-26"
 modulo: Jana
 telas:
   - Jana/Metas/Index
@@ -25,6 +26,17 @@ related_adrs:
 > Este documento existe porque o hook `block-mwart-violation` barra o primeiro `Edit` em
 > `resources/js/Pages/Jana/Metas/*.tsx` enquanto ele não existir — e **não há override**
 > (o `/mwart-override` que a mensagem do hook anuncia não tem handler; ver lápide §5 2026-08-08).
+
+## 0. O que `last_validated` cobre (e o que NÃO cobre)
+
+O schema define `last_validated` como *"última data que rodou o RUNBOOK e o resultado bateu"*.
+Em **2026-08-26** rodou e bateu o **inventário** (§2) e o **contrato** (§3): as 9 rotas, o
+`MetasController` inteiro e as 4 views Blade foram lidos em `origin/main` e conferem com o que
+está escrito aqui.
+
+**NÃO cobre a migração** — as ondas do §6 (F2 baseline → PR-1..PR-4) não rodaram; nesta data
+elas não existiam. Quem reabrir isto depois de um PR de Metas tem que **re-rodar o inventário**
+e bumpar a data; um campo dizendo 2026-08-26 depois que a tela virou React é carimbo, não recibo.
 
 ## 1. Por que agora
 
