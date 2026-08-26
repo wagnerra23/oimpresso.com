@@ -27,7 +27,7 @@
 // tela e dizem que ainda não abrem — botão que promete e não entrega é pior
 // que botão ausente.
 //
-// Âncora de design: design_handoff_cadastro_venda/design/sells-create.jsx
+// Âncora de design: prototipo-ui/cowork/venda-v3/sells-create.jsx
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Search, Settings } from 'lucide-react';

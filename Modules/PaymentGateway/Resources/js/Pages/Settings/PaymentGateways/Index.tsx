@@ -2,7 +2,7 @@
 // Port literal pg-payment-gateways-page.jsx Cowork F1.5 (score 93/100) aprovado [W] 2026-05-19.
 //
 // Refs:
-//  - prototipo-ui/prototipos/payment-gateway-ui/components/pg-payment-gateways-page.jsx
+//  - prototipo-ui/cowork/pg-payment-gateways-page.jsx
 //  - resources/js/Pages/Settings/PaymentGateways/Index.charter.md
 //  - memory/requisitos/PaymentGateway/RUNBOOK-settings-gateways.md
 //  - ADR 0144 + 0170 PaymentGateway · ADR 0093 Tier 0 multi-tenant
