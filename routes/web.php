@@ -74,10 +74,23 @@ use Illuminate\Support\Facades\Route;
 
 include_once 'install_r.php';
 
-// US-GOV-013 Fase A — probe público do gate visual (ADR 0108). Só fora de produção
-// (testing/local): rota trivial 200 sem deps, usada pelo Pest Browser pra provar o
-// pipeline end-to-end. NÃO existe em produção (app()->isProduction()).
-if (! app()->isProduction()) {
+// US-GOV-013 Fase A — probe público do gate visual (ADR 0108). Bloco de rotas de TESTE:
+// `_smoke-probe`, `_visreg-login/{id}` e `_visreg-state/{tela}/{estado}`. As duas últimas
+// chamam `Auth::loginUsingId()` SEM autenticar — só podem existir onde o Pest roda.
+//
+// ⚠️ ALLOWLIST, NUNCA denylist. Este guard era `! app()->isProduction()`, que compara com
+// a string literal `production` (Application::isProduction() — `$this['env'] === 'production'`).
+// O instalador do UltimatePOS grava `APP_ENV = 'live'` (Install/InstallController.php:189),
+// então `isProduction()` era FALSO em produção e o bloco inteiro ficava REGISTRADO lá.
+// Medido em 2026-08-26 contra oimpresso.com: `GET /_smoke-probe` → 200 com o corpo da view
+// (rota inexistente dá 404, controle), e `GET /_visreg-state/financeiro-unificado/default`
+// → 302 pro `route` do manifesto — destino só alcançável DEPOIS do `loginUsingId`.
+//
+// A allowlist abaixo cobre os dois consumidores reais e fecha `live`, `production` e
+// `staging`: `.github/workflows/visual-regression.yml` e `e2e-gate.yml` setam
+// `APP_ENV=testing`, e `phpunit.xml` idem. Ambiente novo entra aqui de propósito — se
+// esquecerem, o bloco some (fail-closed) em vez de vazar.
+if (app()->environment(['local', 'testing'])) {
     Route::get('/_smoke-probe', fn () => view('_smoke-probe'))->name('smoke.probe');
 
     $seedFinanceiroVisregFlow = static function (int $businessId, int $userId, string $to): void {
