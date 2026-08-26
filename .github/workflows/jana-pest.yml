@@ -191,6 +191,7 @@ jobs:
             Modules/Jana/Tests/Feature/AiScorecardJudgeTest.php \
             Modules/Jana/Tests/Feature/Backlinks/AdrGraphBuilderTest.php \
             Modules/Jana/Tests/Feature/Backlinks/JanaBacklinksSweepCommandTest.php \
+            Modules/Jana/Tests/Feature/Chat/ChatAntiHooksTier0Test.php \
             Modules/Jana/Tests/Feature/Chat/ChatTokensTurnoTest.php \
             Modules/Jana/Tests/Feature/Console/JanaRagasCiCommandTest.php \
             Modules/Jana/Tests/Feature/Console/MeilisearchIndexSetupTest.php \
@@ -315,6 +316,38 @@ jobs:
           # nasce VERMELHO por desenho: acusa tool sem declaracao de permissao e PII
           # crua no log. Liga-lo aqui deixaria o main vermelho ate os defeitos serem
           # corrigidos, e isso e decisao [W] — nao efeito colateral de um PR de payload.
+          #
+          # ChatAntiHooksTier0Test ENTROU em 2026-08-26, fechando a metade Tier 0 do
+          # ACHADO acima. Eram DUAS causas, medidas em sequencia no CT 100 (MySQL real,
+          # arquivo inteiro, sem --filter):
+          #  (1) o arquivo NAO BOOTAVA: declarava so o DatabaseTransactions, sem o
+          #      `TestCase::class` do namespace `Tests`. Deu 4 failed com 0 assertions —
+          #      que e "nunca mediu", nao "reprovou" (LC-13). Consertado no PR #6310.
+          #  (2) com o bind, sobrava 1 vermelho, e ele era do MEDIDOR: o UC-JCHAT-08 usa
+          #      `Http::preventStrayRequests()`, sonda mais LARGA que o contrato que ela
+          #      guarda — barra QUALQUER saida HTTP. O que ela pegava era o POST de SSR
+          #      do Inertia (`HttpGateway::dispatch`, que RE-LANCA o StrayRequestException),
+          #      nunca o Brain B. E nao e peculiaridade do CT 100: `inertia.ssr.enabled` e
+          #      true por default e o `BundleDetector` aceita `public/js/app.js` — asset
+          #      legado do UltimatePOS, VERSIONADO no repo — como bundle de SSR, logo
+          #      `bundleExists()` e true nesta lane tambem. O conserto ESTREITOU a sonda
+          #      ate o contrato (stub so da URL do SSR, lida da config), sem afrouxar:
+          #      qualquer outra saida HTTP segue reprovando, Brain B incluido.
+          # Medicao depois das duas: 4 passed (9 assertions) — as 2 asserts de credencial,
+          # que estouravam no `assertOk()` ANTES de rodar, passaram a rodar. Elegivel pela
+          # regra desta allowlist, medido na LINHA e nao no hit: usa DatabaseTransactions,
+          # zero RefreshDatabase/migrate:fresh/dropIfExists. A prova de que passou a rodar
+          # e o CONTADOR desta lane subir.
+          #
+          # ⚠️ O IRMAO CONTINUA FORA, e de proposito. Chat/ChatAntiHooksAcaoTest
+          # (UC-09/UC-10) nasce vermelho por desenho, e os 2 defeitos foram RE-MEDIDOS
+          # contra o codigo de main em 2026-08-26: as 5 tools do chat seguem sem declarar
+          # permissao (varredura das 4 formas de metodo + 3 de constante que o UC-09
+          # aceita: 0 hits nos 5 arquivos) e o `ChatController::startTrace` segue levando
+          # o input do usuario cru pro Langfuse (zero ocorrencia de PiiRedactor no
+          # controller inteiro) — este segundo e vazamento de PII pra observabilidade.
+          # Recibo de execucao: rodado fora da arvore de testes, deu UC-10 FAIL. Liga-lo
+          # aqui deixaria o main vermelho: decisao [W], nao efeito colateral deste PR.
           #
           # PainelContratoTest ENTROU em 2026-08-17. Ele nasceu no PR #5862 (UC-08) e
           # ficou 1 dia FORA desta lista — logo os nove UCs do Painel nunca rodaram no
