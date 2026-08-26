@@ -807,14 +807,26 @@ jobs:
         if: always() && steps.maint_on.outcome == 'success'
         run: |
           if [ "${{ steps.classmap.outcome }}" = "failure" ] || [ "${{ steps.webgate.outcome }}" = "failure" ]; then
-            /tmp/ssh_exec.sh "cd $RDIR && php artisan down --retry=60 --refresh=60 2>&1 || true; echo 'MANTIDO EM MAINTENANCE (503) — gate classmap/web falhou'"
+            # --render aqui também (#6309 consertou só o `down` inicial — esta era 1 de 3).
+            # Sem ele este re-`down` SOBRESCREVE storage/framework/maintenance.php com uma
+            # versão SEM template, desfazendo a página pré-renderizada que o down inicial
+            # gravou — e justamente no caminho em que o classmap/boot web está quebrado, que
+            # é quando servir o 503 NÃO pode depender de bootar o framework. Resultado antigo:
+            # 500 pro cliente no pior cenário, com o site "em manutenção".
+            /tmp/ssh_exec.sh "cd $RDIR && ( php artisan down --retry=60 --refresh=15 --render='errors::503' || php artisan down --retry=60 --refresh=15 ) 2>&1 || true; echo 'MANTIDO EM MAINTENANCE (503) — gate classmap/web falhou'"
             echo "::error::Gate de classmap/web falhou — site mantido em MAINTENANCE (503). 'php artisan about' (CLI) não reproduz esse caso (middleware web). Recuperar: 'composer dump-autoload -o --classmap-authoritative --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium' + reset OPcache, OU re-deploy do main saudável. Ver Tail laravel.log abaixo."
             exit 1
           fi
           if /tmp/ssh_exec.sh "cd $RDIR && php artisan about > /dev/null 2>&1"; then
             /tmp/ssh_exec.sh "cd $RDIR && php artisan up 2>&1 || rm -f storage/framework/down storage/framework/maintenance.php 2>&1 || true; echo 'maintenance OFF (boot OK)'"
           else
-            /tmp/ssh_exec.sh "cd $RDIR && php artisan down --retry=60 --refresh=60 2>&1 || true; echo 'MANTIDO EM MAINTENANCE (503) — codigo nao boota'"
+            # Idem (3 de 3). Aqui o `artisan about` JÁ falhou, então o `--render` provavelmente
+            # também falha — e é por isso que ele vem com fallback e o bloco inteiro em `|| true`:
+            # se nada rodar, o maintenance.php que o down inicial gravou (COM template) fica de pé,
+            # que é o desfecho desejado. O que não podia acontecer era o caso ANTIGO: um `down` sem
+            # --render conseguir rodar e trocar a página boa por uma que exige bootar o framework
+            # quebrado.
+            /tmp/ssh_exec.sh "cd $RDIR && ( php artisan down --retry=60 --refresh=15 --render='errors::503' || php artisan down --retry=60 --refresh=15 ) 2>&1 || true; echo 'MANTIDO EM MAINTENANCE (503) — codigo nao boota'"
             echo "::error::Codigo deployado NAO boota (php artisan about falhou). Site mantido em MAINTENANCE (503 gracioso) em vez de servir 500. Recuperar no prod: 'composer dump-autoload -o --classmap-authoritative --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium' + reset OPcache, OU re-deploy. Ver Tail laravel.log abaixo."
             exit 1
           fi
