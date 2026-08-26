@@ -74,7 +74,7 @@ conversa.
 **Pronto quando:** mudar a conversa ativa escreve o título na região viva; re-render sem troca não escreve.
 
 ## UC-JCHAT-05 — Thread de outro business NUNCA é devolvida (Tier 0)
-Status: ✅ (`Modules/Jana/Tests/Feature/Chat/ChatAntiHooksTier0Test.php` — verde no CT 100 em 2026-08-26; recibo no fim do arquivo)
+Status: 🧪 (`Modules/Jana/Tests/Feature/Chat/ChatAntiHooksTier0Test.php` — verde no CT 100 em 2026-08-26, mas o teste está FORA da lane, então não há manifesto: G-7 exige prova de máquina, e prosa não conta)
 
 Um usuário de outro business pede a conversa pelo id e **não recebe 200**. Vale 403 (negado) ou 404
 (nem existe pra ele); o que não pode é conteúdo alheio na tela.
@@ -93,7 +93,7 @@ papel; o que o teste prova é que ela não abre buraco de isolamento hoje.
 passar sem provar isolamento nenhum) e está em `[403, 404]`.
 
 ## UC-JCHAT-06 — Abrir a thread é leitura PURA
-Status: ✅ (mesmo arquivo — verde no CT 100 em 2026-08-26; recibo no fim do arquivo)
+Status: 🧪 (mesmo arquivo — verde no CT 100 em 2026-08-26; sem manifesto enquanto o teste estiver fora da lane)
 
 Abrir uma conversa **não dispara e-mail nem notificação**. Efeito colateral pertence ao POST de
 mensagem, não à consulta.
@@ -104,7 +104,7 @@ mensagem, não à consulta.
 **Pronto quando:** `Mail::assertNothingSent()` e `Notification::assertNothingSent()` após o GET.
 
 ## UC-JCHAT-07 — O render inicial não escreve no banco
-Status: ✅ (`ChatAntiHooksTier0Test` — verde no CT 100 em 2026-08-26; recibo no fim do arquivo)
+Status: 🧪 (`ChatAntiHooksTier0Test` — verde no CT 100 em 2026-08-26; sem manifesto enquanto o teste estiver fora da lane)
 
 Abrir a conversa **não acrescenta linha** em `jana_mensagens`. Escrita pertence ao POST.
 
@@ -464,7 +464,14 @@ controle (única variável trocada: INERTIA_SSR_ENABLED=false)
 `0 assertions` no ANTES é o ponto: não era “reprovou”, era **nunca mediu**. Ler *assertions* e não
 “0 failed” é o que separa as duas coisas (LC-13).
 
-**Vereditos:** UC-05 ✅ · UC-06 ✅ · UC-07 ✅ · UC-08 ❌ (medidor largo — ver o bloco do próprio UC).
+**Vereditos medidos:** UC-05 passou · UC-06 passou · UC-07 passou · UC-08 falhou (medidor largo —
+ver o bloco do próprio UC).
+
+**Por que os três que passaram seguem 🧪 e não ✅:** o G-7 (ADR 0264) exige que o verde esteja no
+**manifesto** publicado pela lane, e diz literalmente que colar run id na prosa não conta. Está
+certo — prosa não é re-verificável por máquina, e o próprio CLAUDE.md avisa que **CT 100 ≠ CI**
+(lá a database persiste entre runs; cada lane do CI nasce fresca). O que este PR entrega é o
+teste **capaz** de medir; o ✅ é do dia em que a lane rodar.
 
 **O teste segue ÓRFÃO DE LANE, de propósito.** Medido pelo dono do inventário
 (`node scripts/governance/test-lane-coverage.mjs --json`, 2026-08-26): ele está entre os **100
