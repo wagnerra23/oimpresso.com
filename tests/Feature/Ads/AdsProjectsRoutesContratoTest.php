@@ -7,10 +7,18 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 
-uses(Tests\TestCase::class);
-
 /**
  * ADS · contrato de wiring das rotas de Project (US-ADS-003 / US-ADS-004).
+ *
+ * Nota: NÃO declarar `uses(Tests\TestCase::class)` aqui — `tests/Pest.php:5`
+ * já registra TestCase pra toda pasta `tests/Feature/`. Redeclarar gera
+ * "The folder already uses the test case [Tests\TestCase]" e bloqueia
+ * `vendor/bin/pest --filter`. Catalogado em
+ * memory/decisions/proposals/drafts/_AGENT_A_AUDIT_FINDINGS.md:210-229.
+ * A redeclaração viveu aqui até 2026-08-26 e derrubava a suíte INTEIRA no
+ * carregamento — não só este arquivo. Os irmãos
+ * `Console/ArquivosHealthCheckScheduleTest.php` e `Console/BackupMonitorScheduleTest.php`
+ * já carregavam esta nota; este arquivo nasceu sem ela.
  *
  * POR QUE ESTE TESTE EXISTE, e por que ele NÃO é tautológico:
  * ele cruza DUAS fontes independentes — o registro de rotas do Laravel (runtime)
