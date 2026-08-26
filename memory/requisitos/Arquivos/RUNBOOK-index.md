@@ -55,8 +55,8 @@ declarada e nunca era exercida.
 
 ## 5. Onda desta entrega, e o que fica pra depois
 
-Este RUNBOOK cobre a onda 1 · **PR-1 (acervo)**, **PR-2 (trilha)** e **PR-4 (cofre)**. Falta a
-vista de retenção pra fechar as 4 do charter.
+Este RUNBOOK cobre a **onda 1 COMPLETA** — as 4 vistas do charter: **PR-1 (acervo)**,
+**PR-2 (trilha)**, **PR-4 (cofre)** e **PR-3 (retenção)**. Todas leitura pura.
 
 **A barra de abas nasceu no PR-2**, com a segunda vista — não antes: aba que não leva a lugar
 nenhum é promessa, não navegação. Ela navega por rota (`?tab=`), o vocabulário de URL que o
@@ -67,32 +67,43 @@ compartilhável e o botão voltar do navegador mente.
 |---|---|---|
 | Acervo | PR-1 | entregue (2026-08-24) |
 | Trilha (`arquivos_audit_log`, read-only) | PR-2 | entregue (2026-08-25) |
-| Retenção (`summary()` + `preview()`, dry-run puro) | PR-3 | pendente — **não por decisão [W]**, ver abaixo |
-| Cofre (espaço por disco + 3 achados) | PR-4 | **esta entrega** |
+| Retenção (KPIs + política + regras, leitura pura) | PR-3 | **entregue (2026-08-25)** — a onda 1 fecha aqui |
+| Cofre (espaço por disco + 3 achados) | PR-4 | entregue (2026-08-25) |
 
-> ⚠️ **O PR-3 NÃO está bloqueado por decisão [W] — esta tabela é que restateava errado.**
-> Até 2026-08-25 a linha dizia que a vista de retenção *"depende da decisão [W] na proposta
-> `arquivos-retencao-ui-aviso-titular`"*. Fui conferir na fonte e é o oposto: a
-> [proposta](../../decisions/proposals/arquivos-retencao-ui-aviso-titular.md) afirma, em **duas**
-> passagens, que *"as ondas 0, 1 e 2 não dependem dela"* e que, mesmo **se rejeitada**, *"as ondas
-> 0-2 seguem e entregam: acervo, trilha, retenção **em leitura pura** (`summary()` + `preview()`),
-> cofre"*. O que ela decide é a **onda 3** — rodar a retenção pela tela, avisar o titular, purgar.
+> ✅ **A onda 1 fechou em 2026-08-25 com a Retenção.** Esta tabela chegou a dizer que a vista
+> *"depende da decisão [W] na proposta `arquivos-retencao-ui-aviso-titular`"*, e isso estava
+> errado: a [proposta](../../decisions/proposals/arquivos-retencao-ui-aviso-titular.md) afirma
+> em **duas** passagens que *"as ondas 0, 1 e 2 não dependem dela"* e lista *"retenção em leitura
+> pura"* entre o que as ondas 0-2 entregam **mesmo se ela for rejeitada**. O que ela decide é a
+> **onda 3** — rodar pela tela, avisar o titular, purgar. O RUNBOOK repetiu o fato com mais força
+> do que a fonte afirma, e um restatement que endurece a fonte fabrica um bloqueio que ninguém
+> decidiu.
 >
-> A dona do tema "o que depende de [W]" é a proposta, não este RUNBOOK: aqui o fato foi
-> **repetido com mais força do que o dono afirma**, e um restatement que endurece a fonte é a
-> forma clássica de fabricar um bloqueio que ninguém decidiu. Vale o dono.
->
-> **A condição que sobra é de conteúdo, e é da própria proposta:** a vista tem de dizer, com todas
-> as letras, que **a execução é do comando manual**. O `RetentionCleanupCommand` está registrado e
-> **não agendado** (medido em 2026-08-24, item 2 da proposta — `git grep` por schedule não devolve
-> nada). Uma tela que mostra "o que o agendado faria hoje" quando não há agendado descreve um
-> futuro que ninguém marcou.
->
-> **O que o PR-3 ainda exige de trabalho** (e não é só ligar os dois métodos): `summary()` e
-> `preview()` respondem por **um prazo global** (`retention_days_default`), enquanto o charter pede
-> a vista **por `sub_destination`**, com o grace de 30 dias e o que passou do prazo sem ser apagado
-> (o WARN do check #4 do `arquivos:health-check`). O prazo+lei por contexto já chega de graça na
-> prop `politica`; o resto é query nova.
+> **A condição de conteúdo que a proposta impõe foi cumprida:** a vista diz, com todas as letras,
+> que a execução é do comando **manual** — e não afirma isso de memória, mede no runtime
+> (`Schedule::events()`) se o `arquivos:retention-cleanup` está agendado. Hoje não está; se um dia
+> estiver, a frase muda sozinha. Deduzir "quem roda" lendo o Kernel seria a lápide de 2026-07-17.
+
+### 5.3 Retenção — o que a vista faz, e por que ela conta em PHP
+
+KPIs (vence em 30 · vence em 90 · no grace · passou do prazo), a política com a **base legal por
+contexto** e a contagem de arquivos de cada um, mais os 4 cards de regra (grace · aviso · estratégia
+· escopo). Leitura pura.
+
+**O prazo de um arquivo não é um número só:** é o `retention_days` da própria linha quando existe e,
+quando não, o do `sub_destination` na policy — a mesma precedência que o `linha()` do acervo aplica.
+Reproduzir isso em SQL exigiria aritmética de data com CASE sobre 8 contextos, em dialeto
+(`DATE_ADD` não existe na lane sqlite). Usar o `ArquivosRetentionService::summary()`, que já existe,
+também não serve: ele responde por **prazo global**, e o charter pede POR CONTEXTO — número certo
+respondendo a pergunta errada. Então o leitor traz 4 colunas por `chunkById` e conta em PHP, com a
+regra do acervo. Exato e portável; o custo é linear no acervo, o mesmo conjunto que o Cofre percorre.
+
+⚠️ **`Config/retention.php` NUNCA foi registrado no provider** — achado nesta entrega, mesmo defeito
+do `config.php` em 2026-08-24. `grace_period_days`, `notice_period_days` e `strategy` viviam num
+arquivo que `config()` não alcançava. Registrado agora em namespace **próprio**
+(`arquivos_retention`), não fundido em `arquivos`: os dois arquivos declaram o prazo por contexto e
+o `casos.md` os trata como **espelho**, onde divergir é achado de auditoria — fundir faria um
+sobrescrever o outro em silêncio, matando justamente a chance de detectar a divergência.
 
 ### 5.1 Trilha — o que a vista faz, e a pegadinha que ela carrega
 

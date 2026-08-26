@@ -50,8 +50,7 @@ charter_version: 2
 > o **UC-INDEX-02** do `casos.md`.
 >
 > **O PR-4 acrescentou a vista Cofre** — espaço por disco + os 3 achados —, também sem rota
-> nova: só um valor a mais no vocabulário de `tab`. São **3 das 4** vistas; falta a Retenção
-> (PR-3). Contrato: **UC-INDEX-03**. Duas coisas que valem ler antes de mexer: a agregação mora
+> nova: só um valor a mais no vocabulário de `tab`. Contrato: **UC-INDEX-03**. Duas coisas que valem ler antes de mexer: a agregação mora
 > num leitor próprio ([`CofreStatsReader`](../../../../Modules/Arquivos/Services/CofreStatsReader.php))
 > porque o assert de LGPD do controller proíbe hash em qualquer método dele — e o que o gate
 > protege passou a ser cobrado por assert comportamental sobre o payload; e o Tier 0 aqui é o
@@ -130,14 +129,12 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
       `arquivos_audit_log`, UC-INDEX-02 com 6 asserções.
 - [x] **PR-4 (cofre)** — 2026-08-25. `?tab=cofre`, espaço por disco + 3 achados, UC-INDEX-03
       com 8 asserções (contadas com `grep -c`, não de memória).
-- [ ] Onda 1 **completa**: falta o PR-3 (retenção). **Não está bloqueado por decisão [W]** —
-      apurado em 2026-08-25 na fonte: a proposta `arquivos-retencao-ui-aviso-titular` diz duas
-      vezes que as ondas 0-2 não dependem dela, e o que estava escrito no RUNBOOK era um
-      restatement mais forte do que o dono do tema afirma. O que sobra é conteúdo: a vista tem
-      de dizer que a execução é do comando manual (o `RetentionCleanupCommand` não está
-      agendado), e `summary()`/`preview()` respondem por prazo global — a vista por
-      `sub_destination` + grace exige query nova. Detalhe no
-      [RUNBOOK-index §5](../../../../memory/requisitos/Arquivos/RUNBOOK-index.md).
+- [x] **PR-3 (retenção)** — 2026-08-25. `?tab=retencao`: KPIs (vence 30/90 · no grace ·
+      passou do prazo), a política com a base legal por contexto e a contagem de arquivos,
+      e os 4 cards de regra. Leitura pura — a vista MOSTRA o que o `retention-cleanup`
+      faria, e diz que ele **não está agendado** (medido no runtime via `Schedule::events()`,
+      não deduzido do fonte). Rodar pela tela, avisar titular e purgar seguem sendo a onda 3.
+- [x] **Onda 1 COMPLETA** — as 4 vistas do charter existem: acervo · retenção · cofre · trilha.
 - [ ] Screenshot 1280/1440 aprovado por [W].
 - [ ] Definir se reclassificar bucket/visibility fica nesta tela ou só no dono do arquivo
       (a onda 2 esbarra nisso — ver PR-6).

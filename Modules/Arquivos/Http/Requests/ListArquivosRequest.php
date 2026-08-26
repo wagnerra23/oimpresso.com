@@ -61,7 +61,7 @@ class ListArquivosRequest extends FormRequest
             // renderiza), não uma coluna de banco que migration alarga. `retencao`
             // entra quando a vista existir; declará-la antes daria 200 a uma URL
             // que cai no acervo em silêncio.
-            'tab'          => ['nullable', 'string', Rule::in(['acervo', 'trilha', 'cofre'])],
+            'tab'          => ['nullable', 'string', Rule::in(['acervo', 'trilha', 'cofre', 'retencao'])],
 
             // Ação do `arquivos_audit_log`. Validado por FORMA, não por lista:
             // o dono do vocabulário é o ENUM da coluna, que já mudou 2× por

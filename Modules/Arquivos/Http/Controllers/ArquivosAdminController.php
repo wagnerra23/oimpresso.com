@@ -12,6 +12,7 @@ use Inertia\Response;
 use Modules\Arquivos\Entities\Arquivo;
 use Modules\Arquivos\Http\Requests\ListArquivosRequest;
 use Modules\Arquivos\Services\CofreStatsReader;
+use Modules\Arquivos\Services\RetencaoStatsReader;
 
 /**
  * ArquivosAdminController — a tela administrativa do acervo (US-ARQ-013).
@@ -57,7 +58,7 @@ class ArquivosAdminController extends Controller
      */
     public function index(ListArquivosRequest $request): Response
     {
-        $tab = in_array($request->input('tab'), ['trilha', 'cofre'], true)
+        $tab = in_array($request->input('tab'), ['trilha', 'cofre', 'retencao'], true)
             ? (string) $request->input('tab')
             : 'acervo';
 
@@ -92,6 +93,7 @@ class ArquivosAdminController extends Controller
         $props += match ($tab) {
             'trilha' => ['trilha' => Inertia::defer(fn () => $this->buildTrilhaPayload($filtros))],
             'cofre'  => ['cofre' => Inertia::defer(fn () => $this->buildCofrePayload())],
+            'retencao' => ['retencao' => Inertia::defer(fn () => $this->buildRetencaoPayload())],
             // Prop cara (paginate + eager load do arquivable): defer é o DEFAULT do projeto.
             default  => ['acervo' => Inertia::defer(fn () => $this->buildAcervoPayload($filtros))],
         };
@@ -510,5 +512,21 @@ class ArquivosAdminController extends Controller
     private function buildCofrePayload(): array
     {
         return app(CofreStatsReader::class)->fetch();
+    }
+
+    /**
+     * Retencao — o que vence, o que esta no grace e o que passou do prazo (onda 1 - PR-3).
+     *
+     * Delegado pelo mesmo motivo do cofre: manter este arquivo livre dos simbolos que o
+     * assert de LGPD proibe, e manter a regra de prazo em UM lugar so.
+     *
+     * LEITURA PURA: a vista mostra o que o comando FARIA. Rodar de verdade e da onda 3, e
+     * depende da proposta de ADR `arquivos-retencao-ui-aviso-titular`.
+     *
+     * @return array<string, mixed>
+     */
+    private function buildRetencaoPayload(): array
+    {
+        return app(RetencaoStatsReader::class)->fetch();
     }
 }
