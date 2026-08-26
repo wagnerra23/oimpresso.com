@@ -459,7 +459,13 @@ jobs:
             if (!m) { console.error("::error::campo pos_frontier_SEM_marcador ausente — nao afirmo verde sem ter medido"); process.exit(1); }
             const n = Number(m[1]);
             console.log("pos_frontier_SEM_marcador =", n);
-            if (n > 0) { console.error(`::error::${n} lapide(s) §5 pos-frontier SEM recibo no ledger — toda lapide nova entra numa classe LC`); process.exit(1); }
+            // A mensagem nomeia o arquivo que o numero MEDE. Ela dizia "SEM recibo no
+            // ledger", e o campo nao mede o ledger: `licoes-code-two-strikes.mjs:328` faz
+            // `tombs.filter((t) => !t.marker && ...)`, onde `tombs` sai do §5 do
+            // proibicoes.md e `t.marker` sai do CORPO da lapide (RECUR_MARKERS, :174).
+            // Dano medido em 2026-08-26: dois agentes foram para o LICOES_CODE.md, que
+            // estava impecavel, enquanto o que faltava era uma palavra na lapide.
+            if (n > 0) { console.error(`::error::${n} lapide(s) do §5 (memory/proibicoes.md) sem MARCADOR DE RECORRENCIA no corpo. O numero NAO mede o ledger LICOES_CODE.md. Declare a familia DENTRO do bullet "O limite" em memory/licoes-rejeitadas.md — o sec5-derive.mjs carrega SO esse bullet para o §5, e e o §5 que o parseTombstones le. As 14 formas aceitas, FONTE: licoes-code-two-strikes.mjs:174 (RECUR_MARKERS) — reincid | mesma familia | mesma raiz | mesma classe | mesma doenca | voltou | de novo | re-proposto | emenda da lapide | irma da entrada | complementa | ecoa | genealogia | familia do/da. Se a lapide for classe NOVA de verdade, marcador nenhum e honesto: leve ao [W], nao invente a palavra.`); process.exit(1); }
           '
       - name: Loop-fechar-check PORTE .mjs (rotina IA-OS idempotente · logica + E2E · roda em Linux)
         if: always() && steps.setup.outcome == 'success'
