@@ -29,8 +29,8 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  *   (a) o `catch (Throwable)` transforma a falha em `Log::warning`, então mesmo um
  *       teste que chamasse `rebuild()` passaria verde sem assertar o campo;
  *   (b) o `EmployeePerformanceRebuilderTest` (o único que exercita o Service) tem
- *       `markTestSkipped('era-sqlite: ...')` fora do SQLite — verde por NÃO-EXECUÇÃO
- *       em todo ambiente MySQL.
+ *       `markTestSkipped` com o marcador de quarentena da Onda 2 SDD floor —
+ *       fora do SQLite é verde por NÃO-EXECUÇÃO, em todo ambiente MySQL.
  * Por isso este arquivo nasce MySQL-real e entra na allowlist do `whatsapp-pest.yml`
  * no MESMO PR: teste que não roda na lane não defende nada.
  *
