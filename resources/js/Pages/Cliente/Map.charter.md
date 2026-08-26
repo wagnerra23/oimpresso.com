@@ -15,7 +15,7 @@ mwart_pattern_reuse:
   blueprint_cowork: "prototipo-ui/cowork/clientes-page.jsx"
   blueprint_screenshot_approval: "N/A (divergente)"
   derived_screens: [Map]
-  divergence_from_blueprint: "split-screen com Leaflet/Google Maps lateral, divergente do Index lista"
+  divergence_from_blueprint: "split-screen com mapa lateral, divergente do Index lista"
 related_runbook: memory/requisitos/Crm/RUNBOOK-cliente-map.md
 related_visual_comparison: memory/requisitos/Crm/cliente-map-visual-comparison.md
 ---
@@ -26,13 +26,13 @@ related_visual_comparison: memory/requisitos/Crm/cliente-map-visual-comparison.m
 
 ## Mission
 
-Visualização geográfica dos clientes com lista lateral pesquisável + mapa embed Google Maps. Substitui Blade `contact.contact_map.blade.php` mantendo `$contact->position` (campo legacy "lat,lng" string).
+Visualização geográfica dos clientes com lista lateral pesquisável + mapa embed **OpenStreetMap** (sem chave de API — trocado de Google Maps em 2026-08-26 pela Onda 3 da paridade, ancorado em `prototipo-ui/cowork/cliente-mapa.jsx`). Substitui Blade `contact.contact_map.blade.php` mantendo `$contact->position` (campo legacy "lat,lng" string).
 
 ## Goals
 
 - Layout split: aside 1-col (lista de clientes pesquisável) + main 2-col (mapa)
 - Search input no aside filtra cliente por nome/cidade
-- Click no item da lista seleciona e renderiza mapa com iframe Google Maps embed
+- Click no item da lista seleciona e renderiza mapa com iframe OpenStreetMap embed (`bbox` + `marker`), mais link "Abrir no mapa completo"
 - Indicador visual MapPin colorido (azul = selecionado, emerald = tem posição, gray = sem posição)
 - Display de contatos sem position com badge "Sem posição" + edit suggestion
 - Multi-tenant: `business_id` global scope (Contact::where).
@@ -48,12 +48,12 @@ Visualização geográfica dos clientes com lista lateral pesquisável + mapa em
 ## UX Targets
 
 - p95 first-paint lista < 800ms (com 500 contatos)
-- Mapa carrega < 2s (iframe Google async)
+- Mapa carrega < 2s (iframe OSM async, `loading="lazy"`)
 - Cabe 1280px sem scroll horizontal
 
 ## Automation Anti-hooks
 
-- ❌ Não envia lat,lng pra Google Maps Geocoding API (custo $$$, opt-in)
+- ❌ Não envia lat,lng pra Google Maps Geocoding API (custo $$$, opt-in) — desde 2026-08-26 o embed também não é mais do Google: é OSM, que não pede chave
 - ❌ Não modifica position do contact (read-only)
 - ❌ Não acessa Contact de outro `business_id`
 
