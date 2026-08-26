@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-08-25"
+last_run: "2026-08-26"
 ---
 
 # Casos de Uso & Aceite — Arquivos/Index
@@ -14,8 +14,8 @@ last_run: "2026-08-25"
 
 > **Por que poucos UC com id aqui.** A tela nasceu no PR-1 ([#6216](https://github.com/wagnerra23/oimpresso.com/pull/6216),
 > 2026-08-24: rota `GET /arquivos` viva) só com a vista **Acervo**; o PR-2 acrescentou a
-> **Trilha** e, com ela, a barra de abas; o PR-4 acrescentou o **Cofre**. Falta a retenção
-> (PR-3). Declarar os 14 cenários do protótipo F1 como UC de uma vez criaria órfãos e quebraria
+> **Trilha** e, com ela, a barra de abas; o PR-4 acrescentou o **Cofre** e o PR-3 a
+> **Retenção** — a onda 1 fecha com as 4 vistas do charter. Declarar os 14 cenários do protótipo F1 como UC de uma vez criaria órfãos e quebraria
 > o G-2, porque o teste que os defende ainda não existe. Eles ficam abaixo como `[BACKLOG]` —
 > prosa honesta, sem id — e **viram UC na onda que traz o teste que os defende**.
 > Fonte: `prototipo-ui/cowork/arquivos-page.jsx`.
@@ -118,6 +118,36 @@ last_run: "2026-08-25"
 
 ---
 
+## UC-INDEX-04 · A retenção mostra o que vence, sem apagar nada — e diz quem apaga
+- **Persona:** Wagner (escritório, conformidade) e Eliana (financeiro) — precisam responder
+  *"o que está passando do prazo e o que a lei manda guardar por quanto tempo"* sem abrir
+  terminal, e precisam saber que olhar a tela **não** dispara nada.
+- **Aceite:** Dado um business com arquivos de contextos diferentes · Quando abre
+  `/arquivos?tab=retencao` com a permissão `arquivos.access` · Então vê os 4 KPIs (vence em
+  30 · vence em 90 · no grace · passou do prazo), a política dos 8 contextos com **a base
+  legal ao lado do prazo** e a contagem de arquivos de cada um, e os 4 cards de regra — tudo
+  do **próprio** business, **sem nenhum botão que execute**, e com a tela declarando se o
+  `arquivos:retention-cleanup` está agendado.
+- **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **4**
+  asserções citando `UC-INDEX-04` no título do `it()` (contadas com
+  `grep -c "^it('UC-INDEX-04"`, não de memória): fail-closed sem sessão devolve
+  `disponivel: false` em vez de "tudo em dia" · grace/aviso/estratégia vêm da config
+  registrada · o prazo **por linha** vence o da policy · o que está no grace **não** conta
+  como vencido. As 2 primeiras dispensam banco; as 2 últimas rodam na lane MySQL.
+- **Regressão que defende:** (a) **"0 passaram do prazo" afirmado sem ter medido** — numa
+  tela de LGPD essa é a frase mais perigosa que existe, e sem o portão fail-closed o global
+  scope (que é fail-open) faria a vista contar o acervo de todos os tenants; (b) o prazo por
+  contexto virar prazo global — `summary()` responde global, e usá-lo aqui seria número certo
+  respondendo a pergunta errada; (c) `retention_days` da linha ser ignorado, o que diria
+  "no prazo" para um arquivo vencido; (d) grace e vencido virarem o mesmo balde, fazendo o
+  operador correr atrás de arquivo que o job já tratou; (e) `Config/retention.php` seguir
+  **não registrado** — era o caso até esta leva, e sem isso a tela mostraria defaults inline
+  como se fossem a política.
+- **Status: ⬜** — os testes existem, mas ⬜ é o que o cabeçalho manda enquanto o veredito não
+  veio da lane: 🧪 exige o manifesto (G-7), não a minha leitura.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 Derivados do protótipo F1 (`arquivos-page.jsx`). A onda que implementar cada vista traz o teste
@@ -138,8 +168,6 @@ e promove o item a `UC-INDEX-NN`.
 - **[BACKLOG]** Arquivo sem `arquivable` → linha marcada como urgente + selo "órfão" com o motivo em tooltip (órfão é achado, não item).
 - **[BACKLOG]** Arquivo a ≤30 dias do prazo → coluna "Vence em" em vermelho + linha urgente.
 - **[BACKLOG]** Arquivo com prazo vencido → rótulo "prazo vencido", nunca contagem negativa.
-- **[BACKLOG]** Aba Retenção → tabela com os 8 contextos, prazo em anos/dias e a base legal literal.
-- **[BACKLOG]** Existe arquivo além do prazo + grace → banner citando `HealthCheckCommand` check #4 e LGPD Art. 16.
 - **[BACKLOG]** Papel sem `arquivos.access` → sem-permissão explicando que o anexo da OS continua acessível por quem vê a OS.
 - **[BACKLOG]** Arquivo sem file físico no disco → hoje só o check #1 do `arquivos:health-check`
   vê isso, e o cofre **não** cobre: exige uma chamada de filesystem por linha (amostrada em 1000
@@ -187,4 +215,5 @@ e promove o item a `UC-INDEX-NN`.
 - 2026-07-11 · [CC] carimbado por criar-tela.mjs — trio nascido junto (charter + casos + teste). Refs: UI-0013 · ADR 0264 G-1/G-2.
 - 2026-08-24 · [CL] preenchido a partir do protótipo F1 exportado do Cowork (`arquivos-page.jsx`) + do rascunho `cowork-inbox/modulos-faltantes/arquivos.casos.md`. Os 14 cenários entraram como `[BACKLOG]` (sem id) pra não nascer órfão no G-2; o item de reclassificar foi marcado `[BLOQUEADO]` porque o Service não suporta o contrato da Request. Refs: US-ARQ-013 · ADR 0360.
 - 2026-08-25 · [CC] **UC-INDEX-02 (trilha) promovido de `[BACKLOG]` a UC** — a onda PR-2 trouxe o teste que o defende, que é a condição do G-2. Nasce `⬜`: o veredito é da lane, não da leitura. Refs: US-ARQ-013 · ADR 0093 (o `where` explícito numa tabela sem model) · ADR 0123 §8.
+- 2026-08-26 · [CC] **UC-INDEX-04 (retenção) promovido de `[BACKLOG]` a UC** — a onda 1 FECHA aqui: as 4 vistas do charter existem. Os 2 itens de backlog que ele cobre (aba Retenção · banner do check #4) saíram da lista. Achado do caminho: `Config/retention.php` nunca foi registrado no provider — mesmo defeito do `config.php` em 24/08 —, então grace/aviso/estratégia eram inalcançáveis por `config()`. Refs: US-ARQ-013 · LGPD Art. 15-16.
 - 2026-08-25 · [CC] **UC-INDEX-03 (cofre) promovido de `[BACKLOG]` a UC** — a onda PR-4 trouxe os testes. Os 3 itens de backlog que ele cobre (aba Cofre · acima do cap · MD5 repetido) saíram da lista, e um item NOVO entrou no lugar, honesto sobre o que a vista **não** cobre: arquivo sem file físico no disco, que exige chamada de filesystem por linha. Nasce `⬜` pelo mesmo motivo do UC-INDEX-02. Refs: US-ARQ-013 · ADR 0093 (aqui o `where` repetido é que seria o defeito) · ADR 0126 (cap do vault) · LGPD Art. 37.

@@ -5,9 +5,10 @@
 //   runbook: memory/requisitos/Arquivos/RUNBOOK-index.md
 //   charter: ./Index.charter.md · casos: ./Index.casos.md
 //
-// ONDA 1 · PR-1 ACERVO + PR-2 TRILHA + PR-4 COFRE. Leitura pura: nenhum caminho aqui
-// escreve, apaga ou dispara job. Falta a Retenção (PR-3) pra fechar as 4 vistas do
-// charter — ela depende da decisão [W] na proposta `arquivos-retencao-ui-aviso-titular`.
+// ONDA 1 COMPLETA — as 4 vistas do charter: ACERVO · RETENÇÃO · COFRE · TRILHA.
+// Leitura pura: nenhum caminho aqui escreve, apaga ou dispara job. A Retenção MOSTRA o que
+// o `arquivos:retention-cleanup` faria; rodá-lo pela tela, avisar titular e purgar são a
+// onda 3, que depende da proposta de ADR `arquivos-retencao-ui-aviso-titular`.
 //
 // A BARRA DE ABAS nasceu no PR-2, com a segunda vista — não antes: aba que não leva a
 // lugar nenhum é promessa, não navegação. Ela navega por rota (`?tab=`), como Financeiro,
@@ -78,7 +79,7 @@ interface Politica {
 }
 
 interface Filtros {
-  tab: 'acervo' | 'trilha' | 'cofre'
+  tab: 'acervo' | 'trilha' | 'cofre' | 'retencao'
   bucket: string | null
   owner_type: string | null
   mime: string | null
@@ -149,6 +150,18 @@ interface Resumo {
   por_bucket: Record<string, number>
 }
 
+/** A 4ª vista: o que vence, o que está no grace, o que passou do prazo. Leitura pura. */
+interface RetencaoPayload {
+  disponivel: boolean
+  grace_dias: number
+  notice_dias: number
+  estrategia: string
+  /** O `arquivos:retention-cleanup` está agendado? Medido no runtime, não deduzido do fonte. */
+  agendado: boolean
+  kpis: { vence_30: number; vence_90: number; no_grace: number; passou_do_prazo: number }
+  por_contexto: Record<string, number>
+}
+
 interface Props {
   filtros: Filtros
   politica: Politica[]
@@ -159,6 +172,8 @@ interface Props {
   trilha?: TrilhaPayload
   /** Só chega quando `tab=cofre`. */
   cofre?: CofrePayload
+  /** Só chega quando `tab=retencao`. */
+  retencao?: RetencaoPayload
 }
 
 /** Os buckets que o Curador de fato grava (`CuradorEngine`), na ordem em que interessam a
@@ -365,6 +380,10 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
         const a = row.original
         // Órfão é ACHADO, não item de lista — o charter trata assim e o casos.md defende.
         if (a.orfao) {
+          // `danger` (par SOFT), não `destructive` (fill sólido): o #6268 corrigiu 9 badges
+          // de ESTADO no repo, e este é um deles — órfão é um estado do arquivo, não uma
+          // ação destrutiva. Reaplicado à mão porque o merge por `--ours` descartou a
+          // mudança da main junto com a versão antiga do resto do arquivo.
           return (
             <Badge variant="danger" title="Sem arquivable — ninguém alcança pela tela do dono.">
               órfão
@@ -606,6 +625,183 @@ function Achado({ titulo, children, exemplos }: { titulo: string; children: Reac
   )
 }
 
+/** Um KPI da retenção. Tom só onde ele decide algo — número neutro não vira alarme. */
+function KpiRetencao({
+  valor,
+  rotulo,
+  nota,
+  tom,
+}: {
+  valor: number
+  rotulo: string
+  nota: string
+  tom?: 'alerta' | 'perigo'
+}) {
+  const cor =
+    tom === 'perigo' && valor > 0
+      ? 'text-destructive'
+      : tom === 'alerta' && valor > 0
+        ? 'text-warning'
+        : 'text-foreground'
+
+  return (
+    <Box bg="card" border rounded="lg" p={4}>
+      <Stack gap={1}>
+        <span className={`text-2xl font-medium tabular-nums ${cor}`}>{valor}</span>
+        <span className="text-xs font-medium text-foreground">{rotulo}</span>
+        <span className="text-xs text-muted-foreground">{nota}</span>
+      </Stack>
+    </Box>
+  )
+}
+
+/**
+ * Vista Retenção — o que vence, o que está no grace, o que passou do prazo.
+ *
+ * **Leitura pura, e a tela diz isso com todas as letras.** Ela mostra o que o comando FARIA;
+ * quem apaga é o `arquivos:retention-cleanup`, com a política. Rodar pela tela é a onda 3 e
+ * depende da proposta de ADR `arquivos-retencao-ui-aviso-titular`.
+ */
+function Retencao({ retencao, politica }: { retencao?: RetencaoPayload; politica: Politica[] }) {
+  if (!retencao) return null
+
+  if (!retencao.disponivel) {
+    return (
+      <EmptyState
+        title="Não foi possível medir a retenção."
+        description="Falta o business na sessão ou o módulo não foi migrado neste ambiente. Isto não quer dizer que está tudo em dia — quer dizer que ninguém olhou."
+      />
+    )
+  }
+
+  const { kpis } = retencao
+
+  return (
+    <Stack gap={4}>
+      <Grid min="sm" gap={4} data-contract="retencao-kpis">
+        <KpiRetencao valor={kpis.vence_30} rotulo="Vence em 30 dias" nota="ainda dá pra exportar" tom="alerta" />
+        <KpiRetencao valor={kpis.vence_90} rotulo="Vence em 90 dias" nota="janela de planejamento" />
+        <KpiRetencao valor={kpis.no_grace} rotulo="No grace period" nota={`${retencao.grace_dias} dias pra restaurar`} />
+        <KpiRetencao
+          valor={kpis.passou_do_prazo}
+          rotulo="Passou do prazo"
+          nota="e não foi deletado"
+          tom="perigo"
+        />
+      </Grid>
+
+      {/* O banner só aparece quando HÁ o problema — nota permanente vira paisagem. */}
+      {kpis.passou_do_prazo > 0 && (
+        <Box bg="card" border rounded="lg" p={4} className="border-destructive/40">
+          <Stack gap={2}>
+            <span className="text-sm font-medium text-destructive">
+              {kpis.passou_do_prazo} {kpis.passou_do_prazo === 1 ? 'arquivo passou' : 'arquivos passaram'} do prazo e
+              continuam no disco
+            </span>
+            <p className="max-w-[72ch] text-xs leading-relaxed text-muted-foreground">
+              É exatamente o WARN do <code>HealthCheckCommand</code> (check #4): guardar dado além da finalidade é o
+              oposto do que a LGPD Art. 16 pede. Quem apaga é o <code>arquivos:retention-cleanup</code>, com{' '}
+              <code>strategy={retencao.estrategia}</code>.
+            </p>
+          </Stack>
+        </Box>
+      )}
+
+      {/* A política, com a LEI ao lado do prazo — é o Goal do charter, e o número sozinho
+          não ensina o domínio. A contagem por contexto vem do mesmo leitor. */}
+      <Box bg="card" border rounded="lg" p={0} data-contract="retencao-politica">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+              <th className="px-4 py-3 font-medium">Contexto</th>
+              <th className="px-4 py-3 text-right font-medium">Prazo</th>
+              <th className="px-4 py-3 font-medium">Base legal</th>
+              <th className="px-4 py-3 text-right font-medium">Arquivos</th>
+            </tr>
+          </thead>
+          <tbody>
+            {politica.map((p) => (
+              <tr key={p.sub} className="border-b border-border last:border-b-0">
+                <td className="px-4 py-3">
+                  <code className="text-xs">{p.sub}</code>
+                </td>
+                <td className="px-4 py-3 text-right tabular-nums">
+                  {p.dias >= 365 ? `${Math.round(p.dias / 365)} anos` : `${p.dias} dias`}
+                </td>
+                <td className="px-4 py-3 text-xs text-muted-foreground">{p.lei}</td>
+                <td className="px-4 py-3 text-right tabular-nums">{retencao.por_contexto[p.sub] ?? 0}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Box>
+
+      <Grid min="sm" gap={4} data-contract="retencao-regras">
+        <Box bg="card" border rounded="lg" p={4}>
+          <Stack gap={1}>
+            <span className="text-xs text-muted-foreground">Grace period</span>
+            <span className="text-lg font-medium tabular-nums">{retencao.grace_dias} dias</span>
+            <span className="text-xs text-muted-foreground">janela pra restaurar depois do prazo vencer</span>
+          </Stack>
+        </Box>
+        <Box bg="card" border rounded="lg" p={4}>
+          <Stack gap={1}>
+            <span className="text-xs text-muted-foreground">Aviso ao titular</span>
+            <span className="text-lg font-medium tabular-nums">{retencao.notice_dias} dias</span>
+            <span className="text-xs text-muted-foreground">
+              LGPD Art. 18 §VI — <strong>ainda não implementado</strong>, é config aspiracional
+            </span>
+          </Stack>
+        </Box>
+        <Box bg="card" border rounded="lg" p={4}>
+          <Stack gap={1}>
+            <span className="text-xs text-muted-foreground">Estratégia</span>
+            <span className="text-lg font-medium">{retencao.estrategia}</span>
+            <span className="text-xs text-muted-foreground">
+              apagar de verdade; <code>anonymize</code> disponível por arquivo
+            </span>
+          </Stack>
+        </Box>
+        <Box bg="card" border rounded="lg" p={4}>
+          <Stack gap={1}>
+            <span className="text-xs text-muted-foreground">Escopo do job</span>
+            {/* O protótipo escreve o nome da coluna aqui. A regra `ds/no-db-jargon-in-ui`
+                proíbe jargão de banco em texto visível — e ela está certa: quem lê a tela
+                quer saber que o job não atravessa empresas, não o nome do campo. Mesmo
+                tratamento de bucket, visibilidade e disco: negócio na tela, técnico no
+                `title`. Divergência do protótipo declarada, não esquecida. */}
+            <span className="text-lg font-medium" title="business_id (ADR 0093)">
+              Uma empresa por vez
+            </span>
+            <span className="text-xs text-muted-foreground">nunca atravessa empresas (ADR 0093)</span>
+          </Stack>
+        </Box>
+      </Grid>
+
+      {/* A frase que a proposta de ADR EXIGE que esta vista diga. Sem ela, a tela mostraria
+          "o que o agendado faria hoje" para um agendado que ninguém marcou. O estado vem do
+          runtime (`Schedule::events()`), não de leitura do Kernel. */}
+      <p className="max-w-[72ch] text-xs leading-relaxed text-muted-foreground">
+        {retencao.agendado ? (
+          <>
+            O <code>arquivos:retention-cleanup</code> está <strong>agendado</strong> — os números acima são o que ele
+            encontraria na próxima execução.
+          </>
+        ) : (
+          <>
+            ⚠️ O <code>arquivos:retention-cleanup</code> <strong>não está agendado</strong>: ele existe, está
+            registrado, e só roda se alguém digitar o comando. Os números acima dizem o que ele encontraria — não o
+            que vai acontecer sozinho. Ligar a execução (pela tela ou pelo agendado) é decisão que depende da ADR{' '}
+            <code>arquivos-retencao-ui-aviso-titular</code>.
+          </>
+        )}{' '}
+        Prazo é lei, não preferência: mudar um número aqui muda <code>Config/config.php</code> <strong>e</strong>{' '}
+        <code>Config/retention.php</code> — são espelho, e divergir é achado de auditoria.
+      </p>
+    </Stack>
+  )
+}
+
 function Cofre({ cofre }: { cofre?: CofrePayload }) {
   if (!cofre) return null
 
@@ -718,8 +914,9 @@ function Cofre({ cofre }: { cofre?: CofrePayload }) {
   )
 }
 
-export default function Index({ filtros, politica, resumo, acervo, trilha, cofre }: Props) {
-  const vista = filtros.tab === 'trilha' || filtros.tab === 'cofre' ? filtros.tab : 'acervo'
+export default function Index({ filtros, politica, resumo, acervo, trilha, cofre, retencao }: Props) {
+  const vista =
+    filtros.tab === 'trilha' || filtros.tab === 'cofre' || filtros.tab === 'retencao' ? filtros.tab : 'acervo'
 
   const irPara = (patch: Record<string, ValorDeQuery>) =>
     router.get('/arquivos', paraNavegacao(filtros, patch), { preserveState: true, replace: true })
@@ -738,8 +935,20 @@ export default function Index({ filtros, politica, resumo, acervo, trilha, cofre
   // O subtítulo do acervo agora fala do ACERVO, não da página. Ele dizia "N nesta página",
   // que é outro número — e o `defer` fazia a frase nascer vazia até o payload chegar. O
   // `resumo` é eager: o cabeçalho pinta com o número certo no primeiro render.
+  // A Retencao fala de PRAZO, nao de volume — por isso o subtitulo dela conta o que decide
+  // acao (o que passou do prazo), nao quantos arquivos existem.
+  const subtituloRetencao = !retencao
+    ? 'medindo a retencao…'
+    : !retencao.disponivel
+      ? 'nao foi possivel medir'
+      : retencao.kpis.passou_do_prazo > 0
+        ? `${retencao.kpis.passou_do_prazo} passaram do prazo · ${retencao.kpis.vence_30} vencem em 30 dias`
+        : `nada passou do prazo · ${retencao.kpis.vence_30} vencem em 30 dias`
+
   const subtitulo =
-    vista === 'cofre'
+    vista === 'retencao'
+      ? subtituloRetencao
+      : vista === 'cofre'
       ? subtituloCofre
       : vista === 'trilha'
         ? `${resumo.eventos} eventos registrados`
@@ -793,6 +1002,7 @@ export default function Index({ filtros, politica, resumo, acervo, trilha, cofre
             <PageHeaderTabs
               ghosts={[
                 { key: 'acervo', label: 'Acervo', href: '/arquivos?tab=acervo', badge: resumo.arquivos },
+                { key: 'retencao', label: 'Retenção', href: '/arquivos?tab=retencao' },
                 { key: 'cofre', label: 'Cofre', href: '/arquivos?tab=cofre' },
                 { key: 'trilha', label: 'Trilha', href: '/arquivos?tab=trilha', badge: resumo.eventos },
               ]}
@@ -845,6 +1055,16 @@ export default function Index({ filtros, politica, resumo, acervo, trilha, cofre
                 não serve arquivo cifrado (ADR 0123 §6), e o link assinado expira em 60 min. Esta tela não
                 envia arquivo: upload entra pelos módulos, via trait <code>HasArquivos</code>.
               </p>
+            </div>
+          )}
+
+          {vista === 'retencao' && (
+            <div className="space-y-4">
+              <div data-contract="retencao">
+                <Deferred data="retencao" fallback={<TabelaSkeleton />}>
+                  <Retencao retencao={retencao} politica={politica} />
+                </Deferred>
+              </div>
             </div>
           )}
 

@@ -72,16 +72,17 @@ class CofreStatsReader
      */
     public function fetch(): array
     {
-        // D9.a OTel: o span envolve os QUATRO grupos de agregação (discos, acima do cap,
-        // órfãos, duplicados) — GROUP BY/COUNT/SUM sobre `arquivos`, várias idas ao banco
-        // numa só chamada. É o ponto do módulo cujo custo cresce com o acervo, logo é o
-        // que vale vigiar por latência. Zero-cost no callback quando otel.enabled=false.
-        return OtelHelper::spanBiz('arquivos.cofre.stats', function (): array {
-            // Portão fail-closed (ver docblock da classe) + módulo não instalado.
-            if ($this->businessIdDaSessao() === null || ! Schema::hasTable('arquivos')) {
-                return $this->vazio();
-            }
+        // Portão fail-closed (ver docblock da classe) + módulo não instalado.
+        if ($this->businessIdDaSessao() === null || ! Schema::hasTable('arquivos')) {
+            return $this->vazio();
+        }
 
+        // Span porque este metodo e CARO e o custo cresce com o acervo: 4 agregados, um
+        // deles com GROUP BY sobre o hash. Sem trace, uma vista lenta num tenant grande
+        // aparece como "a tela de Arquivos esta pesada" e ninguem sabe qual dos 4. Mesmo
+        // padrao dos vizinhos (ArquivosService, CuradorStatsReader) — zero-cost quando
+        // `otel.enabled=false`.
+        return OtelHelper::spanBiz('arquivos.cofre.fetch', function () {
             return [
                 'disponivel'   => true,
                 'cap_mb'       => $this->capMb(),
@@ -90,10 +91,7 @@ class CofreStatsReader
                 'orfaos'       => $this->orfaos(),
                 'duplicados'   => $this->duplicados(),
             ];
-        }, [
-            'module'    => 'Arquivos',
-            'component' => 'arquivos.index.cofre',
-        ]);
+        }, ['module' => 'Arquivos', 'component' => 'arquivos.cofre']);
     }
 
     /**

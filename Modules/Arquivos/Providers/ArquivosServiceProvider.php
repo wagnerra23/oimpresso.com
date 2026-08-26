@@ -61,6 +61,18 @@ class ArquivosServiceProvider extends ServiceProvider
         // nao tem schedule — nada apaga sozinho por causa deste registro.
         $this->mergeConfigFrom(__DIR__ . '/../Config/config.php', 'arquivos');
 
+        // `retention.php` também nunca foi registrado — mesmo defeito, achado na vista de
+        // Retenção (2026-08-25): `grace_period_days`, `notice_period_days` e `strategy`
+        // viviam num arquivo que `config()` não alcançava, e a tela precisa DIZER esses
+        // números (são a regra que o operador tem de entender, não detalhe interno).
+        //
+        // Namespace PRÓPRIO (`arquivos_retention`), não fundido em `arquivos`: os dois
+        // arquivos declaram o prazo por contexto — `retention_days_policy` lá,
+        // `entities` aqui — e o `casos.md` os trata como ESPELHO, onde divergir é achado
+        // de auditoria. Fundir faria um sobrescrever o outro em silêncio, que é o oposto
+        // de conseguir detectar a divergência.
+        $this->mergeConfigFrom(__DIR__ . '/../Config/retention.php', 'arquivos_retention');
+
         $this->app->singleton(CuradorEngine::class);
         $this->app->singleton(VaultEncryptionService::class);
         $this->app->singleton(ArquivosService::class);

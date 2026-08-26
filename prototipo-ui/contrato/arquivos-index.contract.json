@@ -18,6 +18,7 @@
       "id": "abas",
       "copy": [
         "Acervo",
+        "Retenção",
         "Cofre",
         "Trilha"
       ]
@@ -43,6 +44,34 @@
         "Vence em",
         "Buscar por nome, dono ou contexto…",
         "Nenhum arquivo guardado ainda."
+      ]
+    },
+    {
+      "id": "retencao-kpis",
+      "copy": [
+        "Vence em 30 dias",
+        "Vence em 90 dias",
+        "No grace period",
+        "Passou do prazo",
+        "e não foi deletado"
+      ]
+    },
+    {
+      "id": "retencao-politica",
+      "copy": [
+        "Contexto",
+        "Prazo",
+        "Base legal",
+        "Arquivos"
+      ]
+    },
+    {
+      "id": "retencao-regras",
+      "copy": [
+        "Grace period",
+        "Aviso ao titular",
+        "Estratégia",
+        "Escopo do job"
       ]
     },
     {
@@ -94,11 +123,12 @@
     "trilha"
   ],
   "_pendente_w": [
-    "ABAS — o protótipo tem QUATRO vistas (Acervo · Retenção · Cofre · Trilha); a tela tem DUAS. `abas` pina só \"Acervo\" e \"Trilha\" porque são as que existem: pinar \"Retenção\"/\"Cofre\" faria o contrato reprovar por construção, e contrato que já nasce vermelho ensina a ignorar o gate. Entram aqui quando as vistas entrarem (PR-3 retenção, PR-4 cofre).",
+    "ABAS — RESOLVIDO em 2026-08-25: as QUATRO vistas do prototipo existem na tela (Acervo, Retencao, Cofre, Trilha) e a copy das 4 esta pinada. A nota anterior dizia que pinar \"Retencao\"/\"Cofre\" reprovaria por construcao, e estava certa ENQUANTO elas nao existiam.",
     "DIVERGÊNCIA DE COPY MEDIDA — a última coluna da Trilha: o protótipo diz \"Payload\", a tela diz \"Detalhe\". O contrato pina \"Detalhe\" porque é o que o alvo tem HOJE (pinar \"Payload\" deixaria o gate vermelho sem ninguém ter regredido). Qual das duas é a palavra certa é decisão [W]: se for \"Payload\", muda-se a tela E esta linha no MESMO PR (regra de precedência — o perdedor se corrige junto).",
     "SUBTÍTULO do PageHeader não é pinável: é template string derivada do paginador (\"N nesta página · N no cofre cifrado\" / \"N eventos registrados\"). Contrato pina literal, e o literal aqui é composto em runtime.",
     "CHIPS DE BUCKET (`sensitive`/`active`/`memory`/`discard`) ficam fora da copy de propósito: são chaves de DOMÍNIO renderizadas como valor, não copy de design. Se virarem rótulo traduzido em PT-BR, aí sim entram — e a decisão do rótulo é [W].",
     "ORDEM das secoes do COFRE fora da lista — MEDIDO em 2026-08-25: o gate verifica a ordem por APARICAO NO ARQUIVO, e as ancoras \"cofre-discos\" e \"cofre-achados\" vivem no componente \"Cofre\", que e DECLARADO acima do \"Index\". No fonte elas aparecem primeiro; no render, no meio. Pinar a ordem delas reprovaria por construcao, e afrouxar o gate pra acomodar seria pior. A COPY delas segue pinada — so a ORDEM fica de fora.",
-    "COPY LONGA em JSX quebra em varias linhas (prettier), e o gate casa substring CONTIGUA. Por isso \"cofre-achados\" pina fragmentos (\"do cap de\", \"Sprint 2 (ADR 0126)\") em vez da frase inteira: pinar a frase completa deixaria o contrato refem da largura de linha do formatador. Tambem por isso \"do cap de\" e nao \"acima do cap de\" — ha interpolacao no meio."
+    "COPY LONGA em JSX quebra em varias linhas (prettier), e o gate casa substring CONTIGUA. Por isso \"cofre-achados\" pina fragmentos (\"do cap de\", \"Sprint 2 (ADR 0126)\") em vez da frase inteira: pinar a frase completa deixaria o contrato refem da largura de linha do formatador. Tambem por isso \"do cap de\" e nao \"acima do cap de\" — ha interpolacao no meio.",
+    "ORDEM das secoes de RETENCAO tambem fora da lista, pelo mesmo motivo das do cofre: o componente \"Retencao\" e declarado acima do \"Index\", entao no ARQUIVO as ancoras dele aparecem antes. A COPY segue pinada."
   ]
 }
