@@ -265,10 +265,19 @@ class PackagesController extends Controller
         //
         // A defesa e o `can('superadmin')` acima, que aborta 403 antes de qualquer query.
         //
-        // O `NoMissingTenantScopeRule` pedia exatamente isto: "confirme `BusinessScope`
-        // global no Model + comentario explicito". Ate hoje a violacao vivia no
-        // `phpstan-baseline.neon` como divida; este PR a RESOLVE e remove a entrada, em vez
-        // de re-baselinar a contagem de queries.
+        // ATENCAO a quem for "resolver" isto: este comentario NAO satisfaz o
+        // `NoMissingTenantScopeRule`, e eu tentei. O `serializeMethodBody()` daquela regra
+        // percorre a AST e coleta so literais de string, nomes de variavel, identificadores
+        // e nomes de classe — COMENTARIO NAO EXISTE NA AST. O docblock da regra fala em
+        // "comentario explicito", mas a implementacao nao le comentario nenhum.
+        //
+        // A violacao segue registrada no `phpstan-baseline.neon` (com a contagem de queries
+        // deste metodo). Este texto existe para o LEITOR, nao para o linter: ele responde a
+        // pergunta que a regra levanta e que ninguem conseguiria responder sozinho.
+        //
+        // Resolver de verdade exigiria `withoutGlobalScope(BusinessScope::class)` — que aqui
+        // seria MENTIRA, porque nao ha escopo pra remover. Colocar a string so pra calar o
+        // linter e pior que a divida: silencia a regra sem mudar nada.
 
         try {
             $packages_details = $request->only(['name', 'id', 'description', 'location_count', 'user_count', 'product_count', 'invoice_count', 'interval', 'interval_count', 'trial_days', 'price', 'sort_order', 'is_active', 'custom_permissions', 'is_private', 'is_one_time', 'enable_custom_link', 'custom_link', 'custom_link_text']);
