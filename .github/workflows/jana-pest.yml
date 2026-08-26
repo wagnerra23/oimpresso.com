@@ -174,6 +174,7 @@ jobs:
             Modules/Jana/Tests/Feature/FarolServerSideTest.php \
             Modules/Jana/Tests/Feature/PainelContratoTest.php \
             Modules/Jana/Tests/Feature/Chat/ChatConversasPreviewTest.php \
+            Modules/Jana/Tests/Feature/Chat/ChatAntiHooksAcaoTest.php \
             Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitShaPreservaTest.php \
             Modules/Jana/Tests/Feature/Mcp/McpTokenUsoThrottleTest.php \
             Modules/Jana/Tests/Feature/Mcp/QuotaEnforcerFastPathTest.php \
@@ -184,16 +185,36 @@ jobs:
           # acima: usa DatabaseTransactions, zero RefreshDatabase/migrate:fresh/
           # dropIfExists. A prova de que passou a rodar e o CONTADOR desta lane subir.
           #
-          # ACHADO NAO CONSERTADO AQUI (medido 2026-08-17): os OUTROS tres testes do
-          # Chat — Chat/ChatAntiHooksTier0Test, Chat/ChatAntiHooksAcaoTest e
-          # Chat/ChatTokensTurnoTest — nao estao em lane NENHUMA. Nem aqui, nem em
+          # ChatAntiHooksAcaoTest ENTROU em 2026-08-26, fechando metade do achado que
+          # a redacao anterior deste bloco (2026-08-17) deixou em aberto. Ele estava
+          # de fora porque nascia VERMELHO nos dois UCs; os dois foram medidos no
+          # CT 100 e deram desfechos DIFERENTES:
+          #
+          #   UC-09 (tool declara permissao) — achado REAL. As 5 tools do chat nao
+          #   declaravam nada. Fechado implementando `Modules/Jana/Contracts/
+          #   DeclaraPermissao` + `permission()` nas 5, cada uma citando a TABELA que
+          #   le. DECLARA, nao enforca: as mesmas tools sao instanciadas pelo
+          #   BriefDiarioAgent, que roda no cron `brief:generate` SEM auth()->user(),
+          #   entao um can() no handle() estouraria headless (medido).
+          #
+          #   UC-10 (PII no sink de log) — FALSO POSITIVO do MEDIDOR, nao vazamento.
+          #   O espiao antigo sobrescrevia `startTrace()` e lia `$attrs` na ENTRADA,
+          #   uma camada ANTES da redacao: o LangfuseClient redige dentro, no
+          #   `traceEvent()` (`maybeRedact`), idem `endTrace`/`generationEvent`.
+          #   Probe de egresso no CT 100 provou o CPF saindo com placeholder. A sonda
+          #   passou a interceptar `dispatch()` — o egresso real. Mesma familia do
+          #   UC-08 no PR #6310 (la o preventStrayRequests pegava o SSR do Inertia).
+          #   Nao foi afrouxamento: o assert ficou mais LARGO (cobre o `metadata`,
+          #   que o traceEvent mescla CRU). Bite-test dos dois lados, no CT 100:
+          #   redacao neutralizada -> VERMELHO; PII em metadata -> VERMELHO.
+          #
+          # SEGUE FORA DE LANE NENHUMA (medido 2026-08-26, nem aqui, nem em
           # .github/ci-sqlite-pest.list, e `Jana` nao esta na matrix do
-          # modules-pest.yml. Logo os UC-05..UC-10 do Chat.casos.md, marcados
-          # `aguarda run verde`, nunca podem virar verdes — e dois deles sao Tier 0
-          # (cross-tenant e PII). NAO os inclui junto porque o AcaoTest (UC-09/UC-10)
-          # nasce VERMELHO por desenho: acusa tool sem declaracao de permissao e PII
-          # crua no log. Liga-lo aqui deixaria o main vermelho ate os defeitos serem
-          # corrigidos, e isso e decisao [W] — nao efeito colateral de um PR de payload.
+          # modules-pest.yml): Chat/ChatAntiHooksTier0Test (UC-05..UC-08 — dono e o
+          # PR #6310, cujo UC-08 continua vermelho por decisao [W]) e
+          # Chat/ChatTokensTurnoTest. Enquanto estiverem fora, o `🧪` deles no
+          # Chat.casos.md nao pode virar ✅ — a lane lista ARQUIVO, e registrar o
+          # teste no repo nao e a lane executa-lo (§5 2026-08-02 + emenda 08-12).
           #
           # PainelContratoTest ENTROU em 2026-08-17. Ele nasceu no PR #5862 (UC-08) e
           # ficou 1 dia FORA desta lista — logo os nove UCs do Painel nunca rodaram no
