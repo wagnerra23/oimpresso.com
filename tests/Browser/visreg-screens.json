@@ -200,6 +200,14 @@
     "baseline": "it_Cliente_Import_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
+    "screen": "Cliente/Map",
+    "source": "Cliente/Map",
+    "component": "Cliente/Map",
+    "route": "/contacts/map",
+    "anchor": "Mapa de clientes",
+    "baseline": "it_Cliente_Map_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
     "screen": "Arquivos",
     "source": "Arquivos",
     "component": "Arquivos/Index",
