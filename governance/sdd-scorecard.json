@@ -262,15 +262,17 @@
     },
     "drift_alarms": {
       "status": "measured",
-      "value": 0,
+      "value": 1,
       "unit": "alarmes duros (reds do protection-drift · GT-G4)",
       "direction": "down",
       "target": "advisory perene (0 alarmes duros)",
       "source": "scripts/governance/protection-drift.mjs --json .reds.length (drift de branch protection + watchdog staleness · GT-G4 · P08)",
       "detail": {
-        "reds": [],
+        "reds": [
+          "required SUMIU do vivo: \"visual-regression\" — demoção exige PR editando governance/required-checks-baseline.json + ADR (ADR 0275 §5)"
+        ],
         "warns": 0,
-        "verdict": "green"
+        "verdict": "red"
       },
       "stream": "GT"
     },
