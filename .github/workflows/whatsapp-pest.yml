@@ -95,7 +95,7 @@ jobs:
         # phpunit.xml declara DB_CONNECTION=sqlite (sem force=true) — exportar aqui
         # faz a suíte rodar no MySQL real semeado, não no :memory:.
         #
-        # ── ALLOWLIST (1 arquivo · burn-down da quarentena era-sqlite começou 2026-08-07) ──
+        # ── ALLOWLIST (2 arquivos · burn-down da quarentena era-sqlite começou 2026-08-07) ──
         # RegisterWhatsappPermissionsCommandTest: 1º convertido. PROVADO VERDE contra MySQL
         # real no CT 100 antes do merge — 10 passed / 34 assertions (ADR 0062: teste roda no
         # CT 100, nunca local). O run anterior, com o checkout velho do container (pré-#5381,
@@ -104,6 +104,12 @@ jobs:
         # DataController de main (7 permissions) fica 10/10, e o estado do banco ficou
         # BYTE-A-BYTE igual antes e depois (DatabaseTransactions reverteu: biz 97/98 não
         # sobraram, users rwp_owner_* = 0).
+        #
+        # EmployeePerformanceDiasAtivosTest: nasce MySQL-real (nao veio da quarentena).
+        # Defende dias_ativos_30d do EmployeePerformanceRebuilder, que morria em
+        # SQLSTATE 42S22 (alias no agregado) e era engolido por catch (Throwable) desde
+        # 2026-05-15 -- 164 ocorrencias no laravel.log de prod na janela 06-21..08-26.
+        # BITE-TEST: com o ->count('d') de volta, o 1o caso vai a vermelho (0 !== 3).
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -115,7 +121,8 @@ jobs:
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-whatsapp-junit.xml \
-            Modules/Whatsapp/Tests/Feature/RegisterWhatsappPermissionsCommandTest.php
+            Modules/Whatsapp/Tests/Feature/RegisterWhatsappPermissionsCommandTest.php \
+            Modules/Whatsapp/Tests/Feature/EmployeePerformanceDiasAtivosTest.php
 
       - name: Sumario JUnit (prova de EXECUÇÃO — skip sai exit 0, leia assertions)
         if: always() && steps.changes.outputs.whatsapp == 'true'
