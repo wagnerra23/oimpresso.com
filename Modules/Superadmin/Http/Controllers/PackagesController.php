@@ -265,6 +265,34 @@ class PackagesController extends Controller
 
             $package = Package::where('id', $id)
                             ->first();
+
+            // ── PRESERVACAO DE CHAVE NAO-RENDERIZAVEL ────────────────────────────────
+            // O formulario so consegue expressar o que `getModuleData('superadmin_package')`
+            // devolve (mesma fonte do `edit()` acima). Chave fora desse catalogo NAO vira
+            // checkbox, logo NAO volta no POST — e, como o `only()` acima SUBSTITUI o array
+            // inteiro, ela sumia em silencio no primeiro Salvar.
+            //
+            // Medido em producao 2026-08-26, pacote 1: 13 chaves gravadas, 8 marcaveis na
+            // tela, 5 perdidas ao salvar (`chat_`, `crm_`, `help_`, `jana_`, `project_`).
+            // `crm_module` e lido em 91 pontos, incl. o login de `user_customer`.
+            //
+            // A regra: o catalogo define o que a UI PODE dizer. Dentro dele, o checkbox
+            // manda (desmarcar continua REVOGANDO). Fora dele, preserva-se — porque a UI
+            // nao tem como expressar aquela chave, nem para manter nem para tirar.
+            $renderable = [];
+            foreach ($this->moduleUtil->getModuleData('superadmin_package', true) as $items) {
+                foreach ((array) $items as $item) {
+                    if (! empty($item['name'])) {
+                        $renderable[$item['name']] = true;
+                    }
+                }
+            }
+
+            $submitted = (array) ($packages_details['custom_permissions'] ?? []);
+            $preserved = array_diff_key((array) ($package->custom_permissions ?? []), $renderable);
+            $merged = $submitted + $preserved;
+            $packages_details['custom_permissions'] = empty($merged) ? null : $merged;
+
             $package->fill($packages_details);
             $package->save();
 
@@ -282,10 +310,31 @@ class PackagesController extends Controller
                     }
                 }
 
-                //Update subscription package details
+                // Mesma regra do lado da ASSINATURA, e aqui o dano era pior: o rebuild
+                // copiava so do pacote, entao chave que vivia SO na assinatura sumia. Caso
+                // real medido: `nfebrasil_module` nas assinaturas 111/116 do business 164
+                // (piloto LIVE) — o pacote 11 grava `nfe_brasil_module`, que ninguem le.
+                //
+                // Por isso o loop substitui o mass update: a preservacao e POR LINHA, cada
+                // assinatura tem as suas chaves orfas. Segue usando o query builder (sem
+                // `save()`) para nao mudar o comportamento de eventos/observers deste fluxo.
                 $subscriptions = Subscription::where('package_id', $package->id)
                                             ->whereDate('end_date', '>=', \Carbon::now())
-                                            ->update(['package_details' => json_encode($package_details)]);
+                                            ->get();
+
+                foreach ($subscriptions as $subscription) {
+                    $orfas = array_diff_key((array) ($subscription->package_details ?? []), $renderable);
+                    unset(
+                        $orfas['location_count'],
+                        $orfas['user_count'],
+                        $orfas['product_count'],
+                        $orfas['invoice_count'],
+                        $orfas['name']
+                    );
+
+                    Subscription::where('id', $subscription->id)
+                                ->update(['package_details' => json_encode($package_details + $orfas)]);
+                }
             }
 
             $output = ['success' => 1, 'msg' => __('lang_v1.success')];
