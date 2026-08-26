@@ -1946,7 +1946,17 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       {/* Wagner 2026-05-27 HOTFIX: AlertDialog shadcn substitui window.confirm() nativo
           do browser pra auto-save de rascunho (US-SELL-007). Smoke prod 2026-05-27: UI
           consistente com resto da app, evita "alert cinza ugly" que destoava. */}
-      <AlertDialog open={!!draftRecover} onOpenChange={(open) => { if (!open) handleDraftDiscard(); }}>
+      {/* 2026-08-26 — fechar o diálogo NÃO descarta mais o rascunho.
+          Antes o onOpenChange chamava handleDraftDiscard(), que faz
+          localStorage.removeItem() — irreversível. Ou seja: Esc, clique fora ou
+          qualquer fechamento que não fosse o botão "Recuperar" apagava a venda
+          montada, em silêncio e sem confirmação. Quem está no balcão com fila na
+          frente fecha diálogo por reflexo — e foi assim que a ROTA LIVRE (biz=4)
+          perdeu o que tinha digitado e passou a anotar código de produto no papel
+          durante as janelas de deploy. Agora só o botão "Descartar" apaga; fechar
+          por engano preserva o rascunho e a pergunta volta na próxima montagem
+          (o TTL de 24h continua limpando sozinho o que ficou para trás). */}
+      <AlertDialog open={!!draftRecover} onOpenChange={(open) => { if (!open) setDraftRecover(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Recuperar rascunho de venda?</AlertDialogTitle>
