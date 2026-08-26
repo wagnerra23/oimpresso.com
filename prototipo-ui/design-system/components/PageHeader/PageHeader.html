@@ -1,0 +1,49 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="PageHeader" subtitle="Clientes-style header + TabBar (slot 1 + 2)" viewport="820x220" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>PageHeader</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style>
+  body { padding: 18px; }
+  .btn { display:inline-flex; align-items:center; gap:7px; height:36px; padding:0 15px; border-radius:8px; font-size:13.5px; font-weight:500; border:1px solid transparent; cursor:pointer; }
+  .btn.ghost { background: var(--surface); color: var(--text-dim); border-color: var(--border); }
+  .btn.primary { background: var(--accent); color: #fff; }
+  .ic { width:15px; height:15px; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/javascript">
+  const { PageHeader, TabBar } = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+  const h = React.createElement;
+  const ic = (d) => h('svg', { className: 'ic', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.75, strokeLinecap: 'round', strokeLinejoin: 'round' }, h('path', { d }));
+  const tic = (...ds) => h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.75, strokeLinecap: 'round', strokeLinejoin: 'round' }, ds.map((d, i) => h('path', { key: i, d })));
+  function App() {
+    const [active, setActive] = React.useState('clientes');
+    return h(React.Fragment, null,
+      h(PageHeader, {
+        title: 'Clientes',
+        stats: [{ value: '15', label: 'cadastrados' }, { value: '5', label: 'VIPs' }, { value: '3', label: 'com saldo', tone: 'danger' }],
+        actions: h(React.Fragment, null,
+          h('button', { className: 'btn ghost' }, ic('M12 19V5M5 12l7-7 7 7'), 'Importar'),
+          h('button', { className: 'btn primary' }, ic('M12 5v14M5 12h14'), 'Novo cliente')),
+      }),
+      h('div', { style: { marginTop: 4 } },
+        h(TabBar, { active, onChange: setActive, tabs: [
+          { key: 'todos', label: 'Todos', count: 32, icon: tic('M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01') },
+          { key: 'clientes', label: 'Clientes', count: 15, icon: tic('M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2', 'M12 7a4 4 0 1 0 0-.001') },
+          { key: 'fornecedores', label: 'Fornecedores', count: 7, icon: tic('M21 8l-9-5-9 5 9 5 9-5z', 'M3 8v8l9 5 9-5V8') },
+          { key: 'funcionarios', label: 'Funcionários', count: 7, icon: tic('M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2', 'M12 7a4 4 0 1 0 0-.001') },
+          { key: 'representantes', label: 'Representantes', count: 3, icon: tic('M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2', 'M9 7a4 4 0 1 0 0-.001', 'M22 21v-2a4 4 0 0 0-3-3.87') },
+        ] })),
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+</script>
+</body>
+</html>
