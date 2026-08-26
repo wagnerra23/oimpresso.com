@@ -45,4 +45,26 @@ return [
 
     'freeze_clock' => env('VISREG_FREEZE_CLOCK'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Data do titulo-fixture do Financeiro (VISREG-FIN-001)
+    |--------------------------------------------------------------------------
+    |
+    | MESMO botao que 'freeze_clock', so que recortado no dia. Existe porque a
+    | linha VISREG-FIN-001 tem QUATRO escritores com a mesma chave de
+    | updateOrInsert (seeder, closure /_visreg-login em routes/web.php,
+    | UnificadoController::ensureVisregFlowTitulo e semearTituloVisualFinanceiro
+    | do FinanceiroFlowBaselineTest). Enquanto tres deles derivavam a data de
+    | now(), o valor gravado dependia de QUAL processo escreveu por ultimo — e
+    | os modos update (workflow_dispatch) e verify (pull_request) nao rodam os
+    | mesmos steps, entao fotografavam dados diferentes.
+    |
+    | Derivar do MESMO instante do relogio congelado torna impossivel a fixture
+    | e o relogio discordarem: muda-se VISREG_FREEZE_CLOCK e os dois andam juntos.
+    | Fora do gate (env ausente) cai no literal, que e o que o seeder ja usava.
+    |
+    */
+
+    'fixture_date' => substr(env('VISREG_FREEZE_CLOCK') ?: '2026-06-11 12:00:00', 0, 10),
+
 ];
