@@ -104,7 +104,7 @@ it('UC-PRO-02 · payload contém o contrato do paywall: plan + pricing + proof +
 });
 
 /** P3 · UC-PRO-03 — preço e trial batem o plano comercial (ADR 0140). */
-it('UC-PRO-03 · pricing = R$ 49/mês + trial 14 dias (ADR 0140)', function () {
+it('UC-PRO-03 · pricing mensal + trial de 14 dias batem o plano comercial (ADR 0140)', function () {
     $response = $this->get('/ia/pro');
 
     $response->assertInertia(fn ($page) => $page
