@@ -122,7 +122,11 @@ return [
     ],
 
     // Wave 1 B3 Cliente — 2026-05-15 (W1-B3 retry) — 7 telas Contact/Cliente
-    // Default OFF · Rollout canary biz=1 (Wagner WR2 SC); biz=4 (ROTA LIVRE) só após canary.
+    // Plano de 2026-05-15: default OFF · canary biz=1 (Wagner WR2 SC) · biz=4 (ROTA LIVRE) só após canary.
+    // MEDIDO em 2026-08-26 no .env de prod (Hostinger, sem config cache): as 7 envs MWART_CLIENTE_*
+    // estavam `true` e SEM allowlist `_BIZ` — ou seja, React para todos os tenants; o canary terminou.
+    // O `false` abaixo é só fallback de ausência da env. Estado vivo: governance/prod-flags.json
+    // (derivado por `php artisan governance:prod-flags`) — não restatear aqui, que apodrece.
 
     'cliente_index' => [
         'enabled'      => env('MWART_CLIENTE_INDEX', false),
