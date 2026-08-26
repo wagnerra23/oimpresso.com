@@ -34,52 +34,59 @@ use Illuminate\Support\Facades\DB;
  * `now()`/`addDays()` nem por uma data futura** — seria reintroduzir o mesmo
  * apodrecimento com outro número.
  *
- * ⚠️ O QUE NÃO FOI EXPLICADO, e fica registrado em vez de virar certeza falsa:
- * no diff, a data EXIBIDA na coluna Vencimento aparece como `06/06`, não
- * `11/06`. Medido em 2026-08-17: este é o ÚNICO seeder que escreve `fin_titulos`,
- * e ele grava o literal `2026-06-11`; `2026-06-06` não aparece em seeder nenhum
- * (só como `setTestNow` de `A11yAxeBrowserTest`/`AuthBridgeSmokeTest`). Leitura
- * estática não explica a diferença — quem for rebakar a baseline confira o valor
- * renderizado antes de assumir que está certo.
+ * -- POR QUE O `06/06` (medido 2026-08-26; corrigido por revisao adversarial) -------
  *
- * ── CONFERÊNCIA FEITA (2026-08-17, sessão do rebake) ────────────────────────
+ * As sessoes de 17/08 e 20/08 deixaram aberto por que o modo VERIFY renderizava
+ * `06/06 · em atraso` e o modo UPDATE renderizava `11/06 · vencendo`. Quatro rebakes
+ * trataram o sintoma. A causa e de DADO, nao de foto:
  *
- * O pedido acima foi cumprido pelo lado que dá pra medir sem runner. Decodificando
- * o `.snap` commitado de `Financeiro/Unificado` (base64 → PNG) e OLHANDO a imagem:
+ * 1. A afirmacao "este e o unico escritor" era FALSA — ela saiu de uma varredura escopada
+ *    so em `database/seeders/`. A linha VISREG-FIN-001 tem QUATRO escritores, todos com a
+ *    MESMA chave de `updateOrInsert` (logo um sobrescreve o outro):
+ *      a) este seeder;
+ *      b) a closure `$seedFinanceiroVisregFlow` em `routes/web.php`, disparada por
+ *         QUALQUER visita a `/_visreg-login?to=/financeiro/unificado`;
+ *      c) `UnificadoController::ensureVisregFlowTitulo` (rota com `_visreg_flow=1`);
+ *      d) `semearTituloVisualFinanceiro` no `FinanceiroFlowBaselineTest`.
+ *    Tres derivavam a data de `now()`.
  *
- *   coluna Vencimento = `11/06` · sub-label `vencendo` · pill `Vencendo`
- *   chip "Só atrasados" = 0 · "1 lançamento"
+ * 2. ⚠️ NAO e verdade que "no update a closure nunca dispara" — essa frase esteve neste
+ *    docblock e foi REFUTADA por medicao. O `PixelBaselineTest:201` TAMBEM visita
+ *    `/_visreg-login/{id}?to=...` (a tela 0 do `visreg-screens.json` e
+ *    `/financeiro/unificado`), e o `FinanceiroFlowBaselineTest:163` idem. A closure
+ *    dispara nos DOIS modos.
  *
- * Ou seja: a BASELINE está coerente com o literal `2026-06-11` e com o estado
- * data-futura. O `06/06`, se real, está no lado ACTUAL — não na baseline.
+ * 3. O que muda e QUAL suite dispara a closure PRIMEIRO — e cada suite tem o seu proprio
+ *    `Carbon::setTestNow`. O valor gravado acompanha o relogio do PROCESSO DE TESTE:
  *
- * Duas hipóteses foram levantadas e MORRERAM na medição, e ficam aqui pra ninguém
- * gastar a mesma hora:
+ *      update global : `visreg:update` (PixelBaselineTest, setTestNow 2026-06-11) roda
+ *                      ANTES de `visreg:states:update` -> linha fica `11/06` -> baseline.
+ *      verify        : o step `Run Pest Browser tests` (AuthBridgeSmokeTest:41 e
+ *                      A11yAxeBrowserTest:75, ambos setTestNow **2026-06-06**) roda ANTES
+ *                      do step `Estados isolados matriz` -> linha vira `06/06` -> render.
  *
- *   1. Vazamento cross-teste (a família do `oficina-os`, que o workflow documenta):
- *      REFUTADA. `fin_titulos` tem UM só escritor em `tests/Browser/`
- *      (`FinanceiroFlowBaselineTest`), e ele roda DEPOIS do `PixelBaselineTest`
- *      nos DOIS modos — update e verify. Não há como contaminar o pixel.
- *   2. Versão antiga do fixture com `2026-06-06`: REFUTADA. O arquivo tem 2
- *      commits (#4230 e #5870) e o literal sempre foi `2026-06-11`.
+ *    Correlacao perfeita com o relogio do processo de teste, nos dois modos.
  *
- * Correção de um detalhe da frase acima, pra ela não induzir a próxima varredura:
- * `Modules/Financeiro/Database/Seeders/FinanceiroDemoSeeder.php` TAMBÉM escreve
- * `fin_titulos` (com datas relativas a `Carbon::now()`). Ele não muda nada aqui —
- * não está na cadeia do `DatabaseSeeder` nem é chamado pelo workflow, logo não roda
- * no gate. Mas "único seeder do repositório" é falso; o verdadeiro é "único que
- * RODA no job visual-regression".
+ * ELO AINDA ABERTO, e agora e a pergunta CERTA (a anterior estava mal formulada):
+ * por que o `setTestNow` do processo do Pest alcanca o `now()` da closure, se o servidor
+ * esta congelado em `2026-06-11` por `AppServiceProvider:64-67` + `VISREG_FREEZE_CLOCK`?
+ * Se fosse o relogio do servidor, a closure teria gravado `2026-06-11` nos DOIS modos e o
+ * `06/06` ficaria sem autor. Teste barato que decide isso no proximo run: logar `now()` e
+ * `config('visreg.fixture_date')` lado a lado dentro da closure e ler no log do step.
  *
- * O que continua aberto: por que o actual renderiza `06/06`. `Index.tsx:1142-1147`
- * deriva o `dd/mm` de `row.vencimento.split('-')`, então só um `vencimento` em
- * 6 de junho produz aquilo — e nada no caminho de seed do job grava essa data.
- * Confira na baseline NOVA (decodifique o `.snap` do PR de rebake e olhe) antes
- * de tratá-la como certa.
+ * O CONSERTO NAO DEPENDE desse elo: com os quatro escritores lendo
+ * `config('visreg.fixture_date')`, nenhum relogio entra na conta.
+ *
+ * Por isso o literal saiu daqui. Nao troque `config('visreg.fixture_date')` por `now()`,
+ * `addDays()` nem por um literal proprio — literal proprio e como os quatro escritores
+ * comecaram a divergir.
  */
 class VisregFinanceiroFlowSeeder extends Seeder
 {
     public function run(): void
     {
+        $dia = (string) config('visreg.fixture_date');
+
         DB::table('fin_titulos')->updateOrInsert(
             ['business_id' => 1, 'origem' => 'manual', 'origem_id' => 987654, 'parcela_numero' => 1],
             [
@@ -90,9 +97,9 @@ class VisregFinanceiroFlowSeeder extends Seeder
                 'valor_total' => 1500.00,
                 'valor_aberto' => 1500.00,
                 'moeda' => 'BRL',
-                'emissao' => '2026-06-11',
-                'vencimento' => '2026-06-11',
-                'competencia_mes' => '2026-06',
+                'emissao' => $dia,
+                'vencimento' => $dia,
+                'competencia_mes' => substr($dia, 0, 7),
                 'parcela_total' => 1,
                 'created_by' => 1,
                 'updated_at' => now(),

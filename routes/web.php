@@ -98,7 +98,10 @@ if (app()->environment(['local', 'testing'])) {
             return;
         }
 
-        $dia = str_contains($to, 'data_inicio=2026-06-01') ? '2026-06-11' : now()->toDateString();
+        // NUNCA derivar de now(): esta closure roda no processo do SERVIDOR, enquanto
+        // outros escritores da MESMA chave rodam no processo do Pest — relogios distintos
+        // gravavam dias distintos e os modos update/verify fotografavam dados diferentes.
+        $dia = (string) config('visreg.fixture_date');
 
         \Illuminate\Support\Facades\DB::table('fin_titulos')->updateOrInsert(
             ['business_id' => $businessId, 'origem' => 'manual', 'origem_id' => 987654, 'parcela_numero' => 1],

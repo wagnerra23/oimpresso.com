@@ -1421,9 +1421,10 @@ class UnificadoController extends Controller
         }
 
         $userId = (int) ($request->user()?->id ?? session('user.id') ?? 1);
-        $dia = $request->string('data_inicio')->toString() === '2026-06-01'
-            ? '2026-06-11'
-            : now()->toDateString();
+        // NUNCA derivar de now() nem do filtro do request: a mesma linha e escrita por
+        // outros tres pontos (seeder, closure /_visreg-login, semearTituloVisualFinanceiro).
+        // Fonte unica = config('visreg.fixture_date'), recorte do relogio congelado.
+        $dia = (string) config('visreg.fixture_date');
 
         DB::table('fin_titulos')->updateOrInsert(
             ['business_id' => $businessId, 'origem' => 'manual', 'origem_id' => 987654, 'parcela_numero' => 1],
