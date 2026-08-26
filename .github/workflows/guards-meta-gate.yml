@@ -16,6 +16,12 @@ on:
   pull_request:
     paths:
       - 'scripts/casos-coverage-guard.mjs'
+      # deps compartilhadas do guard/coletor. Sem elas, PR que só as toca não acorda o
+      # meta-teste — e o drift nelas já causou bug 2×: o regex escondeu 35 UCs (2026-06-22)
+      # e o page-path mudou o denominador de 280 p/ 235 (2026-07-27). O ratchet always-run
+      # não cobre esse vão: regex que enxerga MENOS UC reduz violações e parece melhora.
+      - 'scripts/lib/uc-regex.mjs'
+      - 'scripts/qa/page-path.mjs'
       - 'scripts/casos-coverage-baseline.json'
       - 'scripts/casos-results-collect.mjs'
       - 'scripts/casos-test-results.json'
@@ -37,6 +43,9 @@ on:
     branches: [main]
     paths:
       - 'scripts/casos-coverage-guard.mjs'
+      # (mesmas deps compartilhadas — razão no bloco pull_request acima)
+      - 'scripts/lib/uc-regex.mjs'
+      - 'scripts/qa/page-path.mjs'
       - 'scripts/casos-results-collect.mjs'
       - 'tests/casosGuard.spec.ts'
       - 'tests/casosResultsCollect.spec.ts'
