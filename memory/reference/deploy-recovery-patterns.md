@@ -506,7 +506,14 @@ Cross-ref: `hostinger.md` (flags SSH canônicos · "esperar a rota voltar e re-d
 - **A classe que falha MUDA entre observações** (segue o último merge: 20/06 foi `McpTasksOrphansCommand` #3106 → depois `ProfileDistillCommand` #3115). Janela móvel ≠ deploy único interrompido.
 
 ### Causa-raiz
-O `deploy.yml` faz `git reset --hard origin/main` (avança o **source** pro tip atual de main) e **só depois**, num passo separado e mais lento, `composer dump-autoload -o --classmap-authoritative` (regenera o **classmap**). Numa **rajada de merges** (20/06: ~12 deploys em ~40min) com Hostinger lento (~min/deploy), o source roda à frente do classmap. Como o classmap é **authoritative** (PSR-4 fallback **desligado**), classe nova fora dele é **irresolvível**. O OS cron dispara `php artisan schedule:run` a cada minuto e cai na janela. O crash é no **boot do console kernel** (resolve `commands([...])` do provider via `Artisan::starting`→`resolveCommands`→`make()`) — **antes** de qualquer checagem de maintenance mode, então `php artisan down` **não** protege o cron.
+Até 2026-08-26 o `deploy.yml` fazia `git reset --hard origin/main` (avança o **source** pro tip atual de main) e **só depois**, num passo separado e mais lento, `composer dump-autoload -o --classmap-authoritative` (regenera o **classmap**). Numa **rajada de merges** (20/06: ~12 deploys em ~40min) com Hostinger lento (~min/deploy), o source roda à frente do classmap. Como o classmap é **authoritative** (PSR-4 fallback **desligado**), classe nova fora dele é **irresolvível**. O OS cron dispara `php artisan schedule:run` a cada minuto e cai na janela. O crash é no **boot do console kernel** (resolve `commands([...])` do provider via `Artisan::starting`→`resolveCommands`→`make()`) — **antes** de qualquer checagem de maintenance mode, então `php artisan down` **não** protegia o cron.
+
+**Estado desde 2026-08-26 ([#6333](https://github.com/wagnerra23/oimpresso.com/pull/6333)):** a flag `--classmap-authoritative` saiu das 3
+invocações executáveis do deploy. O dump canônico passou a ser `-o` puro, então classe presente no
+source mas ausente do classmap volta a **resolver por PSR-4** — a causa-raiz descrita acima deixou de
+ser fatal (vira custo de `file_exists`, medido em ~0,092 ms/request). O que **continua** valendo: o
+Composer escreve o classmap com `file_put_contents`, que não é atômico, e a janela do dump segue
+dentro da janela de manutenção. Tirar o tempo exige swap atômico de `vendor/composer/`, outra peça.
 
 ### Por que o boot-smoke (§deploy, #2912/#2952) NÃO cobre
 O boot-smoke console (`php artisan about` pós-dump-autoload) + o failsafe boot-gated garantem que o **deploy** não declare sucesso sobre um classmap stale (falha vermelho / segura 503). Mas a janela vulnerável é **durante/entre os deploys do flurry**, e o **cron externo não passa pelo deploy**. O guard protege o sinal do deploy, não o runtime do cron.
@@ -515,10 +522,18 @@ O boot-smoke console (`php artisan about` pós-dump-autoload) + o failsafe boot-
 - **Preferir DEIXAR a fila drenar.** Cada deploy roda seu próprio `dump-autoload` contra o source final → o classmap casa e o crash para sozinho (self-heal confirmado 20/06). Confirmar: `php artisan about` boota + `grep -c <Command> vendor/composer/autoload_classmap.php` = 1.
 - **Só reconciliar manual se ficar stale com a fila VAZIA** (após warm-up curl 5×, receita `hostinger.md`):
   ```bash
-  composer dump-autoload -o --classmap-authoritative --no-scripts \
+  composer dump-autoload -o --no-scripts \
     --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium
   ```
-  **Mirror do canon do deploy** — NÃO usar `-o` puro (desliga authoritative, diverge do estado canônico até o próximo deploy). `--ignore-platform-req` evita o abort do dump-autoload standalone (lição 2026-06-10, §2.4/`deploy.yml`).
+  **Mirror do canon do deploy** — `-o` puro, **sem** `--classmap-authoritative`.
+
+  > ⚠️ **Esta receita dizia o CONTRÁRIO até 2026-08-26** — mandava usar a flag e proibia o `-o`
+  > puro. A flag saiu do deploy em [#6333](https://github.com/wagnerra23/oimpresso.com/pull/6333), porque era ela que transformava classmap
+  > atrasado em **500 site-wide** (incidentes 18/06, 20/06 e 23/06 — narrados acima). Rodá-la à
+  > mão aqui recolocaria em produção exatamente o modo de falha que o #6333 removeu, e por isso a
+  > nota antiga ficou registrada em vez de apagada: quem lembrar dela vai querer "consertar" de volta.
+
+  `--ignore-platform-req` evita o abort do dump-autoload standalone (lição 2026-06-10, §2.4/`deploy.yml`).
 - **CUIDADO com deploy in_progress:** rodar composer manual concorrente ao composer do deploy pode correr na escrita de `vendor/composer/autoload_classmap.php`. Se há deploy rodando, deixe-o terminar.
 
 ### Revisão do modelo de concorrência (pedido Wagner 2026-06-20)
