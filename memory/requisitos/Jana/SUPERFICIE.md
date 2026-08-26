@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 528 arquivos em 19 papéis.
+**Total mapeado:** 529 arquivos em 19 papéis.
 
 ## Controllers — 11
 
@@ -363,7 +363,7 @@ module: Jana
 - 13 em [Modules/Jana/Tests/Unit/](../../../Modules/Jana/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 89
+## Demais arquivos (manifestos, docs, assets e misc) — 90
 
 - [BriefDiarioAgent.php](../../../Modules/Jana/Ai/Agents/BriefDiarioAgent.php)
 - [BriefingAgent.php](../../../Modules/Jana/Ai/Agents/BriefingAgent.php)
@@ -389,6 +389,7 @@ module: Jana
 - [UiJudgeConsensus.php](../../../Modules/Jana/Ai/UiJudgeConsensus.php)
 - [AiAdapter.php](../../../Modules/Jana/Contracts/AiAdapter.php)
 - [CalculaMeta.php](../../../Modules/Jana/Contracts/CalculaMeta.php)
+- [DeclaraPermissao.php](../../../Modules/Jana/Contracts/DeclaraPermissao.php)
 - [MemoriaContrato.php](../../../Modules/Jana/Contracts/MemoriaContrato.php)
 - [MemoriaPersistida.php](../../../Modules/Jana/Contracts/MemoriaPersistida.php)
 - [Reconciler.php](../../../Modules/Jana/Contracts/Reconciler.php)
