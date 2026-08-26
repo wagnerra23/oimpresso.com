@@ -572,8 +572,16 @@ DEPOIS do #6310                 1 failed, 3 passed (7 assertions)
 + guards anti-vácuo             4 passed          (12 assertions)   <- estado atual
 ```
 
-O arquivo entrou na allowlist do `jana-pest.yml`. Contador da lane esperado: **+4 testes / +12
-assertions** sobre `9 skipped, 808 passed (2715 assertions)` do run `32994290635` (tip de `main`).
+O arquivo entrou na allowlist do `jana-pest.yml`. **Contador da lane — MEDIDO, não esperado:**
+
+```
+ANTES   run 32994290635 (sha 0c5454b2, tip de main)   9 skipped, 808 passed (2715 assertions)
+DEPOIS  run 32996972060 (sha 08327a01d5, este PR)     9 skipped, 812 passed (2727 assertions)
+```
+
+Delta **+4 testes / +12 assertions**, e `9 skipped` **inalterado** — não entrou skip novo. Contador
+batendo não basta: os 4 UCs aparecem **pelo nome** no log da lane, e o step `--check-assertions`
+(LC-13) passou — logo o verde não veio de não-execução.
 
 ### Por que os quatro seguem 🧪 e não ✅ — e desta vez o motivo é de ORDEM
 

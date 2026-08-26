@@ -350,8 +350,12 @@ jobs:
           # estouravam no `assertOk()` ANTES de rodar, passaram a rodar, e os 3 guards
           # anti-vacuo entraram. Elegivel pela regra desta allowlist, medido na LINHA e nao
           # no hit: usa DatabaseTransactions, zero RefreshDatabase/migrate:fresh/dropIfExists.
-          # A prova de que passou a rodar e o CONTADOR desta lane subir (+4 testes / +12
-          # assertions sobre 808 passed / 2715 assertions do run 32994290635).
+          # CONTADOR DESTA LANE, MEDIDO (nao esperado):
+          #   ANTES  run 32994290635 (sha 0c5454b2, tip de main)  9 skipped, 808 passed (2715 assertions)
+          #   DEPOIS run 32996972060 (sha 08327a01d5, este PR)    9 skipped, 812 passed (2727 assertions)
+          # Delta +4 testes / +12 assertions, e `9 skipped` INALTERADO — nao entrou skip novo.
+          # Os 4 UCs aparecem PELO NOME no log (contador batendo nao basta) e o step
+          # `--check-assertions` (LC-13) passou: nao foi verde por nao-execucao.
           #
           # ⚠️ O IRMAO CONTINUA FORA, e de proposito. Chat/ChatAntiHooksAcaoTest
           # (UC-09/UC-10) nasce vermelho por desenho, e os 2 defeitos foram RE-MEDIDOS
