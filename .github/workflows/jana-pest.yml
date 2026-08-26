@@ -195,6 +195,21 @@ jobs:
           # crua no log. Liga-lo aqui deixaria o main vermelho ate os defeitos serem
           # corrigidos, e isso e decisao [W] — nao efeito colateral de um PR de payload.
           #
+          # EMENDA 2026-08-26: o achado acima estava CERTO e INCOMPLETO. O
+          # Chat/ChatAntiHooksTier0Test tinha uma SEGUNDA causa, independente da lane: ele
+          # declarava so `uses(DatabaseTransactions::class)`, sem `TestsTestCase::class`.
+          # O tests/Pest.php:5 vincula o TestCase em ->in('Feature') = pasta RAIZ
+          # tests/Feature; modulo so entra por bind explicito (KB tem, linhas 19-20 — Jana
+          # nao tem). Sem TestCase o app nao sobe e o Eloquent fica sem resolver: os 4 casos
+          # morriam em "connection() on null" com 0 ASSERTIONS. Ou seja, mesmo que alguem
+          # tivesse ligado o arquivo nesta lane em 17/08, ele teria dado vermelho por
+          # BOOT — nao por ter medido algo. Corrigido (1 linha) no PR do fix; recibo no
+          # Chat.casos.md §Revalidacao de 2026-08-26.
+          # Ele CONTINUA fora desta lista, agora por UM motivo so: o UC-JCHAT-08 reprova
+          # porque `Http::preventStrayRequests()` barra o SSR do Inertia (127.0.0.1:13714),
+          # nao o Brain B. Com INERTIA_SSR_ENABLED=false e nada mais: 4 passed. Estreitar a
+          # sonda mexe no que o anti-hook guarda = decisao [W], mesma regra do AcaoTest.
+          #
           # PainelContratoTest ENTROU em 2026-08-17. Ele nasceu no PR #5862 (UC-08) e
           # ficou 1 dia FORA desta lista — logo os nove UCs do Painel nunca rodaram no
           # CI, e o `🧪 aguarda run verde` do casos.md nunca poderia virar ✅: a lane
