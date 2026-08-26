@@ -218,7 +218,6 @@ jobs:
             Modules/Jana/Tests/Feature/Memoria/TimeDecayTest.php \
             Modules/Jana/Tests/Feature/Peso/PesoRealServiceTest.php \
             Modules/Jana/Tests/Feature/Peso/RelevanciaMetaInfererTest.php \
-            Modules/Jana/Tests/Feature/ProContractTest.php \
             Modules/Jana/Tests/Feature/Reconcile/ContentReconcilerTest.php \
             Modules/Jana/Tests/Feature/Reconcile/DeployReconcilerTest.php \
             Modules/Jana/Tests/Feature/Reconcile/EvalReconcilerTest.php \
@@ -239,7 +238,7 @@ jobs:
             Modules/Jana/Tests/Feature/Telemetry/LangfuseClientTest.php \
             Modules/Jana/Tests/Feature/Telemetry/LlmHttpCallSitesLangfuseTest.php
           #
-          # ══ LEVA 2026-08-26 — 60 órfãos da Jana entram de uma vez ═══════════
+          # ══ LEVA 2026-08-26 — 59 órfãos da Jana entram de uma vez ═══════════
           #
           # Medido com o dono do inventário (`node scripts/governance/test-lane-
           # coverage.mjs --json`): a Jana tinha 168 testes e 100 ÓRFÃOS — arquivo
@@ -247,7 +246,7 @@ jobs:
           # pest.list, e `Jana` não está na matrix do modules-pest.yml. 60% do
           # módulo fora do CI (no repo inteiro, 860 de 1486 em 27 lanes).
           #
-          # Os 60 abaixo são a fatia que a REGRA desta allowlist já admitia, e
+          # Os 59 abaixo são a fatia que a REGRA desta allowlist já admitia, e
           # ela foi medida arquivo a arquivo, não presumida: zero RefreshDatabase,
           # zero migrate:fresh, zero dropIfExists. ⚠️ Essa varredura tem um FP que
           # custou caro e vale registrar: em 5 arquivos o construto aparecia só em
@@ -259,17 +258,26 @@ jobs:
           # prova execução (LC-13), e arquivo que não boota sai com 0 assertions —
           # que é "nunca mediu", não "passou".
           #
-          # A prova de que passaram a rodar é o CONTADOR desta lane subir. Mesma
-          # invocação no CT 100 (MySQL real), antes → depois: 273 → 819 passed e
-          # 598 → 2799 assertions, em 351s. A soma bateu EXATA com o que cada
-          # arquivo rendeu isolado (823 testes / 2799 assertions / 3 skips previstos,
-          # 823 / 2799 / 3 medidos) — que é a evidência de que nenhum envenenou o
-          # biz=1 seedado dos outros. A única falha do run é pré-existente e de
-          # AMBIENTE: CockpitMockRemovidoTest usa GLOB_BRACE, que não existe em musl
-          # (o container é Alpine); no runner Ubuntu desta lane ela é verde.
+          # A prova de que passaram a rodar é o CONTADOR desta lane subir, e o
+          # número que vale é o DESTA LANE no CI — não o do CT 100.
           #
-          # NÃO ENTRARAM 40, e cada motivo tem recibo no relatório da leva:
-          #  · 10 NASCEM VERMELHOS — rodam e acusam defeito REAL. Entre eles o
+          # ⚠️ A diferença entre os dois ambientes NÃO é teórica, e custou um round:
+          # o `ProContractTest` passava no CT 100 com 65 assertions e reprovou aqui
+          # com 6 falhas, todas `GET /ia/pro` devolvendo 403 em vez de 200. Não é
+          # código: a DB do CT 100 é PERSISTENTE e tem o módulo/permissões da Jana
+          # provisionados de runs antigos, enquanto esta lane semeia o mínimo
+          # (biz=1/biz=2) num banco FRESCO. Ele saiu desta lista — voltar exige
+          # provisionar a permissão no seed, e o `pest-mysql-setup` é compartilhado
+          # por 16 lanes, então isso é PR próprio, não emenda desta leva.
+          #
+          # A lição que fica pra quem for repetir a receita: rodar no CT 100 prova
+          # que o teste EXECUTA e que não envenena os vizinhos; não prova que ele
+          # passa com o seed do CI. Teste que depende de permissão, módulo ligado ou
+          # assinatura precisa do veredito desta lane antes de entrar.
+          #
+          # NÃO ENTRARAM 41, e cada motivo tem recibo no relatório da leva:
+          #  · 11 NASCEM VERMELHOS — rodam e acusam defeito REAL (10 medidos no
+          #    CT 100 + o ProContractTest, que só o CI reprovou). Entre eles o
           #    Chat/ChatAntiHooksAcaoTest, que fecha os 2 vermelhos datados de
           #    2026-08-17 já anotados no comentário acima (tool sem declaração de
           #    permissão; CPF em plain text no startTrace do ChatController).
