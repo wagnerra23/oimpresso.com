@@ -1264,7 +1264,10 @@ class Util
             //ip pass from proxy
             $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
         } else {
-            $ip = $_SERVER['REMOTE_ADDR'];
+            // Os 2 ramos acima ja checam `!empty()`; este nao checava nada. Request sem
+            // REMOTE_ADDR (teste HTTP, console, healthcheck) estourava "Undefined array key"
+            // e derrubava a pagina — o `@return string` acima ja prometia string, nao crash.
+            $ip = $_SERVER['REMOTE_ADDR'] ?? '';
         }
 
         return $ip;
