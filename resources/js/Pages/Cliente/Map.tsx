@@ -1,6 +1,6 @@
 // W1-B3 Cliente/Map — split-screen mapa de clientes Inertia/React (MWART F3).
 // Divergence ADR 0149: split-screen com mapa lateral — layout divergente do Index lista.
-// Mapa renderizado server-side via lib mPDF/Leaflet OR placeholder até Wagner aprovar lib.
+// Mapa = iframe OpenStreetMap embed (sem chave de API), ancorado em prototipo-ui/cowork/cliente-mapa.jsx.
 // Backend: ContactController::contactMap() — Inertia::render dual via config('mwart.cliente_map.enabled')
 
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -22,6 +22,35 @@ interface ClienteMapPageProps {
   all_contacts: MapContact[];
 }
 
+// `contacts.position` e varchar(191) que guarda "lat, lng" — provado pelo consumidor
+// legado (`resources/views/contact/contact_map.blade.php:93,101`: interpola a coluna crua
+// dentro de um array JS e le `contact[1]`/`contact[2]` como lat/lng), nao por suposicao.
+// Parser defensivo: so aceita DOIS numeros finitos dentro da faixa geografica. Qualquer
+// outra coisa (endereco livre, lixo, vazio) devolve null e a tela cai no empty state que
+// ja existia — a troca de provedor nao pode inventar mapa pra dado que nao e coordenada.
+function coordsDe(position: string | null): { lat: number; lon: number } | null {
+  if (!position) return null;
+  const partes = position.split(',');
+  if (partes.length !== 2) return null;
+  const [latRaw, lonRaw] = partes;
+  if (latRaw === undefined || lonRaw === undefined) return null;
+  const lat = Number(latRaw.trim());
+  const lon = Number(lonRaw.trim());
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+  if (lat < -90 || lat > 90 || lon < -180 || lon > 180) return null;
+  return { lat, lon };
+}
+
+// OSM embed nao pede chave de API — e o que a ancora de design usa
+// (`prototipo-ui/cowork/cliente-mapa.jsx:42,88`) e o que o anti-hook do charter pede
+// ("nao envia lat,lng pra Google Maps"). `bbox` = janela pequena em volta do ponto;
+// `marker` finca o pin. O DELTA equivale a ~1km de lado, perto do zoom 16 do link.
+const BBOX_DELTA = 0.0045;
+function osmEmbedSrc({ lat, lon }: { lat: number; lon: number }): string {
+  const bbox = [lon - BBOX_DELTA, lat - BBOX_DELTA, lon + BBOX_DELTA, lat + BBOX_DELTA].join(',');
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}`;
+}
+
 export default function ClienteMap(props: ClienteMapPageProps) {
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<number | null>(
@@ -41,6 +70,8 @@ export default function ClienteMap(props: ClienteMapPageProps) {
     () => props.all_contacts.find((c) => c.id === selectedId) ?? null,
     [props.all_contacts, selectedId],
   );
+
+  const selectedCoords = useMemo(() => coordsDe(selected?.position ?? null), [selected]);
 
   return (
     <div className="flex-1 bg-muted/30">
@@ -139,12 +170,13 @@ export default function ClienteMap(props: ClienteMapPageProps) {
                 </div>
 
                 <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-900 dark:to-stone-800 relative">
-                  {selected?.position ? (
+                  {selectedCoords ? (
                     <iframe
-                      title={`Mapa de ${selected.name}`}
+                      title={`Mapa de ${selected?.name ?? 'cliente'}`}
                       className="w-full h-full border-0"
-                      src={`https://maps.google.com/maps?q=${encodeURIComponent(selected.position)}&output=embed`}
+                      src={osmEmbedSrc(selectedCoords)}
                       loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
                     />
                   ) : (
                     <div className="text-center text-muted-foreground p-6">
@@ -167,6 +199,16 @@ export default function ClienteMap(props: ClienteMapPageProps) {
                     >
                       Ver detalhes →
                     </a>
+                    {selectedCoords && (
+                      <a
+                        href={`https://www.openstreetmap.org/?mlat=${selectedCoords.lat}&mlon=${selectedCoords.lon}#map=16/${selectedCoords.lat}/${selectedCoords.lon}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Abrir no mapa completo →
+                      </a>
+                    )}
                     {selected.mobile && (
                       <span className="text-xs text-muted-foreground">
                         • {selected.mobile}
