@@ -330,16 +330,11 @@ jobs:
           #   que o traceEvent mescla CRU). Bite-test dos dois lados, no CT 100:
           #   redacao neutralizada -> VERMELHO; PII em metadata -> VERMELHO.
           #
-          # DOS TRES testes do Chat que estavam orfaos em 2026-08-17, sobra UM:
-          # Chat/ChatAntiHooksTier0Test (UC-05..UC-08) segue fora de lane nenhuma —
-          # dono e o PR #6310, cujo UC-08 continua vermelho por decisao [W]. O
-          # Chat/ChatTokensTurnoTest ENTROU pelo #6312 na mesma tarde, junto com
-          # outros 59 orfaos da Jana; esta linha foi corrigida no rebase, porque a
-          # redacao anterior dela dizia que ele estava fora e isso durou ~1h
-          # (artefato nao afirma estado que outro sistema sabe melhor — LC-10).
-          # Enquanto o Tier0Test estiver fora, o `🧪` dos UC-05..08 no Chat.casos.md
-          # nao pode virar ✅ — a lane lista ARQUIVO, e registrar o teste no repo
-          # nao e a lane executa-lo (§5 2026-08-02 + emenda 08-12).
+          # CORRIGIDO 2026-08-26 (esta linha ja errou 2x — LC-10): os TRES testes do Chat
+          # que estavam orfaos em 2026-08-17 ENTRARAM, todos na mesma data. ChatTokensTurnoTest
+          # pelo #6312; ChatAntiHooksAcaoTest pelo #6319; ChatAntiHooksTier0Test pelo #6321.
+          # Quem sabe o estado e a ALLOWLIST acima, nao este comentario — se divergirem, ela
+          # ganha. O historico datado de cada entrada fica nos blocos abaixo.
           #
           # ChatAntiHooksTier0Test ENTROU em 2026-08-26, fechando a metade Tier 0 do
           # ACHADO acima. Eram DUAS causas, medidas em sequencia no CT 100 (MySQL real,
@@ -381,15 +376,12 @@ jobs:
           # Os 4 UCs aparecem PELO NOME no log (contador batendo nao basta) e o step
           # `--check-assertions` (LC-13) passou: nao foi verde por nao-execucao.
           #
-          # ⚠️ O IRMAO CONTINUA FORA, e de proposito. Chat/ChatAntiHooksAcaoTest
-          # (UC-09/UC-10) nasce vermelho por desenho, e os 2 defeitos foram RE-MEDIDOS
-          # contra o codigo de main em 2026-08-26: as 5 tools do chat seguem sem declarar
-          # permissao (varredura das 4 formas de metodo + 3 de constante que o UC-09
-          # aceita: 0 hits nos 5 arquivos) e o `ChatController::startTrace` segue levando
-          # o input do usuario cru pro Langfuse (zero ocorrencia de PiiRedactor no
-          # controller inteiro) — este segundo e vazamento de PII pra observabilidade.
-          # Recibo de execucao: rodado fora da arvore de testes, deu UC-10 FAIL. Liga-lo
-          # aqui deixaria o main vermelho: decisao [W], nao efeito colateral deste PR.
+          # O IRMAO ENTROU pelo #6319, mergeado 2026-08-26 19:59 — este bloco dizia que ele
+          # continuava fora, e a afirmacao morreu no merge. Dos 2 defeitos que o AcaoTest
+          # acusava, o UC-09 era real (tools sem declarar permissao, resolvido la com
+          # DeclaraPermissao) e o UC-10 era SONDA MAL POSICIONADA, nao defeito: espionava uma
+          # camada antes do egresso. A redacao anterior deste bloco afirmava o contrario e
+          # estava ERRADA; fica registrada aqui em vez de apagada.
           #
           # PainelContratoTest ENTROU em 2026-08-17. Ele nasceu no PR #5862 (UC-08) e
           # ficou 1 dia FORA desta lista — logo os nove UCs do Painel nunca rodaram no
