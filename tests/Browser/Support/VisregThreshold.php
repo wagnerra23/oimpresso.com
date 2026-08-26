@@ -272,10 +272,13 @@ final class VisregThreshold
         $diffView = self::writeDiffView($screenName, $baselineBlob, $actualBlob, $diffBlob);
         $grayZone->append([
             'screen' => $screenName,
-            // `source` e a CHAVE do manifesto (visreg-screens.json), a mesma que o
-            // classificador emite em `screens`. Sem ela nao da pra dizer se esta tela esta
-            // no raio do PR — e ai a divida herdada da main volta a reprovar quem nao a
-            // causou. Suites de estados/fluxos nao tem source: caem no ramo conservador.
+            // `source` e a CHAVE do raio (namespace da Page), a mesma que o classificador
+            // emite em `screens`. Sem ela nao da pra dizer se esta tela esta no raio do PR
+            // — e ai a divida herdada da main volta a reprovar quem nao a causou.
+            // As 5 suites declaram `source` no proprio manifesto (visreg-screens.json,
+            // visreg-states.json, visreg-flows.json, visreg-flows-sells.json), conferido
+            // contra ui-impact.mjs::screenSourceFromCharter pelos lints. Item que ainda
+            // chegar sem `source` (suite nova) cai no ramo conservador — fail-closed.
             'source' => $screenSource,
             'ratio' => $ratio,
             'diffView' => $diffView,

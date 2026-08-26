@@ -133,6 +133,20 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
     liberada:  { variant: 'default',     label: 'Liberada', className: 'bg-success text-success-foreground hover:bg-success/90' },
     bloqueada: { variant: 'destructive', label: 'Bloqueada' },
   },
+  // Prazo de guarda de um arquivo (Modules/Arquivos · US-ARQ-013). Três estados, e a
+  // escolha do vocabulário é do protótipo, não minha: ele usa PRAZO (No prazo · Vencendo ·
+  // Vencido) e **não** frescor/idade (recente · frio · distante). O próprio protótipo
+  // registra por que trocou — `frescor` é IDADE e estava sendo usado pra prazo, o que
+  // produzia a pílula verde "recente · em 1824 dias".
+  //
+  // Reusa as variantes que já existem (`success`/`warning`/`destructive`): nenhuma cor
+  // nova entra no DS por esta linha. As fronteiras (0 e 30 dias) são as mesmas que a
+  // coluna já usava pra decidir a cor do texto — o que muda é a FORMA (pílula), não a regra.
+  arquivo_prazo: {
+    no_prazo:  { variant: 'default',     label: 'No prazo', className: 'bg-success text-success-foreground hover:bg-success/90' },
+    vencendo:  { variant: 'default',     label: 'Vencendo', className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
+    vencido:   { variant: 'destructive', label: 'Vencido' },
+  },
 };
 
 interface Props {

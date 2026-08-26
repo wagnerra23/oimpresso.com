@@ -3,7 +3,7 @@
   "tela": "Arquivos/Index",
   "fonte": "prototipo-ui/cowork/arquivos-page.jsx",
   "_nota_fonte": "Mesma âncora que o charter declara em `related_prototype` e que `node prototipo-ui/ancora.mjs Arquivos/Index` resolve. A tela do PR-1 foi derivada dela.",
-  "_nota_limite": "HISTÓRICO + estado. Quando este contrato foi escrito (2026-08-25) o gate casava a copy por SUBSTRING (`blob.includes`): pinar \"Payload\" — a copy do protótipo que a tela NÃO tem — passava VERDE, porque casa dentro de `TrilhaPayload`, o nome da interface TS. Foi o controle positivo deste contrato que revelou o furo. O casamento foi ENDURECIDO no mesmo dia para exigir fronteira de identificador, com falso-positivo medido antes de ligar: 0 de 163 strings dos 11 contratos ativos, e 14/14 em casos-limite. Quem define o comportamento de hoje é `scripts/contrato-de-tela.mjs` (`copyPresente`), não esta nota. Resíduo conhecido e declarado lá: copy colada a HÍFEN (`btn-Todos-ativo` casa \"Todos\") ainda passa — hífen não é caractere de identificador.",
+  "_nota_limite": "HISTÓRICO + estado. Quando este contrato foi escrito (2026-08-25) o gate casava a copy por SUBSTRING (`blob.includes`): pinar \"Payload\" — a copy do protótipo que a tela NÃO tem — passava VERDE, porque casa dentro de `TrilhaPayload`, o nome da interface TS. Foi o controle positivo deste contrato que revelou o furo. O casamento foi ENDURECIDO no mesmo dia para exigir fronteira de identificador, com falso-positivo medido antes de ligar: 0 de 163 strings dos 11 contratos ativos, e 14/14 em casos-limite. Quem define o comportamento de hoje é `scripts/contrato-de-tela.mjs` (`copyPresente`), não esta nota. Resíduo conhecido e declarado lá: copy colada a HÍFEN (`btn-Todos-ativo` casa \"Todos\") ainda passa — hífen não é caractere de identificador. SEGUNDA PORTA, medida no mesmo dia e NAO coberta pelo endurecimento: o blob inclui COMENTARIO. Fronteira de identificador nao ajuda aqui — comentario e texto comum. Enquanto um comentario citava o rotulo antigo (Onde esta preso), o gate passou VERDE com a tela ja renomeada; tirar a string do comentario fez ele reprovar (canario rodado, rc=1). Pratica pra quem edita esta tela: nao cite copy antiga em comentario.",
   "alvo": [
     "resources/js/Pages/Arquivos/Index.tsx"
   ],
@@ -18,26 +18,53 @@
       "id": "abas",
       "copy": [
         "Acervo",
+        "Cofre",
         "Trilha"
       ]
     },
     {
       "id": "acervo-filtros",
       "copy": [
-        "Todos"
+        "Todos",
+        "Sensível",
+        "Em uso",
+        "Histórico",
+        "Descartar"
       ]
     },
     {
       "id": "acervo",
       "copy": [
         "Arquivo",
-        "Onde está preso",
+        "Vinculado a",
         "Classificação",
         "Disco",
         "Tamanho",
         "Vence em",
         "Buscar por nome, dono ou contexto…",
         "Nenhum arquivo guardado ainda."
+      ]
+    },
+    {
+      "id": "cofre-discos",
+      "copy": [
+        "Cofre (cifrado)",
+        "AES-256 via Crypt::encryptString",
+        "Disco comum",
+        "servido por Storage::url"
+      ]
+    },
+    {
+      "id": "cofre-achados",
+      "copy": [
+        "Achados",
+        "do cap de",
+        "VaultEncryptionService",
+        "OOM",
+        "recusada",
+        "Sprint 2 (ADR 0126)",
+        "órfão",
+        "MD5 repetido"
       ]
     },
     {
@@ -70,6 +97,8 @@
     "ABAS — o protótipo tem QUATRO vistas (Acervo · Retenção · Cofre · Trilha); a tela tem DUAS. `abas` pina só \"Acervo\" e \"Trilha\" porque são as que existem: pinar \"Retenção\"/\"Cofre\" faria o contrato reprovar por construção, e contrato que já nasce vermelho ensina a ignorar o gate. Entram aqui quando as vistas entrarem (PR-3 retenção, PR-4 cofre).",
     "DIVERGÊNCIA DE COPY MEDIDA — a última coluna da Trilha: o protótipo diz \"Payload\", a tela diz \"Detalhe\". O contrato pina \"Detalhe\" porque é o que o alvo tem HOJE (pinar \"Payload\" deixaria o gate vermelho sem ninguém ter regredido). Qual das duas é a palavra certa é decisão [W]: se for \"Payload\", muda-se a tela E esta linha no MESMO PR (regra de precedência — o perdedor se corrige junto).",
     "SUBTÍTULO do PageHeader não é pinável: é template string derivada do paginador (\"N nesta página · N no cofre cifrado\" / \"N eventos registrados\"). Contrato pina literal, e o literal aqui é composto em runtime.",
-    "CHIPS DE BUCKET (`sensitive`/`active`/`memory`/`discard`) ficam fora da copy de propósito: são chaves de DOMÍNIO renderizadas como valor, não copy de design. Se virarem rótulo traduzido em PT-BR, aí sim entram — e a decisão do rótulo é [W]."
+    "CHIPS DE BUCKET (`sensitive`/`active`/`memory`/`discard`) ficam fora da copy de propósito: são chaves de DOMÍNIO renderizadas como valor, não copy de design. Se virarem rótulo traduzido em PT-BR, aí sim entram — e a decisão do rótulo é [W].",
+    "ORDEM das secoes do COFRE fora da lista — MEDIDO em 2026-08-25: o gate verifica a ordem por APARICAO NO ARQUIVO, e as ancoras \"cofre-discos\" e \"cofre-achados\" vivem no componente \"Cofre\", que e DECLARADO acima do \"Index\". No fonte elas aparecem primeiro; no render, no meio. Pinar a ordem delas reprovaria por construcao, e afrouxar o gate pra acomodar seria pior. A COPY delas segue pinada — so a ORDEM fica de fora.",
+    "COPY LONGA em JSX quebra em varias linhas (prettier), e o gate casa substring CONTIGUA. Por isso \"cofre-achados\" pina fragmentos (\"do cap de\", \"Sprint 2 (ADR 0126)\") em vez da frase inteira: pinar a frase completa deixaria o contrato refem da largura de linha do formatador. Tambem por isso \"do cap de\" e nao \"acima do cap de\" — ha interpolacao no meio."
   ]
 }

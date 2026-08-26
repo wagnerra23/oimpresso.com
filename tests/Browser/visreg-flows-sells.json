@@ -10,6 +10,7 @@
       "route": "/sells/create",
       "anchor": "Adicionar venda",
       "charter": "resources/js/Pages/Sells/Create.charter.md",
+      "source": "Sells/Create",
       "viewports": ["compact", "desktop", "wide"],
       "flows": [
         { "id": "adicionar-produto", "action": "add_product", "evidence": "Produto E2E Balcão" },

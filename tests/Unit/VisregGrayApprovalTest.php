@@ -138,13 +138,52 @@ it('sem raio confiavel o bloqueio segue absoluto — o comportamento de antes', 
     $semRaio = VisregThreshold::particionaGrayZone($itens, null, true);
     expect($semRaio['propria'])->toHaveCount(1)->and($semRaio['herdada'])->toBe([]);
 
-    // CONTROLE NEGATIVO 3 — item sem `source` (suites de estados/fluxos) e conservador.
+    // CONTROLE NEGATIVO 3 — item sem `source` e conservador. Desde 2026-08-26 as 4 suites
+    // de estados/fluxos declaram `source` no manifesto, entao este ramo passou a ser a
+    // rede de seguranca (suite nova, manifesto sem o campo), nao mais o caso comum.
     $semSource = VisregThreshold::particionaGrayZone(
         [['screen' => 'compras · abrir-drawer · wide', 'ratio' => 0.0004, 'diffView' => null]],
         ['Produto/Unificado'],
         true,
     );
     expect($semSource['propria'])->toHaveCount(1)->and($semSource['herdada'])->toBe([]);
+});
+
+/**
+ * REPRO do incidente 2026-08-26 (PR #6008 e mais 4 branches).
+ *
+ * O raio JA funcionava — mas so o PixelBaselineTest passava `source`. As 4 suites de
+ * estados/fluxos nao passavam, entao TODO item delas caia no ramo conservador e bloqueava
+ * qualquer PR. Medido em 13 runs de visual-regression (25-26/08): 12 tinham zona cinza, e
+ * em 11 delas o UNICO item era `financeiro-unificado · estado={default,loading,error}` a
+ * 0.1199% — tela que NENHUM dos PRs tocava (raios medidos: `Modules`, `Jana`, `Arquivos`,
+ * `governance/DriftAlerts`). 5 branches distintas reprovadas pela mesma divida da main.
+ *
+ * O par boa/ruim e o que impede o conserto de virar carimbo: com `source` declarado a
+ * tela fora do raio para de bloquear, e a MESMA tela dentro do raio segue bloqueando.
+ */
+it('estado isolado fora do raio nao bloqueia; dentro do raio bloqueia', function () {
+    // Shape exato do IsolatedStatesBaselineTest: label kebab+estado, source = namespace.
+    $estados = array_map(fn (string $estado) => [
+        'screen' => "financeiro-unificado · estado={$estado}",
+        'source' => 'Financeiro/Unificado',
+        'ratio' => 0.001199,
+        'diffView' => null,
+    ], ['default', 'loading', 'error']);
+
+    // O raio real do #6008: o PR mexeu em resources/js/Pages/Modules/Index.tsx.
+    $foraDoRaio = VisregThreshold::particionaGrayZone($estados, ['Modules'], true);
+    expect($foraDoRaio['propria'])->toBe([])
+        ->and($foraDoRaio['herdada'])->toHaveCount(3);
+    expect(VisregThreshold::grayZoneRequiresApproval($foraDoRaio['propria'], '0'))
+        ->toBeFalse('adicionar coluna em Modules/Index nao pode reprovar por drift do Financeiro');
+
+    // MORDE: quem de fato mexeu no Financeiro/Unificado continua bloqueado.
+    $dentroDoRaio = VisregThreshold::particionaGrayZone($estados, ['Financeiro/Unificado'], true);
+    expect($dentroDoRaio['propria'])->toHaveCount(3)
+        ->and($dentroDoRaio['herdada'])->toBe([]);
+    expect(VisregThreshold::grayZoneRequiresApproval($dentroDoRaio['propria'], '0'))
+        ->toBeTrue('a tela no raio do PR tem que continuar bloqueando');
 });
 
 it('o relatorio nomeia a divida herdada sem casar a denylist do retry', function () {
