@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **385** arquivos · **370** números únicos · máx **0380**
-- **ADRs ATIVOS (lifecycle ativo): 346** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 348 · superseded 16 · deprecated 13 · proposto 6 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 346 · arquivado 23 · substituido 16
+- **387** arquivos · **372** números únicos · máx **0382**
+- **ADRs ATIVOS (lifecycle ativo): 348** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 349 · superseded 16 · deprecated 13 · proposto 7 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 348 · arquivado 23 · substituido 16
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (385)
+## Todas as ADRs (387)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -423,3 +423,5 @@ _(nenhuma)_
 | 0378 | aceito | ativo | decision | Execução do item 4 da 0366 — a plataforma MCP sai da Jana para a Forja em ondas, |
 | 0379 | proposto | ativo | decision | Bundle Design vira transação com manifesto, delta, staging e inventário de aplic |
 | 0380 | aceito | ativo | errata | Errata 0292/0291 D-D — `distiller_freshness` no health-check vira ADVISORY (o al |
+| 0381 | proposto | ativo | decision | Sub-decisão da 0088 — a chave de assinatura do módulo Jana passa a ser `jana_mod |
+| 0382 | aceito | ativo | decision | A trava de sinal não se aplica a trabalho dirigido por [W] (emenda 0105) |

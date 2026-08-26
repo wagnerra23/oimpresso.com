@@ -105,6 +105,29 @@ describe('casos:check — G-1 trio-de-tela (físico)', () => {
     expect(out).not.toMatch(/trio:missing/);
   });
 
+  it('VOCABULÁRIO FECHADO: PAGE_AUX_DIR só tem nome genérico — nome de domínio some com telas', async () => {
+    // POR QUE ESTE CASO NASCEU (medido 2026-08-26): os casos acima provam que dir auxiliar não
+    // conta e que a tela ao lado continua sendo cobrada — mas nenhum deles morde quando alguém
+    // ACRESCENTA um nome ao PAGE_AUX_DIR. Bite-test do vão: pondo 'Unificado' na lista, o
+    // denominador do guard caiu de 214 telas para 211 (3 telas somem do universo do gate) e a
+    // suíte inteira seguiu 51/51 VERDE. É o drift de 2026-07-27 (280 -> 235) sem alarme.
+    // O invariante: auxiliar é NOME DE INFRA GENÉRICO, nunca nome de domínio/tela. Fechar o
+    // vocabulário faz qualquer acréscimo exigir passar por aqui — de propósito.
+    const { PAGE_AUX_DIR, isAuxiliaryPagePath } = await import('../scripts/qa/page-path.mjs');
+    const fonte = PAGE_AUX_DIR.source.replace('^(?:', '').replace(')$', '');
+    const CANON = [
+      '_.*', 'components?', 'partials?', 'hooks?', 'utils?', 'lib',
+      'types?', 'constants?', 'schemas?', 'stores?', 'contexts?',
+    ];
+    expect([...fonte.split('|')].sort()).toEqual([...CANON].sort());
+
+    // Metade COMPORTAMENTAL — o snapshot acima sozinho seria só uma foto da string.
+    // Nome de domínio plausível não pode ser auxiliar (senão a tela some em silêncio).
+    for (const dominio of ['Unificado', 'Show', 'Create', 'Kanban', 'Relatorios']) {
+      expect(isAuxiliaryPagePath('resources/js/Pages/Fx/' + dominio + '/Index.tsx')).toBe(false);
+    }
+  });
+
   it('CONTROLE POSITIVO: tela REAL ao lado dos auxiliares CONTINUA exigindo trio (não afrouxou)', () => {
     // O risco de trocar o filtro é excluir demais e o gate parar de morder. Esta fixture põe
     // uma tela legítima na MESMA árvore dos auxiliares: ela tem que seguir sendo cobrada.
@@ -178,6 +201,29 @@ describe('casos:check — G-2 rastreabilidade caso↔teste (físico)', () => {
     expect(out).toMatch(/uc-orphan:resources\/js\/Pages\/X\/Index\.casos\.md#UC-X2Y-02/);
     expect(out).not.toMatch(/#UC-X2Y-01/); // coberto → não é órfão
     expect(out).not.toMatch(/#UC-X2Y(?![-0-9A-Za-z])/); // e NUNCA o token truncado (a regressão)
+  });
+
+  it('REGEX: prefixo no LIMITE do canon (6 chars) é ENXERGADO — pino do quantificador', () => {
+    // POR QUE ESTE CASO NASCEU (medido 2026-08-26): os dois casos REGEX acima usam prefixo de
+    // 3 letras (ZZA/X2Y). O canon é [A-Z][A-Z0-9]{0,5} = até 6 chars. Estreitar o quantificador
+    // — que é EXATAMENTE o drift histórico de 2026-06-22 — deixava os dois passando VERDES,
+    // porque 3 chars sobrevivem a qualquer estreitamento até {0,2}.
+    // Bite-test que provou o vão: com {0,5} -> {0,2} a suíte ficava 51/51 VERDE; só a quebra
+    // TOTAL do regex acusava (23 vermelhos). Este caso fecha o meio-termo — um prefixo de 6
+    // chars morre no primeiro char a menos, que é o tamanho de UC-KBV2-* e UC-FORJA-* reais.
+    // (id fictício ZZWXYZ — ver a convenção no topo: id REAL aqui vira cobertura-fantasma.)
+    write(page('Q'), 'export default function Q() { return null }');
+    write('resources/js/Pages/Q/Index.charter.md', '# c');
+    write('resources/js/Pages/Q/Index.casos.md', '## UC-ZZWXYZ-01 · x');
+    write('tests/QTest.php', '<?php // UC-ZZWXYZ-01'); // cobre (string-match)
+    run('--write-baseline'); // limpo: o id de 6 chars é enxergado E coberto
+    write('resources/js/Pages/Q/Index.casos.md', `## UC-ZZWXYZ-01 · x
+## UC-ZZWXYZ-02 · y`);
+    const out = runExpectFail('');
+    // Se o quantificador encolher, UC-ZZWXYZ-02 deixa de ser DECLARADO, o órfão some, o guard
+    // sai 0 e runExpectFail estoura → VERMELHO. É o pino.
+    expect(out).toContain('uc-orphan:resources/js/Pages/Q/Index.casos.md#UC-ZZWXYZ-02');
+    expect(out).not.toContain('#UC-ZZWXYZ-01'); // coberto → não é órfão (prova que é VISTO)
   });
 });
 
@@ -579,5 +625,45 @@ describe('casos:check — só-desce do baseline (Onda Q2, físico)', () => {
   it('GRACIOSO: referência ausente (bootstrap) → exit 0 sem efeito', () => {
     baselineWith('scripts/casos-coverage-baseline.json', ['x:1']);
     expect(run('--check-baseline-shrink ref/nao-existe.json')).toMatch(/bootstrap/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// TETO DE PROVA — suite-folding do vitest (advisory, modo --report)
+// ---------------------------------------------------------------------------
+// O `--report` publica quais UCs NUNCA chegam ao manifesto G-7 porque o coletor lê o id do
+// atributo `name` do <testcase>. O reporter JUnit do vitest DOBRA o describe nesse `name`, o
+// do Pest/Playwright não foi medido — então `describe` só conta em `tests/**` (vitest).
+// Os 3 casos abaixo travam exatamente essa fronteira: morde onde não foi medido, libera onde
+// foi, e o ⛓ continua acusando quem só cita em comentário (controle negativo).
+describe('casos:check — TETO de prova: describe() do vitest conta, dos outros não', () => {
+  const seed = (dir: string, uc: string) => {
+    write(page(dir), `export default function ${dir}() { return null }`);
+    write(`resources/js/Pages/${dir}/Index.charter.md`, '# c');
+    write(
+      `resources/js/Pages/${dir}/Index.casos.md`,
+      `---\nowner: w\nlast_run: "2026-08-26"\n---\n## ${uc} · x\n- **Status: 🧪**`,
+    );
+  };
+
+  it('SENSIBILIDADE: UC no describe() de um .test.tsx do vitest NÃO é reportado como preso', () => {
+    seed('TA', 'UC-ZZT01');
+    write('tests/ta.test.tsx', "describe('UC-ZZT01 · agrupa', () => { it('faz', () => {}) })");
+    const out = run('--report');
+    expect(out).not.toMatch(/UC-ZZT01/); // chega ao manifesto via name dobrado → não é teto
+  });
+
+  it('CONTROLE NEGATIVO: UC citado SÓ em comentário CONTINUA acusado (⛓)', () => {
+    seed('TB', 'UC-ZZT02');
+    write('tests/tb.test.tsx', "// UC-ZZT02 coberto aqui\nit('sem o id no titulo', () => {})");
+    const out = run('--report');
+    expect(out).toMatch(/⛓[\s\S]*UC-ZZT02/); // satisfaz G-2, mas nunca vira ✅
+  });
+
+  it('ESCOPO: describe() de Pest (.php) NÃO conta — folding não medido, fail-closed', () => {
+    seed('TC', 'UC-ZZT03');
+    write('Modules/Zz/Tests/TcTest.php', "<?php describe('UC-ZZT03 · agrupa', function () {});");
+    const out = run('--report');
+    expect(out).toMatch(/⛓[\s\S]*UC-ZZT03/);
   });
 });

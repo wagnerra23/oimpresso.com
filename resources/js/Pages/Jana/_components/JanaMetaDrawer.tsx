@@ -36,6 +36,7 @@
 import { Link } from '@inertiajs/react';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
+import { Card } from '@/Components/ui/card';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import {
@@ -69,13 +70,21 @@ function Linha({ rotulo, valor }: { rotulo: string; valor: string }) {
   );
 }
 
-/** Um número grande com rótulo — o trio da seção "Situação". */
+/**
+ * Um número grande com rótulo — o trio da seção "Situação".
+ *
+ * Superfície = `Card` canon (`ui/card.tsx`): borda, `bg-card`, `text-card-foreground`
+ * e sombra vêm dele, não de classe manual. O `className` carrega só a geometria
+ * desta caixa pequena — `p-3` (o Card entrega `py-6`, largo demais pra um stat de
+ * 3 colunas) e `gap-0` (o Card é `flex-col gap-6`, e aqui rótulo e valor são
+ * colados pelo `mt-0.5` que já existia).
+ */
 function Numero({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
-    <div className="rounded-lg border border-border bg-card p-3">
+    <Card className="gap-0 rounded-lg p-3">
       <small className="block text-[11px] uppercase tracking-wide text-muted-foreground">{rotulo}</small>
       <b className="mt-0.5 block text-lg font-semibold tabular-nums text-foreground">{valor}</b>
-    </div>
+    </Card>
   );
 }
 

@@ -423,7 +423,27 @@ jobs:
           SECRET=$(openssl rand -hex 16)
           echo "::add-mask::$SECRET"
           echo "DEPLOY_BYPASS_SECRET=$SECRET" >> "$GITHUB_ENV"
-          /tmp/ssh_exec.sh "cd $RDIR && php artisan down --secret='$SECRET' --retry=60 --refresh=60 || true"
+          # --render='errors::503' (novo): o HTML da manutenção é pré-renderizado AGORA e
+          # guardado em storage/framework/maintenance.php. SEM isso, o stub desiste
+          # (`if (! isset($data['template'])) { return; }`) e o Laravel precisa BOOTAR
+          # inteiro a cada request só pra descobrir que está em manutenção — justamente
+          # durante o composer install/dump-autoload, quando esse boot está instável.
+          # É o que transforma 503 gracioso em 500 (incidentes 2026-06-18 e 06-23).
+          # Página: resources/views/errors/503.blade.php (HTML puro, sem diretiva Blade).
+          #
+          # Fallback explícito sem --render: se a view não renderizar por qualquer motivo
+          # (ex: primeiro deploy após este PR, quando o arquivo ainda não está no servidor
+          # e cai na view do framework), cai no comportamento anterior. Sem esse fallback o
+          # `|| true` final mascararia a falha do `down` e o composer install rodaria com o
+          # site NO AR — pior que a janela que este PR está encurtando.
+          #
+          # --refresh=15 (era 60): a janela tem mediana MEDIDA de 78s (76 janelas em 7 dias,
+          # p90 89s, máx 101s). Com 60 o navegador recarrega aos 60s, ainda em manutenção, e
+          # só tenta de novo aos 120s — o operador esperava ~120s numa queda de 78s. O 15 é
+          # só a rede de segurança pra quem está sem JS; a sonda da própria página tenta a
+          # cada ~4s e recarrega assim que o servidor deixa de responder 503.
+          DOWN="php artisan down --secret='$SECRET' --retry=60 --refresh=15"
+          /tmp/ssh_exec.sh "cd $RDIR && ( $DOWN --render='errors::503' || $DOWN ) || true"
 
       - name: Git pull — branch main (apenas código-fonte; bundles vêm do runner)
         run: |
@@ -449,8 +469,17 @@ jobs:
         # dos deploys. É a maior fatia dos ~60s em que o site fica em 503.
         #
         # O dump-autoload NÃO é condicional (passo seguinte): ele depende do CÓDIGO
-        # FONTE, não do lock — classe nova em app/ ou Modules/ precisa entrar no
-        # classmap-authoritative ou vira 500 no boot (incidentes 2026-06-18 e 06-23).
+        # FONTE, não do lock. ATÉ 2026-08-26 isso era Tier-0: com --classmap-authoritative
+        # uma classe nova fora do classmap virava 500 no boot (incidentes 2026-06-18 e
+        # 06-23). A flag SAIU nesta data — agora classe fora do classmap cai no fallback
+        # PSR-4 e resolve, então o dump virou OTIMIZAÇÃO, não pré-requisito de não-quebrar.
+        # Medido no staging do CT 100: com a flag, classe criada após o dump NÃO resolve
+        # (reproduz o incidente sob demanda); sem ela, resolve. Custo do fallback: 18
+        # classes distintas fora do classmap num boot completo x <=3 lookups x 1,697us
+        # = 0,092 ms por request (~0,008% de um TTFB de 1,2s).
+        # Ele continua DENTRO da janela porque o Composer escreve o classmap com
+        # file_put_contents, que não é atômico — tirar daqui exige swap atômico do
+        # vendor/composer/, que é outro PR.
         if: steps.lock_servidor.outputs.hash != needs.build.outputs.composer_lock_hash
         run: |
           /tmp/ssh_exec.sh "
@@ -466,7 +495,7 @@ jobs:
           /tmp/ssh_exec.sh "
             set -o pipefail &&
             cd $RDIR &&
-            composer dump-autoload -o --classmap-authoritative --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium 2>&1 | tail -10
+            composer dump-autoload -o --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium 2>&1 | tail -10
           "
 
       - name: Verifica classmap autoritativo (re-dump 1× se stale) — emenda ADR 0269 (incidente 2026-06-23)
@@ -495,7 +524,7 @@ jobs:
             cd $RDIR &&
             if php scripts/deploy/verify-classmap.php; then exit 0; fi;
             echo '=== classmap stale — re-dump 1x e re-verifica ===' &&
-            composer dump-autoload -o --classmap-authoritative --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium 2>&1 | tail -10;
+            composer dump-autoload -o --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium 2>&1 | tail -10;
             php scripts/deploy/verify-classmap.php
           "
 
@@ -620,7 +649,7 @@ jobs:
         # `-name '*.php'` mantém barato (ignora bundles .js/.css).
         #
         # NÃO roda `composer dump-autoload` aqui: o step "Composer install" já faz o
-        # dump-autoload canônico (-o --classmap-authoritative). Rodar de novo era redundante
+        # dump-autoload canônico (-o; o --classmap-authoritative saiu em 2026-08-26). Rodar de novo era redundante
         # E flaky — em 2026-06-10 o `dump-autoload --optimize` standalone abortou com help/exit 1
         # (platform-req), derrubando o deploy DEPOIS do publish. Best-effort (`|| true`): o
         # reset real e confirmado é o step HTTP seguinte; o failsafe protege o site.
@@ -787,15 +816,27 @@ jobs:
         if: always() && steps.maint_on.outcome == 'success'
         run: |
           if [ "${{ steps.classmap.outcome }}" = "failure" ] || [ "${{ steps.webgate.outcome }}" = "failure" ]; then
-            /tmp/ssh_exec.sh "cd $RDIR && php artisan down --retry=60 --refresh=60 2>&1 || true; echo 'MANTIDO EM MAINTENANCE (503) — gate classmap/web falhou'"
-            echo "::error::Gate de classmap/web falhou — site mantido em MAINTENANCE (503). 'php artisan about' (CLI) não reproduz esse caso (middleware web). Recuperar: 'composer dump-autoload -o --classmap-authoritative --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium' + reset OPcache, OU re-deploy do main saudável. Ver Tail laravel.log abaixo."
+            # --render aqui também (#6309 consertou só o `down` inicial — esta era 1 de 3).
+            # Sem ele este re-`down` SOBRESCREVE storage/framework/maintenance.php com uma
+            # versão SEM template, desfazendo a página pré-renderizada que o down inicial
+            # gravou — e justamente no caminho em que o classmap/boot web está quebrado, que
+            # é quando servir o 503 NÃO pode depender de bootar o framework. Resultado antigo:
+            # 500 pro cliente no pior cenário, com o site "em manutenção".
+            /tmp/ssh_exec.sh "cd $RDIR && ( php artisan down --retry=60 --refresh=15 --render='errors::503' || php artisan down --retry=60 --refresh=15 ) 2>&1 || true; echo 'MANTIDO EM MAINTENANCE (503) — gate classmap/web falhou'"
+            echo "::error::Gate de classmap/web falhou — site mantido em MAINTENANCE (503). 'php artisan about' (CLI) não reproduz esse caso (middleware web). Recuperar: 'composer dump-autoload -o --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium' + reset OPcache, OU re-deploy do main saudável. Ver Tail laravel.log abaixo."
             exit 1
           fi
           if /tmp/ssh_exec.sh "cd $RDIR && php artisan about > /dev/null 2>&1"; then
             /tmp/ssh_exec.sh "cd $RDIR && php artisan up 2>&1 || rm -f storage/framework/down storage/framework/maintenance.php 2>&1 || true; echo 'maintenance OFF (boot OK)'"
           else
-            /tmp/ssh_exec.sh "cd $RDIR && php artisan down --retry=60 --refresh=60 2>&1 || true; echo 'MANTIDO EM MAINTENANCE (503) — codigo nao boota'"
-            echo "::error::Codigo deployado NAO boota (php artisan about falhou). Site mantido em MAINTENANCE (503 gracioso) em vez de servir 500. Recuperar no prod: 'composer dump-autoload -o --classmap-authoritative --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium' + reset OPcache, OU re-deploy. Ver Tail laravel.log abaixo."
+            # Idem (3 de 3). Aqui o `artisan about` JÁ falhou, então o `--render` provavelmente
+            # também falha — e é por isso que ele vem com fallback e o bloco inteiro em `|| true`:
+            # se nada rodar, o maintenance.php que o down inicial gravou (COM template) fica de pé,
+            # que é o desfecho desejado. O que não podia acontecer era o caso ANTIGO: um `down` sem
+            # --render conseguir rodar e trocar a página boa por uma que exige bootar o framework
+            # quebrado.
+            /tmp/ssh_exec.sh "cd $RDIR && ( php artisan down --retry=60 --refresh=15 --render='errors::503' || php artisan down --retry=60 --refresh=15 ) 2>&1 || true; echo 'MANTIDO EM MAINTENANCE (503) — codigo nao boota'"
+            echo "::error::Codigo deployado NAO boota (php artisan about falhou). Site mantido em MAINTENANCE (503 gracioso) em vez de servir 500. Recuperar no prod: 'composer dump-autoload -o --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium' + reset OPcache, OU re-deploy. Ver Tail laravel.log abaixo."
             exit 1
           fi
 

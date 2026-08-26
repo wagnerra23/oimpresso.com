@@ -3,7 +3,7 @@ page: /sells/create-v3
 component: resources/js/Pages/Sells/CreateV3.tsx
 owner: luiz
 status: draft
-last_validated: "2026-08-10"
+last_validated: "2026-08-26"
 parent_module: Sells
 related_us: [US-SELL-058]
 related_adrs: [253, 104, 93, 62]
@@ -41,6 +41,7 @@ A tela viva é `Sells/Create.tsx` (`/pos/create`), e quem a usa é a **ROTA LIVR
 - **4 passos numerados na coluna esquerda** — 1 Cliente · 2 Itens · 3 Entrega e frete · 4 Observações e produção — espelhando a âncora de design.
 - **Coluna direita de fechamento**: Tabela de preço · Fechamento (plate escuro com o total, único bloco de peso visual) · Pagamento · Comissão · Situação (FSM) · finalizador *sticky*.
 - Grid de itens **editável** (quantidade, valor, desconto %, acréscimo %) com alerta de linha inválida e coluna de Ações fixa.
+- **Colunas do grid configuráveis** (`_components/v3/ColunasModal.tsx` + `colunas-dominio.ts`, onda 6): o operador escolhe quais das 30 colunas do catálogo aparecem e em que ordem, e a preferência **chega no cabeçalho e nas células** — provado por render em `tests/js/colunas-grid.test.tsx` (UC-V367). Coluna cujo dado a linha ainda não carrega mostra travessão (UC-V368); são **18 das 30** hoje, e a dívida está declarada no `casos.md`. Colunas fixas (`produto`/`qtd`/`preco`/`total`) não desligam nem saem de lugar.
 - **Lançamento do item por modal** (`_components/v3/LancarItem.tsx`, onda 1): escolher o produto na busca abre o lançamento, onde a **unidade do cadastro** decide o modo — `m²` pede peças+altura+largura, `m³` acrescenta espessura, `m` usa só a largura, e o resto pede a quantidade direto. A quantidade faturada é **derivada** (`peças × área`), nunca digitada, e o preview do total muda enquanto se digita. Alerta de preço abaixo da alçada (85% da tabela) e de saldo negativo de estoque — o segundo **avisa, não bloqueia**.
 - Situação FSM **fail-secure**: papel ausente NEGA a ação e a tela **diz qual papel falta**; os efeitos colaterais da transição são declarados ANTES de executá-la.
 - Recurso ainda não portado aparece como gatilho que **diz o que falta** (`AindaNao`) — botão que promete e não entrega é pior que botão ausente.

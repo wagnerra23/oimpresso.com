@@ -39,14 +39,23 @@ interface Props {
   business: { id: number | null; name: string }
 }
 
-// ── Tokens canônicos do card de prova (espelho do Cockpit Saúde Brain A) ──────
-// Cores oklch fiéis ao protótipo (--sidebar/--sidebar-ink). Inline porque é uma
-// "ilha" dark dentro de página clara — mesmo padrão de JanaAreaHeader (oklch inline).
-const PROOF_BG = 'oklch(0.22 0.01 285)'
+// ── Cores do card de prova — "ilha" dark dentro de página que pode estar clara ──
+// MEDIDO 2026-08-26: os tokens `--sb-*` (sidebar) são os únicos IDÊNTICOS nos dois temas
+// (`_generated-cockpit-light.css` == `_generated-cockpit-dark.css`), então são os corretos
+// para uma ilha dark-fixo. Os semânticos (`--pos`, `--accent-soft`, `--bubble-them`,
+// `--color-*`) TÊM par de tema e quebrariam aqui: no claro o verde vira escuro sobre fundo
+// escuro e a bolha vira branca. Por isso o mapa abaixo usa `--sb-*`, não os semânticos.
+const PROOF_BG = 'var(--sb-bg)'
+const PROOF_INK = 'var(--sb-text-hi)'
+const PROOF_MUTE = 'var(--sb-text-dim)'
+const BUB_THEM = 'var(--sb-active)'
+// ⚠️ AINDA CRUAS — não há token dark-fixo equivalente no DS (medido: verde e accent-soft
+// só existem com par de tema). Criar token novo é decisão [W] (Tier 0), então ficam
+// literais e DECLARADAS aqui em vez de escondidas:
+//   BUB_JANA  → falta um accent-soft dark-fixo
+//   NUM_POS   → falta um success dark-fixo
+//   PROOF_OVERLAY → falta o accent dark-fixo do gradiente
 const PROOF_OVERLAY = 'radial-gradient(120% 80% at 100% 0%, oklch(0.4 0.12 295 / 0.35), transparent 60%)'
-const PROOF_INK = 'oklch(0.96 0.01 90)'
-const PROOF_MUTE = 'oklch(0.68 0.01 285)'
-const BUB_THEM = 'oklch(0.30 0.012 285)'
 const BUB_JANA = 'oklch(0.31 0.02 295)'
 const NUM_POS = 'oklch(0.74 0.13 150)'
 
@@ -261,7 +270,7 @@ function ProPage({ plan, pricing, proof }: Props) {
                 style={{ background: BUB_JANA }}
               >
                 Maio fechou acima de abril. Veja pelos 3 ângulos:
-                <div className="mt-[9px] flex gap-3.5 border-t pt-[9px]" style={{ borderColor: 'oklch(0.40 0.02 285)' }}>
+                <div className="mt-[9px] flex gap-3.5 border-t pt-[9px]" style={{ borderColor: 'var(--sb-border)' }}>
                   <div className="flex flex-col">
                     <small className="text-[9.5px] uppercase tracking-[0.08em]" style={{ color: PROOF_MUTE }}>
                       Bruto

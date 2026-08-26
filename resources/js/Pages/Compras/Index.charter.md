@@ -7,7 +7,7 @@ status: draft
 status_detail: scaffold
 last_validated: "2026-05-25"
 parent_module: Compras
-states: [default, loading]  # gate L2 — dark/empty podados: baselines flaky (não-reproduzíveis run-a-run no CI) · sync com tests/Browser/visreg-states.json
+states: [loading]  # gate L2 — dark/empty podados antes (flaky); `default` podado em 2026-08-26 pelo mesmo motivo, agora MEDIDO: 2 regenerações do MESMO commit de main deram bytes diferentes · sync com tests/Browser/visreg-states.json
 parent_spec: memory/requisitos/Compras/SPEC.md
 related_adrs: [93, 94, 101, 104, 107, 114, 141, 149]
 related_us: [US-COM-001]

@@ -30,8 +30,20 @@ name: Jana Conversas Gate — histórico do chat (filtro real + J/K + ⌘⇧H + 
 #   `return` no topo do handler de teclado  → 5 failed (J/K + ⌘⇧H)
 #   `keep` do filtro forçado a `true`       → 3 failed (as 2 abas + J/K sob filtro)
 #
+# ESCOPO AMPLIADO EM 2026-08-26 — esta lane passou a ser o HOME dos specs jsdom da
+# Jana, não só o do histórico. Entrou `tests/jana-pro-voltar.test.tsx` (UC-PRO-07 do
+# `resources/js/Pages/Jana/Pro.casos.md`), que não rodava em lane NENHUMA: medido com
+# `rg --hidden` no repo inteiro, o nome do spec só aparecia no próprio `.casos.md` e num
+# doc de `memory/` — zero ocorrência em `.github/`. Nenhuma lane roda `vitest run` sem
+# argumento, então spec fora de workflow é verde-por-não-execução (LC-13).
+#
+# Os `name:` do workflow e do job seguem falando só de "conversas" DE PROPÓSITO: o job
+# `name:` é o context do check, e renomeá-lo derruba o check nos PRs já abertos (§5
+# 2026-08-08). O escopo real de quem roda está no `name:` do step e no comando.
+#
 # Path-scoped (faz npm ci): roda quando a Page, o tipo do payload, o spec ou este
-# workflow mudam. Comando local: npx vitest run tests/jana-chat-conversas.test.tsx
+# workflow mudam. Comando local:
+#   npx vitest run tests/jana-chat-conversas.test.tsx tests/jana-pro-voltar.test.tsx
 #
 # Advisory (ADR 0271/0314 — atalho e filtro de tela é qualidade/higiene, não
 # Tier-0). Promoção a required, se um dia fizer sentido, é flip [W] com mordida
@@ -43,6 +55,11 @@ on:
       - 'resources/js/Pages/Jana/Chat.tsx'
       - 'resources/js/Components/cockpit/shared.ts'
       - 'tests/jana-chat-conversas.test.tsx'
+      # Pro (2026-08-26): a tela SOB TESTE entra no gatilho junto com o spec, senão
+      # mexer no `Pro.tsx` não acorda o teste que o defende — foi metade do bug de
+      # 2026-08-17 no PainelContratoTest (§5 2026-08-02: "inclua o arquivo SOB TESTE").
+      - 'resources/js/Pages/Jana/Pro.tsx'
+      - 'tests/jana-pro-voltar.test.tsx'
       - '.github/workflows/jana-conversas-gate.yml'
   push:
     branches: [main]
@@ -50,6 +67,8 @@ on:
       - 'resources/js/Pages/Jana/Chat.tsx'
       - 'resources/js/Components/cockpit/shared.ts'
       - 'tests/jana-chat-conversas.test.tsx'
+      - 'resources/js/Pages/Jana/Pro.tsx'
+      - 'tests/jana-pro-voltar.test.tsx'
 
 concurrency:
   group: jana-conversas-gate-${{ github.ref }}
@@ -76,9 +95,17 @@ jobs:
       # cairam em `status:unverified` — declaravam ✅ com teste real, sem prova capturada.
       # Mesma correcao que a sells-v3-dominio-gate ja tinha; o `junit-lanes` deriva sozinho
       # (nao ha lista a manter), entao o proximo `casos-results-publish` carimba o ✅.
-      - name: histórico de conversas da Jana (vitest/jsdom)
+      # UMA invocação, DOIS specs, UM XML — de propósito. Rodar o Pro num step próprio
+      # com artifact próprio custaria uma 2ª entrada em `junit-lanes.mjs` e um 2º
+      # download no publisher pra medir a mesma coisa; e um step separado sob o
+      # `success()` implícito nem rodaria quando o spec de cima ficasse vermelho.
+      # O coletor por-UC varre TODOS os `<testcase>` do XML, então os dois vereditos
+      # chegam ao G-7 pelo transporte que já existe.
+      - name: specs jsdom da Jana — histórico de conversas + Pro (vitest/jsdom)
         run: |
-          npx vitest run tests/jana-chat-conversas.test.tsx \
+          npx vitest run \
+            tests/jana-chat-conversas.test.tsx \
+            tests/jana-pro-voltar.test.tsx \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-jana-conversas-junit.xml

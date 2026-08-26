@@ -42,7 +42,7 @@ class DataController extends Controller
     {
         return [
             [
-                'name'    => 'copiloto_module',
+                'name'    => 'jana_module',
                 'label'   => __('copiloto::copiloto.module_label'),
                 'default' => false,
             ],
@@ -142,9 +142,17 @@ class DataController extends Controller
             $is_enabled = $module_util->isModuleInstalled('Jana');
         } else {
             $business_id = session()->get('user.business_id');
+            // `jana_module`, não `copiloto_module` — decisão [W] 2026-08-26, textual:
+            // *"copiloto_module é erro"*. Sub-decisão da ADR 0088, que prevê o movimento:
+            // "Reabrir 0088 quando Wagner decidir mover qualquer dimensão da fachada."
+            //
+            // Back-compat medido em produção no mesmo dia, antes da troca: dos 75 pacotes,
+            // 1 tinha `copiloto_module` e 2 tinham `jana_module`; das 12 assinaturas ATIVAS,
+            // ZERO tinham `copiloto_module` e 1 tinha `jana_module` (sub=118, biz=1).
+            // Ninguém perde acesso — não havia acesso concedido pela chave antiga.
             $is_enabled = (bool) $module_util->hasThePermissionInSubscription(
                 $business_id,
-                'copiloto_module',
+                'jana_module',
                 'superadmin_package'
             );
         }
