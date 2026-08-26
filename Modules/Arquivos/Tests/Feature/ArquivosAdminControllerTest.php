@@ -867,10 +867,25 @@ afterEach(function () {
             ->delete();
     }
 
-    // Fixtures do cofre — marcadas por `sub_destination`, que nenhum caminho de
-    // produção escreve. `delete()` direto na tabela porque o model tem SoftDeletes:
-    // um soft-delete deixaria a linha lá, e o próximo teste contaria o lixo do anterior.
+    // Fixtures do cofre — a âncora é o `disk`, NÃO o `sub_destination`.
+    //
+    // Ela já foi `sub_destination = '__fixture-cofre'` e isso vazou: os dois testes de
+    // UC-INDEX-04 precisam de um contexto REAL (`nfe-xml`, `ticket-anexo`) pra exercer a
+    // precedência do prazo, então sobrescrevem justamente o campo que a limpeza usava
+    // como marcador. As linhas sobreviviam ao `afterEach` carregando o `disk` do helper —
+    // e como o cross-tenant de UC-INDEX-03 mede o card DESSE disco, ele passava a contar
+    // 2 onde esperava 1. Pior sintoma possível: ordem aleatória do Pest decidindo se o
+    // assert Tier 0 mais importante do arquivo é verde ou vermelho.
+    //
+    // O `disk` é o marcador certo porque é do HELPER, não do caso: `arquivosCofreInsere`
+    // sempre o escreve e nenhum caller o sobrescreve (medido). E `fixture-cofre` não
+    // existe em caminho de produção nenhum — as 3 ocorrências no repo estão neste arquivo.
+    // Sem `business_id` no filtro de propósito: o adversário 99 grava no mesmo disco e
+    // também tem que sair.
+    //
+    // `delete()` direto na tabela porque o model tem SoftDeletes: um soft-delete deixaria
+    // a linha lá, e o próximo teste contaria o lixo do anterior.
     if (Schema::hasTable('arquivos')) {
-        DB::table('arquivos')->where('sub_destination', '__fixture-cofre')->delete();
+        DB::table('arquivos')->where('disk', arquivosCofreDisco())->delete();
     }
 });
