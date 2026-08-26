@@ -42,9 +42,32 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  *       o chat não escreve linha nenhuma lá.
  *
  *       O sink de log que o chat REALMENTE alimenta é o **Langfuse**
- *       (`ChatController:395` `startTrace` e `:550` `endTrace`), e é lá que o
+ *       (`ChatController:476` `startTrace` e `:631` `endTrace`), e é lá que o
  *       UC-10 mede — o anti-hook fala de PII em plain text num sink de
  *       observabilidade, e este é o sink que existe.
+ *
+ *   (c) **O EGRESSO é `dispatch()`, não `startTrace()`** — corrigido em
+ *       2026-08-26, e esta é a diferença entre o teste medir o contrato ou
+ *       medir a si mesmo. A 1ª versão deste arquivo espionava `startTrace()`
+ *       e reprovava acusando "vazamento real de PII". Era **falso**: o
+ *       `LangfuseClient` redige DENTRO de `startTrace`, no `traceEvent()`
+ *       (`'input' => $this->maybeRedact(...)`), e o mesmo vale pro `output`
+ *       do `endTrace()` e pro par input/output do `generationEvent()`. O
+ *       espião de entrada capturava `$attrs` UMA CAMADA ANTES da redação —
+ *       via o dado cru que o controller passa, nunca o que sai do processo.
+ *
+ *       Medido (CT 100, probe descartável de egresso, 2026-08-26): o turno
+ *       dispatcha 2 lotes, o adapter recebe a mensagem, e o CPF **não**
+ *       aparece no payload — sai com placeholder. Ou seja: o sistema cumpre
+ *       o anti-hook; quem reprovava era o medidor. Mesma família do achado
+ *       do irmão UC-08 em [#6310](https://github.com/wagnerra23/oimpresso.com/pull/6310)
+ *       (lá o `preventStrayRequests` pegava o SSR do Inertia, não o Brain B).
+ *
+ *       Mover a sonda pro `dispatch()` **não afrouxa** o assert — ele fica
+ *       mais LARGO: passa a cobrir todo o corpo do evento, inclusive o
+ *       `metadata`, que o `traceEvent()` mescla SEM redigir (`array_merge`
+ *       cru na linha 130-137). PII posta em metadata vazaria de verdade, e
+ *       só um assert no egresso enxerga isso.
  *
  *   (b) **Não há "tool registry" no Jana.** As 5 tools do chat são lista
  *       hardcoded em `ChatCopilotoAgent::toolsAtivas()`. O registry com
@@ -77,31 +100,32 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  */
 
 /**
- * Espião do Langfuse — captura o que o chat MANDA pro sink de observabilidade.
+ * Espião do Langfuse — captura o que EFETIVAMENTE SAI do processo pro sink.
  *
- * Não é mock de conveniência: `LangfuseClient::startTrace` só emite de verdade
- * quando `shouldEmit()` passa (env/flag), então em CI o cliente real seria mudo
- * e o teste não veria payload nenhum. O espião torna o payload observável
- * **sem** depender de o Langfuse estar configurado na lane.
+ * Intercepta `dispatch()`, o último ponto antes do HTTP/fila — de propósito, e
+ * a escolha do ponto É o teste (ver item (c) do docblock do arquivo). Os
+ * métodos públicos (`startTrace`/`endTrace`) rodam INTEIROS, incluindo o
+ * `maybeRedact()` que monta o corpo do evento; o que este espião guarda é o
+ * resultado depois da redação, que é o que o anti-hook fala a respeito.
+ *
+ * Espionar `startTrace()` — como a 1ª versão fazia — media o argumento cru do
+ * chamador e acusava vazamento inexistente.
  */
 final class EspiaoLangfuseAcaoAntiHook extends LangfuseClient
 {
-    /** @var list<array<string,mixed>> */
-    public array $inicios = [];
+    /** @var list<array<int,array<string,mixed>>> */
+    public array $lotes = [];
 
-    /** @var list<array<string,mixed>> */
-    public array $fins = [];
-
-    public function startTrace(array $attrs): string
+    /** @param array<int,array<string,mixed>> $events */
+    protected function dispatch(array $events): void
     {
-        $this->inicios[] = $attrs;
-
-        return 'trace-espiao-anti-hook';
+        $this->lotes[] = $events;
     }
 
-    public function endTrace(string $traceId, array $attrs = []): void
+    /** Tudo que saiu, achatado — pra procurar PII em qualquer nível. */
+    public function egressoAchatado(): string
     {
-        $this->fins[] = $attrs;
+        return (string) json_encode($this->lotes, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 }
 
@@ -137,8 +161,13 @@ final class DubleAdapterAcaoAntiHook implements AiAdapter
     {
         $this->recebidos[] = $mensagem;
 
-        yield 'resposta ';
-        yield 'do duble';
+        // ECOA o texto do usuário de propósito. É o pior caso realista (modelo
+        // repete o dado de quem perguntou) e, sem isso, o `output` que vai pro
+        // `endTrace` nunca conteria o CPF — o assert sobre a saída passaria por
+        // vácuo, medindo a criatividade do dublê em vez do contrato.
+        yield 'sobre "';
+        yield $mensagem;
+        yield '": segue a segunda via.';
     }
 
     /** {@inheritDoc} */
@@ -190,12 +219,6 @@ function acaoAntiHookEnviarStream(object $test, User $user, Conversa $conv, stri
             ob_start();
         }
     }
-}
-
-/** Achata um payload aninhado em texto único, pra procurar PII em qualquer nível. */
-function acaoAntiHookAchatar(array $payload): string
-{
-    return (string) json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
 
 it('UC-JCHAT-09 — toda tool exposta ao LLM declara a permissão que exige (anti-hook do tool registry)', function () {
@@ -259,6 +282,20 @@ it('UC-JCHAT-09 — toda tool exposta ao LLM declara a permissão que exige (ant
 });
 
 it('UC-JCHAT-10 — o turno NÃO manda PII em plain text pro sink de log (anti-hook do sanitizer)', function () {
+    // Liga o sink. Sem isto `shouldEmit()` é false, `dispatch()` nunca roda e o
+    // teste mediria zero evento — o vácuo perfeito: "nenhum payload tem CPF"
+    // sendo verdade por não existir payload. Foi justamente pra fugir desse
+    // mudo que a 1ª versão espionou a ENTRADA; a saída certa é ligar o sink.
+    config()->set('langfuse.enabled', true);
+    config()->set('langfuse.sample_rate', 1.0);
+
+    // `redact_pii` NÃO é forçado: o contrato é que a config de PRODUÇÃO
+    // (default true, config/langfuse.php:119) satisfaz o anti-hook. Se alguém
+    // desligar por env, este teste fica vermelho — e deve mesmo, porque aí o
+    // anti-hook está genuinamente violado.
+    expect((bool) config('langfuse.redact_pii', true))
+        ->toBeTrue('Com `langfuse.redact_pii` OFF o anti-hook do sanitizer está violado por configuração.');
+
     $tenant = $this->seededTenant();
     $user = User::factory()->create(['business_id' => $tenant->id]);
 
@@ -289,7 +326,14 @@ it('UC-JCHAT-10 — o turno NÃO manda PII em plain text pro sink de log (anti-h
     // (2) O sink foi acionado. Sem isto, "nenhum payload contém CPF" seria
     //     verdade por não existir payload — exatamente o vácuo que derrubaria
     //     a versão deste teste escrita contra `jana_audit_log` (ver docblock).
-    expect($espiao->inicios)->not->toBeEmpty('O chat não abriu trace — o guard não teria o que medir.');
+    expect($espiao->lotes)->not->toBeEmpty('O chat não emitiu evento nenhum — o guard não teria o que medir.');
+
+    // (2b) O EGRESSO carrega o turno de verdade. O `input` do trace e o
+    //      `output` do endTrace têm que ter chegado lá em ALGUMA forma — se o
+    //      corpo saísse vazio, "sem CPF" seria vácuo de novo, agora mais sutil.
+    $egresso = $espiao->egressoAchatado();
+    expect($egresso)->toContain('jana-chat-stream');
+    expect($egresso)->toContain('segue a segunda via');
 
     // (3) O CPF da fixture é RECONHECÍVEL como PII pelo sanitizer canônico.
     //     Vácuo sutil: se o PiiRedactor não casasse este padrão, o assert final
@@ -303,21 +347,25 @@ it('UC-JCHAT-10 — o turno NÃO manda PII em plain text pro sink de log (anti-h
     // `str_contains(...)->toBeFalse(msg)` e NÃO `not->toContain($cpf, msg)`: o
     // `toContain` é variádico em needles, então a mensagem viraria um SEGUNDO
     // needle e o assert mudaria de sentido calado (§5 2026-07-28, PR #4918).
-    foreach ($espiao->inicios as $i => $attrs) {
-        expect(str_contains(acaoAntiHookAchatar($attrs), $cpf))->toBeFalse(sprintf(
-            'startTrace #%d levou o CPF em plain text. Medido em 2026-08-17: '
-            . 'ChatController:401 passa `input => $userInput` cru, sem PiiRedactor no caminho. '
-            . 'Se este teste está vermelho, ele achou vazamento real de PII pra observabilidade — '
-            . 'o conserto é redigir antes de montar o payload, não afrouxar o assert.',
-            $i
-        ));
-    }
+    expect(str_contains($egresso, $cpf))->toBeFalse(
+        'O CPF saiu em plain text pro Langfuse. Este assert olha o EGRESSO '
+        . '(`dispatch()`), depois do `maybeRedact()` — então vermelho aqui é '
+        . 'vazamento de verdade, não sonda mal posicionada. Suspeitos, nesta '
+        . 'ordem: (a) `langfuse.redact_pii` desligado; (b) campo novo no corpo '
+        . 'do evento que não passa por `maybeRedact` — o `metadata` do '
+        . '`traceEvent()` é mesclado CRU e é o candidato natural; (c) padrão de '
+        . 'PII que o `PiiRedactor` não reconhece. O conserto é redigir na '
+        . 'montagem do evento, NUNCA afrouxar este assert.'
+    );
 
-    foreach ($espiao->fins as $i => $attrs) {
-        expect(str_contains(acaoAntiHookAchatar($attrs), $cpf))->toBeFalse(sprintf(
-            'endTrace #%d levou o CPF em plain text (o `output` do turno ecoa o que o modelo '
-            . 'devolveu, e o modelo repete o dado do usuário).',
-            $i
-        ));
-    }
+    // Cobre o `output` explicitamente: o dublê ecoa a mensagem, então o corpo
+    // do endTrace contém o texto do usuário — e tem que sair redigido igual.
+    // `str_contains(...)->toBeTrue(msg)` e NÃO `toContain($x, msg)` — o mesmo
+    // motivo variádico explicado no assert acima (§5 2026-07-28, PR #4918):
+    // a mensagem viraria um SEGUNDO needle e o assert mudaria de sentido calado.
+    expect(str_contains($egresso, '[REDACTED:CPF]'))->toBeTrue(
+        'O texto do usuário chegou ao egresso mas sem marca de redação '
+        . '(`PiiRedactor::PLACEHOLDER_FORMAT` + tipo `CPF`). Ou o placeholder '
+        . 'mudou, ou o `output` do endTrace deixou de passar por `maybeRedact`.'
+    );
 });
