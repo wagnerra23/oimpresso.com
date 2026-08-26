@@ -38,16 +38,26 @@ export const GRUPOS: { k: GrupoDeColuna; label: string }[] = [
   { k: 'estoque', label: 'Estoque' },
 ];
 
+/*
+ * ⚠️ A ORDEM DESTE ARRAY É A ORDEM DE LEITURA DO GRID.
+ * `colunasPadrao()` filtra preservando a posição, então quem nunca mexeu vê as colunas
+ * exatamente nesta sequência. Agrupar "fixas primeiro" jogava **R$ Total para o 4º
+ * lugar**, na frente de desconto e acréscimo — e num grid de venda o total da linha é o
+ * fim da conta, não o meio. Ficou latente enquanto o grid renderizava seis colunas
+ * literais e ignorava a preferência; apareceu como regressão de pixel (2,63% em
+ * `Sells/CreateV3`) assim que a preferência passou a mandar. A âncora de design põe o
+ * total por último (`prototipo-ui/cowork/venda-v3/sells-colunas.jsx`), e a tela também
+ * punha antes desta onda. `fixa`/`padrao` seguem marcadas no próprio item — o papel de
+ * cada coluna não depende de onde ela está na lista.
+ */
 export const COLUNAS: DefinicaoDeColuna[] = [
-  // fixas — a linha não existe sem elas
+  // ── as 6 do padrão, na ordem em que o operador lê a linha ──
   { k: 'produto', label: 'Produto / serviço', grupo: 'ident', fixa: true, largura: 260 },
   { k: 'qtd', label: 'Quant.', grupo: 'valor', fixa: true, largura: 90 },
   { k: 'preco', label: 'R$ Valor', grupo: 'valor', fixa: true, largura: 110 },
-  { k: 'total', label: 'R$ Total', grupo: 'valor', fixa: true, largura: 110 },
-
-  // padrão — vêm ligadas
   { k: 'desc', label: 'Desc. %', grupo: 'valor', padrao: true, largura: 90 },
   { k: 'acr', label: 'Acrésc. %', grupo: 'valor', padrao: true, largura: 90 },
+  { k: 'total', label: 'R$ Total', grupo: 'valor', fixa: true, largura: 110 },
 
   // identificação
   { k: 'sku', label: 'SKU', grupo: 'ident', largura: 120 },

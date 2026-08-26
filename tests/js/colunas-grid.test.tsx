@@ -130,11 +130,14 @@ describe('grid de itens · a preferência de colunas chega na tela', () => {
     expect(screen.getByRole('cell', { name: '—' })).toBeTruthy();
   });
 
-  it('sem preferência salva, o grid abre no padrão — as 6 de sempre', () => {
+  it('sem preferência salva, o grid abre no padrão — e o TOTAL fecha a linha', () => {
     render(<SellsCreateV3 businessId={1} cena={cena} />);
 
+    // A ordem importa e é contrato: o total da linha é o fim da conta. Ver o aviso no
+    // topo de `COLUNAS` — agrupar as fixas primeiro punha `R$ Total` no 4º lugar, e foi
+    // isso que a regressão de pixel de `Sells/CreateV3` (2,63%) denunciou.
     expect(cabecalhosDoGrid()).toEqual([
-      'Produto / serviço', 'Quant.', 'R$ Valor', 'R$ Total', 'Desc. %', 'Acrésc. %', 'Ações',
+      'Produto / serviço', 'Quant.', 'R$ Valor', 'Desc. %', 'Acrésc. %', 'R$ Total', 'Ações',
     ]);
     // controle: o padrão do domínio é o que a tela desenhou (menos a coluna de Ações)
     expect(colunasPadrao()).toHaveLength(cabecalhosDoGrid().length - 1);
