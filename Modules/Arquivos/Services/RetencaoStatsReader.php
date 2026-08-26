@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Arquivos\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Schema;
 use Modules\Arquivos\Entities\Arquivo;
 
@@ -59,6 +60,23 @@ class RetencaoStatsReader
             return $this->vazio();
         }
 
+        // Span porque este e o metodo mais caro da tela: percorre o acervo INTEIRO por
+        // chunk pra aplicar o prazo linha a linha. Num tenant grande e onde a Retencao
+        // vai doer primeiro, e o trace e o que separa "a tela esta lenta" de "o chunk
+        // esta lento". Zero-cost com `otel.enabled=false`.
+        return OtelHelper::spanBiz('arquivos.retencao.fetch', function () {
+            return $this->calcular();
+        }, ['module' => 'Arquivos', 'component' => 'arquivos.retencao']);
+    }
+
+    /**
+     * O calculo em si — extraido do `fetch()` pra que o span envolva a operacao inteira
+     * sem aninhar o corpo num closure gigante.
+     *
+     * @return array<string, mixed>
+     */
+    private function calcular(): array
+    {
         $policy  = (array) config('arquivos.retention_days_policy', []);
         $default = (int) (config('arquivos.retention_days_default', 90) ?: 90);
         $grace   = $this->graceDias();
