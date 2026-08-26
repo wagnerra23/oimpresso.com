@@ -144,6 +144,24 @@ function inertiaScreens(content) {
   return [...new Set(screens)];
 }
 
+/**
+ * Chave do RAIO a partir do charter de uma tela — o mesmo `screen` que este classificador
+ * emite pro `VISREG_SCREENS`. Existe porque os manifestos de estados/fluxos indexam por
+ * SLUG kebab (`financeiro-unificado`) e o raio fala NAMESPACE (`Financeiro/Unificado`):
+ * comparar slug com raio nao casa nunca, e ai o item cai no ramo conservador do
+ * `VisregThreshold::particionaGrayZone` e divida herdada da main reprova PR alheio.
+ *
+ * Fica AQUI, no dono do vocabulario, pra os 3 lints (states/flows/sells) validarem o
+ * `source` declarado contra a MESMA derivacao — sem uma 2a implementacao pra drifar.
+ *
+ * @param {string} charterPath ex: `resources/js/Pages/Financeiro/Unificado/Index.charter.md`
+ * @returns {string|null} namespace da tela, ou null se o charter nao aponta pra uma Page
+ */
+export function screenSourceFromCharter(charterPath) {
+  const tsx = normalizePath(charterPath).replace(/\.charter\.md$/i, '.tsx');
+  return classifyFile(tsx)?.screen ?? null;
+}
+
 /** Classificador puro de um path. `content` cobre Controllers/routes Inertia. */
 export function classifyFile(rawPath, content = '') {
   const path = normalizePath(rawPath);

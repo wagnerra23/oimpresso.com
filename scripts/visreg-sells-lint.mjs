@@ -6,6 +6,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { screenSourceFromCharter } from './governance/ui-impact.mjs';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const FILE = 'tests/Browser/visreg-flows-sells.json';
@@ -23,6 +24,14 @@ export function validate(manifest, root = ROOT) {
   for (const [screen, spec] of Object.entries(manifest?.screens ?? {})) {
     if (!spec.route?.startsWith('/') || !spec.anchor || !spec.charter) errors.push(`${screen}: route/anchor/charter obrigatório`);
     if (!existsSync(resolve(root, spec.charter ?? ''))) errors.push(`${screen}: charter ausente`);
+    // `source` = a CHAVE do raio (namespace da Page) que o VisregThreshold compara com
+    // VISREG_SCREENS. Declarado aqui e conferido contra a derivacao do DONO do vocabulario
+    // (ui-impact.mjs), pra nao existir 2a implementacao do mapa charter->tela. Sem `source`
+    // o item cai no ramo conservador da particao e divida herdada reprova PR alheio.
+    const derivado = screenSourceFromCharter(spec.charter ?? '');
+    if (!spec.source) errors.push(`${screen}: sem \`source\` (chave do raio) — o gate visual bloqueia PR alheio`);
+    else if (derivado === null) errors.push(`${screen}: charter nao aponta pra uma Page — \`source\` nao e derivavel`);
+    else if (spec.source !== derivado) errors.push(`${screen}: source \`${spec.source}\` != derivado \`${derivado}\``);
     if (!Array.isArray(spec.viewports) || !spec.viewports.length) errors.push(`${screen}: sem viewports`);
     for (const id of spec.viewports ?? []) if (!viewports[id]) errors.push(`${screen}: viewport inexistente ${id}`);
     if (!Array.isArray(spec.flows) || !spec.flows.length) errors.push(`${screen}: sem fluxos`);
@@ -39,11 +48,13 @@ function load(file = FILE) {
 }
 
 if (process.argv.includes('--selftest')) {
-  const good = { viewports: { desktop: { width: 1280, height: 800 } }, screens: { s: { route: '/s', anchor: 'S', charter: 'package.json', viewports: ['desktop'], flows: [{ id: 'a', action: 'add_product', evidence: 'x' }] } } };
+  const good = { viewports: { desktop: { width: 1280, height: 800 } }, screens: { s: { route: '/s', anchor: 'S', charter: 'resources/js/Pages/Compras/Index.charter.md', source: 'Compras', viewports: ['desktop'], flows: [{ id: 'a', action: 'add_product', evidence: 'x' }] } } };
   const cases = [
     ['contrato íntegro passa', validate(good).length === 0],
     ['viewport inválido morde', validate({ ...good, viewports: { x: { width: 1, height: 2 } } }).length > 0],
     ['ação desconhecida morde', validate({ ...good, screens: { s: { ...good.screens.s, flows: [{ id: 'a', action: 'inventada', evidence: 'x' }] } } }).length > 0],
+    ['source ausente morde', validate({ ...good, screens: { s: { ...good.screens.s, source: undefined } } }).length > 0],
+    ['source divergente do derivado morde', validate({ ...good, screens: { s: { ...good.screens.s, source: 'Inventada/Tela' } } }).length > 0],
   ];
   const fails = cases.filter(([, ok]) => !ok);
   for (const [label, ok] of cases) console.log(`${ok ? 'OK' : 'X'} ${label}`);

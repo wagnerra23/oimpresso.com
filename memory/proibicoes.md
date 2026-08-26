@@ -900,6 +900,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** não medir frescor de um espelho contra **artefato derivado do próprio espelho** — manifesto de bundle, lockfile, snapshot commitado, índice gerado no mesmo ciclo. A pergunta antes de comparar: *"este lado de referência é produzido pela FONTE, ou pelo lado que estou auditando?"* Se é pelo lado auditado, a comparação mede consistência interna, nunca frescor — e o resultado é **pior que ausência de medição**, porque um `0 stale` cala o alarme que o `--sla` estava dando corretamente. Corolário operacional: **aplicar o bundle NÃO sincroniza** o espelho com o vivo; repõe o que já está lá. A única rota que trouxe o estado real foi `get_file` por arquivo.
 
+### 2026-08-26 — Consertar a classe do gate no MECANISMO e deixar 4 dos 5 CONSUMIDORES sem o dado (o raio existia e nao alcancava)
+
+- **O limite (variante tambem proibida):** ao consertar uma classe num mecanismo compartilhado, **contar os CONSUMIDORES dele e dizer quantos de quantos foram religados** — `git grep` do ponto de entrada, sem `head_limit`, "N de N". Corrigir o mecanismo e religar um chamador deixa o defeito vivo com **aparencia de fechado**, que e pior que nao ter consertado: a lapide fica escrita, o teste fica verde e ninguem procura de novo. E o corolario que teria pego este caso em 08-24: quando um parametro **opcional** carrega a decisao inteira de um gate, `null` nao e "valor ausente", e **o gate desligado** — a auditoria e "quem passa esse parametro?", nunca "a funcao esta certa?". Familia de **LC-18** (corrigir uma de N implementacoes) no eixo chamador, e de **LC-15** (docblock afirmando como desenho o que era buraco).
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
