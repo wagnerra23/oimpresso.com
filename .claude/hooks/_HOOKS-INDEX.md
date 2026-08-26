@@ -12,7 +12,7 @@
 - **55** wirings em `settings.json` (5 eventos) · **50** arquivos de hook distintos wired
 - **50** arquivos de hook no disco (+42 `*.test.*` — testes, fora da conta de órfãos)
 - Órfãos (arquivo sem wiring): **0** · Fantasmas (wiring sem arquivo): **0**
-- Gates CI no baseline: **45** classic + **1** ruleset → ponto-de-corte merge
+- Gates CI no baseline: **44** classic + **1** ruleset → ponto-de-corte merge
 
 ## Hooks wired (evento × matcher × arquivo)
 | Evento | Matcher | Hook | Runtime | Ponto-de-corte | Sinal de bloqueio (heurística) |
@@ -80,7 +80,7 @@ Nenhum.
 Nenhum.
 
 ## Gates CI (`required-checks-baseline.json` → ponto-de-corte merge)
-Contexts `classic_protection` (45):
+Contexts `classic_protection` (44):
 - ADR (memory/decisions/*.md)
 - ADR 0216 PR scan (governance:audit --diff-only)
 - ADR frontmatter
@@ -124,7 +124,6 @@ Contexts `classic_protection` (45):
 - SUPERFICIE.md == árvore (módulos vivos + adotados)
 - Tier-0 guards (WithoutGlobalScopes + BusinessId)
 - Tópico (memory/requisitos/*/topicos/*.md)
-- visual-regression
 - espelho — mexeu depois de verificar
 
 Contexts `rulesets` (1):
