@@ -1,5 +1,7 @@
 ---
 id: requisitos-crm-cliente-index-visual-comparison
+inertia_target: resources/js/Pages/Cliente/Index.tsx
+date: 2026-05-15
 ---
 
 # Visual Comparison — Cliente/Index (W1-B3)
