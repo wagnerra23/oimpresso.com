@@ -91,9 +91,8 @@ function semearTituloVisualFinanceiro(int $userId): void
 {
     // A rota do manifesto fixa junho/2026. Usar o mesmo relógio congelado evita
     // o falso vazio quando o runner muda de mês entre a geração e a comparação.
-    $agora = \Carbon\Carbon::getTestNow() ?? \Carbon\Carbon::now();
-    $hoje = $agora->toDateString();
-    $competencia = $agora->format('Y-m');
+    $hoje = (string) config('visreg.fixture_date');
+    $competencia = substr($hoje, 0, 7);
 
     \Illuminate\Support\Facades\DB::table('fin_titulos')->updateOrInsert(
         ['business_id' => 1, 'origem' => 'manual', 'origem_id' => 987654, 'parcela_numero' => 1],
@@ -172,9 +171,6 @@ foreach (financeiroFlowCases() as $label => [$screen, $flow, $viewport, $slug, $
             screenName: "{$slug} · {$flow['id']} · {$viewportId}",
             grayZone: $grayZone,
             baselineSuite: 'FinanceiroFlowBaselineTest',
-            // `source` = a CHAVE do raio (namespace da Page). Sem ela o item cai no ramo
-            // conservador do particionaGrayZone e divida herdada da main reprova PR alheio.
-            screenSource: ((string) ($screen['source'] ?? '')) ?: null,
         );
     });
 }
