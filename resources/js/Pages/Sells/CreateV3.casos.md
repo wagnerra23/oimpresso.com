@@ -498,7 +498,52 @@ uma implementação que simplesmente **não faz nada**.
 
 ---
 
+## UC-V367 · A preferência de colunas CHEGA no grid
+
+**Status:** 🧪 — 6 testes citam o UC e passam localmente (`tests/js/colunas-grid.test.tsx`).
+
+- **Dado** uma preferência de colunas salva,
+- **Quando** a tela de venda renderiza o grid de itens,
+- **Então** o cabeçalho e as células são **exatamente as colunas escolhidas, na ordem escolhida** — e o grid herda o saneamento (coluna fixa omitida volta na frente, UC-V364).
+
+Este é o UC que faltava, e a ausência dele custou caro: os 7 casos de UC-V360..V366 provam o
+**domínio** — saneamento, ordem, persistência — e passavam **todos** enquanto o grid renderizava
+seis colunas literais e ignorava a preferência inteira. Domínio perfeito, tela surda. Por isso a
+prova aqui é de **render** (RTL + jsdom, mesmo padrão de `tests/js/backup-index.test.tsx`), não de
+domínio: só o render distingue "a preferência está correta" de "a preferência é usada".
+
+**Controle negativo executado:** reintroduzindo o defeito (`visiveis` fixo no padrão, ignorando
+`colunas`), **6 dos 8 testes falham**; os 2 que sobrevivem são justamente os que não dependem da
+preferência (o caso do padrão e o da célula editável). O teste morde a regressão que o motivou.
+
+---
+
+## UC-V368 · Coluna sem fonte na venda mostra travessão, não vazio
+
+**Status:** 🧪 — 1 teste cita o UC e passa localmente (`tests/js/colunas-grid.test.tsx`).
+
+- **Dado** uma coluna do catálogo cujo dado a linha da venda ainda não carrega (NCM, CFOP, medidas, produção),
+- **Quando** o operador liga essa coluna no modal,
+- **Então** a coluna aparece com **travessão** — não em branco, não omitida.
+
+A ausência é **distinguível no domínio**: `textoDaColuna` devolve `null` (sem fonte), nunca string
+vazia — quem renderiza é que decide o símbolo. Esconder a coluna que o operador acabou de escolher
+seria pior: pareceria que o modal não funciona.
+
+⚠️ **Dívida declarada, e é grande — medida, não estimada:** **18 das 30** colunas do catálogo caem
+neste caso (12 têm fonte: `produto, qtd, preco, total, desc, acr` pela Page + `sku, un, ean,
+fabrica, categoria, estoque` por `textoDaColuna`). As 18 sem fonte: medidas
+(`altura, largura, esp, area, pecas`), fiscal (`ncm, cfop, cst, aliq, origem`), produção
+(`acabamento, aplicacao, impressao, executante, prazo`) e estoque (`saldoApos, lote, deposito`).
+Parte delas o lançamento **coleta e a Page descarta** (`executante`, `local`, `impressao` em
+`ItemLancado`); parte só existe no state local do drawer de detalhe. Ligar cada fonte é trabalho
+próprio, fora deste PR.
+
+---
+
 ## Backlog de contrato
+
+- **[BACKLOG]** O lançamento **para de descartar** `executante`, `local` e `impressao` ao virar linha da venda — o modal já coleta os três (`ItemLancado`), e são 3 das 19 colunas sem fonte do UC-V368.
 
 - **[BACKLOG]** A rota `/sells/create-v3` responde **403** a usuário autenticado sem `sell.create` e sem `superadmin` — mesma alçada da tela de venda real, o preview não afrouxa permissão.
 - **[BACKLOG]** A rota responde **302** (login) a usuário não autenticado.
@@ -573,6 +618,14 @@ uma implementação que simplesmente **não faz nada**.
 > reordena, nunca **como** o usuário dispara o movimento.
 
 - **[BACKLOG]** Reordenar é por **botão** (‹ ›), não por arrastar: drag-and-drop sem alternativa de teclado é inacessível. A fonte descreve a **intenção** ("arrastar e ordenar"), não a técnica.
+
+> ⚠️ **Errata 2026-08-26 — o que esta nota NÃO viu, e ficou 15 dias em produção.**
+> A onda 6 entregou o domínio e o modal, e os 7 UCs provavam os dois. O que ninguém provou é que
+> **o grid usa a preferência** — e ele não usava: `colunas` só alimentava o rótulo do botão e o
+> modal; o `<thead>`/`<tbody>` renderizavam seis colunas literais. O operador escolhia e nada
+> mudava na tela. Fechado por **UC-V367** e **UC-V368** acima, com prova de render (RTL) e
+> controle negativo. A lição que fica: **teste de domínio verde não prova que a tela consome o
+> domínio** — quando a onda entrega "preferência", o UC de fronteira é o do render.
 
 ---
 

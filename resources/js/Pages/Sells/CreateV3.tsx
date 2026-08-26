@@ -64,7 +64,13 @@ import {
 import { abaDaAcao, type Aba } from './_components/v3/item-fiscal-dominio';
 import { type Parcela } from './_components/v3/parcelas-dominio';
 import { type Beneficiario, type Gatilho } from './_components/v3/comissao-dominio';
-import { carregarColunas, salvarColunas } from './_components/v3/colunas-dominio';
+import {
+  carregarColunas,
+  colunasVisiveis,
+  ehEditavel,
+  salvarColunas,
+  textoDaColuna,
+} from './_components/v3/colunas-dominio';
 import { type Transportadora } from './_components/v3/entrega-dominio';
 import { brl, fmtBR, num, parseBR, submitSafe } from './_components/v3/numeros';
 import {
@@ -158,6 +164,21 @@ const METODOS_RAPIDOS = ['Dinheiro', 'PIX', 'Cartão de crédito', 'Boleto'];
  */
 const SOMBRA_COLUNA_FIXA = '-4px 0 6px -4px color-mix(in oklch, var(--color-foreground) 18%, transparent)';
 
+/** Largura da coluna de Ações — entra na largura mínima da tabela para não ser comida. */
+const LARGURA_ACOES = 152;
+
+/**
+ * Colunas cujo conteúdo é número: alinham à direita e recebem `tabular-nums`.
+ * É apresentação, não domínio — por isso mora aqui e não em `colunas-dominio.ts`.
+ */
+const COLUNAS_A_DIREITA = new Set([
+  'qtd', 'preco', 'desc', 'acr', 'total',
+  'altura', 'largura', 'esp', 'area', 'pecas', 'aliq', 'estoque', 'saldoApos',
+]);
+function alinhaADireita(k: string): boolean {
+  return COLUNAS_A_DIREITA.has(k);
+}
+
 /** Total da linha — mesma fórmula do handoff, com o parse pt-BR em cada fator. */
 function linhaTotal(l: Item): number {
   return submitSafe(
@@ -212,6 +233,18 @@ export default function SellsCreateV3({ cena }: Props) {
      ler storage no corpo do componente rodaria a cada render. */
   const [colunas, setColunas] = useState<string[]>(() => carregarColunas());
   const [colunasAberto, setColunasAberto] = useState(false);
+  /* A preferência vira cabeçalho e célula. Antes parava aqui: o modal gravava, o
+     grid renderizava seis colunas literais, e escolher não mudava nada na tela. */
+  const visiveis = useMemo(() => colunasVisiveis(colunas), [colunas]);
+  /* Índice por SKU — as colunas de catálogo (EAN, fábrica, categoria) leem daqui.
+     Map em vez de `.find()` por linha: com 30 colunas ligadas e a lista cheia, o
+     find aninhado vira O(itens × colunas × catálogo). */
+  const porSku = useMemo(() => new Map(catalogo.map((p) => [p.sku, p])), [catalogo]);
+  /* A tabela cresce com o que foi escolhido — largura fixa cortaria as colunas do fim. */
+  const larguraMinima = useMemo(
+    () => Math.max(560, visiveis.reduce((s, c) => s + (c.largura ?? 110), 0) + LARGURA_ACOES),
+    [visiveis],
+  );
   const [estagio, setEstagio] = useState('rascunho');
   const [historico, setHistorico] = useState<{ acao: string; de: string; para: string }[]>([]);
   const [situacaoAberta, setSituacaoAberta] = useState(false);
@@ -473,18 +506,22 @@ export default function SellsCreateV3({ cena }: Props) {
         )}
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[560px] border-separate border-spacing-0 text-[13.5px] leading-[1.4]">
+          <table
+            style={{ minWidth: larguraMinima }}
+            className="w-full border-separate border-spacing-0 text-[13.5px] leading-[1.4]"
+          >
             <thead>
               <tr>
-                {['Produto / serviço', 'Quant.', 'R$ valor', 'Desc. %', 'Acrésc. %', 'R$ total'].map((h, i) => (
+                {visiveis.map((c) => (
                   <th
-                    key={h}
+                    key={c.k}
+                    style={{ width: c.largura }}
                     className={cn(
                       'whitespace-nowrap border-b border-border bg-card px-3 py-2 text-[10.5px] font-semibold uppercase leading-none tracking-[.05em] text-muted-foreground',
-                      i === 0 ? 'text-left' : 'text-right',
+                      alinhaADireita(c.k) ? 'text-right' : 'text-left',
                     )}
                   >
-                    {h}
+                    {c.label}
                   </th>
                 ))}
                 {/* A sombra à esquerda não é adorno: é o que avisa que há coluna
@@ -504,35 +541,69 @@ export default function SellsCreateV3({ cena }: Props) {
                 const ruim = parseBR(l.qtd) <= 0 || parseBR(l.preco) <= 0;
                 return (
                   <tr key={l.k} className={cn(ruim && 'bg-destructive-soft/40')}>
-                    <td className="border-b border-border/60 px-3 py-2">
-                      <b className="font-semibold">{l.nome}</b>
-                      <span className="block font-mono text-[11.5px] text-muted-foreground">
-                        {l.sku} · {l.un}
-                        {l.medidas ? ` · ${l.medidas}` : ''}
-                      </span>
-                    </td>
-                    {(['qtd', 'preco', 'desc', 'acr'] as const).map((campo) => (
-                      <td key={campo} className="border-b border-border/60 px-2 py-1">
-                        <input
-                          value={l[campo] ?? '0'}
-                          readOnly={travada || cancelada}
-                          inputMode="decimal"
-                          aria-label={`${campo} — ${l.nome}`}
-                          onChange={(e) => setLinha(l.k, campo, e.target.value)}
+                    {visiveis.map((c) => {
+                      /* Produto e total são compostos aqui: o primeiro junta nome+SKU+medidas,
+                         o segundo é dinheiro derivado — e dinheiro não sai do domínio de colunas. */
+                      if (c.k === 'produto') {
+                        return (
+                          <td key={c.k} className="border-b border-border/60 px-3 py-2">
+                            <b className="font-semibold">{l.nome}</b>
+                            <span className="block font-mono text-[11.5px] text-muted-foreground">
+                              {l.sku} · {l.un}
+                              {l.medidas ? ` · ${l.medidas}` : ''}
+                            </span>
+                          </td>
+                        );
+                      }
+                      if (c.k === 'total') {
+                        return (
+                          <td
+                            key={c.k}
+                            className="border-b border-border/60 px-3 py-2 text-right font-mono font-semibold tabular-nums"
+                          >
+                            {fmtBR(linhaTotal(l))}
+                          </td>
+                        );
+                      }
+                      if (ehEditavel(c.k)) {
+                        const campo = c.k as 'qtd' | 'preco' | 'desc' | 'acr';
+                        return (
+                          <td key={c.k} className="border-b border-border/60 px-2 py-1">
+                            <input
+                              value={l[campo] ?? '0'}
+                              readOnly={travada || cancelada}
+                              inputMode="decimal"
+                              aria-label={`${c.label} — ${l.nome}`}
+                              onChange={(e) => setLinha(l.k, campo, e.target.value)}
+                              className={cn(
+                                // Mesma caixa do resto da tela (34,19px derivados). No protótipo
+                                // a célula editável da tabela é `cellNum`, que também usa `.dsfa`
+                                // — a tabela NÃO tem campo menor; o que a compacta é o padding do
+                                // `<td>` (`4px 8px` lá, `px-2 py-1` aqui — já idênticos).
+                                'w-full rounded-md border border-input bg-background px-[10px] py-[7px] text-right font-mono text-[13px] leading-[1.4] tabular-nums outline-none focus:border-primary',
+                                (travada || cancelada) && 'cursor-default bg-muted',
+                              )}
+                            />
+                          </td>
+                        );
+                      }
+                      /* Leitura. `null` = a venda ainda não carrega esse dado (ver casos.md);
+                         mostrar o travessão é mais honesto que esconder a coluna que o
+                         operador acabou de escolher no modal. */
+                      const texto = textoDaColuna(c.k, l, porSku.get(l.sku));
+                      return (
+                        <td
+                          key={c.k}
                           className={cn(
-                            // Mesma caixa do resto da tela (34,19px derivados). No protótipo
-                            // a célula editável da tabela é `cellNum`, que também usa `.dsfa`
-                            // — a tabela NÃO tem campo menor; o que a compacta é o padding do
-                            // `<td>` (`4px 8px` lá, `px-2 py-1` aqui — já idênticos).
-                            'w-full rounded-md border border-input bg-background px-[10px] py-[7px] text-right font-mono text-[13px] leading-[1.4] tabular-nums outline-none focus:border-primary',
-                            (travada || cancelada) && 'cursor-default bg-muted',
+                            'border-b border-border/60 px-3 py-2',
+                            alinhaADireita(c.k) ? 'text-right font-mono tabular-nums' : '',
+                            texto === null && 'text-muted-foreground',
                           )}
-                        />
-                      </td>
-                    ))}
-                    <td className="border-b border-border/60 px-3 py-2 text-right font-mono font-semibold tabular-nums">
-                      {fmtBR(linhaTotal(l))}
-                    </td>
+                        >
+                          {texto ?? '—'}
+                        </td>
+                      );
+                    })}
                     <td
                       style={{ boxShadow: SOMBRA_COLUNA_FIXA }}
                       className="sticky right-0 whitespace-nowrap border-b border-border/60 bg-card px-2 py-2 text-center"

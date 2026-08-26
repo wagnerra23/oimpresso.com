@@ -163,3 +163,84 @@ export function alternarColuna(chaves: string[], k: string): string[] {
   }
   return [...chaves, k];
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   DA PREFERÊNCIA PARA O GRID
+   Até aqui o arquivo respondia "quais colunas e em que ordem". Faltava a ponte:
+   o grid renderizava seis colunas literais e ignorava a preferência inteira — o
+   usuário escolhia no modal e nada mudava na tela.
+
+   ⚠️ Segue valendo o aviso do topo: nenhum cálculo de valor aqui. Dinheiro
+   (`total`) e a composição do nome do produto ficam na Page, que é quem tem
+   `linhaTotal` e o parse pt-BR. Aqui só sai TEXTO de dado que a linha já tem.
+   ────────────────────────────────────────────────────────────────────────── */
+
+/** Colunas que a linha edita (input). O resto é leitura. */
+export const COLUNAS_EDITAVEIS = ['qtd', 'preco', 'desc', 'acr'] as const;
+
+/** Colunas que a Page compõe sozinha — nome+SKU e o total em dinheiro. */
+export const COLUNAS_DA_PAGE = ['produto', 'total'] as const;
+
+export function ehEditavel(k: string): boolean {
+  return (COLUNAS_EDITAVEIS as readonly string[]).includes(k);
+}
+export function ehDaPage(k: string): boolean {
+  return (COLUNAS_DA_PAGE as readonly string[]).includes(k);
+}
+
+/** O que uma linha do grid oferece de leitura. Só o que a venda REALMENTE carrega. */
+export type LinhaDoGrid = {
+  sku: string;
+  un: string;
+  medidas: string | null;
+  estoque: number | null;
+};
+
+/** O recorte do catálogo que o grid consulta por SKU. */
+export type ProdutoDoGrid = {
+  sku: string;
+  ean: string | null;
+  fabrica: string | null;
+  categoria: string | null;
+};
+
+/**
+ * Resolve a preferência em definições, na ordem escolhida.
+ * Chave desconhecida é descartada — `sanearColunas` já filtra, mas quem chama pode
+ * vir de outro caminho e um `undefined` aqui viraria coluna fantasma no cabeçalho.
+ */
+export function colunasVisiveis(ativas: string[]): DefinicaoDeColuna[] {
+  return ativas.map(definicaoDe).filter((c): c is DefinicaoDeColuna => !!c);
+}
+
+/**
+ * Texto de leitura de uma coluna.
+ *
+ * `null` quer dizer **a venda ainda não tem fonte para este dado** — e é
+ * deliberado que isso seja distinguível de string vazia: quem renderiza decide
+ * o que fazer com a ausência, e o `casos.md` lista quais colunas estão nesse
+ * estado. Medida/fiscal/produção dependem de campos que o lançamento coleta mas
+ * a linha da venda ainda descarta, ou que só existem no drawer de detalhe.
+ */
+export function textoDaColuna(
+  k: string,
+  linha: LinhaDoGrid,
+  produto?: ProdutoDoGrid,
+): string | null {
+  switch (k) {
+    case 'sku':
+      return linha.sku;
+    case 'un':
+      return linha.un;
+    case 'ean':
+      return produto?.ean ?? null;
+    case 'fabrica':
+      return produto?.fabrica ?? null;
+    case 'categoria':
+      return produto?.categoria ?? null;
+    case 'estoque':
+      return linha.estoque === null ? 'não controla' : String(linha.estoque);
+    default:
+      return null;
+  }
+}
