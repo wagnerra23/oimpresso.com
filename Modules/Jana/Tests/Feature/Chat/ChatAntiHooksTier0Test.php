@@ -60,6 +60,42 @@ function chatTier0Conversa(int $businessId, int $userId): Conversa
     ]);
 }
 
+/**
+ * Garante que o usuário ATRAVESSA o gate da rota — e isto é ANTI-VÁCUO, não conveniência.
+ *
+ * O grupo `/ia` exige `can:jana.access` (`Modules/Jana/Http/routes.php`). Medido em
+ * 2026-08-26: **nenhum seeder do repo cria essa permission** (`git grep "jana.access"`
+ * em `*Seeder*`: 0 hits, com controle positivo de 14 hits no `JanaAccessGateTest`) e o
+ * `pest-mysql-setup` — o seed compartilhado por 16 lanes — **não concede papel nem
+ * permissão a usuário nenhum** (0 hits pra `assignRole`/`givePermissionTo`). Num banco
+ * FRESCO todo GET em `/ia` volta 403 (é o que o `JanaAccessGateTest` crava no 1º caso),
+ * e sem esta concessão os quatro UCs viram isto:
+ *
+ *   · UC-05 — "não é 200" passa pelo 403 do GATE DE ACESSO, não pelo isolamento de tenant
+ *   · UC-06 — não vê e-mail porque não houve render
+ *   · UC-07 — não vê escrita porque não houve render
+ *   · UC-08 — único que denuncia, reprovando no `assertOk()`
+ *
+ * Ou seja: três verdes que não provam nada e um vermelho (LC-13 na forma mais cara —
+ * verde por NÃO-EXECUÇÃO do que se diz medir).
+ *
+ * No CT 100 o defeito é INVISÍVEL: a base é PERSISTENTE e os dois usuários já tinham
+ * `can('jana.access') === true` (medido na mesma data). É a mesma armadilha que tirou o
+ * `ProContractTest` desta lane — ver o comentário do #6312 no `jana-pest.yml`.
+ *
+ * Receita idêntica à do `JanaAccessGateTest`, que já roda nesta lane. O `DatabaseTransactions`
+ * devolve a concessão no teardown. O tenant 98 é FICTÍCIO por decisão ([ADR 0358]) — nunca
+ * biz=4.
+ */
+function chatTier0ComAcesso(\App\User $u): \App\User
+{
+    \Spatie\Permission\Models\Permission::findOrCreate('jana.access', 'web');
+    $u->givePermissionTo('jana.access');
+    $u->forgetCachedPermissions();
+
+    return $u;
+}
+
 it('UC-JCHAT-05 — não devolve thread de OUTRO business (anti-hook Tier 0 · ADR 0093)', function () {
     $vizinho = \App\User::query()->where('business_id', '!=', 98)->first();
     $dono = \App\User::query()->where('business_id', 98)->first();
@@ -68,7 +104,19 @@ it('UC-JCHAT-05 — não devolve thread de OUTRO business (anti-hook Tier 0 · A
         chatTier0Skip('Sem usuário em biz=98 e num business vizinho — o guard só morde com os dois.');
     }
 
+    chatTier0ComAcesso($vizinho);
+    chatTier0ComAcesso($dono);
+
     $alheia = chatTier0Conversa(98, $dono->id);
+    $propria = chatTier0Conversa((int) $vizinho->business_id, $vizinho->id);
+
+    // CONTROLE POSITIVO — sem ele este UC é vácuo. Um 403 UNIVERSAL (permissão
+    // ausente no banco fresco, módulo desligado, rota caída) faria os três asserts
+    // abaixo passarem sem que isolamento nenhum tivesse sido exercitado. Provar
+    // primeiro que o vizinho ALCANÇA a própria conversa é o que garante que o 403
+    // que sobra só pode vir da guarda de propriedade.
+    expect($this->actingAs($vizinho)->get(route('jana.conversas.show', $propria->id))->status())
+        ->toBe(200, 'O vizinho não alcança nem a PRÓPRIA conversa — logo o assert abaixo mediria o gate de acesso, não o isolamento de tenant.');
 
     // O vizinho pede a conversa do OUTRO business pelo id.
     $status = $this->actingAs($vizinho)->get(route("jana.conversas.show", $alheia->id))->status();
@@ -88,12 +136,17 @@ it('UC-JCHAT-06 — abrir a thread é leitura PURA: zero e-mail, zero notificaç
         chatTier0Skip('Sem usuário em biz=98 — nada a abrir.');
     }
 
+    chatTier0ComAcesso($dono);
+
     Mail::fake();
     Notification::fake();
 
     $conversa = chatTier0Conversa(98, $dono->id);
 
-    $this->actingAs($dono)->get(route("jana.conversas.show", $conversa->id));
+    // O `assertOk()` é ANTI-VÁCUO, não decoração: se o GET voltasse 403 (banco sem a
+    // permission — ver `chatTier0ComAcesso`) não haveria render, e "nenhum e-mail
+    // enviado" seria verdade por nada ter acontecido.
+    $this->actingAs($dono)->get(route("jana.conversas.show", $conversa->id))->assertOk();
 
     // O charter: "Não dispara emails ao abrir (read da thread é puro)" +
     // "Não dispara SMS". Abrir uma conversa é consulta — quem manda mensagem é o
@@ -109,11 +162,15 @@ it('UC-JCHAT-07 — o render inicial NÃO escreve no banco de mensagens', functi
         chatTier0Skip('Sem usuário em biz=98 — nada a abrir.');
     }
 
+    chatTier0ComAcesso($dono);
+
     $conversa = chatTier0Conversa(98, $dono->id);
     $antes = \Illuminate\Support\Facades\DB::table('jana_mensagens')
         ->where('conversa_id', $conversa->id)->count();
 
-    $this->actingAs($dono)->get(route('jana.conversas.show', $conversa->id));
+    // ANTI-VÁCUO, mesma razão do UC-06: sem render (403) a contagem ficaria igual
+    // por nada ter rodado, e o UC declararia "não escreve" sobre uma página negada.
+    $this->actingAs($dono)->get(route('jana.conversas.show', $conversa->id))->assertOk();
 
     $depois = \Illuminate\Support\Facades\DB::table('jana_mensagens')
         ->where('conversa_id', $conversa->id)->count();
@@ -131,6 +188,8 @@ it('UC-JCHAT-08 — o render NÃO chama o Brain B, e NÃO vaza credencial pro cl
     if (! $dono) {
         chatTier0Skip('Sem usuário em biz=98 — nada a abrir.');
     }
+
+    chatTier0ComAcesso($dono);
 
     // Qualquer chamada HTTP de saída no render vira falha: o charter diz que o
     // Brain B só é acionado APÓS submit do usuário.
