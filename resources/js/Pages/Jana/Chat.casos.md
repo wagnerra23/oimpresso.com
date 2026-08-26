@@ -454,7 +454,8 @@ mesma leva, ficou de fora.
 vendor/bin/pest --no-coverage Modules/Jana/Tests/Feature/Chat/ChatAntiHooksTier0Test.php
 
 ANTES  4 failed  (0 assertions)   Call to a member function connection() on null
-                                  Model.php:2233, frames :85 e :106
+                                  em Model::resolveConnection() do Eloquent (vendor),
+                                  disparado pelos dois it() de UC-JCHAT-06 e 07
 DEPOIS 1 failed, 3 passed (7 assertions)
 
 controle (única variável trocada: INERTIA_SSR_ENABLED=false)
