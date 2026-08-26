@@ -585,6 +585,7 @@ it('UC-INDEX-03 · o controller registra a prop de UMA vista so — a que esta a
     // `filtros`, `politica` e `resumo` são EAGER e vão em toda vista: os três são baratos
     // e o cabeçalho depende deles pra pintar no primeiro render. A prop CARA é que muda.
     expect($props('cofre'))->toBe(['filtros', 'politica', 'resumo', 'cofre']);
+    expect($props('retencao'))->toBe(['filtros', 'politica', 'resumo', 'retencao']);
     expect($props('trilha'))->toBe(['filtros', 'politica', 'resumo', 'trilha']);
     expect($props('acervo'))->toBe(['filtros', 'politica', 'resumo', 'acervo']);
     // `tab` ausente ou desconhecido cai no acervo por DECISÃO (o `match` tem default),
@@ -765,6 +766,95 @@ if (! function_exists('arquivosResumoDe')) {
     }
 }
 
+// =============================================================================
+// Retenção (onda 1 · PR-3) — a 4ª vista. Leitura pura.
+// =============================================================================
+
+if (! function_exists('arquivosRetencaoDe')) {
+    function arquivosRetencaoDe(): array
+    {
+        return (new Modules\Arquivos\Services\RetencaoStatsReader())->fetch();
+    }
+}
+
+it('UC-INDEX-04 · sem business na sessao a retencao nao diz "tudo em dia" — diz que NAO MEDIU', function () {
+    // Mesmo portão do cofre, e pelo mesmo motivo: o global scope é fail-open, então sem
+    // sessão a vista contaria o acervo de todos os tenants. E zero aqui seria pior que no
+    // cofre — "0 passaram do prazo" numa tela de LGPD é a afirmação mais perigosa da tela.
+    session()->forget('user');
+    session()->forget('business');
+
+    $r = arquivosRetencaoDe();
+
+    expect($r['disponivel'])->toBeFalse();
+    expect($r['kpis']['passou_do_prazo'])->toBe(0);
+    expect($r['por_contexto'])->toBe([]);
+})->group('arquivos', 'multi-tenant', 'lgpd');
+
+it('UC-INDEX-04 · o grace e o aviso vem da CONFIG que o job cobra, nao de numero na tela', function () {
+    // `Config/retention.php` NUNCA foi registrado no provider (achado desta leva): sem o
+    // `mergeConfigFrom`, `config('arquivos_retention.*')` era null e a tela mostraria os
+    // defaults inline como se fossem a política. Este teste morde os dois: o registro E o
+    // valor.
+    expect(config('arquivos_retention.grace_period_days'))->toBe(30);
+    expect(config('arquivos_retention.notice_period_days'))->toBe(30);
+    expect(config('arquivos_retention.strategy'))->toBe('hard_delete');
+})->group('arquivos');
+
+it('UC-INDEX-04 · o prazo por linha vence o da policy — a MESMA regra do acervo', function () {
+    if (! Schema::hasTable('arquivos')) {
+        $this->markTestSkipped('tabela arquivos ausente — roda na lane MySQL.');
+    }
+
+    $biz = Tests\TestCase::SEEDED_TENANT_ID;
+    session(['user' => ['business_id' => $biz]]);
+
+    $antes = arquivosRetencaoDe()['kpis'];
+
+    // `nfe-xml` tem 1825 dias na policy. Criado há 800 dias, ele está LONGE de vencer pela
+    // policy — mas com `retention_days = 700` na própria linha, já passou. É exatamente a
+    // precedência que o `linha()` do acervo aplica, e reproduzi-la aqui é o ponto: um
+    // resumo que ignorasse a coluna diria "no prazo" pra um arquivo vencido.
+    arquivosCofreInsere($biz, [
+        'sub_destination' => 'nfe-xml',
+        'retention_days'  => 700,
+        'created_at'      => now()->subDays(800),
+        'md5'             => str_repeat('7', 32),
+        'storage_path'    => 'ret/1',
+    ]);
+
+    $depois = arquivosRetencaoDe()['kpis'];
+
+    expect($depois['passou_do_prazo'])->toBe($antes['passou_do_prazo'] + 1);
+})->group('arquivos');
+
+it('UC-INDEX-04 · o que esta no grace NAO conta como vencido — sao estados diferentes', function () {
+    if (! Schema::hasTable('arquivos')) {
+        $this->markTestSkipped('tabela arquivos ausente — roda na lane MySQL.');
+    }
+
+    $biz = Tests\TestCase::SEEDED_TENANT_ID;
+    session(['user' => ['business_id' => $biz]]);
+
+    $antes = arquivosRetencaoDe()['kpis'];
+
+    // Soft-deleted ontem, prazo já vencido: está no GRACE (dá pra restaurar), não na fila
+    // de "passou do prazo e continua no disco". Contar nos dois faria o operador correr
+    // atrás de um arquivo que o job já tratou.
+    arquivosCofreInsere($biz, [
+        'sub_destination' => 'ticket-anexo',
+        'created_at'      => now()->subDays(900),
+        'deleted_at'      => now()->subDay(),
+        'md5'             => str_repeat('8', 32),
+        'storage_path'    => 'ret/2',
+    ]);
+
+    $depois = arquivosRetencaoDe()['kpis'];
+
+    expect($depois['no_grace'])->toBe($antes['no_grace'] + 1);
+    expect($depois['passou_do_prazo'])->toBe($antes['passou_do_prazo']);
+})->group('arquivos');
+
 afterEach(function () {
     // Cleanup por id sentinela — sem RefreshDatabase, que dropa o schema e limparia o
     // seed compartilhado da lane (o próprio workflow veta arquivos que fazem isso).
@@ -777,10 +867,25 @@ afterEach(function () {
             ->delete();
     }
 
-    // Fixtures do cofre — marcadas por `sub_destination`, que nenhum caminho de
-    // produção escreve. `delete()` direto na tabela porque o model tem SoftDeletes:
-    // um soft-delete deixaria a linha lá, e o próximo teste contaria o lixo do anterior.
+    // Fixtures do cofre — a âncora é o `disk`, NÃO o `sub_destination`.
+    //
+    // Ela já foi `sub_destination = '__fixture-cofre'` e isso vazou: os dois testes de
+    // UC-INDEX-04 precisam de um contexto REAL (`nfe-xml`, `ticket-anexo`) pra exercer a
+    // precedência do prazo, então sobrescrevem justamente o campo que a limpeza usava
+    // como marcador. As linhas sobreviviam ao `afterEach` carregando o `disk` do helper —
+    // e como o cross-tenant de UC-INDEX-03 mede o card DESSE disco, ele passava a contar
+    // 2 onde esperava 1. Pior sintoma possível: ordem aleatória do Pest decidindo se o
+    // assert Tier 0 mais importante do arquivo é verde ou vermelho.
+    //
+    // O `disk` é o marcador certo porque é do HELPER, não do caso: `arquivosCofreInsere`
+    // sempre o escreve e nenhum caller o sobrescreve (medido). E `fixture-cofre` não
+    // existe em caminho de produção nenhum — as 3 ocorrências no repo estão neste arquivo.
+    // Sem `business_id` no filtro de propósito: o adversário 99 grava no mesmo disco e
+    // também tem que sair.
+    //
+    // `delete()` direto na tabela porque o model tem SoftDeletes: um soft-delete deixaria
+    // a linha lá, e o próximo teste contaria o lixo do anterior.
     if (Schema::hasTable('arquivos')) {
-        DB::table('arquivos')->where('sub_destination', '__fixture-cofre')->delete();
+        DB::table('arquivos')->where('disk', arquivosCofreDisco())->delete();
     }
 });

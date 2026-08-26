@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Arquivos\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Arquivos\Entities\Arquivo;
@@ -76,14 +77,21 @@ class CofreStatsReader
             return $this->vazio();
         }
 
-        return [
-            'disponivel'   => true,
-            'cap_mb'       => $this->capMb(),
-            'discos'       => $this->discos(),
-            'acima_do_cap' => $this->acimaDoCap(),
-            'orfaos'       => $this->orfaos(),
-            'duplicados'   => $this->duplicados(),
-        ];
+        // Span porque este metodo e CARO e o custo cresce com o acervo: 4 agregados, um
+        // deles com GROUP BY sobre o hash. Sem trace, uma vista lenta num tenant grande
+        // aparece como "a tela de Arquivos esta pesada" e ninguem sabe qual dos 4. Mesmo
+        // padrao dos vizinhos (ArquivosService, CuradorStatsReader) — zero-cost quando
+        // `otel.enabled=false`.
+        return OtelHelper::spanBiz('arquivos.cofre.fetch', function () {
+            return [
+                'disponivel'   => true,
+                'cap_mb'       => $this->capMb(),
+                'discos'       => $this->discos(),
+                'acima_do_cap' => $this->acimaDoCap(),
+                'orfaos'       => $this->orfaos(),
+                'duplicados'   => $this->duplicados(),
+            ];
+        }, ['module' => 'Arquivos', 'component' => 'arquivos.cofre']);
     }
 
     /**

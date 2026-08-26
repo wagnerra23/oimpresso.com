@@ -14,7 +14,7 @@ module: Arquivos
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Arquivos/**` + `resources/js/Pages/Arquivos/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 69 arquivos em 14 papéis.
+**Total mapeado:** 70 arquivos em 14 papéis.
 
 ## Controllers — 4
 
@@ -33,13 +33,14 @@ module: Arquivos
 - [RetentionRunRequest.php](../../../Modules/Arquivos/Http/Requests/RetentionRunRequest.php)
 - [UploadArquivoRequest.php](../../../Modules/Arquivos/Http/Requests/UploadArquivoRequest.php)
 
-## Services — 6
+## Services — 7
 
 - [ArquivosRetentionService.php](../../../Modules/Arquivos/Services/ArquivosRetentionService.php)
 - [ArquivosService.php](../../../Modules/Arquivos/Services/ArquivosService.php)
 - [CofreStatsReader.php](../../../Modules/Arquivos/Services/CofreStatsReader.php)
 - [CuradorEngine.php](../../../Modules/Arquivos/Services/Curador/CuradorEngine.php)
 - [CuradorStatsReader.php](../../../Modules/Arquivos/Services/Curador/CuradorStatsReader.php)
+- [RetencaoStatsReader.php](../../../Modules/Arquivos/Services/RetencaoStatsReader.php)
 - [VaultEncryptionService.php](../../../Modules/Arquivos/Services/VaultEncryptionService.php)
 
 ## Models / Entities — 1
