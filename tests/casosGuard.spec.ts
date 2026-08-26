@@ -235,16 +235,56 @@ describe('casos:check — G-6 frescor via git (físico)', () => {
     write(`tests/${dir}Test.php`, '<?php // UC-ZZA01');
   };
 
+  // A fixture ANTERIOR deste caso reescrevia o casos.md SEM COMMITAR e contava com o .tsx
+  // estar no mesmo (e unico) commit. Isso so acusava porque o G-6 era cego ao working tree:
+  // ela testava a cegueira, nao o frescor. Agora a tela muda SOZINHA, em commit proprio.
   it('SENSIBILIDADE: .tsx com commit MAIS NOVO que last_run vira stale', () => {
     initRepo();
-    seedScreen('S', '2099-01-01'); // last_run no futuro → o commit (hoje) NÃO é mais novo
+    seedScreen('S', '2020-01-01'); // last_run antiga
     git('add -A');
-    git('commit -qm init'); // .tsx commit = agora
-    run('--write-baseline'); // 0 stale (last_run 2099 > hoje)
-    // bumba o last_run pra trás → agora a tela está "mais nova" que os casos.
-    write('resources/js/Pages/S/Index.casos.md', '---\nowner: w\nlast_run: "2020-01-01"\n---\n## UC-ZZA01 · x\n- **Status: ✅**');
+    git('commit -qm init'); // .tsx e .casos.md nascem no MESMO commit
+    run('--write-baseline'); // co-editados => isento => 0 stale
+    write(page('S'), 'x mudou'); // a TELA muda depois, sozinha
+    git('add -A');
+    git('commit -qm "so a tela"'); // .tsx passa a ter commit DIFERENTE do casos.md
     const out = runExpectFail('');
     expect(out).toMatch(/stale:resources\/js\/Pages\/S\/Index\.casos\.md/);
+  });
+
+  // A REGRESSAO de 2026-08-26: o squash-merge reescreve a data do commit, entao um PR que
+  // revalidou os casos NO MESMO commit virava STALE ao entrar no main. #6008/#6269/#6283
+  // tiveram `Casos-coverage · ratchet` = pass no PR e o main foi a failure em 6 runs.
+  it('CO-EDICAO: .tsx e .casos.md no MESMO commit NAO e stale (mesmo com last_run velha)', () => {
+    initRepo();
+    seedScreen('C', '2020-01-01');
+    git('add -A');
+    git('commit -qm "co-editados juntos"');
+    const out = run('--json');
+    expect(out).toMatch(/"stale_cases": 0/);
+  });
+
+  // CONTROLE da largura da isencao. A 1a tentativa de conserto isentava por DATA
+  // (`max(last_run, data-git-do-casos)`) e era satisfazivel de graca: um commit contendo
+  // UMA LINHA EM BRANCO no casos.md apagava um staleness REAL. Num eixo cujo modo de falha
+  // e SILENCIOSO, isso e a familia das lapides §5 2026-08-04 e 2026-08-10. A isencao vigente
+  // e por MESMO SHA, que nao tem essa fuga -- este teste existe pra impedir o retorno dela.
+  it('ANTI-FUGA: commit de whitespace no casos.md NAO apaga staleness real', () => {
+    initRepo();
+    seedScreen('W', '2020-01-01');
+    git('add -A');
+    git('commit -qm init');
+    run('--write-baseline');
+    write(page('W'), 'x mudou');
+    git('add -A');
+    git('commit -qm "so a tela"'); // staleness real instalado
+    write(
+      'resources/js/Pages/W/Index.casos.md',
+      '---\nowner: w\nlast_run: "2020-01-01"\n---\n## UC-ZZW01 · x\n- **Status: ✅**\n\n',
+    ); // so uma linha em branco a mais; last_run INTOCADO
+    git('add -A');
+    git('commit -qm "linha em branco"');
+    const out = runExpectFail('');
+    expect(out).toMatch(/stale:resources\/js\/Pages\/W\/Index\.casos\.md/);
   });
 
   it('ESPECIFICIDADE: last_run >= commit da tela NÃO é stale', () => {

@@ -624,7 +624,20 @@ const completo = rows.filter((r) => r.completo).length;
 const total = rows.length;
 const pct = total ? Math.round((completo / total) * 100) : 0;
 
+// `--json` REPORTA em stdout; NAO escreve. Ate 2026-08-26 esta flag GRAVAVA o baseline e
+// saia -- e `--json`, em todo o resto de scripts/governance, significa "me da os dados".
+// Quem rodasse pra inspecionar UMA tela levava um arquivo versionado mutado sem pedir
+// (aconteceu nesta sessao: o `git status` acusou o baseline sujo depois de uma consulta).
+// Semear/subir o piso agora e `--update-baseline`, explicito.
+//
+// De quebra fecha um buraco de diagnostico: o relatorio era so AGREGADO, entao nao havia
+// como perguntar "por que a tela X esta incompleta". Agora as linhas vem no JSON.
 if (process.argv.includes('--json')) {
+  console.log(JSON.stringify({ completo, total, telas: rows }, null, 2));
+  process.exit(0);
+}
+
+if (process.argv.includes('--update-baseline')) {
   writeFileSync(BASELINE, JSON.stringify({
     completo, total,
     note: 'Catraca do ciclo-de-tela (UI-0013): `completo` (telas com charter+PT+conforme+casos+teste+golden-live) só sobe. Baixar exige decisão consciente. ADVISORY (ADR 0314).',
@@ -647,7 +660,7 @@ function relatarAlcance(lista, rotulo) {
 }
 
 if (process.argv.includes('--check')) {
-  if (!existsSync(BASELINE)) { console.error('ciclo-completo: baseline ausente — rode --json pra semear.'); process.exit(1); }
+  if (!existsSync(BASELINE)) { console.error('ciclo-completo: baseline ausente — rode --update-baseline pra semear.'); process.exit(1); }
   const base = JSON.parse(readFileSync(BASELINE, 'utf8'));
   let falhou = false;
 

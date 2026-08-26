@@ -68,7 +68,7 @@ jobs:
       - name: Catraca do ciclo-de-tela (só sobe)
         run: |
           node scripts/governance/ciclo-completo.mjs --check || {
-            echo "::error title=ciclo-completo::Uma tela perdeu peça do ciclo (charter/PT/conforme/casos/teste/golden-live). Nasça a tela com 'node scripts/governance/criar-tela.mjs' + rode '--json' pra subir o piso."
+            echo "::error title=ciclo-completo::Uma tela perdeu peça do ciclo (charter/PT/conforme/casos/teste/golden-live). Nasça a tela com 'node scripts/governance/criar-tela.mjs' + rode '--update-baseline' pra subir o piso."
             exit 1
           }
           echo "✅ ciclo-completo não regrediu."
