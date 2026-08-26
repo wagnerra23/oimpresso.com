@@ -136,6 +136,36 @@ it('UC-JCHAT-08 — o render NÃO chama o Brain B, e NÃO vaza credencial pro cl
     // Brain B só é acionado APÓS submit do usuário.
     \Illuminate\Support\Facades\Http::preventStrayRequests();
 
+    // ── POR QUE O SSR DO INERTIA É STUBADO (2026-08-26) ────────────────────────
+    // A sonda acima é mais LARGA que o contrato que ela guarda: `preventStrayRequests()`
+    // barra QUALQUER saída HTTP, e o render do Inertia faz um POST legítimo de
+    // INFRAESTRUTURA pro servidor de SSR — `Inertia\Ssr\HttpGateway::dispatch()` chama
+    // `Http::post(config('inertia.ssr.url').'/render')` e RE-LANÇA o StrayRequestException
+    // em vez de engolir. Medido nesta data: era esse POST que reprovava o UC, NUNCA o
+    // Brain B. E o estouro acontecia no `assertOk()` logo abaixo, ANTES das asserts de
+    // credencial — que por isso nunca chegaram a rodar.
+    //
+    // Não é peculiaridade de ambiente: `inertia.ssr.enabled` é `true` por default
+    // (config/inertia.php) e o `Inertia\Ssr\BundleDetector` aceita `public/js/app.js`
+    // — asset legado do UltimatePOS, VERSIONADO no repo — como bundle de SSR, logo
+    // `bundleExists()` é true em qualquer checkout, CI incluído.
+    //
+    // O stub ESTREITA a sonda até o contrato, não a afrouxa: só a URL do SSR passa, e
+    // segue sendo falha qualquer outra saída — Brain B incluído. A URL vem da config
+    // (não hardcoded) pra não apodrecer se `INERTIA_SSR_URL` mudar.
+    // ⛔ NÃO trocar por remover o `preventStrayRequests()`, por desligar
+    //    `inertia.ssr.enabled`, nem por skip: seria afrouxar um anti-hook Tier 0.
+    //
+    // O corpo VAZIO da resposta stubada é deliberado: `HttpGateway` faz `$response->json()`,
+    // recebe null e devolve null — o Inertia então cai no render client-side e o corpo
+    // servido carrega o `data-page` com os props REAIS, que é o que as asserts de
+    // credencial precisam examinar. Um stub com JSON de SSR válido faria o corpo virar o
+    // markup (vazio) do SSR, e as asserts `not->toContain` passariam VACUAMENTE.
+    $ssrUrl = rtrim((string) config('inertia.ssr.url', 'http://127.0.0.1:13714'), '/');
+    \Illuminate\Support\Facades\Http::fake([
+        $ssrUrl.'/*' => \Illuminate\Support\Facades\Http::response('', 200),
+    ]);
+
     $conversa = chatTier0Conversa(98, $dono->id);
     $resposta = $this->actingAs($dono)->get(route('jana.conversas.show', $conversa->id));
 
@@ -146,6 +176,12 @@ it('UC-JCHAT-08 — o render NÃO chama o Brain B, e NÃO vaza credencial pro cl
     // configurada. Testa os dois: o NOME (que denunciaria a prop trafegando) e o
     // VALOR (que é o vazamento de fato).
     $corpo = $resposta->getContent() ?: '';
+
+    // Anti-vácuo: as duas asserts abaixo são `not->toContain`, logo passariam num corpo
+    // em branco. Esta prova que o payload do Inertia de fato chegou ao corpo — senão o
+    // UC estaria declarando "não vaza" sobre uma página vazia.
+    expect($corpo)->toContain('data-page');
+
     expect($corpo)->not->toContain('ANTHROPIC_API_KEY');
 
     $token = (string) config('services.anthropic.key', '');
