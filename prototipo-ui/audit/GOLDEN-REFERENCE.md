@@ -18,12 +18,12 @@
 | **R4** (AP4) | **Ícones só `lucide-react`.** Sem SVG inline decorativo, sem outra lib de ícone. | ✅ | imports de ícone fora de `lucide-react`; `<svg` inline decorativo. | PRE-MERGE AP4 · UI-0003 | 1 |
 | **R5** (AP5) | **Sem gradient decorativo** 135deg bluish-purple (anti-trope). | ⚠️ | regex `gradient` + hue azul/roxo cru; intenção decorativa = julgado. | PRE-MERGE AP5 | 1 |
 | **R6** (AP6) | **Sem emoji** em UI de produto (só ícone lucide). | ✅ | regex de range emoji no JSX (fora de comentário/teste). | PRE-MERGE AP6 | 1 |
-| **R7** (AP7) | **Status = dot + texto**, não `bg-fill` (Stripe-style). | ⚠️ | `bg-(red\|green\|amber\|emerald)-100` em badge; cruza `ds/no-adhoc-status-text`. | PRE-MERGE AP7 | 2 |
+| **R7** (AP7) | **Status = par soft** (`bg-*-soft` + borda), não fill sólido. | ✅ | `<Badge variant="destructive">` — o par SOFT é `danger`. Re-mirado 2026-08-26 (ver Calibração). | PRE-MERGE AP7 | 2 |
 | **R8** (AP8) | **PT-BR** em todo label/copy/erro/empty. | ⚠️ | strings em inglês visíveis ao usuário = julgado (citação obrigatória). | PRE-MERGE AP8 | 1 |
 | **R9** (AP9) | **Um só `<main>`.** Sem `<main>` aninhado dentro do `<main>` do AppShellV2. | ✅ | `<main` count no `.tsx` (>0 dentro de Page já é suspeito; runtime `querySelectorAll('main').length ≤ 1`). | PRE-MERGE AP9 | 2 |
 | **R10** (AP10) | **Chain de overflow** respeitada — nó `flex-1` em coluna tem `h-full` ou pai `flex flex-col min-h-0`. | ⚠️ | estático: heurística da chain; definitivo = runtime (`scrollHeight>clientHeight` + ancestor `overflow:hidden`). | PRE-MERGE AP10 | 2 |
 
-**Total de peso:** 17. Regras mecanizadas (✅ R1,R3,R4,R6,R9) = evidência dura; ⚠️ = parte mecanizada + parte julgada.
+**Total de peso:** 17. Regras mecanizadas (✅ R1,R3,R4,R6,**R7**,R9) = evidência dura; ⚠️ = parte mecanizada + parte julgada. _(R7 virou ✅ em 2026-08-26 — ver Calibração.)_
 
 ## `ds/*` (camada mecanizada, ESLint — espelha `DS_ADOCAO_INDICE`)
 
@@ -46,7 +46,7 @@ Roda **7 das 10 regras** por regex, zero LLM (R1·R2-nativo·R3·R4·R6·R7·R9)
 
 Calibração v1 (2026-05-31, após validar contra o board):
 - **R6** = só emoji real (`\u{1F000}-\u{1FAFF}`). Dingbats BMP (`✓ ✕ ★ ✦ ⚙ ⬇`) **excluídos** — eram falso-positivo nos goldens (são glyph de UI, não emoji; o smell correto é R4 "usar lucide").
-- **R7** = heurística **ampla** (qualquer `bg-*-(50|100|200)`, não só badge). Mecanizado mas **baixa-precisão** → o agente Fase 2 confirma AP7 real. 80/239 telas batem; tratar como sinal.
+- **R7** ~~= heurística ampla (qualquer `bg-*-(50|100|200)`, não só badge), baixa-precisão, 80/239 telas~~ — **re-mirado em 2026-08-26.** A calibração v1 fica registrada acima, riscada, porque estava **apontada pro lado errado**, não só imprecisa: `bg-<cor>-(50|100|200)` é o **tint**, e neste DS o tint é a forma **correta** (`<Badge variant="danger|warning|info|success">` renderiza `bg-*-soft` + borda — `resources/js/Components/ui/badge.tsx`; foi o que o #6268/#6325 estabeleceram, com o argumento textual *"`danger` é o par SOFT (AP7: fundo tintado + borda), `destructive` é o fill"*). Medido em 2026-08-26: **256 hits do tint em 65 de 387 telas** e **zero** nos **35** `<Badge variant="destructive|default|secondary">`. Ou seja, a regra sinalizava o conserto e era cega ao defeito. Agravante independente: o tint já era **100% coberto** por `ds/no-raw-palette-color` (ESLint, ratchet ADR 0209, casa todo `bg|text|border-<palette>-<step>` em `className`), então a forma v1 **duplicava régua consolidada** e perdia a própria. **v2 = `<Badge variant="destructive">`**, com estes limites declarados: variante dinâmica não casa; pílula hand-rolled não casa (donos: `ds/no-handrolled-status-pill` + `ds/no-raw-palette-color`); `default`/`secondary` ficaram **fora** de propósito — 3 explícitos + ~53 `<Badge>` sem variant são contador/tag legítimos, FP alto. **FP medido antes de ligar: 1 de 7 sites**, e o único é `_Showcase/Components.tsx` (catálogo do DS, casa por construção) — o `score-mechanized.mjs` já o exclui pelo filtro `/[\\/]_/` preexistente do `main()`, e o denominador **não foi encolhido por mim** (§5 2026-08-25: régua marca exceção, quem encolhe população é o dono).
 - **R1** exclui `#fff`/`#000`; pode ter FP raro em comentário (aceitável v1).
 
 ## Nota e nível (derivados — secundário ao pass/fail)
