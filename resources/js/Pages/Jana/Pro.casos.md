@@ -4,7 +4,7 @@ casos: Jana Pro · paywall/upgrade · /ia/pro
 irmaos: Pro.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-18"
+last_run: "2026-08-26"
 ---
 
 # Casos de uso — /ia/pro (Jana Pro paywall)
@@ -17,6 +17,19 @@ last_run: "2026-08-18"
 > conversão majoritariamente visual/marketing — o testável **backend** é o **contrato de props**
 > que o Controller entrega e o **isolamento Tier 0**. Estados de CTA, atalhos de teclado, layout
 > 1280px e tokens de cor são **visual-only** (Pest não morde; ficam ⬜ manual/visreg).
+
+> **Revalidação 2026-08-26 — PR #6298 (DS onda 1), head `b011221e50`.** O diff do `Pro.tsx` só
+> troca constante de cor crua por `var(--sb-*)`; nenhum UC desta tela fala de cor.
+>
+> ⚠️ **Medido em 2026-08-26: o `ProContractTest` não estava em lane nenhuma** — nem no
+> `jana-pest.yml`, nem no `.github/ci-sqlite-pest.list`, e `Jana` não está na matrix do
+> `modules-pest.yml`. Dois oráculos: `rg --hidden` no repo inteiro e
+> `scripts/governance/test-lane-coverage.mjs --json` (dono do inventário), que o lista como órfão.
+> O `🧪 aguarda run verde` era, até aqui, um estado inalcançável — mesma forma da lápide
+> §5 2026-08-02 (*"a lane lista ARQUIVO"*).
+>
+> Recibo: rodado à mão no CT 100 (`oimpresso-staging`, `main @ c01ee7615`) — **6 de 6 passam**.
+> O `tests/jana-pro-voltar.test.tsx` (UC-PRO-07) também é órfão de lane; rodado local: **4 de 4**.
 
 ## UC-PRO-01 — Rota abre a tela de decisão (200 + componente)
 Status: 🧪 (ProContractTest P1 — status + component)

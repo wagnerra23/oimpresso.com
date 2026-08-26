@@ -4,7 +4,7 @@ casos: Jana Painel · metas ativas · farol server-side · cockpit deferido · /
 irmaos: Index.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-index.md (runbook) · prototipo-ui/contrato/jana-painel.contract.json (contrato visual)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-25"
+last_run: "2026-08-26"
 ---
 
 # Casos de uso — /ia (Painel da Jana)
@@ -57,6 +57,17 @@ Nenhum `Status:` mudou. Os `🧪` continuam `🧪` e o `✅` do UC-04 continua �
 ⚠️ O que **não** foi revalidado por execução: os `🧪` seguem sem run verde na lane MySQL. O bump do
 `last_run` diz *"o diff foi conferido contra os UCs"*, **não** *"os UCs foram provados"* — quem prova
 é o CI. Subir o número calado é o que o G-6 existe pra impedir.
+
+> **Revalidação 2026-08-26 — PR #6298 (DS onda 1), head `b011221e50`.** O `.tsx` migrou 26
+> widgets pro Design System; os UCs continuam descrevendo o mesmo comportamento. Recibo: o
+> `PainelContratoTest` rodou na lane `PHP / Pest (Jana · MySQL)` **neste sha** (run 32975514598)
+> com **20 de 20 casos, 135 asserções, 0 skip** — primeira vez que os 20 rodam contra o `.tsx`
+> migrado. O ponto de risco era a âncora `painel-metas-vazio`, que trocou de hospedeiro (saiu do
+> `<p>` do título e foi pro `<Card>` que envolve o `EmptyState`); UC-JPAIN-05 (copy + âncora) e
+> UC-JPAIN-09 (5 âncoras + ordem) são exatamente quem mede isso, e passaram.
+>
+> Os `🧪` **não** viraram `✅` de propósito: o G-7 lê o manifesto commitado, publicado pelo
+> `casos-results-publish`. Lane verde citada em prosa não é veredito capturado.
 
 ## UC-JPAIN-01 — A rota `/ia` abre o Painel (200 + componente)
 Status: 🧪 (`Modules/Jana/Tests/Feature/PainelContratoTest.php` — cita o UC; aguarda run verde na lane MySQL)

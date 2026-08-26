@@ -13,6 +13,7 @@ import { Link } from '@inertiajs/react'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
+import EmptyState from '@/Components/shared/EmptyState'
 import { MessageSquare, TrendingUp, TrendingDown, Minus, Sparkles, Settings, Download, Target } from 'lucide-react'
 import FabJana from './components/FabJana'
 import { JanaAreaHeader } from './components/JanaAreaHeader'
@@ -395,25 +396,36 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
 
 
 
+          {/* Empty state = `EmptyState` shared, o que o charter §UX targets já
+              pedia — a assinatura casa 1:1 com o que estava à mão (círculo do
+              ícone + título + descrição + CTA), então nada de copy mudou.
+
+              A âncora `painel-metas-vazio` mudou de hospedeiro: o atributo saiu
+              do `<p>` do título e foi pro CARD, porque o `EmptyState` não
+              repassa props arbitrárias. Ancorar no container é MAIS fiel ao
+              UC-JPAIN-05, que pede as DUAS strings "sob" a âncora — antes só o
+              título estava. A posição no arquivo não mudou: segue depois de
+              `painel-metas-header` e `painel-cta-conversar`, que é o que o
+              UC-JPAIN-09 mede.
+
+              O valor NÃO é repetido em prosa aqui de propósito — o
+              `PainelContratoTest` casa a string literal do atributo, e um
+              comentário que a contém satisfaz o teste sozinho (LC-11). */}
           {metas.length === 0 ? (
-            <Card className="border-dashed">
-              <CardContent className="flex flex-col items-center justify-center gap-4 py-12 text-center">
-                <div className="rounded-full bg-primary/10 p-4">
-                  <Sparkles className="h-10 w-10 text-primary" aria-hidden="true" />
-                </div>
-                <div className="space-y-1">
-                  <p data-contract="painel-metas-vazio" className="text-base font-medium">Nenhuma meta cadastrada ainda</p>
-                  <p className="max-w-sm text-sm text-muted-foreground">
-                    Pergunte algo à Jana — ela aprende o que importa pro seu business e cria metas com base no que conversamos.
-                  </p>
-                </div>
-                <Link href="/ia/conversa">
-                  <Button className="gap-2">
-                    <MessageSquare className="h-4 w-4" />
-                    Pergunte algo a Jana
-                  </Button>
-                </Link>
-              </CardContent>
+            <Card data-contract="painel-metas-vazio" className="border-dashed">
+              <EmptyState
+                icon="sparkles"
+                title="Nenhuma meta cadastrada ainda"
+                description="Pergunte algo à Jana — ela aprende o que importa pro seu business e cria metas com base no que conversamos."
+                action={
+                  <Link href="/ia/conversa">
+                    <Button className="gap-2">
+                      <MessageSquare className="h-4 w-4" />
+                      Pergunte algo a Jana
+                    </Button>
+                  </Link>
+                }
+              />
             </Card>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
