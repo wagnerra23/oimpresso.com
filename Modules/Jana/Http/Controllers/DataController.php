@@ -308,7 +308,15 @@ class DataController extends Controller
                             // Jana Pro — entry-point pro paywall/upgrade (ADR 0140). Ghost no hub IA
                             // pra ficar clicável de qualquer tela Jana (a própria /ia/pro é modo FOCO
                             // sem SubNav). Billing real fica pra Sprint JANA-B.
-                            ['key' => 'pro',       'label' => 'Jana Pro',  'href' => '/ia/pro'],
+                            // Ghost 'pro' REMOVIDO 2026-08-25 [W] ("o correto é protótipo"):
+                            // a razão acima — "clicável de qualquer tela Jana" — deixou de
+                            // depender desta aba. O `JanaConfigDrawer` carrega `<Link href="/ia/pro">`
+                            // e desde a onda 4 (#5922) é montado pelas TRÊS telas com SubNav
+                            // (Index.tsx, Chat.tsx, Memoria.tsx) — medido antes de remover. O Painel
+                            // ainda tem o upsell direto (Index.tsx). Nenhum acesso se perde.
+                            // Paridade: a âncora `jana-merge.jsx` alcança a Pro por BOTÃO
+                            // (`onGoTab("pro")`, L728 e L947), nunca pela barra de abas do `JmTabs`.
+                            // A rota `jana.pro.index` e a tela seguem intactas.
                             // Wagner 2026-05-25: Governança canon (Modules/Governance · policies/audit/
                             // drift/module-grades) entra como ghost da Jana — "governança é da IA".
                             // Ghost 'governanca' removido 2026-08-05 ([W]: "governança, KB, saem").
