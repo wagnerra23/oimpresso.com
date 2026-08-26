@@ -192,6 +192,7 @@ jobs:
             Modules/Jana/Tests/Feature/AiScorecardJudgeTest.php \
             Modules/Jana/Tests/Feature/Backlinks/AdrGraphBuilderTest.php \
             Modules/Jana/Tests/Feature/Backlinks/JanaBacklinksSweepCommandTest.php \
+            Modules/Jana/Tests/Feature/Chat/ChatAntiHooksTier0Test.php \
             Modules/Jana/Tests/Feature/Chat/ChatTokensTurnoTest.php \
             Modules/Jana/Tests/Feature/Console/JanaRagasCiCommandTest.php \
             Modules/Jana/Tests/Feature/Console/MeilisearchIndexSetupTest.php \
@@ -329,16 +330,58 @@ jobs:
           #   que o traceEvent mescla CRU). Bite-test dos dois lados, no CT 100:
           #   redacao neutralizada -> VERMELHO; PII em metadata -> VERMELHO.
           #
-          # DOS TRES testes do Chat que estavam orfaos em 2026-08-17, sobra UM:
-          # Chat/ChatAntiHooksTier0Test (UC-05..UC-08) segue fora de lane nenhuma —
-          # dono e o PR #6310, cujo UC-08 continua vermelho por decisao [W]. O
-          # Chat/ChatTokensTurnoTest ENTROU pelo #6312 na mesma tarde, junto com
-          # outros 59 orfaos da Jana; esta linha foi corrigida no rebase, porque a
-          # redacao anterior dela dizia que ele estava fora e isso durou ~1h
-          # (artefato nao afirma estado que outro sistema sabe melhor — LC-10).
-          # Enquanto o Tier0Test estiver fora, o `🧪` dos UC-05..08 no Chat.casos.md
-          # nao pode virar ✅ — a lane lista ARQUIVO, e registrar o teste no repo
-          # nao e a lane executa-lo (§5 2026-08-02 + emenda 08-12).
+          # CORRIGIDO 2026-08-26 (esta linha ja errou 2x — LC-10): os TRES testes do Chat
+          # que estavam orfaos em 2026-08-17 ENTRARAM, todos na mesma data. ChatTokensTurnoTest
+          # pelo #6312; ChatAntiHooksAcaoTest pelo #6319; ChatAntiHooksTier0Test pelo #6321.
+          # Quem sabe o estado e a ALLOWLIST acima, nao este comentario — se divergirem, ela
+          # ganha. O historico datado de cada entrada fica nos blocos abaixo.
+          #
+          # ChatAntiHooksTier0Test ENTROU em 2026-08-26, fechando a metade Tier 0 do
+          # ACHADO acima. Eram DUAS causas, medidas em sequencia no CT 100 (MySQL real,
+          # arquivo inteiro, sem --filter):
+          #  (1) o arquivo NAO BOOTAVA: declarava so o DatabaseTransactions, sem o
+          #      `TestCase::class` do namespace `Tests`. Deu 4 failed com 0 assertions —
+          #      que e "nunca mediu", nao "reprovou" (LC-13). Consertado no PR #6310.
+          #  (2) com o bind, sobrava 1 vermelho, e ele era do MEDIDOR: o UC-JCHAT-08 usa
+          #      `Http::preventStrayRequests()`, sonda mais LARGA que o contrato que ela
+          #      guarda — barra QUALQUER saida HTTP. O que ela pegava era o POST de SSR
+          #      do Inertia (`HttpGateway::dispatch`, que RE-LANCA o StrayRequestException),
+          #      nunca o Brain B. E nao e peculiaridade do CT 100: `inertia.ssr.enabled` e
+          #      true por default e o `BundleDetector` aceita `public/js/app.js` — asset
+          #      legado do UltimatePOS, VERSIONADO no repo — como bundle de SSR, logo
+          #      `bundleExists()` e true nesta lane tambem. O conserto ESTREITOU a sonda
+          #      ate o contrato (stub so da URL do SSR, lida da config), sem afrouxar:
+          #      qualquer outra saida HTTP segue reprovando, Brain B incluido.
+          #  (3) e a que quase passou batido: 3 dos 4 UCs ficariam VERDES SEM MEDIR NADA
+          #      nesta lane. O grupo /ia exige `can:jana.access`, e medido em 2026-08-26
+          #      (com controle positivo) NENHUM seeder do repo cria essa permission e o
+          #      `pest-mysql-setup` nao concede papel nem permissao a usuario nenhum — logo
+          #      num banco FRESCO todo GET em /ia volta 403 (o `JanaAccessGateTest`, que ja
+          #      roda aqui, crava isso no 1o caso). Efeito: UC-05 passaria pelo 403 do GATE
+          #      e nao pelo isolamento de tenant; UC-06/07 nao veriam efeito colateral por
+          #      nao ter havido render. O CT 100 e CEGO pra isso (base persistente, os dois
+          #      usuarios ja tinham a permissao) — a MESMA armadilha do ProContractTest.
+          #      Consertado concedendo a permissao pela receita do JanaAccessGateTest e
+          #      armando os guards que faltavam (assertOk no 06/07 + controle positivo no
+          #      05). Contrafactual medido, revogando a permissao: SEM guards 1 failed/3
+          #      passed (os 3 sao vacuo) · COM guards 3 failed/1 passed (eles mordem).
+          # Medicao final: 4 passed (12 assertions) — as 2 asserts de credencial, que
+          # estouravam no `assertOk()` ANTES de rodar, passaram a rodar, e os 3 guards
+          # anti-vacuo entraram. Elegivel pela regra desta allowlist, medido na LINHA e nao
+          # no hit: usa DatabaseTransactions, zero RefreshDatabase/migrate:fresh/dropIfExists.
+          # CONTADOR DESTA LANE, MEDIDO (nao esperado):
+          #   ANTES  run 32994290635 (sha 0c5454b2, tip de main)  9 skipped, 808 passed (2715 assertions)
+          #   DEPOIS run 32996972060 (sha 08327a01d5, este PR)    9 skipped, 812 passed (2727 assertions)
+          # Delta +4 testes / +12 assertions, e `9 skipped` INALTERADO — nao entrou skip novo.
+          # Os 4 UCs aparecem PELO NOME no log (contador batendo nao basta) e o step
+          # `--check-assertions` (LC-13) passou: nao foi verde por nao-execucao.
+          #
+          # O IRMAO ENTROU pelo #6319, mergeado 2026-08-26 19:59 — este bloco dizia que ele
+          # continuava fora, e a afirmacao morreu no merge. Dos 2 defeitos que o AcaoTest
+          # acusava, o UC-09 era real (tools sem declarar permissao, resolvido la com
+          # DeclaraPermissao) e o UC-10 era SONDA MAL POSICIONADA, nao defeito: espionava uma
+          # camada antes do egresso. A redacao anterior deste bloco afirmava o contrario e
+          # estava ERRADA; fica registrada aqui em vez de apagada.
           #
           # PainelContratoTest ENTROU em 2026-08-17. Ele nasceu no PR #5862 (UC-08) e
           # ficou 1 dia FORA desta lista — logo os nove UCs do Painel nunca rodaram no
