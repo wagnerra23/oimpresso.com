@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-25**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-26**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -22,7 +22,7 @@ lente: [construir]
 
 | Módulo | BRIEFING | Último toque |
 |---|---|---|
-| Arquivos | [BRIEFING](../requisitos/Arquivos/BRIEFING.md) | 2026-07-23 |
+| Arquivos | [BRIEFING](../requisitos/Arquivos/BRIEFING.md) | 2026-08-25 |
 | AssetManagement | [BRIEFING](../requisitos/AssetManagement/BRIEFING.md) | 2026-07-23 |
 | Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-07-23 |
 | Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-07-23 |
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **362**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **296**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -151,7 +151,7 @@ lente: [construir]
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 148 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 152 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -302,6 +302,10 @@ lente: [construir]
 - ~~2026-08-24 — Declarar "a tela nao renderiza" medindo o DOM durante o lazy-load (li 552, o real era 2218)~~
 - ~~2026-08-24 — Gate visual bloqueando por tela FORA do raio do PR: predicado absoluto + o label que aprova o PR mas não a baseline (2ª instância da classe, 3º mecanismo)~~
 - ~~2026-08-24 — Congelar num assert a COBERTURA derivada de um registry VIVO (reprovou por GANHO — 3ª ocorrência da classe, 4º mecanismo)~~
+- ~~2026-08-25 — Consertar o `NÃO MEDIDO` da âncora de bundle passando o staging como `repoRoot` (o buraco só muda de perna)~~
+- ~~2026-08-25 — Instalar o `ds-anchor-check.mjs` do Cowork COMO VEIO (R1: `default`/`secondary`/`destructive` = pill de estado sólido) — MEDIDO 73,7% de falso-positivo~~
+- ~~2026-08-25 — EMENDA da lápide acima (`ds-anchor-check`): o corolário do showcase foi CORTADO por [W], e o alcance das regras de paridade estava por medir~~
+- ~~2026-08-25 — Medir frescor do espelho Cowork contra o `sync/bundle.manifest.json` (ele CONFIRMA um estado que já não existe — verde falso)~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -312,14 +316,14 @@ lente: [construir]
 
 ## Rastro
 
-- **471** handoffs · **644** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **473** handoffs · **647** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-08-25-produto-unificado-zona-cinza-baseline`
+  - `2026-08-25-fluxo-design-playbook-detalhado`
+  - `2026-08-24-workflow-migracao-layout-em-ondas`
   - `2026-08-23-protocolo-code-design-testes-regressao`
   - `2026-08-23-bundle-design-transacional-manifesto-delta`
   - `2026-08-22-arte-fidelidade-prototipo-producao`
-  - `2026-08-22-arte-escala-centenas-de-telas`
-  - `2026-08-22-arte-agentes-ia-ui-guardrails`
-  - `2026-08-20-visreg-narrativa-do-comentario`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-25 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-26 · deriva das fontes canônicas, não as substitui._

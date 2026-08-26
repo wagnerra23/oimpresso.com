@@ -221,6 +221,9 @@ foreach (sellsCreateFlowCases() as $label => [$screen, $flow, $viewport, $slug, 
             screenName: "{$slug} · {$flow['id']} · {$viewportId}",
             grayZone: $grayZone,
             baselineSuite: 'SellsCreateFlowBaselineTest',
+            // `source` = a CHAVE do raio (namespace da Page). Sem ela o item cai no ramo
+            // conservador do particionaGrayZone e divida herdada da main reprova PR alheio.
+            screenSource: ((string) ($screen['source'] ?? '')) ?: null,
         );
     });
 }

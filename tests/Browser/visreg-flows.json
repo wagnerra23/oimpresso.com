@@ -11,6 +11,7 @@
       "route": "/financeiro/unificado?data_inicio=2026-06-01&data_fim=2026-06-30&_visreg_flow=1",
       "anchor": "Financeiro",
       "charter": "resources/js/Pages/Financeiro/Unificado/Index.charter.md",
+      "source": "Financeiro/Unificado",
       "viewports": ["compact", "desktop", "wide"],
       "flows": [
         { "id": "criar-recebimento", "action": "create_receivable", "evidence": "Nova conta a receber" },
@@ -24,6 +25,7 @@
       "route": "/compras",
       "anchor": "Compras",
       "charter": "resources/js/Pages/Compras/Index.charter.md",
+      "source": "Compras",
       "viewports": ["compact", "desktop", "wide"],
       "flows": [
         { "id": "abrir-visibilidade-colunas", "action": "open_column_visibility", "evidence": "Compra (ref)" },

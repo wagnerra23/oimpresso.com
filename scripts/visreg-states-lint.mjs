@@ -24,6 +24,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readFileSync, existsSync } from 'node:fs';
 import { execSync } from 'node:child_process';
+import { screenSourceFromCharter } from './governance/ui-impact.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = (() => { const i = process.argv.indexOf('--root'); return i >= 0 ? resolve(process.argv[i + 1]) : resolve(HERE, '..'); })();
@@ -96,6 +97,29 @@ function diffScreen(slug, charterStates, manifestStates, validStates) {
   return problems;
 }
 
+/**
+ * Comparador PURO do `source` — a CHAVE do raio (namespace da Page) que o
+ * `VisregThreshold::particionaGrayZone` compara com `VISREG_SCREENS`.
+ *
+ * POR QUE ISTO EXISTE (medido 2026-08-26): o manifesto indexa por SLUG kebab
+ * (`financeiro-unificado`) e o raio fala NAMESPACE (`Financeiro/Unificado`) — nao casam.
+ * Sem `source` o item cai no ramo conservador da particao, e uma tela que ja divergia na
+ * main reprova PR que nao a tocou: 11 de 12 bloqueios de zona cinza medidos em 13 runs
+ * eram FORA do raio, os 11 na mesma `financeiro-unificado`, em 5 branches distintas.
+ *
+ * O valor e DECLARADO no manifesto e conferido contra a derivacao do DONO do vocabulario
+ * (`ui-impact.mjs::screenSourceFromCharter`) — nao ha 2a implementacao pra drifar.
+ *
+ * @returns {string[]} problemas (vazio = ok)
+ */
+function diffSource(slug, charterRel, declarado, derivar = screenSourceFromCharter) {
+  const derivado = derivar(charterRel || '');
+  if (!declarado) return [`${slug}: manifesto sem \`source\` (chave do raio) — o gate visual bloqueia PR alheio.`];
+  if (derivado === null) return [`${slug}: charter nao aponta pra uma Page — \`source\` nao e derivavel: ${charterRel}.`];
+  if (declarado !== derivado) return [`${slug}: source \`${declarado}\` != derivado do charter \`${derivado}\`.`];
+  return [];
+}
+
 function lint() {
   const manifestPath = resolve(ROOT, MANIFEST_REL);
   if (!existsSync(manifestPath)) { log(`❌ manifesto ausente: ${MANIFEST_REL}`); return 1; }
@@ -117,6 +141,8 @@ function lint() {
 
     const charterAbs = resolve(ROOT, charterRel);
     if (!existsSync(charterAbs)) { problems.push(`${slug}: charter inexistente: ${charterRel}.`); continue; }
+
+    problems.push(...diffSource(slug, charterRel, screen.source));
 
     const charterStates = parseCharterStates(readFileSync(charterAbs, 'utf8'));
     problems.push(...diffScreen(slug, charterStates, (screen.states || []), validStates));
@@ -169,11 +195,24 @@ function selftest() {
     ['estado a mais',          ['default', 'loading'],      ['default'],                  true],
     ['estado fora do vocab',   ['default', 'xpto'],         ['default', 'xpto'],          true],
   ];
+  const CHARTER = 'resources/js/Pages/Compras/Index.charter.md';
+  const casosSource = [
+    ['source igual ao derivado', CHARTER, 'Compras', false],
+    ['source ausente', CHARTER, undefined, true],
+    ['source divergente', CHARTER, 'Inventada/Tela', true],
+    ['charter que nao e Page', 'package.json', 'Compras', true],
+  ];
   let fail = 0;
   for (const [nome, cs, ms, espera] of cases) {
     const got = diffScreen('teste', cs, ms, V).length > 0;
     const ok = got === espera;
     log(`${ok ? '✓' : '✗'} selftest: ${nome} → ${got ? 'MORDEU' : 'passou'} (esperado ${espera ? 'MORDER' : 'passar'})`);
+    if (!ok) fail++;
+  }
+  for (const [nome, charter, declarado, espera] of casosSource) {
+    const got = diffSource('teste', charter, declarado).length > 0;
+    const ok = got === espera;
+    log(`${ok ? '✓' : '✗'} selftest: source/${nome} → ${got ? 'MORDEU' : 'passou'} (esperado ${espera ? 'MORDER' : 'passar'})`);
     if (!ok) fail++;
   }
   if (fail) { log(`\n❌ selftest falhou em ${fail} caso(s) — o lint nao e confiavel.`); return fail; }
