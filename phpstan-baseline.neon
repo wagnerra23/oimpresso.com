@@ -12170,12 +12170,12 @@ parameters:
 			identifier: oimpresso.missingTenantScope
 			count: 1
 			path: Modules/Superadmin/Http/Controllers/PackagesController.php
-
 		-
-			message: '#^Método `Modules\\Superadmin\\Http\\Controllers\\PackagesController\:\:update\(\)` faz Eloquent query \(2\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			message: '#^Método `Modules\\Superadmin\\Http\\Controllers\\PackagesController\:\:update\(\)` faz Eloquent query \(3\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
 			identifier: oimpresso.missingTenantScope
 			count: 1
 			path: Modules/Superadmin/Http/Controllers/PackagesController.php
+
 
 		-
 			message: '#^PHPDoc tag @param references unknown parameter\: \$product$#'
