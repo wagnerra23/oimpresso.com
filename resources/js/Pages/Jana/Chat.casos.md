@@ -4,7 +4,7 @@ casos: Jana Conversa · histórico · teclado · acessibilidade · /ia/conversa
 irmaos: Chat.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-chat.md (runbook)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-25"
+last_run: "2026-08-26"
 ---
 
 # Casos de uso — /ia/conversa (Chat da Jana)
@@ -21,6 +21,24 @@ last_run: "2026-08-25"
 > abaixo **não** foram inventados: eles carimbam 15 testes que **já existiam e já passavam**
 > (`tests/jana-chat-conversas.test.tsx`), rodados nesta data — `15 passed`. O que faltava era o
 > contrato por cima deles.
+
+> **Revalidação 2026-08-26 — PR #6298 (DS onda 1), head `b011221e50`.** O diff é só de markup
+> (`Badge` canon nas pílulas de dificuldade + `EmptyState` nos dois vazios do `ConvSidePanel`);
+> as 5 strings de copy dos vazios seguem literais.
+>
+> **UC-01..04 e 11 (frontend):** `tests/jana-chat-conversas.test.tsx` — **18 de 18** rodado em
+> 2026-08-26, e a lane `Jana · histórico de conversas` passou neste sha.
+>
+> **UC-05..10 (servidor):** medido em 2026-08-26 com `scripts/governance/test-lane-coverage.mjs
+> --json`, os três testes que os defendem (`ChatAntiHooksTier0Test`, `ChatAntiHooksAcaoTest`,
+> `ChatTokensTurnoTest`) estavam na lista de **órfãos de lane** — o `aguarda run verde` era
+> inalcançável, como o comentário do `jana-pest.yml` já registrava desde 2026-08-17. Rodados à mão
+> no CT 100 (`oimpresso-staging`, `main @ c01ee7615`) na mesma data: o `AcaoTest` fechou **2
+> vermelhos** — UC-09 (tool sem declaração de permissão) e UC-10 (CPF em plain text no
+> `startTrace`) — que são os mesmos achados datados de 2026-08-17, decisão [W] pendente; e o
+> `Tier0Test` **não mediu**: os 4 casos morreram no bootstrap com `Call to a member function
+> connection() on null`. Erro de instrumento não é veredito sobre o comportamento, então
+> UC-05..08 seguem `🧪`, não `❌`. Nenhum dos dois vem deste PR, que só toca `.tsx`.
 
 ## UC-JCHAT-01 — O filtro filtra de verdade, e são DUAS abas de propósito
 Status: 🧪 (`tests/jana-chat-conversas.test.tsx` — 4 casos sob o describe que cita este UC) — ✅ volta quando o manifesto G-7 capturar o veredito (a lane passou a emitir JUnit em 2026-08-24); enquanto nao capturar, 🧪 e o status honesto
