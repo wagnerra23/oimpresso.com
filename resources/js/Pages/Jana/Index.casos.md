@@ -240,6 +240,27 @@ asserções minhas caíram exatamente nessa armadilha **na escrita** (`Ver detal
 classe, ambos vivos em comentário) e foram trocadas por estruturais antes de rodar: contagem de
 `<Numero rotulo=` (3) e ausência do literal do link._
 
+> ⚠️ **Atualização de 2026-08-25 — a parte "nenhum é projeção" deste caso CADUCOU.** O texto acima
+> fica como registro do que era verdade em 2026-08-17. A razão dele — *"projeção é veredito sobre o
+> futuro; o protótipo calcula no CLIENTE (`atual × 1.3`)"* — continua **inteira**. O que mudou é o
+> mundo: a onda 5 (#5923, 2026-08-18) passou a consumir `meta.projecao`, que o SERVIDOR calcula
+> (`ApuracaoService::projecao`) e já mandava no payload de `/ia`. Não se calcula nada no cliente;
+> consome-se, pela mesma porta do `farol`.
+>
+> Portanto, desde 08-18 o **drawer** mostra projeção (`JanaMetaDrawer.tsx` §Situação, *"No ritmo
+> atual fecha em …"*), e a partir deste PR o **card** também (rodapé `jm-meta-f` da âncora). Quem ler
+> a frase *"nenhum é projeção"* como contrato vigente erra — ela vale só para a decisão de 08-17.
+>
+> **A asserção do teste NÃO muda e continua correta:** ela conta `<Numero rotulo=` (3) na Situação, e
+> a projeção não é um `<Numero>` nem no drawer nem no card — é linha de rodapé. O controle negativo
+> (ausência do literal do link) idem. O teste segue provando o que promete; era a PROSA que tinha
+> envelhecido, e é ela que este bloco conserta — precedência *teste > casos*, corrigindo o perdedor
+> no mesmo PR.
+
+- [BACKLOG] a projeção no RODAPÉ do card (não só no drawer) ainda não tem teste que a cite —
+  vira UC quando ganhar um. Hoje é prosa honesta, sem gate: o `PainelContratoTest` cobre a
+  Situação do drawer (contagem de `<Numero rotulo=`), e o rodapé do card está fora do alcance dele.
+
 ## UC-JPAIN-12 — a ação sugerida vira decisão registrada, e a prévia é do SERVIDOR
 Status: 🧪 (`PainelContratoTest` — 4 `it()`: 1 de arquivo + 3 de runtime, com 2 controles negativos; aguarda run verde **e** o screenshot F1.5)
 

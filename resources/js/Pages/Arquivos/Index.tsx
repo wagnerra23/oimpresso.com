@@ -380,8 +380,12 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
         const a = row.original
         // Órfão é ACHADO, não item de lista — o charter trata assim e o casos.md defende.
         if (a.orfao) {
+          // `danger` (par SOFT), não `destructive` (fill sólido): o #6268 corrigiu 9 badges
+          // de ESTADO no repo, e este é um deles — órfão é um estado do arquivo, não uma
+          // ação destrutiva. Reaplicado à mão porque o merge por `--ours` descartou a
+          // mudança da main junto com a versão antiga do resto do arquivo.
           return (
-            <Badge variant="destructive" title="Sem arquivable — ninguém alcança pela tela do dono.">
+            <Badge variant="danger" title="Sem arquivable — ninguém alcança pela tela do dono.">
               órfão
             </Badge>
           )

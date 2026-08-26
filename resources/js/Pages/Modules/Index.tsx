@@ -38,7 +38,8 @@ import { cn } from '@/Lib/utils';
 interface ModuleRow {
   name: string;
   alias: string;
-  version: string;
+  /** Versão resolvida pelo Service (declarada → instalada → alias). `null` = não há dado. */
+  version: string | null;
   description: string;
   area: string;
   active: boolean;
@@ -301,7 +302,11 @@ export default function ModulesIndex({ modules }: Props) {
                         <td className="px-4 py-2.5">
                           <div className="text-foreground font-medium leading-tight">{m.name}</div>
                           <div className="text-[11px] text-muted-foreground/70 leading-tight mt-0.5">
-                            {m.alias} · v{m.version}
+                            {m.alias}
+                            {/* Sem fallback '0.0': as 32 linhas diziam v0.0 porque nenhum
+                                module.json declara `version`, e número falso ensina a ignorar
+                                a coluna (D1 [W] 2026-08-20). Sem dado, a linha diz "—". */}
+                            {m.version ? ` · v${m.version}` : ' · versão —'}
                             {/* `has_datacontroller` chegava na prop e a tela ignorava. E o
                                 DataController e quem monta o item na sidebar: sem ele, o modulo
                                 fica ativo e INVISIVEL no menu -- o sintoma classico de "instalei
