@@ -16,6 +16,12 @@
   --sb-active: oklch(0.32 0.008 240);
   --sb-scroll: oklch(0.36 0.008 240);
   --sb-bullet-out: oklch(0.46 0.008 240);
+  --sb-accent: oklch(0.55 0.15 295);
+  --sb-accent-2: oklch(0.64 0.15 300);
+  --sb-accent-soft: oklch(0.31 0.02 295);
+  --sb-accent-glow: oklch(0.4 0.12 295 / 0.35);
+  --sb-pos: oklch(0.74 0.13 150);
+  --sb-pos-glow: oklch(0.55 0.13 150 / 0.25);
   --bg: oklch(0.985 0.003 90);
   --bg-2: oklch(0.965 0.004 90);
   --surface: #ffffff;
