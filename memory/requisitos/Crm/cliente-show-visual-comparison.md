@@ -1,5 +1,7 @@
 ---
 id: requisitos-crm-cliente-show-visual-comparison
+inertia_target: resources/js/Pages/Cliente/Show.tsx
+date: 2026-05-15
 ---
 
 # Visual Comparison — Cliente/Show (W1-B3)

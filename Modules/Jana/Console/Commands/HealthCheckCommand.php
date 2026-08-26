@@ -78,7 +78,7 @@ class HealthCheckCommand extends Command
                             {--json : Output JSON em vez de tabela}
                             {--notify : Loga ALERT em jana-health channel se algo falhou}';
 
-    protected $description = 'Health check diário Jana + Constituição v2 (12 checks DUROS incl. distiller_freshness + ledger de lições + charter/loop advisory)';
+    protected $description = 'Health check diário Jana + Constituição v2 (11 checks DUROS + distiller_freshness advisory + ledger de lições + charter/loop advisory)';
 
     /**
      * Margem de segurança da invariante de valor (check 1b). Desconto só REDUZ;
@@ -454,7 +454,7 @@ class HealthCheckCommand extends Command
     /**
      * Check 5b — Distiller freshness (ADR 0291 D-D · peça 3 do keystone SDD×memória).
      *
-     * Gêmeo DURO da métrica `distiller_freshness` do sdd-scorecard. Lá (commitado,
+     * Gêmeo de RUNTIME da métrica `distiller_freshness` do sdd-scorecard. Lá (commitado,
      * determinístico) a staleness é medida contra a data-git do doc mais novo do
      * módulo; AQUI (runtime, não-commitado) o alarme usa "hoje" — espelha
      * checkProfileDrift (`gerado_em` < now()->subDays(7)). Conta portas
@@ -462,7 +462,12 @@ class HealthCheckCommand extends Command
      *
      * Anti-stale: SKIP (ok) enquanto NENHUMA porta tiver `distilled_at` — o distiller
      * (PR-C) só roda em prod sob gate Wagner/CT100; não acende vermelho antes do 1º
-     * carimbo. DURO (não-advisory): destilação que parou derruba o exit/cron (D-3).
+     * carimbo. ADVISORY desde 2026-08-26 ([ADR 0380], errata da 0292): reporta na
+     * tabela e no --json, mas NÃO derruba o exit/cron. Motivo medido: o remédio que a
+     * mensagem nomeava não é executável em prod — o write é file_put_contents na árvore
+     * deployada, sem git, e o deploy seguinte reseta (cron re-comentado em #3545 após
+     * ~500 reescritas perdidas). E o vermelho perpétuo afogava a sentinela HORÁRIA de
+     * inbound WhatsApp (#2726), que loga o ALERT no mesmo formato.
      *
      * @see Modules/Jana/Services/Memoria/DistillerModuloVerdade.php (PR-C — escreve o carimbo)
      */
@@ -472,7 +477,7 @@ class HealthCheckCommand extends Command
         $reqDir = base_path('memory/requisitos');
         if (! is_dir($reqDir)) {
             return [
-                'name' => $name, 'ok' => true, 'value' => 'n/a', 'threshold' => '<= 7d',
+                'name' => $name, 'ok' => true, 'value' => 'n/a', 'threshold' => '<= 7d', 'advisory' => true,
                 'message' => 'Skipped (memory/requisitos/ ausente)',
             ];
         }
@@ -485,19 +490,20 @@ class HealthCheckCommand extends Command
 
         if ($r['stamped'] === 0) {
             return [
-                'name' => $name, 'ok' => true, 'value' => 'n/a', 'threshold' => '<= 7d',
+                'name' => $name, 'ok' => true, 'value' => 'n/a', 'threshold' => '<= 7d', 'advisory' => true,
                 'message' => 'Skipped (nenhuma porta com distilled_at — distiller não rodou; gate Wagner/CT100 · ADR 0291 D-D)',
             ];
         }
 
         return [
             'name' => $name,
+            'advisory' => true,
             'ok' => $r['stale'] === 0,
             'value' => $r['stale'],
             'threshold' => 0,
             'message' => $r['stale'] === 0
                 ? "Todas as {$r['stamped']} portas destiladas frescas (<= 7d)"
-                : "STALE: {$r['stale']}/{$r['stamped']} portas com distilled_at > 7d (mais velha: {$r['stalest_days']}d) — rodar jana:distill-module-truth",
+                : "STALE: {$r['stale']}/{$r['stamped']} portas com distilled_at > 7d (mais velha: {$r['stalest_days']}d) — destilação real é gateada (venue git-backed + skim, #3545); NÃO rodar --all",
         ];
     }
 

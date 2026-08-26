@@ -83,6 +83,28 @@ class Subscription extends Model
     /**
      * Returns the active subscription details for a business
      *
+     * Um business PODE ter mais de uma assinatura ativa ao mesmo tempo — nada no schema
+     * impede, e em produção isso acontece. Por isso a ordenação é explícita: sem ela o
+     * `first()` deixa a escolha para o plano de execução do MySQL, que na prática devolve
+     * a de menor `id`, ou seja **a mais antiga**.
+     *
+     * Medido em produção em 2026-08-26 (leitura, SSH Hostinger), antes desta linha existir:
+     *
+     *   biz=1    id=1    start=2021-01-12  end=2099-12-31   1 chave `*_module`
+     *            id=118  start=2025-04-04  end=2030-05-13  13 chaves `*_module`
+     *   -> `active_subscription(1)` devolvia a de 2021, e o gate de módulo enxergava
+     *      UMA chave (`officeimpresso`). As 12 restantes, marcadas na assinatura nova,
+     *      estavam mortas: uma linha de 2021 com `end_date` em 2099 vencia o `first()`.
+     *
+     * Isso não é detalhe de listagem — é o portão de visibilidade de módulo do sistema
+     * inteiro: `ModuleUtil::hasThePermissionInSubscription` sai daqui, e ele é consumido
+     * em 300 pontos de 122 arquivos. Uma assinatura antiga esquecida apagava, em silêncio,
+     * todo módulo habilitado depois dela.
+     *
+     * `start_date` antes de `id` porque a pergunta do domínio é "qual contrato vale hoje",
+     * e o desempate por `id` só existe para o caso de duas começarem no mesmo dia — aí a
+     * mais recentemente criada é a que representa a última decisão de quem vendeu.
+     *
      * @param $business_id int
      * @return Response
      */
@@ -94,6 +116,8 @@ class Subscription extends Model
                             ->whereDate('start_date', '<=', $date_today)
                             ->whereDate('end_date', '>=', $date_today)
                             ->approved()
+                            ->orderByDesc('start_date')
+                            ->orderByDesc('id')
                             ->first();
 
         return $subscription;

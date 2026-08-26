@@ -38,6 +38,16 @@ jobs:
         with:
           node-version: '24'
 
+      # BITE-TEST do proprio gate: prova, em fixture, que ele MORDE e LIBERA. Roda ANTES do
+      # ratchet -- selftest quebrado invalida o veredito que vem depois.
+      #
+      # Os dois estavam ORFAOS: `rg --hidden` no repo inteiro (2026-08-26) achava
+      # `--selftest-diff-aware` em ZERO invocador fora do proprio script. Maquina que existe e
+      # ninguem invoca e bug, nao neutralidade -- e aqui a maquina orfa era justamente a que
+      # prova que a separacao propria x herdada nao libera no escuro.
+      - name: Selftest — separação dívida própria × herdada (bite-test em fixture)
+        run: node scripts/casos-coverage-guard.mjs --selftest-diff-aware
+
       - name: Relatório de dívida (informativo)
         run: node scripts/casos-coverage-guard.mjs --report
 

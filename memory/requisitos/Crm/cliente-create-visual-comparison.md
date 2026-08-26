@@ -1,5 +1,7 @@
 ---
 id: requisitos-crm-cliente-create-visual-comparison
+inertia_target: resources/js/Pages/Cliente/Create.tsx
+date: 2026-05-15
 ---
 
 # Visual Comparison — Cliente/Create (W1-B3)

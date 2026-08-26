@@ -1,5 +1,7 @@
 ---
 id: requisitos-crm-cliente-map-visual-comparison
+inertia_target: resources/js/Pages/Cliente/Map.tsx
+date: 2026-05-15
 ---
 
 # Visual Comparison — Cliente/Map (W1-B3)

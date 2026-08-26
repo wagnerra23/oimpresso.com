@@ -1,5 +1,7 @@
 ---
 id: requisitos-crm-cliente-import-visual-comparison
+inertia_target: resources/js/Pages/Cliente/Import.tsx
+date: 2026-05-15
 ---
 
 # Visual Comparison — Cliente/Import (W1-B3)

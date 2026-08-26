@@ -4,7 +4,7 @@ tela: Clientes (Index + Drawer 760px)
 prototipo: prototipo-ui/prototipos/clientes/ # ⚠️ PATH APAGADO em 2026-06-23 (e8b49f4b63, consolidação SSOT em prototipo-ui/cowork/) — é o artefato de 2026-05-22 que ESTA análise leu, preservado aqui como registro do que foi medido. NÃO trocar pelo espelho de hoje sem reler: ver "Por que ainda não há .map.json" abaixo
 tela_viva: resources/js/Pages/Cliente/ (Index.tsx 114KB + Show.tsx + _drawer/* + _show/* + _components/*)
 paridade_atual: 100% (tela viva À FRENTE do protótipo) # MEDIDO EM 2026-06-23 contra o protótipo daquela data — ver ressalva abaixo
-veredito: À FRENTE — protótipo é catch-up backlog, NUNCA fonte
+veredito: "À FRENTE em 2026-06-23 no escopo DRAWER (o protótipo do drawer foi derivado DA produção). NÃO vale pra listagem/Import/Map — superseded por memory/requisitos/Cliente/PARIDADE-area-cliente-diagnostico-e-ondas.md (2026-08-18), que lista 5 itens a adotar."
 gerado_em: '2026-06-23'
 governanca:
   read_only: true
@@ -12,7 +12,7 @@ governanca:
   charter: resources/js/Pages/Cliente/Index.charter.md (v10 · 2026-06-13 · status live)
   spec: memory/requisitos/Crm/SPEC.md + SPEC-us-063-078.md
   adrs: ['0104', '0107', '0114', '0149', '0179', '0188', '0246', '0093']
-  acao_recomendada: NENHUMA aplicação de protótipo. Tela viva supera o blueprint em todas as partes.
+  acao_recomendada: "NÃO usar este doc como decisão de hoje — é registro datado de 2026-06-23, medido contra artefato que já não existe. Dono vigente: memory/requisitos/Cliente/PARIDADE-area-cliente-diagnostico-e-ondas.md (2026-08-18) · Ondas 3/5/6 abertas."
 ---
 
 # GAP-SPEC · Clientes — protótipo Cowork vs tela viva

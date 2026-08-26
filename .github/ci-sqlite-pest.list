@@ -497,3 +497,15 @@ tests/Feature/Console/BackupMonitorScheduleTest.php
 Modules/PaymentGateway/Tests/Feature/ProcessarWebhookPixInterJobContratoTest.php
 tests/Feature/Architecture/QueueablePropertyCollisionTest.php
 tests/Feature/Sidebar/Biz4RotaLivreSidebarTest.php
+
+# ADR 0380 — bite-test do rebaixamento de `distiller_freshness` a ADVISORY.
+# Entra JUNTO com a mudanca que ele mede, no MESMO PR: registrar o teste no repo
+# NAO e a lane executa-lo (lapide §5 2026-08-02, e o gemeo subtrativo de 08-12 —
+# a lane Jana roda ALLOWLIST, entao arquivo fora da lista e gate mudo).
+# Sqlite-safe de proposito: nao toca DB (o check so le memory/requisitos/) e o
+# controle negativo e puro sobre allChecksOk(). Familia dos Smoke de check que
+# ja estao nesta lista (WhatsappInboundCanary, LangfuseTraceUptime).
+#
+# ⚠️ NAO rodei o Pest (CT 100 only, ADR 0062). A prova de que passou a executar e
+# o CONTADOR da lane no run deste PR — nao este comentario.
+Modules/Jana/Tests/Feature/Smoke/DistillerFreshnessAdvisoryTest.php
