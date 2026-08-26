@@ -10,7 +10,7 @@
 import { Head, router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Bell, ChevronLeft, Cog, Inbox, List, Pin, Plus, Search, Settings, SlidersHorizontal,
+  Bell, ChevronLeft, Cog, Inbox, List, Plus, Search, Settings, SlidersHorizontal,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -28,6 +28,7 @@ import {
   Rotina,
 } from '@/Components/cockpit/shared';
 import { JanaAssistantUiChat } from './_components/AssistantUiChat';
+import EmptyState from '@/Components/shared/EmptyState';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import {
@@ -90,10 +91,19 @@ interface Props {
 
 // ── helpers ────────────────────────────────────────────────────────────
 
-const DIFICULDADE_CONFIG: Record<string, { label: string; className: string }> = {
-  facil:     { label: 'Fácil',     className: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300' },
-  realista:  { label: 'Realista',  className: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' },
-  ambicioso: { label: 'Ambicioso', className: 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300' },
+// Dificuldade da proposta = ESTADO, não ação → pílula soft do DS (`<Badge>`).
+// Antes o tom vinha de palette cru do Tailwind (verde/amarelo/vermelho, com par
+// `dark:`) guardado num objeto de módulo — fora de `className=`, então escapava do
+// `ds/no-raw-palette-color` (cujo seletor só olha `JSXAttribute[name.name="className"]
+// Literal`), mas contava 12 violações R1 no `ui:lint`, que varre a LINHA crua.
+// O mapeamento tom → variante é o do `component-registry.json` §Badge:
+// "sucesso (verde)"=success · "aviso (amarelo)"=warning · "perigo (vermelho)"=danger.
+type DificuldadeVariant = 'success' | 'warning' | 'danger';
+
+const DIFICULDADE_CONFIG: Record<string, { label: string; variant: DificuldadeVariant }> = {
+  facil:     { label: 'Fácil',     variant: 'success' },
+  realista:  { label: 'Realista',  variant: 'warning' },
+  ambicioso: { label: 'Ambicioso', variant: 'danger'  },
 };
 
 function formatCurrency(value: number) {
@@ -194,9 +204,7 @@ function PropostaCard({ sugestao }: { sugestao: Sugestao }) {
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="text-base leading-tight">{p.nome}</CardTitle>
-          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${dif.className}`}>
-            {dif.label}
-          </span>
+          <Badge variant={dif.variant}>{dif.label}</Badge>
         </div>
         <div className="flex flex-wrap gap-1 pt-1">
           <Badge variant="outline">{p.metrica}</Badge>
@@ -209,9 +217,7 @@ function PropostaCard({ sugestao }: { sugestao: Sugestao }) {
         {p.dependencias.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
             {p.dependencias.map((dep, i) => (
-              <span key={i} className="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-                {dep}
-              </span>
+              <Badge key={i} variant="neutral">{dep}</Badge>
             ))}
           </div>
         )}
@@ -386,7 +392,7 @@ export default function Chat({
             belowThread={
               sugestoesPendentes.length > 0 ? (
                 <div className="px-5 pb-3 space-y-2">
-                  <p className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--text-mute)' }}>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Propostas de metas
                   </p>
                   <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -632,9 +638,11 @@ export function ConvSidePanel({
 
       <div className="sb-section-h">Fixadas</div>
       {fixadasShow.length === 0 ? (
-        <div className="sb-action" style={{ opacity: 0.6 }}>
-          <Pin size={14} /> <span>{query ? 'Nenhuma fixada nesta busca' : 'Arraste para fixar'}</span>
-        </div>
+        <EmptyState
+          icon="pin"
+          title={query ? 'Nenhuma fixada nesta busca' : 'Arraste para fixar'}
+          className="py-6 px-3"
+        />
       ) : (
         fixadasShow.map((c) => (
           <SbConvItem key={c.id} c={c} active={c.id === activeConvId} onSelect={escolher} />
@@ -643,15 +651,17 @@ export function ConvSidePanel({
 
       <div className="sb-section-h">{tab === 'arquivadas' ? 'Arquivadas' : 'Recentes'}</div>
       {recentesShow.length === 0 ? (
-        <div className="sb-action" style={{ opacity: 0.6 }}>
-          <span>
-            {query
+        <EmptyState
+          icon="inbox"
+          title={
+            query
               ? 'Nenhuma conversa nesta busca'
               : tab === 'arquivadas'
                 ? 'Nenhuma conversa arquivada'
-                : 'Nenhuma conversa ainda'}
-          </span>
-        </div>
+                : 'Nenhuma conversa ainda'
+          }
+          className="py-6 px-3"
+        />
       ) : (
         recentesShow.map((c) => (
           <SbConvItem key={c.id} c={c} active={c.id === activeConvId} onSelect={escolher} />
