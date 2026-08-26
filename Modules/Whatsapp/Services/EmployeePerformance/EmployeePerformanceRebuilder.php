@@ -246,12 +246,19 @@ class EmployeePerformanceRebuilder
                 $perf->hora_pico = null;
             }
 
-            // Dias ativos 30d
+            // Dias ativos 30d.
+            // O DISTINCT tem que cair sobre a EXPRESSÃO, nunca sobre um alias do
+            // SELECT: Builder::aggregate() faz cloneWithout(['columns']) e descarta
+            // qualquer ->select() anterior, montando o seu próprio
+            // 'select count(distinct <col>)'. Com ->select(DB::raw('... as d'))
+            // ->count('d') o alias 'd' não existe nesse SELECT e o MySQL responde
+            // 1054 Unknown column 'd' -- que o catch abaixo engolia, deixando
+            // dias_ativos_30d congelado no valor anterior (164 ocorrências no log
+            // de prod entre 2026-06-21 e 2026-08-26).
             $dias = (clone $base)
                 ->where('m.created_at', '>=', now()->subDays(30))
-                ->select(DB::raw('DATE(m.created_at) as d'))
                 ->distinct()
-                ->count('d');
+                ->count(DB::raw('DATE(m.created_at)'));
             $perf->dias_ativos_30d = (int) $dias;
         } catch (Throwable $e) {
             Log::channel('single')->warning('[employee_performance.coverage_failed]', [
