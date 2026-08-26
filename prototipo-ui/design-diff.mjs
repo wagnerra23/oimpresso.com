@@ -26,10 +26,17 @@
  *   D4 tipografia  — font-size/weight do título e do valor do KPI
  *   D6 cor         — bg do primary (accent) · cor do texto do KPI (contraste no tema)
  *   D8 ALINHAMENTO — text-align de label/valor do KPI + a TAG (button↔center-default × div↔left)
+ *   D9 TEXTO       — CLASSE DE FORMATO por região [data-contract]: data ISO × dd/mm/aaaa,
+ *                    valor cru com separador (hard_delete) impresso como rótulo. Não é diff de
+ *                    string (mock × dado real seria ruído puro) — é a FORMA que se compara.
+ *                    Adicionada em 2026-08-26: até então só computed-style era diffável, e a
+ *                    classe de defeito que mais escapa na travessia é textual.
  *
  *   (D1 comportamento/rede, D3 ícones, D5 footer, D7 densidade ficam no protocolo como passos
- *    do agente — só as dimensões de computed-style puro são auto-diffáveis aqui hoje. Honesto:
- *    o tool NÃO substitui o protocolo, MECANIZA a parte medível dele. §"não-goals".)
+ *    do agente. Honesto: o tool NÃO substitui o protocolo, MECANIZA a parte medível dele.
+ *    E o que a D9 NÃO cobre está declarado nela: copy em inglês — que a ADR 0271 onda 2 deixou
+ *    no juiz manual ao deletar o pr-ui-judge.yml — e valor cru de UMA palavra, indistinguível
+ *    de palavra legítima por forma. §"não-goals".)
  *
  * ── TOLERÂNCIA (chip G8, 2026-08-14) ─────────────────────────────────────────────
  *   As bandas destas dimensões estavam inline (±2px de título, ±8° de matiz, ±0,1 de luminância).
@@ -116,10 +123,49 @@ export const PROBE_SOURCE = /* js */ `(() => {
   const primary = p ? { bg: pc.backgroundColor, color: pc.color, border: pc.borderTopColor } : null;
   // filtro (barra) — nº de linhas visuais dos controles
   const filterEls = R.filterControls ? qa(R.filterControls) : [];
+  // D9 — CLASSE DE FORMATO do texto visível, por região [data-contract].
+  // NAO e diff de string: o prototipo tem mock e a prod tem dado real, entao comparar
+  // texto cru seria 100% ruido. O que se compara e a FORMA — "22/08/2031" e "2026-09-07"
+  // sao o mesmo dado em classes diferentes, e e a classe que denuncia.
+  // Exclui code/pre/kbd pela MESMA fronteira do ds/no-db-jargon-in-ui: ali nome de coluna
+  // ou rota e doc tecnica intencional, nao jargao vazando. O atributo title tambem fica
+  // fora por construcao (textContent nao o le) — e onde o canon manda por o tecnico.
+  const CLASSES = [
+    ['dataIso', /\\b\\d{4}-\\d{2}-\\d{2}\\b/g],
+    ['dataBr', /\\b\\d{2}\\/\\d{2}\\/\\d{4}\\b/g],
+    ['snakeCru', /\\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\\b/g],
+  ];
+  const textoVisivel = (raiz) => {
+    const w = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT, {
+      acceptNode: (n) => {
+        if (!(n.nodeValue || '').trim()) return NodeFilter.FILTER_REJECT;
+        for (let e = n.parentElement; e && e !== raiz.parentElement; e = e.parentElement) {
+          if (/^(CODE|PRE|KBD|SCRIPT|STYLE)$/.test(e.tagName)) return NodeFilter.FILTER_REJECT;
+          const c2 = getComputedStyle(e);
+          if (c2.display === 'none' || c2.visibility === 'hidden') return NodeFilter.FILTER_REJECT;
+        }
+        return NodeFilter.FILTER_ACCEPT;
+      },
+    });
+    const partes = [];
+    for (let n = w.nextNode(); n; n = w.nextNode()) partes.push(n.nodeValue);
+    return partes.join(' ').replace(/\\s+/g, ' ').trim();
+  };
+  const contratos = qa('[data-contract]').map((el) => {
+    const t = textoVisivel(el);
+    const classes = {}; const exemplos = {};
+    for (const par of CLASSES) {
+      par[1].lastIndex = 0;
+      const m = t.match(par[1]) || [];
+      classes[par[0]] = m.length;
+      if (m.length) exemplos[par[0]] = [...new Set(m)].slice(0, 3);
+    }
+    return { nome: el.getAttribute('data-contract'), classes, exemplos };
+  });
   return {
     url: location.href,
     theme: document.documentElement.getAttribute('data-theme') || (document.documentElement.classList.contains('dark') ? 'dark' : 'light'),
-    roles: { kpi, title, primary, filterRows: filterEls.length ? visualRows(filterEls) : null },
+    roles: { kpi, title, primary, filterRows: filterEls.length ? visualRows(filterEls) : null, contratos },
   };
 })()`;
 
@@ -230,7 +276,75 @@ function dimCor(prod, design) { // D6
   return rows;
 }
 
-const DIMENSIONS = [dimLayout, dimTipografia, dimCor, dimAlinhamento];
+/**
+ * D9 — TEXTO, por CLASSE DE FORMATO, região a região ([data-contract]).
+ *
+ * POR QUE EXISTE (2026-08-26): as 4 dimensões acima são computed-style puro, e o próprio
+ * docblock deste arquivo declarava que texto ficava de fora. Só que a classe de defeito que
+ * mais escapa na travessia protótipo→tela é TEXTUAL: data em ISO onde o design desenha
+ * dd/mm/aaaa, e valor cru de enum/config impresso como rótulo. Dez refinos levantados na
+ * `Arquivos/Index` em 2026-08-26 eram disso, com TODOS os gates verdes — porque nenhum
+ * media texto. Esta dimensão é o buraco fechado no dono que já existe, não régua nova.
+ *
+ * NÃO é diff de string, e a distinção é o que torna a dimensão utilizável: o protótipo roda
+ * com mock e a produção com dado real, então comparar o texto literal daria ~100% de ruído.
+ * O que se compara é a CLASSE DE FORMATO — "22/08/2031" e "2026-09-07" são o mesmo dado em
+ * classes diferentes, e é a classe que denuncia, não o valor.
+ *
+ * VEREDITOS (a direção importa, e não é simétrica):
+ *   · prod tem classe crua que o design NÃO tem  → DIVERGE (bug)   — a travessia introduziu
+ *   · design tem classe crua que a prod NÃO tem  → DIVERGE (fonte) — o protótipo é que está
+ *     errado; a tela não regrediu. NÃO é bug da prod, e chamar de bug mandaria consertar
+ *     o lado certo (foi assim que `hard_delete` chegou à tela: veio desenhado).
+ *
+ * LIMITES DECLARADOS (medidos, não supostos):
+ *   · valor cru de UMA palavra (o disco `arquivos`, o bucket `active`) NÃO casa — por forma
+ *     ele é indistinguível de palavra legítima. `snakeCru` só vê o que tem separador.
+ *   · copy em inglês NÃO casa. É a AP8/R8, que a ADR 0271 onda 2 deixou explicitamente no
+ *     juiz manual ao deletar o `pr-ui-judge.yml` por dormência. Fingir cobrir aqui seria
+ *     inventar um segundo dono pra uma decisão já tomada.
+ *   · code/pre/kbd e o atributo `title` ficam FORA — mesma fronteira do `ds/no-db-jargon-in-ui`:
+ *     ali o técnico é intencional, e é onde o canon desta casa manda pô-lo.
+ *
+ * FP MEDIDO ANTES DE LIGAR (2026-08-26, sonda injetada no protótipo vivo em localhost):
+ *   11 regiões em 2 vistas de uma fonte sabidamente correta → 0 falso-positivo, 1 verdadeiro
+ *   (`hard_delete` no card Estratégia — defeito real, e do próprio protótipo).
+ *
+ * @param {any} prod @param {any} design
+ */
+function dimTexto(prod, design) { // D9
+  const rows = [];
+  const pc = prod.contratos, dc = design.contratos;
+  if (!Array.isArray(pc) || !Array.isArray(dc)) {
+    // Snapshot antigo (sonda anterior a esta dimensão). Não mente por omissão.
+    return [{ dim: 'D9', campo: 'contratos', prod: Array.isArray(pc) ? 'ok' : 'ausente', design: Array.isArray(dc) ? 'ok' : 'ausente', veredito: 'SEM-DADO', detalhe: 're-injete a sonda atual (--probe) nos DOIS lados' }];
+  }
+  const idx = (arr) => Object.fromEntries(arr.map((c) => [c.nome, c]));
+  const P = idx(pc), D = idx(dc);
+  const CRUAS = ['dataIso', 'snakeCru'];
+  const nomes = [...new Set([...Object.keys(P), ...Object.keys(D)])].sort();
+  for (const nome of nomes) {
+    const a = P[nome], b = D[nome];
+    if (!a || !b) {
+      rows.push({ dim: 'D9', campo: nome, prod: a ? 'presente' : 'ausente', design: b ? 'presente' : 'ausente', veredito: 'SEM-DADO', detalhe: 'região só existe de um lado' });
+      continue;
+    }
+    for (const k of CRUAS) {
+      const np = a.classes[k] || 0, nd = b.classes[k] || 0;
+      const amostra = (c) => (c.exemplos && c.exemplos[k] ? ' — ' + c.exemplos[k].join(', ') : '');
+      if (np > 0 && nd === 0) rows.push({ dim: 'D9', campo: nome + '.' + k, prod: np + '×' + amostra(a), design: '0', veredito: 'DIVERGE (bug)', detalhe: 'a travessia introduziu forma crua que o design não tem' });
+      else if (nd > 0 && np === 0) rows.push({ dim: 'D9', campo: nome + '.' + k, prod: '0', design: nd + '×' + amostra(b), veredito: 'DIVERGE (fonte)', detalhe: 'o PROTÓTIPO carrega a forma crua — consertar a fonte, não a tela' });
+    }
+    // Data: o par (ISO na prod, BR no design) na MESMA região é o caso canônico.
+    if ((a.classes.dataIso || 0) > 0 && (b.classes.dataBr || 0) > 0) {
+      rows.push({ dim: 'D9', campo: nome + '.formato-de-data', prod: 'ISO', design: 'dd/mm/aaaa', veredito: 'DIVERGE (bug)', detalhe: 'mesma região, formatos opostos' });
+    }
+  }
+  if (!rows.length) rows.push({ dim: 'D9', campo: 'texto', prod: 'ok', design: 'ok', veredito: 'IGUAL' });
+  return rows;
+}
+
+const DIMENSIONS = [dimLayout, dimTipografia, dimCor, dimAlinhamento, dimTexto];
 
 /** @param {any} prodSnap @param {any} designSnap */
 export function compare(prodSnap, designSnap) {
@@ -369,6 +483,50 @@ function selftest() {
   // controle: dois lados IGUAIS não acusam bug
   const eq = compare(design, design);
   checks.push(['design×design = 0 bug (não mente)', eq.bugs === 0]);
+
+  // ── D9 TEXTO (2026-08-26) — fixture do caso Arquivos/Index ───────────────────
+  // Números do fixture = os MEDIDOS na sonda injetada no protótipo vivo naquele dia
+  // (acervo: dataBr 10 · dataIso 0 · snakeCru 0 · retencao-regras: snakeCru 1 hard_delete).
+  // Fixture próprio (NÃO reusa `base()`, que só é declarado adiante — const em TDZ).
+  // As outras 4 dimensões ficam idênticas nos dois lados de propósito: assim qualquer
+  // bug que o selftest acusar aqui é da D9, não contaminação de outra dimensão.
+  const comTexto = (contratos) => ({ theme: 'dark', roles: {
+    kpi: { count: 1, tag: 'DIV', overflowX: false, items: [{ label: 'k', textAlign: 'start', alignItems: 'normal', textColor: 'oklch(0.965 0 0)', smallAlign: 'start', valueFontPx: 22 }] },
+    title: { fontPx: 22, weight: '600', color: 'oklch(0.965 0 0)' },
+    primary: { bg: 'oklch(0.55 0.15 295)', color: 'oklch(0.99 0 0)', border: 'oklch(0.45 0.15 295)' },
+    filterRows: 1,
+    contratos,
+  } });
+  const d9prod = comTexto([
+    { nome: 'acervo', classes: { dataIso: 10, dataBr: 0, snakeCru: 0 }, exemplos: { dataIso: ['2026-09-07'] } },
+    { nome: 'retencao-regras', classes: { dataIso: 0, dataBr: 0, snakeCru: 1 }, exemplos: { snakeCru: ['hard_delete'] } },
+    { nome: 'trilha', classes: { dataIso: 4, dataBr: 0, snakeCru: 0 }, exemplos: { dataIso: ['2026-06-09'] } },
+  ]);
+  const d9design = comTexto([
+    { nome: 'acervo', classes: { dataIso: 0, dataBr: 10, snakeCru: 0 }, exemplos: { dataBr: ['22/08/2031'] } },
+    { nome: 'retencao-regras', classes: { dataIso: 0, dataBr: 0, snakeCru: 1 }, exemplos: { snakeCru: ['hard_delete'] } },
+    { nome: 'trilha', classes: { dataIso: 0, dataBr: 4, snakeCru: 0 }, exemplos: { dataBr: ['09/06/2026'] } },
+  ]);
+  const r9 = compare(d9prod, d9design);
+  const tem9 = (campo, ver) => r9.rows.some((r) => r.dim === 'D9' && r.campo.includes(campo) && r.veredito === ver);
+  checks.push(['D9 pega data ISO na prod onde o design tem dd/mm/aaaa', tem9('acervo.dataIso', 'DIVERGE (bug)')]);
+  checks.push(['D9 pega o mesmo par pela regra formato-de-data', tem9('acervo.formato-de-data', 'DIVERGE (bug)')]);
+  checks.push(['D9 pega a Trilha (o segundo ISO do relatório)', tem9('trilha.dataIso', 'DIVERGE (bug)')]);
+  // O `hard_delete` está nos DOIS lados → não é regressão da travessia. Acusar como bug
+  // mandaria consertar a tela, quando quem carrega a forma crua é o protótipo.
+  checks.push(['D9 NÃO chama de bug o que os dois lados têm', !tem9('retencao-regras.snakeCru', 'DIVERGE (bug)')]);
+  checks.push(['D9 controle: prod×prod não acusa nada', compare(d9prod, d9prod).rows.filter((r) => r.dim === 'D9' && r.veredito.startsWith('DIVERGE')).length === 0]);
+  // direção: crua SÓ no design = defeito da FONTE, e o veredito tem que dizer isso.
+  const soNaFonte = compare(
+    comTexto([{ nome: 'x', classes: { dataIso: 0, dataBr: 0, snakeCru: 0 }, exemplos: {} }]),
+    comTexto([{ nome: 'x', classes: { dataIso: 0, dataBr: 0, snakeCru: 2 }, exemplos: { snakeCru: ['hard_delete'] } }]),
+  );
+  checks.push(['D9 separa "fonte errada" de "prod errada"', soNaFonte.rows.some((r) => r.veredito === 'DIVERGE (fonte)') && soNaFonte.bugs === 0]);
+  // snapshot velho (sem a sonda nova) → SEM-DADO, nunca verde por omissão.
+  const semSonda = comTexto([]);
+  delete semSonda.roles.contratos;
+  const velho = compare(semSonda, semSonda);
+  checks.push(['D9 com sonda antiga sai SEM-DADO, não IGUAL', velho.rows.some((r) => r.dim === 'D9' && r.veredito === 'SEM-DADO')]);
 
   // ── FRONTEIRA das bandas declaradas (chip G8, 2026-08-14) ────────────────────
   // As bandas destas dimensões vêm de TOLERANCIAS (style-fingerprint.mjs). Sem um par
