@@ -4,7 +4,7 @@ casos: Jana Memória · fatos aprendidos · LGPD Art. 18 · /ia/memoria
 irmaos: Memoria.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-memoria.md (runbook)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-25"
+last_run: "2026-08-26"
 ---
 
 # Casos de uso — /ia/memoria (Memória da Jana)
@@ -20,6 +20,16 @@ last_run: "2026-08-25"
 > "autor/quando/**motivo**" no activitylog e proibia "update direto sem activitylog". O código
 > validava só `fato`, o `useForm` mandava só `fato` (0 hits de `motivo`) e **nenhum teste mordia**.
 > A lei existia e valia zero — é o caso do charter que não é lei porque ninguém a executa.
+
+> **Revalidação 2026-08-26 — PR #6298 (DS onda 1), head `b011221e50`.** Os 5 UCs são de
+> servidor e o diff é só de markup: `<textarea>`→`Textarea`, `<label>` envolvente→`Label` com
+> `htmlFor`, e os dois empty states→`EmptyState` canon. O `podeSalvar` continua exigindo `fato`
+> **e** `motivo` (`Memoria.tsx:96`) e os dois `aria-label` seguem lá — que é o que o UC-MEM-01
+> chama de conveniência da UI.
+>
+> Recibo: na lane do CI estes 5 casos saíram **5 skipped, 0 asserções** (o seed do CI não tem um
+> `Admin#{biz}`, e o bootstrap pula) — skip sai exit 0 e não prova nada. Rodados no CT 100
+> (`oimpresso-staging`, `main @ c01ee7615`) em 2026-08-26: **5 de 5 passam**.
 
 ## UC-MEM-01 — Editar um fato SEM motivo é rejeitado
 Status: 🧪 (MemoriaEdicaoMotivoTest · lane `jana-pest.yml`, MySQL real)
