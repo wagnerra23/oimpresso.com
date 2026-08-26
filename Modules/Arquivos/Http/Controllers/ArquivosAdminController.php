@@ -127,6 +127,23 @@ class ArquivosAdminController extends Controller
      */
     private function resumo(): array
     {
+        $businessId = $this->businessIdDaSessao();
+
+        // PORTÃO, e ele cobre DOIS buracos que o CI achou de uma vez:
+        //
+        // 1. **Tabela ausente.** Esta prop é EAGER — diferente das deferidas, ela executa
+        //    dentro do `index()`. Num ambiente sem o módulo migrado (a lane sqlite é
+        //    exatamente isso) a query estourava `QueryException` e derrubava a tela inteira,
+        //    não só o número. As outras leituras deste arquivo já degradavam; esta nasceu
+        //    sem o guard porque eu a escrevi olhando o caminho feliz.
+        // 2. **Fail-open do scope.** Sem `business_id` na sessão o global scope do `Arquivo`
+        //    não filtra (`if ($businessId !== null)`), então o resumo contaria o acervo de
+        //    TODOS os tenants — e o número apareceria no subtítulo e no pill da aba, que é
+        //    onde ninguém desconfia. Mesmo portão que o `CofreStatsReader` já tem.
+        if ($businessId === null || ! Schema::hasTable('arquivos')) {
+            return ['arquivos' => 0, 'bytes' => 0, 'cifrados' => 0, 'eventos' => 0, 'por_bucket' => []];
+        }
+
         $linhas = Arquivo::query()
             ->select([
                 'bucket',
@@ -148,11 +165,10 @@ class ArquivosAdminController extends Controller
             $cifrados += (int) $l->cifrados;
         }
 
-        $businessId = $this->businessIdDaSessao();
-
-        // `arquivos_audit_log` não tem model: aqui o `where` explícito É a defesa Tier 0,
-        // e sem business na sessão o contador é 0 em vez do total do sistema (fail-closed).
-        $eventos = ($businessId !== null && Schema::hasTable('arquivos_audit_log'))
+        // `arquivos_audit_log` não tem model: aqui o `where` explícito É a defesa Tier 0.
+        // O business já foi resolvido no portão acima — o que falta checar é a tabela, que
+        // pode não existir mesmo com `arquivos` existindo (migrations são independentes).
+        $eventos = Schema::hasTable('arquivos_audit_log')
             ? DB::table('arquivos_audit_log')->where('business_id', $businessId)->count()
             : 0;
 

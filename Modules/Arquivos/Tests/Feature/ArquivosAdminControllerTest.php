@@ -720,6 +720,30 @@ it('UC-INDEX-01 · o resumo conta o ACERVO do business, nunca a pagina', functio
     expect($depois['por_bucket']['discard'] ?? 0)->toBe(($antes['por_bucket']['discard'] ?? 0) + 1);
 })->group('arquivos');
 
+it('UC-INDEX-01 · o index() NAO estoura quando a tabela nao existe — prop eager degrada', function () {
+    // Nasceu de vermelho real (lane `Pest Arquivos`, sqlite sem migrate): o `resumo` é EAGER,
+    // então executa DENTRO do `index()` — ao contrário das deferidas, que só são registradas.
+    // Sem o guard de `Schema::hasTable`, a query estourava `QueryException` e derrubava a TELA
+    // INTEIRA num ambiente sem o módulo migrado, não só o número.
+    //
+    // Este teste vale nas duas lanes e prova o caminho DEGRADADO: sem sessão, o portão
+    // devolve o retrato vazio antes de qualquer query — logo nem a tabela é consultada.
+    session()->forget('user');
+    session()->forget('business');
+
+    $request = Modules\Arquivos\Http\Requests\ListArquivosRequest::create('/arquivos', 'GET');
+    $response = (new ArquivosAdminController())->index($request);
+
+    $p = new ReflectionProperty($response, 'props');
+    $p->setAccessible(true);
+    $props = $p->getValue($response);
+
+    expect(array_keys($props))->toBe(['filtros', 'politica', 'resumo', 'acervo']);
+    expect($props['resumo'])->toBe([
+        'arquivos' => 0, 'bytes' => 0, 'cifrados' => 0, 'eventos' => 0, 'por_bucket' => [],
+    ]);
+})->group('arquivos');
+
 it('UC-INDEX-02 · sem business na sessao o contador de eventos e 0, nunca o total do sistema', function () {
     // Mesmo fail-closed da trilha, agora no contador da aba: `arquivos_audit_log` não tem
     // model, então sem `business_id` na sessão o `count()` traria o log de TODOS os
