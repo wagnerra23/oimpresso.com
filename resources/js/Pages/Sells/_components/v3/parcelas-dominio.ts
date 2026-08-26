@@ -96,6 +96,26 @@ export function somaDasParcelas(parcelas: Pick<Parcela, 'valor'>[]): number {
   return submitSafe(parcelas.reduce((s, p) => s + parseBR(p.valor), 0));
 }
 
+/** O rótulo de baixa, tirado da lista canônica pra não virar string solta. */
+export const RECEBIDA = LANCAMENTOS[1]!;
+
+/**
+ * Soma só do que JÁ ENTROU — parcelas com baixa registrada.
+ *
+ * Existe porque o drawer sabe marcar parcela como recebida (`marcarRecebida`) e o
+ * fechamento não estava contando: o operador dava baixa, o dinheiro entrava, e o
+ * "Falta receber" continuava mostrando o total cheio. Quem responde "quanto das
+ * parcelas entrou" é este arquivo, que é o dono da parcela — o fechamento só soma
+ * isto ao que foi lançado à mão.
+ *
+ * O critério é o `lanc`, não a existência de `pgto`: uma parcela pode ter data de
+ * pagamento preenchida e ainda estar `A RECEBER` (agendamento), e é o lançamento
+ * que diz se o valor entrou.
+ */
+export function somaRecebida(parcelas: Pick<Parcela, 'valor' | 'lanc'>[]): number {
+  return somaDasParcelas(parcelas.filter((p) => p.lanc === RECEBIDA));
+}
+
 /**
  * Diferença entre o total da venda e a soma das parcelas.
  *

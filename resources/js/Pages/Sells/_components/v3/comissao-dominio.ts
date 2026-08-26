@@ -70,6 +70,53 @@ export type Beneficiario = {
 export type TotaisDaVenda = { bruto: number; liquido: number; margem: number };
 
 /**
+ * Fator de custo da CENA — não é custo real, e isso importa.
+ *
+ * O preview não recebe custo do servidor (o controller serve preço de tabela e mais
+ * nada), então a margem precisa de um proxy. O protótipo usa `preço de tabela × 0,58`
+ * e é o que replicamos. Quando a tela ganhar dado real, o proxy sai e entra o custo do
+ * cadastro — este é o único lugar a mexer.
+ */
+export const FATOR_CUSTO_DE_CENA = 0.58;
+
+/**
+ * Custo estimado dos itens, sobre o preço de TABELA (não o praticado).
+ *
+ * A escolha da base é o ponto todo: custo não muda quando o vendedor dá desconto. Se
+ * o custo caísse junto com o preço, a margem ficaria constante e a tela nunca mostraria
+ * o que ela existe pra mostrar — que desconto sai do lucro, não do bolso do cliente.
+ */
+export function custoEstimado(
+  itens: { sku: string; qtd: string }[],
+  catalogo: { sku: string; preco: number }[],
+): number {
+  const tabela = new Map(catalogo.map((p) => [p.sku, p.preco]));
+  return submitSafe(
+    itens.reduce((s, l) => {
+      const preco = tabela.get(l.sku);
+      return preco === undefined ? s : s + submitSafe(parseBR(l.qtd) * preco * FATOR_CUSTO_DE_CENA);
+    }, 0),
+  );
+}
+
+/**
+ * Os três valores-base da comissão.
+ *
+ * ⚠️ A margem é `líquido − custo`, e **não** uma fração fixa do líquido. A tela nasceu
+ * com `líquido × 0,3`, que é constante por construção: dar 20% de desconto deixava a
+ * margem em 30% do que sobrou, então o alerta "a comissão come mais da metade da
+ * margem" (`comeMaisQueMetadeDaMargem`) nunca reagia ao desconto — justamente o caso
+ * que ele existe pra pegar. Com custo sobre tabela, descontar encolhe a margem e o
+ * alerta acende, que é o comportamento da âncora de design.
+ *
+ * Piso em zero: venda abaixo do custo não gera margem negativa como base de comissão —
+ * comissão sobre margem negativa não é dívida do vendedor, é zero.
+ */
+export function totaisDaVenda(bruto: number, liquido: number, custo: number): TotaisDaVenda {
+  return { bruto, liquido, margem: Math.max(0, submitSafe(liquido - custo)) };
+}
+
+/**
  * Faixa aplicável ao valor-base.
  *
  * ⚠️ É faixa por **valor total**, não progressiva por fatia: quem cai na faixa de 4%
