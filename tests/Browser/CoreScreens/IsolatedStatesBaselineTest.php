@@ -74,7 +74,7 @@ afterEach(fn () => \Carbon\Carbon::setTestNow());
  * Le o manifesto (FONTE UNICA) e expande em pares (tela, estado). Tela => [slug, rota, ancora,
  * estado]. Falha cedo e barulhento se o JSON sumir/corromper (gate vacuo = bug silencioso).
  *
- * @return array<string, array{0:string,1:string,2:string,3:string}>
+ * @return array<string, array{0:string,1:string,2:string,3:string,4:string}>
  */
 function isolatedStatesCases(): array
 {
@@ -94,17 +94,23 @@ function isolatedStatesCases(): array
     foreach ($manifest['screens'] as $slug => $screen) {
         $rota = (string) ($screen['route'] ?? '');
         $ancora = (string) ($screen['anchor'] ?? '');
+        // `source` = a CHAVE do raio (namespace da Page), o mesmo vocabulario que o
+        // classificador emite em `screens`. O slug daqui e kebab (`financeiro-unificado`)
+        // e NAO casa o raio — sem este campo o item cai no ramo conservador do
+        // particionaGrayZone e divida herdada da main reprova quem nao a causou.
+        // Quem prova que o declarado bate com o derivado: scripts/visreg-states-lint.mjs.
+        $source = (string) ($screen['source'] ?? '');
         foreach ((array) ($screen['states'] ?? []) as $estado) {
             $label = "{$slug} · estado={$estado}";
-            $cases[$label] = [(string) $slug, $rota, $ancora, (string) $estado];
+            $cases[$label] = [(string) $slug, $rota, $ancora, (string) $estado, $source];
         }
     }
 
     return $cases;
 }
 
-foreach (isolatedStatesCases() as $label => [$slug, $rota, $ancora, $estado]) {
-    it("{$label} bate com a baseline isolada", function () use ($slug, $ancora, $estado, $grayZone) {
+foreach (isolatedStatesCases() as $label => [$slug, $rota, $ancora, $estado, $source]) {
+    it("{$label} bate com a baseline isolada", function () use ($slug, $ancora, $estado, $grayZone, $source) {
         // Tenant exigido pelo estado: empty usa o biz=98 (VisregEmptyTenantSeeder); os demais
         // usam o biz=1 (VisregTenantSeeder). Sem o seed → skip (nao falha), igual AuthBridge.
         $businessId = $estado === 'empty' ? VisregEmptyTenantSeeder::BIZ_EMPTY : 1;
@@ -158,6 +164,7 @@ foreach (isolatedStatesCases() as $label => [$slug, $rota, $ancora, $estado]) {
             screenName: "{$slug} · estado={$estado}",
             grayZone: $grayZone,
             baselineSuite: 'IsolatedStatesBaselineTest',
+            screenSource: $source !== '' ? $source : null,
         );
     });
 }
