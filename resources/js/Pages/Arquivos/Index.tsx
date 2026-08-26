@@ -210,10 +210,17 @@ const VIS_PT: Record<string, string> = {
 /**
  * Rótulo PT-BR do contexto de retenção (`sub_destination`).
  *
- * Mesmo tratamento de bucket, visibilidade e disco: negócio na tela, técnico no `title`/sub-linha
- * — a regra `ds/no-db-jargon-in-ui` proíbe jargão de banco em texto visível. As chaves são as do
- * `entities` de `Modules/Arquivos/Config/retention.php`, que é o dono do vocabulário: contexto
- * novo cadastrado lá aparece com o valor cru, nunca some.
+ * A lei aqui é o **charter** (L88 — "PT-BR em todo label/placeholder/mensagem") e o protótipo,
+ * que desenha rótulo + `sub` em mono na sub-linha. Mesmo tratamento de bucket, visibilidade e
+ * disco: negócio na tela, técnico ao lado.
+ *
+ * ⚠️ **NÃO conte com a `ds/no-db-jargon-in-ui` pra defender isto.** Medido em 2026-08-26: o
+ * seletor dela casa `JSXText` LITERAL e exclui `<code>`/`<pre>`/`<kbd>` por opção declarada — e
+ * o valor aqui é data-driven dentro de `<code>`. Ela não pegava o jargão cru que existia antes
+ * desta linha e não vai pegar a regressão. A defesa deste rótulo é humana, não mecânica.
+ *
+ * As chaves são as do `entities` de `Modules/Arquivos/Config/retention.php`, que é o dono do
+ * vocabulário: contexto novo cadastrado lá aparece com o valor cru, nunca some.
  */
 const CONTEXTO_PT: Record<string, string> = {
   'nfe-xml': 'XML de NF-e',
