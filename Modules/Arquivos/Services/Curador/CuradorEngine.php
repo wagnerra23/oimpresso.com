@@ -2,6 +2,7 @@
 
 namespace Modules\Arquivos\Services\Curador;
 
+use App\Util\OtelHelper;
 use Modules\Arquivos\Entities\Arquivo;
 
 /**
@@ -72,6 +73,29 @@ class CuradorEngine
      * Espelha estrutura do classifyFile() em rules.mjs.
      */
     public function classify(Arquivo $arquivo): array
+    {
+        // D9.a OTel: o span mede a VARREDURA DAS REGRAS, não o método. O custo é linear
+        // no tamanho do conjunto (scan com early-return) e esse conjunto cresce a cada
+        // porte de `rules.mjs` — é essa curva que o trace vigia, não o estado de hoje.
+        // Entra como filho de `arquivos.attach` (separa classificação de disco/DB) e de
+        // `arquivos.classify`. Zero-cost no callback quando otel.enabled=false.
+        //
+        // Atributos: nem original_name nem storage_path entram. E justamente o material
+        // que este engine classifica como PII (regra 3, XML de cliente), e o filtro do
+        // OtelHelper e por NOME de chave — logo nao os pegaria.
+        return OtelHelper::spanBiz('arquivos.curador.classify', function () use ($arquivo) {
+            return $this->classifyInternal($arquivo);
+        }, [
+            'module'     => 'Arquivos',
+            'arquivo_id' => $arquivo->id,
+        ]);
+    }
+
+    /**
+     * Varredura propriamente dita — extraída pra ser envelopada por `OtelHelper::spanBiz`
+     * (D9.a), mesmo padrão de `ArquivosService::attachInternal`.
+     */
+    private function classifyInternal(Arquivo $arquivo): array
     {
         $basename = $arquivo->original_name;
         $lower    = strtolower($basename);
