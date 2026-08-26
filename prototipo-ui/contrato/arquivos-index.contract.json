@@ -51,7 +51,7 @@
       "copy": [
         "Vence em 30 dias",
         "Vence em 90 dias",
-        "No grace period",
+        "Na janela de restauro",
         "Passou do prazo",
         "e não foi deletado"
       ]
@@ -68,7 +68,7 @@
     {
       "id": "retencao-regras",
       "copy": [
-        "Grace period",
+        "Janela de restauro",
         "Aviso ao titular",
         "Estratégia",
         "Escopo do job"
@@ -80,7 +80,7 @@
         "Cofre (cifrado)",
         "AES-256 via Crypt::encryptString",
         "Disco comum",
-        "servido por Storage::url"
+        "servido direto pelo navegador"
       ]
     },
     {
@@ -129,6 +129,7 @@
     "CHIPS DE BUCKET — CORRIGIDO em 2026-08-26. A redação anterior dizia que eles ficavam fora da copy \"de propósito\" porque eram \"chaves de DOMÍNIO renderizadas como valor\", e que \"se virarem rótulo traduzido em PT-BR, aí sim entram\". Estava vencida contra ESTE próprio contrato: eles JÁ viraram rótulo (`BUCKET_PT`) e a seção \"acervo-filtros\" JÁ pina os quatro (Sensível · Em uso · Histórico · Descartar). O critério que de fato separa o que pode ser pinado NÃO é \"valor de domínio × copy de design\" — é se a lista é FECHADA NO FONTE ou vem do SERVIDOR. Os 4 buckets saem de `const BUCKETS` (lista fixa no .tsx): renderizam sempre, então pinar é honesto. Os rótulos de AÇÃO da trilha (`ACAO_PT`) e de CONTEXTO da retenção (`CONTEXTO_PT`), traduzidos em 2026-08-26, ficam FORA por outro motivo, e esse é mecânico: as listas são data-driven (`GROUP BY action` do log; `entities` de `Config/retention.php`), então a copy pode estar no fonte — dentro do mapa — sem NENHUM chip renderizar. Pinar seria falso-verde por construção: a mesma família do \"Payload\" casando dentro de `TrilhaPayload` que o `_nota_limite` acima já catalogou.",
     "ORDEM das secoes do COFRE fora da lista — MEDIDO em 2026-08-25: o gate verifica a ordem por APARICAO NO ARQUIVO, e as ancoras \"cofre-discos\" e \"cofre-achados\" vivem no componente \"Cofre\", que e DECLARADO acima do \"Index\". No fonte elas aparecem primeiro; no render, no meio. Pinar a ordem delas reprovaria por construcao, e afrouxar o gate pra acomodar seria pior. A COPY delas segue pinada — so a ORDEM fica de fora.",
     "COPY LONGA em JSX quebra em varias linhas (prettier), e o gate casa substring CONTIGUA. Por isso \"cofre-achados\" pina fragmentos (\"do cap de\", \"Sprint 2 (ADR 0126)\") em vez da frase inteira: pinar a frase completa deixaria o contrato refem da largura de linha do formatador. Tambem por isso \"do cap de\" e nao \"acima do cap de\" — ha interpolacao no meio.",
-    "ORDEM das secoes de RETENCAO tambem fora da lista, pelo mesmo motivo das do cofre: o componente \"Retencao\" e declarado acima do \"Index\", entao no ARQUIVO as ancoras dele aparecem antes. A COPY segue pinada."
+    "ORDEM das secoes de RETENCAO tambem fora da lista, pelo mesmo motivo das do cofre: o componente \"Retencao\" e declarado acima do \"Index\", entao no ARQUIVO as ancoras dele aparecem antes. A COPY segue pinada.",
+    "COPY EM INGLES — corrigida na TELA em 2026-08-26, e a DIVERGENCIA com o protototipo e deliberada. O `arquivos-page.jsx` (ancora) desenha os dois rotulos em ingles e imprime a estrategia crua; a tela agora usa PT-BR porque o charter (L88, \"PT-BR em todo label\") ganha do protototipo pela regra de precedencia. O conserto DURAVEL e na fonte, no Cowork vivo — enquanto ele nao vier, este contrato pina a copy da TELA, nao a do protototipo. Ver o corpo do PR dos 10 refinos."
   ]
 }
