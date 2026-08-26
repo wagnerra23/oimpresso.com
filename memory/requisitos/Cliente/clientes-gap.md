@@ -7,6 +7,21 @@ id: requisitos-cliente-clientes-gap
 > Gerado 2026-06-30. Mapeamento de gap entre a **tela viva** e **dois mockups** do bundle Cowork importado pra staging.
 > NÃO é aplicação — é diagnóstico barato (read-only) pra decidir o que adotar / o que está stale.
 
+
+> ## ⚠️ 2026-08-26 — este diagnóstico mediu por uma rota HOJE PROIBIDA
+>
+> Os "Mockup A/B" abaixo foram lidos de `_cowork-handoff-staging/` — caminho que o
+> `memory/proibicoes.md` §5 (2026-08-13) **bane nominalmente** como fonte de design. O veredito
+> `MOCKUP-STALE` / *"a tela viva supera o mockup em todas as partes estruturais"* é, portanto,
+> **registro datado de 2026-06-30 medido por rota inválida** — não é base para decidir hoje.
+>
+> Some-se: o espelho canônico (`prototipo-ui/cowork/`) recebeu em **2026-08-13** (#5743) um
+> `clientes-page.jsx` que **dobrou de tamanho** (`+1075/−133`), mais 8 arquivos de Cliente
+> inéditos. Qualquer comparação anterior a essa data comparou com menos da metade da fonte.
+>
+> **Dono vigente:** `memory/requisitos/Cliente/PARIDADE-area-cliente-diagnostico-e-ondas.md`
+> (2026-08-18) — itens a adotar nomeados, Ondas 3/5/6 abertas, e frescor visual `⚠️ NÃO MEDIDO`.
+
 ## Arquivos comparados
 
 | Papel | Caminho | Linhas |
