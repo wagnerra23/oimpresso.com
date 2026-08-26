@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-08-10"
+last_run: "2026-08-25"
 ---
 
 # Casos de Uso & Aceite — Lista de vendas
@@ -21,6 +21,13 @@ last_run: "2026-08-10"
 > prop alterada; nenhum UC desta tela foi reexecutado nem revalidado. O bump é o que o campo
 > significa na prática (*trio reconciliado com a tela nesta data*), não afirmação de re-run.
 
+> ℹ️ **`last_run` 2026-08-10 → 2026-08-25 (G-6), e o que mudou na tela NÃO foi comportamento.**
+> O único toque em `Index.tsx e os dois componentes de impressao` foi **comentário de ponteiro de design**: a linha citava um
+> caminho de protótipo que não existe mais no repo, e passou a citar o vivo (ou a declarar a
+> ausência com data). Zero JSX, zero handler, zero prop, zero copy alterada — `git diff --numstat`
+> do PR não tem uma linha sequer fora de comentário. **Nenhum UC desta tela foi reexecutado nem
+> revalidado**; o bump é o que o campo significa na prática (*trio reconciliado com a tela nesta
+> data*), não afirmação de re-run.
 ---
 
 ## UC-S10 · Abrir a lista e enxergar a cobrança num relance
