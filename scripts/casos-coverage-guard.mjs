@@ -318,17 +318,26 @@ function metadataViolations(casosFiles) {
 //
 // Degrada gracioso: sem git / histórico raso (shallow clone) / data ausente → PULA (zero
 // falso-positivo). O CI roda com fetch-depth: 0 pro sinal funcionar (casos-gate.yml).
-function gitCommitDate(relTsx) {
+// UMA chamada devolve sha + data. Eram DUAS por tela (uma pro .tsx, outra pro .casos.md),
+// e isto e gate always-run: medido 28,6s -> 39,3s (+37%) na versao de duas chamadas.
+function gitCommitInfo(rel) {
   try {
-    const out = execSync(`git log -1 --format=%cs -- "${relTsx}"`, {
+    const out = execSync(`git log -1 --format="%H %cs" -- "${rel}"`, {
       cwd: ROOT,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
     }).trim();
-    return /^\d{4}-\d{2}-\d{2}$/.test(out) ? out : null;
+    const [sha, date] = out.split(/\s+/);
+    return /^\d{4}-\d{2}-\d{2}$/.test(date || '') ? { sha, date } : null;
   } catch {
     return null;
   }
+}
+
+/** Compat: G-7 (statusViolations) so precisa da data. */
+function gitCommitDate(rel) {
+  const i = gitCommitInfo(rel);
+  return i ? i.date : null;
 }
 
 function isShallowRepo() {
@@ -354,11 +363,37 @@ function stalenessViolations(casosFiles) {
     const tsx = file.replace(/\.casos\.md$/, '.tsx');
     if (!existsSync(resolve(ROOT, tsx))) continue; // trio incompleto → G-1 pega.
 
-    const tsxDate = gitCommitDate(tsx);
-    if (!tsxDate) continue; // sem sinal git (shallow/sem histórico) → pula gracioso.
+    const tsxInfo = gitCommitInfo(tsx);
+    if (!tsxInfo) continue; // sem sinal git (shallow/sem histórico) → pula gracioso.
+
+    // ISENÇÃO ESTREITA — só quando o ÚLTIMO commit do .tsx É o ÚLTIMO commit do .casos.md.
+    //
+    // POR QUE EXISTE: o `last_run` é declarado à mão e o squash-merge REESCREVE a data do
+    // commit. Um PR que revalidou os casos no MESMO commit vira STALE no instante em que entra
+    // no main, porque o `%cs` do .tsx passa a ser a hora do merge. Medido 2026-08-26: #6008,
+    // #6269 e #6283 tiveram `Casos-coverage · ratchet` = pass no PR e o main foi a failure em
+    // 6 runs seguidas (10:58→12:30); nos três, .tsx e .casos.md no MESMO sha. O #6008 é
+    // falso-positivo puro: o autor bumpou o last_run de 08-19 pra 08-20 e o squash pôs o .tsx
+    // em 08-26. O `%as` (data do autor) não salva — o squash reescreve os dois.
+    //
+    // POR QUE COMPARAR SHA E NÃO DATA: a variante por data (`revalidado = max(last_run,
+    // data-git-do-casos)`) foi implementada, medida e REPROVADA por adversariedade em
+    // 2026-08-26 — ela é satisfazível a custo zero: um commit contendo UMA LINHA EM BRANCO
+    // no .casos.md apagava um staleness REAL (medido: antes do truque acusa 1, depois 0), e o
+    // mesmo valia pra correção de typo. Num eixo cujo modo de falha é SILENCIOSO (falso-
+    // negativo), largura satisfazível de graça é a família das lápides §5 2026-08-04
+    // (isentar a população que a máquina sempre produz) e 2026-08-10 (universo vindo do lado
+    // mutável). O mesmo-sha não tem essa fuga: pra silenciar seria preciso reescrever o
+    // commit do .tsx, que é exatamente o ato que o gate quer vigiar.
+    //
+    // MONOTONIA: `gitCommitInfo` só devolve data válida ou null, e a isenção apenas PULA —
+    // nunca acusa. Logo NEW ⊆ OLD por construção. Medido no corpus (118 casos.md, 117
+    // elegíveis): regra antiga acusa 2, esta acusa 0, zero acusação nova.
+    const casosInfo = gitCommitInfo(file);
+    if (casosInfo && casosInfo.sha === tsxInfo.sha) continue;
 
     // Datas YYYY-MM-DD: comparação lexicográfica = cronológica.
-    if (tsxDate > lastRun) violations.push(`stale:${file}`);
+    if (tsxInfo.date > lastRun) violations.push(`stale:${file}`);
   }
   return violations;
 }
@@ -405,6 +440,15 @@ function statusViolations(casosFiles, manifest) {
   for (const file of casosFiles) {
     const content = readFileSync(resolve(ROOT, file), 'utf8');
     const tsx = file.replace(/\.casos\.md$/, '.tsx');
+    // RESÍDUO DECLARADO (2026-08-26) — aqui o `tsxDate` é a data CRUA do commit, e ela sofre
+    // do MESMO artefato de squash-merge que o G-6 acima corrigiu: o merge reescreve o `%cs`
+    // do .tsx pra hora do merge, então um `ran_at` legítimo pode ficar "anterior à tela" sem
+    // que a tela tenha mudado depois do teste. Hoje é LATENTE (`status_stale: 0` no corpus)
+    // e por isso NÃO foi consertado junto — o conserto do G-6 é por SHA e não transpõe
+    // direto pra cá (lá se compara .tsx com .casos.md; aqui com um timestamp de execução de
+    // teste, que não tem commit). Vai acender no primeiro ✅ com `verdict=pass` cujo PR
+    // atravesse a virada do dia. Quando acender, o desenho tem que sair de "data do commit"
+    // pra um sinal que o merge não reescreve.
     const tsxDate = (!shallow && existsSync(resolve(ROOT, tsx))) ? gitCommitDate(tsx) : null;
     for (const { uc, block } of ucBlocksInCasos(content)) {
       if (declaredStatus(block) !== 'green') continue; // só ✅ precisa de prova
@@ -591,6 +635,15 @@ if (process.argv.includes('--selftest-diff-aware')) {
   console.log(`[casos-guard --selftest-diff-aware] ${CASOS.length - bad}/${CASOS.length} ok${bad ? ` · ${bad} FALHA(S)` : ''}`);
   process.exit(bad ? 1 : 0);
 }
+
+// NOTA — o bite-test do G-6 vive no DONO, não aqui.
+// Em 2026-08-26 eu (agente) escrevi um `--selftest-frescor` neste arquivo antes de procurar
+// dono. Já existia: `tests/casosGuard.spec.ts` → describe('casos:check — G-6 frescor via git
+// (físico)'), com a MESMA técnica (CLI real + sandbox git). Um 3º dono duplicaria régua
+// consolidada (§5 2026-07-09), e o agravante seria pior: o dono novo, escrito para o
+// comportamento novo, passava 3/3 exatamente enquanto o dono antigo quebrava. Os casos foram
+// PARA LÁ (SENSIBILIDADE consertada + CO-EDICAO + ANTI-FUGA). O `--selftest-diff-aware`
+// abaixo fica — esse não tem dono nenhum (zero invocadores até 2026-08-26) e é medidor puro.
 
 function main() {
   // Modo só-desce compara baseline ATUAL (commitado no PR) vs baseline de REFERÊNCIA
