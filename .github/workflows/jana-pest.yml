@@ -329,16 +329,23 @@ jobs:
           #   que o traceEvent mescla CRU). Bite-test dos dois lados, no CT 100:
           #   redacao neutralizada -> VERMELHO; PII em metadata -> VERMELHO.
           #
-          # DOS TRES testes do Chat que estavam orfaos em 2026-08-17, sobra UM:
-          # Chat/ChatAntiHooksTier0Test (UC-05..UC-08) segue fora de lane nenhuma —
-          # dono e o PR #6310, cujo UC-08 continua vermelho por decisao [W]. O
-          # Chat/ChatTokensTurnoTest ENTROU pelo #6312 na mesma tarde, junto com
-          # outros 59 orfaos da Jana; esta linha foi corrigida no rebase, porque a
-          # redacao anterior dela dizia que ele estava fora e isso durou ~1h
-          # (artefato nao afirma estado que outro sistema sabe melhor — LC-10).
-          # Enquanto o Tier0Test estiver fora, o `🧪` dos UC-05..08 no Chat.casos.md
-          # nao pode virar ✅ — a lane lista ARQUIVO, e registrar o teste no repo
-          # nao e a lane executa-lo (§5 2026-08-02 + emenda 08-12).
+          # Os OUTROS DOIS testes do Chat que estavam orfaos em 2026-08-17 nao sao
+          # escopo deste PR, e cada um tem dono. Fato DATADO, nao estado presente —
+          # esta linha ja nasceu falsa uma vez hoje (dizia que o ChatTokensTurnoTest
+          # estava fora, e o #6312 o ligou ~1h depois), entao aqui vai o que era
+          # verdade em 2026-08-26 e QUEM muda isso, nunca uma afirmacao atemporal
+          # (LC-10 — artefato nao afirma estado que outro sistema sabe melhor; o dono
+          # da lista e a propria lista logo acima):
+          #   - Chat/ChatTokensTurnoTest — ENTROU pelo #6312, junto com 59 orfaos.
+          #   - Chat/ChatAntiHooksTier0Test (UC-05..UC-08) — o #6310 consertou o bind
+          #     do TestCase; o #6321 (ABERTO quando este PR subiu) estreita a sonda do
+          #     UC-08 e o liga nesta mesma lista. Se o #6321 mergear antes, este bloco
+          #     conflita de proposito: os dois PRs editam a mesma regiao de comentario,
+          #     e reconciliar e do segundo a mergear — some esta linha, o Tier0Test ja
+          #     estara na allowlist acima, que e o oraculo.
+          # Enquanto um teste estiver FORA da lista, o `🧪` dos UCs dele no
+          # Chat.casos.md nao pode virar ✅ — a lane lista ARQUIVO, e registrar o
+          # teste no repo nao e a lane executa-lo (§5 2026-08-02 + emenda 08-12).
           #
           # PainelContratoTest ENTROU em 2026-08-17. Ele nasceu no PR #5862 (UC-08) e
           # ficou 1 dia FORA desta lista — logo os nove UCs do Painel nunca rodaram no
