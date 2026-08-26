@@ -23,6 +23,14 @@ last_run: "2026-08-26"
 > do PR não tem uma linha sequer fora de comentário. **Nenhum UC desta tela foi reexecutado nem
 > revalidado**; o bump é o que o campo significa na prática (*trio reconciliado com a tela nesta
 > data*), não afirmação de re-run.
+
+> ℹ️ **`last_run` 2026-08-25 → 2026-08-26 (G-6) — e este É re-run, ao contrário do de cima.**
+> A nota anterior descreve o bump de 08-25 e segue valendo pra ele; esta descreve outro caso, pra
+> ninguém herdar dali a leitura de que bump aqui é sempre cosmético. O que mudou na tela desta vez
+> foi **comportamento**: o grid passou a renderizar a preferência de colunas (UC-V367/V368). A
+> lista exata da lane [`sells-v3-dominio-gate.yml`](../../../../.github/workflows/sells-v3-dominio-gate.yml)
+> — 7 arquivos, 104 testes — rodou verde nesta base, incluindo os 8 de `colunas-grid.test.tsx`.
+> Os UCs seguem **🧪** e não ✅: o veredito é do manifesto do G-7, não do run.
 ---
 
 ## Como esta lista cresce
