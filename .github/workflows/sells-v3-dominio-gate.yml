@@ -59,6 +59,11 @@ on:
     paths:
       - 'resources/js/Pages/Sells/_components/v3/*-dominio.ts'
       - 'tests/js/*-dominio.test.ts'
+      # o grid consome o domínio de colunas, então a prova dele é de RENDER, não de
+      # domínio — e o arquivo SOB TESTE entra no gatilho junto: sem a Page aqui,
+      # mexer no grid não acorda a lane que o defende (gate mudo com cara de cobertura).
+      - 'tests/js/colunas-grid.test.tsx'
+      - 'resources/js/Pages/Sells/CreateV3.tsx'
       - 'tests/js/setup.ts'
       - '.github/workflows/sells-v3-dominio-gate.yml'
   push:
@@ -66,6 +71,11 @@ on:
     paths:
       - 'resources/js/Pages/Sells/_components/v3/*-dominio.ts'
       - 'tests/js/*-dominio.test.ts'
+      # o grid consome o domínio de colunas, então a prova dele é de RENDER, não de
+      # domínio — e o arquivo SOB TESTE entra no gatilho junto: sem a Page aqui,
+      # mexer no grid não acorda a lane que o defende (gate mudo com cara de cobertura).
+      - 'tests/js/colunas-grid.test.tsx'
+      - 'resources/js/Pages/Sells/CreateV3.tsx'
       - 'tests/js/setup.ts'
       # o workflow entra no gatilho de push (as lanes irmãs omitem) porque é o run de
       # `main` que o publisher colhe: mexer na lane sem re-rodar deixaria o artifact
@@ -105,6 +115,12 @@ jobs:
       # acendia esta lane quando ele mudava, e os outros 5 é que passavam por ele. Contador
       # da lane ao incluí-lo: 5 arquivos/93 testes → 6/96 (+3, os mesmos 3 que o
       # `Sells/CreateV3.casos.md` cita no UC de ações-do-item).
+      # REINCIDIU pela 3ª vez em `colunas-grid.test.tsx` (2026-08-26): nasceu com 8 testes
+      # de RENDER — a prova de que a preferência de colunas chega no grid, UC-V367/V368 —
+      # e a lane não o listava nem acordava por ele. Contador ao incluí-lo: 6 arquivos/96
+      # testes → 7/104 (+8). É `.tsx` de propósito: teste de domínio verde não prova que a
+      # tela CONSOME o domínio, e foi exatamente esse vão que deixou o grid ignorar a
+      # preferência por 15 dias com os 21 testes de `colunas-dominio` verdes.
       - name: domínio do preview de venda (vitest/jsdom)
         run: |
           npx vitest run \
@@ -114,6 +130,7 @@ jobs:
             tests/js/colunas-dominio.test.ts \
             tests/js/cliente-consulta-dominio.test.ts \
             tests/js/item-acoes-dominio.test.ts \
+            tests/js/colunas-grid.test.tsx \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-sells-v3-dominio-junit.xml
