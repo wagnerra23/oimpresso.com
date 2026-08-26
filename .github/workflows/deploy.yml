@@ -423,7 +423,27 @@ jobs:
           SECRET=$(openssl rand -hex 16)
           echo "::add-mask::$SECRET"
           echo "DEPLOY_BYPASS_SECRET=$SECRET" >> "$GITHUB_ENV"
-          /tmp/ssh_exec.sh "cd $RDIR && php artisan down --secret='$SECRET' --retry=60 --refresh=60 || true"
+          # --render='errors::503' (novo): o HTML da manutenção é pré-renderizado AGORA e
+          # guardado em storage/framework/maintenance.php. SEM isso, o stub desiste
+          # (`if (! isset($data['template'])) { return; }`) e o Laravel precisa BOOTAR
+          # inteiro a cada request só pra descobrir que está em manutenção — justamente
+          # durante o composer install/dump-autoload, quando esse boot está instável.
+          # É o que transforma 503 gracioso em 500 (incidentes 2026-06-18 e 06-23).
+          # Página: resources/views/errors/503.blade.php (HTML puro, sem diretiva Blade).
+          #
+          # Fallback explícito sem --render: se a view não renderizar por qualquer motivo
+          # (ex: primeiro deploy após este PR, quando o arquivo ainda não está no servidor
+          # e cai na view do framework), cai no comportamento anterior. Sem esse fallback o
+          # `|| true` final mascararia a falha do `down` e o composer install rodaria com o
+          # site NO AR — pior que a janela que este PR está encurtando.
+          #
+          # --refresh=15 (era 60): a janela tem mediana MEDIDA de 78s (76 janelas em 7 dias,
+          # p90 89s, máx 101s). Com 60 o navegador recarrega aos 60s, ainda em manutenção, e
+          # só tenta de novo aos 120s — o operador esperava ~120s numa queda de 78s. O 15 é
+          # só a rede de segurança pra quem está sem JS; a sonda da própria página tenta a
+          # cada ~4s e recarrega assim que o servidor deixa de responder 503.
+          DOWN="php artisan down --secret='$SECRET' --retry=60 --refresh=15"
+          /tmp/ssh_exec.sh "cd $RDIR && ( $DOWN --render='errors::503' || $DOWN ) || true"
 
       - name: Git pull — branch main (apenas código-fonte; bundles vêm do runner)
         run: |

@@ -226,22 +226,71 @@ export function liveOnlyDetalhado(livePaths, manifest, { exts = null } = {}) {
 /** Plano de export a partir dos JSONs que o agente salvou do DesignSync.get_file.
  *  Puro: recebe [{path, content}] e devolve [{relPath, content, bytes}].
  *  `path` é o path NO VIVO; o espelho grava em prototipo-ui/cowork/<path>. */
+/**
+ * Artefato de CANON DE TELA — charter, casos e contrato visual.
+ *
+ * Estes três não são knowledge de design: são a LEI da tela, e o canon deles nasce em
+ * `resources/js/Pages/<Mod>/` via `criar-tela.mjs`, reconciliado contra SPEC/ADR. O
+ * `PROTOCOL 10.4` já dizia isso em prosa — *"NÃO traga rascunho de charter/casos/contract:
+ * não trazer rascunho pro canon"* — e a máquina não obedecia.
+ *
+ * O que a desobediência produziu (medido 2026-08-26): o roteamento por extensão mandava
+ * TODO `.md` pra `design-docs/`, preservando o path de origem. Charter e casos vindos do
+ * vivo pousavam em `prototipo-ui/design-docs/resources/js/Pages/**` — **30 arquivos**, dos
+ * quais 13 sem gêmeo no canon. E nenhuma das 4 máquinas de charter os enxergava:
+ * `casos-coverage-guard`, `screen-coverage-map`, `ancora-guard` e `page-path` enumeram por
+ * `raizesDePages()`, que é `<root>/resources/js/Pages` mais `<root>/Modules/<Mod>/Resources/js/Pages`
+ * — e o prefixo `prototipo-ui/design-docs/` não casa nenhum dos dois.
+ *
+ * Resultado: um canon-sombra. A lei de 5 telas do Ponto e de Relatórios vivia numa árvore
+ * fora de todo gate, com `related_prototype` apontando pra path inexistente — justamente o
+ * que a R2 do `ancora-guard` existe pra pegar, e não pegava porque não a via.
+ *
+ * Não foi decisão de ninguém: foi mecânica. Uma regra de higiene (`.md` não polui o espelho)
+ * gerou um destino, e o destino engoliu artefato que não era dele.
+ */
+const RE_CANON_DE_TELA = /\.(charter\.md|casos\.md|contract\.json)$/i;
+
 export function exportPlan(arquivosVivos, { prefixo = 'prototipo-ui/cowork/', prefixoDocs = null } = {}) {
-  return arquivosVivos.map(({ path: p, content, binary = false }) => {
+  const recusados = [];
+  const plano = [];
+
+  for (const { path: p, content, binary = false } of arquivosVivos) {
     if (typeof content !== 'string' && !Buffer.isBuffer(content)) {
       throw new Error(`export: conteúdo ausente para "${p}" — o JSON do get_file precisa ter .content`);
     }
+
+    // RECUSA, não roteamento. Pousar em outro lugar seria trocar um destino errado por
+    // outro: o problema não é ONDE o charter cai, é que ele não desce por esta porta.
+    if (RE_CANON_DE_TELA.test(p)) {
+      recusados.push(p);
+      continue;
+    }
+
     // `.md` NUNCA pode cair no espelho (R1 do cowork-ssot-guard: cowork/ é build-only).
     // Roteia por EXTENSÃO, não por flag, porque a regra é do arquivo — quem chama não
     // deveria poder errar isso. Sem `prefixoDocs` o comportamento antigo é preservado.
     const ehDoc = prefixoDocs && p.toLowerCase().endsWith('.md');
-    return {
+    plano.push({
       relPath: (ehDoc ? prefixoDocs : prefixo) + p,
       content,
       binary: binary || Buffer.isBuffer(content),
       bytes: Buffer.isBuffer(content) ? content.length : Buffer.byteLength(content, 'utf8'),
-    };
-  });
+    });
+  }
+
+  // Recusar em silêncio seria trocar o canon-sombra por perda silenciosa. Quem exportou
+  // precisa saber o que NÃO desceu e por onde aquilo entra.
+  if (recusados.length) {
+    console.log(`\n  ⛔ ${recusados.length} artefato(s) de CANON DE TELA recusado(s) — não descem por esta porta (PROTOCOL 10.4):`);
+    for (const r of recusados) console.log(`     · ${r}`);
+    console.log('     O canon nasce em resources/js/Pages/<Mod>/ via criar-tela.mjs, reconciliado');
+    console.log('     contra SPEC/ADR. Rascunho vindo do design entra como PEDIDO em cowork-inbox/,');
+    console.log('     não como charter. Ver o canon-sombra de 30 arquivos que isto passou a impedir.');
+  }
+
+  plano.recusados = recusados;
+  return plano;
 }
 
 /** Decodifica UMA resposta persistida do DesignSync.get_file sem permitir que o
