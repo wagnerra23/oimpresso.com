@@ -164,9 +164,6 @@ const METODOS_RAPIDOS = ['Dinheiro', 'PIX', 'Cartão de crédito', 'Boleto'];
  */
 const SOMBRA_COLUNA_FIXA = '-4px 0 6px -4px color-mix(in oklch, var(--color-foreground) 18%, transparent)';
 
-/** Largura da coluna de Ações — entra na largura mínima da tabela para não ser comida. */
-const LARGURA_ACOES = 152;
-
 /**
  * Colunas cujo conteúdo é número: alinham à direita e recebem `tabular-nums`.
  * É apresentação, não domínio — por isso mora aqui e não em `colunas-dominio.ts`.
@@ -240,11 +237,14 @@ export default function SellsCreateV3({ cena }: Props) {
      Map em vez de `.find()` por linha: com 30 colunas ligadas e a lista cheia, o
      find aninhado vira O(itens × colunas × catálogo). */
   const porSku = useMemo(() => new Map(catalogo.map((p) => [p.sku, p])), [catalogo]);
-  /* A tabela cresce com o que foi escolhido — largura fixa cortaria as colunas do fim. */
-  const larguraMinima = useMemo(
-    () => Math.max(560, visiveis.reduce((s, c) => s + (c.largura ?? 110), 0) + LARGURA_ACOES),
-    [visiveis],
-  );
+  /* `definicaoDe().largura` existe no domínio e NÃO é consumida aqui, de propósito.
+     Consumi-la (width no <th> + minWidth derivado na tabela) mudou a GEOMETRIA da
+     página: medido no artifact `pixel-diff-views`, o conteúdo inteiro — faixa de
+     preview, título, cartão do cliente, grid e coluna de fechamento — ficou 93px mais
+     estreito e recentrado (+47px à esquerda, −46px à direita, uniforme em todas as
+     faixas), e o gate visual reprovou com 2,64% > τ_alto 2,00%. Redimensionar coluna
+     não é o que este passo entrega: a intenção é a preferência CHEGAR no grid. O
+     dimensionamento segue automático, como sempre foi. */
   const [estagio, setEstagio] = useState('rascunho');
   const [historico, setHistorico] = useState<{ acao: string; de: string; para: string }[]>([]);
   const [situacaoAberta, setSituacaoAberta] = useState(false);
@@ -506,16 +506,12 @@ export default function SellsCreateV3({ cena }: Props) {
         )}
 
         <div className="overflow-x-auto">
-          <table
-            style={{ minWidth: larguraMinima }}
-            className="w-full border-separate border-spacing-0 text-[13.5px] leading-[1.4]"
-          >
+          <table className="w-full min-w-[560px] border-separate border-spacing-0 text-[13.5px] leading-[1.4]">
             <thead>
               <tr>
                 {visiveis.map((c) => (
                   <th
                     key={c.k}
-                    style={{ width: c.largura }}
                     className={cn(
                       'whitespace-nowrap border-b border-border bg-card px-3 py-2 text-[10.5px] font-semibold uppercase leading-none tracking-[.05em] text-muted-foreground',
                       alinhaADireita(c.k) ? 'text-right' : 'text-left',
