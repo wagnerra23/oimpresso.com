@@ -5,7 +5,7 @@ irmaos: CreateV3.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: luiz
-last_run: "2026-08-12"
+last_run: "2026-08-25"
 ---
 
 # Casos de Uso & Aceite — Venda V3 (preview)
@@ -16,6 +16,13 @@ last_run: "2026-08-12"
 >
 > **Status:** ✅ passa (com prova no manifesto) · 🧪 em teste/prova parcial · ⬜ não verificado · ❌ quebrou.
 
+> ℹ️ **`last_run` 2026-08-12 → 2026-08-25 (G-6), e o que mudou na tela NÃO foi comportamento.**
+> O único toque em `CreateV3.tsx` foi **comentário de ponteiro de design**: a linha citava um
+> caminho de protótipo que não existe mais no repo, e passou a citar o vivo (ou a declarar a
+> ausência com data). Zero JSX, zero handler, zero prop, zero copy alterada — `git diff --numstat`
+> do PR não tem uma linha sequer fora de comentário. **Nenhum UC desta tela foi reexecutado nem
+> revalidado**; o bump é o que o campo significa na prática (*trio reconciliado com a tela nesta
+> data*), não afirmação de re-run.
 ---
 
 ## Como esta lista cresce

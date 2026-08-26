@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o comportamento de cobrar é durável — a assinatura que fatura hoje tem que faturar depois do refactor.
 owner: wagner
-last_run: "2026-07-28"
+last_run: "2026-08-25"
 ---
 
 # Casos de Uso & Aceite — Carteira de assinaturas (`/recurring-billing`)
@@ -60,6 +60,13 @@ last_run: "2026-07-28"
 | UC-RBSUB-07 | Status visual deriva do estado do banco (5 estados) | must | `CU-RB-14` 1 | `Wave4PresenterIndexTest` | 🧪 |
 | UC-RBSUB-08 | Ciclo de vida completo (criar → pausar → retomar → cancelar) sem vazar tenant | must `[T0]` | `CU-RB-05` · `CU-RB-10` | `CustomerJourneyTest` | 🧪 |
 
+> ℹ️ **`last_run` 2026-07-28 → 2026-08-25 (G-6), e o que mudou na tela NÃO foi comportamento.**
+> O único toque em `Index.tsx` foi **comentário de ponteiro de design**: a linha citava um
+> caminho de protótipo que não existe mais no repo, e passou a citar o vivo (ou a declarar a
+> ausência com data). Zero JSX, zero handler, zero prop, zero copy alterada — `git diff --numstat`
+> do PR não tem uma linha sequer fora de comentário. **Nenhum UC desta tela foi reexecutado nem
+> revalidado**; o bump é o que o campo significa na prática (*trio reconciliado com a tela nesta
+> data*), não afirmação de re-run.
 ---
 
 ## UC-RBSUB-01 · Criar assinatura mapeando a forma de pagamento · `must`
