@@ -40,6 +40,28 @@ try {
 const totalCharters = rows.length;
 const declared = rows.filter((r) => r.hasSource).length;
 const silent = totalCharters - declared;
+// ── 3o balde: `n/a` cuja PREMISSA CADUCOU (report-only, FORA da catraca) ───────────
+// Por que existe (2026-08-26): `related_prototype: n/a (herda PT-0X)` conta como ✅ pra
+// SEMPRE — mas é uma decisão DATADA, tomada quando a fonte de design não estava no git.
+// O espelho recebe bundle novo toda semana (o de 24/08 trouxe 255 arquivos e 5 protótipos
+// inéditos) e NINGUÉM re-pergunta a decisão quando a premissa dela deixa de valer. Medido:
+// 20 commits em 90d religando âncora/ponteiro à mão, e 163 telas sem âncora resolvível.
+//
+// Isto SÓ REPORTA. Resolver âncora por convenção de NOME dentro de um `--check` é guard
+// sintático — morto no §5 2026-06-30 — e o residual não é decidível por máquina (ex.:
+// `Financeiro/Advisor/Login` ancorado em `financeiro-page.jsx` é julgamento humano).
+//
+// DÍVIDA DECLARADA: a convenção abaixo é a MESMA de `criar-tela.mjs`
+// (`detectarPrototipoDoModulo`). Não importei porque aquele módulo
+// NÃO tem guard de entrypoint — medido: `import()` dispara o CLI e sai 1. Unificar exige o
+// guard, que reindenta ~160 linhas do bloco CLI e merece PR próprio.
+const modDoCharter = (rel) => { const m = /(?:^|\/)Pages\/([^/]+)\//.exec(rel); return m ? m[1] : null; };
+const naComFonteCandidata = rows.filter((r) => {
+  if (!r.isNa || !r.charter) return false;
+  const mod = modDoCharter(r.charter);
+  return !!mod && existsSync(join(ROOT, 'prototipo-ui', 'cowork', mod.toLowerCase() + '-page.jsx'));
+});
+
 
 // 2. Contexto: páginas SEM charter nenhum (gap mais fundo — nem contrato de design têm)
 function walkTsx(dir) {
@@ -83,5 +105,11 @@ console.log('═══ COBERTURA DE DESIGN (fonte declarada por tela · UI-0013)
 console.log(`charters de página : ${totalCharters}`);
 console.log(`  ✅ fonte declarada (protótipo ou "segue DS") : ${declared}  (${pct(declared, totalCharters)}%)`);
 console.log(`  ⚠️  silenciosa (sem fonte declarada)          : ${silent}  (${pct(silent, totalCharters)}%)`);
+console.log('  🕰️  n/a com fonte candidata JA no espelho    : ' + naComFonteCandidata.length + '  (report-only — a decisão n/a é datada; a fonte desceu depois)');
+if (naComFonteCandidata.length) {
+  console.log('     (revisar a decisão — a escolha final é humana, nunca automática):');
+  for (const r of naComFonteCandidata.slice(0, 12)) console.log('       ' + r.charter);
+  if (naComFonteCandidata.length > 12) console.log('       … +' + (naComFonteCandidata.length - 12));
+}
 console.log(`\ncontexto — páginas .tsx SEM charter algum      : ${noCharter} (gap mais fundo)`);
 console.log(`\ncatraca: 'declared' só sobe. Fechar = declarar o Padrão de Tela / protótipo no charter (a parte de Design).`);
