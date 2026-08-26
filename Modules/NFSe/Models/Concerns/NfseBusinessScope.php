@@ -16,9 +16,11 @@ trait NfseBusinessScope
                 if (! session()->has('user.business_id')) {
                     return;
                 }
-                if (auth()->check() && auth()->user()->can('superadmin')) {
-                    return;
-                }
+                // SEM excecao de superadmin — DECISAO [W] 2026-08-26: "so da empresa
+                // selecionada". Mesma correcao do
+                // Modules/Financeiro/Models/Concerns/BusinessScopeImpl.php, que carrega a
+                // medicao de exposicao. Cross-tenant legitimo continua por
+                // `withoutGlobalScopes()` explicito.
                 $builder->where($model->getTable() . '.business_id', session('user.business_id'));
             }
         });
