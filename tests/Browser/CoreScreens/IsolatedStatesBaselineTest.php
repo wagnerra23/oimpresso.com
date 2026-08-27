@@ -101,11 +101,25 @@ afterEach(function () {
  * chegar ao `after` (retry, timeout, crash do browser).
  *
  * CIRURGICO: deleta por `invoice_no` exato, nunca por range. Nao toca dado de tenant.
+ *
+ * O MESMO vetor vale pro lever do Ponto (`$seedPontoVisregFlow`), e la o alvo do vazamento
+ * e uma baseline do L1: o `EspelhoController` le `ponto_apuracao_dia` pelo MESMO
+ * `colaborador_config_id` (:106 e :137) e a baseline `Ponto/Espelho/Show` fotografa
+ * `?mes=2026-06` — que contem a data do relogio congelado (2026-06-11). Sem esta limpeza, um
+ * flake em QUALQUER tela do L2 faria a linha 11/06 do espelho sair com falta e fabricaria
+ * regressao numa tela que ninguem tocou.
  */
 function visregLimparFixturesDeEstado(): void
 {
     \Illuminate\Support\Facades\DB::table('transactions')
         ->whereIn('invoice_no', ['VISREG-JANA-OVERDUE-001'])
+        ->delete();
+
+    // CIRURGICO igual: pela chave UNIQUE `(colaborador_config_id, data)` — o par exato que o
+    // lever grava. Nao toca outra data nem outro colaborador.
+    \Illuminate\Support\Facades\DB::table('ponto_apuracao_dia')
+        ->where('colaborador_config_id', \Database\Seeders\VisregPontoSeeder::COLABORADOR_ID)
+        ->where('data', config('visreg.fixture_date'))
         ->delete();
 }
 

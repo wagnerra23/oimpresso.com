@@ -15,13 +15,14 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Icon } from '@/Components/Icon';
 import { Grid, Inline, Stack } from '@/Components/layout';
+import Chart from '@/Components/shared/Chart';
 import EmptyState from '@/Components/shared/EmptyState';
 import KpiCard from '@/Components/shared/KpiCard';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import { PageHeader } from '@/Components/PageHeader';
 import { PeriodBar, type Period } from '@/Components/shared/PeriodBar';
 import { Alert, AlertDescription } from '@/Components/ui/alert';
-import { router } from '@inertiajs/react';
+import { Deferred, router } from '@inertiajs/react';
 import { ReactNode } from 'react';
 
 interface Totals {
@@ -44,6 +45,8 @@ interface Props {
   /** variação % vs o período anterior de mesma duração; null = sem base de comparação */
   deltas: Partial<Record<'net' | 'total_sell' | 'invoice_due' | 'total_expense', number | null>> | null;
   period: Period;
+  /** deferido — 2 agregações sobre o FY; não segura o first paint */
+  charts?: { dia: Array<{ label: string; value: number }>; mes: Array<{ label: string; value: number }> };
   legacy_url: string;
   endpoints: {
     totals: string;
@@ -98,6 +101,21 @@ function KpiHero({
   );
 }
 
+/** Painel de gráfico — título à esquerda, janela à direita, como no protótipo. */
+function PainelGrafico({ titulo, meta, children }: { titulo: string; meta: string; children: React.ReactNode }) {
+  return (
+    <Stack gap={3} asChild>
+      <section aria-label={titulo} className={CARTAO}>
+        <Inline gap={3} align="baseline" justify="between">
+          <h2 className="text-[13.5px] font-semibold text-foreground">{titulo}</h2>
+          <span className="font-mono text-[10.5px] text-muted-foreground">{meta}</span>
+        </Inline>
+        {children}
+      </section>
+    </Stack>
+  );
+}
+
 /** Contrapartidas — os 4 números do outro lado do caixa, sem gastar 4 cards. */
 function Contrapartidas({ totals }: { totals: Totals }) {
   const itens: Array<[string, number, string]> = [
@@ -132,6 +150,25 @@ function Contrapartidas({ totals }: { totals: Totals }) {
   );
 }
 
+/**
+ * Os 2 gráficos da Visão geral. Lê `charts` DEPOIS do first paint (Deferred).
+ * O <Chart> é o do DS portado 1:1 — SVG puro, sem lib.
+ */
+function GraficosVendas({ charts }: { charts: Props['charts'] }) {
+  if (!charts) return null;
+
+  return (
+    <Grid cols={1} gap={4} className="lg:grid-cols-2">
+      <PainelGrafico titulo="Vendas por dia" meta="últimos 30 dias">
+        <Chart type="area" data={charts.dia} height={132} formatValue={brlCurto} />
+      </PainelGrafico>
+      <PainelGrafico titulo="Vendas por mês" meta="ano fiscal">
+        <Chart type="bar" data={charts.mes} height={132} highlightLast formatValue={brlCurto} />
+      </PainelGrafico>
+    </Grid>
+  );
+}
+
 function HomeIndex({
   user_name,
   is_admin,
@@ -140,6 +177,7 @@ function HomeIndex({
   totals,
   deltas,
   period,
+  charts,
   legacy_url,
 }: Props) {
   const lojas = Object.entries(all_locations);
@@ -236,6 +274,18 @@ function HomeIndex({
             />
           </KpiGrid>
           <Contrapartidas totals={totals} />
+
+          <Deferred
+            data='charts'
+            fallback={
+              <Grid cols={1} gap={4} className="lg:grid-cols-2">
+                <div className={`${CARTAO} h-[190px] animate-pulse`} />
+                <div className={`${CARTAO} h-[190px] animate-pulse`} />
+              </Grid>
+            }
+          >
+            <GraficosVendas charts={charts} />
+          </Deferred>
         </Stack>
       ) : (
         <EmptyState

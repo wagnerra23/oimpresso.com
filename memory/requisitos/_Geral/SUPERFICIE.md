@@ -14,9 +14,9 @@ module: _Geral
 >
 > **O que isto é:** a porta geral para componentes, layouts e templates herdáveis por mais de um módulo. A lista é derivada das raízes compartilhadas declaradas em `module-surface.mjs::RAIZES_GERAIS`. **O que NÃO é:** autorização para importar qualquer item sem verificar contrato, status e consumidores; para decidir reuso, consulte também `node scripts/reuse-index.mjs "<símbolo ou intenção>"` e o registry do Design System.
 
-**Total mapeado:** 126 arquivos em 5 papéis.
+**Total mapeado:** 127 arquivos em 5 papéis.
 
-## Componentes compartilhados (React) — 86
+## Componentes compartilhados (React) — 87
 
 - [CommandPalette.tsx](../../../resources/js/Components/CommandPalette.tsx)
 - [Icon.tsx](../../../resources/js/Components/Icon.tsx)
@@ -56,6 +56,7 @@ module: _Geral
 - [stack.tsx](../../../resources/js/Components/layout/stack.tsx)
 - [text.tsx](../../../resources/js/Components/layout/text.tsx)
 - [BulkActionBar.tsx](../../../resources/js/Components/shared/BulkActionBar.tsx)
+- [Chart.tsx](../../../resources/js/Components/shared/Chart.tsx)
 - [ConsentBanner.tsx](../../../resources/js/Components/shared/ConsentBanner.tsx)
 - [DataTable.tsx](../../../resources/js/Components/shared/DataTable.tsx)
 - [EmptyState.tsx](../../../resources/js/Components/shared/EmptyState.tsx)

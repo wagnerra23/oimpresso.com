@@ -56,7 +56,7 @@
  *   node scripts/governance/cowork-mirror-freshness.mjs --compare snap.json            # relatório
  *   node scripts/governance/cowork-mirror-freshness.mjs --compare snap.json --check    # exit 1 se STALE
  *   node scripts/governance/cowork-mirror-freshness.mjs --compare snap.json --check --ledger  # + registra a rodada
- *   node scripts/governance/cowork-mirror-freshness.mjs --sla               # headless: rotina rodou ≤14d? última limpa?
+ *   node scripts/governance/cowork-mirror-freshness.mjs --sla               # headless: rotina rodou ≤14d? última limpa? + eixo NOVO desqualifica a leitura?
  *   node scripts/governance/cowork-mirror-freshness.mjs --live-only <lista.json> --ledger  # + registra a medição
  *   node scripts/governance/cowork-mirror-freshness.mjs --sla-live-only     # headless: live-only foi MEDIDO ≤7d? cresceu?
  *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs        # a poda deste PR quebrou o grafo do espelho? (exit 1 = sim)
@@ -404,6 +404,105 @@ export function liveOnlyVerdict(entries, nowIso, days = LIVE_ONLY_SLA_DAYS) {
   const novos = (last.liveOnlyList || []).filter((p) => !antes.has(p));
   if (novos.length > 0) return { veredito: 'GREW', last, prev, ageDays, novos };
   return { veredito: 'OK', last, prev, ageDays, novos: [] };
+}
+
+// ── DESQUALIFICAÇÃO: o eixo NOVO invalida a leitura do eixo MODIFICADO ───────────
+// Os dois eixos sempre existiram e o `--sla` só falava de um:
+//   MODIFICADO — "o arquivo mudou desde que desceu?"       → --compare  (get_file por arquivo)
+//   NOVO       — "existe no vivo e NUNCA desceu?"          → --live-only (uma list_files)
+// Medido em 2026-08-27: `0 sync · 1 stale · 247 unchecked · mediu 1/248`. O eixo MODIFICADO
+// custa um `get_file` POR ARQUIVO (auth interativa, ADR 0315 — o CI não alcança), então
+// ninguém roda os 248 e 247 arquivos nunca foram comparados com o vivo.
+//
+// A consequência que esta função fecha NÃO é a cobertura (essa segue cara): é que qualquer
+// conclusão do eixo MODIFICADO fica INCONCLUSIVA sobre o vivo enquanto houver arquivo que o
+// espelho não conhece. Comparar um espelho com buraco contra o vivo responde "os que eu tenho
+// batem" — nunca "estou em dia com o vivo". O `--sla` calava sobre isso.
+//
+// ⚠️ NÃO É GATE, e o exit code é o mesmo de antes DE PROPÓSITO. O predicado aqui é o número
+// ABSOLUTO de live-only, e absoluto NÃO pode gatear: o piso herdado (50 em 24/08) travaria o
+// alarme pra sempre — é a §5 2026-08-24, o auto-merge parado 9 dias por comparar contra zero.
+// Quem gateia o eixo NOVO é o `--sla-live-only`, cujo predicado é DELTA. Aqui o absoluto é
+// legítimo porque só muda a PALAVRA do veredito, seguindo a doutrina que este arquivo já tem
+// em `veredictoFinal`: cobertura parcial ⇒ INCONCLUSIVO com `ok:true`, nunca `✓`.
+//
+// ⚠️ E NÃO usa o manifesto do bundle como veredito de frescor — isso foi TESTADO e REPROVADO
+// (proposal 2026-08-27 §3.2): os 255 hashes batem 255/255 contra um bundle de 3 dias atrás, e
+// `255 sync` seria o VERDE FALSO que a §5 2026-08-25 já nomeia. O bundle entra aqui só como
+// DATA — o carimbo de quando o espelho parou de acompanhar o vivo.
+/** Desqualificação do eixo MODIFICADO pelo eixo NOVO (pura, testável).
+ *
+ *  @param lov     saída de `liveOnlyVerdict` — oráculo ÚNICO do eixo NOVO (não re-deriva do
+ *                 ledger aqui: 2º dono do mesmo fato é LC-19).
+ *  @param bundle  `{ generatedAt, files }` do bundle promovido, ou null. Só DATA/tamanho.
+ *  @returns {{desqualifica:boolean, motivo:string|null, n:number|null, medidoEm:string|null,
+ *             lista:string[], texto:string[]}}
+ */
+export function desqualificacaoLiveOnly(lov, bundle = null) {
+  const carimbo = bundle && bundle.generatedAt
+    ? `bundle promovido: emitido em ${String(bundle.generatedAt).slice(0, 10)}` +
+      (bundle.files ? ` (${bundle.files} arquivo(s))` : '')
+    : 'bundle promovido: não legível aqui';
+  // "list_files vê AUSÊNCIA, nunca MODIFICAÇÃO" é limite de plataforma e sai sempre — senão
+  // um `0 live-only` seria lido como "o espelho está em dia", que é outra afirmação.
+  const residual = '     (o eixo NOVO vê AUSÊNCIA, nunca MODIFICAÇÃO — ele não substitui o --compare)';
+
+  if (!lov || lov.veredito === 'NEVER-RAN') {
+    return {
+      desqualifica: true, motivo: 'NUNCA-MEDIDO', n: null, medidoEm: null, lista: [],
+      texto: [
+        `  ⬜ eixo NOVO ("existe no vivo e nunca desceu?") NUNCA MEDIDO — ${carimbo}.`,
+        '     Sem ele não se sabe se o espelho conhece o vivo inteiro: qualquer leitura do',
+        '     --compare é INCONCLUSIVA sobre o vivo. Meça: DesignSync.list_files → --live-only <lista.json> --ledger',
+        residual,
+      ],
+    };
+  }
+  const n = lov.last ? lov.last.liveOnly : null;
+  const medidoEm = lov.last ? lov.last.date : null;
+  const quando = medidoEm ? medidoEm.slice(0, 10) : '?';
+  const lista = lov.last && Array.isArray(lov.last.liveOnlyList) ? lov.last.liveOnlyList : [];
+
+  if (lov.veredito === 'OVERDUE') {
+    return {
+      desqualifica: true, motivo: 'MEDICAO-VENCIDA', n, medidoEm, lista,
+      texto: [
+        `  ⬜ eixo NOVO VENCIDO — última medição em ${quando} (há ${lov.ageDays}d) achou ${n} arquivo(s) no vivo fora do espelho.`,
+        `     O número é velho e o vivo pode ter andado; ${carimbo}.`,
+        '     Enquanto não re-medir, o --compare é INCONCLUSIVO sobre o vivo.',
+        residual,
+      ],
+    };
+  }
+  if (n > 0) {
+    const amostra = lista.slice(0, 5);
+    return {
+      desqualifica: true, motivo: 'FORA-DO-ESPELHO', n, medidoEm, lista,
+      texto: [
+        `  ⬜ ${n} arquivo(s) existem no VIVO e não estão no espelho (medido em ${quando}) — ${carimbo}.`,
+        ...amostra.map((p) => `       + ${p}`),
+        ...(lista.length > amostra.length ? [`       … +${lista.length - amostra.length} outro(s)`] : []),
+        '     Qualquer comparação contra este espelho é INCONCLUSIVA sobre o vivo: ela só fala',
+        '     dos arquivos que o espelho já conhece. Descer ou não é decisão [W].',
+        residual,
+      ],
+    };
+  }
+  return {
+    desqualifica: false, motivo: null, n, medidoEm, lista,
+    texto: [
+      `  ✓ eixo NOVO: 0 arquivo(s) no vivo fora do espelho (medido em ${quando}) — ${carimbo}.`,
+      residual,
+    ],
+  };
+}
+
+/** Bundle promovido (`state/active-bundle.json`) — leitor ÚNICO. Ausente/ilegível → null,
+ *  nunca objeto vazio: "não consegui ler" não pode virar "não tem nada" (§5 2026-07-29). */
+export function lerBundlePromovido(root = ROOT, rel = 'scripts/design-sync/state/active-bundle.json') {
+  const p = join(root, rel);
+  if (!existsSync(p)) return null;
+  try { return JSON.parse(readFileSync(p, 'utf8')); } catch { return null; }
 }
 
 /** Entrada de ledger (pura, testável) a partir das rows do --compare. */
@@ -1321,15 +1420,12 @@ function main() {
     // Ausente/ilegível vira `null`, e null cai no comportamento antigo (só ledger) — nunca
     // em "verde por omissão": não-conseguir-ler não é prova (§5 2026-07-29).
     let provaBundle = null;
-    const bundleRel = 'scripts/design-sync/state/active-bundle.json';
-    if (existsSync(join(ROOT, bundleRel))) {
-      try {
-        const b = JSON.parse(readFileSync(join(ROOT, bundleRel), 'utf8'));
-        if (Array.isArray(b.files)) {
-          provaBundle = {};
-          for (const f of b.files) if (f && f.path && f.sha256) provaBundle[f.path] = f.sha256;
-        }
-      } catch { provaBundle = null; }
+    {
+      const b = lerBundlePromovido(); // leitor único — o --sla lê o MESMO arquivo (só a data)
+      if (b && Array.isArray(b.files)) {
+        provaBundle = {};
+        for (const f of b.files) if (f && f.path && f.sha256) provaBundle[f.path] = f.sha256;
+      }
     }
 
     const ledger = existsSync(join(ROOT, LEDGER_REL)) ? JSON.parse(readFileSync(join(ROOT, LEDGER_REL), 'utf8')) : [];
@@ -1669,16 +1765,39 @@ function main() {
 
   // --sla: modo headless-safe (lê SÓ o ledger — nada de rede/auth). Mede CADÊNCIA da rotina
   // + último resultado; NÃO mede frescor (isso só o dispatch logado mede).
+  //
+  // DOIS EIXOS desde 2026-08-27 (ver `desqualificacaoLiveOnly`): além da cadência do
+  // --compare, o --sla passa a REPORTAR o eixo NOVO (o que existe no vivo e nunca desceu) e a
+  // DECLARAR que, havendo pendência ali, a leitura do eixo MODIFICADO é inconclusiva sobre o
+  // vivo. O eixo NOVO não é medido aqui — é LIDO do ledger, onde o agente logado o registrou
+  // com UMA `list_files`. Enforcement inalterado: a desqualificação muda a palavra do veredito
+  // (`✓` → `⬜ INCONCLUSIVO`), nunca o exit code.
   if (argv.includes('--sla')) {
     const lp = join(ROOT, LEDGER_REL);
     let entries = [];
     try { entries = existsSync(lp) ? JSON.parse(readFileSync(lp, 'utf8')) : []; } catch { entries = []; }
-    const r = slaVerdict(entries, new Date().toISOString());
+    const agora = new Date().toISOString();
+    const r = slaVerdict(entries, agora);
+    const b = lerBundlePromovido();
+    const dq = desqualificacaoLiveOnly(
+      liveOnlyVerdict(entries, agora),
+      b ? { generatedAt: b.generatedAt, files: Array.isArray(b.files) ? b.files.length : null } : null,
+    );
     // COBERTURA sai sempre: "0 stale" só significa alguma coisa junto de quantos foram medidos.
     const cob = r.cobertura ? ` · mediu ${r.cobertura.medidos}/${r.cobertura.total}` : '';
     const detail = r.last ? `última rodada ${r.last.date} (há ${r.ageDays}d): ${r.last.sync} sync · ${r.last.stale} stale · ${r.last.unchecked} unchecked${cob}` : 'nenhuma rodada registrada';
     if (r.veredito === 'FRESH') {
+      // `✓` só quando os DOIS eixos deixam. Cobertura completa do --compare com buraco no eixo
+      // NOVO é o mesmo formato do LC-13: "não achei divergência" ≠ "não há divergência".
+      if (dq.desqualifica) {
+        console.log(`⬜ INCONCLUSIVO — o --compare está dentro do SLA (${SLA_DAYS}d) e COMPLETO (${detail}), mas o eixo NOVO desqualifica a leitura:`);
+        for (const l of dq.texto) console.log(l);
+        console.log('');
+        return; // rc 0, igual ao FRESH de antes: muda o VEREDITO, não o enforcement.
+      }
       console.log(`✓ rotina de frescor dentro do SLA (${SLA_DAYS}d) e COMPLETA — ${detail}.`);
+      for (const l of dq.texto) console.log(l);
+      console.log('');
       return;
     }
     const msg = {
@@ -1688,6 +1807,9 @@ function main() {
       'LAST-PARTIAL': () => `última rodada foi PARCIAL — ${detail}. Rodada parcial é legítima, mas "${r.last.stale} stale" só cobre o que foi medido: ${r.last.unchecked} arquivo(s) seguem sem veredito. Pra fechar, exporte o resto (--export-from <dir> --emit-snapshot) e rode --compare --ledger.`,
     }[r.veredito]();
     console.error(`✗ ${msg}`);
+    // O eixo NOVO sai TAMBÉM no caminho vermelho: quem for fechar o --compare precisa saber
+    // que fechá-lo não basta enquanto houver arquivo que o espelho nem conhece.
+    for (const l of dq.texto) console.error(l);
     process.exit(1);
   }
 
