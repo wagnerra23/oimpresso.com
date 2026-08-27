@@ -508,3 +508,91 @@ superfície LGPD. Junto com a paridade de UI, a onda estouraria as 300 linhas do
 **Ordem sugerida (revista em 2026-08-18):** `E` está **feita**. Agora `S` primeiro — enquanto o espelho estiver 174 linhas atrás do vivo, toda comparação nova mede uma fonte velha —, depois `P`. Ligada a catraca de omissão, as ondas 1/2/4/5 param de depender de alguém lembrar do que faltou — o gate passa a dizer.
 
 **Bloqueadas por decisão [W], não por trabalho:** os preços do paywall (restaurar × remover a frase) e o rastro da edição na Memória (DTO da Camada C × prop irmã — ver errata no `Memoria-visual-comparison.md`).
+
+---
+
+## 9 · Reconciliação 2026-08-27 — quatro fatos novos, e um deles muda o denominador
+
+> **Como ler:** nada do §1-§8 foi reescrito. Esta seção acrescenta o que a sessão de 27/08 mediu,
+> incluindo dois achados que **invalidam premissas** de seções anteriores. Base: `origin/main`
+> `6c894d70d7`.
+
+### 9.1 · Existe uma 5ª tela no Cowork que nunca desceu — e o inventário do §1 não a vê
+
+`DesignSync.list_files` do projeto Cowork traz **`jana-metas.jsx` + `jana-metas.css`**, ausentes
+do espelho e ausentes do `bundle.manifest.json`. O cabeçalho do próprio arquivo declara o escopo:
+absorve `metas/{index,create,edit,show}.blade.php` **+** `fontes/show.blade.php` — cadastro em
+tabela, create/edit em drawer, apurações e fonte como seções, reapuração em modal.
+
+**Isso reescreve a onda 7.** Ela diz *"as 4 telas Blade da área"*; são **9** views Blade em
+`Modules/Jana/Resources/views/` (medido: `git ls-tree -r origin/main`), e o `jana-metas` cobre
+**5** delas de uma vez. A onda 7 não é "uma onda por tela" — é uma tela de design já pronta,
+esperando transporte.
+
+⚠️ E o inventário do §1 **não podia** tê-la visto: ele lê o espelho, e arquivo que nunca desceu
+não aparece como ausente. O `ABSENT-LOCAL` responde "ausentes: 0" porque lê o **shell do espelho**,
+que sequer cita `jana-metas`. Shell velho é detector cego (o espelho carrega `jana-merge.jsx?v=jm5`;
+o vivo está em `?v=jm9`).
+
+### 9.2 · A onda S segue "primeira" — e agora se sabe exatamente o que falta
+
+O §7.5 e a ordem sugerida já a priorizavam. O que 27/08 acrescenta é a **causa precisa**, e ela
+não é a que a linha S dizia até hoje (ver a errata na própria tabela do §8):
+
+- o bundle do Cowork é de **2026-08-24T22:49Z**, modo `snapshot`, 255 arquivos — **três dias
+  parado**, e `jana-metas` nasceu depois (medido 2×, com o mesmo `bundleId`);
+- não há automação: os únicos invocadores de `gerar-payload-partes` no repo são testes de CI e
+  documentação — nenhum cron, hook ou workflow;
+- o alarme que existe é estruturalmente fraco: o `--sla-live-only` audita a **idade do registro**
+  da última medição, e essa medição exige auth interativa (ADR 0315), logo **o CI não a faz**.
+  Medido em 27/08: ele dava `✓ 2 live-only` enquanto havia **4** — e os 2 que exibia (`CLAUDE.md`,
+  `github.md`) sequer podem pousar em `cowork/` por R1 do `ssot-guard`.
+
+**Fecha com um comando, do lado Cowork:** `gerar-payload-partes.mjs --root <vivo> --previous <manifest>`.
+
+### 9.3 · Nenhuma baseline do VRT jamais fotografou um `KpiCard danger`
+
+`grep -qEi "transaction" database/seeders/VisregTenantSeeder.php` → **rc=1** (com controle
+positivo). O tenant do VRT **não tem venda nenhuma**, logo `overdueValue = 0`, logo
+`JanaCockpit` (`tone={overdueValue > 0 ? 'danger' : 'default'}`) resolve sempre para `default`.
+Confirmado decodificando a baseline L1: o card "A RECEBER VENCIDO" está gravado com
+**R$ 0,00 / "tudo em dia" / ícone cinza**.
+
+O padrão se repete em **8 outras telas** com tone condicional a dado (`Backup`,
+`governance/Dashboard`, `Ponto/BancoHoras`, `ModuleGrades`, `QualidadeIa`, `Financeiro/Unificado`).
+As fixtures capturam o estado **saudável** — o gate não está mudo, mede o que captura; o que
+faltava era o estado de alerta entrar no **denominador**.
+
+Endereçado pelo gate L2 ([#6358](https://github.com/wagnerra23/oimpresso.com/pull/6358), `jana`
+com `states: [default]` semeado com uma venda vencida) + o conserto de idempotência
+([#6361](https://github.com/wagnerra23/oimpresso.com/pull/6361) — o seed persistia e um retry
+fabricaria regressão em `sells-index`).
+
+### 9.4 · O ajuste do `KpiCard danger` foi pendurado num eixo que a âncora separa — ABERTO
+
+O valor do KPI passou a usar `text-destructive` sob `tone="danger"`
+([#6356](https://github.com/wagnerra23/oimpresso.com/pull/6356)). Auditoria adversarial derrubou o
+**fundamento**, não o efeito. A âncora separa dois campos:
+
+| campo do protótipo | seletor | o que pinta |
+|---|---|---|
+| `emphasize` | `.jc-kpi.emph` | borda + fundo — **não toca o valor** |
+| `deltaCls === "red big"` | `.jc-kpi-v.red` | **a cor do valor** |
+
+E o `JanaCockpit` declara que `tone` mapeia a **`emphasize`**. Ou seja: pendurou-se no eixo do
+fundo um efeito que a âncora pendura no eixo do delta. Indistinguível porque o dataset tem
+**N=1** — o único KPI com `emphasize` carrega os dois campos. A conclusão foi **interpolada**.
+
+É a mesma classe da errata do §6 (LC-08, medir a partir da fonte errada), agora no eixo *campo*
+em vez de *rótulo*. **Não revertido** — o efeito é defensável por si e a decisão é [W]. Mas a
+errata está no componente proibindo invocar *"a âncora manda"* como fundamento.
+
+### 9.5 · O que esta reconciliação NÃO resolve
+
+O §7.5 abre dizendo que o espelho está atrasado; 27/08 **confirma e agrava** — não é só atraso,
+é ausência de uma tela inteira. Enquanto a onda S não fechar:
+
+- toda comparação da área mede fonte velha (o §7.6/§7.7 rodaram contra o espelho de então);
+- o `ancora.mjs Jana/Index` reporta **STALE** — *"o que você abrir aqui NÃO é o design atual"*;
+- e o achado de hue do §"O que fica ABERTO" continua sem poder ser separado das hipóteses
+  concorrentes, porque a fonte de comparação não está fresca.

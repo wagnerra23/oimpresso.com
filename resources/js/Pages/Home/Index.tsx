@@ -1,10 +1,26 @@
-// @memcofre tela=/home module=Dashboard
-// Wagner 2026-05-21 F6 Soft wrapper Inertia (US-DASH-001).
-// Wagner 2026-05-22 charter v2 — 8 KPI cards (Vendas + Compras) — fix contraste header.
-// Landing pós-login. Charts + widgets pluggable preservados em /home?legacy=1.
+// @memcofre tela=/dashboard-legacy module=Dashboard
+// Visão geral — Rewrite Cockpit V2 (US-DASH-004).
+// Âncora de design: prototipo-ui/cowork/dash-legacy-page.jsx (rota `dash-legacy`, atalho
+// "Visão geral" em data.jsx:19). Substitui o F6 Soft wrapper de 2026-05-22, que o [W]
+// declarou tentativa descartada em 2026-08-27.
+//
+// Layout por PRIMITIVOS (ADR 0253): Stack/Inline/Grid, nunca `flex`/`grid` solto.
+//
+// Fora desta onda, por motivo declarado:
+//   · gráficos (US-DASH-002) — não há lib de chart no package.json; entra com ADR própria
+//   · abas de grade e Pendências (US-DASH-005) — consomem os 4 endpoints AJAX existentes
+//   · "Papel simulado" / "Simular falha" — instrumentos do protótipo. Em produção quem
+//     decide é a permissão real e a resposta real do endpoint.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Icon } from '@/Components/Icon';
+import { Grid, Inline, Stack } from '@/Components/layout';
+import EmptyState from '@/Components/shared/EmptyState';
+import KpiCard from '@/Components/shared/KpiCard';
+import KpiGrid from '@/Components/shared/KpiGrid';
+import { PageHeader } from '@/Components/PageHeader';
+import { PeriodBar, type Period } from '@/Components/shared/PeriodBar';
+import { Alert, AlertDescription } from '@/Components/ui/alert';
 import { router } from '@inertiajs/react';
 import { ReactNode } from 'react';
 
@@ -25,6 +41,9 @@ interface Props {
   can_dashboard_data: boolean;
   all_locations: Record<number, string>;
   totals: Totals | null;
+  /** variação % vs o período anterior de mesma duração; null = sem base de comparação */
+  deltas: Partial<Record<'net' | 'total_sell' | 'invoice_due' | 'total_expense', number | null>> | null;
+  period: Period;
   legacy_url: string;
   endpoints: {
     totals: string;
@@ -34,71 +53,82 @@ interface Props {
   };
 }
 
-function fmtMoney(v: number): string {
-  return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
+const brl = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-type Accent = 'sky' | 'emerald' | 'amber' | 'rose' | 'violet' | 'orange' | 'teal' | 'stone';
-
-interface KpiSpec {
-  label: string;
-  value: number;
-  accent: Accent;
-  icon: string;
-  hint?: string;
-}
-
-// Classes Tailwind estáticas (não dinâmicas) — JIT precisa ver literalmente
-// em build time. Map fechado garante purge correto.
-const ACCENT_CLASSES: Record<Accent, { tile: string; ring: string; value: string }> = {
-  sky:     { tile: 'bg-sky-50 text-sky-600',         ring: 'ring-sky-100/60',     value: 'text-stone-900' },
-  emerald: { tile: 'bg-emerald-50 text-emerald-600', ring: 'ring-emerald-100/60', value: 'text-emerald-700' },
-  amber:   { tile: 'bg-amber-50 text-amber-600',     ring: 'ring-amber-100/60',   value: 'text-amber-700' },
-  rose:    { tile: 'bg-rose-50 text-rose-600',       ring: 'ring-rose-100/60',    value: 'text-rose-700' },
-  violet:  { tile: 'bg-violet-50 text-violet-600',   ring: 'ring-violet-100/60',  value: 'text-stone-900' },
-  orange:  { tile: 'bg-orange-50 text-orange-600',   ring: 'ring-orange-100/60',  value: 'text-orange-700' },
-  teal:    { tile: 'bg-teal-50 text-teal-600',       ring: 'ring-teal-100/60',    value: 'text-teal-700' },
-  stone:   { tile: 'bg-stone-100 text-stone-600',    ring: 'ring-stone-200/60',   value: 'text-stone-900' },
+const brlCurto = (v: number) => {
+  const abs = Math.abs(v);
+  if (abs >= 1000) {
+    return `${v < 0 ? '−' : ''}R$ ${(abs / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}k`;
+  }
+  return brl(v);
 };
 
-function KpiCard({ label, value, accent, icon, hint }: KpiSpec) {
-  const c = ACCENT_CLASSES[accent];
+/** % com sinal explícito, pro caso em que subir é ruim e a cor do DS mentiria. */
+const sinal = (v: number | null | undefined) => (v === null || v === undefined ? '' : `${v >= 0 ? '+' : ''}${v}% vs anterior · `);
+
+const CARTAO = 'rounded-lg border border-border bg-card p-5 shadow-sm';
+const ROTULO = 'text-[10px] font-semibold uppercase tracking-wider text-muted-foreground';
+
+/** KPI em destaque — o número que responde "como foi o período". */
+function KpiHero({
+  label,
+  value,
+  delta,
+  description,
+}: {
+  label: string;
+  value: number;
+  delta?: number | null;
+  description?: string;
+}) {
   return (
-    <div
-      className={`group relative rounded-lg border border-stone-200 bg-white p-5 shadow-sm ring-1 ${c.ring} transition-all hover:shadow-md hover:-translate-y-0.5 hover:border-stone-300`}
-      title={hint}
-    >
-      <div className="flex items-center gap-4">
-        <div
-          aria-hidden="true"
-          className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${c.tile}`}
-        >
-          <Icon name={icon} size={20} strokeWidth={1.8} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-[13px] font-medium text-stone-500 truncate">{label}</p>
-          <p className={`mt-0.5 text-xl font-semibold font-mono tracking-tight truncate ${c.value}`}>
-            {fmtMoney(value)}
-          </p>
-        </div>
-      </div>
-    </div>
+    <Stack gap={1} className={`${CARTAO} ring-1 ring-primary/15`}>
+      <span className={ROTULO}>{label}</span>
+      <Inline gap={2} align="baseline" wrap>
+        <span className="font-mono text-3xl font-semibold tracking-tight text-foreground">{brl(value)}</span>
+        {delta != null && (
+          <span className={`font-mono text-[12px] font-semibold ${delta >= 0 ? 'text-success' : 'text-destructive'}`}>
+            {delta >= 0 ? '+' : ''}
+            {delta}% vs anterior
+          </span>
+        )}
+      </Inline>
+      {description && <span className="text-[12px] text-muted-foreground">{description}</span>}
+    </Stack>
   );
 }
 
-function KpiGroup({ label, kpis }: { label: string; kpis: KpiSpec[] }) {
+/** Contrapartidas — os 4 números do outro lado do caixa, sem gastar 4 cards. */
+function Contrapartidas({ totals }: { totals: Totals }) {
+  const itens: Array<[string, number, string]> = [
+    ['Compras', totals.total_purchase, 'incluindo impostos'],
+    ['A pagar', totals.purchase_due, 'líquido de descontos'],
+    ['Devolução de venda', totals.total_sell_return, 'no período'],
+    ['Devolução de compra', totals.total_purchase_return, 'devido ao fornecedor'],
+  ];
+
   return (
-    <section aria-label={`Indicadores ${label}`} className="space-y-3">
-      <div className="flex items-center gap-3">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-stone-500">{label}</h2>
-        <div className="h-px flex-1 bg-stone-200" />
-      </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 sm:gap-5">
-        {kpis.map((k) => (
-          <KpiCard key={k.label} {...k} />
-        ))}
-      </div>
-    </section>
+    <Stack gap={4} asChild>
+      <section aria-label="Contrapartidas" className={CARTAO}>
+        <Inline gap={3} align="baseline" justify="between">
+          <h2 className="text-[13.5px] font-semibold text-foreground">Contrapartidas</h2>
+          <span className="font-mono text-[10.5px] text-muted-foreground">mesmo período</span>
+        </Inline>
+        <Grid cols={2} gap={4} className="lg:grid-cols-4">
+          {itens.map(([label, valor, sub]) => (
+            <Stack gap={1} key={label} className="min-w-0">
+              <span className="text-[9.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                {label}
+              </span>
+              <span className="font-mono text-[15.5px] font-semibold tabular-nums text-foreground">
+                {brlCurto(valor)}
+              </span>
+              <span className="text-[11.5px] text-muted-foreground">{sub}</span>
+            </Stack>
+          ))}
+        </Grid>
+      </section>
+    </Stack>
   );
 }
 
@@ -108,118 +138,125 @@ function HomeIndex({
   can_dashboard_data,
   all_locations,
   totals,
+  deltas,
+  period,
   legacy_url,
 }: Props) {
-  const locationEntries = Object.entries(all_locations);
-  const showLocationFilter = is_admin && locationEntries.length > 1;
+  const lojas = Object.entries(all_locations);
+  const mostraLoja = is_admin && lojas.length > 1;
 
-  const handleLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const locId = e.target.value;
-    // D-14: partial reload — só re-busca o que muda com filtro (totals).
-    // all_locations é closure por business no controller — pula no partial.
-    router.visit('/home', {
-      data: locId ? { location_id: locId } : {},
+  const trocaLoja = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const id = e.target.value;
+    router.visit(window.location.pathname, {
+      data: { ...(id ? { location_id: id } : {}), from: period.from, to: period.to },
       preserveScroll: true,
       preserveState: true,
       replace: true,
-      only: ['totals'],
+      only: ['totals', 'period'],
     });
   };
 
-  const salesKpis: KpiSpec[] = totals
-    ? [
-        { label: 'Total Vendas',     value: totals.total_sell,         accent: 'sky',     icon: 'trending-up',     hint: 'Total faturado no exercício fiscal atual' },
-        { label: 'Líquido',          value: totals.net,                accent: 'emerald', icon: 'wallet',          hint: 'Vendas − A Receber − Despesas' },
-        { label: 'A Receber',        value: totals.invoice_due,        accent: 'amber',   icon: 'hourglass',       hint: 'Faturas em aberto de clientes' },
-        { label: 'Devoluções Venda', value: totals.total_sell_return,  accent: 'rose',    icon: 'undo-2',          hint: 'Retorno de vendas (trocas / cancelamentos)' },
-      ]
-    : [];
-
-  const purchaseKpis: KpiSpec[] = totals
-    ? [
-        { label: 'Total Compras',    value: totals.total_purchase,        accent: 'violet', icon: 'shopping-cart',  hint: 'Total adquirido no exercício fiscal atual' },
-        { label: 'A Pagar',          value: totals.purchase_due,          accent: 'orange', icon: 'alert-circle',   hint: 'Compras em aberto com fornecedores' },
-        { label: 'Reembolso Compra', value: totals.total_purchase_return, accent: 'teal',   icon: 'rotate-ccw',     hint: 'Devoluções a fornecedores' },
-        { label: 'Despesas',         value: totals.total_expense,         accent: 'stone',  icon: 'receipt',        hint: 'Despesas operacionais no exercício' },
-      ]
-    : [];
-
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-6">
-      {/* Welcome banner — superfície clara, contraste WCAG AA. ADR 0180 PageHeader canon style. */}
-      <header className="flex flex-col gap-4 rounded-lg border border-stone-200 bg-white px-6 py-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-4 min-w-0">
-          <div
-            aria-hidden="true"
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
-          >
-            <Icon name="layout-dashboard" size={22} strokeWidth={1.8} />
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs font-medium uppercase tracking-wider text-stone-500">Início</p>
-            <h1 className="mt-0.5 text-2xl font-semibold tracking-tight text-stone-900 md:text-3xl">
-              Bem-vindo{user_name ? `, ${user_name}` : ''}
-            </h1>
-          </div>
-        </div>
+    <Stack gap={5} className="mx-auto max-w-7xl p-6">
+      <PageHeader
+        leading={<Icon name="layout-dashboard" size={18} strokeWidth={1.8} />}
+        title="Visão geral"
+        subtitle={
+          totals ? (
+            <>
+              <strong>{brlCurto(totals.total_sell)}</strong> vendas ·{' '}
+              <strong>{brlCurto(totals.invoice_due)}</strong> a receber ·{' '}
+              <strong>{brlCurto(totals.total_expense)}</strong> despesas
+            </>
+          ) : undefined
+        }
+        actions={
+          <span className="text-[12.5px] text-muted-foreground">
+            Bem-vindo{user_name ? `, ${user_name}` : ''}
+          </span>
+        }
+      />
 
-        {showLocationFilter && (
-          <div className="sm:w-72 sm:shrink-0">
-            <label htmlFor="dashboard_location" className="sr-only">
-              Filtrar por loja
+      <Inline gap={4} align="end" justify="between" wrap>
+        <PeriodBar period={period} />
+        {mostraLoja && (
+          <Stack gap={2} asChild>
+            <label>
+              <span className={ROTULO}>Loja</span>
+              <select
+                id="dashboard_location"
+                onChange={trocaLoja}
+                defaultValue=""
+                className="h-9 rounded-lg border border-border bg-card px-3 text-[13px] text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+              >
+                <option value="">Todas as lojas</option>
+                {lojas.map(([id, nome]) => (
+                  <option key={id} value={id}>
+                    {nome}
+                  </option>
+                ))}
+              </select>
             </label>
-            <select
-              id="dashboard_location"
-              onChange={handleLocationChange}
-              className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 shadow-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
-              defaultValue=""
-            >
-              <option value="">Todas as lojas</option>
-              {locationEntries.map(([id, name]) => (
-                <option key={id} value={id}>
-                  {name}
-                </option>
-              ))}
-            </select>
-          </div>
+          </Stack>
         )}
-      </header>
+      </Inline>
 
-      {/* KPI cards — agrupados por fluxo (Vendas / Compras) */}
       {can_dashboard_data && totals ? (
-        <div className="space-y-6">
-          <KpiGroup label="Vendas" kpis={salesKpis} />
-          <KpiGroup label="Compras & Custos" kpis={purchaseKpis} />
-        </div>
+        <Stack gap={4}>
+          <KpiGrid cols={4}>
+            <KpiHero
+              label="Líquido no período"
+              value={totals.net}
+              delta={deltas?.net}
+              description="Vendas − A receber − Despesas"
+            />
+            <KpiCard
+              label="Vendas"
+              value={brl(totals.total_sell)}
+              icon="trending-up"
+              description="incluindo impostos"
+              delta={deltas?.total_sell != null ? { value: deltas.total_sell, label: '% vs anterior' } : undefined}
+            />
+            <KpiCard
+              label="A receber"
+              value={brl(totals.invoice_due)}
+              icon="hourglass"
+              tone="warning"
+              description={`${sinal(deltas?.invoice_due)}líquido de descontos de razão`}
+            />
+            <KpiCard
+              label="Despesas"
+              value={brl(totals.total_expense)}
+              icon="receipt"
+              description={`${sinal(deltas?.total_expense)}lançadas no período`}
+            />
+          </KpiGrid>
+          <Contrapartidas totals={totals} />
+        </Stack>
       ) : (
-        <section className="rounded-lg border border-stone-200 bg-white px-6 py-10 text-center">
-          <p className="text-sm text-stone-600">
-            Você não tem permissão para visualizar os indicadores do dashboard. Fale com o
-            administrador da empresa.
-          </p>
-        </section>
+        <EmptyState
+          icon="lock"
+          title="Você não tem acesso aos dados do painel"
+          description="A permissão dashboard.data não está atribuída ao seu papel. A tela abre sem erro — nenhum indicador é carregado."
+        />
       )}
 
-      {/* Banner legacy fallback */}
-      <div className="flex items-start gap-3 rounded-lg border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700">
-        <Icon name="info" size={16} className="mt-0.5 shrink-0 text-stone-500" />
-        <span className="leading-relaxed">
+      <Alert>
+        <Icon name="info" size={16} />
+        <AlertDescription>
           Precisa dos gráficos de vendas, alertas de estoque ou widgets de outros módulos?{' '}
-          <a
-            href={legacy_url}
-            className="font-medium text-primary underline-offset-2 hover:underline"
-          >
+          <a href={legacy_url} className="font-medium text-primary underline-offset-2 hover:underline">
             Abrir versão completa
           </a>
           .
-        </span>
-      </div>
-    </div>
+        </AlertDescription>
+      </Alert>
+    </Stack>
   );
 }
 
 HomeIndex.layout = (page: ReactNode) => (
-  <AppShellV2 title="Início" breadcrumbItems={[{ label: 'Início' }]}>
+  <AppShellV2 title="Visão geral" breadcrumbItems={[{ label: 'Visão geral' }]}>
     {page}
   </AppShellV2>
 );
