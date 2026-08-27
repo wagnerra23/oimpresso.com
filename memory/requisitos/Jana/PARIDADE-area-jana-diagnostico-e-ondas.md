@@ -185,7 +185,14 @@ E o bundle é justamente o **crítico** — é ele que define `window.OfficeImpr
 1. **binário** — `exportPlan()` faz `Buffer.byteLength(content, 'utf8')` e o script tem **0 ocorrências** de `base64`/`Buffer.from`. Só escreve texto;
 2. **tamanho** — o insumo vem do `get_file`, que corta em 256 KiB.
 
-Isto é instância concreta do **teto de fidelidade do `get_file`** já aberto como decisão [W] em [#5757](https://github.com/wagnerra23/oimpresso.com/pull/5757). A lápide de 2026-08-14 prescreve o desfecho e ele foi seguido aqui: **não conserta — mede, registra, e o teto é decisão [W]**. Nada foi escrito no espelho.
+⚠️ **CORRIGIDO 2026-08-27 — as DUAS limitações acima caíram, e o exemplo estava trocado.** O texto fica como registro do que se mediu na data; o que vale hoje:
+- **(1) binário — os TRÊS scripts tratam.** `cowork-mirror-freshness.mjs:311-318` (`if (raw.isBase64 === true) … Buffer.from(compact,'base64')`, com docblock em `:299` dizendo *"escrever a string base64 criaria uma fonte corrompida"*) · `aplicar-payload.mjs:292-297` (valida charset/padding antes de decodificar) · `gerar-payload-partes.mjs:101,145`. O `exportPlan` ganhou binário em **2026-08-18** (#5910) — antes desta linha ser tocada pela última vez. Contagem com controle negativo: `base64` 4/3/1 e `Buffer.from` 1/3 nos três.
+- **(2) 256 KiB deixou de ser teto por desenho.** `gerar-payload-partes.mjs:8` — *"arquivos grandes são divididos em chunks SHA-256 remontáveis pelo consumidor"*; `:151` rotula o passo *"arquivo grande deixa de ser teto"*. O cap continua existindo **no `get_file` avulso**; a rota do bundle o contorna.
+- **(3) o exemplo nem era binário:** o caso citado no parágrafo (`_ds_bundle.js`, `truncated:true` em 262.144 B) é **JS texto acima do cap** — a limitação que o atingia era a (2), não a (1).
+
+O **resíduo real** não é capacidade, é execução: o `gerar-payload-partes.mjs:9-12` roda do lado que tem os arquivos em disco (Cowork), então enquanto o design não emitir o bundle, o consumidor sozinho não fecha.
+
+Isto foi lido como instância concreta do **teto de fidelidade do `get_file`** aberto como decisão [W] em [#5757](https://github.com/wagnerra23/oimpresso.com/pull/5757). A lápide de 2026-08-14 prescreve o desfecho e ele foi seguido aqui: **não conserta — mede, registra, e o teto é decisão [W]**. Nada foi escrito no espelho.
 
 **Saídas possíveis, todas decisão [W]:** (a) estender o `--export-from` para binário + chunking (mexe no dono, não cria paralelo); (b) publicar o bundle por outro transporte que não o `get_file`; (c) aceitar o espelho degradado e **declarar** que leitura visual dele não vale — hoje isso não está escrito em lugar nenhum, e foi o que permitiu a comparação cega.
 

@@ -136,7 +136,19 @@ export default function KpiCard({
         )}
       </div>
       <div className="flex items-baseline gap-2 min-w-0">
-        <span className={cn(valueClass, 'text-foreground tabular-nums truncate')}>{value}</span>
+        {/* O VALOR carrega o tom quando `danger` — corrigido 2026-08-27, e a causa era uma
+            INVERSÃO de hierarquia, não um tom fraco. Medido contra a âncora
+            (`chat-jana.css:151-155`, o `KPICard` que o `jana-merge.jsx:891` consome):
+              âncora   → valor em `var(--neg)` (vermelho) · ícone 15px em `var(--text-3)` (CINZA)
+              produção → valor em `text-foreground` (neutro) · ícone 36px em `text-destructive`
+            Ou seja: aqui o ENFEITE gritava e o NÚMERO ficava mudo — o oposto do que a âncora faz,
+            e o oposto do que a leitura pede (quem dói é o número, não o ícone ao lado dele).
+            [W] reportou como quatro defeitos ("fundo errado", "fonte", "ícone errado", "tamanho");
+            os quatro são sintoma desta inversão.
+            ESCOPO: só `danger`. `success`/`warning` seguem com valor neutro de propósito — verde
+            afirmando "bom" sobre um número é o vício que o §Anti-hooks do charter da Jana já
+            proíbe, e `warning` colorido brigaria com o Delta ao lado. */}
+        <span className={cn(valueClass, tone === 'danger' ? 'text-destructive' : 'text-foreground', 'tabular-nums truncate')}>{value}</span>
         {delta && <Delta {...delta} isGood={deltaIsGood} />}
       </div>
       {description && (
