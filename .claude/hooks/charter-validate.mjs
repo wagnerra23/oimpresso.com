@@ -117,10 +117,25 @@ export function buildOutput({ tool, pathFwd, charterRelative, charterStatus, str
       `Antes de editar: \`node prototipo-ui/ancora.mjs <Mod/Tela>\` pra ver o veredito, e ressincronize ` +
       `pela ROTA PRINCIPAL (bundle emitido do lado Cowork) — \`node prototipo-ui/protocolo.config.mjs\` fase -1.\n` +
       `Isto NÃO é "nunca verificado" (esse passa): é medido e REPROVADO.`;
-    if (strict) {
-      return { hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: m + ' Modo STRICT — Edit BLOQUEADO.' } };
-    }
-    return { hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'allow', permissionDecisionReason: m + ' Modo warning (advisory) — promoção a deny é flip [W].' } };
+    // ⛔ DENY SEMPRE — promovido por [W] em 2026-08-27 ("aprovados pode fazer todos"), depois
+    // de a versão advisory ser apresentada com a ressalva de que NÃO teria evitado o erro:
+    // o aviso do `ancora.mjs` já existia na tela e foi ignorado mesmo assim. Advisory aqui é
+    // o mesmo aviso duas vezes; a "garantia de vínculo" que [W] pediu só existe bloqueando.
+    //
+    // Difere do charter-first (abaixo), que segue advisory por desenho: lá o predicado é
+    // "você LEU o contrato?" — não-verificável, e bloquear puniria quem já leu. Aqui é
+    // "a âncora foi MEDIDA e REPROVADA?" — fato registrado no ledger, com data e arquivo.
+    //
+    // Por que bloquear é seguro: 3 de 44 telas (6,8%), medido; fail-open em todo caminho de
+    // dúvida; e sai sozinho quando o espelho ressincronizar. Não é parede — é o veredito que
+    // já existia, agora com consequência.
+    //
+    // ESCAPE: `CHARTER_VALIDATE_STRICT` NÃO é o escape (ele endurece, não afrouxa). Para
+    // trabalhar numa tela com âncora stale de propósito, ressincronize primeiro
+    // (`protocolo.config.mjs` fase -1) OU declare a exceção com [W] — não há env de bypass, e
+    // isso é deliberado: um escape aqui reproduziria o "aviso ignorado" que o hook existe pra
+    // impedir. Anunciar saída que não existe seria LC-15; esta não existe e está dito.
+    return { hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: m + ' ⛔ Edit BLOQUEADO (deny — [W] 2026-08-27). Ressincronize a âncora antes.' } };
   }
   return buildOutputCharter({ tool, pathFwd, charterRelative, charterStatus, strict });
 }

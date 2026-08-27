@@ -57,7 +57,7 @@ check('E2E: JSON inválido → exit 0 (fail-open)', spawnSync(process.execPath, 
 // `staleList` vivo muda quando alguém roda `--compare`, e teste que depende disso apodrece).
 // Prova as DUAS pernas: morde o medido-e-REPROVADO, e LIBERA o "nunca verificado" — que é a
 // diferença entre um gate de 3/44 e uma parede de 25/44.
-const { ancoraStale } = await import(pathToFileURL(HOOK).href);
+const { ancoraStale } = await import(pathToFileURL(HOOK).href);  // buildOutput já vem do import estático (:10)
 const raizFx = mkdtempSync(join(tmpdir(), 'ancora-fx-'));
 mkdirSync(join(raizFx, 'scripts', 'governance'), { recursive: true });
 writeFileSync(join(raizFx, 'scripts', 'governance', '.cowork-freshness-ledger.json'), JSON.stringify([
@@ -81,6 +81,15 @@ check('ancoraStale: LIBERA charter sem related_prototype', ancoraStale(cSem, rai
 check('ancoraStale: entrada live-only NAO vira a ultima rodada', !!ancoraStale(cStale, raizFx));
 check('ancoraStale: fail-open com ledger ausente', ancoraStale(cStale, mkdtempSync(join(tmpdir(), 'sem-ledger-'))) === null);
 check('ancoraStale: fail-open com charter inexistente', ancoraStale(join(raizFx, 'nao-existe.charter.md'), raizFx) === null);
+
+// DENY sem strict — promovido por [W] 2026-08-27. Blindado aqui porque a diferença entre
+// advisory e deny É a feature: como advisory o hook só repetiria um aviso que já existia e
+// já tinha sido ignorado. Se alguém rebaixar pra 'allow', estes dois asserts caem.
+const outStale = buildOutput({ tool: 'Edit', pathFwd: 'x.tsx', charterRelative: 'x.charter.md', charterStatus: 'live', strict: false, stale: { proto: 'divergente.jsx', medidoEm: '2026-02-02T00:00:00Z' } });
+check('buildOutput: ancora STALE => deny MESMO sem strict', outStale.hookSpecificOutput.permissionDecision === 'deny');
+check('buildOutput: a razao nomeia o arquivo e a data medidos', /divergente\.jsx/.test(outStale.hookSpecificOutput.permissionDecisionReason) && /2026-02-02/.test(outStale.hookSpecificOutput.permissionDecisionReason));
+const outLimpo = buildOutput({ tool: 'Edit', pathFwd: 'y.tsx', charterRelative: 'y.charter.md', charterStatus: 'live', strict: false, stale: null });
+check('buildOutput: SEM stale segue advisory (charter-first inalterado)', outLimpo.hookSpecificOutput.permissionDecision === 'allow');
 
 console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — porte .mjs avisa charter-first em Page com charter vivo, deny em strict, advisory default; fail-open provado. Âncora STALE: morde o medido-e-reprovado, libera o nunca-verificado.');
 process.exit(fails ? 1 : 0);
