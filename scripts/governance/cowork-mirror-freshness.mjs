@@ -485,15 +485,28 @@ export function ledgerEntry(rows, dateIso, meta = {}) {
  * @param provaBundle {relPath: sha256} do bundle promovido (state/active-bundle.json) — 2ª
  *                 prova de fidelidade, ver bloco PROVA POR BUNDLE no corpo. null = só ledger.
  */
+/**
+ * Última rodada do ledger que VERIFICOU `cowork` — varre TODAS as entradas.
+ *
+ * O ledger é APPEND-ONLY e cada rodada mede um subconjunto (hoje, tipicamente 1 arquivo).
+ * Ler só a última linha e concluir "nunca verificado" é ler uma linha e chamar de tabela —
+ * a família §5 2026-08-11 (listagem parcial como prova de ausência). Medido em 2026-08-27:
+ * a leitura por-última-linha afirmava "NUNCA VERIFICADO" para 20 de 20 âncoras, e era FALSA
+ * em 12 delas (60%). Esta função é o oráculo único desse fato — `ancora.mjs` a consome.
+ *
+ * @returns {{data:string|null, hash:string|null}} `data:null` = nenhuma rodada mediu.
+ */
+export function ultimaVerificacaoDe(entries, cowork) {
+  const runs = (Array.isArray(entries) ? entries : []).filter((e) => Array.isArray(e.verified));
+  let melhor = null, hash = null;
+  for (const r of runs) if (r.verified.includes(cowork) && (!melhor || r.date > melhor)) {
+    melhor = r.date; hash = (r.verifiedHash || {})[cowork] || null;
+  }
+  return { data: melhor, hash };
+}
+
 export function unverifiedSince(entries, arquivos, provaBundle = null) {
   const runs = (Array.isArray(entries) ? entries : []).filter((e) => Array.isArray(e.verified));
-  const ultimaVerificacaoDe = (cowork) => {
-    let melhor = null, hash = null;
-    for (const r of runs) if (r.verified.includes(cowork) && (!melhor || r.date > melhor)) {
-      melhor = r.date; hash = (r.verifiedHash || {})[cowork] || null;
-    }
-    return { data: melhor, hash };
-  };
   const mexidoDepois = [], nuncaVerificado = [];
   let ok = 0;
   for (const a of arquivos) {
@@ -517,7 +530,7 @@ export function unverifiedSince(entries, arquivos, provaBundle = null) {
     const shaBundle = provaBundle ? provaBundle[a.cowork] : null;
     if (shaBundle && a.rawSha && shaBundle === a.rawSha) { ok++; continue; }
 
-    const { data: verificadoEm, hash: hashVerificado } = ultimaVerificacaoDe(a.cowork);
+    const { data: verificadoEm, hash: hashVerificado } = ultimaVerificacaoDe(entries, a.cowork);
     if (!verificadoEm) { nuncaVerificado.push(a.cowork); continue; }
     // sem data de commit não se afirma nada (arquivo novo não-commitado): não é achado
     const commitouDepois = a.lastCommitIso && a.lastCommitIso > verificadoEm;
