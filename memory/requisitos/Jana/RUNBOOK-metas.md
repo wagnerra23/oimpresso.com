@@ -253,12 +253,17 @@ usuário do Painel rumo à Blade**. É esse link que a migração faz desaparece
 
 ⇒ A instrução correta é **estender o `JanaMetaDrawer`**, nunca criar `Pages/Jana/Metas/*.tsx`.
 
-### 9.3 · Os dois bloqueadores — **B2 caiu durante esta sessão; B1 segue**
+### 9.3 · Os dois bloqueadores — **os DOIS caíram em 27/08 (ver §10)**
 
-**B1 — não há fonte de design fiel. ⛔ ABERTO.** `jana-metas.{jsx,css}` existem no Cowork vivo
-(`DesignSync.list_files` por ID) e **não** estão no espelho. O bundle da rota principal existe
-(`sync/bundle.manifest.json` + 43 partes) mas é de **2026-08-24T22:49Z**, modo `snapshot`, 255
-arquivos, e **não contém** `jana-metas.*` nem `jana-telas-novas.*`.
+**B1 — não há fonte de design fiel. ✅ RESOLVIDO em 2026-08-27** pelo
+[#6379](https://github.com/wagnerra23/oimpresso.com/pull/6379), que mergeou **na janela entre o
+rebase e o merge deste RUNBOOK** — ver §10, que corrige o que este parágrafo afirmava. O texto
+abaixo é o estado de quando foi escrito, preservado porque explica as ondas.
+
+> _Estado anterior (falso a partir de 2026-08-27 ~22:4x):_ `jana-metas.{jsx,css}` existem no
+> Cowork vivo (`DesignSync.list_files` por ID) e **não** estão no espelho. O bundle da rota
+> principal existe (`sync/bundle.manifest.json` + 43 partes) mas é de **2026-08-24T22:49Z**, modo
+> `snapshot`, 255 arquivos, e **não contém** `jana-metas.*` nem `jana-telas-novas.*`.
 
 > **O bundle é no-op — medido 2×, independentemente.** O `jana-merge.jsx` **do bundle** era
 > byte-idêntico ao do espelho (58.381 B, sha `a265b6e685672887` nos dois). Rodar
@@ -280,16 +285,21 @@ este RUNBOOK era escrito**. Re-medido aqui por mordida depois do rebase:
 ⇒ **A correção que a queda do B2 obriga:** eles **não** tinham "a mesma raiz e o mesmo
 destravador", como este parágrafo afirmava antes. O que destravou o B2 foi a **rota avulsa**
 (`get_file` → `--snapshot-from` → `--export-from`, o script escrevendo o `raw.content`) — e ela
-**não** alcança o B1, porque `jana-metas.jsx` é pequeno: volta **inline** do `get_file` em vez de
-persistir em arquivo, e o `--export-from` lê JSON **em disco**. É o teto de transporte da errata
-§5 2026-08-14. **O B1 só fecha pela rota do bundle** — chunk de ≤256 KiB carrega o arquivo
-pequeno dentro dele —, e para isso o bundle precisa ser **regerado do lado Cowork**
-(`gerar-payload-partes.mjs` roda onde os arquivos estão em disco).
+**não** alcançava o B1 **por `get_file`**, porque `jana-metas.jsx` é pequeno: volta **inline** em
+vez de persistir em arquivo, e o `--export-from` lê **do disco**. É o teto de transporte da errata
+§5 2026-08-14.
 
-⇒ **Consequência prática:** com o B2 fora, `Pages/Jana/*.tsx` está **editável**. O que continua
-faltando é **o desenho** — e construir o drawer sem a fonte seria derivar design do código, a
-lápide §5 2026-08-10. A F2 (§9.4) segue sendo o passo executável; a PR-1 deixou de ser "destravar
-a âncora" e passou a ser **só** trazer o `jana-metas`.
+> ⚠️ **Mas a conclusão que este parágrafo tirava daí — *"o B1 só fecha pela rota do bundle"* —
+> estava ERRADA, e o §10 mostra por quê.** Existe uma **terceira** rota, que foi a que fechou:
+> [W] exportar o projeto Cowork inteiro e entregar os arquivos **em disco**, alimentando o mesmo
+> `--export-from`. O teto é do **`get_file`**, não do `--export-from`; com o byte já em disco, o
+> tamanho do arquivo deixa de importar. Eu enumerei duas rotas e concluí sobre o problema — a
+> lápide §5 2026-08-20 (*concluir ausência de capacidade a partir das rotas que você testou*).
+
+⇒ **Consequência prática (corrigida pelo §10):** com o B2 fora, `Pages/Jana/*.tsx` ficou
+**editável**; com o B1 fora poucas horas depois, **o desenho também existe**. Não há mais
+bloqueador de transporte — a F2 (§9.4) deixa de ser "o único passo executável" e passa a ser
+apenas **o primeiro**, pela regra do MWART (baseline antes de UI), não por falta de fonte.
 
 **Pendência de escopo nomeada (§5):** reconciliar `SPEC.md:2039` (US-COPI-148, *"Fora da fusão …
 `/ia/metas*`"*) com o destino drawer. É ato de escopo de US — **decisão [W]**, não conserto de
@@ -301,11 +311,10 @@ passagem.
   intacta do §6. ✅ **Executável agora** — não depende do B1 (é PHP, não `Pages/Jana/`). Cobrir
   também `PeriodosController` e `FontesController@update` (§2), que não tinham baseline prevista.
   Cross-tenant 98×99, CT 100.
-- **PR-1 · trazer o `jana-metas` (B1)** — regerar o bundle **do lado Cowork**
-  (`gerar-payload-partes.mjs --root <vivo> --previous <manifest>`), baixar as partes, aplicar,
-  `--compare`. É o que falta pro desenho existir deste lado. **Não é trabalho de código daqui —
-  é ato do lado Cowork.** ⚠️ Não tentar pela rota avulsa: o arquivo é pequeno demais e volta
-  inline (§9.3).
+- **PR-1 · trazer o `jana-metas` (B1)** — ✅ **JÁ FEITA** pelo
+  [#6379](https://github.com/wagnerra23/oimpresso.com/pull/6379) em 27/08, por rota que este
+  RUNBOOK não previa (export completo do [W] em disco → `--export-from`). **Não refazer**, e não
+  regerar o bundle por causa disto. Ver §10.1.
 - **PR-2 · CRUD no drawer** — estender `JanaMetaDrawer` (criar/editar/desativar/reapurar),
   preservando o contrato do §3 literal (copy de vazio, 4 campos no create × 2 no edit, "desativar"
   e não "excluir") e a validação nos FormRequests.
@@ -335,3 +344,69 @@ prod colado no PR do cutover (R1).
 **Fora desta DoD, por sinal e não por completude** ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)):
 `alertas/{index,config}`, `superadmin/metas` e `emails/weekly-digest` (e-mail é Blade por
 definição). São as outras 4 das 9.
+
+---
+
+## 10. Errata 2026-08-27 (pós-merge) — o B1 caiu na janela do próprio PR, e a fonte responde 2 pendências
+
+> **Por que existe:** o §9.3 foi escrito afirmando o B1 **aberto**, e o
+> [#6379](https://github.com/wagnerra23/oimpresso.com/pull/6379) o fechou **entre o rebase e o
+> merge** do [#6384](https://github.com/wagnerra23/oimpresso.com/pull/6384) — ou seja, o
+> documento nasceu com uma afirmação em presente já falsa (classe LC-10). Isto corrige, sem
+> apagar: o texto do §9.3 fica marcado, este é o estado.
+
+### 10.1 · Estado real dos bloqueadores
+
+| | Estado | PR | Prova |
+|---|---|---|---|
+| **B2** âncora STALE | ✅ caiu | [#6378](https://github.com/wagnerra23/oimpresso.com/pull/6378) | `charter-validate` → `allow`; `ancora.mjs Jana/Index` → `frescor: verificado` |
+| **B1** sem fonte de design | ✅ caiu | [#6379](https://github.com/wagnerra23/oimpresso.com/pull/6379) | `jana-metas.jsx` **24.187 B** e `jana-metas.css` **3.087 B** em `prototipo-ui/cowork/` (medido no disco, em `origin/main`) |
+
+O #6379 trouxe junto `jana-telas-novas.{jsx,css}` (35.454 B / 4.004 B) e os 3 pedidos de
+27/08 para `prototipo-ui/design-docs/cowork-inbox/` — inclusive o `JANA-ERRATA-CAMADA-ESQUECIDA`,
+que é a intake desta migração.
+
+⇒ **O trabalho está DESBLOQUEADO.** A PR-1 do §9.4 ("trazer o `jana-metas`") **já está feita** —
+não por mim, e não pela rota que eu previa. Não refazer.
+
+### 10.2 · O escopo, agora lido da fonte (não inferido)
+
+Cabeçalho de `prototipo-ui/cowork/jana-metas.jsx`, literal: absorve `metas/{index,create,edit,show}`
+**+** `fontes/show` *"para dentro da tela única da Jana — sem rota nova, sem .html novo"*. E o
+mapeamento tela→padrão vem declarado nele:
+
+| Blade | Vira | PT |
+|---|---|---|
+| `metas/index` | tabela de cadastro (view "Cadastro" da seção Metas) | — |
+| `metas/create` · `metas/edit` | **drawer de formulário** | **PT-02** (*"nunca modal full-screen"*) |
+| `metas/show` | seções "Apurações"/"Fonte" do drawer de detalhe | — |
+| `reapurar` | **modal** de confirmação | **PT-04** |
+
+⚠️ O protótipo declara que *"salvar/reapurar não fala com servidor"* — é ritmo de UI, não contrato
+de dados. O contrato de dados continua sendo o §3 deste RUNBOOK.
+
+### 10.3 · A fonte responde a pendência que o §2 tinha mandado pro [W]
+
+O §2 registrou `Route::resource('/metas.periodos')` como *"CRUD inteiro sem nenhuma view Blade …
+se deve ganhar UI no drawer é decisão [W]"*. **A fonte responde:** o formulário do protótipo tem
+`JM_JANELAS` (mensal · trimestral · semanal) e um campo `alvo` — e nenhum dos dois é coluna de
+`jana_metas` (medido na migration `…000001_create_copiloto_metas_table.php`: `slug`, `nome`,
+`unidade`, `tipo_agregacao`, `ativo`, `origem`, `criada_por_user_id`, `business_id`).
+
+Eles são de **`jana_meta_periodos`** (`…000002`): `tipo_periodo`, `data_ini`, `data_fim`,
+`valor_alvo`, `trajetoria`. ⇒ **Períodos não é superfície órfã — é `janela` + `alvo` no mesmo
+formulário do drawer.** O `PeriodosController` é o backend dele e já existe. Deixa de ser decisão
+[W] e vira parte da PR-2.
+
+⚠️ **Divergência de enum, medida — não resolver de passagem.** Backend `tipo_periodo` =
+`mes · trim · ano · custom`; protótipo `JM_JANELAS` = `mensal · trimestral · semanal`.
+**`semanal` não existe no backend**; **`ano` e `custom` não existem no protótipo**. Migration nova
+(ou recusar `semanal`) é **decisão [W]** — mexer em enum de tabela viva não é ajuste de UI.
+
+### 10.4 · O que sobra para [W]
+
+1. **Permissão de metas** (§4.1) — enforçar no servidor ou rebaixar a rótulo de menu. **Não caiu.**
+2. **`SPEC.md:2039`** (US-COPI-148, *"Fora da fusão … `/ia/metas*`"*) — reconciliar com o drawer.
+3. **Enum de `tipo_periodo`** (§10.3) — `semanal` entra no backend, ou sai do formulário?
+
+O que **não** sobra mais: regerar o bundle (o #6379 resolveu por outra rota) e destravar a âncora.
