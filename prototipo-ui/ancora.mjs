@@ -28,7 +28,7 @@ import { fileURLToPath } from 'node:url';
 import { ehPrintSemantico } from '../.claude/hooks/block-ancora-no-olho.mjs';
 import { read, frontmatter, walk } from './_lib-charter.mjs';
 import { raizesDePages } from '../scripts/qa/page-path.mjs';
-import { ultimaVerificacaoDe } from '../scripts/governance/cowork-mirror-freshness.mjs';
+import { ultimaVerificacaoDe, KIND_LIVE_ONLY } from '../scripts/governance/cowork-mirror-freshness.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)); // prototipo-ui/
 const REPO_DEFAULT = resolve(HERE, '..');
@@ -113,12 +113,31 @@ export function entradasDoLedger(raizGit = REPO_DEFAULT) {
   }
 }
 
-/** Última rodada do ledger de frescor, ou `null` quando não há ledger legível. */
+/** Última rodada **de `--compare`** do ledger de frescor, ou `null` quando não há ledger legível.
+ *
+ * ⚠️ FILTRA `live-only`, e o motivo é medido. As duas espécies de rodada moram no MESMO
+ * array append-only, mas respondem a perguntas diferentes: `--compare` mede "o espelho bate
+ * com o vivo?" (arquivo a arquivo, produz `verified`/`staleList`); `--live-only` mede "o que
+ * existe no vivo e nunca desceu?" (não olha arquivo do espelho, não produz veredito de
+ * frescor de nenhum). Pegar a ÚLTIMA entrada crua faz uma rodada de live-only sequestrar o
+ * papel de "última rodada" e DEGRADAR o veredito de todo arquivo: quem estava `STALE`
+ * (medido e divergente) vira `SEM VEREDITO NOVO` (não medido) — troca informação por
+ * ausência dela, silenciosamente.
+ *
+ * Medido em 2026-08-27, no próprio repo: uma rodada de `--live-only --ledger` (`14:16:35Z`)
+ * empurrou a de compare (`2026-08-26T22:07:08Z`) e o `Jana/Index` saiu de `STALE` para
+ * `SEM VEREDITO NOVO` sem que o espelho tivesse mudado um byte.
+ *
+ * O irmão `cowork-mirror-freshness.mjs` já se protege disso no `slaVerdict` (com selftest
+ * "entrada live-only NAO vira veredito do compare"); este consumidor lia o mesmo array sem
+ * a mesma guarda. Não é régua nova — é a guarda existente aplicada ao segundo leitor.
+ */
 export function ultimaRodada(raizGit = REPO_DEFAULT) {
   try {
     const bruto = JSON.parse(readFileSync(join(raizGit, LEDGER_REL), 'utf8'));
     const entradas = Array.isArray(bruto) ? bruto : (bruto.entries || []);
-    return entradas.length ? entradas[entradas.length - 1] : null;
+    const deCompare = entradas.filter((e) => e && e.kind !== KIND_LIVE_ONLY);
+    return deCompare.length ? deCompare[deCompare.length - 1] : null;
   } catch {
     return null;
   }
