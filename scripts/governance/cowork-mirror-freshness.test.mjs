@@ -27,6 +27,8 @@ import {
   liveOnly,
   liveOnlyEntry,
   liveOnlyVerdict,
+  desqualificacaoLiveOnly,
+  lerBundlePromovido,
   LIVE_ONLY_SLA_DAYS,
   exportPlan,
   decodeDesignSyncPayload,
@@ -1028,6 +1030,108 @@ check('mesmo número → mesmo veredito (independe de --check)',
   check('liveOnlyEntry: grava denominador e lista ordenada (insumo do delta)',
     l2.kind === 'live-only' && l2.denom === 237 && l2.liveOnly === 3
       && l2.liveOnlyList.join(',') === 'a.jsx,b.css,c.jsx', JSON.stringify(l2));
+}
+
+// ── DESQUALIFICAÇÃO DO EIXO MODIFICADO PELO EIXO NOVO (2026-08-27) ───────────────
+// Contrato: proposal 2026-08-27 §2. Medido no dia: `0 sync · 1 stale · 247 unchecked ·
+// mediu 1/248` — 247 de 248 arquivos do espelho NUNCA foram comparados com o vivo, porque o
+// --compare custa um get_file por arquivo (auth interativa, ADR 0315). O --sla calava sobre o
+// outro eixo, que custa UMA list_files: "existe no vivo e nunca desceu?". Com pendência ali,
+// nenhuma leitura do --compare fala sobre o VIVO — só sobre os arquivos que o espelho conhece.
+//
+// ⚠️ O que estes asserts NÃO podem deixar virar: gate. O predicado é ABSOLUTO (n > 0) e
+// absoluto não gateia — §5 2026-08-24 (piso herdado de 50 travaria o alarme pra sempre). Por
+// isso há CONTROLE explícito de que o exit code do --sla não mudou.
+{
+  const BUNDLE = { generatedAt: '2026-08-24T22:49:15.818Z', files: 255 };
+  const NOW = '2026-08-27T12:00:00.000Z';
+
+  // BITE 1 — há live-only ⇒ desqualifica, e o texto NOMEIA o número e os paths.
+  const comBuraco = liveOnlyVerdict([liveOnlyEntry(['jana-metas.jsx', 'produto-detalhe.jsx'], 248, '2026-08-27T00:00:00.000Z')], NOW);
+  const dqRuim = desqualificacaoLiveOnly(comBuraco, BUNDLE);
+  check('BITE desqualificação: live-only > 0 ⇒ desqualifica e nomeia n + paths',
+    dqRuim.desqualifica === true && dqRuim.motivo === 'FORA-DO-ESPELHO' && dqRuim.n === 2
+      && dqRuim.texto.join('\n').includes('jana-metas.jsx')
+      && /INCONCLUSIVA/.test(dqRuim.texto.join('\n')), JSON.stringify(dqRuim.motivo));
+
+  // CONTROLE NEGATIVO — sem live-only NÃO desqualifica. Sem este assert, um `desqualifica:
+  // true` fixo passaria no BITE 1 e o instrumento viraria parede (o oposto do gate mudo, e
+  // igualmente inútil).
+  const semBuraco = liveOnlyVerdict([liveOnlyEntry([], 248, '2026-08-27T00:00:00.000Z')], NOW);
+  const dqBom = desqualificacaoLiveOnly(semBuraco, BUNDLE);
+  check('CONTROLE: live-only === 0 ⇒ NÃO desqualifica (libera)',
+    dqBom.desqualifica === false && dqBom.motivo === null && dqBom.n === 0, JSON.stringify(dqBom.motivo));
+
+  // NUNCA-MEDIDO ≠ tudo bem. É o mesmo `0 failed` de suíte que não rodou (LC-13): sem a
+  // medição do eixo NOVO, não se sabe se o espelho conhece o vivo inteiro.
+  const dqNunca = desqualificacaoLiveOnly(liveOnlyVerdict([], NOW), BUNDLE);
+  check('BITE: eixo NOVO nunca medido ⇒ desqualifica (não-medição não vira verde)',
+    dqNunca.desqualifica === true && dqNunca.motivo === 'NUNCA-MEDIDO' && dqNunca.n === null, JSON.stringify(dqNunca.motivo));
+
+  // Medição VENCIDA: o número existe mas é velho — o vivo pode ter andado desde então.
+  const dqVelho = desqualificacaoLiveOnly(
+    liveOnlyVerdict([liveOnlyEntry([], 248, '2026-08-01T00:00:00.000Z')], NOW), BUNDLE);
+  check('BITE: medição do eixo NOVO vencida ⇒ desqualifica mesmo com n === 0',
+    dqVelho.desqualifica === true && dqVelho.motivo === 'MEDICAO-VENCIDA', JSON.stringify(dqVelho.motivo));
+
+  // O bundle é DATA, nunca veredito. Testar isso é o guarda-costas da §3.2 da proposal: usar
+  // os 255 sha256 do manifesto como prova de frescor dá `255 sync` sobre um bundle de 3 dias
+  // atrás — o verde falso que a §5 2026-08-25 nomeia. Aqui ele só carimba QUANDO parou.
+  check('bundle entra como DATA (carimbo), não como veredito de frescor',
+    dqRuim.texto.join('\n').includes('emitido em 2026-08-24')
+      && !/\bsync\b/i.test(dqRuim.texto.join('\n')), dqRuim.texto.join('\n'));
+  // Fail-open honesto: sem bundle legível o veredito do eixo NOVO não muda — só o carimbo.
+  const dqSemBundle = desqualificacaoLiveOnly(comBuraco, null);
+  check('CONTROLE: bundle ausente não altera o veredito (só o carimbo da data)',
+    dqSemBundle.desqualifica === dqRuim.desqualifica && dqSemBundle.n === dqRuim.n
+      && dqSemBundle.texto.join('\n').includes('não legível'), JSON.stringify(dqSemBundle.motivo));
+
+  // O residual sai SEMPRE, inclusive no caso liberado: `list_files` vê ausência, nunca
+  // modificação. Sem esta linha um `0 live-only` seria lido como "o espelho está em dia".
+  check('limite de plataforma declarado nos DOIS caminhos (ausência ≠ modificação)',
+    /AUSÊNCIA, nunca MODIFICAÇÃO/.test(dqBom.texto.join('\n'))
+      && /AUSÊNCIA, nunca MODIFICAÇÃO/.test(dqRuim.texto.join('\n')));
+
+  // ── BITE DE CLI (§5 2026-07-30: assert em helper exportado NÃO prova contrato de
+  //    pipeline — o bite tem que exercitar o CLI DE FORA). Fixture = ledger num cwd temp.
+  const HERE2 = dirname(fileURLToPath(import.meta.url));
+  const script2 = join(HERE2, 'cowork-mirror-freshness.mjs');
+  const rodarSla = (ledger) => {
+    const sb = mkdtempSync(join(tmpdir(), 'cmf-sla-'));
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    writeFileSync(join(sb, 'scripts', 'governance', '.cowork-freshness-ledger.json'), JSON.stringify(ledger, null, 2));
+    let out = '', status = 0;
+    try { out = execFileSync(process.execPath, [script2, '--sla'], { cwd: sb, encoding: 'utf8', stdio: 'pipe' }); }
+    catch (e) { out = (e.stdout || '') + (e.stderr || ''); status = e.status ?? -1; }
+    rmSync(sb, { recursive: true, force: true });
+    return { out, status };
+  };
+  // Rodada de compare COMPLETA e limpa = o único estado em que o --sla dizia `✓` antes.
+  const hoje = new Date().toISOString();
+  const compareLimpo = { date: hoje, files: 3, sync: 3, stale: 0, unchecked: 0 };
+
+  const cliRuim = rodarSla([compareLimpo, liveOnlyEntry(['jana-metas.jsx'], 248, hoje)]);
+  check('BITE CLI: --compare COMPLETO + live-only pendente ⇒ ⬜ INCONCLUSIVO (não ✓)',
+    /INCONCLUSIVO/.test(cliRuim.out) && !/^✓/m.test(cliRuim.out), cliRuim.out);
+
+  const cliBom = rodarSla([compareLimpo, liveOnlyEntry([], 248, hoje)]);
+  check('CONTROLE CLI: sem live-only ⇒ ✓ COMPLETA (a desqualificação libera)',
+    /^✓ rotina de frescor/m.test(cliBom.out) && !/INCONCLUSIVO/.test(cliBom.out), cliBom.out);
+
+  // ENFORCEMENT INALTERADO — é o assert que impede a próxima sessão de "consertar" isto num
+  // gate. Desqualificação muda a PALAVRA do veredito; o exit code segue o do --compare.
+  check('CONTROLE: desqualificação NÃO muda o exit code (rc 0 nos dois, como o FRESH de antes)',
+    cliRuim.status === 0 && cliBom.status === 0, `ruim=${cliRuim.status} bom=${cliBom.status}`);
+
+  // E no caminho VERMELHO o eixo NOVO também sai — quem for fechar o --compare precisa saber
+  // que fechá-lo não basta enquanto houver arquivo que o espelho nem conhece.
+  const cliVermelho = rodarSla([{ ...compareLimpo, sync: 2, stale: 1, staleList: ['a.jsx'] },
+    liveOnlyEntry(['jana-metas.jsx'], 248, hoje)]);
+  check('eixo NOVO sai TAMBÉM no caminho vermelho (LAST-STALE não engole a desqualificação)',
+    cliVermelho.status === 1 && /jana-metas\.jsx/.test(cliVermelho.out), cliVermelho.out);
+
+  check('lerBundlePromovido: caminho inexistente → null (não objeto vazio)',
+    lerBundlePromovido(tmpdir(), 'nao-existe-jamais.json') === null);
 }
 
 console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel + absent-local que MORDE + refs-da-poda + fluxo e2e)');
