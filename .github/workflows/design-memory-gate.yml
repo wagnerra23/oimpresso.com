@@ -301,10 +301,17 @@ jobs:
           {
             echo "### Espelho Cowork — SLA de frescor (advisory)"
             echo ""
-            if [ "$rc" -eq 0 ]; then
-              echo "✅ rotina de dispatch em dia."
-            else
+            # TRÊS estados, não dois. Desde 2026-08-27 o --sla também reporta o eixo NOVO
+            # ("existe no vivo e nunca desceu?") e, havendo pendência ali, sai `⬜ INCONCLUSIVO`
+            # com rc=0 — porque o predicado do eixo NOVO é ABSOLUTO e absoluto não gateia
+            # (§5 2026-08-24). Derivar o rótulo SÓ do rc imprimiria ✅ com INCONCLUSIVO no
+            # corpo: é a doença "verde com vermelho no corpo" que o veredictoFinal cataloga.
+            if [ "$rc" -ne 0 ]; then
               echo "⚠️ **rotina PARCIAL ou vencida** — \`rc=$rc\`"
+            elif grep -q 'INCONCLUSIVO' "$OUT"; then
+              echo "⬜ **INCONCLUSIVO** — o \`--compare\` fechou, mas há arquivo no Cowork vivo que o espelho não conhece; a leitura não fala sobre o vivo."
+            else
+              echo "✅ rotina de dispatch em dia (e nenhum arquivo do vivo fora do espelho)."
             fi
             echo ""
             echo '```'
