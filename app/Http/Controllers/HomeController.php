@@ -88,6 +88,7 @@ class HomeController extends Controller
         $can_dashboard_data = (bool) auth()->user()->can('dashboard.data');
 
         [$pStart, $pEnd, $pPreset] = $this->resolvePeriod($business_id);
+        $location_id = request()->query('location_id') ?: null;
         $period = ['from' => $pStart, 'to' => $pEnd, 'preset' => $pPreset];
 
         $totals = null;
@@ -100,8 +101,6 @@ class HomeController extends Controller
             // O filtro de loja existia na UI desde a v2 mas o argumento nunca era passado:
             // trocar de loja devolvia os MESMOS 8 numeros. Provado por controle positivo no
             // CT 100 — getSellTotals(...,999999) = 0,00 contra 200,00 sem filtro.
-            $location_id = request()->query('location_id') ?: null;
-
             $sell_details = $this->transactionUtil->getSellTotals($business_id, $start, $end, $location_id);
             $purchase_details = $this->transactionUtil->getPurchaseTotals($business_id, $start, $end, $location_id);
 
@@ -168,6 +167,12 @@ class HomeController extends Controller
             'totals' => $totals,
             'period' => $period,
             'deltas' => $deltas,
+            // gate MESMO de `totals`: sem `dashboard.data` a prop nem e registrada, entao um
+            // partial reload pedindo `charts` nao tem closure pra executar. A FICHA BL-home-index
+            // declara "sem dashboard.data o controller devolve a casca" — isto e a casca.
+            'charts' => $can_dashboard_data
+                ? Inertia::defer(fn () => $this->buildChartsPayload($business_id, $location_id))
+                : null,
             'legacy_url' => '/dashboard-legacy?legacy=1',
             'endpoints' => [
                 'totals' => '/home/get-totals',
@@ -176,6 +181,57 @@ class HomeController extends Controller
                 'sales_dues' => '/home/sales-payment-dues',
             ],
         ]);
+    }
+
+    /**
+     * Series dos 2 graficos da Visao geral (US-DASH-002).
+     *
+     * Fonte: `getSellsCurrentFy` — a MESMA que o Blade legado usa pros charts dele.
+     * Uma verdade so: se o legado e a tela nova divergirem, e bug, nao interpretacao.
+     *
+     * @return array{dia: list<array{label: string, value: float}>, mes: list<array{label: string, value: float}>}
+     */
+    private function buildChartsPayload(int $business_id, $location_id = null): array
+    {
+        $fy = $this->businessUtil->getCurrentFinancialYear($business_id);
+        $desde = Carbon::parse($fy['start'])->subDays(30)->format('Y-m-d');
+        $sells = $this->transactionUtil->getSellsCurrentFy($business_id, $desde, $fy['end']);
+
+        $porDia = [];
+        for ($i = 29; $i >= 0; $i--) {
+            $dia = Carbon::now()->subDays($i)->format('Y-m-d');
+            $q = $sells->where('date', $dia);
+            if ($location_id) {
+                $q = $q->where('location_id', (int) $location_id);
+            }
+            $porDia[] = [
+                'label' => date('d/m', strtotime($dia)),
+                'value' => (float) $q->sum('total_sells'),
+            ];
+        }
+
+        // `yearmonth` vem do SELECT como DATE_FORMAT(...,'%m-%Y') -> "08-2026". Comparar com
+        // Carbon::format('Y-m') ("2026-08") NUNCA casa e o grafico sai 12 barras zeradas.
+        // O consumidor legado (indexLegacy) usa date('m-Y', ...) — aqui e o MESMO formato.
+        // Rotulo: array literal do prototipo (dash-legacy-page.jsx), nao locale — deterministico.
+        $MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+
+        $porMes = [];
+        $cursor = Carbon::parse($fy['start'])->startOfMonth();
+        $fim = Carbon::parse($fy['end'])->startOfMonth();
+        while ($cursor->lte($fim)) {
+            $q = $sells->where('yearmonth', $cursor->format('m-Y'));
+            if ($location_id) {
+                $q = $q->where('location_id', (int) $location_id);
+            }
+            $porMes[] = [
+                'label' => $MESES[$cursor->month - 1],
+                'value' => (float) $q->sum('total_sells'),
+            ];
+            $cursor->addMonth();
+        }
+
+        return ['dia' => $porDia, 'mes' => $porMes];
     }
 
     /**
