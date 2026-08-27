@@ -227,6 +227,49 @@ const PROD_VEHICLES = [
 ];
 const PROD_CATEGORIES = [...new Set(PROD_LIST.map(p => p.category))];
 
+
+// Métricas por produto — EXPLÍCITAS (custo de compra e saídas nos últimos 30 dias).
+// Antes eram derivadas do preço/popularidade dentro da tela: número inventado com
+// cara de apurado. O vivo lê do ProdutoUnificadoController; aqui o mock declara.
+const PROD_METRICS = {
+  "P-001": { cost: 128.00, uses30: 62 },  "P-002": { cost: 21.00,  uses30: 148 },
+  "P-003": { cost: 36.00,  uses30: 96 },  "P-004": { cost: 292.00, uses30: 38 },
+  "P-005": { cost: 640.00, uses30: 3 },   "P-006": { cost: 11.50,  uses30: 220 },
+  "P-007": { cost: 68.00,  uses30: 32 },  "P-008": { cost: 232.00, uses30: 18 },
+  "P-009": { cost: 52.00,  uses30: 0 },   "P-010": { cost: 4.90,   uses30: 180 },
+  "P-011": { cost: 4.20,   uses30: 0 },   "P-012": { cost: 78.00,  uses30: 42 },
+  "P-013": { cost: 128.00, uses30: 28 },  "P-014": { cost: 14.50,  uses30: 96 },
+  "P-015": { cost: 320.00, uses30: 18 },  "P-016": { cost: 96.00,  uses30: 22 },
+  "S-001": { cost: 42.00,  uses30: 64 },  "S-002": { cost: 28.00,  uses30: 58 },
+  "S-003": { cost: 22.00,  uses30: 71 },  "S-004": { cost: 30.00,  uses30: 24 },
+  "K-001": { cost: 268.00, uses30: 16 },  "K-002": { cost: 430.00, uses30: 9 },
+  "K-003": { cost: 208.00, uses30: 6 }
+};
+
+
+// Cadastro complementar da Consulta de Produtos (alinhado a ProdutoRow do main):
+// nível mínimo declarado, saldo por local e observação livre. Nada derivado.
+const PROD_CADASTRO = {
+  "P-001": { min: 2000, locais: [{ nome: "Matriz", qtd: 9400 }, { nome: "Filial Centro", qtd: 6000 }] },
+  "P-002": { min: 300,  locais: [{ nome: "Matriz", qtd: 1400 }, { nome: "Depósito Obra", qtd: 0 }] },
+  "P-003": { min: 200 },
+  "P-004": { min: 1500, obs: "Dobra em 3 partes só na máquina da Matriz — programar com 1 dia." },
+  "P-005": { min: 500 },
+  "P-006": { min: 100,  obs: "Sob encomenda: lombada quadrada exige tiragem mínima de 100 un." },
+  "P-007": { min: 20,   locais: [{ nome: "Matriz", qtd: 42 }, { nome: "Filial Centro", qtd: 8 }] },
+  "P-008": { min: 1000 },
+  "P-009": { min: 100 },
+  "P-010": { min: 80 },
+  "P-011": { min: 0 },
+  "P-012": { min: 12,   locais: [{ nome: "Matriz", qtd: 30 }, { nome: "Box 2", qtd: 12 }] },
+  "P-013": { min: 16,   obs: "Par obrigatório: vender sempre em 2 un por eixo." },
+  "P-014": { min: 30 },
+  "P-015": { min: 8 },
+  "P-016": { min: 12 },
+  "S-001": { min: null }, "S-002": { min: null }, "S-003": { min: null }, "S-004": { min: null },
+  "K-001": { min: null }, "K-002": { min: null }, "K-003": { min: null }
+};
+
 // Helpers de estoque consolidado por produto
 function prodStock(p) { return (p.variants || []).reduce((s, v) => s + (v.stock || 0), 0); }
 function prodStockStatus(p) {
@@ -237,4 +280,4 @@ function prodStockStatus(p) {
   return { l: "em estoque", c: "ok" };
 }
 
-window.PROD_DATA = { PROD_LIST, PROD_CATEGORIES, prodStock, prodStockStatus, PROD_VEHICLES };
+window.PROD_DATA = { PROD_LIST, PROD_CATEGORIES, PROD_METRICS, PROD_CADASTRO, prodStock, prodStockStatus, PROD_VEHICLES };

@@ -82,6 +82,11 @@ const I = {
   globe:   (p) => <Icon {...p} d={<><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></>}/>,
   map:     (p) => <Icon {...p} d={<><path d="m3 6 6-2 6 2 6-2v14l-6 2-6-2-6 2V6Z"/><path d="M9 4v16M15 6v16"/></>}/>,
   copy:    (p) => <Icon {...p} d={<><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></>}/>,
+  alert:   (p) => <Icon {...p} d={<><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></>}/>,
+  percent: (p) => <Icon {...p} d={<><path d="M19 5 5 19"/><circle cx="7.5" cy="7.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></>}/>,
+  note:    (p) => <Icon {...p} d={<><path d="M16.9 3.6a2.1 2.1 0 0 1 3 3L11 15.5 7 17l1.5-4 8.4-9.4Z"/><path d="M4 21h10"/></>}/>,
+  sort:    (p) => <Icon {...p} d={<><path d="M7 4v16M7 20l-3-3M7 4l3 3"/><path d="M17 20V4M17 4l3 3M17 20l-3-3"/></>}/>,
+  lock:    (p) => <Icon {...p} d={<><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></>}/>,
   layers:  (p) => <Icon {...p} d={<><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5M3 18l9 5 9-5"/></>}/>,
 };
 

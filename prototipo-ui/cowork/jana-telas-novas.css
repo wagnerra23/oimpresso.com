@@ -1,0 +1,47 @@
+/* jana-telas-novas.css — Alertas · Ações (HITL) · Plataforma+Instalação.
+   Vocabulário do módulo: .jm-btn/.jm-cat/.jm-search/.jm-badge/.jm-dr-src vêm de jana-merge.css;
+   .jmc-* (tabela, mono, json, apur) vêm de jana-metas.css — aqui só o que é novo. */
+.jtn-wrap{display:flex;flex-direction:column;gap:12px}
+.jtn-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.jtn-toolbar .jtn-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.jtn-sev{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-dim)}
+.jtn-dot{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+.jtn-dot.alta{background:oklch(0.58 0.19 25)}
+.jtn-dot.media{background:oklch(0.72 0.16 75)}
+.jtn-dot.baixa{background:oklch(0.62 0.12 250)}
+.jtn-desvio{font-family:var(--font-mono,ui-monospace);font-size:12px;font-variant-numeric:tabular-nums}
+.jtn-desvio.neg{color:oklch(0.55 0.18 25)}
+.jtn-desvio.pos{color:oklch(0.48 0.13 145)}
+.jtn-num{font-family:var(--font-mono,ui-monospace);font-size:11.5px;font-variant-numeric:tabular-nums;color:var(--text-dim)}
+.jtn-h3{margin:6px 0 0;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-mute)}
+.jtn-nota{margin:0;font-size:11px;line-height:1.6;color:var(--text-mute);max-width:82ch}
+.jtn-nota code{font-size:10.5px}
+.jtn-sil{color:var(--text-mute);text-decoration:line-through}
+
+.jtn-acoes{display:flex;flex-direction:column;gap:8px}
+.jtn-acao{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:start;padding:13px 15px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.jtn-acao:hover{border-color:color-mix(in oklch,var(--accent) 30%,var(--border))}
+.jtn-acao.aprovada{background:var(--bg-2)}
+.jtn-acao-t{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--text)}
+.jtn-acao-k{font-family:var(--font-mono,ui-monospace);font-size:10.5px;color:var(--text-mute)}
+.jtn-acao-d{margin:4px 0 0;font-size:12px;line-height:1.55;color:var(--text-dim);max-width:74ch}
+.jtn-acao-m{display:flex;align-items:center;gap:10px;margin-top:7px;font-size:11px;color:var(--text-mute)}
+.jtn-acao-cta{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.jtn-recibo{font-family:var(--font-mono,ui-monospace);font-size:10.5px;color:var(--text-mute);text-align:right;line-height:1.5}
+/* Pílula tintada 6% + borda 22% (AP7 — nunca fill sólido). "envio"/"leitura" não é
+   valor de nenhum `kind` do StatusBadge; enquanto não existir o kind no DS, é chip local. */
+.jtn-tipo{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;font-size:10.5px;letter-spacing:.02em;border:1px solid;white-space:nowrap}
+.jtn-tipo.envio{background:color-mix(in oklch,oklch(0.55 0.15 295) 6%,transparent);border-color:color-mix(in oklch,oklch(0.55 0.15 295) 22%,transparent);color:oklch(0.72 0.12 295)}
+.jtn-tipo.leitura{background:color-mix(in oklch,var(--text-dim) 6%,transparent);border-color:color-mix(in oklch,var(--text-dim) 22%,transparent);color:var(--text-dim)}
+
+.jtn-plat{display:flex;flex-direction:column;gap:16px}
+.jtn-secao{display:flex;flex-direction:column;gap:9px}
+.jtn-secao-h{display:flex;align-items:baseline;gap:10px}
+.jtn-secao-h h3{margin:0;font-size:13.5px;font-weight:600;color:var(--text)}
+.jtn-secao-h small{font-family:var(--font-mono,ui-monospace);font-size:10.5px;color:var(--text-mute)}
+.jtn-inst{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.jtn-inst-cell{padding:11px 13px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+.jtn-inst-cell b{display:block;font-family:var(--font-mono,ui-monospace);font-size:14px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
+.jtn-inst-cell small{display:block;margin-top:3px;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-mute)}
+.jtn-inst-acts{display:flex;gap:8px;flex-wrap:wrap}
+.jtn-cfg2{display:grid;grid-template-columns:1fr 1fr;gap:12px}

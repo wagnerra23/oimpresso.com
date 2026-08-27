@@ -93,8 +93,6 @@ function getJanaData(company) {
       { label:"A receber vencido", value:"R$ 4,5M",  deltaCls:"red big",     icon:"alert",
         sub:"4.255 títulos · 76% inadimplência", emphasize:true },
       { label:"Ticket médio",      value:"R$ 1.890", delta:"-22% em 4m",     deltaCls:"down", icon:"trendDown" },
-      { label:"Frota utilização",  value:"33%",      deltaCls:"info",        icon:"truck",
-        sub:"30/91 · 8 paradas >7d" },
     ],
     analises: [
       { id:"inad", title:"Inadimplência", sub:"Top 20 devedores", pill:{ tone:"crit", label:"CRÍTICO" }, icon:"alert",
@@ -121,7 +119,7 @@ function getJanaData(company) {
           { label:"Top 50",  bar:55, pct:"55%" },
           { label:"Top 100", bar:73, pct:"73%" },
         ],
-        footer:"4.500 one-shot (~51%) · saudável caçamba avulsa" },
+        footer:"4.500 one-shot (~51%) · cauda longa saudável" },
       { id:"churn", title:"Churn ouro", sub:"LTV alto inativos", pill:{ tone:"react", label:"REATIVAR" }, icon:"clock",
         kind:"list",
         big:{ value:"8 clientes" },
@@ -131,19 +129,6 @@ function getJanaData(company) {
           { left:"CAPITAL CARGAS",    right:"LTV R$ 62k · 112d" },
         ],
         footer:"Cohort 2024: retenção 35% (target 60%) · drift alto" },
-      { id:"frota", title:"Frota", sub:"91 caçambas avulsas", pill:{ tone:"warn", label:"PARADAS" }, icon:"truck",
-        kind:"donut",
-        donut:{ pct:33, segs:[
-          { color:"var(--accent)", pct:33 },
-          { color:"var(--pos)",    pct:58 },
-          { color:"var(--warn)",   pct:9 },
-        ]},
-        legend:[
-          { color:"var(--accent)", label:"Locadas",     val:"30" },
-          { color:"var(--pos)",    label:"Disponíveis", val:"61" },
-          { color:"var(--warn)",   label:"Paradas >7d", val:"8", danger:true },
-        ],
-        footer:"3 overdue HOJE · target util 70%" },
       { id:"cheq", title:"Cheques previsão", sub:"Na mão / a depositar", icon:"receipt",
         kind:"text",
         big:{ value:"4.421 cheques" },
@@ -161,9 +146,6 @@ function getJanaData(company) {
       { id:"a2", icon:"heart", tone:"violet", title:"Reativação · 8 clientes \"ouro\" inativos",
         sub:"LTV combinado R$ 612k · oferta de retorno personalizada",
         cta:{ label:"Preparar", tone:"violet" } },
-      { id:"a3", icon:"truck", tone:"peach", title:"Outbound · 8 caçambas paradas há >7d",
-        sub:"Top 3 últimos clientes da mesma região · ligar HOJE",
-        cta:{ label:"Listar", tone:"orange" } },
       { id:"a4", icon:"trash", tone:"grey", title:"Limpeza · 2.470 títulos candidatos a baixa",
         sub:"R$ 770k incobráveis >365d · liberar dashboard",
         cta:{ label:"Revisar", tone:"dark" } },
@@ -173,7 +155,6 @@ function getJanaData(company) {
       { icon:"trendDown", title:"Por que a receita caiu?", sub:"Diagnóstico do -68% em maio" },
       { icon:"coins",     title:"Quem deve mais agora?",   sub:"Top devedores ativos" },
       { icon:"clock",     title:"Clientes ouro inativos",  sub:"Quem reativar esta semana" },
-      { icon:"truck",     title:"Frota parada",            sub:"Caçambas ociosas >7d" },
     ],
     // Conversa demonstrando os 4 kinds (markdown/tool_use/data_table/action_card)
     seed: [
@@ -205,7 +186,6 @@ function getJanaData(company) {
       { icon:"coins",   label:"Quem deve mais?" },
       { icon:"compass", label:"Onde estou perdendo?" },
       { icon:"target",  label:"Quais ações hoje?" },
-      { icon:"truck",   label:"Caçambas paradas" },
     ],
   };
 }
@@ -593,13 +573,6 @@ function ConverseComJana({ data }) {
         "• Acima de 365 dias há R$ 770k: isso é baixa, não cobrança.",
       ];
       fontes = [{ n:1, label:"Top 20 devedores · base atual", href:"#top20" }];
-    } else if (/frota|caçamba|cacamba|parad|ativo/.test(t)) {
-      linhas = [
-        "A frota está em **33% de utilização** — 30 de 91 locadas.",
-        "• 8 unidades paradas há mais de 7 dias, **3 já em overdue** [1].",
-        "• Cada dia parado custa mais que o desconto que fecharia a locação.",
-      ];
-      fontes = [{ n:1, label:"Ativos parados · leitura de hoje", href:"#frota" }];
     } else if (/ticket|margem|preço|preco|m³|m3/.test(t)) {
       linhas = [
         "Ticket médio em **R$ 1.890**, caindo há 4 meses (era R$ 2.430).",
@@ -644,7 +617,7 @@ function ConverseComJana({ data }) {
           <div className="jc-empty">
             <div className="jc-avatar lg jc-empty-av">{data.person.initial}</div>
             <h3>Como posso ajudar hoje?</h3>
-            <p>Pergunte sobre vendas, inadimplência, frota ou financeiro — com o contexto do seu negócio.</p>
+            <p>Pergunte sobre vendas, inadimplência, clientes ou financeiro — com o contexto do seu negócio.</p>
             <div className="jc-prompts">
               {data.prompts.map((p, i) => (
                 <button key={i} className="jc-prompt" onClick={() => send(p.title)}>

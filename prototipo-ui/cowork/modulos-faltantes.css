@@ -208,8 +208,21 @@
 
 /* ── Arquivos · DMS backbone (.arq-) ── */
 .arq-page{display:flex;flex-direction:column;gap:14px}
-.arq-lista{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px;overflow-x:auto}
-.arq-lista table{min-width:1020px}
+/* `overflow-x:auto` força `overflow-y` a computar `auto` (spec CSS). Num pai
+   `flex-direction:column`, o item ficava `flex:0 1 auto` e ENCOLHIA até a sobra do flex —
+   clientHeight 147 contra scrollHeight 687: 2 linhas de 10 visíveis, e um scroller dentro
+   de página que já rola. É o AP10 do CLAUDE.md. `flex-shrink:0` devolve a altura inteira e
+   deixa UM scroller só (o `.arq-page`). Medido pelo verificador em 2026-08-25.
+   `padding-inline:0`: com `box-sizing:border-box`, os 8px de cada lado tiravam 16px do
+   content box, então a tabela nunca cabia — o alvo se movia junto com o padding. */
+.arq-lista{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px 0;overflow-x:auto;flex-shrink:0}
+/* A tabela deixa de ser um BLOCO DE LARGURA FIXA e passa a ser fluida com piso: `width:100%`
+   + `table-layout:fixed` faz o navegador distribuir o espaço REAL na proporção dos `width`
+   declarados, em vez de somar 972px absolutos e estourar por 16. Isso mata a classe toda de
+   erro "a soma das colunas tem que bater com o disponível" — aritmética que quebrava a cada
+   scrollbar ou padding novo. O `min-width` é o piso onde o scroll horizontal passa a ser
+   legítimo (tela estreita), não um acidente na persona-alvo de 1280px. */
+.arq-lista table{width:100%;min-width:860px;table-layout:fixed}
 .arq-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .arq-chips,.arq-tabs{display:flex;gap:6px;flex-wrap:wrap}
 .arq-chip{display:flex;align-items:center;gap:6px;padding:5px 10px;font:inherit;font-size:12px;color:var(--text-dim);background:var(--surface);border:1px solid var(--border);border-radius:999px;cursor:pointer}
@@ -217,20 +230,34 @@
 .arq-chip.active{color:var(--accent);border-color:var(--accent);background:color-mix(in oklch,var(--accent) 8%,transparent)}
 .arq-chip span{font-size:11px;color:var(--text-mute)}
 .arq-busca{min-width:240px;max-width:320px;flex:1 1 240px}
-.arq-file{display:flex;gap:10px;align-items:center}
+.arq-file{display:flex;gap:10px;align-items:center;min-width:0}
 .arq-file-ic{display:grid;place-items:center;width:30px;height:30px;flex:0 0 auto;border-radius:8px;background:color-mix(in oklch,var(--accent) 12%,transparent);color:var(--accent)}
-.arq-file-m{display:flex;flex-direction:column;gap:1px;min-width:0}
+/* Tabela de balcão é DENSA: a célula do arquivo mantém 1 linha de nome + 1 de contexto, com
+   corte por ellipsis. Sem isto o nome longo (`NFe-35260800112233-proc.xml`) quebrava em 3
+   linhas e a linha ia a 122px — 8× a altura da linha da trilha (41px) no mesmo viewport.
+   Medido pelo verificador em 2026-08-25. O nome completo fica no `title`. */
+.arq-file-m{display:flex;flex-direction:column;gap:1px;min-width:0;max-width:100%}
+.arq-file-m b,.arq-file-m small{display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .arq-file-m b{font-size:12.5px;color:var(--text)}
 .arq-file-m small,.arq-dono small{font-size:10.5px;color:var(--text-mute)}
-.arq-dono{display:flex;flex-direction:column;gap:1px}
+.arq-dono{display:flex;flex-direction:column;gap:1px;min-width:0;max-width:100%}
+.arq-dono b,.arq-dono small,.arq-dono-lk{display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
 .arq-dono b{font-size:12.5px;color:var(--text)}
 .arq-orfao{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--danger,oklch(0.58 0.19 20))}
 .arq-vault{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--accent)}
 .arq-disk{font-size:11.5px;color:var(--text-mute)}
-.arq-vence{display:flex;flex-direction:column;gap:3px;align-items:flex-start}
+/* 2 linhas, nunca 3: data em cima, [pílula + contagem] na MESMA linha embaixo. Tirar a
+   contagem de dentro da pílula (conserto do `frescor`) tinha criado uma 3ª linha e levado a
+   célula a 61px — a mais alta da tabela, o que definia a altura da linha inteira. */
+.arq-vence{display:flex;flex-direction:column;gap:2px;align-items:flex-start}
 .arq-vence b{font-size:12px}
+.arq-vence-l{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;min-width:0;max-width:100%}
+.arq-vence-l small{font-size:10.5px;color:var(--text-mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .arq-lei{font-size:11.5px;line-height:1.4;color:var(--text-mute);text-wrap:pretty}
-.arq-acts{display:flex;gap:6px;justify-content:flex-end}
+/* Ações de linha: ícone só, nunca quebra, nunca encolhe. `min-width:0` no pai deixaria os
+   botões se comprimirem um sobre o outro; `flex:0 0 auto` garante o alvo de toque. */
+.arq-acts{display:flex;gap:6px;justify-content:flex-end;flex-wrap:nowrap}
+.arq-acts>*{flex:0 0 auto}
 .arq-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
 .arq-card{display:flex;flex-direction:column;gap:3px;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
 .arq-card-l{font-size:11.5px;color:var(--text-mute)}

@@ -4,6 +4,8 @@
 // (disk_vault, upload_max_mb 50, vault_max_file_size_mb 50, signed_url 60 min) +
 // Config/retention.php (prazos com base legal BR, grace 30d, notice 30d, strategy hard_delete,
 // bucket_override sensitive 365d) + enum de arquivos_audit_log.
+// Buckets = os 4 que o CuradorEngine grava (sensitive/active/memory/discard). `common` e
+// `public` foram removidos em 2026-08-25: nunca existiram no enum do banco.
 // Expõe window.ArqData.
 (() => {
 const HOJE = new Date(2026, 7, 24, 10, 40);
@@ -26,7 +28,12 @@ const POLITICA = [
   { sub: "ticket-anexo", dias: 365, lei: "pós-fechamento do ticket", label: "Anexo de ticket" },
   { sub: "default", dias: 90, lei: "LGPD Art. 15-16 — eliminação tempestiva", label: "Sem contexto mapeado" },
 ];
-const CFG = { grace: 30, notice: 30, strategy: "hard_delete", vaultCap: 50, uploadCap: 50, signedMin: 60, sensitiveDefault: 365 };
+// `agendado` é medido no runtime pelo vivo (Schedule::events()), não deduzido do Kernel: hoje o
+// comando existe, está registrado e só roda se alguém digitar. O mock espelha o estado real.
+// `noticeImplementado` é FALSO de propósito — o prazo de aviso é config aspiracional (o vivo diz
+// isso com todas as letras); desenhar o aviso como se funcionasse era o protótipo prometendo
+// mais do que o sistema faz.
+const CFG = { grace: 30, notice: 30, noticeImplementado: false, agendado: false, strategy: "hard_delete", vaultCap: 50, uploadCap: 50, signedMin: 60, sensitiveDefault: 365 };
 const politica = (sub) => POLITICA.find((p) => p.sub === sub) || POLITICA[POLITICA.length - 1];
 
 // A tela do dono: onde o arquivo é alcançado de verdade (arquivable → rota do Cowork)
@@ -36,15 +43,15 @@ const BASE = [
   { id: 8841, nome: "NFe-35260800112233-proc.xml", bytes: 48120, bucket: "sensitive", vis: "private", sub: "nfe-xml", disk: "vault", enc: true, dono: "Venda #14022", tipo: "Transaction", quem: "sistema", em: menos(1), md5: "9f2a1c", ret: 1825, porQuem: null, titular: null },
   { id: 8840, nome: "NFe-35260800112230-proc.xml", bytes: 47004, bucket: "sensitive", vis: "private", sub: "nfe-xml", disk: "vault", enc: true, dono: "Venda #14019", tipo: "Transaction", quem: "sistema", em: menos(2), md5: "77bd04", ret: 1825, porQuem: null, titular: null },
   { id: 8836, nome: "contrato-rota-livre-2026.pdf", bytes: 1812004, bucket: "sensitive", vis: "private", sub: "contratos", disk: "vault", enc: true, dono: "Cliente #312", tipo: "Contact", quem: "rita", em: menos(9), md5: "aa31f8", ret: 1825, porQuem: "rita", titular: "Padaria Estrela" },
-  { id: 8830, nome: "fachada-antes.jpg", bytes: 3204112, bucket: "common", vis: "internal", sub: "os-anexo", disk: "local", enc: false, dono: "OS #1187", tipo: "Os", quem: "larissa", em: menos(12), md5: "18cc90", ret: 730, porQuem: null, titular: null },
-  { id: 8829, nome: "fachada-depois.jpg", bytes: 3411882, bucket: "common", vis: "internal", sub: "os-anexo", disk: "local", enc: false, dono: "OS #1187", tipo: "Os", quem: "larissa", em: menos(12), md5: "18cc90", ret: 730, porQuem: null, titular: null },
-  { id: 8818, nome: "laudo-bomba-agua.jpg", bytes: 2998400, bucket: "common", vis: "internal", sub: "repair-foto", disk: "local", enc: false, dono: "OS Repair #8801", tipo: "Repair", quem: "marcos", em: menos(64), md5: "c40a22", ret: 730, porQuem: null, titular: null },
+  { id: 8830, nome: "fachada-antes.jpg", bytes: 3204112, bucket: "active", vis: "internal", sub: "os-anexo", disk: "local", enc: false, dono: "OS #1187", tipo: "Os", quem: "larissa", em: menos(12), md5: "18cc90", ret: 730, porQuem: null, titular: null },
+  { id: 8829, nome: "fachada-depois.jpg", bytes: 3411882, bucket: "active", vis: "internal", sub: "os-anexo", disk: "local", enc: false, dono: "OS #1187", tipo: "Os", quem: "larissa", em: menos(12), md5: "18cc90", ret: 730, porQuem: null, titular: null },
+  { id: 8818, nome: "laudo-bomba-agua.jpg", bytes: 2998400, bucket: "active", vis: "internal", sub: "repair-foto", disk: "local", enc: false, dono: "OS Repair #8801", tipo: "Repair", quem: "marcos", em: menos(64), md5: "c40a22", ret: 730, porQuem: null, titular: null },
   { id: 8802, nome: "print-erro-conciliacao.png", bytes: 412004, bucket: "sensitive", vis: "internal", sub: "ticket-anexo", disk: "local", enc: false, dono: "Ticket #442", tipo: "Ticket", quem: "eliana", em: menos(340), md5: "5b7711", ret: 365, porQuem: "wagner", titular: "Eliana Souza" },
-  { id: 8790, nome: "arte-banner-final.tif", bytes: 68400112, bucket: "common", vis: "internal", sub: "os-anexo", disk: "local", enc: false, dono: null, tipo: null, quem: "larissa", em: menos(410), md5: "e0aa41", ret: 730, porQuem: null, titular: null },
+  { id: 8790, nome: "arte-banner-final.tif", bytes: 68400112, bucket: "discard", vis: "internal", sub: "os-anexo", disk: "local", enc: false, dono: null, tipo: null, quem: "larissa", em: menos(410), md5: "e0aa41", ret: 730, porQuem: null, titular: null },
   { id: 8712, nome: "balanco-2025.pdf", bytes: 902004, bucket: "sensitive", vis: "private", sub: "documentos-fiscais", disk: "vault", enc: true, dono: "Negócio #4", tipo: "Business", quem: "wagner", em: menos(520), md5: "31de55", ret: 1825, porQuem: "wagner", titular: null },
-  { id: 8655, nome: "logo-rota-livre.svg", bytes: 18220, bucket: "public", vis: "public", sub: "default", disk: "local", enc: false, dono: "Negócio #4", tipo: "Business", quem: "rita", em: menos(700), md5: "7ac331", ret: 90, porQuem: "rita", titular: null },
+  { id: 8655, nome: "logo-rota-livre.svg", bytes: 18220, bucket: "memory", vis: "public", sub: "default", disk: "local", enc: false, dono: "Negócio #4", tipo: "Business", quem: "rita", em: menos(700), md5: "7ac331", ret: 90, porQuem: "rita", titular: null },
   // já no grace: soft-delete feito, dá pra restaurar
-  { id: 8721, nome: "ficha-tecnica-antiga.pdf", bytes: 220400, bucket: "common", vis: "internal", sub: "os-anexo", disk: "local", enc: false, dono: "OS #1104", tipo: "Os", quem: "larissa", em: menos(760), md5: "b1cc07", ret: 730, porQuem: null, titular: null, del: menos(11) },
+  { id: 8721, nome: "ficha-tecnica-antiga.pdf", bytes: 220400, bucket: "memory", vis: "internal", sub: "os-anexo", disk: "local", enc: false, dono: "OS #1104", tipo: "Os", quem: "larissa", em: menos(760), md5: "b1cc07", ret: 730, porQuem: null, titular: null, del: menos(11) },
   { id: 8688, nome: "anexo-ticket-401.png", bytes: 331200, bucket: "sensitive", vis: "internal", sub: "ticket-anexo", disk: "local", enc: false, dono: "Ticket #401", tipo: "Ticket", quem: "eliana", em: menos(690), md5: "d0f142", ret: 365, porQuem: null, titular: "Marcos Vital", del: menos(28) },
 ];
 
