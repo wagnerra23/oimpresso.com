@@ -14,9 +14,9 @@ module: _Geral
 >
 > **O que isto é:** a porta geral para componentes, layouts e templates herdáveis por mais de um módulo. A lista é derivada das raízes compartilhadas declaradas em `module-surface.mjs::RAIZES_GERAIS`. **O que NÃO é:** autorização para importar qualquer item sem verificar contrato, status e consumidores; para decidir reuso, consulte também `node scripts/reuse-index.mjs "<símbolo ou intenção>"` e o registry do Design System.
 
-**Total mapeado:** 125 arquivos em 5 papéis.
+**Total mapeado:** 126 arquivos em 5 papéis.
 
-## Componentes compartilhados (React) — 85
+## Componentes compartilhados (React) — 86
 
 - [CommandPalette.tsx](../../../resources/js/Components/CommandPalette.tsx)
 - [Icon.tsx](../../../resources/js/Components/Icon.tsx)
@@ -66,6 +66,7 @@ module: _Geral
 - [PageHeader.tsx](../../../resources/js/Components/shared/PageHeader.tsx)
 - [PageHeaderModuleNav.tsx](../../../resources/js/Components/shared/PageHeaderModuleNav.tsx)
 - [PageHeaderTabs.tsx](../../../resources/js/Components/shared/PageHeaderTabs.tsx)
+- [PeriodBar.tsx](../../../resources/js/Components/shared/PeriodBar.tsx)
 - [PwaInstallBanner.tsx](../../../resources/js/Components/shared/PwaInstallBanner.tsx)
 - [StatusBadge.tsx](../../../resources/js/Components/shared/StatusBadge.tsx)
 - [SubNav.tsx](../../../resources/js/Components/shared/SubNav.tsx)
