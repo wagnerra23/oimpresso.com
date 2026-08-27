@@ -87,14 +87,22 @@ class HomeController extends Controller
 
         $can_dashboard_data = (bool) auth()->user()->can('dashboard.data');
 
+        [$pStart, $pEnd, $pPreset] = $this->resolvePeriod($business_id);
+        $period = ['from' => $pStart, 'to' => $pEnd, 'preset' => $pPreset];
+
         $totals = null;
         if ($can_dashboard_data) {
-            $fy = $this->businessUtil->getCurrentFinancialYear($business_id);
-            $start = $fy['start'];
-            $end = $fy['end'];
+            // US-DASH-004 — periodo escolhido pelo usuario. Default = FY corrente, entao
+            // quem nao mexe no filtro ve exatamente o que via antes (zero mudanca de valor).
+            [$start, $end] = [$pStart, $pEnd];
 
-            $sell_details = $this->transactionUtil->getSellTotals($business_id, $start, $end);
-            $purchase_details = $this->transactionUtil->getPurchaseTotals($business_id, $start, $end);
+            // O filtro de loja existia na UI desde a v2 mas o argumento nunca era passado:
+            // trocar de loja devolvia os MESMOS 8 numeros. Provado por controle positivo no
+            // CT 100 — getSellTotals(...,999999) = 0,00 contra 200,00 sem filtro.
+            $location_id = request()->query('location_id') ?: null;
+
+            $sell_details = $this->transactionUtil->getSellTotals($business_id, $start, $end, $location_id);
+            $purchase_details = $this->transactionUtil->getPurchaseTotals($business_id, $start, $end, $location_id);
 
             $total_ledger_discount = $this->transactionUtil->getTotalLedgerDiscount($business_id, $start, $end);
 
@@ -102,7 +110,8 @@ class HomeController extends Controller
                 $business_id,
                 ['expense', 'sell_return', 'purchase_return'],
                 $start,
-                $end
+                $end,
+                $location_id
             );
 
             $total_sell = (float) ($sell_details['total_sell_inc_tax'] ?? 0);
@@ -133,6 +142,7 @@ class HomeController extends Controller
             // closure D-14: dropdown por business, não muda com filtro — pula no partial reload
             'all_locations' => fn () => BusinessLocation::forDropdown($business_id)->toArray(),
             'totals' => $totals,
+            'period' => $period,
             'legacy_url' => '/dashboard-legacy?legacy=1',
             'endpoints' => [
                 'totals' => '/home/get-totals',
@@ -143,6 +153,40 @@ class HomeController extends Controller
         ]);
     }
 
+    /**
+     * Resolve a janela do painel (US-DASH-004).
+     *
+     * Default = ano fiscal corrente: quem NAO mexe no filtro ve exatamente os mesmos 8
+     * numeros de antes. Presets sao janelas ROLANTES relativas a hoje, iguais as do
+     * prototipo: dia = hoje..hoje · semana = hoje-6..hoje · mes = hoje-29..hoje.
+     * `from`/`to` explicitos vencem o preset.
+     *
+     * @return array{0: string, 1: string, 2: string}
+     */
+    private function resolvePeriod(int $business_id): array
+    {
+        $from = request()->query('from');
+        $to = request()->query('to');
+
+        if ($from && $to && strtotime((string) $from) && strtotime((string) $to)) {
+            return [date('Y-m-d', strtotime((string) $from)), date('Y-m-d', strtotime((string) $to)), 'custom'];
+        }
+
+        $hoje = date('Y-m-d');
+
+        switch (request()->query('preset')) {
+            case 'dia':
+                return [$hoje, $hoje, 'dia'];
+            case 'semana':
+                return [date('Y-m-d', strtotime('-6 days')), $hoje, 'semana'];
+            case 'mes':
+                return [date('Y-m-d', strtotime('-29 days')), $hoje, 'mes'];
+        }
+
+        $fy = $this->businessUtil->getCurrentFinancialYear($business_id);
+
+        return [$fy['start'], $fy['end'], 'fy'];
+    }
     /**
      * Blade legacy fallback (`?legacy=1`) — preserva charts ECharts + widgets pluggable.
      * Mesma lógica original do index() pré-F6 Soft.
