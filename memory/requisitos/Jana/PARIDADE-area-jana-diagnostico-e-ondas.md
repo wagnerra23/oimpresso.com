@@ -627,3 +627,90 @@ O §7.5 abre dizendo que o espelho está atrasado; 27/08 **confirma e agrava** �
 - o `ancora.mjs Jana/Index` reporta **STALE** — *"o que você abrir aqui NÃO é o design atual"*;
 - e o achado de hue do §"O que fica ABERTO" continua sem poder ser separado das hipóteses
   concorrentes, porque a fonte de comparação não está fresca.
+
+### 9.6 · Errata do §"O que fica ABERTO" — as hipóteses FORAM separadas (2026-08-27)
+
+> O §9.5 afirma que o achado de hue *"continua sem poder ser separado das hipóteses concorrentes,
+> porque a fonte de comparação não está fresca"*. **Isso está errado.** O frescor do espelho decide
+> *qual valor é o certo*; não decide *por que o código divergiu*. Essa segunda pergunta se responde
+> por história de git + estado dos gates, e ambas estavam disponíveis. Fica registrado, não apagado.
+
+**Base:** worktree em `origin/main` `224bb5f7bb`, 0 commits atrás, árvore limpa, clone completo
+(`is-shallow-repository` = false).
+
+#### As três hipóteses, com veredito
+
+| hipótese | veredito | recibo |
+|---|---|---|
+| **build DTCG defasado** | ❌ **REFUTADA** | `node scripts/design-sync/ds-tokens-build-sync.mjs --check` → exit **0**, *"6 arquivo(s) `_generated` em sincronia"*. `node scripts/governance/dtcg-equivalence.mjs` → **308/308 fiéis, 0 divergências**. Última run do workflow `ds-tokens-build-sync.yml`: **2026-08-26, success**. Controle positivo do ambiente: `import('style-dictionary')` resolve (`RESOLVE OK function`) — o `ls node_modules/` falha por junction, o import não. O `_generated` é fiel ao SSOT; **é o SSOT que está em 240/90** |
+| **decisão posterior não registrada** | ✅ **CONFIRMADA — é a causa** | ver linha do tempo abaixo |
+| **duas fontes por desenho** | 🟡 **verdadeira, mas não explica o hue** | as duas camadas são declaradas por desenho em [`PIPELINE-TOKENS.md:54-55`](../_DesignSystem/PIPELINE-TOKENS.md) (Tailwind `@theme` × shell `.cockpit`), com tabela de quando usar cada uma. Consumidores contados: cockpit `var(--text|--bg|--surface|--border…)` = **43 arquivos / 1.540 ocorrências** em `resources/**` (denominador varrido: 2.433 arquivos versionados, 1.366 deles `.css/.tsx/.ts/.jsx/.js`); shadcn (`text-foreground|bg-card|border-border|bg-background|text-muted-foreground|border-input`) = **319 arquivos `.tsx` / 4.078 ocorrências**. Ambas vivas. **Mas hoje elas CONVERGEM em 240 nas superfícies** — `--surface` (cockpit) e `--color-card` (shadcn) são os dois `oklch(0.30 0.008 240)`; `--border` e `--color-border` são os dois `oklch(0.34 0.008 240)`. A divergência real é **interna ao cockpit**: superfícies 240 × textos 90 |
+
+#### A linha do tempo (medida por `git log -L` na linha do token, não por leitura)
+
+| quando | commit | o que fez com o dark |
+|---|---|---|
+| 2026-06-22 | [#3220](https://github.com/wagnerra23/oimpresso.com/pull/3220) | DTCG nasce espelhando o `cockpit.css` de então: textos **hue 90**, superfícies 282 |
+| **2026-07-07 17:25** | [#3932](https://github.com/wagnerra23/oimpresso.com/pull/3932) — **ADR UI-0020** | tudo → **282** (`text 0.965 0.004 282`) |
+| 2026-07-08 11:23 | [#3958](https://github.com/wagnerra23/oimpresso.com/pull/3958) — **ADR UI-0022** | borda dark `0.30 → 0.335`, **ainda em 282** |
+| **2026-07-08 18:43** | [#3981](https://github.com/wagnerra23/oimpresso.com/pull/3981) | **15 tokens do cockpit saem de 282**: 12 → **240** (`bg/bg-2/surface/border/border-2` + 7 `sb-*`), 3 → **90** (`text/text-dim/text-mute`) |
+| **2026-07-08 18:56** | [#3982](https://github.com/wagnerra23/oimpresso.com/pull/3982) | `@theme` shadcn dark → **240** (canvas/superfícies/bordas/neutros) |
+
+A UI-0020 valeu **~25 horas**. O que a derrubou não foi drift: foi **decisão [W] explícita**, registrada
+verbatim no corpo do #3981 — *"Wagner escolheu POR IMAGEM a opção C (espelho): mais claro, cinza
+azul-frio hue 240"*.
+
+#### A dívida exata, e ela já estava nomeada no canon
+
+As duas propostas de 2026-07-08 se declaram, na primeira linha, *"PROPOSTA. NÃO é lei, NÃO é ADR
+numerado"*. A [ADR 0328](../../decisions/0328-ds-transicao-congelado-para-vivo-git-ssot.md), aceita
+em 2026-07-09, diz na linha 63 que **`D-2` (sidebar) e `D-3` (valores dark reconciliados) são
+"UI-ADR/PR à parte — não entram aqui"**.
+
+- **D-2 foi paga** pela [UI-0023](../_DesignSystem/adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md) (2026-07-16), que inclusive registra a proposta como *"rascunhada e nunca numerada — a dívida que esta ADR paga"*.
+- **D-3 nunca foi numerada.** É esta.
+
+Claim negativa com denominador: varridas **413 de 413** ADRs (387 em `memory/decisions/` + 26 em
+`adr/ui/`) — **nenhuma supersede a UI-0020**. Ela segue `accepted`, sem sucessora, descrevendo um
+estado que o código abandonou há ~7 semanas.
+
+#### Dois achados que a tarefa não pedia e que mudam o quadro
+
+1. **A UI-0022 também está em conflito, e ela é a mais nova das duas.** Aceita às 11:23 de 2026-07-08
+   fixando `border` dark em `oklch(0.335 0.012 282)`, foi contrariada às 18:43 do mesmo dia pelo
+   #3981 (`oklch(0.34 0.008 240)`). Ou seja: não é uma ADR órfã, são **duas** — e a UI-0022 declara
+   `Amends: UI-0020`, então corrigir só a mãe deixaria a emenda apontando pra um valor que não existe.
+
+2. **O hue 90 dos textos tem fonte, não é lapso — mas a mensagem do commit e o diff discordam.**
+   O #3981 afirma ter portado *"13 verbatim do espelho aprovado: bg/bg-2/surface/border/border-2/**text/text-dim/text-mute** + sb-*"*.
+   O diff mostra que os 3 de texto foram para valores **byte-idênticos aos pré-UI-0020**
+   (`0.94/0.72/0.58 · 90`), não para 240. E o padrão resultante — superfícies 240 + textos 90 — é
+   exatamente o que o [`prototipo-ui/Design System v4.html:1771-1779`](../../../prototipo-ui/Design%20System%20v4.html)
+   tem no bloco `[data-theme="dark"]`. Fato medido; **não afirmo intenção**. Os `sb-text*` nunca
+   passaram por 282 em nenhum commit — nasceram 90 e continuam 90.
+
+#### O que a produção usa hoje (atribuição dos 3 valores do §"ABERTO")
+
+| medido em `/ia` | token dono | camada |
+|---|---|---|
+| `oklch(0.965 0.004 240)` | `--color-foreground` | shadcn `@theme` |
+| `oklch(0.3 0.008 240)` | `--color-card` **e** `--surface` | shadcn **e** cockpit (mesmo valor) |
+| `oklch(0.34 0.008 240)` | `--color-border`/`--color-input` **e** `--border` | shadcn **e** cockpit (mesmo valor) |
+
+Corrige o §"ABERTO", que dizia *"o cockpit gera 90 e o shadcn 240"*: o cockpit gera **240 nas
+superfícies e 90 nos textos** — os 3 valores medidos vêm todos do lado 240.
+
+#### O que fica para decisão [W] (não executado nesta sessão)
+
+Nada de Fundações foi tocado — a Constituição UI v2 declara a camada imutável via ADR, e as duas
+saídas são exclusivas:
+
+- **(a) o código está certo** → **ADR UI-0027 com `supersedes: [UI-0020, UI-0022]`**, numerando a
+  decisão D-3 de 2026-07-08 que já está em produção há ~7 semanas. É o caminho que a 0328 previu e
+  que a UI-0023 já executou para a D-2 irmã. Zero mudança de pixel.
+- **(b) a UI-0020 está certa** → PR de aplicação citando-a, revertendo 15 tokens do cockpit + os
+  `@theme` para 282. **Muda o dark do app inteiro** e contraria decisão [W] tomada por imagem — R1/R2/R10.
+
+Recomendação: **(a)**. O conflito não é de valor, é de registro: o código seguiu o dono, a ADR ficou
+para trás. Enquanto as duas coexistirem `accepted`, qualquer sessão que abrir a UI-0020 vai ler
+"o dark é 282" como lei vigente e propor a reversão — que é o vetor desta própria seção.
