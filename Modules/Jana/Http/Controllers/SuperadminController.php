@@ -7,8 +7,14 @@ use Modules\Jana\Entities\Meta;
 use App\Scopes\ScopeByBusiness;
 
 /**
- * STUB spec-ready: visão superadmin — metas da plataforma (business_id NULL)
- * + agregação cross-business. Ver adr/arq/0001-tenancy-hibrida.md.
+ * Visão superadmin — metas da plataforma (`business_id NULL`) e metas de clientes.
+ * Ver adr/arq/0001-tenancy-hibrida.md.
+ *
+ * ⚠️ "STUB spec-ready" saiu em 2026-08-27: o método está implementado (gate
+ * `jana.superadmin` + `withoutGlobalScope` deliberado, que é o caso legítimo do
+ * ADR 0093). O que de fato NÃO existe é a **agregação** cross-business prometida no
+ * docblock antigo — medido em 2026-08-27: nenhum `sum`/`count`/`groupBy` aqui; as
+ * duas coleções são listadas cruas. Essa metade fica como pendência declarada.
  */
 class SuperadminController extends Controller
 {

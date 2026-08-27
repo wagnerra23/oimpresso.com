@@ -11,8 +11,18 @@ use Modules\Jana\Http\Requests\UpdateMetaRequest;
 use Modules\Jana\Jobs\ApurarMetaJob;
 
 /**
- * STUB spec-ready: resource CRUD de metas. Lógica de filtros, permissões
- * granulares e shape JSON-friendly (ver DoD no SPEC.md) a preencher.
+ * Resource CRUD de metas (US-COPI-011 detalhe · 012 criar · 013 editar). Rotas vivas sob `/ia/metas`.
+ *
+ * ⚠️ O rótulo "STUB spec-ready" saiu daqui em 2026-08-27 porque era FALSO — e é a
+ * mesma classe que o `JanaViewsSemAndaimeTest` impede de chegar ao cliente, só que
+ * no docblock: afirmação em PRESENTE sobre o próprio estado, que apodrece
+ * (§5 2026-08-17). O que o método faz hoje, medido: CRUD completo, `StoreMetaRequest`
+ * e `UpdateMetaRequest` validando (D8.c Wave 14), gate Tier 0 via `findOrFail`.
+ *
+ * A LISTA de pendências do docblock antigo continua verdadeira, e por isso fica —
+ * verificada em 2026-08-27, não herdada: `index()` não filtra (um `orderBy` só,
+ * sem `Request`), não há permissão por ação (o grupo inteiro passa por
+ * `can:jana.access`) e o retorno é Blade nas 4 telas, não JSON. Ver DoD no SPEC.md.
  */
 class MetasController extends Controller
 {

@@ -10,8 +10,11 @@ use Modules\Jana\Support\ContextoNegocio;
 /**
  * ContextSnapshotService — coleta dados atuais do negócio pra alimentar a IA.
  *
- * STUB: queries principais montadas; pode e deve ser otimizado/evoluído
- * conforme novos módulos precisem virar parte do contexto.
+ * Evolui por adição: cada módulo que precise entrar no contexto da IA acrescenta
+ * sua query aqui. Não é um stub — o rótulo saiu em 2026-08-27 (§5 2026-08-17:
+ * comentário não afirma o próprio estado em presente, porque apodrece). O ponto de
+ * atenção real é custo: as queries rodam sob `Cache::remember` com TTL de
+ * `copiloto.context_cache_ttl_minutes`, e query nova sem índice sai cara no path do chat.
  */
 class ContextSnapshotService
 {

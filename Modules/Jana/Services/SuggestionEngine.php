@@ -10,8 +10,14 @@ use Modules\Jana\Support\ContextoNegocio;
 /**
  * SuggestionEngine — orquestra: contexto → prompt → IA → propostas estruturadas.
  *
- * STUB spec-ready: pipeline está montado, mas o prompt e o parse final do
- * JSON estruturado ainda estão pendentes (Fase de implementação real).
+ * ⚠️ Este docblock declarava "STUB spec-ready: o prompt e o parse final do JSON
+ * estruturado ainda estão pendentes". O `SPEC.md` já tinha medido e registrado que
+ * isso é FALSO (§US-COPI-003, "o agente gera as propostas e o driver valida o shape
+ * campo-a-campo") — o docblock só não tinha sido corrigido. Removido em 2026-08-27.
+ *
+ * O fato que o SPEC registra e que continua valendo é OUTRO, e mais incômodo: o
+ * `ChatController` injeta esta classe no construtor e **nunca a chama**. O dono desse
+ * fato é o SPEC — não o repito aqui em número nem em estado (§5 2026-07-17).
  */
 class SuggestionEngine
 {
