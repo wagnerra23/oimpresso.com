@@ -5,8 +5,8 @@ irmaos: Show.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F2 + §6.1 
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o espelho é o documento que sustenta fechamento de folha e defesa em fiscalização — o que ele deixa de mostrar vira verba trabalhista.
 owner: wagner
-last_run: "2026-08-21"
-last_run_ci: "0 UC executado por mim. O bump de last_run é REVALIDAÇÃO DE LEITURA do F3 do contrato de tela (2026-08-21), não veredito: reli os 5 UC contra o diff e nenhum aceite mudou de sentido — 02/03/04 têm o código intocado, 05 segue com `totais`/`linhas` diferidos, e 01 ficou mais forte (o realce da linha continua E ganhou coluna `Estado` explícita). O veredito segue com a lane PHP / Pest (Ponto · MySQL), que roda no CT100/CI (ADR 0062)."
+last_run: "2026-08-27"
+last_run_ci: "0 UC executado por mim. O bump de last_run e REVALIDACAO DE LEITURA disparada pelo G-6 (o .tsx mudou depois do last_run anterior), nao veredito. O diff que a acordou troca APENAS a fonte da cor no Espelho/Show: o mapa de tons do `Totalizador` sai de classe crua (`text-blue-700 dark:text-blue-400`) para token do DS (`text-info-fg`, `text-success-fg`, ...), os NOMES do union viram semanticos (`info|success|warning|destructive|primary`), e o `text-violet-600` inline da coluna HE vira `text-primary`. Reli os 5 UC contra esse diff e nenhum aceite muda de sentido: 01 depende do realce `bg-warning` da linha e da coluna `Estado` — ambos INTOCADOS (o diff nao entra na tabela dia-a-dia, so na celula de HE e nos totalizadores); 02/03/04 nao tem relacao com cor; 05 segue com `totais`/`linhas` diferidos, o `Totalizador` renderiza o mesmo dado com outra classe. O veredito segue com a lane PHP / Pest (Ponto - MySQL), que roda no CT100/CI (ADR 0062)."
 ---
 
 # Casos de Uso & Aceite — Espelho de ponto mensal
