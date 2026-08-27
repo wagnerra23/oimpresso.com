@@ -138,6 +138,17 @@ interface Props<T> {
    * declarar um (ex.: `.arq-lista table{min-width:1020px}`).
    */
   minTableWidth?: number;
+  /**
+   * SUBSTITUI as classes do wrapper da tabela (nao soma).
+   *
+   * Existe pela regra "um elemento, uma familia": quando a tela aplica o CSS do proprio
+   * modulo no wrapper (ex.: `.arq-lista`, que ja traz superficie + borda + raio + rolagem),
+   * somar as utilitarias do default renderiza DUAS molduras — dois bordos, dois raios, dois
+   * contextos de rolagem. Substituir e a unica forma de ter uma so.
+   *
+   * Omitido = default DS canon, que e o que as outras 3 telas usam.
+   */
+  tableWrapperClassName?: string;
 }
 
 export default function DataTable<T>({
@@ -153,6 +164,7 @@ export default function DataTable<T>({
   initialSearch = '',
   rowState,
   minTableWidth,
+  tableWrapperClassName,
 }: Props<T>) {
   const [searchTerm, setSearchTerm] = useState(initialSearch);
 
@@ -235,7 +247,7 @@ export default function DataTable<T>({
         </div>
       )}
 
-      <div className="border border-border rounded overflow-x-auto">
+      <div className={tableWrapperClassName ?? 'border border-border rounded overflow-x-auto'}>
         <table
           className={`w-full text-sm${temLargura ? ' table-fixed' : ''}`}
           style={pisoDaTabela ? { minWidth: pisoDaTabela } : undefined}

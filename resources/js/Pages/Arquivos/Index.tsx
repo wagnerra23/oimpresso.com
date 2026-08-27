@@ -25,7 +25,7 @@
 import '../../../css/cowork-arquivos-bundle.css'
 
 import { Deferred, Link, router } from '@inertiajs/react'
-import { Download } from 'lucide-react'
+import { Download, File } from 'lucide-react'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { PageHeader } from '@/Components/PageHeader'
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs'
@@ -405,21 +405,22 @@ function paraQueryTrilha(f: Filtros): Record<string, string | number | null | un
 }
 
 /**
- * Chip de filtro.
+ * Chip de filtro — ETAPA 2 do bundle (`cowork-arquivos-bundle.css`).
  *
- * Antes, ativo e inativo diferiam só por `font-medium` — no render de 1728px do visreg
- * o chip selecionado era quase indistinguível dos outros. Agora o ativo carrega o mesmo
- * roxo do `--primary` que a aba ativa usa (ADR 0190), e o inativo ganha `hover`: o
- * elemento passa a dizer que é clicável antes do clique.
+ * O bundle desceu em 2026-08-25 declarando "ETAPA 1 de 2 — a tela AINDA NÃO usa as classes
+ * `.arq-*`", e a etapa 2 não veio: o CSS viajou morto no build desde então, e o chip inativo
+ * ficou sem fundo e sem borda, transparente sobre o card. `.arq-chip` traz os três estados
+ * (superfície + borda + pill 999px, hover na borda accent, `.active` em accent 8%).
  *
- * Tokens do DS (`primary`/`muted`), nunca cor crua — a camada canônica é vigiada por
- * lint pra isso.
+ * ⚠️ NADA de utilitária de cor/espaço aqui junto. O `cowork-arquivos-bundle.css` entra
+ * UNLAYERED (`@import` sem `@layer`) e as utilitárias do Tailwind v4 vivem em
+ * `@layer utilities` — unlayered vence layered sem olhar especificidade. Um `bg-primary/10`
+ * que sobrasse nesta tag morreria em silêncio, e quem depurasse ia procurar especificidade.
+ * É o mesmo mecanismo que comeu o `pl-9` da lupa (documentado no `DataTable.tsx`).
+ * Histórico do que estas classes substituem: o helper anterior pintava `bg-primary/10` no
+ * ativo e deixava o inativo sem fundo nenhum.
  */
-const chip = (ativo: boolean) =>
-  'rounded-full border px-3.5 py-1.5 text-xs transition-colors ' +
-  (ativo
-    ? 'border-primary/30 bg-primary/10 font-medium text-primary'
-    : 'text-muted-foreground hover:bg-muted hover:text-foreground')
+const chip = (ativo: boolean) => (ativo ? 'arq-chip active' : 'arq-chip')
 
 /**
  * Conteúdo servível — a distinção que o payload NÃO manda como campo e que a linha precisa.
@@ -474,12 +475,26 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
         const a = row.original
         const lei = leiDe(a.sub_destination, politica)
         return (
-          <Stack gap={1} className="min-w-0">
-            {/* `break-words`: sob `table-layout: fixed` a celula nao cresce pra caber, entao
-                nome de arquivo longo sem espaco VAZARIA pra fora. Quebrar e a forma certa —
-                `truncate` aqui esconderia o nome, que e a informacao principal da linha. */}
-            <span className="font-medium break-words text-foreground">{a.nome}</span>
-            <span className="text-xs text-muted-foreground">
+          // ETAPA 2 — `.arq-file`/`.arq-file-ic`/`.arq-file-m` do bundle, no lugar do
+          // `Stack` + utilitarias. O glyph (o "plate" de 30px com o icone de arquivo) e o que
+          // da a leitura de LINHA DE ACERVO, e nunca tinha sido portado: a celula era so nome
+          // + sub-linha. Nao foi decisao declarada em lugar nenhum — sumiu na travessia.
+          //
+          // `File` do lucide a 15px, exatamente o tamanho do `IcFile` do prototipo, dentro do
+          // plate mudo (`aria-hidden`): ele nao acrescenta informacao pra quem usa leitor de
+          // tela, o nome ao lado ja diz o que e.
+          //
+          // ⚠️ Uma familia por tag: `.arq-file-m b` e `small` ja definem tamanho e cor. O
+          // `break-words` fica porque nao e cor nem espaco — sob `table-layout: fixed` a
+          // celula nao cresce, e nome longo sem espaco vazaria; `truncate` aqui esconderia o
+          // nome, que e a informacao principal da linha.
+          <span className="arq-file">
+            <span className="arq-file-ic" aria-hidden="true">
+              <File size={15} />
+            </span>
+            <span className="arq-file-m">
+            <b className="break-words">{a.nome}</b>
+            <small>
               {/* Mesmo vocabulário da Retenção, que já usava o `CONTEXTO_PT`: rótulo PT-BR na
                   tela, slug no `title`. Antes o slug ia cru dentro de `<code>` — e `<code>` é
                   pra valor técnico, não pra prosa como "sem contexto". */}
@@ -500,8 +515,9 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
               ) : a.sub_destination ? (
                 <> · sem classificação humana</>
               ) : null}
+            </small>
             </span>
-          </Stack>
+          </span>
         )
       },
     },
@@ -545,28 +561,39 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
         // `<a>` cru, não `<Link>` do Inertia: os destinos moram em OUTROS módulos e nem todos
         // são páginas Inertia — uma visita XHR numa página Blade quebra. O protótipo usa
         // `<button>` porque o mock dele não tem roteador de verdade; aqui tem.
+        // ETAPA 2 — `.arq-dono` (as duas linhas) e `.arq-dono-lk` (o link) do bundle.
+        //
+        // Os "tracinhos" que apareciam aqui NÃO viraram corte-com-largura-melhor: a classe de
+        // corte SAIU. Ela nunca foi decisão de design — o protótipo deixa o texto quebrar. Ela
+        // tinha sido portada sozinha, sem a `width: 160` que a sustenta, e `overflow:hidden`
+        // sem largura declarada não tem contra o que cortar: ou a coluna esticava em `nowrap`
+        // roubando a fluida, ou tudo virava reticências. Com a largura declarada (commit
+        // anterior) e sem ela, o texto quebra — que é o que a fonte faz.
+        //
+        // `break-words` fica na sub-linha: nome de classe Eloquent não tem espaço onde quebrar,
+        // e sem isso vazaria da célula de 160px. Não é cor nem espaço, então convive.
         return (
-          <Stack gap={1} className="min-w-0">
+          <span className="arq-dono">
             {a.dono_url ? (
               <a
                 href={a.dono_url}
-                className="truncate font-medium text-primary hover:underline"
+                className="arq-dono-lk"
                 title={`Abrir ${a.dono_rotulo ?? a.dono_tipo} #${a.dono_id}`}
               >
                 {a.dono_rotulo ?? a.dono_tipo} #{a.dono_id}
               </a>
             ) : (
-              <span className="truncate font-medium text-foreground">
+              <b>
                 {a.dono_rotulo ?? a.dono_tipo} #{a.dono_id}
-              </span>
+              </b>
             )}
-            <span
-              className="truncate font-mono text-xs text-muted-foreground"
+            <small
+              className="mono break-words"
               title="Tipo do arquivable (classe Eloquent)."
             >
               {a.dono_tipo}
-            </span>
-          </Stack>
+            </small>
+          </span>
         )
       },
     },
@@ -810,6 +837,14 @@ function Acervo({ acervo, politica, filtros }: { acervo?: Paginator<LinhaAcervo>
       initialSearch={filtros.q ?? ''}
       rowKey={(a) => a.id}
       rowState={estadoDaLinha}
+      // ETAPA 2 — `.arq-lista` do bundle SUBSTITUI o wrapper canon do DataTable (superfície +
+      // borda + raio 12 + rolagem horizontal). Somar as duas renderizaria duas molduras.
+      tableWrapperClassName="arq-lista"
+      // 1020px é do próprio bundle (`.arq-lista table{min-width:1020px}`) — não é número meu.
+      // Precisa vir explícito porque o `style` inline do DataTable vence qualquer seletor:
+      // sem isso o default (soma = 722) sobrescreveria a regra do bundle e as duas fontes
+      // discordariam em silêncio.
+      minTableWidth={1020}
     />
   )
 }
