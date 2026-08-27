@@ -215,7 +215,7 @@ if (app()->environment(['local', 'testing'])) {
     // sessão no browser → as visits seguintes ficam autenticadas. Persistência exige
     // SESSION_DRIVER não-array (file/database) no .env do gate. NUNCA em produção
     // (isProduction guard) — destrava o smoke das telas autenticadas que vinha bloqueado.
-    Route::get('/_visreg-login/{id}', function (int $id, \Illuminate\Http\Request $request) use ($seedFinanceiroVisregFlow, $seedJanaVisregFlow) {
+    Route::get('/_visreg-login/{id}', function (int $id, \Illuminate\Http\Request $request) use ($seedFinanceiroVisregFlow) {
         $request->session()->forget(['user', 'business', 'business_timezone', 'currency', 'financial_year']);
         \Illuminate\Support\Facades\Auth::loginUsingId($id);
         $request->session()->forget(\App\Http\Middleware\VisregStateMiddleware::SESSION_KEY);
@@ -228,7 +228,15 @@ if (app()->environment(['local', 'testing'])) {
         $user = \Illuminate\Support\Facades\Auth::user();
         if ($user !== null) {
             $seedFinanceiroVisregFlow((int) $user->business_id, (int) $user->id, $to);
-            $seedJanaVisregFlow((int) $user->business_id, (int) $user->id, $to);
+            // ⚠️ O `$seedJanaVisregFlow` NÃO entra aqui, e a razão foi MEDIDA (2026-08-27):
+            // esta rota alimenta o L1 (PixelBaselineTest), cuja baseline da Jana já existe.
+            // Ligado aqui, o seed fez a venda vencida aparecer no `default` do L1 → o KPI
+            // renderizou `danger` → o pixel mudou → `it Jana bate com a baseline` FALHOU
+            // (as outras 25 telas passaram, Jana/Pro · Jana/Memoria · Jana/Chat inclusas).
+            // Isso PROVOU que o lever funciona — e provou que ele estava no lugar errado:
+            // o objetivo é criar um estado NOVO no L2, não reescrever a baseline existente
+            // do L1. Regravar baseline pra acomodar fixture nova é a inversão que o §5 de
+            // 2026-08-26 proíbe. O seed vive só no `/_visreg-state`, abaixo.
         }
 
         return redirect($to);
