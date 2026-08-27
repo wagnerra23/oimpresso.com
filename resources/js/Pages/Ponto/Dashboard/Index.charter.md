@@ -3,6 +3,7 @@ id: resources-js-pages-ponto-dashboard-index-charter
 page: /ponto
 component: resources/js/Pages/Ponto/Dashboard/Index.tsx
 related_prototype: prototipo-ui/cowork/ponto-page.jsx
+states: [default]  # gate L2 — o `default` desta tela é semeado com UMA falta do dia (routes/web.php `$seedPontoVisregFlow`), pra que o KpiCard `tone="danger"` de "Faltas hoje" entre em baseline; sync com tests/Browser/visreg-states.json
 owner: wagner
 status: draft
 last_validated: "2026-07-11"
