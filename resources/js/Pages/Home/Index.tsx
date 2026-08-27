@@ -41,6 +41,8 @@ interface Props {
   can_dashboard_data: boolean;
   all_locations: Record<number, string>;
   totals: Totals | null;
+  /** variação % vs o período anterior de mesma duração; null = sem base de comparação */
+  deltas: Partial<Record<'net' | 'total_sell' | 'invoice_due' | 'total_expense', number | null>> | null;
   period: Period;
   legacy_url: string;
   endpoints: {
@@ -61,15 +63,36 @@ const brlCurto = (v: number) => {
   return brl(v);
 };
 
+/** % com sinal explícito, pro caso em que subir é ruim e a cor do DS mentiria. */
+const sinal = (v: number | null | undefined) => (v === null || v === undefined ? '' : `${v >= 0 ? '+' : ''}${v}% vs anterior · `);
+
 const CARTAO = 'rounded-lg border border-border bg-card p-5 shadow-sm';
 const ROTULO = 'text-[10px] font-semibold uppercase tracking-wider text-muted-foreground';
 
 /** KPI em destaque — o número que responde "como foi o período". */
-function KpiHero({ label, value, description }: { label: string; value: number; description?: string }) {
+function KpiHero({
+  label,
+  value,
+  delta,
+  description,
+}: {
+  label: string;
+  value: number;
+  delta?: number | null;
+  description?: string;
+}) {
   return (
     <Stack gap={1} className={`${CARTAO} ring-1 ring-primary/15`}>
       <span className={ROTULO}>{label}</span>
-      <span className="font-mono text-3xl font-semibold tracking-tight text-foreground">{brl(value)}</span>
+      <Inline gap={2} align="baseline" wrap>
+        <span className="font-mono text-3xl font-semibold tracking-tight text-foreground">{brl(value)}</span>
+        {delta != null && (
+          <span className={`font-mono text-[12px] font-semibold ${delta >= 0 ? 'text-success' : 'text-destructive'}`}>
+            {delta >= 0 ? '+' : ''}
+            {delta}% vs anterior
+          </span>
+        )}
+      </Inline>
       {description && <span className="text-[12px] text-muted-foreground">{description}</span>}
     </Stack>
   );
@@ -115,6 +138,7 @@ function HomeIndex({
   can_dashboard_data,
   all_locations,
   totals,
+  deltas,
   period,
   legacy_url,
 }: Props) {
@@ -176,25 +200,31 @@ function HomeIndex({
       {can_dashboard_data && totals ? (
         <Stack gap={4}>
           <KpiGrid cols={4}>
-            <KpiHero label="Líquido no período" value={totals.net} description="Vendas − A receber − Despesas" />
+            <KpiHero
+              label="Líquido no período"
+              value={totals.net}
+              delta={deltas?.net}
+              description="Vendas − A receber − Despesas"
+            />
             <KpiCard
               label="Vendas"
               value={brl(totals.total_sell)}
               icon="trending-up"
               description="incluindo impostos"
+              delta={deltas?.total_sell != null ? { value: deltas.total_sell, label: '% vs anterior' } : undefined}
             />
             <KpiCard
               label="A receber"
               value={brl(totals.invoice_due)}
               icon="hourglass"
               tone="warning"
-              description="líquido de descontos de razão"
+              description={`${sinal(deltas?.invoice_due)}líquido de descontos de razão`}
             />
             <KpiCard
               label="Despesas"
               value={brl(totals.total_expense)}
               icon="receipt"
-              description="lançadas no período"
+              description={`${sinal(deltas?.total_expense)}lançadas no período`}
             />
           </KpiGrid>
           <Contrapartidas totals={totals} />

@@ -91,6 +91,7 @@ class HomeController extends Controller
         $period = ['from' => $pStart, 'to' => $pEnd, 'preset' => $pPreset];
 
         $totals = null;
+        $deltas = null;
         if ($can_dashboard_data) {
             // US-DASH-004 — periodo escolhido pelo usuario. Default = FY corrente, entao
             // quem nao mexe no filtro ve exatamente o que via antes (zero mudanca de valor).
@@ -133,6 +134,29 @@ class HomeController extends Controller
                 'total_sell_return' => $total_sell_return,
                 'total_purchase_return' => $total_purchase_return,
             ];
+
+            // Delta vs periodo ANTERIOR de mesma duracao (o protótipo mostra isso com mock;
+            // aqui e calculado). Regra do design: metrica onde SUBIR e ruim (a receber,
+            // despesas) nao ganha o delta colorido — a cor do DS sai do sinal, nao do sentido.
+            $dias = max(1, (int) ((strtotime($end) - strtotime($start)) / 86400) + 1);
+            $antStart = date('Y-m-d', strtotime($start . ' -' . $dias . ' days'));
+            $antEnd = date('Y-m-d', strtotime($start . ' -1 day'));
+            $ant = $this->periodTotals($business_id, $antStart, $antEnd, $location_id);
+
+            $pct = static function (float $atual, float $anterior): ?int {
+                if (abs($anterior) < 0.01) {
+                    return null; // sem base de comparacao — nao inventa "+100%"
+                }
+
+                return (int) round((($atual - $anterior) / abs($anterior)) * 100);
+            };
+
+            $deltas = [
+                'net' => $pct($totals['net'], $ant['net']),
+                'total_sell' => $pct($totals['total_sell'], $ant['total_sell']),
+                'invoice_due' => $pct($totals['invoice_due'], $ant['invoice_due']),
+                'total_expense' => $pct($totals['total_expense'], $ant['total_expense']),
+            ];
         }
 
         return Inertia::render('Home/Index', [
@@ -143,6 +167,7 @@ class HomeController extends Controller
             'all_locations' => fn () => BusinessLocation::forDropdown($business_id)->toArray(),
             'totals' => $totals,
             'period' => $period,
+            'deltas' => $deltas,
             'legacy_url' => '/dashboard-legacy?legacy=1',
             'endpoints' => [
                 'totals' => '/home/get-totals',
@@ -151,6 +176,36 @@ class HomeController extends Controller
                 'sales_dues' => '/home/sales-payment-dues',
             ],
         ]);
+    }
+
+    /**
+     * Totais de um periodo — o MESMO caminho que o painel usa, chamado tambem pro periodo
+     * anterior. Uma formula so: se o painel mudar, o delta muda junto (nao ha 2a verdade).
+     *
+     * @return array{net: float, total_sell: float, invoice_due: float, total_expense: float}
+     */
+    private function periodTotals(int $business_id, string $start, string $end, $location_id = null): array
+    {
+        $sell = $this->transactionUtil->getSellTotals($business_id, $start, $end, $location_id);
+        $led = $this->transactionUtil->getTotalLedgerDiscount($business_id, $start, $end);
+        $tt = $this->transactionUtil->getTransactionTotals(
+            $business_id,
+            ['expense'],
+            $start,
+            $end,
+            $location_id
+        );
+
+        $totalSell = (float) ($sell['total_sell_inc_tax'] ?? 0);
+        $invoiceDue = (float) (($sell['invoice_due'] ?? 0) - ($led['total_sell_discount'] ?? 0));
+        $expense = (float) ($tt['total_expense'] ?? 0);
+
+        return [
+            'net' => $totalSell - $invoiceDue - $expense,
+            'total_sell' => $totalSell,
+            'invoice_due' => $invoiceDue,
+            'total_expense' => $expense,
+        ];
     }
 
     /**
