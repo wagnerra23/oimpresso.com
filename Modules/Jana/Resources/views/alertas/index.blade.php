@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Copiloto — Alertas')
+@section('title', 'Jana — Alertas')
 @section('content')
 <section class="content-header"><h1>Alertas</h1></section>
 <section class="content">

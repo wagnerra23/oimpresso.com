@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Copiloto — ' . $meta->nome)
+@section('title', 'Jana — ' . $meta->nome)
 @section('content')
 <section class="content-header"><h1>{{ $meta->nome }} <small>{{ $meta->unidade }}</small></h1></section>
 <section class="content">

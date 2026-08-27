@@ -17,7 +17,11 @@ import { Badge } from '@/Components/ui/badge'
 // Deriva do próprio componente em vez de repetir a união à mão: variante nova no DS
 // entra sozinha, e variante removida vira erro de tipo aqui em vez de classe morta.
 type BadgeVariant = NonNullable<React.ComponentProps<typeof Badge>['variant']>
-import { Brain, Trash2, Pencil, Save, Search, Settings, X } from 'lucide-react'
+import { Input } from '@/Components/ui/input'
+import { Label } from '@/Components/ui/label'
+import { Textarea } from '@/Components/ui/textarea'
+import EmptyState from '@/Components/shared/EmptyState'
+import { Trash2, Pencil, Save, Search, Settings, X } from 'lucide-react'
 import FabJana from './components/FabJana'
 import { JanaAreaHeader } from '@/Pages/Jana/components/JanaAreaHeader'
 import JanaConfigDrawer from '@/Pages/Jana/_components/JanaConfigDrawer'
@@ -58,8 +62,22 @@ interface Props {
 // então não se escreve `dark:` — é o que o próprio componente exige das Pages.
 // O mapeamento é por SEMÂNTICA, não por hue: `restricao` restringe (danger),
 // `acao_pendente` pende (warning), `meta` informa (info). `preferencia` e `contexto` não
-// têm carga semântica — ficam nos dois tons neutros distintos que o DS oferece, o que
-// preserva as 5 pills distinguíveis.
+// têm carga semântica — ficam nos dois neutros, o que preserva as 5 pills distinguíveis.
+//
+// COMO os dois neutros se distinguem (medido 2026-08-26, OKLab, tokens de inertia.css):
+//   `neutral`   = bg-muted + `border-border` (borda VISÍVEL) + texto muted-foreground
+//   `secondary` = bg-secondary + `border-transparent` (herda o cva base) + texto near-fg
+// No tema escuro os dois FUNDOS são o mesmo valor (ΔE 0.0000): quem separa é a BORDA e o
+// brilho do texto (ΔE 0.2250), não o fundo. No claro os fundos ficam a ΔE 0.0110.
+// A distinção existe, mas é sutil — registrado aqui pra ninguém "consertar" no escuro
+// achando que é bug de fundo: não é, é o desenho dos tokens.
+//
+// Por que `preferencia` NÃO migra pras alternativas óbvias:
+//   `success`  → carrega tom positivo, e preferir não é dar certo (contraria a regra acima).
+//   `outline`  → JÁ É o fallback de categoria desconhecida (linha ~98): "Preferência" ficaria
+//                visualmente idêntica a "sem categoria".
+//   `neutral`  → colide com `contexto`, some uma das 5.
+// Um segundo neutro soft próprio no DS resolveria melhor, mas token novo é Tier 0 [W].
 const CATEGORIA_LABELS: Record<string, { label: string; variant: BadgeVariant }> = {
   meta:           { label: 'Meta',           variant: 'info' },
   preferencia:    { label: 'Preferência',    variant: 'secondary' },
@@ -97,6 +115,7 @@ function FatoCard({ memoria }: { memoria: MemoriaFato }) {
   // já gravado, e não há razão de domínio pra isso.
   const rel = memoria.metadata?.relevancia as number | undefined
   const origem = memoria.metadata?.origem as string | undefined
+  const motivoId = `memoria-motivo-${memoria.id}`
 
   const onSalvar = () => {
     if (!podeSalvar) return
@@ -194,8 +213,11 @@ function FatoCard({ memoria }: { memoria: MemoriaFato }) {
           <p className="text-sm">{memoria.fato}</p>
         ) : (
           <div className="space-y-2">
-            <textarea
-              className="w-full text-sm rounded-md border p-2 min-h-[80px]"
+            {/* `rows` em vez de `min-h-[80px]`: `.cw-input.cw-textarea` mora UNLAYERED
+                (cowork-fields.css) e vence utilitária Tailwind de `@layer utilities` —
+                o `min-h-*` seria ignorado em silêncio, como o `pl-9` da busca de Clientes. */}
+            <Textarea
+              rows={4}
               value={data.fato}
               onChange={(e) => setData('fato', e.target.value)}
               disabled={processing}
@@ -203,17 +225,21 @@ function FatoCard({ memoria }: { memoria: MemoriaFato }) {
             />
             {errors.fato && <p className="text-xs text-destructive">{errors.fato}</p>}
 
-            <label className="block text-xs text-muted-foreground">
-              Motivo da correção
-              <input
-                className="mt-1 w-full text-sm rounded-md border p-2"
+            {/* Label CANON associada por `htmlFor`/`id` em vez de envolver o campo: o
+                `.cw-label` é `display:flex`, então envolver poria label e input lado a
+                lado. O `id` carrega o `memoria.id` porque a tela renderiza N cards. */}
+            <div>
+              <Label htmlFor={motivoId}>Motivo da correção</Label>
+              <Input
+                id={motivoId}
+                className="mt-1"
                 value={data.motivo}
                 onChange={(e) => setData('motivo', e.target.value)}
                 disabled={processing}
                 placeholder="fica no log de auditoria"
                 aria-label="Motivo da correção"
               />
-            </label>
+            </div>
             {errors.motivo && <p className="text-xs text-destructive">{errors.motivo}</p>}
 
             <p className="text-xs text-muted-foreground">
@@ -310,7 +336,8 @@ function Memoria({ memorias, janaContext }: Props) {
             (b) dizia "O Copiloto", nome que o #5401 padronizou pra "Jana";
             (c) o protótipo (`JmMemoria`, jana-merge.jsx) abre direto no alerta
                 LGPD — não tem título de tela.
-            O ícone `Brain` continua em uso no empty state abaixo. */}
+            O ícone `Brain` continua em uso no empty state abaixo — agora pelo nome
+            (`<EmptyState icon="brain">`), não pelo import direto do lucide. */}
 
         {/* Copy literal do protótipo (JmMemoria, prototipo-ui/cowork/jana-merge.jsx) —
             §1.5 do pacote exige copy literal, não paráfrase. */}
@@ -324,16 +351,22 @@ function Memoria({ memorias, janaContext }: Props) {
 
         {!semNada && (
           <Inline gap={3} align="center" wrap>
-            <label className="relative flex-1 min-w-[220px]">
-              <Search className="absolute left-2 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-              <input
-                className="w-full text-sm rounded-md border py-2 pl-8 pr-2"
+            {/* Mesmo idioma da busca da lista de Clientes: o espaço da lupa vem da
+                utilitária CANON `.cw-input-icon-left` (cowork-fields.css), NÃO de
+                `pl-8` — a Tailwind é layered e perde pro `.cw-input` unlayered.
+                `InputGroup` não serve aqui: ele é addon/botão em caixa ao lado, não
+                ícone DENTRO do campo. O nome acessível segue no `aria-label`, que já
+                era o que nomeava o campo (o `<label>` envolvente não tinha texto). */}
+            <div className="relative flex-1 min-w-[220px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+              <Input
+                className="cw-input-icon-left"
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)}
                 placeholder="Buscar em fatos…"
                 aria-label="Buscar em fatos"
               />
-            </label>
+            </div>
 
             <Inline gap={1} align="center" wrap role="group" aria-label="Filtrar por categoria">
               <Button
@@ -363,29 +396,28 @@ function Memoria({ memorias, janaContext }: Props) {
           </Inline>
         )}
 
-        {semNada || filtradoAZero ? (
-          <Card>
-            <CardContent className="pt-6 text-center text-muted-foreground space-y-3">
-              {semNada ? <Brain className="size-12 mx-auto opacity-30" /> : <Search className="size-12 mx-auto opacity-30" />}
-              {/* Copy literal do protótipo — os DOIS empty states (JmMemoria: `semNada` × `filtrado`).
-                  Produção tinha só um, e com texto diferente. */}
-              <p className="font-medium text-foreground">
-                {semNada
-                  ? 'A Jana ainda não aprendeu nada sobre o seu negócio'
-                  : 'Nenhum fato com esse filtro'}
-              </p>
-              <p className="text-sm">
-                {semNada
-                  ? 'Ela guarda o que você conta durante a conversa — rotinas, preferências, jeito de cobrar. Comece perguntando algo na aba Conversa.'
-                  : 'Nada casa com a busca e a categoria escolhidas.'}
-              </p>
-              {filtradoAZero && (
-                <Button size="sm" variant="ghost" onClick={limparFiltro}>
-                  Limpar filtro
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+        {/* Copy literal do protótipo — os DOIS empty states (JmMemoria: `semNada` × `filtrado`).
+            Produção tinha só um, e com texto diferente. O `EmptyState` canon
+            (@/Components/shared) substitui o Card+ícone+título+descrição+CTA montado à mão;
+            o ramo filtrado usa `variant="search"`, que é exatamente o caso dele. */}
+        {semNada ? (
+          <EmptyState
+            icon="brain"
+            title="A Jana ainda não aprendeu nada sobre o seu negócio"
+            description="Ela guarda o que você conta durante a conversa — rotinas, preferências, jeito de cobrar. Comece perguntando algo na aba Conversa."
+          />
+        ) : filtradoAZero ? (
+          <EmptyState
+            icon="search"
+            variant="search"
+            title="Nenhum fato com esse filtro"
+            description="Nada casa com a busca e a categoria escolhidas."
+            action={
+              <Button size="sm" variant="ghost" onClick={limparFiltro}>
+                Limpar filtro
+              </Button>
+            }
+          />
         ) : (
           <div className="space-y-2">
             {lista.map((m) => <FatoCard key={m.id} memoria={m} />)}

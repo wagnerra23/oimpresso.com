@@ -9,7 +9,7 @@ status: live
 last_validated: '2026-06-13'
 charter_version: 10
 parent_module: Cliente / Crm
-states: [default, empty, loading, dark]  # gate L2 — error removido: toast sonner não dá estado visível determinístico no VRT (md5 #3290) · sync com tests/Browser/visreg-states.json
+states: [loading, dark]  # gate L2 — `error` removido antes (toast sonner, md5 #3290); `default`/`empty` podados em 2026-08-26: render não-reproduzível run-a-run (2 regenerações do MESMO commit de main deram bytes diferentes) · sync com tests/Browser/visreg-states.json
 related_us: [US-CRM-071]
 related_adrs:
   - '0093-multi-tenant-isolation-tier-0'
@@ -65,7 +65,7 @@ related_visual_comparison: memory/requisitos/Crm/cliente-index-visual-comparison
 
 ## Mission
 
-Listagem densa de clientes com drawer lateral 760px abrindo ao clicar em qualquer linha. Drawer cobre 100% do ciclo cadastral (5 tabs com autosave on blur) + visão operacional ("OSs" wrapping das 8 sub-tabs Wave Final 2026-05-21: Extrato/Vendas/Pagamentos/Docs/Atividades/Pessoas/Assinaturas/Pontos) + IA (4 cards Copiloto via Modules/Jana) + Auditoria LGPD Art. 18 (Spatie ActivityLog v4.8). Paridade Cowork score 9,4/10.
+Listagem densa de clientes com drawer lateral 760px abrindo ao clicar em qualquer linha. Drawer cobre 100% do ciclo cadastral (5 tabs com autosave on blur) + visão operacional ("OSs" wrapping das 8 sub-tabs Wave Final 2026-05-21: Extrato/Vendas/Pagamentos/Docs/Atividades/Pessoas/Assinaturas/Pontos) + IA (4 cards da Jana via Modules/Jana) + Auditoria LGPD Art. 18 (Spatie ActivityLog v4.8). Paridade Cowork score 9,4/10.
 
 ## Goals (Index — listagem)
 
@@ -80,19 +80,19 @@ Listagem densa de clientes com drawer lateral 760px abrindo ao clicar em qualque
 
 ## Goals (Drawer 760px — 6 tabs principais + chips Placas/IA)
 
-- **Header drawer**: avatar grande, toggle PF/PJ, nome + "Pessoa jurídica · cadastrado há Xd", badge Ativo/Inativo/Bloqueado, botões "Imprimir ficha" + "Falar com Copiloto →" (= `/jana/chat?context=cliente:{id}`)
+- **Header drawer**: avatar grande, toggle PF/PJ, nome + "Pessoa jurídica · cadastrado há Xd", badge Ativo/Inativo/Bloqueado, botões "Imprimir ficha" + "Falar com a Jana →" (= `/ia/chat?context=cliente:{id}` — a rota canônica; `/jana/*` só existe como 301)
 - **Tab Identificação**: Razão social/Nome, Fantasia (PJ), CNPJ + "Buscar CNPJ" (BrasilAPI proxy server-side), IE (PJ), Contato principal (PJ), Cargo (PJ), CPF/Nascimento/RG (PF) — máscaras + mod 11 + autosave on blur
 - **Tab Contato**: tel/tel2 (máscara `(00) 0 0000-0000`), email (regex), site, canal preferido (radio: whatsapp/email/telefone/presencial) — autosave on blur
 - **Tab Endereço**: CEP + ViaCEP proxy server-side ao blur autopreenche, endereço/número/complemento/bairro/cidade/UF — autosave on blur
 - **Tab Comercial**: limite crédito, prazo padrão (dias), tabela preço (padrao/varejo/atacado/parceiro), pgto padrão (pix/boleto/cartão/dinheiro/transferência), obs comercial textarea — autosave on blur
 - **Tab Classificação**: segmento (radio: varejo/atacado/agência/corporativo/evento/governo), tags multi-select (9 valores), status (ativo/inativo/bloqueado), VIP toggle — autosave on blur
 - **Tab Operações** (`OssTab`): rail vertical com sub-abas `_show/LedgerTab`, `SalesTab`, `PaymentsTab`, `DocumentsTab`, `PessoasContatoTab`, `SubscriptionsTab`, `RewardPointsTab` + **Auditoria** (`_drawer/AuditoriaTab` — integrada 2026-06-13). `ActivitiesTab` removido (duplicava Auditoria — mesma fonte Spatie)
-- **Chip IA**: 4 cards Copiloto (Resumo relacionamento / Reavaliar segmento+tags / Próxima ação / Score risco determinístico) — default ON pra todos (sem gate quota)
+- **Chip IA**: 4 cards da Jana (Resumo relacionamento / Reavaliar segmento+tags / Próxima ação / Score risco determinístico) — default ON pra todos (sem gate quota)
 - **Sub-aba Auditoria** (em Operações): timeline Spatie ActivityLog v4.8 com 6+ tipos eventos — `forSubject(Contact $contact)` filtrado por business_id. Wagner 2026-06-13: saiu do chip (virou sub-aba de Operações) + **botão "Exportar log" removido** (acesso LGPD Art.18 pela própria timeline; rota `/auditoria/export` mantida no backend)
 
 ## Non-Goals
 
-- ❌ Modal sobre modal (Falar com Copiloto abre nova rota, não nested)
+- ❌ Modal sobre modal (Falar com a Jana abre nova rota, não nested)
 - ❌ Show.tsx full-page (DELETADO no mesmo PR — Q1)
 - ❌ Edição em batch (1 cliente por vez)
 - ❌ Tab "Imprimir ficha" embutida — botão dispara `window.print` com CSS @media print
@@ -116,7 +116,7 @@ Listagem densa de clientes com drawer lateral 760px abrindo ao clicar em qualque
 - ❌ Não acessa Contact de outro business_id (ADR 0093 Tier 0 IRREVOGÁVEL)
 - ❌ CPF/CNPJ mascarado server-side (`tax_number_masked`); telefone idem
 - ❌ Não chama LLM no score risco — determinístico (handoff §5.4)
-- ❌ Não envia "Falar com Copiloto" sem confirmação humana — abre rota Jana, não dispara mensagem
+- ❌ Não envia "Falar com a Jana" sem confirmação humana — abre rota Jana, não dispara mensagem
 
 ## Sub-components
 

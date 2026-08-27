@@ -293,6 +293,7 @@ jobs:
         if: always()
         continue-on-error: true
         run: |
+          set +e
           OUT="${RUNNER_TEMP:-.}/cowork-sla.txt"
           node scripts/governance/cowork-mirror-freshness.mjs --sla > "$OUT" 2>&1
           rc=$?
@@ -330,6 +331,7 @@ jobs:
         if: always()
         continue-on-error: true
         run: |
+          set +e
           OUT="${RUNNER_TEMP:-.}/cowork-live-only.txt"
           node scripts/governance/cowork-mirror-freshness.mjs --sla-live-only > "$OUT" 2>&1
           rc=$?

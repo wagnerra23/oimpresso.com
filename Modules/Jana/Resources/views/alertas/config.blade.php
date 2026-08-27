@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Copiloto — Config alertas')
+@section('title', 'Jana — Config alertas')
 @section('content')
 <section class="content-header"><h1>Configurar alertas</h1></section>
 <section class="content">

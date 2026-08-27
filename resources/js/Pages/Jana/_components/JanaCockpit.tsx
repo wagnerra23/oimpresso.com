@@ -65,8 +65,10 @@ import {
 } from 'lucide-react';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
+import { Badge } from '@/Components/ui/badge';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
+import EmptyState from '@/Components/shared/EmptyState';
 import { BriefValorSkeleton, KpiCardSkeleton, SparklineSkeleton } from './JanaCockpitSkeleton';
 import JanaDrillDrawer, { type DrillAnalise } from './JanaDrillDrawer';
 import JanaAcaoModal, { type AcaoHitl } from './JanaAcaoModal';
@@ -171,12 +173,12 @@ function AnalysisCard({
   /** Quando passado, o card abre o drawer "de onde vem esse número". */
   onClick?: () => void;
 }) {
-  const pillTone =
-    pill?.tone === 'crit'
-      ? 'bg-destructive-soft text-destructive-fg'
-      : pill?.tone === 'warn'
-        ? 'bg-warning-soft text-warning-fg'
-        : 'bg-success-soft text-success-fg';
+  // Pill de ESTADO → par SOFT do `Badge` canon (`ui/badge.tsx`), nunca
+  // `default`/`secondary`/`destructive`, que são fill sólido reservado a AÇÃO.
+  // As três variantes abaixo consomem exatamente os mesmos tokens `-soft/-fg`
+  // que este arquivo escrevia à mão — migração 1:1, sem troca de cor.
+  const pillVariant: 'danger' | 'warning' | 'success' =
+    pill?.tone === 'crit' ? 'danger' : pill?.tone === 'warn' ? 'warning' : 'success';
 
   const card = (
     <Card className={onClick ? 'h-full transition-colors hover:border-primary/40' : undefined}>
@@ -190,9 +192,9 @@ function AnalysisCard({
             <small className="text-[11px] text-muted-foreground">{subtitle}</small>
           </div>
           {pill && (
-            <span className={`rounded-full px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wide ${pillTone}`}>
+            <Badge variant={pillVariant} className="uppercase tracking-wide">
               {pill.label}
-            </span>
+            </Badge>
           )}
         </header>
         <div className="text-2xl font-semibold tabular-nums text-foreground">{big}</div>
@@ -438,16 +440,22 @@ export default function JanaCockpit({
               <span className="opacity-50">·</span>
               {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
             </span>
-            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wide text-primary">
+            {/* Marcador de PROVENIÊNCIA do brief ("isto foi escrito pela IA") —
+                pill de estado, logo par SOFT do Badge canon. `info` é o slot
+                semântico de "metadado informativo"; `default`/`secondary` são
+                fill sólido de AÇÃO e não cabem num rótulo. */}
+            <Badge variant="info" className="uppercase tracking-wide">
               IA
-            </span>
-            <button
+            </Badge>
+            <Button
               type="button"
-              className="ml-auto inline-flex items-center gap-1 rounded px-1.5 py-1 text-xs text-muted-foreground hover:text-foreground"
+              variant="ghost"
+              size="sm"
+              className="ml-auto gap-1 text-xs text-muted-foreground"
               title="Ouvir áudio do brief (em breve — TTS V2)"
             >
               <Volume2 size={11} /> Ouvir áudio
-            </button>
+            </Button>
           </header>
 
           <div className="flex flex-col gap-2">
@@ -533,26 +541,35 @@ export default function JanaCockpit({
             )}
 
             <div className="mt-1 flex flex-wrap gap-1.5">
+              {/* Chips do brief — `Button` canon. O que era classe manual aqui
+                  (bg/borda/tipo/estado de hover) já vem das variantes: `default`
+                  entrega o primário `bg-primary … hover:bg-primary/90`, e
+                  `outline` entrega borda + a superfície de hover. O par
+                  `hover:bg-[color:color-mix(…)]` estava escrito LITERALMENTE
+                  duas vezes e saiu — duplicata do que a variante cobre.
+                  Sobra só a geometria de chip (`rounded-full`, `text-xs`), que
+                  nenhuma variante decide. */}
               {overdueCount > 0 && (
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-primary bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
-                >
+                <Button type="button" size="sm" className="rounded-full text-xs">
                   <MessageSquare size={11} /> Disparar régua WhatsApp pros {overdueCount} atrasados
-                </button>
+                </Button>
               )}
-              <button
+              <Button
                 type="button"
-                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground hover:border-primary/40 hover:bg-[color:color-mix(in_oklch,var(--color-primary)_8%,var(--color-card))] hover:text-foreground"
+                variant="outline"
+                size="sm"
+                className="rounded-full text-xs text-muted-foreground"
               >
                 <ClipboardList size={11} /> Ver top devedores
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
-                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground hover:border-primary/40 hover:bg-[color:color-mix(in_oklch,var(--color-primary)_8%,var(--color-card))] hover:text-foreground"
+                variant="outline"
+                size="sm"
+                className="rounded-full text-xs text-muted-foreground"
               >
                 <Search size={11} /> Investigar queda ticket médio
-              </button>
+              </Button>
             </div>
           </div>
         </CardContent>
@@ -854,14 +871,19 @@ export default function JanaCockpit({
         {/* Todas escondidas: a seção declara o estado e diz como voltar, em vez
             de deixar um título com o vazio embaixo — o usuário que escondeu tudo
             no drawer precisa achar o caminho de volta. */}
+        {/* `EmptyState` shared em vez de div + dois `<p>` à mão. A copy é a MESMA,
+            letra por letra: o `<span className="font-medium">` que envolvia
+            "Configurar" caiu porque `description` é `string` no componente canon
+            — o TEXTO RENDERIZADO não muda, só o realce perde o negrito. Trocar a
+            assinatura do EmptyState pra aceitar ReactNode seria mexer num
+            componente com N consumidores por causa de uma ênfase local. */}
         {nenhumaAnalise && (
-          <div className="col-span-full rounded-lg border border-dashed border-border p-6 text-center">
-            <p className="text-sm font-medium text-foreground">Nenhuma análise sendo exibida</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Você escondeu todas em <span className="font-medium text-foreground">Configurar</span>.
-              Os dados continuam lá — reative quando quiser.
-            </p>
-          </div>
+          <EmptyState
+            className="col-span-full rounded-lg border border-dashed border-border"
+            icon="bar-chart-3"
+            title="Nenhuma análise sendo exibida"
+            description="Você escondeu todas em Configurar. Os dados continuam lá — reative quando quiser."
+          />
         )}
       </div>
 

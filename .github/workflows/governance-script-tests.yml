@@ -453,6 +453,7 @@ jobs:
       - name: Ledger de licoes <-> §5 reconciliado (auto-feed · forward-only)
         if: always() && steps.setup.outcome == 'success'
         run: |
+          set +e
           OUT="${RUNNER_TEMP:-.}/licoes-reconcile.txt"
           node .claude/hooks/licoes-code-two-strikes.mjs --reconcile > "$OUT"
           rc=$?

@@ -234,6 +234,18 @@ const CONTEXTO_PT: Record<string, string> = {
 }
 
 /**
+ * Rótulo PT-BR da estratégia de expurgo (`retention.strategy`).
+ *
+ * As duas chaves são as que `Modules/Arquivos/Config/retention.php` admite — conferidas contra
+ * o config, não supostas. Mesmo desenho do `CONTEXTO_PT` e do `ACAO_PT`: o dono do vocabulário
+ * é o config, então estratégia nova aparece com o valor cru em vez de sumir da tela.
+ */
+const ESTRATEGIA_PT: Record<string, string> = {
+  hard_delete: 'Apagar de verdade',
+  anonymize: 'Anonimizar',
+}
+
+/**
  * Rótulo PT-BR da ação da trilha.
  *
  * ⚠️ **O fallback não é detalhe: é o que mantém a regra do vocabulário.** O dono das ações é
@@ -293,6 +305,43 @@ function tamanho(bytes: number): string {
   if (bytes >= 1_073_741_824) return `${(bytes / 1_073_741_824).toFixed(2).replace('.', ',')} GB`
   if (bytes >= 1_048_576) return `${Math.round(bytes / 1_048_576)} MB`
   return `${Math.round(bytes / 1024)} KB`
+}
+
+/**
+ * ISO do servidor → `dd/mm/aaaa`. O ISO fica no `title`, pra depurar.
+ *
+ * Mesmo tratamento que bucket, visibilidade, disco e contexto já recebiam: negócio na tela,
+ * técnico ao lado. A data escapou da regra porque chega pronta do backend e "parecia" texto
+ * de negócio — mas `2026-09-07` é formato de máquina, e o protótipo desenha `dd/mm/aaaa`
+ * (medido: 10 datas na vista Acervo dele, zero em ISO).
+ *
+ * Sem `Date`: a string do servidor já é a data de negócio, e passá-la por `new Date()` a
+ * reinterpretaria em UTC — o mesmo tipo de deslocamento que o `format_date` legado carrega
+ * de propósito (ADR 0066). Fatiar não desloca nada.
+ */
+function dataBR(iso: string): string {
+  const d = iso.split(' ')[0] ?? iso
+  const [a, m, dia] = d.split('-')
+  return dia && m && a ? `${dia}/${m}/${a}` : iso
+}
+
+/** `2026-06-09 18:08:31` → `09/06/2026 18:08`. Segundos não decidem nada numa trilha. */
+function dataHoraBR(iso: string): string {
+  const [d, h] = iso.split(' ')
+  if (!d) return iso
+  return h ? `${dataBR(d)} ${h.slice(0, 5)}` : dataBR(d)
+}
+
+/**
+ * `size=207560` → `203 KB`.
+ *
+ * O `detalhe` do log é `key=value`, que é formato de LOG, não de tela. Só o par `size` é
+ * traduzido: o dono do vocabulário é a coluna `detalhe` do `arquivos_audit_log`, não este
+ * mapa — par desconhecido passa como veio, e o cru fica sempre no `title`.
+ */
+function detalheBR(detalhe: string): string {
+  const m = detalhe.match(/^size=(\d+)$/)
+  return m ? tamanho(Number(m[1])) : detalhe
 }
 
 /** Prazo NUNCA aparece sozinho: o charter exige a lei ao lado — número sozinho não ensina o domínio. */
@@ -376,16 +425,26 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
           <Stack gap={1} className="min-w-0">
             <span className="font-medium text-foreground">{a.nome}</span>
             <span className="text-xs text-muted-foreground">
-              <code>{a.sub_destination ?? 'sem contexto'}</code>
+              {/* Mesmo vocabulário da Retenção, que já usava o `CONTEXTO_PT`: rótulo PT-BR na
+                  tela, slug no `title`. Antes o slug ia cru dentro de `<code>` — e `<code>` é
+                  pra valor técnico, não pra prosa como "sem contexto". */}
+              <span title={a.sub_destination ?? undefined}>
+                {a.sub_destination
+                  ? (CONTEXTO_PT[a.sub_destination] ?? a.sub_destination)
+                  : 'Sem contexto mapeado'}
+              </span>
               {lei ? <> · {lei}</> : null}
               {/* `no_rule_matched` e o fallback do CuradorEngine quando nenhuma regra casa
                   (CuradorEngine:248) — nao e um classificador, e a ausencia de um. Mostrar o
-                  identificador tecnico na tela foi o que o smoke de producao pegou. */}
+                  identificador tecnico na tela foi o que o smoke de producao pegou.
+                  A ausência só INFORMA quando há contexto: sem contexto, "sem classificação
+                  humana" ao lado de "Sem contexto mapeado" são duas ausências dizendo a mesma
+                  coisa — era a sub-linha inteira do caso mais comum do acervo. */}
               {a.classified_by && a.classified_by !== 'no_rule_matched' ? (
                 <> · classificado por {a.classified_by}</>
-              ) : (
+              ) : a.sub_destination ? (
                 <> · sem classificação humana</>
-              )}
+              ) : null}
             </span>
           </Stack>
         )
@@ -453,11 +512,19 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
     {
       id: 'disco',
       header: 'Disco',
+      // A justificativa do `rotuloDisco()` já estava escrita ("o nome técnico do disco é
+      // detalhe de infra"), mas só os cards do Cofre a aplicavam — a coluna ficou com o valor
+      // cru e imprimia `arquivos`, que é o nome do disco Laravel do CT, não informação de
+      // negócio. `vault` era enum pelo mesmo motivo.
       cell: ({ row }) =>
         row.original.encrypted ? (
-          <span className="text-xs font-medium">vault · cifrado</span>
+          <span className="text-xs font-medium" title="vault">
+            Cofre · cifrado
+          </span>
         ) : (
-          <span className="text-xs text-muted-foreground">{row.original.disk ?? '—'}</span>
+          <span className="text-xs text-muted-foreground" title={row.original.disk ?? undefined}>
+            {row.original.disk ? rotuloDisco(row.original.disk).titulo : '—'}
+          </span>
         ),
     },
     {
@@ -482,7 +549,9 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
         const contagem = d !== null && d <= 0 ? `${-d}d vencido` : `${d}d`
         return (
           <Stack gap={1} align="start">
-            <span className="tabular-nums">{a.vence_em}</span>
+            <span className="tabular-nums" title={a.vence_em}>
+              {dataBR(a.vence_em)}
+            </span>
             <Inline gap={2} className="items-center">
               <StatusBadge kind="arquivo_prazo" value={estadoDoPrazo(d)} />
               {mostraContagem && (
@@ -507,7 +576,9 @@ const COLUNAS_TRILHA: ColumnDef<LinhaTrilha, unknown>[] = [
     id: 'quando',
     header: 'Quando',
     cell: ({ row }) => (
-      <span className="tabular-nums text-xs">{row.original.quando}</span>
+      <span className="tabular-nums text-xs" title={row.original.quando}>
+        {dataHoraBR(row.original.quando)}
+      </span>
     ),
   },
   {
@@ -551,7 +622,9 @@ const COLUNAS_TRILHA: ColumnDef<LinhaTrilha, unknown>[] = [
     id: 'detalhe',
     header: 'Detalhe',
     cell: ({ row }) => (
-      <span className="text-xs text-muted-foreground">{row.original.detalhe ?? '—'}</span>
+      <span className="text-xs text-muted-foreground" title={row.original.detalhe ?? undefined}>
+        {row.original.detalhe ? detalheBR(row.original.detalhe) : '—'}
+      </span>
     ),
   },
 ]
@@ -632,7 +705,10 @@ function Trilha({ trilha, filtros }: { trilha?: TrilhaPayload; filtros: Filtros 
 function rotuloDisco(disco: string): { titulo: string; nota: string } {
   return disco === 'vault'
     ? { titulo: 'Cofre (cifrado)', nota: 'AES-256 via Crypt::encryptString — baixa pelo DownloadController' }
-    : { titulo: 'Disco comum', nota: 'servido por Storage::url' }
+    // `Storage::url` é código, e este é justamente o card cuja justificativa acima diz que o
+    // nome técnico vai no `title`. A nota agora descreve o COMPORTAMENTO, que é o que o leitor
+    // da tela precisa saber pra entender a diferença pro cofre (que exige link temporário).
+    : { titulo: 'Disco comum', nota: 'servido direto pelo navegador, sem link temporário' }
 }
 
 /** Um achado do cofre: título, o que ele significa, e a amostra de arquivos. */
@@ -710,7 +786,20 @@ function Retencao({ retencao, politica }: { retencao?: RetencaoPayload; politica
       <Grid min="sm" gap={4} data-contract="retencao-kpis">
         <KpiRetencao valor={kpis.vence_30} rotulo="Vence em 30 dias" nota="ainda dá pra exportar" tom="alerta" />
         <KpiRetencao valor={kpis.vence_90} rotulo="Vence em 90 dias" nota="janela de planejamento" />
-        <KpiRetencao valor={kpis.no_grace} rotulo="No grace period" nota={`${retencao.grace_dias} dias pra restaurar`} />
+        {/* Este rótulo e o do card homônimo na grade de regras estavam em INGLÊS em UI
+            cliente-facing — proibição dura, e a própria tela defende a regra em três lugares.
+            Escapou porque veio desenhado assim no protótipo (`arquivos-page.jsx` usa o mesmo
+            termo): a fonte carrega o defeito e a travessia o copiou fielmente. Aqui a lei é o
+            charter (L88, PT-BR em todo label), que ganha do protótipo pela precedência —
+            divergência declarada, não esquecida.
+            ⚠️ NÃO cite o termo antigo aqui: o `contrato-de-tela` casa por substring no blob do
+            arquivo, comentário incluído, e uma citação faz o gate passar VERDE com a tela já
+            renomeada. O `_nota_limite` do contrato registra essa porta com canário rodado. */}
+        <KpiRetencao
+          valor={kpis.no_grace}
+          rotulo="Na janela de restauro"
+          nota={`${retencao.grace_dias} dias pra restaurar`}
+        />
         <KpiRetencao
           valor={kpis.passou_do_prazo}
           rotulo="Passou do prazo"
@@ -749,7 +838,13 @@ function Retencao({ retencao, politica }: { retencao?: RetencaoPayload; politica
             </tr>
           </thead>
           <tbody>
-            {politica.map((p) => (
+            {/* Ordena por nº de arquivos desc SEM esconder nada: a política inteira continua
+                visível (é ela que ensina o domínio), mas o contexto que de fato tem arquivo
+                deixa de cair na última linha. Cópia antes do sort — `politica` é prop, e
+                `Array.prototype.sort` muta o array no lugar. */}
+            {[...politica]
+              .sort((x, y) => (retencao.por_contexto[y.sub] ?? 0) - (retencao.por_contexto[x.sub] ?? 0))
+              .map((p) => (
               <tr key={p.sub} className="border-b border-border last:border-b-0">
                 <td className="px-4 py-3">
                   <Stack gap={1} className="min-w-0">
@@ -758,7 +853,10 @@ function Retencao({ retencao, politica }: { retencao?: RetencaoPayload; politica
                   </Stack>
                 </td>
                 <td className="px-4 py-3 text-right tabular-nums">
-                  {p.dias >= 365 ? `${Math.round(p.dias / 365)} anos` : `${p.dias} dias`}
+                  {/* `ticket-anexo` tem 365 dias e a tabela imprimia "1 anos". */}
+                  {p.dias >= 365
+                    ? `${Math.round(p.dias / 365)} ${Math.round(p.dias / 365) === 1 ? 'ano' : 'anos'}`
+                    : `${p.dias} dias`}
                 </td>
                 <td className="px-4 py-3 text-xs text-muted-foreground">{p.lei}</td>
                 <td className="px-4 py-3 text-right tabular-nums">{retencao.por_contexto[p.sub] ?? 0}</td>
@@ -771,7 +869,9 @@ function Retencao({ retencao, politica }: { retencao?: RetencaoPayload; politica
       <Grid min="sm" gap={4} data-contract="retencao-regras">
         <Box bg="card" border rounded="lg" p={4}>
           <Stack gap={1}>
-            <span className="text-xs text-muted-foreground">Grace period</span>
+            {/* Mesmo caso do KPI acima: inglês herdado do protótipo (termo antigo não citado
+                aqui de propósito — ver a nota lá). */}
+            <span className="text-xs text-muted-foreground">Janela de restauro</span>
             <span className="text-lg font-medium tabular-nums">{retencao.grace_dias} dias</span>
             <span className="text-xs text-muted-foreground">janela pra restaurar depois do prazo vencer</span>
           </Stack>
@@ -788,9 +888,21 @@ function Retencao({ retencao, politica }: { retencao?: RetencaoPayload; politica
         <Box bg="card" border rounded="lg" p={4}>
           <Stack gap={1}>
             <span className="text-xs text-muted-foreground">Estratégia</span>
-            <span className="text-lg font-medium">{retencao.estrategia}</span>
+            {/* O enum do config chegava aqui CRU, como número-herói do card: a tela imprimia
+                `hard_delete` em corpo grande. É o mesmo jargão que o card "Escopo do job"
+                logo abaixo já trata com cuidado — só que este vinha do dado, não de um
+                literal, e por isso nenhum lint o via (o `ds/no-db-jargon-in-ui` casa JSXText
+                literal, como o comentário daquele card explica). O valor segue no `title`.
+                O fallback preserva a regra do vocabulário: estratégia nova em
+                `Config/retention.php` aparece crua em vez de sumir. */}
+            <span className="text-lg font-medium" title={retencao.estrategia}>
+              {ESTRATEGIA_PT[retencao.estrategia] ?? retencao.estrategia}
+            </span>
             <span className="text-xs text-muted-foreground">
-              apagar de verdade; <code>anonymize</code> disponível por arquivo
+              {/* A nota antiga ("apagar de verdade; …") virou eco do título depois da
+                  tradução — agora ela diz o que a outra estratégia faz, que é a informação
+                  que o card não dava. */}
+              o arquivo sai do disco; anonimizar é a alternativa por arquivo
             </span>
           </Stack>
         </Box>
@@ -858,6 +970,7 @@ function Cofre({ cofre }: { cofre?: CofrePayload }) {
   }
 
   const { acima_do_cap: acima, orfaos, duplicados } = cofre
+  const semAchados = acima.total === 0 && orfaos.total === 0 && duplicados.grupos === 0
 
   return (
     <Stack gap={4}>
@@ -904,6 +1017,23 @@ function Cofre({ cofre }: { cofre?: CofrePayload }) {
               contrato de tela do Cowork e não foi portado — falha minha, não decisão. */}
           <span className="text-sm font-semibold text-foreground">Achados</span>
 
+          {semAchados ? (
+            /* Cofre saudável gastava a dobra inteira em três ensaios técnicos (OOM do
+               VaultEncryptionService, `attach()`, caminho derivado do hash) pra dizer que
+               NADA foi encontrado. A explicação é boa e continua existindo — o que muda é o
+               PESO quando o total é zero. Note que a condição é o zero dos TRÊS: achado com
+               total 0 continua listado quando algum outro apareceu, porque aí o contraste
+               é a informação. */
+            <Stack gap={2}>
+              <span className="text-sm font-medium text-foreground">Nada a apontar</span>
+              <p className="max-w-[72ch] text-xs leading-relaxed text-muted-foreground">
+                Medimos os três sinais do <code>arquivos:health-check</code> que esta tela cobre — arquivo
+                acima do cap de {cofre.cap_mb} MB, órfão sem vínculo e MD5 repetido — e nenhum apareceu.
+                Quando um aparecer, ele abre aqui com a amostra e o que significa.
+              </p>
+            </Stack>
+          ) : (
+            <>
           <Achado
             titulo={`${acima.total} ${acima.total === 1 ? 'arquivo acima' : 'arquivos acima'} do cap de ${cofre.cap_mb} MB`}
             exemplos={acima.exemplos.map(
@@ -940,6 +1070,8 @@ function Cofre({ cofre }: { cofre?: CofrePayload }) {
             vezes quando os caminhos diferem</strong>: o caminho é derivado do hash, então cópias do mesmo mês
             apontam para o mesmo arquivo físico — {duplicados.registros} registros envolvidos ao todo.
           </Achado>
+            </>
+          )}
         </Stack>
       </Box>
     </Stack>

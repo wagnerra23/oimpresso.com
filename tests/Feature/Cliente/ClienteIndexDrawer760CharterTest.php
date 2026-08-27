@@ -183,15 +183,15 @@ test('GUARD 8 — drawer header contem nome + toggle PF/PJ + "cadastrado"', func
         ->toContain('SheetTitle');
 });
 
-// ─── GUARD 9: botao "Falar com Copiloto" link Jana correto ───────────────────
+// ─── GUARD 9: botao "Falar com a Jana" link Jana correto ─────────────────────
 
-test('GUARD 9 — drawer header link "Falar com Copiloto" aponta /ia/chat?context=cliente:{id}', function () {
+test('GUARD 9 — drawer header link "Falar com a Jana" aponta /ia/chat?context=cliente:{id}', function () {
     $tsxPath = __DIR__ . '/../../../resources/js/Pages/Cliente/Index.tsx';
     $contents = file_get_contents($tsxPath);
 
     expect($contents)
         ->toContain('/ia/chat?context=cliente:')
-        ->toContain('Falar com Copiloto')
+        ->toContain('Falar com a Jana')
         ->toContain('Imprimir ficha')
         ->not->toContain('/copiloto/') // Modules/Copiloto NAO existe (ADR 0179)
         ->not->toContain('/jana/chat'); // Wagner 2026-05-22: rota canon /ia (ADR 0180 sidebar v3)

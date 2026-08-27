@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Copiloto — Nova meta')
+@section('title', 'Jana — Nova meta')
 @section('content')
 <section class="content-header"><h1>Nova meta</h1></section>
 <section class="content">

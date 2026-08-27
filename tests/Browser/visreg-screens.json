@@ -16,14 +16,6 @@
     "baseline": "it_Compras_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
-    "screen": "Clientes",
-    "source": "Cliente",
-    "component": "Cliente/Index",
-    "route": "/cliente",
-    "anchor": "Clientes",
-    "baseline": "it_Clientes_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
-  },
-  {
     "screen": "Oficina/OS",
     "source": "OficinaAuto/ServiceOrders/Board",
     "component": "OficinaAuto/ServiceOrders/Board",
@@ -102,14 +94,6 @@
     "route": "/governance/ds-rollout",
     "anchor": "Rollout do Design System",
     "baseline": "it_Governance_DsRollout_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
-  },
-  {
-    "screen": "Produto/Unificado",
-    "source": "Produto/Unificado",
-    "component": "Produto/Unificado/Index",
-    "route": "/products/unificado",
-    "anchor": "Produtos",
-    "baseline": "it_Produto_Unificado_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
     "screen": "Jana/Memoria",

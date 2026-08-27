@@ -65,7 +65,24 @@ const RX = {
   // R6 = emoji REAL (plano suplementar). NÃO inclui dingbats BMP (✓✕★✦⚙⬇) — esses são
   // glyphs de UI (smell de R4 "usar lucide", não "emoji"). Calibrado 2026-05-31 após FP nos goldens.
   emoji: /[\u{1F000}-\u{1FAFF}]/gu,
-  statusFill: /\bbg-(?:red|rose|green|emerald|amber|yellow|orange|sky|blue|indigo|violet)-(?:50|100|200)\b/g,
+  // R7 = fill SÓLIDO em pílula de ESTADO. RE-MIRADO 2026-08-26 — até aqui o regex casava
+  // `bg-<cor>-(50|100|200)`, o TINT, que neste DS é a forma CORRETA: `<Badge variant="danger|
+  // warning|info|success">` renderiza `bg-*-soft` + borda (badge.tsx), e foi isso que o #6268/
+  // #6325 estabeleceram. Ele sinalizava o conserto e era CEGO ao defeito. Medido em 2026-08-26:
+  // 256 hits do tint em 65 de 387 telas, e ZERO nos 35 `<Badge variant="destructive|default|
+  // secondary">`. Agravante: o tint já é 100% coberto por `ds/no-raw-palette-color` (eslint,
+  // ratchet ADR 0209 — casa TODO bg/text/border-<palette>-<step> em className), então a forma
+  // antiga duplicava régua consolidada E perdia a própria regra. Agora casa o que o #6325
+  // nomeou como a violação: `destructive` é o FILL, `danger` é o par SOFT, e Badge é ESTADO.
+  // LIMITES DECLARADOS (fronteira honesta, não bug):
+  //   · variante dinâmica (`variant={cond ? 'destructive' : 'danger'}`, mapa TOM_ACAO) NÃO casa.
+  //   · pílula hand-rolled NÃO casa — donos são `ds/no-handrolled-status-pill` + `ds/no-raw-palette-color`.
+  //   · `default`/`secondary` ficaram FORA de propósito: 3 explícitos + ~53 `<Badge>` sem variant
+  //     são contador/tag legítimos → FP alto. Só `destructive` foi medido: FP 1 de 7 sites do
+  //     repo, e o único é `_Showcase/Components.tsx` (catálogo do DS, casa por construção).
+  //     Aqui ele já sai da população pelo filtro `/[\\/]_/` do main(); no juiz PHP (que lê diff)
+  //     ele pode aparecer — a evidência nomeia o hit e o humano vê que é o catálogo.
+  statusFill: /<Badge\b[^>]*\bvariant=["']destructive["']/g,
   main: /<main[\s/>]/g,
 };
 
