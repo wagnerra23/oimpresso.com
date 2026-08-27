@@ -493,6 +493,37 @@ honra"*. No protótipo o selo é `cfg.pro`, um **toggle de simulação** — a l
 Pintar `plano Pro` no header seria afirmar um estado que o sistema não sabe. Fica para quando o
 JANA-B existir — aí o selo é consequência, não enfeite.
 
+**Reforço de evidência — 2026-08-27 (a conclusão acima NÃO muda; a prova ficou completa).**
+[W] afirmou *"jana pro esta ativa"* e disse ter marcado o Superadmin (pacote) e Configurações do
+negócio. A dúvida procede, e a redação original convidava a ela: a evidência de 08-18 era uma
+varredura de **código** (`rg` em `Modules/` e `app/`), e a pergunta *"existe fonte de estado?"* tem
+um segundo dono — o **banco**, onde `package_details` é JSON livre e `enabled_modules` é lista.
+Código não responde por lá. Medido em produção (biz=1, WR2 Sistemas):
+
+| o que | onde medido | resultado |
+|---|---|---|
+| `business.enabled_modules` | `DB::table('business')->where('id',1)` | 13 entradas core UltimatePOS (`purchases`, `add_sale`, …) — **nenhuma** de plano/Jana |
+| `subscriptions.package_details` (ativa, id=118, pkg=1, até 2030-05-13) | idem | 13 chaves ligadas, entre elas **`jana_module="1"`** — **nenhuma** com `pro`/`tier`/`plan` |
+| tabela `jana_pro_subscriptions` (prevista no `JANA-PRO-PRODUCT-PLAN.md`) | `Schema::hasTable` | **não existe** |
+| colunas de plano/tier em `business` | `SHOW COLUMNS` | nenhuma |
+| chave `*_module` com semântica de tier | `git grep -hoE "'[a-z0-9_]+_module'"` — 41 chaves distintas | nenhuma (`productcatalogue`/`project_mgmt` casam por substring, não por sentido) |
+
+**A distinção que faltava escrita, e é ela que gera a confusão:** o que [W] ativou é **real e está
+ligado** — `jana_module`, lido por [`DataController:153`](../../../Modules/Jana/Http/Controllers/DataController.php)
+e [`HandleInertiaRequests:480`](../../../app/Http/Middleware/HandleInertiaRequests.php). Mas esse
+gate é **binário** (*o business tem a Jana*), não **tier** (*qual plano da Jana*). São eixos
+diferentes, e nenhuma das 3 camadas do gate de módulo carrega tier. Quem vir `jana_module="1"` na
+subscription e concluir *"Pro ativo"* está lendo o eixo errado — foi o que aconteceu aqui.
+
+E a tela `/ia/pro` **não é** fonte: o [`ProController`](../../../Modules/Jana/Http/Controllers/ProController.php)
+manda `'plan' => 'free'` **literal** (com o comentário dizendo que Sprint B deriva de assinatura
+Asaas real), e o `activate` da [`Pro.tsx`](../../../resources/js/Pages/Jana/Pro.tsx) é
+`setTimeout(() => setState('done'), 900)` — muda estado local e **não grava**. Ela renderiza, o
+que é diferente de ativar.
+
+Veredito: **o §8.1 continua correto** — o selo segue sem fonte, e pintá-lo continuaria afirmando um
+estado que o sistema não sabe. Não é errata; é a evidência fechada pelo lado que faltava.
+
 **Skeleton — só onde há `defer`.** `ChatController` tem 3 `Inertia::defer`; `MemoriaController`
 tem **0**. Skeleton numa tela que renderiza tudo no primeiro paint é animação sem espera. Entra
 no Chat quando alguém medir qual dos 3 defers o usuário percebe; na Memória, não entra.
