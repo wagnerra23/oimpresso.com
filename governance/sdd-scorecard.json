@@ -68,40 +68,40 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 296,
+      "value": 306,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "118f40c552b32109",
+        "floor_files_hash": "c87c91c6e422deb6",
         "runs": [
           {
-            "sha": "dcdfd703",
-            "ts": "20260823-020001",
-            "failed": 731,
-            "errors": 406,
-            "skipped": 2338,
-            "all_shards_measured": true
-          },
-          {
-            "sha": "66d04a43",
-            "ts": "20260824-020001",
-            "failed": 783,
-            "errors": 392,
-            "skipped": 2258,
-            "all_shards_measured": true
-          },
-          {
-            "sha": null,
+            "sha": "8c308203",
             "ts": "20260825-020001",
             "failed": 513,
             "errors": 397,
             "skipped": 2302,
             "all_shards_measured": true
+          },
+          {
+            "sha": "c1eb45d3",
+            "ts": "20260826-020001",
+            "failed": 522,
+            "errors": 396,
+            "skipped": 2283,
+            "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260827-020001",
+            "failed": 503,
+            "errors": 488,
+            "skipped": 2267,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260825-020001",
+        "computed_at": "20260827-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -120,38 +120,38 @@
     },
     "coverage_pct": {
       "status": "measured",
-      "value": 21.6,
+      "value": 21.5,
       "unit": "%",
       "direction": "up",
       "target": "só sobe (catraca C2)",
       "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
       "detail": {
-        "covered": 51107,
-        "total": 236642,
+        "covered": 50863,
+        "total": 237106,
         "runs": [
           {
-            "sha": "dcdfd703",
-            "ts": "20260823-020001",
-            "coverage_pct": 21.3,
-            "covered": 50271,
-            "total": 236512
-          },
-          {
-            "sha": "66d04a43",
-            "ts": "20260824-020001",
-            "coverage_pct": 21.4,
-            "covered": 50554,
-            "total": 236529
-          },
-          {
-            "sha": null,
+            "sha": "8c308203",
             "ts": "20260825-020001",
             "coverage_pct": 21.6,
             "covered": 51107,
             "total": 236642
+          },
+          {
+            "sha": "c1eb45d3",
+            "ts": "20260826-020001",
+            "coverage_pct": 21.6,
+            "covered": 51127,
+            "total": 236854
+          },
+          {
+            "sha": null,
+            "ts": "20260827-020001",
+            "coverage_pct": 21.5,
+            "covered": 50863,
+            "total": 237106
           }
         ],
-        "computed_at": "20260825-020001",
+        "computed_at": "20260827-020001",
         "measured_of": 3
       },
       "stream": "FV"
@@ -262,17 +262,15 @@
     },
     "drift_alarms": {
       "status": "measured",
-      "value": 1,
+      "value": 0,
       "unit": "alarmes duros (reds do protection-drift · GT-G4)",
       "direction": "down",
       "target": "advisory perene (0 alarmes duros)",
       "source": "scripts/governance/protection-drift.mjs --json .reds.length (drift de branch protection + watchdog staleness · GT-G4 · P08)",
       "detail": {
-        "reds": [
-          "required SUMIU do vivo: \"visual-regression\" — demoção exige PR editando governance/required-checks-baseline.json + ADR (ADR 0275 §5)"
-        ],
+        "reds": [],
         "warns": 0,
-        "verdict": "red"
+        "verdict": "green"
       },
       "stream": "GT"
     },
