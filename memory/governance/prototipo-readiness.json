@@ -58,6 +58,16 @@
       ]
     },
     {
+      "tela": "Home/Index",
+      "arquivo": "resources/js/Pages/Home/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/dash-legacy-page.jsx (Cockpit V2 · PT-04 Dashboard)",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
       "tela": "kb/Index.v2",
       "arquivo": "resources/js/Pages/kb/Index.v2.tsx",
       "modulo": "core",
@@ -238,5 +248,5 @@
       ]
     }
   ],
-  "total": 55
+  "total": 56
 }
