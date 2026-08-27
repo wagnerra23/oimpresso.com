@@ -22,6 +22,8 @@ import KpiGrid from '@/Components/shared/KpiGrid';
 import { PageHeader } from '@/Components/PageHeader';
 import { PeriodBar, type Period } from '@/Components/shared/PeriodBar';
 import { Alert, AlertDescription } from '@/Components/ui/alert';
+import type { PaginatorShape } from '@/Components/shared/DataTable';
+import GradesPainel, { type Aba, type LinhaDaGrade } from './_components/GradesPainel';
 import { Deferred, router } from '@inertiajs/react';
 import { ReactNode } from 'react';
 
@@ -47,6 +49,12 @@ interface Props {
   period: Period;
   /** deferido — 2 agregações sobre o FY; não segura o first paint */
   charts?: { dia: Array<{ label: string; value: number }>; mes: Array<{ label: string; value: number }> };
+  /** Abas de grade que ESTE usuário pode ver — já filtradas por permissão e setting. */
+  abas: Aba[];
+  /** Aba aberta, resolvida no servidor contra as permitidas. `null` = nenhuma permitida. */
+  aba: string | null;
+  /** Linhas da aba aberta. Prop DEFERIDA: chega no segundo round-trip. */
+  grade: PaginatorShape<LinhaDaGrade> | null;
   legacy_url: string;
   endpoints: {
     totals: string;
@@ -178,19 +186,38 @@ function HomeIndex({
   deltas,
   period,
   charts,
+  abas,
+  aba,
+  grade,
   legacy_url,
 }: Props) {
   const lojas = Object.entries(all_locations);
   const mostraLoja = is_admin && lojas.length > 1;
 
+  // O que a troca de aba e a paginação precisam preservar. Tudo em query string —
+  // o charter proíbe session pra estado de filtro.
+  const parametros = new URLSearchParams(window.location.search);
+  const filtrosDaTela = {
+    from: period.from,
+    to: period.to,
+    location_id: parametros.get('location_id'),
+  };
+
   const trocaLoja = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const id = e.target.value;
     router.visit(window.location.pathname, {
-      data: { ...(id ? { location_id: id } : {}), from: period.from, to: period.to },
+      data: {
+        ...(id ? { location_id: id } : {}),
+        from: period.from,
+        to: period.to,
+        // A loja filtra as grades também — sem carregar a aba junto, a tabela
+        // seguiria mostrando a loja anterior enquanto os KPI já teriam mudado.
+        ...(aba ? { aba } : {}),
+      },
       preserveScroll: true,
       preserveState: true,
       replace: true,
-      only: ['totals', 'period'],
+      only: ['totals', 'period', 'grade'],
     });
   };
 
@@ -286,6 +313,9 @@ function HomeIndex({
           >
             <GraficosVendas charts={charts} />
           </Deferred>
+
+          {/* Ordem do protótipo: contrapartidas → gráficos → abas de grade. */}
+          <GradesPainel abas={abas} aba={aba} grade={grade} filtros={filtrosDaTela} />
         </Stack>
       ) : (
         <EmptyState

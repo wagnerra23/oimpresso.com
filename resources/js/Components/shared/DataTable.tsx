@@ -129,6 +129,16 @@ interface Props<T> {
    */
   rowState?: (row: T) => EstadoDaLinha | undefined;
   /**
+   * Clique na linha inteira — o `onRowClick` do `DataTablePro` do protótipo, usado
+   * para abrir um drawer de detalhe.
+   *
+   * OPT-IN: sem ele a linha continua sendo uma linha de tabela. Com ele a linha
+   * ganha `role="button"`, `tabIndex` e Enter/Espaço — linha clicável que só
+   * responde ao mouse é armadilha de teclado, e o DS não tem por que produzir uma.
+   * Não use junto de controles dentro da célula sem parar a propagação neles.
+   */
+  onRowClick?: (row: T) => void;
+  /**
    * Piso de largura da tabela, em px. Só vale quando alguma coluna declara `meta.width`.
    *
    * Sem piso, `table-layout: fixed` num container estreito espreme a coluna fluida até zero
@@ -157,6 +167,7 @@ export default function DataTable<T>({
   pagination,
   endpoint,
   filters = {},
+  onRowClick,
   searchPlaceholder = 'Buscar...',
   emptyMessage = 'Nenhum resultado.',
   rowKey,
@@ -303,11 +314,29 @@ export default function DataTable<T>({
             ) : (
               table.getRowModel().rows.map((row) => {
                 const estado = rowState?.(row.original);
+                const clicavel = onRowClick !== undefined;
                 return (
                   <tr
                     key={rowKey ? rowKey(row.original) : row.id}
-                    className={`hover:bg-accent/30${estado ? ' ' + CLASSE_ESTADO[estado] : ''}`}
+                    className={`hover:bg-accent/30${estado ? ' ' + CLASSE_ESTADO[estado] : ''}${
+                      clicavel ? ' cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring' : ''
+                    }`}
                     data-estado={estado}
+                    // A linha só vira controle quando a tela pede. Sem `onRowClick` ela
+                    // continua sendo uma linha de tabela — nem `role`, nem foco, nem cursor.
+                    role={clicavel ? 'button' : undefined}
+                    tabIndex={clicavel ? 0 : undefined}
+                    onClick={clicavel ? () => onRowClick(row.original) : undefined}
+                    onKeyDown={
+                      clicavel
+                        ? (e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              onRowClick(row.original);
+                            }
+                          }
+                        : undefined
+                    }
                   >
                     {row.getVisibleCells().map((cell) => {
                       const meta = cell.column.columnDef.meta;
