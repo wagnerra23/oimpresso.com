@@ -42,8 +42,9 @@ tier: B
      O conteúdo vira **dado**; o applier confere bytes por arquivo **antes** de escrever.
    - **[pontual] 1-3 arquivos avulsos** → `get_file` de cada → salve os JSON num dir →
      `node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir>`.
-   ⚠️ **A armadilha que fecha a rota pontual:** `get_file` de arquivo **<~36 KB volta INLINE
-   no contexto** — não há JSON em disco pra alimentar o `--export-from`, e escrever dali é
+   ⚠️ **A armadilha que fecha a rota pontual:** `get_file` de arquivo **pequeno volta INLINE
+   no contexto** (o piso é uma faixa que varia — não restateie número; meça) — não há JSON
+   em disco pra alimentar o `--export-from`, e escrever dali é
    **transcrição** (`fidelidade: NÃO PROVADA`). Isso é limite do **transporte**, não do
    problema: a rota [PRINCIPAL] não tem esse teto. Se você concluir "não há rota fiel para
    estes arquivos", **está na rota errada** — o `sync/README.md` do Cowork nomeia essa

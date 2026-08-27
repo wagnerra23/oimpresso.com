@@ -946,7 +946,7 @@ function reportAbsentLocal(shellHtml, stream = process.stdout) {
         `              (parte >48 KB volta PERSISTIDA em disco, não no contexto) → aplicar-payload.mjs.\n` +
         `              O conteúdo vira DADO e o applier confere bytes por arquivo ANTES de escrever.\n` +
         `  [pontual]   1-3 arquivos avulsos → get_file de cada → salve os JSON num dir → --export-from <dir>.\n` +
-        `              ⚠️ get_file de arquivo <~36 KB volta INLINE no contexto: aí não há JSON em disco\n` +
+        `              ⚠️ get_file de arquivo PEQUENO volta INLINE no contexto: aí não há JSON em disco\n` +
         `              pra alimentar o --export-from, e escrever de lá é TRANSCRIÇÃO (fidelidade não provada).\n` +
         `              Isso é limite do TRANSPORTE, não do problema — a rota [PRINCIPAL] não tem esse teto.\n` +
         `  ⚠️ .md desce em OUTRO destino: o --export-from roteia .md pra prototipo-ui/design-docs/\n  (R1 do cowork-ssot-guard reprova .md em cowork/ — build-only).\n  (não muda o exit code: o --check morde só em STALE)\n`

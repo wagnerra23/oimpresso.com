@@ -213,8 +213,15 @@ export const FASES = [
   //
   // FRONTEIRA MEDIDA do get_file (2026-08-20, testada arquivo a arquivo): conteudo acima de
   // ~48 KB volta PERSISTIDO em disco (jana-merge.jsx 59 KB, financeiro-page.jsx 128 KB);
-  // abaixo de ~36 KB volta INLINE no contexto (chat-jana.jsx 36 KB, jana-merge.css 18 KB,
-  // jana-pro.css 7 KB). So o persistido pode alimentar `--export-from` sem transcrever.
+  // abaixo do piso volta INLINE no contexto (jana-merge.css 18 KB, jana-pro.css 7 KB).
+  // So o persistido pode alimentar `--export-from` sem transcrever.
+  // ⚠️ O PISO NAO E ~36 KB — este bloco dizia isso e apodreceu. Refutado por medicao:
+  // `part01` de 40.896 B chegou INLINE (CODE_NOTES.prompt-cowork-payload-gerador-2026-08-22:27,
+  // que ja registrava "o piso desta harness NAO e ~36 KB"), e em 2026-08-27 jana-metas.jsx
+  // (~20 KB) e .css (~3 KB) vieram inline enquanto bundle.manifest.json (60,6 KB) persistiu.
+  // O piso e uma FAIXA que varia com a resposta, nao um corte fixo: o repo ja carregou 4
+  // numeros diferentes (~36 · ~47 · 48-49,1 · 60 KiB). NAO restatear numero aqui — se
+  // precisar do valor de hoje, MEÇA (baixe um arquivo conhecido e veja se persistiu).
   // COROLARIO que abre a rota: partes de payload <=256 KiB ficam ACIMA da fronteira, entao
   // persistem — da pra baixar as ~14 partes por get_file e aplicar, SEM URL curta.
   //
