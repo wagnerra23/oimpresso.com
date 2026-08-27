@@ -142,7 +142,9 @@ if (app()->environment(['local', 'testing'])) {
      *
      * DETERMINISMO — a data é FIXA e antiga de propósito. O predicado do overdue é
      * `DATE_ADD(transaction_date, INTERVAL pay_term_number DAY) < CURDATE()`
-     * (`SellsCockpitAggregator::buildSellKpis`), e `CURDATE()` é do BANCO: derivar de `now()`
+     * (`SellsCockpitAggregator::buildInsightsAggregates`, :209-243 — este bloco citava
+     * `buildSellKpis` (:47), que usa o MESMO predicado mas NÃO é quem alimenta o
+     * `overdueValue` do Painel; corrigido 2026-08-27), e `CURDATE()` é do BANCO: derivar de `now()`
      * aqui repetiria o defeito que a closure do Financeiro documenta (`:101-103` — processos
      * distintos, relógios distintos, dias distintos gravados). Data fixa em 2020 vence sempre,
      * em qualquer dia de execução, sem depender de relógio nenhum.
@@ -182,7 +184,18 @@ if (app()->environment(['local', 'testing'])) {
             ->value('id');
 
         // Sem location ou sem cliente o insert violaria FK — some em silêncio em vez de
-        // derrubar o request do harness. O snapshot sai sem o estado, e o L2 acusa.
+        // derrubar o request do harness.
+        //
+        // ⚠️ CORRIGIDO 2026-08-27: este comentário dizia "o snapshot sai sem o estado, e o L2
+        // acusa". FALSO — não há sonda nenhuma. Se o guard disparasse, a tela renderizaria com
+        // `overdueValue = 0` (KPI em `default`) e a primeira run CARIMBARIA esse snapshot vazio
+        // como a baseline correta do estado `danger`. É o "defeito 2" que o próprio workflow
+        // documenta. Hoje não dispara — o `VisregTenantSeeder` cria location (:119) e contact
+        // `type=customer` (:131) —, mas isso é sorte de seeder, não garantia.
+        // O padrão do repo pros casos irmãos (`VisregOficinaBoardSeeder`, `VisregJanaChatSeeder`)
+        // é seeder versionado + SONDA DE CONTAGEM no workflow, com o comentário "GATE REAL — se
+        // quebrar, o job falha". Este lever não tem sonda: se o estado virar required, ela vem
+        // antes.
         if ($locationId === null || $contactId === null) {
             return;
         }
