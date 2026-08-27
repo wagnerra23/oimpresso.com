@@ -28,6 +28,7 @@ import { fileURLToPath } from 'node:url';
 import { ehPrintSemantico } from '../.claude/hooks/block-ancora-no-olho.mjs';
 import { read, frontmatter, walk } from './_lib-charter.mjs';
 import { raizesDePages } from '../scripts/qa/page-path.mjs';
+import { ultimaVerificacaoDe } from '../scripts/governance/cowork-mirror-freshness.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)); // prototipo-ui/
 const REPO_DEFAULT = resolve(HERE, '..');
@@ -97,6 +98,20 @@ const LUGAR_FIXO = 'prototipo-ui/cowork';
 // linha SEPARADA que diz o estado de verificação. Não bloqueia nada e não muda exit code
 // — é reporter. O que ele para de fazer é deixar o leitor supor frescor.
 const LEDGER_REL = 'scripts/governance/.cowork-freshness-ledger.json';
+
+/**
+ * TODAS as entradas do ledger — o ledger é append-only e cada rodada mede um subconjunto.
+ * Existe porque `ultimaRodada()` sozinha respondia "nunca verificado" pra todo arquivo fora
+ * da ÚLTIMA linha. Medido 2026-08-27: 20 de 20 âncoras, FALSO em 12 (60%).
+ */
+export function entradasDoLedger(raizGit = REPO_DEFAULT) {
+  try {
+    const bruto = JSON.parse(readFileSync(join(raizGit, LEDGER_REL), 'utf8'));
+    return Array.isArray(bruto) ? bruto : (bruto.entries || []);
+  } catch {
+    return [];
+  }
+}
 
 /** Última rodada do ledger de frescor, ou `null` quando não há ledger legível. */
 export function ultimaRodada(raizGit = REPO_DEFAULT) {
@@ -351,6 +366,7 @@ async function printResolve(r) {
       const raizLeitura = a.raiz || raizGit;
       // Uma leitura do ledger por âncora — barata, e mantém a função de frescor pura.
       const rodadaFrescor = ultimaRodada(raizGit);
+      const entradasFrescor = entradasDoLedger(raizGit);
       // CLASSIFICAR antes de medir. `null` = o valor não nomeia arquivo nenhum: isso não é
       // "não consegui medir", é "não há o que ler" — colapsar os dois num ⚠️ só inflava o
       // balde de não-medidos com 11 charters que nunca teriam arquivo pra abrir.
@@ -385,7 +401,19 @@ async function printResolve(r) {
           console.log(`              ✗ frescor: STALE — o Cowork vivo mudou depois da última medição (${f.data}).`);
           console.log('                 O que você abrir aqui NÃO é o design atual. Refresque antes de comparar.');
         } else if (f.estado === 'nunca') {
-          console.log(`              ⚠️ frescor: NUNCA VERIFICADO — fora da última rodada (${f.data}).`);
+          // NÃO afirmar "nunca" sem ter varrido o ledger inteiro: `f.estado` só conhece a
+          // ÚLTIMA rodada. O oráculo de "quando este arquivo foi verificado" é do dono
+          // (cowork-mirror-freshness::ultimaVerificacaoDe), que varre todas as entradas.
+          const ant = ultimaVerificacaoDe(entradasFrescor, relEspelho);
+          const medidos = (rodadaFrescor?.sync ?? 0) + (rodadaFrescor?.stale ?? 0);
+          const totalLedger = rodadaFrescor?.files ?? null;
+          const cobertura = totalLedger ? ` (mediu ${medidos} de ${totalLedger})` : '';
+          if (ant.data) {
+            console.log(`              ⚠️ frescor: SEM VEREDITO NOVO — verificado em ${ant.data}, e a última rodada (${f.data})${cobertura} não o incluiu.`);
+            console.log('                 Verificação antiga NÃO prova frescor de hoje — o Cowork vivo pode ter mudado desde então.');
+          } else {
+            console.log(`              ⚠️ frescor: NUNCA VERIFICADO — nenhuma rodada do ledger mediu este arquivo. Última rodada: ${f.data}${cobertura}.`);
+          }
           console.log('                 O `✓` acima fala do CONTEÚDO (li o arquivo, sem fantasma), não do frescor.');
           console.log('                 Este arquivo pode ser uma cópia velha do Cowork vivo, e ninguém mediu.');
           console.log('                 Medir: node scripts/governance/cowork-mirror-freshness.mjs --sla');
@@ -627,6 +655,34 @@ async function selftest() {
 
   t('CONTROLE FRESCOR: medido e sem hash registrado não inventa stale',
     frescorDoEspelho('x.jsx', { ...rodada, verified: ['x.jsx'], verifiedHash: {} }, 'zzz').estado === 'verificado');
+
+  // ── LEDGER APPEND-ONLY: o oráculo é o dono, e ele varre TODAS as rodadas ──────
+  // Regressão de 2026-08-27: este arquivo lia `entradas[entradas.length - 1]` e afirmava
+  // "NUNCA VERIFICADO" pra tudo que não estivesse na ÚLTIMA linha. Medido: 20 de 20 âncoras,
+  // FALSO em 12 (60%) — `clientes-page.jsx` e `vendas-page.jsx` tinham sido verificados em
+  // 2026-08-17 e o reporter dizia que nunca. Cada rodada mede ~1 arquivo, então a última
+  // linha nunca descreve o conjunto (§5 2026-08-11: listagem parcial não é prova de ausência).
+  const ledgerFx = [
+    { date: '2026-08-17T12:41:33.794Z', verified: ['clientes-page.jsx'], verifiedHash: { 'clientes-page.jsx': 'v17' } },
+    { date: '2026-08-26T22:07:08.661Z', verified: [], staleList: ['jana-merge.jsx'] },
+  ];
+
+  t('BITE LEDGER: verificado em rodada ANTIGA é achado — a última linha não é o ledger',
+    ultimaVerificacaoDe(ledgerFx, 'clientes-page.jsx').data === '2026-08-17T12:41:33.794Z');
+
+  t('CONTROLE LEDGER: arquivo que nenhuma rodada mediu segue sem data — não inventa verificação',
+    ultimaVerificacaoDe(ledgerFx, 'nunca-medido.jsx').data === null);
+
+  // Sem este, "varrer todas" poderia estar devolvendo a PRIMEIRA em vez da mais recente.
+  t('CONTROLE LEDGER: entre duas verificações do mesmo arquivo vence a MAIS RECENTE',
+    ultimaVerificacaoDe([
+      { date: '2026-01-01T00:00:00.000Z', verified: ['x.jsx'], verifiedHash: { 'x.jsx': 'velho' } },
+      { date: '2026-08-01T00:00:00.000Z', verified: ['x.jsx'], verifiedHash: { 'x.jsx': 'novo' } },
+    ], 'x.jsx').hash === 'novo');
+
+  // O eixo frescor NUNCA vira ✓ por ter sido medido no passado: verificação antiga é ⚠️.
+  t('CONTROLE FRESCOR: verificação antiga NÃO promove a verificado no estado da última rodada',
+    frescorDoEspelho('clientes-page.jsx', ledgerFx[1], 'v17').estado === 'nunca');
 
   await apagar(fx, { recursive: true, force: true });
 
