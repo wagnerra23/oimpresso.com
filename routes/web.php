@@ -222,6 +222,90 @@ if (app()->environment(['local', 'testing'])) {
         ]);
     };
 
+    /**
+     * Semeia UMA falta do dia no tenant do VRT — o lever do estado `danger` do Painel do Ponto.
+     *
+     * POR QUE EXISTE: o `VisregPontoSeeder` semeia SÓ `ponto_colaborador_config` (o docblock
+     * dele declara isso: "SEM MARCAÇÕES, DE PROPÓSITO"). Logo `faltas_hoje = 0`, logo o
+     * `Ponto/Dashboard/Index.tsx:277` (`tone={(kpis?.faltas_hoje ?? 0) > 0 ? 'danger' : 'default'}`)
+     * resolve pra `default`. E a tela inteira estava em `UNCOVERED_SCREENS` no run 33099391123
+     * — ela roda no smoke de console (`it Ponto/Dashboard renderiza AUTENTICADA` ✓) mas não
+     * tinha baseline de pixel nenhuma. Este lever fecha as duas coisas de uma vez: dá a
+     * PRIMEIRA baseline da tela, e a dá já com o KpiCard em `danger`.
+     *
+     * ⚠️ DATA: `config('visreg.fixture_date')`, e a razão é o OPOSTO da do `$seedJanaVisregFlow`
+     * logo acima — os dois predicados leem RELÓGIOS DIFERENTES. O da Jana é
+     * `DATE_ADD(...) < CURDATE()`, e `CURDATE()` é do BANCO, que o `setTestNow` não governa
+     * (está escrito em AppServiceProvider.php:59-62) → lá a data tem de ser fixa e antiga.
+     * O daqui é `->where('data', $hoje)` com `$hoje = now()->toDateString()`
+     * (DashboardController.php:20+78), e `now()` no processo do SERVIDOR ESTÁ congelado
+     * (AppServiceProvider.php:64-68, sob `VISREG_FREEZE_CLOCK`) → aqui a data tem de ser
+     * EXATAMENTE a do relógio congelado, que é o que `visreg.fixture_date` deriva da mesma env.
+     * Copiar a estratégia da Jana aqui produziria fixture que nunca casa o predicado.
+     *
+     * RAIO MEDIDO — só `faltas_hoje` muda. Os vizinhos que leem a mesma tabela ficam em zero
+     * por construção: `he_mes_minutos` soma `he_diurna+he_noturna` (0), `divergencias_mes`
+     * conta `estado = DIVERGENCIA` (gravamos `CALCULADO`), e a série de 7 dias soma
+     * `realizada_trabalhada_minutos` (0). O que aparece a mais é o alerta "Faltas hoje" no
+     * inbox (`coletarAlertas`, :357-361) — que é parte do estado sendo fotografado, e é
+     * determinístico: renderiza `first_name` do colaborador seedado, sem tempo relativo.
+     *
+     * ⚠️ ESTE FIXTURE VAZA PRO L1 SE NÃO FOR LIMPO. O `EspelhoController` lê a MESMA tabela
+     * pelo MESMO `colaborador_config_id` (:106 e :137), e a baseline `Ponto/Espelho/Show` do
+     * L1 fotografa `?mes=2026-06` — que contém 2026-06-11. A limpeza vive no
+     * `visregLimparFixturesDeEstado()` do IsolatedStatesBaselineTest (beforeEach E afterEach),
+     * onde o lever da Jana já registrou o vetor: a suíte não usa `RefreshDatabase` e o
+     * `visreg-flake-retry.sh:59` re-roda o arquivo inteiro.
+     *
+     * IDEMPOTENTE pela UNIQUE `(colaborador_config_id, data)` do schema.
+     *
+     * `$userId` não é usado: `ponto_apuracao_dia` não tem coluna de autoria. Fica na
+     * assinatura pra que o call site invoque os três levers com a MESMA forma.
+     */
+    $seedPontoVisregFlow = static function (int $businessId, int $userId, string $to): void {
+        // Match EXATO, não prefixo: `/ponto/espelho/...` é a rota do L1 e NUNCA pode receber
+        // esta fixture. O lever da Jana usa prefixo porque `/ia` não tem irmão no L2; aqui tem.
+        if ($to !== '/ponto') {
+            return;
+        }
+
+        $colaboradorId = \Database\Seeders\VisregPontoSeeder::COLABORADOR_ID;
+
+        $existe = \Illuminate\Support\Facades\DB::table('ponto_colaborador_config')
+            ->where('id', $colaboradorId)
+            ->where('business_id', $businessId)
+            ->exists();
+
+        // Sem o colaborador do seeder o insert violaria a FK. Sai em silêncio — mas, ao
+        // contrário do lever da Jana, aqui isso NÃO produziria baseline enganosa em silêncio:
+        // o `assertSee` da âncora ainda passa, e o snapshot sairia com o KPI em `default`.
+        // Se este estado virar required, a sonda de contagem vem antes (mesmo padrão que o
+        // step "Seed demo tenant" usa pro `oficina_stages_biz1=`).
+        if (! $existe) {
+            return;
+        }
+
+        \Illuminate\Support\Facades\DB::table('ponto_apuracao_dia')->updateOrInsert(
+            ['colaborador_config_id' => $colaboradorId, 'data' => config('visreg.fixture_date')],
+            [
+                'business_id' => $businessId,
+                // 480 = jornada inteira perdida. Constante de fixture, não cálculo — o KPI
+                // mostra a CONTAGEM (`faltas_hoje`), não os minutos, mas o alerta do inbox
+                // deriva do registro e um valor derivado tornaria o pixel não-determinístico.
+                'falta_minutos' => 480,
+                'atraso_minutos' => 0,
+                'he_diurna_minutos' => 0,
+                'he_noturna_minutos' => 0,
+                'realizada_trabalhada_minutos' => 0,
+                // CALCULADO, não DIVERGENCIA: `divergencias_mes` alimenta a nota "o que trava
+                // o fechamento" e mexer nela alargaria o raio sem necessidade.
+                'estado' => 'CALCULADO',
+                'updated_at' => now(),
+                'created_at' => now(),
+            ],
+        );
+    };
+
     // US-GOV-013 Fase B — auth bridge cross-process pro Pest 4 Browser (visual-regression).
     // O browser Playwright roda em SUBPROCESSO: a sessão do test process NÃO cruza pra ele.
     // Esta rota loga um user por id DENTRO do subprocesso do server → seta o cookie de
@@ -273,7 +357,7 @@ if (app()->environment(['local', 'testing'])) {
     //   - error      → admin do biz=1 + redirect()->with('error') → toast.error (app.tsx 8s)
     //   - long-data  → admin do biz=1 (reservado; nenhuma tela declara no v1)
     // NUNCA em producao (isProduction guard acima). `to` so path relativo (anti open-redirect).
-    Route::get('/_visreg-state/{tela}/{estado}', function (string $tela, string $estado, \Illuminate\Http\Request $request) use ($seedJanaVisregFlow) {
+    Route::get('/_visreg-state/{tela}/{estado}', function (string $tela, string $estado, \Illuminate\Http\Request $request) use ($seedJanaVisregFlow, $seedPontoVisregFlow) {
         $manifestPath = base_path('tests/Browser/visreg-states.json');
         if (! is_file($manifestPath)) {
             abort(404); // manifesto ausente (ex: tests/ nao deployado) — rota inerte.
@@ -310,6 +394,7 @@ if (app()->environment(['local', 'testing'])) {
         // de "default". Semear ANTES do redirect: a tela carrega no request seguinte.
         if ($estado !== 'empty') {
             $seedJanaVisregFlow($businessId, (int) $admin->id, (string) $screen['route']);
+            $seedPontoVisregFlow($businessId, (int) $admin->id, (string) $screen['route']);
         }
 
         $redirect = redirect((string) $screen['route']);
