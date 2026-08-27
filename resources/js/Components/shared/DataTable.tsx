@@ -119,11 +119,21 @@ export default function DataTable<T>({
       {showSearch && (
         <div className="relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          {/* O className abaixo NÃO volta a ser `pl-9 pr-9`: o <Input> nasce `variant="cowork"`,
+              cujo `.cw-input` é UNLAYERED (cowork-fields.css entra por @import sem @layer) e usa
+              o shorthand `padding: 0 8px`. As utilitárias do Tailwind v4 vivem em
+              `@layer utilities`, e pela cascata de layers estilo unlayered SEMPRE vence layered —
+              então `pl-9` era simplesmente ignorado, o texto começava em 8px e a lupa
+              (`left-3` = 12px) ficava encavalada sobre a primeira letra do placeholder.
+              As longhands são a solução canônica dessa colisão, criada por Wagner em 2026-06-13
+              pro MESMO bug na lista de clientes. Quatro telas já as usavam à mão e este DataTable
+              COMPARTILHADO tinha ficado de fora — por isso o defeito aparecia em toda tela que
+              usa a busca dele, não só na Arquivos onde foi reportado. */}
           <Input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder={searchPlaceholder}
-            className="pl-9 pr-9"
+            className="cw-input-icon-left cw-input-icon-right"
           />
           {searchTerm && (
             <button

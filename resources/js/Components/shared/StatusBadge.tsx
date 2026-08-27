@@ -1,5 +1,6 @@
-import { Badge } from '@/Components/ui/badge';
+import { Badge, badgeVariants } from '@/Components/ui/badge';
 import { cn } from '@/Lib/utils';
+import type { VariantProps } from 'class-variance-authority';
 
 /**
  * StatusBadge — badge semântica por domínio.
@@ -14,7 +15,24 @@ import { cn } from '@/Lib/utils';
  *
  * Adicionar novo domínio: estender `mappings` abaixo + commitar.
  */
-type Variant = 'default' | 'secondary' | 'destructive' | 'outline' | 'ghost' | 'link';
+/**
+ * DERIVADO do `badgeVariants`, não restateado.
+ *
+ * Até 2026-08-26 esta linha era uma cópia à mão — `'default' | 'secondary' | 'destructive' |
+ * 'outline' | 'ghost' | 'link'` — e ficou parada quando o #2641 (Onda M1) acrescentou ao
+ * `badge.tsx` as variantes de ESTADO tokenizadas (`success`, `warning`, `danger`, `info`,
+ * `neutral`), que rendem fundo `-soft` + texto `-fg` + borda com alpha 22%.
+ *
+ * O efeito não foi um tipo desatualizado e inofensivo: como o tipo não deixava escrever a
+ * resposta certa, cada mapping novo escreveu a ERRADA — `variant: 'default'` mais um
+ * `className: 'bg-success text-success-foreground'` sólido por cima. Medido no dia da correção:
+ * 49 entradas em fill sólido, o que é o AP7 do PRE-MERGE-UI violado por construção, na camada
+ * compartilhada que o resto do app consome.
+ *
+ * Derivar fecha a porta: variante nova no DS passa a existir aqui no mesmo commit, e variante
+ * removida de lá quebra AQUI, em vez de virar string morta.
+ */
+type Variant = NonNullable<VariantProps<typeof badgeVariants>['variant']>;
 
 type StatusEntry = { variant: Variant; label: string; className?: string };
 
@@ -142,10 +160,21 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
   // Reusa as variantes que já existem (`success`/`warning`/`destructive`): nenhuma cor
   // nova entra no DS por esta linha. As fronteiras (0 e 30 dias) são as mesmas que a
   // coluna já usava pra decidir a cor do texto — o que muda é a FORMA (pílula), não a regra.
+  //
+  // 2026-08-26 — os três saíram do FILL SÓLIDO pro par SOFT. Estavam em `variant:'default'`
+  // + `className:'bg-success/bg-warning …'` (e `destructive` no vencido), que é exatamente o
+  // AP7 que o PRE-MERGE-UI proíbe: status é ESTADO, e estado usa fundo tintado + borda, não
+  // fill. É o mesmo remédio do #6268, que reclassificou 9 badges de estado, e do #6325, que
+  // registrou a distinção com todas as letras — "`danger` é o par SOFT (AP7: fundo tintado +
+  // borda), `destructive` é o fill".
+  //
+  // Nenhuma cor nova entra no DS: `success`/`warning`/`danger` já são variantes tokenizadas do
+  // `Components/ui/badge.tsx` desde o #2641 (`bg-*-soft` + `text-*-fg` + `border-*/20`). O que
+  // muda é parar de sobrescrever a variante com um `bg-*` sólido por cima dela.
   arquivo_prazo: {
-    no_prazo:  { variant: 'default',     label: 'No prazo', className: 'bg-success text-success-foreground hover:bg-success/90' },
-    vencendo:  { variant: 'default',     label: 'Vencendo', className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
-    vencido:   { variant: 'destructive', label: 'Vencido' },
+    no_prazo:  { variant: 'success', label: 'No prazo' },
+    vencendo:  { variant: 'warning', label: 'Vencendo' },
+    vencido:   { variant: 'danger',  label: 'Vencido' },
   },
 };
 
