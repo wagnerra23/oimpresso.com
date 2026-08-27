@@ -29,6 +29,7 @@ paths = [
   '''(^|/).*\.(test|spec)\.(php|ts|tsx|mjs|js)$''',
   '''(^|/)tests?/.*[Ff]ixtures?/''',
   '''(^|/)scripts/legacy-migration/\.venv/''',
+  '''(^|/)scripts/governance/\.cowork-freshness-ledger\.json$''',
 ]
 
 # Marcadores explícitos de valor fake em fixtures/docs (placeholder, exemplo).
@@ -48,3 +49,24 @@ regexes = [
 # Fica registrado porque o modo de falha é reutilizável: 6 tentativas de conserto
 # saíram de leitura do código suspeito; a resposta estava no log da ferramenta.
 # Antes de tratar um alerta, leia o que a ferramenta REPORTOU.
+
+# NOTA (2026-08-27) — .cowork-freshness-ledger.json entra no allowlist de PATH,
+# nao por fingerprint. FALSO POSITIVO provado mecanicamente, nao inferido: os dois
+# valores sinalizados no PR #6379 (linhas 993 e 1088) foram recalculados como
+# sha256 do conteudo normalizado dos arquivos do espelho que a propria linha nomeia
+# — connector-api.jsx e manufacturing-insumos.jsx — e bateram. Sao hashes de
+# conteudo publico versionado, nao credencial. Nada a rotacionar.
+#
+# POR QUE PATH E NAO FINGERPRINT: o ledger e gerado inteiramente por maquina
+# (cowork-mirror-freshness --ledger) e nenhum campo dele aceita entrada humana —
+# sao data, contadores, listas de caminho e o mapa caminho->hash. Ele CRESCE a cada
+# rodada de frescor, somando centenas de hashes novos; qualquer um pode casar por
+# acidente com uma regra que procura string longa. Fingerprint por linha teria que
+# ser reemitido a cada rodada, e fingerprint por commit quebra no proximo merge.
+# E o mesmo criterio que ja poe package-lock.json e composer.lock aqui: arquivo
+# determinístico, sem autor humano.
+#
+# LIMITE HONESTO: isto cega o scan para ESTE path. E aceitavel porque um segredo
+# so chegaria la se alguem editasse o ledger a mao — e ai o problema e a edicao,
+# nao o scan. O guard que defende isso e o proprio gerador, que reescreve o arquivo
+# do zero a cada rodada.
