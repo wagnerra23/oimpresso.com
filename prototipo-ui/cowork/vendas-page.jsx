@@ -853,7 +853,7 @@ function VendasListPage() {
           <span className="vd-toolbar-sep" />
 
           <div className="vd-views" ref={viewsRef}>
-            <button className="vd-views-btn" onClick={() => setViewsOpen((v) => !v)} data-comment-anchor="582797ce82-button-846-13">
+            <button className="vd-views-btn" onClick={() => setViewsOpen((v) => !v)}>
               {topView === "favoritas" ? `★ Favoritas (${favSet.size})` : subView ? `${view.label} · ${subView}` : view.label}
             </button>
             {viewsOpen &&

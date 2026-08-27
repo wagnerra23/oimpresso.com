@@ -41,10 +41,13 @@
 <link rel="stylesheet" href="kb-page.css?v=dark1" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="prod-page-extras.css?v=p2" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="prod-mec.css?v=cat3" media="print" onload="this.media='all'"/>
+<link rel="stylesheet" href="produto-catalogo.css?v=pd7" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="compras-grade-matrix.css" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="chat-jana.css"/>
 <link rel="stylesheet" href="jana-merge.css?v=jm5"/>
 <link rel="stylesheet" href="jana-pro.css?v=jp2"/>
+<link rel="stylesheet" href="jana-metas.css?v=jt2"/>
+<link rel="stylesheet" href="jana-telas-novas.css?v=jn2"/>
 <link rel="stylesheet" href="modulo-padrao.css?v=mp6"/>
 <link rel="stylesheet" href="pg-styles.css?v=dark1"/>
 <link rel="stylesheet" href="clientes-page.css?v=ph5" media="print" onload="this.media='all'"/>
@@ -133,7 +136,9 @@
 <script type="text/babel" src="chat.jsx"></script>
 <script type="text/babel" src="chat-jana.jsx"></script>
 <script type="text/babel" src="jana-pro.jsx?v=jp2"></script>
-<script type="text/babel" src="jana-merge.jsx?v=jm5"></script>
+<script type="text/babel" src="jana-metas.jsx?v=jt2"></script>
+<script type="text/babel" src="jana-telas-novas.jsx?v=jn4"></script>
+<script type="text/babel" src="jana-merge.jsx?v=jm9"></script>
 <!-- Padrão de módulo (o "padrão Jana" extraído como shell reusável) -->
 <script type="text/babel" src="modulo-padrao.jsx?v=mp1"></script>
 <script type="text/babel" src="linked-apps.jsx"></script>
@@ -177,7 +182,8 @@
 <script type="text/oi-lazy" data-src="financeiro-legado.jsx?v=fl4"></script>
 <script type="text/oi-lazy" data-src="integra-extras.jsx?v=ix5"></script>
 <script type="text/oi-lazy" data-src="orc-page.jsx"></script>
-<script type="text/oi-lazy" data-src="produtos-page.jsx?v=cat3"></script>
+<script type="text/oi-lazy" data-src="produtos-page.jsx?v=pd4"></script>
+<script type="text/oi-lazy" data-src="produto-detalhe.jsx?v=pd4"></script>
 <!-- Módulo Produto importado dos blades resources/views/product/* (lista, form, histórico, preços, massa) -->
 <script type="text/oi-lazy" data-src="produto-blade.jsx?v=pb14"></script>
 <script type="text/oi-lazy" data-src="produto-blade-forms.jsx?v=pb13"></script>
@@ -336,7 +342,7 @@
 <script type="text/oi-lazy" data-src="arquivos-data.jsx?v=arq5"></script>
 <script type="text/oi-lazy" data-src="arquivos-page.jsx?v=arq5"></script>
 <script type="text/babel" src="command-palette.jsx?v=cmdk2"></script>
-<script type="text/babel" src="app.jsx?v=eb24"></script>
+<script type="text/babel" src="app.jsx?v=eb25"></script>
 <!-- QA: probe de conformância DS (gated ?qa=1 · invisível pro cliente) — camada 2 da matriz anti-regressão -->
 <!-- Carga diferida dos módulos: o shell (sidebar + rota inicial) pinta primeiro; os ~130
      arquivos de módulo entram em segundo plano, na mesma ordem, sem mudar 1 arquivo = 1 tela. -->
@@ -372,6 +378,7 @@ window.__oiLazyDone = false;
       vest: /vestuario-/, "catalogo": /catalogo-qr/
     };
     var alvo = FAMILIAS[rota] || FAMILIAS[rota.split("-")[0]];
+    var nFrente = 0;
     if (alvo) {
       // produto-blade entra no comum: ele publica window.PBUI (Widget/Fld/Sel/Modal/Kebab), que
       // venda-blade e crm-blade consomem. Sem isso, abrir /venda-* ou /crm-* direto joga a família
@@ -379,6 +386,7 @@ window.__oiLazyDone = false;
       var COMUM = /^(data|catchup-shared|fsm-stepper|pg-shared|viewers|linked-apps|produto-blade\.jsx)/;
       var frente = [], resto = [];
       fontes.forEach(function (s) {(alvo.test(s) || COMUM.test(s) ? frente : resto).push(s);});
+      nFrente = frente.length;
       fontes = frente.concat(resto);
     }
     inertes.forEach(function (s) {s.parentNode.removeChild(s);});
@@ -415,13 +423,21 @@ window.__oiLazyDone = false;
           } catch (e) {console.error("Falha ao carregar " + src, e);}
         }
         // Devolve a thread a cada 6 módulos: o shell segue respondendo sem pagar
-        // um macrotask por arquivo (137 macrotasks custavam mais que a compilação).
+        // um macrotask por arquivo — o comentário sempre disse isso, mas o código
+        // fazia `setTimeout(proximo,0)` nos DOIS ramos: ~190 macrotasks com clamp de
+        // 4ms = ~1s de espera pura, além da compilação. Agora só o 6º arquivo paga o
+        // macrotask; os outros seguem no microtask do fetch (que já cede o frame).
+        //
+        // O tick também deixou de ser cego: ele só interessa a quem está esperando um
+        // módulo, então dispara enquanto a FAMÍLIA da rota atual está entrando (os
+        // primeiros nFrente arquivos) e, depois disso, a cada 24 — o resto é fundo e
+        // re-renderizar o app por ele era a "piscada" do boot.
         // O dispatch fica isolado: erro de listener (render de rota, por ex.) NÃO pode
         // interromper a fila — antes, um throw aqui congelava os ~80 módulos seguintes.
-        if (i % 6 === 0) {
+        if (i <= nFrente + 1 || i % 24 === 0) {
           try {document.dispatchEvent(new Event("oi:lazy-tick"));} catch (e) {console.error("listener do tick falhou", e);}
-          setTimeout(proximo, 0);
-        } else setTimeout(proximo, 0);
+        }
+        if (i % 6 === 0) setTimeout(proximo, 0);else proximo();
       }).catch(function (e) {
         console.error("Fila do carregador tropeçou em " + src, e);
         setTimeout(proximo, 0);

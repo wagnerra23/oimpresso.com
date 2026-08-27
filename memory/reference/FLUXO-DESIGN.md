@@ -5,12 +5,12 @@ description: Como o design entra no repo, vira tela e é provado — E0 de ativa
 type: reference
 authority: canonical
 lifecycle: ativo
-updated_at: "2026-08-25"
+updated_at: "2026-08-27"
 nav_group: fluxo
 nav_order: 40
 lente: [construir]
 related: [reference-fluxo-deploy]
-related_adrs: [0282-protocolo-v2-colapso-ratificacao, 0299-figma-nao-e-fonte-de-design, 0114-prototipo-ui-cowork-loop-formalizado]
+related_adrs: [0282-protocolo-v2-colapso-ratificacao, 0299-figma-nao-e-fonte-de-design, 0114-prototipo-ui-cowork-loop-formalizado, 0324-frescor-espelho-cowork-dispatch-sla-limite-plataforma, 0374-emenda-0315-espelho-cowork-e-rota-prevista]
 ---
 
 # Fluxo — Design, do Cowork à tela
@@ -23,7 +23,8 @@ related_adrs: [0282-protocolo-v2-colapso-ratificacao, 0299-figma-nao-e-fonte-de-
 > ela aconteceu, e qual prova existe. Este documento nomeia máquinas e modos; a linha de comando
 > canônica sai sempre do painel, porque ela muda mais rápido que qualquer texto.
 >
-> **Toda medição abaixo é datada de 2026-08-25**, feita neste repositório com clone completo.
+> **Toda medição abaixo é datada de 2026-08-25**, feita neste repositório com clone completo —
+> **exceto** a subseção "O passo que antecede E1", que carrega a própria data (2026-08-27).
 > Número sem data apodrece; número com data é história.
 
 ## O modelo em uma frase
@@ -198,10 +199,57 @@ separados.
 
 A etapa mais densa, e a única que já regrediu de verdade.
 
+### O passo que antecede E1 — quem emite o bundle, e quando
+
+> **Esta subseção é datada de 2026-08-27**; o resto de E1 é de 25/08. Ela existe porque a etapa
+> inteira começa num passo que **nenhum documento declarava como obrigação de alguém**.
+
+E1.1 diz **onde** o payload nasce — do lado que tem os arquivos em disco. Não dizia **quando**,
+nem **de quem é a obrigação**. Essa lacuna não é de código; é de processo, e o estado dela foi
+medido:
+
+| Pergunta | Resposta medida em 2026-08-27 |
+|---|---|
+| Existe automação que emita o bundle? | **Não.** Quem cita o gerador no repo é o teste hermético do CI e a documentação — nenhum cron, hook ou workflow o executa. |
+| Existe gatilho declarado? | **Não.** A emissão não era o fim de nenhum ciclo escrito. |
+| Qual a idade do bundle ativo? | Emitido em **2026-08-24T22:49Z**, modo snapshot, 255 arquivos. |
+| O vivo andou desde então? | Sim. **Quatro arquivos existem no vivo e o bundle não os conhece** — `jana-metas.css`, `jana-metas.jsx`, `produto-catalogo.css`, `produto-detalhe.jsx` (medição de 27/08, denominador 248) — e o `jana-merge.jsx`, âncora declarada de três telas, foi medido e **reprovado** em 26/08. |
+
+**A regra: emitir o bundle é o último ato de um ciclo de design.** O ciclo não fecha sem ele.
+Enquanto a emissão depender de alguém lembrar, o espelho fica atrás por padrão, e todo consumo
+dele é consumo de retrato velho — inclusive o consumo que se parece com trabalho normal.
+
+O corolário é o que o lado de cá consegue cumprir sozinho: **design cujo bundle é anterior à
+última mudança do vivo é retrato velho, e isso se mede antes de derivar, nunca depois.** A ordem
+não é estética — derivar primeiro e medir depois produz trabalho que parece pronto e está fora do
+eixo.
+
+**Por que o gatilho não pode ser máquina daqui.** O gerador roda do lado que tem os arquivos em
+disco, e a leitura do vivo exige sessão autenticada de forma interativa — o CI não alcança. Logo:
+não existe gate possível para este passo, e propor um é reabrir uma alternativa já enterrada. A
+alavanca disponível é declarar a obrigação e o momento; a detecção fica com o SLA do espelho, que
+já é o dono do tema.
+
+**O que existe hoje, e o que ele não cobre.** Em 27/08/2026 o hook de charter passou a **bloquear**
+edição de tela cuja âncora está na lista de reprovadas da última comparação — eram **3 de 44**
+telas com protótipo nomeado naquele dia. O próprio hook declara o limite, e ele é o buraco desta
+subseção: pega *"o instrumento avisou e foi ignorado"*, não *"a âncora está velha e ninguém
+olhou"* — e as **25 telas nunca verificadas** caem no segundo caso.
+
+**O custo, observado numa sessão só (27/08/2026).** Horas de trabalho contra um retrato de dois
+dias antes; um ajuste de Design System derivado do protótipo errado; a conclusão — falsa — de que
+não existia rota fiel de transporte; e um gate visual verde sobre uma mudança que ele não tinha
+como enxergar. Nenhuma dessas quatro se apresenta como erro enquanto acontece: as quatro se
+parecem com progresso.
+
+O comando continua saindo do painel (fase −1) e a política do loop continua sendo do `PROTOCOL.md`.
+O que mora aqui é o modelo: **quem**, **quando**, e o que segue sem dono.
+
 ### Subprocessos
 
 | # | Subprocesso | Entrada → Saída | Grava |
 |---|---|---|---|
+| E1.0 | **fechar o ciclo de design** | ciclo encerrado no Cowork → obrigação de emitir | nada no repo — é o passo de processo; sem ele E1.1 nunca começa e o espelho envelhece em silêncio |
 | E1.1 | **gerar o payload** | diretório do design vivo → partes numeradas + manifesto | do lado de quem tem os arquivos em disco — nunca do lado do agente, senão é transcrição |
 | E1.2 | **validar em staging** (dry-run) | partes → veredito | nada: monta tudo e joga fora |
 | E1.3 | **promover atomicamente** | staging → quatro destinos de uma vez | espelho · design-docs · cache de preview · estado |
