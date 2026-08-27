@@ -73,6 +73,15 @@
         "default"
       ]
     },
+    "ponto-dashboard": {
+      "route": "/ponto",
+      "anchor": "Ponto eletrônico",
+      "charter": "resources/js/Pages/Ponto/Dashboard/Index.charter.md",
+      "source": "Ponto/Dashboard",
+      "states": [
+        "default"
+      ]
+    },
     "caixa-unificada": {
       "route": "/atendimento/caixa-unificada",
       "anchor": "Atendimento",

@@ -214,5 +214,13 @@
     "route": "/ponto/espelho/900001?mes=2026-06",
     "anchor": "Dados do colaborador",
     "baseline": "it_Ponto_Espelho_Show_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Ponto/Configuracoes",
+    "source": "Ponto/Configuracoes",
+    "component": "Ponto/Configuracoes/Index",
+    "route": "/ponto/configuracoes",
+    "anchor": "Banco de Horas",
+    "baseline": "it_Ponto_Configuracoes_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]
