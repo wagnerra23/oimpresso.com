@@ -250,13 +250,40 @@ class DashboardController extends Controller
     /**
      * Status ao vivo por colaborador: presente / atrasado / ausente / saiu.
      * Baseado nas marcações do dia + escala esperada.
+     *
+     * ⚖️ "Atrasado" aqui usa a MESMA referência que a apuração (RN-001, Art. 58 §1º CLT,
+     * `ApuracaoService::aplicarRegraTolerancia`): o horário previsto é o `hora_entrada` do
+     * turno da `escalaAtual` do colaborador para o `dia_semana` de hoje — nunca um horário
+     * fixo. Até 2026-08-27 esta função decidia por `now() > '08:15'` hardcoded, o que
+     * (a) ignorava a escala — num turno que começa às 13h todo mundo virava "atrasado" às
+     * 08:16 — e (b) contradizia o KPI "Atrasos hoje" na mesma tela, que sempre leu
+     * `ApuracaoDia.atraso_minutos`.
+     *
+     * A janela é `hora_entrada + tolerancia_maxima_diaria_minutos` (10). Decisão [W]
+     * 2026-08-27, tomada porque a fonte era silente: nem SDD §6, nem SPEC, nem o contrato
+     * `ponto-painel` declaram a faixa de presença — a RN-001 só sabe medir DEPOIS que a
+     * pessoa bate o ponto, e aqui o veredito é ao vivo, antes de existir marcação. Entre as
+     * duas chaves da Art. 58 §1º, vale a de 10 min, que é a mesma que o KPI vizinho filtra
+     * (e a que a legenda dele já cita) — assim faixa e KPI concordam no limiar.
+     *
+     * Sem turno previsto hoje (colaborador sem escala, folga, ou turno que ainda não
+     * começou) o status é `ausente`, nunca `atrasado`: sem jornada prevista a apuração não
+     * gera atraso nem falta, então a faixa não pode afirmar o que o domínio não afirma.
+     * Também decisão [W] 2026-08-27.
+     *
+     * ⚠️ Não toca valor: esta função não lê nem grava `atraso_minutos`, `falta_minutos` ou
+     * qualquer minuto apurado — devolve uma string de status para a faixa. A apuração
+     * (`ApuracaoService`) segue sendo a única dona do número.
      */
     private function calcularPresenca(int $businessId, string $hoje): array
     {
+        // `escalaAtual.turnos` entra no eager-load pra não pagar N+1 dentro do map: são
+        // +2 queries fixas (escalas + turnos) para até 50 colaboradores, e este payload
+        // recarrega a cada 30s pelo polling do charter §Automation hooks.
         $colaboradores = Colaborador::where('business_id', $businessId)
             ->where('controla_ponto', true)
             ->whereNull('desligamento')
-            ->with(['user'])
+            ->with(['user', 'escalaAtual.turnos'])
             ->orderBy('id')
             ->limit(50)
             ->get();
@@ -272,24 +299,39 @@ class DashboardController extends Controller
             ->get()
             ->groupBy('colaborador_config_id');
 
-        return $colaboradores->map(function ($c) use ($marcacoesHoje) {
+        // Referências do veredito ao vivo, calculadas UMA vez fora do map.
+        // `dia_semana` é o `Carbon::dayOfWeek` (dom=0..sáb=6) — mesma convenção que
+        // `ApuracaoService::carregarHorariosPrevistos` usa pra achar o turno do dia.
+        $agora      = now();
+        $diaSemana  = $agora->dayOfWeek;
+        $tolerancia = (int) config('pontowr2.clt.tolerancia_maxima_diaria_minutos', 10);
+
+        return $colaboradores->map(function ($c) use ($marcacoesHoje, $hoje, $agora, $diaSemana, $tolerancia) {
             $marcs = $marcacoesHoje->get($c->id, collect());
             $entrada = $marcs->firstWhere('tipo', Marcacao::TIPO_ENTRADA);
             $saida   = $marcs->where('tipo', Marcacao::TIPO_SAIDA)->last();
             $ultima  = $marcs->last();
 
+            // Horário previsto de entrada HOJE — o mesmo que a apuração usaria (RN-001).
+            // Null quando não há escala, ou quando a escala não tem turno pro dia (folga).
+            $previstaEntrada = $c->escalaAtual?->turnos
+                ->firstWhere('dia_semana', $diaSemana)?->hora_entrada;
+
             // Status:
             // - saiu: tem saída e essa saída é a última marcação
             // - presente: tem entrada e a última não é saída (pode ser entrada após intervalo)
-            // - atrasado: já passou do horário esperado (simplificado: >08:15) e não entrou
-            // - ausente: não tem nenhuma marcação hoje
+            // - atrasado: tinha turno hoje, já passou de `hora_entrada` + tolerância, e não entrou
+            // - ausente: o resto — inclusive quem não tem turno previsto hoje
             $status = 'ausente';
             if ($saida && $ultima && $ultima->id === $saida->id) {
                 $status = 'saiu';
             } elseif ($entrada) {
                 $status = 'presente';
-            } elseif (now()->format('H:i') > '08:15') {
-                $status = 'atrasado';
+            } elseif ($previstaEntrada !== null) {
+                $limite = Carbon::parse($hoje . ' ' . $previstaEntrada)->addMinutes($tolerancia);
+                if ($agora->greaterThan($limite)) {
+                    $status = 'atrasado';
+                }
             }
 
             $nome = optional($c->user)->first_name ?? 'Colab';

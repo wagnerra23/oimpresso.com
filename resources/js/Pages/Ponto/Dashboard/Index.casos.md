@@ -61,17 +61,42 @@ smoke_prod: "2026-08-24, apos o deploy de 8e7583e05b (PR #6160), Chrome MCP em h
 > existe e nunca roda por PR"*. Marcar ✅ aqui seria carimbar sem veredito.
 > **A linha que falta**, para quem puder editar o workflow (fora do prefixo deste PR):
 > `Modules/Ponto/Tests/Feature/PontoDashboardContratoTest.php \` no bloco do `vendor/bin/pest`.
+>
+> ✅ **A linha ENTROU — o bloco acima é fóssil de 2026-08-23 e fica preservado como
+> história, não como estado.** Medido em `origin/main` (`6268f318bc`) em **2026-08-27**:
+> a allowlist do [`ponto-pest.yml`](../../../../../.github/workflows/ponto-pest.yml) nomeia
+> **37 dos 39** arquivos da árvore `Modules/Ponto/Tests/**Test.php`, e
+> `PontoDashboardContratoTest.php` **está entre eles** (linha 140). Os 2 de fora são
+> `Tests/Unit/ApuracaoServiceTest.php` e `Tests/Unit/MarcacaoServiceTest.php`.
+> Contado com `grep -oE "Modules/Ponto/Tests/[A-Za-z0-9/_]+\.php"` + **controle positivo**
+> (`Wave27CrossTenantEscalaTest` → 1 hit) — a 1ª tentativa usou `[A-Za-z/]*`, que não casa
+> dígito e por isso "expulsou" da allowlist todo arquivo `Wave<N>…`; o número errado era
+> maior e plausível ([§5 2026-07-28](../../../../../memory/proibicoes.md)).
+>
+> E a lane está **verde** no `main`: as 5 runs mais recentes concluíram `success`, a última
+> em [run 32726930428](https://github.com/wagnerra23/oimpresso.com/actions/runs/32726930428)
+> (2026-08-24, sha `2cdc907ec3`). Logo os UC-PAINEL-01..06 **têm veredito** — o texto
+> *"a lane nao executa este arquivo"* nas linhas de Status abaixo apodreceu com o ratchet de
+> 2026-08-24 e está corrigido junto. ⚠️ Isto **não** vale pros UC-PAINEL-07/08, que nasceram
+> depois desse run: eles ficam `⬜ não verificado` até a lane rodar com eles dentro.
+>
+> ⚠️ **US-PONTO-014 do SPEC também descreve esta lane como vermelha** ("5 últimos runs em
+> `failure`", medido 2026-08-07). Aquele número era verdade na data; o estado de hoje é o
+> desta medição. Trocar a allowlist por árvore-menos-quarentena segue sendo o pedido da US —
+> o que mudou é que ela já não está vermelha.
 
 ## Rastreabilidade
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-PAINEL-01 | Os seis KPIs aparecem com a copy e na ordem que o contrato manda | must | contrato §`painel-kpis` | `PontoDashboardContratoTest` | 🧪 sem veredito |
-| UC-PAINEL-02 | Dado de outro empregador não entra em KPI nenhum nem na fila | must `[T0]` `[V0]` | ADR 0093 + charter §Non-Goals | `PontoDashboardContratoTest` | 🧪 sem veredito |
-| UC-PAINEL-03 | Sem intercorrência pendente a fila aparece com a frase de vazio | must | contrato §`painel-fila-aprovacoes` | `PontoDashboardContratoTest` | 🧪 sem veredito |
-| UC-PAINEL-04 | O painel é somente leitura: a rota não aceita escrita e o controller não grava | must | charter §Anti-hooks | `PontoDashboardContratoTest` | 🧪 sem veredito |
-| UC-PAINEL-05 | O polling recarrega apenas as props de leitura declaradas no charter | should | charter §Automation hooks | `PontoDashboardContratoTest` (lista do `only`) + `DashboardDeferredContractTest` (defer + `<Deferred>`) | 🧪 sem veredito |
-| UC-PAINEL-06 | A nota do que trava o fechamento vem acima dos KPIs e reflete o estado real | must | contrato §`ordem` + §`painel-nota-fechamento` | `PontoDashboardContratoTest` | 🧪 sem veredito |
+| UC-PAINEL-01 | Os seis KPIs aparecem com a copy e na ordem que o contrato manda | must | contrato §`painel-kpis` | `PontoDashboardContratoTest` | ✅ verde na lane |
+| UC-PAINEL-02 | Dado de outro empregador não entra em KPI nenhum nem na fila | must `[T0]` `[V0]` | ADR 0093 + charter §Non-Goals | `PontoDashboardContratoTest` | ✅ verde na lane |
+| UC-PAINEL-03 | Sem intercorrência pendente a fila aparece com a frase de vazio | must | contrato §`painel-fila-aprovacoes` | `PontoDashboardContratoTest` | ✅ verde na lane |
+| UC-PAINEL-04 | O painel é somente leitura: a rota não aceita escrita e o controller não grava | must | charter §Anti-hooks | `PontoDashboardContratoTest` | ✅ verde na lane |
+| UC-PAINEL-05 | O polling recarrega apenas as props de leitura declaradas no charter | should | charter §Automation hooks | `PontoDashboardContratoTest` (lista do `only`) + `DashboardDeferredContractTest` (defer + `<Deferred>`) | ✅ verde na lane |
+| UC-PAINEL-06 | A nota do que trava o fechamento vem acima dos KPIs e reflete o estado real | must | contrato §`ordem` + §`painel-nota-fechamento` | `PontoDashboardContratoTest` | ✅ verde na lane |
+| UC-PAINEL-07 | "Atrasado" na faixa de presença sai da escala do colaborador, nunca de horário fixo | must | RN-001 (`ApuracaoService`) + decisão [W] 2026-08-27 | `PontoDashboardContratoTest` | ⬜ não verificado |
+| UC-PAINEL-08 | A faixa espera a mesma tolerância que o KPI "Atrasos hoje" filtra | must | `pontowr2.clt.tolerancia_maxima_diaria_minutos` + decisão [W] 2026-08-27 | `PontoDashboardContratoTest` | ⬜ não verificado |
 
 **[BACKLOG]:**
 
@@ -159,7 +184,7 @@ urgentes e `max(momento)` do dia, ambas em `buildKpis`). Segue sem teto declarad
 - **Contrato:** `prototipo-ui/contrato/ponto-painel.contract.json` §`secoes[painel-kpis].copy`.
   O teste **lê o JSON** e afirma contra ele: se o contrato mudar, o caso acompanha sem edição —
   e se a tela divergir, o vermelho é o sinal honesto.
-- **Status: 🧪 sem veredito** (a lane nao executa este arquivo: allowlist do ponto-pest.yml).
+- **Status: ✅ verde na lane** (run 32726930428, 2026-08-24 — o arquivo está na allowlist do ponto-pest.yml; ver a correção datada no cabeçalho).
 
 ## UC-PAINEL-02 · Dado de outro empregador não entra em KPI nenhum nem na fila · `must` `[T0]` `[V0]`
 
@@ -176,7 +201,7 @@ urgentes e `max(momento)` do dia, ambas em `buildKpis`). Segue sem teto declarad
   prova que o painel **reage** ao dado próprio. Sem isso, um painel quebrado devolvendo zeros
   passaria por imobilidade, não por isolamento.
 - ⚠️ **Se este UC reprovar, não é PR — é incidente Tier 0.**
-- **Status: 🧪 sem veredito** (a lane nao executa este arquivo: allowlist do ponto-pest.yml).
+- **Status: ✅ verde na lane** (run 32726930428, 2026-08-24 — o arquivo está na allowlist do ponto-pest.yml; ver a correção datada no cabeçalho).
 
 ## UC-PAINEL-03 · Sem intercorrência pendente a fila aparece com a frase de vazio · `must`
 
@@ -189,7 +214,7 @@ urgentes e `max(momento)` do dia, ambas em `buildKpis`). Segue sem teto declarad
 - **Contrato:** contrato §`painel-fila-aprovacoes` (estado `vazio`). O caso exige a frase **dentro**
   da seção, não em qualquer lugar do arquivo: âncora numa seção e copy noutra é a forma de passar
   parecendo que passou ([RUNBOOK-dashboard §8](../../../../../memory/requisitos/Ponto/RUNBOOK-dashboard.md)).
-- **Status: 🧪 sem veredito** (a lane nao executa este arquivo: allowlist do ponto-pest.yml).
+- **Status: ✅ verde na lane** (run 32726930428, 2026-08-24 — o arquivo está na allowlist do ponto-pest.yml; ver a correção datada no cabeçalho).
 
 ## UC-PAINEL-04 · O painel é somente leitura · `must`
 
@@ -203,7 +228,7 @@ urgentes e `max(momento)` do dia, ambas em `buildKpis`). Segue sem teto declarad
 - **Nota de método:** o caso roda o **controle positivo do detector** — prova que a mesma lista de
   primitivas **encontra** escrita no `EscalaController`, que grava. Sem isso, uma lista de agulhas
   errada daria verde em qualquer arquivo, e o teste mediria a si mesmo.
-- **Status: 🧪 sem veredito** (a lane nao executa este arquivo: allowlist do ponto-pest.yml).
+- **Status: ✅ verde na lane** (run 32726930428, 2026-08-24 — o arquivo está na allowlist do ponto-pest.yml; ver a correção datada no cabeçalho).
 
 ## UC-PAINEL-05 · O polling recarrega apenas as props de leitura declaradas no charter · `should`
 
@@ -219,7 +244,7 @@ urgentes e `max(momento)` do dia, ambas em `buildKpis`). Segue sem teto declarad
 - **Nota de método:** o caso compara a lista **inteira**, não só presença. Prop a mais recarrega de
   graça a cada 30s; prop a menos deixa o painel mostrar dado velho — e só conferir presença deixaria
   as duas passar.
-- **Status: 🧪 sem veredito** (a lane nao executa este arquivo: allowlist do ponto-pest.yml).
+- **Status: ✅ verde na lane** (run 32726930428, 2026-08-24 — o arquivo está na allowlist do ponto-pest.yml; ver a correção datada no cabeçalho).
 
 ## UC-PAINEL-06 · A nota do que trava o fechamento vem acima dos KPIs e reflete o estado real · `must`
 
@@ -232,4 +257,63 @@ urgentes e `max(momento)` do dia, ambas em `buildKpis`). Segue sem teto declarad
 - **Teste:** `PontoDashboardContratoTest` — `UC-PAINEL-06`.
 - **Contrato:** contrato §`ordem[0]` + §`painel-nota-fechamento` + RUNBOOK-dashboard §4 (a redação
   dos 3 estados, lida do protótipo).
-- **Status: 🧪 sem veredito** (a lane nao executa este arquivo: allowlist do ponto-pest.yml).
+- **Status: ✅ verde na lane** (run 32726930428, 2026-08-24 — o arquivo está na allowlist do ponto-pest.yml; ver a correção datada no cabeçalho).
+
+## UC-PAINEL-07 · "Atrasado" na faixa de presença sai da escala do colaborador · `must`
+
+- **Persona:** gestor que olha a faixa de manhã para saber quem ainda não chegou. Se a faixa
+  acusa atraso de quem tem turno à tarde, ela vira ruído e ele para de olhar.
+- **Aceite:** Dado colaborador com turno hoje começando às 08:00 e nenhuma marcação · Quando são
+  10:00 · Então ele aparece `atrasado`. **E** dado colaborador cujo turno de hoje começa às 13:00 ·
+  Quando são 10:00 · Então ele aparece `ausente`, **nunca** `atrasado`. **E** dado colaborador sem
+  turno previsto hoje · Então ele aparece `ausente`.
+- **Teste:** `Modules/Ponto/Tests/Feature/PontoDashboardContratoTest.php` — `UC-PAINEL-07`.
+- **Âncora — e por que ela não é o contrato visual.** A faixa de presença **não está** no
+  `ponto-painel.contract.json` (que declara só `painel-nota-fechamento`, `painel-kpis`,
+  `painel-fila-aprovacoes`, `painel-atividade`), não tem CU no
+  [SDD §6](../../../../../memory/requisitos/Ponto/SDD-espelho-e-jornada-v1.0.md), não tem US no
+  [SPEC](../../../../../memory/requisitos/Ponto/SPEC.md), e o charter só a **nomeia**
+  (§Goals, *"Faixa de presença ao vivo (`PresenceStrip`)"*) sem definir critério. O protótipo
+  `cowork/ponto-page.jsx` e a Blade legada `dashboard/index.blade.php` **não têm** a faixa — ela
+  nasceu da [ADR UI-0002](../../../../../memory/requisitos/PontoWr2/adr/ui/0002-dashboard-vivo-e-roadmap-estado-da-arte.md)
+  (`status: proposed`), que diz *"tooltip com escala/último ponto"* mas não fixa limiar.
+  A âncora é, então: **(1)** RN-001 de
+  [`ApuracaoService::aplicarRegraTolerancia`](../../../../../Modules/Ponto/Services/ApuracaoService.php),
+  única definição de atraso do domínio — referência é `EscalaTurno.hora_entrada` do `dia_semana`
+  da `escalaAtual`, Art. 58 §1º CLT; **(2)** decisão [W] de **2026-08-27**, tomada em chat porque
+  a fonte era silente sobre o veredito **ao vivo** (a RN-001 só mede depois que a pessoa bate o
+  ponto, e a faixa precisa decidir antes).
+- **O defeito que este caso mata.** Até 2026-08-27 o
+  [`DashboardController::calcularPresenca`](../../../../../Modules/Ponto/Http/Controllers/DashboardController.php)
+  decidia por `now()->format('H:i') > '08:15'` — horário fixo, sem ler escala nem tolerância. Num
+  turno que começa às 13h, **todo mundo** virava "atrasado" a partir das 08:16. Varredura contada
+  de `08:15` no repo (`rg --hidden`): 21 matches / 16 linhas / 8 arquivos / 17.006 varridos —
+  **um único** era predicado de decisão; os outros são mock em bundle de design.
+- **Nota de método:** o caso tem **controle positivo** (o colaborador da manhã, que *deve* sair
+  `atrasado`). Sem ele, uma função quebrada devolvendo `ausente` pra todo mundo passaria nas
+  outras duas pernas por imobilidade, não por acerto. E o relógio é congelado (`setTestNow`):
+  "já passou do turno" é predicado sobre **agora**, e um teste que muda de veredito conforme a
+  hora do CI não prova nada.
+- **Status: ⬜ não verificado** — o CT 100 estava fora do ar (502 no `tailscale ssh`) quando o
+  caso foi escrito, então ele **não rodou em lugar nenhum**. O veredito vem da lane.
+
+## UC-PAINEL-08 · A faixa espera a mesma tolerância que o KPI "Atrasos hoje" filtra · `must`
+
+- **Persona:** o mesmo gestor, olhando faixa e KPI na mesma tela. Dois limiares diferentes lado a
+  lado é o defeito que gerou este trio — a tela afirmando duas coisas sobre o mesmo colaborador.
+- **Aceite:** Dado colaborador com turno hoje às 08:00 e nenhuma marcação · Quando falta 1 minuto
+  para fechar a tolerância · Então ele **não** está `atrasado`. **E** quando passa 1 minuto além
+  dela · Então ele está `atrasado`.
+- **Teste:** `PontoDashboardContratoTest` — `UC-PAINEL-08`.
+- **Âncora:** `pontowr2.clt.tolerancia_maxima_diaria_minutos` (**10**, Art. 58 §1º CLT ·
+  [`Modules/Ponto/Config/config.php`](../../../../../Modules/Ponto/Config/config.php)) — a mesma
+  chave que `buildKpis` usa em `where('atraso_minutos', '>', ...)`, e a mesma que a legenda do KPI
+  já cita (*"além da tolerância de N min"*). Decisão [W] 2026-08-27, entre as **duas** chaves que
+  o Art. 58 §1º gera: a de 5 min (`tolerancia_minutos_por_marcacao`, que é onde a RN-001 começa a
+  gravar `atraso_minutos`) e a de 10 min (onde ela abre divergência). Escolhida a de 10 para que
+  faixa e KPI concordem no limiar.
+- **Nota de método:** o teste **lê a config**, não repete o `10`. Se [W] mudar a chave, o caso
+  acompanha em vez de virar baseline mentiroso — e as duas janelas são derivadas dela
+  (`tolerancia - 1` e `tolerancia + 1`), com um guard que reprova se a tolerância for 0 (nesse
+  caso as duas janelas colapsariam e o teste passaria valendo nada).
+- **Status: ⬜ não verificado** — mesma razão do UC-PAINEL-07.
