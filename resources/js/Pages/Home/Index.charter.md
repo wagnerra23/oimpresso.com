@@ -1,22 +1,28 @@
 ---
-page: /home
+page: /dashboard-legacy
 component: resources/js/Pages/Home/Index.tsx
 owner: wagner
 status: live
-last_validated: "2026-05-22"
+last_validated: "2026-08-27"
 parent_module: Dashboard
 parent_spec: memory/requisitos/Dashboard/SPEC.md
 related_runbook: memory/requisitos/Dashboard/RUNBOOK-home-index.md
 related_adrs: [93, 94, 101, 104]
-related_us: [US-DASH-001, US-DASH-006]
-related_prototype: n/a (F6 Soft wrapper — sem protótipo Cowork; reusa session+queries core UltimatePOS)
+related_us: [US-DASH-001, US-DASH-004, US-DASH-006]
+related_prototype: prototipo-ui/cowork/dash-legacy-page.jsx (Cockpit V2 · PT-05 Dashboard)
 tier: A
-charter_version: 2
+charter_version: 3
 ---
 
 # Page Charter — /home
 
-> **Status v2:** Fase 6 Soft expandida 2026-05-22 (Wagner aprovou caminho B). 8 KPIs em 2 grupos (Vendas / Compras & Custos), PageHeader canon ADR 0180 substituindo gradient hardcoded (fix contraste WCAG AA). Charter v1 entregue 2026-05-21.
+> **Status v3 (2026-08-27):** Rewrite Cockpit V2, ancorado no protótipo `dash-legacy-page.jsx`.
+> Entra PeriodBar (US-DASH-004), o Líquido vira hero e as contrapartidas saem dos cards pro painel.
+> Cor crua R1 no `Index.tsx`: 48 → 0 (só tokens do DS).
+>
+> **Histórico:** o v2 (2026-05-22, "caminho B", 8 KPI em 2 grupos) foi declarado por [W] em
+> 2026-08-27 como tentativa descartada — "minha tentativa errada do react". Fica registrado
+> como o que foi verdade naquela data, não como decisão revertida à revelia.
 > Persona: **Larissa [L]** (dona PME vestuário ROTA LIVRE biz=4) + qualquer user logado UPOS. Desktop ≥1024px.
 >
 > **Read-only:** todo dado vem de queries existentes do core UltimatePOS (`TransactionUtil::getSellTotals` + `getPurchaseTotals` + `getTransactionTotals`, `BusinessLocation::forDropdown`). Mutations (registrar venda etc.) continuam nas telas dedicadas (`/sells/pos`, `/expense`, etc.).
@@ -27,25 +33,30 @@ charter_version: 2
 
 ## Mission (1 frase)
 
-Servir como **landing pós-login** do oimpresso entregando 8 KPIs de operação em 2 grupos (Vendas / Compras & Custos) em ≤800ms numa shell Inertia React, com fallback discreto pra Blade legacy quando o usuário precisa de gráficos ou widgets pluggable de outros módulos.
+Responder **"como foi o período"** numa tela só: o usuário escolhe a janela, o Líquido responde em destaque, e as contrapartidas ficam à vista sem gastar um card cada. Fallback discreto pra Blade legacy enquanto gráficos e grades não migram.
 
 ---
 
 ## Goals — Features (faz)
 
-- AppShellV2 layout com breadcrumb único `Início`
-- Welcome banner ("Bem-vindo, {primeiro_nome}") em superfície clara (PageHeader canon ADR 0180) com ícone `layout-dashboard`
-- **8 KPI cards** em 2 grupos:
-  - **Vendas:** Total Vendas (sky) · Líquido (emerald) · A Receber (amber) · Devoluções Venda (rose)
-  - **Compras & Custos:** Total Compras (violet) · A Pagar (orange) · Reembolso Compra (teal) · Despesas (stone)
-- Cada card tem ícone Lucide semântico + tooltip explicando o cálculo
-- Filtro loja dropdown quando `all_locations.length > 1 && is_admin`
-- Banner discreto no rodapé: "Ver versão completa com gráficos e widgets" → `/home?legacy=1`
+- AppShellV2 layout com breadcrumb único `Visão geral`
+- Saudação discreta ("Bem-vindo, {primeiro_nome}") no topo, sem ocupar a faixa nobre da tela
+- **PeriodBar** (US-DASH-004): presets Dia / Semana / Mês + intervalo De/Até. Janelas ROLANTES
+  relativas a hoje — dia = hoje..hoje · semana = hoje-6 · mes = hoje-29 — resolvidas no SERVIDOR
+  (`HomeController::resolvePeriod`). Default = FY corrente: sem ação do usuário, nada muda de valor.
+- **4 KPI**, com o Líquido em destaque (hero): Líquido no período · Vendas · A receber · Despesas
+- **Contrapartidas**: Compras · A pagar · Devolução de venda · Devolução de compra, em números mono
+  tabulares — os 4 do outro lado do caixa, sem gastar 4 cards
+- Header "Visão geral" + linha de stats (vendas · a receber · despesas) do mesmo período
+- Filtro loja quando `all_locations.length > 1 && is_admin` — e o `location_id` CHEGA aos três
+  `TransactionUtil::` (até 2026-08-27 a UI mandava o parâmetro e o controller o ignorava)
+- Banner discreto no rodapé: "Abrir versão completa" → `/dashboard-legacy?legacy=1` (a rota que SERVE o
+  Blade; `/home` é Closure de redirect desde 2026-05-22 e descarta a query — medido, PR #6357)
 - Permission gate `dashboard.data` — sem permission, KPI cards somem (shell minimal)
 - Customer redirect preservado (`user_type=user_customer` → `Modules/Crm/Http/Controllers/DashboardController`)
 - Multi-tenant Tier 0 ADR 0093 IRREVOGÁVEL — `session('user.business_id')` em todas queries
 - `?legacy=1` força Blade original (canário + acesso aos widgets pluggable)
-- Range default = mês corrente (do início do FY ao end calculado por `BusinessUtil::getCurrentFinancialYear`)
+- Estado do período e da loja em QUERY STRING, nunca em session (anti-hook)
 - Totais derivados todos do mesmo `getTransactionTotals` + `getSellTotals` + `getPurchaseTotals` — sem AJAX extra
 
 ---
@@ -59,7 +70,8 @@ Servir como **landing pós-login** do oimpresso entregando 8 KPIs de operação 
 - ❌ **NÃO toca endpoints AJAX** (`/home/get-totals`, `/home/product-stock-alert`, `/home/purchase-payment-dues`, `/home/sales-payment-dues`) — preservados intactos pro Blade legacy continuar funcionando
 - ❌ **NÃO toca `/calendar`** (`getCalendar` continua Blade)
 - ❌ **NÃO toca customer dashboard** (`Modules/Crm/Http/Controllers/DashboardController`)
-- ❌ **NÃO substitui filtros de data** do Blade legacy — Soft mostra range default fixo (FY corrente). Backlog US-DASH-004 (filtro datas persistido em Inertia)
+- ~~❌ NÃO substitui filtros de data — range fixo no FY~~ — **entregue em 2026-08-27** (US-DASH-004).
+  O default segue o FY, então o Non-Goal virou o comportamento-padrão em vez de uma proibição.
 - ❌ **NÃO permite mutação** — sem botões "criar venda" inline. Atalhos viram menu / navegação separada
 
 ---
@@ -102,7 +114,7 @@ Cobertos em `tests/Feature/Home/HomeIndexInertiaTest.php`:
 
 - **US-DASH-002 — Charts ECharts em Inertia** — Rewrite Cockpit V2 wave (F1→F4 com protótipo Cowork)
 - **US-DASH-003 — Widget registry pluggable React** — ADR nova obrigatória
-- **US-DASH-004 — KPI defer com filtro datas + loja persistido** — hoje range default fixo (FY corrente)
+- ~~US-DASH-004 — filtro de datas + loja~~ — **entregue 2026-08-27** (PeriodBar + `location_id` nos 3 `TransactionUtil::`)
 - **US-DASH-005 — Stock alert + dues tabelas DataTables migradas** — hoje continuam Blade AJAX
 
 ---
