@@ -66,9 +66,48 @@ beforeEach(function () {
     \Illuminate\Support\Facades\DB::purge('mysql');
 
     \Carbon\Carbon::setTestNow('2026-06-11 12:00:00');
+
+    visregLimparFixturesDeEstado();
 });
 
-afterEach(fn () => \Carbon\Carbon::setTestNow());
+afterEach(function () {
+    \Carbon\Carbon::setTestNow();
+    visregLimparFixturesDeEstado();
+});
+
+/**
+ * Remove as fixtures que os levers de ESTADO gravam no banco compartilhado.
+ *
+ * POR QUE EXISTE (achado adversarial de 2026-08-27, antes de chegar a produzir dano):
+ * o lever do estado `danger` da Jana (`routes/web.php` `$seedJanaVisregFlow`) faz um INSERT
+ * PERSISTENTE em `transactions`. Ele nao se auto-limpa — e esta suite nao usa
+ * `RefreshDatabase` (medido: 0 ocorrencias). Sem esta limpeza, o dado sobrevive ao caso que
+ * o criou e vaza para os SEGUINTES.
+ *
+ * O vetor concreto, medido: `scripts/tests/visreg-flake-retry.sh:59` re-roda `run_pest "$@"`
+ * — o ARQUIVO INTEIRO. Na 1a passada `sells-index` roda ANTES da `jana` e nao ve a venda; na
+ * 2a, ve. A baseline de `sells-index · default` esta gravada com a grade VAZIA
+ * (`Todas 0 · Pendente 0`); com a venda ela vira `Todas 1 · Pendente 1` e 3 dos 5 KPIs mudam
+ * (`SellsCockpitAggregator::buildSellKpis` conta `total`/`due`/`overdue` sob o mesmo
+ * predicado). Diff muito acima do limiar. Ou seja: um flake de browser em QUALQUER tela
+ * passaria a fabricar uma regressao de pixel numa tela que ninguem tocou.
+ *
+ * As duas protecoes que existiam eram ACIDENTAIS e nao declaradas em lugar nenhum: a ordem
+ * dos steps no workflow (L1 antes do L2) e a posicao da `jana` como 6a de 7 no manifesto.
+ * Reordenar o JSON — coisa que o lint permite — quebraria em silencio.
+ *
+ * Roda no `beforeEach` E no `afterEach` de proposito: o `after` nao deixa residuo pras suites
+ * seguintes, e o `before` garante estado limpo mesmo se um processo anterior morreu sem
+ * chegar ao `after` (retry, timeout, crash do browser).
+ *
+ * CIRURGICO: deleta por `invoice_no` exato, nunca por range. Nao toca dado de tenant.
+ */
+function visregLimparFixturesDeEstado(): void
+{
+    \Illuminate\Support\Facades\DB::table('transactions')
+        ->whereIn('invoice_no', ['VISREG-JANA-OVERDUE-001'])
+        ->delete();
+}
 
 /**
  * Le o manifesto (FONTE UNICA) e expande em pares (tela, estado). Tela => [slug, rota, ancora,
