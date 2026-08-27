@@ -25,11 +25,11 @@
 import '../../../css/cowork-arquivos-bundle.css'
 
 import { Deferred, Link, router } from '@inertiajs/react'
-import { Download } from 'lucide-react'
+import { Download, File } from 'lucide-react'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { PageHeader } from '@/Components/PageHeader'
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs'
-import DataTable from '@/Components/shared/DataTable'
+import DataTable, { type EstadoDaLinha } from '@/Components/shared/DataTable'
 import EmptyState from '@/Components/shared/EmptyState'
 import { Stack, Inline, Grid, Box } from '@/Components/layout'
 import { Badge } from '@/Components/ui/badge'
@@ -405,22 +405,67 @@ function paraQueryTrilha(f: Filtros): Record<string, string | number | null | un
 }
 
 /**
- * Chip de filtro.
+ * Chip de filtro — ETAPA 2 do bundle (`cowork-arquivos-bundle.css`).
  *
- * Antes, ativo e inativo diferiam só por `font-medium` — no render de 1728px do visreg
- * o chip selecionado era quase indistinguível dos outros. Agora o ativo carrega o mesmo
- * roxo do `--primary` que a aba ativa usa (ADR 0190), e o inativo ganha `hover`: o
- * elemento passa a dizer que é clicável antes do clique.
+ * O bundle desceu em 2026-08-25 declarando "ETAPA 1 de 2 — a tela AINDA NÃO usa as classes
+ * `.arq-*`", e a etapa 2 não veio: o CSS viajou morto no build desde então, e o chip inativo
+ * ficou sem fundo e sem borda, transparente sobre o card. `.arq-chip` traz os três estados
+ * (superfície + borda + pill 999px, hover na borda accent, `.active` em accent 8%).
  *
- * Tokens do DS (`primary`/`muted`), nunca cor crua — a camada canônica é vigiada por
- * lint pra isso.
+ * ⚠️ NADA de utilitária de cor/espaço aqui junto. O `cowork-arquivos-bundle.css` entra
+ * UNLAYERED (`@import` sem `@layer`) e as utilitárias do Tailwind v4 vivem em
+ * `@layer utilities` — unlayered vence layered sem olhar especificidade. Um `bg-primary/10`
+ * que sobrasse nesta tag morreria em silêncio, e quem depurasse ia procurar especificidade.
+ * É o mesmo mecanismo que comeu o `pl-9` da lupa (documentado no `DataTable.tsx`).
+ * Histórico do que estas classes substituem: o helper anterior pintava `bg-primary/10` no
+ * ativo e deixava o inativo sem fundo nenhum.
  */
-const chip = (ativo: boolean) =>
-  'rounded-full border px-3.5 py-1.5 text-xs transition-colors ' +
-  (ativo
-    ? 'border-primary/30 bg-primary/10 font-medium text-primary'
-    : 'text-muted-foreground hover:bg-muted hover:text-foreground')
+const chip = (ativo: boolean) => (ativo ? 'arq-chip active' : 'arq-chip')
 
+/**
+ * Conteúdo servível — a distinção que o payload NÃO manda como campo e que a linha precisa.
+ *
+ * `download_url: null` significa "nada a servir", e isso tem duas causas com consequências
+ * opostas: **apagado** (soft-delete; o `DownloadController` faz `find()` sem `withTrashed`,
+ * mas `size_bytes` continua descrevendo um arquivo que existe) e **anonimizado** (o que a
+ * estratégia `anonymize` da retenção produz: o conteúdo foi embora e `size_bytes` deixou de
+ * descrever qualquer coisa). O `excluido_em` separa os dois — é a mesma leitura que o comentário
+ * da coluna de ações já fazia, agora com nome.
+ *
+ * Derivado, não inventado: se um dia o servidor mandar o estado explícito, estas duas funções
+ * são o único lugar a trocar.
+ */
+const anonimizado = (a: LinhaAcervo) => a.download_url === null && a.excluido_em === null
+const semConteudo = (a: LinhaAcervo) => a.download_url === null
+
+/**
+ * Estado visual da linha — o `rows[].state` do protótipo (`!dono || restam <= 30 ? urgent :
+ * anon ? archived : undefined`), traduzido pros campos que o servidor manda.
+ *
+ * `urgent` (trilha vermelha) é ACHADO: órfão — ninguém alcança o arquivo pela tela do dono — ou
+ * prazo apertando. `archived` (esmaecido) é o oposto: a linha não é acionável, nada a baixar.
+ * A ordem importa e é a do protótipo: urgente ganha de arquivado.
+ */
+function estadoDaLinha(a: LinhaAcervo): EstadoDaLinha | undefined {
+  if (a.orfao || (a.dias_restantes !== null && a.dias_restantes <= 30)) return 'urgent'
+  if (semConteudo(a)) return 'archived'
+  return undefined
+}
+
+/**
+ * GEOMETRIA — as larguras, o alinhamento e o `mono` que o protótipo declara em
+ * `columns[] = { width, align, mono }`.
+ *
+ * Até 2026-08-27 nenhuma das 7 colunas declarava geometria, e não por decisão: o `ColumnDef`
+ * do TanStack não tinha onde pousar esses campos, então eles eram descartados em silêncio na
+ * travessia. O `meta` agora existe (ver `DataTable.tsx`) e vira `<colgroup>` + `table-layout:
+ * fixed`, que é a única forma que o navegador respeita.
+ *
+ * `arquivo` fica SEM largura de propósito — é a coluna fluida, que absorve a sobra. Era ela
+ * que estava sendo roubada: sem largura declarada em ninguém, o `Vinculado a` esticava em
+ * `nowrap` ou colapsava o `truncate` em reticências (os "tracinhos"), porque `truncate` é
+ * `overflow:hidden` e só funciona contra uma largura que alguém declarou.
+ */
 function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
   return [
     {
@@ -430,9 +475,26 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
         const a = row.original
         const lei = leiDe(a.sub_destination, politica)
         return (
-          <Stack gap={1} className="min-w-0">
-            <span className="font-medium text-foreground">{a.nome}</span>
-            <span className="text-xs text-muted-foreground">
+          // ETAPA 2 — `.arq-file`/`.arq-file-ic`/`.arq-file-m` do bundle, no lugar do
+          // `Stack` + utilitarias. O glyph (o "plate" de 30px com o icone de arquivo) e o que
+          // da a leitura de LINHA DE ACERVO, e nunca tinha sido portado: a celula era so nome
+          // + sub-linha. Nao foi decisao declarada em lugar nenhum — sumiu na travessia.
+          //
+          // `File` do lucide a 15px, exatamente o tamanho do `IcFile` do prototipo, dentro do
+          // plate mudo (`aria-hidden`): ele nao acrescenta informacao pra quem usa leitor de
+          // tela, o nome ao lado ja diz o que e.
+          //
+          // ⚠️ Uma familia por tag: `.arq-file-m b` e `small` ja definem tamanho e cor. O
+          // `break-words` fica porque nao e cor nem espaco — sob `table-layout: fixed` a
+          // celula nao cresce, e nome longo sem espaco vazaria; `truncate` aqui esconderia o
+          // nome, que e a informacao principal da linha.
+          <span className="arq-file">
+            <span className="arq-file-ic" aria-hidden="true">
+              <File size={15} />
+            </span>
+            <span className="arq-file-m">
+            <b className="break-words">{a.nome}</b>
+            <small>
               {/* Mesmo vocabulário da Retenção, que já usava o `CONTEXTO_PT`: rótulo PT-BR na
                   tela, slug no `title`. Antes o slug ia cru dentro de `<code>` — e `<code>` é
                   pra valor técnico, não pra prosa como "sem contexto". */}
@@ -453,13 +515,18 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
               ) : a.sub_destination ? (
                 <> · sem classificação humana</>
               ) : null}
+            </small>
             </span>
-          </Stack>
+          </span>
         )
       },
     },
     {
       id: 'dono',
+      // 160px — a largura que o protótipo declara. É ela que faz o `truncate` das duas linhas
+      // abaixo FUNCIONAR: sem largura declarada, `overflow:hidden` não tem contra o que cortar,
+      // e o resultado era ou a coluna esticando em `nowrap` ou tudo virando reticências.
+      meta: { width: 160 },
       // "Vinculado a" é a copy do protótipo vivo. O rótulo anterior veio do espelho de
       // 24/08 e foi portado fielmente na época — o protótipo renomeou depois, e o contrato
       // de tela (gerado da tela antiga) foi atualizado junto neste PR.
@@ -494,34 +561,46 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
         // `<a>` cru, não `<Link>` do Inertia: os destinos moram em OUTROS módulos e nem todos
         // são páginas Inertia — uma visita XHR numa página Blade quebra. O protótipo usa
         // `<button>` porque o mock dele não tem roteador de verdade; aqui tem.
+        // ETAPA 2 — `.arq-dono` (as duas linhas) e `.arq-dono-lk` (o link) do bundle.
+        //
+        // Os "tracinhos" que apareciam aqui NÃO viraram corte-com-largura-melhor: a classe de
+        // corte SAIU. Ela nunca foi decisão de design — o protótipo deixa o texto quebrar. Ela
+        // tinha sido portada sozinha, sem a `width: 160` que a sustenta, e `overflow:hidden`
+        // sem largura declarada não tem contra o que cortar: ou a coluna esticava em `nowrap`
+        // roubando a fluida, ou tudo virava reticências. Com a largura declarada (commit
+        // anterior) e sem ela, o texto quebra — que é o que a fonte faz.
+        //
+        // `break-words` fica na sub-linha: nome de classe Eloquent não tem espaço onde quebrar,
+        // e sem isso vazaria da célula de 160px. Não é cor nem espaço, então convive.
         return (
-          <Stack gap={1} className="min-w-0">
+          <span className="arq-dono">
             {a.dono_url ? (
               <a
                 href={a.dono_url}
-                className="truncate font-medium text-primary hover:underline"
+                className="arq-dono-lk"
                 title={`Abrir ${a.dono_rotulo ?? a.dono_tipo} #${a.dono_id}`}
               >
                 {a.dono_rotulo ?? a.dono_tipo} #{a.dono_id}
               </a>
             ) : (
-              <span className="truncate font-medium text-foreground">
+              <b>
                 {a.dono_rotulo ?? a.dono_tipo} #{a.dono_id}
-              </span>
+              </b>
             )}
-            <span
-              className="truncate font-mono text-xs text-muted-foreground"
+            <small
+              className="mono break-words"
               title="Tipo do arquivable (classe Eloquent)."
             >
               {a.dono_tipo}
-            </span>
-          </Stack>
+            </small>
+          </span>
         )
       },
     },
     {
       id: 'classificacao',
       header: 'Classificação',
+      meta: { width: 120 },
       cell: ({ row }) => {
         const a = row.original
         // PT-BR na tela, valor do enum no `title`: quem opera lê a palavra, quem depura
@@ -547,6 +626,7 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
     {
       id: 'disco',
       header: 'Disco',
+      meta: { width: 88 },
       // A justificativa do `rotuloDisco()` já estava escrita ("o nome técnico do disco é
       // detalhe de infra"), mas só os cards do Cofre a aplicavam — a coluna ficou com o valor
       // cru e imprimia `arquivos`, que é o nome do disco Laravel do CT, não informação de
@@ -565,17 +645,28 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
     {
       id: 'tamanho',
       header: 'Tamanho',
-      // `font-mono` porque o protótipo marca esta coluna `mono: true`, e a produção não tinha
-      // mono em NENHUMA das 6 colunas (medido). `tabular-nums` fica: ele alinha o dígito
-      // dentro da fonte de texto, e a fonte mono alinha por largura fixa — juntos não brigam,
-      // e manter os dois evita depender de qual fallback de fonte o navegador escolheu.
-      cell: ({ row }) => (
-        <span className="text-right font-mono tabular-nums">{tamanho(row.original.size_bytes)}</span>
-      ),
+      // As três marcas que o protótipo declara nesta coluna — `width: 84`, `align: "right"`,
+      // `mono: true` — agora ficam na COLUNA, que é onde valem.
+      //
+      // O `align` era o defeito mais fino dos três: ele estava escrito como `text-right` num
+      // <span> DENTRO da célula. Isso empurra o texto pra direita só enquanto o span ocupa a
+      // largura toda, e não alinha o <td> nem o <th> — o cabeçalho "Tamanho" ficava à esquerda
+      // sobre números à direita. Sob `table-layout: fixed` o span nem ocupa mais a célula
+      // inteira, então o `text-right` no filho vira decoração pura.
+      meta: { width: 84, align: 'right', mono: true },
+      // Anonimizado não mostra tamanho: a estratégia `anonymize` levou o conteúdo embora e
+      // `size_bytes` deixou de descrever qualquer coisa. É a regra do protótipo (`a.anon ? "—"`),
+      // e o travessão diz a verdade onde o número mentiria. Apagado é outro caso — lá o
+      // arquivo existe e o número segue válido.
+      cell: ({ row }) => (anonimizado(row.original) ? '—' : tamanho(row.original.size_bytes)),
     },
     {
       id: 'vence',
       header: 'Vence em',
+      // 130px. SEM `mono: true` de coluna, e isso e fiel ao prototipo, nao esquecimento: la o
+      // mono esta no <b> da DATA (`<b className="mono">`), nao na celula. O selo e a contagem
+      // ao lado sao prosa e seguem na fonte de texto.
+      meta: { width: 130 },
       cell: ({ row }) => {
         const a = row.original
         if (!a.vence_em) return <span className="text-muted-foreground">—</span>
@@ -605,6 +696,9 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
     },
     {
       id: 'acoes',
+      // 140px e alinhada a direita, como o prototipo (`{ key: "acao", width: 190, align: "right" }`
+      // — a largura menor porque aqui a linha tem 1 botao, nao os 4 do prototipo).
+      meta: { width: 140, align: 'right' },
       // Cabeçalho VAZIO, como o protótipo (`{ key: "acao", label: "" }`) — "Ações" repetiria
       // o que os botões já dizem, e o contrato de tela não pina copy que não existe.
       header: '',
@@ -742,6 +836,15 @@ function Acervo({ acervo, politica, filtros }: { acervo?: Paginator<LinhaAcervo>
       searchPlaceholder="Buscar por nome, dono ou contexto…"
       initialSearch={filtros.q ?? ''}
       rowKey={(a) => a.id}
+      rowState={estadoDaLinha}
+      // ETAPA 2 — `.arq-lista` do bundle SUBSTITUI o wrapper canon do DataTable (superfície +
+      // borda + raio 12 + rolagem horizontal). Somar as duas renderizaria duas molduras.
+      tableWrapperClassName="arq-lista"
+      // 1020px é do próprio bundle (`.arq-lista table{min-width:1020px}`) — não é número meu.
+      // Precisa vir explícito porque o `style` inline do DataTable vence qualquer seletor:
+      // sem isso o default (soma = 722) sobrescreveria a regra do bundle e as duas fontes
+      // discordariam em silêncio.
+      minTableWidth={1020}
     />
   )
 }
