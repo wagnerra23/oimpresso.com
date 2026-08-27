@@ -70,6 +70,53 @@
   --cw-ok-soft:      oklch(0.30 0.07 145);
 }
 
+/* ── DENTRO DO COCKPIT, a família `--cw-*` SEGUE o cockpit ──────────────────
+ *
+ * O `.cw-*` nasceu com fallback próprio em `:root` justamente pra funcionar FORA do
+ * `.cockpit` (tela de login, Blade legado) — e isso continua valendo: os blocos acima são o
+ * que pinta lá. O que faltava era o caso de dentro: um campo cowork dentro do shell tinha
+ * DOIS donos de paleta, e mudar o token do cockpit não alcançava o campo. Uma regra fecha
+ * isso pra TODA tela do ERP com campo cowork — 24 arquivos, não só a Arquivos.
+ *
+ * Herança resolve a precedência sozinha: `--cw-surface` declarado aqui está no <div class=
+ * "cockpit">, mais perto do campo que o `.dark` do <html>, então vence sem depender de ordem
+ * de arquivo. E `var(--surface)` é substituído no PRÓPRIO `.cockpit`, onde o
+ * `[data-theme="dark"]` já trocou o valor — o alias acompanha o tema de graça.
+ *
+ * ⚠️ QUATRO TOKENS FICAM DE FORA, e não é esquecimento — é medição (2026-08-27):
+ *
+ *   `--cw-accent` / `--cw-accent-2` — o cockpit NÃO define variante dark pra `--accent`: ele
+ *   fica no valor light `oklch(0.55 0.15 295)` mesmo no tema escuro. A família cowork o
+ *   levanta pra `oklch(0.68 0.16 295)` de propósito ("roxo mais legível em fundo escuro",
+ *   linha acima). Aliasar REGREDIRIA a legibilidade do foco no dark e descartaria em
+ *   silêncio uma decisão documentada. Unificar de verdade é dar variante dark ao `--accent`
+ *   no gerador de tokens — decisão [W], no gerador, não aqui.
+ *
+ *   `--cw-bg` / `--cw-bg-2` — as duas famílias ordenam esse par em direções OPOSTAS: no
+ *   cowork `--cw-bg`(0.16) é mais escuro que `--cw-bg-2`(0.19); no cockpit `--bg`(0.26) é
+ *   mais CLARO que `--bg-2`(0.23). Como `--cw-bg-2` pinta o campo desabilitado, aliasar
+ *   inverteria "desabilitado mais claro que o fundo" pra o contrário.
+ *
+ * As semânticas (`--cw-error`, `--cw-ok` e seus `-soft`) também ficam: o cockpit não tem par
+ * 1-pra-1 delas, e inventar um seria escolher cor no olho.
+ *
+ * Tamanho real da mudança, medido token a token: em LIGHT os 7 abaixo são byte-idênticos nas
+ * duas famílias (nada muda). Em DARK a diferença é só de luminância e ≤0.04 —
+ * surface 0.26→0.30 · border 0.32→0.34 · text 0.92→0.94 · text-mute 0.55→0.58 · text-dim e
+ * accent-soft já eram iguais. Matiz é a MESMA nos dois lados (240 nas superfícies, 90 nos
+ * textos): não há "família azulada contra neutros quentes" — o cockpit também é 240 no dark.
+ * O ganho aqui é ter UM dono do valor, não corrigir uma cor errada.
+ */
+.cockpit {
+  --cw-surface:      var(--surface);
+  --cw-border:       var(--border);
+  --cw-border-2:     var(--border-2);
+  --cw-text:         var(--text);
+  --cw-text-dim:     var(--text-dim);
+  --cw-text-mute:    var(--text-mute);
+  --cw-accent-soft:  var(--accent-soft);
+}
+
 /* ── Field wrapper (label + input + error) ─────────────────────────────── */
 .cw-field {
   display: flex; flex-direction: column; gap: 4px; min-width: 0;

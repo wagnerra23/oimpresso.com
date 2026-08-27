@@ -183,6 +183,7 @@ export const PROBE_SOURCE = /* js */ `(() => {
     const paisDeTexto = textosDe(td);
     const alvo = paisDeTexto[0] || td;
     const ca = cs(alvo);
+    const ca0 = cs(td); // a CÉLULA, não o filho que carrega o texto — ver 'align' abaixo
     const pill = [...td.querySelectorAll('*')].find((e) => {
       // Pílula é RÓTULO DE ESTADO, nunca controle. Sem este corte, botão só-ícone redondo
       // casa por forma: medido no protótipo em 2026-08-27, a coluna de ações reportava
@@ -201,8 +202,27 @@ export const PROBE_SOURCE = /* js */ `(() => {
           return !(e.textContent || '').trim() && r.width > 0 && r.width <= 10 && Math.abs(r.width - r.height) <= 2;
         })
       : false;
+    // GEOMETRIA (2026-08-27, 2ª leva). O que a 1ª leva desta sonda NÃO via — e por isso
+    // atravessou o comparador inteiro: LARGURA, ALINHAMENTO e ESTADO DE LINHA. O protótipo
+    // declara 'columns[] = {width, align, mono}' e 'rows[].state'; do trio, só o 'mono'
+    // tinha medida aqui, e foi o único que chegou na produção. Reportado por [W].
+    //
+    // 'align' é medido no PRÓPRIO <td>, não num filho — e essa escolha É o achado: a prod
+    // escrevia 'text-right' num <span> DENTRO da célula, o que não alinha a célula nem o
+    // cabeçalho. Medir o filho teria dito "tem right" e passado verde.
+    //
+    // Largura em FRAÇÃO da linha, nunca em px: os dois lados renderizam em containers de
+    // largura diferente, e px cru seria ruído garantido. Fração é comparável — mas fica
+    // como DADO no relatório, sem veredito próprio: em 'table-layout:auto' a largura é
+    // consequência do conteúdo, e emitir bug sobre ela seria acusar o dado. Quem manda é
+    // o 'tableLayout' (abaixo), que é decisão de design e não depende de dado nenhum.
+    const rTd = td.getBoundingClientRect();
+    const rLinha = td.parentElement ? td.parentElement.getBoundingClientRect() : null;
+    const alinha = (v) => (v === 'start' ? 'left' : v === 'end' ? 'right' : v);
     return {
       tag: (td.querySelector('button,a') || {}).tagName || null,
+      align: alinha(ca0.textAlign),
+      larguraPct: rLinha && rLinha.width > 0 ? Math.round((rTd.width / rLinha.width) * 1000) / 10 : null,
       mono: paisDeTexto.some((e) => /mono/i.test(cs(e).fontFamily)),
       corPropria: paisDeTexto.some((e) => cs(e).color !== corDaLinha),
       fontPx: Math.round(parseFloat(ca.fontSize)),
@@ -216,6 +236,38 @@ export const PROBE_SOURCE = /* js */ `(() => {
   const linhaEl = R.tableRow ? q(R.tableRow) : null;
   const celulas = linhaEl
     ? [...linhaEl.children].map((td, i) => ({ col: i, ...celulaInfo(td, cs(linhaEl).color) }))
+    : null;
+  // TABELA — o nível acima da célula, e é dele que sai o único sinal de geometria que NÃO
+  // depende de dado. 'table-layout' é decisão de design pura: 'fixed' significa "as larguras
+  // são declaradas e mandam"; 'auto' significa "o conteúdo decide". Quando o design declara
+  // largura por coluna e a prod está em 'auto', TODA divergência de largura é consequência
+  // deste único fato — reportá-lo é apontar a causa, não o sintoma.
+  //
+  // 'colunasDeclaradas' conta <col> com largura: é a forma canônica de declarar geometria em
+  // tabela HTML, e a ausência dela do lado da prod é o que se conserta.
+  //
+  // 'linhasComEstado' é o 'rows[].state' do protótipo medido por CONSEQUÊNCIA (trilha =
+  // box-shadow; apagado = opacity < 1), nunca por nome de classe — classe é cega ao estilo
+  // inline do protótipo, que foi o erro já consertado na detecção de pílula. Veredito dele é
+  // sempre SINAL, nunca bug: a contagem depende do DADO (o mock vence em 2031, a prod não),
+  // e um sinal que não distingue "capacidade ausente" de "nenhuma linha nesse estado hoje"
+  // não pode reprovar ninguém. Mesma regra do 'blocos'.
+  const tabelaEl = linhaEl ? linhaEl.closest('table') : null;
+  const corpo = tabelaEl ? [...tabelaEl.querySelectorAll('tbody tr')] : [];
+  const tabela = tabelaEl
+    ? {
+        tableLayout: cs(tabelaEl).tableLayout,
+        colunasDeclaradas: [...tabelaEl.querySelectorAll('colgroup col')].filter((c) => {
+          const w = cs(c).width;
+          return w && w !== 'auto' && w !== '0px';
+        }).length,
+        linhas: corpo.length,
+        linhasComEstado: corpo.filter((tr) => {
+          const c = cs(tr);
+          const daCelula = [...tr.children].some((td) => cs(td).boxShadow !== 'none');
+          return c.boxShadow !== 'none' || daCelula || parseFloat(c.opacity) < 1;
+        }).length,
+      }
     : null;
   // D9 — CLASSE DE FORMATO do texto visível, por região [data-contract].
   // NAO e diff de string: o prototipo tem mock e a prod tem dado real, entao comparar
@@ -259,7 +311,7 @@ export const PROBE_SOURCE = /* js */ `(() => {
   return {
     url: location.href,
     theme: document.documentElement.getAttribute('data-theme') || (document.documentElement.classList.contains('dark') ? 'dark' : 'light'),
-    roles: { kpi, title, primary, filterRows: filterEls.length ? visualRows(filterEls) : null, contratos, celulas },
+    roles: { kpi, title, primary, filterRows: filterEls.length ? visualRows(filterEls) : null, contratos, celulas, tabela },
   };
 })()`;
 
@@ -469,6 +521,25 @@ function dimCelulas(prod, design) {
   if (P.length !== D.length) {
     rows.push({ dim: 'D2', campo: 'nº de colunas', prod: P.length, design: D.length, veredito: 'DIVERGE (bug)', detalhe: 'comparando as ' + n + ' primeiras' });
   }
+
+  // D2 — GEOMETRIA DA TABELA. Vem antes das colunas de propósito: quando o modo de layout
+  // difere, cada largura divergente é sintoma deste fato, e ler a causa primeiro evita
+  // tratar sete sintomas como sete achados.
+  const PT = prod.tabela, DT = design.tabela;
+  if (!PT || !DT) {
+    rows.push({ dim: 'D2', campo: 'geometria da tabela', prod: PT ? 'ok' : 'não medido', design: DT ? 'ok' : 'não medido', veredito: 'SEM-DADO', detalhe: 're-injete a sonda atual (--probe) nos DOIS lados' });
+  } else {
+    if (PT.tableLayout !== DT.tableLayout) {
+      rows.push({ dim: 'D2', campo: 'table-layout', prod: PT.tableLayout, design: DT.tableLayout, veredito: DT.tableLayout === 'fixed' ? 'DIVERGE (bug)' : 'DIVERGE (fonte)', detalhe: DT.tableLayout === 'fixed' ? 'o design declara larguras e elas mandam; a prod deixa o conteúdo decidir — é a causa de toda largura divergente abaixo' : undefined });
+    }
+    if (PT.colunasDeclaradas !== DT.colunasDeclaradas) {
+      rows.push({ dim: 'D2', campo: 'colunas com largura declarada', prod: PT.colunasDeclaradas, design: DT.colunasDeclaradas, veredito: DT.colunasDeclaradas > PT.colunasDeclaradas ? 'DIVERGE (bug)' : 'DIVERGE (fonte)' });
+    }
+    // SINAL, nunca bug — a contagem depende do dado dos dois lados. Ver o comentário da sonda.
+    if ((PT.linhasComEstado > 0) !== (DT.linhasComEstado > 0)) {
+      rows.push({ dim: 'D6', campo: 'estado de linha', prod: PT.linhasComEstado + '/' + PT.linhas, design: DT.linhasComEstado + '/' + DT.linhas, veredito: 'DIVERGE (dado?)', detalhe: 'um lado distingue linha por estado (trilha/apagado) e o outro não — pode ser capacidade ausente OU nenhuma linha nesse estado hoje; confira antes de tratar como defeito' });
+    }
+  }
   for (let i = 0; i < n; i++) {
     const a = P[i], b = D[i], col = 'col' + i;
     // D4 — família monoespaçada é decisão de design, não de tema.
@@ -492,6 +563,14 @@ function dimCelulas(prod, design) {
       rows.push({ dim: 'D8', campo: col + '.tag', prod: a.tag, design: b.tag, veredito: 'DIVERGE (impl)', detalhe: 'os dois sao alcancaveis — formas diferentes. BUTTON herda text-align:center; confira o alinhamento da celula' });
     }
 
+    // D8 — ALINHAMENTO DA CÉLULA. Medido no <td>, e é por isso que morde: a prod escrevia
+    // `text-right` num <span> dentro da célula. Visualmente o texto até encosta à direita
+    // quando o span ocupa a célula inteira, mas o <td> segue `left` — e o <th> junto, que é
+    // o que denuncia (cabeçalho à esquerda sobre número à direita). Alinhamento é decisão de
+    // design pura: não depende de dado, então emite veredito duro.
+    if (a.align && b.align && a.align !== b.align) {
+      rows.push({ dim: 'D8', campo: col + '.align', prod: a.align, design: b.align, veredito: 'DIVERGE (bug)', detalhe: 'o alinhamento é da CÉLULA — classe num filho não alinha o <td> nem o cabeçalho' });
+    }
     // D2 — a sub-linha existe ou sumiu?
     if (a.blocos !== b.blocos) {
       // NUNCA `DIVERGE (bug)`. O nº de blocos depende do DADO, não só do design: a célula
@@ -744,6 +823,44 @@ function selftest() {
   // Sem `tableRow` nos dois lados → SEM-DADO, nunca IGUAL por omissão.
   const semCel = comTexto([]);
   checks.push(['célula sem tableRow sai SEM-DADO, não IGUAL', compare(semCel, semCel).rows.some((r) => r.campo === 'linha da tabela' && r.veredito === 'SEM-DADO')]);
+
+  // ── GEOMETRIA (2026-08-27, 2ª leva) — largura, alinhamento e estado de linha ────
+  // O caso: o protótipo da Arquivos declara 6 larguras fixas + `align:"right"` + `mono` na
+  // coluna Tamanho e `rows[].state` (urgent/archived). Do trio, a sonda só via `mono` — e foi
+  // o único que chegou na produção. Estes fixtures pinam que os outros dois agora mordem.
+  const comGeo = (celulas, tabela) => ({ theme: 'dark', roles: { ...comTexto([]).roles, celulas, tabela } });
+  const geoDesign = comGeo(
+    [
+      { col: 0, tag: null, align: 'left', larguraPct: 38.5, mono: false, corPropria: true, blocos: 2, pill: null },
+      { col: 1, tag: null, align: 'right', larguraPct: 8.2, mono: true, corPropria: false, blocos: 1, pill: null },
+    ],
+    { tableLayout: 'fixed', colunasDeclaradas: 6, linhas: 8, linhasComEstado: 3 },
+  );
+  const geoProd = comGeo(
+    [
+      { col: 0, tag: null, align: 'left', larguraPct: 52.1, mono: false, corPropria: true, blocos: 2, pill: null },
+      // Tamanho: `text-right` foi parar num <span> DENTRO da célula — o <td> segue `left`.
+      { col: 1, tag: null, align: 'left', larguraPct: 6.0, mono: true, corPropria: false, blocos: 1, pill: null },
+    ],
+    { tableLayout: 'auto', colunasDeclaradas: 0, linhas: 8, linhasComEstado: 0 },
+  );
+  const rg = compare(geoProd, geoDesign);
+  const temG = (campo, ver) => rg.rows.some((r) => r.campo.includes(campo) && r.veredito === ver);
+  checks.push(['geometria: pega o table-layout auto contra fixed (D2)', temG('table-layout', 'DIVERGE (bug)')]);
+  checks.push(['geometria: pega as larguras que ninguém declarou (D2)', temG('colunas com largura declarada', 'DIVERGE (bug)')]);
+  checks.push(['geometria: pega o align que ficou no filho, não na célula (D8)', temG('col1.align', 'DIVERGE (bug)')]);
+  checks.push(['geometria: estado de linha sai como SINAL, nunca bug', temG('estado de linha', 'DIVERGE (dado?)') && !rg.rows.some((r) => r.campo.includes('estado de linha') && r.veredito === 'DIVERGE (bug)')]);
+  // A largura em si NÃO emite veredito: em `auto` ela é consequência do conteúdo, e acusá-la
+  // seria acusar o dado. Ela viaja no payload como número pro humano ler. Se alguém "melhorar"
+  // isto emitindo bug por largura, este check cai — de propósito.
+  // (o campo "colunas com largura declarada" É de tabela e TEM veredito — o que não pode ter
+  //  é a largura POR COLUNA, `colN.largura*`, que é onde o dado mandaria no resultado.)
+  checks.push(['geometria: largura por coluna viaja como dado, sem veredito próprio', !rg.rows.some((r) => /^col\d+\.largura/i.test(r.campo))]);
+  // CONTROLES NEGATIVOS — sem estímulo, silêncio. Senão a régua mede ruído.
+  checks.push(['geometria CONTROLE: design×design = 0 divergência', compare(geoDesign, geoDesign).rows.filter((r) => r.veredito.startsWith('DIVERGE')).length === 0]);
+  checks.push(['geometria CONTROLE: prod×prod = 0 divergência', compare(geoProd, geoProd).rows.filter((r) => r.veredito.startsWith('DIVERGE')).length === 0]);
+  // Snapshot velho (sonda da 1ª leva, sem `tabela`) → SEM-DADO, nunca verde por omissão.
+  checks.push(['geometria com sonda antiga sai SEM-DADO, não IGUAL', compare(prodCel, designCel).rows.some((r) => r.campo === 'geometria da tabela' && r.veredito === 'SEM-DADO')]);
 
   // ── FRONTEIRA das bandas declaradas (chip G8, 2026-08-14) ────────────────────
   // As bandas destas dimensões vêm de TOLERANCIAS (style-fingerprint.mjs). Sem um par

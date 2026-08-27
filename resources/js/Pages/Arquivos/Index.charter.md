@@ -145,6 +145,31 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
       [RUNBOOK §5.4](../../../../memory/requisitos/Arquivos/RUNBOOK-index.md).
       **Segue leitura pura:** classificar e excluir NÃO entraram — não existe endpoint pra
       nenhum dos dois, e a decisão de onde a reclassificação mora é a pendência aberta abaixo.
+- [x] **ETAPA 2 do bundle + geometria da tabela (2026-08-27)** — a tela passa a USAR as classes
+      `.arq-*` que o bundle trouxe em 25/08 e que estavam viajando mortas no build
+      (`.arq-chip`/`.active` nos buckets · `.arq-lista` no wrapper · `.arq-file`/`-ic`/`-m` na
+      célula Arquivo · `.arq-dono`/`-lk` no Vinculado a). Com elas voltou o **glyph do arquivo**
+      (plate 30px, `aria-hidden`), que nunca tinha sido portado — não era decisão declarada em
+      lugar nenhum, sumiu na travessia. Regra aplicada: **uma família por tag** — onde entrou
+      `.arq-*` saiu toda utilitária de cor/espaço, porque o bundle entra UNLAYERED e vence as
+      utilitárias do Tailwind (`@layer utilities`) sem olhar especificidade; utilitária que
+      sobrasse morreria em silêncio.
+      Junto, a **geometria** que o protótipo declara (`columns[] = {width, align, mono}` +
+      `rows[].state`) passou a existir na API do `DataTable` compartilhado — o `ColumnDef` do
+      TanStack não tinha onde pousá-la, então ela era descartada sem erro. As 7 larguras:
+      arquivo fluida · dono 160 · classificação 120 · disco 88 · tamanho 84 right+mono ·
+      vence 130 · ações 140 right; `rowState` órfão‖≤30d → trilha vermelha, sem conteúdo → esmaecida.
+      **Medido em render** (harness com o CSS buildado real, 1000px): `table-layout: fixed`,
+      7 `<col>`, larguras 298/160/120/88/84/130/140, `text-align: right` no `<td>` **e no `<th>`**
+      da coluna Tamanho (era o defeito — o `text-right` estava num `<span>` dentro da célula e
+      não alinhava nem célula nem cabeçalho), trilha `inset 3px` no `td:first-child`,
+      `opacity: .6` na arquivada, plate 30×30 raio 8 em accent 12%, wrapper com 1 moldura só e
+      rolagem horizontal ativa.
+- [ ] **[W] decide: `disco` 88px ou 104px.** Medido no render: `Cofre · cifrado` precisa de
+      **101px** (77 de texto + 24 de padding) e a coluna tem **88** — faltam 13, então ela
+      quebra em 2 linhas e engorda a linha inteira. O 88 veio do número que [W] passou; o
+      protótipo espelhado declara 110 pra esta coluna, e a copy dele é curta (`vault`/slug do
+      disco) contra a nossa em PT-BR. Aplicado 88 como pedido — trocar pra 104 é uma linha.
 - [ ] Screenshot 1280/1440 aprovado por [W].
 - [ ] Definir se reclassificar bucket/visibility fica nesta tela ou só no dono do arquivo
       (a onda 2 esbarra nisso — ver PR-6).

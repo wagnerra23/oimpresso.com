@@ -39,6 +39,67 @@ import { Input } from '@/Components/ui/input';
  *   />
  */
 
+/**
+ * GEOMETRIA DA COLUNA — o vocabulário que o protótipo já falava e a travessia não tinha
+ * onde pousar.
+ *
+ * Os protótipos Cowork declaram `columns[] = { width, align, mono }` e `rows[].state` desde
+ * sempre. O `ColumnDef` do TanStack não tem campo pra nada disso, então o `meta` chegava aqui
+ * e era **ignorado em silêncio** — não dava erro de tipo, não dava aviso, simplesmente não
+ * acontecia. Foi assim que a Arquivos/Index perdeu as 7 larguras, o alinhamento à direita da
+ * coluna Tamanho e a trilha de urgência, enquanto o `mono` (que dava pra fazer à mão dentro
+ * da célula) chegou. Reportado por [W] em 2026-08-27.
+ *
+ * Declarado por module augmentation, e não como prop paralela, de propósito: assim o campo
+ * aparece no autocomplete de QUALQUER `ColumnDef` do repo. O que não se enxerga não se aplica.
+ */
+declare module '@tanstack/react-table' {
+  // Os dois parametros existem so pra casar a assinatura do tipo original do TanStack —
+  // este `meta` nao depende de nenhum dos dois.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData, TValue> {
+    /** Largura fixa em px. Uma largura declarada já põe a tabela em `table-layout: fixed`. */
+    width?: number;
+    /** Alinhamento da CÉLULA (`<th>` e `<td>`) — nunca de um filho dela. Ver nota abaixo. */
+    align?: 'left' | 'center' | 'right';
+    /** Fonte monoespaçada + `tabular-nums` na célula inteira. */
+    mono?: boolean;
+  }
+}
+
+/**
+ * Estado visual da LINHA — o `rows[].state` do protótipo.
+ * `urgent` = trilha vermelha à esquerda · `archived` = esmaecida · `selected` = fundo accent.
+ */
+export type EstadoDaLinha = 'urgent' | 'archived' | 'selected';
+
+/** Classe de alinhamento aplicada à célula. `undefined` mantém o padrão (esquerda). */
+const CLASSE_ALINHAMENTO: Record<'left' | 'center' | 'right', string> = {
+  left: 'text-left',
+  center: 'text-center',
+  right: 'text-right',
+};
+
+/** O cabeçalho ordenável é um flex — `text-*` não move flex, `justify-*` move. */
+const CLASSE_JUSTIFICA: Record<'left' | 'center' | 'right', string> = {
+  left: 'justify-start',
+  center: 'justify-center',
+  right: 'justify-end',
+};
+
+/**
+ * A trilha vai no `td:first-child`, não no `<tr>`.
+ *
+ * Não é preciosismo: `box-shadow` em `<tr>` só pinta quando `border-collapse: separate`, e
+ * qualquer folha que colapse a tabela apaga a trilha sem erro nenhum. `<td>` pinta sempre.
+ * O `opacity` do arquivado, ao contrário, herda bem e fica na própria linha.
+ */
+const CLASSE_ESTADO: Record<EstadoDaLinha, string> = {
+  urgent: '[&>td:first-child]:shadow-[inset_3px_0_0_var(--color-destructive)]',
+  archived: 'opacity-60',
+  selected: 'bg-accent/50',
+};
+
 export interface PaginatorShape<T> {
   data: T[];
   total: number;
@@ -62,6 +123,32 @@ interface Props<T> {
   showSearch?: boolean;
   /** Valor inicial da busca vindo do backend */
   initialSearch?: string;
+  /**
+   * Estado visual por linha — o `rows[].state` do protótipo. Devolva `undefined` pra linha
+   * sem estado. É a linha que decide, com o dado dela: a tabela não adivinha.
+   */
+  rowState?: (row: T) => EstadoDaLinha | undefined;
+  /**
+   * Piso de largura da tabela, em px. Só vale quando alguma coluna declara `meta.width`.
+   *
+   * Sem piso, `table-layout: fixed` num container estreito espreme a coluna fluida até zero
+   * em vez de rolar. O default é a SOMA das larguras declaradas — o menor número que não é
+   * inventado: garante que nenhuma coluna com largura declarada seja espremida, e deixa a
+   * rolagem horizontal do wrapper fazer o resto. Passe um valor maior quando o protótipo
+   * declarar um (ex.: `.arq-lista table{min-width:1020px}`).
+   */
+  minTableWidth?: number;
+  /**
+   * SUBSTITUI as classes do wrapper da tabela (nao soma).
+   *
+   * Existe pela regra "um elemento, uma familia": quando a tela aplica o CSS do proprio
+   * modulo no wrapper (ex.: `.arq-lista`, que ja traz superficie + borda + raio + rolagem),
+   * somar as utilitarias do default renderiza DUAS molduras — dois bordos, dois raios, dois
+   * contextos de rolagem. Substituir e a unica forma de ter uma so.
+   *
+   * Omitido = default DS canon, que e o que as outras 3 telas usam.
+   */
+  tableWrapperClassName?: string;
 }
 
 export default function DataTable<T>({
@@ -75,8 +162,20 @@ export default function DataTable<T>({
   rowKey,
   showSearch = true,
   initialSearch = '',
+  rowState,
+  minTableWidth,
+  tableWrapperClassName,
 }: Props<T>) {
   const [searchTerm, setSearchTerm] = useState(initialSearch);
+
+  // A geometria é lida das colunas UMA vez e vira `<colgroup>` — que é a forma canônica de
+  // declarar largura em tabela HTML, e a única que o navegador respeita sob `table-layout:
+  // fixed`. Largura em `<td>` sob layout fixo é ignorada; foi por isso que declarar no
+  // `className` da célula nunca teria funcionado.
+  const larguras = columns.map((c) => c.meta?.width);
+  const temLargura = larguras.some((w) => typeof w === 'number' && w > 0);
+  const somaDeclarada = larguras.reduce<number>((s, w) => s + (typeof w === 'number' ? w : 0), 0);
+  const pisoDaTabela = temLargura ? (minTableWidth ?? somaDeclarada) : undefined;
 
   // Debounce busca — envia pro backend (Scout faz keyword/vector lookup)
   useEffect(() => {
@@ -148,23 +247,39 @@ export default function DataTable<T>({
         </div>
       )}
 
-      <div className="border border-border rounded overflow-x-auto">
-        <table className="w-full text-sm">
+      <div className={tableWrapperClassName ?? 'border border-border rounded overflow-x-auto'}>
+        <table
+          className={`w-full text-sm${temLargura ? ' table-fixed' : ''}`}
+          style={pisoDaTabela ? { minWidth: pisoDaTabela } : undefined}
+        >
+          {temLargura && (
+            <colgroup>
+              {larguras.map((w, i) => (
+                // Coluna sem largura declarada fica sem `<col style>` de propósito: ela é a
+                // FLUIDA, e absorve a sobra. Declarar todas tira essa folga.
+                <col key={i} style={typeof w === 'number' && w > 0 ? { width: w } : undefined} />
+              ))}
+            </colgroup>
+          )}
           <thead className="border-b border-border bg-muted/30 text-xs text-muted-foreground">
             {table.getHeaderGroups().map((group) => (
               <tr key={group.id}>
                 {group.headers.map((header) => {
                   const canSort = header.column.getCanSort();
+                  const align = header.column.columnDef.meta?.align;
                   return (
                     <th
                       key={header.id}
-                      className="text-left p-3 font-medium whitespace-nowrap"
+                      // O alinhamento é da CÉLULA. Escrever `text-right` num <span> dentro
+                      // dela move o texto e deixa o cabeçalho à esquerda — número à direita
+                      // sob rótulo à esquerda foi exatamente o defeito reportado.
+                      className={`${CLASSE_ALINHAMENTO[align ?? 'left']} p-3 font-medium whitespace-nowrap`}
                     >
                       {canSort ? (
                         <button
                           type="button"
                           onClick={() => handleSort(header.id)}
-                          className="flex items-center gap-1 hover:text-foreground"
+                          className={`flex w-full items-center gap-1 hover:text-foreground ${CLASSE_JUSTIFICA[align ?? 'left']}`}
                         >
                           {flexRender(header.column.columnDef.header, header.getContext()) as ReactNode}
                           <ArrowUpDown size={11} className="opacity-50" />
@@ -186,18 +301,29 @@ export default function DataTable<T>({
                 </td>
               </tr>
             ) : (
-              table.getRowModel().rows.map((row) => (
-                <tr
-                  key={rowKey ? rowKey(row.original) : row.id}
-                  className="hover:bg-accent/30"
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="p-3 align-top">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext()) as ReactNode}
-                    </td>
-                  ))}
-                </tr>
-              ))
+              table.getRowModel().rows.map((row) => {
+                const estado = rowState?.(row.original);
+                return (
+                  <tr
+                    key={rowKey ? rowKey(row.original) : row.id}
+                    className={`hover:bg-accent/30${estado ? ' ' + CLASSE_ESTADO[estado] : ''}`}
+                    data-estado={estado}
+                  >
+                    {row.getVisibleCells().map((cell) => {
+                      const meta = cell.column.columnDef.meta;
+                      const align = meta?.align;
+                      return (
+                        <td
+                          key={cell.id}
+                          className={`${CLASSE_ALINHAMENTO[align ?? 'left']} p-3 align-top${meta?.mono ? ' font-mono tabular-nums' : ''}`}
+                        >
+                          {flexRender(cell.column.columnDef.cell, cell.getContext()) as ReactNode}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
