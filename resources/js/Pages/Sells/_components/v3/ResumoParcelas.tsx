@@ -36,7 +36,7 @@ export default function ResumoParcelas({
   const excedente = parcelas.length - PARCELAS_VISIVEIS;
 
   return (
-    <div className="mb-3 rounded-xl border border-border bg-muted/40 px-3 py-2">
+    <div className="mb-3 rounded-lg border border-border bg-muted/40 px-3 py-2">
       <Inline gap={2} align="center" className="mb-2">
         <Pill tom="primary" mono>
           {parcelas.length}x
