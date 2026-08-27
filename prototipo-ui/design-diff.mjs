@@ -165,13 +165,19 @@ export const PROBE_SOURCE = /* js */ `(() => {
   //     colunas que visivelmente têm uma. Agora detecta por FORMA — raio maior ou igual a
   //     metade da altura — que atravessa tanto a classe utilitária do repo quanto o
   //     borderRadius inline do protótipo.
+  // DEDUPLICA por elemento-pai. Contar NÓS de texto infla: interpolação JSX parte o texto
+  // em vários nós dentro do MESMO elemento — medido em produção 2026-08-27, a célula
+  // "Vinculado a" tem um único <span> com {dono_tipo} #{dono_id} e a sonda contava 3.
+  // O efeito não era ruído: o veredito saía INVERTIDO (prod "com mais blocos" que o design,
+  // quando na verdade ela tinha perdido a sub-linha). Bloco visual = elemento que carrega
+  // texto, não nó de texto.
   const textosDe = (raiz) => {
     const w = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT, {
       acceptNode: (n) => ((n.nodeValue || '').trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT),
     });
-    const out = [];
-    for (let n = w.nextNode(); n; n = w.nextNode()) if (n.parentElement) out.push(n.parentElement);
-    return out;
+    const vistos = new Set();
+    for (let n = w.nextNode(); n; n = w.nextNode()) if (n.parentElement) vistos.add(n.parentElement);
+    return [...vistos];
   };
   const celulaInfo = (td, corDaLinha) => {
     const paisDeTexto = textosDe(td);
@@ -263,6 +269,8 @@ export const PROBE_SOURCE = /* js */ `(() => {
  *   IGUAL            — medida idêntica
  *   DIVERGE (bug)    — medida difere E o design é a referência → prod está errada
  *   DIVERGE (tema)   — difere só por cor de texto que acompanha o tema (não é bug estrutural)
+ *   DIVERGE (dado?)  — a medida difere mas o sinal NÃO distingue design de dado (ex.: nº de
+ *                      blocos muda com render condicional). Sinal pro humano, nunca bug.
  *   SEM-DADO         — um dos lados não trouxe a medida (não mente por omissão)
  * ─────────────────────────────────────────────────────────────────────────── */
 
@@ -472,12 +480,28 @@ function dimCelulas(prod, design) {
       rows.push({ dim: 'D6', campo: col + '.cor', prod: a.corPropria ? 'cor própria' : 'herda a da linha', design: b.corPropria ? 'cor própria' : 'herda a da linha', veredito: b.corPropria ? 'DIVERGE (bug)' : 'DIVERGE (fonte)' });
     }
     // D8 — a TAG explica a causa: BUTTON/A é alcançável, SPAN virou texto morto.
-    if ((a.tag || null) !== (b.tag || null)) {
-      rows.push({ dim: 'D8', campo: col + '.tag', prod: a.tag || 'sem elemento clicável', design: b.tag || 'sem elemento clicável', veredito: b.tag ? 'DIVERGE (bug)' : 'DIVERGE (fonte)', detalhe: b.tag ? 'o design alcança o destino; a prod imprime texto morto' : undefined });
+    // O que importa e ALCANCAVEL ou nao. Link real (a href) e navegacao SPA (button onClick)
+    // sao as DUAS formas legitimas, e tratar a diferenca de tag como divergencia e falso-positivo.
+    // Medido em 2026-08-27: depois do #6345 a prod passou a usar A onde o prototipo usa BUTTON,
+    // e a regua acusou 'a prod imprime texto morto' sobre um link que funciona. A tag continua
+    // no relatorio como DETALHE — ela explica alinhamento, porque BUTTON herda text-align:center
+    // — mas nao emite veredito duro sozinha.
+    if (!!a.tag !== !!b.tag) {
+      rows.push({ dim: 'D8', campo: col + '.alcancavel', prod: a.tag || 'sem elemento clicavel', design: b.tag || 'sem elemento clicavel', veredito: b.tag ? 'DIVERGE (bug)' : 'DIVERGE (fonte)', detalhe: b.tag ? 'o design alcanca o destino; a prod imprime texto morto' : undefined });
+    } else if (a.tag && b.tag && a.tag !== b.tag) {
+      rows.push({ dim: 'D8', campo: col + '.tag', prod: a.tag, design: b.tag, veredito: 'DIVERGE (impl)', detalhe: 'os dois sao alcancaveis — formas diferentes. BUTTON herda text-align:center; confira o alinhamento da celula' });
     }
+
     // D2 — a sub-linha existe ou sumiu?
     if (a.blocos !== b.blocos) {
-      rows.push({ dim: 'D2', campo: col + '.blocos de texto', prod: a.blocos, design: b.blocos, veredito: a.blocos < b.blocos ? 'DIVERGE (bug)' : 'DIVERGE (fonte)' });
+      // NUNCA `DIVERGE (bug)`. O nº de blocos depende do DADO, não só do design: a célula
+      // "Vence em" da prod mostra o contador "11d" porque aquele arquivo vence em 11 dias,
+      // e a do protótipo não mostra porque o mock vence em 2031 — o contador só renderiza
+      // a ≤90 dias. Medido em 2026-08-27, e foi o que fez este sinal acusar divergência
+      // onde havia só data diferente. Um sinal que não distingue "conteúdo perdido" de
+      // "dado diferente" não pode emitir veredito duro: vira sinal pro humano ler.
+      // Continua valendo a pena existir — foi ele que apontou a sub-linha sumida.
+      rows.push({ dim: 'D2', campo: col + '.blocos de texto', prod: a.blocos, design: b.blocos, veredito: 'DIVERGE (dado?)', detalhe: 'pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito' });
     }
     // D6 — pílula: presença, e depois raio/borda/dot (o vocabulário da D6 pra estado).
     const pa = a.pill, pb = b.pill;
@@ -508,7 +532,7 @@ export function compare(prodSnap, designSnap) {
  * ─────────────────────────────────────────────────────────────────────────── */
 function fmt(rows) {
   return rows.map((r) => {
-    const mark = r.veredito === 'IGUAL' ? '✓' : r.veredito === 'SEM-DADO' ? '⬜' : r.veredito.includes('tema') ? '🟡' : '✗';
+    const mark = r.veredito === 'IGUAL' ? '✓' : r.veredito === 'SEM-DADO' ? '⬜' : /tema|dado?|impl/.test(r.veredito) ? '🟡' : '✗';
     return `  ${mark} [${r.dim}] ${r.campo}: prod=${r.prod} · design=${r.design} → ${r.veredito}${r.detalhe ? ' (' + r.detalhe + ')' : ''}`;
   }).join('\n');
 }
@@ -697,10 +721,19 @@ function selftest() {
   ]);
   const rc = compare(prodCel, designCel);
   const temC = (campo, dim) => rc.rows.some((r) => r.dim === dim && r.campo.includes(campo) && r.veredito === 'DIVERGE (bug)');
-  checks.push(['célula: pega o link que virou texto morto (D8 tag)', temC('col1.tag', 'D8')]);
+  checks.push(['célula: pega o link que virou texto morto (D8)', temC('col1.alcancavel', 'D8')]);
+  // A e BUTTON sao as duas formas legitimas de alcancar: diferenca de tag NAO e bug.
+  const doisAlcancaveis = compare(
+    comCelulas([{ col: 0, tag: 'A', mono: true, corPropria: true, blocos: 2, pill: null }]),
+    comCelulas([{ col: 0, tag: 'BUTTON', mono: true, corPropria: true, blocos: 2, pill: null }]),
+  );
+  checks.push(['célula: A x BUTTON (os dois alcançáveis) NÃO é bug', doisAlcancaveis.bugs === 0 && doisAlcancaveis.rows.some((r) => r.veredito === 'DIVERGE (impl)')]);
   checks.push(['célula: pega a sub-linha em mono que sumiu (D4)', temC('col1.mono', 'D4')]);
   checks.push(['célula: pega a cor que a prod deixou de pintar (D6)', temC('col1.cor', 'D6')]);
-  checks.push(['célula: pega a sub-linha que sumiu (D2 blocos)', temC('col1.blocos', 'D2')]);
+  const temV = (campo, ver) => rc.rows.some((r) => r.campo.includes(campo) && r.veredito === ver);
+  checks.push(['célula: aponta a sub-linha sumida como SINAL, não como bug', temV('col1.blocos', 'DIVERGE (dado?)')]);
+  // O blocos NAO pode emitir veredito duro: ele nao distingue conteudo perdido de dado diferente.
+  checks.push(['célula: blocos NUNCA vira DIVERGE (bug)', !rc.rows.some((r) => r.campo.includes('blocos') && r.veredito === 'DIVERGE (bug)')]);
   checks.push(['célula: pega a pílula que perdeu o dot (D6)', temC('col2.pílula.dot', 'D6')]);
   // Rotula com a dimensão CANÔNICA do protocolo — nada de número novo.
   checks.push(['célula: usa D2/D4/D6/D8, não inventa dimensão', rc.rows.every((r) => ['D2', 'D4', 'D6', 'D8', 'D9'].includes(r.dim))]);
