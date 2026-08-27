@@ -26,6 +26,7 @@
 
 import { useMemo, useRef, useState, type ReactNode } from 'react';
 
+import { cn } from '@/Lib/utils';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
 import {
@@ -42,24 +43,37 @@ import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/
 import SubNav from '@/Components/shared/SubNav';
 
 import { Checkbox } from '@/Components/ui/checkbox';
+import { Label } from '@/Components/ui/label';
 import { areaUnitaria, totalDoItem, unitarioLiquido } from './calculo-item';
 import { BASES, TIPOS_BENEFICIARIO } from './comissao-dominio';
 import { brl, fmtBR, fmtQtd, parseBR } from './numeros';
 import {
   ABAS,
+  CLASSIFICACAO_TRIBUTARIA,
   CST_ICMS,
+  GRUPOS_PRODUTO,
   IMPOSTOS,
   LOCAIS_APLICACAO,
+  MUNICIPIOS_ISSQN,
+  ORIGEM_MERCADORIA,
   ROTULO_DA_ABA,
   TIPOS_IMPRESSAO,
+  UFS_DIFAL,
+  VIAS_TRANSPORTE,
+  aliquotaDe,
+  cstDoImposto,
+  difalDoItem,
   erroDeCoerencia,
   errosFiscais,
+  impostoDe,
+  somaDosImpostos,
   validarAliquota,
   validarCbenef,
   validarCest,
   validarCfop,
   validarGtin,
   validarNcm,
+  validarReducao,
   type Aba,
   TIPOS_PRECO,
   UNIDADES,
@@ -153,6 +167,37 @@ function Escolha({
   );
 }
 
+/**
+ * Checkbox com rótulo clicável — `id` + `htmlFor`, o par que o `jsx-a11y` exige e
+ * que faz o clique no texto alcançar o controle. Existe como helper porque a aba
+ * Tributação usa quatro deles (não recalcular · monofasia · ISS retido · DIFAL), e
+ * quatro `<label>` hand-rolled foi exatamente o que as catracas de layout e a11y
+ * mordoram — cada uma pelo seu lado, no mesmo defeito.
+ */
+function Marca({
+  id,
+  rotulo,
+  sub,
+  checked,
+  onChange,
+}: {
+  id: string;
+  rotulo: string;
+  sub?: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <Inline gap={2} align={sub ? 'start' : 'center'}>
+      <Checkbox id={id} checked={checked} onCheckedChange={(v) => onChange(v === true)} className={sub ? 'mt-0.5' : undefined} />
+      <Label htmlFor={id} className="cursor-pointer text-[12.5px] font-normal">
+        {sub ? <b>{rotulo}</b> : rotulo}
+        {sub && <span className="block text-[11px] font-normal text-muted-foreground">{sub}</span>}
+      </Label>
+    </Inline>
+  );
+}
+
 export default function ItemDetalhe({
   linha,
   indice,
@@ -178,6 +223,20 @@ export default function ItemDetalhe({
   const [cbenef, setCbenef] = useState('');
   const [cst, setCst] = useState(CST_ICMS[0]!);
   const [aliquota, setAliquota] = useState('18');
+
+  /* Os campos da aba Tributação vivem num registro só, e não em ~20 `useState`.
+     A âncora faz igual (`d` + `dv`/`set`): são campos heterogêneos, opcionais e
+     quase todos de cena — um estado por campo aqui viraria ruído sem ganho. */
+  const [fiscal, setFiscal] = useState<Record<string, string>>({});
+  const fv = (k: string, padrao = '') => fiscal[k] ?? padrao;
+  const setFv = (k: string) => (v: string) => setFiscal((s) => ({ ...s, [k]: v }));
+
+  /* Qual imposto está expandido no acordeão — `null` = todos fechados. */
+  const [impostoAberto, setImpostoAberto] = useState<string | null>(null);
+  const [difalLigado, setDifalLigado] = useState(false);
+  const [naoRecalcular, setNaoRecalcular] = useState(false);
+  const [monofasia, setMonofasia] = useState(false);
+  const [issRetido, setIssRetido] = useState(false);
 
   /* produção */
   const [local, setLocal] = useState(LOCAIS_APLICACAO[0]!);
@@ -245,6 +304,16 @@ export default function ItemDetalhe({
   if (!linha) return null;
 
   const baseDeCalculo = parseBR(linha.qtd) * parseBR(linha.preco);
+
+  /* Derivados da aba Tributacao — nunca em estado (handoff §13): duas verdades
+     sobre o mesmo imposto e que fabricam divergencia entre a linha e o total. */
+  const totalDosImpostos = somaDosImpostos(baseDeCalculo, aliquota, cst);
+  const difal = difalDoItem(
+    baseDeCalculo,
+    fv('difal_inter', '12,00'),
+    fv('difal_dest', '18,00'),
+    fv('difal_fcp', '2,00'),
+  );
 
   return (
     <Sheet open={!!linha} onOpenChange={(v) => !v && onFechar()}>
@@ -427,22 +496,46 @@ export default function ItemDetalhe({
           )}
 
           {aba === 'tributacao' && (
-            <Stack gap={3}>
-              <Lbl className="mb-0">Classificação fiscal</Lbl>
-              <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-4">
-                <Texto label="NCM" value={ncm} onChange={setNcm} erro={validarNcm(ncm)} placeholder="8 dígitos" />
-                <Texto label="CFOP" value={cfop} onChange={setCfop} erro={validarCfop(cfop)} placeholder="4 dígitos" />
-                <Texto label="CEST" value={cest} onChange={setCest} erro={validarCest(cest)} placeholder="sem CEST" />
-                <Texto label="GTIN" value={gtin} onChange={setGtin} erro={validarGtin(gtin)} placeholder="sem GTIN" />
-                <Escolha label="CST / CSOSN" value={cst} onChange={setCst} options={CST_ICMS} />
-                <Texto
-                  label="Alíquota ICMS (%)"
-                  value={aliquota}
-                  onChange={setAliquota}
-                  erro={validarAliquota(aliquota)}
-                />
-                <Texto label="cBenef" value={cbenef} onChange={setCbenef} erro={validarCbenef(cbenef)} placeholder="SC123456" />
-              </Grid>
+            <Stack gap={4}>
+              <Stack gap={3}>
+                <Lbl className="mb-0">Classificação fiscal</Lbl>
+                <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-4">
+                  <Escolha
+                    label="Grupo do produto"
+                    value={fv('grupo', GRUPOS_PRODUTO[0]!)}
+                    onChange={setFv('grupo')}
+                    options={GRUPOS_PRODUTO}
+                  />
+                  <Texto label="NCM" value={ncm} onChange={setNcm} erro={validarNcm(ncm)} placeholder="8 dígitos" />
+                  <Texto label="CEST" value={cest} onChange={setCest} erro={validarCest(cest)} placeholder="sem CEST" />
+                  <Texto label="CFOP" value={cfop} onChange={setCfop} erro={validarCfop(cfop)} placeholder="4 dígitos" />
+                  <Escolha
+                    label="Origem da mercadoria"
+                    value={fv('origem', ORIGEM_MERCADORIA[0]!)}
+                    onChange={setFv('origem')}
+                    options={ORIGEM_MERCADORIA}
+                  />
+                  <Texto
+                    label="Cód. de fábrica"
+                    value={fv('cod_fabrica')}
+                    onChange={setFv('cod_fabrica')}
+                    placeholder="não informado"
+                  />
+                  <Texto label="Cód. EAN / GTIN" value={gtin} onChange={setGtin} erro={validarGtin(gtin)} placeholder="sem GTIN" />
+                  <Texto label="cBenef" value={cbenef} onChange={setCbenef} erro={validarCbenef(cbenef)} placeholder="SC123456" />
+                </Grid>
+                <Inline gap={3} align="center" wrap>
+                  <Marca
+                    id="nao-recalcular"
+                    rotulo="Não recalcular impostos na impressão da nota"
+                    checked={naoRecalcular}
+                    onChange={setNaoRecalcular}
+                  />
+                  <Button size="sm" variant="outline" className="ml-auto">
+                    Recalcular impostos
+                  </Button>
+                </Inline>
+              </Stack>
 
               {/* a incoerência é o achado que a validação campo-a-campo NÃO pega */}
               {incoerencia && (
@@ -452,38 +545,310 @@ export default function ItemDetalhe({
                 </div>
               )}
 
-              <Lbl className="mb-0">Impostos do item</Lbl>
-              <div className="overflow-x-auto rounded-lg border border-border">
-                <table className="w-full text-[12.5px]">
-                  <thead className="bg-muted/60 text-left text-[11px] tracking-wide text-muted-foreground uppercase">
-                    <tr>
-                      <th className="px-3 py-2 font-medium">Imposto</th>
-                      <th className="px-3 py-2 text-right font-medium">Base de cálculo</th>
-                      <th className="px-3 py-2 text-right font-medium">Alíquota</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {IMPOSTOS.map((imp) => (
-                      <tr key={imp.k} className="border-t border-border">
-                        <td className="px-3 py-1.5">
-                          {imp.l}
-                          {(imp.k === 'ibs' || imp.k === 'cbs') && (
-                            <span className="ml-2 text-[10.5px] text-muted-foreground">reforma</span>
-                          )}
-                        </td>
-                        <td className="px-3 py-1.5 text-right tabular-nums">{fmtBR(baseDeCalculo)}</td>
-                        <td className="px-3 py-1.5 text-right tabular-nums">
-                          {fmtBR(imp.k === 'icms' ? parseBR(aliquota) : imp.aliq)}%
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <p className="text-[11px] leading-snug text-muted-foreground">
-                Os valores por imposto são calculados no servidor na emissão — esta tela confere o
-                <b> preenchimento</b>, não apura tributo.
-              </p>
+              <Stack gap={2}>
+                <Lbl className="mb-0">Impostos do item</Lbl>
+                <span className="text-[11.5px] leading-snug text-muted-foreground">
+                  Um imposto por linha — abra a setinha para ver e editar os campos. O ponto verde
+                  marca o que tem valor nesta venda.
+                </span>
+
+                <div className="overflow-hidden rounded-lg border border-border">
+                  <Grid gap={2} className="grid-cols-[1fr_repeat(3,minmax(0,7rem))_2rem] border-b border-border bg-muted/60 px-3 py-2 text-[10.5px] font-semibold tracking-[.05em] text-muted-foreground uppercase">
+                    <span>Imposto</span>
+                    <span className="text-right">Base de cálculo</span>
+                    <span className="text-right">Alíquota</span>
+                    <span className="text-right">Valor</span>
+                    <span />
+                  </Grid>
+
+                  {IMPOSTOS.map((imp) => {
+                    const aberto = impostoAberto === imp.k;
+                    const cstDele = imp.k === 'icms' ? cst : fv(`cst_${imp.k}`, cstDoImposto(imp.k)[0]!);
+                    const aliqDele =
+                      imp.k === 'icms' ? aliquota : fv(`aliq_${imp.k}`, fmtBR(imp.aliq));
+                    const valor = impostoDe(imp, baseDeCalculo, aliquota, cst);
+                    const temValor = valor > 0.005;
+                    const erroDele = validarAliquota(aliqDele) ?? erroDeCoerencia(cstDele, aliqDele);
+
+                    return (
+                      <div key={imp.k} className={cn('border-b border-border/60', aberto && 'bg-muted/40')}>
+                        <Grid asChild gap={2} className="grid-cols-[1fr_repeat(3,minmax(0,7rem))_2rem] w-full items-center px-3 py-2 text-left text-[13.5px] hover:bg-muted/30">
+                          <button
+                            type="button"
+                            onClick={() => setImpostoAberto(aberto ? null : imp.k)}
+                            aria-expanded={aberto}
+                          >
+                          <Inline gap={2} align="center" className="min-w-0">
+                            <b className="font-semibold">{imp.l}</b>
+                            {erroDele ? (
+                              <span className="flex-none text-[11px] font-semibold text-destructive-fg">
+                                pendência
+                              </span>
+                            ) : (
+                              temValor && (
+                                <span
+                                  aria-label="tem valor nesta venda"
+                                  className="size-1.5 flex-none rounded-full bg-success"
+                                />
+                              )
+                            )}
+                            {imp.k === 'icms' &&
+                              (difalLigado ? (
+                                <Pill tom="warning">DIFAL ligado</Pill>
+                              ) : (
+                                <Pill>tem DIFAL</Pill>
+                              ))}
+                          </Inline>
+                          <span className="text-right font-mono tabular-nums text-muted-foreground">
+                            {fmtBR(baseDeCalculo)}
+                          </span>
+                          <span
+                            className={cn(
+                              'text-right font-mono tabular-nums',
+                              erroDele ? 'text-destructive-fg' : temValor ? 'text-foreground' : 'text-muted-foreground',
+                            )}
+                          >
+                            {fmtBR(aliquotaDe(imp, aliquota))}%
+                          </span>
+                          <span
+                            className={cn(
+                              'text-right font-mono font-semibold tabular-nums',
+                              temValor ? 'text-foreground' : 'text-muted-foreground',
+                            )}
+                          >
+                            {fmtBR(valor)}
+                          </span>
+                          <span aria-hidden className="text-center text-muted-foreground">
+                            {aberto ? '▲' : '▼'}
+                            </span>
+                          </button>
+                        </Grid>
+
+                        {aberto && (
+                          <Stack gap={3} className="px-3 pb-4">
+                            <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-4">
+                              <Escolha
+                                label={`CST / situação — ${imp.l}`}
+                                value={cstDele}
+                                onChange={imp.k === 'icms' ? setCst : setFv(`cst_${imp.k}`)}
+                                options={cstDoImposto(imp.k)}
+                              />
+                              <Texto label="Base de cálculo" value={fmtBR(baseDeCalculo)} />
+                              <Texto
+                                label="Alíquota (%)"
+                                value={aliqDele}
+                                onChange={imp.k === 'icms' ? setAliquota : setFv(`aliq_${imp.k}`)}
+                                erro={erroDele}
+                              />
+                              <Texto label="Valor do imposto" value={fmtBR(valor)} />
+
+                              {imp.k === 'icms' && (
+                                <>
+                                  <Texto
+                                    label="Redução de base (%)"
+                                    value={fv('red_icms', '0,00')}
+                                    onChange={setFv('red_icms')}
+                                    erro={validarReducao(fv('red_icms', '0,00'))}
+                                  />
+                                  <Texto
+                                    label="MVA / margem ST (%)"
+                                    value={fv('mva', '0,00')}
+                                    onChange={setFv('mva')}
+                                    erro={validarReducao(fv('mva', '0,00'))}
+                                  />
+                                  <Texto label="Base ST" value={fmtBR(0)} />
+                                  <Texto label="ICMS ST" value={fmtBR(0)} />
+                                </>
+                              )}
+
+                              {(imp.k === 'ibs' || imp.k === 'cbs') && (
+                                <>
+                                  <Escolha
+                                    label="Classificação tributária (cClassTrib)"
+                                    value={fv(`class_${imp.k}`, CLASSIFICACAO_TRIBUTARIA[0]!)}
+                                    onChange={setFv(`class_${imp.k}`)}
+                                    options={CLASSIFICACAO_TRIBUTARIA}
+                                  />
+                                  <Texto
+                                    label="Alíquota efetiva (%)"
+                                    value={fv(`aliq_ef_${imp.k}`, fmtBR(imp.aliq))}
+                                    onChange={setFv(`aliq_ef_${imp.k}`)}
+                                  />
+                                  <Texto label="Crédito presumido" value={fmtBR(0)} />
+                                  <Inline align="end" className="pb-2">
+                                    <Marca
+                                      id={`monofasia-${imp.k}`}
+                                      rotulo="Monofasia"
+                                      sub="Reforma tributária — transição 2026"
+                                      checked={monofasia}
+                                      onChange={setMonofasia}
+                                    />
+                                  </Inline>
+                                </>
+                              )}
+
+                              {imp.k === 'issqn' && (
+                                <>
+                                  <Texto
+                                    label="Código do serviço (LC 116)"
+                                    value={fv('cod_servico')}
+                                    onChange={setFv('cod_servico')}
+                                    placeholder="17.06"
+                                  />
+                                  <Escolha
+                                    label="Município de incidência"
+                                    value={fv('municipio', MUNICIPIOS_ISSQN[0]!)}
+                                    onChange={setFv('municipio')}
+                                    options={MUNICIPIOS_ISSQN}
+                                  />
+                                  <Inline align="end" className="pb-2">
+                                    <Marca
+                                      id="iss-retido"
+                                      rotulo="ISS retido na fonte"
+                                      checked={issRetido}
+                                      onChange={setIssRetido}
+                                    />
+                                  </Inline>
+                                  <Texto label="Base reduzida" value={fmtBR(baseDeCalculo)} />
+                                </>
+                              )}
+                            </Grid>
+
+                            {imp.k === 'icms' && (
+                              <div
+                                className={cn(
+                                  'rounded-lg border p-3',
+                                  difalLigado ? 'border-warning/40 bg-warning-soft' : 'border-border bg-muted/40',
+                                )}
+                              >
+                                <Inline gap={3} align="center" wrap className={difalLigado ? 'mb-3' : undefined}>
+                                  <Marca
+                                    id="difal"
+                                    rotulo="DIFAL — diferencial de alíquota"
+                                    sub="venda interestadual para não contribuinte (EC 87/2015)"
+                                    checked={difalLigado}
+                                    onChange={setDifalLigado}
+                                  />
+                                  {difalLigado && (
+                                    <span className="ml-auto">
+                                      <Lbl>Total DIFAL + FCP</Lbl>
+                                      <b className="font-mono text-[14px]">{brl(difal.total)}</b>
+                                    </span>
+                                  )}
+                                </Inline>
+
+                                {difalLigado && (
+                                  <Stack gap={3}>
+                                    <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-4">
+                                      <Escolha
+                                        label="UF de destino"
+                                        value={fv('difal_uf', UFS_DIFAL[0]!)}
+                                        onChange={setFv('difal_uf')}
+                                        options={UFS_DIFAL}
+                                      />
+                                      <Texto
+                                        label="Alíquota interestadual (%)"
+                                        value={fv('difal_inter', '12,00')}
+                                        onChange={setFv('difal_inter')}
+                                      />
+                                      <Texto
+                                        label="Alíquota interna do destino (%)"
+                                        value={fv('difal_dest', '18,00')}
+                                        onChange={setFv('difal_dest')}
+                                        erro={
+                                          difal.invertido
+                                            ? 'menor que a interestadual — não há DIFAL a recolher'
+                                            : null
+                                        }
+                                      />
+                                      <Texto
+                                        label="FCP do destino (%)"
+                                        value={fv('difal_fcp', '2,00')}
+                                        onChange={setFv('difal_fcp')}
+                                      />
+                                    </Grid>
+                                    <Inline gap={4} wrap className="rounded-lg border border-border bg-card p-3">
+                                      {(
+                                        [
+                                          ['Base do DIFAL', baseDeCalculo],
+                                          ['ICMS UF remetente', difal.remetente],
+                                          ['ICMS UF destino', difal.destino],
+                                          ['FCP UF destino', difal.fcp],
+                                        ] as const
+                                      ).map(([rotulo, v]) => (
+                                        <div key={rotulo}>
+                                          <Lbl>{rotulo}</Lbl>
+                                          <b className="font-mono text-[13px]">{fmtBR(v)}</b>
+                                        </div>
+                                      ))}
+                                      <span className="ml-auto max-w-[300px] text-[11.5px] leading-snug text-muted-foreground">
+                                        Partilha <b>100% para o destino</b> desde 2019. Sai na NF-e como{' '}
+                                        <code>vICMSUFDest</code>, <code>vICMSUFRemet</code> e <code>vFCPUFDest</code>.
+                                      </span>
+                                    </Inline>
+                                  </Stack>
+                                )}
+                              </div>
+                            )}
+                          </Stack>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  <Grid gap={2} className="grid-cols-[1fr_repeat(3,minmax(0,7rem))_2rem] items-center bg-muted/60 px-3 py-2.5">
+                    <span className="col-span-3 text-right text-[11px] font-semibold tracking-[.04em] text-muted-foreground uppercase">
+                      Total de impostos do item
+                    </span>
+                    <span className="text-right font-mono text-[15px] font-semibold tabular-nums">
+                      {fmtBR(totalDosImpostos)}
+                    </span>
+                    <span />
+                  </Grid>
+                </div>
+
+                <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-4">
+                  <Texto label="IBPT nacional (%)" value={fv('ibpt_nac', '0,00')} onChange={setFv('ibpt_nac')} />
+                  <Texto label="IBPT importação (%)" value={fv('ibpt_imp', '0,00')} onChange={setFv('ibpt_imp')} />
+                  <Texto label="IBPT estadual (%)" value={fv('ibpt_est', '0,00')} onChange={setFv('ibpt_est')} />
+                  <Texto label="IBPT municipal (%)" value={fv('ibpt_mun', '0,00')} onChange={setFv('ibpt_mun')} />
+                  <Texto label="Peso líquido (kg)" value={fv('peso', '0,00')} onChange={setFv('peso')} />
+                  <Texto label="Peso bruto (kg)" value={fv('peso_bruto', fv('peso', '0,00'))} onChange={setFv('peso_bruto')} />
+                  <Texto label="Despesas acessórias" value={fv('desp', '0,00')} onChange={setFv('desp')} />
+                  <Texto label="Frete do item" value={fv('frete_item', '0,00')} onChange={setFv('frete_item')} />
+                </Grid>
+              </Stack>
+
+              <Stack gap={3}>
+                <Lbl className="mb-0">Importação</Lbl>
+                <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-3">
+                  <Texto label="Nº da DI / DUIMP" value={fv('di')} onChange={setFv('di')} placeholder="produto nacional" />
+                  <Texto label="Data do desembaraço" value={fv('desembaraco')} onChange={setFv('desembaraco')} placeholder="dd/mm/aaaa" />
+                  <Texto label="Local do desembaraço" value={fv('local_desemb')} onChange={setFv('local_desemb')} placeholder="não se aplica" />
+                  <Texto label="Valor aduaneiro" value={fv('aduaneiro', '0,00')} onChange={setFv('aduaneiro')} />
+                  <Texto label="AFRMM" value={fv('afrmm', '0,00')} onChange={setFv('afrmm')} />
+                  <Escolha
+                    label="Via de transporte"
+                    value={fv('via', VIAS_TRANSPORTE[0]!)}
+                    onChange={setFv('via')}
+                    options={VIAS_TRANSPORTE}
+                  />
+                </Grid>
+              </Stack>
+
+              <Stack gap={2}>
+                <Lbl className="mb-0">Descrição na NF-e</Lbl>
+                <textarea
+                  rows={4}
+                  value={fv('desc_nfe', linha?.nome ?? '')}
+                  onChange={(e) => setFv('desc_nfe')(e.target.value)}
+                  aria-label="Descrição do produto como sai na NF-e"
+                  className="w-full rounded-lg border border-border bg-card px-3 py-2 text-[13px]"
+                />
+                <span className="text-[11px] leading-snug text-muted-foreground">
+                  É este texto que o cliente lê na nota — não a descrição interna.
+                </span>
+              </Stack>
             </Stack>
           )}
 

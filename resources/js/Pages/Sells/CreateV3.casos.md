@@ -619,6 +619,80 @@ três.
 
 ---
 
+## UC-V371 · O valor do imposto por item é CALCULADO e mostrado
+
+**Status:** 🧪 — 5 testes citam o UC e passam ([`tests/js/item-fiscal-calculo.test.ts`](../../../../tests/js/item-fiscal-calculo.test.ts)).
+
+- **Dado** um item com base de cálculo e uma alíquota,
+- **Quando** a aba Tributação lista os impostos,
+- **Então** cada linha mostra **base, alíquota e VALOR**, e o rodapé traz o **total de impostos do item**.
+
+⚠️ **Território Tier 0 — VALOR.** A REGRA MESTRE de [`proibicoes.md`](../../../../memory/proibicoes.md)
+nomeia **imposto** explicitamente, e exige prova por dois caminhos independentes. O segundo
+caminho aqui é **aritmética à mão em centavos inteiros**, nunca a mesma expressão em float — que
+provaria só que a função é igual a si mesma. A matriz compara **8 bases × 7 alíquotas = 56 pares**,
+com contador para o laço não passar por não-execução (LC-13).
+
+**CST que não tributa zera o valor**, e a regra tem **um dono só**: `cstNaoTributa` foi extraída de
+`erroDeCoerencia` quando o cálculo passou a precisar da mesma pergunta. Duas cópias divergiriam no
+dia em que alguém acrescentasse um CST — e a tela acusaria incoerência num campo enquanto mostrava
+imposto no outro. A sutileza que viajou junto: `'102'` (Simples) tem 3 dígitos e **não** é o CST `'10'`.
+
+O que a produção dizia antes: *"os valores por imposto são calculados no servidor na emissão"* — e
+a âncora **mostra** os valores. A frase saiu.
+
+---
+
+## UC-V372 · DIFAL — a diferença vai 100% para o destino (EC 87/2015)
+
+**Status:** 🧪 — 4 testes citam o UC e passam.
+
+- **Dado** venda interestadual para **não contribuinte**,
+- **Quando** o DIFAL é ligado com alíquota interestadual, interna do destino e FCP,
+- **Então** a tela mostra **ICMS UF remetente**, **ICMS UF destino**, **FCP UF destino** e o total — e o destino leva a **diferença inteira**, não metade.
+
+A partilha progressiva acabou em **2019**. Um dos testes existe só para travar isso: se alguém
+"corrigir" o destino para metade, o número cai. Sai na NF-e como `vICMSUFDest`, `vICMSUFRemet` e
+`vFCPUFDest`.
+
+**Interna do destino MENOR que a interestadual:** não há diferença a recolher. O valor tem **piso em
+zero** (nunca negativo) e a tela sinaliza o preenchimento como erro — sobra só o FCP.
+
+---
+
+## UC-V373 · A aba Tributação tem os campos da âncora
+
+**Status:** 🧪 — 5 testes citam o UC e passam ([`tests/js/item-tributacao.test.tsx`](../../../../tests/js/item-tributacao.test.tsx)).
+
+- **Dado** o drawer de detalhe do item aberto na aba Tributação,
+- **Quando** o operador olha a tela,
+- **Então** encontra os **8 campos** de classificação fiscal (grupo · NCM · CEST · CFOP · origem · cód. de fábrica · GTIN · cBenef), o acordeão com a coluna **Valor**, o **total do item**, os **9 impostos** (incluindo IBS e CBS da reforma) e as seções **Importação** e **Descrição na NF-e**.
+
+Derivado da âncora [`sells-item-detail.jsx`](../../../../prototipo-ui/cowork/venda-v3/sells-item-detail.jsx),
+não do `.tsx` (§5 tautológico). O gap foi medido campo a campo antes de escrever: produção tinha
+**5 campos** de classificação e uma tabela **estática de 3 colunas**, sem valor, sem total e sem
+expandir.
+
+---
+
+## UC-V374 · Abrir um imposto revela os campos DELE
+
+**Status:** 🧪 — 3 testes citam o UC e passam.
+
+- **Dado** o acordeão de impostos fechado,
+- **Quando** o operador abre uma linha,
+- **Então** vê os campos **daquele imposto** — e fechado eles **não estão na tela**.
+
+Cada imposto tem contrato próprio, e é por isso que a tabela estática não dava conta:
+**ICMS** → redução de base, MVA/ST, base ST, ICMS ST, e o bloco **DIFAL** ·
+**IBS/CBS** → `cClassTrib`, alíquota efetiva, crédito presumido, monofasia ·
+**ISSQN** → código do serviço (LC 116), município de incidência, ISS retido, base reduzida.
+
+O CST também é por imposto: o ICMS tem lista própria (`CST_ICMS`), os demais compartilham
+`CST_GENERICO` — o ICMS **não empresta o seu** aos outros, e um dos testes trava isso.
+
+---
+
 ## Backlog de contrato
 
 - **[BACKLOG]** O lançamento **para de descartar** `executante`, `local` e `impressao` ao virar linha da venda — o modal já coleta os três (`ItemLancado`), e são 3 das 19 colunas sem fonte do UC-V368.
