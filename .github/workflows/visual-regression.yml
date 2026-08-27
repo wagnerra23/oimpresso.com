@@ -377,6 +377,7 @@ jobs:
           # `oficina-os` acima — a tela depende de um dado que nenhum seeder estabelecia, e
           # regravar a foto trataria o sintoma. GATE REAL — se quebrar, o job falha.
           php artisan db:seed --class=Database\\Seeders\\VisregJanaChatSeeder --force
+          php artisan db:seed --class=Database\\Seeders\\VisregPontoSeeder --force
           echo "=== seed check ==="
           php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count().' roles='.\Spatie\Permission\Models\Role::count().' fin_titulos='.DB::table('fin_titulos')->where('business_id', 1)->count();"
           # PROVA da pré-condição do oficina-os (a sonda que o defeito 2 não tinha): conta os
