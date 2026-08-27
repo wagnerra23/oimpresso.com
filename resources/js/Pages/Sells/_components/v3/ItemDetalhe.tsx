@@ -99,6 +99,20 @@ const ETAPAS_PADRAO = [
   { etapa: 'Expedição', resp: 'Larissa Prado', setor: 'Balcão', st: 'pendente', prev: '31/07' },
 ];
 
+/* Cena da aba Produção. A âncora lê de `window.SD` (equipamentos, locais de estoque);
+   aqui viram constante, igual `ETAPAS_PADRAO` — preview não consulta banco. */
+const ACABAMENTOS = ['Sem acabamento', 'Ilhós a cada 50cm', 'Bastão + corda', 'Solda perimetral', 'Laminação'];
+const PRIORIDADES = ['Normal', 'Urgente', 'Programada'];
+const EQUIPAMENTOS = ['—', 'Plotter Roland · Impressão', 'Mesa de corte · Acabamento', 'Laminadora · Acabamento'];
+const LOCAIS_ESTOQUE = ['Não requisita (serviço)', 'Depósito central', 'Balcão', 'Box 2'];
+const EM_PRODUCAO = ['Não', 'Sim'];
+
+/* Anexos de cena — os mesmos dois do `DataTable` da âncora. */
+const ANEXOS = [
+  { nome: 'lona-prefeitura-v3.pdf', tipo: 'arte final', enviado: '27/07/2026' },
+  { nome: 'aprovacao-email.png', tipo: 'aprovação', enviado: '27/07/2026' },
+];
+
 const tomDoStatus = (st: string) => (st === 'concluída' ? 'success' : st === 'em execução' ? 'warning' : 'neutro');
 
 function Campo({ label, children, erro }: { label: string; children: ReactNode; erro?: string | null }) {
@@ -163,6 +177,40 @@ function Escolha({
           ))}
         </SelectContent>
       </Select>
+    </Campo>
+  );
+}
+
+/**
+ * `<textarea>` com a caixa do DS na mão. Mesma razão já registrada na aba Observação:
+ * é `<textarea>` CRU (não o `<Textarea>` do DS), então não passa pela regra escopada
+ * e as classes precisam trazer a caixa. Existe como helper porque três abas usam.
+ */
+function AreaTexto({
+  label,
+  value,
+  onChange,
+  rows = 4,
+  placeholder,
+  help,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  rows?: number;
+  placeholder?: string;
+  help?: string;
+}) {
+  return (
+    <Campo label={label}>
+      <textarea
+        rows={rows}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-md border border-input bg-background px-[10px] py-[7px] text-[13px] leading-[1.5] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/40"
+      />
+      {help && <span className="text-[11px] leading-snug text-muted-foreground">{help}</span>}
     </Campo>
   );
 }
@@ -242,6 +290,19 @@ export default function ItemDetalhe({
   const [local, setLocal] = useState(LOCAIS_APLICACAO[0]!);
   const [impressao, setImpressao] = useState(TIPOS_IMPRESSAO[0]!);
   const [observacao, setObservacao] = useState('');
+  const [obsInterna, setObsInterna] = useState('');
+  /* Aba Produção: a âncora tem 10 campos + a seção "Arquivo de arte"; o porte
+     da onda 4 trouxe 3. O resto entra aqui. */
+  const [emProducao, setEmProducao] = useState(EM_PRODUCAO[0]!);
+  const [acabamento, setAcabamento] = useState(ACABAMENTOS[0]!);
+  const [equipamento, setEquipamento] = useState(EQUIPAMENTOS[0]!);
+  const [prioridade, setPrioridade] = useState(PRIORIDADES[0]!);
+  const [localEstoque, setLocalEstoque] = useState(LOCAIS_ESTOQUE[0]!);
+  const [prazoEquipe, setPrazoEquipe] = useState('');
+  const [prazoEtapa, setPrazoEtapa] = useState('');
+  const [obsProducao, setObsProducao] = useState('');
+  const [caminhoArte, setCaminhoArte] = useState('');
+  const [etapas, setEtapas] = useState(ETAPAS_PADRAO);
 
   /* o objeto nasce DENTRO do useMemo: montá-lo fora faria a identidade mudar a cada
      render e o exhaustive-deps reclamar com razão. */
@@ -347,6 +408,10 @@ export default function ItemDetalhe({
             value: a,
             label: ROTULO_DA_ABA[a],
             ...(a === 'tributacao' && erros.length > 0 ? { badge: erros.length } : {}),
+            /* A âncora conta etapas e anexos no rótulo da aba — o operador vê que há
+               conteúdo lá sem precisar abrir. */
+            ...(a === 'fluxo' && etapas.length > 0 ? { badge: etapas.length } : {}),
+            ...(a === 'anexos' ? { badge: ANEXOS.length } : {}),
           }))}
           value={aba}
           onChange={(v) => setAba(v as Aba)}
@@ -458,14 +523,70 @@ export default function ItemDetalhe({
           )}
 
           {aba === 'producao' && (
-            <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-3">
-              <Escolha label="Local de aplicação" value={local} onChange={setLocal} options={LOCAIS_APLICACAO} />
-              <Escolha label="Tipo de impressão" value={impressao} onChange={setImpressao} options={TIPOS_IMPRESSAO} />
-              <Texto label="Acabamento" value="" placeholder="Ilhós, bastão, corte especial…" onChange={() => {}} />
-            </Grid>
+            <Stack gap={4}>
+              {/* As 2 seções da âncora (`sells-item-detail.jsx` — DrawerSections
+                  "Instruções de produção" · "Arquivo de arte"). A onda 4 portou 3
+                  dos 10 campos e nenhuma das seções. */}
+              <Sec title="Instruções de produção">
+                <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-3">
+                  <Escolha label="Em produção" value={emProducao} onChange={setEmProducao} options={EM_PRODUCAO} />
+                  <Escolha label="Tipo de impressão" value={impressao} onChange={setImpressao} options={TIPOS_IMPRESSAO} />
+                  <Escolha label="Acabamento" value={acabamento} onChange={setAcabamento} options={ACABAMENTOS} />
+                  <Escolha label="Local de aplicação" value={local} onChange={setLocal} options={LOCAIS_APLICACAO} />
+                  <Escolha label="Equipamento / setor" value={equipamento} onChange={setEquipamento} options={EQUIPAMENTOS} />
+                  <Escolha label="Prioridade" value={prioridade} onChange={setPrioridade} options={PRIORIDADES} />
+                  <Campo label="Requisitar do estoque">
+                    <Select value={localEstoque} onValueChange={setLocalEstoque}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {LOCAIS_ESTOQUE.map((o) => (
+                          <SafeSelectItem key={o} value={o} className="text-[12.5px]">
+                            {o}
+                          </SafeSelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <span className="text-[11px] leading-snug text-muted-foreground">
+                      de onde a produção retira o material
+                    </span>
+                  </Campo>
+                  <Texto label="Prazo da equipe (produção)" value={prazoEquipe} onChange={setPrazoEquipe} placeholder="dd/mm/aaaa" />
+                  <Texto label="Prazo da etapa" value={prazoEtapa} onChange={setPrazoEtapa} placeholder="dd/mm/aaaa" />
+                </Grid>
+                <div className="mt-3">
+                  <AreaTexto
+                    label="Observação de produção (vai na OP, não sai no documento do cliente)"
+                    rows={3}
+                    value={obsProducao}
+                    onChange={setObsProducao}
+                    placeholder="Sangria de 5cm. Cliente aprovou arte por e-mail em 27/07."
+                  />
+                </div>
+              </Sec>
+
+              <Sec title="Arquivo de arte">
+                <Inline gap={3} align="center" wrap>
+                  <span className="text-[12.5px] text-muted-foreground">Caminho do arquivo na rede</span>
+                  <div className="min-w-0 flex-1">
+                    <Input
+                      value={caminhoArte}
+                      onChange={(e) => setCaminhoArte(e.target.value)}
+                      aria-label="Caminho do arquivo na rede"
+                      placeholder="servidor\arte\2026\07\lona-prefeitura-v3.pdf"
+                    />
+                  </div>
+                </Inline>
+                {/* A âncora tem "Anexar arquivo" aqui. O preview não grava arquivo
+                    (mesma razão da aba Anexos), e botão que promete e não entrega é
+                    pior que botão ausente — charter, Goals. Fica só o caminho. */}
+              </Sec>
+            </Stack>
           )}
 
           {aba === 'fluxo' && (
+            <Sec title="Fluxo de produção deste item">
             <div className="overflow-x-auto rounded-lg border border-border">
               <table className="w-full text-[12.5px]">
                 <thead className="bg-muted/60 text-left text-[11px] tracking-wide text-muted-foreground uppercase">
@@ -476,10 +597,12 @@ export default function ItemDetalhe({
                     <th className="px-3 py-2 font-medium">Setor</th>
                     <th className="px-3 py-2 font-medium">Situação</th>
                     <th className="px-3 py-2 font-medium">Previsão</th>
+                    {/* 6ª coluna da âncora: remover a etapa da linha */}
+                    <th className="px-3 py-2 text-center font-medium" />
                   </tr>
                 </thead>
                 <tbody>
-                  {ETAPAS_PADRAO.map((e) => (
+                  {etapas.map((e, i) => (
                     <tr key={e.etapa} className="border-t border-border">
                       <td className="px-3 py-2">{e.etapa}</td>
                       <td className="px-3 py-2">{e.resp}</td>
@@ -488,11 +611,41 @@ export default function ItemDetalhe({
                         <Pill tom={tomDoStatus(e.st)}>{e.st}</Pill>
                       </td>
                       <td className="px-3 py-2 tabular-nums">{e.prev}</td>
+                      <td className="px-3 py-2 text-center">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          aria-label={`Remover etapa ${e.etapa}`}
+                          onClick={() => setEtapas(etapas.filter((_, j) => j !== i))}
+                        >
+                          ×
+                        </Button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+            {etapas.length === 0 && (
+              /* EmptyState da âncora: produto sem fluxo configurado não some da tela
+                 sem dizer o que fazer. */
+              <div className="rounded-lg border border-dashed border-border p-6 text-center">
+                <span className="block text-[12.5px] text-muted-foreground">
+                  Nenhuma etapa neste item. Este produto não tem fluxo de produção configurado —
+                  aplique o fluxo padrão do cadastro.
+                </span>
+              </div>
+            )}
+            <Inline gap={2} align="center" wrap className="mt-3">
+              <Button type="button" variant="outline" size="sm" onClick={() => setEtapas(ETAPAS_PADRAO)}>
+                Aplicar fluxo padrão do produto
+              </Button>
+              {/* A âncora tem também "Adicionar etapa", num modal de 4 campos. Não
+                  entra nesta leva: o modal é onda própria, e botão que abre nada é
+                  pior que botão ausente. */}
+            </Inline>
+            </Sec>
           )}
 
           {aba === 'tributacao' && (
@@ -862,28 +1015,74 @@ export default function ItemDetalhe({
           )}
 
           {aba === 'anexos' && (
-            <div className="rounded-lg border border-dashed border-border p-6 text-center">
-              <span className="block text-[12.5px] text-muted-foreground">
-                Arte, prova e comprovante do item. O upload não faz parte deste passo do porte — a
-                tela de preview não grava arquivo.
-              </span>
-            </div>
+            <Sec title="Anexos do item">
+              <div className="rounded-lg border border-dashed border-border p-6 text-center">
+                <span className="block text-[12.5px] text-muted-foreground">
+                  Arte, prova e comprovante do item. O upload não faz parte deste passo do porte — a
+                  tela de preview não grava arquivo.
+                </span>
+              </div>
+              {/* A tabela da âncora (`DataTable` Arquivo · Tipo · Enviado · ação).
+                  Os dois anexos são cena, como as etapas do fluxo. */}
+              <div className="mt-3 overflow-x-auto rounded-lg border border-border">
+                <table className="w-full text-[12.5px]">
+                  <thead className="bg-muted/60 text-left text-[11px] tracking-wide text-muted-foreground uppercase">
+                    <tr>
+                      <th className="px-3 py-2 font-medium">Arquivo</th>
+                      <th className="px-3 py-2 font-medium">Tipo</th>
+                      <th className="px-3 py-2 font-medium">Enviado</th>
+                      <th className="px-3 py-2 text-center font-medium" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ANEXOS.map((a) => (
+                      <tr key={a.nome} className="border-t border-border">
+                        <td className="px-3 py-2">{a.nome}</td>
+                        <td className="px-3 py-2">
+                          <Pill tom="neutro">{a.tipo}</Pill>
+                        </td>
+                        <td className="px-3 py-2 tabular-nums">{a.enviado}</td>
+                        <td className="px-3 py-2 text-center">
+                          {/* sem handler: o preview não serve arquivo */}
+                          <Button type="button" variant="outline" size="sm" disabled title="o preview não grava nem serve arquivo">
+                            Baixar
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Sec>
           )}
 
           {aba === 'observacao' && (
-            <Campo label="Observação do item (sai na OS e no documento)">
-              <textarea
+            <Sec title="Observações do produto">
+              {/* DUAS observações, separadas de propósito — a âncora registra que
+                  unificá-las foi o que gerou a reclamação de nota interna vazando no
+                  documento do cliente (CU-SELL-12). O porte tinha só uma, e o rótulo
+                  dizia que ela saía no documento: era a interna que sumia. */}
+              <AreaTexto
+                label="Observação geral do produto (sai no documento do cliente)"
                 rows={4}
                 value={observacao}
-                onChange={(e) => setObservacao(e.target.value)}
-                placeholder="Instrução de produção, cuidado de manuseio, referência do cliente…"
-                /* `<textarea>` CRU (não o `<Textarea>` do DS), então não passa por
-                   `.cw-input` nem pela regra escopada — aqui as classes VALEM e
-                   precisam trazer a caixa na mão. Valores do Textarea do DS vivo
-                   (`controlStyle()` + `{ lineHeight: 1.5 }`): 13px/1.5, padding 7/10. */
-                className="w-full rounded-md border border-input bg-background px-[10px] py-[7px] text-[13px] leading-[1.5] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/40"
+                onChange={setObservacao}
+                placeholder="Lona com 5cm de sangria em cada lado, ilhós a cada 50cm."
               />
-            </Campo>
+              <div className="mt-3">
+                <AreaTexto
+                  label="Observação interna (não sai no documento)"
+                  rows={3}
+                  value={obsInterna}
+                  onChange={setObsInterna}
+                  placeholder="Cliente reclamou da cor na última compra — conferir perfil ICC."
+                />
+              </div>
+              <p className="mt-2.5 text-[11.5px] leading-relaxed text-muted-foreground">
+                Duas observações separadas de propósito: a do cliente vai pro PDF/NF-e, a interna
+                fica na OP.
+              </p>
+            </Sec>
           )}
         </Stack>
 

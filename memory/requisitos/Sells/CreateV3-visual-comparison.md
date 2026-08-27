@@ -122,3 +122,28 @@ sao maiores.
   novos nao foram comparados com a ancora, porque nao ha render dos dois lados.
 - A tela **nao grava** (UC-V302). Nada do que falta aqui chega ao banco hoje — o que muda o
   risco de cada item, nao a sua existencia.
+
+## Aplicado — 2026-08-27
+
+Quatro das cinco divergencias foram fechadas em `_components/v3/ItemDetalhe.tsx` (+199 linhas):
+
+| Aba | O que entrou |
+|---|---|
+| **Observacao** | as **duas** areas da ancora — geral (sai no documento) e interna (nao sai). Antes era uma so, e o rotulo dizia que ela saia no documento: a que sumia era a interna |
+| **Producao** | as 2 secoes (`Instrucoes de producao` · `Arquivo de arte`) e os 7 campos que faltavam — em producao · acabamento · equipamento/setor · prioridade · requisitar do estoque · prazo da equipe · prazo da etapa — mais a observacao de producao |
+| **Fluxo** | titulo de secao, **6a coluna** (remover etapa), `EmptyState` e `Aplicar fluxo padrao do produto` |
+| **Anexos** | a tabela da ancora (arquivo · tipo · enviado · acao), sob o aviso que ja existia |
+
+Mais os **contadores** no rotulo das abas (`Fluxo` = etapas, `Anexos` = 2), que a ancora tem e o
+porte nao trouxe.
+
+### O que ficou de fora, e por que
+
+- **Preco** — nao entra nesta leva. E o controle de alcada (`menor preco permitido`), e mexer
+  nele cai na REGRA MESTRE de valor: dois caminhos de prova e o antes→depois apresentado antes
+  do merge. Decisao de [W]/[L], nao consequencia deste PR.
+- **`Adicionar etapa`** (Fluxo) e **`Anexar arquivo`** (Producao) — a ancora tem os dois; o
+  primeiro abre um modal de 4 campos, o segundo grava arquivo. Nenhum dos dois entra como botao
+  inerte: botao que promete e nao entrega e pior que botao ausente (charter, Goals).
+- **D6 / layout** — segue nao medida, pela mesma razao ja registrada acima: nao ha render dos
+  dois lados. O que este PR fecha e **campo e secao**, nao espacamento nem cor.
