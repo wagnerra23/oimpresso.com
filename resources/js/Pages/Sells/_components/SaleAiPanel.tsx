@@ -186,7 +186,7 @@ export default function SaleAiPanel({ saleId, enabled }: Props): ReactNode {
         }}
       >
         Respostas geradas por IA — pode ter alucinações. Sempre confirme com a venda real. (Onda 2:
-        respostas deterministicas; Onda 2.5 integrará Jana Copiloto.)
+        respostas deterministicas; Onda 2.5 integrará a Jana.)
       </small>
     </div>
   );

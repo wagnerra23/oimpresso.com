@@ -63,7 +63,7 @@ const MODULO_OPTIONS = [
   { value: 'produto', label: 'Produto' },
   { value: 'whatsapp', label: 'WhatsApp / Atendimento' },
   { value: 'ponto', label: 'Ponto / RH' },
-  { value: 'jana', label: 'Jana / Copiloto' },
+  { value: 'jana', label: 'Jana' },
   { value: 'outros', label: 'Outros / não tenho certeza' },
 ];
 

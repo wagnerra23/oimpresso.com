@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Copiloto — Fonte da meta')
+@section('title', 'Jana — Fonte da meta')
 @section('content')
 <section class="content-header"><h1>Fonte: {{ $meta->nome }}</h1></section>
 <section class="content">

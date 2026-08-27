@@ -51,7 +51,7 @@ Tela cockpit central de operação comercial — lista vendas (pedidos · fatura
 - **Toolbar linha 2:** tabs Visão (Todas/Paga/Pendente/Faturada/Cancelada) + segmented control Operacional/Financeira/Produção + busca + Filtros avançados + Imprimir caixa + Visões ▾ dropdown
 - **Tabela 10 colunas exibe 50 vendas:** checkbox + Venda(#) + Data + Cliente + Atendido por + Origem (Balcão/Oficina/Online — ADR 0192) + Pipeline dots (FSM ADR 0143) + Fiscal badges (NF-e SEFAZ) + Pagamento (método + parcelas + SLA pill) + Total + Status
 - **Menu "Ações" por linha (kebab ⋮ · `ActionsMenu` em `SellsTabelaUnificada`):** Ver detalhes (abre drawer) · Editar · Adicionar pagamento (só se `payment_status !== 'paid'`) · Imprimir nota · **Devolução** (`/sell-return/add/{id}` — venda retorno → retorno da peça pro estoque, rota Blade) · Excluir (`variant=destructive`, DELETE `/sells/{id}` com CSRF + confirm). Paridade com o menu Blade legado; ações enforçadas no backend (403/permissão). **Restaurado do commit `d6f4dddcdc`, perdido no rewrite Cowork #1032** (PR #3494)
-- **Drawer SaleSheet 480px lateral** ao clicar linha — KV grid + Cliente + Produtos(N) + Pagamentos(M) + MENSAGEM WHATSAPP 3-tab (Confirmação/Retirada/Cobrança PR #1638) + FISCAL section + PIPELINE FSM (VdNextActionPanel emojis canon Cowork PR #1641) + ORDEM DE SERVIÇO cross-module + HISTÓRICO append-only + Footer ações + botão "+IA" Copiloto
+- **Drawer SaleSheet 480px lateral** ao clicar linha — KV grid + Cliente + Produtos(N) + Pagamentos(M) + MENSAGEM WHATSAPP 3-tab (Confirmação/Retirada/Cobrança PR #1638) + FISCAL section + PIPELINE FSM (VdNextActionPanel emojis canon Cowork PR #1641) + ORDEM DE SERVIÇO cross-module + HISTÓRICO append-only + Footer ações + botão "+IA" da Jana
 - **Emit modais single (PR #1644):** VdNfeEmitModal + VdNfseEmitModal abrem do drawer FISCAL section
 - **VdBulkEmitModal fullscreen (PR #1644 + #1648 z-index 100):** BulkActionBar floating ao selecionar múltiplas linhas → "Emitir NF-e em lote" abre modal com progress tricolor pending → running → ok|bad
 - **Saved view "Aguardando faturamento" (PR #1644):** filtra cliente-side `payment_status !== 'paid' && fiscal_status === null` — receita batch noturno faturamento
@@ -73,7 +73,7 @@ Tela cockpit central de operação comercial — lista vendas (pedidos · fatura
 - ❌ **NÃO editar venda finalizada** (status=paid OU faturado) — usar estorno/cancelamento Blade legacy
 - ❌ **NÃO commit de cores hardcoded** nos `_components/Vd*.tsx` — override aprovado APENAS pra emojis canon Cowork via PR #1641 comment 4545772140 (`/mwart-override` Wagner)
 - ❌ NÃO força-refresh durante bulk emit em execução (cancela operação)
-- ❌ NÃO modal sobre modal — "Falar com Copiloto" abre nova rota `/jana/chat?context=sale:{id}`
+- ❌ NÃO modal sobre modal — "Falar com a Jana" abre nova rota `/ia/chat?context=sale:{id}`
 - ❌ NÃO real-time updates (WebSocket/Centrifugo) — backlog
 - ❌ NÃO migrar `index()` Blade view por completo — fallback `request()->ajax()` mantido pra DataTables legacy
 - ❌ NÃO `/sells/create` Cowork — `vendas-create-completo.jsx` 683 LOC 3 verticais é Onda 7 candidata
@@ -102,8 +102,8 @@ Tela cockpit central de operação comercial — lista vendas (pedidos · fatura
 - ⛔ **NÃO duplicar emissão** — constraint banco `nfe_emissoes_biz_fx_unique` + idempotência VdBulkEmitModal por `sale_id`
 - ⛔ **NÃO log PII completo** — CPF/CNPJ exibido com máscara via `maskTaxNumber($value)` backend; plain text NUNCA chega ao frontend (drawer fiscal renderiza completo, papel cliente protegido fisicamente)
 - ⛔ **NÃO dispara emails ao abrir drawer** — Spatie ActivityLog SÓ em mutate (LGPD)
-- ⛔ **NÃO chama LLM em filtros/listagem** — Copiloto +IA dispara APENAS via botão explícito drawer
-- ⛔ **NÃO enviar "Falar com Copiloto"** sem confirmação humana — abre rota Jana, não dispara mensagem
+- ⛔ **NÃO chama LLM em filtros/listagem** — o +IA da Jana dispara APENAS via botão explícito drawer
+- ⛔ **NÃO enviar "Falar com a Jana"** sem confirmação humana — abre rota Jana, não dispara mensagem
 - ⛔ **NÃO acessar Sale de outro business_id** (ADR 0093 Tier 0 IRREVOGÁVEL); `BulkEmitItem.id` validado por business_id antes de enqueue Job
 - ⛔ **NÃO força-refresh durante bulk emit em execução** (cancela operação)
 - ⛔ **NÃO `sessionStorage`** — canon = `localStorage` com prefix `oimpresso.sells.b<bizId>.` (Tier 0 per-business)
@@ -123,7 +123,7 @@ Tela cockpit central de operação comercial — lista vendas (pedidos · fatura
 - `resources/js/Pages/Sells/_components/FiscalSection.tsx` — FISCAL drawer section
 - `resources/js/Pages/Sells/_components/CobrancaDrawer.tsx` — emitir cobrança (Onda 4f.0 PR #1587)
 - `resources/js/Pages/Sells/_components/CriarOsButton.tsx` — cross-module OS (Modules/Repair)
-- `resources/js/Pages/Sells/_components/SaleAiPanel.tsx` — botão +IA Copiloto contextual
+- `resources/js/Pages/Sells/_components/SaleAiPanel.tsx` — botão +IA da Jana contextual
 - `resources/js/Pages/Sells/_components/CommissionSplitEditor.tsx` — splitter comissão
 - `resources/js/Pages/Sells/_components/QuickPaymentDialog.tsx` + `QuickPaymentPopover.tsx`
 - `resources/js/Pages/Sells/_components/SaleItemComments.tsx`

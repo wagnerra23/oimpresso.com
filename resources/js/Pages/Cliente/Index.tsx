@@ -2012,9 +2012,9 @@ function ClienteSheet({
             <Button asChild variant="cowork-primary">
               <a
                 href={contact ? `/ia/chat?context=cliente:${contact.id}` : '#'}
-                title="Abre o Copiloto (Jana) com contexto deste cliente"
+                title="Abre a Jana com o contexto deste cliente"
               >
-                Falar com Copiloto →
+                Falar com a Jana →
               </a>
             </Button>
           </div>

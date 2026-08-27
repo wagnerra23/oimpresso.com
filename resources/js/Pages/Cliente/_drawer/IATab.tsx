@@ -195,7 +195,7 @@ export default function IATab({ contact, stats }: IATabProps) {
         <div className="flex items-center gap-2">
           <Sparkles size={16} className="text-primary" />
           <h3 className="text-sm font-semibold text-foreground">
-            Copiloto de cliente
+            Jana neste cliente
           </h3>
         </div>
         <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
