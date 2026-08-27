@@ -693,6 +693,81 @@ O CST também é por imposto: o ICMS tem lista própria (`CST_ICMS`), os demais 
 
 ---
 
+## UC-V375 · A aba Produção tem os 9 campos da âncora, não 3
+
+**Status:** 🧪 — 3 testes citam o UC e passam ([`tests/js/item-abas-drawer.test.tsx`](../../../../tests/js/item-abas-drawer.test.tsx)).
+
+- **Dado** o drawer de detalhe do item aberto na aba Produção,
+- **Quando** o operador vai preencher a instrução de fábrica,
+- **Então** encontra os **9 campos** (em produção · tipo de impressão · acabamento · local de aplicação · equipamento/setor · prioridade · requisitar do estoque · prazo da equipe · prazo da etapa), a **observação de produção** (vai na OP, não no documento do cliente) e a seção **Arquivo de arte**.
+
+⚠️ Achado incidental, e é o pior tipo: o campo **Acabamento** era `<Texto onChange={() => {}}>` —
+**aceitava digitação e descartava**. Campo que finge funcionar é pior que campo ausente, porque
+ninguém reporta. Virou escolha com as 5 opções da âncora.
+
+As listas de opção (`ACABAMENTOS`, `PRIORIDADES`, `EQUIPAMENTOS`, `LOCAIS_ESTOQUE`, `SETORES`) saem
+de [`sells-data.js`](../../../../prototipo-ui/cowork/venda-v3/sells-data.js), a fonte da âncora —
+não de invenção. Opção de domínio inventada **parece canon** e a próxima sessão obedece.
+
+---
+
+## UC-V376 · O Fluxo deixa mexer nas etapas — não é retrato imóvel
+
+**Status:** 🧪 — 3 testes citam o UC e passam.
+
+- **Dado** o fluxo de produção do item,
+- **Quando** o operador remove uma etapa que não se aplica, ou reaplica o padrão do produto,
+- **Então** a tabela responde — e, ficando **sem nenhuma etapa**, mostra o vazio que **ensina o caminho**, em vez de sumir calada.
+
+A tabela lia direto de `ETAPAS_PADRAO` (constante de módulo): quatro linhas fixas que ninguém
+podia tocar. Agora as etapas são estado, e o botão **Aplicar fluxo padrão do produto** existe
+como na âncora.
+
+---
+
+## UC-V377 · Observação separa o que vai pro cliente do que fica interno
+
+**Status:** 🧪 — 2 testes citam o UC e passam.
+
+- **Dado** o item que precisa de nota de produção **e** de nota interna,
+- **Quando** o operador escreve nas duas,
+- **Então** cada uma tem seu campo, cada um diz **para onde vai**, e o que se escreve na interna **não aparece** no campo do cliente.
+
+Isto **não é preferência de layout — é o defeito com causa registrada**. A tela tinha **um** campo
+só, rotulado *"sai na OS e no documento"*: exatamente o campo único cuja unificação gerou a
+reclamação de **vazamento de nota interna no documento do cliente (CU-SELL-12)**. Quem escrevesse
+*"cliente reclamou da cor na última compra"* mandava isso pro PDF/NF-e.
+
+---
+
+## UC-V378 · Toda aba do drawer usa a seção DO DRAWER
+
+**Status:** 🧪 — 7 testes citam o UC (um por aba) e passam.
+
+- **Dado** qualquer uma das 7 abas do drawer de item,
+- **Quando** ela abre,
+- **Então** o conteúdo vem dentro da **seção do drawer** — cartão liso com título em caixa alta (`<h4>`) — e nunca solto na aba.
+
+**Medido na âncora renderizada** em 2026-08-27 (artefato *Cadastro de venda v3*, prancheta
+`Main.dc.html`, drawer 880px), não lido do fonte. O protótipo tem **dois** componentes de seção,
+e a tela usava o errado dentro do drawer:
+
+| | tela principal (`.sec`) | dentro do drawer (`.dw-sec`) |
+|---|---|---|
+| padding | 0 (faixa própria) | **14px 18px** |
+| título | 15px, frase, numerado, faixa colorida | **10,5px, CAIXA ALTA, sem faixa** |
+
+Estado antes: **só a aba Geral** tinha seção — e era a da tela principal. As outras seis entregavam
+o conteúdo cru. Daí o componente próprio `SecDw` em vez de mais um prop no `Sec`: trocar o `Sec`
+consertaria o drawer e quebraria a tela principal.
+
+Duas divergências **declaradas** da âncora, ambas por decisão de canon (registradas no docblock do
+`SecDw`): raio **8px** e não 12px — o charter DS fixa 8px para drawer e manda evitar `rounded-xl+`,
+e pela Constituição UI v2 a camada de cima não contradiz a de baixo; e espaço entre seções pelo
+token `gap-3` (12px) e não os 10px medidos, porque a escala de `Stack` é enumerada de propósito.
+
+---
+
 ## Backlog de contrato
 
 - **[BACKLOG]** O lançamento **para de descartar** `executante`, `local` e `impressao` ao virar linha da venda — o modal já coleta os três (`ItemLancado`), e são 3 das 19 colunas sem fonte do UC-V368.

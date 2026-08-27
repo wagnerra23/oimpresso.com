@@ -195,6 +195,57 @@ export function Sec({
   );
 }
 
+/* ─── SecDw · seção DE DRAWER ───────────────────────────────────────────────
+   NÃO é o `Sec` acima, e a diferença não é capricho: são DOIS componentes
+   distintos na âncora. Medido em 2026-08-27 no protótipo renderizado
+   (artefato "Cadastro de venda v3", prancheta `Main.dc.html`, drawer 880px):
+
+       tela principal   `.sec`     raio 12 · padding 0  · título 15px frase, numerado
+       dentro do drawer `.dw-sec`  raio 12 · padding 14/18 · título 10,5px CAIXA ALTA
+
+   O drawer de produção vinha usando o `Sec` da TELA PRINCIPAL — daí a faixa
+   colorida e o título grande onde a âncora tem cartão liso com rótulo pequeno.
+   Trocar o `Sec` consertaria o drawer e quebraria a tela principal; por isso a
+   seção do drawer nasce componente próprio, não mais um prop no `Sec`.
+
+   A tipografia do título é a MESMA do `Lbl` (10,5 / 600 / caixa alta) porque o
+   papel é o mesmo: rotular um bloco sem competir com o conteúdo.
+
+   ⚠️ DUAS divergências DECLARADAS da âncora, as duas por decisão de canon:
+   · raio 8px (`rounded-lg`), não os 12px medidos — o charter DS
+     (`prototipo-ui/CLAUDE_DESIGN_BRIEFING.md` §Radius) fixa 8px para drawer e
+     manda evitar `rounded-xl+`; a Constituição UI v2 diz que a camada de cima
+     não contradiz a de baixo, então o DS ganha do protótipo aqui.
+     (De passagem: a mensagem do lint `ds/no-rounded-xl` diz "rounded-lg (12px)"
+     e está ERRADA — `rounded-lg` mede 8px. O charter é que está certo.)
+   · espaço entre seções pelo token `gap-3` (12px) e não os 10px da âncora — a
+     escala de `Stack` é enumerada de propósito, para espaço nunca virar px solto. */
+export function SecDw({
+  title,
+  right,
+  children,
+}: {
+  title?: ReactNode;
+  right?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-lg border border-border bg-card px-[18px] py-[14px]">
+      {(title || right) && (
+        <Inline align="center" justify="between" gap={2} className="mb-2">
+          {title && (
+            <h4 className="m-0 text-[10.5px] font-semibold uppercase leading-[1.4] tracking-[.05em] text-muted-foreground">
+              {title}
+            </h4>
+          )}
+          {right}
+        </Inline>
+      )}
+      {children}
+    </section>
+  );
+}
+
 /* ─── Res · linha do resumo de fechamento (rótulo · régua pontilhada · valor) */
 export function Res({
   l,

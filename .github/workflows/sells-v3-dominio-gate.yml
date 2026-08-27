@@ -65,6 +65,7 @@ on:
       - 'tests/js/colunas-grid.test.tsx'
       - 'tests/js/resumo-parcelas.test.tsx'
       - 'tests/js/item-tributacao.test.tsx'
+      - 'tests/js/item-abas-drawer.test.tsx'
       - 'resources/js/Pages/Sells/CreateV3.tsx'
       - 'resources/js/Pages/Sells/_components/v3/ResumoParcelas.tsx'
       - 'resources/js/Pages/Sells/_components/v3/ItemDetalhe.tsx'
@@ -81,6 +82,7 @@ on:
       - 'tests/js/colunas-grid.test.tsx'
       - 'tests/js/resumo-parcelas.test.tsx'
       - 'tests/js/item-tributacao.test.tsx'
+      - 'tests/js/item-abas-drawer.test.tsx'
       - 'resources/js/Pages/Sells/CreateV3.tsx'
       - 'resources/js/Pages/Sells/_components/v3/ResumoParcelas.tsx'
       - 'resources/js/Pages/Sells/_components/v3/ItemDetalhe.tsx'
@@ -142,6 +144,7 @@ jobs:
             tests/js/resumo-parcelas.test.tsx \
             tests/js/item-fiscal-calculo.test.ts \
             tests/js/item-tributacao.test.tsx \
+            tests/js/item-abas-drawer.test.tsx \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-sells-v3-dominio-junit.xml

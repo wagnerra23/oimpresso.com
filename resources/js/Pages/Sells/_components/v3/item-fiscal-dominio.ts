@@ -86,6 +86,53 @@ export const TIPOS_IMPRESSAO = [
   'Sem impressão',
 ];
 
+/* ─── Produção ──────────────────────────────────────────────────────────────
+   As listas vêm da ÂNCORA, não de invenção minha: `prototipo-ui/cowork/venda-v3/
+   sells-data.js` (`equipamentos`, `setores`, `locaisEstoque`) e o próprio
+   `sells-item-detail.jsx:283-291`. Inventar opção de domínio em charter/tela é o
+   anti-padrão que o §5 nomeia — o inventado PARECE canon e a próxima sessão obedece. */
+export const SIM_NAO = ['Não', 'Sim'];
+
+export const ACABAMENTOS = [
+  'Sem acabamento',
+  'Ilhós a cada 50cm',
+  'Bastão + corda',
+  'Solda perimetral',
+  'Laminação',
+];
+
+export const PRIORIDADES = ['Normal', 'Urgente', 'Programada'];
+
+export const SETORES = ['Criação', 'Impressão', 'Acabamento', 'Usinagem', 'Expedição', 'Balcão', 'Instalação'];
+
+/* rótulo = "nome · setor", como a âncora monta o <option> (`nome + ' · ' + setor`). */
+export const EQUIPAMENTOS = [
+  'Látex HP 3600 · Impressão',
+  'UV Flatbed 2513 · Impressão',
+  'Plotter de recorte CE7000 · Acabamento',
+  'Router CNC 1325 · Usinagem',
+  'Mesa de aplicação 2 · Acabamento',
+  'Solda de lona HF · Acabamento',
+];
+
+/* O primeiro item NÃO é vazio: na âncora o "não requisita" é uma escolha de
+   negócio (item de serviço não puxa material), não a ausência de escolha. */
+export const LOCAIS_ESTOQUE = [
+  'Não requisita (serviço)',
+  'Depósito · bobinas',
+  'Pátio · chapas',
+  'Almoxarifado · insumos',
+  'Loja · balcão',
+];
+
+export const PESSOAS_FLUXO = [
+  'Kamila Reis',
+  'Guilherme Sato',
+  'Larissa Prado',
+  'Equipe interna — box 2',
+  'Equipe externa (terceiro)',
+];
+
 export const ABAS = ['geral', 'producao', 'fluxo', 'tributacao', 'preco', 'anexos', 'observacao'] as const;
 export type Aba = (typeof ABAS)[number];
 
