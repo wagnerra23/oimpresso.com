@@ -16,9 +16,9 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Icon } from '@/Components/Icon';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import EmptyState from '@/Components/shared/EmptyState';
-import { KpiCard } from '@/Components/shared/KpiCard';
-import { KpiGrid } from '@/Components/shared/KpiGrid';
-import PageHeader from '@/Components/shared/PageHeader';
+import KpiCard from '@/Components/shared/KpiCard';
+import KpiGrid from '@/Components/shared/KpiGrid';
+import { PageHeader } from '@/Components/PageHeader';
 import { PeriodBar, type Period } from '@/Components/shared/PeriodBar';
 import { Alert, AlertDescription } from '@/Components/ui/alert';
 import { router } from '@inertiajs/react';
@@ -159,14 +159,18 @@ function HomeIndex({
   return (
     <Stack gap={5} className="mx-auto max-w-7xl p-6">
       <PageHeader
+        leading={<Icon name="layout-dashboard" size={18} strokeWidth={1.8} />}
         title="Visão geral"
-        icon="layout-dashboard"
-        description={
-          totals
-            ? `${brlCurto(totals.total_sell)} vendas · ${brlCurto(totals.invoice_due)} a receber · ${brlCurto(totals.total_expense)} despesas`
-            : undefined
+        subtitle={
+          totals ? (
+            <>
+              <strong>{brlCurto(totals.total_sell)}</strong> vendas ·{' '}
+              <strong>{brlCurto(totals.invoice_due)}</strong> a receber ·{' '}
+              <strong>{brlCurto(totals.total_expense)}</strong> despesas
+            </>
+          ) : undefined
         }
-        action={
+        actions={
           <span className="text-[12.5px] text-muted-foreground">
             Bem-vindo{user_name ? `, ${user_name}` : ''}
           </span>
