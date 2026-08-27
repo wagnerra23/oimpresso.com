@@ -9,6 +9,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Ponto\Entities\ApuracaoDia;
 use Modules\Ponto\Entities\Colaborador;
+use Modules\Ponto\Entities\Escala;
+use Modules\Ponto\Entities\EscalaTurno;
 use Modules\Ponto\Entities\Intercorrencia;
 use Modules\Ponto\Entities\Marcacao;
 
@@ -306,7 +308,7 @@ class DashboardController extends Controller
         $diaSemana  = $agora->dayOfWeek;
         $tolerancia = (int) config('pontowr2.clt.tolerancia_maxima_diaria_minutos', 10);
 
-        return $colaboradores->map(function ($c) use ($marcacoesHoje, $hoje, $agora, $diaSemana, $tolerancia) {
+        return $colaboradores->map(function (Colaborador $c) use ($marcacoesHoje, $hoje, $agora, $diaSemana, $tolerancia) {
             $marcs = $marcacoesHoje->get($c->id, collect());
             $entrada = $marcs->firstWhere('tipo', Marcacao::TIPO_ENTRADA);
             $saida   = $marcs->where('tipo', Marcacao::TIPO_SAIDA)->last();
@@ -314,8 +316,18 @@ class DashboardController extends Controller
 
             // Horário previsto de entrada HOJE — o mesmo que a apuração usaria (RN-001).
             // Null quando não há escala, ou quando a escala não tem turno pro dia (folga).
-            $previstaEntrada = $c->escalaAtual?->turnos
-                ->firstWhere('dia_semana', $diaSemana)?->hora_entrada;
+            //
+            // As duas variáveis são anotadas de propósito: `escalaAtual()` devolve
+            // `BelongsTo` sem generic, então o Larastan resolve a ponta como `Model`
+            // cru e acusa `Access to an undefined property Model::$turnos`. Anotar o
+            // tipo é o conserto; alargar o baseline seria esconder a falta de generic.
+            /** @var Escala|null $escala */
+            $escala = $c->escalaAtual;
+
+            /** @var EscalaTurno|null $turno */
+            $turno = $escala?->turnos->firstWhere('dia_semana', $diaSemana);
+
+            $previstaEntrada = $turno?->hora_entrada;
 
             // Status:
             // - saiu: tem saída e essa saída é a última marcação
