@@ -15,9 +15,12 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Icon } from '@/Components/Icon';
 import { Grid, Inline, Stack } from '@/Components/layout';
+import EmptyState from '@/Components/shared/EmptyState';
 import { KpiCard } from '@/Components/shared/KpiCard';
 import { KpiGrid } from '@/Components/shared/KpiGrid';
+import PageHeader from '@/Components/shared/PageHeader';
 import { PeriodBar, type Period } from '@/Components/shared/PeriodBar';
+import { Alert, AlertDescription } from '@/Components/ui/alert';
 import { router } from '@inertiajs/react';
 import { ReactNode } from 'react';
 
@@ -131,22 +134,20 @@ function HomeIndex({
 
   return (
     <Stack gap={5} className="mx-auto max-w-7xl p-6">
-      <Inline gap={6} align="baseline" justify="between" wrap asChild>
-        <header>
-          <Stack gap={1}>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Visão geral</h1>
-            {totals && (
-              <span className="font-mono text-[12.5px] text-muted-foreground">
-                {brlCurto(totals.total_sell)} vendas · {brlCurto(totals.invoice_due)} a receber ·{' '}
-                {brlCurto(totals.total_expense)} despesas
-              </span>
-            )}
-          </Stack>
+      <PageHeader
+        title="Visão geral"
+        icon="layout-dashboard"
+        description={
+          totals
+            ? `${brlCurto(totals.total_sell)} vendas · ${brlCurto(totals.invoice_due)} a receber · ${brlCurto(totals.total_expense)} despesas`
+            : undefined
+        }
+        action={
           <span className="text-[12.5px] text-muted-foreground">
             Bem-vindo{user_name ? `, ${user_name}` : ''}
           </span>
-        </header>
-      </Inline>
+        }
+      />
 
       <Inline gap={4} align="end" justify="between" wrap>
         <PeriodBar period={period} />
@@ -199,24 +200,23 @@ function HomeIndex({
           <Contrapartidas totals={totals} />
         </Stack>
       ) : (
-        <section className="rounded-lg border border-border bg-card px-6 py-10 text-center">
-          <p className="text-sm text-muted-foreground">
-            Você não tem acesso aos dados do painel. A permissão <code className="font-mono">dashboard.data</code> não
-            está atribuída ao seu papel — a tela abre sem erro, nenhum indicador é carregado.
-          </p>
-        </section>
+        <EmptyState
+          icon="lock"
+          title="Você não tem acesso aos dados do painel"
+          description="A permissão dashboard.data não está atribuída ao seu papel. A tela abre sem erro — nenhum indicador é carregado."
+        />
       )}
 
-      <Inline gap={3} align="start" className="rounded-lg border border-border bg-accent px-4 py-3 text-sm text-muted-foreground">
-        <Icon name="info" size={16} className="mt-0.5 shrink-0" />
-        <span className="leading-relaxed">
+      <Alert>
+        <Icon name="info" size={16} />
+        <AlertDescription>
           Precisa dos gráficos de vendas, alertas de estoque ou widgets de outros módulos?{' '}
           <a href={legacy_url} className="font-medium text-primary underline-offset-2 hover:underline">
             Abrir versão completa
           </a>
           .
-        </span>
-      </Inline>
+        </AlertDescription>
+      </Alert>
     </Stack>
   );
 }
