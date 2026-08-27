@@ -740,3 +740,165 @@ it('UC-JPAIN-15: o vencido declara seu peso, e nunca arredonda pra zero', functi
     //    e "0% do a receber" num tenant sem nada a receber.
     expect($cockpit)->toContain('totalAReceber > 0 && overdueValue > 0');
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UC-JPAIN-16 — botão clicável que não faz nada
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Extrai os `<Button>` SEM comportamento de um fonte `.tsx`, por RÓTULO.
+ *
+ * Recebe CONTEÚDO, não path, de propósito: o bite-test abaixo exercita ESTA
+ * função, não uma cópia paralela — selftest que roda a cópia fica verde enquanto
+ * o caminho real regride (§5 2026-08-14).
+ *
+ * ## Por que RÓTULO e não `arquivo:linha`
+ *
+ * Ref de linha apodrece no primeiro refactor (§5 2026-07-26), e este parse
+ * REMOVE comentários antes de contar — então a linha daqui nem casa com a do
+ * arquivo. Medido em 2026-08-27: o mesmo botão "Ouvir áudio" é a linha 455 no
+ * arquivo e 373 depois do strip. O rótulo é o que o usuário vê e é o que
+ * identifica o botão de forma estável.
+ *
+ * ## Por que ESTRUTURAL e não prosa ("em breve")
+ *
+ * `not->toContain('em breve')` FALHARIA: a frase vive nos comentários que
+ * REGISTRAM as decisões (4 ocorrências medidas em `Index.tsx`/`JanaCockpit.tsx`),
+ * e proibir a prosa proibiria registrar a decisão — o falso-positivo que já
+ * mordeu os UC-10, UC-11 e UC-12 na escrita. O que morde aqui é a FORMA: botão
+ * sem `onClick`, sem `disabled`, sem `type=submit`, sem `asChild`, sem `href`,
+ * sem spread — e que também não tem wrapper-pai (`<Link>` e afins) dando o
+ * comportamento por ele.
+ *
+ * Medição que precedeu o caso (2026-08-27, ANTES de ligar — regra "LIGUE A
+ * MÁQUINA" item 4): o predicado CRU ("sem onClick") dava 14 de 35 botões na
+ * Jana — 85% falso-positivo, quase tudo `<Link href><Button>`. Com o filtro de
+ * wrapper-pai: 5 de 35, e os 5 são reais. No repo inteiro (687 botões), o mesmo
+ * predicado dá 15 — e por isso este caso NÃO é ampliado pra fora do Painel sem
+ * medir o FP daquele corpus.
+ */
+function painelBotoesMudos(string $src): array
+{
+    // Wrappers que DÃO comportamento ao filho — o pai é quem navega/abre.
+    $wrapper = '~<(Link|SheetClose|DialogTrigger|DialogClose|PopoverTrigger|TooltipTrigger|DropdownMenuTrigger|AlertDialogTrigger|AlertDialogAction|AlertDialogCancel|a)\b[^>]*>\s*$~';
+    $vivo    = '~onClick|disabled|type\s*=\s*.?submit|asChild|href|\{\s*\.\.\.~';
+
+    // Comentário não chega ao cliente. Removê-lo ANTES é o que separa este caso
+    // do falso-positivo de prosa descrito no docblock.
+    $src = preg_replace('~\{/\*.*?\*/\}~s', '', $src);
+    $src = preg_replace('~/\*.*?\*/~s', '', $src);
+    $src = preg_replace('~^\s*//.*$~m', '', $src);
+
+    $mudos = [];
+    $pos   = 0;
+    $n     = strlen($src);
+
+    while (($i = strpos($src, '<Button', $pos)) !== false) {
+        $pos   = $i + 7;
+        $prof  = 0;
+        $attrs = '';
+        $j     = $pos;
+
+        for (; $j < $n; $j++) {
+            $c = $src[$j];
+            if ($c === '{') {
+                $prof++;
+            } elseif ($c === '}') {
+                $prof--;
+            } elseif ($c === '>' && $prof === 0) {
+                break;
+            }
+            $attrs .= $c;
+        }
+
+        if (preg_match($vivo, $attrs) === 1) {
+            continue;
+        }
+        if (preg_match($wrapper, substr($src, max(0, $i - 300), min($i, 300))) === 1) {
+            continue;
+        }
+
+        $fim    = strpos($src, '</Button>', $j);
+        $corpo  = $fim === false ? '' : substr($src, $j + 1, $fim - $j - 1);
+        $corpo  = preg_replace('~<[^>]*>~', ' ', $corpo);   // <Icon />
+        $corpo  = preg_replace('~\{[^}]*\}~', ' ', $corpo); // {expressao}
+        $rotulo = trim(preg_replace('~\s+~', ' ', $corpo));
+
+        $mudos[] = $rotulo === '' ? '(sem rotulo)' : $rotulo;
+    }
+
+    sort($mudos);
+
+    return $mudos;
+}
+
+/** Os DOIS arquivos que desenham o Painel `/ia` — os mesmos que o `paths:` da lane acorda. */
+function painelBotoesMudosDaTela(): array
+{
+    $mudos = [];
+
+    foreach ([PAINEL_TSX, 'resources/js/Pages/Jana/_components/JanaCockpit.tsx'] as $rel) {
+        $mudos = array_merge($mudos, painelBotoesMudos(file_get_contents(base_path($rel))));
+    }
+
+    sort($mudos);
+
+    return $mudos;
+}
+
+/**
+ * UC-JPAIN-16 — nenhum botão NOVO do Painel nasce clicável sem fazer nada.
+ *
+ * ## O que este caso é, e o que ele NÃO é
+ *
+ * Ele **não decide** o destino dos 5 botões abaixo — isso é [W], e o próprio
+ * `jana-painel.contract.json` já diz por quê: *"Some, vira `disabled` com o
+ * motivo, ou entrega? Enquanto não decidido, NÃO entra no contrato: pinar uma
+ * promessa é congelá-la"*. Consertar um sem decisão seria escolher no lugar dele.
+ *
+ * O que ele faz é **forward-only** (ADR 0275): trava o conjunto CONHECIDO e
+ * derruba o **sexto**. É a diferença entre uma dívida declarada e uma dívida
+ * invisível — e a invisibilidade é o que deixou os 3 chips crescerem depois que
+ * o UC-JPAIN-12 consertou os CTAs vizinhos, no mesmo arquivo, um a um.
+ *
+ * ## Por que a lista, e não uma contagem
+ *
+ * `toBe(5)` trancaria nos dois sentidos: consertar um derrubaria o caso
+ * (predicado absoluto onde cabia delta — §5 2026-08-24), e trocar um pelo outro
+ * passaria em silêncio. Com a lista, consertar um é REMOVER a linha dele no
+ * mesmo PR — o teste conta a dívida encolhendo, que é o comportamento desejado.
+ */
+it('UC-JPAIN-16: nenhum botão novo do Painel nasce clicável sem fazer nada', function () {
+    // ── BITE-TEST — sem isto, um regex quebrado ficaria verde pra sempre ──────
+    $ruim = '<Button variant="ghost">Exportar tudo</Button>';
+    $bom  = '<Button variant="ghost" onClick={() => f()}>Exportar tudo</Button>';
+    $pai  = '<Link href="/x">' . "\n" . '  <Button variant="ghost">Abrir</Button>' . "\n" . '</Link>';
+    $cmt  = '{/* um botao "em breve" citado em COMENTARIO nao e um botao */}';
+
+    expect(painelBotoesMudos($ruim))->toBe(['Exportar tudo']);  // MORDE
+    expect(painelBotoesMudos($bom))->toBe([]);                  // libera onClick
+    expect(painelBotoesMudos($pai))->toBe([]);                  // libera wrapper-pai
+    expect(painelBotoesMudos($cmt))->toBe([]);                  // ignora comentario
+
+    // ── CORPUS REAL ──────────────────────────────────────────────────────────
+    // Cada linha é uma dívida DECLARADA, com dono. Consertar = apagar a linha
+    // no MESMO PR. Acrescentar linha aqui exige a razão escrita ao lado.
+    $conhecidos = [
+        // Catalogados no contrato de tela e no inventário — decisão [W] ABERTA
+        // (`prototipo-ui/contrato/jana-painel.contract.json` · `Index-visual-comparison.md`).
+        'Exportar',                               // Index.tsx — title="(em breve)", sem rota
+        'Ouvir áudio',                            // JanaCockpit — title="(em breve — TTS V2)"
+
+        // Os 3 chips do rodapé do brief. O inventário os registra como
+        // "🟡 botão morto" e a ref de linha dele (`479-500`) já apodreceu — os
+        // chips estão em 553/557/565. Estes NÃO prometem nada: clicam e nada
+        // acontece, sem explicação, o que é pior que o "(em breve)" acima.
+        'Disparar régua WhatsApp pros atrasados', // JanaCockpit
+        'Investigar queda ticket médio',          // JanaCockpit
+        'Ver top devedores',                      // JanaCockpit
+    ];
+
+    sort($conhecidos);
+
+    expect(painelBotoesMudosDaTela())->toBe($conhecidos);
+});

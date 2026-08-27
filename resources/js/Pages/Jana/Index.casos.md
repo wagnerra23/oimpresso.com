@@ -425,6 +425,70 @@ O protótipo resolve isso com **seletor de período** (`JM_PERIODOS`, 3 janelas)
 inventário como `❌ precisa de backend`. Com ele, "mês" volta a ter referente. Sem ele, qualquer
 rótulo temporal fixo é escolha arbitrária, e a honesta é a que descreve o recorte real.
 
+## UC-JPAIN-16 — nenhum botão novo do Painel nasce clicável sem fazer nada
+Status: 🧪 (`PainelContratoTest` — 1 `it()` com bite-test de 4 asserções + corpus real; **provado localmente** nos três estados, aguarda run verde na lane e o screenshot F1.5)
+
+Derivado do `jana-painel.contract.json` (§`pendencias`) e do `Index-visual-comparison.md`
+(§Resumo, linhas `R3 · chips do brief` e `ação Exportar`) — **não** do `.tsx`. Derivar do código
+seria tautológico (§5 2026-06-05).
+
+O Painel tem hoje **5 botões clicáveis que não fazem nada**. Dois já eram conhecidos; três não
+estavam em nenhum inventário com o ponteiro certo:
+
+| rótulo | onde | estado no inventário |
+|---|---|---|
+| `Exportar` | `Index.tsx` | 🟡 catalogado — `title="(em breve)"`, decisão [W] aberta |
+| `Ouvir áudio` | `JanaCockpit.tsx` | 🟡 `title="(em breve — TTS V2)"` |
+| `Disparar régua WhatsApp pros {n} atrasados` | `JanaCockpit.tsx` | 🟡 "botão morto" — **ref de linha podre** |
+| `Ver top devedores` | `JanaCockpit.tsx` | idem |
+| `Investigar queda ticket médio` | `JanaCockpit.tsx` | idem |
+
+Os três últimos são **piores** que os dois primeiros: não prometem nada. O usuário clica em
+*"Disparar régua WhatsApp pros 7 atrasados"* e nada acontece, sem explicação — enquanto o
+`(em breve)` ao menos avisa. Eles cresceram exatamente onde o **UC-JPAIN-12** consertou os CTAs
+vizinhos, no mesmo arquivo: o conserto foi por instância, e a classe reincidiu ao lado.
+
+### O que este caso decide — e o que ele não decide
+
+Ele **não** escolhe o destino de nenhum dos 5. Essa decisão é de [W], e o contrato já diz por quê:
+*"Some, vira `disabled` com o motivo, ou entrega? Enquanto não decidido, NÃO entra no contrato:
+pinar uma promessa é congelá-la."* Consertar um sem decisão seria escolher no lugar dele.
+
+O que ele faz é **forward-only** ([ADR 0275](../../../../memory/decisions/0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes.md)):
+trava o conjunto conhecido e derruba o **sexto**. Transforma dívida invisível em dívida declarada
+— e a invisibilidade é o que deixou os três chips atravessarem o conserto do vizinho.
+
+### Por que ESTRUTURAL, e não a prosa "em breve"
+
+`not->toContain('em breve')` **falharia hoje**: a frase vive nos comentários que registram as
+decisões — 4 ocorrências medidas em `Index.tsx`/`JanaCockpit.tsx`, incluindo a que celebra o
+conserto do botão "Configurar". Proibir a prosa proibiria registrar a decisão: é o falso-positivo
+do §5 2026-07-26, o mesmo que mordeu os UC-10, UC-11 e UC-12 **na escrita**. O parse remove
+comentário antes de contar; o que morde é a **forma** do botão.
+
+### FP medido ANTES de ligar (regra "LIGUE A MÁQUINA" item 4)
+
+| predicado | Jana | repo inteiro | veredito |
+|---|---|---|---|
+| `<Button>` sem `onClick` (cru) | 14 de 35 | 45 de 687 | ❌ ~85% FP — quase tudo `<Link href><Button>` |
+| + filtro de wrapper-pai | **5** de 35 | 15 de 687 | ✅ os 5 da Jana são reais |
+
+Por isso o caso **não** é ampliado pra fora do Painel: os 15 do repo inteiro não foram
+classificados, e ligar sem medir aquele corpus seria a família de guard sintático que o §5 já
+enterrou 5×.
+
+### Identificação por RÓTULO, não por `arquivo:linha`
+
+Ref de linha apodrece no primeiro refactor (§5 2026-07-26) — e o inventário desta própria tela é a
+prova: ele aponta os chips em `JanaCockpit.tsx:479-500`, onde hoje está o parágrafo do brief; os
+chips estão em 553/557/565. O parse ainda remove comentários, então a linha dele nem casa com a do
+arquivo (medido: "Ouvir áudio" é 455 no arquivo e 373 depois do strip). O rótulo é o que o usuário
+vê e o que se mantém estável.
+
+E por lista, não por contagem: `toBe(5)` trancaria nos dois sentidos — consertar um derrubaria o
+caso (predicado absoluto onde cabia delta, §5 2026-08-24) e trocar um pelo outro passaria em
+silêncio. Consertar = **apagar a linha** no mesmo PR.
+
 ## Nota do conserto do UC-JPAIN-08 (2026-08-17)
 
 `_components/JanaCockpitSkeleton.tsx` (novo, ancorado em `jana-merge.jsx` §`JmPainelSkeleton`) +

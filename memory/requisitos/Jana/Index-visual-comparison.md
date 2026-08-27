@@ -77,7 +77,7 @@ apagar seria pior que o erro — e porque o chip que originou esta onda **repeti
 | R8 · drawer Configurar `❌` | idem R1 | #5878 |
 | R9 · carregando `❌` | `_components/JanaCockpitSkeleton.tsx` + `carregandoCockpit` | #5862, 2026-08-17 |
 | R10 · persistência `localStorage` `❌` | `useJanaConfig.ts` grava em `oimpresso.jana.cfg` | #5878 |
-| R3 · chips do brief `❌` | os chips **existem** (`JanaCockpit.tsx:479-500`) — são **três**, e nenhum tem `onClick`. É `🟡` (botão morto), não `❌` (ausente) | — |
+| R3 · chips do brief `❌` | os chips **existem** — são **três** e nenhum tem `onClick`. É `🟡` (botão morto), não `❌` (ausente). Âncora de SÍMBOLO: `grep -n "Ver top devedores" resources/js/Pages/Jana/_components/JanaCockpit.tsx`. Travado por **UC-JPAIN-16** desde 2026-08-27 | — |
 
 **A lição de método, porque a classe reincide:** um documento de comparação é *derivado*, e derivado
 citado depois do prazo vira afirmação. Antes de usar qualquer linha daqui como veredito,

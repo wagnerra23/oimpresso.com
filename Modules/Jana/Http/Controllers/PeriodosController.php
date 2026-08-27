@@ -8,7 +8,15 @@ use Modules\Jana\Entities\MetaPeriodo;
 use Modules\Jana\Http\Requests\StorePeriodoRequest;
 use Modules\Jana\Http\Requests\UpdatePeriodoRequest;
 
-/** STUB spec-ready: CRUD de períodos aninhado em meta. */
+/**
+ * CRUD de períodos aninhado em meta — `store`/`update`/`destroy` (sem index/show
+ * por desenho: o período só existe pela meta pai, que o `MetasController@show` lista).
+ *
+ * ⚠️ "STUB spec-ready" saiu em 2026-08-27: era falso. Este controller fechou um IDOR
+ * cross-tenant (follow-up #4474) e é defendido por `PeriodosControllerCrossTenantTest`,
+ * que roda na lane MySQL. Chamar de stub o código que carrega o gate Tier 0 convida a
+ * próxima sessão a reescrevê-lo do zero.
+ */
 class PeriodosController extends Controller
 {
     /**
