@@ -14,9 +14,6 @@ const JM_METAS_BASE = [
   { id: "m2", nome: "Recuperação de vencidos", alvo: 400, fmt: "brlk", acumula: true,
     serie: [180, 205, 240, 260, 231, 198, 226, 254, 241, 219, 233, 212],
     nota: "Régua HITL ainda não disparada nos 8 clientes >90d." },
-  { id: "m3", nome: "Utilização de frota", alvo: 70, fmt: "pct",
-    serie: [58, 61, 57, 54, 52, 49, 47, 44, 41, 38, 35, 33],
-    nota: "8 caçambas paradas >7d puxam a curva — 3 overdue hoje." },
   { id: "m4", nome: "Ticket médio", alvo: 2400, fmt: "brl",
     serie: [2430, 2411, 2385, 2320, 2298, 2244, 2190, 2101, 2044, 1988, 1932, 1890],
     nota: "Margem estável — mix migrando pra caçamba pequena." },
@@ -102,7 +99,6 @@ const JM_THREADS = [
   { id: "t1", title: "Por que a receita caiu 68%?", preview: "Decomposição da queda — mix, evasão e sazonalidade", quando: "09:38", n: 12, escopo: "minhas" },
   { id: "t2", title: "Top devedores ativos", preview: "4.255 títulos · top 20 concentram 47%", quando: "ontem", n: 7, escopo: "minhas" },
   { id: "t3", title: "Reativação dos clientes ouro", preview: "8 contas LTV >R$ 50k · régua HITL preparada", quando: "ter", n: 21, escopo: "minhas" },
-  { id: "t4", title: "Caçambas paradas há mais de 7 dias", preview: "8 paradas · 3 overdue · sugestão de outbound", quando: "seg", n: 9, escopo: "minhas", fix: true },
   { id: "t5", title: "Fechamento de abril", preview: "DRE conferido · divergência de R$ 1.240 explicada", quando: "05/mai", n: 34, escopo: "arquivadas" },
   { id: "t6", title: "Cheques a depositar na semana", preview: "Rotina terça/quinta · lembrete criado", quando: "02/mai", n: 5, escopo: "arquivadas" }];
 
@@ -125,7 +121,7 @@ const JM_PROPOSTAS = [
 
 // KPI → análise que EXPLICA aquele número. Só mapeia quando o card existe e fala do mesmo dado:
 // ticket médio (trendDown) não tem análise própria, então fica não-clicável em vez de abrir faturamento.
-const JM_KPI_DRILL = { coins: "fat", alert: "inad", truck: "frota" };
+const JM_KPI_DRILL = { coins: "fat", alert: "inad" };
 
 // Cada conversa tem thread própria — trocar no histórico troca o conteúdo (P0).
 function jmSeed(id, data, threads) {
@@ -158,18 +154,6 @@ function jmSeed(id, data, threads) {
     { from: "jana", kind: "action_card", state: "confirm",
       title: "Preparar régua de reativação para os 8 clientes ouro?",
       sub: "LTV combinado R$ 612k · cada mensagem passa pela sua aprovação antes de sair." }],
-
-    t4: [
-    { from: "user", kind: "text", text: "Quais caçambas estão paradas há mais de 7 dias?" },
-    { from: "jana", kind: "data_table",
-      title: "Ativos parados · mai/2026",
-      cols: [{ k: "ativo", label: "Caçamba" }, { k: "dias", label: "Dias parada", num: true }, { k: "ult", label: "Último cliente" }],
-      rows: [
-      { ativo: "CC-014", dias: "19", ult: "CONSTRUFERRO IND." },
-      { ativo: "CC-027", dias: "14", ult: "EXTREMA SOLDAS" },
-      { ativo: "CC-031", dias: "11", ult: "CAPITAL CARGAS" },
-      { ativo: "CC-044", dias: "9", ult: "MARTINS OBRAS" }] }],
-
 
     t5: [
     { from: "user", kind: "text", text: "Fecha abril pra mim?" },
@@ -250,7 +234,7 @@ function JmMetaDrawer({ meta, onClose, onFalarComJana, onAviso }) {
         <>
               <Button variant="ghost" onClick={onClose}>Fechar</Button>
               <span className="jm-foot-spacer" />
-              <Button variant="ghost" onClick={() => onAviso?.("Editar meta abre a tela própria (/ia/metas/" + meta.id + ") — fora deste protótipo.")}>Editar meta</Button>
+              <Button variant="ghost" onClick={() => window.jmAbrirForm?.(meta.id)}>Editar meta</Button>
               <Button variant="primary" onClick={onFalarComJana}>Conversar com a Jana</Button>
             </> :
 
@@ -271,11 +255,12 @@ function JmMetaDrawer({ meta, onClose, onFalarComJana, onAviso }) {
         <JmSerie serie={meta.serie} />
         <div className="jm-serie-range"><span>início da série</span><span>{meta.periodo}</span></div>
       </DrawerSection>
+      {window.JmApuracoesSecao && <window.JmApuracoesSecao id={meta.id} onAviso={onAviso} />}
       <DrawerSection title="Origem do número">
         <ul className="jm-dr-src">
           <li>Veredito do farol calculado no servidor · <code>ApuracaoService::farol</code></li>
           <li>Escopo <code>business_id</code> da sessão (Tier 0)</li>
-          <li>Editar a meta abre a tela própria em modo foco — <code>/ia/metas/{meta.id}</code></li>
+          <li>Definição, alvo por período e situação: <code>Editar meta</code>, no rodapé</li>
         </ul>
       </DrawerSection>
     </Drawer>);
@@ -287,18 +272,33 @@ function JmMetasSecao({ standalone, onOpen, vazio, erro, onAviso }) {
   const { EmptyState } = DS;
   const JcIcon = window.JcIcon;
   const [per, setPer] = useStateJM(JM_PERIODOS[0]);
+  // Duas leituras do mesmo dado: farol da janela (canon do painel) e cadastro
+  // (a tabela que era /ia/metas em Blade). Alternador, não tela nova.
+  const [view, setView] = useStateJM("ativas");
+  const cadastro = view === "cadastro";
   const metas = useMemoJM(() => JM_METAS_BASE.map((b) => jmMeta(b, per)), [per]);
   return (
     <section className={"jm-metas" + (standalone ? " standalone" : "")}>
       <h2 className="jc-h2">
-        {JcIcon && <JcIcon name="target" className="ic" />} METAS ATIVAS
+        {JcIcon && <JcIcon name="target" className="ic" />} {cadastro ? "CADASTRO DE METAS" : "METAS ATIVAS"}
         <span className="jm-per">
-          {JM_PERIODOS.map((p) =>
+          {!cadastro && JM_PERIODOS.map((p) =>
           <button key={p.key} className={"jm-cat" + (per.key === p.key ? " active" : "")} onClick={() => setPer(p)}>{p.key}</button>
           )}
-          <button className="jm-btn ghost" onClick={() => onAviso?.("Criar meta abre a tela própria (/ia/metas/nova) — fora deste protótipo.")}>Nova meta</button>
+          <span className="jmc-view">
+            <button className={view === "ativas" ? "active" : ""} onClick={() => setView("ativas")}>Farol</button>
+            <button className={cadastro ? "active" : ""} onClick={() => setView("cadastro")}>Cadastro</button>
+          </span>
+          <button className="jm-btn ghost" onClick={() => window.jmAbrirForm?.(null)}>Nova meta</button>
         </span>
       </h2>
+      {cadastro && window.JmMetasCadastro ?
+      <window.JmMetasCadastro onAviso={onAviso}
+        onAbrir={(id) => {
+          const b = JM_METAS_BASE.find((x) => x.id === id);
+          if (b) onOpen?.(jmMeta(b, per));else onAviso?.("Meta sem apuração ainda — nada pra abrir no farol.");
+        }} /> : null}
+      {cadastro ? null : <>
       {vazio ?
       EmptyState ?
       <EmptyState
@@ -308,16 +308,16 @@ function JmMetasSecao({ standalone, onOpen, vazio, erro, onAviso }) {
         description={erro ?
         "A apuração falhou nesta janela — os números seriam chute, então preferi não mostrar." :
         "Sem meta definida, a Jana não tem farol pra comparar. Criar meta abre a tela própria, em modo foco."}
-        action={<button className="jm-btn" onClick={() => onAviso?.(erro ?
-        "Reapuração é job do servidor — fora deste protótipo." :
-        "Criar meta abre a tela própria (/ia/metas/nova) — fora deste protótipo.")}>{erro ? "Reapurar" : "Criar meta"}</button>} /> :
+        action={<button className="jm-btn" onClick={() => erro ?
+        onAviso?.("Reapuração é job do servidor — enfileirada pela tela de cadastro.") :
+        window.jmAbrirForm?.(null)}>{erro ? "Reapurar" : "Criar meta"}</button>} /> :
 
-      <div className="jm-mem-empty"><b>Nenhuma meta ativa neste período.</b><small>Criar meta abre a tela própria.</small></div> :
+      <div className="jm-mem-empty"><b>Nenhuma meta ativa neste período.</b><small>Use “Nova meta” para cadastrar.</small></div> :
 
       <div className="jm-metas-grid">
           {metas.map((m) => <JmMetaCard key={m.id} m={m} onOpen={onOpen} />)}
         </div>}
-
+      </>}
     </section>);
 
 }
@@ -700,7 +700,6 @@ function JmConfigDrawer({ open, onClose, onGoTab, cfg, setCfg }) {
         <Toggle k="fat" label="Faturamento" sub="Curva 24 meses + sazonalidade" />
         <Toggle k="conc" label="Concentração" sub="Pareto de clientes" />
         <Toggle k="churn" label="Churn ouro" sub="LTV alto inativo >90d" />
-        <Toggle k="frota" label="Frota" sub="Ativos parados >7d" />
         <Toggle k="cheq" label="Cheques" sub="Previsão de depósito" />
       </DrawerSection>
       <DrawerSection title="Até onde ela age">
@@ -740,7 +739,6 @@ function JmAcaoModal({ acao, onClose, onAviso }) {
   const previa = {
     a1: "Seu Martinho, aqui é da ROTA LIVRE. Temos R$ 12.480 em aberto desde março. Consigo dividir em 3× sem juros se fecharmos hoje — posso gerar?",
     a2: "Seu Martinho, faz tempo que a gente não atende sua obra. Separei uma condição de retorno na caçamba de 5m³ — quer que eu reserve pra esta semana?",
-    a3: "Lista dos 8 ativos parados com o último cliente de cada um, pra ligação hoje — começando pelos 3 overdue.",
     a4: "2.470 títulos acima de 365 dias, R$ 770k, marcados como candidatos a baixa. Nada é apagado — só sai do painel ativo depois da sua revisão." }[
   acao.id];
   const enviar = () => {
@@ -861,13 +859,19 @@ function JmPainelSkeleton({ compacto }) {
 
 }
 
-function JmTabs({ tab, onGoTab, metasMode, nConversas }) {
+function JmTabs({ tab, onGoTab, metasMode, nConversas, papel = "dona", nAlertas }) {
   const JcIcon = window.JcIcon;
+  const can = window.jtnCan || (() => true);
+  const [, tickSil] = React.useState(0);
+  React.useEffect(() => window.jtnSubscribeSil ? window.jtnSubscribeSil(() => tickSil((n) => n + 1)) : undefined, []);
   const tabs = [
   { key: "painel", label: "Painel", icon: "chart" },
   ...(metasMode === "aba" ? [{ key: "metas", label: "Metas", icon: "target", n: JM_METAS_BASE.length }] : []),
   { key: "conversa", label: "Conversa", icon: "sparkles", n: nConversas },
-  { key: "memoria", label: "Memória", icon: "database" }];
+  { key: "alertas", label: "Alertas", icon: "alert", n: nAlertas != null ? nAlertas : window.jtnContarAlertas ? window.jtnContarAlertas() : undefined },
+  { key: "acoes", label: "Ações", icon: "bulb" },
+  { key: "memoria", label: "Memória", icon: "database" },
+  ...(can(papel, "jana.superadmin") ? [{ key: "plataforma", label: "Plataforma", icon: "shield" }] : [])];
 
   return (
     <nav className="cli-moduletopnav jm-tabs" aria-label="Área Jana">
@@ -885,7 +889,7 @@ function JmTabs({ tab, onGoTab, metasMode, nConversas }) {
 
 }
 
-function JanaPage({ company, tab = "painel", metasMode = "secao", estado = "dados", onGoTab }) {
+function JanaPage({ company, tab = "painel", metasMode = "secao", estado = "dados", papel = "dona", onGoTab }) {
   const DS = window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
   const { EmptyState, Button } = DS;
   const { JanaHeader, BriefDiario, KPICard, AnaliseCard, AcaoRow, ConverseComJana, getJanaData, JcIcon } = window;
@@ -898,7 +902,7 @@ function JanaPage({ company, tab = "painel", metasMode = "secao", estado = "dado
   const [acao, setAcao] = useStateJM(null);
   const [cfg, setCfg] = useStateJM(() => {
     const base = { brief: true, briefHora: "06:00", audio: false, pro: true,
-      inad: true, fat: true, conc: true, churn: true, frota: true, cheq: true,
+      inad: true, fat: true, conc: true, churn: true, cheq: true,
       hitl: true, retencao: "12 meses" };
     try {return { ...base, ...JSON.parse(localStorage.getItem("oimpresso.jana.cfg") || "{}") };} catch (e) {return base;}
   });
@@ -961,7 +965,7 @@ function JanaPage({ company, tab = "painel", metasMode = "secao", estado = "dado
     }, 750);
   };
   const falarComJana = () => {setMeta(null);onGoTab?.("conversa");};
-  const tabs = <JmTabs tab={tab} onGoTab={onGoTab} metasMode={metasMode}
+  const tabs = <JmTabs tab={tab} onGoTab={onGoTab} metasMode={metasMode} papel={papel}
   nConversas={threads.filter((t) => t.escopo !== "arquivadas").length} />;
   const plano = <button className={"jm-plano" + (pro ? " pro" : "")} onClick={() => setConfig(true)} title="Plano atual · abre Configurar">plano {pro ? "Pro" : "Grátis"}</button>;
   const configDrawer = <JmConfigDrawer open={config} onClose={() => setConfig(false)} onGoTab={onGoTab} cfg={cfg} setCfg={setCfg} />;
@@ -1004,6 +1008,25 @@ function JanaPage({ company, tab = "painel", metasMode = "secao", estado = "dado
 
   }
 
+  // Telas novas (jana-telas-novas.jsx): /ia/alertas · /ia/acoes · /ia/superadmin/metas + /ia/install.
+  if (tab === "alertas" || tab === "acoes" || tab === "plataforma") {
+    const Alertas = window.JmAlertas, Acoes = window.JmAcoesFila, Plataforma = window.JmPlataforma;
+    const label = tab === "alertas" ? "Alertas" : tab === "acoes" ? "Ações" : "Plataforma";
+    return (
+      <div className="jc-page" data-screen-label={"Jana — " + label}>
+        <JanaHeader company={company} person={data.person} biz={data.biz} updatedAt={hh} onConfig={() => setConfig(true)} plano={plano} exportar={exportar} onRefresh={atualizar} />
+        {tabs}
+        {carregando ? <JmPainelSkeleton compacto /> :
+        tab === "alertas" && Alertas ? <Alertas papel={papel} onAviso={avisar} onPerguntar={perguntar}
+          onAbrirMeta={(slug) => {onGoTab?.(metasMode === "aba" ? "metas" : "painel");avisar("Meta “" + slug + "” — abra no farol do painel pra ver a apuração.");}} /> :
+        tab === "acoes" && Acoes ? <Acoes papel={papel} onAviso={avisar} /> :
+        tab === "plataforma" && Plataforma ? <Plataforma papel={papel} onAviso={avisar} /> : null}
+        {configDrawer}
+        {toast}
+      </div>);
+
+  }
+
   if (tab === "memoria") {
     return (
       <div className="jc-page" data-screen-label="Jana — Memória">
@@ -1024,6 +1047,7 @@ function JanaPage({ company, tab = "painel", metasMode = "secao", estado = "dado
         {carregando ? <JmPainelSkeleton compacto /> :
         <JmMetasSecao standalone onOpen={abrirMeta} vazio={vazio || erro} erro={erro} onAviso={avisar} />}
         <JmMetaDrawer meta={meta} onClose={() => setMeta(null)} onFalarComJana={falarComJana} onAviso={avisar} />
+        {window.JmMetasOverlays && <window.JmMetasOverlays onAviso={avisar} />}
         {configDrawer}
         {toast}
       </div>);
@@ -1076,8 +1100,8 @@ function JanaPage({ company, tab = "painel", metasMode = "secao", estado = "dado
             {pro && <span className="jm-h2-sub">clique num card pra ver de onde vem o número</span>}
           </h2>
           {!pro ?
-        upsell({ t: "As 6 análises são do plano Pro", icon: "chart",
-          d: "Inadimplência, faturamento, concentração, churn ouro, frota e cheques — recalculadas todo dia, com drill-down até a origem do número." }) :
+        upsell({ t: "As 5 análises são do plano Pro", icon: "chart",
+          d: "Inadimplência, faturamento, concentração, churn ouro e cheques — recalculadas todo dia, com drill-down até a origem do número." }) :
         analises.length === 0 ?
         <div className="jm-mem-empty"><b>Todas as análises estão desligadas.</b><small>Ligue de volta em Configurar → Análises que ela roda.</small></div> :
 
@@ -1105,6 +1129,7 @@ function JanaPage({ company, tab = "painel", metasMode = "secao", estado = "dado
 
 
       <JmMetaDrawer meta={meta} onClose={() => setMeta(null)} onFalarComJana={falarComJana} onAviso={avisar} />
+      {window.JmMetasOverlays && <window.JmMetasOverlays onAviso={avisar} />}
       <JmDrillDrawer analise={drill} onClose={() => setDrill(null)} onPerguntar={perguntar} />
       <JmAcaoModal acao={acao} onClose={() => setAcao(null)} onAviso={avisar} />
       {configDrawer}
