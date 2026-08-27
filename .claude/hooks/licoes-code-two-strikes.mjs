@@ -266,8 +266,15 @@ export function ledgerCitacoesSecao5(text) {
       // Os dois formatos são aceitos: `**Ocorr…` (legado, não se reescreve em massa) e `**rec**`
       // (novo, 1 por linha). A CONTAGEM segue só na linha `**Ocorrências:** N` — `**rec**` não
       // casa `/\*\*Ocorr/`, então não interfere no parser de count acima.
-      if (!/\*\*Ocorr/i.test(ln) && !/^\s*-\s+\*\*rec\*\*/i.test(ln)) continue;
-      if (!/§5|proibicoes/i.test(ln)) continue;
+      // A linha `- **rec**` JÁ se autodeclara recibo pelo prefixo — exigir `§5|proibicoes`
+      // NELA cegava metade do corpus: medido 2026-08-27, 61 de 124 recibos invisíveis (49,2%),
+      // e o frontier travava em 08-25 acusando a lápide 08-26 como "fora do ledger" quando ela
+      // JÁ tinha recibo (LICOES_CODE:264). O filtro segue valendo INTEIRO na linha
+      // `**Ocorrências:**`, que mistura recibo com prosa e é onde o `Ref: raio-X 2026-07-20`
+      // falseava o frontier — o bug que motivou o filtro. Impacto medido: frontier 08-25 → 08-26.
+      const ehRec = /^\s*-\s+\*\*rec\*\*/i.test(ln);
+      if (!/\*\*Ocorr/i.test(ln) && !ehRec) continue;
+      if (!ehRec && !/§5|proibicoes/i.test(ln)) continue;
       const s = saneiaLinhaRecibo(ln);
       for (const m of s.matchAll(/(?:\d{4}-)?(\d{2})-(\d{2})\b/g)) {
         const mo = +m[1], da = +m[2];

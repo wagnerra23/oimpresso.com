@@ -672,5 +672,17 @@
     "verified": [],
     "verifiedHash": {},
     "origin": "medicao"
+  },
+  {
+    "date": "2026-08-27T14:16:35.679Z",
+    "kind": "live-only",
+    "liveOnly": 4,
+    "denom": 248,
+    "liveOnlyList": [
+      "jana-metas.css",
+      "jana-metas.jsx",
+      "produto-catalogo.css",
+      "produto-detalhe.jsx"
+    ]
   }
 ]
