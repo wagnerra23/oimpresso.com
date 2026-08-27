@@ -480,9 +480,18 @@ function dimCelulas(prod, design) {
       rows.push({ dim: 'D6', campo: col + '.cor', prod: a.corPropria ? 'cor própria' : 'herda a da linha', design: b.corPropria ? 'cor própria' : 'herda a da linha', veredito: b.corPropria ? 'DIVERGE (bug)' : 'DIVERGE (fonte)' });
     }
     // D8 — a TAG explica a causa: BUTTON/A é alcançável, SPAN virou texto morto.
-    if ((a.tag || null) !== (b.tag || null)) {
-      rows.push({ dim: 'D8', campo: col + '.tag', prod: a.tag || 'sem elemento clicável', design: b.tag || 'sem elemento clicável', veredito: b.tag ? 'DIVERGE (bug)' : 'DIVERGE (fonte)', detalhe: b.tag ? 'o design alcança o destino; a prod imprime texto morto' : undefined });
+    // O que importa e ALCANCAVEL ou nao. Link real (a href) e navegacao SPA (button onClick)
+    // sao as DUAS formas legitimas, e tratar a diferenca de tag como divergencia e falso-positivo.
+    // Medido em 2026-08-27: depois do #6345 a prod passou a usar A onde o prototipo usa BUTTON,
+    // e a regua acusou 'a prod imprime texto morto' sobre um link que funciona. A tag continua
+    // no relatorio como DETALHE — ela explica alinhamento, porque BUTTON herda text-align:center
+    // — mas nao emite veredito duro sozinha.
+    if (!!a.tag !== !!b.tag) {
+      rows.push({ dim: 'D8', campo: col + '.alcancavel', prod: a.tag || 'sem elemento clicavel', design: b.tag || 'sem elemento clicavel', veredito: b.tag ? 'DIVERGE (bug)' : 'DIVERGE (fonte)', detalhe: b.tag ? 'o design alcanca o destino; a prod imprime texto morto' : undefined });
+    } else if (a.tag && b.tag && a.tag !== b.tag) {
+      rows.push({ dim: 'D8', campo: col + '.tag', prod: a.tag, design: b.tag, veredito: 'DIVERGE (impl)', detalhe: 'os dois sao alcancaveis — formas diferentes. BUTTON herda text-align:center; confira o alinhamento da celula' });
     }
+
     // D2 — a sub-linha existe ou sumiu?
     if (a.blocos !== b.blocos) {
       // NUNCA `DIVERGE (bug)`. O nº de blocos depende do DADO, não só do design: a célula
@@ -523,7 +532,7 @@ export function compare(prodSnap, designSnap) {
  * ─────────────────────────────────────────────────────────────────────────── */
 function fmt(rows) {
   return rows.map((r) => {
-    const mark = r.veredito === 'IGUAL' ? '✓' : r.veredito === 'SEM-DADO' ? '⬜' : /tema|dado?/.test(r.veredito) ? '🟡' : '✗';
+    const mark = r.veredito === 'IGUAL' ? '✓' : r.veredito === 'SEM-DADO' ? '⬜' : /tema|dado?|impl/.test(r.veredito) ? '🟡' : '✗';
     return `  ${mark} [${r.dim}] ${r.campo}: prod=${r.prod} · design=${r.design} → ${r.veredito}${r.detalhe ? ' (' + r.detalhe + ')' : ''}`;
   }).join('\n');
 }
@@ -712,7 +721,13 @@ function selftest() {
   ]);
   const rc = compare(prodCel, designCel);
   const temC = (campo, dim) => rc.rows.some((r) => r.dim === dim && r.campo.includes(campo) && r.veredito === 'DIVERGE (bug)');
-  checks.push(['célula: pega o link que virou texto morto (D8 tag)', temC('col1.tag', 'D8')]);
+  checks.push(['célula: pega o link que virou texto morto (D8)', temC('col1.alcancavel', 'D8')]);
+  // A e BUTTON sao as duas formas legitimas de alcancar: diferenca de tag NAO e bug.
+  const doisAlcancaveis = compare(
+    comCelulas([{ col: 0, tag: 'A', mono: true, corPropria: true, blocos: 2, pill: null }]),
+    comCelulas([{ col: 0, tag: 'BUTTON', mono: true, corPropria: true, blocos: 2, pill: null }]),
+  );
+  checks.push(['célula: A x BUTTON (os dois alcançáveis) NÃO é bug', doisAlcancaveis.bugs === 0 && doisAlcancaveis.rows.some((r) => r.veredito === 'DIVERGE (impl)')]);
   checks.push(['célula: pega a sub-linha em mono que sumiu (D4)', temC('col1.mono', 'D4')]);
   checks.push(['célula: pega a cor que a prod deixou de pintar (D6)', temC('col1.cor', 'D6')]);
   const temV = (campo, ver) => rc.rows.some((r) => r.campo.includes(campo) && r.veredito === ver);
