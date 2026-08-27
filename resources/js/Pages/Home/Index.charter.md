@@ -89,7 +89,11 @@ Responder **"como foi o período"** numa tela só: o usuário escolhe a janela, 
 
 > Anti-alucinação. Cada item vira Pest GUARD test (Non-Goal violado = CI quebra).
 
-- ❌ **NÃO renderiza charts ECharts** — preservados em `?legacy=1`. Backlog Rewrite Cockpit V2 (US-DASH-002)
+- ~~❌ NÃO renderiza charts ECharts — preservados em `?legacy=1`~~ — **entregue** (US-DASH-002):
+  o `main` já traz `buildChartsPayload` no controller e `<GraficosVendas>` na tela, ambos deferidos.
+  **Reconciliado nesta onda** porque o PR dos gráficos não mexeu no charter: pela regra de
+  precedência (teste > casos > charter > SPEC), quem perde se corrige no mesmo PR — e um Non-Goal
+  que contradiz código entregue é instrução ativa pra alguém "consertar" a tela removendo o gráfico
 - ❌ **NÃO renderiza widgets pluggable** (`moduleUtil->getModuleData('dashboard_widget')`) — mecanismo Blade-only, preservado em `?legacy=1`. Backlog ADR widget registry React (US-DASH-003)
 - ❌ **NÃO toca endpoints AJAX** (`/home/get-totals`, `/home/product-stock-alert`, `/home/purchase-payment-dues`, `/home/sales-payment-dues`) — preservados intactos pro Blade legacy continuar funcionando
 - ❌ **NÃO toca `/calendar`** (`getCalendar` continua Blade)
@@ -120,7 +124,8 @@ Responder **"como foi o período"** numa tela só: o usuário escolhe a janela, 
 
 > Quando esta tela "ganhar" funcionalidade, suspeite — fica fácil escorregar pra F6 Hard sem ADR.
 
-- ⚠️ Aparecer **chart inline** sem ADR US-DASH-002 — vira Rewrite Cockpit V2 (não Soft)
+- ⚠️ Aparecer **chart NOVO** além dos dois de US-DASH-002 (vendas por dia · vendas por mês) sem ADR
+  própria — os dois entregues são o escopo; um terceiro é Rewrite, não refino
 - ⚠️ Aparecer **widget de outro módulo** sem registry — drift pra Blade-only break
 - ⚠️ Aparecer **botão "criar venda" inline** — drift, KPI screen vira shortcuts
 - ⚠️ Quebrar contrato "fallback `?legacy=1` continua funcionando" — qualquer mudança que quebre o Blade legacy é red flag (todo cliente ainda depende)
@@ -156,7 +161,8 @@ Cobertos em `tests/Feature/Home/GradesDoPainelTest.php` (v4 — US-DASH-005):
 
 ## Backlog (não no escopo F6 Soft)
 
-- **US-DASH-002 — Charts ECharts em Inertia** — Rewrite Cockpit V2 wave (F1→F4 com protótipo Cowork)
+- ~~US-DASH-002 — Charts ECharts em Inertia~~ — **entregue** (vendas por dia + vendas por mês,
+  deferidos). O charter só registrou na v4 porque o PR que os entregou não passou por aqui
 - **US-DASH-003 — Widget registry pluggable React** — ADR nova obrigatória
 - ~~US-DASH-004 — filtro de datas + loja~~ — **entregue 2026-08-27** (PeriodBar + `location_id` nos 3 `TransactionUtil::`)
 - ~~US-DASH-005 — Stock alert + dues tabelas DataTables migradas~~ — **entregue 2026-08-27**
