@@ -29,7 +29,7 @@ import { Download } from 'lucide-react'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { PageHeader } from '@/Components/PageHeader'
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs'
-import DataTable from '@/Components/shared/DataTable'
+import DataTable, { type EstadoDaLinha } from '@/Components/shared/DataTable'
 import EmptyState from '@/Components/shared/EmptyState'
 import { Stack, Inline, Grid, Box } from '@/Components/layout'
 import { Badge } from '@/Components/ui/badge'
@@ -421,6 +421,50 @@ const chip = (ativo: boolean) =>
     ? 'border-primary/30 bg-primary/10 font-medium text-primary'
     : 'text-muted-foreground hover:bg-muted hover:text-foreground')
 
+/**
+ * Conteúdo servível — a distinção que o payload NÃO manda como campo e que a linha precisa.
+ *
+ * `download_url: null` significa "nada a servir", e isso tem duas causas com consequências
+ * opostas: **apagado** (soft-delete; o `DownloadController` faz `find()` sem `withTrashed`,
+ * mas `size_bytes` continua descrevendo um arquivo que existe) e **anonimizado** (o que a
+ * estratégia `anonymize` da retenção produz: o conteúdo foi embora e `size_bytes` deixou de
+ * descrever qualquer coisa). O `excluido_em` separa os dois — é a mesma leitura que o comentário
+ * da coluna de ações já fazia, agora com nome.
+ *
+ * Derivado, não inventado: se um dia o servidor mandar o estado explícito, estas duas funções
+ * são o único lugar a trocar.
+ */
+const anonimizado = (a: LinhaAcervo) => a.download_url === null && a.excluido_em === null
+const semConteudo = (a: LinhaAcervo) => a.download_url === null
+
+/**
+ * Estado visual da linha — o `rows[].state` do protótipo (`!dono || restam <= 30 ? urgent :
+ * anon ? archived : undefined`), traduzido pros campos que o servidor manda.
+ *
+ * `urgent` (trilha vermelha) é ACHADO: órfão — ninguém alcança o arquivo pela tela do dono — ou
+ * prazo apertando. `archived` (esmaecido) é o oposto: a linha não é acionável, nada a baixar.
+ * A ordem importa e é a do protótipo: urgente ganha de arquivado.
+ */
+function estadoDaLinha(a: LinhaAcervo): EstadoDaLinha | undefined {
+  if (a.orfao || (a.dias_restantes !== null && a.dias_restantes <= 30)) return 'urgent'
+  if (semConteudo(a)) return 'archived'
+  return undefined
+}
+
+/**
+ * GEOMETRIA — as larguras, o alinhamento e o `mono` que o protótipo declara em
+ * `columns[] = { width, align, mono }`.
+ *
+ * Até 2026-08-27 nenhuma das 7 colunas declarava geometria, e não por decisão: o `ColumnDef`
+ * do TanStack não tinha onde pousar esses campos, então eles eram descartados em silêncio na
+ * travessia. O `meta` agora existe (ver `DataTable.tsx`) e vira `<colgroup>` + `table-layout:
+ * fixed`, que é a única forma que o navegador respeita.
+ *
+ * `arquivo` fica SEM largura de propósito — é a coluna fluida, que absorve a sobra. Era ela
+ * que estava sendo roubada: sem largura declarada em ninguém, o `Vinculado a` esticava em
+ * `nowrap` ou colapsava o `truncate` em reticências (os "tracinhos"), porque `truncate` é
+ * `overflow:hidden` e só funciona contra uma largura que alguém declarou.
+ */
 function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
   return [
     {
@@ -431,7 +475,10 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
         const lei = leiDe(a.sub_destination, politica)
         return (
           <Stack gap={1} className="min-w-0">
-            <span className="font-medium text-foreground">{a.nome}</span>
+            {/* `break-words`: sob `table-layout: fixed` a celula nao cresce pra caber, entao
+                nome de arquivo longo sem espaco VAZARIA pra fora. Quebrar e a forma certa —
+                `truncate` aqui esconderia o nome, que e a informacao principal da linha. */}
+            <span className="font-medium break-words text-foreground">{a.nome}</span>
             <span className="text-xs text-muted-foreground">
               {/* Mesmo vocabulário da Retenção, que já usava o `CONTEXTO_PT`: rótulo PT-BR na
                   tela, slug no `title`. Antes o slug ia cru dentro de `<code>` — e `<code>` é
@@ -460,6 +507,10 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
     },
     {
       id: 'dono',
+      // 160px — a largura que o protótipo declara. É ela que faz o `truncate` das duas linhas
+      // abaixo FUNCIONAR: sem largura declarada, `overflow:hidden` não tem contra o que cortar,
+      // e o resultado era ou a coluna esticando em `nowrap` ou tudo virando reticências.
+      meta: { width: 160 },
       // "Vinculado a" é a copy do protótipo vivo. O rótulo anterior veio do espelho de
       // 24/08 e foi portado fielmente na época — o protótipo renomeou depois, e o contrato
       // de tela (gerado da tela antiga) foi atualizado junto neste PR.
@@ -522,6 +573,7 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
     {
       id: 'classificacao',
       header: 'Classificação',
+      meta: { width: 120 },
       cell: ({ row }) => {
         const a = row.original
         // PT-BR na tela, valor do enum no `title`: quem opera lê a palavra, quem depura
@@ -547,6 +599,7 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
     {
       id: 'disco',
       header: 'Disco',
+      meta: { width: 88 },
       // A justificativa do `rotuloDisco()` já estava escrita ("o nome técnico do disco é
       // detalhe de infra"), mas só os cards do Cofre a aplicavam — a coluna ficou com o valor
       // cru e imprimia `arquivos`, que é o nome do disco Laravel do CT, não informação de
@@ -565,17 +618,28 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
     {
       id: 'tamanho',
       header: 'Tamanho',
-      // `font-mono` porque o protótipo marca esta coluna `mono: true`, e a produção não tinha
-      // mono em NENHUMA das 6 colunas (medido). `tabular-nums` fica: ele alinha o dígito
-      // dentro da fonte de texto, e a fonte mono alinha por largura fixa — juntos não brigam,
-      // e manter os dois evita depender de qual fallback de fonte o navegador escolheu.
-      cell: ({ row }) => (
-        <span className="text-right font-mono tabular-nums">{tamanho(row.original.size_bytes)}</span>
-      ),
+      // As três marcas que o protótipo declara nesta coluna — `width: 84`, `align: "right"`,
+      // `mono: true` — agora ficam na COLUNA, que é onde valem.
+      //
+      // O `align` era o defeito mais fino dos três: ele estava escrito como `text-right` num
+      // <span> DENTRO da célula. Isso empurra o texto pra direita só enquanto o span ocupa a
+      // largura toda, e não alinha o <td> nem o <th> — o cabeçalho "Tamanho" ficava à esquerda
+      // sobre números à direita. Sob `table-layout: fixed` o span nem ocupa mais a célula
+      // inteira, então o `text-right` no filho vira decoração pura.
+      meta: { width: 84, align: 'right', mono: true },
+      // Anonimizado não mostra tamanho: a estratégia `anonymize` levou o conteúdo embora e
+      // `size_bytes` deixou de descrever qualquer coisa. É a regra do protótipo (`a.anon ? "—"`),
+      // e o travessão diz a verdade onde o número mentiria. Apagado é outro caso — lá o
+      // arquivo existe e o número segue válido.
+      cell: ({ row }) => (anonimizado(row.original) ? '—' : tamanho(row.original.size_bytes)),
     },
     {
       id: 'vence',
       header: 'Vence em',
+      // 130px. SEM `mono: true` de coluna, e isso e fiel ao prototipo, nao esquecimento: la o
+      // mono esta no <b> da DATA (`<b className="mono">`), nao na celula. O selo e a contagem
+      // ao lado sao prosa e seguem na fonte de texto.
+      meta: { width: 130 },
       cell: ({ row }) => {
         const a = row.original
         if (!a.vence_em) return <span className="text-muted-foreground">—</span>
@@ -605,6 +669,9 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
     },
     {
       id: 'acoes',
+      // 140px e alinhada a direita, como o prototipo (`{ key: "acao", width: 190, align: "right" }`
+      // — a largura menor porque aqui a linha tem 1 botao, nao os 4 do prototipo).
+      meta: { width: 140, align: 'right' },
       // Cabeçalho VAZIO, como o protótipo (`{ key: "acao", label: "" }`) — "Ações" repetiria
       // o que os botões já dizem, e o contrato de tela não pina copy que não existe.
       header: '',
@@ -742,6 +809,7 @@ function Acervo({ acervo, politica, filtros }: { acervo?: Paginator<LinhaAcervo>
       searchPlaceholder="Buscar por nome, dono ou contexto…"
       initialSearch={filtros.q ?? ''}
       rowKey={(a) => a.id}
+      rowState={estadoDaLinha}
     />
   )
 }
