@@ -119,10 +119,6 @@
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/block-ancora-velha.mjs"
-          },
-          {
-            "type": "command",
             "command": "node .claude/hooks/charter-validate.mjs"
           },
           {
