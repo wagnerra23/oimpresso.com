@@ -34,8 +34,11 @@ namespace Modules\Jana\Ai;
  * As 3 que NÃO entram aqui (ficam LLM): hierarquia_4_camadas, pt_01_slot_adherence,
  * pt_br_voice_tone — exigem juízo semântico que regex não captura.
  *
- * Os regex abaixo são CÓPIA FIEL de RX em score-mechanized.mjs (linhas 58-70).
- * Qualquer drift entre os dois é regressão — manter sincronizado.
+ * Os regex abaixo são CÓPIA FIEL do objeto `RX` em score-mechanized.mjs (âncora por SÍMBOLO,
+ * não por linha: o range "58-70" que estava escrito aqui apodreceu no primeiro comentário que
+ * cresceu naquele arquivo — `grep -n "const RX" prototipo-ui/audit/score-mechanized.mjs`).
+ * Qualquer drift entre os dois é regressão — e quem vigia isso é `scripts/scorer-sync-check.mjs`,
+ * rodado pelo ds-gate. Ele cobre R1-R4, R6 e R7.
  *
  * @see prototipo-ui/audit/score-mechanized.mjs (fonte canônica dos regex)
  * @see prototipo-ui/audit/GOLDEN-REFERENCE.md (as 10 regras R1-R10)
@@ -172,8 +175,13 @@ final class UiDeterministicScorer
         // R6 — emoji real (range astral). NÃO dingbats BMP (glyphs de UI).
         $emoji = $this->matchAll('/[\x{1F000}-\x{1FAFF}]/u', $src);
 
-        // R7 — status com bg-fill (heurística ampla, baixa precisão — sinal).
-        $statusFill = $this->matchAll('/\bbg-(?:red|rose|green|emerald|amber|yellow|orange|sky|blue|indigo|violet)-(?:50|100|200)\b/', $src);
+        // R7 — fill SÓLIDO em pílula de ESTADO. Re-mirado 2026-08-26 junto com a fonte canônica
+        // (score-mechanized.mjs, onde a medição está escrita por extenso): o regex antigo casava
+        // o TINT `bg-<cor>-(50|100|200)`, que neste DS é a forma CORRETA (`variant="danger"` =
+        // bg-*-soft + borda), e nunca casava o fill real. `destructive` num Badge é fill, e Badge
+        // é ESTADO, não ação (#6325). Variante dinâmica e pílula hand-rolled ficam de fora — donos
+        // são `ds/no-handrolled-status-pill` e `ds/no-raw-palette-color`.
+        $statusFill = $this->matchAll('/<Badge\b[^>]*\bvariant=["\']destructive["\']/', $src);
 
         // atalhos — presença de palette/hotkey canônico (cmdk · onKeyDown j/k).
         $shortcut = array_merge(

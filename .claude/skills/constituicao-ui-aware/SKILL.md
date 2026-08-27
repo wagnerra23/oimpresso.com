@@ -91,7 +91,7 @@ Lê completo em [PRE-MERGE-UI.md](../../memory/requisitos/_DesignSystem/PRE-MERG
 | **AP4** | Ícone fora `lucide-react` ([UI-0003](../../memory/requisitos/_DesignSystem/adr/ui/0003-lucide-react-como-unica-iconografia.md)) | `ui:lint` regra R2 (FontAwesome) |
 | **AP5** | Gradient decorativo 135deg (bluish-purple) | Manual review · sem grep ainda |
 | **AP6** | Emoji em UI de produto (lucide icon, não emoji) | `ui:lint` regra R3 |
-| **AP7** | Status badge com `bg-fill` — Stripe-style usa dot + texto colorido | Manual review |
+| **AP7** | Status badge com fill sólido — o par SOFT (`bg-*-soft` + borda) é o certo | R7 do `score-mechanized.mjs` + `UiDeterministicScorer` (PR Judge): `<Badge variant="destructive">`. Pílula hand-rolled é `ds/no-handrolled-status-pill` |
 | **AP8** | Copy não-PT-BR em label/erro/mensagem | Manual review · sem grep ainda |
 
 ## Sidebar é PRETA (dark-fixo) · NÃO mudar pra light

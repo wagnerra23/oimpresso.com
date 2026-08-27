@@ -7,10 +7,17 @@
 // num arquivo e não no outro, o juiz-de-PR e o scorer mecanizado DIVERGEM silenciosamente.
 //
 // Este gate fecha esse risco (ironia honesta: nasceu numa onda anti-duplicação): verifica que
-// as ASSINATURAS-NÚCLEO de cada regra (R1-R4) aparecem nos DOIS arquivos. Se uma existir só num
-// → DRIFT → falha. Força quem editar um a editar o outro. Node puro (lê os 2 fontes), sem deps.
+// as ASSINATURAS-NÚCLEO de cada regra (R1-R4, R6, R7) aparecem nos DOIS arquivos. Se uma existir
+// só num → DRIFT → falha. Força quem editar um a editar o outro. Node puro (lê os 2 fontes), sem deps.
+//
+// 2026-08-26 — R6 e R7 entraram. Até aqui o mapa parava em R4, então os regex de emoji e de
+// status-fill podiam divergir entre as duas cópias SEM ninguém saber: os dois arquivos declaram
+// "cópia fiel" e o guarda cobria 4 das 6 regras que eles compartilham. Achado ao re-mirar a R7.
 //
 // NÃO é compare AST-perfeito — é o piso pragmático que pega o drift que importa (o literal do regex).
+// RESÍDUO DECLARADO: o predicado é `inMjs !== inPhp`, ou seja SINCRONIA, não PRESENÇA — assinatura
+// ausente dos DOIS passa verde. É de propósito (senão viraria presence-gate sobre o texto do regex,
+// LC-11); quem remover uma regra dos dois fontes deve remover a linha daqui também.
 // Local: node scripts/scorer-sync-check.mjs
 
 import { readFileSync } from 'node:fs';
@@ -28,6 +35,12 @@ const SIGNATURES = {
   'R3 localStorage': '(?:get|set|remove)Item',
   'R4 svg': '<svg',
   'R4 icon-lib externa': '(?:react-icons|@heroicons|@tabler',
+  // R6/R7 — o range do emoji NÃO pode entrar inteiro: JS escreve `\u{1F000}` e PCRE `\x{1F000}`,
+  // então a assinatura verbatim tem que ser o pedaço comum (os code points). R7 é o trecho antes
+  // das aspas, que é onde o escaping PHP (`["\']`) diverge do JS (`["']`).
+  'R6 emoji range início': '1F000',
+  'R6 emoji range fim': '1FAFF',
+  'R7 badge fill sólido': '<Badge\\b[^>]*\\bvariant=',
 };
 
 let mjs, php;
@@ -42,7 +55,10 @@ for (const [rule, sig] of Object.entries(SIGNATURES)) {
 }
 
 if (drift.length === 0) {
-  console.log(`✓ scorer sync OK — ${Object.keys(SIGNATURES).length} assinaturas R1-R4 presentes nos dois (${MJS_PATH} ↔ ${PHP_PATH}).`);
+  // A lista de regras sai do PRÓPRIO mapa — não se restateia "R1-R4" à mão, que apodrece
+  // no primeiro par novo (foi o que aconteceu até 2026-08-26, com R6/R7 fora e a linha dizendo R1-R4).
+  const regras = [...new Set(Object.keys(SIGNATURES).map((k) => k.split(' ')[0]))].join(', ');
+  console.log(`✓ scorer sync OK — ${Object.keys(SIGNATURES).length} assinaturas (${regras}) presentes nos dois (${MJS_PATH} ↔ ${PHP_PATH}).`);
   process.exit(0);
 }
 
