@@ -6,6 +6,7 @@ use App\BusinessLocation;
 use App\Charts\CommonChart;
 use App\Currency;
 use App\Media;
+use App\Services\Dashboard\GradesDoPainelService;
 use App\Transaction;
 use App\User;
 use App\Utils\BusinessUtil;
@@ -37,6 +38,9 @@ class HomeController extends Controller
     protected $restUtil;
     protected $productUtil;
 
+    /** Grades das abas do painel Inertia (US-DASH-005). Não toca o caminho Blade. */
+    protected GradesDoPainelService $grades;
+
     /**
      * Create a new controller instance.
      *
@@ -49,7 +53,9 @@ class HomeController extends Controller
         Util $commonUtil,
         RestaurantUtil $restUtil,
         ProductUtil $productUtil,
+        GradesDoPainelService $grades,
     ) {
+        $this->grades = $grades;
         $this->businessUtil = $businessUtil;
         $this->transactionUtil = $transactionUtil;
         $this->moduleUtil = $moduleUtil;
@@ -163,6 +169,14 @@ class HomeController extends Controller
             ] : null;
         }
 
+        // US-DASH-005 — abas de grade. No Blade legado TODAS as grades vivem dentro do
+        // `@if(can('dashboard.data'))` que abre na linha 369 e fecha na 1013 (medido em
+        // 2026-08-27), e cada uma tem ainda o seu proprio `@can`. As duas camadas são
+        // reproduzidas aqui: sem `dashboard.data` não há aba nenhuma; com ela, cada aba
+        // ainda depende da permissão e do setting dela.
+        $abas = $can_dashboard_data ? $this->grades->abasPermitidas() : [];
+        $aba = $can_dashboard_data ? $this->grades->resolverAba(request()->query('aba')) : null;
+
         return Inertia::render('Home/Index', [
             'user_name' => (string) request()->session()->get('user.first_name', ''),
             'is_admin' => (bool) $is_admin,
@@ -178,6 +192,22 @@ class HomeController extends Controller
             'charts' => $can_dashboard_data
                 ? Inertia::defer(fn () => $this->buildChartsPayload($business_id, $location_id))
                 : null,
+            'abas' => $abas,
+            'aba' => $aba,
+            // Só a aba ABERTA consulta o banco, e só quando o Inertia pedir: 8 grades
+            // carregadas de uma vez seriam 8 queries por render, contra o alvo de
+            // first-paint <= 800ms do charter. `defer` mantém uma query por troca de aba.
+            //
+            // O cast de `$location_id` acontece AQUI, e não na leitura da query string: a
+            // linha que a lê é do caminho dos KPI/charts, e o service tipa `?int`.
+            'grade' => $aba === null ? null : Inertia::defer(
+                fn () => $this->grades->linhas(
+                    $aba,
+                    $business_id,
+                    $location_id ? (int) $location_id : null,
+                    request()->integer('page', 1) ?: 1
+                )
+            ),
             'legacy_url' => '/dashboard-legacy?legacy=1',
             'endpoints' => [
                 'totals' => '/home/get-totals',
