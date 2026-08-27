@@ -63,7 +63,9 @@ on:
       # domínio — e o arquivo SOB TESTE entra no gatilho junto: sem a Page aqui,
       # mexer no grid não acorda a lane que o defende (gate mudo com cara de cobertura).
       - 'tests/js/colunas-grid.test.tsx'
+      - 'tests/js/resumo-parcelas.test.tsx'
       - 'resources/js/Pages/Sells/CreateV3.tsx'
+      - 'resources/js/Pages/Sells/_components/v3/ResumoParcelas.tsx'
       - 'tests/js/setup.ts'
       - '.github/workflows/sells-v3-dominio-gate.yml'
   push:
@@ -75,7 +77,9 @@ on:
       # domínio — e o arquivo SOB TESTE entra no gatilho junto: sem a Page aqui,
       # mexer no grid não acorda a lane que o defende (gate mudo com cara de cobertura).
       - 'tests/js/colunas-grid.test.tsx'
+      - 'tests/js/resumo-parcelas.test.tsx'
       - 'resources/js/Pages/Sells/CreateV3.tsx'
+      - 'resources/js/Pages/Sells/_components/v3/ResumoParcelas.tsx'
       - 'tests/js/setup.ts'
       # o workflow entra no gatilho de push (as lanes irmãs omitem) porque é o run de
       # `main` que o publisher colhe: mexer na lane sem re-rodar deixaria o artifact
@@ -131,6 +135,7 @@ jobs:
             tests/js/cliente-consulta-dominio.test.ts \
             tests/js/item-acoes-dominio.test.ts \
             tests/js/colunas-grid.test.tsx \
+            tests/js/resumo-parcelas.test.tsx \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-sells-v3-dominio-junit.xml

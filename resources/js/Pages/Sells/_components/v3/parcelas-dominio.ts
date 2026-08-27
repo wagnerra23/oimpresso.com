@@ -100,23 +100,6 @@ export function somaDasParcelas(parcelas: Pick<Parcela, 'valor'>[]): number {
 export const RECEBIDA = LANCAMENTOS[1]!;
 
 /**
- * Soma só do que JÁ ENTROU — parcelas com baixa registrada.
- *
- * Existe porque o drawer sabe marcar parcela como recebida (`marcarRecebida`) e o
- * fechamento não estava contando: o operador dava baixa, o dinheiro entrava, e o
- * "Falta receber" continuava mostrando o total cheio. Quem responde "quanto das
- * parcelas entrou" é este arquivo, que é o dono da parcela — o fechamento só soma
- * isto ao que foi lançado à mão.
- *
- * O critério é o `lanc`, não a existência de `pgto`: uma parcela pode ter data de
- * pagamento preenchida e ainda estar `A RECEBER` (agendamento), e é o lançamento
- * que diz se o valor entrou.
- */
-export function somaRecebida(parcelas: Pick<Parcela, 'valor' | 'lanc'>[]): number {
-  return somaDasParcelas(parcelas.filter((p) => p.lanc === RECEBIDA));
-}
-
-/**
  * Diferença entre o total da venda e a soma das parcelas.
  *
  * Positiva = falta distribuir; negativa = passou do total. O componente só oferece o
@@ -135,8 +118,24 @@ export function fechaNoTotal(total: number, parcelas: Pick<Parcela, 'valor'>[]):
 
 /* ─── datas ──────────────────────────────────────────────────────────────── */
 
-/** Meia-noite local — comparar vencimento com "hoje" exige zerar a hora dos dois lados. */
+/**
+ * Meia-noite local — comparar vencimento com "hoje" exige zerar a hora dos dois lados.
+ *
+ * ⚠️ A string `yyyy-mm-dd` é tratada à parte, e o motivo é um bug medido: a ES
+ * manda parsear data-only como **UTC**, então `new Date('2026-08-27')` vira
+ * `2026-08-26 21:00` em `America/Sao_Paulo` — e o `setHours(0,0,0,0)` seguinte
+ * grampeia no dia **26**. Todo vencimento aparecia um dia antes, em qualquer fuso
+ * a oeste de Greenwich; o CI (UTC) não veria. Aqui a data-only é montada com o
+ * construtor de componentes, que é local por definição.
+ *
+ * O formato importa porque é o que `dataISO` emite e o que `<input type="date">`
+ * devolve — ou seja, é a forma em que TODO vencimento desta tela circula.
+ */
 export function diaZero(v: Date | string | number): Date {
+  if (typeof v === 'string') {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(v);
+    if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  }
   const d = new Date(v);
   d.setHours(0, 0, 0, 0);
   return d;
