@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Business;
 use App\BusinessLocation;
 use App\User;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
 
@@ -50,6 +51,9 @@ function homeBootstrap(): User
         'user.first_name' => $user->first_name ?? 'Usuário',
         'business.id' => $business->id,
         'business.currency_id' => $business->currency_id ?? 1,
+        'currency' => DB::table('currencies')->find($business->currency_id ?? 1)
+            ? (array) DB::table('currencies')->find($business->currency_id ?? 1)
+            : ['code' => 'BRL', 'symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ','],
     ]);
 
     return $user;
@@ -58,7 +62,7 @@ function homeBootstrap(): User
 it('renderiza Inertia component Home/Index com shape esperado', function () {
     $user = homeBootstrap();
 
-    $response = $this->actingAs($user)->get('/home');
+    $response = $this->actingAs($user)->get('/dashboard-legacy');
 
     $response->assertStatus(200);
     $response->assertInertia(fn (AssertableInertia $page) => $page
@@ -72,7 +76,7 @@ it('renderiza Inertia component Home/Index com shape esperado', function () {
         ->has('endpoints.stock_alert')
         ->has('endpoints.purchase_dues')
         ->has('endpoints.sales_dues')
-        ->where('legacy_url', '/home?legacy=1')
+        ->where('legacy_url', '/dashboard-legacy?legacy=1')
     );
 });
 
@@ -93,7 +97,7 @@ it('customer redirect preservado (user_type=user_customer → 302)', function ()
         'business.id' => $business->id,
     ]);
 
-    $response = $this->actingAs($customer)->get('/home');
+    $response = $this->actingAs($customer)->get('/dashboard-legacy');
 
     expect($response->status())->toBe(302);
 });
@@ -105,7 +109,7 @@ it('sem permission dashboard.data → totals null (shell minimal)', function () 
         $user->revokePermissionTo('dashboard.data');
     }
 
-    $response = $this->actingAs($user)->get('/home');
+    $response = $this->actingAs($user)->get('/dashboard-legacy');
 
     $response->assertStatus(200);
     $response->assertInertia(fn (AssertableInertia $page) => $page
@@ -118,7 +122,7 @@ it('sem permission dashboard.data → totals null (shell minimal)', function () 
 it('?legacy=1 retorna Blade legacy (não Inertia)', function () {
     $user = homeBootstrap();
 
-    $response = $this->actingAs($user)->get('/home?legacy=1');
+    $response = $this->actingAs($user)->get('/dashboard-legacy?legacy=1');
 
     $response->assertStatus(200);
     // Blade legacy não tem header X-Inertia
@@ -148,7 +152,7 @@ it('Tier 0 multi-tenant — não vaza locations de outro business', function () 
         'updated_at' => now(),
     ]);
 
-    $response = $this->actingAs($userA)->get('/home');
+    $response = $this->actingAs($userA)->get('/dashboard-legacy');
 
     $response->assertStatus(200);
     $response->assertInertia(fn (AssertableInertia $page) => $page
@@ -165,7 +169,7 @@ it('Tier 0 multi-tenant — não vaza locations de outro business', function () 
 it('totals expõe 8 campos canônicos (guard charter v2)', function () {
     $user = homeBootstrap();
 
-    $response = $this->actingAs($user)->get('/home');
+    $response = $this->actingAs($user)->get('/dashboard-legacy');
 
     $response->assertStatus(200);
     $response->assertInertia(fn (AssertableInertia $page) => $page

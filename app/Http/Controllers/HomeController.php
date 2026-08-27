@@ -133,7 +133,7 @@ class HomeController extends Controller
             // closure D-14: dropdown por business, não muda com filtro — pula no partial reload
             'all_locations' => fn () => BusinessLocation::forDropdown($business_id)->toArray(),
             'totals' => $totals,
-            'legacy_url' => '/home?legacy=1',
+            'legacy_url' => '/dashboard-legacy?legacy=1',
             'endpoints' => [
                 'totals' => '/home/get-totals',
                 'stock_alert' => '/home/product-stock-alert',
