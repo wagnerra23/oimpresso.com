@@ -16,6 +16,7 @@
  * caminhos e antes→depois). Aqui o `✓` só REPORTA o `lanc` que o drawer gravou.
  */
 
+import { Inline, Stack } from '@/Components/layout';
 import { Pill } from './primitivos';
 import { fmtBR, parseBR } from './numeros';
 import { RECEBIDA, dataBR, type Parcela } from './parcelas-dominio';
@@ -36,7 +37,7 @@ export default function ResumoParcelas({
 
   return (
     <div className="mb-3 rounded-xl border border-border bg-muted/40 px-3 py-2">
-      <div className="mb-2 flex items-center gap-2">
+      <Inline gap={2} align="center" className="mb-2">
         <Pill tom="primary" mono>
           {parcelas.length}x
         </Pill>
@@ -50,27 +51,31 @@ export default function ResumoParcelas({
         >
           Editar parcelas
         </button>
-      </div>
+      </Inline>
 
-      <ul className="flex flex-col gap-[3px]">
-        {parcelas.slice(0, PARCELAS_VISIVEIS).map((p) => (
-          <li
-            key={p.k}
-            className="flex items-center gap-2 font-mono text-[11.5px] leading-[1.4] text-muted-foreground"
-          >
-            <span className="flex-none">
-              {p.num}/{p.de}
-            </span>
-            <span className="flex-none">{dataBR(p.venc)}</span>
-            <b className="ml-auto text-foreground">{fmtBR(parseBR(p.valor))}</b>
-            {p.lanc === RECEBIDA && (
-              <span className="flex-none text-success" title="Recebida" aria-label="recebida">
-                ✓
-              </span>
-            )}
-          </li>
-        ))}
-      </ul>
+      {/* `asChild` mantém a semântica de lista (`ul`/`li`) sob os primitivos de
+          layout — o teste exercita `role="listitem"`, e trocar por `div` seria
+          perder a11y pra satisfazer a catraca. */}
+      <Stack asChild gap={1} className="gap-[3px]">
+        <ul>
+          {parcelas.slice(0, PARCELAS_VISIVEIS).map((p) => (
+            <Inline asChild gap={2} align="center" key={p.k}>
+              <li className="font-mono text-[11.5px] leading-[1.4] text-muted-foreground">
+                <span className="flex-none">
+                  {p.num}/{p.de}
+                </span>
+                <span className="flex-none">{dataBR(p.venc)}</span>
+                <b className="ml-auto text-foreground">{fmtBR(parseBR(p.valor))}</b>
+                {p.lanc === RECEBIDA && (
+                  <span className="flex-none text-success" title="Recebida" aria-label="recebida">
+                    ✓
+                  </span>
+                )}
+              </li>
+            </Inline>
+          ))}
+        </ul>
+      </Stack>
 
       {excedente > 0 && (
         <span className="mt-1 block text-[11.5px] text-muted-foreground">
