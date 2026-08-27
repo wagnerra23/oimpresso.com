@@ -211,17 +211,25 @@ class GradesDoPainelService
             ->orderBy('vencimento')
             ->paginate(self::POR_PAGINA, ['*'], 'page', $pagina);
 
+        // `getAttribute` e não `->alias` de propósito: `total_pago`, `contato` e `vencimento`
+        // são apelidos do SELECT, não colunas declaradas do model — acessá-los como
+        // propriedade funciona em runtime mas é indistinguível de erro de digitação pra
+        // análise estática, e o PHPStan reprova (com razão).
         return $paginator->through(function ($row) use ($tipo) {
-            $devido = (float) $row->final_total - (float) $row->total_pago;
+            $vencimento = $row->getAttribute('vencimento');
+            $devido = (float) $row->getAttribute('final_total') - (float) $row->getAttribute('total_pago');
+            $contato = $row->getAttribute('supplier_business_name') ?: $row->getAttribute('contato');
 
             return [
-                'id' => (int) $row->id,
-                'documento' => (string) ($tipo === 'sell' ? $row->invoice_no : $row->ref_no),
-                'contato' => (string) ($row->supplier_business_name ?: $row->contato),
-                'vencimento' => $this->dia($row->vencimento),
-                'situacao' => (string) $row->payment_status,
+                'id' => (int) $row->getAttribute('id'),
+                'documento' => (string) ($tipo === 'sell'
+                    ? $row->getAttribute('invoice_no')
+                    : $row->getAttribute('ref_no')),
+                'contato' => (string) $contato,
+                'vencimento' => $this->dia($vencimento),
+                'situacao' => (string) $row->getAttribute('payment_status'),
                 'devido' => round($devido, 2),
-                'state' => $this->venceu($row->vencimento) ? 'urgent' : null,
+                'state' => $this->venceu($vencimento) ? 'urgent' : null,
             ];
         });
     }
@@ -241,21 +249,35 @@ class GradesDoPainelService
      */
     private function estoqueMinimo(int $businessId, int $pagina): LengthAwarePaginator
     {
+        // O docblock de `getProductAlert` diz `@return array` e está ERRADO desde sempre:
+        // o corpo termina em `$query->select(...)->groupBy(...)->orderBy(...)` e devolve um
+        // Builder — é por isso que o HomeController consegue passá-lo pro `Datatables::of`.
+        // O `@var` corrige o tipo AQUI em vez de no método: mexer no docblock de um método
+        // compartilhado revelaria erros novos em todos os outros consumidores dele, e isso
+        // é limpeza de outro PR.
+        /** @var Builder $query */
         $query = $this->productUtil->getProductAlert($businessId, auth()->user()->permitted_locations());
 
         return $query
             ->addSelect('p.alert_quantity as minimo')
             ->paginate(self::POR_PAGINA, ['*'], 'page', $pagina)
-            ->through(fn ($row) => [
-                'id' => (string) ($row->sub_sku ?: $row->sku),
-                'produto' => $row->type === 'single'
-                    ? $row->product.' ('.$row->sku.')'
-                    : $row->product.' - '.$row->variation.' ('.$row->sub_sku.')',
-                'loja' => (string) ($row->location ?? ''),
-                'atual' => trim(((float) ($row->stock ?? 0)).' '.($row->unit ?? '')),
-                'minimo' => (float) ($row->minimo ?? 0),
-                'state' => (float) ($row->stock ?? 0) <= 0 ? 'urgent' : null,
-            ]);
+            ->through(function ($row) {
+                $estoque = (float) ($row->getAttribute('stock') ?? 0);
+                $sku = $row->getAttribute('sku');
+                $subSku = $row->getAttribute('sub_sku');
+                $produto = $row->getAttribute('product');
+
+                return [
+                    'id' => (string) ($subSku ?: $sku),
+                    'produto' => $row->getAttribute('type') === 'single'
+                        ? $produto.' ('.$sku.')'
+                        : $produto.' - '.$row->getAttribute('variation').' ('.$subSku.')',
+                    'loja' => (string) ($row->getAttribute('location') ?? ''),
+                    'atual' => trim($estoque.' '.($row->getAttribute('unit') ?? '')),
+                    'minimo' => (float) ($row->getAttribute('minimo') ?? 0),
+                    'state' => $estoque <= 0 ? 'urgent' : null,
+                ];
+            });
     }
 
     /** Lotes que vencem dentro da janela do business (`stock_expiry_alert_days`, default 30). */
@@ -365,11 +387,13 @@ class GradesDoPainelService
             ->orderByDesc('transactions.transaction_date')
             ->paginate(self::POR_PAGINA, ['*'], 'page', $pagina)
             ->through(fn ($row) => [
-                'id' => (int) $row->id,
-                'documento' => (string) $row->invoice_no,
-                'contato' => (string) ($row->contato ?: $row->delivered_to ?: ''),
-                'data' => $this->dia($row->transaction_date),
-                'situacao' => (string) $row->shipping_status,
+                'id' => (int) $row->getAttribute('id'),
+                'documento' => (string) $row->getAttribute('invoice_no'),
+                'contato' => (string) ($row->getAttribute('contato')
+                    ?: $row->getAttribute('delivered_to')
+                    ?: ''),
+                'data' => $this->dia($row->getAttribute('transaction_date')),
+                'situacao' => (string) $row->getAttribute('shipping_status'),
                 'state' => null,
             ]);
     }
@@ -390,12 +414,14 @@ class GradesDoPainelService
             ->orderByDesc('transactions.transaction_date')
             ->paginate(self::POR_PAGINA, ['*'], 'page', $pagina)
             ->through(fn ($row) => [
-                'id' => (int) $row->id,
-                'documento' => (string) $row->numero,
-                'contato' => (string) ($row->supplier_business_name ?: $row->contato ?: ''),
-                'data' => $this->dia($row->transaction_date),
-                'situacao' => (string) $row->status,
-                'total' => round((float) $row->final_total, 2),
+                'id' => (int) $row->getAttribute('id'),
+                'documento' => (string) $row->getAttribute('numero'),
+                'contato' => (string) ($row->getAttribute('supplier_business_name')
+                    ?: $row->getAttribute('contato')
+                    ?: ''),
+                'data' => $this->dia($row->getAttribute('transaction_date')),
+                'situacao' => (string) $row->getAttribute('status'),
+                'total' => round((float) $row->getAttribute('final_total'), 2),
                 'state' => null,
             ]);
     }
