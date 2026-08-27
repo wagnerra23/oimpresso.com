@@ -64,6 +64,15 @@
         "dark"
       ]
     },
+    "jana": {
+      "route": "/ia",
+      "anchor": "Jana",
+      "charter": "resources/js/Pages/Jana/Index.charter.md",
+      "source": "Jana",
+      "states": [
+        "default"
+      ]
+    },
     "caixa-unificada": {
       "route": "/atendimento/caixa-unificada",
       "anchor": "Atendimento",
