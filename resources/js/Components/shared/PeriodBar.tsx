@@ -1,4 +1,5 @@
 import { router } from '@inertiajs/react';
+import { Inline, Stack } from '@/Components/layout';
 
 /**
  * PeriodBar — janela do painel (US-DASH-004).
@@ -34,6 +35,10 @@ const PRESETS: Array<{ key: Period['preset']; label: string }> = [
   { key: 'mes', label: 'Mês' },
 ];
 
+const ROTULO = 'text-[10px] font-semibold uppercase tracking-wider text-muted-foreground';
+const CAMPO =
+  'h-9 rounded-lg border border-border bg-card px-3 font-mono text-[13px] text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30';
+
 export function PeriodBar({ period, only = ['totals', 'period'], className }: Props) {
   const ir = (data: Record<string, string>) => {
     router.visit(window.location.pathname, {
@@ -52,15 +57,14 @@ export function PeriodBar({ period, only = ['totals', 'period'], className }: Pr
   };
 
   return (
-    <div className={`flex flex-wrap items-end gap-4 ${className ?? ''}`}>
-      <div className="flex flex-col gap-1.5">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-          Período
-        </span>
-        <div
+    <Inline gap={4} align="end" wrap className={className}>
+      <Stack gap={2}>
+        <span className={ROTULO}>Período</span>
+        <Inline
+          gap={0}
           role="group"
           aria-label="Período"
-          className="inline-flex rounded-lg border border-border bg-card p-0.5"
+          className="rounded-lg border border-border bg-card p-0.5"
         >
           {PRESETS.map(({ key, label }) => {
             const ativo = period.preset === key;
@@ -80,33 +84,23 @@ export function PeriodBar({ period, only = ['totals', 'period'], className }: Pr
               </button>
             );
           })}
-        </div>
-      </div>
+        </Inline>
+      </Stack>
 
-      <label className="flex flex-col gap-1.5">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-          De
-        </span>
-        <input
-          type="date"
-          value={period.from}
-          onChange={trocaData('from')}
-          className="h-9 rounded-lg border border-border bg-card px-3 font-mono text-[13px] text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
-        />
-      </label>
+      <Stack gap={2} asChild>
+        <label>
+          <span className={ROTULO}>De</span>
+          <input type="date" value={period.from} onChange={trocaData('from')} className={CAMPO} />
+        </label>
+      </Stack>
 
-      <label className="flex flex-col gap-1.5">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-          Até
-        </span>
-        <input
-          type="date"
-          value={period.to}
-          onChange={trocaData('to')}
-          className="h-9 rounded-lg border border-border bg-card px-3 font-mono text-[13px] text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
-        />
-      </label>
-    </div>
+      <Stack gap={2} asChild>
+        <label>
+          <span className={ROTULO}>Até</span>
+          <input type="date" value={period.to} onChange={trocaData('to')} className={CAMPO} />
+        </label>
+      </Stack>
+    </Inline>
   );
 }
 

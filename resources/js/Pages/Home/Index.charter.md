@@ -9,7 +9,7 @@ parent_spec: memory/requisitos/Dashboard/SPEC.md
 related_runbook: memory/requisitos/Dashboard/RUNBOOK-home-index.md
 related_adrs: [93, 94, 101, 104]
 related_us: [US-DASH-001, US-DASH-004, US-DASH-006]
-related_prototype: prototipo-ui/cowork/dash-legacy-page.jsx (Cockpit V2 · PT-05 Dashboard)
+related_prototype: prototipo-ui/cowork/dash-legacy-page.jsx (Cockpit V2 · PT-04 Dashboard)
 tier: A
 charter_version: 3
 ---
