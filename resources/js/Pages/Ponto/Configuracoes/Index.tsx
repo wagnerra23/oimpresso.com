@@ -71,7 +71,7 @@ export default function ConfiguracoesIndex({ config }: Props) {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="border-t-4 border-t-blue-500">
+          <Card className="border-t-4 border-t-info">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Clock size={16} /> CLT — tolerâncias e limites
@@ -89,7 +89,7 @@ export default function ConfiguracoesIndex({ config }: Props) {
             </CardContent>
           </Card>
 
-          <Card className="border-t-4 border-t-emerald-500">
+          <Card className="border-t-4 border-t-success">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <PiggyBank size={16} /> Banco de Horas
@@ -101,7 +101,7 @@ export default function ConfiguracoesIndex({ config }: Props) {
             </CardContent>
           </Card>
 
-          <Card className="border-t-4 border-t-violet-500">
+          <Card className="border-t-4 border-t-primary">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <ShieldCheck size={16} /> REPs e Imutabilidade
