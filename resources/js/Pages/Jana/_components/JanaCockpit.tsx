@@ -17,25 +17,37 @@
 //
 // ÂNCORA DE DESIGN — resolva com `node prototipo-ui/ancora.mjs Jana/Index`, nunca
 // no olho. Ela é `prototipo-ui/cowork/jana-merge.jsx` (declarada em
-// Index.charter.md `related_prototype`). Este bloco dizia `chat-jana.jsx`, o que
-// contradiz o charter e a porta viva. O `chat-jana` NÃO é a âncora — mas é onde
-// as regras `.jc-*` moram, e citá-lo por isso é legítimo: `jana-merge.jsx:725`
-// importa `BriefDiario`/`KPICard`/`AnaliseCard` dele via `window` e reusa 11
-// classes `.jc-*`. Ou seja: âncora = jana-merge; implementação = chat-jana.
+// Index.charter.md `related_prototype`). O `chat-jana` NÃO é a âncora — o §5 de
+// 2026-08-10 o declarou não-âncora da Jana. Mas a âncora DEPENDE dele em runtime, e
+// isso é fato medido, não opinião: `jana-merge.jsx:891` desestrutura
+// `JanaHeader`/`BriefDiario`/`KPICard`/`AnaliseCard`/`AcaoRow`/`ConverseComJana` de
+// `window` — objetos que o `chat-jana.jsx` publica. Citá-lo por REGRA VISUAL segue
+// legítimo; derivar dele o CONJUNTO de KPIs (quais cards existem) não é, e foi assim
+// que "Frota utilização" quase entrou.
 //
-// ⛔ MAS A ÂNCORA ESTÁ DEFEITUOSA — não derive dela sem conferir. O `ancora.mjs`
-// devolve `✓` e cala sobre isso; quem cataloga é o pedido [CC] de 2026-08-09
-// (`cowork-inbox/JANA-MODULO-ONDAS-PR-2026-08-09.md` §1 P-1/P-2 + §7), cujo
-// PR 0.5 de conserto NUNCA rodou. Medido de novo aqui em 2026-08-13, ambos vivos:
-//   · `jana-merge.jsx:89`      `truck: "frota"` — [W] MATOU a análise Frota em
-//     2026-08-07; o Non-Goal já está no Index.charter.md. Este componente resiste
-//     por conta própria (mapeia 2 de 4 KPIs, nenhum é frota) — mantenha assim.
-//   · `jana-merge.jsx:645-646` cita `AnaliseInadimplenciaService` /
-//     `AnaliseFaturamentoService`. NÃO EXISTEM (`git grep` rc=1). A fonte real é
-//     `app/Services/Sells/SellsCockpitAggregator.php` — é o que o
-//     `JanaDrillDrawer` já usa, e o anti-hook do charter proíbe o contrário.
-// Regra prática: as regras VISUAIS (`.jc-*` do chat-jana) são confiáveis; o que
-// o jana-merge diz sobre DADO e FONTE não é.
+// ⚠️ NÚMERO CORRIGIDO (2026-08-27): este bloco dizia "reusa 11 classes `.jc-*`".
+// Medido: `grep -o 'jc-[a-z-]*' jana-merge.jsx | sort -u | wc -l` → **6**
+// (jc-acoes · jc-grid · jc-h · jc-kpis · jc-page · jc-page--ia). Número restateado à
+// mão apodrece — se precisar do valor de hoje, rode o comando, não leia esta linha.
+//
+// ── ESTADO DA ÂNCORA — o que era verdade em 2026-08-13 e o que mudou ───────────
+// Este bloco afirmava, EM PRESENTE, que a âncora "ESTÁ DEFEITUOSA" por dois motivos
+// (P-1/P-2 do pedido [CC] `JANA-MODULO-ONDAS-PR-2026-08-09.md` §1). Medido de novo
+// em 2026-08-27, um fechou e o outro sobreviveu — e as duas refs de linha apodreceram:
+//   · P-1 — os `Analise*Service` inexistentes: **FECHADO em 2026-08-21** (#6111, que
+//     desceu o Cowork vivo pela rota fiel). O bloco `FONTE` do `JmDrillDrawer` migrou
+//     de `:645-646` para **`:787-805`** e hoje cita 4× `SellsCockpitAggregator::…`,
+//     que É a fonte real. A única menção que sobrou (`:790`) é um comentário
+//     DOCUMENTANDO a remoção. `AnaliseFaturamentoService`: 0 ocorrências no arquivo.
+//   · P-2 — `truck: "frota"`: **SEGUE ABERTO**, e não está em `:89` (hoje é o fato
+//     `f2` de `JM_FATOS`) — está em **`:128`**, `JM_KPI_DRILL`. [W] matou a análise
+//     Frota em 2026-08-07 e o Non-Goal está no Index.charter.md. Este componente
+//     resiste por conta própria (mapeia 2 de 4 KPIs, nenhum é frota) — mantenha assim.
+// Re-localize por SÍMBOLO, nunca por número de linha: `grep -n 'truck' <arquivo>`.
+//
+// ⛔ NÃO reescreva isto como "a âncora está limpa" nem como "está defeituosa": as duas
+// são afirmação em presente sobre um arquivo que muda no Cowork sem avisar (LC-10).
+// O estado de HOJE se pergunta à porta viva: `node prototipo-ui/ancora.mjs Jana/Index`.
 //
 // ⚠️ VOCABULÁRIO DE COR NESTA ÁREA — `accent` significa DUAS coisas na mesma
 // página, e a armadilha é silenciosa:
