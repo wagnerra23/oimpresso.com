@@ -99,6 +99,17 @@ Sem fase pulada. Mesmo princípio do MWART process ([ADR 0104](../memory/decisio
 | F3 → F3.5 | `resources/js/Pages/<Mod>/<Tela>.tsx` editado/criado + `npm run build` OK |
 | F3.5 → F4 | `prototipos/<tela>/a11y-report.md` sem `severity: critical` |
 | F4 → done | PR merged + `SYNC_LOG.md` com `[W2]: merged` + `HANDOFF.md` atualizado |
+| **fim do ciclo de design → qualquer consumo pelo `[CL]`** | **bundle emitido depois da última mudança no Cowork vivo.** Emitir é o **último ato** de um ciclo de design — sem ele o ciclo não fechou, e o espelho é retrato velho. Comando na fase −1 do painel; roda do lado que tem os arquivos em disco. |
+
+> **Por que este critério entrou (decisão [W], 2026-08-27).** A emissão do bundle não tinha dono
+> nem momento declarado: medido nesta data, **nenhum cron, hook ou workflow** a executa — quem cita
+> o gerador no repo é o teste hermético do CI e a documentação. O bundle ativo era de **24/08
+> 22:49Z** e o vivo já tinha **4 arquivos que ele não conhece**, mais uma âncora de três telas
+> medida e reprovada. Não há gate possível aqui — a leitura do vivo exige sessão autenticada
+> interativa ([ADR 0315](../memory/decisions/0315-design-sync-claude-design-vs-cowork-charter.md)),
+> e o CI não alcança. Por isso é **critério de transição**, não catraca. Modelo, medição e resíduo
+> em [`memory/reference/FLUXO-DESIGN.md`](../memory/reference/FLUXO-DESIGN.md) §"O passo que
+> antecede E1".
 
 > **Entrada via bundle estruturado (Claude Design oficial):** quando o insumo de F1/F3 chega como bundle do Claude Design (spec+tokens+layout+assets) em vez de protótipo HTML, ele entra como **proposta** validada pelo gate — ver **§10.5**. Não pula fase nem o overlay autônomo.
 

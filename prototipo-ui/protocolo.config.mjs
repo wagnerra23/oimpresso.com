@@ -225,7 +225,12 @@ export const FASES = [
   // COROLARIO que abre a rota: partes de payload <=256 KiB ficam ACIMA da fronteira, entao
   // persistem — da pra baixar as ~14 partes por get_file e aplicar, SEM URL curta.
   //
-  // Dono da rota completa: `sync/README.md` no projeto Cowork (le com DesignSync.get_file).
+  // Dono da rota completa: `prototipo-ui/design-docs/sync/README.md` (esta no git, leitura direta).
+  // ⚠️ PONTEIRO CORRIGIDO (medido 2026-08-27): esta linha mandava ler `sync/README.md` NO PROJETO
+  // Cowork via `DesignSync.get_file` — e la ele NAO EXISTE (HTTP 404 not_found). O `list_files`
+  // do projeto mostra `sync/` com o `bundle.manifest.json` e as `payload.partNN.json`, nada mais.
+  // Quem seguisse o ponteiro concluiria "a rota nao tem dono" a partir de um 404 que era do
+  // ponteiro, nao da rota. O README real desceu pelo transporte e vive no git desde entao.
   { fase: '-1', nome: 'Importar/baixar o design', comandos: [
       '# [ROTA PRINCIPAL] bundle v2 — snapshot inicial; depois delta por manifesto anterior',
       'node scripts/design-sync/gerar-payload-partes.mjs --root <design-vivo> --out <sync> [--previous <bundle.manifest.json>]',
