@@ -17,6 +17,7 @@
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 const WRITE_TOOLS = new Set(['Write', 'Edit', 'MultiEdit']);
 const BACKSLASH = String.fromCharCode(92);
@@ -53,7 +54,93 @@ export function readCharterStatus(charterPath) {
   return 'unknown';
 }
 
-export function buildOutput({ tool, pathFwd, charterRelative, charterStatus, strict }) {
+/**
+ * Estado de FRESCOR da âncora que o charter declara — o vínculo tela → charter → protótipo.
+ *
+ * POR QUE ENTRA AQUI (2026-08-27, [W]: *"a âncora errada gera muita despesa (…) deve separar
+ * em um passo único e testar muito bem com garantias de vínculo"*): este hook já é o dono da
+ * pergunta *"você leu o vínculo antes de editar?"*. O `related_prototype` vive no MESMO
+ * frontmatter que ele já lê. Abrir hook novo seria LC-19 — máquina paralela a tema com dono.
+ *
+ * O CASO REAL que motivou: numa sessão de 2026-08-27 o `ancora.mjs` imprimiu
+ * `✗ frescor: STALE — o que você abrir aqui NÃO é o design atual`, e o agente (eu) editou a
+ * tela assim mesmo, derivando um ajuste de DS de um retrato de dois dias antes. Não faltou
+ * instrumento — faltou BLOQUEIO. O aviso existia e foi ignorado.
+ *
+ * ⚠️ CRITÉRIO ESTRITO, e a estreiteza é o ponto. Só acusa âncora **medida e REPROVADA**
+ * (presente no `staleList` da última rodada de `--compare`). "Nunca verificado" PASSA.
+ * Medido no corpus real antes de escrever: 44 telas com protótipo nomeado →
+ *   3 STALE (Jana/Index · Chat · Memoria, todas o mesmo `jana-merge.jsx`)
+ *   16 já verificadas · 25 NUNCA verificadas
+ * Fosse "não verificado ⇒ bloqueia", travaria 25 telas — a parede que a primeira pessoa
+ * desliga, anti-padrão já enterrado no §5. Com 3/44 (6,8%), morde o caso real e some sozinho
+ * quando o espelho ressincronizar.
+ *
+ * ⚠️ LIMITE HONESTO: o `staleList` só é alimentado por sessão logada (o `--compare` precisa do
+ * DesignSync, ADR 0315 — o CI não alcança). Se ninguém medir, a lista congela e este check
+ * para de morder EM SILÊNCIO. Ele detecta "o instrumento avisou e foi ignorado", NÃO
+ * "a âncora está velha e ninguém olhou" — que é o caso mais comum e segue sem dono.
+ *
+ * Fail-open em tudo: ledger ausente/ilegível, charter sem campo, `n/a`, path irresolvível.
+ */
+export function ancoraStale(charterPath, raizGit = process.cwd()) {
+  try {
+    const head = readFileSync(charterPath, 'utf8').split('\n').slice(0, 40);
+    const ln = head.find((l) => /^related_prototype:/.test(l));
+    if (!ln) return null;
+    const val = ln.replace(/^related_prototype:\s*/, '').trim();
+    if (/^n\/a/i.test(val)) return null;                       // herda PT — não tem âncora própria
+    const proto = (val.match(/prototipo-ui\/[^\s"`)]+/) || [])[0];
+    if (!proto) return null;
+
+    const ledgerPath = join(raizGit, 'scripts', 'governance', '.cowork-freshness-ledger.json');
+    const bruto = JSON.parse(readFileSync(ledgerPath, 'utf8'));
+    const todas = Array.isArray(bruto) ? bruto : (bruto.entries || []);
+    // Só rodada de `--compare`. Entrada de `live-only` mede outra pergunta e não produz
+    // veredito de frescor de arquivo nenhum — tratá-la como "a última" degrada o veredito
+    // (medido em 2026-08-27: uma rodada de live-only fez `STALE` virar `SEM VEREDITO NOVO`).
+    const compare = todas.filter((e) => e && e.kind !== 'live-only');
+    if (!compare.length) return null;
+    const ultima = compare[compare.length - 1];
+    const nome = proto.replace(/^prototipo-ui\/cowork\//, '');
+    if (!(ultima.staleList || []).includes(nome)) return null;
+    return { proto: nome, medidoEm: ultima.date };
+  } catch { return null; }                                      // fail-open
+}
+
+export function buildOutput({ tool, pathFwd, charterRelative, charterStatus, strict, stale }) {
+  if (stale) {
+    const m = `[charter-first · ÂNCORA STALE] ${tool} em '${pathFwd}'. O charter declara ` +
+      `\`${stale.proto}\` como âncora, e a última rodada de \`--compare\` (${stale.medidoEm}) mediu esse ` +
+      `arquivo e o reprovou: o espelho DIVERGE do Cowork vivo. Derivar design daí é decidir sobre um ` +
+      `retrato velho — foi assim que um ajuste de DS saiu do eixo errado em 2026-08-27.\n` +
+      `Antes de editar: \`node prototipo-ui/ancora.mjs <Mod/Tela>\` pra ver o veredito, e ressincronize ` +
+      `pela ROTA PRINCIPAL (bundle emitido do lado Cowork) — \`node prototipo-ui/protocolo.config.mjs\` fase -1.\n` +
+      `Isto NÃO é "nunca verificado" (esse passa): é medido e REPROVADO.`;
+    // ⛔ DENY SEMPRE — promovido por [W] em 2026-08-27 ("aprovados pode fazer todos"), depois
+    // de a versão advisory ser apresentada com a ressalva de que NÃO teria evitado o erro:
+    // o aviso do `ancora.mjs` já existia na tela e foi ignorado mesmo assim. Advisory aqui é
+    // o mesmo aviso duas vezes; a "garantia de vínculo" que [W] pediu só existe bloqueando.
+    //
+    // Difere do charter-first (abaixo), que segue advisory por desenho: lá o predicado é
+    // "você LEU o contrato?" — não-verificável, e bloquear puniria quem já leu. Aqui é
+    // "a âncora foi MEDIDA e REPROVADA?" — fato registrado no ledger, com data e arquivo.
+    //
+    // Por que bloquear é seguro: 3 de 44 telas (6,8%), medido; fail-open em todo caminho de
+    // dúvida; e sai sozinho quando o espelho ressincronizar. Não é parede — é o veredito que
+    // já existia, agora com consequência.
+    //
+    // ESCAPE: `CHARTER_VALIDATE_STRICT` NÃO é o escape (ele endurece, não afrouxa). Para
+    // trabalhar numa tela com âncora stale de propósito, ressincronize primeiro
+    // (`protocolo.config.mjs` fase -1) OU declare a exceção com [W] — não há env de bypass, e
+    // isso é deliberado: um escape aqui reproduziria o "aviso ignorado" que o hook existe pra
+    // impedir. Anunciar saída que não existe seria LC-15; esta não existe e está dito.
+    return { hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: m + ' ⛔ Edit BLOQUEADO (deny — [W] 2026-08-27). Ressincronize a âncora antes.' } };
+  }
+  return buildOutputCharter({ tool, pathFwd, charterRelative, charterStatus, strict });
+}
+
+function buildOutputCharter({ tool, pathFwd, charterRelative, charterStatus, strict }) {
   let msg = `[charter-first] ${tool} em '${pathFwd}' — esta tela TEM contrato vivo em '${charterRelative}' (status: ${charterStatus}). ` +
     `Constituição V2 #3 (Charter > Spec — ADR 0094/0101): chame a tool MCP charter-fetch ANTES de editar ` +
     `pra carregar Mission/Goals/Non-Goals/UX targets/Anti-hooks. Skill charter-first. `;
@@ -89,6 +176,7 @@ async function main() {
     const out = buildOutput({
       tool, pathFwd: toFwd(path), charterRelative: toFwd(charterPath),
       charterStatus: readCharterStatus(charterPath), strict: process.env.CHARTER_VALIDATE_STRICT === '1',
+      stale: ancoraStale(charterPath),
     });
     process.stdout.write(JSON.stringify(out) + '\n');
     process.exit(0);
