@@ -181,6 +181,59 @@ function painelCriarIntercorrenciaPendente(int $businessId, int $colaboradorId, 
     return $id;
 }
 
+/**
+ * Escala com UM turno, vinculada ao colaborador — a referência de "atrasado" ao vivo.
+ *
+ * `dia_semana` é o `Carbon::dayOfWeek` (dom=0..sáb=6), mesma convenção de
+ * `ApuracaoService::carregarHorariosPrevistos` e da migration (`// 0..6`).
+ * Passar `$diaSemana = null` cria a escala SEM turno nenhum: é assim que se
+ * fabrica "colaborador sem jornada prevista hoje" sem depender de que dia da
+ * semana o CI resolveu rodar.
+ */
+function painelDarEscala(Colaborador $colab, ?int $diaSemana, string $horaEntrada = '08:00:00'): void
+{
+    $escalaId = DB::table('ponto_escalas')->insertGetId([
+        'business_id'           => $colab->business_id,
+        'nome'                  => PAINEL_MARCADOR . '-escala-' . uniqid(),
+        'tipo'                  => 'FIXA',
+        'carga_diaria_minutos'  => 480,
+        'carga_semanal_minutos' => 2400,
+        'ativo'                 => 1,
+        'created_at'            => now(),
+        'updated_at'            => now(),
+    ]);
+
+    if ($diaSemana !== null) {
+        DB::table('ponto_escala_turnos')->insert([
+            'escala_id'    => $escalaId,
+            'dia_semana'   => $diaSemana,
+            'hora_entrada' => $horaEntrada,
+            'hora_saida'   => '17:00:00',
+            'created_at'   => now(),
+            'updated_at'   => now(),
+        ]);
+    }
+
+    Colaborador::withoutGlobalScopes()
+        ->whereKey($colab->id)
+        ->update(['escala_atual_id' => $escalaId]);
+}
+
+/** Status ao vivo de um colaborador, lido da prop deferida `presenca_agora`. */
+function painelStatusDe(int $colaboradorId): ?string
+{
+    $r = painelInertiaPartial(['presenca_agora']);
+    $r->assertStatus(200);
+
+    foreach ($r->json('props.presenca_agora') ?? [] as $linha) {
+        if ((int) ($linha['id'] ?? 0) === $colaboradorId) {
+            return $linha['status'] ?? null;
+        }
+    }
+
+    return null;
+}
+
 /** Pede as props diferidas (Inertia::defer) numa segunda passada. */
 function painelInertiaPartial(array $props)
 {
@@ -197,6 +250,11 @@ function painelInertiaPartial(array $props)
 }
 
 afterEach(function () {
+    // UC-PAINEL-07/08 congelam o relógio pra que "já passou do turno" seja
+    // determinístico. Sem este reset o congelamento vazaria pros casos seguintes
+    // do mesmo processo — e um teste que sabota o vizinho é pior que ausente.
+    \Carbon\Carbon::setTestNow();
+
     try {
         $ids = Colaborador::withoutGlobalScopes()
             ->where('matricula', 'like', PAINEL_MARCADOR . '%')
@@ -214,6 +272,13 @@ afterEach(function () {
             DB::table('ponto_apuracao_dia')->whereIn('colaborador_config_id', $ids)->delete();
             Colaborador::withoutGlobalScopes()->whereIn('id', $ids)->delete();
         }
+
+        // Escalas das fixtures de presença. `ponto_escala_turnos` cai por cascade
+        // (FK ON DELETE CASCADE) e `ponto_colaborador_config.escala_atual_id` é
+        // ON DELETE SET NULL — as duas medidas na migration 2026_04_18_000003.
+        DB::table('ponto_escalas')
+            ->where('nome', 'like', PAINEL_MARCADOR . '%')
+            ->delete();
 
         test()->removerBizAlheio();
     } catch (\Throwable $e) {
@@ -495,5 +560,86 @@ it('UC-PAINEL-06 · a nota do que trava o fechamento vem acima dos KPIs e reflet
 
     expect($depois->json('props.kpis.divergencias_mes'))->toBe($divAntes + 1,
         'Nasceu um dia em DIVERGENCIA na competência e a nota do painel não ficaria sabendo.'
+    );
+});
+
+it('UC-PAINEL-07 · "atrasado" na faixa de presença sai da escala do colaborador, nunca de um horário fixo', function () {
+    $this->actAsAdmin();
+    painelPrecisaDe(['ponto_colaborador_config', 'ponto_escalas', 'ponto_escala_turnos']);
+
+    // Relógio congelado às 10:00. Sem isto o caso mediria o horário em que o CI
+    // resolveu rodar: "já passou do turno" é um predicado sobre AGORA, e um teste
+    // que muda de veredito conforme a hora não prova nada. `setTestNow` governa o
+    // `now()` do processo, e o controller resolve `$hoje`/`$agora` por ele.
+    $hoje = \Carbon\Carbon::now()->startOfDay()->setTime(10, 0);
+    \Carbon\Carbon::setTestNow($hoje);
+    $diaSemana = $hoje->dayOfWeek;
+
+    // (a) CONTROLE POSITIVO — turno de manhã, já passou, ninguém bateu ponto.
+    // Sem ele, uma função quebrada que devolvesse "ausente" pra todo mundo
+    // passaria em (b) e (c) por imobilidade, não por acerto.
+    $cedo = painelCriarColaborador($this->business->id, $this->business->id);
+    painelDarEscala($cedo, $diaSemana, '08:00:00');
+
+    // (b) O DEFEITO QUE ESTE CASO EXISTE PRA MATAR — turno da TARDE.
+    // Com o `now() > '08:15'` hardcoded (DashboardController até 2026-08-27) este
+    // colaborador virava "atrasado" às 08:16, todo dia, sem nunca ter se atrasado.
+    $tarde = painelCriarColaborador($this->business->id, $this->business->id);
+    painelDarEscala($tarde, $diaSemana, '13:00:00');
+
+    // (c) Sem jornada prevista hoje (escala sem turno pro dia — folga, ou cadastro
+    // incompleto). A apuração não gera atraso NEM falta nesse caso
+    // (`ApuracaoService::carregarHorariosPrevistos` retorna cedo), então a faixa
+    // não pode afirmar o que o domínio não afirma. Decisão [W] 2026-08-27: `ausente`.
+    $semTurno = painelCriarColaborador($this->business->id, $this->business->id);
+    painelDarEscala($semTurno, null);
+
+    expect(painelStatusDe($cedo->id))->toBe('atrasado',
+        'Colaborador com turno às 08:00, às 10:00 e sem marcação, tem de aparecer atrasado — '
+        . 'sem este controle positivo o caso não distingue acerto de faixa morta.'
+    );
+
+    expect(painelStatusDe($tarde->id))->toBe('ausente',
+        'Colaborador cujo turno começa às 13:00 NÃO está atrasado às 10:00. Este é o defeito '
+        . 'do horário fixo: ignorava a escala e acusava a jornada inteira da tarde.'
+    );
+
+    expect(painelStatusDe($semTurno->id))->toBe('ausente',
+        'Sem turno previsto hoje não há atraso possível — a apuração não gera atraso nem falta '
+        . 'quando não há `prevista_entrada` (RN-001, Art. 58 §1º CLT).'
+    );
+});
+
+it('UC-PAINEL-08 · a faixa de presença espera a mesma tolerância que o KPI "Atrasos hoje" filtra', function () {
+    $this->actAsAdmin();
+    painelPrecisaDe(['ponto_colaborador_config', 'ponto_escalas', 'ponto_escala_turnos']);
+
+    // A tolerância vem da config, não de um número escrito aqui: se [W] mudar a
+    // chave, o caso acompanha em vez de virar baseline mentiroso.
+    $tolerancia = (int) config('pontowr2.clt.tolerancia_maxima_diaria_minutos', 10);
+
+    expect($tolerancia)->toBeGreaterThan(0,
+        'Tolerância zerada tornaria o caso vazio — as duas janelas abaixo colapsariam numa só.'
+    );
+
+    $base = \Carbon\Carbon::now()->startOfDay()->setTime(8, 0);
+    \Carbon\Carbon::setTestNow($base);
+
+    $colab = painelCriarColaborador($this->business->id, $this->business->id);
+    painelDarEscala($colab, $base->dayOfWeek, '08:00:00');
+
+    // DENTRO da janela: passou do horário, mas ainda dentro da tolerância do
+    // Art. 58 §1º. Não é atraso — nem aqui, nem na apuração.
+    \Carbon\Carbon::setTestNow($base->copy()->addMinutes($tolerancia - 1));
+    expect(painelStatusDe($colab->id))->toBe('ausente',
+        "A {$tolerancia}ª minuto ainda não passou e a faixa já acusou atraso — a tolerância "
+        . 'do Art. 58 §1º sumiu da faixa.'
+    );
+
+    // FORA da janela: mesmo colaborador, mesma escala, só o relógio andou.
+    \Carbon\Carbon::setTestNow($base->copy()->addMinutes($tolerancia + 1));
+    expect(painelStatusDe($colab->id))->toBe('atrasado',
+        "Passou de {$tolerancia} min do horário previsto e a faixa não acusou — a tolerância "
+        . 'virou tolerância infinita.'
     );
 });
