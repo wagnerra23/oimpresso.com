@@ -194,12 +194,12 @@ class HomeController extends Controller
     private function buildChartsPayload(int $business_id, $location_id = null): array
     {
         $fy = $this->businessUtil->getCurrentFinancialYear($business_id);
-        $desde = Carbon::parse($fy['start'])->subDays(30)->format('Y-m-d');
+        $desde = \Carbon::parse($fy['start'])->subDays(30)->format('Y-m-d');
         $sells = $this->transactionUtil->getSellsCurrentFy($business_id, $desde, $fy['end']);
 
         $porDia = [];
         for ($i = 29; $i >= 0; $i--) {
-            $dia = Carbon::now()->subDays($i)->format('Y-m-d');
+            $dia = \Carbon::now()->subDays($i)->format('Y-m-d');
             $q = $sells->where('date', $dia);
             if ($location_id) {
                 $q = $q->where('location_id', (int) $location_id);
@@ -211,14 +211,14 @@ class HomeController extends Controller
         }
 
         // `yearmonth` vem do SELECT como DATE_FORMAT(...,'%m-%Y') -> "08-2026". Comparar com
-        // Carbon::format('Y-m') ("2026-08") NUNCA casa e o grafico sai 12 barras zeradas.
+        // \Carbon::format('Y-m') ("2026-08") NUNCA casa e o grafico sai 12 barras zeradas.
         // O consumidor legado (indexLegacy) usa date('m-Y', ...) — aqui e o MESMO formato.
         // Rotulo: array literal do prototipo (dash-legacy-page.jsx), nao locale — deterministico.
         $MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 
         $porMes = [];
-        $cursor = Carbon::parse($fy['start'])->startOfMonth();
-        $fim = Carbon::parse($fy['end'])->startOfMonth();
+        $cursor = \Carbon::parse($fy['start'])->startOfMonth();
+        $fim = \Carbon::parse($fy['end'])->startOfMonth();
         while ($cursor->lte($fim)) {
             $q = $sells->where('yearmonth', $cursor->format('m-Y'));
             if ($location_id) {
