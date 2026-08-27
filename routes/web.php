@@ -125,6 +125,90 @@ if (app()->environment(['local', 'testing'])) {
         );
     };
 
+    /**
+     * Semeia UMA venda VENCIDA no tenant do VRT — o lever do estado `danger` do Painel da Jana.
+     *
+     * POR QUE EXISTE (medido em 2026-08-27, e o buraco é maior que a Jana): o
+     * `VisregTenantSeeder` NÃO cria transaction nenhuma — `grep -qEi "transaction"` nele sai
+     * rc=1, com controle positivo. Logo `overdueValue = 0`, logo o `JanaCockpit:662`
+     * (`tone={overdueValue > 0 ? 'danger' : 'default'}`) resolve SEMPRE pra `default`, e
+     * NENHUMA baseline do VRT jamais fotografou um KpiCard `danger`. O gate não está mudo —
+     * ele mede o que captura; o que falta é o estado entrar no denominador.
+     *
+     * Isso ficou visível quando um ajuste na cor do valor `danger` passou com
+     * `visual-regression` VERDE: verde ali provava que os estados saudáveis não regrediram,
+     * não que o estado de alerta estivesse certo. Mesmo padrão em 8 outras telas
+     * (`tone={cond ? 'danger' : ...}` em Backup, governance/Dashboard, Ponto/BancoHoras…).
+     *
+     * DETERMINISMO — a data é FIXA e antiga de propósito. O predicado do overdue é
+     * `DATE_ADD(transaction_date, INTERVAL pay_term_number DAY) < CURDATE()`
+     * (`SellsCockpitAggregator::buildSellKpis`), e `CURDATE()` é do BANCO: derivar de `now()`
+     * aqui repetiria o defeito que a closure do Financeiro documenta (`:101-103` — processos
+     * distintos, relógios distintos, dias distintos gravados). Data fixa em 2020 vence sempre,
+     * em qualquer dia de execução, sem depender de relógio nenhum.
+     *
+     * VALOR: fixo (4.500,00) porque o número APARECE no snapshot — valor derivado tornaria o
+     * pixel não-determinístico. Não é cálculo: é constante de fixture. Roda só sob
+     * `app()->environment(['local','testing'])` (allowlist fail-closed do bloco acima) e
+     * escreve exclusivamente no tenant do VRT.
+     *
+     * IDEMPOTENTE pelo `invoice_no`.
+     */
+    $seedJanaVisregFlow = static function (int $businessId, int $userId, string $to): void {
+        if (! str_starts_with($to, '/ia')) {
+            return;
+        }
+
+        $invoiceNo = 'VISREG-JANA-OVERDUE-001';
+
+        $jaExiste = \Illuminate\Support\Facades\DB::table('transactions')
+            ->where('business_id', $businessId)
+            ->where('invoice_no', $invoiceNo)
+            ->exists();
+
+        if ($jaExiste) {
+            return;
+        }
+
+        $locationId = \Illuminate\Support\Facades\DB::table('business_locations')
+            ->where('business_id', $businessId)
+            ->orderBy('id')
+            ->value('id');
+
+        $contactId = \Illuminate\Support\Facades\DB::table('contacts')
+            ->where('business_id', $businessId)
+            ->where('type', 'customer')
+            ->orderBy('id')
+            ->value('id');
+
+        // Sem location ou sem cliente o insert violaria FK — some em silêncio em vez de
+        // derrubar o request do harness. O snapshot sai sem o estado, e o L2 acusa.
+        if ($locationId === null || $contactId === null) {
+            return;
+        }
+
+        \Illuminate\Support\Facades\DB::table('transactions')->insert([
+            'business_id' => $businessId,
+            'location_id' => $locationId,
+            'type' => 'sell',
+            'status' => 'final',
+            'payment_status' => 'due',
+            'contact_id' => $contactId,
+            'invoice_no' => $invoiceNo,
+            'ref_no' => $invoiceNo,
+            // Vencida por construção: 2020-01-01 + 30 dias << CURDATE() em qualquer execução.
+            'transaction_date' => '2020-01-01 10:00:00',
+            'pay_term_number' => 30,
+            'pay_term_type' => 'days',
+            'total_before_tax' => 4500.00,
+            'final_total' => 4500.00,
+            'created_by' => $userId,
+            // essentials_duration é NOT NULL sem default no schema UPOS (mesmo motivo
+            // declarado no VisregTenantBLeakSeeder).
+            'essentials_duration' => 0,
+        ]);
+    };
+
     // US-GOV-013 Fase B — auth bridge cross-process pro Pest 4 Browser (visual-regression).
     // O browser Playwright roda em SUBPROCESSO: a sessão do test process NÃO cruza pra ele.
     // Esta rota loga um user por id DENTRO do subprocesso do server → seta o cookie de
@@ -144,6 +228,15 @@ if (app()->environment(['local', 'testing'])) {
         $user = \Illuminate\Support\Facades\Auth::user();
         if ($user !== null) {
             $seedFinanceiroVisregFlow((int) $user->business_id, (int) $user->id, $to);
+            // ⚠️ O `$seedJanaVisregFlow` NÃO entra aqui, e a razão foi MEDIDA (2026-08-27):
+            // esta rota alimenta o L1 (PixelBaselineTest), cuja baseline da Jana já existe.
+            // Ligado aqui, o seed fez a venda vencida aparecer no `default` do L1 → o KPI
+            // renderizou `danger` → o pixel mudou → `it Jana bate com a baseline` FALHOU
+            // (as outras 25 telas passaram, Jana/Pro · Jana/Memoria · Jana/Chat inclusas).
+            // Isso PROVOU que o lever funciona — e provou que ele estava no lugar errado:
+            // o objetivo é criar um estado NOVO no L2, não reescrever a baseline existente
+            // do L1. Regravar baseline pra acomodar fixture nova é a inversão que o §5 de
+            // 2026-08-26 proíbe. O seed vive só no `/_visreg-state`, abaixo.
         }
 
         return redirect($to);
@@ -167,7 +260,7 @@ if (app()->environment(['local', 'testing'])) {
     //   - error      → admin do biz=1 + redirect()->with('error') → toast.error (app.tsx 8s)
     //   - long-data  → admin do biz=1 (reservado; nenhuma tela declara no v1)
     // NUNCA em producao (isProduction guard acima). `to` so path relativo (anti open-redirect).
-    Route::get('/_visreg-state/{tela}/{estado}', function (string $tela, string $estado, \Illuminate\Http\Request $request) {
+    Route::get('/_visreg-state/{tela}/{estado}', function (string $tela, string $estado, \Illuminate\Http\Request $request) use ($seedJanaVisregFlow) {
         $manifestPath = base_path('tests/Browser/visreg-states.json');
         if (! is_file($manifestPath)) {
             abort(404); // manifesto ausente (ex: tests/ nao deployado) — rota inerte.
@@ -196,6 +289,15 @@ if (app()->environment(['local', 'testing'])) {
         // estados sem lever de middleware (default/empty) ela so sobrescreve flag stale de
         // um teste anterior na mesma sessao do browser (auto-cura entre testes).
         $request->session()->put(\App\Http\Middleware\VisregStateMiddleware::SESSION_KEY, $estado);
+
+        // Fixture de DADO do estado. Até 2026-08-27 esta rota não semeava NADA — só o
+        // `/_visreg-login` chamava seed —, então todo estado do L2 fotografava o tenant cru.
+        // Pro `empty` (biz=98) isso é correto por construção e o seed sai sozinho pelo guard
+        // de prefixo de rota; pros demais, dado ausente vira snapshot de tela vazia com nome
+        // de "default". Semear ANTES do redirect: a tela carrega no request seguinte.
+        if ($estado !== 'empty') {
+            $seedJanaVisregFlow($businessId, (int) $admin->id, (string) $screen['route']);
+        }
 
         $redirect = redirect((string) $screen['route']);
 

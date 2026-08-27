@@ -15,7 +15,7 @@ async function readStdin() {
 }
 
 // Exige o par intenção × universo de design; verbo isolado não dispara.
-const INTENT = /\b(aplic\w+|desc[eê]\w*|descer|fazer|faz\b|criar?|cri[ae]\w+|ger[ae]\w*|implement\w+|migr[ae]\w+|adicion\w+|falt\w+|precis\w+|desenh\w+|constr[ou]\w+|mont[ae]\w+|refaz\w+|refazer|mexer|us[ae]\w*|usar|utiliz\w+|acess\w+|pux\w+|import\w+|sincroniz\w+|compar\w+|olh[ae]\w*|confer\w+|abr[ie]\w*|abrir)\b/i;
+const INTENT = /\b(aplic\w+|desc[eê]\w*|descer|fazer|faz\b|criar?|cri[ae]\w+|ger[ae]\w*|implement\w+|migr[ae]\w+|adicion\w+|falt\w+|precis\w+|desenh\w+|constr[ou]\w+|mont[ae]\w+|refaz\w+|refazer|mexer|us[ae]\w*|usar|utiliz\w+|acess\w+|pux\w+|import\w+|sincroniz\w+|compar\w+|olh[ae]\w*|confer\w+|abr[ie]\w*|abrir|analis\w+|analiz\w+|corrig\w+|arrum\w+|consert\w+|ajust\w+|verific\w+|med[ie]\w*|medir|ver\b)\b/i;
 const DESIGN = /\b(design|desing|dising|desgin|prot[oó]tipo|protipo|cowork|tela|telas|wizard|drawer|sheet|modal|layout|component\w+|\.tsx|Page\s+Inertia|Inertia)\b/i;
 
 // DIVERGÊNCIA — o vocabulário com que se APONTA um desvio, que não é verbo de ação e por isso
@@ -25,7 +25,25 @@ const DESIGN = /\b(design|desing|dising|desgin|prot[oó]tipo|protipo|cowork|tela
 // As duas são pedidos de COMPARAÇÃO, e foram exatamente as que precederam o erro: comparei
 // string literal do protótipo com o código, em vez de medir os dois lados. Continua exigindo
 // o par com DESIGN — "tá diferente" sozinho não dispara nada.
-const DIVERGENCIA = /\b(diferente|divergent\w*|n[ãa]o (chegou|bate|est[áa] igual|ficou)|ainda n[ãa]o|falt[ao]\w*|sem (o )?(pageheader|header|avatar|drawer)|seria|igual)\b/i;
+const DIVERGENCIA = /\b(diferente|divergent\w*|n[ãa]o (chegou|bate|est[áa] igual|ficou)|ainda n[ãa]o|falt[ao]\w*|sem (o )?(pageheader|header|avatar|drawer)|seria|igual|errad[oa]s?|torto|quebrad[oa]s?|estranh[oa]s?)\b/i;
+
+// ── ATRIBUTO VISUAL — a língua do PROBLEMA, não a do processo (2026-08-27) ──────────
+// Medido no corpus REAL de [W] nesta sessão: o hook disparou em **1 de 14** mensagens.
+// Ficaram em silêncio "A RECEBER VENCIDO está com fundo errado o vermelho", "icone errado",
+// "tamanho errado eu acho" — todas inequivocamente sobre design. Duas causas, ambas aqui:
+//   (a) `errado` não estava em NENHUM predicado (só "diferente"/"não bate"/"falta");
+//   (b) o `DESIGN` só conhece o vocabulário do PROCESSO (design · protótipo · cowork · tela ·
+//       drawer · .tsx). Quem reporta defeito visual nomeia o ELEMENTO — ícone, KPI, fundo,
+//       fonte, cor, tamanho —, não a metodologia. [W], textual: "eu tenho que ficar lembrando
+//       de várias formas para usar isso". Não é o dono que deve aprender a língua do hook.
+// Por que ampliar aqui é defensável e não é a família de guard sintático já reprovada
+// (§5 2026-07-16, 130 FP): lá o gate BLOQUEAVA e o erro era morder demais. Este é ADVISORY —
+// imprime orientação. Falso-positivo custa um lembrete a mais; falso-NEGATIVO custa comparação
+// no olho, que é a LC-06 com 2 strikes. Os custos são assimétricos, e o par com
+// INTENT/DIVERGENCIA continua exigido: "kpi" sozinho segue sem disparar.
+// ⚠️ FP medido só contra o CORPUS deste selftest (inclui os negativos de aprovação/decisão).
+// NÃO foi medido contra o corpus de transcripts — se aparecer FP em uso real, aperte AQUI.
+const ATRIBUTO_VISUAL = /\b([ií]cone|kpi|card|badge|fundo|fonte|tipografia|cor|cores|tamanho|espa[çc]amento|alinhamento|padding|margem|contraste|paleta|token|vermelh[oa]|hover|foco|skeleton|tooltip)\b/i;
 
 // COMPARAÇÃO — quando a intenção é confrontar design × produção, o agente precisa da MÁQUINA
 // que mede, não do procedimento geral de design. Ver o bloco de saída.
@@ -41,7 +59,9 @@ export function ehComparacao(prompt) {
 
 export function dispara(prompt) {
   const p = String(prompt || '');
-  return (INTENT.test(p) || DIVERGENCIA.test(p)) && DESIGN.test(p);
+  // O par segue obrigatório — o que mudou (2026-08-27) é o lado direito aceitar TAMBÉM o
+  // vocabulário do elemento visual, não só o do processo. Ver o bloco do ATRIBUTO_VISUAL.
+  return (INTENT.test(p) || DIVERGENCIA.test(p)) && (DESIGN.test(p) || ATRIBUTO_VISUAL.test(p));
 }
 
 if (process.argv.includes('--selftest')) {
@@ -64,6 +84,19 @@ if (process.argv.includes('--selftest')) {
     // "podeabrir". Tirar a fronteira faria "sabre"/"cabrito" dispararem; o FP não compensa.
     ['podeabrir o prototipo atulizado dajana', false],
     ['confere o layout do drawer', true],
+    // Corpus REAL de [W] na sessão de 2026-08-27 — o hook disparou em 1 de 14, e estas três
+    // são as que ele nomeou ("tenho que ficar lembrando de várias formas para usar isso").
+    // Todas falhavam por DUAS razões: `errado` fora dos predicados + vocabulário de ELEMENTO
+    // (fundo/ícone/tamanho) fora do DESIGN. São o bite-test do ATRIBUTO_VISUAL.
+    ['A RECEBER VENCIDO esta com fundo errado o vermelho, e acho que a fonte tbm', true],
+    ['icone errado', true],
+    ['tamanho errado eu acho', true],
+    // CONTROLES NEGATIVOS do mesmo dia — provam que o par não afrouxou. Substantivo visual
+    // SOZINHO não dispara (sem verbo nem divergência), e pergunta sobre a máquina não é
+    // pedido de design.
+    ['kpi', false],
+    ['maquinas estao funcionando agora?', false],
+    ['tem mais de uma ancora por pagina?', false],
     ['sim', false], ['Merge', false], ['feche', false], ['foi', false],
     ['Faça', false], ['os tres', false], ['pode continuar fazendo todos', false],
     ['Vai faça use o computador', false],
