@@ -3,7 +3,7 @@
 // Page com charter vivo sem charter-fetch antes → avisa), NÃO do .ps1. Rodar: node ...test.mjs
 
 import { spawnSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -52,5 +52,44 @@ check('E2E: não-Page → exit 0 silencioso', (() => { const r = run(w('resource
 check('E2E: stdin vazio → exit 0 (fail-open)', spawnSync(process.execPath, [HOOK], { input: '', encoding: 'utf8' }).status === 0);
 check('E2E: JSON inválido → exit 0 (fail-open)', spawnSync(process.execPath, [HOOK], { input: '{lixo', encoding: 'utf8' }).status === 0);
 
-console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — porte .mjs avisa charter-first em Page com charter vivo, deny em strict, advisory default; fail-open provado.');
+// ── ÂNCORA STALE (2026-08-27) — o vínculo tela → charter → protótipo ────────────────
+// BITE-TEST hermético: fixture própria de charter + ledger, sem depender do repo real (o
+// `staleList` vivo muda quando alguém roda `--compare`, e teste que depende disso apodrece).
+// Prova as DUAS pernas: morde o medido-e-REPROVADO, e LIBERA o "nunca verificado" — que é a
+// diferença entre um gate de 3/44 e uma parede de 25/44.
+const { ancoraStale } = await import(pathToFileURL(HOOK).href);  // buildOutput já vem do import estático (:10)
+const raizFx = mkdtempSync(join(tmpdir(), 'ancora-fx-'));
+mkdirSync(join(raizFx, 'scripts', 'governance'), { recursive: true });
+writeFileSync(join(raizFx, 'scripts', 'governance', '.cowork-freshness-ledger.json'), JSON.stringify([
+  { kind: 'compare', date: '2026-01-01T00:00:00Z', verified: ['velho.jsx'], staleList: [] },
+  { kind: 'compare', date: '2026-02-02T00:00:00Z', verified: [], staleList: ['divergente.jsx'] },
+  // live-only DEPOIS da compare: não pode virar "a última rodada" (medido 2026-08-27 — uma
+  // entrada dessas fez `STALE` degradar pra `SEM VEREDITO NOVO` no ancora.mjs).
+  { kind: 'live-only', date: '2026-03-03T00:00:00Z', liveOnly: 2, liveOnlyList: ['x.jsx'] },
+]));
+const chFx = (nome, corpo) => { const p = join(raizFx, nome); writeFileSync(p, corpo); return p; };
+const cStale = chFx('a.charter.md', '---\nstatus: live\nrelated_prototype: prototipo-ui/cowork/divergente.jsx\n---\n');
+const cOk = chFx('b.charter.md', '---\nstatus: live\nrelated_prototype: prototipo-ui/cowork/nunca-medido.jsx\n---\n');
+const cNa = chFx('c.charter.md', '---\nstatus: live\nrelated_prototype: n/a (herda PT-01 Lista)\n---\n');
+const cSem = chFx('d.charter.md', '---\nstatus: live\n---\n');
+
+check('ancoraStale: MORDE ancora no staleList da ultima compare', !!ancoraStale(cStale, raizFx));
+check('ancoraStale: reporta o arquivo e a data medidos', (() => { const r = ancoraStale(cStale, raizFx); return r && r.proto === 'divergente.jsx' && r.medidoEm === '2026-02-02T00:00:00Z'; })());
+check('ancoraStale: LIBERA "nunca verificado" (senao vira parede de 25 telas)', ancoraStale(cOk, raizFx) === null);
+check('ancoraStale: LIBERA related_prototype n/a (herda PT)', ancoraStale(cNa, raizFx) === null);
+check('ancoraStale: LIBERA charter sem related_prototype', ancoraStale(cSem, raizFx) === null);
+check('ancoraStale: entrada live-only NAO vira a ultima rodada', !!ancoraStale(cStale, raizFx));
+check('ancoraStale: fail-open com ledger ausente', ancoraStale(cStale, mkdtempSync(join(tmpdir(), 'sem-ledger-'))) === null);
+check('ancoraStale: fail-open com charter inexistente', ancoraStale(join(raizFx, 'nao-existe.charter.md'), raizFx) === null);
+
+// DENY sem strict — promovido por [W] 2026-08-27. Blindado aqui porque a diferença entre
+// advisory e deny É a feature: como advisory o hook só repetiria um aviso que já existia e
+// já tinha sido ignorado. Se alguém rebaixar pra 'allow', estes dois asserts caem.
+const outStale = buildOutput({ tool: 'Edit', pathFwd: 'x.tsx', charterRelative: 'x.charter.md', charterStatus: 'live', strict: false, stale: { proto: 'divergente.jsx', medidoEm: '2026-02-02T00:00:00Z' } });
+check('buildOutput: ancora STALE => deny MESMO sem strict', outStale.hookSpecificOutput.permissionDecision === 'deny');
+check('buildOutput: a razao nomeia o arquivo e a data medidos', /divergente\.jsx/.test(outStale.hookSpecificOutput.permissionDecisionReason) && /2026-02-02/.test(outStale.hookSpecificOutput.permissionDecisionReason));
+const outLimpo = buildOutput({ tool: 'Edit', pathFwd: 'y.tsx', charterRelative: 'y.charter.md', charterStatus: 'live', strict: false, stale: null });
+check('buildOutput: SEM stale segue advisory (charter-first inalterado)', outLimpo.hookSpecificOutput.permissionDecision === 'allow');
+
+console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — porte .mjs avisa charter-first em Page com charter vivo, deny em strict, advisory default; fail-open provado. Âncora STALE: morde o medido-e-reprovado, libera o nunca-verificado.');
 process.exit(fails ? 1 : 0);

@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-26**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-27**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -36,7 +36,7 @@ lente: [construir]
 | Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-08-11 |
 | Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-08-12 |
 | Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-08-13 |
-| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-08-13 |
+| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-08-27 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
 | Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-07-23 |
 | NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-07-28 |
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **296**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **306**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -80,7 +80,7 @@ lente: [construir]
 
 > Fontes versionadas (offline, sem `gh api`): censo [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o que **existe**) + [`required-checks-baseline.json`](../../governance/required-checks-baseline.json) (o que **bloqueia**, congelado). Anti-demoção invisível: `protection-drift.mjs` (GT-G4). As catracas mordem: `gate-selftest` (GT-G6). Censo cobrado por `memory-health` Check G/M.
 
-### Bloqueiam merge — 46 required (enforcement: everyone)
+### Bloqueiam merge — 45 required (enforcement: everyone)
 > Congelados no baseline (captura 2026-06-20). Divergência do vivo é sinalizada pelo `protection-drift`, não reconciliada aqui.
 
 - ADR (memory/decisions/*.md)
@@ -126,7 +126,6 @@ lente: [construir]
 - SUPERFICIE.md == árvore (módulos vivos + adotados)
 - Tier-0 guards (WithoutGlobalScopes + BusinessId)
 - Tópico (memory/requisitos/*/topicos/*.md)
-- visual-regression
 - espelho — mexeu depois de verificar
 - Governance Gate (índice + memory-health + meta-teste)
 
@@ -145,13 +144,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **384** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 347 · superseded: 16 · deprecated: 13 · proposto: 6 · rascunho: 1 · recusado: 1.
+- **387** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 349 · superseded: 16 · deprecated: 13 · proposto: 7 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 152 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 154 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -306,6 +305,8 @@ lente: [construir]
 - ~~2026-08-25 — Instalar o `ds-anchor-check.mjs` do Cowork COMO VEIO (R1: `default`/`secondary`/`destructive` = pill de estado sólido) — MEDIDO 73,7% de falso-positivo~~
 - ~~2026-08-25 — EMENDA da lápide acima (`ds-anchor-check`): o corolário do showcase foi CORTADO por [W], e o alcance das regras de paridade estava por medir~~
 - ~~2026-08-25 — Medir frescor do espelho Cowork contra o `sync/bundle.manifest.json` (ele CONFIRMA um estado que já não existe — verde falso)~~
+- ~~2026-08-26 — Regravar a baseline para fechar divergência DETERMINÍSTICA sem ter contado TODOS os escritores do fixture (4 rebakes, 9 dias)~~
+- ~~2026-08-27 — SLA cuja JANELA de tolerância é maior que a taxa de mudança do objeto (verde por construção — e a medição que ele audita não tem quem a dispare)~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -316,14 +317,14 @@ lente: [construir]
 
 ## Rastro
 
-- **473** handoffs · **647** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **475** handoffs · **650** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-08-26-raio-gate-visual-5-suites`
+  - `2026-08-26-arte-deploy-zero-downtime-shared-host`
+  - `2026-08-26-503-balcao-larissa-janela-de-deploy`
   - `2026-08-25-produto-unificado-zona-cinza-baseline`
   - `2026-08-25-fluxo-design-playbook-detalhado`
   - `2026-08-24-workflow-migracao-layout-em-ondas`
-  - `2026-08-23-protocolo-code-design-testes-regressao`
-  - `2026-08-23-bundle-design-transacional-manifesto-delta`
-  - `2026-08-22-arte-fidelidade-prototipo-producao`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-26 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-27 · deriva das fontes canônicas, não as substitui._
