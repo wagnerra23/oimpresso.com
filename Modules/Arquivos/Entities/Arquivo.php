@@ -112,6 +112,30 @@ class Arquivo extends Model
     }
 
     /**
+     * Tem conteúdo que o `DownloadController` consegue servir?
+     *
+     * Mora AQUI, e não no controller da tela, por uma razão dura: o
+     * `ArquivosAdminControllerTest` tem um assert de LGPD (Art. 37) que reprova a menção
+     * ao caminho de disco em QUALQUER método daquele arquivo — o Non-Goal do charter é
+     * que caminho não sai pra vista de governança. O predicado precisa do campo; a tela
+     * precisa só do booleano. Separar é o que mantém o assert honesto em vez de afrouxado.
+     *
+     * As DUAS condições são medidas, não supostas:
+     *
+     * 1. **Soft-deleted não baixa.** `DownloadController::__invoke` faz `Arquivo::find()`
+     *    — sem `withTrashed()` —, então uma linha apagada devolve **404** lá. Com
+     *    `?with_trashed=1` ela aparece no acervo; oferecer o botão seria oferecer um 404.
+     * 2. **Sem caminho no storage não baixa.** É o que a estratégia `anonymize` da
+     *    retenção produz (`Config/retention.php`: *"mantém metadados mas zera"* o campo) e
+     *    é o `a.anon` que o protótipo desabilita. O `DownloadController` chegaria ao
+     *    `$disk->exists(...)` e devolveria 404 também.
+     */
+    public function temConteudo(): bool
+    {
+        return $this->deleted_at === null && trim((string) $this->storage_path) !== '';
+    }
+
+    /**
      * Helper: arquivos classificados num bucket específico (memory/sensitive/etc).
      */
     public function scopeBucket(Builder $query, string $bucket): Builder

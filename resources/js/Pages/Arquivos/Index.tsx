@@ -25,6 +25,7 @@
 import '../../../css/cowork-arquivos-bundle.css'
 
 import { Deferred, Link, router } from '@inertiajs/react'
+import { Download } from 'lucide-react'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { PageHeader } from '@/Components/PageHeader'
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs'
@@ -49,8 +50,15 @@ interface LinhaAcervo {
   size_bytes: number
   classified_by: string | null
   orfao: boolean
+  /** Nome da classe Eloquent (`ServiceOrder`) — valor TÉCNICO, vai na sub-linha em mono. */
   dono_tipo: string | null
   dono_id: number | null
+  /** Nome de NEGÓCIO do dono (`Ordem de serviço`). Cai no `dono_tipo` cru se o tipo não tem entrada no mapa do servidor. */
+  dono_rotulo: string | null
+  /** Tela do dono. `null` = o servidor não achou rota provada pra este tipo — vira texto, nunca link morto. */
+  dono_url: string | null
+  /** Link assinado de 60 min pro `DownloadController`. `null` = nada a servir (apagado, ou sem conteúdo no storage). */
+  download_url: string | null
   vence_em: string | null
   dias_restantes: number | null
   excluido_em: string | null
@@ -475,10 +483,37 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
             </Badge>
           )
         }
+        // Duas linhas, como o protótipo desenha: o nome de NEGÓCIO em cima, o tipo TÉCNICO
+        // embaixo em mono. A produção imprimia só `ServiceOrder #4` — que é o nome da classe
+        // Eloquent, não o nome da coisa. O `dono_rotulo` vem do servidor; o mapa de tradução
+        // e a prova de que a rota existe moram lá, onde o roteador pode ser perguntado.
+        //
+        // Link só quando o servidor mandou `dono_url` — e ele só manda pra tipo cuja rota foi
+        // provada em `route:list`. Sem URL, o valor é texto: link morto é pior que texto.
+        //
+        // `<a>` cru, não `<Link>` do Inertia: os destinos moram em OUTROS módulos e nem todos
+        // são páginas Inertia — uma visita XHR numa página Blade quebra. O protótipo usa
+        // `<button>` porque o mock dele não tem roteador de verdade; aqui tem.
         return (
           <Stack gap={1} className="min-w-0">
-            <span>
-              {a.dono_tipo} #{a.dono_id}
+            {a.dono_url ? (
+              <a
+                href={a.dono_url}
+                className="truncate font-medium text-primary hover:underline"
+                title={`Abrir ${a.dono_rotulo ?? a.dono_tipo} #${a.dono_id}`}
+              >
+                {a.dono_rotulo ?? a.dono_tipo} #{a.dono_id}
+              </a>
+            ) : (
+              <span className="truncate font-medium text-foreground">
+                {a.dono_rotulo ?? a.dono_tipo} #{a.dono_id}
+              </span>
+            )}
+            <span
+              className="truncate font-mono text-xs text-muted-foreground"
+              title="Tipo do arquivable (classe Eloquent)."
+            >
+              {a.dono_tipo}
             </span>
           </Stack>
         )
@@ -530,8 +565,12 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
     {
       id: 'tamanho',
       header: 'Tamanho',
+      // `font-mono` porque o protótipo marca esta coluna `mono: true`, e a produção não tinha
+      // mono em NENHUMA das 6 colunas (medido). `tabular-nums` fica: ele alinha o dígito
+      // dentro da fonte de texto, e a fonte mono alinha por largura fixa — juntos não brigam,
+      // e manter os dois evita depender de qual fallback de fonte o navegador escolheu.
       cell: ({ row }) => (
-        <span className="text-right tabular-nums">{tamanho(row.original.size_bytes)}</span>
+        <span className="text-right font-mono tabular-nums">{tamanho(row.original.size_bytes)}</span>
       ),
     },
     {
@@ -549,7 +588,9 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
         const contagem = d !== null && d <= 0 ? `${-d}d vencido` : `${d}d`
         return (
           <Stack gap={1} align="start">
-            <span className="tabular-nums" title={a.vence_em}>
+            {/* Data em mono, como o protótipo (`<b className="mono">`). O selo e a contagem
+                ao lado seguem na fonte de texto: eles são prosa, não valor. */}
+            <span className="font-mono tabular-nums" title={a.vence_em}>
               {dataBR(a.vence_em)}
             </span>
             <Inline gap={2} className="items-center">
@@ -559,6 +600,49 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
               )}
             </Inline>
           </Stack>
+        )
+      },
+    },
+    {
+      id: 'acoes',
+      // Cabeçalho VAZIO, como o protótipo (`{ key: "acao", label: "" }`) — "Ações" repetiria
+      // o que os botões já dizem, e o contrato de tela não pina copy que não existe.
+      header: '',
+      cell: ({ row }) => {
+        const a = row.original
+        return (
+          <Inline gap={2} justify="end">
+            {a.download_url ? (
+              // SÓ-ÍCONE com `aria-label`, e a razão é a do protótipo: com texto, os quatro
+              // rótulos estouravam a célula. O nome do arquivo entra no rótulo acessível porque
+              // numa tabela o verbo sozinho não diz QUAL — é o mesmo motivo de o `title` existir.
+              //
+              // `<a>` cru dentro do Button (`asChild`): a URL é assinada e aponta pro
+              // `DownloadController`, que responde um stream. `<Link>` do Inertia faria XHR e
+              // engasgaria no anexo. Sem `target="_blank"`: o navegador trata anexo como
+              // download e não navega pra fora da tela.
+              <Button variant="ghost" size="icon-sm" asChild>
+                <a
+                  href={a.download_url}
+                  aria-label={`Baixar ${a.nome}`}
+                  title={`Baixar ${a.nome} — link assinado, vale 60 min e passa pelo DownloadController.`}
+                >
+                  <Download aria-hidden="true" />
+                </a>
+              </Button>
+            ) : (
+              // Nada a servir: apagado (o `DownloadController` faz `find()` sem `withTrashed`,
+              // então baixaria 404) ou sem conteúdo no storage — o que a estratégia
+              // `anonymize` da retenção produz. Botão desabilitado seria uma promessa; o
+              // travessão diz a verdade e o `title` explica.
+              <span
+                className="text-xs text-muted-foreground"
+                title="Sem conteúdo pra baixar — arquivo excluído ou anonimizado pela retenção."
+              >
+                —
+              </span>
+            )}
+          </Inline>
         )
       },
     },

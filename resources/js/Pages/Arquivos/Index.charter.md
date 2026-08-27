@@ -135,6 +135,16 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
       faria, e diz que ele **não está agendado** (medido no runtime via `Schedule::events()`,
       não deduzido do fonte). Rodar pela tela, avisar titular e purgar seguem sendo a onda 3.
 - [x] **Onda 1 COMPLETA** — as 4 vistas do charter existem: acervo · retenção · cofre · trilha.
+- [x] **Refino do acervo (2026-08-27)** — a linha ganhou **Baixar** (botão só-ícone com
+      `aria-label`, link assinado de 60 min pro `DownloadController` — o endpoint existia desde
+      a Sprint 1 e não tinha leitor de UI) e o **"Vinculado a"** passou a mostrar o nome de
+      negócio do dono com o tipo técnico em mono embaixo, virando link só pros 2 tipos cuja
+      rota foi provada em `route:list` (`ServiceOrder`, `JobSheet`). Buraco medido com a mesma
+      sonda em produção e no protótipo: 6 colunas × 7, 0 botões × 3, `mono` em 0 de 6 × 5 de 7.
+      UC-INDEX-05 e UC-INDEX-06 no [casos.md](Index.casos.md); detalhe no
+      [RUNBOOK §5.4](../../../../memory/requisitos/Arquivos/RUNBOOK-index.md).
+      **Segue leitura pura:** classificar e excluir NÃO entraram — não existe endpoint pra
+      nenhum dos dois, e a decisão de onde a reclassificação mora é a pendência aberta abaixo.
 - [ ] Screenshot 1280/1440 aprovado por [W].
 - [ ] Definir se reclassificar bucket/visibility fica nesta tela ou só no dono do arquivo
       (a onda 2 esbarra nisso — ver PR-6).
