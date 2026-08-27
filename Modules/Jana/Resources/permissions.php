@@ -2,7 +2,7 @@
 
 /*
 |--------------------------------------------------------------------------
-| Permission Registry — Copiloto
+| Permission Registry — Jana
 |--------------------------------------------------------------------------
 | Declarado para o PermissionRegistry (app/Services/PermissionRegistry.php)
 | capturar via auto-discovery. As permissions Spatie já existem (declaradas
@@ -16,19 +16,19 @@
 */
 
 return [
-    'group' => 'Copiloto',
+    'group' => 'Jana',
     'icon'  => 'compass',
     'permissions' => [
         // ── Acesso base ─────────────────────────────────────────────────
         [
             'key'      => 'jana.access',
-            'label'    => 'Copiloto: acessar módulo',
+            'label'    => 'Jana: acessar módulo',
             'risk'     => 'low',
             'requires' => [],
         ],
         [
             'key'      => 'jana.chat',
-            'label'    => 'Copiloto: usar chat IA',
+            'label'    => 'Jana: usar chat IA',
             'risk'     => 'low',
             'requires' => ['jana.access'],
         ],
@@ -36,7 +36,7 @@ return [
         // ── Metas / fontes / alertas ────────────────────────────────────
         [
             'key'      => 'jana.metas.manage',
-            'label'    => 'Copiloto: gerenciar metas e fontes',
+            'label'    => 'Jana: gerenciar metas e fontes',
             'risk'     => 'medium',
             'requires' => ['jana.access'],
         ],
@@ -44,13 +44,13 @@ return [
         // ── Plataforma (Wagner / superadmin) ────────────────────────────
         [
             'key'      => 'jana.superadmin',
-            'label'    => 'Copiloto: superadmin de plataforma',
+            'label'    => 'Jana: superadmin de plataforma',
             'risk'     => 'critical',
             'requires' => [],
         ],
         [
             'key'      => 'jana.admin.custos.view',
-            'label'    => 'Copiloto: ver custos administrativos',
+            'label'    => 'Jana: ver custos administrativos',
             'risk'     => 'high',
             'requires' => [],
         ],

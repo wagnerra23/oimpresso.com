@@ -1,7 +1,7 @@
 @extends('layouts.app')
-@section('title', 'Copiloto — Superadmin')
+@section('title', 'Jana — Superadmin')
 @section('content')
-<section class="content-header"><h1>Copiloto <small>visão da plataforma</small></h1></section>
+<section class="content-header"><h1>Jana <small>visão da plataforma</small></h1></section>
 <section class="content">
     <div class="box"><div class="box-header"><h3 class="box-title">Metas da plataforma (business_id NULL)</h3></div>
         <div class="box-body">

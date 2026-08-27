@@ -117,7 +117,7 @@ export function ClienteRail<T extends ClienteFormShared>({
       <div className="rounded-lg border border-dashed border-border bg-muted/30 p-3.5">
         <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           <Sparkles size={13} className="text-primary" />
-          Copiloto
+          Jana
         </div>
         <p className="mt-1.5 text-[11.5px] text-muted-foreground">
           Dedup (&ldquo;já existe esse CNPJ&rdquo;) e sugestão de grupo chegam em breve.
