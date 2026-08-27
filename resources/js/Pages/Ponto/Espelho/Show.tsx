@@ -214,12 +214,12 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
             banco de horas vira DUAS colunas, crédito e débito, porque somá-las
             esconderia compensação. */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3" data-contract="espelho-totais">
-          <Totalizador label="Trabalhado" value={formatMinutes(t.trabalhado)} tone="blue" />
-          <Totalizador label="Atraso" value={formatMinutes(t.atraso)} tone={t.atraso > 0 ? 'amber' : 'muted'} />
-          <Totalizador label="Falta" value={formatMinutes(t.falta)} tone={t.falta > 0 ? 'red' : 'muted'} />
-          <Totalizador label="Hora extra" value={formatMinutes(t.he_diurna + t.he_noturna)} tone="violet" />
-          <Totalizador label="Banco hrs (+)" value={formatMinutes(t.bh_credito)} tone="emerald" />
-          <Totalizador label="Banco hrs (−)" value={formatMinutes(t.bh_debito)} tone="emerald" />
+          <Totalizador label="Trabalhado" value={formatMinutes(t.trabalhado)} tone="info" />
+          <Totalizador label="Atraso" value={formatMinutes(t.atraso)} tone={t.atraso > 0 ? 'warning' : 'muted'} />
+          <Totalizador label="Falta" value={formatMinutes(t.falta)} tone={t.falta > 0 ? 'destructive' : 'muted'} />
+          <Totalizador label="Hora extra" value={formatMinutes(t.he_diurna + t.he_noturna)} tone="primary" />
+          <Totalizador label="Banco hrs (+)" value={formatMinutes(t.bh_credito)} tone="success" />
+          <Totalizador label="Banco hrs (−)" value={formatMinutes(t.bh_debito)} tone="success" />
         </div>
 
         {/* Alerta divergências */}
@@ -333,7 +333,7 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
                       <td className={cn('p-2 text-right font-mono', l.atraso > 0 && 'text-warning-fg')}>
                         {formatMinutes(l.atraso)}
                       </td>
-                      <td className={cn('p-2 text-right font-mono', l.he > 0 && 'text-violet-600')}>
+                      <td className={cn('p-2 text-right font-mono', l.he > 0 && 'text-primary')}>
                         {formatMinutes(l.he)}
                       </td>
                       <td className="p-2 text-right font-mono whitespace-nowrap">
@@ -396,16 +396,16 @@ function Totalizador({
 }: {
   label: string;
   value: string;
-  tone: 'blue' | 'emerald' | 'amber' | 'red' | 'violet' | 'muted';
+  tone: 'info' | 'success' | 'warning' | 'destructive' | 'primary' | 'muted';
   small?: boolean;
 }) {
   const toneClass: Record<typeof tone, string> = {
-    blue:    'text-blue-700 dark:text-blue-400',
-    emerald: 'text-emerald-700 dark:text-emerald-400',
-    amber:   'text-amber-700 dark:text-amber-400',
-    red:     'text-red-700 dark:text-red-400',
-    violet:  'text-violet-700 dark:text-violet-400',
-    muted:   'text-muted-foreground',
+    info:        'text-info-fg',
+    success:     'text-success-fg',
+    warning:     'text-warning-fg',
+    destructive: 'text-destructive',
+    primary:     'text-primary',
+    muted:       'text-muted-foreground',
   };
   return (
     <Card>
