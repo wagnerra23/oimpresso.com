@@ -2,6 +2,18 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "ancora-jana",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5588",
+        "--directory",
+        "D:/oimpresso.com/.claude/worktrees/remove-old-worktrees-f60ae4/prototipo-ui/cowork"
+      ],
+      "port": 5588
+    },
+    {
       "name": "cowork-jana-2",
       "runtimeExecutable": "python",
       "runtimeArgs": [

@@ -143,8 +143,31 @@ export default function KpiCard({
               produção → valor em `text-foreground` (neutro) · ícone 36px em `text-destructive`
             Ou seja: aqui o ENFEITE gritava e o NÚMERO ficava mudo — o oposto do que a âncora faz,
             e o oposto do que a leitura pede (quem dói é o número, não o ícone ao lado dele).
-            [W] reportou como quatro defeitos ("fundo errado", "fonte", "ícone errado", "tamanho");
-            os quatro são sintoma desta inversão.
+            [W] reportou como quatro defeitos ("fundo errado", "fonte", "ícone errado", "tamanho").
+
+            ⚠️ ERRATA 2026-08-27 (auditoria adversarial), DUAS correções ao que está escrito acima:
+
+            (1) "os quatro são sintoma desta inversão" era AFIRMAÇÃO SEM CONSERTO. Este diff muda
+                UMA classe — a cor do valor. O eixo do ícone que o próprio texto acima mede como
+                divergente (36px `text-destructive` × 15px cinza na âncora) segue INTOCADO em
+                `iconContainerVariants` (:61 `bg-destructive/10 text-destructive`, :66 `h-9 w-9`).
+                O commit admitia; este comentário não — e é o comentário que a próxima sessão lê.
+
+            (2) O EIXO pode estar errado, e isto NÃO está resolvido. A âncora separa dois campos
+                que este ajuste fundiu:
+                  `emphasize`            → `.jc-kpi.emph`  = borda + fundo, NÃO toca o valor
+                  `deltaCls === "red big"` → `.jc-kpi-v.red` = a cor do VALOR
+                E o `JanaCockpit.tsx` declara que `tone` mapeia a `emphasize` ("1 de 4 com
+                `emphasize:true`"). Ou seja: pendurou-se no eixo do FUNDO um efeito que a âncora
+                pendura no eixo do DELTA. Passou despercebido porque o dataset tem N=1 — o único
+                KPI marcado ("A receber vencido") carrega os DOIS campos, e com um ponto só os
+                eixos são indistinguíveis. A conclusão foi INTERPOLADA, não lida do contrato.
+                Some-se que o bloco de dados que a sustenta é o retrato do Martinho — o mesmo que
+                renderiza "Frota utilização", banido pelo §5 de 2026-08-10.
+                NÃO revertido porque a decisão é de produto ([W]), e porque o efeito (número que
+                dói em vermelho) é defensável por si. Mas NÃO se apoie nisto como "a âncora manda":
+                ela manda no `deltaCls`, e este componente não tem esse campo.
+
             ESCOPO: só `danger`. `success`/`warning` seguem com valor neutro de propósito — verde
             afirmando "bom" sobre um número é o vício que o §Anti-hooks do charter da Jana já
             proíbe, e `warning` colorido brigaria com o Delta ao lado. */}
