@@ -96,6 +96,9 @@ export function somaDasParcelas(parcelas: Pick<Parcela, 'valor'>[]): number {
   return submitSafe(parcelas.reduce((s, p) => s + parseBR(p.valor), 0));
 }
 
+/** O rótulo de baixa, tirado da lista canônica pra não virar string solta. */
+export const RECEBIDA = LANCAMENTOS[1]!;
+
 /**
  * Diferença entre o total da venda e a soma das parcelas.
  *
@@ -115,8 +118,24 @@ export function fechaNoTotal(total: number, parcelas: Pick<Parcela, 'valor'>[]):
 
 /* ─── datas ──────────────────────────────────────────────────────────────── */
 
-/** Meia-noite local — comparar vencimento com "hoje" exige zerar a hora dos dois lados. */
+/**
+ * Meia-noite local — comparar vencimento com "hoje" exige zerar a hora dos dois lados.
+ *
+ * ⚠️ A string `yyyy-mm-dd` é tratada à parte, e o motivo é um bug medido: a ES
+ * manda parsear data-only como **UTC**, então `new Date('2026-08-27')` vira
+ * `2026-08-26 21:00` em `America/Sao_Paulo` — e o `setHours(0,0,0,0)` seguinte
+ * grampeia no dia **26**. Todo vencimento aparecia um dia antes, em qualquer fuso
+ * a oeste de Greenwich; o CI (UTC) não veria. Aqui a data-only é montada com o
+ * construtor de componentes, que é local por definição.
+ *
+ * O formato importa porque é o que `dataISO` emite e o que `<input type="date">`
+ * devolve — ou seja, é a forma em que TODO vencimento desta tela circula.
+ */
 export function diaZero(v: Date | string | number): Date {
+  if (typeof v === 'string') {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(v);
+    if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  }
   const d = new Date(v);
   d.setHours(0, 0, 0, 0);
   return d;

@@ -5,7 +5,7 @@ irmaos: CreateV3.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: luiz
-last_run: "2026-08-26"
+last_run: "2026-08-27"
 ---
 
 # Casos de Uso & Aceite — Venda V3 (preview)
@@ -31,6 +31,12 @@ last_run: "2026-08-26"
 > lista exata da lane [`sells-v3-dominio-gate.yml`](../../../../.github/workflows/sells-v3-dominio-gate.yml)
 > — 7 arquivos, 104 testes — rodou verde nesta base, incluindo os 8 de `colunas-grid.test.tsx`.
 > Os UCs seguem **🧪** e não ✅: o veredito é do manifesto do G-7, não do run.
+
+> ℹ️ **`last_run` 2026-08-26 → 2026-08-27 (G-6) — também re-run, e com achado junto.**
+> O fechamento passou a mostrar as parcelas geradas (UC-V369/V370), e escrever o resumo expôs um
+> bug de data que já estava em produção: vencimento exibido **um dia antes** em qualquer fuso a
+> oeste de Greenwich (o CI roda em UTC e nunca veria). A lista exata da lane — **8 arquivos,
+> 110 testes** — rodou verde nesta base; contador antes→depois: 7/104 → 8/110.
 ---
 
 ## Como esta lista cresce
@@ -546,6 +552,70 @@ fabrica, categoria, estoque` por `textoDaColuna`). As 18 sem fonte: medidas
 Parte delas o lançamento **coleta e a Page descarta** (`executante`, `local`, `impressao` em
 `ItemLancado`); parte só existe no state local do drawer de detalhe. Ligar cada fonte é trabalho
 próprio, fora deste PR.
+
+---
+
+## UC-V369 · Gerar parcelas APARECE no fechamento
+
+**Status:** 🧪 — 3 testes citam o UC e passam ([`tests/js/resumo-parcelas.test.tsx`](../../../../tests/js/resumo-parcelas.test.tsx)); sem entrada no manifesto até a lane rodar em `main`.
+
+- **Dado** que o operador dividiu o total no drawer de parcelas,
+- **Quando** o drawer fecha,
+- **Então** o fechamento mostra **quantas** (`{n}x`), **de que tipo**, e cada parcela com **número/total, vencimento e valor** — mais um atalho `Editar parcelas` que devolve o controle ao drawer.
+
+Derivado da âncora de design [`sells-create.jsx:429-445`](../../../../prototipo-ui/cowork/venda-v3/sells-create.jsx),
+declarada em `related_prototype` — não do `.tsx` (§5 tautológico).
+
+**O defeito que este UC fecha, relatado por [W] com print em 2026-08-26:** gerar parcelas
+personalizadas não mudava **nada** na tela principal. O único vestígio era o rótulo do botão
+virar `Parcelas (2)…`; quem gerou precisava **reabrir o drawer** pra conferir o que tinha
+gerado. É o mesmo vão do grid de colunas (UC-V367): domínio provado em 15 casos
+(`ratear` não perde centavo) e tela surda — teste de domínio verde não prova que a tela
+**consome** o domínio.
+
+**Ausente é ausente:** sem parcela nenhuma o bloco **não renderiza**, em vez de virar caixa
+vazia — o primeiro dos 3 testes prova isso.
+
+---
+
+## UC-V370 · Baixa e excedente são DECLARADOS, nunca escondidos
+
+**Status:** 🧪 — 3 testes citam o UC e passam ([`tests/js/resumo-parcelas.test.tsx`](../../../../tests/js/resumo-parcelas.test.tsx)).
+
+- **Dado** um conjunto de parcelas maior que o corte de exibição (**4**, o mesmo da âncora),
+- **Quando** o fechamento as resume,
+- **Então** as que não couberam são **contadas** (`+N parcelas`, no singular quando é uma só), e a parcela com `lanc = RECEBIDA` vem **marcada**, enquanto a que não entrou não vem.
+
+Mostrar 4 de 6 sem dizer que há mais é a mesma cegueira que o UC-V369 fecha, só que menor.
+
+⚠️ **O `✓` REPORTA, não calcula.** O `pago`/`saldo` do fechamento continua ignorando parcela
+com baixa (`CreateV3.tsx` — `pago` soma só `pags`), então "Falta receber" segue mostrando o
+total cheio depois de dar baixa. Isso é território **Tier 0 de VALOR** e sai em PR próprio,
+com prova por dois caminhos e tabela antes→depois — a REGRA MESTRE de
+[`proibicoes.md`](../../../../memory/proibicoes.md) não admite embutir num PR de exibição.
+
+### Achado colhido junto: o vencimento aparecia UM DIA ANTES
+
+Escrever o resumo expôs um defeito que já estava em produção e ninguém via, porque a data
+circula por `<input type="date">` (que o browser resolve sozinho) e só as exibições
+**derivadas** o revelavam. `diaZero` fazia `new Date('2026-08-27')` — e a ES manda parsear
+data-only como **UTC**, então em `America/Sao_Paulo` isso vira `2026-08-26 21:00` e o
+`setHours(0,0,0,0)` seguinte grampeia no dia **26**.
+
+Medido, com controle por mutação:
+
+| `venc` (ISO) | antes | depois |
+|---|---|---|
+| `2026-08-27` | 26/08/2026 | **27/08/2026** |
+| `2026-09-26` | 25/09/2026 | **26/09/2026** |
+| `2026-01-01` | **31/12/2025** | **01/01/2026** |
+
+A terceira linha é a que dói: vencimento de 1º de janeiro caía no dia 31 de dezembro — mês
+errado **e ano fiscal errado**. Raio contado (`git grep`, 9 linhas): os consumidores reais
+são 3, todos no `ParcelasDrawer` — a pill **"vencida"** (`:358`) podia acender um dia antes,
+e `recebida <data>` (`:368`) exibia um dia antes. O `dataBR` do `Arquivos/Index.tsx` é
+função **local homônima** e não é afetado. O CI, que roda em **UTC**, nunca veria nenhum dos
+três.
 
 ---
 

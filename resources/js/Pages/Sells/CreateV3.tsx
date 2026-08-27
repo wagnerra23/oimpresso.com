@@ -56,6 +56,7 @@ import ComissaoDrawer from './_components/v3/ComissaoDrawer';
 import ColunasModal from './_components/v3/ColunasModal';
 import ItemDetalhe from './_components/v3/ItemDetalhe';
 import ParcelasDrawer from './_components/v3/ParcelasDrawer';
+import ResumoParcelas from './_components/v3/ResumoParcelas';
 import ConsultaCliente from './_components/v3/ConsultaCliente';
 import {
   rotuloIcmsLongo,
@@ -891,6 +892,8 @@ export default function SellsCreateV3({ cena }: Props) {
               {parcelas.length > 0 ? `Parcelas (${parcelas.length})…` : "Parcelar…"}
             </Chip>
           </Inline>
+
+          <ResumoParcelas parcelas={parcelas} onEditar={() => setParcelasAberto(true)} />
 
           {pags.length > 0 && (
             <Stack gap={2} className="mb-3">

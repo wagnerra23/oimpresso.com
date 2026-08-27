@@ -3,7 +3,7 @@ page: /sells/create-v3
 component: resources/js/Pages/Sells/CreateV3.tsx
 owner: luiz
 status: draft
-last_validated: "2026-08-26"
+last_validated: "2026-08-27"
 parent_module: Sells
 related_us: [US-SELL-058]
 related_adrs: [253, 104, 93, 62]
