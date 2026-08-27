@@ -28,7 +28,7 @@ export function toFwd(p) { return String(p || '').split(BACKSLASH).join('/'); }
 
 /** {modulo, tela} se é uma Page .tsx elegível (top-level ou 1 subdir), senão null. */
 export function matchPage(filePath) {
-  const m = /resources\/js\/Pages\/([^/_][^/]*)\/(?:[^/]+\/)?([A-Za-z][A-Za-z0-9]*)\.tsx$/.exec(toFwd(filePath));
+  const m = /resources\/js\/Pages\/([^/_][^/]*)\/(?:[^/]+\/)?([A-Za-z][A-Za-z0-9]*)\.tsx$/i.exec(toFwd(filePath));
   if (!m) return null;
   const modulo = m[1];
   const tela = m[2];
