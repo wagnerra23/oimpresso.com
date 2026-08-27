@@ -658,5 +658,19 @@
     },
     "origin": "export",
     "stalePreExport": 0
+  },
+  {
+    "date": "2026-08-26T22:07:08.661Z",
+    "files": 248,
+    "sync": 0,
+    "stale": 1,
+    "liveAbsent": 0,
+    "unchecked": 247,
+    "staleList": [
+      "jana-merge.jsx"
+    ],
+    "verified": [],
+    "verifiedHash": {},
+    "origin": "medicao"
   }
 ]
