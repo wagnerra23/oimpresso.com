@@ -42,6 +42,7 @@
         "Disco",
         "Tamanho",
         "Vence em",
+        "vale 60 min e passa pelo",
         "Buscar por nome, dono ou contexto…",
         "Nenhum arquivo guardado ainda."
       ]
@@ -123,6 +124,7 @@
     "trilha"
   ],
   "_pendente_w": [
+    "BOTAO DE BAIXAR (2026-08-27) — a copy pinada e \"vale 60 min e passa pelo\", NAO \"Baixar\", e a escolha foi MEDIDA com canario. \"Baixar\" ja existia no arquivo ANTES do botao existir, na prosa do rodape (\"Baixar do vault passa sempre pelo DownloadController\", presente em origin/main): pinada assim, a secao ficava VERDE com o botao removido — carimbo, nao gate. Provado trocando as 2 ocorrencias de codigo por XX e rodando o gate: passou verde com 1 ocorrencia restante (a prosa). Mesma familia do \"Payload\" casando dentro de \"TrilhaPayload\" que o _nota_limite acima cataloga. O fragmento do title e unico ao botao e MORDE: trocado por ZZZ, o gate reprovou (1 falha); restaurado, verde. O cabecalho da coluna de acoes fica VAZIO de proposito (o prototipo desenha label vazio), logo nao ha copy de header a pinar. \"Vinculado a\" ja estava pinado e nao muda: o que mudou foi o CONTEUDO da celula (rotulo de negocio + tipo tecnico em mono), nao o rotulo da coluna. O contrato de COMPORTAMENTO do botao e o UC-INDEX-05 do casos.md, com teste Pest — nao esta linha.",
     "ABAS — RESOLVIDO em 2026-08-25: as QUATRO vistas do prototipo existem na tela (Acervo, Retencao, Cofre, Trilha) e a copy das 4 esta pinada. A nota anterior dizia que pinar \"Retencao\"/\"Cofre\" reprovaria por construcao, e estava certa ENQUANTO elas nao existiam.",
     "DIVERGÊNCIA DE COPY MEDIDA — a última coluna da Trilha: o protótipo diz \"Payload\", a tela diz \"Detalhe\". O contrato pina \"Detalhe\" porque é o que o alvo tem HOJE (pinar \"Payload\" deixaria o gate vermelho sem ninguém ter regredido). Qual das duas é a palavra certa é decisão [W]: se for \"Payload\", muda-se a tela E esta linha no MESMO PR (regra de precedência — o perdedor se corrige junto).",
     "SUBTÍTULO do PageHeader não é pinável: é template string derivada do paginador (\"N nesta página · N no cofre cifrado\" / \"N eventos registrados\"). Contrato pina literal, e o literal aqui é composto em runtime.",

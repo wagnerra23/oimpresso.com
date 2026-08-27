@@ -6,7 +6,9 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Arquivos\Entities\Arquivo;
@@ -49,6 +51,60 @@ use Modules\Arquivos\Services\RetencaoStatsReader;
  */
 class ArquivosAdminController extends Controller
 {
+    /**
+     * Minutos de validade do link de download — o mesmo prazo do `ArquivosService::signedUrl()`
+     * e o que a ADR 0123 §6 e o charter declaram. Fica em constante pra tela não repetir "60"
+     * escrito à mão em prosa.
+     */
+    private const DOWNLOAD_EXPIRA_MIN = 60;
+
+    /**
+     * Vocabulário do dono do arquivo: como se chama no NEGÓCIO, e onde ele é alcançado.
+     *
+     * A tela imprimia `class_basename($a->arquivable_type)` cru — `ServiceOrder`, `JobSheet`,
+     * `NfeEmissao`. Isso é o nome da classe Eloquent, não o nome da coisa; o protótipo desenha
+     * o rótulo de negócio em cima e o tipo técnico embaixo, em mono. Aqui o rótulo vem deste
+     * mapa e o tipo técnico continua saindo (`dono_tipo`) pra sub-linha.
+     *
+     * **A chave `rota` só existe onde a rota foi PROVADA, e a prova foi `php artisan route:list`
+     * no CT 100 — não leitura do `Routes/web.php`**, que num app modular tem mais de uma fonte
+     * (lápide §5 2026-07-17: quem responde "o que existe" é o runtime). Os 8 tipos abaixo são
+     * os consumidores reais da trait `HasArquivos` no repo (varredura contada: 8 models). O que
+     * ficou SEM rota ficou por razão medida, escrita ao lado — e sem rota o valor renderiza como
+     * texto, nunca como link morto.
+     *
+     * Tipo fora deste mapa não é erro: cai no `class_basename` cru, que é o que a tela já fazia.
+     * Módulo novo que adotar a trait aparece assim até alguém acrescentar a linha dele aqui.
+     *
+     * @var array<string, array{rotulo:string, rota:?string, param:?string}>
+     */
+    private const DONO = [
+        // OficinaAuto — `GET oficina-auto/ordens-servico/{order}`, tela de leitura por id.
+        'ServiceOrder' => ['rotulo' => 'Ordem de serviço', 'rota' => 'oficinaauto.orders.show', 'param' => 'order'],
+        // Repair — `GET repair/job-sheet/{job_sheet}`. O sufixo desambigua: os DOIS módulos
+        // chamam a coisa de "Ordem de serviço" na própria UI, e as duas podem aparecer na
+        // mesma lista. O tipo técnico na sub-linha resolve o resto.
+        'JobSheet' => ['rotulo' => 'Ordem de serviço (reparo)', 'rota' => 'job-sheet.show', 'param' => 'job_sheet'],
+        // NfeBrasil — sem tela de leitura por id: o que existe é `nfe-brasil.emissoes.danfe-pdf`,
+        // que devolve um PDF, não uma página. Link pra DANFE dentro da coluna "de quem é este
+        // arquivo" responderia outra pergunta.
+        'NfeEmissao' => ['rotulo' => 'Emissão de NF-e', 'rota' => null, 'param' => null],
+        // NfeBrasil — `nfe-brasil.manifestacao.index` é lista; `.eventos`/`.itens` devolvem JSON.
+        // Não há página por id.
+        'NfeDfeRecebido' => ['rotulo' => 'Documento fiscal recebido', 'rota' => null, 'param' => null],
+        // Whatsapp — a mensagem é alcançada pela conversa no Inbox, não por id próprio; não
+        // existe rota GET de mensagem por id.
+        'Message' => ['rotulo' => 'Mensagem de WhatsApp', 'rota' => null, 'param' => null],
+        // Cms — existe `GET cms/cms-page/{cms_page}/edit`, mas ela é (a) tela de EDIÇÃO e
+        // (b) atrás do middleware `superadmin`. Mandar a persona de conformidade pra um 403 é
+        // pior que não linkar.
+        'CmsPage' => ['rotulo' => 'Página do site', 'rota' => null, 'param' => null],
+        // Financeiro — `financeiro.boletos.index` é a lista; não há página por remessa.
+        'BoletoRemessa' => ['rotulo' => 'Remessa de boletos', 'rota' => null, 'param' => null],
+        // OficinaAuto — item de vistoria (DVI) vive DENTRO da OS; não tem rota própria.
+        'OaInspectionItem' => ['rotulo' => 'Item de vistoria (DVI)', 'rota' => null, 'param' => null],
+    ];
+
     /**
      * A tela — três vistas hoje: acervo (PR-1), trilha (PR-2) e cofre (PR-4).
      *
@@ -291,10 +347,91 @@ class ArquivosAdminController extends Controller
             'orfao'           => $a->arquivable_type === null,
             'dono_tipo'       => $a->arquivable_type ? class_basename($a->arquivable_type) : null,
             'dono_id'         => $a->arquivable_id,
+            // Rótulo de negócio + destino: quem lê a tela quer "Ordem de serviço #4", não
+            // "ServiceOrder #4". O tipo técnico continua saindo acima, pra sub-linha em mono.
+            'dono_rotulo'     => $this->donoRotulo($a->arquivable_type),
+            'dono_url'        => $this->donoUrl($a->arquivable_type, $a->arquivable_id),
+            // Link ASSINADO, gerado no servidor — o charter proíbe `Storage::url` e a ADR 0123 §6
+            // manda passar pelo `DownloadController`. `null` quando não há o que servir.
+            'download_url'    => $this->downloadUrl($a),
             'vence_em'        => $vence?->toDateString(),
             'dias_restantes'  => $vence ? (int) now()->startOfDay()->diffInDays($vence, false) : null,
             'excluido_em'     => $a->deleted_at?->toDateString(),
         ];
+    }
+
+    /**
+     * O nome de negócio do dono. Sem entrada no mapa, o `class_basename` cru — que é
+     * exatamente o que a tela mostrava antes, então nenhum tipo piora.
+     */
+    private function donoRotulo(?string $tipo): ?string
+    {
+        if ($tipo === null) {
+            return null;
+        }
+
+        $curto = class_basename($tipo);
+
+        return self::DONO[$curto]['rotulo'] ?? $curto;
+    }
+
+    /**
+     * A URL da tela do dono — ou `null`.
+     *
+     * DUAS condições, e as duas importam: (a) o tipo precisa declarar uma rota neste
+     * arquivo e (b) o `Route::has()` precisa confirmar que ela existe NESTE boot. A (b)
+     * não é paranoia: os donos moram em módulos nWidart que podem estar **desinstalados
+     * para este business** — o mapa é do repo, o roteador é do runtime, e quem responde
+     * "existe?" é o runtime (lápide §5 2026-07-17). Sem a checagem, um módulo desligado
+     * derrubaria a tela inteira com `RouteNotFoundException` no meio do `paginate`.
+     *
+     * NÃO existe verificação de permissão aqui, e é decisão consciente: o link leva a uma
+     * rota que tem o próprio `can()`/middleware. Quem não pode ver a OS recebe o 403 dela,
+     * que é a resposta correta — replicar a política do outro módulo aqui criaria uma
+     * segunda fonte de verdade que dessincroniza calada.
+     */
+    private function donoUrl(?string $tipo, int|string|null $id): ?string
+    {
+        if ($tipo === null || $id === null) {
+            return null;
+        }
+
+        $entrada = self::DONO[class_basename($tipo)] ?? null;
+
+        if ($entrada === null || $entrada['rota'] === null || ! Route::has($entrada['rota'])) {
+            return null;
+        }
+
+        return route($entrada['rota'], [$entrada['param'] => $id]);
+    }
+
+    /**
+     * Link assinado de download — 60 min, `DownloadController`, ou `null`.
+     *
+     * **Por que `URL::temporarySignedRoute` direto, e não `ArquivosService::signedUrl()`:**
+     * o método do Service grava um evento `signed_url_issued` na trilha a cada chamada. Ele
+     * existe pra quando ALGUÉM pede um link. Aqui a tela renderiza 25 linhas por página —
+     * usá-lo faria cada abertura do acervo escrever 25 linhas de auditoria, o que (a) quebra
+     * a leitura pura que o charter, o docblock desta classe e um assert declaram e (b)
+     * afogaria a própria vista Trilha em ruído de renderização. Quem baixa de fato continua
+     * auditado: o `DownloadController` grava `signed_url_consumed` no consumo, que é o evento
+     * que responde "quem baixou".
+     *
+     * O link não afrouxa nada: o `DownloadController` roda com `auth` + `signed` e o
+     * `Arquivo::find()` de lá aplica o global scope por business (ADR 0093). URL vazada sem
+     * sessão do mesmo tenant não serve arquivo.
+     */
+    private function downloadUrl(Arquivo $a): ?string
+    {
+        if (! $a->temConteudo() || ! Route::has('arquivos.download')) {
+            return null;
+        }
+
+        return URL::temporarySignedRoute(
+            'arquivos.download',
+            now()->addMinutes(self::DOWNLOAD_EXPIRA_MIN),
+            ['arquivo' => $a->id],
+        );
     }
 
     // -------------------------------------------------------------------------

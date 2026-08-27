@@ -84,6 +84,60 @@ compartilhável e o botão voltar do navegador mente.
 > (`Schedule::events()`) se o `arquivos:retention-cleanup` está agendado. Hoje não está; se um dia
 > estiver, a frase muda sozinha. Deduzir "quem roda" lendo o Kernel seria a lápide de 2026-07-17.
 
+### 5.4 Refino do acervo (2026-08-27) — Baixar e "Vinculado a"
+
+O buraco foi **medido**, não suposto: sonda injetada em produção (logado) e no protótipo vivo,
+mesma função nos dois lados. A linha do acervo em produção tinha **6 colunas e ZERO botões**; o
+protótipo tem **7** (a 7ª é a de ações) e usa `mono` em 5 delas contra **0 de 6** na produção.
+
+| Item | Antes | Depois |
+|---|---|---|
+| Baixar | não existia botão nenhum na tabela | botão só-ícone por linha, com `aria-label`, apontando pra **URL assinada de 60 min** |
+| "Vinculado a" | `ServiceOrder #4` — nome da classe Eloquent | `Ordem de serviço #4` (link, quando há rota provada) + `ServiceOrder` em `font-mono` na sub-linha |
+| `mono` | 0 de 6 colunas | 3 de 7 — dono (tipo técnico), tamanho, data de vencimento |
+
+**Nenhum endpoint novo.** `arquivos.download` existe desde a Sprint 1 (US-ARQ-008) e até aqui
+**não tinha nenhum leitor de UI**. O que faltava era a tela oferecer.
+
+**A URL é gerada NO SERVIDOR, e por `URL::temporarySignedRoute` — não pelo
+`ArquivosService::signedUrl()`.** O método do Service grava `signed_url_issued` a cada chamada:
+ele existe pra quando *alguém pede* um link. A tela renderiza 25 linhas por página — usá-lo faria
+cada abertura do acervo escrever 25 linhas de auditoria, o que quebra a leitura pura e afoga a
+própria vista Trilha em ruído de renderização. Quem baixa de fato continua auditado: o
+`DownloadController` grava `signed_url_consumed` **no consumo**, que é o evento que responde
+"quem baixou". Há teste comportamental com controle positivo pra isso (UC-INDEX-05).
+
+**Quem NÃO oferece download:** arquivo soft-deleted (o `DownloadController` faz `Arquivo::find()`
+sem `withTrashed` → 404) e arquivo sem conteúdo no storage (a estratégia `anonymize` da retenção
+zera o campo → 404 no `exists()`). O predicado mora em `Arquivo::temConteudo()`, **não** no
+controller: o assert de LGPD daquele arquivo proíbe a menção ao caminho de disco em qualquer
+método dele, e separar é o que mantém o assert honesto em vez de afrouxado.
+
+**Link do dono — só com rota PROVADA.** O mapa `ArquivosAdminController::DONO` traduz o
+`class_basename` pra vocabulário de negócio e declara a rota **medida em `php artisan route:list`
+no CT 100** (o runtime é o oráculo; o `Routes/web.php` de um app modular tem várias fontes). Dos
+8 consumidores reais da trait `HasArquivos`, **2** ganharam link:
+
+| Tipo | Rota | Link? |
+|---|---|---|
+| `ServiceOrder` | `oficinaauto.orders.show` | ✅ |
+| `JobSheet` | `job-sheet.show` | ✅ |
+| `NfeEmissao` | só `nfe-brasil.emissoes.danfe-pdf` — devolve PDF, não página | ❌ |
+| `NfeDfeRecebido` | `manifestacao.index` é lista; `.eventos`/`.itens` são JSON | ❌ |
+| `Message` | alcançada pela conversa no Inbox; sem rota por id | ❌ |
+| `CmsPage` | `cms-page.edit` existe, mas é tela de EDIÇÃO **e** `superadmin` | ❌ |
+| `BoletoRemessa` | `financeiro.boletos.index` é lista | ❌ |
+| `OaInspectionItem` | vive dentro da OS; sem rota própria | ❌ |
+
+A segunda perna é o `Route::has()` em runtime: o mapa é do repo, o roteador é do boot, e o módulo
+dono pode estar **desinstalado para este business**. Sem a checagem, um módulo desligado derrubaria
+a tela inteira com `RouteNotFoundException` no meio do `paginate`.
+
+**O que este refino NÃO fez, e por qual pendência está parado:** classificar, excluir, restaurar,
+avisar titular e purgar. Não é escolha de escopo — **não existe endpoint** pra nenhum deles, e o
+charter os agenda pra onda 2 (travada na decisão [W] do PR-6 sobre onde a reclassificação mora) e
+onda 3.
+
 ### 5.3 Retenção — o que a vista faz, e por que ela conta em PHP
 
 KPIs (vence em 30 · vence em 90 · no grace · passou do prazo), a política com a **base legal por
@@ -218,6 +272,9 @@ Nenhum nesta onda. A tela não está no `MENU_SHORTCUTS` do shell e não reivind
 | `tab` + `acao` na `ListArquivosRequest` | `Modules/Arquivos/Http/Requests/` | **novos no PR-2** — os 2 únicos campos acrescentados ao contrato de entrada |
 | `CofreStatsReader` | `Modules/Arquivos/Services/` | **novo no PR-4** — ver §5.2 pra por que não é método do `CuradorStatsReader` nem do controller |
 | `vault_max_file_size_mb` (o cap que o vault recusa) | `Modules/Arquivos/Config/config.php` | já existia — a tela **lê a config**, não escreve 50 |
+| rota `arquivos.download` (signed + `throttle:60,1`) | `Modules/Arquivos/Routes/web.php` | já existia (Sprint 1 · US-ARQ-008) — **sem nenhum leitor de UI** até o refino de 2026-08-27 |
+| `Arquivo::temConteudo()` | `Modules/Arquivos/Entities/` | **novo (2026-08-27)** — o predicado precisa do campo de caminho, e ele não pode ser mencionado no controller (assert de LGPD). Ver §5.4 |
+| `ArquivosAdminController::DONO` (rótulo PT-BR + rota do dono) | `Modules/Arquivos/Http/Controllers/` | **novo (2026-08-27)** — rota provada em `route:list`, confirmada em runtime por `Route::has()` |
 
 Nenhum endpoint novo foi inventado — a regra 3 do pedido zero-toque é ligar o que existe.
 Nem a trilha nem o cofre abriram rota, model ou tabela: leem o que está lá desde a Sprint 1. O
@@ -268,7 +325,16 @@ cofre só ampliou o vocabulário de `tab` com um valor.
    "Rodar dry-run" que o protótipo desenha (é onda 3).
 10. `?tab=retencao` → **422** pela validação (`Rule::in`), não um acervo silencioso. A aba não
     existe ainda, e uma URL que devolve 200 mostrando outra coisa mente.
-11. Ação inválida nunca dá 500, e os dois casos são **diferentes de propósito**:
+11. No acervo: cada linha com conteúdo tem **um** botão só-ícone de baixar, e o `aria-label`
+    diz qual arquivo. Clicar baixa; a URL do `href` tem `signature=` e `expires=` ~60 min à
+    frente. Linha soft-deleted (`?with_trashed=1`) mostra `—`, **não** um botão desabilitado.
+12. Abrir o acervo e conferir em `?tab=trilha` que **nenhum** `signed_url_issued` novo apareceu
+    só por ter renderizado a lista — renderizar não é pedir link. Baixar de fato gera
+    `signed_url_consumed`, esse sim.
+13. Na coluna "Vinculado a": rótulo em PT-BR (`Ordem de serviço #4`) com o tipo técnico
+    (`ServiceOrder`) embaixo em mono. Onde há link, ele abre a tela do dono; onde não há, é
+    texto — **nenhum link que devolva 404 ou 403**.
+14. Ação inválida nunca dá 500, e os dois casos são **diferentes de propósito**:
    - `?tab=trilha&acao=UPLOAD!` → barrado pela validação (`regex:/^[a-z_]+$/`), volta com erro.
    - `?tab=trilha&acao=acao_que_nao_existe` → **passa** na validação (é minúsculo com `_`) e
      devolve lista vazia. É o desenho: quem valida vocabulário é o ENUM da coluna, não uma
@@ -284,6 +350,15 @@ cofre só ampliou o vocabulário de `tab` com um valor.
   `{ PageHeader } from '@/Components/PageHeader'` (ADR 0189/0190). O `pageheader-migration-guard`
   reprova adotante novo.
 - ❌ Não dar `hard-delete` por esta tela.
+- ❌ **Não trocar o `URL::temporarySignedRoute` do `downloadUrl()` pelo `ArquivosService::signedUrl()`** —
+  ele audita `signed_url_issued` a cada chamada, e a tela chama uma vez por linha. Ver §5.4.
+- ❌ **Não acrescentar tipo ao mapa `DONO` com rota que você não rodou em `route:list`.** O
+  `Routes/web.php` do módulo não é o oráculo num app modular, e link morto na coluna de
+  governança é pior que texto.
+- ❌ **Não mencionar o campo de caminho de disco dentro do `ArquivosAdminController`** pra
+  decidir se o arquivo baixa — o predicado é do model (`temConteudo()`). O assert de LGPD
+  daquele arquivo é presence-gate de propósito: afrouxá-lo pra caber é trocar a defesa pela
+  conveniência.
 - ❌ **Não pôr ação de linha na trilha** (editar, apagar, corrigir). `arquivos_audit_log` é
   append-only e nunca purgado, nem quando o arquivo é: alterar auditoria é incidente, não
   conserto (ADR 0123 §8).

@@ -855,6 +855,174 @@ it('UC-INDEX-04 · o que esta no grace NAO conta como vencido — sao estados di
     expect($depois['passou_do_prazo'])->toBe($antes['passou_do_prazo']);
 })->group('arquivos');
 
+// =============================================================================
+// Baixar + "Vinculado a" (onda 1 · refino) — o que a linha do acervo OFERECE.
+//
+// As fixtures aqui são models NÃO PERSISTIDOS de propósito: `linha()` só lê atributos
+// (não toca relação nem query), então o contrato vale nas DUAS lanes — inclusive na
+// sqlite sem migrate, onde 107 dos testes deste módulo pulam. O único caso que precisa
+// de banco é o de leitura pura, e ele pula explicitamente.
+// =============================================================================
+
+if (! function_exists('arquivosLinhaDe')) {
+    /** Invoca o `linha()` privado do controller — o método que monta a linha do acervo. */
+    function arquivosLinhaDe(Modules\Arquivos\Entities\Arquivo $a): array
+    {
+        $c = new ArquivosAdminController();
+        $m = new ReflectionMethod($c, 'linha');
+        $m->setAccessible(true);
+
+        return $m->invoke($c, $a);
+    }
+}
+
+if (! function_exists('arquivosFixtureLinha')) {
+    /** Um `Arquivo` em memória, com o mínimo que `linha()` consome. */
+    function arquivosFixtureLinha(array $over = []): Modules\Arquivos\Entities\Arquivo
+    {
+        $a = new Modules\Arquivos\Entities\Arquivo();
+
+        foreach (array_merge([
+            'id'              => 424242,
+            'arquivable_type' => 'Modules\\OficinaAuto\\Entities\\ServiceOrder',
+            'arquivable_id'   => 4,
+            'disk'            => 'arquivos',
+            'storage_path'    => 'biz-98/fixture/linha.xml',
+            'original_name'   => 'fixture-linha.xml',
+            'mime_type'       => 'application/xml',
+            'size_bytes'      => 2048,
+            'bucket'          => 'active',
+            'sub_destination' => 'os-anexo',
+            'created_at'      => now(),
+        ], $over) as $campo => $valor) {
+            $a->{$campo} = $valor;
+        }
+
+        return $a;
+    }
+}
+
+it('UC-INDEX-05 · a linha oferece link ASSINADO pro DownloadController, valido por 60 min', function () {
+    // O charter proíbe `Storage::url` (Non-Goal) e a ADR 0123 §6 manda passar pelo
+    // `DownloadController` com link temporário. O endpoint JÁ existia — o que faltava era a
+    // tela oferecer. O assert mede as TRÊS coisas que fazem o link ser o que ele diz ser:
+    // o destino, a assinatura e o prazo.
+    $url = arquivosLinhaDe(arquivosFixtureLinha())['download_url'];
+
+    expect($url)->not->toBeNull();
+    expect($url)->toContain('arquivos/download/424242');
+    expect($url)->toContain('signature=');
+
+    parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
+
+    // 60 min — o mesmo prazo do `ArquivosService::signedUrl()`. Tolerância de 120s porque
+    // entre montar a URL e ler o assert passa tempo de relógio; ela é larga o bastante pra
+    // não piscar e curta o bastante pra reprovar quem trocar 60 por 1440.
+    expect((int) $query['expires'])->toBeGreaterThan(now()->addMinutes(58)->timestamp);
+    expect((int) $query['expires'])->toBeLessThan(now()->addMinutes(62)->timestamp);
+})->group('arquivos');
+
+it('UC-INDEX-05 · arquivo apagado ou sem conteudo NAO oferece download', function () {
+    // Os dois casos terminam em 404 no `DownloadController`, por caminhos diferentes:
+    // o apagado morre no `Arquivo::find()` (sem `withTrashed`), o sem-conteúdo morre no
+    // `$disk->exists()`. Oferecer o botão seria oferecer um 404 — e é o `a.anon` que o
+    // protótipo desabilita.
+    $apagado = arquivosFixtureLinha(['deleted_at' => now()->subDay()]);
+    $vazio   = arquivosFixtureLinha(['storage_path' => '']);
+
+    expect(arquivosLinhaDe($apagado)['download_url'])->toBeNull();
+    expect(arquivosLinhaDe($vazio)['download_url'])->toBeNull();
+
+    // Controle negativo: sem as duas condições o link EXISTE — senão este teste ficaria
+    // verde por um `download_url` que nunca é preenchido.
+    expect(arquivosLinhaDe(arquivosFixtureLinha())['download_url'])->not->toBeNull();
+})->group('arquivos');
+
+it('UC-INDEX-05 · montar o link NAO escreve na trilha — a tela segue leitura pura', function () {
+    if (! Schema::hasTable('arquivos_audit_log')) {
+        $this->markTestSkipped('tabela arquivos_audit_log ausente — a prova comportamental roda na lane MySQL.');
+    }
+
+    // Por que este teste existe: `ArquivosService::signedUrl()` grava `signed_url_issued`
+    // a CADA chamada. Usá-lo aqui faria cada abertura do acervo escrever 25 linhas de
+    // auditoria — quebrando a leitura pura e afogando a própria vista Trilha em ruído de
+    // renderização. O controller usa `URL::temporarySignedRoute` direto por isso.
+    $antes = DB::table('arquivos_audit_log')->count();
+
+    arquivosLinhaDe(arquivosFixtureLinha());
+
+    expect(DB::table('arquivos_audit_log')->count())->toBe($antes);
+
+    // CONTROLE POSITIVO — sem ele, "o contador não subiu" também seria verdade num
+    // contador que não mede nada. O caminho que DEVE escrever escreve.
+    if (! Schema::hasTable('arquivos')) {
+        $this->markTestSkipped('tabela arquivos ausente — o controle positivo precisa de linha real.');
+    }
+
+    session(['user' => ['business_id' => Tests\TestCase::SEEDED_TENANT_ID]]);
+    arquivosCofreInsere(Tests\TestCase::SEEDED_TENANT_ID, ['original_name' => 'controle-positivo.xml']);
+    $persistido = Modules\Arquivos\Entities\Arquivo::query()->where('disk', arquivosCofreDisco())->firstOrFail();
+
+    app(Modules\Arquivos\Services\ArquivosService::class)->signedUrl($persistido, 60);
+
+    expect(DB::table('arquivos_audit_log')->count())->toBe($antes + 1);
+
+    DB::table('arquivos_audit_log')->where('arquivo_id', $persistido->id)->delete();
+})->group('arquivos');
+
+it('UC-INDEX-06 · "Vinculado a" mostra o nome de NEGOCIO e leva a tela do dono quando ela existe', function () {
+    // A tela imprimia `ServiceOrder #4` — nome da classe Eloquent, não nome da coisa. Os
+    // dois tipos abaixo são os ÚNICOS com rota provada em `php artisan route:list` (o
+    // runtime é o oráculo, não o `Routes/web.php`, que num app modular tem várias fontes).
+    $os = arquivosLinhaDe(arquivosFixtureLinha());
+
+    expect($os['dono_rotulo'])->toBe('Ordem de serviço');
+    expect($os['dono_url'])->toContain('/oficina-auto/ordens-servico/4');
+    // O valor técnico NÃO some — ele vai na sub-linha em mono, como o protótipo desenha.
+    expect($os['dono_tipo'])->toBe('ServiceOrder');
+
+    $repair = arquivosLinhaDe(arquivosFixtureLinha([
+        'arquivable_type' => 'Modules\\Repair\\Entities\\JobSheet',
+        'arquivable_id'   => 7,
+    ]));
+
+    expect($repair['dono_rotulo'])->toBe('Ordem de serviço (reparo)');
+    expect($repair['dono_url'])->toContain('/repair/job-sheet/7');
+})->group('arquivos');
+
+it('UC-INDEX-06 · tipo SEM rota provada vira texto, nunca link morto', function () {
+    // `NfeEmissao` tem rótulo de negócio mas nenhuma tela por id (o que existe é o
+    // `danfe-pdf`, que devolve PDF). Ganha a tradução e NÃO ganha link.
+    $nfe = arquivosLinhaDe(arquivosFixtureLinha([
+        'arquivable_type' => 'Modules\\NfeBrasil\\Models\\NfeEmissao',
+        'arquivable_id'   => 11,
+    ]));
+
+    expect($nfe['dono_rotulo'])->toBe('Emissão de NF-e');
+    expect($nfe['dono_url'])->toBeNull();
+
+    // Tipo fora do mapa não é erro: cai no `class_basename` cru — exatamente o que a tela
+    // já fazia antes. Módulo novo que adotar `HasArquivos` aparece assim até alguém
+    // acrescentar a linha dele.
+    $desconhecido = arquivosLinhaDe(arquivosFixtureLinha([
+        'arquivable_type' => 'Modules\\Inexistente\\Entities\\CoisaNova',
+        'arquivable_id'   => 3,
+    ]));
+
+    expect($desconhecido['dono_rotulo'])->toBe('CoisaNova');
+    expect($desconhecido['dono_url'])->toBeNull();
+
+    // Órfão continua sendo ACHADO, não item: sem tipo não há rótulo nem destino.
+    $orfao = arquivosLinhaDe(arquivosFixtureLinha([
+        'arquivable_type' => null,
+        'arquivable_id'   => null,
+    ]));
+
+    expect($orfao['orfao'])->toBeTrue();
+    expect($orfao['dono_rotulo'])->toBeNull();
+    expect($orfao['dono_url'])->toBeNull();
+})->group('arquivos');
+
 afterEach(function () {
     // Cleanup por id sentinela — sem RefreshDatabase, que dropa o schema e limparia o
     // seed compartilhado da lane (o próprio workflow veta arquivos que fazem isso).

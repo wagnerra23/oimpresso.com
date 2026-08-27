@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-08-26"
+last_run: "2026-08-27"
 ---
 
 # Casos de Uso & Aceite — Arquivos/Index
@@ -148,6 +148,53 @@ last_run: "2026-08-26"
 
 ---
 
+## UC-INDEX-05 · Baixar sai da tela por link assinado — e o que não tem conteúdo não oferece
+- **Persona:** Wagner (escritório, conformidade) — achou o XML da NF-e no acervo e precisa do
+  arquivo, sem abrir a tela do dono nem pedir a alguém que rode um comando.
+- **Aceite:** Dado um arquivo com conteúdo no storage · Quando a linha renderiza · Então há um
+  botão só-ícone com `aria-label` cujo destino é uma **URL assinada** pro `arquivos.download`,
+  válida por **60 min** · E quando o arquivo está apagado (soft-delete) ou sem conteúdo
+  (anonimizado pela retenção), **não há botão** — porque o `DownloadController` devolveria 404
+  nos dois casos · E montar o link **não escreve** em `arquivos_audit_log`: a tela segue leitura
+  pura, e quem baixa de fato continua auditado no consumo (`signed_url_consumed`).
+- **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **3** asserções
+  citando `UC-INDEX-05` no título do `it()` (contadas com `grep -c "^it('UC-INDEX-05"`, não de
+  memória): destino + assinatura + prazo · os dois casos sem conteúdo, com controle negativo ·
+  leitura pura, com **controle positivo** (o `ArquivosService::signedUrl()` DEVE escrever, e
+  escreve — senão "o contador não subiu" seria verdade num contador que não mede nada).
+- **Regressão que defende:** servir arquivo do vault por `Storage::url` (Non-Goal do charter,
+  ADR 0123 §6) · oferecer botão que leva a 404 · trocar o `URL::temporarySignedRoute` pelo
+  `signedUrl()` do Service e passar a gravar 25 linhas de auditoria por render do acervo.
+- **Status: 🧪** — a lane do CT 100 executou em 2026-08-27: **35 passed · 140 assertions**,
+  contra **30 · 118** com o arquivo de teste anterior no mesmo código. O delta `+5/+22` é o
+  contador provando que os testes novos rodaram, não o nome deles aparecendo no log.
+  **Bite-test:** trocar `DOWNLOAD_EXPIRA_MIN` de 60 pra 1440 deixa o UC vermelho (`1 failed`).
+
+---
+
+## UC-INDEX-06 · "Vinculado a" mostra o dono em PT-BR e leva à tela dele quando ela existe
+- **Persona:** Wagner (escritório, conformidade) — quer saber **de quem é** o arquivo, e chegar
+  lá num clique. `ServiceOrder #4` é o nome da classe Eloquent, não o nome da coisa.
+- **Aceite:** Dado um arquivo com `arquivable` · Quando a linha renderiza · Então a coluna mostra
+  o **nome de negócio** do dono (`Ordem de serviço #4`) com o tipo técnico (`ServiceOrder`) na
+  sub-linha em `font-mono` · E vira **link** somente quando o tipo tem rota provada em
+  `php artisan route:list` — tipo sem rota fica texto, nunca link morto · E tipo fora do mapa cai
+  no `class_basename` cru, que é o que a tela já fazia · E órfão continua ACHADO, sem rótulo nem
+  destino.
+- **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **2** asserções
+  citando `UC-INDEX-06` no título do `it()` (contadas com `grep -c "^it('UC-INDEX-06"`): os dois
+  tipos COM rota (`ServiceOrder` → `/oficina-auto/ordens-servico/{id}`, `JobSheet` →
+  `/repair/job-sheet/{id}`) · o tipo com rótulo e SEM rota (`NfeEmissao`), o tipo fora do mapa e
+  o órfão.
+- **Regressão que defende:** imprimir nome de classe Eloquent como se fosse vocabulário de
+  negócio · gerar link pra rota que não existe (`RouteNotFoundException` derrubaria o `paginate`
+  inteiro, não só a célula) · perder o valor técnico, que é o que resolve a ambiguidade entre as
+  duas "Ordem de serviço" (OficinaAuto × Repair).
+- **Status: 🧪** — mesma run de UC-INDEX-05. **Bite-test:** anular a rota do `ServiceOrder` no
+  mapa deixa o UC vermelho (`1 failed`).
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 Derivados do protótipo F1 (`arquivos-page.jsx`). A onda que implementar cada vista traz o teste
@@ -164,7 +211,6 @@ e promove o item a `UC-INDEX-NN`.
   (`sensitive`/`common`/`public`). Só `sensitive` existia nas quatro; `active` era rejeitado com
   **422** e `common`/`public` filtravam por valor inexistente (lista sempre vazia). Achado pelo
   [W] no smoke de produção, com dado real — nenhum gate estrutural pegaria.
-- **[BACKLOG]** Arquivo em disco `vault` → selo com cadeado; baixar avisa que o link assinado vale 60 min e passa pelo `DownloadController`.
 - **[BACKLOG]** Arquivo sem `arquivable` → linha marcada como urgente + selo "órfão" com o motivo em tooltip (órfão é achado, não item).
 - **[BACKLOG]** Arquivo a ≤30 dias do prazo → coluna "Vence em" em vermelho + linha urgente.
 - **[BACKLOG]** Arquivo com prazo vencido → rótulo "prazo vencido", nunca contagem negativa.
@@ -193,6 +239,11 @@ e promove o item a `UC-INDEX-NN`.
 ## Anti-regressão
 
 - Nenhum caminho de upload nesta tela.
+- Baixar nunca sai por `Storage::url` — sempre link assinado de 60 min pro `DownloadController`.
+- Montar a linha do acervo nunca escreve na trilha: o link vem de `URL::temporarySignedRoute`,
+  não do `ArquivosService::signedUrl()`, que audita a cada chamada.
+- Link do dono só existe pra tipo com rota provada em `route:list` — o `Route::has()` no
+  servidor é a segunda perna, porque o módulo dono pode estar desinstalado neste boot.
 - Nenhum botão de editar/apagar linha da trilha.
 - Nenhum botão no cofre — nem o "Rodar dry-run do cleanup" que o protótipo desenha: é onda 3, e
   a onda 1 inteira é leitura.
@@ -212,6 +263,7 @@ e promove o item a `UC-INDEX-NN`.
   `Config/retention.php` (são espelho declarado, e divergir é achado de auditoria).
 
 ## Trilha do tempo
+- 2026-08-27 · [CC] **UC-INDEX-05 (baixar) e UC-INDEX-06 (vinculado a) promovidos de `[BACKLOG]`/medição a UC** — a onda trouxe os testes que os defendem, que é a condição do G-2. O buraco foi MEDIDO com a mesma sonda nos dois lados (produção logada × protótipo vivo): a linha de produção tinha **6 colunas e 0 botões**, o protótipo tem **7** (a 7ª é a de ações) e `mono` em 5 delas contra **0 de 6** na produção. O item de backlog do `vault` saiu da lista — ele é exatamente o UC-INDEX-05. O que **não** entrou, e por quê: classificar e excluir **não têm endpoint** (varredura do `Routes/web.php` do módulo: só `index`, `download` e as 3 do Install) e o charter os agenda pra onda 2, travada na decisão [W] do PR-6. Refs: US-ARQ-013 · ADR 0123 §6 (signed URL 60 min) · ADR 0093 (o `find()` do DownloadController aplica o scope).
 - 2026-07-11 · [CC] carimbado por criar-tela.mjs — trio nascido junto (charter + casos + teste). Refs: UI-0013 · ADR 0264 G-1/G-2.
 - 2026-08-24 · [CL] preenchido a partir do protótipo F1 exportado do Cowork (`arquivos-page.jsx`) + do rascunho `cowork-inbox/modulos-faltantes/arquivos.casos.md`. Os 14 cenários entraram como `[BACKLOG]` (sem id) pra não nascer órfão no G-2; o item de reclassificar foi marcado `[BLOQUEADO]` porque o Service não suporta o contrato da Request. Refs: US-ARQ-013 · ADR 0360.
 - 2026-08-25 · [CC] **UC-INDEX-02 (trilha) promovido de `[BACKLOG]` a UC** — a onda PR-2 trouxe o teste que o defende, que é a condição do G-2. Nasce `⬜`: o veredito é da lane, não da leitura. Refs: US-ARQ-013 · ADR 0093 (o `where` explícito numa tabela sem model) · ADR 0123 §8.
