@@ -151,12 +151,17 @@ class HomeController extends Controller
                 return (int) round((($atual - $anterior) / abs($anterior)) * 100);
             };
 
-            $deltas = [
+            // So compara janelas COMENSURAVEIS: os presets rolantes tem a mesma duracao e
+            // ambos no passado. O FY corrente vai ate 31/12 — comparar um ano pela metade
+            // com um ano fechado da -95% e nao significa nada. Sem base justa, sem delta.
+            $comparavel = in_array($period['preset'], ['dia', 'semana', 'mes'], true);
+
+            $deltas = $comparavel ? [
                 'net' => $pct($totals['net'], $ant['net']),
                 'total_sell' => $pct($totals['total_sell'], $ant['total_sell']),
                 'invoice_due' => $pct($totals['invoice_due'], $ant['invoice_due']),
                 'total_expense' => $pct($totals['total_expense'], $ant['total_expense']),
-            ];
+            ] : null;
         }
 
         return Inertia::render('Home/Index', [

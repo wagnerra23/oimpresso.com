@@ -159,7 +159,11 @@ function HomeIndex({
   return (
     <Stack gap={5} className="mx-auto max-w-7xl p-6">
       <PageHeader
-        leading={<Icon name="layout-dashboard" size={18} strokeWidth={1.8} />}
+        leading={
+          <span className="mr-2 inline-flex translate-y-[1px] align-middle text-muted-foreground">
+            <Icon name="layout-dashboard" size={18} strokeWidth={1.8} />
+          </span>
+        }
         title="Visão geral"
         subtitle={
           totals ? (
@@ -244,11 +248,13 @@ function HomeIndex({
       <Alert>
         <Icon name="info" size={16} />
         <AlertDescription>
-          Precisa dos gráficos de vendas, alertas de estoque ou widgets de outros módulos?{' '}
-          <a href={legacy_url} className="font-medium text-primary underline-offset-2 hover:underline">
-            Abrir versão completa
-          </a>
-          .
+          <p>
+            Precisa dos gráficos de vendas, alertas de estoque ou widgets de outros módulos?{' '}
+            <a href={legacy_url} className="font-medium text-primary underline-offset-2 hover:underline">
+              Abrir versão completa
+            </a>
+            .
+          </p>
         </AlertDescription>
       </Alert>
     </Stack>
