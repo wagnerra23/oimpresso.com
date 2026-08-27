@@ -19,7 +19,7 @@
  * `lint:baseline` mordeu isso na onda 2; a lição já vem aplicada desde a onda 3).
  */
 
-import { parseBR } from './numeros';
+import { parseBR, submitSafe } from './numeros';
 
 /** Os 9 tributos que a tela lista, com a alíquota padrão de cena. IBS e CBS entram
  *  porque são os tributos da reforma — o protótipo já os desenha. */
@@ -43,6 +43,38 @@ export const CST_ICMS = [
   '60 — ST cobrado anteriormente',
   '102 — Simples sem crédito',
 ];
+
+/* ─── listas da aba Tributação (portadas da âncora `sells-item-detail.jsx`) ─── */
+
+/** CST dos impostos que NÃO são ICMS — a âncora usa esta lista para todos os outros. */
+export const CST_GENERICO = ['01 — Tributado', '04 — Isento', '49 — Outros', '99 — Outras saídas'];
+
+export const GRUPOS_PRODUTO = ['17 — VENDA', '18 — SERVIÇO', '21 — REVENDA'];
+
+export const ORIGEM_MERCADORIA = [
+  '0 — Nacional',
+  '1 — Importação direta',
+  '2 — Adquirida no mercado interno',
+];
+
+/** `cClassTrib` da reforma tributária — código de 6 dígitos que rege IBS/CBS. */
+export const CLASSIFICACAO_TRIBUTARIA = [
+  '000001 — Regra geral',
+  '200001 — Alíquota reduzida',
+  '400001 — Isenção',
+];
+
+/** UFs de destino oferecidas no DIFAL pela âncora. */
+export const UFS_DIFAL = ['PR', 'SP', 'RJ', 'MG', 'RS', 'BA', 'PE', 'GO', 'DF'];
+
+export const MUNICIPIOS_ISSQN = ['Joinville/SC — 4209102', 'Outro município'];
+
+export const VIAS_TRANSPORTE = ['Marítima', 'Aérea', 'Rodoviária'];
+
+/** O CST oferecido para um imposto: o ICMS tem lista própria, o resto compartilha. */
+export function cstDoImposto(k: string): string[] {
+  return k === 'icms' ? CST_ICMS : CST_GENERICO;
+}
 
 export const LOCAIS_APLICACAO = ['Fachada', 'Interno', 'Veículo', 'Painel', 'Vitrine', 'Totem', 'Obra'];
 export const TIPOS_IMPRESSAO = [
@@ -139,6 +171,23 @@ export function validarReducao(v: string): string | null {
 export const CST_SEM_ALIQUOTA = ['40', '41', '60', '04'];
 
 /**
+ * O CST declara que NÃO há imposto a recolher?
+ *
+ * Extraído de `erroDeCoerencia` quando o cálculo passou a precisar da mesma
+ * pergunta — duas cópias do predicado divergiriam no dia em que alguém
+ * acrescentasse um CST à lista, e aí a tela acusaria incoerência num campo e
+ * mostraria imposto no outro.
+ *
+ * A sutileza que precisa viajar junto: `'102'` (Simples) tem 3 dígitos e começa
+ * com `'10'` — sem o guard, seria confundido com um CST de 2 dígitos.
+ */
+export function cstNaoTributa(cst: string): boolean {
+  const codigo = soDigitos(String(cst ?? '').trim().slice(0, 3));
+  if (codigo.length >= 3) return false;
+  return CST_SEM_ALIQUOTA.includes(codigo.slice(0, 2));
+}
+
+/**
  * Coerência CST × alíquota — o erro que **passa no formato e é rejeitado pela SEFAZ**.
  *
  * Dois sentidos, e os dois importam:
@@ -157,7 +206,7 @@ export function erroDeCoerencia(cst: string, aliquota: string): string | null {
   // '102' começa com '10' — não pode ser confundido com um CST de 2 dígitos
   const temTresDigitos = codigo.length >= 3;
 
-  if (!temTresDigitos && CST_SEM_ALIQUOTA.includes(prefixo) && a > 0) {
+  if (cstNaoTributa(cst) && a > 0) {
     return `CST ${prefixo} não admite alíquota — zere ou troque o CST`;
   }
   if (!temTresDigitos && prefixo === '00' && a <= 0) {
@@ -233,3 +282,70 @@ export const TIPOS_PRECO = ['Tabela do grupo', 'Manual', 'Por m²', 'Por milheir
    calculada (ver `areaUnitaria` em `calculo-item.ts`); as demais faturam pela
    quantidade digitada. */
 export const UNIDADES = ['un', 'm²', 'm', 'kg', 'cx', 'pç', 'milheiro'];
+
+/* ─── cálculo do imposto por item ────────────────────────────────────────────
+   ⚠️ TIER 0 — VALOR. A REGRA MESTRE de `memory/proibicoes.md` nomeia "imposto"
+   explicitamente. Provado por DOIS caminhos em `item-fiscal-dominio.test.ts`:
+   a função real × aritmética à mão em centavos inteiros.
+
+   O que protege enquanto isso: a tela NÃO grava (UC-V302) — nenhum número
+   daqui chega ao banco. */
+
+/** Alíquota efetiva de um imposto nesta linha: a do ICMS é editável, o resto vem do cadastro. */
+export function aliquotaDe(imposto: { k: string; aliq: number }, aliquotaIcms: string): number {
+  return imposto.k === 'icms' ? parseBR(aliquotaIcms) : imposto.aliq;
+}
+
+/**
+ * Valor de UM imposto sobre a base.
+ *
+ * CST sem alíquota (isento, não tributada, ST cobrado antes) zera o valor — é o
+ * mesmo conjunto que o `erroDeCoerencia` usa pra acusar "CST isento com alíquota",
+ * e reusá-lo aqui garante que a tela nunca mostre imposto num CST que não tributa.
+ */
+export function impostoDe(
+  imposto: { k: string; aliq: number },
+  base: number,
+  aliquotaIcms: string,
+  cstIcms: string,
+): number {
+  if (imposto.k === 'icms' && cstNaoTributa(cstIcms)) return 0;
+  return submitSafe((base * aliquotaDe(imposto, aliquotaIcms)) / 100);
+}
+
+/** Soma dos impostos do item — o "Total de impostos do item" do rodapé da âncora. */
+export function somaDosImpostos(base: number, aliquotaIcms: string, cstIcms: string): number {
+  return submitSafe(
+    IMPOSTOS.reduce((s, i) => s + impostoDe(i, base, aliquotaIcms, cstIcms), 0),
+  );
+}
+
+/**
+ * DIFAL — diferencial de alíquota (EC 87/2015).
+ *
+ * Venda interestadual para NÃO contribuinte recolhe a diferença de alíquota para a
+ * UF de destino. A partilha é **100% destino desde 2019** — não há mais divisão com
+ * o remetente, e é por isso que `destino` sai da diferença cheia, não de metade.
+ *
+ * Sai na NF-e como `vICMSUFDest`, `vICMSUFRemet` e `vFCPUFDest`.
+ *
+ * `destino` tem piso em zero: quando a interna do destino é MENOR que a
+ * interestadual não há diferença a recolher — a âncora sinaliza isso como erro de
+ * preenchimento (`invertido`), e o cálculo não pode devolver negativo.
+ */
+export function difalDoItem(
+  base: number,
+  aliqInterestadual: string,
+  aliqInternaDestino: string,
+  percentualFcp: string,
+): { remetente: number; destino: number; fcp: number; total: number; invertido: boolean } {
+  const aInter = parseBR(aliqInterestadual);
+  const aDest = parseBR(aliqInternaDestino);
+  const pFcp = parseBR(percentualFcp);
+
+  const remetente = submitSafe((base * aInter) / 100);
+  const destino = Math.max(0, submitSafe((base * aDest) / 100 - remetente));
+  const fcp = submitSafe((base * pFcp) / 100);
+
+  return { remetente, destino, fcp, total: submitSafe(destino + fcp), invertido: aDest < aInter };
+}
