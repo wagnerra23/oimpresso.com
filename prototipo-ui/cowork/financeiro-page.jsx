@@ -679,7 +679,7 @@
     const clear = () => setStates(new Set());
 
     return (
-      <div className="os-toolbar fin-toolbar" data-comment-anchor="d563f8837b-div-554-7">
+      <div className="os-toolbar fin-toolbar">
     <div className="fin-filter-group" role="group" aria-label="Estado do lançamento">
       {FILTER_LIFECYCLE.map((s) => {
             const on = states.has(s.id);
@@ -752,7 +752,7 @@
    * PeriodBar — campo de data + presets + navegação de período (âncora de ano)
    * ─────────────────────────────────────────────────────────────────────── */
   const PeriodBar = ({ dateField, setDateField, period, setPeriod, anchor, setAnchor, count, fields = DATE_FIELDS, countLabel = "lanç.", customRange = { from: "", to: "" }, setCustomRange = () => {} }) =>
-  <div className="fin-periodbar" data-comment-anchor="9f1216ceb6-div-590-3">
+  <div className="fin-periodbar">
     <div className="fin-pb-field">
       <span className="fin-pb-cap">Filtrar por</span>
       <div className="fin-pb-seg" role="group" aria-label="Campo de data">
@@ -1566,7 +1566,7 @@
           {pos && pos.total > 0 &&
             <div className="fin-dw-nav" title="Navegar entre títulos (J/K)">
               <button className="fin-dw-nav-btn" disabled={pos.idx <= 1} onClick={() => onNav(-1)} aria-label="Título anterior (K)">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15" data-comment-anchor="90e5201daa-polyline-1296-162"></polyline></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
               </button>
               <span className="fin-dw-pos num tabular-nums">{pos.idx > 0 ? pos.idx : "–"}<i>/</i>{pos.total}</span>
               <button className="fin-dw-nav-btn" disabled={pos.idx <= 0 || pos.idx >= pos.total} onClick={() => onNav(1)} aria-label="Próximo título (J)">
@@ -1702,7 +1702,7 @@
               <CrossLinkChips row={eff} onPick={(k, n) => console.log("→ abrir", k, n)} />
             </div>
           </section>
-          <div className="fin-lens py-4" data-comment-anchor="b7ed73daef-div-1432-11">
+          <div className="fin-lens py-4">
             <div className="fin-kv-card grid grid-cols-2 gap-x-5">
               <div className="col-span-2"><KV label="Contraparte" copy={eff.party}>{eff.party}</KV></div>
               {edits && window.FIN_EDIT_OPTIONS ?

@@ -4,8 +4,11 @@
 // Admin Center (Sprint 2). Esta é a proposta F1 dessa tela. Dados/domínio em arquivos-data.jsx.
 // Quatro vistas: acervo · retenção (grace + avisos) · cofre (achados + dry-run) · trilha.
 // Ondas de refino: classificar (classified_by/at + LogsActivity) · restaurar no grace ·
-// anonymize como estratégia (retention.php) · aviso ao titular (LGPD Art. 18 §VI) · dono clicável ·
-// dry-run do retention-cleanup · alvo de toque · onde a tela mora (Tweak, decisão de [W]).
+// anonymize como estratégia (retention.php) · dono clicável · dry-run do retention-cleanup ·
+// alvo de toque.
+// 2026-08-26 (paridade com o vivo): o aviso ao titular deixou de ser botão ligado — LGPD
+// Art. 18 §VI é config ASPIRACIONAL, não existe caminho que envie (o vivo declara isso). E a
+// Retenção agora diz se o `arquivos:retention-cleanup` está agendado, em vez de mandar conferir.
 // Proibições que o desenho carrega: sem upload aqui · sem PII na vista de governança ·
 // sem purge cross-tenant · sem hard-delete direto pela UI · trilha nunca editada.
 // Expõe window.ArquivosPage.
@@ -21,8 +24,39 @@ const VISTAS = [
   { id: "cofre", label: "Cofre" },
   { id: "trilha", label: "Trilha" },
 ];
-const BUCKET = { sensitive: { t: "danger", l: "sensitive" }, common: { t: "neutral", l: "common" }, public: { t: "info", l: "public" } };
-const ACAO = { upload: { t: "info", l: "upload" }, download: { t: "neutral", l: "download" }, signed_url: { t: "warning", l: "signed_url" }, soft_delete: { t: "warning", l: "soft_delete" }, restore: { t: "success", l: "restore" }, hard_delete: { t: "danger", l: "hard_delete" }, classify: { t: "info", l: "classify" }, anonymize: { t: "warning", l: "anonymize" }, notice: { t: "neutral", l: "notice" } };
+// Os buckets que o CuradorEngine de fato grava. `common` e `public` NUNCA existiram no enum
+// do banco — eram palpite meu, e a tela derivada daqui nasceu filtrando por valor inexistente
+// (lista sempre vazia, pega no smoke de produção em 2026-08-25). O enum tem 7; `user`/`spec`/
+// `ambiguous` não são escritos por caminho vivo, ficam fora do filtro até que sejam.
+// Rótulo em PT-BR: o valor do enum é do banco, não da tela (`v` guarda o técnico pê title).
+// ⚠️ DRIFT DS↔REPO (achado 2026-08-25, com recibo nos dois arquivos):
+// No espelho DS (`_ds_bundle.js` StatusBadge, caminho `tone`), `danger` é **SÓLIDO**:
+// `{ bg: var(--color-destructive), fg: '#fff' }`. No repo (`Components/ui/badge.tsx`),
+// `danger` é o par SOFT (`bg-destructive-soft`) e o sólido chama-se `destructive`.
+// Mesma palavra, renderização oposta — e é por isso que a travessia pro `Index.tsx`
+// trocou `tone="danger"` por `variant="destructive"`: **visualmente fiel ao espelho**.
+// Quem viola o AP7 ("fundo tintado 6% + borda 22%, nunca fill") primeiro é o próprio
+// caminho `tone` do espelho. Consertar lá é decisão [W] — aqui eu paro de usar `tone`.
+//
+// As únicas famílias SOFT do espelho são as namespaced (`sla-*`, `fresc-*`, `tipo-*`,
+// `canal-*`). Classificação não tem família própria, então uso `kind="sla"` pela COR e
+// sobrescrevo o rótulo (`label` vence `e.label` no componente). É empréstimo de paleta,
+// não de semântica — declarado aqui pra ninguém ler `sla` e achar que é prazo.
+const BUCKET = { sensitive: { k: "expired", l: "Sensível", v: "sensitive" }, active: { k: "fresh", l: "Em uso", v: "active" }, memory: { k: "late", l: "Histórico", v: "memory" }, discard: { k: "aging", l: "Descartar", v: "discard" } };
+const BUCKET_FALLBACK = { k: null, l: "sem classificação", v: "—" };
+// Visibilidade é outro eixo (quem vê), com enum próprio — mesmo tratamento: valor do banco
+// no `title`, rótulo em PT-BR na tela.
+// `business` existe no enum e cai no mesmo significado de `internal` (quem tem acesso ao
+// negócio) — sem a chave, arquivo com visibility=business mostrava "—" aqui e "Equipe" na
+// produção. Divergência de mapa, não de regra.
+const VIS = { private: "Restrito", internal: "Equipe", business: "Equipe", public: "Aberto" };
+const VS = (v) => VIS[v] || "—";
+const BK = (b) => BUCKET[b] || BUCKET_FALLBACK;
+// A trilha é LOG: cor marca só o excepcional, o resto fica mudo (chip neutro). Nove cores
+// numa tabela de auditoria é ruído, não informação. `k` = família soft do espelho; `null` =
+// chip neutro. Ver a nota de DRIFT acima: no espelho, `tone` colorido é fill sólido.
+const ACAO = { upload: { k: null, l: "Envio" }, download: { k: null, l: "Baixa" }, signed_url: { k: "aging", l: "Link assinado" }, soft_delete: { k: "aging", l: "Exclusão" }, restore: { k: "fresh", l: "Restauração" }, hard_delete: { k: "expired", l: "Exclusão definitiva" }, classify: { k: null, l: "Classificação" }, anonymize: { k: "aging", l: "Anonimização" }, notice: { k: null, l: "Aviso ao titular" } };
+const AC = (a) => ACAO[a] || { k: null, l: a };
 
 const IcLock = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>;
 const IcFile = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>;
@@ -31,6 +65,7 @@ const IcAlert = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none
 const IcTag = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 12l-8 8-8-8V4h8z"/><path d="M8.5 8.5h.01"/></svg>;
 const IcUndo = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M4 10h10a5 5 0 1 1 0 10H8"/><path d="M4 10l4-4M4 10l4 4"/></svg>;
 const IcBell = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>;
+const IcTrash = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>;
 
 function Btn({ children, ...p }) {
   const { Button } = DS();
@@ -60,10 +95,10 @@ function DonoLink({ a }) {
 }
 
 // ─── Acervo ─────────────────────────────────────────────────────────────────
-function Acervo({ arquivos, papel, onBaixar, onExcluir, onClassificar, onAvisar }) {
+function Acervo({ arquivos, papel, onBaixar, onExcluir, onClassificar }) {
   const { DataTable, StatusBadge, Input } = DS();
   const { Vazio } = A();
-  const { CFG, politica, restam, vence, dt, tam, precisaAviso } = D();
+  const { CFG, politica, restam, vence, dt, tam } = D();
   const [q, setQ] = useState("");
   const [bucket, setBucket] = useState("todos");
   const termo = q.trim().toLowerCase();
@@ -73,14 +108,21 @@ function Acervo({ arquivos, papel, onBaixar, onExcluir, onClassificar, onAvisar 
     (!termo || (a.nome + " " + (a.dono || "") + " " + a.sub).toLowerCase().includes(termo))), [vivos, bucket, termo]);
   const podeMexer = papel === "gestor";
 
+  // UMA coluna sem `width` é o que torna a tabela realmente fluida: em `table-layout:fixed`,
+  // se TODAS as colunas têm largura declarada, a soma vira o piso da tabela e `width:100%`
+  // não encolhe nada — foi por isso que 972px estourava em qualquer container menor. Sem
+  // largura, `arq` absorve a sobra (e devolve, quando falta). As 6 fixas somam 722px
+  // (160+120+88+84+130+140) — o "702" que este comentário dizia era de uma versão anterior
+  // das larguras e virou número que mente: comentário com aritmética envelhece calado, e foi
+  // por um número desses (110 vs 88, do export velho) que a travessia discutiu a premissa errada.
   const colunas = [
     { key: "arq", label: "Arquivo" },
-    { key: "dono", label: "Onde está preso", width: 180 },
-    { key: "bucket", label: "Classificação", width: 150 },
-    { key: "disco", label: "Disco", width: 110 },
-    { key: "tamanho", label: "Tamanho", width: 95, align: "right", mono: true },
-    { key: "vence", label: "Vence em", width: 165 },
-    { key: "acao", label: "", width: 190, align: "right" },
+    { key: "dono", label: "Vinculado a", width: 160 },
+    { key: "bucket", label: "Classificação", width: 120 },
+    { key: "disco", label: "Disco", width: 88 },
+    { key: "tamanho", label: "Tamanho", width: 84, align: "right", mono: true },
+    { key: "vence", label: "Vence em", width: 130 },
+    { key: "acao", label: "", width: 140, align: "right" },
   ];
   const linhas = lista.map((a) => {
     const r = restam(a);
@@ -92,29 +134,42 @@ function Acervo({ arquivos, papel, onBaixar, onExcluir, onClassificar, onAvisar 
           <span className="arq-file">
             <span className="arq-file-ic" aria-hidden="true"><IcFile /></span>
             <span className="arq-file-m">
-              <b>{a.nome}</b>
-              <small>{politica(a.sub).label} · <code>{a.sub}</code>{a.porQuem ? ` · classificado por ${a.porQuem}` : " · sem classificação humana"}</small>
+              <b title={a.nome}>{a.nome}</b>
+              <small title={`${politica(a.sub).label} · ${a.sub}${a.porQuem ? ` · classificado por ${a.porQuem}` : " · sem classificação humana"}`}>{politica(a.sub).label} · <code>{a.sub}</code>{a.porQuem ? ` · classificado por ${a.porQuem}` : " · sem classificação humana"}</small>
             </span>
           </span>
         ),
         dono: <DonoLink a={a} />,
         bucket: (
           <span className="arq-cls">
-            {StatusBadge ? <StatusBadge tone={BUCKET[a.bucket].t} label={BUCKET[a.bucket].l} /> : <span>{a.bucket}</span>}
-            <small className="mono">{a.vis}</small>
+            {StatusBadge && BK(a.bucket).k ? <StatusBadge kind="sla" value={BK(a.bucket).k} label={BK(a.bucket).l} title={BK(a.bucket).v} /> : <span className="arq-disk">{BK(a.bucket).l}</span>}
+            <small className="mono" title={a.vis}>{VS(a.vis)}</small>
           </span>
         ),
         disco: a.enc ? <span className="arq-vault"><IcLock /> vault</span> : <span className="arq-disk mono">{a.disk}</span>,
         tamanho: a.anon ? "—" : tam(a.bytes),
+        // `frescor` é IDADE (recente/frio/distante) e estava sendo usado pra PRAZO — dava a
+        // pílula verde "recente · em 1824 dias". Prazo é domínio do `sla`, que já rotula em PT-BR
+        // (No prazo · Vencendo · Vencido). A contagem vai ao lado, não dentro da pílula.
+        // A contagem só aparece quando decide algo (≤90 dias ou já vencido). "em 1824 dias"
+        // ao lado da data é o mesmo número dito duas vezes — e era ela que estourava a
+        // célula (144px de conteúdo em 116px de coluna, medido 2026-08-25).
         vence: <span className="arq-vence"><b className="mono">{dt(vence(a))}</b>{StatusBadge
-          ? <StatusBadge kind="frescor" value={r <= 30 ? "distante" : r <= 180 ? "frio" : r <= 720 ? "fresc" : "recente"} rel={r <= 0 ? "prazo vencido" : `em ${r} dias`} />
+          ? <span className="arq-vence-l"><StatusBadge kind="sla" value={r <= 0 ? "expired" : r <= 30 ? "aging" : "fresh"} />{r <= 90 ? <small className="mono">{r <= 0 ? `${-r}d vencido` : `${r}d`}</small> : null}</span>
           : <small>{r} dias</small>}</span>,
+        // Ação por linha é SÓ-ÍCONE. Com texto ("Avisar·Baixar·Classificar·Excluir") são ~280px
+        // de conteúdo numa coluna de 120 — os botões transbordavam a célula e encavalavam na
+        // coluna vizinha (relatado por [W] em 2026-08-25). O nome vai no `aria-label`, que o
+        // `Btn` transforma em `title` + `sr-only`: leitor de tela e hover continuam dizendo
+        // o que faz. Repetir 4 rótulos × 10 linhas também era ruído numa tabela densa.
         acao: (
           <div className="arq-acts">
-            {precisaAviso(a) && podeMexer && <Btn size="sm" onClick={() => onAvisar(a)}><IcBell /> Avisar</Btn>}
-            <Btn size="sm" disabled={a.anon} onClick={() => onBaixar(a)}><IcDown /> Baixar</Btn>
+            {/* O sino saiu daqui em 2026-08-26: aviso ao titular NÃO existe no sistema — o prazo
+                de notice é config aspiracional (o vivo diz isso com todas as letras). Ação de
+                linha pra função inexistente é a tela prometendo o que o backend não faz. */}
+            <Btn size="sm" disabled={a.anon} onClick={() => onBaixar(a)} aria-label="Baixar"><IcDown /></Btn>
             {podeMexer && <Btn size="sm" onClick={() => onClassificar(a)} aria-label="Classificar"><IcTag /></Btn>}
-            {podeMexer && <Btn size="sm" onClick={() => onExcluir(a)}>Excluir</Btn>}
+            {podeMexer && <Btn size="sm" onClick={() => onExcluir(a)} aria-label="Excluir"><IcTrash /></Btn>}
           </div>
         ),
       },
@@ -125,9 +180,9 @@ function Acervo({ arquivos, papel, onBaixar, onExcluir, onClassificar, onAvisar 
     <>
       <div className="arq-toolbar" data-contract="acervo-filtros">
         <div className="arq-chips">
-          {["todos", "sensitive", "common", "public"].map((b) => (
-            <button key={b} className={"arq-chip" + (bucket === b ? " active" : "")} onClick={() => setBucket(b)}>
-              {b === "todos" ? "Todos" : b}<span className="mono">{b === "todos" ? vivos.length : vivos.filter((a) => a.bucket === b).length}</span>
+          {["todos", "sensitive", "active", "memory", "discard"].map((b) => (
+            <button key={b} className={"arq-chip" + (bucket === b ? " active" : "")} onClick={() => setBucket(b)} title={b === "todos" ? undefined : BK(b).v}>
+              {b === "todos" ? "Todos" : BK(b).l}<span className="mono">{b === "todos" ? vivos.length : vivos.filter((a) => a.bucket === b).length}</span>
             </button>
           ))}
         </div>
@@ -143,13 +198,14 @@ function Acervo({ arquivos, papel, onBaixar, onExcluir, onClassificar, onAvisar 
           ? (Vazio ? <Vazio variant="first" title="Nenhum arquivo guardado ainda."
               description="O acervo enche sozinho: XML de NF-e autorizada, foto de OS, anexo de ticket. Nada é enviado por esta tela — ela administra o que os módulos guardaram." /> : <p>Nenhum arquivo.</p>)
           : lista.length === 0
-            ? (Vazio ? <Vazio variant="no-results" title="Nada com esse filtro." description="Troque o bucket ou limpe a busca." /> : <p>Nada.</p>)
+            ? (Vazio ? <Vazio variant="no-results" title="Nada com esse filtro." description="Troque a classificação ou limpe a busca." /> : <p>Nada.</p>)
             : DataTable ? <DataTable columns={colunas} rows={linhas} /> : <p>{lista.length} arquivos</p>}
       </div>
 
       <p className="arq-fine">
         O acervo é administrativo: o arquivo continua sendo alcançado pela tela do dono (clique no dono e você vai pra lá).
         Baixar do <b>vault</b> passa sempre pelo <code>DownloadController</code> — <code>Storage::url</code> direto não serve arquivo cifrado (ADR 0123 §6). Link assinado expira em {CFG.signedMin} min.
+        {" "}Esta tela não envia arquivo: upload entra pelos módulos, via trait <code>HasArquivos</code>.
         {!podeMexer && " Sua função lê e baixa; classificar e apagar é do gestor."}
       </p>
     </>
@@ -157,7 +213,7 @@ function Acervo({ arquivos, papel, onBaixar, onExcluir, onClassificar, onAvisar 
 }
 
 // ─── Retenção ───────────────────────────────────────────────────────────────
-function Retencao({ arquivos, papel, onRestaurar, onPurgar, onAvisar }) {
+function Retencao({ arquivos, papel, onRestaurar, onPurgar }) {
   const { DataTable, StatusBadge, Tooltip } = DS();
   const { Nota, Kpis, Kpi } = A();
   const { POLITICA, CFG, restam, noGrace, graceRestante, precisaAviso, politica, tam } = D();
@@ -200,7 +256,7 @@ function Retencao({ arquivos, papel, onRestaurar, onPurgar, onAvisar }) {
         <div className="arq-nota">
           <Nota tone="danger" title={`${passou.length} arquivo passou do prazo + grace e continua no disco`}>
             É exatamente o WARN do <code>HealthCheckCommand</code> (check #4): guardar dado além da finalidade é o oposto do que a LGPD Art. 16 pede.
-            O <code>arquivos:retention-cleanup</code> roda com <code>strategy={CFG.strategy}</code> — confira se o agendado está de pé.
+            Quem apaga é o <code>arquivos:retention-cleanup</code>, com <code>strategy={CFG.strategy}</code>.
           </Nota>
         </div>}
 
@@ -208,19 +264,23 @@ function Retencao({ arquivos, papel, onRestaurar, onPurgar, onAvisar }) {
         <section className="arq-bloco" data-contract="avisos-titular">
           <header className="arq-bloco-h">
             <h3>Aviso ao titular pendente</h3>
-            <small>LGPD Art. 18 §VI · bucket sensitive com titular identificado, a ≤{CFG.notice} dias do prazo</small>
+            <small>LGPD Art. 18 §VI · classificação Sensível com titular identificado, a ≤{CFG.notice} dias do prazo — <b>ainda não implementado</b>, é config aspiracional</small>
           </header>
           <ul className="arq-rows">
             {avisos.map((a) => (
               <li key={a.id}>
                 <span className="arq-row-m"><b>{a.nome}</b><small>titular: {a.titular} · vence em {restam(a)} dias · {politica(a.sub).lei}</small></span>
-                {podeMexer
-                  ? <Btn size="sm" variant="primary" onClick={() => onAvisar(a)}><IcBell /> Avisar titular</Btn>
-                  : <span className="arq-disk">só o gestor avisa</span>}
+                {Tooltip
+                  ? <Tooltip content="O aviso ao titular não existe no sistema: o prazo de notice é config aspiracional. Ligar isto é onda 3 e depende da proposta de ADR arquivos-retencao-ui-aviso-titular."><span><Btn size="sm" disabled><IcBell /> Avisar titular</Btn></span></Tooltip>
+                  : <Btn size="sm" disabled><IcBell /> Avisar titular</Btn>}
               </li>
             ))}
           </ul>
-          <p className="arq-fine">O aviso sai por canal de Notification e fica na trilha como <code>notice</code>. Avisar não apaga nada — só cumpre o prazo de aviso.</p>
+          <p className="arq-fine">
+            Esta lista é <b>sinal, não fila de trabalho</b>: o aviso ao titular ainda não é enviado por caminho nenhum — nem pela tela, nem por job.
+            O prazo de {CFG.notice} dias está em <code>Config/config.php</code> como intenção, e desenhar o botão ligado seria a tela prometendo o que o backend não faz.
+            Quando existir, o aviso sai por canal de Notification e entra na trilha como <code>notice</code> (onda 3, proposta de ADR <code>arquivos-retencao-ui-aviso-titular</code>).
+          </p>
         </section>}
 
       <section className="arq-bloco" data-contract="grace">
@@ -254,12 +314,17 @@ function Retencao({ arquivos, papel, onRestaurar, onPurgar, onAvisar }) {
 
       <div className="arq-cards" data-contract="retencao-regras">
         <div className="arq-card"><span className="arq-card-l">Grace period</span><b className="mono">{CFG.grace} dias</b><small>janela pra restaurar depois do prazo vencer</small></div>
-        <div className="arq-card"><span className="arq-card-l">Aviso ao titular</span><b className="mono">{CFG.notice} dias</b><small>LGPD Art. 18 §VI, para bucket sensitive com titular</small></div>
+        <div className="arq-card"><span className="arq-card-l">Aviso ao titular</span><b className="mono">{CFG.notice} dias</b><small>LGPD Art. 18 §VI — <b>ainda não implementado</b>, é config aspiracional</small></div>
         <div className="arq-card"><span className="arq-card-l">Estratégia</span><b className="mono">{CFG.strategy}</b><small>apagar de verdade; <code>anonymize</code> disponível por arquivo</small></div>
-        <div className="arq-card"><span className="arq-card-l">Escopo do job</span><b className="mono">business_id</b><small>nunca cross-tenant (ADR 0093)</small></div>
+        {/* Negócio na tela, técnico no `title`: `ds/no-db-jargon-in-ui` proíbe nome de coluna
+            em texto visível, e quem lê quer saber que o job não atravessa empresas. */}
+        <div className="arq-card"><span className="arq-card-l">Escopo do job</span><b title="business_id (ADR 0093)">Uma empresa por vez</b><small>nunca atravessa empresas (ADR 0093)</small></div>
       </div>
 
       <p className="arq-fine">
+        {CFG.agendado
+          ? <>O <code>arquivos:retention-cleanup</code> está <b>agendado</b> — os números acima são o que ele encontraria na próxima execução. </>
+          : <>O <code>arquivos:retention-cleanup</code> <b>não está agendado</b>: ele existe, está registrado, e só roda se alguém digitar o comando. Os números acima dizem o que ele encontraria — não o que vai acontecer sozinho. </>}
         Prazo é lei, não preferência: mudar um número aqui muda <code>Config/retention.php</code> <b>e</b> <code>config.php</code> (são espelho, e divergir é achado de auditoria).
         A trilha (<code>arquivos_audit_log</code>) <b>nunca</b> é purgada, mesmo quando o arquivo é.
       </p>
@@ -269,7 +334,6 @@ function Retencao({ arquivos, papel, onRestaurar, onPurgar, onAvisar }) {
 
 // ─── Cofre ──────────────────────────────────────────────────────────────────
 function Cofre({ arquivos, onDryRun, dryRun }) {
-  const { Progress } = DS();
   const { Nota } = A();
   const { CFG, tam, restam, noGrace } = D();
   const vivos = arquivos.filter((a) => !a.del);
@@ -294,7 +358,9 @@ function Cofre({ arquivos, onDryRun, dryRun }) {
             <span className="arq-card-l">{d.disco === "vault" ? "Cofre (cifrado)" : "Disco comum"}</span>
             <b className="mono">{tam(d.bytes)}</b>
             <small>{d.n} arquivos · {d.disco === "vault" ? "AES-256 via Crypt::encryptString" : "servido por Storage::url"}</small>
-            {Progress && <Progress value={Math.min(100, Math.round(d.bytes / (5 * 1073741824) * 100))} max={100} />}
+            {/* SEM barra de progresso: o denominador era 5 GB de mock e não existe quota por
+                disco em `Config/config.php` — a barra sugeria um teto que ninguém definiu. Se
+                um dia houver quota configurada, ela volta com significado. */}
           </div>
         ))}
       </div>
@@ -335,9 +401,10 @@ function Cofre({ arquivos, onDryRun, dryRun }) {
 
       {Nota &&
         <div className="arq-nota">
-          <Nota tone="info" title="Esta tela não envia arquivo">
-            Upload entra pelos módulos, via trait <code>HasArquivos</code> — cap de {CFG.uploadCap} MB por upload.
-            Aqui é administração: classificar, achar problema, apagar com prazo.
+          <Nota tone="info" title="Os três achados são sinal, não fila de trabalho">
+            Esta tela não apaga, não vincula e não recifra nada. Quem apaga é o <code>arquivos:retention-cleanup</code>, com política;
+            quem recifra é o <code>arquivos:reencrypt-vault</code>; e o retrato de saúde, com os 5 sinais de integridade, é o <code>arquivos:health-check</code>.
+            Upload entra pelos módulos, via trait <code>HasArquivos</code> — cap de {CFG.uploadCap} MB.
           </Nota>
         </div>}
     </>
@@ -352,13 +419,18 @@ function Trilha({ trilha }) {
     { key: "acao", label: "Ação", width: 135 },
     { key: "arq", label: "Arquivo", width: 100, mono: true },
     { key: "quem", label: "Quem", width: 125 },
-    { key: "payload", label: "Payload" },
+    // "Detalhe", não "Payload": termo cru em inglês na tela, e a tela viva
+    // (`Pages/Arquivos/Index.tsx`) já chama esta coluna de Detalhe — âncora divergente
+    // da produção é o defeito que este próprio ciclo combate. A chave do dado segue `payload`.
+    { key: "payload", label: "Detalhe" },
   ];
   const linhas = trilha.map((t) => ({
     id: t.id,
     cells: {
       quando: t.quando,
-      acao: StatusBadge ? <StatusBadge tone={(ACAO[t.acao] || ACAO.download).t} label={(ACAO[t.acao] || ACAO.download).l} /> : <b>{t.acao}</b>,
+      acao: StatusBadge && AC(t.acao).k
+        ? <StatusBadge kind="sla" value={AC(t.acao).k} label={AC(t.acao).l} title={t.acao} />
+        : <span className="arq-disk" title={t.acao}>{AC(t.acao).l}</span>,
       arq: "#" + t.arq,
       quem: t.quem === "job" || t.quem === "sistema" ? <span className="arq-disk">{t.quem}</span> : <b className="mono">{t.quem}</b>,
       payload: <span className="arq-lei">{t.payload}</span>,
@@ -383,7 +455,7 @@ function Classificar({ alvo, onFechar, onAplicar }) {
   const { Select, Input } = DS();
   const { Confirm } = A();
   const { politica, CFG } = D();
-  const [bucket, setBucket] = useState(alvo ? alvo.bucket : "common");
+  const [bucket, setBucket] = useState(alvo ? alvo.bucket : "active");
   const [vis, setVis] = useState(alvo ? alvo.vis : "internal");
   const [ret, setRet] = useState(alvo ? alvo.ret : 90);
   React.useEffect(() => { if (alvo) { setBucket(alvo.bucket); setVis(alvo.vis); setRet(alvo.ret); } }, [alvo]);
@@ -396,21 +468,21 @@ function Classificar({ alvo, onFechar, onAplicar }) {
       <p className="arq-modal-alt">A classificação decide onde o arquivo mora, quem vê e por quanto tempo fica. Fica gravada com seu nome (<code>classified_by</code>) e a mudança entra no <code>activity_log</code> — sem nome de arquivo, sem caminho.</p>
       <div className="arq-modal-f">
         {Select
-          ? <Select label="Bucket" value={bucket} onChange={(e) => setBucket(e.target.value)}
-              help={bucket === "sensitive" ? `Sensitive vai pro cofre cifrado e o default de PII cai pra ${CFG.sensitiveDefault} dias.` : "Common fica no disco comum, servido por URL direta."}
-              options={[{ value: "common", label: "common — operacional" }, { value: "sensitive", label: "sensitive — PII / cofre cifrado" }, { value: "public", label: "public — pode ser servido aberto" }]} />
-          : <select value={bucket} onChange={(e) => setBucket(e.target.value)}><option value="common">common</option><option value="sensitive">sensitive</option><option value="public">public</option></select>}
+          ? <Select label="Classificação" value={bucket} onChange={(e) => setBucket(e.target.value)}
+              help={bucket === "sensitive" ? `Sensível vai pro cofre cifrado e o default de PII cai pra ${CFG.sensitiveDefault} dias.` : "Fica no disco comum. Quem vê é a visibilidade, não a classificação."}
+              options={[{ value: "sensitive", label: "Sensível — PII / cofre cifrado" }, { value: "active", label: "Em uso — operação corrente" }, { value: "memory", label: "Histórico — guardado por referência" }, { value: "discard", label: "Descartar — candidato a limpeza" }]} />
+          : <select value={bucket} onChange={(e) => setBucket(e.target.value)}><option value="sensitive">Sensível</option><option value="active">Em uso</option><option value="memory">Histórico</option><option value="discard">Descartar</option></select>}
         {Select
           ? <Select label="Visibilidade" value={vis} onChange={(e) => setVis(e.target.value)}
-              options={[{ value: "private", label: "private — só quem tem o dono" }, { value: "internal", label: "internal — equipe do negócio" }, { value: "public", label: "public — link aberto" }]} />
-          : <select value={vis} onChange={(e) => setVis(e.target.value)}><option value="private">private</option><option value="internal">internal</option><option value="public">public</option></select>}
+              options={[{ value: "private", label: "Restrito — só quem alcança o dono" }, { value: "internal", label: "Equipe — quem tem acesso ao negócio" }, { value: "public", label: "Aberto — link sem login" }]} />
+          : <select value={vis} onChange={(e) => setVis(e.target.value)}><option value="private">Restrito</option><option value="internal">Equipe</option><option value="public">Aberto</option></select>}
         {Input
           ? <Input label="Retenção (dias)" type="number" min="1" value={ret} onChange={(e) => setRet(e.target.value)}
               help={`Política do contexto ${alvo.sub}: ${p.dias} dias — ${p.lei}.`}
               error={menorQueALei ? "Abaixo do prazo da política: guardar menos do que a lei manda é risco fiscal, não economia." : undefined} />
           : <input type="number" value={ret} onChange={(e) => setRet(e.target.value)} />}
-        {bucket === "public" && vis === "public" &&
-          <p className="arq-modal-warn">Public + public serve o arquivo <b>sem login</b>. Só para logo e material de marketing — nunca para documento com dado de cliente.</p>}
+        {vis === "public" &&
+          <p className="arq-modal-warn">Visibilidade <b>Aberto</b> serve o arquivo <b>sem login</b>. Só para logo e material de marketing — nunca para documento com dado de cliente.</p>}
       </div>
     </Confirm>
   );
@@ -504,7 +576,9 @@ function ArquivosPage({ view = "acervo", estado = "dados", papel = "gestor", den
     );
   }
 
-  const abas = VISTAS.map((v) => ({ key: v.id, label: v.label, count: v.id === "acervo" ? vivos.length : v.id === "trilha" ? trilha.length : v.id === "retencao" ? lista.filter((a) => noGrace(a)).length || undefined : undefined }));
+  // Contador só onde a aba É uma lista: acervo e trilha. Retenção e Cofre são retratos
+  // (KPIs e achados) — número na aba deles promete uma contagem que a vista não entrega.
+  const abas = VISTAS.map((v) => ({ key: v.id, label: v.label, count: v.id === "acervo" ? vivos.length : v.id === "trilha" ? trilha.length : undefined }));
 
   const rodarDryRun = () => {
     const venc = vivos.filter((a) => restam(a) <= 0);
@@ -527,11 +601,11 @@ function ArquivosPage({ view = "acervo", estado = "dados", papel = "gestor", den
           : <header className="os-page-h"><div className="os-page-h-l"><h1>Arquivos</h1><p>{sub}</p></div></header>}
       </div>
 
-      <p className="arq-casa" data-contract="onde-mora">
-        {casa === "admin-center"
-          ? <>Esta tela mora no <b>Admin Center</b> (US-ARQ-013) — o módulo continua sem entry própria de sidebar, como o <code>DataController</code> NO-OP declara hoje.</>
-          : <>Esta tela está como <b>destino próprio</b> em SISTEMA. No repo, o caminho declarado é o Admin Center (US-ARQ-013) — trocar é decisão sua, no Tweak “Onde mora”.</>}
-      </p>
+      {/* A faixa "onde mora" saiu em 2026-08-25: era copy de PROCESSO dentro da UI (debatia
+          Admin Center × destino próprio e citava US-ARQ-013 e um Tweak). A pergunta está
+          decidida — a tela mora em Pages/Arquivos por decisão [W] de 2026-07-29 (ADR 0360
+          deprecou o Admin Center) e o item de sidebar existe desde 2026-08-25. Usuário não
+          lê ADR na tela. */}
 
       <div data-contract="abas">
         {TabBar
@@ -541,13 +615,11 @@ function ArquivosPage({ view = "acervo", estado = "dados", papel = "gestor", den
 
       {vista === "acervo" && <Acervo arquivos={lista} papel={papel}
         onBaixar={(a) => { logar(a.enc ? "signed_url" : "download", a.id, a.enc ? `expira em ${CFG.signedMin} min · DownloadController` : "servido por Storage::url"); fala(a.enc ? `Link assinado gerado pra ${a.nome} — vale ${CFG.signedMin} min e o download passa pelo DownloadController.` : `Download de ${a.nome} iniciado.`); }}
-        onExcluir={setExcluir} onClassificar={setClassificar}
-        onAvisar={(a) => { setLista((s) => s.map((x) => x.id === a.id ? { ...x, avisado: true } : x)); logar("notice", a.id, `aviso prévio ao titular (${a.titular}) · ${CFG.notice} dias`); fala(`Titular ${a.titular} avisado — o prazo de aviso da LGPD Art. 18 §VI está cumprido.`); }} />}
+        onExcluir={setExcluir} onClassificar={setClassificar} />}
 
       {vista === "retencao" && <Retencao arquivos={lista} papel={papel}
         onRestaurar={(a) => { setLista((s) => s.map((x) => x.id === a.id ? { ...x, del: undefined } : x)); logar("restore", a.id, "restaurado dentro do grace"); fala(`${a.nome} voltou pro acervo.`); }}
-        onPurgar={(a) => { setLista((s) => s.filter((x) => x.id !== a.id)); logar("hard_delete", a.id, "antecipado pela tela · grace interrompido"); fala(`${a.nome} apagado de verdade. A linha da trilha fica.`); }}
-        onAvisar={(a) => { setLista((s) => s.map((x) => x.id === a.id ? { ...x, avisado: true } : x)); logar("notice", a.id, `aviso prévio ao titular (${a.titular}) · ${CFG.notice} dias`); fala(`Titular ${a.titular} avisado.`); }} />}
+        onPurgar={(a) => { setLista((s) => s.filter((x) => x.id !== a.id)); logar("hard_delete", a.id, "antecipado pela tela · grace interrompido"); fala(`${a.nome} apagado de verdade. A linha da trilha fica.`); }} />}
 
       {vista === "cofre" && <Cofre arquivos={lista} onDryRun={rodarDryRun} dryRun={dryRun} />}
       {vista === "trilha" && <Trilha trilha={trilha} />}

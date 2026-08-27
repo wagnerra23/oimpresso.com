@@ -1,704 +1,875 @@
-// prod-page.jsx — Catálogo de Produtos (visual Picker Mecânica)
-// Substitui a versão CV-focada (backup em prod-page-v1-cv.jsx).
-// Layout: header → chips de categoria → [sidebar marca | grid/lista] → drawer detalhe.
-// SEM filtro/aplicação por veículo (intencional, por solicitação do produto).
-const { useState: useStateP, useMemo: useMemoP } = React;
+// produtos-page.jsx — Consulta de Produtos (`/products/unificado`)
+// Porte do main lido em 2026-08-25: Pages/Produto/Unificado/Index.tsx + _components/
+// (catalogo.ts · Colunas.tsx · KpiFiltros.tsx · FiltroTrigger.tsx · BulkBar.tsx ·
+//  Disponibilidade.tsx · MiniaturaProduto.tsx · Mono.tsx · Observacao.tsx).
+//
+// Árvore do vivo: PageHeader → abas por TIPO → KPI-filtros → toolbar em UMA linha
+// (filtros → ordem → limpar → contagem → busca) → grid sem raio com thead sticky →
+// rodapé de paginação → drawer de detalhe. BulkBar flutua quando há seleção.
+//
+// Regra que governa tudo: custo e margem são AUTORIZAÇÃO, não preferência — coluna é
+// MONTADA ou NÃO MONTADA, nunca escondida por CSS; ausência nunca imprime 0/—.
+// As 4 sub-telas (Categorias · Insumos · Tabelas · Histórico) saíram desta tela por
+// decisão do handoff V6 #11 — no protótipo elas seguem nas rotas prod-* da sidebar.
+const { useState: useStateP, useMemo: useMemoP, useEffect: useEffectP, useRef: useRefP } = React;
 
-// ─── Paleta harmoniosa por categoria (estilo CLI_AVATAR_PALETTE de Clientes:
-//     L/C consistentes ~0.62/0.13, só o hue varia → limpo e vibrante, não "industrial" muddy).
-//     [W] 2026-06-22 "deve pegar as cores do cadastro de clientes… essas são muito feias". ───
-//     Refino 2026-08-08 ("mais no padrão do projeto"): categoria é TAXONOMIA, não status.
-//     No padrão Cockpit só status e o accent roxo têm cor cheia — então a categoria vira
-//     neutro quente com um sopro de hue (croma 0.02–0.03), legível sem virar arco-íris.
-const PMCat = {
-  "Mecânica": { color: "oklch(0.68 0.022 250)", short: "MEC" },
-  "Impressos": { color: "oklch(0.68 0.030 295)", short: "IMP" },
-  "Comunicação Visual": { color: "oklch(0.68 0.026 330)", short: "CV" },
-  "Embalagens": { color: "oklch(0.68 0.026 75)", short: "EMB" },
-  "Adesivos": { color: "oklch(0.68 0.026 40)", short: "ADE" },
-  "Vestuário": { color: "oklch(0.68 0.028 315)", short: "VES" },
-  "Acabamento": { color: "oklch(0.68 0.022 165)", short: "ACB" },
-  "Brindes": { color: "oklch(0.68 0.024 20)", short: "BRI" },
-  "Serviços": { color: "oklch(0.68 0.022 210)", short: "SRV" },
-  "Composições": { color: "oklch(0.68 0.024 145)", short: "KIT" }
+const PISO_MARGEM = 0.42;   // parâmetro de negócio (vive no servidor no vivo)
+const DIAS_PARADO = 60;
+const CHAVE_PREFS = "oi.produtos.prefs.v1";
+
+const brlP = (n) => "R$ " + n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const pctP = (n) => Math.round(n * 100) + "%";
+const numP = (n) => Number.isInteger(n) ? String(n) : n.toLocaleString("pt-BR", { maximumFractionDigits: 3 });
+const parseBRp = (s) => typeof s === "number" ? s : parseFloat(String(s || "").replace(/[^\d,]/g, "").replace(",", ".")) || 0;
+
+const TIPO_LABEL = { produto: "PROD", servico: "SERV", materia: "M-PRIMA", kit: "KIT" };
+const ABAS_CATALOGO = [
+["todos", "Todos"], ["produtos", "Produtos"], ["servicos", "Serviços"],
+["materia", "Matéria-prima"], ["kits", "Kits"], ["inativos", "Inativos"]];
+
+const TIPO_OPCOES = [
+{ value: "produto", label: "Produto" }, { value: "servico", label: "Serviço" },
+{ value: "materia", label: "Matéria-prima" }, { value: "kit", label: "Kit" }];
+
+const ESTOQUE_OPCOES = [
+{ value: "em", label: "Com saldo" }, { value: "baixo", label: "Abaixo do mínimo" },
+{ value: "sem", label: "Sem saldo" }, { value: "nao", label: "Não estocável" }];
+
+const MARGEM_OPCOES = [{ value: "sob_piso", label: "Sob o piso" }, { value: "ok", label: "Acima do piso" }];
+const ORDEM_OPCOES = [
+{ key: "cod", label: "Código" }, { key: "prod", label: "Produto" }, { key: "est", label: "Disponível" },
+{ key: "preco", label: "Preço", preco: true }, { key: "margem", label: "Margem", custo: true, preco: true }];
+
+const COLUNAS_OCULTAVEIS = [
+{ key: "tipo", label: "Tipo" }, { key: "custo", label: "Custo" },
+{ key: "preco", label: "Preço de venda" }, { key: "margem", label: "Margem" }];
+
+const POR_PAGINA_OPCOES = [25, 50, 100];
+
+/* ─── Vocabulário (catalogo.ts) ──────────────────────────────────────── */
+
+function estadoEstoque(r) {
+  if (r.stockQty === null) return { chave: "nao", label: "Não estocável", rel: null, rank: -1 };
+  if (r.stockQty === 0) return { chave: "sem", label: "Sem saldo", rel: "0", rank: 0 };
+  if (r.minimo !== null && r.stockQty <= r.minimo) return { chave: "baixo", label: "Abaixo do mínimo", rel: numP(r.stockQty), rank: 1 };
+  return { chave: "em", label: "Disponível", rel: numP(r.stockQty), rank: 2 };
+}
+const margemFrac = (r) => r.margin !== undefined ? r.margin :
+r.cost === undefined || r.price === undefined || r.price <= 0 ? undefined : (r.price - r.cost) / r.price;
+const sobOPiso = (r) => {const m = margemFrac(r);return m !== undefined && m < PISO_MARGEM;};
+const linhaUrgente = (r) => {const c = estadoEstoque(r).chave;return c === "sem" || c === "baixo" || sobOPiso(r);};
+const gradeComFuro = (g) => !!g && g.total > 0 && g.com < g.total;
+const marcadorGrade = (g) => !g || g.total === 0 ? "" : `${g.com} de ${g.total} com saldo`;
+
+// Permissões — fail-closed: ausência de permissão declarada nunca vira permissão.
+const permsDe = (papel) =>
+papel === "administrador" ? { custo: true, preco: true, composicao: true, inativar: true } :
+papel === "gerente" ? { custo: true, preco: true, composicao: true, inativar: false } :
+papel === "balcao" ? { custo: false, preco: true, composicao: false, inativar: false } :
+{ custo: false, preco: false, composicao: false, inativar: false };
+
+/* ─── Linhas (o controller do vivo NÃO emite a chave que o perfil não pode ver) ─── */
+
+function linhasCatalogo(perm) {
+  const cad = PROD_DATA.PROD_CADASTRO, met = PROD_DATA.PROD_METRICS;
+  const doProduto = PROD_DATA.PROD_LIST.map((p, i) => {
+    const c = cad[p.id] || {}, m = met[p.id] || {};
+    const tipo = p.type === "servico" ? "servico" : p.type === "composicao" ? "kit" :
+    p.category === "Serviços" || p.unit === "h" ? "servico" : p.category === "Composições" ? "kit" : "produto";
+    const estocavel = tipo === "produto";
+    const vars = p.variants || [];
+    const price = parseBRp(p.price);
+    const row = {
+      id: p.id, codigo: 1000 + i + 1, referencia: vars[0]?.sku || null, name: p.name, tipo,
+      cat_label: p.category, unit: p.unit === "milheiro" ? "milh." : p.unit,
+      stockQty: estocavel ? PROD_DATA.prodStock(p) : null,
+      minimo: c.min === undefined ? null : c.min,
+      parado: m.uses30 === 0, ultimaVenda: ULTIMA_VENDA[p.id] || null, active: p.active,
+      bomCount: (p.bom || []).length, bom: p.bom || [], variants: vars, lead: p.lead,
+      marca: p.brand || null, oem: p.oem || [], uses30: m.uses30
+    };
+    if (perm.preco) row.price = price;
+    if (perm.custo && m.cost !== undefined) row.cost = m.cost;
+    if (c.locais) row.locais = c.locais;
+    if (c.obs) row.obs = c.obs;
+    if (vars.length > 1) row.grade = { com: vars.filter((v) => (v.stock || 0) > 0).length, total: vars.length };
+    return row;
+  });
+  // Insumos entram como MATÉRIA-PRIMA (é o que são no cadastro) — sem preço de venda,
+  // então a célula de preço simplesmente não é construída pra eles.
+  const doInsumo = PROD_INSUMOS.map((ins, i) => {
+    const row = {
+      id: "I-" + ins.id, codigo: 2000 + i + 1, referencia: null, name: ins.name, tipo: "materia",
+      cat_label: "Insumos", unit: ins.unit, stockQty: ins.stock, minimo: ins.min,
+      parado: false, ultimaVenda: null, active: true, bomCount: 0, bom: [], variants: [],
+      marca: ins.fornecedor, oem: [], uses30: null, insumo: true
+    };
+    if (perm.custo) row.cost = ins.cost;
+    return row;
+  });
+  return doProduto.concat(doInsumo);
+}
+
+// Última venda por item — declarada (o vivo lê do banco).
+const ULTIMA_VENDA = {
+  "P-001": "25/04/2026", "P-002": "28/04/2026", "P-003": "25/04/2026", "P-004": "22/04/2026",
+  "P-005": "28/04/2026", "P-006": "27/04/2026", "P-007": "23/04/2026", "P-010": "23/04/2026",
+  "P-012": "26/04/2026", "P-014": "27/04/2026", "S-001": "24/04/2026", "S-003": "22/04/2026",
+  "K-001": "24/04/2026"
 };
-const catColor = (c) => PMCat[c]?.color || "oklch(0.68 0.012 90)";
-const catShort = (c) => PMCat[c]?.short || c.slice(0, 3).toUpperCase();
 
-// Mock de prateleira determinístico (a partir do id) — sem mudar PROD_DATA
-function prodLoc(p) {
-  const letters = "ABCDEFGH";
-  const n = parseInt((p.id.match(/\d+/) || ["0"])[0], 10);
-  const letter = letters[(n - 1) % letters.length];
-  const shelf = String((n - 1) % 9 + 1).padStart(2, "0");
-  return `${letter}${Math.floor(n / 10) + 1}-${shelf}`;
+// Matéria-prima do catálogo (mesma fonte dos insumos · BOM), com nível mínimo declarado.
+const PROD_INSUMOS = [
+{ id: 1, name: "Papel couché 300g", unit: "folha", cost: 0.42, stock: 12400, min: 4000, fornecedor: "Suzano Papel" },
+{ id: 2, name: "Papel couché 150g", unit: "folha", cost: 0.28, stock: 18600, min: 4000, fornecedor: "Suzano Papel" },
+{ id: 3, name: "Couché 250g", unit: "folha", cost: 0.36, stock: 9200, min: 3000, fornecedor: "Suzano Papel" },
+{ id: 4, name: "Lona 440g", unit: "m²", cost: 12.80, stock: 640, min: 200, fornecedor: "Sansuy" },
+{ id: 5, name: "Vinil adesivo", unit: "m²", cost: 18.50, stock: 320, min: 150, fornecedor: "Avery Brasil" },
+{ id: 6, name: "Tinta CMYK", unit: "L", cost: 148.00, stock: 24, min: 12, fornecedor: "Epson Distr." },
+{ id: 7, name: "Tinta solvente", unit: "L", cost: 96.00, stock: 38, min: 20, fornecedor: "Roland BR" },
+{ id: 8, name: "Verniz UV", unit: "L", cost: 210.00, stock: 6, min: 10, fornecedor: null },
+{ id: 9, name: "PVC expandido 3mm", unit: "chapa", cost: 84.00, stock: 42, min: 20, fornecedor: "Sansuy" },
+{ id: 10, name: "Kraft 120g", unit: "folha", cost: 0.31, stock: 7400, min: 2000, fornecedor: "Klabin" },
+{ id: 11, name: "Ilhós", unit: "un", cost: 0.18, stock: 5200, min: 1000, fornecedor: "Ferragem União" },
+{ id: 12, name: "Cola PUR", unit: "kg", cost: 62.00, stock: 0, min: 8, fornecedor: "Henkel" },
+{ id: 13, name: "Óleo motor 5W30", unit: "L", cost: 34.00, stock: 96, min: 40, fornecedor: "Ipiranga" },
+{ id: 14, name: "Fluido freio DOT4", unit: "L", cost: 28.00, stock: 22, min: 24, fornecedor: "Bosch" }];
+
+
+/* ─── Peças ──────────────────────────────────────────────────────────── */
+
+function Disponibilidade({ row, densa }) {
+  const est = estadoEstoque(row);
+  const pilula =
+  <span className={"pd-est " + est.chave} title={est.rel === null ? est.label : `${est.label} · saldo ${est.rel}`}>
+      {est.chave !== "nao" && <span className="pd-est-dot" aria-hidden="true" />}
+      {est.label}
+      {est.rel !== null && <span className="pd-est-n">{est.rel}{row.unit ? ` ${row.unit}` : ""}</span>}
+    </span>;
+
+  const locais = row.locais || [];
+  if (locais.length < 2 || densa) return pilula;
+  const zerados = locais.filter((l) => l.qtd === 0);
+  const alerta = zerados.length > 0 && locais.some((l) => l.qtd > 0) ?
+  `0 na ${zerados.map((l) => l.nome).join(" e ")} — saldo em outro local.` : "";
+  return (
+    <span className="pd-est-wrap">
+      {pilula}
+      <span className="pd-est-locais" tabIndex={0} aria-label={`Saldo por local de ${row.name}`}>
+        {locais.length} locais
+        <span className="pd-pop" role="tooltip">
+          <b>Saldo por local</b>
+          {locais.map((l) =>
+          <span className="pd-pop-l" key={l.nome}>
+              <span>{l.nome}</span>
+              <span className={"pd-pop-n" + (l.qtd === 0 ? " zero" : "")}>{numP(l.qtd)} {row.unit}</span>
+            </span>
+          )}
+          {alerta && <span className="pd-pop-alerta">{alerta}</span>}
+        </span>
+      </span>
+    </span>);
+
 }
 
-// ── Tabela de preços padrão (4 níveis com multiplicadores) ──
-// Cada produto pode sobrescrever via `priceTable` no PROD_LIST.
-const DEFAULT_PRICE_TIERS = [
-{ key: "varejo", label: "Varejo", mult: 1.00, desc: "Balcão · cliente avulso" },
-{ key: "atacado", label: "Atacado", mult: 0.90, desc: "≥10 un · revenda" },
-{ key: "convenio", label: "Convênio", mult: 0.85, desc: "Seguradora · frota" },
-{ key: "funcionario", label: "Funcionário", mult: 0.75, desc: "Política interna" }];
+function Miniatura({ nome, tamanho = 30 }) {
+  return (
+    <span className="pd-mini" style={{ width: tamanho, height: tamanho }}
+    role="img" aria-label="Produto sem imagem" title="Sem imagem">
+      <I.product size={Math.round(tamanho * 0.5)} />
+    </span>);
 
-
-const parseBRPrice = (s) => {
-  if (typeof s === "number") return s;
-  if (!s) return 0;
-  return parseFloat(String(s).replace(/[^\d,]/g, "").replace(",", ".")) || 0;
-};
-const fmtBR = (n) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-
-// Faixa de preços pelas variantes (min..max). Se só 1 valor, retorna single.
-function priceRange(p) {
-  const prices = (p.variants || []).
-  map((v) => parseBRPrice(v.price)).
-  filter((x) => x > 0);
-  if (prices.length === 0) {
-    const base = parseBRPrice(p.price);
-    return { min: base, max: base, hasRange: false, count: 1 };
-  }
-  const min = Math.min(...prices);
-  const max = Math.max(...prices);
-  return { min, max, hasRange: max > min, count: prices.length };
-}
-// Formata faixa: "R$ 220,00 – 380,00"  (R$ só no começo, sem repetir)
-function fmtPriceRange(min, max) {
-  const fmt = (n) => n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  if (min === max) return "R$ " + fmt(min);
-  return `R$ ${fmt(min)} – ${fmt(max)}`;
 }
 
-function buildPriceTable(p) {
-  if (Array.isArray(p.priceTable) && p.priceTable.length > 0) {
-    return p.priceTable;
-  }
-  const base = parseBRPrice(p.price);
-  return DEFAULT_PRICE_TIERS.map((t) => ({
-    key: t.key,
-    label: t.label,
-    desc: t.desc,
-    price: base * t.mult,
-    discount: t.mult === 1 ? null : Math.round((1 - t.mult) * 100)
-  }));
+function KpiFiltros({ kpis, ativo, onToggle, perm }) {
+  const cards = [
+  { key: "min", label: "Abaixo do mínimo", sub: "repor", tone: "warn", valor: kpis.min },
+  { key: "zero", label: "Sem saldo", sub: "bloqueado", tone: "danger", valor: kpis.zero }];
+
+  if (perm.custo) cards.push({ key: "parado", label: `Sem venda ${DIAS_PARADO}d`, sub: "sem giro", tone: "accent", valor: kpis.parado });
+  if (perm.custo && perm.preco) cards.push({ key: "margem", label: "Margem baixa", sub: "sob o piso", tone: "warn", valor: kpis.margem });
+  return (
+    <div className="pd-kpis">
+      {cards.map((c) => {
+        const on = ativo === c.key;
+        return (
+          <button key={c.key} type="button" aria-pressed={on}
+          title={`Recortar por ${c.label} (${c.sub})`}
+          className={"pd-kpi" + (on ? " on" : "")}
+          onClick={() => onToggle(on ? null : c.key)}>
+            <span className={"pd-kpi-plate " + c.tone}>
+              {c.key === "min" ? <I.alert size={16} /> : c.key === "zero" ? <I.close size={16} /> : c.key === "parado" ? <I.clock size={16} /> : <I.percent size={16} />}
+            </span>
+            <span className="pd-kpi-txt">
+              <span className="pd-kpi-l">{c.label}</span>
+              <span className="pd-kpi-v">{c.valor.toLocaleString("pt-BR")}</span>
+              <span className="pd-kpi-s">{c.sub}</span>
+            </span>
+          </button>);
+
+      })}
+    </div>);
+
 }
 
-const PM_TYPES = [
-  { key: "all",        label: "Todos",      color: "oklch(0.68 0.012 90)" },
-  { key: "produto",    label: "Produto",    color: "var(--accent)" },
-  { key: "servico",    label: "Serviço",    color: "oklch(0.68 0.022 210)" },
-  { key: "composicao", label: "Composição", color: "oklch(0.68 0.024 145)" },
-];
+function FiltroTrigger({ label, value, options, onChange }) {
+  const [aberto, setAberto] = useStateP(false);
+  const ref = useRefP(null);
+  useEffectP(() => {
+    if (!aberto) return;
+    const onClick = (e) => {if (ref.current && !ref.current.contains(e.target)) setAberto(false);};
+    const onKey = (e) => {if (e.key === "Escape") setAberto(false);};
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {document.removeEventListener("mousedown", onClick);document.removeEventListener("keydown", onKey);};
+  }, [aberto]);
+  const sel = options.find((o) => o.value === value);
+  return (
+    <div className="pd-ft" ref={ref}>
+      <button type="button" aria-haspopup="listbox" aria-expanded={aberto}
+      className={"pd-ft-b" + (sel ? " on" : "")} onClick={() => setAberto((v) => !v)}>
+        <span>{sel ? `${label}: ${sel.label}` : label}</span>
+        <I.chevDown size={11} />
+      </button>
+      {aberto &&
+      <div className="pd-ft-pop" role="listbox">
+          {options.length === 0 && <p className="pd-ft-vazio">Nada cadastrado ainda.</p>}
+          {sel && <button type="button" className="pd-ft-limpar" onClick={() => {onChange("");setAberto(false);}}>Limpar</button>}
+          {options.map((o) =>
+        <button key={o.value} type="button" role="option" aria-selected={o.value === value}
+        className={"pd-ft-o" + (o.value === value ? " on" : "")}
+        onClick={() => {onChange(o.value === value ? "" : o.value);setAberto(false);}}>
+              <span>{o.label}</span>
+              {o.value === value && <I.check size={11} />}
+            </button>
+        )}
+        </div>
+      }
+    </div>);
 
-function ProdListPage({ typeFilter = "all", onTypeFilter }) {
-  const all = PROD_DATA.PROD_LIST;
+}
 
-  // ── Persistência em localStorage ──
-  const loadLS = (k, def) => {try {const v = localStorage.getItem(k);return v == null ? def : JSON.parse(v);} catch (e) {return def;}};
-  const saveLS = (k, v) => {try {localStorage.setItem(k, JSON.stringify(v));} catch (e) {}};
+function MenuAncorado({ label, icon, align = "end", children }) {
+  const [aberto, setAberto] = useStateP(false);
+  const ref = useRefP(null);
+  useEffectP(() => {
+    if (!aberto) return;
+    const onClick = (e) => {if (ref.current && !ref.current.contains(e.target)) setAberto(false);};
+    const onKey = (e) => {if (e.key === "Escape") setAberto(false);};
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {document.removeEventListener("mousedown", onClick);document.removeEventListener("keydown", onKey);};
+  }, [aberto]);
+  return (
+    <div className="pd-menu" ref={ref}>
+      <button type="button" className="pd-menu-b" aria-label={label} aria-expanded={aberto} title={label}
+      onClick={() => setAberto((v) => !v)}>
+        {icon}{label && <span className="pd-menu-lbl">{label}</span>}
+      </button>
+      {aberto && <div className={"pd-menu-pop " + align} role="menu">{children(() => setAberto(false))}</div>}
+    </div>);
 
-  const [query, setQuery] = useStateP("");
-  const [openId, setOpenId] = useStateP(null);
-  const [view, _setView] = useStateP(() => loadLS("oimpresso.prod.view", "list"));
-  const [includeInactive, _setIncIn] = useStateP(() => loadLS("oimpresso.prod.inactive", false));
-  const [sort, _setSort] = useStateP(() => loadLS("oimpresso.prod.sort", { key: "name", dir: "asc" }));
-  const [stockFilter, _setStockFilter] = useStateP(() => loadLS("oimpresso.prod.stock", "all")); // all | ok | warn | out
+}
 
-  const setView = (v) => {_setView(v);saveLS("oimpresso.prod.view", v);};
-  const setIncIn = (v) => {_setIncIn(v);saveLS("oimpresso.prod.inactive", v);};
-  const setSort = (v) => {_setSort(v);saveLS("oimpresso.prod.sort", v);};
-  const setStockFilter = (v) => {_setStockFilter(v);saveLS("oimpresso.prod.stock", v);};
+function BulkBar({ total, foraDaPagina, onInativar, onLimpar }) {
+  if (total === 0) return null;
+  return (
+    <div className="pd-bulk-wrap">
+      <div className="pd-bulk" role="status" aria-live="polite">
+        <span className="pd-bulk-n">
+          <b>{total.toLocaleString("pt-BR")}</b> {total === 1 ? "item selecionado" : "itens selecionados"}
+          {foraDaPagina > 0 && <span className="pd-bulk-fora"> · {foraDaPagina} fora desta página</span>}
+        </span>
+        {onInativar && <button className="pd-bulk-acao" onClick={onInativar}>Inativar</button>}
+        <button className="pd-bulk-x" onClick={onLimpar} aria-label="Limpar seleção"><I.close size={14} /></button>
+      </div>
+    </div>);
 
-  // Inferência de tipo: produto | servico | composicao
-  // Prioriza p.type explícito; senão cai em heurística por categoria/unidade.
-  const prodType = (p) => {
-    if (p.type === "servico" || p.type === "composicao" || p.type === "produto") return p.type;
-    const c = (p.category || "").toLowerCase();
-    if (c === "serviços" || p.unit === "h") return "servico";
-    if (c === "composições") return "composicao";
-    return "produto";
+}
+
+function Paleta({ aberta, onClose, onAba, onKpi, onLimpar, onDensa, recentes, onAbrir, perm }) {
+  const [q, setQ] = useStateP("");
+  const ref = useRefP(null);
+  useEffectP(() => {if (aberta) {setQ("");setTimeout(() => ref.current?.focus(), 20);}}, [aberta]);
+  if (!aberta) return null;
+  const casa = (s) => !q.trim() || s.toLowerCase().includes(q.trim().toLowerCase());
+  const recortes = [
+  ["Abaixo do mínimo", () => onKpi("min")],
+  ["Sem saldo", () => onKpi("zero")],
+  ...(perm.custo ? [[`Sem venda ${DIAS_PARADO}d`, () => onKpi("parado")]] : []),
+  ...(perm.custo && perm.preco ? [["Margem baixa", () => onKpi("margem")]] : []),
+  ["Limpar recorte", onLimpar]];
+
+  const acoes = [
+  ["Novo produto", () => {}], ["Importar planilha", () => {}],
+  ["Exportar planilha", () => {}], ["Linhas confortáveis", onDensa]];
+
+  const Grupo = ({ titulo, itens }) => {
+    const vis = itens.filter(([l]) => casa(l));
+    if (vis.length === 0) return null;
+    return <>
+      <div className="pd-paleta-grupo">{titulo}</div>
+      {vis.map(([l, fn, hint]) =>
+      <button key={titulo + l} onClick={() => {fn();onClose();}}>
+          <span>{l}</span>{hint && <span className="pd-paleta-hint">{hint}</span>}
+        </button>
+      )}
+    </>;
   };
+  return (
+    <div className="pd-paleta-back" onClick={onClose}>
+      <div className="pd-paleta" role="dialog" aria-modal="true" aria-label="Paleta de comandos" onClick={(e) => e.stopPropagation()}>
+        <input ref={ref} value={q} onChange={(e) => setQ(e.target.value)}
+        placeholder="Ir para item recente, aba, recorte ou ação..." aria-label="Comando" />
+        <div className="pd-paleta-lista">
+          <Grupo titulo="Recentes" itens={recentes.map((r) => [r.nome, () => onAbrir(r.id), String(r.codigo)])} />
+          <Grupo titulo="Abas" itens={ABAS_CATALOGO.map(([k, l]) => [l, () => onAba(k)])} />
+          <Grupo titulo="Recortes" itens={recortes} />
+          <Grupo titulo="Ações" itens={acoes} />
+        </div>
+        <div className="pd-paleta-pe"><kbd>↑↓</kbd> navega · <kbd>↵</kbd> abre · <kbd>esc</kbd> fecha</div>
+      </div>
+    </div>);
 
-  // Filtra
-  const filtered = useMemoP(() => {
-    let out = all;
-    if (!includeInactive) out = out.filter((p) => p.active);
-    if (typeFilter !== "all") out = out.filter((p) => prodType(p) === typeFilter);
-    if (stockFilter !== "all") {
-      out = out.filter((p) => {
-        const total = PROD_DATA.prodStock(p);
-        if (stockFilter === "out") return total === 0;
-        if (stockFilter === "ok") return total > 0 && stkStatus(p) === "ok";
-        if (stockFilter === "warn") return total > 0 && stkStatus(p) === "warn";
-        return true;
-      });
-    }
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      out = out.filter((p) =>
-      p.name.toLowerCase().includes(q) ||
-      p.id.toLowerCase().includes(q) ||
-      (p.brand || "").toLowerCase().includes(q) ||
-      p.category.toLowerCase().includes(q) ||
-      (p.oem || []).join(" ").toLowerCase().includes(q)
-      );
-    }
-    return out;
-  }, [all, typeFilter, stockFilter, query, includeInactive]);
+}
 
-  // Disponíveis × Esgotados (esgotados vão no fim, acinzentados)
-  const parseBRn = (s) => typeof s === "number" ? s : parseFloat(String(s || "").replace(/[^\d,]/g, "").replace(",", ".")) || 0;
-  const bestSup = (p) => (p.suppliers || []).slice().sort((a, b) => a.cost - b.cost)[0];
-  const sortKey = (p) => {
-    switch (sort.key) {
-      case "name":return p.name.toLowerCase();
-      case "stock":return PROD_DATA.prodStock(p);
-      case "cost":return bestSup(p)?.cost || 0;
-      case "price":return parseBRn(p.price);
-      case "margin":return bestSup(p)?.margin || 0;
-      case "variants":return (p.variants || []).length;
-      case "lead":return p.lead || "";
-      case "pop":return p.popularity || 0;
-      default:return 0;
-    }
-  };
-  const sortApply = (arr) => {
-    const out = arr.slice().sort((a, b) => {
-      const va = sortKey(a),vb = sortKey(b);
-      if (va < vb) return sort.dir === "asc" ? -1 : 1;
-      if (va > vb) return sort.dir === "asc" ? 1 : -1;
+function Esqueleto({ colunas }) {
+  return (
+    <div className="pd-skel" aria-busy="true" aria-label="Carregando produtos">
+      {Array.from({ length: 10 }).map((_, r) =>
+      <div className="pd-skel-row" key={r}>
+          {Array.from({ length: colunas }).map((__, c) => <span key={c} />)}
+        </div>
+      )}
+    </div>);
+
+}
+
+/* ─── Tela ───────────────────────────────────────────────────────────── */
+
+function ProdListPage({ typeFilter = "all", onTypeFilter, estado = "dados", dense = false, papel = "administrador" }) {
+  const perm = permsDe(papel);
+  const semAcesso = papel === "sem-acesso";
+
+  const [aba, setAba] = useStateP("todos");
+  const [kpi, setKpi] = useStateP("");
+  const [busca, setBusca] = useStateP("");
+  const [fCategoria, setFCategoria] = useStateP("");
+  const [fUnidade, setFUnidade] = useStateP("");
+  const [fMarca, setFMarca] = useStateP("");
+  const [fEstoque, setFEstoque] = useStateP("");
+  const [fMargem, setFMargem] = useStateP("");
+  const [ordem, setOrdem] = useStateP({ key: "cod", dir: "asc" });
+  const [pagina, setPagina] = useStateP(1);
+  const [porPagina, setPorPagina] = useStateP(25);
+  const [maisFiltros, setMaisFiltros] = useStateP(false);
+  const [sel, setSel] = useStateP([]);
+  const [ativa, setAtiva] = useStateP(-1);
+  const [abertoId, setAbertoId] = useStateP(null);
+  const [paleta, setPaleta] = useStateP(false);
+  const [confirmar, setConfirmar] = useStateP(false);
+  const [inativados, setInativados] = useStateP([]);
+  const [toast, setToast] = useStateP(null);
+  const buscaRef = useRefP(null);
+
+  // Preferências de APRESENTAÇÃO (densidade + colunas escondidas) — localStorage, não URL.
+  const [densa, setDensa] = useStateP(dense);
+  const [colsOcultas, setColsOcultas] = useStateP([]);
+  const [recentes, setRecentes] = useStateP([]);
+  useEffectP(() => {
+    try {
+      const r = JSON.parse(localStorage.getItem(CHAVE_PREFS) || "{}");
+      if (typeof r.densa === "boolean") setDensa(r.densa);
+      if (Array.isArray(r.colsOcultas)) setColsOcultas(r.colsOcultas);
+      if (Array.isArray(r.recentes)) setRecentes(r.recentes);
+    } catch (e) {}
+  }, []);
+  useEffectP(() => {
+    try {localStorage.setItem(CHAVE_PREFS, JSON.stringify({ densa, colsOcultas, recentes }));} catch (e) {}
+  }, [densa, colsOcultas, recentes]);
+  useEffectP(() => {setDensa(dense);}, [dense]);
+
+  const todas = useMemoP(() => linhasCatalogo(perm).map((r) =>
+  inativados.includes(r.id) ? { ...r, active: false } : r
+  ), [perm.custo, perm.preco, inativados]);
+
+  // Tipo do topbar contextual do shell continua valendo: ele espelha a aba.
+  useEffectP(() => {
+    if (typeFilter === "all" && aba !== "todos" && aba !== "inativos") return;
+    const mapa = { produto: "produtos", servico: "servicos", composicao: "kits" };
+    if (typeFilter !== "all" && mapa[typeFilter] && mapa[typeFilter] !== aba) setAba(mapa[typeFilter]);
+  }, [typeFilter]);
+
+  const daAba = (r, k) =>
+  k === "todos" ? r.active :
+  k === "inativos" ? !r.active :
+  r.active && (k === "produtos" ? r.tipo === "produto" : k === "servicos" ? r.tipo === "servico" : k === "materia" ? r.tipo === "materia" : r.tipo === "kit");
+
+  const contagens = useMemoP(() => {
+    const o = {};
+    ABAS_CATALOGO.forEach(([k]) => {o[k] = todas.filter((r) => daAba(r, k)).length;});
+    return o;
+  }, [todas]);
+
+  const base = useMemoP(() => todas.filter((r) => daAba(r, aba)), [todas, aba]);
+
+  const kpis = useMemoP(() => {
+    const o = {
+      min: base.filter((r) => estadoEstoque(r).chave === "baixo").length,
+      zero: base.filter((r) => estadoEstoque(r).chave === "sem").length,
+      parado: base.filter((r) => r.parado).length,
+      total: base.length
+    };
+    if (perm.custo && perm.preco) o.margem = base.filter((r) => sobOPiso(r)).length;
+    return o;
+  }, [base, perm]);
+
+  const opcoes = useMemoP(() => ({
+    categorias: [...new Set(todas.map((r) => r.cat_label))].map((c) => ({ value: c, label: c })),
+    unidades: [...new Set(todas.map((r) => r.unit))].map((u) => ({ value: u, label: u })),
+    marcas: [...new Set(todas.map((r) => r.marca).filter(Boolean))].map((m) => ({ value: m, label: m }))
+  }), [todas]);
+
+  const recorte = useMemoP(() => {
+    let out = base;
+    if (kpi === "min") out = out.filter((r) => estadoEstoque(r).chave === "baixo");
+    if (kpi === "zero") out = out.filter((r) => estadoEstoque(r).chave === "sem");
+    if (kpi === "parado") out = out.filter((r) => r.parado);
+    if (kpi === "margem") out = out.filter((r) => sobOPiso(r));
+    if (fCategoria) out = out.filter((r) => r.cat_label === fCategoria);
+    if (typeFilter !== "all" && aba === "todos") out = out;
+    if (fUnidade) out = out.filter((r) => r.unit === fUnidade);
+    if (fMarca) out = out.filter((r) => r.marca === fMarca);
+    if (fEstoque) out = out.filter((r) => estadoEstoque(r).chave === fEstoque);
+    if (fMargem) out = out.filter((r) => fMargem === "sob_piso" ? sobOPiso(r) : margemFrac(r) !== undefined && !sobOPiso(r));
+    const q = busca.trim().toLowerCase();
+    if (q) out = out.filter((r) =>
+    r.name.toLowerCase().includes(q) || String(r.codigo).includes(q) ||
+    (r.referencia || "").toLowerCase().includes(q) ||
+    r.variants.some((v) => (v.sku || "").toLowerCase().includes(q)) ||
+    (r.marca || "").toLowerCase().includes(q) ||
+    r.cat_label.toLowerCase().includes(q) || r.oem.join(" ").toLowerCase().includes(q));
+    const val = (r) => {
+      switch (ordem.key) {
+        case "cod":return r.codigo;
+        case "prod":return r.name.toLowerCase();
+        case "est":return estadoEstoque(r).rank * 1e9 + (r.stockQty ?? 0);
+        case "preco":return r.price ?? -1;
+        case "margem":return margemFrac(r) ?? -1;
+        default:return 0;
+      }
+    };
+    return out.slice().sort((a, b) => {
+      const va = val(a), vb = val(b);
+      if (va < vb) return ordem.dir === "asc" ? -1 : 1;
+      if (va > vb) return ordem.dir === "asc" ? 1 : -1;
       return 0;
     });
-    return out;
+  }, [base, kpi, fCategoria, fUnidade, fMarca, fEstoque, fMargem, busca, ordem]);
+
+  // Trocar recorte zera seleção e volta pra página 1 (regra do vivo, num lugar só).
+  useEffectP(() => {setSel([]);setPagina(1);setAtiva(-1);}, [aba, kpi, fCategoria, fUnidade, fMarca, fEstoque, fMargem, busca, ordem]);
+
+  const total = recorte.length;
+  const paginas = Math.max(1, Math.ceil(total / porPagina));
+  const pag = Math.min(Math.max(1, pagina), paginas);
+  const linhas = recorte.slice((pag - 1) * porPagina, pag * porPagina);
+  const primeira = total === 0 ? 0 : (pag - 1) * porPagina + 1;
+  const ultima = Math.min(pag * porPagina, total);
+
+  const mostraTipo = useMemoP(() => new Set(linhas.map((r) => r.tipo)).size > 1, [linhas]);
+  const colunasPermitidas = useMemoP(() => [
+  { key: "sel", label: "", width: 44 },
+  { key: "cod", label: "Código", width: 88, sortable: true },
+  { key: "prod", label: "Produto", width: 340, sortable: true, flex: true },
+  ...(mostraTipo ? [{ key: "tipo", label: "Tipo", width: 96, sortable: true }] : []),
+  { key: "est", label: "Disponível", width: 210, sortable: true },
+  ...(perm.custo ? [{ key: "custo", label: "Custo", width: 108, align: "right", sortable: true }] : []),
+  ...(perm.preco ? [{ key: "preco", label: "Preço de venda", width: 136, align: "right", sortable: true }] : []),
+  ...(perm.custo && perm.preco ? [{ key: "margem", label: "Margem", width: 92, align: "right", sortable: true }] : []),
+  { key: "act", label: "", width: 48, align: "right" }],
+  [mostraTipo, perm]);
+  const colunas = colunasPermitidas.filter((c) => !colsOcultas.includes(c.key));
+  const minWidth = colunas.reduce((s, c) => s + c.width, 0);
+
+  const idsPagina = linhas.map((r) => r.id);
+  const selNaPagina = idsPagina.filter((id) => sel.includes(id));
+  const paginaToda = idsPagina.length > 0 && selNaPagina.length === idsPagina.length;
+  const marcarPagina = () => setSel((a) => paginaToda ? a.filter((id) => !idsPagina.includes(id)) : [...new Set([...a, ...idsPagina])]);
+  const marcarLinha = (id) => setSel((a) => a.includes(id) ? a.filter((x) => x !== id) : [...a, id]);
+
+  const abrirItem = (id) => {
+    setAbertoId(id);
+    const l = todas.find((r) => r.id === id);
+    if (l) setRecentes((a) => [{ id, nome: l.name, codigo: l.codigo }, ...a.filter((x) => x.id !== id)].slice(0, 8));
   };
-  const onSort = (key) => {
-    setSort((s) => s.key === key ?
-    { key, dir: s.dir === "asc" ? "desc" : "asc" } :
-    { key, dir: key === "name" || key === "lead" ? "asc" : "desc" });
+  const indiceAberto = abertoId === null ? -1 : linhas.findIndex((r) => r.id === abertoId);
+  const vizinho = (d) => {const alvo = linhas[indiceAberto + d];if (alvo) abrirItem(alvo.id);};
+
+  const inativarSelecao = () => {
+    const n = sel.length;
+    setInativados((a) => [...new Set([...a, ...sel])]);
+    setSel([]);setConfirmar(false);setAbertoId(null);
+    setToast(`${n} ${n === 1 ? "item inativado" : "itens inativados"}`);
   };
+  useEffectP(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 2600);
+    return () => clearTimeout(t);
+  }, [toast]);
 
-  const avail = sortApply(filtered.filter((p) => PROD_DATA.prodStock(p) > 0));
-  const outs = sortApply(filtered.filter((p) => PROD_DATA.prodStock(p) === 0));
+  // Teclado: ⌘K · / · ↑↓ (vira página na borda) · ↵ · esc
+  useEffectP(() => {
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {e.preventDefault();setPaleta((v) => !v);return;}
+      const t = e.target;
+      if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+      if (e.key === "/") {e.preventDefault();buscaRef.current?.focus();return;}
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        if (linhas.length === 0) return;
+        e.preventDefault();
+        const passo = e.key === "ArrowDown" ? 1 : -1;
+        if (abertoId !== null) {vizinho(passo);return;}
+        const prox = ativa + passo;
+        if (prox < 0) {if (pag > 1) {setAtiva(porPagina - 1);setPagina(pag - 1);}return;}
+        if (prox >= linhas.length) {if (pag < paginas) {setAtiva(0);setPagina(pag + 1);}return;}
+        setAtiva(prox);
+        return;
+      }
+      if (e.key === "Enter" && ativa >= 0 && linhas[ativa]) {e.preventDefault();abrirItem(linhas[ativa].id);return;}
+      if (e.key === "Escape" && abertoId === null) setAtiva(-1);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [linhas, ativa, abertoId, pag, paginas, porPagina]);
+  useEffectP(() => {setAtiva((i) => i >= linhas.length ? linhas.length - 1 : i);}, [linhas.length]);
 
-  // Stock status agnóstico (sem depender do helper antigo)
-  function stkStatus(p) {
-    const total = PROD_DATA.prodStock(p);
-    if (total === 0) return "out";
-    // Min ~ 10% do estoque máximo entre variantes ou 5 unidades
-    const variants = p.variants || [];
-    const max = variants.reduce((a, v) => Math.max(a, v.stock || 0), 0);
-    const threshold = Math.max(5, Math.round(max * 0.10));
-    return total < threshold ? "warn" : "ok";
-  }
-  function stkLabel(p) {
-    const total = PROD_DATA.prodStock(p);
-    if (total === 0) return "Esgotado";
-    const unit = p.unit === "milheiro" ? "un" : p.unit;
-    return `${total.toLocaleString("pt-BR")} ${unit}`;
-  }
+  const temFiltro = !!(fCategoria || fUnidade || fMarca || fEstoque || fMargem);
+  const limparFiltros = () => {
+    setBusca("");setKpi("");setFCategoria("");setFUnidade("");setFMarca("");setFEstoque("");setFMargem("");
+    onTypeFilter?.("all");
+  };
+  const rotuloOrdem = (ORDEM_OPCOES.find((o) => o.key === ordem.key)?.label || "Código") + (ordem.dir === "asc" ? " ↑" : " ↓");
+  const ordemDisponivel = ORDEM_OPCOES.filter((o) => (!o.custo || perm.custo) && (!o.preco || perm.preco));
+  const trocarOrdem = (key) => setOrdem((o) => ({ key, dir: o.key === key && o.dir === "asc" ? "desc" : "asc" }));
 
-  const openProd = openId ? all.find((p) => p.id === openId) : null;
+  // Dois valores EM DINHEIRO, como no main (brl() nos dois): o que está parado em estoque
+  // e o que custa repor o que está abaixo do mínimo. Somar dinheiro do catálogo é leitura da
+  // estrutura de custo — por isso o bloco todo cai junto com a permissão.
+  const totaisDoRecorte = perm.custo ? {
+    emEstoque: recorte.reduce((s, r) => s + (r.stockQty || 0) * (r.cost || 0), 0),
+    repor: recorte.reduce((s, r) => {
+      const falta = r.minimo === null || r.stockQty === null ? 0 : Math.max(0, r.minimo - r.stockQty);
+      return s + falta * (r.cost || 0);
+    }, 0)
+  } : null;
 
-  // ── Linha (Densa, padrão) ──
-  const Row = (p, isOut) => {
-    const ss = isOut ? "out" : stkStatus(p);
-    const stkCls = ss === "ok" ? "ok" : ss === "warn" ? "warn" : "out";
-    const best = bestSup(p);
-    const varCount = (p.variants || []).length;
+  if (semAcesso) {
     return (
-      <div key={p.id}
-      className={"pm-row" + (isOut ? " out" : "") + (openId === p.id ? " sel" : "")}
-      style={{ "--row-c": catColor(p.category) }}
-      onClick={() => setOpenId(p.id)}>
-        <div className="pm-thumb" style={{ "--c": catColor(p.category) }}>
-          {catShort(p.category)}
-        </div>
-        <div className="pm-info">
-          <div className="pm-info-top">
-            <span className="pm-dot" style={{ background: catColor(p.category) }} />
-            <span>{p.category}</span>
-            <span style={{ opacity: .4 }}>·</span>
-            <span className="pm-brand">{p.brand || "—"}</span>
+      <div className="pd-page">
+        <div className="pd-head"><div className="pd-head-l"><h1>Produtos</h1></div></div>
+        <div className="pd-grid-card">
+          <div className="pd-vazio">
+            <I.lock size={22} />
+            <b>Você não tem acesso ao catálogo</b>
+            <span>Falta a permissão <code>product.view</code> neste business. Peça ao administrador da empresa.</span>
           </div>
-          <b>{p.name}</b>
-          <small>
-            <span>{p.id}</span>
-            <span className="pm-loc">{prodLoc(p)}</span>
-            {p.oem && p.oem[0] && <code className="pm-oem">{p.oem[0]}{p.oem.length > 1 && <i> +{p.oem.length - 1}</i>}</code>}
-          </small>
-        </div>
-        <div className={"pm-stk-pill " + stkCls}>
-          <span className="d" />
-          {isOut ? "Esgotado" : stkLabel(p)}
-        </div>
-        <div className="pm-cost">
-          {best ? <>
-            <b>{best.cost.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</b>
-            <small>{best.name.length > 14 ? best.name.slice(0, 12) + "…" : best.name}</small>
-          </> : <span className="pm-dash">—</span>}
-        </div>
-        <div className="pm-price">
-          {(() => {
-            const r = priceRange(p);
-            return r.hasRange ?
-            <>
-                <b className="pm-price-rng">{fmtPriceRange(r.min, r.max)}</b>
-                <small>{r.count} var. · / {p.unit === "milheiro" ? "milh." : p.unit}</small>
-              </> :
-
-            <>
-                <b>{p.price}</b>
-                <small>/ {p.unit === "milheiro" ? "milh." : p.unit}</small>
-              </>;
-
-          })()}
-        </div>
-        <div className="pm-margin">
-          {best ?
-          <span className={"pm-margin-pill " + (best.margin > 50 ? "high" : best.margin > 25 ? "mid" : "low")}>+{best.margin}%</span> :
-          <span className="pm-dash">—</span>}
-        </div>
-        <div className="pm-var">
-          {varCount > 0 ? <b>{varCount}</b> : <span className="pm-dash">—</span>}
-        </div>
-        <div className="pm-lead">{p.lead}</div>
-      </div>);
-
-  };
-
-  // ── Card (Balcão) ──
-  const Card = (p, isOut) => {
-    const ss = isOut ? "out" : stkStatus(p);
-    const stkCls = ss === "ok" ? "ok" : ss === "warn" ? "warn" : "danger";
-    return (
-      <div key={p.id}
-      className={"pm-card" + (isOut ? " out" : "") + (openId === p.id ? " sel" : "")}
-      onClick={() => setOpenId(p.id)}>
-        <div className="pm-img" style={{ "--c": catColor(p.category) }}>
-          <span className="pm-img-cat">{p.category}</span>
-          <span className="pm-img-overlay">{catShort(p.category)}</span>
-          <span className="pm-img-id">{p.id}</span>
-          <span className={"pm-img-stk " + stkCls}>
-            <span className="d" />{isOut ? "Esgotado" : stkLabel(p)}
-          </span>
-        </div>
-        <div className="pm-card-body">
-          <span className="pm-card-brand">{p.brand || "—"}</span>
-          <b className="pm-card-name">{p.name}</b>
-          <div className="pm-card-meta">
-            <span className="pm-loc">{prodLoc(p)}</span>
-            {(p.variants || []).length > 0 && <span>{(p.variants || []).length} var.</span>}
-          </div>
-        </div>
-        <div className="pm-card-foot">
-          <div className="pm-card-price">
-            {(() => {
-              const r = priceRange(p);
-              return r.hasRange ?
-              <><b className="pm-price-rng">{fmtPriceRange(r.min, r.max)}</b><small>{r.count} var. · / {p.unit}</small></> :
-              <><b>{p.price}</b><small>/ {p.unit}</small></>;
-            })()}
-          </div>
-          <div className="pm-card-unit"><b>{p.unit === "milheiro" ? "milh." : p.unit}</b><span>unidade</span></div>
         </div>
       </div>);
 
-  };
+  }
 
-  const renderEither = (p, isOut) => view === "grid" ? Card(p, isOut) : Row(p, isOut);
+  const celula = (r, key) => {
+    switch (key) {
+      case "sel":return (
+        <input type="checkbox" checked={sel.includes(r.id)} onClick={(e) => e.stopPropagation()}
+        onChange={() => marcarLinha(r.id)} aria-label={`Selecionar ${r.name}`} />);
+
+      case "cod":return (
+        <button type="button" className="pd-cod" title="Copiar código"
+        onClick={(e) => {e.stopPropagation();navigator.clipboard?.writeText(String(r.codigo));setToast(`Código ${r.codigo} copiado`);}}>
+            {r.codigo}
+          </button>);
+
+      case "prod":return (
+        <span className="pd-prod">
+            <Miniatura nome={r.name} />
+            <span className="pd-prod-t">
+              <span className="pd-prod-n" title={r.name}>{r.name}</span>
+              <span className="pd-prod-sub">
+                {!densa && <span className="pd-prod-meta">{r.unit}{r.cat_label ? ` · ${r.cat_label}` : ""}</span>}
+                {r.obs &&
+              <span className="pd-obs" tabIndex={0} title={r.obs}>
+                    <I.note size={11} /><span>{r.obs}</span>
+                  </span>
+              }
+                {r.grade &&
+              <span className={"pd-grade" + (gradeComFuro(r.grade) ? " furo" : "")}
+              title={gradeComFuro(r.grade) ? `${r.grade.total - r.grade.com} de ${r.grade.total} combinações sem saldo` : "Todas as combinações têm saldo"}>
+                    {marcadorGrade(r.grade)}
+                  </span>
+              }
+              </span>
+            </span>
+          </span>);
+
+      case "tipo":return <span className="pd-tipo">{TIPO_LABEL[r.tipo]}</span>;
+      case "est":return <Disponibilidade row={r} densa={densa} />;
+      case "custo":return r.cost === undefined ? null : <span className="pd-mono dim">{brlP(r.cost)}</span>;
+      case "preco":return r.price === undefined ? null : <span className="pd-mono forte">{brlP(r.price)}</span>;
+      case "margem":{
+          const m = margemFrac(r);
+          if (m === undefined) return null;
+          return <span className={"pd-mono" + (sobOPiso(r) ? " sob-piso" : " dim")}>{pctP(m)}</span>;
+        }
+      case "act":return (
+        <MenuAncorado label="" icon={<I.more size={16} />}>
+            {(fechar) => <>
+              <button role="menuitem" onClick={() => {abrirItem(r.id);fechar();}}>Abrir ficha</button>
+              <button role="menuitem" onClick={fechar}>Editar produto</button>
+              <button role="menuitem" onClick={fechar}>Usar na venda</button>
+              {perm.inativar && <button role="menuitem" className="perigo" onClick={() => {setSel([r.id]);setConfirmar(true);fechar();}}>Inativar</button>}
+            </>}
+          </MenuAncorado>);
+
+      default:return null;
+    }
+  };
 
   return (
-    <>
-      {/* Header do shell (mantido pra coerência com OS/Clientes) */}
-      <div className="os-page-h">
-        <div className="os-page-h-l">
+    <div className="pd-page">
+      <div className="pd-head">
+        <div className="pd-head-l">
           <h1>Produtos</h1>
-          <p>{filtered.length} produtos · {avail.length} disponíveis · {outs.length} esgotados</p>
+          <p><b>{contagens.todos.toLocaleString("pt-BR")}</b> cadastrados · ROTA LIVRE</p>
         </div>
-        <div className="os-page-h-r">
-          <button className="os-btn ghost"><I.search size={13} /> Importar</button>
+        <div className="pd-head-r">
+          <MenuAncorado label="" icon={<I.more size={16} />}>
+            {() => <>
+              <div className="pd-menu-grupo">Apresentação</div>
+              <button role="menuitem" onClick={() => setDensa((v) => !v)}>
+                <span className={"pd-check" + (densa ? " off" : "")}><I.check size={13} /></span> Linhas confortáveis
+              </button>
+              {COLUNAS_OCULTAVEIS.filter((c) => colunasPermitidas.some((p) => p.key === c.key)).map((c) =>
+              <button key={c.key} role="menuitem"
+              onClick={() => setColsOcultas((v) => v.includes(c.key) ? v.filter((k) => k !== c.key) : [...v, c.key])}>
+                  <span className={"pd-check" + (colsOcultas.includes(c.key) ? " off" : "")}><I.check size={13} /></span> Coluna {c.label.toLowerCase()}
+                </button>
+              )}
+              <div className="pd-menu-sep" />
+              <div className="pd-menu-grupo">Dados</div>
+              <button role="menuitem">Importar</button>
+              <button role="menuitem">Exportar planilha</button>
+            </>}
+          </MenuAncorado>
           <button className="os-btn primary"><I.plus size={13} /> Novo produto</button>
         </div>
+        <nav className="pd-abas" aria-label="Recorte por tipo de item">
+          {ABAS_CATALOGO.map(([k, label]) => {
+            const on = aba === k;
+            return (
+              <button key={k} type="button" role="tab" aria-selected={on}
+              className={"pd-aba" + (on ? " on" : "")}
+              onClick={() => {setAba(k);setKpi("");}}>
+                {label}
+                <span className="pd-aba-n">{(contagens[k] || 0).toLocaleString("pt-BR")}</span>
+              </button>);
+
+          })}
+        </nav>
       </div>
 
-      {/* Tipo (Todos/Produto/Serviço/Composição) — abaixo do page header ([W] 2026-06-22 "desca o pageheader abaixo do header") */}
-      <nav className="pm-typenav" aria-label="Filtro de tipo">
-        {PM_TYPES.map((t) => {
-          const active = (typeFilter || "all") === t.key;
-          return (
-            <button key={t.key}
-                    className={"pm-typenav-tab" + (active ? " active" : "")}
-                    onClick={() => onTypeFilter?.(t.key)}
-                    aria-current={active ? "page" : undefined}>
-              {t.key !== "all" && <span className="pm-typenav-dot" style={{ background: t.color }} />}
-              <span>{t.label}</span>
-            </button>
-          );
-        })}
-      </nav>
+      {estado === "carregando" ?
+      <div className="pd-kpis">
+        {Array.from({ length: perm.custo && perm.preco ? 4 : 2 }).map((_, i) =>
+        <div className="pd-kpi-skel" key={i}><span /><span /><span /></div>
+        )}
+      </div> :
+      <KpiFiltros kpis={kpis} ativo={kpi || null} perm={perm}
+      onToggle={(k) => setKpi(!k || k === "total" ? "" : k)} />
+      }
 
-      {/* Busca + toggle de modos */}
-      <div className="pm-search">
-        <div className="pm-s">
-          <I.search size={14} className="pm-s-ic" />
-          <input
-            placeholder="Buscar por nome, código, marca, categoria ou código OEM..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)} />
-          <span className="pm-s-scope">5 campos</span>
-        </div>
-        <label className="pm-toggle-inactive">
-          <input type="checkbox" checked={includeInactive} onChange={(e) => setIncIn(e.target.checked)} />
-          <span>Inativos</span>
+      <div className={"pd-fbar" + (maisFiltros ? " mais" : "")}>
+        <FiltroTrigger label="Categoria" value={fCategoria} options={opcoes.categorias} onChange={setFCategoria} />
+        <FiltroTrigger label="Tipo" value={typeFilter === "all" ? "" : typeFilter === "composicao" ? "kit" : typeFilter}
+        options={TIPO_OPCOES} onChange={(v) => {
+          onTypeFilter?.(v === "kit" ? "composicao" : v || "all");
+          setAba(v === "produto" ? "produtos" : v === "servico" ? "servicos" : v === "materia" ? "materia" : v === "kit" ? "kits" : "todos");
+        }} />
+        <span className="pd-fopt"><FiltroTrigger label="Unidade" value={fUnidade} options={opcoes.unidades} onChange={setFUnidade} /></span>
+        <span className="pd-fopt"><FiltroTrigger label="Marca" value={fMarca} options={opcoes.marcas} onChange={setFMarca} /></span>
+        <span className="pd-fopt"><FiltroTrigger label="Disponível" value={fEstoque} options={ESTOQUE_OPCOES} onChange={setFEstoque} /></span>
+        {perm.custo && perm.preco &&
+        <span className="pd-fopt"><FiltroTrigger label="Margem" value={fMargem} options={MARGEM_OPCOES} onChange={setFMargem} /></span>
+        }
+        <button type="button" className="pd-fmore" aria-expanded={maisFiltros} onClick={() => setMaisFiltros((v) => !v)}>
+          Mais filtros <I.chevDown size={12} />
+        </button>
+
+        <MenuAncorado label={rotuloOrdem} align="start" icon={<I.sort size={12} />}>
+          {(fechar) => <>
+            {ordemDisponivel.map((o) =>
+            <button key={o.key} role="menuitem" onClick={() => {setOrdem({ key: o.key, dir: "asc" });fechar();}}>
+                <span className={"pd-check" + (ordem.key === o.key ? "" : " off")}><I.check size={13} /></span> {o.label}
+              </button>
+            )}
+            <div className="pd-menu-sep" />
+            <button role="menuitem" onClick={() => {setOrdem((o) => ({ ...o, dir: o.dir === "asc" ? "desc" : "asc" }));fechar();}}>
+              {ordem.dir === "asc" ? "Inverter (maior primeiro)" : "Inverter (menor primeiro)"}
+            </button>
+          </>}
+        </MenuAncorado>
+
+        {(temFiltro || kpi || busca) && <button className="pd-limpar" onClick={limparFiltros}>Limpar</button>}
+        <span className="pd-contagem">{total.toLocaleString("pt-BR")} {total === 1 ? "registro" : "registros"}</span>
+
+        <label className="pd-busca">
+          <I.search size={15} />
+          <input ref={buscaRef} type="search" value={busca} onChange={(e) => setBusca(e.target.value)}
+          aria-label="Buscar produtos" aria-keyshortcuts="/"
+          placeholder="Buscar descrição, código, referência…" />
+          {busca ?
+          <button type="button" onClick={() => setBusca("")} aria-label="Limpar busca"><I.close size={14} /></button> :
+          <kbd aria-hidden="true">/</kbd>
+          }
         </label>
-        <div className="pm-view-toggle">
-          <button className={view === 'list' ? 'active' : ''} onClick={() => setView('list')} title="Lista densa">≡ Densa</button>
-          <button className={view === 'grid' ? 'active' : ''} onClick={() => setView('grid')} title="Cards para balcão">▦ Balcão</button>
-        </div>
       </div>
 
-      {/* Filtro rápido de estoque */}
-      {(() => {
-        const baseAll = all.filter((p) => (includeInactive || p.active) && (typeFilter === "all" || prodType(p) === typeFilter));
-        const cOk = baseAll.filter((p) => PROD_DATA.prodStock(p) > 0 && stkStatus(p) === "ok").length;
-        const cWarn = baseAll.filter((p) => PROD_DATA.prodStock(p) > 0 && stkStatus(p) === "warn").length;
-        const cOut = baseAll.filter((p) => PROD_DATA.prodStock(p) === 0).length;
-        const cAll = baseAll.length;
-        return (
-          <div className="pm-stockbar">
-            <span className="pm-stockbar-lbl">Estoque</span>
-            <button className={"pm-stockbar-chip" + (stockFilter === "all" ? " act" : "")} onClick={() => setStockFilter("all")}>
-              Todos <span className="pm-stockbar-n">{cAll}</span>
-            </button>
-            <button className={"pm-stockbar-chip ok" + (stockFilter === "ok" ? " act" : "")} onClick={() => setStockFilter("ok")}>
-              <span className="d" /> Em estoque <span className="pm-stockbar-n">{cOk}</span>
-            </button>
-            <button className={"pm-stockbar-chip warn" + (stockFilter === "warn" ? " act" : "")} onClick={() => setStockFilter("warn")}>
-              <span className="d" /> Estoque baixo <span className="pm-stockbar-n">{cWarn}</span>
-            </button>
-            <button className={"pm-stockbar-chip out" + (stockFilter === "out" ? " act" : "")} onClick={() => setStockFilter("out")}>
-              <span className="d" /> Esgotado <span className="pm-stockbar-n">{cOut}</span>
-            </button>
-            <span style={{ flex: 1 }} />
-            {(stockFilter !== "all" || query.trim() || typeFilter !== "all") &&
-            <button className="pm-clear-filters" onClick={() => {setStockFilter("all");setQuery("");onTypeFilter?.("all");}}>
-                ⤬ Limpar filtros
-              </button>
-            }
-          </div>);
-
-      })()}
-
-      {/* (Os chips de tipo foram movidos pro topnav contextual no Header.) */}
-
-      {/* Corpo: lista única (sem sidebar de marcas) */}
-      <div className="pm-wrap">
-        <div className="pm-body">
-          {filtered.length === 0 &&
-          <div className="pm-empty">
-              <div className="pm-empty-ico">⌕</div>
-              <b>Nenhum produto encontrado</b>
-              <span>Ajuste a busca, troque o tipo ou desligue o filtro de estoque.</span>
-              <button className="pm-empty-btn" onClick={() => {setStockFilter("all");setQuery("");onTypeFilter?.("all");}}>
-                Limpar todos os filtros
-              </button>
-            </div>
-          }
-
-          {avail.length > 0 &&
-          <>
-              {view === "list" ?
-            <div className="pm-table">
-                  <div className="pm-thead">
-                    <div className="pm-th-thumb" />
-                    <button className={"pm-th sortable" + (sort.key === "name" ? " act" : "")} onClick={() => onSort("name")}>
-                      Produto <span className="pm-th-ind">{sort.key === "name" ? sort.dir === "asc" ? "↑" : "↓" : "⇵"}</span>
-                    </button>
-                    <button className={"pm-th sortable r" + (sort.key === "stock" ? " act" : "")} onClick={() => onSort("stock")}>
-                      <span className="pm-th-ind">{sort.key === "stock" ? sort.dir === "asc" ? "↑" : "↓" : "⇵"}</span> Estoque
-                    </button>
-                    <button className={"pm-th sortable r" + (sort.key === "cost" ? " act" : "")} onClick={() => onSort("cost")}>
-                      <span className="pm-th-ind">{sort.key === "cost" ? sort.dir === "asc" ? "↑" : "↓" : "⇵"}</span> Custo
-                    </button>
-                    <button className={"pm-th sortable r" + (sort.key === "price" ? " act" : "")} onClick={() => onSort("price")}>
-                      <span className="pm-th-ind">{sort.key === "price" ? sort.dir === "asc" ? "↑" : "↓" : "⇵"}</span> Preço venda
-                    </button>
-                    <button className={"pm-th sortable r" + (sort.key === "margin" ? " act" : "")} onClick={() => onSort("margin")}>
-                      <span className="pm-th-ind">{sort.key === "margin" ? sort.dir === "asc" ? "↑" : "↓" : "⇵"}</span> Margem
-                    </button>
-                    <button className={"pm-th sortable r" + (sort.key === "variants" ? " act" : "")} onClick={() => onSort("variants")}>
-                      <span className="pm-th-ind">{sort.key === "variants" ? sort.dir === "asc" ? "↑" : "↓" : "⇵"}</span> Var.
-                    </button>
-                    <button className={"pm-th sortable r" + (sort.key === "lead" ? " act" : "")} onClick={() => onSort("lead")}>
-                      <span className="pm-th-ind">{sort.key === "lead" ? sort.dir === "asc" ? "↑" : "↓" : "⇵"}</span> Prazo
-                    </button>
-                  </div>
-                  <div className="pm-tbody">
-                    {avail.map((p) => renderEither(p, false))}
-                  </div>
-                </div> :
-
-            <div className="pm-grid">
-                  {avail.map((p) => renderEither(p, false))}
-                </div>
-            }
-            </>
-          }
-
-          {outs.length > 0 &&
-          <>
-              <div className="pm-sec">
-                <span>Esgotados</span>
-                <span className="pm-sec-n">{outs.length}</span>
-                <span className="pm-sec-ln" />
-              </div>
-              {view === "list" ?
-            <div className="pm-table">
-                  <div className="pm-tbody">
-                    {outs.map((p) => renderEither(p, true))}
-                  </div>
-                </div> :
-
-            <div className="pm-grid">
-                  {outs.map((p) => renderEither(p, true))}
-                </div>
-            }
-            </>
-          }
-        </div>
-      </div>
-
-      {/* ── Totalizador no rodapé da página ── */}
-      {(() => {
-        const parseBR = (s) => {
-          if (typeof s === "number") return s;
-          if (!s) return 0;
-          return parseFloat(String(s).replace(/[^\d,]/g, "").replace(",", ".")) || 0;
-        };
-        const totItems = filtered.length;
-        const totEstoque = filtered.reduce((a, p) => a + PROD_DATA.prodStock(p), 0);
-        const totVenda = filtered.reduce((a, p) => a + (p.variants || []).reduce((s, v) => s + (v.stock || 0) * parseBR(v.price), 0), 0);
-        const totCusto = filtered.reduce((a, p) => {
-          const best = (p.suppliers || []).slice().sort((x, y) => x.cost - y.cost)[0];
-          if (!best) return a;
-          return a + PROD_DATA.prodStock(p) * best.cost;
-        }, 0);
-        const margins = filtered.flatMap((p) => (p.suppliers || []).slice().sort((x, y) => x.cost - y.cost)[0] ? [(p.suppliers || []).slice().sort((x, y) => x.cost - y.cost)[0].margin] : []);
-        const margemAvg = margins.length ? Math.round(margins.reduce((a, b) => a + b, 0) / margins.length) : null;
-        const popAvg = filtered.length ? Math.round(filtered.reduce((a, p) => a + (p.popularity || 0), 0) / filtered.length) : 0;
-        const fmtBRL = (n) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
-
-        return (
-          <div className="pm-totals">
-            <div className="pm-tot">
-              <small>Itens listados</small>
-              <b>{totItems}</b>
-              {outs.length > 0 && <span className="pm-tot-sub">{outs.length} esgotado{outs.length > 1 ? "s" : ""}</span>}
-            </div>
-            <div className="pm-tot">
-              <small>Estoque total</small>
-              <b>{totEstoque.toLocaleString("pt-BR")}</b>
-              <span className="pm-tot-sub">unidades somadas</span>
-            </div>
-            <div className="pm-tot pm-tot-money">
-              <small>Valor em estoque (venda)</small>
-              <b>{fmtBRL(totVenda)}</b>
-              <span className="pm-tot-sub">preço × estoque</span>
-            </div>
-            <div className="pm-tot pm-tot-money">
-              <small>Custo em estoque</small>
-              <b>{fmtBRL(totCusto)}</b>
-              <span className="pm-tot-sub">melhor fornecedor</span>
-            </div>
-            <div className="pm-tot">
-              <small>Margem média</small>
-              <b className={margemAvg != null ? margemAvg > 50 ? "ok" : margemAvg > 25 ? "warn" : "low" : ""}>
-                {margemAvg != null ? `+${margemAvg}%` : "—"}
-              </b>
-              <span className="pm-tot-sub">{margins.length} c/ cotação</span>
-            </div>
-          </div>);
-
-      })()}
-
-      {/* Drawer de detalhe (sem seção de veículos) */}
-      {openProd && (() => {
-        const t = prodType(openProd);
-        const typeLbl = t === "servico" ? "Serviço" : t === "composicao" ? "Composição" : "Produto";
-        const typeColor = t === "servico" ? "oklch(0.68 0.022 210)" : t === "composicao" ? "oklch(0.68 0.024 145)" : "var(--accent)";
-        const best = (openProd.suppliers || []).slice().sort((a, b) => a.cost - b.cost)[0];
-        return (
-          <>
-          <div className="os-drawer-back" onClick={() => setOpenId(null)} />
-          <aside className="os-drawer pm-drawer">
-            <div className="pm-drawer-strip" style={{ background: catColor(openProd.category) }} />
-            <div className="os-drawer-h">
-              <div>
-                <div className="pm-drawer-tags">
-                  <span className="pm-drawer-type" style={{ "--c": typeColor }}>{typeLbl}</span>
-                  <span className="pm-drawer-id">{openProd.id}</span>
-                  {!openProd.active && <span className="pm-drawer-inact">Inativo</span>}
-                </div>
-                <h2>{openProd.name}</h2>
-                <div className="os-drawer-meta">
-                  <span className="pm-dot" style={{ background: catColor(openProd.category), marginRight: 6 }} />
-                  {openProd.category}
-                  {openProd.brand && <> · <b style={{ color: "var(--text)" }}>{openProd.brand}</b></>}
-                </div>
-              </div>
-              <button className="os-icon-btn" onClick={() => setOpenId(null)}><I.close size={16} /></button>
-            </div>
-            <div className="os-drawer-body">
-              <div className="cli-kpis">
-                <div className="cli-kpi"><b className="mono">{openProd.price}</b><small>Preço/{openProd.unit}</small></div>
-                <div className="cli-kpi">
-                  <b className="mono">{best ? best.cost.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "—"}</b>
-                  <small>Custo melhor cotação</small>
-                </div>
-                <div className="cli-kpi">
-                  <b className={"mono " + (best && best.margin > 50 ? "ok" : best && best.margin > 25 ? "warn" : best ? "low" : "")}>
-                    {best ? `+${best.margin}%` : "—"}
-                  </b>
-                  <small>Margem</small>
-                </div>
-                <div className="cli-kpi">
-                  <b className={"mono " + stkStatus(openProd)}>
-                    {PROD_DATA.prodStock(openProd).toLocaleString("pt-BR")}
-                  </b>
-                  <small>Estoque ({openProd.unit === "milheiro" ? "un" : openProd.unit})</small>
-                </div>
-                <div className="cli-kpi"><b>{openProd.lead}</b><small>Prazo</small></div>
-                <div className="cli-kpi"><b>{prodLoc(openProd)}</b><small>Prateleira</small></div>
-              </div>
-
-              <div className="cli-section">
-                {openProd.oem && openProd.oem.length > 0 &&
-                  <>
-                    <h4 className="prod-bom-h"><span className="pm-lens">{I.hash({ size: 13 })}</span>Códigos OEM · originais</h4>
-                    <div className="prod-oem-list">
-                      {openProd.oem.map((c, i) => <code key={i} className="prod-oem">{c}</code>)}
-                    </div>
-                  </>
-                  }
-                {openProd.superseded && openProd.superseded.length > 0 &&
-                  <>
-                    <h4 className="prod-bom-h"><span className="pm-lens">{I.refresh({ size: 13 })}</span>Códigos equivalentes</h4>
-                    <div className="prod-oem-list">
-                      {openProd.superseded.map((c, i) => <code key={i} className="prod-oem alt">{c}</code>)}
-                    </div>
-                  </>
-                  }
-
-                {openProd.specs && Object.keys(openProd.specs).length > 0 &&
-                  <>
-                    <h4 className="prod-bom-h"><span className="pm-lens">{I.doc({ size: 13 })}</span>Ficha técnica</h4>
-                    <table className="prod-var-table">
-                      <tbody>
-                        {Object.entries(openProd.specs).map(([k, v]) =>
-                        <tr key={k}>
-                            <td style={{ textTransform: "capitalize", color: "var(--text-dim)", width: "40%" }}>{k}</td>
-                            <td className="mono">{v}</td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </>
-                  }
-
-                {/* ── Tabela de preços ── */}
-                {(() => {
-                    const tiers = buildPriceTable(openProd);
-                    const bestCost = (openProd.suppliers || []).slice().sort((a, b) => a.cost - b.cost)[0]?.cost;
-                    return (
-                      <>
-                      <h4 className="prod-bom-h"><span className="pm-lens">{I.tag({ size: 13 })}</span>Tabela de preços</h4>
-                      <div className="pm-price-table">
-                        {tiers.map((t) => {
-                            const margin = bestCost ? Math.round((t.price - bestCost) / t.price * 100) : null;
-                            const marginCls = margin == null ? "" : margin > 50 ? "high" : margin > 25 ? "mid" : "low";
-                            return (
-                              <div key={t.key} className={"pm-pt-row" + (t.key === "varejo" ? " primary" : "")}>
-                              <div className="pm-pt-l">
-                                <b>{t.label}</b>
-                                <small>{t.desc}</small>
-                              </div>
-                              <div className="pm-pt-mid">
-                                {t.discount != null && <span className="pm-pt-disc">−{t.discount}%</span>}
-                              </div>
-                              <div className="pm-pt-price">
-                                <b>{fmtBR(t.price)}</b>
-                                <small>/ {openProd.unit === "milheiro" ? "milh." : openProd.unit}</small>
-                              </div>
-                              {margin != null &&
-                                <span className={"pm-margin-pill " + marginCls}>+{margin}%</span>
-                                }
-                            </div>);
-
-                          })}
-                      </div>
-                    </>);
-
-                  })()}
-
-                <h4 className="prod-bom-h"><span className="pm-lens">{I.grid({ size: 13 })}</span>Variantes · grade de SKUs</h4>
-                <table className="prod-var-table">
-                  <thead><tr><th>SKU</th><th>Especificação</th><th>Estoque</th><th>Preço</th></tr></thead>
-                  <tbody>
-                    {(openProd.variants || []).map((v) =>
-                      <tr key={v.sku}>
-                        <td className="mono">{v.sku}</td>
-                        <td>{v.spec}</td>
-                        <td className={"mono" + (v.stock === 0 ? " zero" : v.stock < 100 ? " low" : "")}>
-                          {v.stock > 0 ? v.stock.toLocaleString("pt-BR") : <span style={{ color: "var(--text-mute)" }}>sob demanda</span>}
-                        </td>
-                        <td className="mono">{v.price}</td>
-                      </tr>
-                      )}
-                  </tbody>
-                </table>
-
-                {openProd.suppliers && openProd.suppliers.length > 0 &&
-                  <>
-                    <h4 className="prod-bom-h"><span className="pm-lens">{I.truck({ size: 13 })}</span>Fornecedores · cotação</h4>
-                    <table className="prod-supp-table">
-                      <thead><tr><th>Fornecedor</th><th>Custo</th><th>Prazo</th><th>Margem</th></tr></thead>
-                      <tbody>
-                        {openProd.suppliers.
-                        slice().sort((a, b) => a.cost - b.cost).
-                        map((s, i) =>
-                        <tr key={i} className={i === 0 ? "best" : ""}>
-                              <td><b>{s.name}</b>{i === 0 && <span className="prod-best-badge">melhor</span>}</td>
-                              <td className="mono">{s.cost.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
-                              <td>{s.lead}</td>
-                              <td className={"mono " + (s.margin > 50 ? "high" : s.margin > 25 ? "mid" : "low")}>+{s.margin}%</td>
-                            </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </>
-                  }
-
-                <h4 className="prod-bom-h"><span className="pm-lens">{I.layers({ size: 13 })}</span>Composição (BOM)</h4>
-                {(openProd.bom || []).map((b, i) =>
-                  <div key={i} className="prod-bom-row">
-                    <I.check size={12} /> {b}
-                  </div>
+      <div className="pd-grid-card">
+        {estado === "carregando" && <Esqueleto colunas={colunas.length} />}
+        {estado === "erro" &&
+        <div className="pd-vazio erro" role="alert">
+            <I.alert size={22} />
+            <b>Não deu pra carregar os produtos</b>
+            <span>A consulta ao servidor falhou. Nada foi alterado — tente de novo.</span>
+            <button className="os-btn">Tentar de novo</button>
+          </div>
+        }
+        {estado === "vazio" &&
+        <div className="pd-vazio">
+            <I.product size={22} />
+            <b>Seu catálogo está vazio</b>
+            <span>Cadastre o primeiro produto ou importe uma planilha pra começar a orçar.</span>
+            <button className="os-btn primary"><I.plus size={13} /> Novo produto</button>
+          </div>
+        }
+        {estado === "dados" && <>
+          <div className="pd-scroll">
+            <table className="pd-table" style={{ minWidth }}>
+              <thead>
+                <tr>
+                  {colunas.map((c) =>
+                  <th key={c.key} scope="col" style={{ width: c.width }}
+                  className={(c.align === "right" ? "r " : "") + (c.key === "prod" ? "pd-th-prod" : "")}>
+                      {c.key === "sel" ?
+                    <input type="checkbox" checked={paginaToda} disabled={linhas.length === 0}
+                    onChange={marcarPagina}
+                    aria-label={paginaToda ? "Desmarcar esta página" : "Marcar esta página"} /> :
+                    c.sortable ?
+                    <button type="button" onClick={() => trocarOrdem(c.key)}>
+                          {c.label}
+                          <span className="pd-th-ord">{ordem.key === c.key ? ordem.dir === "asc" ? "↑" : "↓" : "⇅"}</span>
+                        </button> :
+                    c.label || <span className="pd-sr">Ações</span>}
+                    </th>
                   )}
-              </div>
-            </div>
-            <div className="os-drawer-actions">
-              <button className="os-btn primary"><I.pencil size={13} /> Editar</button>
-              <button className="os-btn ghost">Duplicar</button>
-              <span className="os-bulk-spacer" />
-              <button className="os-btn ghost danger">{openProd.active ? "Desativar" : "Reativar"}</button>
-            </div>
-          </aside>
-        </>);
+                </tr>
+              </thead>
+              <tbody>
+                {linhas.length === 0 &&
+                <tr>
+                    <td colSpan={colunas.length}>
+                      <div className="pd-vazio">
+                        <I.search size={22} />
+                        <b>Nenhum produto neste recorte</b>
+                        <span>Ajuste a busca, troque a aba ou solte os filtros aplicados.</span>
+                        {(temFiltro || kpi || busca) && <button className="os-btn" onClick={limparFiltros}>Limpar</button>}
+                      </div>
+                    </td>
+                  </tr>
+                }
+                {linhas.map((r, i) =>
+                <tr key={r.id}
+                className={"pd-tr" + (linhaUrgente(r) ? " urgente" : "") + (sel.includes(r.id) ? " sel" : "") +
+                (abertoId === r.id ? " aberta" : "") + (i === ativa ? " ativa" : "") + (r.active ? "" : " inativa")}
+                style={{ height: densa ? 40 : 52 }}
+                tabIndex={0} role="button" aria-label={`Abrir ficha de ${r.name}`}
+                onClick={() => abrirItem(r.id)}
+                onKeyDown={(e) => {if (e.key === "Enter" || e.key === " ") {e.preventDefault();abrirItem(r.id);}}}>
+                    {colunas.map((c) =>
+                  <td key={c.key} className={(c.align === "right" ? "r " : "") + (c.key === "prod" ? "pd-td-prod" : "")}>
+                        {celula(r, c.key)}
+                      </td>
+                  )}
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
 
-      })()}
-    </>);
+          <div className="pd-rodape">
+            <span className="pd-rod-meta">
+              {primeira.toLocaleString("pt-BR")}–{ultima.toLocaleString("pt-BR")} de {total.toLocaleString("pt-BR")}
+              {totaisDoRecorte && total > 0 &&
+              <span className="pd-rod-tot">
+                {" "}· em estoque {brlP(totaisDoRecorte.emEstoque)}
+                {totaisDoRecorte.repor > 0 && <> · repor {brlP(totaisDoRecorte.repor)}</>}
+              </span>
+              }
+            </span>
+            <label className="pd-rod-pp">
+              Por página
+              <select value={porPagina} onChange={(e) => {setPorPagina(Number(e.target.value));setPagina(1);}}>
+                {POR_PAGINA_OPCOES.map((n) => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </label>
+            <div className="pd-rod-nav">
+              <button disabled={pag === 1} onClick={() => setPagina(1)} aria-label="Primeira página">«</button>
+              <button disabled={pag === 1} onClick={() => setPagina(pag - 1)} aria-label="Página anterior">‹</button>
+              <span className="pd-rod-pag">{pag} / {paginas}</span>
+              <button disabled={pag === paginas} onClick={() => setPagina(pag + 1)} aria-label="Próxima página">›</button>
+              <button disabled={pag === paginas} onClick={() => setPagina(paginas)} aria-label="Última página">»</button>
+            </div>
+          </div>
+        </>}
+      </div>
+
+      <BulkBar total={sel.length} foraDaPagina={sel.length - selNaPagina.length}
+      onInativar={perm.inativar ? () => setConfirmar(true) : undefined}
+      onLimpar={() => setSel([])} />
+
+      {confirmar &&
+      <div className="pd-modal-back" onClick={() => setConfirmar(false)}>
+          <div className="pd-modal" role="dialog" aria-modal="true" aria-label="Confirmar inativação" onClick={(e) => e.stopPropagation()}>
+            <b>Inativar {sel.length} {sel.length === 1 ? "item" : "itens"}?</b>
+            <p>Eles saem da busca de venda e do balcão, mas continuam no histórico e podem ser reativados na aba Inativos.</p>
+            <div className="pd-modal-acoes">
+              <button className="os-btn" onClick={() => setConfirmar(false)}>Cancelar</button>
+              <button className="os-btn perigo" onClick={inativarSelecao}>Inativar</button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <Paleta aberta={paleta} onClose={() => setPaleta(false)} perm={perm}
+      onAba={(k) => {setAba(k);setKpi("");}} onKpi={(k) => {setKpi(k);setPagina(1);}}
+      onLimpar={limparFiltros} onDensa={() => setDensa((v) => !v)}
+      recentes={recentes} onAbrir={abrirItem} />
+
+      {abertoId && window.ProdutoDetalheDrawer &&
+      <window.ProdutoDetalheDrawer
+        row={todas.find((r) => r.id === abertoId)} perm={perm} piso={PISO_MARGEM}
+        temAnterior={indiceAberto > 0} temProximo={indiceAberto >= 0 && indiceAberto < linhas.length - 1}
+        posicao={indiceAberto >= 0 ? `${primeira + indiceAberto} de ${total.toLocaleString("pt-BR")}` : ""}
+        onVizinho={vizinho}
+        onCopiar={(texto, rotulo) => {navigator.clipboard?.writeText(texto);setToast(`${rotulo} copiado`);}}
+        onClose={() => setAbertoId(null)} />
+      }
+
+      {toast && <div className="pd-toast" role="status">{toast}</div>}
+    </div>);
 
 }
 
 window.ProdListPage = ProdListPage;
+window.PROD_CATALOGO = { estadoEstoque, margemFrac, sobOPiso, brlP, pctP, numP, PISO_MARGEM, TIPO_LABEL };

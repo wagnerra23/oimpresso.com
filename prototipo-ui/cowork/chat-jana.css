@@ -141,7 +141,23 @@
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-2);
   padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 3px; min-width: 0;
 }
-.jc-kpi.emph{ border-color: color-mix(in oklch, var(--neg) 35%, var(--border)); background: var(--neg-soft); }
+/* KPI que dói ("A receber vencido"): fundo = `--neg-soft`, o token TEMADO do shell
+   (light `oklch(0.93 0.08 25)` · dark `oklch(0.36 0.12 25)`, styles.css:6352/6460 — chroma
+   calibrado nos dois modos). NÃO usar `color-mix(in oklch, var(--neg) X%, var(--surface))`:
+   o caminho curto de hue 240 (--surface dark) → 25 (--neg) sai em 248.7 e o card de alarme
+   fica AZUL, medido. Mix com hue distante em oklch é armadilha; o token já resolve.
+   O que recuou pra não competir com o número foi a BORDA: 35% mixada com --border → 22% no tom. */
+.jc-kpi.emph{ border-color: color-mix(in oklch, var(--neg) 22%, transparent); background: var(--neg-soft); }
+/* O ícone do card em alarme carrega o tom (estava --text-3: alerta cinza ao lado de número vermelho). */
+.jc-kpi.emph .jc-kpi-ic{ stroke: var(--neg); }
+/* "big" do dado (deltaCls:"red big") nunca existiu em CSS: o valor era 22px em todos os cards.
+   O salto é do RAMP — --fs-7 (22) → --fs-8 (28), sem tamanho inventado. */
+.jc-kpi.emph .jc-kpi-v{ font-size: var(--fs-8); }
+/* Texto do card em alarme sai de --text-3 pra --text: sobre a superfície tintada o cinza dava
+   2,40:1 (light) / 2,69:1 (dark) — reprova AA, e o `sub` é onde está o número que decide a ação
+   ("76% inadimplência", 11px). Token temado direto, sem mix: mistura com --neg puxa hue.
+   A hierarquia do label continua vindo de tamanho/peso/tracking, não de cor. */
+.jc-kpi.emph .jc-kpi-h, .jc-kpi.emph .jc-kpi-d{ color: var(--text); }
 .jc-kpi-h{
   display: flex; justify-content: space-between; align-items: center;
   font: 700 10px/1 var(--mono); text-transform: uppercase; letter-spacing: .06em;
@@ -149,7 +165,7 @@
 }
 .jc-kpi-ic{ width: 15px; height: 15px; stroke: var(--text-3); fill: none; stroke-width: 1.8; }
 .jc-kpi-v{
-  font: 700 22px/1 var(--sans); letter-spacing: -0.02em;
+  font: 700 var(--fs-7)/1 var(--sans); letter-spacing: -0.02em;
   color: var(--text); font-variant-numeric: tabular-nums;
 }
 .jc-kpi-v.red{ color: var(--neg); }

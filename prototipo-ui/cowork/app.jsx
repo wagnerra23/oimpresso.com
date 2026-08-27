@@ -551,12 +551,24 @@ function App() {
     catch (e) {return "menu";}
   });
   const [tick, setTick] = useStateA(0);
+  // O loader dispara um tick a cada 6 dos ~190 módulos: sem coalescer, isso re-renderiza
+  // o App inteiro ~30x durante o boot — é a "piscada" que [W] viu. Agora os ticks são
+  // agrupados numa janela de 300ms (1 re-render por janela) e o "done" pinta na hora.
   React.useEffect(() => {
     if (window.__oiLazyDone) return;
-    const h = () => setTick((n) => n + 1);
+    let timer = null;
+    const bump = () => {timer = null;setTick((n) => n + 1);};
+    const h = (e) => {
+      if (e && e.type === "oi:lazy-done") {
+        if (timer) {clearTimeout(timer);timer = null;}
+        setTick((n) => n + 1);
+        return;
+      }
+      if (!timer) timer = setTimeout(bump, 300);
+    };
     document.addEventListener("oi:lazy-tick", h);
     document.addEventListener("oi:lazy-done", h);
-    return () => {document.removeEventListener("oi:lazy-tick", h);document.removeEventListener("oi:lazy-done", h);};
+    return () => {if (timer) clearTimeout(timer);document.removeEventListener("oi:lazy-tick", h);document.removeEventListener("oi:lazy-done", h);};
   }, []);
   const [route, setRoute] = useStateA(() => {
     try {return localStorage.getItem("oimpresso.route") || "chat";}
@@ -635,7 +647,9 @@ function App() {
     return () => mq.removeEventListener("change", h);
   }, []);
   // Fecha o menu ao trocar de rota (navegou → some o drawer)
-  useEffectA(() => {setMobileMenuOpen(false);}, [route]);
+  // Guardado: sem o `if`, toda troca de rota fazia um setState no commit e a tela
+  // renderizava 2x (medido: CliListPage 2 chamadas por navegação).
+  useEffectA(() => {if (mobileMenuOpen) setMobileMenuOpen(false);}, [route]);
   // Trava o scroll do body enquanto o drawer mobile está aberto
   useEffectA(() => {
     if (isMobile && mobileMenuOpen) {
@@ -679,6 +693,7 @@ function App() {
     "accentHue": 295,
     "showLaravel": false,
     "janaMetas": "seção",
+    "janaPapel": "superadmin",
     "janaEstado": "dados",
     "bkpDestino": "local",
     "bkpEstado": "dados",
@@ -792,7 +807,7 @@ function App() {
   const janaTab = tweaks.janaMetas !== "aba" && chatTab === "metas" ? "painel" : chatTab;
 
   let content;
-  if (route === "chat") content = <window.JanaPage company={company} tab={janaTab} metasMode={tweaks.janaMetas === "aba" ? "aba" : "secao"} estado={tweaks.janaEstado} onGoTab={setChatTab} />;else
+  if (route === "chat") content = <window.JanaPage company={company} tab={janaTab} metasMode={tweaks.janaMetas === "aba" ? "aba" : "secao"} estado={tweaks.janaEstado} papel={tweaks.janaPapel} onGoTab={setChatTab} />;else
   if (route === "tarefas") content = <window.TasksPage />;else
   if (route === "dash-legacy") content = <window.DashLegacyPage />;else
   if (route === "perfil") content = <window.PerfilPage />;else
@@ -813,7 +828,7 @@ function App() {
   if (route === "cli-mapa") content = <window.ClienteMapaPage />;else
   if (route === "cli-grupos") content = <window.ClienteGruposPage />;else
   if (route === "orcamentos") content = <window.OrcListPage />;else
-  if (route === "produtos") content = <window.ProdListPage typeFilter={prodType} onTypeFilter={setProdType} />;else
+  if (route === "produtos") content = <window.ProdListPage typeFilter={prodType} onTypeFilter={setProdType} estado={tweaks.prodEstado} dense={tweaks.prodDensidade === "compacto"} papel={tweaks.prodPapel} />;else
   if (route.startsWith("prod-")) {
     const PROD_VIEW = { "prod-lista": "lista", "prod-novo": "form", "prod-estoque": "estoque", "prod-historico": "historico", "prod-precos": "precos", "prod-massa": "massa", "prod-analises": "analises", "prod-etiquetas": "etiquetas", "prod-atualizar-preco": "atualizar-preco", "prod-importar": "importar-produtos", "prod-importar-estoque": "importar-estoque", "prod-cadastros": "cadastros" };
     content = <window.ProdutoBladePage view={PROD_VIEW[route] || "lista"} estado={tweaks.prodEstado} dense={tweaks.prodDensidade === "compacto"} papel={tweaks.prodPapel} />;
@@ -867,7 +882,7 @@ function App() {
     const CRM_VIEW = { "crm": "painel", "crm-painel": "painel", "crm-leads": "leads", "crm-followups": "acompanhamentos", "crm-campanhas": "campanhas", "crm-logins": "logins", "crm-comissoes": "comissoes", "crm-chamadas": "chamadas", "crm-relatorios": "relatorios", "crm-modelo": "modelo", "crm-propostas": "propostas", "crm-marketplace": "marketplace", "crm-pedidos": "pedidos", "crm-taxonomias": "taxonomias", "crm-config": "config" };
     content = CRM_VIEW[route] ? <window.CrmBladePage view={CRM_VIEW[route]} /> : <ModuleStub routeId={route} />;
   }else
-  if (route === "inbox") content = <window.InboxPage data-comment-anchor="0aa4565a1c-small-841-23" />;else
+  if (route === "inbox") content = <window.InboxPage />;else
   if (route === "equipe") content = <window.EquipePage />;else
   if (route === "kb") content = <window.KBPage />;else
   if (route === "documentacao") content = <window.DocumentacaoPage />;else
@@ -1013,6 +1028,12 @@ function App() {
           value={tweaks.janaEstado}
           options={["dados", "vazio", "erro"]}
           onChange={(v) => setTweak("janaEstado", v)} />
+
+        <TweakRadio
+          label="Papel de quem entrou"
+          value={tweaks.janaPapel}
+          options={["funcionaria", "dona", "superadmin"]}
+          onChange={(v) => setTweak("janaPapel", v)} />
 
         {(route === "produtos" || route.startsWith("prod-")) && <>
           <TweakSection label="Produtos" />
