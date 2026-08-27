@@ -138,9 +138,22 @@ it('Tier 0 multi-tenant — não vaza locations de outro business', function () 
         $this->markTestSkipped('Precisa 2+ businesses no banco.');
     }
 
+    // `business_locations.invoice_scheme_id` tem FK pra `invoice_schemes` e a coluna
+    // NÃO aceita o default 0 — o insert sem ela quebra com "Cannot add or update a child
+    // row" (SQLSTATE 23000). O teste vivia com esse defeito desde que nasceu porque
+    // NENHUMA lane executava `tests/Feature/Home/`; só apareceu quando o dashboard-pest.yml
+    // passou a rodá-lo, no mesmo PR que este comentário.
+    $invoiceScheme = \DB::table('invoice_schemes')->where('business_id', $businessB->id)->value('id')
+        ?? \DB::table('invoice_schemes')->value('id');
+
+    if (! $invoiceScheme) {
+        $this->markTestSkipped('Sem invoice_scheme no banco — a FK de business_locations não teria alvo.');
+    }
+
     // Inserir location no businessB e confirmar que userA NÃO vê
     $locBId = \DB::table('business_locations')->insertGetId([
         'business_id' => $businessB->id,
+        'invoice_scheme_id' => $invoiceScheme,
         'name' => '__TIER0_LEAK_GUARD__',
         'landmark' => null,
         'country' => 'BR',
