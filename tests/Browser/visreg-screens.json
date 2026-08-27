@@ -206,5 +206,13 @@
     "route": "/backup",
     "anchor": "Backups guardados",
     "baseline": "it_Backup_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Ponto/Espelho/Show",
+    "source": "Ponto/Espelho/Show",
+    "component": "Ponto/Espelho/Show",
+    "route": "/ponto/espelho/900001?mes=2026-06",
+    "anchor": "Dados do colaborador",
+    "baseline": "it_Ponto_Espelho_Show_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]

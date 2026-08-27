@@ -1,6 +1,17 @@
 {
   "ledger": [
     {
+      "screen": "Jana",
+      "note": "16 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "yes"
+      }
+    },
+    {
       "screen": "Arquivos",
       "note": "1 arquivo(s)",
       "cells": {
@@ -89,17 +100,6 @@
       }
     },
     {
-      "screen": "Jana",
-      "note": "16 arquivo(s)",
-      "cells": {
-        "tokens": "no",
-        "primitivos": "yes",
-        "probe": "na",
-        "dark": "na",
-        "approved": "yes"
-      }
-    },
-    {
       "screen": "Manufacturing",
       "note": "1 arquivo(s)",
       "cells": {
@@ -134,7 +134,7 @@
     },
     {
       "screen": "Sells",
-      "note": "61 arquivo(s)",
+      "note": "62 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -353,18 +353,18 @@
       }
     }
   ],
-  "progressPct": 31,
+  "progressPct": 34,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "e87dce9aa",
-  "generatedAt": "2026-08-26T10:06:32.819Z",
+  "measuredAgainstSha": "f88dee120",
+  "generatedAt": "2026-08-27T19:59:19.568Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
   },
   "counts": {
     "screens": 32,
-    "done": 10,
+    "done": 11,
     "references": 0
   }
 }
