@@ -239,7 +239,11 @@ it('UC-INTEDIT-03 · rascunho de outro empregador não abre', function () {
         'Rascunho de OUTRO empregador não pode abrir a edição — ADR 0093, CU-PONTO-12.'
     );
 
-    expect((string) $resp->getContent())->not->toContain($alheia->codigo,
+    // ⚠️ `toContain` recebe needles VARIÁDICOS, não `(needle, mensagem)` — passar a
+    // mensagem ali a transformaria numa SEGUNDA agulha, e o assert reprovaria por não
+    // achar a própria frase de erro (§5 2026-07-28). O `str_contains` + `toBeFalse`
+    // preserva as duas coisas: a asserção certa e a mensagem que explica a falha.
+    expect(str_contains((string) $resp->getContent(), (string) $alheia->codigo))->toBeFalse(
         'Nem o código da intercorrência alheia pode vazar na resposta.'
     );
 });
