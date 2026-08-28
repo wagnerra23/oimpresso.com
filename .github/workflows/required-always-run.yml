@@ -1,4 +1,4 @@
-name: Required always-run (advisory)
+name: Required always-run
 
 # Impede o DEADLOCK de required-readiness: um context REQUIRED cujo workflow tem
 # `paths:`/`paths-ignore:` no `pull_request` não fica vermelho quando o PR não casa
