@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 use App\Services\PermissionRegistry;
 
-uses(Tests\TestCase::class);
+// SEM `uses(Tests\TestCase::class)` aqui de proposito: `tests/Pest.php:5` ja
+// aplica `uses(TestCase::class)->in('Feature')` a esta pasta inteira, e declarar de
+// novo faz o Pest ABORTAR o run com "Test case can not be used. The folder ... already
+// uses the test case". Medido: zero dos outros arquivos de tests/Feature/ declaram.
+// (Os testes de Modules/ declaram porque nao caem naquele `->in('Feature')`.)
 
 /**
  * UC-JNAME-01 — a tela de permissões não oferece um módulo chamado "Copiloto".
