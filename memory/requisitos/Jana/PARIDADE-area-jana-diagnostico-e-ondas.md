@@ -473,7 +473,7 @@ Registrado aqui como achado, **não** como item fechado.
 | **T** | **primeiro `design-diff` medido** (§7.6) — D2/D6 batem, D4/D8 divergem **a favor da produção** | não | ✅ **RODADO 2026-08-18** — 0 itens de backlog gerados |
 | **1** | Pro entra no `PageHeader` canon (sem `subnav`, preserva modo FOCO) | sim → F1.5 | ✅ **FEITA 2026-08-18** — a tag `UPGRADE` foi pro `leading` (slot que já existia); o `titleBadge` novo saiu por PREÇO, não por mérito — tocar o canon escalava o visreg pra 37 telas, 29 sem baseline. F1.5 aprovado por [W]; baseline da `Jana/Pro` atualizada no PR [#5918](https://github.com/wagnerra23/oimpresso.com/pull/5918). Smoke pós-merge pendente |
 | **2** | `janaContext` no Chat e na Memória (empresa + `biz=` no header) | sim → F1.5 | ✅ **FEITA 2026-08-18** — o header já aceitava as props; faltava o controller mandar. [#5919](https://github.com/wagnerra23/oimpresso.com/pull/5919) **mergeado**. Smoke pós-merge pendente |
-| **4** | selo de plano + Configurar + Exportar + skeleton nas 3 telas | sim → F1.5 | 🟡 **PARCIAL 2026-08-18** — **Configurar** entregue nas 3; **selo de plano BLOQUEADO** (sem fonte de dado — ver §8.1); **Exportar** virou US própria (decisão [W]); **skeleton** só onde há `defer` (§8.1). [#5922](https://github.com/wagnerra23/oimpresso.com/pull/5922) **mergeado** |
+| **4** | selo de plano + Configurar + Exportar + skeleton nas 3 telas | sim → F1.5 | 🟡 **PARCIAL 2026-08-18** — **Configurar** entregue nas 3; ~~**selo de plano BLOQUEADO**~~ → **DESBLOQUEADO 2026-08-28** (ganhou fonte: `jana_pro_module` — ver §8.1); **Exportar** virou US própria (decisão [W]); **skeleton** só onde há `defer` (§8.1). [#5922](https://github.com/wagnerra23/oimpresso.com/pull/5922) **mergeado** |
 | **5** | drawer de metas: Origem do número · Escopo · ~~Editar meta~~ · ~~Falar com a Jana~~ + **Projeção** | sim → F1.5 | ✅ **FEITA 2026-08-18** — 2 dos 4 itens originais já existiam com outro rótulo (errata §6); entrou Projeção, que o servidor mandava sem consumidor. [#5923](https://github.com/wagnerra23/oimpresso.com/pull/5923) **mergeado** |
 | **6** | Dashboard × Painel (título, breadcrumb, componente exportado) | sim → F1.5 | decisão [W] |
 | **7** | as 4 telas Blade da área — uma onda por tela, F1 (RUNBOOK) antes de qualquer `.tsx` | sim | proposta |
@@ -523,6 +523,22 @@ que é diferente de ativar.
 
 Veredito: **o §8.1 continua correto** — o selo segue sem fonte, e pintá-lo continuaria afirmando um
 estado que o sistema não sabe. Não é errata; é a evidência fechada pelo lado que faltava.
+
+**DESFECHO — 2026-08-28: o selo ganhou fonte e foi pintado.** Diante da medição acima [W] decidiu
+o caminho intermediário: `jana_pro_module` vira **chave de pacote marcável no Superadmin, sem
+billing**. O que mudou é a FONTE — o selo lê `jana.pro` (shared prop, derivada da assinatura) em
+vez de um literal —, não o desenho nem a copy, que seguem os da âncora (`jana-merge.jsx:970`).
+
+Isto **não antecipa o JANA-B**: continua sem assinatura Asaas, sem trial, sem lifecycle e sem
+cobrança (ADR 0140, US-COPI-211/212). O tier é concessão manual, como qualquer outro pacote — e o
+`ProController` segue mandando `'plan' => 'free'` literal, porque a tela `/ia/pro` é o paywall, um
+consumidor diferente do selo. **Fica registrado como resíduo:** duas fontes de plano coexistem
+agora (o selo lê o pacote; a tela `/ia/pro` não), e reconciliar as duas é trabalho do JANA-B.
+
+Os dois eixos passam a ser **duas caixas distintas** no painel de pacotes — `jana_module` (o
+business tem a Jana) e `jana_pro_module` (o plano dentro dela). A distinção é defendida por teste
+(`JanaPlanoTierTest`), porque foi ela que faltou em 2026-08-27: fundi-las repetiria dentro do
+código o engano que um humano cometeu lendo a UI.
 
 **Skeleton — só onde há `defer`.** `ChatController` tem 3 `Inertia::defer`; `MemoriaController`
 tem **0**. Skeleton numa tela que renderiza tudo no primeiro paint é animação sem espera. Entra
