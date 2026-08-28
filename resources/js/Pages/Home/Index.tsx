@@ -338,7 +338,7 @@ function Contrapartidas({ totals }: { totals: Totals }) {
  * célula a célula e anuncia o cabeçalho de cada linha. O `<caption>` carrega a
  * leitura de relance — total e pico — pra quem não quer percorrer 30 linhas.
  *
- * Usa `brl` (moeda por extenso), não `brlCurto`: "R$ 12,3 mil" é abreviação
+ * Usa `brl` (moeda por extenso), não `brlCurto`: a forma abreviada é
  * pensada pro olho num eixo estreito; em áudio o valor cheio é mais claro.
  */
 function SerieAcessivel({
