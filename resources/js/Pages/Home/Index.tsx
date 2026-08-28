@@ -125,58 +125,6 @@ function PainelGrafico({ titulo, meta, children }: { titulo: string; meta: strin
 }
 
 /** Contrapartidas — os 4 números do outro lado do caixa, sem gastar 4 cards. */
-function Contrapartidas({ totals }: { totals: Totals }) {
-  const itens: Array<[string, number, string]> = [
-    ['Compras', totals.total_purchase, 'incluindo impostos'],
-    ['A pagar', totals.purchase_due, 'líquido de descontos'],
-    ['Devolução de venda', totals.total_sell_return, 'no período'],
-    ['Devolução de compra', totals.total_purchase_return, 'devido ao fornecedor'],
-  ];
-
-  return (
-    <Stack gap={4} asChild>
-      <section aria-label="Contrapartidas" className={CARTAO}>
-        <Inline gap={3} align="baseline" justify="between">
-          <h2 className="text-[13.5px] font-semibold text-foreground">Contrapartidas</h2>
-          <span className="font-mono text-[10.5px] text-muted-foreground">mesmo período</span>
-        </Inline>
-        <Grid cols={2} gap={4} className="lg:grid-cols-4">
-          {itens.map(([label, valor, sub]) => (
-            <Stack gap={1} key={label} className="min-w-0">
-              <span className="text-[9.5px] font-semibold uppercase tracking-wider text-muted-foreground">
-                {label}
-              </span>
-              <span className="font-mono text-[15.5px] font-semibold tabular-nums text-foreground">
-                {brlCurto(valor)}
-              </span>
-              <span className="text-[11.5px] text-muted-foreground">{sub}</span>
-            </Stack>
-          ))}
-        </Grid>
-      </section>
-    </Stack>
-  );
-}
-
-/**
- * Os 2 gráficos da Visão geral. Lê `charts` DEPOIS do first paint (Deferred).
- * O <Chart> é o do DS portado 1:1 — SVG puro, sem lib.
- */
-function GraficosVendas({ charts }: { charts: Props['charts'] }) {
-  if (!charts) return null;
-
-  return (
-    <Grid cols={1} gap={4} className="lg:grid-cols-2">
-      <PainelGrafico titulo="Vendas por dia" meta="últimos 30 dias">
-        <Chart type="area" data={charts.dia} height={132} formatValue={brlCurto} />
-      </PainelGrafico>
-      <PainelGrafico titulo="Vendas por mês" meta="ano fiscal">
-        <Chart type="bar" data={charts.mes} height={132} highlightLast formatValue={brlCurto} />
-      </PainelGrafico>
-    </Grid>
-  );
-}
-
 function HomeIndex({
   user_name,
   is_admin,
@@ -224,6 +172,7 @@ function HomeIndex({
   return (
     <Stack gap={5} className="mx-auto max-w-7xl p-6">
       <PageHeader
+        data-contract="cabecalho"
         leading={
           <span className="mr-2 inline-flex translate-y-[1px] align-middle text-muted-foreground">
             <Icon name="layout-dashboard" size={18} strokeWidth={1.8} />
@@ -272,7 +221,7 @@ function HomeIndex({
 
       {can_dashboard_data && totals ? (
         <Stack gap={4}>
-          <KpiGrid cols={4}>
+          <KpiGrid cols={4} data-contract="kpis">
             <KpiHero
               label="Líquido no período"
               value={totals.net}
@@ -281,6 +230,7 @@ function HomeIndex({
             />
             <KpiCard
               label="Vendas"
+              tone="success"
               value={brl(totals.total_sell)}
               icon="trending-up"
               description="incluindo impostos"
@@ -295,6 +245,7 @@ function HomeIndex({
             />
             <KpiCard
               label="Despesas"
+              tone="info"
               value={brl(totals.total_expense)}
               icon="receipt"
               description={`${sinal(deltas?.total_expense)}lançadas no período`}
@@ -329,7 +280,7 @@ function HomeIndex({
         <Icon name="info" size={16} />
         <AlertDescription>
           <p>
-            Precisa dos gráficos de vendas, alertas de estoque ou widgets de outros módulos?{' '}
+            Os widgets de outros módulos ainda não foram portados para esta tela.{' '}
             <a href={legacy_url} className="font-medium text-primary underline-offset-2 hover:underline">
               Abrir versão completa
             </a>
@@ -340,6 +291,67 @@ function HomeIndex({
     </Stack>
   );
 }
+
+/*
+ * Contrapartidas e GraficosVendas ficam DEPOIS do componente principal de propósito.
+ * O gate `contrato-de-tela` lê a ordem das âncoras `data-contract` na ORDEM DO FONTE, e
+ * com as auxiliares no topo a ordem textual (contrapartidas→graficos→cabecalho→kpis) não
+ * batia com a de render (cabecalho→kpis→contrapartidas→graficos). `function` é hoisted,
+ * então mover não muda comportamento — muda só o que a máquina consegue verificar.
+ */
+
+function Contrapartidas({ totals }: { totals: Totals }) {
+  const itens: Array<[string, number, string]> = [
+    ['Compras', totals.total_purchase, 'incluindo impostos'],
+    ['A pagar', totals.purchase_due, 'líquido de descontos'],
+    ['Devolução de venda', totals.total_sell_return, 'no período'],
+    ['Devolução de compra', totals.total_purchase_return, 'devido ao fornecedor'],
+  ];
+
+  return (
+    <Stack gap={4} asChild>
+      <section aria-label="Contrapartidas" data-contract="contrapartidas" className={CARTAO}>
+        <Inline gap={3} align="baseline" justify="between">
+          <h2 className="text-[13.5px] font-semibold text-foreground">Contrapartidas</h2>
+          <span className="font-mono text-[10.5px] text-muted-foreground">mesmo período</span>
+        </Inline>
+        <Grid cols={2} gap={4} className="lg:grid-cols-4">
+          {itens.map(([label, valor, sub]) => (
+            <Stack gap={1} key={label} className="min-w-0">
+              <span className="text-[9.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                {label}
+              </span>
+              <span className="font-mono text-[15.5px] font-semibold tabular-nums text-foreground">
+                {brlCurto(valor)}
+              </span>
+              <span className="text-[11.5px] text-muted-foreground">{sub}</span>
+            </Stack>
+          ))}
+        </Grid>
+      </section>
+    </Stack>
+  );
+}
+
+/**
+ * Os 2 gráficos da Visão geral. Lê `charts` DEPOIS do first paint (Deferred).
+ * O <Chart> é o do DS portado 1:1 — SVG puro, sem lib.
+ */
+function GraficosVendas({ charts }: { charts: Props['charts'] }) {
+  if (!charts) return null;
+
+  return (
+    <Grid cols={1} gap={4} className="lg:grid-cols-2" data-contract="graficos">
+      <PainelGrafico titulo="Vendas por dia" meta="últimos 30 dias">
+        <Chart type="area" data={charts.dia} height={132} formatValue={brlCurto} />
+      </PainelGrafico>
+      <PainelGrafico titulo="Vendas por mês" meta="ano fiscal">
+        <Chart type="bar" data={charts.mes} height={132} highlightLast formatValue={brlCurto} />
+      </PainelGrafico>
+    </Grid>
+  );
+}
+
 
 HomeIndex.layout = (page: ReactNode) => (
   <AppShellV2 title="Visão geral" breadcrumbItems={[{ label: 'Visão geral' }]}>
