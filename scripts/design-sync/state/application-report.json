@@ -1,6 +1,6 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-08-28T13:42:18.230Z",
+  "generatedAt": "2026-08-28T15:41:51.809Z",
   "bundle": {
     "id": "5023b274183d849dcc925eae85cef61a991c3541ca1daeb680267c1afda99e4d",
     "baseId": null,
@@ -2306,8 +2306,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-cockpit.map.json",
-          "mapSha256": "d40c750f94b80e7209a01bf7942c25812adef1a04688dfc920ea37be62119297",
-          "recordedAt": "2026-08-28T13:27:08.492Z"
+          "mapSha256": "4ccfc771841087c2f53fb7103800e72512e29eb86d2d5f2c0aaf142dd4afd823",
+          "recordedAt": "2026-08-28T15:41:50.053Z"
         },
         "application": null,
         "tests": [],
@@ -2331,8 +2331,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-config.map.json",
-          "mapSha256": "aac9be167b39227211f3bf38e5fc63a39fdaf54799ce7e7b74b61c57845ec389",
-          "recordedAt": "2026-08-28T13:27:11.816Z"
+          "mapSha256": "fc5b6fc78db7f1e59d46731b696f979d68acf6d7c223c4913bf4bcc70fd2f0bc",
+          "recordedAt": "2026-08-28T15:41:50.298Z"
         },
         "application": null,
         "tests": [],
@@ -2356,8 +2356,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-dfe.map.json",
-          "mapSha256": "fadf54a67e25c9b76255ce0d668c2f78a4336930a69f458e1a55f74157433e59",
-          "recordedAt": "2026-08-28T13:27:10.117Z"
+          "mapSha256": "9f618927a56b627e9ba63074aab31611d3d0fe42eae3ea5aca7db06909146d28",
+          "recordedAt": "2026-08-28T15:41:50.518Z"
         },
         "application": null,
         "tests": [],
@@ -2381,8 +2381,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-eventos.map.json",
-          "mapSha256": "866cf863c9a3c67c35de3741ce025a89ce60429481fd97f7df8a86fd34327114",
-          "recordedAt": "2026-08-28T13:27:10.632Z"
+          "mapSha256": "16d8e3177cfaea293b5589bae05ee65c516a54ec38c0c6f4e78d7c4289043ac4",
+          "recordedAt": "2026-08-28T15:41:50.732Z"
         },
         "application": null,
         "tests": [],
@@ -2406,8 +2406,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-nfe.map.json",
-          "mapSha256": "cb39abc111b41092fdee81d28e70a09693879956ef28eb7a32c904d5de3cb078",
-          "recordedAt": "2026-08-28T13:27:09.048Z"
+          "mapSha256": "512a732f82d2df41b9b4e5bcf9bd12a491a59020cef9ecb431226c3070addf1c",
+          "recordedAt": "2026-08-28T15:41:50.960Z"
         },
         "application": null,
         "tests": [],
@@ -2431,8 +2431,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-nfse.map.json",
-          "mapSha256": "55af607d4fffa2f01f8b477a4479f2c7f5df1c722754b350805a0056277509c0",
-          "recordedAt": "2026-08-28T13:27:09.594Z"
+          "mapSha256": "d8e7eb5de697cf44ccbfbeb0c4e762b1fd5aa1c497ded736ae5bb385df14fbd3",
+          "recordedAt": "2026-08-28T15:41:51.176Z"
         },
         "application": null,
         "tests": [],
@@ -2456,8 +2456,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-sped.map.json",
-          "mapSha256": "212464597410d92b5de5e2cf7842ea4618b4432aaef4af1afc0e454a47d4ee47",
-          "recordedAt": "2026-08-28T13:27:11.189Z"
+          "mapSha256": "318de1495f481de6231ac6b45a4532df5dd488d86c88dc6bf9dfd79467f6cfe8",
+          "recordedAt": "2026-08-28T15:41:51.394Z"
         },
         "application": null,
         "tests": [],

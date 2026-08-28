@@ -10,7 +10,7 @@
     "target": "resources/js/Pages/Fiscal/Sped.tsx"
   },
   "partes": [{
-    "id": "estado-gerador-sped",
+    "id": "estado-do-gerador",
     "prototipo": { "arquivo": "prototipo-ui/cowork/fiscal-subpages.jsx", "linhas": "375-389" },
     "vivo": { "arquivo": "resources/js/Pages/Fiscal/Sped.tsx", "linhas": "80-91", "ancora": "fiscal-sped-status" },
     "status": "paridade-visual",

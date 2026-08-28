@@ -10,7 +10,7 @@
     "target": "resources/js/Pages/Fiscal/Eventos.tsx"
   },
   "partes": [{
-    "id": "timeline-eventos",
+    "id": "timeline-de-eventos",
     "prototipo": { "arquivo": "prototipo-ui/cowork/fiscal-subpages.jsx", "linhas": "56-73" },
     "vivo": { "arquivo": "resources/js/Pages/Fiscal/Eventos.tsx", "linhas": "157-180", "ancora": "fiscal-eventos-timeline" },
     "status": "paridade",
