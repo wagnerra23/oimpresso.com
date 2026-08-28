@@ -174,6 +174,7 @@ it('Tier 0 multi-tenant — a grade não devolve linha de outro business', funct
         $this->markTestSkipped('Sem transaction de outro business — o teste não teria o que provar.');
     }
 
+    $this->actingAs($user);
     $servico = app(GradesDoPainelService::class);
     $linhas = $servico->linhas('venc-venda', $businessId);
 
@@ -203,6 +204,7 @@ it('PARIDADE com o endpoint legado — mesmo total de títulos de venda vencendo
         $this->markTestSkipped('Endpoint legado não devolveu recordsTotal — nada a comparar.');
     }
 
+    $this->actingAs($user);
     $totalNovo = app(GradesDoPainelService::class)->linhas('venc-venda', $businessId)->total();
 
     expect($totalNovo)->toBe((int) $totalLegado);
@@ -249,6 +251,7 @@ it('catálogo declara as 8 grades do Blade — e nenhuma inventada', function ()
 it('ordenacao: coluna da allowlist ordena de verdade', function () {
     $user = gradesBootstrap(['dashboard.data', 'sell.view']);
     $businessId = (int) session('user.business_id');
+    $this->actingAs($user); // o service le auth()->user() em abasPermitidas()
     $servico = app(GradesDoPainelService::class);
 
     request()->merge(['sort' => 'documento', 'dir' => 'asc']);
@@ -270,6 +273,7 @@ it('ordenacao: coluna FORA da allowlist nao vira SQL', function () {
     // quebraria a query se chegasse crua no orderBy.
     $user = gradesBootstrap(['dashboard.data', 'sell.view']);
     $businessId = (int) session('user.business_id');
+    $this->actingAs($user); // idem — chamada direta ao service exige usuario autenticado
 
     request()->merge(['sort' => "transactions.id) OR 1=1 --", 'dir' => 'asc']);
 
