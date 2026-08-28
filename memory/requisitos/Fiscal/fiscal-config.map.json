@@ -1,0 +1,20 @@
+{
+  "version": "1",
+  "_doc": "Mapa por região; contrato e verificação vivem em gerar-map.mjs e design-code-map-check.mjs.",
+  "tela": "Fiscal/Config (/fiscal/config)",
+  "gap_fonte": "memory/requisitos/Fiscal/fiscal-config-gap.md",
+  "prototipo_sha": "sha256:1c323c8f7ae4",
+  "gerado_em": "2026-08-28",
+  "mapping": {
+    "source": "fiscal-page.jsx",
+    "target": "resources/js/Pages/Fiscal/Config.tsx"
+  },
+  "partes": [{
+    "id": "certificado-e-regime",
+    "prototipo": { "arquivo": "prototipo-ui/cowork/fiscal-subpages.jsx", "linhas": "257-288" },
+    "vivo": { "arquivo": "resources/js/Pages/Fiscal/Config.tsx", "linhas": "281-346", "ancora": "fiscal-config-cert-regime" },
+    "status": "gap-parcial",
+    "acao": "Decidir. O protótipo tem 4 cards (fiscal-subpages.jsx:257-288) e a região viva ancorada tem 2; \"Envio de documentos\" não existe no Config.tsx, e o bloco de regime está em Config.tsx:469-470, fora da região ancorada. Construir, reancorar ou rejeitar por escrito.",
+    "_acionavel": true
+  }]
+}

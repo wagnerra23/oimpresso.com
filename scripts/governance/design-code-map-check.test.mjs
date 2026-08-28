@@ -95,6 +95,11 @@ writeFileSync(join(reqDir, 'index.map.json'), JSON.stringify({ version: '1', tel
 const badSchema = runCheck(['--check', '--strict']);
 check('schema sem partes[] → strict exit 1', badSchema.status === 1);
 
+// 6b. mapping 1:N explícito também é verificável; destino fantasma não pode parecer ancorado.
+writeMap({ mapping: { source: 'fixture-page.jsx', target: 'resources/js/Pages/Fixture/FANTASMA.tsx' } });
+const badMapping = runCheck(['--check', '--strict']);
+check('mapping.target inexistente → strict exit 1', badMapping.status === 1 && /mapping\.target não existe/.test(badMapping.stdout));
+
 // ── ÂNCORA ESTÁVEL (PR-B): vivo.ancora + data-contract="<id>" no .tsx ─────────
 const shaAtual = sha(root);
 const parteBase = (extraVivo = {}) => ({

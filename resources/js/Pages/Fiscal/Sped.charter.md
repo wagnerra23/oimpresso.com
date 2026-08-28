@@ -2,7 +2,8 @@
 id: resources-js-pages-fiscal-sped-charter
 page: /fiscal/sped
 component: resources/js/Pages/Fiscal/Sped.tsx
-related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
+related_prototype: prototipo-ui/cowork/fiscal-subpages.jsx
+bundle_source: fiscal-page.jsx
 page_id: fiscal-sped
 url: /fiscal/sped
 module: Fiscal
@@ -11,7 +12,7 @@ created: 2026-05-20
 owner: wagner
 related_us: [US-FISCAL-010, US-FISCAL-016, US-FISCAL-017, US-FISCAL-020]
 related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0358-doutrina-de-teste-tenant-98-supersede-0101, 0104-processo-mwart-canonico-unico-caminho]
-prototypes: []   # 2026-08-13: era "prototipo-ui/.../fiscal-data.jsx SPED_PERIODOS/LIVROS" — path NÃO existe (0 protótipo fiscal no repo, medido); âncora viva = `related_prototype` acima. Mesmo caso do Nfe.charter.md (reconciliação 2026-07-27).
+prototypes: [prototipo-ui/cowork/fiscal-subpages.jsx]
 ---
 
 # Charter — `Fiscal/Sped`

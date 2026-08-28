@@ -1,0 +1,96 @@
+{
+  "schema": "oimpresso-design-applications/2",
+  "applications": [
+    {
+      "source": "fiscal-page.jsx",
+      "target": "resources/js/Pages/Fiscal/Cockpit.tsx",
+      "sourceSha256": "6f302cead5a6f1d8b2033386131f7e640d0a8e3f325921051e107efef6a6659a",
+      "targetSha256": "ad00425478b49874952f303b8be0ad387714fd068d46f3a36dfacc9888f16f28",
+      "comparison": {
+        "map": "memory/requisitos/Fiscal/fiscal-cockpit.map.json",
+        "mapSha256": "deb345ae87a6df6c8daca4c8b72b9f6a98839348f0933a7009ed8e0dbf178143",
+        "recordedAt": "2026-08-28T16:39:16.046Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "fiscal-page.jsx",
+      "target": "resources/js/Pages/Fiscal/Config.tsx",
+      "sourceSha256": "6f302cead5a6f1d8b2033386131f7e640d0a8e3f325921051e107efef6a6659a",
+      "targetSha256": "ff2916447ea0d98cf4cf952d4d0f68774a8afd957ceac52b8ef8c0f61f42a5d7",
+      "comparison": {
+        "map": "memory/requisitos/Fiscal/fiscal-config.map.json",
+        "mapSha256": "33bf8c9ce73f920271a8f84966506fad5c33005dfd88c73c8650dfbbe9622f7b",
+        "recordedAt": "2026-08-28T16:39:16.366Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "fiscal-page.jsx",
+      "target": "resources/js/Pages/Fiscal/Dfe.tsx",
+      "sourceSha256": "6f302cead5a6f1d8b2033386131f7e640d0a8e3f325921051e107efef6a6659a",
+      "targetSha256": "4206592f3b9cf00f39e0128b197437ff5c37e848013eba78444856724d89f681",
+      "comparison": {
+        "map": "memory/requisitos/Fiscal/fiscal-dfe.map.json",
+        "mapSha256": "9f618927a56b627e9ba63074aab31611d3d0fe42eae3ea5aca7db06909146d28",
+        "recordedAt": "2026-08-28T16:39:16.682Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "fiscal-page.jsx",
+      "target": "resources/js/Pages/Fiscal/Eventos.tsx",
+      "sourceSha256": "6f302cead5a6f1d8b2033386131f7e640d0a8e3f325921051e107efef6a6659a",
+      "targetSha256": "a465ef5bdb1fce305b7d00e5e3d1a2e5cbadf8503ab2cff4a1036f79b167a256",
+      "comparison": {
+        "map": "memory/requisitos/Fiscal/fiscal-eventos.map.json",
+        "mapSha256": "16d8e3177cfaea293b5589bae05ee65c516a54ec38c0c6f4e78d7c4289043ac4",
+        "recordedAt": "2026-08-28T16:39:16.986Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "fiscal-page.jsx",
+      "target": "resources/js/Pages/Fiscal/Nfe.tsx",
+      "sourceSha256": "6f302cead5a6f1d8b2033386131f7e640d0a8e3f325921051e107efef6a6659a",
+      "targetSha256": "ac4fba29a48ef08344830ca4b705fe7a4ed6970ffecd60acfdec08e5b47a64b2",
+      "comparison": {
+        "map": "memory/requisitos/Fiscal/fiscal-nfe.map.json",
+        "mapSha256": "d81b73b06f688fdaa19566608a3b8ed41e41b0a094820b46eb6a8a8b2c52188f",
+        "recordedAt": "2026-08-28T16:39:17.285Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "fiscal-page.jsx",
+      "target": "resources/js/Pages/Fiscal/Nfse.tsx",
+      "sourceSha256": "6f302cead5a6f1d8b2033386131f7e640d0a8e3f325921051e107efef6a6659a",
+      "targetSha256": "f018abd148c706b2db52894e15c6f4228c43db182e655bf90393d453d2b9a411",
+      "comparison": {
+        "map": "memory/requisitos/Fiscal/fiscal-nfse.map.json",
+        "mapSha256": "e727588174f16ac35fa1f0e46a8cc575f58f972e4992176fd5ffd283fb43bd4c",
+        "recordedAt": "2026-08-28T16:39:17.601Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "fiscal-page.jsx",
+      "target": "resources/js/Pages/Fiscal/Sped.tsx",
+      "sourceSha256": "6f302cead5a6f1d8b2033386131f7e640d0a8e3f325921051e107efef6a6659a",
+      "targetSha256": "16bf74e644702b616b59f2ea52b9a064a2fcb8a1e5cba6c63f3a8e2d5c8afa2d",
+      "comparison": {
+        "map": "memory/requisitos/Fiscal/fiscal-sped.map.json",
+        "mapSha256": "318de1495f481de6231ac6b45a4532df5dd488d86c88dc6bf9dfd79467f6cfe8",
+        "recordedAt": "2026-08-28T16:39:17.907Z"
+      },
+      "tests": [],
+      "smokes": []
+    }
+  ]
+}

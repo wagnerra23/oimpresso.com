@@ -1,0 +1,20 @@
+{
+  "version": "1",
+  "_doc": "Mapa por região; contrato e verificação vivem em gerar-map.mjs e design-code-map-check.mjs.",
+  "tela": "Fiscal/Nfse (/fiscal/nfse)",
+  "gap_fonte": "memory/requisitos/Fiscal/fiscal-nfse-gap.md",
+  "prototipo_sha": "sha256:a862374022ef",
+  "gerado_em": "2026-08-28",
+  "mapping": {
+    "source": "fiscal-page.jsx",
+    "target": "resources/js/Pages/Fiscal/Nfse.tsx"
+  },
+  "partes": [{
+    "id": "filtros-de-nfs-e",
+    "prototipo": { "arquivo": "prototipo-ui/cowork/fiscal-page.jsx", "linhas": "459-481" },
+    "vivo": { "arquivo": "resources/js/Pages/Fiscal/Nfse.tsx", "linhas": "114-141", "ancora": "fiscal-nfse-filters" },
+    "status": "gap-parcial",
+    "acao": "Decidir. Mesma região do protótipo do NF-e: select de tipo + radiogroup de densidade, ausentes no Nfse.tsx. O filtro de competência está em Nfse.tsx:109, fora da região ancorada 114-141. Construir, reancorar ou rejeitar por escrito.",
+    "_acionavel": true
+  }]
+}

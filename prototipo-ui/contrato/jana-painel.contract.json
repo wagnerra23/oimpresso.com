@@ -6,7 +6,8 @@
   "_nota_fonte": "HISTÓRICO — fato datado, preservado. A âncora ERA `prototipo-ui/cowork/chat-jana.jsx` e foi REMOVIDA do charter em 2026-08-10 (lápide §5 do mesmo dia). Aberto no navegador, aquele protótipo se identifica como `OFFICEIMPRESSO · biz=164 · v1404 legacy migrado` e traz o KPI `Frota utilização` mais `caçambas` no texto. Veredito [W] 2026-08-10, textual: 'Frota utilização são alucinação, ninguém usa até a presente data' — isso governa o que se CONSTRÓI nesta tela do núcleo e SEGUE VALENDO. Medido na época: interseção de vocabulário com a tela viva = 1 de 10 termos (10%), contra 80% do par bom `Compras/Index`. Por isso a copy deste contrato deriva da TELA VIVA.",
   "_nota_fonte_atualizacao": "CORRIGIDO 2026-08-14 — dois pontos da nota acima apodreceram. (a) O charter NÃO declara mais `n/a`: desde 2026-08-11 (#5572) esta tela TEM protótipo versionado, e o `Jana/Index.charter.md` (v6) declara `related_prototype: prototipo-ui/cowork/jana-merge.jsx` — arquivo DIFERENTE do `chat-jana.jsx` acima. O ponteiro vigente se resolve por `node prototipo-ui/ancora.mjs Jana/Index`, nunca por esta nota. (b) O CRITÉRIO 'carimbo biz=NNN desqualifica o protótipo' foi REVOGADO pela lápide §5 de 2026-08-11 — é falso-positivo por construção; a prova é ESTRUTURAL (o protótipo desenha OUTRA tela?). O veredito sobre o `chat-jana.jsx` continua de pé por esse critério novo: ele desenha o cockpit de cobrança, não este Painel. Ressalva viva no `jana-merge.jsx`: ele cita 6 `Analise*Service` que não existem no repo (o `ancora.mjs` acusa) — as regras VISUAIS dele valem, o que ele diz sobre FONTE DE DADO não.",
   "alvo": [
-    "resources/js/Pages/Jana/Index.tsx"
+    "resources/js/Pages/Jana/Index.tsx",
+    "resources/js/Pages/Jana/_components/JanaPlanoBadge.tsx"
   ],
   "secoes": [
     {
@@ -51,6 +52,15 @@
       "copy": [
         "Sem histórico"
       ]
+    },
+    {
+      "id": "painel-plano",
+      "_papel": "estado comercial da area — diz em que plano o BUSINESS esta, e e a porta pro Configurar",
+      "copy": [
+        "plano Pro",
+        "plano Grátis"
+      ],
+      "_nota": "Copy LITERAL do prototipo aprovado (`jana-merge.jsx:970` — `plano {pro ? \"Pro\" : \"Gratis\"}`), com o 'plano' em minuscula. Nao e frase minha: veio da ancora, e por isso pode ser pinada aqui. AS DUAS entram porque o selo tem dois estados e ambos sao contrato — um deles some se alguem trocar o ternario por um texto fixo, que e exatamente a regressao que este item defende. PROVENIENCIA DO DADO (2026-08-28): o selo le `jana.pro`, derivado de `jana_pro_module` na assinatura; ate 2026-08-27 ele nao existia porque NAO HAVIA fonte de plano no sistema (PARIDADE §8.1). Nao confundir com `jana_module`, que e o modulo on/off."
     }
   ],
   "ordem": [
@@ -61,8 +71,10 @@
   "_pendente_w": [
     "TÍTULO DA TELA: hoje o AppShellV2 recebe `title=\"Jana — Dashboard\"` e o breadcrumb diz `Dashboard`, mas a aba se chama **Painel** desde a onda 3 da US-COPI-148 (2026-08-07) e a rota virou `/ia`. Sobrou 'Dashboard' em 2 lugares. Qual é a palavra? (Se for 'Painel', entra como seção `painel-titulo` neste contrato.)",
     "BOTÃO '(em breve)': `title=\"Exportar relatório (em breve)\"`. É a MESMA classe do rodapé do brief que prometia 'próximo brief: amanhã, 8h' — promessa sem data que o produto não cumpre. Some, vira `disabled` com o motivo, ou entrega? Enquanto não decidido, NÃO entra no contrato: pinar uma promessa é congelá-la. ⚠️ ATUALIZADO 2026-08-17 — esta entrada dizia DOIS botões, e o outro era 'Configurar'. Ele ENTREGOU (abre `_components/JanaConfigDrawer.tsx`, UC-JPAIN-10), então saiu da pendência; a pergunta segue idêntica pro que sobrou. Ponteiro podre se atualiza, e é só isso que mudou aqui: a copy do drawer NÃO foi pinada como seção — pinar copy é decisão [W], e o drawer acabou de nascer.",
-    "CONFIGURAÇÃO QUE O SERVIDOR NÃO HONRA: o drawer do UC-10 deliberadamente não oferece brief diário on/off + hora, áudio/TTS nem retenção — os três existem no protótipo (`jana-merge.jsx` §JmConfigDrawer) e NENHUM é honrado pelo back hoje (medido 2026-08-17; o brief é server-side via BriefingAgent, o TTS não existe, e o `jana:retention-purge` foi descartado por [W]). Devem virar configuração de verdade? Aí é backend: ou estende o dono que já existe (`PATCH /ia/alertas/config` → `business.essentials_settings.alertas`, per-business, Tier 0), ou o brief ganha chave própria. É produto, não wiring."
+    "CONFIGURAÇÃO QUE O SERVIDOR NÃO HONRA: o drawer do UC-10 deliberadamente não oferece brief diário on/off + hora, áudio/TTS nem retenção — os três existem no protótipo (`jana-merge.jsx` §JmConfigDrawer) e NENHUM é honrado pelo back hoje (medido 2026-08-17; o brief é server-side via BriefingAgent, o TTS não existe, e o `jana:retention-purge` foi descartado por [W]). Devem virar configuração de verdade? Aí é backend: ou estende o dono que já existe (`PATCH /ia/alertas/config` → `business.essentials_settings.alertas`, per-business, Tier 0), ou o brief ganha chave própria. É produto, não wiring.",
+    "ORDEM DO SELO: `painel-plano` entrou em `secoes` (presenca + copy ficam vigiadas) mas NAO em `ordem`, porque ordem e copy sao decisao de [W] (ver `_nota_ancoras`) e eu so tinha proveniencia pra copy. No prototipo o selo vem na zona DIREITA do header, depois de 'Atualizado HH:MM' e antes de Configurar/Exportar (`chat-jana.jsx:217`). Se essa posicao e contrato, basta inserir 'painel-plano' no array `ordem` — a ancora ja existe no fonte."
   ],
   "_nota_ancoras": "QUANDO ESTE CONTRATO NASCEU (2026-08-10) nenhuma âncora `data-contract` existia no `Index.tsx`. Adicioná-las é wiring do agente, não de [W]; de [W] é a COPY e a ORDEM acima. MEDIDO 2026-08-14: as 5 existem — `painel-cta-conversar`, `painel-metas-header`, `painel-metas-vazio`, `painel-meta-apurando`, `painel-meta-sem-historico`. Esta nota NÃO é o oráculo da contagem: quem sabe é `grep -c data-contract resources/js/Pages/Jana/Index.tsx`. E se esta lane bloqueia merge, o dono é `governance/required-checks-baseline.json` — nota de contrato não afirma o próprio enforcement.",
-  "_nota_ordem": "2026-08-17 — `ordem` era [\"painel-cta-conversar\",\"painel-metas-header\",\"painel-metas-vazio\"], escrita quando o CTA vivia no `ProximaAcaoCard`, ACIMA do cabecalho de METAS. Com o mock removido e o bloco METAS movido pra posicao da ancora (logo apos os KPIs), o cabecalho passa a vir antes do CTA. `ordem` e derivada do LAYOUT — mudou o layout por decisao [W], corrige-se aqui no MESMO PR (regra de precedencia: o perdedor se corrige junto). A COPY de cada secao nao foi alterada por mim: continua sendo lei [W]."
+  "_nota_ordem": "2026-08-17 — `ordem` era [\"painel-cta-conversar\",\"painel-metas-header\",\"painel-metas-vazio\"], escrita quando o CTA vivia no `ProximaAcaoCard`, ACIMA do cabecalho de METAS. Com o mock removido e o bloco METAS movido pra posicao da ancora (logo apos os KPIs), o cabecalho passa a vir antes do CTA. `ordem` e derivada do LAYOUT — mudou o layout por decisao [W], corrige-se aqui no MESMO PR (regra de precedencia: o perdedor se corrige junto). A COPY de cada secao nao foi alterada por mim: continua sendo lei [W].",
+  "_nota_alvo": "O selo de plano nao mora no `Index.tsx`: vive em `_components/JanaPlanoBadge.tsx`, porque as 3 telas da area (Painel, Conversa, Memoria) o injetam pelo slot `actions` do header compartilhado. O `alvo` e array e o coletor aceita arquivo — entao o componente entra aqui em vez de um wrapper `<span data-contract>` no Index so pra satisfazer o gate. Este contrato segue sendo o do PAINEL; o selo e verificado por ele porque e la que a tela o apresenta."
 }

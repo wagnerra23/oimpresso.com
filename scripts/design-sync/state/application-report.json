@@ -1,6 +1,6 @@
 {
-  "schema": "oimpresso-design-application-report/2",
-  "generatedAt": "2026-08-25T18:24:04.249Z",
+  "schema": "oimpresso-design-application-report/3",
+  "generatedAt": "2026-08-28T16:39:18.545Z",
   "bundle": {
     "id": "5023b274183d849dcc925eae85cef61a991c3541ca1daeb680267c1afda99e4d",
     "baseId": null,
@@ -10,11 +10,18 @@
   },
   "summary": {
     "transportChanges": 255,
-    "screens": 91,
+    "screens": 100,
     "tested": 0,
-    "pending": 62,
+    "smoked": 0,
+    "lifecycle": {
+      "anchored": 66,
+      "to-create": 9,
+      "blocked": 18,
+      "compared": 7
+    },
+    "pending": 73,
     "to-create": 9,
-    "blocked": 20
+    "blocked": 18
   },
   "transportChanges": [
     {
@@ -1811,10 +1818,13 @@
       "module": "Arquivos",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "backup-page.jsx",
@@ -1823,10 +1833,13 @@
       "module": "Backup",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "boletos-page.jsx",
@@ -1835,8 +1848,11 @@
       "module": null,
       "mapping": "registro a-criar",
       "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
       "applicationState": "to-create",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -1847,8 +1863,11 @@
       "module": null,
       "mapping": "nenhum",
       "comparison": "ORFAO",
+      "lifecycleState": "blocked",
       "applicationState": "blocked",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
@@ -1859,10 +1878,13 @@
       "module": "Cliente",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "cms-page.jsx",
@@ -1871,8 +1893,11 @@
       "module": null,
       "mapping": "nenhum",
       "comparison": "ORFAO",
+      "lifecycleState": "blocked",
       "applicationState": "blocked",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
@@ -1883,10 +1908,13 @@
       "module": "RecurringBilling",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "cobranca-recorrente-page.jsx",
@@ -1895,10 +1923,13 @@
       "module": "RecurringBilling",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "cobranca-recorrente-page.jsx",
@@ -1907,10 +1938,13 @@
       "module": "RecurringBilling",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "cobranca-recorrente-page.jsx",
@@ -1919,10 +1953,13 @@
       "module": "RecurringBilling",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "comissionados-page.jsx",
@@ -1931,8 +1968,11 @@
       "module": null,
       "mapping": "nenhum",
       "comparison": "ORFAO",
+      "lifecycleState": "blocked",
       "applicationState": "blocked",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
@@ -1943,8 +1983,11 @@
       "module": null,
       "mapping": "nenhum",
       "comparison": "ORFAO",
+      "lifecycleState": "blocked",
       "applicationState": "blocked",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
@@ -1955,10 +1998,13 @@
       "module": "Compras",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "comunicacao-visual-page.jsx",
@@ -1967,8 +2013,11 @@
       "module": null,
       "mapping": "nenhum",
       "comparison": "ORFAO",
+      "lifecycleState": "blocked",
       "applicationState": "blocked",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
@@ -1979,8 +2028,11 @@
       "module": null,
       "mapping": "nenhum",
       "comparison": "ORFAO",
+      "lifecycleState": "blocked",
       "applicationState": "blocked",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
@@ -1991,22 +2043,28 @@
       "module": null,
       "mapping": "nenhum",
       "comparison": "ORFAO",
+      "lifecycleState": "blocked",
       "applicationState": "blocked",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
     {
       "source": "dash-legacy-page.jsx",
       "bundleChange": "added",
-      "target": "—",
-      "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "applicationState": "blocked",
+      "target": "resources/js/Pages/Home/Index.tsx",
+      "module": "Home",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "documentacao-page.jsx",
@@ -2015,8 +2073,11 @@
       "module": null,
       "mapping": "nenhum",
       "comparison": "ORFAO",
+      "lifecycleState": "blocked",
       "applicationState": "blocked",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
@@ -2027,8 +2088,11 @@
       "module": null,
       "mapping": "registro a-criar",
       "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
       "applicationState": "to-create",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2039,10 +2103,13 @@
       "module": "Essentials",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "essenciais-page.jsx",
@@ -2051,10 +2118,13 @@
       "module": "Essentials",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "essenciais-page.jsx",
@@ -2063,10 +2133,13 @@
       "module": "Essentials",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "essenciais-page.jsx",
@@ -2075,10 +2148,13 @@
       "module": "Essentials",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "essenciais-page.jsx",
@@ -2087,10 +2163,13 @@
       "module": "Essentials",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "estoque-page.jsx",
@@ -2099,10 +2178,13 @@
       "module": "StockAdjustment",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "estoque-page.jsx",
@@ -2111,10 +2193,13 @@
       "module": "StockAdjustment",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "estoque-page.jsx",
@@ -2123,10 +2208,13 @@
       "module": "StockTransfer",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "estoque-page.jsx",
@@ -2135,10 +2223,58 @@
       "module": "StockTransfer",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "export-ponto/ponto-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
+      "module": "Ponto",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "export-ponto/ponto-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "resources/js/Pages/Ponto/Espelho/Index.tsx",
+      "module": "Ponto",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "export-ponto/ponto-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "resources/js/Pages/Ponto/Espelho/Show.tsx",
+      "module": "Ponto",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "financeiro-page.jsx",
@@ -2147,22 +2283,188 @@
       "module": "Financeiro",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "fiscal-page.jsx",
       "bundleChange": "added",
-      "target": "—",
-      "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "applicationState": "blocked",
+      "target": "resources/js/Pages/Fiscal/Cockpit.tsx",
+      "module": "Fiscal",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "compared",
+      "applicationState": "pending",
+      "compared": true,
       "tested": false,
-      "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "smoked": false,
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Fiscal/fiscal-cockpit.map.json",
+          "mapSha256": "deb345ae87a6df6c8daca4c8b72b9f6a98839348f0933a7009ed8e0dbf178143",
+          "recordedAt": "2026-08-28T16:39:16.046Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "ad00425478b49874952f303b8be0ad387714fd068d46f3a36dfacc9888f16f28"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
+    },
+    {
+      "source": "fiscal-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/Fiscal/Config.tsx",
+      "module": "Fiscal",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "compared",
+      "applicationState": "pending",
+      "compared": true,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Fiscal/fiscal-config.map.json",
+          "mapSha256": "33bf8c9ce73f920271a8f84966506fad5c33005dfd88c73c8650dfbbe9622f7b",
+          "recordedAt": "2026-08-28T16:39:16.366Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "ff2916447ea0d98cf4cf952d4d0f68774a8afd957ceac52b8ef8c0f61f42a5d7"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
+    },
+    {
+      "source": "fiscal-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/Fiscal/Dfe.tsx",
+      "module": "Fiscal",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "compared",
+      "applicationState": "pending",
+      "compared": true,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Fiscal/fiscal-dfe.map.json",
+          "mapSha256": "9f618927a56b627e9ba63074aab31611d3d0fe42eae3ea5aca7db06909146d28",
+          "recordedAt": "2026-08-28T16:39:16.682Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "4206592f3b9cf00f39e0128b197437ff5c37e848013eba78444856724d89f681"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
+    },
+    {
+      "source": "fiscal-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/Fiscal/Eventos.tsx",
+      "module": "Fiscal",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "compared",
+      "applicationState": "pending",
+      "compared": true,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Fiscal/fiscal-eventos.map.json",
+          "mapSha256": "16d8e3177cfaea293b5589bae05ee65c516a54ec38c0c6f4e78d7c4289043ac4",
+          "recordedAt": "2026-08-28T16:39:16.986Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "a465ef5bdb1fce305b7d00e5e3d1a2e5cbadf8503ab2cff4a1036f79b167a256"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
+    },
+    {
+      "source": "fiscal-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/Fiscal/Nfe.tsx",
+      "module": "Fiscal",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "compared",
+      "applicationState": "pending",
+      "compared": true,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Fiscal/fiscal-nfe.map.json",
+          "mapSha256": "d81b73b06f688fdaa19566608a3b8ed41e41b0a094820b46eb6a8a8b2c52188f",
+          "recordedAt": "2026-08-28T16:39:17.285Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "ac4fba29a48ef08344830ca4b705fe7a4ed6970ffecd60acfdec08e5b47a64b2"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
+    },
+    {
+      "source": "fiscal-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/Fiscal/Nfse.tsx",
+      "module": "Fiscal",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "compared",
+      "applicationState": "pending",
+      "compared": true,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Fiscal/fiscal-nfse.map.json",
+          "mapSha256": "e727588174f16ac35fa1f0e46a8cc575f58f972e4992176fd5ffd283fb43bd4c",
+          "recordedAt": "2026-08-28T16:39:17.601Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "f018abd148c706b2db52894e15c6f4228c43db182e655bf90393d453d2b9a411"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
+    },
+    {
+      "source": "fiscal-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/Fiscal/Sped.tsx",
+      "module": "Fiscal",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "compared",
+      "applicationState": "pending",
+      "compared": true,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Fiscal/fiscal-sped.map.json",
+          "mapSha256": "318de1495f481de6231ac6b45a4532df5dd488d86c88dc6bf9dfd79467f6cfe8",
+          "recordedAt": "2026-08-28T16:39:17.907Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "16bf74e644702b616b59f2ea52b9a064a2fcb8a1e5cba6c63f3a8e2d5c8afa2d"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "forja-page.jsx",
@@ -2171,10 +2473,13 @@
       "module": "Forja",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "forja-page.jsx",
@@ -2183,10 +2488,13 @@
       "module": "Forja",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "forja-page.jsx",
@@ -2195,10 +2503,13 @@
       "module": "Forja",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "funcoes-page.jsx",
@@ -2207,8 +2518,11 @@
       "module": null,
       "mapping": "nenhum",
       "comparison": "ORFAO",
+      "lifecycleState": "blocked",
       "applicationState": "blocked",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
@@ -2219,10 +2533,13 @@
       "module": "governance",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "governance-page.jsx",
@@ -2231,10 +2548,13 @@
       "module": "governance",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "governance-page.jsx",
@@ -2243,10 +2563,13 @@
       "module": "governance",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "governance-page.jsx",
@@ -2255,10 +2578,13 @@
       "module": "governance",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "governance-page.jsx",
@@ -2267,10 +2593,13 @@
       "module": "governance",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "hrm-page.jsx",
@@ -2279,10 +2608,13 @@
       "module": "Essentials",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "hrm-page.jsx",
@@ -2291,10 +2623,13 @@
       "module": "Essentials",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "inbox-page.jsx",
@@ -2303,10 +2638,13 @@
       "module": "Whatsapp",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "kb-page.jsx",
@@ -2315,10 +2653,13 @@
       "module": "kb",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "kb-page.jsx",
@@ -2327,10 +2668,13 @@
       "module": "kb",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "manufacturing-page.jsx",
@@ -2339,10 +2683,13 @@
       "module": "Manufacturing",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "modulos-page.jsx",
@@ -2351,10 +2698,13 @@
       "module": "Modules",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "notificacoes-page.jsx",
@@ -2363,8 +2713,11 @@
       "module": null,
       "mapping": "nenhum",
       "comparison": "ORFAO",
+      "lifecycleState": "blocked",
       "applicationState": "blocked",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
@@ -2375,10 +2728,13 @@
       "module": "Officeimpresso",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "officeimpresso-page.jsx",
@@ -2387,10 +2743,13 @@
       "module": "Officeimpresso",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "oficina-os-page.jsx",
@@ -2399,10 +2758,13 @@
       "module": "OficinaAuto",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "oficina-page.jsx",
@@ -2411,10 +2773,13 @@
       "module": "OficinaAuto",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "orc-page.jsx",
@@ -2423,8 +2788,11 @@
       "module": null,
       "mapping": "registro a-criar",
       "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
       "applicationState": "to-create",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2435,8 +2803,11 @@
       "module": null,
       "mapping": "registro a-criar",
       "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
       "applicationState": "to-create",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2447,8 +2818,11 @@
       "module": null,
       "mapping": "nenhum",
       "comparison": "ORFAO",
+      "lifecycleState": "blocked",
       "applicationState": "blocked",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
@@ -2459,8 +2833,11 @@
       "module": null,
       "mapping": "registro a-criar",
       "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
       "applicationState": "to-create",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2471,8 +2848,11 @@
       "module": null,
       "mapping": "registro a-criar",
       "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
       "applicationState": "to-create",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2483,10 +2863,13 @@
       "module": "PaymentGateway",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "planilhas-page.jsx",
@@ -2495,8 +2878,11 @@
       "module": null,
       "mapping": "nenhum",
       "comparison": "ORFAO",
+      "lifecycleState": "blocked",
       "applicationState": "blocked",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
@@ -2507,10 +2893,13 @@
       "module": "Ponto",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "ponto-page.jsx",
@@ -2519,10 +2908,13 @@
       "module": "Ponto",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "ponto-page.jsx",
@@ -2531,10 +2923,13 @@
       "module": "Ponto",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "prefs-page.jsx",
@@ -2543,8 +2938,11 @@
       "module": null,
       "mapping": "nenhum",
       "comparison": "ORFAO",
+      "lifecycleState": "blocked",
       "applicationState": "blocked",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
@@ -2555,8 +2953,11 @@
       "module": null,
       "mapping": "registro a-criar",
       "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
       "applicationState": "to-create",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2567,10 +2968,13 @@
       "module": "Produto",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "programa-doc-page.jsx",
@@ -2579,8 +2983,11 @@
       "module": null,
       "mapping": "nenhum",
       "comparison": "ORFAO",
+      "lifecycleState": "blocked",
       "applicationState": "blocked",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
@@ -2591,10 +2998,13 @@
       "module": "Whatsapp",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "prototipo-ui-patch/prototipos/os/os-page.jsx",
@@ -2603,8 +3013,11 @@
       "module": null,
       "mapping": "registro a-criar",
       "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
       "applicationState": "to-create",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2615,10 +3028,13 @@
       "module": "Financeiro",
       "mapping": "path-espelhado",
       "comparison": "ALTERADO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "revisar diff e aplicar a mudança na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "prototipo-ui-patch/resources/js/Pages/Financeiro/DRE/Index.tsx",
@@ -2627,10 +3043,13 @@
       "module": "Financeiro",
       "mapping": "path-espelhado",
       "comparison": "ALTERADO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "revisar diff e aplicar a mudança na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "prototipo-ui-patch/resources/js/Pages/Financeiro/Fluxo/Index.tsx",
@@ -2639,10 +3058,13 @@
       "module": "Financeiro",
       "mapping": "path-espelhado",
       "comparison": "ALTERADO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "revisar diff e aplicar a mudança na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "prototipo-ui-patch/resources/js/Pages/Financeiro/PlanoContas/Index.tsx",
@@ -2651,10 +3073,13 @@
       "module": "Financeiro",
       "mapping": "path-espelhado",
       "comparison": "ALTERADO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "revisar diff e aplicar a mudança na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "prototipo-ui-patch/resources/js/Pages/Financeiro/Unificado/Index.tsx",
@@ -2663,10 +3088,13 @@
       "module": "Financeiro",
       "mapping": "path-espelhado",
       "comparison": "ALTERADO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "revisar diff e aplicar a mudança na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "prototipo-ui-patch/resources/js/Pages/Produto/Unificado/Index.tsx",
@@ -2675,10 +3103,13 @@
       "module": "Produto",
       "mapping": "path-espelhado",
       "comparison": "ALTERADO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "revisar diff e aplicar a mudança na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "prototipos/payment-gateway-ui/cobranca-page.jsx",
@@ -2687,10 +3118,13 @@
       "module": "Financeiro",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "relatorios-page.jsx",
@@ -2699,8 +3133,11 @@
       "module": null,
       "mapping": "nenhum",
       "comparison": "ORFAO",
+      "lifecycleState": "blocked",
       "applicationState": "blocked",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
@@ -2711,10 +3148,13 @@
       "module": "Repair",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "repair-page.jsx",
@@ -2723,10 +3163,13 @@
       "module": "Repair",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "repair-page.jsx",
@@ -2735,10 +3178,13 @@
       "module": "Repair",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "repair-page.jsx",
@@ -2747,10 +3193,13 @@
       "module": "Repair",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "repair-page.jsx",
@@ -2759,10 +3208,13 @@
       "module": "Repair",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "repair-page.jsx",
@@ -2771,10 +3223,13 @@
       "module": "Repair",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "superadmin-page.jsx",
@@ -2783,10 +3238,13 @@
       "module": "Superadmin",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "superadmin-page.jsx",
@@ -2795,10 +3253,13 @@
       "module": "Superadmin",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "superadmin-page.jsx",
@@ -2807,10 +3268,13 @@
       "module": "Superadmin",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "superadmin-page.jsx",
@@ -2819,10 +3283,13 @@
       "module": "Superadmin",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "suporte-page.jsx",
@@ -2831,8 +3298,11 @@
       "module": null,
       "mapping": "nenhum",
       "comparison": "ORFAO",
+      "lifecycleState": "blocked",
       "applicationState": "blocked",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
@@ -2843,8 +3313,11 @@
       "module": null,
       "mapping": "registro a-criar",
       "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
       "applicationState": "to-create",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2855,10 +3328,13 @@
       "module": "Sells",
       "mapping": "alias",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "vendas-page.jsx",
@@ -2867,10 +3343,13 @@
       "module": "Sells",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/consumir map.json e aplicar semanticamente na Page React"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "vestuario-page.jsx",
@@ -2879,8 +3358,11 @@
       "module": null,
       "mapping": "nenhum",
       "comparison": "ORFAO",
+      "lifecycleState": "blocked",
       "applicationState": "blocked",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
@@ -2891,8 +3373,11 @@
       "module": null,
       "mapping": "nenhum",
       "comparison": "ORFAO",
+      "lifecycleState": "blocked",
       "applicationState": "blocked",
+      "compared": false,
       "tested": false,
+      "smoked": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     }
