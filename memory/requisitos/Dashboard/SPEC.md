@@ -17,13 +17,13 @@ related_adrs:
 
 # SPEC — Dashboard (tela inicial pós-login `/home`)
 
-> Módulo ressuscitado em 2026-05-21 pelo caminho Soft wrapper Inertia, em paridade visual com a Blade legacy `resources/views/home/index.blade.php`. Fallback Blade preservado via `?legacy=1`.
+> Módulo ressuscitado em 2026-05-21 pelo caminho Soft wrapper Inertia, em paridade visual com a Blade legacy `resources/views/home/index.blade.php`. Blade legado **removido em 2026-08-28** (`views/home/index.blade.php` + 8 partials + `home.js`); `?legacy=1` virou inerte.
 >
 > **Persona alvo:** Larissa @ ROTA LIVRE (biz=4, vestuário, monitor 1280px). Todo usuário pós-login cai aqui — blast radius alto.
 
 ## Objetivo (1 frase)
 
-Servir como **landing page pós-login** do oimpresso — saudação, filtros globais (loja, datas), KPI cards de operação (Total Sells / Net / Invoice Due / Total Expense), e atalho pro modo legacy quando o usuário precisar de gráficos e widgets pluggable de outros módulos.
+Servir como **landing page pós-login** do oimpresso — saudação, filtros globais (loja, datas), KPI cards de operação (Total Sells / Net / Invoice Due / Total Expense). Gráficos e abas de grade passaram a ser nativos da tela React em 2026-08; o atalho pro modo legacy foi removido junto com o Blade.
 
 ## User Stories
 
@@ -41,25 +41,41 @@ Servir como **landing page pós-login** do oimpresso — saudação, filtros glo
 - Welcome banner ("Bem-vindo, {primeiro_nome}") preservado
 - Permission gate `dashboard.data` mantido — sem permission, mostra shell minimal sem KPIs
 - Customer redirect preservado (`user_customer` → `Crm/DashboardController`)
-- `?legacy=1` força a Blade legacy (`view('home.index')`) durante canário
+- ~~`?legacy=1` força a Blade legacy durante canário~~ — canário encerrado; Blade removido em 2026-08-28
 - Multi-tenant Tier 0 ADR 0093 IRREVOGÁVEL — `session('user.business_id')` em todas queries
 - Pest GUARD em `tests/Feature/Home/HomeIndexInertiaTest.php`
 
 ### US-DASH-002 — Charts ECharts em Inertia (backlog F1→F4 wave)
 
-> Não no escopo F6 Soft. Hoje, charts continuam exclusivos do legacy (`?legacy=1`). Backlog Rewrite Cockpit V2.
+> **A CAPACIDADE está na tela desde 2026-08** (Rewrite Cockpit V2): dois gráficos nativos — vendas
+> por dia e vendas por mês — em SVG puro (`Chart` do DS), sem lib de terceiro no `package.json`.
+> O que caducou nesta data é só a frase antiga *"charts seguem exclusivos do Blade via `?legacy=1`"*:
+> o Blade saiu em 2026-08-28 e a query virou inerte.
+>
+> **Por que a âncora segue `_pendente_` mesmo com o código entregue** (2026-08-28) — e não é
+> desatenção, é bite-test. Aplicando a âncora com path real (`Chart.tsx` · `Index.tsx` ·
+> `HomeController.php`) e rodando o modo que o CI roda —
+> `anchor-lint --check-entry --check-covers --baseline governance/anchor-entry-baseline.json` — o
+> gate **mordeu**: `📋 diz IMPLEMENTADA mas SEM aceite/DoD definido` + `🚪 NENHUM teste declara
+> @covers-us dela`. US-DASH-002 não está no baseline grandfather, então é mentira NOVA, não dívida
+> isenta. **Inventar o aceite pra passar no gate seria falsificar o contrato** — aceite/DoD é campo
+> do [W], como Non-Goal. A âncora vira path real no PR que fechar a US, junto com o aceite que [W]
+> declarar e um teste que a cite. Mesmo precedente de `memory/requisitos/Arquivos/SPEC.md` §US-ARQ-013.
 
-**Implementado em:** _pendente_ — backlog Rewrite Cockpit V2; charts ECharts seguem exclusivos do Blade legacy via ?legacy=1
+**Implementado em:** _pendente_ — capacidade entregue na tela (ver acima); fechamento formal da US
+(aceite [W] + teste com `@covers-us US-DASH-002`) pendente
 
 ### US-DASH-003 — Widget registry pluggable em React (backlog ADR nova)
 
-> `$module_widgets = $this->moduleUtil->getModuleData('dashboard_widget')` é Blade-only. Soft preserva mecanismo via `?legacy=1`. Rewrite exigirá ADR nova pro registry React.
+> `$module_widgets = $this->moduleUtil->getModuleData('dashboard_widget')` era Blade-only e saiu com o Blade
+> em 2026-08-28. **Medido no dia:** o ponto de extensão — método `dashboard_widget()` num
+> `Modules\<X>\Http\Controllers\DataController` — tem **zero produtores nos 32 DataControllers**, então
+> nada deixou de funcionar. Quando existir um produtor, o registry React exige ADR nova.
 
-**Implementado em:** _pendente_ — backlog; registry de widgets é Blade-only (preservado via ?legacy=1), rewrite React exige ADR nova
+**Implementado em:** _pendente_ — backlog; ponto de extensão sem nenhum produtor (medido 2026-08-28), rewrite React exige ADR nova
 
 ## Non-Goals (anti-alucinação)
 
-- ❌ NÃO substitui charts ECharts no Soft (preservados em `?legacy=1`)
 - ❌ NÃO substitui mecanismo `moduleUtil->getModuleData('dashboard_widget')` no Soft
 - ❌ NÃO mexe em endpoints AJAX (`/home/get-totals`, `/home/product-stock-alert`, `/home/purchase-payment-dues`, `/home/sales-payment-dues`) — preservados
 - ❌ NÃO mexe em `getCalendar` (rota `/calendar` preservada)
@@ -69,6 +85,7 @@ Servir como **landing page pós-login** do oimpresso — saudação, filtros glo
 
 | Data | Versão | Mudança |
 |---|---|---|
+| 2026-08-28 | 2.0.0 | **Blade legado removido** ([W]: "a versão blade vai ter que sumir"). Saem `index.blade.php` (1.436 ln), 8 partials órfãos, `public/js/home.js` + `dist/js/home.js`, `indexLegacy()`, `__chartOptions()`, ramo `?legacy=1` e o banner. Preservados: 4 endpoints AJAX, `/calendar`, customer redirect, os 2 modais de `views/home/`, e Highcharts/`vendor.js` (5 consumidores PHP). |
 | 2026-05-21 | 1.0.0 | Ressuscitar módulo + US-DASH-001 Soft wrapper Inertia entregue (PR #1297). Charts e widgets pluggable preservados via `?legacy=1`. |
 | 2026-04-22 | — | Stub `ausente_branch_atual` criado pelo `module:requirements`. Decisão de ressuscitar/deprecar pendente. |
 
