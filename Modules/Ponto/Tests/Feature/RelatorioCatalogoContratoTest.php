@@ -2,9 +2,15 @@
 
 declare(strict_types=1);
 
+use App\User;
+use Illuminate\Support\Facades\Schema;
+use Modules\Ponto\Entities\Colaborador;
 use Modules\Ponto\Tests\Feature\PontoTestCase;
 
 uses(PontoTestCase::class);
+
+/** Marcador próprio deste arquivo — o cleanup só apaga o que ELE criou. */
+const RELIDX_MARCADOR = 'RELIDX-TEST';
 
 /**
  * Contrato do catálogo de relatórios (`/ponto/relatorios`).
@@ -102,5 +108,159 @@ it('UC-RELIDX-02 · nenhum relatório do catálogo entrega download sem aviso', 
         "O relatório '{$indisponivel['chave']}' está marcado como indisponível, então pedir a "
         . 'geração dele NÃO pode responder com sucesso. Entregar arquivo vazio ou página em '
         . 'branco numa fiscalização é pior que recusar — CU-PONTO-14.'
+    );
+});
+
+// =====================================================================
+// O catálogo aponta pro gerador que EXISTE — UC-RELIDX-03..05
+//
+// Contexto (SDD §5.3 F8 + §5.4 item 4): até 2026-08-28 o `gerar()` era
+// abort(501) pra QUALQUER chave, inclusive `espelho` — o único card
+// `disponivel: true`. Ou seja: o único botão habilitado da tela levava a um
+// 501, enquanto o PDF do espelho existia e funcionava por OUTRA rota (F3).
+// O `casos.md` registrava isso como [BACKLOG] declarando honestamente que o
+// clique não tinha sido medido. Foi medido; [W] decidiu que o espelho sai
+// POR COLABORADOR (não em lote); estes casos travam a decisão.
+//
+// Nenhum caso hardcoda a chave 'espelho': ela é DERIVADA do catálogo pelo par
+// (disponivel && requer_colaborador). Um segundo relatório por-colaborador no
+// futuro passa a ser exercido de graça, em vez de nascer descoberto.
+// =====================================================================
+
+/** O relatório vivo que sai por colaborador, lido do próprio catálogo. */
+function relPorColaborador(): ?array
+{
+    $catalogo = collect(relInertiaGet('/ponto/relatorios')->json('props.relatorios') ?? []);
+
+    return $catalogo->first(
+        fn ($r) => ($r['disponivel'] ?? false) === true
+            && ($r['requer_colaborador'] ?? false) === true
+    );
+}
+
+/** Colaborador ativo num business — `forceFill` porque o alheio nasce fora do scope. */
+function relCriarColaborador(int $businessId, int $userBusinessId): Colaborador
+{
+    $user = User::factory()->create([
+        'business_id' => $userBusinessId,
+        'user_type'   => 'user',
+    ]);
+
+    $colab = new Colaborador();
+    $colab->forceFill([
+        'business_id'    => $businessId,
+        'user_id'        => $user->id,
+        'matricula'      => RELIDX_MARCADOR . '-' . uniqid(),
+        'controla_ponto' => true,
+    ])->save();
+
+    return $colab;
+}
+
+afterEach(function () {
+    try {
+        Colaborador::withoutGlobalScopes()
+            ->where('matricula', 'like', RELIDX_MARCADOR . '%')
+            ->delete();
+
+        $this->removerBizAlheio();
+    } catch (\Throwable $e) {
+        // schema ausente — cleanup best-effort
+    }
+});
+
+it('UC-RELIDX-03 · o relatório que sai por colaborador não gera sem um escolhido', function () {
+    $this->actAsAdmin();
+
+    $rel = relPorColaborador();
+
+    // Anti-vácuo (LC-13): sem um relatório por-colaborador no catálogo, o caso não
+    // exerce nada e passaria por vacuidade.
+    expect($rel)->not->toBeNull(
+        'O catálogo precisa declarar ao menos um relatório disponível que sai por '
+        . 'colaborador (`requer_colaborador: true`) — é o contrato do espelho.'
+    );
+
+    // Sem `colaborador` na query: tem de ser RECUSADO, nunca "escolho um por você".
+    $resp = $this->get("/ponto/relatorios/{$rel['chave']}");
+
+    expect($resp->isSuccessful())->toBeFalse(
+        "'{$rel['chave']}' sai por colaborador e o pedido não trouxe nenhum. Assumir um "
+        . 'default entrega o documento de OUTRA pessoa — e espelho de ponto é peça de '
+        . 'fiscalização (Portaria MTP 671/2021 Art. 85). Recusar é o comportamento correto.'
+    );
+
+    // ⚠️ A 1ª versão deste assert exigia `isRedirect() === false` e reprovou na lane.
+    // Estava ERRADO sobre o Laravel: `$request->validate()` numa requisição WEB lança
+    // ValidationException, que redireciona DE VOLTA com os erros (302). Isso É a recusa
+    // correta — não é o gerador respondendo.
+    //
+    // O contrato real é mais estreito: a recusa não pode levar AO GERADOR. Um redirect
+    // de volta ao catálogo é certo; um redirect pro PDF entregaria o documento de outra
+    // pessoa, que é o dano que este UC persegue.
+    $destino = (string) $resp->headers->get('Location');
+    expect(str_contains($destino, '/imprimir'))->toBeFalse(
+        "Recusa por falta de colaborador não pode levar ao gerador (destino: '{$destino}'): "
+        . 'o operador receberia um PDF que não foi o que ele pediu.'
+    );
+});
+
+it('UC-RELIDX-04 · relatório marcado disponível leva ao gerador, não a "não implementado"', function () {
+    $this->actAsAdmin();
+
+    if (! Schema::hasTable('ponto_colaborador_config')) {
+        $this->markTestSkipped('Tabela ponto_colaborador_config ausente.');
+    }
+
+    $rel = relPorColaborador();
+    expect($rel)->not->toBeNull('Catálogo precisa ter o relatório por-colaborador.');
+
+    $meu = relCriarColaborador($this->business->id, $this->business->id);
+
+    $resp = $this->get("/ponto/relatorios/{$rel['chave']}?colaborador={$meu->id}&periodo=" . now()->format('Y-m'));
+
+    // O ponto do caso: `disponivel: true` + insumo completo NÃO pode responder
+    // "não implementado". Era exatamente o que acontecia antes (501 pra toda chave).
+    expect($resp->status())->not->toBe(501,
+        "'{$rel['chave']}' está marcado como DISPONÍVEL no catálogo. Responder 501 com o "
+        . 'insumo completo é o catálogo prometendo o que não entrega — CU-PONTO-14.'
+    );
+
+    // E leva ao gerador que existe (F3), em vez de a um segundo gerador duplicado.
+    expect($resp->isRedirect())->toBeTrue(
+        'O catálogo é atalho pro gerador do espelho (F3), então o pedido redireciona pra lá.'
+    );
+    // ⚠️ A 1ª versão usava `toContain($id, 'mensagem')` e reprovou na lane com
+    // "To contain: O redirect tem de carregar o colaborador…" — `toContain` recebe
+    // needles VARIÁDICOS, não `(needle, mensagem)`, então a frase de erro virou uma
+    // SEGUNDA agulha e o assert passou a procurá-la dentro da URL (§5 2026-07-28).
+    // `toBeTrue` aceita mensagem; `toContain` não.
+    $destino = (string) $resp->headers->get('Location');
+    expect(str_contains($destino, (string) $meu->id))->toBeTrue(
+        "O redirect tem de carregar o colaborador que o operador escolheu (destino: '{$destino}')."
+    );
+});
+
+it('UC-RELIDX-05 · pedir o relatório de colaborador de outro empregador é recusado', function () {
+    $this->actAsAdmin();
+
+    if (! Schema::hasTable('ponto_colaborador_config')) {
+        $this->markTestSkipped('Tabela ponto_colaborador_config ausente.');
+    }
+
+    $rel = relPorColaborador();
+    expect($rel)->not->toBeNull('Catálogo precisa ter o relatório por-colaborador.');
+
+    $bizAlheio = $this->garantirBizAlheio();
+    $alheio = relCriarColaborador($bizAlheio, $bizAlheio);
+
+    $resp = $this->get("/ponto/relatorios/{$rel['chave']}?colaborador={$alheio->id}&periodo=" . now()->format('Y-m'));
+
+    // Tier 0 (ADR 0093 · CU-PONTO-12): recurso de outro business responde 404 —
+    // nunca 200 com dado, nunca redirect pro PDF alheio.
+    expect($resp->status())->toBe(404,
+        'Espelho de colaborador de OUTRO empregador tem de dar 404. Redirecionar pro '
+        . 'gerador e deixar a defesa por conta do outro controller faria o isolamento '
+        . 'depender de quem está do outro lado do redirect — ADR 0093.'
     );
 });
