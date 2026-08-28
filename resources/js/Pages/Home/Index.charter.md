@@ -133,6 +133,34 @@ Responder **"como foi o período"** numa tela só: o usuário escolhe a janela, 
 
 ---
 
+## Contrato visual
+
+> Copy literal + ordem das seções. Verificado em CI por
+> `node scripts/contrato-de-tela.mjs --contract prototipo-ui/contrato/dashboard-visao-geral.contract.json --contract-alvo resources/js/Pages/Home`.
+> Mudar qualquer string abaixo **quebra o gate de propósito** — copy de tela é decisão, não detalhe.
+>
+> **Derivado da ÂNCORA**, não da tela: cada string abaixo foi medida em
+> `prototipo-ui/cowork/dash-legacy-page.jsx` (render servido localmente + sonda no DOM,
+> 2026-08-28). O RUNBOOK §3 manda que o contrato não seja escrito por quem é julgado por ele —
+> por isso a fonte é o protótipo, e a ratificação é de [W] no merge.
+
+Ordem das âncoras `data-contract`, de cima pra baixo:
+
+`cabecalho` → `kpis` → `contrapartidas` → `graficos` → `grades`
+
+| Seção | Copy que a tela precisa mostrar |
+|---|---|
+| `cabecalho` | `Visão geral` |
+| `kpis` | `Líquido no período` · `Vendas` · `A receber` · `Despesas` |
+| `contrapartidas` | `Contrapartidas` · `Compras` · `A pagar` · `Devolução de venda` · `Devolução de compra` |
+| `graficos` | `Vendas por dia` · `Vendas por mês` |
+| `grades` | `clique para abrir o detalhe` |
+
+⚠️ **`clique para abrir o detalhe` não é enfeite.** É a única coisa na tela que anuncia que a
+linha abre o drawer. Ela foi entregue ausente em 2026-08-27 e o `onRowClick` ficou invisível —
+por isso a string está no contrato, e não só no protótipo.
+
+
 ## Test plan (Pest GUARD)
 
 Cobertos em `tests/Feature/Home/HomeIndexInertiaTest.php`:

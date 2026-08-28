@@ -39,6 +39,77 @@ class GradesDoPainelService
     /** Linhas por página em cada grade. */
     public const POR_PAGINA = 10;
 
+    /**
+     * Colunas que a UI pode ordenar, por aba — e a expressão SQL de cada uma.
+     *
+     * ALLOWLIST, não passagem direta: `sort` vem da query string, e query string é entrada
+     * do usuário. Chave desconhecida cai na ordenação padrão da grade em vez de virar SQL.
+     *
+     * O conjunto espelha o `sortable: true` do protótipo (`dash-legacy-page.jsx`): lá as
+     * colunas de documento, contato, data e valor ordenam; a de situação, não.
+     *
+     * @var array<string, array<string, string>>
+     */
+    private const ORDENAVEIS = [
+        'venc-venda' => [
+            'documento' => 'transactions.invoice_no',
+            'contato' => 'c.name',
+            'vencimento' => 'vencimento',
+        ],
+        'venc-compra' => [
+            'documento' => 'transactions.ref_no',
+            'contato' => 'c.name',
+            'vencimento' => 'vencimento',
+        ],
+        'validade' => [
+            'produto' => 'p.name',
+            'vencimento' => 'pl.exp_date',
+        ],
+        'pedidos' => [
+            'documento' => 'transactions.invoice_no',
+            'contato' => 'c.name',
+            'data' => 'transactions.transaction_date',
+            'total' => 'transactions.final_total',
+        ],
+        'compras-abertas' => [
+            'documento' => 'transactions.ref_no',
+            'contato' => 'c.name',
+            'data' => 'transactions.transaction_date',
+            'total' => 'transactions.final_total',
+        ],
+        'requisicoes' => [
+            'documento' => 'transactions.ref_no',
+            'contato' => 'c.name',
+            'data' => 'transactions.transaction_date',
+            'total' => 'transactions.final_total',
+        ],
+        'expedicao' => [
+            'documento' => 'transactions.invoice_no',
+            'contato' => 'c.name',
+            'data' => 'transactions.transaction_date',
+        ],
+    ];
+
+    /** Colunas ordenáveis de uma aba — a UI pergunta pra saber em quais pintar o controle. */
+    public static function ordenaveis(string $aba): array
+    {
+        return array_keys(self::ORDENAVEIS[$aba] ?? []);
+    }
+
+    /**
+     * Resolve `?sort=&dir=` contra a allowlist da aba.
+     *
+     * @return array{0: string|null, 1: string} coluna SQL (ou null) + direção já saneada
+     */
+    private function ordenacao(string $aba): array
+    {
+        $pedida = (string) request()->query('sort', '');
+        $dir = strtolower((string) request()->query('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+        $coluna = self::ORDENAVEIS[$aba][$pedida] ?? null;
+
+        return [$coluna, $dir];
+    }
+
     public function __construct(private ProductUtil $productUtil)
     {
     }
@@ -180,6 +251,7 @@ class GradesDoPainelService
      */
     private function titulosVencendo(int $businessId, ?int $locationId, int $pagina, string $tipo): LengthAwarePaginator
     {
+        $ordem = $this->ordenacao($tipo === 'sell' ? 'venc-venda' : 'venc-compra');
         $vencimento = "DATE_ADD(transactions.transaction_date, INTERVAL IF(transactions.pay_term_type = 'days', transactions.pay_term_number, 30 * transactions.pay_term_number) DAY)";
 
         $query = Transaction::query()
@@ -208,7 +280,8 @@ class GradesDoPainelService
                 DB::raw("{$vencimento} as vencimento"),
                 DB::raw('(SELECT COALESCE(SUM(tp.amount), 0) FROM transaction_payments tp WHERE tp.transaction_id = transactions.id) as total_pago'),
             ])
-            ->orderBy('vencimento')
+            ->when($ordem[0] !== null, fn ($q) => $q->orderBy($ordem[0], $ordem[1]))
+            ->when($ordem[0] === null, fn ($q) => $q->orderBy('vencimento'))
             ->paginate(self::POR_PAGINA, ['*'], 'page', $pagina);
 
         // `getAttribute` e não `->alias` de propósito: `total_pago`, `contato` e `vencimento`
@@ -312,7 +385,8 @@ class GradesDoPainelService
                 'l.name as loja',
                 DB::raw('(pl.quantity - pl.quantity_sold - pl.quantity_adjusted - pl.quantity_returned) as saldo'),
             ])
-            ->orderBy('pl.exp_date')
+            ->when($this->ordenacao('validade')[0] !== null, fn ($q) => $q->orderBy($this->ordenacao('validade')[0], $this->ordenacao('validade')[1]))
+            ->when($this->ordenacao('validade')[0] === null, fn ($q) => $q->orderBy('pl.exp_date'))
             ->paginate(self::POR_PAGINA, ['*'], 'page', $pagina)
             ->through(fn ($row) => [
                 'id' => (int) $row->id,
@@ -346,7 +420,7 @@ class GradesDoPainelService
 
         $this->escoparLocais($query, $locationId);
 
-        return $this->documentos($query, 'invoice_no', $pagina);
+        return $this->documentos($query, 'invoice_no', $pagina, 'pedidos');
     }
 
     /** Ordens de compra / requisições em aberto — `status != completed`. */
@@ -360,12 +434,13 @@ class GradesDoPainelService
 
         $this->escoparLocais($query, $locationId);
 
-        return $this->documentos($query, 'ref_no', $pagina);
+        return $this->documentos($query, 'ref_no', $pagina, $tipo === 'purchase_order' ? 'compras-abertas' : 'requisicoes');
     }
 
     /** Vendas com expedição não entregue — filtro `only_pending_shipments` do SellController. */
     private function expedicoesPendentes(int $businessId, ?int $locationId, int $pagina): LengthAwarePaginator
     {
+        $ordemExp = $this->ordenacao('expedicao');
         $query = Transaction::query()
             ->leftJoin('contacts as c', 'transactions.contact_id', '=', 'c.id')
             ->where('transactions.business_id', $businessId)
@@ -384,7 +459,8 @@ class GradesDoPainelService
                 'transactions.delivered_to',
                 'c.name as contato',
             ])
-            ->orderByDesc('transactions.transaction_date')
+            ->when($ordemExp[0] !== null, fn ($q) => $q->orderBy($ordemExp[0], $ordemExp[1]))
+            ->when($ordemExp[0] === null, fn ($q) => $q->orderByDesc('transactions.transaction_date'))
             ->paginate(self::POR_PAGINA, ['*'], 'page', $pagina)
             ->through(fn ($row) => [
                 'id' => (int) $row->getAttribute('id'),
@@ -399,8 +475,10 @@ class GradesDoPainelService
     }
 
     /** Shape comum de pedido / ordem / requisição. */
-    private function documentos(Builder $query, string $colunaNumero, int $pagina): LengthAwarePaginator
+    private function documentos(Builder $query, string $colunaNumero, int $pagina, string $aba): LengthAwarePaginator
     {
+        $ordem = $this->ordenacao($aba);
+
         return $query
             ->select([
                 'transactions.id',
@@ -411,7 +489,8 @@ class GradesDoPainelService
                 'c.name as contato',
                 'c.supplier_business_name',
             ])
-            ->orderByDesc('transactions.transaction_date')
+            ->when($ordem[0] !== null, fn ($q) => $q->orderBy($ordem[0], $ordem[1]))
+            ->when($ordem[0] === null, fn ($q) => $q->orderByDesc('transactions.transaction_date'))
             ->paginate(self::POR_PAGINA, ['*'], 'page', $pagina)
             ->through(fn ($row) => [
                 'id' => (int) $row->getAttribute('id'),

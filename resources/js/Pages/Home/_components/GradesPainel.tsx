@@ -74,9 +74,15 @@ const dia = (v?: string | null) => {
 const monoDireita = { mono: true, align: 'right' as const };
 
 /** Coluna de texto simples, o caso mais comum. */
-const texto = (id: keyof LinhaDaGrade, header: string, width?: number): ColumnDef<LinhaDaGrade, unknown> => ({
+const texto = (
+  id: keyof LinhaDaGrade,
+  header: string,
+  width?: number,
+  ordenavel = true,
+): ColumnDef<LinhaDaGrade, unknown> => ({
   id,
   header,
+  enableSorting: ordenavel,
   cell: ({ row }) => <>{(row.original[id] as string) || '—'}</>,
   meta: width ? { width } : undefined,
 });
@@ -84,6 +90,7 @@ const texto = (id: keyof LinhaDaGrade, header: string, width?: number): ColumnDe
 const colunaData = (id: 'vencimento' | 'data', header: string): ColumnDef<LinhaDaGrade, unknown> => ({
   id,
   header,
+  enableSorting: true,
   cell: ({ row }) => <>{dia(row.original[id])}</>,
   meta: { width: 120, mono: true },
 });
@@ -91,6 +98,7 @@ const colunaData = (id: 'vencimento' | 'data', header: string): ColumnDef<LinhaD
 const colunaSituacao = (kind: string): ColumnDef<LinhaDaGrade, unknown> => ({
   id: 'situacao',
   header: 'Situação',
+  enableSorting: false, // a âncora não marca esta coluna como sortable
   cell: ({ row }) => (row.original.situacao ? <StatusBadge kind={kind} value={row.original.situacao} /> : <>—</>),
   meta: { width: 130 },
 });
@@ -98,6 +106,7 @@ const colunaSituacao = (kind: string): ColumnDef<LinhaDaGrade, unknown> => ({
 const colunaValor = (id: 'devido' | 'total', header: string): ColumnDef<LinhaDaGrade, unknown> => ({
   id,
   header,
+  enableSorting: true,
   cell: ({ row }) => {
     const v = row.original[id];
     return <>{typeof v === 'number' ? brl(v) : '—'}</>;
@@ -138,7 +147,6 @@ const COLUNAS: Record<string, ColumnDef<LinhaDaGrade, unknown>[]> = {
   validade: [
     texto('produto', 'Produto'),
     texto('lote', 'Lote', 110),
-    texto('loja', 'Loja', 140),
     { id: 'saldo', header: 'Saldo', cell: ({ row }) => <>{row.original.saldo ?? '—'}</>, meta: { width: 100, ...monoDireita } },
     colunaData('vencimento', 'Vence em'),
   ],
@@ -158,7 +166,7 @@ const COLUNAS: Record<string, ColumnDef<LinhaDaGrade, unknown>[]> = {
   ],
   requisicoes: [
     texto('documento', 'Requisição', 120),
-    texto('contato', 'Solicitante'),
+    texto('contato', 'Setor solicitante'),
     colunaData('data', 'Data'),
     colunaSituacao('documento'),
     colunaValor('total', 'Estimado'),
@@ -222,7 +230,7 @@ export default function GradesPainel({ abas, aba, grade, filtros }: Props) {
 
   return (
     <Stack gap={3} asChild>
-      <section aria-label="Grades do painel">
+      <section aria-label="Grades do painel" data-contract="grades">
         <PageHeaderTabs
           ghosts={abas.map((a) => ({ key: a.key, label: a.label, href: href(a.key) }))}
           activeGhostKey={aba}
@@ -230,17 +238,30 @@ export default function GradesPainel({ abas, aba, grade, filtros }: Props) {
 
         <Deferred data="grade" fallback={<Skeleton className="h-64 w-full rounded-lg" />}>
           {grade && grade.data.length > 0 ? (
-            <DataTable<LinhaDaGrade>
-              columns={colunas}
-              data={grade.data}
-              pagination={grade}
-              endpoint={window.location.pathname}
-              filters={{ ...filtros, aba }}
-              rowKey={(row) => row.id}
-              rowState={(row) => row.state ?? undefined}
-              onRowClick={setDetalhe}
-              emptyMessage={`Nada em ${rotuloAtivo.toLowerCase()} neste período.`}
-            />
+            <Stack gap={0}>
+              <DataTable<LinhaDaGrade>
+                columns={colunas}
+                data={grade.data}
+                pagination={grade}
+                endpoint={window.location.pathname}
+                filters={{ ...filtros, aba }}
+                showSearch={false}
+                rowKey={(row) => row.id}
+                rowState={(row) => row.state ?? undefined}
+                onRowClick={setDetalhe}
+                emptyMessage={`Nada em ${rotuloAtivo.toLowerCase()} neste período.`}
+              />
+              {/*
+                Rodapé da âncora. Não é enfeite: é a ÚNICA coisa na tela que diz ao
+                usuário que a linha abre um detalhe. Sem ele, o `onRowClick` existe e
+                ninguém descobre — foi assim que a tela foi pra produção.
+              */}
+              <Inline gap={3} justify="between" align="center" wrap className="px-1 pt-2">
+                <span className="font-mono text-[10.5px] text-muted-foreground">
+                  {grade.data.length} de {grade.total} linhas · clique para abrir o detalhe
+                </span>
+              </Inline>
+            </Stack>
           ) : (
             <EmptyState
               icon="check"
