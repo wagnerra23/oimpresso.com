@@ -13,7 +13,7 @@ import { Deferred, Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { Skeleton } from '@/Components/ui/skeleton';
-import { Grid, Inline } from '@/Components/layout';
+import { Grid, Inline, Stack } from '@/Components/layout';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -260,7 +260,7 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
           mes={mes}
           linhas={rows}
           onDayClick={(linha) => {
-            const el = document.getElementById(`dia-${linha.data}`);
+            const el = alvoDoDia(linha.data);
             if (el) {
               el.scrollIntoView({ behavior: 'smooth', block: 'center' });
               el.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
@@ -279,7 +279,19 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
             <CardTitle className="text-base">Apuração diária</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
+            {/* ABAIXO DE md — lista de cartões por dia. A tabela tem 8 colunas e
+                só sobrevivia no toque via `overflow-x`: rolagem horizontal num
+                documento que se lê de cima pra baixo. O cartão mostra os mesmos
+                campos com os mesmos rótulos, empilhados. */}
+            <Stack gap={2} className="p-3 md:hidden">
+              {rows.map((l) => (
+                <DiaCard key={l.data} linha={l} />
+              ))}
+            </Stack>
+
+            {/* ≥md — a tabela, o documento. INTOCADA (só ganhou o `hidden md:block`
+                que a esconde no toque). É ela que carrega a copy do contrato. */}
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full text-xs">
                 <thead className="border-b border-border bg-muted/30 text-muted-foreground">
                   <tr>
@@ -429,6 +441,119 @@ function Totalizador({
       </CardContent>
     </Card>
   );
+}
+
+/** O mesmo dia existe em DOIS nós — a linha da tabela (`dia-<data>`, ≥md) e o cartão
+ *  (`dia-m-<data>`, <md) —, e quem esconde um deles é o CSS. Ids diferentes porque id
+ *  duplicado no DOM faz `getElementById` devolver sempre o primeiro, que no toque é
+ *  justamente o invisível.
+ *
+ *  ⚠️ A visibilidade aqui NÃO se mede com `getComputedStyle(el).display`: quem esconde
+ *  é o ANCESTRAL (`hidden md:block` no wrapper), e o `display` computado do descendente
+ *  continua `table-row`. `getClientRects()` mede o que o browser de fato LAYOUTOU, que é
+ *  a pergunta certa. (§5 2026-07-16 — medir a propriedade errada e chamar de verificado.) */
+function alvoDoDia(data: string): HTMLElement | null {
+  const candidatos = [
+    document.getElementById(`dia-${data}`),
+    document.getElementById(`dia-m-${data}`),
+  ].filter((el): el is HTMLElement => el !== null);
+
+  return candidatos.find((el) => el.getClientRects().length > 0) ?? candidatos[0] ?? null;
+}
+
+/** Cartão de um dia — a apuração diária abaixo de `md`. Mesmos campos e mesmos rótulos
+ *  da tabela; o que muda é o eixo (empilha em vez de rolar na horizontal). */
+function DiaCard({ linha: l }: { linha: Linha }) {
+  return (
+    <div
+      id={`dia-m-${l.data}`}
+      className={cn(
+        'scroll-mt-20 rounded-lg border border-border p-3 transition-all',
+        l.divergencia && 'bg-warning/5',
+        l.is_weekend && 'text-muted-foreground',
+      )}
+    >
+      {/* Cabeçalho do dia — linha de ≥44px, o ritmo de toque do cartão. */}
+      <Inline gap={2} justify="between" wrap className="min-h-[44px]">
+        <Inline gap={2}>
+          <span className="font-mono text-base font-semibold">{String(l.dia).padStart(2, '0')}</span>
+          <span className="text-[11px] uppercase">{l.dow}</span>
+          {l.divergencia && (
+            <Badge variant="outline" className="gap-1 border-warning/40 text-warning-fg">
+              <AlertTriangle size={11} aria-hidden /> Divergência
+            </Badge>
+          )}
+        </Inline>
+        <EstadoDia estado={l.estado} isWeekend={l.is_weekend} />
+      </Inline>
+
+      {/* Jornada — as marcações do dia, na ordem em que aconteceram. */}
+      <Inline gap={1} wrap className="min-h-[44px] border-t border-border pt-2">
+        {l.marcacoes.length === 0 ? (
+          <span className="text-[11px] italic text-muted-foreground">Sem marcações</span>
+        ) : (
+          l.marcacoes.map((m, i) => (
+            <Badge
+              key={i}
+              variant={tipoBadgeVariant[m.tipo] ?? 'outline'}
+              className="px-2 py-1 text-[11px]"
+              title={`${m.tipo} · ${m.origem}`}
+            >
+              {m.hora}
+            </Badge>
+          ))
+        )}
+      </Inline>
+
+      {/* Totais do dia — os mesmos rótulos das colunas da tabela. */}
+      <Grid cols={2} gap={2} className="border-t border-border pt-2 text-xs">
+        <TotalDoDia rotulo="Previsto" valor={formatMinutes(l.previsto)} tone="muted" />
+        <TotalDoDia rotulo="Realizado" valor={formatMinutes(l.trabalhado)} />
+        <TotalDoDia
+          rotulo="Atraso"
+          valor={formatMinutes(l.atraso)}
+          tone={l.atraso > 0 ? 'warning' : 'muted'}
+        />
+        <TotalDoDia rotulo="HE" valor={formatMinutes(l.he)} tone={l.he > 0 ? 'primary' : 'muted'} />
+        <TotalDoDia rotulo="BH (+/−)" valor={fmtBancoHoras(l)} />
+      </Grid>
+    </div>
+  );
+}
+
+/** Par rótulo/valor dos totais do cartão. */
+function TotalDoDia({
+  rotulo,
+  valor,
+  tone = 'default',
+}: {
+  rotulo: string;
+  valor: string;
+  tone?: 'default' | 'muted' | 'warning' | 'primary';
+}) {
+  return (
+    <Inline gap={2} justify="between">
+      <span className="text-muted-foreground">{rotulo}</span>
+      <span
+        className={cn(
+          'font-mono font-medium',
+          tone === 'muted' && 'text-muted-foreground',
+          tone === 'warning' && 'text-warning-fg',
+          tone === 'primary' && 'text-primary',
+        )}
+      >
+        {valor}
+      </span>
+    </Inline>
+  );
+}
+
+/** Banco de horas do dia em uma string — mesma leitura da coluna `BH (+/−)` da tabela. */
+function fmtBancoHoras(l: Linha): string {
+  const partes: string[] = [];
+  if (l.bh_credito > 0) partes.push(`+${formatMinutes(l.bh_credito)}`);
+  if (l.bh_debito > 0) partes.push(`−${formatMinutes(l.bh_debito)}`);
+  return partes.length > 0 ? partes.join(' / ') : '—';
 }
 
 /** Par rótulo/valor do cabeçalho legal. `—` quando o campo não está preenchido:
