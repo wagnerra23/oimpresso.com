@@ -111,7 +111,7 @@ export default function Nfse({ filters: initialFilters, counts, rows }: NfseProp
         }
       >
         {/* Filtros */}
-        <div className="fx-filters">
+        <div className="fx-filters" data-contract="fiscal-nfse-filters">
           <div className="fx-search">
             <FileSearch size={13} />
             <input

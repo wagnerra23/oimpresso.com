@@ -2,7 +2,8 @@
 id: resources-js-pages-fiscal-eventos-charter
 page: /fiscal/eventos
 component: resources/js/Pages/Fiscal/Eventos.tsx
-related_prototype: "n/a (herda PT-07 Feed/Timeline; segue o DS) · origem: bundle Cowork fiscal §11 FiscalEventosPage (mockup não versionado no repo)"
+related_prototype: prototipo-ui/cowork/fiscal-subpages.jsx
+bundle_source: fiscal-page.jsx
 page_id: fiscal-eventos
 url: /fiscal/eventos
 module: Fiscal
@@ -11,7 +12,7 @@ created: 2026-05-20
 owner: wagner
 related_us: [US-FISCAL-007]
 related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0358-doutrina-de-teste-tenant-98-supersede-0101, 0104-processo-mwart-canonico-unico-caminho]
-prototypes: []   # 2026-08-13: era "prototipo-ui/.../fiscal-page.jsx §11 FiscalEventosPage" — path NÃO existe (0 protótipo fiscal no repo, medido); âncora viva = `related_prototype` acima. Mesmo caso do Nfe.charter.md (reconciliação 2026-07-27).
+prototypes: [prototipo-ui/cowork/fiscal-subpages.jsx]
 ---
 
 # Charter — `Fiscal/Eventos`

@@ -2,7 +2,8 @@
 id: resources-js-pages-fiscal-nfe-charter
 page: /fiscal/nfe
 component: resources/js/Pages/Fiscal/Nfe.tsx
-related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
+related_prototype: prototipo-ui/cowork/fiscal-page.jsx
+bundle_source: fiscal-page.jsx
 page_id: fiscal-nfe
 url: /fiscal/nfe
 module: Fiscal
@@ -11,7 +12,7 @@ created: 2026-05-20
 owner: wagner
 related_us: [US-FISCAL-001, US-FISCAL-012, US-FISCAL-013, US-FISCAL-014]
 related_adrs: [0093-multi-tenant-isolation-tier-0, 0104-processo-mwart-canonico-unico-caminho, 0114-prototipo-ui-cowork-loop-formalizado, 0143-fsm-pipeline-live-prod-marco-2026-05-12]
-prototypes: []   # corrigido 2026-07-27 — os 2 paths declarados aqui não existem (recibo no rodapé)
+prototypes: [prototipo-ui/cowork/fiscal-page.jsx]
 ---
 
 # Charter — `Fiscal/Nfe`
@@ -96,3 +97,9 @@ O campo `related_prototype` desta tela **já** declarava `n/a (herda PT-01 Lista
 Consequência que **não** é dívida: sem protótipo, esta tela não é ancorável por `proto-baseline`; é o caso "nasce do Design System" (SDD §4).
 
 Contexto completo: [`memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0.md`](../../../../memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0.md) §4 · contrato de teste em [`Nfe.casos.md`](Nfe.casos.md).
+
+### Nova fonte recebida — 2026-08-28
+
+O diagnóstico acima permanece como fato de 2026-07-27. Depois dele, o bundle transacional
+versionou `prototipo-ui/cowork/fiscal-page.jsx`; o frontmatter passou a apontar para essa fonte.
+Receber a fonte não altera o veredito de aplicação: ele é derivado pelo Design Sync.

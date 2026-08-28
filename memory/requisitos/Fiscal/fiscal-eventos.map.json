@@ -1,0 +1,20 @@
+{
+  "version": "1",
+  "_doc": "Mapa por região; contrato e verificação vivem em gerar-map.mjs e design-code-map-check.mjs.",
+  "tela": "Fiscal/Eventos (/fiscal/eventos)",
+  "gap_fonte": "memory/requisitos/Fiscal/fiscal-eventos-gap.md",
+  "prototipo_sha": "sha256:1c323c8f7ae4",
+  "gerado_em": "2026-08-28",
+  "mapping": {
+    "source": "fiscal-page.jsx",
+    "target": "resources/js/Pages/Fiscal/Eventos.tsx"
+  },
+  "partes": [{
+    "id": "timeline-de-eventos",
+    "prototipo": { "arquivo": "prototipo-ui/cowork/fiscal-subpages.jsx", "linhas": "56-73" },
+    "vivo": { "arquivo": "resources/js/Pages/Fiscal/Eventos.tsx", "linhas": "157-180", "ancora": "fiscal-eventos-timeline" },
+    "status": "paridade",
+    "acao": "Nada. Preservar o ledger append-only real.",
+    "_acionavel": false
+  }]
+}

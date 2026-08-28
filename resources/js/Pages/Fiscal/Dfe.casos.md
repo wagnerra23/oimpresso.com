@@ -5,12 +5,14 @@ irmaos: Dfe.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-07-28"
+last_run: "2026-08-28"
 last_run_ci: "0 UC executado nesta corrida — 4 UC herdam testes que JÁ existem e 1 nasce com teste novo; veredito pendente da lane Pest Fiscal + suíte noturna CT 100"
 related_us: [US-FISCAL-008, US-FISCAL-012]
 ---
 
 # Casos de Uso & Aceite — Manifesto DF-e
+
+> **Revalidação `last_run` 2026-08-28 — o que foi conferido:** este PR muda a tela em **um único ponto**: o atributo `data-contract="fiscal-dfe-filters"` no wrapper, âncora do mapa [`fiscal-dfe.map.json`](../../../../memory/requisitos/Fiscal/fiscal-dfe.map.json). Conferi o diff do `.tsx` contra a lista de UC deste arquivo — **nenhum UC depende de atributo de DOM**, logo nenhum aceite mudou. **Nenhum teste foi re-executado** nesta revalidação (Pest = CT 100); os vereditos seguem como estavam.
 
 > Persona: **Eliana [E] (contadora)** — manifesta as NF-e que terceiros emitiram **contra** o CNPJ, dentro do prazo legal.
 >

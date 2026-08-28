@@ -117,6 +117,13 @@ export function validarSchema(mapa) {
   }
   if (!Array.isArray(mapa.partes)) { problemas.push(`'partes' não é array`); return problemas; }
   if (mapa.partes.length === 0) problemas.push(`'partes' vazio (map sem conteúdo)`);
+  if (mapa.mapping != null) {
+    if (typeof mapa.mapping !== 'object') problemas.push(`'mapping' não é objeto`);
+    else {
+      if (!mapa.mapping.source) problemas.push(`mapping.source ausente`);
+      if (!mapa.mapping.target) problemas.push(`mapping.target ausente`);
+    }
+  }
   mapa.partes.forEach((p, i) => {
     const tag = p?.id || `partes[${i}]`;
     if (!p.id) problemas.push(`${tag}: sem 'id'`);
@@ -162,6 +169,15 @@ export function verificarMapa(mapa, { root = ROOT } = {}) {
   // decomposição do linha-only lendo o DISCO (não a declaração) — ver cabeçalho §"POR QUE O
   // RESUMO DECOMPÕE OS LINHA-ONLY": separa backfill barato de "o .tsx nem foi ancorado".
   let comAncoraNoArquivo = 0, semAncoraNoArquivo = 0, optOut = 0;
+  if (mapa.mapping?.target && !existsSync(join(root, mapa.mapping.target))) {
+    drift.push(`mapping.target não existe: ${mapa.mapping.target}`);
+  }
+  if (mapa.mapping?.source) {
+    const sourcePath = String(mapa.mapping.source).includes('/')
+      ? mapa.mapping.source
+      : join('prototipo-ui', 'cowork', mapa.mapping.source);
+    if (!existsSync(join(root, sourcePath))) drift.push(`mapping.source não existe: ${mapa.mapping.source}`);
+  }
   const arquivosPrototipoReais = new Set();
   const fonteCache = new Map(); // vivo.arquivo → conteúdo (várias partes ancoram no mesmo .tsx)
   const lerVivo = (rel) => {
