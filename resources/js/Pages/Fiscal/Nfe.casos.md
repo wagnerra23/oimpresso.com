@@ -5,10 +5,12 @@ irmaos: Nfe.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-07-28"
+last_run: "2026-08-28"
 ---
 
 # Casos de Uso & Aceite — Notas NF-e / NFC-e
+
+> **Revalidação `last_run` 2026-08-28 — o que foi conferido:** este PR muda a tela em **um único ponto**: o atributo `data-contract="fiscal-nfe-filters"` no wrapper, âncora do mapa [`fiscal-nfe.map.json`](../../../../memory/requisitos/Fiscal/fiscal-nfe.map.json). Conferi o diff do `.tsx` contra a lista de UC deste arquivo — **nenhum UC depende de atributo de DOM**, logo nenhum aceite mudou. **Nenhum teste foi re-executado** nesta revalidação (Pest = CT 100); os vereditos seguem como estavam.
 
 > Persona: **Eliana (contadora)** + operador fiscal. Cockpit Fiscal (agregador thin sobre NfeBrasil).
 > Âncora de contrato: SPEC `US-FISCAL-001` (lista) + `US-FISCAL-012` (cancelar/DF-e) +

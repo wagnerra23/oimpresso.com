@@ -5,10 +5,12 @@ irmaos: Sped.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-07-27"
+last_run: "2026-08-28"
 ---
 
 # Casos de Uso & Aceite — SPED & Livros
+
+> **Revalidação `last_run` 2026-08-28 — o que foi conferido:** este PR muda a tela em **um único ponto**: o atributo `data-contract="fiscal-sped-status"` no wrapper, âncora do mapa [`fiscal-sped.map.json`](../../../../memory/requisitos/Fiscal/fiscal-sped.map.json). Conferi o diff do `.tsx` contra a lista de UC deste arquivo — **nenhum UC depende de atributo de DOM**, logo nenhum aceite mudou. **Nenhum teste foi re-executado** nesta revalidação (Pest = CT 100); os vereditos seguem como estavam.
 
 > Persona: **Eliana (contadora)** — gera/confere EFD-ICMS/IPI mensal. Cockpit Fiscal.
 > Âncora de contrato: SPEC `US-FISCAL-010` (panorama) + `US-FISCAL-016`/`US-FISCAL-017` (gerador) +

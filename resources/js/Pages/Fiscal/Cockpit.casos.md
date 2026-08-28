@@ -5,12 +5,14 @@ irmaos: Cockpit.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-07-27"
+last_run: "2026-08-28"
 last_run_ci: "0 UC executado nesta corrida — os UC herdam testes que JÁ existem; veredito pendente das lanes PHP / Pest (NfeBrasil · MySQL) e Pest Fiscal"
 related_us: [US-FISCAL-002, US-FISCAL-019]
 ---
 
 # Casos de Uso & Aceite — Cockpit Fiscal
+
+> **Revalidação `last_run` 2026-08-28 — o que foi conferido:** este PR muda a tela em **um único ponto**: o atributo `data-contract="fiscal-cockpit-kpis"` no wrapper, âncora do mapa [`fiscal-cockpit.map.json`](../../../../memory/requisitos/Fiscal/fiscal-cockpit.map.json). Conferi o diff do `.tsx` contra a lista de UC deste arquivo — **nenhum UC depende de atributo de DOM**, logo nenhum aceite mudou. **Nenhum teste foi re-executado** nesta revalidação (Pest = CT 100); os vereditos seguem como estavam.
 
 > Persona: **Eliana [E] (contadora)** — leitura consolidada do estado fiscal do mês.
 >

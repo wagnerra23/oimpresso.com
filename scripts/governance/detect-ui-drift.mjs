@@ -35,7 +35,9 @@
  *     pra sempre (o buraco da anistia-por-tela do reconcile).
  *   - `related_prototype` prova só ANCORAGEM/AUTORIZAÇÃO, nunca aplicação. O estado
  *     recebido→comparado→aplicado→testado→validado pertence exclusivamente ao ledger
- *     `scripts/design-sync/state/applications.json` e ao `status.mjs` (ADR 0384).
+ *     `scripts/design-sync/state/applications.json` e ao `status.mjs` — interface documentada em
+ *     `scripts/design-sync/state/README.md` (a ADR que a especifica ainda está `proposto`;
+ *     citação direta volta quando [W] ratificar — Check L do memory-health).
  *   - NÃO julga estética (cor/spacing/densidade). Isso é o `design-diff.mjs` (ADR 0299,
  *     medido) + o olho do Wagner no screenshot = juiz final. Esta máquina só sabe se a
  *     mudança foi AUTORIZADA, não se ficou bonita. São eixos ortogonais, de propósito.
