@@ -9,6 +9,12 @@ return [
     // o conserto da chave.
     'module_label' => 'Jana',
 
+    // Rótulo do 2º checkbox do módulo em /superadmin/packages/{id}/edit. É o TIER
+    // (qual plano da Jana), distinto de `module_label`, que é o módulo on/off (o
+    // business TEM a Jana). Marcar este sem aquele não faz sentido e a UI não impede
+    // — quem lê o tier é o selo do header, e ele só aparece pra quem já tem a Jana.
+    'module_label_pro' => 'Jana Pro (plano)',
+
     'permissao_acesso'         => 'Copiloto: Acesso ao módulo',
     'permissao_chat'           => 'Copiloto: Conversar (chat IA)',
     'permissao_metas'          => 'Copiloto: Gerenciar metas',

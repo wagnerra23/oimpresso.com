@@ -46,6 +46,21 @@ class DataController extends Controller
                 'label'   => __('copiloto::copiloto.module_label'),
                 'default' => false,
             ],
+            // TIER — `jana_pro_module`. Eixo DIFERENTE do de cima: `jana_module` é
+            // BINÁRIO (o business tem a Jana), este é o PLANO dentro dela. A confusão
+            // entre os dois é registrada: em 2026-08-27 [W] marcou `jana_module`, viu o
+            // módulo acender e concluiu "Jana Pro está ativa" — razoável, e errado por
+            // um eixo (PARIDADE §8.1, reforço de evidência de 2026-08-27).
+            //
+            // Sem billing, de propósito: a assinatura Asaas real é Sprint JANA-B
+            // (ADR 0140, US-COPI-211/212). Aqui o tier é concedido à mão pelo
+            // superadmin, como qualquer outro pacote — o que dá ao selo do header uma
+            // fonte de verdade em vez de um literal, que era o bloqueio registrado.
+            [
+                'name'    => 'jana_pro_module',
+                'label'   => __('copiloto::copiloto.module_label_pro'),
+                'default' => false,
+            ],
         ];
     }
 

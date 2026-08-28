@@ -155,6 +155,20 @@ class HandleInertiaRequests extends Middleware
                 // `prototipo-ui/_cowork-export-2026-05-15/data.jsx`.
                 'shortcuts' => fn () => $user && $businessId ? $this->sidebarShortcuts((int) $businessId) : null,
             ],
+            // Tier da Jana (`jana.pro`) — lazy, só computa quando a Page pede.
+            //
+            // Aqui mora um dado que NÃO existia: até 2026-08-27 o selo `plano Pro` do
+            // header não podia ser pintado porque nada no sistema sabia o plano — o
+            // `ProController` mandava `'plan' => 'free'` literal e o protótipo tratava
+            // `pro` como toggle de simulação (PARIDADE §8.1). Agora vem do pacote.
+            //
+            // Por que shared e não prop de controller: o selo vive no header que as 4
+            // telas da área compartilham. Passar por controller obrigaria os 4 a
+            // concordarem sobre a mesma chave — que é exatamente a divergência que o
+            // `JanaModuleChaveCanonicaTest` existe pra impedir no caso do `jana_module`.
+            'jana' => [
+                'pro' => fn () => $user && $businessId ? $this->janaPlanoPro((int) $businessId) : false,
+            ],
             // US-SELL-015 — props de UI específicas do módulo Sells, lazy
             // (só computa quando a Page solicita `sells.*`). ADR 0136:
             //   - viewMode.default = 'grade-avancada' pra business com
@@ -509,6 +523,37 @@ class HandleInertiaRequests extends Middleware
         }
 
         return $shortcuts;
+    }
+
+    /**
+     * Tier do módulo Jana pra este business — `jana_pro_module` no pacote.
+     *
+     * EIXO DIFERENTE de `sidebarShortcuts()['ia']`, que lê `jana_module`. Aquele é
+     * binário (*o business tem a Jana*); este é o plano DENTRO dela. Os dois são
+     * independentes por construção: dá pra ter a Jana sem o Pro (o caso comum), e o
+     * inverso — Pro marcado sem o módulo — é incoerência que a UI do superadmin não
+     * impede e que aqui não tento consertar: quem não tem `jana_module` não vê a área,
+     * logo não vê o selo, e o tier fica inerte em vez de mentir.
+     *
+     * Fail-safe é `false`, não `true`: ao contrário do `shortcuts` (onde o back-compat
+     * é mostrar o atalho), aqui o erro caro é o oposto — afirmar Pro para quem não é.
+     * Sem pacote legível, o header mostra `plano Grátis`, que é o estado de quem não
+     * comprou nada.
+     *
+     * Billing real (assinatura Asaas, trial→pago) segue Sprint JANA-B — ADR 0140,
+     * US-COPI-211/212. Isto é concessão manual por pacote, como qualquer outro módulo.
+     */
+    private function janaPlanoPro(int $businessId): bool
+    {
+        try {
+            return (bool) (new \App\Utils\ModuleUtil())->hasThePermissionInSubscription(
+                $businessId,
+                'jana_pro_module',
+                'superadmin_package'
+            );
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     /**

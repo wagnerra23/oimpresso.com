@@ -181,3 +181,28 @@ contagem de histórico. Breadcrumb é chrome do shell; não toca nenhum deles.
 **Nenhum `Status:` mudou.** O bump é só do `last_run`, com o motivo escrito ao lado — que é a
 condição que o §5 de 2026-07-27 impõe: mudança semanticamente inerte **não é inerte pro
 gate**, e o `last_run` só sobe acompanhado da razão.
+
+## UC-MEM-06 — o selo de plano lê o PACOTE, não o cliente
+Status: 🧪 (`JanaPlanoTierTest` — 3 `it()`, um comportamental e dois de fonte; o teste diz
+por que cada um é o que é. Aguarda run verde na lane e o screenshot F1.5.)
+
+Derivado da âncora (`prototipo-ui/cowork/jana-merge.jsx:970` + `chat-jana.jsx:217`) e da decisão
+[W] de 2026-08-27 — **não** do `.tsx`. Derivar do código seria tautológico (§5 2026-06-05).
+
+Até 2026-08-27 este selo era o item **BLOQUEADO** da onda 4 (`PARIDADE` §8.1), e o motivo não era
+trabalho: **não havia de onde ler o plano**. O `ProController` mandava `'plan' => 'free'` literal;
+não existia coluna, tabela nem chave de tier; e no protótipo o `pro` é um toggle de simulação, cuja
+legenda diz *"aqui o Pro é simulação pra ver o gating"*. O `useJanaConfig` já recusava gravá-lo
+*"porque o servidor não as honra"*.
+
+O que mudou é a FONTE, não o desenho: `jana_pro_module` virou chave de pacote marcável no
+Superadmin (sem billing — Asaas real segue Sprint JANA-B, ADR 0140), e o selo lê
+`shell`/`jana.pro`, derivado da assinatura.
+
+O caso defende três coisas, e a terceira é a que dói se quebrar:
+
+| o que | por quê |
+|---|---|
+| o selo mostra `plano Pro` só com `jana_pro_module` no pacote | senão volta a afirmar estado que o sistema não sabe |
+| `jana_module` e `jana_pro_module` seguem eixos SEPARADOS | fundi-los repete, dentro do código, o engano que um humano cometeu lendo o painel |
+| sem pacote legível o degrade é `Grátis` | afirmar Pro a quem não é promete recurso pago; o inverso só omite |
