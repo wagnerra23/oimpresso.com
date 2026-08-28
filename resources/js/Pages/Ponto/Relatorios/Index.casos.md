@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F8 + §6.5
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a vitrine de compliance do módulo — e a única tela cujo contrato é sobre o que ele NÃO entrega.
 owner: wagner
-last_run: "2026-08-02"
-last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Ponto · MySQL)"
+last_run: "2026-08-28"
+last_run_ci: "5 UC executados na lane PHP / Pest (Ponto · MySQL): 01/02/05 verdes, 03/04 vermelhos por defeito DO TESTE (corrigidos no mesmo PR) — veredito dos 5 pendente de re-run"
 ---
 
 # Casos de Uso & Aceite — Catálogo de relatórios
