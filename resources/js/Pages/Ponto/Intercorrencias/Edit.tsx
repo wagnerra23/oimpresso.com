@@ -21,6 +21,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/Components/ui/card';
 import { Checkbox } from '@/Components/ui/checkbox';
+import { Grid, Inline } from '@/Components/layout';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import {
@@ -126,7 +127,7 @@ export default function IntercorrenciasEdit({ intercorrencia, colaboradores, tip
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Grid cols={1} gap={4} className="md:grid-cols-2">
                 <Field label="Colaborador" error={form.errors.colaborador_config_id} required>
                   <Select
                     value={String(form.data.colaborador_config_id || '')}
@@ -190,9 +191,9 @@ export default function IntercorrenciasEdit({ intercorrencia, colaboradores, tip
                     </SelectContent>
                   </Select>
                 </Field>
-              </div>
+              </Grid>
 
-              <div className="flex items-center gap-2">
+              <Inline gap={2}>
                 <Checkbox
                   id="dia_todo"
                   checked={form.data.dia_todo}
@@ -201,13 +202,13 @@ export default function IntercorrenciasEdit({ intercorrencia, colaboradores, tip
                 <Label htmlFor="dia_todo" variant="shadcn" className="font-normal cursor-pointer">
                   Dia todo
                 </Label>
-              </div>
+              </Inline>
 
               {/* Espelha o `required_unless:dia_todo,true` do IntercorrenciaRequest:
                   esconder os horários quando é dia todo evita o operador preencher
                   campo que a validação vai ignorar. */}
               {!form.data.dia_todo && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Grid cols={1} gap={4} className="md:grid-cols-2">
                   <Field label="Início" error={form.errors.intervalo_inicio}>
                     <Input
                       type="time"
@@ -222,7 +223,7 @@ export default function IntercorrenciasEdit({ intercorrencia, colaboradores, tip
                       onChange={(e) => form.setData('intervalo_fim', e.target.value)}
                     />
                   </Field>
-                </div>
+                </Grid>
               )}
 
               <Field label="Justificativa" error={form.errors.justificativa} required>
@@ -236,8 +237,8 @@ export default function IntercorrenciasEdit({ intercorrencia, colaboradores, tip
                 </p>
               </Field>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-2">
+              <Grid cols={1} gap={4} className="md:grid-cols-2">
+                <Inline gap={2}>
                   <Checkbox
                     id="impacta_apuracao"
                     checked={form.data.impacta_apuracao}
@@ -250,8 +251,8 @@ export default function IntercorrenciasEdit({ intercorrencia, colaboradores, tip
                   >
                     Impacta a apuração
                   </Label>
-                </div>
-                <div className="flex items-center gap-2">
+                </Inline>
+                <Inline gap={2}>
                   <Checkbox
                     id="descontar_banco_horas"
                     checked={form.data.descontar_banco_horas}
@@ -264,12 +265,12 @@ export default function IntercorrenciasEdit({ intercorrencia, colaboradores, tip
                   >
                     Descontar do banco de horas
                   </Label>
-                </div>
-              </div>
+                </Inline>
+              </Grid>
             </CardContent>
           </Card>
 
-          <div className="flex justify-end gap-2">
+          <Inline gap={2} justify="end">
             <Button
               type="button"
               variant="outline"
@@ -286,7 +287,7 @@ export default function IntercorrenciasEdit({ intercorrencia, colaboradores, tip
               )}
               Salvar rascunho
             </Button>
-          </div>
+          </Inline>
         </form>
       </div>
     </>
