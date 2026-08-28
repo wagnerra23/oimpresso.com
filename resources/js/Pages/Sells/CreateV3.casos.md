@@ -5,7 +5,7 @@ irmaos: CreateV3.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: luiz
-last_run: "2026-08-27"
+last_run: "2026-08-28"
 ---
 
 # Casos de Uso & Aceite — Venda V3 (preview)
@@ -37,6 +37,12 @@ last_run: "2026-08-27"
 > bug de data que já estava em produção: vencimento exibido **um dia antes** em qualquer fuso a
 > oeste de Greenwich (o CI roda em UTC e nunca veria). A lista exata da lane — **8 arquivos,
 > 110 testes** — rodou verde nesta base; contador antes→depois: 7/104 → 8/110.
+
+> ℹ️ **`last_run` 2026-08-27 → 2026-08-28 (G-6) — re-run, com a aba Preço ganhando a alçada.**
+> A aba mostrava 4 campos read-only que já viviam na Geral e não sabia dizer se o preço podia
+> fechar; agora traz piso, veredito e desconto sobre a tabela (UC-V375…V378). A lista exata da
+> lane — **12 arquivos, 142 testes** — rodou verde nesta base; contador antes→depois: 10/127 →
+> 12/142. O bump é honesto: os testes rodaram **contra este código**, não contra o de ontem.
 ---
 
 ## Como esta lista cresce
