@@ -129,18 +129,29 @@ it('UC-JPERM-08 · superadmin vê o preview alheio E a sessão NÃO muda de busi
     $this->user->save();
     $this->user->forgetCachedPermissions();
 
-    // RE-AUTENTICA com a instância FRESCA. Sem isto o teste reprova com
-    // `Expecting 403 not to be 403`: o `actingAs` do beforeEach congelou o usuário
-    // com `user_type='user'`, e o controller decide por `$request->user()->user_type`
-    // (JanaProController:48) — o `save()` altera a linha, não o objeto autenticado.
-    $this->actingAs($this->user->fresh());
+    // O superadmin de PLATAFORMA tem a permissão atribuída — é o cenário real, e
+    // remove a dependência do bypass do `Gate::before` pra atravessar o
+    // `->middleware('can:jana.superadmin')` da rota (routes.php:241).
+    $this->user->givePermissionTo('jana.superadmin');
+    $this->user->forgetCachedPermissions();
+
+    // Re-autentica: o `actingAs` do beforeEach congelou o usuário com
+    // `user_type='user'`, e o controller decide por `$request->user()->user_type`
+    // (JanaProController:48) — `save()` altera a linha, não o objeto autenticado.
+    // NÃO uso `fresh()`: instância nova perde as roles já carregadas, e o
+    // `Gate::before` depende de `hasRole('Admin#{business_id}')`.
+    $this->actingAs($this->user);
     session([
         'user.business_id' => PROPREV_BIZ,
         'business' => ['id' => PROPREV_BIZ, 'name' => Business::find(PROPREV_BIZ)->name],
     ]);
 
-    // CONTROLE: se este assert cair, a causa é o vínculo acima — e não o contrato.
-    expect(auth()->user()->user_type)->toBe('superadmin');
+    // CONTROLE, elo a elo: se algum destes cair, a falha aponta o elo exato em vez
+    // de dizer só "403 não deveria ser 403", que não localiza nada.
+    expect(auth()->user()->user_type)->toBe('superadmin');                       // controller
+    expect(auth()->user()->hasRole('Admin#'.PROPREV_BIZ))->toBeTrue();           // Gate::before
+    expect(auth()->user()->hasPermissionTo('jana.superadmin'))->toBeTrue();      // Spatie direto
+    expect(auth()->user()->can('jana.superadmin'))->toBeTrue();                  // middleware da rota
 
     $status = $this->get(route('jana.admin.jana_pro.preview', ['business_id' => PROPREV_BIZ_ALHEIO]))->status();
 
