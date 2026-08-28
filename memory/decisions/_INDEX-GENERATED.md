@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **387** arquivos · **372** números únicos · máx **0382**
-- **ADRs ATIVOS (lifecycle ativo): 348** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 349 · superseded 16 · deprecated 13 · proposto 7 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 348 · arquivado 23 · substituido 16
+- **388** arquivos · **373** números únicos · máx **0383**
+- **ADRs ATIVOS (lifecycle ativo): 349** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 350 · superseded 16 · deprecated 13 · proposto 7 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 349 · arquivado 23 · substituido 16
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (387)
+## Todas as ADRs (388)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -425,3 +425,4 @@ _(nenhuma)_
 | 0380 | aceito | ativo | errata | Errata 0292/0291 D-D — `distiller_freshness` no health-check vira ADVISORY (o al |
 | 0381 | proposto | ativo | decision | Sub-decisão da 0088 — a chave de assinatura do módulo Jana passa a ser `jana_mod |
 | 0382 | aceito | ativo | decision | A trava de sinal não se aplica a trabalho dirigido por [W] (emenda 0105) |
+| 0383 | aceito | ativo | decision | O ponto interno não coleta biometria — sem selfie no REP-P |
