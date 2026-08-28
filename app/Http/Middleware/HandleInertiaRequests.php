@@ -575,11 +575,14 @@ class HandleInertiaRequests extends Middleware
                 return false;
             }
 
-            // `package_details` tem cast `array` no model, mas a coluna é nullable —
-            // o `is_array` cobre o null sem depender do cast.
+            // Sem `is_array()`: o model declara cast `array` pra `package_details`, então
+            // o PHPStan (Larastan lê o cast) reprova a checagem como sempre-verdadeira. Em
+            // runtime a coluna é nullable, e é o `empty()` que cobre isso — ele suprime o
+            // acesso a índice de null em vez de emitir warning, que é exatamente o
+            // comportamento documentado dele.
             $detalhes = $assinatura->package_details;
 
-            return is_array($detalhes) && ! empty($detalhes['jana_pro_module']);
+            return ! empty($detalhes['jana_pro_module']);
         } catch (\Throwable $e) {
             return false;
         }
