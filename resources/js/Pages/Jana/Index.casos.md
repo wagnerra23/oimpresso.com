@@ -4,7 +4,7 @@ casos: Jana Painel · metas ativas · farol server-side · cockpit deferido · /
 irmaos: Index.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-index.md (runbook) · prototipo-ui/contrato/jana-painel.contract.json (contrato visual)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-26"
+last_run: "2026-08-28"
 ---
 
 # Casos de uso — /ia (Painel da Jana)
@@ -621,6 +621,34 @@ O caso defende três coisas, e a terceira é a que dói se quebrar:
 | sem pacote legível o degrade é `Grátis` | afirmar Pro a quem não é promete recurso pago; o inverso só omite |
 
 ---
+
+
+## Revalidação de 2026-08-28 — o selo entrou, o `last_run` não acompanhou
+
+O `casos-gate` acusou `stale:` nesta tela ao ser tocada por um PR de OUTRO assunto (a catraca do
+nome nas permissões, UC-JNAME-01 abaixo). A dívida não é dele: o
+[#6390](https://github.com/wagnerra23/oimpresso.com/pull/6390) mudou o `.tsx` em **2026-08-28** e
+deixou o `last_run` em **2026-08-26**. O G-6 compara a data-git do `.tsx` com o `last_run`, e a
+violação só nasce DEPOIS do merge — então ela cai no próximo PR que encostar no arquivo, seja qual
+for o assunto dele. Mesmo efeito que a seção de 08-25 descreve, causa diferente.
+
+**Revalidação de contrato, medida — não herdada do commit:**
+
+| O que conferi | Como | Resultado |
+|---|---|---|
+| o tamanho do diff que tornou a tela stale | `git show c56e1e6f9d --stat -- …/Jana/Index.tsx` | **7 linhas, todas adições** ✓ |
+| o que essas 7 linhas fazem | `git show` do mesmo commit | 2 imports (`JanaPlanoBadge`, `useJanaPro`), 1 `const pro`, 1 comentário, 1 render do selo ✓ |
+| quantos UCs o arquivo tem | `grep -c '^## UC-'` | **17** ✓ |
+| quantos são tocados pelo diff | leitura dos 17 títulos | **1** — o `UC-JPAIN-17`, que nasceu NO MESMO commit ✓ |
+
+**Interseção com os outros 16: nenhuma.** Eles são rota, contrato de props, escopo `business_id`,
+farol de servidor, empty state, meta sem apuração, série curta, skeleton, âncoras do contrato,
+drawer, decisão registrada, churn e rótulo de KPI — o selo não toca nenhum. Nenhum `Status:` muda.
+
+**Não rodei a suíte nesta leva** — CT 100 respondeu 502 durante toda a sessão e Pest local é
+proibido (ADR 0062). O bump é por revalidação de CONTRATO, e digo isso porque o G-6 aceita a data
+e só o leitor percebe a diferença. É a mesma ressalva da revalidação de 08-25, e ela continua
+valendo: data aceita por gate não é prova de execução.
 
 ## UC-JNAME-01 — a tela de permissões não oferece um módulo chamado "Copiloto"
 Status: 🧪 (`tests/Feature/Permissions/JanaPermissionGroupNomeTest.php` — 4 `it()`. Aguarda run
