@@ -222,5 +222,61 @@
     "route": "/ponto/configuracoes",
     "anchor": "Banco de Horas",
     "baseline": "it_Ponto_Configuracoes_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Fiscal/Cockpit",
+    "source": "Fiscal/Cockpit",
+    "component": "Fiscal/Cockpit",
+    "route": "/fiscal",
+    "anchor": "Notas Fiscais",
+    "baseline": "it_Fiscal_Cockpit_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Fiscal/Nfe",
+    "source": "Fiscal/Nfe",
+    "component": "Fiscal/Nfe",
+    "route": "/fiscal/nfe",
+    "anchor": "NF-e",
+    "baseline": "it_Fiscal_Nfe_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Fiscal/Nfse",
+    "source": "Fiscal/Nfse",
+    "component": "Fiscal/Nfse",
+    "route": "/fiscal/nfse",
+    "anchor": "NFS-e",
+    "baseline": "it_Fiscal_Nfse_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Fiscal/Eventos",
+    "source": "Fiscal/Eventos",
+    "component": "Fiscal/Eventos",
+    "route": "/fiscal/eventos",
+    "anchor": "Eventos fiscais",
+    "baseline": "it_Fiscal_Eventos_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Fiscal/Dfe",
+    "source": "Fiscal/Dfe",
+    "component": "Fiscal/Dfe",
+    "route": "/fiscal/dfe",
+    "anchor": "Manifestação do destinatário",
+    "baseline": "it_Fiscal_Dfe_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Fiscal/Config",
+    "source": "Fiscal/Config",
+    "component": "Fiscal/Config",
+    "route": "/fiscal/config",
+    "anchor": "Certificado",
+    "baseline": "it_Fiscal_Config_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Fiscal/Sped",
+    "source": "Fiscal/Sped",
+    "component": "Fiscal/Sped",
+    "route": "/fiscal/sped",
+    "anchor": "SPED",
+    "baseline": "it_Fiscal_Sped_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]
