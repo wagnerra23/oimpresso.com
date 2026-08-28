@@ -16,6 +16,14 @@
     "baseline": "it_Compras_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
+    "screen": "Home",
+    "source": "Home",
+    "component": "Home/Index",
+    "route": "/dashboard-legacy",
+    "anchor": "Contrapartidas",
+    "baseline": "it_Home_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
     "screen": "Oficina/OS",
     "source": "OficinaAuto/ServiceOrders/Board",
     "component": "OficinaAuto/ServiceOrders/Board",
