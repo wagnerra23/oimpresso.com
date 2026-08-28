@@ -15,21 +15,21 @@ use Menu;
  * Espelha o topnav declarativo em Modules/Copiloto/Resources/menus/topnav.php.
  *
  * IMPORTANTE: O módulo Copiloto ainda NÃO possui arquivos de tradução em
- * Modules/Copiloto/Resources/lang/. As chaves `copiloto::copiloto.*` usadas
+ * Modules/Copiloto/Resources/lang/. As chaves `jana::jana.*` usadas
  * abaixo serão resolvidas como literal pelo Laravel (fallback automático)
  * até que o lang file seja criado. Chaves esperadas:
- *  - copiloto::copiloto.module_label
- *  - copiloto::copiloto.permissao_acesso
- *  - copiloto::copiloto.permissao_chat
- *  - copiloto::copiloto.permissao_metas
- *  - copiloto::copiloto.permissao_superadmin
- *  - copiloto::copiloto.permissao_admin_custos
- *  - copiloto::copiloto.menu.conversar
- *  - copiloto::copiloto.menu.dashboard
- *  - copiloto::copiloto.menu.metas
- *  - copiloto::copiloto.menu.alertas
- *  - copiloto::copiloto.menu.plataforma
- *  - copiloto::copiloto.menu.custos
+ *  - jana::jana.module_label
+ *  - jana::jana.permissao_acesso
+ *  - jana::jana.permissao_chat
+ *  - jana::jana.permissao_metas
+ *  - jana::jana.permissao_superadmin
+ *  - jana::jana.permissao_admin_custos
+ *  - jana::jana.menu.conversar
+ *  - jana::jana.menu.dashboard
+ *  - jana::jana.menu.metas
+ *  - jana::jana.menu.alertas
+ *  - jana::jana.menu.plataforma
+ *  - jana::jana.menu.custos
  */
 class DataController extends Controller
 {
@@ -43,7 +43,7 @@ class DataController extends Controller
         return [
             [
                 'name'    => 'jana_module',
-                'label'   => __('copiloto::copiloto.module_label'),
+                'label'   => __('jana::jana.module_label'),
                 'default' => false,
             ],
             // TIER — `jana_pro_module`. Eixo DIFERENTE do de cima: `jana_module` é
@@ -58,7 +58,7 @@ class DataController extends Controller
             // fonte de verdade em vez de um literal, que era o bloqueio registrado.
             [
                 'name'    => 'jana_pro_module',
-                'label'   => __('copiloto::copiloto.module_label_pro'),
+                'label'   => __('jana::jana.module_label_pro'),
                 'default' => false,
             ],
         ];
@@ -76,27 +76,27 @@ class DataController extends Controller
         return [
             [
                 'value'   => 'jana.access',
-                'label'   => __('copiloto::copiloto.permissao_acesso'),
+                'label'   => __('jana::jana.permissao_acesso'),
                 'default' => false,
             ],
             [
                 'value'   => 'jana.chat',
-                'label'   => __('copiloto::copiloto.permissao_chat'),
+                'label'   => __('jana::jana.permissao_chat'),
                 'default' => false,
             ],
             [
                 'value'   => 'jana.metas.manage',
-                'label'   => __('copiloto::copiloto.permissao_metas'),
+                'label'   => __('jana::jana.permissao_metas'),
                 'default' => false,
             ],
             [
                 'value'   => 'jana.superadmin',
-                'label'   => __('copiloto::copiloto.permissao_superadmin'),
+                'label'   => __('jana::jana.permissao_superadmin'),
                 'default' => false,
             ],
             [
                 'value'   => 'jana.admin.custos.view',
-                'label'   => __('copiloto::copiloto.permissao_admin_custos'),
+                'label'   => __('jana::jana.permissao_admin_custos'),
                 'default' => false,
             ],
             ...$this->mcpScopePermissions(),
@@ -207,13 +207,13 @@ class DataController extends Controller
                 // permanecem enforce nos Controllers individuais — gate global
                 // hasThePermissionInSubscription já cobre módulo on/off na entry.
                 $menu->dropdown(
-                    __('copiloto::copiloto.module_label'),
+                    __('jana::jana.module_label'),
                     function ($sub) {
                         // Conversar — entry-point do módulo (chat IA)
                         if (auth()->user()->can('superadmin') || auth()->user()->can('jana.chat')) {
                             $sub->url(
                                 route('jana.chat.index'),
-                                __('copiloto::copiloto.menu.conversar'),
+                                __('jana::jana.menu.conversar'),
                                 [
                                     'icon'   => 'fa fas fa-comments',
                                     // Onda 3: a Conversa saiu da raiz pra /ia/conversa.
@@ -228,7 +228,7 @@ class DataController extends Controller
                         // raiz /ia, e `jana.dashboard.index` deixou de existir).
                         $sub->url(
                             route('jana.index'),
-                            __('copiloto::copiloto.menu.dashboard'),
+                            __('jana::jana.menu.dashboard'),
                             [
                                 'icon'   => 'fa fas fa-tachometer-alt',
                                 'active' => request()->segment(1) === 'ia'
@@ -240,7 +240,7 @@ class DataController extends Controller
                         if (auth()->user()->can('superadmin') || auth()->user()->can('jana.metas.manage')) {
                             $sub->url(
                                 route('jana.metas.index'),
-                                __('copiloto::copiloto.menu.metas'),
+                                __('jana::jana.menu.metas'),
                                 [
                                     'icon'   => 'fa fas fa-bullseye',
                                     'active' => request()->segment(2) == 'metas',
@@ -264,7 +264,7 @@ class DataController extends Controller
                         if (auth()->user()->can('superadmin') || auth()->user()->can('jana.superadmin')) {
                             $sub->url(
                                 route('jana.superadmin.metas'),
-                                __('copiloto::copiloto.menu.plataforma'),
+                                __('jana::jana.menu.plataforma'),
                                 [
                                     'icon'   => 'fa fas fa-building',
                                     'active' => request()->segment(2) == 'superadmin',

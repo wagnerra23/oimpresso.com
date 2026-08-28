@@ -442,7 +442,7 @@ module: Jana
 - [WhatsActiveTool.php](../../../Modules/Jana/Mcp/Tools/WhatsActiveTool.php)
 - [WhatsLockedTool.php](../../../Modules/Jana/Mcp/Tools/WhatsLockedTool.php)
 - [MetaDesvioNotification.php](../../../Modules/Jana/Notifications/MetaDesvioNotification.php)
-- [copiloto.php](../../../Modules/Jana/Resources/lang/pt/copiloto.php)
+- [jana.php](../../../Modules/Jana/Resources/lang/pt/jana.php)
 - [topnav.php](../../../Modules/Jana/Resources/menus/topnav.php)
 - [permissions.php](../../../Modules/Jana/Resources/permissions.php)
 - [ClarifyResult.php](../../../Modules/Jana/Support/ClarifyResult.php)

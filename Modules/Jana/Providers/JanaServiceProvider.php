@@ -324,9 +324,9 @@ class JanaServiceProvider extends ServiceProvider
         $langPath = resource_path('lang/modules/copiloto');
 
         if (is_dir($langPath)) {
-            $this->loadTranslationsFrom($langPath, 'copiloto');
+            $this->loadTranslationsFrom($langPath, 'jana');
         } else {
-            $this->loadTranslationsFrom(__DIR__ . '/../Resources/lang', 'copiloto');
+            $this->loadTranslationsFrom(__DIR__ . '/../Resources/lang', 'jana');
         }
     }
 
