@@ -25,6 +25,8 @@ import {
   lerShellHtml,
   slaVerdict,
   liveOnly,
+  liveOnlyDetalhado,
+  buildDocsSet,
   liveOnlyEntry,
   liveOnlyVerdict,
   desqualificacaoLiveOnly,
@@ -357,6 +359,52 @@ check('mesmo número → mesmo veredito (independe de --check)',
     liveOnly(['screenshots/tela.png'], man).length === 0);
   check('CONTROLE liveOnly: .md em _arquivo/ (morto upstream) NAO acusa',
     liveOnly(['_arquivo/docs-legado/velho.md'], man).length === 0);
+
+  // ── O DETECTOR CONHECE OS 3 DESFECHOS DO EXPORTADOR (2026-08-28) ────────────────
+  // Ele só conhecia um (`cowork/`) e acusava como "nunca desceu" o que o `exportPlan`
+  // RECUSA por regra, e o `.md` que ele mesmo roteia pra `design-docs/`.
+  // MEDIDO no corpus real (935 paths do list_files): 412 acusados, dos quais
+  //   152 canon de tela (recusado) + 146 `.md` já em design-docs = 298 = 72% de FP.
+  // Detector com 72% de ruído não é conservador — é ignorado.
+  {
+    // 1) CANON DE TELA — o exportPlan RECUSA (PROTOCOL 10.4). Não é allowlist: usa a MESMA
+    //    regra do exportador, provada aqui pelo par com o exportPlan.
+    const canon = ['x/Index.charter.md', 'x/Index.casos.md', 'x/tela.contract.json'];
+    const d = liveOnlyDetalhado(canon, man);
+    check('BITE: canon de tela NAO e acusado de live-only (o exportPlan o RECUSA)',
+      d.faltando.length === 0 && d.ignorados.length === 3, JSON.stringify(d.faltando));
+    check('canon isento sai em `ignorados` COM MOTIVO (nunca some calado)',
+      d.ignorados.every((i) => /RECUSA/.test(i.motivo)), JSON.stringify(d.ignorados[0]));
+    // PAR COM O EXPORTADOR: a isenção só é legítima porque o exportador de fato recusa.
+    // Se um dia ele passar a exportar charter, este assert cai junto e a isenção some.
+    check('PAR: o exportPlan de fato RECUSA os mesmos 3 (a isencao espelha a regra, nao a inventa)',
+      exportPlan(canon.map((p) => ({ path: p, content: 'x\n' })), { prefixoDocs: 'prototipo-ui/design-docs/' }).length === 0);
+
+    // 2) `.md` que JA ESTA em design-docs/ — desceu pelo roteamento por extensão.
+    const jaEmDocs = new Set(['cowork-inbox/SUPERADMIN-F1-2026-08-18.md']);
+    check('BITE: .md ja presente em design-docs/ NAO e acusado (desceu, so noutro destino)',
+      liveOnly(['cowork-inbox/SUPERADMIN-F1-2026-08-18.md'], man, { jaEmDocs }).length === 0);
+    // CONTROLE NEGATIVO — sem o Set, o MESMO path volta a ser acusado. Sem este assert um
+    // `return []` fixo passaria no bite acima e o detector viraria carimbo.
+    check('CONTROLE: sem jaEmDocs o mesmo .md VOLTA a ser acusado (isencao nao e cega)',
+      liveOnly(['cowork-inbox/SUPERADMIN-F1-2026-08-18.md'], man).length === 1);
+    // CONTROLE DE ESCOPO — a isenção é só pra `.md`. Não-`.md` em design-docs está FORA da
+    // regra declarada (23 no corpus: .php de teste) e SEGUE acusado. Absorvê-lo seria
+    // codificar um acidente como regra.
+    check('CONTROLE: nao-.md presente em design-docs/ SEGUE acusado (fora da regra de roteamento)',
+      liveOnly(['cowork-inbox/cms/CmsPainelAdminTest.php'], man,
+        { jaEmDocs: new Set(['cowork-inbox/cms/CmsPainelAdminTest.php']) }).length === 1);
+
+    // 3) buildDocsSet — o walker tem que enxergar `.md`. Se alguém o trocar pelo `walkRel`
+    //    (que filtra jsx|html|css|js), o Set nasce sem `.md` e a isenção fica DECORATIVA:
+    //    verde, sem efeito. Este assert prende isso no diretório real do repo.
+    const docs = buildDocsSet();
+    const mdsNoSet = [...docs].filter((p) => p.toLowerCase().endsWith('.md')).length;
+    check('buildDocsSet enxerga .md (walker proprio, nao o walkRel do espelho)',
+      mdsNoSet > 0, `mds no set: ${mdsNoSet} de ${docs.size}`);
+    check('CONTROLE buildDocsSet: diretorio inexistente → Set vazio (nao "tudo isento")',
+      buildDocsSet(process.cwd(), 'nao-existe-jamais').size === 0);
+  }
 
   // exportPlan: a transcrição manual causou STALE em 2026-08-11 (923 ln à mão vs 943 reais)
   // e ainda me levou a "corrigir" um charter que estava CERTO. A escrita sai do JSON.
