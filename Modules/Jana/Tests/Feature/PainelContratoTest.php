@@ -99,6 +99,28 @@ function painelTsx(): string
     return file_get_contents(base_path(PAINEL_TSX));
 }
 
+/**
+ * O texto de TODOS os arquivos que o contrato declara em `alvo`, concatenados.
+ *
+ * Existe porque `painelTsx()` lê só o `Index.tsx`, e o contrato passou a apontar
+ * DOIS arquivos em 2026-08-28: a âncora `painel-plano` mora no
+ * `_components/JanaPlanoBadge.tsx`, já que as 3 telas da área injetam o selo pelo
+ * slot `actions` do header compartilhado. Com o alvo hard-coded aqui, o teste
+ * procurava a âncora no arquivo errado e reprovava um contrato correto.
+ *
+ * Derivar do `alvo` (em vez de listar arquivos aqui) é o que impede a próxima
+ * divergência: quem editar o contrato não precisa lembrar deste teste.
+ */
+function painelAlvoTexto(): string
+{
+    $j = json_decode(file_get_contents(base_path(PAINEL_CONTRATO)), true);
+
+    return implode("\n", array_map(
+        fn ($rel) => file_get_contents(base_path($rel)),
+        (array) ($j['alvo'] ?? [PAINEL_TSX])
+    ));
+}
+
 // ── RUNTIME ──────────────────────────────────────────────────────────────────
 
 /** UC-JPAIN-01 — rota abre o Painel (SPEC US-COPI-148: `/ia` é a rota viva). */
@@ -263,10 +285,17 @@ it('UC-JPAIN-08: o cockpit declara carregando em vez de pintar zero', function (
         ->toContain('label="Ticket médio"');
 });
 
-/** UC-JPAIN-09 — as 5 âncoras existem e a ordem declarada é subsequência da ordem de arquivo. */
-it('UC-JPAIN-09: as 5 âncoras data-contract existem e a ordem do contrato é respeitada', function () {
+/**
+ * UC-JPAIN-09 — toda âncora declarada existe, e a ordem declarada é subsequência da
+ * ordem de arquivo.
+ *
+ * SEM número no nome: ele dizia "as 5 âncoras" e virou mentira quando o contrato ganhou
+ * a 6ª (`painel-plano`, 2026-08-28). O assert sempre foi dinâmico — itera `secoes` —, era
+ * só o RÓTULO que estava congelado, e rótulo é promessa. O universo é o contrato.
+ */
+it('UC-JPAIN-09: toda âncora declarada existe e a ordem do contrato é respeitada', function () {
     $j   = json_decode(file_get_contents(base_path(PAINEL_CONTRATO)), true);
-    $tsx = painelTsx();
+    $tsx = painelAlvoTexto();
 
     $posicoes = [];
 
