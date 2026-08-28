@@ -1,7 +1,7 @@
 ---
 id: requisitos-jana-runbook-components
 slug: jana-runbook-components
-title: "Jana — Runbook dos componentes compartilhados (Pages/Jana/components/)"
+title: "Jana — Runbook dos componentes compartilhados (Pages/Jana/_components/)"
 type: runbook
 module: Jana
 owner: W
@@ -13,7 +13,7 @@ last_validated: "2026-08-10"
 # RUNBOOK — componentes compartilhados da Jana
 
 > **Tipo:** runbook de manutenção — **não** é receita de migração de tela
-> **Cobre:** `resources/js/Pages/Jana/components/**`
+> **Cobre:** `resources/js/Pages/Jana/_components/**`
 > **Refs:** [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) · [ADR 0271](../../decisions/0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md) · SPEC `US-COPI-148`
 
 ## Por que este arquivo existe
