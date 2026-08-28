@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 14 |
 | CU no SDD | 14 |
-| Telas (.tsx) | 20 |
-| Telas com `casos.md` | 13 |
-| UC declarados | 31 |
-| UC com teste que os cita | 31 |
+| Telas (.tsx) | 21 |
+| Telas com `casos.md` | 15 |
+| UC declarados | 58 |
+| UC com teste que os cita | 57 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -31,11 +31,8 @@ authority: generated
 | Tela `Colaboradores/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `Configuracoes/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `Configuracoes/Reps` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `Dashboard/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `Escalas/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `Welcome` sem `casos.md` | o contrato da tela (trio incompleto) |
-| `Show.casos.md` existe mas **não declara nenhum UC** | o contrato de verdade — arquivo presente ≠ tela coberta (LC-11) |
-| `Show.casos.md` existe mas **não declara nenhum UC** | o contrato de verdade — arquivo presente ≠ tela coberta (LC-11) |
 | `US-PONTO-001` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Relogio web pra registrar entrada/saida (REP-P) |
 | `US-PONTO-007` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Multi-tenant isolation (Tier 0 IRREVOGAVEL) |
 
@@ -80,18 +77,45 @@ authority: generated
 | UC-ESPIDX-01 | Espelho/Index | 🧪 aguarda veredito da lane |
 | UC-ESPIDX-02 | Espelho/Index | 🧪 aguarda veredito da lane |
 | UC-ESPIDX-03 | Espelho/Index | 🧪 aguarda veredito da lane |
+| UC-ESPSH-01 | Espelho/Show | 🧪 aguarda veredito da lane |
+| UC-ESPSH-02 | Espelho/Show | 🧪 aguarda veredito da lane |
+| UC-ESPSH-03 | Espelho/Show | 🧪 aguarda veredito da lane |
+| UC-ESPSH-04 | Espelho/Show | 🧪 aguarda veredito da lane |
+| UC-ESPSH-05 | Espelho/Show | 🧪 aguarda veredito da lane |
 | UC-IMPCRE-01 | Importacoes/Create | 🧪 aguarda veredito da lane |
 | UC-IMPCRE-02 | Importacoes/Create | 🧪 aguarda veredito da lane |
 | UC-IMPIDX-01 | Importacoes/Index | 🧪 aguarda veredito da lane |
 | UC-IMPIDX-02 | Importacoes/Index | 🧪 aguarda veredito da lane |
 | UC-IMPIDX-03 | Importacoes/Index | 🧪 aguarda veredito da lane |
+| UC-IMPSH-01 | Importacoes/Show | 🧪 aguarda veredito da lane |
+| UC-IMPSH-02 | Importacoes/Show | 🧪 aguarda veredito da lane |
+| UC-IMPSH-03 | Importacoes/Show | 🧪 aguarda veredito da lane |
+| UC-IMPSH-04 | Importacoes/Show | 🧪 aguarda veredito da lane |
+| UC-IMPSH-05 | Importacoes/Index | 📝 sem_teste |
 | UC-INTCRE-01 | Intercorrencias/Create | 🧪 aguarda veredito da lane |
 | UC-INTCRE-02 | Intercorrencias/Create | 🧪 aguarda veredito da lane |
+| UC-INTEDT-01 | Intercorrencias/Edit | 🧪 aguarda veredito da lane |
+| UC-INTEDT-02 | Intercorrencias/Edit | 🧪 aguarda veredito da lane |
+| UC-INTEDT-03 | Intercorrencias/Edit | 🧪 aguarda veredito da lane |
 | UC-INTIDX-01 | Intercorrencias/Index | 🧪 aguarda veredito da lane |
 | UC-INTIDX-02 | Intercorrencias/Index | 🧪 aguarda veredito da lane |
 | UC-INTIDX-03 | Intercorrencias/Index | 🧪 aguarda veredito da lane |
+| UC-INTSH-01 | Intercorrencias/Show | 🧪 aguarda veredito da lane |
+| UC-INTSH-02 | Intercorrencias/Show | 🧪 aguarda veredito da lane |
+| UC-INTSH-03 | Intercorrencias/Show | 🧪 aguarda veredito da lane |
+| UC-PAINEL-01 | Dashboard/Index | 🧪 aguarda veredito da lane |
+| UC-PAINEL-02 | Dashboard/Index | 🧪 aguarda veredito da lane |
+| UC-PAINEL-03 | Dashboard/Index | 🧪 aguarda veredito da lane |
+| UC-PAINEL-04 | Dashboard/Index | 🧪 aguarda veredito da lane |
+| UC-PAINEL-05 | Dashboard/Index | 🧪 aguarda veredito da lane |
+| UC-PAINEL-06 | Dashboard/Index | 🧪 aguarda veredito da lane |
+| UC-PAINEL-07 | Dashboard/Index | 🧪 aguarda veredito da lane |
+| UC-PAINEL-08 | Dashboard/Index | 🧪 aguarda veredito da lane |
 | UC-RELIDX-01 | Relatorios/Index | 🧪 aguarda veredito da lane |
 | UC-RELIDX-02 | Relatorios/Index | 🧪 aguarda veredito da lane |
+| UC-RELIDX-03 | Relatorios/Index | 🧪 aguarda veredito da lane |
+| UC-RELIDX-04 | Relatorios/Index | 🧪 aguarda veredito da lane |
+| UC-RELIDX-05 | Relatorios/Index | 🧪 aguarda veredito da lane |
 
 ---
 

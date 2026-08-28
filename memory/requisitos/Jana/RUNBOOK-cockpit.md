@@ -202,7 +202,7 @@ Tipos principais do payload (declarados no próprio arquivo): `Brief` (greeting 
 ### Componentes
 
 - [`@/Layouts/AppShellV2`](../../../resources/js/Layouts/AppShellV2.tsx) — shell-mãe
-- [`./components/JanaAreaHeader`](../../../resources/js/Pages/Jana/components/JanaAreaHeader.tsx) — header sticky da área Jana
+- [`./components/JanaAreaHeader`](../../../resources/js/Pages/Jana/_components/JanaAreaHeader.tsx) — header sticky da área Jana
 - Componentes locais no próprio arquivo: `JanaHeader`, `BriefDiario`, `KPICard`, cards de análise por kind, rows HITL, chat da tab ia
 
 ### Constantes localStorage

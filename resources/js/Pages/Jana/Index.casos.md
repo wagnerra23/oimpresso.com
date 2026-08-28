@@ -622,8 +622,37 @@ O caso defende três coisas, e a terceira é a que dói se quebrar:
 
 ---
 
+## Revalidação de 2026-08-28 — o `.tsx` mudou de PATH de import, e só isso
 
-## Revalidação de 2026-08-28 — o selo entrou, o `last_run` não acompanhou
+O `casos-gate` acusou `stale:` nesta tela. A causa é mecânica: a pasta
+`Pages/Jana/components/` (sem underscore) foi para o canon `_components/`, e o G-6 compara a
+**data-git do `.tsx`** com o `last_run` — mudança semanticamente inerte **não é inerte pro
+gate** (é a lápide §5 2026-07-27: comentário, whitespace e rename contam como "a tela mudou").
+
+**Revalidação de contrato, medida:**
+
+| O que conferi | Como | Resultado |
+|---|---|---|
+| o tamanho do diff nesta tela | `git diff origin/main...HEAD --numstat -- …/Index.tsx` | **2 linhas**, todas de `import` |
+| o que mudou nelas | `git diff` das mesmas linhas | só o PATH de `FabJana` e `JanaAreaHeader` — nome, símbolo e uso idênticos |
+| o componente mudou de conteúdo? | `git log --stat` do rename | **não** — o git detectou 100%% de similaridade nos dois arquivos |
+
+**Interseção com os UCs: nenhuma.** Um caso de uso descreve comportamento de tela; path de
+import não é comportamento. Nenhum `Status:` muda.
+
+**Não rodei a suíte** — CT 100 respondeu 502 durante toda a sessão e Pest local é proibido
+(ADR 0062). O bump é por revalidação de CONTRATO, e digo porque o G-6 aceita a data e só o
+leitor percebe a diferença.
+
+---
+
+
+## Revalidação de 2026-08-28 (2ª do dia) — o selo entrou, o `last_run` não acompanhou
+
+> Segunda revalidação desta tela no mesmo dia, por causa DIFERENTE da anterior. A de cima veio do
+> [#6424](https://github.com/wagnerra23/oimpresso.com/pull/6424) (rename de import); esta é do
+> #6427 (o `last_run` que o #6390 deixou pra trás). As duas ficam: cada uma registra um toque real
+> no `.tsx`, e apagar qualquer uma esconderia por que a data subiu.
 
 O `casos-gate` acusou `stale:` nesta tela ao ser tocada por um PR de OUTRO assunto (a catraca do
 nome nas permissões, UC-JNAME-01 abaixo). A dívida não é dele: o
@@ -649,6 +678,8 @@ drawer, decisão registrada, churn e rótulo de KPI — o selo não toca nenhum.
 proibido (ADR 0062). O bump é por revalidação de CONTRATO, e digo isso porque o G-6 aceita a data
 e só o leitor percebe a diferença. É a mesma ressalva da revalidação de 08-25, e ela continua
 valendo: data aceita por gate não é prova de execução.
+
+---
 
 ## UC-JNAME-01 — a tela de permissões não oferece um módulo chamado "Copiloto"
 Status: 🧪 (`tests/Feature/Permissions/JanaPermissionGroupNomeTest.php` — 4 `it()`. Aguarda run
