@@ -198,10 +198,16 @@ jobs:
         # `Ponto`, e entraria vermelho por dívida pré-existente — conserto é chip à parte.
         #
         # B7-cobertura (2026-08-02): `BancoHorasIndexContratoTest` entra escrito em Pest
-        # `it()` com o UC no TÍTULO — os 3 *ContratoTest acima têm o UC em DOCBLOCK e por
-        # isso nunca chegam ao manifesto G-7 (`casos-results-collect` lê o `name` do
-        # `<testcase>`; método PHP não aceita hífen). Rodam verdes valendo 0 no painel.
+        # `it()` com o UC no TÍTULO — os 3 *ContratoTest acima tinham o UC em DOCBLOCK e
+        # por isso não chegavam ao manifesto G-7 (`casos-results-collect` lê o `name` do
+        # `<testcase>`; método PHP não aceita hífen). Rodavam verdes valendo 0 no painel.
         # Conversão deles é oportunística, não varredura em lote.
+        #
+        # 2026-08-28: `EspelhoContratoTest` convertido pra Pest `it()` — os 8 UC dele
+        # (UC-ESPSH-01..05 · UC-ESPIDX-01..03) saíram do `⛓` do `casos:report`, medido
+        # 18→10 no bloco Ponto. Seguem em DOCBLOCK, de propósito, `JornadaWorkflowContratoTest`
+        # e `BancoHorasImportacaoContratoTest`: varrer em lote acorda gate diff-aware sobre
+        # dívida alheia (proibicoes §5 2026-07-12).
         #
         # PontoDashboardContratoTest (2026-08-23): trio da tela `Ponto/Dashboard/Index`
         # (contrato `ponto-painel`, UC-PAINEL-01..06), landado pelo #6154. Aquele PR

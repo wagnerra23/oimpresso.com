@@ -6,11 +6,16 @@
 //
 // Layout por PRIMITIVOS (ADR 0253): Stack/Inline/Grid, nunca `flex`/`grid` solto.
 //
+// Gráficos (US-DASH-002) e abas de grade + drawer (US-DASH-005) JÁ ESTÃO nesta tela — o
+// comentário anterior dizia o contrário e apodreceu no dia em que as ondas entraram.
+//
 // Fora desta onda, por motivo declarado:
-//   · gráficos (US-DASH-002) — não há lib de chart no package.json; entra com ADR própria
-//   · abas de grade e Pendências (US-DASH-005) — consomem os 4 endpoints AJAX existentes
 //   · "Papel simulado" / "Simular falha" — instrumentos do protótipo. Em produção quem
 //     decide é a permissão real e a resposta real do endpoint.
+//   · widgets pluggable de outros módulos (US-DASH-003) — o ponto de extensão é o método
+//     `dashboard_widget()` em `Modules\<X>\Http\Controllers\DataController`, e ele tem
+//     ZERO produtores nos 32 DataControllers (medido 2026-08-28). Era o único motivo
+//     restante pra abrir o Blade legado, e não tinha conteúdo — por isso o Blade saiu.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Icon } from '@/Components/Icon';
@@ -21,7 +26,6 @@ import KpiCard from '@/Components/shared/KpiCard';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import { PageHeader } from '@/Components/PageHeader';
 import { PeriodBar, type Period } from '@/Components/shared/PeriodBar';
-import { Alert, AlertDescription } from '@/Components/ui/alert';
 import type { PaginatorShape } from '@/Components/shared/DataTable';
 import GradesPainel, { type Aba, type LinhaDaGrade } from './_components/GradesPainel';
 import { Deferred, router } from '@inertiajs/react';
@@ -55,7 +59,6 @@ interface Props {
   aba: string | null;
   /** Linhas da aba aberta. Prop DEFERIDA: chega no segundo round-trip. */
   grade: PaginatorShape<LinhaDaGrade> | null;
-  legacy_url: string;
   endpoints: {
     totals: string;
     stock_alert: string;
@@ -137,7 +140,6 @@ function HomeIndex({
   abas,
   aba,
   grade,
-  legacy_url,
 }: Props) {
   const lojas = Object.entries(all_locations);
   const mostraLoja = is_admin && lojas.length > 1;
@@ -276,19 +278,6 @@ function HomeIndex({
           description="A permissão dashboard.data não está atribuída ao seu papel. A tela abre sem erro — nenhum indicador é carregado."
         />
       )}
-
-      <Alert>
-        <Icon name="info" size={16} />
-        <AlertDescription>
-          <p>
-            Os widgets de outros módulos ainda não foram portados para esta tela.{' '}
-            <a href={legacy_url} className="font-medium text-primary underline-offset-2 hover:underline">
-              Abrir versão completa
-            </a>
-            .
-          </p>
-        </AlertDescription>
-      </Alert>
     </Stack>
   );
 }
