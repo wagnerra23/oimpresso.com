@@ -83,3 +83,57 @@ tem** `## Contrato visual` no charter, então não havia o que conferir.
 
 A comparação contra a âncora **não tem gate**: ela depende de alguém rodar a sonda, e a sonda
 depende de sessão autenticada em produção. É o buraco estrutural que este inventário expõe.
+
+---
+
+## Rodada 2 — 2026-08-28 · o ATALHO DE TOPO desta tela (shell), não o corpo
+
+> **Escopo, dito antes do veredito:** esta rodada compara o **atalho de sidebar que leva a esta
+> tela** — não o corpo dela (a Rodada 1 acima cobriu o corpo e o #6392 fechou as 6). É comparação
+> de **CONTRATO** (fonte do design × fonte da implementação), **não de runtime**: eu **não** rodei
+> a sonda nos dois renders nesta rodada, porque não havia render de prod disponível na sessão.
+> Logo **D2/D4/D6/D8 seguem NÃO MEDIDOS aqui** — nada abaixo vale como veredito de pixel, cor ou
+> contraste. O que está medido é o que o design **declara** contra o que o código **faz**.
+
+**Fonte:** `prototipo-ui/cowork/data.jsx` (bloco `MENU`, atalhos de topo) + `sidebar.jsx` (L270-285).
+⚠️ Frescor **não** re-provado nesta rodada (`--compare --check` não rodado) — vale contra o
+espelho como está no git hoje, e a ressalva de fidelidade do §0 continua valendo.
+
+O design declara, literalmente:
+
+```js
+// ── Shortcuts de topo (não-grupos) — [W] 2026-08: IA · Forja · Atendimento (Equipe → MAIS) ──
+{ id: "chat",        icon: "chat",  label: "IA",          shortcut: true },
+{ id: "dash-legacy", icon: "chart", label: "Visão geral", shortcut: true },
+{ id: "inbox",       icon: "inbox", label: "Atendimento", shortcut: true },
+```
+
+| # | Camada | Âncora | Produção (antes desta rodada) | Veredito |
+|---|---|---|---|---|
+| 19 | Label do atalho | "Visão geral" | "Dashboard" (pt) · "Home" (en) | ❌ → **corrigido** (chave própria `home.visao_geral`) |
+| 20 | **Posição no topo** | **2ª** (`chat` → `dash-legacy` → `inbox`) | inexistente; minha 1ª versão pôs em **1º**, em bloco próprio | ❌ → **corrigido** (2ª, nos dois modos) |
+| 21 | **Ícone** | `chart` (eixo + 3 barras — `icons.jsx:21`) | `Home` na minha 1ª versão | ❌ → **corrigido** (`BarChart3`) |
+| 22 | **`aria-current="page"`** | presente (`sidebar.jsx:278`) | ausente (nem o `SidebarMenuItem` marcava) | ❌ → **corrigido** no atalho |
+| 23 | Alocação | entry **sem grupo** → topo | caía em **SISTEMA**, o último grupo, por match do label 'Dashboard' | ❌ → **corrigido** (`group: 'landing'`) |
+| 24 | **Bloco de atalhos** | `.sb-item` inline no `sb-menu`; **`sb-shortcuts` não existe** no espelho inteiro | `.sb-shortcut` em bloco `.sb-shortcuts` próprio | ⚠️ **PROD DIVERGE — pré-existente, NÃO corrigido** |
+| 25 | Forja no topo | 3 atalhos; comentário diz "Equipe → MAIS" | 4 atalhos (IA · Forja · Atendimento · Visão geral) | ⚠️ **PROD-À-FRENTE** ou design atrasado — não tocado |
+
+**#24 e #25 não são desta rodada.** O #24 afeta IA/Forja/Atendimento **igualmente** — é divergência
+de shell anterior a este trabalho, e reconciliar (trocar `.sb-shortcut` por `.sb-item` inline)
+mexeria no topo de **todas** as telas. É decisão [W], não carona de um PR de dashboard.
+
+### Adaptação declarada — importei a forma, não a premissa
+
+O design marca atalho de topo pela **ausência** de `group` (`if (!entry.group)`). Copiar isso
+literalmente **quebraria aqui**: no `Sidebar.tsx` real, item sem `group` cai no match por label e,
+não casando nenhum `SIDEBAR_GROUPS.items[]`, termina em **MAIS** — o fim do menu. O design não tem
+esse fallback porque o `MOCK.MENU` é estático. Por isso a implementação declara `group: 'landing'`
+explícito: mesma intenção, mecanismo compatível com a premissa daqui.
+
+### O que continua NÃO MEDIDO (e por quê)
+
+1. `cowork-mirror-freshness --compare --check` — frescor da fonte, **não rodado** nesta rodada.
+2. Sonda `design-diff.mjs --probe` nos dois renders (D2/D4/D6/D8) — exige prod logada.
+3. D1 (rede) e D3 (ícones) no runtime.
+4. Baseline VRT: `visreg-screens.json` tem **35 entradas / 35 `.snap`, zero sem par**; somar a Home
+   exige `--update-snapshots` no CT 100/CI **+ aprovação [W] (gate F1.5)**.

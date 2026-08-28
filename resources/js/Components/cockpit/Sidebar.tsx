@@ -60,8 +60,12 @@ const MENU_ICON_MAP: Record<string, LucideIcon> = {
   // `findMenuIcon` cai em `Hash` quando não acha a chave, então TODO label novo
   // precisa entrar aqui — senão o ícone degrada em silêncio. 'visão geral' e
   // 'overview' são os dois locales da entry do painel (lang/{pt,en}/home.php).
+  //
+  // BarChart3 (não Home) porque é o que o DESIGN declara: `data.jsx` dá
+  // `icon: "chart"` pra entry `dash-legacy`, e o `chart` do `icons.jsx` desenha
+  // eixo + 3 barras crescentes — que é exatamente o BarChart3 do Lucide.
   iniciar: Home, início: Home, home: Home, dashboard: Home,
-  'visão geral': Home, 'visao geral': Home, overview: Home,
+  'visão geral': BarChart3, 'visao geral': BarChart3, overview: BarChart3,
   contatos: Users, clientes: Users, crm: Users,
   produtos: Package,
   compras: ShoppingCart,
@@ -482,7 +486,7 @@ export function CompanyPicker({
 
 // ── SidebarMenuItem (recursivo p/ children) ─────────────────────────────
 
-function SidebarMenuItem({ item, active = false }: { item: ShellMenuItem; active?: boolean }) {
+function SidebarMenuItem({ item }: { item: ShellMenuItem }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [popPos, setPopPos] = useState<{ top: number; left: number } | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -549,7 +553,7 @@ function SidebarMenuItem({ item, active = false }: { item: ShellMenuItem; active
   }
 
   return (
-    <a href={href} className={`sb-item${active ? ' active' : ''}`}>
+    <a href={href} className="sb-item">
       <Icon size={14} className="ic" />
       <span className="label">{item.label}</span>
     </a>
@@ -584,11 +588,13 @@ function SidebarShortcuts({
   chatCount,
   atendimentoCount,
   shortcuts,
+  landing,
 }: {
   tarefasCount?: number;
   chatCount?: number;
   atendimentoCount?: number;
   shortcuts?: SidebarShortcutsShared;
+  landing: LandingEntry[];
 }) {
   // Wagner 2026-05-22: Tarefas REMOVIDO (módulo ainda não definido).
   // Sequência canon TOPO: IA → Equipe → Atendimento.
@@ -608,6 +614,27 @@ function SidebarShortcuts({
           {!!chatCount && <span className="badge">{chatCount}</span>}
         </a>
       )}
+      {/* Visão geral — SEGUNDA, entre IA e os demais. Não é gosto: o design
+          (`prototipo-ui/cowork/data.jsx`, bloco "Shortcuts de topo") declara a
+          ordem `chat` (IA) → `dash-legacy` (Visão geral) → `inbox`
+          (Atendimento). A 1ª versão desta entry ficou ACIMA de tudo, o que
+          diverge do contrato medido. `aria-current="page"` espelha o
+          `sidebar.jsx` do design, que marca o item ativo semanticamente e não
+          só por classe. */}
+      {landing.map(({ item, active }, idx) => {
+        const LandingIcon = findMenuIcon(item.label);
+        return (
+          <a
+            key={`landing-${item.label}-${idx}`}
+            href={item.href ?? '#'}
+            className={`sb-shortcut${active ? ' active' : ''}`}
+            aria-current={active ? 'page' : undefined}
+          >
+            <LandingIcon size={13} />
+            <span className="label">{item.label}</span>
+          </a>
+        );
+      })}
       {showEquipe && (
         // Fusão 2026-06-16: atalho topo é o hub ÚNICO "Forja" → /forja (cockpit
         // do cowork loop que absorveu as telas do TeamMcp). Era "Equipe" → /team-mcp/team.
@@ -783,21 +810,16 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
 
   return (
     <div className="sb-menu-grouped">
-      {/* Landing fixa no topo — ACIMA dos atalhos ([W] 2026-08-28). Vem do
-          `group => 'landing'` declarado no middleware; se o backend parar de
-          declarar, o array é vazio e some sozinho (degrada, não quebra). */}
-      {landing.length > 0 && (
-        <div className="sb-landing">
-          {landing.map(({ item, active }, idx) => (
-            <SidebarMenuItem key={`landing-${item.label}-${idx}`} item={item} active={active} />
-          ))}
-        </div>
-      )}
+      {/* A landing entra DENTRO do bloco de atalhos, na 2ª posição — ver o
+          comentário de ordem em SidebarShortcuts. Vem do `group => 'landing'`
+          declarado no middleware; se o backend parar de declarar, o array é
+          vazio e a entry some sozinha (degrada, não quebra). */}
       <SidebarShortcuts
         tarefasCount={counts.tarefas}
         chatCount={counts.chat}
         atendimentoCount={counts.atendimento}
         shortcuts={shortcuts}
+        landing={landing}
       />
       {groupsToRender.map((g) => (
         <SidebarGroup
@@ -869,23 +891,6 @@ function SidebarMenuRail({
 
   return (
     <div className="sb-menu-rail">
-      {/* Landing fixa no topo do rail — espelha o bloco `sb-landing` do modo
-          expandido. Os DOIS modos precisam do item: renderizar só num deles
-          faria a entry sumir ao colapsar o sidebar. */}
-      {landing.map(({ item, active }, idx) => {
-        const LandingIcon = findMenuIcon(item.label);
-        return (
-          <a
-            key={`landing-rail-${item.label}-${idx}`}
-            href={item.href ?? '#'}
-            className={`sb-rail-btn${active ? ' active' : ''}`}
-            data-tip={item.label}
-            onClick={() => setFlyout(null)}
-          >
-            <LandingIcon size={18} className="ic" />
-          </a>
-        );
-      })}
       {showIa && (
         // Wagner 2026-05-25: rail collapsed IA aponta /ia/dashboard (espelha sb-shortcut acima).
         <a
@@ -898,6 +903,24 @@ function SidebarMenuRail({
           {!!counts.chat && <span className="sb-rail-dot-badge" />}
         </a>
       )}
+      {/* Landing na 2ª posição, espelhando a ordem do design
+          (`data.jsx`: chat → dash-legacy → inbox). Os DOIS modos precisam
+          dela: só num, a entry sumiria ao colapsar o sidebar. */}
+      {landing.map(({ item, active }, idx) => {
+        const LandingIcon = findMenuIcon(item.label);
+        return (
+          <a
+            key={`landing-rail-${item.label}-${idx}`}
+            href={item.href ?? '#'}
+            className={`sb-rail-btn${active ? ' active' : ''}`}
+            aria-current={active ? 'page' : undefined}
+            data-tip={item.label}
+            onClick={() => setFlyout(null)}
+          >
+            <LandingIcon size={18} className="ic" />
+          </a>
+        );
+      })}
       {showEquipe && (
         <a
           href="/team-mcp/team"

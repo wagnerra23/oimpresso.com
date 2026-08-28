@@ -7,6 +7,11 @@ last_validated: "2026-08-28"
 parent_module: Dashboard
 parent_spec: memory/requisitos/Dashboard/SPEC.md
 related_runbook: memory/requisitos/Dashboard/RUNBOOK-home-index.md
+# Declarado porque o resolver procura por NOME em `memory/requisitos/<mod>/`, e o
+# `mod` desta tela é `Home` enquanto o doc vive em `Dashboard/` — sem declarar, a
+# porta viva reporta "visual-comparison ausente" mesmo com o arquivo existindo.
+# Proveniência explícita > adivinhação por nome.
+related_visual_comparison: memory/requisitos/Dashboard/Index-visual-comparison.md
 related_adrs: [93, 94, 101, 104]
 related_us: [US-DASH-001, US-DASH-004, US-DASH-005, US-DASH-006]
 related_prototype: prototipo-ui/cowork/dash-legacy-page.jsx (Cockpit V2 · PT-04 Dashboard)
