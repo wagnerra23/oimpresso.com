@@ -55,6 +55,13 @@ on:
       # esta linha, mexer no aggregator NÃO roda o teste que o defende: o quarto
       # caso do mesmo gate mudo que as três notas acima já corrigiram.
       - 'app/Services/Sells/SellsCockpitAggregator.php'
+      # O `JanaPlanoTierTest` e o `JanaModuleChaveCanonicaTest` assertam sobre o
+      # `HandleInertiaRequests` — e la que moram a chave do MODULO (`jana_module`,
+      # atalho do sidebar) e a do TIER (`jana_pro_module`, selo de plano). Sem esta
+      # linha, mexer no middleware NAO roda os dois testes que defendem o acordo das
+      # chaves: o quinto caso do mesmo gate mudo que as notas acima ja corrigiram
+      # (lapide 5 2026-08-02 — "inclua o arquivo SOB TESTE no trigger").
+      - 'app/Http/Middleware/HandleInertiaRequests.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/jana-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -111,6 +118,13 @@ jobs:
               - 'app/Concerns/HasBusinessScope.php'
               - 'app/Concerns/BelongsToBusinessViaParent.php'
               - 'app/Services/Sells/SellsCockpitAggregator.php'
+              # O `JanaPlanoTierTest` e o `JanaModuleChaveCanonicaTest` assertam sobre o
+              # `HandleInertiaRequests` — e la que moram a chave do MODULO (`jana_module`,
+              # atalho do sidebar) e a do TIER (`jana_pro_module`, selo de plano). Sem esta
+              # linha, mexer no middleware NAO roda os dois testes que defendem o acordo das
+              # chaves: o quinto caso do mesmo gate mudo que as notas acima ja corrigiram
+              # (lapide 5 2026-08-02 — "inclua o arquivo SOB TESTE no trigger").
+              - 'app/Http/Middleware/HandleInertiaRequests.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/jana-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -168,6 +182,8 @@ jobs:
             Modules/Jana/Tests/Feature/PeriodosControllerCrossTenantTest.php \
             Modules/Jana/Tests/Feature/FontesControllerCrossTenantTest.php \
             Modules/Jana/Tests/Feature/JanaAccessGateTest.php \
+            Modules/Jana/Tests/Feature/JanaPlanoTierTest.php \
+            Modules/Jana/Tests/Feature/JanaModuleChaveCanonicaTest.php \
             Modules/Jana/Tests/Feature/Console/JanaRagasFailuresNoSilentCapTest.php \
             Modules/Jana/Tests/Feature/Wave14GovernanceV3Test.php \
             Modules/Jana/Tests/Feature/CockpitMockRemovidoTest.php \
