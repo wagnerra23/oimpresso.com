@@ -527,7 +527,7 @@ function SidebarMenuItem({ item }: { item: ShellMenuItem }) {
           onClick={() => setIsOpen((v) => !v)}
           aria-expanded={isOpen}
         >
-          <Icon size={14} className="ic" />
+          <Icon size={16} strokeWidth={1.6} className="ic" />
           <span className="label">{item.label}</span>
           <ChevronRight size={11} className="sb-item-chev" style={{ opacity: 0.5 }} />
         </button>
@@ -554,7 +554,7 @@ function SidebarMenuItem({ item }: { item: ShellMenuItem }) {
 
   return (
     <a href={href} className="sb-item">
-      <Icon size={14} className="ic" />
+      <Icon size={16} strokeWidth={1.6} className="ic" />
       <span className="label">{item.label}</span>
     </a>
   );
@@ -609,7 +609,7 @@ function SidebarShortcuts({
         // primeira aba canon da Jana + destino pós-login). Chat acessível
         // via aba "Copiloto" do PageHeader + FAB.
         <a href="/ia/dashboard" className="sb-shortcut">
-          <Bot size={13} />
+          <Bot size={16} strokeWidth={1.6} />
           <span className="label">IA</span>
           {!!chatCount && <span className="badge">{chatCount}</span>}
         </a>
@@ -630,7 +630,7 @@ function SidebarShortcuts({
             className={`sb-shortcut${active ? ' active' : ''}`}
             aria-current={active ? 'page' : undefined}
           >
-            <LandingIcon size={13} />
+            <LandingIcon size={16} strokeWidth={1.6} />
             <span className="label">{item.label}</span>
           </a>
         );
@@ -639,13 +639,13 @@ function SidebarShortcuts({
         // Fusão 2026-06-16: atalho topo é o hub ÚNICO "Forja" → /forja (cockpit
         // do cowork loop que absorveu as telas do TeamMcp). Era "Equipe" → /team-mcp/team.
         <a href="/forja" className="sb-shortcut">
-          <Users size={13} />
+          <Users size={16} strokeWidth={1.6} />
           <span className="label">Forja</span>
         </a>
       )}
       {showAtendimento && (
         <a href="/atendimento" className="sb-shortcut">
-          <MessageCircle size={13} />
+          <MessageCircle size={16} strokeWidth={1.6} />
           <span className="label">Atendimento</span>
           {!!atendimentoCount && <span className="badge">{atendimentoCount}</span>}
         </a>

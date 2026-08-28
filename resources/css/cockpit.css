@@ -438,7 +438,7 @@
   background: var(--sb-text-dim);
   flex: 0 0 auto;
 }
-.cockpit .sb-item .ic { width: 14px; height: 14px; flex: 0 0 auto; opacity: .85; }.cockpit .sb-item .label { flex: 1 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }.cockpit .sb-item .badge {
+.cockpit .sb-item .ic { width: 16px; height: 16px; flex: 0 0 auto; opacity: .85; }.cockpit .sb-item .label { flex: 1 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }.cockpit .sb-item .badge {
   font-size: 10.5px;
   font-weight: 600;
   background: var(--accent);
@@ -1711,11 +1711,11 @@
   align-items: center;
   gap: 10px;
   padding: 0 10px;
-  height: 30px;
+  height: 34px; /* 34/400 = design vigente; era 30/500, do protótipo da ADR 0039. Cor e tipo NÃO seguem o protótipo: são decididos na UI-0027. */
   border-radius: var(--radius-sm);
   font-family: var(--font-sans);
   font-size: var(--fs-4);
-  font-weight: 500;
+  font-weight: 400;
   color: var(--sb-text);
   text-decoration: none;
   transition: background 120ms;
@@ -1753,10 +1753,10 @@
 .cockpit .sb-group-h {
   display: flex;
   align-items: center;
-  gap: 6px;
-  width: calc(100% - 8px);
-  margin: 0 4px;
-  padding: 8px 6px 4px 8px;
+  gap: 8px;
+  width: 100%; /* era calc(100% - 8px), atrelado ao margin 4px que o design não tem */
+  margin: 0;
+  padding: 6px 10px;
   background: transparent;
   border: 0;
   border-radius: var(--radius-sm);
@@ -1764,7 +1764,7 @@
   font-family: var(--font-sans);
   font-size: var(--fs-1);
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em; /* = 0.6px do design (era .08em sobre 10.5px) */
   color: var(--sb-text-dim);
   text-transform: uppercase;
   text-align: left;
