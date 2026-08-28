@@ -38,7 +38,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 
 ## Goals
 
-- **Barra ÚNICA da área Jana** — `JanaAreaHeader` (em `Pages/Jana/components/`) É o `<PageHeader>` canon: título `Jana · Analista IA` + business/`biz=` + "Atualizado HH:MM" (botão de reapuração) na Zona L, `JanaSubNav` no slot `subnav`, ações da tela + primary "Conversar" na Zona R. Compartilhado com Chat.tsx e Memoria.tsx. Ver `memory/requisitos/Jana/Chat-header-tabs-visual-comparison.md` (gate F1.5).
+- **Barra ÚNICA da área Jana** — `JanaAreaHeader` (em `Pages/Jana/_components/`) É o `<PageHeader>` canon: título `Jana · Analista IA` + business/`biz=` + "Atualizado HH:MM" (botão de reapuração) na Zona L, `JanaSubNav` no slot `subnav`, ações da tela + primary "Conversar" na Zona R. Compartilhado com Chat.tsx e Memoria.tsx. Ver `memory/requisitos/Jana/Chat-header-tabs-visual-comparison.md` (gate F1.5).
 - Render < 200ms p95 com `Inertia::defer()` em `metas` paginated + `apuracoes` 12 janelas
 - Farol calculado server-side via `ApuracaoService::farol(meta, agora)` — frontend só consome
 - **Click em meta → drawer NA PRÓPRIA TELA** (`_components/JanaMetaDrawer.tsx`) com situação

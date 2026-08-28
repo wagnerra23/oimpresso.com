@@ -298,7 +298,7 @@ interface Proposta {
 - [`@/Layouts/AppShellV2`](../../../resources/js/Layouts/AppShellV2.tsx) — Cockpit shell único
 - [`@/Components/cockpit/Thread`](../../../resources/js/Components/cockpit/Thread.tsx) — `ThreadHeader` (já refinado pre-Sprint A)
 - [`./_components/AssistantUiChat`](../../../resources/js/Pages/Jana/_components/AssistantUiChat.tsx) — wrapper da lib `@assistant-ui/react` v0.10 via `ExternalStoreRuntime` (Thread + Composer + Stop + Markdown + edit/regenerate) — **movido** de `Components/copiloto/` pra colocation em `Pages/Jana/_components/`
-- [`./components/JanaAreaHeader`](../../../resources/js/Pages/Jana/components/JanaAreaHeader.tsx) — header sticky da área Jana com tabs Dashboard | Chat
+- [`./components/JanaAreaHeader`](../../../resources/js/Pages/Jana/_components/JanaAreaHeader.tsx) — header sticky da área Jana com tabs Dashboard | Chat
 - [`@/Components/ui/{button,card,badge}`](../../../resources/js/Components/ui/) — shadcn primitives
 - `sonner` — toast library (CTA escolher/rejeitar)
 

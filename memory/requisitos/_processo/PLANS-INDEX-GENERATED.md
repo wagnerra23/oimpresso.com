@@ -4,7 +4,7 @@
 > Fonte única: o plano é a verdade, este índice é derivado ([ADR 0256](../../decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md)). Execução mora no MCP via `parent_plan` ([ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md)). Frescor/órfão = sentinela `plan-health` (memory-health Check J).
 
 ## Saúde (derivada)
-- **7** planos registrados (com `## Status vivo`) · **23** pendentes de backfill (arquivo *plan* sem bloco)
+- **7** planos registrados (com `## Status vivo`) · **24** pendentes de backfill (arquivo *plan* sem bloco)
 - reviewed_at preenchido: **4/7** · vinculados a MCP (`parent_plan`): **4/7**
 - Por status: ativo 3 · proposto 3 · (vazio) 1
 - Inconsistências de schema: 4 — ver final
@@ -20,7 +20,7 @@
 | [OBSERVABILITY — Jana](../Jana/OBSERVABILITY.md) | Jana | proposto | W/C | 2026-07-28 | — | um caso real observado percorre trace → avaliação → revisão  |
 | [Plano — Atendimento Automático (WhatsApp / Caixa Unificada)](../Whatsapp/PLANO-ATENDIMENTO-AUTOMATICO.md) | Whatsapp | ativo | W | 2026-06-20 | `plano-atendimento-automatico` | E1+E3 com ≥5 clientes pagando JANA Pro (espelha gates da ADR |
 
-## Pendentes de `## Status vivo` (23) — backfill dirigido pela sentinela
+## Pendentes de `## Status vivo` (24) — backfill dirigido pela sentinela
 | Plano | Módulo |
 |---|---|
 | [DEPRECATION-PLAN — ADS](../ADS/DEPRECATION-PLAN.md) | ADS |
@@ -39,6 +39,7 @@
 | [Plano · Profissionalizar acesso do time (proteger fonte + controlar no](../Infra/PLANO-profissionalizar-acesso-time.md) | Infra |
 | [JANA Pro — Product Plan executivo (32 US, 4 sprints, 90 dias)](../Jana/JANA-PRO-PRODUCT-PLAN.md) | Jana |
 | [PLAN MWART — `metas/*` (Jana)](../Jana/PLAN-MWART-metas.md) | Jana |
+| [Jana — plano de conformidade ao DS (medido por 3 agentes em 2026-08-26](../Jana/PLANO-DS-CONFORMIDADE.md) | Jana |
 | [Onda 1 — Vendas, PDV & Caixa · PLANO (MWART Fase 1)](../Mwart/ONDA-1-VENDAS-PDV-CAIXA-PLANO.md) | Mwart |
 | [Plano de paralelização — OficinaAuto Fase 1 (pós-Martinho)](../OficinaAuto/demo-martinho-2026-05-13/plano-paralelizacao.md) | OficinaAuto |
 | [PaymentGateway Onda 5 SIMPLIFICADA — Dogfooding SaaS via gateway adici](../PaymentGateway/PLANO-ONDA5-SIMPLIFICADA.md) | PaymentGateway |
