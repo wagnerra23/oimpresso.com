@@ -53,6 +53,16 @@ tier: B
    `--compare` (2026-08-11), e 10 arquivos com fidelidade não provada em 2026-08-21 (PR #6123).
 2. **Mesmo tema nos dois lados.** O tema é o que o Wagner usa (hoje: dark). Comparar light×dark
    invalida D6 inteira.
+2b. **D0 · IDENTIDADE DA VIEW — antes de qualquer dimensão.**
+   `node prototipo-ui/design-diff.mjs --compare prod.json design.json --contrato prototipo-ui/contrato/<tela>.contract.json`
+   O `ancora.mjs` responde QUAL ARQUIVO é a âncora, **nunca QUAL VIEW dentro dele** — e medido em
+   2026-08-28 **38 telas compartilham âncora** (`ponto-telas.jsx` sozinho serve 17; `jana-merge.jsx`, 3).
+   O shell do Cowork carrega os protótipos JUNTOS, então "abrir a âncora" não diz em que tela você está.
+   Sem esta prova a comparação mede a TELA ERRADA e devolve veredito **plausível** — o pior erro, porque
+   não se denuncia. Sai **exit 2 = NÃO MEDI** (nunca 0) quando os lados não são a mesma tela.
+   O veredito é **relacional**: copy de shell (header, selo de plano) aparece em toda view, então o que
+   denuncia é a ASSIMETRIA entre os lados — no caso real que originou isto, `3 × 1`.
+
 3. **Mesma sonda, medida:** `node prototipo-ui/design-diff.mjs --probe` → injetar a sonda IGUAL
    nos dois renders via Chrome MCP (`window.__DD_ROLES` mapeia os seletores por papel: `.fin-stat`
    na prod × `.os-stat` no design) → salvar os 2 JSON → `--compare prod.json design.json --check`.

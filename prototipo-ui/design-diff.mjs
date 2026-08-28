@@ -61,6 +61,8 @@
  *   node prototipo-ui/design-diff.mjs --compare prod.json design.json          # relatório
  *   node prototipo-ui/design-diff.mjs --compare prod.json design.json --check  # exit 1 se DIVERGE(bug)
  *   node prototipo-ui/design-diff.mjs --compare prod.json design.json --json   # saída JSON
+ *   node prototipo-ui/design-diff.mjs --compare prod.json design.json --contrato <c.json>
+ *                                                                   # D0: prova que os 2 lados sao a MESMA tela
  *   node prototipo-ui/design-diff.mjs --selftest                    # fixture hermético (reproduz 07/07)
  */
 
@@ -311,6 +313,14 @@ export const PROBE_SOURCE = /* js */ `(() => {
   return {
     url: location.href,
     theme: document.documentElement.getAttribute('data-theme') || (document.documentElement.classList.contains('dark') ? 'dark' : 'light'),
+    // D0 — ASSINATURA da view. (Sem crase neste bloco: ele vive DENTRO do template
+    // string do PROBE_SOURCE, e uma crase aqui fecha a string no meio — foi o que
+    // quebrou o --probe em 2026-08-28.)
+    // Existe porque ancora.mjs responde QUAL ARQUIVO, nunca QUAL VIEW dentro dele:
+    // medido, 38 telas apontam pra uma âncora compartilhada (ponto-telas.jsx serve
+    // 17). Num shell que carrega vários protótipos juntos, comparar sem provar a
+    // view mede a TELA ERRADA e devolve veredito plausível — o pior tipo de erro.
+    assinatura: textoVisivel(document.body).slice(0, 20000),
     roles: { kpi, title, primary, filterRows: filterEls.length ? visualRows(filterEls) : null, contratos, celulas, tabela },
   };
 })()`;
@@ -664,11 +674,132 @@ export function rodadaDeFrescorCompleta(ledgerPath) {
   return { completa: true, motivo: `rodada completa em ${u.date} (${total} arquivos)` };
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+ * D0 — IDENTIDADE DA VIEW (pré-condição, não dimensão)
+ *
+ * POR QUE EXISTE. `ancora.mjs` responde QUAL ARQUIVO é a âncora — nunca QUAL VIEW
+ * dentro dele. Medido em 2026-08-28: 38 telas apontam pra uma âncora que desenha
+ * várias telas (ponto-telas.jsx sozinho serve 17; jana-merge.jsx, 3). O shell do
+ * Cowork carrega os protótipos JUNTOS, então "abrir a âncora" não diz em que tela
+ * você está. Sem esta trava, comparar mede a TELA ERRADA e devolve um veredito
+ * PLAUSÍVEL — o pior tipo de erro, porque nada nele denuncia o engano.
+ *
+ * Aconteceu comigo na mesma data: medi "3 KPIs no protótipo × 4 na prod" e ia
+ * reportar divergência, olhando a view do cockpit de cobrança em vez do Painel.
+ *
+ * COMO DECIDE. A copy pinada no `contrato/<tela>.contract.json` é a assinatura da
+ * tela — ela já é lei ([W] aprova copy) e já existe. Casamos as copies contra o
+ * texto visível de cada lado, case-insensitive e com espaço normalizado.
+ *
+ * O QUE NÃO É. Não mede fidelidade nem conta como dimensão: só responde "os dois
+ * lados são a MESMA tela?". Estado alternativo (vazio, sem-histórico, plano
+ * Grátis) legitimamente não aparece num render com dados — por isso o critério é
+ * PISO (≥1 casamento), não igualdade.
+ * ──────────────────────────────────────────────────────────────────────────── */
+const normalizar = (t) => String(t || '').replace(/\s+/g, ' ').trim().toLowerCase();
+
+export function copiesDoContrato(contrato) {
+  const secs = contrato?.secoes || contrato?.sections || [];
+  const out = [];
+  for (const s of secs) {
+    for (const c of (s.copy || s.copies || s.textos || [])) {
+      if (typeof c === 'string' && c.trim()) out.push({ secao: s.id || '?', copy: c });
+    }
+  }
+  return out;
+}
+
+export function verificarIdentidade(snap, contrato) {
+  const copies = copiesDoContrato(contrato);
+  if (!copies.length) return { estado: 'SEM-DADO', motivo: 'contrato sem copy pinada', achadas: 0, total: 0 };
+  if (typeof snap?.assinatura !== 'string') {
+    // Snapshot de sonda ANTERIOR ao D0. Não mente por omissão (mesma regra do D9).
+    return { estado: 'SEM-DADO', motivo: 'snapshot sem `assinatura` — re-injete a sonda atual (--probe)', achadas: 0, total: copies.length };
+  }
+  const corpo = normalizar(snap.assinatura);
+  const achadas = copies.filter((c) => corpo.includes(normalizar(c.copy)));
+  const faltando = copies.filter((c) => !corpo.includes(normalizar(c.copy)));
+  return {
+    // NÃO crava veredito sozinho: um lado isolado não responde "é a MESMA tela?".
+    // Medido ao vivo em 2026-08-28: a view Conversa casou 1/9 só por "plano Pro",
+    // copy do HEADER compartilhado — passaria num piso de >=1. O veredito é
+    // RELACIONAL e mora em `identidadeRelacional`.
+    estado: achadas.length >= 1 ? 'CASOU' : 'ZERO',
+    achadas: achadas.length,
+    total: copies.length,
+    quais: achadas.map((c) => c.copy),
+    faltando: faltando.map((c) => c.copy),
+  };
+}
+
+/**
+ * O veredito RELACIONAL — os dois lados são a MESMA tela?
+ *
+ * Copy de shell (header, sidebar, selo de plano) aparece em TODA view, então
+ * contagem absoluta não distingue. O que distingue é a ASSIMETRIA: se um lado
+ * casa as copies de seção e o outro só as do shell, eles não são a mesma tela.
+ *
+ * Critério (medido no caso real Painel×Conversa: 3 × 1):
+ *   · qualquer lado com ZERO           -> OUTRA-TELA
+ *   · menor < metade do maior E dif>=2 -> OUTRA-TELA  (assimetria estrutural)
+ *   · senão                            -> OK
+ * O `dif>=2` evita acusar 2×1 e 1×0.5, onde a diferença cabe em ruído de estado.
+ */
+export function identidadeRelacional(vProd, vDesign) {
+  if (vProd.estado === 'SEM-DADO' || vDesign.estado === 'SEM-DADO') {
+    return { estado: 'SEM-DADO', motivo: vProd.motivo || vDesign.motivo };
+  }
+  const a = vProd.achadas, b = vDesign.achadas;
+  if (a === 0 || b === 0) {
+    return { estado: 'OUTRA-TELA', motivo: 'um dos lados nao casou NENHUMA copy do contrato' };
+  }
+  const menor = Math.min(a, b), maior = Math.max(a, b);
+  if (menor * 2 < maior && (maior - menor) >= 2) {
+    return { estado: 'OUTRA-TELA', motivo: 'assimetria estrutural: ' + a + ' x ' + b + ' copies — um lado so casou copy de shell' };
+  }
+  return { estado: 'OK', motivo: a + ' x ' + b + ' copies' };
+}
+
 function runCompare(argv) {
   const files = argv.filter((a) => !a.startsWith('--'));
   if (files.length < 2) { console.error('uso: --compare <prod.json> <design.json>'); process.exit(2); }
   const prodSnap = JSON.parse(readFileSync(files[0], 'utf8'));
   const designSnap = JSON.parse(readFileSync(files[1], 'utf8'));
+
+  // ── D0 · IDENTIDADE — os dois lados são a MESMA tela? ─────────────────────
+  // Roda ANTES de qualquer dimensão: comparar telas diferentes produz veredito
+  // plausível e errado. Opt-in por --contrato (não quebra uso existente), mas
+  // quando passado é FAIL-CLOSED — mesmo vocabulário da guarda de proveniência
+  // logo abaixo: exit 2 = NÃO MEDI, nunca 0.
+  const iContrato = argv.indexOf('--contrato');
+  if (iContrato !== -1) {
+    const arq = argv[iContrato + 1];
+    if (!arq || arq.startsWith('--')) { console.error('uso: --contrato <arquivo.contract.json>'); process.exit(2); }
+    const contrato = JSON.parse(readFileSync(arq, 'utf8'));
+    const lados = [['prod', prodSnap], ['design', designSnap]];
+    const vereditos = lados.map(([nome, snap]) => [nome, verificarIdentidade(snap, contrato)]);
+    console.log('');
+    console.log('  D0 · IDENTIDADE DA VIEW  (contrato: ' + arq + ')');
+    for (const [nome, v] of vereditos) {
+      console.log('    ' + nome.padEnd(7) + v.estado.padEnd(11) + v.achadas + '/' + v.total + ' copies'
+        + (v.motivo ? '  — ' + v.motivo : '')
+        + (v.quais && v.quais.length ? '  ✓ ' + v.quais.slice(0, 2).join(' · ') : ''));
+    }
+    const rel = identidadeRelacional(vereditos[0][1], vereditos[1][1]);
+    console.log('    veredito ' + rel.estado + '  — ' + (rel.motivo || ''));
+    const ruins = rel.estado === 'OK' ? [] : [['identidade', rel]];
+    if (ruins.length) {
+      console.error('');
+      console.error('  ⛔ NÃO MEDI — identidade da view não provada: ' + (rel.motivo || rel.estado));
+      console.error('     Nenhuma copy pinada do contrato apareceu no render, ou a sonda é anterior ao D0.');
+      console.error('');
+      console.error('  Isto NÃO é divergência de fidelidade: é sinal de que o render pode ser OUTRA TELA.');
+      console.error('  O shell do Cowork carrega vários protótipos juntos, e 38 telas compartilham âncora.');
+      console.error('  Navegue até a view certa (ou re-injete a sonda atual) e rode de novo.');
+      process.exit(2);
+    }
+  }
+
   const res = compare(prodSnap, designSnap);
   if (argv.includes('--json')) { console.log(JSON.stringify(res, null, 2)); }
   else {
@@ -730,6 +861,38 @@ function selftest() {
     ['D6 pega texto KPI escuro no dark', has('D6', 'kpi texto')],
     ['D4 pega VALOR do KPI (campo que a sonda media e o compare ignorava)', has('D4', 'kpi valor')],
     ['--check sairia 1 (tem bug)', res.bugs > 0],
+
+    // ── D0 · IDENTIDADE — bite-test: MORDE na view errada, PASSA na certa.
+    // Gate que só sabe passar é carimbo; por isso o caso negativo vem junto.
+    ...(() => {
+      const contrato = { secoes: [
+        { id: 'painel-metas-header', copy: ['Metas ativas', 'Acompanhamento contínuo'] },
+        { id: 'painel-meta-apurando', copy: ['Aguardando apuração…'] },
+      ] };
+      // BOA: a view certa. Só UMA copy casa — é o PISO, de propósito: estado
+      // alternativo (vazio, sem-histórico) legitimamente não renderiza com dados.
+      const boa = { assinatura: 'METAS ATIVAS mai/2026 Faturamento mensal Aguardando apuração…' };
+      // RUIM: outra tela do MESMO shell — foi exatamente o engano de 2026-08-28.
+      const ruim = { assinatura: 'RECEITA MÊS R$ 47k A RECEBER VENCIDO TICKET MÉDIO' };
+      // ANTIGA: sonda anterior ao D0 — não pode virar OK por omissão.
+      const antiga = { roles: {} };
+      const vB = verificarIdentidade(boa, contrato);
+      const vR = verificarIdentidade(ruim, contrato);
+      const vA = verificarIdentidade(antiga, contrato);
+      return [
+        ['D0 PASSA quando os dois lados sao a mesma tela', identidadeRelacional(vB, vB).estado === 'OK'],
+        ['D0 MORDE view errada que casa ZERO copy', identidadeRelacional(vB, vR).estado === 'OUTRA-TELA'],
+        ['D0 nao mente com sonda antiga (SEM-DADO, nao OK)', identidadeRelacional(vB, vA).estado === 'SEM-DADO'],
+        ['D0 e case/espaco-insensivel (METAS ATIVAS = Metas ativas)', vB.quais.includes('Metas ativas')],
+        // O CASO QUE ME PEGOU AO VIVO em 2026-08-28: a view errada casou 1 copy —
+        // "plano Pro", do HEADER compartilhado — e passaria num piso de >=1.
+        // Só a ASSIMETRIA (3 x 1) a denuncia. Sem este caso o gate seria carimbo.
+        ['D0 MORDE view errada que casa so copy de SHELL (3 x 1)',
+          identidadeRelacional({ estado: 'CASOU', achadas: 3 }, { estado: 'CASOU', achadas: 1 }).estado === 'OUTRA-TELA'],
+        ['D0 NAO acusa diferenca pequena (3 x 2, ruido de estado)',
+          identidadeRelacional({ estado: 'CASOU', achadas: 3 }, { estado: 'CASOU', achadas: 2 }).estado === 'OK'],
+      ];
+    })(),
   ];
   // controle: dois lados IGUAIS não acusam bug
   const eq = compare(design, design);
