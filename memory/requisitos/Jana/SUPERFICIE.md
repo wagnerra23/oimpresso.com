@@ -321,8 +321,8 @@ module: Jana
 - [JanaMetaDrawer.tsx](../../../resources/js/Pages/Jana/_components/JanaMetaDrawer.tsx)
 - [JanaPlanoBadge.tsx](../../../resources/js/Pages/Jana/_components/JanaPlanoBadge.tsx)
 - [JanaSubNav.tsx](../../../resources/js/Pages/Jana/_shared/JanaSubNav.tsx)
-- [FabJana.tsx](../../../resources/js/Pages/Jana/components/FabJana.tsx)
-- [JanaAreaHeader.tsx](../../../resources/js/Pages/Jana/components/JanaAreaHeader.tsx)
+- [FabJana.tsx](../../../resources/js/Pages/Jana/_components/FabJana.tsx)
+- [JanaAreaHeader.tsx](../../../resources/js/Pages/Jana/_components/JanaAreaHeader.tsx)
 
 ## Charters (lei da tela) — 4
 

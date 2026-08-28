@@ -189,7 +189,7 @@
     "resources/js/Pages/Jana/Pro.tsx|no-restricted-syntax": 3,
     "resources/js/Pages/Jana/_components/AssistantUiChat.tsx|@typescript-eslint/no-explicit-any": 2,
     "resources/js/Pages/Jana/_shared/JanaSubNav.tsx|@typescript-eslint/no-explicit-any": 1,
-    "resources/js/Pages/Jana/components/JanaAreaHeader.tsx|no-restricted-syntax": 1,
+    "resources/js/Pages/Jana/_components/JanaAreaHeader.tsx|no-restricted-syntax": 1,
     "resources/js/Pages/Modules/Index.tsx|no-restricted-syntax": 2,
     "resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx|@typescript-eslint/no-unused-vars": 4,
     "resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx|no-restricted-syntax": 8,

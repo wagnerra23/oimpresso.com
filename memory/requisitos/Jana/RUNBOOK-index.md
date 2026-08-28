@@ -358,7 +358,7 @@ interface Apuracao {
 - [`@/Components/ui/button`](../../../resources/js/Components/ui/button.tsx) — shadcn Button (R-DS-001)
 - [`@/Components/ui/card`](../../../resources/js/Components/ui/card.tsx) — shadcn Card primitives
 - [`@/Components/ui/badge`](../../../resources/js/Components/ui/badge.tsx) — shadcn Badge
-- [`./components/FabJana`](../../../resources/js/Pages/Jana/components/FabJana.tsx) — FAB local do módulo
+- [`./components/FabJana`](../../../resources/js/Pages/Jana/_components/FabJana.tsx) — FAB local do módulo
 
 ### Ícones (lucide-react — R-DS-003)
 
