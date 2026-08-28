@@ -130,7 +130,7 @@ export function abaixoDoPiso(precoDigitado: number, precoTabela: number): boolea
  * limite só, e ele mora no `abaixoDoPiso`.
  *
  * ⚠️ DIVERGE DA ÂNCORA, de propósito: o protótipo crava `58,40` como menor preço
- * (número digitado à mão na cena) e por isso mostra "R$ 10,50 acima". Aqui o piso
+ * (número digitado à mão na cena) e por isso anuncia folga MAIOR. Aqui o piso
  * sai da REGRA que já existe no repo — 85% da tabela, `PISO_DA_TABELA`, a mesma
  * que o `LancarItem` usa desde antes desta aba. Seguir o 58,40 literal criaria
  * duas alçadas contraditórias na mesma tela. Com a regra: piso 58,57, folga 10,34.

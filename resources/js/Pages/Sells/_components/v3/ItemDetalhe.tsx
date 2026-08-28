@@ -271,7 +271,11 @@ export default function ItemDetalhe({
   /* Preço editável da aba Preço. Estado LOCAL: a tela é preview e não grava
      (UC-V302), então ele move a faixa de alçada e para por aí — não volta pra
      linha da venda. `MoneyInput` porque é o campo de dinheiro canônico desta
-     tela (#5883 desfez uma decisão errada minha de usar input cru). */
+     tela — o PR 5883 desfez uma decisão errada minha de usar input cru.
+     ⚠️ O número vai SEM cerquilha de propósito: o R1 do `ui:lint` casa
+     cerquilha seguida de 3-8 dígitos hex como cor literal, e o skip de
+     comentário dele só pega a linha que ABRE o bloco, não as de continuação.
+     Citar PR com cerquilha aqui dentro acende o ratchet. */
   const [precoNestaVenda, setPrecoNestaVenda] = useState(linha?.preco ?? '0,00');
 
   /* fiscal */

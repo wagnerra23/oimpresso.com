@@ -709,7 +709,9 @@ O caminho B **reprovou na primeira execução, e o errado era ele**: faltava o a
 intermediário a centavo (devolvia 58,565 onde a função devolve 58,57). Fica registrado no
 próprio teste, porque é o mecanismo funcionando, não uma nota de rodapé.
 
-Cena do controller: tabela **68,90** → piso **58,57** (85%) → folga **R$ 10,34**.
+Cena do controller: tabela **68,90** → piso **58,57** (85%). Os valores em reais desta cena
+vivem nas asserções de [`item-alcada.test.ts`](../../../../tests/js/item-alcada.test.ts) — é lá
+que eles são **provados**, e doc canônico não restateia número que outro sistema sabe melhor.
 
 ---
 
@@ -727,7 +729,7 @@ liberado pelo cru e seria barrado pelo exibido — a mesma tela diria duas coisa
 preço, com o modal liberando e o drawer travando. Um limite só, e ele mora no `abaixoDoPiso`.
 
 ⚠️ **DIVERGE DA ÂNCORA, declarado:** o protótipo crava `58,40` como menor preço (número
-digitado na cena) e por isso mostra *"R$ 10,50 acima"*. Aqui o piso sai da **regra que já
+digitado na cena) e por isso anuncia uma folga MAIOR que a nossa. Aqui o piso sai da **regra que já
 existe no repo** — `PISO_DA_TABELA = 0.85`, em [`calculo-item.ts`](../_components/v3/calculo-item.ts),
 usada pelo `LancarItem`. Seguir o 58,40 literal criaria duas alçadas contraditórias na mesma tela.
 
