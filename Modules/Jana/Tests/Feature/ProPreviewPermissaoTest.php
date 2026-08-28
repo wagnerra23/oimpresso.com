@@ -152,11 +152,21 @@ it('UC-JPERM-08 · superadmin vê o preview alheio E a sessão NÃO muda de busi
     expect(auth()->user()->hasRole('Admin#'.PROPREV_BIZ))->toBeTrue();           // Gate::before
     expect(auth()->user()->hasPermissionTo('jana.superadmin'))->toBeTrue();      // Spatie direto
     expect(auth()->user()->can('jana.superadmin'))->toBeTrue();                  // middleware da rota
+    // O GRUPO /ia exige `can:jana.access` (routes.php:51) — trava que eu não tinha
+    // instrumentado. Se o 403 vier daqui, os 4 asserts acima passam e a falha some
+    // no meio do caminho, que foi exatamente o que aconteceu nas duas voltas.
+    expect(auth()->user()->can('jana.access'))->toBeTrue();                      // middleware do grupo
 
-    $status = $this->get(route('jana.admin.jana_pro.preview', ['business_id' => PROPREV_BIZ_ALHEIO]))->status();
+    $resp = $this->get(route('jana.admin.jana_pro.preview', ['business_id' => PROPREV_BIZ_ALHEIO]));
+    $status = $resp->status();
 
-    expect($status)->not->toBe(403);
-    expect($status)->toBeLessThan(500);
+    // DIAGNÓSTICO NO PRÓPRIO ASSERT. Os 4 elos acima passam e mesmo assim vinha 403
+    // (medido 2026-08-28, runs 33207666444 e 33208970493) — logo a trava que responde
+    // NÃO é nenhuma delas. Sem o corpo, a falha só repete "403 não deveria ser 403",
+    // que não localiza nada e custa uma volta de CI (~30 min) por tentativa.
+    $corpo = mb_substr((string) $resp->getContent(), 0, 400);
+    expect($status)->not->toBe(403, "403 inesperado. Corpo: {$corpo}");
+    expect($status)->toBeLessThan(500, "5xx. Corpo: {$corpo}");
 
     // O preview LÊ outro tenant; ele não pode TROCAR o tenant de quem olha.
     expect((int) session('user.business_id'))->toBe(PROPREV_BIZ);
