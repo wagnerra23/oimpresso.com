@@ -232,6 +232,14 @@
     "baseline": "it_Ponto_Configuracoes_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
+    "screen": "Ponto/Dashboard",
+    "source": "Ponto/Dashboard",
+    "component": "Ponto/Dashboard/Index",
+    "route": "/ponto",
+    "anchor": "com controle de ponto",
+    "baseline": "it_Ponto_Dashboard_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
     "screen": "Fiscal/Cockpit",
     "source": "Fiscal/Cockpit",
     "component": "Fiscal/Cockpit",
