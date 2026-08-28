@@ -2,9 +2,13 @@
 
 declare(strict_types=1);
 
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Modules\Jana\Http\Controllers\DataController;
 
-uses(Tests\TestCase::class);
+// DatabaseTransactions porque o ultimo caso ESCREVE em `subscriptions` pra medir o
+// comportamento nos dois estados (com e sem a chave). Sem isso o teste deixaria o
+// pacote alterado no banco da lane.
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * O TIER da Jana (`jana_pro_module`) é um eixo SEPARADO do módulo (`jana_module`).
@@ -53,22 +57,26 @@ it('o painel de pacotes declara os DOIS eixos, e o tier nao substitui o modulo',
     expect(count($chaves))->toBeGreaterThanOrEqual(2);
 })->group('jana');
 
-it('o selo de plano le o TIER, e o gate da area continua lendo o MODULO', function () {
+it('o selo NAO usa hasThePermissionInSubscription — aquele metodo tem bypass de superadmin', function () {
     $middleware = file_get_contents(base_path('app/Http/Middleware/HandleInertiaRequests.php'));
 
-    // Extrai a chave de cada `hasThePermissionInSubscription(...)` do arquivo.
-    preg_match_all(
-        '/hasThePermissionInSubscription\s*\(\s*[^,]+,\s*[\'"]([a-z0-9_]+_module)[\'"]/i',
+    $ok = preg_match(
+        '/private function janaPlanoPro\(int \$businessId\): bool\s*\{(.+?)\n    \}/s',
         $middleware,
-        $m
+        $corpo
     );
-    $chaves = array_values(array_unique($m[1]));
+    expect($ok)->toBe(1, 'metodo janaPlanoPro nao encontrado — o assert abaixo mediria o vazio');
 
-    // Controle-positivo: regex que para de casar viraria "0 chaves" e passaria calado.
-    expect($chaves)->not->toBeEmpty();
+    // O bypass: `ModuleUtil::hasThePermissionInSubscription()` abre com
+    // `if (auth()->user()->can('superadmin')) return true`. Correto pro que ELE responde
+    // (*este usuario pode ver o modulo?*); errado pro que o SELO afirma (*qual o plano
+    // deste business?*). Medido em prod 2026-08-28: devolveu true pra chave AUSENTE e
+    // ate pra chave inventada, quando o logado era superadmin.
+    expect($corpo[1])->not->toContain('hasThePermissionInSubscription');
+    expect($corpo[1])->toContain('active_subscription');
 
-    expect($chaves)->toContain('jana_module');      // sidebarShortcuts()['ia']
-    expect($chaves)->toContain('jana_pro_module');  // janaPlanoPro()
+    // O eixo do MODULO continua usando o metodo — la o bypass e desejado.
+    expect($middleware)->toContain("'jana_module'");
 })->group('jana');
 
 it('o fail-safe do tier e false — na duvida o header diz Gratis, nunca Pro', function () {
@@ -88,4 +96,63 @@ it('o fail-safe do tier e false — na duvida o header diz Gratis, nunca Pro', f
     // quem é, não. O degrade tem de cair pro lado barato.
     expect($corpo[1])->toContain('return false;');
     expect($corpo[1])->not->toContain('return true;');
+})->group('jana');
+
+it('superadmin SEM a chave no pacote NAO ve Pro — o plano e do business, nao de quem olha', function () {
+    $business = \App\Business::query()->first();
+    if (! $business) {
+        test()->markTestSkipped('Sem business no banco — rode o seeder antes.');
+    }
+    if (! class_exists(\Modules\Superadmin\Entities\Subscription::class)) {
+        test()->markTestSkipped('Modulo Superadmin ausente.');
+    }
+
+    // Chama o metodo REAL (privado) — e o comportamento, nao a fonte. Foi esta lacuna
+    // que deixou o bypass passar: a 1a versao deste arquivo so assertava STRINGS.
+    $chamar = function (int $bizId): bool {
+        $mw = new \App\Http\Middleware\HandleInertiaRequests();
+        $m  = new \ReflectionMethod($mw, 'janaPlanoPro');
+        $m->setAccessible(true);
+
+        return (bool) $m->invoke($mw, $bizId);
+    };
+
+    $sub = \Modules\Superadmin\Entities\Subscription::active_subscription($business->id);
+    if (empty($sub)) {
+        test()->markTestSkipped('Business sem assinatura ativa — nada a medir.');
+    }
+
+    $detalhes = (array) ($sub->package_details ?? []);
+    $original = $detalhes;
+
+    // (a) SEM a chave -> false, mesmo com um superadmin logado.
+    unset($detalhes['jana_pro_module']);
+    $sub->package_details = $detalhes;
+    $sub->save();
+
+    $superadmin = \App\User::query()->where('business_id', $business->id)->get()
+        ->first(fn ($u) => $u->can('superadmin'));
+
+    if ($superadmin) {
+        auth()->login($superadmin);
+    }
+
+    expect($chamar((int) $business->id))->toBeFalse();
+
+    // (b) COM a chave -> true. O controle positivo: sem ele, um metodo que devolvesse
+    // `false` sempre passaria no assert acima por acidente.
+    $detalhes['jana_pro_module'] = '1';
+    $sub->package_details = $detalhes;
+    $sub->save();
+
+    expect($chamar((int) $business->id))->toBeTrue();
+
+    // Restaura o estado exato — o teste roda em DatabaseTransactions, mas o rollback
+    // nao e desculpa pra deixar escrita pendurada.
+    $sub->package_details = $original;
+    $sub->save();
+
+    if ($superadmin) {
+        auth()->logout();
+    }
 })->group('jana');

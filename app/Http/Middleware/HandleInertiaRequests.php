@@ -526,31 +526,63 @@ class HandleInertiaRequests extends Middleware
     }
 
     /**
-     * Tier do módulo Jana pra este business — `jana_pro_module` no pacote.
+     * Tier do módulo Jana pra este business — `jana_pro_module` na assinatura ativa.
      *
-     * EIXO DIFERENTE de `sidebarShortcuts()['ia']`, que lê `jana_module`. Aquele é
-     * binário (*o business tem a Jana*); este é o plano DENTRO dela. Os dois são
-     * independentes por construção: dá pra ter a Jana sem o Pro (o caso comum), e o
-     * inverso — Pro marcado sem o módulo — é incoerência que a UI do superadmin não
-     * impede e que aqui não tento consertar: quem não tem `jana_module` não vê a área,
-     * logo não vê o selo, e o tier fica inerte em vez de mentir.
+     * ⚠️ LÊ A ASSINATURA DIRETO, e NÃO via `ModuleUtil::hasThePermissionInSubscription()`.
+     * Aquele método começa com `if (auth()->user()->can('superadmin')) return true` —
+     * correto pro que ele responde (*este usuário pode ver o módulo?*), e ERRADO pra
+     * pergunta do selo (*qual o plano deste business?*). Medido em produção 2026-08-28,
+     * com controle negativo: como superadmin ele devolveu `true` para `jana_pro_module`
+     * com a chave AUSENTE do `package_details`, e devolveu `true` até para uma chave
+     * inventada (`zzz_inexistente_module`); como usuário comum, `false`. O efeito no ar
+     * foi o header anunciar "plano Pro" para os 3 superadmins em QUALQUER business —
+     * exatamente o "afirmar um estado que o sistema não sabe" que a `PARIDADE` §8.1
+     * dava como razão do bloqueio.
      *
-     * Fail-safe é `false`, não `true`: ao contrário do `shortcuts` (onde o back-compat
-     * é mostrar o atalho), aqui o erro caro é o oposto — afirmar Pro para quem não é.
-     * Sem pacote legível, o header mostra `plano Grátis`, que é o estado de quem não
-     * comprou nada.
+     * O plano é do BUSINESS. Não muda com quem está olhando.
      *
-     * Billing real (assinatura Asaas, trial→pago) segue Sprint JANA-B — ADR 0140,
-     * US-COPI-211/212. Isto é concessão manual por pacote, como qualquer outro módulo.
+     * EIXO DIFERENTE de `sidebarShortcuts()['ia']`, que lê `jana_module` e ali o bypass
+     * de superadmin é DESEJADO — superadmin vê o módulo de todo mundo. Por isso aquele
+     * segue com `hasThePermissionInSubscription` e este não.
+     *
+     * Fail-safe é `false`: sem assinatura ativa, sem o módulo Superadmin instalado ou
+     * com erro de leitura, o header diz "plano Grátis" — o estado de quem não comprou.
+     * Afirmar Pro a quem não é promete recurso pago; o inverso apenas omite.
+     *
+     * Billing real (Asaas, trial→pago) segue Sprint JANA-B — ADR 0140, US-COPI-211/212.
      */
     private function janaPlanoPro(int $businessId): bool
     {
         try {
-            return (bool) (new \App\Utils\ModuleUtil())->hasThePermissionInSubscription(
-                $businessId,
-                'jana_pro_module',
-                'superadmin_package'
-            );
+            if (! class_exists(\Modules\Superadmin\Entities\Subscription::class)) {
+                return false;
+            }
+
+            // O `@var` remenda um docblock ERRADO do dono, e não uma inferência ruim
+            // daqui: `Subscription::active_subscription()` declara `@return Response`
+            // (`Modules/Superadmin/Entities/Subscription.php`), classe que não existe
+            // naquele namespace — o PHPStan resolvia `package_details` numa classe
+            // fantasma e ainda concluía que o retorno nunca é nulo, apagando o meu
+            // guard. O método devolve `->first()`, que é `self|null`. Consertar o
+            // docblock na origem é o certo, mas é arquivo de outro módulo com N
+            // consumidores: vai como achado do PR, não carona neste fix.
+            /** @var \Modules\Superadmin\Entities\Subscription|null $assinatura */
+            $assinatura = \Modules\Superadmin\Entities\Subscription::active_subscription($businessId);
+
+            // `instanceof` e não `empty()`: com o tipo corrigido acima, o `empty()` de
+            // um objeto é sempre falso e o PHPStan reprova a checagem como morta.
+            if (! $assinatura instanceof \Modules\Superadmin\Entities\Subscription) {
+                return false;
+            }
+
+            // Sem `is_array()`: o model declara cast `array` pra `package_details`, então
+            // o PHPStan (Larastan lê o cast) reprova a checagem como sempre-verdadeira. Em
+            // runtime a coluna é nullable, e é o `empty()` que cobre isso — ele suprime o
+            // acesso a índice de null em vez de emitir warning, que é exatamente o
+            // comportamento documentado dele.
+            $detalhes = $assinatura->package_details;
+
+            return ! empty($detalhes['jana_pro_module']);
         } catch (\Throwable $e) {
             return false;
         }
