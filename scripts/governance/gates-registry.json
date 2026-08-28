@@ -627,11 +627,10 @@
       "promote_by": "2026-09-30"
     },
     "required-always-run.yml": {
-      "nome": "Required always-run (advisory · todo context required nasce em todo PR · anti-deadlock de required-readiness)",
+      "nome": "Required always-run (todo context required nasce em todo PR · anti-deadlock de required-readiness)",
       "classe": "governanca",
-      "terminal": "advisory",
-      "anchor": "Deadlock de required-readiness — proibicoes.md §Ambiente (2026-07-02: main BLOCKED com 54/54 verdes) + ADR 0271 onda 2 (item 4). O buraco medido: um context required cujo workflow tem paths:/paths-ignore: no pull_request NAO fica vermelho, ele NAO NASCE — o PR trava em \"Expected — waiting for status\" e a trava e do BRANCH, logo pega o repo inteiro. O protection-drift.mjs cobre nome/baseline/mojibake e NAO confere alcancabilidade do workflow dono do context. Bite-test no incidente REAL (2026-08-05): a branch do PR #5069 promove module-surface a required mantendo paths: no gatilho → 2 contexts filtrados, exit 1; contra main → 40 contexts, 40 always-run, 0 filtrados. FP medido ANTES de armar: 0 em 40 contexts required do corpus real (0 nao-resolvidos apos resolver name literal + job id + expansao de matrix). Selftest 12 asserts, incl. o par CRLF que pegou o lint cego (o $ do JS em /m nao casa antes de \r\n; sem esse par o selftest ficava 100% verde com o bloco on: vindo vazio).",
-      "promote_by": "2026-09-05"
+      "terminal": "required",
+      "anchor": "Deadlock de required-readiness — proibicoes.md §Ambiente (2026-07-02: main BLOCKED com 54/54 verdes) + ADR 0271 onda 2 (item 4). O buraco medido: um context required cujo workflow tem paths:/paths-ignore: no pull_request NAO fica vermelho, ele NAO NASCE — o PR trava em \"Expected — waiting for status\" e a trava e do BRANCH, logo pega o repo inteiro. O protection-drift.mjs cobre nome/baseline/mojibake e NAO confere alcancabilidade do workflow dono do context. Bite-test no incidente REAL (2026-08-05): a branch do PR #5069 promove module-surface a required mantendo paths: no gatilho → 2 contexts filtrados, exit 1; contra main → 40 contexts, 40 always-run, 0 filtrados. FP medido ANTES de armar: 0 em 40 contexts required do corpus real (0 nao-resolvidos apos resolver name literal + job id + expansao de matrix). Selftest 12 asserts, incl. o par CRLF que pegou o lint cego (o $ do JS em /m nao casa antes de \r\n; sem esse par o selftest ficava 100% verde com o bloco on: vindo vazio)."
     },
     "verticais-pest.yml": {
       "nome": "Verticais · Pest (MySQL) — ComunicacaoVisual/Repair/Vestuario rodam no MySQL real (skip no sqlite = verde mente); catraca allowlist verde",
