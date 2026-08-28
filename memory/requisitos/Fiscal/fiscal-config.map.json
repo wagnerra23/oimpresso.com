@@ -1,20 +1,29 @@
 {
   "version": "1",
-  "_doc": "Mapa por região; contrato e verificação vivem em gerar-map.mjs e design-code-map-check.mjs.",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Fiscal/Config (/fiscal/config)",
   "gap_fonte": "memory/requisitos/Fiscal/fiscal-config-gap.md",
   "prototipo_sha": "sha256:1c323c8f7ae4",
   "gerado_em": "2026-08-28",
+  "partes": [
+    {
+      "id": "certificado-e-regime",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/fiscal-subpages.jsx",
+        "linhas": "257-288"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Fiscal/Config.tsx",
+        "linhas": "281-346",
+        "ancora": "fiscal-config-cert-regime"
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. Dos 4 cards do protótipo (fiscal-subpages.jsx:257-288), 1 não existe no Config.tsx (\"Envio de documentos\", 0 ocorrências em 573 linhas) e 2 existem fora da região ancorada (regime :469-470, tributação default :483-488). Construir o que falta, reancorar a região, ou rejeitar por escrito.",
+      "_acionavel": true
+    }
+  ],
   "mapping": {
     "source": "fiscal-page.jsx",
     "target": "resources/js/Pages/Fiscal/Config.tsx"
-  },
-  "partes": [{
-    "id": "certificado-e-regime",
-    "prototipo": { "arquivo": "prototipo-ui/cowork/fiscal-subpages.jsx", "linhas": "257-288" },
-    "vivo": { "arquivo": "resources/js/Pages/Fiscal/Config.tsx", "linhas": "281-346", "ancora": "fiscal-config-cert-regime" },
-    "status": "gap-parcial",
-    "acao": "Decidir. O protótipo tem 4 cards (fiscal-subpages.jsx:257-288) e a região viva ancorada tem 2; \"Envio de documentos\" não existe no Config.tsx, e o bloco de regime está em Config.tsx:469-470, fora da região ancorada. Construir, reancorar ou rejeitar por escrito.",
-    "_acionavel": true
-  }]
+  }
 }

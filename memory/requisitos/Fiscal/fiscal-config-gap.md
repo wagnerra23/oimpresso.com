@@ -11,4 +11,4 @@ comparacao: memory/requisitos/Fiscal/fiscal-config-visual-comparison.md
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|
-| Certificado e regime | Card do certificado presente; 2 dos 4 cards do protótipo ausentes; bloco de regime fora da região ancorada | **Decidir.** O protótipo tem 4 cards (fiscal-subpages.jsx:257-288) e a região viva ancorada tem 2; "Envio de documentos" não existe no Config.tsx, e o bloco de regime está em Config.tsx:469-470, fora da região ancorada. Construir, reancorar ou rejeitar por escrito. |
+| Certificado e regime | Card do certificado na região ancorada; regime e tributação default existem FORA dela (Config.tsx:469-488); "Envio de documentos" não existe no arquivo | **Decidir.** Dos 4 cards do protótipo (fiscal-subpages.jsx:257-288), 1 não existe no Config.tsx ("Envio de documentos", 0 ocorrências em 573 linhas) e 2 existem fora da região ancorada (regime :469-470, tributação default :483-488). Construir o que falta, reancorar a região, ou rejeitar por escrito. |
