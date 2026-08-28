@@ -82,6 +82,10 @@ const texto = (
 ): ColumnDef<LinhaDaGrade, unknown> => ({
   id,
   header,
+  // `accessorFn` NÃO é decoração: o `getCanSort()` do TanStack exige um accessor, e sem
+  // ele o `enableSorting` é inerte — o cabeçalho renderiza como texto morto. Medido em
+  // produção depois do #6392: os 5 `th` saíram com `botao:0` apesar do enableSorting.
+  accessorFn: (row) => row[id] ?? '',
   enableSorting: ordenavel,
   cell: ({ row }) => <>{(row.original[id] as string) || '—'}</>,
   meta: width ? { width } : undefined,
@@ -90,6 +94,7 @@ const texto = (
 const colunaData = (id: 'vencimento' | 'data', header: string): ColumnDef<LinhaDaGrade, unknown> => ({
   id,
   header,
+  accessorFn: (row) => row[id] ?? '',
   enableSorting: true,
   cell: ({ row }) => <>{dia(row.original[id])}</>,
   meta: { width: 120, mono: true },
@@ -106,6 +111,7 @@ const colunaSituacao = (kind: string): ColumnDef<LinhaDaGrade, unknown> => ({
 const colunaValor = (id: 'devido' | 'total', header: string): ColumnDef<LinhaDaGrade, unknown> => ({
   id,
   header,
+  accessorFn: (row) => row[id] ?? 0,
   enableSorting: true,
   cell: ({ row }) => {
     const v = row.original[id];
