@@ -327,6 +327,56 @@ function Contrapartidas({ totals }: { totals: Totals }) {
  * Os 2 gráficos da Visão geral. Lê `charts` DEPOIS do first paint (Deferred).
  * O <Chart> é o do DS portado 1:1 — SVG puro, sem lib.
  */
+/**
+ * SerieAcessivel — a MESMA série do gráfico, em texto, só pra leitor de tela.
+ *
+ * O `<Chart>` desenha em SVG: quem não enxerga o desenho não recebe número
+ * nenhum. O `aria-label` do `PainelGrafico` anuncia o TÍTULO ("Vendas por dia")
+ * e para aí — diz que existe um gráfico, não o que ele mostra.
+ *
+ * Tabela (e não um parágrafo) porque a série é tabular: leitor de tela navega
+ * célula a célula e anuncia o cabeçalho de cada linha. O `<caption>` carrega a
+ * leitura de relance — total e pico — pra quem não quer percorrer 30 linhas.
+ *
+ * Usa `brl` (moeda por extenso), não `brlCurto`: "R$ 12,3 mil" é abreviação
+ * pensada pro olho num eixo estreito; em áudio o valor cheio é mais claro.
+ */
+function SerieAcessivel({
+  titulo,
+  dados,
+}: {
+  titulo: string;
+  dados: Array<{ label: string; value: number }>;
+}) {
+  const primeiro = dados[0];
+  if (!primeiro) return null; // série vazia: nada a anunciar (e satisfaz o strict)
+
+  const total = dados.reduce((soma, p) => soma + p.value, 0);
+  const pico = dados.reduce((maior, p) => (p.value > maior.value ? p : maior), primeiro);
+
+  return (
+    <table className="sr-only">
+      <caption>
+        {titulo}: total de {brl(total)} no período; maior valor em {pico.label}, {brl(pico.value)}.
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Período</th>
+          <th scope="col">Valor</th>
+        </tr>
+      </thead>
+      <tbody>
+        {dados.map((p) => (
+          <tr key={p.label}>
+            <th scope="row">{p.label}</th>
+            <td>{brl(p.value)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 function GraficosVendas({ charts }: { charts: Props['charts'] }) {
   if (!charts) return null;
 
@@ -334,9 +384,11 @@ function GraficosVendas({ charts }: { charts: Props['charts'] }) {
     <Grid cols={1} gap={4} className="lg:grid-cols-2" data-contract="graficos">
       <PainelGrafico titulo="Vendas por dia" meta="últimos 30 dias">
         <Chart type="area" data={charts.dia} height={132} formatValue={brlCurto} />
+        <SerieAcessivel titulo="Vendas por dia, últimos 30 dias" dados={charts.dia} />
       </PainelGrafico>
       <PainelGrafico titulo="Vendas por mês" meta="ano fiscal">
         <Chart type="bar" data={charts.mes} height={132} highlightLast formatValue={brlCurto} />
+        <SerieAcessivel titulo="Vendas por mês, ano fiscal" dados={charts.mes} />
       </PainelGrafico>
     </Grid>
   );
