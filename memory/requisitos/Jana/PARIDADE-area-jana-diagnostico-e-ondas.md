@@ -668,7 +668,7 @@ em 2026-07-09, diz na linha 63 que **`D-2` (sidebar) e `D-3` (valores dark recon
 "UI-ADR/PR à parte — não entram aqui"**.
 
 - **D-2 foi paga** pela [UI-0023](../_DesignSystem/adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md) (2026-07-16), que inclusive registra a proposta como *"rascunhada e nunca numerada — a dívida que esta ADR paga"*.
-- **D-3 nunca foi numerada.** É esta.
+- **D-3 nunca foi numerada.** É esta. *(Atualização 2026-08-28: passou a ser — [UI-0027](../_DesignSystem/adr/ui/0027-dark-hue-240-supersede-0020-0022.md), que supersede a UI-0022 integralmente e o item 1 da UI-0020. O parágrafo acima fica como estava no dia da medição.)*
 
 Claim negativa com denominador: varridas **413 de 413** ADRs (387 em `memory/decisions/` + 26 em
 `adr/ui/`) — **nenhuma supersede a UI-0020**. Ela segue `accepted`, sem sucessora, descrevendo um
