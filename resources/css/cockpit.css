@@ -1728,14 +1728,8 @@
   opacity: 0.7;
 }
 .cockpit .sb-shortcut:hover { background: var(--sb-hover); color: var(--sb-text-hi); }
-/* `.active` do atalho de topo (Visão geral) — antes NÃO existia: só `:hover`.
-   Sem esta regra a classe seria inerte e o item nunca destacaria na própria
-   rota. Usa `--sb-active`, o mesmo token do `.sb-item.active` e do
-   `.sb-rail-btn.open`, pra não inventar cor nova fora do DS. */
-.cockpit .sb-shortcut.active {
-  background: var(--sb-active);
-  color: var(--sb-text-hi);
-}
+/* `.active` do atalho de topo: só havia `:hover`, então a classe seria inerte. */
+.cockpit .sb-shortcut.active { background: var(--sb-active); color: var(--sb-text-hi); }
 .cockpit .sb-shortcut .label { flex: 1; }
 .cockpit .sb-shortcut .badge {
   display: inline-flex;
@@ -2151,24 +2145,17 @@
   background: var(--sb-hover);
   color: var(--sb-text-hi);
 }
-.cockpit .sb-rail-btn.open {
-  background: var(--sb-active);
-  color: var(--sb-text-hi);
-}
-/* `.active` (landing no rail) usa o MESMO tratamento de `.open` — sem esta
-   regra a classe seria inerte e o item do topo nunca destacaria no modo
-   colapsado, que é justamente onde o usuário perde a referência de onde está. */
+.cockpit .sb-rail-btn.open,
 .cockpit .sb-rail-btn.active {
   background: var(--sb-active);
   color: var(--sb-text-hi);
 }
-.cockpit .sb-rail-btn.active .ic { opacity: 1; }
 .cockpit .sb-rail-btn .ic {
   width: 18px;
   height: 18px;
   opacity: 0.9;
 }
-.cockpit .sb-rail-btn.open .ic { opacity: 1; }
+.cockpit .sb-rail-btn.open .ic, .cockpit .sb-rail-btn.active .ic { opacity: 1; }
 .cockpit .sb-rail-btn.sb-rail-group .ic {
   color: oklch(0.62 0.13 var(--gh, 220));
 }
