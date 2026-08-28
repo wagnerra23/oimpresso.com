@@ -13,11 +13,11 @@ uses(Tests\TestCase::class);
  *
  * Cobre:
  *   - Contrato do Service (assinatura, constantes, helpers)
- *   - Anti-cheat: selfie pequena, GPS accuracy alto, timestamp drift
+ *   - Anti-cheat: GPS accuracy alto, timestamp drift
  *   - Geofence (opt-in por business — sem config = permite)
  *   - Multi-tenant Tier 0 ([ADR 0093]) — businessId explicito em todos metodos
  *   - APPEND-ONLY Portaria 671/2021 — Service delega ao MarcacaoService canonico
- *   - LGPD selfie hash — base64 NUNCA persistido em DB
+ *   - LGPD: SEM biometria (decisao [W] 2026-08-27) — guard dedicado
  *
  * Source-level + reflexao + unit puro (sem MySQL, sem Sanctum boot) —
  * Pest local-runnable. Pattern Wave 25/26 saturation.
@@ -25,7 +25,7 @@ uses(Tests\TestCase::class);
  * Tier 0 IRREVOGAVEL:
  *   - APPEND-ONLY Portaria MTP 671/2021 (Art. 85)
  *   - business_id global scope ADR 0093
- *   - LGPD: selfie hash apenas, base64 nunca em DB
+ *   - LGPD: nenhuma imagem facial entra no fluxo
  *   - NUNCA biz=4 (Larissa ROTA LIVRE) — biz=1 (Wagner WR2) ou biz=99 (ficticio)
  *
  * @see Modules/Ponto/Services/MobileMarcacaoService.php
@@ -41,7 +41,6 @@ uses(Tests\TestCase::class);
 it('Service expoe metodos publicos contratados W28-8', function () {
     $metodos = [
         'registrarMarcacaoMobile',
-        'verificarBiometria',
         'validarGeolocation',
         'listarMarcacoesMobilePendentesValidacao',
     ];
@@ -52,8 +51,7 @@ it('Service expoe metodos publicos contratados W28-8', function () {
     }
 });
 
-it('Service constantes anti-cheat declaradas (selfie/GPS/drift/geofence)', function () {
-    expect(MobileMarcacaoService::SELFIE_MIN_BYTES)->toBe(100_000);
+it('Service constantes anti-cheat declaradas (GPS/drift/geofence)', function () {
     expect(MobileMarcacaoService::GPS_ACCURACY_MAX_METROS)->toBe(500.0);
     expect(MobileMarcacaoService::TIMESTAMP_DRIFT_MAX_SEG)->toBe(30);
     expect(MobileMarcacaoService::GEOFENCE_RAIO_DEFAULT_METROS)->toBe(1000.0);
@@ -68,27 +66,27 @@ it('Service depende de MarcacaoService canonico via construtor (DI append-only)'
 });
 
 // ============================================================================
-// ANTI-CHEAT — selfie pequena / GPS alto / timestamp drift
+// ANTI-CHEAT — GPS alto / timestamp drift (+ GUARD LGPD anti-biometria)
 // ============================================================================
 
-it('rejeita selfie ausente ou pequena (<100KB)', function () {
-    $svc = new MobileMarcacaoService(
-        $this->createMock(\Modules\Ponto\Services\MarcacaoService::class)
-    );
+it('GUARD LGPD · o Service NAO conhece biometria — sem selfie, sem hash, sem stub', function () {
+    // Decisao [W] 2026-08-27: o ponto INTERNO nao coleta imagem facial.
+    // Dado biometrico e dado pessoal SENSIVEL (LGPD Art. 5o, II) e seu
+    // tratamento exige hipotese propria (Art. 11). Este guard existe pra que
+    // reintroduzir a captura QUEBRE o CI em vez de passar silenciosa.
+    $fonte = file_get_contents((new ReflectionClass(MobileMarcacaoService::class))->getFileName());
 
-    $payloadComSelfieMinima = [
-        'tipo'             => Marcacao::TIPO_ENTRADA,
-        'selfie_base64'    => str_repeat('x', 10_000), // 10KB — abaixo do limite
-        'lat'              => -28.336,
-        'lng'              => -48.926,
-        'accuracy'         => 12.5,
-        'device_uuid'      => 'dev-uuid-test',
-        'timestamp_device' => now()->toIso8601String(),
-        'usuario_criador_id' => 1,
-    ];
+    // O termo aparece SO nos comentarios que registram a decisao (o "porque"),
+    // nunca em codigo executavel: sem parametro, sem hash, sem constante.
+    expect($fonte)->not->toContain('selfie_base64');
+    expect($fonte)->not->toContain('SELFIE_MIN_BYTES');
+    expect($fonte)->not->toContain('$selfieB64');
 
-    expect(fn () => $svc->registrarMarcacaoMobile(1, 100, $payloadComSelfieMinima))
-        ->toThrow(RuntimeException::class, 'Selfie ausente ou suspeitamente pequena');
+    // E o metodo de biometria nao existe mais.
+    expect(method_exists(MobileMarcacaoService::class, 'verificarBiometria'))->toBeFalse();
+
+    // O dispositivo_id nao pode carregar derivado de biometria.
+    expect($fonte)->toContain("'mobile:%s'");
 });
 
 it('rejeita GPS accuracy > 500m (sinal ruim / spoof)', function () {
@@ -98,7 +96,6 @@ it('rejeita GPS accuracy > 500m (sinal ruim / spoof)', function () {
 
     $payload = [
         'tipo'             => Marcacao::TIPO_ENTRADA,
-        'selfie_base64'    => str_repeat('x', 120_000),
         'lat'              => -28.336,
         'lng'              => -48.926,
         'accuracy'         => 999.0, // acima de 500m
@@ -118,7 +115,6 @@ it('rejeita timestamp_device com drift > 30s (anti-cheat clock)', function () {
 
     $payload = [
         'tipo'             => Marcacao::TIPO_ENTRADA,
-        'selfie_base64'    => str_repeat('x', 120_000),
         'lat'              => -28.336,
         'lng'              => -48.926,
         'accuracy'         => 10.0,
@@ -138,7 +134,6 @@ it('rejeita tipo de marcacao invalido', function () {
 
     $payload = [
         'tipo'             => 'INTERCORRENCIA', // valido em Marcacao, mas nao via mobile
-        'selfie_base64'    => str_repeat('x', 120_000),
         'lat'              => -28.336,
         'lng'              => -48.926,
         'accuracy'         => 10.0,
@@ -158,7 +153,7 @@ it('rejeita payload com campo obrigatorio ausente', function () {
 
     expect(fn () => $svc->registrarMarcacaoMobile(1, 100, [
         'tipo' => Marcacao::TIPO_ENTRADA,
-        // sem selfie_base64, lat, lng, etc.
+        // sem lat, lng, etc.
     ]))->toThrow(RuntimeException::class, 'Campo obrigatorio');
 });
 
@@ -195,33 +190,6 @@ it('geofence configurado valida raio 1km (haversine)', function () {
     expect($svc->validarGeolocation(-27.595, -48.548, 99))->toBeFalse();
 });
 
-// ============================================================================
-// LGPD — selfie hash apenas, base64 nunca em DB
-// ============================================================================
-
-it('Service source-level: selfie_base64 nunca persistido em DB (apenas hash)', function () {
-    $source = file_get_contents(
-        (new ReflectionClass(MobileMarcacaoService::class))->getFileName()
-    );
-
-    // Confirma hash SHA-256 + dispositivo_id (proxy do hash truncado)
-    expect($source)->toContain("hash('sha256', \$selfieB64)");
-    expect($source)->toContain('dispositivo_id');
-
-    // Confirma que selfie_base64 NUNCA aparece como chave do array de Marcacao::create
-    // (delega ao MarcacaoService que so aceita campos fillable — selfie nao esta la)
-    expect($source)->not->toContain("'selfie_base64' =>");
-    expect($source)->toContain('LGPD');
-});
-
-it('verificarBiometria rejeita selfie pequena (contrato stub W28-8)', function () {
-    $svc = new MobileMarcacaoService(
-        $this->createMock(\Modules\Ponto\Services\MarcacaoService::class)
-    );
-
-    expect($svc->verificarBiometria('pequeno', 100))->toBeFalse();
-    expect($svc->verificarBiometria(str_repeat('x', 120_000), 100))->toBeTrue();
-});
 
 // ============================================================================
 // MULTI-TENANT TIER 0 — business_id explicito (sem session)
@@ -303,11 +271,12 @@ it('Controller source-level: validacao Laravel + LGPD (sem PII em log de erro)',
 
     // Validacao Laravel basica antes de chamar service
     expect($source)->toContain('$request->validate([');
-    expect($source)->toContain('selfie_base64');
-    expect($source)->toContain('min:100000');
 
-    // Log de erro NUNCA inclui selfie_base64 (LGPD)
-    expect($source)->not->toContain("'selfie_base64' => ");
+    // GUARD LGPD (decisao [W] 2026-08-27): o endpoint NAO recebe imagem facial.
+    // Dado biometrico e sensivel (LGPD Art. 5o, II; tratamento pelo Art. 11) e o
+    // anti-fraude nao depende dele. Reintroduzir a captura quebra aqui.
+    expect($source)->not->toContain('selfie_base64');
+    expect($source)->not->toContain('min:100000');
 
     // Response retorna apenas IDs + hash truncado (sem PII)
     expect($source)->toContain('substr((string) $marcacao->hash, 0, 16)');

@@ -15,28 +15,29 @@ use RuntimeException;
  * MobileMarcacaoService — W28-8 Tangerino-like Ponto mobile.
  *
  * Recebe marcacoes via mobile app (REP-P / Portaria MTP 671/2021 reconhece
- * registrador eletronico por programa) com selfie + geolocation + device
- * fingerprint, valida anti-cheat e delega persistencia ao MarcacaoService
+ * registrador eletronico por programa) com geolocation + device fingerprint,
+ * valida anti-cheat e delega persistencia ao MarcacaoService
  * canonico (mantem append-only + hash encadeado SHA-256 + NSR sequencial).
  *
  * Estado-da-arte 2026 (Tangerino/Sólides DP, Pontotel, mywork):
- *   - selfie + 1:1 verification (sem 1:N — privacidade)
  *   - geofence opcional por business (raio em metros)
  *   - timestamp_device validado contra clock-skew (anti-cheat)
  *   - device_uuid fingerprint per-funcionario (anti-substituicao)
- *   - PII LGPD: imagem NUNCA em DB; apenas hash SHA-256 + URI storage S3
  *
  * Tier 0 IRREVOGAVEL:
  *   - APPEND-ONLY Portaria MTP 671/2021 Art. 85 — delega ao MarcacaoService
  *     (NSR + hash chain garantidos). NUNCA UPDATE/DELETE em ponto_marcacoes.
  *   - business_id global scope ([ADR 0093]) — todo metodo recebe $businessId
  *     explicito (jobs/API sem session).
- *   - Selfie LGPD — armazenamos apenas SHA-256(base64) + storage URI;
- *     base64 cru jamais persistido em DB nem logado (PII Redactor pattern).
+ *   - SEM BIOMETRIA. Decisao [W] 2026-08-27: o ponto INTERNO nao coleta
+ *     imagem facial. Dado biometrico e dado pessoal SENSIVEL (LGPD Art. 5o,
+ *     II) e seu tratamento exige hipotese propria do Art. 11 — que nao se
+ *     justifica aqui, porque GPS + clock-skew + NSR server-authoritative ja
+ *     entregam o anti-fraude sem tocar dado sensivel. Nao reintroduzir sem
+ *     ADR nova. Antes desta decisao o endpoint EXIGIA selfie (nunca chegou a
+ *     rodar: o controller nunca teve rota).
  *
  * Pendencias futuras (out-of-scope W28-8):
- *   - verificarBiometria() stub — integrar AWS Rekognition / Face++ /
- *     liveness detection quando Wagner aprovar custo IA (~U$ 0.001/call).
  *   - Push notification escalada quando suspeita_score >0.8.
  *   - Sincronizacao offline (queue local mobile → flush ao reconectar).
  *
@@ -46,9 +47,6 @@ use RuntimeException;
  */
 class MobileMarcacaoService
 {
-    /** Tamanho minimo selfie base64 (~100KB ≈ 75KB binario decodificado). */
-    public const SELFIE_MIN_BYTES = 100_000;
-
     /** Accuracy GPS maxima aceita (metros). >500m sugere GPS off ou spoof. */
     public const GPS_ACCURACY_MAX_METROS = 500.0;
 
@@ -74,7 +72,6 @@ class MobileMarcacaoService
      * @param int   $funcionarioId
      * @param array $payload {
      *   @var string $tipo                ENTRADA|SAIDA|ALMOCO_INICIO|ALMOCO_FIM (Marcacao::TIPO_*)
-     *   @var string $selfie_base64       imagem JPEG/PNG codificada
      *   @var float  $lat                 latitude device
      *   @var float  $lng                 longitude device
      *   @var float  $accuracy            GPS accuracy em metros
@@ -90,15 +87,7 @@ class MobileMarcacaoService
     {
         $this->validarPayload($payload);
 
-        // Anti-cheat #1: selfie nao vazia (heuristica peso minimo)
-        $selfieB64 = (string) ($payload['selfie_base64'] ?? '');
-        if (strlen($selfieB64) < self::SELFIE_MIN_BYTES) {
-            throw new RuntimeException(
-                'Selfie ausente ou suspeitamente pequena (<100KB). Refazer captura.'
-            );
-        }
-
-        // Anti-cheat #2: accuracy GPS razoavel (>500m sugere GPS off/spoof)
+        // Anti-cheat #1: accuracy GPS razoavel (>500m sugere GPS off/spoof)
         $accuracy = (float) ($payload['accuracy'] ?? PHP_FLOAT_MAX);
         if ($accuracy > self::GPS_ACCURACY_MAX_METROS) {
             throw new RuntimeException(sprintf(
@@ -108,7 +97,7 @@ class MobileMarcacaoService
             ));
         }
 
-        // Anti-cheat #3: timestamp_device alinhado com server now (clock-skew)
+        // Anti-cheat #2: timestamp_device alinhado com server now (clock-skew)
         $tsDevice = $this->parseTimestampDevice((string) ($payload['timestamp_device'] ?? ''));
         $drift = abs(now()->diffInSeconds($tsDevice));
         if ($drift > self::TIMESTAMP_DRIFT_MAX_SEG) {
@@ -126,13 +115,12 @@ class MobileMarcacaoService
             $businessId
         );
 
-        // LGPD: hash da selfie pra auditoria, base64 cru NUNCA persistido
-        $selfieHash = hash('sha256', $selfieB64);
-
+        // O device_uuid sozinho identifica o aparelho. Antes o sufixo era
+        // SHA-256 da selfie — derivado de dado sensivel, e PERSISTIDO na
+        // marcacao via dispositivo_id. Saiu com a captura.
         $dispositivoId = sprintf(
-            'mobile:%s:%s',
-            substr((string) ($payload['device_uuid'] ?? 'unknown'), 0, 32),
-            substr($selfieHash, 0, 16)
+            'mobile:%s',
+            substr((string) ($payload['device_uuid'] ?? 'unknown'), 0, 32)
         );
 
         // Delega ao Service canonico — mantem append-only + hash + NSR + multi-tenant
@@ -155,31 +143,12 @@ class MobileMarcacaoService
             'funcionario_id'     => $funcionarioId,
             'marcacao_id'        => (string) $marcacao->id,
             'tipo'               => (string) $payload['tipo'],
-            'selfie_sha256_trunc' => substr($selfieHash, 0, 16),
             'dentro_geofence'    => $dentroGeofence,
             'gps_accuracy'       => $accuracy,
             'drift_segundos'     => $drift,
         ]);
 
         return $marcacao;
-    }
-
-    /**
-     * Verifica biometria 1:1 — STUB W28-8.
-     *
-     * Integracao futura: AWS Rekognition CompareFaces, Face++ Compare,
-     * ou modelo on-device (custo ~U$ 0.001/call AWS, ~50ms latencia).
-     * Hoje retorna true (passthrough) — apenas marca contrato.
-     */
-    public function verificarBiometria(string $selfieBase64, int $funcionarioId): bool
-    {
-        // STUB — futura integracao IA. NAO logar selfie_base64 (LGPD).
-        if (strlen($selfieBase64) < self::SELFIE_MIN_BYTES) {
-            return false;
-        }
-
-        // TODO W29+: AWS Rekognition CompareFaces + threshold ≥85%
-        return true;
     }
 
     /**
@@ -204,7 +173,7 @@ class MobileMarcacaoService
 
     /**
      * Lista marcacoes mobile que precisam de revisao humana
-     * (ex: fora geofence, biometria suspeita futura).
+     * (ex: fora geofence).
      * Filtra por dispositivo_id LIKE 'mobile:%' + business_id scope ([ADR 0093]).
      */
     public function listarMarcacoesMobilePendentesValidacao(int $businessId): Collection
@@ -224,7 +193,7 @@ class MobileMarcacaoService
     /** Valida estrutura minima do payload mobile. */
     protected function validarPayload(array $payload): void
     {
-        $obrigatorios = ['tipo', 'selfie_base64', 'lat', 'lng', 'accuracy', 'device_uuid', 'timestamp_device'];
+        $obrigatorios = ['tipo', 'lat', 'lng', 'accuracy', 'device_uuid', 'timestamp_device'];
         foreach ($obrigatorios as $campo) {
             if (! array_key_exists($campo, $payload) || $payload[$campo] === null || $payload[$campo] === '') {
                 throw new RuntimeException("Campo obrigatorio ausente: {$campo}");
