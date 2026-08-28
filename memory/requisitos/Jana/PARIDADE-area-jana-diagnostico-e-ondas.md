@@ -540,6 +540,30 @@ business tem a Jana) e `jana_pro_module` (o plano dentro dela). A distinção é
 (`JanaPlanoTierTest`), porque foi ela que faltou em 2026-08-27: fundi-las repetiria dentro do
 código o engano que um humano cometeu lendo a UI.
 
+**INCIDENTE no mesmo dia — o selo mentiu por 40 minutos, e a causa foi eu reusar o método certo
+para a pergunta errada.** A 1ª versão do `janaPlanoPro()` lia o tier por
+`ModuleUtil::hasThePermissionInSubscription()`. Aquele método abre com
+`if (auth()->user()->can('superadmin')) return true` — **correto** para o que ele responde
+(*este usuário pode ver o módulo?*) e **errado** para o que o selo afirma (*qual o plano deste
+business?*). Medido em produção logo após o deploy, com controle negativo:
+
+| chamada (biz=1, chave AUSENTE no `package_details`) | resultado |
+|---|---|
+| como **superadmin** → `jana_pro_module` | `true` ❌ |
+| como **superadmin** → `zzz_inexistente_module` (chave inventada) | `true` ❌ — o controle que fecha o diagnóstico |
+| como **usuário comum** → `jana_pro_module` | `false` ✅ |
+
+Efeito no ar: o header anunciou **plano Pro** para os 3 superadmins, em qualquer business — que é
+literalmente o *"afirmar um estado que o sistema não sabe"* pelo qual este item ficou bloqueado.
+Corrigido lendo `Subscription::active_subscription()` direto, sem bypass: **o plano é do business e
+não muda com quem está olhando.** O eixo do módulo (`jana_module`) segue no método antigo, onde o
+bypass é desejado — superadmin vê o módulo de todo mundo.
+
+**Por que meu teste não pegou:** ele era de FONTE (assertava *qual chave o arquivo lê*), não de
+COMPORTAMENTO. A honestidade sobre a forma estava escrita no docblock, mas a lacuna era justo o que
+o defeito explorou. O caso comportamental — superadmin sem a chave **não** vê Pro, com a chave vê —
+entrou junto do conserto.
+
 **Skeleton — só onde há `defer`.** `ChatController` tem 3 `Inertia::defer`; `MemoriaController`
 tem **0**. Skeleton numa tela que renderiza tudo no primeiro paint é animação sem espera. Entra
 no Chat quando alguém medir qual dos 3 defers o usuário percebe; na Memória, não entra.
