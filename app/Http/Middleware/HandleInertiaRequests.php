@@ -558,15 +558,28 @@ class HandleInertiaRequests extends Middleware
                 return false;
             }
 
+            // O `@var` remenda um docblock ERRADO do dono, e não uma inferência ruim
+            // daqui: `Subscription::active_subscription()` declara `@return Response`
+            // (`Modules/Superadmin/Entities/Subscription.php`), classe que não existe
+            // naquele namespace — o PHPStan resolvia `package_details` numa classe
+            // fantasma e ainda concluía que o retorno nunca é nulo, apagando o meu
+            // guard. O método devolve `->first()`, que é `self|null`. Consertar o
+            // docblock na origem é o certo, mas é arquivo de outro módulo com N
+            // consumidores: vai como achado do PR, não carona neste fix.
+            /** @var \Modules\Superadmin\Entities\Subscription|null $assinatura */
             $assinatura = \Modules\Superadmin\Entities\Subscription::active_subscription($businessId);
 
-            if (empty($assinatura)) {
+            // `instanceof` e não `empty()`: com o tipo corrigido acima, o `empty()` de
+            // um objeto é sempre falso e o PHPStan reprova a checagem como morta.
+            if (! $assinatura instanceof \Modules\Superadmin\Entities\Subscription) {
                 return false;
             }
 
-            $detalhes = (array) ($assinatura->package_details ?? []);
+            // `package_details` tem cast `array` no model, mas a coluna é nullable —
+            // o `is_array` cobre o null sem depender do cast.
+            $detalhes = $assinatura->package_details;
 
-            return ! empty($detalhes['jana_pro_module']);
+            return is_array($detalhes) && ! empty($detalhes['jana_pro_module']);
         } catch (\Throwable $e) {
             return false;
         }
