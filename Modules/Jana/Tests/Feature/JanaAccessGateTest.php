@@ -138,3 +138,54 @@ it('LIMITE HONESTO: admin passa MESMO sem a permissão (Gate::before)', function
 
     expect($status)->not->toBe(403);
 });
+
+/**
+ * UC-JPERM-01 — o grupo inteiro é barrado, não só a porta da frente.
+ *
+ * POR QUE ESTENDE ESTE ARQUIVO EM VEZ DE ABRIR UM NOVO: a emenda de casos do
+ * Cowork (`JANA-CASOS-EMENDA-PERMISSAO-2026-08-27`) propõe um
+ * `Http/IaPermissaoGrupoTest.php`. Medido em 2026-08-28: este arquivo JÁ é o dono
+ * do tema (é literalmente "o gate de /ia"), já está na allowlist da lane
+ * `jana-pest.yml` e já carrega o harness não-admin que o gate exige. Abrir arquivo
+ * paralelo duplicaria régua consolidada e nasceria fora de lane.
+ *
+ * O DELTA REAL que o UC pede: os casos acima cobrem `/ia` e mais nada. As outras
+ * três rotas de TELA do grupo — `jana.chat.index`, `jana.pro.index`,
+ * `jana.memoria.index` — nunca foram exercitadas. Uma rota que escape do grupo é
+ * exatamente a regressão de 2026-07-27, quando `jana.access` estava declarada em
+ * 3 lugares e aplicada em ZERO.
+ *
+ * ⚠️ `jana.memoria.index` é servida por `Modules\KB\Http\Controllers\MemoriaController`
+ * (routes.php:164) — a US nasceu na Jana, o código foi pro KB. É justamente o tipo
+ * de rota que "escapa" de uma varredura feita por módulo.
+ */
+$rotasDeTela = [
+    'Painel'   => 'jana.index',
+    'Conversa' => 'jana.chat.index',
+    'Pro'      => 'jana.pro.index',
+    'Memória'  => 'jana.memoria.index',
+];
+
+it('UC-JPERM-01 · sem jana.access, TODAS as 4 rotas de tela dão 403 — não só /ia', function (string $rota) {
+    $this->user->revokePermissionTo('jana.access');
+    $this->user->forgetCachedPermissions();
+
+    $this->actingAs($this->user)->get(route($rota))->assertStatus(403);
+})->with($rotasDeTela);
+
+it('UC-JPERM-01 · com jana.access, nenhuma das 4 barra — e nenhuma explode (anti-vácuo)', function (string $rota) {
+    $this->user->givePermissionTo('jana.access');
+    $this->user->forgetCachedPermissions();
+
+    $status = $this->actingAs($this->user)->get(route($rota))->status();
+
+    // O contrato deste gate é um só: com a permissão, ele PARA de barrar. Não
+    // asserimos 200 porque a tela pode redirecionar por regra de sessão/negócio
+    // (é a razão escrita no caso equivalente de /ia, mais acima).
+    expect($status)->not->toBe(403);
+
+    // ⚠️ Mas 5xx NÃO pode passar por "não é 403": o próprio UC alerta que um 500
+    // faria o caso negativo passar por engano. Sem esta linha, uma rota quebrada
+    // satisfaria os DOIS casos e o par ficaria verde sobre uma tela morta.
+    expect($status)->toBeLessThan(500);
+})->with($rotasDeTela);

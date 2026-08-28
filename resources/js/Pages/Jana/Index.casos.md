@@ -619,3 +619,41 @@ O caso defende três coisas, e a terceira é a que dói se quebrar:
 | o selo mostra `plano Pro` só com `jana_pro_module` no pacote | senão volta a afirmar estado que o sistema não sabe |
 | `jana_module` e `jana_pro_module` seguem eixos SEPARADOS | fundi-los repete, dentro do código, o engano que um humano cometeu lendo o painel |
 | sem pacote legível o degrade é `Grátis` | afirmar Pro a quem não é promete recurso pago; o inverso só omite |
+
+---
+
+## UC-JPERM-01 — sem `jana.access`, o GRUPO inteiro é barrado (não só a porta da frente)
+Status: 🧪 (`Modules/Jana/Tests/Feature/JanaAccessGateTest.php` — 2 `it()` novos, cada um com
+dataset das 4 rotas = 8 execuções. Aguarda run verde na lane `jana-pest.yml`.)
+
+Derivado de `Modules/Jana/Http/routes.php` (o `can:jana.access` no `middleware` do grupo
+`prefix => 'ia'`) e da emenda de casos do Cowork — **não** do `.tsx` (§5 2026-06-05).
+
+O usuário autenticado do business, **sem** a permissão base, pede uma tela da área. O grupo é
+barrado no middleware: não é tela vazia nem menu escondido — é **403 antes do controller**. Menu
+escondido ≠ rota protegida; quem souber a URL entra.
+
+⚠️ **O delta que este UC fecha.** O arquivo já cobria `/ia` desde 2026-07-27 — e **só** `/ia`. As
+outras três rotas de tela (`jana.chat.index`, `jana.pro.index`, `jana.memoria.index`) nunca foram
+exercitadas. Uma rota que escape do grupo é exatamente a regressão daquela data, quando
+`jana.access` estava declarada em 3 lugares e aplicada em **zero**.
+
+⚠️ **`jana.memoria.index` é servida pelo `Modules\KB\Http\Controllers\MemoriaController`**
+(`routes.php:164`) — a US nasceu na Jana, o código foi pro KB. É o tipo de rota que escapa de uma
+varredura feita por módulo, e por isso ela entra nomeada no dataset.
+
+⚠️ **O teste usa usuário NÃO-admin de propósito.** O `Gate::before`
+(`app/Providers/AuthServiceProvider.php:34-47`) devolve `true` em qualquer ability para quem tem
+`Admin#{business_id}` — com admin, o 403 nunca aconteceria e o verde seria falso. É o mesmo
+mecanismo que causou o vazamento do `SuperadminController` (P0 de 2026-08-28).
+
+**Pronto quando:** sem a permissão, as **quatro** rotas devolvem 403; com ela, nenhuma devolve 403
+**e nenhuma devolve 5xx**.
+
+**Anti-vácuo:** a segunda perna (`< 500`) não é zelo — sem ela, uma rota quebrada satisfaria os
+DOIS casos (403 ausente porque explodiu antes) e o par ficaria verde sobre uma tela morta. O
+próprio UC de origem alerta para isso.
+
+**Por que estendeu o arquivo existente:** a emenda propunha `Http/IaPermissaoGrupoTest.php` novo.
+Medido: o `JanaAccessGateTest` já é o dono do tema, já está na allowlist da lane e já carrega o
+harness não-admin. Arquivo paralelo duplicaria régua consolidada e nasceria fora de lane.
