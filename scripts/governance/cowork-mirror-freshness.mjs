@@ -186,7 +186,7 @@ export function veredictoFinal(nStale, cobertura = null) {
  *  `.png` segue FORA: imagem não é fonte de construção e o `block-ancora-no-olho` já trata
  *  o eixo dela. E os filtros de `_arquivo/` (morto declarado upstream) e `prototipo-ui/`
  *  (cópia do próprio espelho) continuam — são de PROVENIÊNCIA, não de extensão. */
-export function liveOnly(livePaths, manifest, { exts = null } = {}) {
+export function liveOnly(livePaths, manifest, { exts = null, jaEmDocs = null } = {}) {
   const noEspelho = new Set(manifest.map((f) => f.cowork));
   // [W] 2026-08-24: "remova os filtros isso esta gerando muito problemas". MEDIDO no dia:
   // de 428 arquivos do vivo ausentes do espelho, o filtro de EXTENSAO escondia 76 — entre
@@ -195,18 +195,71 @@ export function liveOnly(livePaths, manifest, { exts = null } = {}) {
   // Os dois de PROVENIENCIA continuam, mas agora RETORNAM em `ignorados` — reportado, nunca
   // escondido (mesmo contrato do absentLocal). `liveOnly()` segue devolvendo ARRAY pra nao
   // quebrar chamador; use liveOnlyDetalhado() pra ver o que foi ignorado e por que.
-  return liveOnlyDetalhado(livePaths, manifest, { exts }).faltando;
+  return liveOnlyDetalhado(livePaths, manifest, { exts, jaEmDocs }).faltando;
+}
+
+/** Paths presentes em `prototipo-ui/design-docs/` — o 4º destino do `--export-from`.
+ *  Sem filtro de extensão: quem consulta decide (o `liveOnlyDetalhado` só pergunta por
+ *  `.md`, que é o que a regra de roteamento manda pra lá). Diretório ausente → Set vazio,
+ *  e aí o detector volta ao comportamento de antes — nunca a "tudo isento".
+ *  ⚠️ NÃO reusa `walkRel`: aquele filtra `.jsx|html|css|js` (é o walker do ESPELHO, onde
+ *  `.md` é proibido pelo R1). Usá-lo aqui devolveria Set vazio de `.md` e a isenção seria
+ *  decorativa — a forma mais silenciosa de um conserto não consertar. */
+export function buildDocsSet(root = ROOT, rel = 'prototipo-ui/design-docs') {
+  const base = join(root, rel);
+  const out = new Set();
+  const walk = (dir) => {
+    if (!existsSync(dir)) return;
+    for (const e of readdirSync(dir)) {
+      const f = join(dir, e);
+      if (statSync(f).isDirectory()) walk(f);
+      else out.add(f.slice(base.length + 1).split('\\').join('/'));
+    }
+  };
+  walk(base);
+  return out;
 }
 
 /** Igual ao liveOnly, mas devolve tambem o que foi ignorado por PROVENIENCIA e o motivo.
  *  `exts = null` (default) = nenhum filtro de extensao: conta .json, .php, .tsx, .png, tudo. */
-export function liveOnlyDetalhado(livePaths, manifest, { exts = null } = {}) {
+export function liveOnlyDetalhado(livePaths, manifest, { exts = null, jaEmDocs = null } = {}) {
   const noEspelho = new Set(manifest.map((f) => f.cowork));
   const temExtensao = (p) => /\.[a-z0-9]+$/i.test(p);   // diretorio nao e arquivo faltando
   const faltando = [];
   const ignorados = [];
   for (const p of livePaths) {
     if (!temExtensao(p) || noEspelho.has(p)) continue;
+    // ── O DETECTOR PASSA A CONHECER O ROTEAMENTO DO EXPORTADOR (2026-08-28) ──────────
+    // Ele comparava só contra `cowork/`, enquanto o `--export-from` tem TRÊS desfechos
+    // pro arquivo do vivo (ver `exportPlan`): RECUSA o canon de tela, roteia `.md` pra
+    // `design-docs/`, e só o resto pousa em `cowork/`. Conhecendo um desfecho de três,
+    // ele acusava como "nunca desceu" arquivo que ou desceu noutro destino, ou que uma
+    // regra deliberada PROÍBE de descer.
+    //
+    // MEDIDO no corpus real (935 paths do `list_files`, 2026-08-27): dos 412 acusados,
+    //   152  canon de tela — o `exportPlan` RECUSA (PROTOCOL 10.4)
+    //   146  `.md` que JA ESTA em `design-docs/<path>`
+    //    23  nao-`.md` em `design-docs/` — FORA da regra declarada, seguem acusados
+    //    91  resto
+    // Ou seja 298 de 412 (72%) eram falso-positivo de mecanismo próprio. Um detector que
+    // acusa 72% de ruído não é conservador: é ignorado, e aí não acusa nada.
+    //
+    // NÃO é regra nova nem allowlist: as duas isenções saem das MESMAS fontes que o
+    // exportador usa — `RE_CANON_DE_TELA` (a constante, não uma cópia) e o destino
+    // `prefixoDocs`. Se a regra do exportador mudar, esta muda junto. E ambas vão pra
+    // `ignorados` (VISÍVEL com motivo), nunca some calado — mesmo contrato do resto.
+    if (RE_CANON_DE_TELA.test(p)) {
+      ignorados.push({ path: p, motivo: 'canon de tela: o exportPlan RECUSA (PROTOCOL 10.4 — nasce em Pages/, nao desce por esta porta)' });
+      continue;
+    }
+    // `jaEmDocs` = paths presentes em `prototipo-ui/design-docs/`. Só isenta `.md`, que é
+    // o que a regra de roteamento manda pra lá; nao-`.md` que esteja lá está FORA da regra
+    // e segue acusado (23 no corpus — .php de teste dentro de cowork-inbox/). Absorvê-los
+    // seria codificar um acidente como se fosse regra.
+    if (jaEmDocs && p.toLowerCase().endsWith('.md') && jaEmDocs.has(p)) {
+      ignorados.push({ path: p, motivo: 'ja desceu: existe em prototipo-ui/design-docs/ (roteamento por extensao do --export-from)' });
+      continue;
+    }
     if (exts && !exts.some((e) => p.toLowerCase().endsWith(e))) { ignorados.push({ path: p, motivo: 'extensao' }); continue; }
     // IMAGEM fica fora da lista de FALTANDO por decisao datada (imagem nao e fonte de
     // construcao; o eixo dela e do block-ancora-no-olho) — mas vai pra `ignorados`, VISIVEL.
@@ -1282,7 +1335,7 @@ function main() {
     // e usá-lo aqui acusaria como "novo no vivo" todo arquivo do espelho fora do shell.
     // Medido: com o manifesto do shell dava dezenas de FP (`prototipo-ui-patch/**`); com o
     // completo dá 10, o mesmo número do `--live-only`, que é o dono desta pergunta.
-    const novos = liveOnly([...vivos], buildManifest(ROOT, { all: true, shellHtml: lerShellHtml() }));
+    const novos = liveOnly([...vivos], buildManifest(ROOT, { all: true, shellHtml: lerShellHtml() }), { jaEmDocs: buildDocsSet(ROOT) });
     const telaNova = novos.filter((p) => /-page\.(jsx|css)$/.test(p) || /^[^/]+-(page|merge)\.jsx$/.test(p));
 
     console.log(`\n  LISTA DE DOWNLOAD — manifesto do shell × vivo × ledger\n`);
@@ -1319,7 +1372,7 @@ function main() {
     const raw = JSON.parse(readFileSync(lp, 'utf8'));
     const paths = Array.isArray(raw) ? raw : (raw.paths || []);
     const manifest = buildManifest(ROOT, { all: true, shellHtml: lerShellHtml() });
-    const faltando = liveOnly(paths, manifest);
+    const faltando = liveOnly(paths, manifest, { jaEmDocs: buildDocsSet(ROOT) });
     // Classifica pra o humano decidir sem ler 25 linhas iguais. NÃO é filtro — tudo é
     // listado; filtro escondido aqui recriaria o ponto cego que este modo existe pra abrir.
     const ehTela = (p) => !p.includes('/') && /\.(jsx|css)$/.test(p);

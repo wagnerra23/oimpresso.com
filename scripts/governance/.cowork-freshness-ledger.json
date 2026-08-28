@@ -1228,5 +1228,14 @@
       "COLAR-NO-CODE-ponto-ondas.md",
       "github.md"
     ]
+  },
+  {
+    "date": "2026-08-28T10:43:39.952Z",
+    "kind": "live-only",
+    "liveOnly": 1,
+    "denom": 275,
+    "liveOnlyList": [
+      ".thumbnail"
+    ]
   }
 ]
