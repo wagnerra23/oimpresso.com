@@ -57,7 +57,11 @@ interface SidebarShortcutsShared {
 // items flat sem campo `icon`; resolvemos via lookup case-insensitive).
 // Items não mapeados caem em Hash genérico. Adicionar aqui ao escalar.
 const MENU_ICON_MAP: Record<string, LucideIcon> = {
+  // `findMenuIcon` cai em `Hash` quando não acha a chave, então TODO label novo
+  // precisa entrar aqui — senão o ícone degrada em silêncio. 'visão geral' e
+  // 'overview' são os dois locales da entry do painel (lang/{pt,en}/home.php).
   iniciar: Home, início: Home, home: Home, dashboard: Home,
+  'visão geral': Home, 'visao geral': Home, overview: Home,
   contatos: Users, clientes: Users, crm: Users,
   produtos: Package,
   compras: ShoppingCart,
@@ -269,6 +273,56 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
 const HIDDEN_GROUP = '__hidden__';
 
 /**
+ * LANDING_GROUP — entry FIXA no topo, fora dos grupos ([W] 2026-08-28).
+ *
+ * É o destino pós-login (a "Visão geral", /dashboard-legacy). Antes ela caía em
+ * SISTEMA — o ÚLTIMO grupo — por match de label ('Dashboard' está em
+ * `SIDEBAR_GROUPS.sistema.items`), ao lado de Auditoria e Planilha: a tela que
+ * responde "como foi o período" classificada como ferramenta de sistema.
+ *
+ * Difere de HIDDEN_GROUP: `__hidden__` DESCARTA o item (porque um shortcut
+ * hardcoded já o cobre); `landing` PRESERVA e renderiza no topo, lendo label,
+ * href, ícone e `active` do que o middleware declarou. É a diferença entre o
+ * frontend adivinhar e o frontend ler — regra [W] 2026-05-19.
+ *
+ * Não entra em SIDEBAR_GROUPS de propósito: `groupsToRender` itera SIDEBAR_GROUPS
+ * (+ MAIS), então uma key ausente de lá nunca vira cabeçalho de grupo. É o que
+ * garante que a entry apareça UMA vez só, no topo, e não duplicada.
+ */
+const LANDING_GROUP = 'landing';
+
+/** Item de landing já resolvido com o seu estado de destaque. */
+interface LandingEntry {
+  item: ShellMenuItem;
+  active: boolean;
+}
+
+/**
+ * landingAtivo — o destaque do item de landing é derivado da URL corrente,
+ * NÃO do atributo `active` que o middleware declara.
+ *
+ * Medido 2026-08-28: `LegacyMenuAdapter` (o serializador do `shell.menu`) monta
+ * `group`, `children` e `href` — e **nunca** `active`. O `ShellMenuItem` também
+ * não tem o campo. Ou seja, o `'active' => ...` do `AdminSidebarMenu` alimenta o
+ * presenter Blade legado (`AdminlteCustomPresenter::getActiveState`), mas jamais
+ * chega ao cockpit React. Ler `item.active` aqui seria ler um campo inexistente.
+ *
+ * Comparação por prefixo de path pra sobreviver a query string (`?aba=`,
+ * `?periodo=`) — a Visão geral guarda estado em query string por contrato, então
+ * igualdade estrita apagaria o destaque assim que o usuário trocasse de aba.
+ */
+function landingAtivo(href: string | undefined, urlCorrente: string): boolean {
+  if (!href) return false;
+  // Sem indexar array (`split()[0]` é `string | undefined` sob
+  // noUncheckedIndexedAccess) — corta query/hash e barra final por regex.
+  const soPath = (u: string) => u.replace(/[?#].*$/, '').replace(/\/+$/, '') || '/';
+  const alvo = soPath(href);
+  if (alvo === '/') return false; // '/' casaria com tudo — nunca serve de âncora
+  const atual = soPath(urlCorrente);
+  return atual === alvo || atual.startsWith(alvo + '/');
+}
+
+/**
  * LEGACY_GROUP_MAP — converte keys do sidebar v2 pros 5 grupos v3 canon
  * (Wagner 2026-05-22: 5 grupos autorizados — VENDER/OPERAR/FINANÇAS/PESSOAS/SISTEMA).
  *
@@ -324,6 +378,11 @@ function findGroupKey(item: ShellMenuItem | string): string {
     }
     return 'mais';
   }
+
+  // 0. landing → topo fixo, fora dos grupos. Vem ANTES de tudo porque
+  // 'landing' não está em SIDEBAR_GROUPS (de propósito — ver LANDING_GROUP):
+  // sem este ramo, cairia no match por label e daí em 'mais'.
+  if (typeof item !== 'string' && item.group === LANDING_GROUP) return LANDING_GROUP;
 
   // 1+2. group declarado: 5 canon → grupo · ia/atendimento/equipe → HIDDEN · legacy → map
   if (item.group) {
@@ -423,7 +482,7 @@ export function CompanyPicker({
 
 // ── SidebarMenuItem (recursivo p/ children) ─────────────────────────────
 
-function SidebarMenuItem({ item }: { item: ShellMenuItem }) {
+function SidebarMenuItem({ item, active = false }: { item: ShellMenuItem; active?: boolean }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [popPos, setPopPos] = useState<{ top: number; left: number } | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -490,7 +549,7 @@ function SidebarMenuItem({ item }: { item: ShellMenuItem }) {
   }
 
   return (
-    <a href={href} className="sb-item">
+    <a href={href} className={`sb-item${active ? ' active' : ''}`}>
       <Icon size={14} className="ic" />
       <span className="label">{item.label}</span>
     </a>
@@ -691,12 +750,24 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
   // prop ainda não foi requisitada (lazy) ou se módulo desinstalado.
   // Wagner 2026-05-18: shared prop `shell.shortcuts` controla visibilidade
   // dos shortcuts topo baseado em módulos instalados por business.
-  const sharedShell = (usePage().props as any)?.shell as {
+  // UMA chamada de usePage() reaproveitada — somar uma segunda aumentaria a
+  // contagem de react-hooks/rules-of-hooks (este componente ja tem 1 violacao
+  // pre-existente: ha return condicional acima). O gate de lint pegou.
+  const paginaAtual = usePage();
+  const sharedShell = (paginaAtual.props as any)?.shell as {
     sidebar_counts?: SidebarCountsShared | null;
     shortcuts?: SidebarShortcutsShared | null;
   } | undefined;
   const counts = sharedShell?.sidebar_counts ?? { atendimento: 0, tarefas: 0, chat: 0 };
   const shortcuts = sharedShell?.shortcuts ?? undefined;
+
+  // Landing resolvida UMA vez e compartilhada pelos dois modos de render —
+  // se cada modo calculasse por conta, eles poderiam divergir em silêncio.
+  const urlCorrente = paginaAtual.url ?? '';
+  const landing: LandingEntry[] = (groupedItems[LANDING_GROUP] ?? []).map((item) => ({
+    item,
+    active: landingAtivo(item.href, urlCorrente),
+  }));
 
   if (mode === 'rail') {
     return (
@@ -705,12 +776,23 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
         groupedItems={groupedItems}
         counts={counts}
         shortcuts={shortcuts}
+        landing={landing}
       />
     );
   }
 
   return (
     <div className="sb-menu-grouped">
+      {/* Landing fixa no topo — ACIMA dos atalhos ([W] 2026-08-28). Vem do
+          `group => 'landing'` declarado no middleware; se o backend parar de
+          declarar, o array é vazio e some sozinho (degrada, não quebra). */}
+      {landing.length > 0 && (
+        <div className="sb-landing">
+          {landing.map(({ item, active }, idx) => (
+            <SidebarMenuItem key={`landing-${item.label}-${idx}`} item={item} active={active} />
+          ))}
+        </div>
+      )}
       <SidebarShortcuts
         tarefasCount={counts.tarefas}
         chatCount={counts.chat}
@@ -747,11 +829,13 @@ function SidebarMenuRail({
   groupedItems,
   counts,
   shortcuts,
+  landing,
 }: {
   groupsToRender: Array<{ key: string; label: string }>;
   groupedItems: Record<string, ShellMenuItem[]>;
   counts: SidebarCountsShared;
   shortcuts?: SidebarShortcutsShared;
+  landing: LandingEntry[];
 }) {
   // Wagner 2026-05-22: Tarefas REMOVIDO, sequência IA → Equipe → Atendimento
   const showIa = shortcuts?.ia ?? true;
@@ -785,6 +869,23 @@ function SidebarMenuRail({
 
   return (
     <div className="sb-menu-rail">
+      {/* Landing fixa no topo do rail — espelha o bloco `sb-landing` do modo
+          expandido. Os DOIS modos precisam do item: renderizar só num deles
+          faria a entry sumir ao colapsar o sidebar. */}
+      {landing.map(({ item, active }, idx) => {
+        const LandingIcon = findMenuIcon(item.label);
+        return (
+          <a
+            key={`landing-rail-${item.label}-${idx}`}
+            href={item.href ?? '#'}
+            className={`sb-rail-btn${active ? ' active' : ''}`}
+            data-tip={item.label}
+            onClick={() => setFlyout(null)}
+          >
+            <LandingIcon size={18} className="ic" />
+          </a>
+        );
+      })}
       {showIa && (
         // Wagner 2026-05-25: rail collapsed IA aponta /ia/dashboard (espelha sb-shortcut acima).
         <a

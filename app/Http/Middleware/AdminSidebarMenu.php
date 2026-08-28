@@ -76,7 +76,14 @@ class AdminSidebarMenu
             // `segment(1)` é `dashboard-legacy`. A comparação anterior era com
             // `'home'` — permanentemente falsa, e por isso a entry do destino
             // pós-login nunca acendia. `/home` é só um 302 (linha ~523).
-            $menu->url(action([\App\Http\Controllers\HomeController::class, 'index']), __('home.home'), ['icon' => '<svg xmlns="http://www.w3.org/2000/svg" class="tw-size-5 tw-shrink-0" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            // `group => 'landing'` é o que TIRA esta entry dos grupos e a põe
+            // fixa no topo do cockpit ([W] 2026-08-28). O React só LÊ o group —
+            // não casa label — pela regra [W] 2026-05-19 ("DataController
+            // declara, frontend não hardcode"). Sem este `group` a entry cairia
+            // em MAIS, porque 'Visão geral' não está em `SIDEBAR_GROUPS.items[]`
+            // de grupo nenhum (medido). É por isso que label e group mudam
+            // JUNTOS: um sem o outro é regressão de alocação.
+            $menu->url(action([\App\Http\Controllers\HomeController::class, 'index']), __('home.visao_geral'), ['group' => 'landing', 'icon' => '<svg xmlns="http://www.w3.org/2000/svg" class="tw-size-5 tw-shrink-0" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
             <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
             <path d="M5 12l-2 0l9 -9l9 9l-2 0" />
             <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />

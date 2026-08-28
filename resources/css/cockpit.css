@@ -1700,6 +1700,16 @@
 /* ────────────────── Sidebar single-pane (UI-0011) ────────────────── */
 /* Tarefas + Chat — hover/active arredondado (canon Cowork 2026-04-27).
    Wagner 2026-05-05: "seleção arredondada dos itens quando hover". */
+/* Landing fixa no topo (Visão geral) — [W] 2026-08-28. Espelha o padding do
+   `.sb-shortcuts` logo abaixo pra alinhar com os atalhos; o item interno é um
+   `.sb-item` comum, então herda hover/active/marcador sem regra nova. O
+   `padding-bottom: 0` evita dobrar o respiro entre os dois blocos. */
+.cockpit .sb-landing {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 8px 8px 0;
+}
 .cockpit .sb-shortcuts {
   display: flex;
   flex-direction: column;
@@ -2147,6 +2157,14 @@
   background: var(--sb-active);
   color: var(--sb-text-hi);
 }
+/* `.active` (landing no rail) usa o MESMO tratamento de `.open` — sem esta
+   regra a classe seria inerte e o item do topo nunca destacaria no modo
+   colapsado, que é justamente onde o usuário perde a referência de onde está. */
+.cockpit .sb-rail-btn.active {
+  background: var(--sb-active);
+  color: var(--sb-text-hi);
+}
+.cockpit .sb-rail-btn.active .ic { opacity: 1; }
 .cockpit .sb-rail-btn .ic {
   width: 18px;
   height: 18px;

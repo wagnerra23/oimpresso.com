@@ -509,3 +509,12 @@ tests/Feature/Sidebar/Biz4RotaLivreSidebarTest.php
 # ⚠️ NAO rodei o Pest (CT 100 only, ADR 0062). A prova de que passou a executar e
 # o CONTADOR da lane no run deste PR — nao este comentario.
 Modules/Jana/Tests/Feature/Smoke/DistillerFreshnessAdvisoryTest.php
+# GUARD do acoplamento label<->group da entry "Visao geral" (landing, topo fixo).
+# Medido 2026-08-28: trocar o label sem declarar `group => 'landing'` joga a
+# entry do destino pos-login em MAIS, porque 'Visao geral' nao aparece em
+# `SIDEBAR_GROUPS.items[]` de grupo nenhum no Sidebar.tsx. O guard so serve se
+# RODAR: `tests/Feature/Sidebar/` tinha 1 unico arquivo nesta allowlist, entao
+# registrar no phpunit.xml nao bastaria (LC-13, "verde por nao-execucao").
+# Sqlite-safe: Menu em memoria via Menu::create + LegacyMenuAdapter->build(),
+# `action()` sobre rota declarada e `trans()` — DB-less, igual ao vizinho da L447.
+tests/Feature/Sidebar/VisaoGeralLandingTest.php
