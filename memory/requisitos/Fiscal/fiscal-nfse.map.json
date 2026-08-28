@@ -13,8 +13,8 @@
     "id": "filtros-de-nfs-e",
     "prototipo": { "arquivo": "prototipo-ui/cowork/fiscal-page.jsx", "linhas": "459-481" },
     "vivo": { "arquivo": "resources/js/Pages/Fiscal/Nfse.tsx", "linhas": "114-141", "ancora": "fiscal-nfse-filters" },
-    "status": "paridade",
-    "acao": "Nada. Preservar busca e competência reais.",
-    "_acionavel": false
+    "status": "gap-parcial",
+    "acao": "Decidir. Mesma região do protótipo do NF-e: select de tipo + radiogroup de densidade, ausentes no Nfse.tsx. O filtro de competência está em Nfse.tsx:109, fora da região ancorada 114-141. Construir, reancorar ou rejeitar por escrito.",
+    "_acionavel": true
   }]
 }

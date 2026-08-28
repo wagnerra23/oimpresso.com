@@ -8,8 +8,8 @@
       "targetSha256": "ad00425478b49874952f303b8be0ad387714fd068d46f3a36dfacc9888f16f28",
       "comparison": {
         "map": "memory/requisitos/Fiscal/fiscal-cockpit.map.json",
-        "mapSha256": "4ccfc771841087c2f53fb7103800e72512e29eb86d2d5f2c0aaf142dd4afd823",
-        "recordedAt": "2026-08-28T15:41:50.053Z"
+        "mapSha256": "deb345ae87a6df6c8daca4c8b72b9f6a98839348f0933a7009ed8e0dbf178143",
+        "recordedAt": "2026-08-28T16:39:16.046Z"
       },
       "tests": [],
       "smokes": []
@@ -21,8 +21,8 @@
       "targetSha256": "ff2916447ea0d98cf4cf952d4d0f68774a8afd957ceac52b8ef8c0f61f42a5d7",
       "comparison": {
         "map": "memory/requisitos/Fiscal/fiscal-config.map.json",
-        "mapSha256": "fc5b6fc78db7f1e59d46731b696f979d68acf6d7c223c4913bf4bcc70fd2f0bc",
-        "recordedAt": "2026-08-28T15:41:50.298Z"
+        "mapSha256": "33bf8c9ce73f920271a8f84966506fad5c33005dfd88c73c8650dfbbe9622f7b",
+        "recordedAt": "2026-08-28T16:39:16.366Z"
       },
       "tests": [],
       "smokes": []
@@ -35,7 +35,7 @@
       "comparison": {
         "map": "memory/requisitos/Fiscal/fiscal-dfe.map.json",
         "mapSha256": "9f618927a56b627e9ba63074aab31611d3d0fe42eae3ea5aca7db06909146d28",
-        "recordedAt": "2026-08-28T15:41:50.518Z"
+        "recordedAt": "2026-08-28T16:39:16.682Z"
       },
       "tests": [],
       "smokes": []
@@ -48,7 +48,7 @@
       "comparison": {
         "map": "memory/requisitos/Fiscal/fiscal-eventos.map.json",
         "mapSha256": "16d8e3177cfaea293b5589bae05ee65c516a54ec38c0c6f4e78d7c4289043ac4",
-        "recordedAt": "2026-08-28T15:41:50.732Z"
+        "recordedAt": "2026-08-28T16:39:16.986Z"
       },
       "tests": [],
       "smokes": []
@@ -60,8 +60,8 @@
       "targetSha256": "ac4fba29a48ef08344830ca4b705fe7a4ed6970ffecd60acfdec08e5b47a64b2",
       "comparison": {
         "map": "memory/requisitos/Fiscal/fiscal-nfe.map.json",
-        "mapSha256": "512a732f82d2df41b9b4e5bcf9bd12a491a59020cef9ecb431226c3070addf1c",
-        "recordedAt": "2026-08-28T15:41:50.960Z"
+        "mapSha256": "d81b73b06f688fdaa19566608a3b8ed41e41b0a094820b46eb6a8a8b2c52188f",
+        "recordedAt": "2026-08-28T16:39:17.285Z"
       },
       "tests": [],
       "smokes": []
@@ -73,8 +73,8 @@
       "targetSha256": "f018abd148c706b2db52894e15c6f4228c43db182e655bf90393d453d2b9a411",
       "comparison": {
         "map": "memory/requisitos/Fiscal/fiscal-nfse.map.json",
-        "mapSha256": "d8e7eb5de697cf44ccbfbeb0c4e762b1fd5aa1c497ded736ae5bb385df14fbd3",
-        "recordedAt": "2026-08-28T15:41:51.176Z"
+        "mapSha256": "e727588174f16ac35fa1f0e46a8cc575f58f972e4992176fd5ffd283fb43bd4c",
+        "recordedAt": "2026-08-28T16:39:17.601Z"
       },
       "tests": [],
       "smokes": []
@@ -87,7 +87,7 @@
       "comparison": {
         "map": "memory/requisitos/Fiscal/fiscal-sped.map.json",
         "mapSha256": "318de1495f481de6231ac6b45a4532df5dd488d86c88dc6bf9dfd79467f6cfe8",
-        "recordedAt": "2026-08-28T15:41:51.394Z"
+        "recordedAt": "2026-08-28T16:39:17.907Z"
       },
       "tests": [],
       "smokes": []

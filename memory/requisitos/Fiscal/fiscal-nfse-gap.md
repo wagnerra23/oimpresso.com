@@ -11,4 +11,4 @@ comparacao: memory/requisitos/Fiscal/fiscal-nfse-visual-comparison.md
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|
-| Filtros de NFS-e | Paridade documentada na comparação visual aprovada | **Nada.** Preservar busca e competência reais. |
+| Filtros de NFS-e | Filtros presentes; select de tipo e densidade ausentes; competência fora da região ancorada | **Decidir.** Mesma região do protótipo do NF-e: select de tipo + radiogroup de densidade, ausentes no Nfse.tsx. O filtro de competência está em Nfse.tsx:109, fora da região ancorada 114-141. Construir, reancorar ou rejeitar por escrito. |

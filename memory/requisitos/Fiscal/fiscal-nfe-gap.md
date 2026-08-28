@@ -11,4 +11,4 @@ comparacao: memory/requisitos/Fiscal/nfe-visual-comparison.md
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|
-| Filtros de NF-e/NFC-e | Paridade documentada na comparação visual aprovada | **Nada.** Não copiar mocks do protótipo. |
+| Filtros de NF-e/NFC-e | Filtros presentes; select "Filtrar por tipo" e radiogroup de densidade ausentes | **Decidir.** A região do protótipo (fiscal-page.jsx:459-481) traz o select "Filtrar por tipo" e o radiogroup de densidade; nenhum dos dois existe no Nfe.tsx. Não são mocks. Construir ou rejeitar por escrito. |

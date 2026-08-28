@@ -13,8 +13,8 @@
     "id": "filtros-de-nf-e-nfc-e",
     "prototipo": { "arquivo": "prototipo-ui/cowork/fiscal-page.jsx", "linhas": "459-481" },
     "vivo": { "arquivo": "resources/js/Pages/Fiscal/Nfe.tsx", "linhas": "190-231", "ancora": "fiscal-nfe-filters" },
-    "status": "paridade",
-    "acao": "Nada. Não copiar mocks do protótipo.",
-    "_acionavel": false
+    "status": "gap-parcial",
+    "acao": "Decidir. A região do protótipo (fiscal-page.jsx:459-481) traz o select \"Filtrar por tipo\" e o radiogroup de densidade; nenhum dos dois existe no Nfe.tsx. Não são mocks. Construir ou rejeitar por escrito.",
+    "_acionavel": true
   }]
 }

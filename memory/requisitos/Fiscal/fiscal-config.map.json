@@ -13,8 +13,8 @@
     "id": "certificado-e-regime",
     "prototipo": { "arquivo": "prototipo-ui/cowork/fiscal-subpages.jsx", "linhas": "257-288" },
     "vivo": { "arquivo": "resources/js/Pages/Fiscal/Config.tsx", "linhas": "281-346", "ancora": "fiscal-config-cert-regime" },
-    "status": "paridade",
-    "acao": "Nada. Não copiar gate simulado do protótipo.",
-    "_acionavel": false
+    "status": "gap-parcial",
+    "acao": "Decidir. O protótipo tem 4 cards (fiscal-subpages.jsx:257-288) e a região viva ancorada tem 2; \"Envio de documentos\" não existe no Config.tsx, e o bloco de regime está em Config.tsx:469-470, fora da região ancorada. Construir, reancorar ou rejeitar por escrito.",
+    "_acionavel": true
   }]
 }
