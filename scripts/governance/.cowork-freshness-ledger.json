@@ -1216,5 +1216,17 @@
       "voz-do-cliente-page.jsx": "cc69e438ed3dda67401383654ddf2225cdbebbd1f31f1fc5b9e6ba4b38d8e2a1"
     },
     "origin": "medicao"
+  },
+  {
+    "date": "2026-08-28T10:30:17.269Z",
+    "kind": "live-only",
+    "liveOnly": 4,
+    "denom": 275,
+    "liveOnlyList": [
+      ".thumbnail",
+      "CLAUDE.md",
+      "COLAR-NO-CODE-ponto-ondas.md",
+      "github.md"
+    ]
   }
 ]
