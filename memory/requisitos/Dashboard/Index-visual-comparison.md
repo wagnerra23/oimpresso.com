@@ -137,3 +137,61 @@ explícito: mesma intenção, mecanismo compatível com a premissa daqui.
 3. D1 (rede) e D3 (ícones) no runtime.
 4. Baseline VRT: `visreg-screens.json` tem **35 entradas / 35 `.snap`, zero sem par**; somar a Home
    exige `--update-snapshots` no CT 100/CI **+ aprovação [W] (gate F1.5)**.
+
+---
+
+## Rodada 3 — 2026-08-28 · RUNTIME, os dois lados medidos ([W]: "pode abrir e fazer o comparativo")
+
+> **Esta rodada corrige o escopo da Rodada 2.** Lá eu comparei CONTRATO (fonte × fonte) e declarei
+> D2/D4/D6/D8 NÃO MEDIDOS. Agora foram: design servido em `localhost:5601` (portão
+> `--preview-ds` OK, 10 deps repostas) × **produção logada** via Chrome real. Mesmo tema (**dark**
+> nos dois — conferido, não suposto). Sonda `design-diff.mjs --selftest` passou 6/6 antes de
+> qualquer veredito (sonda quebrada ≠ tela igual).
+>
+> ⚠️ **O lado prod é o estado ANTES deste PR** — a mudança ainda não está deployada. Logo a tabela
+> mede **o gap que o PR fecha**, não o resultado dele. O "depois" só se mede pós-deploy.
+> Leitura estabilizada: li `innerText.length` duas vezes com intervalo nos dois lados e só
+> concluí com o número parado (§5 2026-08-24 — não medir durante lazy-load).
+
+### Atalhos de topo — o que o PR fecha
+
+| # | Camada | Design (medido) | Prod hoje (medido) | Veredito |
+|---|---|---|---|---|
+| 26 | Sequência | `IA` → **`Visão geral`** → `Atendimento` | `IA` → `Forja` → `Atendimento` | ❌ falta a entry — **é o que o PR entrega** |
+| 27 | `aria-current` no ativo | `"page"` | **nenhum atalho tem** | ❌ — o PR passa a marcar |
+| 28 | Classe `active` | presente no item da rota | nenhuma | ❌ — o PR passa a aplicar |
+| 29 | Ícone da Visão geral | paths `M4 19V5M4 19h16` + `M8 15v-4M12 15V9M16 15v-7` (eixo + 3 barras) | — | ✅ o PR usa `BarChart3`, mesma forma |
+
+### Divergências de FUNDAÇÃO — pré-existentes, NÃO tocadas por este PR
+
+Afetam `IA`/`Forja`/`Atendimento` **igualmente**; existem antes deste trabalho.
+
+| # | Propriedade | Design | Prod | Nota |
+|---|---|---|---|---|
+| 30 | **Altura do atalho** | **34px** | **30px** | ❌ 4px |
+| 31 | **Cor do texto** | `oklch(0.8 0.008 295)` | `oklch(0.78 0.005 90)` | ❌ **hue 295 × 90** — não é ajuste fino, é outro eixo de cor |
+| 32 | `font-size` | 13px | 13.5px | ⚠️ 0,5px |
+| 33 | `padding` · `gap` | `0px 10px` · `10px` | `0px 10px` · `10px` | ✅ |
+
+**O achado que explica o #30 e fecha o #24 da Rodada 2:** em produção o `.sb-item` de **grupo** mede
+**34px** — exatamente o do design. Só o `.sb-shortcut` mede 30. Ou seja, o design não tem duas
+classes: o atalho de topo **é** um `.sb-item`, e prod inventou uma segunda forma pro mesmo papel.
+A Rodada 2 já registrava que `sb-shortcuts` **não existe em lugar nenhum do espelho** — agora a
+divergência tem número.
+
+**Consequência para este PR, dita sem rodeio:** a "Visão geral" entrou como `.sb-shortcut`, então
+nasce com **30px** — coerente com os vizinhos dela em produção, e **divergente dos 34px do design**.
+Foi escolha consciente: usar `.sb-item` deixaria o item novo 4px mais alto que `IA` e `Atendimento`
+ao lado, o que é pior visualmente do que a divergência herdada. Reconciliar de verdade é converter
+o bloco inteiro (`.sb-shortcut` → `.sb-item`), que mexe no topo de **todas** as telas — decisão [W],
+PR próprio.
+
+### Não comparado nesta rodada (e por quê)
+
+- **Largura do sidebar**: medi seletores DIFERENTES nos dois lados (`aside` no design,
+  `.sb-shortcuts.parentElement` em prod) — os números (260 × 249) **não são comparáveis** e não
+  viram veredito. Refazer com o mesmo seletor.
+- **Corpo da tela** (KPI/contrapartidas/gráficos/grades): o design **não tem** `[data-contract]`
+  (medido: 0 âncoras) — é instrumentação só-de-prod, então essa metade da sonda não tem par.
+  O corpo já foi coberto pela Rodada 1 (sonda pareada) e as 6 regressões dela foram fechadas no #6392.
+- **D1 (rede/partial-reload)** e **contraste par-a-par**: fora do escopo desta rodada.
