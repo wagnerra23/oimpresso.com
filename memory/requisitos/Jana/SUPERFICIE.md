@@ -313,7 +313,9 @@ module: Jana
 ## Componentes / apoio de tela — 11
 
 - [AssistantUiChat.tsx](../../../resources/js/Pages/Jana/_components/AssistantUiChat.tsx)
+- [FabJana.tsx](../../../resources/js/Pages/Jana/_components/FabJana.tsx)
 - [JanaAcaoModal.tsx](../../../resources/js/Pages/Jana/_components/JanaAcaoModal.tsx)
+- [JanaAreaHeader.tsx](../../../resources/js/Pages/Jana/_components/JanaAreaHeader.tsx)
 - [JanaCockpit.tsx](../../../resources/js/Pages/Jana/_components/JanaCockpit.tsx)
 - [JanaCockpitSkeleton.tsx](../../../resources/js/Pages/Jana/_components/JanaCockpitSkeleton.tsx)
 - [JanaConfigDrawer.tsx](../../../resources/js/Pages/Jana/_components/JanaConfigDrawer.tsx)
@@ -321,8 +323,6 @@ module: Jana
 - [JanaMetaDrawer.tsx](../../../resources/js/Pages/Jana/_components/JanaMetaDrawer.tsx)
 - [JanaPlanoBadge.tsx](../../../resources/js/Pages/Jana/_components/JanaPlanoBadge.tsx)
 - [JanaSubNav.tsx](../../../resources/js/Pages/Jana/_shared/JanaSubNav.tsx)
-- [FabJana.tsx](../../../resources/js/Pages/Jana/components/FabJana.tsx)
-- [JanaAreaHeader.tsx](../../../resources/js/Pages/Jana/components/JanaAreaHeader.tsx)
 
 ## Charters (lei da tela) — 4
 
