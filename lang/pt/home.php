@@ -2,6 +2,11 @@
 
  return [
      'home' => 'Dashboard',
+     // Chave PRÓPRIA da entry de sidebar do painel interno. NÃO reusar
+     // 'home.home': ele também rotula o dashboard do CLIENTE final
+     // (Modules/Crm ContactSidebarMenu + views/dashboard/index.blade),
+     // que é outra audiência. Medido 2026-08-28: 'home.home' tem 5 sites.
+     'visao_geral' => 'Visão geral',
      'welcome_message' => 'Bem-vindo :name',
      'total_sell' => 'Total de vendas',
      'total_purchase' => 'Total de compras',
