@@ -3,7 +3,6 @@
 namespace Modules\Ponto\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -66,32 +65,37 @@ class IntercorrenciaController extends Controller
     {
         $businessId = session('business.id') ?: $request->user()->business_id;
 
-        $colaboradores = Colaborador::where('business_id', $businessId)
-            ->where('controla_ponto', true)
-            ->whereNull('desligamento')
-            ->with(['user:id,first_name,last_name'])
-            ->orderBy('matricula')
-            ->get()
-            ->map(fn ($c) => [
-                'id'        => $c->id,
-                'matricula' => $c->matricula,
-                'nome'      => trim(optional($c->user)->first_name . ' ' . optional($c->user)->last_name),
-            ]);
-
         return Inertia::render('Ponto/Intercorrencias/Create', [
-            'colaboradores' => $colaboradores,
-            'tipos' => [
-                ['value' => 'CONSULTA_MEDICA',       'label' => 'Consulta médica'],
-                ['value' => 'ATESTADO_MEDICO',       'label' => 'Atestado médico'],
-                ['value' => 'REUNIAO_EXTERNA',       'label' => 'Reunião externa'],
-                ['value' => 'VISITA_CLIENTE',        'label' => 'Visita a cliente'],
-                ['value' => 'HORA_EXTRA_AUTORIZADA', 'label' => 'Hora extra autorizada'],
-                ['value' => 'ESQUECIMENTO_MARCACAO', 'label' => 'Esquecimento de marcação'],
-                ['value' => 'PROBLEMA_EQUIPAMENTO',  'label' => 'Problema no equipamento'],
-                ['value' => 'OUTRO',                 'label' => 'Outro' ],
-            ],
-            'ai_enabled' => $ai->aiHabilitada(),
+            'colaboradores' => $this->buildColaboradoresElegiveis($businessId),
+            'tipos'         => self::tiposDisponiveis(),
+            'ai_enabled'    => $ai->aiHabilitada(),
         ]);
+    }
+
+    /**
+     * Os 8 tipos de intercorrência, no vocabulário que o `IntercorrenciaRequest`
+     * aceita (`rules()['tipo']`).
+     *
+     * Extraído quando o `edit()` virou Inertia e passou a precisar da mesma lista:
+     * sem isto seriam TRÊS cópias literais do array no repositório. Ainda há uma no
+     * `AprovacaoController@index` (a fila de aprovação também rotula os tipos) —
+     * unificar as duas é mudança de outro escopo, e fica declarada aqui em vez de
+     * silenciosa: **mexeu nesta lista, confira a de lá.**
+     *
+     * @return array<int,array{value:string,label:string}>
+     */
+    private static function tiposDisponiveis(): array
+    {
+        return [
+            ['value' => 'CONSULTA_MEDICA',       'label' => 'Consulta médica'],
+            ['value' => 'ATESTADO_MEDICO',       'label' => 'Atestado médico'],
+            ['value' => 'REUNIAO_EXTERNA',       'label' => 'Reunião externa'],
+            ['value' => 'VISITA_CLIENTE',        'label' => 'Visita a cliente'],
+            ['value' => 'HORA_EXTRA_AUTORIZADA', 'label' => 'Hora extra autorizada'],
+            ['value' => 'ESQUECIMENTO_MARCACAO', 'label' => 'Esquecimento de marcação'],
+            ['value' => 'PROBLEMA_EQUIPAMENTO',  'label' => 'Problema no equipamento'],
+            ['value' => 'OUTRO',                 'label' => 'Outro'],
+        ];
     }
 
     public function store(IntercorrenciaRequest $request): RedirectResponse
@@ -153,9 +157,25 @@ class IntercorrenciaController extends Controller
         ]);
     }
 
-    public function edit($id): View
+    /**
+     * Edição de rascunho — a ÚLTIMA tela Blade viva do módulo, até 2026-08-28.
+     *
+     * O SDD §5.4 item 1 media a dívida: dos 21 renders dos controllers do Ponto,
+     * 20 eram Inertia e **1** era Blade — este. O operador que clicava "editar"
+     * num rascunho saía do shell React e caía no AdminLTE. Decisão [W] 2026-08-28:
+     * a tela FICA (a alternativa era derrubar a rota e deixar cancelar+recriar),
+     * então ela migra.
+     *
+     * O `abort_unless` de RASCUNHO **não muda** — é a âncora do `CU-PONTO-05`
+     * (*"só rascunho é editável"*) e vale igual na versão React.
+     *
+     * A Blade `pontowr2::intercorrencias.edit` NÃO foi apagada de propósito: ela
+     * vira fóssil como as outras 25 do módulo, e é o **contrato de paridade** que
+     * permite conferir esta migração campo a campo. Apagar é outro escopo.
+     */
+    public function edit(Request $request, $id): Response
     {
-        $intercorrencia = Intercorrencia::findOrFail($id);
+        $intercorrencia = Intercorrencia::with('colaborador.user')->findOrFail($id);
 
         abort_unless(
             $intercorrencia->estado === Intercorrencia::ESTADO_RASCUNHO,
@@ -163,7 +183,56 @@ class IntercorrenciaController extends Controller
             'Apenas rascunhos podem ser editados.'
         );
 
-        return view('pontowr2::intercorrencias.edit', compact('intercorrencia'));
+        $businessId = session('business.id') ?: $request->user()->business_id;
+
+        return Inertia::render('Ponto/Intercorrencias/Edit', [
+            'intercorrencia' => [
+                'id'                    => $intercorrencia->id,
+                'codigo'                => $intercorrencia->codigo ?? ('#' . substr((string) $intercorrencia->id, 0, 8)),
+                'estado'                => $intercorrencia->estado,
+                'colaborador_config_id' => $intercorrencia->colaborador_config_id,
+                'tipo'                  => $intercorrencia->tipo,
+                'data'                  => optional($intercorrencia->data)->format('Y-m-d'),
+                'dia_todo'              => (bool) $intercorrencia->dia_todo,
+                // O `IntercorrenciaRequest` valida `date_format:H:i`; a coluna pode
+                // vir como H:i:s. Cortar aqui evita o form nascer inválido contra a
+                // própria regra que ele vai submeter.
+                'intervalo_inicio'      => $intercorrencia->intervalo_inicio
+                    ? substr((string) $intercorrencia->intervalo_inicio, 0, 5)
+                    : '',
+                'intervalo_fim'         => $intercorrencia->intervalo_fim
+                    ? substr((string) $intercorrencia->intervalo_fim, 0, 5)
+                    : '',
+                'justificativa'         => (string) $intercorrencia->justificativa,
+                'prioridade'            => $intercorrencia->prioridade ?: 'NORMAL',
+                'impacta_apuracao'      => (bool) $intercorrencia->impacta_apuracao,
+                'descontar_banco_horas' => (bool) $intercorrencia->descontar_banco_horas,
+            ],
+            'colaboradores' => $this->buildColaboradoresElegiveis($businessId),
+            'tipos'         => self::tiposDisponiveis(),
+        ]);
+    }
+
+    /**
+     * Colaboradores selecionáveis — mesma regra do `create()`: só quem controla
+     * ponto e não foi desligado, escopado ao business.
+     *
+     * ⚠️ SEM PII: `cpf`/`pis` existem na entity e não entram — o payload alimenta
+     * um `<Select>` (proibicoes.md §Multi-tenant).
+     */
+    private function buildColaboradoresElegiveis(int $businessId)
+    {
+        return Colaborador::where('business_id', $businessId)
+            ->where('controla_ponto', true)
+            ->whereNull('desligamento')
+            ->with(['user:id,first_name,last_name'])
+            ->orderBy('matricula')
+            ->get()
+            ->map(fn ($c) => [
+                'id'        => $c->id,
+                'matricula' => $c->matricula,
+                'nome'      => trim(optional($c->user)->first_name . ' ' . optional($c->user)->last_name),
+            ]);
     }
 
     public function update(IntercorrenciaRequest $request, $id): RedirectResponse

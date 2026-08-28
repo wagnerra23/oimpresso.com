@@ -54,12 +54,21 @@ Os 8 tipos aceitos estão **duplicados literalmente** no `AprovacaoController@in
 
 ---
 
-## 2. 🔴 A dívida que define este grupo: a EDIÇÃO ainda é Blade
+## 2. ✅ A dívida que definia este grupo: a EDIÇÃO saiu do Blade (2026-08-28)
 
 `Route::resource` expõe `GET /ponto/intercorrencias/{id}/edit` → `IntercorrenciaController@edit`,
 e esse método retorna **`view('pontowr2::intercorrencias.edit')`**, não `Inertia::render`.
 Confirmei que o Blade existe: `Modules/Ponto/Resources/views/intercorrencias/edit.blade.php`.
-**Não existe `Intercorrencias/Edit.tsx`** na árvore.
+**Não existia `Intercorrencias/Edit.tsx`** na árvore.
+
+> ✅ **RESOLVIDO em 2026-08-28.** [W] decidiu que **a tela fica** — a alternativa avaliada
+> era derrubar a rota e deixar o fluxo ser cancelar + recriar. `edit()` passou a
+> `Inertia::render('Ponto/Intercorrencias/Edit')`, e a tela nasceu com o trio
+> (charter + casos + `IntercorrenciaEditContratoTest`). O `abort_unless` de RASCUNHO
+> atravessou a migração intacto — é âncora do `CU-PONTO-05`, não detalhe de implementação.
+>
+> A Blade `edit.blade.php` **não foi apagada**: virou o 26º fóssil do módulo e segue como
+> **contrato de paridade** desta migração. Limpar fósseis é escopo próprio.
 
 Consequência operacional: **o operador que clica "editar" num rascunho sai do shell React e cai no
 AdminLTE.** O SDD §5.4 item 1 registra a varredura contada: **21 renders nos controllers = 20
@@ -67,8 +76,11 @@ Inertia + 1 Blade** — este é o 1.
 
 Corolários para quem for mexer aqui:
 
-- Este RUNBOOK **destrava as três Pages Inertia**. Ele **não** autoriza inventar a `Edit.tsx`:
-  migrar essa tela é F1→F5 do MWART com decisão de escopo, não carona.
+- ~~Este RUNBOOK destrava as três Pages Inertia e **não** autoriza inventar a `Edit.tsx`.~~
+  **Caducou em 2026-08-28**, e a razão importa: a proibição estava certa *enquanto a decisão
+  não existia* — ela protegia contra migrar a tela de carona num PR de outra intenção. [W]
+  decidiu, a migração virou seu próprio PR com F1→F4 completo, e o F5 (cutover) segue humano
+  por desenho. **Agora são quatro Pages Inertia.**
 - `edit()` tem `abort_unless($estado === RASCUNHO, 403)` — **só rascunho é editável**, e isso é
   âncora de `CU-PONTO-05`. Vale para qualquer sucessora React.
 - Uma segunda inconsistência medida: `Route::resource` declara `ponto.intercorrencias.destroy`, mas
@@ -100,7 +112,7 @@ Vale a regra-mestre de [proibicoes.md](../../proibicoes.md):
 | Item | Estado |
 |---|---|
 | `Index` · `Create` · `Show` em Inertia/React | ✅ |
-| `Edit` | 🔴 **Blade** — ver §2 |
+| `Edit` | ✅ **Inertia** desde 2026-08-28 — ver §2 |
 | Charters das três Inertia | ✅ existem — os três **`status: draft`** |
 | `casos.md` das três | ✅ existem |
 | Scorecards | ✅ `ponto-intercorrencias-{index,create,show}.yaml` |
@@ -127,8 +139,11 @@ Pest e PHPStan **não** rodam local nem no Hostinger — CT 100, sempre
 
 ## 6. Não fazer
 
-- ❌ **Não migrar a `Edit` Blade de carona** neste ou noutro PR de outra intenção — ver §2. É F1→F5
-  do MWART com RUNBOOK e decisão de escopo próprios.
+- ❌ **Não reintroduzir a edição em Blade.** A `edit.blade.php` segue no repo como fóssil e
+  contrato de paridade — ela é referência de leitura, nunca destino de rota.
+- ❌ **Não migrar o `anexo`** (PDF/JPG/PNG) para a `Edit.tsx` sozinho: o `Create.tsx` também
+  não o oferece, e migrar só de um lado cria assimetria entre criar e editar. Está declarado
+  como `[BACKLOG]` no `Edit.casos.md`.
 - ❌ **Não deixar a IA mudar estado.** `aiClassify` **sugere** tipo/prioridade a partir de texto
   livre; o estado só muda por ação humana (SDD §5.3 F4). O `throttle:10,1` é parte do contrato.
 - ❌ **Não permitir editar intercorrência fora de `RASCUNHO`** — o `abort_unless` é âncora de
