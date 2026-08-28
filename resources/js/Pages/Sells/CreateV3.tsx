@@ -1139,6 +1139,12 @@ export default function SellsCreateV3({ cena }: Props) {
           setItemAberto((i) => (i === null ? null : Math.max(0, Math.min(itens.length - 1, i + delta))))
         }
         abaInicial={abaDoItem}
+        /* preço de TABELA do catálogo, não o da linha — é o que a alçada compara.
+           Mesma fonte que o `LancarItem` usa (`porSku`), pra não haver dois
+           entendimentos de "preço de tabela" na mesma tela. */
+        precoDeTabela={
+          itemAberto !== null ? porSku.get(itens[itemAberto]?.sku ?? '')?.preco : undefined
+        }
       />
 
       <ParcelasDrawer

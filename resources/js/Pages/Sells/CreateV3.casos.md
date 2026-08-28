@@ -693,6 +693,78 @@ O CST também é por imposto: o ICMS tem lista própria (`CST_ICMS`), os demais 
 
 ---
 
+## UC-V375 · Piso e folga da alçada conferem à mão, em centavos
+
+**Status:** 🧪 — 5 testes citam o UC e passam ([`tests/js/item-alcada.test.ts`](../../../../tests/js/item-alcada.test.ts)).
+
+- **Dado** um item com preço de tabela no catálogo,
+- **Quando** a aba Preço calcula o menor preço permitido e a distância até ele,
+- **Então** os números batem com aritmética à mão em **centavos inteiros** — matriz de 8 tabelas × 6 fatores, mais os casos de borda (preço acima da tabela não vira desconto negativo · tabela zero não divide por zero · a diferença é distância, sempre positiva).
+
+⚠️ **Território Tier 0 — VALOR.** A REGRA MESTRE nomeia preço e desconto, e exige prova por
+**dois caminhos independentes**. O caminho B é aritmética em centavos, nunca a mesma expressão
+em float — que provaria só que a função é igual a si mesma.
+
+O caminho B **reprovou na primeira execução, e o errado era ele**: faltava o arredondamento
+intermediário a centavo (devolvia 58,565 onde a função devolve 58,57). Fica registrado no
+próprio teste, porque é o mecanismo funcionando, não uma nota de rodapé.
+
+Cena do controller: tabela **68,90** → piso **58,57** (85%) → folga **R$ 10,34**.
+
+---
+
+## UC-V376 · O veredito da faixa NUNCA discorda do piso já usado no lançamento
+
+**Status:** 🧪 — 3 testes citam o UC e passam.
+
+- **Dado** que o `LancarItem` já avisa "abaixo do piso" desde antes desta aba existir,
+- **Quando** a aba Preço decide entre *preço liberado* e *precisa liberação*,
+- **Então** o veredito é **o mesmo** — varrido de centavo em centavo entre 57,00 e 60,00 (301 pontos), incluindo a fronteira.
+
+A razão é fina e é o que motivou `alcadaDoItem` **delegar** em vez de comparar: o piso exibido
+é **arredondado** (58,57) e o piso do `abaixoDoPiso` é **cru** (58,565). Preço de 58,566 é
+liberado pelo cru e seria barrado pelo exibido — a mesma tela diria duas coisas sobre o mesmo
+preço, com o modal liberando e o drawer travando. Um limite só, e ele mora no `abaixoDoPiso`.
+
+⚠️ **DIVERGE DA ÂNCORA, declarado:** o protótipo crava `58,40` como menor preço (número
+digitado na cena) e por isso mostra *"R$ 10,50 acima"*. Aqui o piso sai da **regra que já
+existe no repo** — `PISO_DA_TABELA = 0.85`, em [`calculo-item.ts`](../_components/v3/calculo-item.ts),
+usada pelo `LancarItem`. Seguir o 58,40 literal criaria duas alçadas contraditórias na mesma tela.
+
+---
+
+## UC-V377 · A aba Preço mostra a ALÇADA, não uma cópia da aba Geral
+
+**Status:** 🧪 — 5 testes citam o UC e passam ([`tests/js/item-preco-anexos.test.tsx`](../../../../tests/js/item-preco-anexos.test.tsx)).
+
+- **Dado** o drawer aberto na aba Preço,
+- **Quando** o vendedor vai decidir se fecha ou chama o supervisor,
+- **Então** encontra **preço de tabela · menor preço permitido · preço nesta venda**, a **faixa de alçada** (selo + quanto sobra ou falta em reais + desconto sobre a tabela) e a nota de que custo/markup/margem não aparecem para ele.
+
+**O que a aba mostrava antes:** valor unitário · desconto % · acréscimo % · base de cálculo —
+os quatro **read-only** e os quatro **já presentes na aba Geral** (§Valores da linha). Era
+repetição no lugar exato onde a aba existia pra dizer outra coisa. Nenhum deles fala de piso,
+então a tela **não tinha como** indicar que um preço exigia liberação.
+
+Um dos testes digita um preço menor e verifica que a faixa **vira** — o mecanismo é vivo, não
+um selo fixo.
+
+---
+
+## UC-V378 · Anexos ensina o que fazer com a área tracejada
+
+**Status:** 🧪 — 2 testes citam o UC e passam.
+
+- **Dado** a aba Anexos,
+- **Quando** o operador olha a área tracejada,
+- **Então** lê *"Arraste o arquivo de arte, a foto do local ou o comprovante de aprovação"* e vê o botão **Escolher arquivo** — os dois da âncora, os dois ausentes até aqui.
+
+O botão nasce **`disabled` com o motivo no `title`**: o preview não grava arquivo. Afordância
+que promete o que não cumpre é pior que ausência — ele existe pela fidelidade do layout, e a
+limitação fica dita em vez de descoberta no clique.
+
+---
+
 ## Backlog de contrato
 
 - **[BACKLOG]** O lançamento **para de descartar** `executante`, `local` e `impressao` ao virar linha da venda — o modal já coleta os três (`ItemLancado`), e são 3 das 19 colunas sem fonte do UC-V368.

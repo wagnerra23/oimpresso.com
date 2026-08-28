@@ -110,3 +110,50 @@ export const PISO_DA_TABELA = 0.85;
 export function abaixoDoPiso(precoDigitado: number, precoTabela: number): boolean {
   return precoDigitado < precoTabela * PISO_DA_TABELA;
 }
+
+/**
+ * Alçada do item — o que a aba Preço mostra: piso, veredito e desconto sobre a tabela.
+ *
+ * ⚠️ TIER 0 — VALOR. Provado por dois caminhos em `tests/js/item-alcada.test.ts`
+ * (função real × aritmética à mão em centavos inteiros), como manda a REGRA MESTRE.
+ *
+ * O VEREDITO DELEGA, não recalcula. `liberado` chama `abaixoDoPiso` em vez de
+ * comparar com `minimo` — e isso não é preciosismo:
+ *
+ *     `minimo` é ARREDONDADO para exibir (58,565 → 58,57)
+ *     `abaixoDoPiso` compara com o piso CRU (58,565)
+ *
+ * Comparar contra o arredondado moveria a fronteira: preço 58,566 é liberado pelo
+ * `abaixoDoPiso` (58,566 ≥ 58,565) e seria "precisa liberação" contra o exibido
+ * (58,566 < 58,57). Aí a MESMA tela diria duas coisas — o modal de lançamento
+ * (`LancarItem`, que já usa `abaixoDoPiso`) liberando e o drawer barrando. Um
+ * limite só, e ele mora no `abaixoDoPiso`.
+ *
+ * ⚠️ DIVERGE DA ÂNCORA, de propósito: o protótipo crava `58,40` como menor preço
+ * (número digitado à mão na cena) e por isso mostra "R$ 10,50 acima". Aqui o piso
+ * sai da REGRA que já existe no repo — 85% da tabela, `PISO_DA_TABELA`, a mesma
+ * que o `LancarItem` usa desde antes desta aba. Seguir o 58,40 literal criaria
+ * duas alçadas contraditórias na mesma tela. Com a regra: piso 58,57, folga 10,34.
+ */
+export type AlcadaDoItem = {
+  /** piso em 2 casas — para EXIBIR. O veredito não usa este número. */
+  minimo: number;
+  /** true = fecha sem pedir nada. Vem do `abaixoDoPiso`, nunca de comparação nova. */
+  liberado: boolean;
+  /** distância até o piso, sempre positiva: quanto sobra (liberado) ou quanto falta. */
+  diferenca: number;
+  /** desconto sobre a tabela em %, nunca negativo (preço acima da tabela = 0%). */
+  descontoPct: number;
+};
+
+export function alcadaDoItem(precoVenda: number, precoTabela: number): AlcadaDoItem {
+  const pisoCru = precoTabela * PISO_DA_TABELA;
+  return {
+    minimo: submitSafe(pisoCru),
+    liberado: !abaixoDoPiso(precoVenda, precoTabela),
+    diferenca: submitSafe(Math.abs(precoVenda - pisoCru)),
+    /* tabela ≤ 0 devolve 0 em vez de dividir por zero — item sem preço de
+       catálogo (serviço avulso) não tem desconto "sobre a tabela" nenhum. */
+    descontoPct: precoTabela > 0 ? Math.max(0, ((precoTabela - precoVenda) / precoTabela) * 100) : 0,
+  };
+}

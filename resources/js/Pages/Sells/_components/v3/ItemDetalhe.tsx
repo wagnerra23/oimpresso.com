@@ -44,7 +44,7 @@ import SubNav from '@/Components/shared/SubNav';
 
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Label } from '@/Components/ui/label';
-import { areaUnitaria, totalDoItem, unitarioLiquido } from './calculo-item';
+import { alcadaDoItem, areaUnitaria, totalDoItem, unitarioLiquido } from './calculo-item';
 import { BASES, TIPOS_BENEFICIARIO } from './comissao-dominio';
 import { brl, fmtBR, fmtQtd, parseBR } from './numeros';
 import {
@@ -78,7 +78,7 @@ import {
   TIPOS_PRECO,
   UNIDADES,
 } from './item-fiscal-dominio';
-import { Lbl, Pill, Sec } from './primitivos';
+import { Lbl, MoneyInput, Pill, Sec } from './primitivos';
 
 export type LinhaDoItem = {
   k: number;
@@ -253,6 +253,7 @@ export default function ItemDetalhe({
   onFechar,
   onNavegar,
   abaInicial = 'geral',
+  precoDeTabela,
 }: {
   linha: LinhaDoItem | null;
   indice: number;
@@ -260,8 +261,18 @@ export default function ItemDetalhe({
   onFechar: () => void;
   onNavegar?: (delta: number) => void;
   abaInicial?: Aba;
+  /* Preço de TABELA do catálogo — não o preço desta venda (`linha.preco`).
+     Vem da Page, que já tem o `porSku`; sem ele a aba Preço não teria como
+     dizer nada sobre alçada, e um piso inventado aqui seria pior que ausente. */
+  precoDeTabela?: number;
 }) {
   const [aba, setAba] = useState<Aba>(abaInicial);
+
+  /* Preço editável da aba Preço. Estado LOCAL: a tela é preview e não grava
+     (UC-V302), então ele move a faixa de alçada e para por aí — não volta pra
+     linha da venda. `MoneyInput` porque é o campo de dinheiro canônico desta
+     tela (#5883 desfez uma decisão errada minha de usar input cru). */
+  const [precoNestaVenda, setPrecoNestaVenda] = useState(linha?.preco ?? '0,00');
 
   /* fiscal */
   const [ncm, setNcm] = useState('39199090');
@@ -365,6 +376,12 @@ export default function ItemDetalhe({
   if (!linha) return null;
 
   const baseDeCalculo = parseBR(linha.qtd) * parseBR(linha.preco);
+
+  /* Alçada — DERIVADA, nunca estado. Sem preço de tabela do catálogo a aba não
+     inventa piso: cai no preço da própria linha, e aí a faixa fica honesta
+     (desconto 0%) em vez de mentir sobre um limite que ninguém cadastrou. */
+  const tabela = precoDeTabela ?? parseBR(linha.preco);
+  const alcada = alcadaDoItem(parseBR(precoNestaVenda), tabela);
 
   /* Derivados da aba Tributacao — nunca em estado (handoff §13): duas verdades
      sobre o mesmo imposto e que fabricam divergencia entre a linha e o total. */
@@ -1006,22 +1023,85 @@ export default function ItemDetalhe({
           )}
 
           {aba === 'preco' && (
-            <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-4">
-              <Texto label="Valor unitário" value={linha.preco} />
-              <Texto label="Desconto (%)" value={linha.desc} />
-              <Texto label="Acréscimo (%)" value={linha.acr} />
-              <Texto label="Base de cálculo" value={fmtBR(baseDeCalculo)} />
-            </Grid>
+            <Sec title="Preço deste item">
+              <Stack gap={3}>
+                {/* 3 campos, na ordem da âncora (`sells-item-detail.jsx:426-428`).
+                    A aba mostrava outros 4 (valor · desconto · acréscimo · base),
+                    todos read-only e todos JÁ presentes na aba Geral (§Valores da
+                    linha) — repetição no lugar do que a aba existe pra dizer. */}
+                <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-3">
+                  <MoneyInput label="Preço de tabela" value={fmtBR(tabela)} readOnly help="o que a tabela do cliente indica" />
+                  <MoneyInput
+                    label="Menor preço permitido"
+                    value={fmtBR(alcada.minimo)}
+                    readOnly
+                    help="abaixo disto precisa liberação do supervisor"
+                  />
+                  <MoneyInput
+                    label="Preço nesta venda"
+                    value={precoNestaVenda}
+                    onChange={setPrecoNestaVenda}
+                    help="o valor que vai para o cliente"
+                  />
+                </Grid>
+
+                {/* A faixa é o mecanismo que impede fechar abaixo do piso sem
+                    supervisor — era o que faltava inteiro. O veredito vem do
+                    `alcadaDoItem`, que DELEGA ao `abaixoDoPiso`: o mesmo limite
+                    que o modal de lançamento já usa, pra tela não dizer duas
+                    coisas sobre o mesmo preço. */}
+                <Inline
+                  gap={3}
+                  align="center"
+                  wrap
+                  className={cn(
+                    'rounded-lg border p-3',
+                    alcada.liberado ? 'border-success/25 bg-success/5' : 'border-destructive/25 bg-destructive/5',
+                  )}
+                >
+                  <Pill tom={alcada.liberado ? 'success' : 'destructive'}>
+                    {alcada.liberado ? 'preço liberado' : 'precisa liberação'}
+                  </Pill>
+                  <span className="text-[12.5px] leading-snug text-muted-foreground">
+                    {alcada.liberado
+                      ? `Está ${brl(alcada.diferenca)} acima do menor preço permitido — pode fechar sem pedir nada.`
+                      : `Faltam ${brl(alcada.diferenca)} para chegar ao menor preço permitido. Chame o supervisor antes de fechar.`}
+                  </span>
+                  <Inline gap={2} align="baseline" className="ml-auto">
+                    <Lbl className="mb-0">Desconto sobre a tabela</Lbl>
+                    <b className="font-mono text-[13.5px] font-semibold tabular-nums">
+                      {alcada.descontoPct.toFixed(1).replace('.', ',')}%
+                    </b>
+                  </Inline>
+                </Inline>
+
+                <span className="text-[11.5px] leading-snug text-muted-foreground">
+                  Custo, markup e margem <b>não aparecem para o vendedor</b> — o limite comercial já
+                  está no “menor preço permitido”. Quem forma preço faz isso no cadastro do produto,
+                  com permissão própria.
+                </span>
+              </Stack>
+            </Sec>
           )}
 
           {aba === 'anexos' && (
             <Sec title="Anexos do item">
-              <div className="rounded-lg border border-dashed border-border p-6 text-center">
+              {/* A âncora (`sells-item-detail.jsx:445-448`) tem a instrução de ARRASTAR
+                  e o botão primário — os dois faltavam, e sem eles a área tracejada
+                  não diz o que fazer com ela. O botão fica `disabled` com o motivo no
+                  título: o preview não grava arquivo, e afordância que promete o que
+                  não cumpre é pior que ausência. */}
+              <Stack gap={2} align="center" className="rounded-lg border border-dashed border-border p-6 text-center">
                 <span className="block text-[12.5px] text-muted-foreground">
-                  Arte, prova e comprovante do item. O upload não faz parte deste passo do porte — a
-                  tela de preview não grava arquivo.
+                  Arraste o arquivo de arte, a foto do local ou o comprovante de aprovação.
                 </span>
-              </div>
+                <Button type="button" size="sm" disabled title="o preview não grava nem serve arquivo">
+                  Escolher arquivo
+                </Button>
+                <span className="block text-[11px] text-muted-foreground">
+                  O upload não faz parte deste passo do porte — a tela de preview não grava arquivo.
+                </span>
+              </Stack>
               {/* A tabela da âncora (`DataTable` Arquivo · Tipo · Enviado · ação).
                   Os dois anexos são cena, como as etapas do fluxo. */}
               <div className="mt-3 overflow-x-auto rounded-lg border border-border">
