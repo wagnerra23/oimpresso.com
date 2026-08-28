@@ -189,27 +189,44 @@ por isso a string está no contrato, e não só no protótipo.
 
 ## Test plan (Pest GUARD)
 
-Cobertos em `tests/Feature/Home/HomeIndexInertiaTest.php`:
+> **Reconciliado 2026-08-28 (trio):** esta lista dizia **14** e a suíte tem **18** — faltavam os
+> três testes de ordenação/allowlist, entregues no fix de 2026-08-28 (`#6395`) sem passar por aqui.
+> Pela regra de precedência (**teste verde > casos > charter > SPEC**) quem perde se corrige no
+> mesmo PR, e o perdedor era este charter. Cada item agora cita o **UC** que o defende em
+> [`Index.casos.md`](Index.casos.md), e o título de cada teste cita o mesmo id (gate G-2).
+>
+> ⚠️ O `✅` abaixo é **herdado** desta lista antes da reconciliação e significa "o teste existe e
+> passou quando foi escrito" — não é veredito de run. O veredito por-UC é **derivado** do manifesto
+> `scripts/casos-test-results.json` (gate G-7) e vive no `casos.md`, onde os 16 UC estão 🧪 até a
+> primeira run publicar. Não repita status de run aqui: dois lugares afirmando o mesmo drifam.
 
-1. ✅ `renderiza Inertia component Home/Index com shape esperado` (user_name, is_admin, can_dashboard_data, totals, endpoints)
-2. ✅ `customer redirect preservado` (`user_type=user_customer` → 302)
-3. ✅ `sem permission dashboard.data → totals é null` (shell minimal)
-4. ✅ `?legacy=1 é inerte — não existe mais fallback Blade` (v5: prova que a query cai na tela React)
-5. ✅ `Tier 0 multi-tenant — não vaza locations de outro business` — invariante ADR 0093
-6. ✅ `totals expõe 8 campos canônicos` — guard charter v2 (total_sell, net, invoice_due, total_expense, total_purchase, purchase_due, total_sell_return, total_purchase_return)
+Cobertos em `tests/Feature/Home/HomeIndexInertiaTest.php` (6 testes · UC-DASH-01..06):
 
-Cobertos em `tests/Feature/Home/GradesDoPainelTest.php` (v4 — US-DASH-005):
+1. ✅ `UC-DASH-01` · `renderiza Inertia component Home/Index com shape esperado` (user_name, is_admin, can_dashboard_data, totals, endpoints)
+2. ✅ `UC-DASH-02` · `customer redirect preservado` (`user_type=user_customer` → 302)
+3. ✅ `UC-DASH-03` · `sem permission dashboard.data → totals é null` (shell minimal)
+4. ✅ `UC-DASH-04` · `?legacy=1 é inerte — não existe mais fallback Blade` (v5: prova que a query cai na tela React)
+5. ✅ `UC-DASH-05` · `Tier 0 multi-tenant — não vaza locations de outro business` — invariante ADR 0093
+6. ✅ `UC-DASH-06` · `totals expõe 8 campos canônicos` — guard charter v2 (total_sell, net, invoice_due, total_expense, total_purchase, purchase_due, total_sell_return, total_purchase_return)
 
-7. ✅ `aba sem permissão NÃO aparece` — cada grade tem o seu próprio gate
-8. ✅ `sem dashboard.data NÃO há aba nenhuma` — a camada externa do Blade (linhas 369→1013)
-9. ✅ `setting desligado esconde a aba condicional` (`enable_product_expiry`)
-10. ✅ `aba desconhecida na URL cai na primeira PERMITIDA` — e aba sem permissão não é servida
-    nem quando pedida explicitamente
-11. ✅ `Tier 0 multi-tenant — a grade não devolve linha de outro business` — invariante ADR 0093
-12. ✅ `PARIDADE com o endpoint legado` — mesmo total em `venc-venda` vs `/home/sales-payment-dues`.
+Cobertos em `tests/Feature/Home/GradesDoPainelTest.php` (12 testes · UC-DASH-07..16 — v4 US-DASH-005 + ordenação v5):
+
+7. ✅ `UC-DASH-07` · `aba sem permissão NÃO aparece` — cada grade tem o seu próprio gate
+8. ✅ `UC-DASH-08` · `sem dashboard.data NÃO há aba nenhuma` — a camada externa do Blade (linhas 369→1013)
+9. ✅ `UC-DASH-09` · `setting desligado esconde a aba condicional` (`enable_product_expiry`)
+10. ✅ `UC-DASH-10` · `aba desconhecida na URL cai na primeira PERMITIDA` — e aba sem permissão não é servida
+    nem quando pedida explicitamente. **São 2 testes, e o par é o ponto:** só a degradação passaria
+    num servidor que aceitasse qualquer aba pedida
+11. ✅ `UC-DASH-11` · `Tier 0 multi-tenant — a grade não devolve linha de outro business` — invariante ADR 0093
+12. ✅ `UC-DASH-12` · `PARIDADE com o endpoint legado` — mesmo total em `venc-venda` vs `/home/sales-payment-dues`.
     Trava a duplicação de critério que o Non-Goal dos endpoints impõe
-13. ✅ `Non-Goal GUARD — os 4 endpoints AJAX seguem respondendo`
-14. ✅ `catálogo declara as 8 grades do Blade — e nenhuma inventada`
+13. ✅ `UC-DASH-13` · `Non-Goal GUARD — os 4 endpoints AJAX seguem respondendo`
+14. ✅ `UC-DASH-14` · `catálogo declara as 8 grades do Blade — e nenhuma inventada`
+15. ✅ `UC-DASH-15` · `ordenacao: coluna da allowlist ordena de verdade` **+** `coluna FORA da allowlist
+    nao vira SQL` — 2 testes, positivo e controle negativo. A ordenação já esteve **inerte** em prod
+    (fix 2026-08-28): um teste que só checasse a recusa teria ficado verde o tempo todo
+16. ✅ `UC-DASH-16` · `ordenaveis() espelha o sortable da ancora — situacao NAO ordena`. Impede a UI
+    oferecer ordenação que o servidor recusa; `situacao` é derivada em PHP, não é coluna de banco
 
 ---
 
