@@ -69,12 +69,19 @@ class AdminSidebarMenu
 
             
                   
+            // `active` media o segmento de `/dashboard-legacy`, NÃO de `/home`.
+            // Medido 2026-08-28: existe UMA única rota declarando
+            // `HomeController@index` (routes/web.php, name `home.legacy`), então
+            // o `action()` acima resolve pra `/dashboard-legacy` e o
+            // `segment(1)` é `dashboard-legacy`. A comparação anterior era com
+            // `'home'` — permanentemente falsa, e por isso a entry do destino
+            // pós-login nunca acendia. `/home` é só um 302 (linha ~523).
             $menu->url(action([\App\Http\Controllers\HomeController::class, 'index']), __('home.home'), ['icon' => '<svg xmlns="http://www.w3.org/2000/svg" class="tw-size-5 tw-shrink-0" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
             <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
             <path d="M5 12l-2 0l9 -9l9 9l-2 0" />
             <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
             <path d="M10 12h4v4h-4z" />
-          </svg>', 'active' => request()->segment(1) == 'home'])->order(5);
+          </svg>', 'active' => request()->segment(1) === 'dashboard-legacy'])->order(5);
 
             //User management dropdown
             if (auth()->user()->can('user.view') || auth()->user()->can('user.create') || auth()->user()->can('roles.view')
