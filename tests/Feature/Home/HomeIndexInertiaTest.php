@@ -138,22 +138,29 @@ it('Tier 0 multi-tenant — não vaza locations de outro business', function () 
         $this->markTestSkipped('Precisa 2+ businesses no banco.');
     }
 
-    // `business_locations.invoice_scheme_id` tem FK pra `invoice_schemes` e a coluna
-    // NÃO aceita o default 0 — o insert sem ela quebra com "Cannot add or update a child
-    // row" (SQLSTATE 23000). O teste vivia com esse defeito desde que nasceu porque
-    // NENHUMA lane executava `tests/Feature/Home/`; só apareceu quando o dashboard-pest.yml
-    // passou a rodá-lo, no mesmo PR que este comentário.
+    // `business_locations` tem TRÊS FKs (contadas no schema, não supostas): business_id,
+    // invoice_scheme_id e invoice_layout_id. As duas últimas são NOT NULL e não aceitam o
+    // default 0 — o insert sem elas quebra com "Cannot add or update a child row"
+    // (SQLSTATE 23000). O teste vivia com esse defeito desde que nasceu porque NENHUMA
+    // lane executava `tests/Feature/Home/`; só apareceu quando o dashboard-pest.yml passou
+    // a rodá-lo, no mesmo PR que este comentário.
+    //
+    // As duas são resolvidas JUNTAS: satisfazer uma e deixar a irmã só troca a mensagem
+    // de erro — foi o que aconteceu entre dois runs seguidos deste mesmo teste.
     $invoiceScheme = \DB::table('invoice_schemes')->where('business_id', $businessB->id)->value('id')
         ?? \DB::table('invoice_schemes')->value('id');
+    $invoiceLayout = \DB::table('invoice_layouts')->where('business_id', $businessB->id)->value('id')
+        ?? \DB::table('invoice_layouts')->value('id');
 
-    if (! $invoiceScheme) {
-        $this->markTestSkipped('Sem invoice_scheme no banco — a FK de business_locations não teria alvo.');
+    if (! $invoiceScheme || ! $invoiceLayout) {
+        $this->markTestSkipped('Sem invoice_scheme/invoice_layout no banco — as FKs de business_locations não teriam alvo.');
     }
 
     // Inserir location no businessB e confirmar que userA NÃO vê
     $locBId = \DB::table('business_locations')->insertGetId([
         'business_id' => $businessB->id,
         'invoice_scheme_id' => $invoiceScheme,
+        'invoice_layout_id' => $invoiceLayout,
         'name' => '__TIER0_LEAK_GUARD__',
         'landmark' => null,
         'country' => 'BR',

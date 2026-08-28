@@ -191,28 +191,38 @@ runs:
               echo 'seed ponto_colaborador_config biz=1 user='.\$u1.PHP_EOL;
             }
           }
-          // invoice_scheme pros tenants 1 e 2 (2026-08-27). `business_locations` tem FK
-          // NOT NULL pra `invoice_schemes`, e a tabela nascia VAZIA: qualquer teste que
-          // insira uma location com a FK LIGADA morre com SQLSTATE 23000. Os inserts de
-          // location deste seed escapam só porque rodam depois do FOREIGN_KEY_CHECKS=0
-          // abaixo — o teste, que roda com a FK ligada, não escapa.
+          // Pré-requisitos de `business_locations` pros tenants 1 e 2 (2026-08-27).
           //
-          // Medido no run 98703624044: o guard Tier 0 'não vaza locations de outro
-          // business' (HomeIndexInertiaTest, US-DASH-001) morria nesse insert. Sem a linha
-          // aqui ele vira SKIP, e skip sai exit 0 — o mesmo 'proteção anunciada, não
-          // exercida' que o bloco do ponto_colaborador_config descreve logo acima.
+          // A tabela tem TRÊS FKs — contadas no schema, não supostas: business_id,
+          // invoice_scheme_id e invoice_layout_id. As duas últimas são NOT NULL e apontam
+          // pra tabelas que nasciam VAZIAS, então qualquer teste que insira uma location
+          // com a FK LIGADA morre com SQLSTATE 23000. Os inserts de location deste seed
+          // escapam só porque rodam depois do FOREIGN_KEY_CHECKS=0 abaixo — o teste, que
+          // roda com a FK ligada, não escapa.
           //
-          // As 3 colunas obrigatórias (NOT NULL sem default) são business_id, name e
-          // scheme_type — conferidas no database/schema/mysql-schema.sql antes de escrever
-          // isto, porque um insert malformado aqui quebraria as 16 lanes que compartilham
-          // este seed. Aditivo e idempotente: guardado por hasTable + not exists.
-          if (Illuminate\\Support\\Facades\\Schema::hasTable('invoice_schemes')) {
-            foreach ([1, 2] as \$isBiz) {
-              if (DB::table('business')->where('id', \$isBiz)->exists()
-                  && ! DB::table('invoice_schemes')->where('business_id', \$isBiz)->exists()) {
-                DB::table('invoice_schemes')->insert(['business_id'=>\$isBiz,'name'=>'CI Default','scheme_type'=>'blank','number_type'=>'sequential','is_default'=>1,'created_at'=>now(),'updated_at'=>now()]);
-                echo 'invoice_scheme criado biz='.\$isBiz.PHP_EOL;
-              }
+          // Medido: o guard Tier 0 'não vaza locations de outro business'
+          // (HomeIndexInertiaTest, US-DASH-001) morria nesse insert. Sem estas linhas ele
+          // vira SKIP, e skip sai exit 0 — o mesmo 'proteção anunciada, não exercida' que
+          // o bloco do ponto_colaborador_config descreve logo acima.
+          //
+          // As duas tabelas entram JUNTAS de propósito: satisfazer uma FK e deixar a irmã
+          // só troca a mensagem de erro (run 98703624044 morreu na invoice_scheme_id;
+          // 98705... morreu na invoice_layout_id, com o mesmo teste). Colunas obrigatórias
+          // conferidas no database/schema/mysql-schema.sql — invoice_schemes exige
+          // business_id/name/scheme_type, invoice_layouts exige business_id/name — porque
+          // insert malformado aqui quebraria as 16 lanes que compartilham este seed.
+          // Aditivo e idempotente: guardado por hasTable + not exists.
+          foreach ([1, 2] as \$isBiz) {
+            if (! DB::table('business')->where('id', \$isBiz)->exists()) { continue; }
+            if (Illuminate\\Support\\Facades\\Schema::hasTable('invoice_schemes')
+                && ! DB::table('invoice_schemes')->where('business_id', \$isBiz)->exists()) {
+              DB::table('invoice_schemes')->insert(['business_id'=>\$isBiz,'name'=>'CI Default','scheme_type'=>'blank','number_type'=>'sequential','is_default'=>1,'created_at'=>now(),'updated_at'=>now()]);
+              echo 'invoice_scheme criado biz='.\$isBiz.PHP_EOL;
+            }
+            if (Illuminate\\Support\\Facades\\Schema::hasTable('invoice_layouts')
+                && ! DB::table('invoice_layouts')->where('business_id', \$isBiz)->exists()) {
+              DB::table('invoice_layouts')->insert(['business_id'=>\$isBiz,'name'=>'CI Layout','created_at'=>now(),'updated_at'=>now()]);
+              echo 'invoice_layout criado biz='.\$isBiz.PHP_EOL;
             }
           }
           DB::statement('SET FOREIGN_KEY_CHECKS=0'); // conta usa account_id fake (sem row em accounts)
