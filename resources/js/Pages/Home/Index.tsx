@@ -171,8 +171,8 @@ function HomeIndex({
 
   return (
     <Stack gap={5} className="mx-auto max-w-7xl p-6">
+      <div data-contract="cabecalho">
       <PageHeader
-        data-contract="cabecalho"
         leading={
           <span className="mr-2 inline-flex translate-y-[1px] align-middle text-muted-foreground">
             <Icon name="layout-dashboard" size={18} strokeWidth={1.8} />
@@ -194,6 +194,7 @@ function HomeIndex({
           </span>
         }
       />
+      </div>
 
       <Inline gap={4} align="end" justify="between" wrap>
         <PeriodBar period={period} />
