@@ -995,6 +995,12 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **⚠️ NÃO virar gate:** o CI **não consegue** medir isto — é a razão de existir a divisão "agente mede, CI audita o registro", e ela está certa. Um gate novo aqui ou duplicaria o `--sla-live-only` (§5 2026-07-09, "duplica régua consolidada") ou nasceria mudo. O que fecha a classe não é máquina: é a **regeração do bundle do lado Cowork ao fim de todo ciclo de design**, hoje sem dono e sem automação — medido: os únicos invocadores de `gerar-payload-partes` no repo são testes de CI e documentação.
 
+### 2026-08-28 — Dar por entregue a correção que passa no CI inteiro e é INERTE no runtime
+
+- **O limite (variante também proibida):** correção cujo efeito é de **runtime** não se dá por entregue com typecheck + build + CI verdes. Antes de afirmar "corrigido", **medir o efeito no DOM/rede em produção** — o que a **Regra 0** do `PROTOCOLO-COMPARACAO-RUNTIME` já manda fazer sem [W] pedir. Vale para toda mudança que é uma **declaração** (flag, prop, atributo, `data-*`) cujo efeito depende de um contrato do framework satisfeito em **outro lugar**: nenhum gate estático conhece esse contrato. Corolário que vale além desta tela: **prop passada a componente com interface própria pode ser descartada em silêncio** — se ela é âncora que alguma máquina vai ler, confira no **DOM**, não no fonte.
+
+- **⚠️ Sobre virar máquina:** o predicado — *"esta declaração tem efeito em runtime?"* — depende do contrato de cada framework e não é decidível por varredura de texto; a forma sintática (acusar `enableSorting` sem `accessorFn`) morreria de falso-positivo no primeiro componente que resolve o accessor por outro caminho. O que fecha a classe é **processo, não lint**: a Regra 0 executada. Hoje ela é advisory — o `design-compare-protocol` entrega o protocolo e não bloqueia, e o `post-merge-ui-smoke-required` dispara no merge exigindo **só um screenshot** (`grep -nE "prototipo|design-diff|ancora"` no corpo dele: **zero**), buraco que o próprio PROTOCOLO §Regra 0 já declara em texto. Estender aquele hook é chip aberto, com o FP já medido: **37 telas** têm âncora resolvível (137 declaram `related_prototype`, **100** são `n/a` — cobrar as `n/a` seria falso-positivo por construção).
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
