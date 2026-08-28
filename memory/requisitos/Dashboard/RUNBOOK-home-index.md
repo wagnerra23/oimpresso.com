@@ -33,7 +33,6 @@ interface Props {
     invoice_due: number;
     total_expense: number;
   } | null;
-  legacy_url: string;                      // '/home?legacy=1' — fallback Blade
   endpoints: {
     totals: string;                        // '/home/get-totals'
     stock_alert: string;                   // '/home/product-stock-alert'
@@ -48,7 +47,6 @@ interface Props {
 - **AppShellV2** layout com breadcrumb único `Início`
 - **Welcome banner** ("Bem-vindo, {primeiro_nome}")
 - **4 KPI cards** (grid 1col mobile / 4col desktop): Total Sells (sky), Net (emerald), Invoice Due (amber), Total Expense (rose)
-- **Banner discreto** com link "Ver versão completa com gráficos e widgets de outros módulos" → `/home?legacy=1`
 - **Filtro loja** dropdown (se `all_locations.length > 1` E `is_admin`)
 
 ### Ações
@@ -74,10 +72,17 @@ interface Props {
 - `auth()->user()->can('dashboard.data')` — sem permission, retorna shell minimal sem `totals`
 - Customer redirect: `user_type == 'user_customer'` → `Modules\Crm\Http\Controllers\DashboardController::index`
 
-### Fallback Blade
+### Fallback Blade — ENCERRADO em 2026-08-28
 
-- `?legacy=1` força `view('home.index')` original com charts + widgets pluggable
-- Útil para canário e para users que dependem de widgets de outros módulos
+- O Blade legado foi **removido** (`views/home/index.blade.php`, os 8 partials, `home.js` nas duas
+  cópias, `indexLegacy()`, `__chartOptions()` e o ramo `?legacy=1`).
+- `?legacy=1` sobrevive só como link velho em favorito: é **inerte** e cai na mesma tela React.
+- O único motivo restante pra abrir o Blade eram os widgets pluggable de outros módulos, e o ponto
+  de extensão foi medido **vazio** — `dashboard_widget()` tem zero produtores nos 32 `DataController`.
+
+> ⚠️ **Reconciliação parcial (2026-08-28):** este RUNBOOK foi atualizado **só** nos pontos que a
+> remoção do Blade tornou falsos. As seções de layout/KPI ainda descrevem a tela anterior às ondas
+> 2 e 3 (gráficos e abas de grade) — dívida daqueles PRs, não desta remoção.
 
 ## Charter
 
@@ -90,7 +95,7 @@ interface Props {
 1. ✅ Renderiza Inertia component `Home/Index` com shape esperado
 2. ✅ Customer redirect preservado (`user_type=user_customer` → 302)
 3. ✅ Sem `dashboard.data` permission → `totals` é null
-4. ✅ `?legacy=1` retorna Blade (não Inertia)
+4. ✅ `?legacy=1` é inerte — não existe mais fallback Blade (v5)
 5. ✅ Tier 0 multi-tenant — não vaza locations de outro business
 
 ## Padrões transversais

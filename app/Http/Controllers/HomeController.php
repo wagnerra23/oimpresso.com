@@ -68,7 +68,6 @@ class HomeController extends Controller
      * Show the application dashboard.
      *
      * F6 Soft wrapper Inertia (US-DASH-001 — 2026-05-21).
-     * `?legacy=1` força Blade original (charts ECharts + widgets pluggable).
      * Default = Inertia React shell minimal (welcome + 4 KPI cards + filtro loja).
      *
      * Multi-tenant Tier 0 (ADR 0093 IRREVOGÁVEL): business_id de session.
@@ -85,11 +84,6 @@ class HomeController extends Controller
         $business_id = request()->session()->get('user.business_id');
 
         $is_admin = $this->businessUtil->is_admin(auth()->user());
-
-        // F6 Soft fallback: ?legacy=1 → Blade original (charts + widgets pluggable)
-        if (request()->query('legacy') === '1') {
-            return $this->indexLegacy($business_id, $is_admin);
-        }
 
         $can_dashboard_data = (bool) auth()->user()->can('dashboard.data');
 
@@ -208,7 +202,6 @@ class HomeController extends Controller
                     request()->integer('page', 1) ?: 1
                 )
             ),
-            'legacy_url' => '/dashboard-legacy?legacy=1',
             'endpoints' => [
                 'totals' => '/home/get-totals',
                 'stock_alert' => '/home/product-stock-alert',
@@ -247,7 +240,7 @@ class HomeController extends Controller
 
         // `yearmonth` vem do SELECT como DATE_FORMAT(...,'%m-%Y') -> "08-2026". Comparar com
         // \Carbon::format('Y-m') ("2026-08") NUNCA casa e o grafico sai 12 barras zeradas.
-        // O consumidor legado (indexLegacy) usa date('m-Y', ...) — aqui e o MESMO formato.
+        // O Blade legado (removido em 2026-08-28) usava date('m-Y', ...) — aqui e o MESMO formato.
         // Rotulo: array literal do prototipo (dash-legacy-page.jsx), nao locale — deterministico.
         $MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 
@@ -332,151 +325,6 @@ class HomeController extends Controller
         $fy = $this->businessUtil->getCurrentFinancialYear($business_id);
 
         return [$fy['start'], $fy['end'], 'fy'];
-    }
-    /**
-     * Blade legacy fallback (`?legacy=1`) — preserva charts ECharts + widgets pluggable.
-     * Mesma lógica original do index() pré-F6 Soft.
-     */
-    private function indexLegacy(int $business_id, bool $is_admin)
-    {
-        if (! auth()->user()->can('dashboard.data')) {
-            return view('home.index');
-        }
-
-        $fy = $this->businessUtil->getCurrentFinancialYear($business_id);
-
-        $currency = Currency::where('id', request()->session()->get('business.currency_id'))->first();
-        //ensure start date starts from at least 30 days before to get sells last 30 days
-        $least_30_days = \Carbon::parse($fy['start'])->subDays(30)->format('Y-m-d');
-
-        //get all sells
-        $sells_this_fy = $this->transactionUtil->getSellsCurrentFy($business_id, $least_30_days, $fy['end']);
-
-        $all_locations = BusinessLocation::forDropdown($business_id)->toArray();
-
-        //Chart for sells last 30 days
-        $labels = [];
-        $all_sell_values = [];
-        $dates = [];
-        for ($i = 29; $i >= 0; $i--) {
-            $date = \Carbon::now()->subDays($i)->format('Y-m-d');
-            $dates[] = $date;
-
-            $labels[] = date('j M Y', strtotime($date));
-
-            $total_sell_on_date = $sells_this_fy->where('date', $date)->sum('total_sells');
-
-            if (! empty($total_sell_on_date)) {
-                $all_sell_values[] = (float) $total_sell_on_date;
-            } else {
-                $all_sell_values[] = 0;
-            }
-        }
-
-        //Group sells by location
-        $location_sells = [];
-        foreach ($all_locations as $loc_id => $loc_name) {
-            $values = [];
-            foreach ($dates as $date) {
-                $total_sell_on_date_location = $sells_this_fy->where('date', $date)->where('location_id', $loc_id)->sum('total_sells');
-
-                if (! empty($total_sell_on_date_location)) {
-                    $values[] = (float) $total_sell_on_date_location;
-                } else {
-                    $values[] = 0;
-                }
-            }
-            $location_sells[$loc_id]['loc_label'] = $loc_name;
-            $location_sells[$loc_id]['values'] = $values;
-        }
-
-        $sells_chart_1 = new CommonChart;
-
-        $sells_chart_1->labels($labels)
-                        ->options($this->__chartOptions(__(
-                            'home.total_sells',
-                            ['currency' => $currency->code]
-                            )));
-
-        if (! empty($location_sells)) {
-            foreach ($location_sells as $location_sell) {
-                $sells_chart_1->dataset($location_sell['loc_label'], 'line', $location_sell['values']);
-            }
-        }
-
-        if (count($all_locations) > 1) {
-            $sells_chart_1->dataset(__('report.all_locations'), 'line', $all_sell_values);
-        }
-
-        $labels = [];
-        $values = [];
-        $date = strtotime($fy['start']);
-        $last = date('m-Y', strtotime($fy['end']));
-        $fy_months = [];
-        do {
-            $month_year = date('m-Y', $date);
-            $fy_months[] = $month_year;
-
-            $labels[] = \Carbon::createFromFormat('m-Y', $month_year)
-                            ->format('M-Y');
-            $date = strtotime('+1 month', $date);
-
-            $total_sell_in_month_year = $sells_this_fy->where('yearmonth', $month_year)->sum('total_sells');
-
-            if (! empty($total_sell_in_month_year)) {
-                $values[] = (float) $total_sell_in_month_year;
-            } else {
-                $values[] = 0;
-            }
-        } while ($month_year != $last);
-
-        $fy_sells_by_location_data = [];
-
-        foreach ($all_locations as $loc_id => $loc_name) {
-            $values_data = [];
-            foreach ($fy_months as $month) {
-                $total_sell_in_month_year_location = $sells_this_fy->where('yearmonth', $month)->where('location_id', $loc_id)->sum('total_sells');
-
-                if (! empty($total_sell_in_month_year_location)) {
-                    $values_data[] = (float) $total_sell_in_month_year_location;
-                } else {
-                    $values_data[] = 0;
-                }
-            }
-            $fy_sells_by_location_data[$loc_id]['loc_label'] = $loc_name;
-            $fy_sells_by_location_data[$loc_id]['values'] = $values_data;
-        }
-
-        $sells_chart_2 = new CommonChart;
-        $sells_chart_2->labels($labels)
-                    ->options($this->__chartOptions(__(
-                        'home.total_sells',
-                        ['currency' => $currency->code]
-                            )));
-        if (! empty($fy_sells_by_location_data)) {
-            foreach ($fy_sells_by_location_data as $location_sell) {
-                $sells_chart_2->dataset($location_sell['loc_label'], 'line', $location_sell['values']);
-            }
-        }
-        if (count($all_locations) > 1) {
-            $sells_chart_2->dataset(__('report.all_locations'), 'line', $values);
-        }
-
-        //Get Dashboard widgets from module
-        $module_widgets = $this->moduleUtil->getModuleData('dashboard_widget');
-
-        $widgets = [];
-
-        foreach ($module_widgets as $widget_array) {
-            if (! empty($widget_array['position'])) {
-                $widgets[$widget_array['position']][] = $widget_array['widget'];
-            }
-        }
-
-        $common_settings = ! empty(session('business.common_settings')) ? session('business.common_settings') : [];
-
-
-        return view('home.index', compact('sells_chart_1', 'sells_chart_2', 'widgets', 'all_locations', 'common_settings', 'is_admin'));
     }
 
     /**
@@ -766,24 +614,6 @@ class HomeController extends Controller
         return [
             'total_unread' => $total_unread,
             'notification_html' => $notification_html,
-        ];
-    }
-
-    private function __chartOptions($title)
-    {
-        return [
-            'yAxis' => [
-                'title' => [
-                    'text' => $title,
-                ],
-            ],
-            'legend' => [
-                'align' => 'right',
-                'verticalAlign' => 'top',
-                'floating' => true,
-                'layout' => 'vertical',
-                'padding' => 20,
-            ],
         ];
     }
 
