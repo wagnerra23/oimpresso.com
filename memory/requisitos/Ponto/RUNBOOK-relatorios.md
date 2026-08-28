@@ -110,9 +110,12 @@ sem ler a US-PONTO-009 antes**.
 | Mapa `cor` → token | ✅ já tokenizado (`corClasses`), com nota no fonte de que **azul hue 240 é proibido** no DS roxo |
 | Relatórios funcionais **por esta rota** | **0 de 8** — ver §2 |
 
-O bloco `// @docvault` no topo do `.tsx` cita `US-PONT-012`, `R-PONT-001/005` e um teste em
-`Modules/PontoWr2/Tests/...` — ⚠️ **vocabulário legacy `PontoWr2`, não `Ponto`**. Não verifiquei se
-esses ids e esse teste existem hoje; **não os trate como âncora** sem conferir.
+O bloco `// @docvault` no topo do `.tsx` cita `US-PONT-012`, `R-PONT-001/005` e um teste sob o
+módulo **`PontoWr2`** — ⚠️ **nome legacy: no disco o módulo é `Ponto`, e `PontoWr2` não existe.**
+O path completo **não é reproduzido aqui de propósito**: doc vivo citando um `Modules/<X>` que não
+existe conta como **ghost** no `knowledge-drift`, e a catraca `sdd-scorecard --ratchet` (GT-G3)
+reprova por isso — foi o que aconteceu na 1ª versão deste arquivo (`ghost_count` 12 → 13).
+Não verifiquei se esses ids e esse teste existem hoje; **não os trate como âncora** sem conferir.
 
 Cobertura **não é restateada aqui** — rode `npm run screen-coverage:report` e `npm run casos:report`.
 
