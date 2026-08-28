@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-27**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-28**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -129,13 +129,13 @@ lente: [construir]
 - espelho — mexeu depois de verificar
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 126 workflows por classe
+### Censo — 127 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 94 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
+| gate (bloqueia/valida PR) | 95 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 21 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, casos-results-publish, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
@@ -144,13 +144,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **387** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 349 · superseded: 16 · deprecated: 13 · proposto: 7 · rascunho: 1 · recusado: 1.
+- **390** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 351 · superseded: 16 · deprecated: 13 · proposto: 8 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 154 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 155 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -307,6 +307,7 @@ lente: [construir]
 - ~~2026-08-25 — Medir frescor do espelho Cowork contra o `sync/bundle.manifest.json` (ele CONFIRMA um estado que já não existe — verde falso)~~
 - ~~2026-08-26 — Regravar a baseline para fechar divergência DETERMINÍSTICA sem ter contado TODOS os escritores do fixture (4 rebakes, 9 dias)~~
 - ~~2026-08-27 — SLA cuja JANELA de tolerância é maior que a taxa de mudança do objeto (verde por construção — e a medição que ele audita não tem quem a dispare)~~
+- ~~2026-08-28 — Dar por entregue a correção que passa no CI inteiro e é INERTE no runtime~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -317,14 +318,14 @@ lente: [construir]
 
 ## Rastro
 
-- **475** handoffs · **650** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **479** handoffs · **653** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-08-28-session-02`
+  - `2026-08-28-session-01`
+  - `2026-08-28-onda1-ponto-e-biometria-sem-rota`
   - `2026-08-26-raio-gate-visual-5-suites`
   - `2026-08-26-arte-deploy-zero-downtime-shared-host`
   - `2026-08-26-503-balcao-larissa-janela-de-deploy`
-  - `2026-08-25-produto-unificado-zona-cinza-baseline`
-  - `2026-08-25-fluxo-design-playbook-detalhado`
-  - `2026-08-24-workflow-migracao-layout-em-ondas`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-27 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-28 · deriva das fontes canônicas, não as substitui._
