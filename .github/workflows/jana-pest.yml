@@ -255,6 +255,7 @@ jobs:
             Modules/Jana/Tests/Feature/TaskRegistry/SyncMemoryWebhookTasksTest.php \
             Modules/Jana/Tests/Feature/TaskRegistry/TaskParserServiceTest.php \
             Modules/Jana/Tests/Feature/Telemetry/LangfuseClientTest.php \
+            Modules/Jana/Tests/Feature/ProPreviewPermissaoTest.php \
             Modules/Jana/Tests/Feature/Telemetry/LlmHttpCallSitesLangfuseTest.php
           #
           # ══ LEVA 2026-08-26 — 59 órfãos da Jana entram de uma vez ═══════════
