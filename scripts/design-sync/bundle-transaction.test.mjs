@@ -167,32 +167,147 @@ console.log('\n=== transporte completo pode pousar, aplicação órfã continua 
   check('CLI fail-closed reprova aplicação com órfão', code === 1 && /sem destino inequívoco/.test(output), `code=${code} ${output}`);
 }
 
-console.log('\n=== evidência aplicada/testada é durável e se invalida quando a fonte muda ===');
+console.log('\n=== estados exigem recibos reais e invalidam em cascata por hash ===');
 {
   const root = sandbox();
   const before = sourceSnapshot('v1');
   const m1 = manifestFor(before);
   await applyBundleTransaction({ root, parts: partsFor(m1, before) });
   const target = 'Modules/Officeimpresso/Resources/js/Pages/officeimpresso/Logs/Index.tsx';
+  put(root, 'memory/requisitos/Officeimpresso/logs.map.json', JSON.stringify({
+    version: '1', tela: 'Officeimpresso/Logs', prototipo_sha: 'sem-historico',
+    mapping: { source: 'officeimpresso-page.jsx', target },
+    partes: [{
+      id: 'root', prototipo: { arquivo: 'prototipo-ui/cowork/officeimpresso-page.jsx', linhas: '1' },
+      vivo: { arquivo: target, linhas: '1', ancora: false }, status: 'mapeado', acao: 'aplicar',
+    }],
+  }, null, 2));
+  put(root, 'memory/requisitos/Officeimpresso/aplicacao.md', '# Evidência de aplicação\n');
+  put(root, 'memory/evidence/officeimpresso-smoke.png', 'png-fixture');
+
+  let prematureApplicationRejected = false;
+  try {
+    execFileSync(process.execPath, [
+      STATUS, '--root', root,
+      '--mark-applied', 'officeimpresso-page.jsx', '--target', target,
+      '--evidence', 'memory/requisitos/Officeimpresso/aplicacao.md',
+    ], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  } catch (error) { prematureApplicationRejected = /não pode preceder comparação válida/.test(String(error.stderr || '')); }
+  check('controle negativo: aplicação antes da comparação é recusada', prematureApplicationRejected);
+
+  execFileSync(process.execPath, [
+    STATUS, '--root', root,
+    '--mark-compared', 'officeimpresso-page.jsx',
+    '--target', target,
+    '--map', 'memory/requisitos/Officeimpresso/logs.map.json',
+  ], { encoding: 'utf8' });
+  let recorded = JSON.parse(readFileSync(join(root, 'scripts/design-sync/state/application-report.json'), 'utf8'));
+  let applied = recorded.screens.find((screen) => screen.source === 'officeimpresso-page.jsx' && screen.target === target);
+  check('map real + hashes atuais levam a COMPARADA', applied.lifecycleState === 'compared' && applied.compared);
+
   execFileSync(process.execPath, [
     STATUS, '--root', root,
     '--mark-applied', 'officeimpresso-page.jsx',
     '--target', target,
-    '--evidence', 'PR-fixture',
-    '--test', 'pest Officeimpresso',
+    '--evidence', 'memory/requisitos/Officeimpresso/aplicacao.md',
   ], { encoding: 'utf8' });
-  const recorded = JSON.parse(readFileSync(join(root, 'scripts/design-sync/state/application-report.json'), 'utf8'));
-  const applied = recorded.screens.find((screen) => screen.source === 'officeimpresso-page.jsx' && screen.target === target);
-  check('hashes atuais + evidência marcam aplicação', applied.applicationState === 'applied');
-  check('teste registrado aparece no relatório', applied.tested && applied.applicationEvidence.tests.includes('pest Officeimpresso'));
+  recorded = JSON.parse(readFileSync(join(root, 'scripts/design-sync/state/application-report.json'), 'utf8'));
+  applied = recorded.screens.find((screen) => screen.source === 'officeimpresso-page.jsx' && screen.target === target);
+  check('arquivo de evidência com hash leva a APLICADA', applied.lifecycleState === 'applied' && !applied.tested);
+
+  const ledgerPath = join(root, 'scripts/design-sync/state/applications.json');
+  const ledgerWithoutProofHash = JSON.parse(readFileSync(ledgerPath, 'utf8'));
+  delete ledgerWithoutProofHash.applications[0].application.evidenceSha256;
+  writeFileSync(ledgerPath, JSON.stringify(ledgerWithoutProofHash, null, 2));
+  execFileSync(process.execPath, [STATUS, '--root', root, '--refresh'], { encoding: 'utf8' });
+  recorded = JSON.parse(readFileSync(join(root, 'scripts/design-sync/state/application-report.json'), 'utf8'));
+  applied = recorded.screens.find((screen) => screen.source === 'officeimpresso-page.jsx' && screen.target === target);
+  check('controle negativo: evidência sem SHA não conta como aplicação', applied.lifecycleState === 'compared' && !applied.tested);
+  execFileSync(process.execPath, [
+    STATUS, '--root', root,
+    '--mark-applied', 'officeimpresso-page.jsx', '--target', target,
+    '--evidence', 'memory/requisitos/Officeimpresso/aplicacao.md',
+  ], { encoding: 'utf8' });
+
+  let failedTestRejected = false;
+  try {
+    execFileSync(process.execPath, [
+      STATUS, '--root', root,
+      '--run-test', 'officeimpresso-page.jsx', '--target', target, '--runner', 'local',
+      '--command-json', JSON.stringify([process.execPath, '-e', 'process.exit(7)']),
+    ], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  } catch (error) { failedTestRejected = /teste falhou/.test(String(error.stderr || '')); }
+  recorded = JSON.parse(readFileSync(join(root, 'scripts/design-sync/state/application-report.json'), 'utf8'));
+  applied = recorded.screens.find((screen) => screen.source === 'officeimpresso-page.jsx' && screen.target === target);
+  check('controle negativo: comando vermelho não grava recibo verde', failedTestRejected && applied.lifecycleState === 'applied' && !applied.tested);
+
+  execFileSync(process.execPath, [
+    STATUS, '--root', root,
+    '--run-test', 'officeimpresso-page.jsx', '--target', target, '--runner', 'local',
+    '--command-json', JSON.stringify([process.execPath, '-e', "process.stdout.write('teste-ok')"]),
+  ], { encoding: 'utf8' });
+  recorded = JSON.parse(readFileSync(join(root, 'scripts/design-sync/state/application-report.json'), 'utf8'));
+  applied = recorded.screens.find((screen) => screen.source === 'officeimpresso-page.jsx' && screen.target === target);
+  check('só comando realmente executado leva a TESTADA', applied.lifecycleState === 'tested' && applied.tested && !applied.smoked);
+
+  let tenant4Rejected = false;
+  try {
+    execFileSync(process.execPath, [
+      STATUS, '--root', root,
+      '--record-smoke', 'officeimpresso-page.jsx', '--target', target, '--route', '/officeimpresso/logs',
+      '--deploy-sha', 'a'.repeat(40), '--screenshot', 'memory/evidence/officeimpresso-smoke.png', '--tenant', '4',
+    ], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  } catch (error) { tenant4Rejected = /biz=4 é proibido/.test(String(error.stderr || '')); }
+  check('controle negativo: smoke biz=4 é recusado', tenant4Rejected);
+
+  execFileSync(process.execPath, [
+    STATUS, '--root', root,
+    '--record-smoke', 'officeimpresso-page.jsx', '--target', target, '--route', '/officeimpresso/logs',
+    '--deploy-sha', 'a'.repeat(40), '--screenshot', 'memory/evidence/officeimpresso-smoke.png', '--tenant', '1',
+  ], { encoding: 'utf8' });
+  recorded = JSON.parse(readFileSync(join(root, 'scripts/design-sync/state/application-report.json'), 'utf8'));
+  applied = recorded.screens.find((screen) => screen.source === 'officeimpresso-page.jsx' && screen.target === target);
+  check('rota + deploy + screenshot + tenant 1 levam a VALIDADA', applied.lifecycleState === 'validated' && applied.smoked);
   check('ledger durável fica fora de _ds', existsSync(join(root, 'scripts/design-sync/state/applications.json')));
+
+  put(root, 'memory/evidence/officeimpresso-smoke.png', 'png-fixture-alterado');
+  execFileSync(process.execPath, [STATUS, '--root', root, '--refresh'], { encoding: 'utf8' });
+  recorded = JSON.parse(readFileSync(join(root, 'scripts/design-sync/state/application-report.json'), 'utf8'));
+  applied = recorded.screens.find((screen) => screen.source === 'officeimpresso-page.jsx' && screen.target === target);
+  check('screenshot alterado invalida só o smoke', applied.lifecycleState === 'tested' && !applied.smoked);
+
+  const mapPath = join(root, 'memory/requisitos/Officeimpresso/logs.map.json');
+  const changedMap = JSON.parse(readFileSync(mapPath, 'utf8'));
+  changedMap._revisao = 'comparação refeita';
+  writeFileSync(mapPath, JSON.stringify(changedMap, null, 2));
+  execFileSync(process.execPath, [
+    STATUS, '--root', root,
+    '--mark-compared', 'officeimpresso-page.jsx',
+    '--target', target,
+    '--map', 'memory/requisitos/Officeimpresso/logs.map.json',
+  ], { encoding: 'utf8' });
+  recorded = JSON.parse(readFileSync(join(root, 'scripts/design-sync/state/application-report.json'), 'utf8'));
+  applied = recorded.screens.find((screen) => screen.source === 'officeimpresso-page.jsx' && screen.target === target);
+  check('map alterado invalida aplicação e teste anteriores', applied.lifecycleState === 'compared' && !applied.tested);
 
   const after = sourceSnapshot('v2');
   const m2 = manifestFor(after, m1);
   await applyBundleTransaction({ root, parts: partsFor(m2, after) });
   const invalidated = JSON.parse(readFileSync(join(root, 'scripts/design-sync/state/application-report.json'), 'utf8'))
     .screens.find((screen) => screen.source === 'officeimpresso-page.jsx' && screen.target === target);
-  check('mudança no hash da fonte invalida aplicação anterior', invalidated.applicationState === 'pending' && !invalidated.tested);
+  check('mudança no hash da fonte invalida comparação, aplicação, teste e smoke',
+    invalidated.lifecycleState === 'anchored' && invalidated.applicationState === 'pending' && !invalidated.tested && !invalidated.smoked);
+
+  execFileSync(process.execPath, [
+    STATUS, '--root', root,
+    '--mark-compared', 'officeimpresso-page.jsx',
+    '--target', target,
+    '--map', 'memory/requisitos/Officeimpresso/logs.map.json',
+  ], { encoding: 'utf8' });
+  const recomparison = JSON.parse(readFileSync(join(root, 'scripts/design-sync/state/application-report.json'), 'utf8'))
+    .screens.find((screen) => screen.source === 'officeimpresso-page.jsx' && screen.target === target);
+  check('recomparar hash novo não ressuscita aplicação/teste/smoke antigos',
+    recomparison.lifecycleState === 'compared' && !recomparison.tested && !recomparison.smoked);
 }
 
 console.log('\n=== delta baixa só mudanças, remove owned e preserva unchanged ===');

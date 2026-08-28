@@ -376,7 +376,7 @@ export default function Cockpit({
         }
       >
         {/* KPI ribbon estreito (substitui fx-kpis-cockpit 6-card grid) */}
-        <div className="fx-ribbon" role="region" aria-label="KPIs fiscais">
+        <div className="fx-ribbon" data-contract="fiscal-cockpit-kpis" role="region" aria-label="KPIs fiscais">
           <span className="fx-ribbon-item">
             <small>Emitidas</small>
             <b>{kpis.emitidas}</b>

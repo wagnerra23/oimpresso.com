@@ -278,7 +278,7 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
 
         {tab === 'cert' && (<>
         {/* Cert + Help (2-col grid — port fiscal-page.jsx §12 CertificadoTab) */}
-        <div className="fx-cert-grid">
+        <div className="fx-cert-grid" data-contract="fiscal-config-cert-regime">
           <section className="fx-cert-card">
             <h3>Certificado digital A1</h3>
             <p className="lead">Instalado em MemCofre · SEFAZ exige renovação anual.</p>

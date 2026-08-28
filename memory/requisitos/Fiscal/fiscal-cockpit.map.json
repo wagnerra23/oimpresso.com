@@ -1,0 +1,20 @@
+{
+  "version": "1",
+  "_doc": "Mapa por região; contrato e verificação vivem em gerar-map.mjs e design-code-map-check.mjs.",
+  "tela": "Fiscal/Cockpit (/fiscal)",
+  "gap_fonte": "memory/requisitos/Fiscal/fiscal-cockpit-gap.md",
+  "prototipo_sha": "sha256:a862374022ef",
+  "gerado_em": "2026-08-28",
+  "mapping": {
+    "source": "fiscal-page.jsx",
+    "target": "resources/js/Pages/Fiscal/Cockpit.tsx"
+  },
+  "partes": [{
+    "id": "kpis-fiscais",
+    "prototipo": { "arquivo": "prototipo-ui/cowork/fiscal-page.jsx", "linhas": "113-124" },
+    "vivo": { "arquivo": "resources/js/Pages/Fiscal/Cockpit.tsx", "linhas": "379-414", "ancora": "fiscal-cockpit-kpis" },
+    "status": "paridade",
+    "acao": "no-op — preservar o vivo e sua fonte real",
+    "_acionavel": false
+  }]
+}

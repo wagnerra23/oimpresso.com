@@ -1,0 +1,20 @@
+{
+  "version": "1",
+  "_doc": "Mapa por região; contrato e verificação vivem em gerar-map.mjs e design-code-map-check.mjs.",
+  "tela": "Fiscal/Nfe (/fiscal/nfe)",
+  "gap_fonte": "memory/requisitos/Fiscal/fiscal-nfe-gap.md",
+  "prototipo_sha": "sha256:a862374022ef",
+  "gerado_em": "2026-08-28",
+  "mapping": {
+    "source": "fiscal-page.jsx",
+    "target": "resources/js/Pages/Fiscal/Nfe.tsx"
+  },
+  "partes": [{
+    "id": "filtros-nfe",
+    "prototipo": { "arquivo": "prototipo-ui/cowork/fiscal-page.jsx", "linhas": "459-481" },
+    "vivo": { "arquivo": "resources/js/Pages/Fiscal/Nfe.tsx", "linhas": "190-231", "ancora": "fiscal-nfe-filters" },
+    "status": "paridade",
+    "acao": "no-op — não copiar mocks do protótipo",
+    "_acionavel": false
+  }]
+}

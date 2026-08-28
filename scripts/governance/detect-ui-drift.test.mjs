@@ -3,7 +3,7 @@
 // SELF-TEST — prova que detect-ui-drift.mjs MORDE e LIBERA (contrato, não implementação):
 //   (a) .tsx mudou + NADA declarado                     → FLAG          (morde)
 //   (b) + divergence_from_blueprint com razão real      → CLEARED       (libera: desvio)
-//   (c) + related_prototype mudou pra protótipo real    → CLEARED       (libera: protótipo)
+//   (c) + related_prototype mudou pra protótipo real    → CLEARED       (libera: ancoragem, não aplicação)
 //   (d) + entrada SYNC_LOG citando a tela               → CLEARED       (libera: sync log)
 //   (e) divergence "none" no diff                       → FLAG          (semântico: placeholder não conta)
 //   (f) related_prototype n/a → n/a                     → FLAG          (semântico: n/a→n/a não é aplicar)
@@ -36,14 +36,16 @@ check('(b) +divergence_from_blueprint razão real → CLEARED',
   }).estado === 'CLEARED');
 
 // (c) libera: related_prototype mudou pra protótipo real
-check('(c) related_prototype n/a → vendas-page.jsx → CLEARED',
-  classifyTela({
+const anchored = classifyTela({
     charterDiff: [
       '-related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)',
       '+related_prototype: prototipo-ui/cowork/vendas-page.jsx',
     ].join('\n'),
     telaTokens: TOK,
-  }).estado === 'CLEARED');
+  });
+check('(c) related_prototype n/a → vendas-page.jsx → CLEARED como ancoragem',
+  anchored.estado === 'CLEARED' && /ancorada/.test(anchored.motivo) && !/protótipo aplicado/.test(anchored.motivo),
+  anchored.motivo);
 
 // (d) libera: SYNC_LOG cita a tela
 check('(d) SYNC_LOG novo cita Sells/Index → CLEARED',

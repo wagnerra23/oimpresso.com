@@ -170,7 +170,7 @@ export default function Dfe({ activeTab, filters: initialFilters, counts, rows, 
           </div>
         </div>
 
-        <div className="fx-filters">
+        <div className="fx-filters" data-contract="fiscal-dfe-filters">
           <div className="fx-search">
             <FileSearch size={13} />
             <input

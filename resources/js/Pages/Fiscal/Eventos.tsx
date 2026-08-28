@@ -154,7 +154,7 @@ export default function Eventos({ filters: initialFilters, counts, rows }: Event
               <small>Eventos aparecem após cancelamento, CC-e, EPEC ou manifestação.</small>
             </div>
           ) : (
-            <div className="fx-timeline">
+            <div className="fx-timeline" data-contract="fiscal-eventos-timeline">
               {dataRows.map((ev) => (
                 <div key={ev.id} className={`fx-tl-item ${ev.kind}`}>
                   <div className="fx-tl-h">

@@ -16,8 +16,8 @@
  * um `.tsx` mudar — cada uma limpa o flag:
  *   1. DESVIO DECLARADO   — `divergence_from_blueprint` no charter irmão vira uma razão
  *                            REAL (não "none"/"n/a"), adicionada/alterada NESTE PR.
- *   2. PROTÓTIPO APLICADO  — o design foi seguido/atualizado, sinalizado por REUSO do
- *                            vocabulário existente (zero invenção — Wagner 2026-07-12):
+ *   2. ORIGEM DE DESIGN DECLARADA — a mudança pertence ao loop Cowork↔Code,
+ *                            sinalizada por REUSO do vocabulário existente:
  *                            (a) `related_prototype` do charter mudou pra um protótipo
  *                                REAL neste PR, OU
  *                            (b) entrada NOVA em `prototipo-ui/SYNC_LOG.md` citando a
@@ -33,6 +33,9 @@
  *   - FRESHNESS por construção: só olha o DIFF deste PR (base...HEAD). Uma linha velha
  *     de desvio (não tocada no PR) NÃO limpa — senão declarar 1 desvio cegaria a tela
  *     pra sempre (o buraco da anistia-por-tela do reconcile).
+ *   - `related_prototype` prova só ANCORAGEM/AUTORIZAÇÃO, nunca aplicação. O estado
+ *     recebido→comparado→aplicado→testado→validado pertence exclusivamente ao ledger
+ *     `scripts/design-sync/state/applications.json` e ao `status.mjs` (ADR 0384).
  *   - NÃO julga estética (cor/spacing/densidade). Isso é o `design-diff.mjs` (ADR 0299,
  *     medido) + o olho do Wagner no screenshot = juiz final. Esta máquina só sabe se a
  *     mudança foi AUTORIZADA, não se ficou bonita. São eixos ortogonais, de propósito.
@@ -119,20 +122,20 @@ export function classifyTela({ charterDiff = '', syncLogAdded = [], telaTokens =
   if (addedValues(charterDiff, 'divergence_from_blueprint').some((v) => !isNoneReason(v))) {
     return { estado: 'CLEARED', motivo: 'desvio declarado — divergence_from_blueprint com razão real, fresco no PR' };
   }
-  // 2a) PROTÓTIPO APLICADO — related_prototype MUDOU pra um protótipo real
+  // 2a) FONTE ANCORADA — autoriza a mudança, mas NÃO atesta aplicação.
   const protoAdded = addedValues(charterDiff, 'related_prototype');
   const protoRemoved = removedValues(charterDiff, 'related_prototype').map(stripQ);
   if (protoAdded.some((v) => isRealPrototype(v) && !protoRemoved.includes(stripQ(v)))) {
-    return { estado: 'CLEARED', motivo: 'protótipo aplicado — related_prototype mudou pra protótipo real, fresco no PR' };
+    return { estado: 'CLEARED', motivo: 'fonte de design ancorada — related_prototype mudou pra protótipo real; aplicação é verificada separadamente pelo design-sync' };
   }
-  // 2b) PROTÓTIPO APLICADO — SYNC_LOG novo citando a tela (registro do loop Cowork↔Code)
+  // 2b) LOOP DECLARADO — SYNC_LOG novo citando a tela (registro Cowork↔Code).
   const tokens = telaTokens.filter(Boolean).map((t) => t.toLowerCase());
   if (syncLogAdded.some((line) => { const l = line.toLowerCase(); return tokens.some((t) => l.includes(t)); })) {
-    return { estado: 'CLEARED', motivo: 'protótipo aplicado — SYNC_LOG registrou a aplicação de design da tela, fresco no PR' };
+    return { estado: 'CLEARED', motivo: 'loop de design registrado — SYNC_LOG citou a tela; aplicação é verificada separadamente pelo design-sync' };
   }
   return {
     estado: 'FLAG',
-    motivo: 'a .tsx mudou sem sinal de autorização (nem desvio declarado, nem protótipo aplicado, nem SYNC_LOG)',
+    motivo: 'a .tsx mudou sem sinal de autorização (nem desvio declarado, nem fonte de design ancorada, nem SYNC_LOG)',
   };
 }
 
@@ -195,8 +198,8 @@ function render(r) {
   console.log('');
   for (const c of r.cleared) console.log(`  ✓ ${c.tsx}\n      ${c.motivo}`);
   for (const f of r.flags) {
-    console.log(`  🚩 ${f.tsx}\n      ${f.motivo}\n      → declare o desvio (divergence_from_blueprint no ${f.charter}) OU registre a aplicação (related_prototype / SYNC_LOG).`);
-    if (IN_CI) console.log(`::warning file=${f.tsx}::mudança de UI não-declarada (M1) — .tsx mudou sem desvio declarado nem protótipo aplicado. Ver memory/requisitos/_DesignSystem/RESPEITAR-PROTOTIPO.md`);
+    console.log(`  🚩 ${f.tsx}\n      ${f.motivo}\n      → declare o desvio (divergence_from_blueprint no ${f.charter}) OU ancore a fonte/registre o loop (related_prototype / SYNC_LOG).`);
+    if (IN_CI) console.log(`::warning file=${f.tsx}::mudança de UI não-declarada (M1) — .tsx mudou sem desvio declarado nem origem de design fresca. Ver memory/requisitos/_DesignSystem/RESPEITAR-PROTOTIPO.md`);
   }
   if (r.sem_charter.length) {
     console.log('');
@@ -208,7 +211,7 @@ function render(r) {
     const L = ['## M1 — mudança de UI não-declarada', '',
       'Estas telas mudaram a `.tsx` **sem** sinal de autorização fresco neste PR:', ''];
     for (const f of r.flags) L.push(`- \`${f.tsx}\``);
-    L.push('', 'Conserto: declare o desvio (`divergence_from_blueprint` no charter irmão) **ou** registre a aplicação do design (`related_prototype` mudado / entrada no `SYNC_LOG.md`).',
+    L.push('', 'Conserto: declare o desvio (`divergence_from_blueprint` no charter irmão) **ou** ancore a origem de design (`related_prototype` mudado / entrada no `SYNC_LOG.md`). A aplicação é comprovada separadamente pelo design-sync.',
       '', 'Norma: `memory/requisitos/_DesignSystem/RESPEITAR-PROTOTIPO.md`. Advisory (não bloqueia).');
     try { execFileSync('bash', ['-c', `cat >> "$GITHUB_STEP_SUMMARY"`], { input: L.join('\n') + '\n' }); } catch { /* best-effort */ }
   }

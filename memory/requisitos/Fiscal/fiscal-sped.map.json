@@ -1,0 +1,20 @@
+{
+  "version": "1",
+  "_doc": "Mapa por região; contrato e verificação vivem em gerar-map.mjs e design-code-map-check.mjs.",
+  "tela": "Fiscal/Sped (/fiscal/sped)",
+  "gap_fonte": "memory/requisitos/Fiscal/fiscal-sped-gap.md",
+  "prototipo_sha": "sha256:1c323c8f7ae4",
+  "gerado_em": "2026-08-28",
+  "mapping": {
+    "source": "fiscal-page.jsx",
+    "target": "resources/js/Pages/Fiscal/Sped.tsx"
+  },
+  "partes": [{
+    "id": "estado-gerador-sped",
+    "prototipo": { "arquivo": "prototipo-ui/cowork/fiscal-subpages.jsx", "linhas": "375-389" },
+    "vivo": { "arquivo": "resources/js/Pages/Fiscal/Sped.tsx", "linhas": "80-91", "ancora": "fiscal-sped-status" },
+    "status": "paridade-visual",
+    "acao": "no-op — validação legal continua dependente do PVA",
+    "_acionavel": false
+  }]
+}
