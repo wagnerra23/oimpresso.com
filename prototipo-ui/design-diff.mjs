@@ -1051,7 +1051,29 @@ function runCompare(argvBruto) {
     console.log('');
   }
   if (argv.includes('--check') && res.bugs > 0) process.exit(1);
-  if (argv.includes('--check-shell') && res.shell > 0) process.exit(1);
+
+  // ── NÃO MEDI ≠ MEDI E BATEU (auditoria adversarial 2026-08-28) ────────────
+  // `res.shell` conta só `DIVERGE (a classificar)`; `SEM-DADO` não entrava em
+  // contador nenhum, então shell ausente saía **exit 0** — o código que um
+  // script lê como "pode seguir". E esse era o caminho DEFAULT: nenhum dos três
+  // donos do processo (skill `comparar-design-prod`, PROTOCOLO-COMPARACAO-RUNTIME,
+  // hook `design-compare-protocol`) ensinava a declarar `__SB_ROLES`, então quem
+  // seguisse o protocolo injetava a sonda sem ele → `shell: null` → verde tendo
+  // medido NADA. Zero medido lido como zero divergente é o mesmo defeito de
+  // "0 failed" numa suíte que não rodou.
+  // Sai 2 (não 1) pelo mesmo vocabulário do guarda de proveniência logo abaixo:
+  // 1 = medi e divergiu · 2 = não consegui medir.
+  if (argv.includes('--check-shell')) {
+    const semDadoShell = res.rows.filter((r) => r.dim === 'SHELL' && r.veredito === 'SEM-DADO');
+    if (semDadoShell.length) {
+      console.error(
+        `\n  ⛔ NÃO MEDI — ${semDadoShell.length} linha(s) de shell sem dado. "0 divergências" aqui NÃO significa "igual".` +
+        `\n     Declare window.__SB_ROLES nos DOIS lados antes de injetar a sonda:` +
+        `\n       node prototipo-ui/design-diff.mjs --shell-roles\n`);
+      process.exit(2);
+    }
+    if (res.shell > 0) process.exit(1);
+  }
 
   // ── PROVENIÊNCIA: "igual" exige saber DE ONDE veio o lado design ───────────
   // Sem isto o `--check` saía 0 (= igual) mesmo com o design vindo de espelho

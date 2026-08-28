@@ -117,7 +117,45 @@ Tokens do design (todos em hue 295):
 > **O residual honesto, que esta ADR NAO resolve:** o canon diz que a fonte de design e "protótipo
 > Cowork **+ Design System** + charter". Sao duas fontes, e aqui elas divergem entre si. Enquanto
 > ninguem reconciliar, todo alinhamento de cor vai parecer errado — metade da fonte diz uma coisa,
-> metade diz outra. Reconciliar e decisao de [W], fora do escopo desta ADR.
+> metade diz outra.
+>
+> ### A CAUSA, achada depois: uma ADR aplicada fora do escopo dela
+>
+> A divergencia entre as duas fontes **nao e acidente** — esta escrita no proprio arquivo.
+> `prototipo-ui/cowork/styles.css:3`, comentario literal:
+>
+> ```
+> /* Sidebar dark — espelho AppShell · tingido p/ a marca
+>    (roxo canon hue 295, ADR 0235) em vez de preto neutro croma-0 */
+> ```
+>
+> O prototipo tingiu os **neutros** do sidebar com o roxo da marca citando a
+> [ADR 0235](0235-ds-v4-accent-roxo-universal.md). Mas a 0235 governa o **accent**: o titulo dela
+> e *"accent oklch 0.55 0.15 295"*, croma **0.15** — cor de destaque. Os valores do prototipo tem
+> croma 0.008–0.05: sao neutro tingido, nao accent.
+>
+> E os neutros do sidebar tem dono proprio e mais novo: a
+> [UI-0027](../requisitos/_DesignSystem/adr/ui/0027-dark-hue-240-supersede-0020-0022.md)
+> (2026-08-28) fixa superficies em **240** e textos em **90**, e registra que foi escolha de [W]
+> **por imagem**. Ela e ~3 meses posterior a 0235.
+>
+> **Sao duas familias de token, e uma regra cruzou a fronteira da outra.** Por isso todo
+> alinhamento de cor parecia errado pela metade: escolher um lado fazia o outro acusar.
+>
+> **O que isso torna decidivel** (e nao estava, antes de medir): so ha duas saidas coerentes —
+> (a) o prototipo defere a UI-0027 e o bloco 295 sai da RAIZ (o projeto Cowork vivo, nao o
+> espelho, que e read-only por [ADR 0374](0374-emenda-0315-espelho-cowork-e-rota-prevista.md)); ou
+> (b) [W] decide que o sidebar E tingido de marca, e a UI-0027 e superseded por uma ADR nova.
+> Nao ha terceira: manter as duas e manter o split-brain.
+>
+> ⚠️ Esta ADR **nao escolhe** — registra que a escolha existe, qual e o mecanismo de cada saida, e
+> que enquanto ela nao for feita a producao segue a UI-0027 (que e o estado atual e o do DS).
+>
+> **Consolidacao: medida e ja OK.** Varredura dos docs vivos que falam de cor de sidebar
+> (`sidebar-menu-arch/SKILL.md`, `PRE-MERGE-UI.md`, `PIPELINE-TOKENS.md`, `rules/css.md`): nenhum
+> repete o VALOR — todos referenciam o token (`var(--sb-text)`). E a arquitetura certa, e e por
+> isso que o conflito pode ser isolado em **um unico arquivo**. Nao ha o que consolidar; ha o que
+> decidir.
 >
 > _(Este bloco corrige o corpo do rascunho antes do primeiro commit — o arquivo nunca foi canon:
 > nasceu nesta sessao, `status: proposto`, e ainda estava untracked quando a correcao entrou.)_
