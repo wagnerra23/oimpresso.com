@@ -619,3 +619,38 @@ O caso defende três coisas, e a terceira é a que dói se quebrar:
 | o selo mostra `plano Pro` só com `jana_pro_module` no pacote | senão volta a afirmar estado que o sistema não sabe |
 | `jana_module` e `jana_pro_module` seguem eixos SEPARADOS | fundi-los repete, dentro do código, o engano que um humano cometeu lendo o painel |
 | sem pacote legível o degrade é `Grátis` | afirmar Pro a quem não é promete recurso pago; o inverso só omite |
+
+---
+
+## UC-JNAME-01 — a tela de permissões não oferece um módulo chamado "Copiloto"
+Status: 🧪 (`tests/Feature/Permissions/JanaPermissionGroupNomeTest.php` — 4 `it()`. Aguarda run
+verde na lane; registrar no `phpunit.xml` não é a lane executar, então o alvo entrou também na
+allowlist `.github/ci-sqlite-pest.list` neste mesmo PR.)
+
+Derivado de `Modules/Jana/Resources/permissions.php` e da emenda de casos do Cowork
+(`JANA-CASOS-EMENDA-PERMISSAO-2026-08-27`) — **não** do `.tsx`. Derivar do código seria
+tautológico (§5 2026-06-05).
+
+O rename Copiloto→Jana (ADR 0088/0092) foi **PHP-only por decisão**, e a fachada ficou pra
+"PR-3+ posterior". Esses PRs não vieram por meses: o `permissions.php` seguiu declarando
+`group: 'Copiloto'` com as labels em `"Copiloto: …"` — que é exatamente o que o cliente lê ao
+montar um perfil de acesso em `/roles/{id}/edit`. Ele configurava acesso a um módulo que, na
+tela dele, se chama Jana.
+
+⚠️ **O conserto já aconteceu — este UC trava o ganho, não o produz.** Medido em 2026-08-28:
+`group => 'Jana'`, **zero** ocorrências de "Copiloto" no arquivo. Quem fez foi o
+[#6344](https://github.com/wagnerra23/oimpresso.com/pull/6344) (2026-08-27, *"as 134 chaves ficam
+byte-idênticas"*). O que **não** veio junto foi teste: zero testes citavam o `permissions.php` do
+módulo. Ganho sem catraca é piso baixo — regride sem nada piscar.
+
+⚠️ **As `key` NÃO se tocam.** `copiloto.mcp.*` → `jana.mcp.*` já foi feito (#4853) e deixou
+cicatriz: um `givePermissionTo('copiloto.mcp.use')` sobrou apontando pra permissão inexistente e
+**quebrou todo o onboarding** (`governance-script-tests.yml:540`). `group` e `label` são copy;
+`key` é incidente — e é por isso que o 4º caso vigia o prefixo.
+
+**Pronto quando:** o registry devolve `group: 'Jana'`, nenhuma label contém "Copiloto", e toda
+`key` segue no prefixo `jana.` (nenhuma em `copiloto.`).
+
+**Anti-vácuo:** os casos 3 e 4 filtram uma coleção, e coleção vazia passa trivialmente. Por isso o
+1º caso assere que o módulo foi descoberto e que a lista não está vazia, e os outros reancoram a
+contagem — sem isso, **apagar** o `permissions.php` deixaria a suíte verde.
