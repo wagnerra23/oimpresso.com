@@ -131,7 +131,14 @@ it('US-COPI-012 · store aplica os 3 defaults do servidor e redireciona pro deta
     // Os 3 defaults são do SERVIDOR — o form não os manda, e o drawer também não deve.
     expect($meta->ativo)->toBeTruthy()
         ->and($meta->origem)->toBe('manual')
-        ->and((int) $meta->criada_por_user_id)->toBe((int) $this->user->id)
+        ->and((int) $meta->criada_por_user_id)->toBe((int) $this->user->id);
+
+    // O dono também é do servidor. Sem `not->toBeNull()` ANTES, um `business_id` NULL
+    // passaria por `(int) null === 0` e a mensagem diria "0 !== 98", escondendo que o
+    // valor real é NULL — que aqui não é "vazio", é "meta de PLATAFORMA" (o
+    // ScopeByBusiness devolve NULL pra superadmin de qualquer tenant). Foi exatamente
+    // o defeito que este caso pegou no CI.
+    expect($meta->business_id)->not->toBeNull()
         ->and((int) $meta->business_id)->toBe(METAS_BIZ_CANONICO);
 });
 
@@ -283,4 +290,23 @@ it('Tier 0 · store NÃO aceita business_id de outro tenant vindo do payload', f
         ->exists();
 
     expect($vazou)->toBeFalse();
+});
+
+it('Tier 0 · CONTROLE POSITIVO: superadmin AINDA cria meta de plataforma (business_id null)', function () {
+    // Sem este caso, o teste acima provaria só que a porta fechou — não que ela fechou
+    // no lugar certo. A capacidade "meta da plataforma" é declarada pelo StoreMetaRequest
+    // ("business_id NULLABLE permite meta da plataforma, superadmin only") e consumida
+    // pelo SuperadminController (`whereNull('business_id')`); um gate que a matasse
+    // trocaria um defeito por outro.
+    \Spatie\Permission\Models\Permission::findOrCreate('jana.superadmin', 'web');
+    $this->user->givePermissionTo('jana.superadmin');
+    $this->user->forgetCachedPermissions();
+
+    $payload = metaPayload(['business_id' => null]);
+
+    $this->post('/ia/metas', $payload);
+
+    $meta = Meta::withoutGlobalScopes()->where('slug', $payload['slug'])->first();
+    expect($meta)->not->toBeNull()
+        ->and($meta->business_id)->toBeNull();   // plataforma, e foi um superadmin que pediu
 });
