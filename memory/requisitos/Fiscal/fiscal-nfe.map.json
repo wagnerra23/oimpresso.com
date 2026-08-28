@@ -14,7 +14,7 @@
     "prototipo": { "arquivo": "prototipo-ui/cowork/fiscal-page.jsx", "linhas": "459-481" },
     "vivo": { "arquivo": "resources/js/Pages/Fiscal/Nfe.tsx", "linhas": "190-231", "ancora": "fiscal-nfe-filters" },
     "status": "paridade",
-    "acao": "no-op — não copiar mocks do protótipo",
+    "acao": "Nada. Não copiar mocks do protótipo.",
     "_acionavel": false
   }]
 }

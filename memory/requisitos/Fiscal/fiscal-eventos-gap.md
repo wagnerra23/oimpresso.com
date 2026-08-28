@@ -11,4 +11,4 @@ comparacao: memory/requisitos/Fiscal/fiscal-eventos-visual-comparison.md
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|
-| Timeline de eventos | Paridade documentada na comparação visual aprovada | **no-op** — preservar o ledger append-only real |
+| Timeline de eventos | Paridade documentada na comparação visual aprovada | **Nada.** Preservar o ledger append-only real. |

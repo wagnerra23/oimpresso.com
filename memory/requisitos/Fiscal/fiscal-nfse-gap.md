@@ -11,4 +11,4 @@ comparacao: memory/requisitos/Fiscal/fiscal-nfse-visual-comparison.md
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|
-| Filtros de NFS-e | Paridade documentada na comparação visual aprovada | **no-op** — preservar busca e competência reais |
+| Filtros de NFS-e | Paridade documentada na comparação visual aprovada | **Nada.** Preservar busca e competência reais. |

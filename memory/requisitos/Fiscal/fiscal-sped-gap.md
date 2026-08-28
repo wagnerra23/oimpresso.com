@@ -11,4 +11,4 @@ comparacao: memory/requisitos/Fiscal/fiscal-sped-visual-comparison.md
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|
-| Estado do gerador | Paridade visual; validação fiscal continua dependente do PVA | **no-op** — não converter mock em validação legal |
+| Estado do gerador | Paridade visual; validação fiscal continua dependente do PVA | **Nada.** Não converter mock em validação legal. |

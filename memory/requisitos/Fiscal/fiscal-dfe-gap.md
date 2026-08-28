@@ -11,4 +11,4 @@ comparacao: memory/requisitos/Fiscal/fiscal-dfe-visual-comparison.md
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|
-| Filtros e manifestação | Paridade documentada na comparação visual aprovada | **no-op** — preservar operações e escopo reais |
+| Filtros e manifestação | Paridade documentada na comparação visual aprovada | **Nada.** Preservar operações e escopo reais. |

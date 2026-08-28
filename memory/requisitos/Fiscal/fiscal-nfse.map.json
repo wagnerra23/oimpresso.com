@@ -14,7 +14,7 @@
     "prototipo": { "arquivo": "prototipo-ui/cowork/fiscal-page.jsx", "linhas": "459-481" },
     "vivo": { "arquivo": "resources/js/Pages/Fiscal/Nfse.tsx", "linhas": "114-141", "ancora": "fiscal-nfse-filters" },
     "status": "paridade",
-    "acao": "no-op — preservar busca e competência reais",
+    "acao": "Nada. Preservar busca e competência reais.",
     "_acionavel": false
   }]
 }

@@ -14,7 +14,7 @@
     "prototipo": { "arquivo": "prototipo-ui/cowork/fiscal-page.jsx", "linhas": "113-124" },
     "vivo": { "arquivo": "resources/js/Pages/Fiscal/Cockpit.tsx", "linhas": "379-414", "ancora": "fiscal-cockpit-kpis" },
     "status": "paridade",
-    "acao": "no-op — preservar o vivo e sua fonte real",
+    "acao": "Nada. Preservar o vivo e sua fonte real.",
     "_acionavel": false
   }]
 }

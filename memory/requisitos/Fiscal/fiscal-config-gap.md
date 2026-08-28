@@ -11,4 +11,4 @@ comparacao: memory/requisitos/Fiscal/fiscal-config-visual-comparison.md
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|
-| Certificado e regime | Paridade documentada; permissões reais prevalecem | **no-op** — não copiar gate simulado do protótipo |
+| Certificado e regime | Paridade documentada; permissões reais prevalecem | **Nada.** Não copiar gate simulado do protótipo. |

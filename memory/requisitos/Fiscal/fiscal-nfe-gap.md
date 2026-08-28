@@ -11,4 +11,4 @@ comparacao: memory/requisitos/Fiscal/nfe-visual-comparison.md
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|
-| Filtros de NF-e/NFC-e | Paridade documentada na comparação visual aprovada | **no-op** — não copiar mocks do protótipo |
+| Filtros de NF-e/NFC-e | Paridade documentada na comparação visual aprovada | **Nada.** Não copiar mocks do protótipo. |

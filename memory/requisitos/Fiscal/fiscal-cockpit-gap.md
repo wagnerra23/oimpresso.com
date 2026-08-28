@@ -11,4 +11,4 @@ comparacao: memory/requisitos/Fiscal/fiscal-cockpit-visual-comparison.md
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|
-| KPIs fiscais | Paridade documentada na comparação visual aprovada | **no-op** — preservar o vivo e sua fonte real |
+| KPIs fiscais | Paridade documentada na comparação visual aprovada | **Nada.** Preservar o vivo e sua fonte real. |
