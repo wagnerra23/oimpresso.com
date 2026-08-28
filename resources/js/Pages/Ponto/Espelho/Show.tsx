@@ -307,6 +307,18 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
                       <td className="p-2 whitespace-nowrap">
                         <span className="font-semibold">{String(l.dia).padStart(2, '0')}</span>
                         <span className="ml-2 text-[10px] uppercase">{l.dow}</span>
+                        {/* A11y (WCAG 2.2 SC 1.4.1): o realce `bg-warning/5` da linha é um
+                            tint de 5% — some em greyscale e em daltonismo. O ícone aqui é o
+                            sinal NÃO-COR de linha, no começo dela, onde o olho varre. A
+                            semântica pro leitor de tela já vive na coluna `Estado`, que diz
+                            `divergencia` em letra — por isso aqui é `aria-hidden`. */}
+                        {l.divergencia && (
+                          <AlertTriangle
+                            size={11}
+                            aria-hidden
+                            className="ml-1.5 inline-block align-[-1px] text-warning-fg"
+                          />
+                        )}
                       </td>
                       <td className="p-2 text-right font-mono text-muted-foreground">
                         {formatMinutes(l.previsto)}
