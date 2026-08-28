@@ -571,9 +571,6 @@ class HandleInertiaRequests extends Middleware
             return false;
         }
     }
-            return false;
-        }
-    }
 
     /**
      * US-SELL-015 — Default de viewMode pra Lista de Vendas (`/sells`).
