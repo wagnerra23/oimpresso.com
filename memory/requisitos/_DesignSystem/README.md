@@ -54,6 +54,7 @@ Decisões de UI que atravessam todos os módulos — tokens Tailwind 4, componen
 ### Camada 1 · Fundações (tokens canônicos)
 
 - **Tokens reais** → [`resources/css/inertia.css`](../../../resources/css/inertia.css) (light/dark, slate+blue) + [`cockpit.css`](../../../resources/css/cockpit.css) (oklch hues sidebar)
+- **Hue do dark** → [UI-0027](adr/ui/0027-dark-hue-240-supersede-0020-0022.md): superfícies **240**, textos do shell **90**. Supersede a UI-0022 (integral) e o item 1 da UI-0020 — que **segue vigente** para os 3 tokens de bolha/thread do chat. Fonte editável: `resources/css/tokens/*.tokens.json` → `npm run tokens:build` (nunca editar os `_generated-*.css`)
 - **Tailwind v4 setup** → [UI-0001](adr/ui/0001-tailwind-4-como-fundacao-css.md)
 - **shadcn/ui** → [UI-0002](adr/ui/0002-shadcn-ui-copy-paste-em-vez-de-npm.md)
 - **lucide-react** (icones únicos) → [UI-0003](adr/ui/0003-lucide-react-como-unica-iconografia.md)

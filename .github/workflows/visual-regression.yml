@@ -15,7 +15,8 @@ on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, labeled, unlabeled]
-  # MODO UPDATE (2026-07-07, ADR UI-0020 §4): dispatch manual re-gera as baselines
+  # MODO UPDATE (criado em 2026-07-07 pela ADR UI-0020 §4; a lei do dark hoje é a
+  # UI-0027, mas o mecanismo é o mesmo e serve a qualquer Fundação): dispatch manual re-gera as baselines
   # NO MESMO runner que sempre as gerou (rendering determinístico) e abre PR com os
   # .snap novos — o gate do PR re-roda e PROVA que a baseline nova bate (anti-#3297).
   # Uso: mudança de Fundação aprovada [W] (ex.: retune dark warm). Desde 2026-07-10 um PR
@@ -708,9 +709,9 @@ jobs:
           if git config --get http.https://github.com/.extraheader >/dev/null 2>&1; then
             git config --unset-all http.https://github.com/.extraheader
           fi
-          git commit -m "test(visreg): baselines regeneradas no runner canônico (modo update) [CC]" -m "Disparo manual pós-mudança de Fundação aprovada [W] — ADR UI-0020 §4 (dark warm): o PR de tokens sofre skip-as-pass neste gate e as baselines antigas quebrariam o próximo PR de UI. O gate do PR destas baselines re-roda e PROVA que batem com o render atual (anti-#3297)."
+          git commit -m "test(visreg): baselines regeneradas no runner canônico (modo update) [CC]" -m "Disparo manual pós-mudança de Fundação aprovada [W]: o PR de tokens sofre skip-as-pass neste gate e as baselines antigas quebrariam o próximo PR de UI. O gate do PR destas baselines re-roda e PROVA que batem com o render atual (anti-#3297). O mecanismo nasceu na ADR UI-0020 §4 e serve a qualquer Fundação."
           git push "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" -u "$BR"
-          gh pr create --title "test(visreg): baselines regeneradas (modo update) [CC]" --base main --head "$BR" --body "Baselines de pixel + estados isolados regeneradas NO runner canônico via workflow_dispatch (modo update). Motivo: Fundação aprovada [W] — ADR UI-0020 (dark warm). O gate required deste PR re-roda os testes contra estas baselines e prova que batem (anti-#3297)."
+          gh pr create --title "test(visreg): baselines regeneradas (modo update) [CC]" --base main --head "$BR" --body "Baselines de pixel + estados isolados regeneradas NO runner canônico via workflow_dispatch (modo update). Motivo: Fundação aprovada [W]. O gate required deste PR re-roda os testes contra estas baselines e prova que batem (anti-#3297)."
 
       - name: Veredito advisory dos fluxos Financeiro (L2.5 · visível no log)
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
