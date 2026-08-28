@@ -3,7 +3,7 @@ page: /dashboard-legacy
 component: resources/js/Pages/Home/Index.tsx
 owner: wagner
 status: live
-last_validated: "2026-08-27"
+last_validated: "2026-08-28"
 parent_module: Dashboard
 parent_spec: memory/requisitos/Dashboard/SPEC.md
 related_runbook: memory/requisitos/Dashboard/RUNBOOK-home-index.md
@@ -11,11 +11,28 @@ related_adrs: [93, 94, 101, 104]
 related_us: [US-DASH-001, US-DASH-004, US-DASH-005, US-DASH-006]
 related_prototype: prototipo-ui/cowork/dash-legacy-page.jsx (Cockpit V2 · PT-04 Dashboard)
 tier: A
-charter_version: 4
+charter_version: 5
 ---
 
 # Page Charter — /home
 
+> **Status v5 (2026-08-28):** o **Blade legado saiu**. Foram removidos `views/home/index.blade.php`
+> (1.436 ln), os 8 partials de KPI (já órfãos — zero includes), `public/js/home.js` **e a cópia
+> byte-idêntica em `dist/js/home.js`**, o `HomeController::indexLegacy()`, o `__chartOptions()`
+> que só ela chamava, o ramo `?legacy=1` e o banner "Abrir versão completa".
+>
+> **O que autorizou a remoção:** as ondas 2 e 3 estão em produção (deploy `success` 2026-08-28
+> 12:35Z), e o último motivo restante pra abrir o Blade — os widgets pluggable de outros módulos
+> (US-DASH-003) — foi **medido como ponto de extensão VAZIO**: `dashboard_widget()` tem
+> **zero produtores nos 32 `DataController`** do repo (controle positivo: a mesma sonda acha
+> `user_permissions` em vários). Sair do Blade não tirou capacidade de ninguém.
+>
+> **Preservados de propósito** (têm consumidor fora do dashboard): `/calendar`, os 4 endpoints
+> AJAX, o customer redirect, `home/notification_modal.blade.php` (HomeController) e
+> `home/todays_profit_modal.blade.php` (`@include` em `layouts/app` e `layouts/restaurant`).
+> Highcharts/`vendor.js` **intocados**: `CommonChart` tem 5 consumidores PHP (Report, Repair×2,
+> a classe, e o Home que saiu) e `vendor.js` carrega do partial global de layout.
+>
 > **Status v4 (2026-08-27):** Onda 3 — entram as **abas de grade** e o **drawer de detalhe**
 > (US-DASH-005). É a última capacidade que faltava pro Blade legado poder sair de cena.
 >
@@ -38,7 +55,8 @@ charter_version: 4
 >
 > **Read-only:** todo dado vem de queries existentes do core UltimatePOS (`TransactionUtil::getSellTotals` + `getPurchaseTotals` + `getTransactionTotals`, `BusinessLocation::forDropdown`). Mutations (registrar venda etc.) continuam nas telas dedicadas (`/sells/pos`, `/expense`, etc.).
 >
-> **Fallback Blade preservado:** `?legacy=1` força `view('home.index')` original com charts ECharts + widgets pluggable de outros módulos.
+> **Fallback Blade REMOVIDO (2026-08-28):** `?legacy=1` não serve mais nada — a query virou inerte
+> e cai na própria tela React (teste `?legacy=1 é inerte`). Não há mais `view('home.index')`.
 
 ---
 
@@ -61,12 +79,9 @@ Responder **"como foi o período"** numa tela só: o usuário escolhe a janela, 
 - Header "Visão geral" + linha de stats (vendas · a receber · despesas) do mesmo período
 - Filtro loja quando `all_locations.length > 1 && is_admin` — e o `location_id` CHEGA aos três
   `TransactionUtil::` (até 2026-08-27 a UI mandava o parâmetro e o controller o ignorava)
-- Banner discreto no rodapé: "Abrir versão completa" → `/dashboard-legacy?legacy=1` (a rota que SERVE o
-  Blade; `/home` é Closure de redirect desde 2026-05-22 e descarta a query — medido, PR #6357)
 - Permission gate `dashboard.data` — sem permission, KPI cards somem (shell minimal)
 - Customer redirect preservado (`user_type=user_customer` → `Modules/Crm/Http/Controllers/DashboardController`)
 - Multi-tenant Tier 0 ADR 0093 IRREVOGÁVEL — `session('user.business_id')` em todas queries
-- `?legacy=1` força Blade original (canário + acesso aos widgets pluggable)
 - **Abas de grade** (US-DASH-005): as 8 do Blade, cada uma com o gate REAL medido —
   `venc-venda` (`sell.view` ou `direct_sell.view`) · `venc-compra` (`purchase.view`) ·
   `estoque` (`stock_report.view`) · `validade` (`stock_report.view` + `enable_product_expiry`) ·
@@ -94,8 +109,16 @@ Responder **"como foi o período"** numa tela só: o usuário escolhe a janela, 
   **Reconciliado nesta onda** porque o PR dos gráficos não mexeu no charter: pela regra de
   precedência (teste > casos > charter > SPEC), quem perde se corrige no mesmo PR — e um Non-Goal
   que contradiz código entregue é instrução ativa pra alguém "consertar" a tela removendo o gráfico
-- ❌ **NÃO renderiza widgets pluggable** (`moduleUtil->getModuleData('dashboard_widget')`) — mecanismo Blade-only, preservado em `?legacy=1`. Backlog ADR widget registry React (US-DASH-003)
-- ❌ **NÃO toca endpoints AJAX** (`/home/get-totals`, `/home/product-stock-alert`, `/home/purchase-payment-dues`, `/home/sales-payment-dues`) — preservados intactos pro Blade legacy continuar funcionando
+- ❌ **NÃO renderiza widgets pluggable** (`moduleUtil->getModuleData('dashboard_widget')`) — segue
+  valendo como Non-Goal. O que mudou em 2026-08-28 é só a justificativa, que ficou falsa: **não há
+  mais `?legacy=1` onde o mecanismo esteja "preservado"**, e ele não perdeu nada — o ponto de
+  extensão tem **zero produtores nos 32 `DataController`** (medido). Backlog US-DASH-003 segue
+  aberto; quando existir um produtor, o registry React exige ADR nova
+- ❌ **NÃO toca endpoints AJAX** (`/home/get-totals`, `/home/product-stock-alert`,
+  `/home/purchase-payment-dues`, `/home/sales-payment-dues`) — rotas e métodos preservados
+  intactos. ⚠️ **A razão original caducou:** eles existiam pro `home.js` do Blade, que saiu, e a
+  onda 3 acabou servindo as grades por `Inertia::defer` + `GradesService`, **não** por AJAX — então
+  hoje são código sem chamador. Aposentá-los é decisão [W] e PR próprio, não carona desta remoção
 - ❌ **NÃO toca `/calendar`** (`getCalendar` continua Blade)
 - ❌ **NÃO toca customer dashboard** (`Modules/Crm/Http/Controllers/DashboardController`)
 - ~~❌ NÃO substitui filtros de data — range fixo no FY~~ — **entregue em 2026-08-27** (US-DASH-004).
@@ -128,7 +151,10 @@ Responder **"como foi o período"** numa tela só: o usuário escolhe a janela, 
   própria — os dois entregues são o escopo; um terceiro é Rewrite, não refino
 - ⚠️ Aparecer **widget de outro módulo** sem registry — drift pra Blade-only break
 - ⚠️ Aparecer **botão "criar venda" inline** — drift, KPI screen vira shortcuts
-- ⚠️ Quebrar contrato "fallback `?legacy=1` continua funcionando" — qualquer mudança que quebre o Blade legacy é red flag (todo cliente ainda depende)
+- ~~⚠️ Quebrar contrato "fallback `?legacy=1` continua funcionando" — todo cliente ainda depende~~
+  — **contrato encerrado em 2026-08-28** por decisão [W] ("a versão blade vai ter que sumir"), depois
+  de as ondas 2 e 3 entrarem em produção e o último motivo (widgets) ser medido como vazio. Fica
+  como registro do que era verdade até essa data, não como regra viva
 - ⚠️ Aparecer **session storage** para filtros — preferir query string (`?location_id=`)
 
 ---
@@ -165,10 +191,10 @@ por isso a string está no contrato, e não só no protótipo.
 
 Cobertos em `tests/Feature/Home/HomeIndexInertiaTest.php`:
 
-1. ✅ `renderiza Inertia component Home/Index com shape esperado` (user_name, is_admin, can_dashboard_data, totals, legacy_url, endpoints)
+1. ✅ `renderiza Inertia component Home/Index com shape esperado` (user_name, is_admin, can_dashboard_data, totals, endpoints)
 2. ✅ `customer redirect preservado` (`user_type=user_customer` → 302)
 3. ✅ `sem permission dashboard.data → totals é null` (shell minimal)
-4. ✅ `?legacy=1 retorna Blade (não Inertia)`
+4. ✅ `?legacy=1 é inerte — não existe mais fallback Blade` (v5: prova que a query cai na tela React)
 5. ✅ `Tier 0 multi-tenant — não vaza locations de outro business` — invariante ADR 0093
 6. ✅ `totals expõe 8 campos canônicos` — guard charter v2 (total_sell, net, invoice_due, total_expense, total_purchase, purchase_due, total_sell_return, total_purchase_return)
 
