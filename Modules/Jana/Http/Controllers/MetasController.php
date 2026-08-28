@@ -37,13 +37,50 @@ class MetasController extends Controller
         return view('copiloto::metas.create');
     }
 
+    /**
+     * Tier 0 (ADR 0093) — o DONO da meta é decidido pelo servidor, nunca pelo payload.
+     *
+     * É o gate que o docblock do `StoreMetaRequest` já descrevia — *"se business_id veio
+     * no payload, controller verifica que matcha session OU user é superadmin antes de
+     * persistir"* — e que o controller nunca executava. Mesma família do IDOR que o
+     * #4474 fechou no `PeriodosController`, aqui no eixo **ESCRITA**: `HasBusinessScope`
+     * só adiciona global scope de SELECT, e nenhum scope cobre INSERT.
+     *
+     * DOIS defeitos medidos no CI (MySQL real) pelo baseline da F2, com a mesma raiz:
+     *  1. sem `business_id` no payload, o campo não era preenchido e a coluna (que é
+     *     `nullable`) ficava **NULL** — a meta nascia "de plataforma": sumia da lista do
+     *     próprio dono (o scope filtra `business_id = sessão`) e aparecia para superadmin
+     *     de QUALQUER tenant (o scope faz `orWhereNull`).
+     *  2. com `business_id` de outro tenant no payload, criava lá. O form Blade nunca
+     *     manda o campo — não havia uso legítimo pela UI.
+     *
+     * A regra de superadmin espelha `App\Scopes\ScopeByBusiness` (`jana.superadmin` vê o
+     * próprio tenant + `NULL`), pra não existir um segundo conceito de "quem é plataforma".
+     *
+     * @see Modules/Jana/Tests/Feature/MetasControllerBaselineTest.php
+     */
     public function store(StoreMetaRequest $request)
     {
         // D8.c (Wave 14) — FormRequest dedicado substitui validate() inline.
         // Regras endurecidas: slug regex, whitelist unidade/tipo, msgs PT-BR.
         $data = $request->validated();
 
+        $tenant = session('user.business_id');
+
+        if ($request->has('business_id')) {
+            $pedido = $data['business_id'] ?? null;   // null explícito = meta de plataforma
+            abort_unless(
+                auth()->user()?->can('jana.superadmin') || (int) $pedido === (int) $tenant,
+                403,
+                'Sem permissão para criar meta em outro business.'
+            );
+            $businessId = $pedido === null ? null : (int) $pedido;
+        } else {
+            $businessId = $tenant !== null ? (int) $tenant : null;
+        }
+
         $meta = Meta::create(array_merge($data, [
+            'business_id'        => $businessId,
             'ativo'              => true,
             'criada_por_user_id' => auth()->id(),
             'origem'             => 'manual',

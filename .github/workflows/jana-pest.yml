@@ -181,6 +181,7 @@ jobs:
             Modules/Jana/Tests/Feature/MultiTenantIsolationComprehensiveTest.php \
             Modules/Jana/Tests/Feature/PeriodosControllerCrossTenantTest.php \
             Modules/Jana/Tests/Feature/FontesControllerCrossTenantTest.php \
+            Modules/Jana/Tests/Feature/MetasControllerBaselineTest.php \
             Modules/Jana/Tests/Feature/JanaAccessGateTest.php \
             Modules/Jana/Tests/Feature/JanaPlanoTierTest.php \
             Modules/Jana/Tests/Feature/JanaModuleChaveCanonicaTest.php \

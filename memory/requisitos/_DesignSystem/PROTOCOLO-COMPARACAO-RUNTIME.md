@@ -106,8 +106,19 @@ conta própria:
    por item. "CI verde" e "merge feito" NÃO são prova de aplicado — prova é pixel/DOM/rede em prod.
 
 Divergiu do prometido → é regressão AGORA (não "quase deu"). Pareia com R1 (smoke real) do
-PROTOCOLO-WAGNER-SEMPRE e com o hook `post-merge-ui-smoke-required` — este protocolo ADICIONA o
-que o hook não cobre: **a comparação com o protótipo**, sem o Wagner mandar.
+PROTOCOLO-WAGNER-SEMPRE e com o hook `post-merge-ui-smoke-required`.
+
+> **Errata 2026-08-28 — a frase que estava aqui caducou.** Até esta data o texto dizia que este
+> protocolo *"ADICIONA o que o hook não cobre: a comparação com o protótipo"*. Era verdade quando
+> foi escrito (`grep -nE "prototipo|design-diff|ancora"` no corpo do hook devolvia ZERO), e o custo
+> apareceu no [#6385](https://github.com/wagnerra23/oimpresso.com/pull/6385): 1 screenshot liberou
+> o merge e 6 regressões de fidelidade passaram. **Deixou de ser verdade** — o hook passou a cobrar
+> a comparação MEDIDA quando o PR toca tela cujo charter declara `related_prototype` resolvível e o
+> diff mexeu em marcação/estilo (medido: 140 PRs/90d, FP 1,4%). O que o hook **continua não
+> cobrindo**, e por isso segue sendo trabalho deste protocolo: as telas que declaram `n/a` (119 de
+> 217 — nascem do DS), os passos D1/D3/D5/D7 que o `design-diff` não mecaniza, e o veredito por
+> item. Enforcement em tempo presente não se restateia aqui: o dono é o próprio hook + o teste dele
+> (`post-merge-ui-smoke-required.test.mjs`).
 
 ## Regra de veredito (não reverter decisão aprovada)
 

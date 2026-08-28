@@ -3,7 +3,7 @@ module: Ponto
 purpose: "Ponto eletrônico CLT sob Portaria MTP 671/2021 — marcação append-only imutável (trigger MySQL mais override no Model; correção só por anulação) com NSR sequencial por REP e importação de AFD. Sobre isso: apuração de jornada, banco de horas, intercorrências com aprovação e espelho. Multi-tenant Tier 0."
 migracao_ui: "pendente — tem Blade servido, sem duvida de escopo; fila em module-surface --migracao"
 contains:
-  - "Api/MobileMarcacaoController — W28-8 endpoint POST /api/v1/ponto/marcacao-mobile autenticado Sanctum token per-funcionario (escopo ponto:marcar). Recebe selfie+lat/lng+device_uuid; delega a MobileMarcacaoService. PII LGPD: selfie_base64 NUNCA logado."
+  - "Api/MobileMarcacaoController — controller do REP-P mobile. NAO TEM ROTA (medido 2026-08-28: zero referencia em Routes/ ou routes/ no repo inteiro) — o endpoint POST /api/v1/ponto/marcacao-mobile foi PLANEJADO na W28-8 e nunca registrado, logo nada o alcanca por HTTP. SEM BIOMETRIA: a captura de selfie foi removida por decisao [W] 2026-08-27 (dado biometrico e sensivel — LGPD Art. 5o, II, tratamento pelo Art. 11); anti-cheat remanescente e GPS accuracy + clock-skew + NSR server-authoritative. Delega a MobileMarcacaoService."
   - "AprovacaoController"
   - "BancoHorasController"
   - "ColaboradorController"

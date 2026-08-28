@@ -540,6 +540,30 @@ business tem a Jana) e `jana_pro_module` (o plano dentro dela). A distinção é
 (`JanaPlanoTierTest`), porque foi ela que faltou em 2026-08-27: fundi-las repetiria dentro do
 código o engano que um humano cometeu lendo a UI.
 
+**INCIDENTE no mesmo dia — o selo mentiu por 40 minutos, e a causa foi eu reusar o método certo
+para a pergunta errada.** A 1ª versão do `janaPlanoPro()` lia o tier por
+`ModuleUtil::hasThePermissionInSubscription()`. Aquele método abre com
+`if (auth()->user()->can('superadmin')) return true` — **correto** para o que ele responde
+(*este usuário pode ver o módulo?*) e **errado** para o que o selo afirma (*qual o plano deste
+business?*). Medido em produção logo após o deploy, com controle negativo:
+
+| chamada (biz=1, chave AUSENTE no `package_details`) | resultado |
+|---|---|
+| como **superadmin** → `jana_pro_module` | `true` ❌ |
+| como **superadmin** → `zzz_inexistente_module` (chave inventada) | `true` ❌ — o controle que fecha o diagnóstico |
+| como **usuário comum** → `jana_pro_module` | `false` ✅ |
+
+Efeito no ar: o header anunciou **plano Pro** para os 3 superadmins, em qualquer business — que é
+literalmente o *"afirmar um estado que o sistema não sabe"* pelo qual este item ficou bloqueado.
+Corrigido lendo `Subscription::active_subscription()` direto, sem bypass: **o plano é do business e
+não muda com quem está olhando.** O eixo do módulo (`jana_module`) segue no método antigo, onde o
+bypass é desejado — superadmin vê o módulo de todo mundo.
+
+**Por que meu teste não pegou:** ele era de FONTE (assertava *qual chave o arquivo lê*), não de
+COMPORTAMENTO. A honestidade sobre a forma estava escrita no docblock, mas a lacuna era justo o que
+o defeito explorou. O caso comportamental — superadmin sem a chave **não** vê Pro, com a chave vê —
+entrou junto do conserto.
+
 **Skeleton — só onde há `defer`.** `ChatController` tem 3 `Inertia::defer`; `MemoriaController`
 tem **0**. Skeleton numa tela que renderiza tudo no primeiro paint é animação sem espera. Entra
 no Chat quando alguém medir qual dos 3 defers o usuário percebe; na Memória, não entra.
@@ -730,3 +754,46 @@ saídas são exclusivas:
 Recomendação: **(a)**. O conflito não é de valor, é de registro: o código seguiu o dono, a ADR ficou
 para trás. Enquanto as duas coexistirem `accepted`, qualquer sessão que abrir a UI-0020 vai ler
 "o dark é 282" como lei vigente e propor a reversão — que é o vetor desta própria seção.
+### 9.7 · São DUAS fontes que nunca desceram, não uma — e o §9.1/§9.5 subcontam
+
+> **Medido em 2026-08-27**, worktree `modest-kare-cb0c42`, base `origin/main` `224bb5f7bb`.
+> Acrescenta ao §9.1 sem reescrevê-lo: a conclusão dele está certa, o denominador não.
+
+Além de `jana-metas.jsx` + `.css`, o `DesignSync.list_files` do projeto Cowork traz
+**`jana-telas-novas.jsx` + `jana-telas-novas.css`**, e eles também não existem no repo —
+**zero ocorrência**, medido por duas varreduras independentes: `git grep -l` (índice) e
+`rg -l --hidden -g '!.git/**'` (a flag exigida pela regra de 2026-07-30, sem a qual o
+ripgrep pula dotdir). Não estão no espelho, não estão no `bundle.manifest.json`, e o
+§9.1 e o §9.5 falam de "uma tela inteira" contando só o `jana-metas`.
+
+**Não é fonte solta: o `jana-merge.jsx` vivo depende dela.** O arquivo do Cowork declara
+no próprio corpo `Telas novas (jana-telas-novas.jsx): /ia/alertas · /ia/acoes ·
+/ia/superadmin/metas + /ia/install`, e resolve `window.JmAlertas`, `window.JmAcoesFila`
+e `window.JmPlataforma` quando a aba é `alertas`, `acoes` ou `plataforma`. As abas são
+declaradas no próprio `jana-merge`, então elas continuam aparecendo e clicáveis: o que some é o
+CONTEÚDO, que resolve para `null` — falha silenciosa, não erro visível.
+
+**Por que não apareceu antes:** a mesma cegueira do §9.1, agora contada. O shell do espelho
+carrega `jana-merge.jsx?v=jm5` e cita **6** arquivos `jana*` (`chat-jana`, `jana-merge`,
+`jana-pro` — `.css` e `.jsx`); nenhuma das duas fontes novas está entre eles. E o
+`bundle.manifest.json` de `2026-08-24T22:49:15.818Z` tem exatamente esses mesmos 6.
+
+**O teto do transporte alcança o próprio detector.** Medições do `get_file` neste dia:
+`bundle.manifest.json` (60,6 KB) e `jana-merge.jsx` (59.985 B) **persistiram em arquivo**;
+`jana-metas.jsx` (~20 KB) e o shell `oimpresso.com.html` (~31,8 KB) voltaram **inline**.
+Ou seja: nem refrescando o shell pela rota avulsa se corrige o detector cego — sem o bundle
+regerado, o `ABSENT-LOCAL` segue incapaz de acusar as duas ausências. Isso reforça o §9.2:
+o fechamento é `gerar-payload-partes.mjs`, do lado Cowork, e não tem substituto aqui.
+
+**A direção do drift foi medida** — o `--sla` a dava como não medida, e a errata do lado
+Cowork supunha o `main` à frente (57.185 B). Comparando o projeto no DesignSync (que é o
+que `ancora.mjs` resolve) contra o espelho: vivo 59.985 B com **3** ocorrências de
+`jmAbrirForm` e nenhuma do aviso antigo; espelho 58.381 B com **0** e **1**. O vivo está
+à frente. O diff é `+59 / −33` linhas, e as remoções são deliberadas e coerentes em 6
+pontos (sai o KPI de frota, "6 análises" vira "5") — evolução, não poda.
+
+**Decisão desta sessão: o `jana-merge.jsx` NÃO foi exportado sozinho**, embora passe no teto.
+Exportá-lo deixaria a âncora fresca para o `charter-validate` apontando para um protótipo cuja
+view *Cadastro* renderiza vazio e cujo *Editar meta* vira clique morto — trocaria "atrasado e
+coerente" por "fresco e quebrado", e calaria um alarme verdadeiro. O espelho segue em
+`a265b6e6…`, intocado.
