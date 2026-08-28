@@ -17,11 +17,13 @@ use Throwable;
  *
  * Endpoint POST /api/v1/ponto/marcacao-mobile autenticado via Sanctum
  * (token per-funcionario, escopo 'ponto:marcar'). Recebe payload Tangerino-like
- * (selfie + lat/lng + device_uuid + timestamp) e delega ao MobileMarcacaoService.
+ * (lat/lng + device_uuid + timestamp) e delega ao MobileMarcacaoService.
  *
  * Tier 0 IRREVOGAVEL:
  *   - business_id deduzido do user autenticado (Sanctum) ([ADR 0093]).
- *   - selfie_base64 NUNCA logado em laravel.log (PII LGPD — apenas tamanho).
+ *   - SEM BIOMETRIA: nao recebe imagem facial. Decisao [W] 2026-08-27 —
+ *     dado biometrico e sensivel (LGPD Art. 5o, II; tratamento pelo Art. 11)
+ *     e o anti-fraude nao depende dele (GPS + clock-skew + NSR).
  *   - response retorna apenas IDs + hash truncado (sem PII).
  *
  * @see MobileMarcacaoService::registrarMarcacaoMobile
@@ -43,7 +45,6 @@ class MobileMarcacaoController extends Controller
      * Body JSON:
      * {
      *   "tipo": "ENTRADA",
-     *   "selfie_base64": "...",
      *   "lat": -28.336,
      *   "lng": -48.926,
      *   "accuracy": 12.5,
@@ -67,7 +68,6 @@ class MobileMarcacaoController extends Controller
         // Validacao basica (Service faz validacao profunda anti-cheat)
         $validated = $request->validate([
             'tipo'             => 'required|string|in:ENTRADA,SAIDA,ALMOCO_INICIO,ALMOCO_FIM',
-            'selfie_base64'    => 'required|string|min:100000', // ~75KB binario
             'lat'              => 'required|numeric|between:-90,90',
             'lng'              => 'required|numeric|between:-180,180',
             'accuracy'         => 'required|numeric|min:0|max:5000',

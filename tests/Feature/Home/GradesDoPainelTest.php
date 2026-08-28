@@ -174,6 +174,7 @@ it('Tier 0 multi-tenant — a grade não devolve linha de outro business', funct
         $this->markTestSkipped('Sem transaction de outro business — o teste não teria o que provar.');
     }
 
+    $this->actingAs($user);
     $servico = app(GradesDoPainelService::class);
     $linhas = $servico->linhas('venc-venda', $businessId);
 
@@ -203,6 +204,7 @@ it('PARIDADE com o endpoint legado — mesmo total de títulos de venda vencendo
         $this->markTestSkipped('Endpoint legado não devolveu recordsTotal — nada a comparar.');
     }
 
+    $this->actingAs($user);
     $totalNovo = app(GradesDoPainelService::class)->linhas('venc-venda', $businessId)->total();
 
     expect($totalNovo)->toBe((int) $totalLegado);
@@ -244,4 +246,46 @@ it('catálogo declara as 8 grades do Blade — e nenhuma inventada', function ()
     ]);
 
     expect($catalogo)->not->toHaveKey('caixa');
+});
+
+it('ordenacao: coluna da allowlist ordena de verdade', function () {
+    $user = gradesBootstrap(['dashboard.data', 'sell.view']);
+    $businessId = (int) session('user.business_id');
+    $this->actingAs($user); // o service le auth()->user() em abasPermitidas()
+    $servico = app(GradesDoPainelService::class);
+
+    request()->merge(['sort' => 'documento', 'dir' => 'asc']);
+    $asc = collect($servico->linhas('venc-venda', $businessId)->items())->pluck('documento')->all();
+
+    request()->merge(['sort' => 'documento', 'dir' => 'desc']);
+    $desc = collect($servico->linhas('venc-venda', $businessId)->items())->pluck('documento')->all();
+
+    if (count($asc) < 2) {
+        $this->markTestSkipped('Menos de 2 titulos vencendo — sem par para provar ordem.');
+    }
+
+    expect($asc)->toBe(array_reverse($desc));
+});
+
+it('ordenacao: coluna FORA da allowlist nao vira SQL', function () {
+    // `sort` vem da query string. Chave desconhecida cai na ordenacao padrao em vez de
+    // ser interpolada — senao a allowlist seria decorativa. Payload com aspas e parenteses
+    // quebraria a query se chegasse crua no orderBy.
+    $user = gradesBootstrap(['dashboard.data', 'sell.view']);
+    $businessId = (int) session('user.business_id');
+    $this->actingAs($user); // idem — chamada direta ao service exige usuario autenticado
+
+    request()->merge(['sort' => "transactions.id) OR 1=1 --", 'dir' => 'asc']);
+
+    $linhas = app(GradesDoPainelService::class)->linhas('venc-venda', $businessId);
+
+    expect($linhas)->not->toBeNull();
+});
+
+it('ordenaveis() espelha o sortable da ancora — situacao NAO ordena', function () {
+    // O prototipo marca `sortable: true` em documento/contato/data/valor, e NAO em situacao.
+    expect(GradesDoPainelService::ordenaveis('venc-venda'))->toContain('documento', 'contato', 'vencimento')
+        ->and(GradesDoPainelService::ordenaveis('venc-venda'))->not->toContain('situacao')
+        ->and(GradesDoPainelService::ordenaveis('pedidos'))->toContain('total')
+        ->and(GradesDoPainelService::ordenaveis('aba-inexistente'))->toBe([]);
 });

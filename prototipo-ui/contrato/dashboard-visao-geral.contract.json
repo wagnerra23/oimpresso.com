@@ -1,0 +1,74 @@
+{
+  "tela": "Home/Index",
+  "fonte": "prototipo-ui/cowork/dash-legacy-page.jsx",
+  "alvo": [
+    "resources/js/Pages/Home"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Visão geral"
+      ],
+      "estados": [
+        "default",
+        "sem-permissao"
+      ]
+    },
+    {
+      "id": "kpis",
+      "copy": [
+        "Líquido no período",
+        "Vendas",
+        "A receber",
+        "Despesas"
+      ],
+      "estados": [
+        "default",
+        "sem-permissao"
+      ]
+    },
+    {
+      "id": "contrapartidas",
+      "copy": [
+        "Contrapartidas",
+        "Compras",
+        "A pagar",
+        "Devolução de venda",
+        "Devolução de compra"
+      ],
+      "estados": [
+        "default"
+      ]
+    },
+    {
+      "id": "graficos",
+      "copy": [
+        "Vendas por dia",
+        "Vendas por mês"
+      ],
+      "estados": [
+        "default",
+        "carregando"
+      ]
+    },
+    {
+      "id": "grades",
+      "copy": [
+        "clique para abrir o detalhe"
+      ],
+      "estados": [
+        "default",
+        "vazio",
+        "carregando"
+      ]
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "kpis",
+    "contrapartidas",
+    "graficos",
+    "grades"
+  ]
+}
