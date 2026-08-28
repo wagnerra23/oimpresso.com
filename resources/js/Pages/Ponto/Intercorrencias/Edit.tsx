@@ -94,10 +94,14 @@ export default function IntercorrenciasEdit({ intercorrencia, colaboradores, tip
           <div className="os-page-h-l">
             <h1>
               Editar intercorrência{' '}
-              {/* As 19 telas irmãs usam `text-stone-400` aqui — cor CRUA, dívida sistemática
-                  do `os-page-h` documentada no RUNBOOK do módulo. Código novo não engrossa
-                  dívida conhecida: aqui vai o token. Se a diferença de tom incomodar, o
-                  conserto é nas 19, não o retorno da cor crua nesta. */}
+              {/* As 19 telas irmãs usam a paleta CRUA do Tailwind neste subtítulo (família
+                  stone, tom 400) — dívida sistemática do `os-page-h`, documentada no RUNBOOK
+                  do módulo. Código novo não engrossa dívida conhecida: aqui vai o token. Se a
+                  diferença de tom incomodar, o conserto é nas 19, não o retorno da cor crua.
+                  O nome exato da classe NÃO é reproduzido de propósito: o `ui:lint` R1 varre o
+                  TEXTO do arquivo e só pula linha que comece com barra-barra, asterisco ou
+                  barra-asterisco — a forma de comentário do JSX abre com chave antes disso e
+                  não casa no skip, então citar a classe proibida aqui CONTA como violação. */}
               <span className="text-muted-foreground font-normal">· {intercorrencia.codigo}</span>
             </h1>
             <p>

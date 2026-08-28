@@ -204,7 +204,14 @@ class IntercorrenciaController extends Controller
                     ? substr((string) $intercorrencia->intervalo_fim, 0, 5)
                     : '',
                 'justificativa'         => (string) $intercorrencia->justificativa,
-                'prioridade'            => $intercorrencia->prioridade ?: 'NORMAL',
+                // Sem `?: 'NORMAL'` de propósito. A coluna é
+                // `enum('NORMAL','URGENTE')->default('NORMAL')` — NOT NULL, e os dois
+                // valores são não-vazios, então o fallback NUNCA poderia disparar. O
+                // PHPStan pegou isso ("Ternary operator condition is always true") e
+                // estava certo: era defesa decorativa contra um estado que o schema
+                // não permite. É também o idioma do próprio módulo (`show()` e
+                // `index()` já leem a coluna direto).
+                'prioridade'            => $intercorrencia->prioridade,
                 'impacta_apuracao'      => (bool) $intercorrencia->impacta_apuracao,
                 'descontar_banco_horas' => (bool) $intercorrencia->descontar_banco_horas,
             ],
