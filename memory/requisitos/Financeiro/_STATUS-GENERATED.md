@@ -19,28 +19,15 @@ authority: generated
 | US no SPEC | 59 |
 | CU no SDD | 16 |
 | Telas (.tsx) | 21 |
-| Telas com `casos.md` | 7 |
-| UC declarados | 45 |
-| UC com teste que os cita | 43 |
+| Telas com `casos.md` | 21 |
+| UC declarados | 108 |
+| UC com teste que os cita | 89 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
 | Lacuna | O que falta escrever |
 |---|---|
-| Tela `Advisor/Dashboard` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `Advisor/Login` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `AssinaturaAtualizar` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `Categorias/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `Cobranca/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `Configuracoes/Contador` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `ContasBancarias/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `Dashboard/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `Dre/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `Extrato/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `Fluxo/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `PlanoContas/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `Relatorios/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `Unificado/Novo` sem `casos.md` | o contrato da tela (trio incompleto) |
+| `Index.casos.md` existe mas **não declara nenhum UC** | o contrato de verdade — arquivo presente ≠ tela coberta (LC-11) |
 | `Index.casos.md` existe mas **não declara nenhum UC** | o contrato de verdade — arquivo presente ≠ tela coberta (LC-11) |
 | `CU-FIN-09` sem UC | caso de uso que o exercite — Boleto do título não duplica o recebível |
 | `CU-FIN-10` sem UC | caso de uso que o exercite — Importar OFX é idempotente por hash |
@@ -117,6 +104,55 @@ authority: generated
 
 | UC | Tela | Status |
 |---|---|---|
+| UC-ADVD-01 | Advisor/Dashboard | 🧪 aguarda veredito da lane |
+| UC-ADVD-02 | Advisor/Dashboard | 📝 sem_teste |
+| UC-ADVD-03 | Advisor/Dashboard | 🧪 aguarda veredito da lane |
+| UC-ADVD-04 | Advisor/Dashboard | 🧪 aguarda veredito da lane |
+| UC-ADVD-05 | Advisor/Dashboard | 📝 sem_teste |
+| UC-ADVL-01 | Advisor/Login | 🧪 aguarda veredito da lane |
+| UC-ADVL-02 | Advisor/Login | 🧪 aguarda veredito da lane |
+| UC-ADVL-03 | Advisor/Login | 📝 sem_teste |
+| UC-ASS-01 | AssinaturaAtualizar | 🧪 aguarda veredito da lane |
+| UC-ASS-02 | AssinaturaAtualizar | 📝 sem_teste |
+| UC-ASS-03 | AssinaturaAtualizar | 📝 sem_teste |
+| UC-ASS-04 | AssinaturaAtualizar | 📝 sem_teste |
+| UC-ASS-05 | AssinaturaAtualizar | 📝 sem_teste |
+| UC-CAT-01 | Categorias/Index | 🧪 aguarda veredito da lane |
+| UC-CAT-02 | Categorias/Index | 🧪 aguarda veredito da lane |
+| UC-CAT-03 | Categorias/Index | 🧪 aguarda veredito da lane |
+| UC-CAT-04 | Categorias/Index | 🧪 aguarda veredito da lane |
+| UC-CAT-05 | Categorias/Index | 🧪 aguarda veredito da lane |
+| UC-COB-01 | Cobranca/Index | 🧪 aguarda veredito da lane |
+| UC-COB-02 | Cobranca/Index | 🧪 aguarda veredito da lane |
+| UC-COB-03 | Cobranca/Index | 🧪 aguarda veredito da lane |
+| UC-COB-04 | Cobranca/Index | 🧪 aguarda veredito da lane |
+| UC-COB-05 | Cobranca/Index | 🧪 aguarda veredito da lane |
+| UC-COB-06 | Cobranca/Index | 🧪 aguarda veredito da lane |
+| UC-COB-07 | Cobranca/Index | 🧪 aguarda veredito da lane |
+| UC-CTB-01 | ContasBancarias/Index | 🧪 aguarda veredito da lane |
+| UC-CTB-02 | ContasBancarias/Index | 🧪 aguarda veredito da lane |
+| UC-CTB-03 | ContasBancarias/Index | 📝 sem_teste |
+| UC-CTB-04 | ContasBancarias/Index | 🧪 aguarda veredito da lane |
+| UC-CTD-01 | Configuracoes/Contador | 🧪 aguarda veredito da lane |
+| UC-CTD-02 | Configuracoes/Contador | 📝 sem_teste |
+| UC-CTD-03 | Configuracoes/Contador | 🧪 aguarda veredito da lane |
+| UC-CTD-04 | Configuracoes/Contador | 🧪 aguarda veredito da lane |
+| UC-CTD-05 | Configuracoes/Contador | 🧪 aguarda veredito da lane |
+| UC-DASH-01 | Dashboard/Index | 📝 sem_teste |
+| UC-DRE-01 | Dre/Index | 🧪 aguarda veredito da lane |
+| UC-DRE-02 | Dre/Index | 📝 sem_teste |
+| UC-DRE-03 | Dre/Index | 🧪 aguarda veredito da lane |
+| UC-DRE-04 | Dre/Index | 📝 sem_teste |
+| UC-DRE-05 | Dre/Index | 🧪 aguarda veredito da lane |
+| UC-DRE-06 | Dre/Index | 🧪 aguarda veredito da lane |
+| UC-DRE-07 | Dre/Index | 🧪 aguarda veredito da lane |
+| UC-DRE-08 | Dre/Index | 🧪 aguarda veredito da lane |
+| UC-EXT-01 | Extrato/Index | 🧪 aguarda veredito da lane |
+| UC-EXT-02 | Extrato/Index | 📝 sem_teste |
+| UC-EXT-03 | Extrato/Index | 📝 sem_teste |
+| UC-EXT-04 | Extrato/Index | 🧪 aguarda veredito da lane |
+| UC-EXT-05 | Extrato/Index | 🧪 aguarda veredito da lane |
+| UC-EXT-06 | Extrato/Index | 🧪 aguarda veredito da lane |
 | UC-F01 | Unificado/Index | 🧪 aguarda veredito da lane |
 | UC-F02 | Unificado/Index | 🧪 aguarda veredito da lane |
 | UC-F03 | Unificado/Index | 🧪 aguarda veredito da lane |
@@ -141,6 +177,13 @@ authority: generated
 | UC-FCX-03 | Caixa/Index | 🧪 aguarda veredito da lane |
 | UC-FCX-04 | Caixa/Index | 🧪 aguarda veredito da lane |
 | UC-FCX-05 | Caixa/Index | 🧪 aguarda veredito da lane |
+| UC-FLX-01 | Fluxo/Index | 🧪 aguarda veredito da lane |
+| UC-FLX-02 | Fluxo/Index | 🧪 aguarda veredito da lane |
+| UC-FLX-03 | Fluxo/Index | 🧪 aguarda veredito da lane |
+| UC-FLX-04 | Fluxo/Index | 🧪 aguarda veredito da lane |
+| UC-FLX-05 | Fluxo/Index | 📝 sem_teste |
+| UC-FLX-06 | Fluxo/Index | 🧪 aguarda veredito da lane |
+| UC-FLX-07 | Fluxo/Index | 🧪 aguarda veredito da lane |
 | UC-FUNI-01 | Unificado/Index | 🧪 aguarda veredito da lane |
 | UC-FUNI-02 | Unificado/Index | 🧪 aguarda veredito da lane |
 | UC-FUNI-03 | Unificado/Index | 🧪 aguarda veredito da lane |
@@ -156,12 +199,19 @@ authority: generated
 | UC-IMP-09 | Impostos/Index | 🧪 aguarda veredito da lane |
 | UC-IMP-10 | Impostos/Index | 🧪 aguarda veredito da lane |
 | UC-IMP-11 | Impostos/Index | 🧪 aguarda veredito da lane |
+| UC-NOV-01 | Unificado/Novo | 📝 sem_teste |
 | UC-PV-01 | ProvaViva | 🧪 aguarda veredito da lane |
 | UC-PV-02 | ProvaViva | 🧪 aguarda veredito da lane |
 | UC-PV-03 | ProvaViva | 🧪 aguarda veredito da lane |
 | UC-PV-04 | ProvaViva | 🧪 aguarda veredito da lane |
 | UC-PV-05 | ProvaViva | 🧪 aguarda veredito da lane |
 | UC-PV-06 | ProvaViva | 🧪 aguarda veredito da lane |
+| UC-REL-01 | Relatorios/Index | 🧪 aguarda veredito da lane |
+| UC-REL-02 | Relatorios/Index | 🧪 aguarda veredito da lane |
+| UC-REL-03 | Relatorios/Index | 🧪 aguarda veredito da lane |
+| UC-REL-04 | Relatorios/Index | 📝 sem_teste |
+| UC-REL-05 | Relatorios/Index | 🧪 aguarda veredito da lane |
+| UC-REL-06 | Relatorios/Index | 🧪 aguarda veredito da lane |
 
 ---
 

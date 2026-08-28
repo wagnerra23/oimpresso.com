@@ -3,7 +3,7 @@ slug: 0384-design-sync-recibos-executaveis-por-tela
 number: 384
 title: "Design Sync deriva o estado da tela de recibos executáveis"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
