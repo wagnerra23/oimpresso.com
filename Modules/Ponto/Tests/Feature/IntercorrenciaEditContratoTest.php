@@ -15,7 +15,7 @@ uses(PontoTestCase::class);
  * Contrato da edição de rascunho (`/ponto/intercorrencias/{id}/edit`).
  *
  * Cada teste cita o UC no TÍTULO do `it()` (G-2 do casos-gate, ADR 0264):
- *   Intercorrencias/Edit.casos.md → UC-INTEDIT-01..03
+ *   Intercorrencias/Edit.casos.md → UC-INTEDT-01..03
  *
  * Os UC derivam do SDD §6.2 `CU-PONTO-05` ("só rascunho é editável"), do §6.5
  * `CU-PONTO-12` (isolamento) e da paridade com o `_form.blade.php` legado.
@@ -106,7 +106,7 @@ function intEditCriarColaborador(int $businessId, int $userBusinessId): Colabora
 }
 
 /**
- * Rascunho com valores CONHECIDOS — é o que o UC-INTEDIT-02 confere no payload.
+ * Rascunho com valores CONHECIDOS — é o que o UC-INTEDT-02 confere no payload.
  * Justificativa neutra de propósito: nada de PII em fixture (LGPD).
  */
 function intEditCriarRascunho(int $businessId, int $colaboradorId, int $solicitanteId, string $estado): Intercorrencia
@@ -151,7 +151,7 @@ afterEach(function () {
     }
 });
 
-it('UC-INTEDIT-01 · só rascunho é editável', function () {
+it('UC-INTEDT-01 · só rascunho é editável', function () {
     $this->actAsAdmin();
     intEditPrecisaDe(['ponto_colaborador_config', 'ponto_intercorrencias']);
 
@@ -176,7 +176,7 @@ it('UC-INTEDIT-01 · só rascunho é editável', function () {
     );
 });
 
-it('UC-INTEDIT-02 · o form abre com os valores atuais do rascunho', function () {
+it('UC-INTEDT-02 · o form abre com os valores atuais do rascunho', function () {
     $this->actAsAdmin();
     intEditPrecisaDe(['ponto_colaborador_config', 'ponto_intercorrencias']);
 
@@ -216,7 +216,7 @@ it('UC-INTEDIT-02 · o form abre com os valores atuais do rascunho', function ()
     expect($resp->json('props.tipos'))->not->toBeEmpty('O form precisa da lista de tipos.');
 });
 
-it('UC-INTEDIT-03 · rascunho de outro empregador não abre', function () {
+it('UC-INTEDT-03 · rascunho de outro empregador não abre', function () {
     $this->actAsAdmin();
     intEditPrecisaDe(['ponto_colaborador_config', 'ponto_intercorrencias']);
     intEditGarantirBizAlheio();

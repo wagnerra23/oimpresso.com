@@ -32,9 +32,9 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-INTEDIT-01 | Só rascunho é editável | must | `CU-PONTO-05` + F4 | `IntercorrenciaEditContratoTest` | 🧪 sem veredito |
-| UC-INTEDIT-02 | O form abre com os valores atuais do rascunho | must | paridade `_form.blade.php` | `IntercorrenciaEditContratoTest` | 🧪 sem veredito |
-| UC-INTEDIT-03 | Rascunho de outro empregador não abre | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `IntercorrenciaEditContratoTest` | 🧪 sem veredito |
+| UC-INTEDT-01 | Só rascunho é editável | must | `CU-PONTO-05` + F4 | `IntercorrenciaEditContratoTest` | 🧪 sem veredito |
+| UC-INTEDT-02 | O form abre com os valores atuais do rascunho | must | paridade `_form.blade.php` | `IntercorrenciaEditContratoTest` | 🧪 sem veredito |
+| UC-INTEDT-03 | Rascunho de outro empregador não abre | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `IntercorrenciaEditContratoTest` | 🧪 sem veredito |
 
 **[BACKLOG]:**
 
@@ -48,13 +48,13 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ---
 
-## UC-INTEDIT-01 · Só rascunho é editável · `must`
+## UC-INTEDT-01 · Só rascunho é editável · `must`
 
 - **Persona:** o colaborador (ou o DP por ele) que registrou uma ocorrência e quer corrigir
   um detalhe antes de mandar pro RH.
 - **Aceite:** Dado uma intercorrência que **não** está em `RASCUNHO` · Quando tento abrir a
   edição dela · Então recebo **403** — nunca o formulário.
-- **Teste:** `Modules/Ponto/Tests/Feature/IntercorrenciaEditContratoTest.php` — `UC-INTEDIT-01`.
+- **Teste:** `Modules/Ponto/Tests/Feature/IntercorrenciaEditContratoTest.php` — `UC-INTEDT-01`.
 - **Contrato:** `CU-PONTO-05` (SDD §6.2) · `IntercorrenciaController@edit` (`abort_unless`).
 - **Regressão que defende:** o ciclo `RASCUNHO → PENDENTE → APROVADA|REJEITADA → APLICADA`
   só significa alguma coisa se o passado parar de ser reescrevível. Uma intercorrência
@@ -69,12 +69,12 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ---
 
-## UC-INTEDIT-02 · O form abre com os valores atuais do rascunho · `must`
+## UC-INTEDT-02 · O form abre com os valores atuais do rascunho · `must`
 
 - **Persona:** a mesma. Ela abriu para corrigir **um** campo — não para redigitar tudo.
 - **Aceite:** Dado um rascunho meu · Quando abro a edição · Então os campos vêm preenchidos
   com o que está gravado (colaborador, tipo, data, justificativa, prioridade e flags).
-- **Teste:** `IntercorrenciaEditContratoTest.php` — `UC-INTEDIT-02`.
+- **Teste:** `IntercorrenciaEditContratoTest.php` — `UC-INTEDT-02`.
 - **Contrato:** paridade com `_form.blade.php` (a Blade legada preenchia os mesmos campos) ·
   `IntercorrenciaRequest` (o vocabulário que o submit aceita).
 - **Regressão que defende:** o modo de falha desta migração é **silencioso**: o backend
@@ -89,12 +89,12 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ---
 
-## UC-INTEDIT-03 · Rascunho de outro empregador não abre · `must` `[T0]`
+## UC-INTEDT-03 · Rascunho de outro empregador não abre · `must` `[T0]`
 
 - **Persona:** adversário — um id de intercorrência alheia na URL.
 - **Aceite:** Dado um rascunho de **outro** empregador · Quando tento abrir a edição ·
   Então **não** recebo o formulário nem os dados dele.
-- **Teste:** `IntercorrenciaEditContratoTest.php` — `UC-INTEDIT-03`.
+- **Teste:** `IntercorrenciaEditContratoTest.php` — `UC-INTEDT-03`.
 - **Contrato:** `CU-PONTO-12` (SDD §6.5) ·
   [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) · LGPD Art. 7º.
 - **Regressão que defende:** o `edit()` usa `findOrFail($id)` **sem** `where('business_id')`
