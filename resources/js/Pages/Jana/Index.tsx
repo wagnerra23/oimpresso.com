@@ -19,6 +19,8 @@ import FabJana from './components/FabJana'
 import { JanaAreaHeader } from './components/JanaAreaHeader'
 import JanaCockpit, { type JanaCockpitProps } from './_components/JanaCockpit'
 import JanaConfigDrawer from './_components/JanaConfigDrawer'
+import { JanaPlanoBadge } from './_components/JanaPlanoBadge'
+import { useJanaPro } from './_components/useJanaPro'
 import JanaMetaDrawer from './_components/JanaMetaDrawer'
 import { useJanaConfig } from './_components/useJanaConfig'
 // Tipos e formatadores com DOIS consumidores (Index + JanaMetaDrawer) moram em
@@ -245,6 +247,8 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
   // o drawer escreve e o `JanaCockpit` lê pra decidir quais análises renderiza.
   const { config, alternarAnalise } = useJanaConfig()
   const [configAberto, setConfigAberto] = useState(false)
+  // Tier do pacote (`jana_pro_module`), não estado do cliente — ver JanaPlanoBadge.
+  const pro = useJanaPro()
   // Meta aberta no drawer. Guarda o OBJETO + o período já formatado pelo card:
   // o payload veio inteiro no first render, então reabrir não custa consulta, e
   // o `periodoLabel` continua morando num lugar só.
@@ -263,6 +267,9 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
         businessId={janaContext.businessId ?? undefined}
         actions={
           <>
+            {/* Selo de plano — ANTES de Configurar, como na âncora
+                (`chat-jana.jsx:217`: `{plano}` precede os botões da zona direita). */}
+            <JanaPlanoBadge pro={pro} onConfigurar={() => setConfigAberto(true)} />
             {/* Até 2026-08-17 este botão era clicável, sem rota e sem `disabled`,
                 anunciando Brain B como "em breve" — promessa que a tela não
                 cumpria, e por isso o contrato manteve os dois botões FORA dele

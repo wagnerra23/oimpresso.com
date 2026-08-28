@@ -25,6 +25,8 @@ import { Trash2, Pencil, Save, Search, Settings, X } from 'lucide-react'
 import FabJana from './components/FabJana'
 import { JanaAreaHeader } from '@/Pages/Jana/components/JanaAreaHeader'
 import JanaConfigDrawer from '@/Pages/Jana/_components/JanaConfigDrawer'
+import { JanaPlanoBadge } from '@/Pages/Jana/_components/JanaPlanoBadge'
+import { useJanaPro } from '@/Pages/Jana/_components/useJanaPro'
 import { useJanaConfig } from '@/Pages/Jana/_components/useJanaConfig'
 import { Inline } from '@/Components/layout'
 
@@ -258,6 +260,8 @@ function Memoria({ memorias, janaContext }: Props) {
   // Config da Jana — mesmo hook e mesmo drawer do Painel (onda 4 da paridade).
   const [configAberto, setConfigAberto] = useState(false)
   const { config, alternarAnalise } = useJanaConfig()
+  // Tier do pacote (`jana_pro_module`), não estado do cliente — ver JanaPlanoBadge.
+  const pro = useJanaPro()
 
   const [busca, setBusca] = useState('')
   const [categoria, setCategoria] = useState<string>(TODAS)
@@ -309,15 +313,20 @@ function Memoria({ memorias, janaContext }: Props) {
         businessName={janaContext?.businessName}
         businessId={janaContext?.businessId}
         actions={
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setConfigAberto(true)}
-            aria-haspopup="dialog"
-            aria-expanded={configAberto}
-          >
-            <Settings className="h-3.5 w-3.5" /> Configurar
-          </Button>
+          <>
+            {/* Selo de plano — ANTES de Configurar, como na âncora
+                (`chat-jana.jsx:217`: `{plano}` precede os botões da zona direita). */}
+            <JanaPlanoBadge pro={pro} onConfigurar={() => setConfigAberto(true)} />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setConfigAberto(true)}
+              aria-haspopup="dialog"
+              aria-expanded={configAberto}
+            >
+              <Settings className="h-3.5 w-3.5" /> Configurar
+            </Button>
+          </>
         }
       />
       <JanaConfigDrawer

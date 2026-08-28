@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 529 arquivos em 19 papéis.
+**Total mapeado:** 532 arquivos em 19 papéis.
 
 ## Controllers — 11
 
@@ -310,7 +310,7 @@ module: Jana
 - [Memoria.tsx](../../../resources/js/Pages/Jana/Memoria.tsx)
 - [Pro.tsx](../../../resources/js/Pages/Jana/Pro.tsx)
 
-## Componentes / apoio de tela — 10
+## Componentes / apoio de tela — 11
 
 - [AssistantUiChat.tsx](../../../resources/js/Pages/Jana/_components/AssistantUiChat.tsx)
 - [JanaAcaoModal.tsx](../../../resources/js/Pages/Jana/_components/JanaAcaoModal.tsx)
@@ -319,6 +319,7 @@ module: Jana
 - [JanaConfigDrawer.tsx](../../../resources/js/Pages/Jana/_components/JanaConfigDrawer.tsx)
 - [JanaDrillDrawer.tsx](../../../resources/js/Pages/Jana/_components/JanaDrillDrawer.tsx)
 - [JanaMetaDrawer.tsx](../../../resources/js/Pages/Jana/_components/JanaMetaDrawer.tsx)
+- [JanaPlanoBadge.tsx](../../../resources/js/Pages/Jana/_components/JanaPlanoBadge.tsx)
 - [JanaSubNav.tsx](../../../resources/js/Pages/Jana/_shared/JanaSubNav.tsx)
 - [FabJana.tsx](../../../resources/js/Pages/Jana/components/FabJana.tsx)
 - [JanaAreaHeader.tsx](../../../resources/js/Pages/Jana/components/JanaAreaHeader.tsx)
@@ -337,9 +338,9 @@ module: Jana
 - [Memoria.casos.md](../../../resources/js/Pages/Jana/Memoria.casos.md)
 - [Pro.casos.md](../../../resources/js/Pages/Jana/Pro.casos.md)
 
-## Testes (Pest) — 169
+## Testes (Pest) — 170
 
-- 32 em [Modules/Jana/Tests/Feature/](../../../Modules/Jana/Tests/Feature)
+- 33 em [Modules/Jana/Tests/Feature/](../../../Modules/Jana/Tests/Feature)
 - 12 em [Modules/Jana/Tests/Feature/Ai/](../../../Modules/Jana/Tests/Feature/Ai)
 - 2 em [Modules/Jana/Tests/Feature/Ai/Advisor/](../../../Modules/Jana/Tests/Feature/Ai/Advisor)
 - 2 em [Modules/Jana/Tests/Feature/Ai/Clarify/](../../../Modules/Jana/Tests/Feature/Ai/Clarify)
@@ -363,7 +364,7 @@ module: Jana
 - 13 em [Modules/Jana/Tests/Unit/](../../../Modules/Jana/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 90
+## Demais arquivos (manifestos, docs, assets e misc) — 91
 
 - [BriefDiarioAgent.php](../../../Modules/Jana/Ai/Agents/BriefDiarioAgent.php)
 - [BriefingAgent.php](../../../Modules/Jana/Ai/Agents/BriefingAgent.php)
@@ -455,3 +456,4 @@ module: Jana
 - [SCOPE.md](../../../memory/requisitos/Jana/SCOPE.md)
 - [metaFormat.ts](../../../resources/js/Pages/Jana/_components/metaFormat.ts)
 - [useJanaConfig.ts](../../../resources/js/Pages/Jana/_components/useJanaConfig.ts)
+- [useJanaPro.ts](../../../resources/js/Pages/Jana/_components/useJanaPro.ts)

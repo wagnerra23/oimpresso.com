@@ -112,8 +112,10 @@ export function PageHeader({
                resolver token consumido dentro de wrapper que pode ir pro portal).
 
                NÃO escolhe cor: consome o token gerado (`tokens/_generated-cockpit-dark.css`
-               via DTCG). Se o valor for retunado — a ADR UI-0020 pede hue 282 e o gerado
-               hoje está em 90 — o título acompanha sem tocar neste arquivo. */
+               via DTCG). Se o valor for retunado, o título acompanha sem tocar neste
+               arquivo. Qual é o valor vigente é pergunta pro token, não pra este comentário
+               — a lei está na ADR UI-0027 (dark: superfícies hue 240, textos hue 90), que
+               supersede o hue 282 da UI-0020. */
             style={{ color: 'var(--text, var(--foreground))' }}
           >
             {/* `leading` vive DENTRO do h1 pra acompanhar a linha de base do
