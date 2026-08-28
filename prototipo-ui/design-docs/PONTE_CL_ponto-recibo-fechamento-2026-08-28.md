@@ -36,6 +36,21 @@ Mais um baseline de estados isolados do `ponto dashboard`. São **3 `.snap` vers
 
 **Consequência direta no plano:** o **P1** ("VRT de `Espelho/{Index,Show}` + `Dashboard/Index`") refaria trabalho existente em **2 dos 3 alvos**. O que falta de verdade é **`Espelho/Index`**, sozinho.
 
+#### ⚠️ E o "0 VRT" não foi inventado — é **fato vencido restateado**
+
+Isto importa para o método, e é mais justo com o [CC] do que "mediu errado". Os dois PRs que criaram a cobertura são de **27/08**, véspera do handoff:
+
+```
+b80bb2d861  2026-08-27 17:26  test(visreg): fixture de Ponto + contrato visual do
+                              Espelho/Show — o módulo tinha VRT 0/20 [C] (#6365)
+149f1e5b0f  2026-08-27 18:27  test(visreg): contrato visual do Configuracoes/Index
+                              + RUNBOOK que o guard MWART exige [C] (#6369)
+```
+
+O commit de #6365 diz, literal, *"o módulo tinha VRT 0/20"* — ou seja, o número **era verdade** e deixou de ser **~24h antes** do handoff. Os dois já estavam em `f84daee3651f`, a árvore que o handoff declara ter lido.
+
+Não é erro de medição: é **número herdado de um retrato anterior e afirmado no presente**. É a mesma família do §5 2026-07-17 (*doc canônico não restateia número que outro sistema sabe melhor*) e do LC-10 (*afirmar estado em tempo presente*). A defesa é a mesma dos dois: **fato datado em passado não apodrece** — *"em 26/08 o Ponto tinha VRT 0/20"* seguiria verdadeiro hoje; *"o Ponto tem 0 VRT"* apodreceu em 24h.
+
 ### 2.2 `scripts/cowork-paridade.mjs` não existe
 
 É o critério de aceite do P0 no handoff. Comando não-executável. Os donos reais do tema são `scripts/governance/cowork-ssot-guard.mjs` e `scripts/governance/cowork-mirror-freshness.mjs`.
@@ -124,7 +139,9 @@ O que muda é a **fila**, não as perguntas:
 
 ## 6 · Método — o que produziu os 4 erros
 
-Os quatro têm a mesma assinatura: **claim de ausência derivada de busca por nome de arquivo, sem consultar o dono do inventário**. É a classe LC-08 do `memory/LICOES_CODE.md`, e a regra que a cobre é o §5 2026-07-28 — *claim negativa exige varredura no repo inteiro **e** o dono do inventário*.
+Três dos quatro (2.2, 2.3, 2.4) têm a mesma assinatura: **claim de ausência derivada de busca por nome de arquivo, sem consultar o dono do inventário**. É a classe LC-08 do `memory/LICOES_CODE.md`, e a regra que a cobre é o §5 2026-07-28 — *claim negativa exige varredura no repo inteiro **e** o dono do inventário*.
+
+O 2.1 (o mais grave) é de **outra** classe, e vale distinguir: o número **era correto** e foi **restateado no presente** depois de vencer em 24h — LC-10 / §5 2026-07-17. A defesa não é "medir melhor", é **datar**.
 
 Donos que respondiam cada pergunta, e não foram abertos:
 
