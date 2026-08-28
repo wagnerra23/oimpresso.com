@@ -714,3 +714,46 @@ saídas são exclusivas:
 Recomendação: **(a)**. O conflito não é de valor, é de registro: o código seguiu o dono, a ADR ficou
 para trás. Enquanto as duas coexistirem `accepted`, qualquer sessão que abrir a UI-0020 vai ler
 "o dark é 282" como lei vigente e propor a reversão — que é o vetor desta própria seção.
+### 9.7 · São DUAS fontes que nunca desceram, não uma — e o §9.1/§9.5 subcontam
+
+> **Medido em 2026-08-27**, worktree `modest-kare-cb0c42`, base `origin/main` `224bb5f7bb`.
+> Acrescenta ao §9.1 sem reescrevê-lo: a conclusão dele está certa, o denominador não.
+
+Além de `jana-metas.jsx` + `.css`, o `DesignSync.list_files` do projeto Cowork traz
+**`jana-telas-novas.jsx` + `jana-telas-novas.css`**, e eles também não existem no repo —
+**zero ocorrência**, medido por duas varreduras independentes: `git grep -l` (índice) e
+`rg -l --hidden -g '!.git/**'` (a flag exigida pela regra de 2026-07-30, sem a qual o
+ripgrep pula dotdir). Não estão no espelho, não estão no `bundle.manifest.json`, e o
+§9.1 e o §9.5 falam de "uma tela inteira" contando só o `jana-metas`.
+
+**Não é fonte solta: o `jana-merge.jsx` vivo depende dela.** O arquivo do Cowork declara
+no próprio corpo `Telas novas (jana-telas-novas.jsx): /ia/alertas · /ia/acoes ·
+/ia/superadmin/metas + /ia/install`, e resolve `window.JmAlertas`, `window.JmAcoesFila`
+e `window.JmPlataforma` quando a aba é `alertas`, `acoes` ou `plataforma`. As abas são
+declaradas no próprio `jana-merge`, então elas continuam aparecendo e clicáveis: o que some é o
+CONTEÚDO, que resolve para `null` — falha silenciosa, não erro visível.
+
+**Por que não apareceu antes:** a mesma cegueira do §9.1, agora contada. O shell do espelho
+carrega `jana-merge.jsx?v=jm5` e cita **6** arquivos `jana*` (`chat-jana`, `jana-merge`,
+`jana-pro` — `.css` e `.jsx`); nenhuma das duas fontes novas está entre eles. E o
+`bundle.manifest.json` de `2026-08-24T22:49:15.818Z` tem exatamente esses mesmos 6.
+
+**O teto do transporte alcança o próprio detector.** Medições do `get_file` neste dia:
+`bundle.manifest.json` (60,6 KB) e `jana-merge.jsx` (59.985 B) **persistiram em arquivo**;
+`jana-metas.jsx` (~20 KB) e o shell `oimpresso.com.html` (~31,8 KB) voltaram **inline**.
+Ou seja: nem refrescando o shell pela rota avulsa se corrige o detector cego — sem o bundle
+regerado, o `ABSENT-LOCAL` segue incapaz de acusar as duas ausências. Isso reforça o §9.2:
+o fechamento é `gerar-payload-partes.mjs`, do lado Cowork, e não tem substituto aqui.
+
+**A direção do drift foi medida** — o `--sla` a dava como não medida, e a errata do lado
+Cowork supunha o `main` à frente (57.185 B). Comparando o projeto no DesignSync (que é o
+que `ancora.mjs` resolve) contra o espelho: vivo 59.985 B com **3** ocorrências de
+`jmAbrirForm` e nenhuma do aviso antigo; espelho 58.381 B com **0** e **1**. O vivo está
+à frente. O diff é `+59 / −33` linhas, e as remoções são deliberadas e coerentes em 6
+pontos (sai o KPI de frota, "6 análises" vira "5") — evolução, não poda.
+
+**Decisão desta sessão: o `jana-merge.jsx` NÃO foi exportado sozinho**, embora passe no teto.
+Exportá-lo deixaria a âncora fresca para o `charter-validate` apontando para um protótipo cuja
+view *Cadastro* renderiza vazio e cujo *Editar meta* vira clique morto — trocaria "atrasado e
+coerente" por "fresco e quebrado", e calaria um alarme verdadeiro. O espelho segue em
+`a265b6e6…`, intocado.
