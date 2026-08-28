@@ -47,10 +47,23 @@ Servir como **landing page pós-login** do oimpresso — saudação, filtros glo
 
 ### US-DASH-002 — Charts ECharts em Inertia (backlog F1→F4 wave)
 
-> **Entregue em 2026-08** (Rewrite Cockpit V2): dois gráficos nativos — vendas por dia e vendas por mês —
-> em SVG puro (`Chart` do DS), sem lib de terceiro no `package.json`.
+> **A CAPACIDADE está na tela desde 2026-08** (Rewrite Cockpit V2): dois gráficos nativos — vendas
+> por dia e vendas por mês — em SVG puro (`Chart` do DS), sem lib de terceiro no `package.json`.
+> O que caducou nesta data é só a frase antiga *"charts seguem exclusivos do Blade via `?legacy=1`"*:
+> o Blade saiu em 2026-08-28 e a query virou inerte.
+>
+> **Por que a âncora segue `_pendente_` mesmo com o código entregue** (2026-08-28) — e não é
+> desatenção, é bite-test. Aplicando a âncora com path real (`Chart.tsx` · `Index.tsx` ·
+> `HomeController.php`) e rodando o modo que o CI roda —
+> `anchor-lint --check-entry --check-covers --baseline governance/anchor-entry-baseline.json` — o
+> gate **mordeu**: `📋 diz IMPLEMENTADA mas SEM aceite/DoD definido` + `🚪 NENHUM teste declara
+> @covers-us dela`. US-DASH-002 não está no baseline grandfather, então é mentira NOVA, não dívida
+> isenta. **Inventar o aceite pra passar no gate seria falsificar o contrato** — aceite/DoD é campo
+> do [W], como Non-Goal. A âncora vira path real no PR que fechar a US, junto com o aceite que [W]
+> declarar e um teste que a cite. Mesmo precedente de `memory/requisitos/Arquivos/SPEC.md` §US-ARQ-013.
 
-**Implementado em:** `resources/js/Components/shared/Chart.tsx` · `resources/js/Pages/Home/Index.tsx` · `app/Http/Controllers/HomeController.php` · verificado@a50da3c38f (2026-08-28)
+**Implementado em:** _pendente_ — capacidade entregue na tela (ver acima); fechamento formal da US
+(aceite [W] + teste com `@covers-us US-DASH-002`) pendente
 
 ### US-DASH-003 — Widget registry pluggable em React (backlog ADR nova)
 
