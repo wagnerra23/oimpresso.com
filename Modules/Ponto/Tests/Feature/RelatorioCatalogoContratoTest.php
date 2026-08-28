@@ -190,9 +190,18 @@ it('UC-RELIDX-03 · o relatório que sai por colaborador não gera sem um escolh
         . 'fiscalização (Portaria MTP 671/2021 Art. 85). Recusar é o comportamento correto.'
     );
 
-    expect($resp->isRedirect())->toBeFalse(
-        'Recusa por falta de colaborador não pode virar redirect pro gerador: o operador '
-        . 'receberia um PDF que não foi o que ele pediu.'
+    // ⚠️ A 1ª versão deste assert exigia `isRedirect() === false` e reprovou na lane.
+    // Estava ERRADO sobre o Laravel: `$request->validate()` numa requisição WEB lança
+    // ValidationException, que redireciona DE VOLTA com os erros (302). Isso É a recusa
+    // correta — não é o gerador respondendo.
+    //
+    // O contrato real é mais estreito: a recusa não pode levar AO GERADOR. Um redirect
+    // de volta ao catálogo é certo; um redirect pro PDF entregaria o documento de outra
+    // pessoa, que é o dano que este UC persegue.
+    $destino = (string) $resp->headers->get('Location');
+    expect(str_contains($destino, '/imprimir'))->toBeFalse(
+        "Recusa por falta de colaborador não pode levar ao gerador (destino: '{$destino}'): "
+        . 'o operador receberia um PDF que não foi o que ele pediu.'
     );
 });
 
@@ -221,8 +230,14 @@ it('UC-RELIDX-04 · relatório marcado disponível leva ao gerador, não a "não
     expect($resp->isRedirect())->toBeTrue(
         'O catálogo é atalho pro gerador do espelho (F3), então o pedido redireciona pra lá.'
     );
-    expect((string) $resp->headers->get('Location'))->toContain((string) $meu->id,
-        'O redirect tem de carregar o colaborador que o operador escolheu.'
+    // ⚠️ A 1ª versão usava `toContain($id, 'mensagem')` e reprovou na lane com
+    // "To contain: O redirect tem de carregar o colaborador…" — `toContain` recebe
+    // needles VARIÁDICOS, não `(needle, mensagem)`, então a frase de erro virou uma
+    // SEGUNDA agulha e o assert passou a procurá-la dentro da URL (§5 2026-07-28).
+    // `toBeTrue` aceita mensagem; `toContain` não.
+    $destino = (string) $resp->headers->get('Location');
+    expect(str_contains($destino, (string) $meu->id))->toBeTrue(
+        "O redirect tem de carregar o colaborador que o operador escolheu (destino: '{$destino}')."
     );
 });
 

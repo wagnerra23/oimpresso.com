@@ -34,8 +34,21 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-RELIDX-01 | Relatório não implementado aparece marcado como indisponível | should | `CU-PONTO-14` + F8 | `RelatorioCatalogoContratoTest` | 🧪 sem veredito |
 | UC-RELIDX-02 | Nenhum relatório do catálogo entrega download sem aviso | should | `CU-PONTO-14` + F8 | `RelatorioCatalogoContratoTest` | 🧪 sem veredito |
 | UC-RELIDX-03 | Relatório por colaborador não gera sem um escolhido | must | `CU-PONTO-14` + Portaria 671 Art. 85 | `RelatorioCatalogoContratoTest` | 🧪 sem veredito |
-| UC-RELIDX-04 | Relatório marcado disponível leva ao gerador, não a "não implementado" | must | `CU-PONTO-14` + F3/F8 | `RelatorioCatalogoContratoTest` | 🧪 sem veredito |
+| UC-RELIDX-04 | Relatório disponível, COM os insumos que exige, leva ao gerador | must | `CU-PONTO-14` + F3/F8 | `RelatorioCatalogoContratoTest` | 🧪 sem veredito |
 | UC-RELIDX-05 | Relatório de colaborador de outro empregador é recusado | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `RelatorioCatalogoContratoTest` | 🧪 sem veredito |
+
+> 📋 **O que a lane disse até agora (run de 2026-08-28, commit anterior ao fix):**
+> `UC-RELIDX-01` ✓ · `UC-RELIDX-02` ✓ · `UC-RELIDX-05` ✓ · **`UC-RELIDX-03` ⨯ · `UC-RELIDX-04` ⨯**.
+>
+> Os dois vermelhos eram **defeito do teste, não do código** — e o próprio erro provou que a
+> feature funciona: o destino real do redirect foi `/ponto/espelho/21/imprimir?mes=2026-08`.
+> O `04` usava `toContain(needle, mensagem)`, e `toContain` recebe needles **variádicos** —
+> a frase de erro virou uma 2ª agulha (§5 2026-07-28). O `03` exigia "sem redirect", mas
+> falha de validação em requisição web **redireciona de volta com erros**, e isso É a recusa
+> correta; o contrato certo é "não redireciona **pro gerador**".
+>
+> Os três seguem **🧪 sem veredito** de propósito: o `05` ficou verde num commit anterior a
+> este fix, e status se lê do manifesto da lane — não da minha memória do run passado.
 
 **[BACKLOG]:**
 
@@ -120,7 +133,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ---
 
-## UC-RELIDX-04 · Relatório marcado disponível leva ao gerador, não a "não implementado" · `must`
+## UC-RELIDX-04 · Relatório disponível, COM os insumos que exige, leva ao gerador · `must`
 
 - **Persona:** a mesma. Ela escolheu o colaborador e o período; o botão está habilitado.
 - **Aceite:** Dado um relatório marcado como **disponível** · Quando peço a geração com os
@@ -131,8 +144,15 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Regressão que defende:** é a **direção oposta** do UC-RELIDX-01/02, e o defeito que ela
   descreve estava vivo em produção: o catálogo marcava `disponivel: true` e a rota respondia
   501 assim mesmo. O 01/02 impede prometer o que não existe; este impede **negar o que existe**.
-- **Nota de escrita:** o assert é *"não é 501"* + *"redireciona carregando o colaborador escolhido"*.
-  Não crava a URL final: o destino do PDF é contrato do F3, e mudá-lo lá não pode reprovar aqui.
+- **Nota de escrita:** o assert é *"não é 501"* + *"redireciona carregando o colaborador
+  escolhido"*. Não crava a URL final: o destino do PDF é contrato do F3, e mudá-lo lá não
+  pode reprovar aqui.
+- **⚠️ O título carrega a condição de propósito.** A 1ª redação era *"leva ao gerador, não a
+  'não implementado'"* — e o `pr-critic` a leu como invariante **incondicional**, concluindo
+  que travar o botão sem colaborador quebrava o contrato. Ele estava errado no mérito (a
+  condição sempre esteve no Aceite: *"com os insumos que ele declara exigir"*), mas o título
+  convidava ao erro. Contrato que precisa do corpo pra não ser mal lido é contrato mal
+  escrito — a condição subiu pro título.
 - **Status: 🧪 sem veredito.**
 
 ---
