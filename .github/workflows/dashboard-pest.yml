@@ -1,0 +1,157 @@
+name: Dashboard · Pest (MySQL)
+
+# Lane do DASHBOARD: a tela "Visão geral" (/dashboard-legacy) e as grades dela.
+#
+# POR QUE existe: varredura contada em 2026-08-27 sobre as 18 lanes *-pest.yml — NENHUMA
+# executa tests/Feature/Home/. O diretório existe desde a US-DASH-001 (HomeIndexInertiaTest,
+# 6 casos) e nunca rodou em CI: `tests/Feature` está no testsuite do phpunit.xml, mas
+# registro não é execução (proibicoes.md §5 2026-08-02), e "0 failed" numa suíte que não
+# rodou não prova nada (LC-13). O PR que trouxe as abas (US-DASH-005) fechou 122 checks
+# VERDES com os 9 testes novos mudos — foi assim que o buraco apareceu.
+#
+# MySQL e não sqlite: os testes autenticam usuário, montam permissão Spatie, batem em rota
+# HTTP com sessão de negócio e verificam isolamento cross-tenant. Em sqlite sem schema
+# semeado eles pulariam, e skip sai exit 0 — verde por não-execução. A action
+# pest-mysql-setup é a dona de QUAIS tenants existem, e semeia mais de um, que é o que o
+# teste de vazamento entre negócios precisa para existir de verdade.
+#
+# Cobre hoje:
+#   - HomeIndexInertiaTest — shape da prop Inertia, redirect de customer, gate de
+#     dashboard.data, fallback ?legacy=1, isolamento Tier 0 de locations.
+#   - GradesDoPainelTest — as 8 abas: gate por permissão E por setting, resolução de aba
+#     vinda da query string, Tier 0 (a grade não devolve linha de outro negócio), paridade
+#     com o endpoint legado e o guard dos 4 endpoints AJAX que o charter manda preservar.
+#
+# O CÓDIGO SOB TESTE está no gatilho (HomeController, o service das grades, a Page e o
+# Blade legado). Sem isso, mexer no controller não dispararia a lane — gate mudo com cara
+# de cobertura, a pegadinha que o domain-pest.yml documenta no próprio paths:.
+#
+# ⚠️ O Pest ABORTA (exit 2) se um caminho da lista não existe. `tests/Feature/Home/` já tem
+# dois arquivos, então entra inteiro; diretório novo só entra no comando NO MESMO PR que
+# cria o primeiro arquivo dele.
+#
+# Estrutura copiada de acessos-pest.yml (mesmo setup MySQL, mesmo skip-as-pass, mesmo
+# sumário JUnit por assertions). Não é lane paralela a nada: é área que não tinha dono.
+
+on:
+  workflow_dispatch: {}
+  # pull_request SEM paths (always-run) + skip-as-pass interno via dorny/paths-filter:
+  # se nada do domínio mudou, pula o pesado e conclui verde (mesmo padrão das lanes
+  # irmãs — required-ready sem deadlock).
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'app/Http/Controllers/HomeController.php'
+      - 'app/Services/Dashboard/**'
+      - 'app/Utils/ProductUtil.php'
+      - 'resources/js/Pages/Home/**'
+      - 'resources/views/home/**'
+      - 'tests/Feature/Home/**'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/dashboard-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: dashboard-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (Dashboard · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças do dashboard (skip-as-pass)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            dashboard:
+              - 'app/Http/Controllers/HomeController.php'
+              - 'app/Services/Dashboard/**'
+              - 'app/Utils/ProductUtil.php'
+              - 'resources/js/Pages/Home/**'
+              - 'resources/views/home/**'
+              - 'tests/Feature/Home/**'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/dashboard-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada do dashboard mudou)
+        if: steps.changes.outputs.dashboard == 'false'
+        run: echo "✅ Sem mudanças no dashboard — skip-as-pass."
+
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
+        if: steps.changes.outputs.dashboard == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (root view sem build do front)
+        if: steps.changes.outputs.dashboard == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
+      - name: Run Pest (Dashboard · MySQL) — DESCOBERTA, não allowlist
+        if: steps.changes.outputs.dashboard == 'true'
+        # phpunit.xml aponta DB_CONNECTION=sqlite :memory: (sem force="true"), então a env
+        # daqui vence e a suíte roda no MySQL real semeado pela action (ela é a dona dos
+        # tenants). Nenhum dos testes daqui usa RefreshDatabase/migrate:fresh — o seed sobrevive.
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-dashboard-junit.xml \
+            tests/Feature/Home/
+
+      # A régua honesta desta lane é `assertions`, NÃO "0 failed": skip sai exit 0.
+      # Se o sumário mostrar casos com 0 assertions, a lane NÃO mediu — leia isso antes
+      # de comemorar verde (LC-13).
+      - name: Sumário JUnit por arquivo (assertions — a régua contra skip-as-pass)
+        if: always()
+        run: node scripts/tests/junit-summary.mjs test-results/pest-dashboard-junit.xml --out test-results/pest-dashboard-junit-summary.json || true
+
+      - name: Upload sumário JUnit (pest-dashboard-junit-summary)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-dashboard-junit-summary
+          path: test-results/pest-dashboard-junit-summary.json
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload JUnit (Dashboard · MySQL)
+        if: ${{ !cancelled() && steps.changes.outputs.dashboard == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-dashboard-junit
+          path: test-results/pest-dashboard-junit.xml
+          retention-days: 14

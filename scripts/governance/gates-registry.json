@@ -664,6 +664,14 @@
       "promote_by": "2026-09-07",
       "anchor": "sinal de custo: a checagem de tipos estava VERMELHA no main com 298 erros em 145 pares arquivo|codigo (medido 2026-08-24, PR da catraca) e NUNCA teve gate — varredura com rc conferido (rc=1) nao achou typecheck/noEmit em scripts/ nem em .github/workflows/, e este registry nao a listava. Sem catraca, 298 nao e teto. Descoberto ao cumprir o DoD §5 do HANDOFF do espelho DS (#6205/#6207), onde o item de tipos falhava sem ninguem medir o tamanho. Advisory por ADR 0314 (divida de tipos e quality, nao dinheiro/PII/multi-tenant/fiscal) + ADR 0275 (forward-only: legado grandfathered, so o novo reprova); promote_by forca a decisao de promocao em 14d em vez de advisory eterno. Flip do vivo na branch protection = ato [W] (R10 / ADR 0275 §5).",
       "promote_by_razao": "nasce agora (2026-08-24) — 0 runs. Promover exige amostra + decisao [W]."
+    },
+    "dashboard-pest.yml": {
+      "nome": "Dashboard · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-11-27",
+      "anchor": "tests/Feature/Home/ nao rodava em lane NENHUMA — varredura contada 2026-08-27 sobre as 18 lanes *-pest.yml: git grep -l \"tests/Feature/Home\" -- .github/workflows devolveu VAZIO. Sem lane o teste nasce mudo: registro no phpunit.xml nao e execucao (sec.5 2026-08-02) e skip sai exit 0 (LC-13). Provado neste PR: 122 checks VERDES com os 9 casos novos do GradesDoPainelTest jamais executados, e o HomeIndexInertiaTest (6 casos, US-DASH-001) mudo desde que nasceu. Cobre o gate de dashboard.data, o gate por permissao E por setting de cada uma das 8 abas, a resolucao de aba vinda da query string, o isolamento Tier 0 (ADR 0093) da grade, a paridade com o endpoint legado e o guard dos 4 endpoints AJAX que o charter manda preservar intactos. MySQL e nao sqlite porque os casos autenticam usuario, montam permissao Spatie e batem em rota HTTP com sessao de negocio; a action pest-mysql-setup semeia mais de um tenant, sem o que o caso cross-tenant nao existe.",
+      "promote_by_razao": "Nasce advisory (ADR 0275) porque a area nunca teve execucao conhecida — promocao so com mordida provada (ADR 0336). O conteudo tem peca Tier 0 (vazamento cross-tenant na grade) e e candidato natural a required assim que a lane acumular mordida; o flip e de [W]. Sem continue-on-error de proposito: advisory = nao bloqueia merge, nunca = nao pode ficar vermelha (lapide 2026-07-09)."
     }
   }
 }
