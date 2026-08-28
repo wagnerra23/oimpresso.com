@@ -129,6 +129,19 @@ it('UC-JPERM-08 · superadmin vê o preview alheio E a sessão NÃO muda de busi
     $this->user->save();
     $this->user->forgetCachedPermissions();
 
+    // RE-AUTENTICA com a instância FRESCA. Sem isto o teste reprova com
+    // `Expecting 403 not to be 403`: o `actingAs` do beforeEach congelou o usuário
+    // com `user_type='user'`, e o controller decide por `$request->user()->user_type`
+    // (JanaProController:48) — o `save()` altera a linha, não o objeto autenticado.
+    $this->actingAs($this->user->fresh());
+    session([
+        'user.business_id' => PROPREV_BIZ,
+        'business' => ['id' => PROPREV_BIZ, 'name' => Business::find(PROPREV_BIZ)->name],
+    ]);
+
+    // CONTROLE: se este assert cair, a causa é o vínculo acima — e não o contrato.
+    expect(auth()->user()->user_type)->toBe('superadmin');
+
     $status = $this->get(route('jana.admin.jana_pro.preview', ['business_id' => PROPREV_BIZ_ALHEIO]))->status();
 
     expect($status)->not->toBe(403);
