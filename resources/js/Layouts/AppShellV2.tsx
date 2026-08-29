@@ -98,6 +98,7 @@ import {
   SidebarFooter,
   SidebarMenu,
 } from '@/Components/cockpit/Sidebar';
+import { useSidebarShortcut } from '@/Components/cockpit/useSidebarShortcut';
 import { LinkedAppsPanel } from '@/Components/cockpit/LinkedApps';
 import { NfeCertBadge } from '@/Components/cockpit/NfeCertBadge';
 import { TweaksPanel } from '@/Components/cockpit/TweaksPanel';
@@ -310,6 +311,13 @@ export default function AppShellV2({
   });
   useEffect(() => { localStorage.setItem(LS.SB_MODE, sidebarMode); }, [sidebarMode]);
   const toggleSidebarMode = () => setSidebarMode((m) => (m === 'rail' ? 'expanded' : 'rail'));
+
+  // ── Atalhos de teclado `G X` (ADR 0180 Fase 8). Instalado AQUI, e não dentro
+  // do `SidebarMenu`, por dois motivos: o `SidebarMenu` tem retorno antecipado
+  // antes dos hooks (menu vazio / modo rail), e é aqui que o `shellMenu` existe
+  // uma vez só — o `<SidebarMenu>` é montado num lugar só, mas depender disso
+  // pra não duplicar listener seria frágil.
+  useSidebarShortcut(shellMenu);
 
   // ── Mobile: sidebar vira drawer off-canvas (≤768px) — Wagner 2026-06-17
   // (handoff Cowork). No celular o menu flutua por cima do conteúdo (não

@@ -450,6 +450,96 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ── Slot da direita do item: dica do atalho `G X` (ADR 0180 Fase 8) ──────────
+   Espelha `.sb-item-end` / `.sb-kbd` do protótipo Cowork
+   (`prototipo-ui/cowork/styles.css:6620` e `:6643`). O slot é UMA célula de
+   grid de propósito: o protótipo alterna contagem-de-telas ⇄ atalho na mesma
+   célula pra que nada empurre o label. Aqui só o atalho ocupa a célula — a
+   contagem de telas depende de ghost no sidebar, que a ADR 0180 põe no
+   PageHeader. A estrutura fica pronta pro dia em que houver 2º ocupante.
+   Cores vêm dos tokens `--sb-*` (sidebar é dark-fixo, UI-0023) — o protótipo
+   usa `--text-mute`/`--border`, que aqui são `--sb-text-dim`/`--sb-border`. */
+.cockpit .sb-item-end {
+  margin-left: auto;
+  display: grid;
+  justify-items: end;
+  align-items: center;
+}
+.cockpit .sb-item-end > * { grid-area: 1 / 1; }
+.cockpit .sb-kbd {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 9.5px;
+  letter-spacing: .04em;
+  color: var(--sb-text-dim);
+  border: 1px solid var(--sb-border);
+  border-radius: 3px;
+  padding: 1px 4px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity .12s;
+}
+.cockpit .sb-item:hover .sb-kbd,
+.cockpit .sb-item:focus-visible .sb-kbd { opacity: .62; }
+@media (prefers-reduced-motion: reduce) {
+  .cockpit .sb-kbd { transition: none; }
+}
+
+/* ── Ghosts no SIDEBAR (ADR UI-0028 · paridade protótipo) ────────────────────
+   O protótipo Cowork renderiza as sub-telas do item ATIVO dentro do próprio
+   sidebar (teto de 5 + "⋯ mais N") e usa o total como contador no slot direito.
+   Portado de `prototipo-ui/cowork/styles.css` :5173 · :6593 · :6638-6645.
+   Tradução de token: o protótipo usa `--text-mute`/`--border`; aqui, dentro da
+   sidebar dark-fixo (UI-0023), os equivalentes são `--sb-text-dim`/`--sb-border`. */
+.cockpit .sb-item.sb-sub {
+  border-left: 2px solid transparent;
+  padding-left: 18px;
+}
+.cockpit .sb-item.sb-sub.active { border-left-color: var(--accent); }
+
+.cockpit .sb-ghost-count {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 10px;
+  letter-spacing: 0;
+  color: var(--sb-text-dim);
+  opacity: .36;
+  transition: opacity .12s;
+}
+/* Quando o item TEM atalho, os dois dividem a mesma célula do grid: em repouso
+   aparece a contagem, no hover ela some e a dica entra. Nada empurra o label. */
+.cockpit .sb-item:hover .sb-item-end.has-kbd .sb-ghost-count,
+.cockpit .sb-item:focus-visible .sb-item-end.has-kbd .sb-ghost-count { opacity: 0; }
+
+.cockpit .sb-ghost-more {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: calc(100% - 8px);
+  margin-left: 8px;
+  padding: 4px 8px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  color: var(--sb-text-dim);
+  text-align: left;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.cockpit .sb-ghost-more:hover {
+  background: var(--sb-hover);
+  color: var(--sb-text-hi);
+}
+.cockpit .sb-ghost-more-d {
+  display: inline-grid;
+  place-items: center;
+  width: 14px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  opacity: .7;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cockpit .sb-ghost-count { transition: none; }
+}
+
 /* Rodapé usuário — slim 1-linha estilo Claude Desktop (UI-0011 refinement 2026-05-05).
    Avatar 18px ultra-slim. Nome + cargo inline com "·". Tipografia IBM Plex Sans canon. */
 .cockpit .sb-user {
