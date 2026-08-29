@@ -38,7 +38,7 @@ Checklist deriva da **hierarquia de 4 camadas** ([ADR UI-0013](adr/ui/0013-const
 - [ ] Mudança **não muda por tela** — é universal a todo módulo
 - [ ] ADR existente (UI-0008, UI-0011, **UI-0023**) **lida antes** de modificar — ~~UI-0009~~ está `superseded` desde 2026-08-28
 - [ ] Se quebra contrato (ex: tira slot, adiciona slot, muda comportamento default), **abriu ADR nova**
-- [ ] Sidebar continua **PRETA (dark-fixo) nos dois modos** ([UI-0023](adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md)) — não clareou. ~~O item antigo pedia o inverso ("Sidebar não virou light se ADR-0009 **ainda** vigente"); a UI-0009 caiu em 2026-08-28~~
+- [ ] Sidebar continua **PRETA (dark-fixo) nos dois modos** ([UI-0023](adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md)) — não clareou. ~~O item antigo pedia o inverso: "Sidebar não virou light se ADR-0009 ainda vigente (ou virou e proposal `sidebar-dark-vs-light` foi aceita)".~~ A UI-0009 caiu em 2026-08-28.
 - [ ] `localStorage` segue prefixo `oimpresso.cockpit.*` ([UI-0011](adr/ui/0011-sidebar-single-pane-cascata-user-menu.md))
 - [ ] Charter `.charter.md` atualizado se mudou contrato visual
 - [ ] CHANGELOG apendado

@@ -44,7 +44,7 @@ se auto-destrói, porque o protótipo é declaradamente um mock de UM tenant:
 | decide | quem manda | por quê (medido 2026-08-28) |
 |---|---|---|
 | **forma** — layout, hierarquia, espaçamento, cor, tipografia, ícone, rótulo, afordância, estado | **protótipo** | é o artefato que [W] autora; é a fonte de design ([ADR 0299](../../../../decisions/0299-figma-nao-e-fonte-de-design.md)) |
-| **visibilidade** — permissão, pacote por business, módulo instalado | **código / ADR** | o protótipo simula papel com `podeVer(papel)` + `MOCK.SIDEBAR_PAPEIS` e renderiza um tenant fixo ("Oimpresso Matriz · Administrador"). As 3 camadas de habilitação por business são **Tier 0** (`proibicoes.md`, *"junto com business_id"*) |
+| **visibilidade** — permissão, pacote por business, módulo instalado | **código / ADR** | o protótipo simula papel com `podeVer(papel)` + `MOCK.SIDEBAR_PAPEIS` e renderiza um tenant fixo ("Oimpresso Matriz · Administrador"). As 3 camadas de habilitação por business são **Tier 0** (`proibicoes.md`, [W] 2026-05-18: *"Regra basica junto com Business_id acho que não porderia ser diferente"*) |
 | **dado** — contagem, valor, texto vindo do banco | **código** | os contadores do protótipo são mock — `SIDEBAR_COUNTS = { chat: 3, atendimento: 6, tarefas: 6 }`, e o `12` de Produtos é o **número de ghosts** daquele hub (`sidebar.jsx:178`), não um contador de dado; o vivo tem `shell.sidebar_counts` reais |
 
 Corolário: uma ADR anterior que decide **forma** vira derivada e cai se divergir. Uma que decide
