@@ -123,7 +123,7 @@ ver lacunas).
 - ❌ A criação dos componentes DS faltantes (stat-card, payment-split-row) — Cowork, no F1.
 - ❌ A limpeza de cores cruas pré-existentes (ex: azuis em `Sells/Create.tsx`) — PR isolado.
 - ❌ Uma regra `ui:lint` **R7 — componente/classe inexistente no `design-system.css`** (a única peça de enforcement ainda ausente; o resto — cor crua R1, ícone R2, emoji R3 — **já bloqueia** via `ui-lint.yml`). Faz sentido só após o token bridge. ~~Antes (errata): este item dizia que o gate inteiro não existia — falso.~~
-- ~~**Sidebar light vs dark** - permanece light por decisao Wagner-explicita (UI-0009 + UI-0014); os tokens `--sb-*` dark do DS v3 nao revogam isso sem ADR.~~ **ERRATA 2026-08-28:** a sidebar e **PRETA (dark-fixo) nos dois modos** desde a [UI-0023](0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md) (2026-07-16), que declara que UI-0009/0014/0019 afirmavam "light" **erradamente** - as tres estao `superseded`. Este item era instrucao ativa pra regressao: quem o obedecesse reverteria a UI-0023.
+- ~~**Sidebar light vs dark** - permanece light por decisão Wagner-explicita (UI-0009 + UI-0014); os tokens `--sb-*` dark do DS v3 não revogam isso sem ADR.~~ **ERRATA 2026-08-28:** a sidebar e **PRETA (dark-fixo) nos dois modos** desde a [UI-0023](0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md) (2026-07-16), que declara que UI-0009/0014/0019 afirmavam "light" **erradamente** - as tres estao `superseded`. Este item era instrução ativa pra regressao: quem o obedecesse reverteria a UI-0023.
 
 ## Consequências
 

@@ -1,19 +1,23 @@
 ---
-id: requisitos-design-system-adr-ui-0028-prototipo-soberano-sobre-adr-ui
+id: requisitos-design-system-adr-ui-0029-prototipo-soberano-sobre-adr-ui
 ---
 
-# ADR UI-0028 · Protótipo Cowork é SOBERANO sobre ADR UI — divergência é ADR errada, não decisão a debater
+# ADR UI-0029 · Protótipo Cowork é SOBERANO sobre ADR UI — divergência é ADR errada, não decisão a debater
 
 - **Status**: proposto
 - **Data**: 2026-08-28
 - **Decisores**: Wagner (decisão), Claude Code (executor/registro)
 - **Categoria**: ui · governança · fundações
 - **Emenda parcial**: [UI-0013](0013-constituicao-ui-v2-camadas.md) — a Constituição UI v2 define a hierarquia de CAMADAS
-  (Fundações → Shell → Padrão de Tela → Módulo); esta ADR define a hierarquia de **FONTES** quando uma ADR UI e o
+  (Fundações → Shell → Padrão de Tela → Módulo); está ADR define a hierarquia de **FONTES** quando uma ADR UI e o
   protótipo discordam. Não altera as camadas.
 - **Refs**: [ADR 0299](../../../../decisions/0299-figma-nao-e-fonte-de-design.md) (fonte de design = protótipo Cowork
   + DS + charter) · [ADR 0282](../../../../decisions/0282-protocolo-v2-colapso-ratificacao.md) (o Code GERA, não espera)
   · [ADR 0374](../../../../decisions/0374-emenda-0315-espelho-cowork-e-rota-prevista.md) (espelho é leitura)
+
+- **Generaliza**: [UI-0028](0028-sidebar-segue-o-prototipo-hue-295-supersede-parcial-0027.md) (accepted, 2026-08-28) — ela decidiu o **caso concreto** (os 8 `--sb-*` passam a ser os do protótipo, hue 295, supersede parcial da UI-0027, medindo 47 divergências com a mesma sonda nos dois lados). Esta ADR **não a repete e não a reabre**: eleva a mesma lógica a **regra geral** e resolve o que ela não tratava — o escopo (forma × visibilidade × dado) e a cadeia de precedência. Onde as duas falarem de token de sidebar, **a UI-0028 vence**: ela mediu, esta não.
+
+> ⚠️ **Nota de processo (2026-08-28):** esta ADR nasceu numa sessão que **não rodou `whats-active`** e por isso redescobriu o eixo 295×240 que a UI-0028 já tinha decidido e landado no mesmo dia. É a classe LC-19 (autorar em paralelo a um tema com dono), no vetor em que ela **tem** saída mecânica — §5 2026-08-13. Registrado aqui porque o custo foi real: um número de ADR colidido e trabalho refeito.
 
 ## Contexto
 
@@ -41,10 +45,10 @@ se auto-destrói, porque o protótipo é declaradamente um mock de UM tenant:
 |---|---|---|
 | **forma** — layout, hierarquia, espaçamento, cor, tipografia, ícone, rótulo, afordância, estado | **protótipo** | é o artefato que [W] autora; é a fonte de design ([ADR 0299](../../../../decisions/0299-figma-nao-e-fonte-de-design.md)) |
 | **visibilidade** — permissão, pacote por business, módulo instalado | **código / ADR** | o protótipo simula papel com `podeVer(papel)` + `MOCK.SIDEBAR_PAPEIS` e renderiza um tenant fixo ("Oimpresso Matriz · Administrador"). As 3 camadas de habilitação por business são **Tier 0** (`proibicoes.md`, *"junto com business_id"*) |
-| **dado** — contagem, valor, texto vindo do banco | **código** | os contadores do protótipo são mock (`12 produtos`, 22 contadores de tela); o vivo tem `shell.sidebar_counts` reais |
+| **dado** — contagem, valor, texto vindo do banco | **código** | os contadores do protótipo são mock — `SIDEBAR_COUNTS = { chat: 3, atendimento: 6, tarefas: 6 }`, e o `12` de Produtos é o **número de ghosts** daquele hub (`sidebar.jsx:178`), não um contador de dado; o vivo tem `shell.sidebar_counts` reais |
 
 Corolário: uma ADR anterior que decide **forma** vira derivada e cai se divergir. Uma que decide
-**visibilidade** ou **dado** não é tocada por esta regra — protótipo não revoga permissão nem tenancy.
+**visibilidade** ou **dado** não é tocada por está regra — protótipo não revoga permissão nem tenancy.
 
 Corolários que fecham as brechas que apareceram nesta sessão:
 
@@ -89,7 +93,7 @@ teste em vez de reescrevê-lo. Reescrever é o certo; desabilitar é fuga.
 - **Qual texto fica quando os dois são plausíveis** (ex.: topo do sidebar — protótipo diz "Visão geral", vivo diz
   "Forja") segue sendo [W]: a regra diz que o protótipo vence, mas se [W] quer "Forja", ele muda o protótipo.
 
-## Residual honesto — esta regra NÃO é enforçável hoje
+## Residual honesto — está regra NÃO é enforçável hoje
 
 Registrar isto é parte da decisão; ADR que promete mecanismo inexistente é a classe LC-15 deste projeto.
 
@@ -102,7 +106,7 @@ Medido em 2026-08-28:
 | régua | ✅ | [`design-diff.mjs`](../../../../../prototipo-ui/design-diff.mjs) (`--probe`/`--compare --check`, D2/D4/D6/D8/D9) já existe e é o instrumento certo. |
 | gatilho "protótipo mudou ⇒ confere a tela" | ❌ | `cowork-mirror-freshness` mede **frescor do espelho**, nunca **divergência da tela**. Ninguém deriva a segunda da primeira. |
 
-Enquanto as 3 pernas ❌ não fecharem, esta regra vale **culturalmente** (o agente aplica; ver Consequências) e a
+Enquanto as 3 pernas ❌ não fecharem, está regra vale **culturalmente** (o agente aplica; ver Consequências) e a
 verificação é manual e parcial — só o eixo ESTRUTURAL (DOM), que é imune a CSS faltando. **Não** criar gate novo
 antes disso: um comparador alimentado por protótipo sem DS produz divergência falsa e vira gate de teatro
 (§5 2026-07-09 · ADR 0290 já matou o render-diff não-hermético).
@@ -112,7 +116,7 @@ antes disso: um comparador alimentado por protótipo sem DS produz divergência 
 - Toda ADR UI viva passa a ser auditável contra o protótipo. A primeira aplicação já produziu veredito:
   **UI-0011 não diverge** (o protótipo tem o bloco de atalhos no topo) e a **[ADR 0180](../../../../decisions/0180-sidebar-v3-5-grupos-ghosts-header.md)
   erra na cláusula de exclusão** — ela proíbe ghost no sidebar, e o protótipo tem ghost nos **dois** lugares
-  (sidebar: `GhostList` + contador em 22 itens + "⋯ mais N"; header: `ph-nav` renderizado por `app.jsx`).
+  (sidebar: `GhostList` + `.sb-ghost-count` em 23 itens do `MENU` (27 com o `SUPERADMIN_MENU`) + "⋯ mais N"; header: `ph-nav` renderizado por `app.jsx`).
 - Fechar as 3 pernas ❌ acima vira pré-requisito de qualquer promoção a gate — e o `_ds/` é a primeira.
 - **Regras anteriores aposentadas na mesma leva** (normalização de metadado, corpo intacto): [UI-0009](0009-cockpit-sidebar-light-padrao.md),
   [UI-0014](0014-sidebar-light-mantida-v2-parcial.md) e [UI-0019](0019-sidebar-light-definitivo-supersede-0009-0014.md)
@@ -133,4 +137,4 @@ pré-requisito do seguinte, e antecipar o último produz gate de teatro:
 | 3 | acoplar `design-diff --compare --check` ao gatilho de sync do espelho | *"protótipo mudou ⇒ confere a tela"* vira mecânico, não lembrança |
 | 4 | promover a required, com mordida provada | [ADR 0336](../../../../decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md) |
 
-Enquanto 1-3 não fecharem, a paridade é aplicada pelo agente (esta ADR) e verificável só no eixo estrutural.
+Enquanto 1-3 não fecharem, a paridade é aplicada pelo agente (está ADR) e verificável só no eixo estrutural.

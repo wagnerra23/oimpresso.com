@@ -49,7 +49,7 @@ Esta ADR existe **só pra dar visibilidade MCP** à Constituição UI v2 — sem
 
 A Constituição UI v2 foi aprovada por Wagner em 2026-05-24 (sessão `frosty-greider-83ab2f`) após análise de handoff externo Claude Design v2:
 - **ADR UI-0013** (aceita) — hierarquia 4 camadas Fundações→Shell→PT→Módulo + regra-mestre "pedido vago, pergunta antes" + vocabulário canônico
-- **ADR UI-0014** (aceita **em 2026-05-24**) - confirmacao opcao A: sidebar light (UI-0009 vence v2 ADR 0041 externa). **ERRATA 2026-08-28 (ponteiro podre - [ADR 0377](0377-append-only-adr-excecao-por-label-emenda-0094.md)):** o fato datado acima esta preservado, mas **nao vale mais como estado atual**. A sidebar e **PRETA (dark-fixo) nos dois modos** desde a [UI-0023](../requisitos/_DesignSystem/adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md) (2026-07-16), que declara UI-0009/0014/0019 **erradas** - as tres estao `superseded`. Como esta ADR e o **ponteiro** que o `decisions-search` entrega a quem pergunta sobre sidebar, a linha antiga fazia a busca devolver a resposta errada. Fonte da verdade da cor = `resources/css/cockpit.css` bloco `Sidebar - DARK FIXO`.
+- **ADR UI-0014** (aceita **em 2026-05-24**) - confirmacao opcao A: sidebar light (UI-0009 vence v2 ADR 0041 externa). **ERRATA 2026-08-28 (ponteiro podre - [ADR 0377](0377-append-only-adr-excecao-por-label-emenda-0094.md)):** o fato datado acima está preservado, mas **não vale mais como estado atual**. A sidebar e **PRETA (dark-fixo) nos dois modos** desde a [UI-0023](../requisitos/_DesignSystem/adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md) (2026-07-16), que declara UI-0009/0014/0019 **erradas** - as tres estao `superseded`. Como está ADR e o **ponteiro** que o `decisions-search` entrega a quem pergunta sobre sidebar, a linha antiga fazia a busca devolver a resposta errada. Fonte da verdade da cor = `resources/css/cockpit.css` bloco `Sidebar - DARK FIXO`.
 - **PT-01 Lista** — primeiro Padrão de Tela formalizado (12 telas-lista já aplicam)
 - **PRE-MERGE-UI checklist** — anti-regressão por camada (AP1-AP8)
 
@@ -86,9 +86,9 @@ Se vago → **pergunta** antes de implementar (operacionalizado por skill `wagne
 
 **Estado atual:** a sidebar e **PRETA (dark-fixo) nos dois modos** - [UI-0023](../requisitos/_DesignSystem/adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md), 2026-07-16. Fonte da verdade = `resources/css/cockpit.css` bloco `Sidebar - DARK FIXO`.
 
-**Historia (preservada):** em 2026-05-24 o conflito v2 (sidebar dark sempre) vs UI-0009 (light) foi resolvido por [W] explicito pela opcao A - manter UI-0009 - e formalizado na UI-0014. Essa decisao foi **revertida** pela UI-0023, que declara que UI-0009/0014/0019 afirmavam "light" **erradamente**; as tres estao `superseded`.
+**Historia (preservada):** em 2026-05-24 o conflito v2 (sidebar dark sempre) vs UI-0009 (light) foi resolvido por [W] explicito pela opcao A - manter UI-0009 - e formalizado na UI-0014. Essa decisão foi **revertida** pela UI-0023, que declara que UI-0009/0014/0019 afirmavam "light" **erradamente**; as tres estao `superseded`.
 
-> **ERRATA 2026-08-28** ([ADR 0377](0377-append-only-adr-excecao-por-label-emenda-0094.md) - ponteiro podre): ate hoje esta secao se chamava *"Sidebar permanece light"* e afirmava em presente. Como esta ADR e o **ponteiro que o `decisions-search` entrega** a quem pergunta sobre sidebar, ela vinha devolvendo a resposta errada ha ~6 semanas.
+> **ERRATA 2026-08-28** ([ADR 0377](0377-append-only-adr-excecao-por-label-emenda-0094.md) - ponteiro podre): ate hoje está secao se chamava *"Sidebar permanece light"* e afirmava em presente. Como está ADR e o **ponteiro que o `decisions-search` entrega** a quem pergunta sobre sidebar, ela vinha devolvendo a resposta errada ha ~6 semanas.
 
 ## Docs operacionais (onde o time MCP busca)
 
@@ -147,7 +147,7 @@ Esta ADR não pretende ser CI lint. Enforça via combinação:
 ### Neutras / a observar
 
 - Time MCP descobrir esta ADR depende de chamarem `brief-fetch` ou `decisions-search` numa sessão — não tem notificação push hoje
-- ~~Proxima Claude Design vai propor sidebar dark de novo provavelmente - UI-0014 e a resposta canonica indexada~~ **ERRATA 2026-08-28:** invertido. O protipo propunha dark e **estava certo**; a UI-0023 confirmou. E a [ADR UI-0028](../requisitos/_DesignSystem/adr/ui/0028-prototipo-soberano-sobre-adr-ui.md) tornou o protipo **soberano na FORMA** - "a resposta canonica indexada" nao pode mais ser usada pra rejeitar o que ele mostra.
+- ~~Próxima Claude Design vai propor sidebar dark de novo provavelmente - UI-0014 e a resposta canônica indexada~~ **ERRATA 2026-08-28:** invertido. O protótipo propunha dark e **estava certo**; a UI-0023 confirmou. E a [ADR UI-0029](../requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md) tornou o protótipo **soberano na FORMA** - "a resposta canônica indexada" não pode mais ser usada pra rejeitar o que ele mostra.
 - Se `decisions-search` MCP for atualizado pra indexar `_DesignSystem/adr/ui/` direto, esta ADR vira redundante mas continua válida
 
 ## Pegadinhas conhecidas
