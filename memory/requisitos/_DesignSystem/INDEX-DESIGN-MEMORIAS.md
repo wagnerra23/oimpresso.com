@@ -162,7 +162,7 @@ Sem: CTA WhatsApp cliente-facing · modal full-screen (usar drawer/Sheet) · ing
 | Morto | Estado | Lição (`morreu_porque`) |
 |---|---|---|
 | **UI-0010 / UI-0012** (zip-cowork "canon visual") | `superseded` → [UI-0018](adr/ui/0018-canon-visual-vivo-ds-v6-manual-identidade.md) | zip datado ≠ canon. Verdade viva = DS v6 + primitivos ([0253](../../decisions/0253-primitivos-layout.md)) + [Manual de Identidade](MANUAL-IDENTIDADE.md). **NÃO copiar HTML/cor de zip.** |
-| **BRIEFING_CLAUDE_DESIGN / _PROXIMA_SESSAO** | `accepted-historical` | propunham azul 220 + sidebar dark - canon = roxo 295 + **sidebar PRETA/dark-fixo** ([UI-0023](adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md)). ~~Esta celula dizia "+ light" ate 2026-08-28~~ - ou seja, o próprio dark que os briefings propunham estava CERTO na cor. NAO usar de ponto de partida (o azul 220 segue errado) |
+| **BRIEFING_CLAUDE_DESIGN / _PROXIMA_SESSAO** | `accepted-historical` | propunham azul 220 + sidebar dark - canon = roxo 295 + **sidebar PRETA/dark-fixo** ([UI-0023](adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md)). ~~Esta celula dizia "+ light" até 2026-08-28~~ - ou seja, o próprio dark que os briefings propunham estava CERTO na cor. NAO usar de ponto de partida (o azul 220 segue errado) |
 | **CATALOGO_ACABAMENTOS** | `accepted-historical` (parcial) | só a **COR** (azul 220) morreu; estrutura/tipo/espaço seguem válidos |
 | **sidebar-rail-mode / GUIA-SIDEBAR-V3** | `superseded`/`historical` | hue-per-grupo morto — verdade = `cockpit/shared.ts` (código>doc) |
 | **AUTOMATION-ROADMAP** | `accepted-historical` | dizia "zero ondas" — falso, ondas+6 gates entregues. NÃO ler como roadmap futuro |
@@ -177,7 +177,7 @@ Sem: CTA WhatsApp cliente-facing · modal full-screen (usar drawer/Sheet) · ing
 | Tema | Canon HOJE | Aposentado / não-usar | Regra |
 |---|---|---|---|
 | **Cor / accent** | **ADR 0235 — roxo `primary` `oklch(0.55 0.15 295)`** universal | ADR 0190 (`superseded`) · azul de marca | R1+R2 |
-| **Sidebar (cor)** | **PRETA (dark-fixo) nos dois modos** — [UI-0023](adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md), 2026-07-16. Fonte da verdade = `resources/css/cockpit.css` bloco `Sidebar — DARK FIXO` | ~~"light por padrão (UI-0009 + UI-0014)"~~ — era o que está linha dizia até 2026-08-28; UI-0009/0014/0019 estão **superseded** e a UI-0023 registra que afirmavam "light" **erradamente** | R1 |
+| **Sidebar (cor)** | **PRETA (dark-fixo) nos dois modos** — [UI-0023](adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md), 2026-07-16. Fonte da verdade = `resources/css/cockpit.css` bloco `Sidebar — DARK FIXO` | ~~"light por padrão (UI-0009 + UI-0014)"~~ — era o que esta linha dizia até 2026-08-28; UI-0009/0014/0019 estão **superseded** e a UI-0023 registra que afirmavam "light" **erradamente** | R1 |
 | **Sidebar (estrutura)** | single-pane scroll, user menu cascata (UI-0011) | toggle Chat↔Menu dual-pane (UI-0008/0039) | R1 |
 | **DS v3 vs UI v2** | **coexistem** — DS v3 é o "como", UI v2 é o "o quê" (UI-0017) | — | R4 |
 | **MATRIZ Cliente/Index "modais/select nativo"** | **código real**: já é `rounded-lg` + `<Select>` shadcn | entradas P0-3 da MATRIZ (falsos-positivos) | R3 |
@@ -210,7 +210,7 @@ Sem: CTA WhatsApp cliente-facing · modal full-screen (usar drawer/Sheet) · ing
 | `HANDOFF.md` | congelado 2026-05-15 | regenerar |
 | `GLOSSARY.md` | `[M]=Manus` diverge de `[M]=Maiara` (canon) | reconciliar tabela de pessoas |
 | `MATRIZ_MIGRACAO_DS.md` §P0-3 | 3 falsos-positivos Cliente/Index | corrigir (Cliente já migrado) |
-| **`BRIEFING_CLAUDE_DESIGN.md`** ✅ reconciliado 2026-06-04 | doc-âncora do Claude Design; corpo "sidebar dark + hue 220" corrigido para sidebar light + roxo 295 (errata topo + linha 167) | feito |
+| **`BRIEFING_CLAUDE_DESIGN.md`** ⚠️ reconciliação de 2026-06-04 **parcialmente errada** | doc-âncora do Claude Design; corpo "sidebar dark + hue 220" foi corrigido para "sidebar light + roxo 295". A metade **roxo 295** está certa; a metade **sidebar** estava **ERRADA** — a [UI-0023](adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md) (2026-07-16) fixou sidebar **PRETA/dark-fixo** e declarou UI-0009/0014/0019 incorretas, ou seja o "sidebar dark" original estava certo. Errata aplicada em 2026-08-28 no topo e no `:18`. | parcialmente errado |
 | `CATALOGO_ACABAMENTOS.md` ✅ reconciliado 2026-06-04 | snapshot 2026-04-27 (hue 220) — errata no topo: paleta defasada, cor via ADR 0235; tipografia/estrutura seguem | feito |
 | `BRIEFING_PROXIMA_SESSAO.md` ✅ reconciliado 2026-06-04 | briefing de sessão antiga (azul 220 + sidebar dark) - errata no topo para roxo 295 + sidebar light. **A metade "sidebar" dessa reconciliacao estava ERRADA** (UI-0023, 2026-07-16): o dark original estava certo. Reabrir. | parcialmente errado |
 | `SPEC.md` (R-DS-002) + `ARCHITECTURE.md` + `AUTOMATION-ROADMAP.md` | exemplos `bg-blue-500` | trocar exemplo p/ roxo (confunde com primary) |

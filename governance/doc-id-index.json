@@ -3431,14 +3431,14 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 3426,
-    "resolved": 2317,
+    "total": 3425,
+    "resolved": 2316,
     "unstamped": 1109,
     "collisions": 0,
     "by_source": {
       "unstamped": 1109,
       "derived-adr": 375,
-      "stamped": 978,
+      "stamped": 977,
       "derived-handoffs": 385,
       "derived-sessions": 579
     }

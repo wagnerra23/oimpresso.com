@@ -5,7 +5,7 @@ id: requisitos-design-system-adr-ui-0009-cockpit-sidebar-light-padrao
 # ADR UI-0009 · Sidebar do Cockpit segue tema do usuário (light por padrão)
 
 - **Status**: superseded
-- **Superseded por**: [UI-0023](0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md) — sidebar DARK-FIXO (preto) definitivo. Status virado em 2026-08-28 (normalização de metadado): a UI-0019 §Decisão-2 e a UI-0023 já declaravam está ADR histórica, mas a linha `Status` nunca acompanhou — ela seguia lendo como lei viva e afirmando "sidebar light", que contradiz o código (`cockpit.css` bloco `Sidebar — DARK FIXO`) e o protótipo Cowork. Corpo preservado (append-only): o que está escrito abaixo era verdade na data.
+- **Superseded por**: [UI-0023](0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md) — sidebar DARK-FIXO (preto) definitivo. Status virado em 2026-08-28 (normalização de metadado): a UI-0019 §Decisão-2 e a UI-0023 já declaravam esta ADR histórica, mas a linha `Status` nunca acompanhou — ela seguia lendo como lei viva e afirmando "sidebar light", que contradiz o código (`cockpit.css` bloco `Sidebar — DARK FIXO`) e o protótipo Cowork. Corpo preservado (append-only): o que está escrito abaixo era verdade na data.
 - **Data**: 2026-05-04
 - **Decisores**: Wagner, Claude
 - **Categoria**: ui · evolução

@@ -14,10 +14,14 @@ related_adrs: [0235, 0249]
 > Cole este arquivo como **primeira mensagem** numa nova sessão Claude Design.
 > Depois anexe também: `README.md`, `SKILL.md` e `colors_and_type.css` deste projeto.
 
-> ⚠️ **COR/SHELL DEFASADOS — reconciliado 2026-06-04.** Onde este briefing disser **azul**
-> (`--accent: oklch(... 220)`, "accent blue", "sidebar dark"), está **MORTO**. Canon vivo:
-> **roxo 295** `oklch(0.55 0.15 295)` ([ADR 0235](../../decisions/0235-ds-v4-accent-roxo-universal.md)) ·
-> **sidebar light** ([UI-0014](adr/ui/0014-sidebar-light-mantida-v2-parcial.md)) · fonte única de tokens =
+> ⚠️ **COR DEFASADA — reconciliado 2026-06-04, com ERRATA de 2026-08-28.** Onde este briefing
+> disser **azul** (`--accent: oklch(... 220)`, "accent blue"), está **MORTO**. Canon vivo:
+> **roxo 295** `oklch(0.55 0.15 295)` ([ADR 0235](../../decisions/0235-ds-v4-accent-roxo-universal.md)).
+>
+> ⚠️ **Onde este bloco dizia "sidebar dark está MORTO" e "sidebar light (UI-0014)", ele estava
+> ERRADO.** A sidebar é **PRETA (dark-fixo)** — [UI-0023](adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md)
+> (2026-07-16) declara UI-0009/0014/0019 incorretas, e as três estão `superseded`. O "sidebar dark"
+> do corpo estava **certo**. · fonte única de tokens =
 > `tokens.css`/`design-system.css` no git ([ADR 0239](../../decisions/0239-governanca-design-system-git-ssot-regressao-ia.md)).
 > Estrutura e decisões de produto abaixo seguem úteis; **a paleta não**.
 
