@@ -473,7 +473,7 @@ async function listAll(repoRoot, asJson = false) {
   const rows = [];
   for (const cf of charters.sort()) {
     const fm = frontmatter(await read(cf));
-    // 2026-08-28: o `--list` lia SO o `related_prototype` e reportava "sem protótipo"
+    // 2026-08-28: o `--list` lia SÓ o `related_prototype` e reportava "sem protótipo"
     // para 18 charters que declaram a fonte em `bundle_source`/`visual_source` — os mesmos
     // campos que o `resolveAncora` (L266-271) PREFERE. A porta contradizia a regra dura do
     // docblock (L11: âncora ∈ { related_prototype, -page.jsx do bundle via charter }) e

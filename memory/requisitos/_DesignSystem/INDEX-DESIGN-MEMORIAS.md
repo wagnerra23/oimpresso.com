@@ -162,7 +162,7 @@ Sem: CTA WhatsApp cliente-facing · modal full-screen (usar drawer/Sheet) · ing
 | Morto | Estado | Lição (`morreu_porque`) |
 |---|---|---|
 | **UI-0010 / UI-0012** (zip-cowork "canon visual") | `superseded` → [UI-0018](adr/ui/0018-canon-visual-vivo-ds-v6-manual-identidade.md) | zip datado ≠ canon. Verdade viva = DS v6 + primitivos ([0253](../../decisions/0253-primitivos-layout.md)) + [Manual de Identidade](MANUAL-IDENTIDADE.md). **NÃO copiar HTML/cor de zip.** |
-| **BRIEFING_CLAUDE_DESIGN / _PROXIMA_SESSAO** | `accepted-historical` | propunham azul 220 + sidebar dark — canon = roxo 295 + **sidebar PRETA/dark-fixo** ([UI-0023](adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md)). ~~Esta célula dizia "+ light" até 2026-08-28~~ — ou seja, o próprio dark que os briefings propunham estava CERTO na cor. NAO usar de ponto de partida (o azul 220 segue errado) |
+| **BRIEFING_CLAUDE_DESIGN / _PROXIMA_SESSAO** | `accepted-historical` | propunham azul 220 + sidebar dark — canon = roxo 295 + **sidebar PRETA/dark-fixo** ([UI-0023](adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md)). ~~Esta célula dizia "+ light" até 2026-08-28~~ — ou seja, o próprio dark que os briefings propunham estava CERTO na cor. NÃO usar de ponto de partida (o azul 220 segue errado) |
 | **CATALOGO_ACABAMENTOS** | `accepted-historical` (parcial) | só a **COR** (azul 220) morreu; estrutura/tipo/espaço seguem válidos |
 | **sidebar-rail-mode / GUIA-SIDEBAR-V3** | `superseded`/`historical` | hue-per-grupo morto — verdade = `cockpit/shared.ts` (código>doc) |
 | **AUTOMATION-ROADMAP** | `accepted-historical` | dizia "zero ondas" — falso, ondas+6 gates entregues. NÃO ler como roadmap futuro |

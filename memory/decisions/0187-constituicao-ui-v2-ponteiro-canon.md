@@ -88,7 +88,7 @@ Se vago → **pergunta** antes de implementar (operacionalizado por skill `wagne
 
 **História (preservada):** em 2026-05-24 o conflito v2 (sidebar dark sempre) vs UI-0009 (light) foi resolvido por [W] explícito pela opção A — manter UI-0009 — e formalizado na UI-0014. Essa decisão foi **revertida** pela UI-0023, que declara que UI-0009/0014/0019 afirmavam "light" **erradamente**; as três estão `superseded`.
 
-> **ERRATA 2026-08-28** ([ADR 0377](0377-append-only-adr-excecao-por-label-emenda-0094.md) — ponteiro podre): até hoje esta seção se chamava *"Sidebar permanece light"* e afirmava em presente. Como esta ADR é o **ponteiro que o `decisions-search` entrega** a quem pergunta sobre sidebar, ela vinha devolvendo a resposta errada ha ~6 semanas.
+> **ERRATA 2026-08-28** ([ADR 0377](0377-append-only-adr-excecao-por-label-emenda-0094.md) — ponteiro podre): até hoje esta seção se chamava *"Sidebar permanece light"* e afirmava em presente. Como esta ADR é o **ponteiro que o `decisions-search` entrega** a quem pergunta sobre sidebar, ela vinha devolvendo a resposta errada há ~6 semanas.
 
 ## Docs operacionais (onde o time MCP busca)
 
@@ -147,7 +147,7 @@ Esta ADR não pretende ser CI lint. Enforça via combinação:
 ### Neutras / a observar
 
 - Time MCP descobrir esta ADR depende de chamarem `brief-fetch` ou `decisions-search` numa sessão — não tem notificação push hoje
-- ~~Próxima Claude Design vai propor sidebar dark de novo provavelmente — UI-0014 é a resposta canônica indexada~~ **ERRATA 2026-08-28:** invertido. O protótipo propunha dark e **estava certo**; a UI-0023 confirmou. E a [ADR UI-0029](../requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md) tornou o protótipo **soberano na FORMA** - "a resposta canônica indexada" não pode mais ser usada pra rejeitar o que ele mostra.
+- ~~Próxima Claude Design vai propor sidebar dark de novo provavelmente — UI-0014 é a resposta canônica indexada~~ **ERRATA 2026-08-28:** invertido. O protótipo propunha dark e **estava certo**; a UI-0023 confirmou. E a [ADR UI-0029](../requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md) tornou o protótipo **soberano na FORMA** — "a resposta canônica indexada" não pode mais ser usada pra rejeitar o que ele mostra.
 - Se `decisions-search` MCP for atualizado pra indexar `_DesignSystem/adr/ui/` direto, esta ADR vira redundante mas continua válida
 
 ## Pegadinhas conhecidas
