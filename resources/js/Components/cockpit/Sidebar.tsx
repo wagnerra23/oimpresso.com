@@ -20,6 +20,7 @@ import {
 
 import { useTheme } from '@/Hooks/useTheme';
 import { VIBES, type Vibe } from './shared';
+import { construirIndiceAtalhos } from './useSidebarShortcut';
 
 /**
  * Sidebar counts reais (US-WA-083) — vem de
@@ -57,15 +58,7 @@ interface SidebarShortcutsShared {
 // items flat sem campo `icon`; resolvemos via lookup case-insensitive).
 // Items não mapeados caem em Hash genérico. Adicionar aqui ao escalar.
 const MENU_ICON_MAP: Record<string, LucideIcon> = {
-  // `findMenuIcon` cai em `Hash` quando não acha a chave, então TODO label novo
-  // precisa entrar aqui — senão o ícone degrada em silêncio. 'visão geral' e
-  // 'overview' são os dois locales da entry do painel (lang/{pt,en}/home.php).
-  //
-  // BarChart3 (não Home) porque é o que o DESIGN declara: `data.jsx` dá
-  // `icon: "chart"` pra entry `dash-legacy`, e o `chart` do `icons.jsx` desenha
-  // eixo + 3 barras crescentes — que é exatamente o BarChart3 do Lucide.
   iniciar: Home, início: Home, home: Home, dashboard: Home,
-  'visão geral': BarChart3, 'visao geral': BarChart3, overview: BarChart3,
   contatos: Users, clientes: Users, crm: Users,
   produtos: Package,
   compras: ShoppingCart,
@@ -277,56 +270,6 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
 const HIDDEN_GROUP = '__hidden__';
 
 /**
- * LANDING_GROUP — entry FIXA no topo, fora dos grupos ([W] 2026-08-28).
- *
- * É o destino pós-login (a "Visão geral", /dashboard-legacy). Antes ela caía em
- * SISTEMA — o ÚLTIMO grupo — por match de label ('Dashboard' está em
- * `SIDEBAR_GROUPS.sistema.items`), ao lado de Auditoria e Planilha: a tela que
- * responde "como foi o período" classificada como ferramenta de sistema.
- *
- * Difere de HIDDEN_GROUP: `__hidden__` DESCARTA o item (porque um shortcut
- * hardcoded já o cobre); `landing` PRESERVA e renderiza no topo, lendo label,
- * href, ícone e `active` do que o middleware declarou. É a diferença entre o
- * frontend adivinhar e o frontend ler — regra [W] 2026-05-19.
- *
- * Não entra em SIDEBAR_GROUPS de propósito: `groupsToRender` itera SIDEBAR_GROUPS
- * (+ MAIS), então uma key ausente de lá nunca vira cabeçalho de grupo. É o que
- * garante que a entry apareça UMA vez só, no topo, e não duplicada.
- */
-const LANDING_GROUP = 'landing';
-
-/** Item de landing já resolvido com o seu estado de destaque. */
-interface LandingEntry {
-  item: ShellMenuItem;
-  active: boolean;
-}
-
-/**
- * landingAtivo — o destaque do item de landing é derivado da URL corrente,
- * NÃO do atributo `active` que o middleware declara.
- *
- * Medido 2026-08-28: `LegacyMenuAdapter` (o serializador do `shell.menu`) monta
- * `group`, `children` e `href` — e **nunca** `active`. O `ShellMenuItem` também
- * não tem o campo. Ou seja, o `'active' => ...` do `AdminSidebarMenu` alimenta o
- * presenter Blade legado (`AdminlteCustomPresenter::getActiveState`), mas jamais
- * chega ao cockpit React. Ler `item.active` aqui seria ler um campo inexistente.
- *
- * Comparação por prefixo de path pra sobreviver a query string (`?aba=`,
- * `?periodo=`) — a Visão geral guarda estado em query string por contrato, então
- * igualdade estrita apagaria o destaque assim que o usuário trocasse de aba.
- */
-function landingAtivo(href: string | undefined, urlCorrente: string): boolean {
-  if (!href) return false;
-  // Sem indexar array (`split()[0]` é `string | undefined` sob
-  // noUncheckedIndexedAccess) — corta query/hash e barra final por regex.
-  const soPath = (u: string) => u.replace(/[?#].*$/, '').replace(/\/+$/, '') || '/';
-  const alvo = soPath(href);
-  if (alvo === '/') return false; // '/' casaria com tudo — nunca serve de âncora
-  const atual = soPath(urlCorrente);
-  return atual === alvo || atual.startsWith(alvo + '/');
-}
-
-/**
  * LEGACY_GROUP_MAP — converte keys do sidebar v2 pros 5 grupos v3 canon
  * (Wagner 2026-05-22: 5 grupos autorizados — VENDER/OPERAR/FINANÇAS/PESSOAS/SISTEMA).
  *
@@ -382,11 +325,6 @@ function findGroupKey(item: ShellMenuItem | string): string {
     }
     return 'mais';
   }
-
-  // 0. landing → topo fixo, fora dos grupos. Vem ANTES de tudo porque
-  // 'landing' não está em SIDEBAR_GROUPS (de propósito — ver LANDING_GROUP):
-  // sem este ramo, cairia no match por label e daí em 'mais'.
-  if (typeof item !== 'string' && item.group === LANDING_GROUP) return LANDING_GROUP;
 
   // 1+2. group declarado: 5 canon → grupo · ia/atendimento/equipe → HIDDEN · legacy → map
   if (item.group) {
@@ -486,7 +424,51 @@ export function CompanyPicker({
 
 // ── SidebarMenuItem (recursivo p/ children) ─────────────────────────────
 
-function SidebarMenuItem({ item }: { item: ShellMenuItem }) {
+// Slot da direita do item: dica do atalho `G X`, visível só no hover/foco da
+// linha. Espelha `ItemEnd` do protótipo (`prototipo-ui/cowork/sidebar.jsx:31`),
+// que reserva UMA célula de grid pro slot — assim nada empurra o label.
+// O contador de telas do protótipo (`.sb-ghost-count`) NÃO vem junto: ghost no
+// sidebar contraria a ADR 0180 (ghosts vivem no PageHeader), então por ora o
+// slot tem um ocupante só.
+function ItemEnd({ atalho, telas }: { atalho?: string; telas?: number }) {
+  if (!atalho && !telas) return null;
+  return (
+    <span className={`sb-item-end${atalho ? ' has-kbd' : ''}`}>
+      {!!telas && <span className="sb-ghost-count">{telas}</span>}
+      {atalho && <span className="sb-kbd" aria-hidden="true">{atalho}</span>}
+    </span>
+  );
+}
+
+/** Teto de ghosts exibidos sob o item ativo — espelha `GHOST_TETO` do
+ *  protótipo (`prototipo-ui/cowork/sidebar.jsx`). O excedente vira "⋯ mais N". */
+const GHOST_TETO = 5;
+
+/** Rota ativa: o backend não propaga `active` pro React (o `LegacyMenuAdapter`
+ *  descarta o atributo), então a comparação é client-side com o pathname. */
+function rotaAtiva(href: string | undefined): boolean {
+  if (!href || href === '#' || typeof window === 'undefined') return false;
+  try {
+    const alvo = new URL(href, window.location.origin).pathname.replace(/\/+$/, '');
+    const atual = window.location.pathname.replace(/\/+$/, '');
+    return alvo !== '' && (atual === alvo || atual.startsWith(`${alvo}/`));
+  } catch {
+    return false;
+  }
+}
+
+function SidebarMenuItem({ item, atalhosUsaveis }: { item: ShellMenuItem; atalhosUsaveis?: Set<string> }) {
+  // Dica só aparece pra atalho que o listener REALMENTE liga. Sequência em
+  // conflito (duplicada ou prefixo) é descartada em `construirIndiceAtalhos` e
+  // não vira dica — não prometemos atalho que não funciona.
+  const atalho = item.shortcut && atalhosUsaveis?.has(item.shortcut) ? item.shortcut : undefined;
+  // Ghosts (sub-telas) — ADR UI-0028: o protótipo os põe no SIDEBAR sob o item
+  // ATIVO, com teto de 5 + "⋯ mais N", e usa o total como contador no slot.
+  const ghosts = item.ghosts ?? [];
+  const ativo = rotaAtiva(item.href);
+  const [ghostsAbertos, setGhostsAbertos] = useState(false);
+  const ghostsVisiveis = ghostsAbertos ? ghosts : ghosts.slice(0, GHOST_TETO);
+  const ghostsOcultos = ghosts.length - ghostsVisiveis.length;
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [popPos, setPopPos] = useState<{ top: number; left: number } | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -527,8 +509,9 @@ function SidebarMenuItem({ item }: { item: ShellMenuItem }) {
           onClick={() => setIsOpen((v) => !v)}
           aria-expanded={isOpen}
         >
-          <Icon size={16} strokeWidth={1.6} className="ic" />
+          <Icon size={14} className="ic" />
           <span className="label">{item.label}</span>
+          <ItemEnd atalho={atalho} />
           <ChevronRight size={11} className="sb-item-chev" style={{ opacity: 0.5 }} />
         </button>
         {isOpen && popPos && (
@@ -553,10 +536,29 @@ function SidebarMenuItem({ item }: { item: ShellMenuItem }) {
   }
 
   return (
-    <a href={href} className="sb-item">
-      <Icon size={16} strokeWidth={1.6} className="ic" />
-      <span className="label">{item.label}</span>
-    </a>
+    <>
+      <a href={href} className={`sb-item sb-sub${ativo ? ' active' : ''}`}>
+        <Icon size={14} className="ic" />
+        <span className="label">{item.label}</span>
+        <ItemEnd atalho={atalho} telas={ghosts.length} />
+      </a>
+      {ativo && ghostsVisiveis.map((g) => (
+        <a key={g.key ?? g.href} href={g.href} className="sb-item sb-sub sb-ghost">
+          <span className="label">{g.label}</span>
+        </a>
+      ))}
+      {ativo && ghostsOcultos > 0 && (
+        <button
+          type="button"
+          className="sb-ghost-more"
+          onClick={() => setGhostsAbertos(true)}
+          aria-label={`Mostrar mais ${ghostsOcultos} tela(s) de ${item.label}`}
+        >
+          <span className="sb-ghost-more-d" aria-hidden="true">⋯</span>
+          <span>mais {ghostsOcultos}</span>
+        </button>
+      )}
+    </>
   );
 }
 
@@ -588,13 +590,11 @@ function SidebarShortcuts({
   chatCount,
   atendimentoCount,
   shortcuts,
-  landing,
 }: {
   tarefasCount?: number;
   chatCount?: number;
   atendimentoCount?: number;
   shortcuts?: SidebarShortcutsShared;
-  landing: LandingEntry[];
 }) {
   // Wagner 2026-05-22: Tarefas REMOVIDO (módulo ainda não definido).
   // Sequência canon TOPO: IA → Equipe → Atendimento.
@@ -609,43 +609,22 @@ function SidebarShortcuts({
         // primeira aba canon da Jana + destino pós-login). Chat acessível
         // via aba "Copiloto" do PageHeader + FAB.
         <a href="/ia/dashboard" className="sb-shortcut">
-          <Bot size={16} strokeWidth={1.6} />
+          <Bot size={13} />
           <span className="label">IA</span>
           {!!chatCount && <span className="badge">{chatCount}</span>}
         </a>
       )}
-      {/* Visão geral — SEGUNDA, entre IA e os demais. Não é gosto: o design
-          (`prototipo-ui/cowork/data.jsx`, bloco "Shortcuts de topo") declara a
-          ordem `chat` (IA) → `dash-legacy` (Visão geral) → `inbox`
-          (Atendimento). A 1ª versão desta entry ficou ACIMA de tudo, o que
-          diverge do contrato medido. `aria-current="page"` espelha o
-          `sidebar.jsx` do design, que marca o item ativo semanticamente e não
-          só por classe. */}
-      {landing.map(({ item, active }, idx) => {
-        const LandingIcon = findMenuIcon(item.label);
-        return (
-          <a
-            key={`landing-${item.label}-${idx}`}
-            href={item.href ?? '#'}
-            className={`sb-shortcut${active ? ' active' : ''}`}
-            aria-current={active ? 'page' : undefined}
-          >
-            <LandingIcon size={16} strokeWidth={1.6} />
-            <span className="label">{item.label}</span>
-          </a>
-        );
-      })}
       {showEquipe && (
         // Fusão 2026-06-16: atalho topo é o hub ÚNICO "Forja" → /forja (cockpit
         // do cowork loop que absorveu as telas do TeamMcp). Era "Equipe" → /team-mcp/team.
         <a href="/forja" className="sb-shortcut">
-          <Users size={16} strokeWidth={1.6} />
+          <Users size={13} />
           <span className="label">Forja</span>
         </a>
       )}
       {showAtendimento && (
         <a href="/atendimento" className="sb-shortcut">
-          <MessageCircle size={16} strokeWidth={1.6} />
+          <MessageCircle size={13} />
           <span className="label">Atendimento</span>
           {!!atendimentoCount && <span className="badge">{atendimentoCount}</span>}
         </a>
@@ -663,11 +642,14 @@ function SidebarGroup({
   groupKey,
   label,
   children,
+  total,
   defaultOpen = false,
 }: {
   groupKey: string;
   label: string;
   children: React.ReactNode;
+  /** Nº de itens do grupo — renderizado como `.sb-group-n` (paridade protótipo). */
+  total?: number;
   defaultOpen?: boolean;
 }) {
   // Inline accordion (não popover lateral) — Wagner 2026-05-05.
@@ -723,6 +705,12 @@ function SidebarGroup({
         )}
         {!GroupIcon && hue !== undefined && <span className="sb-group-dot" aria-hidden="true" />}
         <span className="sb-group-l">{label}</span>
+        {/* Contador de itens do grupo — o protótipo mostra "CADASTRO 3".
+            O `.sb-group-n` já existia no CSS e no flyout do rail; faltava
+            só no accordion. */}
+        {typeof total === 'number' && total > 0 && (
+          <span className="sb-group-n">{total}</span>
+        )}
       </button>
       {expanded && <div className="sb-group-body">{children}</div>}
     </div>
@@ -777,24 +765,18 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
   // prop ainda não foi requisitada (lazy) ou se módulo desinstalado.
   // Wagner 2026-05-18: shared prop `shell.shortcuts` controla visibilidade
   // dos shortcuts topo baseado em módulos instalados por business.
-  // UMA chamada de usePage() reaproveitada — somar uma segunda aumentaria a
-  // contagem de react-hooks/rules-of-hooks (este componente ja tem 1 violacao
-  // pre-existente: ha return condicional acima). O gate de lint pegou.
-  const paginaAtual = usePage();
-  const sharedShell = (paginaAtual.props as any)?.shell as {
+  const sharedShell = (usePage().props as any)?.shell as {
     sidebar_counts?: SidebarCountsShared | null;
     shortcuts?: SidebarShortcutsShared | null;
   } | undefined;
   const counts = sharedShell?.sidebar_counts ?? { atendimento: 0, tarefas: 0, chat: 0 };
   const shortcuts = sharedShell?.shortcuts ?? undefined;
 
-  // Landing resolvida UMA vez e compartilhada pelos dois modos de render —
-  // se cada modo calculasse por conta, eles poderiam divergir em silêncio.
-  const urlCorrente = paginaAtual.url ?? '';
-  const landing: LandingEntry[] = (groupedItems[LANDING_GROUP] ?? []).map((item) => ({
-    item,
-    active: landingAtivo(item.href, urlCorrente),
-  }));
+  // ADR 0180 Fase 8 — dica visual do atalho `G X`. Chamada direta (não
+  // `useMemo`) de propósito: esta função tem retorno antecipado acima, então
+  // qualquer hook novo aqui seria condicional. O custo é irrelevante — hoje são
+  // 14 atalhos declarados no `shell.menu` inteiro.
+  const atalhosUsaveis = construirIndiceAtalhos(items).usaveis;
 
   if (mode === 'rail') {
     return (
@@ -803,29 +785,25 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
         groupedItems={groupedItems}
         counts={counts}
         shortcuts={shortcuts}
-        landing={landing}
+        atalhosUsaveis={atalhosUsaveis}
       />
     );
   }
 
   return (
     <div className="sb-menu-grouped">
-      {/* A landing entra DENTRO do bloco de atalhos, na 2ª posição — ver o
-          comentário de ordem em SidebarShortcuts. Vem do `group => 'landing'`
-          declarado no middleware; se o backend parar de declarar, o array é
-          vazio e a entry some sozinha (degrada, não quebra). */}
       <SidebarShortcuts
         tarefasCount={counts.tarefas}
         chatCount={counts.chat}
         atendimentoCount={counts.atendimento}
         shortcuts={shortcuts}
-        landing={landing}
       />
       {groupsToRender.map((g) => (
         <SidebarGroup
           key={g.key}
           groupKey={g.key}
           label={g.label}
+          total={(groupedItems[g.key] ?? []).length}
           // PR #1674 — defaultOpen=true UNIVERSAL pra paridade prototipo Cowork.
           // Smoke real Wagner 2026-05-26 18h: grupos pareciam vazios porque user
           // tinha localStorage antigo persistido como collapsed. lsKey bump pra v2
@@ -834,7 +812,7 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
           defaultOpen={true}
         >
           {(groupedItems[g.key] ?? []).map((item, idx) => (
-            <SidebarMenuItem key={`${item.label}-${idx}`} item={item} />
+            <SidebarMenuItem key={`${item.label}-${idx}`} item={item} atalhosUsaveis={atalhosUsaveis} />
           ))}
         </SidebarGroup>
       ))}
@@ -851,13 +829,13 @@ function SidebarMenuRail({
   groupedItems,
   counts,
   shortcuts,
-  landing,
+  atalhosUsaveis,
 }: {
   groupsToRender: Array<{ key: string; label: string }>;
   groupedItems: Record<string, ShellMenuItem[]>;
   counts: SidebarCountsShared;
   shortcuts?: SidebarShortcutsShared;
-  landing: LandingEntry[];
+  atalhosUsaveis?: Set<string>;
 }) {
   // Wagner 2026-05-22: Tarefas REMOVIDO, sequência IA → Equipe → Atendimento
   const showIa = shortcuts?.ia ?? true;
@@ -903,24 +881,6 @@ function SidebarMenuRail({
           {!!counts.chat && <span className="sb-rail-dot-badge" />}
         </a>
       )}
-      {/* Landing na 2ª posição, espelhando a ordem do design
-          (`data.jsx`: chat → dash-legacy → inbox). Os DOIS modos precisam
-          dela: só num, a entry sumiria ao colapsar o sidebar. */}
-      {landing.map(({ item, active }, idx) => {
-        const LandingIcon = findMenuIcon(item.label);
-        return (
-          <a
-            key={`landing-rail-${item.label}-${idx}`}
-            href={item.href ?? '#'}
-            className={`sb-rail-btn${active ? ' active' : ''}`}
-            aria-current={active ? 'page' : undefined}
-            data-tip={item.label}
-            onClick={() => setFlyout(null)}
-          >
-            <LandingIcon size={18} className="ic" />
-          </a>
-        );
-      })}
       {showEquipe && (
         <a
           href="/team-mcp/team"
@@ -987,7 +947,7 @@ function SidebarMenuRail({
             </div>
             {(groupedItems[g.key] ?? []).map((item, idx) => (
               <div key={`${item.label}-${idx}`} onClick={() => setFlyout(null)}>
-                <SidebarMenuItem item={item} />
+                <SidebarMenuItem item={item} atalhosUsaveis={atalhosUsaveis} />
               </div>
             ))}
           </div>
