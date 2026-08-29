@@ -554,7 +554,7 @@ function SidebarMenuItem({ item, atalhosUsaveis }: { item: ShellMenuItem; atalho
           onClick={() => setGhostsAbertos(true)}
           aria-label={`Mostrar mais ${ghostsOcultos} tela(s) de ${item.label}`}
         >
-          <span className="sb-ghost-more-d" aria-hidden="true">&#8943;</span>
+          <span className="sb-ghost-more-d" aria-hidden="true">⋯</span>
           <span>mais {ghostsOcultos}</span>
         </button>
       )}
