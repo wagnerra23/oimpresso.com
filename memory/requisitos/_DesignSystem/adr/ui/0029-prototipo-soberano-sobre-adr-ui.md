@@ -1,5 +1,5 @@
 ---
-id: requisitos-design-system-adr-ui-0029-protótipo-soberano-sobre-adr-ui
+id: requisitos-design-system-adr-ui-0029-prototipo-soberano-sobre-adr-ui
 ---
 
 # ADR UI-0029 · Protótipo Cowork é SOBERANO sobre ADR UI — divergência é ADR errada, não decisão a debater
