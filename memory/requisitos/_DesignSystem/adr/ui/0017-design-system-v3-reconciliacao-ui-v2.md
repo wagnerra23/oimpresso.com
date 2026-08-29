@@ -144,5 +144,5 @@ ver lacunas).
 
 ## Pegadinhas conhecidas
 - **Não** trocar `<Button>` shadcn por `.btn` vanilla tela a tela (caminho B do audit) — quebra os 39+ testes estruturais. Token bridge primeiro.
-- ~~**Não** tratar os tokens `--sb-*` dark do DS como autorizacao pra escurecer a sidebar - isso e Wagner-explicito (UI-0009/0014).~~ **ERRATA 2026-08-28:** invertido pela [UI-0023](0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md). A sidebar **e** dark-fixo; a fonte da verdade e `resources/css/cockpit.css` bloco `Sidebar - DARK FIXO`.
+- ~~**Não** tratar os tokens `--sb-*` dark do DS como autorização pra escurecer a sidebar — isso é Wagner-explícito (UI-0009/0014).~~ **ERRATA 2026-08-28:** invertido pela [UI-0023](0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md). A sidebar **é** dark-fixo; a fonte da verdade é `resources/css/cockpit.css` bloco `Sidebar — DARK FIXO`.
 - **Não** aplicar DS numa tela sem F1 Cowork aprovado — fura o gate `mwart-comparative` F1.5.

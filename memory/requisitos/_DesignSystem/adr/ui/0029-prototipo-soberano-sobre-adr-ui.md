@@ -132,7 +132,7 @@ antes disso: um comparador alimentado por protótipo sem DS produz divergência 
 - Fechar as 3 pernas ❌ acima vira pré-requisito de qualquer promoção a gate — e o `_ds/` é a primeira.
 - **Regras anteriores aposentadas na mesma leva** (normalização de metadado, corpo intacto): [UI-0009](0009-cockpit-sidebar-light-padrao.md),
   [UI-0014](0014-sidebar-light-mantida-v2-parcial.md) e [UI-0019](0019-sidebar-light-definitivo-supersede-0009-0014.md)
-  liam `Status: accepted` afirmando **sidebar light** — já declaradas históricas pela UI-0019 §Decisão-2 e pela
+  liam `Status: accepted` afirmando **sidebar light** — UI-0009 e UI-0014 já declaradas históricas pela UI-0019 §Decisão-2, e a própria UI-0019 pela
   UI-0023, mas com a linha `Status` nunca virada. Contradiziam o código (`Sidebar — DARK FIXO`) e o protótipo.
   PR precisa da label `adr-metadata-normalization` ([ADR 0257](../../../../decisions/0257-adr-status-lifecycle-kind-modelo-canonico.md)).
 

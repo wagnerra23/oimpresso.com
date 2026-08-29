@@ -5,7 +5,7 @@ id: requisitos-design-system-adr-ui-0019-sidebar-light-definitivo-supersede-0009
 # ADR UI-0019 · Sidebar light DEFINITIVO — supersede (consolida) UI-0009 + UI-0014; dark-sidebar de protótipo rejeitado permanentemente
 
 - **Status**: superseded
-- **Superseded por**: [UI-0023](0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md) — sidebar DARK-FIXO (preto) definitivo. Status virado em 2026-08-28 (normalização de metadado): a UI-0019 §Decisão-2 e a UI-0023 já declaravam esta ADR histórica, mas a linha `Status` nunca acompanhou — ela seguia lendo como lei viva e afirmando "sidebar light", que contradiz o código (`cockpit.css` bloco `Sidebar — DARK FIXO`) e o protótipo Cowork. Corpo preservado (append-only): o que está escrito abaixo era verdade na data.
+- **Superseded por**: [UI-0023](0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md) — sidebar DARK-FIXO (preto) definitivo. Status virado em 2026-08-28 (normalização de metadado): a UI-0023 declara esta ADR histórica, mas a linha `Status` nunca acompanhou — ela seguia lendo como lei viva e afirmando "sidebar light", que contradiz o código (`cockpit.css` bloco `Sidebar — DARK FIXO`) e o protótipo Cowork. Corpo preservado (append-only): o que está escrito abaixo era verdade na data.
 - **Data**: 2026-07-07
 - **Aprovado em**: 2026-07-07 — Wagner explícito, palavras textuais: *"sidebar permanece light, foi superado e isso ficou como está hoje. revogue as anteriores."*
 - **Decisores**: Wagner (decisão final), Claude Code (executor)
