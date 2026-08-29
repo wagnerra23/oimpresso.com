@@ -5,7 +5,7 @@ lifecycle: arquivado
 last_reviewed: "2026-06-06"
 next_review: "2026-09-06"
 superseded_by: ["INDEX-DESIGN-MEMORIAS.md"]
-morreu_porque: "Briefing de sessão datado; accent 220° / sidebar dark 260px mortos (canon = roxo 295 + light, ADR 0235/UI-0014). NÃO usar como ponto de partida. (Onda 2 inspeção 2026-06-06)"
+morreu_porque: "Briefing de sessao datado; accent 220 morto (canon = roxo 295, ADR 0235). NAO usar como ponto de partida. ERRATA 2026-08-28: a parte SIDEBAR estava errada - dizia canon light (UI-0014), mas a UI-0023 (2026-07-16) fixou PRETA/dark-fixo; o sidebar dark 260px do corpo estava certo. (lapide de 2026-06-06, corrigida em 2026-08-28)"
 related_adrs: [0235, 0249]
 ---
 

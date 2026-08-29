@@ -155,7 +155,9 @@ CI gate L3 (`.github/workflows/ui-lint.yml`) vai rodar automaticamente. Se verme
 
 ### "Sidebar é dark ou light?"
 
-**Light.** Wagner decidiu 2026-05-24 ([UI-0014](adr/ui/0014-sidebar-light-mantida-v2-parcial.md)). Próxima Claude Design vai propor dark — ignorar.
+**PRETA (dark-fixo) nos dois modos** - [UI-0023](adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md), 2026-07-16 ([W] textual: *"sidebar e como esta black entao"*). Fonte da verdade = `resources/css/cockpit.css` bloco `Sidebar - DARK FIXO`.
+
+~~Esta resposta dizia "**Light.** Wagner decidiu 2026-05-24 (UI-0014). Proxima Claude Design vai propor dark - ignorar."~~ Corrigido em 2026-08-28: a decisao de 24/05 foi superseded, a UI-0014 esta `superseded`, e a instrucao de **ignorar o que o protipo propuser** contraria a [ADR UI-0028](adr/ui/0028-prototipo-soberano-sobre-adr-ui.md) (protipo soberano na FORMA).
 
 ### "Posso usar `bg-blue-500` em arquivo Page?"
 

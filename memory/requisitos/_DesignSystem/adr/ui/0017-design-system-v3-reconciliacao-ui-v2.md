@@ -123,7 +123,7 @@ ver lacunas).
 - ❌ A criação dos componentes DS faltantes (stat-card, payment-split-row) — Cowork, no F1.
 - ❌ A limpeza de cores cruas pré-existentes (ex: azuis em `Sells/Create.tsx`) — PR isolado.
 - ❌ Uma regra `ui:lint` **R7 — componente/classe inexistente no `design-system.css`** (a única peça de enforcement ainda ausente; o resto — cor crua R1, ícone R2, emoji R3 — **já bloqueia** via `ui-lint.yml`). Faz sentido só após o token bridge. ~~Antes (errata): este item dizia que o gate inteiro não existia — falso.~~
-- ❌ **Sidebar light vs dark** — permanece light por decisão Wagner-explícita ([UI-0009](0009-cockpit-sidebar-light-padrao.md) + [UI-0014](0014-sidebar-light-mantida-v2-parcial.md)); os tokens `--sb-*` dark do DS v3 não revogam isso sem ADR.
+- ~~**Sidebar light vs dark** - permanece light por decisao Wagner-explicita (UI-0009 + UI-0014); os tokens `--sb-*` dark do DS v3 nao revogam isso sem ADR.~~ **ERRATA 2026-08-28:** a sidebar e **PRETA (dark-fixo) nos dois modos** desde a [UI-0023](0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md) (2026-07-16), que declara que UI-0009/0014/0019 afirmavam "light" **erradamente** - as tres estao `superseded`. Este item era instrucao ativa pra regressao: quem o obedecesse reverteria a UI-0023.
 
 ## Consequências
 
@@ -144,5 +144,5 @@ ver lacunas).
 
 ## Pegadinhas conhecidas
 - **Não** trocar `<Button>` shadcn por `.btn` vanilla tela a tela (caminho B do audit) — quebra os 39+ testes estruturais. Token bridge primeiro.
-- **Não** tratar os tokens `--sb-*` dark do DS como autorização pra escurecer a sidebar — isso é Wagner-explícito (UI-0009/0014).
+- ~~**Nao** tratar os tokens `--sb-*` dark do DS como autorizacao pra escurecer a sidebar - isso e Wagner-explicito (UI-0009/0014).~~ **ERRATA 2026-08-28:** invertido pela [UI-0023](0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md). A sidebar **e** dark-fixo; a fonte da verdade e `resources/css/cockpit.css` bloco `Sidebar - DARK FIXO`.
 - **Não** aplicar DS numa tela sem F1 Cowork aprovado — fura o gate `mwart-comparative` F1.5.

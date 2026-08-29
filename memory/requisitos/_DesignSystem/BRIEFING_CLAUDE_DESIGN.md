@@ -5,7 +5,7 @@ lifecycle: arquivado
 last_reviewed: "2026-06-06"
 next_review: "2026-09-06"
 superseded_by: ["INDEX-DESIGN-MEMORIAS.md", "MANUAL-IDENTIDADE.md"]
-morreu_porque: "Corpo de abr/2026 propõe accent azul 220° + sidebar dark — canon hoje é roxo oklch(0.55 0.15 295) (ADR 0235) + sidebar LIGHT (UI-0009/0014). Histórico negativo: NÃO copiar paleta/sidebar daqui. (Onda 2 inspeção 2026-06-06)"
+morreu_porque: "Corpo de abr/2026 propoe accent azul 220 - canon e roxo oklch(0.55 0.15 295) (ADR 0235). NAO copiar a PALETA daqui. ERRATA 2026-08-28: a parte SIDEBAR desta lapide estava errada - ela dizia canon LIGHT (UI-0009/0014), mas a UI-0023 (2026-07-16) fixou sidebar PRETA/dark-fixo e declarou UI-0009/0014/0019 erradas. O sidebar dark que o corpo propunha estava CERTO. (lapide de 2026-06-06, corrigida em 2026-08-28)"
 related_adrs: [0235, 0249]
 ---
 
@@ -15,7 +15,7 @@ related_adrs: [0235, 0249]
 > Onde divergir, vence isto:
 > 1. **Ponto de entrada único:** leia primeiro **[`INDEX-DESIGN-MEMORIAS.md`](INDEX-DESIGN-MEMORIAS.md)** — índice mestre (positivo+negativo) + regra de ouro + os 5 goldens de arquétipo (PT-01..PT-05).
 > 2. **Cor = roxo.** `primary` `oklch(0.55 0.15 295)` (DS v4, ADR 0235). **Zero `blue-*` de marca** (azul só semântico). Onde o corpo disser "accent hue 220"/azul, está defasado.
-> 3. **Sidebar = LIGHT** por padrão (UI-0009 + UI-0014). Onde o corpo disser "sidebar dark", está **revogado** — não escurecer.
+> 3. ~~**Sidebar = LIGHT** por padrao (UI-0009 + UI-0014). Onde o corpo disser "sidebar dark", esta **revogado** - nao escurecer.~~ **ERRATA 2026-08-28: INVERTIDO.** A sidebar e **PRETA (dark-fixo) nos dois modos** ([UI-0023](adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md), 2026-07-16). Onde o corpo disser "sidebar dark", esta **CORRETO**. Este item era instrucao ativa pra regressao.
 > 4. **Posicionamento:** ERP **modular multi-vertical** (ADR 0121); Larissa/ROTA LIVRE = **vestuário**, não gráfica.
 > 5. **Crie DENTRO do que existe:** copie o golden do arquétipo, rode o PRE-FLIGHT, use só `@/Components/ui`; nunca invente componente/Model/paleta (M-AP-6) nem repita anti-padrão F3.
 

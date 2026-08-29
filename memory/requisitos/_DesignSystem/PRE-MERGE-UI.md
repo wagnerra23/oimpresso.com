@@ -36,9 +36,9 @@ Checklist deriva da **hierarquia de 4 camadas** ([ADR UI-0013](adr/ui/0013-const
 **Critério-gatilho:** mudança no chrome universal do app (não por tela).
 
 - [ ] Mudança **não muda por tela** — é universal a todo módulo
-- [ ] ADR existente (UI-0008, UI-0011, UI-0009) **lida antes** de modificar
+- [ ] ADR existente (UI-0008, UI-0011, **UI-0023**) **lida antes** de modificar - ~~UI-0009~~ esta `superseded` desde 2026-08-28
 - [ ] Se quebra contrato (ex: tira slot, adiciona slot, muda comportamento default), **abriu ADR nova**
-- [ ] Sidebar não virou light se ADR-0009 ainda vigente (ou virou e proposal `sidebar-dark-vs-light` foi aceita)
+- [ ] Sidebar continua **PRETA (dark-fixo) nos dois modos** ([UI-0023](adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md)) - nao clareou. ~~O item antigo pedia o inverso ("nao virou light se ADR-0009 vigente"); a UI-0009 caiu em 2026-08-28~~
 - [ ] `localStorage` segue prefixo `oimpresso.cockpit.*` ([UI-0011](adr/ui/0011-sidebar-single-pane-cascata-user-menu.md))
 - [ ] Charter `.charter.md` atualizado se mudou contrato visual
 - [ ] CHANGELOG apendado
@@ -96,7 +96,7 @@ Checklist deriva da **hierarquia de 4 camadas** ([ADR UI-0013](adr/ui/0013-const
 
 - [ ] Score Module Grade v4 **não baixou** vs `governance/module-grades-baseline.json` — se baixou, **NÃO** sobrescreve baseline, alerta Wagner
 - [ ] Pest tests cobrem mudança visual crítica
-- [ ] Smoke test em https://oimpresso.com (biz=4 ROTA LIVRE Larissa) se mudança visível ao cliente
+- [ ] Smoke test em https://oimpresso.com - **biz=1**. ~~Dizia "biz=4 ROTA LIVRE Larissa"~~, que a [ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md) e a R6 do `proibicoes.md` proibem **sem excecao** em teste/smoke/exemplo (corrigido 2026-08-28)
 
 ## Camada 5 · Protocolo (KB-9.75, governance, rubric)
 
