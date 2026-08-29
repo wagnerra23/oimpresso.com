@@ -190,14 +190,14 @@
    Justificativa Wagner: "Menu Fundo Black como no cokpit". Mesma paleta dark
    do canon Cockpit / user menu. */
 .cockpit .sb {
-  --sb-bg:          oklch(0.18 0.006 240);
-  --sb-bg-2:        oklch(0.16 0.006 240);
-  --sb-border:      oklch(0.28 0.008 240);
-  --sb-text:        oklch(0.78 0.005 90);
-  --sb-text-dim:    oklch(0.58 0.005 90);
-  --sb-text-hi:     oklch(0.96 0.005 90);
-  --sb-hover:       oklch(0.27 0.008 240);
-  --sb-active:      oklch(0.32 0.008 240);
+  --sb-bg:          oklch(0.21 0.025 295);
+  --sb-bg-2:        oklch(0.18 0.025 295);
+  --sb-border:      oklch(0.30 0.03 295);
+  --sb-text:        oklch(0.80 0.008 295);
+  --sb-text-dim:    oklch(0.55 0 0);
+  --sb-text-hi:     oklch(0.97 0.004 295);
+  --sb-hover:       oklch(0.28 0.035 295);
+  --sb-active:      oklch(0.34 0.05 295);
   --sb-scroll:      oklch(0.32 0.008 240);
   --sb-bullet-out:  oklch(0.55 0.005 240);
 
@@ -438,7 +438,7 @@
   background: var(--sb-text-dim);
   flex: 0 0 auto;
 }
-.cockpit .sb-item .ic { width: 14px; height: 14px; flex: 0 0 auto; opacity: .85; }.cockpit .sb-item .label { flex: 1 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }.cockpit .sb-item .badge {
+.cockpit .sb-item .ic { width: 16px; height: 16px; flex: 0 0 auto; opacity: .85; }.cockpit .sb-item .label { flex: 1 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }.cockpit .sb-item .badge {
   font-size: 10.5px;
   font-weight: 600;
   background: var(--accent);
@@ -1801,11 +1801,11 @@
   align-items: center;
   gap: 10px;
   padding: 0 10px;
-  height: 30px;
+  height: 34px; /* 34/400 = design vigente; era 30/500, do protótipo da ADR 0039. Cor e tipo NÃO seguem o protótipo: são decididos na UI-0027. */
   border-radius: var(--radius-sm);
   font-family: var(--font-sans);
   font-size: var(--fs-4);
-  font-weight: 500;
+  font-weight: 400;
   color: var(--sb-text);
   text-decoration: none;
   transition: background 120ms;
@@ -1818,6 +1818,8 @@
   opacity: 0.7;
 }
 .cockpit .sb-shortcut:hover { background: var(--sb-hover); color: var(--sb-text-hi); }
+/* `.active` do atalho de topo: só havia `:hover`, então a classe seria inerte. */
+.cockpit .sb-shortcut.active { background: var(--sb-active); color: var(--sb-text-hi); }
 .cockpit .sb-shortcut .label { flex: 1; }
 .cockpit .sb-shortcut .badge {
   display: inline-flex;
@@ -1841,10 +1843,10 @@
 .cockpit .sb-group-h {
   display: flex;
   align-items: center;
-  gap: 6px;
-  width: calc(100% - 8px);
-  margin: 0 4px;
-  padding: 8px 6px 4px 8px;
+  gap: 8px;
+  width: 100%; /* era calc(100% - 8px), atrelado ao margin 4px que o design não tem */
+  margin: 0;
+  padding: 6px 10px;
   background: transparent;
   border: 0;
   border-radius: var(--radius-sm);
@@ -1852,7 +1854,7 @@
   font-family: var(--font-sans);
   font-size: var(--fs-1);
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em; /* = 0.6px do design (era .08em sobre 10.5px) */
   color: var(--sb-text-dim);
   text-transform: uppercase;
   text-align: left;
@@ -2233,7 +2235,8 @@
   background: var(--sb-hover);
   color: var(--sb-text-hi);
 }
-.cockpit .sb-rail-btn.open {
+.cockpit .sb-rail-btn.open,
+.cockpit .sb-rail-btn.active {
   background: var(--sb-active);
   color: var(--sb-text-hi);
 }
@@ -2242,7 +2245,7 @@
   height: 18px;
   opacity: 0.9;
 }
-.cockpit .sb-rail-btn.open .ic { opacity: 1; }
+.cockpit .sb-rail-btn.open .ic, .cockpit .sb-rail-btn.active .ic { opacity: 1; }
 .cockpit .sb-rail-btn.sb-rail-group .ic {
   color: oklch(0.62 0.13 var(--gh, 220));
 }
