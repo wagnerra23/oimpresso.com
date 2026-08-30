@@ -50,6 +50,7 @@ const BASELINE = join(ROOT, 'memory', 'governance', 'ciclo-completo-baseline.jso
 const PT_FILE = {
   'PT-01': 'PT-01-Lista.md', 'PT-02': 'PT-02-Form-Drawer.md', 'PT-03': 'PT-03-Detalhe.md',
   'PT-04': 'PT-04-Dashboard.md', 'PT-05': 'PT-05-Kanban.md',
+  'PT-07': 'PT-07-Feed-Timeline.md',
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -86,7 +87,7 @@ const fmField = (content, key) => {
   return f ? f[1].trim() : null;
 };
 const declaredPT = (relProto) => {
-  const m = (relProto || '').match(/PT-0[1-5]/i);
+  const m = (relProto || '').match(/PT-0[1-9]/i);
   return m ? m[0].toUpperCase() : null;
 };
 // #5 teste: o casos.md aponta pra um teste/E2E real (path de teste em qualquer linha).
