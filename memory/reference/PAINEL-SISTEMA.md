@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-29**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-30**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -150,7 +150,7 @@ lente: [construir]
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 155 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 156 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -308,6 +308,7 @@ lente: [construir]
 - ~~2026-08-26 — Regravar a baseline para fechar divergência DETERMINÍSTICA sem ter contado TODOS os escritores do fixture (4 rebakes, 9 dias)~~
 - ~~2026-08-27 — SLA cuja JANELA de tolerância é maior que a taxa de mudança do objeto (verde por construção — e a medição que ele audita não tem quem a dispare)~~
 - ~~2026-08-28 — Dar por entregue a correção que passa no CI inteiro e é INERTE no runtime~~
+- ~~2026-08-29 — Criar branch de `origin/main` FRESCO e depois trazer os arquivos de um WIP VELHO — e explicar o vermelho do gate por DEDUÇÃO~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -328,4 +329,4 @@ lente: [construir]
   - `2026-08-26-503-balcao-larissa-janela-de-deploy`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-29 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-30 · deriva das fontes canônicas, não as substitui._
