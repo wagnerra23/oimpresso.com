@@ -9,7 +9,7 @@
 > [`MANUAL-IDENTIDADE.md`](memory/requisitos/_DesignSystem/MANUAL-IDENTIDADE.md) ("Clareza Confiante").
 > Canon **vivo** = **DS v6** (roxo `oklch(0.55 0.15 295)`) + **primitivos de layout** ([ADR 0253](memory/decisions/0253-primitivos-layout.md)) + **grade medido** ([ADR 0254](memory/decisions/0254-design-identity-grade-deterministico.md)).
 > ☠️ As referências a "zip Cowork canon / UI-0010 / `ui_kits/cowork-2026-04-27`" mais abaixo estão
-> **SUPERSEDED** (por [UI-0018](memory/requisitos/_DesignSystem/adr/ui/0018-canon-visual-vivo-ds-v6-manual-identidade.md) — a pasta virou `_BACKUP-NAO-USAR-`). Ver **§3e Lápides** do SSOT.
+> **SUPERSEDED** (por [UI-0018](memory/requisitos/_DesignSystem/adr/ui/0018-canon-visual-vivo-ds-v6-manual-identidade.md) — a pasta `_BACKUP-NAO-USAR-cowork-2026-04-27/` foi **REMOVIDA em 2026-08-28** por decisão [W] — medido antes: 0 charters e 0 arquivos de código a referenciavam. Histórico no git). Ver **§3e Lápides** do SSOT.
 
 ---
 
@@ -86,7 +86,7 @@ Wagner é o aprovador final em divergências de padrão. Cliente (WR2 Sistemas /
 
 ## 6. Antes de codificar qualquer tela
 
-1. **Leia a voz visual** [`MANUAL-IDENTIDADE.md`](memory/requisitos/_DesignSystem/MANUAL-IDENTIDADE.md) ("Clareza Confiante") + o SSOT [`INDEX-DESIGN-MEMORIAS.md`](memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md). Layout = composição de primitivos [`@/Components/layout`](resources/js/Components/layout/index.ts) ([ADR 0253](memory/decisions/0253-primitivos-layout.md)). _(O antigo "UI Kit `ui_kits/cowork-2026-04-27/`" virou `_BACKUP-NAO-USAR-` — NÃO usar.)_
+1. **Leia a voz visual** [`MANUAL-IDENTIDADE.md`](memory/requisitos/_DesignSystem/MANUAL-IDENTIDADE.md) ("Clareza Confiante") + o SSOT [`INDEX-DESIGN-MEMORIAS.md`](memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md). Layout = composição de primitivos [`@/Components/layout`](resources/js/Components/layout/index.ts) ([ADR 0253](memory/decisions/0253-primitivos-layout.md)). _(O antigo "UI Kit `ui_kits/cowork-2026-04-27/`" foi renomeado pra `_BACKUP-NAO-USAR-` e **REMOVIDO em 2026-08-28** — a fonte de design é `prototipo-ui/cowork/`, origem única.)_
 2. **Canon visual vivo:** [UI-0018](memory/requisitos/_DesignSystem/adr/ui/0018-canon-visual-vivo-ds-v6-manual-identidade.md) (supersede o zip-cowork UI-0010/0012).
 3. **Leia [ADR 0039](memory/decisions/0039-ui-chat-cockpit-padrao.md)** — define layout-mãe "Chat Cockpit" 3-colunas, dual-tab Chat/Menu, painel direito de Apps Vinculados, atalhos J/K/E/A, Tweaks (vibe/densidade/accentHue).
 4. **Leia o session log mais recente em `memory/sessions/`** — pode ter ajuste de design não refletido no ADR ainda.
