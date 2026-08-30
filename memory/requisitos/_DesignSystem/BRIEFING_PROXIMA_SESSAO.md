@@ -18,7 +18,7 @@ related_adrs: [0235, 0249]
 > disser **azul** (`--accent: oklch(... 220)`, "accent blue"), está **MORTO**. Canon vivo:
 > **roxo 295** `oklch(0.55 0.15 295)` ([ADR 0235](../../decisions/0235-ds-v4-accent-roxo-universal.md)).
 >
-> ⚠️ **Onde este bloco dizia "sidebar dark está MORTO" e "sidebar light (UI-0014)", ele estava
+> ⚠️ **Onde este bloco dá o `sidebar dark` por MORTO e aponta a UI-0014 como canon de sidebar light, ele estava
 > ERRADO.** A sidebar é **PRETA (dark-fixo)** — [UI-0023](adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md)
 > (2026-07-16) declara UI-0009/0014/0019 incorretas, e as três estão `superseded`. O "sidebar dark"
 > do corpo estava **certo**. · fonte única de tokens =

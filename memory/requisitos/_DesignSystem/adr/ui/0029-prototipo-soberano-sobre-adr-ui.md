@@ -44,7 +44,7 @@ se auto-destrói, porque o protótipo é declaradamente um mock de UM tenant:
 | decide | quem manda | por quê (medido 2026-08-28) |
 |---|---|---|
 | **forma** — layout, hierarquia, espaçamento, cor, tipografia, ícone, rótulo, afordância, estado | **protótipo** | é o artefato que [W] autora; é a fonte de design ([ADR 0299](../../../../decisions/0299-figma-nao-e-fonte-de-design.md)) |
-| **visibilidade** — permissão, pacote por business, módulo instalado | **código / ADR** | o protótipo simula papel com `podeVer(papel)` + `MOCK.SIDEBAR_PAPEIS` e renderiza um tenant fixo ("Oimpresso Matriz · Administrador"). As 3 camadas de habilitação por business são **Tier 0** (`proibicoes.md`, [W] 2026-05-18: *"Regra basica junto com Business_id acho que não porderia ser diferente"*) |
+| **visibilidade** — permissão, pacote por business, módulo instalado | **código / ADR** | o protótipo simula papel com `podeVer(papel)` + `MOCK.SIDEBAR_PAPEIS` e renderiza um tenant fixo — "Oimpresso Matriz" (`data.jsx`) com o papel "Administrador" (`sidebar.jsx`); a string junta não existe em nenhum dos dois. As 3 camadas de habilitação por business são **Tier 0** (`proibicoes.md`, [W] 2026-05-18: *"Regra basica junto com Business_id acho que não porderia ser diferente"*) |
 | **dado** — contagem, valor, texto vindo do banco | **código** | os contadores do protótipo são mock — `SIDEBAR_COUNTS = { chat: 3, atendimento: 6, tarefas: 6 }`, e o `12` de Produtos é o **número de ghosts** daquele hub (`sidebar.jsx:178`), não um contador de dado; o vivo tem `shell.sidebar_counts` reais |
 
 Corolário: uma ADR anterior que decide **forma** vira derivada e cai se divergir. Uma que decide
@@ -117,12 +117,12 @@ antes disso: um comparador alimentado por protótipo sem DS produz divergência 
   **UI-0011 não diverge** — o protótipo tem o bloco de atalhos no topo.
 
   ⚠️ **Retratação (refutação GT-G5 rodada 2):** uma versão anterior desta seção afirmava que a
-  [ADR 0180](../../../../decisions/0180-sidebar-v3-5-grupos-ghosts-header.md) *"erra na cláusula de
-  exclusão, proibindo ghost no sidebar"*. **Isso é falso e está retirado.** Medido: a 0180 **não tem
+  [ADR 0180](../../../../decisions/0180-sidebar-v3-5-grupos-ghosts-header.md) *"erra na cláusula de exclusão — ela proíbe ghost no sidebar, e o
+  protótipo tem ghost nos dois lugares"*. **Isso é falso e está retirado.** Medido: a 0180 **não tem
   cláusula de exclusão** (`grep -icE "fora de escopo|não-decidido|exclui"` → **0**); o que existe é o
   título de uma *justificativa* — §"Por que header ghosts **e não** sub-itens no sidebar" — e a própria
-  `0180:120` põe ghost **dentro** do sidebar: *"Click direito em ghost → 'Fixar no sidebar'. Renderiza
-  seção FIXADOS no topo."* Eu li um cabeçalho de justificativa como cláusula normativa e declarei uma
+  `0180:120` põe ghost **dentro** do sidebar: *Click direito em ghost → "Fixar no sidebar". Renderiza
+  seção FIXADOS no topo.* Eu li um cabeçalho de justificativa como cláusula normativa e declarei uma
   ADR aceita "errada" a partir disso — a lápide §5 2026-07-15 (achado derivado de leitura, sem varredura
   contada), cometida dentro de uma ADR nova.
 
