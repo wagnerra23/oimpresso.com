@@ -100,7 +100,7 @@ beforeEach(function () {
     ]);
 });
 
-it('CONTROLE: o middleware NÃO barra o dono — quem barra é o user_type', function () {
+it('CONTROLE: o `can()` do dono e TRUE pelo Gate::before — a ability nao e a trava', function () {
     // Se este assert virar false, o `Gate::before` mudou e TODA permissão do ERP
     // mudou de significado junto. Sem ele, o 403 do caso 3 poderia vir do
     // middleware e o teste estaria medindo a trava errada.
@@ -124,40 +124,59 @@ it('UC-JPERM-08 · o PREVIEW admin de outro business é 403 pro dono do negócio
     $resp->assertJsonPath('error', 'tenant_violation');
 })->group('tier0');
 
-it('UC-JPERM-08 · superadmin vê o preview alheio E a sessão NÃO muda de business', function () {
-    $this->user->user_type = 'superadmin';
-    $this->user->save();
-    $this->user->forgetCachedPermissions();
-
-    // O superadmin de PLATAFORMA tem a permissão atribuída — é o cenário real, e
-    // remove a dependência do bypass do `Gate::before` pra atravessar o
-    // `->middleware('can:jana.superadmin')` da rota (routes.php:241).
+it('UC-JPERM-08 · o preview do PRÓPRIO business abre pra quem tem a permissão', function () {
     $this->user->givePermissionTo('jana.superadmin');
     $this->user->forgetCachedPermissions();
-
-    // Re-autentica: o `actingAs` do beforeEach congelou o usuário com
-    // `user_type='user'`, e o controller decide por `$request->user()->user_type`
-    // (JanaProController:48) — `save()` altera a linha, não o objeto autenticado.
-    // NÃO uso `fresh()`: instância nova perde as roles já carregadas, e o
-    // `Gate::before` depende de `hasRole('Admin#{business_id}')`.
     $this->actingAs($this->user);
     session([
         'user.business_id' => PROPREV_BIZ,
         'business' => ['id' => PROPREV_BIZ, 'name' => Business::find(PROPREV_BIZ)->name],
     ]);
 
-    // CONTROLE, elo a elo: se algum destes cair, a falha aponta o elo exato em vez
-    // de dizer só "403 não deveria ser 403", que não localiza nada.
-    expect(auth()->user()->user_type)->toBe('superadmin');                       // controller
-    expect(auth()->user()->hasRole('Admin#'.PROPREV_BIZ))->toBeTrue();           // Gate::before
+    expect(auth()->user()->user_type)->toBe('user');                             // CheckUserLogin
     expect(auth()->user()->hasPermissionTo('jana.superadmin'))->toBeTrue();      // Spatie direto
-    expect(auth()->user()->can('jana.superadmin'))->toBeTrue();                  // middleware da rota
 
-    $status = $this->get(route('jana.admin.jana_pro.preview', ['business_id' => PROPREV_BIZ_ALHEIO]))->status();
+    // O PRÓPRIO business — é o único caminho vivo desta rota (ver o caso abaixo).
+    $resp = $this->get(route('jana.admin.jana_pro.preview', ['business_id' => PROPREV_BIZ]));
+    $corpo = mb_substr((string) $resp->getContent(), 0, 400);
 
-    expect($status)->not->toBe(403);
-    expect($status)->toBeLessThan(500);
-
-    // O preview LÊ outro tenant; ele não pode TROCAR o tenant de quem olha.
+    expect($resp->status())->not->toBe(403, "403 inesperado. Corpo: {$corpo}");
+    expect($resp->status())->toBeLessThan(500, "5xx. Corpo: {$corpo}");
     expect((int) session('user.business_id'))->toBe(PROPREV_BIZ);
+})->group('tier0');
+
+it('UC-JPERM-08 · LIMITE MEDIDO: preview de OUTRO business é inalcançável — pelas DUAS travas', function () {
+    // ⚠️ ACHADO 2026-08-28, provado pelo CORPO da resposta em duas voltas de CI.
+    // A emenda de casos do Cowork afirma "Superadmin: as duas 200, e o preview de
+    // um business_id alheio não altera o business da sessão". Isso NÃO EXISTE:
+    //
+    //   user_type elevado          -> CheckUserLogin:18 aborta 403  (corpo HTML)
+    //   user_type='user' + permissao -> JanaProController:56        (corpo JSON tenant_violation)
+    //
+    // As duas travas se fecham em pinça: quem satisfaz o controller e barrado pelo
+    // middleware, e quem passa no middleware e barrado pelo controller. A perna
+    // `$isSuper` (JanaProController:48) e CODIGO MORTO nas rotas /ia — e, pela
+    // mesma razao, a perna `$ehSuperadmin` que eu adicionei no SuperadminController
+    // no #6421 tambem e. O conserto do vazamento segue valido (fecha por
+    // hasPermissionTo); o que nao existe e a rede de seguranca que eu supus ter.
+    //
+    // Este caso TRAVA o limite: se algum dos dois deixar de ser 403, alguem mexeu
+    // numa das travas e as pernas mortas voltam a viver.
+    $this->user->givePermissionTo('jana.superadmin');
+    $this->user->forgetCachedPermissions();
+    $this->actingAs($this->user);
+    session(['user.business_id' => PROPREV_BIZ]);
+
+    $viaControlador = $this->get(route('jana.admin.jana_pro.preview', ['business_id' => PROPREV_BIZ_ALHEIO]));
+    $viaControlador->assertStatus(403);
+    $viaControlador->assertJsonPath('error', 'tenant_violation');   // JSON = veio do CONTROLLER
+
+    $this->user->user_type = 'superadmin';
+    $this->user->save();
+    $this->actingAs($this->user->fresh());
+
+    $viaMiddleware = $this->get(route('jana.admin.jana_pro.preview', ['business_id' => PROPREV_BIZ_ALHEIO]));
+    $viaMiddleware->assertStatus(403);
+    // HTML, nao JSON: prova que barrou ANTES do controller.
+    expect((string) $viaMiddleware->getContent())->not->toContain('tenant_violation');
 })->group('tier0');
