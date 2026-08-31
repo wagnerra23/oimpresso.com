@@ -20,7 +20,7 @@
     "prebuild:inertia": "node resources/css/tokens/style-dictionary.config.mjs",
     "build:inertia": "vite build --config vite.inertia.config.mjs",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint resources/js --max-warnings=999999",
+    "lint": "eslint resources/js \"Modules/*/Resources/js/**/*.{ts,tsx}\" --max-warnings=999999",
     "lint:baseline:write": "node scripts/eslint-baseline.mjs --write",
     "lint:baseline:check": "node scripts/eslint-baseline.mjs",
     "stylelint": "stylelint \"resources/css/**/*.css\"",

@@ -14,6 +14,14 @@
     "Financeiro/Impostos/Index",
     "Financeiro/ProvaViva",
     "Financeiro/Unificado/Index",
+    "Fiscal/Cockpit",
+    "Fiscal/Config",
+    "Fiscal/Dfe",
+    "Fiscal/Eventos",
+    "Fiscal/Nfe",
+    "Fiscal/Nfse",
+    "Fiscal/Sped",
+    "Home/Index",
     "Jana/Chat",
     "Jana/Index",
     "Jana/Memoria",
@@ -55,16 +63,6 @@
       "prototipo": "prototipo-ui/cowork/backup-page.jsx",
       "falta": [
         "scorecard"
-      ]
-    },
-    {
-      "tela": "Home/Index",
-      "arquivo": "resources/js/Pages/Home/Index.tsx",
-      "modulo": "core",
-      "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/dash-legacy-page.jsx (Cockpit V2 · PT-04 Dashboard)",
-      "falta": [
-        "casos.md-com-UC"
       ]
     },
     {
@@ -125,6 +123,16 @@
       "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
       "falta": [
         "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "Ponto/Intercorrencias/Edit",
+      "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Edit.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
+      "falta": [
+        "scorecard"
       ]
     },
     {
@@ -248,5 +256,5 @@
       ]
     }
   ],
-  "total": 56
+  "total": 64
 }

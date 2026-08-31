@@ -100,6 +100,22 @@ export interface ShellMenuItem {
    *                conhecimento | dashboard | jana | governanca | plataforma
    */
   group?: string;
+  /**
+   * Atalho de teclado declarado pelo DataController do módulo (ADR 0180
+   * Fase 4). Formato validado no backend por `App\Sidebar\SidebarMenuItem`:
+   * `G X` ou `G X Y`. Chega ao React via pass-through do `LegacyMenuAdapter`.
+   * Consumido por `useSidebarShortcut` (índice + listener) e pelo slot
+   * `.sb-item-end` do `SidebarMenuItem` (dica visual no hover/foco).
+   */
+  shortcut?: string;
+  /**
+   * Sub-telas do item ("ghosts"), declaradas pelo DataController do módulo
+   * (ADR 0180 Fase 4) e repassadas pelo `LegacyMenuAdapter`. O protótipo Cowork
+   * as renderiza no SIDEBAR, sob o item ATIVO, com teto de 5 + "⋯ mais N", e usa
+   * o total como contador no slot direito do item.
+   * Ver ADR UI-0028 (protótipo soberano na FORMA).
+   */
+  ghosts?: Array<{ key?: string; label: string; href: string }>;
   children?: ShellMenuItem[];
 }
 
