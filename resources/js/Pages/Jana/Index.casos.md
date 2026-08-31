@@ -708,7 +708,7 @@ O item 5 do mesmo pedido de 2026-08-28 era trocar a análise **Métodos de pagam
 | **o schema real** (`database/schema/mysql-schema.sql`) | `cheque` existe só como **valor de enum de forma de pagamento** (`fin_titulos.forma_pagamento`, `fin_titulo_baixas.meio_pagamento`), mais `transaction_payments.cheque_number` (identificador) e `cash_registers.total_cheques` (agregado por sessão de caixa). **Zero** colunas de ciclo: sem data de depósito/bom-para, sem status de custódia, sem devolvido |
 | **o dono do inventário legado** (`memory/dominios/wr-comercial/…/MAPPING.md`) | o ciclo existe no Delphi — `FINANCEIRO_CHEQUE`, 21 colunas com `STATUS`, `DT_REPASSADO`, `DEVOLVIDO`, `MOTIVO`, `BANCO/AGENCIA/CONTA`. E o mapeamento diz, em letra, que ele **não desceu**: *"(escopo separado — cheque ≠ conta bancária)"* e, na lista de questões abertas, *"Fora desta Fase 4. Wagner decide se entra na próxima ou em fase separada"* |
 
-Ou seja: os números do protótipo (4.421 cheques, R$ 7,0M em circulação, 99,9% quitados) vêm da base
+Ou seja: os números do protótipo (4.421 cheques, R$ [redacted Tier 0] em circulação, 99,9% quitados) vêm da base
 Delphi, de uma tabela cuja migração é **decisão [W] adiada** — não de algo que a `/ia` possa apurar.
 
 **Por que uma versão "degradada" também foi recusada.** Daria pra contar `transaction_payments`
