@@ -915,13 +915,17 @@ it('UC-JPAIN-16: nenhum botão novo do Painel nasce clicável sem fazer nada', f
     $conhecidos = [
         // Catalogados no contrato de tela e no inventário — decisão [W] ABERTA
         // (`prototipo-ui/contrato/jana-painel.contract.json` · `Index-visual-comparison.md`).
-        'Exportar',                               // Index.tsx — title="(em breve)", sem rota
+        'Exportar',                               // Index.tsx — mudo: sem rota e sem handler.
+        //                                          O "(em breve)" saiu do title em 2026-08-31
+        //                                          (a âncora não promete); o botão NÃO mudou.
         'Ouvir áudio',                            // JanaCockpit — title="(em breve — TTS V2)"
 
         // Os 3 chips do rodapé do brief. O inventário os registra como
         // "🟡 botão morto" e a ref de linha dele (`479-500`) já apodreceu — os
         // chips estão em 553/557/565. Estes NÃO prometem nada: clicam e nada
-        // acontece, sem explicação, o que é pior que o "(em breve)" acima.
+        // acontece, sem explicação — o mesmo estado em que o "Exportar" caiu
+        // quando perdeu o "(em breve)" sem ganhar handler. O único que ainda
+        // promete data é o "Ouvir áudio" (title="(em breve — TTS V2)").
         'Disparar régua WhatsApp pros atrasados', // JanaCockpit
         'Investigar queda ticket médio',          // JanaCockpit
         'Ver top devedores',                      // JanaCockpit

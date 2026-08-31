@@ -477,7 +477,7 @@ eles afirmam comportamento, que é o que os 15 testes provam.
 
 O G-6 acusou `stale:` porque o `Chat.tsx` mudou depois do `last_run` de 08-17. **O que mudou:** o
 título do shell passou de `Jana · Chat` para `Jana — Chat`, nos dois lugares (`AppShellV2 title` e
-`<Head title>`). As telas irmãs usam travessão (`Jana — Dashboard`, `Jana — Memória`); só esta usava
+`<Head title>`). As telas irmãs usam travessão (`Jana — Painel`, `Jana — Memória`); só esta usava
 ponto médio.
 
 **Interseção com os UCs desta tela: nenhuma.** Os quatro tratam de filtro de conversas, navegação por
