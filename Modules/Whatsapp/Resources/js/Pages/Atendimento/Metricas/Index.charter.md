@@ -1,6 +1,7 @@
 ---
 page: /atendimento/metricas
 component: Modules/Whatsapp/Resources/js/Pages/Atendimento/Metricas/Index.tsx
+related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)
 owner: wagner
 status: draft
 last_validated: "2026-05-16"

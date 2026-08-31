@@ -1,6 +1,7 @@
 ---
 page: /atendimento/canais/jana-templates
 component: Modules/Whatsapp/Resources/js/Pages/Atendimento/JanaTemplates.tsx
+related_prototype: n/a (sem protótipo Cowork — templates da Jana por canal; segue DS)
 owner: wagner
 status: draft
 last_validated: "2026-05-12"

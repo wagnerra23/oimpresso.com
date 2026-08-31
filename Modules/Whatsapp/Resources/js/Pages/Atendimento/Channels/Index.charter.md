@@ -1,6 +1,7 @@
 ---
 page: /atendimento/channels
 component: Modules/Whatsapp/Resources/js/Pages/Atendimento/Channels/Index.tsx
+related_prototype: n/a (sem protótipo Cowork — gestão de canais de atendimento com drawers de pareamento; segue DS)
 owner: wagner
 status: draft
 last_validated: "2026-05-16"
