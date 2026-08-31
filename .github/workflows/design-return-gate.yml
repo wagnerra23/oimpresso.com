@@ -23,6 +23,13 @@ on:
       - 'resources/js/Components/**'
       - 'resources/js/Layouts/**'
       - 'resources/css/**'
+      # Duas grafias, como ja fazem ciclo-completo.yml e design-memory-gate.yml. `Resources/` e a
+      # convencao nWidart deste repo (config/modules.php) e e a unica que existe hoje na arvore;
+      # `resources/` fica pela razao que `scripts/qa/page-path.mjs` escreve — casing errado nao
+      # pode tirar a tela do denominador em silencio. O filtro de path do Actions e case-sensitive,
+      # entao cada grafia precisa da sua propria linha: sem a maiuscula, esta perna nunca disparou.
+      - 'Modules/*/Resources/js/**'
+      - 'Modules/*/Resources/css/**'
       - 'Modules/*/resources/js/**'
       - 'Modules/*/resources/css/**'
       - 'prototipo-ui/cowork/**'
