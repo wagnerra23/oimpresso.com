@@ -9,6 +9,7 @@ status_detail: wave1-draft
 last_validated: "2026-05-15"
 parent_module: Sells
 related_adrs: [104, 107, 143, 149, 93]
+related_us: [US-SELL-059]
 tier: A
 charter_version: 1
 mwart_pattern_reuse:

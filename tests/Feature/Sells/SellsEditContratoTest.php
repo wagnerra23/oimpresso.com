@@ -1,5 +1,7 @@
 <?php
 
+// @covers-us US-SELL-059
+
 declare(strict_types=1);
 // Cobre UC-SEDIT-01, UC-SEDIT-02, UC-SEDIT-03, UC-SEDIT-04, UC-SEDIT-05, UC-SEDIT-06,
 // UC-SEDIT-07 (resources/js/Pages/Sells/Edit.casos.md) — G-2 rastreabilidade caso↔teste.

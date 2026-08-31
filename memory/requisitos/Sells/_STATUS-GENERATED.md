@@ -16,7 +16,7 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 52 |
+| US no SPEC | 53 |
 | CU no SDD | 6 |
 | Telas (.tsx) | 9 |
 | Telas com `casos.md` | 5 |
@@ -97,6 +97,7 @@ authority: generated
 | US-SELL-056 | `todo` | Keyboard-first coeso no Create — hotkeys configuráveis + Enter-avança + F-key pa |
 | US-SELL-057 | `todo` | Skeleton de carregamento no Create + INP < 200ms |
 | US-SELL-058 | `desconhecido` | Redesenho do cadastro de venda em tela PARALELA (`/sells/create-v3`) — sem tocar |
+| US-SELL-059 | `desconhecido` | Editar venda existente (`/sells/{id}/edit`) — guards de prazo, devolução e tenan |
 
 ## UC por status
 
