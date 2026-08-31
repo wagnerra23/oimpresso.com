@@ -1,6 +1,8 @@
 ---
 page: /whatsapp/settings
 component: resources/js/Pages/Whatsapp/Settings.tsx
+related_prototype: n/a (sem protótipo Cowork — configuração do módulo Whatsapp; segue DS)
+related_us: [US-WA-001, US-WA-067]
 owner: wagner
 status: draft
 last_validated: "2026-05-27"
