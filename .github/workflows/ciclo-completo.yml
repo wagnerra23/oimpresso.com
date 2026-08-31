@@ -40,6 +40,12 @@ on:
       - 'memory/governance/ciclo-completo-baseline.json'
       - 'scripts/governance/ciclo-completo.mjs'
       - 'scripts/governance/pt-conformance.mjs'
+      # A REGRA de "que PT o charter declara" e o filtro de "que .tsx e tela" moram nestas
+      # DUAS libs, importadas pelo gate. Sem elas aqui, um PR que so as toque nao dispara o
+      # `--check` — e a catraca fica muda justamente no PR que pode quebra-la (medido 2026-08-31:
+      # com a lib quebrada o `--check` da rc=1, mas o job nem nasce).
+      - 'scripts/governance/lib/pt-signatures.mjs'
+      - 'scripts/qa/page-path.mjs'
       - '.github/workflows/ciclo-completo.yml'
   workflow_dispatch:
 
