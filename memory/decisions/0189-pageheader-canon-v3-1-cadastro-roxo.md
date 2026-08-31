@@ -39,6 +39,21 @@ review_triggers:
 > (SIDEBAR_GROUP_HUE) continua existindo APENAS pra agrupamento visual no sidebar (não mais pro
 > primary das telas).
 
+> **ERRATA 2026-08-31** ([ADR 0377](0377-append-only-adr-excecao-por-label-emenda-0094.md) — cadeia de supersede quebrada): a [ADR 0190](0190-primary-button-roxo-universal-295.md) citada logo acima está **`superseded`** desde 2026-05-29, substituída pela [ADR 0235 DS v4](0235-ds-v4-accent-roxo-universal.md). A 0235 declara `supersedes: [0190]` mas **não menciona esta ADR nem a [0182](0182-pageheadertabs-canon-pattern-telas.md)** — então o efeito da morte da 0190 sobre as emendas que ela fazia nas duas nunca foi declarado, e esta ADR ficou emendada por uma ADR morta.
+>
+> **O que a errata resolve (e o que NÃO muda):**
+>
+> | | Estado |
+> |---|---|
+> | Primary roxo `oklch(0.55 0.15 295)` universal | ✅ **continua valendo** — a 0235 reafirma o mesmo valor; a morte da 0190 não o reverte |
+> | Hue-per-grupo no primary das telas | ❌ **não volta** — foi o que a 0190 removeu e a 0235 manteve removido (é o que a errata [0260](0260-errata-0182-pageheader-cor-roxo-universal.md) já dizia pra 0182) |
+> | Hue-per-grupo no sidebar (`SIDEBAR_GROUP_HUE`) | ⚠️ **autoridade morta, código vivo** — ver nota abaixo |
+>
+> ⚠️ **A linha do `SIDEBAR_GROUP_HUE` merece precisão, porque as duas leituras erradas são fáceis.** A [ADR 0235](0235-ds-v4-accent-roxo-universal.md) diz as duas coisas, e elas não se contradizem: o **item 2** declara que a autoridade da 0190 — *"primary roxo **e** a regra de hue-per-grupo da sidebar"* — deixa de valer; o **item 4** mantém o código *"por ora"* e delega a decisão de unificar ao Claude Design, **"sem mudança de código neste momento"**. Autoridade morta + implementação pendente, declarado honestamente.
+>
+> **Medido em 2026-08-31** contra `origin/main` @ `8796f3b431`: o `SIDEBAR_GROUP_HUE` **segue vivo** — definido em `resources/js/Components/cockpit/shared.ts:183` e consumido por `cockpit/Sidebar.tsx` (3 sites) e `shared/PageHeaderTabs.tsx`. E a [UI-0028](../requisitos/_DesignSystem/adr/ui/0028-sidebar-segue-o-prototipo-hue-295-supersede-parcial-0027.md) (accepted 2026-08-28) **não fecha esse adiamento**: ela fixa os tokens de superfície/texto do sidebar (`--sb-bg`/`--sb-text`/`--sb-border`/…) em hue 295, e não menciona `SIDEBAR_GROUP_HUE` nem hue-per-grupo — são eixos diferentes. **O "por ora" do item 4 segue aberto**, e fechá-lo é decisão [W] + Claude Design, não conserto de errata.
+> | Layout v3.1 desta ADR (bloco fechado · KPI strip separado · ⋮ overflow · tabs abreviadas) | ✅ intacto — a emenda da 0190 era **só de cor** |
+
 ## Contexto
 
 Sessão 2026-05-24 longa de iteração visual no header de `/contacts?type=customer` (Cliente/Index). Trabalho começou
@@ -100,6 +115,16 @@ Resumo da spec:
 - Font: `ui-sans-serif, system-ui, -apple-system, "Segoe UI"`
 - Tamanho/peso base: 12.5px / 400
 - Height botões: 32px
+
+> **ERRATA 2026-08-31** ([ADR 0377](0377-append-only-adr-excecao-por-label-emenda-0094.md) — ponteiros podres): o bloco de tokens acima é **retrato de 2026-05-24** e está preservado como história. **Dois itens dele não valem mais como instrução**, e implementar por eles hoje quebra:
+>
+> 1. **Os hex crus** (`#f8fafc` · `#ffffff` · `#0f172a` · `#334155` · `#64748b` · `#94a3b8` · `#e2e8f0` · `#cbd5e1`) descrevem os valores da paleta, **não a forma de escrevê-los**. Desde a [ADR 0263](0263-identidade-cor-gate-bloqueante.md) (2026-06-08) cor crua em CSS de tela é **catraca só-desce** e hex/família `-NNN` em `.tsx/.jsx` é barrado pelo `ui:lint` — ambos sob o job `DS gate`, **required**. Tela nova **herda token** (`var(--surface)`, `var(--foreground)`, `var(--border)`), nunca declara cor própria.
+> 2. **A fonte.** A linha `Font: ui-sans-serif, system-ui, …` registra a escolha "família B Modern SaaS" desta sessão, que preteriu o IBM Plex (§Contexto item 3). Como **canon de tela**, foi revertida: o vivo é `--font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, …` — 5 arquivos de `resources/css/` em `origin/main` @ `8796f3b431` —, e a [ADR 0244](0244-ds-v5-canon-oficina-padrao.md) (2026-06-02) registra que *"o roxo canon e o **IBM Plex** foram preservados"*.
+>
+>    ⚠️ **Mas a stack system sobrevive como exceção DECLARADA, e não é drift:** `resources/js/Components/PageHeader/PageHeaderPrimary.tsx:74` força `fontFamily: 'ui-sans-serif, system-ui, …'` inline no botão primary, com razão registrada no docblock (*"forçado inline (AP16 LEARNINGS)"*). Medido em 2026-08-31: é o **único** arquivo de `resources/js/` que faz isso. Quem "consertar" aquela linha achando que é resíduo desta ADR quebra o AP16 — o certo é reabrir o AP16, não trocar a fonte no site.
+>
+> **Fonte da verdade dos dois:** `resources/css/` (tokens gerados em `resources/css/tokens/`), não este bloco.
+
 - Border-radius: 5px (botões) / 8px (cards)
 
 **Hue per grupo: REVOGADO** (parcial — só pro Cadastro)

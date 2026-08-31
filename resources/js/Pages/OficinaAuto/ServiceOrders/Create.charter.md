@@ -1,6 +1,8 @@
 ---
 page: /oficina-auto/service-orders/create
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Create.tsx
+related_prototype: prototipo-ui/cowork/oficina-forms.jsx (OsCreateDrawer — create/store)
+related_us: [US-OFICINA-001]
 owner: wagner
 status: live
 last_validated: "2026-06-09"
