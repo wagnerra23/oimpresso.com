@@ -100,9 +100,9 @@ export default function SheetNovoGateway({ accounts, nfeCertificadoAtivo, onClos
   }
 
   return (
-    <div className="fixed inset-0 z-30 flex justify-end" onClick={onClose} role="dialog" aria-modal="true" aria-label="Novo gateway">
-      <div className="absolute inset-0 bg-stone-900/30" />
-      <div className="relative w-[640px] bg-white h-full shadow-xl border-l border-stone-200 flex flex-col" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-30 flex justify-end">
+      <button type="button" tabIndex={-1} aria-hidden="true" onClick={onClose} className="absolute inset-0 bg-stone-900/30" />
+      <div role="dialog" aria-modal="true" aria-label="Novo gateway" className="relative w-[640px] bg-white h-full shadow-xl border-l border-stone-200 flex flex-col">
 
         <div className="px-5 py-3 border-b border-stone-200 flex items-center gap-3">
           <div className="flex-1">
