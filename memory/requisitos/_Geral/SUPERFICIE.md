@@ -14,9 +14,9 @@ module: _Geral
 >
 > **O que isto é:** a porta geral para componentes, layouts e templates herdáveis por mais de um módulo. A lista é derivada das raízes compartilhadas declaradas em `module-surface.mjs::RAIZES_GERAIS`. **O que NÃO é:** autorização para importar qualquer item sem verificar contrato, status e consumidores; para decidir reuso, consulte também `node scripts/reuse-index.mjs "<símbolo ou intenção>"` e o registry do Design System.
 
-**Total mapeado:** 127 arquivos em 5 papéis.
+**Total mapeado:** 128 arquivos em 5 papéis.
 
-## Componentes compartilhados (React) — 87
+## Componentes compartilhados (React) — 88
 
 - [CommandPalette.tsx](../../../resources/js/Components/CommandPalette.tsx)
 - [Icon.tsx](../../../resources/js/Components/Icon.tsx)
@@ -48,6 +48,7 @@ module: _Geral
 - [Thread.tsx](../../../resources/js/Components/cockpit/Thread.tsx)
 - [TweaksPanel.tsx](../../../resources/js/Components/cockpit/TweaksPanel.tsx)
 - [shared.ts](../../../resources/js/Components/cockpit/shared.ts)
+- [useSidebarShortcut.ts](../../../resources/js/Components/cockpit/useSidebarShortcut.ts)
 - [box.tsx](../../../resources/js/Components/layout/box.tsx)
 - [container.tsx](../../../resources/js/Components/layout/container.tsx)
 - [grid.tsx](../../../resources/js/Components/layout/grid.tsx)
