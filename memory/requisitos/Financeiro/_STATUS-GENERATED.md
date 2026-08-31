@@ -21,7 +21,7 @@ authority: generated
 | Telas (.tsx) | 21 |
 | Telas com `casos.md` | 21 |
 | UC declarados | 108 |
-| UC com teste que os cita | 89 |
+| UC com teste que os cita | 91 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -138,7 +138,7 @@ authority: generated
 | UC-CTD-03 | Configuracoes/Contador | 🧪 aguarda veredito da lane |
 | UC-CTD-04 | Configuracoes/Contador | 🧪 aguarda veredito da lane |
 | UC-CTD-05 | Configuracoes/Contador | 🧪 aguarda veredito da lane |
-| UC-DASH-01 | Dashboard/Index | 📝 sem_teste |
+| UC-DASH-01 | Dashboard/Index | 🧪 aguarda veredito da lane |
 | UC-DRE-01 | Dre/Index | 🧪 aguarda veredito da lane |
 | UC-DRE-02 | Dre/Index | 📝 sem_teste |
 | UC-DRE-03 | Dre/Index | 🧪 aguarda veredito da lane |
@@ -194,7 +194,7 @@ authority: generated
 | UC-IMP-04 | Impostos/Index | 🧪 aguarda veredito da lane |
 | UC-IMP-05 | Impostos/Index | 🧪 aguarda veredito da lane |
 | UC-IMP-06 | Impostos/Index | 🧪 aguarda veredito da lane |
-| UC-IMP-07 | Impostos/Index | 📝 sem_teste |
+| UC-IMP-07 | Impostos/Index | 🧪 aguarda veredito da lane |
 | UC-IMP-08 | Impostos/Index | 🧪 aguarda veredito da lane |
 | UC-IMP-09 | Impostos/Index | 🧪 aguarda veredito da lane |
 | UC-IMP-10 | Impostos/Index | 🧪 aguarda veredito da lane |
