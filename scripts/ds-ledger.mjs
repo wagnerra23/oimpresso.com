@@ -56,6 +56,19 @@ const PAGES_DIR = resolve(ROOT, 'resources/js/Pages');
 const CSS_DIR = resolve(ROOT, 'resources/css');
 const OUT_FILE = resolve(ROOT, 'governance/ds-ledger.json');
 
+// TARGETS — as DUAS raízes onde vivem telas Inertia, espelhando `scripts/eslint-baseline.mjs`
+// (2ª raiz desde 2026-08-28, #6438) e `scripts/ds-report.mjs` (#6460). Quem decide o conjunto
+// varrido é o ARGUMENTO do CLI, não o `eslint.config.js`: enquanto isto fosse só
+// `resources/js/Pages`, os 90 `.ts/.tsx` sob `Modules/*/Resources/js/**` ficavam invisíveis pro
+// placar. Glob COM extensão é obrigatório — o ESLint 9 recusa `Modules/*/Resources/js`
+// ("Oops! Something went wrong"), porque `*` no meio de path de diretório não resolve.
+// Medido em 2026-08-31: os 90 arquivos vivem TODOS sob `Resources/js/Pages/`, logo `js/**` e
+// `js/Pages/**` são equivalentes hoje — fica `js/**` por ser o canon já mergeado das outras duas.
+const TARGETS = ['resources/js/Pages', 'Modules/*/Resources/js/**/*.{ts,tsx}'];
+
+// Raiz dos módulos nWidart — a 2ª origem de LINHAS do Ledger (ver `screenRoots`).
+const MODULES_DIR = resolve(ROOT, 'Modules');
+
 // Telas-referência (o "ouro" · molde) — marcadas ★ e FORA do % (o plano migra a Caixa
 // pro DS só no Bloco C; até lá ela é a régua, não uma linha a "passar").
 const REFERENCE = new Map([
@@ -90,7 +103,8 @@ function shortSha() {
 }
 
 function runEslintPages() {
-  const cmd = `npx --no-install eslint "resources/js/Pages" --format=json --max-warnings=999999`;
+  const alvos = TARGETS.map((t) => `"${t}"`).join(' ');
+  const cmd = `npx --no-install eslint ${alvos} --format=json --max-warnings=999999`;
   try {
     return JSON.parse(execSync(cmd, { encoding: 'utf8', maxBuffer: 200 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'], shell: true }));
   } catch (err) {
@@ -100,9 +114,20 @@ function runEslintPages() {
   }
 }
 
+// Módulo nWidart PRIMEIRO, ancorado em `/Resources/`. Sem esta perna, o `/Pages/` do ramo do
+// núcleo captura o segmento seguinte e o hit vai pro balde errado. MEDIDO em 2026-08-31 sobre os
+// 90 arquivos de módulo: 8 dos 10 pares (chave-antiga → chave-nova) saíam tortos — `Atendimento`
+// em vez de Whatsapp, `Settings` em vez de PaymentGateway, `ads`/`team-mcp` em vez de Forja/KB,
+// `superadmin` em vez de Superadmin. Dois deles CONTAMINAVAM a linha real do núcleo `Site`
+// (Cms 4 arquivos + Superadmin 1); os outros oito caíam em linha inexistente e eram DESCARTADOS
+// em silêncio. A âncora `/Resources/` é o que separa o módulo da TELA do núcleo
+// `resources/js/Pages/Modules/Index.tsx`, que segue no grupo `Modules`.
 function moduleOf(path) {
-  const m = path.replace(/\\/g, '/').match(/\/Pages\/([^/]+)/);
-  return m ? m[1] : null;
+  const p = path.replace(/\\/g, '/');
+  const mod = p.match(/(?:^|\/)Modules\/([^/]+)\/Resources\//);
+  if (mod) return mod[1];
+  const nucleo = p.match(/\/Pages\/([^/]+)/);
+  return nucleo ? nucleo[1] : null;
 }
 
 // Conta paleta crua num arquivo, ignorando exemplos em <code>/<pre> e blocos de comentário
@@ -137,6 +162,29 @@ function moduleHasLiveCharter(dir) {
   return false;
 }
 
+// screenRoots() — o UNIVERSO de LINHAS do Ledger. Diferente do `ds-report.mjs` (que deriva o
+// universo do próprio output do ESLint), aqui as linhas nascem do FS — logo consertar alvo +
+// `moduleOf` NÃO basta: sem esta 3ª perna, o hit de módulo chega com a chave certa mas não acha
+// linha pra pousar e é descartado (medido: 8 dos 10 pares caíam em linha inexistente).
+// Duas origens, MESMA chave que `moduleOf` devolve, então um módulo presente nos dois lados
+// (hoje só `Whatsapp`) SOMA os dois conjuntos numa linha única em vez de contar metade.
+function screenRoots() {
+  const roots = new Map();
+  const add = (chave, dir) => { const a = roots.get(chave) || []; a.push(dir); roots.set(chave, a); };
+  for (const e of readdirSync(PAGES_DIR, { withFileTypes: true })) {
+    if (!e.isDirectory() || SKIP.has(e.name) || e.name.startsWith('_')) continue;
+    add(e.name, join(PAGES_DIR, e.name));
+  }
+  if (existsSync(MODULES_DIR)) {
+    for (const e of readdirSync(MODULES_DIR, { withFileTypes: true })) {
+      if (!e.isDirectory() || SKIP.has(e.name) || e.name.startsWith('_')) continue;
+      const dir = join(MODULES_DIR, e.name, 'Resources', 'js');
+      if (existsSync(dir)) add(e.name, dir);
+    }
+  }
+  return roots;
+}
+
 function cssRawForModule(mod) {
   const files = SCREEN_CSS.get(mod);
   if (!files) return 0;
@@ -169,24 +217,22 @@ function collect() {
     }
   }
 
-  // 2. varre módulos no FS: paleta crua + charter live + contagem de arquivos.
+  // 2. varre as raízes de tela no FS: paleta crua + charter live + contagem de arquivos.
   const rows = [];
-  for (const e of readdirSync(PAGES_DIR, { withFileTypes: true })) {
-    if (!e.isDirectory() || SKIP.has(e.name) || e.name.startsWith('_')) continue;
-    const dir = join(PAGES_DIR, e.name);
-    const files = listTsx(dir);
+  for (const [screen, dirs] of screenRoots()) {
+    const files = dirs.flatMap((d) => listTsx(d));
     if (!files.length) continue;
 
     const palette = files.reduce((s, f) => s + paletteRawHits(f), 0);
-    const cssRaw = cssRawForModule(e.name);
-    const tokensCru = (lintTok[e.name] || 0) + palette + cssRaw;
-    const primCru = lintPrim[e.name] || 0;
-    const approved = moduleHasLiveCharter(dir);
-    const isRef = REFERENCE.has(e.name);
+    const cssRaw = cssRawForModule(screen);
+    const tokensCru = (lintTok[screen] || 0) + palette + cssRaw;
+    const primCru = lintPrim[screen] || 0;
+    const approved = dirs.some((d) => moduleHasLiveCharter(d));
+    const isRef = REFERENCE.has(screen);
 
     rows.push({
-      screen: e.name,
-      note: isRef ? REFERENCE.get(e.name) : `${files.length} arquivo(s)`,
+      screen,
+      note: isRef ? REFERENCE.get(screen) : `${files.length} arquivo(s)`,
       ...(isRef ? { reference: true } : {}),
       cells: {
         tokens: isRef ? 'ref' : (tokensCru === 0 ? 'yes' : 'no'),
