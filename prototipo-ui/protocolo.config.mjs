@@ -280,6 +280,11 @@ export const FASES = [
     ], selftest: 'node prototipo-ui/detectar-telas.mjs --selftest' },
   { fase: '1', nome: 'Mapear / comparar', comandos: [
       'node prototipo-ui/ancora.mjs <Mod/Tela>',
+      '# ⚠ A ORDEM DOS DOIS E INVERTIDA ENTRE SI — trocar produz relatorio plausivel com os lados espelhados.',
+      '#   style-fingerprint = PROTO primeiro · design-diff = PROD primeiro. Nao e simetria, e pegadinha.',
+      '#   design-diff MORDE na troca (deriva o lado de `location.href`: espelho e file:/localhost, prod e https).',
+      '#   style-fingerprint nao consegue derivar (a sonda dele grava so `location.pathname`) — a defesa la e a',
+      '#   trava de ancora do `--tela`, e quem passa `--sem-ancora` fica sem defesa contra inversao.',
       'node prototipo-ui/style-fingerprint.mjs --compare proto.json prod.json --tela <Mod/Tela>',
       'node prototipo-ui/design-diff.mjs --compare prod.json design.json --check',
       'node prototipo-ui/gerar-map.mjs <gap.md>   # esqueleto do <tela>.map.json (ponte design↔código persistente)',
