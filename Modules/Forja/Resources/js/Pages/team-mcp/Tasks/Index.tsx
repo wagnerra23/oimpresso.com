@@ -504,6 +504,8 @@ function TasksIndex({
             const items = effectiveKanban[col.key] ?? [];
             return (
               <div
+                role="group"
+                aria-label={col.label}
                 key={col.key}
                 onDragOver={(e) => { e.preventDefault(); setDragOver(col.key); }}
                 onDragLeave={() => setDragOver(null)}
