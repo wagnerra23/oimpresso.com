@@ -224,7 +224,13 @@ it('UC-JPAIN-07: sparkline sem série declara "Sem histórico" em vez de desenha
  * O `?? 0` do `JanaCockpit` FICA (é ele que impede o TypeError e mantém válida a
  * entrada na `DEFER_GUARD_ONLY_ALLOWLIST`); o que este caso trava é o RENDER:
  * existe um sinal de carregamento derivado de `coworkAggregates === undefined`, e
- * os dois KPIs que dependem dele não são pintados enquanto isso.
+ * o KPI que depende dele não é pintado enquanto isso.
+ *
+ * ⚠️ Eram DOIS até 2026-08-31 (`Receita 30 dias` · `PIX hoje`). O `PIX hoje` saiu
+ * do painel na paridade com o protótipo (UC-JPAIN-18) e a asserção dele saiu no
+ * MESMO diff — `toMatch` cujo alvo não existe mais FALHA (é positivo, acusa), mas
+ * a prosa que dizia "os dois" viraria mentira silenciosa. Sobrou 1 dos 3 KPIs
+ * dependendo da prop deferida; os outros 2 vêm de `insightsAggregates` (eager).
  *
  * A asserção é de ARQUIVO porque o defeito é de render, e Pest não monta React.
  * Ela morde no que importa: apagar o `carregandoCockpit`, ou voltar a passar o
@@ -237,7 +243,7 @@ it('UC-JPAIN-08: o cockpit declara carregando em vez de pintar zero', function (
     // 1. o sinal existe e é `undefined` (ausência), não falsy — `?? 0` já virou 0
     expect($cockpit)->toContain('coworkAggregates === undefined');
 
-    // 2. os DOIS KPIs que dependem da prop deferida trocam de card enquanto carrega.
+    // 2. o KPI que depende da prop deferida troca de card enquanto carrega.
     //    `\(` no meio não é decoração: o JSX real é `carregandoCockpit ? (\n <KpiCardSkeleton`.
     //    Rótulo "Receita 30 dias" desde 2026-08-21 (era "Receita mês", e antes
     //    "Faturamento mês"). Mesmo dado, mesma prop deferida.
@@ -251,8 +257,7 @@ it('UC-JPAIN-08: o cockpit declara carregando em vez de pintar zero', function (
     //    Corrigido junto com o rótulo em UC-JPAIN-14 — comentário que afirma
     //    proveniência errada é instrução ativa pra próxima sessão (§5 2026-08-10).
     expect($cockpit)
-        ->toMatch('/carregandoCockpit\s*\?\s*\(\s*<KpiCardSkeleton label="Receita 30 dias"/u')
-        ->toMatch('/carregandoCockpit\s*\?\s*\(\s*<KpiCardSkeleton label="PIX hoje"/u');
+        ->toMatch('/carregandoCockpit\s*\?\s*\(\s*<KpiCardSkeleton label="Receita 30 dias"/u');
 
     // 3. a série tem TRÊS arms — carregando · vazio-de-verdade · série. Asserção de
     //    ESTRUTURA, não de texto solto: `not->toContain("Carregando sparkline…")` seria
@@ -934,4 +939,87 @@ it('UC-JPAIN-16: nenhum botão novo do Painel nasce clicável sem fazer nada', f
     sort($conhecidos);
 
     expect(painelBotoesMudosDaTela())->toBe($conhecidos);
+});
+
+/**
+ * Extrai, na ORDEM de arquivo, os rótulos dos `<KpiCard>` que vivem dentro do
+ * `<KpiGrid>` do cockpit.
+ *
+ * Por que o recorte é o bloco, e não o arquivo: `label="Receita 30 dias"` aparece
+ * DUAS vezes (o card e o `<KpiCardSkeleton>` do ramo de carregamento), e o
+ * `Sells/Index.tsx` tem KPIs próprios. Contar no arquivo inteiro mediria outra
+ * coisa e daria um número plausível — a armadilha do §5 2026-08-01.
+ *
+ * `<KpiCard\s` não casa `<KpiCardSkeleton` porque exige espaço logo após o nome.
+ */
+function painelKpisDoGrid(string $src): array
+{
+    if (! preg_match('/<KpiGrid\b.*?<\/KpiGrid>/us', $src, $bloco)) {
+        return [];
+    }
+
+    preg_match_all('/<KpiCard\s+label="([^"]+)"/u', $bloco[0], $m);
+
+    return $m[1];
+}
+
+/**
+ * UC-JPAIN-18 — o Painel mostra os 3 KPIs do protótipo, e o 4º saiu sem levar o dado.
+ *
+ * Medido em 2026-08-31 na âncora (`node prototipo-ui/ancora.mjs Jana/Index` →
+ * `prototipo-ui/cowork/jana-merge.jsx`): a `jc-kpis` dela renderiza `data.kpis.map`,
+ * e esse array publica 3 entradas — `Receita mês` · `A receber vencido` ·
+ * `Ticket médio`. A tela viva tinha 4 (o extra era `PIX hoje`). Decisão [W]: o 4º sai.
+ *
+ * ⚠️ O que este caso NÃO trava, de propósito: o RÓTULO do 1º card. Ele é
+ * `Receita 30 dias` aqui e `Receita mês` na âncora, e a divergência é DELIBERADA —
+ * o dado são 30 dias deslizantes, e o UC-JPAIN-14 corrigiu a palavra com esse
+ * fundamento. Copiar a copy do protótipo reintroduziria bug conhecido; aqui é o
+ * protótipo que está atrás.
+ *
+ * A 2ª asserção é negativa, e vem acompanhada da prova de que ainda tem sentido:
+ * `pixHoje` CONTINUA no arquivo com consumidores vivos (a ação sugerida e a linha do
+ * brief). Sem essa prova, o dia em que alguém apagasse o `pixHoje` inteiro deixaria o
+ * negativo verde por ausência de alvo — LC-11 na forma mais silenciosa, que é
+ * exatamente o que o UC-JPAIN-08 deste arquivo já ensina no controle negativo dele.
+ */
+it('UC-JPAIN-18: o grid tem os 3 KPIs da âncora e o PIX saiu como CARD, não como dado', function () {
+    $cockpit = acaoCockpitTsx();
+
+    // ── BITE-TEST do extrator: ele mede o que diz medir? ─────────────────────
+    // Controle positivo E negativo antes de confiar no número real (§5 2026-08-01).
+    $fixtureBoa  = '<KpiGrid cols={3}><KpiCard label="A" /><KpiCard label="B" /></KpiGrid>';
+    $fixtureSkel = '<KpiGrid cols={3}><KpiCardSkeleton label="X" /><KpiCard label="A" /></KpiGrid>';
+    $fixtureFora = '<KpiCard label="Z" /><KpiGrid cols={3}><KpiCard label="A" /></KpiGrid>';
+
+    expect(painelKpisDoGrid($fixtureBoa))->toBe(['A', 'B']);   // conta os cards
+    expect(painelKpisDoGrid($fixtureSkel))->toBe(['A']);       // ignora o skeleton
+    expect(painelKpisDoGrid($fixtureFora))->toBe(['A']);       // ignora fora do grid
+    expect(painelKpisDoGrid('<div/>'))->toBe([]);              // sem grid, sem número
+
+    // ── 1. o conjunto e a ORDEM ──────────────────────────────────────────────
+    // Ordem importa: é ela que casa 1:1 com a da âncora depois da saída do 4º.
+    expect(painelKpisDoGrid($cockpit))->toBe([
+        'Receita 30 dias',
+        'A receber vencido',
+        'Ticket médio',
+    ]);
+
+    // ── 2. o grid declara 3 colunas ──────────────────────────────────────────
+    // Sem isto, remover o card deixaria um vão de 1 coluna no desktop (`lg`).
+    expect($cockpit)->toContain('<KpiGrid cols={3}>');
+
+    // ── 3. o PIX saiu como CARD ──────────────────────────────────────────────
+    expect($cockpit)
+        ->not->toContain('label="PIX hoje"')
+        ->not->toMatch('/<KpiCardSkeleton label="PIX hoje"/u');
+
+    // ── 4. …e NÃO como dado. Prova de que o negativo acima ainda tem alvo. ───
+    // `pixHojeTotal` segue chegando na prop deferida e `pixHoje` segue sendo lido:
+    // a ação "PIX adoção em N% — manter" e a linha do brief dependem dele. Se um dia
+    // isto cair, o item 3 vira decoração — e aí a remoção deixou de ser "tirar o card"
+    // e virou "tirar a capacidade", que é outra decisão e precisa de [W].
+    expect($cockpit)
+        ->toContain('const pixHoje = coworkAggregates?.pixHojeTotal ?? 0;')
+        ->toContain('custo zero vs maquininha');
 });
