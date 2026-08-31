@@ -48,7 +48,7 @@ padrão obsoleto (cor azul pré-roxo, HTML colado em vez de primitivo).
 2. **UI-0010 e UI-0012 viram `superseded`** por esta ADR (lifecycle `substituido` + `superseded_by: UI-0018`).
    **Permanecem no lugar como histórico** (append-only — referência do que o Cowork propôs naquele momento),
    mas **NÃO são fonte da verdade visual** nem devem ser copiados.
-3. Os zips em `ui_kits/` ficam como **arquivo de referência histórica**, não canon.
+3. ~~Os zips em `ui_kits/` ficam como **arquivo de referência histórica**, não canon.~~ **EMENDA 2026-08-28 (decisão [W], textual: *"pode apagar essa cópia?"*):** a pasta `_BACKUP-NAO-USAR-cowork-2026-04-27/` foi **removida** (16 arquivos). Medido antes de apagar: **0 de 279** charters ancoravam nela e **0** arquivos de código a referenciavam. Não era segunda fonte — era lápide. O histórico segue recuperável no git. O item §Não-decidido abaixo (que marcava mexer nessa pasta como Tier 0 de [W]) fica **satisfeito por esta autorização**, não contornado — e o link morto que a UI-0010 carregava agora é morto por **ausência**, não por rename.
 
 ## Não-decidido aqui (Tier 0 — decisão própria do [W])
 - **Link quebrado em UI-0010** (aponta `ui_kits/cowork-2026-04-27/` que foi renomeada pra

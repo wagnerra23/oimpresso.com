@@ -84,6 +84,18 @@
         "D:/oimpresso.com/.claude/worktrees/arquivos-zero-toque-sprint2-6c9b50/prototipo-ui/cowork"
       ],
       "port": 5591
+    },
+    {
+      "name": "cowork-visao-geral",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5601",
+        "--directory",
+        "D:/oimpresso.com/.claude/worktrees/stoic-mayer-3315ab/prototipo-ui/cowork"
+      ],
+      "port": 5601
     }
   ]
 }

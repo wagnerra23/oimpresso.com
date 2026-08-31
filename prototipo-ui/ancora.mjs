@@ -473,7 +473,20 @@ async function listAll(repoRoot, asJson = false) {
   const rows = [];
   for (const cf of charters.sort()) {
     const fm = frontmatter(await read(cf));
-    const source = fm.related_prototype || mockupJsx(fm.component) || null;
+    // 2026-08-28: o `--list` lia SÓ o `related_prototype` e reportava "sem protótipo"
+    // para 18 charters que declaram a fonte em `bundle_source`/`visual_source` — os mesmos
+    // campos que o `resolveAncora` (L266-271) PREFERE. A porta contradizia a regra dura do
+    // docblock (L11: âncora ∈ { related_prototype, -page.jsx do bundle via charter }) e
+    // sub-reportava em SILÊNCIO: uma auditoria leu os 18 como "fonte ausente" e concluiu
+    // que 34 telas ficariam de fora da onda de design. Elas já tinham âncora.
+    // Medido: 42 sem `related_prototype` -> 18 salvos por bundle/visual, 24 gap real.
+    // `via` é ADITIVO (mesmo critério de `charter`/`isNa` acima): diz QUAL perna resolveu,
+    // pro consumidor distinguir design APROVADO de porte de bundle sem re-derivar.
+    const doBundle = mockupJsx(fm.bundle_source) || mockupJsx(fm.visual_source);
+    const source = fm.related_prototype || doBundle || mockupJsx(fm.component) || null;
+    const via = fm.related_prototype ? 'related_prototype'
+      : doBundle ? 'bundle_source/visual_source'
+      : source ? 'component' : null;
     // hasSource = o charter DECLAROU a fonte de design (protótipo bespoke OU "n/a — segue DS"
     // explícito, que também vem em related_prototype). null = silencioso (gap real).
     // `charter` e `isNa` sao ADITIVOS (2026-08-26): o unico consumidor de `--list --json` e o
@@ -481,7 +494,7 @@ async function listAll(repoRoot, asJson = false) {
     // fonte e declaracao `n/a` — sem isso ele contava `n/a` como ✅ pra sempre e escondia a tela
     // cuja fonte JA DESCEU pro espelho depois da decisao. `isNa` reusa `ehDeclaracaoNa`, o dono
     // dessa distincao neste mesmo arquivo — nao reimplementar (§5 2026-08-26).
-    rows.push({ page: fm.page || relative(repoRoot, cf), source: source || '⚠️ sem protótipo declarado', hasSource: !!source, charter: relative(repoRoot, cf).split(String.fromCharCode(92)).join('/'), isNa: ehDeclaracaoNa(source) });
+    rows.push({ page: fm.page || relative(repoRoot, cf), source: source || '⚠️ sem protótipo declarado', hasSource: !!source, charter: relative(repoRoot, cf).split(String.fromCharCode(92)).join('/'), isNa: ehDeclaracaoNa(source), via });
     if (!asJson) console.log(`${(fm.page || relative(repoRoot, cf)).padEnd(40)} → ${source || '⚠️ sem protótipo declarado'}`);
   }
   if (asJson) console.log(JSON.stringify(rows, null, 2));

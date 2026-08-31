@@ -16,7 +16,7 @@ import { resolve } from 'node:path';
 
 // Flags backward-compat (Onda selftest — entrada no gate-selftest REQUIRED):
 //   --baseline <path>  baseline JSON alvo (default: config/eslint-baseline.json)
-//   --target   <path>  diretório/arquivo linado (default: resources/js)
+//   --target   <path>  diretório/arquivo linado (default: ver TARGETS abaixo — 2 raízes)
 // SEM flags = comportamento IDÊNTICO ao original (gate de produção intocado).
 // cwd continua sendo o ROOT do repo (acha node_modules/eslint + eslint.config.js).
 // Usado pelas fixtures good/bad em tests/governance-fixtures/eslint/ pelo MESMO code path.
@@ -25,7 +25,17 @@ function argVal(flag, def) {
   return i >= 0 && process.argv[i + 1] ? process.argv[i + 1] : def;
 }
 const BASELINE_PATH = resolve(process.cwd(), argVal('--baseline', 'config/eslint-baseline.json'));
-const TARGET = argVal('--target', 'resources/js');
+// TARGETS — as DUAS raízes onde vivem telas Inertia. `resources/js` (núcleo) sempre
+// esteve aqui; `Modules/*/Resources/js` entrou em 2026-08-28 porque o escopo do
+// eslint.config.js sozinho NÃO basta: quem decide o conjunto varrido é o argumento do
+// CLI, e enquanto ele fosse só `resources/js` o config podia declarar o que quisesse
+// que os 90 `.ts/.tsx` de módulo continuariam invisíveis (baseline: 0 arquivos sob
+// `Modules/`). Glob COM extensão é obrigatório: o ESLint 9 recusa `Modules/*/Resources/js`
+// ("No files matching the pattern") — `*` no meio de path de diretório não resolve.
+// `--target <path>` (singular) segue intacto pro gate-selftest, que passa 1 fixture.
+const TARGETS = process.argv.includes('--target')
+  ? [argVal('--target', 'resources/js')]
+  : ['resources/js', 'Modules/*/Resources/js/**/*.{ts,tsx}'];
 const MODE_WRITE = process.argv.includes('--write');
 // --counts-from <json>: pula o ESLint real e usa contagens {"path|rule": n} pré-computadas.
 // Existe SÓ pro gate-selftest (Node puro, sem node_modules/eslint no CI) provar que o COMPARADOR
@@ -35,7 +45,8 @@ const COUNTS_FROM = argVal('--counts-from', null);
 
 function runEslint() {
   // Windows: `npx` é .cmd; usar shell: true pra portabilidade. Linux CI também OK.
-  const cmd = `npx --no-install eslint "${TARGET}" --format=json --max-warnings=999999`;
+  const alvos = TARGETS.map((t) => `"${t}"`).join(' ');
+  const cmd = `npx --no-install eslint ${alvos} --format=json --max-warnings=999999`;
   try {
     return JSON.parse(execSync(cmd, {
       encoding: 'utf8',
@@ -65,7 +76,7 @@ function buildCounts(results) {
 
 function main() {
   console.log(`ESLint baseline · ${MODE_WRITE ? 'WRITE' : 'VALIDATE'} mode`);
-  console.log(`Scanning ${TARGET}...`);
+  console.log(`Scanning ${TARGETS.join(' + ')}...`);
 
   const counts = COUNTS_FROM
     ? JSON.parse(readFileSync(resolve(process.cwd(), COUNTS_FROM), 'utf8'))
