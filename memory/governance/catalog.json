@@ -26,12 +26,12 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 681,
-    "edges": 958,
+    "nodes": 683,
+    "edges": 959,
     "by_node_type": {
       "module": 39,
       "table": 101,
-      "adr": 105,
+      "adr": 107,
       "component": 391,
       "api": 45
     },
@@ -47,7 +47,7 @@
       "delegatesTo": 107,
       "migratesTo": 1,
       "supersedes": 15,
-      "supersedesPartially": 48,
+      "supersedesPartially": 49,
       "supersededBy": 19
     },
     "dangling": 0
@@ -643,6 +643,13 @@
       "exists": true
     },
     {
+      "id": "adr:0244",
+      "type": "adr",
+      "num": "0244",
+      "slug": "0244-ds-v5-canon-oficina-padrao",
+      "exists": true
+    },
+    {
       "id": "adr:0256",
       "type": "adr",
       "num": "0256",
@@ -787,6 +794,13 @@
       "type": "adr",
       "num": "0365",
       "slug": "0365-trio-de-tela-fica-colocado-reverte-eixo-0364",
+      "exists": true
+    },
+    {
+      "id": "adr:0386",
+      "type": "adr",
+      "num": "0386",
+      "slug": "0386-ambar-da-oficina-revogado-roxo-e-a-unica-identidade",
       "exists": true
     },
     {
@@ -6009,6 +6023,12 @@
     {
       "from": "adr:0365",
       "to": "adr:0364",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0386",
+      "to": "adr:0244",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
     },
