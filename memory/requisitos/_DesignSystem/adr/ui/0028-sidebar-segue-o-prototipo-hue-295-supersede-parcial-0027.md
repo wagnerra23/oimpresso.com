@@ -72,6 +72,19 @@ bullets ficam em hue 240 ao lado de um shell em 295. É resíduo **declarado**, 
 quando o protótipo declarar os dois.
 
 **D-4 — Quando as duas fontes de design divergirem, o protótipo de tela vence no que ele declara.**
+
+> ⚠️ **Precisão sobre a ÂNCORA — esta ADR é decisão de [W], não leitura de âncora.**
+> Rodado `node prototipo-ui/ancora.mjs Home/Index`: a âncora da tela é
+> `prototipo-ui/cowork/dash-legacy-page.jsx` (`kind=ancora`, `telas=["Home/Index"]`, frescor
+> verificado contra o Cowork vivo em 2026-08-27). **Ela NÃO declara cor de sidebar — zero
+> ocorrências de `--sb-*`.**
+> O hue 295 vem de `prototipo-ui/cowork/styles.css`, que o manifesto classifica **`kind=dep`**
+> (dependência de render do shell), e que discorda de outra dep — o `colors_and_type.css` do
+> projeto Design System, em 240/90.
+> Logo: a âncora declarada é **muda** sobre cor de shell, e D-4 é uma **regra de precedência que
+> [W] criou** pra desempatar duas deps — não um fato derivado de âncora. Quem citar esta ADR não
+> pode dizer "a âncora manda 295": pode dizer "[W] decidiu que, entre as duas deps, vence a do
+> protótipo de tela".
 É a regra que faltava e que produziu meses de "nunca fica igual": não havia precedência escrita
 entre `prototipo-ui/cowork/styles.css` e o projeto Design System, então cada alinhamento escolhia um
 lado e parecia errado contra o outro. Escopo desta regra: **tokens de shell**. Ela não decide nada
