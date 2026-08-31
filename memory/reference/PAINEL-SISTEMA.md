@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-30**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-31**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -144,13 +144,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **390** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 351 · superseded: 16 · deprecated: 13 · proposto: 8 · rascunho: 1 · recusado: 1.
+- **391** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 352 · superseded: 16 · deprecated: 13 · proposto: 8 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 156 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 157 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -308,6 +308,7 @@ lente: [construir]
 - ~~2026-08-26 — Regravar a baseline para fechar divergência DETERMINÍSTICA sem ter contado TODOS os escritores do fixture (4 rebakes, 9 dias)~~
 - ~~2026-08-27 — SLA cuja JANELA de tolerância é maior que a taxa de mudança do objeto (verde por construção — e a medição que ele audita não tem quem a dispare)~~
 - ~~2026-08-28 — Dar por entregue a correção que passa no CI inteiro e é INERTE no runtime~~
+- ~~2026-08-28 — Preencher `related_prototype` em 34 charters "pra as telas entrarem na onda de design" (a porta que mediu lia METADE da regra)~~
 - ~~2026-08-29 — Criar branch de `origin/main` FRESCO e depois trazer os arquivos de um WIP VELHO — e explicar o vermelho do gate por DEDUÇÃO~~
 <!-- /transcrito-de -->
 
@@ -319,14 +320,14 @@ lente: [construir]
 
 ## Rastro
 
-- **479** handoffs · **653** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **480** handoffs · **655** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-08-31-ragas-obra-parada-veredito-b`
+  - `2026-08-31-jana-p0-vazamento-e-d0-identidade-view`
   - `2026-08-28-session-02`
   - `2026-08-28-session-01`
   - `2026-08-28-onda1-ponto-e-biometria-sem-rota`
   - `2026-08-26-raio-gate-visual-5-suites`
-  - `2026-08-26-arte-deploy-zero-downtime-shared-host`
-  - `2026-08-26-503-balcao-larissa-janela-de-deploy`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-30 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-31 · deriva das fontes canônicas, não as substitui._
