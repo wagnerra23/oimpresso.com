@@ -117,6 +117,16 @@ beforeEach(function () {
         'business.transaction_edit_days' => 30,
         'business.date_format' => 'd/m/Y',
         'business.time_format' => 24,
+        // `enabled_modules` é lido por `Util::allModulesEnabled` (app/Utils/Util.php:253) via
+        // `session('business')['enabled_modules']` — acesso DIRETO por chave, sem `??`. Como o
+        // bloco `business` acima existe, o `has('business')` é true e o fallback por
+        // `Business::find()` (:254) nunca roda: sem esta chave o `edit()` morre em
+        // `Undefined array key`. Vem do banco, como o `currency` abaixo — não inventado.
+        // (Medido no CI em 2026-08-31: era a causa das 4 falhas dos UC-SEDIT-04/05/06/07.)
+        'business.enabled_modules' => (array) json_decode(
+            (string) DB::table('business')->where('id', $this->bizId)->value('enabled_modules'),
+            true
+        ),
     ]);
 
     // `currency` é o que o SetSessionData põe em produção e o que `Util::num_f` lê
