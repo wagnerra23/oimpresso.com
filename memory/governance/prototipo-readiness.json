@@ -27,6 +27,8 @@
     "Jana/Memoria",
     "kb/Index",
     "Modules/Index",
+    "OficinaAuto/ServiceOrders/Create",
+    "OficinaAuto/ServiceOrders/Edit",
     "Ponto/Aprovacoes/Index",
     "Ponto/BancoHoras/Index",
     "Ponto/BancoHoras/Show",
@@ -42,6 +44,7 @@
     "Ponto/Intercorrencias/Show",
     "Ponto/Relatorios/Index",
     "Produto/SellingPrices",
+    "RecurringBilling/Index",
     "Sells/Index"
   ],
   "ciclo": [
@@ -256,5 +259,5 @@
       ]
     }
   ],
-  "total": 64
+  "total": 67
 }

@@ -9,12 +9,12 @@
     },
     "grades": {
       "path": "governance/module-grades-baseline.json",
-      "baseline": "v3.6.5",
+      "baseline": "v3.6.6",
       "rubric": "0155"
     },
     "vital_signs": {
       "path": "memory/governance/vital-signs.json",
-      "generated_at": "2026-08-30"
+      "generated_at": "2026-08-31"
     }
   },
   "stats": {
@@ -246,7 +246,7 @@
         "grade": {
           "value": 83,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -351,7 +351,7 @@
         "grade": {
           "value": 82,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": false,
@@ -451,7 +451,7 @@
         "grade": {
           "value": 81,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -465,7 +465,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": false,
-          "idade_max_dias": 56
+          "idade_max_dias": 57
         },
         "graph": {
           "depends_on": 4,
@@ -566,7 +566,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 56
+          "idade_max_dias": 57
         },
         "graph": {
           "depends_on": 0,
@@ -657,7 +657,7 @@
         "grade": {
           "value": 76,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": false,
@@ -757,7 +757,7 @@
         "grade": {
           "value": 73,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -771,7 +771,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 56
+          "idade_max_dias": 57
         },
         "graph": {
           "depends_on": 3,
@@ -862,7 +862,7 @@
         "grade": {
           "value": 80,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -876,7 +876,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 56
+          "idade_max_dias": 57
         },
         "graph": {
           "depends_on": 2,
@@ -967,7 +967,7 @@
         "grade": {
           "value": 86,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": false,
@@ -1067,7 +1067,7 @@
         "grade": {
           "value": 79,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -1081,7 +1081,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": false,
-          "idade_max_dias": 56
+          "idade_max_dias": 57
         },
         "graph": {
           "depends_on": 3,
@@ -1172,7 +1172,7 @@
         "grade": {
           "value": 87,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": false,
@@ -1272,7 +1272,7 @@
         "grade": {
           "value": 86,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -1286,7 +1286,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": false,
-          "idade_max_dias": 56
+          "idade_max_dias": 57
         },
         "graph": {
           "depends_on": 0,
@@ -1377,7 +1377,7 @@
         "grade": {
           "value": 82,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -1391,7 +1391,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 56
+          "idade_max_dias": 57
         },
         "graph": {
           "depends_on": 3,
@@ -1482,7 +1482,7 @@
         "grade": {
           "value": 74,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -1496,7 +1496,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 56
+          "idade_max_dias": 57
         },
         "graph": {
           "depends_on": 4,
@@ -1587,7 +1587,7 @@
         "grade": {
           "value": 85,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -1601,7 +1601,7 @@
           "charter_pct": 100,
           "casos_pct": 47,
           "stale": true,
-          "idade_max_dias": 56
+          "idade_max_dias": 57
         },
         "graph": {
           "depends_on": 4,
@@ -1692,7 +1692,7 @@
         "grade": {
           "value": 88,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -1706,7 +1706,7 @@
           "charter_pct": 100,
           "casos_pct": 11,
           "stale": false,
-          "idade_max_dias": 56
+          "idade_max_dias": 57
         },
         "graph": {
           "depends_on": 5,
@@ -1795,9 +1795,9 @@
       "purpose": "Chat IA do business servido em /ia — conversa com memória, metas, períodos, alertas, custos LLM e qualidade RAG. FRONTEIRA EM EXECUÇÃO (ADR 0366 §D-C item 4, autorizada por [W] em 2026-08-13): a plataforma MCP do time sai deste módulo para Modules/Forja. Onda 1 FEITA em 2026-08-13 — as 61 migrations mcp_* mudaram de casa e com elas o dono DERIVADO do schema. Ainda AQUI, e são as próximas ondas: 30 entidades Entities/Mcp/, o servidor JSON-RPC + 40 tools em Mcp/, 5 services em Services/Mcp/, 10 comandos Console/Commands/Mcp*, o McpAuthMiddleware e 44 testes.",
       "signals": {
         "grade": {
-          "value": 73,
+          "value": 76,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -1811,7 +1811,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 56
+          "idade_max_dias": 57
         },
         "graph": {
           "depends_on": 7,
@@ -1902,7 +1902,7 @@
         "grade": {
           "value": 77,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -1916,7 +1916,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 56
+          "idade_max_dias": 57
         },
         "graph": {
           "depends_on": 7,
@@ -2007,7 +2007,7 @@
         "grade": {
           "value": 80,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -2021,7 +2021,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": false,
-          "idade_max_dias": 56
+          "idade_max_dias": 57
         },
         "graph": {
           "depends_on": 3,
@@ -2112,7 +2112,7 @@
         "grade": {
           "value": 79,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -2126,7 +2126,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 56
+          "idade_max_dias": 57
         },
         "graph": {
           "depends_on": 3,
@@ -2217,7 +2217,7 @@
         "grade": {
           "value": 82,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -2231,7 +2231,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": true,
-          "idade_max_dias": 56
+          "idade_max_dias": 57
         },
         "graph": {
           "depends_on": 3,
@@ -2322,7 +2322,7 @@
         "grade": {
           "value": 85,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -2427,7 +2427,7 @@
         "grade": {
           "value": 80,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -2441,7 +2441,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 58
+          "idade_max_dias": 59
         },
         "graph": {
           "depends_on": 3,
@@ -2532,7 +2532,7 @@
         "grade": {
           "value": 63,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -2546,7 +2546,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 58
+          "idade_max_dias": 59
         },
         "graph": {
           "depends_on": 5,
@@ -2637,7 +2637,7 @@
         "grade": {
           "value": 76,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -2651,7 +2651,7 @@
           "charter_pct": 100,
           "casos_pct": 71,
           "stale": true,
-          "idade_max_dias": 56
+          "idade_max_dias": 57
         },
         "graph": {
           "depends_on": 3,
@@ -2742,7 +2742,7 @@
         "grade": {
           "value": 78,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": false,
@@ -2852,7 +2852,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 56
+          "idade_max_dias": 57
         },
         "graph": {
           "depends_on": 0,
@@ -3039,7 +3039,7 @@
         "grade": {
           "value": 82,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -3053,7 +3053,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 56
+          "idade_max_dias": 57
         },
         "graph": {
           "depends_on": 3,
@@ -3144,7 +3144,7 @@
         "grade": {
           "value": 83,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -3158,7 +3158,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": false,
-          "idade_max_dias": 56
+          "idade_max_dias": 57
         },
         "graph": {
           "depends_on": 3,
@@ -3257,9 +3257,9 @@
           "nota_min": 72,
           "pior_tela": "Sells/Subscriptions",
           "charter_pct": 100,
-          "casos_pct": 44,
+          "casos_pct": 56,
           "stale": true,
-          "idade_max_dias": 56
+          "idade_max_dias": 57
         },
         "graph": {
           "depends_on": 0,
@@ -3350,7 +3350,7 @@
         "grade": {
           "value": 80,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": false,
@@ -3546,7 +3546,7 @@
         "grade": {
           "value": 78,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -3651,7 +3651,7 @@
         "grade": {
           "value": 83,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -3665,7 +3665,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 56
+          "idade_max_dias": 57
         },
         "graph": {
           "depends_on": 3,
@@ -3756,7 +3756,7 @@
         "grade": {
           "value": 50,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": false,
@@ -3856,7 +3856,7 @@
         "grade": {
           "value": 80,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": true,
@@ -3870,7 +3870,7 @@
           "charter_pct": 100,
           "casos_pct": 18,
           "stale": true,
-          "idade_max_dias": 56
+          "idade_max_dias": 57
         },
         "graph": {
           "depends_on": 6,
@@ -3961,7 +3961,7 @@
         "grade": {
           "value": 87,
           "ruler": "0155",
-          "baseline": "v3.6.5"
+          "baseline": "v3.6.6"
         },
         "screens": {
           "matched": false,
