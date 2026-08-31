@@ -127,6 +127,15 @@ jobs:
         # Entra aqui pelo mesmo motivo dos 2 Wave1 — é onde o gatilho por-path de Sells já mora.
         # NASCE SEM RUN: nunca foi executado (lane roda no CI, nunca local · ADR 0062). Se este
         # PR ficar vermelho aqui, é este arquivo — não regressão dos 4 anteriores.
+        #
+        # 2026-08-28 — allowlist 5 → 6. SellsEditContratoTest (UC-SEDIT-01..07 de
+        # `Sells/Edit.casos.md`): contrato de COMPORTAMENTO do editor de venda — a tela que
+        # move VALOR e ESTOQUE (REGRA MESTRE) e está viva em prod (route-hits:14hit@2026-08-22)
+        # com 5 arquivos só ESTRUTURAIS cobrindo-a. Fecha o item 2 do §10 Roadmap do
+        # SDD-tela-venda-v1.0 ("contrato das 6 telas sem casos.md"), como Show já fez.
+        # Usa DatabaseTransactions + EstoqueFixture (tenant 98, ADR 0358) + cross-tenant contra
+        # o 2º business semeado — mesma receita do SellsShowContratoTest, que é verde aqui.
+        # NASCE SEM RUN, pelo mesmo motivo do V3: vermelho neste PR é este arquivo, não os 5.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -139,6 +148,7 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-sells-junit.xml \
             tests/Feature/Sells/SellsShowContratoTest.php \
+            tests/Feature/Sells/SellsEditContratoTest.php \
             tests/Feature/Sells/SellsIndexTenantContratoTest.php \
             tests/Feature/Sells/SellsCreateV3ContratoTest.php \
             tests/Feature/Sells/Wave1ShowBaselineTest.php \
