@@ -49,20 +49,18 @@ Esta ADR **consolida** (não contradiz): [0114](0114-prototipo-ui-cowork-loop-fo
 3. **Inbox 9.75 = régua de nota congelada** (gabarito de método). Permanece intocada; é a referência contra a qual as outras telas são medidas. Os dois papéis (semente ≠ régua) ficam **separados** de propósito.
 4. **Âmbar da Oficina = accent escopado** (`.oficina-scope{ --accent: … }`), **nunca** troca o token global. O roxo canon [ADR 0190](0190-primary-button-roxo-universal-295.md) / [ADR 0235](0235-ds-v4-accent-roxo-universal.md) segue intacto fora do escopo.
 
-> **ERRATA 2026-08-31** ([ADR 0377](0377-append-only-adr-excecao-por-label-emenda-0094.md) — ponteiro podre): a decisão 4 acima **vale no protótipo Cowork**, onde foi tomada. Ela **não autoriza** declarar `--accent` âmbar em `resources/css/*.css` — desde a [ADR 0263](0263-identidade-cor-gate-bloqueante.md) (2026-06-08, seis dias depois desta) isso é **bloqueado por gate required**: *"Nenhum módulo redefine `--accent` com cor própria"*, invariante `--accent*` em hue 250–330.
+> **⛔ REVOGADA 2026-08-31 pela [ADR 0386](0386-ambar-da-oficina-revogado-roxo-e-a-unica-identidade.md)** ([ADR 0377](0377-append-only-adr-excecao-por-label-emenda-0094.md) — ponteiro): **a decisão 4 acima não vale mais.** Não há accent âmbar escopado para a Oficina, nem cor própria de `--accent` para vertical nenhuma. O roxo canon `oklch(0.55 0.15 295)` é a **única** identidade de chrome ([0190](0190-primary-button-roxo-universal-295.md)/[0235](0235-ds-v4-accent-roxo-universal.md)/[0263](0263-identidade-cor-gate-bloqueante.md)). [W] decidiu em 2026-08-31: *"ambar não"*.
 >
-> Isso **não é contradição** — é a mesma fronteira que o §Consequências→Repo abaixo já traça (*"a migração de tokens descrita foi limpeza interna do Cowork"* · *"forçar os nomes do v5 no repo seria churn sem ganho — **não fazer**"*). A errata só a torna executável no ponto exato onde alguém leria a decisão 4 e agiria.
+> **As decisões 1, 2 e 3 desta ADR seguem intactas** — DS v5 único ativo · Oficina = tela-padrão/semente · Inbox 9.75 = régua congelada. A supersessão é **parcial**, só do item 4.
 >
-> **Medido em 2026-08-31** contra `origin/main` @ `debcf599ee`, com o predicado real do gate (função `accentHueViolations` de `scripts/conformance-gate.mjs`):
+> **Por que existia o conflito** (auditado em 2026-08-31 contra `origin/main` @ `debcf599ee`): a [ADR 0263](0263-identidade-cor-gate-bloqueante.md), seis dias depois desta, decidiu *"Nenhum módulo redefine `--accent` com cor própria"* e instalou gate **required** com invariante `--accent*` em hue 250–330. As duas ficaram ativas sem se citarem. Medido com o predicado real do gate (`accentHueViolations` de `scripts/conformance-gate.mjs`):
 >
 > | fixture | veredito |
 > |---|---|
-> | `.oficina-scope { --accent: oklch(0.769 0.155 70) }` | **2 violações** · `conformance` sai 1 → job `DS gate` (required) sai 1 → **merge bloqueado** |
-> | `.oficina-scope { --accent: oklch(0.55 0.15 295) }` | 0 violações — o gate não acusa inocente |
+> | `.oficina-scope { --accent: oklch(0.769 0.155 70) }` | **2 violações** · `conformance` rc=1 → job `DS gate` (**required**) rc=1 |
+> | `.oficina-scope { --accent: oklch(0.55 0.15 295) }` | 0 violações — não acusa inocente |
 >
-> **Estado real:** `.oficina-scope` **não existe** em lugar nenhum do repo — a única ocorrência é esta ADR. Nunca houve PR vermelho por isso; o conflito era de texto, e esta errata o fecha. Se algum dia o âmbar precisar chegar ao repo, o caminho é decisão [W] emendando a [ADR 0263](0263-identidade-cor-gate-bloqueante.md) — não implementar contra o gate.
->
-> ⚠️ Duas ressalvas medidas na mesma sessão e **não consertadas aqui** (mudança em gate required = PR de governança próprio): (a) o sweep usa `readdirSync` **não-recursivo**, então o mesmo âmbar em `resources/css/tokens/` passa com `rc=0` — e o gate ainda imprime *"todos os `resources/css/*.css` em roxo ✅"*, afirmando um superlativo cujo denominador não percorreu; (b) esta ADR 0263 declara **3** gates required e hoje são **2** — `UI architecture` não está na união `classic_protection ∪ rulesets` (45 contexts).
+> **Nunca chegou a doer:** `.oficina-scope` tinha **uma única ocorrência** no repo inteiro — esta ADR. Zero implementação, zero PR vermelho. A contradição era de texto, e morreu antes de virar código.
 
 ## Consequências
 

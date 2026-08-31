@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **390** arquivos · **375** números únicos · máx **0385**
-- **ADRs ATIVOS (lifecycle ativo): 351** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 351 · superseded 16 · deprecated 13 · proposto 8 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 351 · arquivado 23 · substituido 16
+- **391** arquivos · **376** números únicos · máx **0386**
+- **ADRs ATIVOS (lifecycle ativo): 352** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 352 · superseded 16 · deprecated 13 · proposto 8 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 352 · arquivado 23 · substituido 16
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (390)
+## Todas as ADRs (391)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -428,3 +428,4 @@ _(nenhuma)_
 | 0383 | aceito | ativo | decision | O ponto interno não coleta biometria — sem selfie no REP-P |
 | 0384 | aceito | ativo | decision | Design Sync deriva o estado da tela de recibos executáveis |
 | 0385 | proposto | ativo | decision | Sidebar alinhado ao protótipo — e a diferença classificada em três categorias |
+| 0386 | aceito | ativo | decision | Âmbar da Oficina revogado — o roxo canon é a única identidade de chrome; superse |
