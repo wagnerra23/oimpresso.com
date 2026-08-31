@@ -90,7 +90,12 @@ const fmField = (content, key) => {
   const f = fm.match(new RegExp(`^${key}\\s*:\\s*(.+)$`, 'm'));
   return f ? f[1].trim() : null;
 };
-// delega pra fonte unica (nao reimplementa): PT-06 fica de fora de proposito — nao ha
+// Delega pra fonte única. ATENÇÃO — isto é CONVENÇÃO, não enforcement: medido 2026-08-31,
+// re-inlinar uma cópia local com o regex JÁ CORRIGIDO passa o selftest inteiro. Os asserts
+// abaixo protegem o VALOR (que PT-07 conta, que PT-06 não), nunca a ESTRUTURA (que a regra
+// mora num lugar só). Gate sintático pra isso foi descartado — critério por forma tem 5
+// lápides medidas no §5 de memory/proibicoes.md.
+// PT-06 fica de fora de proposito — nao ha
 // golden nem >=2 telas do arquetipo, entao declarar PT-06 nao deve passar trivialmente.
 const declaredPT = (relProto) => claimedPT(relProto);
 // #5 teste: o casos.md aponta pra um teste/E2E real (path de teste em qualquer linha).
@@ -483,7 +488,7 @@ if (process.argv.includes('--selftest')) {
     t(!by('GoldenDraft').completo && by('GoldenDraft').faltando.join() === 'golden_live', 'golden DRAFT sozinho reprova (GOLDEN-LIVE)');
     t(!by('SemPT').completo && by('SemPT').faltando.includes('pt_declarado'), 'charter sem PT declarado = INCOMPLETA');
     t(by('Feed07').pt === 'PT-07', 'BITE PT-07: o gate RECONHECE o PT-07 (com o regex [1-5] lia pt=null)');
-    t(by('Feed07').faltando.join() === 'golden_live', 'BITE PT-07: sobra SÓ golden_live — pt_declarado/pt_conforme deixam de ser falso-negativo');
+    t(by('Feed07').faltando.join() === 'golden_live', 'BITE PT-07: sobra SÓ golden_live (o pt_conforme vem do ptMap injetado — a assinatura é coberta no pt-conformance)');
     t(by('NaoPT06').pt === null && by('NaoPT06').faltando.includes('pt_declarado'), 'CN: PT-06 (inexistente) segue NÃO reconhecido — o fix não virou [1-7] cego');
     t(rows.length === 7, `dirs auxiliares (components/_drawer/_shared/_form) NÃO contam como tela (${rows.length} linhas, esperado 7)`);
     t(!rows.some((r) => /\/(components|_drawer|_shared|_form)\//.test(r.page)), 'nenhum arquivo de dir auxiliar entrou nas linhas');
@@ -628,6 +633,17 @@ if (process.argv.includes('--selftest')) {
     } else {
       console.log('  ⊘ controle positivo REAL PULADO — DataController de Arquivos/PaymentGateway ausente (não é verde)');
     }
+
+    // controle positivo REAL do PT_FILE — a ÚNICA entrada do gate que o selftest não exercitava.
+    // O bloco de fixtures INJETA `goldenStatus` (linha ~483), então `loadGoldenStatus`/`GOLDEN_DIR`
+    // nunca rodavam aqui. Medido 2026-08-31: apontar um nome de PT_FILE pra arquivo inexistente
+    // deixa `--selftest` rc=0 E `--check` rc=0 — o status vira `ausente`, que nunca é `live`, e a
+    // tela daquele PT jamais fecharia o ciclo, em silêncio. Vale pros 6 PTs, não só o 07: um rename
+    // do golden tem o mesmo efeito. Este assert é o que transforma isso em vermelho.
+    const statusReal = loadGoldenStatus(GOLDEN_DIR);
+    const ausentes = Object.entries(statusReal).filter(([, v]) => v === 'ausente').map(([k]) => k);
+    t(ausentes.length === 0,
+      `controle positivo REAL: os ${Object.keys(PT_FILE).length} nomes de PT_FILE existem no disco (ausente: ${ausentes.join(',') || 'nenhum'})`);
   } finally {
     try { rmSync(tmp, { recursive: true, force: true }); } catch { /* ignore */ }
   }
