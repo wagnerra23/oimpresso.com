@@ -193,6 +193,43 @@ permanece intocada (`status` segue nulo).
 
 ---
 
+---
+
+## Eixo RENDER (novo em 2026-08-31) — o que o contrato não alcança
+
+> **O buraco medido:** `node scripts/qa/screen-coverage-map.mjs --screen Financeiro/Conciliacao/Index`
+> devolvia trio ✓ · scorecard ✓ · RUNBOOK ✓ · visual-comparison ✓ · proto-baseline ✓ ·
+> 13/13 UC citados por teste — e **`e2e (Browser) ✗`**. Os 13 UCs acima provam o
+> comportamento no **servidor**; nenhum deles prova o que a tela **desenha**.
+>
+> Fecha isso [`tests/Browser/Financeiro/ConciliacaoIndexTest.php`](../../../../../tests/Browser/Financeiro/ConciliacaoIndexTest.php)
+> (Pest 4 Browser, Chromium real, auth-bridge). Ele **não duplica** assert de contrato:
+> cobre chip de origem + `title`, KPI concordando com a tabela, cor computada do valor
+> negativo × positivo, `match_score` chegando à UI como "match NN%", affordância por
+> status (Confirmar/Ignorar/Reabrir) e axe CRITICAL. Só um caso cita UC (`UC-FCC-10`,
+> na metade RENDER); os demais guardam Goals/UX Targets do charter que não têm UC —
+> pôr id onde o caso não exerce o critério seria citação por presença.
+
+**Sem veredito ainda, e isso é deliberado.** O step nasce **advisory**
+(`continue-on-error: true` em [`visual-regression.yml`](../../../../../.github/workflows/visual-regression.yml),
+ADR 0261/0275): o arquivo não pôde ser executado antes do PR — Pest Browser é CI/CT-100
+only — e o job já é required. Nenhum `Status:` acima foi alterado por causa dele: quem
+carimba veredito é o manifesto G-7, e o `visual-regression` **não emite JUnit**, logo esse
+arquivo não alimenta o manifesto por construção.
+
+**Resíduo declarado (o que continua sem prova no render):**
+
+- a metade **"Banco"** do `UC-FCC-10`. A origem API exige `fin_contas_bancarias` + `accounts`
+  (FK NOT NULL) — 3 tabelas de fixture num teste que não pode ser rodado local. Ficou fora
+  de propósito: E2E frágil ensina o time a ignorar vermelho. O chip "Banco" segue provado
+  só no servidor (`ConciliacaoLeExtratoApiTest`).
+- **"cabe em 1280 sem scroll horizontal"** (UX Target do charter): probe de `scrollWidth`
+  não foi escrita porque não dá pra calibrá-la sem executar.
+- **escrita**: nada clica em Confirmar/Ignorar/Reabrir. A tela mexe em DINHEIRO
+  (REGRA MESTRE) — o arquivo é read-only sobre o render.
+
+---
+
 ## Backlog declarado (prosa honesta, ainda sem UC — não tem teste que cite)
 
 > ✅ **Fechados em 2026-08-02** (ficam registrados, não apagados): (a) a fixture do
