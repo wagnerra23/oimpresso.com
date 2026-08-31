@@ -123,6 +123,27 @@ Não feito, e o motivo:
   `EXIT=1` com os mesmos 2 arquivos. Nenhuma chave de `CHAVES_DATA` foi introduzida — o que seria
   apagar o alarme por acidente.
 
+## Reconciliação com a sessão irmã do mesmo dia
+
+O [session log da Jana de 2026-08-31](2026-08-31-jana-p0-vazamento-e-d0-identidade-view.md)
+fecha com: *"CT 100 em 502 a sessão inteira — nenhum Pest rodou local, e os baselines
+`governance/jana-ragas-*.json` estão parados há 61 dias pela mesma causa."*
+
+A primeira metade confere e minha medição corrobora (`tailscale status` → `offline, last seen
+3d ago`). **O vínculo causal da segunda metade não se sustenta**, e registro aqui porque canon
+que nega canon envelhece nos dois (§5 2026-08-11):
+
+1. `jana-ragas-baseline.json` é escrito **no GitHub Actions** (`runner.py --update-baseline` via
+   `workflow_dispatch`) — o CT 100 não participa desse caminho, então não pode ser a causa.
+2. `jana-ragas-real-baseline.json` **não é escrito por automatismo nenhum**; o comando que roda no
+   CT 100 é *leitor* dele (`resolveThresholds`, L152).
+3. O CT 100 está fora há **~3 dias**, não 61. Durante a janela de 61 dias ele esteve vivo o
+   bastante para publicar **6 semanas** no trend (07-19 a 08-23) — o que refuta a atribuição.
+
+As duas coisas são verdadeiras e independentes: o CT 100 caiu (e isso derrubou a semana 30/08 e
+bloqueia o diagnóstico do colapso), e os baselines estão parados porque **ninguém os escreve
+automaticamente, por design**.
+
 ## Aberto para decisão [W]
 
 1. **O colapso do eval real** (P0). O gate está vermelho há 5 semanas e o `⛔` é o achado, não um
