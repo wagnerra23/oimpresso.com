@@ -146,23 +146,32 @@ it('UC-FPC-02 · Tier 0 — conta de outro negocio nunca aparece', function () {
     $codigoVazado = '9.9.99.'.planoContaMarca();
     planoContaSeed($outro->id, $codigoVazado, 'Conta do outro negocio');
 
+    // Âncora no tenant A. Sem ela a lista de A vem VAZIA no CI (a fixture não
+    // dispara o `BusinessCreated`, logo o `SeedPlanoContasPadrao` nunca rodou e
+    // não há as 47 entries) — e "a conta de B não aparece" ficaria verde numa
+    // lista vazia, provando nada. Foi o controle positivo abaixo que pegou isso.
+    $codigoAncora = '9.9.98.'.planoContaMarca();
+    planoContaSeed($business->id, $codigoAncora, 'Conta do proprio negocio');
+
     $r = $this->actingAs($user)
         ->withSession(['user.business_id' => $business->id])
         ->get('/financeiro/plano-contas');
 
     $r->assertStatus(200);
     $r->assertInertia(fn (AssertableInertia $page) => $page
-        ->where('planos', function ($planos) use ($codigoVazado, $business) {
-            $lista = collect($planos);
+        ->where('planos', function ($planos) use ($codigoVazado, $codigoAncora) {
+            $codigos = collect($planos)->pluck('codigo');
 
             // nenhuma conta do outro business, nem pelo codigo nem pelo escopo
-            expect($lista->pluck('codigo')->contains($codigoVazado))->toBeFalse(
+            expect($codigos->contains($codigoVazado))->toBeFalse(
                 'conta do outro business apareceu na lista — vazamento cross-tenant (ADR 0093)'
             );
 
-            // e a lista não está vazia por acidente: se estivesse, o assert acima
-            // passaria sem provar nada (o "0 failed" que não roda nada)
-            expect($lista->count())->toBeGreaterThan(0);
+            // CONTROLE POSITIVO: a conta do PRÓPRIO tenant entrou. Sem isto o
+            // assert acima ficaria verde numa lista vazia, provando nada.
+            expect($codigos->contains($codigoAncora))->toBeTrue(
+                'a conta do próprio negócio não apareceu — a lista está vazia e o assert de cima não prova nada'
+            );
 
             return true;
         })
