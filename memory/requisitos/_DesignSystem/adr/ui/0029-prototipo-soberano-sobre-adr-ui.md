@@ -4,8 +4,12 @@ id: requisitos-design-system-adr-ui-0029-prototipo-soberano-sobre-adr-ui
 
 # ADR UI-0029 · Protótipo Cowork é SOBERANO sobre ADR UI — divergência é ADR errada, não decisão a debater
 
-- **Status**: proposto
+- **Status**: accepted
 - **Data**: 2026-08-28
+- **Ratificada em**: 2026-08-31 — [W] respondeu **"accepted"** quando a proposta lhe foi
+  reapresentada, e autorizou o flip a esta sessão com a palavra **"flip"**. A decisão chegou
+  por duas vias no mesmo dia (uma sessão irmã e esta); o registro honesto é que a **redação**
+  é de 2026-08-28 e a **ratificação** é de 2026-08-31.
 - **Decisores**: Wagner (decisão), Claude Code (executor/registro)
 - **Categoria**: ui · governança · fundações
 - **Emenda parcial**: [UI-0013](0013-constituicao-ui-v2-camadas.md) — a Constituição UI v2 define a hierarquia de CAMADAS
