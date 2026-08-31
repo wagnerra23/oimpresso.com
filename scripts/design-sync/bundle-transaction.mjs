@@ -17,6 +17,7 @@ import {
   validateBundleParts, validateManifest,
 } from './bundle-contract.mjs';
 import { buildManifest as detectarTelas } from '../../prototipo-ui/detectar-telas.mjs';
+import { verificarMapa } from '../governance/design-code-map-check.mjs';
 
 export const DEFAULT_PATHS = {
   cowork: 'prototipo-ui/cowork',
@@ -127,24 +128,95 @@ function applicationState(status) {
 
 function readApplicationLedger(root, paths) {
   const path = resolveInside(root, join(paths.state, 'applications.json'));
-  if (!existsSync(path)) return { schema: 'oimpresso-design-applications/1', applications: [] };
+  if (!existsSync(path)) return { schema: 'oimpresso-design-applications/2', applications: [] };
   const ledger = JSON.parse(readFileSync(path, 'utf8'));
-  if (ledger?.schema !== 'oimpresso-design-applications/1' || !Array.isArray(ledger.applications)) {
+  if (!['oimpresso-design-applications/1', 'oimpresso-design-applications/2'].includes(ledger?.schema) || !Array.isArray(ledger.applications)) {
     throw new Error('ledger applications.json inválido');
   }
-  return ledger;
+  if (ledger.schema === 'oimpresso-design-applications/2') return ledger;
+  return {
+    schema: 'oimpresso-design-applications/2',
+    applications: ledger.applications.map((item) => ({
+      source: item.source,
+      target: item.target,
+      sourceSha256: item.sourceSha256,
+      targetSha256: item.targetSha256,
+      application: {
+        evidence: item.evidence,
+        recordedAt: item.recordedAt,
+        legacyUnverified: true,
+      },
+      legacyTests: item.tests || [],
+      tests: [],
+      smokes: [],
+    })),
+  };
 }
 
-function applicationEvidenceFor({ root, source, target, manifest, ledger }) {
+function repoEvidence(root, path, expectedSha256 = null) {
+  if (!path || isAbsolute(path)) return null;
+  let abs;
+  try { abs = resolveInside(root, String(path).replace(/\\/g, '/')); } catch { return null; }
+  if (!existsSync(abs)) return null;
+  const digest = sha256(readFileSync(abs));
+  if (expectedSha256 && digest !== expectedSha256) return null;
+  return { path: String(path).replace(/\\/g, '/'), sha256: digest };
+}
+
+function mapRelates(map, source, target) {
+  if (map?.mapping?.source === source && map?.mapping?.target === target) return true;
+  const sourceBase = basename(source);
+  const parts = Array.isArray(map?.partes) ? map.partes : [];
+  const hasSource = parts.some((part) => basename(String(part?.prototipo?.arquivo || '')) === sourceBase);
+  const hasTarget = parts.some((part) => String(part?.vivo?.arquivo || '').replace(/\\/g, '/') === target);
+  return hasSource && hasTarget;
+}
+
+function currentEvidenceRecord({ root, source, target, manifest, ledger, comparison }) {
   const sourceFile = manifest.files.find((file) => file.path === source);
-  const evidence = (ledger?.applications || []).find((item) => item.source === source && item.target === target);
-  if (!sourceFile || !evidence || evidence.sourceSha256 !== sourceFile.sha256) return null;
+  const record = (ledger?.applications || []).find((item) => item.source === source && item.target === target);
+  if (!sourceFile || !record || record.sourceSha256 !== sourceFile.sha256) return null;
   let targetAbs;
   try { targetAbs = resolveInside(root, target); } catch { return null; }
   if (!existsSync(targetAbs)) return null;
   const targetSha256 = sha256(readFileSync(targetAbs));
-  if (evidence.targetSha256 !== targetSha256) return null;
-  return { ...evidence, targetSha256, tested: Array.isArray(evidence.tests) && evidence.tests.length > 0 };
+  if (record.targetSha256 !== targetSha256) return null;
+
+  let compared = comparison !== 'SEMANTICO';
+  let comparisonEvidence = null;
+  if (record.comparison && /^[a-f0-9]{64}$/.test(String(record.comparison.mapSha256 || ''))) {
+    const mapFile = repoEvidence(root, record.comparison.map, record.comparison.mapSha256);
+    if (mapFile) {
+      try {
+        const map = JSON.parse(readFileSync(resolveInside(root, mapFile.path), 'utf8'));
+        const verification = verificarMapa(map, { root });
+        if (!verification.drift.length && mapRelates(map, source, target)) {
+          compared = true;
+          comparisonEvidence = { ...record.comparison, mapSha256: mapFile.sha256 };
+        }
+      } catch { /* mapa inválido não prova comparação */ }
+    }
+  }
+
+  let application = null;
+  if (compared && record.application && !record.application.legacyUnverified
+    && /^[a-f0-9]{64}$/.test(String(record.application.evidenceSha256 || ''))) {
+    const proof = repoEvidence(root, record.application.evidence, record.application.evidenceSha256);
+    if (proof) application = { ...record.application, evidenceSha256: proof.sha256 };
+  }
+
+  const tests = application ? (record.tests || []).filter((test) =>
+    test.exitCode === 0 && Array.isArray(test.command) && test.command.length > 0
+    && test.sourceSha256 === sourceFile.sha256 && test.targetSha256 === targetSha256
+    && /^[a-f0-9]{64}$/.test(String(test.outputSha256 || ''))
+  ) : [];
+  const smokes = tests.length ? (record.smokes || []).filter((smoke) => {
+    if (smoke.result !== 'passed' || String(smoke.tenant) !== '1' || smoke.targetSha256 !== targetSha256) return false;
+    if (!/^[a-f0-9]{40,64}$/.test(String(smoke.deploySha || ''))) return false;
+    return !!repoEvidence(root, smoke.screenshot, smoke.screenshotSha256);
+  }) : [];
+
+  return { record, targetSha256, compared, comparisonEvidence, application, tests, smokes };
 }
 
 export async function buildApplicationReport({ root, stagedCowork, manifest, previousReport = null, applicationLedger = null }) {
@@ -155,7 +227,17 @@ export async function buildApplicationReport({ root, stagedCowork, manifest, pre
   for (const path of manifest.changes.deleted) changed.set(path, 'deleted');
   const screens = rows.map((row) => {
     const app = applicationState(row.status);
-    const evidence = applicationEvidenceFor({ root, source: row.arquivo, target: row.alvo, manifest, ledger: applicationLedger });
+    const evidence = currentEvidenceRecord({ root, source: row.arquivo, target: row.alvo, manifest, ledger: applicationLedger, comparison: row.status });
+    const applied = row.status === 'IDENTICO' || !!evidence?.application;
+    const tested = applied && (evidence?.tests.length || 0) > 0;
+    const smoked = tested && (evidence?.smokes.length || 0) > 0;
+    const lifecycleState = app.state === 'blocked' || app.state === 'to-create'
+      ? app.state
+      : smoked ? 'validated'
+      : tested ? 'tested'
+      : applied ? 'applied'
+      : evidence?.compared ? 'compared'
+      : 'anchored';
     return {
       source: row.arquivo,
       bundleChange: changed.get(row.arquivo) || 'unchanged',
@@ -163,16 +245,23 @@ export async function buildApplicationReport({ root, stagedCowork, manifest, pre
       module: moduleFromTarget(row.alvo),
       mapping: row.via,
       comparison: row.status,
-      applicationState: evidence ? 'applied' : app.state,
-      tested: evidence?.tested || false,
+      lifecycleState,
+      applicationState: applied ? 'applied' : app.state,
+      compared: !!evidence?.compared,
+      tested,
+      smoked,
       applicationEvidence: evidence ? {
-        recordedAt: evidence.recordedAt,
-        evidence: evidence.evidence,
-        tests: evidence.tests || [],
+        comparison: evidence.comparisonEvidence,
+        application: evidence.application,
+        tests: evidence.tests,
+        smokes: evidence.smokes,
         targetSha256: evidence.targetSha256,
       } : null,
-      nextAction: evidence
-        ? (evidence.tested ? 'aplicação e testes registrados para os hashes atuais' : 'aplicação registrada; falta evidência de teste')
+      nextAction: lifecycleState === 'validated' ? 'aplicação, teste e smoke de produção válidos para os hashes atuais'
+        : lifecycleState === 'tested' ? 'registrar smoke de produção com rota, deploy e screenshot'
+        : lifecycleState === 'applied' ? 'executar teste pelo registrador para produzir recibo verificável'
+        : lifecycleState === 'compared' ? 'aplicar no alvo e registrar evidência durável'
+        : lifecycleState === 'anchored' ? 'gerar/registrar map.json antes de aplicar semanticamente'
         : app.next,
     };
   });
@@ -186,8 +275,11 @@ export async function buildApplicationReport({ root, stagedCowork, manifest, pre
       module: old?.module || null,
       mapping: old?.mapping || 'fonte removida',
       comparison: 'SOURCE-REMOVED',
+      lifecycleState: 'review',
       applicationState: 'review',
+      compared: false,
       tested: false,
+      smoked: false,
       applicationEvidence: null,
       nextAction: 'revisar o alvo React; remoção no Design nunca apaga produto automaticamente',
     });
@@ -201,8 +293,10 @@ export async function buildApplicationReport({ root, stagedCowork, manifest, pre
   });
   const byState = {};
   for (const screen of screens) byState[screen.applicationState] = (byState[screen.applicationState] || 0) + 1;
+  const byLifecycle = {};
+  for (const screen of screens) byLifecycle[screen.lifecycleState] = (byLifecycle[screen.lifecycleState] || 0) + 1;
   return {
-    schema: 'oimpresso-design-application-report/2',
+    schema: 'oimpresso-design-application-report/3',
     generatedAt: new Date().toISOString(),
     bundle: {
       id: manifest.bundleId,
@@ -215,6 +309,8 @@ export async function buildApplicationReport({ root, stagedCowork, manifest, pre
       transportChanges: transportChanges.length,
       screens: screens.length,
       tested: screens.filter((screen) => screen.tested).length,
+      smoked: screens.filter((screen) => screen.smoked).length,
+      lifecycle: byLifecycle,
       ...byState,
     },
     transportChanges,
@@ -308,7 +404,7 @@ export async function refreshApplicationReport({ root = process.cwd(), paths = D
 
 /** Registra evidência ligada aos hashes atuais; qualquer mudança futura a invalida no relatório. */
 export async function recordApplicationEvidence({
-  root = process.cwd(), source, target, evidence, tests = [], paths = DEFAULT_PATHS,
+  root = process.cwd(), source, target, evidence, paths = DEFAULT_PATHS,
 }) {
   const absRoot = resolve(root);
   const manifest = readState(absRoot, paths);
@@ -323,16 +419,24 @@ export async function recordApplicationEvidence({
   if (!mapped) throw new Error(`destino não é o mapeamento vigente de ${sourceFile.path}: ${normalizedTarget}`);
   const targetAbs = resolveInside(absRoot, normalizedTarget);
   if (!existsSync(targetAbs)) throw new Error(`destino React ausente: ${normalizedTarget}`);
-  if (!String(evidence || '').trim()) throw new Error('--evidence é obrigatório');
+  const proof = repoEvidence(absRoot, String(evidence || '').trim());
+  if (!proof) throw new Error('--evidence deve apontar para arquivo durável existente dentro do repositório');
   const ledger = readApplicationLedger(absRoot, paths);
+  const previous = ledger.applications.find((item) => item.source === sourceFile.path && item.target === normalizedTarget);
+  const current = currentEvidenceRecord({
+    root: absRoot, source: sourceFile.path, target: normalizedTarget,
+    manifest, ledger, comparison: 'SEMANTICO',
+  });
+  if (!current?.compared) throw new Error('aplicação não pode preceder comparação válida para os hashes atuais');
   const record = {
+    ...previous,
     source: sourceFile.path,
     target: normalizedTarget,
     sourceSha256: sourceFile.sha256,
     targetSha256: sha256(readFileSync(targetAbs)),
-    evidence: String(evidence).trim(),
-    tests: [...new Set(tests.map(String).map((value) => value.trim()).filter(Boolean))],
-    recordedAt: new Date().toISOString(),
+    application: { evidence: proof.path, evidenceSha256: proof.sha256, recordedAt: new Date().toISOString() },
+    tests: previous?.tests || [],
+    smokes: previous?.smokes || [],
   };
   ledger.applications = ledger.applications.filter((item) => !(item.source === record.source && item.target === record.target));
   ledger.applications.push(record);
@@ -344,6 +448,122 @@ export async function recordApplicationEvidence({
   renameSync(temp, ledgerPath);
   const updatedReport = await refreshApplicationReport({ root: absRoot, paths });
   return { record, report: updatedReport };
+}
+
+export async function recordComparisonEvidence({
+  root = process.cwd(), source, target, map, paths = DEFAULT_PATHS,
+}) {
+  const absRoot = resolve(root);
+  const manifest = readState(absRoot, paths);
+  if (!manifest) throw new Error('nenhum bundle ativo');
+  const sourceFile = manifest.files.find((file) => file.path === normalizePayloadPath(source));
+  if (!sourceFile) throw new Error(`fonte não pertence ao bundle ativo: ${source}`);
+  const normalizedTarget = String(target).replace(/\\/g, '/');
+  const targetAbs = resolveInside(absRoot, normalizedTarget);
+  if (!existsSync(targetAbs)) throw new Error(`destino React ausente: ${normalizedTarget}`);
+  const mapFile = repoEvidence(absRoot, String(map || '').trim());
+  if (!mapFile) throw new Error('--map deve apontar para map.json durável existente dentro do repositório');
+  let parsed;
+  try { parsed = JSON.parse(readFileSync(resolveInside(absRoot, mapFile.path), 'utf8')); }
+  catch { throw new Error(`--map não é JSON válido: ${mapFile.path}`); }
+  if (!mapRelates(parsed, sourceFile.path, normalizedTarget)) throw new Error(`map não relaciona ${sourceFile.path} → ${normalizedTarget}`);
+  const verification = verificarMapa(parsed, { root: absRoot });
+  if (verification.drift.length) throw new Error(`map não prova comparação válida: ${verification.drift.join('; ')}`);
+
+  const ledger = readApplicationLedger(absRoot, paths);
+  const previous = ledger.applications.find((item) => item.source === sourceFile.path && item.target === normalizedTarget);
+  const targetSha256 = sha256(readFileSync(targetAbs));
+  const sameHashes = previous?.sourceSha256 === sourceFile.sha256
+    && previous?.targetSha256 === targetSha256
+    && previous?.comparison?.map === mapFile.path
+    && previous?.comparison?.mapSha256 === mapFile.sha256;
+  const record = {
+    ...(sameHashes ? previous : {}),
+    source: sourceFile.path,
+    target: normalizedTarget,
+    sourceSha256: sourceFile.sha256,
+    targetSha256,
+    comparison: { map: mapFile.path, mapSha256: mapFile.sha256, recordedAt: new Date().toISOString() },
+    tests: sameHashes ? (previous?.tests || []) : [],
+    smokes: sameHashes ? (previous?.smokes || []) : [],
+  };
+  ledger.applications = ledger.applications.filter((item) => !(item.source === record.source && item.target === record.target));
+  ledger.applications.push(record);
+  ledger.applications.sort((a, b) => a.source.localeCompare(b.source) || a.target.localeCompare(b.target));
+  writeApplicationLedger(absRoot, paths, ledger);
+  return { record, report: await refreshApplicationReport({ root: absRoot, paths }) };
+}
+
+export async function recordTestEvidence({
+  root = process.cwd(), source, target, command, exitCode, output, runner, paths = DEFAULT_PATHS,
+}) {
+  if (exitCode !== 0) throw new Error('teste falhou; recibo verde não foi gravado');
+  if (!Array.isArray(command) || !command.length || command.some((part) => !String(part).trim())) throw new Error('comando de teste inválido');
+  if (!['local', 'ct100', 'ci'].includes(runner)) throw new Error('--runner deve ser local, ct100 ou ci');
+  const { absRoot, manifest, sourceFile, normalizedTarget, targetSha256, ledger, previous } = currentWritableRecord({ root, source, target, paths });
+  const current = currentEvidenceRecord({ root: absRoot, source: sourceFile.path, target: normalizedTarget, manifest, ledger, comparison: 'SEMANTICO' });
+  if (!current?.application) throw new Error('aplicação atual não possui comparação + evidência durável válidas');
+  const receipt = {
+    command: command.map(String), exitCode, runner,
+    outputSha256: sha256(Buffer.from(String(output || ''), 'utf8')),
+    sourceSha256: sourceFile.sha256, targetSha256, recordedAt: new Date().toISOString(),
+  };
+  const record = { ...previous, tests: [...(previous.tests || []), receipt], smokes: previous.smokes || [] };
+  replaceApplication(ledger, record);
+  writeApplicationLedger(absRoot, paths, ledger);
+  return { receipt, report: await refreshApplicationReport({ root: absRoot, paths }) };
+}
+
+export async function recordSmokeEvidence({
+  root = process.cwd(), source, target, route, deploySha, screenshot, tenant, paths = DEFAULT_PATHS,
+}) {
+  if (!String(route || '').startsWith('/')) throw new Error('--route deve começar com /');
+  if (!/^[a-f0-9]{40,64}$/.test(String(deploySha || ''))) throw new Error('--deploy-sha deve ser SHA git válido');
+  if (String(tenant) !== '1') throw new Error('smoke manual de produção usa exclusivamente tenant 1; biz=4 é proibido');
+  const shot = repoEvidence(resolve(root), String(screenshot || '').trim());
+  if (!shot) throw new Error('--screenshot deve apontar para arquivo durável existente dentro do repositório');
+  const { absRoot, manifest, sourceFile, normalizedTarget, targetSha256, ledger, previous } = currentWritableRecord({ root, source, target, paths });
+  const current = currentEvidenceRecord({ root: absRoot, source: sourceFile.path, target: normalizedTarget, manifest, ledger, comparison: 'SEMANTICO' });
+  if (!current?.tests.length) throw new Error('smoke não pode preceder teste verde válido');
+  const receipt = {
+    route: String(route), deploySha: String(deploySha), tenant: 1,
+    screenshot: shot.path, screenshotSha256: shot.sha256,
+    result: 'passed', targetSha256, recordedAt: new Date().toISOString(),
+  };
+  const record = { ...previous, tests: previous.tests || [], smokes: [...(previous.smokes || []), receipt] };
+  replaceApplication(ledger, record);
+  writeApplicationLedger(absRoot, paths, ledger);
+  return { receipt, report: await refreshApplicationReport({ root: absRoot, paths }) };
+}
+
+function currentWritableRecord({ root, source, target, paths }) {
+  const absRoot = resolve(root);
+  const manifest = readState(absRoot, paths);
+  if (!manifest) throw new Error('nenhum bundle ativo');
+  const sourceFile = manifest.files.find((file) => file.path === normalizePayloadPath(source));
+  if (!sourceFile) throw new Error(`fonte não pertence ao bundle ativo: ${source}`);
+  const normalizedTarget = String(target).replace(/\\/g, '/');
+  const targetAbs = resolveInside(absRoot, normalizedTarget);
+  if (!existsSync(targetAbs)) throw new Error(`destino React ausente: ${normalizedTarget}`);
+  const targetSha256 = sha256(readFileSync(targetAbs));
+  const ledger = readApplicationLedger(absRoot, paths);
+  const previous = ledger.applications.find((item) => item.source === sourceFile.path && item.target === normalizedTarget);
+  if (!previous || previous.sourceSha256 !== sourceFile.sha256 || previous.targetSha256 !== targetSha256) throw new Error('registro de aplicação ausente ou stale para os hashes atuais');
+  return { absRoot, manifest, sourceFile, normalizedTarget, targetSha256, ledger, previous };
+}
+
+function replaceApplication(ledger, record) {
+  ledger.applications = ledger.applications.filter((item) => !(item.source === record.source && item.target === record.target));
+  ledger.applications.push(record);
+  ledger.applications.sort((a, b) => a.source.localeCompare(b.source) || a.target.localeCompare(b.target));
+}
+
+function writeApplicationLedger(root, paths, ledger) {
+  const ledgerPath = resolveInside(root, join(paths.state, 'applications.json'));
+  mkdirSync(dirname(ledgerPath), { recursive: true });
+  const temp = `${ledgerPath}.tmp-${process.pid}-${Date.now()}`;
+  writeFileSync(temp, JSON.stringify(ledger, null, 2) + '\n');
+  renameSync(temp, ledgerPath);
 }
 
 /** Converte um lote completo legado, já validado, em snapshot transacional. */

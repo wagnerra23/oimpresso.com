@@ -77,7 +77,7 @@ export default function Sped({ periodos, notice }: SpedProps) {
       >
         {/* Callout do MVP — antes hex cru (#d4f4dd/#2da764) + inline-style.
             Agora fx-callout canon (mesmo padrão Dfe/Eventos), tokens only. */}
-        <div className="fx-callout" role="region" aria-label="Status do gerador SPED">
+        <div className="fx-callout" data-contract="fiscal-sped-status" role="region" aria-label="Status do gerador SPED">
           <CheckCircle2 size={16} />
           <div>
             <b>Gerador EFD-ICMS/IPI MVP disponível (PR #8)</b>

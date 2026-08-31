@@ -4,7 +4,7 @@ casos: Jana Conversa · histórico · teclado · acessibilidade · /ia/conversa
 irmaos: Chat.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-chat.md (runbook)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-26"
+last_run: "2026-08-28"
 ---
 
 # Casos de uso — /ia/conversa (Chat da Jana)
@@ -477,7 +477,7 @@ eles afirmam comportamento, que é o que os 15 testes provam.
 
 O G-6 acusou `stale:` porque o `Chat.tsx` mudou depois do `last_run` de 08-17. **O que mudou:** o
 título do shell passou de `Jana · Chat` para `Jana — Chat`, nos dois lugares (`AppShellV2 title` e
-`<Head title>`). As telas irmãs usam travessão (`Jana — Dashboard`, `Jana — Memória`); só esta usava
+`<Head title>`). As telas irmãs usam travessão (`Jana — Painel`, `Jana — Memória`); só esta usava
 ponto médio.
 
 **Interseção com os UCs desta tela: nenhuma.** Os quatro tratam de filtro de conversas, navegação por
@@ -766,3 +766,27 @@ O caso defende três coisas, e a terceira é a que dói se quebrar:
 | o selo mostra `plano Pro` só com `jana_pro_module` no pacote | senão volta a afirmar estado que o sistema não sabe |
 | `jana_module` e `jana_pro_module` seguem eixos SEPARADOS | fundi-los repete, dentro do código, o engano que um humano cometeu lendo o painel |
 | sem pacote legível o degrade é `Grátis` | afirmar Pro a quem não é promete recurso pago; o inverso só omite |
+
+---
+
+## Revalidação de 2026-08-28 — o `.tsx` mudou de PATH de import, e só isso
+
+O `casos-gate` acusou `stale:` nesta tela. A causa é mecânica: a pasta
+`Pages/Jana/components/` (sem underscore) foi para o canon `_components/`, e o G-6 compara a
+**data-git do `.tsx`** com o `last_run` — mudança semanticamente inerte **não é inerte pro
+gate** (é a lápide §5 2026-07-27: comentário, whitespace e rename contam como "a tela mudou").
+
+**Revalidação de contrato, medida:**
+
+| O que conferi | Como | Resultado |
+|---|---|---|
+| o tamanho do diff nesta tela | `git diff origin/main...HEAD --numstat -- …/Chat.tsx` | **1 linha**, todas de `import` |
+| o que mudou nelas | `git diff` das mesmas linhas | só o PATH de `JanaAreaHeader` — nome, símbolo e uso idênticos |
+| o componente mudou de conteúdo? | `git log --stat` do rename | **não** — o git detectou 100%% de similaridade nos dois arquivos |
+
+**Interseção com os UCs: nenhuma.** Um caso de uso descreve comportamento de tela; path de
+import não é comportamento. Nenhum `Status:` muda.
+
+**Não rodei a suíte** — CT 100 respondeu 502 durante toda a sessão e Pest local é proibido
+(ADR 0062). O bump é por revalidação de CONTRATO, e digo porque o G-6 aceita a data e só o
+leitor percebe a diferença.

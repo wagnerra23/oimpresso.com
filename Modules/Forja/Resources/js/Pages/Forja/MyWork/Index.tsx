@@ -301,7 +301,8 @@ function MyWorkIndex({
             'rounded-lg border bg-muted/20 p-4 transition-all',
             focus === 'work' ? 'ring-2 ring-primary/60' : 'opacity-90',
           ].join(' ')}
-          onClick={() => setFocus('work')}
+          tabIndex={-1}
+          onFocusCapture={() => setFocus('work')}
         >
           <header className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -371,7 +372,8 @@ function MyWorkIndex({
             'rounded-lg border bg-muted/20 p-4 transition-all',
             focus === 'inbox' ? 'ring-2 ring-primary/60' : 'opacity-90',
           ].join(' ')}
-          onClick={() => setFocus('inbox')}
+          tabIndex={-1}
+          onFocusCapture={() => setFocus('inbox')}
         >
           <header className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">

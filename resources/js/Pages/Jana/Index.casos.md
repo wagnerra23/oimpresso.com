@@ -4,7 +4,7 @@ casos: Jana Painel · metas ativas · farol server-side · cockpit deferido · /
 irmaos: Index.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-index.md (runbook) · prototipo-ui/contrato/jana-painel.contract.json (contrato visual)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-26"
+last_run: "2026-08-31"
 ---
 
 # Casos de uso — /ia (Painel da Jana)
@@ -437,16 +437,23 @@ estavam em nenhum inventário com o ponteiro certo:
 
 | rótulo | onde | estado no inventário |
 |---|---|---|
-| `Exportar` | `Index.tsx` | 🟡 catalogado — `title="(em breve)"`, decisão [W] aberta |
+| `Exportar` | `Index.tsx` | 🟡 mudo — o `(em breve)` saiu do `title` em 2026-08-31; o botão **não** mudou, decisão [W] aberta |
 | `Ouvir áudio` | `JanaCockpit.tsx` | 🟡 `title="(em breve — TTS V2)"` |
 | `Disparar régua WhatsApp pros {n} atrasados` | `JanaCockpit.tsx` | 🟡 "botão morto" — **ref de linha podre** |
 | `Ver top devedores` | `JanaCockpit.tsx` | idem |
 | `Investigar queda ticket médio` | `JanaCockpit.tsx` | idem |
 
-Os três últimos são **piores** que os dois primeiros: não prometem nada. O usuário clica em
+Os três últimos eram **piores** que os dois primeiros: não prometem nada. O usuário clica em
 *"Disparar régua WhatsApp pros 7 atrasados"* e nada acontece, sem explicação — enquanto o
 `(em breve)` ao menos avisa. Eles cresceram exatamente onde o **UC-JPAIN-12** consertou os CTAs
 vizinhos, no mesmo arquivo: o conserto foi por instância, e a classe reincidiu ao lado.
+
+⚠️ **Atualização 2026-08-31 — o `Exportar` mudou de categoria, não de estado.** Ao remover o
+`(em breve)` do `title` (pedido [W]), ele deixou de avisar e **continua sem handler**: passou do
+balde "promete e não cumpre" para o balde "clica e nada acontece, sem explicação" — o que este
+próprio UC classifica como pior. O único que ainda promete data é o `Ouvir áudio`. A lista
+`$conhecidos` do teste **não muda** (o predicado é FORMA — `onClick`/`disabled`/`href` —, e
+nenhum deles apareceu); muda o motivo escrito ao lado dele.
 
 ### O que este caso decide — e o que ele não decide
 
@@ -534,12 +541,17 @@ caso e teste a peças que já estavam fechadas. As 3 que faltam seguem sendo dec
   aparente; a medição fechou a porta._
 - ⚖️ **Golden PT-04 `draft` → `live`** — aprovação de **screenshot** (gate F1.5, [ADR 0107](../../../../memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md)).
   Nenhum código resolve, e trava **3 telas**, não só esta.
-- ⚖️ **"Dashboard" × "Painel"** — a aba se chama Painel e a rota é `/ia`, mas título, breadcrumb e o
-  nome do componente exportado ainda dizem Dashboard.
-- ⚖️ **O botão "Exportar (em breve)"** — clicável, sem `disabled` e sem rota. Some, vira `disabled`
-  com o motivo, ou entrega? Enquanto não decidido **não entra no contrato** — pinar uma promessa é
-  congelá-la. _(Eram **dois**; **Configurar** saiu desta lista em 2026-08-17 — entregou, ver UC-10.
-  A pergunta segue idêntica para o que sobrou.)_
+- ✅ **"Dashboard" × "Painel"** — RESOLVIDO em 2026-08-31. O `AppShellV2` recebe `title="Jana — Painel"`
+  (a âncora carimba `data-screen-label="Jana — Painel"` e rotula a aba `label: "Painel"`; o prefixo de
+  área fica, como em `Jana — Memória`). O **breadcrumb** já não existia — saiu como dado morto na
+  revalidação de 2026-08-18, abaixo. Sobra o **identificador do componente** (`export default function
+  Dashboard`), que é símbolo de JS e não copy que o usuário lê; renomear é refactor, não alinhamento.
+- ⚖️ **O botão "Exportar"** — clicável, sem `disabled` e sem rota. Some, vira `disabled` com o
+  motivo, ou entrega? _Atualizado 2026-08-31:_ o `(em breve)` **saiu** do `title` (a âncora não
+  promete — lá o gatilho é `<button class="jm-btn ghost">Exportar</button>`, sem tooltip), mas isso
+  **não respondeu a pergunta**: o botão segue mudo. Segue **fora do contrato** — pinar `Exportar`
+  enquanto ele não faz nada congela uma affordance morta. _(Eram **dois**; **Configurar** saiu desta
+  lista em 2026-08-17 — entregou, ver UC-10.)_
 - ⚖️ **Projeção de fechamento das metas** — a âncora mostra "<valor> no fechamento" em cada card. Não
   foi portada porque projetar no frontend é o UC-04 ao contrário (ver UC-11). Se vira produto, o dono
   é `ApuracaoService` — onde `farol` já mora — e a tela só consome. É backend, não wiring.
@@ -619,3 +631,71 @@ O caso defende três coisas, e a terceira é a que dói se quebrar:
 | o selo mostra `plano Pro` só com `jana_pro_module` no pacote | senão volta a afirmar estado que o sistema não sabe |
 | `jana_module` e `jana_pro_module` seguem eixos SEPARADOS | fundi-los repete, dentro do código, o engano que um humano cometeu lendo o painel |
 | sem pacote legível o degrade é `Grátis` | afirmar Pro a quem não é promete recurso pago; o inverso só omite |
+
+---
+
+## Revalidação de 2026-08-28 — o `.tsx` mudou de PATH de import, e só isso
+
+O `casos-gate` acusou `stale:` nesta tela. A causa é mecânica: a pasta
+`Pages/Jana/components/` (sem underscore) foi para o canon `_components/`, e o G-6 compara a
+**data-git do `.tsx`** com o `last_run` — mudança semanticamente inerte **não é inerte pro
+gate** (é a lápide §5 2026-07-27: comentário, whitespace e rename contam como "a tela mudou").
+
+**Revalidação de contrato, medida:**
+
+| O que conferi | Como | Resultado |
+|---|---|---|
+| o tamanho do diff nesta tela | `git diff origin/main...HEAD --numstat -- …/Index.tsx` | **2 linhas**, todas de `import` |
+| o que mudou nelas | `git diff` das mesmas linhas | só o PATH de `FabJana` e `JanaAreaHeader` — nome, símbolo e uso idênticos |
+| o componente mudou de conteúdo? | `git log --stat` do rename | **não** — o git detectou 100%% de similaridade nos dois arquivos |
+
+**Interseção com os UCs: nenhuma.** Um caso de uso descreve comportamento de tela; path de
+import não é comportamento. Nenhum `Status:` muda.
+
+**Não rodei a suíte** — CT 100 respondeu 502 durante toda a sessão e Pest local é proibido
+(ADR 0062). O bump é por revalidação de CONTRATO, e digo porque o G-6 aceita a data e só o
+leitor percebe a diferença.
+
+---
+
+## Revalidação de 2026-08-31 — dois itens de COPY vieram da âncora, e o terceiro não existia
+
+O `casos-gate` acusa `stale:` porque o `.tsx` mudou depois do `last_run` — o G-6 compara
+**data-git do `.tsx`** com a data daqui e não lê o conteúdo do diff (§5 2026-07-27).
+
+**O que mudou na tela — `git diff --numstat`: 2 linhas.**
+
+| # | Alvo | Antes | Depois | Fonte da decisão |
+|---|---|---|---|---|
+| 1 | `AppShellV2 title` | `Jana — Dashboard` | `Jana — Painel` | âncora: `data-screen-label="Jana — Painel"` + aba `label: "Painel"` |
+| 2 | `title` do botão Exportar | `Exportar relatório (em breve)` | `Exportar relatório` | âncora não promete: `<button class="jm-btn ghost">Exportar</button>`, sem tooltip |
+
+**O terceiro item pedido não era uma divergência.** O pedido descrevia "o subtítulo das análises"
+como se o contrato o pinasse em `painel-metas-header`. Medido:
+
+| O que conferi | Como | Resultado |
+|---|---|---|
+| subtítulo das ANÁLISES, prod × âncora | comparação byte a byte das duas strings | **idêntico** — `clique num card pra ver de onde vem o número` já está em `_components/JanaCockpit.tsx`, igual ao `jana-merge.jsx` |
+| a quem pertence `painel-metas-header` | `_papel` do contrato + a âncora `data-contract` no `.tsx` | ao bloco **METAS**, não às análises |
+| a âncora tem subtítulo em METAS? | leitura do símbolo `JmMetasSecao` | **não** — o cabeçalho é `METAS ATIVAS` + controles; `jm-h2-sub` ocorre **1 vez** no protótipo e é do bloco `ANÁLISES PRINCIPAIS` |
+
+Trocar a copy de `painel-metas-header` teria posto uma instrução de análises sobre o cabeçalho de
+metas — divergindo da âncora em vez de alinhar a ela. **Não foi feito.** A divergência real que a
+medição achou (prod tem `Acompanhamento contínuo`; a âncora não tem subtítulo nenhum ali) ficou
+registrada em `_nota_metas_header` no contrato: mexer em copy pinada é decisão [W].
+
+**Interseção com os UCs:** o **UC-JPAIN-16** — que cataloga os botões mudos — teve a linha do
+`Exportar` e a prosa do "piores" atualizadas acima. **Nenhum `Status:` muda**, e a lista
+`$conhecidos` do teste continua idêntica: o predicado dele é FORMA (`onClick`/`disabled`/
+`href`/`asChild`/spread/wrapper-pai), e nenhum desses apareceu — só o texto do `title`, que o
+parse do teste sequer lê. Os outros 15 UCs não tocam título de shell nem tooltip.
+
+**O que NÃO entrou no contrato, e por quê (medido, não suposto):** a seção `painel-titulo` que o
+`_pendente_w` previa. Rodando o gate com ela: `X seção "painel-titulo" sem âncora data-contract no
+alvo`. O título é **prop** do `AppShellV2` compartilhado, não elemento desta tela, e criar um
+`<span data-contract>` só pra satisfazer o gate é o que o `_nota_alvo` do contrato recusa.
+
+**Não rodei a suíte Pest** — é CT 100 apenas (ADR 0062) e não estava no escopo desta leva. O bump é
+por **revalidação de CONTRATO**, e digo porque o G-6 aceita a data e só o leitor percebe a diferença.
+Rodados aqui: `casos-coverage-guard` nos 4 modos, `module-surface --all --check`,
+`contrato-de-tela --contract` e `--preflight`.

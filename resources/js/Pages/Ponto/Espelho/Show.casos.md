@@ -5,8 +5,8 @@ irmaos: Show.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F2 + §6.1 
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o espelho é o documento que sustenta fechamento de folha e defesa em fiscalização — o que ele deixa de mostrar vira verba trabalhista.
 owner: wagner
-last_run: "2026-08-27"
-last_run_ci: "0 UC executado por mim. O bump de last_run e REVALIDACAO DE LEITURA disparada pelo G-6 (o .tsx mudou depois do last_run anterior), nao veredito. O diff que a acordou troca APENAS a fonte da cor no Espelho/Show: o mapa de tons do `Totalizador` sai de classe crua (`text-blue-700 dark:text-blue-400`) para token do DS (`text-info-fg`, `text-success-fg`, ...), os NOMES do union viram semanticos (`info|success|warning|destructive|primary`), e o `text-violet-600` inline da coluna HE vira `text-primary`. Reli os 5 UC contra esse diff e nenhum aceite muda de sentido: 01 depende do realce `bg-warning` da linha e da coluna `Estado` — ambos INTOCADOS (o diff nao entra na tabela dia-a-dia, so na celula de HE e nos totalizadores); 02/03/04 nao tem relacao com cor; 05 segue com `totais`/`linhas` diferidos, o `Totalizador` renderiza o mesmo dado com outra classe. O veredito segue com a lane PHP / Pest (Ponto - MySQL), que roda no CT100/CI (ADR 0062)."
+last_run: "2026-08-28"
+last_run_ci: "0 UC executado por mim — ZERO, e o numero e esse mesmo. O bump e REVALIDACAO DE LEITURA disparada pelo G-6 (o .tsx mudou depois do last_run anterior), nao veredito; Pest roda no CT100/CI (ADR 0062). O diff que a acordou sao os PR-A2 (sinal nao-cor na divergencia) e PR-A3 (mobile-fit) da Onda 1. A revalidacao tem um fato MEDIDO que a torna forte, e nao uma leitura otimista: abri o EspelhoContratoTest.php e conferi caso a caso — os 5 UC asseveram EXCLUSIVAMENTE sobre o payload Inertia (`props.totais.divergencias`, `props.linhas[].divergencia`, `assertCount` em `props.linhas`, `props.linhas[].marcacoes[].origem`, status 404, resolucao das props diferidas). NENHUM deles toca DOM, HTML renderizado ou classe CSS. Os dois PRs sao 100% renderizacao client-side e nao encostam no EspelhoController, no ApuracaoService nem em nenhuma prop — logo nenhum aceite pode mudar de sentido por construcao, nao por conveniencia. Caso a caso: 01 ganha REFORCO (o realce `bg-warning/5` e a coluna `Estado` continuam intocados e ganham ao lado um icone nao-cor na linha e na celula do heatmap); 02 segue com `rows` unico alimentando as duas renderizacoes, e o assert conta `props.linhas`, nao nos do DOM; 03 renderiza o mesmo array ja filtrado; 04 e de rota; 05 segue diferido — a lista de cartoes nasce DENTRO do mesmo <Deferred>. UMA ressalva que registro de proposito para quem vier depois: a partir do A3 cada dia existe em DOIS nos do HTML (a linha da tabela, >=md, e o cartao, <md), so um visivel por vez. Isso e irrelevante para os 5 UC atuais, que nao leem DOM — mas um teste FUTURO de nivel DOM que conte ocorrencias por dia vai contar em dobro se nao filtrar por visibilidade. O veredito segue com a lane PHP / Pest (Ponto - MySQL). RE-MEDIDO em 2026-08-28 depois que o #6405 reescreveu o EspelhoContratoTest inteiro (869 linhas trocadas, virou Pest) no meio deste PR: varredura contada no arquivo NOVO da o mesmo resultado - 10 asserts sobre `json('props`, ZERO sobre DOM/HTML/CSS (assertSee/assertDontSee/querySelector/getContent/assertViewHas). A conclusao acima nao foi herdada da leitura anterior, foi refeita contra a versao vigente."
 ---
 
 # Casos de Uso & Aceite — Espelho de ponto mensal
@@ -72,6 +72,17 @@ last_run_ci: "0 UC executado por mim. O bump de last_run e REVALIDACAO DE LEITUR
   documento, então "marca aquele dia na tabela dia-a-dia" continua verificável no primeiro render. O
   realce da linha (`bg-warning`, paridade com a Blade) foi **mantido** e ganhou ao lado uma coluna
   `Estado` explícita, que mostra `divergencia` em letra em vez de só cor — cor sozinha não é acessível.
+- **Nota do PR-A2 de 2026-08-28 (sinal não-cor):** o aceite **não muda** — o que muda é que ele fica
+  mais difícil de quebrar. Medido antes de mexer: a **tabela já cumpria** (banner com ícone + a coluna
+  `Estado` em letra), e o gap real estava no **heatmap**, onde divergência era só `ring-amber-500`.
+  Entraram: glifo por estado na célula, `AlertTriangle` no canto da célula divergente, `aria-label`
+  com estado · valor · divergência, entrada de Divergência na legenda, e um `AlertTriangle` no começo
+  da linha divergente da tabela (o `bg-warning/5` é um tint de 5% e some em greyscale). **Cores
+  intocadas** — `stateStyles` não mudou uma classe.
+- **Nota do PR-A3 de 2026-08-28 (mobile-fit):** abaixo de `md` a tabela é substituída por uma lista de
+  cartões por dia, com os **mesmos campos e os mesmos rótulos**; o cartão carrega o badge
+  `Divergência` com ícone. O aceite continua verificável porque o assert é sobre `props.linhas`, e
+  porque as duas renderizações consomem o **mesmo** `rows`.
 - **Status: 🧪 vermelho ESPERADO** — **predição**, não veredito. Eu não rodei teste (CT100/CI, [ADR 0062]).
   O status real vem da lane.
 
@@ -157,6 +168,20 @@ Entram como `[BACKLOG]` de propósito: são comportamento que o F3 de 2026-08-21
 - **[BACKLOG]** O seletor `espelho-modo-visao` não persiste escolha entre visitas (é `useState`, não
   `localStorage`). Deliberado por ora: o documento deve abrir SEMPRE na tabela, e persistir "grade"
   faria o RH abrir o espelho numa visão que não é o documento.
+- **[BACKLOG]** Alvo de toque das células do heatmap no telefone. **Calculado, não medido em browser**
+  (é aritmética de layout, e digo qual): a 375px, `max-w-7xl` não morde, sobram 375 − 48 (padding da
+  página) − 32 (padding do card) = 295px; menos 6 gaps de 4px, dá ~41px por célula numa grade de 7
+  colunas. Passa o **SC 2.5.8 de WCAG 2.2 AA (24px)** e fica abaixo do **44px** das diretrizes de
+  plataforma (SC 2.5.5, AAA). **Não corrigido de propósito:** mexer no tamanho da célula é layout do
+  `MonthHeatmap`, componente que a Onda 1 fenceou para edição só de a11y, e a saída (rolagem
+  horizontal ou menos colunas) mudaria a semântica de calendário. Registrado para não virar
+  "descoberta" futura.
+- **[BACKLOG]** A partir do PR-A3 cada dia existe em **dois nós** do HTML — a linha da tabela
+  (`dia-<data>`, ≥md) e o cartão (`dia-m-<data>`, <md) —, com só um visível por vez. Nenhum UC atual
+  é afetado (todos leem `props`, não DOM), mas **um teste futuro de nível DOM tem que filtrar por
+  visibilidade antes de contar** ocorrências por dia, senão conta em dobro. O `Show.tsx` já resolve
+  isso no `alvoDoDia()` por `getClientRects()` — e não por `getComputedStyle`, que aqui mentiria: quem
+  esconde é o ancestral, e o `display` computado do descendente continua `table-row`.
 
 ## Decidido — CPF e PIS ficam à vista no cabeçalho legal
 

@@ -41,6 +41,11 @@ import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdirSy
 import { join, dirname, resolve, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isPageScreenPath, raizesDePages } from '../qa/page-path.mjs';
+// FONTE UNICA do "que PT o charter declara" (a mesma que pt-conformance e criar-tela.mjs
+// consomem). Este gate tinha copia propria com regex [1-5] e ficava CEGO ao PT-07
+// (Feed/Timeline, formalizado 2026-07-11): as 2 telas que o declaram apareciam como
+// `pt=null` aqui enquanto o pt-conformance as media CONFORME. Copia de regra = drift.
+import { claimedPT } from './lib/pt-signatures.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..', '..');
@@ -49,7 +54,7 @@ const GOLDEN_DIR = join(ROOT, 'memory', 'requisitos', '_DesignSystem', 'padroes-
 const BASELINE = join(ROOT, 'memory', 'governance', 'ciclo-completo-baseline.json');
 const PT_FILE = {
   'PT-01': 'PT-01-Lista.md', 'PT-02': 'PT-02-Form-Drawer.md', 'PT-03': 'PT-03-Detalhe.md',
-  'PT-04': 'PT-04-Dashboard.md', 'PT-05': 'PT-05-Kanban.md',
+  'PT-04': 'PT-04-Dashboard.md', 'PT-05': 'PT-05-Kanban.md', 'PT-07': 'PT-07-Feed-Timeline.md',
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -85,10 +90,14 @@ const fmField = (content, key) => {
   const f = fm.match(new RegExp(`^${key}\\s*:\\s*(.+)$`, 'm'));
   return f ? f[1].trim() : null;
 };
-const declaredPT = (relProto) => {
-  const m = (relProto || '').match(/PT-0[1-5]/i);
-  return m ? m[0].toUpperCase() : null;
-};
+// Delega pra fonte única. ATENÇÃO — isto é CONVENÇÃO, não enforcement: medido 2026-08-31,
+// re-inlinar uma cópia local com o regex JÁ CORRIGIDO passa o selftest inteiro. Os asserts
+// abaixo protegem o VALOR (que PT-07 conta, que PT-06 não), nunca a ESTRUTURA (que a regra
+// mora num lugar só). Gate sintático pra isso foi descartado — critério por forma tem 5
+// lápides medidas no §5 de memory/proibicoes.md.
+// PT-06 fica de fora de proposito — nao ha
+// golden nem >=2 telas do arquetipo, entao declarar PT-06 nao deve passar trivialmente.
+const declaredPT = (relProto) => claimedPT(relProto);
 // #5 teste: o casos.md aponta pra um teste/E2E real (path de teste em qualquer linha).
 const TESTE_RE = /(tests?\/|Modules\/[^\s]+\/Tests?\/|e2e\/|\.spec\.[tj]s|Test\.php)/i;
 
@@ -439,6 +448,19 @@ if (process.argv.includes('--selftest')) {
     // Mod/SemPT — charter não declara PT
     wr('resources/js/Pages/Mod/SemPT.tsx', '<DataTable/>');
     wr('resources/js/Pages/Mod/SemPT.charter.md', `---\ncomponent: x\n---\n`);
+    // Mod/Feed07 — BITE do PT-07: charter declara PT-07 (Feed/Timeline, formalizado 2026-07-11).
+    // Com a cópia local do regex (`[1-5]`) o gate lia `pt=null` e a tela caía em
+    // `pt_declarado+pt_conforme+golden_live` — dois FALSOS, porque o pt-conformance já a media
+    // CONFORME. Delegando pra `claimedPT` sobra só o `golden_live` (que é verdade: PT-07 é draft).
+    wr('resources/js/Pages/Mod/Feed07.tsx', 'const t = timeAgo(x); <Timeline/>');
+    wr('resources/js/Pages/Mod/Feed07.charter.md', charter('PT-07'));
+    wr('resources/js/Pages/Mod/Feed07.casos.md', casosCom);
+    // Mod/NaoPT06 — CONTROLE NEGATIVO: PT-06 (Ferramenta) NÃO existe (sem golden, <2 telas do
+    // arquétipo). Protege contra o conserto preguiçoso de trocar o regex por [1-7] inteiro:
+    // declarar um PT inexistente não pode passar trivialmente.
+    wr('resources/js/Pages/Mod/NaoPT06.tsx', '<DataTable/>');
+    wr('resources/js/Pages/Mod/NaoPT06.charter.md', charter('PT-06'));
+    wr('resources/js/Pages/Mod/NaoPT06.casos.md', casosCom);
     // Dirs AUXILIARES não são tela (fonte única isPageScreenPath — reconciliação 2026-07-27).
     // Antes só `_components`/`_partials` eram podados: `components/` (sem underscore), `_show`,
     // `_drawer`, `_shared`, `_form`, `_lib` entravam como tela INCOMPLETA e viravam débito
@@ -454,8 +476,9 @@ if (process.argv.includes('--selftest')) {
       ['resources/js/Pages/Mod/SemCasos.tsx', 'CONFORME'],
       ['resources/js/Pages/Mod/SemTeste.tsx', 'CONFORME'],
       ['resources/js/Pages/Mod/GoldenDraft.tsx', 'CONFORME'],
+      ['resources/js/Pages/Mod/Feed07.tsx', 'CONFORME'],
     ]);
-    const goldenStatus = { 'PT-01': 'live', 'PT-02': 'draft', 'PT-03': 'draft', 'PT-04': 'draft', 'PT-05': 'draft' };
+    const goldenStatus = { 'PT-01': 'live', 'PT-02': 'draft', 'PT-03': 'draft', 'PT-04': 'draft', 'PT-05': 'draft', 'PT-07': 'draft' };
     const rows = computeRows(tmp, pagesDir, { ptMap, goldenStatus });
     const by = (n) => rows.find((r) => r.page.endsWith(`/${n}.tsx`));
 
@@ -464,7 +487,10 @@ if (process.argv.includes('--selftest')) {
     t(!by('SemTeste').completo && by('SemTeste').faltando.includes('teste'), 'casos sem ref de teste = INCOMPLETA (falta teste)');
     t(!by('GoldenDraft').completo && by('GoldenDraft').faltando.join() === 'golden_live', 'golden DRAFT sozinho reprova (GOLDEN-LIVE)');
     t(!by('SemPT').completo && by('SemPT').faltando.includes('pt_declarado'), 'charter sem PT declarado = INCOMPLETA');
-    t(rows.length === 5, `dirs auxiliares (components/_drawer/_shared/_form) NÃO contam como tela (${rows.length} linhas, esperado 5)`);
+    t(by('Feed07').pt === 'PT-07', 'BITE PT-07: o gate RECONHECE o PT-07 (com o regex [1-5] lia pt=null)');
+    t(by('Feed07').faltando.join() === 'golden_live', 'BITE PT-07: sobra SÓ golden_live (o pt_conforme vem do ptMap injetado — a assinatura é coberta no pt-conformance)');
+    t(by('NaoPT06').pt === null && by('NaoPT06').faltando.includes('pt_declarado'), 'CN: PT-06 (inexistente) segue NÃO reconhecido — o fix não virou [1-7] cego');
+    t(rows.length === 7, `dirs auxiliares (components/_drawer/_shared/_form) NÃO contam como tela (${rows.length} linhas, esperado 7)`);
     t(!rows.some((r) => /\/(components|_drawer|_shared|_form)\//.test(r.page)), 'nenhum arquivo de dir auxiliar entrou nas linhas');
     const completoAtual = rows.filter((r) => r.completo).length;
     t(completoAtual === 1, 'catraca conta 1 completa nas fixtures');
@@ -607,6 +633,17 @@ if (process.argv.includes('--selftest')) {
     } else {
       console.log('  ⊘ controle positivo REAL PULADO — DataController de Arquivos/PaymentGateway ausente (não é verde)');
     }
+
+    // controle positivo REAL do PT_FILE — a ÚNICA entrada do gate que o selftest não exercitava.
+    // O bloco de fixtures INJETA `goldenStatus` (linha ~483), então `loadGoldenStatus`/`GOLDEN_DIR`
+    // nunca rodavam aqui. Medido 2026-08-31: apontar um nome de PT_FILE pra arquivo inexistente
+    // deixa `--selftest` rc=0 E `--check` rc=0 — o status vira `ausente`, que nunca é `live`, e a
+    // tela daquele PT jamais fecharia o ciclo, em silêncio. Vale pros 6 PTs, não só o 07: um rename
+    // do golden tem o mesmo efeito. Este assert é o que transforma isso em vermelho.
+    const statusReal = loadGoldenStatus(GOLDEN_DIR);
+    const ausentes = Object.entries(statusReal).filter(([, v]) => v === 'ausente').map(([k]) => k);
+    t(ausentes.length === 0,
+      `controle positivo REAL: os ${Object.keys(PT_FILE).length} nomes de PT_FILE existem no disco (ausente: ${ausentes.join(',') || 'nenhum'})`);
   } finally {
     try { rmSync(tmp, { recursive: true, force: true }); } catch { /* ignore */ }
   }

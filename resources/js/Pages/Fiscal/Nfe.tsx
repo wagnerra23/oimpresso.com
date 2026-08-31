@@ -187,7 +187,7 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
         ) : (
           <>
             {/* Filtros chip-row */}
-            <div className="fx-filters">
+            <div className="fx-filters" data-contract="fiscal-nfe-filters">
               <div className="fx-search">
                 <FileSearch size={13}/>
                 <input

@@ -15,8 +15,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import EmptyState from '@/Components/shared/EmptyState'
 import { MessageSquare, TrendingUp, TrendingDown, Minus, Sparkles, Settings, Download, Target } from 'lucide-react'
-import FabJana from './components/FabJana'
-import { JanaAreaHeader } from './components/JanaAreaHeader'
+import FabJana from './_components/FabJana'
+import { JanaAreaHeader } from './_components/JanaAreaHeader'
 import JanaCockpit, { type JanaCockpitProps } from './_components/JanaCockpit'
 import JanaConfigDrawer from './_components/JanaConfigDrawer'
 import { JanaPlanoBadge } from './_components/JanaPlanoBadge'
@@ -287,7 +287,7 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
             >
               <Settings className="h-3.5 w-3.5" /> Configurar
             </Button>
-            <Button variant="outline" size="sm" title="Exportar relatório (em breve)">
+            <Button variant="outline" size="sm" title="Exportar relatório">
               <Download className="h-3.5 w-3.5" /> Exportar
             </Button>
           </>
@@ -481,7 +481,7 @@ Dashboard.layout = (page: React.ReactNode) => (
   // `{!hideTopbar && …}` (:559) e `hideTopbar` é `true` por default (:243). Nenhuma tela
   // da Jana passa `hideTopbar={false}`, então o array nunca chegou à tela. Exibir de fato
   // é decisão de layout da área, não desta linha.
-  <AppShellV2 title="Jana — Dashboard">
+  <AppShellV2 title="Jana — Painel">
     {page}
   </AppShellV2>
 )

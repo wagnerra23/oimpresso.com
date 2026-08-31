@@ -1,12 +1,13 @@
 {
   "_meta": {
-    "generated_at": "2026-08-27T20:45:49.149Z",
+    "generated_at": "2026-08-31T12:35:00.527Z",
     "gate": "casos status derivado (ADR 0264 G-7 — Status por UC vem do veredito real do teste)",
     "sources": [
       "test-results/junit.xml",
       "test-results/pest-acessos-junit.xml",
       "test-results/pest-arquivos-junit.xml",
       "test-results/pest-compras-junit.xml",
+      "test-results/pest-dashboard-junit.xml",
       "test-results/pest-domain-junit.xml",
       "test-results/pest-essentials-junit.xml",
       "test-results/pest-estoque-junit.xml",
@@ -22,10 +23,10 @@
       "test-results/vitest-sells-v3-dominio-junit.xml"
     ],
     "stats": {
-      "ucs": 382,
-      "pass": 364,
+      "ucs": 415,
+      "pass": 395,
       "fail": 9,
-      "skip": 9
+      "skip": 11
     },
     "nota": "Veredito por-UC derivado dos relatórios JUnit (test-results/). Lido offline pelo casos:check G-7. Regerar quando a suíte rodar: npm run casos:results. UC sem entrada aqui = sem prova capturada (G-7 marca ✅ declarado como unverified).",
     "refs": [
@@ -35,67 +36,27 @@
     ]
   },
   "ucs": {
-    "UC-RBFAT-13": {
+    "UC-FORJA-13": {
       "verdict": "pass",
       "ran_at": null,
-      "tests": 3
+      "tests": 7
     },
-    "UC-RBFAT-12": {
+    "UC-FORJA-12": {
       "verdict": "pass",
       "ran_at": null,
-      "tests": 1
+      "tests": 12
     },
-    "UC-RBFAT-05": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-RBFAT-06": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-RBFAT-07": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-CXU-05": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-CXU-07": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-CXU-16": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-CXU-08": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-CXU-09": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-CXU-15": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-CXU-10": {
+    "UC-CXU-13": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
     "UC-CXU-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-CXU-07": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
@@ -110,22 +71,12 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-CXU-12": {
+    "UC-CXU-08": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-CXU-13": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-CXU-14": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-CXU-06": {
+    "UC-CXU-03": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
@@ -135,7 +86,87 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-CXU-03": {
+    "UC-CXU-09": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-CXU-15": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-CXU-05": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-CXU-12": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-CXU-14": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-CXU-10": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-CXU-06": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-CXU-16": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-RBCFG-07": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 4
+    },
+    "UC-RBCFG-08": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 8
+    },
+    "UC-RBCFG-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-RBCFG-04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-RBCFG-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-RBCFG-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-RBFAT-07": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-RBFAT-06": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-RBFAT-05": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
@@ -150,15 +181,45 @@
       "ran_at": null,
       "tests": 2
     },
-    "UC-RBFAT-08": {
+    "UC-FORJA-07": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 24
+    },
+    "UC-FORJA-05": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 12
+    },
+    "UC-FORJA-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 4
+    },
+    "UC-FORJA-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 12
+    },
+    "UC-FORJA-14": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 2
     },
-    "UC-RBFAT-09": {
+    "UC-RBFAT-13": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 3
+    },
+    "UC-RBFAT-12": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
+    },
+    "UC-RBSUB-04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 3
     },
     "UC-RBFAT-10": {
       "verdict": "pass",
@@ -170,10 +231,35 @@
       "ran_at": null,
       "tests": 2
     },
-    "UC-RBCFG-08": {
+    "UC-RBFAT-08": {
       "verdict": "pass",
       "ran_at": null,
-      "tests": 8
+      "tests": 2
+    },
+    "UC-RBFAT-09": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-RBSUB-08": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-RBSUB-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 3
+    },
+    "UC-RBSUB-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-RBSUB-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
     },
     "UC-RBSUB-06": {
       "verdict": "pass",
@@ -185,96 +271,6 @@
       "ran_at": null,
       "tests": 3
     },
-    "UC-FORJA-12": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 12
-    },
-    "UC-FORJA-13": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 7
-    },
-    "UC-RBSUB-08": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 2
-    },
-    "UC-FORJA-05": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 12
-    },
-    "UC-FORJA-07": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 24
-    },
-    "UC-FORJA-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 4
-    },
-    "UC-FORJA-14": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 2
-    },
-    "UC-FORJA-01": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 12
-    },
-    "UC-RBCFG-04": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 2
-    },
-    "UC-RBCFG-03": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-RBCFG-01": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-RBCFG-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-RBSUB-01": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-RBSUB-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 2
-    },
-    "UC-RBSUB-03": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 3
-    },
-    "UC-RBSUB-04": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 3
-    },
-    "UC-RBCFG-07": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 4
-    },
-    "UC-RBFAT-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
     "UC-RBFAT-01": {
       "verdict": "pass",
       "ran_at": null,
@@ -285,27 +281,32 @@
       "ran_at": null,
       "tests": 2
     },
-    "UC-RBFAT-03": {
+    "UC-RBFAT-02": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-INDEX-02": {
+    "UC-RBFAT-03": {
       "verdict": "pass",
       "ran_at": null,
-      "tests": 7
+      "tests": 1
     },
     "UC-INDEX-04": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 4
     },
-    "UC-INDEX-01": {
+    "UC-INDEX-05": {
       "verdict": "pass",
       "ran_at": null,
-      "tests": 8
+      "tests": 3
     },
-    "UC-INDEX-03": {
+    "UC-INDEX-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 7
+    },
+    "UC-INDEX-01": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 8
@@ -315,12 +316,17 @@
       "ran_at": null,
       "tests": 2
     },
-    "UC-INDEX-05": {
+    "UC-INDEX-03": {
       "verdict": "pass",
       "ran_at": null,
-      "tests": 3
+      "tests": 8
     },
     "UC-CMP-07": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-CMP-06": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 2
@@ -330,160 +336,115 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-CMP-06": {
+    "UC-DASH-08": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-DASH-14": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-DASH-07": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-DASH-10": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 2
     },
-    "UC-PSTK-03": {
+    "UC-DASH-12": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-PSTK-01": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-PSTK-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-EST-07": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-PEDIT-03": {
+    "UC-DASH-15": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 2
     },
-    "UC-EST-06": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 2
-    },
-    "UC-PUNI-15": {
+    "UC-DASH-16": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-PUNI-16": {
+    "UC-DASH-13": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-PUNI-07": {
+    "UC-DASH-09": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-PUNI-11C": {
+    "UC-DASH-11": {
+      "verdict": "skip",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-DASH-04": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-PUNI-11D": {
+    "UC-DASH-01": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-PUNI-11": {
+    "UC-DASH-03": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-PUNI-14": {
+    "UC-DASH-06": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-PUNI-10": {
+    "UC-DASH-05": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-PUNI-09": {
-      "verdict": "pass",
+    "UC-DASH-02": {
+      "verdict": "skip",
       "ran_at": null,
       "tests": 1
     },
-    "UC-PUNI-12": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-PUNI-12B": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-PUNI-13": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-PUNI-11B": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-PUNI-08": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-INV-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 2
-    },
-    "UC-PFIX-03": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-PFIX-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-PTAB-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 2
-    },
-    "UC-PTAB-01": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-PTAB-03": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 2
-    },
-    "UC-PTAB-04": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-EST-05": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 2
-    },
-    "UC-EST-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 4
-    },
-    "UC-INV-05": {
+    "UC-PUNI-17": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 3
+    },
+    "UC-PCAD-06": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PCAD-04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-PCAD-05": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PCAD-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PQCK-04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
     },
     "UC-PQCK-02": {
       "verdict": "pass",
@@ -500,7 +461,102 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-PQCK-04": {
+    "UC-EST-07": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-EST-06": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-EST-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-PUNI-06": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PUNI-04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PUNI-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PUNI-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PUNI-02B": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PUNI-05": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PUNI-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PSTK-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PSTK-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PSTK-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-INV-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-EST-08": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-EST-04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 3
+    },
+    "UC-PTAB-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-PTAB-04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PTAB-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-PTAB-01": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
@@ -515,12 +571,12 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-PBOM-01": {
+    "UC-PBOM-02": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-PBOM-02": {
+    "UC-PBOM-01": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
@@ -530,25 +586,35 @@
       "ran_at": null,
       "tests": 1
     },
+    "UC-INV-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-EST-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 4
+    },
     "UC-EST-01": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 3
     },
-    "UC-EST-04": {
+    "UC-EST-05": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-PEDIT-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-INV-05": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 3
-    },
-    "UC-PUNI-17": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 3
-    },
-    "UC-PINIC-03": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
     },
     "UC-PINIC-02": {
       "verdict": "pass",
@@ -565,135 +631,90 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-PCAD-04": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 2
-    },
-    "UC-PCAD-05": {
+    "UC-PINIC-03": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-PCAD-06": {
+    "UC-PUNI-11C": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-PCAD-01": {
+    "UC-PUNI-09": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-INV-03": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 2
-    },
-    "UC-EST-03": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 2
-    },
-    "UC-EST-08": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 2
-    },
-    "UC-PUNI-05": {
+    "UC-PUNI-14": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-PUNI-06": {
+    "UC-PUNI-11B": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-PUNI-02B": {
+    "UC-PUNI-12": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-PUNI-02": {
+    "UC-PUNI-11": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-PUNI-03": {
+    "UC-PUNI-11D": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-PUNI-04": {
+    "UC-PUNI-10": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-PUNI-01": {
+    "UC-PUNI-07": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-COB-04": {
+    "UC-PUNI-12B": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-FCC-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 2
-    },
-    "UC-FCC-01": {
+    "UC-PUNI-16": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-FCC-03": {
+    "UC-PUNI-08": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-FCC-04": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 2
-    },
-    "UC-FCC-05": {
+    "UC-PUNI-13": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-FCX-01": {
+    "UC-PUNI-15": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-FCX-03": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 2
-    },
-    "UC-FCX-05": {
+    "UC-PFIX-02": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-FCX-02": {
+    "UC-PFIX-03": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
-    },
-    "UC-FCX-04": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-F04": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 3
     },
     "UC-FCC-12": {
       "verdict": "pass",
@@ -705,137 +726,12 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-FCC-13": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
     "UC-FCC-10": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-IMP-11": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-IMP-09": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-IMP-05": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-IMP-10": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-IMP-08": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-F02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-F01": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-F03": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-ASS-01": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-FCC-07": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-FCC-09": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 2
-    },
-    "UC-FCC-06": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-FCC-08": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-FLX-03": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-FLX-07": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-FLX-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-FLX-01": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-FUNI-01": {
-      "verdict": "skip",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-FUNI-04": {
-      "verdict": "skip",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-FUNI-03": {
-      "verdict": "skip",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-FUNI-02": {
-      "verdict": "skip",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-IMP-01": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-IMP-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-IMP-03": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-IMP-06": {
+    "UC-FCC-13": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
@@ -855,12 +751,97 @@
       "ran_at": null,
       "tests": 1
     },
+    "UC-F01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-F02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-F03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-COB-06": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-COB-04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-FLX-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-FLX-07": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-FLX-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-FLX-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-FCX-04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-FCX-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-FCX-05": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-FCX-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-FCX-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-FCC-04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-FCC-05": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
     "UC-DRE-05": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
     "UC-DRE-07": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-2": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
@@ -885,82 +866,162 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-2": {
+    "UC-FCC-07": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-COB-06": {
+    "UC-FCC-09": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-FCC-06": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-TRAB-12": {
+    "UC-FCC-08": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-TRAB-03": {
+    "UC-IMP-08": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-TRAB-09": {
+    "UC-IMP-05": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-TRAB-08": {
+    "UC-IMP-10": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-TRAB-10": {
+    "UC-IMP-09": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-TRAB-05": {
+    "UC-IMP-11": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-TRAB-02": {
+    "UC-IMP-06": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-TRAB-07": {
+    "UC-IMP-01": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-TRAB-01": {
+    "UC-IMP-02": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-TRAB-06": {
+    "UC-IMP-03": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-TRAB-04": {
+    "UC-FCC-01": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-TRAB-11": {
+    "UC-FCC-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-FCC-03": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-PIPE-03": {
+    "UC-FUNI-03": {
+      "verdict": "skip",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-FUNI-01": {
+      "verdict": "skip",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-FUNI-04": {
+      "verdict": "skip",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-FUNI-02": {
+      "verdict": "skip",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-ASS-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-F04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 3
+    },
+    "UC-APROV-05": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-APROV-04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-APROV-06": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-APROV-07": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-APROV-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-APROV-08": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-APROV-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-APROV-02": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
     "UC-PIPE-04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PIPE-03": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
@@ -975,62 +1036,72 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-APROV-05": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 2
-    },
-    "UC-APROV-08": {
+    "UC-TRAB-09": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-APROV-07": {
+    "UC-TRAB-12": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-APROV-04": {
+    "UC-TRAB-10": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-APROV-01": {
+    "UC-TRAB-08": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-APROV-02": {
+    "UC-TRAB-04": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-APROV-06": {
+    "UC-TRAB-11": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-APROV-03": {
+    "UC-TRAB-07": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-JPAIN-05": {
+    "UC-TRAB-01": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-JPAIN-13": {
+    "UC-TRAB-03": {
       "verdict": "pass",
       "ran_at": null,
-      "tests": 2
+      "tests": 1
     },
-    "UC-JPAIN-12": {
+    "UC-TRAB-06": {
       "verdict": "pass",
       "ran_at": null,
-      "tests": 4
+      "tests": 1
     },
-    "UC-JPAIN-03": {
+    "UC-TRAB-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-TRAB-05": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-JCHAT-12": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 3
+    },
+    "UC-JPAIN-16": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
@@ -1040,47 +1111,12 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-JPAIN-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-JPAIN-14": {
+    "UC-JPAIN-13": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 2
     },
-    "UC-JPAIN-15": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-JPAIN-01": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-JPAIN-16": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
     "UC-JPAIN-09": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-JPAIN-06": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-JPAIN-11": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-JPAIN-10": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
@@ -1095,47 +1131,57 @@
       "ran_at": null,
       "tests": 3
     },
-    "UC-JCHAT-10": {
+    "UC-JPAIN-02": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-JCHAT-09": {
+    "UC-JPAIN-10": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-JCHAT-12": {
+    "UC-JPAIN-14": {
       "verdict": "pass",
       "ran_at": null,
-      "tests": 3
+      "tests": 2
     },
-    "UC-JCHAT-05": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-JCHAT-07": {
+    "UC-JPAIN-03": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-JCHAT-08": {
+    "UC-JPAIN-12": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 4
+    },
+    "UC-JPAIN-11": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-JCHAT-06": {
+    "UC-JPAIN-05": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-JPAIN-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-JPAIN-15": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-JPAIN-06": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
     "UC-MEM-03": {
-      "verdict": "skip",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-MEM-04": {
       "verdict": "skip",
       "ran_at": null,
       "tests": 1
@@ -1150,8 +1196,48 @@
       "ran_at": null,
       "tests": 1
     },
+    "UC-MEM-04": {
+      "verdict": "skip",
+      "ran_at": null,
+      "tests": 1
+    },
     "UC-MEM-01": {
       "verdict": "skip",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-JPERM-08": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 4
+    },
+    "UC-JCHAT-09": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-JCHAT-10": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-JCHAT-07": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-JCHAT-05": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-JCHAT-08": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-JCHAT-06": {
+      "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
@@ -1165,87 +1251,7 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-FNFE-03": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-FNFE-01": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-FCFG-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-FCFG-01": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-NFTR-05": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-NFTR-04": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-NFTR-07": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-NFTR-01": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-NFTR-03": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-NFTR-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-NFTR-06": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-NFCD-04": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-NFCD-03": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-NFCD-06": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-NFCD-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-NFCD-05": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-NFCD-01": {
+    "UC-FCKP-05": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
@@ -1255,7 +1261,22 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-FCKP-05": {
+    "UC-FNFSE-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-FNFSE-04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-FNFE-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-FNFE-01": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
@@ -1275,27 +1296,92 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-FNFSE-04": {
+    "UC-NFTR-06": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-FNFSE-01": {
+    "UC-NFTR-01": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-LOGS-13": {
+    "UC-NFTR-02": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-TL-06": {
+    "UC-NFTR-03": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-LOGS-05": {
+    "UC-NFTR-04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-NFTR-05": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-NFTR-07": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-NFCD-04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-NFCD-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-NFCD-06": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-NFCD-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-NFCD-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-NFCD-05": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-FCFG-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-FCFG-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-LOGS-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-LOGS-12": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-LOGS-09": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
@@ -1305,22 +1391,7 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-LOGS-03": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-LOGS-07": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-TL-07": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-TL-08": {
+    "UC-LOGS-10": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
@@ -1330,7 +1401,52 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-LOGS-02": {
+    "UC-LOGS-07": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-LOGS-13": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-TL-05": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-TL-10": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-LOGS-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-TL-07": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-TL-06": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-TL-09": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-LOGS-08": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-TL-08": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
@@ -1345,47 +1461,17 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-TL-10": {
+    "UC-LOGS-02": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-LOGS-09": {
+    "UC-LOGS-05": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-LOGS-08": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-LOGS-10": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-TL-05": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-TL-09": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-LOGS-12": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-LOGS-01": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-ESCF-02": {
+    "UC-ESCF-03": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
@@ -1395,7 +1481,147 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-ESCF-03": {
+    "UC-ESCF-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PAINEL-07": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PAINEL-05": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PAINEL-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PAINEL-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PAINEL-06": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PAINEL-08": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PAINEL-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PAINEL-04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-INTEDT-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-INTEDT-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-INTEDT-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-RELIDX-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-RELIDX-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-RELIDX-04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-RELIDX-05": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-RELIDX-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-BHIDX-04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-BHIDX-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-BHIDX-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-BHIDX-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-ESPSH-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-ESPSH-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-ESPIDX-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-ESPSH-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-ESPSH-05": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-ESPIDX-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-ESPSH-04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-ESPIDX-01": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
@@ -1410,27 +1636,12 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-IMPIDX-03": {
+    "UC-INTCRE-02": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-IMPIDX-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-IMPIDX-01": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-RELIDX-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-RELIDX-01": {
+    "UC-INTIDX-02": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
@@ -1445,117 +1656,22 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-INTCRE-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-INTIDX-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
     "UC-INTIDX-01": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-PAINEL-05": {
+    "UC-IMPIDX-01": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-PAINEL-06": {
+    "UC-IMPIDX-03": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
     },
-    "UC-PAINEL-03": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-PAINEL-04": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-PAINEL-01": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-PAINEL-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-BHIDX-01": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-BHIDX-03": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-BHIDX-04": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-BHIDX-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-V301": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-V302": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-V303": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-VSHOW-05": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-VSHOW-01": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-VSHOW-07": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-VSHOW-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-VSHOW-03": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-VSHOW-06": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-VSHOW-04": {
+    "UC-IMPIDX-02": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
@@ -1570,34 +1686,84 @@
       "ran_at": null,
       "tests": 1
     },
+    "UC-VSHOW-04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-VSHOW-07": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-VSHOW-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-VSHOW-06": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-VSHOW-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-VSHOW-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-VSHOW-05": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-V302": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-V303": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-V301": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
     "UC-JCHAT-01": {
       "verdict": "pass",
-      "ran_at": "2026-08-26",
+      "ran_at": "2026-08-29",
       "tests": 4
     },
     "UC-JCHAT-02": {
       "verdict": "pass",
-      "ran_at": "2026-08-26",
+      "ran_at": "2026-08-29",
       "tests": 6
     },
     "UC-JCHAT-03": {
       "verdict": "pass",
-      "ran_at": "2026-08-26",
+      "ran_at": "2026-08-29",
       "tests": 4
     },
     "UC-JCHAT-04": {
       "verdict": "pass",
-      "ran_at": "2026-08-26",
+      "ran_at": "2026-08-29",
       "tests": 1
     },
     "UC-JCHAT-11": {
       "verdict": "pass",
-      "ran_at": "2026-08-26",
+      "ran_at": "2026-08-29",
       "tests": 3
     },
     "UC-PRO-07": {
       "verdict": "pass",
-      "ran_at": "2026-08-26",
+      "ran_at": "2026-08-29",
       "tests": 4
     },
     "UC-V365": {

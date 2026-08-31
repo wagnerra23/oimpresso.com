@@ -83,14 +83,82 @@
     "applicationReport": {
       "type": "object",
       "required": ["schema", "bundle", "summary", "transportChanges", "screens"],
-      "properties": { "schema": { "const": "oimpresso-design-application-report/2" } }
+      "properties": { "schema": { "const": "oimpresso-design-application-report/3" } }
+    },
+    "testReceipt": {
+      "type": "object",
+      "required": ["command", "exitCode", "runner", "outputSha256", "sourceSha256", "targetSha256", "recordedAt"],
+      "properties": {
+        "command": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "exitCode": { "const": 0 },
+        "runner": { "enum": ["local", "ct100", "ci"] },
+        "outputSha256": { "$ref": "#/$defs/sha256" },
+        "sourceSha256": { "$ref": "#/$defs/sha256" },
+        "targetSha256": { "$ref": "#/$defs/sha256" },
+        "recordedAt": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": false
+    },
+    "smokeReceipt": {
+      "type": "object",
+      "required": ["route", "deploySha", "tenant", "screenshot", "screenshotSha256", "result", "targetSha256", "recordedAt"],
+      "properties": {
+        "route": { "type": "string", "pattern": "^/" },
+        "deploySha": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+        "tenant": { "const": 1 },
+        "screenshot": { "$ref": "#/$defs/path" },
+        "screenshotSha256": { "$ref": "#/$defs/sha256" },
+        "result": { "const": "passed" },
+        "targetSha256": { "$ref": "#/$defs/sha256" },
+        "recordedAt": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": false
     },
     "applications": {
       "type": "object",
       "required": ["schema", "applications"],
       "properties": {
-        "schema": { "const": "oimpresso-design-applications/1" },
-        "applications": { "type": "array" }
+        "schema": { "const": "oimpresso-design-applications/2" },
+        "applications": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["source", "target", "sourceSha256", "targetSha256", "tests", "smokes"],
+            "properties": {
+              "source": { "$ref": "#/$defs/path" },
+              "target": { "$ref": "#/$defs/path" },
+              "sourceSha256": { "$ref": "#/$defs/sha256" },
+              "targetSha256": { "$ref": "#/$defs/sha256" },
+              "comparison": {
+                "type": "object",
+                "required": ["map", "mapSha256", "recordedAt"],
+                "properties": {
+                  "map": { "$ref": "#/$defs/path" },
+                  "mapSha256": { "$ref": "#/$defs/sha256" },
+                  "recordedAt": { "type": "string", "format": "date-time" }
+                }
+              },
+              "application": {
+                "type": "object",
+                "properties": {
+                  "evidence": { "$ref": "#/$defs/path" },
+                  "evidenceSha256": { "$ref": "#/$defs/sha256" },
+                  "recordedAt": { "type": "string", "format": "date-time" },
+                  "legacyUnverified": { "const": true }
+                },
+                "oneOf": [
+                  { "required": ["evidence", "evidenceSha256", "recordedAt"], "not": { "required": ["legacyUnverified"] } },
+                  { "required": ["legacyUnverified"] }
+                ],
+                "additionalProperties": false
+              },
+              "legacyTests": { "type": "array", "items": { "type": "string" } },
+              "tests": { "type": "array", "items": { "$ref": "#/$defs/testReceipt" } },
+              "smokes": { "type": "array", "items": { "$ref": "#/$defs/smokeReceipt" } }
+            },
+            "additionalProperties": false
+          }
+        }
       }
     }
   }

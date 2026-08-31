@@ -36,7 +36,7 @@ Sete props (`Components/PageHeader/PageHeader.tsx`, ADR 0189 v3.2 + 0190): `lead
 
 ⚠️ **`shared/PageHeaderTabs.tsx` NÃO é deprecated** — ele se declara *"slot action canônico do PageHeader (ADR 0180)"*. Está na mesma pasta do congelado, e é canon. Julgar por **pasta** produziria a conclusão errada de que o `JanaSubNav` (que o importa) está em dívida — ele não está. A área Jana **está toda no canon**.
 
-Wrapper da área: `Pages/Jana/components/JanaAreaHeader.tsx` (usa o canon) + `Pages/Jana/_shared/JanaSubNav.tsx`.
+Wrapper da área: `Pages/Jana/_components/JanaAreaHeader.tsx` (usa o canon) + `Pages/Jana/_shared/JanaSubNav.tsx`.
 
 ## 4 · O header de cada página
 
