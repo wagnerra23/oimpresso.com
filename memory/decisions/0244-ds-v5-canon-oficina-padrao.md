@@ -49,6 +49,19 @@ Esta ADR **consolida** (não contradiz): [0114](0114-prototipo-ui-cowork-loop-fo
 3. **Inbox 9.75 = régua de nota congelada** (gabarito de método). Permanece intocada; é a referência contra a qual as outras telas são medidas. Os dois papéis (semente ≠ régua) ficam **separados** de propósito.
 4. **Âmbar da Oficina = accent escopado** (`.oficina-scope{ --accent: … }`), **nunca** troca o token global. O roxo canon [ADR 0190](0190-primary-button-roxo-universal-295.md) / [ADR 0235](0235-ds-v4-accent-roxo-universal.md) segue intacto fora do escopo.
 
+> **⛔ REVOGADA 2026-08-31 pela [ADR 0386](0386-ambar-da-oficina-revogado-roxo-e-a-unica-identidade.md)** ([ADR 0377](0377-append-only-adr-excecao-por-label-emenda-0094.md) — ponteiro): **a decisão 4 acima não vale mais.** Não há accent âmbar escopado para a Oficina, nem cor própria de `--accent` para vertical nenhuma. O roxo canon `oklch(0.55 0.15 295)` é a **única** identidade de chrome ([0190](0190-primary-button-roxo-universal-295.md)/[0235](0235-ds-v4-accent-roxo-universal.md)/[0263](0263-identidade-cor-gate-bloqueante.md)). [W] decidiu em 2026-08-31: *"ambar não"*.
+>
+> **As decisões 1, 2 e 3 desta ADR seguem intactas** — DS v5 único ativo · Oficina = tela-padrão/semente · Inbox 9.75 = régua congelada. A supersessão é **parcial**, só do item 4.
+>
+> **Por que existia o conflito** (auditado em 2026-08-31 contra `origin/main` @ `debcf599ee`): a [ADR 0263](0263-identidade-cor-gate-bloqueante.md), seis dias depois desta, decidiu *"Nenhum módulo redefine `--accent` com cor própria"* e instalou gate **required** com invariante `--accent*` em hue 250–330. As duas ficaram ativas sem se citarem. Medido com o predicado real do gate (`accentHueViolations` de `scripts/conformance-gate.mjs`):
+>
+> | fixture | veredito |
+> |---|---|
+> | `.oficina-scope { --accent: oklch(0.769 0.155 70) }` | **2 violações** · `conformance` rc=1 → job `DS gate` (**required**) rc=1 |
+> | `.oficina-scope { --accent: oklch(0.55 0.15 295) }` | 0 violações — não acusa inocente |
+>
+> **Nunca chegou a doer:** `.oficina-scope` tinha **uma única ocorrência** no repo inteiro — esta ADR. Zero implementação, zero PR vermelho. A contradição era de texto, e morreu antes de virar código.
+
 ## Consequências
 
 **Design (Cowork):** 1 só DS de tokens vivo no host (v5). Trabalho novo nasce no v5; drift v4↔v5 acaba. Oficina dirige a evolução do DS aterrada no uso real; Inbox 9.75 protege o teto de qualidade.
