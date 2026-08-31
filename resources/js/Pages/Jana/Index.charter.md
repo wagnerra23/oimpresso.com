@@ -6,7 +6,7 @@ related_prototype: prototipo-ui/cowork/jana-merge.jsx
 states: [default]  # gate L2 — o `default` desta tela é semeado com UMA venda VENCIDA (routes/web.php `$seedJanaVisregFlow`), pra que o KpiCard `tone="danger"` do "A receber vencido" entre em baseline; sync com tests/Browser/visreg-states.json
 owner: wagner
 status: live
-last_validated: "2026-08-18"
+last_validated: "2026-08-31"
 parent_module: Jana
 parent_adr: memory/decisions/0052-memoria-jana-3-angulos-faturamento.md
 related_adrs: [26, 31, 35, 36, 52, 93, 94, 107, 114]
@@ -18,7 +18,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 10
+charter_version: 11
 permissao: copiloto.access
 ---
 
@@ -54,9 +54,9 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 - **Drill-down "de onde vem esse número" (v3 — 2026-08-07):** card de análise abre drawer
   (`_components/JanaDrillDrawer.tsx`) com **Fonte** (tabelas · regra do recorte · método que
   calcula) + **Escopo** (`business_id` da sessão). Um KPI só é clicável quando existe análise
-  do **MESMO dado** — "ticket médio não abre faturamento". Hoje 2 dos 4 KPIs abrem
-  (Receita mês → Faturamento; A receber vencido → Inadimplência); Ticket médio e PIX hoje
-  não têm análise do mesmo dado e permanecem estáticos. Âncora:
+  do **MESMO dado** — "ticket médio não abre faturamento". Hoje 2 dos **3** KPIs abrem
+  (Receita 30 dias → Faturamento; A receber vencido → Inadimplência); Ticket médio
+  não tem análise do mesmo dado e permanece estático. Âncora:
   `prototipo-ui/cowork/jana-merge.jsx` §`JmDrillDrawer` + §`JM_KPI_DRILL` — âncora de SÍMBOLO
   (ref de linha apodrece no 1º refactor, §5 2026-07-26; re-localize com
   `grep -n "JmDrillDrawer\|JM_KPI_DRILL" prototipo-ui/cowork/jana-merge.jsx`).
@@ -193,6 +193,36 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 `brief-first` (Tier A) · `multi-tenant-patterns` (Tier A) · `inertia-defer-default` (Tier B) · `mwart-process` (Tier A)
 
 ## Charter version log
+
+- v11 (2026-08-31) — **O conjunto de KPIs cai pra 3, na paridade com a âncora** (item 4
+  da lista de 2026-08-28). Sai o `PIX hoje`; `KpiGrid` passa a `cols={3}`; a ordem dos
+  três que ficaram (`Receita 30 dias` · `A receber vencido` · `Ticket médio`) casa 1:1
+  com a do protótipo. Contrato novo: **UC-JPAIN-18** no `Index.casos.md`.
+
+  **O que a medição corrigiu no caminho, e fica registrado:**
+  - este charter dizia *"2 dos **4** KPIs abrem"*. Vira **2 dos 3** — mesma regra, o
+    número é que era do conjunto antigo.
+  - o `JanaCockpit.tsx` afirmava, em presente, que a âncora *"traz `Frota utilização`"*.
+    **Falso, medido em 2026-08-31**: `grep -in 'frota\|truck' jana-merge.jsx` → rc=1,
+    zero, com controle positivo no mesmo arquivo (`grep -c JM_KPI_DRILL` → 2, rc=0). A
+    frota só existe no `chat-jana.jsx` (não-âncora) e **nem lá é KPI** — é ícone e
+    classe CSS. O veredito [W] de 2026-08-07 sobre não construir frota segue de pé; o
+    que caiu foi a afirmação de que a âncora ainda a oferece.
+  - o rótulo do 1º card **não** foi copiado do protótipo. Lá é `Receita mês`; aqui fica
+    `Receita 30 dias`, porque o dado são 30 dias deslizantes e o UC-JPAIN-14 corrigiu a
+    palavra com esse fundamento. **Neste ponto é o protótipo que está atrás.**
+
+  ⛔ **Regra, não ressalva — [W] revogou a objeção em 2026-08-31.** Levantei uma vez que
+  o array `kpis` é autorado no `chat-jana.jsx` e que o mock é do Martinho, logo a ausência
+  do PIX poderia ser premissa deles (§5 2026-07-16). [W], textual: *"essa ressalva deve
+  ser por isso que não fica igual. deve ser revogado. que igual."* **Fica assim:** o
+  conjunto de KPIs desta tela é **o que a âncora renderiza**, e isso não se re-litiga por
+  sessão. Ressalva pendurada em canon é recusa disfarçada — é ela que mantém a tela
+  diferente do protótipo (ADR 0382 · §5 2026-08-24).
+
+  Segue valendo o que é regra de FONTE: derivar do `chat-jana.jsx` o que ele **não**
+  renderiza (a frota) continua proibido. Espelhar o que a âncora renderiza é paridade,
+  que é o oposto.
 
 - v10 (2026-08-18) — **Ação HITL: prévia + aprovação registrada** (ordem 1 do
   `Index-visual-comparison.md` — a única linha do §Resumo cuja trava era literalmente

@@ -39,10 +39,17 @@
 //     de `:645-646` para **`:787-805`** e hoje cita 4× `SellsCockpitAggregator::…`,
 //     que É a fonte real. A única menção que sobrou (`:790`) é um comentário
 //     DOCUMENTANDO a remoção. `AnaliseFaturamentoService`: 0 ocorrências no arquivo.
-//   · P-2 — `truck: "frota"`: **SEGUE ABERTO**, e não está em `:89` (hoje é o fato
-//     `f2` de `JM_FATOS`) — está em **`:128`**, `JM_KPI_DRILL`. [W] matou a análise
-//     Frota em 2026-08-07 e o Non-Goal está no Index.charter.md. Este componente
-//     resiste por conta própria (mapeia 2 de 4 KPIs, nenhum é frota) — mantenha assim.
+//   · P-2 — `truck: "frota"`: **FECHADO, medido em 2026-08-31**. Esta linha dizia,
+//     em presente, que ele "SEGUE ABERTO" em `:128`, `JM_KPI_DRILL` — e as duas
+//     metades eram falsas. Medição, com controle positivo pra provar que o grep
+//     alcança o arquivo: `grep -in 'frota\|truck' jana-merge.jsx` → **rc=1, zero
+//     ocorrências**; `grep -c JM_KPI_DRILL jana-merge.jsx` → **2, rc=0**. E o
+//     `JM_KPI_DRILL` vive em `:124` com **2** entradas (`{ coins: "fat", alert:
+//     "inad" }`), sem `truck`. A frota sobrevive só no `chat-jana.jsx` (não-âncora),
+//     e ali NÃO é KPI — é o ícone `truck:` e a classe `jc-an-frota`.
+//     O veredito [W] de 2026-08-07 ("Frota utilização são alucinação, ninguém usa")
+//     segue governando o que se CONSTRÓI aqui; o que mudou é que a âncora deixou de
+//     oferecer a tentação. Este componente mapeia 2 de 3 KPIs, nenhum é frota.
 // Re-localize por SÍMBOLO, nunca por número de linha: `grep -n 'truck' <arquivo>`.
 //
 // ⛔ NÃO reescreva isto como "a âncora está limpa" nem como "está defeituosa": as duas
@@ -257,6 +264,10 @@ export default function JanaCockpit({
   // resposta do servidor, não ausência.
   const carregandoCockpit = coworkAggregates === undefined;
   const faturadoHoje = coworkAggregates?.faturadoHojeTotal ?? 0;
+  // `pixHoje` FICA depois da saída do KPI (2026-08-31, UC-JPAIN-18): ele tem outros
+  // 2 consumidores vivos neste arquivo — a ação sugerida "PIX adoção em N% — manter"
+  // e a linha do brief (`· PIX <valor> (N% imediato)`). Medido antes de remover o
+  // card: `rg -n pixHoje` → 19 hits no repo, 8 aqui. Não trate como órfão.
   const pixHoje = coworkAggregates?.pixHojeTotal ?? 0;
   const deltaRev = coworkAggregates?.deltaRevenueVsYesterday ?? null;
   const deltaTicket = coworkAggregates?.deltaTicketVsLastWeek ?? null;
@@ -390,14 +401,16 @@ export default function JanaCockpit({
   // Âncora: prototipo-ui/cowork/jana-merge.jsx :887 (`JM_KPI_DRILL`).
   //
   // A regra fina do protótipo: o KPI só vira clicável quando existe uma análise
-  // do MESMO dado — "ticket médio não abre faturamento". Aqui isso deixa 2 dos 4
+  // do MESMO dado — "ticket médio não abre faturamento". Aqui isso deixa 2 dos 3
   // KPIs clicáveis:
-  //   Faturamento mês     → análise Faturamento   ✓ mesmo dado
-  //   Inadimplência total → análise Inadimplência ✓ mesmo dado
+  //   Receita 30 dias     → análise Faturamento   ✓ mesmo dado
+  //   A receber vencido   → análise Inadimplência ✓ mesmo dado
   //   Ticket médio        → não há análise de ticket médio        ✗
-  //   PIX hoje            → "Métodos de pagamento" é a quebra de TODAS as
-  //                         formas em 30d, não o PIX de hoje — dado e janela
-  //                         diferentes, então não abre.            ✗
+  //
+  // O 4º KPI (`PIX hoje`) SAIU em 2026-08-31 (UC-JPAIN-18). Ele também não abria,
+  // e pela mesma razão que segue valendo pro card que ficou: "Métodos de pagamento"
+  // é a quebra de TODAS as formas em 30d, não o PIX de hoje — dado e janela
+  // diferentes.
   const [drill, setDrill] = useState<DrillAnalise | null>(null);
 
   // Ação em confirmação HITL. `null` = modal fechado. Guarda só o que o modal
@@ -587,7 +600,7 @@ export default function JanaCockpit({
         </CardContent>
       </Card>
 
-      {/* KPIs (4 cards) ────────────────────────────────────────────────────── */}
+      {/* KPIs (3 cards) ────────────────────────────────────────────────────── */}
       {/* RÓTULOS — alinhados à âncora (`jana-merge.jsx` → `getJanaData().kpis` no
           `chat-jana.jsx`; re-localize com `grep -n "kpis: \[" prototipo-ui/cowork/chat-jana.jsx`).
           Copiar RÓTULO é decisão de copy; copiar DADO seria erro — os números da
@@ -602,13 +615,35 @@ export default function JanaCockpit({
                                   número não é.)
             Ticket médio        → (igual, sem mudança)
 
-          O 4º NÃO foi renomeado. A âncora traz `Frota utilização`, e o slot vivo é
-          `PIX hoje` — dados DIFERENTES, não sinônimos. Renomear seria mentir sobre
-          o que o número mede; construir a Frota exige decidir de onde vem o dado
-          (`Vehicle` é do `Modules/OficinaAuto`, e a `/ia` do núcleo atende ROTA
-          LIVRE, vestuário). Isso é decisão [W], não implementação — o Non-Goal que
-          proibia a Frota saiu no charter v7, mas a AUSÊNCIA DE FONTE não saiu com
-          ele. */}
+          O 4º SAIU (2026-08-31, decisão [W] · UC-JPAIN-18). Ele era `PIX hoje`, e
+          o slot não tem contraparte: medido no protótipo, `getJanaData().kpis`
+          publica **3** entradas (Receita mês · A receber vencido · Ticket médio) e
+          a `jc-kpis` da âncora renderiza exatamente esse array
+          (`jana-merge.jsx` §`data.kpis.map`). Com o 4º fora, a ORDEM dos três
+          restantes passa a casar 1:1 com a do protótipo.
+
+          ⚠️ Este bloco dizia, em presente, que "a âncora traz `Frota utilização`".
+          Medido em 2026-08-31 e era FALSO: `grep -in 'frota\|truck' jana-merge.jsx`
+          → rc=1, zero ocorrências, com controle positivo no mesmo arquivo
+          (`grep -c JM_KPI_DRILL` → 2, rc=0). A frota sobrevive só no `chat-jana.jsx`
+          (não-âncora) e ali NÃO é KPI: é um ícone (`truck:`) e uma classe CSS
+          (`jc-an-frota`). Não há 4º slot na âncora pra disputar.
+
+          ⛔ NÃO RE-PROPOR "mas o PIX podia voltar". A objeção — *o array `kpis` é
+          autorado no `chat-jana.jsx`, e o mock é do Martinho, logo a ausência do PIX
+          pode ser premissa deles* — foi levantada UMA vez e **REVOGADA por [W] em
+          2026-08-31**, textual: *"essa ressalva deve ser por isso que não fica igual.
+          deve ser revogado. que igual."*
+
+          A regra que fica: **o conjunto de KPIs desta tela é o que a âncora RENDERIZA**
+          — hoje 3. Não é decisão a re-litigar por sessão. Informar o número uma vez é
+          serviço; deixá-lo pendurado como ressalva é recusa disfarçada, e foi
+          exatamente isso que manteve a tela diferente do protótipo (ADR 0382 · §5
+          2026-08-24 *"faça ficar igual. não é decisão minha, não me pergunte"*).
+
+          O que segue valendo, e é regra de FONTE, não ressalva: derivar do
+          `chat-jana.jsx` o que ele NÃO renderiza (a frota é o caso) continua proibido.
+          Espelhar o que a âncora renderiza é o oposto disso — é paridade. */}
       {/* ── JANELA DO KPI: o rótulo diz o que o dado É ────────────────────
           Este card dizia "Receita mês" e mostrava `sparkSum` — a soma da
           SPARKLINE, que é `whereBetween(transaction_date, [hoje-29, hoje])`:
@@ -636,7 +671,7 @@ export default function JanaCockpit({
           cálculo a mês-calendário para casar a palavra antiga — mexeria, e aí
           vale a regra mestre de VALOR (dupla prova + antes→depois). É decisão
           [W], registrada no `Index.casos.md` §UC-JPAIN-14. */}
-      <KpiGrid cols={4}>
+      <KpiGrid cols={3}>
         {carregandoCockpit ? (
           <KpiCardSkeleton label="Receita 30 dias" />
         ) : (
@@ -652,7 +687,11 @@ export default function JanaCockpit({
         {/* `tone` só enfatiza quando HÁ alerta. O ramo `else` era `success`, que
             pintava o card de VERDE exibindo R$ 0,00 — verde afirmando "bom"
             sobre ausência de dado. A âncora enfatiza UM KPI só, e só no alerta
-            (1 de 4 com `emphasize:true` no chat-jana.jsx; seletor `.jc-kpi.emph` no
+            (1 de 3 com `emphasize:true` no chat-jana.jsx — dizia "1 de 4", e o
+            denominador estava errado: medido 2026-08-31, `grep -c emphasize` → 2
+            ocorrências, sendo 1 o dado (`:94`) e 1 o render (`:256`), sobre um
+            array de 3 KPIs. A REGRA visual não mudou; só o número apodrecera.
+            Seletor `.jc-kpi.emph` no
             chat-jana.css — âncora de SÍMBOLO, re-localize com
             `grep -n "jc-kpi.emph" prototipo-ui/cowork/chat-jana.css`). */}
         <KpiCard
@@ -679,21 +718,6 @@ export default function JanaCockpit({
           tone="default"
           delta={deltaTicket !== null ? { value: deltaTicket, label: '7d' } : undefined}
         />
-        {carregandoCockpit ? (
-          <KpiCardSkeleton label="PIX hoje" />
-        ) : (
-          <KpiCard
-            label="PIX hoje"
-            value={fmtShort(pixHoje)}
-            icon="zap"
-            tone="default"
-            description={
-              faturadoHoje > 0
-                ? `${Math.round((pixHoje / faturadoHoje) * 100)}% do faturado`
-                : '— sem faturamento hoje'
-            }
-          />
-        )}
       </KpiGrid>
 
       {/* Metas entram AQUI — posição da âncora. Ver §R5 de

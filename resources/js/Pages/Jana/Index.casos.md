@@ -4,7 +4,7 @@ casos: Jana Painel · metas ativas · farol server-side · cockpit deferido · /
 irmaos: Index.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-index.md (runbook) · prototipo-ui/contrato/jana-painel.contract.json (contrato visual)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-28"
+last_run: "2026-08-31"
 ---
 
 # Casos de uso — /ia (Painel da Jana)
@@ -68,6 +68,29 @@ Nenhum `Status:` mudou. Os `🧪` continuam `🧪` e o `✅` do UC-04 continua �
 >
 > Os `🧪` **não** viraram `✅` de propósito: o G-7 lê o manifesto commitado, publicado pelo
 > `casos-results-publish`. Lane verde citada em prosa não é veredito capturado.
+
+## Revalidação de 2026-08-31 — o `last_run` sobe porque o conjunto de KPIs mudou
+
+O G-6 mede data-git: o `JanaCockpit.tsx` mudou depois do `last_run` de 08-28, então o `stale:`
+é correto e se paga aqui. O que mudou, e o efeito por UC:
+
+| mudança | UCs afetados |
+|---|---|
+| o KPI `PIX hoje` saiu; `KpiGrid` foi de `cols={4}` pra `cols={3}` | **UC-JPAIN-18** (novo — é ele que trava o conjunto e a ordem) |
+| o skeleton do `PIX hoje` saiu junto | **UC-JPAIN-08** — de 2 KPIs deferidos pra **1**; a asserção do PIX saiu no MESMO diff, e o texto do caso foi corrigido abaixo |
+| `pixHoje`/`pixHojeTotal` **ficaram** — a ação "PIX adoção" e a linha do brief seguem consumindo | **UC-JPAIN-02** — **nenhuma** mudança: `coworkAggregates` continua deferida e continua com 5 consumidores no componente (`faturadoHoje`, `pixHoje`, `deltaRev`, `deltaTicket`, `sparkline`). A contagem 4 eager + 1 deferida está intacta |
+| comentários que afirmavam `frota` na âncora e `1 de 4 emphasize` | **nenhum** — prosa, não comportamento; corrigidos com medição datada porque comentário falso é instrução ativa pra próxima sessão |
+
+Nenhum `Status:` mudou por esta revalidação. O UC-JPAIN-18 nasce `🧪`: o teste existe e o
+extrator dele foi provado contra fixtures **e** contra o arquivo real, mas quem dá veredito é a
+lane `PHP / Pest (Jana · MySQL)` — e o `🧪→✅` só vem pelo manifesto do `casos-results-publish`,
+nunca por prosa.
+
+⚠️ **O que ainda não foi feito, e é gate de [W]:** a `visual-regression` vai acusar, porque o
+grid mudou de 4 pra 3 colunas. **A baseline não foi regravada** — regravar exige a aprovação
+visual F1.5, que é decisão [W], não do agente (§5 2026-08-24: regravar baseline pra fechar
+divergência determinística sem entender a causa é a lápide, e aqui a causa é conhecida e
+intencional, mas a aprovação continua sendo dele).
 
 ## UC-JPAIN-01 — A rota `/ia` abre o Painel (200 + componente)
 Status: 🧪 (`Modules/Jana/Tests/Feature/PainelContratoTest.php` — cita o UC; aguarda run verde na lane MySQL)
@@ -195,7 +218,7 @@ coisas que o servidor não honra — e portá-las reintroduziria a classe que es
 
 | a âncora oferece | o que existe |
 |---|---|
-| 6 toggles de análise | a tela renderiza **5** cards (`inad`/`fat`/`conc`/`metodos`/`churn`); frota e cheques são a ordem 7 do mapa (*"fonte de dado que não existe"*) |
+| 6 toggles de análise | a tela renderiza **5** cards (`inad`/`fat`/`conc`/`metodos`/`churn`); frota e cheques são a ordem 7 do mapa (*"fonte de dado que não existe"*) — e a de **cheques** foi medida em 2026-08-31 e **confirmada ausente**, com as três fontes na §Pendência do UC-JPAIN-18 |
 | "Enviar brief todo dia" + hora | o brief é gerado server-side (`BriefingAgent`); nenhum cron lê o `localStorage` deste navegador |
 | "Versão em áudio" (TTS) | não existe — o próprio protótipo diz que *"entra na M2"* |
 | retenção *"ela esquece sozinha"* | `jana:retention-purge` foi **descartado por [W]** (*"num ERP não se apaga PII"*) |
@@ -496,9 +519,14 @@ silêncio. Consertar = **apagar a linha** no mesmo PR.
 eles que impedem o `TypeError` e mantêm válida a entrada `Jana/Index` na
 `DEFER_GUARD_ONLY_ALLOWLIST`; o que mudou é o **render**.
 
-Escopo medido: só os **2** KPIs que dependem da prop deferida (Receita 30 dias · PIX hoje) trocam de
-card. `A receber vencido` e `Ticket médio` vêm de `insightsAggregates` (eager) e **não** podem
+Escopo medido: só o KPI que depende da prop deferida (`Receita 30 dias`) troca de card.
+`A receber vencido` e `Ticket médio` vêm de `insightsAggregates` (eager) e **não** podem
 sumir — há controle negativo no teste.
+
+_**Eram 2 até 2026-08-31** (`Receita 30 dias` · `PIX hoje`). O `PIX hoje` saiu do painel na
+paridade com a âncora (UC-JPAIN-18) e a asserção dele saiu no MESMO diff. Aqui o `toMatch` com
+alvo extinto **falha** — ele acusa, não passa vazio —, mas a prosa que dizia "os dois" viraria
+mentira silenciosa, e é o que esta nota conserta._
 
 _Rótulos atualizados em 2026-08-17 (`Faturamento mês` → `Receita mês`, `Inadimplência total` →
 `A receber vencido`) no alinhamento de copy com a âncora. Só a PALAVRA mudou: a prop de origem, a
@@ -619,6 +647,79 @@ O caso defende três coisas, e a terceira é a que dói se quebrar:
 | o selo mostra `plano Pro` só com `jana_pro_module` no pacote | senão volta a afirmar estado que o sistema não sabe |
 | `jana_module` e `jana_pro_module` seguem eixos SEPARADOS | fundi-los repete, dentro do código, o engano que um humano cometeu lendo o painel |
 | sem pacote legível o degrade é `Grátis` | afirmar Pro a quem não é promete recurso pago; o inverso só omite |
+
+---
+
+## UC-JPAIN-18 — o Painel mostra os 3 KPIs da âncora, e o 4º saiu sem levar o dado
+Status: 🧪 (`PainelContratoTest` — 1 `it()` com bite-test do extrator em 4 fixtures + 4
+asserções sobre o arquivo real; aguarda run verde na lane MySQL)
+
+Derivado da **âncora** (`node prototipo-ui/ancora.mjs Jana/Index` →
+`prototipo-ui/cowork/jana-merge.jsx`, frescor verificado contra o Cowork vivo em 2026-08-27) e da
+decisão [W] de 2026-08-31 — **não** do `.tsx`.
+
+**A medição.** A âncora renderiza `data.kpis.map(…)` dentro da `jc-kpis`, e esse array publica
+**3** entradas: `Receita mês` · `A receber vencido` · `Ticket médio`. A tela viva tinha **4** — o
+extra era `PIX hoje`. Com o 4º fora, a ORDEM dos três restantes casa 1:1 com a do protótipo, e o
+`KpiGrid` passa a `cols={3}` (sem isso sobraria um vão de uma coluna no desktop `lg`).
+
+**O que este caso NÃO trava, de propósito.** O rótulo do 1º card. Ele é `Receita 30 dias` aqui e
+`Receita mês` na âncora, e a divergência é **deliberada**: o dado são 30 dias deslizantes, e o
+UC-JPAIN-14 corrigiu a palavra com esse fundamento. Copiar a copy do protótipo reintroduziria bug
+conhecido — **neste ponto é o protótipo que está atrás.**
+
+**O card saiu; o DADO não.** `pixHojeTotal` segue chegando na prop deferida e `pixHoje` segue
+sendo lido por dois consumidores vivos: a ação sugerida *"PIX adoção em N% — manter"* e a linha do
+brief (`· PIX <valor> (N% imediato)`). Isso não é detalhe: é o que separa *"tirar o card"* de
+*"tirar a capacidade"* — a segunda seria outra decisão. O teste asserta os dois consumidores
+justamente pra que o negativo (`not->toContain('label="PIX hoje"')`) não vire decoração no dia em
+que alguém apagar o `pixHoje` inteiro (LC-11 na forma silenciosa — a mesma que o controle
+negativo do UC-JPAIN-08 já ensina neste arquivo).
+
+**Duas afirmações de canon caducaram no caminho, e ficam corrigidas com recibo:**
+
+| afirmava | medido em 2026-08-31 |
+|---|---|
+| `JanaCockpit.tsx`: *"a âncora traz `Frota utilização`"* (presente) | **falso**. `grep -in 'frota\|truck' jana-merge.jsx` → **rc=1, zero**, com controle positivo no mesmo arquivo (`grep -c JM_KPI_DRILL` → 2, rc=0). A frota só existe no `chat-jana.jsx` (não-âncora) e **nem lá é KPI**: é o ícone `truck:` e a classe `jc-an-frota` |
+| `JanaCockpit.tsx`: *"1 de 4 com `emphasize:true`"* | denominador errado. São **1 de 3** — `grep -c emphasize` → 2 (1 dado em `:94`, 1 render em `:256`) sobre um array de 3. A **regra** visual (enfatiza um só, e só no alerta) não mudou |
+
+> ⛔ **Regra, não ressalva — [W] revogou a objeção em 2026-08-31.** Levantei uma vez que o array
+> `kpis` é autorado no `chat-jana.jsx` e que o mock é do Martinho, logo a ausência do PIX poderia
+> ser premissa deles (§5 2026-07-16). [W], textual: *"essa ressalva deve ser por isso que não fica
+> igual. deve ser revogado. que igual."* **Fica assim:** o conjunto de KPIs desta tela é **o que a
+> âncora renderiza**, e não se re-litiga por sessão — ressalva pendurada em canon é recusa
+> disfarçada, e é ela que mantém a tela diferente do protótipo (ADR 0382 · §5 2026-08-24).
+>
+> Segue valendo o que é regra de FONTE: derivar do `chat-jana.jsx` o que ele **não** renderiza (a
+> frota) continua proibido. Espelhar o que a âncora renderiza é paridade — o oposto.
+
+**Pronto quando:** o grid tem exatamente os 3 rótulos na ordem da âncora; `KpiGrid` declara
+`cols={3}`; `label="PIX hoje"` não existe; e `pixHoje` segue com consumidor vivo.
+
+### Pendência registrada — o card "Cheques" NÃO foi construído, por falta de fonte
+
+O item 5 do mesmo pedido de 2026-08-28 era trocar a análise **Métodos de pagamento** por
+**Cheques**, e a instrução de [W] era medir antes: *"se a fonte não existir, NÃO invente"*. Medido
+— **não existe**, e o card fica pendente. As três fontes:
+
+| fonte consultada | o que respondeu |
+|---|---|
+| **o card no protótipo** (`chat-jana.jsx` §`id:"cheq"`) | pede *"Cheques previsão · Na mão / a depositar"* com **ciclo de vida**: total em circulação, quitados (%), ativos hoje, e um HITL *"lembra qual dia depositar cada cheque"* |
+| **o schema real** (`database/schema/mysql-schema.sql`) | `cheque` existe só como **valor de enum de forma de pagamento** (`fin_titulos.forma_pagamento`, `fin_titulo_baixas.meio_pagamento`), mais `transaction_payments.cheque_number` (identificador) e `cash_registers.total_cheques` (agregado por sessão de caixa). **Zero** colunas de ciclo: sem data de depósito/bom-para, sem status de custódia, sem devolvido |
+| **o dono do inventário legado** (`memory/dominios/wr-comercial/…/MAPPING.md`) | o ciclo existe no Delphi — `FINANCEIRO_CHEQUE`, 21 colunas com `STATUS`, `DT_REPASSADO`, `DEVOLVIDO`, `MOTIVO`, `BANCO/AGENCIA/CONTA`. E o mapeamento diz, em letra, que ele **não desceu**: *"(escopo separado — cheque ≠ conta bancária)"* e, na lista de questões abertas, *"Fora desta Fase 4. Wagner decide se entra na próxima ou em fase separada"* |
+
+Ou seja: os números do protótipo (4.421 cheques, R$ 7,0M em circulação, 99,9% quitados) vêm da base
+Delphi, de uma tabela cuja migração é **decisão [W] adiada** — não de algo que a `/ia` possa apurar.
+
+**Por que uma versão "degradada" também foi recusada.** Daria pra contar `transaction_payments`
+com `method` de cheque e exibir *"N cheques · R$ X"*. Mas isso (a) **duplicaria** o card que já
+existe — cheque é uma das fatias de **Métodos de pagamento** — e (b) manteria o título
+*"previsão · na mão / a depositar"* prometendo uma projeção que nenhuma coluna sustenta. Card que
+mostra número inventado é pior que card ausente.
+
+**Destravar exige, nesta ordem:** decisão [W] sobre migrar `FINANCEIRO_CHEQUE` → tabela + importer
+→ agregador → só então o card. Enquanto isso, a análise `metodos` **fica**, e o toggle dela no
+`JanaConfigDrawer` segue com os mesmos 5 ids (`inad`/`fat`/`conc`/`metodos`/`churn`).
 
 ---
 
