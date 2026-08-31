@@ -37,6 +37,11 @@ on:
       # trigger, trocar o glob nao dispara o teste que o protege (LC-11/LC-13).
       - 'resources/js/app.tsx'
       - 'resources/js/ssr.tsx'
+      # MESMO motivo, tela Impostos (2026-08-31): ImpostosContractTest C5a (UC-IMP-07) crava
+      # a copy do disclaimer de estimativa NESTE arquivo. Sem ele no trigger, o PR que APAGA
+      # o disclaimer nao toca Modules/Financeiro/** -> skip-as-pass -> o guard do anti-hook
+      # ("agente NAO remove o disclaimer") fica mudo no PR que ele existe pra pegar.
+      - 'resources/js/Pages/Financeiro/Impostos/Index.tsx'
       # A quarentena DECIDE o run-set — mexer nela sem rodar a lane é falso verde.
       - '.github/financeiro-pest-quarantine.list'
       - '.github/actions/pest-mysql-setup/**'
@@ -84,6 +89,9 @@ jobs:
               # sem rodar o teste que crava a string (medido 2026-08-12).
               - 'resources/js/app.tsx'
               - 'resources/js/ssr.tsx'
+              # idem pro disclaimer de estimativa da tela Impostos (UC-IMP-07 / C5a):
+              # o guard le ESTE arquivo, entao ele precisa estar no gatilho (2026-08-31).
+              - 'resources/js/Pages/Financeiro/Impostos/Index.tsx'
               # sem esta linha, PR que só mexe na quarentena dá skip-as-pass:
               # verde sem ter rodado nada (incidente 2026-07-28, PR #4965)
               - '.github/financeiro-pest-quarantine.list'
