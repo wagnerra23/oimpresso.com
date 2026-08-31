@@ -19,9 +19,9 @@ authority: generated
 | US no SPEC | 52 |
 | CU no SDD | 6 |
 | Telas (.tsx) | 9 |
-| Telas com `casos.md` | 4 |
-| UC declarados | 57 |
-| UC com teste que os cita | 56 |
+| Telas com `casos.md` | 5 |
+| UC declarados | 64 |
+| UC com teste que os cita | 63 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -29,7 +29,6 @@ authority: generated
 |---|---|
 | Tela `Caixa/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `Drafts` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `Edit` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `Quotations` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `Subscriptions` sem `casos.md` | o contrato da tela (trio incompleto) |
 | `CU-SELL-05` sem UC | caso de uso que o exercite — Editar linha em pt-BR sem inflar o decimal |
@@ -110,6 +109,13 @@ authority: generated
 | UC-S11 | Index | 🧪 aguarda veredito da lane |
 | UC-S12 | Index | 🧪 aguarda veredito da lane |
 | UC-S1X | Index | 📝 sem_teste |
+| UC-SEDIT-01 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-02 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-03 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-04 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-05 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-06 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-07 | Edit | 🧪 aguarda veredito da lane |
 | UC-SIDX-01 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-02 | Index | 🧪 aguarda veredito da lane |
 | UC-V301 | CreateV3 | 🧪 aguarda veredito da lane |

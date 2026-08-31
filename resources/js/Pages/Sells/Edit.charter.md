@@ -100,8 +100,10 @@ Editar venda existente — produtos, descontos, pagamento, frete — preservando
 
 ## Tests anti-regressão
 
+- **[Edit.casos.md](Edit.casos.md)** — contrato de COMPORTAMENTO da tela (UC-SEDIT-01..07), defendido por [tests/Feature/Sells/SellsEditContratoTest.php](../../../../tests/Feature/Sells/SellsEditContratoTest.php) na lane [`sells-pest.yml`](../../../../.github/workflows/sells-pest.yml) (MySQL real, tenant 98 vs 2º business semeado — ADR 0358)
 - [tests/Feature/Sells/Wave1EditBaselineTest.php](../../../../tests/Feature/Sells/Wave1EditBaselineTest.php) — 9 estruturais (baseline F2)
-- [tests/Feature/Sells/Wave1EditInertiaTest.php](../../../../tests/Feature/Sells/Wave1EditInertiaTest.php) — Inertia render + cross-tenant + FSM safety
+- [tests/Feature/Sells/Wave1EditInertiaTest.php](../../../../tests/Feature/Sells/Wave1EditInertiaTest.php) — **estruturais**: casam string no `.tsx`/Controller. Provam que o código está ESCRITO, não que a resposta cumpre o contrato — o `.casos.md` acima é a perna que prova comportamento
+  - ⚠️ Medido em 2026-08-28: `git grep <basename> -- .github/ phpunit.xml package.json` devolveu **0** para os dois arquivos acima (e para `SellsEditCoworkTest`, `SellsEditParkingLotP1P2P3Test`, `SellsEditPrefillContractTest`, `CommissionSplitEditorTest`, `SellsEditShippingAutosaveContractTest`) — `tests/Feature/Sells/**` não está em `.github/ci-sqlite-pest.list`, e a allowlist da `sells-pest.yml` não os citava naquela data. Colocá-los na allowlist é trabalho separado: o precedente do `Wave1ShowInertiaTest` (vermelho por 2 meses sem ninguém ver) diz que eles podem nascer vermelhos
 
 ---
 
