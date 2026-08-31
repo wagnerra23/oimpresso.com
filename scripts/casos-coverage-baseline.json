@@ -1,12 +1,12 @@
 {
   "_meta": {
-    "generated_at": "2026-08-31T13:02:24.749Z",
+    "generated_at": "2026-08-31T13:42:16.857Z",
     "gate": "casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado)",
     "escopo_telas": "ESCOPO (fonte única scripts/qa/page-path.mjs · idêntico ao screen-coverage-map):\n  inclui: resources/js/Pages/**/<Sub>/<Tela>.tsx (Page Inertia executável)\n  exclui: dirs auxiliares (_*, components, partials, hooks, utils, lib, types,\n          constants, schemas, stores, contexts) · .tsx na raiz de Pages/ · *.charter.tsx · *.test.tsx",
     "stats": {
       "pages": 215,
       "casos_files": 121,
-      "ucs_declared": 773,
+      "ucs_declared": 774,
       "missing_charter": 0,
       "missing_casos": 95,
       "orphan_ucs": 11,
@@ -15,12 +15,12 @@
       "status_lies": 0,
       "status_unverified": 0,
       "status_stale": 0,
-      "exec_backed_ucs": 354,
-      "exec_backed_declared": 769,
-      "exec_backed_pct": 46,
-      "teto_no_titulo": 622,
+      "exec_backed_ucs": 369,
+      "exec_backed_declared": 770,
+      "exec_backed_pct": 48,
+      "teto_no_titulo": 623,
       "teto_so_docblock": 136,
-      "teto_distintos": 769,
+      "teto_distintos": 770,
       "teto_presos_por_modulo": [
         {
           "modulo": "Financeiro",
