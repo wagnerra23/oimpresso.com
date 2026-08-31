@@ -31,7 +31,7 @@ use Illuminate\Support\Facades\File;
  * Cache: filesystem driver, TTL 5min, key `permission_registry:discover`.
  *
  * @see Modules/NFSe/Resources/permissions.php
- * @see Modules/Copiloto/Resources/permissions.php
+ * @see Modules/Jana/Resources/permissions.php
  */
 class PermissionRegistry
 {

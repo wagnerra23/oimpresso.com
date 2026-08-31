@@ -643,3 +643,73 @@ import não é comportamento. Nenhum `Status:` muda.
 **Não rodei a suíte** — CT 100 respondeu 502 durante toda a sessão e Pest local é proibido
 (ADR 0062). O bump é por revalidação de CONTRATO, e digo porque o G-6 aceita a data e só o
 leitor percebe a diferença.
+
+---
+
+
+## Revalidação de 2026-08-28 (2ª do dia) — o selo entrou, o `last_run` não acompanhou
+
+> Segunda revalidação desta tela no mesmo dia, por causa DIFERENTE da anterior. A de cima veio do
+> [#6424](https://github.com/wagnerra23/oimpresso.com/pull/6424) (rename de import); esta é do
+> #6427 (o `last_run` que o #6390 deixou pra trás). As duas ficam: cada uma registra um toque real
+> no `.tsx`, e apagar qualquer uma esconderia por que a data subiu.
+
+O `casos-gate` acusou `stale:` nesta tela ao ser tocada por um PR de OUTRO assunto (a catraca do
+nome nas permissões, UC-JNAME-01 abaixo). A dívida não é dele: o
+[#6390](https://github.com/wagnerra23/oimpresso.com/pull/6390) mudou o `.tsx` em **2026-08-28** e
+deixou o `last_run` em **2026-08-26**. O G-6 compara a data-git do `.tsx` com o `last_run`, e a
+violação só nasce DEPOIS do merge — então ela cai no próximo PR que encostar no arquivo, seja qual
+for o assunto dele. Mesmo efeito que a seção de 08-25 descreve, causa diferente.
+
+**Revalidação de contrato, medida — não herdada do commit:**
+
+| O que conferi | Como | Resultado |
+|---|---|---|
+| o tamanho do diff que tornou a tela stale | `git show c56e1e6f9d --stat -- …/Jana/Index.tsx` | **7 linhas, todas adições** ✓ |
+| o que essas 7 linhas fazem | `git show` do mesmo commit | 2 imports (`JanaPlanoBadge`, `useJanaPro`), 1 `const pro`, 1 comentário, 1 render do selo ✓ |
+| quantos UCs o arquivo tem | `grep -c '^## UC-'` | **17** ✓ |
+| quantos são tocados pelo diff | leitura dos 17 títulos | **1** — o `UC-JPAIN-17`, que nasceu NO MESMO commit ✓ |
+
+**Interseção com os outros 16: nenhuma.** Eles são rota, contrato de props, escopo `business_id`,
+farol de servidor, empty state, meta sem apuração, série curta, skeleton, âncoras do contrato,
+drawer, decisão registrada, churn e rótulo de KPI — o selo não toca nenhum. Nenhum `Status:` muda.
+
+**Não rodei a suíte nesta leva** — CT 100 respondeu 502 durante toda a sessão e Pest local é
+proibido (ADR 0062). O bump é por revalidação de CONTRATO, e digo isso porque o G-6 aceita a data
+e só o leitor percebe a diferença. É a mesma ressalva da revalidação de 08-25, e ela continua
+valendo: data aceita por gate não é prova de execução.
+
+---
+
+## UC-JNAME-01 — a tela de permissões não oferece um módulo chamado "Copiloto"
+Status: 🧪 (`tests/Feature/Permissions/JanaPermissionGroupNomeTest.php` — 4 `it()`. Aguarda run
+verde na lane; registrar no `phpunit.xml` não é a lane executar, então o alvo entrou também na
+allowlist `.github/ci-sqlite-pest.list` neste mesmo PR.)
+
+Derivado de `Modules/Jana/Resources/permissions.php` e da emenda de casos do Cowork
+(`JANA-CASOS-EMENDA-PERMISSAO-2026-08-27`) — **não** do `.tsx`. Derivar do código seria
+tautológico (§5 2026-06-05).
+
+O rename Copiloto→Jana (ADR 0088/0092) foi **PHP-only por decisão**, e a fachada ficou pra
+"PR-3+ posterior". Esses PRs não vieram por meses: o `permissions.php` seguiu declarando
+`group: 'Copiloto'` com as labels em `"Copiloto: …"` — que é exatamente o que o cliente lê ao
+montar um perfil de acesso em `/roles/{id}/edit`. Ele configurava acesso a um módulo que, na
+tela dele, se chama Jana.
+
+⚠️ **O conserto já aconteceu — este UC trava o ganho, não o produz.** Medido em 2026-08-28:
+`group => 'Jana'`, **zero** ocorrências de "Copiloto" no arquivo. Quem fez foi o
+[#6344](https://github.com/wagnerra23/oimpresso.com/pull/6344) (2026-08-27, *"as 134 chaves ficam
+byte-idênticas"*). O que **não** veio junto foi teste: zero testes citavam o `permissions.php` do
+módulo. Ganho sem catraca é piso baixo — regride sem nada piscar.
+
+⚠️ **As `key` NÃO se tocam.** `copiloto.mcp.*` → `jana.mcp.*` já foi feito (#4853) e deixou
+cicatriz: um `givePermissionTo('copiloto.mcp.use')` sobrou apontando pra permissão inexistente e
+**quebrou todo o onboarding** (`governance-script-tests.yml:540`). `group` e `label` são copy;
+`key` é incidente — e é por isso que o 4º caso vigia o prefixo.
+
+**Pronto quando:** o registry devolve `group: 'Jana'`, nenhuma label contém "Copiloto", e toda
+`key` segue no prefixo `jana.` (nenhuma em `copiloto.`).
+
+**Anti-vácuo:** os casos 3 e 4 filtram uma coleção, e coleção vazia passa trivialmente. Por isso o
+1º caso assere que o módulo foi descoberto e que a lista não está vazia, e os outros reancoram a
+contagem — sem isso, **apagar** o `permissions.php` deixaria a suíte verde.
