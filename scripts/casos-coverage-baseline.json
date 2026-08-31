@@ -1,26 +1,26 @@
 {
   "_meta": {
-    "generated_at": "2026-08-19T12:35:50.618Z",
+    "generated_at": "2026-08-31T10:50:29.912Z",
     "gate": "casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado)",
     "escopo_telas": "ESCOPO (fonte única scripts/qa/page-path.mjs · idêntico ao screen-coverage-map):\n  inclui: resources/js/Pages/**/<Sub>/<Tela>.tsx (Page Inertia executável)\n  exclui: dirs auxiliares (_*, components, partials, hooks, utils, lib, types,\n          constants, schemas, stores, contexts) · .tsx na raiz de Pages/ · *.charter.tsx · *.test.tsx",
     "stats": {
-      "pages": 207,
-      "casos_files": 108,
-      "ucs_declared": 566,
+      "pages": 215,
+      "casos_files": 120,
+      "ucs_declared": 762,
       "missing_charter": 0,
-      "missing_casos": 100,
-      "orphan_ucs": 12,
+      "missing_casos": 96,
+      "orphan_ucs": 11,
       "metadata_issues": 0,
       "stale_cases": 0,
       "status_lies": 0,
       "status_unverified": 0,
       "status_stale": 0,
-      "exec_backed_ucs": 234,
-      "exec_backed_declared": 562,
-      "exec_backed_pct": 42,
-      "teto_no_titulo": 421,
-      "teto_so_docblock": 129,
-      "teto_distintos": 562,
+      "exec_backed_ucs": 354,
+      "exec_backed_declared": 758,
+      "exec_backed_pct": 47,
+      "teto_no_titulo": 611,
+      "teto_so_docblock": 136,
+      "teto_distintos": 758,
       "teto_presos_por_modulo": [
         {
           "modulo": "Financeiro",
@@ -48,7 +48,6 @@
             "UC-EXT-04",
             "UC-EXT-05",
             "UC-EXT-06",
-            "UC-IMP-04",
             "UC-PV-01",
             "UC-PV-02",
             "UC-PV-04",
@@ -103,6 +102,21 @@
           ]
         },
         {
+          "modulo": "Backup",
+          "ucs": [
+            "UC-BKP-01",
+            "UC-BKP-02",
+            "UC-BKP-03",
+            "UC-BKP-04",
+            "UC-BKP-05",
+            "UC-BKP-06",
+            "UC-BKP-07",
+            "UC-BKP-08",
+            "UC-BKP-09",
+            "UC-BKP-10"
+          ]
+        },
+        {
           "modulo": "ComunicacaoVisual",
           "ucs": [
             "UC-CV-01",
@@ -118,27 +132,18 @@
           ]
         },
         {
-          "modulo": "Jana",
+          "modulo": "Ponto",
           "ucs": [
-            "UC-PRO-01",
-            "UC-PRO-02",
-            "UC-PRO-03",
-            "UC-PRO-04",
-            "UC-PRO-05",
-            "UC-PRO-06",
-            "UC-PRO-07"
-          ]
-        },
-        {
-          "modulo": "kb",
-          "ucs": [
-            "UC-KBV2-01",
-            "UC-KBV2-02",
-            "UC-KBV2-03",
-            "UC-KBV2-04",
-            "UC-KBV2-05",
-            "UC-KBV2-07",
-            "UC-KBV2-08"
+            "UC-BHSHOW-01",
+            "UC-BHSHOW-02",
+            "UC-BHSHOW-03",
+            "UC-IMPSH-01",
+            "UC-IMPSH-02",
+            "UC-IMPSH-03",
+            "UC-IMPSH-04",
+            "UC-INTSH-01",
+            "UC-INTSH-02",
+            "UC-INTSH-03"
           ]
         },
         {
@@ -165,17 +170,6 @@
           ]
         },
         {
-          "modulo": "Ponto",
-          "ucs": [
-            "UC-BHSHOW-01",
-            "UC-BHSHOW-02",
-            "UC-BHSHOW-03",
-            "UC-ESPIDX-01",
-            "UC-ESPIDX-02",
-            "UC-ESPIDX-03"
-          ]
-        },
-        {
           "modulo": "Produto",
           "ucs": [
             "UC-PEDIT-01",
@@ -184,6 +178,16 @@
             "UC-PSHOW-04",
             "UC-PSHOW-05",
             "UC-PSHOW-07"
+          ]
+        },
+        {
+          "modulo": "kb",
+          "ucs": [
+            "UC-KBV2-01",
+            "UC-KBV2-02",
+            "UC-KBV2-03",
+            "UC-KBV2-04",
+            "UC-KBV2-05"
           ]
         },
         {
@@ -213,6 +217,14 @@
             "UC-DSR-04B",
             "UC-DSR-05",
             "UC-DSR-08B"
+          ]
+        },
+        {
+          "modulo": "Jana",
+          "ucs": [
+            "UC-JCHAT-13",
+            "UC-JPAIN-17",
+            "UC-MEM-06"
           ]
         },
         {
@@ -252,7 +264,6 @@
     "trio:missing-casos:Modules/Superadmin/Resources/js/Pages/Site/Pricing.tsx",
     "trio:missing-casos:Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Index.tsx",
     "trio:missing-casos:Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Show.tsx",
-    "trio:missing-casos:Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx",
     "trio:missing-casos:Modules/Whatsapp/Resources/js/Pages/Atendimento/Channels/Index.tsx",
     "trio:missing-casos:Modules/Whatsapp/Resources/js/Pages/Atendimento/Channels/Show.tsx",
     "trio:missing-casos:Modules/Whatsapp/Resources/js/Pages/Atendimento/Csat/Index.tsx",
@@ -284,9 +295,7 @@
     "trio:missing-casos:resources/js/Pages/governance/ModuleGrades/Show.tsx",
     "trio:missing-casos:resources/js/Pages/governance/Policies.tsx",
     "trio:missing-casos:resources/js/Pages/governance/QualidadeIa.tsx",
-    "trio:missing-casos:resources/js/Pages/Home/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Manufacturing/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Modules/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Nfse/Emitir.tsx",
     "trio:missing-casos:resources/js/Pages/Nfse/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Nfse/Show.tsx",
@@ -294,7 +303,6 @@
     "trio:missing-casos:resources/js/Pages/Ponto/Colaboradores/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Configuracoes/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Configuracoes/Reps.tsx",
-    "trio:missing-casos:resources/js/Pages/Ponto/Dashboard/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Escalas/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Welcome.tsx",
     "trio:missing-casos:resources/js/Pages/Purchase/Create.tsx",
@@ -337,7 +345,6 @@
     "uc-orphan:Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.casos.md#UC-FORJA-10",
     "uc-orphan:Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.casos.md#UC-SC-02",
     "uc-orphan:Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.casos.md#UC-SC-06",
-    "uc-orphan:resources/js/Pages/Financeiro/Impostos/Index.casos.md#UC-IMP-07",
     "uc-orphan:resources/js/Pages/governance/DsRollout.casos.md#UC-DSR-02",
     "uc-orphan:resources/js/Pages/governance/DsRollout.casos.md#UC-DSR-03",
     "uc-orphan:resources/js/Pages/governance/DsRollout.casos.md#UC-DSR-06",

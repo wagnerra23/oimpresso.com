@@ -460,6 +460,8 @@ export default function ComposerV4({
 
   return (
     <div
+      role="group"
+      aria-label="Área de resposta — solte arquivos aqui pra anexar"
       className={cn(
         'flex flex-col relative',
         dragActive && 'ring-2 ring-primary/60 ring-offset-2 ring-offset-background rounded-md',

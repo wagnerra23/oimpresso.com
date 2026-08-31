@@ -1,6 +1,7 @@
 ---
 page: /aprovar-os/{token}
 component: resources/js/Pages/OficinaAuto/AprovacaoPublica.tsx
+related_prototype: n/a (tela pública fora do AppShellV2; Aprovação pública UI fora do escopo declarado em oficina-forms.jsx)
 page_id: oficina-auto-aprovacao-publica
 status: live
 owner: wagner
