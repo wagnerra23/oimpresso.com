@@ -96,6 +96,18 @@
         "D:/oimpresso.com/.claude/worktrees/stoic-mayer-3315ab/prototipo-ui/cowork"
       ],
       "port": 5601
+    },
+    {
+      "name": "cowork-ponto-ancora",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5611",
+        "--directory",
+        "D:/oimpresso.com/prototipo-ui/cowork"
+      ],
+      "port": 5611
     }
   ]
 }
