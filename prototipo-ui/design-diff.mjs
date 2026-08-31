@@ -976,6 +976,32 @@ export function ehEspelhoLocal(url) {
 }
 
 /**
+ * Os dois snapshots chegaram na ordem que ESTE script espera?
+ *
+ * `design-diff --compare` recebe `(prod, design)`; o irmão `style-fingerprint --compare`
+ * recebe `(proto, prod)` — ordem INVERTIDA entre os dois, e trocar por engano produz um
+ * relatório plausível com os lados espelhados. É o pior tipo de erro: parece certo.
+ *
+ * A checagem é DERIVADA, não declarada: a sonda já grava `url: location.href`, e o
+ * espelho local roda por `file:`/localhost enquanto prod é https num domínio real.
+ * Campo auto-declarado (`"lado": "design"`) seria a forma que o §5 já enterrou —
+ * catraca sobre o que o autor digita, não sobre o que a máquina mede.
+ *
+ * LIMITE HONESTO, e por isso o terceiro estado: quando os dois lados são remotos
+ * (prod×prod, ou design servido em domínio real) a URL não discrimina e este guarda
+ * NÃO CONSEGUE MEDIR — devolve `indeterminado` e não morde. Instrumento que não mediu
+ * não afirma nada (§5 2026-07-29).
+ */
+export function ladosTrocados(prodUrl, designUrl) {
+  const p = ehEspelhoLocal(prodUrl);
+  const d = ehEspelhoLocal(designUrl);
+  if (p && !d) return { trocados: true, motivo: `o 1º arquivo é espelho local (${prodUrl}) e o 2º é remoto (${designUrl})` };
+  if (!p && !d) return { trocados: false, indeterminado: true, motivo: 'os dois lados são remotos — a URL não discrimina' };
+  if (p && d) return { trocados: false, indeterminado: true, motivo: 'os dois lados são locais — a URL não discrimina' };
+  return { trocados: false };
+}
+
+/**
  * A última rodada de frescor cobriu o espelho INTEIRO?
  *
  * `sync > 0` sozinho não basta — é a armadilha que o `--sla` já nomeia: "0 stale"
@@ -1122,6 +1148,28 @@ function runCompare(argvBruto) {
   if (files.length < 2) { console.error('uso: --compare <prod.json> <design.json>'); process.exit(2); }
   const prodSnap = JSON.parse(readFileSync(files[0], 'utf8'));
   const designSnap = JSON.parse(readFileSync(files[1], 'utf8'));
+
+  // ── DUAS GUARDAS ANTES DE COMPARAR, E A ORDEM ENTRE ELAS IMPORTA ──────────
+  // Elas respondem perguntas DIFERENTES e ambas ficam (merge 2026-08-31, #6480 × #6490):
+  //   ORDEM (esta)  os lados estão na POSIÇÃO certa?  → (prod, design)
+  //   D0 (abaixo)   os dois lados são a MESMA TELA?
+  // ORDEM roda PRIMEIRO de propósito: se os argumentos vierem trocados, o D0 ainda
+  // funciona (o veredito dele é relacional) mas IMPRIME os rótulos `prod`/`design`
+  // invertidos — diagnostica certo e reporta mentindo. Provar a posição antes faz o
+  // resto do relatório nomear cada lado pelo que ele é.
+  // ORDEM DOS LADOS (2026-08-31) — este script recebe (prod, design); o irmão
+  // style-fingerprint recebe (proto, prod). Invertido entre os dois, e o relatório
+  // espelhado sai plausível. Morde ANTES de comparar, senão o número já saiu errado.
+  const ordem = ladosTrocados(prodSnap.url, designSnap.url);
+  if (ordem.trocados) {
+    console.error(
+      `\n  ⛔ LADOS TROCADOS — ${ordem.motivo}.` +
+      '\n     `design-diff --compare` recebe <prod.json> <design.json>, NESTA ordem.' +
+      '\n     (o irmão `style-fingerprint --compare` recebe <proto.json> <prod.json> — invertido; é a pegadinha)' +
+      '\n     Inverta os dois arquivos e rode de novo.\n',
+    );
+    process.exit(2);
+  }
 
   // ── D0 · IDENTIDADE — os dois lados são a MESMA tela? ─────────────────────
   // Roda ANTES de qualquer dimensão: comparar telas diferentes produz veredito
@@ -1458,6 +1506,26 @@ function selftest() {
   // Guarda que nunca reprova é carimbo; guarda que reprova sempre trava o certo.
   // Os dois lados abaixo são o bite-test.
   const L = (url) => ehEspelhoLocal(url);
+
+  // ── ORDEM DOS LADOS (2026-08-31) — morde na troca, LIBERA no uso correto ──────
+  // Sem o controle negativo o guarda seria carimbo às avessas: reprovaria o caso normal.
+  const PROD_URL = 'https://oimpresso.com/financeiro';
+  const DESIGN_URL = 'http://localhost:5500/cowork/financeiro.html';
+  checks.push(
+    ['ordem: (prod remoto, design local) → LIBERA (é o uso correto)',
+      ladosTrocados(PROD_URL, DESIGN_URL).trocados === false],
+    ['ordem: (local, remoto) → MORDE (argumentos invertidos)',
+      ladosTrocados(DESIGN_URL, PROD_URL).trocados === true],
+    ['ordem: file:// no 1º arg também morde',
+      ladosTrocados('file:///D:/espelho/x.html', PROD_URL).trocados === true],
+    ['ordem: dois remotos → indeterminado, NÃO morde (não medi ≠ está errado)',
+      ladosTrocados(PROD_URL, 'https://staging.oimpresso.com/financeiro').indeterminado === true],
+    ['ordem: dois locais → indeterminado, NÃO morde',
+      ladosTrocados(DESIGN_URL, 'file:///D:/espelho/y.html').indeterminado === true],
+    ['ordem: url ausente nos dois → indeterminado, nunca acusa',
+      ladosTrocados(undefined, undefined).trocados === false],
+  );
+
   let seqLedger = 0;
   const tmpLedger = (conteudo) => {
     const p = join(tmpdir(), `dd-ledger-${process.pid}-${++seqLedger}.json`);
