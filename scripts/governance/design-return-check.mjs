@@ -16,7 +16,14 @@ export const RETURN_CHANNELS = Object.freeze([
 export const UI_PATTERNS = Object.freeze([
   /^resources\/js\/(?:Pages|Components|Layouts)\/.+\.(?:[jt]sx?|css)$/,
   /^resources\/css\/.+\.css$/,
-  /^Modules\/[^/]+\/resources\/(?:js|css)\/.+\.(?:[jt]sx?|css)$/,
+  // Caixa: `[Rr]esources` segue a politica do dono de "onde moram as telas"
+  // (`scripts/qa/page-path.mjs`), cuja razao esta escrita la: casing errado nao pode tirar a tela
+  // do denominador em silencio. Esta perna nasceu so com `resources` minusculo e, em runner Linux
+  // (case-sensitive), nunca casou arquivo nenhum — medido em 2026-08-31 contra origin/main:
+  //   git ls-tree -r --name-only --full-tree origin/main | grep -cE '^Modules/[^/]+/resources/'
+  // devolveu 0, contra 867 de `Resources/`. O gerador nWidart deste repo cria `Resources/`
+  // (config/modules.php, paths.generator).
+  /^Modules\/[^/]+\/[Rr]esources\/(?:js|css)\/.+\.(?:[jt]sx?|css)$/,
 ]);
 
 export function normalizeChangedPaths(input) {
