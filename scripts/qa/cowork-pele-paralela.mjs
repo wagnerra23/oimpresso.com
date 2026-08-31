@@ -33,6 +33,19 @@
 // legado, so barram o acrescimo — e todo acrescimo tem autor presente pra decidir
 // entre consertar e declarar waiver com motivo.
 //
+// ⚠ R3 SUBCONTA, E ISSO E DECLARADO, NAO DESCOBERTO DEPOIS (medido 2026-08-31):
+// ela reconhece mini-DS pelo SUFIXO do nome publicado (`window.<X>UI` / `<X>DS`) e acha
+// 6. O censo REAL do territorio esta no PR #6488 (auditoria [W] "quero uma auditoria no
+// protótipo, acho que tem componente duplicado"): 23 namespaces de componente paralelos
+// ao kit v6, com 39 simbolos de apelido em portugues (`PontoUI.Pill`, `HrmUI.Campo`,
+// `CatchupUI.Grade`) — e o proprio PR declara esse numero como PISO, nao teto, porque a
+// classificacao e semantica e foi feita a mao. Tentar igualar por regex seria a 9a lapide
+// de guard sintatico: o criterio ingenuo "namespace com >=3 membros" foi MEDIDO aqui e
+// devolve 4, dos quais 2 sao ruido (`I`, `MOCK`) e nenhum dos 6 verdadeiros.
+// Entao R3 NAO E CENSO e nao se apresenta como tal — o valor dela e barrar o ACRESCIMO:
+// uma mini-DS nova com esse sufixo nao entra sem alguem decidir. Quem quiser o mapa do
+// que ja existe le o #6488, que e o dono do tema.
+//
 // USO:
 //   node scripts/qa/cowork-pele-paralela.mjs                 # --check (delta vs baseline)
 //   node scripts/qa/cowork-pele-paralela.mjs --measure       # censo completo, exit 0
@@ -353,6 +366,8 @@ function main() {
     const porRegra = new Map();
     for (const a of r.achados) porRegra.set(a.regra, (porRegra.get(a.regra) || 0) + 1);
     console.log(`\ncenso (${r.achados.length} achado(s), ${r.waivers.length} com waiver):`);
+    console.log('  ! R3 SUBCONTA por construcao (so o sufixo UI|DS). O censo do territorio e o PR #6488:');
+    console.log('    23 namespaces de mini-DS, 39 simbolos apelidados — e la o numero e declarado PISO.');
     for (const [reg, n] of [...porRegra].sort()) console.log(`  ${reg}  ${n}`);
     for (const a of r.achados) console.log(`  ${a.regra} ${a.alvo} — ${a.diz}`);
     for (const w of r.waivers) console.log(`  WAIVER ${w.chave} — ${w.motivo}`);
