@@ -608,6 +608,34 @@ jobs:
           VISREG_RAIO_CONFIAVEL: ${{ steps.impact.outputs.raio_confiavel }}
         run: bash scripts/tests/visreg-flake-retry.sh tests/Browser/CoreScreens/SellsCreateFlowBaselineTest.php
 
+      # ── E2E DE RENDER POR TELA — Financeiro/Conciliacao (NASCE ADVISORY) ──────────────
+      # O buraco medido em 2026-08-31 por `node scripts/qa/screen-coverage-map.mjs --screen
+      # Financeiro/Conciliacao/Index`: trio ✓ · scorecard ✓ · RUNBOOK ✓ · visual-comparison ✓ ·
+      # proto-baseline ✓ · 13/13 UC citados por teste — e `e2e (Browser) ✗`. O contrato dessa
+      # tela está defendido no SERVIDOR (lane financeiro-pest, required) e nada exercita a tela
+      # RENDERIZADA. Este step cobre só esse eixo: chip de origem, cor do valor negativo,
+      # match% na UI, affordância por status, busca client-side e axe CRITICAL.
+      #
+      # POR ÚLTIMO, de propósito: a fixture cria 1 `fin_titulos`, e essa tabela alimenta a
+      # baseline de pixel de `Financeiro/Unificado`. O teste apaga no `afterEach`; rodar depois
+      # de TODAS as capturas garante que nem uma limpeza que falhe alcance baseline já assada.
+      #
+      # ADVISORY no nascimento (ADR 0261/0275 — "gate novo nasce advisory → 2 verdes →
+      # enforcing"): o arquivo NÃO pôde ser executado antes do PR (Pest Browser é CI/CT-100
+      # only, e `php`/`vendor` não existem na worktree do autor), e o job `visual-regression`
+      # é required — sem o `continue-on-error` um assert mal calibrado bloquearia o merge de
+      # todo mundo. Promoção a ENFORCING = REMOVER o `continue-on-error` deste step, exatamente
+      # como os steps de pixel/estados/flows acima registram ter feito.
+      #
+      # ⚠️ Pra contar como "verde" na promoção, o step tem que ter EXECUTADO: `skipped` lido
+      # como verde é o presence-gate de sempre. Por isso o `always()` — idêntico aos 3 steps
+      # de fluxos acima: sem ele, qualquer vermelho anterior pularia este e o run apareceria
+      # sem veredito nenhum, indistinguível de um run bem-sucedido.
+      - name: E2E de render · Financeiro/Conciliacao (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Financeiro/ConciliacaoIndexTest.php
+
       # ── MODO UPDATE (dispatch): PROVA o relógio congelado ANTES de assar baseline ──
       # Ordem é o ponto: se o shim de VISREG_FREEZE_CLOCK estiver quebrado, a baseline
       # nasceria com o relógio VIVO e voltaria a drifar por minuto — que é exatamente o
