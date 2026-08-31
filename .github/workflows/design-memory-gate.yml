@@ -86,6 +86,10 @@ on:
       - '.github/workflows/design-memory-gate.yml'
       - 'scripts/governance/design-gate-bites.mjs'
       - 'memory/governance/design-gate-bites.jsonl'
+      # o arquivo SOB TESTE entra no gatilho, senão mexer no guard não dispara o guard
+      # (§5 2026-08-02: "gate mudo com cara de cobertura")
+      - 'scripts/qa/cowork-pele-paralela.mjs'
+      - 'scripts/qa/cowork-pele-paralela.baseline.json'
   workflow_dispatch:
 
 concurrency:
@@ -139,6 +143,19 @@ jobs:
       # dono dessa resposta é `governance/required-checks-baseline.json` (§5 2026-07-16).
       - name: Cowork SSOT guard (fonte única · build-only)
         run: node scripts/governance/cowork-ssot-guard.mjs
+
+      # Pele paralela (2026-08-31, pedido Cowork [CC] T1): a tela reimplementa com nome
+      # próprio o que já tem dono — aba, segmented, header, mini-DS inteiro. Predicado é
+      # DELTA vs baseline ("este PR INTRODUZ?"), nunca absoluto ("existe?"): os 3 donos
+      # (cli-tabs.jsx · cli-seg.js · cli-pagehead.jsx) são LIVE-ONLY e não estão no
+      # espelho, então absoluto acusaria 100% da população e nasceria vermelho permanente
+      # (§5 2026-07-28 · 2026-08-24). O selftest roda ANTES e prova mordida das 5 regras
+      # pelo CLI de fora — se ele parar de morder, quebra aqui.
+      - name: pele-paralela selftest (as 5 regras mordem?)
+        run: node scripts/qa/cowork-pele-paralela.mjs --selftest
+
+      - name: pele paralela no espelho (delta vs baseline)
+        run: node scripts/qa/cowork-pele-paralela.mjs
 
       # detect-handoff (2026-07-27): ligado aqui porque é AQUI que o sinal nasce — o
       # workflow já dispara em `prototipo-ui/**`. Estava órfão desde que nasceu (o sweep
