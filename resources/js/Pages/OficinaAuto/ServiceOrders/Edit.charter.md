@@ -2,6 +2,7 @@
 page: /oficina-auto/ordens-servico/{id}/edit
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Edit.tsx
 related_prototype: prototipo-ui/cowork/oficina-forms.jsx (OsCreateDrawer — edit/update reaproveita o mesmo drawer)
+related_us: [US-OFICINA-001]
 page_id: oficina-auto-ordens-servico-edit
 owner: wagner
 status: live

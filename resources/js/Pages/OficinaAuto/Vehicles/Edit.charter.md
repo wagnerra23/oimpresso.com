@@ -2,6 +2,7 @@
 page: /oficina-auto/veiculos/{id}/edit
 component: resources/js/Pages/OficinaAuto/Vehicles/Edit.tsx
 related_prototype: n/a (herda PT-02 Form/Drawer; Veículos CRUD fora do escopo declarado em oficina-forms.jsx)
+related_us: [US-OFICINA-001]
 page_id: oficina-auto-veiculos-edit
 owner: wagner
 status: live
