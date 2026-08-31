@@ -302,5 +302,13 @@
     "route": "/fiscal/sped",
     "anchor": "SPED",
     "baseline": "it_Fiscal_Sped_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "RecurringBilling",
+    "source": "RecurringBilling",
+    "component": "RecurringBilling/Index",
+    "route": "/recurring-billing",
+    "anchor": "Cobrança recorrente",
+    "baseline": "it_RecurringBilling_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]

@@ -22,7 +22,14 @@ import { execSync } from 'node:child_process';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const TARGET = 'resources/js';
+// TARGETS — as DUAS raízes onde vivem telas Inertia, espelhando `scripts/eslint-baseline.mjs`
+// (que ganhou a 2ª raiz em 2026-08-28, #6438). Quem decide o conjunto varrido é o argumento do
+// CLI, não o `eslint.config.js`: enquanto isto fosse só `resources/js`, os 90 `.ts/.tsx` sob
+// `Modules/*/Resources/js/**` ficavam invisíveis pro placar. Glob COM extensão é obrigatório —
+// o ESLint 9 recusa `Modules/*/Resources/js` ("No files matching the pattern"), porque `*` no
+// meio de path de diretório não resolve. `Modules/*/Resources/assets/**` (jQuery/AdminLTE
+// legado) já sai pelo `ignores` global do eslint.config.js — não precisa filtrar de novo.
+const TARGETS = ['resources/js', 'Modules/*/Resources/js/**/*.{ts,tsx}'];
 const AS_JSON = process.argv.includes('--json');
 const AS_WORKLIST = process.argv.includes('--worklist');
 const DO_WRITE = process.argv.includes('--write');
@@ -43,7 +50,8 @@ const MARK_START = '<!-- ds:worklist:start (auto · npm run ds:report -- --write
 const MARK_END = '<!-- ds:worklist:end -->';
 
 function runEslint() {
-  const cmd = `npx --no-install eslint "${TARGET}" --format=json --max-warnings=999999`;
+  const alvos = TARGETS.map((t) => `"${t}"`).join(' ');
+  const cmd = `npx --no-install eslint ${alvos} --format=json --max-warnings=999999`;
   try {
     return JSON.parse(execSync(cmd, {
       encoding: 'utf8', maxBuffer: 100 * 1024 * 1024,
@@ -63,9 +71,20 @@ function gitSha() {
 }
 
 const RULE_RE = /^(ds\/[a-z0-9-]+)/;
+// Módulo nWidart PRIMEIRO, ancorado em `/Resources/`. Os paths chegam aqui RELATIVOS ao cwd
+// (`Modules/PaymentGateway/Resources/js/Pages/Settings/…`) — sem a barra inicial que o regex
+// do núcleo exige, então ele nunca casava `Modules` e caía no `/Pages/`, capturando o segmento
+// seguinte. Medido em 2026-08-31, ao ampliar o escopo: 8 dos 10 pares (módulo, subpasta) saíam
+// torto, com duas colisões graves — PaymentGateway viraria `Settings` (linha 8 da WORKLIST,
+// hoje ✅ concluído) e Whatsapp viraria `Atendimento` (linha fantasma). Sem esta perna, ampliar
+// o TARGET PIORA o placar em vez de consertá-lo. A âncora `/Resources/` é o que separa o módulo
+// da TELA do núcleo `resources/js/Pages/Modules/Index.tsx`, que segue no grupo `Modules`.
 function moduleOf(path) {
-  const m = path.replace(/\\/g, '/').match(/\/(?:Pages|Modules)\/([^/]+)/);
-  return m ? m[1] : '(outros)';
+  const p = path.replace(/\\/g, '/');
+  const mod = p.match(/(?:^|\/)Modules\/([^/]+)\/Resources\//);
+  if (mod) return mod[1];
+  const nucleo = p.match(/\/(?:Pages|Modules)\/([^/]+)/);
+  return nucleo ? nucleo[1] : '(outros)';
 }
 
 function collect() {
