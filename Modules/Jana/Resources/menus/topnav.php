@@ -15,15 +15,15 @@
  */
 
 return [
-    'label' => 'copiloto::copiloto.module_label',
+    'label' => 'jana::jana.module_label',
     'icon'  => 'Compass',
     'items' => [
-        ['label' => 'copiloto::copiloto.menu.conversar',  'href' => '/ia/conversa',         'icon' => 'MessageSquare',   'can' => 'jana.chat'],
-        ['label' => 'copiloto::copiloto.menu.dashboard',  'href' => '/ia',                  'icon' => 'LayoutDashboard', 'can' => 'jana.access'],
-        ['label' => 'copiloto::copiloto.menu.metas',      'href' => '/ia/metas',            'icon' => 'Target',          'can' => 'jana.metas.manage'],
+        ['label' => 'jana::jana.menu.conversar',  'href' => '/ia/conversa',         'icon' => 'MessageSquare',   'can' => 'jana.chat'],
+        ['label' => 'jana::jana.menu.dashboard',  'href' => '/ia',                  'icon' => 'LayoutDashboard', 'can' => 'jana.access'],
+        ['label' => 'jana::jana.menu.metas',      'href' => '/ia/metas',            'icon' => 'Target',          'can' => 'jana.metas.manage'],
         // Wagner 2026-05-25: /ia/alertas REMOVIDO do topnav legacy — tela é STUB
         // ("spec-ready ver US-COPI-060"). Reativar quando US-COPI-060 entregar.
-        // ['label' => 'copiloto::copiloto.menu.alertas',    'href' => '/ia/alertas',          'icon' => 'Bell',            'can' => 'jana.access'],
+        // ['label' => 'jana::jana.menu.alertas',    'href' => '/ia/alertas',          'icon' => 'Bell',            'can' => 'jana.access'],
         // Repontado 2026-08-05: a tela foi fundida no painel da Governança
         // (ADR 0366 §D-C item 1). Mantido o item pra não perder o acesso de quem
         // já usava o topnav da IA; o `can` segue `jana.mcp.usage.all`, que é o
@@ -41,6 +41,6 @@ return [
         // useAutoModuleNav (este topnav vem antes da Forja no Object.values),
         // fazendo as telas absorvidas mostrarem o nav do Copiloto em vez do hub
         // Forja. Agora o hub Forja (core_topnavs['Forja']) é dono de /team-mcp/*.
-        ['label' => 'copiloto::copiloto.menu.plataforma', 'href' => '/ia/superadmin/metas', 'icon' => 'Building2',       'can' => 'jana.superadmin'],
+        ['label' => 'jana::jana.menu.plataforma', 'href' => '/ia/superadmin/metas', 'icon' => 'Building2',       'can' => 'jana.superadmin'],
     ],
 ];

@@ -643,3 +643,30 @@ import não é comportamento. Nenhum `Status:` muda.
 **Não rodei a suíte** — CT 100 respondeu 502 durante toda a sessão e Pest local é proibido
 (ADR 0062). O bump é por revalidação de CONTRATO, e digo porque o G-6 aceita a data e só o
 leitor percebe a diferença.
+
+---
+
+## Revalidação de 2026-08-28 (2ª do dia) — e depois o `.tsx` mudou UM COMENTÁRIO
+
+> Segunda revalidação desta tela no mesmo dia, por causa DIFERENTE da anterior. A de cima veio do
+> [#6424](https://github.com/wagnerra23/oimpresso.com/pull/6424) (rename de import); esta é do
+> #6425 (ponteiro de rota podre no cabeçalho). As duas ficam: cada uma registra um toque real no
+> `.tsx`, e apagar qualquer uma esconderia por que o `last_run` subiu.
+
+O `casos-gate` acusou `stale:` nesta tela. O diff do `.tsx` neste PR é **uma linha, e é
+comentário**: o cabeçalho declarava `tela: /copiloto/dashboard`, rota que não existe — a tela
+responde por `/ia` desde a US-COPI-148. Ponteiro podre corrigido.
+
+O G-6 compara a **data-git do `.tsx`** com o `last_run`, e não lê o conteúdo do diff. É a lápide
+§5 2026-07-27 na forma mais literal possível: *comentário conta como "a tela mudou"*.
+
+| O que conferi | Como | Resultado |
+|---|---|---|
+| tamanho do diff nesta tela | `git diff origin/main...HEAD -- …/Index.tsx` | **1 linha** |
+| é código ou comentário? | a própria linha | comentário de cabeçalho (`// tela:`) |
+| algum UC referencia a rota antiga? | `grep -n '/copiloto' Index.casos.md` | **2 hits, ambos NESTA nota** (as linhas que descrevem o problema); **zero em UC** |
+
+**Interseção com os UCs: nenhuma.** Nenhum `Status:` muda.
+
+**Não rodei a suíte** — CT 100 em 502 e Pest local é proibido (ADR 0062). Bump por revalidação de
+CONTRATO, declarado porque o G-6 aceita a data e só o leitor percebe a diferença.
