@@ -56,6 +56,17 @@
       }
     },
     {
+      "screen": "Cms",
+      "note": "4 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
       "screen": "ComunicacaoVisual",
       "note": "1 arquivo(s)",
       "cells": {
@@ -89,6 +100,17 @@
       }
     },
     {
+      "screen": "Forja",
+      "note": "36 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "yes"
+      }
+    },
+    {
       "screen": "governance",
       "note": "10 arquivo(s)",
       "cells": {
@@ -100,8 +122,30 @@
       }
     },
     {
+      "screen": "KB",
+      "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
       "screen": "Manufacturing",
       "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "Officeimpresso",
+      "note": "3 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -199,17 +243,6 @@
       }
     },
     {
-      "screen": "Whatsapp",
-      "note": "16 arquivo(s)",
-      "cells": {
-        "tokens": "no",
-        "primitivos": "yes",
-        "probe": "na",
-        "dark": "na",
-        "approved": "yes"
-      }
-    },
-    {
       "screen": "ConsultaOs",
       "note": "5 arquivo(s)",
       "cells": {
@@ -276,6 +309,17 @@
       }
     },
     {
+      "screen": "PaymentGateway",
+      "note": "8 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
       "screen": "Produto",
       "note": "20 arquivo(s)",
       "cells": {
@@ -298,6 +342,17 @@
       }
     },
     {
+      "screen": "Superadmin",
+      "note": "8 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "no",
+        "probe": "na",
+        "dark": "na",
+        "approved": "yes"
+      }
+    },
+    {
       "screen": "TransactionPayment",
       "note": "3 arquivo(s)",
       "cells": {
@@ -306,6 +361,17 @@
         "probe": "na",
         "dark": "na",
         "approved": "no"
+      }
+    },
+    {
+      "screen": "Whatsapp",
+      "note": "46 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "no",
+        "probe": "na",
+        "dark": "na",
+        "approved": "yes"
       }
     },
     {
@@ -353,18 +419,18 @@
       }
     }
   ],
-  "progressPct": 34,
+  "progressPct": 37,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "81f3f8958",
-  "generatedAt": "2026-08-30T14:30:16.642Z",
+  "measuredAgainstSha": "ddc2f89b95",
+  "generatedAt": "2026-08-31T13:02:55.482Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
   },
   "counts": {
-    "screens": 32,
-    "done": 11,
+    "screens": 38,
+    "done": 14,
     "references": 0
   }
 }
