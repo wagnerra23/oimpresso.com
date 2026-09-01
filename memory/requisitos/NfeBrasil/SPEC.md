@@ -140,7 +140,7 @@ na_justified:
 > **Permissão Spatie:** `nfe.contingencia.manage`
 
 **Como** Gestor (quando SEFAZ está fora)
-**Quero** ativar contingência (EPEC pra NF-e, FS-DA pra NFC-e) e seguir vendendo offline
+**Quero** ativar contingência (EPEC ou FS-DA pra NF-e, off-line pra NFC-e) e seguir vendendo offline
 **Para** não parar caixa quando SEFAZ está com problema
 
 **Implementado em:** _pendente_ — modo contingência (EPEC/FS-DA + tela Pages/NfeBrasil/Contingencia) não construído
@@ -148,7 +148,7 @@ na_justified:
 **Definition of Done:**
 - [ ] Detecção automática: `SefazHealthCheck` ping a cada 30s → se 3 falhas seguidas, sugerir contingência
 - [ ] Ativação manual em 1 clique com motivo
-- [ ] Notas em contingência ganham `tpEmis=4 (EPEC)` ou `tpEmis=9 (FS-DA)`
+- [ ] Notas em contingência ganham `tpEmis=4 (EPEC)`, `tpEmis=5 (FS-DA — NF-e mod. 55)` ou `tpEmis=9 (off-line NFC-e — mod. 65)`
 - [ ] Job retentativa quando SEFAZ volta: re-envia em ordem de emissão
 - [ ] Tela mostra fila pendente + status saúde SEFAZ
 - [ ] Test Feature: ativar/desativar + emitir em contingência + retentativa após volta + isolamento

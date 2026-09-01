@@ -69,8 +69,9 @@ id: requisitos-nfe-brasil-glossary
 - **Ambiente homologação** (`tpAmb=2`) — testes; NFes emitidas não têm valor fiscal.
 - **Ambiente produção** (`tpAmb=1`) — NFes reais.
 - **tpEmis=1** — emissão normal online.
-- **tpEmis=4** — EPEC (Evento Prévio Emissão em Contingência) NF-e.
-- **tpEmis=9** — FS-DA / NFC-e offline contingência.
+- **tpEmis=4** — EPEC (Evento Prévio Emissão em Contingência) — NF-e e NFC-e (a critério da UF).
+- **tpEmis=5** — FS-DA (Formulário de Segurança · DANFE Auxiliar) — **NF-e modelo 55**.
+- **tpEmis=9** — contingência **off-line da NFC-e** (modelo 65).
 
 ## SEFAZ webservices
 
