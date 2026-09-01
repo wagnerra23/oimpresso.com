@@ -62,7 +62,7 @@ export const REGRAS = [
     // Gatilho: propos executar trabalho novo.
     gatilho: /(posso (fazer|implementar|consertar|seguir)|vou (fazer|implementar|criar|abrir)|abro (o )?PR|pr[oó]ximo passo|sigo\?|confirma que sigo)/i,
     // Antidoto: citou backlog existente antes de propor.
-    antidoto: /(US-[A-Z]{2,6}-\d{3}|tasks-list|tasks-detail|tasks-create|nenhuma task|nao existe US|sem US)/i,
+    antidoto: /(US-_?[A-Z]{2,12}-\d{3}|tasks-list|tasks-detail|tasks-create|nenhuma task|nao existe US|sem US)/i,
     aviso: 'BACKLOG: voce propos trabalho sem citar se ja existe US/task. Consulte tasks-list antes — e diga explicitamente quando NAO existir. Backlog duplicado custa mais que a consulta.',
   },
   {

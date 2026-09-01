@@ -151,13 +151,13 @@ validate_us_format() {
   local file="$1"
   # Procura todas as ocorrências US-<X>-<Y>.
   local all_us
-  all_us="$(grep -oE 'US-[A-Za-z0-9]+-[0-9]+' "$file" 2>/dev/null || true)"
+  all_us="$(grep -oE 'US-[A-Za-z0-9_]+-[0-9]+' "$file" 2>/dev/null || true)"
   if [[ -z "$all_us" ]]; then
     return 0
   fi
-  # Procura referências malformadas (não batem ^US-[A-Z]{2,8}-[0-9]{3,4}$).
+  # Procura referências malformadas (não batem ^US-_?[A-Z]{2,12}-[0-9]{3,4}$).
   local malformed
-  malformed="$(printf '%s\n' "$all_us" | grep -vE '^US-[A-Z]{2,8}-[0-9]{3,4}$' || true)"
+  malformed="$(printf '%s\n' "$all_us" | grep -vE '^US-_?[A-Z]{2,12}-[0-9]{3,4}$' || true)"
   if [[ -n "$malformed" ]]; then
     # Anexa exemplos malformados via stderr pra debug (até 3).
     local sample
