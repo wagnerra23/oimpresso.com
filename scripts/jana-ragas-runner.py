@@ -76,6 +76,12 @@ def run_artisan_eval(mode: str) -> dict[str, Any]:
     )
     # Salva raw eval pra artifact (workflow upload)
     Path("ragas-eval.json").write_text(proc.stdout, encoding="utf-8")
+    # Diagnóstico SEMPRE visível (2026-09-01, run 33499344761): os Log::warning do judge
+    # ([RAGAS] key ausente / HTTP 4xx / exception) saem no stderr do artisan com rc=0 —
+    # só imprimir stderr em rc fora de {0,1} deixou um dia all-zero indiagnosticável no CI.
+    if proc.stderr:
+        for line in proc.stderr.strip().splitlines()[-20:]:
+            print(f"[artisan-stderr] {line}", file=sys.stderr)
     if proc.returncode not in (0, 1):
         # 0 = pass, 1 = fail-threshold (esperado). Qualquer outro = erro estrutural.
         print(f"[runner] artisan falhou rc={proc.returncode}", file=sys.stderr)
@@ -176,6 +182,25 @@ def main() -> int:
 
     # 1. Roda eval PHP-side
     eval_report = run_artisan_eval(args.mode)
+
+    # Falha de MEDIÇÃO ≠ regressão (2026-09-01, run 33499344761: 51/51 perguntas com as
+    # 2 métricas em 0.0 viraram "-100% de regressão"). Em modo real, all-zero com n>0 só
+    # acontece quando o judge devolve 0.0 em TODAS as chamadas (fail-open do
+    # RagasJudgeService: key ausente / HTTP / exception). Tratar como regressão mente o
+    # diagnóstico; pior, com --update-baseline gravaria baseline 0.0 — que load_baseline
+    # trata como "N/A, nunca alerta" (alarme morto pra sempre). Exit 2 = erro estrutural,
+    # mesmo contrato do rc fora de {0,1} do artisan. Mock nunca zera (scores fixos).
+    if eval_report.get("mode") == "real":
+        n_q = int(eval_report.get("n_questions", 0))
+        all_zero = all(float(eval_report.get(k, 0.0)) == 0.0 for _, k in TRACKED_METRICS)
+        if n_q > 0 and all_zero:
+            print(
+                f"[runner] MEDIÇÃO FALHOU — modo real com TODAS as métricas 0.0 ({n_q} perguntas): "
+                "o judge devolveu 0.0 em todas as chamadas (key/HTTP/exception — ver linhas "
+                "[artisan-stderr] acima). Não é regressão; baseline NÃO foi tocado.",
+                file=sys.stderr,
+            )
+            return 2
 
     # 2. Lê baseline (se ausente, diff vira no-op informativo)
     baseline = load_baseline(args.baseline)
