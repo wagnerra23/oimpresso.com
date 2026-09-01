@@ -355,7 +355,7 @@ function fiscalCorpoDoMetodo(string $classe, string $metodo): string
 
     // Controle positivo: se a extração falhar, o teste tem de morrer aqui — e não
     // passar por vacuidade (um `not->toContain` sobre string vazia é sempre verde).
-    expect(strlen($corpo))->toBeGreaterThan(200, "corpo de {$classe}::{$metodo} não foi extraído");
+    expect(strlen($corpo))->toBeGreaterThan(200);
 
     return $corpo;
 }
@@ -363,29 +363,32 @@ function fiscalCorpoDoMetodo(string $classe, string $metodo): string
 it('UC-FNFE-09 · retransmitir PRESERVA a nota antiga — nunca deleta (CONFAZ Art. 14)', function () {
     $corpo = fiscalCorpoDoMetodo(NfeService::class, 'retransmitirInterno');
 
-    // [reg] remoção física de documento fiscal é proibida por lei.
-    expect($corpo)->not->toContain('forceDelete', 'CONFAZ Art. 14: NfeEmissao nunca é hard-deletada')
-        ->and($corpo)->not->toContain('->delete(', 'nem soft-delete: a nota antiga fica na tabela')
-        ->and($corpo)->not->toContain('::destroy(', 'nem destroy em massa');
+    // [reg] CONFAZ Art. 14: a NfeEmissao nunca é hard-deletada, nem soft-deletada
+    // (`->delete(`), nem destruída em massa (`::destroy(`).
+    //
+    // ⚠️ SEM mensagem nos `toContain`: no Pest ele é VARIÁDICO (`...$needles`), então um
+    // 2º argumento vira NEEDLE, não descrição — a explicação mora no comentário. Foi
+    // exatamente assim que estes 2 casos nasceram vermelhos, e é a classe que o #4918 já
+    // limpou 38× no repo (§5 2026-07-28).
+    expect($corpo)->not->toContain('forceDelete')
+        ->and($corpo)->not->toContain('->delete(')
+        ->and($corpo)->not->toContain('::destroy(');
 
-    // O que ela faz NO LUGAR de deletar: marca inutilizada e libera a UNIQUE biz+tx.
-    expect($corpo)->toContain("'status' => 'inutilizada'", 'a antiga vira inutilizada, não some')
-        ->and($corpo)->toContain("'transaction_id' => null", 'libera a UNIQUE pra nova emissão')
-        ->and($corpo)->toContain('original_transaction_id', 'audit trail da nota antiga preservado');
+    // O que ela faz NO LUGAR de deletar: marca `inutilizada`, zera o `transaction_id`
+    // (libera a UNIQUE biz+tx) e preserva o vínculo da nota antiga no metadata.
+    expect($corpo)->toContain("'status' => 'inutilizada'")
+        ->and($corpo)->toContain("'transaction_id' => null")
+        ->and($corpo)->toContain('original_transaction_id');
 });
 
 it('UC-FNFE-09 · whitelist de status retransmissível vem do Service, não do teste', function () {
     $corpo = fiscalCorpoDoMetodo(NfeService::class, 'retransmitirInterno');
     $normalizado = preg_replace('/\s+/', ' ', $corpo);
 
-    // [must] exatamente os 3 status. Mexer nisto no Service derruba este caso —
-    // é a diferença entre asserção e re-declaração da regra dentro do teste.
-    expect($normalizado)->toContain(
-        "statusValidos = ['rejeitada', 'denegada', 'erro_envio']",
-        'os 3 status retransmissíveis do CU-FISC-11 item 2',
-    );
-
-    // E que a lista de fato REJEITA — não fica declarada sem uso.
-    expect($normalizado)->toContain('in_array($emissao->status, $statusValidos, true)')
+    // [must] exatamente os 3 status retransmissíveis do CU-FISC-11 item 2, e a prova
+    // de que a lista REJEITA — não fica declarada sem uso. Mexer nisto no Service
+    // derruba este caso: é a diferença entre asserção e re-declaração da regra.
+    expect($normalizado)->toContain("statusValidos = ['rejeitada', 'denegada', 'erro_envio']")
+        ->and($normalizado)->toContain('in_array($emissao->status, $statusValidos, true)')
         ->and($normalizado)->toContain('throw new InvalidArgumentException');
 });
