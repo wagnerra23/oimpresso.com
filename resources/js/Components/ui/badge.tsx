@@ -77,11 +77,22 @@ function Badge({
       className={cn(badgeVariants({ variant }), className)}
       {...props}
     >
-      {/* `asChild` delega o filho único ao Slot: injetar o dot ali quebraria o contrato do Radix. */}
-      {dot && !asChild && (
-        <span data-slot="badge-dot" aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-current" />
+      {/* `asChild` delega o filho ÚNICO ao Slot, que roda `React.Children.only`.
+       *
+       * A guarda `dot && !asChild` (2026-09-01, #6510) tinha a intenção certa e não
+       * bastava: com DUAS expressões irmãs aqui, o JSX monta `children` como ARRAY
+       * — `[false, children]` quando a guarda é falsa. `Children.only` recebe um
+       * array, não um elemento, e lança "expected to receive a single React element
+       * child", derrubando a página inteira. Não é o dot que quebrava: era a
+       * ARIDADE. Por isso o ramo `asChild` devolve `children` NU, sem irmão. */}
+      {asChild ? children : (
+        <>
+          {dot && (
+            <span data-slot="badge-dot" aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-current" />
+          )}
+          {children}
+        </>
       )}
-      {children}
     </Comp>
   )
 }
