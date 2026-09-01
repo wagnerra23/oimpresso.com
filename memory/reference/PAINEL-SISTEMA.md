@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-31**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-01**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -144,8 +144,8 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **391** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 352 · superseded: 16 · deprecated: 13 · proposto: 8 · rascunho: 1 · recusado: 1.
+- **392** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 353 · superseded: 16 · deprecated: 13 · proposto: 8 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
@@ -320,14 +320,14 @@ lente: [construir]
 
 ## Rastro
 
-- **480** handoffs · **655** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **480** handoffs · **656** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-09-01-testes-persistentes-design-code`
   - `2026-08-31-ragas-obra-parada-veredito-b`
   - `2026-08-31-jana-p0-vazamento-e-d0-identidade-view`
   - `2026-08-28-session-02`
   - `2026-08-28-session-01`
   - `2026-08-28-onda1-ponto-e-biometria-sem-rota`
-  - `2026-08-26-raio-gate-visual-5-suites`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-31 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-01 · deriva das fontes canônicas, não as substitui._
