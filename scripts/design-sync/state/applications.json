@@ -2,6 +2,24 @@
   "schema": "oimpresso-design-applications/2",
   "applications": [
     {
+      "source": "arquivos-page.jsx",
+      "target": "resources/js/Pages/Arquivos/Index.tsx",
+      "sourceSha256": "08a8bebe9e4fd8ed3b950a0fc245780f653fec495078f83bc3a328f794e71a89",
+      "targetSha256": "95d5f19ee9e189cdd22ba632e1a3e3ca4db13ee7797e19853eb8166ea8f5588f",
+      "comparison": {
+        "map": "memory/requisitos/Arquivos/arquivos-index.map.json",
+        "mapSha256": "cdda4800cd56c033e2aa8c2dcbba10173329169f3ba5e39f7b88e9e7192e642e",
+        "recordedAt": "2026-09-01T14:38:16.591Z"
+      },
+      "tests": [],
+      "smokes": [],
+      "application": {
+        "evidence": "memory/requisitos/Arquivos/arquivos-index-gap.md",
+        "evidenceSha256": "bd82b675f47424a712588686eb9e95f88a52930cc9a7e75265da98b1b0a18ab8",
+        "recordedAt": "2026-09-01T14:38:42.010Z"
+      }
+    },
+    {
       "source": "fiscal-page.jsx",
       "target": "resources/js/Pages/Fiscal/Cockpit.tsx",
       "sourceSha256": "6f302cead5a6f1d8b2033386131f7e640d0a8e3f325921051e107efef6a6659a",
