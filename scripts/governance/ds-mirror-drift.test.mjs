@@ -52,9 +52,26 @@ ok(run(drift) === 0, 'ADVISORY: drift 1 > baseline 0, sem --enforce → exit 0 (
 baseline(1);
 ok(run(drift, ['--enforce']) === 0, 'CATRACA: drift 1 == baseline 1, --enforce → exit 0');
 
-// SNAPSHOT AUSENTE + --enforce → falha (não dá pra checar)
+// NÃO-MEDIÇÃO ≠ DRIFT (lápide §5 2026-08-14): --enforce distingue por exit code.
+// exit 2 = não consegui medir · exit 1 = drift real. Sem isso, snapshot/tokens ausentes
+// saíam como "drift" (ou pior: tokens ausente saía VERDE — o motor devolve diverge=0).
 baseline(0);
-ok(run(join(ROOT, 'nao-existe.css'), ['--enforce']) === 1, 'snapshot ausente + --enforce → exit 1');
+ok(run(join(ROOT, 'nao-existe.css'), ['--enforce']) === 2, 'snapshot ausente + --enforce → exit 2 (não-medi, NÃO drift)');
+ok(run(join(ROOT, 'nao-existe.css')) === 0, 'snapshot ausente sem --enforce → exit 0 (advisory)');
+
+// TOKENS AUSENTE — o verde falso medido 2026-09-01: o motor devolve totalDiverge=0 com o dir
+// inexistente; sem a checagem própria o enforce passaria. Bite: exit 2, nunca 0 nem 1.
+{
+  const args = [SCRIPT, '--snapshot', match, '--tokens', join(ROOT, 'tokens-nao-existe'), '--baseline', BASE, '--enforce'];
+  let code = 0; try { execFileSync('node', args, { encoding: 'utf8' }); } catch (e) { code = e.status ?? 1; }
+  ok(code === 2, 'tokens/ ausente + --enforce → exit 2 (era verde falso: motor devolve diverge=0)');
+  const args0 = [SCRIPT, '--snapshot', match, '--tokens', join(ROOT, 'tokens-nao-existe'), '--baseline', BASE];
+  let code0 = 0; try { execFileSync('node', args0, { encoding: 'utf8' }); } catch (e) { code0 = e.status ?? 1; }
+  ok(code0 === 0, 'tokens/ ausente sem --enforce → exit 0 (advisory)');
+}
+
+// CONTROLE NEGATIVO — drift real continua saindo 1 (o código de drift não foi diluído)
+ok(run(drift, ['--enforce']) === 1, 'controle: drift real + --enforce segue exit 1');
 
 // --update-baseline grava o drift atual
 run(drift, ['--update-baseline']);

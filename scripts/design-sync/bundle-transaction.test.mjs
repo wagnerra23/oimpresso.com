@@ -391,5 +391,35 @@ console.log('\n=== base divergente e rollback durante promoção ===');
   check('rollback limpa staging/backup', leftovers.length === 0, leftovers.join(','));
 }
 
-console.log(failures ? `\n✗ ${failures} falha(s)` : '\n✓ bundle v2: delta + staging + rollback + módulos provados');
+console.log('\n=== --check-lifecycle: a catraca do escopo novo morde pelo CLI de fora ===');
+// Um script com N modos é N gates (§5 2026-07-28): o lifecycle inteiro já era provado acima,
+// mas o modo que GATEIA (--check-lifecycle) tinha 0 sondas pelo CLI. Três provas:
+// abaixo do mínimo → exit 1 · no mínimo → exit 0 · sem escopo → exit 2 (a catraca RECUSA
+// virar bloqueio global do legado — isso é contrato, não omissão).
+{
+  const root = sandbox();
+  const buffers = sourceSnapshot();
+  const manifest = manifestFor(buffers);
+  await applyBundleTransaction({ root, parts: partsFor(manifest, buffers) });
+  const report = JSON.parse(readFileSync(join(root, 'scripts/design-sync/state/application-report.json'), 'utf8'));
+  const screen = report.screens.find((item) => item.source === 'officeimpresso-page.jsx');
+  const state = screen.lifecycleState || 'review';
+  check('pré-condição: tela da sandbox está abaixo de validated', state !== 'validated', `state=${state}`);
+
+  const probe = (extra) => {
+    try {
+      execFileSync(process.execPath, [STATUS, '--root', root, '--check-lifecycle', ...extra],
+        { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+      return 0;
+    } catch (error) { return error.status ?? 1; }
+  };
+  check('BITE: tela abaixo do --minimum → exit 1',
+    probe(['--source', 'officeimpresso-page.jsx', '--minimum', 'validated']) === 1);
+  check('RELEASE: tela no estado mínimo → exit 0',
+    probe(['--source', 'officeimpresso-page.jsx', '--minimum', state]) === 0);
+  check('ESCOPO: sem --source/--module → exit 2 (legado não vira bloqueio global)',
+    probe([]) === 2);
+}
+
+console.log(failures ? `\n✗ ${failures} falha(s)` : '\n✓ bundle v2: delta + staging + rollback + módulos + catraca lifecycle provados');
 process.exit(failures ? 1 : 0);
