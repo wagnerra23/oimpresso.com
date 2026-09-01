@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **911 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **910 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -21,7 +21,7 @@
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
 | [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
 | [`Crm`](#crm) | 23 | 0 | 0 | 0 | 23 |
-| [`Fiscal`](#fiscal) | 23 | 0 | 0 | 0 | 23 |
+| [`Fiscal`](#fiscal) | 22 | 0 | 0 | 0 | 22 |
 | [`Connector`](#connector) | 20 | 0 | 0 | 0 | 19 |
 | [`Pcp`](#pcp) | 20 | 0 | 0 | 0 | 20 |
 | [`Vestuario`](#vestuario) | 19 | 0 | 0 | 0 | 19 |
@@ -686,7 +686,6 @@
 ### todo
 
 - **US-FISCAL-021** — IBS/CBS cálculo no MotorTributarioService (Onda 6 — sair do scaffold) _(`p0` · @wagner)_
-- **US-FISCAL-022** — Health-check certificado A1 (cron alerta vencimento) _(`p1`)_
 - **US-FISCAL-024** — IBS/CBS — split UF/Município na régua fiscal (coluna de schema) _(`p2`)_
 - **US-FISCAL-001** — Cockpit NF-e · NFC-e (sub-página 2)
 - **US-FISCAL-002** — Cockpit (sub-página 1) — ✅ PR #2 Wave
