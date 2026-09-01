@@ -610,8 +610,13 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
         // linhas de NF-e/contrato é `sensitive`, o fill pintaria metade da coluna de vermelho cheio.
         return (
           <Stack gap={1} align="start">
+            {/* `dot` explícito: esta Badge é ESTADO do arquivo (a mesma razão do `danger`
+                acima), e o AP7 pede dot em status. O protótipo desenha com dot — medido na
+                1ª comparação D6 desta tela (2026-09-01), col2 `pill.dot`: design sim, prod não.
+                Aqui é opt-in porque a Badge crua não sabe se está rotulando estado ou coisa. */}
             <Badge
               variant={a.bucket === 'sensitive' ? 'danger' : 'secondary'}
+              dot
               title={a.bucket ?? undefined}
             >
               {a.bucket ? (BUCKET_PT[a.bucket] ?? a.bucket) : '—'}

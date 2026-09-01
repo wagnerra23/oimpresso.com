@@ -14,6 +14,11 @@ import type { VariantProps } from 'class-variance-authority';
  *   <StatusBadge kind="payment" value="paid" />
  *
  * Adicionar novo domínio: estender `mappings` abaixo + commitar.
+ *
+ * `dot` LIGADO por padrão nos dois caminhos (mapeado e fallback): este componente é status
+ * POR DEFINIÇÃO, e é exatamente dele que o AP7 fala (*"status badges — usa dot + texto
+ * colorido"*). No `Badge` cru o dot fica opt-in, porque lá a variante também rotula coisa que
+ * não é estado — a justificativa medida está no docblock de `ui/badge.tsx`.
  */
 /**
  * DERIVADO do `badgeVariants`, não restateado.
@@ -192,14 +197,14 @@ export default function StatusBadge({ kind, value, className, label }: Props) {
 
   if (!entry) {
     return (
-      <Badge variant="outline" className={cn('font-medium', className)}>
+      <Badge variant="outline" dot className={cn('font-medium', className)}>
         {label ?? toTitle(value)}
       </Badge>
     );
   }
 
   return (
-    <Badge variant={entry.variant} className={cn('font-medium', entry.className, className)}>
+    <Badge variant={entry.variant} dot className={cn('font-medium', entry.className, className)}>
       {label ?? entry.label}
     </Badge>
   );
