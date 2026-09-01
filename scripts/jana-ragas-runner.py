@@ -76,10 +76,17 @@ def run_artisan_eval(mode: str) -> dict[str, Any]:
     )
     # Salva raw eval pra artifact (workflow upload)
     Path("ragas-eval.json").write_text(proc.stdout, encoding="utf-8")
+    # O stderr do artisan carrega a CAUSA da quebra (ex.: `[RAGAS] Judge HTTP 429`).
+    # Repassar so quando rc nao esta em {0,1} engolia justamente o caso mais comum:
+    # o fail por threshold (rc=1) e como uma quebra do JUIZ se apresenta — scores
+    # 0.0 nas duas metricas e "regressao -100%". Em 2026-09-01 a linha do 429 ficou
+    # invisivel no log do canary e a investigacao precisou de um dispatch extra de
+    # OUTRO workflow so pra recupera-la. Agora sai sempre, antes de decidir o exit.
+    if proc.stderr:
+        print(proc.stderr.rstrip(), file=sys.stderr)
     if proc.returncode not in (0, 1):
         # 0 = pass, 1 = fail-threshold (esperado). Qualquer outro = erro estrutural.
         print(f"[runner] artisan falhou rc={proc.returncode}", file=sys.stderr)
-        print(proc.stderr, file=sys.stderr)
         sys.exit(2)
     try:
         return json.loads(proc.stdout)

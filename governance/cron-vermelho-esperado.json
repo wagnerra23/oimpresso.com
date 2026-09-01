@@ -1,10 +1,3 @@
 {
-  "silencios": [
-    {
-      "workflow": "shipped-log-gate.yml",
-      "razao": "Eco de run pre-conserto, nao defeito vivo. A run agendada de 2026-08-25T12:45Z falhou com 'CYCLE-08.md generated ha 5d (> 4d)'. As DUAS causas foram corrigidas no mesmo dia, DEPOIS dessa run: o registro foi atualizado no PR #6164 (merge 13:09Z, generated 2026-08-24, dentro do limite) e a folga estrutural do gerador foi corrigida no PR #6242 (o cron passou de seg/qui para seg/qua/sex — antes a janela qui->seg era de 4 dias contra um limite de 4, ou seja, folga ZERO). O watchdog le a ULTIMA run AGENDADA e nao ha alavanca manual: cron-watchdog.mjs:146 consulta '--event schedule', e o shipped-log-gate nao expoe workflow_dispatch. A proxima run agendada (0 12 * * *) confirma sozinha.",
-      "expira_em": "2026-08-28",
-      "declarado_por": "W"
-    }
-  ]
+  "silencios": []
 }
