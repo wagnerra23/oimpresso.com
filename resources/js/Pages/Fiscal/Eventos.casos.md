@@ -5,12 +5,29 @@ irmaos: Eventos.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-08-28"
+last_run: "2026-09-01"
 last_run_ci: "0 UC executado nesta corrida — 3 UC herdam testes da lane required e 1 nasce com teste novo; veredito pendente das lanes"
 related_us: [US-FISCAL-007]
 ---
 
 # Casos de Uso & Aceite — Eventos Fiscais
+
+> **Revalidação `last_run` 2026-09-01 — Onda 1 Fiscal (saneamento `fx-*` → DS):** mudança de
+> **apresentação apenas** — `fx-callout` → `<Alert>`, 5 `fx-chip` → `<Button>`, `fx-filters` →
+> `<Inline>`. Conferi os 4 UC um a um: **todos assertam backend** — timeline cross-tenant (T0),
+> evento registrado não se edita (append-only), os 7 rótulos SEFAZ em português, e o gate
+> `fiscal.access` (T0).
+> Um deles pedia conferência de perto: o **UC-FEVT-03 fala de RÓTULOS**, mas são os rótulos dos
+> **eventos** (`ev.label`, vindo do Controller e renderizado no `fx-tl-badge`) — não os dos
+> chips de filtro que este PR migrou. O `fx-tl-badge` **não foi tocado**.
+>
+> **O `fx-timeline` foi MANTIDO, e é decisão declarada, não esquecimento:** ele não é container
+> genérico — carrega `position: relative` (contexto de posicionamento dos dots
+> `.fx-tl-item::before`), o `::before` que desenha a linha vertical, e o chrome do card. Medido:
+> **não existe primitiva de timeline no DS** (zero no `REGISTRY_DS_COMPONENTES.md` e zero em
+> `Components/`). Migrar exigiria CRIAR um componente novo do DS, que é soberania [W].
+> A âncora `data-contract="fiscal-eventos-timeline"` segue intacta (`contrato-de-tela` rc=0).
+> **Nenhum teste re-executado** (Pest = CT 100).
 
 > **Revalidação `last_run` 2026-08-28 — o que foi conferido:** este PR muda a tela em **um único ponto**: o atributo `data-contract="fiscal-eventos-timeline"` no wrapper, âncora do mapa [`fiscal-eventos.map.json`](../../../../memory/requisitos/Fiscal/fiscal-eventos.map.json). Conferi o diff do `.tsx` contra a lista de UC deste arquivo — **nenhum UC depende de atributo de DOM**, logo nenhum aceite mudou. **Nenhum teste foi re-executado** nesta revalidação (Pest = CT 100); os vereditos seguem como estavam.
 
