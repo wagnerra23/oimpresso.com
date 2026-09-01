@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **391** arquivos · **376** números únicos · máx **0386**
-- **ADRs ATIVOS (lifecycle ativo): 352** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 352 · superseded 16 · deprecated 13 · proposto 8 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 352 · arquivado 23 · substituido 16
+- **392** arquivos · **377** números únicos · máx **0387**
+- **ADRs ATIVOS (lifecycle ativo): 353** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 352 · superseded 16 · deprecated 13 · proposto 9 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 353 · arquivado 23 · substituido 16
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (391)
+## Todas as ADRs (392)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -429,3 +429,4 @@ _(nenhuma)_
 | 0384 | aceito | ativo | decision | Design Sync deriva o estado da tela de recibos executáveis |
 | 0385 | proposto | ativo | decision | Sidebar alinhado ao protótipo — e a diferença classificada em três categorias |
 | 0386 | aceito | ativo | decision | Âmbar da Oficina revogado — o roxo canon é a única identidade de chrome; superse |
+| 0387 | proposto | ativo | decision | github.md (diário de sync do Cowork) é artefato aceito e tratado pelo protocolo  |
