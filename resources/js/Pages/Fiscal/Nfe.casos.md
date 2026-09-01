@@ -57,6 +57,35 @@ tailscale ssh root@ct100-mcp "docker exec -e DB_CONNECTION=mysql oimpresso-stagi
 executa em nenhuma lane disponível hoje** — a lane de CI é SQLite in-memory e o staging do CT 100
 não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do teste.
 
+## Rastreabilidade
+
+| UC | O que defende | Prio | CU (SDD §6) | Teste que o cita | Status |
+|---|---|---|---|---|---|
+| UC-FNFE-01 | a contagem não vaza outro business | `[must]` `[T0]` | CU-FISC-12 | `NfeCockpitMultiTenantTest` | 🧪 |
+| UC-FNFE-02 | janela legal 24h NFC-e / 168h NF-e | `[must]` `[reg]` | CU-FISC-03 | `AcoesContratoTest` | 🧪 |
+| UC-FNFE-03 | o código SEFAZ vira status legível | `[must]` | CU-FISC-02 | `NfeCockpitMultiTenantTest` | 🧪 |
+| UC-FNFE-04 | cancelar exige motivo de 15 a 255 chars | `[must]` | CU-FISC-08 | `AcoesContratoTest` | 🧪 |
+| UC-FNFE-05 | CC-e: texto 15–1000, sequência 1–20 | `[must]` | CU-FISC-09 | `AcoesContratoTest` | 🧪 |
+| UC-FNFE-06 | inutilização valida modelo, faixa e justificativa | `[must]` | CU-FISC-10 | `AcoesContratoTest` | 🧪 |
+| UC-FNFE-07 | manifestação: 4 ações, justificativa condicional | `[must]` | CU-FISC-07 | `AcoesContratoTest` | 🧪 |
+| UC-FNFE-08 | a superfície das ações existe (métodos, rota, Services) | `[must]` | — ver nota | `AcoesControllerTest` | 🧪 |
+
+> **Por que esta tabela nasceu em 2026-09-01 (e o que ela NÃO fez):** os 8 UC desta tela já eram
+> provados por teste desde 2026-07-27 — nenhum deles declarava, porém, **qual CU do SDD §6 atende**.
+> Efeito no painel derivado ([`_STATUS-GENERATED.md`](../../../../memory/requisitos/Fiscal/_STATUS-GENERATED.md)):
+> `CU-FISC-02/03/08/09/10` apareciam como "sem UC" tendo comportamento provado, e `UC-FNFE-04`/`UC-FNFE-07`
+> saíam atribuídos a `Eventos`/`Dfe` — as telas irmãs os citam em prosa (corretamente, dizendo que o
+> contrato mora aqui) e o gerador cai no fallback alfabético quando a tela **dona** não os declara em
+> tabela. **Nenhuma asserção de teste mudou:** isto é rastreabilidade, não comportamento.
+
+> **Por que `UC-FNFE-08` não cita CU:** ele prova que a **superfície** existe — 5 métodos públicos,
+> rota `fiscal.acoes.nfe.retransmitir` registrada, assinatura `NfeService::retransmitir(int,int)` e os
+> Services no NfeBrasil. Isso **não** é o que o `CU-FISC-11` pede: preservação da nota antiga
+> (`[reg]` — `forceDelete()` nunca usado, CONFAZ SINIEF 07/2005 Art. 14) e recusa de status fora de
+> `{rejeitada, denegada, erro_envio}` (`[must]`). Ancorar aquele CU nesta linha fecharia a lacuna do
+> painel **sem lastro de comportamento** — a classe LC-11 (presença ≠ comportamento) que este projeto
+> persegue. Por isso o `CU-FISC-11` segue **aberto** no painel: é o estado honesto dele hoje.
+
 ## UC-FNFE-01 — A contagem do cockpit nunca mostra nota de outro business (Tier 0)
 Status: 🧪 (`NfeCockpitMultiTenantTest::UC-FNFE-01 · global scope HasBusinessScope…` — **skipa** hoje, ver §recibo)
 Dado 1 emissão do biz=1 e 2 do biz=99 · Quando a lista conta na sessão do biz=1 · Então vê **1**,
