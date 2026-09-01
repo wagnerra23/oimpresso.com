@@ -69,3 +69,34 @@ negativo** (`:79`, superadmin não recebe 403), e mais 3 gates cobertos no mesmo
   `markTestSkipped`, não de execução — quantos casos de fato pulam, só a lane responde.
 - **`--check` da catraca não foi rodado** (só o relatório). Nada foi promovido nem regravado.
 - Não medi a11y por tela: o agregado dá `5/215` no repo, sem coluna por módulo.
+
+---
+
+## ⚠️ ERRATA DO PRÓPRIO AUTOR (2026-09-01, mesma sessão, pós-merge do #6511)
+
+A linha **`Pest Browser de fato | 1/7 | só Cockpit`** acima está **imprecisa** e fica registrada,
+não apagada — o número é certo, a leitura é que induz erro.
+
+**Medido depois:** `tests/Browser/CoreScreens/AuthBridgeSmokeTest.php:63-65` exercita **três**
+telas do Fiscal, cada uma com gate e âncora de texto:
+
+| rótulo no teste | rota | gate | âncora |
+|---|---|---|---|
+| `Fiscal/Cockpit` | `/fiscal` | `fiscal.cockpit.access` | "Notas Fiscais" |
+| `Fiscal/NF-e` | `/fiscal/nfe` | `fiscal.nfe.access` | "NF-e" |
+| `Fiscal/NFS-e` | `/fiscal/nfse` | `fiscal.nfse.access` | "NFS-e" |
+
+**Por que o mapa credita só 1:** ele credita quando o teste cita **o path da tela**. Os rótulos
+`Fiscal/NF-e` e `Fiscal/NFS-e` são nomes humanos e **não casam** com os paths reais `Fiscal/Nfe`
+e `Fiscal/Nfse`. O medidor está certo sobre o que mede; **eu** é que li "1 creditado" como
+"1 exercitado".
+
+**O que muda na fila:** o resíduo do PR-F1 é **4 telas** (`Dfe`, `Eventos`, `Sped`, `Config`),
+não 6. E há uma escolha barata antes de escrever teste novo: alinhar os 2 rótulos aos paths faria
+o mapa creditar cobertura **que já existe**. Mas isso é mexer no medidor para a nota subir — só
+vale se o rótulo for reconhecido como o defeito, e essa é decisão do [W], não minha.
+
+**A classe do erro:** LC-08 — afirmar a partir da leitura errada da fonte. O docblock do script
+avisava contra "crédito de visreg lido como E2E"; evitei essa e caí na vizinha, "crédito por
+match de path lido como ausência de teste". Não abri lápide nova no §5: é a mesma classe já
+catalogada, e a ocorrência é o recibo.
