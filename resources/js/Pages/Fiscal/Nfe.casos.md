@@ -68,7 +68,7 @@ não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do test
 | UC-FNFE-05 | CC-e: texto 15–1000, sequência 1–20 | `[must]` | CU-FISC-09 | `AcoesContratoTest` | 🧪 |
 | UC-FNFE-06 | inutilização valida modelo, faixa e justificativa | `[must]` | CU-FISC-10 | `AcoesContratoTest` | 🧪 |
 | UC-FNFE-07 | manifestação: 4 ações, justificativa condicional | `[must]` | CU-FISC-07 | `AcoesContratoTest` | 🧪 |
-| UC-FNFE-08 | a superfície das ações existe (métodos, rota, Services) | `[must]` | — ver nota | `AcoesControllerTest` | 🧪 |
+| UC-FNFE-08 | ⚠️ **id sobrecarregado** — (a) a superfície das ações existe · (b) o gate `fiscal.nfe.view` devolve 403 | `[must]` `[T0]` | CU-FISC-13 (só o gate) · ver nota | `AcoesControllerTest` (5) · `GatesPermissaoFiscalTest` (2) | 🧪 |
 | UC-FNFE-09 | retransmitir preserva a nota antiga (nunca deleta) | `[must]` `[reg]` | CU-FISC-11 | `AcoesContratoTest` | 🧪 |
 
 > **Por que esta tabela nasceu em 2026-09-01 (e o que ela NÃO fez):** os 8 UC desta tela já eram
@@ -79,7 +79,17 @@ não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do test
 > contrato mora aqui) e o gerador cai no fallback alfabético quando a tela **dona** não os declara em
 > tabela. **Nenhuma asserção de teste mudou:** isto é rastreabilidade, não comportamento.
 
-> **Por que `UC-FNFE-08` não cita CU:** ele prova que a **superfície** existe — 5 métodos públicos,
+> **⚠️ `UC-FNFE-08` ancora DOIS contratos diferentes (achado de 2026-09-01).** O mesmo id nomeia
+> 5 casos em `AcoesControllerTest` (a superfície das ações) **e** 2 casos em
+> `GatesPermissaoFiscalTest:72,79` (o gate `fiscal.nfe.view` devolve 403, com controle negativo em
+> `:79` — superadmin **não** recebe 403). São contratos distintos sob um id só: o painel derivado
+> conta **um** requisito e o leitor não tem como saber qual dos dois um `❌` reprovou. Separar em
+> dois ids mexe no nome de casos em **dois** arquivos de teste — intent próprio, não escopo desta
+> onda. Fica registrado aqui para não virar "descoberta" futura.
+>
+> **Por que a coluna CU diz "só o gate":** a metade-gate atende o `CU-FISC-13` (gate de permissão
+> por sub-feature), e é isso que a tabela declara. A metade-superfície não atende CU nenhum —
+
 > rota `fiscal.acoes.nfe.retransmitir` registrada, assinatura `NfeService::retransmitir(int,int)` e os
 > Services no NfeBrasil. Isso **não** é o que o `CU-FISC-11` pede: preservação da nota antiga
 > (`[reg]` — `forceDelete()` nunca usado, CONFAZ SINIEF 07/2005 Art. 14) e recusa de status fora de
@@ -173,7 +183,7 @@ permanece declarado no backlog abaixo.
 
 ## Backlog de casos (sem id — entram quando um teste de COMPORTAMENTO os cobrir)
 
-- **[BACKLOG · ⬜ sem teste · Tier 0] Gate de permissão `fiscal.nfe.view` bloqueia a leitura da lista** — Dado usuário sem `fiscal.nfe.view` nem `superadmin` · Quando faz `GET /fiscal/nfe` · Então 403. O guard existe no `NfeCockpitController::index` e o charter (Goal 7) e o SPEC dão como coberto, mas **nenhum teste o exercita** — inclusive o docblock do `NfeCockpitMultiTenantTest` prometia esse caso e ele não existe. Precisa de lane com `users`+`permissions` (o teste de contrato daqui isola o gate justamente pra não depender delas).
+- **[~~BACKLOG~~ · 🧪 tem teste, NÃO executa · Tier 0] Gate de permissão `fiscal.nfe.view` bloqueia a leitura da lista** — Dado usuário sem `fiscal.nfe.view` nem `superadmin` · Quando faz `GET /fiscal/nfe` · Então 403. **Corrigido em 2026-09-01:** a redação anterior dizia *"nenhum teste o exercita"* e isso era **falso** — o caso existe em [`GatesPermissaoFiscalTest.php:72`](../../../../Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php), **com controle negativo** em `:79` (superadmin não recebe 403), e ancora `UC-FNFE-08`. O que é verdade é outra coisa, e a distinção importa: o arquivo inteiro **pula** (`:49-55`) em SQLite e sem `nfe_emissoes`, então o caso **não executa** em nenhuma lane de hoje. *Teste ausente* e *teste que não roda* pedem trabalhos diferentes — o primeiro é escrever, o segundo é dar lane ao módulo (o item de maior alavancagem do plano: 15 de 21 arquivos de teste do Fiscal chamam `markTestSkipped`).
 - **[BACKLOG · ⬜ sem teste] Lista deferida filtra por tab/status/busca com paginação 50** — `rows` é `Inertia::defer`; sem teste do payload filtrado (`buildRowsPayload`, ordem `emitido_em DESC`).
 - **[BACKLOG · ⬜ sem teste] Retransmitir só aceita nota `rejeitada`/`denegada`/`erro_envio`** — Dado nota em outro status · Quando pede retransmissão · Então volta com erro sem chamar o Service. **Não é testável sem banco**: no `AcoesController::retransmitir` a whitelist é checada **depois** do `firstOrFail()`, logo exige `nfe_emissoes` — indisponível nas duas lanes de hoje (ver §recibo). O caso que existia aqui assertava um array literal escrito no próprio teste e foi removido em 2026-07-28 (não defendia nada). _Parcialmente coberto desde 2026-09-01 pelo `UC-FNFE-09`, que prova **estaticamente** que a whitelist do Service é exatamente essa e que ela rejeita — o que falta aqui é o caminho de **runtime**, e ele segue esperando lane com as migrations do NfeBrasil._
 - **[BACKLOG · ⬜ sem teste] Drawer: mapa "Jana sugere" por cstat rejeitado, atalhos J/K + Enter, pílula temporal na linha** — comportamento de UI; sem cobertura Feature nem E2E (a tela não aparece em `tests/Browser`).
