@@ -1131,11 +1131,10 @@ function ForjaPage() {
 
       {view === "trabalho" && (
         <div className="fj-frentebar">
-          <div className="fj-viewtabs tf-subnav">
-            <button className={trabVis === "lista" ? "active" : ""} onClick={() => setTrabVis("lista")}><I.list size={11}/>Lista</button>
-            <button className={trabVis === "quadro" ? "active" : ""} onClick={() => setTrabVis("quadro")}><I.grid size={11}/>Quadro</button>
-            <button className={trabVis === "gantt" ? "active" : ""} onClick={() => setTrabVis("gantt")}><I.clock size={11}/>Gantt</button>
-          </div>
+          <window.CliSeg ariaLabel="Visão do trabalho" size="sm" value={trabVis} onChange={setTrabVis}
+            options={[{ key: "lista", label: "Lista", icon: <I.list size={11} /> },
+              { key: "quadro", label: "Quadro", icon: <I.grid size={11} /> },
+              { key: "gantt", label: "Gantt", icon: <I.clock size={11} /> }]} />
           <span className="fj-frente-note"><b className="mono">{unifiedAll.length}</b> mcp_tasks numa lista só — FORJA junto das demais frentes (agrupe por Frente ou busque)</span>
         </div>
       )}

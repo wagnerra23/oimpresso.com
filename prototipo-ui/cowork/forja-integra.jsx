@@ -54,10 +54,9 @@ function ForjaIntegrador() {
         <span className="fj-int-src">✓ lido @main · wagnerra23/oimpresso.com · Modules/TeamMcp</span>
       </div>
 
-      <div className="fj-int-tabs">
-        <button className={tab === "absorb" ? "active" : ""} onClick={() => setTab("absorb")}>Forja ↔ TeamMcp ({FORJA_ABSORB.length})</button>
-        <button className={tab === "impact" ? "active" : ""} onClick={() => setTab("impact")}>Telas impactadas ({FORJA_IMPACT.length})</button>
-      </div>
+      <window.CliTabs className="fj-int-tabs" ariaLabel="Integrador" pad={0} active={tab} onChange={setTab}
+        tabs={[{ key: "absorb", label: "Forja ↔ TeamMcp", n: FORJA_ABSORB.length },
+          { key: "impact", label: "Telas impactadas", n: FORJA_IMPACT.length }]} />
 
       {tab === "absorb" && (
         <div className="fj-int-table">
