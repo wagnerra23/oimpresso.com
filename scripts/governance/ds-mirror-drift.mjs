@@ -25,7 +25,12 @@
 //
 // Saída: relatório + exit code.
 //   advisory (default): sempre exit 0; emite ::warning:: no CI se drift > baseline.
-//   --enforce:          exit 1 se totalDiverge > baseline.totalDiverge.
+//   --enforce:          exit 1 = drift REAL (totalDiverge > baseline). exit 2 = NÃO CONSEGUIU
+//                       MEDIR (snapshot ausente · tokens/ ausente · motor de diff falhou).
+//                       Não-medição nunca sai com o código de drift — é o pré-requisito nomeado
+//                       na lápide §5 2026-08-14 pra um dia discutir ligar o --enforce (o flip
+//                       segue decisão [W]; este script não é chamado com --enforce em lugar
+//                       nenhum hoje, e isto NÃO muda isso).
 //   --update-baseline:  regrava o baseline com o drift atual (uso humano, ao aceitar um novo piso).
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -47,10 +52,20 @@ const ENFORCE = flag('--enforce');
 const isCI = !!process.env.GITHUB_ACTIONS;
 const warn = (msg) => console.log(isCI ? `::warning title=ds-mirror-drift::${msg}` : `⚠️  ${msg}`);
 
-// snapshot ausente = não dá pra checar. No CI advisory isso é warning (não vermelho); no enforce, falha.
+// snapshot ausente = não dá pra checar. No CI advisory isso é warning (não vermelho); no enforce,
+// exit 2 (não-medi ≠ drift — lápide §5 2026-08-14).
 if (!existsSync(SNAPSHOT)) {
   const msg = `snapshot do espelho não encontrado: ${SNAPSHOT}. Refresque via runbook design-sync-push.md (passo 5).`;
-  if (ENFORCE) { console.error(`✗ ${msg}`); process.exit(1); }
+  if (ENFORCE) { console.error(`✗ NÃO MEDIDO — ${msg}`); process.exit(2); }
+  warn(msg); process.exit(0);
+}
+
+// tokens/ ausente = o LADO GIT não foi medido. Sem esta checagem o motor devolve diverge=0
+// (todo token do snapshot vira designOnly) e o enforce sairia VERDE FALSO — medido 2026-09-01
+// (`ds-token-diff.mjs <snap> <dir-inexistente> --json` → totalDiverge 0, rc=0).
+if (!existsSync(TOKENS)) {
+  const msg = `dir de tokens não encontrado: ${TOKENS}. Nada foi medido do lado git.`;
+  if (ENFORCE) { console.error(`✗ NÃO MEDIDO — ${msg}`); process.exit(2); }
   warn(msg); process.exit(0);
 }
 
@@ -60,8 +75,8 @@ try {
   const raw = execFileSync('node', [DIFF_ENGINE, SNAPSHOT, TOKENS, '--json'], { encoding: 'utf8' });
   diff = JSON.parse(raw);
 } catch (e) {
-  console.error(`✗ falha ao rodar ds-token-diff.mjs: ${e.message}`);
-  process.exit(ENFORCE ? 1 : 0);
+  console.error(`✗ NÃO MEDIDO — falha ao rodar ds-token-diff.mjs: ${e.message}`);
+  process.exit(ENFORCE ? 2 : 0);
 }
 
 const perScope = Object.fromEntries(Object.entries(diff.report).map(([s, r]) => [s, r.diverge.length]));
