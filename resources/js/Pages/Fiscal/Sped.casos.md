@@ -5,10 +5,24 @@ irmaos: Sped.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-08-28"
+last_run: "2026-09-01"
 ---
 
 # Casos de Uso & Aceite — SPED & Livros
+
+> **Revalidação `last_run` 2026-09-01 — Onda 1 Fiscal (saneamento `fx-*` → DS):** mudança de
+> **apresentação apenas** — `fx-callout` → `<Alert>`, 4 `fx-chip` → `<Button>`, `fx-search` +
+> `<input type="search">` → `<Input>`, `fx-filters` → `<Inline>`, 3 `fx-btn` → `<Button>` (o de
+> download virou `<Button asChild>` sobre o `<a download>`, preservando o atributo). Conferi os
+> 10 UC um a um: **todos assertam backend** — Tier 0 cross-tenant, validação de competência,
+> superfície do gerador/rota, CFOP 5102×6102, MotorTributário, totalizador C190, constantes de
+> fallback, gate de permissão e a flag de config. **Nenhum toca o `.tsx`.**
+> Dois pontos checados no código, não presumidos: **(a)** a âncora `data-contract="fiscal-sped-
+> status"` sobreviveu à troca do `<div>` pelo `<Alert>` (`contrato-de-tela` rc=0, com a copy
+> literal "Próximas Waves:"); **(b)** o `role="region"` + `aria-label` do banner foram MANTIDOS
+> — o `<Alert>` traz `role="alert"` embutido (live-region assertiva, errado para banner
+> informativo estático), e o `{...props}` dele vem depois do padrão, então o override pega.
+> **Nenhum teste foi re-executado** (Pest = CT 100).
 
 > **Revalidação `last_run` 2026-08-28 — o que foi conferido:** este PR muda a tela em **um único ponto**: o atributo `data-contract="fiscal-sped-status"` no wrapper, âncora do mapa [`fiscal-sped.map.json`](../../../../memory/requisitos/Fiscal/fiscal-sped.map.json). Conferi o diff do `.tsx` contra a lista de UC deste arquivo — **nenhum UC depende de atributo de DOM**, logo nenhum aceite mudou. **Nenhum teste foi re-executado** nesta revalidação (Pest = CT 100); os vereditos seguem como estavam.
 
