@@ -7,7 +7,7 @@
 ## Resumo
 - **392** arquivos · **377** números únicos · máx **0387**
 - **ADRs ATIVOS (lifecycle ativo): 353** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 352 · superseded 16 · deprecated 13 · proposto 9 · rascunho 1 · recusado 1
+- Por status: aceito 353 · superseded 16 · deprecated 13 · proposto 8 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 353 · arquivado 23 · substituido 16
 - Sem frontmatter (formato-tabela legado): 0
 
@@ -429,4 +429,4 @@ _(nenhuma)_
 | 0384 | aceito | ativo | decision | Design Sync deriva o estado da tela de recibos executáveis |
 | 0385 | proposto | ativo | decision | Sidebar alinhado ao protótipo — e a diferença classificada em três categorias |
 | 0386 | aceito | ativo | decision | Âmbar da Oficina revogado — o roxo canon é a única identidade de chrome; superse |
-| 0387 | proposto | ativo | decision | github.md (diário de sync do Cowork) é artefato aceito e tratado pelo protocolo  |
+| 0387 | aceito | ativo | decision | github.md (diário de sync do Cowork) é artefato aceito e tratado pelo protocolo  |
