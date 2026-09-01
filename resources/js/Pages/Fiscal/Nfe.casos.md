@@ -69,6 +69,7 @@ não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do test
 | UC-FNFE-06 | inutilização valida modelo, faixa e justificativa | `[must]` | CU-FISC-10 | `AcoesContratoTest` | 🧪 |
 | UC-FNFE-07 | manifestação: 4 ações, justificativa condicional | `[must]` | CU-FISC-07 | `AcoesContratoTest` | 🧪 |
 | UC-FNFE-08 | a superfície das ações existe (métodos, rota, Services) | `[must]` | — ver nota | `AcoesControllerTest` | 🧪 |
+| UC-FNFE-09 | retransmitir preserva a nota antiga (nunca deleta) | `[must]` `[reg]` | CU-FISC-11 | `AcoesContratoTest` | 🧪 |
 
 > **Por que esta tabela nasceu em 2026-09-01 (e o que ela NÃO fez):** os 8 UC desta tela já eram
 > provados por teste desde 2026-07-27 — nenhum deles declarava, porém, **qual CU do SDD §6 atende**.
@@ -84,7 +85,9 @@ não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do test
 > (`[reg]` — `forceDelete()` nunca usado, CONFAZ SINIEF 07/2005 Art. 14) e recusa de status fora de
 > `{rejeitada, denegada, erro_envio}` (`[must]`). Ancorar aquele CU nesta linha fecharia a lacuna do
 > painel **sem lastro de comportamento** — a classe LC-11 (presença ≠ comportamento) que este projeto
-> persegue. Por isso o `CU-FISC-11` segue **aberto** no painel: é o estado honesto dele hoje.
+> persegue. Quem fecha o `CU-FISC-11` é o **`UC-FNFE-09`**, escrito para os dois itens dele — e com o
+> limite declarado ali: a invariante é provada **estaticamente**, o caminho de runtime segue no
+> backlog abaixo, porque nenhuma lane de hoje tem `nfe_emissoes`.
 
 ## UC-FNFE-01 — A contagem do cockpit nunca mostra nota de outro business (Tier 0)
 Status: 🧪 (`NfeCockpitMultiTenantTest::UC-FNFE-01 · global scope HasBusinessScope…` — **skipa** hoje, ver §recibo)
@@ -146,11 +149,33 @@ assinatura canônica, e a lógica de CC-e/inutilização mora nos Services do Nf
 Fiscal). Âncora: US-FISCAL-013/014.
 **Pronto quando:** os 5 métodos, a rota e os 2 Services existem com as assinaturas esperadas.
 
+## UC-FNFE-09 — Retransmitir preserva a nota antiga: nunca deleta, e só 3 status passam
+Status: 🧪 (`AcoesContratoTest::UC-FNFE-09 · PRESERVA a nota antiga` + `· whitelist de status vem do Service` — **novos**, ainda sem veredito de lane)
+Dado uma nota `rejeitada`/`denegada`/`erro_envio` · Quando o operador retransmite · Então a nota antiga
+**continua na tabela** — marcada `status='inutilizada'` com `transaction_id=null` (libera a UNIQUE
+biz+tx) e `metadata.original_transaction_id` preservando o vínculo — e uma nova é emitida com número
+novo. Nota em qualquer outro status é recusada antes de chamar o Service.
+Âncora: CU-FISC-11 do SDD §6.2 (os dois itens) + US-FISCAL-014 + **CONFAZ SINIEF 07/2005 Art. 14**
+(documento fiscal é imutável — remoção física é proibida).
+**Pronto quando:** o corpo de `NfeService::retransmitirInterno` não contém `forceDelete` / `->delete(`
+/ `::destroy(`, contém o `update` de preservação, e declara a whitelist exata dos 3 status usada num
+`in_array` que lança `InvalidArgumentException`.
+
+**Limite honesto — o que este UC NÃO prova.** A asserção é **estática**: ela lê o corpo do método de
+produção por reflection e verifica a invariante no fonte. Ela **não** exercita o runtime, porque não
+dá: tanto `AcoesController::retransmitir` quanto `NfeService::retransmitirInterno` fazem a query
+(`firstOrFail()` / `find()`) **antes** de checar o status, e `nfe_emissoes` não existe nem na lane
+SQLite do CI nem no staging do CT 100. O que ela garante é o que importa contra regressão silenciosa:
+trocar o `update` por um delete, ou mexer na whitelist, **derruba o caso**. A diferença para o
+`NfeServiceRetransmitirTest` (que segue no repo) é essa — lá a whitelist é declarada dentro do próprio
+teste, então ele continuaria verde se o Service mudasse; é a lápide §5 2026-06-05. O caso de runtime
+permanece declarado no backlog abaixo.
+
 ## Backlog de casos (sem id — entram quando um teste de COMPORTAMENTO os cobrir)
 
 - **[BACKLOG · ⬜ sem teste · Tier 0] Gate de permissão `fiscal.nfe.view` bloqueia a leitura da lista** — Dado usuário sem `fiscal.nfe.view` nem `superadmin` · Quando faz `GET /fiscal/nfe` · Então 403. O guard existe no `NfeCockpitController::index` e o charter (Goal 7) e o SPEC dão como coberto, mas **nenhum teste o exercita** — inclusive o docblock do `NfeCockpitMultiTenantTest` prometia esse caso e ele não existe. Precisa de lane com `users`+`permissions` (o teste de contrato daqui isola o gate justamente pra não depender delas).
 - **[BACKLOG · ⬜ sem teste] Lista deferida filtra por tab/status/busca com paginação 50** — `rows` é `Inertia::defer`; sem teste do payload filtrado (`buildRowsPayload`, ordem `emitido_em DESC`).
-- **[BACKLOG · ⬜ sem teste] Retransmitir só aceita nota `rejeitada`/`denegada`/`erro_envio`** — Dado nota em outro status · Quando pede retransmissão · Então volta com erro sem chamar o Service. **Não é testável sem banco**: no `AcoesController::retransmitir` a whitelist é checada **depois** do `firstOrFail()`, logo exige `nfe_emissoes` — indisponível nas duas lanes de hoje (ver §recibo). O caso que existia aqui assertava um array literal escrito no próprio teste e foi removido em 2026-07-28 (não defendia nada). Vira UC quando houver lane com as migrations do NfeBrasil.
+- **[BACKLOG · ⬜ sem teste] Retransmitir só aceita nota `rejeitada`/`denegada`/`erro_envio`** — Dado nota em outro status · Quando pede retransmissão · Então volta com erro sem chamar o Service. **Não é testável sem banco**: no `AcoesController::retransmitir` a whitelist é checada **depois** do `firstOrFail()`, logo exige `nfe_emissoes` — indisponível nas duas lanes de hoje (ver §recibo). O caso que existia aqui assertava um array literal escrito no próprio teste e foi removido em 2026-07-28 (não defendia nada). _Parcialmente coberto desde 2026-09-01 pelo `UC-FNFE-09`, que prova **estaticamente** que a whitelist do Service é exatamente essa e que ela rejeita — o que falta aqui é o caminho de **runtime**, e ele segue esperando lane com as migrations do NfeBrasil._
 - **[BACKLOG · ⬜ sem teste] Drawer: mapa "Jana sugere" por cstat rejeitado, atalhos J/K + Enter, pílula temporal na linha** — comportamento de UI; sem cobertura Feature nem E2E (a tela não aparece em `tests/Browser`).
 
 ## Como rodar a suíte
