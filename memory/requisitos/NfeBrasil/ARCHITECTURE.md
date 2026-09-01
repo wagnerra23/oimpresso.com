@@ -110,7 +110,7 @@ CREATE TABLE nfe_emissoes (
     protocolo VARCHAR(20) NULL,
 
     ambiente ENUM('homol', 'prod') NOT NULL,
-    tp_emis TINYINT UNSIGNED NOT NULL DEFAULT 1,     -- 1=normal, 4=EPEC, 9=FS-DA, etc.
+    tp_emis TINYINT UNSIGNED NOT NULL DEFAULT 1,     -- 1=normal, 4=EPEC, 5=FS-DA (mod 55), 9=off-line NFC-e (mod 65)
     natureza_operacao VARCHAR(60) NOT NULL,
     cfop CHAR(4) NOT NULL,
 
