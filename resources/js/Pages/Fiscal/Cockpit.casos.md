@@ -5,12 +5,27 @@ irmaos: Cockpit.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-08-28"
+last_run: "2026-09-01"
 last_run_ci: "0 UC executado nesta corrida — os UC herdam testes que JÁ existem; veredito pendente das lanes PHP / Pest (NfeBrasil · MySQL) e Pest Fiscal"
 related_us: [US-FISCAL-002, US-FISCAL-019]
 ---
 
 # Casos de Uso & Aceite — Cockpit Fiscal
+
+> **Revalidação `last_run` 2026-09-01 — Onda 1 Fiscal (saneamento `fx-*` → DS):** mudança de
+> **apresentação apenas** — 3 `fx-chip-action` e 4 `fx-btn` → `<Button>`, `fx-search` +
+> `<input type="search">` → `<Input>`, e o `fx-ribbon-cta` ("Fechar mês") → `<Button>`.
+> Conferi os 6 UC um a um: **todos assertam backend** — gate `fiscal.access` (T0), as três
+> leituras numa resposta só, as 7 medidas do ribbon, alertas determinísticos (sem IA na tela),
+> soma cross-tenant (T0) e o cache por business com invalidação pela mesma chave (T0).
+>
+> **O `UC-FCKP-03` fala do RIBBON e por isso foi conferido de perto — o `fx-ribbon` FOI
+> MANTIDO**, e é decisão declarada: ele é faixa horizontal rolável com bordas topo/base e
+> divisores verticais entre itens (`border-right` por item, com `:first-child`/`:last-child`
+> especializados). O par DS mais próximo — `KpiGrid` + `KpiCard` — produz **grade de cards**
+> (`grid gap-3 grid-cols-*`). Trocar seria **redesenho**, não troca de primitiva, e esta onda é
+> cirúrgica por decisão [W]. A âncora `data-contract="fiscal-cockpit-kpis"` e as 6 copies do
+> contrato seguem no lugar. **Nenhum teste re-executado** (Pest = CT 100).
 
 > **Revalidação `last_run` 2026-08-28 — o que foi conferido:** este PR muda a tela em **um único ponto**: o atributo `data-contract="fiscal-cockpit-kpis"` no wrapper, âncora do mapa [`fiscal-cockpit.map.json`](../../../../memory/requisitos/Fiscal/fiscal-cockpit.map.json). Conferi o diff do `.tsx` contra a lista de UC deste arquivo — **nenhum UC depende de atributo de DOM**, logo nenhum aceite mudou. **Nenhum teste foi re-executado** nesta revalidação (Pest = CT 100); os vereditos seguem como estavam.
 
