@@ -508,6 +508,20 @@ const CATRACAS = [
     expect: { good: /integridade referencial preservada/, bad: /apontam pra arquivo que este diff APAGA/ },
   },
   {
+    // ÓRFÃO NA ADIÇÃO (2026-09-01, T2 da session testes-persistentes). A metade C2 do
+    // `cowork-paridade.mjs` do Cowork (existe no projeto vivo, nunca desceu — LC-19: a regra
+    // entra no dono, não como script paralelo), em forma DELTA: "este PR ADICIONA a cowork/
+    // arquivo que o shell não declara?". FP do predicado ABSOLUTO remedido antes de ligar:
+    // 26 de 29 órfãos herdados são legítimos por proveniência declarada (~90% FP) — por isso
+    // só o delta serve. `good` adiciona declarados + um `venda-v3/` (FORA_DESTA_CONTA →
+    // ignorado com motivo); `bad` adiciona um .jsx que o shell não declara.
+    id: 'cowork-orfaos',
+    run: (kind) => runNode(
+      script('cowork-mirror-freshness', 'scripts/governance/cowork-mirror-freshness.mjs'),
+      ['--check-orfaos', '--added-from', 'adicionados.txt'], join(FIX, 'cowork-orfaos', kind)),
+    expect: { good: /toda adição ao espelho está declarada/, bad: /ADICIONA ao espelho e o shell NÃO declara/ },
+  },
+  {
     id: 'knowledge-drift',
     run: (kind) => runNode(script('knowledge-drift', 'scripts/governance/knowledge-drift.mjs'), ['--check'], join(FIX, 'knowledge-drift', kind)),
     expect: { good: /nenhum ghost novo/, bad: /GhostNovo/ },

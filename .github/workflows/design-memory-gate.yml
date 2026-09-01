@@ -420,6 +420,21 @@ jobs:
         if: always()
         continue-on-error: true
         run: node scripts/governance/cowork-mirror-freshness.mjs --check-refs
+      # Adição ao espelho (T2, session 2026-09-01): o INVERSO do cowork-refs — aquele vigia o
+      # que o PR APAGA, este o que o PR ADICIONA sob prototipo-ui/cowork/. É a metade C2 do
+      # `cowork-paridade.mjs` do Cowork (o script existe no projeto vivo e nunca desceu —
+      # LC-19: a regra entra no dono, não como script paralelo; avaliação check-a-check na
+      # session 2026-09-01). DELTA e não absoluto: FP do absoluto remedido em 2026-09-01 =
+      # 26 de 29 órfãos herdados legítimos por proveniência declarada (~90%) — venda-v3/ e
+      # produto-preco-especial/ são FORA_DESTA_CONTA (protocolo.config.mjs). PR que não
+      # adiciona nada ao espelho passa sem ter o que medir (diff-aware). Mordida provada em
+      # gate-selftest (fixture cowork-orfaos boa/ruim). Fail-closed sem shell (exit 2 —
+      # "não consegui medir" nunca vira verde, §5 2026-07-29).
+      # Advisory de nascença (ADR 0275); promoção só por mordida provada (ADR 0336).
+      - name: cowork-orfaos (o PR adiciona ao espelho arquivo que o shell não declara? · advisory)
+        if: always()
+        continue-on-error: true
+        run: node scripts/governance/cowork-mirror-freshness.mjs --check-orfaos
       # ABSENT-LOCAL — "o espelho pegou todos os componentes, subpáginas, CSS e JS?" ([W]
       # 2026-08-14). É o 4º flanco do cabeçalho do script e, até este PR, era MEDIDO e
       # INCAPAZ DE REPROVAR: `reportAbsentLocal` só imprimia e o exit do --manifest vem do

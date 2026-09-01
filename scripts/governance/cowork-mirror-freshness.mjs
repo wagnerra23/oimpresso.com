@@ -64,6 +64,9 @@
  *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs        # a poda deste PR quebrou o grafo do espelho? (exit 1 = sim)
  *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs --range <a>..<b>
  *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs --deleted-from <lista.txt>   # fixture/manual
+ *   node scripts/governance/cowork-mirror-freshness.mjs --check-orfaos      # este PR ADICIONA ao espelho arquivo que o shell não declara? (exit 1 = sim)
+ *   node scripts/governance/cowork-mirror-freshness.mjs --check-orfaos --range <a>..<b>
+ *   node scripts/governance/cowork-mirror-freshness.mjs --check-orfaos --added-from <lista.txt>   # fixture/manual
  *
  * ── OS 3 MODOS DE VERIFICAÇÃO, E QUAL PERGUNTA CADA UM RESPONDE ──────────────────
  * Não são redundantes; cada um cobre um flanco que os outros NÃO veem:
@@ -73,6 +76,9 @@
  * O ABSENT-LOCAL (dentro do --manifest) é o quarto: "o shell carrega algo que o espelho não tem?".
  * --check-refs e ABSENT-LOCAL se completam: aquele deriva o universo do DIFF, este do SHELL — então
  * apagar o espelho inteiro passa vazio no primeiro e é pego pelo segundo.
+ * --check-orfaos é o quinto, o INVERSO do ABSENT-LOCAL na direção da ADIÇÃO: "este PR ADICIONA ao
+ * espelho arquivo que o shell não declara?" (DELTA, 100% local → gateável; a metade do
+ * `cowork-paridade` do Cowork que nenhum dono cobria — ver docblock do modo).
  */
 
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdirSync, mkdtempSync, renameSync, rmSync } from 'node:fs';
@@ -1261,6 +1267,55 @@ function posixJoin(base, rel) {
 }
 export const MIRROR_REL = 'prototipo-ui/cowork';
 
+// ── ÓRFÃO NA ADIÇÃO (--check-orfaos) ─────────────────────────────────────────
+// O QUE DEFENDE: a direção que faltava da paridade host↔espelho. O lado Cowork autorou um
+// `scripts/cowork-paridade.mjs` (existe no projeto vivo, nunca desceu — e não desce: seria
+// script paralelo a este dono, LC-19; avaliação completa na session 2026-09-01) cujo check C2
+// é "arquivo em cowork/ que o host não declara". A metade C1 (declarado→presente) já é o
+// --absent-local; esta é a metade C2 (presente→declarado), em forma DELTA.
+//
+// POR QUE DELTA E NUNCA ABSOLUTO (FP medido ANTES — §5 "ligar ≠ criar"): remedido 2026-09-01
+// no espelho real: 29 órfãos de 280 rastreados com extensão de build, dos quais 26 têm
+// proveniência declarada — 21 `venda-v3/` + 2 `produto-preco-especial/` (FORA_DESTA_CONTA,
+// telas de [L]/[M] — protocolo.config.mjs, [W] 2026-08-13), 2 `ds-v6/`, 1 `prototipos/`.
+// Predicado absoluto = ~90% FP no dia 1 (família §5 2026-08-24, delta vs absoluto). Os 3 da
+// raiz (`Financeiro - Prova Viva (primitivos).html` + 2 `.js` citados só em PROSA de mockup)
+// são sinal real porém HERDADO — grandfathered (ADR 0275, forward-only): entram no relatório
+// do lado Cowork, nunca no vermelho de PR alheio.
+//
+// A EXCEÇÃO É POR PROVENIÊNCIA DECLARADA, não por adivinhação de nome: cada prefixo cita a
+// decisão escrita que o sustenta, é REPORTADO como `ignorados` (nunca some calado — mesmo
+// contrato do absentLocal), e SAI da lista quando a proveniência mudar (lista que só cresce
+// vira allowlist — §5 2026-08-02).
+export const ORFAO_POR_DESIGN = [
+  { prefixo: 'venda-v3/', motivo: 'FORA_DESTA_CONTA: tela Venda vem de outra conta de design ([L]/[M]) — protocolo.config.mjs, [W] 2026-08-13' },
+  { prefixo: 'produto-preco-especial/', motivo: 'FORA_DESTA_CONTA: tela Produto vem de outra conta de design ([L]/[M]) — protocolo.config.mjs, [W] 2026-08-13' },
+  { prefixo: 'ds-v6/', motivo: 'ds-v6/ não é build do shell (o próprio cowork-paridade do Cowork o isenta — IGNORAR_ORFAO)' },
+  { prefixo: 'prototipos/', motivo: 'prototipos/ não é build do shell (idem IGNORAR_ORFAO do Cowork)' },
+  { prefixo: '_shared/', motivo: '_shared/ não é build do shell (idem IGNORAR_ORFAO do Cowork)' },
+  { prefixo: 'pipeline/', motivo: 'pipeline/ não é build do shell (idem IGNORAR_ORFAO do Cowork)' },
+];
+
+/** Adições ao espelho que o shell NÃO declara (pura, testável — irmã de refsParaDeletado).
+ *  `adicionados`: paths relativos à raiz do repo (do diff --diff-filter=AR ou fixture).
+ *  `declarados`: Set de paths relativos à raiz (deps do shell + o próprio shell).
+ *  Só extensões de build (jsx/tsx/css/js/html) entram no universo — `.md` em cowork/ é
+ *  problema do R1 do cowork-ssot-guard, não daqui (não duplicar régua, §5 2026-07-09).
+ *  Devolve { orfaos, ignorados } — `ignorados` é reportado, nunca escondido. */
+export function orfaosNaAdicao(adicionados, declarados) {
+  const orfaos = [], ignorados = [];
+  for (const f of adicionados) {
+    if (!f.startsWith(`${MIRROR_REL}/`)) continue;
+    const r = f.slice(MIRROR_REL.length + 1);
+    if (!/\.(jsx|tsx|css|js|html)$/i.test(r)) continue;
+    if (declarados.has(f)) continue;
+    const ex = ORFAO_POR_DESIGN.find((e) => r.startsWith(e.prefixo));
+    if (ex) { ignorados.push({ path: f, motivo: ex.motivo }); continue; }
+    orfaos.push(f);
+  }
+  return { orfaos, ignorados };
+}
+
 // ── CLI ───────────────────────────────────────────────────────────────────────
 function main() {
   const argv = process.argv.slice(2);
@@ -1365,6 +1420,70 @@ function main() {
     console.error(`\n  ⛔ ${quebras.length} referência(s) apontam pra arquivo que este diff APAGA:`);
     for (const q of quebras) console.error(`     ${q.de}\n        -> "${q.ref}"  = ${q.alvo}`);
     console.error('\n  A poda quebrou o render do protótipo. Restaure o arquivo OU remova a referência no mesmo PR.');
+    process.exit(1);
+  }
+
+  // --check-orfaos: este PR ADICIONA ao espelho arquivo que o shell não declara? DELTA,
+  // diff-aware, 100% LOCAL — mesmo desenho do --check-refs (aquele vigia a PODA, este a
+  // ADIÇÃO). Universo: `git diff --diff-filter=AR` (A adiciona · R renomeia PARA dentro —
+  // enumerar os status antes de escolher as letras, §5 2026-08-08) ou --added-from (fixture).
+  // Racional + FP medido no docblock de ORFAO_POR_DESIGN/orfaosNaAdicao acima.
+  if (argv.includes('--check-orfaos')) {
+    const addIdx = argv.indexOf('--added-from');
+    let adicionados;
+    if (addIdx !== -1) {
+      const ap = argv[addIdx + 1];
+      if (!ap || !existsSync(ap)) {
+        console.error('✗ --added-from exige um arquivo com um path por linha.');
+        process.exit(2);
+      }
+      adicionados = readFileSync(ap, 'utf8').split('\n').map((s) => s.trim()).filter(Boolean);
+    } else {
+      const rIdx = argv.indexOf('--range');
+      const range = rIdx !== -1 && argv[rIdx + 1] ? argv[rIdx + 1] : 'origin/main...HEAD';
+      if (!range.includes('..')) {
+        console.error(`✗ --check-orfaos: --range espera UM token de range ("a..b" ou "a...b"), recebi "${range}".`);
+        console.error('  Passar duas revisões separadas faz o git diffar contra a working tree.');
+        process.exit(2);
+      }
+      let saida;
+      try {
+        saida = execFileSync('git', ['diff', '--name-only', '--diff-filter=AR', range, '--', `${MIRROR_REL}/`],
+          { encoding: 'utf8', maxBuffer: 1 << 28 });
+      } catch (e) {
+        // Vazio de comando que FALHOU não é "nada adicionado" (§5 2026-07-31 · 2026-08-11).
+        console.error(`✗ --check-orfaos: git diff falhou no range "${range}" — sem universo, sem veredito.`);
+        console.error(`  ${String(e.message || e).split('\n')[0]}`);
+        process.exit(2);
+      }
+      adicionados = saida.split('\n').map((s) => s.trim()).filter(Boolean);
+    }
+
+    console.log(`  adicionados ao espelho neste diff: ${adicionados.length}`);
+    if (!adicionados.length) {
+      console.log('  ✓ nenhuma adição ao espelho neste diff — nada a verificar.');
+      process.exit(0);
+    }
+    const shellHtml = lerShellHtml();
+    if (!shellHtml) {
+      // FAIL-CLOSED: sem shell não há "declarado", logo não há veredito (§5 2026-07-29).
+      console.error('✗ --check-orfaos: shell do espelho não encontrado — sem universo, sem veredito.');
+      process.exit(2);
+    }
+    const declarados = new Set([
+      `${MIRROR_REL}/oimpresso.com.html`,
+      ...parseShellDeps(shellHtml).map((d) => `${MIRROR_REL}/${d}`),
+    ]);
+    const { orfaos, ignorados } = orfaosNaAdicao(adicionados, declarados);
+    for (const i of ignorados) console.log(`  ⬜ ignorado por proveniência: ${i.path}\n       ${i.motivo}`);
+    if (!orfaos.length) {
+      console.log(`  ✓ toda adição ao espelho está declarada pelo shell (ou tem proveniência declarada).`);
+      process.exit(0);
+    }
+    console.error(`\n  ⛔ ${orfaos.length} arquivo(s) que este diff ADICIONA ao espelho e o shell NÃO declara:`);
+    for (const f of orfaos) console.error(`     ${f}`);
+    console.error('\n  Órfão nasce invisível: nenhuma rota o alcança e nenhum <link>/<script> o carrega.');
+    console.error('  Declare-o no shell (oimpresso.com.html), remova-o do PR, ou registre a proveniência em ORFAO_POR_DESIGN.');
     process.exit(1);
   }
 
