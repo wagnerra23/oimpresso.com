@@ -188,7 +188,7 @@ export function veredictoFinal(nStale, cobertura = null) {
  *  `.png` segue FORA: imagem não é fonte de construção e o `block-ancora-no-olho` já trata
  *  o eixo dela. E os filtros de `_arquivo/` (morto declarado upstream) e `prototipo-ui/`
  *  (cópia do próprio espelho) continuam — são de PROVENIÊNCIA, não de extensão. */
-export function liveOnly(livePaths, manifest, { exts = null, jaEmDocs = null } = {}) {
+export function liveOnly(livePaths, manifest, { exts = null, jaEmDocs = null, jaEmRuntime = null } = {}) {
   const noEspelho = new Set(manifest.map((f) => f.cowork));
   // [W] 2026-08-24: "remova os filtros isso esta gerando muito problemas". MEDIDO no dia:
   // de 428 arquivos do vivo ausentes do espelho, o filtro de EXTENSAO escondia 76 — entre
@@ -197,7 +197,7 @@ export function liveOnly(livePaths, manifest, { exts = null, jaEmDocs = null } =
   // Os dois de PROVENIENCIA continuam, mas agora RETORNAM em `ignorados` — reportado, nunca
   // escondido (mesmo contrato do absentLocal). `liveOnly()` segue devolvendo ARRAY pra nao
   // quebrar chamador; use liveOnlyDetalhado() pra ver o que foi ignorado e por que.
-  return liveOnlyDetalhado(livePaths, manifest, { exts, jaEmDocs }).faltando;
+  return liveOnlyDetalhado(livePaths, manifest, { exts, jaEmDocs, jaEmRuntime }).faltando;
 }
 
 /** Paths presentes em `prototipo-ui/design-docs/` — o 4º destino do `--export-from`.
@@ -222,9 +222,27 @@ export function buildDocsSet(root = ROOT, rel = 'prototipo-ui/design-docs') {
   return out;
 }
 
+/** Paths presentes no snapshot de RUNTIME do DS (`scripts/design-sync/mirror-snapshot/`) —
+ *  o destino do `--ds-runtime`, relativos ao dir (ex.: `_ds_bundle.js`, `assets/fonts/x.woff2`).
+ *  Dir ausente → Set vazio (o detector volta ao comportamento de antes — nunca "tudo isento"). */
+export function buildRuntimeSet(root = ROOT, rel = 'scripts/design-sync/mirror-snapshot') {
+  const base = join(root, rel);
+  const out = new Set();
+  const walk = (dir) => {
+    if (!existsSync(dir)) return;
+    for (const e of readdirSync(dir)) {
+      const f = join(dir, e);
+      if (statSync(f).isDirectory()) walk(f);
+      else out.add(f.slice(base.length + 1).split('\\').join('/'));
+    }
+  };
+  walk(base);
+  return out;
+}
+
 /** Igual ao liveOnly, mas devolve tambem o que foi ignorado por PROVENIENCIA e o motivo.
  *  `exts = null` (default) = nenhum filtro de extensao: conta .json, .php, .tsx, .png, tudo. */
-export function liveOnlyDetalhado(livePaths, manifest, { exts = null, jaEmDocs = null } = {}) {
+export function liveOnlyDetalhado(livePaths, manifest, { exts = null, jaEmDocs = null, jaEmRuntime = null } = {}) {
   const noEspelho = new Set(manifest.map((f) => f.cowork));
   const temExtensao = (p) => /\.[a-z0-9]+$/i.test(p);   // diretorio nao e arquivo faltando
   const faltando = [];
@@ -261,6 +279,21 @@ export function liveOnlyDetalhado(livePaths, manifest, { exts = null, jaEmDocs =
     if (jaEmDocs && p.toLowerCase().endsWith('.md') && jaEmDocs.has(p)) {
       ignorados.push({ path: p, motivo: 'ja desceu: existe em prototipo-ui/design-docs/ (roteamento por extensao do --export-from)' });
       continue;
+    }
+    // `jaEmRuntime` = paths presentes em scripts/design-sync/mirror-snapshot/ (o destino do
+    // `--ds-runtime`). So isenta o que a regua do PROPRIO destino aceita — `dsRuntimeRelPath`
+    // (bundle/CSS/asset), a MESMA fonte do exportador, nao copia. MEDIDO 2026-09-01: a rodada
+    // live-only acusou os `_ds/**` como "nunca desceu" com bundle + 2 CSS + fontes JA pousados
+    // no runtime — o mesmo FP de mecanismo proprio que o bloco dos `.md` acima matou em 08-28.
+    // `_ds` fora da classe runtime (styles.css, manifest, oxlintrc) segue acusado: e honesto,
+    // esses nunca desceram pra lugar nenhum.
+    if (jaEmRuntime && p.startsWith('_ds/')) {
+      let relRt = null;
+      try { relRt = dsRuntimeRelPath(p); } catch { relRt = null; }
+      if (relRt && jaEmRuntime.has(relRt)) {
+        ignorados.push({ path: p, motivo: 'ja desceu: runtime do preview (mirror-snapshot — destino --ds-runtime)' });
+        continue;
+      }
     }
     if (exts && !exts.some((e) => p.toLowerCase().endsWith(e))) { ignorados.push({ path: p, motivo: 'extensao' }); continue; }
     // IMAGEM fica fora da lista de FALTANDO por decisao datada (imagem nao e fonte de
@@ -1412,7 +1445,7 @@ function main() {
     const raw = JSON.parse(readFileSync(lp, 'utf8'));
     const paths = Array.isArray(raw) ? raw : (raw.paths || []);
     const manifest = buildManifest(ROOT, { all: true, shellHtml: lerShellHtml() });
-    const faltando = liveOnly(paths, manifest, { jaEmDocs: buildDocsSet(ROOT) });
+    const faltando = liveOnly(paths, manifest, { jaEmDocs: buildDocsSet(ROOT), jaEmRuntime: buildRuntimeSet(ROOT) });
     // Classifica pra o humano decidir sem ler 25 linhas iguais. NÃO é filtro — tudo é
     // listado; filtro escondido aqui recriaria o ponto cego que este modo existe pra abrir.
     const ehTela = (p) => !p.includes('/') && /\.(jsx|css)$/.test(p);
@@ -1484,6 +1517,13 @@ function main() {
     }
     return;
   }
+
+  // NOTA (2026-09-01): um modo `--conferir-descida` chegou a ser esboçado aqui e foi
+  // DESCARTADO antes de nascer — duplicaria régua consolidada (§5 2026-07-09): a pergunta
+  // "o que pousou confere?" já tem donos — a rota BUNDLE responde por construção
+  // (aplicar-payload: manifesto + sha256 + staging + rollback) e a rota pontual responde
+  // com --snapshot-from → --compare --check + --preview-ds (deps/DS). O buraco real era o
+  // detector live-only não conhecer o 3º destino (mirror-snapshot) — consertado acima.
 
   // --check-novos <base> [--vivos <list.json>]: arquivo que ENTROU no espelho e nasceu
   // fora de qualquer rodada de frescor. Diff-aware/forward-only (ADR 0275).

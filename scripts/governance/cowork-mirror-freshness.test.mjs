@@ -1125,6 +1125,25 @@ check('mesmo número → mesmo veredito (independe de --check)',
       && d2.staleList.join(',') === 'cowork-inbox/PEDIDO-X.md,github.md', JSON.stringify(d2));
 }
 
+// ── ISENÇÃO DO 3º DESTINO (2026-09-01): _ds JÁ pousado no runtime não é live-only ─
+// Medido na rodada real de 2026-09-01: o detector acusou os `_ds/**` como "nunca desceu"
+// com bundle + 2 CSS + fontes JÁ em mirror-snapshot/ (o pouso do --ds-runtime) — o mesmo
+// FP de mecanismo próprio que a isenção dos .md matou em 08-28 (157→147 na re-medição).
+// A classe runtime vem de dsRuntimeRelPath (a régua do PRÓPRIO destino, não cópia).
+{
+  const vivos = ['_ds/slug-x/cockpit_domains.css', '_ds/slug-x/styles.css'];
+  const rt = new Set(['cockpit_domains.css']);
+  const det = liveOnlyDetalhado(vivos, [], { jaEmRuntime: rt });
+  check('live-only: _ds runtime-class JA pousado => ignorado com motivo, nao acusado',
+    !det.faltando.includes('_ds/slug-x/cockpit_domains.css')
+      && det.ignorados.some((i) => i.path === '_ds/slug-x/cockpit_domains.css' && /runtime/.test(i.motivo)),
+    JSON.stringify(det));
+  check('live-only: _ds FORA da classe runtime (styles.css) segue acusado (honesto)',
+    det.faltando.includes('_ds/slug-x/styles.css'), JSON.stringify(det.faltando));
+  check('live-only: sem jaEmRuntime => comportamento antigo (acusa ambos)',
+    liveOnlyDetalhado(vivos, [], {}).faltando.length === 2);
+}
+
 // ── CLI --docs-compare + --sla-docs: bites pelo CLI de fora (sandbox por cwd) ───
 {
   const tmp = mkdtempSync(join(tmpdir(), 'freshness-docs-'));
