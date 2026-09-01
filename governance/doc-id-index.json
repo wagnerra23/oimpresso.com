@@ -1503,6 +1503,7 @@
     "2026-08-28-session-01": "memory/sessions/2026-08-28-session-01.md",
     "2026-08-28-session-02": "memory/sessions/2026-08-28-session-02.md",
     "2026-08-31-ragas-obra-parada-veredito-b": "memory/sessions/2026-08-31-ragas-obra-parada-veredito-b.md",
+    "2026-09-01-testes-persistentes-design-code": "memory/sessions/2026-09-01-testes-persistentes-design-code.md",
     "calculo-total-fatura": "memory/requisitos/Produto/topicos/calculo-total-fatura.md",
     "componentes-compartilhados": "memory/requisitos/_Geral/topicos/componentes-compartilhados.md",
     "governance-architecture": "memory/governance/ARCHITECTURE.md",
@@ -3736,8 +3737,8 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 3730,
-    "resolved": 2521,
+    "total": 3731,
+    "resolved": 2522,
     "unstamped": 1209,
     "collisions": 0,
     "by_source": {
@@ -3745,7 +3746,7 @@
       "derived-adr": 392,
       "stamped": 1019,
       "derived-handoffs": 476,
-      "derived-sessions": 634
+      "derived-sessions": 635
     }
   }
 }
