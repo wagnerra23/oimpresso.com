@@ -55,8 +55,8 @@ const EMIT_BASELINE = process.argv.includes('--emit-baseline');
 
 // ── regexes (espelham anchor-lint.mjs — fonte única da gramática anchor é ADR 0273 §1) ──
 const FIELD_RE = /^(?:>\s*)?\*\*Implementado em:\*\*\s*(.*)$/;
-const US_HEAD_RE = /^(#{2,4})\s+.*\bUS-[A-Z][A-Za-z0-9]*-\d/;
-const US_ID_RE = /US-[A-Z][A-Za-z0-9]*-\d+(?:\.\.\d+)?/;
+const US_HEAD_RE = /^(#{2,4})\s+.*\bUS-_?[A-Z][A-Za-z0-9]*-\d/;
+const US_ID_RE = /US-_?[A-Z][A-Za-z0-9]*-\d+(?:\.\.\d+)?/;
 const HEAD_RE = /^(#{1,6})\s/;
 const PLACEHOLDER_RE = /TODO|_\[path\]_|\ba criar\b|_xx_/i;
 const MDLINK_RE = /\[`([^`]+)`\]\(([^)]+)\)/g;

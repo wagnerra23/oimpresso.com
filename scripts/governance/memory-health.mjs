@@ -139,7 +139,7 @@ function checkUsCollisions() {
     const sp = `${reqRoot}/${d.name}/SPEC.md`;
     if (!exists(sp)) continue;
     let txt; try { txt = read(sp); } catch { continue; }
-    for (const m of txt.matchAll(/^###\s+(US-[A-Z]+-\d+)\b/gm)) (byId[m[1]] ??= []).push(d.name);
+    for (const m of txt.matchAll(/^###\s+(US-_?[A-Z]+-\d+)\b/gm)) (byId[m[1]] ??= []).push(d.name);
   }
   const dups = Object.entries(byId).filter(([, locs]) => locs.length > 1);
   checkNIds = dups.map(([id]) => id).sort();
@@ -834,7 +834,7 @@ function checkSessionDecisionAnchor() {
     // marcador de decisão/rollout (lista do adversário 2026-06-20)
     const hasDecision = /^##\s*Decis[aã]o\b/im.test(txt)
       || /^###\s*Passo\b/im.test(txt)
-      || /\bUS-[A-Z0-9]{2,}/.test(txt)
+      || /\bUS-_?[A-Z0-9]{2,}/.test(txt)
       || /\brollout\b/i.test(txt);
     if (!hasDecision) continue;
     // idade: nome do arquivo `YYYY-MM-DD-…` é a fonte PRIMÁRIA — ~50% dos logs não têm
