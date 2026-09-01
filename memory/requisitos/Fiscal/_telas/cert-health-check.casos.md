@@ -91,7 +91,9 @@ related_us: [US-FISCAL-022]
 
 - **[BACKLOG · ⬜ sem teste] O agendamento de fato dispara em produção** — hoje o que se prova é a
   presença do `$schedule->command('fiscal:cert-health-check')->dailyAt('06:30')` em
-  `app/Console/Kernel.php:236`. Que o cron do Hostinger o executou é pergunta de **runtime**, e a
+  `app/Console/Kernel.php` — re-localize com
+  `git grep -n "fiscal:cert-health-check" app/Console/Kernel.php`, nunca por número de linha.
+  Que o cron do Hostinger o executou é pergunta de **runtime**, e a
   resposta honesta vem da consequência (evento com timestamp fresco em `mcp_alertas_eventos`), não
   da leitura do Kernel — [proibicoes §5](../../../proibicoes.md) 2026-07-17.
 - **[BACKLOG · ⬜ dívida herdada] Tenant do teste** — os casos ancoram em `CERT_HC_BIZ = 1` citando a
