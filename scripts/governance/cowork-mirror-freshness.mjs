@@ -59,6 +59,8 @@
  *   node scripts/governance/cowork-mirror-freshness.mjs --sla               # headless: rotina rodou ≤14d? última limpa? + eixo NOVO desqualifica a leitura?
  *   node scripts/governance/cowork-mirror-freshness.mjs --live-only <lista.json> --ledger  # + registra a medição
  *   node scripts/governance/cowork-mirror-freshness.mjs --sla-live-only     # headless: live-only foi MEDIDO ≤7d? cresceu?
+ *   node scripts/governance/cowork-mirror-freshness.mjs --docs-compare <dir-jsons> --ledger  # .md pousado em design-docs ainda bate com o vivo? (T1)
+ *   node scripts/governance/cowork-mirror-freshness.mjs --sla-docs         # headless: docs foi MEDIDO ≤7d? apareceu stale novo?
  *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs        # a poda deste PR quebrou o grafo do espelho? (exit 1 = sim)
  *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs --range <a>..<b>
  *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs --deleted-from <lista.txt>   # fixture/manual
@@ -444,6 +446,14 @@ export function liveOnlyEntry(faltando, denom, dateIso) {
  *  (§5 2026-07-29) nem em "cresceu" — são três estados, não dois. */
 export function liveOnlyVerdict(entries, nowIso, days = LIVE_ONLY_SLA_DAYS) {
   const meds = (Array.isArray(entries) ? entries : []).filter((e) => e && e.kind === KIND_LIVE_ONLY);
+  return deltaVerdict(meds, nowIso, days, 'liveOnlyList');
+}
+
+/** Núcleo genérico do veredito por DELTA (idade + delta de lista + denominador) — um só dono
+ *  da lógica pros eixos live-only e docs: os estados são os MESMOS por construção, e duplicar
+ *  este bloco convidaria os dois vereditos a divergirem em silêncio. Contrato provado pelos
+ *  asserts existentes do liveOnlyVerdict (comportamento inalterado na extração). */
+function deltaVerdict(meds, nowIso, days, listKey) {
   if (meds.length === 0) return { veredito: 'NEVER-RAN', last: null, ageDays: null, novos: [] };
   const last = meds[meds.length - 1];
   const ageDays = Math.floor((Date.parse(nowIso) - Date.parse(last.date)) / 86400000);
@@ -453,10 +463,40 @@ export function liveOnlyVerdict(entries, nowIso, days = LIVE_ONLY_SLA_DAYS) {
   if (prev.denom !== last.denom) {
     return { veredito: 'SCOPE-CHANGED', last, prev, ageDays, novos: [] };
   }
-  const antes = new Set(prev.liveOnlyList || []);
-  const novos = (last.liveOnlyList || []).filter((p) => !antes.has(p));
+  const antes = new Set(prev[listKey] || []);
+  const novos = (last[listKey] || []).filter((p) => !antes.has(p));
   if (novos.length > 0) return { veredito: 'GREW', last, prev, ageDays, novos };
   return { veredito: 'OK', last, prev, ageDays, novos: [] };
+}
+
+// ── FRESCOR DOS .md POUSADOS EM design-docs/ (T1 · session 2026-09-01) ───────────
+// O --compare cobre as âncoras+deps do espelho cowork/; os .md que o roteamento manda pra
+// prototipo-ui/design-docs/ (github.md — ADR 0387 —, PEDIDOs da cowork-inbox) não tinham
+// medidor NENHUM de "a cópia pousada ficou atrás do vivo?" — a classe do incidente
+// "HANDOFF 15d stale". Mesma divisão do live-only: o agente logado mede (--docs-compare,
+// auth ADR 0315) e REGISTRA; o CI audita o REGISTRO via --sla-docs. Herdado nunca é
+// vermelho: o predicado é DELTA (stale que ENTROU desde a medição anterior — §5 2026-08-24).
+export const KIND_DOCS = 'docs';
+export const DOCS_SLA_DAYS = 7;
+
+/** Entrada de ledger pra uma medição de frescor dos .md pousados (pura, testável).
+ *  `denom` = quantos .md do vivo alimentaram a medição; `medidos` = quantos tinham cópia
+ *  pousada pra comparar (sem cópia = eixo do --live-only, não deste). */
+export function docsEntry(staleList, medidos, denom, dateIso) {
+  return {
+    date: dateIso,
+    kind: KIND_DOCS,
+    stale: staleList.length,
+    medidos,
+    denom,
+    staleList: [...staleList].sort(),
+  };
+}
+
+/** Veredito do eixo docs — mesmos estados do liveOnlyVerdict (deltaVerdict é o dono). */
+export function docsVerdict(entries, nowIso, days = DOCS_SLA_DAYS) {
+  const meds = (Array.isArray(entries) ? entries : []).filter((e) => e && e.kind === KIND_DOCS);
+  return deltaVerdict(meds, nowIso, days, 'staleList');
 }
 
 // ── DESQUALIFICAÇÃO: o eixo NOVO invalida a leitura do eixo MODIFICADO ───────────
@@ -1402,6 +1442,49 @@ function main() {
     return;
   }
 
+  // --docs-compare <dir> [--ledger]: frescor dos .md POUSADOS em design-docs/ (T1 · session
+  // 2026-09-01). Recebe o dir de JSONs do get_file (o MESMO insumo do --export-from) e
+  // responde, por .md: a cópia pousada em prototipo-ui/design-docs/ ainda bate com o vivo?
+  // Produzir o insumo exige auth (ADR 0315) — o CI não roda isto; audita via --sla-docs.
+  const dcIdx = argv.indexOf('--docs-compare');
+  if (dcIdx !== -1) {
+    const dir = argv[dcIdx + 1];
+    if (!dir || !existsSync(dir)) {
+      console.error('✗ --docs-compare exige um diretório com os JSONs do get_file dos .md do vivo.');
+      process.exit(2);
+    }
+    let denom = 0, medidos = 0;
+    const staleList = []; const semCopia = [];
+    for (const j of readdirSync(dir).filter((f) => f.endsWith('.json') || f.endsWith('.txt'))) {
+      let vivo;
+      try { vivo = decodeDesignSyncPayload(JSON.parse(readFileSync(join(dir, j), 'utf8')), j); }
+      catch (e) { console.error(`✗ ${e.message}`); process.exit(2); }
+      if (!vivo.path.endsWith('.md')) continue; // este eixo é só dos .md roteados pra design-docs
+      denom++;
+      const abs = join(ROOT, 'prototipo-ui', 'design-docs', vivo.path);
+      if (!existsSync(abs)) { semCopia.push(vivo.path); continue; } // nunca desceu → dono é o --live-only
+      medidos++;
+      const local = artifactHash(readFileSync(abs, 'utf8'), false);
+      const remoto = artifactHash(vivo.content, vivo.binary);
+      const nota = local === remoto ? 'sync' : 'STALE';
+      if (nota === 'STALE') staleList.push(vivo.path);
+      console.log(`  ${nota.padEnd(6)} design-docs/${vivo.path}`);
+    }
+    console.log(`\n  DOCS — ${medidos} pousado(s) comparado(s) de ${denom} .md do insumo · ${staleList.length} STALE · ${semCopia.length} sem cópia (eixo do --live-only)`);
+    if (staleList.length) console.log(`  Pra atualizar: --export-from ${dir} (o roteamento pousa .md em design-docs/) — transcrição é proibida (ADR 0374).`);
+    if (argv.includes('--ledger')) {
+      const lpz = join(ROOT, LEDGER_REL);
+      let entries = [];
+      try { entries = existsSync(lpz) ? JSON.parse(readFileSync(lpz, 'utf8')) : []; } catch { entries = []; }
+      if (!Array.isArray(entries)) entries = entries.runs || [];
+      entries.push(docsEntry(staleList, medidos, denom, new Date().toISOString()));
+      writeFileSync(lpz, JSON.stringify(entries, null, 2) + '\n');
+      console.log(`  ledger: medição registrada em ${LEDGER_REL} (${staleList.length} stale de ${denom} .md). Commite o ledger.`);
+      console.log('  O CI headless não mede isto (auth ADR 0315) — ele audita ESTE registro via --sla-docs.\n');
+    }
+    return;
+  }
+
   // --check-novos <base> [--vivos <list.json>]: arquivo que ENTROU no espelho e nasceu
   // fora de qualquer rodada de frescor. Diff-aware/forward-only (ADR 0275).
   const novIdx = argv.indexOf('--check-novos');
@@ -1770,6 +1853,46 @@ function main() {
         console.log(`\n✓ nasce-sem-medição: os ${nascidos.length} arquivo(s) novos entram no manifesto.`);
       }
     }
+    return;
+  }
+
+  // --sla-docs: headless-safe (lê SÓ o ledger). Audita o REGISTRO da medição de frescor dos
+  // .md pousados em design-docs/ (github.md — ADR 0387 —, PEDIDOs). Mesma divisão do
+  // --sla-live-only: o agente logado mede (--docs-compare --ledger), o CI cobra o registro.
+  // Predicado é DELTA (stale que ENTROU) — passivo herdado é contagem, nunca vermelho.
+  if (argv.includes('--sla-docs')) {
+    const lp = join(ROOT, LEDGER_REL);
+    let entries = [];
+    try { entries = existsSync(lp) ? JSON.parse(readFileSync(lp, 'utf8')) : []; } catch { entries = []; }
+    if (!Array.isArray(entries)) entries = entries.runs || [];
+    const r = docsVerdict(entries, new Date().toISOString());
+    const receita = 'get_file dos .md → salve os JSON num dir → --docs-compare <dir> --ledger';
+    console.log(`\n  DOCS SLA — os .md pousados em design-docs/ foram comparados com o vivo nos últimos ${DOCS_SLA_DAYS}d?\n`);
+    if (r.veredito === 'NEVER-RAN') {
+      console.error(`  ✗ NUNCA MEDIDO — nenhuma entrada de docs no ledger. Rode: ${receita}`);
+      process.exit(1);
+    }
+    const idade = `medido em ${r.last.date.slice(0, 10)} (há ${r.ageDays}d): ${r.last.stale} stale de ${r.last.medidos} pousado(s) comparado(s)`;
+    if (r.veredito === 'OVERDUE') {
+      console.error(`  ✗ VENCIDO — ${idade}. SLA é ${DOCS_SLA_DAYS}d. Rode: ${receita}`);
+      process.exit(1);
+    }
+    if (r.veredito === 'GREW') {
+      console.error(`  ✗ STALE NOVO — ${idade}; ${r.novos.length} .md ficou atrás do vivo desde ${r.prev.date.slice(0, 10)}:`);
+      for (const p of r.novos) console.error(`     + design-docs/${p}`);
+      console.error('  Advisory: atualizar é pelo transporte (--export-from), nunca transcrição (ADR 0374).');
+      process.exit(1);
+    }
+    if (r.veredito === 'SCOPE-CHANGED') {
+      console.log(`  ⬜ SEM COMPARAÇÃO — ${idade}, mas o denominador mudou (${r.prev.denom} → ${r.last.denom}).`);
+      console.log('     Delta não é comparável entre escopos diferentes; medição registrada, crescimento NÃO avaliado.');
+      return;
+    }
+    if (r.veredito === 'BASELINE') {
+      console.log(`  ⬜ BASELINE — ${idade}. Primeira medição registrada; não há anterior pra comparar.`);
+      return;
+    }
+    console.log(`  ✓ ${idade} — nenhum stale novo desde ${r.prev.date.slice(0, 10)}.`);
     return;
   }
 
