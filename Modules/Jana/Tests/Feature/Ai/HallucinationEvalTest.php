@@ -351,7 +351,7 @@ function hallucinationGoldenSet_nfe(): array
         ],
         [
             'question' => 'Inutilização de numeração NFe — quando?',
-            'answer' => 'Quando há gap (número pulado por erro). Envia inutilização no SEFAZ pro range específico. Justificativa obrigatória ≥15 chars. Modules/NfeBrasil/Services/Inutilizar coberto por SPED.',
+            'answer' => 'Quando há gap (número pulado por erro). Envia inutilização no SEFAZ pro range específico. Justificativa obrigatória ≥15 chars. Modules/NfeBrasil/Services/NfeInutilizacaoService.php coberto por SPED.',
             'must_contain' => ['gap', 'Justificativa', 'SEFAZ'],
             'must_not_contain' => ['sem justificativa', 'qualquer hora', 'sem SPED'],
             'category' => 'nfe_nfse_contabil',
@@ -386,9 +386,13 @@ function hallucinationGoldenSet_nfe(): array
         ],
         [
             'question' => 'NFC-e contingência offline funciona?',
-            'answer' => 'Sim — tpEmis=9 (contingência off-line NFC-e). Gera DANFE simplificado, transmite quando rede voltar. Modules/NfeBrasil/Services/Contingencia gerencia fila + reenvio em 24h.',
-            'must_contain' => ['tpEmis=9', 'contingência', 'DANFE'],
-            'must_not_contain' => ['só online', 'sem fila', 'desabilitado'],
+            // US-NFE-006 está PENDENTE (SPEC NfeBrasil: "**Implementado em:** _pendente_").
+            // Hoje tpEmis é fixo em 1 (NfeService.php) e não existe service nem rota de
+            // contingência. A resposta descreve o estado real + o alvo, nunca o alvo como se
+            // fosse presente.
+            'answer' => 'Ainda não — US-NFE-006 está pendente: tpEmis é fixo em 1 e não há service nem rota de contingência. Quando construída, a NFC-e off-line usa tpEmis=9 (modelo 65), gera DANFE simplificado e transmite em até 24h após a rede voltar; FS-DA é tpEmis=5 e vale só pra NF-e modelo 55.',
+            'must_contain' => ['US-NFE-006', 'tpEmis=9', 'DANFE'],
+            'must_not_contain' => ['já implementado', 'FS-DA na NFC-e', 'tpEmis=9 (FS-DA)'],
             'category' => 'nfe_nfse_contabil',
         ],
         [
@@ -728,8 +732,11 @@ function hallucinationGoldenSet_governanca(): array
         ],
         [
             'question' => 'Quais módulos referência canônica?',
-            'answer' => 'ADR 0011 — Modules/Jana, Modules/Repair, Modules/Project são módulos referência canônica. Antes de criar/ajustar qualquer arquivo, abrir o equivalente e imitar pattern.',
-            'must_contain' => ['0011', 'Modules/Jana', 'Modules/Repair', 'Modules/Project'],
+            // ADR 0011 (2026, append-only) cita "Modules/Project" — fato datado, verdadeiro na
+            // época. O ponteiro VIVO é what-oimpresso.md §"Módulos referência canônica":
+            // Modules/Forja (ex-ProjectMgmt). O módulo Project não existe mais na árvore.
+            'answer' => 'ADR 0011 — Modules/Jana, Modules/Repair, Modules/Forja (ex-ProjectMgmt, citado como Modules/Project na ADR original) são módulos referência canônica. Antes de criar/ajustar qualquer arquivo, abrir o equivalente e imitar pattern.',
+            'must_contain' => ['0011', 'Modules/Jana', 'Modules/Repair', 'Modules/Forja'],
             'must_not_contain' => ['copiar de qualquer', 'sem referência', 'inventar pattern'],
             'category' => 'constituicao_governanca',
         ],
