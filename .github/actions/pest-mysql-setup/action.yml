@@ -191,7 +191,7 @@ runs:
               echo 'seed ponto_colaborador_config biz=1 user='.\$u1.PHP_EOL;
             }
           }
-          // Pré-requisitos de `business_locations` pros tenants 1 e 2 (2026-08-27).
+          // Pré-requisitos de business_locations pros tenants 1 e 2 (2026-08-27).
           //
           // A tabela tem TRÊS FKs — contadas no schema, não supostas: business_id,
           // invoice_scheme_id e invoice_layout_id. As duas últimas são NOT NULL e apontam
@@ -225,28 +225,36 @@ runs:
               echo 'invoice_layout criado biz='.\$isBiz.PHP_EOL;
             }
           }
+          // AVISO PRA QUEM EDITAR ESTE STEP: tudo aqui vive dentro de um
+          // tinker --execute=... , que e uma string de shell entre ASPAS DUPLAS.
+          // Crase vira SUBSTITUICAO DE COMANDO e aspa dupla FECHA o --execute —
+          // inclusive dentro de comentario PHP, que o shell nao sabe que e comentario.
+          // Aprendido na marra: o run 33552930110 morreu com
+          // -syntax error near unexpected token- por uma crase de markdown num
+          // comentario. Nao use crase nem aspa dupla aqui, em nenhuma linha.
+          //
           // Permissions Spatie mínimas (2026-09-01). O baseline schema NÃO carrega
-          // nenhuma linha em `permissions` (medido: 0 `INSERT INTO permissions` em
+          // nenhuma linha em permissions (medido: 0 INSERT INTO permissions em
           // database/schema/mysql-schema.sql) e o PermissionsTableSeeder do UltimatePOS
-          // cria ~60 permissions mas NEM `superadmin` NEM as `fiscal.*` (medido: 0
+          // cria ~60 permissions mas NEM superadmin NEM as fiscal.* (medido: 0
           // ocorrências de 'superadmin' nos dois seeders homônimos). Resultado: todo
           // teste que chama givePermissionTo('superadmin') morre com
           // Spatie\Permission\Exceptions\PermissionDoesNotExist ANTES de exercer o gate
           // que ele existe pra provar — guard Tier 0 anunciado, não exercido.
           // Não é hipótese: o bloco da allowlist DESTA lane já registra o efeito
           // (run 31412629508, 2026-08-10) — 4 arquivos do Fiscal ficaram de fora
-          // classificados como PermissionDoesNotExist, "o seed da lane não cria as
-          // permissions que o teste exige". Este bloco fecha essa ponta.
+          // classificados como PermissionDoesNotExist, 'o seed da lane não cria as
+          // permissions que o teste exige'. Este bloco fecha essa ponta.
           //
-          // As 7 `fiscal.*` são a MESMA lista canônica do
+          // As 7 fiscal.* são a MESMA lista canônica do
           // Modules/Fiscal/Console/Commands/HabilitarBusinessCommand (6 atribuídas ao
           // role + fiscal.sped.export provisionada e NÃO atribuída — GAP-FISCAL-003),
-          // conferida nome a nome: o HabilitarBusinessCommandTest APAGA as `fiscal.%` e
+          // conferida nome a nome: o HabilitarBusinessCommandTest APAGA as fiscal.% e
           // depois exige EXATAMENTE 7, então um nome a mais aqui quebraria aquele assert.
           //
           // Aditivo e idempotente (findOrCreate). Seguro pras 16 lanes que compartilham
-          // este seed: os 2 únicos testes do repo que contam `permissions` medem DELTA
-          // relativo (RolePermissionCatalogTest — `toBe(\$antes)`), nunca valor absoluto.
+          // este seed: os 2 únicos testes do repo que contam permissions medem DELTA
+          // relativo (RolePermissionCatalogTest — toBe(\$antes)), nunca valor absoluto.
           if (\Illuminate\Support\Facades\Schema::hasTable('permissions')) {
             foreach ([
               'superadmin',
