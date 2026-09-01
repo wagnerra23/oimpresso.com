@@ -376,6 +376,40 @@ jobs:
             echo "_O CI não mede live-only (exige auth do DesignSync — ADR 0315); ele audita o registro no ledger._"
           } >> "$GITHUB_STEP_SUMMARY"
           exit $rc
+      # T1 do programa de testes persistentes design↔code (session 2026-09-01): frescor dos
+      # .md POUSADOS em prototipo-ui/design-docs/ (github.md — ADR 0387 —, PEDIDOs da
+      # cowork-inbox). O --compare cobre o espelho cowork/; este eixo cobre a cópia pousada
+      # dos .md, que não tinha medidor nenhum — a classe do incidente "HANDOFF 15d stale".
+      # Mesma divisão do vizinho de cima: o agente logado mede (--docs-compare --ledger) e o
+      # CI audita o REGISTRO. Predicado é DELTA (stale que ENTROU desde a medição anterior);
+      # passivo herdado é contagem, nunca vermelho (§5 2026-08-24). Bites no
+      # cowork-mirror-freshness.test.mjs (6 asserts de CLI, incl. "nunca verde mudo").
+      # Advisory, como os vizinhos; dono de `required` é governance/required-checks-baseline.json.
+      - name: cowork docs SLA (os .md pousados foram comparados com o vivo? · ledger · advisory)
+        if: always()
+        continue-on-error: true
+        run: |
+          set +e
+          OUT="${RUNNER_TEMP:-.}/cowork-docs-sla.txt"
+          node scripts/governance/cowork-mirror-freshness.mjs --sla-docs > "$OUT" 2>&1
+          rc=$?
+          cat "$OUT"
+          {
+            echo "### Espelho Cowork — frescor dos .md pousados (advisory)"
+            echo ""
+            if [ "$rc" -eq 0 ]; then
+              echo "✅ medição de docs registrada e sem stale novo."
+            else
+              echo "⚠️ **docs sem medição recente, ou stale novo** — \`rc=$rc\`"
+            fi
+            echo ""
+            echo '```'
+            sed -n '1,20p' "$OUT"
+            echo '```'
+            echo ""
+            echo "_O CI não mede docs (exige auth do DesignSync — ADR 0315); ele audita o registro no ledger._"
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit $rc
       # Poda do espelho (PR #5763, 96 arquivos): ao contrário do --compare acima, ESTE é 100%
       # local — não precisa da auth interativa do DesignSync, então roda headless no CI. Só
       # olha o que o PR APAGA sob prototipo-ui/cowork/ e pergunta se sobrou alguém apontando

@@ -29,6 +29,9 @@ import {
   buildDocsSet,
   liveOnlyEntry,
   liveOnlyVerdict,
+  docsEntry,
+  docsVerdict,
+  DOCS_SLA_DAYS,
   desqualificacaoLiveOnly,
   lerBundlePromovido,
   LIVE_ONLY_SLA_DAYS,
@@ -1078,6 +1081,106 @@ check('mesmo número → mesmo veredito (independe de --check)',
   check('liveOnlyEntry: grava denominador e lista ordenada (insumo do delta)',
     l2.kind === 'live-only' && l2.denom === 237 && l2.liveOnly === 3
       && l2.liveOnlyList.join(',') === 'a.jsx,b.css,c.jsx', JSON.stringify(l2));
+}
+
+// ── FRESCOR DOS .md POUSADOS EM design-docs/ (T1 · session 2026-09-01) ──────────
+// Espelho do bloco live-only acima, no eixo DOCS: o agente mede (--docs-compare --ledger),
+// o CI audita o registro (--sla-docs). Mesmos estados (deltaVerdict é o dono único da
+// lógica); herdado nunca vermelho — só stale que ENTROU desde a medição anterior.
+{
+  const d1 = docsEntry(['github.md'], 200, 270, '2026-08-30T00:00:00.000Z');
+  const d2 = docsEntry(['github.md', 'cowork-inbox/PEDIDO-X.md'], 200, 270, '2026-09-01T00:00:00.000Z');
+
+  // BITE de vizinhança (o mesmo perigo do live-only): entrada de docs no MESMO array não
+  // pode virar veredito do compare nem do live-only.
+  const parcialC = { date: '2026-08-29T00:00:00.000Z', files: 137, sync: 1, stale: 0, unchecked: 136 };
+  check('slaVerdict: entrada docs NAO vira veredito do compare',
+    slaVerdict([parcialC, d1], '2026-08-30T00:00:00.000Z').veredito
+      === slaVerdict([parcialC], '2026-08-30T00:00:00.000Z').veredito, 'divergiu');
+  check('liveOnlyVerdict: entrada docs NAO conta como medicao de live-only',
+    liveOnlyVerdict([d1], '2026-08-30T00:00:00.000Z').veredito === 'NEVER-RAN');
+  check('docsVerdict: ledger sem entrada docs => NEVER-RAN (nunca verde mudo — §5 2026-07-29)',
+    docsVerdict([parcialC], '2026-08-30T00:00:00.000Z').veredito === 'NEVER-RAN');
+
+  check('docsVerdict: primeira medicao => BASELINE',
+    docsVerdict([d1], '2026-08-30T00:00:00.000Z').veredito === 'BASELINE');
+  check(`docsVerdict: medicao com mais de ${DOCS_SLA_DAYS}d => OVERDUE`,
+    docsVerdict([d1], '2026-09-10T00:00:00.000Z').veredito === 'OVERDUE');
+
+  const g = docsVerdict([d1, d2], '2026-09-01T00:00:00.000Z');
+  check('docsVerdict: stale NOVO com mesmo denominador => GREW + nomeia o path',
+    g.veredito === 'GREW' && g.novos.length === 1 && g.novos[0] === 'cowork-inbox/PEDIDO-X.md',
+    JSON.stringify(g.novos));
+
+  // CONTROLE NEGATIVO — o passivo herdado (mesmo staleList) NAO reprova (delta, nao absoluto).
+  const h2 = docsEntry(['github.md'], 200, 270, '2026-09-01T00:00:00.000Z');
+  check('docsVerdict: mesmo staleList herdado => OK, nao GREW',
+    docsVerdict([d1, h2], '2026-09-01T00:00:00.000Z').veredito === 'OK');
+  const s2 = docsEntry(['github.md', 'cowork-inbox/PEDIDO-X.md'], 240, 310, '2026-09-01T00:00:00.000Z');
+  check('docsVerdict: denominador diferente => SCOPE-CHANGED (nao acusa GREW)',
+    docsVerdict([d1, s2], '2026-09-01T00:00:00.000Z').veredito === 'SCOPE-CHANGED');
+
+  check('docsEntry: grava kind/contagens/lista ordenada',
+    d2.kind === 'docs' && d2.stale === 2 && d2.medidos === 200 && d2.denom === 270
+      && d2.staleList.join(',') === 'cowork-inbox/PEDIDO-X.md,github.md', JSON.stringify(d2));
+}
+
+// ── CLI --docs-compare + --sla-docs: bites pelo CLI de fora (sandbox por cwd) ───
+{
+  const tmp = mkdtempSync(join(tmpdir(), 'freshness-docs-'));
+  mkdirSync(join(tmp, 'prototipo-ui', 'design-docs', 'cowork-inbox'), { recursive: true });
+  mkdirSync(join(tmp, 'scripts', 'governance'), { recursive: true });
+  mkdirSync(join(tmp, 'insumo'), { recursive: true });
+  const cli = join(dirname(fileURLToPath(import.meta.url)), 'cowork-mirror-freshness.mjs');
+  const roda = (args) => {
+    try { return { code: 0, out: execFileSync(process.execPath, [cli, ...args], { cwd: tmp, encoding: 'utf8' }) }; }
+    catch (e) { return { code: e.status ?? -1, out: String(e.stdout || '') + String(e.stderr || '') }; }
+  };
+
+  // sandbox: github.md pousado IGUAL ao vivo · PEDIDO-X.md pousado DIFERENTE do vivo
+  writeFileSync(join(tmp, 'prototipo-ui', 'design-docs', 'github.md'), '# diario v2\n');
+  writeFileSync(join(tmp, 'prototipo-ui', 'design-docs', 'cowork-inbox', 'PEDIDO-X.md'), '# pedido v1\n');
+  writeFileSync(join(tmp, 'insumo', 'a.json'), JSON.stringify({ path: 'github.md', content: '# diario v2\n' }));
+  writeFileSync(join(tmp, 'insumo', 'b.json'), JSON.stringify({ path: 'cowork-inbox/PEDIDO-X.md', content: '# pedido v2 MUDOU\n' }));
+  writeFileSync(join(tmp, 'insumo', 'c.json'), JSON.stringify({ path: 'nunca-desceu.md', content: 'x\n' }));
+  writeFileSync(join(tmp, 'insumo', 'd.json'), JSON.stringify({ path: 'page.jsx', content: 'x\n' }));
+
+  const m = roda(['--docs-compare', join(tmp, 'insumo'), '--ledger']);
+  check('CLI --docs-compare: classifica sync/STALE/sem-copia e ignora nao-.md',
+    m.code === 0 && /sync\s+design-docs\/github\.md/.test(m.out)
+      && /STALE\s+design-docs\/cowork-inbox\/PEDIDO-X\.md/.test(m.out)
+      && /1 STALE/.test(m.out) && /1 sem cópia/.test(m.out) && /de 3 \.md/.test(m.out),
+    `code=${m.code}\n${m.out}`);
+  const ledger = JSON.parse(readFileSync(join(tmp, 'scripts', 'governance', '.cowork-freshness-ledger.json'), 'utf8'));
+  check('CLI --docs-compare --ledger: registra entrada kind=docs',
+    ledger.length === 1 && ledger[0].kind === 'docs' && ledger[0].stale === 1
+      && ledger[0].staleList[0] === 'cowork-inbox/PEDIDO-X.md', JSON.stringify(ledger));
+
+  // --sla-docs sobre o registro: 1ª medição = BASELINE (rc 0) — herdado não reprova.
+  const s1 = roda(['--sla-docs']);
+  check('CLI --sla-docs: primeira medicao => BASELINE, rc 0', s1.code === 0 && /BASELINE/.test(s1.out), `code=${s1.code}`);
+
+  // 2ª medição com stale NOVO (github.md mudou no vivo) => GREW, rc 1 — o bite.
+  writeFileSync(join(tmp, 'insumo', 'a.json'), JSON.stringify({ path: 'github.md', content: '# diario v3 MUDOU\n' }));
+  roda(['--docs-compare', join(tmp, 'insumo'), '--ledger']);
+  const s2cli = roda(['--sla-docs']);
+  check('CLI --sla-docs: stale NOVO desde a medicao anterior => rc 1 e nomeia o path',
+    s2cli.code === 1 && /STALE NOVO/.test(s2cli.out) && /design-docs\/github\.md/.test(s2cli.out),
+    `code=${s2cli.code}\n${s2cli.out}`);
+
+  // 3ª medição idêntica (mesmo staleList) => OK, rc 0 — herdado nunca vira vermelho.
+  roda(['--docs-compare', join(tmp, 'insumo'), '--ledger']);
+  const s3 = roda(['--sla-docs']);
+  check('CLI --sla-docs: staleList herdado estavel => rc 0 (delta, nao absoluto)',
+    s3.code === 0 && /nenhum stale novo/.test(s3.out), `code=${s3.code}\n${s3.out}`);
+
+  // ledger VAZIO => NUNCA MEDIDO, rc 1 — nunca verde mudo (§5 2026-07-29).
+  rmSync(join(tmp, 'scripts', 'governance', '.cowork-freshness-ledger.json'));
+  const s0 = roda(['--sla-docs']);
+  check('CLI --sla-docs: sem medicao registrada => rc 1 NUNCA MEDIDO (nunca verde mudo)',
+    s0.code === 1 && /NUNCA MEDIDO/.test(s0.out), `code=${s0.code}`);
+
+  rmSync(tmp, { recursive: true, force: true });
 }
 
 // ── DESQUALIFICAÇÃO DO EIXO MODIFICADO PELO EIXO NOVO (2026-08-27) ───────────────
