@@ -19,9 +19,9 @@ authority: generated
 | US no SPEC | 23 |
 | CU no SDD | 16 |
 | Telas (.tsx) | 7 |
-| Telas com `casos.md` | 7 |
-| UC declarados | 41 |
-| UC com teste que os cita | 41 |
+| Telas com `casos.md` | 8 |
+| UC declarados | 47 |
+| UC com teste que os cita | 47 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -51,13 +51,18 @@ authority: generated
 | US-FISCAL-011 | `desconhecido` | SPED Fiscal complete + PIS/COFINS — **backlog PR #10** |
 | US-FISCAL-018 | `desconhecido` | Habilitar cockpit Fiscal Larissa biz=4 + canary 7d smoke |
 | US-FISCAL-021 | `todo` | IBS/CBS cálculo no MotorTributarioService (Onda 6 — sair do scaffold) |
-| US-FISCAL-022 | `todo` | Health-check certificado A1 (cron alerta vencimento) |
 | US-FISCAL-024 | `todo` | IBS/CBS — split UF/Município na régua fiscal (coluna de schema) |
 
 ## UC por status
 
 | UC | Tela | Status |
 |---|---|---|
+| UC-FCERT-01 | cert-health-check (blade) | 🧪 aguarda veredito da lane |
+| UC-FCERT-02 | cert-health-check (blade) | 🧪 aguarda veredito da lane |
+| UC-FCERT-03 | cert-health-check (blade) | 🧪 aguarda veredito da lane |
+| UC-FCERT-04 | cert-health-check (blade) | 🧪 aguarda veredito da lane |
+| UC-FCERT-05 | cert-health-check (blade) | 🧪 aguarda veredito da lane |
+| UC-FCERT-06 | cert-health-check (blade) | 🧪 aguarda veredito da lane |
 | UC-FCFG-01 | Config | 🧪 aguarda veredito da lane |
 | UC-FCFG-02 | Config | 🧪 aguarda veredito da lane |
 | UC-FCFG-03 | Config | 🧪 aguarda veredito da lane |
