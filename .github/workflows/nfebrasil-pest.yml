@@ -259,6 +259,61 @@ jobs:
         if: steps.changes.outputs.nfe == 'true'
         run: node scripts/tests/junit-summary.mjs test-results/pest-nfebrasil-junit.xml --check-assertions
 
+      # ── ANDAIME DE MEDIÇÃO (TEMPORÁRIO — sai no commit do ratchet) ────────────────
+      # Roda os 15 arquivos do Fiscal que estão FORA da allowlist, pra o ratchet ser
+      # decidido por NÚMERO e não por leitura de código. Não é gate e não finge ser:
+      # o `continue-on-error` é o que o mantém fora do caminho do merge, e ele roda
+      # DEPOIS do step required + do --check-assertions, então nada que ele faça no
+      # banco pode contaminar o que já foi medido acima.
+      #
+      # Nenhum dos 15 usa RefreshDatabase/migrate:fresh (varredura contada 2026-09-01),
+      # que é a condição que o bloco da allowlist exige pra um arquivo poder entrar.
+      #
+      # A pergunta que ele responde: quais destes o seed novo (superadmin + 7 fiscal.*)
+      # destravou de verdade? O veredito sai do SUMÁRIO JUnit por arquivo — `passed=0`
+      # também sai verde (gate mudo, proibicoes.md §5 2026-07-27).
+      - name: "[andaime] Diagnóstico — os 15 Fiscal fora da allowlist (NÃO é gate)"
+        if: steps.changes.outputs.nfe == 'true'
+        continue-on-error: true
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-fiscal-diag-junit.xml \
+            Modules/Fiscal/Tests/Feature/AcoesContratoTest.php \
+            Modules/Fiscal/Tests/Feature/AcoesControllerTest.php \
+            Modules/Fiscal/Tests/Feature/CertHealthCheckCommandTest.php \
+            Modules/Fiscal/Tests/Feature/CockpitCacheTest.php \
+            Modules/Fiscal/Tests/Feature/CockpitControllerTest.php \
+            Modules/Fiscal/Tests/Feature/DfeControllerTest.php \
+            Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php \
+            Modules/Fiscal/Tests/Feature/HabilitarBusinessCommandTest.php \
+            Modules/Fiscal/Tests/Feature/NfseCockpitControllerTest.php \
+            Modules/Fiscal/Tests/Feature/SidebarConsolidacaoTest.php \
+            Modules/Fiscal/Tests/Feature/SimplesOnlyGateConfigTest.php \
+            Modules/Fiscal/Tests/Feature/SimplesOnlyGateTest.php \
+            Modules/Fiscal/Tests/Feature/SpedControllerTest.php \
+            Modules/Fiscal/Tests/Feature/SpedIcmsIpiGeneratorServiceTest.php \
+            Modules/Fiscal/Tests/Feature/SpedMotorTributarioIntegrationTest.php
+
+      - name: "[andaime] Sumário do diagnóstico por arquivo"
+        if: always()
+        run: node scripts/tests/junit-summary.mjs test-results/pest-fiscal-diag-junit.xml --out test-results/pest-fiscal-diag-summary.json || true
+
+      - name: "[andaime] Upload do diagnóstico"
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-fiscal-diag
+          path: test-results/pest-fiscal-diag-summary.json
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Upload sumario JUnit (pest-nfebrasil-junit)
         if: always()
         uses: actions/upload-artifact@v4

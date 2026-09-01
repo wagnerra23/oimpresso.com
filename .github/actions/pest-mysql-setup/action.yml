@@ -225,6 +225,38 @@ runs:
               echo 'invoice_layout criado biz='.\$isBiz.PHP_EOL;
             }
           }
+          // Permissions Spatie mínimas (2026-09-01). O baseline schema NÃO carrega
+          // nenhuma linha em `permissions` (medido: 0 `INSERT INTO permissions` em
+          // database/schema/mysql-schema.sql) e o PermissionsTableSeeder do UltimatePOS
+          // cria ~60 permissions mas NEM `superadmin` NEM as `fiscal.*` (medido: 0
+          // ocorrências de 'superadmin' nos dois seeders homônimos). Resultado: todo
+          // teste que chama givePermissionTo('superadmin') morre com
+          // Spatie\Permission\Exceptions\PermissionDoesNotExist ANTES de exercer o gate
+          // que ele existe pra provar — guard Tier 0 anunciado, não exercido.
+          // Não é hipótese: o bloco da allowlist DESTA lane já registra o efeito
+          // (run 31412629508, 2026-08-10) — 4 arquivos do Fiscal ficaram de fora
+          // classificados como PermissionDoesNotExist, "o seed da lane não cria as
+          // permissions que o teste exige". Este bloco fecha essa ponta.
+          //
+          // As 7 `fiscal.*` são a MESMA lista canônica do
+          // Modules/Fiscal/Console/Commands/HabilitarBusinessCommand (6 atribuídas ao
+          // role + fiscal.sped.export provisionada e NÃO atribuída — GAP-FISCAL-003),
+          // conferida nome a nome: o HabilitarBusinessCommandTest APAGA as `fiscal.%` e
+          // depois exige EXATAMENTE 7, então um nome a mais aqui quebraria aquele assert.
+          //
+          // Aditivo e idempotente (findOrCreate). Seguro pras 16 lanes que compartilham
+          // este seed: os 2 únicos testes do repo que contam `permissions` medem DELTA
+          // relativo (RolePermissionCatalogTest — `toBe(\$antes)`), nunca valor absoluto.
+          if (\Illuminate\Support\Facades\Schema::hasTable('permissions')) {
+            foreach ([
+              'superadmin',
+              'fiscal.access', 'fiscal.nfe.view', 'fiscal.nfe.acoes', 'fiscal.nfse.view',
+              'fiscal.dfe.manage', 'fiscal.config.edit', 'fiscal.sped.export',
+            ] as \$permName) {
+              \Spatie\Permission\Models\Permission::findOrCreate(\$permName, 'web');
+            }
+            echo 'permissions seed: superadmin + 7 fiscal.* garantidas'.PHP_EOL;
+          }
           DB::statement('SET FOREIGN_KEY_CHECKS=0'); // conta usa account_id fake (sem row em accounts)
           \$bizId = optional(DB::table('business')->where('id', 98)->first())->id ?: optional(DB::table('business')->first())->id;
           if (\$bizId && ! \Modules\Financeiro\Models\ContaBancaria::query()->where('business_id',\$bizId)->exists()) {
