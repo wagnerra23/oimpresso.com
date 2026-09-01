@@ -7,7 +7,7 @@ last_validated: "2026-06-07"
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [0253-primitivos-layout, 0013-constituicao-ui-v2-camadas, 0093-multi-tenant-isolation-tier-0]
-related_us: []
+related_us: [US-_DESIGNSYSTEM-030]
 related_prototype: prototipo-ui/prototipos/financeiro-prova-viva/Financeiro - Prova Viva (primitivos).html
 # proveniência da âncora acima: design-handoff Cowork chat46 (2026-06-07); âncora HISTÓRICA desde
 # 2026-09-01 — a cópia upstream foi aposentada por decisão [W] e a versionada é byte-idêntica à do
