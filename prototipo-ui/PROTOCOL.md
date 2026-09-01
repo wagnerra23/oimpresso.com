@@ -346,6 +346,25 @@ o relatório do que mudou e as provas de aplicação ficam fora dele, em `script
 Comandos e destinos executáveis continuam tendo [`protocolo.config.mjs`](protocolo.config.mjs)
 como fonte única.
 
+### 10.7 `github.md` — o diário de sync do lado design (aceito e tratado — ADR 0387)
+
+O projeto Cowork mantém um diário de bordo, `github.md`: `## Last sync` (data + hash de árvore),
+um bloco `### Updated in this project` por ciclo (o que mudou no protótipo, achados 🔴 lidos do
+código vivo, erratas do próprio `[CC]`, decisões pendentes `[W]`) e o `## Screen map`
+(protótipo ↔ arquivos do repo). É o **handoff do lado design** — contraparte do
+`memory/handoffs/` do lado code ([ADR 0387](../memory/decisions/0387-github-md-diario-cowork-aceito-e-tratado.md)).
+
+- **Cópia tratada:** `prototipo-ui/design-docs/github.md` (a **raiz** — a que o export atualiza).
+  `design-docs/_projeto-cowork/**` é retrato interno do próprio projeto, não a cópia tratada.
+- **Quando ler:** na fase −1, **antes** de decidir o ciclo — o bloco `[DIARIO]` do
+  [`protocolo.config.mjs`](protocolo.config.mjs) tem os comandos (fonte única; não os copie pra cá).
+- **O que é / não é:** **registro, não fonte** — achado 🔴 do diário vira trabalho **depois** de
+  verificado contra o `main` (regra do próprio `[CC]`: fato sobre o repo exige leitura do `main`
+  no turno); decisão pendente `[W]` listada nele entra na fila de decisão, não se resolve sozinha.
+- **Frescor:** a cópia tratada vale o seu `Last sync` — citou pra decidir, date a citação; em
+  dúvida, refresque pelo transporte (bundle/`--export-from`; transcrição à mão proibida —
+  [ADR 0374](../memory/decisions/0374-emenda-0315-espelho-cowork-e-rota-prevista.md)).
+
 ## 11. Links
 
 - [ADR 0114](../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md) — mãe

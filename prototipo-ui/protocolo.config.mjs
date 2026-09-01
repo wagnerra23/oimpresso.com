@@ -287,6 +287,12 @@ export const FASES = [
       '  ^ TRAGA o pedido/handoff (PEDIDO-*, PROMPT-*): sem ele a proveniencia do charter fica so no corpo do PR.',
       '  ^ NAO traga rascunho de charter/casos/contract: PROTOCOL 10.4 = nao trazer rascunho pro canon.',
       '    O canon nasce em resources/js/Pages/<Mod>/ via criar-tela.mjs, reconciliado contra SPEC/ADR.',
+      '# [DIARIO / HANDOFF DO DESIGN] github.md = diario de sync do [CC] (ADR 0387, PROTOCOL 10.7):',
+      '#   Last sync, achados, erratas e decisoes pendentes [W]. TRATE-O: leia ANTES de decidir o ciclo —',
+      '#   e o indice do que o design fez e do que espera de voce. Copia tratada =',
+      '#   prototipo-ui/design-docs/github.md (raiz; _projeto-cowork/** e retrato interno do projeto).',
+      '#   Registro, NAO fonte: achado do diario vira trabalho DEPOIS de verificado contra o main.',
+      'DesignSync.get_file(projectId=COWORK_PROJECT_ID, path=github.md)                # LER e livre (0315 Eixo B); pouso fiel = bundle/--export-from (transcricao proibida, 0374)',
     ], selftest: 'node prototipo-ui/handoff-changed.mjs --selftest' },
   { fase: '0/0.5', nome: 'Detectar + manifesto', comandos: [
       'node prototipo-ui/detectar-telas.mjs --staging <dir> --json --strict',
