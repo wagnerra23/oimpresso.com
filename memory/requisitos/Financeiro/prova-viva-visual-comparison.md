@@ -6,7 +6,7 @@ type: visual-comparison
 module: Financeiro
 status: approved
 date: 2026-06-07
-canon_reference: design-handoff Cowork "Financeiro - Prova Viva (primitivos).html" (chat46, aprovado no loop de design 2026-06-07)
+canon_reference: design-handoff Cowork "Financeiro - Prova Viva (primitivos).html" (chat46, aprovado no loop de design 2026-06-07; o arquivo vive versionado em prototipo-ui/prototipos/financeiro-prova-viva/ desde 2026-09-01 — a cópia do projeto Cowork foi aposentada por decisão [W])
 blade_source: n/a (greenfield — prova de layout, não existe equivalente legacy)
 inertia_target: resources/js/Pages/Financeiro/ProvaViva.tsx
 controller_new: Modules/Financeiro/Http/Controllers/ProvaVivaController::index()
