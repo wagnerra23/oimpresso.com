@@ -7,6 +7,16 @@
 > (o gerador — a FORMA do pacote mora lá) e [`CODE_NOTES.resposta-pedido-reexport-2026-08-28.md`](CODE_NOTES.resposta-pedido-reexport-2026-08-28.md).
 > ⚠️ Siglas `[CL]`/`[CC]` estão invertidas entre documentos antigos — escrevo por extenso.
 
+> ⚠️ **ERRATA (2026-09-01, mais tarde no mesmo dia) — a premissa "o Cowork lê daqui" acima é FALSA.**
+> O corpo fica como está (registro datado), mas o parêntese da linha 5 induz ao erro: o Cowork não lê
+> "o `main`" inteiro — o `CLAUDE.md` do projeto dele nomeia **6 documentos** de read-order
+> (`COWORK-ESTRUTURA-E-TELAS.md`, `FRESCOR-PRODUCAO-vs-PROTOTIPO.md`, `PRE-FLIGHT-TELA.md`, o charter
+> da tela, `PROTOCOL.md`, `CLAUDE_DESIGN_BRIEFING.md` + `LICOES_CC.md`), e **nenhum** deles cita este
+> arquivo. Medido: 0 ocorrências de `gerar-payload`/`bundle.manifest`/`sync/payload` nos seis.
+> Ou seja: a regra nunca chegou — não foi ignorada. **A regra agora mora no passo 4 da `## 🔁 ROTINA`
+> de [`COWORK-ESTRUTURA-E-TELAS.md`](COWORK-ESTRUTURA-E-TELAS.md)**, que é o item 1 do read-order.
+> Este prompt segue válido para [W] colar no chat do Design; deixou de ser o único caminho.
+
 ---
 
 ## O fato, medido em 2026-09-01 (desta vez do lado Code, com auth própria)
