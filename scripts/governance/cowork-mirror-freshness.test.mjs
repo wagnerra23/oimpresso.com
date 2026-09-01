@@ -44,6 +44,7 @@ import {
   materializePreviewDs,
   nasceSemMedicao,
   refsParaDeletado,
+  orfaosNaAdicao,
   unverifiedSince,
   SLA_DAYS,
 } from './cowork-mirror-freshness.mjs';
@@ -903,6 +904,30 @@ check('mesmo número → mesmo veredito (independe de --check)',
   check('o achado nomeia origem, referência crua e alvo resolvido',
     um.de === `${M}/oimpresso.com.html` && um.ref === 'app.jsx?v=eb2' && um.alvo === `${M}/app.jsx`,
     JSON.stringify(um));
+}
+
+// ── orfaosNaAdicao: a direção da ADIÇÃO (irmã DELTA do refsParaDeletado) ────────
+// T2 da session 2026-09-01: a metade C2 do `cowork-paridade.mjs` do Cowork (existe no vivo,
+// nunca desceu — LC-19) vira regra DELTA no dono. FP do absoluto remedido antes: 26/29
+// órfãos herdados legítimos por proveniência (~90%) — por isso só a adição do PR entra.
+{
+  const M = 'prototipo-ui/cowork';
+  const decl = new Set([`${M}/oimpresso.com.html`, `${M}/app.jsx`, `${M}/styles.css`]);
+
+  check('adição não-declarada é órfã',
+    orfaosNaAdicao([`${M}/solto.jsx`], decl).orfaos.length === 1);
+  check('adição declarada pelo shell passa',
+    orfaosNaAdicao([`${M}/app.jsx`], decl).orfaos.length === 0);
+  check('fora do espelho não entra no universo',
+    orfaosNaAdicao(['resources/js/Pages/X.tsx'], decl).orfaos.length === 0);
+  check('extensão não-build (png/md/json) não entra no universo — .md é R1 do ssot-guard',
+    orfaosNaAdicao([`${M}/a.png`, `${M}/b.md`, `${M}/c.map.json`], decl).orfaos.length === 0);
+  check('2º .html na raiz é órfão (o caso do R3 do pedido do Cowork)',
+    orfaosNaAdicao([`${M}/Prova Viva.html`], decl).orfaos.length === 1);
+  const prov = orfaosNaAdicao([`${M}/venda-v3/nova.jsx`, `${M}/produto-preco-especial/x.css`], decl);
+  check('proveniência declarada (FORA_DESTA_CONTA) vai pra ignorados COM motivo, nunca some',
+    prov.orfaos.length === 0 && prov.ignorados.length === 2
+      && prov.ignorados.every((i) => /FORA_DESTA_CONTA/.test(i.motivo)), JSON.stringify(prov.ignorados));
 }
 
 // ── --absent-local: o 4º flanco agora REPROVA (antes só imprimia) ───────────────

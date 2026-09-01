@@ -93,6 +93,22 @@ Outros vigias do domínio (para completar o inventário, todos advisory): `desig
   da raiz — apagar/declarar); (b) a correção do `CLAUDE.md` que cita a máquina fantasma é do
   lado Cowork (editar o espelho local = remendo, §5 2026-08-17) — vai como resposta/PEDIDO,
   não como edit daqui.
+- **EXECUTADO 2026-09-01 (mesma data, sessão T2):** o "fantasma" deixou de ser fantasma no
+  lado de lá — `scripts/cowork-paridade.mjs` EXISTE no projeto Cowork vivo (baixado por
+  `get_file` e avaliado check-a-check; segue sem descer — LC-19). Modo novo
+  `--check-orfaos` no dono (`--diff-filter=AR` · `--added-from` pra fixture · fail-closed
+  exit 2 sem shell/git · exceção por proveniência REPORTADA como ignorados). FP re-medido
+  antes de ligar: **29 órfãos de 280** (números moveram desde a medição do §Buraco: 282
+  rastreados), 26 legítimos — 21 `venda-v3/` + **2 `produto-preco-especial/`** (ambos
+  FORA_DESTA_CONTA) + 2 `ds-v6/` + 1 `prototipos/` → absoluto ≈ 90% FP, confirmado morto.
+  Mordida: fixture `cowork-orfaos` boa/ruim no gate-selftest (82/82, par visível por nome) +
+  6 asserts da pura em `cowork-mirror-freshness.test.mjs` (241 OK) + bite local
+  bad→1/good→0/proveniência→0/delta-real→0. Invocador: step advisory no
+  `design-memory-gate.yml` ao lado do `cowork-refs`; censo estendido no anchor do
+  `gates-registry.json`. As 2 decisões [W] + avaliação C1-C6 foram pro canal formal:
+  [`prototipo-ui/CODE_NOTES.resposta-cowork-paridade-2026-09-01.md`](../../prototipo-ui/CODE_NOTES.resposta-cowork-paridade-2026-09-01.md)
+  (C4 não-aplicável no espelho · C5 recusado pelos dois lados da doutrina — R1 + L-42/ADR
+  0256 · C6 segue sem dono, declarado).
 
 ### T3 — `ds-mirror-drift`: separar exit 2 (não-medi) de exit 1 (drift) — o pré-requisito NOMEADO da lápide, sem ligar `--enforce` (canal D)
 
