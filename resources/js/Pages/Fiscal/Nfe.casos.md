@@ -5,10 +5,21 @@ irmaos: Nfe.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-08-28"
+last_run: "2026-09-01"
 ---
 
 # Casos de Uso & Aceite — Notas NF-e / NFC-e
+
+> **Revalidação `last_run` 2026-09-01 — o que foi conferido (Onda 1 Fiscal, flip do token `--fis`):**
+> este PR muda a tela em **um único ponto**: o comentário de cabeçalho do `.tsx`, que afirmava
+> `var(--fis) rosa fiscal` e virou falso quando o token passou a `oklch(0.55 0.15 295)`. A mudança de
+> comportamento é **zero** — o CSS é o único consumidor funcional de `var(--fis)` (medido: 38 usos no
+> `.css`, 0 no `.tsx`). Conferi os 8 UC deste arquivo um a um: **todos assertam comportamento de
+> backend** (`HasBusinessScope`, `isCancelavel`, mapa `sefazCodes`, validações do `AcoesController`,
+> superfície de métodos/rota/Services) — **nenhum depende de cor, token ou do `.tsx`**, logo nenhum
+> aceite mudou. **Nenhum teste foi re-executado** (Pest = CT 100); os vereditos seguem como estavam.
+> _Este bump vai no MESMO commit do `.tsx` de propósito: o G-6 isenta por SHA igual, que é a forma
+> que sobrevive ao squash-merge reescrever a data (o caminho por data cai de novo no dia seguinte)._
 
 > **Revalidação `last_run` 2026-08-28 — o que foi conferido:** este PR muda a tela em **um único ponto**: o atributo `data-contract="fiscal-nfe-filters"` no wrapper, âncora do mapa [`fiscal-nfe.map.json`](../../../../memory/requisitos/Fiscal/fiscal-nfe.map.json). Conferi o diff do `.tsx` contra a lista de UC deste arquivo — **nenhum UC depende de atributo de DOM**, logo nenhum aceite mudou. **Nenhum teste foi re-executado** nesta revalidação (Pest = CT 100); os vereditos seguem como estavam.
 
@@ -145,3 +156,10 @@ Fiscal). Âncora: US-FISCAL-013/014.
   tela `Fiscal/Dfe` (anotados por outra sessão enquanto este trabalho corria) — removê-los
   orfanaria UC de tela alheia. O comportamento real deles já é provado por `UC-FNFE-07`;
   re-apontar o DF-e pra lá é decisão do dono daquela tela. Nenhum UC perdeu lastro.
+- 2026-09-01 · [CC] Onda 1 Fiscal (saneamento `fx-*` → DS). `last_run` bumpado para 09-01 em duas
+  revalidações — a do flip do token `--fis` e a da troca de primitivas —, cada uma no MESMO commit
+  do `.tsx` que a motivou, para pegar a isenção por SHA do G-6 (a via por data reabre o staleness
+  no squash-merge seguinte). **Nenhum UC foi criado, alterado ou removido:** a onda é de camada de
+  apresentação, e os 8 UC assertam backend. O débito real deste arquivo continua o mesmo e está
+  declarado no §Backlog — em especial o gate de permissão `fiscal.nfe.view` (Tier 0, sem teste) e
+  o `UC-FNFE-01`, que segue skipando por falta de `nfe_emissoes` na lane.

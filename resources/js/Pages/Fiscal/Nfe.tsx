@@ -9,7 +9,9 @@
 //
 // Origem: design Cowork "Oimpresso ERP — Chat" / fiscal-page.jsx §9 (FiscalNFePage), aprovado por [W] 2026-05-20.
 // Persona: Eliana (contadora) + Wagner (operador fiscal).
-// Tokens: var(--fis) rosa fiscal, var(--ok), var(--warn), var(--bad).
+// Tokens: var(--fis) — acento do Fiscal; desde 2026-09-01 é o roxo canônico do DS
+//   oklch(0.55 0.15 295) (ADR 0235), não mais o hue 30 herdado do port. Mais
+//   var(--ok), var(--warn), var(--bad). Definidos em resources/css/fiscal-cockpit.css.
 // Não-duplica: lê Modules/NfeBrasil/Models/NfeEmissao via NfeCockpitController.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
