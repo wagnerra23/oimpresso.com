@@ -5,8 +5,8 @@ irmaos: Cockpit.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-01"
-last_run_ci: "0 UC executado nesta corrida — os UC herdam testes que JÁ existem; veredito pendente das lanes PHP / Pest (NfeBrasil · MySQL) e Pest Fiscal"
+last_run: "2026-09-02"
+last_run_ci: "revalidado em 2026-09-02 ao trocar a lista mock por NotasUnifiedService: UC-FCKP-01..06 relidos um a um e nenhum toca a fonte da lista (são gate, agregação, ribbon, alertas, escopo e cache), logo seguem válidos; UC-FCKP-07 nasce aqui com teste próprio. Veredito das lanes pendente — CT 100 em 502 na sessão"
 related_us: [US-FISCAL-002, US-FISCAL-019]
 ---
 
@@ -120,12 +120,26 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 
 ---
 
+## UC-FCKP-07 — A lista de notas e os contadores das visões salvas vêm de dado real `[must]`
+
+**Dado** um business cujo cockpit é aberto
+**Quando** a lista unificada e os contadores das visões salvas são montados
+**Então** ambos derivam de `NfeEmissao` + `NfseEmissao` — a mesma fonte —, e sem emissão real a lista vem vazia, nunca preenchida com demonstração.
+
+- **Regressão que defende:** a tela exibia **três números para a mesma coisa** — header "0 notas" (KPI real), lista com 10 linhas (mock) e chip "Todas 18" (outro mock). Medido na produção viva em 2026-09-02, com o certificado A1 vencido há 26 dias no mesmo cockpit: a leitura natural de quem abre é "está tudo funcionando", e não está. Derivar os contadores da MESMA lista faz chip e tabela concordarem por construção.
+- **Também defende (LC-30):** as chaves dos contadores são os `id` das SAVED_VIEWS **verbatim**. O frontend lê `savedViewCounts[v.id] ?? 0` — chave divergente não dá erro, o chip mostra 0 em silêncio. Um teste que apenas contasse "6 contadores" passaria com as 6 chaves erradas.
+- **Teste:** `Modules/Fiscal/Tests/Feature/NotasUnifiedServiceTest.php` — `it('UC-FCKP-07 · CU-FISC-16 · sem emissão real, a lista vem VAZIA — nunca preenchida com demonstração')`, `it('UC-FCKP-07 · CU-FISC-16 · os contadores usam os ids LITERAIS das visões salvas do Cockpit.tsx')`, `it('UC-FCKP-07 · CU-FISC-16 · os contadores derivam da MESMA lista — chip e tabela não podem divergir')`, `it('UC-FCKP-07 · CU-FISC-16 · o serviço é READ-ONLY — não escreve em nfe_emissoes nem nfse_emissoes')`
+- **Âncora:** `CU-FISC-16` do SDD §6.5 + decisão [W] de 2026-09-02 (*"as notas mock remova"*).
+- **Status:** 🧪 pendente do veredito das lanes — o CT 100 estava em `502` na sessão que escreveu o caso.
+
+---
+
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
 
-- **[BACKLOG · ⬜ sem teste · decisão [W]] A tela distingue dado real de dado de demonstração** — Dado que o cockpit serve **quatro superfícies inventadas** (lista unificada de notas, eventos do cabeçalho, contadores das visões salvas, situação da SEFAZ) mais o pacote da contabilidade e o resumo de baixas incobráveis, todos com número fixo no código · Quando a contadora lê a tela · Então ela precisa conseguir dizer o que é leitura real e o que é demonstração. _Âncora: `CU-FISC-16` do SDD §6.5 + §5.4.1 (varredura contada: 4 props com sufixo de mock, 8 métodos, 9 marcadores de pendência). **Não virou UC com id de propósito** — não há contrato em 2 fontes dizendo qual é a saída certa (marcar procedência × esconder atrás de flag × declarar Non-Goal), e UC órfão bloqueia o merge de quem for atendê-lo. **Precisa de decisão [W].**_
+- **[BACKLOG · ⬜ sem teste · decisão [W]] As 4 superfícies de demonstração que SOBRARAM** — Dado que a lista unificada e os contadores das visões salvas passaram a servir dado real em 2026-09-02 (ver `UC-FCKP-07`), restam **quatro** inventadas no mesmo controller: eventos do cabeçalho (`mockEventos`), situação da SEFAZ (`mockSefazStatus`), pacote da contabilidade (`mockContabilData`) e resumo de baixas incobráveis (`mockWriteOffSummary`) · Quando a contadora lê a tela · Então ela precisa conseguir dizer o que é leitura real e o que é demonstração. _Âncora: `CU-FISC-16` do SDD §6.5. **Continua sem id de propósito** — a decisão [W] de 09-02 cobriu as NOTAS; para estas quatro ainda não há contrato dizendo qual é a saída (fonte real × esconder atrás de flag × declarar Non-Goal), e UC órfão bloqueia o merge de quem for atendê-lo._
 - **[BACKLOG · ⬜ sem teste] A série de 14 dias sai de uma consulta agrupada, sem repetição por dia** — Dado emissões nas últimas duas semanas · Quando a série é montada · Então há um ponto por dia por status, calculado de uma vez só. _Anti-hook do charter; sem teste dedicado._
 - **[BACKLOG · ⬜ sem teste] O faturamento aparece formatado em moeda brasileira** — comportamento só de frontend, sem cobertura de Feature.
-- **[BACKLOG · ⬜ sem teste] Filtros, visões salvas, densidade e seleção em lote da tabela unificada** — hoje operam sobre dado de demonstração (ver primeiro item); só vira contrato quando a fonte real existir.
+- **[BACKLOG · ⬜ sem teste] Filtros, visões salvas, densidade e seleção em lote da tabela unificada** — a fonte real chegou em 2026-09-02 (`UC-FCKP-07`); vira contrato quando alguém escrever o teste de filtro/visão/densidade sobre ela.
 
 ## Como rodar a suíte
 

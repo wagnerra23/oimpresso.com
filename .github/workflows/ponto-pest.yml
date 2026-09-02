@@ -28,6 +28,7 @@ on:
     branches: [main]
     paths:
       - 'Modules/Ponto/**'
+      - 'resources/js/Pages/Ponto/**'
       - 'app/Concerns/HasBusinessScope.php'
       - 'app/Scopes/ScopeByBusiness.php'
       - 'database/schema/mysql-schema.sql'
@@ -67,6 +68,7 @@ jobs:
           filters: |
             ponto:
               - 'Modules/Ponto/**'
+              - 'resources/js/Pages/Ponto/**'
               - 'app/Concerns/HasBusinessScope.php'
               - 'app/Scopes/ScopeByBusiness.php'
               - 'database/schema/mysql-schema.sql'

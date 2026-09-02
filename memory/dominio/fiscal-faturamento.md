@@ -55,7 +55,7 @@ dicionário trava o vocabulário VIVO e o guard acusa quem reintroduzir o antigo
   "code_paths": ["Modules/NfeBrasil/Http", "Modules/NfeBrasil/Services", "Modules/NFSe/Http", "Modules/NFSe/Services"],
   "enums": {
     "nfe_emissoes.modelo": ["55", "65", "67"],
-    "nfe_emissoes.status": ["pendente", "enviando", "autorizada", "rejeitada", "cancelada", "denegada", "inutilizada", "erro_envio"],
+    "nfe_emissoes.status": ["pendente", "enviando", "autorizada", "rejeitada", "cancelada", "denegada", "inutilizada", "erro_envio", "contingencia"],
     "nfe_eventos.status": ["pendente", "enviado", "autorizado", "rejeitado"],
     "nfe_inutilizacoes.modelo": ["55", "65"],
     "nfe_inutilizacoes.status": ["pendente", "enviado", "autorizado", "rejeitado"],

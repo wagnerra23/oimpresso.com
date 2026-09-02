@@ -127,7 +127,7 @@ interface CockpitProps {
   kpis: Kpis;
   sparklines: Sparklines;
   alerts: Alert[];
-  notasMock: NotaRow[];
+  notas: NotaRow[];
   savedViewCounts: SavedViewCounts;
   sefazStatus: SefazStatus;
   // Onda 2 — drawers do header (Eventos + Enviar p/ contabilidade)
@@ -227,7 +227,7 @@ function mapToNFSeDrawerData(n: NotaRow): NFSeDrawerData {
 }
 
 export default function Cockpit({
-  kpis, alerts, notasMock, savedViewCounts, sefazStatus,
+  kpis, alerts, notas, savedViewCounts, sefazStatus,
   eventosMock = [], contabilData = null, writeOffSummary = null,
 }: CockpitProps) {
   const goto = (path: string) => router.visit(path);
@@ -243,7 +243,7 @@ export default function Cockpit({
 
   // Drawer focus (id da nota aberta). Resolve qual drawer abrir pelo tipo.
   const [openedId, setOpenedId] = useState<string | null>(null);
-  const openedNota = useMemo(() => notasMock.find((n) => n.id === openedId) ?? null, [notasMock, openedId]);
+  const openedNota = useMemo(() => notas.find((n) => n.id === openedId) ?? null, [notas, openedId]);
   const openedNfe = openedNota && openedNota.kind === 'nfe'
     ? mapToNotaDrawerData(openedNota)
     : null;
@@ -272,7 +272,7 @@ export default function Cockpit({
   };
 
   const rows = useMemo<NotaRow[]>(() => {
-    let r = notasMock;
+    let r = notas;
     if (tipo !== 'todos') r = r.filter((n) => n.tipo === tipo);
     if (status === 'autorizadas') r = r.filter(isAuthorized);
     if (status === 'rejeitadas')  r = r.filter(isRejected);
@@ -289,7 +289,7 @@ export default function Cockpit({
       );
     }
     return r;
-  }, [notasMock, tipo, status, clienteFilter, search]);
+  }, [notas, tipo, status, clienteFilter, search]);
 
   // Limpa seleção quando filtra
   useEffect(() => { setSelected(new Set()); }, [tipo, status, search, clienteFilter]);
@@ -459,10 +459,10 @@ export default function Cockpit({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="todos">Todos os tipos · {notasMock.length}</SelectItem>
-              <SelectItem value="NF-e">NF-e · {notasMock.filter((n) => n.tipo === 'NF-e').length}</SelectItem>
-              <SelectItem value="NFC-e">NFC-e · {notasMock.filter((n) => n.tipo === 'NFC-e').length}</SelectItem>
-              <SelectItem value="NFS-e">NFS-e · {notasMock.filter((n) => n.tipo === 'NFS-e').length}</SelectItem>
+              <SelectItem value="todos">Todos os tipos · {notas.length}</SelectItem>
+              <SelectItem value="NF-e">NF-e · {notas.filter((n) => n.tipo === 'NF-e').length}</SelectItem>
+              <SelectItem value="NFC-e">NFC-e · {notas.filter((n) => n.tipo === 'NFC-e').length}</SelectItem>
+              <SelectItem value="NFS-e">NFS-e · {notas.filter((n) => n.tipo === 'NFS-e').length}</SelectItem>
             </SelectContent>
           </Select>
 
@@ -471,11 +471,11 @@ export default function Cockpit({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="todos">Todos status · {notasMock.length}</SelectItem>
-              <SelectItem value="autorizadas">Autorizadas · {notasMock.filter(isAuthorized).length}</SelectItem>
-              <SelectItem value="rejeitadas">Rejeitadas · {notasMock.filter(isRejected).length}</SelectItem>
-              <SelectItem value="cancelaveis">Janela 24h · {notasMock.filter((n) => n.kind === 'nfe' && n.prazoCancel != null).length}</SelectItem>
-              <SelectItem value="processando">Processando · {notasMock.filter(isProcessing).length}</SelectItem>
+              <SelectItem value="todos">Todos status · {notas.length}</SelectItem>
+              <SelectItem value="autorizadas">Autorizadas · {notas.filter(isAuthorized).length}</SelectItem>
+              <SelectItem value="rejeitadas">Rejeitadas · {notas.filter(isRejected).length}</SelectItem>
+              <SelectItem value="cancelaveis">Janela 24h · {notas.filter((n) => n.kind === 'nfe' && n.prazoCancel != null).length}</SelectItem>
+              <SelectItem value="processando">Processando · {notas.filter(isProcessing).length}</SelectItem>
             </SelectContent>
           </Select>
 

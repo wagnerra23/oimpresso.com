@@ -125,16 +125,13 @@ return [
             // Trabalho: a lista única que funde os 3 backlogs (US-FORJA-006).
             // Convive com Backlog/Tarefas — nada deletado nesta onda.
             ['label' => 'Trabalho',    'href' => '/forja/trabalho',       'icon' => 'ListChecks',    'can' => 'jana.mcp.usage.all'],
-            ['label' => 'Backlog',     'href' => '/forja/backlog',        'icon' => 'List',          'can' => 'jana.mcp.usage.all'],
-            ['label' => 'Quadro',      'href' => '/forja/quadro',         'icon' => 'KanbanSquare',  'can' => 'jana.mcp.usage.all'],
-            // Roadmap (Gantt) — aba adicionada 2026-08-06 ([W]: "quero que registre").
-            // A tela chegou da Jana no #5310 (ADR 0366 §D-C item 3) com o ghost já
-            // registrado no DataController da Forja, MAS abriu sem faixa nenhuma em
-            // produção: são DUAS superfícies de navegação e o ghost não alimenta esta.
-            // O `can` é o da rota real (`RoadmapGanttController@index`), não o genérico
-            // das abas vizinhas — aba que aparece e dá 403 é pior que aba ausente.
-            ['label' => 'Roadmap (Gantt)', 'href' => '/forja/roadmap-gantt', 'icon' => 'CalendarRange', 'can' => 'jana.mcp.tasks.read'],
-            ['label' => 'Tarefas',     'href' => '/team-mcp/tasks',       'icon' => 'ClipboardList', 'can' => 'jana.mcp.usage.all'],
+            // ── Backlog · Quadro · Roadmap (Gantt) · Tarefas SAÍRAM em 2026-09-01 ──
+            // Espelha a mesma remoção no `FORJA_TABS` do ForjaHub (as duas superfícies
+            // TÊM que bater — lápide §5 2026-08-06). [W] mandou convergir com o protótipo;
+            // as ROTAS seguem vivas e os 4 continuam a um clique por dentro do Trabalho
+            // (segmentos Lista · Quadro · Gantt — este último NAVEGA pra /forja/roadmap-gantt).
+            // Absorção medida em produção, não presumida: ver o comentário no ForjaHub e
+            // memory/requisitos/Forja/PARIDADE-area-forja-diagnostico-e-ondas.md §6-bis.
 
             // — Esteira: a operação da máquina —
             // Handoffs antes do MCP: dado vivo antes da vitrine do contrato.
