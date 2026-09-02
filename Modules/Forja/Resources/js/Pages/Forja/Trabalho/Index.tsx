@@ -254,12 +254,12 @@ export default function Trabalho({
             value={visao}
             onValueChange={(v) => (v === 'gantt' ? irParaGantt() : aplicar({ visao: v }))}
             options={[
-              { value: 'lista',  label: <><ListIcon className="h-3 w-3" aria-hidden /> Lista</> },
-              { value: 'quadro', label: <><LayoutGrid className="h-3 w-3" aria-hidden /> Quadro</> },
+              { value: 'lista',  label: <><ListIcon size={11} aria-hidden /> Lista</> },
+              { value: 'quadro', label: <><LayoutGrid size={11} aria-hidden /> Quadro</> },
               // Abre OUTRA tela (o Gantt tem trio e payload próprios). A seta e o
               // `title` avisam; esconder a troca de URL seria mentir sobre onde a
               // pessoa está.
-              { value: 'gantt',  label: <span title="Abre a linha do tempo levando os filtros compatíveis (outra tela)"><GanttChartSquare className="h-3 w-3" aria-hidden /> Gantt ↗</span> },
+              { value: 'gantt',  label: <span title="Abre a linha do tempo levando os filtros compatíveis (outra tela)"><GanttChartSquare size={11} aria-hidden /> Gantt ↗</span> },
             ]}
             data-testid="trabalho-visao"
           />
