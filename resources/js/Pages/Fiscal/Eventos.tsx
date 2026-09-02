@@ -9,12 +9,16 @@
 //
 // Origem: design Cowork fiscal-page.jsx §11 FiscalEventosPage. Timeline append-only.
 
+import { Inline } from '@/Components/layout';
+import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
+import { Button } from '@/Components/ui/button';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, router } from '@inertiajs/react';
 import { Activity, Info } from 'lucide-react';
 import { useState } from 'react';
 
 import FxShell from './_components/FxShell';
+import { chipCount, chipProps } from './_lib/chip-filtro';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 
 import '../../../css/fiscal-cockpit.css';
@@ -109,36 +113,64 @@ export default function Eventos({ filters: initialFilters, counts, rows }: Event
         }
       >
         {/* Callout — janelas legais (port fiscal-page.jsx §9 EventosTab) */}
-        <div className="fx-callout" role="region" aria-label="Janelas legais">
+        {/* `role="region"` + `aria-label` MANTIDOS: o <Alert> traz `role="alert"`
+            embutido (live-region assertiva), errado pra banner informativo estático.
+            O `{...props}` dele vem depois do padrão, então o override pega. */}
+        <Alert className="mb-3" role="region" aria-label="Janelas legais">
           <Info size={16} />
-          <div>
-            <b>Janelas legais que o sistema valida</b>
-            <small>
+          <AlertTitle>Janelas legais que o sistema valida</AlertTitle>
+          <AlertDescription>
+            <span>
               <b>CC-e:</b> até 30 dias · máx 20 por nota · não corrige valor/CFOP/qtd.
               {' '}<b>Cancelamento:</b> até 24h (NFC-e) / 168h (NF-e se UF permitir).
               {' '}<b>Inutilização:</b> faixas de numeração não usadas.
-            </small>
-          </div>
-        </div>
+            </span>
+          </AlertDescription>
+        </Alert>
 
         {/* Filtros por tipo */}
-        <div className="fx-filters">
-          <button type="button" className={`fx-chip${filters.kind === 'todos' ? ' active' : ''}`} onClick={() => apply({ kind: 'todos' })}>
-            Todos <span>{counts.total}</span>
-          </button>
-          <button type="button" className={`fx-chip${filters.kind === 'cce' ? ' active' : ''}`} onClick={() => apply({ kind: 'cce' })}>
-            CC-e <span>{counts.cce}</span>
-          </button>
-          <button type="button" className={`fx-chip danger${filters.kind === 'cancel' ? ' active' : ''}`} onClick={() => apply({ kind: 'cancel' })}>
-            Cancelamento <span>{counts.cancel}</span>
-          </button>
-          <button type="button" className={`fx-chip warn${filters.kind === 'epec' ? ' active' : ''}`} onClick={() => apply({ kind: 'epec' })}>
-            EPEC <span>{counts.epec}</span>
-          </button>
-          <button type="button" className={`fx-chip${filters.kind === 'manifest' ? ' active' : ''}`} onClick={() => apply({ kind: 'manifest' })}>
-            Manifesto <span>{counts.manifest}</span>
-          </button>
-        </div>
+        <Inline gap={2} align="center" wrap className="mb-3">
+          <Button
+            type="button"
+            {...chipProps(filters.kind === 'todos')}
+            aria-pressed={filters.kind === 'todos'}
+            onClick={() => apply({ kind: 'todos' })}
+          >
+            Todos <span className={chipCount(filters.kind === 'todos')}>{counts.total}</span>
+          </Button>
+          <Button
+            type="button"
+            {...chipProps(filters.kind === 'cce')}
+            aria-pressed={filters.kind === 'cce'}
+            onClick={() => apply({ kind: 'cce' })}
+          >
+            CC-e <span className={chipCount(filters.kind === 'cce')}>{counts.cce}</span>
+          </Button>
+          <Button
+            type="button"
+            {...chipProps(filters.kind === 'cancel', 'danger')}
+            aria-pressed={filters.kind === 'cancel'}
+            onClick={() => apply({ kind: 'cancel' })}
+          >
+            Cancelamento <span className={chipCount(filters.kind === 'cancel')}>{counts.cancel}</span>
+          </Button>
+          <Button
+            type="button"
+            {...chipProps(filters.kind === 'epec', 'warn')}
+            aria-pressed={filters.kind === 'epec'}
+            onClick={() => apply({ kind: 'epec' })}
+          >
+            EPEC <span className={chipCount(filters.kind === 'epec')}>{counts.epec}</span>
+          </Button>
+          <Button
+            type="button"
+            {...chipProps(filters.kind === 'manifest')}
+            aria-pressed={filters.kind === 'manifest'}
+            onClick={() => apply({ kind: 'manifest' })}
+          >
+            Manifesto <span className={chipCount(filters.kind === 'manifest')}>{counts.manifest}</span>
+          </Button>
+        </Inline>
 
         {/* Timeline deferred */}
         <Deferred data="rows" fallback={
