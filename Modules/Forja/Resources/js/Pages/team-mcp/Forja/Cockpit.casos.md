@@ -17,9 +17,10 @@ last_run: "2026-09-02"
 
 ## UC-FORJA-01 — As rotas /forja respondem (shell no ar)
 Status: 🧪 (o Pest foi consertado e passou a rodar em lane — [#4887](https://github.com/wagnerra23/oimpresso.com/pull/4887). Segue 🧪 e não ✅ porque o ✅ vem do manifesto `scripts/casos-test-results.json`, derivado do JUnit do CI pelo `casos-results-publish` — não se escreve à mão.)
-`ForjaController` serve **6** rotas GET de aba: `/forja` (Triagem), `/forja/backlog`, `/forja/quadro`, `/forja/changelog`, `/forja/mcp` e `/forja/handoffs` (esta desde 2026-08-08). Não há `/forja/saude` — Saúde foi fundida no Scorecard real (`/team-mcp/scorecard`), conforme o comentário em `Modules/TeamMcp/Http/routes.php`.
-Recibo: `docker exec oimpresso-staging php artisan route:list --path=forja --json` (CT 100, 2026-07-27) devolveu 5 GET de aba + os POST de lever/triagem, **sem** `forja.saude`.
-**Pronto quando:** cada uma das 6 rotas renderiza `team-mcp/Forja/Cockpit` com a prop `tab` certa (sem 500 / tela branca).
+`ForjaController` serve **8** rotas GET de aba: `/forja` (Triagem), `/forja/backlog`, `/forja/quadro`, `/forja/changelog`, `/forja/mcp`, `/forja/handoffs` (desde 2026-08-08), `/forja/integrador` (Onda 2) e `/forja/saude` (Onda 7).
+Recibo do número (2026-09-02): o dataset `forjaRotasAbas()` do `ForjaRoutesSmokeTest` — a fonte que o teste de fato percorre — tem 8 entradas; `sed -n '/^function forjaRotasAbas/,/^}/p' … | grep -cE "=> \['forja\."` = **8**. A contagem não se escreve à mão: re-rode o comando.
+**Atualização 2026-09-02 (Onda 7):** `/forja/saude` **passou a existir**. A errata de 2026-07-27 acima segue verdadeira **na data dela** — naquele dia a rota era item fantasma do topnav e do teste, e foi removida por isso. O que mudou não é o fato, é o mundo: a PARIDADE §11 mandou construir a view `saude` do protótipo, e o `/team-mcp/scorecard` deixou de ser o destino da pílula pra ser o destino do drill "ver →" dentro dela.
+**Pronto quando:** cada uma das 8 rotas renderiza `team-mcp/Forja/Cockpit` com a prop `tab` certa (sem 500 / tela branca).
 
 ## UC-FORJA-02 — Topnav do hub aparece e navega
 Status: 🧪 (2 testes de `ForjaRoutesSmokeTest` citam este UC — a contagem de **9** itens (era 13 ate 2026-09-01) e, mais importante, que **todo `href` resolve pra rota registrada**. Este segundo cruza DUAS fontes independentes — `config/core_topnavs.php` × registro de rotas do Laravel — e é exatamente a classe do `forja.saude`, item fantasma que sobreviveu meses. Testar o config contra ele mesmo seria tautologia. Rodam em qualquer driver: leem config e router, sem DB. A perna visual — "aparece no header e destaca o ativo" — segue manual.)
@@ -48,13 +49,27 @@ Existe por um defeito **real**: em 2026-08-06 o Roadmap (Gantt) foi registrado s
 
 **Pronto quando:** as duas listas de `href` são iguais **e na mesma ordem**; item registrado em um só dos lados reprova, com a mensagem dizendo qual lado está faltando.
 
+## UC-FORJA-15 — Saúde projeta o loop com dado real, e o sparkline só existe onde há série
+Status: 🧪 (a rota entra no dataset de `UC-FORJA-01`/`UC-FORJA-05`, que provam render + GET-only. A perna própria deste UC — "cada número vem de uma fonte real e o card sem histórico não desenha linha" — é **prosa verificável por leitura do serviço**, ainda sem Pest dedicado; por isso 🧪 e não ✅. O ✅ vem do manifesto derivado do JUnit, nunca escrito à mão.)
+
+`/forja/saude` renderiza a view `saude` do protótipo (`prototipo-ui/cowork/forja-page.jsx`, `SaudeView`) com o markup e as classes do protótipo (`fj-saude`, `fj-metric`, `fj-spark`, `fj-wip`, `fj-flux-*`, `fj-age`, `fj-gate-health`), conforme [ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) — réplica primeiro. O dado é REAL, via `ForjaSaudeService`, que **reusa** `ScorecardBuilderService` (o mesmo do `/team-mcp/scorecard`), `ForjaQuadroService` e `ForjaChangelogService` em vez de refazer as consultas.
+
+A regra dura, e é o que separa este UC de "tem 4 cards bonitos": **o sparkline só é desenhado onde a série É a história da própria métrica.** Chamadas MCP, Movimentações e Devs ativos têm série diária real (`mcp_audit_log.ts`, `mcp_task_events.occurred_at`); "Checks verdes" **não tem histórico persistido em tabela nenhuma**, então o serviço manda `serie: null` e o componente **não renderiza o `<svg>`**. Desenhar ali uma linha derivada de outra grandeza seria rotular como histórico uma coisa que não é — a classe de erro do §5 2026-07-16.
+
+**Diferenças declaradas vs o protótipo** (nenhuma é layout; as três estão na lista de inconsistências):
+- a seção **"Automação"** (3 toggles de regra) **não é replicada** — produção não tem motor de regras, e toggle que não liga nada é controle falso;
+- **"Gates de CI por fase"** vira **"Checks do MCP"**: mesmo markup (`fj-gate-health`), dado real (`buildChecks()`), porque não há fonte de runtime pro estado verde/âmbar/vermelho dos gates de CI;
+- o **custo em BRL** que `buildFacts()` traz **não entra nesta tela** — o cockpit é a superfície que mais recebe screenshot e smoke, e valor monetário nesses artefatos é proibição Tier 0.
+
+**Pronto quando:** a rota responde 200 com `tab=saude`; os 4 cards mostram número vindo de query real; o card sem série não tem `<svg class="fj-spark">`; e a comparação medida com o protótipo (`design-diff --compare --check`, tema dark nos dois lados) dá **0 `DIVERGE(bug)`** em D2/D4/D6/D8 — o critério de fechamento da Onda 7 no [PARIDADE §11](../../../../memory/requisitos/Forja/PARIDADE-area-forja-diagnostico-e-ondas.md).
+
 ## UC-FORJA-03 — Entry "Forja" na sidebar
 Status: ⬜ (manual/visual)
 `DataController@modifyAdminMenu` injeta o dropdown "Forja" (ícone martelo, atalho `G F`), separado do hub Equipe; os ghosts espelham os itens do topnav acima.
 **Pronto quando:** "Forja" aparece na sidebar e leva ao cockpit; os ghosts batem 1:1 com `config/core_topnavs.php['Forja']['items']`.
 
 ## UC-FORJA-05 — Read-only (o shell não muta nada)
-Status: 🧪 (1 teste de `ForjaRoutesSmokeTest` cita este UC — cada uma das 6 rotas de aba é GET-only, lido do registro de rotas. Roda em qualquer driver, inclusive sqlite, ao contrário dos casos de request que só pulam. Escopo honesto: prova que **a aba** não escreve; as rotas POST dedicadas — lever/aprovar/rejeitar/fundir — existem por design e são cobertas pelo `UC-FORJA-09`/`UC-FORJA-10`.)
+Status: 🧪 (1 teste de `ForjaRoutesSmokeTest` cita este UC — cada uma das 8 rotas de aba é GET-only, lido do registro de rotas. Roda em qualquer driver, inclusive sqlite, ao contrário dos casos de request que só pulam. Escopo honesto: prova que **a aba** não escreve; as rotas POST dedicadas — lever/aprovar/rejeitar/fundir — existem por design e são cobertas pelo `UC-FORJA-09`/`UC-FORJA-10`.)
 Nenhuma rota desta onda escreve estado; todas são GET de render.
 **Pronto quando:** não há ação na tela que escreva no banco.
 
