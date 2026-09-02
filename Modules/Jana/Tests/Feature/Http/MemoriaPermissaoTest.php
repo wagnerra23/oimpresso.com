@@ -92,9 +92,12 @@ beforeEach(function () {
     ]);
 });
 
-it('CONTROLE: o usuário do teste NÃO é Admin#98 — sem isso o Gate::before liberaria tudo', function () {
-    // Se este assert virar true, os casos abaixo param de medir permissão e passam a medir
-    // o Gate::before. É o controle que impede este arquivo de ficar verde por vácuo.
+it('CONTROLE: o Gate::before NÃO está liberando este usuário — sem isso nada abaixo mede permissão', function () {
+    // `can()` de uma ability que o user NÃO tem precisa dar FALSE. Se der true, o
+    // `Gate::before` (AuthServiceProvider:34-47) está devolvendo true por `Admin#{biz}` e
+    // TODOS os casos abaixo viram teatro — medem o Gate, não a permissão. É o controle que
+    // impede este arquivo de ficar verde por vácuo.
+    expect($this->user->can('jana.superadmin'))->toBeFalse();
     expect($this->user->hasRole('Admin#'.MEMPERM_BIZ))->toBeFalse();
     expect($this->user->hasPermissionTo('jana.access'))->toBeTrue();
 })->group('tier0');
@@ -103,6 +106,8 @@ it('UC-MEM-07 · Tier 0 — a listagem não mostra fato de outro business', func
     $meu = 'Cheque so e depositado na terca (fato do tenant '.MEMPERM_BIZ.')';
     $alheio = 'SEGREDO DO TENANT '.MEMPERM_BIZ_ALHEIO.' QUE NUNCA PODE VAZAR';
 
+    // MESMO user_id nos dois fatos, DE PROPÓSITO: se o isolamento dependesse do `user_id`,
+    // o caso passaria sem provar tenancy. Com o user igual, só o `business_id` pode separá-los.
     memPermFato(MEMPERM_BIZ, (int) $this->user->id, $meu);
     memPermFato(MEMPERM_BIZ_ALHEIO, (int) $this->user->id, $alheio);
 
@@ -116,6 +121,9 @@ it('UC-MEM-07 · Tier 0 — a listagem não mostra fato de outro business', func
 })->group('tier0');
 
 it('UC-MEM-07 · Tier 0 — apagar id de outro business não apaga nada', function () {
+    // Esta é a perna FORTE do isolamento: `MemoriaContrato::esquecer()` faz
+    // `MemoriaFato::find($id)` cru — não há filtro de tenant no Controller nem no driver,
+    // só o global scope do `HasBusinessScope`. Se ele cair, este caso é o que grita.
     $alheio = memPermFato(MEMPERM_BIZ_ALHEIO, (int) $this->user->id, 'fato do vizinho');
     $meu = memPermFato(MEMPERM_BIZ, (int) $this->user->id, 'fato meu');
 
@@ -136,7 +144,9 @@ it('UC-MEM-08 · LIMITE MEDIDO: hoje `jana.access` sozinho JÁ APAGA — quando 
     //
     // QUANDO A TRAVA FOR ADICIONADA: este caso fica vermelho. Isso é o sinal, não o defeito —
     // troque-o pelo UC-JPERM-07 (403 sem a permissão / 302 com ela) e atualize o charter.
-    expect($this->user->getAllPermissions()->pluck('name')->all())->toBe(['jana.access']);
+    $perms = $this->user->getAllPermissions()->pluck('name')->all();
+    expect($perms)->toHaveCount(1);
+    expect($perms)->toContain('jana.access');
 
     $id = memPermFato(MEMPERM_BIZ, (int) $this->user->id, 'fato que sera apagado sem permissao de escrita');
 
