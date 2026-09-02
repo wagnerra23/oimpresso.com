@@ -107,7 +107,9 @@ return [
         'items' => [
             ['label' => 'Aprovações', 'href' => '/forja/aprovacoes',   'icon' => 'Gavel',       'can' => 'jana.mcp.usage.all'],
             ['label' => 'Trabalho',   'href' => '/forja/trabalho',     'icon' => 'ListChecks',  'can' => 'jana.mcp.usage.all'],
-            ['label' => 'Saúde',      'href' => '/team-mcp/scorecard', 'icon' => 'Activity',    'can' => 'jana.mcp.usage.all'],
+            // Onda 7: era /team-mcp/scorecard (desvio provisório). O Scorecard segue vivo
+            // como destino do drill "ver →" dentro da view — não mais como destino da aba.
+            ['label' => 'Saúde',      'href' => '/forja/saude',        'icon' => 'Activity',    'can' => 'jana.mcp.usage.all'],
             ['label' => 'MCP',        'href' => '/forja/mcp',          'icon' => 'ShieldCheck', 'can' => 'jana.mcp.usage.all'],
             ['label' => 'Changelog',  'href' => '/forja/changelog',    'icon' => 'GitBranch',   'can' => 'jana.mcp.usage.all'],
             ['label' => 'Integrador', 'href' => '/forja/integrador',   'icon' => 'Plug',        'can' => 'jana.mcp.usage.all'],
