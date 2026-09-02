@@ -140,23 +140,31 @@ it('R-COPI-202-001 — cada Tool retorna JSON parseável com shape estável', fu
     ]);
 
     $tools = [
-        new VendasPeriodoTool(1),
-        new InadimplenciaTool(1),
-        new TicketsTopTool(1),
-        new NfeStatusTool(1),
-        new OportunidadesTool(1),
+        'vendas' => new VendasPeriodoTool(1),
+        'inadimplencia' => new InadimplenciaTool(1),
+        'tickets' => new TicketsTopTool(1),
+        'nfe' => new NfeStatusTool(1),
+        'oportunidades' => new OportunidadesTool(1),
     ];
 
-    foreach ($tools as $tool) {
+    foreach ($tools as $nome => $tool) {
         $json = (string) $tool->handle(new ToolRequest([]));
 
         $data = json_decode($json, true);
 
         expect($json)->toBeString();
-        expect($data)->toBeArray()
-            ->and($data)->toHaveKey('ok')
-            // Cada source tem chave `ok` boolean — contract estável pro LLM
-            ->and($data['ok'])->toBeBool();
+        expect($data)->toBeArray()->toHaveKey('ok');
+
+        // SONDA (commit 1 de 2 — este commit é o CONTROLE NEGATIVO, e nasce VERMELHO
+        // de propósito). A asserção anterior era `toBeBool()`, satisfeita tanto por
+        // `ok:true` quanto por `ok:false`. Como toda source do BriefDiarioService é
+        // `try { ok:true } catch { ok:false }`, uma exceção de schema saía VERDE.
+        // Trocando por `toBeTrue()`, a source que não responde passa a DIZER quem é
+        // e por quê — e é essa mensagem que vira o recibo no corpo do PR.
+        expect($data['ok'])->toBeTrue(
+            "Tool {$nome} devolveu ok=false — reason=".($data['reason'] ?? '?')
+            .' / '.($data['error_message'] ?? 'sem error_message')
+        );
     }
 });
 
