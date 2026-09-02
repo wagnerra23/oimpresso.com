@@ -38,6 +38,7 @@ related_adrs:
 url_prefixes:
   - /nfe-brasil/* (operacional — configuracao · contingencia · tributacao · api · transactions · inutilizacoes · manifestacao + raiz)
   - /nfebrasil/* (install do módulo + resource nfebrasil)
+  - /api/v1/* (scaffold nWidart · auth:sanctum — co-provido por Financeiro e RecurringBilling)
 drift_alerts: []
 ---
 

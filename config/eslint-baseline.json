@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-08-31T10:54:06.949Z",
-    "total_violations": 2358,
+    "generated_at": "2026-09-02T15:30:16.716Z",
+    "total_violations": 2356,
     "eslint_version": "flat-config 9.x",
     "adr": "0209"
   },
@@ -23,6 +23,8 @@
     "Modules/Forja/Resources/js/Pages/ads/Admin/Tools.tsx|@typescript-eslint/no-explicit-any": 4,
     "Modules/Forja/Resources/js/Pages/ads/Admin/Tools.tsx|no-restricted-syntax": 5,
     "Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaChangelog.tsx|no-restricted-syntax": 1,
+    "Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHub.tsx|no-restricted-syntax": 1,
+    "Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaIntegrador.tsx|no-restricted-syntax": 1,
     "Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.tsx|no-restricted-syntax": 1,
     "Modules/Forja/Resources/js/Pages/team-mcp/Tasks/_components/TaskDrawer.tsx|no-restricted-syntax": 1,
     "Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx|no-restricted-syntax": 1,
@@ -308,7 +310,7 @@
     "resources/js/Pages/RecurringBilling/Faturas/Index.tsx|no-restricted-syntax": 57,
     "resources/js/Pages/RecurringBilling/Faturas/Index.tsx|jsx-a11y/click-events-have-key-events": 2,
     "resources/js/Pages/RecurringBilling/Faturas/Index.tsx|jsx-a11y/no-static-element-interactions": 2,
-    "resources/js/Pages/RecurringBilling/Index.tsx|no-restricted-syntax": 109,
+    "resources/js/Pages/RecurringBilling/Index.tsx|no-restricted-syntax": 105,
     "resources/js/Pages/RecurringBilling/Index.tsx|react-hooks/exhaustive-deps": 1,
     "resources/js/Pages/RecurringBilling/Index.tsx|jsx-a11y/click-events-have-key-events": 3,
     "resources/js/Pages/RecurringBilling/Index.tsx|jsx-a11y/no-noninteractive-element-interactions": 2,

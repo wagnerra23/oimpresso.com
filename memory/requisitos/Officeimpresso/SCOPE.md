@@ -23,6 +23,7 @@ related_adrs:
   - 0080-trust-tiers-operacional-audit-findings
 url_prefixes:
   - /officeimpresso/*
+  - /api/officeimpresso/*
 drift_alerts: []
 ---
 

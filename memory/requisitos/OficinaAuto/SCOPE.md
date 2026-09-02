@@ -29,6 +29,7 @@ related_adrs:
   - 0129-state-machine-canonica-fsm-rbac
 url_prefixes:
   - /oficina-auto/*
+  - /aprovar-os/* (aprovacao publica por token, sem auth)
 drift_alerts: []
 ---
 

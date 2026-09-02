@@ -26,20 +26,20 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 686,
-    "edges": 962,
+    "nodes": 709,
+    "edges": 989,
     "by_node_type": {
       "module": 39,
       "table": 102,
       "adr": 107,
       "component": 392,
-      "api": 46
+      "api": 69
     },
     "by_edge_type": {
       "ownsTable": 91,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 46,
+      "providesApi": 73,
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 392,
@@ -804,27 +804,94 @@
       "exists": true
     },
     {
-      "id": "api:/ads/admin/projects/*",
+      "id": "api:/ads/admin/*",
       "type": "api",
-      "prefix": "/ads/admin/projects/*",
+      "prefix": "/ads/admin/*",
       "providers": [
         "Forja"
       ]
     },
     {
-      "id": "api:/ads/admin/team-scopes/*",
+      "id": "api:/advisor/*",
       "type": "api",
-      "prefix": "/ads/admin/team-scopes/*",
+      "prefix": "/advisor/*",
+      "providers": [
+        "Financeiro"
+      ]
+    },
+    {
+      "id": "api:/all-subscriptions",
+      "type": "api",
+      "prefix": "/all-subscriptions",
+      "providers": [
+        "Superadmin"
+      ]
+    },
+    {
+      "id": "api:/api/atendimento/*",
+      "type": "api",
+      "prefix": "/api/atendimento/*",
+      "providers": [
+        "Whatsapp"
+      ]
+    },
+    {
+      "id": "api:/api/cc/*",
+      "type": "api",
+      "prefix": "/api/cc/*",
       "providers": [
         "Forja"
       ]
     },
     {
-      "id": "api:/ads/admin/tools/*",
+      "id": "api:/api/mcp/*",
       "type": "api",
-      "prefix": "/ads/admin/tools/*",
+      "prefix": "/api/mcp/*",
       "providers": [
-        "Forja"
+        "Forja",
+        "Jana"
+      ]
+    },
+    {
+      "id": "api:/api/officeimpresso/*",
+      "type": "api",
+      "prefix": "/api/officeimpresso/*",
+      "providers": [
+        "Officeimpresso"
+      ]
+    },
+    {
+      "id": "api:/api/v1/*",
+      "type": "api",
+      "prefix": "/api/v1/*",
+      "providers": [
+        "Financeiro",
+        "NfeBrasil",
+        "RecurringBilling"
+      ]
+    },
+    {
+      "id": "api:/api/webhooks/*",
+      "type": "api",
+      "prefix": "/api/webhooks/*",
+      "providers": [
+        "RecurringBilling"
+      ]
+    },
+    {
+      "id": "api:/api/whatsapp/*",
+      "type": "api",
+      "prefix": "/api/whatsapp/*",
+      "providers": [
+        "Whatsapp"
+      ]
+    },
+    {
+      "id": "api:/aprovar-os/*",
+      "type": "api",
+      "prefix": "/aprovar-os/*",
+      "providers": [
+        "OficinaAuto"
       ]
     },
     {
@@ -836,9 +903,9 @@
       ]
     },
     {
-      "id": "api:/assetmanagement/*",
+      "id": "api:/asset/*",
       "type": "api",
-      "prefix": "/assetmanagement/*",
+      "prefix": "/asset/*",
       "providers": [
         "AssetManagement"
       ]
@@ -860,6 +927,30 @@
       ]
     },
     {
+      "id": "api:/c/*",
+      "type": "api",
+      "prefix": "/c/*",
+      "providers": [
+        "Cms"
+      ]
+    },
+    {
+      "id": "api:/catalogue/*",
+      "type": "api",
+      "prefix": "/catalogue/*",
+      "providers": [
+        "ProductCatalogue"
+      ]
+    },
+    {
+      "id": "api:/cliente/*",
+      "type": "api",
+      "prefix": "/cliente/*",
+      "providers": [
+        "Crm"
+      ]
+    },
+    {
       "id": "api:/cms/*",
       "type": "api",
       "prefix": "/cms/*",
@@ -868,17 +959,9 @@
       ]
     },
     {
-      "id": "api:/cobranca/*",
+      "id": "api:/comunicacao-visual/*",
       "type": "api",
-      "prefix": "/cobranca/*",
-      "providers": [
-        "PaymentGateway"
-      ]
-    },
-    {
-      "id": "api:/com-visual/*",
-      "type": "api",
-      "prefix": "/com-visual/*",
+      "prefix": "/comunicacao-visual/*",
       "providers": [
         "ComunicacaoVisual"
       ]
@@ -892,19 +975,27 @@
       ]
     },
     {
-      "id": "api:/consultaos/*",
+      "id": "api:/consulta-os/*",
       "type": "api",
-      "prefix": "/consultaos/*",
+      "prefix": "/consulta-os/*",
       "providers": [
         "ConsultaOs"
       ]
     },
     {
-      "id": "api:/copiloto/admin/memoria/*",
+      "id": "api:/contact/*",
       "type": "api",
-      "prefix": "/copiloto/admin/memoria/*",
+      "prefix": "/contact/*",
       "providers": [
-        "KB"
+        "Crm"
+      ]
+    },
+    {
+      "id": "api:/copiloto/*",
+      "type": "api",
+      "prefix": "/copiloto/*",
+      "providers": [
+        "Jana"
       ]
     },
     {
@@ -940,6 +1031,14 @@
       ]
     },
     {
+      "id": "api:/financeiro/rb-invoices/*",
+      "type": "api",
+      "prefix": "/financeiro/rb-invoices/*",
+      "providers": [
+        "RecurringBilling"
+      ]
+    },
+    {
       "id": "api:/fiscal/*",
       "type": "api",
       "prefix": "/fiscal/*",
@@ -948,11 +1047,35 @@
       ]
     },
     {
+      "id": "api:/forja/*",
+      "type": "api",
+      "prefix": "/forja/*",
+      "providers": [
+        "Forja"
+      ]
+    },
+    {
       "id": "api:/governance/*",
       "type": "api",
       "prefix": "/governance/*",
       "providers": [
         "Governance"
+      ]
+    },
+    {
+      "id": "api:/hrm/*",
+      "type": "api",
+      "prefix": "/hrm/*",
+      "providers": [
+        "Essentials"
+      ]
+    },
+    {
+      "id": "api:/ia/*",
+      "type": "api",
+      "prefix": "/ia/*",
+      "providers": [
+        "Jana"
       ]
     },
     {
@@ -1020,9 +1143,25 @@
       ]
     },
     {
-      "id": "api:/payment-gateway/*",
+      "id": "api:/old",
       "type": "api",
-      "prefix": "/payment-gateway/*",
+      "prefix": "/old",
+      "providers": [
+        "Cms"
+      ]
+    },
+    {
+      "id": "api:/page/{slug}",
+      "type": "api",
+      "prefix": "/page/{slug}",
+      "providers": [
+        "Superadmin"
+      ]
+    },
+    {
+      "id": "api:/paymentgateway/*",
+      "type": "api",
+      "prefix": "/paymentgateway/*",
       "providers": [
         "PaymentGateway"
       ]
@@ -1052,17 +1191,33 @@
       ]
     },
     {
-      "id": "api:/productcatalogue/*",
+      "id": "api:/post-repair-status",
       "type": "api",
-      "prefix": "/productcatalogue/*",
+      "prefix": "/post-repair-status",
+      "providers": [
+        "Repair"
+      ]
+    },
+    {
+      "id": "api:/pricing/*",
+      "type": "api",
+      "prefix": "/pricing/*",
+      "providers": [
+        "Superadmin"
+      ]
+    },
+    {
+      "id": "api:/product-catalogue/*",
+      "type": "api",
+      "prefix": "/product-catalogue/*",
       "providers": [
         "ProductCatalogue"
       ]
     },
     {
-      "id": "api:/projectmgmt/*",
+      "id": "api:/project-mgmt/*",
       "type": "api",
-      "prefix": "/projectmgmt/*",
+      "prefix": "/project-mgmt/*",
       "providers": [
         "Forja"
       ]
@@ -1084,11 +1239,51 @@
       ]
     },
     {
+      "id": "api:/repair-status",
+      "type": "api",
+      "prefix": "/repair-status",
+      "providers": [
+        "Repair"
+      ]
+    },
+    {
       "id": "api:/repair/*",
       "type": "api",
       "prefix": "/repair/*",
       "providers": [
         "Repair"
+      ]
+    },
+    {
+      "id": "api:/reports/activity-log",
+      "type": "api",
+      "prefix": "/reports/activity-log",
+      "providers": [
+        "Auditoria"
+      ]
+    },
+    {
+      "id": "api:/settings/payment-gateways/*",
+      "type": "api",
+      "prefix": "/settings/payment-gateways/*",
+      "providers": [
+        "PaymentGateway"
+      ]
+    },
+    {
+      "id": "api:/show-catalogue/*",
+      "type": "api",
+      "prefix": "/show-catalogue/*",
+      "providers": [
+        "ProductCatalogue"
+      ]
+    },
+    {
+      "id": "api:/sops/*",
+      "type": "api",
+      "prefix": "/sops/*",
+      "providers": [
+        "KB"
       ]
     },
     {
@@ -1100,11 +1295,27 @@
       ]
     },
     {
+      "id": "api:/subscription/*",
+      "type": "api",
+      "prefix": "/subscription/*",
+      "providers": [
+        "Superadmin"
+      ]
+    },
+    {
       "id": "api:/superadmin/*",
       "type": "api",
       "prefix": "/superadmin/*",
       "providers": [
         "Superadmin"
+      ]
+    },
+    {
+      "id": "api:/team-mcp/*",
+      "type": "api",
+      "prefix": "/team-mcp/*",
+      "providers": [
+        "Forja"
       ]
     },
     {
@@ -1116,43 +1327,20 @@
       ]
     },
     {
-      "id": "api:/webhooks/asaas",
+      "id": "api:/webhook/*",
       "type": "api",
-      "prefix": "/webhooks/asaas",
+      "prefix": "/webhook/*",
       "providers": [
-        "PaymentGateway"
+        "Woocommerce"
       ]
     },
     {
-      "id": "api:/webhooks/bcb-pix",
+      "id": "api:/webhooks/inter/*",
       "type": "api",
-      "prefix": "/webhooks/bcb-pix",
+      "prefix": "/webhooks/inter/*",
       "providers": [
-        "PaymentGateway"
-      ]
-    },
-    {
-      "id": "api:/webhooks/c6",
-      "type": "api",
-      "prefix": "/webhooks/c6",
-      "providers": [
-        "PaymentGateway"
-      ]
-    },
-    {
-      "id": "api:/webhooks/inter",
-      "type": "api",
-      "prefix": "/webhooks/inter",
-      "providers": [
-        "PaymentGateway"
-      ]
-    },
-    {
-      "id": "api:/webhooks/pagarme",
-      "type": "api",
-      "prefix": "/webhooks/pagarme",
-      "providers": [
-        "PaymentGateway"
+        "PaymentGateway",
+        "RecurringBilling"
       ]
     },
     {
@@ -6238,7 +6426,7 @@
     },
     {
       "from": "module:AssetManagement",
-      "to": "api:/assetmanagement/*",
+      "to": "api:/asset/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -6371,6 +6559,12 @@
       "source": "url_prefixes"
     },
     {
+      "from": "module:Auditoria",
+      "to": "api:/reports/activity-log",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
       "from": "module:Cms",
       "to": "adr:0080",
       "type": "charteredByAdr",
@@ -6462,7 +6656,19 @@
     },
     {
       "from": "module:Cms",
+      "to": "api:/c/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Cms",
       "to": "api:/cms/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Cms",
+      "to": "api:/old",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -6658,7 +6864,7 @@
     },
     {
       "from": "module:ComunicacaoVisual",
-      "to": "api:/com-visual/*",
+      "to": "api:/comunicacao-visual/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -6988,7 +7194,7 @@
     },
     {
       "from": "module:ConsultaOs",
-      "to": "api:/consultaos/*",
+      "to": "api:/consulta-os/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -7222,6 +7428,18 @@
     },
     {
       "from": "module:Crm",
+      "to": "api:/cliente/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Crm",
+      "to": "api:/contact/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Crm",
       "to": "api:/crm/*",
       "type": "providesApi",
       "source": "url_prefixes"
@@ -7361,6 +7579,12 @@
     {
       "from": "module:Essentials",
       "to": "api:/essentials/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Essentials",
+      "to": "api:/hrm/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -7585,6 +7809,18 @@
       "to": "component:Financeiro/UnificadoController",
       "type": "hasComponent",
       "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "api:/advisor/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "api:/api/v1/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
     },
     {
       "from": "module:Financeiro",
@@ -8372,25 +8608,37 @@
     },
     {
       "from": "module:Forja",
-      "to": "api:/ads/admin/projects/*",
+      "to": "api:/ads/admin/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
     {
       "from": "module:Forja",
-      "to": "api:/ads/admin/team-scopes/*",
+      "to": "api:/api/cc/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
     {
       "from": "module:Forja",
-      "to": "api:/ads/admin/tools/*",
+      "to": "api:/api/mcp/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
     {
       "from": "module:Forja",
-      "to": "api:/projectmgmt/*",
+      "to": "api:/forja/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Forja",
+      "to": "api:/project-mgmt/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Forja",
+      "to": "api:/team-mcp/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -9049,6 +9297,24 @@
     },
     {
       "from": "module:Jana",
+      "to": "api:/api/mcp/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Jana",
+      "to": "api:/copiloto/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Jana",
+      "to": "api:/ia/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Jana",
       "to": "api:/jana/*",
       "type": "providesApi",
       "source": "url_prefixes"
@@ -9333,13 +9599,13 @@
     },
     {
       "from": "module:KB",
-      "to": "api:/copiloto/admin/memoria/*",
+      "to": "api:/kb/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
     {
       "from": "module:KB",
-      "to": "api:/kb/*",
+      "to": "api:/sops/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -9627,6 +9893,12 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "api:/api/v1/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "api:/nfe-brasil/*",
       "type": "providesApi",
       "source": "url_prefixes"
@@ -9825,6 +10097,12 @@
     },
     {
       "from": "module:Officeimpresso",
+      "to": "api:/api/officeimpresso/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Officeimpresso",
       "to": "api:/officeimpresso/*",
       "type": "providesApi",
       "source": "url_prefixes"
@@ -9960,6 +10238,12 @@
       "to": "component:OficinaAuto/VehicleController",
       "type": "hasComponent",
       "source": "contains"
+    },
+    {
+      "from": "module:OficinaAuto",
+      "to": "api:/aprovar-os/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
     },
     {
       "from": "module:OficinaAuto",
@@ -10243,43 +10527,19 @@
     },
     {
       "from": "module:PaymentGateway",
-      "to": "api:/cobranca/*",
+      "to": "api:/paymentgateway/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
     {
       "from": "module:PaymentGateway",
-      "to": "api:/payment-gateway/*",
+      "to": "api:/settings/payment-gateways/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
     {
       "from": "module:PaymentGateway",
-      "to": "api:/webhooks/asaas",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
-      "from": "module:PaymentGateway",
-      "to": "api:/webhooks/bcb-pix",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
-      "from": "module:PaymentGateway",
-      "to": "api:/webhooks/c6",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
-      "from": "module:PaymentGateway",
-      "to": "api:/webhooks/inter",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
-      "from": "module:PaymentGateway",
-      "to": "api:/webhooks/pagarme",
+      "to": "api:/webhooks/inter/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -10519,7 +10779,19 @@
     },
     {
       "from": "module:ProductCatalogue",
-      "to": "api:/productcatalogue/*",
+      "to": "api:/catalogue/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:ProductCatalogue",
+      "to": "api:/product-catalogue/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:ProductCatalogue",
+      "to": "api:/show-catalogue/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -10651,6 +10923,24 @@
     },
     {
       "from": "module:RecurringBilling",
+      "to": "api:/api/v1/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:RecurringBilling",
+      "to": "api:/api/webhooks/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:RecurringBilling",
+      "to": "api:/financeiro/rb-invoices/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:RecurringBilling",
       "to": "api:/recurring-billing/*",
       "type": "providesApi",
       "source": "url_prefixes"
@@ -10658,6 +10948,12 @@
     {
       "from": "module:RecurringBilling",
       "to": "api:/recurringbilling/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:RecurringBilling",
+      "to": "api:/webhooks/inter/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -10786,6 +11082,18 @@
       "to": "component:Repair/RepairStatusController",
       "type": "hasComponent",
       "source": "contains"
+    },
+    {
+      "from": "module:Repair",
+      "to": "api:/post-repair-status",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Repair",
+      "to": "api:/repair-status",
+      "type": "providesApi",
+      "source": "url_prefixes"
     },
     {
       "from": "module:Repair",
@@ -11034,6 +11342,30 @@
       "to": "component:Superadmin/Usuario360Controller",
       "type": "hasComponent",
       "source": "contains"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "api:/all-subscriptions",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "api:/page/{slug}",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "api:/pricing/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "api:/subscription/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
     },
     {
       "from": "module:Superadmin",
@@ -11445,6 +11777,18 @@
     },
     {
       "from": "module:Whatsapp",
+      "to": "api:/api/atendimento/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "api:/api/whatsapp/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Whatsapp",
       "to": "api:/atendimento/*",
       "type": "providesApi",
       "source": "url_prefixes"
@@ -11544,6 +11888,12 @@
       "to": "component:Woocommerce/WoocommerceWebhookController",
       "type": "hasComponent",
       "source": "contains"
+    },
+    {
+      "from": "module:Woocommerce",
+      "to": "api:/webhook/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
     },
     {
       "from": "module:Woocommerce",
