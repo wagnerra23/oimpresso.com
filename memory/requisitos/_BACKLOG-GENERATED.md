@@ -1305,7 +1305,7 @@
 
 ### todo
 
-- **US-MANU-001** — [TODO — título]
+- **US-MANU-001** — Quanto custa produzir, com o preço de insumo de hoje
 
 ## Mcp
 
