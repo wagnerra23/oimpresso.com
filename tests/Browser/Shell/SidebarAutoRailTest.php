@@ -67,6 +67,14 @@ beforeEach(function () {
 // — o guard quebrado nunca foi observável. Todo teste Browser que de fato roda
 // (PixelBaseline, IsolatedStates, os 3 de fluxo, Conciliacao) não tem guard: quem
 // garante o Chromium é a lane, não o arquivo.
+//
+// SEGUNDA herança do mesmo arquivo órfão, e é o motivo de esta nota existir: o
+// viewport também veio de lá como `->inViewport(w,h)`, método que NÃO existe no
+// plugin instalado (`Call to undefined method Pest\Browser\Api\Webpage::inViewport()`,
+// run 33679729698). O método real é `->resize(w,h)` — é o que
+// `SellsCreateFlowBaselineTest.php:214` usa pra rodar em 1024/1280/1440.
+// Lição, e vale além deste arquivo: copiar de um teste que NENHUMA lane roda é
+// copiar de algo que ninguém verificou. Copie do que está verde no CI.
 
 /** Largura resolvida da 1ª coluna do grid `.cockpit` (o que o browser pintou). */
 const COLS_JS = <<<'JS'
@@ -98,14 +106,14 @@ function abrirShell(): object
 }
 
 it('UC-SHELL-01 · a 1280 (monitor do [W]) o shell nasce em RAIL de 56px', function () {
-    $page = abrirShell()->inViewport(1280, 800);
+    $page = abrirShell()->resize(1280, 800);
 
     expect($page->script(MODE_JS))->toBe('rail', 'estado do React a 1280');
     expect($page->script(COLS_JS))->toBe('56px', 'coluna resolvida pelo browser a 1280');
 });
 
 it('UC-SHELL-02 · a 1440 o shell nasce EXPANDIDO de 260px', function () {
-    $page = abrirShell()->inViewport(1440, 900);
+    $page = abrirShell()->resize(1440, 900);
 
     expect($page->script(MODE_JS))->toBe('expanded', 'estado do React a 1440');
     expect($page->script(COLS_JS))->toBe('260px', 'coluna resolvida pelo browser a 1440');
@@ -113,14 +121,14 @@ it('UC-SHELL-02 · a 1440 o shell nasce EXPANDIDO de 260px', function () {
 
 it('UC-SHELL-03 · escolha manual persistida VENCE a largura (não é sobrescrita a 1280)', function () {
     // Nasce largo e sem chave: expandido por largura.
-    $page = abrirShell()->inViewport(1440, 900);
+    $page = abrirShell()->resize(1440, 900);
     expect($page->script(COLS_JS))->toBe('260px', 'pré-condição: expandido a 1440');
 
     // Simula a escolha explícita do usuário (é o que a alça e o ⌘\ gravam).
     $page->script('localStorage.setItem("oimpresso.sb.mode", "expanded")');
 
     // Estreita: sem a trava, o listener rebaixaria pra rail.
-    $page->inViewport(1280, 800);
+    $page->resize(1280, 800);
 
     expect($page->script(MODE_JS))->toBe('expanded', 'escolha manual deve sobreviver ao resize');
     expect($page->script(COLS_JS))->toBe('260px', 'coluna resolvida após estreitar com escolha manual');
@@ -129,13 +137,13 @@ it('UC-SHELL-03 · escolha manual persistida VENCE a largura (não é sobrescrit
 it('UC-SHELL-04 · SEM escolha manual, o modo acompanha o resize ao vivo (1440 → 1280 → 1440)', function () {
     // Este é o delta deliberado vs o protótipo, que só decide no mount: aqui
     // plugar/desplugar monitor externo não deixa o shell no modo errado.
-    $page = abrirShell()->inViewport(1440, 900);
+    $page = abrirShell()->resize(1440, 900);
     $page->script('localStorage.removeItem("oimpresso.sb.mode")');
     expect($page->script(COLS_JS))->toBe('260px', 'pré-condição: expandido a 1440 sem chave');
 
-    $page->inViewport(1280, 800);
+    $page->resize(1280, 800);
     expect($page->script(COLS_JS))->toBe('56px', 'estreitou → rail');
 
-    $page->inViewport(1440, 900);
+    $page->resize(1440, 900);
     expect($page->script(COLS_JS))->toBe('260px', 'alargou → volta a expandir');
 });
