@@ -14,7 +14,7 @@ module: Fiscal
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fiscal/**` + `resources/js/Pages/Fiscal/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 84 arquivos em 12 papéis.
+**Total mapeado:** 85 arquivos em 12 papéis.
 
 ## Controllers — 11
 
@@ -104,13 +104,14 @@ module: Fiscal
 - 22 em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 9
+## Demais arquivos (manifestos, docs, assets e misc) — 10
 
 - [fiscal.php](../../../Modules/Fiscal/Resources/lang/pt-BR/fiscal.php)
 - [fiscal.php](../../../Modules/Fiscal/Resources/lang/pt/fiscal.php)
 - [composer.json](../../../Modules/Fiscal/composer.json)
 - [module.json](../../../Modules/Fiscal/module.json)
 - [SCOPE.md](../../../memory/requisitos/Fiscal/SCOPE.md)
+- [botao-fiscal.ts](../../../resources/js/Pages/Fiscal/_lib/botao-fiscal.ts)
 - [chip-filtro.ts](../../../resources/js/Pages/Fiscal/_lib/chip-filtro.ts)
 - [fiscal-helpers.ts](../../../resources/js/Pages/Fiscal/_lib/fiscal-helpers.ts)
 - [sefaz-actions.ts](../../../resources/js/Pages/Fiscal/_lib/sefaz-actions.ts)
