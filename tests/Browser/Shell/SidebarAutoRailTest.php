@@ -32,8 +32,13 @@ declare(strict_types=1);
  * Chromium — por isso o arquivo NÃO carrega guard de skip (ver nota abaixo).
  */
 
-use App\Models\Business;
-use App\Models\User;
+// `App\Business` / `App\User`, NÃO `App\Models\*`: este é um fork do UltimatePOS
+// e os models do núcleo vivem na raiz de `app/` (`app/Business.php`, `app/User.php`).
+// A 1ª versão escreveu `App\Models\*` por convenção Laravel e o CI devolveu
+// `Class "App\Models\Business" not found` (run 33677097272) — o namespace certo é
+// o que `tests/Browser/CoreScreens/ConformanceProbesTest.php:38-39` usa.
+use App\Business;
+use App\User;
 
 // SEM guard `class_exists(...)` de propósito. A 1ª versão deste arquivo copiou
 // `$browserMissing = ! class_exists(\Pest\Browser\Bootstrap::class)` do
