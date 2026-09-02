@@ -18,7 +18,6 @@ import { Inline } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { cn } from '@/Lib/utils';
 import { Deferred, Head, router } from '@inertiajs/react';
 import { Eraser, FileSearch, Plus, RefreshCw } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -26,6 +25,7 @@ import { useEffect, useMemo, useState } from 'react';
 import FxShell from './_components/FxShell';
 import InutilizacaoModal from './_components/InutilizacaoModal';
 import NotaDrawer, { type NotaRow } from './_components/NotaDrawer';
+import { chipCount, chipProps } from './_lib/chip-filtro';
 import {
   brl,
   formatDoc,
@@ -64,55 +64,6 @@ interface NfeProps {
   counts: Counts;
   sefazCodes: SefazCodesMap;
   rows?: RowsPayload;
-}
-
-/**
- * Props do chip de filtro na primitiva <Button> do DS.
- *
- * Substitui a classe `fx-chip`, que era pílula hand-rolled em fiscal-cockpit.css.
- * `size="xs"` (h-6, text-xs) + `rounded-full` reproduz a mesma caixa; o tom vem de
- * token semântico (`primary`/`destructive`/`warning`), nunca de paleta crua do
- * Tailwind — a regra `ds/no-raw-palette-color` (eslint.config.js) proíbe.
- *
- * Por que `variant="outline"` + className no tom "warn" em vez de uma variante
- * própria: o DS não tem variante `warning` no Button, e criar variante nova é
- * soberania [W] (proibicoes.md §"token/componente novo do DS"), não decisão minha.
- */
-function chipProps(active: boolean, tone?: 'danger' | 'warn') {
-  const size = 'xs' as const;
-
-  if (!active) {
-    return {
-      variant: 'outline' as const,
-      size,
-      className: cn(
-        'rounded-full font-medium',
-        tone === 'danger' ? 'text-destructive-fg border-destructive/30'
-          : tone === 'warn' ? 'text-warning-fg border-warning/30'
-            : 'text-muted-foreground',
-      ),
-    };
-  }
-
-  if (tone === 'danger') {
-    return { variant: 'destructive' as const, size, className: 'rounded-full font-medium' };
-  }
-  if (tone === 'warn') {
-    return {
-      variant: 'outline' as const,
-      size,
-      className: 'rounded-full font-medium bg-warning text-white border-warning hover:bg-warning/90',
-    };
-  }
-  return { variant: 'default' as const, size, className: 'rounded-full font-medium' };
-}
-
-/** Contador dentro do chip — era `.fx-chip span` (rgba hard-coded) no CSS. */
-function chipCount(active: boolean) {
-  return cn(
-    'ml-0.5 rounded-full px-1.5 text-[10px] font-semibold',
-    active ? 'bg-white/25' : 'bg-foreground/10',
-  );
 }
 
 export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows }: NfeProps) {

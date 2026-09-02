@@ -413,7 +413,7 @@ foram **movidas, não fundidas**, e fundir = deletar uma implementação.
 
 Esta US existe só pra dar **prazo e evidência de conclusão** a algo que hoje é um parágrafo de risco:
 
-- [ ] [W] decide qual implementação sobrevive
+- [x] [W] decide qual implementação sobrevive — **2026-09-02, textual:** *"pode fazer igual ao protótipo e revogar todo o resto (…) se tiver que apagar para refazer de novo, faça. Eu apenas quero que trace uma meta de conseguir fazer o mesmo layout. O resto não importa. Não uso ainda essa tela."* Sobrevive o **protótipo** (`forja-page.jsx`: 6 views Aprovações · Trabalho · Saúde · MCP · Changelog · Integrador); as três implementações por pergunta e as 8 telas `/project-mgmt/*` são a perdedora. Meta e ondas em [PARIDADE §11](PARIDADE-area-forja-diagnostico-e-ondas.md).
 - [ ] A perdedora é **removida** (não deixada morta ao lado — duas implementações da mesma tela é o vetor)
 - [ ] `SCOPE.md` §cockpit atualizado (é a evidência de conclusão que o próprio BRIEFING declara)
 - [ ] Charters/casos da tela sobrevivente reconciliados no mesmo PR

@@ -220,3 +220,37 @@ inferido do `.jsx`:
 3. Onda concluída: marque **aqui** com o PR e o recibo do smoke; o contrato da tela mora no `casos.md` dela, não nesta tabela.
 4. Mudou a fronteira/proveniência: o dono é o `SCOPE.md`. Mudou requisito: `SPEC.md`/charter/casos. Este arquivo só reconcilia **ordem e veredito**.
 5. Fases/comandos do protocolo: **nunca** copiar pra cá — apontar pro painel.
+
+## 11 · Decisão [W] de 2026-09-02 e a META (o que "igual ao protótipo" significa em número)
+
+**Decisão, textual:** *"pode fazer igual ao protótipo e revogar todo o resto (…) se tiver que apagar para refazer de novo, faça. Eu apenas quero que trace uma meta de conseguir fazer o mesmo layout. O resto não importa. Não uso ainda essa tela."* Isso responde de uma vez os itens 2, 4, 6 e 7 do §9 e a Onda 0 do §7: **o protótipo é a implementação que sobrevive**; as três por pergunta (§5) e as 8 telas de §2.2 são a perdedora e **saem**, não ficam mortas ao lado. O item 1 (ratificar a 0367) já aconteceu — ela está `aceito`.
+
+**A meta é medida, não olhada** (skill `comparar-design-prod`; primeira rodada em [forja-cockpit-visual-comparison.md §2026-09-02](../TeamMcp/forja-cockpit-visual-comparison.md)):
+
+| eixo | alvo | como se prova |
+|---|---|---|
+| views | as **6** do `forja-page.jsx` servidas pelo `Cockpit` em 6 rotas `/forja/*` (Aprovações é a landing) | `route:list --path=forja` + render de cada uma |
+| topnav | **6** destinos em **3** grupos-pílula, **na linha do header**, cabendo a 1280 | sonda do §6-bis |
+| fidelidade por view | `design-diff --compare --check` com **0 `DIVERGE(bug)`** em D2/D4/D6/D8, tema dark nos dois lados, roles iguais | 1 par por view, JSON no PR |
+| rede | D1 parcial (marcador sobrevive ao clique) em toda ação de filtro/aba | `read_network_requests` |
+| revogação | 0 rota `/project-mgmt/*`, 0 `.tsx` das 8 telas de §2.2, 0 componente `_components/Forja{Backlog,Quadro,Triage}` | `git grep` contado + `route:list` |
+| vocabulário | as telas usam o bundle `cowork-forja-bundle.css` (classes `fj-`/`ap-`/`tf-`), zero utilitária Tailwind de cor/espaço no que o bundle já cobre | `ds-guard` + `conformance-gate` |
+
+**Ondas (1 PR cada, ≤300 linhas de prosa; CSS/JSX copiado de máquina não conta):**
+
+| # | onda | fecha com |
+|---|---|---|
+| 0 | esta decisão registrada (SPEC US-FORJA-006 + este §) | merge |
+| 1 | `cowork-forja-bundle.css` inteiro no chão + tokens `--dev*` na fundação | gates CSS verdes |
+| 2 | shell: header com topnav inline 6/3 grupos, 6 rotas, `Cockpit` roteando por view | sonda do topnav = protótipo |
+| 3 | Aprovações (view `hoje`) | compare 0 bug |
+| 4 | Trabalho · lista | compare 0 bug |
+| 5 | Trabalho · quadro (2 eixos) | compare 0 bug |
+| 6 | Trabalho · gantt | compare 0 bug |
+| 7 | Saúde | compare 0 bug |
+| 8 | MCP + Handoffs dentro | compare 0 bug |
+| 9 | Changelog | compare 0 bug |
+| 10 | Integrador | compare 0 bug |
+| 11 | revogação: `/project-mgmt/*`, duplicatas, rotas, testes, `SCOPE §cockpit` | `git grep` = 0 |
+
+**Ressalva que continua valendo:** o segmentado Lista|Quadro|Gantt do protótipo depende do `Segmented` do DS, que o snapshot local (pacote de 24/08) não publica. Em produção ele existe (`Components/ui`), então a onda 4 não fica bloqueada — o que fica cego é a **medição local** dessa peça até o Cowork regerar o pacote.
