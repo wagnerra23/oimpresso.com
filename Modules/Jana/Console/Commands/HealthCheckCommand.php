@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Services\CharterHealthChecker;
+use Modules\Jana\Services\Mcp\Ct100CircuitBreaker;
 
 /**
  * Sentinela operacional da Jana + Constituição v2.
@@ -53,6 +54,11 @@ use Modules\Jana\Services\CharterHealthChecker;
  *      (não revogado/expirado) que NÃO tem a permission `jana.mcp.use` que o
  *      McpAuthMiddleware exige. Toda chamada dele vira 403. A classe ficou
  *      INVISÍVEL por ~6h porque o cache do Spatie segurava o estado antigo.
+ *  10g. ct100_reachability (incidente 2026-09-02) — mcp, langfuse e meilisearch
+ *      moram na MESMA máquina: 2+ fora ao mesmo tempo é UM fato ("CT 100 fora
+ *      desde X"), não N investigações. Não sonda nada — correlaciona o que os
+ *      donos de cada sinal mediram neste run e rebaixa a advisory os sintomas
+ *      que a causa raiz explica.
  *  11. Lesson ledger graduation (ADVISORY · Reflexion runtime) — toda lição de
  *      operação em LICOES-OPERACAO.md nasceu graduada (MEC→check / JULG→regra);
  *      acende amarelo se há entrada malformada ou `status:pendente`.
@@ -137,6 +143,10 @@ class HealthCheckCommand extends Command
             ...CharterHealthChecker::fromApp()->checks(),
         ];
 
+        // Consolida as pernas CT 100 num veredito só. NÃO sonda nada de novo:
+        // lê o que os donos de cada sinal já mediram neste mesmo run.
+        $checks = self::consolidateCt100($checks, Ct100CircuitBreaker::healthLeg());
+
         // Advisory checks (charter) reportam mas não derrubam o exit code:
         // contam como "ok" pro gate enquanto não viram ratchet.
         $allOk = self::allChecksOk($checks);
@@ -184,6 +194,118 @@ class HealthCheckCommand extends Command
     public static function allChecksOk(array $checks): bool
     {
         return collect($checks)->every(fn ($c) => ($c['ok'] ?? false) || ($c['advisory'] ?? false));
+    }
+
+    /**
+     * Check 10g — `ct100_reachability`: UM veredito no lugar de N sintomas.
+     *
+     * PROBLEMA (medido 2026-09-02): o CT 100 caiu ~27-28/08 e a tabela do
+     * health-check passou a mostrar sintomas soltos — `memoria_recall_backend`
+     * down, `langfuse_trace_uptime_24h` inacessível — cada um pedindo
+     * investigação própria, nenhum dizendo a única coisa que importa: *a máquina
+     * caiu*. Um operador lendo três linhas vermelhas de três serviços persegue
+     * três causas.
+     *
+     * POR QUE ISTO NÃO É UM 4º PROBE (a régua já tem dono — §5 2026-07-09):
+     * este método não fala com a rede. Ele CORRELACIONA o que os donos de cada
+     * sinal já mediram no mesmo run — `memoria_recall_backend` é o dono do MCP,
+     * o probe do Langfuse é o dono do Langfuse — mais a perna meilisearch/sync,
+     * que vem do `Ct100CircuitBreaker` porque quem de fato atravessa aquele
+     * caminho é o cron de 5min (288x/dia), não um health-check diário.
+     *
+     * REGRA DO VEREDITO — 2 de N: um serviço fora é problema DELE (o dono
+     * continua duro e reporta sozinho). Dois ou mais fora ao mesmo tempo é o
+     * host, não os serviços. Só nesse caso a consolidação acontece: nasce
+     * `ct100_reachability` DURO (pagina) e os sintomas que ele explica viram
+     * advisory — deixam de pedir investigação separada sem sumir da tabela.
+     *
+     * O QUE FICA DE FORA, e é decisão, não esquecimento: `mcp_webhook_5xx_2h`
+     * NÃO é perna. Ele pergunta ao GitHub quais entregas voltaram 5xx — mede a
+     * leitura que o GitHub tem do webhook, não se o CT 100 atende. Entrega que
+     * nem conectou não é 5xx, então ele pode ficar verde com o CT 100 no chão.
+     * ⚠️ Isso é leitura da semântica da API, ainda NÃO medido contra as
+     * entregas reais; se alguém medir e mostrar 5xx durante esta queda, ele vira
+     * perna com uma linha.
+     *
+     * @param  array<int, array<string, mixed>>  $checks
+     * @param  array{service: string, reachable: ?bool, since: ?string}  $syncLeg
+     * @return array<int, array<string, mixed>>
+     */
+    public static function consolidateCt100(array $checks, array $syncLeg): array
+    {
+        $name = 'ct100_reachability';
+        $threshold = '< 2 serviços fora';
+
+        // Pernas medidas: `reachable === null` = não medido (dev/CI, skip) e é
+        // ignorado — ausência de medição nunca vira estado do objeto medido.
+        $pernas = [];
+        foreach ($checks as $idx => $c) {
+            $leg = $c['ct100'] ?? null;
+            if (is_array($leg) && isset($leg['service']) && ($leg['reachable'] ?? null) !== null) {
+                $pernas[] = ['idx' => $idx, 'service' => (string) $leg['service'], 'up' => (bool) $leg['reachable']];
+            }
+        }
+        if (($syncLeg['reachable'] ?? null) !== null) {
+            $pernas[] = ['idx' => null, 'service' => (string) $syncLeg['service'], 'up' => (bool) $syncLeg['reachable']];
+        }
+
+        $fora = array_values(array_filter($pernas, fn ($p) => ! $p['up']));
+        $nomes = implode(', ', array_map(fn ($p) => $p['service'], $fora));
+
+        if ($pernas === []) {
+            $checks[] = [
+                'name' => $name, 'ok' => true, 'value' => 'n/a', 'threshold' => $threshold,
+                'message' => 'Skipped (nenhuma perna CT 100 medida neste runtime — dev/CI)',
+            ];
+
+            return $checks;
+        }
+
+        if (count($fora) < 2) {
+            $checks[] = [
+                'name' => $name,
+                'ok' => true,
+                'value' => count($fora) === 0 ? 'up' : 'parcial',
+                'threshold' => $threshold,
+                'message' => count($fora) === 0
+                    ? sprintf('CT 100 alcançável nas %d perna(s) medida(s)', count($pernas))
+                    : "Só {$nomes} fora — problema do serviço, não do host (o check dono dele reporta)",
+            ];
+
+            return $checks;
+        }
+
+        // Início da série: quem tem resolução é o cron de 5min. Sem registro dele
+        // NÃO se inventa "desde agora" — diz-se que não foi registrado.
+        $desde = is_string($syncLeg['since'] ?? null) && $syncLeg['since'] !== ''
+            ? $syncLeg['since']
+            : null;
+
+        foreach ($fora as $p) {
+            if ($p['idx'] !== null) {
+                $checks[$p['idx']]['advisory'] = true;
+                $checks[$p['idx']]['message'] = (string) ($checks[$p['idx']]['message'] ?? '')
+                    . ' [causa raiz em ct100_reachability — não investigar isolado]';
+            }
+        }
+
+        $checks[] = [
+            'name' => $name,
+            'ok' => false,
+            'value' => 'down',
+            'threshold' => $threshold,
+            'message' => sprintf(
+                'ALERTA: CT 100 fora %s — %d de %d serviços inacessíveis (%s). '
+                . 'Sync de memória e recall param até voltar. 1a hipótese é o CABO DE REDE '
+                . '(hardware conhecido): memory/requisitos/Infra/RUNBOOK-acesso-ct100.md',
+                $desde !== null ? "desde {$desde}" : '(início não registrado pelo cron do sync)',
+                count($fora),
+                count($pernas),
+                $nomes,
+            ),
+        ];
+
+        return $checks;
     }
 
     /**
@@ -1192,6 +1314,8 @@ class HealthCheckCommand extends Command
                 'ok' => true,
                 'value' => 'n/a',
                 'threshold' => 'reachable',
+                // null = não medido; o consolidador CT 100 ignora pernas assim.
+                'ct100' => ['service' => 'mcp', 'reachable' => null],
                 'message' => 'Skipped (recall MCP não configurado — dev/CI usa fallback local)',
             ];
         }
@@ -1217,6 +1341,9 @@ class HealthCheckCommand extends Command
                 'ok' => $ok,
                 'value' => $ok ? 'up' : (string) $response->status(),
                 'threshold' => 'reachable',
+                // RESPONDEU (mesmo 5xx) = alcançável. Só silêncio de rede conta
+                // como "CT 100 fora" — mesma regra do Ct100CircuitBreaker::probe().
+                'ct100' => ['service' => 'mcp', 'reachable' => true],
                 'message' => $ok
                     ? 'Recall backend (MCP/Meilisearch) respondendo — memória ativa'
                     : "ALERTA: recall backend não-OK ({$response->status()}) — chat degrada SEM memória (não estoura 500). Checar MCP server + Meilisearch CT 100.",
@@ -1227,6 +1354,7 @@ class HealthCheckCommand extends Command
                 'ok' => false,
                 'value' => 'down',
                 'threshold' => 'reachable',
+                'ct100' => ['service' => 'mcp', 'reachable' => false],
                 'message' => 'ALERTA: recall backend inacessível (' . mb_substr($e->getMessage(), 0, 80)
                     . ') — chat degrada SEM memória. Checar Meilisearch/MCP CT 100.',
             ];
@@ -1310,6 +1438,13 @@ class HealthCheckCommand extends Command
             'advisory' => $r['advisory'] ?? false,
             'value' => $r['count'] ?? $r['state'],
             'threshold' => ">= {$threshold}",
+            // Perna Langfuse do consolidador CT 100. Só 'inacessivel' é queda de
+            // transporte: 'mudo' (0 traces) é servidor VIVO e calado — sintoma
+            // diferente, dono diferente. Não configurado = não medido (null).
+            'ct100' => [
+                'service' => 'langfuse',
+                'reachable' => $configured ? ($r['state'] !== 'inacessivel') : null,
+            ],
             'message' => $messages[$r['state']] ?? $r['state'],
         ];
     }
