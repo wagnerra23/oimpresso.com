@@ -36,7 +36,7 @@
 //   node scripts/governance/replica-inconsistencias.mjs --selftest
 //
 // O que ele NÃO faz: não decide o que é bug e o que é decisão (isso é a régua de três
-// categorias da ADR 0385 e mora no `<tela>-visual-comparison.md`); não apaga item — item some
+// categorias do sidebar (ADR "alinhado ao protótipo, três categorias", ainda proposta) e mora no `<tela>-visual-comparison.md`); não apaga item — item some
 // só quando a medição seguinte não o encontra mais, ou quando um humano marca `aceita`.
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync, rmSync } from 'node:fs';
 import { join, relative, basename, dirname, resolve } from 'node:path';
