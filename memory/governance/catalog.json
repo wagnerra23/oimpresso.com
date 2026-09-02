@@ -26,20 +26,20 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 710,
-    "edges": 990,
+    "nodes": 709,
+    "edges": 989,
     "by_node_type": {
       "module": 39,
       "table": 102,
       "adr": 107,
       "component": 392,
-      "api": 70
+      "api": 69
     },
     "by_edge_type": {
       "ownsTable": 91,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 74,
+      "providesApi": 73,
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 392,
@@ -996,14 +996,6 @@
       "prefix": "/copiloto/*",
       "providers": [
         "Jana"
-      ]
-    },
-    {
-      "id": "api:/copiloto/admin/memoria/*",
-      "type": "api",
-      "prefix": "/copiloto/admin/memoria/*",
-      "providers": [
-        "KB"
       ]
     },
     {
@@ -9604,12 +9596,6 @@
       "to": "table:mcp_memory_documents",
       "type": "ownsTable",
       "source": "db_tables_owned"
-    },
-    {
-      "from": "module:KB",
-      "to": "api:/copiloto/admin/memoria/*",
-      "type": "providesApi",
-      "source": "url_prefixes"
     },
     {
       "from": "module:KB",
