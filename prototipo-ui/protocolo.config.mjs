@@ -147,7 +147,9 @@ export const PREFLIGHT_GATES = [
   'node scripts/casos-coverage-guard.mjs',
   'npm run lint:baseline:check',
   'node_modules/.bin/tsc --noEmit',
-  'node prototipo-ui/ds-guard.mjs <arquivos-tocados>',
+  'node prototipo-ui/ds-guard.mjs <arquivos-tocados>            # em RÉPLICA de protótipo: --report (ADR 0388) — o achado vai pra lista, não veta',
+  // ADR 0388 — réplica primeiro: a conformidade do DS vira LISTA pós-aplicação, gerada no MESMO PR
+  'node scripts/governance/replica-inconsistencias.mjs --modulo <Mod> [--prototipo <jsx do espelho>]   # NUNCA bloqueia; exit 2 só se NÃO mediu',
   'node scripts/governance/cowork-ssot-guard.mjs',
   // REQUIRED do domínio que faltavam (2026-08-21) — ver mapeamento provado acima
   'node scripts/governance/cowork-mirror-freshness.mjs --unverified --check   # espelho editado sem prova de fidelidade',
