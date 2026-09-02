@@ -681,7 +681,7 @@ a.fj-ho-pr:hover{ color:var(--accent); }
 .fj-int-forja b, .fj-int-mod{ font-size:13px; font-weight:600; color:var(--text); display:block; }
 .fj-int-forja small, .fj-int-rota small{ display:block; font-size:11px; color:var(--text-mute); line-height:1.4; margin-top:2px; }
 .fj-int-rota code{ font-family:var(--font-mono); font-size:11px; color:var(--accent-hi, var(--accent)); word-break:break-word; }
-.fj-int-tab{ color:var(--text-dim) !important; }
+.fj-int-rota small.fj-int-tab{ color:var(--text-dim); }
 .fj-int-est{ font-family:var(--font-mono); font-size:10px; font-weight:600; padding:2px 8px; border-radius:5px; }
 .fj-est-existe{ color:oklch(0.40 0.13 150); background:oklch(0.94 0.06 150); }
 .fj-est-parcial{ color:oklch(0.46 0.15 68); background:oklch(0.95 0.08 80); }
@@ -715,7 +715,7 @@ a.fj-ho-pr:hover{ color:var(--accent); }
 .fj-anexo img{ width:100%; height:100%; object-fit:cover; display:block; }
 .fj-anexo-add{ width:64px; height:64px; border-radius:8px; border:1px dashed var(--border); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-size:10px; color:var(--text-mute); cursor:pointer; }
 .fj-anexo-add:hover{ border-color:var(--accent); color:var(--accent); }
-.fj-anexo-hint{ margin-top:7px !important; font-size:11px; }
+.fj-anexo-hint{ margin-top:7px; font-size:11px; }
 .fj-lightbox{ position:fixed; inset:0; z-index:90; background:rgba(0,0,0,.78); display:flex; align-items:center; justify-content:center; padding:5vh; cursor:zoom-out; animation:fjfade .12s ease-out; }
 .fj-lightbox img{ max-width:100%; max-height:100%; border-radius:8px; box-shadow:var(--sh-2); }
 
@@ -761,7 +761,7 @@ a.fj-ho-pr:hover{ color:var(--accent); }
 [data-theme="dark"] .fj-mcp-tbl td{ border-bottom: 1px solid var(--border-2, oklch(0.40 0.050 95)); }
 [data-theme="dark"] .fj-perm-ok{ color: oklch(0.84 0.130 150); background: oklch(0.275 0.060 150); }
 [data-theme="dark"] .fj-perm-deny{ color: oklch(0.84 0.180 25); background: oklch(0.275 0.050 25); }
-[data-theme="dark"] .fj-ho-flow{ background: oklch(0.275 0.050 295)); }
+[data-theme="dark"] .fj-ho-flow{ background: oklch(0.275 0.050 295); }
 [data-theme="dark"] .fj-ho-gate-conflito{ color: oklch(0.84 0.180 25); background: oklch(0.275 0.050 25); border: 1px solid oklch(0.40 0.100 25); }
 [data-theme="dark"] .fj-ho-lever-devolver:hover{ background: oklch(0.275 0.050 25); color: oklch(0.84 0.180 25); }
 [data-theme="dark"] .fj-ho-lever-re-disparar:hover{ background: oklch(0.275 0.050 250); }
