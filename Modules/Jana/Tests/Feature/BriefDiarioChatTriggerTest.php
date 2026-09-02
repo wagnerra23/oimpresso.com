@@ -37,7 +37,7 @@ beforeEach(function () {
     // `transactions` entra na limpeza porque o R-COPI-203-005 a cria pra medir o
     // negócio VAZIO. Sem dropar aqui, ela vazaria pros casos seguintes e a
     // curadoria passaria a enxergar "sem movimento" em teste que não pediu isso.
-    foreach (['jana_conversas', 'jana_mensagens', 'transactions'] as $t) {
+    foreach (['jana_conversas', 'jana_mensagens', 'transactions', 'activity_log'] as $t) {
         Schema::dropIfExists($t);
     }
 
@@ -49,6 +49,23 @@ beforeEach(function () {
         $t->string('status', 20)->default('ativa');
         $t->timestamp('iniciada_em')->nullable();
         $t->json('metadata')->nullable();
+        $t->timestamps();
+    });
+
+    // `Conversa` usa LogsActivity (Spatie) — todo `create()` escreve em `activity_log`.
+    // Sem esta tabela os 3 casos morrem em `QueryException: no such table`, o que ficou
+    // INVISÍVEL enquanto o arquivo não rodava em lane nenhuma. Dívida que apareceu ao
+    // ligar, não regressão de quem ligou. Schema espelha o do `DsrServiceTest` (irmão
+    // Jana que já resolvia isto) pra não inventar uma segunda forma da mesma tabela.
+    Schema::create('activity_log', function (Blueprint $t) {
+        $t->bigIncrements('id');
+        $t->string('log_name')->nullable();
+        $t->text('description');
+        $t->nullableMorphs('subject', 'subject');
+        $t->string('event')->nullable();
+        $t->nullableMorphs('causer', 'causer');
+        $t->json('properties')->nullable();
+        $t->uuid('batch_uuid')->nullable();
         $t->timestamps();
     });
 });
