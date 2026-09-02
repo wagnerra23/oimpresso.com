@@ -169,8 +169,7 @@ ${linhas.join('\n') || '| — | — | — | 0 | nada encontrado | — | — |'}
 
 | regra | onde se resolve | automatizável | como |
 |---|---|---|---|
-${Object.entries(RECEITAS).map(([r, x]) => `| \`${r}\` | ${x.onde} | ${x.auto} | ${x.como} |`).join('
-')}
+${Object.entries(RECEITAS).map(([r, x]) => '| `' + r + '` | ' + x.onde + ' | ' + x.auto + ' | ' + x.como + ' |').join('\n')}
 
 ## Como fechar um item
 
