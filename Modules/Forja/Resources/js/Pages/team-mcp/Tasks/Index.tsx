@@ -19,7 +19,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { ChevronRight, Lock } from 'lucide-react';
+import { ArrowRight, ChevronRight, Lock } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
@@ -630,9 +630,9 @@ function TasksIndex({
       )}
 
       <BulkActionBar selectedCount={selected.size} onClear={() => setSelected(new Set())} label="tasks">
-        <Button size="sm" variant="ghost" onClick={() => bulkSetStatus('doing')}>→ Fazendo</Button>
-        <Button size="sm" variant="ghost" onClick={() => bulkSetStatus('review')}>→ Revisão</Button>
-        <Button size="sm" variant="ghost" onClick={() => bulkSetStatus('done')}>→ Concluído</Button>
+        <Button size="sm" variant="ghost" onClick={() => bulkSetStatus('doing')}><ArrowRight className="mr-1 h-3.5 w-3.5" />Fazendo</Button>
+        <Button size="sm" variant="ghost" onClick={() => bulkSetStatus('review')}><ArrowRight className="mr-1 h-3.5 w-3.5" />Revisão</Button>
+        <Button size="sm" variant="ghost" onClick={() => bulkSetStatus('done')}><ArrowRight className="mr-1 h-3.5 w-3.5" />Concluído</Button>
       </BulkActionBar>
 
       <TaskDrawer taskId={openId} agents={agents} onClose={closeDetail} />
