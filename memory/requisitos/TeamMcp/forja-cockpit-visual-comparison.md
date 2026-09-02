@@ -186,6 +186,55 @@ Mesma sonda, mesma viewport (2560), dark nos dois lados. Smoke pós-deploy: `/fo
 
 **D1 (rede) nas pílulas novas:** `window.__marker` gravado antes do clique **sobreviveu** a Trabalho → Aprovações (dois cliques, dois marcadores vivos), a URL e a pílula ativa mudaram, e a rede mostrou `GET /forja/aprovacoes 200` via Inertia (`<Link as="button">`) — sem full reload. D1 **parcial**, como a meta do §11 pede.
 
+---
+
+## 2026-09-02 (noite) — ERRATA da linha "Larguras menores": o rail do protótipo era `localStorage`, não a regra
+
+> **Append-only.** O parágrafo acima fica como está — era o que se mediu naquele momento. O que
+> esta errata corrige é o **ponteiro**: a conclusão que ele sustenta é falsa, e ela virou a
+> premissa do pedido de auto-rail. Recibo abaixo, reproduzível.
+
+**O que aquele parágrafo afirma:** *"a 1280 o shell do protótipo vira rail de 56px"* e
+*"a 1728 o shell **segue** em rail"*.
+
+**O que a re-medição mostra** (espelho `prototipo-ui/cowork/oimpresso.com.html` em
+`http://localhost:5623`, sonda = `getComputedStyle(.app).gridTemplateColumns` +
+`.os-page-h → getBoundingClientRect().left`, esperando `__oiLazyDone` + 2 leituras iguais de
+`querySelectorAll('*').length`, **com `localStorage.removeItem("oimpresso.sidebar.mode")` antes
+de cada largura**):
+
+| `innerWidth` | localStorage | modo | `grid-template-columns` | header `left` |
+|---|---|---|---|---|
+| 1279 | limpo | **rail** | `56px 1223px` | 56 |
+| **1280** | limpo | **expanded** | `260px 1020px` | **260** |
+| 1440 | limpo | expanded | `260px 1180px` | — |
+| 1728 | limpo | **expanded** | `260px 1468px` | **260** |
+| 1920 | limpo | expanded | `260px 1660px` | 260 |
+| 1728 | herdado `"rail"` | rail | `56px 1672px` | — |
+| 1279 → 1728 **ao vivo** | — | continua rail (sem listener) | `56px 1672px` | — |
+
+**A regra real** (`prototipo-ui/cowork/app.jsx:624-634`): `innerWidth < 1280 ? "rail" : "expanded"`,
+**só no mount**, e o `localStorage` vence sempre. Como o `useEffect` ao lado grava **todo** valor —
+inclusive o automático —, a regra dispara **uma vez por navegador** e a chave nunca mais solta.
+
+**Causa provável do retrato errado, e ela é reproduzível:** ao abrir o espelho no Browser pane
+**sem `resize_window` antes**, `window.innerWidth` vale **0** (medido nesta sessão, primeira
+navegação). `0 < 1280` é verdadeiro → rail → persistido. Toda medição seguinte naquele perfil
+herda `rail` em **qualquer** largura, inclusive 1728. É LC-08 no vetor mais traiçoeiro: a sonda
+estava certa, o **estado** é que era de outra corrida.
+
+**Consequência pra Forja, e é a parte que muda a conclusão:** a 1728 o protótipo dá
+`260px 1468px` — **os mesmos 1468px de produção**. Naquela largura **não há divergência de
+shell**; a quebra do header em 2 linhas no `.snap` do CI é da largura de conteúdo em si, igual
+nos dois lados. A divergência real vivia em **≤1279**.
+
+**Como não repetir:** medição de shell no espelho limpa `oimpresso.sidebar.mode` **e** seta a
+viewport **antes** da primeira navegação — `innerWidth: 0` é o estado default do pane, e ele
+mente a favor do rail.
+
+Decisão que saiu daqui: [ADR UI-0030](../_DesignSystem/adr/ui/0030-sidebar-auto-rail-responsivo.md)
+(produção passa a fazer auto-rail a **≤1280**, com a escolha manual vencendo).
+
 ## 2026-09-02 (noite) — Onda 3: Aprovações vira a view `hoje` do protótipo
 
 > **Estado: APLICADO no código, NÃO MEDIDO em produção.** A comparação por sonda
