@@ -77,7 +77,9 @@ related_adrs:
   - 0079-constituicao-oimpresso-7-camadas-governanca
   - 0080-trust-tiers-operacional-audit-findings
 url_prefixes:
-  - /projectmgmt/*
+  - /project-mgmt/* (web canônico — o rename do módulo não mexeu no prefixo de rota)
+  - /forja/* (quadro · backlog · trabalho · handoff · changelog · roadmap-gantt · aprovacoes)
+  - /team-mcp/* (tasks · team · scorecard · cc-sessions)
   # host das 9 rotas do Admin do MCP (parte 5/7, 2026-07-31) — URL do ADS mantida (ADR 0087)
   - /ads/admin/tools/*
   - /ads/admin/team-scopes/*

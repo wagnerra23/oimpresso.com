@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 683,
-    "edges": 959,
+    "nodes": 684,
+    "edges": 960,
     "by_node_type": {
       "module": 39,
-      "table": 101,
+      "table": 102,
       "adr": 107,
-      "component": 391,
-      "api": 45
+      "component": 392,
+      "api": 44
     },
     "by_edge_type": {
-      "ownsTable": 90,
+      "ownsTable": 91,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 45,
+      "providesApi": 44,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 391,
+      "hasComponent": 392,
       "dependsOn": 115,
       "delegatesTo": 107,
       "migratesTo": 1,
@@ -836,9 +836,9 @@
       ]
     },
     {
-      "id": "api:/assetmanagement/*",
+      "id": "api:/asset/*",
       "type": "api",
-      "prefix": "/assetmanagement/*",
+      "prefix": "/asset/*",
       "providers": [
         "AssetManagement"
       ]
@@ -868,17 +868,9 @@
       ]
     },
     {
-      "id": "api:/cobranca/*",
+      "id": "api:/comunicacao-visual/*",
       "type": "api",
-      "prefix": "/cobranca/*",
-      "providers": [
-        "PaymentGateway"
-      ]
-    },
-    {
-      "id": "api:/com-visual/*",
-      "type": "api",
-      "prefix": "/com-visual/*",
+      "prefix": "/comunicacao-visual/*",
       "providers": [
         "ComunicacaoVisual"
       ]
@@ -892,9 +884,9 @@
       ]
     },
     {
-      "id": "api:/consultaos/*",
+      "id": "api:/consulta-os/*",
       "type": "api",
-      "prefix": "/consultaos/*",
+      "prefix": "/consulta-os/*",
       "providers": [
         "ConsultaOs"
       ]
@@ -948,6 +940,14 @@
       ]
     },
     {
+      "id": "api:/forja/*",
+      "type": "api",
+      "prefix": "/forja/*",
+      "providers": [
+        "Forja"
+      ]
+    },
+    {
       "id": "api:/governance/*",
       "type": "api",
       "prefix": "/governance/*",
@@ -977,6 +977,14 @@
       "prefix": "/manufacturing/*",
       "providers": [
         "Manufacturing"
+      ]
+    },
+    {
+      "id": "api:/nfe-brasil/*",
+      "type": "api",
+      "prefix": "/nfe-brasil/*",
+      "providers": [
+        "NfeBrasil"
       ]
     },
     {
@@ -1012,9 +1020,9 @@
       ]
     },
     {
-      "id": "api:/payment-gateway/*",
+      "id": "api:/paymentgateway/*",
       "type": "api",
-      "prefix": "/payment-gateway/*",
+      "prefix": "/paymentgateway/*",
       "providers": [
         "PaymentGateway"
       ]
@@ -1044,17 +1052,17 @@
       ]
     },
     {
-      "id": "api:/productcatalogue/*",
+      "id": "api:/product-catalogue/*",
       "type": "api",
-      "prefix": "/productcatalogue/*",
+      "prefix": "/product-catalogue/*",
       "providers": [
         "ProductCatalogue"
       ]
     },
     {
-      "id": "api:/projectmgmt/*",
+      "id": "api:/project-mgmt/*",
       "type": "api",
-      "prefix": "/projectmgmt/*",
+      "prefix": "/project-mgmt/*",
       "providers": [
         "Forja"
       ]
@@ -1084,6 +1092,14 @@
       ]
     },
     {
+      "id": "api:/settings/payment-gateways/*",
+      "type": "api",
+      "prefix": "/settings/payment-gateways/*",
+      "providers": [
+        "PaymentGateway"
+      ]
+    },
+    {
       "id": "api:/spreadsheet/*",
       "type": "api",
       "prefix": "/spreadsheet/*",
@@ -1100,6 +1116,14 @@
       ]
     },
     {
+      "id": "api:/team-mcp/*",
+      "type": "api",
+      "prefix": "/team-mcp/*",
+      "providers": [
+        "Forja"
+      ]
+    },
+    {
       "id": "api:/vestuario/*",
       "type": "api",
       "prefix": "/vestuario/*",
@@ -1108,41 +1132,9 @@
       ]
     },
     {
-      "id": "api:/webhooks/asaas",
+      "id": "api:/webhooks/inter/*",
       "type": "api",
-      "prefix": "/webhooks/asaas",
-      "providers": [
-        "PaymentGateway"
-      ]
-    },
-    {
-      "id": "api:/webhooks/bcb-pix",
-      "type": "api",
-      "prefix": "/webhooks/bcb-pix",
-      "providers": [
-        "PaymentGateway"
-      ]
-    },
-    {
-      "id": "api:/webhooks/c6",
-      "type": "api",
-      "prefix": "/webhooks/c6",
-      "providers": [
-        "PaymentGateway"
-      ]
-    },
-    {
-      "id": "api:/webhooks/inter",
-      "type": "api",
-      "prefix": "/webhooks/inter",
-      "providers": [
-        "PaymentGateway"
-      ]
-    },
-    {
-      "id": "api:/webhooks/pagarme",
-      "type": "api",
-      "prefix": "/webhooks/pagarme",
+      "prefix": "/webhooks/inter/*",
       "providers": [
         "PaymentGateway"
       ]
@@ -2828,6 +2820,13 @@
       "module": "NfeBrasil",
       "name": "ConfigDefaultController",
       "desc": "Nível 4 cascade (defaults business)"
+    },
+    {
+      "id": "component:NfeBrasil/ContingenciaController",
+      "type": "component",
+      "module": "NfeBrasil",
+      "name": "ContingenciaController",
+      "desc": "liga/desliga contingencia SEFAZ por tenant (US-NFE-006, ADR TECH-0002)"
     },
     {
       "id": "component:NfeBrasil/DataController",
@@ -5522,6 +5521,17 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:nfe_sefaz_status",
+      "type": "table",
+      "name": "nfe_sefaz_status",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:payment_gateway_credentials",
       "type": "table",
       "name": "payment_gateway_credentials",
@@ -6212,7 +6222,7 @@
     },
     {
       "from": "module:AssetManagement",
-      "to": "api:/assetmanagement/*",
+      "to": "api:/asset/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -6632,7 +6642,7 @@
     },
     {
       "from": "module:ComunicacaoVisual",
-      "to": "api:/com-visual/*",
+      "to": "api:/comunicacao-visual/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -6962,7 +6972,7 @@
     },
     {
       "from": "module:ConsultaOs",
-      "to": "api:/consultaos/*",
+      "to": "api:/consulta-os/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -8364,7 +8374,19 @@
     },
     {
       "from": "module:Forja",
-      "to": "api:/projectmgmt/*",
+      "to": "api:/forja/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Forja",
+      "to": "api:/project-mgmt/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Forja",
+      "to": "api:/team-mcp/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -9493,6 +9515,12 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "component:NfeBrasil/ContingenciaController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "component:NfeBrasil/DataController",
       "type": "hasComponent",
       "source": "contains"
@@ -9586,6 +9614,18 @@
       "to": "table:nfe_inutilizacoes",
       "type": "ownsTable",
       "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "table:nfe_sefaz_status",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "api:/nfe-brasil/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
     },
     {
       "from": "module:NfeBrasil",
@@ -10199,43 +10239,19 @@
     },
     {
       "from": "module:PaymentGateway",
-      "to": "api:/cobranca/*",
+      "to": "api:/paymentgateway/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
     {
       "from": "module:PaymentGateway",
-      "to": "api:/payment-gateway/*",
+      "to": "api:/settings/payment-gateways/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
     {
       "from": "module:PaymentGateway",
-      "to": "api:/webhooks/asaas",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
-      "from": "module:PaymentGateway",
-      "to": "api:/webhooks/bcb-pix",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
-      "from": "module:PaymentGateway",
-      "to": "api:/webhooks/c6",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
-      "from": "module:PaymentGateway",
-      "to": "api:/webhooks/inter",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
-      "from": "module:PaymentGateway",
-      "to": "api:/webhooks/pagarme",
+      "to": "api:/webhooks/inter/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -10475,7 +10491,7 @@
     },
     {
       "from": "module:ProductCatalogue",
-      "to": "api:/productcatalogue/*",
+      "to": "api:/product-catalogue/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
