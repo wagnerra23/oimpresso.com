@@ -267,7 +267,26 @@ PROMPT;
                 ]);
 
             if (! $response->successful()) {
-                Log::warning("[RAGAS] Judge HTTP {$response->status()} metric={$metric}");
+                // O CODIGO do erro separa duas causas com acoes OPOSTAS, e ambas chegam
+                // aqui como "429": `insufficient_quota` (billing/cota — fora do repo, decisao [W])
+                // vs `rate_limit_exceeded` (concorrencia — este service nao tem backoff nem retry
+                // e dispara as chamadas em rajada). Logar so o status colapsa as duas: em
+                // 2026-09-02 o canary somou 20x "Judge HTTP 429" sem nenhum campo capaz de
+                // decidir qual hipotese valia. Preferimos `error.code`/`error.type` (enums) ao
+                // corpo livre; o corpo so entra truncado, como ultimo recurso.
+                $codigo = $response->json('error.code')
+                    ?? $response->json('error.type')
+                    ?? mb_substr(trim((string) $response->body()), 0, 200);
+
+                $retryAfter = $response->header('Retry-After');
+
+                Log::warning(sprintf(
+                    '[RAGAS] Judge HTTP %d metric=%s erro=%s%s',
+                    $response->status(),
+                    $metric,
+                    ($codigo === null || $codigo === '') ? '(sem corpo)' : $codigo,
+                    $retryAfter ? " retry_after={$retryAfter}" : ''
+                ));
 
                 return 0.0;
             }
