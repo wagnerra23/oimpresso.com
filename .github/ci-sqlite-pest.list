@@ -521,3 +521,9 @@ tests/Feature/Sidebar/VisaoGeralLandingTest.php
 # Tela de Fabricacao (/manufacturing/recipe): o bloco de CALCULO e DB-less (models em
 # memoria) e roda aqui — R-11/R-12/R-13 do handoff. O bloco de rota pula em sqlite.
 Modules/Manufacturing/Tests/Feature/Wave29RecipeInertiaTest.php
+# Caminho de ERRO do RagasJudgeService (2026-09-02): prende a DISTINCAO entre
+# `insufficient_quota` (billing, fora do repo) e `rate_limit_exceeded` (falta de
+# backoff, aqui dentro) — os dois chegam como HTTP 429 e tem acoes OPOSTAS. O
+# arquivo ja existia e NAO estava nesta lane: estava so no phpunit.xml, que a lane
+# nao usa (ela roda a lista via mapfile). DB-less (Http::fake + Log::spy), sqlite-safe.
+tests/Feature/Ragas/RagasJudgeServiceTest.php
