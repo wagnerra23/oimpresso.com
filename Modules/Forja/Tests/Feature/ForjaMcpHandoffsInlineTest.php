@@ -7,6 +7,7 @@ use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Spatie\Permission\Models\Permission;
 
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
@@ -88,6 +89,17 @@ function forjaInlineUsuario(): User
     if ($user === null) {
         test()->markTestSkipped('Tenant canônico sem usuário utilizável.');
     }
+
+    // O `can:jana.mcp.usage.all` do construtor do ForjaController barra com 403 quem
+    // não tem a permission — e o usuário do seed não tem. As 3 linhas são o mesmo
+    // bootstrap do ForjaRoutesSmokeTest: criar a permission, conceder, e LIMPAR o
+    // cache do Spatie (sem o forget, a checagem lê a permissão antiga e o 403 fica).
+    // `DatabaseTransactions` faz o rollback — nenhum resíduo de RBAC no banco da lane.
+    Permission::findOrCreate(FORJA_MCP_INLINE_PERMISSION, 'web');
+    $user->givePermissionTo(FORJA_MCP_INLINE_PERMISSION);
+    $user->forgetCachedPermissions();
+
+    session(['user.id' => $user->id]);
 
     return $user;
 }
