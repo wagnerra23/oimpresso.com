@@ -280,6 +280,28 @@ não rodou (§5 2026-07-24). Com um config temporário que INCLUI o arquivo, o c
 erro real (`TS2532`, índice possivelmente `undefined` no atalho `j`/`k`) — corrigido. Depois:
 278 erros no repo, os mesmos 278 de antes, **0 no arquivo desta onda**.
 
+### Render do protótipo conferido (e o que ele corrigiu no meu port)
+
+O protótipo foi servido local (`python -m http.server 5620 --directory prototipo-ui/cowork`,
+`localStorage["oimpresso.route"]="teammcp"`) e lido **depois** do `window.__oiLazyDone` com duas
+contagens iguais de nós (1007 = 1007) — nunca no meio do lazy-load (§5 2026-08-24).
+
+A leitura da estrutura pegou **duas diferenças reais** que a cópia à mão tinha deixado passar, e
+as duas foram corrigidas antes do commit:
+
+| o que o render mostrou | o que eu tinha escrito | conserto |
+|---|---|---|
+| `thead` do placar tem **8** colunas — a 8ª é vazia e guarda o botão "verificar" do papel sem sinal | 7 colunas, sem a saída | 8ª coluna com `.act` + `os-btn ghost`, visível só quando `sinal_ok` é falso |
+| rótulo da 1ª coluna é **"Agente"** | eu tinha trocado por "Papel" | voltou pra "Agente" — nenhuma lei de domínio mandava trocar (diferente de "aprovado", que a ADR 0368 §6 proíbe) |
+
+Estrutura conferida e batendo: herói `7 · esperando o seu aval` · alerta `2 handoffs com problema →`
+· `.ap-vivo` com 4 cards · `.ap-fila` com 7 `.ap-item` · `.ap-painel` · `.ap-acoes` com 3 botões ·
+`.fj-hj-team` com 5 linhas e a chip `1 sem sinal`.
+
+⚠️ Isto é conferência de **estrutura no protótipo**, não comparação prod×protótipo — a produção
+ainda não tem este código. **Não vale como o compare da meta**; serve pra provar que a cópia saiu
+fiel antes de ir pro CI.
+
 ### O que FALTA — e é a condição de fechar a linha 3 do §11
 
 1. Deploy (merge é [W] — ADR 0283).

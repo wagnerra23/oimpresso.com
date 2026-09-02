@@ -627,13 +627,14 @@ export default function Aprovacoes({
               <table className="fj-team-tbl">
                 <thead>
                   <tr>
-                    <th>Papel</th>
+                    <th>Agente</th>
                     <th>Sinal</th>
                     <th className="num">Sessões hoje</th>
                     <th>Custo hoje / quota</th>
                     <th>Critique F1.5</th>
                     <th className="num">Retrabalho</th>
                     <th className="num">Entregas 7d</th>
+                    <th />
                   </tr>
                 </thead>
                 <tbody>
@@ -668,6 +669,18 @@ export default function Aprovacoes({
                         {a.retrabalho > 0 && <small className="fj-ret-pct"> · {a.retrabalho_pct}%</small>}
                       </td>
                       <td className="num mono">{a.entregas}</td>
+                      {/* 8ª coluna do protótipo: a saída pra quem está mudo. */}
+                      <td className="act">
+                        {!a.sinal_ok && (
+                          <button
+                            type="button"
+                            className="os-btn ghost"
+                            onClick={() => router.visit('/forja/handoffs')}
+                          >
+                            verificar
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
