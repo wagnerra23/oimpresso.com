@@ -9,17 +9,22 @@
  *
  * COMO PROVA (duas metades, porque o codemod muda duas coisas):
  *   1. CORPO — desfaz `repl -> needle` em cada site e exige que o resto seja
- *      byte-idêntico ao blob de HEAD.
+ *      byte-idêntico ao blob da base (`--ref`).
  *   2. IMPORT — NÃO normaliza a linha. Recalcula qual linha o codemod DEVIA ter
- *      produzido (rodando o mesmo `mergeImport` sobre o fonte de HEAD) e exige
+ *      produzido (rodando o mesmo `mergeImport` sobre o fonte da base) e exige
  *      igualdade de string exata. A 1ª versão deste arquivo trocava a linha
  *      atual pela de HEAD antes de comparar — com isso qualquer byte estranho
  *      NAQUELA linha ficava invisível, e o bite-test provou: o teste passou
  *      verde com dano injetado no import. O conserto é este: verificar, nunca
  *      normalizar o que se quer medir.
  *
- * Uso: node scripts/codemods/glifo-para-lucide.identidade.mjs
- *      (depois do --apply, com as mudanças ainda não commitadas)
+ * Uso: node scripts/codemods/glifo-para-lucide.identidade.mjs [--ref <git-ref>]
+ *      --ref        base de comparação; default `origin/main` (o estado ANTES
+ *                   do codemod). NÃO use HEAD depois de commitar: HEAD já
+ *                   contém a transformação, e o teste reprova por comparar a
+ *                   mudança consigo mesma — vermelho falso que parece defeito
+ *                   do codemod. A 1ª versão daqui era fixa em HEAD e só
+ *                   funcionava na janela entre `--apply` e o commit.
  *      --bite-test  injeta dano nos 2 eixos e exige que ESTE teste reprove
  */
 import { readFileSync } from 'node:fs';
@@ -27,10 +32,13 @@ import { execFileSync } from 'node:child_process';
 import MagicString from 'magic-string';
 import { SITES, mergeImport } from './glifo-para-lucide.mjs';
 
+const iRef = process.argv.indexOf('--ref');
+const REF = iRef !== -1 && process.argv[iRef + 1] ? process.argv[iRef + 1] : 'origin/main';
+
 // execFile (não shell): no Git Bash do Windows o MSYS mangleia o `:` de
-// `HEAD:<path>` e o comando volta vazio (lápide §5 2026-08-23).
-const blobEmHead = (f) =>
-  execFileSync('git', ['show', 'HEAD:' + f], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+// `<ref>:<path>` e o comando volta vazio (lápide §5 2026-08-23).
+const blobNaBase = (f) =>
+  execFileSync('git', ['show', REF + ':' + f], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
 
 const linhaImport = (src) => src.split('\n').find((l) => l.includes("from 'lucide-react'"));
 
@@ -46,7 +54,7 @@ function verificar({ silencioso = false } = {}) {
 
   for (const [file, sites] of porArquivo) {
     let atual = readFileSync(file, 'utf8');
-    const original = blobEmHead(file);
+    const original = blobNaBase(file);
 
     // ── metade 2: a linha de import é VERIFICADA (string exata), não normalizada
     const icons = new Set();
@@ -62,7 +70,7 @@ function verificar({ silencioso = false } = {}) {
       log('     atual:    ' + JSON.stringify(importAtual));
       continue;
     }
-    // já verificada: agora pode voltar pra de HEAD, pra comparar o corpo
+    // já verificada: agora pode voltar pra da base, pra comparar o corpo
     atual = atual.replace(importAtual, linhaImport(original));
 
     // ── metade 1: corpo revertido tem que bater byte a byte
@@ -76,7 +84,7 @@ function verificar({ silencioso = false } = {}) {
     }
 
     if (atual === original) {
-      log('ok ' + file + '  (import verificado + corpo revertido = HEAD, byte a byte)');
+      log('ok ' + file + '  (import verificado + corpo revertido = ' + REF + ', byte a byte)');
     } else {
       falhas++;
       log('X  ' + file + '  corpo DIVERGE — o codemod tocou algo fora do contrato');
@@ -84,7 +92,7 @@ function verificar({ silencioso = false } = {}) {
       const b = atual.split('\n');
       for (let i = 0; i < Math.max(a.length, b.length); i++) {
         if (a[i] !== b[i]) {
-          log('     L' + (i + 1) + ' HEAD:  ' + JSON.stringify(a[i]));
+          log('     L' + (i + 1) + ' ' + REF + ':  ' + JSON.stringify(a[i]));
           log('     L' + (i + 1) + ' AGORA: ' + JSON.stringify(b[i]));
           break;
         }
@@ -132,7 +140,7 @@ if (process.argv[2] === '--bite-test') {
   console.log(
     falhas
       ? 'X identidade: ' + falhas + ' divergencia(s) fora do contrato'
-      : 'ok identidade: ' + nArquivos + ' arquivo(s) — import verificado e corpo byte-identico a HEAD'
+      : 'ok identidade: ' + nArquivos + ' arquivo(s) — import verificado e corpo byte-identico a ' + REF
   );
   process.exit(falhas ? 1 : 0);
 }
