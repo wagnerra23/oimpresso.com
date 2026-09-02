@@ -28,6 +28,8 @@ uses(Tests\TestCase::class);
  *
  * Tenant: NUNCA biz=4 (ROTA LIVRE — Larissa em produção). ADR 0358.
  *
+ * @covers-us US-MANU-001
+ *
  * @see resources/js/Pages/Manufacturing/Recipes.casos.md
  * @see memory/requisitos/Manufacturing/RUNBOOK-recipes.md
  */
