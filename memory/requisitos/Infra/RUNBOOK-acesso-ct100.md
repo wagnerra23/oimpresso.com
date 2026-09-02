@@ -42,13 +42,17 @@ Wagner abre a URL no browser, aprova, e os próximos comandos da mesma sessão S
 
 ## Estado da rede (verified 2026-05-06)
 
-| Acesso | Hostname Tailscale | IP | Auth |
-|---|---|---|---|
-| **CT 100 (Docker host)** | `ct100-mcp` | `100.99.207.66` | Tailscale SSH + chave |
-| **Proxmox host empresa** | `pve-empresa` | `100.116.24.69` | Tailscale SSH + chave |
-| Wagner laptop | `claude-code-wagner-pc` | `100.92.78.86` | — (origem) |
+| Acesso | Hostname Tailscale | IP Tailscale | IP LAN (rede da empresa) | Auth |
+|---|---|---|---|---|
+| **CT 100 (Docker host)** | `ct100-mcp` | `100.99.207.66` | `192.168.0.50` | Tailscale SSH + chave |
+| **Proxmox host empresa** | `pve-empresa` | `100.116.24.69` | **`192.168.0.2`** | Tailscale SSH + chave · web UI `:8006` |
+| Wagner laptop | `claude-code-wagner-pc` | `100.92.78.86` | (DHCP) | — (origem) |
 
-**LAN backup** (sem Tailscale): `ssh root@192.168.0.50` direto na rede da empresa.
+**LAN backup** (sem Tailscale):
+- CT 100 → `ssh root@192.168.0.50`
+- Proxmox → **`https://192.168.0.2:8006`** (web UI, realm Linux PAM)
+
+> ⚠️ **O `192.168.0.2` faltava neste canon.** A tabela trazia só o IP *Tailscale* do `pve-empresa` — e numa queda em que o **Tailscale está morto** é justamente o LAN que salva. O endereço não existia em lugar nenhum do repo (`git grep` vazio); [W] teve que fornecê-lo à mão em 2026-09-02. Medido no mesmo dia: `HTTP 200`, `conn=0.002s`, tela de login do Proxmox VE.
 
 ---
 
@@ -142,9 +146,15 @@ Se o boot anterior **terminou só quando você reiniciou** (e não 23h atrás), 
 
 **⛔ Não repita meu erro (Claude, 2026-07-16):** conclui *"host desligado ou desconectado"* a partir de ping+ARP negativos. A metade "desligado" estava **errada** — e o `--list-boots` provava em 1 comando. **Ausência de rede não distingue máquina morta de cabo morto**; o log de boot distingue.
 
-### Achado lateral do mesmo incidente: disco em 87%
+### Achado lateral do mesmo incidente: disco em 87% — ✅ caducou (re-medido 2026-09-02)
 
-`/dev/mapper/pve-vm--100--disk--0` → **81G de 99G (87%)**. Não causou a queda (é rede), mas está apertado: 13G livres num host que roda Langfuse + Postgres + MinIO + staging + Jaeger. **Vale um `docker system prune` + rotação de log/trace antes que vire incidente de verdade** (aí sim derruba, e por causa real).
+**Em 2026-07-16 (fato datado, preservado):** `/dev/mapper/pve-vm--100--disk--0` → **81G de 99G (87%)**. Não causou a queda (era rede), mas estava apertado: 13G livres num host que roda Langfuse + Postgres + MinIO + staging + Jaeger. O parágrafo original pedia `docker system prune` + rotação de log/trace.
+
+**Re-medido em 2026-09-02:** o volume foi **expandido para 197G** — agora **91G de 197G (49%)**, 98G livres. A urgência do `prune` **caducou**. O número de julho segue verdadeiro na data dele; quem apodreceu foi o ponteiro "vale um prune antes que vire incidente".
+
+```bash
+tailscale ssh root@ct100-mcp 'df -h /'
+```
 
 ---
 
@@ -174,6 +184,33 @@ EOF
 ### 5. `ssh root@100.99.207.66` direto (não via tailscale ssh)
 - **Funciona** se você tem chave SSH instalada no CT 100.
 - Mas Tailscale SSH é preferível: ACL granular, audit em Tailscale console, sem precisar gerenciar chaves manualmente.
+
+### 6. `grep --include` NÃO existe dentro dos containers (BusyBox) — o vazio é ERRO, não ausência
+
+Os containers do CT 100 são Alpine, e o `grep` é BusyBox:
+
+```
+grep -rn Foo --include=*.php .   →   rc=2   "grep: unrecognized option: include=*.php"
+```
+
+Saída vazia, erro no stderr. Se você canalizar (`| head`), o `rc` passa a ser o do `head` (**0**) e o vazio se disfarça de "não achei". Foi assim que em 2026-09-02 concluí que `MyWorkTool` não era referenciado em lugar nenhum — o registro estava, o tempo todo, em `Modules/Jana/Mcp/OimpressoMcpServer.php`.
+
+**Forma que funciona dentro do container:**
+```bash
+find . -name "*.php" -not -path "./vendor/*" | xargs grep -ln Foo
+```
+
+Regra geral: rode um **controle positivo** (um padrão que você SABE que casa, com as mesmas flags) antes de confiar em qualquer resultado vazio.
+
+### 7. `tools/list` do MCP é PAGINADO de 15 em 15 — uma página não é o inventário
+
+O servidor devolve `nextCursor` (base64 de `{"offset":N}`). Ler só a 1ª página entrega **15 de 44** tools e sugere, falsamente, que `decisions-fetch`, `sessions-recent`, `memoria-search`, `cc-search` e `claude-code-usage-self` "sumiram" — as cinco estão registradas e funcionando. Caí nisso em 2026-09-02, e o corte limpo em ordem de array é justamente o que denuncia paginação (filtro de escopo seria espalhado).
+
+Para inventariar de verdade: **exaurir as páginas** seguindo o `nextCursor`, ou ler a fonte, que é o oráculo:
+
+```bash
+tailscale ssh root@ct100-mcp 'docker exec oimpresso-mcp sh -c "grep -c Tool::class Modules/Jana/Mcp/OimpressoMcpServer.php"'
+```
 
 ---
 
