@@ -139,6 +139,163 @@ class RecipeBomService
     }
 
     /**
+     * Lista as recipes do business com o custo JÁ RECALCULADO na leitura — payload da tela
+     * Inertia `Manufacturing/Recipes` (rota `/manufacturing/recipe`).
+     *
+     * Tier 0 ({@see ADR 0093}): Manufacturing legacy NÃO tem global scope. O isolamento é o
+     * JOIN `mfg_recipes.variation_id -> variations.product_id -> products.business_id` — a
+     * mesma cadeia do `RecipeController@index` e do `resolveBom()` acima. Sem ele, receita de
+     * outro tenant aparece na lista.
+     *
+     * O custo NÃO sai de `mfg_recipes.ingredients_cost` (coluna que envelhece: o preço do
+     * insumo muda sem passar pela receita). Sai de `calculateCost()`, que lê
+     * `variations.dpp_inc_tax` de hoje — é o contrato "custo recalculado a cada leitura"
+     * que a tela declara ao usuário.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function listRecipesWithCost(int $businessId): array
+    {
+        return OtelHelper::spanBiz('manufacturing.recipe.list_with_cost', function () use ($businessId) {
+            $recipes = MfgRecipe::query()
+                ->join('variations as v', 'mfg_recipes.variation_id', '=', 'v.id')
+                ->join('product_variations as pv', 'v.product_variation_id', '=', 'pv.id')
+                ->join('products as p', 'v.product_id', '=', 'p.id')
+                ->leftJoin('categories as c', 'p.category_id', '=', 'c.id')
+                ->leftJoin('categories as sc', 'p.sub_category_id', '=', 'sc.id')
+                ->leftJoin('units as u', 'p.unit_id', '=', 'u.id')
+                ->where('p.business_id', $businessId)
+                ->with([
+                    'sub_unit',
+                    'ingredients',
+                    'ingredients.variation',
+                    'ingredients.variation.product',
+                    'ingredients.variation.product.unit',
+                    'ingredients.sub_unit',
+                    'ingredients.ingredient_group',
+                ])
+                ->select(
+                    'mfg_recipes.*',
+                    DB::raw('IF(p.type="variable", CONCAT(p.name, " - ", pv.name, " - ", v.name), p.name) as recipe_name'),
+                    'v.sub_sku as recipe_sku',
+                    'p.name as product_name',
+                    'c.name as category',
+                    'sc.name as sub_category',
+                    'u.short_name as unit_name'
+                )
+                ->orderBy('p.name', 'asc')
+                ->get();
+
+            return $recipes->map(function (MfgRecipe $recipe) {
+                return $this->presentRecipe($recipe);
+            })->all();
+        }, [
+            'module' => 'Manufacturing',
+        ]);
+    }
+
+    /**
+     * Monta a linha da tela a partir da recipe — nome, cadeia de categoria, grupos de
+     * ingredientes e o bloco de custo de §7 do handoff.
+     *
+     * Todo número exibido é derivado AQUI, no servidor. O cliente não recalcula nada: ele
+     * formata. (§9 do handoff: "o protótipo calcula para dar retorno imediato; a autoridade
+     * é o servidor".)
+     *
+     * @return array<string, mixed>
+     */
+    private function presentRecipe(MfgRecipe $recipe): array
+    {
+        $grupos = [];
+
+        $ingredients = $recipe->ingredients->sortBy('sort_order');
+
+        foreach ($ingredients as $ingredient) {
+            $variation = $ingredient->variation;
+
+            $multiplier = ! empty($ingredient->sub_unit) && ! empty($ingredient->sub_unit->base_unit_multiplier)
+                ? (float) $ingredient->sub_unit->base_unit_multiplier
+                : 1.0;
+
+            $precoUnit  = $variation ? (float) $variation->dpp_inc_tax : 0.0;
+            $quantidade = (float) $ingredient->quantity;
+            $unidadeBase = optional(optional(optional($variation)->product)->unit)->short_name ?? '';
+
+            // Grupo pode ser nulo (ingrediente sem mfg_ingredient_group_id) — o legado
+            // permite. Cai num balde "Sem grupo" em vez de sumir da ficha.
+            $nomeGrupo = optional($ingredient->ingredient_group)->name ?: 'Sem grupo';
+
+            if (! isset($grupos[$nomeGrupo])) {
+                $grupos[$nomeGrupo] = ['g' => $nomeGrupo, 'itens' => []];
+            }
+
+            $grupos[$nomeGrupo]['itens'][] = [
+                'id'             => (int) $ingredient->id,
+                'nome'           => $variation && $variation->product ? $variation->product->name : '—',
+                'sku'            => $variation ? $variation->sub_sku : '—',
+                'quantidade'     => $quantidade,
+                'unidade'        => optional($ingredient->sub_unit)->short_name ?: $unidadeBase,
+                'unidade_base'   => $unidadeBase,
+                'multiplicador'  => $multiplier,
+                'custo_unitario' => $precoUnit,
+                'subtotal'       => $quantidade * $precoUnit * $multiplier,
+            ];
+        }
+
+        $grupos = array_values($grupos);
+
+        foreach ($grupos as $i => $grupo) {
+            $grupos[$i]['subtotal'] = array_sum(array_column($grupo['itens'], 'subtotal'));
+        }
+
+        $totalQuantity = (float) $recipe->total_quantity;
+        $waste         = (float) ($recipe->waste_percent ?? 0);
+        $finalPrice    = (float) ($recipe->final_price ?? 0);
+
+        $ingredientes = array_sum(array_column($grupos, 'subtotal'));
+        $custoTotal   = $this->calculateCost($recipe);
+        $custoExtra   = $custoTotal - $ingredientes;
+
+        // §7.3 — divisão por zero devolve 0, nunca NaN/Infinity.
+        // §7.1 — custo unitário divide por total_quantity, NÃO pelo rendimento.
+        $custoUnit = $totalQuantity > 0 ? $custoTotal / $totalQuantity : 0.0;
+        $margem    = $finalPrice > 0 ? ($finalPrice - $custoUnit) / $finalPrice * 100 : 0.0;
+
+        $subUnit = $recipe->sub_unit;
+
+        return [
+            'id'             => (int) $recipe->id,
+            'variation_id'   => (int) $recipe->variation_id,
+            'name'           => $recipe->recipe_name ?: ($recipe->product_name ?: '—'),
+            'sku'            => $recipe->recipe_sku ?: '—',
+            'cat'            => $recipe->category ?: 'Sem categoria',
+            'sub'            => $recipe->sub_category ?: '—',
+            'qtd'            => $totalQuantity,
+            'un'             => $recipe->unit_name ?: '',
+            'waste'          => $waste,
+            'extra'          => (float) ($recipe->extra_cost ?? 0),
+            'custo_tipo'     => $recipe->production_cost_type ?: 'percentage',
+            'venda'          => $finalPrice,
+            'atualizado'     => optional($recipe->updated_at)->format('d/m/Y H:i'),
+            'sub_un'         => $subUnit ? $subUnit->short_name : null,
+            'sub_fator'      => $subUnit && ! empty($subUnit->base_unit_multiplier)
+                ? (float) $subUnit->base_unit_multiplier
+                : null,
+            'grupos'         => $grupos,
+            'n_ingredientes' => array_sum(array_map(function ($g) { return count($g['itens']); }, $grupos)),
+            'custos'         => [
+                'ingredientes' => $ingredientes,
+                'extra'        => $custoExtra,
+                'total'        => $custoTotal,
+                // §16 — rendimento líquido = total_quantity − total_quantity × waste/100
+                'qtd_liq'      => $totalQuantity - $totalQuantity * $waste / 100,
+                'unit'         => $custoUnit,
+                'margem'       => $margem,
+            ],
+        ];
+    }
+
+    /**
      * Lista recipes do business em formato dropdown — wrapper sobre MfgRecipe::forDropdown()
      * com tipagem explícita pra DI em Controllers.
      *

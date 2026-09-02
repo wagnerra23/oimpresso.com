@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 use Modules\Manufacturing\Concerns\LogsWithPiiRedactor;
 use Modules\Manufacturing\Entities\MfgIngredientGroup;
 use Modules\Manufacturing\Entities\MfgRecipe;
@@ -60,7 +61,7 @@ class RecipeController extends Controller
      *
      * @return Response
      */
-    public function index()
+    public function index(\Modules\Manufacturing\Services\ProductionService $productionService)
     {
         $business_id = request()->session()->get('user.business_id');
         if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_recipe')) {
@@ -138,7 +139,50 @@ class RecipeController extends Controller
                 ->make(true);
         }
 
-        return view('manufacturing::recipe.index');
+        // A tela de Fabricação (handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1", §4.2 + §4.3)
+        // passa a ser servida NESTE endereço — `/manufacturing/recipe` — por decisão [W]
+        // 2026-09-02 ("coloque a tela de Fabricação em produção no endereço
+        // https://oimpresso.com/manufacturing/recipe").
+        //
+        // O que NÃO muda, de propósito:
+        //  · nenhuma rota Blade de `Routes/web.php` foi removida (proibição do §15.2 do
+        //    handoff). O ramo `request()->ajax()` acima segue intacto e servindo DataTables.
+        //  · `?legacy=1` devolve a tela Blade antiga no MESMO endereço — rede de segurança
+        //    do cutover, sem rota nova. Coberta por teste (Wave29RecipeInertiaTest).
+        //  · criar receita e editar ingredientes seguem nas telas legadas; a tela nova
+        //    aponta pra elas em vez de reimplementá-las.
+        if (request()->boolean('legacy')) {
+            return view('manufacturing::recipe.index');
+        }
+
+        $settings = $this->mfgUtil->getSettings($business_id) ?: [];
+
+        // Contadores das abas (§4.1) e do KPI 4 (§4.2). Duas leituras distintas de
+        // propósito: a aba diz "quantas ordens existem" (all-time), o KPI diz
+        // "quanto se produziu no mês".
+        $ordens = $productionService->summary($business_id);
+        $mes = $productionService->monthSummary($business_id);
+
+        return Inertia::render('Manufacturing/Recipes', [
+            // §9 — custo recalculado NO SERVIDOR a cada leitura, a partir do
+            // `variations.dpp_inc_tax` de hoje. O cliente formata, não calcula.
+            'recipes' => $this->recipeBomService->listRecipesWithCost($business_id),
+            'permissions' => [
+                'criar'  => auth()->user()->can('manufacturing.add_recipe'),
+                'editar' => auth()->user()->can('manufacturing.edit_recipe'),
+                'prod'   => auth()->user()->can('manufacturing.access_production'),
+            ],
+            'producao' => [
+                'total'       => (int) $ordens['total_count'],
+                'rascunhos'   => (int) $ordens['pending_count'],
+                'mes_final'   => (int) $mes['final_count'],
+                'mes_rascunho' => (int) $mes['draft_count'],
+            ],
+            'settings' => [
+                // §16 — chave real do JSON `business.manufacturing_settings`.
+                'enable_updating_product_price' => ! empty($settings['enable_updating_product_price']),
+            ],
+        ]);
     }
 
     /**
