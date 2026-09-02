@@ -280,8 +280,10 @@ class DataController extends Controller
                         // sidebar INTEIRO, não só este item. A entrada agora vive no
                         // ghost `custos` do DataController da Governança.
 
-                        // Plataforma (superadmin-only)
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('jana.superadmin')) {
+                        // Plataforma (superadmin-only). O gate é o REAL — `can('jana.superadmin')`
+                        // é bypassado pelo `Gate::before` pra todo Admin#{biz} (P0 #6421), e o
+                        // link aparecia pra dono de empresa que depois tomava 403.
+                        if (self::podeVerPlataforma()) {
                             $sub->url(
                                 route('jana.superadmin.metas'),
                                 __('copiloto::copiloto.menu.plataforma'),
@@ -348,6 +350,12 @@ class DataController extends Controller
                             // do ghost `kb` neste mesmo bloco em 2026-08-05 (ADR 0366). A key
                             // `memorias` fica: é o alvo do `mapActiveToGhostKey('memoria')`.
                             ['key' => 'memorias',  'label' => 'Memória',  'href' => '/ia/memoria'],
+                            // Plataforma — 6ª aba da âncora (`JmTabs`), só com `jana.superadmin`
+                            // REAL (2026-09-02; tela Inertia `Jana/Plataforma`). O spread vazio
+                            // some da lista pra quem não pode — o protótipo faz o mesmo (`can(...)`).
+                            ...(self::podeVerPlataforma()
+                                ? [['key' => 'plataforma', 'label' => 'Plataforma', 'href' => '/ia/superadmin/metas']]
+                                : []),
                             // Ghost 'kb' removido 2026-08-05 ([W]: "governança, KB, saem"):
                             // `/ia/kb` é `Route::redirect(…, '/kb', 302)` — apontava pro
                             // redirect de uma tela que é do Modules/KB e tem entrada própria.
@@ -422,5 +430,23 @@ class DataController extends Controller
                 )->order(90); // Logo após PontoWr2 (88)
             }
         );
+    }
+
+    /**
+     * Quem pode ver a aba/tela Plataforma — ESPELHA `SuperadminController::metas()`.
+     * Duas portas, e nenhuma é o `can()` sozinho: `hasPermissionTo` consulta o Spatie
+     * direto (imune ao `Gate::before`), e `user_type` é coluna, não ability.
+     */
+    private static function podeVerPlataforma(): bool
+    {
+        $user = auth()->user();
+
+        try {
+            $temPermissaoReal = (bool) $user?->hasPermissionTo('jana.superadmin');
+        } catch (\Throwable $e) {
+            $temPermissaoReal = false; // permissão não cadastrada no guard ⇒ ninguém a tem
+        }
+
+        return $temPermissaoReal || in_array($user?->user_type, ['superadmin', 'user_oimpresso'], true);
     }
 }
