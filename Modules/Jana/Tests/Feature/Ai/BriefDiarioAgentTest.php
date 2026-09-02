@@ -21,17 +21,67 @@ uses(Tests\TestCase::class);
  * R-COPI-202 — GUARD tests pra BriefDiarioAgent (US-COPI-202, ADR 0141).
  *
  * Cobre pattern "Claude Code" (HasTools laravel/ai):
- *  001. Cada Tool retorna JSON string parseável (5 smoke tests)
+ *  001. Cada Tool responde ok=true com shape estável (5 smoke tests)
  *  002. VendasPeriodoTool IGNORA args do Request — Tier 0 mecânico
- *  003. Tier 0 cross-tenant — Tool(biz=1) NÃO vê biz=99 mesmo se LLM tentar
+ *  003. Tier 0 cross-tenant — Tool(biz=98) NÃO vê biz=99 mesmo se LLM tentar
  *  004. Agent declara 5 tools + instructions contém business_id literal
  *  005. Agent com fakeAgent retorna response controlada (loop fechado)
  *
+ * TENANTS (ADR 0358): 98 = tenant canônico de teste (empresa FICTÍCIA); 99 = a outra
+ * empresa fictícia, adversário de isolamento. biz=1 é a WR2 Sistemas — empresa REAL —
+ * e deixou de ser default de teste; biz=4 (ROTA LIVRE) é proibido sem exceção.
+ *
  * @see memory/decisions/0141-agents-tool-use-pattern-claude-code.md
+ * @see memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md
  */
+
+/** Tenant canônico de teste — empresa fictícia (ADR 0358). */
+const BRIEF_DIARIO_BIZ = 98;
+
+/** A outra empresa fictícia — adversário de isolamento cross-tenant (ADR 0358). */
+const BRIEF_DIARIO_BIZ_ADVERSARIO = 99;
+
+/**
+ * As 5 tools do brief, nomeadas, apontadas pro business dado.
+ *
+ * Existe pra que o teste 003 possa instanciar o MESMO conjunto duas vezes — uma como
+ * vítima (98) e uma como adversário (99) — e assim ter controle positivo.
+ */
+function briefDiarioTools(int $businessId): array
+{
+    return [
+        'vendas' => new VendasPeriodoTool($businessId),
+        'inadimplencia' => new InadimplenciaTool($businessId),
+        'tickets' => new TicketsTopTool($businessId),
+        'nfe' => new NfeStatusTool($businessId),
+        'oportunidades' => new OportunidadesTool($businessId),
+    ];
+}
+
 beforeEach(function () {
+    // ─────────────────────────────────────────────────────────────────────────────
+    // GUARD SQLITE-ONLY — É PROTEÇÃO, NÃO DÍVIDA. Não troque por "rodar em MySQL".
+    //
+    // Este arquivo monta schema SINTÉTICO com `dropIfExists` nas 9 tabelas abaixo.
+    // Em sqlite `:memory:` isso é inócuo (banco por processo, descartado no fim).
+    // Em MySQL seria DESTRUTIVO: o `scripts/tests/ct100-fullsuite.sh` roda a suíte
+    // inteira, sharded, contra o `oimpresso-staging`, cuja base é PERSISTENTE
+    // (proibicoes.md §Ambiente). Ele CARREGA este arquivo — é este skip que impede
+    // `dropIfExists('transactions')` de dropar a tabela real de lá.
+    //
+    // Onde ele RODA de verdade: lane `PHP / Pest (Unit)` do ci.yml, via
+    // `.github/ci-sqlite-pest.list:34` — e essa lane é REQUIRED
+    // (governance/required-checks-baseline.json). Ele NÃO está na allowlist MySQL do
+    // jana-pest.yml de propósito, e aquela lane é advisory: mover pra lá rebaixaria
+    // esta trava Tier 0 de required pra advisory.
+    //
+    // ⚠️ A redação anterior desta mensagem prometia "burn-down converte depois" —
+    // uma migração pra MySQL que não deve acontecer nesta forma. Foi essa frase que
+    // gerou, em 2026-09-02, uma tarefa pra "fazer o teste rodar em MySQL". LC-15:
+    // artefato não anuncia o que não deve entregar.
+    // ─────────────────────────────────────────────────────────────────────────────
     if (DB::connection()->getDriverName() !== 'sqlite') {
-        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+        test()->markTestSkipped('sqlite-only por PROTEÇÃO: monta schema sintético com dropIfExists e a base do CT 100 é persistente. Roda na lane required `PHP / Pest (Unit)`. Ver comentário no beforeEach.');
     }
 
     // RELÓGIO CONGELADO — este teste semeia `transaction_date => now()->subHours(1)` e afirma
@@ -76,6 +126,17 @@ beforeEach(function () {
         $t->increments('id');
         $t->unsignedInteger('business_id');
         $t->string('name', 191);
+        // `is_default` marca walk-in no UltimatePOS ("Cliente Balcão") e é LIDA pelo
+        // BriefDiarioService::oportunidadesUpsell, nos dois whereRaw
+        // `(c.is_default IS NULL OR c.is_default <> 1)`.
+        //
+        // Ela FALTAVA aqui, e o comentário do Service diz que o raw serve pra "tolerar"
+        // a ausência da coluna em ambiente de teste — o que é FALSO: o raw tolera valor
+        // NULL, não coluna inexistente. O sqlite estourava "no such column: c.is_default",
+        // o try/catch do Service devolvia `ok:false`, e as asserções de ausência do
+        // teste 003 passavam sobre um payload de ERRO. Espelha o schema real:
+        // `contacts.is_default` = tinyint(1) NOT NULL DEFAULT 0.
+        $t->boolean('is_default')->default(0);
         $t->timestamps();
     });
 
@@ -134,20 +195,12 @@ beforeEach(function () {
 
 afterEach(fn () => Carbon::setTestNow());
 
-it('R-COPI-202-001 — cada Tool retorna JSON parseável com shape estável', function () {
+it('R-COPI-202-001 — cada Tool responde ok=true com shape estável', function () {
     DB::table('transactions')->insert([
-        ['business_id' => 1, 'type' => 'sell', 'status' => 'final', 'final_total' => 100, 'transaction_date' => now()->subHours(2), 'created_at' => now()->subHours(2), 'updated_at' => now()->subHours(2)],
+        ['business_id' => BRIEF_DIARIO_BIZ, 'type' => 'sell', 'status' => 'final', 'final_total' => 100, 'transaction_date' => now()->subHours(2), 'created_at' => now()->subHours(2), 'updated_at' => now()->subHours(2)],
     ]);
 
-    $tools = [
-        'vendas' => new VendasPeriodoTool(1),
-        'inadimplencia' => new InadimplenciaTool(1),
-        'tickets' => new TicketsTopTool(1),
-        'nfe' => new NfeStatusTool(1),
-        'oportunidades' => new OportunidadesTool(1),
-    ];
-
-    foreach ($tools as $nome => $tool) {
+    foreach (briefDiarioTools(BRIEF_DIARIO_BIZ) as $nome => $tool) {
         $json = (string) $tool->handle(new ToolRequest([]));
 
         $data = json_decode($json, true);
@@ -155,12 +208,11 @@ it('R-COPI-202-001 — cada Tool retorna JSON parseável com shape estável', fu
         expect($json)->toBeString();
         expect($data)->toBeArray()->toHaveKey('ok');
 
-        // SONDA (commit 1 de 2 — este commit é o CONTROLE NEGATIVO, e nasce VERMELHO
-        // de propósito). A asserção anterior era `toBeBool()`, satisfeita tanto por
-        // `ok:true` quanto por `ok:false`. Como toda source do BriefDiarioService é
-        // `try { ok:true } catch { ok:false }`, uma exceção de schema saía VERDE.
-        // Trocando por `toBeTrue()`, a source que não responde passa a DIZER quem é
-        // e por quê — e é essa mensagem que vira o recibo no corpo do PR.
+        // ANTI-VÁCUO. A asserção anterior era `toBeBool()` — satisfeita por `ok:false`.
+        // Como TODA source do BriefDiarioService é `try { ok:true } catch { ok:false }`,
+        // qualquer exceção de schema saía VERDE aqui. Era exatamente o caso do
+        // OportunidadesTool (ver `is_default` no beforeEach). `ok` é o contrato do LLM:
+        // se a source não respondeu, o teste tem que doer.
         expect($data['ok'])->toBeTrue(
             "Tool {$nome} devolveu ok=false — reason=".($data['reason'] ?? '?')
             .' / '.($data['error_message'] ?? 'sem error_message')
@@ -170,17 +222,17 @@ it('R-COPI-202-001 — cada Tool retorna JSON parseável com shape estável', fu
 
 it('R-COPI-202-002 — VendasPeriodoTool IGNORA args do Request (Tier 0 mecânico)', function () {
     DB::table('transactions')->insert([
-        // biz=1 com venda hoje
-        ['business_id' => 1, 'type' => 'sell', 'status' => 'final', 'final_total' => 500, 'transaction_date' => now()->subHours(1), 'created_at' => now()->subHours(1), 'updated_at' => now()->subHours(1)],
+        // biz=98 (tenant de teste) com venda hoje
+        ['business_id' => BRIEF_DIARIO_BIZ, 'type' => 'sell', 'status' => 'final', 'final_total' => 500, 'transaction_date' => now()->subHours(1), 'created_at' => now()->subHours(1), 'updated_at' => now()->subHours(1)],
         // biz=99 com venda gigante — NÃO pode aparecer
-        ['business_id' => 99, 'type' => 'sell', 'status' => 'final', 'final_total' => 99999, 'transaction_date' => now()->subHours(1), 'created_at' => now()->subHours(1), 'updated_at' => now()->subHours(1)],
+        ['business_id' => BRIEF_DIARIO_BIZ_ADVERSARIO, 'type' => 'sell', 'status' => 'final', 'final_total' => 99999, 'transaction_date' => now()->subHours(1), 'created_at' => now()->subHours(1), 'updated_at' => now()->subHours(1)],
     ]);
 
-    $tool = new VendasPeriodoTool(1); // biz=1 hardcoded no constructor
+    $tool = new VendasPeriodoTool(BRIEF_DIARIO_BIZ); // business hardcoded no constructor
 
     // LLM "alucinado" tenta passar business_id=99 ou outros campos — Tool deve ignorar
     $maliciousRequest = new ToolRequest([
-        'business_id' => 99,
+        'business_id' => BRIEF_DIARIO_BIZ_ADVERSARIO,
         'override_tenant' => true,
         'sql' => 'DROP TABLE transactions',
     ]);
@@ -188,51 +240,102 @@ it('R-COPI-202-002 — VendasPeriodoTool IGNORA args do Request (Tier 0 mecânic
     $json = (string) $tool->handle($maliciousRequest);
     $data = json_decode($json, true);
 
-    // Só vê venda de biz=1 (R$ [redacted Tier 0]) — nunca R$ [redacted Tier 0] de biz=99
+    // Só vê a venda de biz=98 — nunca a de biz=99
     // toEqual (loose) porque JSON encode/decode pode promover float→int em valores .00
     expect((float) $data['hoje']['total'])->toEqual(500.0);
     expect((float) $data['hoje']['total'])->not->toEqual(99999.0);
 });
 
-it('R-COPI-202-003 — Tier 0 cross-tenant: 5 Tools(biz=1) NUNCA expoem dados de biz=99', function () {
-    // Setup cross-tenant: biz=99 cheio de dados, biz=1 vazio.
+it('R-COPI-202-003 — Tier 0 cross-tenant: 5 Tools(biz=98) NUNCA expoem dados de biz=99', function () {
+    $adv = BRIEF_DIARIO_BIZ_ADVERSARIO;
+
+    // Setup cross-tenant: biz=99 cheio de dados, biz=98 vazio.
     // Inserts separados pra SQLite aceitar diferentes shapes (payment_status/due_date).
-    DB::table('transactions')->insert([
-        'business_id' => 99, 'type' => 'sell', 'status' => 'final', 'payment_status' => 'paid', 'final_total' => 1000, 'transaction_date' => now()->subHours(2), 'due_date' => null, 'created_at' => now()->subHours(2), 'updated_at' => now()->subHours(2),
+    //
+    // ⚠️ Cada uma das 5 sources tem que ter dado do adversário, com um MARCADOR PRÓPRIO,
+    // senão a asserção de ausência lá embaixo é vácuo. Antes desta revisão só 2 das 5
+    // tinham (`tickets` e nada mais): a transação vencida não trazia `contact_id`, então
+    // `top_5_devedores` vinha vazio e "não vazou Cliente Alien" passava por ausência de
+    // dado; e não havia sell_line nenhuma, então `oportunidades` nunca teve o que vazar.
+    $vendaAdversario = DB::table('transactions')->insertGetId([
+        'business_id' => $adv, 'type' => 'sell', 'status' => 'final', 'payment_status' => 'paid', 'contact_id' => 99, 'final_total' => 4242.42, 'transaction_date' => now()->subHours(2), 'due_date' => null, 'created_at' => now()->subHours(2), 'updated_at' => now()->subHours(2),
     ]);
     DB::table('transactions')->insert([
-        'business_id' => 99, 'type' => 'sell', 'status' => 'final', 'payment_status' => 'due', 'final_total' => 5000, 'due_date' => now()->subDays(45), 'transaction_date' => now()->subDays(50), 'created_at' => now()->subDays(50), 'updated_at' => now()->subDays(50),
+        'business_id' => $adv, 'type' => 'sell', 'status' => 'final', 'payment_status' => 'due', 'contact_id' => 99, 'final_total' => 5000, 'due_date' => now()->subDays(45), 'transaction_date' => now()->subDays(50), 'created_at' => now()->subDays(50), 'updated_at' => now()->subDays(50),
     ]);
     DB::table('contacts')->insert([
-        ['id' => 99, 'business_id' => 99, 'name' => 'Cliente Alien', 'created_at' => now(), 'updated_at' => now()],
+        // is_default=0 → NÃO é walk-in, então entra no ranking de oportunidades.
+        ['id' => 99, 'business_id' => $adv, 'name' => 'Cliente Alien', 'is_default' => 0, 'created_at' => now(), 'updated_at' => now()],
+    ]);
+    DB::table('products')->insert([
+        ['id' => 99, 'business_id' => $adv, 'name' => 'Produto Alien', 'created_at' => now(), 'updated_at' => now()],
+    ]);
+    // 3 sell_lines do MESMO (contact 99, product 99) em 90d → combo (having repetes >= 3).
+    DB::table('transaction_sell_lines')->insert([
+        ['transaction_id' => $vendaAdversario, 'product_id' => 99, 'created_at' => now(), 'updated_at' => now()],
+        ['transaction_id' => $vendaAdversario, 'product_id' => 99, 'created_at' => now(), 'updated_at' => now()],
+        ['transaction_id' => $vendaAdversario, 'product_id' => 99, 'created_at' => now(), 'updated_at' => now()],
     ]);
     DB::table('channels')->insert([
-        ['id' => 99, 'business_id' => 99, 'label' => 'X', 'type' => 'whatsapp_baileys', 'created_at' => now(), 'updated_at' => now()],
+        ['id' => 99, 'business_id' => $adv, 'label' => 'X', 'type' => 'whatsapp_baileys', 'created_at' => now(), 'updated_at' => now()],
     ]);
     DB::table('conversations')->insert([
-        ['id' => 999, 'business_id' => 99, 'channel_id' => 99, 'customer_external_id' => '+99', 'contact_name' => 'Vazamento', 'unread_count' => 50, 'status' => 'open', 'is_blocked' => false, 'last_message_at' => now(), 'created_at' => now(), 'updated_at' => now()],
+        ['id' => 999, 'business_id' => $adv, 'channel_id' => 99, 'customer_external_id' => '+99', 'contact_name' => 'Vazamento', 'unread_count' => 50, 'status' => 'open', 'is_blocked' => false, 'last_message_at' => now(), 'created_at' => now(), 'updated_at' => now()],
     ]);
     DB::table('nfe_emissoes')->insert([
-        ['business_id' => 99, 'cstat' => 100, 'created_at' => now()->subDays(2), 'updated_at' => now()],
+        ['business_id' => $adv, 'cstat' => 100, 'created_at' => now()->subDays(2), 'updated_at' => now()],
     ]);
 
-    $tools = [
-        'vendas' => new VendasPeriodoTool(1),
-        'inadimplencia' => new InadimplenciaTool(1),
-        'tickets' => new TicketsTopTool(1),
-        'nfe' => new NfeStatusTool(1),
-        'oportunidades' => new OportunidadesTool(1),
-    ];
-
-    foreach ($tools as $nome => $tool) {
+    // ── CONTROLE POSITIVO ────────────────────────────────────────────────────────
+    // As MESMAS 5 tools, apontadas pro adversário, TÊM que enxergar cada marcador.
+    // Sem este bloco, o bloco negativo abaixo não prova isolamento — provaria apenas
+    // que a query voltou vazia (ou estourou e virou payload de erro).
+    $doAdversario = [];
+    foreach (briefDiarioTools($adv) as $nome => $tool) {
         $json = (string) $tool->handle(new ToolRequest([]));
-
-        // Nome do contato cross-tenant não pode aparecer no JSON
-        expect($json)->not->toContain('Vazamento', "Tool {$nome} vazou contact_name de biz=99");
-        expect($json)->not->toContain('Cliente Alien', "Tool {$nome} vazou name de biz=99");
-        // Valores monetários cross-tenant não podem aparecer
-        expect($json)->not->toContain('99999', "Tool {$nome} vazou valor de biz=99");
+        $data = json_decode($json, true);
+        expect($data['ok'])->toBeTrue(
+            "controle positivo: tool {$nome} devolveu ok=false — ".($data['error_message'] ?? ($data['reason'] ?? '?'))
+        );
+        $doAdversario[$nome] = ['json' => $json, 'data' => $data];
     }
+
+    expect((float) $doAdversario['vendas']['data']['hoje']['total'])->toEqual(4242.42);
+    expect($doAdversario['inadimplencia']['json'])->toContain('Cliente Alien');
+    expect($doAdversario['tickets']['json'])->toContain('Vazamento');
+    expect($doAdversario['nfe']['data']['emitidas_30d'])->toBe(1);
+    expect($doAdversario['oportunidades']['json'])->toContain('Produto Alien');
+
+    // ── O TESTE ──────────────────────────────────────────────────────────────────
+    // Mesmo dado, mesmas tools, business diferente: nada disso pode aparecer.
+    // Só entram marcadores que o controle positivo acima PROVOU existir do lado do
+    // adversário. Marcador sem dado por trás é asserção decorativa: passa sempre.
+    $marcadores = ['Cliente Alien', 'Produto Alien', 'Vazamento', '4242.42'];
+    $daVitima = [];
+
+    foreach (briefDiarioTools(BRIEF_DIARIO_BIZ) as $nome => $tool) {
+        $json = (string) $tool->handle(new ToolRequest([]));
+        $data = json_decode($json, true);
+
+        // ANTI-VÁCUO: source que estourou devolve payload de erro, e payload de erro
+        // não contém marcador nenhum — passaria em todas as asserções abaixo sem ter
+        // provado isolamento. Era assim que `oportunidades` vinha passando.
+        expect($data['ok'])->toBeTrue(
+            "Tool {$nome} devolveu ok=false — as asserções de ausência abaixo seriam vácuo"
+        );
+
+        foreach ($marcadores as $marcador) {
+            expect($json)->not->toContain($marcador, "Tool {$nome} vazou '{$marcador}' de biz=99");
+        }
+
+        $daVitima[$nome] = $data;
+    }
+
+    // E o outro lado da moeda: biz=98 enxerga ZERO, não "alguma coisa menor".
+    expect((float) $daVitima['vendas']['hoje']['total'])->toEqual(0.0);
+    expect($daVitima['nfe']['emitidas_30d'])->toBe(0);
+    expect($daVitima['tickets']['top_5'])->toBe([]);
+    expect($daVitima['oportunidades']['combo_candidatos'])->toBe([]);
 });
 
 it('R-COPI-202-004 — Agent declara 5 tools + instructions contém business_id literal', function () {
@@ -303,7 +406,7 @@ it('R-COPI-202-005 — Agent com fakeAgent retorna response controlada (loop fec
         '## ☀️ Bom dia!'.PHP_EOL.PHP_EOL.'### 📊 Vendas'.PHP_EOL.'Brief gerado em modo fake.',
     ]);
 
-    $agent = new BriefDiarioAgent(businessId: 1);
+    $agent = new BriefDiarioAgent(businessId: BRIEF_DIARIO_BIZ);
     $response = $agent->prompt('Gere o brief diário de hoje.');
 
     expect((string) $response)->toContain('Bom dia')
