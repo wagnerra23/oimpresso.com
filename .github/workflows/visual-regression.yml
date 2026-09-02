@@ -631,6 +631,28 @@ jobs:
       # como verde é o presence-gate de sempre. Por isso o `always()` — idêntico aos 3 steps
       # de fluxos acima: sem ele, qualquer vermelho anterior pularia este e o run apareceria
       # sem veredito nenhum, indistinguível de um run bem-sucedido.
+      # ── Contrato do SHELL: auto-rail responsivo (ADR UI-0030) ──────────────────
+      # Por que um step novo e não pendurar no PixelBaselineTest: aquele fotografa
+      # telas numa viewport só (1728 — medido no IHDR dos .snap); este afirma sobre o
+      # COMPORTAMENTO do shell EM FUNÇÃO da largura (1280 vira rail, 1440 não, escolha
+      # manual vence, e sem escolha o modo segue o resize ao vivo). Mede
+      # `grid-template-columns` resolvido, não pixel: NÃO gera baseline nova.
+      #
+      # Wirado AQUI, e não numa lane nova, porque `uc-lane-coverage` (no-new-lie) pegou
+      # os 4 UC do `AppShellV2.casos.md` citando um arquivo que lane nenhuma rodava —
+      # "verde impossível". O gate avisa que mexer na ALLOWLIST é decisão [W]; um teste
+      # novo, que nunca teve entrada nenhuma, não é esse caso — é o wiring que faltava.
+      #
+      # ADVISORY no nascimento (ADR 0261/0275), pelo motivo literal do step do
+      # Conciliacao abaixo: Pest Browser é CI/CT-100 only e o autor não pôde executá-lo
+      # antes do PR (`php`/`vendor` não existem na worktree). Promoção a enforcing =
+      # REMOVER o `continue-on-error`, após 2 verdes que EXECUTARAM — `skipped` lido
+      # como verde seria o presence-gate de sempre, e é pra isso que serve o `always()`.
+      - name: Contrato do shell · auto-rail ≤1280 (ADVISORY · ADR UI-0030)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Shell/SidebarAutoRailTest.php
+
       - name: E2E de render · Financeiro/Conciliacao (ADVISORY)
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         continue-on-error: true
