@@ -1211,15 +1211,22 @@ class NfeService
                 : sprintf('Aguardando transmissão (tentativa %d). Última falha: %s', $tentativas, substr($erro, 0, 300)),
         ]);
 
-        $log = $estourou ? 'error' : 'warning';
-        Log::{$log}('NfeService: falha ao transmitir contingência', [
+        // if/else em vez de `Log::{$log}(...)`: chamada de método VARIÁVEL num facade
+        // é opaca pra análise estática (Larastan reprova) e não economiza nada aqui.
+        $contexto = [
             'business_id' => $emissao->business_id,
             'emissao_id' => $emissao->id,
             'numero' => $emissao->numero,
             'tentativa' => $tentativas,
             'esgotou' => $estourou,
             'erro' => substr($erro, 0, 300),
-        ]);
+        ];
+
+        if ($estourou) {
+            Log::error('NfeService: contingência esgotou as tentativas', $contexto);
+        } else {
+            Log::warning('NfeService: falha ao transmitir contingência', $contexto);
+        }
 
         return $emissao->refresh();
     }
