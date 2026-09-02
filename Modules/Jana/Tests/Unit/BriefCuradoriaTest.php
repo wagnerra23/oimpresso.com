@@ -50,7 +50,7 @@ function briefDefeituoso(): string
 
         | Métrica | Valor |
         |---|---|
-        | LTV histórico | **R$ 3.480,00** |
+        | LTV histórico | **R$ [redacted Tier 0]** |
         | Última compra | 22/06/2025 |
         | Tempo ausente | 412 dias |
 
@@ -141,7 +141,7 @@ it('UC-JCHAT-14 (4) — a oportunidade com dado REAL atravessa intacta', functio
     // O bloco que funcionou no smoke é o valor do produto — a curadoria não pode
     // levá-lo junto. Num negócio parado, a reativação é justamente o que sobra.
     expect($curado)->toContain('ANTONELLA ALVES ARAUJO')
-        ->and($curado)->toContain('R$ 3.480,00')
+        ->and($curado)->toContain('R$ [redacted Tier 0]')
         ->and($curado)->toContain('412 dias')
         ->and($curado)->toContain('Vale a chamada');
 });
@@ -158,7 +158,7 @@ it('UC-JCHAT-14 (5) — CONTROLE NEGATIVO: brief saudável sai byte-idêntico', 
 
         ## 📈 Projeção do mês
 
-        No ritmo atual (3,2 vendas/dia), agosto deve fechar em torno de ~R$ 41.200,00 (vs R$ 38.900,00 → +5,9%).
+        No ritmo atual (3,2 vendas/dia), agosto deve fechar em torno de ~R$ [redacted Tier 0] (vs R$ [redacted Tier 0] → +5,9%).
 
         ---
 
