@@ -104,13 +104,14 @@ function gravarLocal(chave: string, valor: unknown): void {
   try { localStorage.setItem(chave, JSON.stringify(valor)); } catch { /* modo privado, cota: seguir sem persistir */ }
 }
 
-// `titulo` e `statuses` seguem no contrato do controller mas NÃO são lidos aqui:
+// `titulo`, `subtitle` e `statuses` seguem no contrato do controller mas NÃO são
+// lidos aqui (o `subtitle` porque a nota da barra usa a copy LITERAL do protótipo):
 // o título da tela é o `h1 Forja` do `<ForjaHub>` (o protótipo não repete título
 // dentro da view), e `statuses` alimenta o filtro por status, que esta onda não
 // desenha — o recorte por estado é o KPI-filtro. Tirá-los do controller seria
 // mudar contrato de dados por causa de layout; ficam declarados em `Props`.
 export default function Trabalho({
-  subtitle, filtros, sorts, grupos, papeis, fases = [], tasks = [], kpis = KPIS_VAZIO,
+  filtros, sorts, grupos, papeis, fases = [], tasks = [], kpis = KPIS_VAZIO,
   frentes = {}, filtrosGantt = [], agents = [],
 }: Props) {
   const [busca, setBusca] = useState(String(filtros.q ?? ''));
@@ -263,8 +264,12 @@ export default function Trabalho({
             ]}
             data-testid="trabalho-visao"
           />
+          {/* Copy LITERAL do protótipo (linha 1138 do forja-page.jsx). Não uso a
+              prop `subtitle` aqui: ela diz quase a mesma coisa com outras
+              palavras, e as duas juntas sairiam com dois travessões. `.mono`
+              resolve nos dois lados (`.cockpit .mono` em cockpit.css:1270). */}
           <span className="fj-frente-note">
-            <b className="mono">{kpis.total}</b> mcp_tasks numa lista só — {subtitle}
+            <b className="mono">{kpis.total}</b> mcp_tasks numa lista só — FORJA junto das demais frentes (agrupe por Frente ou busque)
           </span>
         </div>
 
