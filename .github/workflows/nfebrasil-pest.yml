@@ -23,6 +23,7 @@ on:
     branches: [main]
     paths:
       - 'Modules/NfeBrasil/**'
+      - 'resources/js/Pages/NfeBrasil/**'
       - 'Modules/Fiscal/Tests/**'
       - 'Modules/NFSe/DTO/NfseEmissaoPayload.php'
       - 'tests/Feature/Calculo/CalculoTributarioTest.php'
@@ -63,6 +64,7 @@ jobs:
           filters: |
             nfe:
               - 'Modules/NfeBrasil/**'
+              - 'resources/js/Pages/NfeBrasil/**'
               - 'Modules/Fiscal/Tests/**'
               - 'Modules/NFSe/DTO/NfseEmissaoPayload.php'
               - 'tests/Feature/Calculo/CalculoTributarioTest.php'
@@ -201,6 +203,34 @@ jobs:
         #
         #   ⚠️ NÃO pré-provados: o CT 100 não tem as tabelas do NfeBrasil (já registrado
         #   acima) e Pest local é bloqueado por hook — esta lane foi o 1º lugar onde rodaram.
+        #
+        # RATCHET UP (2026-09-01): +10 arquivos do Fiscal, todos VERDES no MySQL real.
+        #   Destravados por UMA causa so: o seed da lane nao criava a permission
+        #   superadmin nem as 7 fiscal.*, entao givePermissionTo estourava
+        #   PermissionDoesNotExist ANTES de exercer o gate. Corrigido no
+        #   .github/actions/pest-mysql-setup (aditivo/idempotente).
+        #
+        #   Medido por andaime nao-bloqueante no run 33553516309 (os 15 de fora rodados
+        #   de uma vez): 83 passed / 1 failed / 8 errors / 4 skipped / 270 assertions.
+        #   Entram os 10 com 0 fail e 0 error — 73 passed, 212 assertions:
+        #     AcoesContrato(14) · SpedIcmsIpiGeneratorService(11) · SidebarConsolidacao(10)
+        #     · SpedMotorTributarioIntegration(10) · GatesPermissaoFiscal(8) · CockpitCache(6)
+        #     · AcoesController(5) · SimplesOnlyGate(4) · SimplesOnlyGateConfig(3) · SpedController(2)
+        #
+        #   GatesPermissaoFiscal e o alvo: 8 passed / 8 assertions = os 4 UCs de permissao
+        #   (UC-FNFE-08 · UC-FDFE-05 · UC-FEVT-04 · UC-FCFG-03) + os 4 controles positivos.
+        #
+        #   FICAM DE FORA — 5, agora com causa NOMEADA e datada (defeito de teste/harness
+        #   que o lane sqlite escondia, nao bug de produto):
+        #     PermissionDoesNotExist: HabilitarBusinessCommand — apaga as fiscal.% e
+        #       re-checa no MESMO processo; falta forgetCachedPermissions no registrar.
+        #     BadMethodCallException: CertHealthCheckCommand · DfeController
+        #     TypeError:              CockpitController
+        #     MUDO (0 passed, 4 skipped): NfseCockpitController — 2o guard que pula ate
+        #       em MySQL; adiciona-lo aqui nao o tiraria do mudo (fantasma de 2a ordem).
+        #
+        #   A suite required nao se mexeu com o seed novo: 196 passed / 592 assertions
+        #   antes (run 33129304280, main) e depois (run 33553516309), zero delta por arquivo.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -238,7 +268,17 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoControllerTest.php \
             Modules/Fiscal/Tests/Feature/ConfigControllerTest.php \
-            Modules/Fiscal/Tests/Feature/PaletteSearchControllerTest.php
+            Modules/Fiscal/Tests/Feature/PaletteSearchControllerTest.php \
+            Modules/Fiscal/Tests/Feature/AcoesContratoTest.php \
+            Modules/Fiscal/Tests/Feature/AcoesControllerTest.php \
+            Modules/Fiscal/Tests/Feature/CockpitCacheTest.php \
+            Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php \
+            Modules/Fiscal/Tests/Feature/SidebarConsolidacaoTest.php \
+            Modules/Fiscal/Tests/Feature/SimplesOnlyGateConfigTest.php \
+            Modules/Fiscal/Tests/Feature/SimplesOnlyGateTest.php \
+            Modules/Fiscal/Tests/Feature/SpedControllerTest.php \
+            Modules/Fiscal/Tests/Feature/SpedIcmsIpiGeneratorServiceTest.php \
+            Modules/Fiscal/Tests/Feature/SpedMotorTributarioIntegrationTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

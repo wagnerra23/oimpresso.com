@@ -35,7 +35,7 @@ Formato: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + SemVer.
 ### Planejado (Fase 4 — Contingência)
 
 - Health-check SEFAZ por UF (US-NFE-006, TECH-0002)
-- Modo EPEC (NF-e) + FS-DA (NFC-e)
+- Modo EPEC (NF-e/NFC-e) + FS-DA (NF-e mod. 55) + off-line NFC-e (mod. 65)
 - Retentativa ordenada FIFO
 
 ### Planejado (Fase 5 — Motor Tributário Completo)
