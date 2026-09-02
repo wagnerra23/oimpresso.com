@@ -4,6 +4,8 @@ namespace Modules\Jana\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Modules\Jana\Services\Mcp\Ct100CircuitBreaker;
 use Modules\Jana\Services\Mcp\IndexarMemoryGitParaDb;
 
 /**
@@ -62,6 +64,15 @@ class McpSyncMemoryCommand extends Command
         $businessId = $this->option('business') ? (int) $this->option('business') : 1;
         $onlyType   = $this->option('only') ? (string) $this->option('only') : null;
 
+        // Circuit breaker (2026-09-02): CT 100 fora desde ~27-28/08 fez este cron
+        // gravar ~145 `exit code [1]`/dia. Falha de REDE não é erro de aplicação —
+        // pergunta ANTES de trabalhar e, se o destino está mudo, sai 0 com UM
+        // WARNING por janela. Respondeu mal (5xx) segue exit 1: ver Ct100CircuitBreaker.
+        $probe = Ct100CircuitBreaker::probe();
+        if ($probe['applicable'] && ! $probe['reachable']) {
+            return $this->transporteFora((string) $probe['target'], (string) $probe['detail']);
+        }
+
         // Lock anti-concorrência: webhook GitHub + cron 5min disparando juntos
         // era a receita do deadlock (UPSERTs simultâneos na mesma tabela).
         // get() não-bloqueante: quem chegar segundo pula o run — o próximo
@@ -89,9 +100,18 @@ class McpSyncMemoryCommand extends Command
             try {
                 $stats = $service->run();
             } catch (\Throwable $e) {
+                // Rede de segurança do probe: o CT 100 pode cair DEPOIS do probe
+                // passar (janela de 5min), e o Scout estoura no meio do run.
+                if (Ct100CircuitBreaker::isTransportFailure($e)) {
+                    return $this->transporteFora(null, mb_substr($e->getMessage(), 0, 120));
+                }
+
                 $this->error('Sync falhou: ' . $e->getMessage());
                 return self::FAILURE;
             }
+
+            // Run fechou: encerra a série de queda (o health-check lê esse estado).
+            Ct100CircuitBreaker::recordUp();
 
             $this->info(sprintf(
                 "Concluído: %d indexados (%d novos, %d atualizados), %d removidos, %d redactions PII",
@@ -106,5 +126,35 @@ class McpSyncMemoryCommand extends Command
         } finally {
             $lock->release();
         }
+    }
+
+    /**
+     * Breaker aberto: o destino não respondeu.
+     *
+     * Sai SUCCESS de propósito — não é "deu certo", é "não havia o que fazer, e
+     * repetir o alarme a cada 5min não acrescenta informação". Isto NÃO apaga o
+     * alarme, muda QUEM alarma: o `jana:health-check` continua com os checks
+     * duros `memoria_recall_backend` e `langfuse_trace_uptime_24h` paginando
+     * enquanto o CT 100 estiver fora, e o `down_since` gravado aqui dá a eles a
+     * data de início da queda.
+     */
+    private function transporteFora(?string $target, string $detail): int
+    {
+        $since = Ct100CircuitBreaker::recordDown();
+        $desde = $since?->toDateTimeString() ?? 'agora';
+        $alvo = $target ?? 'dependência CT 100';
+
+        if (Ct100CircuitBreaker::shouldWarn()) {
+            Log::channel('copiloto-ai')->warning(
+                'mcp:sync-memory PULADO — transporte CT 100 fora desde ' . $desde
+                . '. Sync retoma sozinho quando voltar; índice fica stale até lá. '
+                . 'Diagnóstico: memory/requisitos/Infra/RUNBOOK-acesso-ct100.md',
+                ['alvo' => $alvo, 'detalhe' => $detail, 'desde' => $desde, 'reason' => (string) $this->option('reason')],
+            );
+        }
+
+        $this->warn("Transporte CT 100 fora desde {$desde} ({$alvo}) — sync pulado, exit 0.");
+
+        return self::SUCCESS;
     }
 }
