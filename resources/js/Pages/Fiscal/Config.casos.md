@@ -5,12 +5,29 @@ irmaos: Config.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-v
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-08-28"
+last_run: "2026-09-01"
 last_run_ci: "0 UC executado nesta corrida — 2 UC herdam testes que JÁ existem e 1 nasce com teste novo; veredito pendente da lane Pest Fiscal + suíte noturna CT 100"
 related_us: [US-FISCAL-009]
 ---
 
 # Casos de Uso & Aceite — Configuração Fiscal
+
+> **Revalidação `last_run` 2026-09-01 — Onda 1 Fiscal (saneamento `fx-*` → DS):** mudança de
+> **apresentação apenas** — 5 `fx-btn` → `<Button>` (dois deles `asChild` sobre `<a>`,
+> preservando o href) e 2 `<input>` hand-rolled → `<Input>`, o que apagou o `style` inline de
+> `padding`/`border`/`radius` que ambos carregavam (a primitiva já dá).
+> Conferi os 3 UC: **todos são Tier 0 de backend** — a senha do A1 nunca chega à tela, o
+> certificado de outro business não aparece, e o gate `fiscal.config.edit`. **Nenhum toca o
+> `.tsx`.** O campo de senha preservou `type="password"`, `autoComplete="off"` e `maxLength`.
+>
+> **O que NÃO foi migrado, e por quê (declarado, não esquecido):**
+> · `fx-cert-*` (grid, card, head, ic, validade, bar, actions) — o CSS estiliza por **seletor
+>   descendente** (`.fx-cert-card h3`, `.fx-cert-card .lead`), então trocar o container por
+>   `<Card>` perderia esses estilos. É chrome bespoke, sem gêmeo 1:1 no DS.
+> · os 3 `fx-callout` — dois carregam **cor condicional de status** (`--ok-soft`/`--bad-soft`)
+>   e o `<Alert>` só tem `default`/`destructive`; mapear exigiria decidir tom por token novo.
+>   Fica para leva própria, com o antes→depois visível.
+> **Nenhum teste re-executado** (Pest = CT 100).
 
 > **Revalidação `last_run` 2026-08-28 — o que foi conferido:** este PR muda a tela em **um único ponto**: o atributo `data-contract="fiscal-config-cert-regime"` no wrapper, âncora do mapa [`fiscal-config.map.json`](../../../../memory/requisitos/Fiscal/fiscal-config.map.json). Conferi o diff do `.tsx` contra a lista de UC deste arquivo — **nenhum UC depende de atributo de DOM**, logo nenhum aceite mudou. **Nenhum teste foi re-executado** nesta revalidação (Pest = CT 100); os vereditos seguem como estavam.
 
