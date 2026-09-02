@@ -6,7 +6,7 @@
 > **Gerado por máquina** — não edite contagem; mude só `status`/`nota` no JSON em
 > `governance/replica-inconsistencias/forja.json` e regenere.
 >
-> Gerado em 2026-09-02 · comando: `node scripts/governance/replica-inconsistencias.mjs --modulo Forja --prototipo …` · **117 aberta(s)** de 117.
+> Gerado em 2026-09-02 · comando: `node scripts/governance/replica-inconsistencias.mjs --modulo Forja --prototipo …` · **121 aberta(s)** de 121.
 > `origem = aplicado` mede o que está no repo; `origem = prototipo` mede o que VAI entrar quando a onda copiar o JSX.
 
 | status | regra | arquivo | contagem | exemplo | dono da regra | origem |
@@ -112,6 +112,10 @@
 | 🔴 aberta | `FLEX-CRU` | `prototipo-ui/cowork/forja-page.jsx` | 1 |  | layout-primitives-guard.mjs | prototipo |
 | 🔴 aberta | `R1` | `prototipo-ui/cowork/forja-tarefas.jsx` | 3 | oklch(0.6 0.14 " + st.hue + ") · oklch(0.6 0.18 " + ({ P0: 25, P1: 60, P2: 295, P3: 250 }[t.priority]) | UiLintCommand.php R1 · conformance-gate | prototipo |
 | 🔴 aberta | `R3` | `prototipo-ui/cowork/forja-tarefas.jsx` | 9 | → ↵ ⇧ | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `R1` | `prototipo-ui/cowork/forja-page.css` | 326 | oklch(0.52 0.10 195) · oklch(0.95 0.035 195) | UiLintCommand.php R1 · conformance-gate | prototipo |
+| 🔴 aberta | `FONTRAMP` | `prototipo-ui/cowork/forja-page.css` | 192 | font-size:12px · font-size:11px · font-size:13px | conformance-gate (.fontramp-baseline.json) | prototipo |
+| 🔴 aberta | `HEX-CSS` | `prototipo-ui/cowork/forja-page.css` | 6 | #fff | stylelint color-no-hex | prototipo |
+| 🔴 aberta | `PALETA` | `prototipo-ui/cowork/forja-page.css` | 1 | --dev-*(4) | prototipo-ui/ds-guard.mjs | prototipo |
 | 🔴 aberta | `ds/no-raw-palette-color` | `Modules/Forja/Resources/js/Pages/Forja/Board/DetailSheet.tsx` | 10 | sem cor crua do Tailwind (bg/text/border-<cor>-<n>). Use token semântico: bg-card/bg-muted, text-foreground/te | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
 | 🔴 aberta | `ds/no-raw-palette-color` | `Modules/Forja/Resources/js/Pages/Forja/Burndown/Index.tsx` | 3 | sem cor crua do Tailwind (bg/text/border-<cor>-<n>). Use token semântico: bg-card/bg-muted, text-foreground/te | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
 | 🔴 aberta | `ds/no-raw-palette-color` | `Modules/Forja/Resources/js/Pages/Forja/MyWork/Index.tsx` | 1 | sem cor crua do Tailwind (bg/text/border-<cor>-<n>). Use token semântico: bg-card/bg-muted, text-foreground/te | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
