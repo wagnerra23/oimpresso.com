@@ -23,6 +23,15 @@ use Illuminate\Database\Eloquent\Model;
  * exige CERTIFICADO POR BUSINESS — não existe ping anônimo por UF. Então quem grava a
  * linha da UF é algum business daquela UF, com o cert dele. Dois businesses na mesma UF
  * sobrescrevem a mesma linha, o que é correto: o fato observado é o mesmo.
+ *
+ * As anotações abaixo existem porque Larastan não infere atributo dinâmico de Eloquent
+ * a partir da migration — sem elas o acesso vira "undefined property" no ratchet.
+ *
+ * @property string $uf
+ * @property string $status
+ * @property \Illuminate\Support\Carbon|null $last_check_at
+ * @property int|null $last_response_ms
+ * @property int $consecutive_failures
  */
 class NfeSefazStatus extends Model
 {
