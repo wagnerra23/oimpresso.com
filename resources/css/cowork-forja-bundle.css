@@ -1140,3 +1140,81 @@ a.fj-ho-pr:hover{ color:var(--accent); }
 .fj-g-leg .lg-prog{ background:oklch(0.6 0.14 250 / .3); border:1px solid oklch(0.55 0.13 250 / .5); }
 .fj-g-leg .lg-atr{ background:oklch(0.58 0.18 25 / .15); border:1px solid oklch(0.55 0.18 25 / .7); }
 .fj-g-leg .lg-hoje{ width:2px; height:12px; border-radius:0; background:oklch(0.55 0.15 295 / .6); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * DEPS DE RENDER DO SHELL (PARIDADE §11 Onda 2) — copiadas VERBATIM de
+ * prototipo-ui/cowork/styles.css (o shell do protótipo), com UMA mudança: cada
+ * seletor recebe o prefixo `.fj-hub`, o root do <ForjaHub>. O header do protótipo
+ * (`.os-page-h*`, `.os-btn*`, `.icon-btn`) mora no styles.css, não no forja-page.css —
+ * sem estas regras o bundle desenha o topnav mas não o header que o segura. Mesmo
+ * precedente dos bundles Financeiro (`.fin-cowork .os-page-h`) e Sells
+ * (`.sells-cowork .os-page-h`): o shell desce escopado por módulo, nunca global.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+.fj-hub .os-page-h{
+  padding: 12px 24px 12px;
+  min-height: 44px;
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 16px;
+  flex-wrap: wrap;            /* reflui no estreito sem esmagar o título */
+  border-bottom: 1px solid var(--border);
+}
+.fj-hub .os-page-h-l{ flex: 1 1 auto; min-width: 0; }
+.fj-hub .os-page-h-l h1{
+  margin: 0;
+  font-size: var(--fs-7); /* 22px */
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  text-wrap: balance;
+  color: var(--text);
+}
+.fj-hub .os-page-h-l h1 .suffix{ font-weight: 600; color: var(--text-mute); letter-spacing: -0.015em; }
+.fj-hub .os-page-h-l p{
+  margin: 2px 0 0;
+  font-size: var(--fs-3); /* 12.5px */
+  max-width: 60ch; text-wrap: pretty;
+  color: var(--text-mute);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+}
+.fj-hub .os-page-h-l p strong{ color: var(--text); font-weight: 600; }
+.fj-hub .os-page-h-r{
+  display: flex; align-items: center; gap: 6px; flex: 0 0 auto;
+  justify-content: flex-end; margin-left: auto;
+}
+.fj-hub .os-page-h-r .os-btn.primary{ height: 32px; border-radius: 6px; font-size: var(--fs-3); font-weight: 500; }
+.fj-hub .os-btn{
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  height: 30px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: default;
+  display: inline-flex; align-items: center; gap: 6px;
+  white-space: nowrap;
+}
+.fj-hub .os-btn:hover{ background: var(--border-2); }
+.fj-hub .os-btn.primary{ background: var(--accent); color: #fff; border-color: var(--accent); }
+.fj-hub .os-btn.primary:hover{ background: var(--accent-2); border-color: var(--accent-2); }
+.fj-hub .os-btn.ghost{ background: transparent; border-color: transparent; color: var(--text-dim); }
+.fj-hub .os-btn.ghost:hover{ background: var(--border-2); color: var(--text); }
+.fj-hub .os-btn.ghost.danger{ color: var(--neg); }
+.fj-hub .os-btn.ghost.danger:hover{ background: var(--neg-soft); }
+.fj-hub .os-btn.sm{ height: 26px; padding: 0 10px; font-size: 11.5px; }
+.fj-hub .icon-btn{
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-dim);
+  width: 28px; height: 28px;
+  border-radius: var(--radius-sm);
+  display: grid; place-items: center;
+  cursor: default;
+}
+.fj-hub .icon-btn:hover{ color: var(--text); border-color: var(--text-mute); }
+.fj-hub .os-page-h{ padding:20px 18px 14px; }

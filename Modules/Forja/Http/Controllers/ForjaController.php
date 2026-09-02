@@ -67,6 +67,9 @@ class ForjaController extends Controller
         // MCP é vitrine MOCKADA do contrato. Operação diária enterrada numa
         // vitrine é operação que ninguém olha.
         'handoffs'  => ['label' => 'Handoffs',  'subtitle' => 'O loop de design Cowork → Code (F1 → F3): o que está pendente, o que travou no gate e o que envelheceu.'],
+        // Integrador — view `integra` do protótipo (PARIDADE §11 Onda 2). Estática por
+        // construção: inventário da fusão Forja ↔ TeamMcp, sem query.
+        'integrador' => ['label' => 'Integrador', 'subtitle' => 'Forja ↔ TeamMcp: o que absorve, o que alinha, o que falta.'],
     ];
 
     public function __construct()
@@ -117,6 +120,12 @@ class ForjaController extends Controller
             $this->tabPayload('changelog'),
             ['changelog' => Inertia::defer(fn () => app(ForjaChangelogService::class)->build())],
         ));
+    }
+
+    /** GET /forja/integrador — view `integra` do protótipo: inventário estático da absorção Forja ↔ TeamMcp. */
+    public function integrador(): Response
+    {
+        return Inertia::render('team-mcp/Forja/Cockpit', $this->tabPayload('integrador'));
     }
 
     public function mcp(): Response
