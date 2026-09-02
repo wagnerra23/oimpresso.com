@@ -44,6 +44,8 @@ related_adrs:
   - 0080-trust-tiers-operacional-audit-findings
 url_prefixes:
   - /financeiro/*
+  - /advisor/* (portal do contador — login/logout proprios)
+  - /api/v1/* (scaffold nWidart · auth:sanctum — co-provido por NfeBrasil e RecurringBilling)
 drift_alerts: []
 ---
 
