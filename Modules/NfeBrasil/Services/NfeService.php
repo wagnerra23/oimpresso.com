@@ -493,6 +493,13 @@ class NfeService
         $serie  = $dadosNfe['serie'] ?? ((string) ($business->numero_serie_nfe ?? '1'));
         $numero = isset($dadosNfe['numero']) ? (int) $dadosNfe['numero'] : null;
 
+        // ── 2b. Modo de emissão (US-NFE-006 / ADR TECH-0002) ────────────────
+        // Lido ANTES da transaction (é SELECT curto e não precisa do lock).
+        // Fora de contingência isto devolve tpEmis=1 e o fluxo abaixo é idêntico
+        // ao de antes deste PR — a contingência é opt-in por tenant e nasce false.
+        $tpEmis = $this->resolverTpEmis($businessId, (string) $modelo);
+        $emContingencia = $tpEmis !== NfeEmissao::TP_EMIS_NORMAL;
+
         // ── 3. Reserva número + cria emissao em transaction CURTA ───────────
         // BUG FIX P0 2026-05-10: SEFAZ HTTP call NUNCA pode rodar dentro de
         // DB::transaction — request pode travar 30s+ e segura o lock no
@@ -500,7 +507,7 @@ class NfeService
         // em 3 fases (reserva → SEFAZ fora → processa retorno).
         /** @var NfeEmissao $emissao */
         $emissao = DB::transaction(function () use (
-            $businessId, $transactionId, $modelo, $serie, &$numero, $dadosNfe
+            $businessId, $transactionId, $modelo, $serie, &$numero, $dadosNfe, $tpEmis, $emContingencia
         ) {
             if ($numero === null) {
                 $numero = $this->proximoNumeroLocked($businessId, $modelo, $serie);
@@ -512,7 +519,9 @@ class NfeService
                 'modelo'         => $modelo,
                 'serie'          => $serie,
                 'numero'         => $numero,
-                'status'         => 'enviando',
+                // 'contingencia' NÃO é erro: é nota válida ainda não transmitida.
+                'status'         => $emContingencia ? 'contingencia' : 'enviando',
+                'tp_emis'        => $tpEmis,
                 'valor_total'    => (float) ($dadosNfe['valor_total'] ?? 0),
             ]);
         });
@@ -524,6 +533,21 @@ class NfeService
             $xml       = $this->buildXml($business, $emissao, $dadosNfe, $emitOverride);
             $tools     = $this->criarTools($business, $certData, $emitOverride, (string) $modelo);
             $xmlSigned = $tools->signNFe($xml);
+
+            // ── 4b. CONTINGÊNCIA: persiste e PARA aqui (US-NFE-006 / ADR TECH-0002) ──
+            // A ADR é explícita: "XML em contingência é gravado ANTES de qualquer call
+            // SEFAZ". A nota está emitida e é VÁLIDA — o DANFE sai com o indicador de
+            // contingência e o cliente leva o documento. O que falta é só transmitir,
+            // e quem faz isso é o RetentarContingenciaJob quando a SEFAZ voltar.
+            //
+            // Por que persistir é inegociável: o número fiscal JÁ foi consumido pelo
+            // proximoNumeroLocked acima. Perder o XML aqui deixaria um buraco na
+            // sequência sem documento — problema fiscal, não bug de software.
+            if ($emContingencia) {
+                $this->persistirXmlContingencia($emissao, $xmlSigned, $businessId, $serie, (int) $numero);
+
+                return $emissao->refresh();
+            }
 
             $idLote  = str_pad((string) $emissao->id, 15, '0', STR_PAD_LEFT);
 
@@ -1125,6 +1149,77 @@ class NfeService
         ]);
     }
 
+    /**
+     * US-NFE-006 / ADR TECH-0002 — modo de emissão (tpEmis) do business AGORA.
+     *
+     * Devolve 1 (normal) para quem não ligou contingência, que é o default do schema
+     * e o caso de 100% dos tenants hoje — por isso a emissão comum sai byte-idêntica.
+     *
+     * O modo depende do MODELO, não é escolha livre (Manual SEFAZ / ADR TECH-0002):
+     *   modelo 55 (NF-e)  → 4 = EPEC, autoriza em SVC-AN
+     *   modelo 65 (NFC-e) → 9 = contingência off-line
+     * Modelo 67 (CT-e) não tem contingência definida aqui: cai em normal de propósito,
+     * porque inventar um tpEmis pra ele seria adivinhar lei fiscal.
+     */
+    private function resolverTpEmis(int $businessId, string $modelo): int
+    {
+        $config = NfeBusinessConfig::where('business_id', $businessId)->first();
+
+        if (! $config || ! $config->em_contingencia) {
+            return NfeEmissao::TP_EMIS_NORMAL;
+        }
+
+        return match ($modelo) {
+            '55' => NfeEmissao::TP_EMIS_EPEC,
+            '65' => NfeEmissao::TP_EMIS_OFFLINE_NFCE,
+            default => NfeEmissao::TP_EMIS_NORMAL,
+        };
+    }
+
+    /**
+     * US-NFE-006 / ADR TECH-0002 — persiste o XML assinado da nota em contingência.
+     *
+     * Mesmo path de `processarRetorno` (`nfe-brasil/{biz}/notas/{serie}-{numero}.xml`)
+     * de propósito: o DANFE e o `DanfeService` já procuram ali, e o path é derivado de
+     * (serie, numero), que não mudam quando a nota for transmitida depois.
+     *
+     * NÃO grava `chave_44`, `cstat` nem `emitido_em`: nada disso existe ainda — quem
+     * emite esses campos é a SEFAZ, e ela não foi chamada. Preencher com placeholder
+     * seria fabricar dado fiscal.
+     */
+    private function persistirXmlContingencia(
+        NfeEmissao $emissao,
+        string $xmlSigned,
+        int $businessId,
+        string $serie,
+        int $numero,
+    ): void {
+        $xmlPath = sprintf('nfe-brasil/%d/notas/%s-%s.xml', $businessId, $serie, $numero);
+        Storage::put($xmlPath, $xmlSigned);
+
+        $emissao->update([
+            'xml_path' => $xmlPath,
+            'motivo' => 'Emitida em contingência — aguardando transmissão à SEFAZ.',
+            'metadata' => array_merge((array) ($emissao->metadata ?? []), [
+                'contingencia_emitida_em' => now()->toIso8601String(),
+                'contingencia_tp_emis' => (int) $emissao->tp_emis,
+            ]),
+        ]);
+
+        // Mesmo double-write do fluxo autorizado (ADR 0123) — o XML em contingência é
+        // documento fiscal e merece o mesmo backbone de arquivos.
+        $this->writeArquivoXml($emissao, $xmlPath, $xmlSigned);
+
+        Log::info('NfeService: nota emitida em CONTINGÊNCIA (não transmitida)', [
+            'business_id' => $businessId,
+            'emissao_id' => $emissao->id,
+            'numero' => $numero,
+            'serie' => $serie,
+            'tp_emis' => (int) $emissao->tp_emis,
+            'xml_path' => $xmlPath,
+        ]);
+    }
+
     private function resolverUF(object $business): string
     {
         $loc = DB::table('business_locations')
@@ -1195,7 +1290,10 @@ class NfeService
         //   modelo 55 NFe: 1=Retrato, 2=Paisagem
         //   modelo 65 NFC-e: 4=DANFE NFC-e (bobina), 5=DANFE NFC-e em mensagem eletrônica
         $stdIde->tpImp     = (int) $emissao->modelo === 65 ? 4 : 1;
-        $stdIde->tpEmis    = 1;
+        // US-NFE-006 / ADR TECH-0002 — o modo de emissão vem da EMISSÃO, não de um literal.
+        // `tp_emis` tem default 1 no schema, então emissão fora de contingência produz XML
+        // byte-idêntico ao de antes deste PR. 4=EPEC (NF-e 55) · 9=off-line (NFC-e 65).
+        $stdIde->tpEmis    = (int) ($emissao->tp_emis ?: NfeEmissao::TP_EMIS_NORMAL);
         $stdIde->cDV       = 0;
         $stdIde->tpAmb     = (int) ($emitOverride['ambiente'] ?? $business->ambiente ?? 2);
         $stdIde->finNFe    = 1;
