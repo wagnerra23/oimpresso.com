@@ -8,7 +8,8 @@ cycle: null
 prs: [6600, 6607, 6608, 6609]
 us: ["US-COPI-060", "US-COPI-148"]
 next_steps:
-  - "Ler `gh pr checks 6607` (a base) — verde ⇒ merge [W] na ordem 6600 → 6607 → 6608 → 6609 (stacked; o GitHub retarget sozinho)"
+  - "⛔ BLOQUEIO EXTERNO: `visual-regression` (required) reprova os 3 PRs de feature por causa do #6578 (auto-rail da sidebar ≤1280, mergeado 22:22 UTC sem regenerar as baselines de FLUXO) — as 22 fotos que diferem são Compras/Financeiro/Sells com a sidebar 260→56px, zero tela da Jana. Destrava com `npm run visreg:update` + F1.5 [W] (dono: #6578). Evidência decodificada no comentário do #6607"
+  - "Depois disso: `gh pr checks 6607` verde ⇒ merge [W] na ordem 6600 → 6607 → 6608 → 6609 (stacked; o GitHub retarget sozinho)"
   - "Smoke R1 pós-merge com screenshot: /ia/alertas (biz=1), /ia/acoes (aprovar UMA ação de leitura e ver o recibo), /ia/superadmin/metas como [W] — receitas em RUNBOOK-alertas/acoes/plataforma §2"
   - "Se a lane `PHP / Pest (Jana · MySQL)` reprovar: a prova é o CONTADOR (3 arquivos novos: Alertas 5 it · Acoes 4 · Plataforma 3); UC-ALERTA-02 / UC-ACAO-02 / UC-PLAT-01 skipam se o seed tiver 1 business só"
   - "Decisão [W]: card Cheques (migrar FINANCEIRO_CHEQUE?) e drawer de config de alertas (US-COPI-061) — os dois ficaram FORA com medição"
@@ -36,6 +37,17 @@ Fecha *"abas: protótipo 6 × prod 3"* do handoff 2026-08-31. Ordem final da bar
 - **Config de alertas** (drawer + aviso de topo) — US-COPI-061; `updateConfig` valida e descarta.
 - **Contador `n` nas abas** — backend, afeta as 4 telas (R2 do visual-comparison).
 - Tamanho dos PRs (986/736/735 linhas) > 300: trio/contrato/teste exigidos no mesmo PR pelos gates.
+
+## Adendo 23:30 BRT — o que o CI pegou depois de abrir
+
+| gate | veredito | ação |
+|---|---|---|
+| `layout-primitives-guard` (ADR 0253) | flex/grid solto: Alertas 1 · Ações 5 · Plataforma 4 | consertado (`Stack`/`Inline`/`Grid`) e pushado nos 3 |
+| `module-surface --check` + `deadlink-gate` | `SUPERFICIE.md` gerado ainda apontava pros Blades apagados; 2 docs vivos linkavam o da Plataforma | regenerado nos 3; links viraram texto datado |
+| `visual-regression` (**required**) | 22 fotos de fluxo com sidebar 260→56px — **é o #6578**, não este diff | **bloqueio externo**, ver next_steps |
+| `dup-detector` / watchdog de crons | advisory / herdado do `main` | `Dedup-ack` registrado / nada |
+
+Os PRs stacked foram reconstruídos por **merge** (o hook `block-destructive` barra `--force-with-lease`).
 
 ## Estado MCP no momento do fechamento
 
