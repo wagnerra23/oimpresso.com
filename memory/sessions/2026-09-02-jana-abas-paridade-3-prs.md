@@ -47,6 +47,17 @@ Ordem final da barra = a da âncora: Painel · Conversa · Alertas · Ações ·
 - **Tamanho dos PRs**: 986 / 736 / 735 linhas, acima das 300 da `commit-discipline` — o trio/contrato/teste que os gates exigem no MESMO PR responde por ~metade; registrado no corpo de cada PR.
 - **Smoke pós-merge (R1)** — depende do merge [W]; a receita está em cada RUNBOOK (`RUNBOOK-alertas/acoes/plataforma.md` §2).
 
+## O que o CI pegou depois de abrir (e os gates locais não) — 22:00–23:10 BRT
+
+| gate | o quê | conserto |
+|---|---|---|
+| `layout-primitives-guard` (ADR 0253) | flex/grid solto por arquivo: Alertas 1 · Ações 5 · Plataforma 4 | `Stack`/`Inline`/`Grid` no lugar (estrutura e copy idênticas) |
+| `module-surface --check` + `deadlink-gate` | `SUPERFICIE.md` é GERADO e ainda apontava pros 2 Blade apagados; 2 docs vivos linkavam o `superadmin/metas.blade.php` | `module-surface Jana --write` em cada branch; links viraram texto datado (§5 2026-08-12) |
+| `dup-detector` (advisory) | ledger de frescor também tocado pelo #6596 e pelo #6607 stacked | `Dedup-ack` no corpo de #6600/#6607 |
+| `crons de governança vivos?` | herdado do `main` (RAGAS parado, 2 artefatos velhos) — não-required | nada; já registrado no handoff de 01/09 |
+
+Lição barata pra próxima tela nova: rodar **`layout-primitives-guard` e `module-surface <Mod> --check`** no pré-commit — os dois ficaram fora da minha bateria local e custaram uma volta de CI cada. Os PRs stacked foram reconstruídos por **merge** (o hook `block-destructive` barra `--force-with-lease`, corretamente).
+
 ## Estado MCP
 
 ⚠️ **Não consultado** — `brief-fetch` caiu em fallback por timeout no início e não voltou. Derivado de git/gh.
