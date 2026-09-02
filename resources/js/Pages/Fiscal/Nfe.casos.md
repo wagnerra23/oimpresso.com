@@ -5,10 +5,20 @@ irmaos: Nfe.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-01"
+last_run: "2026-09-02"
 ---
 
 # Casos de Uso & Aceite — Notas NF-e / NFC-e
+
+> **Revalidação `last_run` 2026-09-02 — o que foi conferido (conflito semântico do merge):**
+> o `update-branch` do #6530 trouxe do `main` a versão do `.tsx` que declarava `chipProps`/
+> `chipCount` LOCALMENTE (a que o #6517 mergeou), enquanto esta branch já importava as duas do
+> `_lib/chip-filtro`. O git juntou os dois lados **sem marcador de conflito** — o defeito só
+> apareceu no `TS2440` (import conflita com declaração local), 2 ocorrências. Removi as cópias
+> locais e o import órfão de `cn`, mantendo o dono único no `_lib`.
+> **Zero mudança de comportamento:** as funções removidas eram byte-a-byte o que o `_lib` já
+> exporta, e nenhum UC toca o `.tsx` — os 8 assertam backend. Nenhum UC criado, alterado ou
+> removido. **Nenhum teste re-executado** (Pest = CT 100).
 
 > **Revalidação `last_run` 2026-09-01 — o que foi conferido (Onda 1 Fiscal, troca de primitivas):**
 > `fx-btn`/`fx-chip`/`fx-search`/`fx-filters` saíram para as primitivas `Button`/`Input`/`Inline` do
