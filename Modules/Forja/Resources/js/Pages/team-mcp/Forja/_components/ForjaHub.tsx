@@ -1,98 +1,63 @@
-// ForjaHub — header ÚNICO do hub Forja, usado por TODAS as abas (cockpit /forja/*
-// + telas absorvidas /team-mcp/*) pra que o header seja IDÊNTICO em tudo:
-// título "Forja" + ações (sino/⌘K/Novo issue) + tab-strip agrupada.
-// SEM eyebrow (removido a pedido do Wagner 2026-06-16).
+// ForjaHub — header ÚNICO do hub Forja, usado por TODAS as telas sob /forja/* e
+// pelas absorvidas /team-mcp/*: o mesmo header em tudo.
 //
-// Fonte única da tab-strip — antes vivia inline no Cockpit; extraída pra
-// reuso nas telas TeamMcp absorvidas (Equipe/Tarefas/CC Sessions/Saúde).
+// ── 2026-09-02 · PARIDADE §11 Onda 2 — o header É o do protótipo ──────────────
+// Decisão [W] (ADR 0388, "réplica primeiro"): a aparência é a do `forja-page.jsx`.
+// Markup copiado do protótipo (linhas 1105-1129): `.os-page-h` com título+subtítulo à
+// esquerda e, À DIREITA NA MESMA LINHA, sino · busca ⌘K · 3 pílulas de grupo
+// (Trabalho / Esteira / Histórico) com 6 destinos · primária "Novo issue". Antes o
+// topnav era uma SEGUNDA linha inteira sob o PageHeader canon (medido em 2026-09-01:
+// 13 destinos, 1447px, não cabia a 1280; o protótipo tem 6 em 784px).
+//
+// As classes vêm do bundle `cowork-forja-bundle.css` (Onda 1); `.fj-hub` é o root
+// deste componente e o escopo das deps de render do shell (`.os-page-h*`, `.os-btn*`).
+// Ícones: lucide, no tamanho do protótipo (11). Os glifos do protótipo (✦ ⚠ …) não
+// existem neste header — só ⌘K, que já estava aqui.
+//
+// O que NÃO mudou de contrato:
+//   · `FORJA_TABS` continua exportado com `href:` literal — o `ForjaRoutesSmokeTest`
+//     (UC-FORJA-14) lê este arquivo como TEXTO e cruza com `config/core_topnavs.php`.
+//     As duas listas TÊM que bater na mesma ordem (lápide §5 2026-08-06).
+//   · `data-testid`: forja-sino · forja-busca · forja-novo-issue · forja-tabs ·
+//     forja-grupo-<key> — os mesmos de antes, pra e2e/a11y não quebrar.
+//
+// Destinos que SAÍRAM do topo nesta onda (as rotas seguem vivas): Triagem (vira tipo
+// Proposta em Aprovações, Onda 3), Handoffs (seção do MCP, Onda 8), Equipe (idem),
+// CC Sessions (segmento Sessões do Changelog, Onda 9). Saúde aponta pro Scorecard
+// até a Onda 7 construir a view do protótipo. Integrador NASCE nesta onda
+// (`/forja/integrador`, `ForjaIntegrador`).
 
-import { Fragment } from 'react';
 import { Link } from '@inertiajs/react';
-import { Activity, Bell, Code2, Gavel, History, Inbox, ListChecks, Plug, Search, Users, Workflow } from 'lucide-react';
-import { PageHeader } from '@/Components/PageHeader';
-import { PageHeaderPrimary } from '@/Components/PageHeader/PageHeaderPrimary';
-import { cn } from '@/Lib/utils';
+// O bundle do protótipo (Onda 1) vive AQUI, não no Cockpit: cada Page do hub é um chunk do Vite,
+// e só o import no componente compartilhado garante o CSS em Aprovações, Trabalho, Gantt,
+// Scorecard e CcSessions. Medido no .snap regenerado em 2026-09-02: sem isto o header de
+// /forja/aprovacoes renderizava como texto empilhado.
+import '../../../../../../../../resources/css/cowork-forja-bundle.css';
+import { Activity, Bell, Gavel, History, ListChecks, Plug, Plus, Search, ShieldCheck } from 'lucide-react';
 
 const COCKPIT_SUBTITLE =
-  'Cockpit do cowork loop — backlog, quadro F0→F4, changelog e atores (humano vs agente).';
+  'Cockpit do cowork loop — aprovações da equipe, backlog, pipeline de telas F0→F3.5, tarefas de todas as frentes, changelog e atores (humano vs agente).';
 
-/**
- * Os 3 grupos da faixa (2026-08-08). 11 destinos chapados misturavam três
- * trabalhos diferentes, e a barra virava uma lista pra ler inteira toda vez:
- *
- *   Trabalho  — o fluxo do issue: o que decidir, o que fazer, quando vence.
- *   Esteira   — a operação da máquina: contrato MCP, quem é quem, saúde.
- *   Histórico — o registro: o que shippou, o que as sessões fizeram.
- *
- * É **só apresentação**: nenhuma rota muda, nenhum item some, e
- * `config/core_topnavs.php` segue chapado (é o que alimenta o SHELL; esta faixa
- * é a do HUB — as duas superfícies, lápide §5 2026-08-06). A ordem dentro do
- * grupo é a de uso, não a alfabética.
- */
 export const FORJA_GRUPOS = [
   { key: 'trabalho',  label: 'Trabalho' },
   { key: 'esteira',   label: 'Esteira' },
   { key: 'historico', label: 'Histórico' },
 ] as const;
 
+// Ordem = a do protótipo (grupo a grupo). `key` é o `active` que cada Page passa.
 export const FORJA_TABS = [
-  // Aprovações — 2026-08-08. Superfície do funil de admissão (ADR 0368): o que
-  // espera por decisão de [W], mais antigo primeiro. Vem PRIMEIRO de propósito —
-  // é a fila que custa dinheiro parada. O 301 de `/forja` pra cá e a absorção da
-  // Triagem como tipo "Proposta" são o reagrupamento (PR seguinte), não isto.
-  { key: 'aprovacoes', grupo: 'trabalho', label: 'Aprovações', href: '/forja/aprovacoes',    icon: Gavel,
+  { key: 'aprovacoes', grupo: 'trabalho',  label: 'Aprovações', href: '/forja/aprovacoes',   icon: Gavel,
     hint: 'O que espera por uma decisão sua' },
-  { key: 'triagem',   grupo: 'trabalho', label: 'Triagem',     href: '/forja',                icon: Inbox,
-    hint: 'Propostas sem dono ou sem prioridade' },
-  // Trabalho — a lista ÚNICA (US-FORJA-006), 2026-08-09. Funde os três backlogs.
-  // Convive com Backlog/Tarefas por enquanto: nada foi deletado, e é de propósito —
-  // a comparação lado a lado é o que permite [W] decidir qual sobrevive.
-  { key: 'trabalho',  grupo: 'trabalho', label: 'Trabalho',     href: '/forja/trabalho',       icon: ListChecks,
-    hint: 'Todas as tasks do time, agrupadas por frente' },
-  // ── SAÍRAM DO TOPO em 2026-09-01: Backlog · Quadro · Roadmap (Gantt) · Tarefas ──
-  //
-  // [W] mandou convergir o topnav com o protótipo (`forja-page.jsx`, grupo Trabalho =
-  // Aprovações + Trabalho). A trava anterior era a US-FORJA-006 — "não remover antes de
-  // [W] decidir qual implementação sobrevive". [W] decidiu em 2026-09-01, mandando o
-  // render do protótipo. AS ROTAS CONTINUAM VIVAS: isto tira o item do topo, não a tela.
-  //
-  // Só saíram os 4 cuja absorção foi PROVADA em produção, não presumida (medido em
-  // /forja/trabalho, 2026-09-01):
-  //   Backlog  → segmento `Lista` (renderiza inline; 500 tasks · 367 sem dono)
-  //   Quadro   → segmento `Quadro` (TrabalhoQuadro, inline)
-  //   Tarefas  → a mesma lista já é o universo, não o recorte FORJA ("SEM FRENTE — 375")
-  //   Roadmap  → segmento `Gantt` NAVEGA pra /forja/roadmap-gantt (clicado e conferido:
-  //              a URL vira roadmap-gantt) — continua a 1 clique, por dentro do Trabalho
-  //
-  // NÃO saíram, e o motivo é o mesmo critério: o receptor do protótipo ainda não existe
-  // aqui. Handoffs e Equipe são seções do MCP no protótipo, mas o /forja/mcp de produção
-  // é MOCKADO e não tem nenhuma das duas; CC Sessions é o segmento `Sessões` do Changelog
-  // no protótipo, e o de produção não projeta sessão com título; Triagem vira tipo
-  // `Proposta` dentro de Aprovações, que hoje abre vazia ("Nada esperando por você") com
-  // 3 tickets reais vivos na Triagem. Tirar qualquer um deles agora é perder produto pra
-  // ganhar barra curta. Medição e método: memory/requisitos/Forja/PARIDADE-area-forja-diagnostico-e-ondas.md §6-bis.
-  //
-  // Quem adicionar aba aqui: adicione também `<ForjaHub>` na Page nova, senão ela abre
-  // sem faixa. `AppShellV2` NÃO renderiza o topnav nesta área — o Cockpit esconde a barra
-  // do shell e desenha a própria; `config/core_topnavs.php` alimenta o shell, não a tela.
-  // As duas listas têm que bater mesmo assim (lápide §5 2026-08-06: elas divergirem em
-  // silêncio foi como o Gantt abriu sem faixa).
-
-  // Handoffs vem ANTES do MCP no grupo: é o dado vivo da esteira (o loop rodando
-  // agora); o MCP ao lado é a vitrine do contrato. Saiu de dentro dele em 2026-08-08.
-  { key: 'handoffs',  grupo: 'esteira',  label: 'Handoffs',    href: '/forja/handoffs',       icon: Workflow,
-    hint: 'Loop de design Cowork → Code: pendente, travado no gate, envelhecido' },
-  { key: 'mcp',       grupo: 'esteira',  label: 'MCP',         href: '/forja/mcp',            icon: Plug,
+  { key: 'trabalho',   grupo: 'trabalho',  label: 'Trabalho',   href: '/forja/trabalho',     icon: ListChecks,
+    hint: 'Todas as tasks do time — lista, quadro e gantt' },
+  { key: 'saude',      grupo: 'esteira',   label: 'Saúde',      href: '/team-mcp/scorecard', icon: Activity,
+    hint: 'Semáforo do loop (hoje: scorecard do MCP; a view do protótipo é a Onda 7)' },
+  { key: 'mcp',        grupo: 'esteira',   label: 'MCP',        href: '/forja/mcp',          icon: ShieldCheck,
     hint: 'Contrato de ferramentas, tokens e auditoria' },
-  { key: 'equipe',    grupo: 'esteira',  label: 'Equipe',      href: '/team-mcp/team',        icon: Users,
-    hint: 'Quem é quem, tokens e quota' },
-  { key: 'saude',     grupo: 'esteira',  label: 'Saúde',       href: '/team-mcp/scorecard',   icon: Activity,
-    hint: 'Scorecard do sistema' },
-
-  { key: 'changelog', grupo: 'historico', label: 'Changelog',   href: '/forja/changelog',      icon: History,
-    hint: 'O que shippou — PRs, ADRs e ondas' },
-  { key: 'cc',        grupo: 'historico', label: 'CC Sessions', href: '/team-mcp/cc-sessions', icon: Code2,
-    hint: 'Sessões Claude Code do time' },
+  { key: 'changelog',  grupo: 'historico', label: 'Changelog',  href: '/forja/changelog',    icon: History,
+    hint: 'O que shippou — PRs, ADRs, sessões e ondas' },
+  { key: 'integrador', grupo: 'historico', label: 'Integrador', href: '/forja/integrador',   icon: Plug,
+    hint: 'Forja ↔ TeamMcp: o que absorve, o que alinha, o que falta' },
 ] as const;
 
 // Abre a command palette global (dona do AppShellV2, atalho ⌘K) sintetizando o
@@ -103,136 +68,77 @@ function openCommandPalette() {
   );
 }
 
-export default function ForjaHub({ active, triagemCount }: { active: string; triagemCount?: number }) {
-  const sinoBadge = active === 'triagem' ? triagemCount : undefined;
+export default function ForjaHub({
+  active,
+  triagemCount,
+  pendencias,
+}: {
+  active: string;
+  /** contagem viva da fila de triagem — vai pro sino (é a "minha fila" do protótipo) */
+  triagemCount?: number;
+  /** pendências da mesa de Aprovações — badge na aba, como no protótipo (`fj-tab-badge`) */
+  pendencias?: number;
+}) {
+  const sino = triagemCount ?? 0;
 
   return (
-    <>
-      <PageHeader
-        title="Forja"
-        subtitle={COCKPIT_SUBTITLE}
-        actions={
-          <>
-            <button
-              type="button"
-              aria-label="Notificações"
-              title="Notificações"
-              className="relative inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-              data-testid="forja-sino"
-            >
-              <Bell size={16} />
-              {sinoBadge != null && sinoBadge > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-semibold tabular-nums text-primary-foreground">
-                  {sinoBadge}
-                </span>
-              )}
-            </button>
+    <div className="fj-hub" data-testid="forja-hub">
+      <div className="os-page-h">
+        <div className="os-page-h-l">
+          <h1>Forja</h1>
+          <p>{COCKPIT_SUBTITLE}</p>
+        </div>
+        <div className="os-page-h-r">
+          <button type="button" className="fj-bell" title="Minha fila" aria-label="Minha fila" data-testid="forja-sino">
+            <Bell size={14} strokeWidth={1.7} />
+            {sino > 0 && <span className="fj-bell-badge">{sino}</span>}
+          </button>
 
-            <button
-              type="button"
-              onClick={openCommandPalette}
-              aria-label="Buscar (⌘K)"
-              title="Buscar (⌘K)"
-              className="inline-flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-              data-testid="forja-busca"
-            >
-              <Search size={14} />
-              <kbd className="rounded bg-muted px-1 py-0.5 font-mono text-[10px]">⌘K</kbd>
-            </button>
+          <button type="button" className="fj-kbtn" onClick={openCommandPalette} title="Paleta de comandos" aria-label="Buscar (⌘K)" data-testid="forja-busca">
+            <Search size={11} />
+            Buscar
+            <kbd>⌘K</kbd>
+          </button>
 
-            <PageHeaderPrimary label="Novo issue" href="/forja" data-testid="forja-novo-issue" />
-          </>
-        }
-      />
+          <div className="fj-viewtabs grouped" data-testid="forja-tabs">
+            {FORJA_GRUPOS.map((grupo) => {
+              const tabs = FORJA_TABS.filter((t) => t.grupo === grupo.key);
+              return (
+                <div key={grupo.key} className="fj-navgroup" role="group" aria-label={grupo.label}>
+                  <span className="fj-navgroup-lbl" data-testid={`forja-grupo-${grupo.key}`}>{grupo.label}</span>
+                  {tabs.map((t) => {
+                    const Icon = t.icon;
+                    const isActive = t.key === active;
+                    const badge = t.key === 'aprovacoes' ? pendencias : undefined;
+                    // `as="button"`: o CSS do protótipo estiliza `.fj-viewtabs button` — uma âncora
+                    // ficaria sem estilo. O Inertia navega no clique igual.
+                    return (
+                      <Link
+                        key={t.key}
+                        as="button"
+                        type="button"
+                        href={t.href}
+                        title={t.hint}
+                        aria-current={isActive ? 'page' : undefined}
+                        className={isActive ? 'active' : ''}
+                      >
+                        <Icon size={11} />
+                        {t.label}
+                        {badge != null && badge > 0 && <span className="fj-tab-badge">{badge}</span>}
+                      </Link>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
 
-      {/* Tab-strip — idêntica em todas as telas do hub, agora em 3 grupos.
-          shrink-0: o slot do AppShellV2 é flex-column de altura limitada; sem isto
-          o flex-shrink esmaga o nav (que tem overflow-x-auto) a ~3px nas telas
-          longas absorvidas (/team-mcp/*). Mantém o tab-strip sempre em altura cheia.
-
-          O `<nav>` segue sendo o ÚNICO contêiner flex: os grupos entram como
-          irmãos no mesmo eixo (rótulo + itens + divisor), via `<Fragment>` e sem
-          wrapper novo. É de propósito — um contêiner de layout por grupo somaria
-          hits no `layout-primitives-guard` (ADR 0253) sem ganho nenhum de layout.
-          (E o guard varre o arquivo inteiro, comentário incluso: descrever o
-          anti-padrão citando a classe literal já o faz disparar.) */}
-      <nav className="mt-2 inline-flex w-full shrink-0 items-center gap-1 overflow-x-auto border-b px-6" data-testid="forja-tabs">
-        {FORJA_GRUPOS.map((grupo, gi) => {
-          const tabs = FORJA_TABS.filter((t) => t.grupo === grupo.key);
-          if (tabs.length === 0) {
-            return null; // grupo sem itens não desenha rótulo órfão
-          }
-
-          return (
-            <Fragment key={grupo.key}>
-              {gi > 0 && (
-                <span className="mx-1.5 h-4 w-px shrink-0 bg-border" aria-hidden />
-              )}
-
-              {/* Rótulo do grupo — PROGRESSIVE ENHANCEMENT, e o motivo é medido.
-                  A faixa é horizontal e já vinha apertada: com 11 itens o conteúdo
-                  dá 1140px, e o nav dispõe de (viewport − sidebar 272 − padding 48).
-                  Medido em produção logo após o merge:
-
-                    viewport 1280 → scroll +180px  (JÁ existia antes dos grupos)
-                    viewport 1440 → scroll  +20px  (idem)
-                    viewport 1512 → CABIA, e os rótulos quebraram (+132px)
-
-                  Os rótulos custam 158px e os divisores 26px. Então o texto só
-                  entra a partir de `2xl` (1536px), onde sobra espaço de verdade;
-                  abaixo disso o DIVISOR sozinho já agrupa visualmente por 26px, e
-                  a barra volta a caber exatamente como antes deste PR.
-
-                  `aria-hidden` porque é ornamento: quem usa leitor de tela recebe o
-                  destino pelo texto do link, e um "TRABALHO" solto na nav atrapalha.
-                  Como é aria-hidden, escondê-lo por breakpoint não tira informação
-                  de ninguém — só de quem tem pixels sobrando.
-
-                  `tracking-[0.07em]` NÃO é gosto: a âncora (`.fj-navgroup-lbl` em
-                  forja-page.css:830) declara `letter-spacing:.07em`, e a sonda mediu
-                  +0,665px no protótipo contra −0,2375px aqui em 2026-09-01 — o
-                  `tracking-tight` anterior era o SINAL OPOSTO. Versalete de 9,5px pede
-                  tracking positivo; apertar caixa-alta miúda fecha o contraforma.
-                  Recibo e método: memory/requisitos/Forja/PARIDADE-area-forja-diagnostico-e-ondas.md §6-bis. */}
-              <span
-                aria-hidden
-                className="hidden shrink-0 select-none text-[9.5px] font-semibold uppercase tracking-[0.07em] text-muted-foreground/70 2xl:inline"
-                data-testid={`forja-grupo-${grupo.key}`}
-              >
-                {grupo.label}
-              </span>
-
-              {tabs.map((t) => {
-                const isActive = t.key === active;
-                const Icon = t.icon;
-                const badge = t.key === 'triagem' ? triagemCount : undefined;
-                return (
-                  <Link
-                    key={t.key}
-                    href={t.href}
-                    title={t.hint}
-                    aria-current={isActive ? 'page' : undefined}
-                    className={cn(
-                      '-mb-px inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-xs font-medium transition-colors',
-                      isActive
-                        ? 'border-primary text-primary'
-                        : 'border-transparent text-muted-foreground hover:text-foreground',
-                    )}
-                  >
-                    <Icon size={14} />
-                    {t.label}
-                    {badge != null && badge > 0 && (
-                      <span className="ml-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-semibold tabular-nums text-primary-foreground">
-                        {badge}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
-            </Fragment>
-          );
-        })}
-      </nav>
-    </>
+          <Link href="/forja" className="os-btn primary" data-testid="forja-novo-issue">
+            <Plus size={11} />
+            Novo issue
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 }
