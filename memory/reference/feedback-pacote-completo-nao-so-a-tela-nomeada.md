@@ -41,9 +41,11 @@ Ao receber handoff/protótipo/ZIP com "coloca em produção":
 
 ## O que esta regra NÃO afrouxa
 
-Não confundir com [`feedback-nao-oferecer-caminho-que-toca-larissa.md`](feedback-nao-oferecer-caminho-que-toca-larissa.md):
-lá o corte de escopo **protege cliente em produção** e segue valendo. Aqui o corte era só meu, e
-não devia existir.
+**Não confunde com o corte que PROTEGE.** Existe um corte de escopo legítimo e ele continua
+valendo: não oferecer caminho que toque tela viva da Larissa (ROTA LIVRE, `biz=4`, 99% do volume)
+— ali o certo é descartar sozinho a rota arriscada e apresentar só a segura. A diferença é de
+quem o corte protege: aquele protege **cliente em produção**; este aqui protegia **só a minha
+estimativa de esforço**, e não devia existir.
 
 Também não afrouxa a **REGRA MESTRE de valor/estoque** nem os Non-Goals que o handoff declara —
 "pacote completo" é entregar tudo que o documento **autoriza**, e o que ele proíbe continua
