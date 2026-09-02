@@ -10,6 +10,19 @@ last_run: "2026-09-01"
 
 # Casos de Uso & Aceite — Notas NF-e / NFC-e
 
+> **Revalidação `last_run` 2026-09-01 — o que foi conferido (Onda 1 Fiscal, troca de primitivas):**
+> `fx-btn`/`fx-chip`/`fx-search`/`fx-filters` saíram para as primitivas `Button`/`Input`/`Inline` do
+> DS. É **camada de apresentação**; os 8 UC assertam backend e nenhum toca o `.tsx`. Dois pontos onde
+> a troca *poderia* ter mexido em comportamento foram checados **no código, não presumidos**:
+> **(a)** o handler J/K ignora teclas quando `target.tagName === 'INPUT'` — o `<Input>` do DS
+> renderiza um `<input>` real, então a guarda continua valendo e a navegação não dispara ao digitar;
+> **(b)** o bloco `useEffect` do J/K está **intacto** no diff (0 linhas `+/-` casando
+> `tagName`/`addEventListener`). A âncora `data-contract="fiscal-nfe-filters"` sobreviveu à troca do
+> `<div>` pelo `<Inline>` (que faz spread de `...props`), provado pelo `contrato-de-tela`: limpo
+> `rc=0`, copy mutada `rc=1`. **Nenhum teste foi re-executado** (Pest = CT 100).
+> _O que esta revalidação NÃO cobre: o §Backlog segue igual — o gate `fiscal.nfe.view` continua sem
+> teste e o `UC-FNFE-01` continua skipando. A onda não os toca e não os conserta._
+
 > **Revalidação `last_run` 2026-09-01 — o que foi conferido (Onda 1 Fiscal, flip do token `--fis`):**
 > este PR muda a tela em **um único ponto**: o comentário de cabeçalho do `.tsx`, que afirmava
 > `var(--fis) rosa fiscal` e virou falso quando o token passou a `oklch(0.55 0.15 295)`. A mudança de
