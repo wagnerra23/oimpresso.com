@@ -40,6 +40,23 @@ declare(strict_types=1);
 use App\Business;
 use App\User;
 
+// OBRIGATÓRIO nesta lane, e não é boilerplate: o `phpunit.xml:83` fixa
+// `DB_CONNECTION=sqlite` + `:memory:`, e o job NÃO exporta `DB_CONNECTION` no
+// ambiente do processo — então TODO Pest daqui nasce em sqlite vazio, mesmo com o
+// `.env` do app apontando pra mysql (o `.env` é lido pelo SERVIDOR que o browser
+// visita; o processo de teste não herda isso). Sem este `beforeEach` o teste
+// morre em `no such table: business` (run 33678323586) — foi o que aconteceu.
+// Copiado de `PixelBaselineTest.php:72-79`, que é quem faz isso funcionar lá.
+// A congelada de relógio dele NÃO vem junto de propósito: serve a determinismo de
+// pixel, e aqui não se fotografa nada — mede-se `grid-template-columns`.
+beforeEach(function () {
+    config([
+        'database.default' => 'mysql',
+        'database.connections.mysql.database' => 'oimpresso_test',
+    ]);
+    \Illuminate\Support\Facades\DB::purge('mysql');
+});
+
 // SEM guard `class_exists(...)` de propósito. A 1ª versão deste arquivo copiou
 // `$browserMissing = ! class_exists(\Pest\Browser\Bootstrap::class)` do
 // `tests/Browser/NfeBrasil/NfceStatusTest.php` — e o resultado foi
