@@ -14,7 +14,7 @@ module: NfeBrasil
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 201 arquivos em 19 papéis.
+**Total mapeado:** 205 arquivos em 19 papéis.
 
 ## Controllers — 11
 
@@ -109,7 +109,7 @@ module: NfeBrasil
 - [api.php](../../../Modules/NfeBrasil/Routes/api.php)
 - [web.php](../../../Modules/NfeBrasil/Routes/web.php)
 
-## Migrations (schema) — 17
+## Migrations (schema) — 20
 
 - [2026_05_06_002000_create_nfe_certificados_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002000_create_nfe_certificados_table.php)
 - [2026_05_06_002001_create_nfe_emissoes_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002001_create_nfe_emissoes_table.php)
@@ -128,6 +128,9 @@ module: NfeBrasil
 - [2026_05_12_120000_create_nfse_eventos_cancelamento_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_12_120000_create_nfse_eventos_cancelamento_table.php)
 - [2026_05_26_000001_add_ibs_cbs_to_nfe_fiscal_rules.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_26_000001_add_ibs_cbs_to_nfe_fiscal_rules.php)
 - [2026_07_03_000000_add_reforma_tributaria_modo_to_nfe_business_configs.php](../../../Modules/NfeBrasil/Database/Migrations/2026_07_03_000000_add_reforma_tributaria_modo_to_nfe_business_configs.php)
+- [2026_09_01_000000_add_contingencia_to_nfe_business_configs.php](../../../Modules/NfeBrasil/Database/Migrations/2026_09_01_000000_add_contingencia_to_nfe_business_configs.php)
+- [2026_09_01_000001_add_contingencia_to_nfe_emissoes.php](../../../Modules/NfeBrasil/Database/Migrations/2026_09_01_000001_add_contingencia_to_nfe_emissoes.php)
+- [2026_09_01_000002_create_nfe_sefaz_status_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_09_01_000002_create_nfe_sefaz_status_table.php)
 
 ## Seeders — 1
 
@@ -178,9 +181,9 @@ module: NfeBrasil
 - [Index.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.casos.md)
 - [RegraForm.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.casos.md)
 
-## Testes (Pest) — 53
+## Testes (Pest) — 54
 
-- 53 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
+- 54 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 37
