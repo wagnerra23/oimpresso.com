@@ -19,6 +19,7 @@
 | `R1` cor crua no JSX | 19 `oklch()` inline | cor dinâmica por hue (prio/fase/papel) → `style={{"--h": hue}}` + classe `.fj-x{ color: oklch(0.6 0.18 var(--h)) }`. O JSX fica sem literal e o render é idêntico |
 | `HEX-CSS` | 6 `#fff` | `var(--accent-fg)` / `var(--surface)` conforme o papel |
 | `IMPORTANT` | 2 | subir especificidade do seletor |
+| `SINTAXE` | 1 | `forja-page.css:778` — `.fj-ho-flow{ background: oklch(0.275 0.050 295)); }` tem um `)` sobrando. O navegador tolera; o build do Vite (Tailwind v4) **derruba o build inteiro** com "Missing opening (". Consertar na fonte; no repo entrou com desvio de 1 byte declarado |
 | `PALETA` | `--dev`, `--dev-soft`, `--dev-line` | promover a token do DS (`--origin-DEV*`) no DS vivo, como o próprio comentário do `forja-page.css` já prevê (FORJA-137). Token novo = decisão [W]; o pedido aqui é você propor o valor e o nome |
 
 `R3` (glifos `✦ ⚠ ★ →`) e `R4` (header canon) ficam do lado do Code — não são pedido a você.

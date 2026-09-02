@@ -26,6 +26,7 @@
 //   IMPORTANT          → stylelint declaration-no-important (config/stylelint-baseline.json)
 //   HEX-CSS            → stylelint color-no-hex — contagem espelhada
 //   FLEX-CRU           → scripts/layout-primitives-guard.mjs — contagem espelhada (mesma regra)
+//   SINTAXE            → build do Vite/@tailwindcss (parênteses/chaves desbalanceados) — pegou o CI em 2026-09-02
 //
 // USO
 //   node scripts/governance/replica-inconsistencias.mjs --modulo Forja
@@ -70,6 +71,10 @@ const DET = [
     exemplo: (t) => [...new Set(t.match(/#[0-9a-fA-F]{3,8}\b/g) || [])].slice(0, 4).join(' ') },
   { id: 'FLEX-CRU', nome: 'flex/grid cru em className (sem Stack/Inline/Grid)', dono: 'layout-primitives-guard.mjs', ext: /\.(tsx|jsx)$/,
     conta: (t) => (t.match(/className=["'`][^"'`]*\b(flex|grid)\b(?!-)/g) || []).length, exemplo: () => '' },
+  { id: 'SINTAXE', nome: 'parênteses/chaves desbalanceados (o navegador tolera, o Tailwind v4 do Vite NÃO — "Missing opening (")', dono: 'build do Vite (@tailwindcss/vite)', ext: /\.css$/,
+    conta: (t) => { const c = t.replace(/\/\*[\s\S]*?\*\//g, ''); const n = (ch) => (c.match(new RegExp('\' + ch, 'g')) || []).length; return (n('(') !== n(')') ? 1 : 0) + (n('{') !== n('}') ? 1 : 0); },
+    exemplo: (t) => { const c = t.replace(/\/\*[\s\S]*?\*\//g, ''); const bad = c.split('
+').map((l, i) => [i + 1, (l.match(/\(/g) || []).length - (l.match(/\)/g) || []).length]).filter(([, d]) => d !== 0).slice(0, 3); return bad.map(([ln, d]) => `linha ${ln} (${d > 0 ? '+' : ''}${d})`).join(' · '); } },
   { id: 'PALETA', nome: 'família de tokens de cor com prefixo próprio (>=4)', dono: 'prototipo-ui/ds-guard.mjs', ext: /\.css$/,
     conta: (t, f) => {
       try {
@@ -143,6 +148,8 @@ const RECEITAS = {
   'HEX-CSS': { onde: 'fonte', auto: 'sim (na fonte)', como: '#fff → var(--accent-fg) / var(--surface) conforme o papel; 6 ocorrências, pedir ao [CC].' },
   'FLEX-CRU': { onde: 'missão', auto: 'não precisa',
     como: 'as telas antigas usam Tailwind `flex`/`grid` cru; a réplica troca por classes do bundle (`.fj-row`, `.fj-toolbar`…) e o item some. Nas 8 telas /project-mgmt/* some pela revogação. NÃO refatorar pra Stack/Inline antes da onda — seria pagar 2×.' },
+  SINTAXE: { onde: 'fonte', auto: 'sim (na fonte)',
+    como: 'o navegador tolera `)` sobrando, o parser do Tailwind v4 no build do Vite derruba o build inteiro (medido 2026-09-02, forja-page.css:778). Consertar no protótipo; enquanto não desce, desvio de 1 byte DECLARADO no cabeçalho do bundle.' },
   PALETA: { onde: 'fonte (DS)', auto: 'sim',
     como: 'promover --dev/--dev-soft/--dev-line a token do DS (`--origin-DEV*`) no SSOT `resources/css/tokens/semantic.tokens.json` + `npm run tokens:build`; o bundle passa a consumir var() e o ds-guard para de ver família própria. É token novo = decisão [W] (FORJA-137).' },
 };
@@ -185,7 +192,7 @@ function selftest() {
   const tsx = join(dir, 'Pages', 'Index.tsx');
   writeFileSync(tsx, `export default function Index(){ return <div className="flex gap-2" style={{color:"oklch(0.55 0.15 295)"}}>✦ olá ⚠</div> }`);
   const css = join(dir, 'x.css');
-  writeFileSync(css, `.a{font-size:12px;color:#abc!important}.b{font-size:13px}`);
+  writeFileSync(css, `.a{font-size:12px;color:#abc!important}.b{font-size:13px;background:oklch(0.5 0.1 20))}`);
   const bom = join(dir, 'Pages', 'Bom.tsx');
   writeFileSync(bom, `import {PageHeader} from 'x'; export default function Bom(){ return <PageHeader/> }`);
   const it = medir([tsx, css, bom]);
@@ -198,6 +205,7 @@ function selftest() {
     ['FONTRAMP conta 2 no css', get('FONTRAMP', css) === 2],
     ['IMPORTANT conta 1', get('IMPORTANT', css) === 1],
     ['HEX-CSS conta 1', get('HEX-CSS', css) === 1],
+    ['SINTAXE acusa o ) sobrando', get('SINTAXE', css) === 1],
     ['arquivo limpo não gera item', !it.some((i) => i.arquivo === rel(bom))],
   ];
   rmSync(dir, { recursive: true, force: true });
