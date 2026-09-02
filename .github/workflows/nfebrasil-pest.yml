@@ -226,6 +226,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/InutilizacaoAuthorizeRoleTest.php \
             Modules/NfeBrasil/Tests/Feature/ContingenciaSchemaContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/ContingenciaAtivacaoTest.php \
+            Modules/NfeBrasil/Tests/Feature/SefazStatusRecorderTest.php \
             tests/Feature/Calculo/CalculoTributarioTest.php \
             Modules/Fiscal/Tests/Feature/CockpitMultiTenantTest.php \
             Modules/Fiscal/Tests/Feature/NfeCockpitMultiTenantTest.php \
