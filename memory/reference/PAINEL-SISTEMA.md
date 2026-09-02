@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-01**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-02**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -150,7 +150,7 @@ lente: [construir]
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 157 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 158 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -310,6 +310,7 @@ lente: [construir]
 - ~~2026-08-28 — Dar por entregue a correção que passa no CI inteiro e é INERTE no runtime~~
 - ~~2026-08-28 — Preencher `related_prototype` em 34 charters "pra as telas entrarem na onda de design" (a porta que mediu lia METADE da regra)~~
 - ~~2026-08-29 — Criar branch de `origin/main` FRESCO e depois trazer os arquivos de um WIP VELHO — e explicar o vermelho do gate por DEDUÇÃO~~
+- ~~2026-09-01 — EMENDA das lápides 2026-07-17 (quem-roda pelo runtime) e 2026-08-17 (comentário que se autodefende): a afirmação de BLOQUEIO em doc canon vira instrução de desistência~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -320,14 +321,14 @@ lente: [construir]
 
 ## Rastro
 
-- **480** handoffs · **656** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **482** handoffs · **659** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-09-02-forja-paridade-medida-espelho`
   - `2026-09-01-testes-persistentes-design-code`
+  - `2026-09-01-fiscal-f0-screen-coverage`
+  - `2026-09-01-descida-design-passo-0-causa-raiz-read-order`
   - `2026-08-31-ragas-obra-parada-veredito-b`
   - `2026-08-31-jana-p0-vazamento-e-d0-identidade-view`
-  - `2026-08-28-session-02`
-  - `2026-08-28-session-01`
-  - `2026-08-28-onda1-ponto-e-biometria-sem-rota`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-01 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-02 · deriva das fontes canônicas, não as substitui._
