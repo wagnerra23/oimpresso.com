@@ -201,6 +201,8 @@ Decisão [W] de 2026-09-02, textual: *"pode fazer igual ao protótipo e revogar 
 | chip `carry ×N` e pílula de `frescor` | campos que `mcp_tasks` não tem. Os dois são **condicionais** no protótipo, então a falta do dado já os apaga lá — inventar valor seria dado fantasma |
 | hint `j` `k` `↵` `?` no rodapé | anunciaria atalho de teclado que esta tela não escuta |
 | DSL de busca (`is:p0 @CL ~FA-1 tipo:bug`) | o backend busca por título, id, dono e módulo; o placeholder diz o que ele **de fato** faz |
+| `fj-onda-meta` no cabeçalho do grupo (estado · janela · carga · **encerrar onda** · **✦ resumir**) | exige o catálogo `window.FORJA.ONDAS` (onda como entidade, com estado, janela e dependências) — em produção `forja_onda` é um `custom_field` de texto, sem entidade atrás. E os dois botões são **ação**: `encerrar onda` é mutação em cascata, `resumir` chama IA |
+| `3 não-verificados` na barra de totais | mesmo campo `frescor` da penúltima linha |
 
 ### Reconciliações — dois pontos deste charter que a réplica toca
 

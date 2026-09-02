@@ -218,3 +218,18 @@ Mesma sonda, mesma viewport (2560), dark nos dois lados. Smoke pós-deploy: `/fo
 - [ ] sonda pareada `design-diff --probe` nos dois renders → `--compare prod.json design.json --check`, dark, mesma viewport, **depois do deploy**. É ela que dá o veredito D2/D4/D6/D8 — nada aqui afirma "0 bug".
 - [ ] **D1 (rede)**: `window.__marker` sobrevivendo ao clique do KPI-filtro, do agrupamento e do papel (todos são `router.get` parcial com `only:[...]`), com `GET` Inertia visível — medível só em produção autenticada.
 - [ ] `/forja/trabalho` **não está** no visreg (conferido no dono do inventário, `tests/Browser/visreg-screens.json`: das 39 telas, a única da Forja é `Forja/Aprovacoes`) — não há `.snap` a regravar nesta onda.
+
+### Adendo da mesma rodada — a estrutura de CADA bloco, medida filho a filho
+
+A tabela acima comparou a `fj-row`. Faltava o resto, e a medição por `children` mostrou **três diferenças que eu não tinha declarado** e **uma ressalva sobre o próprio instrumento**:
+
+| bloco | protótipo (filhos medidos) | a réplica | diferença |
+|---|---|---|---|
+| `.fj-frentebar` | **1** — só `fj-frente-note` | 2 — `Segmented` + nota | ⚠️ **o instrumento, não a tela** — ver ressalva abaixo |
+| `.fj-toolbar` | **4** — `fj-groupby` · `fj-ia-btn` · `fj-ia-btn` · `fj-search` | 2 — `fj-groupby` · `fj-search` | os 2 `fj-ia-btn` (`Papéis`, `Perguntar ✦`) abrem painéis inexistentes — **já declarado** |
+| `.fj-group-head` | **2** — `fj-group-toggle` · `fj-onda-meta` | 1 — `fj-group-toggle` | **NOVO, não estava declarado** — ver abaixo |
+| `.fj-totalbar` | 6 blocos: `23 issues` · `4 P0` · `2 bloqueados` · **`3 não-verificados`** · `ordem: automática` · **hint `j k ↵ ?`** | 4 blocos, sem os dois em negrito | `não-verificados` é frescor (campo ausente); a hint anunciaria teclado que a tela não escuta |
+
+**⚠️ A ressalva do instrumento (e ela inverte o sinal da 1ª linha).** O `.fj-frentebar` do protótipo aparece com **1** filho aqui porque o `window.CliSeg` **retorna `null` quando o `Segmented` do DS não está publicado** — e o bundle do DS no snapshot local está truncado pelo teto do `get_file` (limite já registrado na rodada da manhã: 44 componentes publicados × 55 no vivo, sem `Segmented`). Ou seja: **o protótipo VIVO tem 2 filhos ali; o espelho local desenha 1.** A réplica com 2 está **mais** fiel, não menos — e é o que o pedido do [W] instruiu (*"em produção ele existe em `resources/js/Components/ui`; ignore o snapshot, use o de produção"*). Registrado porque medir esta barra contra o espelho local produziria o veredito invertido.
+
+**`fj-onda-meta` — a diferença que faltava declarar.** Quando o agrupamento é por **Onda**, o cabeçalho do grupo do protótipo ganha `estado` (ativa/planejada) · `janela` (jun 11–16) · `carga` por tamanho (1M) · botão **encerrar onda** · botão **✦ resumir**. Isso exige o catálogo `window.FORJA.ONDAS` (ondas com estado, janela e dependências), que **não existe em produção** — `forja_onda` é um `custom_field` de texto em `mcp_tasks`, sem entidade por trás. Os dois botões, além disso, são **ação**: `encerrar onda` é mutação em cascata (carrega não-concluídos pra próxima) e `resumir` chama IA. Fica de fora pela mesma razão dos outros três: a ADR 0388 é licença de **aparência**, e nada disso é aparência.
