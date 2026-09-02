@@ -5,12 +5,24 @@ irmaos: Nfse.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-08-28"
+last_run: "2026-09-01"
 last_run_ci: "0 UC executado nesta corrida — os 4 UC herdam testes que JÁ existem; veredito pendente das lanes PHP / Pest (NfeBrasil · MySQL) e Pest Fiscal"
 related_us: [US-FISCAL-005]
 ---
 
 # Casos de Uso & Aceite — NFS-e Emitidas
+
+> **Revalidação `last_run` 2026-09-01 — Onda 1 Fiscal (saneamento `fx-*` → DS):** a tela mudou
+> em **camada de apresentação apenas** — 5 `fx-chip` → `<Button>`, `fx-search` + `<input
+> type="search">` → `<Input>`, `fx-filters` → `<Inline>`, e o campo de competência saiu de
+> `<input type="month" className="fx-search">` com `style` inline para `<Input type="month">`
+> (a primitiva já dá borda, raio e altura). Conferi os 4 UC um a um: **UC-FNFSE-01/02/03 são
+> backend** (escopo multi-tenant, gate `fiscal.nfse.view`, competência malformada). O
+> **UC-FNFSE-04 é o único que fala do cabeçalho** e foi conferido de perto: os testes dele
+> assertam o **shape do `counts`** (6 chaves) e o render Inertia com `filters/counts` — tudo no
+> Controller, que este PR não toca. Dos 6 indicadores, 5 vivem nos chips (preservados, com o
+> `contrato-de-tela` verde nas 5 copies) e o faturamento vive no `crumb`, intocado.
+> **Nenhum teste foi re-executado** (Pest = CT 100); os vereditos seguem como estavam.
 
 > **Revalidação `last_run` 2026-08-28 — o que foi conferido:** este PR muda a tela em **um único ponto**: o atributo `data-contract="fiscal-nfse-filters"` no wrapper, âncora do mapa [`fiscal-nfse.map.json`](../../../../memory/requisitos/Fiscal/fiscal-nfse.map.json). Conferi o diff do `.tsx` contra a lista de UC deste arquivo — **nenhum UC depende de atributo de DOM**, logo nenhum aceite mudou. **Nenhum teste foi re-executado** nesta revalidação (Pest = CT 100); os vereditos seguem como estavam.
 
