@@ -23,7 +23,7 @@ db_tables_owned:
   - nfe_fiscal_rules
   - nfe_business_configs
   - nfe_fiscal_rule_tax_rate_links (bridge ADR ARQ-0005)
-  - nfe_sefaz_status (saude do autorizador por UF — global, sem business_id por desenho da ADR TECH-0002)
+  - nfe_sefaz_status (saude do autorizador por UF — global por desenho da ADR TECH-0002; sem business_id)
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/Forja"
