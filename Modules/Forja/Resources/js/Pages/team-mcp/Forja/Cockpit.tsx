@@ -67,9 +67,28 @@ function ForjaCockpit({
     <>
       <ForjaHub active={tab} triagemCount={triagemCount} />
 
-      <section className="px-6 pt-4" data-testid={`forja-tab-${tab}`}>
-        {/* Intro da aba (texto-âncora). Triagem renderiza o seu próprio; MCP tem banner. */}
-        {tab !== 'triagem' && tab !== 'mcp' && tab !== 'integrador' && (
+      {/* `changelog` é réplica do protótipo (Onda 9) e a view TRAZ o próprio padding
+          (`.fj-changelog{padding:18px 32px 40px}`) — somar `px-6` daria 24+32=56px
+          à esquerda contra os 32px do protótipo. O `integrador` tem a MESMA causa
+          (`.fj-integra`, mesmo padding) e entra nesta lista na Onda 10, que é o PR
+          dono do compare dele.
+          A classe `fj-hub` aqui é ESCOPO DE TOKEN, não layout: a `<section>` é IRMÃ
+          do `<ForjaHub>`, e o bundle escopa a família `--accent*` do dark a
+          `[data-theme="dark"] .fj-hub, .fj-page` (Onda 2.1) — sem ela os chips
+          herdariam o `--accent` 0,55 da fundação em vez do 0,70 do protótipo. Vem
+          junto `.fj-hub button{line-height:normal}` (linha 1226), que é o mesmo fix
+          que a Onda 2.1 mediu no botão do topnav (de 28px para 25px, por causa do preflight
+          do Tailwind) e de que os `<button>` dos chips precisam. Medido: `.fj-hub`
+          NÃO tem regra própria — as 20 regras dela são todas de descendente, então
+          a classe não traz layout. `.fj-page` foi descartada aqui porque tem
+          `height:100%; overflow:hidden` e clipa o feed (medido em harness). */}
+      <section
+        className={tab === 'changelog' ? 'fj-hub' : 'px-6 pt-4'}
+        data-testid={`forja-tab-${tab}`}
+      >
+        {/* Intro da aba (texto-âncora). Triagem renderiza o seu próprio; MCP tem
+            banner; Changelog e Integrador não têm parágrafo no protótipo. */}
+        {tab !== 'triagem' && tab !== 'mcp' && tab !== 'integrador' && tab !== 'changelog' && (
           <p className="text-xs leading-relaxed text-muted-foreground">{subtitle}</p>
         )}
 
@@ -89,7 +108,9 @@ function ForjaCockpit({
           </Deferred>
         )}
         {tab === 'changelog' && (
-          <Deferred data={['changelog']} fallback={loading('changelog')}>
+          // O fallback herda o padding da view (a `<section>` não põe nenhum aqui),
+          // senão o skeleton sai colado na borda enquanto o defer não resolve.
+          <Deferred data={['changelog']} fallback={<div className="fj-changelog">{loading('changelog')}</div>}>
             <ForjaChangelog changelog={changelog} />
           </Deferred>
         )}
