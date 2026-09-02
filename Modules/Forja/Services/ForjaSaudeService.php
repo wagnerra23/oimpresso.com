@@ -149,14 +149,15 @@ class ForjaSaudeService
         // canônica do board. Fase fora do mapa cai no hue de F0 em vez de quebrar.
         $hues = ['F0' => 250, 'F1' => 295, 'F1.5' => 270, 'F2' => 60, 'F3' => 195, 'F3.5' => 150, 'F4' => 145];
 
-        $fases = $this->quadro->build($projectId)['fases'] ?? [];
-
-        return array_values(array_map(static fn (array $f): array => [
+        // Sem `?? []` nem `array_values()`: o `build()` do quadro declara
+        // `array{fases: list<array{key,label,cards}>}`, então as chaves SEMPRE existem e o
+        // `array_map` sobre uma list já devolve list — o PHPStan reprova a redundância.
+        return array_map(static fn (array $f): array => [
             'id' => (string) $f['key'],
             'label' => (string) $f['label'],
-            'n' => count($f['cards'] ?? []),
+            'n' => count($f['cards']),
             'hue' => $hues[$f['key']] ?? 250,
-        ], $fases));
+        ], $this->quadro->build($projectId)['fases']);
     }
 
     /**
@@ -203,12 +204,13 @@ class ForjaSaudeService
      */
     private function checks(array $checks): array
     {
-        return array_values(array_map(static fn (array $c): array => [
+        // `array_map` sobre a list de checks já devolve list — `array_values()` seria no-op.
+        return array_map(static fn (array $c): array => [
             'id' => (string) $c['name'],
             'fase' => (string) $c['detail'],
             'estado' => $c['ok'] ? 'green' : 'red',
             'rotulo' => $c['ok'] ? 'verde' : 'vermelho',
-        ], $checks));
+        ], $checks);
     }
 
     /**
