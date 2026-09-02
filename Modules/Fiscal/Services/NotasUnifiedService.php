@@ -86,7 +86,10 @@ class NotasUnifiedService
             ->limit(self::LIMITE)
             ->get()
             ->map(function (NfeEmissao $e): array {
-                $meta = $e->metadata ?? [];
+                // `(array)` e nao `?? []`: o cast 'array' do model faz o PHPStan ver
+                // metadata como nao-nullable, e o `??` vira erro no ratchet. O cast
+                // resolve os dois lados — null vira [] em runtime.
+                $meta = (array) $e->metadata;
                 $modelo = (int) $e->modelo;
 
                 return [
