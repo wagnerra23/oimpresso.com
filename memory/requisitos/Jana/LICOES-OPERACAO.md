@@ -92,6 +92,14 @@ Erro de operação ≠ feedback de cliente (`feedback-capture` cobre fricção d
 - **Ref:** US-COPI-137 · `JudgeTraceOnlineJob` · `docker/oimpresso-mcp/docker-compose.yml`
 - **Graduação:** MEC · check:`online_eval_score_uptime_7d` · status:done
 
+### L-OP-005 · Provedor LLM sem crédito derrubou a Jana e nenhum check nomeou a causa
+- **Data:** 2026-09-02
+- **Erro:** o crédito da conta do provedor acabou em 2026-08-31 ~20:02 e a Jana emudeceu — chat, sugestão de metas, PR UI Judge e Daily Brief pararam juntos. O `jana:health-check` viu só o sintoma, e um dos checks pintou **verde**: o `custo_brain_b_24h` mede `custo <= teto`, e custo zero por provedor morto passa no teto folgado. Gastar nada não é saúde — é a assinatura do silêncio.
+- **Sintoma:** `brief_uptime_24h` STALE (último brief 2026-08-31 20:02:26) + `custo_brain_b_24h` `ok=true` com `in=0 out=0` tokens. A causa (`HTTP 429` · `insufficient_quota` / `credit_balance_exhausted`) só apareceu quando um humano abriu `storage/logs/brief-cron.log` à mão. Agravante medido no mesmo dia: a via de alerta do brief (`GenerateBriefCommand::alertOps` → `mcp_inbox`) está **morta em produção desde 2026-06-26** — a tabela não existe, então o `catch` só loga; 19 eventos datados no `laravel.log`. Ninguém seria avisado mesmo se o alerta tivesse disparado.
+- **Regra:** métrica de **consumo com teto superior** não detecta parada — zero sempre passa em `<= X`; quem vigia dependência que pode morrer precisa de predicado de **presença**, não de limite. E toda dependência externa paga precisa de um check que pergunte ao **oráculo** ("a conta aceita a chamada?") em vez de inferir do rastro, porque o rastro pode nem existir: nos logs de prod o par (timestamp, motivo) **nunca coexiste na mesma linha**. Por fim, o alarme tem que **nomear a causa**: "o brief parou" manda o humano investigar; "o provedor está sem crédito" manda o dono decidir.
+- **Ref:** `HealthCheckCommand::checkLlmProviderQuota` (FP medido 0/30 em 30d de log de prod) · US-COPI-145 (credencial é [W]) · US-COPI-135 (fallback ausente) · [PR #6540](https://github.com/wagnerra23/oimpresso.com/pull/6540) (a distinção entre os dois 429)
+- **Graduação:** MEC · check:`llm_provider_quota` · status:done
+
 ---
 
 ## Refs
