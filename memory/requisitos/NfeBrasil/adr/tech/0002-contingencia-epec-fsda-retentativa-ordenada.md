@@ -18,10 +18,22 @@ Modos de contingência oficiais SEFAZ:
 
 | Modo | Para que doc | Como funciona |
 |---|---|---|
-| **EPEC** (Evento Prévio Emissão em Contingência) | NF-e modelo 55 | Autoriza imediato em SVC-AN; depois manda XML completo |
-| **FS-DA** (Formulário de Segurança - DANFE Auxiliar) | NFC-e modelo 65 | Imprime DANFE com tag tpEmis=9; envia XML quando SEFAZ volta |
-| **SVC** (SEFAZ Virtual Contingência) | NF-e | Autoriza em SVAN/SVRS quando UF principal está fora |
-| **OFFLINE NFC-e** | NFC-e | Tag tpEmis=9; obrigatório transmitir em até 24h após volta |
+| **EPEC** (Evento Prévio Emissão em Contingência) | NF-e modelo 55 e NFC-e modelo 65 (a critério da UF) | `tpEmis=4` · autoriza imediato em SVC-AN; depois manda XML completo |
+| **FS-DA** (Formulário de Segurança - DANFE Auxiliar) | NF-e modelo 55 | `tpEmis=5` · imprime DANFE em papel-segurança; envia XML quando SEFAZ volta |
+| **SVC** (SEFAZ Virtual Contingência) | NF-e modelo 55 | `tpEmis=6` (SVC-AN) / `tpEmis=7` (SVC-RS) · autoriza em SVAN/SVRS quando UF principal está fora |
+| **OFFLINE NFC-e** | NFC-e modelo 65 | `tpEmis=9` · obrigatório transmitir em até 24h após volta |
+
+> ⚠️ **Correção 2026-09-01 — a tabela acima estava errada em duas células.** Até esta data ela
+> atribuía ao **FS-DA** o par `tpEmis=9` + `NFC-e modelo 65`; os dois estão errados. FS-DA é
+> **`tpEmis=5` e vale só para NF-e modelo 55** — quem implementasse esta ADR ao pé da letra
+> marcaria NFC-e mod. 65 com `tpEmis=9` rotulado FS-DA e cairia na família da **rejeição 714**
+> ("NFC-e com opção de contingência inválida"). `tpEmis=9` é a contingência **off-line da NFC-e**,
+> que já tinha linha própria e correta. Fonte da correção: [`sped-nfe/docs/Contingency.md`](https://github.com/nfephp-org/sped-nfe/blob/master/docs/Contingency.md)
+> — a lib que este projeto usa (`nfephp-org/sped-nfe` no `composer.json`) — corroborada pelos
+> [Padrões Técnicos de Contingência Off-line NFC-e](https://www.nfe.fazenda.gov.br/portal/exibirArquivo.aspx?conteudo=fMhAfsQfE+M%3D) do Portal NF-e.
+> A **decisão** desta ADR (detecção híbrida, persistência antes da SEFAZ, retentativa FIFO) não
+> muda — só os valores de `tpEmis` que ela cita. Os outros 5 sites do mesmo erro no canon
+> (`GLOSSARY`, `ARCHITECTURE`, `CHANGELOG`, `SPEC` ×2) foram corrigidos no mesmo PR.
 
 Implementação tem 3 desafios:
 

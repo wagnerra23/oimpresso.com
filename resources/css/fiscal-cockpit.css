@@ -14,8 +14,8 @@
  * que drawers herdam os mesmos tokens. */
 .fx-page,
 .fx-drawer {
-  --fis:       oklch(0.52 0.16 30);
-  --fis-soft:  oklch(0.95 0.06 30);
+  --fis:       oklch(0.55 0.15 295); /* 2026-09-01: era hue 30; roxo canon DS = --cw-accent (ADR 0235) */
+  --fis-soft:  oklch(0.95 0.04 295);
   --ok:        oklch(0.55 0.13 145);
   --ok-soft:   oklch(0.94 0.06 145);
   --warn:      oklch(0.62 0.13 60);
