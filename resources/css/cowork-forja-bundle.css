@@ -11,6 +11,11 @@
  * (>=4 tokens do mesmo prefixo). E a regra do DS colidindo com o prototipo; a resolucao
  * (promover a `--origin-DEV` no SSOT DTCG, FORJA-137) e decisao [W] — ate la o bundle
  * fica fiel ao prototipo, que e o que a decisao de 2026-09-02 manda.
+ *
+ * DESVIO DECLARADO (1 byte): a linha `.fj-ho-flow` do prototipo tem um `)` sobrando
+ * (`oklch(0.275 0.050 295))`). O navegador tolera; o parser do Tailwind v4 no build do Vite
+ * NAO ("Missing opening (", CI de 2026-09-02). Removido aqui e pedido ao [CC] na fonte —
+ * ate descer consertado, este e o unico byte em que o bundle difere do espelho.
  */
 /* forja-page.css — Forja (módulo de desenvolvimento). Chrome = roxo canon (--accent).
    Teal --dev ESCOPADO: só selos de proveniência (proposta --origin-DEV, NÃO accent de chrome). */
@@ -775,7 +780,7 @@ a.fj-ho-pr:hover{ color:var(--accent); }
 [data-theme="dark"] .fj-mcp-tbl td{ border-bottom: 1px solid var(--border-2, oklch(0.40 0.050 95)); }
 [data-theme="dark"] .fj-perm-ok{ color: oklch(0.84 0.130 150); background: oklch(0.275 0.060 150); }
 [data-theme="dark"] .fj-perm-deny{ color: oklch(0.84 0.180 25); background: oklch(0.275 0.050 25); }
-[data-theme="dark"] .fj-ho-flow{ background: oklch(0.275 0.050 295)); }
+[data-theme="dark"] .fj-ho-flow{ background: oklch(0.275 0.050 295); }
 [data-theme="dark"] .fj-ho-gate-conflito{ color: oklch(0.84 0.180 25); background: oklch(0.275 0.050 25); border: 1px solid oklch(0.40 0.100 25); }
 [data-theme="dark"] .fj-ho-lever-devolver:hover{ background: oklch(0.275 0.050 25); color: oklch(0.84 0.180 25); }
 [data-theme="dark"] .fj-ho-lever-re-disparar:hover{ background: oklch(0.275 0.050 250); }
