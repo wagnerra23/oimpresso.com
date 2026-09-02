@@ -255,7 +255,14 @@ test('quota: inacessivel = nao-medido advisory (nem verde, nem vermelho duro)', 
 
 // ── 3b. INTEGRACAO: o check monta o veredito e ESCALA pro canal HITL ──────
 
-/** Roda o check com a sonda fakeada e devolve [resultado, spy do escalador]. */
+/**
+ * Roda o check com a sonda fakeada e devolve [resultado, escalador stub].
+ *
+ * Stub anonimo em vez de Mockery: o HitlEscalationService e `final` de proposito
+ * (transporte, nao ponto de extensao) e Mockery recusa classe final. O stub tambem
+ * assere MAIS que um spy -- guarda os argumentos, entao da pra provar a chave
+ * deterministica `LLM-QUOTA`, que e o que impede a 39a task duplicada.
+ */
 function biteQuota(array $body, int $status): array
 {
     Illuminate\Support\Facades\Http::fake([
@@ -264,18 +271,35 @@ function biteQuota(array $body, int $status): array
     config(['services.openai.api_key' => 'sk-fake-para-teste']);
     app()->instance('env', 'live'); // a sonda so roda em producao
 
-    $spy = Mockery::spy(Modules\Jana\Services\TaskRegistry\HitlEscalationService::class);
-    app()->instance(Modules\Jana\Services\TaskRegistry\HitlEscalationService::class, $spy);
+    $escalador = new class
+    {
+        /** @var list<array<string, string>> */
+        public array $chamadas = [];
+
+        public function escalar(
+            string $chave,
+            string $titulo,
+            string $descricao,
+            string $modulo,
+            string $prioridade = 'p2',
+            string $origem = 'sentinela',
+        ) {
+            $this->chamadas[] = compact('chave', 'modulo', 'prioridade', 'origem');
+
+            return null;
+        }
+    };
+    app()->instance(Modules\Jana\Services\TaskRegistry\HitlEscalationService::class, $escalador);
 
     $m = (new ReflectionClass(HealthCheckCommand::class))->getMethod('checkLlmProviderQuota');
     $m->setAccessible(true);
 
-    return [$m->invoke(app(HealthCheckCommand::class)), $spy];
+    return [$m->invoke(app(HealthCheckCommand::class)), $escalador];
 }
 
 test('quota: fixture 429 LITERAL de prod -> check falha E escala HITL-LLM-QUOTA', function () {
     // Corpo medido na sonda ao vivo em 2026-09-02, nao inventado.
-    [$r, $spy] = biteQuota(['error' => [
+    [$r, $escalador] = biteQuota(['error' => [
         'message' => 'You have no credits remaining.',
         'type' => 'insufficient_quota',
         'param' => null,
@@ -288,16 +312,20 @@ test('quota: fixture 429 LITERAL de prod -> check falha E escala HITL-LLM-QUOTA'
     expect($r['message'])->toContain('SEM CRÉDITO');
 
     // Escalar e o ponto: detectar sem escalar repete o nag perpetuo que o
-    // HitlEscalationService nasceu pra matar.
-    $spy->shouldHaveReceived('escalar');
+    // HitlEscalationService nasceu pra matar. A chave TEM que ser deterministica --
+    // com data/contagem dentro dela, cada run criaria uma task nova.
+    expect($escalador->chamadas)->toHaveCount(1);
+    expect($escalador->chamadas[0]['chave'])->toBe('LLM-QUOTA');
+    expect($escalador->chamadas[0]['prioridade'])->toBe('p0');
+    expect($escalador->chamadas[0]['origem'])->toBe('jana:health-check');
 });
 
 test('quota: fixture 200 -> check ok E NAO escala (sem alarme falso)', function () {
-    [$r, $spy] = biteQuota(['choices' => [['message' => ['content' => 'ok']]]], 200);
+    [$r, $escalador] = biteQuota(['choices' => [['message' => ['content' => 'ok']]]], 200);
 
     expect($r['ok'])->toBeTrue();
     expect($r['value'])->toBe('ok');
-    $spy->shouldNotHaveReceived('escalar');
+    expect($escalador->chamadas)->toBeEmpty();
 });
 
 test('quota: fora de producao a sonda NAO sai pela rede', function () {
