@@ -24,6 +24,14 @@ use Illuminate\Database\Eloquent\Model;
  *   }
  *
  * Pré-populado pelo wizard de onboarding por regime (MEI/Simples/Presumido/Real).
+ *
+ * US-NFE-006 / ADR TECH-0002 — estado de contingência POR TENANT. Anotado como
+ * @property porque Larastan não infere atributo dinâmico de Eloquent a partir da
+ * migration: sem isto, todo acesso vira "undefined property" no ratchet do PHPStan.
+ *
+ * @property bool $em_contingencia
+ * @property \Illuminate\Support\Carbon|null $contingencia_ativada_em
+ * @property string|null $contingencia_motivo
  */
 class NfeBusinessConfig extends Model
 {
