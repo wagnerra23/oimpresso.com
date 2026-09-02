@@ -23,6 +23,7 @@ on:
     branches: [main]
     paths:
       - 'Modules/NfeBrasil/**'
+      - 'resources/js/Pages/NfeBrasil/**'
       - 'Modules/Fiscal/Tests/**'
       - 'Modules/NFSe/DTO/NfseEmissaoPayload.php'
       - 'tests/Feature/Calculo/CalculoTributarioTest.php'
@@ -63,6 +64,7 @@ jobs:
           filters: |
             nfe:
               - 'Modules/NfeBrasil/**'
+              - 'resources/js/Pages/NfeBrasil/**'
               - 'Modules/Fiscal/Tests/**'
               - 'Modules/NFSe/DTO/NfseEmissaoPayload.php'
               - 'tests/Feature/Calculo/CalculoTributarioTest.php'

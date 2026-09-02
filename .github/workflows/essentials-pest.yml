@@ -27,6 +27,7 @@ on:
     branches: [main]
     paths:
       - 'Modules/Essentials/**'
+      - 'resources/js/Pages/Essentials/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/essentials-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -64,6 +65,7 @@ jobs:
           filters: |
             essentials:
               - 'Modules/Essentials/**'
+              - 'resources/js/Pages/Essentials/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/essentials-pest.yml'
               - '.github/actions/pest-mysql-setup/**'

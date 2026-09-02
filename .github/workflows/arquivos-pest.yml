@@ -36,6 +36,7 @@ on:
     branches: [main]
     paths:
       - 'Modules/Arquivos/**'
+      - 'resources/js/Pages/Arquivos/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/arquivos-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -73,6 +74,7 @@ jobs:
           filters: |
             arq:
               - 'Modules/Arquivos/**'
+              - 'resources/js/Pages/Arquivos/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/arquivos-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
