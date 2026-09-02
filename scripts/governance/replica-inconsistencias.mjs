@@ -26,6 +26,19 @@
 //   IMPORTANT          → stylelint declaration-no-important (config/stylelint-baseline.json)
 //   HEX-CSS            → stylelint color-no-hex — contagem espelhada
 //   FLEX-CRU           → scripts/layout-primitives-guard.mjs — contagem espelhada (mesma regra)
+//   ESLINT-DS (ds/*)   → eslint.config.js `no-restricted-syntax` (13 regras ds/*), ratchet em
+//                        config/eslint-baseline.json. DELEGADO a `scripts/ds-report.mjs
+//                        --module <Mod> --json --by-file` (mesmo padrão do PALETA→ds-guard):
+//                        ele JÁ é o dono do eixo "ds/* por regra × módulo" e é quem invoca o
+//                        ESLint — este reporter não abre régua paralela nem duplica a config.
+//                        PONTO CEGO QUE ISTO FECHA (medido 2026-09-02): o baseline agrega TODAS
+//                        as ds/* sob o ruleId `no-restricted-syntax` (o prefixo `ds/` só existe
+//                        na MENSAGEM), então elas só apareciam quando o gate `ESLint · ratchet vs
+//                        baseline` ficava vermelho — no PR #6553 foram absorvidas com
+//                        `BASELINE-ABSORB:` e sumiram da lista. Escopo NÃO é escolhido aqui: é o
+//                        do dono (`files`/`ignores` do eslint.config.js — Pages das 2 raízes,
+//                        fora Components/ui e _Showcase), então componente canônico do DS não é
+//                        varrido por construção.
 //   SINTAXE            → build do Vite/@tailwindcss (parênteses/chaves desbalanceados) — pegou o CI em 2026-09-02
 //
 // USO
@@ -33,6 +46,11 @@
 //   node scripts/governance/replica-inconsistencias.mjs --modulo Forja --prototipo prototipo-ui/cowork/forja-*.jsx
 //        ^ mede TAMBÉM o que vai entrar (o JSX do protótipo) e marca como "entrada prevista"
 //   node scripts/governance/replica-inconsistencias.mjs --files a.tsx b.css --modulo X
+//        ^ escopo dado à mão: o eixo ESLINT-DS (que é por MÓDULO) NÃO roda neste modo
+//   node scripts/governance/replica-inconsistencias.mjs --modulo X --sem-eslint
+//        ^ pula o eixo ESLINT-DS (worktree sem node_modules) — o resto mede normal
+//   CUSTO: com ESLINT-DS o run paga um passe de ESLint nas 2 raízes (o dono varre tudo e só
+//   depois filtra por módulo) — minutos, não segundos. É sob-demanda, não roda em CI.
 //   node scripts/governance/replica-inconsistencias.mjs --selftest
 //
 // O que ele NÃO faz: não decide o que é bug e o que é decisão (isso é a régua de três
@@ -121,6 +139,36 @@ export function medir(files, { origem = 'aplicado' } = {}) {
   return itens;
 }
 
+// ESLINT-DS — delega ao DONO (scripts/ds-report.mjs), nunca reimplementa a invocação do ESLint
+// nem o filtro. `card` é injetável SÓ pro --selftest (o que pode apodrecer daqui é o mapeamento
+// cartão→itens; o filtro tem bite-test no dono, `node scripts/ds-report.mjs --selftest`).
+// Um item por ARQUIVO×REGRA; a `receita` é a mensagem canônica do eslint.config.js, que já traz
+// o alvo (`<Button>`, `<PageHeaderTabs>`…) — não reescrevemos o que o dono já diz.
+const DONO_DS = 'eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs';
+export function medirEslintDs(mod, { origem = 'aplicado', card = null, run = null } = {}) {
+  let j = card;
+  if (!j) {
+    // `run` injetável só pro selftest exercitar o caminho "não medi" (o catch de verdade),
+    // já que o comando é fixo e no worktree do agente o ESLint costuma existir.
+    const exec = run || ((c) => execSync(c, { encoding: 'utf8', cwd: ROOT, maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] }));
+    try {
+      j = JSON.parse(exec(`node "${join(ROOT, 'scripts', 'ds-report.mjs')}" --module ${mod} --json --by-file`));
+    } catch {
+      // NÃO MEDI ≠ verde (§5 2026-07-29). Vira item com contagem -1 ⇒ o main sai com exit 2.
+      return [{ id: `ESLINT-DS:${mod}`, regra: 'ESLINT-DS', nome: 'ds/* do ESLint (eixo não medido)', dono: DONO_DS,
+        arquivo: `(módulo ${mod})`, contagem: -1, origem,
+        exemplo: 'ds-report.mjs não rodou — ESLint/node_modules ausente? Rode `npm ci`, ou use --sem-eslint pra medir só o resto' }];
+    }
+  }
+  return Object.entries(j.by_file_rule || {}).map(([k, v]) => {
+    const i = k.lastIndexOf('|');
+    const arquivo = k.slice(0, i), regra = k.slice(i + 1);
+    const msg = v.msg || '';
+    return { id: `${regra}:${arquivo}`, regra, nome: 'hand-roll de componente/token que o DS já resolve', dono: DONO_DS,
+      arquivo, contagem: v.count, exemplo: (msg.split(' — ')[1] || msg).slice(0, 110), receita: msg, origem };
+  });
+}
+
 function mesclar(novos, anterior) {
   const prev = new Map((anterior?.itens || []).map((i) => [i.id, i]));
   return novos.map((i) => {
@@ -149,12 +197,27 @@ const RECEITAS = {
     como: 'as telas antigas usam Tailwind `flex`/`grid` cru; a réplica troca por classes do bundle (`.fj-row`, `.fj-toolbar`…) e o item some. Nas 8 telas /project-mgmt/* some pela revogação. NÃO refatorar pra Stack/Inline antes da onda — seria pagar 2×.' },
   SINTAXE: { onde: 'fonte', auto: 'sim (na fonte)',
     como: 'o navegador tolera `)` sobrando, o parser do Tailwind v4 no build do Vite derruba o build inteiro (medido 2026-09-02, forja-page.css:778). Consertar no protótipo; enquanto não desce, desvio de 1 byte DECLARADO no cabeçalho do bundle.' },
+  'ds/*': { onde: 'code (a mensagem diz o alvo)', auto: 'parcial',
+    como: 'cada regra ds/* tem alvo canônico na PRÓPRIA mensagem do ESLint — a tabela "Receita ds/*" abaixo lista a mensagem literal de cada regra que apareceu nesta medição (derivada, não escrita à mão). Duas famílias: COMPONENT-SUBSTITUTE (`no-os-btn`→<Button>, `no-inline-tablist`→<PageHeaderTabs>/<SubNav>, `no-handrolled-status-pill`→<Badge>/<StatusBadge>, `no-handrolled-combobox`→<Command> em <Popover>) troca o hand-roll pelo componente do DS; EIXO DE VALOR (`no-raw-palette-color`, `no-inline-raw-color`, `no-arbitrary-color`, `no-rounded-xl`) é o MESMO eixo do R1 acima — se a cor veio copiada do protótipo, o conserto é na fonte (ADR 0374), não aqui.' },
   PALETA: { onde: 'fonte (DS)', auto: 'sim',
     como: 'promover --dev/--dev-soft/--dev-line a token do DS (`--origin-DEV*`) no SSOT `resources/css/tokens/semantic.tokens.json` + `npm run tokens:build`; o bundle passa a consumir var() e o ds-guard para de ver família própria. É token novo = decisão [W] (FORJA-137).' },
 };
 
 function render(mod, itens, comando) {
   const abertas = itens.filter((i) => i.status === 'aberta');
+  // Receita ds/*: DERIVADA das mensagens desta medição (o dono é o eslint.config.js).
+  const dsRec = [...new Map(itens.filter((i) => i.receita).map((i) => [i.regra, i.receita]))].sort((a, b) => a[0].localeCompare(b[0]));
+  const secaoDs = dsRec.length ? `
+## Receita \`ds/*\` — mensagem canônica do ESLint (traz o alvo)
+
+> Derivada da medição: cada linha é o texto literal que o \`eslint.config.js\` emite. O eixo mede
+> só \`origem = aplicado\` — o JSX do espelho (\`--prototipo\`) está FORA do escopo do dono
+> (\`Pages/**\` das 2 raízes), então não é medido aqui e não vira 0 falso.
+
+| regra | mensagem (= a receita) |
+|---|---|
+${dsRec.map(([r, m]) => `| \`${r}\` | ${m.replace(/\|/g, '\\|')} |`).join('\n')}
+` : '';
   const linhas = itens.map((i) => `| ${i.status === 'aberta' ? '🔴' : i.status === 'aceita' ? '🟡' : '✅'} ${i.status} | \`${i.regra}\` | \`${i.arquivo}\` | ${i.contagem < 0 ? 'NÃO MEDIDO' : i.contagem} | ${i.exemplo ? i.exemplo.replace(/\|/g, '\\|') : ''} | ${i.dono} | ${i.origem} |`);
   return `# ${mod} — inconsistências pós-réplica (ADR 0388)
 
@@ -176,7 +239,7 @@ ${linhas.join('\n') || '| — | — | — | 0 | nada encontrado | — | — |'}
 | regra | onde se resolve | automatizável | como |
 |---|---|---|---|
 ${Object.entries(RECEITAS).map(([r, x]) => '| `' + r + '` | ' + x.onde + ' | ' + x.auto + ' | ' + x.como + ' |').join('\n')}
-
+${secaoDs}
 ## Como fechar um item
 
 1. **Resolver** (o Code): tokeniza / troca glifo por lucide / adota PageHeader canon **sem mudar o layout** — a próxima medição não encontra o item e ele sai.
@@ -207,10 +270,35 @@ function selftest() {
     ['SINTAXE acusa o ) sobrando', get('SINTAXE', css) === 1],
     ['arquivo limpo não gera item', !it.some((i) => i.arquivo === rel(bom))],
   ];
+  // ESLINT-DS — fixture ruim/boa no formato do cartão do dono (`--json --by-file`). O filtro
+  // `ds/*` em si tem bite-test no dono: `node scripts/ds-report.mjs --selftest`.
+  const card = { module: 'Zz', total: 3, by_file_rule: {
+    'resources/js/Pages/Zz/Ruim.tsx|ds/no-os-btn': { count: 2, msg: 'ds/no-os-btn — use <Button> (@/Components/ui/button) com variant/size, não a classe de shell os-btn.' },
+    'resources/js/Pages/Zz/Ruim.tsx|ds/no-inline-tablist': { count: 1, msg: 'ds/no-inline-tablist — não hand-role role="tablist"; use <PageHeaderTabs>.' },
+  } };
+  const ds = medirEslintDs('Zz', { card });
+  const dsGet = (r) => ds.find((i) => i.regra === r);
+  const vazio = medirEslintDs('Zz', { card: { module: 'Zz', total: 0, by_file_rule: {} } });
+  checks.push(
+    ['ds RUIM: 2 itens, um por arquivo×regra', ds.length === 2],
+    ['ds RUIM: os-btn com contagem 2', dsGet('ds/no-os-btn')?.contagem === 2],
+    ['ds RUIM: tablist com contagem 1', dsGet('ds/no-inline-tablist')?.contagem === 1],
+    ['ds: receita = mensagem canônica (traz o alvo)', /<Button>/.test(dsGet('ds/no-os-btn')?.receita || '')],
+    ['ds: id estável por arquivo×regra (merge preserva status)', dsGet('ds/no-os-btn')?.id === 'ds/no-os-btn:resources/js/Pages/Zz/Ruim.tsx'],
+    ['ds BOA: cartão sem ds/* não gera item', vazio.length === 0],
+    ['ds: ESLint indisponível vira NÃO MEDIDO (-1), nunca 0', (() => {
+      const r = medirEslintDs('Zz', { run: () => { throw new Error('sem node_modules'); } });
+      return r.length === 1 && r[0].contagem === -1;
+    })()],
+    ['ds: saída ilegível também vira NÃO MEDIDO (-1)', (() => {
+      const r = medirEslintDs('Zz', { run: () => 'isto não é JSON' });
+      return r.length === 1 && r[0].contagem === -1;
+    })()],
+  );
   rmSync(dir, { recursive: true, force: true });
   let fail = 0;
   for (const [n, ok] of checks) { console.log((ok ? '  ✓ ' : '  ✗ ') + n); if (!ok) fail++; }
-  console.log(fail ? `✗ selftest: ${fail} falha(s)` : `✓ replica-inconsistencias selftest OK — ${checks.length} asserts (mede R1/R3/R4/FLEX/FONTRAMP/IMPORTANT/HEX; controle negativo: arquivo limpo)`);
+  console.log(fail ? `✗ selftest: ${fail} falha(s)` : `✓ replica-inconsistencias selftest OK — ${checks.length} asserts (mede R1/R3/R4/FLEX/FONTRAMP/IMPORTANT/HEX + mapeia ESLINT-DS cartão→itens; controles negativos: arquivo limpo, cartão sem ds/*, ESLint indisponível ⇒ -1)`);
   process.exit(fail ? 1 : 0);
 }
 
@@ -229,7 +317,11 @@ function main() {
   const mdDir = join(ROOT, 'memory', 'requisitos', mod);
   if (!existsSync(mdDir)) { console.error(`✗ NÃO MEDI — memory/requisitos/${mod}/ não existe (o módulo não tem casa canônica)`); process.exit(2); }
   const anterior = existsSync(jsonPath) ? JSON.parse(readFileSync(jsonPath, 'utf8')) : null;
-  const itens = mesclar([...medir(files, { origem: 'aplicado' }), ...medir(protos, { origem: 'prototipo' })], anterior);
+  // ESLINT-DS é por MÓDULO (o dono filtra por `moduleOf`), então não roda no modo --files,
+  // onde quem escolheu o escopo foi o humano. `--sem-eslint` é a saída pra worktree sem node_modules.
+  const semEslint = argv.includes('--sem-eslint') || fi !== -1;
+  const ds = semEslint ? [] : medirEslintDs(mod, { origem: 'aplicado' });
+  const itens = mesclar([...medir(files, { origem: 'aplicado' }), ...medir(protos, { origem: 'prototipo' }), ...ds], anterior);
   const comando = `node scripts/governance/replica-inconsistencias.mjs --modulo ${mod}${protos.length ? ' --prototipo …' : ''}`;
   mkdirSync(dirname(jsonPath), { recursive: true });
   writeFileSync(jsonPath, JSON.stringify({ modulo: mod, gerado_em: new Date().toISOString(), comando, arquivos_medidos: files.length + protos.length, itens }, null, 2) + '\n');

@@ -3,6 +3,8 @@
 // ⌘K palette habilitada em PR #7 Wave (US-FISCAL-015) — busca cross-fiscal.
 
 import { router } from '@inertiajs/react';
+import { btnProps } from '../_lib/botao-fiscal';
+import { Button } from '@/Components/ui/button';
 import { Archive, FileText, Receipt, RefreshCw, Search, Shield, ShieldAlert } from 'lucide-react';
 import { useEffect, type ReactNode } from 'react';
 
@@ -85,9 +87,9 @@ export default function FxShell({
         </div>
         <div className="fx-hero-r">
           {env && <span className={`fx-env ${envTone}`}>{env}</span>}
-          <button
+          <Button
             type="button"
-            className="fx-btn ghost fx-cmdk-btn"
+            {...btnProps('ghost')} className="fx-cmdk-btn"
             onClick={() => {
               // Dispara o listener Cmd/Ctrl+K do CmdKPalette via synthetic event.
               window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }));
@@ -97,7 +99,7 @@ export default function FxShell({
             <Search size={13}/>
             <span>Buscar</span>
             <kbd>⌘K</kbd>
-          </button>
+          </Button>
           {actions}
         </div>
       </header>
