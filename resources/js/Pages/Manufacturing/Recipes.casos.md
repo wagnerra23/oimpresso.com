@@ -135,6 +135,18 @@ last_run: "2026-09-02"
 > Os oito acima são comportamento de **navegador** — o lugar deles é o spec Playwright
 > (`e2e/manufacturing-recipes.spec.ts`), não Pest. Entram como UC quando o teste existir e citar o id.
 
+## Ambiguidade declarada (não inventei desempate)
+
+O §4.2 do handoff descreve o KPI 1 como *"média aritmética do custo unitário das receitas
+**exibidas**"*, e a palavra admite duas leituras: as receitas do módulo, ou as que sobraram do
+filtro/busca. O protótipo (`manufacturing-page.jsx`) implementa a **primeira** — a média é sobre
+`linhas` (todas), não sobre `filtradas` — e o próprio sub-rótulo dele diz *"média das N receitas"*
+com N = total. A tela seguiu o protótipo **e mantém o sub-rótulo**, então ela não mente sobre o
+que está somando.
+
+Se a intenção era a segunda leitura, é troca de uma linha (`recipes` → `filtradas`) — mas é
+decisão de quem escreveu o §4.2, não minha. Fica registrado em vez de silenciado.
+
 ## Trilha do tempo
 - 2026-09-02 · [CC] carimbado por `criar-tela.mjs` e preenchido a partir do handoff
   "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §17. 7 UC com teste Pest; 8 no backlog aguardando e2e.
