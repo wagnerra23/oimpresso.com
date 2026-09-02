@@ -258,6 +258,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/ContingenciaAtivacaoTest.php \
             Modules/NfeBrasil/Tests/Feature/SefazStatusRecorderTest.php \
             Modules/NfeBrasil/Tests/Feature/ContingenciaEmissaoTest.php \
+            Modules/NfeBrasil/Tests/Feature/ContingenciaRetransmissaoTest.php \
             tests/Feature/Calculo/CalculoTributarioTest.php \
             Modules/Fiscal/Tests/Feature/CockpitMultiTenantTest.php \
             Modules/Fiscal/Tests/Feature/NfeCockpitMultiTenantTest.php \

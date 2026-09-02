@@ -1083,6 +1083,147 @@ class NfeService
         return $nova;
     }
 
+    /**
+     * US-NFE-006 / ADR TECH-0002 — TRANSMITE uma nota emitida em contingência.
+     *
+     * ⚠️ NÃO CONFUNDIR COM `retransmitir()` LOGO ACIMA. São operações fiscalmente
+     * OPOSTAS, e trocar uma pela outra corrompe documento fiscal:
+     *
+     *   retransmitir()          → a SEFAZ REJEITOU. O número queimou. Inutiliza a
+     *                             emissão e cria uma NOVA, com número NOVO.
+     *   transmitirContingencia() → a nota é VÁLIDA e já foi impressa e entregue ao
+     *                             cliente. Transmite AQUELE MESMO documento, com o
+     *                             MESMO número e o MESMO XML assinado. Nada de novo
+     *                             número — isso quebraria a correspondência entre o
+     *                             DANFE que está na mão do cliente e o XML na SEFAZ.
+     *
+     * Por isso reenvia o XML PERSISTIDO em vez de reconstruí-lo: reconstruir geraria
+     * `cNF`/`dhEmi` diferentes e, portanto, outra chave de acesso.
+     *
+     * Backoff (ADR TECH-0002): cada falha incrementa `retry_count`; ao atingir
+     * MAX_RETRIES_CONTINGENCIA o status vira `rejeitada` e o gestor é alertado —
+     * porque nota em contingência que nunca transmite é pendência fiscal, não ruído.
+     *
+     * @throws UnauthorizedActionException Cross-tenant
+     * @throws InvalidArgumentException    Status não é 'contingencia'
+     * @throws RuntimeException            XML persistido ausente
+     */
+    public function transmitirContingencia(int $businessId, int $emissaoId): NfeEmissao
+    {
+        return OtelHelper::spanBiz('nfe.transmitir_contingencia', function () use ($businessId, $emissaoId): NfeEmissao {
+            return $this->transmitirContingenciaInterno($businessId, $emissaoId);
+        }, [
+            'module' => 'NfeBrasil',
+            'nfe_emissao_id' => $emissaoId,
+        ]);
+    }
+
+    private function transmitirContingenciaInterno(int $businessId, int $emissaoId): NfeEmissao
+    {
+        // SUPERADMIN: carrega cross-tenant de propósito pra validar business_id abaixo.
+        $emissao = NfeEmissao::withoutGlobalScopes()->find($emissaoId);
+        if (! $emissao) {
+            throw new RuntimeException("NfeEmissao {$emissaoId} não encontrada.");
+        }
+
+        if ((int) $emissao->business_id !== $businessId) {
+            throw new UnauthorizedActionException(
+                "Cross-tenant attempt: business {$businessId} tentou transmitir contingência da "
+                . "NfeEmissao {$emissaoId} de business {$emissao->business_id}."
+            );
+        }
+
+        if ($emissao->status !== 'contingencia') {
+            throw new InvalidArgumentException(
+                "Transmissão de contingência só aplica em status 'contingencia'. "
+                . "Status atual: {$emissao->status}."
+            );
+        }
+
+        // O XML assinado é a ÚNICA fonte: reconstruir mudaria a chave de acesso.
+        if (! $emissao->xml_path || ! Storage::exists($emissao->xml_path)) {
+            throw new RuntimeException(
+                "NfeEmissao {$emissaoId} em contingência sem XML persistido ({$emissao->xml_path}). "
+                . 'Não é possível transmitir sem reconstruir o documento — o que geraria outra chave.'
+            );
+        }
+
+        $xmlSigned = (string) Storage::get($emissao->xml_path);
+
+        $business = DB::table('business')->where('id', $businessId)->first();
+        if (! $business) {
+            throw new RuntimeException("Business {$businessId} não encontrado.");
+        }
+
+        $certData = $this->certificadoService->carregarParaSefaz($businessId);
+        $tools = $this->criarTools($business, $certData, [], (string) $emissao->modelo);
+        $idLote = str_pad((string) $emissao->id, 15, '0', STR_PAD_LEFT);
+
+        try {
+            $response = $tools->sefazEnviaLote([$xmlSigned], $idLote, 1);
+        } catch (\Throwable $e) {
+            return $this->registrarFalhaContingencia($emissao, $e->getMessage());
+        }
+
+        DB::transaction(function () use ($emissao, $response, $xmlSigned, $businessId) {
+            $this->processarRetorno(
+                $emissao,
+                $response,
+                $xmlSigned,
+                $businessId,
+                (string) $emissao->serie,
+                (int) $emissao->numero,
+            );
+        });
+
+        Log::info('NfeService: contingência transmitida', [
+            'business_id' => $businessId,
+            'emissao_id' => $emissao->id,
+            'numero' => $emissao->numero,
+            'status_final' => $emissao->refresh()->status,
+        ]);
+
+        return $emissao->refresh();
+    }
+
+    /**
+     * Falha de transmissão de contingência: conta a tentativa e, no teto, escala.
+     *
+     * NÃO volta pra 'contingencia' silenciosamente no teto: vira `rejeitada` com
+     * motivo, porque nota que não transmite depois de N tentativas é pendência que
+     * alguém precisa OLHAR — deixá-la na fila pra sempre é o alarme que nunca toca.
+     */
+    private function registrarFalhaContingencia(NfeEmissao $emissao, string $erro): NfeEmissao
+    {
+        $tentativas = (int) $emissao->retry_count + 1;
+        $estourou = $tentativas >= NfeEmissao::MAX_RETRIES_CONTINGENCIA;
+
+        $emissao->update([
+            'retry_count' => $tentativas,
+            'last_retry_at' => now(),
+            'status' => $estourou ? 'rejeitada' : 'contingencia',
+            'motivo' => $estourou
+                ? sprintf(
+                    'Contingência não transmitida após %d tentativas. Última falha: %s',
+                    $tentativas,
+                    substr($erro, 0, 300),
+                )
+                : sprintf('Aguardando transmissão (tentativa %d). Última falha: %s', $tentativas, substr($erro, 0, 300)),
+        ]);
+
+        $log = $estourou ? 'error' : 'warning';
+        Log::{$log}('NfeService: falha ao transmitir contingência', [
+            'business_id' => $emissao->business_id,
+            'emissao_id' => $emissao->id,
+            'numero' => $emissao->numero,
+            'tentativa' => $tentativas,
+            'esgotou' => $estourou,
+            'erro' => substr($erro, 0, 300),
+        ]);
+
+        return $emissao->refresh();
+    }
+
     // ────────────────────────────────────────────────────────────────────────
     // Privados
     // ────────────────────────────────────────────────────────────────────────
