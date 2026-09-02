@@ -302,6 +302,33 @@ Estrutura conferida e batendo: herói `7 · esperando o seu aval` · alerta `2 h
 ainda não tem este código. **Não vale como o compare da meta**; serve pra provar que a cópia saiu
 fiel antes de ir pro CI.
 
+### Baseline visual regravada (recibo, não promessa)
+
+`visual-regression.yml` despachado com `screens='["Forja/Aprovacoes"]'` na branch da onda.
+
+| run | resultado |
+|---|---|
+| [33668939298](https://github.com/wagnerra23/oimpresso.com/actions/runs/33668939298) | gerou `vrt/baselines-33668939298` → PR #6574, **cherry-pickado** na branch e o PR fechado |
+| [33669764425](https://github.com/wagnerra23/oimpresso.com/actions/runs/33669764425) | re-despachado do HEAD atual (a 1ª rodada saiu do commit anterior ao conserto do placar). Veredito do próprio step: **"Baselines já em dia — nada a commitar."** |
+
+A 2ª rodada existe porque a 1ª baseline foi gerada de `da94ac39bb`, **antes** da 8ª coluna e do
+rótulo "Agente". Sem ela eu estaria confiando numa baseline de código que já não era o meu — e o
+"nada a commitar" é o que prova que a 8ª coluna não muda o pixel neste ambiente (sem
+`cowork_handoffs` semeado, a seção do placar não renderiza). Não foi suposto: é a frase do step.
+
+**O que mudou na imagem** (decodificado com `scripts/tests/snap-diff.mjs`, porque diff de `.snap`
+é base64 numa linha e ilegível por construção):
+
+```
+1728x1117 · px alterados: 480201 de 1930176 (24,88%) · Δmax=253
+assinatura: CONTEÚDO  (Δ≤3 rasterização · Δ≥200 conteúdo)
+células 16×16 com mudança: 91 de 256 · linhas afetadas: 2,3,4,5,6,7,8
+```
+
+Ler isso importa: **a linha 1 não mudou** — o header do `ForjaHub` (Onda 2) ficou intacto, e a
+troca é só do corpo (KpiCards → herói + mesa). Fosse a linha 1, eu teria regredido a Onda 2 sem
+perceber.
+
 ### O que FALTA — e é a condição de fechar a linha 3 do §11
 
 1. Deploy (merge é [W] — ADR 0283).
