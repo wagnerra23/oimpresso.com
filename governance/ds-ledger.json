@@ -90,7 +90,7 @@
     },
     {
       "screen": "Fiscal",
-      "note": "22 arquivo(s)",
+      "note": "23 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -422,8 +422,8 @@
   "progressPct": 37,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "b99259eda",
-  "generatedAt": "2026-09-01T14:15:44.830Z",
+  "measuredAgainstSha": "ecf727e80",
+  "generatedAt": "2026-09-02T14:15:18.121Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
