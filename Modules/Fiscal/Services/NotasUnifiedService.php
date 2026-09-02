@@ -94,7 +94,7 @@ class NotasUnifiedService
                     'tipo'        => $modelo === 65 ? 'NFC-e' : 'NF-e',
                     'kind'        => 'nfe',
                     'num'         => (string) $e->numero,
-                    'serie'       => $e->serie !== null ? (string) $e->serie : null,
+                    'serie'       => (string) $e->serie ?: null,
                     'when'        => $e->emitido_em?->format('d/m H:i'),
                     'cliente'     => $meta['dest_name'] ?? '—',
                     'doc'         => $meta['dest_cnpj'] ?? $meta['dest_cpf'] ?? '—',
@@ -127,7 +127,7 @@ class NotasUnifiedService
                 'tipo'        => 'NFS-e',
                 'kind'        => 'nfse',
                 'num'         => (string) ($n->numero ?? $n->rps_numero ?? '—'),
-                'serie'       => $n->serie !== null ? (string) $n->serie : null,
+                'serie'       => (string) $n->serie ?: null,
                 'when'        => $n->competencia?->format('m/Y') ?? $n->created_at?->format('m/Y'),
                 'cliente'     => $n->tomador_nome ?? '—',
                 'doc'         => $n->tomador_cnpj ?? $n->tomador_cpf ?? '—',
@@ -137,13 +137,13 @@ class NotasUnifiedService
                 'ref'         => null,
                 'keyOrCode'   => $n->lc116_codigo,
                 'codServ'     => $n->lc116_codigo,
-                'iss'         => $n->aliquota_iss !== null ? (float) $n->aliquota_iss : null,
+                'iss'         => ((string) $n->aliquota_iss) === '' ? null : (float) $n->aliquota_iss,
                 'competencia' => $n->competencia?->format('m/Y'),
                 'status'      => $n->status ?? 'processando',
                 'statusKind'  => 'nfse',
                 'rejMsg'      => $n->erro_mensagem,
                 'modelo'      => null,
-                'value'       => (float) ($n->valor_servicos ?? 0),
+                'value'       => (float) $n->valor_servicos,
                 'prazoCancel' => null,
                 'prazoCce'    => null,
                 'sortKey'     => $n->created_at?->toIso8601String() ?? '',
@@ -163,7 +163,9 @@ class NotasUnifiedService
         }
 
         $limite = $modelo === 65 ? 24 : 168;
-        $restantes = $limite - $e->emitido_em->diffInHours(now());
+        // `diffInHours()` devolve FLOAT no Carbon 3 — sem o cast, `intdiv` abaixo
+        // recebe float e o PHPStan reprova (foi o que aconteceu no 1º push deste PR).
+        $restantes = $limite - (int) $e->emitido_em->diffInHours(now());
 
         if ($restantes <= 0) {
             return null;

@@ -30,7 +30,7 @@ beforeEach(function () {
     $this->service = new NotasUnifiedService();
 });
 
-it('CU-FISC-16 · sem emissão real, a lista vem VAZIA — nunca preenchida com demonstração', function () {
+it('UC-FCKP-07 · CU-FISC-16 · sem emissão real, a lista vem VAZIA — nunca preenchida com demonstração', function () {
     if (! Schema::hasTable('nfe_emissoes')) {
         $this->markTestSkipped('nfe_emissoes table missing — rode Modules/NfeBrasil migrate primeiro');
     }
@@ -47,7 +47,7 @@ it('CU-FISC-16 · sem emissão real, a lista vem VAZIA — nunca preenchida com 
     expect($clientes)->not->toContain('Gráfica Ribeirão Ltda');
 });
 
-it('CU-FISC-16 · os contadores usam os ids LITERAIS das visões salvas do Cockpit.tsx', function () {
+it('UC-FCKP-07 · CU-FISC-16 · os contadores usam os ids LITERAIS das visões salvas do Cockpit.tsx', function () {
     // Cockpit.tsx:158-163 — SAVED_VIEWS. Se alguém renomear lá e esquecer aqui, o chip
     // cai pra 0 em silêncio (o `?? 0` engole). Este caso é o que impede isso.
     $esperados = ['todas', 'resolver', 'janela24', 'processando', 'nfse', 'nfce'];
@@ -60,7 +60,7 @@ it('CU-FISC-16 · os contadores usam os ids LITERAIS das visões salvas do Cockp
     }
 });
 
-it('CU-FISC-16 · os contadores derivam da MESMA lista — chip e tabela não podem divergir', function () {
+it('UC-FCKP-07 · CU-FISC-16 · os contadores derivam da MESMA lista — chip e tabela não podem divergir', function () {
     // Era daqui que saía o "Todas 18" contra 10 linhas renderizadas: os dois vinham de
     // mocks diferentes. Derivando da lista, `todas` é a contagem da lista, por construção.
     $notas = [
@@ -79,7 +79,7 @@ it('CU-FISC-16 · os contadores derivam da MESMA lista — chip e tabela não po
     expect($c['nfce'])->toBe(1);                // modelo 65
 });
 
-it('CU-FISC-16 · o serviço é READ-ONLY — não escreve em nfe_emissoes nem nfse_emissoes', function () {
+it('UC-FCKP-07 · CU-FISC-16 · o serviço é READ-ONLY — não escreve em nfe_emissoes nem nfse_emissoes', function () {
     if (! Schema::hasTable('nfe_emissoes')) {
         $this->markTestSkipped('nfe_emissoes table missing — rode Modules/NfeBrasil migrate primeiro');
     }
