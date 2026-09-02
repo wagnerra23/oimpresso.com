@@ -2279,7 +2279,9 @@ class HealthCheckCommand extends Command
             $total = count($checks);
             $msg = "✓ {$total} checks sem falha dura. Sistema saudável.";
             if ($advisoryWarn > 0) {
-                $msg .= " ⚠ {$advisoryWarn} advisory (charter) pra revisar.";
+                // Sem o rótulo "(charter)": desde o ct100_reachability, advisory
+                // também vem de sintoma rebaixado por causa raiz.
+                $msg .= " ⚠ {$advisoryWarn} advisory pra revisar.";
             }
             $this->info($msg);
         } else {
