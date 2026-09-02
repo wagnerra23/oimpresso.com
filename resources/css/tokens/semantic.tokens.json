@@ -82,20 +82,20 @@
     },
     "accent": {
       "$type": "color",
-      "accent":      { "$value": "oklch(0.55 0.15 295)",  "$description": "DS v4 accent ROXO do shell (ADR 0190).", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --accent", "com.oimpresso.dark_absent": "--accent não é redefinido no dark — herda light" } },
-      "accent-2":    { "$value": "oklch(0.62 0.15 295)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --accent-2", "com.oimpresso.dark_absent": "herda light" } },
-      "accent-soft": { "$value": "oklch(0.95 0.04 295)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --accent-soft", "com.oimpresso.dark": "oklch(0.32 0.06 295)" } },
-      "accent-fg":   { "$value": "#ffffff",               "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --accent-fg", "com.oimpresso.dark_absent": "herda light" } }
+      "accent":      { "$value": "oklch(0.55 0.15 295)",  "$description": "DS v4 accent ROXO do shell (ADR 0190). Par escuro = protótipo Cowork (ADR UI-0030).", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --accent", "com.oimpresso.dark": "oklch(0.70 0.15 295)" } },
+      "accent-2":    { "$value": "oklch(0.62 0.15 295)",  "$description": "Hover/realce do accent. No escuro recebe o `--accent-hi` do protótipo (que o próprio shell aliasa como `--accent-2: var(--accent-hi)`, styles.css bloco COMPAT).", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --accent-2", "com.oimpresso.dark": "oklch(0.76 0.15 295)" } },
+      "accent-soft": { "$value": "oklch(0.95 0.04 295)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --accent-soft", "com.oimpresso.dark": "oklch(0.33 0.09 295)" } },
+      "accent-fg":   { "$value": "#ffffff",               "$description": "Texto sobre o accent. No escuro o accent sobe pra 0.70 e pede tinta ESCURA — branco sobre 0.70 fica ilegível.", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --accent-fg", "com.oimpresso.dark": "oklch(0.14 0.02 295)" } }
     },
     "semantic": {
       "$type": "color",
-      "$description": "DS v6 cores semânticas pos/neg/warn + -soft (ADR 0249 · [W] 2026-06-03).",
-      "pos":       { "$value": "oklch(0.50 0.12 150)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --pos", "com.oimpresso.dark": "oklch(0.74 0.14 150)" } },
-      "pos-soft":  { "$value": "oklch(0.95 0.075 150)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --pos-soft", "com.oimpresso.dark": "oklch(0.30 0.085 150)" } },
-      "neg":       { "$value": "oklch(0.55 0.18 25)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --neg", "com.oimpresso.dark": "oklch(0.72 0.16 25)" } },
-      "neg-soft":  { "$value": "oklch(0.955 0.055 25)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --neg-soft", "com.oimpresso.dark": "oklch(0.32 0.09 25)" } },
-      "warn":      { "$value": "oklch(0.58 0.12 70)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --warn", "com.oimpresso.dark": "oklch(0.80 0.13 75)" } },
-      "warn-soft": { "$value": "oklch(0.955 0.072 75)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --warn-soft", "com.oimpresso.dark": "oklch(0.32 0.085 70)" } }
+      "$description": "DS v6 cores semânticas pos/neg/warn + -soft (ADR 0249 · [W] 2026-06-03). Pares ESCUROS = protótipo Cowork, bloco 'VIDA 06-11 [W]' (ADR UI-0030) — 'mesmos saltos de chroma do light, calibrados pro escuro'.",
+      "pos":       { "$value": "oklch(0.50 0.12 150)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --pos", "com.oimpresso.dark": "oklch(0.76 0.18 150)" } },
+      "pos-soft":  { "$value": "oklch(0.95 0.075 150)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --pos-soft", "com.oimpresso.dark": "oklch(0.34 0.11 150)" } },
+      "neg":       { "$value": "oklch(0.55 0.18 25)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --neg", "com.oimpresso.dark": "oklch(0.74 0.19 25)" } },
+      "neg-soft":  { "$value": "oklch(0.955 0.055 25)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --neg-soft", "com.oimpresso.dark": "oklch(0.36 0.12 25)" } },
+      "warn":      { "$value": "oklch(0.58 0.12 70)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --warn", "com.oimpresso.dark": "oklch(0.82 0.16 75)" } },
+      "warn-soft": { "$value": "oklch(0.955 0.072 75)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --warn-soft", "com.oimpresso.dark": "oklch(0.37 0.11 70)" } }
     },
     "bubble": {
       "$type": "color",

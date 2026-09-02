@@ -411,16 +411,25 @@ export default function AppShellV2({
   // que é ESTE MESMO elemento (o style vai no div que carrega o data-theme). Então todo
   // token escrito aqui e que TENHA par de tema no DTCG precisa escolher o par certo, senão
   // o valor light vaza pro escuro sem alarme nenhum — foi o que aconteceu com --accent-soft.
-  //   --accent / --accent-2 / --bubble-me : `dark_absent` no DTCG (herdam o light) → 1 valor.
-  //   --accent-soft                       : tem `com.oimpresso.dark` → SEGUE o tema.
+  //   --accent / --accent-2 / --accent-soft : têm `com.oimpresso.dark` → SEGUEM o tema.
+  //   --bubble-me                           : `dark_absent` no DTCG (herda o light) → 1 valor.
   // Fonte dos pares: resources/css/tokens/semantic.tokens.json → cockpit.accent.
-  const accentSoftLC = userTheme === 'dark' ? '0.32 0.06' : '0.95 0.04';
+  //
+  // 2026-09-02 (ADR UI-0030): --accent e --accent-2 ganharam par ESCURO. Eram `dark_absent`
+  // e o escuro herdava 0.55/0.62 do claro; o protótipo Cowork (styles.css, bloco
+  // `[data-theme="dark"]` "VIDA 06-11 [W]") pinta 0.70/0.76. Era a divergência "0,55 × 0,70"
+  // medida em toda rodada de comparação. Sem ESTA linha a mudança do DTCG não chega ao
+  // browser: o style inline vai no mesmo <div> do data-theme e vence o CSS gerado.
+  const accentLC = userTheme === 'dark' ? '0.70 0.15' : '0.55 0.15';
+  const accent2LC = userTheme === 'dark' ? '0.76 0.15' : '0.62 0.15';
+  const accentSoftLC = userTheme === 'dark' ? '0.33 0.09' : '0.95 0.04';
   const cockpitStyle: React.CSSProperties = {
     ['--row-h' as never]: `${26 + (density / 100) * 16}px`,
     ['--card-pad' as never]: `${8 + (density / 100) * 8}px`,
-    // L/C alinhados ao canon cockpit.css .cockpit{} (ADR 0190): no hue default (295) o resting state bate exato.
-    ['--accent' as never]: `oklch(0.55 0.15 ${accentHue})`,
-    ['--accent-2' as never]: `oklch(0.62 0.15 ${accentHue})`,
+    // L/C alinhados ao canon DTCG cockpit.accent (ADR 0190 no claro · UI-0030 no escuro):
+    // no hue default (295) o resting state bate exato nos dois temas.
+    ['--accent' as never]: `oklch(${accentLC} ${accentHue})`,
+    ['--accent-2' as never]: `oklch(${accent2LC} ${accentHue})`,
     ['--accent-soft' as never]: `oklch(${accentSoftLC} ${accentHue})`,
     ['--bubble-me' as never]: `oklch(0.55 0.15 ${accentHue})`,
   };

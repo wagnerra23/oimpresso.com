@@ -1218,19 +1218,31 @@ a.fj-ho-pr:hover{ color:var(--accent); }
  *    os botões do topnav ficam com `line-height: normal` (25px de altura × 28px em prod).
  *    Reset escopado ao hub — nada fora dele muda.
  * 2) No dark, o shell do protótipo (styles.css `[data-theme="dark"]{…}`) troca a família
- *    `--accent` pra oklch(0.70 …) ("VIDA 06-11 [W]"); a fundação de prod segue em 0.55 no dark.
+ *    `--accent` pra oklch(0.70 …) ("VIDA 06-11 [W]"); a fundação de prod seguia em 0.55 no dark.
  *    É a divergência D6 "0,55 × 0,70" medida em TODAS as rodadas de comparação desta área.
- *    Pela ADR 0388 (réplica primeiro) a Forja recebe os valores do protótipo ESCOPADOS ao seu
- *    root (`.fj-hub` + `.fj-page`), copiados do bloco 6449-6457 do styles.css. Fundação intacta;
- *    a reconciliação global do token é decisão [W], listada em INCONSISTENCIAS-replica.md. */
+ *    Pela ADR 0388 (réplica primeiro) a Forja recebeu os valores ESCOPADOS ao seu root, e a
+ *    reconciliação global ficou registrada como decisão [W].
+ *
+ *    ERRATA 2026-09-02 (ADR UI-0030 — [W] decidiu a reconciliação global): `--accent` e
+ *    `--accent-soft` SAÍRAM daqui. A FUNDAÇÃO passou a dar os dois no escuro (DTCG
+ *    `cockpit.accent` → `_generated-cockpit-dark.css`, mais o par por tema no estilo inline do
+ *    AppShellV2 — sem ele o CSS não chega ao browser). Manter a cópia local anularia o token
+ *    da fundação em vez de consumi-lo.
+ *
+ *    Os dois que FICAM não são teimosia de módulo: `--accent-hi` e `--accent-line` são
+ *    vocabulário ds-v6 que a FUNDAÇÃO NÃO TEM em tema nenhum (medido 2026-09-02: 0 definições
+ *    em resources/, e este bundle é o ÚNICO consumidor — 25 usos de `--accent-line`, 1 de
+ *    `--accent-hi`, todos com fallback `var(--accent)`). Removê-los sem substituto trocaria a
+ *    borda sutil 0.47 pelo accent cheio 0.70 em 25 sítios do escuro — divergir MAIS do
+ *    protótipo, não menos. Promovê-los à fundação é TOKEN NOVO no DS = soberania [W]; os
+ *    valores do protótipo estão prontos em INCONSISTENCIAS-replica.md. */
 .fj-hub button{ line-height: normal; }
 [data-theme="dark"] .fj-hub,
 [data-theme="dark"] .fj-page{
-  --accent:      oklch(0.70 0.15 var(--accent-h, 295));
   --accent-hi:   oklch(0.76 0.15 var(--accent-h, 295));
-  --accent-soft: oklch(0.33 0.09 var(--accent-h, 295));
   --accent-line: oklch(0.47 0.13 var(--accent-h, 295));
-  /* `--accent-fg` do bloco (0.14) NÃO desce: nenhuma regra Forja o consome, e o primary é branco literal. */
+  /* `--accent-fg` do bloco (0.14) não precisa descer aqui: a fundação passou a dá-lo no escuro
+     (UI-0030). Nenhuma regra Forja o consome mesmo — o primary é branco literal (desvio acima). */
 }
 .fj-hub .os-btn.ghost{ background: transparent; border-color: transparent; color: var(--text-dim); }
 .fj-hub .os-btn.ghost:hover{ background: var(--border-2); color: var(--text); }

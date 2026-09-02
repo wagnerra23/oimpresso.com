@@ -1,6 +1,6 @@
 {
   "modulo": "Forja",
-  "gerado_em": "2026-09-02T16:09:08.180Z",
+  "gerado_em": "2026-09-02T18:53:12.546Z",
   "comando": "node scripts/governance/replica-inconsistencias.mjs --modulo Forja --prototipo …",
   "arquivos_medidos": 42,
   "itens": [
@@ -1089,7 +1089,7 @@
       "nome": "cor crua em Page/CSS",
       "dono": "UiLintCommand.php R1 · conformance-gate",
       "arquivo": "resources/css/cowork-forja-bundle.css",
-      "contagem": 335,
+      "contagem": 333,
       "exemplo": "oklch(0.275 0.050 295) · oklch(0.52 0.10 195)",
       "origem": "aplicado",
       "status": "aberta",
