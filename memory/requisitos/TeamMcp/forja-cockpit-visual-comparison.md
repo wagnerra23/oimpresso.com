@@ -388,3 +388,51 @@ perceber.
 4. D1 (rede): marcador sobrevive ao clique nas ações da mesa.
 
 Até isso acontecer, a linha 3 da tabela de ondas fica **em andamento**, não ✅.
+
+## 2026-09-02 (noite) — Onda 4: o ALVO da lista medido no protótipo, antes de codar contra ele
+
+> **O que rodou (recibo).** Protótipo servido por HTTP estático (`python -m http.server 5620 --directory prototipo-ui/cowork`), `localStorage["oimpresso.route"]="teammcp"` + `oimpresso.forja.view="trabalho"` + `oimpresso.forja.trabvis="lista"`, tema **dark**. Espera **ativa** até `__oiLazyDone` **e** duas leituras consecutivas iguais (1418 = 1418 nós, 4 tentativas) — a 1ª leitura dava 515→533 e teria produzido o número errado (§5 2026-08-24). Medição por `getComputedStyle` + `getBoundingClientRect`, nunca pela classe declarada.
+>
+> **Por que medir o protótipo isolado:** a comparação pareada exige a produção deployada, e o merge é ato [W]. Medir o ALVO antes fecha metade do par e evita a classe LC-08 — construir contra o que eu *li* do `.jsx` em vez do que o browser *resolve*. A outra metade (produção) fica declarada como pendência.
+
+| campo | protótipo (medido) | o que a Onda 4 entrega | veredito esperado |
+|---|---|---|---|
+| linhas visuais da barra de filtro | **3** (`.fj-frentebar` · `.fj-toolbar` · `.fj-filterbar2`, três `top` distintos) | as mesmas 3 | **IGUAL** |
+| `kpi.count` | **4** | 4 | **IGUAL** |
+| `kpi.tag` | **BUTTON** | `<button>` (o KPI filtra) | **IGUAL** |
+| `kpi` valor `font-size` | **17px** (`.tf-kpi-v`) | `.tf-kpi-v` do mesmo bundle | **IGUAL** |
+| `kpi` `text-align` | **left** | idem (mesma classe) | **IGUAL** |
+| `--accent` no dark | **`oklch(0.70 0.15 295)`** (resolvido em `.fj-page`) | herdado do mesmo bloco | **IGUAL** |
+| filhos diretos da `.fj-row` | **13** | **11** | **DIVERGE (declarado)** |
+
+**Os 13 slots do protótipo, na ordem medida:** `fj-rowcheck` · `fj-row-indent` · `fj-prio-dot` · `fj-id` · `fj-type` · `fj-title` · `fj-tam` · `fj-row-mid` · `fj-fresco` · `fj-exec` · `fj-role` · `fj-pin` · `fj-star`.
+
+**Os 2 que a Onda 4 não entrega, e o número é esse por decisão:**
+
+| slot | por que fica de fora |
+|---|---|
+| `fj-rowcheck` | alimenta a `.fj-bulkbar` (fase/papel/prio/onda/status em massa) — **mutação sem endpoint**. Escrever fora do `TaskCrudService` seria o segundo caminho de escrita que a Mesa evitou; caixa que não age é afordância falsa (LC-15) |
+| `fj-fresco` | pílula de frescor (`lido @main` / `não verificado` / `sync Nd`) — **campo que `mcp_tasks` não tem**. É condicional no protótipo, então a falta do dado já a apaga lá |
+
+⚠️ **Nota de honestidade sobre esta contagem.** O número **13** é medido no browser; o **11** é derivado do JSX da réplica (contagem de slots de nível superior da `fj-row`), **não** medido — o par completo exige o deploy. E a contagem depende do DADO: nesta linha do protótipo não apareceram `fj-carry`, `fj-epic-roll` nem `fj-lockico`, que são condicionais; numa linha com épico ou bloqueio, os dois lados sobem juntos. Ou seja: **"3 × 13" da rodada da manhã e "11 × 13" desta são medidas da PRIMEIRA linha de cada lado**, não da estrutura máxima.
+
+**O que segue pendente, declarado:**
+
+- [ ] sonda pareada `design-diff --probe` nos dois renders → `--compare prod.json design.json --check`, dark, mesma viewport, **depois do deploy**. É ela que dá o veredito D2/D4/D6/D8 — nada aqui afirma "0 bug".
+- [ ] **D1 (rede)**: `window.__marker` sobrevivendo ao clique do KPI-filtro, do agrupamento e do papel (todos são `router.get` parcial com `only:[...]`), com `GET` Inertia visível — medível só em produção autenticada.
+- [ ] `/forja/trabalho` **não está** no visreg (conferido no dono do inventário, `tests/Browser/visreg-screens.json`: das 39 telas, a única da Forja é `Forja/Aprovacoes`) — não há `.snap` a regravar nesta onda.
+
+### Adendo da mesma rodada — a estrutura de CADA bloco, medida filho a filho
+
+A tabela acima comparou a `fj-row`. Faltava o resto, e a medição por `children` mostrou **três diferenças que eu não tinha declarado** e **uma ressalva sobre o próprio instrumento**:
+
+| bloco | protótipo (filhos medidos) | a réplica | diferença |
+|---|---|---|---|
+| `.fj-frentebar` | **1** — só `fj-frente-note` | 2 — `Segmented` + nota | ⚠️ **o instrumento, não a tela** — ver ressalva abaixo |
+| `.fj-toolbar` | **4** — `fj-groupby` · `fj-ia-btn` · `fj-ia-btn` · `fj-search` | 2 — `fj-groupby` · `fj-search` | os 2 `fj-ia-btn` (`Papéis`, `Perguntar ✦`) abrem painéis inexistentes — **já declarado** |
+| `.fj-group-head` | **2** — `fj-group-toggle` · `fj-onda-meta` | 1 — `fj-group-toggle` | **NOVO, não estava declarado** — ver abaixo |
+| `.fj-totalbar` | 6 blocos: `23 issues` · `4 P0` · `2 bloqueados` · **`3 não-verificados`** · `ordem: automática` · **hint `j k ↵ ?`** | 4 blocos, sem os dois em negrito | `não-verificados` é frescor (campo ausente); a hint anunciaria teclado que a tela não escuta |
+
+**⚠️ A ressalva do instrumento (e ela inverte o sinal da 1ª linha).** O `.fj-frentebar` do protótipo aparece com **1** filho aqui porque o `window.CliSeg` **retorna `null` quando o `Segmented` do DS não está publicado** — e o bundle do DS no snapshot local está truncado pelo teto do `get_file` (limite já registrado na rodada da manhã: 44 componentes publicados × 55 no vivo, sem `Segmented`). Ou seja: **o protótipo VIVO tem 2 filhos ali; o espelho local desenha 1.** A réplica com 2 está **mais** fiel, não menos — e é o que o pedido do [W] instruiu (*"em produção ele existe em `resources/js/Components/ui`; ignore o snapshot, use o de produção"*). Registrado porque medir esta barra contra o espelho local produziria o veredito invertido.
+
+**`fj-onda-meta` — a diferença que faltava declarar.** Quando o agrupamento é por **Onda**, o cabeçalho do grupo do protótipo ganha `estado` (ativa/planejada) · `janela` (jun 11–16) · `carga` por tamanho (1M) · botão **encerrar onda** · botão **✦ resumir**. Isso exige o catálogo `window.FORJA.ONDAS` (ondas com estado, janela e dependências), que **não existe em produção** — `forja_onda` é um `custom_field` de texto em `mcp_tasks`, sem entidade por trás. Os dois botões, além disso, são **ação**: `encerrar onda` é mutação em cascata (carrega não-concluídos pra próxima) e `resumir` chama IA. Fica de fora pela mesma razão dos outros três: a ADR 0388 é licença de **aparência**, e nada disso é aparência.
