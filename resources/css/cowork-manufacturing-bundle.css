@@ -161,7 +161,13 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 .mfg-ed-f{display:flex;gap:8px;align-items:center;padding:12px 20px;border-top:1px solid var(--border);background:var(--surface)}
 .mfg-ed-f.mfg-inline{border-top:0;padding:14px 0 0}
 .mfg-ed-f .sp{flex:1}
-.os-btn.ghost.danger{color:var(--neg);border-color:color-mix(in oklch,var(--neg) 35%,transparent)}
+/* REMOVIDA (adaptação 5): `.os-btn.ghost.danger` do camada-4 era a ÚNICA regra deste
+   arquivo sem escopo, e ela ALCANÇA outros módulos — `cowork-canon-financeiro-bundle.css`
+   e `sells-cowork.css` declaram a mesma classe, ambos ESCOPADOS (`.fin-cowork …`,
+   `.sells-cowork …`), e nenhum dos dois declara `border-color`: a minha adicionaria uma
+   borda que eles nunca tiveram. Medido: um `git grep` da string "os-btn ghost danger"
+   nos .tsx devolve ZERO — nem esta tela usa (migrou pro `<Button>`). Vazando e morta:
+   sai. É a proibição "aplicar bundle Cowork SEM scopear" (proibicoes.md §DS). */
 .mfg-ing.mfg-ing5{grid-template-columns:minmax(180px,1fr) 130px 92px 100px 76px}
 .mfg-ing.mfg-ing6{grid-template-columns:minmax(200px,1fr) 92px 132px 104px 96px 34px}
 .mfg-ed-main{overflow-x:auto}
@@ -223,8 +229,12 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 /* ── Ficha técnica impressa (PT-07) ── */
 .mfg-print-host{display:none}
 @media print{
+  /* adaptação 2 (extensão): estas duas eram globais dentro do print — o `@page` mudava a
+     folha de QUALQUER tela e o fundo branco valia pro app inteiro depois do 1º import.
+     Condicionadas ao portal, como o resto do bloco. */
+  body:has(>.mfg-print-host) { background: #fff; }
+  html.cockpit:has(.mfg-print-host) { background: #fff; }
   @page{size:A4;margin:0}
-  html.cockpit,body{background:#fff}
   body:has(>.mfg-print-host)>*{display:none!important}   /* adaptação 2: condicionado ao portal */
   body:has(>.mfg-print-host)>.mfg-print-host{display:block!important}
   .mfg-sheet{position:relative;padding:20mm 16mm 16mm;color:#111;font-size:10pt;line-height:1.4;-webkit-print-color-adjust:exact;print-color-adjust:exact}
