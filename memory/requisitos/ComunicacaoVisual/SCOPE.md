@@ -31,7 +31,7 @@ related_adrs:
   - 0105-cliente-como-sinal-guiar-sem-mandar
   - 0093-multi-tenant-isolation-tier-0
 url_prefixes:
-  - /com-visual/*
+  - /comunicacao-visual/* (web + api + install)
 drift_alerts: []
 ---
 

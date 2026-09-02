@@ -22,7 +22,7 @@ related_adrs:
   - 0079-constituicao-oimpresso-7-camadas-governanca
   - 0080-trust-tiers-operacional-audit-findings
 url_prefixes:
-  - /assetmanagement/*
+  - /asset/* (dashboard · assets · allocation · revocation · asset-maintenance · settings · install)
 drift_alerts: []
 ---
 
