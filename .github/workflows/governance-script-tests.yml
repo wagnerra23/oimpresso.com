@@ -874,6 +874,9 @@ jobs:
       - name: Git-base-freshness-guard PORTE .mjs (§10.4 · stale morde/solta · roda em Linux)
         if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/git-base-freshness-guard.test.mjs
+      - name: DS-preview-materialize (SessionStart · `_ds/` vazio em worktree fresco morde/solta · [W] 2026-09-02)
+        if: always() && steps.setup.outcome == 'success'
+        run: node .claude/hooks/ds-preview-materialize.test.mjs
       - name: Feature-lint (contrato do trio de feature · us-no-spec/dod/plan/covers)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/feature-lint.test.mjs

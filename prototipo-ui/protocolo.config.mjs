@@ -150,6 +150,12 @@ export const PREFLIGHT_GATES = [
   'node prototipo-ui/ds-guard.mjs <arquivos-tocados>            # em RÉPLICA de protótipo: --report (ADR 0388) — o achado vai pra lista, não veta',
   // ADR 0388 — réplica primeiro: a conformidade do DS vira LISTA pós-aplicação, gerada no MESMO PR
   'node scripts/governance/replica-inconsistencias.mjs --modulo <Mod> [--prototipo <jsx do espelho>]   # NUNCA bloqueia; exit 2 só se NÃO mediu',
+  //   ^ cobre também o eixo ESLINT-DS (13 regras `ds/*`), delegando a `ds-report.mjs --by-file`.
+  //     Precisa de node_modules (o dono invoca o ESLint); sem ele o item sai NÃO MEDIDO e o
+  //     exit vira 2 — use `--sem-eslint` pra medir só o resto. O `ds/*` NÃO aparecia na lista
+  //     antes: o baseline agrega tudo sob o ruleId `no-restricted-syntax` (o prefixo `ds/` só
+  //     existe na mensagem), então só se via quando o required `ESLint · ratchet vs baseline`
+  //     avermelhava — e some de novo quando é absorvido com `BASELINE-ABSORB:` (PR #6553).
   'node scripts/governance/cowork-ssot-guard.mjs',
   // REQUIRED do domínio que faltavam (2026-08-21) — ver mapeamento provado acima
   'node scripts/governance/cowork-mirror-freshness.mjs --unverified --check   # espelho editado sem prova de fidelidade',

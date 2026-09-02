@@ -28,15 +28,15 @@
         "by_state": {
           "sem_campo": 142,
           "placeholder": 1,
-          "pendente": 426,
+          "pendente": 425,
           "parcial": 116,
-          "anchored_ok": 332,
+          "anchored_ok": 333,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
         "fields_total": 881,
         "fields_placeholder": 1,
-        "fields_grammar_ok": 809,
+        "fields_grammar_ok": 808,
         "orphan_fields": 6,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
@@ -46,7 +46,7 @@
         "req_sem_lane_total": 37,
         "behavior_known": false,
         "servido_total": 26,
-        "nao_servido_total": 57,
+        "nao_servido_total": 58,
         "servido_ledger": true,
         "anchor_stale_on": false,
         "anchor_stale_total": null,
@@ -233,7 +233,7 @@
     },
     "distiller_freshness": {
       "status": "measured",
-      "value": 9,
+      "value": 11,
       "unit": "portas atrás dos eventos (>7d vs doc mais novo · ADR 0291 D-D)",
       "direction": "down",
       "target": 0,
@@ -242,7 +242,7 @@
         "portas": 80,
         "carimbadas": 14,
         "sem_carimbo": 66,
-        "stale": 9,
+        "stale": 11,
         "oldest_distilled_at": "2026-07-17"
       },
       "stream": "MEM"
@@ -284,10 +284,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 57,
+        "entries_aprovadas": 58,
         "max_error_rate_pct": 1.82,
-        "last_pr": 6445,
-        "last_lote": "prototipo-soberano-forma-6445-r4"
+        "last_pr": 6552,
+        "last_lote": "url-prefixes-scopes-6552"
       },
       "stream": "GT"
     }

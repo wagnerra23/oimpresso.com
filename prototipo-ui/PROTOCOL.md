@@ -241,6 +241,8 @@ A cada PR mergeado, `[CL]` escreve nos **3 canais que `[CC]` lê via MCP** (webh
 Placar canônico: **`npm run ds:report`** (`scripts/ds-report.mjs`) — quebra `ds/*` por **regra × módulo** (o baseline agrega tudo sob `no-restricted-syntax`; este separa). Modos:
 - **`npm run ds:report:write`** (= `-- --write`) — regenera o **checklist da fila** no `DS_ADOCAO_INDICE.md` (**✅ = `ds/*`=0 concluído · ☐ = pendente**), derivado do estado real. **Rodar a cada PR** — é o "tarefa concluída" que `[CC]` lê (Sync now) pra não regerar o já-feito.
 - `-- --worklist` mostra só o checklist no stdout · `-- --json` alimenta a dimensão "Adoção DS" do GovernanceV4.
+- `-- --module <Mod> --json --by-file` acrescenta `by_file_rule` (`"<path>|<ds/regra>": {count,msg}`) — quebra por **arquivo×regra** com a mensagem canônica. Consumido por `scripts/governance/replica-inconsistencias.mjs` (ADR 0388), que lista o `ds/*` junto das demais inconsistências pós-réplica. Opt-in: sem a flag o cartão de evidência (ADR 0240) sai idêntico.
+- `-- --selftest` — bite-test do filtro `ds/*` e do agrupamento (não do linter), com controle negativo de regra não-`ds/`.
 
 `[CC]` lê esses 3 via MCP e solta a próxima fila **só do que está ☐** — sem o Wagner copiar status na mão, sem regerar tarefa já concluída.
 
