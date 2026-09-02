@@ -60,11 +60,27 @@ concurrency:
 jobs:
   visual-regression:
     runs-on: ubuntu-24.04
-    # 15 min no caminho quente (PR) — nao mexo nele, e o custo que o gate deve pagar.
     # 35 min so no dispatch manual: MEDIDO em 2026-08-19 que o modo update NAO cabe em 15,
     # e o gargalo e o SETUP (composer + npm + playwright + mysql + migrate + seed), nao o
     # numero de telas — um dispatch escopado a UMA tela morreu igual, em 15min15s.
-    timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && 35 || 15 }}
+    #
+    # PR: 15 -> 25 (2026-09-02). O 15 e MARGINAL para um run VERDE, e isso ficou invisivel
+    # enquanto a zona cinza existia: o pixel-diff reprovava e o run terminava em 11-14 min.
+    # Com as baselines alinhadas o gate passa e TODOS os steps rodam ate o fim. Os dois
+    # runs verdes medidos no mesmo dia caem em lados opostos do teto:
+    #   · 33670313000 (PR de baselines #6576) — 5/5 ENFORCING verdes, job 15min10s -> `cancelled`
+    #   · 33670634977 (PR #6579)              — 6/6 verdes (incl. Canario), job 14min22s -> `success`
+    # ~48s separam os dois, entao o run verde e uma MOEDA no teto de 15, nao um impossivel
+    # — a 1a redacao deste comentario dizia "nao consegue nem em principio" e o proprio
+    # 33670634977 refutou. `cancelled` e lido como bloqueio pela branch protection (mesmo
+    # efeito ja catalogado no comentario de `concurrency` acima), entao meia chance de
+    # `cancelled` num gate verde e ruido que se aprende a ignorar.
+    # Nenhum step novo entrou no caminho de PR — a alteracao de 2026-09-02 (alinhar com
+    # origin/main) roda SO em workflow_dispatch. O caminho barato segue barato: PR sem
+    # mudanca de UI conclui por skip-as-pass em ~1 min (medido: 0.8/1.1/1.2/1.3 min).
+    # Contexto do teto anterior: 17 de 51 runs de PR na janela de 2026-09-02 terminaram
+    # `cancelled`, agrupados em 11-15 min — o teto ja mordia antes deste PR.
+    timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && 35 || 25 }}
     env:
       VISREG_GRAY_APPROVED: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'visreg-gray-approved') && '1' || '0' }}
 
@@ -86,7 +102,69 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
-          fetch-depth: 100
+          # `0` (história inteira) SÓ no dispatch: o step "Alinhar com origin/main" abaixo
+          # precisa do ancestral comum pra mergear. Em `pull_request` segue 100, como sempre
+          # — mexer nisso lá encareceria todo PR sem nenhum ganho.
+          fetch-depth: ${{ github.event_name == 'workflow_dispatch' && 0 || 100 }}
+
+      # ── PRÉ-CONDIÇÃO DO MODO UPDATE — fotografar o MESMO mundo que o verify vai renderizar ──
+      # POR QUE EXISTE (medido em 2026-09-02; 6 rebakes seguidos falharam por isto):
+      #   Os dois modos deste workflow fazem checkout de árvores DIFERENTES, e o próprio
+      #   workflow já documentava metade disso no classificador de impacto (L118-129):
+      #     · `pull_request`      → MERGE REF: "Merge <head> into <tip de main NAQUELE momento>"
+      #     · `workflow_dispatch` → o ref CRU, sem merge com main
+      #   Logo o update fotografa `ref` e o verify compara contra `merge(ref, main)`. Quando o
+      #   ref está atrás de main, a baseline nasce sendo foto de UI velha — e o PR de baselines
+      #   reprova contra o render atual. Como o `vrt/baselines-*` é criado a partir do ref do
+      #   dispatch (step "Abrir PR...") e vai `--base main`, essa foto velha ATERRISSA em main e
+      #   passa a reprovar TODO PR seguinte. É por isso que a zona cinza vinha bit-idêntica em
+      #   16 branches independentes (spread 0.0000%): não era flake nem tela não-determinística,
+      #   era a baseline de main sendo retrato de código que main já não tem.
+      #
+      #   Decodificado com `scripts/tests/snap-diff.mjs` + os diff-views do run 33653847851
+      #   (PR de baselines `vrt/baselines-33653333470`, dispatch em `claude/forja-onda2-recibo-prod`):
+      #   na foto velha o sidebar não tinha o contador `sb-group-n` (que entrou em main no #6444,
+      #   2026-08-29) e a régua de KPI da Jana tinha 4 cards; no render atual, contador presente e
+      #   3 cards. Diferença de CÓDIGO, não de dado — nenhum rebake fecharia isso.
+      #
+      # O QUE ESTE STEP FAZ: alinha o ref com `origin/main` ANTES de instalar/buildar, para que a
+      # foto do update seja de `merge(ref, main)` — exatamente a árvore que o verify do PR usa.
+      # Os dois usos legítimos do modo update continuam corretos:
+      #   (a) Fundação já em main  → o merge é no-op, fotografa main;
+      #   (b) UI nova numa branch  → fotografa a branch JÁ integrada com main, que é o que o
+      #       gate do PR daquela branch vai renderizar.
+      # Conflito NÃO é resolvido aqui: falha alto, porque baseline tirada de merge inventado
+      # seria pior que baseline velha.
+      - name: Alinhar com origin/main (pré-condição do modo update)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch --no-tags origin main
+          ATRAS=$(git rev-list --count HEAD..origin/main)
+          FRENTE=$(git rev-list --count origin/main..HEAD)
+          echo "ref do dispatch: ${{ github.ref_name }}"
+          echo "distância p/ origin/main: ${ATRAS} atrás · ${FRENTE} à frente"
+          {
+            echo "### Modo update — alinhamento com \`origin/main\`"
+            echo ""
+            echo "- ref: \`${{ github.ref_name }}\`"
+            echo "- **${ATRAS} commit(s) atrás** de \`origin/main\` · ${FRENTE} à frente"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$ATRAS" = "0" ]; then
+            echo "✅ Já alinhado — merge dispensado."
+            echo "- merge: dispensado (já alinhado)" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if ! git merge --no-edit --no-ff origin/main; then
+            git merge --abort || true
+            echo "::error::Conflito ao alinhar '${{ github.ref_name }}' com origin/main. Rebase a branch e dispare de novo — baseline tirada sem esse alinhamento nasce sendo foto de UI velha e reprova o próprio PR de baselines."
+            echo "- merge: **CONFLITO — abortado**" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "✅ Alinhado: ${ATRAS} commit(s) de origin/main integrados antes de fotografar."
+          echo "- merge: ✅ ${ATRAS} commit(s) integrados antes de fotografar" >> "$GITHUB_STEP_SUMMARY"
 
       # Gate L2 — lint charter `states:` ⇄ manifesto (cheap, node pre-instalado no runner).
       # Roda SEMPRE (antes do classificador de UI): drift charter↔manifesto precisa falhar
