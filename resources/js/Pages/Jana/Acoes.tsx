@@ -84,7 +84,8 @@ export default function Acoes({ acoes, janaContext }: Props) {
       />
       <JanaConfigDrawer open={configAberto} onClose={() => setConfigAberto(false)} config={config} onAlternarAnalise={alternarAnalise} />
 
-      <div className="flex flex-col gap-3 p-6">
+      {/* Primitivos de layout (ADR 0253) — o layout-primitives-guard conta flex/grid solto por arquivo. */}
+      <Stack gap={3} className="p-6">
         {/* Copy literal da âncora (`Alert tone="info"`). Os nomes de rota e a tabela são os REAIS. */}
         <Alert data-contract="acoes-aviso">
           <AlertTitle>Aprovar registra a decisão. Nada é enviado.</AlertTitle>
@@ -122,20 +123,21 @@ export default function Acoes({ acoes, janaContext }: Props) {
           )}
           {lista.map((a) => (
             <Card key={a.key} className={a.recibo ? 'bg-muted/40' : undefined}>
-              <CardContent className="grid grid-cols-[1fr_auto] items-start gap-4 p-4">
+              <CardContent className="p-4">
+                <Inline gap={4} align="start" justify="between">
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2 text-[13px] font-semibold text-foreground">
+                  <Inline gap={2} align="center" className="text-[13px] font-semibold text-foreground">
                     {a.titulo}
                     <span className="font-mono text-[10.5px] font-normal text-muted-foreground">{a.key}</span>
-                  </div>
+                  </Inline>
                   <p className="mt-1 max-w-[74ch] text-xs leading-relaxed text-muted-foreground">{a.previa}</p>
-                  <div className="mt-2 flex items-center gap-2.5 text-[11px] text-muted-foreground">
+                  <Inline gap={2} align="center" className="mt-2 text-[11px] text-muted-foreground">
                     {/* Pill tintada (AP7) — "envio"/"leitura" não é `kind` do StatusBadge. */}
                     <Badge variant={a.alcance == null ? 'secondary' : 'info'}>{a.alcance == null ? 'leitura' : 'envio'}</Badge>
                     <span>{a.alcance == null ? 'não manda mensagem pra ninguém' : `${a.alcance} destinatário(s), um por cliente`}</span>
-                  </div>
+                  </Inline>
                 </div>
-                <div className="flex flex-col items-end gap-1.5">
+                <Stack gap={1} align="end">
                   {a.recibo ? (
                     <>
                       <span className="text-right font-mono text-[10.5px] leading-snug text-muted-foreground">
@@ -148,7 +150,8 @@ export default function Acoes({ acoes, janaContext }: Props) {
                       {a.cta}
                     </Button>
                   )}
-                </div>
+                </Stack>
+                </Inline>
               </CardContent>
             </Card>
           ))}
@@ -159,7 +162,7 @@ export default function Acoes({ acoes, janaContext }: Props) {
           Fila por empresa: o <code>business_id</code> vem da sessão, nunca do request. Chave desconhecida
           volta 404 no controller e no service — quem chama o service direto (job, tinker) topa no mesmo muro.
         </p>
-      </div>
+      </Stack>
 
       {/* Aprovar = o MESMO modal do Painel: prévia buscada de novo do servidor, POST na mesma rota. */}
       <JanaAcaoModal acao={revisando} onClose={() => setRevisando(null)} />
