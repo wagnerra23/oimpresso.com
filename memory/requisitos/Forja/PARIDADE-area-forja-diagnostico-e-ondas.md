@@ -248,7 +248,7 @@ inferido do `.jsx`:
 | 5 | Trabalho · quadro (2 eixos) | compare 0 bug |
 | 6 | Trabalho · gantt | compare 0 bug |
 | 7 | Saúde | compare 0 bug |
-| 8 | MCP + Handoffs dentro | compare 0 bug |
+| 8 | MCP + Handoffs dentro | compare 0 bug — **🧪 código no ar em PR** (2026-09-02): a view virou réplica (`fj-mcp*`/`fj-perm*`/`fj-token*`/`fj-audit*`/`fj-ho-*`) na ordem do protótipo (intro `mockado` → **Handoffs F1→F3** → grid [contrato \| tokens] → auditoria), e o painel voltou pra dentro — mesmo componente que `/forja/handoffs` (rota viva), mesma projeção `ForjaMcpService`, `Inertia::defer` nos dois. Causa-raiz do D4 medida e corrigida: `.mono` é do **shell** do protótipo (`styles.css:1740`) e **não existe em produção** (0 ocorrências globais) — desceu escopada. Valores-alvo do lado design medidos em [forja-cockpit-visual-comparison.md §Onda 8](../TeamMcp/forja-cockpit-visual-comparison.md). **O `compare 0 bug` NÃO está fechado**: exige prod deployada, e merge de `.tsx` é humano ([ADR 0283](../../decisions/0283-handoff-loop-zero-paste.md)) |
 | 9 | Changelog | compare 0 bug |
 | 10 | Integrador | compare 0 bug |
 | 11 | revogação: `/project-mgmt/*`, duplicatas, rotas, testes, `SCOPE §cockpit` | `git grep` = 0 |

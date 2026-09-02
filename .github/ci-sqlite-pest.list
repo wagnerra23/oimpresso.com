@@ -279,6 +279,7 @@ Modules/Forja/Tests/Feature/ForjaQuadroServiceTest.php
 # erro de BINDING, lançado antes do guard de driver. Esta lane o teria pego. A
 # execução real do happy-path (UC-FORJA-01) mora na lane MySQL forja-pest.yml.
 Modules/Forja/Tests/Feature/ForjaRoutesSmokeTest.php
+Modules/Forja/Tests/Feature/ForjaMcpHandoffsInlineTest.php
 Modules/Forja/Tests/Feature/HandoffStaleAlertTest.php
 Modules/Forja/Tests/Feature/HandoffToolsTest.php
 Modules/Forja/Tests/Feature/McpActorsSeederTest.php

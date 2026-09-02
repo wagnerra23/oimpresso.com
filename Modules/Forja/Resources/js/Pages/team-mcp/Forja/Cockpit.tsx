@@ -21,9 +21,15 @@ import ForjaBacklog, { type BacklogTask } from './_components/ForjaBacklog';
 import ForjaQuadro, { type QuadroData } from './_components/ForjaQuadro';
 import ForjaChangelog, { type ChangelogEntry } from './_components/ForjaChangelog';
 import ForjaMcp from './_components/ForjaMcp';
-// Handoffs virou tela própria (/forja/handoffs) em 2026-08-08 — dado vivo não
-// mora dentro da vitrine mockada do contrato. Os tipos foram junto.
-import ForjaHandoffs, { type HandoffItem, type HeartbeatInfo } from './_components/ForjaHandoffs';
+// Handoffs: seção da aba MCP (PARIDADE §11 Onda 8) E tela própria em /forja/handoffs.
+// O MESMO componente nos dois pontos — uma projeção (ForjaMcpService), zero duplicação.
+// A tela própria nasceu em 2026-08-08 e continua viva; o protótipo põe o painel dentro
+// da view `mcp`, e é o protótipo que manda no layout (ADR 0388).
+import ForjaHandoffs, {
+  HandoffsSkeleton,
+  type HandoffItem,
+  type HeartbeatInfo,
+} from './_components/ForjaHandoffs';
 // Integrador — view `integra` do protótipo, nasce na Onda 2 (PARIDADE §11): estática por construção.
 import ForjaIntegrador from './_components/ForjaIntegrador';
 
@@ -67,7 +73,11 @@ function ForjaCockpit({
     <>
       <ForjaHub active={tab} triagemCount={triagemCount} />
 
-      <section className="px-6 pt-4" data-testid={`forja-tab-${tab}`}>
+      {/* Abas-réplica trazem o próprio padding do protótipo no root (`.fj-mcp` =
+          `18px 32px 40px`, idêntico ao `.fj-integra`); somar o `px-6 pt-4` do wrapper
+          daria 56px de recuo onde o protótipo tem 32px. Só `mcp` entra aqui — o
+          integrador recebe o mesmo tratamento na sua onda (§11 Onda 10). */}
+      <section className={tab === 'mcp' ? '' : 'px-6 pt-4'} data-testid={`forja-tab-${tab}`}>
         {/* Intro da aba (texto-âncora). Triagem renderiza o seu próprio; MCP tem banner. */}
         {tab !== 'triagem' && tab !== 'mcp' && tab !== 'integrador' && (
           <p className="text-xs leading-relaxed text-muted-foreground">{subtitle}</p>
@@ -93,8 +103,14 @@ function ForjaCockpit({
             <ForjaChangelog changelog={changelog} />
           </Deferred>
         )}
-        {tab === 'mcp' && <ForjaMcp />}
-        {tab === 'handoffs' && <ForjaHandoffs handoffs={handoffs} heartbeat={heartbeat} />}
+        {/* MCP: a vitrine é estática e aparece na hora; só o painel de handoffs (dado
+            vivo) espera o defer — o <Deferred> mora dentro do ForjaMcp, com skeleton. */}
+        {tab === 'mcp' && <ForjaMcp handoffs={handoffs} heartbeat={heartbeat} />}
+        {tab === 'handoffs' && (
+          <Deferred data={['handoffs', 'heartbeat']} fallback={<HandoffsSkeleton />}>
+            <ForjaHandoffs handoffs={handoffs} heartbeat={heartbeat} />
+          </Deferred>
+        )}
         {tab === 'integrador' && <ForjaIntegrador />}
       </section>
     </>

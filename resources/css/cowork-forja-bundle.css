@@ -1248,3 +1248,30 @@ a.fj-ho-pr:hover{ color:var(--accent); }
   cursor: default;
 }
 .fj-hub .icon-btn:hover{ color: var(--text); border-color: var(--text-mute); }
+
+/* ── Onda 8 (2026-09-02) — a view `mcp` com o painel Handoffs dentro ──────────
+ * Duas adições, ambas MEDIDAS antes de escritas:
+ *
+ * 1) `.mono` — o protótipo usa `className="… mono"` em 5 pontos desta view
+ *    (`fj-ho-slug`, `fj-ho-pr`, `fj-mcp-tbl td`, `fj-token-id`, os 3 `fj-audit-*`),
+ *    mas `.mono` NÃO mora no forja-page.css: mora no SHELL do protótipo
+ *    (styles.css:1740 `.mono{ font-family: var(--font-mono) }`), que produção não
+ *    carrega. Medido: `grep` por `.mono` global em resources/css/*.css = 0 ocorrências.
+ *    É exatamente o D4 da rodada de 2026-09-02 ("col0/col2 sem mono × mono") — copiar
+ *    o markup 1:1 sem isto deixaria o DOM igual e o RENDER diferente (LC-08).
+ *    Desce ESCOPADO, como as 3 ocorrências que o próprio bundle já traz
+ *    (`.fj-dr-meta .mono`, `.fj-team-tbl .mono`, `.ap-files .mono`) — `.mono` é nome
+ *    genérico demais pra virar global no app inteiro.
+ *    Os dois roots existem porque o painel renderiza em DOIS lugares: dentro da aba
+ *    MCP (`.fj-mcp`) e na tela própria /forja/handoffs (`.fj-ho` sem `.fj-mcp` acima).
+ *
+ * 2) estado `sup` (superseded) — o dado real (`cowork_handoffs`) tem um estado que o
+ *    mock não previu, e o mock tem um (`merged`) que o real não produz. Em vez de
+ *    pintar "substituído" com o verde de `merged` (mentira visual), ganha o par
+ *    neutro abaixo, derivado dos tokens do tema — nenhuma cor nova inventada.
+ *    A leitura já filtra `superseded` fora da fila ativa; isto é a rede de segurança
+ *    pro dia em que o filtro mudar. */
+.fj-mcp .mono,
+.fj-ho .mono{ font-family:var(--font-mono); }
+.fj-ho-dot-sup{ background:var(--text-mute); }
+.fj-ho-state-sup{ color:var(--text-mute); background:var(--bg-2); }

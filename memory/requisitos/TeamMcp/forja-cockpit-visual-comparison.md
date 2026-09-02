@@ -185,3 +185,33 @@ Mesma sonda, mesma viewport (2560), dark nos dois lados. Smoke pós-deploy: `/fo
 **Larguras menores (o que "na linha do título" significa):** medido no protótipo pelo Browser pane com emulação de viewport — a **1280** o shell do protótipo vira rail de **56px** e o header quebra em **3 linhas** (título / sino+busca+primária / pílulas, tudo à direita, 174px); a **1728** o shell segue em rail e o header fica em **1 linha** (88px). Em produção o sidebar só vira rail por `data-sidebar="rail"` (`cockpit.css` L57), então a 1728 o conteúdo tem 1468px (< 450+16+1020) e os controles quebram pra 2ª linha — é o que o `.snap` do CI mostra. Isso é **shell (fundação)**, não CSS da Forja: o `.os-page-h` é idêntico nos dois lados (`flex-wrap: wrap`). Produção a 1280 **não foi medida** nesta rodada (o Browser pane não tem a sessão; a janela do Chrome não aceitou o resize) — fica declarado, não inferido.
 
 **D1 (rede) nas pílulas novas:** `window.__marker` gravado antes do clique **sobreviveu** a Trabalho → Aprovações (dois cliques, dois marcadores vivos), a URL e a pílula ativa mudaram, e a rede mostrou `GET /forja/aprovacoes 200` via Inertia (`<Link as="button">`) — sem full reload. D1 **parcial**, como a meta do §11 pede.
+
+### Onda 8 (2026-09-02) — a view `mcp` vira réplica e o painel Handoffs volta pra dentro
+
+> **Recibo do que rodou, e o que ele NÃO cobre.** Fonte provada: `forja-page.css` (sha `9c180a5d92ae`) e `forja-page.jsx` (`e4339537969d`) baixados do Cowork vivo por `DesignSync.get_file` e medidos contra o espelho por `cowork-mirror-freshness --snapshot-from --emit-snapshot` → **`igual` nos dois**. Protótipo servido por HTTP estático (`prototipo-ui/cowork`), `localStorage["oimpresso.route"]="teammcp"`, **tema dark**, **viewport 1440**, view `mcp` aberta pelo clique na pílula do topnav, duas leituras estáveis (9/9 linhas de contrato, 6/6 handoffs).
+>
+> ⚠️ **A comparação PAREADA prod × protótipo NÃO aconteceu nesta sessão** e não se declara fechada: o código desta onda ainda não está em produção (merge de `.tsx` é humano — [ADR 0283](../../decisions/0283-handoff-loop-zero-paste.md)). O que segue são os **valores-alvo do lado design, medidos**, para que o pós-deploy seja um `--compare` direto em vez de uma remedição do zero.
+>
+> 🩺 **Uma armadilha paga nesta rodada, registrada porque quase virou número falso:** a primeira leitura devolveu `color: rgb(0, 0, 0)` em toda a tabela e `--text-dim` **vazio** no `:root`. Não era divergência — era o `_ds/` (gitignored) ausente no espelho: `colors_and_type.css` e `cockpit_domains.css` carregaram com **0 regras**, e o protótipo renderizou sem token nenhum. O portão `node scripts/governance/cowork-mirror-freshness.mjs --preview-ds` repôs 10 deps (2 CSS + `_ds_bundle.js` + 7 fontes) e a medição foi refeita. **Ele é fail-closed e roda ANTES de medir** — sem ele, qualquer cor lida é lixo com aparência de dado.
+
+**Valores-alvo do protótipo** (dark · 1440 · pós-`--preview-ds`), que é onde os três `DIVERGE` da rodada da manhã se resolvem:
+
+| campo | protótipo (medido) | produção ANTES desta onda | o que muda |
+|---|---|---|---|
+| `.fj-mcp-tbl` linhas | 9 | 9 | — |
+| col0 (Ferramenta) | **mono** · `oklch(0.94 0.005 90)` | sem mono (`font-mono` só em parte) | **D4** |
+| col1 (Ação) | não-mono · `oklch(0.72 0.005 90)` | herdava `text-muted-foreground` | **D6** |
+| col2 (Permissão) | não-mono · `oklch(0.72 0.005 90)` · **`start`** | **`text-right`** | **D8** |
+| `th` (3 colunas) | **`left`** nas 3 | col2 `right` | **D8** |
+| `.fj-perm-ok` | `oklch(0.84 0.13 150)` sobre `oklch(0.275 0.06 150)`, **mono** | pílula `bg-success/15`, sem mono | **D4+D6** |
+| `.fj-perm-deny` | `oklch(0.84 0.18 25)` | `text-destructive-fg` | **D6** |
+| os 6 pontos `.mono` | `fj-token-id` · `fj-audit-ts|tool|args` · `fj-ho-slug` · `fj-ho-pr` — **todos monoespaçados** | nenhum deles | **D4** |
+| painel Handoffs | **DENTRO** de `.fj-mcp` (medido: `.fj-mcp` contém `.fj-ho`) | rota separada `/forja/handoffs` | estrutura |
+
+**A causa-raiz do D4, medida (não deduzida):** `.mono` é uma utilitária do **shell** do protótipo — `prototipo-ui/cowork/styles.css:1740` — e **não existe em produção**: `grep` por `.mono` global em `resources/css/*.css` = **0 ocorrências**; o bundle da Onda 1 só a traz escopada em 3 pontos (`.fj-dr-meta`, `.fj-team-tbl`, `.ap-files`). Copiar o markup 1:1 sem isso deixaria o **DOM igual e o render diferente** — o formato de erro que o §5 chama de LC-08. Desceu escopada (`.fj-mcp .mono, .fj-ho .mono`), com os dois roots porque o painel renderiza em dois lugares.
+
+**Desvios declarados, todos por DADO** (o mock tem campo que `cowork_handoffs` não tem): sem `~onda`; 5 abas de filtro em vez de 6 (o mock tem `merged`, que o dado real não produz; o real tem `superseded`, que o mock não previu e ganhou pílula neutra); selo de gate omitido quando `gate = 'na'`, como no protótipo faz.
+
+**Conformidade (ADR 0388 — vira lista, não vira bloqueio):** `replica-inconsistencias --modulo Forja` foi de **101 → 102** itens. O saldo é melhor do que o número sugere: `FLEX-CRU` caiu de **31 → 1** nos dois componentes (as classes `fj-*` substituíram o flex solto do DS v6); entraram os glifos do protótipo (`⚿ ↗ ⚠` → R3) e as 7 cores de ator do `ForjaRoleBadge` (R1), que são **dado do ator**, não token de tema. Nota: o `R1` novo do `ForjaMcp` é o texto **`#2417`** da auditoria mock — número de PR lido como cor hex pelo lint, falso-positivo herdado do mesmo padrão que já existia no `#2924` do `ForjaHandoffs`.
+
+**O que fica pro pós-deploy:** injetar a MESMA sonda (`design-diff.mjs --probe`, papéis `tableRow=.fj-mcp-tbl tbody tr` · `filterControls=.fj-ho-tab` · `title=.os-page-h-l h1` · `primary=.os-btn.primary`) em `oimpresso.com/forja/mcp` autenticado, dark, 1440, e rodar `--compare prod.json design.json --check`. A meta do §11 é **0 `DIVERGE(bug)`** em D2/D4/D6/D8.
