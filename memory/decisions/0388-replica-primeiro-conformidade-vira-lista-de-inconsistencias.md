@@ -3,7 +3,7 @@ slug: 0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias
 number: 388
 title: "Réplica primeiro: o protótipo é o contrato de layout e a conformidade do DS vira lista de inconsistências pós-aplicação"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
@@ -119,6 +119,7 @@ agente precisa ver o achado **antes** do PR. Nenhuma regra é apagada; a mordida
 
 ## Ratificação
 
-`status: proposto` com decisão datada de [W]. O flip para `aceito` segue a receita de
-[`memory/decisions/README.md`](README.md) (PR só da linha `status:` + índice, label
-`adr-metadata-normalization`). Merge de [W] deste PR já é o ato que liga a máquina.
+Nasce `aceito` porque a decisão é de [W], textual e datada (2026-09-02), e o próprio PR que a
+registra já liga a máquina que depende dela (painel, `ds-guard --report`, reporter) — o
+`memory-health` Check L reprova ADR `proposto` citada por código que roda. Mesmo precedente da
+[ADR 0384](0384-design-sync-recibos-executaveis-por-tela.md). O merge de [W] deste PR é o ato.
