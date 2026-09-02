@@ -126,6 +126,27 @@ function mesclar(novos, anterior) {
 }
 const hoje = () => new Date().toISOString().slice(0, 10);
 
+// RECEITAS — como cada classe se resolve (pedido [W] 2026-09-02: "pode indicar soluções, eu quero resolver").
+// ONDE: `fonte` = no protótipo (Cowork), desce de novo pelo espelho — é o único lugar onde o conserto
+// NÃO regride no próximo --export-from (ADR 0374). `code` = no repo, sem mudar o layout. `missão` = some
+// sozinho quando a onda troca/apaga a tela. `decisão` = [W] marca `aceita` se for design, não dívida.
+const RECEITAS = {
+  R1: { onde: 'fonte + code', auto: 'parcial',
+    como: 'valor com token equivalente no DS → var() (ex.: oklch(0.55 0.15 295)=var(--accent); 0.58 0.21 25=var(--neg); 0.63 0.16 68=var(--warn)); cor DINÂMICA por hue (prio/fase/papel) → classe com custom property (`style={{"--h":hue}}` + `.fj-x{color:oklch(0.6 0.18 var(--h))}`), que tira o literal do JSX sem mudar 1 pixel. O que não tem token: pedir ao Cowork o token na fonte (FORJA-137), não inventar aqui.' },
+  R3: { onde: 'code', auto: 'sim',
+    como: 'codemod glifo→lucide com tamanho igual ao do texto: ✦ Sparkles · ⚠ AlertTriangle · ★/☆ Star · → ArrowRight · ↗ ArrowUpRight · ✓ Check · ✗ X · ⚿ KeyRound · ● Circle(fill). Um componente <Glifo> concentra o mapa; o texto ao redor não muda.' },
+  R4: { onde: 'missão + decisão', auto: 'não',
+    como: 'as telas /project-mgmt/* saem na onda de revogação (item some); nas telas réplica o header É o do protótipo — R4 exige PageHeader+DataTable canon que o protótipo não usa: [W] marca `aceita` OU a regra R4 passa a reconhecer o header do bundle (`.fj-page > header`) como canon. Não reescrever o header pra agradar R4.' },
+  FONTRAMP: { onde: 'fonte', auto: 'sim (na fonte)',
+    como: 'snap ao ramp --fs-1..9 (10.5/11.5/12.5/13.5/15/18/22/28/38) NO PROTÓTIPO, pelo [CC]; fazer aqui muda o pixel (11→11.5) e a sonda D4 acusa. Enquanto a fonte não snapa: `aceita` com nota, contagem fica visível.' },
+  IMPORTANT: { onde: 'fonte', auto: 'sim (na fonte)', como: 'subir a especificidade do seletor em vez de !important; 2 ocorrências, pedir ao [CC].' },
+  'HEX-CSS': { onde: 'fonte', auto: 'sim (na fonte)', como: '#fff → var(--accent-fg) / var(--surface) conforme o papel; 6 ocorrências, pedir ao [CC].' },
+  'FLEX-CRU': { onde: 'missão', auto: 'não precisa',
+    como: 'as telas antigas usam Tailwind `flex`/`grid` cru; a réplica troca por classes do bundle (`.fj-row`, `.fj-toolbar`…) e o item some. Nas 8 telas /project-mgmt/* some pela revogação. NÃO refatorar pra Stack/Inline antes da onda — seria pagar 2×.' },
+  PALETA: { onde: 'fonte (DS)', auto: 'sim',
+    como: 'promover --dev/--dev-soft/--dev-line a token do DS (`--origin-DEV*`) no SSOT `resources/css/tokens/semantic.tokens.json` + `npm run tokens:build`; o bundle passa a consumir var() e o ds-guard para de ver família própria. É token novo = decisão [W] (FORJA-137).' },
+};
+
 function render(mod, itens, comando) {
   const abertas = itens.filter((i) => i.status === 'aberta');
   const linhas = itens.map((i) => `| ${i.status === 'aberta' ? '🔴' : i.status === 'aceita' ? '🟡' : '✅'} ${i.status} | \`${i.regra}\` | \`${i.arquivo}\` | ${i.contagem < 0 ? 'NÃO MEDIDO' : i.contagem} | ${i.exemplo ? i.exemplo.replace(/\|/g, '\\|') : ''} | ${i.dono} | ${i.origem} |`);
@@ -143,6 +164,13 @@ function render(mod, itens, comando) {
 | status | regra | arquivo | contagem | exemplo | dono da regra | origem |
 |---|---|---|---:|---|---|---|
 ${linhas.join('\n') || '| — | — | — | 0 | nada encontrado | — | — |'}
+
+## Soluções por regra (a receita que [W] pediu)
+
+| regra | onde se resolve | automatizável | como |
+|---|---|---|---|
+${Object.entries(RECEITAS).map(([r, x]) => `| \`${r}\` | ${x.onde} | ${x.auto} | ${x.como} |`).join('
+')}
 
 ## Como fechar um item
 
