@@ -242,7 +242,7 @@ inferido do `.jsx`:
 |---|---|---|
 | 0 | esta decisão registrada (SPEC US-FORJA-006 + este §) | merge |
 | 1 | `cowork-forja-bundle.css` inteiro no chão + tokens `--dev*` na fundação | gates CSS verdes |
-| 2 | shell: header com topnav inline 6/3 grupos, 6 rotas, `Cockpit` roteando por view | sonda do topnav = protótipo |
+| 2 | shell: header com topnav inline 6/3 grupos, 6 rotas, `Cockpit` roteando por view | sonda do topnav = protótipo — **✅ [#6553](https://github.com/wagnerra23/oimpresso.com/pull/6553)** (merge `e1412acef3`, deploy 2026-09-02 16:00Z): 6/6 · 3/3 · mesma linha · pílula/rótulo idênticos; a sonda pegou **3 DIVERGE** (line-height do preflight, padding copiado do `@media`, `--accent` dark 0,55×0,70) → **Onda 2.1** (recibo em [forja-cockpit-visual-comparison.md §2026-09-02 tarde](../TeamMcp/forja-cockpit-visual-comparison.md)) |
 | 3 | Aprovações (view `hoje`) | compare 0 bug |
 | 4 | Trabalho · lista | compare 0 bug |
 | 5 | Trabalho · quadro (2 eixos) | compare 0 bug |

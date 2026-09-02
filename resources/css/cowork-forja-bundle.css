@@ -1150,13 +1150,19 @@ a.fj-ho-pr:hover{ color:var(--accent); }
  * precedente dos bundles Financeiro (`.fin-cowork .os-page-h`) e Sells
  * (`.sells-cowork .os-page-h`): o shell desce escopado por módulo, nunca global.
  * ═══════════════════════════════════════════════════════════════════════════ 
- * DESVIOS DECLARADOS nesta seção (2): `color:#fff` do `.os-btn.primary` → `var(--accent-fg)`
- * (mesmo pixel, token que o DS já tem; o conformance-gate barra hex novo em regra de tela) e o
- * padding do `.os-page-h` já vem com o valor EFETIVO do protótipo (`.fj-page .os-page-h`
- * sobrescrevia 12/24 por 20/18/14 — copiar os dois criaria seletor duplicado).
+ * DESVIOS DECLARADOS nesta seção (1): `color:#fff` do `.os-btn.primary` → `oklch(1 0 0)`
+ * (o mesmo branco, em notação que o conformance-gate aceita; NÃO é `var(--accent-fg)` porque
+ * no dark o protótipo resolve `--accent-fg` = oklch(0.14 …) e o botão continua BRANCO — o
+ * literal do shell vence o token, medido em 2026-09-02).
+ *
+ * ERRATA 2026-09-02 (Onda 2.1, medida em prod × protótipo com a mesma sonda): a 1ª versão
+ * desta seção gravou `padding: 20px 18px 14px` como "valor EFETIVO" do `.os-page-h`. Estava
+ * ERRADA — aquele valor vive dentro de `@media (max-width:1100px)` (modo compacto, linha ~298
+ * deste arquivo); o efetivo a ≥1100px é o do shell, `12px 24px 12px` (protótipo: header 88px,
+ * prod com o erro: 116px). Lido do CSS, não medido no browser — LC-08. Corrigido abaixo.
  */
 .fj-hub .os-page-h{
-  padding: 20px 18px 14px; /* valor EFETIVO do protótipo: `.fj-page .os-page-h` sobrescreve os 12px 24px do shell */
+  padding: 12px 24px 12px; /* = styles.css `.os-page-h` (a 20/18/14 é só o @media ≤1100px — errata acima) */
   min-height: 44px;
   flex-shrink: 0;
   display: flex; align-items: center; gap: 16px;
@@ -1204,8 +1210,28 @@ a.fj-ho-pr:hover{ color:var(--accent); }
   white-space: nowrap;
 }
 .fj-hub .os-btn:hover{ background: var(--border-2); }
-.fj-hub .os-btn.primary{ background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.fj-hub .os-btn.primary{ background: var(--accent); color: oklch(1 0 0); border-color: var(--accent); }
 .fj-hub .os-btn.primary:hover{ background: var(--accent-2); border-color: var(--accent-2); }
+
+/* ── Onda 2.1 (2026-09-02) — duas diferenças de FUNDAÇÃO que a sonda pegou em prod ──
+ * 1) Tailwind preflight põe `button{ line-height: inherit }`; o protótipo não tem preflight e
+ *    os botões do topnav ficam com `line-height: normal` (25px de altura × 28px em prod).
+ *    Reset escopado ao hub — nada fora dele muda.
+ * 2) No dark, o shell do protótipo (styles.css `[data-theme="dark"]{…}`) troca a família
+ *    `--accent` pra oklch(0.70 …) ("VIDA 06-11 [W]"); a fundação de prod segue em 0.55 no dark.
+ *    É a divergência D6 "0,55 × 0,70" medida em TODAS as rodadas de comparação desta área.
+ *    Pela ADR 0388 (réplica primeiro) a Forja recebe os valores do protótipo ESCOPADOS ao seu
+ *    root (`.fj-hub` + `.fj-page`), copiados do bloco 6449-6457 do styles.css. Fundação intacta;
+ *    a reconciliação global do token é decisão [W], listada em INCONSISTENCIAS-replica.md. */
+.fj-hub button{ line-height: normal; }
+[data-theme="dark"] .fj-hub,
+[data-theme="dark"] .fj-page{
+  --accent:      oklch(0.70 0.15 var(--accent-h, 295));
+  --accent-hi:   oklch(0.76 0.15 var(--accent-h, 295));
+  --accent-soft: oklch(0.33 0.09 var(--accent-h, 295));
+  --accent-line: oklch(0.47 0.13 var(--accent-h, 295));
+  /* `--accent-fg` do bloco (0.14) NÃO desce: nenhuma regra Forja o consome, e o primary é branco literal. */
+}
 .fj-hub .os-btn.ghost{ background: transparent; border-color: transparent; color: var(--text-dim); }
 .fj-hub .os-btn.ghost:hover{ background: var(--border-2); color: var(--text); }
 .fj-hub .os-btn.ghost.danger{ color: var(--neg); }
