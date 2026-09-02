@@ -113,7 +113,7 @@
 | 🔴 aberta | `R1` | `prototipo-ui/cowork/forja-tarefas.jsx` | 3 | oklch(0.6 0.14 " + st.hue + ") · oklch(0.6 0.18 " + ({ P0: 25, P1: 60, P2: 295, P3: 250 }[t.priority]) | UiLintCommand.php R1 · conformance-gate | prototipo |
 | 🔴 aberta | `R3` | `prototipo-ui/cowork/forja-tarefas.jsx` | 9 | → ↵ ⇧ | UiLintCommand.php R3 | prototipo |
 | 🔴 aberta | `R1` | `prototipo-ui/cowork/forja-page.css` | 326 | oklch(0.52 0.10 195) · oklch(0.95 0.035 195) | UiLintCommand.php R1 · conformance-gate | prototipo |
-| 🔴 aberta | `FONTRAMP` | `prototipo-ui/cowork/forja-page.css` | 291 | font-size:10.5px · font-size:12px · font-size:11px | conformance-gate (.fontramp-baseline.json) | prototipo |
+| 🔴 aberta | `FONTRAMP` | `prototipo-ui/cowork/forja-page.css` | 192 | font-size:12px · font-size:11px · font-size:13px | conformance-gate (.fontramp-baseline.json) | prototipo |
 | 🔴 aberta | `HEX-CSS` | `prototipo-ui/cowork/forja-page.css` | 6 | #fff | stylelint color-no-hex | prototipo |
 | 🔴 aberta | `PALETA` | `prototipo-ui/cowork/forja-page.css` | 1 | --dev-*(4) | prototipo-ui/ds-guard.mjs | prototipo |
 | 🔴 aberta | `ds/no-raw-palette-color` | `Modules/Forja/Resources/js/Pages/Forja/Board/DetailSheet.tsx` | 10 | sem cor crua do Tailwind (bg/text/border-<cor>-<n>). Use token semântico: bg-card/bg-muted, text-foreground/te | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |

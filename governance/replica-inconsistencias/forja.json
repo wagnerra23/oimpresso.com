@@ -1,6 +1,6 @@
 {
   "modulo": "Forja",
-  "gerado_em": "2026-09-02T19:10:48.151Z",
+  "gerado_em": "2026-09-02T19:12:10.803Z",
   "comando": "node scripts/governance/replica-inconsistencias.mjs --modulo Forja --prototipo …",
   "arquivos_medidos": 43,
   "itens": [
@@ -1336,8 +1336,8 @@
       "nome": "font-size em px fora do ramp --fs-1..9",
       "dono": "conformance-gate (.fontramp-baseline.json)",
       "arquivo": "prototipo-ui/cowork/forja-page.css",
-      "contagem": 291,
-      "exemplo": "font-size:10.5px · font-size:12px · font-size:11px",
+      "contagem": 192,
+      "exemplo": "font-size:12px · font-size:11px · font-size:13px",
       "origem": "prototipo",
       "status": "aberta",
       "nota": "",
