@@ -10,9 +10,9 @@
 // Projeta estado que JÁ existe (mcp_tasks + git/PR/ADR/sessão + gates) — sem dado fantasma.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-// Bundle CSS do prototipo (forja-page.css, copia integral — PARIDADE §11 Onda 1). As classes
-// fj-/ap-/tf- entram aqui para TODAS as rotas do Cockpit; as views passam a usa-las onda a onda.
-import '../../../../../../../resources/css/cowork-forja-bundle.css';
+// Bundle CSS do protótipo: importado pelo <ForjaHub> (Onda 2), que é o componente que TODAS as
+// Pages do hub renderizam — importar aqui deixava Aprovações/Trabalho/Gantt (chunks separados)
+// sem o CSS: medido no .snap de 2026-09-02, header empilhado como texto cru.
 import { Deferred } from '@inertiajs/react';
 import { type ReactNode } from 'react';
 import ForjaHub from './_components/ForjaHub';
@@ -24,6 +24,8 @@ import ForjaMcp from './_components/ForjaMcp';
 // Handoffs virou tela própria (/forja/handoffs) em 2026-08-08 — dado vivo não
 // mora dentro da vitrine mockada do contrato. Os tipos foram junto.
 import ForjaHandoffs, { type HandoffItem, type HeartbeatInfo } from './_components/ForjaHandoffs';
+// Integrador — view `integra` do protótipo, nasce na Onda 2 (PARIDADE §11): estática por construção.
+import ForjaIntegrador from './_components/ForjaIntegrador';
 
 interface Meta {
   generated_at: string;
@@ -67,7 +69,7 @@ function ForjaCockpit({
 
       <section className="px-6 pt-4" data-testid={`forja-tab-${tab}`}>
         {/* Intro da aba (texto-âncora). Triagem renderiza o seu próprio; MCP tem banner. */}
-        {tab !== 'triagem' && tab !== 'mcp' && (
+        {tab !== 'triagem' && tab !== 'mcp' && tab !== 'integrador' && (
           <p className="text-xs leading-relaxed text-muted-foreground">{subtitle}</p>
         )}
 
@@ -93,6 +95,7 @@ function ForjaCockpit({
         )}
         {tab === 'mcp' && <ForjaMcp />}
         {tab === 'handoffs' && <ForjaHandoffs handoffs={handoffs} heartbeat={heartbeat} />}
+        {tab === 'integrador' && <ForjaIntegrador />}
       </section>
     </>
   );
