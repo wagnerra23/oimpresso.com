@@ -31,6 +31,7 @@ uses(Tests\TestCase::class);
  */
 const RETR_SERIE = '997';
 const RETR_VALOR = 77.00;
+const RETR_BIZ = 1;
 
 function retrBiz(): int
 {
@@ -38,12 +39,14 @@ function retrBiz(): int
         test()->markTestSkipped('Schema da contingência ausente — rode as migrations do NfeBrasil.');
     }
 
-    $biz = \App\Business::first();
-    if (! $biz) {
-        test()->markTestSkipped('Sem business no banco — rode o seeder antes.');
+    // Constante explícita em vez de `Business::first()` (catraca foundation-ratchet):
+    // "o primeiro que vier" depende da ordem do banco. biz=1 é semeado por
+    // pest-mysql-setup. NUNCA biz=4 — ROTA LIVRE / Larissa, cliente real (ADR 0101).
+    if (! DB::table('business')->where('id', RETR_BIZ)->exists()) {
+        test()->markTestSkipped('Business ' . RETR_BIZ . ' não semeado — rode pest-mysql-setup antes.');
     }
 
-    return (int) $biz->id;
+    return RETR_BIZ;
 }
 
 /** Cria uma emissão já em contingência, com XML persistido. */
