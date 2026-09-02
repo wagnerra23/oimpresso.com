@@ -185,3 +185,108 @@ Mesma sonda, mesma viewport (2560), dark nos dois lados. Smoke pós-deploy: `/fo
 **Larguras menores (o que "na linha do título" significa):** medido no protótipo pelo Browser pane com emulação de viewport — a **1280** o shell do protótipo vira rail de **56px** e o header quebra em **3 linhas** (título / sino+busca+primária / pílulas, tudo à direita, 174px); a **1728** o shell segue em rail e o header fica em **1 linha** (88px). Em produção o sidebar só vira rail por `data-sidebar="rail"` (`cockpit.css` L57), então a 1728 o conteúdo tem 1468px (< 450+16+1020) e os controles quebram pra 2ª linha — é o que o `.snap` do CI mostra. Isso é **shell (fundação)**, não CSS da Forja: o `.os-page-h` é idêntico nos dois lados (`flex-wrap: wrap`). Produção a 1280 **não foi medida** nesta rodada (o Browser pane não tem a sessão; a janela do Chrome não aceitou o resize) — fica declarado, não inferido.
 
 **D1 (rede) nas pílulas novas:** `window.__marker` gravado antes do clique **sobreviveu** a Trabalho → Aprovações (dois cliques, dois marcadores vivos), a URL e a pílula ativa mudaram, e a rede mostrou `GET /forja/aprovacoes 200` via Inertia (`<Link as="button">`) — sem full reload. D1 **parcial**, como a meta do §11 pede.
+
+## 2026-09-02 (noite) — Onda 3: Aprovações vira a view `hoje` do protótipo
+
+> **Estado: APLICADO no código, NÃO MEDIDO em produção.** A comparação por sonda
+> (`design-diff --probe` nos dois lados → `--compare --check`) só pode rodar depois do deploy,
+> e o merge de `.tsx` é humano ([ADR 0283](../../decisions/0283-handoff-loop-zero-paste.md)).
+> Esta seção registra o que foi feito e o que falta medir — não afirma paridade.
+> Escrever "IGUAL" antes da sonda seria o strike que a [LC-06](../../LICOES_CODE.md) catalogou.
+
+### A âncora estava no arquivo errado (achado desta onda)
+
+O charter apontava `related_prototype: prototipo-ui/cowork/forja-page.jsx`. **O markup da view
+`hoje` não está lá**: o `forja-page.jsx` só a MONTA (linha 1229, `<window.ForjaAprovacoes …/>`);
+o componente inteiro mora em [`forja-aprova.jsx`](../../../prototipo-ui/cowork/forja-aprova.jsx).
+Quem fosse copiar do arquivo declarado não acharia a tela. Corrigido no frontmatter
+(`charter_version: 2`) e re-resolvido por `ancora.mjs`.
+
+**Fonte provada fresca**, não suposta: o ledger de frescor registra a rodada de
+2026-09-02T11:17:56Z com `forja-aprova.jsx` entre os 14 arquivos **SYNC**, sha
+`cc4cde3692da…`; o arquivo local bate com esse hash (conferido byte a byte nesta sessão, junto
+com `forja-data.jsx` `f043f5bd…` e `forja-page.css` `9c180a5d…`).
+
+### O que entrou na tela (markup 1:1, classes do bundle da Onda 1)
+
+| seção do protótipo | classe | dado que a alimenta |
+|---|---|---|
+| número-herói "N esperando o seu aval" | `.ap-head` › `.fj-hj-n` | `contagem` (`mcp_tasks` em `pending_approval`) |
+| alerta de handoff com problema | `.ap-handoff-alert` | `handoffsComProblema()` — delega ao `ForjaMcpService` (dono do tema) |
+| faixa "Ao vivo no MCP" | `.ap-vivo` › `.ap-vivo-card` | `mcp_actors` × `mcp_cc_sessions` × `mcp_audit_log` |
+| mesa: fila à esquerda | `.ap-mesa` › `.ap-fila` › `.ap-item` | `fila()`, ordem por espera (do backend) |
+| mesa: artefato + ações à direita | `.ap-painel` › `.ap-art` › `.ap-acoes` | `fila()[n]` + `decisoesPossiveis()` |
+| placar "Equipe de agentes" | `.fj-hj-team` › `.fj-team-tbl` | `cowork_handoffs` por `created_by`, janela 7d |
+| toast com desfazer | `.ap-toast` › `.ap-undo` | estado de front (janela de 6s, antes do POST) |
+
+Saíram o `PageHeader` canon e o `KpiGrid`/`KpiCard` (2 cards): o protótipo põe o número no herói e
+não tem segundo cabeçalho. O `ui:lint` R4 registra isso como item de lista, não como veto —
+é o que a [ADR 0388](../../decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) D-2 decide.
+
+**Os dois itens que saíram do `[BACKLOG]` do `casos.md`** foram pedido do [W] em 2026-08-08 e
+estavam parados *"ainda sem backend"*: o placar e a faixa ao vivo. O backend chegou nesta onda.
+
+### As divergências DELIBERADAS (categoria, não bug — ADR 0385)
+
+A 0388 é de **aparência** e diz, em D-5, que réplica **não toca comportamento**. Onde o protótipo
+e uma lei de domínio discordam, a lei ganha e a diferença fica escrita:
+
+| # | protótipo | produção | lei que manda |
+|---|---|---|---|
+| 1 | "Aprovar aplicação / Devolver / Rejeitar" | **Admitir · Parquear · Recusar**, vindos de `decisoes` | ADR 0368 §6 proíbe "aprovado" **e** o anti-hook do charter proíbe hardcodar a lista (ela deriva de `McpTask::TRANSITIONS`) |
+| 2 | caixa de nota pertence ao "Devolver" | abre na decisão que declara `exige_motivo` | ADR 0368 §5 — o dono da regra é o FSM |
+| 3 | 4 tipos com diff, passos e screenshot | só o artefato que `mcp_tasks` guarda | só `Proposta` tem estado canônico; os outros vivem em `cowork_handoffs` e **fundir as fontes é decisão [W]** |
+
+### O que NÃO tem fonte — e mostra "—" em vez de número inventado
+
+As colunas **Sessões hoje** e **Custo hoje / quota** do placar são por **usuário**
+(`mcp_cc_sessions`, `mcp_audit_log` e `mcp_quotas` são todos `user_id`), e o schema **não tem
+vínculo papel→usuário**: os atores semeados são `wagner`/`felipe`/`maira`/`luiz`/`eliana`/
+`claude-code-wagner-laptop`, nunca `CC`/`CD`/`CL`. Preenchê-las exigiria inventar o vínculo.
+O backend manda `null`, a célula diz o motivo no `title`, e **criar o vínculo é decisão [W]**.
+
+Pelo mesmo critério, o eixo `nivel` do protótipo (sênior/júnior/artista/agente) não foi
+replicado: `mcp_actors` declara `type` (human/ai_agent/service) e `trust_level` (L0..L4), que é
+outra coisa. O selo mostra o que É declarado.
+
+### O que a réplica NÃO regrediu (e foi medido)
+
+A fila do protótipo é `<li onClick>` cru, que não abre por teclado. A 1ª versão desta onda copiou
+isso e o `eslint-baseline` acusou **2 regressões novas de `jsx-a11y`**
+(`click-events-have-key-events`, `no-noninteractive-element-interactions`). Corrigido com
+`role=listbox/option` + `tabIndex` + `onKeyDown`, mantendo a classe no próprio `<li>` (o
+`.ap-item` é `display:flex` e o `:last-child` tira a última borda — mover a classe pra um
+`<button>` interno quebraria os separadores). Re-medido: **as duas foram a zero**.
+A 0388 tira o veto da conformidade do **DS**, nunca o da **acessibilidade**.
+
+### Gates locais (rodados nesta sessão, exit 0)
+
+| gate | resultado |
+|---|---|
+| `foundation-guard` | ✅ 33 .css na allowlist · 0 espalhamento novo |
+| `conformance-gate --all` | ✅ 30 arquivos conformes |
+| `css-size-baseline` | ✅ delta 0 (nenhum CSS tocado nesta onda) |
+| `stylelint-baseline` | ✅ delta 0 |
+| `layout-primitives-guard` | ✅ sem regressão — o `FLEX-CRU` desta tela **saiu** da lista (1 → 0) |
+| `casos-coverage-guard` | ✅ sem violação nova deste PR |
+| `ds-guard --report` (bundle) | 1 achado: paleta `--dev-*`, já declarada desde a Onda 1 |
+| `tsc --noEmit` | ✅ 0 erro no arquivo — **com o arquivo dentro do programa** (ver ressalva) |
+| `eslint-baseline` | +4 `ds/no-os-btn`, absorvidos (réplica) — precedente: `ForjaHub` na Onda 2 |
+
+⚠️ **Ressalva de método que quase virou gate mudo:** o `tsconfig.json` do repo tem `include`
+apenas de `resources/js/**`, então `Modules/**/Resources/js/**` **não é typechecado** pelo comando
+padrão. Rodar `tsc -p tsconfig.json` e ler "0 erro no meu arquivo" seria `0 failed` de suíte que
+não rodou (§5 2026-07-24). Com um config temporário que INCLUI o arquivo, o compilador achou um
+erro real (`TS2532`, índice possivelmente `undefined` no atalho `j`/`k`) — corrigido. Depois:
+278 erros no repo, os mesmos 278 de antes, **0 no arquivo desta onda**.
+
+### O que FALTA — e é a condição de fechar a linha 3 do §11
+
+1. Deploy (merge é [W] — ADR 0283).
+2. Baseline visual: `visual-regression.yml` com `screens='["Forja/Aprovacoes"]'`.
+3. **A medição**: `design-diff --probe` na produção e no protótipo (`python -m http.server 5620
+   --directory prototipo-ui/cowork`), mesma viewport, dark nos dois → `--compare --check`,
+   com a tabela por dimensão (D2/D4/D6/D8) apensada aqui.
+4. D1 (rede): marcador sobrevive ao clique nas ações da mesa.
+
+Até isso acontecer, a linha 3 da tabela de ondas fica **em andamento**, não ✅.

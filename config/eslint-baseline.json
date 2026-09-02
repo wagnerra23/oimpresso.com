@@ -1,13 +1,14 @@
 {
   "_meta": {
-    "generated_at": "2026-09-02T15:30:16.716Z",
-    "total_violations": 2356,
+    "generated_at": "2026-09-02T18:31:49.346Z",
+    "total_violations": 2360,
     "eslint_version": "flat-config 9.x",
     "adr": "0209"
   },
   "counts": {
     "Modules/Cms/Resources/js/Pages/Site/Home.tsx|@typescript-eslint/no-explicit-any": 4,
     "Modules/Forja/Resources/js/Pages/Forja/Activity/Index.tsx|@typescript-eslint/no-explicit-any": 1,
+    "Modules/Forja/Resources/js/Pages/Forja/Aprovacoes/Index.tsx|no-restricted-syntax": 4,
     "Modules/Forja/Resources/js/Pages/Forja/Board/DetailSheet.tsx|no-restricted-syntax": 10,
     "Modules/Forja/Resources/js/Pages/Forja/Burndown/Index.tsx|no-restricted-syntax": 3,
     "Modules/Forja/Resources/js/Pages/Forja/MyWork/Index.tsx|no-restricted-syntax": 1,
