@@ -106,6 +106,7 @@ menos. Promovê-los à fundação é **token novo no DS = soberania [W]**; os va
 
 | candidato do bloco dark do protótipo | veredito |
 |---|---|
+| `--bubble-me` | fica em **0,55 nos dois temas**, e isso é decisão, não esquecimento. O DTCG o declara como **alias** (`var(--accent)`), então a partir desta ADR o CSS o resolveria em 0,70 no escuro — o inline o segura em 0,55 porque **(a)** o protótipo faz o mesmo (0,55 no `:root`, sem redeclarar no bloco escuro) e **(b)** o par dele, `--bubble-me-fg`, é `#ffffff` **fixo, sem par de tema**: branco sobre 0,70 perde contraste nos **14** sítios de bolha (medido). Alinhar os dois é decisão de design, não limpeza de alias — está travado por comentário no `AppShellV2`. |
 | `--focus` | a fundação **não declara** `--focus` em lugar nenhum de `resources/` (medido). Adicionar é token novo = [W]. |
 | `--sh-1` / `--sh-2` | a fundação declara os dois. **Mas o protótipo os declara DUAS vezes** dentro do mesmo bloco escuro, com valores diferentes — a fundação tem a 1ª, e a 2ª (que vence no protótipo) parece resíduo da fusão v4→v5, não decisão. Importar sombra do app inteiro a partir de uma redeclaração ambígua seria trocar decisão por ruído. Fica medido, não aplicado. |
 | `--av-*`, `--atmo`, origens/etapas | fora do escopo declarado (accent + semânticas). |

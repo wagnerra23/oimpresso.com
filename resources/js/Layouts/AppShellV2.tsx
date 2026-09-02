@@ -413,6 +413,13 @@ export default function AppShellV2({
   // o valor light vaza pro escuro sem alarme nenhum — foi o que aconteceu com --accent-soft.
   //   --accent / --accent-2 / --accent-soft : têm `com.oimpresso.dark` → SEGUEM o tema.
   //   --bubble-me                           : `dark_absent` no DTCG (herda o light) → 1 valor.
+  //
+  // ⚠️ NÃO "conserte" o --bubble-me pra seguir o --accent. O DTCG o declara como alias
+  // (`var(--accent)`), então desde a UI-0030 o CSS o resolveria em 0.70 no escuro — e este
+  // inline o segura em 0.55 DE PROPÓSITO, por duas razões medidas: (a) o protótipo faz o
+  // mesmo (declara 0.55 no `:root` e não redeclara no bloco escuro); (b) o par dele,
+  // `--bubble-me-fg`, é `#ffffff` FIXO, sem par de tema — branco sobre 0.70 perde contraste
+  // nos 14 sítios de bolha. Alinhar os dois é decisão de design, não limpeza de alias.
   // Fonte dos pares: resources/css/tokens/semantic.tokens.json → cockpit.accent.
   //
   // 2026-09-02 (ADR UI-0030): --accent e --accent-2 ganharam par ESCURO. Eram `dark_absent`
