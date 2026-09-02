@@ -131,7 +131,11 @@ class NotasUnifiedService
                 'kind'        => 'nfse',
                 'num'         => (string) ($n->numero ?? $n->rps_numero ?? '—'),
                 'serie'       => (string) $n->serie ?: null,
-                'when'        => $n->competencia?->format('m/Y') ?? $n->created_at?->format('m/Y'),
+                // Só `competencia`: ela tem cast 'date' no model, então o `?->` já cobre o
+                // nulo e um `?? $n->created_at` vira código morto pro PHPStan (foi este o
+                // último erro do ratchet neste PR). Semanticamente é o campo certo — a
+                // competência da NFS-e é o mês de referência, não a data de criação da linha.
+                'when'        => $n->competencia?->format('m/Y'),
                 'cliente'     => $n->tomador_nome ?? '—',
                 'doc'         => $n->tomador_cnpj ?? $n->tomador_cpf ?? '—',
                 'cnpj'        => $n->tomador_cnpj,
