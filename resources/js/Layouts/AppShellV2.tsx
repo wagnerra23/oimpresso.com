@@ -6,7 +6,7 @@
 //         AppShell legado removido em 2026-05-04 (ver git log).
 
 import { Head, usePage } from '@inertiajs/react';
-import { ReactNode, useEffect, useRef, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import {
   Activity,
   AlertTriangle,
@@ -103,6 +103,7 @@ import { LinkedAppsPanel } from '@/Components/cockpit/LinkedApps';
 import { NfeCertBadge } from '@/Components/cockpit/NfeCertBadge';
 import { TweaksPanel } from '@/Components/cockpit/TweaksPanel';
 import {
+  AUTO_RAIL_MQ,
   CockpitShellProps,
   ConversaFoco,
   LS,
@@ -304,13 +305,47 @@ export default function AppShellV2({
   // ── Sidebar mode (expanded | rail) — Wagner 2026-05-16.
   // Espelha protótipo Cowork _cowork-export-2026-05-15/sidebar.jsx (modes
   // expanded/rail + alça collapse na borda direita + atalho ⌘\).
+  // Auto-rail (ADR UI-0030): sem escolha persistida, o modo VEM DA LARGURA.
   const [sidebarMode, setSidebarMode] = useState<SidebarMode>(() => {
     if (typeof window === 'undefined') return 'expanded';
     const v = localStorage.getItem(LS.SB_MODE);
-    return v === 'rail' ? 'rail' : 'expanded';
+    if (v === 'rail' || v === 'expanded') return v;
+    return window.matchMedia(AUTO_RAIL_MQ).matches ? 'rail' : 'expanded';
   });
-  useEffect(() => { localStorage.setItem(LS.SB_MODE, sidebarMode); }, [sidebarMode]);
-  const toggleSidebarMode = () => setSidebarMode((m) => (m === 'rail' ? 'expanded' : 'rail'));
+  const sidebarModeRef = useRef(sidebarMode);
+  sidebarModeRef.current = sidebarMode;
+
+  // Persistimos SÓ a escolha manual. O `useEffect` que havia aqui gravava
+  // TODO valor, inclusive o automático — o que transforma o primeiro load numa
+  // janela estreita em preferência permanente (a regra automática dispara uma
+  // vez por navegador e nunca mais solta). Não é hipótese: é o que o protótipo
+  // faz, e foi medido no espelho em 2026-09-02 — uma chave `rail` sobrevivente
+  // de um run a 1279 mantinha o protótipo em rail a 1728, o que quase virou
+  // "o protótipo é rail a 1728" na comparação daquele dia.
+  // `useCallback` com deps [] (só usa setter + ref, ambos estáveis) porque o
+  // atalho ⌘\ vive num `useEffect([])`: sem isso o exhaustive-deps acusa.
+  const chooseSidebarMode = useCallback((v: SidebarMode) => {
+    try { localStorage.setItem(LS.SB_MODE, v); } catch { /* storage bloqueado */ }
+    setSidebarMode(v);
+  }, []);
+  const toggleSidebarMode = useCallback(
+    () => chooseSidebarMode(sidebarModeRef.current === 'rail' ? 'expanded' : 'rail'),
+    [chooseSidebarMode],
+  );
+
+  // Enquanto NÃO houver escolha manual, o modo acompanha a largura ao vivo. O
+  // protótipo só decide no mount; aqui segue, senão plugar/desplugar monitor
+  // externo deixa o shell no modo errado até dar F5.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia(AUTO_RAIL_MQ);
+    const handler = () => {
+      if (localStorage.getItem(LS.SB_MODE)) return; // escolha do usuário vence
+      setSidebarMode(mq.matches ? 'rail' : 'expanded');
+    };
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   // ── Atalhos de teclado `G X` (ADR 0180 Fase 8). Instalado AQUI, e não dentro
   // do `SidebarMenu`, por dois motivos: o `SidebarMenu` tem retorno antecipado
@@ -359,12 +394,12 @@ export default function AppShellV2({
       // Cmd+\ (Mac) ou Ctrl+\ (Windows/Linux) — toggle sidebar rail/expanded
       if ((e.metaKey || e.ctrlKey) && e.key === '\\') {
         e.preventDefault();
-        setSidebarMode((m) => (m === 'rail' ? 'expanded' : 'rail'));
+        toggleSidebarMode();
       }
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [toggleSidebarMode]);
 
   // Activeconv-id fallback se a página não fornecer (controlado externamente)
   const [internalActiveConv, setInternalActiveConv] = useState<string>(() => {
