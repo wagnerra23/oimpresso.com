@@ -22,7 +22,7 @@ import {
 } from '@/Components/ui/dropdown-menu'
 import DataTable from '@/Components/shared/DataTable'
 import EmptyState from '@/Components/shared/EmptyState'
-import { Inline } from '@/Components/layout'
+import { Inline, Stack } from '@/Components/layout'
 import { MoreHorizontal, Settings } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
 import FabJana from './_components/FabJana'
@@ -198,7 +198,8 @@ export default function Alertas({ alertas, corte, janaContext }: Props) {
         onAlternarAnalise={alternarAnalise}
       />
 
-      <div className="flex flex-col gap-3 p-6">
+      {/* Primitivo de layout (ADR 0253), não flex solto — o layout-primitives-guard mede por arquivo. */}
+      <Stack gap={3} className="p-6">
         {/* Toolbar — os chips de severidade da âncora (`jm-mem-cats`) + a contagem
             (`jmc-count`). Os chips de STATUS (abertos · silenciados · todos) não
             entram: sem "silenciar" no servidor, "silenciados" seria filtro sempre
@@ -256,7 +257,7 @@ export default function Alertas({ alertas, corte, janaContext }: Props) {
           {abaixoDoCorte > 0 && ` ${abaixoDoCorte} meta(s) apurada(s) ficaram abaixo do corte e por isso não aparecem.`}
           {' '}Sem período ativo ou sem apuração o serviço volta calado: não existe alerta sem com o que comparar.
         </p>
-      </div>
+      </Stack>
 
       <FabJana contextRoute="/ia/alertas" />
     </>
