@@ -185,3 +185,36 @@ Mesma sonda, mesma viewport (2560), dark nos dois lados. Smoke pós-deploy: `/fo
 **Larguras menores (o que "na linha do título" significa):** medido no protótipo pelo Browser pane com emulação de viewport — a **1280** o shell do protótipo vira rail de **56px** e o header quebra em **3 linhas** (título / sino+busca+primária / pílulas, tudo à direita, 174px); a **1728** o shell segue em rail e o header fica em **1 linha** (88px). Em produção o sidebar só vira rail por `data-sidebar="rail"` (`cockpit.css` L57), então a 1728 o conteúdo tem 1468px (< 450+16+1020) e os controles quebram pra 2ª linha — é o que o `.snap` do CI mostra. Isso é **shell (fundação)**, não CSS da Forja: o `.os-page-h` é idêntico nos dois lados (`flex-wrap: wrap`). Produção a 1280 **não foi medida** nesta rodada (o Browser pane não tem a sessão; a janela do Chrome não aceitou o resize) — fica declarado, não inferido.
 
 **D1 (rede) nas pílulas novas:** `window.__marker` gravado antes do clique **sobreviveu** a Trabalho → Aprovações (dois cliques, dois marcadores vivos), a URL e a pílula ativa mudaram, e a rede mostrou `GET /forja/aprovacoes 200` via Inertia (`<Link as="button">`) — sem full reload. D1 **parcial**, como a meta do §11 pede.
+
+## 2026-09-02 (noite) — Onda 4: o ALVO da lista medido no protótipo, antes de codar contra ele
+
+> **O que rodou (recibo).** Protótipo servido por HTTP estático (`python -m http.server 5620 --directory prototipo-ui/cowork`), `localStorage["oimpresso.route"]="teammcp"` + `oimpresso.forja.view="trabalho"` + `oimpresso.forja.trabvis="lista"`, tema **dark**. Espera **ativa** até `__oiLazyDone` **e** duas leituras consecutivas iguais (1418 = 1418 nós, 4 tentativas) — a 1ª leitura dava 515→533 e teria produzido o número errado (§5 2026-08-24). Medição por `getComputedStyle` + `getBoundingClientRect`, nunca pela classe declarada.
+>
+> **Por que medir o protótipo isolado:** a comparação pareada exige a produção deployada, e o merge é ato [W]. Medir o ALVO antes fecha metade do par e evita a classe LC-08 — construir contra o que eu *li* do `.jsx` em vez do que o browser *resolve*. A outra metade (produção) fica declarada como pendência.
+
+| campo | protótipo (medido) | o que a Onda 4 entrega | veredito esperado |
+|---|---|---|---|
+| linhas visuais da barra de filtro | **3** (`.fj-frentebar` · `.fj-toolbar` · `.fj-filterbar2`, três `top` distintos) | as mesmas 3 | **IGUAL** |
+| `kpi.count` | **4** | 4 | **IGUAL** |
+| `kpi.tag` | **BUTTON** | `<button>` (o KPI filtra) | **IGUAL** |
+| `kpi` valor `font-size` | **17px** (`.tf-kpi-v`) | `.tf-kpi-v` do mesmo bundle | **IGUAL** |
+| `kpi` `text-align` | **left** | idem (mesma classe) | **IGUAL** |
+| `--accent` no dark | **`oklch(0.70 0.15 295)`** (resolvido em `.fj-page`) | herdado do mesmo bloco | **IGUAL** |
+| filhos diretos da `.fj-row` | **13** | **11** | **DIVERGE (declarado)** |
+
+**Os 13 slots do protótipo, na ordem medida:** `fj-rowcheck` · `fj-row-indent` · `fj-prio-dot` · `fj-id` · `fj-type` · `fj-title` · `fj-tam` · `fj-row-mid` · `fj-fresco` · `fj-exec` · `fj-role` · `fj-pin` · `fj-star`.
+
+**Os 2 que a Onda 4 não entrega, e o número é esse por decisão:**
+
+| slot | por que fica de fora |
+|---|---|
+| `fj-rowcheck` | alimenta a `.fj-bulkbar` (fase/papel/prio/onda/status em massa) — **mutação sem endpoint**. Escrever fora do `TaskCrudService` seria o segundo caminho de escrita que a Mesa evitou; caixa que não age é afordância falsa (LC-15) |
+| `fj-fresco` | pílula de frescor (`lido @main` / `não verificado` / `sync Nd`) — **campo que `mcp_tasks` não tem**. É condicional no protótipo, então a falta do dado já a apaga lá |
+
+⚠️ **Nota de honestidade sobre esta contagem.** O número **13** é medido no browser; o **11** é derivado do JSX da réplica (contagem de slots de nível superior da `fj-row`), **não** medido — o par completo exige o deploy. E a contagem depende do DADO: nesta linha do protótipo não apareceram `fj-carry`, `fj-epic-roll` nem `fj-lockico`, que são condicionais; numa linha com épico ou bloqueio, os dois lados sobem juntos. Ou seja: **"3 × 13" da rodada da manhã e "11 × 13" desta são medidas da PRIMEIRA linha de cada lado**, não da estrutura máxima.
+
+**O que segue pendente, declarado:**
+
+- [ ] sonda pareada `design-diff --probe` nos dois renders → `--compare prod.json design.json --check`, dark, mesma viewport, **depois do deploy**. É ela que dá o veredito D2/D4/D6/D8 — nada aqui afirma "0 bug".
+- [ ] **D1 (rede)**: `window.__marker` sobrevivendo ao clique do KPI-filtro, do agrupamento e do papel (todos são `router.get` parcial com `only:[...]`), com `GET` Inertia visível — medível só em produção autenticada.
+- [ ] `/forja/trabalho` **não está** no visreg (conferido no dono do inventário, `tests/Browser/visreg-screens.json`: das 39 telas, a única da Forja é `Forja/Aprovacoes`) — não há `.snap` a regravar nesta onda.
