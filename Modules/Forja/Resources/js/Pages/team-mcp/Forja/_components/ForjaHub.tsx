@@ -1,6 +1,6 @@
 // ForjaHub — header ÚNICO do hub Forja, usado por TODAS as abas (cockpit /forja/*
 // + telas absorvidas /team-mcp/*) pra que o header seja IDÊNTICO em tudo:
-// título "Forja" + ações (sino/⌘K/Novo issue) + tab-strip de 10 abas.
+// título "Forja" + ações (sino/⌘K/Novo issue) + tab-strip agrupada.
 // SEM eyebrow (removido a pedido do Wagner 2026-06-16).
 //
 // Fonte única da tab-strip — antes vivia inline no Cockpit; extraída pra
@@ -8,7 +8,7 @@
 
 import { Fragment } from 'react';
 import { Link } from '@inertiajs/react';
-import { Activity, Bell, CalendarRange, Code2, Columns3, Gavel, History, Inbox, LayoutGrid, List, ListChecks, Plug, Search, Users, Workflow } from 'lucide-react';
+import { Activity, Bell, Code2, Gavel, History, Inbox, ListChecks, Plug, Search, Users, Workflow } from 'lucide-react';
 import { PageHeader } from '@/Components/PageHeader';
 import { PageHeaderPrimary } from '@/Components/PageHeader/PageHeaderPrimary';
 import { cn } from '@/Lib/utils';
@@ -49,26 +49,34 @@ export const FORJA_TABS = [
   // a comparação lado a lado é o que permite [W] decidir qual sobrevive.
   { key: 'trabalho',  grupo: 'trabalho', label: 'Trabalho',     href: '/forja/trabalho',       icon: ListChecks,
     hint: 'Todas as tasks do time, agrupadas por frente' },
-  // O par Backlog × Tarefas é a sobreposição conhecida (US-FORJA-006). Enquanto a
-  // decisão de qual implementação sobrevive não sai, o `hint` faz o mínimo: diz em
-  // voz alta que um é o recorte do projeto FORJA e o outro é o universo. Dois itens
-  // com o mesmo nome e escopo diferente, sem rótulo, é o que confunde.
-  { key: 'backlog',   grupo: 'trabalho', label: 'Backlog',     href: '/forja/backlog',        icon: List,
-    hint: 'Issues do projeto FORJA' },
-  { key: 'quadro',    grupo: 'trabalho', label: 'Quadro',      href: '/forja/quadro',         icon: LayoutGrid,
-    hint: 'Fluxo por fase F0→F3.5' },
-  // Roadmap (Gantt) — 2026-08-06. A tela chegou da Jana no PR 5310 (ADR 0366 §D-C item 3).
-  // ESTA é a fonte da faixa do hub: `AppShellV2` NÃO renderiza topnav aqui (o Cockpit
-  // esconde a barra do shell e desenha a própria). Provado em runtime: `shell.topnavs
-  // .Forja__core` já entregava 10 itens com este, e o DOM tinha ZERO `.topnav-chip` —
-  // registrar em `config/core_topnavs.php` (PR 5339) alimentou o shell e não a tela.
+  // ── SAÍRAM DO TOPO em 2026-09-01: Backlog · Quadro · Roadmap (Gantt) · Tarefas ──
+  //
+  // [W] mandou convergir o topnav com o protótipo (`forja-page.jsx`, grupo Trabalho =
+  // Aprovações + Trabalho). A trava anterior era a US-FORJA-006 — "não remover antes de
+  // [W] decidir qual implementação sobrevive". [W] decidiu em 2026-09-01, mandando o
+  // render do protótipo. AS ROTAS CONTINUAM VIVAS: isto tira o item do topo, não a tela.
+  //
+  // Só saíram os 4 cuja absorção foi PROVADA em produção, não presumida (medido em
+  // /forja/trabalho, 2026-09-01):
+  //   Backlog  → segmento `Lista` (renderiza inline; 500 tasks · 367 sem dono)
+  //   Quadro   → segmento `Quadro` (TrabalhoQuadro, inline)
+  //   Tarefas  → a mesma lista já é o universo, não o recorte FORJA ("SEM FRENTE — 375")
+  //   Roadmap  → segmento `Gantt` NAVEGA pra /forja/roadmap-gantt (clicado e conferido:
+  //              a URL vira roadmap-gantt) — continua a 1 clique, por dentro do Trabalho
+  //
+  // NÃO saíram, e o motivo é o mesmo critério: o receptor do protótipo ainda não existe
+  // aqui. Handoffs e Equipe são seções do MCP no protótipo, mas o /forja/mcp de produção
+  // é MOCKADO e não tem nenhuma das duas; CC Sessions é o segmento `Sessões` do Changelog
+  // no protótipo, e o de produção não projeta sessão com título; Triagem vira tipo
+  // `Proposta` dentro de Aprovações, que hoje abre vazia ("Nada esperando por você") com
+  // 3 tickets reais vivos na Triagem. Tirar qualquer um deles agora é perder produto pra
+  // ganhar barra curta. Medição e método: memory/requisitos/Forja/PARIDADE-area-forja-diagnostico-e-ondas.md §6-bis.
+  //
   // Quem adicionar aba aqui: adicione também `<ForjaHub>` na Page nova, senão ela abre
-  // sem faixa (foi o caso do Gantt até hoje).
-  { key: 'roadmap-gantt', grupo: 'trabalho', label: 'Roadmap (Gantt)', href: '/forja/roadmap-gantt', icon: CalendarRange,
-    hint: 'Tasks no tempo, por módulo' },
-  // Telas TeamMcp absorvidas (fusão) — reusam as canônicas ricas.
-  { key: 'tarefas',   grupo: 'trabalho', label: 'Tarefas',     href: '/team-mcp/tasks',       icon: Columns3,
-    hint: 'Todas as tasks do time, sem recorte de projeto' },
+  // sem faixa. `AppShellV2` NÃO renderiza o topnav nesta área — o Cockpit esconde a barra
+  // do shell e desenha a própria; `config/core_topnavs.php` alimenta o shell, não a tela.
+  // As duas listas têm que bater mesmo assim (lápide §5 2026-08-06: elas divergirem em
+  // silêncio foi como o Gantt abriu sem faixa).
 
   // Handoffs vem ANTES do MCP no grupo: é o dado vivo da esteira (o loop rodando
   // agora); o MCP ao lado é a vitrine do contrato. Saiu de dentro dele em 2026-08-08.
@@ -178,10 +186,17 @@ export default function ForjaHub({ active, triagemCount }: { active: string; tri
                   `aria-hidden` porque é ornamento: quem usa leitor de tela recebe o
                   destino pelo texto do link, e um "TRABALHO" solto na nav atrapalha.
                   Como é aria-hidden, escondê-lo por breakpoint não tira informação
-                  de ninguém — só de quem tem pixels sobrando. */}
+                  de ninguém — só de quem tem pixels sobrando.
+
+                  `tracking-[0.07em]` NÃO é gosto: a âncora (`.fj-navgroup-lbl` em
+                  forja-page.css:830) declara `letter-spacing:.07em`, e a sonda mediu
+                  +0,665px no protótipo contra −0,2375px aqui em 2026-09-01 — o
+                  `tracking-tight` anterior era o SINAL OPOSTO. Versalete de 9,5px pede
+                  tracking positivo; apertar caixa-alta miúda fecha o contraforma.
+                  Recibo e método: memory/requisitos/Forja/PARIDADE-area-forja-diagnostico-e-ondas.md §6-bis. */}
               <span
                 aria-hidden
-                className="hidden shrink-0 select-none text-[9.5px] font-semibold uppercase tracking-tight text-muted-foreground/70 2xl:inline"
+                className="hidden shrink-0 select-none text-[9.5px] font-semibold uppercase tracking-[0.07em] text-muted-foreground/70 2xl:inline"
                 data-testid={`forja-grupo-${grupo.key}`}
               >
                 {grupo.label}

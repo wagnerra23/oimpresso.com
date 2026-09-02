@@ -20,19 +20,13 @@ authority: generated
 | CU no SDD | 16 |
 | Telas (.tsx) | 7 |
 | Telas com `casos.md` | 8 |
-| UC declarados | 46 |
-| UC com teste que os cita | 46 |
+| UC declarados | 47 |
+| UC com teste que os cita | 47 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
 | Lacuna | O que falta escrever |
 |---|---|
-| `CU-FISC-02` sem UC | caso de uso que o exercite — Conferir NF-e/NFC-e com status SEFAZ legível |
-| `CU-FISC-03` sem UC | caso de uso que o exercite — Agir dentro da janela legal de cancelamento |
-| `CU-FISC-08` sem UC | caso de uso que o exercite — Cancelar NF-e autorizada com justificativa CONFAZ |
-| `CU-FISC-09` sem UC | caso de uso que o exercite — Aplicar Carta de Correção (CC-e 110110) |
-| `CU-FISC-10` sem UC | caso de uso que o exercite — Inutilizar faixa numérica |
-| `CU-FISC-11` sem UC | caso de uso que o exercite — Retransmitir sem apagar a nota antiga |
 | `CU-FISC-15` sem UC | caso de uso que o exercite — Gerar o SPED EFD-ICMS/IPI da competência |
 | `CU-FISC-16` sem UC | caso de uso que o exercite — Distinguir dado real de dado de demonstração |
 
@@ -51,7 +45,6 @@ authority: generated
 | US-FISCAL-006 | `desconhecido` | Manifesto DF-e (sub-página 4) — **backlog PR #6** |
 | US-FISCAL-010 | `desconhecido` | SPED & Livros (sub-página 7) — ✅ PR #3 Wave (placeholder) |
 | US-FISCAL-013 | `desconhecido` | CC-e (Carta de Correção) + Inutilização faixa — ✅ PR #5 Wave |
-| US-FISCAL-014 | `desconhecido` | Retransmitir NFe rejeitada/denegada — ✅ PR #6 Wave |
 | US-FISCAL-015 | `desconhecido` | ⌘K palette cross-fiscal — ✅ PR #7 Wave |
 | US-FISCAL-016 | `desconhecido` | Gerador SPED EFD-ICMS/IPI MVP — ✅ PR #8 Wave |
 | US-FISCAL-017 | `desconhecido` | SPED EFD-ICMS/IPI Bloco E + Bloco H — ✅ PR #9 Wave |
@@ -91,11 +84,12 @@ authority: generated
 | UC-FNFE-01 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFE-02 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFE-03 | Nfe | 🧪 aguarda veredito da lane |
-| UC-FNFE-04 | Eventos | 🧪 aguarda veredito da lane |
+| UC-FNFE-04 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFE-05 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFE-06 | Nfe | 🧪 aguarda veredito da lane |
-| UC-FNFE-07 | Dfe | 🧪 aguarda veredito da lane |
+| UC-FNFE-07 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFE-08 | Nfe | 🧪 aguarda veredito da lane |
+| UC-FNFE-09 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFSE-01 | Nfse | 🧪 aguarda veredito da lane |
 | UC-FNFSE-02 | Nfse | 🧪 aguarda veredito da lane |
 | UC-FNFSE-03 | Nfse | 🧪 aguarda veredito da lane |

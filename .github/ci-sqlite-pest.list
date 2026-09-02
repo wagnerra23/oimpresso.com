@@ -518,3 +518,9 @@ Modules/Jana/Tests/Feature/Smoke/DistillerFreshnessAdvisoryTest.php
 # Sqlite-safe: Menu em memoria via Menu::create + LegacyMenuAdapter->build(),
 # `action()` sobre rota declarada e `trans()` — DB-less, igual ao vizinho da L447.
 tests/Feature/Sidebar/VisaoGeralLandingTest.php
+# Caminho de ERRO do RagasJudgeService (2026-09-02): prende a DISTINCAO entre
+# `insufficient_quota` (billing, fora do repo) e `rate_limit_exceeded` (falta de
+# backoff, aqui dentro) — os dois chegam como HTTP 429 e tem acoes OPOSTAS. O
+# arquivo ja existia e NAO estava nesta lane: estava so no phpunit.xml, que a lane
+# nao usa (ela roda a lista via mapfile). DB-less (Http::fake + Log::spy), sqlite-safe.
+tests/Feature/Ragas/RagasJudgeServiceTest.php
