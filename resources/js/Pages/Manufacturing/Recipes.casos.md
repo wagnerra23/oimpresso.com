@@ -36,9 +36,11 @@ last_run: "2026-09-02"
 
 ## UC-RECIPE-01 · A rota `/manufacturing/recipe` serve a tela nova de Fabricação
 - **Persona:** Larissa · Wagner — o endereço que [W] pediu abre a tela nova, não a antiga.
-- **Aceite:** Dado usuário com permissão · Quando abre `/manufacturing/recipe` ·
-  Então a resposta é Inertia com `component = "Manufacturing/Recipes"` e traz `recipes`,
-  `permissions`, `producao` e `settings` no payload.
+- **Aceite:** Dado o app carregado · Quando se pergunta ao **registry de rotas** (não ao arquivo)
+  quem serve `GET manufacturing/recipe` · Então existe uma rota, e a ação dela é o `RecipeController`.
+  O `Inertia::render('Manufacturing/Recipes'` com `recipes`/`permissions`/`producao`/`settings`
+  está no mesmo teste, pelo assert estrutural do UC-RECIPE-06.
+- ⚠️ **O que este teste NÃO prova:** que a resposta HTTP real traz o payload. Ver UC-RECIPE-08.
 - **Fonte:** decisão [W] 2026-09-02 (o endereço) + §15.2 do handoff (o conteúdo da tela).
 - **Teste:** `Modules/Manufacturing/Tests/Feature/Wave29RecipeInertiaTest.php`
 - **Regressão que defende:** alguém "consertar" o controller devolvendo a view Blade e a tela
@@ -98,30 +100,40 @@ last_run: "2026-09-02"
 
 ## UC-RECIPE-06 · A tela Blade legada continua alcançável no mesmo endereço
 - **Persona:** Wagner — rede de segurança do cutover.
-- **Aceite:** Dado a tela nova em produção · Quando abre `/manufacturing/recipe?legacy=1` ·
-  Então a resposta é a view Blade `manufacturing::recipe.index` (não-Inertia), com 200.
+- **Aceite:** Dado o comentário do controller que ANUNCIA `?legacy=1` · Quando se lê o `index()` ·
+  Então o ramo `request()->boolean('legacy')` existe e devolve `view('manufacturing::recipe.index')`.
 - **Fonte:** proibição do §15.2 (*"não remover nenhuma rota Blade legacy"*) + §6 do RUNBOOK (rollback).
 - **Teste:** `Wave29RecipeInertiaTest.php`
-- **Regressão que defende:** o escape ser anunciado no comentário do controller e não existir —
-  é a classe LC-15 (mecanismo que anuncia saída que não honra), e por isso ele tem teste.
-- **Status: 🧪**
+- **Regressão que defende:** o escape ser anunciado no comentário e **não existir** — a classe LC-15
+  (mecanismo que anuncia saída que não honra).
+- ⚠️ **O que este teste NÃO prova:** que a rota responde **200 com a view** pra um usuário real.
+  O assert é sobre a ESTRUTURA do controller, não sobre a resposta HTTP — chamá-lo de prova de
+  comportamento seria presence-gate (LC-11). O 200 é smoke (`curl` do RUNBOOK §5), não Pest.
+- **Status: 🧪** — do que ele mede: o ramo existe.
 
 ---
 
 ## UC-RECIPE-07 · O DataTables legado do módulo continua respondendo
 - **Persona:** Wagner — o ramo ajax é o que a tela Blade consome.
-- **Aceite:** Dado requisição ajax a `/manufacturing/recipe` · Quando o cliente pede JSON ·
-  Então a resposta é o payload DataTables (`data`), não Inertia.
+- **Aceite:** Dado o `index()` do controller · Quando se compara a posição dos dois ramos ·
+  Então `if (request()->ajax())` aparece **antes** de `Inertia::render('Manufacturing/Recipes'`.
 - **Fonte:** §15.2 (coexistência) — o ramo `request()->ajax()` do controller não foi tocado.
 - **Teste:** `Wave29RecipeInertiaTest.php`
 - **Regressão que defende:** mover o `return Inertia::render` para antes do `if (ajax)` e matar
-  a tabela legada em silêncio.
-- **Status: 🧪**
+  a tabela legada em silêncio — o defeito é de ORDEM, e ordem é o que o assert mede.
+- ⚠️ **O que este teste NÃO prova:** que uma requisição ajax real recebe o JSON do DataTables.
+  Mesma limitação de fixture do UC-RECIPE-08.
+- **Status: 🧪** — do que ele mede: a ordem dos ramos.
 
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
+- **[BACKLOG]** `?legacy=1` responde **200 com a tela Blade** (não só "o ramo existe") e uma
+  requisição **ajax real** recebe o JSON do DataTables. É a metade comportamental que os
+  UC-RECIPE-06/07 não alcançam: precisa de fixture autenticada (user + business + permissão)
+  que a suíte deste módulo ainda não tem — hoje **todos** os testes dela pulam HTTP. Enquanto
+  não existir, a prova é o `curl` do RUNBOOK §5. Vira UC quando o teste existir.
 - **[BACKLOG]** A busca casa nome, SKU, categoria e subcategoria; `/` foca o campo (R-03 · R-04).
 - **[BACKLOG]** KPI 2 e 3 filtram a lista; KPI 1 e 4 não (R-05).
 - **[BACKLOG]** Ordenar alterna asc/desc e volta pra página 1 (R-06); 10 por página com `a–b de N` (R-07).
