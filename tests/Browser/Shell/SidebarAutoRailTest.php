@@ -27,14 +27,24 @@ declare(strict_types=1);
  *   UC-SHELL-04 · sem escolha manual, o modo acompanha o resize ao vivo
  *
  * ── ONDE RODA ────────────────────────────────────────────────────────────────
- * CT 100 / CI apenas (Tier 0 — `memory/proibicoes.md` §Ambiente). Sem o
- * pest-plugin-browser + chromium o arquivo inteiro faz skip.
+ * CT 100 / CI apenas (Tier 0 — `memory/proibicoes.md` §Ambiente). A lane é o step
+ * "Contrato do shell · auto-rail ≤1280" do `visual-regression.yml`, que já provê
+ * Chromium — por isso o arquivo NÃO carrega guard de skip (ver nota abaixo).
  */
 
 use App\Models\Business;
 use App\Models\User;
 
-$browserMissing = ! class_exists(\Pest\Browser\Bootstrap::class);
+// SEM guard `class_exists(...)` de propósito. A 1ª versão deste arquivo copiou
+// `$browserMissing = ! class_exists(\Pest\Browser\Bootstrap::class)` do
+// `tests/Browser/NfeBrasil/NfceStatusTest.php` — e o resultado foi
+// `4 skipped (0 assertions)` num step marcado SUCCESS (run 33675746851): o teste
+// não rodou e o verde não distinguia isso de ter rodado. A classe não resolve na
+// versão instalada do plugin, e ninguém tinha percebido porque o NfceStatusTest
+// **não é citado por lane nenhuma** (`grep NfceStatusTest .github/workflows/` = 0)
+// — o guard quebrado nunca foi observável. Todo teste Browser que de fato roda
+// (PixelBaseline, IsolatedStates, os 3 de fluxo, Conciliacao) não tem guard: quem
+// garante o Chromium é a lane, não o arquivo.
 
 /** Largura resolvida da 1ª coluna do grid `.cockpit` (o que o browser pintou). */
 const COLS_JS = <<<'JS'
@@ -70,14 +80,14 @@ it('UC-SHELL-01 · a 1280 (monitor do [W]) o shell nasce em RAIL de 56px', funct
 
     expect($page->script(MODE_JS))->toBe('rail', 'estado do React a 1280');
     expect($page->script(COLS_JS))->toBe('56px', 'coluna resolvida pelo browser a 1280');
-})->skip($browserMissing, 'pest-plugin-browser/chromium ausente — roda só no CT 100/CI');
+});
 
 it('UC-SHELL-02 · a 1440 o shell nasce EXPANDIDO de 260px', function () {
     $page = abrirShell()->inViewport(1440, 900);
 
     expect($page->script(MODE_JS))->toBe('expanded', 'estado do React a 1440');
     expect($page->script(COLS_JS))->toBe('260px', 'coluna resolvida pelo browser a 1440');
-})->skip($browserMissing, 'pest-plugin-browser/chromium ausente — roda só no CT 100/CI');
+});
 
 it('UC-SHELL-03 · escolha manual persistida VENCE a largura (não é sobrescrita a 1280)', function () {
     // Nasce largo e sem chave: expandido por largura.
@@ -92,7 +102,7 @@ it('UC-SHELL-03 · escolha manual persistida VENCE a largura (não é sobrescrit
 
     expect($page->script(MODE_JS))->toBe('expanded', 'escolha manual deve sobreviver ao resize');
     expect($page->script(COLS_JS))->toBe('260px', 'coluna resolvida após estreitar com escolha manual');
-})->skip($browserMissing, 'pest-plugin-browser/chromium ausente — roda só no CT 100/CI');
+});
 
 it('UC-SHELL-04 · SEM escolha manual, o modo acompanha o resize ao vivo (1440 → 1280 → 1440)', function () {
     // Este é o delta deliberado vs o protótipo, que só decide no mount: aqui
@@ -106,4 +116,4 @@ it('UC-SHELL-04 · SEM escolha manual, o modo acompanha o resize ao vivo (1440 �
 
     $page->inViewport(1440, 900);
     expect($page->script(COLS_JS))->toBe('260px', 'alargou → volta a expandir');
-})->skip($browserMissing, 'pest-plugin-browser/chromium ausente — roda só no CT 100/CI');
+});
