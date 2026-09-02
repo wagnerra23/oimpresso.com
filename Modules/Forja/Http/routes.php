@@ -331,7 +331,12 @@ Route::group(
         Route::get('/mcp',       'ForjaController@mcp')->name('forja.mcp');
         // Integrador — 6º destino do topnav do protótipo (PARIDADE §11 Onda 2). FQCN (.claude/rules/routes.md).
         Route::get('/integrador', [\Modules\Forja\Http\Controllers\ForjaController::class, 'integrador'])->name('forja.integrador');
-        // Saúde foi fundida no Scorecard real (/team-mcp/scorecard) — sem rota própria.
+        // Saúde — view `saude` do protótipo (PARIDADE §11 Onda 7). Até aqui a pílula
+        // "Saúde" do topnav apontava pro /team-mcp/scorecard como desvio provisório;
+        // agora tem tela própria. O Scorecard CONTINUA vivo e é o destino do drill
+        // "ver →" dos cards — esta view é o semáforo do loop, não um substituto dele.
+        // FQCN obrigatório em rota nova (.claude/rules/routes.md).
+        Route::get('/saude', [\Modules\Forja\Http\Controllers\ForjaController::class, 'saude'])->name('forja.saude');
 
         // Mesa de Aprovações — superfície do funil de admissão (ADR 0368).
         // A ADR fechou a política em 2026-08-04 e deixou o código pra "PR próprio";

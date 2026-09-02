@@ -83,6 +83,9 @@ function forjaRotasAbas(): array
         // 6ª aba desde 2026-08-08: handoffs saiu de DENTRO da aba MCP e virou tela.
         '/forja/handoffs'  => ['forja.handoffs',  'handoffs'],
         '/forja/integrador' => ['forja.integrador', 'integrador'],
+        // Saúde ganhou rota própria na Onda 7 (PARIDADE §11) — até 2026-09-02 a pílula
+        // do topnav apontava pro /team-mcp/scorecard, que segue vivo como drill.
+        '/forja/saude'      => ['forja.saude',      'saude'],
     ];
 }
 
