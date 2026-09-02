@@ -26,20 +26,20 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 713,
-    "edges": 993,
+    "nodes": 711,
+    "edges": 991,
     "by_node_type": {
       "module": 39,
       "table": 102,
       "adr": 107,
       "component": 392,
-      "api": 73
+      "api": 71
     },
     "by_edge_type": {
       "ownsTable": 91,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 77,
+      "providesApi": 75,
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 392,
@@ -804,25 +804,9 @@
       "exists": true
     },
     {
-      "id": "api:/ads/admin/projects/*",
+      "id": "api:/ads/admin/*",
       "type": "api",
-      "prefix": "/ads/admin/projects/*",
-      "providers": [
-        "Forja"
-      ]
-    },
-    {
-      "id": "api:/ads/admin/team-scopes/*",
-      "type": "api",
-      "prefix": "/ads/admin/team-scopes/*",
-      "providers": [
-        "Forja"
-      ]
-    },
-    {
-      "id": "api:/ads/admin/tools/*",
-      "type": "api",
-      "prefix": "/ads/admin/tools/*",
+      "prefix": "/ads/admin/*",
       "providers": [
         "Forja"
       ]
@@ -8640,19 +8624,7 @@
     },
     {
       "from": "module:Forja",
-      "to": "api:/ads/admin/projects/*",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
-      "from": "module:Forja",
-      "to": "api:/ads/admin/team-scopes/*",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
-      "from": "module:Forja",
-      "to": "api:/ads/admin/tools/*",
+      "to": "api:/ads/admin/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
