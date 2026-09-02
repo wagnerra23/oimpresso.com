@@ -26,7 +26,7 @@ related_adrs:
   - 0094-constituicao-v2-7-camadas-8-principios
 url_prefixes:
   - /auditoria/*
-  - /reports/activity-log (rota legacy — 301 pra /auditoria)
+  - /reports/activity-log (rota legacy — 301 pra /auditoria; o NUCLEO registra a mesma URI em routes/web.php:1075 e a precedencia nao e derivavel estaticamente)
 drift_alerts: []
 ---
 

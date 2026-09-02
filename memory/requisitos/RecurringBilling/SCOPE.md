@@ -29,7 +29,7 @@ url_prefixes:
   - /recurring-billing/*
   - /recurringbilling/* (legacy 301 redirect — Onda 10 cutover v9,75)
   - /financeiro/rb-invoices/* (monta DENTRO do prefixo do Modules/Financeiro)
-  - /webhooks/inter/* (o /pix/ — co-provido por Modules/PaymentGateway)
+  - /webhooks/inter/* (RB serve /webhooks/inter/pix/{businessId}; o PG co-prove o PREFIXO com /webhooks/inter/{credentialId}, nao o /pix/)
   - /api/v1/* (scaffold nWidart · auth:sanctum)
   - /api/webhooks/*
 drift_alerts: []

@@ -26,20 +26,20 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 711,
-    "edges": 991,
+    "nodes": 710,
+    "edges": 990,
     "by_node_type": {
       "module": 39,
       "table": 102,
       "adr": 107,
       "component": 392,
-      "api": 71
+      "api": 70
     },
     "by_edge_type": {
       "ownsTable": 91,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 75,
+      "providesApi": 74,
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 392,
@@ -844,20 +844,12 @@
       ]
     },
     {
-      "id": "api:/api/kb/*",
-      "type": "api",
-      "prefix": "/api/kb/*",
-      "providers": [
-        "KB"
-      ]
-    },
-    {
       "id": "api:/api/mcp/*",
       "type": "api",
       "prefix": "/api/mcp/*",
       "providers": [
         "Forja",
-        "KB"
+        "Jana"
       ]
     },
     {
@@ -9313,6 +9305,12 @@
     },
     {
       "from": "module:Jana",
+      "to": "api:/api/mcp/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Jana",
       "to": "api:/copiloto/*",
       "type": "providesApi",
       "source": "url_prefixes"
@@ -9606,18 +9604,6 @@
       "to": "table:mcp_memory_documents",
       "type": "ownsTable",
       "source": "db_tables_owned"
-    },
-    {
-      "from": "module:KB",
-      "to": "api:/api/kb/*",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
-      "from": "module:KB",
-      "to": "api:/api/mcp/*",
-      "type": "providesApi",
-      "source": "url_prefixes"
     },
     {
       "from": "module:KB",

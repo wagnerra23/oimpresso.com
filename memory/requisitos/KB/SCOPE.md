@@ -34,9 +34,7 @@ related_adrs:
 url_prefixes:
   - /kb/*
   - /copiloto/admin/memoria/* (legacy — 301 pra /kb já aplicado; quem serve é Modules/Jana, routes.php:263)
-  - /sops/* (SOP publico — print-sop)
-  - /api/kb/*
-  - /api/mcp/* (co-provido por Modules/Forja)
+  - /sops/* (alias auth-gated de /kb/v2 — so GET /sops, Http/routes.php:172; print-sop NAO existe, esta comentada em :133)
 db_tables_owned:
   - mcp_memory_documents (sync git → DB via webhook — bridge read-only fotografia git)
   - mcp_memory_documents_history

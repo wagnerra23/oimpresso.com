@@ -67,9 +67,10 @@ related_adrs:
   - 0052-contextonegocio-expor-multiplos-angulos
   - 0053-mcp-server-governanca-como-produto
 url_prefixes:
-  - /ia/* (canônico desde o rename ADR 0180 — dashboard · painel · cockpit · conversas · metas · memorias · alertas · admin)
+  - /ia/* (canônico desde o rename ADR 0180, commit 1ee337201d — conversas · metas · memoria · alertas · admin; painel/dashboard/cockpit sao 301 pra /ia e memorias e 302 pra /ia/memoria desde US-COPI-148)
   - /jana/* (legacy — 301 pra /ia/*, routes.php:416)
   - /copiloto/* (legacy — 301 pra /jana/*, routes.php:413)
+  - /api/mcp/* (JSON-RPC do MCP server — Mcp::web em Http/routes.php:392, CONDICIONAL a MCP_TOOLS_EXPOSED; no Hostinger da 404 por desenho, ADR 0062)
 db_tables_owned:
   - jana_memoria_facts
   - jana_memoria_metricas

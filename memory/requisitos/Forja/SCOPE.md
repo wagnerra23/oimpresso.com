@@ -84,7 +84,7 @@ url_prefixes:
   - /ads/admin/* (tools · team-scopes · projects · graph · kb→301 pra /kb; URL mantida pela ADR 0087)
   - (futuro) /project/* — após Fase 3.9 (rename pra Project quando legado for deletado)
   - /api/cc/*
-  - /api/mcp/* (co-provido por Modules/KB)
+  - /api/mcp/* (co-provido por Modules/Jana — Mcp::web em Http/routes.php:392, so com MCP_TOOLS_EXPOSED=true)
 db_tables_owned:
   - mcp_jira_projects
   - mcp_epics
