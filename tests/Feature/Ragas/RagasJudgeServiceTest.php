@@ -19,6 +19,8 @@ declare(strict_types=1);
  * @see Modules/Jana/Services/Ragas/RagasJudgeService.php
  */
 
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Modules\Jana\Services\Ragas\RagasJudgeService;
 
 // Tests\TestCase já é aplicado globalmente em tests/Pest.php (uses(TestCase::class)->in('Feature')). NÃO redeclarar aqui — Pest 4 lança TestCaseAlreadyInUse.
@@ -90,4 +92,65 @@ it('thresholds canonicos batem com targets Langfuse 2026 (MVP relaxado)', functi
     expect($t['faithfulness'])->toBeLessThanOrEqual(0.9, 'MVP < 0.9, produção alvo 0.9');
     expect($t['answer_relevancy'])->toBeLessThanOrEqual(0.85, 'MVP < 0.85, produção alvo 0.85');
     expect($t['context_precision'])->toBeLessThanOrEqual(0.8, 'MVP < 0.8, produção alvo 0.8');
+});
+
+// --- Caminho de ERRO do judge (2026-09-02) -------------------------------
+// O canary somou 20x "Judge HTTP 429" num dia sem nenhum campo capaz de dizer
+// QUAL 429 era — e os dois tipos tem acoes OPOSTAS: `insufficient_quota` e
+// billing (fora do repo) e `rate_limit_exceeded` e falta de backoff (aqui
+// dentro). Estes testes prendem a DISTINCAO: se alguem voltar a logar so o
+// status, os dois casos viram a mesma string e ambos quebram.
+
+it('no erro HTTP loga o codigo insufficient_quota (billing — fora do repo)', function () {
+    config(['openai.api_key' => 'sk-fake-para-teste']);
+
+    Http::fake(['api.openai.com/*' => Http::response([
+        'error' => [
+            'message' => 'You exceeded your current quota.',
+            'type'    => 'insufficient_quota',
+            'code'    => 'insufficient_quota',
+        ],
+    ], 429)]);
+
+    Log::spy();
+
+    expect((new RagasJudgeService())->scoreFaithfulness('q', 'a', 'ctx'))->toBe(0.0);
+
+    Log::shouldHaveReceived('warning')->withArgs(fn (string $m) => str_contains($m, '429')
+        && str_contains($m, 'insufficient_quota')
+        && str_contains($m, 'metric=faithfulness'));
+});
+
+it('no erro HTTP loga o codigo rate_limit_exceeded (backoff — dentro do repo)', function () {
+    config(['openai.api_key' => 'sk-fake-para-teste']);
+
+    Http::fake(['api.openai.com/*' => Http::response([
+        'error' => [
+            'message' => 'Rate limit reached for gpt-4o-mini.',
+            'type'    => 'requests',
+            'code'    => 'rate_limit_exceeded',
+        ],
+    ], 429)]);
+
+    Log::spy();
+
+    expect((new RagasJudgeService())->scoreAnswerRelevancy('q', 'a'))->toBe(0.0);
+
+    // CONTROLE NEGATIVO: o mesmo status 429, codigo DIFERENTE. Se o log voltasse a
+    // carregar so o status, este assert e o de cima passariam a ser indistinguiveis.
+    Log::shouldHaveReceived('warning')->withArgs(fn (string $m) => str_contains($m, 'rate_limit_exceeded')
+        && ! str_contains($m, 'insufficient_quota'));
+});
+
+it('erro sem corpo JSON nao quebra o log (fallback declarado)', function () {
+    config(['openai.api_key' => 'sk-fake-para-teste']);
+
+    Http::fake(['api.openai.com/*' => Http::response('', 503)]);
+
+    Log::spy();
+
+    expect((new RagasJudgeService())->scoreFaithfulness('q', 'a', 'ctx'))->toBe(0.0);
+
+    Log::shouldHaveReceived('warning')->withArgs(fn (string $m) => str_contains($m, '503')
+        && str_contains($m, '(sem corpo)'));
 });
