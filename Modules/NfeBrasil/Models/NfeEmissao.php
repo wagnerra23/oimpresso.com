@@ -33,8 +33,8 @@ use Spatie\Activitylog\Traits\LogsActivity;
  *                  aguardando RetentarContingenciaJob. NÃO é erro: é nota válida
  *                  ainda não transmitida. Perder esse estado é problema fiscal.
  *
- * Anotados como @property porque Larastan não infere atributo dinâmico de Eloquent
- * a partir da migration — sem isto o acesso vira "undefined property" no ratchet.
+ * As anotações abaixo existem porque Larastan não infere atributo dinâmico de
+ * Eloquent a partir da migration — sem elas o acesso vira "undefined property".
  *
  * @property int $tp_emis
  * @property int $retry_count
