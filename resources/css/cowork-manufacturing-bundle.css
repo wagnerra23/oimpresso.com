@@ -6,8 +6,11 @@
  * Escopo: tudo `.mfg-*`, dentro de `.mfg-root`. Tokens vêm de `.cockpit` (AppShellV2).
  *
  * DUAS adaptações declaradas ao alvo — nenhuma é estética:
- *  (1) primitivos `.os-page-h` / `.os-btn` (camada 0 do protótipo, `styles.css`) entram
- *      aqui ESCOPADOS em `.mfg-root`. No repo eles só existem sob `.fin-cowork`.
+ *  (1) o primitivo `.os-page-h` (camada 0 do protótipo, `styles.css`) entra aqui ESCOPADO
+ *      em `.mfg-root` — no repo ele só existe sob `.fin-cowork`. O `.os-btn` do protótipo
+ *      NÃO foi portado: a tela usa `<Button>` de `@/Components/ui/button` (ADR 0190 —
+ *      primary roxo universal), que é o canon e o que o `Manufacturing/Index.tsx` vizinho
+ *      já faz. Regra `ds/no-os-btn` do ESLint limpa: 0 avisos.
  *  (2) o bloco `@media print` do protótipo esconde `body>*` incondicionalmente. Num SPA
  *      o CSS é global depois do 1º import, então isso quebraria a impressão de TODA
  *      outra tela. Aqui a regra é condicionada a `body:has(> .mfg-print-host)` — só
@@ -313,33 +316,6 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
   display: flex; align-items: center; gap: 6px; flex: 0 0 auto;
   justify-content: flex-end; margin-left: auto;
 }
-.mfg-root .os-page-h-r .os-btn.primary{ height: 32px; border-radius: 6px; font-size: var(--fs-3); font-weight: 500; }
-.mfg-root .os-btn{
-  appearance: none;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  height: 30px;
-  padding: 0 12px;
-  border-radius: var(--radius-sm);
-  font: inherit;
-  font-size: 12.5px;
-  font-weight: 500;
-  cursor: pointer;
-  display: inline-flex; align-items: center; gap: 6px;
-  white-space: nowrap;
-  text-decoration: none;
-}
-.mfg-root .os-btn:hover{ background: var(--border-2); }
-.mfg-root .os-btn.primary{ background: var(--accent); color: #fff; border-color: var(--accent); }
-.mfg-root .os-btn.primary:hover{ background: var(--accent-2); border-color: var(--accent-2); }
-.mfg-root .os-btn.ghost{ background: transparent; border-color: transparent; color: var(--text-dim); }
-.mfg-root .os-btn.ghost:hover{ background: var(--border-2); color: var(--text); }
-.mfg-root .os-btn.ghost.danger{ color: var(--neg); }
-.mfg-root .os-btn.ghost.danger:hover{ background: var(--neg-soft); }
-.mfg-root .os-btn.sm{ height: 26px; padding: 0 10px; font-size: 11.5px; }
-.mfg-root .os-btn.disabled, .mfg-root .os-btn:disabled{ opacity: .45; cursor: not-allowed; }
-
 /* §11 consequência 1 (ADR 0410): `--text-mute` reprova AA em texto pequeno nos DOIS
    temas (3,24 / 2,92 / 3,18 / 3,94 medidos). Rótulo de coluna, de campo, SKU, unidade
    e meta de trilha saem em `--text-dim`. Troca de token, não cor nova. */
@@ -379,3 +355,23 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 .mfg-root .mfg-tot dt.mfg-tot-big-dt{ font-weight: 600; color: var(--text); }
 .mfg-root .mfg-tot dd.mfg-tot-big-dd{ font-size: 15px; font-weight: 600; color: var(--accent); }
 .cockpit[data-theme="dark"] .mfg-root .mfg-tot dd.mfg-tot-big-dd{ color: var(--accent-2); }
+
+/* Adaptação 4 · as tiras do rodapé da ficha PT-07 saem do `style=` inline pro CSS.
+   O protótipo as escreve inline (manufacturing-print.jsx); aqui elas viram classe porque
+   a régua do repo proíbe cor crua em style inline (`ds/no-inline-raw-color`) — e o lugar
+   de cor em arquivo é o CSS, não o JSX. Os VALORES são idênticos e continuam declarados:
+   §10 do handoff diz que `#00AEEF #EC008C #FFF200 #231F20` são as quatro TINTAS DE PROCESSO
+   (ciano, magenta, amarelo, preto) — valor de tinta, não cor de tema — e que a escada de
+   cinza é papel, que não tem tema (ADR 0413: o cockpit não publica paleta de impressão). */
+.mfg-print-host .strip i.tinta-c{ background: #00AEEF; }
+.mfg-print-host .strip i.tinta-m{ background: #EC008C; }
+.mfg-print-host .strip i.tinta-y{ background: #FFF200; }
+.mfg-print-host .strip i.tinta-k{ background: #231F20; }
+.mfg-print-host .strip.d i.cinza-0{ background: #fff; }
+.mfg-print-host .strip.d i.cinza-1{ background: #ddd; }
+.mfg-print-host .strip.d i.cinza-2{ background: #bbb; }
+.mfg-print-host .strip.d i.cinza-3{ background: #999; }
+.mfg-print-host .strip.d i.cinza-4{ background: #777; }
+.mfg-print-host .strip.d i.cinza-5{ background: #555; }
+.mfg-print-host .strip.d i.cinza-6{ background: #111; }
+.mfg-print-host .strip.d i.cinza-7{ background: #000; }

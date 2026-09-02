@@ -38,6 +38,9 @@
     "resources/css/sells-kb975-next-action.css|declaration-no-important": 1,
     "resources/css/sells-kb975-print.css|color-no-hex": 40,
     "resources/css/sells-kb975-print.css|declaration-no-important": 28,
-    "resources/css/tokens/_generated-cockpit-light.css|color-no-hex": 3
+    "resources/css/tokens/_generated-cockpit-light.css|color-no-hex": 3,
+    "resources/css/cowork-manufacturing-bundle.css|color-no-hex": 45,
+    "resources/css/cowork-manufacturing-bundle.css|declaration-no-important": 2,
+    "resources/css/cowork-manufacturing-bundle.css|no-duplicate-selectors": 1
   }
 }

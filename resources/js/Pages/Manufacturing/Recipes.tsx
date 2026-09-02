@@ -22,6 +22,8 @@ import { Link, router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Pencil, Plus, Printer, Search } from 'lucide-react';
 import AppShellV2 from '@/Layouts/AppShellV2';
+import { Button } from '@/Components/ui/button';
+import { Checkbox } from '@/Components/ui/checkbox';
 import FichaPrint from './_components/FichaPrint';
 import { faixaMargem, fmt, num, rotuloCustoExtra } from './_lib/formato';
 import type { ContadoresProducao, Permissoes, Receita } from './_lib/tipos';
@@ -150,9 +152,11 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
         </div>
         <div className="os-page-h-r">
           {permissions.criar && (
-            <a className="os-btn primary" href={ROTA_NOVA}>
-              <Plus size={13} /> Nova receita
-            </a>
+            <Button asChild size="sm">
+              <a href={ROTA_NOVA}>
+                <Plus className="mr-1.5 h-3.5 w-3.5" /> Nova receita
+              </a>
+            </Button>
           )}
         </div>
       </div>
@@ -261,10 +265,9 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
       <div className="mfg-tablewrap" data-contract="lista">
         <div className="mfg-table">
           <div className="mfg-tr mfg-thead">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={allSel}
-              onChange={() => setSel(allSel ? [] : filtradas.map((r) => r.id))}
+              onCheckedChange={() => setSel(allSel ? [] : filtradas.map((r) => r.id))}
               aria-label="Selecionar todas"
             />
             <Th k="name">Receita</Th>
@@ -300,12 +303,11 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
                 }
               }}
             >
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={sel.includes(r.id)}
                 // §4.2 — clicar no checkbox NÃO abre o drawer.
                 onClick={(e) => e.stopPropagation()}
-                onChange={() =>
+                onCheckedChange={() =>
                   setSel((s) => (s.includes(r.id) ? s.filter((x) => x !== r.id) : [...s, r.id]))
                 }
                 aria-label={`Selecionar ${r.name}`}
@@ -385,16 +387,16 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
             {sel.length} receita{sel.length > 1 ? 's' : ''} selecionada{sel.length > 1 ? 's' : ''}
           </b>
           <span className="sp" />
-          <button type="button" className="os-btn ghost" onClick={() => setSel([])}>
+          <Button variant="ghost" size="sm" onClick={() => setSel([])}>
             Limpar
-          </button>
-          <button
-            type="button"
-            className="os-btn ghost"
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setImprimir({ itens: selecionadas, semCusto: false })}
           >
-            <Printer size={13} /> Imprimir fichas
-          </button>
+            <Printer className="mr-1.5 h-3.5 w-3.5" /> Imprimir fichas
+          </Button>
         </div>
       )}
 
@@ -527,24 +529,26 @@ function RecipeDrawer({
         </div>
 
         <div className="mfg-drw-f">
-          <button type="button" className="os-btn ghost" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={onClose}>
             Fechar
-          </button>
-          <button type="button" className="os-btn ghost" onClick={() => onImprimir(false)}>
-            <Printer size={13} /> Ficha com custo
-          </button>
-          <button type="button" className="os-btn ghost" onClick={() => onImprimir(true)}>
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => onImprimir(false)}>
+            <Printer className="mr-1.5 h-3.5 w-3.5" /> Ficha com custo
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => onImprimir(true)}>
             Via de produção
-          </button>
+          </Button>
           {perms.prod && (
-            <a className="os-btn ghost" href={ROTA_PRODUZIR}>
-              Produzir
-            </a>
+            <Button asChild variant="ghost" size="sm">
+              <a href={ROTA_PRODUZIR}>Produzir</a>
+            </Button>
           )}
           {perms.editar && (
-            <a className="os-btn ghost" href={`${ROTA_EDITAR_INGREDIENTES}${r.variation_id}`}>
-              <Pencil size={13} /> Editar ingredientes
-            </a>
+            <Button asChild variant="ghost" size="sm">
+              <a href={`${ROTA_EDITAR_INGREDIENTES}${r.variation_id}`}>
+                <Pencil className="mr-1.5 h-3.5 w-3.5" /> Editar ingredientes
+              </a>
+            </Button>
           )}
         </div>
       </aside>

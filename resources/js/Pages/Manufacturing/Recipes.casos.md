@@ -26,7 +26,11 @@ last_run: "2026-09-02"
 - **Regressão que defende:** a tela responder 200 e ninguém alcançar. Aqui o alcance **já existia**
   — `DataController::modifyAdminMenu` (Modules/Manufacturing) aponta o ghost `recipe` para
   `/manufacturing/recipe` desde a ADR 0180; este PR não mexeu no menu, mudou o que a rota serve.
-- **Status: ⬜** — verificação é de runtime (permissão ligada em `/roles/{id}/edit`), nenhum gate cobre.
+- **Teste:** `Modules/Manufacturing/Tests/Feature/Wave29RecipeInertiaTest.php` — cobre a
+  **metade verificável**: que o ghost aponta pra esta rota e que o menu segue atrás do pacote
+  `manufacturing_module` + da permissão `manufacturing.access_recipe`.
+- **Status: ⬜** — a outra metade (a permissão de fato LIGADA numa função em `/roles/{id}/edit`)
+  é dado de runtime; nenhum gate cobre, e fingir ✅ aqui seria afirmar o que não foi medido.
 
 ---
 

@@ -184,15 +184,16 @@ export default function FichaPrint({ itens, semCusto, onDone }: Props) {
           </div>
 
           <footer className="mfg-sheet-f">
+            {/* Tira CMYK + escada de cinza (§8). As cores vivem no bundle
+                (`.tinta-*` / `.cinza-*`), não em style inline — ver Adaptação 4. */}
             <span className="strip">
-              <i style={{ background: '#00AEEF' }} aria-hidden />
-              <i style={{ background: '#EC008C' }} aria-hidden />
-              <i style={{ background: '#FFF200' }} aria-hidden />
-              <i style={{ background: '#231F20' }} aria-hidden />
+              {['tinta-c', 'tinta-m', 'tinta-y', 'tinta-k'].map((c) => (
+                <i key={c} className={c} aria-hidden />
+              ))}
             </span>
             <span className="strip d">
-              {['#fff', '#ddd', '#bbb', '#999', '#777', '#555', '#111', '#000'].map((c) => (
-                <i key={c} style={{ background: c }} aria-hidden />
+              {[0, 1, 2, 3, 4, 5, 6, 7].map((n) => (
+                <i key={n} className={`cinza-${n}`} aria-hidden />
               ))}
             </span>
             <span>{r.sku}</span>

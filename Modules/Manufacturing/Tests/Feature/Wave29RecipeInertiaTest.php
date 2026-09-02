@@ -144,6 +144,31 @@ describe('UC-RECIPE-03/04/05 — modelo de custo (§7 do handoff · DB-less)', f
     });
 });
 
+describe('UC-RECIPE-00 — alcance pelo menu (DB-less)', function () {
+
+    // UC-RECIPE-00 · o item do sidebar precisa APONTAR pra esta rota.
+    //
+    // O que este teste PROVA: a declaração do menu (o ghost `recipe` → /manufacturing/recipe
+    // e o gate de permissão que a envolve) continua no lugar.
+    // O que ele NÃO prova, e é honesto dizer: que o item APARECE pra um usuário concreto —
+    // isso depende de `manufacturing.access_recipe` estar ligada numa função em
+    // /roles/{id}/edit, que é dado de runtime e nenhum gate cobre. Por isso o UC fica ⬜
+    // no casos.md: metade dele é verificável, metade é smoke humano.
+    it('UC-RECIPE-00 o ghost do sidebar aponta pra /manufacturing/recipe', function () {
+        $fonte = file_get_contents(base_path('Modules/Manufacturing/Http/Controllers/DataController.php'));
+
+        expect($fonte)->toContain("'key' => 'recipe'");
+        expect($fonte)->toContain("'href' => '/manufacturing/recipe'");
+
+        // E o menu inteiro segue atrás do pacote + da permissão — não é item solto.
+        // Aspas SIMPLES de propósito: a string carrega `$business_id`, e em aspas duplas
+        // o PHP interpolaria a variável (inexistente aqui) e o assert casaria com lixo.
+        expect($fonte)->toContain('hasThePermissionInSubscription($business_id, ');
+        expect($fonte)->toContain("'manufacturing_module'");
+        expect($fonte)->toContain('manufacturing.access_recipe');
+    });
+});
+
 describe('UC-RECIPE-01/02/06/07 — a rota (schema MySQL real)', function () {
     beforeEach(function () {
         if (DB::connection()->getDriverName() === 'sqlite') {
