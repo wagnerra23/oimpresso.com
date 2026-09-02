@@ -21,6 +21,7 @@ use Modules\Forja\Services\ForjaBacklogService;
 use Modules\Forja\Services\ForjaChangelogService;
 use Modules\Forja\Services\ForjaMcpService;
 use Modules\Forja\Services\ForjaQuadroService;
+use Modules\Forja\Services\ForjaSaudeService;
 use Modules\Forja\Services\HandoffLeverService;
 
 /**
@@ -70,6 +71,10 @@ class ForjaController extends Controller
         // Integrador — view `integra` do protótipo (PARIDADE §11 Onda 2). Estática por
         // construção: inventário da fusão Forja ↔ TeamMcp, sem query.
         'integrador' => ['label' => 'Integrador', 'subtitle' => 'Forja ↔ TeamMcp: o que absorve, o que alinha, o que falta.'],
+        // Saúde — view `saude` do protótipo (PARIDADE §11 Onda 7). Até 2026-09-02 a
+        // pílula apontava pro /team-mcp/scorecard; agora tem tela própria, e o
+        // Scorecard vira o destino do drill "ver →" em vez do destino da aba.
+        'saude'      => ['label' => 'Saúde',      'subtitle' => 'Semáforo do loop: chamadas e devs no MCP, movimentação das tasks, WIP por fase, aging do backlog e os checks do scorecard.'],
     ];
 
     public function __construct()
@@ -126,6 +131,23 @@ class ForjaController extends Controller
     public function integrador(): Response
     {
         return Inertia::render('team-mcp/Forja/Cockpit', $this->tabPayload('integrador'));
+    }
+
+    /**
+     * GET /forja/saude — view `saude` do protótipo (PARIDADE §11 Onda 7).
+     *
+     * O payload REUSA o `ScorecardBuilderService` (o mesmo do /team-mcp/scorecard) mais
+     * Quadro e Changelog, via {@see ForjaSaudeService} — sem duplicar consulta. Deferido
+     * como as outras abas com query (rule pages.md): são facts + checks + board + séries.
+     */
+    public function saude(): Response
+    {
+        $projectId = $this->resolveForjaProjectId();
+
+        return Inertia::render('team-mcp/Forja/Cockpit', array_merge(
+            $this->tabPayload('saude'),
+            ['saude' => Inertia::defer(fn () => app(ForjaSaudeService::class)->build($projectId))],
+        ));
     }
 
     public function mcp(): Response
