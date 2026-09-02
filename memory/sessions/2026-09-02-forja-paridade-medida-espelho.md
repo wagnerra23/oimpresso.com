@@ -49,3 +49,28 @@ O bundle do DS que o espelho consome (`mirror-snapshot/_ds_bundle.js`) é o do p
 - Não editei `.tsx`/`.css` de produção (merge de `.tsx` é humano, e a onda 0 é decisão [W] — US-FORJA-006).
 - Não criei `contrato/forja*.contract.json` (copy literal é slot do [W]).
 - Não remendei o espelho à mão (ADR 0374) — tudo desceu por `--export-from` a partir do JSON do `get_file`.
+
+---
+
+## Tarde (10:00 → 13:50 BRT) — a missão: "igual ao protótipo, revogar o resto" · ADR 0388 · Ondas 1, 2 e 2.1 no ar
+
+**Decisão [W] (textual, 2026-09-02):** *"pode fazer igual ao protótipo e revogar todo o resto (…) se tiver que apagar para refazer de novo, faça. Eu apenas quero que trace uma meta de conseguir fazer o mesmo layout"* · *"tem muita regra preexistente que proíbe de fazer igual ao protótipo. isso é errado"* · *"quero que isso sirva para todo o protótipo (…) poderia ter uma lista de inconsistências? para o code resolver depois de aplicar"* · *"pode merge e compare em produção"*.
+
+**O que shippou (PRs mergeados por [C] sob a autorização acima):**
+
+| PR | o quê | recibo |
+|---|---|---|
+| [#6543](https://github.com/wagnerra23/oimpresso.com/pull/6543) | Onda 0 — decisão no SPEC (US-FORJA-006) + PARIDADE §11 (meta medida + 11 ondas) | merge |
+| Onda 1 | `cowork-forja-bundle.css` verbatim + baselines (foundation · conformance · fontramp · stylelint · css-size) | gates verdes |
+| [#6547](https://github.com/wagnerra23/oimpresso.com/pull/6547) | **ADR 0388 "réplica primeiro"** + reporter `replica-inconsistencias.mjs` (R1/R3/R4/FONTRAMP/IMPORTANT/HEX/FLEX-CRU/PALETA/SINTAXE, receitas por regra) + `ds-guard --report` + pedido ao Cowork | 101 itens listados pra Forja |
+| [#6553](https://github.com/wagnerra23/oimpresso.com/pull/6553) | **Onda 2** — header do Cockpit é o do protótipo (6 destinos · 3 pílulas · na linha do título), 6 rotas, `/forja/integrador` novo, bundle importado no `ForjaHub` | deploy `e1412acef3`; `/forja/integrador` 404→302 |
+| [#6563](https://github.com/wagnerra23/oimpresso.com/pull/6563) | **Onda 2.1** — 3 DIVERGE que a sonda pegou em prod (padding do `@media` copiado como base · `line-height` do preflight · `--accent` dark 0,55×0,70 escopado) + baseline regenerada | deploy `a91ce0cd5c`; re-medido = protótipo |
+| [#6565](https://github.com/wagnerra23/oimpresso.com/pull/6565) | recibo em docs (visual-comparison + PARIDADE §11) | — |
+
+**O que a sonda provou (prod × protótipo, mesma sonda, dark, 2560):** depois da 2.1, header 88,4px `12px 24px` · botão 25px `line-height: normal` · pílula ativa e primária `oklch(0.7 0.15 295)` · kbtn 31px — **iguais**. D1 parcial (marcador sobreviveu a 2 cliques, `GET 200` Inertia). Ressalva: a 1280 o **shell** do protótipo vira rail 56px e o header quebra em 3 linhas; prod só faz rail por toggle — fundação, não Forja.
+
+**Erros meus registrados no caminho (não apagados):** (1) a Onda 2 gravou o padding do `@media (max-width:1100px)` como "valor efetivo" — lido do CSS, não medido (LC-08); a sonda em prod pegou. (2) Cherry-pick errado de um PR de baseline antigo (#6467), revertido e reaberto com pedido de desculpas. (3) `\|` em `grep -E` barrado pelo hook `block-sonda-que-mente` (P4) — corrigido.
+
+**Gates que precisaram de absorção (todas com `BASELINE-ABSORB:` no commit que toca a baseline):** ESLint ds/no-os-btn + ds/no-inline-tablist (réplica, ADR 0388) · conformance 0→1 (branco literal do primary) · foundation +4 tokens escopados (`inertia.css: 74` que o `--write` removeu foi restaurado) · css-size +26. Label `visreg-gray-approved` aplicada em #6553 e #6563 pela zona cinza **herdada** (Jana · Ponto/Dashboard · Fiscal/Cockpit · financeiro-unificado) — a baseline dessas telas segue divergente, declarado em comentário.
+
+**Pendente pro [W]:** reconciliar `--accent` dark na fundação (0,55 × 0,70 do protótipo) — hoje escopado à Forja; Cowork regenerar o bundle v2 e consertar na fonte as inconsistências listadas (pedido em `prototipo-ui/CODE_NOTES.prompt-cowork-inconsistencias-na-fonte-2026-09-02.md`).

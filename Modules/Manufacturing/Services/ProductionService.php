@@ -117,6 +117,37 @@ class ProductionService
     }
 
     /**
+     * Contagem do MÊS CORRENTE — alimenta o KPI "Produção do mês" da tela de Fabricação
+     * (§4.2 do handoff: "Conta ordens finalizadas; sublinha nº de rascunhos").
+     *
+     * Existe separado de `summary()` de propósito: aquele é all-time, e servir all-time sob
+     * um rótulo que diz "do mês" seria número certo na etiqueta errada.
+     *
+     * Multi-tenant Tier 0 ({@see ADR 0093}) — caller injeta business_id.
+     *
+     * @return array{final_count:int, draft_count:int}
+     */
+    public function monthSummary(int $businessId): array
+    {
+        return OtelHelper::spanBiz('manufacturing.production.month_summary', function () use ($businessId) {
+            $base = Transaction::query()
+                ->where('business_id', $businessId)
+                ->where('type', 'production_purchase')
+                ->whereBetween('transaction_date', [
+                    now()->startOfMonth()->startOfDay(),
+                    now()->endOfMonth()->endOfDay(),
+                ]);
+
+            return [
+                'final_count' => (clone $base)->where('mfg_is_final', 1)->count(),
+                'draft_count' => (clone $base)->where('mfg_is_final', 0)->count(),
+            ];
+        }, [
+            'module' => 'Manufacturing',
+        ]);
+    }
+
+    /**
      * Custo médio de produção — usado em widgets dashboard Manufacturing.
      *
      * Wave 27 D9.a — span observa agregada cara (média ponderada sobre todas as

@@ -82,6 +82,7 @@ function forjaRotasAbas(): array
         '/forja/mcp'       => ['forja.mcp',       'mcp'],
         // 6ª aba desde 2026-08-08: handoffs saiu de DENTRO da aba MCP e virou tela.
         '/forja/handoffs'  => ['forja.handoffs',  'handoffs'],
+        '/forja/integrador' => ['forja.integrador', 'integrador'],
     ];
 }
 
@@ -270,18 +271,16 @@ it('UC-FORJA-05 · rota de aba da Forja é GET-only (o shell não escreve estado
 // meses apontando pra uma rota que nunca existiu (#4887). Testar o config contra
 // ele mesmo é que seria tautologia (§5 proibicoes.md, 2026-06-05).
 
-it('UC-FORJA-02 · topnav do hub tem 9 itens (6 Forja + 3 TeamMcp absorvidos)', function () {
+it('UC-FORJA-02 · topnav do hub tem os 6 destinos do protótipo, em 3 grupos', function () {
     $items = config('core_topnavs.Forja.items');
 
     expect($items)->toBeArray();
-    expect($items)->toHaveCount(9,
-        'Fusão de 2026-06-16: `config/core_topnavs.php[Forja]` é o ÚNICO grupo que casa '.
-        '/team-mcp/* no useAutoModuleNav, então carrega as abas próprias MAIS as telas '.
-        'absorvidas (Equipe · CC Sessions · Saúde). 13 → 9 em 2026-09-01: saíram Backlog, '.
-        'Quadro, Roadmap (Gantt) e Tarefas do TOPO — as rotas seguem vivas e os quatro '.
-        'continuam a um clique por dentro do Trabalho (segmentos Lista · Quadro · Gantt). '.
-        'Mudou a conta? O hub ganhou ou perdeu ENTRADA — atualize Cockpit.casos.md e o '.
-        '§5.3 F6 do SDD junto, e confira que FORJA_TABS bateu (UC-FORJA-14).'
+    expect($items)->toHaveCount(6,
+        '9 → 6 em 2026-09-02 (PARIDADE §11 Onda 2, ADR 0388): a lista É a do protótipo '.
+        'forja-page.jsx — Aprovações · Trabalho · Saúde · MCP · Changelog · Integrador, em 3 '.
+        'grupos. Saíram do TOPO (rotas vivas): Triagem, Handoffs, Equipe, CC Sessions; cada um '.
+        'vira seção/segmento na onda da view receptora. Mudou a conta? O hub ganhou ou perdeu '.
+        'ENTRADA — atualize Cockpit.casos.md junto, e confira que FORJA_TABS bateu (UC-FORJA-14).'
     );
 });
 

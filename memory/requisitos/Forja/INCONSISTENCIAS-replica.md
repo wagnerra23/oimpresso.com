@@ -6,7 +6,7 @@
 > **Gerado por máquina** — não edite contagem; mude só `status`/`nota` no JSON em
 > `governance/replica-inconsistencias/forja.json` e regenere.
 >
-> Gerado em 2026-09-02 · comando: `node scripts/governance/replica-inconsistencias.mjs --modulo Forja --prototipo …` · **100 aberta(s)** de 100.
+> Gerado em 2026-09-02 · comando: `node scripts/governance/replica-inconsistencias.mjs --modulo Forja --prototipo …` · **117 aberta(s)** de 117.
 > `origem = aplicado` mede o que está no repo; `origem = prototipo` mede o que VAI entrar quando a onda copiar o JSX.
 
 | status | regra | arquivo | contagem | exemplo | dono da regra | origem |
@@ -76,8 +76,8 @@
 | 🔴 aberta | `R1` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHandoffs.tsx` | 1 | #2924 | UiLintCommand.php R1 · conformance-gate | aplicado |
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHandoffs.tsx` | 11 | → | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHandoffs.tsx` | 14 |  | layout-primitives-guard.mjs | aplicado |
-| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHub.tsx` | 9 | → | UiLintCommand.php R3 | aplicado |
-| 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHub.tsx` | 5 |  | layout-primitives-guard.mjs | aplicado |
+| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHub.tsx` | 4 | ✦ ⚠ → ↔ | UiLintCommand.php R3 | aplicado |
+| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaIntegrador.tsx` | 4 | ✓ → ↔ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaMcp.tsx` | 6 | → | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaMcp.tsx` | 17 |  | layout-primitives-guard.mjs | aplicado |
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaQuadro.tsx` | 4 | → | UiLintCommand.php R3 | aplicado |
@@ -94,23 +94,40 @@
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx` | 5 | → 🚫 ⚠ ⚙ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R4` | `Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx` | 1 | PageHeader=sim · DataTable=não | UiLintCommand.php R4 | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx` | 6 |  | layout-primitives-guard.mjs | aplicado |
-| 🔴 aberta | `R1` | `prototipo-ui/cowork/forja-page.jsx` | 12 | #fff · #fff | UiLintCommand.php R1 · conformance-gate | prototipo |
-| 🔴 aberta | `R3` | `prototipo-ui/cowork/forja-page.jsx` | 46 | → ↓ ✓ ⚠ ▲ ↵ | UiLintCommand.php R3 | prototipo |
-| 🔴 aberta | `FLEX-CRU` | `prototipo-ui/cowork/forja-page.jsx` | 1 |  | layout-primitives-guard.mjs | prototipo |
+| 🔴 aberta | `R1` | `resources/css/cowork-forja-bundle.css` | 335 | oklch(0.275 0.050 295) · oklch(0.52 0.10 195) | UiLintCommand.php R1 · conformance-gate | aplicado |
+| 🔴 aberta | `FONTRAMP` | `resources/css/cowork-forja-bundle.css` | 293 | font-size:10.5px · font-size:12px · font-size:11px | conformance-gate (.fontramp-baseline.json) | aplicado |
+| 🔴 aberta | `IMPORTANT` | `resources/css/cowork-forja-bundle.css` | 2 |  | stylelint declaration-no-important | aplicado |
+| 🔴 aberta | `HEX-CSS` | `resources/css/cowork-forja-bundle.css` | 7 | #fff | stylelint color-no-hex | aplicado |
+| 🔴 aberta | `PALETA` | `resources/css/cowork-forja-bundle.css` | 1 | --dev-*(4) | prototipo-ui/ds-guard.mjs | aplicado |
 | 🔴 aberta | `R1` | `prototipo-ui/cowork/forja-aprova.jsx` | 3 | oklch(0.55 0.13 ${hue}) · oklch(0.58 0.18 25) | UiLintCommand.php R1 · conformance-gate | prototipo |
 | 🔴 aberta | `R3` | `prototipo-ui/cowork/forja-aprova.jsx` | 4 | → ✓ | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `R1` | `prototipo-ui/cowork/forja-data.jsx` | 19 | oklch(0.57 0.16 25) · oklch(0.55 0.15 295) | UiLintCommand.php R1 · conformance-gate | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/forja-data.jsx` | 26 | → ✓ 🔴 ↔ ⇧ | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/forja-integra.jsx` | 5 | ↔ ✓ → | UiLintCommand.php R3 | prototipo |
 | 🔴 aberta | `R1` | `prototipo-ui/cowork/forja-mcp.jsx` | 1 | oklch(0.58 0.21 25) | UiLintCommand.php R1 · conformance-gate | prototipo |
 | 🔴 aberta | `R3` | `prototipo-ui/cowork/forja-mcp.jsx` | 24 | ✦ → ⚿ ⚠ ↗ ✓ | UiLintCommand.php R3 | prototipo |
 | 🔴 aberta | `FLEX-CRU` | `prototipo-ui/cowork/forja-mcp.jsx` | 1 |  | layout-primitives-guard.mjs | prototipo |
-| 🔴 aberta | `R3` | `prototipo-ui/cowork/forja-integra.jsx` | 5 | ↔ ✓ → | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `R1` | `prototipo-ui/cowork/forja-page.jsx` | 12 | #fff · #fff | UiLintCommand.php R1 · conformance-gate | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/forja-page.jsx` | 46 | → ↓ ✓ ⚠ ▲ ↵ | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `FLEX-CRU` | `prototipo-ui/cowork/forja-page.jsx` | 1 |  | layout-primitives-guard.mjs | prototipo |
 | 🔴 aberta | `R1` | `prototipo-ui/cowork/forja-tarefas.jsx` | 3 | oklch(0.6 0.14 " + st.hue + ") · oklch(0.6 0.18 " + ({ P0: 25, P1: 60, P2: 295, P3: 250 }[t.priority]) | UiLintCommand.php R1 · conformance-gate | prototipo |
 | 🔴 aberta | `R3` | `prototipo-ui/cowork/forja-tarefas.jsx` | 9 | → ↵ ⇧ | UiLintCommand.php R3 | prototipo |
-| 🔴 aberta | `R1` | `prototipo-ui/cowork/forja-page.css` | 326 | oklch(0.52 0.10 195) · oklch(0.95 0.035 195) | UiLintCommand.php R1 · conformance-gate | prototipo |
-| 🔴 aberta | `FONTRAMP` | `prototipo-ui/cowork/forja-page.css` | 291 | font-size:10.5px · font-size:12px · font-size:11px | conformance-gate (.fontramp-baseline.json) | prototipo |
-| 🔴 aberta | `IMPORTANT` | `prototipo-ui/cowork/forja-page.css` | 2 |  | stylelint declaration-no-important | prototipo |
-| 🔴 aberta | `HEX-CSS` | `prototipo-ui/cowork/forja-page.css` | 6 | #fff | stylelint color-no-hex | prototipo |
-| 🔴 aberta | `SINTAXE` | `prototipo-ui/cowork/forja-page.css` | 1 | linha 761 (-1) | build do Vite (@tailwindcss/vite) | prototipo |
-| 🔴 aberta | `PALETA` | `prototipo-ui/cowork/forja-page.css` | 1 | --dev-*(4) | prototipo-ui/ds-guard.mjs | prototipo |
+| 🔴 aberta | `ds/no-raw-palette-color` | `Modules/Forja/Resources/js/Pages/Forja/Board/DetailSheet.tsx` | 10 | sem cor crua do Tailwind (bg/text/border-<cor>-<n>). Use token semântico: bg-card/bg-muted, text-foreground/te | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
+| 🔴 aberta | `ds/no-raw-palette-color` | `Modules/Forja/Resources/js/Pages/Forja/Burndown/Index.tsx` | 3 | sem cor crua do Tailwind (bg/text/border-<cor>-<n>). Use token semântico: bg-card/bg-muted, text-foreground/te | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
+| 🔴 aberta | `ds/no-raw-palette-color` | `Modules/Forja/Resources/js/Pages/Forja/MyWork/Index.tsx` | 1 | sem cor crua do Tailwind (bg/text/border-<cor>-<n>). Use token semântico: bg-card/bg-muted, text-foreground/te | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
+| 🔴 aberta | `ds/no-inline-raw-color` | `Modules/Forja/Resources/js/Pages/Forja/Roadmap/Index.tsx` | 1 | sem cor/borda/sombra crua em style inline. Use token dark-aware: var(--accent)/var(--border)/var(--text)/var(- | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
+| 🔴 aberta | `ds/no-raw-palette-color` | `Modules/Forja/Resources/js/Pages/Forja/Roadmap/Index.tsx` | 1 | sem cor crua do Tailwind (bg/text/border-<cor>-<n>). Use token semântico: bg-card/bg-muted, text-foreground/te | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
+| 🔴 aberta | `ds/no-raw-palette-color` | `Modules/Forja/Resources/js/Pages/Forja/Triage/Index.tsx` | 5 | sem cor crua do Tailwind (bg/text/border-<cor>-<n>). Use token semântico: bg-card/bg-muted, text-foreground/te | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
+| 🔴 aberta | `ds/no-raw-palette-color` | `Modules/Forja/Resources/js/Pages/ads/Admin/ProjectShow.tsx` | 1 | sem cor crua do Tailwind (bg/text/border-<cor>-<n>). Use token semântico: bg-card/bg-muted, text-foreground/te | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
+| 🔴 aberta | `ds/no-raw-palette-color` | `Modules/Forja/Resources/js/Pages/ads/Admin/Projects.tsx` | 1 | sem cor crua do Tailwind (bg/text/border-<cor>-<n>). Use token semântico: bg-card/bg-muted, text-foreground/te | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
+| 🔴 aberta | `ds/no-raw-palette-color` | `Modules/Forja/Resources/js/Pages/ads/Admin/TeamScopes.tsx` | 2 | sem cor crua do Tailwind (bg/text/border-<cor>-<n>). Use token semântico: bg-card/bg-muted, text-foreground/te | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
+| 🔴 aberta | `ds/no-raw-palette-color` | `Modules/Forja/Resources/js/Pages/ads/Admin/Tools.tsx` | 5 | sem cor crua do Tailwind (bg/text/border-<cor>-<n>). Use token semântico: bg-card/bg-muted, text-foreground/te | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
+| 🔴 aberta | `ds/no-inline-tablist` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaChangelog.tsx` | 1 | não hand-role `role="tablist"` na tela. Barra de abas de topo (navega por URL) = <PageHeaderTabs> (@/Component | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
+| 🔴 aberta | `ds/no-os-btn` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHub.tsx` | 1 | use <Button> (@/Components/ui/button) com variant/size, não a classe de shell os-btn. | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
+| 🔴 aberta | `ds/no-inline-tablist` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaIntegrador.tsx` | 1 | não hand-role `role="tablist"` na tela. Barra de abas de topo (navega por URL) = <PageHeaderTabs> (@/Component | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
+| 🔴 aberta | `ds/no-db-jargon-in-ui` | `Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.tsx` | 1 | texto visível com nome de coluna/SQL cru. Use linguagem de negócio PT (ex: "distinct contact_id" → "fornecedor | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
+| 🔴 aberta | `ds/no-inline-tablist` | `Modules/Forja/Resources/js/Pages/team-mcp/Tasks/_components/TaskDrawer.tsx` | 1 | não hand-role `role="tablist"` na tela. Barra de abas de topo (navega por URL) = <PageHeaderTabs> (@/Component | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
+| 🔴 aberta | `ds/no-handrolled-status-pill` | `Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx` | 1 | não hand-role a pílula de status. Use <Badge> (@/Components/ui/badge) com variant="" ou <StatusBadge kind valu | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
 
 ## Soluções por regra (a receita que [W] pediu)
 
@@ -124,7 +141,23 @@
 | `HEX-CSS` | fonte | sim (na fonte) | #fff → var(--accent-fg) / var(--surface) conforme o papel; 6 ocorrências, pedir ao [CC]. |
 | `FLEX-CRU` | missão | não precisa | as telas antigas usam Tailwind `flex`/`grid` cru; a réplica troca por classes do bundle (`.fj-row`, `.fj-toolbar`…) e o item some. Nas 8 telas /project-mgmt/* some pela revogação. NÃO refatorar pra Stack/Inline antes da onda — seria pagar 2×. |
 | `SINTAXE` | fonte | sim (na fonte) | o navegador tolera `)` sobrando, o parser do Tailwind v4 no build do Vite derruba o build inteiro (medido 2026-09-02, forja-page.css:778). Consertar no protótipo; enquanto não desce, desvio de 1 byte DECLARADO no cabeçalho do bundle. |
+| `ds/*` | code (a mensagem diz o alvo) | parcial | cada regra ds/* tem alvo canônico na PRÓPRIA mensagem do ESLint — a tabela "Receita ds/*" abaixo lista a mensagem literal de cada regra que apareceu nesta medição (derivada, não escrita à mão). Duas famílias: COMPONENT-SUBSTITUTE (`no-os-btn`→<Button>, `no-inline-tablist`→<PageHeaderTabs>/<SubNav>, `no-handrolled-status-pill`→<Badge>/<StatusBadge>, `no-handrolled-combobox`→<Command> em <Popover>) troca o hand-roll pelo componente do DS; EIXO DE VALOR (`no-raw-palette-color`, `no-inline-raw-color`, `no-arbitrary-color`, `no-rounded-xl`) é o MESMO eixo do R1 acima — se a cor veio copiada do protótipo, o conserto é na fonte (ADR 0374), não aqui. |
 | `PALETA` | fonte (DS) | sim | promover --dev/--dev-soft/--dev-line a token do DS (`--origin-DEV*`) no SSOT `resources/css/tokens/semantic.tokens.json` + `npm run tokens:build`; o bundle passa a consumir var() e o ds-guard para de ver família própria. É token novo = decisão [W] (FORJA-137). |
+
+## Receita `ds/*` — mensagem canônica do ESLint (traz o alvo)
+
+> Derivada da medição: cada linha é o texto literal que o `eslint.config.js` emite. O eixo mede
+> só `origem = aplicado` — o JSX do espelho (`--prototipo`) está FORA do escopo do dono
+> (`Pages/**` das 2 raízes), então não é medido aqui e não vira 0 falso.
+
+| regra | mensagem (= a receita) |
+|---|---|
+| `ds/no-db-jargon-in-ui` | ds/no-db-jargon-in-ui — texto visível com nome de coluna/SQL cru. Use linguagem de negócio PT (ex: "distinct contact_id" → "fornecedores no período"; "final_total" → "total"). |
+| `ds/no-handrolled-status-pill` | ds/no-handrolled-status-pill — não hand-role a pílula de status. Use <Badge> (@/Components/ui/badge) com variant="" ou <StatusBadge kind value> (@/Components/shared/StatusBadge — sem entrada no registry, ver ALVO_POR_REGRA). Ver REGISTRY_DS_COMPONENTES.md §"pílula de status". |
+| `ds/no-inline-raw-color` | ds/no-inline-raw-color — sem cor/borda/sombra crua em style inline. Use token dark-aware: var(--accent)/var(--border)/var(--text)/var(--surface)… ou classe utilitária semântica. Hardcode de tom claro quebra o dark sem alarme (bug tab-nav 2026-07). |
+| `ds/no-inline-tablist` | ds/no-inline-tablist — não hand-role `role="tablist"` na tela. Barra de abas de topo (navega por URL) = <PageHeaderTabs> (@/Components/shared, via *SubNav do módulo); switch in-page controlado (value/onChange, sem URL) = <SubNav> (@/Components/shared). Ver REGISTRY_DS_COMPONENTES.md §"barra de abas de topo" / §"Sub-navegação contextual". |
+| `ds/no-os-btn` | ds/no-os-btn — use <Button> (@/Components/ui/button) com variant/size, não a classe de shell os-btn. |
+| `ds/no-raw-palette-color` | ds/no-raw-palette-color — sem cor crua do Tailwind (bg/text/border-<cor>-<n>). Use token semântico: bg-card/bg-muted, text-foreground/text-muted-foreground, border-border, text-destructive, text-primary… |
 
 ## Como fechar um item
 

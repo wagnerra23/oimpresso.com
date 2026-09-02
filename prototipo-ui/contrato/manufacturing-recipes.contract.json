@@ -1,0 +1,58 @@
+{
+  "_nota": "Contrato de tela da Fabricação (/manufacturing/recipe). Gerado por criar-tela.mjs em 2026-09-02 e PREENCHIDO a partir do handoff normativo 'PROTÓTIPO OFICIAL - FABRICAÇÃO V1' — cada string abaixo é citada do documento (§4.1 abas, §4.2 KPIs/busca/vazio, §4.3 drawer), não escrita pelo agente. O §0.1 do handoff é explícito: 'Este documento é normativo. O protótipo é ilustrativo.' Roda em `node scripts/contrato-de-tela.mjs --contract <este-arquivo>`.",
+  "tela": "Manufacturing/Recipes",
+  "fonte": "prototipo-ui/cowork/manufacturing-page.jsx",
+  "alvo": [
+    "resources/js/Pages/Manufacturing/Recipes.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Manufacturing",
+        "Nova receita"
+      ]
+    },
+    {
+      "id": "kpis",
+      "copy": [
+        "Custo médio / unidade",
+        "Margem abaixo de 45%",
+        "preço de venda desatualizado",
+        "Desperdício ≥ 8%",
+        "revisar plotagem / encaixe",
+        "Produção do mês"
+      ]
+    },
+    {
+      "id": "filtros",
+      "copy": [
+        "Buscar receita por nome, SKU, categoria…  (tecla /)"
+      ]
+    },
+    {
+      "id": "lista",
+      "copy": [
+        "Receita",
+        "Categoria",
+        "Quantidade",
+        "Custo total",
+        "Custo unitário",
+        "Venda",
+        "Margem",
+        "Nenhuma receita encontrada",
+        "Ajuste a busca, troque a categoria ou limpe o filtro de KPI."
+      ]
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "kpis",
+    "filtros",
+    "lista"
+  ],
+  "_pendente_w": [
+    "ESTADOS — `estados` segue omitido: loading não existe (payload vem eager no primeiro render) e erro é 403 do controller, não estado de tela. O empty está declarado como copy da seção `lista`.",
+    "COPY DO DRAWER (§4.3) e DA FICHA PT-07 (§8) — não entram aqui porque o gate casa `data-contract` no alvo, e drawer/ficha renderizam em overlay/portal fora da árvore ancorada. A nota verbatim do drawer ('O custo é recalculado a cada leitura…') está no .tsx e no charter."
+  ]
+}

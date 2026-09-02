@@ -14,7 +14,7 @@ module: Manufacturing
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Manufacturing/**` + `resources/js/Pages/Manufacturing/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 116 arquivos em 15 papéis.
+**Total mapeado:** 123 arquivos em 17 papéis.
 
 ## Controllers — 6
 
@@ -108,20 +108,30 @@ module: Manufacturing
 - [show.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/show.blade.php)
 - [index.blade.php](../../../Modules/Manufacturing/Resources/views/settings/index.blade.php)
 
-## Telas (Inertia/React) — 1
+## Telas (Inertia/React) — 2
 
 - [Index.tsx](../../../resources/js/Pages/Manufacturing/Index.tsx)
+- [Recipes.tsx](../../../resources/js/Pages/Manufacturing/Recipes.tsx)
 
-## Charters (lei da tela) — 1
+## Componentes / apoio de tela — 1
+
+- [FichaPrint.tsx](../../../resources/js/Pages/Manufacturing/_components/FichaPrint.tsx)
+
+## Charters (lei da tela) — 2
 
 - [Index.charter.md](../../../resources/js/Pages/Manufacturing/Index.charter.md)
+- [Recipes.charter.md](../../../resources/js/Pages/Manufacturing/Recipes.charter.md)
 
-## Testes (Pest) — 17
+## Casos (contrato UC) — 1
 
-- 17 em [Modules/Manufacturing/Tests/Feature/](../../../Modules/Manufacturing/Tests/Feature)
+- [Recipes.casos.md](../../../resources/js/Pages/Manufacturing/Recipes.casos.md)
+
+## Testes (Pest) — 18
+
+- 18 em [Modules/Manufacturing/Tests/Feature/](../../../Modules/Manufacturing/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 38
+## Demais arquivos (manifestos, docs, assets e misc) — 40
 
 - [AssertsBusinessChain.php](../../../Modules/Manufacturing/Concerns/AssertsBusinessChain.php)
 - [HasManufacturingProductChain.php](../../../Modules/Manufacturing/Concerns/HasManufacturingProductChain.php)
@@ -161,3 +171,5 @@ module: Manufacturing
 - [composer.json](../../../Modules/Manufacturing/composer.json)
 - [module.json](../../../Modules/Manufacturing/module.json)
 - [SCOPE.md](../../../memory/requisitos/Manufacturing/SCOPE.md)
+- [formato.ts](../../../resources/js/Pages/Manufacturing/_lib/formato.ts)
+- [tipos.ts](../../../resources/js/Pages/Manufacturing/_lib/tipos.ts)

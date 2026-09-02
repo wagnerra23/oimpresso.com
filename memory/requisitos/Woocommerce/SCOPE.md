@@ -20,6 +20,7 @@ related_adrs:
   - 0080-trust-tiers-operacional-audit-findings
 url_prefixes:
   - /woocommerce/*
+  - /webhook/* (order created · updated · deleted · restored)
 drift_alerts: []
 ---
 

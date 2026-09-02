@@ -33,7 +33,7 @@ related_adrs:
   - 0061-conhecimento-canonico-git-mcp-zero-automem
 url_prefixes:
   - /kb/*
-  - /copiloto/admin/memoria/* (legacy — vai virar /kb/memoria/* na Fase 3.7 com 301 redirect)
+  - /sops/* (alias auth-gated de /kb/v2 — so GET /sops, Http/routes.php:172; print-sop NAO existe, esta comentada em :133)
 db_tables_owned:
   - mcp_memory_documents (sync git → DB via webhook — bridge read-only fotografia git)
   - mcp_memory_documents_history
