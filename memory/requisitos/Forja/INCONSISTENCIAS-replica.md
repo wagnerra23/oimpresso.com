@@ -6,7 +6,7 @@
 > **Gerado por máquina** — não edite contagem; mude só `status`/`nota` no JSON em
 > `governance/replica-inconsistencias/forja.json` e regenere.
 >
-> Gerado em 2026-09-02 · comando: `node scripts/governance/replica-inconsistencias.mjs --modulo Forja --prototipo …` · **100 aberta(s)** de 100.
+> Gerado em 2026-09-02 · comando: `node scripts/governance/replica-inconsistencias.mjs --modulo Forja --prototipo …` · **101 aberta(s)** de 101.
 > `origem = aplicado` mede o que está no repo; `origem = prototipo` mede o que VAI entrar quando a onda copiar o JSX.
 
 | status | regra | arquivo | contagem | exemplo | dono da regra | origem |
@@ -76,8 +76,8 @@
 | 🔴 aberta | `R1` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHandoffs.tsx` | 1 | #2924 | UiLintCommand.php R1 · conformance-gate | aplicado |
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHandoffs.tsx` | 11 | → | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHandoffs.tsx` | 14 |  | layout-primitives-guard.mjs | aplicado |
-| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHub.tsx` | 9 | → | UiLintCommand.php R3 | aplicado |
-| 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHub.tsx` | 5 |  | layout-primitives-guard.mjs | aplicado |
+| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHub.tsx` | 4 | ✦ ⚠ → ↔ | UiLintCommand.php R3 | aplicado |
+| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaIntegrador.tsx` | 4 | ✓ → ↔ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaMcp.tsx` | 6 | → | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaMcp.tsx` | 17 |  | layout-primitives-guard.mjs | aplicado |
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaQuadro.tsx` | 4 | → | UiLintCommand.php R3 | aplicado |
@@ -94,23 +94,24 @@
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx` | 5 | → 🚫 ⚠ ⚙ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R4` | `Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx` | 1 | PageHeader=sim · DataTable=não | UiLintCommand.php R4 | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx` | 6 |  | layout-primitives-guard.mjs | aplicado |
-| 🔴 aberta | `R1` | `prototipo-ui/cowork/forja-page.jsx` | 12 | #fff · #fff | UiLintCommand.php R1 · conformance-gate | prototipo |
-| 🔴 aberta | `R3` | `prototipo-ui/cowork/forja-page.jsx` | 46 | → ↓ ✓ ⚠ ▲ ↵ | UiLintCommand.php R3 | prototipo |
-| 🔴 aberta | `FLEX-CRU` | `prototipo-ui/cowork/forja-page.jsx` | 1 |  | layout-primitives-guard.mjs | prototipo |
+| 🔴 aberta | `R1` | `resources/css/cowork-forja-bundle.css` | 335 | oklch(0.275 0.050 295) · oklch(0.52 0.10 195) | UiLintCommand.php R1 · conformance-gate | aplicado |
+| 🔴 aberta | `FONTRAMP` | `resources/css/cowork-forja-bundle.css` | 293 | font-size:10.5px · font-size:12px · font-size:11px | conformance-gate (.fontramp-baseline.json) | aplicado |
+| 🔴 aberta | `IMPORTANT` | `resources/css/cowork-forja-bundle.css` | 2 |  | stylelint declaration-no-important | aplicado |
+| 🔴 aberta | `HEX-CSS` | `resources/css/cowork-forja-bundle.css` | 7 | #fff | stylelint color-no-hex | aplicado |
+| 🔴 aberta | `PALETA` | `resources/css/cowork-forja-bundle.css` | 1 | --dev-*(4) | prototipo-ui/ds-guard.mjs | aplicado |
 | 🔴 aberta | `R1` | `prototipo-ui/cowork/forja-aprova.jsx` | 3 | oklch(0.55 0.13 ${hue}) · oklch(0.58 0.18 25) | UiLintCommand.php R1 · conformance-gate | prototipo |
 | 🔴 aberta | `R3` | `prototipo-ui/cowork/forja-aprova.jsx` | 4 | → ✓ | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `R1` | `prototipo-ui/cowork/forja-data.jsx` | 19 | oklch(0.57 0.16 25) · oklch(0.55 0.15 295) | UiLintCommand.php R1 · conformance-gate | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/forja-data.jsx` | 26 | → ✓ 🔴 ↔ ⇧ | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/forja-integra.jsx` | 5 | ↔ ✓ → | UiLintCommand.php R3 | prototipo |
 | 🔴 aberta | `R1` | `prototipo-ui/cowork/forja-mcp.jsx` | 1 | oklch(0.58 0.21 25) | UiLintCommand.php R1 · conformance-gate | prototipo |
 | 🔴 aberta | `R3` | `prototipo-ui/cowork/forja-mcp.jsx` | 24 | ✦ → ⚿ ⚠ ↗ ✓ | UiLintCommand.php R3 | prototipo |
 | 🔴 aberta | `FLEX-CRU` | `prototipo-ui/cowork/forja-mcp.jsx` | 1 |  | layout-primitives-guard.mjs | prototipo |
-| 🔴 aberta | `R3` | `prototipo-ui/cowork/forja-integra.jsx` | 5 | ↔ ✓ → | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `R1` | `prototipo-ui/cowork/forja-page.jsx` | 12 | #fff · #fff | UiLintCommand.php R1 · conformance-gate | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/forja-page.jsx` | 46 | → ↓ ✓ ⚠ ▲ ↵ | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `FLEX-CRU` | `prototipo-ui/cowork/forja-page.jsx` | 1 |  | layout-primitives-guard.mjs | prototipo |
 | 🔴 aberta | `R1` | `prototipo-ui/cowork/forja-tarefas.jsx` | 3 | oklch(0.6 0.14 " + st.hue + ") · oklch(0.6 0.18 " + ({ P0: 25, P1: 60, P2: 295, P3: 250 }[t.priority]) | UiLintCommand.php R1 · conformance-gate | prototipo |
 | 🔴 aberta | `R3` | `prototipo-ui/cowork/forja-tarefas.jsx` | 9 | → ↵ ⇧ | UiLintCommand.php R3 | prototipo |
-| 🔴 aberta | `R1` | `prototipo-ui/cowork/forja-page.css` | 326 | oklch(0.52 0.10 195) · oklch(0.95 0.035 195) | UiLintCommand.php R1 · conformance-gate | prototipo |
-| 🔴 aberta | `FONTRAMP` | `prototipo-ui/cowork/forja-page.css` | 291 | font-size:10.5px · font-size:12px · font-size:11px | conformance-gate (.fontramp-baseline.json) | prototipo |
-| 🔴 aberta | `IMPORTANT` | `prototipo-ui/cowork/forja-page.css` | 2 |  | stylelint declaration-no-important | prototipo |
-| 🔴 aberta | `HEX-CSS` | `prototipo-ui/cowork/forja-page.css` | 6 | #fff | stylelint color-no-hex | prototipo |
-| 🔴 aberta | `SINTAXE` | `prototipo-ui/cowork/forja-page.css` | 1 | linha 761 (-1) | build do Vite (@tailwindcss/vite) | prototipo |
-| 🔴 aberta | `PALETA` | `prototipo-ui/cowork/forja-page.css` | 1 | --dev-*(4) | prototipo-ui/ds-guard.mjs | prototipo |
 
 ## Soluções por regra (a receita que [W] pediu)
 
