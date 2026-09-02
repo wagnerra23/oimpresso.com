@@ -201,7 +201,7 @@ module: Jana
 - [NotificarDesvioListener.php](../../../Modules/Jana/Listeners/NotificarDesvioListener.php)
 - [LangfuseAgentTelemetryListener.php](../../../Modules/Jana/Listeners/Telemetry/LangfuseAgentTelemetryListener.php)
 
-## Console / Commands — 46
+## Console / Commands — 45
 
 - [ApurarMetricasCommand.php](../../../Modules/Jana/Console/Commands/ApurarMetricasCommand.php)
 - [AutomationsSyncCommand.php](../../../Modules/Jana/Console/Commands/AutomationsSyncCommand.php)
@@ -228,7 +228,6 @@ module: Jana
 - [JanaValidateMemoryCommand.php](../../../Modules/Jana/Console/Commands/JanaValidateMemoryCommand.php)
 - [JanaWeeklyDigestCommand.php](../../../Modules/Jana/Console/Commands/JanaWeeklyDigestCommand.php)
 - [McpAdrMigrarFrontmatterCommand.php](../../../Modules/Jana/Console/Commands/McpAdrMigrarFrontmatterCommand.php)
-- [McpGenerateDxtCommand.php](../../../Modules/Jana/Console/Commands/McpGenerateDxtCommand.php)
 - [McpSkillsImportFromGitCommand.php](../../../Modules/Jana/Console/Commands/McpSkillsImportFromGitCommand.php)
 - [McpSyncMemoryCommand.php](../../../Modules/Jana/Console/Commands/McpSyncMemoryCommand.php)
 - [McpSystemTokenCommand.php](../../../Modules/Jana/Console/Commands/McpSystemTokenCommand.php)
@@ -338,7 +337,7 @@ module: Jana
 - [Memoria.casos.md](../../../resources/js/Pages/Jana/Memoria.casos.md)
 - [Pro.casos.md](../../../resources/js/Pages/Jana/Pro.casos.md)
 
-## Testes (Pest) — 173
+## Testes (Pest) — 174
 
 - 36 em [Modules/Jana/Tests/Feature/](../../../Modules/Jana/Tests/Feature)
 - 12 em [Modules/Jana/Tests/Feature/Ai/](../../../Modules/Jana/Tests/Feature/Ai)
@@ -361,7 +360,7 @@ module: Jana
 - 1 em [Modules/Jana/Tests/Feature/Summarizer/](../../../Modules/Jana/Tests/Feature/Summarizer)
 - 16 em [Modules/Jana/Tests/Feature/TaskRegistry/](../../../Modules/Jana/Tests/Feature/TaskRegistry)
 - 5 em [Modules/Jana/Tests/Feature/Telemetry/](../../../Modules/Jana/Tests/Feature/Telemetry)
-- 13 em [Modules/Jana/Tests/Unit/](../../../Modules/Jana/Tests/Unit)
+- 14 em [Modules/Jana/Tests/Unit/](../../../Modules/Jana/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 91
