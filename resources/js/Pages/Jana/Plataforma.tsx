@@ -21,7 +21,7 @@ import {
   DialogTitle,
 } from '@/Components/ui/dialog'
 import DataTable from '@/Components/shared/DataTable'
-import { Stack } from '@/Components/layout'
+import { Grid, Inline, Stack } from '@/Components/layout'
 import { Settings } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
 import FabJana from './_components/FabJana'
@@ -62,13 +62,16 @@ const umaPagina = <T,>(rows: T[]) => ({ data: rows, total: rows.length, current_
 
 function Secao({ titulo, sub, children }: { titulo: string; sub: string; children: React.ReactNode }) {
   return (
-    <section className="flex flex-col gap-2">
-      <div className="flex items-baseline gap-2.5">
-        <h3 className="m-0 text-[13.5px] font-semibold text-foreground">{titulo}</h3>
-        <small className="font-mono text-[10.5px] text-muted-foreground">{sub}</small>
-      </div>
-      {children}
-    </section>
+    // Primitivos de layout (ADR 0253) — o layout-primitives-guard conta flex/grid solto por arquivo.
+    <Stack gap={2} asChild>
+      <section>
+        <Inline gap={2} align="baseline">
+          <h3 className="m-0 text-[13.5px] font-semibold text-foreground">{titulo}</h3>
+          <small className="font-mono text-[10.5px] text-muted-foreground">{sub}</small>
+        </Inline>
+        {children}
+      </section>
+    </Stack>
   )
 }
 
@@ -145,7 +148,8 @@ export default function Plataforma({ metasPlataforma, metasDeClientes, instalaca
         {/* Âncora LITERAL: o gate contrato-de-tela lê `data-contract="…"` no fonte, não em runtime. */}
         <div data-contract="plat-instalacao">
         <Secao titulo="Instalação do módulo" sub="/ia/install · nWidart">
-          <div className="grid gap-2.5 [grid-template-columns:repeat(auto-fit,minmax(150px,1fr))]">
+          {/* `min="sm"` = auto-fill 14rem — o mais perto do minmax(150px) da âncora com token do DS. */}
+          <Grid min="sm" gap={2}>
             {([
               [instalacao.migrations, 'migrations'],
               [instalacao.seeders, 'seeders'],
@@ -157,14 +161,14 @@ export default function Plataforma({ metasPlataforma, metasDeClientes, instalaca
                 <small className="mt-0.5 block text-[10.5px] uppercase tracking-wider text-muted-foreground">{k}</small>
               </div>
             ))}
-          </div>
+          </Grid>
           {/* Só nascem com `can('superadmin')` REAL — é o gate de `BaseModuleInstallController`
               (mais estreito que `jana.superadmin`). Botão que levaria a 403 é botão que mente. */}
           {instalacao.podeOperar && (
-            <div className="flex flex-wrap gap-2">
+            <Inline gap={2} wrap>
               <Button variant="outline" size="sm" onClick={() => setConfirmar('update')}>Rodar atualização</Button>
               <Button variant="destructive" size="sm" onClick={() => setConfirmar('uninstall')}>Desinstalar módulo</Button>
-            </div>
+            </Inline>
           )}
           <p className="m-0 max-w-[82ch] text-[11px] leading-relaxed text-muted-foreground">
             Disparado hoje pelo <code>/manage-modules</code> do superadmin. Desinstalar derruba as tabelas
