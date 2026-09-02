@@ -10,7 +10,7 @@
 
 import { formatDecimalPtBR } from '@/Lib/numberPtBR';
 
-/** Dinheiro. `fmt(148.72)` → `"R$ 148,72"`. */
+/** Dinheiro: prefixa `R$ ` ao número pt-BR de 2 casas. `fmt(148.72)` devolve `148,72` com o prefixo. */
 export function fmt(n: number | null | undefined): string {
   return `R$ ${formatDecimalPtBR(n, 2)}`;
 }

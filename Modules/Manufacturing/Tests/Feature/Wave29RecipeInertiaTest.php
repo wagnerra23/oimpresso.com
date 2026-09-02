@@ -72,7 +72,7 @@ describe('UC-RECIPE-03/04/05 — modelo de custo (§7 do handoff · DB-less)', f
 
     // UC-RECIPE-03 · R-11 — o custo unitário divide por total_quantity, NUNCA pelo rendimento.
     it('UC-RECIPE-03 divide o custo unitario por total_quantity, nao pelo rendimento', function () {
-        // 10 m² a R$ 9,20 = R$ 92,00 de ingredientes · 4% de desperdício · sem custo extra.
+        // 10 m² a 9,20 por m² = 92,00 de ingredientes · 4% de desperdício · sem custo extra.
         $recipe = mfgReceitaFake(
             ['total_quantity' => 10, 'waste_percent' => 4, 'extra_cost' => 0, 'production_cost_type' => 'fixed'],
             [['quantity' => 10, 'preco' => 9.20]],
@@ -134,7 +134,7 @@ describe('UC-RECIPE-03/04/05 — modelo de custo (§7 do handoff · DB-less)', f
 
     // §7.4 — o multiplicador da sub-unidade multiplica o custo da linha.
     it('UC-RECIPE-04 multiplica a linha pelo base_unit_multiplier da sub-unidade', function () {
-        // 0,044 galão de 5 L a R$ 108,00/L = 0,044 × 108 × 5 = R$ 23,76
+        // 0,044 galão de 5 L a 108,00 por L = 0,044 × 108 × 5 = 23,76
         $recipe = mfgReceitaFake(
             ['total_quantity' => 1, 'production_cost_type' => 'fixed', 'extra_cost' => 0],
             [['quantity' => 0.044, 'preco' => 108.0, 'multiplicador' => 5]],
