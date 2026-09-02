@@ -4,7 +4,7 @@ casos: Forja · cockpit do cowork loop · /forja
 irmaos: Cockpit.charter.md (lei) · Cockpit.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-12"
+last_run: "2026-09-02"
 ---
 
 # Casos de uso — /forja (cockpit Forja · shell)
