@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\NfeBrasil\Models\NfeCertificado;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Services\NfeService;
+use Modules\NfeBrasil\Services\SefazStatusRecorder;
 use Throwable;
 
 /**
@@ -255,27 +256,59 @@ class NfeHealthCommand extends Command
      * Ping real SEFAZ via NfeService::consultarStatusSefaz. SEFAZ cstat=107
      * = "Servico em Operacao". Qualquer outra coisa = warn ou crit (depende
      * do código). Cert vencido (280/281/283) classifica como crit.
+     *
+     * US-NFE-006 / ADR TECH-0002 — além de reportar, agora PERSISTE o resultado em
+     * `nfe_sefaz_status` (por UF), que é o sinal que alimenta a sugestão de contingência.
+     *
+     * ⚠️ O QUE É GRAVADO, E O QUE NÃO É — a regra aqui é de isolamento, não de zelo:
+     *
+     *  - cStat 107 .............. grava VERDE. A SEFAZ respondeu que está operando.
+     *  - cStat 280/281/283 ...... NÃO grava. É o CERTIFICADO DO TENANT que está ruim,
+     *                             não a SEFAZ. Gravar marcaria a UF inteira como fora por
+     *                             causa de UM tenant com cert vencido — contaminação
+     *                             cross-tenant num dado que é global (Tier 0, ADR 0093).
+     *  - outros cStat ........... grava FALHA. A SEFAZ respondeu e disse que não opera
+     *                             (ex.: 108/109 paralisada) — é fato dela, autoritativo.
+     *  - exceção ................ NÃO grava. Timeout/cert-load/rede caída são
+     *                             indistinguíveis daqui: é "não consegui medir", e
+     *                             colapsar isso num estado do objeto medido é o fail-open
+     *                             catalogado em proibicoes.md §5 (2026-07-29).
+     *
+     * Consequência assumida: queda TOTAL de rede não vira `vermelho` automático. É o preço
+     * de não fabricar fato — e é aceitável porque a ativação é humana (a ADR rejeitou
+     * auto-ativação), então nada quebra por falta de sugestão; o operador vê e decide.
      */
     private function checkPingSefaz(int $bizId): array
     {
         try {
             $resp = app(NfeService::class)->consultarStatusSefaz($bizId);
         } catch (Throwable $e) {
+            // Sem gravação: ver docblock. Não sabemos de quem é a culpa.
             return ['status' => 'crit', 'cstat' => null, 'msg' => substr($e->getMessage(), 0, 80)];
         }
 
         $cstat = (string) ($resp['cstat'] ?? '999');
+        $uf = (string) ($resp['uf'] ?? '');
+        $recorder = app(SefazStatusRecorder::class);
 
         if ($cstat === '107') {
+            if ($uf !== '') {
+                $recorder->registrarSucesso($uf, (float) ($resp['tempoResposta'] ?? 0.0));
+            }
+
             return ['status' => 'ok', 'cstat' => $cstat];
         }
 
-        // Cert ou auth = crit
+        // Cert ou auth = crit. NÃO grava — problema do tenant, não da SEFAZ.
         if (in_array($cstat, ['280', '281', '283'], true)) {
             return ['status' => 'crit', 'cstat' => $cstat, 'msg' => $resp['xMotivo'] ?? ''];
         }
 
-        // SEFAZ paralisada = warn (transiente)
+        // SEFAZ paralisada = warn (transiente). A SEFAZ respondeu — fato dela, grava.
+        if ($uf !== '') {
+            $recorder->registrarFalha($uf);
+        }
+
         return ['status' => 'warn', 'cstat' => $cstat, 'msg' => $resp['xMotivo'] ?? ''];
     }
 }

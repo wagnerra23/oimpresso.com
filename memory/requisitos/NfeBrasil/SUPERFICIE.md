@@ -14,7 +14,7 @@ module: NfeBrasil
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 210 arquivos em 19 papéis.
+**Total mapeado:** 213 arquivos em 19 papéis.
 
 ## Controllers — 12
 
@@ -41,7 +41,7 @@ module: NfeBrasil
 - [UpsertConfigDefaultRequest.php](../../../Modules/NfeBrasil/Http/Requests/UpsertConfigDefaultRequest.php)
 - [UpsertRegraTributariaRequest.php](../../../Modules/NfeBrasil/Http/Requests/UpsertRegraTributariaRequest.php)
 
-## Services — 16
+## Services — 17
 
 - [CertificadoService.php](../../../Modules/NfeBrasil/Services/CertificadoService.php)
 - [ContingenciaService.php](../../../Modules/NfeBrasil/Services/ContingenciaService.php)
@@ -55,12 +55,13 @@ module: NfeBrasil
 - [NfseCancelService.php](../../../Modules/NfeBrasil/Services/NfseCancelService.php)
 - [AbrasfV204CancelDriver.php](../../../Modules/NfeBrasil/Services/NfseDrivers/AbrasfV204CancelDriver.php)
 - [SefazConsultaCadastroService.php](../../../Modules/NfeBrasil/Services/SefazConsultaCadastroService.php)
+- [SefazStatusRecorder.php](../../../Modules/NfeBrasil/Services/SefazStatusRecorder.php)
 - [ImportRegrasCsvService.php](../../../Modules/NfeBrasil/Services/Tributacao/ImportRegrasCsvService.php)
 - [ProdutoFiscalContext.php](../../../Modules/NfeBrasil/Services/Tributacao/ProdutoFiscalContext.php)
 - [TributacaoTemplateService.php](../../../Modules/NfeBrasil/Services/Tributacao/TributacaoTemplateService.php)
 - [TributoCalculado.php](../../../Modules/NfeBrasil/Services/Tributacao/TributoCalculado.php)
 
-## Models / Entities — 12
+## Models / Entities — 13
 
 - [NfeBusinessConfig.php](../../../Modules/NfeBrasil/Models/NfeBusinessConfig.php)
 - [NfeCertificado.php](../../../Modules/NfeBrasil/Models/NfeCertificado.php)
@@ -72,6 +73,7 @@ module: NfeBrasil
 - [NfeEvento.php](../../../Modules/NfeBrasil/Models/NfeEvento.php)
 - [NfeFiscalRule.php](../../../Modules/NfeBrasil/Models/NfeFiscalRule.php)
 - [NfeInutilizacao.php](../../../Modules/NfeBrasil/Models/NfeInutilizacao.php)
+- [NfeSefazStatus.php](../../../Modules/NfeBrasil/Models/NfeSefazStatus.php)
 - [NfseEmissao.php](../../../Modules/NfeBrasil/Models/NfseEmissao.php)
 - [NfseEventoCancelamento.php](../../../Modules/NfeBrasil/Models/NfseEventoCancelamento.php)
 
@@ -184,9 +186,9 @@ module: NfeBrasil
 - [Index.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.casos.md)
 - [RegraForm.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.casos.md)
 
-## Testes (Pest) — 55
+## Testes (Pest) — 56
 
-- 55 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
+- 56 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 38
