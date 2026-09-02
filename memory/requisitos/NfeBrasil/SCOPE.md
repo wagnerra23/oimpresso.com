@@ -14,6 +14,7 @@ contains:
   - "NfeEmissaoController — emissão fiscal manual + reenvio DANFE email + download PDF (US-NFE-MANUAL, PR #262)"
   - "ManifestacaoController — Manifestação do Destinatário (US-NFE-052, PR #317)"
   - "NfeInutilizacaoController — UI admin pra inutilizar faixa NFe via SEFAZ (US-SELL-030)"
+  - "ContingenciaController — liga/desliga contingência SEFAZ por tenant (US-NFE-006, ADR TECH-0002)"
 db_tables_owned:
   - nfe_certificados
   - nfe_emissoes
@@ -22,6 +23,7 @@ db_tables_owned:
   - nfe_fiscal_rules
   - nfe_business_configs
   - nfe_fiscal_rule_tax_rate_links (bridge ADR ARQ-0005)
+  - nfe_sefaz_status (saúde do autorizador por UF — global, sem business_id por desenho da ADR TECH-0002)
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/Forja"
