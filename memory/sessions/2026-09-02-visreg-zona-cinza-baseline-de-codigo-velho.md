@@ -85,3 +85,22 @@ O plano previa quarentena para as não-determinísticas. **A população é vazi
 
 - **Decisão [W]:** repromover `visual-regression` a required. A demoção de 08-26 se apoiava numa premissa agora refutada — mas repromover é flip de branch protection, soberania [W] (ADR 0275 §5 / R10). **Não foi feito nesta sessão.**
 - **Race residual:** o alinhamento fecha o skew ref↔main, mas se um PR de UI mergear entre o dispatch e o verify, a baseline nasce atrás de novo. A janela caiu de dias para minutos; fechá-la de vez exigiria regenerar no merge, o que é outro desenho.
+
+## 9. Achado colateral: o teto de 15 min do job
+
+> Esta seção é **posterior ao handoff** [2026-09-02 19:30](../handoffs/2026-09-02-1930-visreg-zona-cinza-baseline-de-codigo-velho.md), que não a menciona. O handoff é append-only e não foi editado — quem ler os dois deve tomar esta seção como a mais recente.
+
+Com a zona cinza fechada o gate passa e **todos** os steps rodam até o fim — antes, o pixel-diff reprovava e o run terminava em 11-14 min. Os dois runs **verdes** do dia caíram em lados opostos do teto de 15 min:
+
+| run | gates | job | conclusão |
+|---|---|---|---|
+| `33670313000` (PR de baselines #6576) | 5/5 ✅ | 15min10s | `cancelled` |
+| `33670634977` (PR #6579) | 6/6 ✅ (incl. Canário) | 14min22s | `success` |
+
+~48s separam os dois: run verde era **moeda** no teto. Como `cancelled` é lido como bloqueio pela branch protection (efeito já catalogado no comentário de `concurrency` do próprio workflow), subi `timeout-minutes` do caminho `pull_request` de **15 → 25**. O dispatch já era 35. Nenhum step novo entrou no caminho de PR — o alinhamento roda só em `workflow_dispatch` — e PR sem mudança de UI segue concluindo por skip-as-pass em ~1 min (medido: 0.8 / 1.1 / 1.2 / 1.3).
+
+Contexto de que o teto já mordia antes deste trabalho: **17 de 51** runs de `pull_request` na janela de 2026-09-02 terminaram `cancelled`, agrupados em 11-15 min.
+
+### Erro meu, registrado
+
+O commit `121271db60` afirmou que, com a zona cinza fechada, o gate *"NÃO CONSEGUIA reportar success num PR nem em princípio"*. **Falso** — refutado pelo meu próprio run `33670634977`, que passou 6/6 em 14min22s. Eu tinha essa medida disponível e generalizei de **um** run. É LC-08 na forma mais direta: afirmar a partir de amostra insuficiente. Corrigido em `1640f265fd` (só o comentário do workflow; o valor 25 fica, pela razão certa — meia chance de `cancelled` num gate verde é ruído que se aprende a ignorar).
