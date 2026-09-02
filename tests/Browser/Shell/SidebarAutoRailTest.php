@@ -105,24 +105,48 @@ function abrirShell(): object
     return visit('/_visreg-login/' . $admin->id . '?to=' . urlencode('/forja/aprovacoes'));
 }
 
+/**
+ * Espera a coluna resolvida ESTABILIZAR antes de afirmar. O `resize()` dispara
+ * matchMedia -> setState -> re-render do React, e ler o DOM no meio disso é medir
+ * meio-caminho (`memory/proibicoes.md` §5 2026-08-24: "declarar que a tela não
+ * renderiza medindo o DOM durante o lazy-load"). 20 tentativas de 0,1s.
+ *
+ * Devolve o ÚLTIMO valor lido — nunca o esperado — pra que a asserção falhe
+ * dizendo o que de fato apareceu. Espera-pelo-esperado que devolve o esperado
+ * seria um teste que não sabe reprovar.
+ */
+function colunaEstavel($page, string $esperado): string
+{
+    $visto = '';
+    for ($i = 0; $i < 20; $i++) {
+        $visto = (string) $page->script(COLS_JS);
+        if ($visto === $esperado) {
+            return $visto;
+        }
+        $page->wait(0.1);
+    }
+
+    return $visto;
+}
+
 it('UC-SHELL-01 · a 1280 (monitor do [W]) o shell nasce em RAIL de 56px', function () {
     $page = abrirShell()->resize(1280, 800);
 
+    expect(colunaEstavel($page, '56px'))->toBe('56px', 'coluna resolvida pelo browser a 1280');
     expect($page->script(MODE_JS))->toBe('rail', 'estado do React a 1280');
-    expect($page->script(COLS_JS))->toBe('56px', 'coluna resolvida pelo browser a 1280');
 });
 
 it('UC-SHELL-02 · a 1440 o shell nasce EXPANDIDO de 260px', function () {
     $page = abrirShell()->resize(1440, 900);
 
+    expect(colunaEstavel($page, '260px'))->toBe('260px', 'coluna resolvida pelo browser a 1440');
     expect($page->script(MODE_JS))->toBe('expanded', 'estado do React a 1440');
-    expect($page->script(COLS_JS))->toBe('260px', 'coluna resolvida pelo browser a 1440');
 });
 
 it('UC-SHELL-03 · escolha manual persistida VENCE a largura (não é sobrescrita a 1280)', function () {
     // Nasce largo e sem chave: expandido por largura.
     $page = abrirShell()->resize(1440, 900);
-    expect($page->script(COLS_JS))->toBe('260px', 'pré-condição: expandido a 1440');
+    expect(colunaEstavel($page, '260px'))->toBe('260px', 'pré-condição: expandido a 1440');
 
     // Simula a escolha explícita do usuário (é o que a alça e o ⌘\ gravam).
     $page->script('localStorage.setItem("oimpresso.sb.mode", "expanded")');
@@ -130,8 +154,8 @@ it('UC-SHELL-03 · escolha manual persistida VENCE a largura (não é sobrescrit
     // Estreita: sem a trava, o listener rebaixaria pra rail.
     $page->resize(1280, 800);
 
+    expect(colunaEstavel($page, '260px'))->toBe('260px', 'coluna resolvida após estreitar com escolha manual');
     expect($page->script(MODE_JS))->toBe('expanded', 'escolha manual deve sobreviver ao resize');
-    expect($page->script(COLS_JS))->toBe('260px', 'coluna resolvida após estreitar com escolha manual');
 });
 
 it('UC-SHELL-04 · SEM escolha manual, o modo acompanha o resize ao vivo (1440 → 1280 → 1440)', function () {
@@ -139,11 +163,11 @@ it('UC-SHELL-04 · SEM escolha manual, o modo acompanha o resize ao vivo (1440 �
     // plugar/desplugar monitor externo não deixa o shell no modo errado.
     $page = abrirShell()->resize(1440, 900);
     $page->script('localStorage.removeItem("oimpresso.sb.mode")');
-    expect($page->script(COLS_JS))->toBe('260px', 'pré-condição: expandido a 1440 sem chave');
+    expect(colunaEstavel($page, '260px'))->toBe('260px', 'pré-condição: expandido a 1440 sem chave');
 
     $page->resize(1280, 800);
-    expect($page->script(COLS_JS))->toBe('56px', 'estreitou → rail');
+    expect(colunaEstavel($page, '56px'))->toBe('56px', 'estreitou → rail');
 
     $page->resize(1440, 900);
-    expect($page->script(COLS_JS))->toBe('260px', 'alargou → volta a expandir');
+    expect(colunaEstavel($page, '260px'))->toBe('260px', 'alargou → volta a expandir');
 });
