@@ -176,9 +176,9 @@ revogado, em minúsculas. Nunca heurística de nome.
 
 ## PARIDADE §11 Onda 4 (2026-09-02) — a tela é a RÉPLICA do protótipo
 
-Decisão [W] de 2026-09-02, textual: *"pode fazer igual ao protótipo e revogar todo o resto (…) Eu apenas quero que trace uma meta de conseguir fazer o mesmo layout."* A lei é a [ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) — **réplica primeiro**: onde existe âncora (`related_prototype`, resolvida por `ancora.mjs`), a aparência a entregar é a do protótipo, e a conformidade do DS vira item em [`INCONSISTENCIAS-replica.md`](../../../../memory/requisitos/Forja/INCONSISTENCIAS-replica.md).
+Decisão [W] de 2026-09-02, textual: *"pode fazer igual ao protótipo e revogar todo o resto (…) Eu apenas quero que trace uma meta de conseguir fazer o mesmo layout."* A lei é a [ADR 0388](../../../../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) — **réplica primeiro**: onde existe âncora (`related_prototype`, resolvida por `ancora.mjs`), a aparência a entregar é a do protótipo, e a conformidade do DS vira item em [`INCONSISTENCIAS-replica.md`](../../../../../../../memory/requisitos/Forja/INCONSISTENCIAS-replica.md).
 
-**O que a sonda mediu antes** ([forja-cockpit-visual-comparison.md §2026-09-02](../../../../memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md)) e o que esta onda fecha:
+**O que a sonda mediu antes** ([forja-cockpit-visual-comparison.md §2026-09-02](../../../../../../../memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md)) e o que esta onda fecha:
 
 | dimensão | prod (antes) × protótipo | o que mudou |
 |---|---|---|

@@ -243,8 +243,13 @@ class TrabalhoService
                 // "Bloqueada" é o status OU ter bloqueio declarado: task com
                 // `blocked_by` cheio está travada mesmo que ninguém tenha virado
                 // o status — e é justamente essa que precisa aparecer.
-                'bloqueadas' => ($t['status'] ?? null) === 'blocked' || ($t['blocked_by'] ?? []) !== [],
-                default      => true,
+                //
+                // `default` em vez do literal `'bloqueadas'`: o `in_array` acima já
+                // estreitou o tipo pra allowlist, então depois dos dois arms o
+                // PHPStan sabe que só resta esse valor — e acusa o arm literal como
+                // sempre-verdadeiro. Ele está certo, e o `default => true` que vinha
+                // depois era inalcançável.
+                default      => ($t['status'] ?? null) === 'blocked' || ($t['blocked_by'] ?? []) !== [],
             });
         }
 

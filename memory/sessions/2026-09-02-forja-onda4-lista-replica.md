@@ -58,6 +58,14 @@ O rebase reescreveu a história, e o `block-destructive` barrou o force-push —
 
 ## A precondição do pedido que não se confirmou
 
+> **⚠️ ERRATA da mesma noite (20:15 UTC).** O parágrafo abaixo é fato datado do início da sessão e **caducou em horas**: o `dup-detector` do CI revelou **8 PRs paralelos** da Forja abertos DEPOIS da minha medição, entre eles **[#6571 — "Aprovações vira a view `hoje` do protótipo (PARIDADE §11 Onda 3)"](https://github.com/wagnerra23/oimpresso.com/pull/6571)**, além de #6572 (Onda 7), #6575 (Onda 8), #6591 (Changelog) e 4 de DS.
+>
+> A **conclusão** não muda — os arquivos seguem distintos, e o único ponto de contato é `governance/replica-inconsistencias/forja.json`, o artefato **derivado** que toda onda da Forja regenera. Mas a frase *"não há PR aberto dela"* deixou de ser verdadeira, e deixá-la sozinha induziria a próxima sessão a erro.
+>
+> A lição de método é minha: **`gh pr list` é retrato, não estado.** Medi uma vez no começo e escrevi a conclusão no fim, com horas no meio — que é a mesma família da §5 2026-08-20 (*"claim de ausência sobre conjunto enumerável não se escreve de memória"*), aqui no eixo do TEMPO em vez do da memória. Quem for coordenar onda paralela: re-medir no instante de publicar, e preferir `whats-active` (§5 2026-08-13).
+
+
+
 O pedido dizia *"faça depois da Onda 3 estar mergeada — as ondas tocam o mesmo `Cockpit.tsx`"*. A Onda 3 **não está mergeada** (o último da série é a Onda 2.1, #6563/#6565) e **não há PR aberto** dela. Segui porque medi a colisão e ela não existe: a Onda 3 é `Pages/Forja/Aprovacoes/Index.tsx`, esta é `Pages/Forja/Trabalho/Index.tsx`. A superfície comum é o `ForjaHub.tsx` (não tocado) e o bundle CSS (que só ganhou um bloco no fim).
 
 ## Pendências honestas
