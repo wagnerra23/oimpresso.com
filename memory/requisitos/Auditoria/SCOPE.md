@@ -26,7 +26,7 @@ related_adrs:
   - 0094-constituicao-v2-7-camadas-8-principios
 url_prefixes:
   - /auditoria/*
-  - /reports/activity-log (rota legacy — 301 pra /auditoria; o NUCLEO registra a MESMA URI em routes/web.php:1075, mas o MODULO vence: provider de pacote registra antes do App\Providers\RouteServiceProvider, que so carrega routes/web.php em boot():37, e o matcher e first-wins — a do nucleo e codigo morto)
+  - /reports/activity-log (rota legacy — 301 pra /auditoria, Routes/web.php:45; o NUCLEO registra a MESMA URI em routes/web.php:1075 e a do MODULO e a que responde: RouteCollection::addToCollections chaveia por metodo+URI e SOBRESCREVE, entao quem registra por ultimo vence — e o proprio nucleo documenta o desfecho em AdminSidebarMenu.php:786, "sobrescreveu"; a rota do nucleo e codigo morto)
 drift_alerts: []
 ---
 
