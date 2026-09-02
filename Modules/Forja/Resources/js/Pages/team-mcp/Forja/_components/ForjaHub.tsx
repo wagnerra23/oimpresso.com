@@ -110,9 +110,9 @@ export default function ForjaHub({
                     const Icon = t.icon;
                     const isActive = t.key === active;
                     const badge = t.key === 'aprovacoes' ? pendencias : undefined;
+                    // `as="button"`: o CSS do protótipo estiliza `.fj-viewtabs button` — uma âncora
+                    // ficaria sem estilo. O Inertia navega no clique igual.
                     return (
-                      {/* `as="button"`: o CSS do protótipo estiliza `.fj-viewtabs button` — uma âncora
-                          ficaria sem estilo. O Inertia navega no clique igual. */}
                       <Link
                         key={t.key}
                         as="button"

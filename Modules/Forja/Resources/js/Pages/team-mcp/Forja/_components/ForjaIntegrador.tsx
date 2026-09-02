@@ -9,7 +9,7 @@
 // (a versão anterior do próprio protótipo) em vez de `window.CliTabs` — o TabBar do DS
 // do Cowork não existe no repo. Mesmo CSS, mesma copy.
 
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 
 type Absorb = { forja: string; rota: string; ctrl: string; tabela: string; estado: 'existe' | 'parcial' | 'falta'; acao: Acao; nota: string };
 type Impact = { modulo: string; tela: string; mudanca: string; acao: Acao; conf: 'alta' | 'média' | 'baixa' };
@@ -49,7 +49,7 @@ const EST_META = { existe: 'existe', parcial: 'parcial', falta: 'falta' } as con
 
 function AcaoPill({ acao }: { acao: Acao }) {
   const m = ACAO_META[acao];
-  return <span className="fj-int-acao" style={{ '--ah': m.hue } as React.CSSProperties}>{m.label}</span>;
+  return <span className="fj-int-acao" style={{ '--ah': m.hue } as CSSProperties}>{m.label}</span>;
 }
 
 export default function ForjaIntegrador() {
