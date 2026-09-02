@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Os casos derivam da ADR TECH-0002 (§Schema additions) e da US-NFE-006, NÃO das migrations
 // que eu mesmo escrevi — teste derivado da implementação é tautológico (proibicoes.md §5 2026-06-05).
 
-use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -111,11 +110,37 @@ describe('US-NFE-006 · schema de contingência (ADR TECH-0002 §Schema addition
         expect(DB::table('nfe_emissoes')->find($id)->status)->toBe('contingencia');
     });
 
-    it('CONTROLE NEGATIVO · o ENUM de status CONSTRANGE (sem isto, o UC-CONT-05 é vácuo)', function () {
-        // Se status fosse VARCHAR livre, o UC-CONT-05 passaria sem provar nada. Este caso
-        // é o que dá sentido ao anterior: valor fora do ENUM tem que ser RECUSADO pelo banco.
-        expect(fn () => contInsereEmissao(['status' => 'modo_que_nao_existe']))
-            ->toThrow(QueryException::class);
+    it('CONTROLE NEGATIVO · o conjunto do ENUM é EXATAMENTE o canônico (sem isto, o UC-CONT-05 é vácuo)', function () {
+        // 1ª versão deste caso esperava QueryException ao inserir valor inválido e FALHOU
+        // no CI (run 33559072583): o MySQL da lane NÃO está em modo estrito, então valor
+        // fora do ENUM é TRUNCADO com warning, não rejeitado com erro.
+        //
+        // A lição vale além deste arquivo: comportamento de rejeição de ENUM depende de
+        // `sql_mode` e NÃO é portável entre ambientes (a lane pode diferir de produção).
+        // O CONTRATO DE SCHEMA, esse sim, é o mesmo em qualquer sql_mode — então o controle
+        // negativo mede o INFORMATION_SCHEMA, não o comportamento do INSERT.
+        $tipo = (string) DB::selectOne(
+            "SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = 'nfe_emissoes'
+               AND COLUMN_NAME = 'status'"
+        )->COLUMN_TYPE;
+
+        expect($tipo)->toStartWith('enum(');
+
+        preg_match_all("/'([^']+)'/", $tipo, $m);
+        $valores = $m[1];
+        sort($valores);
+
+        $canonicos = [
+            'autorizada', 'cancelada', 'contingencia', 'denegada', 'enviando',
+            'erro_envio', 'inutilizada', 'pendente', 'rejeitada',
+        ];
+        sort($canonicos);
+
+        // Igualdade EXATA nos dois sentidos: prova que 'contingencia' entrou E que nenhum
+        // valor estranho mora ali. Só `toContain` deixaria passar lixo acumulado.
+        expect($valores)->toBe($canonicos);
     });
 
     it('UC-CONT-06 · nfe_sefaz_status existe, com uf como chave primária natural', function () {

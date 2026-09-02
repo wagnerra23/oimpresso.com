@@ -32,6 +32,13 @@ use Spatie\Activitylog\Traits\LogsActivity;
  *   contingencia — US-NFE-006: emitida offline (tp_emis 4 ou 9), XML persistido,
  *                  aguardando RetentarContingenciaJob. NÃO é erro: é nota válida
  *                  ainda não transmitida. Perder esse estado é problema fiscal.
+ *
+ * Anotados como @property porque Larastan não infere atributo dinâmico de Eloquent
+ * a partir da migration — sem isto o acesso vira "undefined property" no ratchet.
+ *
+ * @property int $tp_emis
+ * @property int $retry_count
+ * @property \Illuminate\Support\Carbon|null $last_retry_at
  */
 class NfeEmissao extends Model
 {
