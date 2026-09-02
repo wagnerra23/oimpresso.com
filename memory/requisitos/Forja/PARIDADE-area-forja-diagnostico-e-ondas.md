@@ -249,7 +249,7 @@ inferido do `.jsx`:
 | 6 | Trabalho · gantt | compare 0 bug |
 | 7 | Saúde | compare 0 bug |
 | 8 | MCP + Handoffs dentro | compare 0 bug |
-| 9 | Changelog | compare 0 bug |
+| 9 | Changelog | compare 0 bug — **réplica aplicada** (PR desta onda, 2026-09-02): a linha virou a do `ChangelogFeed` (**2** células, dot + corpo em 3 blocos) contra as **5** colunas achatadas que a medição da manhã pegou, e a parede de `"Sessão Claude Code"` acabou (o título cai em `summary_auto` → 1º prompt de `mcp_cc_messages` → **vazio honesto**). `flags`/`modules` passam a vir de coluna real (`tags` ∩ {`tier-0`,`breaking`} · `module`). Zero CSS novo. **O `compare --check` segue PENDENTE** — precisa do deploy, e o merge de `.tsx` é humano ([ADR 0283](../../decisions/0283-handoff-loop-zero-paste.md)); o alvo do protótipo e a estrutura da réplica já estão medidos em [forja-cockpit-visual-comparison.md §2026-09-02 (Onda 9)](../TeamMcp/forja-cockpit-visual-comparison.md), com o comando do pós-deploy escrito lá |
 | 10 | Integrador | compare 0 bug |
 | 11 | revogação: `/project-mgmt/*`, duplicatas, rotas, testes, `SCOPE §cockpit` | `git grep` = 0 |
 

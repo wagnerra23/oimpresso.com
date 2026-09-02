@@ -185,3 +185,39 @@ Mesma sonda, mesma viewport (2560), dark nos dois lados. Smoke pós-deploy: `/fo
 **Larguras menores (o que "na linha do título" significa):** medido no protótipo pelo Browser pane com emulação de viewport — a **1280** o shell do protótipo vira rail de **56px** e o header quebra em **3 linhas** (título / sino+busca+primária / pílulas, tudo à direita, 174px); a **1728** o shell segue em rail e o header fica em **1 linha** (88px). Em produção o sidebar só vira rail por `data-sidebar="rail"` (`cockpit.css` L57), então a 1728 o conteúdo tem 1468px (< 450+16+1020) e os controles quebram pra 2ª linha — é o que o `.snap` do CI mostra. Isso é **shell (fundação)**, não CSS da Forja: o `.os-page-h` é idêntico nos dois lados (`flex-wrap: wrap`). Produção a 1280 **não foi medida** nesta rodada (o Browser pane não tem a sessão; a janela do Chrome não aceitou o resize) — fica declarado, não inferido.
 
 **D1 (rede) nas pílulas novas:** `window.__marker` gravado antes do clique **sobreviveu** a Trabalho → Aprovações (dois cliques, dois marcadores vivos), a URL e a pílula ativa mudaram, e a rede mostrou `GET /forja/aprovacoes 200` via Inertia (`<Link as="button">`) — sem full reload. D1 **parcial**, como a meta do §11 pede.
+
+## 2026-09-02 (Onda 9) — Changelog: alvo do protótipo medido + estrutura da réplica provada em harness ANTES do deploy
+
+> **O que rodou (recibo).** Fonte provada por **hash**, não por afirmação: `forja-page.jsx` e `forja-page.css` do espelho batem byte-a-byte (normalizado) com o `DesignSync.get_file` do projeto vivo `019dcfd3` — `e4339537…62a43a9` e `9c180a5d…f21ed44`, iguais ao `repoHash` do `--manifest`. O render local só ficou VÁLIDO depois de duas correções que valem registrar: (1) `colors_and_type.css` e `cockpit_domains.css` do `_ds/` vinham com **0 regras** (`--text`/`--bg` não resolviam e o `h1` saía preto) — repostos pelo `--preview-ds`, que existe exatamente pra isso; (2) a aba do Browser pane estava com `innerWidth = 0` (o shell entrava em `app--mobile`) — resolvido com `resize_window` 2560×1440. Medir antes disso teria devolvido número plausível e errado.
+>
+> **Limite declarado desta rodada:** a metade de produção **não foi medida** — o código desta onda ainda não foi deployado, e o merge de `.tsx` é humano ([ADR 0283](../../decisions/0283-handoff-loop-zero-paste.md)). O que foi medido do lado da réplica veio de um **harness**: os dois componentes (`ForjaChangelog` + `ForjaRoleBadge`, React puro) compilados com esbuild e renderizados sob `html.cockpit[data-theme=dark]` + `resources/css/cowork-forja-bundle.css` (o CSS que produção serve — a 1ª tentativa carregou o CSS do protótipo por engano e foi refeita). O harness prova **estrutura e cascata de token**; **não** prova geometria (a cadeia do shell colapsa fora dele: `secA` mediu 56px de largura) nem a cascata real de produção (preflight do Tailwind + fundação). O `compare --check` 0-`DIVERGE(bug)` continua pendente e é pós-deploy.
+
+**Alvo — protótipo (`changelog` de `forja-page.jsx`), dark, 2560, `__oiLazyDone` + 3 leituras estáveis:**
+
+| campo | protótipo |
+|---|---|
+| linha `.fj-feed-item` | **2 células** (dot + corpo) · corpo em **3 blocos** (topo · resumo · meta) · `flex` · gap 14px |
+| `.fj-feed-dot` | 12×12 · radius 50% · `oklch(0.52 0.1 195)` (kind `pr`) |
+| `.fj-feed-ref` | 12,5px · 600 · `IBM Plex Mono` |
+| `.fj-feed-when` | 10,5px · `oklch(0.58 0.005 90)` |
+| `.fj-feed-resumo` | 13px / 19,5px · `oklch(0.72 0.005 90)` |
+| `.fj-clog-tab` | 27px · 12px · `line-height: normal` · `5px 13px` · radius 999px |
+| `.fj-clog-tab.active` | cor `oklch(0.7 0.15 295)` · bg `oklch(0.32 0.06 295)` · borda `oklch(0.47 0.13 295)` |
+| `.fj-changelog` · `.fj-feed` | padding `18px 32px 40px` · max-width **760px** |
+
+**Réplica no harness (mesmas 8 linhas do mock, pra a contagem não confundir a comparação):**
+
+| campo | protótipo | réplica (harness) | veredito |
+|---|---|---|---|
+| células por linha | 2 | **2** | IGUAL (produção tinha **5** — era o DIVERGE de D2 desta onda) |
+| blocos no corpo | 3 | **3** | IGUAL |
+| `.fj-changelog` padding | `18px 32px 40px` | **`18px 32px 40px`** | IGUAL |
+| `.fj-feed` max-width | 760px | **760px** | IGUAL |
+| chips · linhas · selos de ator · módulos · flags | 5 · 8 · 8 · 8 · 3 | **5 · 8 · 8 · 8 · 3** | IGUAL |
+| altura do chip | 27px | 28px | **artefato do harness** — `document.fonts.check('12px "IBM Plex Sans"')` = `false`; sem a Plex a fallback muda o `normal`. Não é diferença de código |
+
+**Achado que a medição pegou e que teria virado bug em produção:** no `Cockpit.tsx` a `<section>` das abas é **irmã** do `<ForjaHub>` (que é quem renderiza `.fj-hub`), e o bundle escopa a família `--accent*` do dark a `[data-theme="dark"] .fj-hub, .fj-page` (Onda 2.1, linha 1227). Fora desse escopo os chips herdariam o `--accent` **0,55** da fundação em vez do **0,70** do protótipo, e os `<button>` herdariam o `button{line-height:inherit}` do preflight do Tailwind — a MESMA causa que a Onda 2.1 mediu no botão do topnav (28px → 25px). Corrigido pondo `fj-hub` na `<section>` do changelog. Medido antes de aplicar: `.fj-hub` **não tem regra própria** — as 20 regras dela são todas de descendente, então a classe não carrega layout. `.fj-page` foi testada e **descartada**: tem `height:100%; overflow:hidden` e clipou o feed (1440px de wrapper para 2603px de conteúdo).
+
+**Residual medido, NÃO consertado (é decisão, não conserto silencioso):** o `--accent-soft` dark do bundle é `oklch(0.33 0.09 295)` (linha 1231, Onda 2.1) e o do protótipo vivo é `oklch(0.32 0.06 295)`. Com o escopo `.fj-hub` o chip ativo fica com o valor do bundle, não com o do protótipo. Mexer nesse token muda **também o header** (é o mesmo bloco da Onda 2.1) — fica listado, e a decisão é de [W].
+
+**Pendente pós-deploy (1 comando cada):** injetar a MESMA sonda (`design-diff.mjs --probe`, papéis `filterControls: .fj-clog-tabs` · `tableRow: .fj-feed-item`) em `https://oimpresso.com/forja/changelog` autenticado, dark, 2560 → `--compare prod.json design.json --check`; e o D1 (clicar um chip e provar que `window.__marker` sobrevive — o filtro é client-side, então o esperado é **zero** requisição).
