@@ -5,10 +5,34 @@ irmaos: Nfe.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-08-28"
+last_run: "2026-09-01"
 ---
 
 # Casos de Uso & Aceite — Notas NF-e / NFC-e
+
+> **Revalidação `last_run` 2026-09-01 — o que foi conferido (Onda 1 Fiscal, troca de primitivas):**
+> `fx-btn`/`fx-chip`/`fx-search`/`fx-filters` saíram para as primitivas `Button`/`Input`/`Inline` do
+> DS. É **camada de apresentação**; os 8 UC assertam backend e nenhum toca o `.tsx`. Dois pontos onde
+> a troca *poderia* ter mexido em comportamento foram checados **no código, não presumidos**:
+> **(a)** o handler J/K ignora teclas quando `target.tagName === 'INPUT'` — o `<Input>` do DS
+> renderiza um `<input>` real, então a guarda continua valendo e a navegação não dispara ao digitar;
+> **(b)** o bloco `useEffect` do J/K está **intacto** no diff (0 linhas `+/-` casando
+> `tagName`/`addEventListener`). A âncora `data-contract="fiscal-nfe-filters"` sobreviveu à troca do
+> `<div>` pelo `<Inline>` (que faz spread de `...props`), provado pelo `contrato-de-tela`: limpo
+> `rc=0`, copy mutada `rc=1`. **Nenhum teste foi re-executado** (Pest = CT 100).
+> _O que esta revalidação NÃO cobre: o §Backlog segue igual — o gate `fiscal.nfe.view` continua sem
+> teste e o `UC-FNFE-01` continua skipando. A onda não os toca e não os conserta._
+
+> **Revalidação `last_run` 2026-09-01 — o que foi conferido (Onda 1 Fiscal, flip do token `--fis`):**
+> este PR muda a tela em **um único ponto**: o comentário de cabeçalho do `.tsx`, que afirmava
+> `var(--fis) rosa fiscal` e virou falso quando o token passou a `oklch(0.55 0.15 295)`. A mudança de
+> comportamento é **zero** — o CSS é o único consumidor funcional de `var(--fis)` (medido: 38 usos no
+> `.css`, 0 no `.tsx`). Conferi os 8 UC deste arquivo um a um: **todos assertam comportamento de
+> backend** (`HasBusinessScope`, `isCancelavel`, mapa `sefazCodes`, validações do `AcoesController`,
+> superfície de métodos/rota/Services) — **nenhum depende de cor, token ou do `.tsx`**, logo nenhum
+> aceite mudou. **Nenhum teste foi re-executado** (Pest = CT 100); os vereditos seguem como estavam.
+> _Este bump vai no MESMO commit do `.tsx` de propósito: o G-6 isenta por SHA igual, que é a forma
+> que sobrevive ao squash-merge reescrever a data (o caminho por data cai de novo no dia seguinte)._
 
 > **Revalidação `last_run` 2026-08-28 — o que foi conferido:** este PR muda a tela em **um único ponto**: o atributo `data-contract="fiscal-nfe-filters"` no wrapper, âncora do mapa [`fiscal-nfe.map.json`](../../../../memory/requisitos/Fiscal/fiscal-nfe.map.json). Conferi o diff do `.tsx` contra a lista de UC deste arquivo — **nenhum UC depende de atributo de DOM**, logo nenhum aceite mudou. **Nenhum teste foi re-executado** nesta revalidação (Pest = CT 100); os vereditos seguem como estavam.
 
@@ -56,6 +80,48 @@ tailscale ssh root@ct100-mcp "docker exec -e DB_CONNECTION=mysql oimpresso-stagi
 **Limite honesto:** o caso Tier 0 de isolamento (`UC-FNFE-01`) precisa de `nfe_emissoes` e **não
 executa em nenhuma lane disponível hoje** — a lane de CI é SQLite in-memory e o staging do CT 100
 não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do teste.
+
+## Rastreabilidade
+
+| UC | O que defende | Prio | CU (SDD §6) | Teste que o cita | Status |
+|---|---|---|---|---|---|
+| UC-FNFE-01 | a contagem não vaza outro business | `[must]` `[T0]` | CU-FISC-12 | `NfeCockpitMultiTenantTest` | 🧪 |
+| UC-FNFE-02 | janela legal 24h NFC-e / 168h NF-e | `[must]` `[reg]` | CU-FISC-03 | `AcoesContratoTest` | 🧪 |
+| UC-FNFE-03 | o código SEFAZ vira status legível | `[must]` | CU-FISC-02 | `NfeCockpitMultiTenantTest` | 🧪 |
+| UC-FNFE-04 | cancelar exige motivo de 15 a 255 chars | `[must]` | CU-FISC-08 | `AcoesContratoTest` | 🧪 |
+| UC-FNFE-05 | CC-e: texto 15–1000, sequência 1–20 | `[must]` | CU-FISC-09 | `AcoesContratoTest` | 🧪 |
+| UC-FNFE-06 | inutilização valida modelo, faixa e justificativa | `[must]` | CU-FISC-10 | `AcoesContratoTest` | 🧪 |
+| UC-FNFE-07 | manifestação: 4 ações, justificativa condicional | `[must]` | CU-FISC-07 | `AcoesContratoTest` | 🧪 |
+| UC-FNFE-08 | ⚠️ **id sobrecarregado** — (a) a superfície das ações existe · (b) o gate `fiscal.nfe.view` devolve 403 | `[must]` `[T0]` | CU-FISC-13 (só o gate) · ver nota | `AcoesControllerTest` (5) · `GatesPermissaoFiscalTest` (2) | 🧪 |
+| UC-FNFE-09 | retransmitir preserva a nota antiga (nunca deleta) | `[must]` `[reg]` | CU-FISC-11 | `AcoesContratoTest` | 🧪 |
+
+> **Por que esta tabela nasceu em 2026-09-01 (e o que ela NÃO fez):** os 8 UC desta tela já eram
+> provados por teste desde 2026-07-27 — nenhum deles declarava, porém, **qual CU do SDD §6 atende**.
+> Efeito no painel derivado ([`_STATUS-GENERATED.md`](../../../../memory/requisitos/Fiscal/_STATUS-GENERATED.md)):
+> `CU-FISC-02/03/08/09/10` apareciam como "sem UC" tendo comportamento provado, e `UC-FNFE-04`/`UC-FNFE-07`
+> saíam atribuídos a `Eventos`/`Dfe` — as telas irmãs os citam em prosa (corretamente, dizendo que o
+> contrato mora aqui) e o gerador cai no fallback alfabético quando a tela **dona** não os declara em
+> tabela. **Nenhuma asserção de teste mudou:** isto é rastreabilidade, não comportamento.
+
+> **⚠️ `UC-FNFE-08` ancora DOIS contratos diferentes (achado de 2026-09-01).** O mesmo id nomeia
+> 5 casos em `AcoesControllerTest` (a superfície das ações) **e** 2 casos em
+> `GatesPermissaoFiscalTest:72,79` (o gate `fiscal.nfe.view` devolve 403, com controle negativo em
+> `:79` — superadmin **não** recebe 403). São contratos distintos sob um id só: o painel derivado
+> conta **um** requisito e o leitor não tem como saber qual dos dois um `❌` reprovou. Separar em
+> dois ids mexe no nome de casos em **dois** arquivos de teste — intent próprio, não escopo desta
+> onda. Fica registrado aqui para não virar "descoberta" futura.
+>
+> **Por que a coluna CU diz "só o gate":** a metade-gate atende o `CU-FISC-13` (gate de permissão
+> por sub-feature), e é isso que a tabela declara. A metade-superfície não atende CU nenhum —
+
+> rota `fiscal.acoes.nfe.retransmitir` registrada, assinatura `NfeService::retransmitir(int,int)` e os
+> Services no NfeBrasil. Isso **não** é o que o `CU-FISC-11` pede: preservação da nota antiga
+> (`[reg]` — `forceDelete()` nunca usado, CONFAZ SINIEF 07/2005 Art. 14) e recusa de status fora de
+> `{rejeitada, denegada, erro_envio}` (`[must]`). Ancorar aquele CU nesta linha fecharia a lacuna do
+> painel **sem lastro de comportamento** — a classe LC-11 (presença ≠ comportamento) que este projeto
+> persegue. Quem fecha o `CU-FISC-11` é o **`UC-FNFE-09`**, escrito para os dois itens dele — e com o
+> limite declarado ali: a invariante é provada **estaticamente**, o caminho de runtime segue no
+> backlog abaixo, porque nenhuma lane de hoje tem `nfe_emissoes`.
 
 ## UC-FNFE-01 — A contagem do cockpit nunca mostra nota de outro business (Tier 0)
 Status: 🧪 (`NfeCockpitMultiTenantTest::UC-FNFE-01 · global scope HasBusinessScope…` — **skipa** hoje, ver §recibo)
@@ -117,11 +183,33 @@ assinatura canônica, e a lógica de CC-e/inutilização mora nos Services do Nf
 Fiscal). Âncora: US-FISCAL-013/014.
 **Pronto quando:** os 5 métodos, a rota e os 2 Services existem com as assinaturas esperadas.
 
+## UC-FNFE-09 — Retransmitir preserva a nota antiga: nunca deleta, e só 3 status passam
+Status: 🧪 (`AcoesContratoTest::UC-FNFE-09 · PRESERVA a nota antiga` + `· whitelist de status vem do Service` — **novos**, ainda sem veredito de lane)
+Dado uma nota `rejeitada`/`denegada`/`erro_envio` · Quando o operador retransmite · Então a nota antiga
+**continua na tabela** — marcada `status='inutilizada'` com `transaction_id=null` (libera a UNIQUE
+biz+tx) e `metadata.original_transaction_id` preservando o vínculo — e uma nova é emitida com número
+novo. Nota em qualquer outro status é recusada antes de chamar o Service.
+Âncora: CU-FISC-11 do SDD §6.2 (os dois itens) + US-FISCAL-014 + **CONFAZ SINIEF 07/2005 Art. 14**
+(documento fiscal é imutável — remoção física é proibida).
+**Pronto quando:** o corpo de `NfeService::retransmitirInterno` não contém `forceDelete` / `->delete(`
+/ `::destroy(`, contém o `update` de preservação, e declara a whitelist exata dos 3 status usada num
+`in_array` que lança `InvalidArgumentException`.
+
+**Limite honesto — o que este UC NÃO prova.** A asserção é **estática**: ela lê o corpo do método de
+produção por reflection e verifica a invariante no fonte. Ela **não** exercita o runtime, porque não
+dá: tanto `AcoesController::retransmitir` quanto `NfeService::retransmitirInterno` fazem a query
+(`firstOrFail()` / `find()`) **antes** de checar o status, e `nfe_emissoes` não existe nem na lane
+SQLite do CI nem no staging do CT 100. O que ela garante é o que importa contra regressão silenciosa:
+trocar o `update` por um delete, ou mexer na whitelist, **derruba o caso**. A diferença para o
+`NfeServiceRetransmitirTest` (que segue no repo) é essa — lá a whitelist é declarada dentro do próprio
+teste, então ele continuaria verde se o Service mudasse; é a lápide §5 2026-06-05. O caso de runtime
+permanece declarado no backlog abaixo.
+
 ## Backlog de casos (sem id — entram quando um teste de COMPORTAMENTO os cobrir)
 
-- **[BACKLOG · ⬜ sem teste · Tier 0] Gate de permissão `fiscal.nfe.view` bloqueia a leitura da lista** — Dado usuário sem `fiscal.nfe.view` nem `superadmin` · Quando faz `GET /fiscal/nfe` · Então 403. O guard existe no `NfeCockpitController::index` e o charter (Goal 7) e o SPEC dão como coberto, mas **nenhum teste o exercita** — inclusive o docblock do `NfeCockpitMultiTenantTest` prometia esse caso e ele não existe. Precisa de lane com `users`+`permissions` (o teste de contrato daqui isola o gate justamente pra não depender delas).
+- **[~~BACKLOG~~ · 🧪 tem teste, NÃO executa · Tier 0] Gate de permissão `fiscal.nfe.view` bloqueia a leitura da lista** — Dado usuário sem `fiscal.nfe.view` nem `superadmin` · Quando faz `GET /fiscal/nfe` · Então 403. **Corrigido em 2026-09-01:** a redação anterior dizia *"nenhum teste o exercita"* e isso era **falso** — o caso existe em [`GatesPermissaoFiscalTest.php:72`](../../../../Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php), **com controle negativo** em `:79` (superadmin não recebe 403), e ancora `UC-FNFE-08`. O que é verdade é outra coisa, e a distinção importa: o arquivo inteiro **pula** (`:49-55`) em SQLite e sem `nfe_emissoes`, então o caso **não executa** em nenhuma lane de hoje. *Teste ausente* e *teste que não roda* pedem trabalhos diferentes — o primeiro é escrever, o segundo é dar lane ao módulo (o item de maior alavancagem do plano: 15 de 21 arquivos de teste do Fiscal chamam `markTestSkipped`).
 - **[BACKLOG · ⬜ sem teste] Lista deferida filtra por tab/status/busca com paginação 50** — `rows` é `Inertia::defer`; sem teste do payload filtrado (`buildRowsPayload`, ordem `emitido_em DESC`).
-- **[BACKLOG · ⬜ sem teste] Retransmitir só aceita nota `rejeitada`/`denegada`/`erro_envio`** — Dado nota em outro status · Quando pede retransmissão · Então volta com erro sem chamar o Service. **Não é testável sem banco**: no `AcoesController::retransmitir` a whitelist é checada **depois** do `firstOrFail()`, logo exige `nfe_emissoes` — indisponível nas duas lanes de hoje (ver §recibo). O caso que existia aqui assertava um array literal escrito no próprio teste e foi removido em 2026-07-28 (não defendia nada). Vira UC quando houver lane com as migrations do NfeBrasil.
+- **[BACKLOG · ⬜ sem teste] Retransmitir só aceita nota `rejeitada`/`denegada`/`erro_envio`** — Dado nota em outro status · Quando pede retransmissão · Então volta com erro sem chamar o Service. **Não é testável sem banco**: no `AcoesController::retransmitir` a whitelist é checada **depois** do `firstOrFail()`, logo exige `nfe_emissoes` — indisponível nas duas lanes de hoje (ver §recibo). O caso que existia aqui assertava um array literal escrito no próprio teste e foi removido em 2026-07-28 (não defendia nada). _Parcialmente coberto desde 2026-09-01 pelo `UC-FNFE-09`, que prova **estaticamente** que a whitelist do Service é exatamente essa e que ela rejeita — o que falta aqui é o caminho de **runtime**, e ele segue esperando lane com as migrations do NfeBrasil._
 - **[BACKLOG · ⬜ sem teste] Drawer: mapa "Jana sugere" por cstat rejeitado, atalhos J/K + Enter, pílula temporal na linha** — comportamento de UI; sem cobertura Feature nem E2E (a tela não aparece em `tests/Browser`).
 
 ## Como rodar a suíte
@@ -145,3 +233,10 @@ Fiscal). Âncora: US-FISCAL-013/014.
   tela `Fiscal/Dfe` (anotados por outra sessão enquanto este trabalho corria) — removê-los
   orfanaria UC de tela alheia. O comportamento real deles já é provado por `UC-FNFE-07`;
   re-apontar o DF-e pra lá é decisão do dono daquela tela. Nenhum UC perdeu lastro.
+- 2026-09-01 · [CC] Onda 1 Fiscal (saneamento `fx-*` → DS). `last_run` bumpado para 09-01 em duas
+  revalidações — a do flip do token `--fis` e a da troca de primitivas —, cada uma no MESMO commit
+  do `.tsx` que a motivou, para pegar a isenção por SHA do G-6 (a via por data reabre o staleness
+  no squash-merge seguinte). **Nenhum UC foi criado, alterado ou removido:** a onda é de camada de
+  apresentação, e os 8 UC assertam backend. O débito real deste arquivo continua o mesmo e está
+  declarado no §Backlog — em especial o gate de permissão `fiscal.nfe.view` (Tier 0, sem teste) e
+  o `UC-FNFE-01`, que segue skipando por falta de `nfe_emissoes` na lane.

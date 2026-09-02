@@ -55,6 +55,7 @@ on:
     branches: [main]
     paths:
       - 'Modules/Compras/**'
+      - 'resources/js/Pages/Compras/**'
       # Invariantes R1 (getListPurchases JOIN scoped) vivem no util compartilhado:
       # MultiTenantSqlGuardTest + GapsP1HardeningTest gateiam contra regressão aqui.
       - 'app/Utils/TransactionUtil.php'
@@ -95,6 +96,7 @@ jobs:
           filters: |
             compras:
               - 'Modules/Compras/**'
+              - 'resources/js/Pages/Compras/**'
               - 'app/Utils/TransactionUtil.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/compras-pest.yml'

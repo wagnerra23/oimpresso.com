@@ -41,6 +41,7 @@ on:
     branches: [main]
     paths:
       - 'Modules/Whatsapp/**'
+      - 'resources/js/Pages/Whatsapp/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/whatsapp-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -78,6 +79,7 @@ jobs:
           filters: |
             whatsapp:
               - 'Modules/Whatsapp/**'
+              - 'resources/js/Pages/Whatsapp/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/whatsapp-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
