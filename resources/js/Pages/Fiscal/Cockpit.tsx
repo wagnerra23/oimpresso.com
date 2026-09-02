@@ -11,6 +11,8 @@
 // Substitui o visual 6-KPI grid + quick links pelo padrão "Notas Fiscais"
 // (header chips + ribbon estreito + tabela unificada NF-e/NFC-e/NFS-e).
 
+import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, router } from '@inertiajs/react';
 import {
@@ -335,29 +337,31 @@ export default function Cockpit({
         ]}
         actions={
           <>
-            <button type="button" className="fx-chip-action" onClick={() => setEventosOpen(true)}>
+            <Button type="button" variant="cowork-ghost" onClick={() => setEventosOpen(true)}>
               <RefreshCw size={12} /> Eventos
-              {eventosMock.length > 0 && <span style={{ marginLeft: 4, fontSize: 10, fontWeight: 700, color: 'var(--fx-text-mute)' }}>{eventosMock.length}</span>}
-            </button>
-            <button
+              {eventosMock.length > 0 && (
+                <span className="ml-1 text-[10px] font-bold text-muted-foreground">{eventosMock.length}</span>
+              )}
+            </Button>
+            <Button
               type="button"
-              className="fx-chip-action"
+              variant="cowork-ghost"
               onClick={() => setContabilOpen(true)}
               disabled={!contabilData}
               title={contabilData ? 'Abrir fluxo de envio mensal' : 'Backend stub — TODO[CL]'}
             >
               <Archive size={12} /> Enviar p/ contabilidade
-            </button>
+            </Button>
             <div ref={emitirRef} className="fx-popmenu-wrap">
-              <button
+              <Button
                 type="button"
-                className="fx-chip-action primary"
+                variant="cowork-primary"
                 onClick={() => setEmitirOpen((v) => !v)}
                 aria-haspopup="menu"
                 aria-expanded={emitirOpen}
               >
                 <Plus size={12} /> Emitir <ChevronDown size={11} />
-              </button>
+              </Button>
               {emitirOpen && (
                 <div role="menu" className="fx-popmenu">
                   <button role="menuitem" className="fx-popmenu-item" onClick={() => { setEmitirOpen(false); goto('/fiscal/nfe'); }}>
@@ -406,9 +410,9 @@ export default function Cockpit({
             <small>Faturado fiscal</small>
             <b>{brl(kpis.faturamentoFiscal).replace('R$ ', 'R$ ')}</b>
           </span>
-          <button type="button" className="fx-ribbon-cta" onClick={() => goto('/fiscal/sped')}>
+          <Button type="button" variant="outline" size="xs" className="ml-auto shrink-0 self-center" onClick={() => goto('/fiscal/sped')}>
             Fechar mês →
-          </button>
+          </Button>
         </div>
 
         {/* Onda 3 L — Write-off auditoria mensal (só renderiza se houver candidatos) */}
@@ -416,13 +420,21 @@ export default function Cockpit({
 
         {/* Toolbar minimalista — search + 3 selects + density */}
         <div className="fx-notas-toolbar">
-          <div className="fx-search">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          {/* Espaço da lupa pela utilitária canon `.cw-input-icon-left`, NÃO `pl-*`:
+              a Tailwind é layered e perde pro `.cw-input` unlayered (cowork-fields.css). */}
+          <div className="relative min-w-[240px] flex-1">
+            <svg
+              width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+              aria-hidden="true"
+            >
               <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
             </svg>
-            <input
+            <Input
               type="search"
+              className="cw-input-icon-left"
               placeholder="Buscar nº, cliente, CNPJ, chave…"
+              aria-label="Buscar notas por número, cliente, CNPJ ou chave"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -493,10 +505,10 @@ export default function Cockpit({
         {selected.size > 0 && (
           <div className="fx-bulk-bar" role="region" aria-label="Ações em lote">
             <span><b>{selected.size}</b> nota{selected.size > 1 ? 's' : ''} selecionada{selected.size > 1 ? 's' : ''}</span>
-            <button type="button" className="fx-btn">Baixar XMLs (ZIP)</button>
-            <button type="button" className="fx-btn">Baixar DANFEs (PDF)</button>
-            <button type="button" className="fx-btn">Reenviar por e-mail</button>
-            <button type="button" className="fx-btn" onClick={() => setSelected(new Set())}>Limpar seleção</button>
+            <Button type="button" variant="cowork-ghost">Baixar XMLs (ZIP)</Button>
+            <Button type="button" variant="cowork-ghost">Baixar DANFEs (PDF)</Button>
+            <Button type="button" variant="cowork-ghost">Reenviar por e-mail</Button>
+            <Button type="button" variant="cowork-ghost" onClick={() => setSelected(new Set())}>Limpar seleção</Button>
           </div>
         )}
 

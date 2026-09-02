@@ -8,6 +8,8 @@
 // Forms apontam pros endpoints existentes /nfe-brasil/configuracao/certificado/*
 // (NfeBrasil CertificadoController) — zero duplicação de lógica backend.
 
+import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import type { PageProps } from '@inertiajs/core';
@@ -210,16 +212,16 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
         envTone={certTone === 'bad' ? 'bad' : certTone === 'warn' ? 'warn' : 'ok'}
         actions={
           certificado ? (
-            <button
+            <Button
               type="button"
-              className="fx-btn ghost"
+              variant="cowork-ghost"
               onClick={testarSefaz}
               disabled={testando}
               title="Pingar SEFAZ (cstat 107 esperado) — não emite NFe"
             >
               {testando ? <Loader2 size={12} className="animate-spin" /> : <PlugZap size={12} />}
               {testando ? 'Testando…' : 'Testar SEFAZ'}
-            </button>
+            </Button>
           ) : undefined
         }
       >
@@ -375,13 +377,13 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
               <small style={{ color: 'var(--fx-text-mute)' }}>
                 Atual: <code className="fx-mono">{painel.ambiente === 1 ? 'PRODUÇÃO' : 'HOMOLOGAÇÃO'}</code>
               </small>
-              <button
+              <Button
                 type="submit"
-                className="fx-btn ghost"
+                variant="cowork-ghost"
                 disabled={ambienteForm.processing || ambienteForm.data.ambiente === painel.ambiente}
               >
                 {ambienteForm.processing ? 'Salvando…' : 'Salvar ambiente'}
-              </button>
+              </Button>
             </div>
             {ambienteForm.errors.ambiente && (
               <small style={{ color: 'var(--bad)' }}>{ambienteForm.errors.ambiente}</small>
@@ -409,13 +411,12 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
                 <label htmlFor="certificado-file" style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--fx-text-mute)', marginBottom: 6 }}>
                   Arquivo .pfx / .p12 *
                 </label>
-                <input
+                <Input
                   id="certificado-file"
                   ref={fileRef}
                   type="file"
                   accept=".pfx,.p12"
                   onChange={(e) => uploadForm.setData('certificado', e.target.files?.[0] ?? null)}
-                  style={{ width: '100%', padding: '6px 8px', fontSize: 12, border: '1px solid var(--fx-border)', borderRadius: 6, background: 'white' }}
                 />
                 <small style={{ color: 'var(--fx-text-mute)', fontSize: 11 }}>Máximo 100 KB. A3 (token) não é suportado.</small>
                 {uploadForm.errors.certificado && (
@@ -427,14 +428,13 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
                   <KeyRound size={11} style={{ verticalAlign: 'text-bottom', marginRight: 4 }} />
                   Senha do certificado *
                 </label>
-                <input
+                <Input
                   id="certificado-senha"
                   type="password"
                   value={uploadForm.data.senha}
                   onChange={(e) => uploadForm.setData('senha', e.target.value)}
                   autoComplete="off"
                   maxLength={80}
-                  style={{ width: '100%', padding: '6px 8px', fontSize: 12, border: '1px solid var(--fx-border)', borderRadius: 6 }}
                 />
                 <small style={{ color: 'var(--fx-text-mute)', fontSize: 11 }}>Encrypted-at-rest (Laravel encrypt) · nunca em log.</small>
                 {uploadForm.errors.senha && (
@@ -443,9 +443,9 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button
+              <Button
                 type="submit"
-                className="fx-btn primary"
+                variant="cowork-primary"
                 disabled={uploadForm.processing || !uploadForm.data.certificado || !uploadForm.data.senha}
               >
                 {uploadForm.processing
@@ -453,7 +453,7 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
                   : certificado
                     ? 'Substituir certificado'
                     : 'Enviar certificado'}
-              </button>
+              </Button>
             </div>
           </form>
         </section>
@@ -500,7 +500,9 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
               <FileText size={20} />
               <b>Nenhuma série fiscal cadastrada</b>
               <small>Séries NFe (modelo 55) e NFCe (modelo 65) são configuradas em NfeBrasil/business.numero_serie_nfe.</small>
-              <a href="/nfe-brasil/configuracao/series" className="fx-btn ghost" style={{ marginTop: 12 }}>Configurar em NfeBrasil</a>
+              <Button asChild variant="cowork-ghost" className="mt-3">
+                <a href="/nfe-brasil/configuracao/series">Configurar em NfeBrasil</a>
+              </Button>
             </div>
           ) : (
             <section className="fx-cert-card">
@@ -561,9 +563,11 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
               </div>
             </div>
             <div style={{ marginTop: 14 }}>
-              <a href="/fiscal/sped" className="fx-btn primary">
-                <Archive size={12} /> Abrir gerador SPED
-              </a>
+              <Button asChild variant="cowork-primary">
+                <a href="/fiscal/sped">
+                  <Archive size={12} /> Abrir gerador SPED
+                </a>
+              </Button>
             </div>
           </section>
         )}

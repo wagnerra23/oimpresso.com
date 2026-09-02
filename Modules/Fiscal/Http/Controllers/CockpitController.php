@@ -71,6 +71,20 @@ class CockpitController extends Controller
             // derivam da MESMA lista, então chip e tabela concordam por construção.
             // Sem emissão real, a lista vem vazia e o empty state da Page assume.
             'notas'       => $notas,
+            // HOTFIX 2026-09-02 — produção ficou com TELA PRETA por ~1h depois do #6541.
+            // Causa medida no ar: o backend subiu servindo `notas`, mas os assets do Vite
+            // NÃO foram rebuildados — `Cockpit-CCw9ixg9.js` em prod ainda continha
+            // `notasMock`. O bundle antigo lia `props.notasMock`, recebia undefined, e o
+            // `useMemo` com `.find()` derrubava a Page inteira.
+            //
+            // Renomear prop que atravessa backend↔frontend só é seguro quando os dois
+            // lados sobem juntos. Enquanto não houver garantia disso, servir os DOIS
+            // nomes é o que torna o rename atômico do ponto de vista do cliente.
+            //
+            // Remover quando: (a) o build em prod não contiver mais `notasMock` — confira
+            // com `curl -s <asset-url> | grep -c notasMock` — e (b) o deploy passar a
+            // rebuildar assets no mesmo passo do PHP.
+            'notasMock'   => $notas,
             'savedViewCounts' => $notasService->contadores($notas),
             'sefazStatus'    => $this->mockSefazStatus(),
             // Onda 2 — drawers do header (Eventos + Enviar p/ contabilidade)
