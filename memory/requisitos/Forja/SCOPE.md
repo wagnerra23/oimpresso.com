@@ -85,6 +85,8 @@ url_prefixes:
   - /ads/admin/team-scopes/*
   - /ads/admin/projects/*
   - (futuro) /project/* — após Fase 3.9 (rename pra Project quando legado for deletado)
+  - /api/cc/*
+  - /api/mcp/* (co-provido por Modules/KB)
 db_tables_owned:
   - mcp_jira_projects
   - mcp_epics

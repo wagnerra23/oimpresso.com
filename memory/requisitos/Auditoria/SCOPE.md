@@ -26,6 +26,7 @@ related_adrs:
   - 0094-constituicao-v2-7-camadas-8-principios
 url_prefixes:
   - /auditoria/*
+  - /reports/activity-log (rota legacy — 301 pra /auditoria)
 drift_alerts: []
 ---
 

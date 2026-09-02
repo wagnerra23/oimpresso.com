@@ -58,6 +58,8 @@ url_prefixes:
   - /whatsapp/*
   - /atendimento/*
   - /feedback/*
+  - /api/atendimento/*
+  - /api/whatsapp/* (webhook Meta Cloud)
 drift_alerts: []
 ---
 

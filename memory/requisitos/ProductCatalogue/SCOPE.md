@@ -19,6 +19,8 @@ related_adrs:
   - 0080-trust-tiers-operacional-audit-findings
 url_prefixes:
   - /product-catalogue/* (catalogue-qr + install)
+  - /catalogue/* (catalogo publico por business)
+  - /show-catalogue/* (catalogo publico por business)
 drift_alerts: []
 ---
 

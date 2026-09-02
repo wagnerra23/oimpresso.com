@@ -33,7 +33,10 @@ related_adrs:
   - 0061-conhecimento-canonico-git-mcp-zero-automem
 url_prefixes:
   - /kb/*
-  - /copiloto/admin/memoria/* (legacy — vai virar /kb/memoria/* na Fase 3.7 com 301 redirect)
+  - /copiloto/admin/memoria/* (legacy — 301 pra /kb já aplicado; quem serve é Modules/Jana, routes.php:263)
+  - /sops/* (SOP publico — print-sop)
+  - /api/kb/*
+  - /api/mcp/* (co-provido por Modules/Forja)
 db_tables_owned:
   - mcp_memory_documents (sync git → DB via webhook — bridge read-only fotografia git)
   - mcp_memory_documents_history
