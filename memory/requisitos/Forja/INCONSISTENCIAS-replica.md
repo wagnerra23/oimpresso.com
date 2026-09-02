@@ -6,7 +6,7 @@
 > **Gerado por máquina** — não edite contagem; mude só `status`/`nota` no JSON em
 > `governance/replica-inconsistencias/forja.json` e regenere.
 >
-> Gerado em 2026-09-02 · comando: `node scripts/governance/replica-inconsistencias.mjs --modulo Forja --prototipo …` · **99 aberta(s)** de 99.
+> Gerado em 2026-09-02 · comando: `node scripts/governance/replica-inconsistencias.mjs --modulo Forja --prototipo …` · **100 aberta(s)** de 100.
 > `origem = aplicado` mede o que está no repo; `origem = prototipo` mede o que VAI entrar quando a onda copiar o JSX.
 
 | status | regra | arquivo | contagem | exemplo | dono da regra | origem |
@@ -109,6 +109,7 @@
 | 🔴 aberta | `FONTRAMP` | `prototipo-ui/cowork/forja-page.css` | 291 | font-size:10.5px · font-size:12px · font-size:11px | conformance-gate (.fontramp-baseline.json) | prototipo |
 | 🔴 aberta | `IMPORTANT` | `prototipo-ui/cowork/forja-page.css` | 2 |  | stylelint declaration-no-important | prototipo |
 | 🔴 aberta | `HEX-CSS` | `prototipo-ui/cowork/forja-page.css` | 6 | #fff | stylelint color-no-hex | prototipo |
+| 🔴 aberta | `SINTAXE` | `prototipo-ui/cowork/forja-page.css` | 1 | linha 761 (-1) | build do Vite (@tailwindcss/vite) | prototipo |
 | 🔴 aberta | `PALETA` | `prototipo-ui/cowork/forja-page.css` | 1 | --dev-*(4) | prototipo-ui/ds-guard.mjs | prototipo |
 
 ## Soluções por regra (a receita que [W] pediu)
@@ -122,6 +123,7 @@
 | `IMPORTANT` | fonte | sim (na fonte) | subir a especificidade do seletor em vez de !important; 2 ocorrências, pedir ao [CC]. |
 | `HEX-CSS` | fonte | sim (na fonte) | #fff → var(--accent-fg) / var(--surface) conforme o papel; 6 ocorrências, pedir ao [CC]. |
 | `FLEX-CRU` | missão | não precisa | as telas antigas usam Tailwind `flex`/`grid` cru; a réplica troca por classes do bundle (`.fj-row`, `.fj-toolbar`…) e o item some. Nas 8 telas /project-mgmt/* some pela revogação. NÃO refatorar pra Stack/Inline antes da onda — seria pagar 2×. |
+| `SINTAXE` | fonte | sim (na fonte) | o navegador tolera `)` sobrando, o parser do Tailwind v4 no build do Vite derruba o build inteiro (medido 2026-09-02, forja-page.css:778). Consertar no protótipo; enquanto não desce, desvio de 1 byte DECLARADO no cabeçalho do bundle. |
 | `PALETA` | fonte (DS) | sim | promover --dev/--dev-soft/--dev-line a token do DS (`--origin-DEV*`) no SSOT `resources/css/tokens/semantic.tokens.json` + `npm run tokens:build`; o bundle passa a consumir var() e o ds-guard para de ver família própria. É token novo = decisão [W] (FORJA-137). |
 
 ## Como fechar um item

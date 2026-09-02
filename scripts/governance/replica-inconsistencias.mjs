@@ -72,9 +72,8 @@ const DET = [
   { id: 'FLEX-CRU', nome: 'flex/grid cru em className (sem Stack/Inline/Grid)', dono: 'layout-primitives-guard.mjs', ext: /\.(tsx|jsx)$/,
     conta: (t) => (t.match(/className=["'`][^"'`]*\b(flex|grid)\b(?!-)/g) || []).length, exemplo: () => '' },
   { id: 'SINTAXE', nome: 'parênteses/chaves desbalanceados (o navegador tolera, o Tailwind v4 do Vite NÃO — "Missing opening (")', dono: 'build do Vite (@tailwindcss/vite)', ext: /\.css$/,
-    conta: (t) => { const c = t.replace(/\/\*[\s\S]*?\*\//g, ''); const n = (ch) => (c.match(new RegExp('\' + ch, 'g')) || []).length; return (n('(') !== n(')') ? 1 : 0) + (n('{') !== n('}') ? 1 : 0); },
-    exemplo: (t) => { const c = t.replace(/\/\*[\s\S]*?\*\//g, ''); const bad = c.split('
-').map((l, i) => [i + 1, (l.match(/\(/g) || []).length - (l.match(/\)/g) || []).length]).filter(([, d]) => d !== 0).slice(0, 3); return bad.map(([ln, d]) => `linha ${ln} (${d > 0 ? '+' : ''}${d})`).join(' · '); } },
+    conta: (t) => { const c = t.replace(/\/\*[\s\S]*?\*\//g, ''); const n = (ch) => c.split(ch).length - 1; return (n('(') !== n(')') ? 1 : 0) + (n('{') !== n('}') ? 1 : 0); },
+    exemplo: (t) => { const c = t.replace(/\/\*[\s\S]*?\*\//g, ''); const bad = c.split(/\r?\n/).map((l, i) => [i + 1, (l.match(/\(/g) || []).length - (l.match(/\)/g) || []).length]).filter(([, d]) => d !== 0).slice(0, 3); return bad.map(([ln, d]) => `linha ${ln} (${d > 0 ? '+' : ''}${d})`).join(' · '); } },
   { id: 'PALETA', nome: 'família de tokens de cor com prefixo próprio (>=4)', dono: 'prototipo-ui/ds-guard.mjs', ext: /\.css$/,
     conta: (t, f) => {
       try {

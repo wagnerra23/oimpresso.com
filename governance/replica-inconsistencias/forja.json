@@ -1,6 +1,6 @@
 {
   "modulo": "Forja",
-  "gerado_em": "2026-09-02T12:36:05.048Z",
+  "gerado_em": "2026-09-02T12:41:03.476Z",
   "comando": "node scripts/governance/replica-inconsistencias.mjs --modulo Forja --prototipo …",
   "arquivos_medidos": 40,
   "itens": [
@@ -1273,6 +1273,19 @@
       "arquivo": "prototipo-ui/cowork/forja-page.css",
       "contagem": 6,
       "exemplo": "#fff",
+      "origem": "prototipo",
+      "status": "aberta",
+      "nota": "",
+      "aberta_em": "2026-09-02"
+    },
+    {
+      "id": "SINTAXE:prototipo-ui/cowork/forja-page.css",
+      "regra": "SINTAXE",
+      "nome": "parênteses/chaves desbalanceados (o navegador tolera, o Tailwind v4 do Vite NÃO — \"Missing opening (\")",
+      "dono": "build do Vite (@tailwindcss/vite)",
+      "arquivo": "prototipo-ui/cowork/forja-page.css",
+      "contagem": 1,
+      "exemplo": "linha 761 (-1)",
       "origem": "prototipo",
       "status": "aberta",
       "nota": "",
