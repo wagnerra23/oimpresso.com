@@ -28,6 +28,11 @@
 // (`/forja/integrador`, `ForjaIntegrador`).
 
 import { Link } from '@inertiajs/react';
+// O bundle do protótipo (Onda 1) vive AQUI, não no Cockpit: cada Page do hub é um chunk do Vite,
+// e só o import no componente compartilhado garante o CSS em Aprovações, Trabalho, Gantt,
+// Scorecard e CcSessions. Medido no .snap regenerado em 2026-09-02: sem isto o header de
+// /forja/aprovacoes renderizava como texto empilhado.
+import '../../../../../../../../resources/css/cowork-forja-bundle.css';
 import { Activity, Bell, Gavel, History, ListChecks, Plug, Plus, Search, ShieldCheck } from 'lucide-react';
 
 const COCKPIT_SUBTITLE =

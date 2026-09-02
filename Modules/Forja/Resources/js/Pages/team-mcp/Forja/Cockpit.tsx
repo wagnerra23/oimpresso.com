@@ -10,9 +10,9 @@
 // Projeta estado que JÁ existe (mcp_tasks + git/PR/ADR/sessão + gates) — sem dado fantasma.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-// Bundle CSS do prototipo (forja-page.css, copia integral — PARIDADE §11 Onda 1). As classes
-// fj-/ap-/tf- entram aqui para TODAS as rotas do Cockpit; as views passam a usa-las onda a onda.
-import '../../../../../../../resources/css/cowork-forja-bundle.css';
+// Bundle CSS do protótipo: importado pelo <ForjaHub> (Onda 2), que é o componente que TODAS as
+// Pages do hub renderizam — importar aqui deixava Aprovações/Trabalho/Gantt (chunks separados)
+// sem o CSS: medido no .snap de 2026-09-02, header empilhado como texto cru.
 import { Deferred } from '@inertiajs/react';
 import { type ReactNode } from 'react';
 import ForjaHub from './_components/ForjaHub';
