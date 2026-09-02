@@ -177,6 +177,33 @@ e misturá-las aqui quebraria "1 PR = 1 intent". **Fica nomeado, como a UI-0021 
   `cockpit-dark` saiu de **diverge:4** para **diverge:0**. Os 3 tokens novos entraram à mão porque o
   `ds-mirror-build.mjs` só reconcilia valor — acrescentar token ele delega ao humano, de propósito.
 
+## Uma exceção que esta ADR APAGA — a paleta da documentação
+
+A página `/documentacao` é editorial e standalone: não carrega o CSS do app, então espelha os tokens do
+DS no `:root` do próprio layout, com um teste (`DocumentacaoRouteTest`) travando o espelho contra
+`_generated-cockpit-*.css`. No escuro ela mantinha uma **divergência declarada**: `--accent` local em
+`oklch(0.74 0.13 295)` em vez do valor do DS. O comentário dela dizia por quê — *"o DS não redeclara
+`--accent` no dark, então ele herda oklch(0.55 …) (…) 0.55 sobre papel escuro fica abaixo do contraste de
+leitura"* — e o teste terminava com um lembrete literal:
+
+> `expect($dsEscuro)->not->toHaveKey('--accent');` — *"Se um dia o DS passar a declarar accent no dark,
+> esta linha vira o lembrete de reconciliar conscientemente."*
+
+**Esta ADR fez esse dia chegar, e o lembrete disparou** (o teste caiu no CI, que foi como se soube).
+A reconciliação: **a causa da exceção acabou**, então a exceção acabou junto. Medido nesta sessão sobre o
+papel da página (`oklch(0.26 0.006 240)`), pela fórmula de contraste WCAG:
+
+| `--accent` no escuro | contraste sobre o papel | veredito |
+|---|---|---|
+| herdado antigo, `0.55` | **3,02** | reprova AA (4,5) — **era exatamente o problema** |
+| exceção local, `0.74` | 6,49 | passava |
+| **DS novo (UI-0030), `0.70`** | **5,55** | **passa AA** |
+
+Como o par escuro novo já é calibrado para fundo escuro, o layout voltou a ser **paridade pura** com o DS
+nos dois temas, e o teste passou a cobrar `--accent` junto dos outros (com uma mensagem que avisa se o DS
+um dia parar de declará-lo). Um caso concreto do que a UI-0021 pagou adiantado: exceção local existe
+enquanto a fundação não resolve; resolvida a fundação, a exceção sai.
+
 ## Correção de premissa (registrada porque o plano desta onda a carregava)
 
 O plano previa que remover o override da Forja faria **o item `PALETA` sumir** de

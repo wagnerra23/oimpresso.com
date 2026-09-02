@@ -32,21 +32,25 @@
     --sans:"IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
     --mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
   }
-  /* DIVERGÊNCIA CONSCIENTE no escuro — o DS não redeclara `--accent` no dark, então ele
-     herda oklch(0.55 …), que no ERP é fundo de botão (texto branco por cima). Aqui o accent
-     é COR DE LINK dentro de parágrafo: 0.55 sobre papel escuro fica abaixo do contraste de
-     leitura. Sobe pra 0.74 — mesmo hue 295, mesma família. Não é drift; é o mesmo token
-     aplicado a um uso que o DS não cobre. */
+  /* RECONCILIADO em 2026-09-02 (ADR UI-0030) — a divergência acabou porque a CAUSA dela
+     acabou. Ela dizia: "o DS não redeclara `--accent` no dark, então ele herda oklch(0.55 …)
+     (…) 0.55 sobre papel escuro fica abaixo do contraste de leitura. Sobe pra 0.74". O DS
+     passou a declarar `--accent` no escuro em oklch(0.70 0.15 295) — valor calibrado PRA
+     fundo escuro, vindo do protótipo Cowork. Medido nesta reconciliação, sobre este papel
+     (oklch(0.26 0.006 240)): herdado 0.55 = 3.02 (reprova AA, que era o problema) ·
+     0.74 = 6.49 · DS novo 0.70 = 5.55 (passa o AA de 4.5 para texto normal).
+     Adotamos o do DS: mantém a leitura confortável e apaga uma exceção cuja razão sumiu.
+     O par `--accent-bg` segue o `--accent-soft` do DS, que foi de 0.32 0.06 pra 0.33 0.09. */
   @media (prefers-color-scheme: dark) {
     :root { --paper:oklch(0.26 0.006 240); --surface:oklch(0.23 0.006 240);
       --ink:oklch(0.94 0.005 90); --ink-soft:oklch(0.72 0.005 90); --ink-mute:oklch(0.58 0.005 90);
       --rule:oklch(0.34 0.008 240); --rule-soft:oklch(0.31 0.008 240);
-      --accent:oklch(0.74 0.13 295); --accent-bg:oklch(0.32 0.06 295); }
+      --accent:oklch(0.70 0.15 295); --accent-bg:oklch(0.33 0.09 295); }
   }
   :root[data-theme="dark"]{--paper:oklch(0.26 0.006 240);--surface:oklch(0.23 0.006 240);
     --ink:oklch(0.94 0.005 90);--ink-soft:oklch(0.72 0.005 90);--ink-mute:oklch(0.58 0.005 90);
     --rule:oklch(0.34 0.008 240);--rule-soft:oklch(0.31 0.008 240);
-    --accent:oklch(0.74 0.13 295);--accent-bg:oklch(0.32 0.06 295);}
+    --accent:oklch(0.70 0.15 295);--accent-bg:oklch(0.33 0.09 295);}
   :root[data-theme="light"]{--paper:oklch(0.985 0.003 90);--surface:oklch(0.965 0.004 90);
     --ink:oklch(0.22 0.01 80);--ink-soft:oklch(0.50 0.01 80);--ink-mute:oklch(0.65 0.01 80);
     --rule:oklch(0.90 0.004 90);--rule-soft:oklch(0.93 0.004 90);
