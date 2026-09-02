@@ -36,7 +36,8 @@ related_adrs:
   - 0079-constituicao-oimpresso-7-camadas-governanca
   - 0080-trust-tiers-operacional-audit-findings
 url_prefixes:
-  - /nfebrasil/*
+  - /nfe-brasil/* (operacional — configuracao · contingencia · tributacao · api · transactions · inutilizacoes · manifestacao + raiz)
+  - /nfebrasil/* (install do módulo + resource nfebrasil)
 drift_alerts: []
 ---
 
