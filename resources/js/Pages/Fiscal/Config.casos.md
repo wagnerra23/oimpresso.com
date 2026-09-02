@@ -61,6 +61,7 @@ related_us: [US-FISCAL-009]
 | UC-FCFG-01 | segredo do certificado não viaja | `[must]` `[T0]` | CU-FISC-14 | `ConfigControllerTest` | 🧪 |
 | UC-FCFG-02 | certificado de outro business não aparece | `[must]` `[T0]` | CU-FISC-12 | `ConfigControllerTest` | 🧪 |
 | UC-FCFG-03 | gate de permissão da tela | `[must]` `[T0]` | CU-FISC-13 | `GatesPermissaoFiscalTest` | 🧪 |
+| UC-FCFG-04 | estado da contingência e sua DURAÇÃO chegam do servidor | `[must]` | US-NFE-006 | `ConfigControllerTest` | 🧪 |
 
 ---
 
@@ -94,6 +95,26 @@ related_us: [US-FISCAL-009]
 - **Âncora de contrato:** `R-FISCAL-003` do [SPEC.md](../../../../memory/requisitos/Fiscal/SPEC.md) §3 + guard em `ConfigController@index`.
 - **Regressão que defende:** esta tela mostra CNPJ titular, regime, numeração fiscal e o ambiente SEFAZ em uso — e, hoje, **oferece dois formulários de mutação** (ver aviso acima). O gate é a única barreira.
 - **Teste:** `Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php` — `it('UC-FCFG-03 · GET /fiscal/config aborta 403 sem fiscal.config.edit nem superadmin')`
+- **Status:** 🧪 teste nasce nesta corrida; veredito pendente.
+
+---
+
+## UC-FCFG-04 — O estado da contingência e sua DURAÇÃO chegam do servidor `[must]`
+
+**Dado** um business com a contingência SEFAZ ativa há 3 dias, com motivo declarado
+**Quando** a tela `/fiscal/config` é montada
+**Então** o payload traz `ativa=true`, `diasAtiva=3`, o motivo e o instante de ativação;
+**E** com a contingência desligada, `diasAtiva` é `null` — **nunca `0`**.
+
+- **Âncora de contrato:** `US-NFE-006` + `ADR TECH-0002 (NfeBrasil)` §"Consequências → risco
+  operacional", que mitiga *"tenant esquecer de desativar contingência"* com um aviso de **duração**
+  (*"Contingência ATIVA há 2 dias — desativar?"*).
+- **Regressão que defende:** duas, e a segunda é sutil.
+  1. Calcular a duração **no browser** faria o aviso depender do relógio da máquina do operador —
+     e é justamente esse número que sustenta a mitigação da ADR.
+  2. Exibir `0` quando está **desligada** confundiria "ligada hoje" com "não ligada". São estados
+     diferentes; o controle negativo do teste trava isso.
+- **Teste:** `Modules/Fiscal/Tests/Feature/ConfigControllerTest.php` — `it('UC-FCFG-04 · o payload da tela carrega o estado da contingência com a duração vinda do SERVIDOR')`
 - **Status:** 🧪 teste nasce nesta corrida; veredito pendente.
 
 ---

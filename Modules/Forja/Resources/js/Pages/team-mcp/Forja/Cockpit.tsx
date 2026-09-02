@@ -32,6 +32,8 @@ import ForjaHandoffs, {
 } from './_components/ForjaHandoffs';
 // Integrador — view `integra` do protótipo, nasce na Onda 2 (PARIDADE §11): estática por construção.
 import ForjaIntegrador from './_components/ForjaIntegrador';
+// Saúde — view `saude` do protótipo, nasce na Onda 7 (PARIDADE §11): dado real (scorecard + tasks).
+import ForjaSaude, { type SaudeData } from './_components/ForjaSaude';
 
 interface Meta {
   generated_at: string;
@@ -50,6 +52,7 @@ interface Props {
   changelog?: ChangelogEntry[];
   handoffs?: HandoffItem[];
   heartbeat?: HeartbeatInfo;
+  saude?: SaudeData;
 }
 
 function ForjaCockpit({
@@ -62,6 +65,7 @@ function ForjaCockpit({
   changelog,
   handoffs,
   heartbeat,
+  saude,
 }: Props) {
   const loading = (txt: string) => (
     <div className="mt-4 inline-flex w-full items-center justify-center rounded-lg border border-dashed py-16 text-sm text-muted-foreground">
@@ -74,12 +78,17 @@ function ForjaCockpit({
       <ForjaHub active={tab} triagemCount={triagemCount} />
 
       {/* Abas-réplica trazem o próprio padding do protótipo no root (`.fj-mcp` =
-          `18px 32px 40px`, idêntico ao `.fj-integra`); somar o `px-6 pt-4` do wrapper
-          daria 56px de recuo onde o protótipo tem 32px. Só `mcp` entra aqui — o
-          integrador recebe o mesmo tratamento na sua onda (§11 Onda 10). */}
+          `18px 32px 40px`, idêntico a `.fj-integra` e `.fj-saude`); somar o `px-6 pt-4`
+          do wrapper daria 56px de recuo onde o protótipo tem 32px.
+          Só `mcp` está na condicional: `saude` (Onda 7) e `integrador` (Onda 2) têm o
+          mesmo padding próprio no bundle e receberiam o mesmo tratamento, mas tirá-los
+          do wrapper agora mudaria o layout de telas de OUTRAS ondas — já medidas e
+          mergeadas — sem medição nova. Cada uma entra na sua onda de compare. */}
       <section className={tab === 'mcp' ? '' : 'px-6 pt-4'} data-testid={`forja-tab-${tab}`}>
-        {/* Intro da aba (texto-âncora). Triagem renderiza o seu próprio; MCP tem banner. */}
-        {tab !== 'triagem' && tab !== 'mcp' && tab !== 'integrador' && (
+        {/* Intro da aba (texto-âncora). Triagem renderiza o seu próprio; MCP tem banner.
+            Saúde entrou nesta lista na Onda 7: a view do protótipo abre com o seu próprio
+            `fj-mcp-intro`, e manter o parágrafo genérico daria DOIS textos de abertura. */}
+        {tab !== 'triagem' && tab !== 'mcp' && tab !== 'integrador' && tab !== 'saude' && (
           <p className="text-xs leading-relaxed text-muted-foreground">{subtitle}</p>
         )}
 
@@ -112,6 +121,11 @@ function ForjaCockpit({
           </Deferred>
         )}
         {tab === 'integrador' && <ForjaIntegrador />}
+        {tab === 'saude' && (
+          <Deferred data={['saude']} fallback={loading('saúde')}>
+            <ForjaSaude saude={saude} />
+          </Deferred>
+        )}
       </section>
     </>
   );
