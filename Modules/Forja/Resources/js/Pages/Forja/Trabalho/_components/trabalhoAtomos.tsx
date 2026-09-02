@@ -153,24 +153,6 @@ export function Pin({ on, onClick }: { on: boolean; onClick: () => void }) {
   );
 }
 
-/**
- * `EpicRoll` — uma barra por sub-issue, colorida pela FASE; `n/N` = quantas
- * chegaram a F4. Só aparece em quem tem filhos (`epic_id` apontando pra cá).
- */
-export function EpicRoll({ kids }: { kids: { task_id: string; display_id: string; forja_fase: string | null }[] }) {
-  const done = kids.filter((k) => k.forja_fase === 'F4').length;
-  return (
-    <span className="fj-epic-roll" title={`${kids.length} sub-issues · ${done} em F4`}>
-      <span className="fj-epic-bars">
-        {kids.map((k) => (
-          <i key={k.task_id} style={{ background: `oklch(0.58 0.13 ${FASE_HUE[k.forja_fase ?? ''] ?? 250})` }} title={`${k.display_id} · ${k.forja_fase ?? 'sem fase'}`} />
-        ))}
-      </span>
-      <span className="fj-epic-n">{done}/{kids.length}</span>
-    </span>
-  );
-}
-
 /** Chevron do cabeçalho de grupo — gira quando o grupo colapsa. */
 export function GroupChevron({ colapsado }: { colapsado: boolean }) {
   return (

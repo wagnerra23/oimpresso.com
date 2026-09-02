@@ -13,13 +13,22 @@
 // a produção mostrava três. Cada slot abaixo é dado REAL de `mcp_tasks` — nenhum
 // é preenchido com valor de exemplo:
 //
-//   indent/chevron  epic_id (quem tem filho expande)   prio-dot   priority
+//   recuo           (slot fixo — ver abaixo)           prio-dot   priority
 //   id              display_id                          tipo       forja_tipo ?? type
 //   título          title                               tam        estimate_h / story_points
-//   epic-roll       filhos por epic_id                  vínculos   blocked_by
-//   módulo          module                              cadeado    is_blocked / blocked_by
-//   fase/status     forja_fase ?? status                dono       forja_papel ?? owner
-//   pin · estrela   localStorage do próprio viewer (é o que o protótipo faz)
+//   vínculos        blocked_by                          módulo     module
+//   cadeado         is_blocked / blocked_by             fase/stat  forja_fase ?? status
+//   dono            forja_papel ?? owner                pin/★      localStorage do viewer
+//
+// ── O ÉPICO QUE NÃO EXISTE (erro meu, corrigido antes do merge) ─────────────
+// A 1ª versão desta lista tinha o chevron de sub-issues e o `EpicRoll` do
+// protótipo, indexando as tarefas por `epic_id`. Estava ERRADO e teria ficado
+// mudo pra sempre: em `mcp_tasks`, `epic_id` é FK pra **`McpEpic`**
+// (`belongsTo(McpEpic::class)`, McpTask.php:230) — uma entidade OUTRA, não outra
+// task. No protótipo o pai é um issue da MESMA lista (`kidsOf[issue.id]`), então
+// a hierarquia que ele desenha simplesmente não tem equivalente aqui.
+// Derivar do NOME do campo em vez de abrir a relação é a classe LC-08; o slot
+// vira o recuo fixo, que é o que o protótipo mostra em linha sem filhas.
 //
 // ── OS DOIS SLOTS QUE NÃO VIERAM, e por que não é esquecimento ──────────────
 //   `carry ×N`  — quantas vezes a issue foi carregada de onda encerrada. Exige
@@ -39,14 +48,14 @@
 // afordância falsa — a classe LC-15 do ledger. Fica declarado no charter e na
 // lista de inconsistências, não escondido.
 
-import { useCallback, useMemo } from 'react';
+
 // Tipos canônicos do vocabulário de task — os mesmos que o Quadro e o Board
 // usam. Sem eles a lista teria `string` solto e o cast pro `<TrabalhoQuadro>`
 // viraria `as never`, que é esconder divergência de contrato em vez de tê-la.
 import type { Status } from '@/Components/board/badges';
 import type { Priority } from '@/Lib/taskTokens';
 import {
-  EpicRoll, GroupChevron, LockIco, OwnerSeal, PhaseBadge, Pin, PrioDot, Star, StatusPill, TypeChip, VincChip,
+  GroupChevron, LockIco, OwnerSeal, PhaseBadge, Pin, PrioDot, Star, StatusPill, TypeChip, VincChip,
 } from './trabalhoAtomos';
 
 export interface TarefaLista {
@@ -68,7 +77,6 @@ export interface TarefaLista {
   forja_papel: string | null;
   forja_onda: string | null;
   frente_id: number | null;
-  epic_id?: number | string | null;
 }
 
 interface Props {
@@ -78,8 +86,6 @@ interface Props {
   denso: boolean;
   colapsados: Set<string>;
   onColapsar: (g: string) => void;
-  expandidos: Set<string>;
-  onExpandir: (id: string) => void;
   favoritos: Set<string>;
   onFavoritar: (id: string) => void;
   fixados: Set<string>;
@@ -91,30 +97,9 @@ interface Props {
 }
 
 export default function TrabalhoLista({
-  tarefas, grupos, denso, colapsados, onColapsar, expandidos, onExpandir,
+  tarefas, grupos, denso, colapsados, onColapsar,
   favoritos, onFavoritar, fixados, onFixar, agents, faseLabel,
 }: Props) {
-  /**
-   * Filhos por épico — o `EpicRoll` e o chevron de expansão precisam saber
-   * quem tem sub-issue. `epic_id` já vem serializado; a indexação é O(n) e
-   * roda uma vez por render de lista, não por linha.
-   */
-  const filhosPorEpico = useMemo(() => {
-    const mapa = new Map<string, TarefaLista[]>();
-    for (const t of tarefas) {
-      if (t.epic_id == null || t.epic_id === '') continue;
-      const chave = String(t.epic_id);
-      const atual = mapa.get(chave);
-      if (atual) atual.push(t); else mapa.set(chave, [t]);
-    }
-    return mapa;
-  }, [tarefas]);
-
-  const filhosDe = useCallback(
-    (t: TarefaLista) => filhosPorEpico.get(String(t.task_id)) ?? filhosPorEpico.get(String(t.display_id)) ?? [],
-    [filhosPorEpico],
-  );
-
   return (
     <div className={'fj-list' + (denso ? ' compact' : '')} data-testid="trabalho-lista">
       {grupos.map(([g, itens]) => {
@@ -131,21 +116,13 @@ export default function TrabalhoLista({
             </div>
 
             {!colapsado && itens.map((t) => {
-              const kids = filhosDe(t);
-              const temKids = kids.length > 0;
-              const aberto = expandidos.has(t.task_id);
               const tam = t.estimate_h != null ? `${t.estimate_h}h` : t.story_points != null ? `${t.story_points}sp` : null;
               return (
                 <div key={t.task_id} className={'fj-row' + (fixados.has(t.task_id) ? ' pinned' : '')} data-testid="trabalho-linha">
-                  {temKids
-                    ? (
-                      <button type="button" className="fj-epic-chev" aria-expanded={aberto} aria-label="Expandir sub-issues"
-                        onClick={(e) => { e.stopPropagation(); onExpandir(t.task_id); }}
-                        style={{ transform: aberto ? 'none' : 'rotate(-90deg)' }}>
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d="M6 9l6 6 6-6" /></svg>
-                      </button>
-                    )
-                    : <span className="fj-row-indent" />}
+                  {/* Slot de recuo — no protótipo ele é o chevron de sub-issues
+                      quando a issue tem filhas. Aqui é SEMPRE o recuo: ver o
+                      docblock §"o épico que não existe". */}
+                  <span className="fj-row-indent" />
 
                   <PrioDot prio={t.priority} title={`Prioridade ${t.priority.toUpperCase()}`} />
                   <span className="fj-id">{t.display_id}</span>
@@ -153,7 +130,6 @@ export default function TrabalhoLista({
                   <span className="fj-title">{t.title}</span>
 
                   {tam && <span className="fj-tam" title="Esforço — horas estimadas ou pontos">{tam}</span>}
-                  {temKids && <EpicRoll kids={kids} />}
 
                   <span className="fj-row-mid">
                     {/* Único vínculo REAL de `mcp_tasks` hoje. O protótipo mostra

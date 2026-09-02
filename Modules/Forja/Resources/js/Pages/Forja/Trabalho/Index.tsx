@@ -129,7 +129,6 @@ export default function Trabalho({
   const [fixados, setFixados] = useState<Set<string>>(() => new Set(lerLocal<string[]>('oimpresso.forja.pin', [])));
   const [visoes, setVisoes] = useState<{ name: string; qs: string }[]>(() => lerLocal('oimpresso.forja.views', []));
   const [colapsados, setColapsados] = useState<Set<string>>(() => new Set());
-  const [expandidos, setExpandidos] = useState<Set<string>>(() => new Set());
 
   useEffect(() => { gravarLocal('oimpresso.forja.denso', denso); }, [denso]);
   useEffect(() => { gravarLocal('oimpresso.forja.fav', [...favoritos]); }, [favoritos]);
@@ -381,7 +380,6 @@ export default function Trabalho({
           <TrabalhoLista
             tarefas={ordenadas} grupos={gruposLista} denso={denso}
             colapsados={colapsados} onColapsar={(g) => setColapsados((c) => alternar(c, g))}
-            expandidos={expandidos} onExpandir={(id) => setExpandidos((c) => alternar(c, id))}
             favoritos={favoritos} onFavoritar={(id) => setFavoritos((c) => alternar(c, id))}
             fixados={fixados} onFixar={(id) => setFixados((c) => alternar(c, id))}
             agents={agents} faseLabel={faseLabel}

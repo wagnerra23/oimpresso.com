@@ -203,6 +203,7 @@ Decisão [W] de 2026-09-02, textual: *"pode fazer igual ao protótipo e revogar 
 | DSL de busca (`is:p0 @CL ~FA-1 tipo:bug`) | o backend busca por título, id, dono e módulo; o placeholder diz o que ele **de fato** faz |
 | `fj-onda-meta` no cabeçalho do grupo (estado · janela · carga · **encerrar onda** · **✦ resumir**) | exige o catálogo `window.FORJA.ONDAS` (onda como entidade, com estado, janela e dependências) — em produção `forja_onda` é um `custom_field` de texto, sem entidade atrás. E os dois botões são **ação**: `encerrar onda` é mutação em cascata, `resumir` chama IA |
 | `3 não-verificados` na barra de totais | mesmo campo `frescor` da penúltima linha |
+| chevron de sub-issues + `EpicRoll` (barras por fase, `n/N` em F4) | **a hierarquia não existe aqui.** No protótipo o pai é um issue da MESMA lista (`kidsOf[issue.id]`); em `mcp_tasks`, `epic_id` é FK pra **`McpEpic`** — outra entidade, que não é linha desta lista. Chegou a ser implementado indexando por `epic_id` e teria ficado **mudo pra sempre**; removido antes do merge (LC-08 — derivar do nome do campo em vez de abrir a relação). O slot vira o recuo fixo, que é o que o protótipo mostra em linha sem filhas |
 
 ### Reconciliações — dois pontos deste charter que a réplica toca
 
