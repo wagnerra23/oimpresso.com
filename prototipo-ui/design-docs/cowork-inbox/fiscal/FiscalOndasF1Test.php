@@ -53,7 +53,7 @@ it('UC-FDF1-04 · confirmar em lote NÃO exige justificativa', function () {
 /* ─── UC-FOF1-08 · procedência das superfícies (CU-FISC-16) ────────────────── */
 
 it('UC-FOF1-08 · o cockpit declara a procedência de cada superfície no payload', function () {
-    // Vermelho hoje: notasMock/eventosMock/sefazStatus/contabilData/writeOffSummary
+    // Vermelho hoje: notas/eventosMock/sefazStatus/contabilData/writeOffSummary
     // chegam na tela sem dizer que são demonstração. A tela não deve inferir.
     $metodos = get_class_methods(\Modules\Fiscal\Http\Controllers\CockpitController::class);
     expect($metodos)->toContain('procedencia');
@@ -63,7 +63,7 @@ it('UC-FOF1-08 · nenhuma prop de demonstração viaja sem selo', function () {
     $fonte = file_get_contents(base_path('Modules/Fiscal/Http/Controllers/CockpitController.php'));
 
     // Enquanto os mocks existirem, cada um deve estar declarado no mapa de procedência.
-    foreach (['notasMock', 'eventosMock', 'sefazStatus', 'contabilData', 'writeOffSummary'] as $prop) {
+    foreach (['notas', 'eventosMock', 'sefazStatus', 'contabilData', 'writeOffSummary'] as $prop) {
         expect($fonte)->toContain("'procedencia' => ")
             ->and($fonte)->toContain($prop);
     }
