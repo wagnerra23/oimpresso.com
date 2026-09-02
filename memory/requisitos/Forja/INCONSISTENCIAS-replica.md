@@ -12,8 +12,8 @@
 | status | regra | arquivo | contagem | exemplo | dono da regra | origem |
 |---|---|---|---:|---|---|---|
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/ads/Admin/Projects.tsx` | 4 |  | layout-primitives-guard.mjs | aplicado |
-| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/ads/Admin/ProjectShow.tsx` | 2 | ↳ • | UiLintCommand.php R3 | aplicado |
-| 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/ads/Admin/ProjectShow.tsx` | 7 |  | layout-primitives-guard.mjs | aplicado |
+| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/ads/Admin/ProjectShow.tsx` | 1 | • | UiLintCommand.php R3 | aplicado |
+| 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/ads/Admin/ProjectShow.tsx` | 8 |  | layout-primitives-guard.mjs | aplicado |
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/ads/Admin/TeamScopes.tsx` | 2 | → | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/ads/Admin/TeamScopes.tsx` | 1 |  | layout-primitives-guard.mjs | aplicado |
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/ads/Admin/Tools.tsx` | 1 | ⚠ | UiLintCommand.php R3 | aplicado |
@@ -61,10 +61,10 @@
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/Forja/Triage/Index.tsx` | 9 |  | layout-primitives-guard.mjs | aplicado |
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/Forja/Triage/_components/TriageDossier.tsx` | 6 | → | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/Forja/Triage/_components/TriageDossier.tsx` | 12 |  | layout-primitives-guard.mjs | aplicado |
-| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/Index.tsx` | 4 | → ↵ | UiLintCommand.php R3 | aplicado |
+| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/Index.tsx` | 3 | → ↵ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R4` | `Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/Index.tsx` | 1 | PageHeader=sim · DataTable=não | UiLintCommand.php R4 | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/Index.tsx` | 9 |  | layout-primitives-guard.mjs | aplicado |
-| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/_components/SessionDrawer.tsx` | 6 | ↓ ↑ ▲ ▼ → ⚠ | UiLintCommand.php R3 | aplicado |
+| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/_components/SessionDrawer.tsx` | 3 | ▲ ▼ → | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/_components/SessionDrawer.tsx` | 9 |  | layout-primitives-guard.mjs | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.tsx` | 1 |  | layout-primitives-guard.mjs | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaBacklog.tsx` | 7 |  | layout-primitives-guard.mjs | aplicado |
@@ -83,14 +83,14 @@
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaQuadro.tsx` | 7 |  | layout-primitives-guard.mjs | aplicado |
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaTriage.tsx` | 3 | → | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaTriage.tsx` | 3 |  | layout-primitives-guard.mjs | aplicado |
-| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.tsx` | 2 | → ⚠ | UiLintCommand.php R3 | aplicado |
+| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.tsx` | 1 | → | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R4` | `Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.tsx` | 1 | PageHeader=sim · DataTable=não | UiLintCommand.php R4 | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.tsx` | 3 |  | layout-primitives-guard.mjs | aplicado |
-| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Tasks/Index.tsx` | 5 | → ↵ | UiLintCommand.php R3 | aplicado |
+| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Tasks/Index.tsx` | 2 | → ↵ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R4` | `Modules/Forja/Resources/js/Pages/team-mcp/Tasks/Index.tsx` | 1 | PageHeader=sim · DataTable=não | UiLintCommand.php R4 | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/team-mcp/Tasks/Index.tsx` | 12 |  | layout-primitives-guard.mjs | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/team-mcp/Tasks/_components/TaskDrawer.tsx` | 6 |  | layout-primitives-guard.mjs | aplicado |
-| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx` | 5 | → 🚫 ⚠ ⚙ | UiLintCommand.php R3 | aplicado |
+| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx` | 4 | → 🚫 ⚠ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R4` | `Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx` | 1 | PageHeader=sim · DataTable=não | UiLintCommand.php R4 | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx` | 6 |  | layout-primitives-guard.mjs | aplicado |
 | 🔴 aberta | `R1` | `resources/css/cowork-forja-bundle.css` | 335 | oklch(0.275 0.050 295) · oklch(0.52 0.10 195) | UiLintCommand.php R1 · conformance-gate | aplicado |
