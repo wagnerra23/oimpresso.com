@@ -31,6 +31,8 @@ depois que um insumo subiu
 `Modules/Manufacturing/Http/Controllers/RecipeController.php` (`@index`) ·
 `Modules/Manufacturing/Services/RecipeBomService.php` (`listRecipesWithCost`)
 
+**Testado em:** `Modules/Manufacturing/Tests/Feature/Wave29RecipeInertiaTest.php` (@covers-us US-MANU-001)
+
 **Definition of Done:**
 - [x] O custo é **recalculado na leitura** a partir de `variations.dpp_inc_tax` — nunca servido de
       `mfg_recipes.ingredients_cost`, coluna que envelhece (§9 do handoff)
