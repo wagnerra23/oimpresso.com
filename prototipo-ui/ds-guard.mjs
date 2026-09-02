@@ -85,7 +85,7 @@ function walkProto() {
   return { css, html };
 }
 
-const argv = process.argv.slice(2);
+const argv = process.argv.slice(2).filter((a) => a !== '--report');
 
 if (argv[0] === '--all') {
   // RELATORIO de divida (nao bloqueia) — §8: arvore-inteira = relatorio, nao gate
@@ -116,5 +116,9 @@ const ignored = files.filter((f) => !/\.(css|html)$/.test(f));
 for (const f of ignored) log('. ' + f + ' (ignorado: nao e css/html)');
 
 const fail = await gate(cssFiles, htmlFiles);
-log(fail ? ('BLOQUEIA: ' + fail) : 'limpo');
+// --report (ADR 0388, modo réplica): MESMO achado, exit 0. O veto vira dado — a lista de
+// inconsistências (scripts/governance/replica-inconsistencias.mjs) é quem consome esta saída.
+const report = process.argv.includes('--report');
+log(fail ? ((report ? 'REPORT (modo réplica, ADR 0388) — achados: ' : 'BLOQUEIA: ') + fail) : 'limpo');
+if (report) process.exit(0);
 process.exit(fail ? 1 : 0);

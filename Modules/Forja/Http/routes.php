@@ -329,6 +329,8 @@ Route::group(
         Route::get('/quadro',    'ForjaController@quadro')->name('forja.quadro');
         Route::get('/changelog', 'ForjaController@changelog')->name('forja.changelog');
         Route::get('/mcp',       'ForjaController@mcp')->name('forja.mcp');
+        // Integrador — 6º destino do topnav do protótipo (PARIDADE §11 Onda 2). FQCN (.claude/rules/routes.md).
+        Route::get('/integrador', [\Modules\Forja\Http\Controllers\ForjaController::class, 'integrador'])->name('forja.integrador');
         // Saúde foi fundida no Scorecard real (/team-mcp/scorecard) — sem rota própria.
 
         // Mesa de Aprovações — superfície do funil de admissão (ADR 0368).
