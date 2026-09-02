@@ -208,7 +208,10 @@ class RecipeBomService
     {
         $grupos = [];
 
-        $ingredients = $recipe->ingredients->sortBy('sort_order');
+        // `getRelation` em vez da propriedade mágica: a relação vem eager-loaded do
+        // `listRecipesWithCost`, e o acesso explícito não depende de análise de magic
+        // property (que o Larastan não resolve nesta Model — ver phpstan-baseline).
+        $ingredients = $recipe->getRelation('ingredients')->sortBy('sort_order');
 
         foreach ($ingredients as $ingredient) {
             $variation = $ingredient->variation;
@@ -225,9 +228,7 @@ class RecipeBomService
             // permite. Cai num balde "Sem grupo" em vez de sumir da ficha.
             $nomeGrupo = optional($ingredient->ingredient_group)->name ?: 'Sem grupo';
 
-            if (! isset($grupos[$nomeGrupo])) {
-                $grupos[$nomeGrupo] = ['g' => $nomeGrupo, 'itens' => []];
-            }
+            $grupos[$nomeGrupo] ??= ['g' => $nomeGrupo, 'itens' => []];
 
             $grupos[$nomeGrupo]['itens'][] = [
                 'id'             => (int) $ingredient->id,
@@ -261,7 +262,7 @@ class RecipeBomService
         $custoUnit = $totalQuantity > 0 ? $custoTotal / $totalQuantity : 0.0;
         $margem    = $finalPrice > 0 ? ($finalPrice - $custoUnit) / $finalPrice * 100 : 0.0;
 
-        $subUnit = $recipe->sub_unit;
+        $subUnit = $recipe->relationLoaded('sub_unit') ? $recipe->getRelation('sub_unit') : null;
 
         return [
             'id'             => (int) $recipe->id,

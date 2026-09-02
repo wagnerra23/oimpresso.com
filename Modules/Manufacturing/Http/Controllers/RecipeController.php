@@ -59,7 +59,10 @@ class RecipeController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * Três saídas por design (§15.2 do handoff — coexistência): DataTables no ramo ajax,
+     * a view Blade quando `?legacy=1`, e a tela Inertia no caminho normal.
+     *
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function index(\Modules\Manufacturing\Services\ProductionService $productionService)
     {
