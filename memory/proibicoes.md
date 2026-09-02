@@ -1019,6 +1019,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **⚠️ NÃO virar gate:** o predicado — *"esta afirmação de bloqueio ainda vale?"* — é **semântico por construção** ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md): semântico = advisory), e a forma sintática (acusar `403`/`bloqueio`/`não medida` em `*-visual-comparison.md`) é a família de guard sintático que este §5 já enterrou 7× — allowlist-de-pasta 06-30 · guard `@scope` 07-09 · vocabulário **130 FP** 07-16 · `toHaveKey` **100% FP** 07-26 · `toContain` 07-28 · `jq` 08-11 · par usuário/senha 08-02. O que fecha é a **emenda datada no dono** + a D6 agora medida e registrada.
 
+### 2026-09-02 — Concluir "render NÃO-determinístico" a partir de "o ratio não muda depois do rebake" (é prova do CONTRÁRIO) — e os 6 rebakes que não tinham como fechar
+
+- **O limite (variantes também proibidas):** **(a)** não concluir *"não-determinístico / flaky / render instável"* a partir de **repetição** de um número — repetição é determinismo; a evidência de não-determinismo é **variância medida entre execuções**, e sem ela a palavra não se usa. Vale pra baseline visual, teste flaky, drift e watchdog. **(b)** não regravar baseline sem antes **comparar as ÁRVORES que os dois modos fotografam** (não só os steps): quando um modo faz checkout de merge ref e o outro do ref cru, eles renderizam mundos diferentes por construção, e o rebake só troca uma foto velha por outra. É o eixo **árvore** da família que este §5 já cobre nos eixos *flag* (2026-07-28), *job* (2026-07-29) e *modo/conjunto-de-steps* (2026-08-26). **(c)** corolário que teria matado o ciclo na 1ª rodada, e é o mais barato: **divergência que volta idêntica após rebake refuta a hipótese "a foto envelheceu"** — rebake só conserta drift monotônico (já era a lápide de 2026-08-26; o que faltava era aplicá-la ao número que **não** mudou).
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
