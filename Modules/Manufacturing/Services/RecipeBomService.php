@@ -267,12 +267,16 @@ class RecipeBomService
         return [
             'id'             => (int) $recipe->id,
             'variation_id'   => (int) $recipe->variation_id,
-            'name'           => $recipe->recipe_name ?: ($recipe->product_name ?: '—'),
-            'sku'            => $recipe->recipe_sku ?: '—',
-            'cat'            => $recipe->category ?: 'Sem categoria',
-            'sub'            => $recipe->sub_category ?: '—',
+            // `getAttribute` explícito: estes seis são ALIASES do SELECT (`recipe_name`,
+            // `recipe_sku`, `category`, `sub_category`, `unit_name`, `product_name`), não
+            // colunas de `mfg_recipes` — o Larastan conhece o schema da tabela e acusa
+            // propriedade mágica indefinida. Ler explícito diz o que de fato acontece.
+            'name'           => $recipe->getAttribute('recipe_name') ?: ($recipe->getAttribute('product_name') ?: '—'),
+            'sku'            => $recipe->getAttribute('recipe_sku') ?: '—',
+            'cat'            => $recipe->getAttribute('category') ?: 'Sem categoria',
+            'sub'            => $recipe->getAttribute('sub_category') ?: '—',
             'qtd'            => $totalQuantity,
-            'un'             => $recipe->unit_name ?: '',
+            'un'             => $recipe->getAttribute('unit_name') ?: '',
             'waste'          => $waste,
             'extra'          => (float) ($recipe->extra_cost ?? 0),
             'custo_tipo'     => $recipe->production_cost_type ?: 'percentage',
