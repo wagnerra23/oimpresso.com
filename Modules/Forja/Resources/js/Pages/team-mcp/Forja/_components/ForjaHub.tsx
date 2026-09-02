@@ -111,8 +111,12 @@ export default function ForjaHub({
                     const isActive = t.key === active;
                     const badge = t.key === 'aprovacoes' ? pendencias : undefined;
                     return (
+                      {/* `as="button"`: o CSS do protótipo estiliza `.fj-viewtabs button` — uma âncora
+                          ficaria sem estilo. O Inertia navega no clique igual. */}
                       <Link
                         key={t.key}
+                        as="button"
+                        type="button"
                         href={t.href}
                         title={t.hint}
                         aria-current={isActive ? 'page' : undefined}
