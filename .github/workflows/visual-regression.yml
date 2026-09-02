@@ -64,14 +64,17 @@ jobs:
     # e o gargalo e o SETUP (composer + npm + playwright + mysql + migrate + seed), nao o
     # numero de telas — um dispatch escopado a UMA tela morreu igual, em 15min15s.
     #
-    # PR: 15 -> 25 (2026-09-02). O 15 era APERTADO DEMAIS PARA UM RUN VERDE, e isso ficou
-    # invisivel enquanto a zona cinza existia: o pixel-diff reprovava e o run terminava em
-    # 11-14 min. Com as baselines alinhadas o gate passa, TODOS os steps rodam ate o fim, e
-    # o run 33670313000 (PR de baselines #6576, 5/5 steps ENFORCING verdes) morreu em
-    # 15min10s — soma das duracoes de step 15.12 min contra teto de 15, ou seja trabalho
-    # real, nao contencao de runner. Sem esta linha o gate NAO CONSEGUE reportar success
-    # num PR nem em principio, e `cancelled` e lido como bloqueio pela branch protection
-    # (mesmo efeito ja catalogado no comentario de `concurrency` acima).
+    # PR: 15 -> 25 (2026-09-02). O 15 e MARGINAL para um run VERDE, e isso ficou invisivel
+    # enquanto a zona cinza existia: o pixel-diff reprovava e o run terminava em 11-14 min.
+    # Com as baselines alinhadas o gate passa e TODOS os steps rodam ate o fim. Os dois
+    # runs verdes medidos no mesmo dia caem em lados opostos do teto:
+    #   · 33670313000 (PR de baselines #6576) — 5/5 ENFORCING verdes, job 15min10s -> `cancelled`
+    #   · 33670634977 (PR #6579)              — 6/6 verdes (incl. Canario), job 14min22s -> `success`
+    # ~48s separam os dois, entao o run verde e uma MOEDA no teto de 15, nao um impossivel
+    # — a 1a redacao deste comentario dizia "nao consegue nem em principio" e o proprio
+    # 33670634977 refutou. `cancelled` e lido como bloqueio pela branch protection (mesmo
+    # efeito ja catalogado no comentario de `concurrency` acima), entao meia chance de
+    # `cancelled` num gate verde e ruido que se aprende a ignorar.
     # Nenhum step novo entrou no caminho de PR — a alteracao de 2026-09-02 (alinhar com
     # origin/main) roda SO em workflow_dispatch. O caminho barato segue barato: PR sem
     # mudanca de UI conclui por skip-as-pass em ~1 min (medido: 0.8/1.1/1.2/1.3 min).
