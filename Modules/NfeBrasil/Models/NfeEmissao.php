@@ -36,6 +36,16 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * As anotações abaixo existem porque Larastan não infere atributo dinâmico de
  * Eloquent a partir da migration — sem elas o acesso vira "undefined property".
  *
+ * `$status` é anotado como `string` DE PROPÓSITO, e não como união literal. O
+ * Larastan deriva o tipo de `database/schema/mysql-schema.sql`, que é um baseline
+ * DATADO: as migrations posteriores rodam por cima dele e NÃO o atualizam (medido —
+ * o dump não tem `reforma_tributaria_modo`, de 2026_07_03, nem as colunas da
+ * US-NFE-006). Sem esta anotação o Larastan enxerga só os 8 valores do dump e
+ * "prova" que `!== 'contingencia'` é sempre verdadeiro — derrubando o gate por um
+ * fato que o schema real desmente. A lista canônica dos 9 status é a do topo deste
+ * docblock; anotar a união aqui só criaria um segundo lugar pra apodrecer.
+ *
+ * @property string $status
  * @property int $tp_emis
  * @property int $retry_count
  * @property \Illuminate\Support\Carbon|null $last_retry_at
