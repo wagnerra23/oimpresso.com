@@ -193,3 +193,122 @@ test('drift-sentinel: ARMADO roda o veredito (mock 0.85 vs baseline 0.85 = ok)',
     expect($json['status'])->toBe('ok');
     expect($json['ok'])->toBeTrue();
 });
+
+// ── 3. llm_provider_quota: bite-test do alarme de provedor sem credito ────
+//
+// Incidente 2026-08-31 -> 09-02 (L-OP-005): sem credito a Jana emudeceu, e o
+// `custo_brain_b_24h` pintou VERDE porque zero passa no teto "custo <= X". Abaixo:
+// o predicado morde no caso certo E distingue os dois 429, que chegam com o MESMO
+// status e pedem acoes OPOSTAS.
+
+test('quota: enum de falta de credito = sem-credito e DERRUBA o gate', function () {
+    foreach (HealthCheckCommand::QUOTA_CODIGOS_SEM_CREDITO as $codigo) {
+        $r = HealthCheckCommand::evaluateLlmProviderQuota(true, true, 429, $codigo);
+
+        expect($r['state'])->toBe('sem-credito', "codigo {$codigo}");
+        expect($r['ok'])->toBeFalse();
+        expect($r['advisory'] ?? false)->toBeFalse('sem credito tem que derrubar o exit code');
+
+        // O elo que fecha: check duro falho derruba o veredito do comando.
+        expect(HealthCheckCommand::allChecksOk([
+            ['name' => 'llm_provider_quota', 'ok' => $r['ok'], 'advisory' => $r['advisory'] ?? false],
+        ]))->toBeFalse();
+    }
+});
+
+// CONTROLE NEGATIVO -- o 429 que NAO e falta de credito. Se este virar `sem-credito`,
+// o alarme vira ruido e some a distincao que o PR #6540 ensinou.
+test('quota: 429 rate_limit_exceeded NAO e sem-credito (advisory, nao pagina)', function () {
+    $r = HealthCheckCommand::evaluateLlmProviderQuota(true, true, 429, 'rate_limit_exceeded');
+
+    expect($r['state'])->toBe('rate-limit');
+    expect($r['advisory'] ?? false)->toBeTrue();
+    expect(HealthCheckCommand::allChecksOk([
+        ['name' => 'llm_provider_quota', 'ok' => $r['ok'], 'advisory' => true],
+    ]))->toBeTrue('rate-limit e transitorio: nao derruba o cron');
+});
+
+test('quota: demais estados do contrato', function () {
+    // sem 429 = verde
+    expect(HealthCheckCommand::evaluateLlmProviderQuota(true, true, 200, null)['state'])->toBe('ok');
+    expect(HealthCheckCommand::evaluateLlmProviderQuota(true, true, 200, null)['ok'])->toBeTrue();
+
+    // sem chave / fora de prod = skip limpo
+    $skip = HealthCheckCommand::evaluateLlmProviderQuota(false, false, null, null);
+    expect($skip['state'])->toBe('nao-configurado');
+    expect($skip['ok'])->toBeTrue();
+
+    // 401 = credencial recusada, DURO (a Jana responde erro em toda chamada)
+    $auth = HealthCheckCommand::evaluateLlmProviderQuota(true, true, 401, 'invalid_api_key');
+    expect($auth['state'])->toBe('credencial-recusada');
+    expect($auth['advisory'] ?? false)->toBeFalse();
+});
+
+// Lapide 2026-07-29: "nao consegui medir" NUNCA colapsa num estado do objeto medido.
+test('quota: inacessivel = nao-medido advisory (nem verde, nem vermelho duro)', function () {
+    $r = HealthCheckCommand::evaluateLlmProviderQuota(true, false, null, null);
+
+    expect($r['state'])->toBe('nao-medido');
+    expect($r['ok'])->toBeFalse();
+    expect($r['advisory'] ?? false)->toBeTrue();
+});
+
+// ── 3b. INTEGRACAO: o check monta o veredito e ESCALA pro canal HITL ──────
+
+/** Roda o check com a sonda fakeada e devolve [resultado, spy do escalador]. */
+function biteQuota(array $body, int $status): array
+{
+    Illuminate\Support\Facades\Http::fake([
+        'api.openai.com/*' => Illuminate\Support\Facades\Http::response($body, $status),
+    ]);
+    config(['services.openai.api_key' => 'sk-fake-para-teste']);
+    app()->instance('env', 'live'); // a sonda so roda em producao
+
+    $spy = Mockery::spy(Modules\Jana\Services\TaskRegistry\HitlEscalationService::class);
+    app()->instance(Modules\Jana\Services\TaskRegistry\HitlEscalationService::class, $spy);
+
+    $m = (new ReflectionClass(HealthCheckCommand::class))->getMethod('checkLlmProviderQuota');
+    $m->setAccessible(true);
+
+    return [$m->invoke(app(HealthCheckCommand::class)), $spy];
+}
+
+test('quota: fixture 429 LITERAL de prod -> check falha E escala HITL-LLM-QUOTA', function () {
+    // Corpo medido na sonda ao vivo em 2026-09-02, nao inventado.
+    [$r, $spy] = biteQuota(['error' => [
+        'message' => 'You have no credits remaining.',
+        'type' => 'insufficient_quota',
+        'param' => null,
+        'code' => 'credit_balance_exhausted',
+    ]], 429);
+
+    expect($r['name'])->toBe('llm_provider_quota');
+    expect($r['ok'])->toBeFalse();
+    expect($r['value'])->toBe('sem-credito');
+    expect($r['message'])->toContain('SEM CRÉDITO');
+
+    // Escalar e o ponto: detectar sem escalar repete o nag perpetuo que o
+    // HitlEscalationService nasceu pra matar.
+    $spy->shouldHaveReceived('escalar');
+});
+
+test('quota: fixture 200 -> check ok E NAO escala (sem alarme falso)', function () {
+    [$r, $spy] = biteQuota(['choices' => [['message' => ['content' => 'ok']]]], 200);
+
+    expect($r['ok'])->toBeTrue();
+    expect($r['value'])->toBe('ok');
+    $spy->shouldNotHaveReceived('escalar');
+});
+
+test('quota: fora de producao a sonda NAO sai pela rede', function () {
+    Illuminate\Support\Facades\Http::preventStrayRequests();
+    config(['services.openai.api_key' => 'sk-fake-para-teste']);
+
+    $m = (new ReflectionClass(HealthCheckCommand::class))->getMethod('checkLlmProviderQuota');
+    $m->setAccessible(true);
+    $r = $m->invoke(app(HealthCheckCommand::class));
+
+    // preventStrayRequests estouraria se a sonda tivesse saido sem fake.
+    expect($r['value'])->toBe('nao-configurado');
+    expect($r['ok'])->toBeTrue();
+});
