@@ -37,6 +37,12 @@ const modIdx = process.argv.indexOf('--module');
 const ONLY_MODULE = modIdx !== -1 ? process.argv[modIdx + 1] : null;
 const tgtIdx = process.argv.indexOf('--target');
 const TARGET_DS = tgtIdx !== -1 ? Number(process.argv[tgtIdx + 1]) : 0; // alvo de fechamento (default 0)
+// --by-file: acrescenta `by_file_rule` ({ "<path>|<ds/regra>": {count,msg} }) ao JSON. OPT-IN
+// pra não mudar o formato do cartão de evidência (ADR 0240) que já circula. Quem consome:
+// `scripts/governance/replica-inconsistencias.mjs` (ADR 0388), que precisa de item POR ARQUIVO
+// e da mensagem canônica — ela já traz o alvo (`<Button>`, `<PageHeaderTabs>`…), então é a
+// receita, e nenhum consumidor precisa reescrever o que o `eslint.config.js` já diz.
+const BY_FILE = process.argv.includes('--by-file');
 
 // Fila canônica de execução (PR-C-WORKLIST.md — módulo = ID, "C#" deprecado).
 // Ordem = prioridade de migração. ✅ quando ds/*=0 nesse módulo (todas as fases limpas).
@@ -87,10 +93,12 @@ function moduleOf(path) {
   return nucleo ? nucleo[1] : '(outros)';
 }
 
-function collect() {
+// `results` é injetável SÓ pro --selftest: o que pode apodrecer do nosso lado é o FILTRO
+// (`RULE_RE`) e o agrupamento, não o linter (que é a lib). Mesmo raciocínio do
+// `--counts-from` de scripts/eslint-baseline.mjs. Produção nunca passa o argumento.
+function collect(results = runEslint()) {
   const cwd = process.cwd().replace(/\\/g, '/');
-  const results = runEslint();
-  const byRule = {}, byModule = {}, byModuleRule = {};
+  const byRule = {}, byModule = {}, byModuleRule = {}, byFileRule = {};
   let total = 0;
   for (const result of results) {
     const path = result.filePath.replace(/\\/g, '/').replace(`${cwd}/`, '');
@@ -102,10 +110,13 @@ function collect() {
       byRule[mm[1]] = (byRule[mm[1]] || 0) + 1;
       byModule[mod] = (byModule[mod] || 0) + 1;
       byModuleRule[`${mod}|${mm[1]}`] = (byModuleRule[`${mod}|${mm[1]}`] || 0) + 1;
+      const fk = `${path}|${mm[1]}`;
+      if (!byFileRule[fk]) byFileRule[fk] = { count: 0, msg: msg.message };
+      byFileRule[fk].count++;
       total++;
     }
   }
-  return { total, byRule, byModule, byModuleRule };
+  return { total, byRule, byModule, byModuleRule, byFileRule };
 }
 
 // markdown do checklist — a "fila viva" que o [CC] lê pra saber o pendente
@@ -175,7 +186,45 @@ function printReport({ total, byRule, byModule }) {
   console.log('');
 }
 
+// --selftest — bite-test do FILTRO e do agrupamento (não do linter). Alimenta `collect()` com
+// uma saída de ESLint sintética na forma REAL (medida em 2026-09-02 contra
+// Modules/Forja/.../ads/Admin/Tools.tsx: filePath absoluto, messages[].ruleId/message).
+function selftest() {
+  const cwd = process.cwd().replace(/\\/g, '/');
+  const f = (p) => `${cwd}/${p}`;
+  const dsMsg = (r) => `${r} — texto canônico do eslint.config.js com o alvo.`;
+  const fake = [
+    { filePath: f('resources/js/Pages/Zz/Ruim.tsx'), messages: [
+      { ruleId: 'no-restricted-syntax', message: dsMsg('ds/no-os-btn') },
+      { ruleId: 'no-restricted-syntax', message: dsMsg('ds/no-os-btn') },
+      { ruleId: 'no-restricted-syntax', message: dsMsg('ds/no-inline-tablist') },
+      // CONTROLE NEGATIVO: regra que NÃO é ds/* não pode virar item.
+      { ruleId: '@typescript-eslint/no-explicit-any', message: 'Unexpected any. Specify a different type.' },
+    ] },
+    { filePath: f('resources/js/Pages/Zz/Bom.tsx'), messages: [] },
+    { filePath: f('Modules/Ww/Resources/js/Pages/Ww/Index.tsx'), messages: [
+      { ruleId: 'no-restricted-syntax', message: dsMsg('ds/no-os-btn') },
+    ] },
+  ];
+  const d = collect(fake);
+  const bf = d.byFileRule;
+  const checks = [
+    ['total conta só ds/* (3+1), ignora o no-explicit-any', d.total === 4],
+    ['ruim: os-btn agrupa 2 no mesmo arquivo', bf['resources/js/Pages/Zz/Ruim.tsx|ds/no-os-btn']?.count === 2],
+    ['ruim: tablist é item separado (1)', bf['resources/js/Pages/Zz/Ruim.tsx|ds/no-inline-tablist']?.count === 1],
+    ['receita = mensagem canônica do ESLint', /^ds\/no-os-btn — /.test(bf['resources/js/Pages/Zz/Ruim.tsx|ds/no-os-btn']?.msg || '')],
+    ['controle negativo: nada de @typescript-eslint vira item', !Object.keys(bf).some((k) => !/\|ds\//.test(k))],
+    ['boa: arquivo limpo não gera item', !Object.keys(bf).some((k) => k.includes('Bom.tsx'))],
+    ['módulo nWidart sai por /Resources/ (Ww), não pela subpasta', bf['Modules/Ww/Resources/js/Pages/Ww/Index.tsx|ds/no-os-btn']?.count === 1 && d.byModule.Ww === 1],
+  ];
+  let fail = 0;
+  for (const [n, ok] of checks) { console.log((ok ? '  ✓ ' : '  ✗ ') + n); if (!ok) fail++; }
+  console.log(fail ? `✗ ds-report selftest: ${fail} falha(s)` : `✓ ds-report selftest OK — ${checks.length} asserts (filtro ds/*, agrupamento arquivo×regra, moduleOf; controle negativo: regra não-ds e arquivo limpo)`);
+  process.exit(fail ? 1 : 0);
+}
+
 function main() {
+  if (process.argv.includes('--selftest')) return selftest();
   const data = collect();
   // cartão de EVIDÊNCIA de fechamento (ADR 0240): `--module=X --json` ⇒ o artefato que FECHA a migração DS.
   // pass=true só quando ds/* <= target (default 0). measured_against_sha amarra a evidência ao commit (§10.4).
@@ -188,10 +237,17 @@ function main() {
       pass: data.total <= TARGET_DS,
       measured_against_sha: gitSha(),
       generated_at: new Date().toISOString(),
+      ...(BY_FILE ? { by_file_rule: data.byFileRule } : {}),
     }, null, 2));
     return;
   }
-  if (AS_JSON) { console.log(JSON.stringify({ ...data, generated_at: new Date().toISOString() }, null, 2)); return; }
+  if (AS_JSON) {
+    const { byFileRule, ...rest } = data;
+    console.log(JSON.stringify({
+      ...rest, ...(BY_FILE ? { byFileRule } : {}), generated_at: new Date().toISOString(),
+    }, null, 2));
+    return;
+  }
   if (DO_WRITE) { const md = worklistMarkdown(data); writeIndice(md); console.log('\n' + md + '\n'); return; }
   if (AS_WORKLIST) { console.log('\n' + worklistMarkdown(data) + '\n'); return; }
   printReport(data);
