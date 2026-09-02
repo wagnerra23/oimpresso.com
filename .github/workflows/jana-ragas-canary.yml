@@ -311,31 +311,79 @@ jobs:
           script: |
             const fs = require('fs');
             let report = {};
-            try { report = JSON.parse(fs.readFileSync('canary-result.json', 'utf8')); } catch (e) { report = {error: String(e)}; }
-            const regressions = (report.regressions || []).map(r =>
-              `- \`${r.metric}\`: ${r.delta_pct.toFixed(2)}% (atual ${r.current.toFixed(4)} / baseline ${r.baseline.toFixed(4)})`
-            ).join('\n') || 'N/A';
-            const title = `:rotating_light: RAGAS canary regrediu > ${report.regression_threshold_pct || 5}% (${new Date().toISOString().slice(0,10)})`;
-            const body = [
-              `Workflow run: https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
-              ``,
-              `Modo: \`${report.mode || 'unknown'}\` · Threshold: \`${report.regression_threshold_pct || 5}%\``,
-              ``,
-              `## Regressões`,
-              regressions,
-              ``,
-              `## Próximos passos`,
-              `1. Investigar últimas mudanças em \`Modules/Jana/\` e \`Modules/Copiloto/\` (RAG pipeline)`,
-              `2. Rodar \`php artisan jana:ragas-ci-eval --mode=real\` local pra reproduzir`,
-              `3. Se regressão é esperada (ex: trade-off aceito) → \`workflow_dispatch\` com \`update_baseline=true\``,
-              `4. Se regressão é bug → rollback + reabrir story`,
-              ``,
-              `Ver RUNBOOK: \`memory/requisitos/Jana/RUNBOOK-ragas-canary.md\``,
-            ].join('\n');
+            try { report = JSON.parse(fs.readFileSync('canary-result.json', 'utf8')); } catch (e) { report = {}; }
+
+            // MEDICAO FALHOU != REGRESSAO — e o `failure()` acima nao separa os dois.
+            // Quando o juiz nao responde (429/key/excecao) o runner sai com rc=2, NAO
+            // escreve canary-result.json, e imprime "MEDICAO FALHOU ... baseline NAO foi
+            // tocado". Antes deste guard os dois casos abriam a MESMA issue: titulo
+            // "regrediu > 5%", label `ragas-regression` e o passo 3 mandando
+            // `update_baseline=true` — que, com scores 0.0, gravaria 0.0 como referencia,
+            // apagando a regua contra a qual qualquer queda futura seria detectada
+            // (§5 2026-08-26: rebake so conserta drift monotonico; §5 2026-07-17:
+            // distribuicao toda 0.0 acusa o MEDIDOR, nao a referencia).
+            // Recibo 2026-09-02 (issue #6536): o titulo dizia "regrediu > 5%" enquanto o
+            // corpo dizia `Modo: unknown` e `Regressoes: N/A` — o instrumento afirmando o
+            // que nao mediu (§5 2026-07-29).
+            const regs = Array.isArray(report.regressions) ? report.regressions : [];
+            const mediu = regs.length > 0;
+            const hoje = new Date().toISOString().slice(0, 10);
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            let title, body, labels;
+
+            if (mediu) {
+              title = `:rotating_light: RAGAS canary regrediu > ${report.regression_threshold_pct || 5}% (${hoje})`;
+              labels = ['ragas-regression', 'P0', 'jana'];
+              body = [
+                `Workflow run: ${runUrl}`,
+                ``,
+                `Modo: \`${report.mode || 'unknown'}\` · Threshold: \`${report.regression_threshold_pct || 5}%\``,
+                ``,
+                `## Regressões`,
+                regs.map(r => `- \`${r.metric}\`: ${r.delta_pct.toFixed(2)}% (atual ${r.current.toFixed(4)} / baseline ${r.baseline.toFixed(4)})`).join('\n'),
+                ``,
+                `## Próximos passos`,
+                `1. Investigar últimas mudanças em \`Modules/Jana/\` e \`Modules/Copiloto/\` (RAG pipeline)`,
+                `2. Rodar \`php artisan jana:ragas-ci-eval --mode=real\` local pra reproduzir`,
+                `3. Se regressão é esperada (ex: trade-off aceito) → \`workflow_dispatch\` com \`update_baseline=true\``,
+                `4. Se regressão é bug → rollback + reabrir story`,
+                ``,
+                `Ver RUNBOOK: \`memory/requisitos/Jana/RUNBOOK-ragas-canary.md\``,
+              ].join('\n');
+            } else {
+              title = `:construction: RAGAS canary NÃO conseguiu medir (${hoje})`;
+              labels = ['P0', 'jana'];
+              body = [
+                `Workflow run: ${runUrl}`,
+                ``,
+                `**Isto NÃO é uma regressão.** O canary falhou ANTES de produzir scores:`,
+                `\`canary-result.json\` não traz \`regressions\`, então não existe delta contra`,
+                `baseline nenhum. O runner sai com \`rc=2\` justamente para marcar "não medi"`,
+                `(≠ \`rc=1\`, que é regressão real) e **não toca o baseline**.`,
+                ``,
+                `## A causa está no log, não aqui`,
+                `Abra o step \`Run canary\` e procure as linhas \`[artisan-stderr]\`. A assinatura`,
+                `mais comum é \`[RAGAS] Judge HTTP 429 ... erro=<codigo>\`, e o \`erro=\` decide:`,
+                ``,
+                `| \`erro=\` | causa | onde se resolve |`,
+                `|---|---|---|`,
+                `| \`insufficient_quota\` | cota/billing da conta OpenAI esgotada | fora do repo — decisão [W] |`,
+                `| \`rate_limit_exceeded\` | rajada de chamadas sem backoff | dentro do repo — \`RagasJudgeService\` |`,
+                `| outro / \`(sem corpo)\` | key ausente, rede, exceção | ler o stderr completo |`,
+                ``,
+                `## O que NÃO fazer`,
+                `⛔ **Não rodar \`workflow_dispatch\` com \`update_baseline=true\`.** Com o juiz mudo os`,
+                `scores são \`0.0\`; regravar gravaria \`0.0\` como referência e destruiria a régua.`,
+                ``,
+                `Ver RUNBOOK: \`memory/requisitos/Jana/RUNBOOK-ragas-canary.md\``,
+              ].join('\n');
+            }
+
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title,
               body,
-              labels: ['ragas-regression', 'P0', 'jana']
+              labels
             });
