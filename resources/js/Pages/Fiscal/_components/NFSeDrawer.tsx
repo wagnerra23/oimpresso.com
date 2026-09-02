@@ -9,6 +9,8 @@
 // Refactor onda 1 (2026-05-26): shell migrado pra <DrawerBase> compartilhado.
 
 import { brl, formatDoc } from '../_lib/fiscal-helpers';
+import { btnProps } from '../_lib/botao-fiscal';
+import { Button } from '@/Components/ui/button';
 
 import DrawerBase from './_shared/DrawerBase';
 
@@ -69,16 +71,16 @@ export default function NFSeDrawer({ nota, onClose }: NFSeDrawerProps) {
       }
       footer={
         <>
-          <button type="button" className="fx-btn ghost" disabled title="Em breve">
+          <Button type="button" {...btnProps('ghost')} disabled title="Em breve">
             Reconsultar prefeitura
-          </button>
+          </Button>
           <div className="fx-drawer-f-r">
-            <button type="button" className="fx-btn ghost" disabled title="Download XML">XML</button>
-            <button type="button" className="fx-btn ghost" disabled title="Download DANFSe">DANFSe</button>
+            <Button type="button" {...btnProps('ghost')} disabled title="Download XML">XML</Button>
+            <Button type="button" {...btnProps('ghost')} disabled title="Download DANFSe">DANFSe</Button>
             {nota.status === 'autorizada' && (
-              <button type="button" className="fx-btn danger" disabled title="Em breve">
+              <Button type="button" {...btnProps('danger')} disabled title="Em breve">
                 Cancelar
-              </button>
+              </Button>
             )}
           </div>
         </>

@@ -31,6 +31,10 @@ related_adrs:
   - 0080-trust-tiers-operacional-audit-findings
 url_prefixes:
   - /superadmin/*
+  - /subscription/* (pay-stack · flutterwave · {package_id})
+  - /pricing/*
+  - /all-subscriptions
+  - /page/{slug}
 drift_alerts: []
 ---
 
