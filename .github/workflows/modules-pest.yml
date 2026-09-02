@@ -16,12 +16,18 @@ on:
     branches: [main]
     paths:
       - 'Modules/Arquivos/**'
+      - 'resources/js/Pages/Arquivos/**'
       - 'Modules/ComunicacaoVisual/**'
+      - 'resources/js/Pages/ComunicacaoVisual/**'
       - 'Modules/Connector/**'
       - 'Modules/Fiscal/**'
+      - 'resources/js/Pages/Fiscal/**'
       - 'Modules/NfeBrasil/**'
+      - 'resources/js/Pages/NfeBrasil/**'
       - 'Modules/Repair/**'
+      - 'resources/js/Pages/Repair/**'
       - 'Modules/Vestuario/**'
+      - 'resources/js/Pages/Vestuario/**'
       - 'composer.lock'
       - 'phpunit.xml'
       - '.github/workflows/modules-pest.yml'
@@ -29,12 +35,18 @@ on:
     branches: [main]
     paths:
       - 'Modules/Arquivos/**'
+      - 'resources/js/Pages/Arquivos/**'
       - 'Modules/ComunicacaoVisual/**'
+      - 'resources/js/Pages/ComunicacaoVisual/**'
       - 'Modules/Connector/**'
       - 'Modules/Fiscal/**'
+      - 'resources/js/Pages/Fiscal/**'
       - 'Modules/NfeBrasil/**'
+      - 'resources/js/Pages/NfeBrasil/**'
       - 'Modules/Repair/**'
+      - 'resources/js/Pages/Repair/**'
       - 'Modules/Vestuario/**'
+      - 'resources/js/Pages/Vestuario/**'
 
 concurrency:
   group: modules-pest-${{ github.ref }}
