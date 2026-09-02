@@ -26,20 +26,20 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 686,
-    "edges": 962,
+    "nodes": 684,
+    "edges": 960,
     "by_node_type": {
       "module": 39,
       "table": 102,
       "adr": 107,
       "component": 392,
-      "api": 46
+      "api": 44
     },
     "by_edge_type": {
       "ownsTable": 91,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 46,
+      "providesApi": 44,
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 392,
@@ -836,9 +836,9 @@
       ]
     },
     {
-      "id": "api:/assetmanagement/*",
+      "id": "api:/asset/*",
       "type": "api",
-      "prefix": "/assetmanagement/*",
+      "prefix": "/asset/*",
       "providers": [
         "AssetManagement"
       ]
@@ -868,17 +868,9 @@
       ]
     },
     {
-      "id": "api:/cobranca/*",
+      "id": "api:/comunicacao-visual/*",
       "type": "api",
-      "prefix": "/cobranca/*",
-      "providers": [
-        "PaymentGateway"
-      ]
-    },
-    {
-      "id": "api:/com-visual/*",
-      "type": "api",
-      "prefix": "/com-visual/*",
+      "prefix": "/comunicacao-visual/*",
       "providers": [
         "ComunicacaoVisual"
       ]
@@ -892,9 +884,9 @@
       ]
     },
     {
-      "id": "api:/consultaos/*",
+      "id": "api:/consulta-os/*",
       "type": "api",
-      "prefix": "/consultaos/*",
+      "prefix": "/consulta-os/*",
       "providers": [
         "ConsultaOs"
       ]
@@ -945,6 +937,14 @@
       "prefix": "/fiscal/*",
       "providers": [
         "Fiscal"
+      ]
+    },
+    {
+      "id": "api:/forja/*",
+      "type": "api",
+      "prefix": "/forja/*",
+      "providers": [
+        "Forja"
       ]
     },
     {
@@ -1020,9 +1020,9 @@
       ]
     },
     {
-      "id": "api:/payment-gateway/*",
+      "id": "api:/paymentgateway/*",
       "type": "api",
-      "prefix": "/payment-gateway/*",
+      "prefix": "/paymentgateway/*",
       "providers": [
         "PaymentGateway"
       ]
@@ -1052,17 +1052,17 @@
       ]
     },
     {
-      "id": "api:/productcatalogue/*",
+      "id": "api:/product-catalogue/*",
       "type": "api",
-      "prefix": "/productcatalogue/*",
+      "prefix": "/product-catalogue/*",
       "providers": [
         "ProductCatalogue"
       ]
     },
     {
-      "id": "api:/projectmgmt/*",
+      "id": "api:/project-mgmt/*",
       "type": "api",
-      "prefix": "/projectmgmt/*",
+      "prefix": "/project-mgmt/*",
       "providers": [
         "Forja"
       ]
@@ -1092,6 +1092,14 @@
       ]
     },
     {
+      "id": "api:/settings/payment-gateways/*",
+      "type": "api",
+      "prefix": "/settings/payment-gateways/*",
+      "providers": [
+        "PaymentGateway"
+      ]
+    },
+    {
       "id": "api:/spreadsheet/*",
       "type": "api",
       "prefix": "/spreadsheet/*",
@@ -1108,6 +1116,14 @@
       ]
     },
     {
+      "id": "api:/team-mcp/*",
+      "type": "api",
+      "prefix": "/team-mcp/*",
+      "providers": [
+        "Forja"
+      ]
+    },
+    {
       "id": "api:/vestuario/*",
       "type": "api",
       "prefix": "/vestuario/*",
@@ -1116,41 +1132,9 @@
       ]
     },
     {
-      "id": "api:/webhooks/asaas",
+      "id": "api:/webhooks/inter/*",
       "type": "api",
-      "prefix": "/webhooks/asaas",
-      "providers": [
-        "PaymentGateway"
-      ]
-    },
-    {
-      "id": "api:/webhooks/bcb-pix",
-      "type": "api",
-      "prefix": "/webhooks/bcb-pix",
-      "providers": [
-        "PaymentGateway"
-      ]
-    },
-    {
-      "id": "api:/webhooks/c6",
-      "type": "api",
-      "prefix": "/webhooks/c6",
-      "providers": [
-        "PaymentGateway"
-      ]
-    },
-    {
-      "id": "api:/webhooks/inter",
-      "type": "api",
-      "prefix": "/webhooks/inter",
-      "providers": [
-        "PaymentGateway"
-      ]
-    },
-    {
-      "id": "api:/webhooks/pagarme",
-      "type": "api",
-      "prefix": "/webhooks/pagarme",
+      "prefix": "/webhooks/inter/*",
       "providers": [
         "PaymentGateway"
       ]
@@ -6238,7 +6222,7 @@
     },
     {
       "from": "module:AssetManagement",
-      "to": "api:/assetmanagement/*",
+      "to": "api:/asset/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -6658,7 +6642,7 @@
     },
     {
       "from": "module:ComunicacaoVisual",
-      "to": "api:/com-visual/*",
+      "to": "api:/comunicacao-visual/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -6988,7 +6972,7 @@
     },
     {
       "from": "module:ConsultaOs",
-      "to": "api:/consultaos/*",
+      "to": "api:/consulta-os/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -8390,7 +8374,19 @@
     },
     {
       "from": "module:Forja",
-      "to": "api:/projectmgmt/*",
+      "to": "api:/forja/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Forja",
+      "to": "api:/project-mgmt/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Forja",
+      "to": "api:/team-mcp/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -10243,43 +10239,19 @@
     },
     {
       "from": "module:PaymentGateway",
-      "to": "api:/cobranca/*",
+      "to": "api:/paymentgateway/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
     {
       "from": "module:PaymentGateway",
-      "to": "api:/payment-gateway/*",
+      "to": "api:/settings/payment-gateways/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
     {
       "from": "module:PaymentGateway",
-      "to": "api:/webhooks/asaas",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
-      "from": "module:PaymentGateway",
-      "to": "api:/webhooks/bcb-pix",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
-      "from": "module:PaymentGateway",
-      "to": "api:/webhooks/c6",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
-      "from": "module:PaymentGateway",
-      "to": "api:/webhooks/inter",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
-      "from": "module:PaymentGateway",
-      "to": "api:/webhooks/pagarme",
+      "to": "api:/webhooks/inter/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -10519,7 +10491,7 @@
     },
     {
       "from": "module:ProductCatalogue",
-      "to": "api:/productcatalogue/*",
+      "to": "api:/product-catalogue/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
