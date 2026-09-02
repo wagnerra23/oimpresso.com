@@ -20,8 +20,14 @@ us: [US-COPI-133, US-COPI-136, US-COPI-140]
   Não substituí por medição local nem por leitura de log.
 - **Causa NÃO nomeada** — segue sem recibo, como manda o §5 2026-07-15.
 - O que esta sessão **acrescenta** ao que a [session de 2026-08-31](2026-08-31-ragas-obra-parada-veredito-b.md)
-  já tinha achado: três fatos medidos do repo que **estreitam** o espaço de causas, e uma bateria
+  já tinha achado: quatro fatos medidos do repo que **estreitam** o espaço de causas, e uma bateria
   de medição escrita contra o mecanismo real (não contra o palpite).
+- ⚠️ **O quarto fato mexe na ordem das hipóteses** (§2.4): o juiz default retorna **`0.0` quando
+  não consegue medir** (key ausente, HTTP 429, qualquer exceção), e **nunca** lança a exceção que
+  o eval conta — então `judge_failed=0` é 0 **por construção**, e zeros de infra entram na média
+  como se fossem qualidade. O canary, que **não** depende do CT 100, está falhando por
+  `Judge HTTP 429` desde 2026-09-01. O quadro comporta **dois defeitos independentes**
+  (retrieval nas semanas *skipped*, juiz nas semanas *fail*), não uma causa única.
 
 ## 1. O bloqueio, medido
 
@@ -103,6 +109,61 @@ Leitura honesta, e ela corta nos dois sentidos:
   compatível com 08-09/08-16 seguirem no chão *depois* do conserto. Compatível não é provado.
 - **#6525 está fora da janela inteira** (2026-09-01). Não pode ter causado nada entre 07-26 e
   08-23; só poderia afetar runs futuras.
+
+### 2.4 O juiz devolve `0.0` quando NÃO consegue medir — e `judge_failed=0` não prova nada
+
+Achado que apareceu ao investigar por que o CI deste próprio PR estava vermelho, e que **reordena
+as hipóteses**. `RagasJudgeService` (o juiz default, `--judge=openai`) retorna `0.0` em **três**
+caminhos de falha, todos silenciosos:
+
+| linha | situação | retorno |
+|---|---|---|
+| L245 | `OPENAI_API_KEY` ausente | `return 0.0` |
+| L291 | resposta HTTP não-`successful` (inclui **429**) | `return 0.0` |
+| L329 | `catch (\Throwable)` | `return 0.0` |
+
+E `JudgeUnavailableException` aparece **0 vezes** nesse arquivo (contado): o juiz OpenAI **nunca
+a lança** — quem lança é o `OllamaRagasJudge` (`--judge=local`). Como o
+`JanaRagasRealEvalCommand` só incrementa `judge_failed` no `catch (JudgeUnavailableException)`,
+segue que **com o juiz default `judge_failed` é 0 por construção**, medindo o juiz ou não.
+
+Isso importa porque o canary (que roda no GitHub Actions e **não** depende do CT 100) está
+falhando desde 2026-09-01 exatamente assim:
+
+```
+[RAGAS] Judge HTTP 429 metric=faithfulness
+[RAGAS] Judge HTTP 429 metric=answer_relevancy      (20x)
+[runner] MEDIÇÃO FALHOU — modo real com TODAS as métricas 0.0 (51 perguntas):
+         o judge devolveu 0.0 em todas as chamadas
+```
+
+Histórico das runs agendadas: `08-29 success · 08-30 success · 08-31 success · 09-01 failure ·
+09-02 failure`. A primeira falha (09-01T10:49Z) é **anterior** ao #6525 (09-01T21:04Z).
+
+**A hipótese que isso abre, e o limite dela.** Zeros fabricados por 429 entram na **média** como
+se fossem medição. Isso produziria exatamente o padrão das semanas FAIL — as três métricas caindo
+juntas, com `judge_failed=0` — **sem que o retrieval tenha regredido**. O que a torna forte é ser
+o único candidato que explica a queda *simultânea* das três por um mecanismo só. Os limites, que
+impedem chamá-la de causa:
+
+- o 429 está **medido em 09-01/09-02**, não em 08-09/08-16 — a ligação com aquelas semanas é
+  inferência, não recibo. O que decide é o `ragas-real-eval-latest.json` daquelas semanas (§4.6),
+  onde scores exatamente `0.0` em bloco denunciariam o juiz;
+- ela **não explica `no_context=51`** das semanas skipped, que acontece no retrieval, antes de o
+  juiz ser chamado.
+
+Ou seja: o quadro comporta **dois defeitos independentes** — retrieval nas semanas *skipped*,
+juiz nas semanas *fail* —, e a narrativa de causa única é justamente o que o §5 2026-07-15
+adverte a não construir.
+
+⚠️ Isto é a família do §5 2026-07-29 (*instrumento afirma verde sem ter medido*) na forma
+**invertida e pior**: aqui o instrumento afirma **zero** — regressão de qualidade — quando o que
+houve foi falha de infra. Um alarme que confunde "não medi" com "está péssimo" produz o mesmo
+tipo de decisão errada, na direção contrária.
+
+_(Trabalho paralelo em curso: o comentário L269-279 do próprio service é datado de 2026-09-02 e
+já separa `insufficient_quota` de `rate_limit_exceeded` no log — há sessão irmã no tema, e a
+branch `claude/jana-health-check-llm-quota` existe. Não toquei nesse eixo.)_
 
 ## 3. Por que a hipótese é mensurável por SQL (e não precisa de adivinhação)
 
@@ -197,11 +258,28 @@ curl -s localhost:11434/api/tags | head -c 400
 docker exec oimpresso-staging php artisan tinker --execute="var_dump(config('copiloto.mcp_search.docs_pipeline'));"
 ```
 
-**4.6 — só então comparar os reports semanais já gravados** (barato, sem LLM)
+**4.6 — comparar os reports semanais já gravados** (barato, sem LLM — e é o passo que decide §2.4)
 
 ```bash
 docker exec oimpresso-staging ls -la storage/app/governance/ | grep ragas
 ```
+
+Nos reports de 08-09 e 08-16, olhar a **distribuição por pergunta**, não a média: um bloco de
+scores exatamente `0.0` denuncia o **juiz** (429/exceção viram zero silencioso); scores baixos
+mas **espalhados** apontam para retrieval/contexto de verdade. É a mesma leitura de distribuição
+que o §5 2026-07-17 (drift-sentinel) exigiu — *se todos os pontos são idênticos, o problema é o
+medidor*.
+
+**4.7 — o juiz consegue medir AGORA?** (não presumir; a chave é compartilhada com o canary)
+
+```bash
+docker exec oimpresso-staging php artisan jana:ragas-real-eval --sample-size=3 --json
+```
+
+Custo ~US$ 0,003. Se voltar tudo `0.0`, é o juiz (§2.4), não a Jana — conferir o log por
+`Judge HTTP 429` e o `error.code` (`insufficient_quota` = billing, decisão [W];
+`rate_limit_exceeded` = concorrência). Rodar **antes** do gold-set inteiro evita queimar 51×3
+chamadas contra uma chave que já está em 429.
 
 ## 5. O que NÃO foi feito, e por quê
 
@@ -217,3 +295,14 @@ docker exec oimpresso-staging ls -la storage/app/governance/ | grep ragas
 Quando o chip do retorno do CT 100 fechar: rodar a bateria da §4 na ordem, e só então nomear
 causa — com o número ao lado. Se a §4.1 devolver `total` perto de 1153 e `corpo_curto` baixo,
 as hipóteses 1 e 2 caem juntas e o eixo passa a ser Meilisearch/embedder (§4.4).
+
+E tratar como **duas** perguntas, não uma:
+
+1. **por que `no_context=51`** nas semanas *skipped* — responde no retrieval (§4.1 a §4.5);
+2. **por que os scores desabaram** nas semanas *fail* — responde na distribuição dos reports
+   (§4.6) e no smoke do juiz (§4.7). Pode não ter havido regressão de qualidade nenhuma ali.
+
+Fora do escopo deste chip, mas visível daqui e sem dono declarado: enquanto o juiz devolver `0.0`
+em falha de infra, **todo** consumidor dessas médias (baseline, trend, gate, brief) lê "qualidade
+despencou" quando o que houve foi 429. Distinguir *não-medi* de *medi-zero* é conserto de
+instrumento, não de baseline — e é decisão [W] se vira PR próprio.
