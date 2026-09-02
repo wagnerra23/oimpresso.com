@@ -39,7 +39,7 @@ uses(Tests\TestCase::class);
  * biz=1 é semeado por `pest-mysql-setup`. NUNCA biz=4 — é ROTA LIVRE / Larissa,
  * cliente real em produção (ADR 0101 / ADR 0358 R6).
  */
-const CONT_BIZ = 1;
+const EMIS_BIZ = 1;
 
 function contBootstrapBiz(): int
 {
@@ -48,16 +48,16 @@ function contBootstrapBiz(): int
     }
 
     try {
-        $existe = \Illuminate\Support\Facades\DB::table('business')->where('id', CONT_BIZ)->exists();
+        $existe = \Illuminate\Support\Facades\DB::table('business')->where('id', EMIS_BIZ)->exists();
     } catch (\Throwable $e) {
         test()->markTestSkipped('Tabela business indisponível: ' . $e->getMessage());
     }
 
     if (! $existe) {
-        test()->markTestSkipped('Business ' . CONT_BIZ . ' não semeado — rode pest-mysql-setup antes.');
+        test()->markTestSkipped('Business ' . EMIS_BIZ . ' não semeado — rode pest-mysql-setup antes.');
     }
 
-    return CONT_BIZ;
+    return EMIS_BIZ;
 }
 
 /** Cert falso — não precisa de .pfx real porque o toolsFactory devolve o mock direto. */
@@ -175,7 +175,7 @@ function contLigarContingencia(int $businessId, bool $ligada): void
     );
 }
 
-const CONT_VALOR = 100.00;
+const EMIS_VALOR = 100.00;
 
 beforeEach(function () {
     if (! Schema::hasTable('nfe_emissoes') || ! Schema::hasColumn('nfe_emissoes', 'tp_emis')) {
@@ -187,10 +187,10 @@ beforeEach(function () {
 afterEach(function () {
     try {
         NfeEmissao::withoutGlobalScopes()
-            ->where('valor_total', CONT_VALOR)
+            ->where('valor_total', EMIS_VALOR)
             ->where('created_at', '>=', now()->subMinutes(5))
             ->forceDelete();
-        contLigarContingencia(CONT_BIZ, false);
+        contLigarContingencia(EMIS_BIZ, false);
     } catch (\Throwable) {
     }
     \Mockery::close();
@@ -203,7 +203,7 @@ describe('US-NFE-006 · emitir em contingência (ADR TECH-0002)', function () {
         contLigarContingencia($biz, false);
 
         $emissao = (new NfeService(contCertSvc(), contToolsAutoriza()))
-            ->emitir($biz, contDados(CONT_VALOR));
+            ->emitir($biz, contDados(EMIS_VALOR));
 
         // Se ISTO cair, o PR quebrou emissão fiscal de cliente real — é o caso de
         // 100% dos tenants hoje, porque contingência é opt-in e nasce desligada.
@@ -220,7 +220,7 @@ describe('US-NFE-006 · emitir em contingência (ADR TECH-0002)', function () {
         // o Mockery derruba o teste. É a asserção central — um expect() posterior
         // não distinguiria "não chamou" de "chamou e ignorou a resposta".
         $emissao = (new NfeService(contCertSvc(), contToolsQueProibeSefaz()))
-            ->emitir($biz, contDados(CONT_VALOR));
+            ->emitir($biz, contDados(EMIS_VALOR));
 
         expect($emissao->status)->toBe('contingencia');
         expect($emissao->xml_path)->not->toBeNull();
@@ -234,7 +234,7 @@ describe('US-NFE-006 · emitir em contingência (ADR TECH-0002)', function () {
         // Tools cuja chamada à SEFAZ explode. Em contingência nem chegamos lá — e é
         // exatamente esse o ponto: "XML gravado ANTES de qualquer call SEFAZ".
         $emissao = (new NfeService(contCertSvc(), contToolsSefazForaDoAr()))
-            ->emitir($biz, contDados(CONT_VALOR));
+            ->emitir($biz, contDados(EMIS_VALOR));
 
         expect($emissao->status)->toBe('contingencia');
         Storage::assertExists($emissao->xml_path);
@@ -246,7 +246,7 @@ describe('US-NFE-006 · emitir em contingência (ADR TECH-0002)', function () {
         contLigarContingencia($biz, true);
 
         $emissao = (new NfeService(contCertSvc(), contToolsQueProibeSefaz()))
-            ->emitir($biz, contDados(CONT_VALOR));
+            ->emitir($biz, contDados(EMIS_VALOR));
 
         // Quem emite chave/cStat/protocolo é a SEFAZ, e ela não respondeu. Preencher
         // com placeholder seria inventar documento fiscal.
@@ -260,7 +260,7 @@ describe('US-NFE-006 · emitir em contingência (ADR TECH-0002)', function () {
         contLigarContingencia($biz, true);
 
         $emissao = (new NfeService(contCertSvc(), contToolsQueProibeSefaz()))
-            ->emitir($biz, contDados(CONT_VALOR));
+            ->emitir($biz, contDados(EMIS_VALOR));
 
         // Não é detalhe: é a razão de a retransmissão (fase 5) ser obrigatória.
         // Número consumido sem protocolo é buraco na sequência pro auditor.
@@ -273,7 +273,7 @@ describe('US-NFE-006 · emitir em contingência (ADR TECH-0002)', function () {
         contLigarContingencia($biz, true);
 
         $emissao = (new NfeService(contCertSvc(), contToolsQueProibeSefaz()))
-            ->emitir($biz, array_merge(contDados(CONT_VALOR), ['modelo' => '55']));
+            ->emitir($biz, array_merge(contDados(EMIS_VALOR), ['modelo' => '55']));
 
         // O modo NÃO é escolha livre: depende do modelo (Manual SEFAZ / ADR TECH-0002).
         expect((int) $emissao->tp_emis)->toBe(NfeEmissao::TP_EMIS_EPEC);
@@ -285,7 +285,7 @@ describe('US-NFE-006 · emitir em contingência (ADR TECH-0002)', function () {
         contLigarContingencia($biz, true);
 
         $emissao = (new NfeService(contCertSvc(), contToolsQueProibeSefaz()))
-            ->emitir($biz, array_merge(contDados(CONT_VALOR), ['modelo' => '65']));
+            ->emitir($biz, array_merge(contDados(EMIS_VALOR), ['modelo' => '65']));
 
         // Par com o UC-CONT-31a: se os dois modelos gravassem o MESMO tpEmis, um dos
         // dois estaria fiscalmente errado e nenhum teste isolado pegaria.
