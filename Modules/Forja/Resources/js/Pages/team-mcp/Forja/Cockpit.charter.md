@@ -49,6 +49,11 @@ Cockpit **read-only** de observabilidade/governança do próprio loop de desenvo
 
 ## UX targets
 
+> **Bundle (2026-09-02 · PARIDADE §11 Onda 1).** O CSS do protótipo (`forja-page.css`) vive em
+> `resources/css/cowork-forja-bundle.css`, cópia integral, importado pelo `Cockpit.tsx`. Decisão [W]
+> 2026-09-02: o protótipo é a implementação que sobrevive; as views migram pro vocabulário
+> `fj-`/`ap-`/`tf-` onda a onda, e cada onda fecha com `design-diff --compare --check` = 0 bug.
+
 - DS v6: roxo canon na aba ativa / primárias, status Stripe-dot, `tabular-nums`, ramp `--fs`, **sem cor crua**.
 - Topnav auto via `config/core_topnavs.php['Forja']` + `useAutoModuleNav` (raiz `/forja`, segmento próprio pra não colidir com `/team-mcp`).
 - Layout via `inline-flex`/primitivos; PageHeader **canon** (`@/Components/PageHeader`). Locators `data-testid`.

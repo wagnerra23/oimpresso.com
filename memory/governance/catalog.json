@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 683,
-    "edges": 959,
+    "nodes": 686,
+    "edges": 962,
     "by_node_type": {
       "module": 39,
-      "table": 101,
+      "table": 102,
       "adr": 107,
-      "component": 391,
-      "api": 45
+      "component": 392,
+      "api": 46
     },
     "by_edge_type": {
-      "ownsTable": 90,
+      "ownsTable": 91,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 45,
+      "providesApi": 46,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 391,
+      "hasComponent": 392,
       "dependsOn": 115,
       "delegatesTo": 107,
       "migratesTo": 1,
@@ -977,6 +977,14 @@
       "prefix": "/manufacturing/*",
       "providers": [
         "Manufacturing"
+      ]
+    },
+    {
+      "id": "api:/nfe-brasil/*",
+      "type": "api",
+      "prefix": "/nfe-brasil/*",
+      "providers": [
+        "NfeBrasil"
       ]
     },
     {
@@ -2828,6 +2836,13 @@
       "module": "NfeBrasil",
       "name": "ConfigDefaultController",
       "desc": "Nível 4 cascade (defaults business)"
+    },
+    {
+      "id": "component:NfeBrasil/ContingenciaController",
+      "type": "component",
+      "module": "NfeBrasil",
+      "name": "ContingenciaController",
+      "desc": "liga/desliga contingencia SEFAZ por tenant (US-NFE-006, ADR TECH-0002)"
     },
     {
       "id": "component:NfeBrasil/DataController",
@@ -5514,6 +5529,17 @@
       "id": "table:nfe_inutilizacoes",
       "type": "table",
       "name": "nfe_inutilizacoes",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:nfe_sefaz_status",
+      "type": "table",
+      "name": "nfe_sefaz_status",
       "owners": [
         "NfeBrasil"
       ],
@@ -9493,6 +9519,12 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "component:NfeBrasil/ContingenciaController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "component:NfeBrasil/DataController",
       "type": "hasComponent",
       "source": "contains"
@@ -9586,6 +9618,18 @@
       "to": "table:nfe_inutilizacoes",
       "type": "ownsTable",
       "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "table:nfe_sefaz_status",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "api:/nfe-brasil/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
     },
     {
       "from": "module:NfeBrasil",
