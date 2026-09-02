@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\HandleInertiaRequests;
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -92,6 +93,20 @@ function forjaInlineUsuario(): User
 }
 
 /**
+ * Versão de asset que o Inertia espera no header.
+ *
+ * PERGUNTA AO MIDDLEWARE DO APP em vez de reimplementar o `md5_file(manifest)`:
+ * o `HandleInertiaRequests::version()` é o dono da regra, e duplicá-la aqui faria
+ * o teste passar a mentir no dia em que ela mudasse. Sem este header o Inertia
+ * responde **409** (version mismatch) ANTES de o controller rodar — foi o que
+ * derrubou as 3 asserções na primeira execução desta lane (run 33676378598).
+ */
+function forjaInlineVersaoInertia(): ?string
+{
+    return app(HandleInertiaRequests::class)->version(request());
+}
+
+/**
  * Pede as props DEFERIDAS de uma rota do cockpit e devolve o `props` do page object.
  *
  * @return array<string,mixed>
@@ -100,10 +115,12 @@ function forjaInlinePropsDeferidas(User $user, string $url): array
 {
     $response = test()->actingAs($user)->withHeaders([
         'X-Inertia'                   => 'true',
+        'X-Inertia-Version'           => forjaInlineVersaoInertia(),
         'X-Inertia-Partial-Component' => 'team-mcp/Forja/Cockpit',
         'X-Inertia-Partial-Data'      => 'handoffs,heartbeat',
     ])->get($url);
 
+    // 409 aqui = version mismatch (header acima), NÃO o "409" de lever idempotente.
     $response->assertStatus(200);
 
     $page = json_decode($response->getContent(), true);
