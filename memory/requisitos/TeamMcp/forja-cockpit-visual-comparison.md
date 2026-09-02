@@ -185,3 +185,35 @@ Mesma sonda, mesma viewport (2560), dark nos dois lados. Smoke pós-deploy: `/fo
 **Larguras menores (o que "na linha do título" significa):** medido no protótipo pelo Browser pane com emulação de viewport — a **1280** o shell do protótipo vira rail de **56px** e o header quebra em **3 linhas** (título / sino+busca+primária / pílulas, tudo à direita, 174px); a **1728** o shell segue em rail e o header fica em **1 linha** (88px). Em produção o sidebar só vira rail por `data-sidebar="rail"` (`cockpit.css` L57), então a 1728 o conteúdo tem 1468px (< 450+16+1020) e os controles quebram pra 2ª linha — é o que o `.snap` do CI mostra. Isso é **shell (fundação)**, não CSS da Forja: o `.os-page-h` é idêntico nos dois lados (`flex-wrap: wrap`). Produção a 1280 **não foi medida** nesta rodada (o Browser pane não tem a sessão; a janela do Chrome não aceitou o resize) — fica declarado, não inferido.
 
 **D1 (rede) nas pílulas novas:** `window.__marker` gravado antes do clique **sobreviveu** a Trabalho → Aprovações (dois cliques, dois marcadores vivos), a URL e a pílula ativa mudaram, e a rede mostrou `GET /forja/aprovacoes 200` via Inertia (`<Link as="button">`) — sem full reload. D1 **parcial**, como a meta do §11 pede.
+
+## 2026-09-02 (noite) — produção a 1280 MEDIDA: fecha o "não medido" da Onda 2.1
+
+> **Recibo.** Produção autenticada `oimpresso.com/forja/aprovacoes`, tema **dark**, `.cockpit` com `data-sidebar="expanded"` (estado real da sessão do [W]). Viewport de 1280 obtida por **iframe same-origin** injetado na própria aba autenticada (`width:1280px`), com `contentWindow.innerWidth === 1280` **conferido antes de medir** e **duas leituras estáveis** de `querySelectorAll('*')` (781/781) após a montagem do Inertia — a lápide §5 2026-08-24 (não medir durante o lazy) foi cumprida. Sonda = `getBoundingClientRect` + `getComputedStyle`: o que o browser resolveu, nunca a classe declarada.
+>
+> **Correção de método sobre a rodada anterior.** A entrada da Onda 2.1 registrou *"a janela do Chrome (maximizada) não aceitou o resize"*. Medido hoje, com mais precisão: **(a)** não há Chrome — a extensão roda no **Brave** (2 janelas, nenhuma com a Forja em foco); **(b)** `resize_window` **devolve "Successfully resized"** e o `innerWidth` **continua 2560** — o instrumento afirma sucesso sem ter feito, então o veredito só sobrevive porque foi conferido pelo `innerWidth`, não pela mensagem da tool (família LC-15/§5 2026-07-29: não colapsar "não consegui" num estado do objeto). O iframe contorna as duas coisas e é verificável.
+>
+> **Limite declarado.** O protótipo **não foi re-medido hoje**. O JSON dele a 1280 **não existe** nas fontes citadas — procurei no corpo do [#6563](https://github.com/wagnerra23/oimpresso.com/pull/6563), nos **72** comentários dele, nos review-comments (0) e no session log de 02/09: zero ocorrência de `1280`, `174` ou `rail`. A coluna do protótipo abaixo é o **registro narrativo** desta mesma página (rail 56 · 3 linhas · 174,4px), não uma medição pareada de hoje.
+
+### O que produção faz a 1280
+
+| campo | protótipo (registro, não re-medido) | produção 1280 · sidebar `expanded` (default) | produção 1280 · `data-sidebar="rail"` (toggle) |
+|---|---|---|---|
+| coluna do shell (`.cockpit` grid) | rail **56px** (automático) | **`260px 1020px 0px`** — sidebar 260 | `56px 1224px 0px` |
+| altura do `.os-page-h` | 174,4px | **136,4px** | 136,4px |
+| linhas do header | **3** (título / sino+busca+primária / pílulas) | **2** (`.os-page-h-l` y=12 × `.os-page-h-r` y=91,4 → `mesmaLinha:false`) | 2 (idem) |
+| padding do `.os-page-h` | `12px 24px` | **`12px 24px`** — o base da Onda 2.1 **resistiu** a 1280 | `12px 24px` |
+| overflow horizontal do `.main-body` | — | **38px** (`scrollWidth` 1058 × `clientWidth` 1020) | **0** |
+| destinos do topnav fora da viewport | — | **1 de 6** | **0 de 6** |
+
+**O achado.** A 1280 com o sidebar no default expandido, `.fj-viewtabs` (3 grupos, y=92, h=31) vai de x=546,6 até **x=1318** — **38px além da viewport**. Medindo destino a destino pela borda direita: Aprovações 731 · Trabalho 819 · Saúde 967 · MCP 1032 · Changelog 1216 · **Integrador 1315 → fora**. Não há scroll de página (`documentElement.scrollWidth === clientWidth === 1280`); quem absorve é o `.main-body` (`overflow-x:auto`, 38px de scroll) dentro de um `.cockpit` com `overflow:hidden`. Ou seja: **no monitor do [W], o 6º destino da Forja nasce fora da tela** e só aparece rolando o conteúdo na horizontal.
+
+**A causa é o shell, não a Forja — confirmado no CSS de `origin/main`.** O `@media (max-width: 1280px)` do [`cockpit.css` L57-59](../../../resources/css/cockpit.css) **dispara** a 1280 e colapsa a coluna direita (`320px → 0`, batendo com o `0px` medido), mas mantém `260px` de sidebar; o rail de 56px só existe sob `.cockpit[data-sidebar="rail"]` (L55). Não há auto-rail por largura. O `.os-page-h` é o mesmo dos dois lados (`flex-wrap: wrap`, gap 16px) — nenhum CSS da Forja participa do defeito.
+
+**O toggle resolve o corte, mas não iguala o protótipo.** Alternando `data-sidebar` para `rail` na mesma página, sem tocar em CSS: o overflow vai a **0** e as **6** pílulas cabem. Mas o header **continua em 2 linhas com 136,4px** — produção nunca reproduz as 3 linhas / 174,4px do protótipo, porque lá as pílulas quebram para uma terceira linha e aqui os 4 filhos do `.os-page-h-r` permanecem numa fileira só.
+
+**Veredito: fundação, não Forja → decisão [W], não PR de código** (é o que o §11 previa). São duas decisões independentes:
+
+1. **Auto-rail a ≤1280** — o protótipo raila sozinho; produção exige o toggle manual. Enquanto não houver decisão, todo usuário a 1280 no default perde o "Integrador". Cabe em `INCONSISTENCIAS-replica.md` junto do `--accent` 0,55 × 0,70.
+2. **2 linhas × 3 linhas no header** — divergência de estratégia de wrap, **sem defeito medido** em produção (nada cortado quando o overflow é 0). Só vira trabalho se [W] quiser paridade literal de altura.
+
+⚠️ Nenhuma das duas é conserto silencioso: mexer no `@media` do `cockpit.css` altera o shell de **todos** os módulos, não só o da Forja.
