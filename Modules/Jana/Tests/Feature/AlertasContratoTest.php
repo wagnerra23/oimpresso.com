@@ -120,8 +120,8 @@ it('UC-ALERTA-00: a aba Alertas existe na barra da área, na 3ª posição, e le
     expect($jana)->not->toBeNull('a entry da Jana não está no shell.menu');
 
     $keys = array_column($jana['ghosts'] ?? [], 'key');
-    // Ordem da âncora (`JmTabs`): Painel · Conversa · Alertas · Memória (Ações/Plataforma são PRs próprios).
-    expect(array_slice($keys, 0, 4))->toBe(['dashboard', 'copiloto', 'alertas', 'memorias']);
+    // Ordem da âncora (`JmTabs`): Painel · Conversa · Alertas · Ações · Memória (Plataforma é PR próprio).
+    expect(array_slice($keys, 0, 5))->toBe(['dashboard', 'copiloto', 'alertas', 'acoes', 'memorias']);
 
     $ghost = collect($jana['ghosts'])->firstWhere('key', 'alertas');
     expect($ghost['label'])->toBe('Alertas')

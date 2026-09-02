@@ -191,6 +191,7 @@ jobs:
             Modules/Jana/Tests/Feature/FarolServerSideTest.php \
             Modules/Jana/Tests/Feature/PainelContratoTest.php \
             Modules/Jana/Tests/Feature/AlertasContratoTest.php \
+            Modules/Jana/Tests/Feature/AcoesContratoTest.php \
             Modules/Jana/Tests/Feature/Chat/ChatConversasPreviewTest.php \
             Modules/Jana/Tests/Feature/Chat/ChatAntiHooksAcaoTest.php \
             Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitShaPreservaTest.php \

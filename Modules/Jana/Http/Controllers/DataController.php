@@ -263,6 +263,16 @@ class DataController extends Controller
                             ]
                         );
 
+                        // Ações (fila HITL) — entrou em 2026-09-02 com a tela `Jana/Acoes`.
+                        $sub->url(
+                            route('jana.acoes.index'),
+                            __('copiloto::copiloto.menu.acoes'),
+                            [
+                                'icon'   => 'fa fas fa-lightbulb',
+                                'active' => request()->segment(2) == 'acoes',
+                            ]
+                        );
+
                         // Custos de IA MOVIDO pra Modules/Governance em 2026-08-05
                         // (ADR 0366 §D-B). Este bloco tinha que sair JUNTO com a rota:
                         // ele chamava `route('jana.admin.custos.index')`, e um nome de
@@ -326,6 +336,9 @@ class DataController extends Controller
                             // (paridade com o protótipo, handoff 2026-08-31 §Paridade Painel).
                             // key = segmento da URL, casada com `JanaAreaHeader active="alertas"`.
                             ['key' => 'alertas',   'label' => 'Alertas',  'href' => '/ia/alertas'],
+                            // Ações — 4ª aba da âncora (`JmTabs`); a fila HITL de `/ia/acoes`
+                            // (2026-09-02). key = segmento da URL, casada com `active="acoes"`.
+                            ['key' => 'acoes',     'label' => 'Ações',    'href' => '/ia/acoes'],
                             // Ghost 'brief' removido 2026-06-15 (Wagner): /ia/brief era stub
                             // redundante (brief vive no chat + brief-fetch MCP + seção "Brief
                             // diário" do dashboard). Rota + BriefController + Page apagados.

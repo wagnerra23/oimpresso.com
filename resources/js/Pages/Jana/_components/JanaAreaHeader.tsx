@@ -58,6 +58,7 @@ export type JanaAreaTab =
   | 'dashboard' // = o Painel; a key vira 'painel' quando o ghost for rekeyado
   | 'memoria'   // = memorias
   | 'alertas'   // = ghost `alertas` (2026-09-02, 3ª aba da âncora `JmTabs`) — key = ghost key
+  | 'acoes'     // = ghost `acoes` (2026-09-02, 4ª aba — a fila HITL)
   // Ghost keys canon — ninguém passa hoje, mas são os alvos do map abaixo e
   // valem como valor direto (o PageHeaderTabs casa por key).
   | 'copiloto'
