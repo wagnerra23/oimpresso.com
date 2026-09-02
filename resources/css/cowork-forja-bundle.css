@@ -1149,9 +1149,14 @@ a.fj-ho-pr:hover{ color:var(--accent); }
  * sem estas regras o bundle desenha o topnav mas não o header que o segura. Mesmo
  * precedente dos bundles Financeiro (`.fin-cowork .os-page-h`) e Sells
  * (`.sells-cowork .os-page-h`): o shell desce escopado por módulo, nunca global.
- * ═══════════════════════════════════════════════════════════════════════════ */
+ * ═══════════════════════════════════════════════════════════════════════════ 
+ * DESVIOS DECLARADOS nesta seção (2): `color:#fff` do `.os-btn.primary` → `var(--accent-fg)`
+ * (mesmo pixel, token que o DS já tem; o conformance-gate barra hex novo em regra de tela) e o
+ * padding do `.os-page-h` já vem com o valor EFETIVO do protótipo (`.fj-page .os-page-h`
+ * sobrescrevia 12/24 por 20/18/14 — copiar os dois criaria seletor duplicado).
+ */
 .fj-hub .os-page-h{
-  padding: 12px 24px 12px;
+  padding: 20px 18px 14px; /* valor EFETIVO do protótipo: `.fj-page .os-page-h` sobrescreve os 12px 24px do shell */
   min-height: 44px;
   flex-shrink: 0;
   display: flex; align-items: center; gap: 16px;
@@ -1199,7 +1204,7 @@ a.fj-ho-pr:hover{ color:var(--accent); }
   white-space: nowrap;
 }
 .fj-hub .os-btn:hover{ background: var(--border-2); }
-.fj-hub .os-btn.primary{ background: var(--accent); color: #fff; border-color: var(--accent); }
+.fj-hub .os-btn.primary{ background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
 .fj-hub .os-btn.primary:hover{ background: var(--accent-2); border-color: var(--accent-2); }
 .fj-hub .os-btn.ghost{ background: transparent; border-color: transparent; color: var(--text-dim); }
 .fj-hub .os-btn.ghost:hover{ background: var(--border-2); color: var(--text); }
@@ -1217,4 +1222,3 @@ a.fj-ho-pr:hover{ color:var(--accent); }
   cursor: default;
 }
 .fj-hub .icon-btn:hover{ color: var(--text); border-color: var(--text-mute); }
-.fj-hub .os-page-h{ padding:20px 18px 14px; }
