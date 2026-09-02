@@ -316,3 +316,79 @@ it('UC-FNFE-02 · isCancelavel do Controller respeita 24h NFC-e vs 168h NF-e', f
         ->and($metodo->invoke($controller, $nota('55', 200)))->toBeFalse('NF-e 200h > 168h')
         ->and($metodo->invoke($controller, $nota('55', 1, 'rejeitada')))->toBeFalse('só nota autorizada é cancelável');
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UC-FNFE-09 · Retransmissão PRESERVA a nota antiga (CONFAZ SINIEF 07/2005 Art. 14)
+//
+// Âncora: CU-FISC-11 do SDD §6.2 — os DOIS itens dele:
+//   1. [reg] `forceDelete()` nunca é usado — documento fiscal é imutável
+//   2. [must] status fora de {rejeitada, denegada, erro_envio} é recusado
+//
+// POR QUE ESTÁTICO, E O QUE ISSO NÃO PROVA
+// ─────────────────────────────────────────
+// O caminho de runtime não é exercitável em nenhuma lane de hoje: tanto
+// `AcoesController::retransmitir` quanto `NfeService::retransmitirInterno` fazem a
+// query (`firstOrFail()` / `find()`) ANTES de checar o status, e `nfe_emissoes` não
+// existe nem na lane SQLite do CI nem no staging do CT 100. O teste de comportamento
+// segue declarado como [BACKLOG] em `Nfe.casos.md` — esta asserção não o substitui.
+//
+// O que ESTE caso prova é a invariante ESTRUTURAL, e ela morde: trocar o
+// `$emissao->update([...])` por um delete, ou mexer na whitelist, deixa vermelho.
+// A whitelist é lida do FONTE DE PRODUÇÃO — a diferença que separa isto do
+// `NfeServiceRetransmitirTest`, que declara `$whitelist = [...]` dentro do próprio
+// teste e por isso continuaria verde se o Service mudasse (lápide §5 2026-06-05).
+//
+// Precedente da técnica no repo: `Wave28ArquivosSaturationTest` e
+// `ArquivosAdminControllerTest` já assertam ausência de delete sobre o fonte real.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Corpo-fonte de um método, localizado por reflection (não por busca de string). */
+function fiscalCorpoDoMetodo(string $classe, string $metodo): string
+{
+    $rm = new ReflectionMethod($classe, $metodo);
+    $linhas = file($rm->getFileName());
+    $corpo = implode('', array_slice(
+        $linhas,
+        $rm->getStartLine() - 1,
+        $rm->getEndLine() - $rm->getStartLine() + 1,
+    ));
+
+    // Controle positivo: se a extração falhar, o teste tem de morrer aqui — e não
+    // passar por vacuidade (um `not->toContain` sobre string vazia é sempre verde).
+    expect(strlen($corpo))->toBeGreaterThan(200);
+
+    return $corpo;
+}
+
+it('UC-FNFE-09 · retransmitir PRESERVA a nota antiga — nunca deleta (CONFAZ Art. 14)', function () {
+    $corpo = fiscalCorpoDoMetodo(NfeService::class, 'retransmitirInterno');
+
+    // [reg] CONFAZ Art. 14: a NfeEmissao nunca é hard-deletada, nem soft-deletada
+    // (`->delete(`), nem destruída em massa (`::destroy(`).
+    //
+    // ⚠️ SEM mensagem nos `toContain`: no Pest ele é VARIÁDICO (`...$needles`), então um
+    // 2º argumento vira NEEDLE, não descrição — a explicação mora no comentário. Foi
+    // exatamente assim que estes 2 casos nasceram vermelhos, e é a classe que o #4918 já
+    // limpou 38× no repo (§5 2026-07-28).
+    expect($corpo)->not->toContain('forceDelete')
+        ->and($corpo)->not->toContain('->delete(')
+        ->and($corpo)->not->toContain('::destroy(');
+
+    // O que ela faz NO LUGAR de deletar: marca `inutilizada`, zera o `transaction_id`
+    // (libera a UNIQUE biz+tx) e preserva o vínculo da nota antiga no metadata.
+    expect($corpo)->toContain("'status' => 'inutilizada'")
+        ->and($corpo)->toContain("'transaction_id' => null")
+        ->and($corpo)->toContain('original_transaction_id');
+});
+
+it('UC-FNFE-09 · whitelist de status retransmissível vem do Service, não do teste', function () {
+    $corpo = fiscalCorpoDoMetodo(NfeService::class, 'retransmitirInterno');
+    $normalizado = preg_replace('/\s+/', ' ', $corpo);
+
+    // [must] exatamente os 3 status retransmissíveis do CU-FISC-11 item 2, e a prova
+    // de que a lista REJEITA — não fica declarada sem uso. Mexer nisto no Service
+    // derruba este caso: é a diferença entre asserção e re-declaração da regra.
+    expect($normalizado)->toContain("statusValidos = ['rejeitada', 'denegada', 'erro_envio']")
+        ->and($normalizado)->toContain('in_array($emissao->status, $statusValidos, true)')
+        ->and($normalizado)->toContain('throw new InvalidArgumentException');
+});
