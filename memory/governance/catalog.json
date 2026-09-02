@@ -26,20 +26,20 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 685,
-    "edges": 961,
+    "nodes": 686,
+    "edges": 962,
     "by_node_type": {
       "module": 39,
       "table": 102,
       "adr": 107,
       "component": 392,
-      "api": 45
+      "api": 46
     },
     "by_edge_type": {
       "ownsTable": 91,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 45,
+      "providesApi": 46,
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 392,
@@ -977,6 +977,14 @@
       "prefix": "/manufacturing/*",
       "providers": [
         "Manufacturing"
+      ]
+    },
+    {
+      "id": "api:/nfe-brasil/*",
+      "type": "api",
+      "prefix": "/nfe-brasil/*",
+      "providers": [
+        "NfeBrasil"
       ]
     },
     {
@@ -9616,6 +9624,12 @@
       "to": "table:nfe_sefaz_status",
       "type": "ownsTable",
       "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "api:/nfe-brasil/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
     },
     {
       "from": "module:NfeBrasil",
