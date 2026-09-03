@@ -1082,3 +1082,116 @@ novo. **Nenhuma folha foi tocada neste PR.**
    ([ADR 0374](../../decisions/0374-emenda-0315-espelho-cowork-e-rota-prevista.md)) — logo o `forja-page.jsx`
    que a §2 mede é o do espelho, que pode estar atrás do build de 03/09.
 3. **A a11y não foi re-auditada** — a §3 registra o que o #6669 entregou, não uma varredura axe nova.
+
+## 2026-09-03 (Onda 5 do export · fecho) — Gantt: o corpo NÃO vira réplica, e o custo está medido
+
+> **Numeração — os dois documentos contam diferente.** Esta é a **Onda 5 do
+> `COLAR-NO-CODE-EXPORT-FORJA-MODULO.md`** (§1: *"5 · Trabalho · gantt"*), que é a mesma tela da
+> **Onda 6 da tabela do [PARIDADE §11](../Forja/PARIDADE-area-forja-diagnostico-e-ondas.md)**. Não
+> são duas ondas: são duas réguas sobre a mesma tela. Quem cruzar os documentos pelo número vai
+> concluir que uma onda sumiu.
+
+**Esta seção fecha declarando** — a moldura foi entregue e medida em produção; o corpo é
+**decisão [W] em aberto**, e o desfecho da onda é devolver a escolha com o custo ao lado.
+
+### O que já está entregue (Onda 6 do PARIDADE, [#6624](https://github.com/wagnerra23/oimpresso.com/pull/6624) + recibo [#6644](https://github.com/wagnerra23/oimpresso.com/pull/6644))
+
+Não re-medido aqui — o recibo em produção já está na [§2026-09-03 (Onda 6)](#2026-09-03--onda-6-gantt-smoke-em-produção-e-ele-corrigiu-uma-afirmação-minha)
+desta mesma página, autenticado e dark: `.fj-quadro-ancora` (**1** · 12px · `oklch(0.58 0.005 90)`
+= `--text-mute`) + `.fj-totalbar.fj-g-foot` (**1** · `display:flex` · **3** `.fj-g-leg`). Re-medir
+para reafirmar seria refazer trabalho pago; o que esta seção acrescenta é o **outro lado do
+placar**.
+
+Uma conferência que faltava, e que fecha a estrutura da barra: o §3.5 pede `.fj-totalbar` com
+**6 filhos**. A produção escreve exatamente **6** `<span>` (`Gantt.tsx` :704-711) — total ·
+`fj-total-warn` · 3× `fj-g-leg` · `fj-total-hint`. **6 de 6.**
+
+### O corpo: os 7 alvos do §3.5, medidos no repo
+
+O §3.5 do export descreve o corpo como `.fj-gantt` → `[fj-quadro-ancora, fj-g-scale, fj-g-body,
+fj-totalbar]`, com `.fj-g-row` (**32**), `fj-g-lbl` (**33**), `fj-g-fds` (**192**) e `fj-g-bar`
+(**32**). Varredura contada no `main`, excluindo o espelho (`git grep -l <classe> -- ':(glob)**'
+':(exclude)prototipo-ui/**'`):
+
+| classe do §3.5 | regra no bundle | markup em `.tsx` |
+|---|---|---|
+| `fj-g-scale` | ✅ `cowork-forja-bundle.css:1107` | **0** |
+| `fj-g-body` | ✅ `:1113` | **0** |
+| `fj-g-row` | ✅ `:1115-1119` (5 seletores) | **0** |
+| `fj-g-lbl` | ✅ `:1108` | **0** |
+| `fj-g-track` | ✅ `:1122, :1134` | **0** |
+| `fj-g-bar` | ✅ `:1124-1130` (7 seletores) | **0** |
+| `fj-g-fds` | ✅ `:1133` | **0** |
+
+E o contêiner: `.fj-gantt` também existe **só como regra** (`:1106`), sem markup — em produção os
+três blocos vivem soltos no `Stack` da página, não dentro de um wrapper.
+
+**O número que resume o eixo:** o bundle publica **17** classes `fj-g-*` distintas (34 seletores);
+**2** têm consumidor em `.tsx` — `fj-g-foot` e `fj-g-leg`, exatamente as que a Onda 6 entregou. As
+outras **15 estão inertes** enquanto o motor for o SVAR.
+
+Isso muda o formato da decisão de [W], e a favor dela: **o CSS já está pago**. A Onda 1 desceu o
+bundle inteiro (lei 5 do export: zero CSS novo), então trocar o motor não custaria folha de estilo
+— custaria markup + a capacidade que o motor atual entrega.
+
+### O custo de trocar o motor — medido, não estimado
+
+A tela usa `@svar-ui/react-gantt` (`package.json:247` → `^2.6.1`, MIT), com **1** consumidor no
+repo inteiro (`Gantt.tsx` :46-47). Os números de produção são de 2026-09-03 e estão ancorados na
+tabela do [`Gantt.charter.md`](../../../Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.charter.md) §PARIDADE §11 Onda 6 — não os reescrevo aqui, aponto:
+
+| medida | valor | o que decorre |
+|---|---:|---|
+| tasks | 1186 | teto do controller: `MAX_TASKS = 500` (`RoadmapGanttController:53`) |
+| com `due_date` real | **7** (0,6%) | a linha do tempo tem 7 pontos de dado |
+| com `blocked_by` | **163** (13,7%) | as setas **têm** o que desenhar — servidas como links SVAR `{source,target,type:'e2s'}` (`Gantt.tsx` :219-243) |
+
+O protótipo **não desenha setas de dependência** (só um cadeado no card). Trocar o motor, então,
+troca **163 dependências desenhadas** por um cronograma mais bonito de **7 prazos** — e o desenho
+das setas o protótipo não define, então portá-las seria inventar design, que é o que a
+[ADR 0388](../../decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md)
+D-5 evita ("réplica não é licença para tocar comportamento").
+
+**Por isso esta onda não decide.** Ela devolve a escolha com o custo ao lado, que é o que o §7-bis
+do export já listava como uma das 2 decisões [W] abertas do módulo.
+
+### PLACAR — Gantt (§3.5)
+
+```
+entregue 2 de 4 filhos do alvo .fj-gantt
+  ✓ .fj-quadro-ancora  — 1 · 12px · oklch(0.58 0.005 90) = --text-mute (prod, #6644)
+  ✓ .fj-totalbar.fj-g-foot — 1 · display:flex · 6 filhos · 3 fj-g-leg (6 de 6 do §3.5)
+  ✗ .fj-g-scale — 0 markup
+  ✗ .fj-g-body  — 0 markup
+ausentes: fj-g-scale · fj-g-body · fj-g-row · fj-g-lbl · fj-g-track · fj-g-bar · fj-g-fds
+  motivo ÚNICO: decisão [W] em aberto (trocar @svar-ui/react-gantt pelo markup à mão)
+  — não é esquecimento, não é dívida da onda, e não é falta de CSS (as 7 regras estão
+    no bundle desde a Onda 1; 15 das 17 classes fj-g-* estão inertes)
+alvos que ficam SEM contraparte enquanto o motor for o SVAR:
+  32 .fj-g-row · 33 fj-g-lbl · 192 fj-g-fds · 32 fj-g-bar · 1 wrapper .fj-gantt
+divergências declaradas:
+  · copy do arrasto é condicional a can_edit — sem jana.mcp.tasks.write a barra é
+    readonly, e anunciar o gesto seria afordância falsa (LC-15)
+  · o contador de vencidas lê due_date REAL, não a janela start+3d que o toGanttTasks
+    inventa pra dar largura à barra
+```
+
+### O que esta seção NÃO prova
+
+Nada aqui é "0 bug" — e neste caso não pode ser, por duas razões independentes:
+
+1. **`compare --check` exige prod autenticada**, e `https://oimpresso.com/forja/roadmap-gantt`
+   responde `302 → /login` sem sessão (mesmo limite das Ondas 9 e 10). Lei 6 do export.
+2. **A comparação pareada do corpo não seria honesta enquanto a decisão estiver aberta.** Os dois
+   lados têm **motores diferentes** — `.fj-g-*` à mão no protótipo × `@svar-ui/react-gantt` em
+   produção. Um `--compare` do corpo mediria a distância entre duas implementações que ninguém
+   decidiu unificar, e devolveria `DIVERGE` para cada célula: ruído com aparência de veredito.
+   O eixo comparável é a **moldura**, e ela foi medida em prod no #6644.
+
+A tela também **não tem contrato** em `tests/Browser/visreg-screens.json` (39 entradas, nenhuma do
+gantt — `grep` contado); o comando para criá-lo está no [#6624](https://github.com/wagnerra23/oimpresso.com/pull/6624).
+
+**Observação lateral já catalogada no #6644, repetida aqui só para não ser redescoberta como
+achado:** o cabeçalho diz `Timeline (530 linhas)` e a barra diz `500 tarefas`. São contagens de
+coisas diferentes — linhas incluem as *summary* por módulo, tarefas é o teto `MAX_TASKS = 500` —
+mas a proximidade convida à leitura errada.
