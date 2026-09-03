@@ -346,7 +346,7 @@ it('a paleta da documentacao nao drifa dos tokens do DS', function () {
     expect($localLight['--sans'])->toBe($dsLight['--font-sans']);
     expect($localLight['--mono'])->toBe($dsLight['--font-mono']);
 
-    // 2026-09-02 (ADR UI-0030): o lembrete que o comentário anterior deixou marcado
+    // 2026-09-02 (ADR UI-0031): o lembrete que o comentário anterior deixou marcado
     // DISPAROU — o DS passou a declarar `--accent` no escuro. A divergência local (0.74)
     // existia porque o dark HERDAVA oklch(0.55 …), que sobre este papel dá contraste 3.02
     // e reprova o AA de texto. O par escuro novo do DS é oklch(0.70 0.15 295) = 5.55,
@@ -359,7 +359,11 @@ it('a paleta da documentacao nao drifa dos tokens do DS', function () {
         '--ink-soft' => '--text-dim', '--ink-mute' => '--text-mute',
         '--rule' => '--border', '--rule-soft' => '--border-2',
         '--accent' => '--accent', '--accent-bg' => '--accent-soft'] as $local => $token) {
-        expect($dsEscuro)->toHaveKey($token, "o DS parou de declarar {$token} no dark — se foi de propósito, reconcilie o layout junto");
+        // `toHaveKey($k, $v)` compara o VALOR no 2º argumento — não é mensagem. Pra dar
+        // mensagem própria, o assert é sobre o booleano. (Custou um CI vermelho em 2026-09-02.)
+        expect(array_key_exists($token, $dsEscuro))->toBeTrue(
+            "o DS parou de declarar {$token} no dark — se foi de propósito, reconcilie o layout junto"
+        );
         expect($localEscuro[$local])->toBe(
             $dsEscuro[$token],
             "{$local} (dark) divergiu de {$token} do DS"

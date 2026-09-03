@@ -235,7 +235,7 @@ mente a favor do rail.
 Decisão que saiu daqui: [ADR UI-0030](../_DesignSystem/adr/ui/0030-sidebar-auto-rail-responsivo.md)
 (produção passa a fazer auto-rail a **≤1280**, com a escolha manual vencendo).
 
-### Onda 3 (2026-09-02) — o "0,55 × 0,70" fechou NA FUNDAÇÃO ([ADR UI-0030](../_DesignSystem/adr/ui/0030-fundacao-dark-adota-o-accent-do-prototipo.md))
+### Onda 3 (2026-09-02) — o "0,55 × 0,70" fechou NA FUNDAÇÃO ([ADR UI-0031](../_DesignSystem/adr/ui/0031-fundacao-dark-adota-o-accent-do-prototipo.md))
 
 A linha `--accent no dark` acima dizia *"reconciliar a fundação é decisão [W]"*. [W] decidiu em 2026-09-02
 (*"não me importo com a decisão que vai escolher (…) apenas faça"*) e a fundação adotou o protótipo — o escopo

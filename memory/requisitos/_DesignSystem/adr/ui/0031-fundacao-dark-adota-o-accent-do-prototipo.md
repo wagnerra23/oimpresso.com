@@ -1,8 +1,8 @@
 ---
-id: requisitos-design-system-adr-ui-0030-fundacao-dark-adota-o-accent-do-prototipo
+id: requisitos-design-system-adr-ui-0031-fundacao-dark-adota-o-accent-do-prototipo
 ---
 
-# ADR UI-0030 · A fundação no ESCURO adota a família accent do protótipo (0,55 → 0,70) e a Forja devolve o override
+# ADR UI-0031 · A fundação no ESCURO adota a família accent do protótipo (0,55 → 0,70) e a Forja devolve o override
 
 - **Status**: accepted
 - **Data**: 2026-09-02
@@ -197,7 +197,7 @@ papel da página (`oklch(0.26 0.006 240)`), pela fórmula de contraste WCAG:
 |---|---|---|
 | herdado antigo, `0.55` | **3,02** | reprova AA (4,5) — **era exatamente o problema** |
 | exceção local, `0.74` | 6,49 | passava |
-| **DS novo (UI-0030), `0.70`** | **5,55** | **passa AA** |
+| **DS novo (UI-0031), `0.70`** | **5,55** | **passa AA** |
 
 Como o par escuro novo já é calibrado para fundo escuro, o layout voltou a ser **paridade pura** com o DS
 nos dois temas, e o teste passou a cobrar `--accent` junto dos outros (com uma mensagem que avisa se o DS

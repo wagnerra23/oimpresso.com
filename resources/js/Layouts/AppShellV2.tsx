@@ -450,14 +450,14 @@ export default function AppShellV2({
   //   --bubble-me                           : `dark_absent` no DTCG (herda o light) → 1 valor.
   //
   // ⚠️ NÃO "conserte" o --bubble-me pra seguir o --accent. O DTCG o declara como alias
-  // (`var(--accent)`), então desde a UI-0030 o CSS o resolveria em 0.70 no escuro — e este
+  // (`var(--accent)`), então desde a UI-0031 o CSS o resolveria em 0.70 no escuro — e este
   // inline o segura em 0.55 DE PROPÓSITO, por duas razões medidas: (a) o protótipo faz o
   // mesmo (declara 0.55 no `:root` e não redeclara no bloco escuro); (b) o par dele,
   // `--bubble-me-fg`, é `#ffffff` FIXO, sem par de tema — branco sobre 0.70 perde contraste
   // nos 14 sítios de bolha. Alinhar os dois é decisão de design, não limpeza de alias.
   // Fonte dos pares: resources/css/tokens/semantic.tokens.json → cockpit.accent.
   //
-  // 2026-09-02 (ADR UI-0030): --accent e --accent-2 ganharam par ESCURO. Eram `dark_absent`
+  // 2026-09-02 (ADR UI-0031): --accent e --accent-2 ganharam par ESCURO. Eram `dark_absent`
   // e o escuro herdava 0.55/0.62 do claro; o protótipo Cowork (styles.css, bloco
   // `[data-theme="dark"]` "VIDA 06-11 [W]") pinta 0.70/0.76. Era a divergência "0,55 × 0,70"
   // medida em toda rodada de comparação. Sem ESTA linha a mudança do DTCG não chega ao
@@ -468,7 +468,7 @@ export default function AppShellV2({
   const cockpitStyle: React.CSSProperties = {
     ['--row-h' as never]: `${26 + (density / 100) * 16}px`,
     ['--card-pad' as never]: `${8 + (density / 100) * 8}px`,
-    // L/C alinhados ao canon DTCG cockpit.accent (ADR 0190 no claro · UI-0030 no escuro):
+    // L/C alinhados ao canon DTCG cockpit.accent (ADR 0190 no claro · UI-0031 no escuro):
     // no hue default (295) o resting state bate exato nos dois temas.
     ['--accent' as never]: `oklch(${accentLC} ${accentHue})`,
     ['--accent-2' as never]: `oklch(${accent2LC} ${accentHue})`,

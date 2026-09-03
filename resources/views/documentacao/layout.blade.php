@@ -32,7 +32,7 @@
     --sans:"IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
     --mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
   }
-  /* RECONCILIADO em 2026-09-02 (ADR UI-0030) — a divergência acabou porque a CAUSA dela
+  /* RECONCILIADO em 2026-09-02 (ADR UI-0031) — a divergência acabou porque a CAUSA dela
      acabou. Ela dizia: "o DS não redeclara `--accent` no dark, então ele herda oklch(0.55 …)
      (…) 0.55 sobre papel escuro fica abaixo do contraste de leitura. Sobe pra 0.74". O DS
      passou a declarar `--accent` no escuro em oklch(0.70 0.15 295) — valor calibrado PRA

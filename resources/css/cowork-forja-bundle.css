@@ -1223,7 +1223,7 @@ a.fj-ho-pr:hover{ color:var(--accent); }
  *    Pela ADR 0388 (réplica primeiro) a Forja recebeu os valores ESCOPADOS ao seu root, e a
  *    reconciliação global ficou registrada como decisão [W].
  *
- *    ERRATA 2026-09-02 (ADR UI-0030 — [W] decidiu a reconciliação global): `--accent` e
+ *    ERRATA 2026-09-02 (ADR UI-0031 — [W] decidiu a reconciliação global): `--accent` e
  *    `--accent-soft` SAÍRAM daqui. A FUNDAÇÃO passou a dar os dois no escuro (DTCG
  *    `cockpit.accent` → `_generated-cockpit-dark.css`, mais o par por tema no estilo inline do
  *    AppShellV2 — sem ele o CSS não chega ao browser). Manter a cópia local anularia o token
@@ -1242,7 +1242,7 @@ a.fj-ho-pr:hover{ color:var(--accent); }
   --accent-hi:   oklch(0.76 0.15 var(--accent-h, 295));
   --accent-line: oklch(0.47 0.13 var(--accent-h, 295));
   /* `--accent-fg` do bloco (0.14) não precisa descer aqui: a fundação passou a dá-lo no escuro
-     (UI-0030). Nenhuma regra Forja o consome mesmo — o primary é branco literal (desvio acima). */
+     (UI-0031). Nenhuma regra Forja o consome mesmo — o primary é branco literal (desvio acima). */
 }
 .fj-hub .os-btn.ghost{ background: transparent; border-color: transparent; color: var(--text-dim); }
 .fj-hub .os-btn.ghost:hover{ background: var(--border-2); color: var(--text); }
