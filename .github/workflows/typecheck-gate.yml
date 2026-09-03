@@ -10,6 +10,12 @@ name: TypeScript (ratchet vs baseline)
 # só em REGRESSÃO, deixando a dívida cair quando o arquivo for tocado.
 #
 # Comando manual local: npm run typecheck:baseline:check
+#
+# COBERTURA AMPLIADA (2026-09-03): o include do tsconfig passou a cobrir
+# Modules/*/Resources/js/** — 91 arquivos .ts/.tsx que o tsc nunca olhou (medido: 0 de 1824
+# no --listFiles). O filtro de paths cobre o MESMO glob nos DOIS lugares (push + paths-filter):
+# sem isso, PR que só toca Modules cai no skip-as-pass e sai verde SEM medir — gate mudo
+# (proibicoes §5 2026-08-04).
 # Quem é required no vivo: governance/required-checks-baseline.json (não restatear aqui).
 #
 # REQUIRED-READINESS (padrão ADR 0271 onda 2, idêntico ao eslint-gate.yml): `pull_request` SEM
@@ -21,6 +27,7 @@ on:
     branches: [main, 6.7-react]
     paths:
       - 'resources/js/**'
+      - 'Modules/*/Resources/js/**'
       - 'tsconfig.json'
       - 'config/typecheck-baseline.json'
       - 'scripts/typecheck-baseline.mjs'
@@ -52,6 +59,7 @@ jobs:
           filters: |
             relevant:
               - 'resources/js/**'
+              - 'Modules/*/Resources/js/**'
               - 'tsconfig.json'
               - 'config/typecheck-baseline.json'
               - 'scripts/typecheck-baseline.mjs'
