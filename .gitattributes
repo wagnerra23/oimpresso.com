@@ -24,3 +24,11 @@ memory/08-handoff.md merge=union
 # não carrega recurso externo). Marcada como vendored para não poluir diff, busca
 # nem estatística de linguagem: é código que não mantemos, só hospedamos.
 public/js/mermaid.min.js linguist-vendored -diff -merge
+
+# ── Fixture do golden EFD-ICMS/IPI: CRLF faz parte do FORMATO ───────────────────
+# O `* text=auto eol=lf` acima normalizaria o arquivo pra LF no checkout, e isso o
+# CORROMPE: o layout CONFAZ Guia Prático v3.1.1 termina cada registro em CRLF, o
+# gerador emite CRLF, e o teste separa as linhas por "\r\n" — normalizado, o arquivo
+# vira uma linha só e o UC-FSF1-05 quebra no CI enquanto passa em quem tem
+# core.autocrlf desligado. `-text` desliga qualquer conversão pra este arquivo.
+Modules/Fiscal/Tests/Fixtures/sped-icms-ipi-golden.txt -text

@@ -58,6 +58,47 @@ competência escolhida, sem sair do cockpit Fiscal.
 - ❌ Entradas (NF-e contra o CNPJ via DF-e manifestada) — só saídas por ora
 - ❌ Saldo credor anterior real no E110
 
+## Contrato destilado — régua de geração (Onda 9 · 2026-09-03)
+
+> Destilado do `FiscalOndasF1Test` que desceu do Cowork. O que está aqui é **lei da tela**; o
+> comportamento provado vive em `Sped.casos.md` (`UC-FSF1-03`, `UC-FSF1-05`) e nos testes.
+
+**A régua tem 4 checagens, e o servidor é o dono delas.** `SpedController::checagens` avalia e
+manda `{id, ok, rotulo, motivo}` por competência; a tela **renderiza**, não decide. Isso não é
+preferência de arquitetura — é o que impede a tela e o Service divergirem sobre quando um arquivo
+fiscal pode sair.
+
+| id | Regra | Onde também é recusada |
+|---|---|---|
+| `ano-minimo` | ano ≥ 2020 | `SpedIcmsIpiGeneratorService::validar()` |
+| `nao-futura` | competência não-futura | idem |
+| `fechada` | mês encerrado | `competenciaFechada()`, na mesma `validar()` |
+| `trava` | `fiscal.sped_simples_only_lock` desligada, ou superadmin | `SpedController::gerar()` (503) |
+
+**Cada checagem carrega o motivo em texto, e esse motivo é contrato de UI** — vai pro `title` do
+controle desabilitado. Motivo genérico ("competência inválida") viola o contrato: o operador tem
+de saber *qual* critério reprovou e *por quê*.
+
+**O gate do download é um só.** `motivoBloqueio()` soma as 4 checagens à contagem de notas
+autorizadas — o padrão `disabled` + `title` que a tela já usava foi **estendido**, não duplicado.
+
+**A prévia do TXT é ausência DECLARADA, não amostra.** `previaTxt` é sempre `null` hoje e a tela
+diz isso em texto, listando só o que o layout já fixa (v3.1.1, perfil A, `0000` com `COD_VER 018` e
+`COD_FIN 0`). Ver o Non-Goal correspondente abaixo.
+
+## Non-Goals (Wagner aprova explicitamente) — Onda 9
+
+- ❌ **Prévia server-side do conteúdo do TXT** — *pendente de decisão, não recusada.* Gerar uma
+  amostra fiel exigiria rodar `SpedIcmsIpiGeneratorService::gerar()` **inteiro** em request
+  síncrono (não existe modo parcial: o único método público monta o arquivo completo em memória).
+  Isso **contornaria a trava fail-secure** `sped_simples_only_lock`, que hoje devolve 503 no
+  download justamente para o arquivo não sair. As saídas seriam job com artefato, ou um modo
+  parcial no gerador — as duas são decisão, não implementação silenciosa. Enquanto não houver
+  decisão, a tela declara a ausência em vez de fabricar amostra.
+- ❌ **Corrigir o emitente do registro 0000** (CNPJ/IE vazios, UF fixa `SP`) — achado medido em
+  2026-09-03 e documentado em `sped-icms-ipi-golden.meta.md`. É motor fiscal e muda o CFOP de toda
+  operação; a trava já cobre o risco.
+
 ## Anti-hooks
 
 - 🚫 **NÃO liberar a flag `sped_simples_only_lock` sem antes eliminar os hardcodes de fallback** — o TXT
@@ -69,4 +110,13 @@ competência escolhida, sem sair do cockpit Fiscal.
 - 🚫 NÃO sugerir prazo de entrega via cron auto (legal/contador decide; o prazo da EFD é fixado por UF —
   o painel usa dia 15 só como heurística visual).
 - 🚫 **NÃO declarar o gerador "validado" sem smoke no PVA-EFD** — os testes de bloco atuais são
-  source-grep (ver `Sped.casos.md` §Backlog), não provam o conteúdo do arquivo.
+  source-grep (ver `Sped.casos.md` §Backlog), não provam o conteúdo do arquivo. _(Desde 2026-09-03
+  o `UC-FSF1-05` confere estrutura, blocos e contadores contra um golden real — mas o PVA-EFD é
+  ferramenta externa e continua sem smoke, e o próprio golden mostra por que ele recusaria hoje.)_
+- 🚫 **NÃO mover a decisão das 4 checagens para o cliente** — a régua é avaliada no servidor
+  (`SpedController::checagens`) e a tela só renderiza. Regra duplicada no `.tsx` diverge da
+  `validar()` do Service no primeiro ajuste, e aí a tela libera o que o servidor recusa (ou o
+  contrário) sem ninguém perceber.
+- 🚫 **NÃO editar o golden à mão** — ele é saída capturada do gerador, com SHA declarado. Se o
+  gerador mudar de propósito, o golden se **regera** (receita no `.meta.md`); editar o arquivo pra
+  fazer o teste passar é reescrever o baseline pra ficar verde.

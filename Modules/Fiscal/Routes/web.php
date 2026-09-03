@@ -48,6 +48,14 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         // CC-e + Cancelamento + EPEC + Manifestação destinatário.
         Route::get('/eventos', [EventosController::class, 'index'])->name('eventos.index');
 
+        // Export CSV da timeline (Onda 7). Respeita os filtros ativos (tipo +
+        // período) — o conjunto filtrado, não a página de 50 nem a tabela inteira.
+        // Throttle 6/min: até 20 queries por download (chunk 500 × cap 10k),
+        // mesma razão do `sped.icms-ipi` acima.
+        Route::get('/eventos/export', [EventosController::class, 'exportarCsv'])
+            ->middleware('throttle:6,1')
+            ->name('eventos.export');
+
         // Manifesto DF-e (sub-página 4 — PR #3 Wave final).
         Route::get('/dfe', [DfeController::class, 'index'])->name('dfe.index');
 
