@@ -2,7 +2,8 @@
 // PMG-002 (ADR 0100) — Cmd+K Search Global
 //
 // Wrapper de cmdk (via shadcn `command.tsx`) que faz fetch debounced em
-// /project-mgmt/search?q= e renderiza grupos (Tasks/Epics/Cycles/Projects).
+// /forja/search?q= e renderiza grupos (Tasks/Epics/Cycles/Projects). O prefixo
+// mudou na Onda 11: a busca nunca foi tela de /project-mgmt, so morava la.
 // Navegação keyboard nativa do cmdk: ↑↓ navegar, Enter abre URL, Esc fecha.
 //
 // Props:
@@ -115,7 +116,7 @@ export default function CommandPalette({ open, onOpenChange }: Props) {
     debounceRef.current = setTimeout(() => {
       const ctrl = new AbortController();
       abortRef.current = ctrl;
-      fetch(`/project-mgmt/search?q=${encodeURIComponent(query.trim())}`, {
+      fetch(`/forja/search?q=${encodeURIComponent(query.trim())}`, {
         headers: { Accept: 'application/json' },
         signal: ctrl.signal,
       })
