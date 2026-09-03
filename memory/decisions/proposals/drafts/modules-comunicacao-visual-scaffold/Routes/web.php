@@ -24,7 +24,13 @@ use Modules\ComunicacaoVisual\Http\Controllers\InstallController;
 
 // ─── Rotas Install 1-clique (ADR 0024) ──────────────────────────────────
 // Sem essas 3 rotas o botao Install no /manage-modules vira href="#".
-Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+// `authh` NAO e typo de `auth`: e alias registrado em app/Http/Kernel.php:95 pra
+// App\Http\Middleware\IsInstalled (redireciona pra /install quando falta o .env).
+// Os dois coexistem por desenho. Stack literal da ADR 0024 e do
+// RUNBOOK-criar-modulo; no grupo Install, 14 dos 17 modulos com InstallController
+// usam esta forma (medido 2026-09-03). Removido por engano no audit de 2026-05-10
+// e reposto aqui — ver _AGENT_A_AUDIT_FINDINGS.md, entrada 1 (REFUTADO).
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
     ->prefix('comvis')
     ->group(function () {
         Route::get('install',           [InstallController::class, 'index']);
