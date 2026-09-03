@@ -500,6 +500,31 @@ sobre `--accent-*`; a premissa de que ele sumiria estava errada.
 "D6" desta página já registrava; o conserto é fazer o componente consumir `var(--color-primary)` (0,70 no escuro
 desde a UI-0021), em PR próprio.
 
+## 2026-09-03 — produção a 1280 medida por fora: o custo de NÃO ter auto-rail, quantificado (corrobora UI-0030)
+
+> ⚠️ **Esta seção nasceu com a conclusão errada e é publicada já corrigida — o erro fica registrado, não apagado.** Ela foi medida em 2026-09-02 à noite, numa sessão paralela, para fechar o *"Produção a 1280 não foi medida"* que a Onda 2.1 declarou. A conclusão original era *"o protótipo raila a 1280 e produção não ⇒ divergência de shell ⇒ decisão [W]"*. **A ERRATA acima derruba essa premissa** e chegou ao `main` antes deste texto: com o `localStorage` limpo, o protótipo a **1280** dá `260px 1020px` — **idêntico** à produção; o rail só ocorre a **≤1279**. Portanto **não há divergência de shell a 1280**, e a decisão que eu abriria já estava tomada ([ADR UI-0030](../_DesignSystem/adr/ui/0030-sidebar-auto-rail-responsivo.md), `accepted`, [W] *"apenas faça"*). Eu li o registro narrativo antigo (`rail 56 · 3 linhas · 174,4px`) como se fosse medição do protótipo — era estado poluído de outra corrida. **LC-08 no mesmo vetor que a errata descreve.**
+>
+> **O que sobrevive, e é o motivo de publicar:** a medição do **lado produção**, que ninguém tinha feito e que **quantifica o defeito que a UI-0030 conserta**.
+
+**Recibo.** `oimpresso.com/forja/aprovacoes` autenticado, dark, `data-sidebar="expanded"`. Viewport de 1280 por **iframe same-origin** na própria aba autenticada, com `contentWindow.innerWidth === 1280` conferido **antes** de medir e **781/781** nós estáveis após a montagem do Inertia. Sonda = `getBoundingClientRect` + `getComputedStyle`.
+
+**O defeito, com número.** Com a sidebar `expanded`, o `.cockpit` fica `260px 1020px 0px` e o `.os-page-h-r` precisa de **1033,9px** — `.fj-viewtabs` termina em **x=1318**, 38px além da viewport. Por borda direita: Aprovações 731 · Trabalho 819 · Saúde 967 · MCP 1032 · Changelog 1216 · **Integrador 1315 → fora da tela**. Não há scroll de página (`scrollWidth === clientWidth === 1280`); o `.main-body` absorve com 38px de `overflow-x`, dentro de um `.cockpit` com `overflow:hidden`. Header = **136,4px em 2 linhas** (`.os-page-h-l` y=12 × `.os-page-h-r` y=91,4), com o padding `12px 24px` da Onda 2.1 **resistindo** a 1280.
+
+**A evidência que valida o remédio da UI-0030, medida no próprio ambiente.** Alternando `data-sidebar` para `rail` na mesma página, sem tocar em CSS:
+
+| | `expanded` (comportamento antigo) | `rail` (o que a UI-0030 passa a fazer a ≤1280) |
+|---|---|---|
+| grid do `.cockpit` | `260px 1020px 0px` | `56px 1224px 0px` |
+| `overflow-x` do `.main-body` | **38px** | **0** |
+| destinos fora da viewport | **1 de 6** | **0 de 6** |
+| altura · linhas do header | 136,4px · 2 | 136,4px · 2 |
+
+Ou seja: a ≤1280 o auto-rail **elimina o corte** — é o defeito concreto que a decisão fecha. O header **continua em 2 linhas** nos dois casos; a 2ª linha não é defeito e não é o que a UI-0030 se propõe a resolver.
+
+**Limites declarados.** (1) **Não medi o protótipo a 1280 com `localStorage` limpo** — pela errata ele tem os mesmos 1020px de conteúdo, então é de se esperar que corte um destino também; isso **não foi verificado** e não deve ser citado como medido. (2) O `@media (max-width:1280px)` do [`cockpit.css`](../../../resources/css/cockpit.css) L57-59 que eu inspecionei colapsa a coluna direita (`320px → 0`, batendo com o `0px` medido) e **não** fazia auto-rail — retrato da base **anterior** à UI-0030; quem for conferir depois dela deve re-medir, não citar esta linha.
+
+**Nota de método que vale além desta tela:** `resize_window` do Chrome MCP devolve `"Successfully resized"` **sem redimensionar** (`innerWidth` ficou em 2560) — o veredito só sobreviveu porque foi conferido pelo `innerWidth`, nunca pela mensagem da tool. E **não há Chrome** neste ambiente: a extensão roda no **Brave**. Some-se o `innerWidth: 0` do Browser pane que a errata documenta: **toda medição de largura aqui precisa provar a largura antes de medir qualquer outra coisa.**
+
 ## 2026-09-02 (Onda 9) — Changelog: alvo do protótipo medido + estrutura da réplica provada em harness ANTES do deploy
 
 > **O que rodou (recibo).** Fonte provada por **hash**, não por afirmação: `forja-page.jsx` e `forja-page.css` do espelho batem byte-a-byte (normalizado) com o `DesignSync.get_file` do projeto vivo `019dcfd3` — `e4339537…62a43a9` e `9c180a5d…f21ed44`, iguais ao `repoHash` do `--manifest`. O render local só ficou VÁLIDO depois de duas correções que valem registrar: (1) `colors_and_type.css` e `cockpit_domains.css` do `_ds/` vinham com **0 regras** (`--text`/`--bg` não resolviam e o `h1` saía preto) — repostos pelo `--preview-ds`, que existe exatamente pra isso; (2) a aba do Browser pane estava com `innerWidth = 0` (o shell entrava em `app--mobile`) — resolvido com `resize_window` 2560×1440. Medir antes disso teria devolvido número plausível e errado.

@@ -1,6 +1,6 @@
 {
   "modulo": "Forja",
-  "gerado_em": "2026-09-03T10:56:24.576Z",
+  "gerado_em": "2026-09-03T11:46:33.857Z",
   "comando": "node scripts/governance/replica-inconsistencias.mjs --modulo Forja --prototipo …",
   "arquivos_medidos": 47,
   "itens": [
@@ -452,7 +452,7 @@
       "nome": "glifo/emoji em UI de produto",
       "dono": "UiLintCommand.php R3",
       "arquivo": "Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.tsx",
-      "contagem": 7,
+      "contagem": 8,
       "exemplo": "→ ⚠",
       "origem": "aplicado",
       "status": "aberta",
