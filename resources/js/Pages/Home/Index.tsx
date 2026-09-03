@@ -80,26 +80,67 @@ const brlCurto = (v: number) => {
 /** % com sinal explícito, pro caso em que subir é ruim e a cor do DS mentiria. */
 const sinal = (v: number | null | undefined) => (v === null || v === undefined ? '' : `${v >= 0 ? '+' : ''}${v}% vs anterior · `);
 
-const CARTAO = 'rounded-lg border border-border bg-card p-5 shadow-sm';
-const ROTULO = 'text-[10px] font-semibold uppercase tracking-wider text-muted-foreground';
+const CARTAO = 'rounded-lg border border-border bg-card p-[14px] shadow-sm';
+const ROTULO = 'text-[10.5px] font-semibold uppercase tracking-[0.06em] text-muted-foreground';
 
-/** KPI em destaque — o número que responde "como foi o período". */
+/**
+ * KPI hero — o "Líquido no período".
+ *
+ * ── POR QUE ESTE COMPONENTE USA TOKEN PRÓPRIO (medido 2026-09-03) ────────────
+ * A âncora (`prototipo-ui/cowork/dash-legacy-page.jsx:251`) renderiza o hero como
+ * `<KpiCard hero … spark={SERIE_30.slice(-12)} />` — variante do DS, com fundo
+ * `--kpi-feature-bg` e sparkline. O `KpiCard` DESTE repo não tem `hero` nem
+ * `spark`, então a tela reimplementou o card aqui — e, ao reimplementar, herdou
+ * `bg-card` (o card genérico) em vez do token do hero. Medido nos dois renders,
+ * mesmo viewport 1280:
+ *
+ *     âncora    fundo oklch(.238 .02 264) · padding 16 · 1 svg (sparkline)
+ *     produção  fundo oklch(.30  .008 240) · padding 20 · 0 svg
+ *
+ * O efeito era inverter a figura-fundo: o fundo da página é `L .26`, então o hero
+ * da âncora AFUNDA (`.238`) e destaca, enquanto o de produção ELEVAVA (`.30`)
+ * igual aos outros três — o número mais importante da tela não se distinguia.
+ *
+ * ⚠️ Os tokens `--kpi-feature-*` JÁ EXISTIAM em produção (ADR 0310, gerados em
+ * `resources/css/tokens/_generated-cockpit-dark.css`), escopados em `.cockpit`.
+ * Nada de token novo aqui — só passar a USAR o que a fundação já entrega. Foi a
+ * medição no `:root` (onde eles não vivem) que fez parecer ausência.
+ *
+ * O `spark` chega por `Inertia::defer` junto com `charts`; até resolver, o espaço
+ * é RESERVADO com a mesma altura, para o card não pular no first paint.
+ */
 function KpiHero({
   label,
   value,
   delta,
   description,
+  spark,
 }: {
   label: string;
   value: number;
   delta?: number | null;
   description?: string;
+  spark?: Array<{ label: string; value: number }>;
 }) {
   return (
-    <Stack gap={1} className={`${CARTAO} ring-1 ring-primary/15`}>
-      <span className={ROTULO}>{label}</span>
+    <Stack
+      gap={1}
+      className="rounded-lg border p-4 shadow-sm"
+      style={{
+        background: 'var(--kpi-feature-bg)',
+        borderColor: 'var(--kpi-feature-line)',
+      }}
+    >
+      <span className={ROTULO} style={{ color: 'var(--kpi-feature-fg-2)' }}>
+        {label}
+      </span>
       <Inline gap={2} align="baseline" wrap>
-        <span className="font-mono text-3xl font-semibold tracking-tight text-foreground">{brl(value)}</span>
+        <span
+          className="text-[28px] font-bold tracking-tight"
+          style={{ color: 'var(--kpi-feature-fg)' }}
+        >
+          {brl(value)}
+        </span>
         {delta != null && (
           <span className={`font-mono text-[12px] font-semibold ${delta >= 0 ? 'text-success' : 'text-destructive'}`}>
             {delta >= 0 ? '+' : ''}
@@ -107,7 +148,25 @@ function KpiHero({
           </span>
         )}
       </Inline>
-      {description && <span className="text-[12px] text-muted-foreground">{description}</span>}
+      {description && (
+        <span className="text-[12px]" style={{ color: 'var(--kpi-feature-fg-2)' }}>
+          {description}
+        </span>
+      )}
+      {/*
+        Sparkline: a âncora usa os últimos 12 pontos da série de 30 dias.
+
+        `aria-hidden` de propósito — este SVG é DECORATIVO e redundante: o valor do
+        período e o delta já estão em TEXTO logo acima, no mesmo card. Sem isto o
+        gráfico entraria como conteúdo sem alternativa textual, que é exatamente o
+        defeito que `UC-DASH-18` existe pra impedir (o `SerieAcessivel` cobre os 2
+        gráficos do painel, onde o dado NÃO está escrito em lugar nenhum).
+      */}
+      <div className="mt-auto h-[44px]" aria-hidden="true">
+        {spark && spark.length > 0 ? (
+          <Chart type="area" data={spark.slice(-12)} height={44} formatValue={brlCurto} />
+        ) : null}
+      </div>
     </Stack>
   );
 }
@@ -224,25 +283,24 @@ function HomeIndex({
 
       {can_dashboard_data && totals ? (
         <Stack gap={4}>
-          <KpiGrid cols={4} data-contract="kpis">
+          <KpiGrid cols={4} className="gap-2" data-contract="kpis">
             <KpiHero
               label="Líquido no período"
               value={totals.net}
               delta={deltas?.net}
               description="Vendas − A receber − Despesas"
+              spark={charts?.dia}
             />
             <KpiCard
               label="Vendas"
               tone="success"
               value={brl(totals.total_sell)}
-              icon="trending-up"
               description="incluindo impostos"
               delta={deltas?.total_sell != null ? { value: deltas.total_sell, label: '% vs anterior' } : undefined}
             />
             <KpiCard
               label="A receber"
               value={brl(totals.invoice_due)}
-              icon="hourglass"
               tone="warning"
               description={`${sinal(deltas?.invoice_due)}líquido de descontos de razão`}
             />
@@ -250,7 +308,6 @@ function HomeIndex({
               label="Despesas"
               tone="info"
               value={brl(totals.total_expense)}
-              icon="receipt"
               description={`${sinal(deltas?.total_expense)}lançadas no período`}
             />
           </KpiGrid>
@@ -259,7 +316,7 @@ function HomeIndex({
           <Deferred
             data='charts'
             fallback={
-              <Grid cols={1} gap={4} className="lg:grid-cols-2">
+              <Grid cols={1} className="gap-[10px] lg:grid-cols-[1.5fr_1fr]">
                 <div className={`${CARTAO} h-[190px] animate-pulse`} />
                 <div className={`${CARTAO} h-[190px] animate-pulse`} />
               </Grid>
@@ -381,7 +438,7 @@ function GraficosVendas({ charts }: { charts: Props['charts'] }) {
   if (!charts) return null;
 
   return (
-    <Grid cols={1} gap={4} className="lg:grid-cols-2" data-contract="graficos">
+    <Grid cols={1} className="gap-[10px] lg:grid-cols-[1.5fr_1fr]" data-contract="graficos">
       <PainelGrafico titulo="Vendas por dia" meta="últimos 30 dias">
         <Chart type="area" data={charts.dia} height={132} formatValue={brlCurto} />
         <SerieAcessivel titulo="Vendas por dia, últimos 30 dias" dados={charts.dia} />
