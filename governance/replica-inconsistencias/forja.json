@@ -1,8 +1,8 @@
 {
   "modulo": "Forja",
-  "gerado_em": "2026-09-03T09:59:23.246Z",
+  "gerado_em": "2026-09-03T10:56:24.576Z",
   "comando": "node scripts/governance/replica-inconsistencias.mjs --modulo Forja --prototipo …",
-  "arquivos_medidos": 46,
+  "arquivos_medidos": 47,
   "itens": [
     {
       "id": "FLEX-CRU:Modules/Forja/Resources/js/Pages/ads/Admin/Projects.tsx",
@@ -1368,6 +1368,58 @@
       "status": "aberta",
       "nota": "",
       "aberta_em": "2026-09-02"
+    },
+    {
+      "id": "R1:prototipo-ui/cowork/forja-page.css",
+      "regra": "R1",
+      "nome": "cor crua em Page/CSS",
+      "dono": "UiLintCommand.php R1 · conformance-gate",
+      "arquivo": "prototipo-ui/cowork/forja-page.css",
+      "contagem": 326,
+      "exemplo": "oklch(0.52 0.10 195) · oklch(0.95 0.035 195)",
+      "origem": "prototipo",
+      "status": "aberta",
+      "nota": "",
+      "aberta_em": "2026-09-03"
+    },
+    {
+      "id": "FONTRAMP:prototipo-ui/cowork/forja-page.css",
+      "regra": "FONTRAMP",
+      "nome": "font-size em px fora do ramp --fs-1..9",
+      "dono": "conformance-gate (.fontramp-baseline.json)",
+      "arquivo": "prototipo-ui/cowork/forja-page.css",
+      "contagem": 192,
+      "exemplo": "font-size:12px · font-size:11px · font-size:13px",
+      "origem": "prototipo",
+      "status": "aberta",
+      "nota": "",
+      "aberta_em": "2026-09-03"
+    },
+    {
+      "id": "HEX-CSS:prototipo-ui/cowork/forja-page.css",
+      "regra": "HEX-CSS",
+      "nome": "hex literal em CSS",
+      "dono": "stylelint color-no-hex",
+      "arquivo": "prototipo-ui/cowork/forja-page.css",
+      "contagem": 6,
+      "exemplo": "#fff",
+      "origem": "prototipo",
+      "status": "aberta",
+      "nota": "",
+      "aberta_em": "2026-09-03"
+    },
+    {
+      "id": "PALETA:prototipo-ui/cowork/forja-page.css",
+      "regra": "PALETA",
+      "nome": "família de tokens de cor com prefixo próprio (>=4)",
+      "dono": "prototipo-ui/ds-guard.mjs",
+      "arquivo": "prototipo-ui/cowork/forja-page.css",
+      "contagem": 1,
+      "exemplo": "--dev-*(4)",
+      "origem": "prototipo",
+      "status": "aberta",
+      "nota": "",
+      "aberta_em": "2026-09-03"
     },
     {
       "id": "ds/no-os-btn:Modules/Forja/Resources/js/Pages/Forja/Aprovacoes/Index.tsx",
