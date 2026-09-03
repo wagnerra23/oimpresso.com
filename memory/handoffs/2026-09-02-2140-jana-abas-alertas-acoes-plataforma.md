@@ -46,6 +46,8 @@ Fecha *"abas: protótipo 6 × prod 3"* do handoff 2026-08-31. Ordem final da bar
 | `module-surface --check` + `deadlink-gate` | `SUPERFICIE.md` gerado ainda apontava pros Blades apagados; 2 docs vivos linkavam o da Plataforma | regenerado nos 3; links viraram texto datado |
 | `visual-regression` (**required**) | 22 fotos de fluxo com sidebar 260→56px — **é o #6578**, não este diff | **bloqueio externo**, ver next_steps |
 | `dup-detector` / watchdog de crons | advisory / herdado do `main` | `Dedup-ack` registrado / nada |
+| `PHP / Pest (Jana · MySQL)` no #6607 | **verde** na 3ª rodada — `855 passed (2952 assertions)`, os 5 `UC-ALERTA-0x` executados e passando (recibo: run da lane, 2026-09-03 ~01:40 UTC). As 2 rodadas anteriores reprovaram só o UC-00: o tenant do seed não tem assinatura `jana_module` nem `system.jana_version`, e o `AdminSidebarMenu` só monta o menu de módulo INSTALADO — o teste passou a gravar os dois na transação | fixture, não produto |
+| `PHP / Pest (Unit)` no #6608 | 1ª rodada: **parse error** — o docblock do helper virou `//**` no transporte da edição | consertado; lição: `php -l` não existe local (ADR 0062), então a lane Unit é o primeiro lint |
 
 Os PRs stacked foram reconstruídos por **merge** (o hook `block-destructive` barra `--force-with-lease`).
 
