@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-09-03T00:20:09.418Z",
-    "total_lines": 22924,
+    "generated_at": "2026-09-03T01:08:05.993Z",
+    "total_lines": 22939,
     "file_count": 39,
     "note": "Ratchet de tamanho — passo 1 MANUAL-CSS-JS. Cada .css só pode encolher; arquivo novo exige --write (decisão consciente / ADR).",
     "refs": [
@@ -15,7 +15,7 @@
     "resources/css/cowork-canon-financeiro-bundle.css": 4859,
     "resources/css/cowork-compras-bundle.css": 182,
     "resources/css/cowork-fields.css": 456,
-    "resources/css/cowork-forja-bundle.css": 1290,
+    "resources/css/cowork-forja-bundle.css": 1302,
     "resources/css/cowork-manufacturing-bundle.css": 387,
     "resources/css/cowork-payment-gateway-bundle.css": 257,
     "resources/css/fin-cowork.css": 704,
@@ -42,7 +42,7 @@
     "resources/css/sells-kb975-emit-modals.css": 505,
     "resources/css/sells-kb975-next-action.css": 280,
     "resources/css/sells-kb975-print.css": 675,
-    "resources/css/tokens/_generated-cockpit-dark.css": 101,
+    "resources/css/tokens/_generated-cockpit-dark.css": 104,
     "resources/css/tokens/_generated-cockpit-light.css": 119,
     "resources/css/tokens/_generated-foundations-dark.css": 10,
     "resources/css/tokens/_generated-foundations-light.css": 22,
