@@ -6,7 +6,7 @@
 > **Gerado por máquina** — não edite contagem; mude só `status`/`nota` no JSON em
 > `governance/replica-inconsistencias/forja.json` e regenere.
 >
-> Gerado em 2026-09-03 · comando: `node scripts/governance/replica-inconsistencias.mjs --modulo Forja --prototipo …` · **126 aberta(s)** de 126.
+> Gerado em 2026-09-03 · comando: `node scripts/governance/replica-inconsistencias.mjs --modulo Forja --prototipo …` · **125 aberta(s)** de 125.
 > `origem = aplicado` mede o que está no repo; `origem = prototipo` mede o que VAI entrar quando a onda copiar o JSX.
 
 | status | regra | arquivo | contagem | exemplo | dono da regra | origem |
@@ -133,7 +133,6 @@
 | 🔴 aberta | `ds/no-raw-palette-color` | `Modules/Forja/Resources/js/Pages/ads/Admin/Tools.tsx` | 5 | sem cor crua do Tailwind (bg/text/border-<cor>-<n>). Use token semântico: bg-card/bg-muted, text-foreground/te | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
 | 🔴 aberta | `ds/no-inline-tablist` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaChangelog.tsx` | 1 | não hand-role `role="tablist"` na tela. Barra de abas de topo (navega por URL) = <PageHeaderTabs> (@/Component | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
 | 🔴 aberta | `ds/no-os-btn` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHub.tsx` | 1 | use <Button> (@/Components/ui/button) com variant/size, não a classe de shell os-btn. | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
-| 🔴 aberta | `ds/no-inline-tablist` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaIntegrador.tsx` | 1 | não hand-role `role="tablist"` na tela. Barra de abas de topo (navega por URL) = <PageHeaderTabs> (@/Component | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
 | 🔴 aberta | `ds/no-db-jargon-in-ui` | `Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.tsx` | 1 | texto visível com nome de coluna/SQL cru. Use linguagem de negócio PT (ex: "distinct contact_id" → "fornecedor | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
 | 🔴 aberta | `ds/no-inline-tablist` | `Modules/Forja/Resources/js/Pages/team-mcp/Tasks/_components/TaskDrawer.tsx` | 1 | não hand-role `role="tablist"` na tela. Barra de abas de topo (navega por URL) = <PageHeaderTabs> (@/Component | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
 | 🔴 aberta | `ds/no-handrolled-status-pill` | `Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx` | 1 | não hand-role a pílula de status. Use <Badge> (@/Components/ui/badge) com variant="" ou <StatusBadge kind valu | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
