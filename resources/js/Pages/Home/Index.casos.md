@@ -15,7 +15,7 @@ last_run: "2026-08-28"
 
 > **Por que todos nascem 🧪 e não ✅:** os 18 testes existem e rodam na lane `dashboard-pest.yml`, mas o `✅` é **derivado**, não declarado — vem do manifesto [`scripts/casos-test-results.json`](../../../../scripts/casos-test-results.json) que o `casos:results` gera a partir do JUnit do CI (gate G-7). Até a primeira run publicar o veredito por-UC, escrever `✅` aqui seria afirmar sem recibo. O estado honesto é 🧪.
 
-> **Cobertura:** 16 UC ↔ 18 testes. Dois UC são defendidos por um **par** de testes (positivo + controle negativo), e isso é proposital: UC-DASH-10 e UC-DASH-15 protegem uma allowlist, e allowlist só está provada quando se mostra que ela **deixa passar o certo E barra o errado**. Um teste só de cada lado passaria com a allowlist desligada.
+> **Cobertura:** 18 UC ↔ 21 testes. Dois UC são defendidos por um **par** de testes (positivo + controle negativo), e isso é proposital: UC-DASH-10 e UC-DASH-15 protegem uma allowlist, e allowlist só está provada quando se mostra que ela **deixa passar o certo E barra o errado**. Um teste só de cada lado passaria com a allowlist desligada.
 
 ---
 
@@ -99,6 +99,16 @@ Status: 🧪 (1 teste em `GradesDoPainelTest` cita este UC — "situação NÃO 
 O backend expõe quais colunas são ordenáveis e o frontend pinta o cabeçalho clicável a partir disso. Se as duas listas divergem, a UI oferece uma ordenação que o servidor recusa — e o usuário lê o silêncio como bug do sistema. `situacao` é derivada em PHP (não é coluna de banco) e por isso **não** ordena.
 **Pronto quando:** o conjunto devolvido por `ordenaveis()` é idêntico ao `sortable` declarado na âncora da grade, com `situacao` fora dos dois.
 
+## UC-DASH-17 — As âncoras do contrato chegam ao DOM, não só ao fonte
+Status: 🧪 (1 teste em `VisaoGeralIndexTest` cita este UC, em 2 viewports — 1280 Larissa e 1440 Eliana.)
+O gate `contrato-de-tela` lê as 5 âncoras `data-contract` na **ordem do fonte** — o próprio [`Index.tsx`](Index.tsx) diz isso no comentário da linha 287. Ler o fonte não prova que a âncora **chega ao DOM**, e a diferença já mordeu nesta tela: o [#6395](https://github.com/wagnerra23/oimpresso.com/pull/6395) (2026-08-28) corrigiu literalmente *"a âncora do cabeçalho nunca chegou ao DOM"*, com o gate verde o tempo todo. O risco não é histórico, é estrutural: 4 das 5 âncoras estão em **componentes React** (`<KpiGrid data-contract="kpis">`, `<Grid data-contract="graficos">`), e só chegam ao HTML porque esses componentes espalham `{...rest}`. Trocar um deles por um que não espalhe apaga a âncora sem mudar uma linha do `Index.tsx`.
+**Pronto quando:** as 4 âncoras síncronas (`cabecalho`, `kpis`, `contrapartidas`, `grades`) existem no DOM renderizado, e a ordem observada é **subsequência** da canônica `cabecalho > kpis > contrapartidas > graficos > grades`. Subsequência e não igualdade porque `graficos` vive sob `<Deferred>` e some com série vazia — cobrá-lo cravaria a fixture do dia; o que não pode é vir **trocada**.
+
+## UC-DASH-18 — A tela não tem violação crítica de a11y, e nenhum gráfico é desenho mudo
+Status: 🧪 (2 testes em `VisaoGeralIndexTest` citam este UC — o axe e a concordância gráfico↔tabela.)
+Duas metades do mesmo contrato. A primeira é o piso de a11y no browser real: `axe-core` nível 0 (CRITICAL only), o mesmo ratchet do `A11yAxeBrowserTest` — escolhido lá como baseline explícito em vez de allowlist de violações. A segunda defende o que o `Chart` do DS **não** entrega sozinho: ele desenha SVG puro, então quem não enxerga o desenho não recebe número nenhum. A alternativa textual (`SerieAcessivel`, tabela `sr-only` com total e pico) existe desde [`Index.tsx:352`](Index.tsx) e nenhum gate a defendia.
+**Pronto quando:** `assertNoAccessibilityIssues(level: 0)` passa na tela autenticada, **e** o painel de gráficos tem tantas tabelas `sr-only` quanto SVGs desenhados. A segunda metade é escrita como **concordância**, nunca presença: `0|0` (tenant sem venda) passa e `1|0` (alguém removeu o `SerieAcessivel`) falha — exigir a tabela sempre reprovaria o estado legítimo de série vazia.
+
 ---
 
 ## Refs
@@ -107,6 +117,7 @@ O backend expõe quais colunas são ordenáveis e o frontend pinta o cabeçalho 
 - Tela: [`Index.tsx`](Index.tsx) + [`_components/GradesPainel.tsx`](_components/GradesPainel.tsx)
 - SPEC: [`memory/requisitos/Dashboard/SPEC.md`](../../../../memory/requisitos/Dashboard/SPEC.md) — US-DASH-001..006
 - RUNBOOK: [`RUNBOOK-home-index.md`](../../../../memory/requisitos/Dashboard/RUNBOOK-home-index.md)
-- Testes: `tests/Feature/Home/HomeIndexInertiaTest.php` (6) · `tests/Feature/Home/GradesDoPainelTest.php` (12)
+- Testes: `tests/Feature/Home/HomeIndexInertiaTest.php` (6) · `tests/Feature/Home/GradesDoPainelTest.php` (12) · `tests/Browser/Home/VisaoGeralIndexTest.php` (3, eixo RENDER)
+- Lane do eixo render: `.github/workflows/visual-regression.yml` (step `E2E de render · Home/Visao geral`, **advisory** no nascimento — ADR 0261/0275)
 - Lane: `.github/workflows/dashboard-pest.yml` (MySQL real)
 - Serviço das grades: [`GradesDoPainelService.php`](../../../../app/Services/Dashboard/GradesDoPainelService.php)
