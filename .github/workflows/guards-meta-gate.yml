@@ -13,7 +13,9 @@ name: Guards meta-gate (vitest · casos + domínio + fundação)
 # ninguém ver). Advisory: prova que o gate está vivo (não passa vacuamente em 0).
 
 on:
+  workflow_dispatch:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     paths:
       - 'scripts/casos-coverage-guard.mjs'
       # deps compartilhadas do guard/coletor. Sem elas, PR que só as toca não acorda o
@@ -55,6 +57,10 @@ on:
       - 'tests/foundationGuard.spec.ts'
       - 'scripts/conformance-gate.mjs'
       - 'tests/conformanceGate.spec.ts'
+
+concurrency:
+  group: guards-meta-gate-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   meta-test:

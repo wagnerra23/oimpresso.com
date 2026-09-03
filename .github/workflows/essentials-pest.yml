@@ -22,6 +22,7 @@ on:
   # se nada do Essentials mudou, pula o pesado e conclui verde (mesmo padrão do
   # jana-pest.yml, ADR 0271 onda 2 — required-ready sem deadlock).
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
   push:
     branches: [main]

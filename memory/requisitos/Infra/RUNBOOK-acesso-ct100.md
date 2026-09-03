@@ -158,6 +158,266 @@ tailscale ssh root@ct100-mcp 'df -h /'
 
 ---
 
+## 🔁 Retorno pós-outage — ordem de verificação (CT 100 voltou: e agora?)
+
+> **Quando usar:** o CT 100 ficou fora (energia, cabo, host desligado) e voltou. A seção acima
+> (`CT 100 "sumiu" da rede?`) é o **diagnóstico da queda**; esta é o **retorno**. Ligar o Proxmox
+> fisicamente é ato do [W] — tudo abaixo é o que se faz **depois** disso.
+>
+> **Regra da seção:** cada passo tem **comando** e **recibo**. Recibo `📌` foi **medido** (fonte ao
+> lado); recibo `❓` **ainda não tem valor de referência no repo** — quem rodar primeiro anota o
+> valor observado, com a data. Não invente recibo: número plausível escrito à mão é pior que campo
+> vazio, porque para de ser conferido.
+
+### Passo 0 — o host voltou mesmo? (separe as camadas antes de culpar serviço)
+
+Da máquina do [W], que está na mesma LAN (`192.168.0.x`) do CT 100 (`192.168.0.50`):
+
+```bash
+arp -a | grep 192.168.0.50                     # L2 — MAC bc:24:11:* (OUI Proxmox)
+ping -n 1 -w 2000 192.168.0.50                 # L3
+tailscale ping --timeout=4s --c=1 ct100-mcp    # overlay
+```
+
+| O que você vê | O que É | Próximo passo |
+|---|---|---|
+| ARP **ausente** + ping falha | nada na rede naquele IP | host desligado **ou** cabo (§ acima — cabo é a 1ª hipótese) |
+| ARP **presente** + ping falha + TCP **timeout** | ambíguo: L2 vivo **ou** cache ARP velho | desempatar com o `arp -d` abaixo **antes** de concluir |
+| ARP presente + ping OK + `tailscale ping` falha | host vivo, **overlay** caído | `systemctl status tailscaled` no host |
+| tudo OK | rede voltou | Passo 1 |
+
+⚠️ **A entrada ARP sozinha NÃO prova que a máquina está viva** — pode ser cache do seu Windows. Só
+o flush desempata, e ele **exige terminal elevado** (medido 2026-09-02: `arp -d` sem elevação
+devolve *"A operação solicitada requer elevação"* e a entrada **continua lá** — quem ler o `arp -a`
+depois disso acha que mediu e não mediu):
+
+```bash
+arp -d 192.168.0.50 && ping -n 1 -w 2000 192.168.0.50 ; arp -a | grep 192.168.0.50
+# reapareceu => respondeu AGORA (L2 vivo) · não reapareceu => o de antes era cache
+```
+
+**Sonda TCP** — `timeout` e `recusada` são respostas **diferentes** (filtrado/morto × serviço
+parado). Portas: `8006` Proxmox web · `22` SSH · `443` Traefik:
+
+```bash
+for p in 22 443 8006; do
+  (timeout 3 bash -c "</dev/tcp/192.168.0.50/$p" 2>/dev/null && echo "$p: ABERTA") || echo "$p: sem resposta"
+done
+```
+
+**Rode o controle positivo junto** (o gateway) — sem ele, *"tudo em timeout"* não distingue host
+morto de sonda quebrada. 📌 Medido 2026-09-02: gateway `192.168.0.1` porta 80 **ABERTA em 9ms** e
+443 **RECUSADA em 2s**, enquanto o CT 100 deu **4/4 timeout**. Recusa rápida prova que a sonda anda.
+
+### Passo 1 — Docker e Traefik, antes de qualquer serviço
+
+**Traefik primeiro, sempre.** Ele termina o TLS e roteia **todos** os domínios: com ele fora, os 4
+`curl` do Passo 3 dão `000` mesmo com cada serviço saudável por dentro. Perseguir Langfuse com o
+Traefik morto é caçar o sintoma errado.
+
+```bash
+tailscale ssh root@ct100-mcp 'docker ps --format "table {{.Names}}\t{{.Status}}" | sort'
+tailscale ssh root@ct100-mcp 'docker ps | grep traefik'
+```
+
+📌 **Recibo:** ~20 containers `Up`. A lista canônica de nomes está em
+[INFRA-ACESSO-CANON §CT 100](../../reference/INFRA-ACESSO-CANON.md): `meilisearch` ·
+`ollama-embedder` · `oimpresso-mcp` · `bge-reranker` · `centrifugo` ·
+`langfuse-web`/`worker`/`postgres-langfuse`/`redis-langfuse`/`clickhouse-langfuse` ·
+`minio-langfuse` · `growthbook`(+`mongo`) · `whatsapp-whatsmeow` · `jaeger` · `mysql-workers` ·
+`traefik` · `portainer` · `vaultwarden`. **Conte e compare contra a lista** — container que não
+subiu no boot não aparece como erro, aparece como **ausência**, e ausência é fácil de não ver.
+
+**Disco:** confira, mas **sem a urgência de julho** — o volume foi expandido e em **2026-09-02**
+estava em **49%** (91G de 197G), não nos 87% de 2026-07-16 (§ *Achado lateral* acima tem os dois
+números datados). Pós-outage continua sendo a hora barata de olhar, porque Postgres/ClickHouse/MinIO
+do Langfuse crescem calados — mas **não saia fazendo `prune` por reflexo**: aquele ponteiro caducou.
+
+```bash
+tailscale ssh root@ct100-mcp 'df -h / ; docker system df'
+```
+
+### Passo 2 — stacks por compose
+
+O Langfuse tem compose **próprio**, fora do diretório dos outros:
+
+```bash
+tailscale ssh root@ct100-mcp 'cd /opt/langfuse/code/docker/langfuse && docker compose ps'
+```
+
+📌 **Recibo:** **TODOS** `healthy` ([RUNBOOK-langfuse-ct100 §1.1](RUNBOOK-langfuse-ct100.md) —
+*"esperar TODOS 'healthy'"*). `Up` **não basta**: ClickHouse e Postgres sobem antes de aceitar
+conexão, e o `langfuse-web` só serve depois deles.
+
+```bash
+tailscale ssh root@ct100-mcp 'docker exec meilisearch sh -c "curl -s http://localhost:7700/health"'
+tailscale ssh root@ct100-mcp 'curl -sf http://localhost:8080/health'     # bge-reranker
+tailscale ssh root@ct100-mcp 'docker exec ollama-embedder ollama list'
+```
+
+- 📌 bge-reranker → **HTTP 200** ([RUNBOOK-bge-reranker-ct100](RUNBOOK-bge-reranker-ct100.md) §DoD).
+- ❓ meilisearch `/health` → anote a saída no 1º retorno.
+- ❓ ollama-embedder → deve listar **`qwen3-embedding:0.6b`** (embedder canônico do índice —
+  INFRA-ACESSO-CANON §Meilisearch). Lista **vazia** = modelo não carregado, e aí o recall da Jana
+  degrada **sem erro**: a busca responde, só responde pior.
+
+### Passo 3 — os 4 domínios (HTTP, de fora)
+
+```bash
+curl -sS https://langfuse.oimpresso.com/api/public/health                                              # 📌 200
+curl -s -o /dev/null -w '%{http_code} ssl:%{ssl_verify_result}\n' https://staging.oimpresso.com/login  # 📌 200 ssl:0
+curl -s -o /dev/null -w '%{http_code}\n' --max-time 20 https://mcp.oimpresso.com/api/mcp/health        # ❓ anote
+curl -s -o /dev/null -w '%{http_code}\n' https://vault.oimpresso.com                                   # ❓ anote
+```
+
+Fontes dos 📌: [RUNBOOK-langfuse-operacional](RUNBOOK-langfuse-operacional.md) ·
+[RUNBOOK-staging-ct100 §9](RUNBOOK-staging-ct100.md).
+
+⛔ **NÃO teste o MCP pela raiz `/`.** Já produziu **falso-negativo declarado**: um `curl` externo com
+timeout de 10s não cobre o middleware completo respondendo rota inexistente em ~9s, e conclui-se
+"fora do ar" com o serviço no ar
+([handoff 2026-05-15](../../handoffs/2026-05-15-2300-ct100-arruma-disco-reindex-baileys-purge.md)).
+Use `/api/mcp/health` ([mcp-endpoints.md](../../reference/mcp-endpoints.md)) e dê folga no timeout.
+
+⚠️ **`ssl_verify_result` ≠ 0 logo após o retorno** costuma ser Traefik em *backoff* do Let's Encrypt,
+não certificado inválido. Espere e repita antes de mexer
+([RUNBOOK-staging-ct100 §Pegadinhas #7](RUNBOOK-staging-ct100.md)).
+
+⚠️ **`docker restart` não relê o `env_file`** — o container fica com o `.env` velho **em memória**.
+Se você mexeu em env durante o outage: `docker compose up -d --force-recreate`
+([RUNBOOK-staging-ct100 §Pegadinhas #3](RUNBOOK-staging-ct100.md)).
+
+### Passo 4 — `mcp:sync-memory` volta a sair 0
+
+⚠️ **Este cron roda no HOSTINGER, não no CT 100.** Ele é `->environments(['live'])` e quem o invoca é
+o scheduler de produção ([`app/Console/Kernel.php`](../../../app/Console/Kernel.php),
+`everyFiveMinutes()`). Procurá-lo no crontab do CT 100 não acha nada — e "não achei" viraria
+diagnóstico errado.
+
+```bash
+# no HOSTINGER (warm-up + retry: CLAUDE.md §SSH Hostinger)
+php artisan mcp:sync-memory --reason=pos-outage-check ; echo "exit=$?"
+tail -20 storage/logs/mcp-cron.log
+```
+
+📌 **Recibo:** `exit=0`. Enquanto o CT 100 esteve fora, este é o cron que falhou a cada 5 min.
+Confira o `mcp-cron.log` **até ver uma execução limpa depois do horário do retorno** — a primeira
+pode pegar a stack ainda subindo.
+
+### Passo 5 — watchdog de entrega (roda local, sem rede)
+
+```bash
+node scripts/governance/cron-watchdog.mjs --entrega ; echo "exit=$?"
+```
+
+Mede **idade de artefato de estado**, não heartbeat — por isso funciona mesmo com o CT 100 fora, e é
+a leitura honesta de *"o que parou de ENTREGAR durante o outage"*.
+
+📌 **Baseline medido 2026-09-02, com o CT 100 ainda fora** (compare no retorno — se a lista
+**cresceu**, o outage derrubou entrega nova):
+
+```
+📦 entrega — 17 artefato(s) de estado com data interna (de 267) · limite 60d · 2 🔴 parado(s)
+🔴 governance/jana-ragas-baseline.json      — parado há 63d (última data interna: 2026-07-01)
+🔴 governance/jana-ragas-real-baseline.json — parado há 63d (última data interna: 2026-07-01)
+exit=1
+```
+
+⚠️ **Não leia o `exit` através de um pipe.** `... --entrega | tail` devolve o código do `tail`
+(medido nesta sessão: `rc=0` com o script saindo **1**). Rode sem pipe, ou use `PIPESTATUS`.
+
+#### Esses 2 vermelhos NÃO são do outage — e não se apagam bumpando data
+
+Diagnosticado em **2026-09-03**, seguindo o que o próprio gate manda (*"varra os escritores do
+path — sem escritor, não é (a)"*). Vale registrar porque eles reprovam o check advisory
+**`crons de governança vivos? (watchdog G6 · ADR 0317)`** em **todo PR aberto**, e a leitura fácil
+— *"o outage quebrou isto"* — está errada:
+
+| Artefato | Quem escreve | Veredito |
+|---|---|---|
+| `governance/jana-ragas-real-baseline.json` | **ninguém automático** — o `JanaRagasRealEvalCommand` **LÊ** dali (é o dono único dos pisos, US-COPI-136) | curado à mão |
+| `governance/jana-ragas-baseline.json` | só `jana-ragas-canary.yml` em **`workflow_dispatch` manual** (`--update-baseline`, input rotulado *"use após calibrar"*), via auto-PR | curado à mão |
+
+Logo é o **caso (b)** do gate — *artefato curado à mão cuja revisão envelheceu* —, não o (a). O
+limite é **60d** e a data interna dos dois é `2026-07-01`: eles cruzaram a linha por volta de
+**30/08**, e ficariam vermelhos com ou sem queda do CT 100.
+
+⛔ **Não "conserte" mexendo na data.** Regravar baseline para o vermelho sumir é o anti-padrão que
+o [§5](../../proibicoes.md) enterra em duas lápides (drift-sentinel 2026-07-17 · rebake 2026-08-26).
+Re-curar de verdade exige números frescos do `jana:ragas-real-eval` — que roda **no CT 100**, e
+portanto **depende deste runbook** para voltar. E mexer nos pisos é decisão do dono da Jana / [W],
+não do plantão do retorno.
+
+**Ordem certa, quando o CT 100 voltar:** Passos 0-3 → Passo 6 (evals produzem números reais) →
+**só então** [W] decide re-curar ou aposentar o consumidor.
+
+⚠️ **E eles não são a única causa do vermelho.** Medido em 2026-09-03: o mesmo check reprova por
+**dois eixos ao mesmo tempo**, e resolver um só não o deixa verde.
+
+| Eixo | Estado |
+|---|---|
+| **1 · heartbeat** | os 24 crons **dispararam** no prazo — mas `jana-ragas-canary.yml` **concluiu `failure`** nas runs agendadas de 01, 02 e **03/09** (passou em 30 e 31/08) |
+| **2 · entrega** | os 2 baselines acima, parados há 64d |
+
+Cuidado com a leitura de *"24 vivos"*: **heartbeat mede que o cron RODOU, não que ele entregou** —
+um cron pode estar fresquíssimo e vermelho. O canary começou a falhar em **01/09**, quando o
+CT 100 já estava fora desde 27/08; logo **não é o outage**, e a causa ficou por determinar (o
+`--log-failed` devolve o job sem delimitar step, `UNKNOWN STEP`).
+
+O eixo 1 tem saída declarada — `governance/cron-vermelho-esperado.json`, que exige razão,
+`expira_em` ≤ 30d e `declarado_por`, e cujo próprio código diz que **"merge de [W] é o ato que
+aprova"**. O eixo 2 **não tem** silêncio: o único botão é o limiar global `OBRA_PARADA_DIAS`, e
+afrouxá-lo mudaria a régua de todo mundo. Ou seja: **nem silenciando o canary o check fica verde**
+— e silenciar não é ato de quem está de plantão no retorno.
+
+### Passo 6 — os evals semanais da Jana (o que o outage comeu)
+
+Os 2 evals de staging **não têm scheduler** — quem invoca é um cron do host (`0 6 * * 0`, domingo
+06:00 BRT). Com o container fora, eles não aconteceram:
+
+```bash
+tailscale ssh root@ct100-mcp '/opt/oimpresso-ragas/ct100-jana-evals.sh' ; echo "exit=$?"
+```
+
+📌 **Pré-condição do próprio script:** se o container `oimpresso-staging` não existir, ele sai
+**`exit 1`** com `FATAL: container ... não existe — nada invocado (gap honesto no trend)`. Ou seja:
+**rode o Passo 1 antes** — este script não é o lugar de descobrir que a stack não subiu.
+
+Depois, conferir se a semana entrou no trend:
+
+```bash
+git fetch origin governance/ragas-real-trend
+git show FETCH_HEAD:governance/ragas-real-trend.json | grep -o '"week": *"[^"]*"' | tail -3
+```
+
+📌 **Estado em 2026-09-02:** a última semana no trend é **`2026-08-23`** (7 entradas). As semanas do
+outage estão **ausentes** — e a ausência é honesta por construção: o script nunca inventa run.
+
+⚠️ **Semana no trend ≠ semana boa.** O trend já vinha ruim **antes** do outage: `2026-08-09` e
+`2026-08-16` deram `gate_status=fail` com `context_recall` em **0.043 / 0.031**, contra **0.40** em
+julho (≈10× de queda), e `2026-08-02`/`2026-08-23` saíram `skipped`. Restaurar a *cadência* não
+restaura a *qualidade*: se a semana nova voltar `fail`, o achado é **anterior** ao outage e é
+decisão [W] — não conserto silencioso no meio do retorno.
+
+### Fechamento
+
+Só depois dos passos 0-6 é honesto dizer que o CT 100 "voltou". Antes disso o que existe é **ping
+verde**, que não é a mesma frase.
+
+⚠️ **E "voltou" não é "estável".** Precedente medido em **2026-09-02**: a queda de 27/08 foi
+resolvida e o CT 100 passou o dia acessível — outra sessão rodou `df -h`, `docker exec` e
+`tools/list` nele até ~17:35 BRT. Às **19:59 do mesmo dia** ele estava fora de novo (`tailscale
+ping` sem resposta, os 4 domínios em `000`), e seguia fora em **03/09 11:27**. Ou seja: **duas
+quedas separadas por uma janela de horas**, não uma contínua. Ao fechar um retorno, **registre a
+hora da última verificação verde** — sem ela, a próxima sessão herda "está no ar" como se fosse
+permanente e vai diagnosticar o incidente errado. E queda que volta sozinha e recai em horas é a
+assinatura de **cabo/link intermitente** (§ *CT 100 sumiu da rede?*), não de host desligado. E vale para a seção inteira: passo que não pôde ser medido (sem
+`gh`, sem elevação, sem token) se registra como **"não medi"** — nunca como verde inferido.
+Instrumento que afirma saúde sem ter medido é o defeito que o
+[§5 2026-07-29](../../proibicoes.md) cataloga.
+
+---
+
 ## Pegadinhas conhecidas
 
 ### 1. `tailscale: failed to look up local user "dev"`
