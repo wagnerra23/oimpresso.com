@@ -740,7 +740,7 @@ Não é comparação pareada com o protótipo, e não podia ser: o corpo do gant
 | direita na ordem `[fj-bell, fj-kbtn, fj-viewtabs, os-btn]` | **já entregue** | idem — e medido IGUAL na Onda 2 |
 | 6 destinos em 3 `.fj-navgroup` (Trabalho/Esteira/Histórico) | **já entregue** | `FORJA_GRUPOS` + `FORJA_TABS`, defendidos por UC-FORJA-02/14 |
 | `--accent` dark `oklch(0.70 0.15 295)` | **já entregue** | `resources/css/tokens/_generated-cockpit-dark.css` (função, não escopo) |
-| **badge de pendências no destino Aprovações** | **→ ERA O ÚNICO ABERTO** | fechado aqui (UC-FORJA-18) |
+| **badge de pendências no destino Aprovações** | **→ ERA O ÚNICO ABERTO** | fechado aqui (UC-FORJA-19) |
 
 **O que estava errado, e por que ninguém viu.** A prop `pendencias` existia no `ForjaHub` desde a Onda 2, mas
 só `Forja/Aprovacoes/Index` a passava — o badge aparecia na única tela onde é redundante (a fila já está na
@@ -768,6 +768,105 @@ ausentes: nenhum
 divergências declaradas: fórmula do `pendencias` (1 parcela em prod × 3 no protótipo) — decisão [W]
 não medido: compare pareado pós-deploy (D2/D4/D6/D8) — o código não está em produção
 ```
+---
+
+## 2026-09-03 (Onda 10 · fecho) — Integrador: tipografia/gap medida, e o TabBar do DS confirmado por leitura do bundle
+
+> **Mesmo motivo da seção anterior.** O §7 do `COLAR-NO-CODE-EXPORT-FORJA-MODULO.md` lista o
+> Integrador entre as views com **estrutura** medida e **tipografia/gap não** medida. A réplica já
+> tinha sido aplicada na Onda 10 ([#6620](https://github.com/wagnerra23/oimpresso.com/pull/6620)),
+> que trocou o `.fj-int-tabs` de `<button>` pelo TabBar do DS. Falta o eixo de **valor**.
+
+### Estrutura: re-conferida contra o protótipo vivo
+
+`forja-integra.jsx` **está** no espelho (7.263 B, 01/09) e foi relido do vivo por
+`DesignSync.get_file` (`truncated: false`) — os dois conferem. Sequência de classes que cada lado
+escreve no JSX:
+
+```
+protótipo vivo : fj-int-acao → fj-integra → fj-int-verdict → fj-int-src → fj-int-tabs →
+                 fj-int-table → fj-int-row → fj-int-head → … → fj-int-conf → fj-int-foot
+réplica (main) : … idêntica, SEM fj-int-tabs …
+```
+
+O alvo do §3.10 bate: `.fj-integra` com **4** filhos `[fj-int-verdict, ds-tabbar, fj-int-table,
+fj-int-foot]` · **9** `.fj-int-row` na aba `absorb` (1 cabeçalho + 8 dados) de **4 células nuas** ·
+**8** `.fj-int-tab`.
+
+### O `fj-int-tabs` ausente é correto — e agora está PROVADO, não afirmado
+
+O docblock do `ForjaIntegrador.tsx` já declarava que `.fj-int-tabs` é *"regra MORTA nos dois lados,
+já que o TabBar do DS ignora `className`"*. Essa é uma afirmação sobre comportamento de terceiro, do
+tipo que a §5 2026-09-01 manda **re-executar em vez de herdar**. Re-executada, em duas camadas:
+
+1. `prototipo-ui/cowork/cli-tabs.jsx:123` — o adaptador **passa** `className` adiante
+   (`className={className || undefined}`). Sozinho, isso sugeriria que a regra vive.
+2. `scripts/design-sync/mirror-snapshot/_ds_bundle.js` — o `TabBar` do DS desestrutura
+   **`{ tabs, active, onChange }`** e nada mais. `className`, `ariaLabel` e `inset` são
+   **descartados**; o `<nav>` nasce sem classe e com `aria-label="Sub-navegação"` fixo.
+
+Logo a regra é morta de fato, e **duas consequências** caem junto:
+
+- **`pad={0}`** do protótipo vira `inset` no `CliTabs` e é descartado pelo DS. O `NAV` do
+  `ForjaTabBar` não escreve `paddingInline` e o `<nav>` computa `0px`. **Equivalentes** — por razão
+  mais forte do que "os dois calham em zero".
+- **`ariaLabel="Integrador"`** também é descartado pelo DS: no protótipo o `<nav>` sai como
+  `"Sub-navegação"`. A réplica **implementa** o `ariaLabel` e rotula `"Integrador"`. É divergência
+  **deliberada e a favor** — exatamente o que a Onda 0a (§2 do export) manda: *"o protótipo não é
+  certificado de a11y; estes são defeitos MEUS, pedir ao Code que replique é exportar dívida."*
+
+### Tipografia/gap: o diff de VALOR
+
+Regras `.fj-integra`/`.fj-int-*`/`.fj-est-*` no `forja-page.css` × `cowork-forja-bundle.css`, por
+corpo normalizado:
+
+| | |
+|---|---|
+| seletores da seção no protótipo | **29** |
+| corpo **idêntico** no bundle | **22** |
+| corpo divergente | **6** |
+| reescrito com efeito equivalente | **1** |
+
+As **6** são a mesma divergência da Onda 9 — token inlinado, `var(--fs-N)` → o px que aquele token
+já vale (`.fj-int-verdict code` · `.fj-int-tabs button` · `.fj-int-tela, .fj-int-mud` ·
+`.fj-int-tela` · `.fj-int-foot` · `.fj-int-foot code`). Zero bug de tamanho; a dona é a Onda 1.
+
+A **1 reescrita** merece nome, porque quase virou um achado falso: minha primeira varredura, que
+casava seletor por string exata, reportou `.fj-int-rota small.fj-int-tab` como **ausente** no bundle.
+Não está — foi reescrita como `.fj-int-tab{ color:var(--text-dim) !important; }` (`:703`).
+Conferida a cascata, o efeito é o mesmo no único consumidor que existe
+(`<small className="mono fj-int-tab">`, 1 ocorrência em cada lado): o protótipo vence por
+especificidade `(0,3,1)` sobre `.fj-int-rota small`; o bundle vence por `!important`. **Declarado o
+que difere:** a versão do bundle é mais **larga** — pinta qualquer `.fj-int-tab`, não só o que está
+dentro de `.fj-int-rota small`. Hoje isso não tem consequência porque o seletor tem um consumidor só;
+se ganhar outro, o bundle pinta e o protótipo não.
+
+### PLACAR — Integrador (§3.10)
+
+```
+entregue 4 de 4 elementos do alvo
+  ✓ .fj-integra com 4 filhos [fj-int-verdict, ds-tabbar, fj-int-table, fj-int-foot]
+  ✓ 9 .fj-int-row (1 cabeçalho + 8 dados) de 4 células nuas
+  ✓ 8 .fj-int-tab
+  ✓ tipografia/gap: 22 de 29 idênticos, 6 equivalentes, 1 reescrita equivalente, 0 bug
+ausentes: nenhuma
+divergências declaradas:
+  · className="fj-int-tabs" não escrito — o TabBar do DS descarta className (medido no
+    _ds_bundle.js); a regra é morta nos DOIS lados
+  · aria-label real ("Integrador") em vez do "Sub-navegação" fixo do DS — melhoria de a11y
+    deliberada, Onda 0a §2
+  · .fj-int-tab reescrito com !important e escopo mais largo que o do protótipo — mesmo
+    efeito no único consumidor; dona é a Onda 1
+  · 6 font-size literais no bundle onde o protótipo usa var(--fs-N) — MESMO px; dona é a Onda 1
+```
+
+### O que esta seção NÃO prova
+
+O mesmo limite da Onda 9, pela mesma razão e re-testado hoje: `curl` em
+`https://oimpresso.com/forja/integrador` devolve **`302 → /login`**. O `compare --check` exige prod
+autenticada; sem ele, **nada aqui é "0 bug"** (lei 6 do export). O que esta seção fecha é o eixo
+folha × folha e a estrutura contra o protótipo vivo — não o T7.
+
 ---
 
 ## 2026-09-03 (Onda 9 · fecho) — Changelog: a tipografia/gap que o §7 do export declarou NÃO medida

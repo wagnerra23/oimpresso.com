@@ -13,7 +13,7 @@ use Spatie\Permission\Models\Permission;
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
- * Forja · UC-FORJA-18 — o badge de pendências existe em TODA tela do hub, não só na mesa.
+ * Forja · UC-FORJA-19 — o badge de pendências existe em TODA tela do hub, não só na mesa.
  *
  * O ALVO (§3.1 do export da Forja, medido no protótipo em 2026-09-03): "badge de
  * pendências no destino Aprovações". No `forja-page.jsx:1123` o badge é renderizado no
@@ -170,7 +170,7 @@ function forjaBadgePendenciasDaRota(User $user, string $url, string $componente)
     return $page['props']['pendencias'] ?? null;
 }
 
-it('UC-FORJA-18 · toda tela do hub serve `pendencias` — o badge não é privilégio da mesa',
+it('UC-FORJA-19 · toda tela do hub serve `pendencias` — o badge não é privilégio da mesa',
     function (string $url, string $componente) {
         $user = forjaBadgeUsuario();
 

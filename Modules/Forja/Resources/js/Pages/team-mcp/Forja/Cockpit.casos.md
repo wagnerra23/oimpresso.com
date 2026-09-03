@@ -242,7 +242,9 @@ Medido em 2026-09-02 ([forja-cockpit-visual-comparison.md](../../../../../../mem
 
 > **Rebaixado de `UC-FORJA-11` em 2026-07-27 (justificativa).** O próprio bloco se declarava "nota de fidelidade", não caso de uso: descreve uma **limitação da plataforma**, não um comportamento que o produto promete e que um teste possa defender. Vira prosa honesta — o padrão canônico pra o que não tem teste (ver [how-trabalhar.md §Pedido de tela](../../../../memory/how-trabalhar.md)).
 
-## UC-FORJA-18 — O badge de pendências vive em TODA tela do hub, não só na mesa (Onda 1 do export · §3.1)
+## UC-FORJA-19 — O badge de pendências vive em TODA tela do hub, não só na mesa (Onda 1 do export · §3.1)
+> **Nasceu `UC-FORJA-18` e virou `19` em 2026-09-03 — a MESMA colisão que a nota acima descreve, agora na terceira onda paralela.** Quando li o arquivo, o maior id era 17; enquanto eu trabalhava, a Onda 8 renumerou o seu 15 para 18 e chegou ao `main` primeiro. Peguei no CI, pelo log do Pest: o título `UC-FORJA-18` aparecia em DOIS arquivos de teste. Fica registrado porque a lição é do processo, não do id: **o próximo id livre se mede contra o `origin/main` no instante de ESCREVER, não no de começar.**
+
 Status: 🧪 (7 casos de `ForjaBadgePendenciasTest` **citam este UC no título** — um por controller do hub, na lane MySQL `forja-pest.yml`. Segue 🧪 e não ✅ porque o ✅ vem do manifesto `scripts/casos-test-results.json`, derivado do JUnit do CI — não se escreve à mão.)
 
 O alvo §3.1 do export pede *"badge de pendências no destino Aprovações"*. No `forja-page.jsx:1123` o badge é renderizado no destino `hoje` em **qualquer** view: `pendencias` é estado da página inteira, não da aba aberta. É o que avisa que há algo esperando decisão enquanto você está em OUTRA tela.
