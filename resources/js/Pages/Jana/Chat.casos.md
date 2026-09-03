@@ -332,6 +332,15 @@ herdaria o shift +3h que `format_date` aplica pra cliente legado ([ADR 0066](../
 hora errada. E o `dd/mmm` é montado à mão porque `toLocaleDateString('pt-BR', {day,month:'short'})`
 devolve `"05 de mai."` — **medido** —, que estoura a linha do título num rótulo de 10.5px.
 
+**Divergência DELIBERADA da âncora, registrada pra não virar "achado" depois.** O
+`JmThreadItem` escreve **`criada agora`** no rodapé quando `t.quando === "agora"`. A produção
+**não reproduz isso**, e não é esquecimento: no protótipo `quando` é uma string mockada; aqui o
+equivalente seria a conversa **sem nenhuma mensagem**, e o payload não diz quando ela nasceu
+(`iniciada_em` é lido no Controller mas **não trafega**). Escrever `criada agora` pra toda conversa
+sem mensagem faria uma conversa vazia do mês passado se anunciar como recém-criada — inventar dado.
+Então o rodapé simplesmente não aparece. Fechar isso de verdade é backend (mandar `iniciada_em`),
+e aí vira PR próprio.
+
 **O que este UC NÃO prova.** Fidelidade visual ao pixel. Ele prova que o dado chega à tela e que a
 ausência dele não vira invenção. A medida de fidelidade é a sonda do `design-diff`, pós-deploy (R1).
 
