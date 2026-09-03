@@ -23,6 +23,8 @@ charter_version: 2
 
 > ⚠️ **Errata 2026-07-27.** Este charter afirmava "6 abas reais" incluindo `/forja/saude`, e a permissão `copiloto.mcp.usage.all`. Ambas ficaram stale. Medido em 2026-07-27: **5** rotas GET de aba sob `/forja` (`route:list --path=forja` no CT 100 — sem `forja.saude`; Saúde foi fundida no `/team-mcp/scorecard`) e **9** itens de topnav em `config/core_topnavs.php['Forja']` desde a fusão com o hub TeamMcp (2026-06-16). A permissão virou `jana.mcp.usage.all` no [#4853](https://github.com/wagnerra23/oimpresso.com/pull/4853) — `git grep -l "copiloto.mcp.usage.all" -- '*.php'` = **0**. Detalhe e recibos no [Cockpit.casos.md](Cockpit.casos.md).
 
+> ⚠️ **Errata 2026-09-03 (Onda 7) — duas frases deste charter caducaram quando `/forja/saude` passou a existir.** A errata de 2026-07-27 acima **segue verdadeira na data dela** (naquele dia a Saúde estava fundida no `/team-mcp/scorecard` e a rota era item fantasma); o que mudou não é o fato, é o mundo. A [#6572](https://github.com/wagnerra23/oimpresso.com/pull/6572) construiu a view `saude` do protótipo como tela própria (2026-09-02), e o `casos.md` foi atualizado no mesmo PR — **este charter não**. As duas frases stale: a **Mission**, que listava "Saúde (TeamMcp absorvido)" entre as abas emprestadas, e a **métrica de sucesso**, que afirmava "5 rotas" e "Saúde não tem rota própria". Corrigidas abaixo, com o oráculo ao lado.
+
 > ⚠️ **Errata 2026-09-03 (Onda 11 · Triagem — fechada declarando, [W]).** Duas afirmações deste
 > charter ficaram stale e uma decisão nova entra aqui:
 >
@@ -41,7 +43,7 @@ charter_version: 2
 
 ## Mission
 
-Cockpit **read-only** de observabilidade/governança do próprio loop de desenvolvimento. **Projeta** estado que já existe (`mcp_tasks` + git/PR/ADR/sessão + gates/memory-health) — **sem dado fantasma**. Header fixo (Forja + subtítulo do loop) + as abas do hub: Triagem · Backlog · Quadro (F0→F4) · Changelog · MCP (próprias) + Tarefas · Equipe · CC Sessions · Saúde (TeamMcp absorvido).
+Cockpit **read-only** de observabilidade/governança do próprio loop de desenvolvimento. **Projeta** estado que já existe (`mcp_tasks` + git/PR/ADR/sessão + gates/memory-health) — **sem dado fantasma**. Header fixo (Forja + subtítulo do loop) + as abas do hub: Triagem · Backlog · Quadro (F0→F4) · Changelog · MCP (próprias) + Tarefas · Equipe · CC Sessions (TeamMcp absorvido) — e **Saúde**, que desde a Onda 7 é aba PRÓPRIA (`/forja/saude`), não mais o desvio pro Scorecard.
 
 ## Goals — Features (faz)
 
@@ -91,7 +93,7 @@ Cockpit **read-only** de observabilidade/governança do próprio loop de desenvo
 
 ## Métricas de sucesso (validação Wagner)
 
-- ✅ As **5** rotas de aba `/forja/*` respondem (sem 500 / tela branca) — Saúde não tem rota própria (fundida no `/team-mcp/scorecard`).
+- ✅ As **8** rotas de aba `/forja/*` respondem (sem 500 / tela branca) — Triagem · Backlog · Quadro · Changelog · MCP · Handoffs · Integrador · **Saúde**. Contagem NÃO se lê aqui: sai do dataset que o teste percorre — `sed -n '/^function forjaRotasAbas/,/^}/p' Modules/Forja/Tests/Feature/ForjaRoutesSmokeTest.php | grep -cE "=> ..forja."` (medido **8** em 2026-09-03).
 - ✅ Entry "Forja" aparece na sidebar e o topnav do hub (9 itens: 5 próprios + 4 do TeamMcp absorvido) navega + destaca o ativo.
 - ✅ Sem cor crua / PageHeader canon (conformance/foundation/layout/pageheader verdes).
 - ✅ Acesso negado (403) sem `jana.mcp.usage.all`.
