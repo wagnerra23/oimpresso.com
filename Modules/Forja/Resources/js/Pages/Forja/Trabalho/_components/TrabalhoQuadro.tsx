@@ -41,6 +41,22 @@
 // O eixo Execução é outra pergunta — lá `done`/`cancelled` seguem fora, porque
 // board de trabalho mostra o que está em curso.
 //
+// ⚠️ E É AQUI QUE A RÉPLICA DIVERGE DO PROTÓTIPO, DE PROPÓSITO. O `KanbanView`
+// filtra F4 fora (`forja-page.jsx` :473 — `PHASES.filter(p => p.id !== "F4")`) e
+// desenha **6** colunas; este board desenha **7**. Medido no protótipo rodando
+// em 2026-09-03: `ids = [F0, F1, F1.5, F2, F3, F3.5]`.
+//
+// Copiar aquele filtro REVERTERIA a decisão [W] de 2026-08-11 em silêncio — foi
+// ela que fez o backend ganhar a fase e esvaziou a `DIVERGENCIA_DECLARADA` do
+// `PipelineParidadeTest`. Por isso a divergência está declarada no charter
+// §"Diferenças declaradas do Quadro" em vez de "corrigida": aqui o protótipo é
+// que está atrás do produto, não o contrário.
+//
+// Consequência de copy, e ela é obrigatória: o parágrafo-âncora daqui diz
+// `(F0 → F4)` onde o protótipo diz `(F0 → F3.5)` + "no merge (F4) ele sai do
+// quadro e vira entrada no changelog". Manter a copy literal contradiria as
+// colunas logo abaixo dela.
+//
 // ── SEM DRAG, e isto NÃO é dívida desta onda ─────────────────────────────────
 // O protótipo arrasta card (`draggable` + `onDrop` → `onMove`/`onMoveExec`) e a
 // coluna vazia dele diz "arraste aqui". Aqui não: mover card é MUTAÇÃO, e mutação
