@@ -19,6 +19,7 @@ Modules/Jana/Tests/Feature/Ai/PrUiJudgeAgentTest.php
 Modules/Jana/Tests/Feature/Ai/UiJudgeConsensusTest.php
 Modules/Jana/Tests/Feature/Ai/UiJudgeRunMeasurementTest.php
 Modules/Jana/Tests/Feature/Mcp/Ct100CircuitBreakerTest.php
+Modules/Jana/Tests/Feature/Mcp/HealthCheckCt100ConsolidacaoTest.php
 Modules/Jana/Tests/Feature/Mcp/McpAuthCostEstimateTest.php
 # Scopes MCP visíveis na tela de roles (incidente 2026-07-29 — save de role fazia
 # syncPermissions e apagava os 17 `jana.mcp.*`, derrubando o MCP do time inteiro).
