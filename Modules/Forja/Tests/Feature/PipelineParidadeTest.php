@@ -131,11 +131,19 @@ it('UC-PIPE-03 — nenhuma divergência entre a fonte de design e o backend', fu
 it('UC-PIPE-04 — a fonte de design carrega hue e owner por fase (o que o backend NÃO traz)', function () {
     // Isto não é cosmético: `owner` diz QUEM responde por cada fase (F0=W, F1=CC,
     // F3=CL…), que é o vocabulário do loop Cowork↔Code. O backend serve só
-    // {key,label}, então a tela não tem como mostrar dono de fase nem cor por fase.
+    // {key,label}.
+    //
+    // ⚠️ ATUALIZAÇÃO (PARIDADE §11 Onda 5). A redação anterior concluía daqui que
+    // "a tela não tem como mostrar dono de fase nem cor por fase". O assert está
+    // certo e continua valendo; a CONCLUSÃO caducou. A tela mostra os dois — não
+    // porque o backend passou a servir, mas porque o front ESPELHA a fonte de
+    // design, que é o mesmo caminho que o `FASE_HUE` já usava desde a Onda 4.
+    // A perda que este caso documenta é do PAYLOAD, não da tela; quem trava o
+    // espelho é o UC-PIPE-05 logo abaixo.
     //
     // O caso NÃO exige que o backend passe a servir — exige que a PERDA seja
-    // visível. Enquanto ele passar, quem ler o teste sabe que a tela é mais pobre
-    // que a fonte, e por quê.
+    // visível. Enquanto ele passar, quem ler o teste sabe que o payload é mais
+    // pobre que a fonte, e por quê.
     $src = file_get_contents(base_path('prototipo-ui/cowork/forja-data.jsx'));
     preg_match('/const FORJA_PHASES\s*=\s*\[(.*?)\];/s', $src, $m);
 
@@ -150,4 +158,90 @@ it('UC-PIPE-04 — a fonte de design carrega hue e owner por fase (o que o backe
     expect(str_contains($mb[1], 'hue'))->toBeFalse(
         'O backend agora serve `hue` — ótimo: atualize este caso e leve a cor por fase pra tela.'
     );
+});
+
+/**
+ * Extrai `key => [owner, faz, sai]` do espelho no front (`TrabalhoQuadro.tsx`).
+ *
+ * Linha a linha de propósito: cada fase ocupa UMA linha no bloco, e um regex
+ * multilinha com `.*?` casaria o `owner` de uma fase com o `sai` da seguinte —
+ * um teste que passa medindo pares errados.
+ */
+function papeisDoFront(): array
+{
+    $src = file_get_contents(base_path('Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx'));
+    $ini = strpos($src, 'const FASES');
+    expect($ini)->not->toBeFalse('FASES sumiu do TrabalhoQuadro — o espelho mudou de forma.');
+    $bloco = substr($src, $ini, strpos($src, '];', $ini) - $ini);
+
+    $out = [];
+    foreach (explode("\n", str_replace("\r", '', $bloco)) as $linha) {
+        if (preg_match("/key:\s*'([^']+)'/", $linha, $k)
+            && preg_match("/owner:\s*'([^']+)'/", $linha, $o)
+            && preg_match("/faz:\s*'([^']+)'/", $linha, $f)
+            && preg_match("/sai:\s*'([^']+)'/", $linha, $s)) {
+            $out[$k[1]] = [$o[1], $f[1], $s[1]];
+        }
+    }
+
+    return $out;
+}
+
+/** Extrai `id => [owner, faz, sai]` da FONTE de design (`forja-data.jsx`). */
+function papeisDoPrototipo(): array
+{
+    $src = file_get_contents(base_path('prototipo-ui/cowork/forja-data.jsx'));
+    preg_match('/const FORJA_PHASES\s*=\s*\[(.*?)\];/s', $src, $m);
+    expect($m[1] ?? null)->not->toBeNull('FORJA_PHASES mudou de forma no protótipo.');
+
+    $out = [];
+    foreach (explode("\n", str_replace("\r", '', $m[1])) as $linha) {
+        if (preg_match('/id:\s*"([^"]+)"/', $linha, $k)
+            && preg_match('/owner:\s*"([^"]+)"/', $linha, $o)
+            && preg_match('/faz:\s*"([^"]+)"/', $linha, $f)
+            && preg_match('/sai:\s*"([^"]+)"/', $linha, $s)) {
+            $out[$k[1]] = [$o[1], $f[1], $s[1]];
+        }
+    }
+
+    return $out;
+}
+
+it('UC-PIPE-05 — o cabeçalho de fase do Quadro (dono · faz · sai) é o da fonte de design', function () {
+    // PARIDADE §11 Onda 5. O `.fj-kcol-quem`/`.fj-kcol-sai` do protótipo mostram
+    // QUEM responde pela fase, o que essa pessoa faz e o que faz o card sair dela.
+    // O backend não serve nada disso (UC-PIPE-04), então o front espelha a fonte —
+    // exatamente como o `FASE_HUE` faz desde a Onda 4.
+    //
+    // Espelho sem trava é o erro que este arquivo inteiro existe pra impedir: as
+    // duas cópias concordam no dia do merge e divergem na primeira edição. Aqui a
+    // divergência reprova, e a mensagem diz qual fase e qual campo.
+    $front = papeisDoFront();
+    $proto = papeisDoPrototipo();
+
+    // Anti-falso-verde: dois vazios seriam "iguais" (mesma guarda do UC-PIPE-01).
+    expect(count($front))->toBeGreaterThan(3, 'Nenhum papel extraído do TrabalhoQuadro.');
+    expect(count($proto))->toBeGreaterThan(3, 'Nenhum papel extraído do protótipo.');
+
+    foreach ($front as $fase => $trio) {
+        // `array_key_exists` + `toBeTrue`, e não `toHaveKey($fase, <msg>)`: o 2º
+        // argumento do `toHaveKey` é o VALOR esperado da chave, não a mensagem —
+        // passar texto ali compara `string` com o array do trio e o caso reprova
+        // por "does not match expected type", escondendo o que ele mede.
+        expect(array_key_exists($fase, $proto))->toBeTrue(
+            "O front declara a fase `{$fase}`, que a fonte de design não tem.\n".
+            'Fase se inventa no protótipo, não no .tsx.'
+        );
+
+        [$o, $f, $s] = $trio;
+        [$po, $pf, $ps] = $proto[$fase];
+
+        expect([$o, $f, $s])->toBe([$po, $pf, $ps],
+            "O cabeçalho da fase `{$fase}` divergiu da fonte de design.\n".
+            "  front    : owner={$o} · faz={$f} · sai={$s}\n".
+            "  protótipo: owner={$po} · faz={$pf} · sai={$ps}\n".
+            'Mudou no protótipo? Traga pro espelho. Mudou no espelho sem o protótipo? '.
+            'A tela passou a afirmar sobre o protocolo uma coisa que o design não diz.'
+        );
+    }
 });
