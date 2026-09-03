@@ -10,7 +10,7 @@
 import { Head, router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Bell, ChevronLeft, Cog, Inbox, List, Plus, Search, Settings, SlidersHorizontal,
+  ChevronLeft, List, Plus, Search, Settings,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -28,6 +28,7 @@ import {
   ConversaResumo,
   Mensagem as CockpitMensagem,
   Rotina,
+  rotuloQuando,
 } from '@/Components/cockpit/shared';
 import { JanaAssistantUiChat } from './_components/AssistantUiChat';
 import EmptyState from '@/Components/shared/EmptyState';
@@ -489,6 +490,7 @@ export function ConvSidePanel({
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState<ConvTab>('todas');
   const liveRef = useRef<HTMLSpanElement>(null);
+  const buscaRef = useRef<HTMLInputElement>(null);
   const ultimoAnunciado = useRef(activeConvId);
 
   const { fixadasShow, recentesShow, visiveis } = useMemo(() => {
@@ -530,6 +532,17 @@ export function ConvSidePanel({
         onToggle();
         return;
       }
+      // ⌘K foca a busca. O `<span className="kbd">⌘K</span>` do campo
+      // PROMETIA isso desde 2026-05-15 e nao havia handler nenhum: rotulo que
+      // anuncia atalho inexistente e afordância falsa. A âncora implementa
+      // (`jana-merge.jsx`: "atalho que nao funciona e rotulo mentindo"), e aqui
+      // ele passa ANTES do guarda de `metaKey` logo abaixo.
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        if (!aberto) onToggle();
+        setTimeout(() => buscaRef.current?.focus(), 0);
+        return;
+      }
       // J/K são letras cruas: não roubar do composer nem de combos do browser.
       if (digitando || e.metaKey || e.ctrlKey || e.altKey) return;
 
@@ -552,7 +565,7 @@ export function ConvSidePanel({
 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [visiveis, activeConvId, onSelectConv, onToggle]);
+  }, [visiveis, activeConvId, onSelectConv, onToggle, aberto]);
 
   // Na sobreposição, escolher conversa fecha o histórico (libera a thread).
   function escolher(id: string) {
@@ -584,6 +597,11 @@ export function ConvSidePanel({
   return (
     <aside className="copiloto-chat-convs">
       <span ref={liveRef} className="cs-sr" aria-live="polite" />
+      {/* Cabeçalho da âncora (`jm-hist-h`): [toggle] CONVERSAS · n · [+].
+          O botão "Filtros" que existia aqui SAIU: não está em `JmConversa`, e
+          era afordância falsa — nunca teve handler, e quem filtra são as duas
+          abas logo abaixo. Copy "Chat" → "Conversas" pelo rótulo da âncora
+          (`jm-hist-t`), que é o que o painel de fato lista. */}
       <header className="cs-head">
         <button
           type="button"
@@ -595,11 +613,8 @@ export function ConvSidePanel({
         >
           <ChevronLeft size={14} />
         </button>
-        <h2>Chat</h2>
+        <h2>Conversas</h2>
         <span className="cs-count">{visiveis.length}</span>
-        <button type="button" className="cs-iconbtn" title="Filtros" aria-label="Filtros">
-          <SlidersHorizontal size={14} />
-        </button>
         <a href="/ia/conversas/nova" className="cs-iconbtn primary" title="Nova conversa · ⌘N" aria-label="Nova conversa">
           <Plus size={14} />
         </a>
@@ -609,6 +624,7 @@ export function ConvSidePanel({
         <Search size={12} className="cs-search-ic" />
         <input
           type="search"
+          ref={buscaRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Buscar conversas..."
@@ -632,18 +648,17 @@ export function ConvSidePanel({
         ))}
       </div>
 
-      <div className="sb-actions">
-        <a href="/tarefas" className="sb-action">
-          <Inbox size={14} /> <span>Tarefas</span>
-        </a>
-        <div className="sb-action">
-          <Bell size={14} /> <span>Despachos</span>
-          <span className="beta">Beta</span>
-        </div>
-        <div className="sb-action">
-          <Cog size={14} /> <span>Personalizar</span>
-        </div>
-      </div>
+      {/* Os 3 atalhos que viviam aqui (Tarefas · Despachos Beta · Personalizar)
+          SAÍRAM. Medido em 3 eixos independentes, cada um suficiente:
+          (a) a âncora `jana-merge.jsx` §JmConversa não os tem — eles são da
+              `SidebarChat` de UI-0008, que a UI-0011 removeu; no protótipo eles
+              seguem em `sidebar.jsx`, painel de conversa nunca foi o lugar deles.
+          (b) `Chat.charter.md` e `Chat.casos.md` não citam nenhum dos três
+              (grep contado: 0 de 0 em ambos).
+          (c) dois eram `<div>` sem `onClick` — rótulo inerte; e "Tarefas"
+              contraria decisão [W] de 2026-05-22 ("Tarefas REMOVIDO, módulo
+              ainda não definido", `Sidebar.tsx`). "Personalizar" já tem lugar
+              canônico: `SUPERADMIN_LABELS`, na cascata do rodapé do avatar. */}
 
       <div className="sb-section-h">Fixadas</div>
       {fixadasShow.length === 0 ? (
@@ -654,7 +669,7 @@ export function ConvSidePanel({
         />
       ) : (
         fixadasShow.map((c) => (
-          <SbConvItem key={c.id} c={c} active={c.id === activeConvId} onSelect={escolher} />
+          <SbConvItem key={c.id} c={c} active={c.id === activeConvId} onSelect={escolher} fixada />
         ))
       )}
 
@@ -684,6 +699,9 @@ export function ConvSidePanel({
         <span className="kbd">K</span>
         <span>anda</span>
         <span className="cs-keys-sep">·</span>
+        <span className="kbd">⌘K</span>
+        <span>busca</span>
+        <span className="cs-keys-sep">·</span>
         <span className="kbd">⌘⇧H</span>
         <span>recolhe</span>
       </div>
@@ -691,26 +709,52 @@ export function ConvSidePanel({
   );
 }
 
+/**
+ * Card da conversa — espelha `JmThreadItem` da ancora: titulo + hora na mesma
+ * linha, resumo de uma linha, e um rodape com "ultima em X" / "fixada".
+ *
+ * `preview` e `ultima_em` NAO sao dado novo: o `buildConversasListPayload` ja
+ * os manda desde 2026-08-17 (PR #5901), e o UC-JCHAT-12 prova o payload. Aquele
+ * teste diz, com todas as letras, que desenhar seria "outro PR" — este e o PR.
+ * Onde o dado falta (conversa sem mensagem), a linha nao e desenhada: card sem
+ * preview e a verdade, preview fabricado nao.
+ *
+ * Virou <button>: era um <div role="button"> com onKeyDown a mao reimplementando
+ * Enter/Espaco que o botao nativo ja da de graca.
+ */
 function SbConvItem({
   c,
   active,
   onSelect,
+  fixada = false,
 }: {
   c: ConversaResumo;
   active: boolean;
   onSelect: (id: string) => void;
+  /** Grupo de origem — o payload separa `fixadas`/`recentes`, o card nao adivinha. */
+  fixada?: boolean;
 }) {
+  const quando = rotuloQuando(c.ultima_em);
+
   return (
-    <div
-      className={`sb-conv ${active ? 'active' : ''}`}
+    <button
+      type="button"
+      className={`cs-thread ${active ? 'active' : ''}`}
       onClick={() => onSelect(c.id)}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(c.id); } }}
+      aria-current={active ? 'true' : undefined}
     >
-      <span className={`sb-bullet ${c.unread ? 'filled' : ''}`} />
-      <span className="sb-conv-t">{c.titulo}</span>
-      {c.unread ? <span className="sb-conv-badge">{c.unread > 99 ? '99+' : c.unread}</span> : null}
-    </div>
+      <span className="cs-thread-h">
+        <b>{c.titulo}</b>
+        {quando ? <span className="cs-thread-q">{quando}</span> : null}
+        {c.unread ? <span className="sb-conv-badge">{c.unread > 99 ? '99+' : c.unread}</span> : null}
+      </span>
+      {c.preview ? <small className="cs-thread-p">{c.preview}</small> : null}
+      {(quando || fixada) ? (
+        <span className="cs-thread-f">
+          {quando ? <span>{`última em ${quando}`}</span> : null}
+          {fixada ? <span className="cs-thread-fix">fixada</span> : null}
+        </span>
+      ) : null}
+    </button>
   );
 }

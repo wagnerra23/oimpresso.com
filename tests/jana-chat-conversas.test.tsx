@@ -16,6 +16,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 
 import { ConvSidePanel } from '@/Pages/Jana/Chat';
+import { rotuloQuando } from '@/Components/cockpit/shared';
 import type { ConversaResumo } from '@/Components/cockpit/shared';
 
 // Espelha o que buildConversasListPayload manda: 3 ativas + 1 arquivada.
@@ -211,5 +212,163 @@ describe('UC-JCHAT-11 — o histórico diz QUANTAS conversas, expandido e recolh
     expect(peek.querySelector('.cs-peek-n')!.textContent).toBe('3');
     // Controle negativo: recolhido não sobra cabeçalho expandido na árvore.
     expect(container.querySelector('.cs-head')).toBeNull();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Onda 3a — o card da conversa (âncora `jana-merge.jsx` §JmThreadItem).
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** ISO de N dias atrás, na hora indicada — base estável pro rótulo de tempo. */
+function isoAtras(dias: number, hora = 9, minuto = 38): string {
+  const d = new Date();
+  d.setDate(d.getDate() - dias);
+  d.setHours(hora, minuto, 0, 0);
+  return d.toISOString();
+}
+
+describe('UC-JCHAT-15 — o card mostra resumo e tempo, e NÃO fabrica o que não veio', () => {
+  // O dado não é novo: `buildConversasListPayload` manda `preview` e `ultima_em`
+  // desde 2026-08-17 (PR #5901) e o UC-JCHAT-12 prova o payload. Aquele teste
+  // registra, com todas as letras, que desenhar seria "outro PR" — é este.
+  // Por isso os casos aqui medem RENDER, não payload: são perguntas diferentes.
+
+  const COM_DADO: ConversaResumo[] = [
+    {
+      id: '1',
+      titulo: 'Top devedores ativos',
+      status: 'ativa',
+      preview: 'Somando os títulos vencidos, três clientes concentram o atraso.',
+      ultima_em: isoAtras(0),
+    },
+  ];
+
+  it('desenha o resumo de uma linha que o payload mandou', () => {
+    montar({ recentes: COM_DADO, activeConvId: '1' });
+
+    expect(
+      screen.getByText('Somando os títulos vencidos, três clientes concentram o atraso.'),
+    ).toBeTruthy();
+  });
+
+  it('desenha a hora da última mensagem na linha do título', () => {
+    const { container } = montar({ recentes: COM_DADO, activeConvId: '1' });
+
+    // Hoje → relógio curto. Não fixo a string: o rótulo é do locale de quem olha.
+    expect(container.querySelector('.cs-thread-q')!.textContent).toMatch(/^\d{2}:\d{2}$/);
+  });
+
+  it('o rodapé do card diz "última em <hora>"', () => {
+    const { container } = montar({ recentes: COM_DADO, activeConvId: '1' });
+
+    expect(container.querySelector('.cs-thread-f')!.textContent).toContain('última em');
+  });
+
+  it('CONTROLE NEGATIVO — sem `preview`/`ultima_em`, o card não inventa linha nenhuma', () => {
+    // RECENTES (o fixture do topo) não tem nenhum dos dois campos.
+    const { container } = montar();
+
+    expect(container.querySelector('.cs-thread-p')).toBeNull();
+    expect(container.querySelector('.cs-thread-f')).toBeNull();
+    // …mas o título continua lá: ausência de metadado não some com a conversa.
+    expect(screen.getByText('Top devedores ativos')).toBeTruthy();
+  });
+
+  it('conversa do grupo Fixadas ganha o selo "fixada"; a recente NÃO', () => {
+    const { container } = montar({
+      fixadas: [{ id: '7', titulo: 'Meta de agosto', status: 'ativa', ultima_em: isoAtras(0) }],
+    });
+
+    const selos = container.querySelectorAll('.cs-thread-fix');
+    expect(selos.length).toBe(1);
+    expect(selos[0].textContent).toBe('fixada');
+  });
+});
+
+describe('UC-JCHAT-15 — `rotuloQuando` escala como a âncora (hoje · ontem · semana · velho)', () => {
+  // Formatar no cliente é decisão registrada: o servidor manda ISO cru porque
+  // formatar lá herdaria o shift +3h do `format_date` legado (ADR 0066).
+  const base = new Date('2026-09-03T15:00:00');
+
+  it('hoje → relógio', () => {
+    expect(rotuloQuando('2026-09-03T09:38:00', base)).toMatch(/^\d{2}:\d{2}$/);
+  });
+
+  it('ontem → "ontem"', () => {
+    expect(rotuloQuando('2026-09-02T09:38:00', base)).toBe('ontem');
+  });
+
+  it('dentro da semana → dia curto, não data', () => {
+    const r = rotuloQuando('2026-08-31T09:38:00', base)!;
+    expect(r).not.toMatch(/\d{2}\/|\d{2}:/);
+    expect(r.length).toBeLessThanOrEqual(5);
+  });
+
+  it('mais velho que a semana → dia/mês', () => {
+    expect(rotuloQuando('2026-05-05T09:38:00', base)).toMatch(/^\d{2}\/\w+$/);
+  });
+
+  it('CONTROLE NEGATIVO — sem dado ou com lixo, devolve null (não "agora")', () => {
+    expect(rotuloQuando(null, base)).toBeNull();
+    expect(rotuloQuando(undefined, base)).toBeNull();
+    expect(rotuloQuando('nao-e-data', base)).toBeNull();
+  });
+});
+
+describe('UC-JCHAT-16 — o painel lista conversas, e só isso', () => {
+  // Os 3 atalhos (Tarefas · Despachos Beta · Personalizar) saíram na Onda 3a.
+  // Medido: fora da âncora (são da `SidebarChat` de UI-0008, removida pela
+  // UI-0011), fora do charter e do casos (0 menções em ambos), e dois deles
+  // eram `<div>` sem handler. Este caso é a catraca: se voltarem, quebra.
+
+  it.each(['Tarefas', 'Despachos', 'Personalizar'])('não há atalho "%s" no painel', (rotulo) => {
+    montar();
+    expect(screen.queryByText(rotulo)).toBeNull();
+  });
+
+  it('nem sobra o contêiner `sb-actions` que os agrupava', () => {
+    const { container } = montar();
+    expect(container.querySelector('.sb-actions')).toBeNull();
+  });
+
+  it('o botão "Filtros" sem handler saiu — quem filtra são as duas abas', () => {
+    montar();
+    expect(screen.queryByRole('button', { name: 'Filtros' })).toBeNull();
+    expect(screen.getByRole('tab', { name: 'Todas' })).toBeTruthy();
+  });
+});
+
+describe('UC-JCHAT-17 — ⌘K foca a busca (o rótulo deixa de mentir)', () => {
+  // O `<span class="kbd">⌘K</span>` existia desde 2026-05-15 SEM handler nenhum:
+  // rótulo que anuncia atalho inexistente é afordância falsa. A âncora
+  // implementa e diz por quê: "atalho que não funciona é rótulo mentindo".
+
+  it('⌘K move o foco pro campo de busca', async () => {
+    montar();
+    const busca = screen.getByLabelText('Buscar conversas');
+    expect(document.activeElement).not.toBe(busca);
+
+    tecla('k', { metaKey: true });
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(document.activeElement).toBe(busca);
+  });
+
+  it('Ctrl+K também — Larissa e Wagner estão no Windows', async () => {
+    montar();
+    tecla('k', { ctrlKey: true });
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(document.activeElement).toBe(screen.getByLabelText('Buscar conversas'));
+  });
+
+  it('CONTROLE NEGATIVO — `k` CRU segue andando na lista, não foca a busca', () => {
+    const { onSelectConv } = montar();
+
+    tecla('k');
+
+    // ativa é '2' (índice 1) → `k` sobe pra '1'. Se ⌘K tivesse sequestrado a
+    // tecla crua, isto não dispararia.
+    expect(onSelectConv).toHaveBeenCalledWith('1');
   });
 });

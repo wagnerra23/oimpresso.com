@@ -1528,7 +1528,10 @@
 .cockpit .copiloto-chat-layout {
   position: relative; /* âncora da sobreposição + scrim em telas estreitas */
   display: grid;
-  grid-template-columns: 280px 1fr;
+  /* Âncora `.jm-conv`: faixa elástica + gap real entre o card do histórico e a
+     thread. Era `280px 1fr` com gap 0, que colava os dois painéis. */
+  grid-template-columns: minmax(230px, 280px) minmax(0, 1fr);
+  gap: 10px;
   flex: 1;
   min-height: 0;
   overflow: hidden;
@@ -1555,14 +1558,22 @@
   background: oklch(0.15 0 0 / 0.35);
   cursor: pointer;
 }
+/* Histórico é CARD, não coluna colada — âncora `.jm-hist` (surface + borda
+   completa + raio 12 + padding 8). Era `border-right` + `bg-2` + raio 0, que
+   lia como continuação da sidebar em vez de painel próprio. */
 .cockpit .copiloto-chat-convs {
-  border-right: 1px solid var(--border);
-  background: var(--bg-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
   overflow-y: auto;
-  padding: 12px 8px;
+  padding: 8px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  /* 5px é o gap da LISTA na âncora (`.jm-hist-list`), e aqui os cards são
+     filhos diretos do aside — não existe wrapper de lista. Header, busca e
+     abas carregam `margin-bottom` próprio, então respiram os 8px de `.jm-hist`
+     sem precisar de um nível de DOM só pra isso. */
+  gap: 5px;
 }
 .cockpit .copiloto-chat-thread {
   display: flex;
@@ -1586,13 +1597,17 @@
   border-bottom: 1px solid var(--border);
   margin-bottom: 8px;
 }
+/* Rótulo do painel — âncora `.jm-hist-t`: 11px/600 uppercase, tracking .06em,
+   cor apagada. Era `--fs-4` com tracking negativo (título de página), que
+   competia com o título da thread ao lado. */
 .cockpit .copiloto-chat-convs .cs-head h2 {
   flex: 1 1 auto;
   margin: 0;
-  font-size: var(--fs-4);
+  font-size: 11px;
   font-weight: 600;
-  color: var(--text);
-  letter-spacing: -0.01em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
 }
 .cockpit .copiloto-chat-convs .cs-iconbtn {
   display: inline-flex;
@@ -1667,7 +1682,8 @@
   pointer-events: none;
 }
 
-/* 4 tabs filtro (Todas/Minhas/Compartilhadas/Arquivadas — Charter §Goals) */
+/* Abas de filtro — hoje DUAS (Todas | Arquivadas), charter v3 2026-08-07.
+   Eram quatro: `Minhas` era tautológica e `Compartilhadas` sempre vazia. */
 .cockpit .copiloto-chat-convs .cs-tabs {
   display: flex;
   gap: 4px;
@@ -1695,10 +1711,13 @@
   background: var(--sb-hover);
   color: var(--text);
 }
+/* AP7 (PRE-MERGE-UI): a aba ativa era SOLIDA (`bg: --text`), invertendo o
+   contraste e roubando a atenção do conteúdo. A âncora `.jm-cat.active` usa
+   realce SOFT — accent a 12% no fundo, borda a 45%, texto no próprio accent. */
 .cockpit .copiloto-chat-convs .cs-tab.active {
-  background: var(--text);
-  color: var(--bg);
-  border-color: var(--text);
+  background: color-mix(in oklch, var(--accent) 12%, transparent);
+  border-color: color-mix(in oklch, var(--accent) 45%, transparent);
+  color: var(--accent);
 }
 
 /* `.cs-empty` (empty state "Em breve" das 3 abas decorativas) foi removido em
@@ -1770,7 +1789,85 @@
 }
 .cockpit .copiloto-chat-convs .cs-keys-sep { opacity: 0.5; }
 
-/* Badge unread minúscula ao lado direito do sb-conv-t (backend já expõe `unread`) */
+/* ── Card da conversa — âncora `.jm-thread` (Onda 3a) ──────────────────────
+   Era `.sb-conv`: uma linha de 30px com bullet + título. A âncora desenha um
+   card de ~66px com título + hora, resumo de uma linha e rodapé de metadados.
+   `.sb-conv`/`.sb-bullet`/`.sb-conv-t` seguem definidos na seção "Aba CHAT"
+   deste arquivo e ficaram sem consumidor — medido: eram usados SÓ aqui
+   (7 hits, 1 arquivo, em resources/js + resources/views). Removê-los é faxina
+   de CSS morto, que é PR próprio: não mistura com paridade visual. */
+.cockpit .copiloto-chat-convs .cs-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  text-align: left;
+  padding: 9px 10px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+}
+.cockpit .copiloto-chat-convs .cs-thread:hover {
+  background: color-mix(in oklch, var(--border) 35%, transparent);
+}
+.cockpit .copiloto-chat-convs .cs-thread.active {
+  background: color-mix(in oklch, var(--accent) 10%, transparent);
+  border-color: color-mix(in oklch, var(--accent) 35%, transparent);
+}
+.cockpit .copiloto-chat-convs .cs-thread-h {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.cockpit .copiloto-chat-convs .cs-thread-h b {
+  /* `min-width: 0` não é enfeite: sem ele o flex não encolhe abaixo do
+     min-content e o título longo vaza pra fora do card. */
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cockpit .copiloto-chat-convs .cs-thread-q {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-dim);
+}
+.cockpit .copiloto-chat-convs .cs-thread-p {
+  font-size: 11px;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cockpit .copiloto-chat-convs .cs-thread-f {
+  display: flex;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-dim);
+}
+.cockpit .copiloto-chat-convs .cs-thread-fix { color: var(--accent); }
+
+/* Seção "Fixadas"/"Recentes" dentro do card — âncora `.jm-hist-sec`
+   (10px/600 uppercase, tracking .08em). Escopado no painel de proposito: o
+   `.cockpit .sb-section-h` global serve outros lugares e não é mexido. */
+.cockpit .copiloto-chat-convs .sb-section-h {
+  padding: 8px 4px 2px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+}
+
+/* Badge unread minúscula — vive na linha de título do card (`.cs-thread-h`)
+   desde a Onda 3a; era ao lado do `.sb-conv-t` da linha única. */
 .cockpit .copiloto-chat-convs .sb-conv-badge {
   flex: 0 0 auto;
   min-width: 16px;

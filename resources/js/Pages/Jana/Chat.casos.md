@@ -4,7 +4,7 @@ casos: Jana Conversa · histórico · teclado · acessibilidade · /ia/conversa
 irmaos: Chat.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-chat.md (runbook)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-28"
+last_run: "2026-09-03"
 ---
 
 # Casos de uso — /ia/conversa (Chat da Jana)
@@ -308,6 +308,69 @@ rótulo + número.
 
 ---
 
+## UC-JCHAT-15 — O card mostra resumo e tempo, e NÃO fabrica o que não veio
+Status: 🧪 (`tests/jana-chat-conversas.test.tsx` — 10 casos sob os dois describes que citam este UC) — o vitest rodou VERDE local nesta data (**36 passed**, de 18 antes; delta +18 batendo com os casos novos), mas o G-7 lê o **manifesto commitado**, e o dono dele é o workflow `casos-results-publish`, que roda TODAS as lanes. Gerar o manifesto aqui, de **um** relatório, encolheria `sources` de 18 pra 1 — recibo parcial com cara de completo. `✅` quando o manifesto oficial aterrissar
+
+**Narrativa.** Larissa abre a Jana com seis conversas no histórico. Antes, todas eram uma linha de
+30px com um bullet e o título — para saber qual era qual, tinha que entrar. Agora cada conversa é um
+card: título com a hora da última mensagem ao lado, o resumo de uma linha do que foi dito por último,
+e um rodapé dizendo `última em 09:38`. A que está fixada carrega o selo `fixada`.
+
+**De onde vem o contrato.** Da âncora `prototipo-ui/cowork/jana-merge.jsx` §`JmThreadItem` —
+lida do Cowork **vivo** em 2026-09-03 via `DesignSync.get_file` e **byte-idêntica** ao espelho
+(hash do arquivo inteiro, `truncated:false`). Não foi derivado do `.tsx` (§5 2026-06-05).
+
+**Critério de aceite.**
+1. Vindo `preview` no payload, o card o desenha em uma linha (`.cs-thread-p`).
+2. Vindo `ultima_em`, a hora aparece na linha do título (`.cs-thread-q`) e o rodapé diz `última em`.
+3. **Controle negativo:** sem os dois campos, nenhuma das duas linhas é desenhada — e o título continua lá.
+4. Conversa do grupo `fixadas` mostra o selo; a recente não.
+5. `rotuloQuando` escala como a âncora: hoje → `09:38` · ontem → `ontem` · na semana → `seg` · velho → `05/mai`; lixo ou vazio → `null`, nunca `"agora"`.
+
+**Por que o rótulo é montado no cliente.** O servidor manda ISO-8601 cru de propósito: formatar lá
+herdaria o shift +3h que `format_date` aplica pra cliente legado ([ADR 0066](../../../../memory/decisions/0066-format-date-shift-3h-preservado-legacy-clientes.md)) e o card mostraria
+hora errada. E o `dd/mmm` é montado à mão porque `toLocaleDateString('pt-BR', {day,month:'short'})`
+devolve `"05 de mai."` — **medido** —, que estoura a linha do título num rótulo de 10.5px.
+
+**O que este UC NÃO prova.** Fidelidade visual ao pixel. Ele prova que o dado chega à tela e que a
+ausência dele não vira invenção. A medida de fidelidade é a sonda do `design-diff`, pós-deploy (R1).
+
+## UC-JCHAT-16 — O painel de conversas lista conversas, e só isso
+Status: 🧪 (`tests/jana-chat-conversas.test.tsx` — 5 casos sob o describe que cita este UC) — o vitest rodou VERDE local nesta data (**36 passed**, de 18 antes; delta +18 batendo com os casos novos), mas o G-7 lê o **manifesto commitado**, e o dono dele é o workflow `casos-results-publish`, que roda TODAS as lanes. Gerar o manifesto aqui, de **um** relatório, encolheria `sources` de 18 pra 1 — recibo parcial com cara de completo. `✅` quando o manifesto oficial aterrissar
+
+**Narrativa.** O painel do histórico carregava três atalhos de navegação global — `Tarefas`,
+`Despachos Beta`, `Personalizar` — e um botão `Filtros`. Nenhum pertencia ali.
+
+**Por que saíram — três eixos medidos em 2026-09-03, cada um suficiente.**
+
+| eixo | medição |
+|---|---|
+| âncora | não estão em `JmConversa`. São da `SidebarChat` de UI-0008, que a UI-0011 removeu; no protótipo seguem vivos em `sidebar.jsx` — o painel de conversa nunca foi o lugar deles |
+| contrato | `Chat.charter.md` e `Chat.casos.md`: **0 menções** aos três, em ambos (grep contado) |
+| código | `Despachos` e `Personalizar` eram `<div>` **sem `onClick`** — rótulo inerte. `Filtros` idem. `Tarefas` contraria decisão [W] de 2026-05-22 (*"Tarefas REMOVIDO, módulo ainda não definido"*, `Sidebar.tsx`), e `Personalizar` já tem lugar canônico em `SUPERADMIN_LABELS`, na cascata do rodapé do avatar |
+
+**Critério de aceite.** Nenhum dos três rótulos existe no painel; o contêiner `.sb-actions` não sobra;
+não há botão acessível por `Filtros`; e as duas abas que de fato filtram continuam lá. É catraca: se
+voltarem, quebra.
+
+**Precedência aplicada.** Forma é do protótipo ([UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)). Como nem charter nem casos os
+sustentavam, não houve perdedor a reescrever — só o Non-Goal novo a registrar, feito no charter v4.
+
+## UC-JCHAT-17 — ⌘K foca a busca (o rótulo deixa de mentir)
+Status: 🧪 (`tests/jana-chat-conversas.test.tsx` — 3 casos sob o describe que cita este UC) — o vitest rodou VERDE local nesta data (**36 passed**, de 18 antes; delta +18 batendo com os casos novos), mas o G-7 lê o **manifesto commitado**, e o dono dele é o workflow `casos-results-publish`, que roda TODAS as lanes. Gerar o manifesto aqui, de **um** relatório, encolheria `sources` de 18 pra 1 — recibo parcial com cara de completo. `✅` quando o manifesto oficial aterrissar
+
+**Narrativa.** O campo de busca exibia `⌘K` num `kbd` desde 2026-05-15. Apertar `⌘K` não fazia nada:
+**medido** — nenhum handler para a tecla, nenhum `ref` no input. Rótulo que anuncia atalho inexistente
+é afordância falsa, e a âncora diz isso em comentário próprio: *"atalho que não funciona é rótulo
+mentindo"*.
+
+**Critério de aceite.**
+1. `⌘K` move o foco pro campo de busca; `Ctrl+K` também (Larissa e Wagner estão no Windows).
+2. **Controle negativo:** `k` CRU segue andando na lista (UC-JCHAT-02) — o combo não sequestra a tecla.
+
+**Corrigido implementando, não apagando o rótulo:** a âncora tem o comportamento, então a promessa
+estava certa e a implementação é que faltava.
+
 ## Inventário de cobertura — cada Goal e Anti-hook do charter, medido
 
 > Os 4 UCs acima cobrem **o painel de histórico e o teclado**. O charter promete muito mais. Esta
@@ -403,12 +466,16 @@ como `[BACKLOG]` sem id, logo abaixo, em vez de virarem UC otimista.
 > no `visual-regression`. Esse PR pôs a tela no manifesto e gerou a baseline. Para saber o estado
 > **de hoje**, rode `node scripts/governance/ui-impact.mjs` — não confie nesta linha.
 
-- `[BACKLOG]` **`preview` e `quando` no card** — o protótipo mostra um resumo de uma linha e um
-  tempo adaptativo (`"09:38"` · `"ontem"` · `"ter"` · `"05/mai"`, e `"criada agora"` no recém-nascido).
-  **Não é trabalho de tela: é falta de dado.** O `buildConversasListPayload` manda
-  `id · titulo · unread · origem · status · ativa`, e `jana_conversas` não tem coluna de preview
-  nem de última atividade — `iniciada_em` **não** serve, é quando a conversa nasceu. Sairia de
-  `MAX(jana_mensagens.created_at)` + o conteúdo da última mensagem. Backend primeiro, pixel depois.
+- ~~`[BACKLOG]` **`preview` e `quando` no card**~~ → **FECHADO na Onda 3a (2026-09-03), e já estava meio fechado antes.**
+  A redação anterior dizia *"não é trabalho de tela: é falta de dado"* e listava o payload como
+  `id · titulo · unread · origem · status · ativa`. **Isso caducou em 2026-08-17** (PR #5901): o
+  `buildConversasListPayload` passou a mandar `preview` e `ultima_em`, tirados de
+  `MAX(jana_mensagens.id)` numa query só — exatamente a saída que o bullet previa — e o
+  **UC-JCHAT-12** passou a provar o payload. O bullet ficou para trás por 17 dias afirmando
+  ausência de um dado que já trafegava (o próprio UC-12 avisava: *"renderizar é outro PR"*).
+  Quem desenha é o **UC-JCHAT-15**, abaixo. Fica como recibo de que ponteiro não se herda: se
+  relerem, re-meçam.
+
 - `[BACKLOG]` **`com {pessoa}` no card + escopo no cabeçalho da thread** (*"só sua"* / *"da equipe"*).
   **Bloqueado pelo modelo de dados, não por prioridade:** não existe compartilhamento — sem tabela
   de participantes, e `abort_unless($conversa->user_id === auth()->id(), 403)` em quatro pontos do
@@ -426,8 +493,18 @@ como `[BACKLOG]` sem id, logo abaixo, em vez de virarem UC otimista.
 
 Registrado porque paridade não é via de mão única — apagar isto para "ficar igual" seria regressão:
 
-- **Busca por texto** na lista, com `normalizeSearch` (ignora acento). O protótipo não tem busca.
-- **Agrupamento fixadas + recentes**. O protótipo tem lista única.
+> ⚠️ **Errata de 2026-09-03 — os dois itens desta lista CADUCARAM.** Eles descreviam o
+> `chat.jsx` de 2026-05-09. A âncora vigente (`jana-merge.jsx`, lida do Cowork **vivo** nesta
+> data) tem **as duas coisas**, e o comentário dela diz de onde vieram, com todas as letras:
+> *"Busca acento-insensível + Fixadas/Recentes — as duas coisas que a Conversa viva tem e o
+> protótipo não tinha"*. Ou seja: o protótipo **copiou a produção**, e o que era divergência
+> virou **paridade**. Não há nada a apagar nem a defender aqui.
+
+- ~~**Busca por texto** na lista~~ → paridade: `.jm-hist-busca` + `norm()` na âncora.
+- ~~**Agrupamento fixadas + recentes**~~ → paridade: `.jm-hist-sec` · Fixadas / Recentes.
+
+**O que a tela viva ainda tem a mais** (e segue verdadeiro): o **`aria-live`** que anuncia a
+troca de conversa (UC-JCHAT-04) — a âncora tem `jm-sr`, mas quem tem contrato é a produção.
 
 ## ⚠️ Nenhuma lane do CI executa estes testes hoje — medido em 2026-08-17
 
