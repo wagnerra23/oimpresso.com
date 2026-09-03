@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Forja\Services\ForjaAprovacoesService;
 use Modules\Jana\Entities\Mcp\McpTask;
 use Modules\Jana\Entities\Mcp\McpTaskEvent;
 use Modules\Jana\Services\TaskRegistry\TaskCrudService;
@@ -44,6 +45,10 @@ class TasksAdminController extends Controller
         // (trivial 1ms); kanban/backlog/kpis/modulos/owners/sprints caem em closures
         // resolvidas em background — frontend skeleton até cada uma chegar.
         return Inertia::render('team-mcp/Tasks/Index', [
+            // Badge de pendências do topnav (§3.1 do export): no protótipo ele vive no
+            // destino Aprovações em TODA view — é o que avisa que há algo esperando
+            // decisão enquanto você está em OUTRA tela. COUNT indexado, deferido.
+            'pendencias' => Inertia::defer(fn () => app(ForjaAprovacoesService::class)->contagem()),
             'kanban'  => Inertia::defer(fn () => $this->buildKanbanPayload($modulo, $owner, $sprint)),
             'backlog' => Inertia::defer(fn () => $this->buildBacklogPayload($modulo, $owner, $sprint)),
             'kpis'    => Inertia::defer(fn () => $this->buildKpisPayload($modulo, $owner)),

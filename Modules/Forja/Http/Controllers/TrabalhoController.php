@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Forja\Services\ForjaAprovacoesService;
 use Modules\Forja\Services\ForjaQuadroService;
 use Modules\Forja\Services\TrabalhoService;
 use Modules\Jana\Entities\Mcp\McpTask;
@@ -55,6 +56,10 @@ class TrabalhoController extends Controller
         $filtros = $this->filtrosDaRequest($request);
 
         return Inertia::render('Forja/Trabalho/Index', [
+            // Badge de pendências do topnav (§3.1 do export): no protótipo ele vive no
+            // destino Aprovações em TODA view — é o que avisa que há algo esperando
+            // decisão enquanto você está em OUTRA tela. COUNT indexado, deferido.
+            'pendencias' => Inertia::defer(fn () => app(ForjaAprovacoesService::class)->contagem()),
             'titulo'   => 'Trabalho',
             'subtitle' => 'Todas as tasks do time — o backlog do projeto e o resto, na mesma lista.',
             'filtros'  => $filtros,

@@ -194,6 +194,19 @@ Medido em 2026-09-02 ([forja-cockpit-visual-comparison.md](../../../../../../mem
 
 > **Rebaixado de `UC-FORJA-11` em 2026-07-27 (justificativa).** O próprio bloco se declarava "nota de fidelidade", não caso de uso: descreve uma **limitação da plataforma**, não um comportamento que o produto promete e que um teste possa defender. Vira prosa honesta — o padrão canônico pra o que não tem teste (ver [how-trabalhar.md §Pedido de tela](../../../../memory/how-trabalhar.md)).
 
+## UC-FORJA-18 — O badge de pendências vive em TODA tela do hub, não só na mesa (Onda 1 do export · §3.1)
+Status: 🧪 (7 casos de `ForjaBadgePendenciasTest` **citam este UC no título** — um por controller do hub, na lane MySQL `forja-pest.yml`. Segue 🧪 e não ✅ porque o ✅ vem do manifesto `scripts/casos-test-results.json`, derivado do JUnit do CI — não se escreve à mão.)
+
+O alvo §3.1 do export pede *"badge de pendências no destino Aprovações"*. No `forja-page.jsx:1123` o badge é renderizado no destino `hoje` em **qualquer** view: `pendencias` é estado da página inteira, não da aba aberta. É o que avisa que há algo esperando decisão enquanto você está em OUTRA tela.
+
+Até aqui só `Forja/Aprovacoes/Index` passava a prop — o badge aparecia justamente na única tela onde é redundante (a fila já está na frente) e sumia nas outras oito. O `forja-cockpit-visual-comparison.md` já tinha **medido** o efeito colateral sem nomear a causa: os **−35px** de largura do nav entre protótipo e produção, que ele classificou como *"dado (badge de pendências), não CSS"*.
+
+Os 7 controllers do hub passam a servir `pendencias` (`Inertia::defer` sobre `ForjaAprovacoesService::contagem()`, um COUNT indexado), e o `ForjaHub` lê a prop **da página** via `usePage()` — assim a próxima Page do hub nasce com o badge, em vez de a prop ser repetida nas nove. A explícita vence: `Aprovacoes/Index` já tem a fila em mãos e passa o número que ela mesma mostra, sem esperar o 2º round-trip do defer.
+
+**O que este Pest NÃO cobre, de propósito:** a perna **visual** (`fj-tab-badge`: cor, raio, posição). Ela tem dono — `design-diff` medindo os dois renders — e um Pest que assertasse className seria régua paralela a régua consolidada ([proibicoes.md §5](../../../../../../../memory/proibicoes.md) 2026-07-09). O Pest defende o que some em SILÊNCIO: apagar a linha de um controller tira o badge daquela tela sem erro, sem console, sem vermelho.
+
+**Pronto quando:** as 7 rotas do hub entregam `pendencias` no partial reload, como inteiro, com o **mesmo** valor de `ForjaAprovacoesService::contagem()`; e o badge aparece no destino Aprovações estando você em qualquer view.
+
 ## Dívida SALDADA — o Pest das rotas estava quebrado E mudo (resolvido em #4887)
 
 Registro do que era, porque a lição não é o conserto — é **como um teste fica anos parecendo cobertura sem nunca ter executado**.
