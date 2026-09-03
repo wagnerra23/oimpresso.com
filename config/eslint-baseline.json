@@ -1,19 +1,14 @@
 {
   "_meta": {
-    "generated_at": "2026-09-03T12:19:32.529Z",
-    "total_violations": 2360,
+    "generated_at": "2026-09-03T12:41:28.483Z",
+    "total_violations": 2339,
     "eslint_version": "flat-config 9.x",
     "adr": "0209"
   },
   "counts": {
     "Modules/Cms/Resources/js/Pages/Site/Home.tsx|@typescript-eslint/no-explicit-any": 4,
-    "Modules/Forja/Resources/js/Pages/Forja/Activity/Index.tsx|@typescript-eslint/no-explicit-any": 1,
     "Modules/Forja/Resources/js/Pages/Forja/Aprovacoes/Index.tsx|no-restricted-syntax": 5,
-    "Modules/Forja/Resources/js/Pages/Forja/Board/DetailSheet.tsx|no-restricted-syntax": 10,
-    "Modules/Forja/Resources/js/Pages/Forja/Burndown/Index.tsx|no-restricted-syntax": 3,
-    "Modules/Forja/Resources/js/Pages/Forja/MyWork/Index.tsx|no-restricted-syntax": 1,
     "Modules/Forja/Resources/js/Pages/Forja/Roadmap/Index.tsx|no-restricted-syntax": 2,
-    "Modules/Forja/Resources/js/Pages/Forja/Triage/Index.tsx|no-restricted-syntax": 5,
     "Modules/Forja/Resources/js/Pages/ads/Admin/ProjectShow.tsx|@typescript-eslint/no-unused-vars": 1,
     "Modules/Forja/Resources/js/Pages/ads/Admin/ProjectShow.tsx|@typescript-eslint/no-explicit-any": 2,
     "Modules/Forja/Resources/js/Pages/ads/Admin/ProjectShow.tsx|no-restricted-syntax": 1,
@@ -64,7 +59,6 @@
     "Modules/Whatsapp/Resources/js/Pages/Atendimento/Macros/Variants.tsx|no-restricted-syntax": 3,
     "Modules/Whatsapp/Resources/js/Pages/Atendimento/Macros/Variants.tsx|@typescript-eslint/no-explicit-any": 1,
     "Modules/Whatsapp/Resources/js/Pages/Atendimento/Metricas/Index.tsx|no-restricted-syntax": 2,
-    "resources/js/Components/MentionInput.tsx|jsx-a11y/no-noninteractive-element-interactions": 1,
     "resources/js/Components/Site/FeatureGrid.tsx|@typescript-eslint/no-explicit-any": 1,
     "resources/js/Components/Site/PricingTiers.tsx|@typescript-eslint/no-explicit-any": 1,
     "resources/js/Components/Site/PricingTiers.tsx|jsx-a11y/no-redundant-roles": 1,
