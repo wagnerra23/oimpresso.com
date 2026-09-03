@@ -19,7 +19,9 @@ name: Mutation Gate (advisory)
 # subir --min acima de 0 — senao o score seria falso por teste pulado.
 
 on:
+  workflow_dispatch:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
     paths:
       - 'app/Services/**/*.php'

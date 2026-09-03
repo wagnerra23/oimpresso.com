@@ -36,6 +36,7 @@ name: prompt-injection corpus (red-team do agente · OWASP LLM01)
 
 on:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
     paths:
       - '.claude/hooks/**'

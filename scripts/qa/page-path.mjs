@@ -48,6 +48,22 @@ export function isAuxiliaryPagePath(rawPath) {
 }
 
 /**
+ * A tela mora sob ALGUMA raiz de Pages (núcleo ou módulo)?
+ *
+ * Complementa `raizesDePages` no eixo do DIFF: lá a pergunta é "onde procurar telas?" e a
+ * resposta é um walk do disco; aqui a lista de caminhos já vem pronta (do `git diff`) e a
+ * pergunta é "este caminho está sob uma raiz?". São perguntas diferentes, e um consumidor
+ * que só tem a primeira acaba escrevendo a segunda à mão.
+ *
+ * Existe porque escrever a segunda à mão é o vetor medido (2026-09-03): um
+ * `^resources/js/Pages/` no consumidor fica CEGO para a MESMA tela morando no módulo dono —
+ * e, como gate cego não acusa nada, ele sai VERDE sem ter medido (proibicoes §5, LC-11).
+ */
+export function isUnderPagesRoot(rawPath) {
+  return RAIZ_PAGES.test(normalizeRepoPath(rawPath));
+}
+
+/**
  * Raízes onde uma Page pode morar, relativas ao repo.
  *
  * Este módulo já era a fonte única de "isto é uma tela?"; a partir de 2026-08-12 é também a de

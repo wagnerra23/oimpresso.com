@@ -10,8 +10,14 @@ name: Handoff Scope Guard (files_json)
 # ruim e passa o bom). O job `scope` só morde PRs `handoff/*`.
 
 on:
+  workflow_dispatch:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
+
+concurrency:
+  group: handoff-scope-guard-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read

@@ -16,7 +16,9 @@ on:
       - 'scripts/pageheader-migration-guard.mjs'
       - 'package.json'
       - '.github/workflows/pageheader-gate.yml'
+  workflow_dispatch:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     paths:
       - 'resources/js/**'
       - 'config/pageheader-shared-baseline.json'

@@ -6,7 +6,9 @@ name: Scope Guard (anti-drift)
 # Roda em PRs (modo strict — bloqueia merge) e em push pra main (warning).
 
 on:
+  workflow_dispatch:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
     paths:
       - 'Modules/**/Http/Controllers/**.php'
@@ -32,6 +34,10 @@ on:
       # do knowledge-ghost-gate, que lista o .mjs e o proprio .yml.
       - 'bin/check-scope.php'
       - '.github/workflows/scope-guard.yml'
+
+concurrency:
+  group: scope-guard-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   check-scope:

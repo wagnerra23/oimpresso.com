@@ -7,12 +7,17 @@ name: ds-mirror-drift (advisory)
 
 on:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     paths:
       - 'resources/css/tokens/**'
       - 'scripts/design-sync/**'
       - 'scripts/governance/ds-mirror-drift.mjs'
       - '.github/workflows/ds-mirror-drift.yml'
   workflow_dispatch:
+
+concurrency:
+  group: ds-mirror-drift-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read

@@ -9,14 +9,14 @@ use Modules\Jana\Services\Cache\SemanticCacheService;
 /**
  * MEM-CACHE-1 — Stats do cache semântico.
  *
- *   php artisan copiloto:cache:stats                    # global
- *   php artisan copiloto:cache:stats --business=4       # só ROTA LIVRE
- *   php artisan copiloto:cache:stats --top=10           # top entradas mais reutilizadas
- *   php artisan copiloto:cache:stats --invalidar=4      # CUIDADO: zera cache do biz=4
+ *   php artisan jana:cache:stats                    # global
+ *   php artisan jana:cache:stats --business=4       # só ROTA LIVRE
+ *   php artisan jana:cache:stats --top=10           # top entradas mais reutilizadas
+ *   php artisan jana:cache:stats --invalidar=4      # CUIDADO: zera cache do biz=4
  */
 class CacheStatsCommand extends Command
 {
-    protected $signature = 'copiloto:cache:stats
+    protected $signature = 'jana:cache:stats
                             {--business= : ID do business (ou omite p/ global)}
                             {--top=10 : Top N entradas mais reutilizadas}
                             {--invalidar= : ID do business pra invalidar cache (CUIDADO)}';
