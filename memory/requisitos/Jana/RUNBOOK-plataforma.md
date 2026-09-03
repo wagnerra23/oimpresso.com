@@ -88,6 +88,43 @@ de linhas de uma tabela de junção. `User::find($id)->hasPermissionTo('jana.sup
 
 ⇒ **A tela NÃO ficou inacessível.** A dependência do pedido está satisfeita e o trabalho não é cego.
 
+### ⚠️ ERRATA 2026-09-03 — a porta (b) não é só "morta por falta de dado": é INALCANÇÁVEL
+
+O parágrafo acima diz que a premissa do pedido (*"única porta viva é o `hasPermissionTo`"*)
+estava **desatualizada**, porque o código tem duas portas. **A leitura do código estava certa; a
+conclusão estava incompleta — e o pedido estava certo no efeito.** Corrigido aqui, não apagado.
+
+Medido na cadeia (não deduzido) quando o `SuperadminMetasCrossTenantTest` rodou pela **primeira
+vez** — ele nunca tinha executado em CI, ver §7: o grupo `/ia` carrega o middleware
+`CheckUserLogin` (`Modules/Jana/Http/routes.php:50`), e ele faz:
+
+```php
+if (($request->user()->user_type != 'user' || $request->user()->allow_login != 1)
+    && request()->segment(1) != 'home') {
+    abort(403, 'Unauthorized action.');
+}
+```
+
+⇒ **Qualquer `user_type` diferente de `'user'` leva 403 ANTES de o controller rodar.** A porta (b)
+existe no código e **não pode ser exercida em nenhuma rota do grupo `/ia`**. O `#6421` a
+adicionou como fail-safe *"pra NÃO trancar a tela"*, e ela não tranca nem destranca nada ali.
+
+**O que isso muda, e o que NÃO muda:**
+
+- **Muda** a leitura da §1.1: a porta (b) não está morta apenas por falta de usuário com aquele
+  `user_type` — ela é inalcançável mesmo que existisse um. A tabela acima fica como está (o
+  estado do DADO é verdadeiro); esta errata acrescenta o estado do CAMINHO.
+- **Não muda** a conclusão operacional: a tela é alcançável pelos 5 usuários da porta (a), com
+  controle positivo. O trabalho segue não sendo cego.
+- **Não muda** o gate do §4: `can('jana.superadmin')` continua não servindo, e o ghost continua
+  tendo de usar o mesmo predicado da rota.
+
+⛔ **Remover a porta (b) do controller é decisão [W]**, não conserto de passagem — é mexer no
+gate de uma tela Tier 0. O que este PR fez foi **impedir que alguém volte a acreditar que ela
+funciona**: o caso do `SuperadminMetasCrossTenantTest` que a afirmava foi reescrito para assertar
+o 403 real, **com controle positivo** de que o predicado do controller diria sim se a request
+chegasse nele.
+
 ⚠️ **Duas observações que ficam declaradas, e NÃO são conserto de passagem:**
 
 1. **`model_has_roles` tem 8 linhas, não 5.** As 3 excedentes têm `model_type` = `AppUser`

@@ -5,6 +5,15 @@ owner: wagner
 status: draft
 parent_module: Jana
 related_prototype: prototipo-ui/cowork/jana-telas-novas.jsx
+# US-COPI-148 é a fusão da área `/ia` — a US que de fato cobre esta tela. NÃO uso
+# US-COPI-010/011 ("listar metas" / "detalhe"): aquelas são o CRUD do tenant, em outra
+# rota e outro controller (`MetasController`), e amarrá-las aqui faria o anchor apontar
+# para código que esta tela não toca. Mesma escolha do charter irmão de Alertas (#6607)
+# e do #6608. Se um dia nascer US própria da visão de plataforma, ela entra aqui.
+related_us: [US-COPI-148]
+runbook: memory/requisitos/Jana/RUNBOOK-plataforma.md
+related_casos:
+  - resources/js/Pages/Jana/Plataforma.casos.md
 alcance:
   rota: /ia/superadmin/metas
   rota_nome: jana.superadmin.metas   # a rota JÁ EXISTIA — não foi criada nesta migração

@@ -48,6 +48,18 @@ class SuperadminController extends Controller
         //      Fica como segunda porta pra NÃO trancar a tela no caso de a permissão
         //      nunca ter sido atribuída a ninguém (todos entravam pelo bypass).
         //
+        // ⚠️ ERRATA 2026-09-03 — A PORTA (b) É INALCANÇÁVEL AQUI, e isto é medido:
+        // o grupo `/ia` carrega o middleware `CheckUserLogin` (routes.php:50), que faz
+        // `if ($request->user()->user_type != 'user' ...) abort(403)`. Ou seja, qualquer
+        // `user_type` fora de 'user' leva 403 ANTES desta linha rodar. A porta (b) existe
+        // no código e não pode ser exercida em nenhuma rota deste grupo.
+        // Achado no 1º run real do `SuperadminMetasCrossTenantTest` (ele nunca tinha
+        // executado em lane nenhuma), que afirmava o contrário e foi corrigido lá.
+        // Bate com a medição de produção de 2026-08-31: ZERO usuários com esse user_type,
+        // e os 5 que alcançam a tela entram todos pela porta (a).
+        // ⛔ REMOVER a (b) é decisão [W] — mexe no gate de uma tela Tier 0. Ela fica, agora
+        // com o alcance declarado em vez de presumido.
+        //
         // Mesmo espírito da defesa que o irmão já tinha —
         // Modules/Jana/Http/Controllers/Admin/JanaProController.php:48.
         //
@@ -101,28 +113,58 @@ class SuperadminController extends Controller
      * e `MetaPeriodo` não têm coluna `business_id` (o escopo deles é indireto, via `meta_id`).
      * Partir daqui — da `Meta` já resolvida — é o que mantém a leitura correta; tocar apuração
      * a partir de um `$id` cru vazaria entre tenants (RUNBOOK-plataforma.md §6 item 5).
+     *
+     * ⚠️⚠️ E O `withoutGlobalScopes()` DENTRO DO EAGER LOAD É OBRIGATÓRIO — não é zelo.
+     * As duas filhas usam `App\Concerns\BelongsToBusinessViaParent`, que aplica
+     * `ScopeByBusinessViaParent` NELAS. Tirar o scope só da `Meta` (a linha acima) resolve a
+     * lista, mas o eager load das filhas continua filtrando pela sessão: para toda meta de
+     * OUTRO tenant, `periodoAtual` e `ultimaApuracao` voltavam `null` — isto é, as duas colunas
+     * novas desta tela apareceriam vazias justamente nas linhas que ela existe para mostrar.
+     *
+     * Achado pelo `UC-PLATAF-03` no primeiro run da lane MySQL (2026-09-03), não por leitura:
+     * `Failed asserting that null is identical to '2026-09-03'`. Defeito de produção, não de
+     * fixture — a tela mostraria "—" e "nunca apurada" para todos os clientes.
+     *
+     * // SUPERADMIN: visão de plataforma (ADR 0093 — o caso legítimo de sair do escopo). O QUEM
+     * // é defendido pelas duas portas em `podeVerPlataforma`; o escopo sai de propósito.
      */
     private function payloadDeClientes(): \Illuminate\Support\Collection
     {
         return Meta::withoutGlobalScope(ScopeByBusiness::class)
             ->whereNotNull('business_id')
-            ->with('periodoAtual', 'ultimaApuracao')
-            ->get()
-            ->map(fn (Meta $m) => [
-                'id'          => $m->id,
-                'business_id' => $m->business_id,
-                'slug'        => $m->slug,
-                'nome'        => $m->nome,
-                'unidade'     => $m->unidade,
-                // Datas em ISO (Y-m-d), formatadas no front. NÃO usar `format_date`:
-                // ele carrega o shift +3h preservado pra clientes legados (ADR 0066),
-                // que aqui viraria data errada por fuso numa tela de auditoria.
-                'periodo_atual' => $m->periodoAtual ? [
-                    'data_ini' => $m->periodoAtual->data_ini?->format('Y-m-d'),
-                    'data_fim' => $m->periodoAtual->data_fim?->format('Y-m-d'),
-                ] : null,
-                'ultima_apuracao' => $m->ultimaApuracao?->data_ref?->format('Y-m-d'),
+            ->with([
+                'periodoAtual' => fn ($q) => $q->withoutGlobalScopes(),
+                'ultimaApuracao' => fn ($q) => $q->withoutGlobalScopes(),
             ])
+            ->get()
+            ->map(function (Meta $m) {
+                // `@var` local em vez de ler `$m->periodoAtual->data_ini` direto: as relações
+                // da `Meta` devolvem `HasOne` SEM generic, então o PHPStan infere o `Model`
+                // base e acusa `Access to an undefined property Model::$data_ini` (3 erros no
+                // ratchet, run de 2026-09-03). Tipar aqui resolve no raio deste PR; pôr o
+                // generic nas relações da entity é melhoria real, mas muda contrato lido por
+                // outros consumidores — PR próprio, não carona.
+                /** @var \Modules\Jana\Entities\MetaPeriodo|null $periodo */
+                $periodo = $m->periodoAtual;
+                /** @var \Modules\Jana\Entities\MetaApuracao|null $apuracao */
+                $apuracao = $m->ultimaApuracao;
+
+                return [
+                    'id'          => $m->id,
+                    'business_id' => $m->business_id,
+                    'slug'        => $m->slug,
+                    'nome'        => $m->nome,
+                    'unidade'     => $m->unidade,
+                    // Datas em ISO (Y-m-d), formatadas no front. NÃO usar `format_date`:
+                    // ele carrega o shift +3h preservado pra clientes legados (ADR 0066),
+                    // que aqui viraria data errada por fuso numa tela de auditoria.
+                    'periodo_atual' => $periodo ? [
+                        'data_ini' => $periodo->data_ini?->format('Y-m-d'),
+                        'data_fim' => $periodo->data_fim?->format('Y-m-d'),
+                    ] : null,
+                    'ultima_apuracao' => $apuracao?->data_ref?->format('Y-m-d'),
+                ];
+            })
             ->values();
     }
 

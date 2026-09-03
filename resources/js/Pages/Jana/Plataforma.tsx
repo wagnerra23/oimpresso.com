@@ -22,7 +22,7 @@ import type { ReactNode } from 'react'
 import { Deferred } from '@inertiajs/react'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import EmptyState from '@/Components/shared/EmptyState'
-import { Stack } from '@/Components/layout'
+import { Inline, Stack } from '@/Components/layout'
 import { Skeleton } from '@/Components/ui/skeleton'
 import { JanaAreaHeader } from '@/Pages/Jana/_components/JanaAreaHeader'
 
@@ -76,9 +76,21 @@ const periodoLegivel = (p: MetaDeCliente['periodo_atual']): string => {
 }
 
 // O protótipo mostra a origem por extenso; o dado gravado é a chave curta.
+//
+// ⚠️ AS CHAVES VÊM DO ENUM DO BANCO, NÃO DO PROTÓTIPO. A migration declara
+// `enum('origem', ['chat_ia','manual','seed'])->default('manual')`; o protótipo usa
+// `origem: "sistema"`, que NÃO EXISTE no schema. Este mapa nasceu com `sistema`/`manual`
+// — ou seja, errado para 2 dos 3 valores reais, que cairiam no fallback e mostrariam a
+// chave crua ao superadmin. Pego pelo `UC-PLATAF-02` no primeiro run da lane MySQL
+// (2026-09-03), que reprovou com `-'sistema' +''`: o MySQL não-estrito grava string
+// VAZIA quando o valor não está no enum — falha silenciosa, sem erro.
+//
+// A fonte de design é soberana na FORMA (mostrar por extenso), nunca no DOMÍNIO DE DADOS.
+// Derivar chave de banco do protótipo é derivar da fonte errada.
 const ORIGEM_LEGIVEL: Record<string, string> = {
-  sistema: 'consulta do sistema',
+  chat_ia: 'proposta pela Jana',
   manual: 'cadastro manual',
+  seed: 'carga inicial',
 }
 
 // ── Peças de tabela (classes canônicas — Pages/Auditoria/Index.tsx é o precedente) ──
@@ -106,10 +118,10 @@ function TabelaSkeleton(): ReactNode {
  */
 function SecaoHeader({ titulo, meta }: { titulo: string; meta: string }): ReactNode {
   return (
-    <div className="flex items-baseline gap-2.5">
+    <Inline gap={2} align="baseline">
       <h2 className="text-sm font-semibold text-foreground">{titulo}</h2>
       <small className="font-mono text-[10.5px] text-muted-foreground">{meta}</small>
-    </div>
+    </Inline>
   )
 }
 
@@ -235,7 +247,8 @@ export default function Plataforma({ metasPlataforma, metasDeClientes }: Props) 
       </div>
 
       <Stack gap={4} className="p-4">
-        <section data-contract="metas-plataforma" className="flex flex-col gap-2.5">
+        <Stack asChild gap={2}>
+          <section data-contract="metas-plataforma">
           <SecaoHeader
             titulo="Metas da plataforma (business_id NULL)"
             meta={`business_id NULL · ${nPlataforma} ${nPlataforma === 1 ? 'meta' : 'metas'}`}
@@ -243,9 +256,11 @@ export default function Plataforma({ metasPlataforma, metasDeClientes }: Props) 
           <Deferred data="metasPlataforma" fallback={<TabelaSkeleton />}>
             <MetasDaPlataforma metas={metasPlataforma} />
           </Deferred>
-        </section>
+          </section>
+        </Stack>
 
-        <section data-contract="metas-clientes" className="flex flex-col gap-2.5">
+        <Stack asChild gap={2}>
+          <section data-contract="metas-clientes">
           <SecaoHeader
             titulo="Metas de clientes (cross-business)"
             meta={`cross-business · ${nClientes} ${nClientes === 1 ? 'meta' : 'metas'} em ${nEmpresas} ${
@@ -262,7 +277,8 @@ export default function Plataforma({ metasPlataforma, metasDeClientes }: Props) 
             tela seria inventar total de plataforma no cliente — a pendência fica declarada até
             alguém decidir o que a plataforma quer medir.
           </p>
-        </section>
+          </section>
+        </Stack>
       </Stack>
     </>
   )

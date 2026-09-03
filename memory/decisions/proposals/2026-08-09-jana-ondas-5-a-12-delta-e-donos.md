@@ -94,7 +94,7 @@ zero `process.env`, zero bypass ([§5 2026-08-08](../../proibicoes.md), classe L
 ## 5. Correção ao `B-7`
 
 O pedido diz que o empty state *"vaza número da plataforma na tela"*. O número **já está
-redigido no git** — [`superadmin/metas.blade.php:13`](../../../Modules/Jana/Resources/views/superadmin/metas.blade.php)
+redigido no git** — `Modules/Jana/Resources/views/superadmin/metas.blade.php:13` (path historico — a view foi removida em 2026-09-03, quando a tela virou Inertia `Jana/Plataforma`; era verdade na data deste registro)
 lê `R$ [redacted Tier 0]mi/ano`, resquício do `git filter-repo` de 2026-06-08.
 
 Não há vazamento. Há uma **string quebrada** renderizada pro superadmin. A remediação que o

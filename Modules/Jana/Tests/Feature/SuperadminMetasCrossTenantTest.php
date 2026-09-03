@@ -143,10 +143,42 @@ it('não regride: quem tem a permissão REAL (Spatie, sem bypass) segue entrando
     expect($this->get('/ia/superadmin/metas')->status())->not->toBe(403);
 })->group('tier0');
 
-it('não regride: superadmin por user_type segue entrando mesmo sem a permissão atribuída', function () {
+/**
+ * ERRATA 2026-09-03 — este caso afirmava o OPOSTO, e era falso por construção.
+ *
+ * Texto original: *"não regride: superadmin por user_type segue entrando mesmo sem a
+ * permissão atribuída"*, assertando `not->toBe(403)`. Ele nasceu com o #6421 e **nunca
+ * rodou**: não estava nesta lane nem na de sqlite (onde skipa por driver). No primeiro
+ * run real (PR da tela Plataforma) reprovou com `Expecting 403 not to be 403`.
+ *
+ * A CAUSA, medida na cadeia e não deduzida: o grupo `/ia` carrega o middleware
+ * `CheckUserLogin` (`Modules/Jana/Http/routes.php:50`), e ele faz
+ *
+ *     if ($request->user()->user_type != 'user' || ... ) abort(403);
+ *
+ * ⇒ QUALQUER `user_type` diferente de `'user'` leva 403 ANTES de o controller rodar.
+ * A porta (b) do gate — `user_type ∈ {superadmin, user_oimpresso}` — é **inalcançável
+ * em toda rota do grupo `/ia`**. Ela existe no código e não pode ser exercida ali.
+ *
+ * Isso NÃO é regressão da tela nem do #6421: é uma verdade do middleware que ninguém
+ * tinha medido, porque o teste que a teria pego nunca executou. Bate com a medição de
+ * produção de 2026-08-31 (RUNBOOK-plataforma.md §1.1): ZERO usuários com esse
+ * `user_type`, e os 5 que alcançam a tela entram todos pela porta (a).
+ *
+ * ⛔ REMOVER a porta (b) do controller é decisão [W], não conserto de teste — ela é
+ * fail-safe declarado e sair dela muda o gate. O que este caso faz agora é IMPEDIR que
+ * alguém volte a acreditar que ela funciona.
+ */
+it('a porta `user_type` é INALCANÇÁVEL no grupo /ia — o CheckUserLogin barra antes do controller', function () {
     $this->user->user_type = 'superadmin';
     $this->user->save();
     $this->user->forgetCachedPermissions();
 
-    expect($this->get('/ia/superadmin/metas')->status())->not->toBe(403);
+    // CONTROLE POSITIVO: o predicado do controller diz SIM para este usuário...
+    expect(\Modules\Jana\Http\Controllers\SuperadminController::podeVerPlataforma($this->user->fresh()))
+        ->toBeTrue('o gate do controller deixaria passar — se a request chegasse nele');
+
+    // ...e mesmo assim a request leva 403, porque o middleware do grupo aborta antes.
+    // Sem o controle acima, este 403 seria indistinguível de "o gate funcionou".
+    expect($this->get('/ia/superadmin/metas')->status())->toBe(403);
 })->group('tier0');

@@ -156,7 +156,9 @@ it('UC-PLATAF-02 · o payload traz meta da plataforma (business_id NULL) com Nom
         'unidade' => '%',
         'tipo_agregacao' => 'ultimo',
         'ativo' => true,
-        'origem' => 'sistema',
+        // ENUM REAL do banco: ['chat_ia','manual','seed'] (migration). NAO usar 'sistema',
+        // que e do PROTOTIPO: o MySQL nao-estrito grava '' em vez de falhar.
+        'origem' => 'seed',
     ]);
 
     $linhas = platafPartial($this, 'metasPlataforma')->json('props.metasPlataforma') ?? [];
@@ -166,7 +168,7 @@ it('UC-PLATAF-02 · o payload traz meta da plataforma (business_id NULL) com Nom
     expect($achada)->not->toBeNull('a meta da plataforma recém-criada não apareceu no payload');
     expect($achada['nome'])->toBe('CANARIO-PLATAFORMA');
     expect($achada['unidade'])->toBe('%');
-    expect($achada['origem'])->toBe('sistema');
+    expect($achada['origem'])->toBe('seed');
 })->group('tier0');
 
 it('UC-PLATAF-03 · a lista de clientes é cross-business e traz período atual + última apuração', function () {
