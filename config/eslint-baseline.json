@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "generated_at": "2026-09-03T10:51:19.193Z",
+    "generated_at": "2026-09-03T11:52:17.125Z",
     "total_violations": 2360,
     "eslint_version": "flat-config 9.x",
     "adr": "0209"

@@ -45,7 +45,7 @@
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/Forja/MyWork/Index.tsx` | 6 | ↔ → | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R4` | `Modules/Forja/Resources/js/Pages/Forja/MyWork/Index.tsx` | 1 | PageHeader=sim · DataTable=não | UiLintCommand.php R4 | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/Forja/MyWork/Index.tsx` | 11 |  | layout-primitives-guard.mjs | aplicado |
-| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.tsx` | 7 | → ⚠ | UiLintCommand.php R3 | aplicado |
+| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.tsx` | 8 | → ⚠ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R1` | `Modules/Forja/Resources/js/Pages/Forja/Roadmap/Index.tsx` | 1 | #3b82f6 | UiLintCommand.php R1 · conformance-gate | aplicado |
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/Forja/Roadmap/Index.tsx` | 2 | → | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R4` | `Modules/Forja/Resources/js/Pages/Forja/Roadmap/Index.tsx` | 1 | PageHeader=sim · DataTable=não | UiLintCommand.php R4 | aplicado |
