@@ -53,7 +53,7 @@ function acoesBootstrap(): array
     return [$business, $user];
 }
 
-//**
+/**
  * A entry da Jana no `shell.menu` é gated pela ASSINATURA (Camada 1 — `jana_module` no
  * `package_details`, `ModuleUtil::hasThePermissionInSubscription`), não só pela permission.
  * O tenant do seed pode não ter assinatura: garantimos uma (transação, rollback no fim) —
@@ -61,6 +61,13 @@ function acoesBootstrap(): array
  */
 function acoesGaranteAssinaturaJana(Business $business, User $user): void
 {
+    // `AdminSidebarMenu` só invoca o `modifyAdminMenu` de módulo INSTALADO — `ModuleUtil::isModuleInstalled`
+    // lê `system.jana_version`, que só o InstallController grava. O CI migra do zero e nunca o roda: sem a
+    // property, nenhuma entry da Jana nasce, com ou sem assinatura. Gravada na transação (rollback no fim).
+    if (! \App\System::getProperty('jana_version')) {
+        \App\System::addProperty('jana_version', (string) config('copiloto.module_version', '0.1'));
+    }
+
     if (! class_exists(\Modules\Superadmin\Entities\Subscription::class)) {
         return; // sem Superadmin, `hasThePermissionInSubscription` devolve true sozinho
     }
@@ -88,7 +95,7 @@ function acoesGaranteAssinaturaJana(Business $business, User $user): void
     $sub->save();
 }
 
-/ ── RUNTIME ──────────────────────────────────────────────────────────────────
+// ── RUNTIME ──────────────────────────────────────────────────────────────────
 
 it('UC-ACAO-00: a aba Ações existe na barra da área, na 4ª posição, e leva a /ia/acoes', function () {
     [$business, $user] = acoesBootstrap();
