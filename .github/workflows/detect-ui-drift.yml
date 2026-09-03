@@ -16,8 +16,16 @@ on:
     types: [opened, reopened, ready_for_review]
     branches: [main]
     paths:
+      # Raizes de Pages: o nucleo E o modulo dono (Modules/<X>/Resources/js/Pages).
+      # Sem a 2a raiz aqui, um PR que so toque Modules/ nao dispara este workflow e,
+      # com skip-as-pass, sai VERDE sem ter medido nada. Espelha raizesDePages
+      # (scripts/qa/page-path.mjs), que aceita as duas grafias de Resources.
       - 'resources/js/Pages/**/*.tsx'
+      - 'Modules/*/Resources/js/Pages/**/*.tsx'
+      - 'Modules/*/resources/js/Pages/**/*.tsx'
       - 'resources/js/Pages/**/*.charter.md'
+      - 'Modules/*/Resources/js/Pages/**/*.charter.md'
+      - 'Modules/*/resources/js/Pages/**/*.charter.md'
       - 'prototipo-ui/SYNC_LOG.md'
       - 'scripts/governance/detect-ui-drift.mjs'
       - 'scripts/governance/detect-ui-drift.test.mjs'
